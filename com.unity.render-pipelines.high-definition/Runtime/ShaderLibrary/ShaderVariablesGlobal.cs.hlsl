@@ -52,7 +52,7 @@ GLOBAL_CBUFFER_START(ShaderVariablesGlobal, b0)
     float _MaxFogDistance;
     float4 _FogColor;
     float _FogColorMode;
-    float _Pad0;
+    uint _DensityVolumeCount;
     float _Pad1;
     float _Pad2;
     float4 _MipFogParameters;
@@ -84,7 +84,7 @@ GLOBAL_CBUFFER_START(ShaderVariablesGlobal, b0)
     uint _DirectionalLightCount;
     uint _PunctualLightCount;
     uint _AreaLightCount;
-    uint _EnvLightCount;
+    uint _ReflectionProbeCount;
     int _EnvLightSkyEnabled;
     uint _CascadeShadowCount;
     int _DirectionalShadowIndex;
@@ -109,6 +109,14 @@ GLOBAL_CBUFFER_START(ShaderVariablesGlobal, b0)
     float4 _CookieAtlasSize;
     float4 _CookieAtlasData;
     float4 _PlanarAtlasData;
+    uint4 _BoundedEntityCountPerCategory[5];
+    uint4 _BoundedEntityOffsetPerCategory[5];
+    uint4 _BoundedEntityDwordCountPerCategory[5];
+    uint4 _BoundedEntityDwordOffsetPerCategory[5];
+    uint4 _BoundedEntityZBinDwordCountPerCategory[5];
+    uint4 _BoundedEntityZBinDwordOffsetPerCategory[5];
+    int2 _CoarseTileBufferDimensions;
+    int2 _FineTileBufferDimensions;
     uint _NumTileFtplX;
     uint _NumTileFtplY;
     float g_fClustScale;

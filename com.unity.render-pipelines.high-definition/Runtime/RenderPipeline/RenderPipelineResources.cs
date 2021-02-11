@@ -64,6 +64,10 @@ namespace UnityEngine.Rendering.HighDefinition
             public ComputeShader buildDispatchIndirectCS;
             [Reload("Runtime/Lighting/LightLoop/scrbound.compute")]
             public ComputeShader buildScreenAABBCS;
+            [Reload("Runtime/Lighting/LightLoop/zBin.compute")]
+            public ComputeShader zBinCS;
+            [Reload("Runtime/Lighting/LightLoop/tile.compute")]
+            public ComputeShader tileCS;
             [Reload("Runtime/Lighting/LightLoop/lightlistbuild.compute")]
             public ComputeShader buildPerTileLightListCS;               // FPTL
             [Reload("Runtime/Lighting/LightLoop/lightlistbuild-bigtile.compute")]
@@ -72,8 +76,8 @@ namespace UnityEngine.Rendering.HighDefinition
             public ComputeShader buildPerVoxelLightListCS;              // clustered
             [Reload("Runtime/Lighting/LightLoop/lightlistbuild-clearatomic.compute")]
             public ComputeShader lightListClusterClearAtomicIndexCS;
-            [Reload("Runtime/Lighting/LightLoop/materialflags.compute")]
-            public ComputeShader buildMaterialFlagsCS;
+            [Reload("Runtime/Lighting/LightLoop/classification.compute")]
+            public ComputeShader classificationCS;
             [Reload("Runtime/Lighting/LightLoop/Deferred.compute")]
             public ComputeShader deferredCS;
             [Reload("Runtime/Lighting/Shadow/ContactShadows.compute")]

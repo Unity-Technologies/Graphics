@@ -53,7 +53,7 @@ Shader "Hidden/HDRP/ScreenSpaceShadows"
             context.shadowContext = InitShadowContext();
 
             // Get directional light data. By definition we only have one directional light casting shadow
-            DirectionalLightData light = _DirectionalLightDatas[_DirectionalShadowIndex];
+            DirectionalLightData light = _DirectionalLightData[_DirectionalShadowIndex];
             float3 L = -light.forward;
 
             // We also need the normal

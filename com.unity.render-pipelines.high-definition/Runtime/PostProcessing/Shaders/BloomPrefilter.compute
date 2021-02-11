@@ -45,7 +45,7 @@ float3 PartialAverage(float3 c0, float3 c1, float3 c2, float3 c3, float w0, floa
 void KMain(uint3 dispatchThreadId : SV_DispatchThreadID)
 {
     UNITY_XR_ASSIGN_VIEW_INDEX(dispatchThreadId.z);
-    PositionInputs posInputs = GetPositionInput(float2(dispatchThreadId.xy), _TexelSize.zw, uint2(GROUP_SIZE, GROUP_SIZE));
+    PositionInputs posInputs = GetPositionInput(float2(dispatchThreadId.xy), _TexelSize.zw);
     float2 uv = posInputs.positionNDC;
 
 #if LOW_QUALITY

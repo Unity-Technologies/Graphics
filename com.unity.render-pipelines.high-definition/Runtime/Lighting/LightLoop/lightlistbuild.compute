@@ -31,7 +31,7 @@
 
 StructuredBuffer<float4> g_vBoundsBuffer : register( t1 );
 StructuredBuffer<LightVolumeData> _LightVolumeData : register(t2);
-StructuredBuffer<SFiniteLightBound> g_data : register( t3 );
+StructuredBuffer<FiniteLightBound> g_data : register( t3 );
 
 #ifdef USE_TWO_PASS_TILED_LIGHTING
 StructuredBuffer<uint> g_vBigTileLightList : register( t4 );        // don't support Buffer yet in unity
@@ -220,13 +220,13 @@ void TileLightListGen(uint3 dispatchThreadId : SV_DispatchThreadID, uint threadI
     {
         int l = g_vBigTileLightList[MAX_NR_BIG_TILE_LIGHTS_PLUS_ONE*bigTileIdx+l0+1];
 #else
-    for(int l=(int) t; l<(int) g_iNrVisibLights; l += NR_THREADS)
+    for(int l=(int) t; l<(int) _BoundedEntityCount; l += NR_THREADS)
     {
 #endif
         // Skip density volumes (lights are sorted by category). TODO: improve data locality
         if (_LightVolumeData[l].lightCategory == LIGHTCATEGORY_DENSITY_VOLUME) { break; }
 
-        const ScreenSpaceBoundsIndices boundsIndices = GenerateScreenSpaceBoundsIndices(l, g_iNrVisibLights, unity_StereoEyeIndex);
+        const ScreenSpaceBoundsIndices boundsIndices = GenerateScreenSpaceBoundsIndices(l, _BoundedEntityCount, unity_StereoEyeIndex);
         const float3 vMi = g_vBoundsBuffer[boundsIndices.min].xyz;
         const float3 vMa = g_vBoundsBuffer[boundsIndices.max].xyz;
 
@@ -279,7 +279,7 @@ void TileLightListGen(uint3 dispatchThreadId : SV_DispatchThreadID, uint threadI
     int nrLightsCombinedList = min(ldsNrLightsFinal,LIGHT_LIST_MAX_COARSE_ENTRIES);
     for(int i=t; i<nrLightsCombinedList; i+=NR_THREADS)
     {
-        const int lightBoundIndex = GenerateLightCullDataIndex(prunedList[i], g_iNrVisibLights, unity_StereoEyeIndex);
+        const int lightBoundIndex = GenerateLightCullDataIndex(prunedList[i], _BoundedEntityCount, unity_StereoEyeIndex);
 
         InterlockedAdd(ldsCategoryListCount[_LightVolumeData[lightBoundIndex].lightCategory], 1);
 #ifdef USE_FEATURE_FLAGS
@@ -372,8 +372,8 @@ int SphericalIntersectionTests(uint threadID, int iNrCoarseLights, float2 screen
 
     for(l=threadID; l<iNrCoarseLights; l+=NR_THREADS)
     {
-        const int lightBoundIndex = GenerateLightCullDataIndex(prunedList[l], g_iNrVisibLights, unity_StereoEyeIndex);
-        SFiniteLightBound lightData = g_data[lightBoundIndex];
+        const int lightBoundIndex = GenerateLightCullDataIndex(prunedList[l], _BoundedEntityCount, unity_StereoEyeIndex);
+        FiniteLightBound lightData = g_data[lightBoundIndex];
 
         if( DoesSphereOverlapTile(V, halfTileSizeAtZDistOne, lightData.center.xyz, lightData.radius, g_isOrthographic!=0) )
         {
@@ -395,7 +395,7 @@ int SphericalIntersectionTests(uint threadID, int iNrCoarseLights, float2 screen
 #ifdef FINE_PRUNING_ENABLED
 int GetCoarseLightIndex(int l, int iNrCoarseLights)
 {
-    return l < iNrCoarseLights ? GenerateLightCullDataIndex(coarseList[l], g_iNrVisibLights, unity_StereoEyeIndex) : 0;
+    return l < iNrCoarseLights ? GenerateLightCullDataIndex(coarseList[l], _BoundedEntityCount, unity_StereoEyeIndex) : 0;
 }
 
 // initializes ldsNrLightsFinal with the number of accepted lights.

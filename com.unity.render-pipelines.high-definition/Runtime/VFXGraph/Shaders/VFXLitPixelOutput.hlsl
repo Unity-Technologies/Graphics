@@ -22,8 +22,11 @@ float4 VFXCalcPixelOutputForward(const SurfaceData surfaceData, const BuiltinDat
 
     #endif
 
+    uint tile = ComputeTileIndex(posInput.positionSS);
+    uint zBin = ComputeZBinIndex(posInput.linearDepth);
+
     LightLoopOutput lightLoopOutput;
-    LightLoop(GetWorldSpaceNormalizeViewDir(posRWS), posInput, preLightData, bsdfData, builtinData, featureFlags, lightLoopOutput);
+    LightLoop(GetWorldSpaceNormalizeViewDir(posRWS), posInput, tile, zBin, preLightData, bsdfData, builtinData, featureFlags, lightLoopOutput);
 
     // Alias
     float3 diffuseLighting = lightLoopOutput.diffuseLighting;
@@ -92,11 +95,10 @@ float4 VFXGetPixelOutputForward(const VFX_VARYING_PS_INPUTS i, float3 normalWS, 
     BSDFData bsdfData;
     PreLightData preLightData;
 
-    uint2 tileIndex = uint2(i.VFX_VARYING_POSCS.xy) / GetTileSize();
-    VFXGetHDRPLitData(surfaceData,builtinData,bsdfData,preLightData,i,normalWS,uvData,tileIndex);
+    VFXGetHDRPLitData(surfaceData,builtinData,bsdfData,preLightData,i,normalWS,uvData);
 
     float3 posRWS = VFXGetPositionRWS(i);
-    PositionInputs posInput = GetPositionInput(i.VFX_VARYING_POSCS.xy, _ScreenSize.zw, i.VFX_VARYING_POSCS.z, i.VFX_VARYING_POSCS.w, posRWS, tileIndex);
+    PositionInputs posInput = GetPositionInput(i.VFX_VARYING_POSCS.xy, _ScreenSize.zw, i.VFX_VARYING_POSCS.z, i.VFX_VARYING_POSCS.w, posRWS);
 
     return VFXCalcPixelOutputForward(surfaceData,builtinData,preLightData, bsdfData, posInput, posRWS);
 }
@@ -107,10 +109,9 @@ float4 VFXGetPixelOutputForward(const VFX_VARYING_PS_INPUTS i, float3 normalWS, 
 
 float4 VFXGetPixelOutputForwardShaderGraph(const VFX_VARYING_PS_INPUTS i, const SurfaceData surfaceData, float3 emissiveColor, float opacity)
 {
-    uint2 tileIndex = uint2(i.VFX_VARYING_POSCS.xy) / GetTileSize();
     float3 posRWS = VFXGetPositionRWS(i);
     float4 posSS = i.VFX_VARYING_POSCS;
-    PositionInputs posInput = GetPositionInput(posSS.xy, _ScreenSize.zw, posSS.z, posSS.w, posRWS, tileIndex);
+    PositionInputs posInput = GetPositionInput(posSS.xy, _ScreenSize.zw, posSS.z, posSS.w, posRWS);
 
     PreLightData preLightData = (PreLightData)0;
     BSDFData bsdfData = (BSDFData)0;

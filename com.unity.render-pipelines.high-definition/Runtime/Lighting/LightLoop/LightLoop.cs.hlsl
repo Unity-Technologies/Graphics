@@ -23,6 +23,17 @@
 #define LIGHTCATEGORY_COUNT (5)
 
 //
+// UnityEngine.Rendering.HighDefinition.BoundedEntityCategory:  static fields
+//
+#define BOUNDEDENTITYCATEGORY_PUNCTUAL_LIGHT (0)
+#define BOUNDEDENTITYCATEGORY_AREA_LIGHT (1)
+#define BOUNDEDENTITYCATEGORY_REFLECTION_PROBE (2)
+#define BOUNDEDENTITYCATEGORY_DECAL (3)
+#define BOUNDEDENTITYCATEGORY_DENSITY_VOLUME (4)
+#define BOUNDEDENTITYCATEGORY_COUNT (5)
+#define BOUNDEDENTITYCATEGORY_NONE (5)
+
+//
 // UnityEngine.Rendering.HighDefinition.LightFeatureFlags:  static fields
 //
 #define LIGHTFEATUREFLAGS_PUNCTUAL (4096)
@@ -35,7 +46,7 @@
 #define LIGHTFEATUREFLAGS_PROBE_VOLUME (524288)
 
 //
-// UnityEngine.Rendering.HighDefinition.LightDefinitions:  static fields
+// UnityEngine.Rendering.HighDefinition.TiledLightingConstants:  static fields
 //
 #define MAX_NR_BIG_TILE_LIGHTS_PLUS_ONE (512)
 #define VIEWPORT_SCALE_Z (1)
@@ -58,6 +69,9 @@
 #define SCREEN_SPACE_COLOR_SHADOW_FLAG (256)
 #define INVALID_SCREEN_SPACE_SHADOW (255)
 #define SCREEN_SPACE_SHADOW_INDEX_MASK (255)
+#define COARSE_TILE_SIZE (64)
+#define FINE_TILE_SIZE (16)
+#define Z_BIN_COUNT (8192)
 
 //
 // UnityEngine.Rendering.HighDefinition.ClusterDebugMode:  static fields
@@ -65,16 +79,25 @@
 #define CLUSTERDEBUGMODE_VISUALIZE_OPAQUE (0)
 #define CLUSTERDEBUGMODE_VISUALIZE_SLICE (1)
 
-// Generated from UnityEngine.Rendering.HighDefinition.SFiniteLightBound
+//
+// UnityEngine.Rendering.HighDefinition.BinnedDebugMode:  static fields
+//
+#define BINNEDDEBUGMODE_VISUALIZE_OPAQUE (0)
+#define BINNEDDEBUGMODE_VISUALIZE_SLICE (1)
+#define BINNEDDEBUGMODE_VISUALIZE_VARIANTS (2)
+
+// Generated from UnityEngine.Rendering.HighDefinition.FiniteLightBound
 // PackingRules = Exact
-struct SFiniteLightBound
+struct FiniteLightBound
 {
-    float3 boxAxisX;
-    float3 boxAxisY;
-    float3 boxAxisZ;
     float3 center;
-    float scaleXY;
     float radius;
+    float3 boxAxisX;
+    float scaleXY;
+    float3 boxAxisY;
+    float __pad0__;
+    float3 boxAxisZ;
+    float __pad1__;
 };
 
 // Generated from UnityEngine.Rendering.HighDefinition.LightVolumeData
@@ -102,9 +125,11 @@ CBUFFER_START(ShaderVariablesLightList)
     float4x4 g_mScrProjectionArr[2];
     float4x4 g_mInvProjectionArr[2];
     float4x4 g_mProjectionArr[2];
+    int2 _DepthPyramidMipLevelOffsetCoarse;
+    int2 _DepthPyramidMipLevelOffsetFine;
     float4 g_screenSize;
     int2 g_viDimensions;
-    int g_iNrVisibLights;
+    uint _BoundedEntityCount;
     uint g_isOrthographic;
     uint g_BaseFeatureFlags;
     int g_iNumSamplesMSAA;
@@ -117,31 +142,39 @@ CBUFFER_START(ShaderVariablesLightList)
 CBUFFER_END
 
 //
-// Accessors for UnityEngine.Rendering.HighDefinition.SFiniteLightBound
+// Accessors for UnityEngine.Rendering.HighDefinition.FiniteLightBound
 //
-float3 GetBoxAxisX(SFiniteLightBound value)
-{
-    return value.boxAxisX;
-}
-float3 GetBoxAxisY(SFiniteLightBound value)
-{
-    return value.boxAxisY;
-}
-float3 GetBoxAxisZ(SFiniteLightBound value)
-{
-    return value.boxAxisZ;
-}
-float3 GetCenter(SFiniteLightBound value)
+float3 GetCenter(FiniteLightBound value)
 {
     return value.center;
 }
-float GetScaleXY(SFiniteLightBound value)
+float GetRadius(FiniteLightBound value)
+{
+    return value.radius;
+}
+float3 GetBoxAxisX(FiniteLightBound value)
+{
+    return value.boxAxisX;
+}
+float GetScaleXY(FiniteLightBound value)
 {
     return value.scaleXY;
 }
-float GetRadius(SFiniteLightBound value)
+float3 GetBoxAxisY(FiniteLightBound value)
 {
-    return value.radius;
+    return value.boxAxisY;
+}
+float Get__pad0__(FiniteLightBound value)
+{
+    return value.__pad0__;
+}
+float3 GetBoxAxisZ(FiniteLightBound value)
+{
+    return value.boxAxisZ;
+}
+float Get__pad1__(FiniteLightBound value)
+{
+    return value.__pad1__;
 }
 //
 // Accessors for UnityEngine.Rendering.HighDefinition.LightVolumeData

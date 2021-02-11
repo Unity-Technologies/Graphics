@@ -11,7 +11,7 @@ namespace UnityEngine.Rendering.HighDefinition
             TextureHandle noisyBuffer, TextureHandle velocityBuffer, TextureHandle distanceBuffer)
         {
             // Is the history still valid?
-            int dirShadowIndex = m_CurrentSunLightDirectionalLightData.screenSpaceShadowIndex & (int)LightDefinitions.s_ScreenSpaceShadowIndexMask;
+            int dirShadowIndex = m_CurrentSunLightDirectionalLightData.screenSpaceShadowIndex & (int)TiledLightingConstants.s_ScreenSpaceShadowIndexMask;
             float historyValidity = EvaluateHistoryValidityDirectionalShadow(hdCamera, dirShadowIndex, m_CurrentSunLightAdditionalLightData);
 
             // Grab the history buffers for shadows
@@ -113,7 +113,7 @@ namespace UnityEngine.Rendering.HighDefinition
                     directionalShadow, velocityBuffer, distanceBuffer);
             }
 
-            int dirShadowIndex = m_CurrentSunLightDirectionalLightData.screenSpaceShadowIndex & (int)LightDefinitions.s_ScreenSpaceShadowIndexMask;
+            int dirShadowIndex = m_CurrentSunLightDirectionalLightData.screenSpaceShadowIndex & (int)TiledLightingConstants.s_ScreenSpaceShadowIndexMask;
             ScreenSpaceShadowType shadowType = m_CurrentSunLightAdditionalLightData.colorShadow ? ScreenSpaceShadowType.Color : ScreenSpaceShadowType.GrayScale;
 
             // Write the result texture to the screen space shadow buffer

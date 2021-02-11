@@ -368,6 +368,13 @@ namespace UnityEngine.Rendering.HighDefinition
         /// <summary>Distance at which clusters will be visualized.</summary>
         public float clusterDebugDistance = 1.0f;
 
+        /// <summary>Binned lighting debug mode.</summary>
+        public bool                  debugBinnedLighting          = false;
+        public BoundedEntityCategory selectedEntityCategory       = BoundedEntityCategory.PunctualLight;
+        public BinnedDebugMode       binnedDebugMode = BinnedDebugMode.VisualizeOpaque;
+        public int                   startBucket = 0;
+        public int                   endBucket = TiledLightingConstants.s_zBinCount - 1;
+
         // Internal APIs
         internal bool IsDebugDisplayRemovePostprocess()
         {

@@ -153,6 +153,9 @@ namespace UnityEngine.Rendering.HighDefinition
         static GUIContent[] s_TileAndClusterDebugStrings = null;
         static int[] s_TileAndClusterDebugValues = null;
 
+        static GUIContent[] s_BoundedEntityCategoryDebugNames  = null;
+        static int[]        s_BoundedEntityCategoryDebugValues = null;
+
         static List<GUIContent> s_CameraNames = new List<GUIContent>();
         static GUIContent[] s_CameraNamesStrings = null;
         static int[] s_CameraNamesValues = null;
@@ -256,6 +259,7 @@ namespace UnityEngine.Rendering.HighDefinition
             internal int shadowDebugModeEnumIndex;
             internal int tileClusterDebugByCategoryEnumIndex;
             internal int clusterDebugModeEnumIndex;
+            internal int binnedDebugModeEnumIndex;
             internal int lightVolumeDebugTypeEnumIndex;
             internal int renderingFulscreenDebugModeEnumIndex;
             internal int terrainTextureEnumIndex;
@@ -312,6 +316,8 @@ namespace UnityEngine.Rendering.HighDefinition
             }
 
             FillTileClusterDebugEnum();
+
+            FillBoundedEntityCategoryDebugNamesAndValues();
 
             s_MaterialFullScreenDebugStrings[(int)FullScreenDebugMode.ValidateDiffuseColor - ((int)FullScreenDebugMode.MinMaterialFullScreenDebug)] = new GUIContent("Diffuse Color");
             s_MaterialFullScreenDebugStrings[(int)FullScreenDebugMode.ValidateSpecularColor - ((int)FullScreenDebugMode.MinMaterialFullScreenDebug)] = new GUIContent("Metal or SpecularColor");
@@ -1320,7 +1326,7 @@ namespace UnityEngine.Rendering.HighDefinition
                                     data.fullScreenContactShadowLightIndex = value;
                                 },
                                 min = () => - 1, // -1 will display all contact shadow
-                                max = () => LightDefinitions.s_LightListMaxPrunedEntries - 1
+                                max = () => TiledLightingConstants.s_LightListMaxPrunedEntries - 1
                             },
                         }
                     });
@@ -1345,6 +1351,65 @@ namespace UnityEngine.Rendering.HighDefinition
                 }
 
                 list.Add(clusterDebugContainer);
+            }
+
+            list.Add(new DebugUI.BoolField
+            {
+                displayName    = "Binned Lighting Debug",
+                getter         = ()    => data.lightingDebugSettings.debugBinnedLighting,
+                setter         = value => data.lightingDebugSettings.debugBinnedLighting = value, // TODO: check FrameSettings to make sure that binned lighting is enabled?
+                onValueChanged = RefreshLightingDebug
+            });
+
+            if (data.lightingDebugSettings.debugBinnedLighting)
+            {
+                var debugContainer = new DebugUI.Container();
+
+                debugContainer.children.Add(new DebugUI.EnumField
+                {
+                    displayName = "Entity Category",
+                    getter      = ()    => (int)data.lightingDebugSettings.selectedEntityCategory,
+                    setter      = value =>      data.lightingDebugSettings.selectedEntityCategory = (BoundedEntityCategory)value,
+                    enumNames   = s_BoundedEntityCategoryDebugNames,
+                    enumValues  = s_BoundedEntityCategoryDebugValues,
+                    getIndex    = ()    => (int)data.lightingDebugSettings.selectedEntityCategory, // TODO: can this code duplication be avoided?
+                    setIndex    = value => data.lightingDebugSettings.selectedEntityCategory = (BoundedEntityCategory)value
+                });
+
+                debugContainer.children.Add(new DebugUI.EnumField
+                {
+                    displayName = "Binned Debug Mode",
+                    getter = () => (int)data.lightingDebugSettings.binnedDebugMode,
+                    setter = value => data.lightingDebugSettings.binnedDebugMode = (BinnedDebugMode)value,
+                    autoEnum = typeof(BinnedDebugMode),
+                    onValueChanged = RefreshLightingDebug,
+                    getIndex = () => data.binnedDebugModeEnumIndex,
+                    setIndex = value => data.binnedDebugModeEnumIndex = value
+                });
+
+                if (data.lightingDebugSettings.binnedDebugMode == BinnedDebugMode.VisualizeSlice)
+                {
+                    debugContainer.children.Add(new DebugUI.IntField
+                    {
+                        displayName = "Start bucket",
+                        getter = () => data.lightingDebugSettings.startBucket,
+                        setter = value => data.lightingDebugSettings.startBucket = value,
+                        min = () => 0,
+                        max = () => TiledLightingConstants.s_zBinCount - 1,
+                        incStep = 1
+                    });
+
+                    debugContainer.children.Add(new DebugUI.IntField
+                    {
+                        displayName = "End bucket",
+                        getter = () => data.lightingDebugSettings.endBucket,
+                        setter = value => data.lightingDebugSettings.endBucket = value,
+                        min = () => 0,
+                        max = () => TiledLightingConstants.s_zBinCount - 1,
+                        incStep = 1
+                    });
+                }
+                list.Add(debugContainer);
             }
 
             list.Add(new DebugUI.BoolField { displayName = "Display Sky Reflection", getter = () => data.lightingDebugSettings.displaySkyReflection, setter = value => data.lightingDebugSettings.displaySkyReflection = value, onValueChanged = RefreshLightingDebug });
@@ -1876,6 +1941,17 @@ namespace UnityEngine.Rendering.HighDefinition
                 .Select(t => new GUIContent(t))
                 .ToArray();
             s_TileAndClusterDebugValues = (int[])Enum.GetValues(typeof(TileClusterCategoryDebug));
+        }
+
+        void FillBoundedEntityCategoryDebugNamesAndValues()
+        {
+            string[] names = Enum.GetNames(typeof(BoundedEntityCategory));
+
+            s_BoundedEntityCategoryDebugNames = names
+                .Select(t => new GUIContent(t))
+                .ToArray();
+
+            s_BoundedEntityCategoryDebugValues = (int[])Enum.GetValues(typeof(BoundedEntityCategory));
         }
 
         static string FormatVector(Vector3 v)

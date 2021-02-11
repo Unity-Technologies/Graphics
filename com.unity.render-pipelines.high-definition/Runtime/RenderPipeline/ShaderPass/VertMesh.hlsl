@@ -167,6 +167,7 @@ VaryingsMeshType VertMesh(AttributesMesh input, float3 worldSpaceOffset)
     output.positionRWS = positionRWS;
 #endif
     output.positionCS = TransformWorldToHClip(positionRWS);
+
 #ifdef VARYINGS_NEED_TANGENT_TO_WORLD
     output.normalWS = normalWS;
     output.tangentWS = tangentWS;

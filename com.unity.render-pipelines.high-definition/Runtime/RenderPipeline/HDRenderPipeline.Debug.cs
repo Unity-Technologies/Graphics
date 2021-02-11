@@ -558,97 +558,49 @@ namespace UnityEngine.Rendering.HighDefinition
             }
         }
 
-        class RenderTileClusterDebugOverlayPassData
+        class RenderZBinDebugOverlayPassData
             : DebugOverlayPassData
         {
             public HDCamera hdCamera;
-            public TextureHandle depthPyramidTexture;
-            public ComputeBufferHandle tileList;
-            public ComputeBufferHandle lightList;
-            public ComputeBufferHandle perVoxelLightList;
-            public ComputeBufferHandle dispatchIndirect;
+            public ComputeBufferHandle fineTileBuffer;
+            public ComputeBufferHandle zBinBuffer;
             public Material debugViewTilesMaterial;
             public LightingDebugSettings lightingDebugSettings;
         }
 
-        void RenderTileClusterDebugOverlay(RenderGraph renderGraph, TextureHandle colorBuffer, TextureHandle depthBuffer, in BuildGPULightListOutput lightLists, TextureHandle depthPyramidTexture, HDCamera hdCamera)
+        void RenderZBinDebugOverlay(RenderGraph renderGraph, TextureHandle colorBuffer, TextureHandle depthBuffer, in BuildGPULightListOutput lightLists, HDCamera hdCamera)
         {
-            // Depending on the debug mode enabled we may not be building the light lists so the buffers would not be valid in this case.
-            if (!lightLists.tileList.IsValid())
+            if (!m_CurrentDebugDisplaySettings.data.lightingDebugSettings.debugBinnedLighting)
                 return;
 
-            if (m_CurrentDebugDisplaySettings.data.lightingDebugSettings.tileClusterDebug == TileClusterDebug.None)
-                return;
-
-            using (var builder = renderGraph.AddRenderPass<RenderTileClusterDebugOverlayPassData>("RenderTileAndClusterDebugOverlay", out var passData, ProfilingSampler.Get(HDProfileId.TileClusterLightingDebug)))
+            using (var builder = renderGraph.AddRenderPass<RenderZBinDebugOverlayPassData>("RenderZBinDebugOverlay", out var passData))
             {
                 passData.hdCamera = hdCamera;
                 passData.debugOverlay = m_DebugOverlay;
                 passData.colorBuffer = builder.UseColorBuffer(colorBuffer, 0);
                 passData.depthBuffer = builder.UseDepthBuffer(depthBuffer, DepthAccess.ReadWrite);
-                passData.depthPyramidTexture = builder.ReadTexture(depthPyramidTexture);
-                passData.tileList = builder.ReadComputeBuffer(lightLists.tileList);
-                passData.lightList = builder.ReadComputeBuffer(lightLists.lightList);
-                passData.perVoxelLightList = builder.ReadComputeBuffer(lightLists.perVoxelLightLists);
-                passData.dispatchIndirect = builder.ReadComputeBuffer(lightLists.dispatchIndirectBuffer);
                 passData.debugViewTilesMaterial = m_DebugViewTilesMaterial;
                 passData.lightingDebugSettings = m_CurrentDebugDisplaySettings.data.lightingDebugSettings;
+                passData.fineTileBuffer = builder.ReadComputeBuffer(lightLists.fineTileBuffer);
+                passData.zBinBuffer = builder.ReadComputeBuffer(lightLists.zBinBuffer);
 
                 builder.SetRenderFunc(
-                    (RenderTileClusterDebugOverlayPassData data, RenderGraphContext ctx) =>
+                    (RenderZBinDebugOverlayPassData data, RenderGraphContext ctx) =>
                     {
-                        int w = data.hdCamera.actualWidth;
-                        int h = data.hdCamera.actualHeight;
-                        int numTilesX = (w + 15) / 16;
-                        int numTilesY = (h + 15) / 16;
-                        int numTiles = numTilesX * numTilesY;
-
                         var lightingDebug = data.lightingDebugSettings;
-
-                        // Debug tiles
-                        if (lightingDebug.tileClusterDebug == TileClusterDebug.MaterialFeatureVariants)
+                        if (lightingDebug.binnedDebugMode == BinnedDebugMode.VisualizeVariants)
                         {
-                            if (GetFeatureVariantsEnabled(data.hdCamera.frameSettings))
-                            {
-                                // featureVariants
-                                data.debugViewTilesMaterial.SetInt(HDShaderIDs._NumTiles, numTiles);
-                                data.debugViewTilesMaterial.SetInt(HDShaderIDs._ViewTilesFlags, (int)lightingDebug.tileClusterDebugByCategory);
-                                data.debugViewTilesMaterial.SetVector(HDShaderIDs._MousePixelCoord, HDUtils.GetMouseCoordinates(data.hdCamera));
-                                data.debugViewTilesMaterial.SetVector(HDShaderIDs._MouseClickPixelCoord, HDUtils.GetMouseClickCoordinates(data.hdCamera));
-                                data.debugViewTilesMaterial.SetBuffer(HDShaderIDs.g_TileList, data.tileList);
-                                data.debugViewTilesMaterial.SetBuffer(HDShaderIDs.g_DispatchIndirectBuffer, data.dispatchIndirect);
-                                data.debugViewTilesMaterial.EnableKeyword("USE_FPTL_LIGHTLIST");
-                                data.debugViewTilesMaterial.DisableKeyword("USE_CLUSTERED_LIGHTLIST");
-                                data.debugViewTilesMaterial.DisableKeyword("SHOW_LIGHT_CATEGORIES");
-                                data.debugViewTilesMaterial.EnableKeyword("SHOW_FEATURE_VARIANTS");
-                                if (DeferredUseComputeAsPixel(data.hdCamera.frameSettings))
-                                    data.debugViewTilesMaterial.EnableKeyword("IS_DRAWPROCEDURALINDIRECT");
-                                else
-                                    data.debugViewTilesMaterial.DisableKeyword("IS_DRAWPROCEDURALINDIRECT");
-                                ctx.cmd.DrawProcedural(Matrix4x4.identity, data.debugViewTilesMaterial, 0, MeshTopology.Triangles, numTiles * 6);
-                            }
+                            // TODO
                         }
-                        else // tile or cluster
+                        else
                         {
-                            bool bUseClustered = lightingDebug.tileClusterDebug == TileClusterDebug.Cluster;
-
-                            // lightCategories
-                            data.debugViewTilesMaterial.SetInt(HDShaderIDs._ViewTilesFlags, (int)lightingDebug.tileClusterDebugByCategory);
-                            data.debugViewTilesMaterial.SetInt(HDShaderIDs._ClusterDebugMode, bUseClustered ? (int)lightingDebug.clusterDebugMode : (int)ClusterDebugMode.VisualizeOpaque);
-                            data.debugViewTilesMaterial.SetFloat(HDShaderIDs._ClusterDebugDistance, lightingDebug.clusterDebugDistance);
-                            data.debugViewTilesMaterial.SetVector(HDShaderIDs._MousePixelCoord, HDUtils.GetMouseCoordinates(data.hdCamera));
-                            data.debugViewTilesMaterial.SetVector(HDShaderIDs._MouseClickPixelCoord, HDUtils.GetMouseClickCoordinates(data.hdCamera));
-                            data.debugViewTilesMaterial.SetBuffer(HDShaderIDs.g_vLightListGlobal, bUseClustered ? data.perVoxelLightList : data.lightList);
-                            data.debugViewTilesMaterial.SetTexture(HDShaderIDs._CameraDepthTexture, data.depthPyramidTexture);
-                            data.debugViewTilesMaterial.EnableKeyword(bUseClustered ? "USE_CLUSTERED_LIGHTLIST" : "USE_FPTL_LIGHTLIST");
-                            data.debugViewTilesMaterial.DisableKeyword(!bUseClustered ? "USE_CLUSTERED_LIGHTLIST" : "USE_FPTL_LIGHTLIST");
-                            data.debugViewTilesMaterial.EnableKeyword("SHOW_LIGHT_CATEGORIES");
                             data.debugViewTilesMaterial.DisableKeyword("SHOW_FEATURE_VARIANTS");
-                            if (!bUseClustered && data.hdCamera.frameSettings.IsEnabled(FrameSettingsField.MSAA))
-                                data.debugViewTilesMaterial.EnableKeyword("DISABLE_TILE_MODE");
-                            else
-                                data.debugViewTilesMaterial.DisableKeyword("DISABLE_TILE_MODE");
-
+                            data.debugViewTilesMaterial.EnableKeyword("SHOW_LIGHT_CATEGORIES");
+                            data.debugViewTilesMaterial.SetInt("_SelectedEntityCategory", (int)lightingDebug.selectedEntityCategory);
+                            data.debugViewTilesMaterial.SetVector(HDShaderIDs._MousePixelCoord, HDUtils.GetMouseCoordinates(data.hdCamera));
+                            data.debugViewTilesMaterial.SetInt(HDShaderIDs._BinnedDebugMode, (int)lightingDebug.binnedDebugMode);
+                            data.debugViewTilesMaterial.SetInt(HDShaderIDs._StartBucket, lightingDebug.startBucket);
+                            data.debugViewTilesMaterial.SetInt(HDShaderIDs._EndBucket, lightingDebug.endBucket);
                             CoreUtils.DrawFullScreen(ctx.cmd, data.debugViewTilesMaterial, 0);
                         }
                     });
@@ -796,7 +748,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 RenderAtlasDebugOverlay(renderGraph, colorBuffer, depthBuffer, m_TextureCaches.reflectionPlanarProbeCache.GetTexCache(), (int)m_CurrentDebugDisplaySettings.data.lightingDebugSettings.planarReflectionProbeMipLevel, applyExposure: true, "RenderPlanarProbeAtlasOverlay", HDProfileId.DisplayPlanarReflectionProbeAtlas);
 
             RenderDensityVolumeAtlasDebugOverlay(renderGraph, colorBuffer, depthBuffer);
-            RenderTileClusterDebugOverlay(renderGraph, colorBuffer, depthBuffer, lightLists, depthPyramidTexture, hdCamera);
+            RenderZBinDebugOverlay(renderGraph, colorBuffer, depthBuffer, lightLists, hdCamera);
             RenderShadowsDebugOverlay(renderGraph, colorBuffer, depthBuffer, shadowResult);
             RenderDecalOverlay(renderGraph, colorBuffer, depthBuffer, hdCamera);
         }

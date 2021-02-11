@@ -102,7 +102,7 @@ namespace UnityEngine.Rendering.HighDefinition
             }
             else
             {
-                gpuLightListOutput = BuildGPULightList(m_RenderGraph, hdCamera, m_TileAndClusterData, m_TotalLightCount, ref m_ShaderVariablesLightListCB, prepassOutput.depthBuffer, prepassOutput.stencilBuffer, prepassOutput.gbuffer);
+                gpuLightListOutput = BuildGPULightList(m_RenderGraph, hdCamera, m_TileAndClusterData, ref m_ShaderVariablesLightListCB, prepassOutput.depthBuffer, prepassOutput.depthPyramidTexture, prepassOutput.stencilBuffer, prepassOutput.gbuffer);
 
                 // Evaluate the history validation buffer that may be required by temporal accumulation based effects
                 TextureHandle historyValidationTexture = EvaluateHistoryValidationBuffer(m_RenderGraph, hdCamera, prepassOutput.depthBuffer, prepassOutput.resolvedNormalBuffer, prepassOutput.resolvedMotionVectorsBuffer);
@@ -114,7 +114,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
                 lightingBuffers.contactShadowsBuffer = RenderContactShadows(m_RenderGraph, hdCamera, msaa ? prepassOutput.depthValuesMSAA : prepassOutput.depthPyramidTexture, gpuLightListOutput, GetDepthBufferMipChainInfo().mipLevelOffsets[1].y);
 
-                var volumetricDensityBuffer = VolumeVoxelizationPass(m_RenderGraph, hdCamera, m_VisibleVolumeBoundsBuffer, m_VisibleVolumeDataBuffer, gpuLightListOutput.bigTileLightList);
+                var volumetricDensityBuffer = VolumeVoxelizationPass(m_RenderGraph, hdCamera, gpuLightListOutput.coarseTileBuffer, gpuLightListOutput.zBinBuffer);
 
                 RenderShadows(m_RenderGraph, hdCamera, cullingResults, ref shadowResult);
 
@@ -158,7 +158,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
                 var maxZMask = GenerateMaxZPass(m_RenderGraph, hdCamera, prepassOutput.depthPyramidTexture, m_DepthBufferMipChainInfo);
 
-                var volumetricLighting = VolumetricLightingPass(m_RenderGraph, hdCamera, prepassOutput.depthPyramidTexture, volumetricDensityBuffer, maxZMask, gpuLightListOutput.bigTileLightList, shadowResult);
+                var volumetricLighting = VolumetricLightingPass(m_RenderGraph, hdCamera, prepassOutput.depthPyramidTexture, volumetricDensityBuffer, maxZMask, gpuLightListOutput.coarseTileBuffer, gpuLightListOutput.zBinBuffer, shadowResult);
 
                 var deferredLightingOutput = RenderDeferredLighting(m_RenderGraph, hdCamera, colorBuffer, prepassOutput.depthBuffer, prepassOutput.depthPyramidTexture, lightingBuffers, prepassOutput.gbuffer, shadowResult, gpuLightListOutput);
 
@@ -472,9 +472,8 @@ namespace UnityEngine.Rendering.HighDefinition
             public TextureHandle[]      renderTarget = new TextureHandle[RenderGraph.kMaxMRTCount];
             public int                  renderTargetCount;
             public TextureHandle        depthBuffer;
-            public ComputeBufferHandle  lightListBuffer;
-            public ComputeBufferHandle  perVoxelOffset;
-            public ComputeBufferHandle  perTileLogBaseTweak;
+            public ComputeBufferHandle  fineTileBuffer;
+            public ComputeBufferHandle  zBinBuffer;
             public FrameSettings        frameSettings;
         }
 
@@ -504,30 +503,16 @@ namespace UnityEngine.Rendering.HighDefinition
             TextureHandle               depthBuffer,
             ShadowResult                shadowResult)
         {
-            bool useFptl = frameSettings.IsEnabled(FrameSettingsField.FPTLForForwardOpaque) && opaque;
-
             data.frameSettings = frameSettings;
-            data.lightListBuffer = builder.ReadComputeBuffer(useFptl ? lightLists.lightList : lightLists.perVoxelLightLists);
-            if (!useFptl)
-            {
-                data.perVoxelOffset = builder.ReadComputeBuffer(lightLists.perVoxelOffset);
-                if (lightLists.perTileLogBaseTweak.IsValid())
-                    data.perTileLogBaseTweak = builder.ReadComputeBuffer(lightLists.perTileLogBaseTweak);
-            }
+
+            /* TODO: we shouldn't be reading these buffers if tiled lighting is disabled... */
+            data.fineTileBuffer = builder.ReadComputeBuffer(lightLists.fineTileBuffer);
+            data.zBinBuffer     = builder.ReadComputeBuffer(lightLists.zBinBuffer);
+
             data.depthBuffer = builder.UseDepthBuffer(depthBuffer, DepthAccess.ReadWrite);
             data.rendererList = builder.UseRendererList(renderGraph.CreateRendererList(rendererListDesc));
 
             HDShadowManager.ReadShadowResult(shadowResult, builder);
-        }
-
-        static void BindGlobalLightListBuffers(ForwardPassData data, RenderGraphContext ctx)
-        {
-            ctx.cmd.SetGlobalBuffer(HDShaderIDs.g_vLightListGlobal, data.lightListBuffer);
-            // Next two are only for cluster rendering. PerTileLogBaseTweak is only when using depth buffer so can be invalid as well.
-            if (data.perVoxelOffset.IsValid())
-                ctx.cmd.SetGlobalBuffer(HDShaderIDs.g_vLayeredOffsetsBuffer, data.perVoxelOffset);
-            if (data.perTileLogBaseTweak.IsValid())
-                ctx.cmd.SetGlobalBuffer(HDShaderIDs.g_logBaseBuffer, data.perTileLogBaseTweak);
         }
 
         // Guidelines: In deferred by default there is no opaque in forward. However it is possible to force an opaque material to render in forward
@@ -591,11 +576,10 @@ namespace UnityEngine.Rendering.HighDefinition
                         for (int i = 0; i < data.renderTargetCount; ++i)
                             mrt[i] = data.renderTarget[i];
 
-                        BindGlobalLightListBuffers(data, context);
                         BindDBufferGlobalData(data.dbuffer, context);
                         BindGlobalLightingBuffers(data.lightingBuffers, context.cmd);
 
-                        RenderForwardRendererList(data.frameSettings, data.rendererList, mrt, data.depthBuffer, data.lightListBuffer, true, context.renderContext, context.cmd);
+                        RenderForwardRendererList(data.frameSettings, data.rendererList, mrt, data.depthBuffer, data.fineTileBuffer, data.zBinBuffer, true, context.renderContext, context.cmd);
                     });
             }
         }
@@ -693,14 +677,12 @@ namespace UnityEngine.Rendering.HighDefinition
                         if (data.decalsEnabled)
                             DecalSystem.instance.SetAtlas(context.cmd); // for clustered decals
 
-                        BindGlobalLightListBuffers(data, context);
-
                         context.cmd.SetGlobalTexture(HDShaderIDs._SsrLightingTexture, data.transparentSSRLighting);
                         context.cmd.SetGlobalTexture(HDShaderIDs._VBufferLighting, data.volumetricLighting);
                         context.cmd.SetGlobalTexture(HDShaderIDs._CameraDepthTexture, data.depthPyramidTexture);
                         context.cmd.SetGlobalTexture(HDShaderIDs._NormalBufferTexture, data.normalBuffer);
 
-                        RenderForwardRendererList(data.frameSettings, data.rendererList, mrt, data.depthBuffer, data.lightListBuffer, false, context.renderContext, context.cmd);
+                        RenderForwardRendererList(data.frameSettings, data.rendererList, mrt, data.depthBuffer, data.fineTileBuffer, data.zBinBuffer, false, context.renderContext, context.cmd);
                     });
             }
         }

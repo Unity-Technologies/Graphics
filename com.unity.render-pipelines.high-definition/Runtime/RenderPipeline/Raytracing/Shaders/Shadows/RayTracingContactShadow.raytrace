@@ -4,8 +4,7 @@
 // Given that this pass does not use the shadow algorithm multi-compile, we need to define SHADOW_LOW to quite the shadow algorithm error
 #define SHADOW_LOW
 
-// Required for contact shadows
-#define USE_FPTL_LIGHTLIST
+#define FINE_BINNING // Required as we go over light list to determine contact shadow
 
 // We are using DX12 here
 #define SHADER_TARGET 50
@@ -57,7 +56,7 @@ bool RayTraceContactShadow(PositionInputs posInput, float3 direction)
 
         // Evaluate the ray visibility term and PDF
         TraceRay(_RaytracingAccelerationStructure, RAY_FLAG_CULL_FRONT_FACING_TRIANGLES | RAY_FLAG_SKIP_CLOSEST_HIT_SHADER | RAY_FLAG_ACCEPT_FIRST_HIT_AND_END_SEARCH, RAYTRACINGRENDERERFLAG_CAST_SHADOW, 0, 1, 0, rayDescriptor, rayIntersection);
-        
+
         // Not sure true translates to 1 in every compiler
         return (rayIntersection.color.x == 0.0) ? 1 : 0;
     }
@@ -80,8 +79,7 @@ void RayGenContactShadows()
     float depth = LOAD_TEXTURE2D_X(_DepthTexture, pixelCoord).x;
 
     // Reconstruction world space position
-    uint2 tileIndex = pixelCoord / GetTileSize();
-    PositionInputs posInput = GetPositionInput(pixelCoord.xy, _ScreenSize.zw, depth, UNITY_MATRIX_I_VP, GetWorldToViewMatrix(), tileIndex);
+    PositionInputs posInput = GetPositionInput(pixelCoord.xy, _ScreenSize.zw, depth, UNITY_MATRIX_I_VP, GetWorldToViewMatrix());
 
     // discard the shadow if we're on the sky or outside of the contact shadow range
     if (depth == UNITY_RAW_FAR_CLIP_VALUE || posInput.linearDepth - _ContactShadowFadeEnd > 1)
@@ -95,7 +93,7 @@ void RayGenContactShadows()
     // Let's first process the directional shadow
     if (_DirectionalShadowIndex >= 0)
     {
-        DirectionalLightData light = _DirectionalLightDatas[_DirectionalShadowIndex];
+        DirectionalLightData light = _DirectionalLightData[_DirectionalShadowIndex];
 
         if (light.contactShadowMask != 0 && light.isRayTracedContactShadow == 1.0)
         {
@@ -108,34 +106,31 @@ void RayGenContactShadows()
             contactShadowMask |= (light.contactShadowMask * occluded);
         }
     }
-    uint lightCount, lightStart;
 
-#ifndef LIGHTLOOP_DISABLE_TILE_AND_CLUSTER
-    GetCountAndStart(posInput, LIGHTCATEGORY_PUNCTUAL, lightStart, lightCount);
-#else   // LIGHTLOOP_DISABLE_TILE_AND_CLUSTER
-    lightCount = _PunctualLightCount;
-    lightStart = 0;
-#endif
+    uint zBin = ComputeZBinIndex(posInput.linearDepth);
+    uint tile = ComputeTileIndex(posInput.positionSS);
 
-    uint v_lightListOffset = 0;
-    uint v_lightIdx = lightStart;
-    while (v_lightListOffset < lightCount)
+    EntityLookupParameters params = InitializePunctualLightLookup(tile, zBin);
+
+    uint i = 0;
+
+    LightData lightData;
+    while (TryLoadPunctualLightData(i, params, lightData))
     {
-        v_lightIdx = FetchIndex(lightStart, v_lightListOffset);
-        LightData s_lightData = FetchLight(v_lightIdx);
-        v_lightListOffset++;
-        if (s_lightData.contactShadowMask != 0 && s_lightData.isRayTracedContactShadow == 1.0)
+        if (lightData.contactShadowMask != 0 && lightData.isRayTracedContactShadow == 1.0)
         {
             // Compute light ray direction:
-            float3 direction = normalize(s_lightData.positionRWS.xyz - posInput.positionWS);
+            float3 direction = normalize(lightData.positionRWS.xyz - posInput.positionWS);
 
             bool occluded = RayTraceContactShadow(posInput, direction);
 
             // light.contactShadowMask contains one bit at the position of the contact shadow index that will
             // be tested in the lightloop, so it insert 1 at the index of the contact shadow if there is a contact shadow
             // we take full bits at one multiplied by contact shadow and filter the bit at the contact shadow index.
-            contactShadowMask |= (s_lightData.contactShadowMask * occluded);
+            contactShadowMask |= lightData.contactShadowMask * occluded;
         }
+
+        i++;
     }
 
     _ContactShadowTextureUAV[COORD_TEXTURE2D_X(pixelCoord)] = PackContactShadowData(fade, contactShadowMask);

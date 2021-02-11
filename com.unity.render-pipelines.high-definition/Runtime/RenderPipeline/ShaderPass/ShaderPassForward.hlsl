@@ -115,10 +115,8 @@ void Frag(PackedVaryingsToPS packedInput,
     // We need to readapt the SS position as our screen space positions are for a low res buffer, but we try to access a full res buffer.
     input.positionSS.xy = _OffScreenRendering > 0 ? (input.positionSS.xy * _OffScreenDownsampleFactor) : input.positionSS.xy;
 
-    uint2 tileIndex = uint2(input.positionSS.xy) / GetTileSize();
-
     // input.positionSS is SV_Position
-    PositionInputs posInput = GetPositionInput(input.positionSS.xy, _ScreenSize.zw, input.positionSS.z, input.positionSS.w, input.positionRWS.xyz, tileIndex);
+    PositionInputs posInput = GetPositionInput(input.positionSS.xy, _ScreenSize.zw, input.positionSS.z, input.positionSS.w, input.positionRWS.xyz);
 
 #ifdef VARYINGS_NEED_POSITION_WS
     float3 V = GetWorldSpaceNormalizeViewDir(input.positionRWS);
@@ -126,6 +124,9 @@ void Frag(PackedVaryingsToPS packedInput,
     // Unused
     float3 V = float3(1.0, 1.0, 1.0); // Avoid the division by 0
 #endif
+
+    uint tile = ComputeTileIndex(posInput.positionSS);
+    uint zBin = ComputeZBinIndex(posInput.linearDepth);
 
     SurfaceData surfaceData;
     BuiltinData builtinData;
@@ -214,7 +215,7 @@ void Frag(PackedVaryingsToPS packedInput,
             uint featureFlags = LIGHT_FEATURE_MASK_FLAGS_OPAQUE;
 #endif
             LightLoopOutput lightLoopOutput;
-            LightLoop(V, posInput, preLightData, bsdfData, builtinData, featureFlags, lightLoopOutput);
+            LightLoop(V, posInput, tile, zBin, preLightData, bsdfData, builtinData, featureFlags, lightLoopOutput);
 
             // Alias
             float3 diffuseLighting = lightLoopOutput.diffuseLighting;

@@ -1,7 +1,7 @@
 #ifndef __LIGHTCULLUTILS_H__
 #define __LIGHTCULLUTILS_H__
 
-// Used to index into our SFiniteLightBound (g_data) and
+// Used to index into our FiniteLightBound (g_data) and
 // LightVolumeData (_LightVolumeData) buffers.
 uint GenerateLightCullDataIndex(uint lightIndex, uint numVisibleLights, uint eyeIndex)
 {
@@ -23,8 +23,8 @@ struct ScreenSpaceBoundsIndices
 // Usually named g_vBoundsBuffer.  The two values represent the min/max indices.
 ScreenSpaceBoundsIndices GenerateScreenSpaceBoundsIndices(uint lightIndex, uint numVisibleLights, uint eyeIndex)
 {
-    // In the monoscopic mode, there is one set of bounds (min,max -> 2 * g_iNrVisibLights)
-    // In stereo, there are two sets of bounds (leftMin, leftMax, rightMin, rightMax -> 4 * g_iNrVisibLights)
+    // In the monoscopic mode, there is one set of bounds (min,max -> 2 * _BoundedEntityCount)
+    // In stereo, there are two sets of bounds (leftMin, leftMax, rightMin, rightMax -> 4 * _BoundedEntityCount)
     const uint eyeRelativeBase = eyeIndex * 2 * numVisibleLights;
 
     ScreenSpaceBoundsIndices indices;

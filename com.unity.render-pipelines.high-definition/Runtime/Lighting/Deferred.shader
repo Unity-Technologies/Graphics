@@ -32,8 +32,6 @@ Shader "Hidden/HDRP/Deferred"
             #pragma vertex Vert
             #pragma fragment Frag
 
-            #define LIGHTLOOP_DISABLE_TILE_AND_CLUSTER
-
             // Split lighting is utilized during the SSS pass.
             #pragma multi_compile_fragment _ OUTPUT_SPLIT_LIGHTING
             #pragma multi_compile_fragment _ SHADOWS_SHADOWMASK
@@ -42,7 +40,8 @@ Shader "Hidden/HDRP/Deferred"
             #pragma multi_compile_fragment _ DEBUG_DISPLAY
             #pragma multi_compile_fragment SHADOW_LOW SHADOW_MEDIUM SHADOW_HIGH
 
-            #define USE_FPTL_LIGHTLIST // deferred opaque always use FPTL
+            // Comment out the line to loop over all lights (for debugging purposes)
+            #define FINE_BINNING
 
             //-------------------------------------------------------------------------------------
             // Include
@@ -129,8 +128,11 @@ Shader "Hidden/HDRP/Deferred"
                 // input.positionCS is SV_Position
                 float depth = LoadCameraDepth(input.positionCS.xy);
 
-                PositionInputs posInput = GetPositionInput(input.positionCS.xy, _ScreenSize.zw, depth, UNITY_MATRIX_I_VP, UNITY_MATRIX_V, uint2(input.positionCS.xy) / GetTileSize());
+                PositionInputs posInput = GetPositionInput(input.positionCS.xy, _ScreenSize.zw, depth, UNITY_MATRIX_I_VP, UNITY_MATRIX_V);
                 float3 V = GetWorldSpaceNormalizeViewDir(posInput.positionWS);
+
+                uint tile = ComputeTileIndex(posInput.positionSS);
+                uint zBin = ComputeZBinIndex(posInput.linearDepth);
 
                 BSDFData bsdfData;
                 BuiltinData builtinData;
@@ -139,7 +141,7 @@ Shader "Hidden/HDRP/Deferred"
                 PreLightData preLightData = GetPreLightData(V, posInput, bsdfData);
 
                 LightLoopOutput lightLoopOutput;
-                LightLoop(V, posInput, preLightData, bsdfData, builtinData, LIGHT_FEATURE_MASK_FLAGS_OPAQUE, lightLoopOutput);
+                LightLoop(V, posInput, tile, zBin, preLightData, bsdfData, builtinData, LIGHT_FEATURE_MASK_FLAGS_OPAQUE, lightLoopOutput);
 
                 // Alias
                 float3 diffuseLighting = lightLoopOutput.diffuseLighting;

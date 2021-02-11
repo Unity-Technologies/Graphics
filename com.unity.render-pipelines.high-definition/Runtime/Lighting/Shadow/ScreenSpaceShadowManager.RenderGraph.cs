@@ -85,6 +85,8 @@ namespace UnityEngine.Rendering.HighDefinition
             PrepassOutput prepassOutput, TextureHandle depthBuffer, TextureHandle normalBuffer, TextureHandle motionVectorsBuffer, TextureHandle historyValidityBuffer,
             TextureHandle rayCountTexture, TextureHandle screenSpaceShadowArray)
         {
+            m_ScreenSpaceShadowsLightData.SetData(m_CurrentScreenSpaceShadowLightData);
+
             // Loop through all the potential screen space light shadows
             for (int lightIdx = 0; lightIdx < m_ScreenSpaceShadowIndex; ++lightIdx)
             {
@@ -92,7 +94,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 if (!m_CurrentScreenSpaceShadowData[lightIdx].valid) continue;
 
                 // Fetch the light data and additional light data
-                LightData currentLight = m_lightList.lights[m_CurrentScreenSpaceShadowData[lightIdx].lightDataIndex];
+                ref LightData currentLight = ref m_CurrentScreenSpaceShadowLightData[lightIdx];
                 HDAdditionalLightData currentAdditionalLightData = m_CurrentScreenSpaceShadowData[lightIdx].additionalLightData;
 
                 // Trigger the right algorithm based on the light type
@@ -100,14 +102,14 @@ namespace UnityEngine.Rendering.HighDefinition
                 {
                     case GPULightType.Rectangle:
                     {
-                        RenderAreaScreenSpaceShadow(renderGraph, hdCamera, currentLight, currentAdditionalLightData, m_CurrentScreenSpaceShadowData[lightIdx].lightDataIndex,
+                        RenderAreaScreenSpaceShadow(renderGraph, hdCamera, currentLight, currentAdditionalLightData, lightIdx,
                             prepassOutput, depthBuffer, normalBuffer, motionVectorsBuffer, rayCountTexture, screenSpaceShadowArray);
                     }
                     break;
                     case GPULightType.Point:
                     case GPULightType.Spot:
                     {
-                        RenderPunctualScreenSpaceShadow(renderGraph, hdCamera, currentLight, currentAdditionalLightData, m_CurrentScreenSpaceShadowData[lightIdx].lightDataIndex,
+                        RenderPunctualScreenSpaceShadow(renderGraph, hdCamera, currentLight, currentAdditionalLightData, lightIdx,
                             prepassOutput, depthBuffer, normalBuffer, motionVectorsBuffer, historyValidityBuffer, rayCountTexture, screenSpaceShadowArray);
                     }
                     break;

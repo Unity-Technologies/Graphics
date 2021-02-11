@@ -1939,7 +1939,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 bool validShadow = false;
                 if (processedLight.gpuLightType == GPULightType.Point
                     || processedLight.gpuLightType == GPULightType.Rectangle
-                    || (processedLight.gpuLightType == GPULightType.Spot && processedLight.lightVolumeType == LightVolumeType.Cone))
+                    || processedLight.gpuLightType == GPULightType.Spot)
                 {
                     validShadow = true;
                 }

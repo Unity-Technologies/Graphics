@@ -1,3 +1,5 @@
+// #pragma enable_d3d11_debug_symbols
+
 #pragma kernel Deferred_Direct_Fptl                                SHADE_OPAQUE_ENTRY=Deferred_Direct_Fptl
 #pragma kernel Deferred_Direct_Fptl_DebugDisplay                   SHADE_OPAQUE_ENTRY=Deferred_Direct_Fptl_DebugDisplay             DEBUG_DISPLAY
 
@@ -42,10 +44,8 @@
 #   pragma warning( disable : 4714 ) // sum of temp registers and indexable temp registers times 256 threads exceeds the recommended total 16384.  Performance may be reduced at kernel
 #endif
 
-// deferred opaque always use FPTL
-#define USE_FPTL_LIGHTLIST 1
-
-// #pragma enable_d3d11_debug_symbols
+// Comment out the line to loop over all lights (for debugging purposes)
+#define FINE_BINNING // Keep in sync with 'classification.compute' and 'builddispatchindirect.compute'
 
 //-------------------------------------------------------------------------------------
 // Include
@@ -55,7 +55,7 @@
 #define SHADERPASS SHADERPASS_DEFERRED_LIGHTING
 
 #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Common.hlsl"
-
+#include "Packages/com.unity.render-pipelines.core/ShaderLibrary/SpaceFillingCurves.hlsl"
 
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/ShaderLibrary/ShaderVariables.hlsl"
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Lighting/Lighting.hlsl"
@@ -78,7 +78,6 @@ CBUFFER_END
 
 #define HAS_LIGHTLOOP
 
-
 // Note: We have fix as guidelines that we have only one deferred material (with control of GBuffer enabled). Mean a users that add a new
 // deferred material must replace the old one here. If in the future we want to support multiple layout (cause a lot of consistency problem),
 // the deferred shader will require to use multicompile.
@@ -97,52 +96,46 @@ TEXTURE2D_X_UINT2(_StencilTexture);
 RW_TEXTURE2D_X(float3, diffuseLightingUAV);
 RW_TEXTURE2D_X(float4, specularLightingUAV);
 
-#define GROUP_SIZE (TILE_SIZE_FPTL / 2) // 4x 8x8 groups per a 16x16 tile
-
 #ifdef USE_INDIRECT
-
 StructuredBuffer<uint> g_TileList;
-// Indirect
-[numthreads(GROUP_SIZE, GROUP_SIZE, 1)]
-void SHADE_OPAQUE_ENTRY(uint2 groupThreadId : SV_GroupThreadID, uint groupId : SV_GroupID)
-{
-    uint  tileIndex   = g_TileList[g_TileListOffset + (groupId / 4)];
-    uint2 tileCoord   = uint2((tileIndex >> TILE_INDEX_SHIFT_X) & TILE_INDEX_MASK, (tileIndex >> TILE_INDEX_SHIFT_Y) & TILE_INDEX_MASK); // see builddispatchindirect.compute
-    uint2 pixelCoord  = tileCoord * GetTileSize()
-                      + uint2(groupId & 1, (groupId >> 1) & 1) * GROUP_SIZE
-                      + groupThreadId;
-
-    UNITY_XR_ASSIGN_VIEW_INDEX(tileIndex >> TILE_INDEX_SHIFT_EYE);
-
-    uint screenWidth  = (uint)_ScreenSize.x;
-    uint numTilesX    = (screenWidth + (TILE_SIZE_FPTL) - 1) / TILE_SIZE_FPTL;
-    uint tileVariantIndex = tileCoord.x + tileCoord.y * numTilesX;
-
-#if defined(UNITY_STEREO_INSTANCING_ENABLED)
-    uint screenHeight = (uint)_ScreenSize.y;
-    uint numTilesY = (screenHeight + (TILE_SIZE_FPTL) - 1) / TILE_SIZE_FPTL;
-    tileVariantIndex += unity_StereoEyeIndex * numTilesX * numTilesY;
 #endif
 
-    uint featureFlags = TileVariantToFeatureFlags(VARIANT, tileVariantIndex);
-#else
-
-// Direct
-[numthreads(GROUP_SIZE, GROUP_SIZE, 1)]
-void SHADE_OPAQUE_ENTRY(uint3 dispatchThreadId : SV_DispatchThreadID, uint2 groupId : SV_GroupID)
+// We always use 64 threads, regardless of the TILE_SIZE.
+// If TILE_SIZE is not 16, this shader needs to be fixed manually.
+// The same applies to 'builddispatchindirect.compute'.
+[numthreads(8, 8, 1)]
+void SHADE_OPAQUE_ENTRY(uint3 groupThreadId : SV_GroupThreadID, uint3 groupId : SV_GroupID)
 {
-    UNITY_XR_ASSIGN_VIEW_INDEX(dispatchThreadId.z);
+#ifdef USE_INDIRECT
+    uint variantOffset = g_TileListOffset;
+    uint tileOffset    = groupId.x / 4; // 4x 8*8 groups per a 16*16 tile (includes the eye index for XR)
+    uint tileAndEye    = g_TileList[variantOffset + tileOffset];
+    uint eye           = tileAndEye >> TILE_INDEX_SHIFT_EYE;
+    uint tile          = tileAndEye ^ (eye << TILE_INDEX_SHIFT_EYE);
 
-    uint2 tileCoord    = (GROUP_SIZE * groupId) / GetTileSize();
-    uint2 pixelCoord   = dispatchThreadId.xy;
-    uint  featureFlags = UINT_MAX;
+    UNITY_XR_ASSIGN_VIEW_INDEX(eye); // Sets 'unity_StereoEyeIndex'
 
+    uint featureFlags  = TileVariantToFeatureFlags(VARIANT, tile, unity_StereoEyeIndex);
+#else // !USE_INDIRECT
+    uint tile          = groupId.x / 4; // 4x 8*8 groups per a 16*16 tile
+    uint eye           = groupId.z;
+
+    UNITY_XR_ASSIGN_VIEW_INDEX(eye);
+
+    uint featureFlags  = UINT_MAX;
 #endif
+
+    uint2 tileCoord  = CoordinateFromIndex(tile, TILE_BUFFER_DIMS.x); // TODO: avoid integer division
+    uint2 pixelCoord = tileCoord * TILE_SIZE
+                     + DeinterleaveQuad(groupId.x) * 8 // Z-order curve
+                     + groupThreadId.xy;               // TODO: full Morton order within the tile?
 
     // This need to stay in sync with deferred.shader
 
     float depth = LoadCameraDepth(pixelCoord.xy);
-    PositionInputs posInput = GetPositionInput(pixelCoord.xy, _ScreenSize.zw, depth, UNITY_MATRIX_I_VP, UNITY_MATRIX_V, tileCoord);
+    PositionInputs posInput = GetPositionInput(pixelCoord.xy, _ScreenSize.zw, depth, UNITY_MATRIX_I_VP, UNITY_MATRIX_V);
+
+    uint zBin = ComputeZBinIndex(posInput.linearDepth);
 
     // For indirect case: we can still overlap inside a tile with the sky/background, reject it
     // Can't rely on stencil as we are in compute shader
@@ -167,7 +160,7 @@ void SHADE_OPAQUE_ENTRY(uint3 dispatchThreadId : SV_DispatchThreadID, uint2 grou
     PreLightData preLightData = GetPreLightData(V, posInput, bsdfData);
 
     LightLoopOutput lightLoopOutput;
-    LightLoop(V, posInput, preLightData, bsdfData, builtinData, featureFlags, lightLoopOutput);
+    LightLoop(V, posInput, tile, zBin, preLightData, bsdfData, builtinData, featureFlags, lightLoopOutput);
 
     // Alias
     float3 diffuseLighting = lightLoopOutput.diffuseLighting;

@@ -431,10 +431,10 @@ real3x3 GetLocalFrame(real3 localZ, real3 localX)
 
 // Construct a right-handed view-dependent orthogonal basis around the normal:
 // b0-b2 is the view-normal aka reflection plane.
-real3x3 GetOrthoBasisViewNormal(real3 V, real3 N, real unclampedNdotV, bool testSingularity = false)
+real3x3 GetOrthoBasisViewNormal(real3 V, real3 N, real unclampedNdotV)
 {
     real3x3 orthoBasisViewNormal;
-    if (testSingularity && (abs(1.0 - unclampedNdotV) <= FLT_EPS))
+    if (abs(unclampedNdotV) >= (1 - 16 * REAL_EPS)) // 0.999999; 8 ULPs, should be enough
     {
         // In this case N == V, and azimuth orientation around N shouldn't matter for the caller,
         // we can use any quaternion-based method, like Frisvad or Reynold's (Pixar):

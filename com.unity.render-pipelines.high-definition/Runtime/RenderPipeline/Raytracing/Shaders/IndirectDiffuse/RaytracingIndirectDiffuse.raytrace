@@ -62,7 +62,7 @@ void RayGenIntegration()
         return;
 
     // Convert this to a world space position
-    PositionInputs posInput = GetPositionInput(currentCoord, 1.0f/LaunchDim.xy, depthValue, UNITY_MATRIX_I_VP, GetWorldToViewMatrix(), 0);
+    PositionInputs posInput = GetPositionInput(currentCoord, 1.0f/LaunchDim.xy, depthValue, UNITY_MATRIX_I_VP, GetWorldToViewMatrix());
     float distanceToCamera = length(posInput.positionWS);
     // The position is always in the right space.
     const float3 positionWS = posInput.positionWS;

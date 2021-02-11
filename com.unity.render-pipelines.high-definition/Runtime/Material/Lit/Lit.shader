@@ -239,6 +239,7 @@ Shader "HDRP/Lit"
     HLSLINCLUDE
 
     #pragma target 4.5
+    // #pragma enable_d3d11_debug_symbols
 
     //-------------------------------------------------------------------------------------
     // Variant
@@ -825,7 +826,8 @@ Shader "HDRP/Lit"
             #define SHADOW_LOW
             #endif
 
-            #define USE_CLUSTERED_LIGHTLIST // There is not FPTL lighting when using transparent
+            // Comment out the line to loop over all lights (for debugging purposes)
+            #define FINE_BINNING
 
             #define SHADERPASS SHADERPASS_FORWARD
             #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Material.hlsl"
@@ -901,12 +903,12 @@ Shader "HDRP/Lit"
             // Supported shadow modes per light type
             #pragma multi_compile_fragment SHADOW_LOW SHADOW_MEDIUM SHADOW_HIGH
 
-            #pragma multi_compile_fragment USE_FPTL_LIGHTLIST USE_CLUSTERED_LIGHTLIST
-
             #ifndef SHADER_STAGE_FRAGMENT
             #define SHADOW_LOW
-            #define USE_FPTL_LIGHTLIST
             #endif
+
+            // Comment out the line to loop over all lights (for debugging purposes)
+            #define FINE_BINNING
 
             #define SHADERPASS SHADERPASS_FORWARD
             // In case of opaque we don't want to perform the alpha test, it is done in depth prepass and we use depth equal for ztest (setup from UI)

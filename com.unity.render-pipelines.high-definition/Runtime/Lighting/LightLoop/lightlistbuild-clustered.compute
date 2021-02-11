@@ -39,7 +39,7 @@
 
 StructuredBuffer<float4> g_vBoundsBuffer : register( t1 );
 StructuredBuffer<LightVolumeData> _LightVolumeData : register(t2);
-StructuredBuffer<SFiniteLightBound> g_data : register( t3 );
+StructuredBuffer<FiniteLightBound> g_data : register( t3 );
 
 #ifdef USE_TWO_PASS_TILED_LIGHTING
 StructuredBuffer<uint> g_vBigTileLightList : register( t4 );        // don't support Buffer yet in unity
@@ -316,10 +316,10 @@ void LIGHTLISTGEN(uint threadID : SV_GroupIndex, uint3 u3GroupID : SV_GroupID)
     {
         int l = g_vBigTileLightList[MAX_NR_BIG_TILE_LIGHTS_PLUS_ONE*bigTileIdx+l0+1];
 #else
-    for(int l=(int) t; l<(int) g_iNrVisibLights; l += NR_THREADS)
+    for(int l=(int) t; l<(int) _BoundedEntityCount; l += NR_THREADS)
     {
 #endif
-        const ScreenSpaceBoundsIndices boundsIndices = GenerateScreenSpaceBoundsIndices(l, g_iNrVisibLights, eyeIndex);
+        const ScreenSpaceBoundsIndices boundsIndices = GenerateScreenSpaceBoundsIndices(l, _BoundedEntityCount, eyeIndex);
         const float2 vMi = g_vBoundsBuffer[boundsIndices.min].xy;
         const float2 vMa = g_vBoundsBuffer[boundsIndices.max].xy;
 
@@ -365,8 +365,8 @@ void LIGHTLISTGEN(uint threadID : SV_GroupIndex, uint3 u3GroupID : SV_GroupID)
         for(int l=(int) t; l<((iNrCoarseLights+1)>>1); l += NR_THREADS)
         {
             const int l0 = coarseList[2*l+0], l1 = coarseList[min(2*l+1,iNrCoarseLights-1)];
-            const ScreenSpaceBoundsIndices l0Bounds = GenerateScreenSpaceBoundsIndices(l0, g_iNrVisibLights, eyeIndex);
-            const ScreenSpaceBoundsIndices l1Bounds = GenerateScreenSpaceBoundsIndices(l1, g_iNrVisibLights, eyeIndex);
+            const ScreenSpaceBoundsIndices l0Bounds = GenerateScreenSpaceBoundsIndices(l0, _BoundedEntityCount, eyeIndex);
+            const ScreenSpaceBoundsIndices l1Bounds = GenerateScreenSpaceBoundsIndices(l1, _BoundedEntityCount, eyeIndex);
 
             const unsigned int clustIdxMi0 = (const unsigned int)min(255, SnapToClusterIdx(g_vBoundsBuffer[l0Bounds.min].w, suggestedBase));
             const unsigned int clustIdxMa0 = (const unsigned int)min(255, SnapToClusterIdx(g_vBoundsBuffer[l0Bounds.max].w, suggestedBase));
@@ -428,7 +428,7 @@ void LIGHTLISTGEN(uint threadID : SV_GroupIndex, uint3 u3GroupID : SV_GroupID)
         {
             if(offs<(start+iSpaceAvail) && i<nrClusters && CheckIntersection(l, i, viTilLL.xy, viTilUR.xy, suggestedBase, eyeIndex) )
             {
-                const int lightVolIndex = GenerateLightCullDataIndex(coarseList[l], g_iNrVisibLights, eyeIndex);
+                const int lightVolIndex = GenerateLightCullDataIndex(coarseList[l], _BoundedEntityCount, eyeIndex);
                 uint lightCategory = _LightVolumeData[lightVolIndex].lightCategory;
                 IncrementCategoryListCount(t, lightCategory);
                 g_vLayeredLightList[offs++] = coarseList[l] - ReadShiftIndex(t, lightCategory);
@@ -463,8 +463,8 @@ void LIGHTLISTGEN(uint threadID : SV_GroupIndex, uint3 u3GroupID : SV_GroupID)
 
 float4 FetchPlane(int l, int p, uint eyeIndex)
 {
-    const int lightBoundIndex = GenerateLightCullDataIndex(coarseList[l], g_iNrVisibLights, eyeIndex);
-    SFiniteLightBound lgtDat = g_data[lightBoundIndex];
+    const int lightBoundIndex = GenerateLightCullDataIndex(coarseList[l], _BoundedEntityCount, eyeIndex);
+    FiniteLightBound lgtDat = g_data[lightBoundIndex];
 
     const float3 boxX = lgtDat.boxAxisX.xyz;
     const float3 boxY = lgtDat.boxAxisY.xyz;
@@ -493,8 +493,8 @@ int SphericalIntersectionTests(uint threadID, int iNrCoarseLights, float2 screen
 
     for(int l=threadID; l<iNrCoarseLights; l+=NR_THREADS)
     {
-        const int lightBoundIndex = GenerateLightCullDataIndex(coarseList[l], g_iNrVisibLights, eyeIndex);
-        SFiniteLightBound lgtDat = g_data[lightBoundIndex];
+        const int lightBoundIndex = GenerateLightCullDataIndex(coarseList[l], _BoundedEntityCount, eyeIndex);
+        FiniteLightBound lgtDat = g_data[lightBoundIndex];
 
         if( !DoesSphereOverlapTile(V, halfTileSizeAtZDistOne, lgtDat.center.xyz, lgtDat.radius, g_isOrthographic!=0) )
             coarseList[l]=UINT_MAX;
@@ -575,10 +575,10 @@ int CullByExactEdgeTests(uint threadID, int iNrCoarseLights, uint2 viTilLL, uint
 #if NR_THREADS > PLATFORM_LANE_COUNT
         GroupMemoryBarrierWithGroupSync();
 #endif
-        const int lightCullIndex = GenerateLightCullDataIndex(coarseList[l], g_iNrVisibLights, eyeIndex);
+        const int lightCullIndex = GenerateLightCullDataIndex(coarseList[l], _BoundedEntityCount, eyeIndex);
         UNITY_BRANCH if (_LightVolumeData[lightCullIndex].lightVolume != LIGHTVOLUMETYPE_SPHERE)        // don't bother doing edge tests for sphere lights since these have camera aligned bboxes.
         {
-            SFiniteLightBound lgtDat = g_data[lightCullIndex];
+            FiniteLightBound lgtDat = g_data[lightCullIndex];
 
             const float3 boxX = lgtDat.boxAxisX.xyz;
             const float3 boxY = lgtDat.boxAxisY.xyz;

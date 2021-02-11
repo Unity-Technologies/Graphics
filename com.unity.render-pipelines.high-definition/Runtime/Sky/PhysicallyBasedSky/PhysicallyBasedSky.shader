@@ -95,7 +95,7 @@ Shader "Hidden/HDRP/Sky/PbrSky"
             // Unfortunately, they don't write depth.
             for (uint i = 0; i < _DirectionalLightCount; i++)
             {
-                DirectionalLightData light = _DirectionalLightDatas[i];
+                DirectionalLightData light = _DirectionalLightData[i];
 
                 // Use scalar or integer cores (more efficient).
                 bool interactsWithSky = asint(light.distanceFromCamera) >= 0;
@@ -188,7 +188,7 @@ Shader "Hidden/HDRP/Sky/PbrSky"
                 // Shade the ground.
                 for (uint i = 0; i < _DirectionalLightCount; i++)
                 {
-                    DirectionalLightData light = _DirectionalLightDatas[i];
+                    DirectionalLightData light = _DirectionalLightData[i];
 
                     // Use scalar or integer cores (more efficient).
                     bool interactsWithSky = asint(light.distanceFromCamera) >= 0;

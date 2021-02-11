@@ -20,7 +20,7 @@
 
 StructuredBuffer<float4> g_vBoundsBuffer : register( t1 );
 StructuredBuffer<LightVolumeData> _LightVolumeData : register(t2);
-StructuredBuffer<SFiniteLightBound> g_data : register( t3 );
+StructuredBuffer<FiniteLightBound> g_data : register( t3 );
 
 
 #ifdef PLATFORM_LANE_COUNT      // We can infer the size of a wave. This is currently not possible on non-consoles, so we have to fallback to a sensible default in those cases.
@@ -128,9 +128,9 @@ void BigTileLightListGen(uint threadID : SV_GroupIndex, uint3 u3GroupID : SV_Gro
     float2 vTileUR = float2(viTilUR.x/(float) iWidth, viTilUR.y/(float) iHeight);
 
     // build coarse list using AABB
-    for(int l=(int) t; l<(int) g_iNrVisibLights; l += NR_THREADS)
+    for(int l=(int) t; l<(int) _BoundedEntityCount; l += NR_THREADS)
     {
-        const ScreenSpaceBoundsIndices boundsIndices = GenerateScreenSpaceBoundsIndices(l, g_iNrVisibLights, eyeIndex);
+        const ScreenSpaceBoundsIndices boundsIndices = GenerateScreenSpaceBoundsIndices(l, _BoundedEntityCount, eyeIndex);
         const float2 vMi = g_vBoundsBuffer[boundsIndices.min].xy;
         const float2 vMa = g_vBoundsBuffer[boundsIndices.max].xy;
 
@@ -165,7 +165,7 @@ void BigTileLightListGen(uint threadID : SV_GroupIndex, uint3 u3GroupID : SV_Gro
     if(t==0) lightOffs = 0;
     GroupMemoryBarrierWithGroupSync();
     int i;
-    for(i=t; i<iNrCoarseLights; i+=NR_THREADS) if(lightsListLDS[i]<(uint)g_iNrVisibLights) InterlockedAdd(lightOffs, 1);
+    for(i=t; i<iNrCoarseLights; i+=NR_THREADS) if(lightsListLDS[i]<(uint)_BoundedEntityCount) InterlockedAdd(lightOffs, 1);
     GroupMemoryBarrierWithGroupSync();
     iNrCoarseLights = lightOffs;
 
@@ -190,8 +190,8 @@ void SphericalIntersectionTests(uint threadID, int iNrCoarseLights, float2 scree
 
     for(int l=threadID; l<iNrCoarseLights; l+=NR_THREADS)
     {
-        const int boundIndex = GenerateLightCullDataIndex(lightsListLDS[l], g_iNrVisibLights, eyeIndex);
-        SFiniteLightBound lgtDat = g_data[boundIndex];
+        const int boundIndex = GenerateLightCullDataIndex(lightsListLDS[l], _BoundedEntityCount, eyeIndex);
+        FiniteLightBound lgtDat = g_data[boundIndex];
 
         if( !DoesSphereOverlapTile(V, halfTileSizeAtZDistOne, lgtDat.center.xyz, lgtDat.radius, g_isOrthographic!=0) )
             lightsListLDS[l]=UINT_MAX;
@@ -247,14 +247,14 @@ void CullByExactEdgeTests(uint threadID, int iNrCoarseLights, uint2 viTilLL, uin
     for(int l=0; l<iNrCoarseLights; l++)
     {
         const uint idxCoarse = lightsListLDS[l];
-        const int bufIdxCoarse = GenerateLightCullDataIndex(idxCoarse, g_iNrVisibLights, eyeIndex);
+        const int bufIdxCoarse = GenerateLightCullDataIndex(idxCoarse, _BoundedEntityCount, eyeIndex);
 
-        bool canEnter = idxCoarse<(uint) g_iNrVisibLights;
+        bool canEnter = idxCoarse<(uint) _BoundedEntityCount;
 
         if(canEnter) canEnter = _LightVolumeData[bufIdxCoarse].lightVolume != LIGHTVOLUMETYPE_SPHERE;       // don't bother doing edge tests for sphere lights since these have camera aligned bboxes.
         UNITY_BRANCH if(canEnter)
         {
-            SFiniteLightBound lgtDat = g_data[bufIdxCoarse];
+            FiniteLightBound lgtDat = g_data[bufIdxCoarse];
 
             const float3 boxX = lgtDat.boxAxisX.xyz;
             const float3 boxY = lgtDat.boxAxisY.xyz;

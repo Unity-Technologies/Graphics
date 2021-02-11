@@ -119,7 +119,7 @@ void ApplyDebug(LightLoopContext context, PositionInputs posInput, BSDFData bsdf
                 SHADOW_TYPE shadow = 1.0;
                 if (_DirectionalShadowIndex >= 0)
                 {
-                    DirectionalLightData light = _DirectionalLightDatas[_DirectionalShadowIndex];
+                    DirectionalLightData light = _DirectionalLightData[_DirectionalShadowIndex];
 
 #if defined(SCREEN_SPACE_SHADOWS_ON) && !defined(_SURFACE_TYPE_TRANSPARENT)
                     if ((light.screenSpaceShadowIndex & SCREEN_SPACE_SHADOW_INDEX_MASK) != INVALID_SCREEN_SPACE_SHADOW)
@@ -174,7 +174,7 @@ void ApplyDebug(LightLoopContext context, PositionInputs posInput, BSDFData bsdf
 #endif
 }
 
-void LightLoop( float3 V, PositionInputs posInput, PreLightData preLightData, BSDFData bsdfData, BuiltinData builtinData, uint featureFlags,
+void LightLoop( float3 V, PositionInputs posInput, uint tile, uint zBin, PreLightData preLightData, BSDFData bsdfData, BuiltinData builtinData, uint featureFlags,
                 out LightLoopOutput lightLoopOutput)
 {
     // Init LightLoop output structure
@@ -199,7 +199,7 @@ void LightLoop( float3 V, PositionInputs posInput, PreLightData preLightData, BS
         // Evaluate sun shadows.
         if (_DirectionalShadowIndex >= 0)
         {
-            DirectionalLightData light = _DirectionalLightDatas[_DirectionalShadowIndex];
+            DirectionalLightData light = _DirectionalLightData[_DirectionalShadowIndex];
 
 #if defined(SCREEN_SPACE_SHADOWS_ON) && !defined(_SURFACE_TYPE_TRANSPARENT)
             if ((light.screenSpaceShadowIndex & SCREEN_SPACE_SHADOW_INDEX_MASK) != INVALID_SCREEN_SPACE_SHADOW)
@@ -225,6 +225,8 @@ void LightLoop( float3 V, PositionInputs posInput, PreLightData preLightData, BS
         }
     }
 
+    uint i; // Declare once to avoid the D3D11 compiler warning.
+
     // This struct is define in the material. the Lightloop must not access it
     // PostEvaluateBSDF call at the end will convert Lighting to diffuse and specular lighting
     AggregateLighting aggregateLighting;
@@ -232,62 +234,22 @@ void LightLoop( float3 V, PositionInputs posInput, PreLightData preLightData, BS
 
     if (featureFlags & LIGHTFEATUREFLAGS_PUNCTUAL)
     {
-        uint lightCount, lightStart;
+        EntityLookupParameters params = InitializePunctualLightLookup(tile, zBin);
 
-#ifndef LIGHTLOOP_DISABLE_TILE_AND_CLUSTER
-        GetCountAndStart(posInput, LIGHTCATEGORY_PUNCTUAL, lightStart, lightCount);
-#else   // LIGHTLOOP_DISABLE_TILE_AND_CLUSTER
-        lightCount = _PunctualLightCount;
-        lightStart = 0;
-#endif
+        i = 0;
 
-        bool fastPath = false;
-    #if SCALARIZE_LIGHT_LOOP
-        uint lightStartLane0;
-        fastPath = IsFastPath(lightStart, lightStartLane0);
-
-        if (fastPath)
+        LightData lightData;
+        while (TryLoadPunctualLightData(i, params, lightData))
         {
-            lightStart = lightStartLane0;
-        }
-    #endif
-
-        // Scalarized loop. All lights that are in a tile/cluster touched by any pixel in the wave are loaded (scalar load), only the one relevant to current thread/pixel are processed.
-        // For clarity, the following code will follow the convention: variables starting with s_ are meant to be wave uniform (meant for scalar register),
-        // v_ are variables that might have different value for each thread in the wave (meant for vector registers).
-        // This will perform more loads than it is supposed to, however, the benefits should offset the downside, especially given that light data accessed should be largely coherent.
-        // Note that the above is valid only if wave intriniscs are supported.
-        uint v_lightListOffset = 0;
-        uint v_lightIdx = lightStart;
-
-        while (v_lightListOffset < lightCount)
-        {
-            v_lightIdx = FetchIndex(lightStart, v_lightListOffset);
-#if SCALARIZE_LIGHT_LOOP
-            uint s_lightIdx = ScalarizeElementIndex(v_lightIdx, fastPath);
-#else
-            uint s_lightIdx = v_lightIdx;
-#endif
-            if (s_lightIdx == -1)
-                break;
-
-            LightData s_lightData = FetchLight(s_lightIdx);
-
-            // If current scalar and vector light index match, we process the light. The v_lightListOffset for current thread is increased.
-            // Note that the following should really be ==, however, since helper lanes are not considered by WaveActiveMin, such helper lanes could
-            // end up with a unique v_lightIdx value that is smaller than s_lightIdx hence being stuck in a loop. All the active lanes will not have this problem.
-            if (s_lightIdx >= v_lightIdx)
+            if (IsMatchingLightLayer(lightData.lightLayers, builtinData.renderingLayers))
             {
-                v_lightListOffset++;
-                if (IsMatchingLightLayer(s_lightData.lightLayers, builtinData.renderingLayers))
-                {
-                    DirectLighting lighting = EvaluateBSDF_Punctual(context, V, posInput, preLightData, s_lightData, bsdfData, builtinData);
-                    AccumulateDirectLighting(lighting, aggregateLighting);
-                }
+                DirectLighting lighting = EvaluateBSDF_Punctual(context, V, posInput, preLightData, lightData, bsdfData, builtinData);
+                AccumulateDirectLighting(lighting, aggregateLighting);
             }
+
+            i++;
         }
     }
-
 
     // Define macro for a better understanding of the loop
     // TODO: this code is now much harder to understand...
@@ -304,22 +266,6 @@ void LightLoop( float3 V, PositionInputs posInput, PreLightData preLightData, BS
         float reflectionHierarchyWeight = 0.0; // Max: 1.0
         float refractionHierarchyWeight = _EnableSSRefraction ? 0.0 : 1.0; // Max: 1.0
 
-        uint envLightStart, envLightCount;
-
-        // Fetch first env light to provide the scene proxy for screen space computation
-#ifndef LIGHTLOOP_DISABLE_TILE_AND_CLUSTER
-        GetCountAndStart(posInput, LIGHTCATEGORY_ENV, envLightStart, envLightCount);
-#else   // LIGHTLOOP_DISABLE_TILE_AND_CLUSTER
-        envLightCount = _EnvLightCount;
-        envLightStart = 0;
-#endif
-
-        bool fastPath = false;
-    #if SCALARIZE_LIGHT_LOOP
-        uint envStartFirstLane;
-        fastPath = IsFastPath(envLightStart, envStartFirstLane);
-    #endif
-
         // Reflection / Refraction hierarchy is
         //  1. Screen Space Refraction / Reflection
         //  2. Environment Reflection / Refraction
@@ -334,12 +280,10 @@ void LightLoop( float3 V, PositionInputs posInput, PreLightData preLightData, BS
         }
     #endif
 
+        EntityLookupParameters params = InitializeReflectionProbeLookup(tile, zBin);
+        i = 0;
         EnvLightData envLightData;
-        if (envLightCount > 0)
-        {
-            envLightData = FetchEnvLight(envLightStart, 0);
-        }
-        else
+        if(!TryLoadReflectionProbeData(i, params, envLightData))
         {
             envLightData = InitSkyEnvLightData(0);
         }
@@ -353,52 +297,25 @@ void LightLoop( float3 V, PositionInputs posInput, PreLightData preLightData, BS
         // Reflection probes are sorted by volume (in the increasing order).
         if (featureFlags & LIGHTFEATUREFLAGS_ENV)
         {
+            params = InitializeReflectionProbeLookup(tile, zBin);
             context.sampleReflection = SINGLE_PASS_CONTEXT_SAMPLE_REFLECTION_PROBES;
 
-        #if SCALARIZE_LIGHT_LOOP
-            if (fastPath)
+            while (TryLoadReflectionProbeData(i, params, envLightData))
             {
-                envLightStart = envStartFirstLane;
-            }
-        #endif
-
-            // Scalarized loop, same rationale of the punctual light version
-            uint v_envLightListOffset = 0;
-            uint v_envLightIdx = envLightStart;
-            while (v_envLightListOffset < envLightCount)
-            {
-                v_envLightIdx = FetchIndex(envLightStart, v_envLightListOffset);
-#if SCALARIZE_LIGHT_LOOP
-                uint s_envLightIdx = ScalarizeElementIndex(v_envLightIdx, fastPath);
-#else
-                uint s_envLightIdx = v_envLightIdx;
-#endif
-                if (s_envLightIdx == -1)
-                    break;
-
-                EnvLightData s_envLightData = FetchEnvLight(s_envLightIdx);    // Scalar load.
-
-                // If current scalar and vector light index match, we process the light. The v_envLightListOffset for current thread is increased.
-                // Note that the following should really be ==, however, since helper lanes are not considered by WaveActiveMin, such helper lanes could
-                // end up with a unique v_envLightIdx value that is smaller than s_envLightIdx hence being stuck in a loop. All the active lanes will not have this problem.
-                if (s_envLightIdx >= v_envLightIdx)
+                if (reflectionHierarchyWeight < 1.0)
                 {
-                    v_envLightListOffset++;
-                    if (reflectionHierarchyWeight < 1.0)
-                    {
-                        EVALUATE_BSDF_ENV(s_envLightData, REFLECTION, reflection);
-                    }
-                    // Refraction probe and reflection probe will process exactly the same weight. It will be good for performance to be able to share this computation
-                    // However it is hard to deal with the fact that reflectionHierarchyWeight and refractionHierarchyWeight have not the same values, they are independent
-                    // The refraction probe is rarely used and happen only with sphere shape and high IOR. So we accept the slow path that use more simple code and
-                    // doesn't affect the performance of the reflection which is more important.
-                    // We reuse LIGHTFEATUREFLAGS_SSREFRACTION flag as refraction is mainly base on the screen. Would be a waste to not use screen and only cubemap.
-                    if ((featureFlags & LIGHTFEATUREFLAGS_SSREFRACTION) && (refractionHierarchyWeight < 1.0))
-                    {
-                        EVALUATE_BSDF_ENV(s_envLightData, REFRACTION, refraction);
-                    }
+                    EVALUATE_BSDF_ENV(envLightData, REFLECTION, reflection);
                 }
-
+                // Refraction probe and reflection probe will process exactly the same weight. It will be good for performance to be able to share this computation
+                // However it is hard to deal with the fact that reflectionHierarchyWeight and refractionHierarchyWeight have not the same values, they are independent
+                // The refraction probe is rarely used and happen only with sphere shape and high IOR. So we accept the slow path that use more simple code and
+                // doesn't affect the performance of the reflection which is more important.
+                // We reuse LIGHTFEATUREFLAGS_SSREFRACTION flag as refraction is mainly base on the screen. Would be a waste to not use screen and only cubemap.
+                if ((featureFlags & LIGHTFEATUREFLAGS_SSREFRACTION) && (refractionHierarchyWeight < 1.0))
+                {
+                    EVALUATE_BSDF_ENV(envLightData, REFRACTION, refraction);
+                }
+                i++;
             }
         }
 
@@ -426,14 +343,13 @@ void LightLoop( float3 V, PositionInputs posInput, PreLightData preLightData, BS
 #undef EVALUATE_BSDF_ENV
 #undef EVALUATE_BSDF_ENV_SKY
 
-    uint i = 0; // Declare once to avoid the D3D11 compiler warning.
     if (featureFlags & LIGHTFEATUREFLAGS_DIRECTIONAL)
     {
         for (i = 0; i < _DirectionalLightCount; ++i)
         {
-            if (IsMatchingLightLayer(_DirectionalLightDatas[i].lightLayers, builtinData.renderingLayers))
+            if (IsMatchingLightLayer(_DirectionalLightData[i].lightLayers, builtinData.renderingLayers))
             {
-                DirectLighting lighting = EvaluateBSDF_Directional(context, V, posInput, preLightData, _DirectionalLightDatas[i], bsdfData, builtinData);
+                DirectLighting lighting = EvaluateBSDF_Directional(context, V, posInput, preLightData, _DirectionalLightData[i], bsdfData, builtinData);
                 AccumulateDirectLighting(lighting, aggregateLighting);
             }
         }
@@ -442,53 +358,20 @@ void LightLoop( float3 V, PositionInputs posInput, PreLightData preLightData, BS
 #if SHADEROPTIONS_AREA_LIGHTS
     if (featureFlags & LIGHTFEATUREFLAGS_AREA)
     {
-        uint lightCount, lightStart;
+        EntityLookupParameters params = InitializeAreaLightLookup(tile, zBin);
 
-    #ifndef LIGHTLOOP_DISABLE_TILE_AND_CLUSTER
-        GetCountAndStart(posInput, LIGHTCATEGORY_AREA, lightStart, lightCount);
-    #else
-        lightCount = _AreaLightCount;
-        lightStart = _PunctualLightCount;
-    #endif
+        i = 0;
 
-        // COMPILER BEHAVIOR WARNING!
-        // If rectangle lights are before line lights, the compiler will duplicate light matrices in VGPR because they are used differently between the two types of lights.
-        // By keeping line lights first we avoid this behavior and save substantial register pressure.
-        // TODO: This is based on the current Lit.shader and can be different for any other way of implementing area lights, how to be generic and ensure performance ?
-
-        if (lightCount > 0)
+        LightData lightData;
+        while (TryLoadAreaLightData(i, params, lightData))
         {
-            i = 0;
-
-            uint      last      = lightCount - 1;
-            LightData lightData = FetchLight(lightStart, i);
-
-            while (i <= last && lightData.lightType == GPULIGHTTYPE_TUBE)
+            if (IsMatchingLightLayer(lightData.lightLayers, builtinData.renderingLayers))
             {
-                lightData.lightType = GPULIGHTTYPE_TUBE; // Enforce constant propagation
-                lightData.cookieMode = COOKIEMODE_NONE;  // Enforce constant propagation
-
-                if (IsMatchingLightLayer(lightData.lightLayers, builtinData.renderingLayers))
-                {
-                    DirectLighting lighting = EvaluateBSDF_Area(context, V, posInput, preLightData, lightData, bsdfData, builtinData);
-                    AccumulateDirectLighting(lighting, aggregateLighting);
-                }
-
-                lightData = FetchLight(lightStart, min(++i, last));
+                DirectLighting lighting = EvaluateBSDF_Area(context, V, posInput, preLightData, lightData, bsdfData, builtinData);
+                AccumulateDirectLighting(lighting, aggregateLighting);
             }
 
-            while (i <= last) // GPULIGHTTYPE_RECTANGLE
-            {
-                lightData.lightType = GPULIGHTTYPE_RECTANGLE; // Enforce constant propagation
-
-                if (IsMatchingLightLayer(lightData.lightLayers, builtinData.renderingLayers))
-                {
-                    DirectLighting lighting = EvaluateBSDF_Area(context, V, posInput, preLightData, lightData, bsdfData, builtinData);
-                    AccumulateDirectLighting(lighting, aggregateLighting);
-                }
-
-                lightData = FetchLight(lightStart, min(++i, last));
-            }
+            i++;
         }
     }
 #endif

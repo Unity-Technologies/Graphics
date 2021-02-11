@@ -121,7 +121,7 @@ namespace UnityEngine.Rendering.HighDefinition
         public float    _MaxFogDistance;
         public Vector4  _FogColor; // color in rgb
         public float    _FogColorMode;
-        public float    _Pad0;
+        public uint     _DensityVolumeCount;
         public float    _Pad1;
         public float    _Pad2;
         public Vector4  _MipFogParameters;
@@ -146,7 +146,8 @@ namespace UnityEngine.Rendering.HighDefinition
         public float    _VBufferLastSliceDist;          // The distance to the middle of the last slice
 
         // Light Loop
-        public const int s_MaxEnv2DLight = 32;
+        public const int s_MaxEnv2DLight = 32; // WTF?
+
 
         public Vector4 _ShadowAtlasSize;
         public Vector4 _CascadeShadowAtlasSize;
@@ -164,7 +165,7 @@ namespace UnityEngine.Rendering.HighDefinition
         public uint     _DirectionalLightCount;
         public uint     _PunctualLightCount;
         public uint     _AreaLightCount;
-        public uint     _EnvLightCount;
+        public uint     _ReflectionProbeCount;
 
         public int      _EnvLightSkyEnabled;
         public uint     _CascadeShadowCount;
@@ -197,7 +198,24 @@ namespace UnityEngine.Rendering.HighDefinition
         public Vector4  _CookieAtlasData;
         public Vector4  _PlanarAtlasData;
 
-        // Tile/Cluster
+        // Binned lighting
+        [HLSLArray((int)BoundedEntityCategory.Count, typeof(ShaderGenUInt4))]
+        public fixed uint _BoundedEntityCountPerCategory[(int)BoundedEntityCategory.Count * 4];
+        [HLSLArray((int)BoundedEntityCategory.Count, typeof(ShaderGenUInt4))]
+        public fixed uint _BoundedEntityOffsetPerCategory[(int)BoundedEntityCategory.Count * 4];
+        [HLSLArray((int)BoundedEntityCategory.Count, typeof(ShaderGenUInt4))]
+        public fixed uint _BoundedEntityDwordCountPerCategory[(int)BoundedEntityCategory.Count * 4];
+        [HLSLArray((int)BoundedEntityCategory.Count, typeof(ShaderGenUInt4))]
+        public fixed uint _BoundedEntityDwordOffsetPerCategory[(int)BoundedEntityCategory.Count * 4];
+        // ZBin needs separate count and offset since depth sorted categories can be compressed
+        [HLSLArray((int)BoundedEntityCategory.Count, typeof(ShaderGenUInt4))]
+        public fixed uint _BoundedEntityZBinDwordCountPerCategory[(int)BoundedEntityCategory.Count * 4];
+        [HLSLArray((int)BoundedEntityCategory.Count, typeof(ShaderGenUInt4))]
+        public fixed uint _BoundedEntityZBinDwordOffsetPerCategory[(int)BoundedEntityCategory.Count * 4];
+
+        public Vector2Int _CoarseTileBufferDimensions;
+        public Vector2Int _FineTileBufferDimensions;
+
         public uint     _NumTileFtplX;
         public uint     _NumTileFtplY;
         public float    g_fClustScale;

@@ -237,7 +237,7 @@
 // Wrap this function with WaveReadLaneFirst() to get scalar output.
 uint BitFieldExtract(uint data, uint offset, uint numBits)
 {
-    uint mask = (1u << numBits) - 1u;
+    uint mask = UINT_MAX >> (32u - numBits);
     return (data >> offset) & mask;
 }
 #endif // INTRINSIC_BITFIELD_EXTRACT
@@ -248,9 +248,9 @@ uint BitFieldExtract(uint data, uint offset, uint numBits)
 // Wrap this function with WaveReadLaneFirst() to get scalar output.
 int BitFieldExtractSignExtend(int data, uint offset, uint numBits)
 {
+    uint mask    = UINT_MAX >> (32u - numBits);
     int  shifted = data >> offset;      // Sign-extending (arithmetic) shift
-    int  signBit = shifted & (1u << (numBits - 1u));
-    uint mask    = (1u << numBits) - 1u;
+    int  signBit = shifted & mask;
 
     return -signBit | (shifted & mask); // Use 2-complement for negation to replicate the sign bit
 }
@@ -541,6 +541,7 @@ real FastAtan2(real y, real x)
 }
 
 #if (SHADER_TARGET >= 45)
+// If 'x' is not a power-of-2, the result will be truncated (e.g. log2i(3) = 1).
 uint FastLog2(uint x)
 {
     return firstbithigh(x);
@@ -1087,7 +1088,6 @@ struct PositionInputs
     float3 positionWS;  // World space position (could be camera-relative)
     float2 positionNDC; // Normalized screen coordinates within the viewport    : [0, 1) (with the half-pixel offset)
     uint2  positionSS;  // Screen space pixel coordinates                       : [0, NumPixels)
-    uint2  tileCoord;   // Screen tile coordinates                              : [0, NumTiles)
     float  deviceDepth; // Depth from the depth buffer                          : [0, 1] (typically reversed)
     float  linearDepth; // View space Z coordinate                              : [Near, Far]
 };
@@ -1096,7 +1096,7 @@ struct PositionInputs
 // This allow to easily share code.
 // If a compute shader call this function positionSS is an integer usually calculate like: uint2 positionSS = groupId.xy * BLOCK_SIZE + groupThreadId.xy
 // else it is current unormalized screen coordinate like return by SV_Position
-PositionInputs GetPositionInput(float2 positionSS, float2 invScreenSize, uint2 tileCoord)   // Specify explicit tile coordinates so that we can easily make it lane invariant for compute evaluation.
+PositionInputs GetPositionInput(float2 positionSS, float2 invScreenSize)
 {
     PositionInputs posInput;
     ZERO_INITIALIZE(PositionInputs, posInput);
@@ -1108,21 +1108,15 @@ PositionInputs GetPositionInput(float2 positionSS, float2 invScreenSize, uint2 t
 #endif
     posInput.positionNDC *= invScreenSize;
     posInput.positionSS = uint2(positionSS);
-    posInput.tileCoord = tileCoord;
 
     return posInput;
-}
-
-PositionInputs GetPositionInput(float2 positionSS, float2 invScreenSize)
-{
-    return GetPositionInput(positionSS, invScreenSize, uint2(0, 0));
 }
 
 // For Raytracing only
 // This function does not initialize deviceDepth and linearDepth
 PositionInputs GetPositionInput(float2 positionSS, float2 invScreenSize, float3 positionWS)
 {
-    PositionInputs posInput = GetPositionInput(positionSS, invScreenSize, uint2(0, 0));
+    PositionInputs posInput = GetPositionInput(positionSS, invScreenSize);
     posInput.positionWS = positionWS;
 
     return posInput;
@@ -1130,9 +1124,9 @@ PositionInputs GetPositionInput(float2 positionSS, float2 invScreenSize, float3 
 
 // From forward
 // deviceDepth and linearDepth come directly from .zw of SV_Position
-PositionInputs GetPositionInput(float2 positionSS, float2 invScreenSize, float deviceDepth, float linearDepth, float3 positionWS, uint2 tileCoord)
+PositionInputs GetPositionInput(float2 positionSS, float2 invScreenSize, float deviceDepth, float linearDepth, float3 positionWS)
 {
-    PositionInputs posInput = GetPositionInput(positionSS, invScreenSize, tileCoord);
+    PositionInputs posInput = GetPositionInput(positionSS, invScreenSize);
     posInput.positionWS = positionWS;
     posInput.deviceDepth = deviceDepth;
     posInput.linearDepth = linearDepth;
@@ -1140,30 +1134,18 @@ PositionInputs GetPositionInput(float2 positionSS, float2 invScreenSize, float d
     return posInput;
 }
 
-PositionInputs GetPositionInput(float2 positionSS, float2 invScreenSize, float deviceDepth, float linearDepth, float3 positionWS)
-{
-    return GetPositionInput(positionSS, invScreenSize, deviceDepth, linearDepth, positionWS, uint2(0, 0));
-}
-
 // From deferred or compute shader
 // depth must be the depth from the raw depth buffer. This allow to handle all kind of depth automatically with the inverse view projection matrix.
 // For information. In Unity Depth is always in range 0..1 (even on OpenGL) but can be reversed.
 PositionInputs GetPositionInput(float2 positionSS, float2 invScreenSize, float deviceDepth,
-    float4x4 invViewProjMatrix, float4x4 viewMatrix,
-    uint2 tileCoord)
+    float4x4 invViewProjMatrix, float4x4 viewMatrix)
 {
-    PositionInputs posInput = GetPositionInput(positionSS, invScreenSize, tileCoord);
+    PositionInputs posInput = GetPositionInput(positionSS, invScreenSize);
     posInput.positionWS = ComputeWorldSpacePosition(posInput.positionNDC, deviceDepth, invViewProjMatrix);
     posInput.deviceDepth = deviceDepth;
     posInput.linearDepth = LinearEyeDepth(posInput.positionWS, viewMatrix);
 
     return posInput;
-}
-
-PositionInputs GetPositionInput(float2 positionSS, float2 invScreenSize, float deviceDepth,
-                                float4x4 invViewProjMatrix, float4x4 viewMatrix)
-{
-    return GetPositionInput(positionSS, invScreenSize, deviceDepth, invViewProjMatrix, viewMatrix, uint2(0, 0));
 }
 
 // The view direction 'V' points towards the camera.
@@ -1343,5 +1325,50 @@ float SharpenAlpha(float alpha, float alphaClipTreshold)
 
 // These clamping function to max of floating point 16 bit are use to prevent INF in code in case of extreme value
 TEMPLATE_1_REAL(ClampToFloat16Max, value, return min(value, HALF_MAX))
+
+uint IndexFromCoordinate(uint4 coord, uint3 dimensions)
+{
+    return coord.x
+         + coord.y * (dimensions.x)
+         + coord.z * (dimensions.x * dimensions.y)
+         + coord.w * (dimensions.x * dimensions.y * dimensions.z);
+}
+
+uint IndexFromCoordinate(uint3 coord, uint2 dimensions)
+{
+    return IndexFromCoordinate(uint4(coord, 0), uint3(dimensions, 1));
+}
+
+uint IndexFromCoordinate(uint2 coord, uint dimensions)
+{
+    return IndexFromCoordinate(uint4(coord, 0, 0), uint3(dimensions, 1, 1));
+}
+
+uint4 CoordinateFromIndex(uint index, uint3 dimensions)
+{
+    uint cube   = (index                                               ) / (dimensions.x * dimensions.y * dimensions.z);
+    uint plane  = (index % (dimensions.x * dimensions.y * dimensions.z)) / (dimensions.x * dimensions.y);
+    uint row    = (index % (dimensions.x * dimensions.y)               ) / (dimensions.x);
+    uint column = (index % (dimensions.x));
+
+    return uint4(column, row, plane, cube);
+}
+
+uint3 CoordinateFromIndex(uint index, uint2 dimensions)
+{
+    uint plane  = (index                                ) / (dimensions.x * dimensions.y);
+    uint row    = (index % (dimensions.x * dimensions.y)) / (dimensions.x);
+    uint column = (index % (dimensions.x));
+
+    return uint3(column, row, plane);
+}
+
+uint2 CoordinateFromIndex(uint index, uint dimensions)
+{
+    uint row    = index / dimensions.x;
+    uint column = index % dimensions.x;
+
+    return uint2(column, row);
+}
 
 #endif // UNITY_COMMON_INCLUDED

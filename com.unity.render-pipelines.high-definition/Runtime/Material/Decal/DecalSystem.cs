@@ -279,8 +279,8 @@ namespace UnityEngine.Rendering.HighDefinition
 
         // clustered draw data
         static public DecalData[] m_DecalDatas = new DecalData[kDecalBlockSize];
-        static public SFiniteLightBound[] m_Bounds = new SFiniteLightBound[kDecalBlockSize];
-        static public LightVolumeData[] m_LightVolumes = new LightVolumeData[kDecalBlockSize];
+        static public FiniteLightBound[] m_Bounds = new FiniteLightBound[kDecalBlockSize];
+        //static public LightVolumeData[] m_LightVolumes = new LightVolumeData[kDecalBlockSize];
         static public TextureScaleBias[] m_DiffuseTextureScaleBias = new TextureScaleBias[kDecalBlockSize];
         static public TextureScaleBias[] m_NormalTextureScaleBias = new TextureScaleBias[kDecalBlockSize];
         static public TextureScaleBias[] m_MaskTextureScaleBias = new TextureScaleBias[kDecalBlockSize];
@@ -644,15 +644,14 @@ namespace UnityEngine.Rendering.HighDefinition
                 // The culling system culls pixels that are further
                 //   than a threshold to the box influence extents.
                 // So we use an arbitrary threshold here (k_BoxCullingExtentOffset)
-                m_LightVolumes[m_DecalDatasCount].lightCategory = (uint)LightCategory.Decal;
-                m_LightVolumes[m_DecalDatasCount].lightVolume = (uint)LightVolumeType.Box;
-                m_LightVolumes[m_DecalDatasCount].featureFlags = (uint)LightFeatureFlags.Env;
-                m_LightVolumes[m_DecalDatasCount].lightPos = influencePositionVS;
-                m_LightVolumes[m_DecalDatasCount].lightAxisX = influenceRightVS;
-                m_LightVolumes[m_DecalDatasCount].lightAxisY = influenceUpVS;
-                m_LightVolumes[m_DecalDatasCount].lightAxisZ = influenceForwardVS;
-                m_LightVolumes[m_DecalDatasCount].boxInnerDist = influenceExtents - HDRenderPipeline.k_BoxCullingExtentThreshold;
-                m_LightVolumes[m_DecalDatasCount].boxInvRange.Set(1.0f / HDRenderPipeline.k_BoxCullingExtentThreshold.x, 1.0f / HDRenderPipeline.k_BoxCullingExtentThreshold.y, 1.0f / HDRenderPipeline.k_BoxCullingExtentThreshold.z);
+                //m_LightVolumes[m_DecalDatasCount].lightCategory = (uint)BoundedEntityCategory.Decal;
+                //m_LightVolumes[m_DecalDatasCount].featureFlags = (uint)LightFeatureFlags.Env; // WTF?
+                //m_LightVolumes[m_DecalDatasCount].lightPos = influencePositionVS;
+                //m_LightVolumes[m_DecalDatasCount].lightAxisX = influenceRightVS;
+                //m_LightVolumes[m_DecalDatasCount].lightAxisY = influenceUpVS;
+                //m_LightVolumes[m_DecalDatasCount].lightAxisZ = influenceForwardVS;
+                //m_LightVolumes[m_DecalDatasCount].boxInnerDist = influenceExtents - HDRenderPipeline.k_BoxCullingExtentThreshold;
+                //m_LightVolumes[m_DecalDatasCount].boxInvRange.Set(1.0f / HDRenderPipeline.k_BoxCullingExtentThreshold.x, 1.0f / HDRenderPipeline.k_BoxCullingExtentThreshold.y, 1.0f / HDRenderPipeline.k_BoxCullingExtentThreshold.z);
             }
 
             private void AssignCurrentBatches(ref Matrix4x4[] decalToWorldBatch, ref Matrix4x4[] normalToWorldBatch, ref float[] decalLayerMaskBatch, int batchCount)
@@ -1123,8 +1122,8 @@ namespace UnityEngine.Rendering.HighDefinition
             {
                 int newDecalDatasSize = ((m_DecalsVisibleThisFrame + kDecalBlockSize - 1) / kDecalBlockSize) * kDecalBlockSize;
                 m_DecalDatas = new DecalData[newDecalDatasSize];
-                m_Bounds = new SFiniteLightBound[newDecalDatasSize];
-                m_LightVolumes = new LightVolumeData[newDecalDatasSize];
+                m_Bounds = new FiniteLightBound[newDecalDatasSize];
+                //m_LightVolumes = new LightVolumeData[newDecalDatasSize];
                 m_DiffuseTextureScaleBias = new TextureScaleBias[newDecalDatasSize];
                 m_NormalTextureScaleBias = new TextureScaleBias[newDecalDatasSize];
                 m_MaskTextureScaleBias = new TextureScaleBias[newDecalDatasSize];

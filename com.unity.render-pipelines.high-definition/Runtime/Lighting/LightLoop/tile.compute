@@ -1,0 +1,796 @@
+// #pragma enable_d3d11_debug_symbols
+#pragma only_renderers d3d11 playstation xboxone vulkan metal switch
+
+#define COARSE_BINNING
+
+#define FILL_COARSE_TILES  0
+#define PRUNE_COARSE_TILES 1
+#define FILL_FINE_TILES    2
+
+// Generates large screen tiles in a fast, conservative manner.
+#pragma kernel FillCoarseTiles     PASS = FILL_COARSE_TILES
+// Removes certain entities from the coarse buffer at a large cost.
+#pragma kernel PruneCoarseTiles    PASS = PRUNE_COARSE_TILES
+// Generates small screen tiles in an accurate manner.
+#pragma kernel FillFineTiles       PASS = FILL_FINE_TILES
+
+#define USE_DEPTH_BUFFER 0
+
+#if USE_DEPTH_BUFFER
+    #define NUM_CLIP_PLANES (4) // Do not clip against the near and far planes; let z-binning handle these (approximately)
+#else
+    #define NUM_CLIP_PLANES (6) // Full frustum clipping
+#endif
+
+#include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Common.hlsl"
+#include "Packages/com.unity.render-pipelines.core/ShaderLibrary/SpaceFillingCurves.hlsl"
+#include "Packages/com.unity.render-pipelines.high-definition-config/Runtime/ShaderConfig.cs.hlsl"
+#include "Packages/com.unity.render-pipelines.high-definition/Runtime/ShaderLibrary/TextureXR.hlsl"
+#include "Packages/com.unity.render-pipelines.high-definition/Runtime/ShaderLibrary/ShaderVariablesGlobal.hlsl"
+#include "Packages/com.unity.render-pipelines.high-definition/Runtime/Lighting/LightLoop/LightLoop.cs.hlsl"
+#include "Packages/com.unity.render-pipelines.high-definition/Runtime/Lighting/LightLoop/TilingAndBinningUtilities.hlsl"
+#include "Packages/com.unity.render-pipelines.high-definition/Runtime/Lighting/LightLoop/ClippingUtilities.hlsl"
+
+/* ------------------------------ Inputs ------------------------------------ */
+
+#if (PASS == FILL_COARSE_TILES)
+    // 1x list for all entites (sorted by category, we concatenate lists of all views).
+    StructuredBuffer<float4> _xyBoundsBuffer; // {x_min, x_max, y_min, y_max}
+#endif
+
+#if (PASS == PRUNE_COARSE_TILES)
+    // 1x list for all entites (sorted by category, we concatenate lists of all views).
+    StructuredBuffer<FiniteLightBound> _EntityBoundsBuffer;
+    // 1x list for all entites (sorted by category, we concatenate lists of all views).
+    StructuredBuffer<uint>             _SrcCoarseTileBuffer;
+#if USE_DEPTH_BUFFER
+    TEXTURE2D_X(_DepthPyramidBuffer); // Farthest (min) depth filter for conservative testing
+#endif // USE_DEPTH_BUFFER
+#endif
+
+#if (PASS == FILL_FINE_TILES)
+    // 1x list for all entites (sorted by category, we concatenate lists of all views).
+    StructuredBuffer<FiniteLightBound> _EntityBoundsBuffer;
+    // 1x list for all entites (sorted by category, we concatenate lists of all views).
+    StructuredBuffer<uint>             _CoarseTileBuffer;
+#if USE_DEPTH_BUFFER
+    TEXTURE2D_X(_DepthPyramidBuffer); // Farthest (min) depth filter for conservative testing
+#endif // USE_DEPTH_BUFFER
+#endif
+
+/* ------------------------------ Outputs ----------------------------------- */
+
+#if (PASS == FILL_COARSE_TILES)
+    // The tile buffer is a bit field with 1 bit per entity.
+    // The size of the buffer can be computed as follows:
+    // DIV_ROUND_UP(RES_X, COARSE_TILE_SIZE) * DIV_ROUND_UP(RES_Y, COARSE_TILE_SIZE) * EYE_COUNT *
+    // DIV_ROUND_UP(TILE_ENTRY_LIMIT, 32) * 4 bytes per DWORD.
+    // For example (1080p): 30 * 17 * 1 * (256 / 32) * 4 = 15.94 KiB.
+    // Note that the allocation size is independent of the number of entities per category.
+    RWStructuredBuffer<uint> _CoarseTileBuffer;
+#endif
+
+#if (PASS == PRUNE_COARSE_TILES)
+    // 1x list for all entites (sorted by category, we concatenate lists of all views).
+    RWStructuredBuffer<uint> _DstCoarseTileBuffer;
+#endif
+
+#if (PASS == FILL_FINE_TILES)
+    // The tile buffer is a bit field with 1 bit per entity.
+    // The size of the buffer can be computed as follows:
+    // DIV_ROUND_UP(RES_X, FINE_TILE_SIZE) * DIV_ROUND_UP(RES_Y, FINE_TILE_SIZE) * EYE_COUNT *
+    // DIV_ROUND_UP(TILE_ENTRY_LIMIT, 32) * 4 bytes per DWORD.
+    // For example (1080p): 240 * 135 * 1 * (256 / 32) * 4 = 0.99 MiB.
+    // Note that the allocation size is independent of the number of entities per category.
+    RWStructuredBuffer<uint> _FineTileBuffer;
+#endif
+
+/* ------------------------------ Utilities --------------------------------- */
+
+/* ------------------------------ Implementation ---------------------------- */
+
+// !!! IMPORTANT !!!
+// The legacy code from Morten provides us special projection matrices (and their inverses).
+// These matrices are different from the matrices the HDRP uses.
+// There is no clip-space flip (effectively, forced UNITY_UV_STARTS_AT_TOP = 0).
+// All coordinate systems are left-handed, Y-up, Z-forward.
+// y  z
+// | /
+// 0 -- x
+
+#ifdef SHADER_API_XBOXONE
+// (Sep 16, 2020)
+// The Xbox shader compiler expects the lane swizzle mask to be a compile-time constant.
+// In our case, the mask is a compile-time constant, but it is defined inside a loop
+// that is unrolled at the compile time, and the constants are generated during the
+// constant propagation pass of the optimizer. This works fine on PlayStation, but does not work
+// on Xbox. In order to avoid writing hideous code specifically for Xbox, we disable the support
+// of wave intrinsics on Xbox until the Xbox compiler is fixed.
+#undef PLATFORM_SUPPORTS_WAVE_INTRINSICS
+#endif
+
+#ifdef PLATFORM_SUPPORTS_WAVE_INTRINSICS
+// Booleans are stored in 2x consecutive SGPRs on GCN.
+// So using LaneSwizzle is probably inefficient in this case...
+// TODO: reimplement this using 'ballot' to save VGPRs and VALUs.
+bool LaneSwizzle(bool x, uint andMask, uint orMask, uint xorMask)
+{
+    return (bool)(LaneSwizzle((uint)x, andMask, orMask, xorMask));
+}
+#endif
+
+#if IS_MULTIPLE(TILE_ENTRY_LIMIT, 2)
+    #error "TILE_ENTRY_LIMIT must be an integer multiple of 2."
+#endif
+
+#if (PASS == FILL_COARSE_TILES)
+
+// 1x thread per tile.
+[numthreads(THREADS_PER_GROUP, 1, 1)]
+void FillCoarseTiles(uint threadID : SV_GroupIndex, uint3 groupID : SV_GroupID)
+{
+    // We could tile the threads in 8x8 blocks. The problem is,
+    // the dimensions of the buffer are already quite small. The extra padding
+    // (helper threads) required outweighs the benefits (improved locality, reduced divergence).
+    const uint t   = threadID;
+    const uint g   = groupID.x;
+    const uint cat = groupID.y;
+    const uint eye = groupID.z;
+
+    UNITY_XR_ASSIGN_VIEW_INDEX(eye);
+
+    const uint entityIndex = _BoundedEntityOffsetPerCategory[cat].x;
+    const uint entityCount = _BoundedEntityCountPerCategory[cat].x;
+    const uint dwordCount  = _BoundedEntityDwordCountPerCategory[cat].x;
+
+    if (dwordCount == 0) return;
+
+    const uint  globalTileIndex  = IndexFromCoordinate(uint2(t, g), THREADS_PER_GROUP);
+    const uint  clampedTileIndex = min(globalTileIndex, TILE_BUFFER_DIMS.x * TILE_BUFFER_DIMS.y - 1);
+    const uint2 clampedTileCoord = CoordinateFromIndex(clampedTileIndex, TILE_BUFFER_DIMS.x); // TODO: avoid integer division
+
+    // Helper threads may perform the same computation on valid data,
+    // but do not store the results of the computation to memory.
+    const bool isHelperThread = globalTileIndex != clampedTileIndex;
+
+    if (isHelperThread) return; // Avoid adding too many checks or branches below
+
+    const uint entityBufferIndex = ComputeEntityBoundsBufferIndex(entityIndex, eye);
+    const uint tileBufferIndex   = ComputeTileBufferIndex(clampedTileIndex, cat, eye);
+
+    // Compute 2-D the AABB of the tile.
+    const uint2  tileAaBbMinPtSS  = clampedTileCoord * TILE_SIZE;
+    const uint2  tileAaBbMaxPtSS  = tileAaBbMinPtSS  + TILE_SIZE;                   // (clampedTileCoord + 1) * TILE_SIZE
+    const float2 tileAaBbMinPtNDC =          tileAaBbMinPtSS * _ScreenSize.zw;      // Divide
+    const float2 tileAaBbMaxPtNDC = saturate(tileAaBbMaxPtSS * _ScreenSize.zw);     // Divide and clamp to the edge
+    const float2 tileBoundsX      = float2(tileAaBbMinPtNDC.x, tileAaBbMaxPtNDC.x); // TODO: add epsilon for numerical robustness?
+    const float2 tileBoundsY      = float2(tileAaBbMinPtNDC.y, tileAaBbMaxPtNDC.y); // TODO: add epsilon for numerical robustness?
+
+    // The algorithm is O(n * m) where 'n' is the entity count and 'm' is tile count.
+    // Therefore, it will be slow if 'n' is large.
+    // We should consider a sorting-based algorithm, which could be closer to O((n + m) * log(n)).
+    for (uint d = 0; d < dwordCount; d++)
+    {
+        uint outputDword = 0; // Initially empty
+
+        for (uint i = d * 32; i < min(d * 32 + 32, entityCount); i++)
+        {
+            float2 entityBoundsX = _xyBoundsBuffer[entityBufferIndex + i].xy;
+            float2 entityBoundsY = _xyBoundsBuffer[entityBufferIndex + i].zw;
+
+            if (IntervalsOverlap(entityBoundsX, tileBoundsX) &&
+                IntervalsOverlap(entityBoundsY, tileBoundsY))
+            {
+                uint b = i % 32;
+
+                outputDword |= 1 << b;
+            }
+        }
+
+        _CoarseTileBuffer[tileBufferIndex + d] = outputDword;
+    }
+}
+
+#else // (PASS != FILL_COARSE_TILES)
+
+// Improve naming by using the definitions below.
+#define THREADS_PER_TILE (THREADS_PER_ENTITY)
+#define TILES_PER_GROUP  (ENTITIES_PER_GROUP)
+
+#ifndef PLATFORM_SUPPORTS_WAVE_INTRINSICS
+// 1 array * 16 elements * 4 bytes each = 64 bytes.
+groupshared uint gs_CullClipFaceMasks[TILES_PER_GROUP];   // 6 faces each (HLSL does not support small data types)
+// 1 array * 16 elements * 4 bytes each = 64 bytes.
+groupshared uint gs_CulledFaceMasks[TILES_PER_GROUP];     // 6 faces each (HLSL does not support small data types)
+// 1 array * 16 elements * 4 bytes each = 64 bytes.
+groupshared uint gs_CullMasksOfAllFaces[TILES_PER_GROUP]; // 6 planes each (HLSL does not support small data types)
+// 1 array * 16 elements * 4 bytes each = 64 bytes.
+groupshared uint gs_TrivialAcceptFlags[TILES_PER_GROUP];  // Just a boolean
+#endif // PLATFORM_SUPPORTS_WAVE_INTRINSICS
+
+// We do not clip the sphere against the near and the far plane (same as in 'scrbound.compute').
+void TryCullBoundingSphere(float3 C, float r,
+                           float3 aaBbMinPtCS, float3 aaBbMaxPtCS, float4x4 projMat, float4x4 invProjMat,
+                           out bool trivialAccept, out bool trivialReject)
+{
+    trivialAccept = trivialReject = false;
+
+    if ((C.z + r) > 0) // Is the sphere at least *partially* in front of the origin?
+    {
+        if (g_isOrthographic)
+        {
+            float4x4 orthoProj = OptimizeOrthographicMatrix(projMat);
+
+            // Project the center of the bounding sphere (ellipse).
+            float3 projC  = mul(orthoProj, float4(C.xyz, 1)).xyz;
+            // Test whether the light's center is inside the view volume.
+            trivialAccept = all(aaBbMinPtCS <= projC && projC <= aaBbMaxPtCS);
+
+            if (!trivialAccept)
+            {
+                float2 projExtents = mul(orthoProj, float4(r.xx, 0, 0)).xy; // Axis-aligned ellipse
+
+                // Make them relative to the ellipse.
+                aaBbMinPtCS.xy -= projC.xy;
+                aaBbMaxPtCS.xy -= projC.xy;
+
+                // Transform the ellipse into a unit circle.
+                aaBbMinPtCS.xy *= rcp(projExtents);
+                aaBbMaxPtCS.xy *= rcp(projExtents);
+
+                // Compute the distance from the center of the sphere (at the origin) to the AABB.
+                float sqDist = SqDistToClosestPointAaBb(0, aaBbMinPtCS.xy, aaBbMaxPtCS.xy);
+
+                trivialReject = sqDist > 1;
+            }
+        }
+        else if (C.z > 0) // Perspective; the sphere is in front of the origin
+        {
+            float4x4 perspProj = OptimizePerspectiveMatrix(projMat);
+
+            // Project the center of the bounding sphere (ellipse).
+            float3 projC  = mul(perspProj, float4(C.xyz, 1)).xyz * rcp(C.z); // Assume M[3] = (0,0,1,0)
+            // Test whether the light's center is inside the view volume.
+            trivialAccept = all(aaBbMinPtCS <= projC && projC <= aaBbMaxPtCS);
+
+            if (!trivialAccept && (dot(C, C) - r * r) > 0)
+            {
+                // Find the closest point inside the AABB.
+                float2 projQ = ClosestPointAaBb(projC.xy, aaBbMinPtCS.xy, aaBbMaxPtCS.xy);
+
+                // Unproject the closest point (Q') into the view space (Q).
+                // Inverse of an arbitrary perspective projection matrix looks like this:
+                // | x 0 0 x |
+                // | 0 x 0 x |
+                // | 0 0 0 1 |
+                // | x x x x |
+                // Q.x = (InvProj._11 * Q'.x + InvProj._14) / Q.w
+                // Q.y = (InvProj._22 * Q'.y + InvProj._24) / Q.w
+                // Q.z = 1 / Q.w
+                // We don't need to normalize.
+
+                float3 Q;
+                Q.x = (invProjMat._11 * projQ.x + invProjMat._14);
+                Q.y = (invProjMat._22 * projQ.y + invProjMat._24);
+                Q.z = 1; // Near plane with reversed Z-buffering
+
+            #if 0
+                // Compute the angle of the bounding cone.
+                float sinAlpha = r * rsqrt(dot(C, C));
+                float cosAlpha = sqrt(1 - sinAlpha * sinAlpha);
+                // Compute the angle between OC and OQ.
+                float cosBeta  = dot(C, Q) * rsqrt(dot(C, C) * dot(Q, Q));
+
+                trivialReject = cosBeta < cosAlpha;
+            #else
+                // Same, but faster.
+                trivialReject = dot(C, Q) < sqrt(dot(Q, Q) * (dot(C, C) - r * r));
+            #endif
+            }
+        }
+    }
+    else // if ((C.z + r) <= 0)
+    {
+        trivialReject = true;
+    }
+}
+
+void TryCullBoundingFrustum(float3 rbpC, float3 rbpX, float3 rbpY, float3 rbpZ, float scale, float radius, uint tile,
+                            uint t /* thread */, uint threadIdx,
+                            float3 cubeMinCS, float3 cubeMaxCS, float4x4 projMat, float4x4 invProjMat,
+                            out bool trivialAccept, out bool trivialReject)
+{
+    trivialAccept = trivialReject = false;
+
+    const uint baseVertexOffset = tile * NUM_VERTS;
+
+#ifndef PLATFORM_SUPPORTS_WAVE_INTRINSICS
+    // (0) Initialize the TGSM.
+    if (t == 0) // Avoid bank conflicts
+    {
+        gs_CullClipFaceMasks[tile]   = 0;           // Initially all faces are assumed to be inside
+        gs_CulledFaceMasks[tile]     = 0;           // Initially none
+        gs_TrivialAcceptFlags[tile]  = (uint)false; // Initially false
+    }
+#endif // PLATFORM_SUPPORTS_WAVE_INTRINSICS
+
+    // We must determine whether we have to clip or cull any of the faces.
+    // If all vertices of a face are inside with respect to all the culling planes,
+    // we can trivially accept that face. If all vertices of a face are behind
+    // any single plane, we can trivially reject (cull) that face.
+    uint cullClipFaceMask = 0; // Initially inside
+
+    uint i; // Avoid the multiply-declared variable warning
+
+    // (1) Compute the vertices of the bounding frustum.
+    for (i = 0; i < VERTS_PER_THREAD; i++)
+    {
+        uint v = t + i * THREADS_PER_TILE;
+
+        // rbpVerts[0] = rbpC - rbpX * scale - rbpY * scale - rbpZ; (-s, -s, -1)
+        // rbpVerts[1] = rbpC + rbpX * scale - rbpY * scale - rbpZ; (+s, -s, -1)
+        // rbpVerts[2] = rbpC - rbpX * scale + rbpY * scale - rbpZ; (-s, +s, -1)
+        // rbpVerts[3] = rbpC + rbpX * scale + rbpY * scale - rbpZ; (+s, +s, -1)
+        // rbpVerts[4] = rbpC - rbpX         - rbpY         + rbpZ; (-1, -1, +1)
+        // rbpVerts[5] = rbpC + rbpX         - rbpY         + rbpZ; (+1, -1, +1)
+        // rbpVerts[6] = rbpC - rbpX         + rbpY         + rbpZ; (-1, +1, +1)
+        // rbpVerts[7] = rbpC + rbpX         + rbpY         + rbpZ; (+1, +1, +1)
+
+        float3 m = GenerateVertexOfStandardCube(v);
+        m.xy *= ((v & 4) == 0) ? scale : 1; // X, Y in [-scale, scale]
+
+        float3 rbpVertRVS = m.x * rbpX + m.y * rbpY + m.z * rbpZ;
+        float3 rbpVertVS  = rbpC + rbpVertRVS;
+        // Avoid generating (w = 0).
+        rbpVertVS.z = (abs(rbpVertVS.z) > FLT_MIN) ? rbpVertVS.z : FLT_MIN;
+
+        // For the orthographic projection, the resulting (w = 1).
+        float4 hapVertCS = mul(projMat, float4(rbpVertVS, 1));
+
+        const float3 hapAaBbMinPt = cubeMinCS * hapVertCS.w;
+        const float3 hapAaBbMaxPt = cubeMaxCS * hapVertCS.w;
+
+        // For each vertex, we must determine whether it is within the bounds.
+        // For culling and clipping, we must know, per culling plane, whether the vertex
+        // is in the positive or the negative half-space.
+        uint behindMask = 0; // Initially in front
+
+        // TODO: add epsilon for numerical robustness?
+        for (uint j = 0; j < (NUM_CLIP_PLANES / 2); j++)
+        {
+            // Test: dot(frustumPlane, hapVertCS) < 0:
+            // (x < -w), (x > w), (y < -w), (y > w), (z < 0), (z > w).
+            behindMask |= ((hapVertCS[j] < hapAaBbMinPt[j]) ? 1 : 0) << (2 * j + 0);
+            behindMask |= ((hapVertCS[j] > hapAaBbMaxPt[j]) ? 1 : 0) << (2 * j + 1);
+        }
+
+        if (behindMask == 0) // Inside?
+        {
+            // The vertex of the bounding frustum is inside the viewing frustum.
+            // But is it also inside the bounding sphere?
+            trivialAccept = trivialAccept || (dot(rbpVertRVS, rbpVertRVS) <= (radius * radius));
+        }
+        else // Outside
+        {
+            // Mark all the faces of the bounding frustum associated with this vertex.
+            cullClipFaceMask |= GetFaceMaskOfVertex(v);
+        }
+
+        gs_HapVertsX[baseVertexOffset + v]          = hapVertCS.x;
+        gs_HapVertsY[baseVertexOffset + v]          = hapVertCS.y;
+        gs_HapVertsZ[baseVertexOffset + v]          = hapVertCS.z;
+        gs_HapVertsW[baseVertexOffset + v]          = hapVertCS.w;
+        gs_BehindMasksOfVerts[baseVertexOffset + v] = behindMask;
+    }
+
+#ifdef PLATFORM_SUPPORTS_WAVE_INTRINSICS
+    for (i = 0; i < FastLog2(THREADS_PER_TILE); i++)
+    {
+        uint andMask = PLATFORM_LANE_COUNT - 1; // All lanes
+        uint orMask  = 0;                       // Plays no role
+        uint xorMask = 1 << i;                  // Flip bits one by one starting from the LSB
+
+        cullClipFaceMask              |= LaneSwizzle(cullClipFaceMask, andMask, orMask, xorMask);
+        trivialAccept = trivialAccept || LaneSwizzle(trivialAccept,    andMask, orMask, xorMask);
+    }
+
+    GroupMemoryBarrier(); // Wait for writes to gs_BehindMasksOfVerts, gs_HapVerts
+#else
+    InterlockedOr(gs_CullClipFaceMasks[tile],  cullClipFaceMask);
+    InterlockedOr(gs_TrivialAcceptFlags[tile], (uint)trivialAccept);
+
+    GroupMemoryBarrier(); // Wait for writes to gs_TrivialAcceptFlags, gs_CullClipFaceMasks, gs_BehindMasksOfVerts, gs_HapVerts
+
+    cullClipFaceMask = gs_CullClipFaceMasks[tile];
+    trivialAccept    = (bool)gs_TrivialAcceptFlags[tile];
+#endif // PLATFORM_SUPPORTS_WAVE_INTRINSICS
+
+    if (trivialAccept || trivialReject) return;
+
+    // (2) Test the corners of the view volume.
+    if (cullClipFaceMask != 0)
+    {
+        // The entity is partially outside the view volume.
+        // Therefore, some of the corners of the view volume may be inside the entity's bounding frustum.
+        // Since we cull faces that are outside the view volume, so we must make sure its corners are accounted for.
+        // We can exploit the properties of the frustum by building an entity-space projection matrix.
+        // P_v = T * (R * S) * P_l
+        // P_l = (R * S)^{-1} * T^{-1} * P_v
+        float4x4 invTranslateToEntitySpace      = Translation4x4(-rbpC);
+        float4x4 invRotateAndScaleInEntitySpace = Homogenize3x3(Invert3x3(ScaledRotation3x3(rbpX, rbpY, rbpZ)));
+
+        // This (orthographic) projection matrix maps a view-space point to a entity-space [-1, 1]^3 cube.
+        float4x4 entitySpaceMatrix = mul(invRotateAndScaleInEntitySpace, invTranslateToEntitySpace);
+
+        if (scale != 1) // Perspective entity space?
+        {
+            // Compute the parameters of the perspective projection.
+            float s = scale;
+            float n = 2 * (s * rcp(1 - s)); // Distance from the eye to the near plane
+            float f = 2 + n;                // Distance from the eye to the far plane
+            float g = f;                    // Distance from the eye to the projection plane
+            float e = -1 - n;               // Signed distance from the origin to the eye
+
+            float4x4 invTranslateEye = Translation4x4(float3(0, 0, -e));
+            float4x4 perspProjMatrix = PerspectiveProjection4x4(1, g, n, f);
+
+            entitySpaceMatrix = mul(mul(perspProjMatrix, invTranslateEye), entitySpaceMatrix);
+        }
+
+        for (i = 0; i < VERTS_PER_THREAD; i++)
+        {
+            uint v = t + i * THREADS_PER_TILE;
+
+            float3 rapVertCS = GenerateVertexOfCustomCube(v, cubeMinCS, cubeMaxCS);
+            float4 hbpVertVS = mul(invProjMat, float4(rapVertCS, 1)); // Clip to view space
+            float4 hapVertLS = mul(entitySpaceMatrix, hbpVertVS);     // View to entity space
+
+            // TODO: add epsilon for numerical robustness?
+            bool inside = Max3(abs(hapVertLS.x), abs(hapVertLS.y), abs(hapVertLS.z)) < hapVertLS.w;
+
+            if (inside)
+            {
+                float3 rbpVertRVS = hbpVertVS.xyz * rcp(hbpVertVS.w) - rbpC;
+                // The vertex of the viewing frustum is inside the bounding frustum.
+                // But is it also inside the bounding sphere?
+                trivialAccept = trivialAccept || (dot(rbpVertRVS, rbpVertRVS) <= (radius * radius));
+            }
+        }
+    }
+
+#ifdef PLATFORM_SUPPORTS_WAVE_INTRINSICS
+    for (i = 0; i < FastLog2(THREADS_PER_TILE); i++)
+    {
+        uint andMask = PLATFORM_LANE_COUNT - 1; // All lanes
+        uint orMask  = 0;                       // Plays no role
+        uint xorMask = 1 << i;                  // Flip bits one by one starting from the LSB
+
+        trivialAccept = trivialAccept || LaneSwizzle(trivialAccept, andMask, orMask, xorMask);
+    }
+#else
+    InterlockedOr(gs_TrivialAcceptFlags[tile], (uint)trivialAccept);
+
+    GroupMemoryBarrier(); // Wait for writes to gs_TrivialAcceptFlags
+
+    trivialAccept = (bool)gs_TrivialAcceptFlags[tile];
+#endif // PLATFORM_SUPPORTS_WAVE_INTRINSICS
+
+    if (trivialAccept || trivialReject) return;
+
+    // (3) Cull the faces.
+    uint culledFaceMask = 0; // Initially none
+
+    if (cullClipFaceMask != 0)
+    {
+        const uint cullFaceMask   = cullClipFaceMask;
+        const uint numFacesToCull = countbits(cullFaceMask); // [0, 6]
+
+        for (i = 0; i < FACES_PER_THREAD; i++)
+        {
+            uint n = t + i * THREADS_PER_TILE;
+
+            if (n < numFacesToCull)
+            {
+                uint f = NthBitLow(cullFaceMask, n);
+
+                if (TryCullFace(f, baseVertexOffset))
+                {
+                    culledFaceMask |= 1 << f;
+                }
+            }
+        }
+    }
+
+#ifdef PLATFORM_SUPPORTS_WAVE_INTRINSICS
+    for (i = 0; i < FastLog2(THREADS_PER_TILE); i++)
+    {
+        uint andMask = PLATFORM_LANE_COUNT - 1; // All lanes
+        uint orMask  = 0;                       // Plays no role
+        uint xorMask = 1 << i;                  // Flip bits one by one starting from the LSB
+
+        culledFaceMask |= LaneSwizzle(culledFaceMask, andMask, orMask, xorMask);
+    }
+#else
+    InterlockedOr(gs_CulledFaceMasks[tile], culledFaceMask);
+
+    GroupMemoryBarrier(); // Wait for writes to gs_CulledFaceMasks
+
+    culledFaceMask = gs_CulledFaceMasks[tile];
+#endif
+
+    if (culledFaceMask == FACE_MASK)
+    {
+        // If we culled all the faces, there are 2 possibilities:
+        // 1. The bounding frustum is entirely outside the view frustum.
+        // -> We can safely reject this entity.
+        // 2. The bounding frustum is entirely inside  the view frustum.
+        // 3. The view frustum is entirely inside the bounding frustum.
+        // -> We can safely accept this entity.
+        // Case 2 has been handled inside TryCullBoundingSphere.
+        // Case 3 has been handled in this function, above.
+        // So the only remaining possibility is Case 1.
+        trivialReject = true;
+    }
+
+    if (trivialAccept || trivialReject) return;
+
+    cullClipFaceMask &= ~culledFaceMask;
+
+    // (4) Clip the faces.
+    if (cullClipFaceMask != 0)
+    {
+        const uint clipFaceMask   = cullClipFaceMask;
+        const uint numFacesToClip = countbits(clipFaceMask); // [0, 6]
+
+        for (i = 0; i < FACES_PER_THREAD; i++)
+        {
+            uint n = t + i * THREADS_PER_TILE;
+
+            if (n < numFacesToClip)
+            {
+                uint f = NthBitLow(clipFaceMask, n);
+
+                uint   srcBegin, srcSize;
+                float4 vertRingBuffer[MAX_CLIP_VERTS];
+                if (ClipFaceAgainstCube(f, cubeMinCS, cubeMaxCS, baseVertexOffset,
+                                        srcBegin, srcSize, vertRingBuffer, threadIdx))
+                {
+                    culledFaceMask |= 1 << f;
+                }
+                else
+                {
+                    // May not trivially accept here unless it also lies within the bounding sphere.
+                }
+            }
+        }
+    }
+
+#ifdef PLATFORM_SUPPORTS_WAVE_INTRINSICS
+    for (i = 0; i < FastLog2(THREADS_PER_TILE); i++)
+    {
+        uint andMask = PLATFORM_LANE_COUNT - 1; // All lanes
+        uint orMask  = 0;                       // Plays no role
+        uint xorMask = 1 << i;                  // Flip bits one by one starting from the LSB
+
+        culledFaceMask |= LaneSwizzle(culledFaceMask, andMask, orMask, xorMask);
+    }
+#else
+    InterlockedOr(gs_CulledFaceMasks[tile], culledFaceMask);
+
+    GroupMemoryBarrier(); // Wait for writes to gs_TrivialAcceptFlags, gs_CulledFaceMasks
+
+    culledFaceMask = gs_CulledFaceMasks[tile];
+#endif
+
+    if (culledFaceMask == FACE_MASK)
+    {
+        // If we culled all the faces, there are 2 possibilities:
+        // 1. The bounding frustum is entirely outside the view frustum.
+        // -> We can safely reject this entity.
+        // 2. The bounding frustum is entirely inside  the view frustum.
+        // 3. The view frustum is entirely inside the bounding frustum.
+        // -> We can safely accept this entity.
+        // Case 2 has been handled inside TryCullBoundingSphere.
+        // Case 3 has been handled in this function, above.
+        // So the only remaining possibility is Case 1.
+        trivialReject = true;
+    }
+}
+
+bool TryCullEntity(uint entityIndex, uint category, uint eye, float3 tileAaBbMinPtCS, float3 tileAaBbMaxPtCS, uint tile, uint t /* thread */, uint threadIdx)
+{
+    const float4x4 projMat    = g_mProjectionArr[eye];    // For the entire view frustum
+    const float4x4 invProjMat = g_mInvProjectionArr[eye]; // For the entire view frustum
+
+    const uint             bufferIndex = ComputeEntityBoundsBufferIndex(entityIndex, category, eye);
+    const FiniteLightBound cullData    = _EntityBoundsBuffer[bufferIndex];
+
+    // Bounding frustum.
+    const float3 rbpC  = cullData.center.xyz;   // View-space
+    const float3 rbpX  = cullData.boxAxisX.xyz; // Pre-scaled
+    const float3 rbpY  = cullData.boxAxisY.xyz; // Pre-scaled
+    const float3 rbpZ  = cullData.boxAxisZ.xyz; // Pre-scaled
+    const float scale  = cullData.scaleXY;      // scale.x = scale.y
+    // Bounding sphere.
+    const float radius = cullData.radius;
+
+    bool trivialAccept = false, trivialReject = false;
+
+    if (radius > 0)
+    {
+        TryCullBoundingSphere(rbpC, radius, tileAaBbMinPtCS, tileAaBbMaxPtCS, projMat, invProjMat,
+                              trivialAccept, trivialReject);
+    }
+
+    if (!(trivialAccept || trivialReject))
+    {
+        TryCullBoundingFrustum(rbpC, rbpX, rbpY, rbpZ, scale, radius, tile, t, threadIdx,
+                               tileAaBbMinPtCS, tileAaBbMaxPtCS, projMat, invProjMat,
+                               trivialAccept, trivialReject);
+    }
+
+    return trivialReject;
+}
+
+#if (PASS == PRUNE_COARSE_TILES)
+
+// *************************************************************************************************
+// At this point, each tile has a list of conservatively selected entities.
+// The idea it to spend a few more clock cycles to remove entities that do not belong to the tile.
+// We use roughly the same idea as in 'scrbound.compute':
+// we test the bounding volume of the entity against the mini-frustum of the tile.
+// The difference is that this time we do not need to compute the AABB.
+// Thus, there is a "slow" path and a "fast" path. The fast path includes "trivial" accept and reject.
+// If we cannot find a way to accept or reject a tile with certainty, we must conservatively keep it.
+// *************************************************************************************************
+
+[numthreads(THREADS_PER_TILE, TILES_PER_GROUP, 1)]
+void PruneCoarseTiles(uint3 threadID : SV_GroupThreadID, uint3 groupID : SV_GroupID, uint threadIdx : SV_GroupIndex)
+{
+    // TODO: swizzle blocks of tiles to improve locality & reduce divergence at the cost of padding?
+    const uint t    = threadID.x;
+    const uint tile = threadID.y;
+    const uint g    = groupID.x;
+    const uint cat  = groupID.y;
+    const uint eye  = groupID.z;
+
+    UNITY_XR_ASSIGN_VIEW_INDEX(eye);
+
+    const uint dwordCount = _BoundedEntityDwordCountPerCategory[cat].x;
+
+    if (dwordCount == 0) return;
+
+    const uint  globalTileIndex  = IndexFromCoordinate(uint2(tile, g), TILES_PER_GROUP);
+    const uint  clampedTileIndex = min(globalTileIndex, TILE_BUFFER_DIMS.x * TILE_BUFFER_DIMS.y - 1);
+    const uint2 clampedTileCoord = CoordinateFromIndex(clampedTileIndex, TILE_BUFFER_DIMS.x); // TODO: avoid integer division
+
+    // Helper threads may perform the same computation on valid data,
+    // but do not store the results of the computation to memory.
+    const bool isHelperThread = globalTileIndex != clampedTileIndex;
+
+    if (isHelperThread) return; // Avoid adding too many checks or branches below
+
+    const uint tileBufferIndex = ComputeTileBufferIndex(clampedTileIndex, cat, eye);
+
+#if USE_DEPTH_BUFFER
+    const float farthestDepth = LOAD_TEXTURE2D_X(_DepthPyramidBuffer, _DepthPyramidMipLevelOffsetCoarse + clampedTileCoord).r;
+#else
+    const float farthestDepth = 0;
+#endif
+
+    const uint2  tileAaBbMinPtSS  = clampedTileCoord * TILE_SIZE;
+    const uint2  tileAaBbMaxPtSS  = tileAaBbMinPtSS  + TILE_SIZE;               // (tileCoord + 1) * TILE_SIZE
+    const float2 tileAaBbMinPtNDC =          tileAaBbMinPtSS * _ScreenSize.zw;  // Divide
+    const float2 tileAaBbMaxPtNDC = saturate(tileAaBbMaxPtSS * _ScreenSize.zw); // Divide and clamp to the edge
+    const float3 tileAaBbMinPtCS  = float3(tileAaBbMinPtNDC * 2 - 1, farthestDepth);
+    const float3 tileAaBbMaxPtCS  = float3(tileAaBbMaxPtNDC * 2 - 1, 1);
+
+    for (uint d = 0; d < dwordCount; d++)
+    {
+        uint inputDword  = _SrcCoarseTileBuffer[tileBufferIndex + d];
+        uint outputDword = 0; // Initially empty
+
+        while (inputDword != 0)
+        {
+            uint b = firstbitlow(inputDword);
+            uint i = d * 32 + b;
+
+            if (!TryCullEntity(i, cat, eye, tileAaBbMinPtCS, tileAaBbMaxPtCS, tile, t, threadIdx))
+            {
+                outputDword |= 1 << b;
+            }
+
+            inputDword ^= 1 << b; // Clear the bit to continue using firstbitlow()
+        }
+
+        _DstCoarseTileBuffer[tileBufferIndex + d] = outputDword;
+    }
+}
+
+#endif // (PASS == PRUNE_COARSE_TILES)
+
+#if (PASS == FILL_FINE_TILES)
+
+#if IS_MULTIPLE(COARSE_TILE_SIZE, FINE_TILE_SIZE)
+    #error "COARSE_TILE_SIZE must be an integer multiple of FINE_TILE_SIZE."
+#endif
+
+// Caution: generic tile macros (such as TILES_PER_GROUP) used below correspond to COARSE_BINNING.
+// Still, by TILES_PER_GROUP, we mean fine tiles (hence 'FillFineTiles').
+[numthreads(THREADS_PER_TILE, TILES_PER_GROUP, 1)]
+void FillFineTiles(uint3 threadID : SV_GroupThreadID, uint3 groupID : SV_GroupID, uint threadIdx : SV_GroupIndex)
+{
+    const uint t    = threadID.x;
+    const uint tile = threadID.y;
+    const uint g    = groupID.x;
+    const uint cat  = groupID.y;
+    const uint eye  = groupID.z;
+
+    UNITY_XR_ASSIGN_VIEW_INDEX(eye);
+
+    const uint dwordCount = _BoundedEntityDwordCountPerCategory[cat].x;
+
+    if (dwordCount == 0) return;
+
+    const uint  coarseToFineSizeRatio  = COARSE_TILE_SIZE / FINE_TILE_SIZE;
+    const uint  fineTilesPerCoarseTile = Sq(coarseToFineSizeRatio);
+    const uint  globalCoarseTileIndex  = (g * TILES_PER_GROUP) / fineTilesPerCoarseTile; // = g; (wave-uniform)
+    const uint  clampedCoarseTileIndex = min(globalCoarseTileIndex, COARSE_TILE_BUFFER_DIMS.x * COARSE_TILE_BUFFER_DIMS.y - 1);
+    const uint2 clampedCoarseTileCoord = CoordinateFromIndex(clampedCoarseTileIndex, COARSE_TILE_BUFFER_DIMS.x); // TODO: avoid integer division
+
+    // Within the coarse tile, we process fine tiles in the scan line order.
+    // Of course, both coarse and fine tiles are arranged linearly in memory.
+    const uint  localFineTileIndex   = (g * TILES_PER_GROUP) % fineTilesPerCoarseTile + tile; // = tile;
+    const uint2 localFineTileCoord   = CoordinateFromIndex(localFineTileIndex, coarseToFineSizeRatio);
+    const uint2 globalFineTileCoord  = clampedCoarseTileCoord * coarseToFineSizeRatio + localFineTileCoord;
+    const uint2 clampedFineTileCoord = min(globalFineTileCoord, FINE_TILE_BUFFER_DIMS - 1);
+    const uint  clampedFineTileIndex = IndexFromCoordinate(clampedFineTileCoord, FINE_TILE_BUFFER_DIMS.x);
+
+    // Helper threads may perform the same computation on valid data,
+    // but do not store the results of the computation to memory.
+    const bool isHelperThread = (globalCoarseTileIndex != clampedCoarseTileIndex) || any(globalFineTileCoord != clampedFineTileCoord);
+
+    if (isHelperThread) return; // Avoid adding too many checks or branches below
+
+#if USE_DEPTH_BUFFER
+    const float farthestDepth = LOAD_TEXTURE2D_X(_DepthPyramidBuffer, _DepthPyramidMipLevelOffsetFine + clampedFineTileCoord).r;
+#else
+    const float farthestDepth = 0;
+#endif
+
+    const uint2  fineTileAaBbMinPtSS  = clampedFineTileCoord * FINE_TILE_SIZE;
+    const uint2  fineTileAaBbMaxPtSS  = fineTileAaBbMinPtSS  + FINE_TILE_SIZE;          // (tileCoord + 1) * TILE_SIZE
+    const float2 fineTileAaBbMinPtNDC =          fineTileAaBbMinPtSS * _ScreenSize.zw;  // Divide
+    const float2 fineTileAaBbMaxPtNDC = saturate(fineTileAaBbMaxPtSS * _ScreenSize.zw); // Divide and clamp to the edge
+    const float3 fineTileAaBbMinPtCS  = float3(fineTileAaBbMinPtNDC * 2 - 1, farthestDepth);
+    const float3 fineTileAaBbMaxPtCS  = float3(fineTileAaBbMaxPtNDC * 2 - 1, 1);
+
+    // We must specify the size explicitly.
+    const uint coarseTileBufferIndex = ComputeTileBufferIndex(clampedCoarseTileIndex, cat, eye, COARSE_TILE_BUFFER_DIMS);
+    const uint   fineTileBufferIndex = ComputeTileBufferIndex(  clampedFineTileIndex, cat, eye,   FINE_TILE_BUFFER_DIMS);
+
+    for (uint d = 0; d < dwordCount; d++)
+    {
+        uint inputDword  = _CoarseTileBuffer[coarseTileBufferIndex + d];
+        uint outputDword = 0; // Initially empty
+
+        while (inputDword != 0)
+        {
+            uint b = firstbitlow(inputDword);
+            uint i = d * 32 + b;
+
+            if (!TryCullEntity(i, cat, eye, fineTileAaBbMinPtCS, fineTileAaBbMaxPtCS, tile, t, threadIdx))
+            {
+                outputDword |= 1 << b;
+            }
+
+            inputDword ^= 1 << b; // Clear the bit to continue using firstbitlow()
+        }
+
+        _FineTileBuffer[fineTileBufferIndex + d] = outputDword;
+    }
+}
+
+#endif // (PASS == FILL_FINE_TILES)
+
+#endif // (PASS != FILL_COARSE_TILES)

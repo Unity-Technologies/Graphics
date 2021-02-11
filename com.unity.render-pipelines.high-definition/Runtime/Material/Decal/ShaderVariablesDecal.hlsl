@@ -1,6 +1,6 @@
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Decal/Decal.cs.hlsl"
 
-StructuredBuffer<DecalData> _DecalDatas;
+StructuredBuffer<DecalData> _DecalData;
 
 TEXTURE2D(_DecalAtlas2D);
 SAMPLER(_trilinear_clamp_sampler_DecalAtlas2D);

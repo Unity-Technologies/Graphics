@@ -568,11 +568,14 @@ namespace UnityEngine.Rendering.HighDefinition
                 {
                     if (message.severity == UnityEditor.Rendering.ShaderCompilerMessageSeverity.Error)
                     {
+                        string[] platforms = Enum.GetNames(typeof(ShaderCompilerPlatform));
+                        int platformIndex = Array.IndexOf(Enum.GetValues(typeof(ShaderCompilerPlatform)), message.platform);
+
                         // Will be catched by the try in HDRenderPipelineAsset.CreatePipeline()
                         throw new Exception(String.Format(
                             "Compute Shader compilation error on platform {0} in file {1}:{2}: {3}{4}\n" +
                             "HDRP will not run until the error is fixed.\n",
-                            message.platform, message.file, message.line, message.message, message.messageDetails
+                            platforms[platformIndex], message.file, message.line, message.message, message.messageDetails
                         ));
                     }
                 }
@@ -2628,18 +2631,15 @@ namespace UnityEngine.Rendering.HighDefinition
             RendererList                rendererList,
             RenderTargetIdentifier[]    renderTarget,
             RTHandle                    depthBuffer,
-            ComputeBuffer               lightListBuffer,
+            ComputeBuffer               fineTileBuffer,
+            ComputeBuffer               zBinBuffer,
             bool                        opaque,
             ScriptableRenderContext     renderContext,
             CommandBuffer               cmd)
         {
-            // Note: SHADOWS_SHADOWMASK keyword is enabled in HDRenderPipeline.cs ConfigureForShadowMask
-            bool useFptl = opaque && frameSettings.IsEnabled(FrameSettingsField.FPTLForForwardOpaque);
-
-            // say that we want to use tile/cluster light loop
-            CoreUtils.SetKeyword(cmd, "USE_FPTL_LIGHTLIST", useFptl);
-            CoreUtils.SetKeyword(cmd, "USE_CLUSTERED_LIGHTLIST", !useFptl);
-            cmd.SetGlobalBuffer(HDShaderIDs.g_vLightListGlobal, lightListBuffer);
+            // TODO: we have so many SetGlobal calls like this that it makes more sense to just do it once...
+            cmd.SetGlobalBuffer(HDShaderIDs._FineTileBuffer, fineTileBuffer);
+            cmd.SetGlobalBuffer(HDShaderIDs._zBinBuffer,     zBinBuffer);
 
             CoreUtils.SetRenderTarget(cmd, renderTarget, depthBuffer);
             if (opaque)

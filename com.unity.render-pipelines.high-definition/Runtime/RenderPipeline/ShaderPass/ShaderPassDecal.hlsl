@@ -132,7 +132,7 @@ void Frag(  PackedVaryingsToPS packedInput,
 
 #else // Decal mesh
     // input.positionSS is SV_Position
-    PositionInputs posInput = GetPositionInput(input.positionSS.xy, _ScreenSize.zw, input.positionSS.z, input.positionSS.w, input.positionRWS.xyz, uint2(0, 0));
+    PositionInputs posInput = GetPositionInput(input.positionSS.xy, _ScreenSize.zw, input.positionSS.z, input.positionSS.w, input.positionRWS.xyz);
 
     #ifdef VARYINGS_NEED_POSITION_WS
     float3 V = GetWorldSpaceNormalizeViewDir(input.positionRWS);
@@ -158,7 +158,7 @@ void Frag(  PackedVaryingsToPS packedInput,
     uint i;
     for (i = 0; i < _DirectionalLightCount; ++i)
     {
-        DirectionalLightData light = _DirectionalLightDatas[i];
+        DirectionalLightData light = _DirectionalLightData[i];
         outColor.rgb += surfaceData.baseColor.rgb * light.color * saturate(dot(surfaceData.normalWS.xyz, -light.forward.xyz));
     }
 

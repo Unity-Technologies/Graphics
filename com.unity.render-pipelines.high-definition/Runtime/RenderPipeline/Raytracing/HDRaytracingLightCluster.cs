@@ -498,12 +498,10 @@ namespace UnityEngine.Rendering.HighDefinition
                     continue;
                 }
 
-                // Evaluate all the light type data that we need
-                LightCategory lightCategory = LightCategory.Count;
-                GPULightType gpuLightType = GPULightType.Point;
-                LightVolumeType lightVolumeType = LightVolumeType.Count;
-                HDLightType lightType = additionalLightData.type;
-                HDRenderPipeline.EvaluateGPULightType(lightType, additionalLightData.spotLightShape, additionalLightData.areaLightShape, ref lightCategory, ref gpuLightType, ref lightVolumeType);
+                BoundedEntityCategory lightCategory = BoundedEntityCategory.Count;
+                GPULightType          gpuLightType  = GPULightType.Point;
+
+                HDRenderPipeline.EvaluateGPULightType(additionalLightData.type, additionalLightData.spotLightShape, additionalLightData.areaLightShape, ref lightCategory, ref gpuLightType);
 
                 // Fetch the light component for this light
                 additionalLightData.gameObject.TryGetComponent(out lightComponent);
@@ -514,7 +512,6 @@ namespace UnityEngine.Rendering.HighDefinition
                 processedData.lightType = additionalLightData.type;
                 processedData.lightCategory = lightCategory;
                 processedData.gpuLightType = gpuLightType;
-                processedData.lightVolumeType = lightVolumeType;
                 // Both of these positions are non-camera-relative.
                 processedData.distanceToCamera = (additionalLightData.gameObject.transform.position - hdCamera.camera.transform.position).magnitude;
                 processedData.lightDistanceFade = HDUtils.ComputeLinearDistanceFade(processedData.distanceToCamera, additionalLightData.fadeDistance);
@@ -541,13 +538,17 @@ namespace UnityEngine.Rendering.HighDefinition
                 Vector3 lightDimensions =  new Vector3(0.0f, 0.0f, 0.0f);
 
                 // Use the shared code to build the light data
-                m_RenderPipeline.GetLightData(cmd, hdCamera, hdShadowSettings, visibleLight, lightComponent, in processedData,
-                    shadowIndex, contactShadowScalableSetting, isRasterization: false, ref lightDimensions, ref screenSpaceShadowIndex, ref screenSpaceChannelSlot, ref lightData);
+                lightData = m_RenderPipeline.GetLightData(cmd, hdCamera, hdShadowSettings, visibleLight, lightComponent, processedData,
+                    shadowIndex, contactShadowScalableSetting, isRasterization: false, ref lightDimensions, ref screenSpaceShadowIndex, ref screenSpaceChannelSlot);
 
                 // We make the light position camera-relative as late as possible in order
                 // to allow the preceding code to work with the absolute world space coordinates.
-                Vector3 camPosWS = hdCamera.mainViewConstants.worldSpaceCameraPos;
-                HDRenderPipeline.UpdateLightCameraRelativetData(ref lightData, camPosWS);
+                if (ShaderConfig.s_CameraRelativeRendering != 0)
+                {
+                    Vector3 camPosWS = hdCamera.mainViewConstants.worldSpaceCameraPos;
+                    // Caution: 'LightData.positionWS' is camera-relative after this point.
+                    lightData.positionRWS -= camPosWS;
+                }
 
                 // Set the data for this light
                 m_LightDataCPUArray.Add(lightData);
@@ -584,15 +585,25 @@ namespace UnityEngine.Rendering.HighDefinition
                 // Skip the probe if the probe has never rendered (in realtime cases) or if texture is null
                 if (!probeData.HasValidRenderedData()) continue;
 
-                HDRenderPipeline.PreprocessProbeData(ref processedProbe, probeData, hdCamera);
+                // 'probeBounds' are required to compute the volume of the probe (for sorting in the shader).
+                // The existing ray tracing code does not appear to have any bounds. Below is a workaround.
+                // TODO: we should probably use the influence volume of the probe for sorting.
+                Bounds probeBounds = new Bounds(Vector3.zero, Vector3.one);
+
+                HDRenderPipeline.PreprocessProbeData(ref processedProbe, probeData, probeBounds, hdCamera);
 
                 var envLightData = new EnvLightData();
                 m_RenderPipeline.GetEnvLightData(cmd, hdCamera, processedProbe, ref envLightData);
 
-                // We make the light position camera-relative as late as possible in order
-                // to allow the preceding code to work with the absolute world space coordinates.
-                Vector3 camPosWS = hdCamera.mainViewConstants.worldSpaceCameraPos;
-                HDRenderPipeline.UpdateEnvLighCameraRelativetData(ref envLightData, camPosWS);
+                if (ShaderConfig.s_CameraRelativeRendering != 0)
+                {
+                    Vector3 camPosWS = hdCamera.mainViewConstants.worldSpaceCameraPos;
+
+                    // Caution: 'EnvLightData.positionRWS' is camera-relative after this point.
+                    envLightData.capturePositionRWS -= camPosWS;
+                    envLightData.influencePositionRWS -= camPosWS;
+                    envLightData.proxyPositionRWS -= camPosWS;
+                }
 
                 m_EnvLightDataCPUArray.Add(envLightData);
             }

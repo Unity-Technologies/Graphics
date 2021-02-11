@@ -21,7 +21,6 @@ namespace UnityEngine.Rendering.HighDefinition
             public GPULightType lightType;
             public float spotAngle;
             public float shapeRadius;
-            public int lightIndex;
 
             // Kernels
             public int clearShadowKernel;
@@ -33,9 +32,12 @@ namespace UnityEngine.Rendering.HighDefinition
             public RayTracingAccelerationStructure accelerationStructure;
             public ShaderVariablesRaytracing shaderVariablesRayTracingCB;
             public BlueNoise.DitheredTextureSet ditheredTextureSet;
+
+            public int screenspaceShadowIndex;
+            public LightData lightData;
         }
 
-        SSSPunctualRayTraceParameters PrepareSSSPunctualRayTraceParameters(HDCamera hdCamera, HDAdditionalLightData additionalLightData, LightData lightData, int lightIndex)
+        SSSPunctualRayTraceParameters PrepareSSSPunctualRayTraceParameters(HDCamera hdCamera, HDAdditionalLightData additionalLightData, in LightData lightData, int screenspaceShadowIndex)
         {
             SSSPunctualRayTraceParameters ssprtParams = new SSSPunctualRayTraceParameters();
 
@@ -53,7 +55,6 @@ namespace UnityEngine.Rendering.HighDefinition
             ssprtParams.lightType = lightData.lightType;
             ssprtParams.spotAngle = additionalLightData.legacyLight.spotAngle;
             ssprtParams.shapeRadius = additionalLightData.shapeRadius;
-            ssprtParams.lightIndex = lightIndex;
 
             // Kernels
             ssprtParams.clearShadowKernel = m_ClearShadowTexture;
@@ -67,6 +68,9 @@ namespace UnityEngine.Rendering.HighDefinition
             BlueNoise blueNoise = GetBlueNoiseManager();
             ssprtParams.ditheredTextureSet = blueNoise.DitheredTextureSet8SPP();
 
+            ssprtParams.lightData = lightData;
+            ssprtParams.screenspaceShadowIndex = screenspaceShadowIndex;
+
             return ssprtParams;
         }
 
@@ -79,6 +83,8 @@ namespace UnityEngine.Rendering.HighDefinition
             // Intermediate buffers
             public RTHandle directionBuffer;
             public RTHandle rayLengthBuffer;
+
+            public ComputeBuffer lightData;
 
             // Debug textures
             public RTHandle rayCountTexture;
@@ -127,7 +133,6 @@ namespace UnityEngine.Rendering.HighDefinition
                 ConstantBuffer.PushGlobal(cmd, ssprtParams.shaderVariablesRayTracingCB, HDShaderIDs._ShaderVariablesRaytracing);
 
                 // Bind the light & sampling data
-                cmd.SetComputeIntParam(ssprtParams.screenSpaceShadowCS, HDShaderIDs._RaytracingTargetAreaLight, ssprtParams.lightIndex);
                 cmd.SetComputeFloatParam(ssprtParams.screenSpaceShadowCS, HDShaderIDs._RaytracingLightRadius, ssprtParams.shapeRadius);
 
                 // If this is a spot light, inject the spot angle in radians
@@ -140,6 +145,9 @@ namespace UnityEngine.Rendering.HighDefinition
                 // Input Buffer
                 cmd.SetComputeTextureParam(ssprtParams.screenSpaceShadowCS, ssprtParams.shadowKernel, HDShaderIDs._DepthTexture, ssprtResources.depthStencilBuffer);
                 cmd.SetComputeTextureParam(ssprtParams.screenSpaceShadowCS, ssprtParams.shadowKernel, HDShaderIDs._NormalBufferTexture, ssprtResources.normalBuffer);
+
+                cmd.SetComputeIntParam(ssprtParams.screenSpaceShadowCS, HDShaderIDs._ScreenSpaceShadowIndex, ssprtParams.screenspaceShadowIndex);
+                cmd.SetComputeBufferParam(ssprtParams.screenSpaceShadowCS, ssprtParams.shadowKernel, HDShaderIDs._ScreenSpaceShadowLightData, ssprtResources.lightData);
 
                 // Output buffers
                 cmd.SetComputeTextureParam(ssprtParams.screenSpaceShadowCS, ssprtParams.shadowKernel, HDShaderIDs._RaytracingDirectionBuffer, ssprtResources.directionBuffer);
@@ -159,6 +167,8 @@ namespace UnityEngine.Rendering.HighDefinition
                 cmd.SetRayTracingTextureParam(ssprtParams.screenSpaceShadowRT, HDShaderIDs._NormalBufferTexture, ssprtResources.normalBuffer);
                 cmd.SetRayTracingTextureParam(ssprtParams.screenSpaceShadowRT, HDShaderIDs._RaytracingDirectionBuffer, ssprtResources.directionBuffer);
                 cmd.SetRayTracingTextureParam(ssprtParams.screenSpaceShadowRT, HDShaderIDs._RayTracingLengthBuffer, ssprtResources.rayLengthBuffer);
+                cmd.SetRayTracingIntParam(ssprtParams.screenSpaceShadowRT, HDShaderIDs._ScreenSpaceShadowIndex, ssprtParams.screenspaceShadowIndex);
+                cmd.SetRayTracingBufferParam(ssprtParams.screenSpaceShadowRT, HDShaderIDs._ScreenSpaceShadowLightData, ssprtResources.lightData);
 
                 // Output buffer
                 cmd.SetRayTracingTextureParam(ssprtParams.screenSpaceShadowRT, HDShaderIDs._RaytracedShadowIntegration, ssprtResources.outputShadowBuffer);

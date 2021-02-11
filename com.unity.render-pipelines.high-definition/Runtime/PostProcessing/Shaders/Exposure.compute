@@ -48,7 +48,7 @@ void KPrePass(uint2 dispatchThreadId : SV_DispatchThreadID)
     // For XR, interleave single-pass views in a checkerboard pattern
     UNITY_XR_ASSIGN_VIEW_INDEX((dispatchThreadId.x + dispatchThreadId.y) % _XRViewCount)
 
-    PositionInputs posInputs = GetPositionInput(float2(dispatchThreadId), rcp(PREPASS_TEX_SIZE), uint2(8u, 8u));
+    PositionInputs posInputs = GetPositionInput(float2(dispatchThreadId), rcp(PREPASS_TEX_SIZE));
     float2 uv = ClampAndScaleUVForBilinear(posInputs.positionNDC);
     float luma = SampleLuminance(uv);
 

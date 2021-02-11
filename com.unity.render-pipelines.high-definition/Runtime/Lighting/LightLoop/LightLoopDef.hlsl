@@ -169,177 +169,329 @@ float4 SampleEnv(LightLoopContext lightLoopContext, int index, float3 texCoord, 
 // Single Pass and Tile Pass
 // ----------------------------------------------------------------------------
 
-#ifndef LIGHTLOOP_DISABLE_TILE_AND_CLUSTER
+#include "Packages/com.unity.render-pipelines.high-definition/Runtime/Lighting/LightLoop/TilingAndBinningUtilities.hlsl"
 
-// Calculate the offset in global light index light for current light category
-int GetTileOffset(PositionInputs posInput, uint lightCategory)
+#if (defined(COARSE_BINNING) || defined(FINE_BINNING))
+
+uint BitFieldFromBitRange(int minBit, int maxBit)
 {
-    uint2 tileIndex = posInput.tileCoord;
-    return (tileIndex.y + lightCategory * _NumTileFtplY) * _NumTileFtplX + tileIndex.x;
-}
+    uint mask = 0;
 
-void GetCountAndStartTile(PositionInputs posInput, uint lightCategory, out uint start, out uint lightCount)
-{
-    int tileOffset = GetTileOffset(posInput, lightCategory);
-
-#if defined(UNITY_STEREO_INSTANCING_ENABLED)
-    // Eye base offset must match code in lightlistbuild.compute
-    tileOffset += unity_StereoEyeIndex * _NumTileFtplX * _NumTileFtplY * LIGHTCATEGORY_COUNT;
-#endif
-
-    // The first entry inside a tile is the number of light for lightCategory (thus the +0)
-    lightCount = g_vLightListGlobal[DWORD_PER_TILE * tileOffset + 0] & 0xffff;
-    start = tileOffset;
-}
-
-#ifdef USE_FPTL_LIGHTLIST
-
-uint GetTileSize()
-{
-    return TILE_SIZE_FPTL;
-}
-
-void GetCountAndStart(PositionInputs posInput, uint lightCategory, out uint start, out uint lightCount)
-{
-    GetCountAndStartTile(posInput, lightCategory, start, lightCount);
-}
-
-uint FetchIndex(uint tileOffset, uint lightOffset)
-{
-    const uint lightOffsetPlusOne = lightOffset + 1; // Add +1 as first slot is reserved to store number of light
-    // Light index are store on 16bit
-    return (g_vLightListGlobal[DWORD_PER_TILE * tileOffset + (lightOffsetPlusOne >> 1)] >> ((lightOffsetPlusOne & 1) * DWORD_PER_TILE)) & 0xffff;
-}
-
-#elif defined(USE_CLUSTERED_LIGHTLIST)
-
-#include "Packages/com.unity.render-pipelines.high-definition/Runtime/Lighting/LightLoop/ClusteredUtils.hlsl"
-
-uint GetTileSize()
-{
-    return TILE_SIZE_CLUSTERED;
-}
-
-uint GetLightClusterIndex(uint2 tileIndex, float linearDepth)
-{
-    float logBase = g_fClustBase;
-    if (g_isLogBaseBufferEnabled)
+    if ((maxBit >= minBit) && (maxBit >= 0) && (minBit <= 31))
     {
-        const uint logBaseIndex = GenerateLogBaseBufferIndex(tileIndex, _NumTileClusteredX, _NumTileClusteredY, unity_StereoEyeIndex);
-        logBase = g_logBaseBuffer[logBaseIndex];
+        minBit = max( 0, minBit);
+        maxBit = min(31, maxBit);
+
+        uint minMask = (1u << minBit) - 1u;       // (minBit =  0) -> (minMask = 0)
+        uint maxMask = UINT_MAX >> (31 - maxBit); // (maxBit = 31) -> (maxMask = 0xFFFFFFFF)
+
+        mask = minMask ^ maxMask;
     }
 
-    return SnapToClusterIdxFlex(linearDepth, logBase, g_isLogBaseBufferEnabled != 0);
+    return mask;
 }
 
-void GetCountAndStartCluster(uint2 tileIndex, uint clusterIndex, uint lightCategory, out uint start, out uint lightCount)
+// Internal. Do not access directly.
+struct EntityLookupParameters
 {
-    int nrClusters = (1 << g_iLog2NumClusters);
+    uint dwordIndex;            // Wave-uniform
+    uint dwordCount;            // Wave-uniform
+    int2 zBinEntityIndexRange;  // Wave-varying
+    uint tileBufferIndex;       // Wave-uniform (deferred CS) or wave-varying (others)
+    uint zBinBufferIndex;       // Wave-varying
+    uint inputDword;            // Wave-uniform
+    bool depthSorted;           // Wave-uniform
+};
 
-    const int idx = GenerateLayeredOffsetBufferIndex(lightCategory, tileIndex, clusterIndex, _NumTileClusteredX, _NumTileClusteredY, nrClusters, unity_StereoEyeIndex);
-
-    uint dataPair = g_vLayeredOffsetsBuffer[idx];
-    start = dataPair & 0x7ffffff;
-    lightCount = (dataPair >> 27) & 31;
-}
-
-void GetCountAndStartCluster(PositionInputs posInput, uint lightCategory, out uint start, out uint lightCount)
+// Internal. Do not call directly.
+EntityLookupParameters InitializeEntityLookup(uint tile, uint2 zBinRange, uint category)
 {
-    // Note: XR depends on unity_StereoEyeIndex already being defined,
-    // which means ShaderVariables.hlsl needs to be defined ahead of this!
+    EntityLookupParameters params;
+    ZERO_INITIALIZE(EntityLookupParameters, params);
 
-    uint2 tileIndex    = posInput.tileCoord;
-    uint  clusterIndex = GetLightClusterIndex(tileIndex, posInput.linearDepth);
+    params.dwordIndex = 0;
+    params.dwordCount = _BoundedEntityDwordCountPerCategory[category].x;
+    params.depthSorted = IsDepthSorted(category);
 
-    GetCountAndStartCluster(tileIndex, clusterIndex, lightCategory, start, lightCount);
-}
-
-void GetCountAndStart(PositionInputs posInput, uint lightCategory, out uint start, out uint lightCount)
-{
-    GetCountAndStartCluster(posInput, lightCategory, start, lightCount);
-}
-
-uint FetchIndex(uint lightStart, uint lightOffset)
-{
-    return g_vLightListGlobal[lightStart + lightOffset];
-}
-
-#elif defined(USE_BIG_TILE_LIGHTLIST)
-
-uint FetchIndex(uint lightStart, uint lightOffset)
-{
-    return g_vBigTileLightList[lightStart + lightOffset];
-}
-
-#else
-// Fallback case (mainly for raytracing right or for shader stages that don't define the keywords)
-uint FetchIndex(uint lightStart, uint lightOffset)
-{
-    return 0;
-}
-
-uint GetTileSize()
-{
-    return 1;
-}
-
-void GetCountAndStart(PositionInputs posInput, uint lightCategory, out uint start, out uint lightCount)
-{
-    start = 0;
-    lightCount = 0;
-    return;
-}
-
-#endif // USE_FPTL_LIGHTLIST
-
-#else
-
-uint GetTileSize()
-{
-    return 1;
-}
-
-uint FetchIndex(uint lightStart, uint lightOffset)
-{
-    return lightStart + lightOffset;
-}
-
-#endif // LIGHTLOOP_DISABLE_TILE_AND_CLUSTER
-
-uint FetchIndexWithBoundsCheck(uint start, uint count, uint i)
-{
-    if (i < count)
+    if (params.dwordCount > 0)
     {
-        return FetchIndex(start, i);
+        uint zbinDword = 0;
+        // fetch zbin
+        if (IsDepthSorted(category)) // sorted by depth, can use the min,max index per zbin optimization
+        {
+            const uint zBinBufferIndex0 = ComputeZBinBufferIndex(zBinRange[0], category, unity_StereoEyeIndex);
+            const uint zBinBufferIndex1 = ComputeZBinBufferIndex(zBinRange[1], category, unity_StereoEyeIndex);
+            const uint zBinRangeData0 = _zBinBuffer[zBinBufferIndex0]; // {last << 16 | first}
+            const uint zBinRangeData1 = _zBinBuffer[zBinBufferIndex1]; // {last << 16 | first}
+
+            // Recall that entities are sorted by the z-coordinate.
+            // So we can take the smallest index from the first bin and the largest index from the last bin.
+            // To see why there's -1, see the discussion in 'zbin.compute'.
+            params.zBinEntityIndexRange = int2(zBinRangeData0 & UINT16_MAX, (zBinRangeData1 >> 16) == UINT16_MAX ? -1 : (zBinRangeData1 >> 16));
+            zbinDword = BitFieldFromBitRange(params.zBinEntityIndexRange.x, params.zBinEntityIndexRange.y);
+        }
+        else // unsorted or custom sort
+        {
+            params.zBinBufferIndex = ComputeZBinBufferIndex(zBinRange.x, category, unity_StereoEyeIndex);
+            // Fetch the first zbin DWORD
+            zbinDword = _zBinBuffer[params.zBinBufferIndex];
+        }
+
+        // Fetch tile
+        params.tileBufferIndex = ComputeTileBufferIndex(tile, category, unity_StereoEyeIndex);
+
+        // Fetch the first tile DWORD.
+        const uint tileDword = TILE_BUFFER[params.tileBufferIndex];
+
+        params.inputDword = tileDword & zbinDword; // Intersect the ranges
+
+    #ifdef PLATFORM_SUPPORTS_WAVE_INTRINSICS
+        params.inputDword = WaveActiveBitOr(params.inputDword); // Scalarize (make wave-uniform)
+    #endif
     }
-    else
+
+    return params;
+}
+
+// Internal. Do not call directly.
+uint TryFindEntityIndex(uint i, inout EntityLookupParameters params, out uint entityIndex)
+{
+    bool found = false;
+
+    entityIndex = UINT16_MAX;
+
+    // DWORD fetch loop.
+    while ((params.inputDword == 0) && ((params.dwordIndex + 1) < params.dwordCount))
     {
-        return UINT_MAX;
+        params.dwordIndex++;
+
+        const uint tileDword   = TILE_BUFFER[params.tileBufferIndex + params.dwordIndex];
+        uint zbinDword = 0;
+        if (params.depthSorted)
+        {
+            const uint indexOffset = params.dwordIndex * 32;
+            zbinDword = BitFieldFromBitRange(params.zBinEntityIndexRange.x - (int)indexOffset,
+                                             params.zBinEntityIndexRange.y - (int)indexOffset);
+        }
+        else
+        {
+            zbinDword = _zBinBuffer[params.zBinBufferIndex + params.dwordIndex];
+        }
+        params.inputDword = tileDword & zbinDword; // Intersect the ranges
+
+    #ifdef PLATFORM_SUPPORTS_WAVE_INTRINSICS
+        params.inputDword = WaveActiveBitOr(params.inputDword); // Scalarize (make wave-uniform)
+    #endif
     }
+
+    // DWORD bit scan.
+    if (params.inputDword != 0)
+    {
+        const uint b = firstbitlow(params.inputDword);
+
+        params.inputDword ^= 1 << b; // Clear the bit to continue using firstbitlow()
+
+        entityIndex = params.dwordIndex * 32 + b;
+        found       = true;
+    }
+
+    return found;
 }
 
-LightData FetchLight(uint start, uint i)
-{
-    uint j = FetchIndex(start, i);
+#else // !(defined(COARSE_BINNING) || defined(FINE_BINNING))
 
-    return _LightDatas[j];
+// Internal. Do not access directly.
+struct EntityLookupParameters
+{
+    uint entityCount;
+};
+
+// Internal. Do not call directly.
+EntityLookupParameters InitializeEntityLookup(uint tile, uint2 zBinRange, uint category)
+{
+    EntityLookupParameters params;
+
+    switch (category)
+    {
+        case BOUNDEDENTITYCATEGORY_PUNCTUAL_LIGHT:
+            params.entityCount = _PunctualLightCount;
+            break;
+        case BOUNDEDENTITYCATEGORY_AREA_LIGHT:
+            params.entityCount = _AreaLightCount;
+            break;
+        case BOUNDEDENTITYCATEGORY_REFLECTION_PROBE:
+            params.entityCount = _ReflectionProbeCount;
+            break;
+        case BOUNDEDENTITYCATEGORY_DECAL:
+            params.entityCount = _DecalCount;
+            break;
+        case BOUNDEDENTITYCATEGORY_DENSITY_VOLUME:
+            params.entityCount = _DensityVolumeCount;
+            break;
+        default:
+            params.entityCount = 0;
+            break;
+    }
+
+    return params;
 }
 
-LightData FetchLight(uint index)
+// Internal. Do not call directly.
+uint TryFindEntityIndex(uint i, inout EntityLookupParameters params, out uint entityIndex)
 {
-    return _LightDatas[index];
+    bool found = false;
+
+    entityIndex = UINT16_MAX;
+
+    if (i < params.entityCount)
+    {
+        entityIndex = i;
+        found       = true;
+    }
+
+    return found;
 }
 
-EnvLightData FetchEnvLight(uint start, uint i)
-{
-    int j = FetchIndex(start, i);
+#endif // !(defined(COARSE_BINNING) || defined(FINE_BINNING))
 
-    return _EnvLightDatas[j];
+// Only call this once (outside the loop).
+EntityLookupParameters InitializePunctualLightLookup(uint tile, uint zBin)
+{
+    return InitializeEntityLookup(tile, uint2(zBin, zBin), BOUNDEDENTITYCATEGORY_PUNCTUAL_LIGHT);
 }
 
-EnvLightData FetchEnvLight(uint index)
+// Only call this once (outside the loop).
+EntityLookupParameters InitializePunctualLightLookup(uint tile, uint2 zBinRange)
 {
-    return _EnvLightDatas[index];
+    return InitializeEntityLookup(tile, zBinRange, BOUNDEDENTITYCATEGORY_PUNCTUAL_LIGHT);
+}
+
+bool TryLoadPunctualLightData(uint i, inout EntityLookupParameters params, out LightData data)
+{
+    bool success = false;
+    // Need to zero-init to quiet the warning.
+    ZERO_INITIALIZE(LightData, data);
+
+    uint entityIndex;
+    if (TryFindEntityIndex(i, params, entityIndex))
+    {
+        data    = _PunctualLightData[entityIndex];
+        success = true;
+    }
+
+    return success;
+}
+
+// Only call this once (outside the loop).
+EntityLookupParameters InitializeAreaLightLookup(uint tile, uint zBin)
+{
+    return InitializeEntityLookup(tile, uint2(zBin, zBin), BOUNDEDENTITYCATEGORY_AREA_LIGHT);
+}
+
+// Only call this once (outside the loop).
+EntityLookupParameters InitializeAreaLightLookup(uint tile, uint2 zBinRange)
+{
+    return InitializeEntityLookup(tile, zBinRange, BOUNDEDENTITYCATEGORY_AREA_LIGHT);
+}
+
+bool TryLoadAreaLightData(uint i, inout EntityLookupParameters params, out LightData data)
+{
+    bool success = false;
+    // Need to zero-init to quiet the warning.
+    ZERO_INITIALIZE(LightData, data);
+
+    uint entityIndex;
+    if (TryFindEntityIndex(i, params, entityIndex))
+    {
+        data    = _AreaLightData[entityIndex];
+        success = true;
+    }
+
+    return success;
+}
+
+// Only call this once (outside the loop).
+EntityLookupParameters InitializeReflectionProbeLookup(uint tile, uint zBin)
+{
+    return InitializeEntityLookup(tile, uint2(zBin, zBin), BOUNDEDENTITYCATEGORY_REFLECTION_PROBE);
+}
+
+// Only call this once (outside the loop).
+EntityLookupParameters InitializeReflectionProbeLookup(uint tile, uint2 zBinRange)
+{
+    return InitializeEntityLookup(tile, zBinRange, BOUNDEDENTITYCATEGORY_REFLECTION_PROBE);
+}
+
+bool TryLoadReflectionProbeData(uint i, inout EntityLookupParameters params, out EnvLightData data)
+{
+    bool success = false;
+    // Need to zero-init to quiet the warning.
+    ZERO_INITIALIZE(EnvLightData, data);
+
+    uint entityIndex;
+    if (TryFindEntityIndex(i, params, entityIndex))
+    {
+        data    = _ReflectionProbeData[entityIndex];
+        success = true;
+    }
+
+    return success;
+}
+
+// Only call this once (outside the loop).
+EntityLookupParameters InitializeDecalLookup(uint tile, uint zBin)
+{
+    return InitializeEntityLookup(tile, uint2(zBin, zBin), BOUNDEDENTITYCATEGORY_DECAL);
+}
+
+// Only call this once (outside the loop).
+EntityLookupParameters InitializeDecalLookup(uint tile, uint2 zBinRange)
+{
+    return InitializeEntityLookup(tile, zBinRange, BOUNDEDENTITYCATEGORY_DECAL);
+}
+
+bool TryLoadDecalData(uint i, inout EntityLookupParameters params, out DecalData data)
+{
+    bool success = false;
+    // Need to zero-init to quiet the warning.
+    ZERO_INITIALIZE(DecalData, data);
+
+    uint entityIndex;
+    if (TryFindEntityIndex(i, params, entityIndex))
+    {
+        data    = _DecalData[entityIndex];
+        success = true;
+    }
+
+    return success;
+}
+
+// Only call this once (outside the loop).
+EntityLookupParameters InitializeDensityVolumeLookup(uint tile, uint zBin)
+{
+    return InitializeEntityLookup(tile, uint2(zBin, zBin), BOUNDEDENTITYCATEGORY_DENSITY_VOLUME);
+}
+
+// Only call this once (outside the loop).
+EntityLookupParameters InitializeDensityVolumeLookup(uint tile, uint2 zBinRange)
+{
+    return InitializeEntityLookup(tile, zBinRange, BOUNDEDENTITYCATEGORY_DENSITY_VOLUME);
+}
+
+bool TryLoadDensityVolumeData(uint i, inout EntityLookupParameters params, out DensityVolumeData data)
+{
+    bool success = false;
+    // Need to zero-init to quiet the compiler warning.
+    ZERO_INITIALIZE(DensityVolumeData, data);
+
+    uint entityIndex;
+    if (TryFindEntityIndex(i, params, entityIndex))
+    {
+        data    = _DensityVolumeData[entityIndex];
+        success = true;
+    }
+
+    return success;
 }
 
 // In the first 8 bits of the target we store the max fade of the contact shadows as a byte

@@ -36,11 +36,17 @@ MonoBehaviour:
     clearLightListsCS: {fileID: 7200000, guid: 743eb3491795b9545955695d591195a1, type: 3}
     buildDispatchIndirectCS: {fileID: 7200000, guid: 4eb1b418be7044c40bb5200496c50f14, type: 3}
     buildScreenAABBCS: {fileID: 7200000, guid: 728dce960f8a9c44bbc3abb3b851d8f6, type: 3}
-    buildPerTileLightListCS: {fileID: 7200000, guid: 65af3444cbf4b3747a4dead7ee00cfee, type: 3}
-    buildPerBigTileLightListCS: {fileID: 7200000, guid: 5ee1f9d6e09abe045b2f5e0b784b9072, type: 3}
-    buildPerVoxelLightListCS: {fileID: 7200000, guid: 0bb1b7e0ddcd5c44baf3ddc7456eb196, type: 3}
-    lightListClusterClearAtomicIndexCS: {fileID: 7200000, guid: 1e3472a94b14a334a93230bbc700d7b2, type: 3}
-    buildMaterialFlagsCS: {fileID: 7200000, guid: fb3eda953cd6e634e877fb777be2cd08, type: 3}
+    zBinCS: {fileID: 7200000, guid: 313c8dc48c577184997e1c10638c6499, type: 3}
+    tileCS: {fileID: 7200000, guid: 3a8709910066b4d4186b56721cdc36aa, type: 3}
+    buildPerTileLightListCS: {fileID: 7200000, guid: 65af3444cbf4b3747a4dead7ee00cfee,
+      type: 3}
+    buildPerBigTileLightListCS: {fileID: 7200000, guid: 5ee1f9d6e09abe045b2f5e0b784b9072,
+      type: 3}
+    buildPerVoxelLightListCS: {fileID: 7200000, guid: 0bb1b7e0ddcd5c44baf3ddc7456eb196,
+      type: 3}
+    lightListClusterClearAtomicIndexCS: {fileID: 7200000, guid: 1e3472a94b14a334a93230bbc700d7b2,
+      type: 3}
+    classificationCS: {fileID: 7200000, guid: 2f62649560ae64f4da8e8234a88ba2e2, type: 3}
     deferredCS: {fileID: 7200000, guid: 0b64f79746d2daf4198eaf6eab9af259, type: 3}
     contactShadowCS: {fileID: 7200000, guid: 3e6900e06dc185a4380af4dacb4db0a4, type: 3}
     volumeVoxelizationCS: {fileID: 7200000, guid: c20b371db720da244b73830ec74a343a, type: 3}

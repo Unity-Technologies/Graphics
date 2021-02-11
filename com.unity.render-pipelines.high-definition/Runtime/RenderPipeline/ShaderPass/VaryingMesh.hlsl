@@ -142,6 +142,14 @@ FragInputs UnpackVaryingsMeshToFragInputs(PackedVaryingsMeshToPS input)
 
 #ifdef VARYINGS_NEED_POSITION_WS
     output.positionRWS.xyz = input.interpolators0.xyz;
+
+    if (!IsPerspectiveProjection())
+    {
+        // When projection is orthographic, positionCS.w = 1.
+        // We would like to retain positionCS.w = linearDepth for all projection types.
+        float linearDepth = LinearEyeDepth(output.positionRWS.xyz, GetWorldToViewMatrix());
+        output.positionSS.w = linearDepth;
+    }
 #endif
 
 #ifdef VARYINGS_NEED_TANGENT_TO_WORLD

@@ -1,0 +1,125 @@
+// #pragma enable_d3d11_debug_symbols
+#pragma only_renderers d3d11 playstation xboxone vulkan metal switch
+
+#pragma multi_compile_local _ LIGHT_CLASSIFICATION
+#pragma multi_compile_local _ MATERIAL_CLASSIFICATION
+
+#pragma kernel main
+
+#define FINE_BINNING // Keep in sync with 'deferred.compute' and 'builddispatchindirect.compute'
+
+#include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Common.hlsl"
+#include "Packages/com.unity.render-pipelines.core/ShaderLibrary/SpaceFillingCurves.hlsl"
+#include "Packages/com.unity.render-pipelines.high-definition/Runtime/ShaderLibrary/ShaderVariables.hlsl"
+
+#include "Packages/com.unity.render-pipelines.high-definition/Runtime/Lighting/LightLoop/ShaderBase.hlsl"
+#include "Packages/com.unity.render-pipelines.high-definition/Runtime/Lighting/LightLoop/LightLoop.cs.hlsl"
+#include "Packages/com.unity.render-pipelines.high-definition/Runtime/Lighting/LightLoop/LightLoopDef.hlsl"
+
+#include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Material.hlsl"
+#include "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/HDStencilUsage.cs.hlsl"
+
+#include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Lit/Lit.hlsl"
+
+/* ------------------------------ Inputs ------------------------------------ */
+
+TEXTURE2D_X_UINT2(_StencilTexture);
+
+/* ------------------------------ Outputs ----------------------------------- */
+
+RWStructuredBuffer<uint> g_TileFeatureFlags;
+
+/* ------------------------------ Utilities --------------------------------- */
+
+/* ------------------------------ Implementation ---------------------------- */
+
+groupshared uint gs_TileFeatureFlags;
+
+[numthreads(TILE_SIZE * TILE_SIZE, 1, 1)]
+void main(uint3 threadID : SV_GroupThreadID, uint3 groupID : SV_GroupID)
+{
+    const uint  t         = threadID.x;
+    const uint2 tileCoord = groupID.xy;
+    const uint  eye       = groupID.z;
+
+    UNITY_XR_ASSIGN_VIEW_INDEX(eye); // Sets 'unity_StereoEyeIndex'
+
+    const uint  tile              = IndexFromCoordinate(tileCoord, TILE_BUFFER_DIMS.x);
+    const uint2 localPixelCoord   = DecodeMorton2D(t & (TILE_SIZE * TILE_SIZE - 1)); // Use AND to inform the compiler
+    const uint2 globalPixelCoord  = tileCoord * TILE_SIZE + localPixelCoord;
+    const uint2 clampedPixelCoord = min(globalPixelCoord, uint2(_ScreenSize.xy) - 1);
+
+    if (t == 0) // Avoid bank conflicts
+    {
+        gs_TileFeatureFlags = 0;
+    }
+
+    uint featureFlags = 0;
+
+    // Unlit object, sky/background and forward opaque tag don't tag the StencilUsage.RequiresDeferredLighting bit
+    uint stencilVal = GetStencilValue(LOAD_TEXTURE2D_X(_StencilTexture, clampedPixelCoord));
+
+    // TODO: use coarse stencil here.
+    if ((stencilVal & STENCILUSAGE_REQUIRES_DEFERRED_LIGHTING) != 0)
+    {
+        featureFlags = g_BaseFeatureFlags; // Contain all lightFeatures or 0 (depends if we enable light classification or not)
+
+    #ifdef LIGHT_CLASSIFICATION
+        // TODO: optimize using LinearEyeDepth(float2 positionNDC, float deviceDepth, float4 invProjParam).
+        float          depth    = LoadCameraDepth(clampedPixelCoord);
+        PositionInputs posInput = GetPositionInput(clampedPixelCoord, _ScreenSize.zw, depth, UNITY_MATRIX_I_VP, UNITY_MATRIX_V);
+        uint           zBin     = ComputeZBinIndex(posInput.linearDepth);
+
+        EntityLookupParameters params;
+
+        params = InitializePunctualLightLookup(tile, zBin);
+
+        LightData lightData;
+        if (TryLoadPunctualLightData(0, params, lightData))
+        {
+            featureFlags |= LIGHTFEATUREFLAGS_PUNCTUAL;
+        }
+
+        params = InitializeAreaLightLookup(tile, zBin);
+
+        if (TryLoadAreaLightData(0, params, lightData))
+        {
+            featureFlags |= LIGHTFEATUREFLAGS_AREA;
+        }
+
+        params = InitializeReflectionProbeLookup(tile, zBin);
+
+        EnvLightData envLightData;
+        if (TryLoadReflectionProbeData(0, params, envLightData))
+        {
+            featureFlags |= LIGHTFEATUREFLAGS_ENV;
+        }
+    #endif // LIGHT_CLASSIFICATION
+
+    #ifdef MATERIAL_CLASSIFICATION
+        featureFlags |= MATERIAL_FEATURE_FLAGS_FROM_GBUFFER(clampedPixelCoord);
+    #endif // MATERIAL_CLASSIFICATION
+    }
+
+#ifdef PLATFORM_SUPPORTS_WAVE_INTRINSICS
+    // Reduce the pressure on the atomic counter.
+    featureFlags = WaveActiveBitOr(featureFlags);
+
+    if (WaveIsFirstLane())
+    {
+        InterlockedOr(gs_TileFeatureFlags, featureFlags);
+    }
+#else
+    InterlockedOr(gs_TileFeatureFlags, featureFlags);
+#endif // PLATFORM_SUPPORTS_WAVE_INTRINSICS
+
+    GroupMemoryBarrierWithGroupSync(); // Wait for writes to gs_TileFeatureFlags
+
+    featureFlags = gs_TileFeatureFlags;
+
+    if (t == 0) // Avoid bank conflicts
+    {
+        uint bufferIndex = tile + IndexFromCoordinate(uint3(0, 0, eye), TILE_BUFFER_DIMS);
+        g_TileFeatureFlags[bufferIndex] = featureFlags;
+    }
+}
