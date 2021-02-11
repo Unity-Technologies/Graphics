@@ -214,6 +214,7 @@ namespace UnityEditor.Rendering.HighDefinition
                     PropertyField(m_ErosionSpeedMultiplier);
                 }
             }
+            EndAdditionalPropertiesScope();
 
             EditorGUILayout.Space();
             EditorGUILayout.LabelField("Quality", EditorStyles.miniLabel);
@@ -247,6 +248,7 @@ namespace UnityEditor.Rendering.HighDefinition
                         PropertyField(m_ShadowPlaneHeightOffset);
                         PropertyField(m_ShadowOpacityFallback);
                     }
+                    EndAdditionalPropertiesScope();
                 }
             }
         }

@@ -194,15 +194,19 @@ namespace UnityEngine.Rendering.HighDefinition
         public MinFloatParameter globalWindSpeed = new MinFloatParameter(50.0f, 0.0f);
 
         [Tooltip("Controls the orientation of the wind relative to the X world vector.")]
+        [AdditionalProperty]
         public ClampedFloatParameter orientation = new ClampedFloatParameter(0.0f, 0.0f, 360.0f);
 
         [Tooltip("Multiplier to the speed of the cloud map.")]
+        [AdditionalProperty]
         public ClampedFloatParameter cloudMapSpeedMultiplier = new ClampedFloatParameter(1.0f, 0.0f, 1.0f);
 
         [Tooltip("Controls the multiplier to the speed of the larger cloud shapes.")]
+        [AdditionalProperty]
         public ClampedFloatParameter shapeSpeedMultiplier = new ClampedFloatParameter(0.5f, 0.0f, 1.0f);
 
         [Tooltip("Controls the multiplier to the speed of the erosion cloud shapes.")]
+        [AdditionalProperty]
         public ClampedFloatParameter erosionSpeedMultiplier = new ClampedFloatParameter(0.25f, 0.0f, 1.0f);
 
         [Tooltip("Temporal accumulation increases the visual quality of clouds by decreasing the noise. A higher value will give you better quality but can create ghosting.")]
@@ -215,15 +219,19 @@ namespace UnityEngine.Rendering.HighDefinition
         public CloudShadowResolutionParameter shadowResolution = new CloudShadowResolutionParameter(CloudShadowResolution.Medium256);
 
         [Tooltip("Vertical offset applied to compute the volumetric clouds shadow.")]
+        [AdditionalProperty]
         public FloatParameter shadowPlaneHeightOffset = new FloatParameter(0.0f);
 
         [Tooltip("Sets the size of the area covered by shadow around the camera.")]
+        [AdditionalProperty]
         public MinFloatParameter shadowDistance = new MinFloatParameter(8000.0f, 1000.0f);
 
         [Tooltip("Controls the opacity of the volumetric clouds shadow.")]
+        [AdditionalProperty]
         public ClampedFloatParameter shadowOpacity = new ClampedFloatParameter(0.5f, 0.0f, 1.0f);
 
         [Tooltip("Controls the shadow opacity when outside the area covered by the volumetric clouds shadow.")]
+        [AdditionalProperty]
         public ClampedFloatParameter shadowOpacityFallback = new ClampedFloatParameter(0.0f, 0.0f, 1.0f);
 
         public VolumetricClouds()
