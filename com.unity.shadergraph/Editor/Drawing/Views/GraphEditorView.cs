@@ -860,7 +860,8 @@ namespace UnityEditor.ShaderGraph.Drawing
                 else
                 {
                     var foundMessage = messageData.Value.First();
-                    nodeView.AttachMessage(foundMessage.message, foundMessage.severity);
+                    string messageString = foundMessage.message + " at line " + foundMessage.line;
+                    nodeView.AttachMessage(messageString, foundMessage.severity);
                 }
             }
         }
