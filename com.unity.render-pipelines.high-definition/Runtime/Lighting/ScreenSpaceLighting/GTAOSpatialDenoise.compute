@@ -130,7 +130,7 @@ void SpatialDenoise(uint3 dispatchThreadId : SV_DispatchThreadID)
     float final = Blur(dispatchThreadId.xy, centralDepth, centralAO);
 
 #if TO_TEMPORAL
-	_OcclusionTexture[COORD_TEXTURE2D_X(dispatchThreadId.xy)] = PackAOOutput(final, centralDepth);
+    _OcclusionTexture[COORD_TEXTURE2D_X(dispatchThreadId.xy)] = PackAOOutput(final, centralDepth);
 #else
     _OcclusionTexture[COORD_TEXTURE2D_X(dispatchThreadId.xy)] = OutputFinalAO(final);
 #endif
