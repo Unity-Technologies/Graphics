@@ -10,17 +10,17 @@ using UnityEngine;
 public class RealtimeProfilerModel : MonoBehaviour
 {
     #if RTPROFILER_DEBUG
-    ProfilerCounterValue<float> m_FullFrameTimeCounter = new ProfilerCounterValue<float>(ProfilerCategory.Render, "Full Frame Time", ProfilerMarkerDataUnit.TimeNanoseconds);
-    ProfilerCounterValue<float> m_LogicCPUFrameTimeCounter = new ProfilerCounterValue<float>(ProfilerCategory.Render, "Logic CPU Frame Time", ProfilerMarkerDataUnit.TimeNanoseconds);
-    ProfilerCounterValue<float> m_CombinedCPUFrameTimeCounter = new ProfilerCounterValue<float>(ProfilerCategory.Render, "Combined CPU Frame Time", ProfilerMarkerDataUnit.TimeNanoseconds);
-    ProfilerCounterValue<float> m_GPUFrameTimeCounter = new ProfilerCounterValue<float>(ProfilerCategory.Render, "GPU Frame Time", ProfilerMarkerDataUnit.TimeNanoseconds);
+    ProfilerCounterValue<float> m_FullFrameTimeCounter              = new ProfilerCounterValue<float>(ProfilerCategory.Render, "Full Frame Time", ProfilerMarkerDataUnit.TimeNanoseconds);
+    ProfilerCounterValue<float> m_MainThreadCPUFrameTimeCounter     = new ProfilerCounterValue<float>(ProfilerCategory.Render, "Main Thread CPU Frame Time", ProfilerMarkerDataUnit.TimeNanoseconds);
+    ProfilerCounterValue<float> m_RenderThreadCPUFrameTimeCounter   = new ProfilerCounterValue<float>(ProfilerCategory.Render, "Render Thread CPU Frame Time", ProfilerMarkerDataUnit.TimeNanoseconds);
+    ProfilerCounterValue<float> m_GPUFrameTimeCounter               = new ProfilerCounterValue<float>(ProfilerCategory.Render, "GPU Frame Time", ProfilerMarkerDataUnit.TimeNanoseconds);
     #endif
 
     public struct FrameTimeSample
     {
         public float FullFrameTime;
-        public float LogicCPUFrameTime;
-        public float CombinedCPUFrameTime;
+        public float MainThreadCPUFrameTime;
+        public float RenderThreadCPUFrameTime;
         public float GPUFrameTime;
     };
 
@@ -58,19 +58,19 @@ public class RealtimeProfilerModel : MonoBehaviour
 
         FrameTimeSample frameTime = FrameTime;
 
-        frameTime.FullFrameTime         = (float)m_Timing.First().cpuFrameTime;
-        frameTime.LogicCPUFrameTime     = (float)m_Timing.First().logicCpuFrameTime;
-        frameTime.CombinedCPUFrameTime  = (float)m_Timing.First().combinedCpuFrameTime;
-        frameTime.GPUFrameTime          = (float)m_Timing.First().gpuFrameTime;
+        frameTime.FullFrameTime                 = (float)m_Timing.First().cpuFrameTime;
+        frameTime.MainThreadCPUFrameTime        = (float)m_Timing.First().mainThreadCpuFrameTime;
+        frameTime.RenderThreadCPUFrameTime      = (float)m_Timing.First().renderThreadCpuFrameTime;
+        frameTime.GPUFrameTime                  = (float)m_Timing.First().gpuFrameTime;
 
         FrameTime = frameTime;
 
         #if RTPROFILER_DEBUG
-        const float msToNs = (float)1e6;
-        m_FullFrameTimeCounter.Value        = frameTime.FullFrameTime * msToNs;
-        m_LogicCPUFrameTimeCounter.Value    = frameTime.LogicCPUFrameTime * msToNs;
-        m_CombinedCPUFrameTimeCounter.Value = frameTime.CombinedCPUFrameTime * msToNs;
-        m_GPUFrameTimeCounter.Value         = frameTime.GPUFrameTime * msToNs;
+        const float msToNs = 1e6f;
+        m_FullFrameTimeCounter.Value            = frameTime.FullFrameTime * msToNs;
+        m_MainThreadCPUFrameTimeCounter.Value   = frameTime.MainThreadCPUFrameTime * msToNs;
+        m_RenderThreadCPUFrameTimeCounter.Value = frameTime.RenderThreadCPUFrameTime * msToNs;
+        m_GPUFrameTimeCounter.Value             = frameTime.GPUFrameTime * msToNs;
 #endif
     }
 }

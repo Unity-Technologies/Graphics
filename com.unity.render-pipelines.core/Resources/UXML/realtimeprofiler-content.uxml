@@ -8,12 +8,12 @@
                     <ui:Label text="0.00ms" name="FullFrameTime" />
                 </ui:VisualElement>
                 <ui:VisualElement name="Entry" style="flex-direction: row; justify-content: space-between;">
-                    <ui:Label text="Logic CPU frame time" name="Label" />
-                    <ui:Label text="0.00ms" name="LogicCPUFrameTime" />
+                    <ui:Label text="Main thread CPU frame time" name="Label" />
+                    <ui:Label text="0.00ms" name="MainThreadCPUFrameTime" />
                 </ui:VisualElement>
                 <ui:VisualElement name="Entry" style="flex-direction: row; justify-content: space-between;">
-                    <ui:Label text="Combined CPU frame time" name="Label" />
-                    <ui:Label text="0.00ms" name="CombinedCPUFrameTime" />
+                    <ui:Label text="Render thread CPU frame time" name="Label" />
+                    <ui:Label text="0.00ms" name="RenderThreadCPUFrameTime" />
                 </ui:VisualElement>
                 <ui:VisualElement name="Entry" style="flex-direction: row; justify-content: space-between;">
                     <ui:Label text="GPU frame time" name="Label" />
