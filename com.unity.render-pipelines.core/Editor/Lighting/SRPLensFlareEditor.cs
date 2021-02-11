@@ -8,26 +8,16 @@ namespace UnityEditor.Rendering
     public class SRPLensFlareEditor : Editor
     {
         SerializedProperty m_Intensity;
-        SerializedProperty m_AllowOffScreen;
-        SerializedProperty m_OcclusionRadius;
-        SerializedProperty m_SamplesCount;
         SerializedProperty m_ScaleCurve;
         SerializedProperty m_PositionCurve;
-        SerializedProperty m_RadialAttenuationCurve;
-        SerializedProperty m_DistanceAttenuationCurve;
         SerializedProperty m_Elements;
 
         public void OnEnable()
         {
             PropertyFetcher<SRPLensFlareData> entryPoint = new PropertyFetcher<SRPLensFlareData>(serializedObject);
             m_Intensity = entryPoint.Find(x => x.globalIntensity);
-            m_OcclusionRadius = entryPoint.Find(x => x.occlusionRadius);
-            m_SamplesCount = entryPoint.Find(x => x.samplesCount);
-            m_AllowOffScreen = entryPoint.Find(x => x.allowOffScreen);
             m_ScaleCurve = entryPoint.Find(x => x.scaleCurve);
             m_PositionCurve = entryPoint.Find(x => x.positionCurve);
-            m_RadialAttenuationCurve = entryPoint.Find(x => x.radialAttenuationCurve);
-            m_DistanceAttenuationCurve = entryPoint.Find(x => x.distanceAttenuationCurve);
             m_Elements = entryPoint.Find(x => x.elements);
         }
 
@@ -35,9 +25,6 @@ namespace UnityEditor.Rendering
         {
             EditorGUI.BeginChangeCheck();
             EditorGUILayout.PropertyField(m_Intensity);
-            EditorGUILayout.PropertyField(m_AllowOffScreen);
-            EditorGUILayout.PropertyField(m_OcclusionRadius);
-            EditorGUILayout.PropertyField(m_SamplesCount);
             if (EditorGUI.EndChangeCheck())
             {
                 m_Intensity.serializedObject.ApplyModifiedProperties();
@@ -45,8 +32,6 @@ namespace UnityEditor.Rendering
             EditorGUI.BeginChangeCheck();
             EditorGUILayout.PropertyField(m_ScaleCurve);
             EditorGUILayout.PropertyField(m_PositionCurve);
-            EditorGUILayout.PropertyField(m_RadialAttenuationCurve);
-            EditorGUILayout.PropertyField(m_DistanceAttenuationCurve);
             if (EditorGUI.EndChangeCheck())
             {
                 m_ScaleCurve.serializedObject.ApplyModifiedProperties();
