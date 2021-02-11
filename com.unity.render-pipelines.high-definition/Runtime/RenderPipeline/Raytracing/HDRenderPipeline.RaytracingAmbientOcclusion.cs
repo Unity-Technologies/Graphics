@@ -41,10 +41,10 @@ namespace UnityEngine.Rendering.HighDefinition
             if (GetRayTracingState())
             {
                 // Trace the signal
-                result = TraceAO(renderGraph, hdCamera, depthBuffer, normalBuffer, rayCountTexture, shaderVariablesRaytracing);
+                var traceResult = TraceAO(renderGraph, hdCamera, depthBuffer, normalBuffer, rayCountTexture, shaderVariablesRaytracing);
 
                 // Denoise if required
-                result = DenoiseAO(renderGraph, hdCamera, result, depthBuffer, normalBuffer, motionVectors, historyValidationBuffer);
+                result = DenoiseAO(renderGraph, hdCamera, traceResult, depthBuffer, normalBuffer, motionVectors, historyValidationBuffer);
 
                 // Compose the result to be done
                 result = ComposeAO(renderGraph, hdCamera, result);
@@ -54,6 +54,12 @@ namespace UnityEngine.Rendering.HighDefinition
                 result = renderGraph.defaultResources.blackTextureXR;
             }
             return result;
+        }
+
+        struct TraceAmbientOcclusionResult
+        {
+            public TextureHandle signalBuffer;
+            public TextureHandle velocityBuffer;
         }
 
         class TraceRTAOPassData
@@ -78,12 +84,15 @@ namespace UnityEngine.Rendering.HighDefinition
             public TextureHandle normalBuffer;
             public TextureHandle rayCountTexture;
             public TextureHandle outputTexture;
+            public TextureHandle velocityBuffer;
         }
 
-        TextureHandle TraceAO(RenderGraph renderGraph, HDCamera hdCamera, TextureHandle depthBuffer, TextureHandle normalBuffer, TextureHandle rayCountTexture, in ShaderVariablesRaytracing shaderVariablesRaytracing)
+        TraceAmbientOcclusionResult TraceAO(RenderGraph renderGraph, HDCamera hdCamera, TextureHandle depthBuffer, TextureHandle normalBuffer, TextureHandle rayCountTexture, in ShaderVariablesRaytracing shaderVariablesRaytracing)
         {
             using (var builder = renderGraph.AddRenderPass<TraceRTAOPassData>("Tracing the rays for RTAO", out var passData, ProfilingSampler.Get(HDProfileId.RaytracingAmbientOcclusion)))
             {
+                TraceAmbientOcclusionResult traceOutput = new TraceAmbientOcclusionResult();
+
                 builder.EnableAsyncCompute(false);
 
                 var aoSettings = hdCamera.volumeStack.GetComponent<AmbientOcclusion>();
@@ -110,6 +119,8 @@ namespace UnityEngine.Rendering.HighDefinition
                 // Depending of if we will have to denoise (or not), we need to allocate the final format, or a bigger texture
                 passData.outputTexture = builder.WriteTexture(renderGraph.CreateTexture(new TextureDesc(Vector2.one, true, true)
                     { colorFormat = GraphicsFormat.R8_UNorm, enableRandomWrite = true, name = "Ray Traced Ambient Occlusion" }));
+                passData.velocityBuffer = builder.ReadWriteTexture(renderGraph.CreateTexture(new TextureDesc(Vector2.one, true, true)
+                    { colorFormat = GraphicsFormat.R8_SNorm, enableRandomWrite = true, name = "Velocity Buffer" }));
 
                 builder.SetRenderFunc(
                     (TraceRTAOPassData data, RenderGraphContext ctx) =>
@@ -135,16 +146,19 @@ namespace UnityEngine.Rendering.HighDefinition
                         // Set the output textures
                         ctx.cmd.SetRayTracingTextureParam(data.aoShaderRT, HDShaderIDs._RayCountTexture, data.rayCountTexture);
                         ctx.cmd.SetRayTracingTextureParam(data.aoShaderRT, HDShaderIDs._AmbientOcclusionTextureRW, data.outputTexture);
+                        ctx.cmd.SetRayTracingTextureParam(data.aoShaderRT, HDShaderIDs._VelocityBuffer, data.velocityBuffer);
 
                         // Run the computation
                         ctx.cmd.DispatchRays(data.aoShaderRT, m_AORayGenShaderName, (uint)data.actualWidth, (uint)data.actualHeight, (uint)data.viewCount);
                     });
 
-                return passData.outputTexture;
+                traceOutput.signalBuffer = passData.outputTexture;
+                traceOutput.velocityBuffer = passData.velocityBuffer;
+                return traceOutput;
             }
         }
 
-        TextureHandle DenoiseAO(RenderGraph renderGraph, HDCamera hdCamera, TextureHandle rayTracedAO, TextureHandle depthBuffer, TextureHandle normalBuffer, TextureHandle motionVectorBuffer, TextureHandle historyValidationBuffer)
+        TextureHandle DenoiseAO(RenderGraph renderGraph, HDCamera hdCamera, TraceAmbientOcclusionResult traceAOResult, TextureHandle depthBuffer, TextureHandle normalBuffer, TextureHandle motionVectorBuffer, TextureHandle historyValidationBuffer)
         {
             var aoSettings = hdCamera.volumeStack.GetComponent<AmbientOcclusion>();
             if (aoSettings.denoise)
@@ -156,17 +170,15 @@ namespace UnityEngine.Rendering.HighDefinition
                 HDTemporalFilter temporalFilter = GetTemporalFilter();
                 TemporalFilterParameters tfParameters = temporalFilter.PrepareTemporalFilterParameters(hdCamera, true, historyValidity);
                 TextureHandle historyBuffer = renderGraph.ImportTexture(RequestAmbientOcclusionHistoryTexture(hdCamera));
-                TextureHandle denoisedRTAO = temporalFilter.Denoise(renderGraph, hdCamera, tfParameters, rayTracedAO, historyBuffer, depthBuffer, normalBuffer, motionVectorBuffer, historyValidationBuffer);
+                TextureHandle denoisedRTAO = temporalFilter.Denoise(renderGraph, hdCamera, tfParameters, traceAOResult.signalBuffer, traceAOResult.velocityBuffer, historyBuffer, depthBuffer, normalBuffer, motionVectorBuffer, historyValidationBuffer);
 
                 // Apply the diffuse denoiser
                 HDDiffuseDenoiser diffuseDenoiser = GetDiffuseDenoiser();
                 DiffuseDenoiserParameters ddParams = diffuseDenoiser.PrepareDiffuseDenoiserParameters(hdCamera, true, aoSettings.denoiserRadius, false, false);
-                rayTracedAO = diffuseDenoiser.Denoise(renderGraph, hdCamera, ddParams, denoisedRTAO, depthBuffer, normalBuffer, rayTracedAO);
-
-                return rayTracedAO;
+                return diffuseDenoiser.Denoise(renderGraph, hdCamera, ddParams, denoisedRTAO, depthBuffer, normalBuffer, traceAOResult.signalBuffer);
             }
             else
-                return rayTracedAO;
+                return traceAOResult.signalBuffer;
         }
 
         class ComposeRTAOPassData

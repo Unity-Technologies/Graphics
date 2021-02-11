@@ -426,7 +426,7 @@ For more information, see the Lighting panel section in the [HDRP debug window](
 
 #### Volume debug mode
 
-The Render Pipeline Debug window has a Volume panel which you can use to visualize the Volume components that affect a specific Camera.
+The Render Pipeline Debugger window has a Volume panel which you can use to visualize the Volume components that affect a specific Camera.
 
 For each Volume that contributes to the final interpolated value, the Volume panel shows the value of each property and whether or not it is overridden. It also calculates the Volume's influence percentage using the Volume's weight and blend distance.
 
