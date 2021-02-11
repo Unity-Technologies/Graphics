@@ -1639,7 +1639,7 @@
     "m_Group": {
         "m_Id": ""
     },
-    "m_Name": "SpeedTreeWind",
+    "m_Name": "SpeedTree8Wind",
     "m_DrawState": {
         "m_Expanded": true,
         "m_Position": {
@@ -2752,7 +2752,7 @@
     "m_Group": {
         "m_Id": ""
     },
-    "m_Name": "SpeedTreeBillboard",
+    "m_Name": "SpeedTree8Billboard",
     "m_DrawState": {
         "m_Expanded": true,
         "m_Position": {
@@ -4413,7 +4413,7 @@
     "m_Group": {
         "m_Id": ""
     },
-    "m_Name": "SpeedTreeHueVariation",
+    "m_Name": "SpeedTree8HueVariation",
     "m_DrawState": {
         "m_Expanded": true,
         "m_Position": {
