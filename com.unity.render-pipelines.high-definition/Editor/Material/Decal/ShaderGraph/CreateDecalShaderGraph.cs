@@ -1,11 +1,12 @@
 using System;
 using UnityEditor.ShaderGraph;
+using UnityEngine.Rendering;
 
 namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
 {
     static class CreateDecalShaderGraph
     {
-        [MenuItem("Assets/Create/Shader/HD Render Pipeline/Decal Shader Graph", false, 208)]
+        [MenuItem("Assets/Create/Shader Graph/HDRP/Decal Shader Graph", priority = CoreUtils.Priorities.assetsCreateShaderMenuPriority + 1)]
         public static void CreateDecalGraph()
         {
             var target = (HDTarget)Activator.CreateInstance(typeof(HDTarget));
