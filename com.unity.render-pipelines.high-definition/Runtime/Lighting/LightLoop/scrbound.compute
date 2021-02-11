@@ -115,6 +115,7 @@ float2 ComputeBoundsOfProjectedSphere(float3 C, float r, float projScale, float 
 // These matrices are different from the matrices the HDRP uses.
 // There is no clip-space flip (effectively, forced UNITY_UV_STARTS_AT_TOP = 0).
 // All coordinate systems are left-handed, Y-up, Z-forward.
+// And there is no reversed Z-buffering (the near plane corresponds to z = 0).
 // y  z
 // | /
 // 0 -- x

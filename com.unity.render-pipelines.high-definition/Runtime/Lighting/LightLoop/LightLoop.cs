@@ -3583,9 +3583,11 @@ namespace UnityEngine.Rendering.HighDefinition
 
                 kernel = 0; // FillCoarseTiles
 
-                cmd.SetComputeBufferParam(shader, kernel, HDShaderIDs._xyBoundsBuffer,   resources.xyBoundsBuffer);
+                cmd.SetComputeBufferParam( shader, kernel, HDShaderIDs._xyBoundsBuffer,     resources.xyBoundsBuffer);
+                cmd.SetComputeBufferParam( shader, kernel, HDShaderIDs._wBoundsBuffer,      resources.wBoundsBuffer);      // Optional
+                cmd.SetComputeTextureParam(shader, kernel, HDShaderIDs._DepthPyramidBuffer, resources.depthPyramidBuffer); // Optional
                 // This is not an accident. We alias the fine tile buffer memory.
-                cmd.SetComputeBufferParam(shader, kernel, HDShaderIDs._CoarseTileBuffer, resources.fineTileBuffer);
+                cmd.SetComputeBufferParam( shader, kernel, HDShaderIDs._CoarseTileBuffer,   resources.fineTileBuffer);
 
                 groupCount = HDUtils.DivRoundUp(coarseBufferSize, threadsPerGroup); // 1x thread/coarse_tile
 
@@ -3593,11 +3595,11 @@ namespace UnityEngine.Rendering.HighDefinition
 
                 kernel = 1; // PruneCoarseTiles
 
-                cmd.SetComputeTextureParam(shader, kernel, HDShaderIDs._DepthPyramidBuffer, resources.depthPyramidBuffer);
-                cmd.SetComputeBufferParam(shader, kernel, HDShaderIDs._EntityBoundsBuffer,  resources.convexBoundsBuffer);
+                cmd.SetComputeBufferParam( shader, kernel, HDShaderIDs._EntityBoundsBuffer,  resources.convexBoundsBuffer);
+                cmd.SetComputeTextureParam(shader, kernel, HDShaderIDs._DepthPyramidBuffer,  resources.depthPyramidBuffer); // Optional
                 // This is not an accident. We alias the fine tile buffer memory.
-                cmd.SetComputeBufferParam(shader, kernel, HDShaderIDs._SrcCoarseTileBuffer, resources.fineTileBuffer);
-                cmd.SetComputeBufferParam(shader, kernel, HDShaderIDs._DstCoarseTileBuffer, resources.coarseTileBuffer);
+                cmd.SetComputeBufferParam( shader, kernel, HDShaderIDs._SrcCoarseTileBuffer, resources.fineTileBuffer);
+                cmd.SetComputeBufferParam( shader, kernel, HDShaderIDs._DstCoarseTileBuffer, resources.coarseTileBuffer);
 
                 groupCount = HDUtils.DivRoundUp(coarseBufferSize, tilesPerGroup); // 4x threads/coarse_tile
 
@@ -3605,10 +3607,10 @@ namespace UnityEngine.Rendering.HighDefinition
 
                 kernel = 2; // FillFineTiles
 
-                cmd.SetComputeTextureParam(shader, kernel, HDShaderIDs._DepthPyramidBuffer, resources.depthPyramidBuffer);
-                cmd.SetComputeBufferParam(shader, kernel, HDShaderIDs._EntityBoundsBuffer,  resources.convexBoundsBuffer);
-                cmd.SetComputeBufferParam(shader, kernel, HDShaderIDs._CoarseTileBuffer,    resources.coarseTileBuffer);
-                cmd.SetComputeBufferParam(shader, kernel, HDShaderIDs._FineTileBuffer,      resources.fineTileBuffer);
+                cmd.SetComputeBufferParam( shader, kernel, HDShaderIDs._EntityBoundsBuffer, resources.convexBoundsBuffer);
+                cmd.SetComputeTextureParam(shader, kernel, HDShaderIDs._DepthPyramidBuffer, resources.depthPyramidBuffer); // Optional
+                cmd.SetComputeBufferParam( shader, kernel, HDShaderIDs._CoarseTileBuffer,   resources.coarseTileBuffer);
+                cmd.SetComputeBufferParam( shader, kernel, HDShaderIDs._FineTileBuffer,     resources.fineTileBuffer);
 
                 groupCount = HDUtils.DivRoundUp(coarseBufferSize * fineTilesPerCoarseTile, tilesPerGroup); // 4x threads/fine_tile, 64x threads/coarse_tile
 

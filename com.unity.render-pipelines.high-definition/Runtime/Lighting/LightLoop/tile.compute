@@ -14,9 +14,9 @@
 // Generates small screen tiles in an accurate manner.
 #pragma kernel FillFineTiles       PASS = FILL_FINE_TILES
 
-#define USE_DEPTH_BUFFER (0)
+#define ENABLE_DEPTH_TEST (0)
 
-#if USE_DEPTH_BUFFER
+#if ENABLE_DEPTH_TEST
     #define NUM_CLIP_PLANES (6) // Do not clip against the near and far planes; let z-binning handle these (approximately)
 #else
     #define NUM_CLIP_PLANES (4) // Full frustum clipping
@@ -33,9 +33,16 @@
 
 /* ------------------------------ Inputs ------------------------------------ */
 
+#if ENABLE_DEPTH_TEST
+    TEXTURE2D_X(_DepthPyramidBuffer); // Farthest (min) depth filter for conservative testing
+#endif // ENABLE_DEPTH_TEST
+
 #if (PASS == FILL_COARSE_TILES)
     // 1x list for all entites (sorted by category, we concatenate lists of all views).
     StructuredBuffer<float4> _xyBoundsBuffer; // {x_min, x_max, y_min, y_max}
+#if ENABLE_DEPTH_TEST
+    StructuredBuffer<float2> _wBoundsBuffer;  // {w_min, w_max}
+#endif // ENABLE_DEPTH_TEST
 #endif
 
 #if (PASS == PRUNE_COARSE_TILES)
@@ -43,9 +50,6 @@
     StructuredBuffer<FiniteLightBound> _EntityBoundsBuffer;
     // 1x list for all entites (sorted by category, we concatenate lists of all views).
     StructuredBuffer<uint>             _SrcCoarseTileBuffer;
-#if USE_DEPTH_BUFFER
-    TEXTURE2D_X(_DepthPyramidBuffer); // Farthest (min) depth filter for conservative testing
-#endif // USE_DEPTH_BUFFER
 #endif
 
 #if (PASS == FILL_FINE_TILES)
@@ -53,9 +57,6 @@
     StructuredBuffer<FiniteLightBound> _EntityBoundsBuffer;
     // 1x list for all entites (sorted by category, we concatenate lists of all views).
     StructuredBuffer<uint>             _CoarseTileBuffer;
-#if USE_DEPTH_BUFFER
-    TEXTURE2D_X(_DepthPyramidBuffer); // Farthest (min) depth filter for conservative testing
-#endif // USE_DEPTH_BUFFER
 #endif
 
 /* ------------------------------ Outputs ----------------------------------- */
@@ -94,6 +95,7 @@
 // These matrices are different from the matrices the HDRP uses.
 // There is no clip-space flip (effectively, forced UNITY_UV_STARTS_AT_TOP = 0).
 // All coordinate systems are left-handed, Y-up, Z-forward.
+// And there is no reversed Z-buffering (the near plane corresponds to z = 0).
 // y  z
 // | /
 // 0 -- x
@@ -157,6 +159,11 @@ void FillCoarseTiles(uint threadID : SV_GroupIndex, uint3 groupID : SV_GroupID)
 
     const uint entityBufferIndex = ComputeEntityBoundsBufferIndex(entityIndex, eye);
     const uint tileBufferIndex   = ComputeTileBufferIndex(clampedTileIndex, cat, eye);
+
+#if ENABLE_DEPTH_TEST
+    // Could depth test here, but currently don't
+    // (would require computing linear depth, which is tricky for oblique projections).
+#endif
 
     // Compute 2-D the AABB of the tile.
     const uint2  tileAaBbMinPtSS  = clampedTileCoord * TILE_SIZE;
@@ -272,7 +279,7 @@ void TryCullBoundingSphere(float3 C, float r,
                 float3 Q;
                 Q.x = (invProjMat._11 * projQ.x + invProjMat._14);
                 Q.y = (invProjMat._22 * projQ.y + invProjMat._24);
-                Q.z = 1; // Near plane with reversed Z-buffering
+                Q.z = 1;
 
             #if 0
                 // Compute the angle of the bounding cone.
@@ -672,18 +679,19 @@ void PruneCoarseTiles(uint3 threadID : SV_GroupThreadID, uint3 groupID : SV_Grou
 
     const uint tileBufferIndex = ComputeTileBufferIndex(clampedTileIndex, cat, eye);
 
-#if USE_DEPTH_BUFFER
-    const float farthestDepth = LOAD_TEXTURE2D_X(_DepthPyramidBuffer, _DepthPyramidMipLevelOffsetCoarse + clampedTileCoord).r;
+#if ENABLE_DEPTH_TEST
+    // No reversed Z (see the note at the top of the file).
+    const float farthestDepth = 1 - LOAD_TEXTURE2D_X(_DepthPyramidBuffer, _DepthPyramidMipLevelOffsetCoarse + clampedTileCoord).r;
 #else
-    const float farthestDepth = 0;
+    const float farthestDepth = 1;
 #endif
 
     const uint2  tileAaBbMinPtSS  = clampedTileCoord * TILE_SIZE;
     const uint2  tileAaBbMaxPtSS  = tileAaBbMinPtSS  + TILE_SIZE;               // (tileCoord + 1) * TILE_SIZE
     const float2 tileAaBbMinPtNDC =          tileAaBbMinPtSS * _ScreenSize.zw;  // Divide
     const float2 tileAaBbMaxPtNDC = saturate(tileAaBbMaxPtSS * _ScreenSize.zw); // Divide and clamp to the edge
-    const float3 tileAaBbMinPtCS  = float3(tileAaBbMinPtNDC * 2 - 1, farthestDepth);
-    const float3 tileAaBbMaxPtCS  = float3(tileAaBbMaxPtNDC * 2 - 1, 1);
+    const float3 tileAaBbMinPtCS  = float3(tileAaBbMinPtNDC * 2 - 1, 0);
+    const float3 tileAaBbMaxPtCS  = float3(tileAaBbMaxPtNDC * 2 - 1, farthestDepth);
 
     for (uint d = 0; d < dwordCount; d++)
     {
@@ -752,18 +760,19 @@ void FillFineTiles(uint3 threadID : SV_GroupThreadID, uint3 groupID : SV_GroupID
 
     if (isHelperThread) return; // Avoid adding too many checks or branches below
 
-#if USE_DEPTH_BUFFER
-    const float farthestDepth = LOAD_TEXTURE2D_X(_DepthPyramidBuffer, _DepthPyramidMipLevelOffsetFine + clampedFineTileCoord).r;
+#if ENABLE_DEPTH_TEST
+    // No reversed Z (see the note at the top of the file).
+    const float farthestDepth = 1 - LOAD_TEXTURE2D_X(_DepthPyramidBuffer, _DepthPyramidMipLevelOffsetFine + clampedFineTileCoord).r;
 #else
-    const float farthestDepth = 0;
+    const float farthestDepth = 1;
 #endif
 
     const uint2  fineTileAaBbMinPtSS  = clampedFineTileCoord * FINE_TILE_SIZE;
     const uint2  fineTileAaBbMaxPtSS  = fineTileAaBbMinPtSS  + FINE_TILE_SIZE;          // (tileCoord + 1) * TILE_SIZE
     const float2 fineTileAaBbMinPtNDC =          fineTileAaBbMinPtSS * _ScreenSize.zw;  // Divide
     const float2 fineTileAaBbMaxPtNDC = saturate(fineTileAaBbMaxPtSS * _ScreenSize.zw); // Divide and clamp to the edge
-    const float3 fineTileAaBbMinPtCS  = float3(fineTileAaBbMinPtNDC * 2 - 1, farthestDepth);
-    const float3 fineTileAaBbMaxPtCS  = float3(fineTileAaBbMaxPtNDC * 2 - 1, 1);
+    const float3 fineTileAaBbMinPtCS  = float3(fineTileAaBbMinPtNDC * 2 - 1, 0);
+    const float3 fineTileAaBbMaxPtCS  = float3(fineTileAaBbMaxPtNDC * 2 - 1, farthestDepth);
 
     // We must specify the size explicitly.
     const uint coarseTileBufferIndex = ComputeTileBufferIndex(clampedCoarseTileIndex, cat, eye, COARSE_TILE_BUFFER_DIMS);
