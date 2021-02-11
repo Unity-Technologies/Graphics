@@ -1,6 +1,7 @@
 
 # From https://github.com/Unity-Technologies/PostProcessing/blob/v2/.yamato/upm-ci.yml
 
+name: postprocessing
 test_editors:
   - trunk
   - 2021.1
@@ -17,8 +18,8 @@ test_platforms:
     image: package-ci/mac:stable
     flavor: m1.mac
 ---
-pack:
-  name: Pack
+{{ name }}_pack:
+  name: {{ name }} - Pack
   agent:
     type: Unity::VM
     image: package-ci/win10:stable
@@ -33,8 +34,8 @@ pack:
 
 {% for editor in test_editors %}
 {% for platform in test_platforms %}
-test_{{ platform.name }}_{{ editor }}:
-  name : Test {{ editor }} on {{ platform.name }}
+{{ name }}_test_{{ platform.name }}_{{ editor }}:
+  name : {{ name }} - Test {{ editor }} on {{ platform.name }}
   agent:
     type: {{ platform.type }}
     image: {{ platform.image }}
@@ -47,12 +48,12 @@ test_{{ platform.name }}_{{ editor }}:
       paths:
         - "upm-ci~/test-results/**/*"
   dependencies:
-    - .yamato/upm-ci.yml#pack
+    - .yamato/_tmp_postprocessing.yml#{{ name }}_pack
 {% endfor %}
 {% endfor %}
 
-test_trigger:
-  name: Tests Trigger
+{{ name }}_test_trigger:
+  name: {{ name }} - Tests Trigger
   agent:
     type: Unity::VM
     image: package-ci/win10:stable
@@ -71,15 +72,15 @@ test_trigger:
       paths:
         - "upm-ci~/packages/**/*"
   dependencies:
-    - .yamato/upm-ci.yml#pack
+    - .yamato/_tmp_postprocessing.yml#{{ name }}_pack
     {% for editor in test_editors %}
     {% for platform in test_platforms %}
-    - .yamato/upm-ci.yml#test_{{platform.name}}_{{editor}}
+    - .yamato/_tmp_postprocessing.yml#{{ name }}_test_{{platform.name}}_{{editor}}
     {% endfor %}
     {% endfor %}
 
-publish:
-  name: Publish to Internal Registry
+{{ name }}_publish:
+  name: {{ name }} - Publish to Internal Registry
   agent:
     type: Unity::VM
     image: package-ci/win10:stable
@@ -96,16 +97,16 @@ publish:
       paths:
         - "upm-ci~/packages/*.tgz"
   dependencies:
-    - .yamato/upm-ci.yml#pack
+    - .yamato/_tmp_postprocessing.yml#{{ name }}_pack
     {% for editor in test_editors %}
     {% for platform in test_platforms %}
-    - .yamato/upm-ci.yml#test_{{ platform.name }}_{{ editor }}
+    - .yamato/_tmp_postprocessing.yml#{{ name }}_test_{{ platform.name }}_{{ editor }}
     {% endfor %}
     {% endfor %}
 
 
-publish_dry_run:
-  name: Publish to Internal Registry [dry-run]
+{{ name }}_publish_dry_run:
+  name: {{ name }} - Publish to Internal Registry [dry-run]
   agent:
     type: Unity::VM
     image: package-ci/win10:stable
@@ -122,9 +123,9 @@ publish_dry_run:
       paths:
         - "upm-ci~/packages/*.tgz"
   dependencies:
-    - .yamato/upm-ci.yml#pack
+    - .yamato/_tmp_postprocessing.yml#{{ name }}_pack
     {% for editor in test_editors %}
     {% for platform in test_platforms %}
-    - .yamato/upm-ci.yml#test_{{ platform.name }}_{{ editor }}
+    - .yamato/_tmp_postprocessing.yml#{{ name }}_test_{{ platform.name }}_{{ editor }}
     {% endfor %}
     {% endfor %}
