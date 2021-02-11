@@ -646,7 +646,7 @@ namespace UnityEngine.Rendering.HighDefinition
             return source;
         }
 
-        TextureHandle LensFlarePass(RenderGraph renderGraph, HDCamera hdCamera, TextureHandle source)
+        TextureHandle LensFlareDataDrivenPass(RenderGraph renderGraph, HDCamera hdCamera, TextureHandle source)
         {
             //if (m_LensFlareFS)
             if (SRPLensFlareCommon.Instance.Data.Count > 0)
@@ -661,7 +661,7 @@ namespace UnityEngine.Rendering.HighDefinition
                     builder.SetRenderFunc(
                         (LensFlareData data, RenderGraphContext ctx) =>
                         {
-                            DoLensFlare(data.parameters, hdCamera, ctx.cmd, data.source, data.destination);
+                            DoLensFlareDataDriven(data.parameters, hdCamera, ctx.cmd, data.source, data.destination);
                         });
 
                     source = passData.destination;
@@ -1059,7 +1059,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 // Lens Flare between DepthOfField and MotionBlur
                 // MotionBlur with accumulation can "print" on sensor as sharp but can still be
                 // accumulated with MotionBlur with Accumulation
-                source = LensFlarePass(renderGraph, hdCamera, source);
+                source = LensFlareDataDrivenPass(renderGraph, hdCamera, source);
 
                 // Motion blur after depth of field for aesthetic reasons (better to see motion
                 // blurred bokeh rather than out of focus motion blur)

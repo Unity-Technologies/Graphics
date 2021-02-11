@@ -2186,7 +2186,7 @@ namespace UnityEngine.Rendering.HighDefinition
             }
         }
 
-        static void DoLensFlare(in LensFlareParameters parameters, HDCamera hdCam, CommandBuffer cmd, RTHandle source, RTHandle target)
+        static void DoLensFlareDataDriven(in LensFlareParameters parameters, HDCamera hdCam, CommandBuffer cmd, RTHandle source, RTHandle target)
         {
             cmd.CopyTexture(source, target);
 
@@ -2236,7 +2236,6 @@ namespace UnityEngine.Rendering.HighDefinition
 
                 //Vector2 ScreenUVToNDC(Vector2 uv) { return new Vector2(uv.x * 2 - 1, 1 - uv.y * 2); }
 
-                cmd.SetGlobalFloat(HDShaderIDs._FlareUseExposure, data.scaleByExposure ? 1.0f : -1.0f);
                 cmd.SetGlobalFloat(HDShaderIDs._FlareOffscreen, data.allowOffScreen ? 1.0f : -1.0f);
 
                 //cmd.SetGlobalVector(HDShaderIDs._FlareScreenPos, ScreenUVToNDC(screenPos));
