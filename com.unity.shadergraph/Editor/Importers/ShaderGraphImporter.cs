@@ -274,11 +274,11 @@ Shader ""Hidden/GraphErrorShader2""
             if (firstShaderUtilErrorIndex != -1)
                 MessageManager.Log(path, messages[firstShaderUtilErrorIndex], shader);
             else if (anyNodeHasError)
-                Debug.LogError($"Test Shader Graph at {path} has at least one error.");
+                Debug.LogError($"Shader Graph at {path} has at least one error.");
             else if (messages.Length != 0)
                 MessageManager.Log(path, messages[0], shader);
             else if (graph.messageManager.nodeMessagesChanged)
-                Debug.LogWarning($"Test Shader Graph at {path} has at least one warning.");
+                Debug.LogWarning($"Shader Graph at {path} has at least one warning.");
         }
 
         internal static string GetShaderText(string path, out List<PropertyCollector.TextureInfo> configuredTextures, AssetCollection assetCollection, GraphData graph)
