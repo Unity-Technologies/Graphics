@@ -135,7 +135,7 @@ namespace UnityEngine.Rendering.Universal
             cmd.SetGlobalFloat(m_DebugVertexAttributeModeId, (int)MaterialSettings.DebugVertexAttributeIndexData);
 
             // Rendering settings...
-            cmd.SetGlobalInt(m_DebugMipInfoModeId, (int)RenderingSettings.mipInfoModeDebugMode);
+            cmd.SetGlobalInt(m_DebugMipInfoModeId, (int)RenderingSettings.debugMipInfoMode);
             cmd.SetGlobalInt(m_DebugSceneOverrideModeId, (int)RenderingSettings.debugSceneOverrideMode);
             cmd.SetGlobalInt(m_DebugFullScreenModeId, (int)RenderingSettings.debugFullScreenMode);
 

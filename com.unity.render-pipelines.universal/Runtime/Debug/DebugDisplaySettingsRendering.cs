@@ -10,7 +10,7 @@ namespace UnityEditor.Rendering
     {
         internal DebugFullScreenMode debugFullScreenMode { get; private set; } = DebugFullScreenMode.None;
         internal DebugSceneOverrideMode debugSceneOverrideMode { get; private set; } = DebugSceneOverrideMode.None;
-        internal DebugMipInfoMode mipInfoModeDebugMode { get; private set; } = DebugMipInfoMode.None;
+        internal DebugMipInfoMode debugMipInfoMode { get; private set; } = DebugMipInfoMode.None;
 
         public DebugPostProcessingMode debugPostProcessingMode { get; private set; } = DebugPostProcessingMode.Auto;
         public bool enableMsaa { get; private set; } = true;
@@ -24,7 +24,7 @@ namespace UnityEditor.Rendering
             {
                 AddWidget(new DebugUI.EnumField { displayName = "Full Screen Modes", autoEnum = typeof(DebugFullScreenMode), getter = () => (int)data.debugFullScreenMode, setter = (value) => {}, getIndex = () => (int)data.debugFullScreenMode, setIndex = (value) => data.debugFullScreenMode = (DebugFullScreenMode)value});
                 AddWidget(new DebugUI.EnumField { displayName = "Scene Debug Modes", autoEnum = typeof(DebugSceneOverrideMode), getter = () => (int)data.debugSceneOverrideMode, setter = (value) => {}, getIndex = () => (int)data.debugSceneOverrideMode, setIndex = (value) => data.debugSceneOverrideMode = (DebugSceneOverrideMode)value});
-                AddWidget(new DebugUI.EnumField { displayName = "Mip Modes Debug", autoEnum = typeof(DebugMipInfoMode), getter = () => (int)data.mipInfoModeDebugMode, setter = (value) => { }, getIndex = () => (int)data.mipInfoModeDebugMode, setIndex = (value) => data.mipInfoModeDebugMode = (DebugMipInfoMode)value });
+                AddWidget(new DebugUI.EnumField { displayName = "Mip Modes Debug", autoEnum = typeof(DebugMipInfoMode), getter = () => (int)data.debugMipInfoMode, setter = (value) => { }, getIndex = () => (int)data.debugMipInfoMode, setIndex = (value) => data.debugMipInfoMode = (DebugMipInfoMode)value });
 
                 AddWidget(new DebugUI.EnumField { displayName = "Post-processing", autoEnum = typeof(DebugPostProcessingMode), getter = () => (int)data.debugPostProcessingMode, setter = (value) => data.debugPostProcessingMode = (DebugPostProcessingMode)value, getIndex = () => (int)data.debugPostProcessingMode, setIndex = (value) => data.debugPostProcessingMode = (DebugPostProcessingMode)value});
                 AddWidget(new DebugUI.BoolField { displayName = "MSAA", getter = () => data.enableMsaa, setter = (value) => data.enableMsaa = value });
@@ -36,13 +36,15 @@ namespace UnityEditor.Rendering
         public bool AreAnySettingsActive => enableMsaa || enableHDR ||
                                             (debugPostProcessingMode != DebugPostProcessingMode.Disabled) ||
                                             (debugFullScreenMode != DebugFullScreenMode.None) ||
-                                            (debugSceneOverrideMode != DebugSceneOverrideMode.None);
+                                            (debugSceneOverrideMode != DebugSceneOverrideMode.None) ||
+                                            (debugMipInfoMode != DebugMipInfoMode.None);
 
         public bool IsPostProcessingAllowed => (debugPostProcessingMode != DebugPostProcessingMode.Disabled) &&
                                                (debugSceneOverrideMode == DebugSceneOverrideMode.None);
 
         public bool IsDebugMaterialActive => (debugFullScreenMode != DebugFullScreenMode.None) ||
-                                             (debugSceneOverrideMode != DebugSceneOverrideMode.None);
+                                             (debugSceneOverrideMode != DebugSceneOverrideMode.None)||
+                                             (debugMipInfoMode != DebugMipInfoMode.None);
 
         public bool IsLightingActive => (debugSceneOverrideMode == DebugSceneOverrideMode.None);
 
