@@ -32,7 +32,7 @@ namespace UnityEditor.Rendering
                 float imgWidth = 1.5f * indent;
                 float imgOffY = 0.5f * (GetPropertyHeight(property, label) - imgWidth - GUIStyle.none.lineHeight);
                 Rect imgRect = new Rect(position.x - indent + 15.0f, originY + imgOffY + GUIStyle.none.lineHeight, imgWidth, imgWidth);
-                EditorGUI.DrawTextureTransparent(imgRect, lensFlareProp.objectReferenceValue as Texture, ScaleMode.ScaleToFit, 1.0f / aspectRatioProp.floatValue);
+                EditorGUI.DrawTextureTransparent(imgRect, lensFlareProp.objectReferenceValue as Texture, ScaleMode.ScaleToFit, aspectRatioProp.floatValue);
             }
             rect.y += EditorGUIUtility.singleLineHeight + EditorGUIUtility.standardVerticalSpacing;
             EditorGUI.BeginProperty(new Rect(rect.x, rect.y, rect.width, 2.0f * rect.height), label, property);
@@ -43,7 +43,7 @@ namespace UnityEditor.Rendering
                 if ((tmpTex = (EditorGUI.ObjectField(rect, EditorGUIUtility.TrTextContent("Flare Texture"), lensFlareProp.objectReferenceValue, typeof(Texture), false) as Texture)) != (lensFlareProp.objectReferenceValue as Texture))
                 {
                     lensFlareProp.objectReferenceValue = tmpTex;
-                    aspectRatioProp.floatValue = ((float)tmpTex.width) / ((float)tmpTex.height);
+                    aspectRatioProp.floatValue = ((float)tmpTex.height) / ((float)tmpTex.width);
                     aspectRatioProp.serializedObject.ApplyModifiedProperties();
                 }
                 rect.y += EditorGUIUtility.singleLineHeight + EditorGUIUtility.standardVerticalSpacing;

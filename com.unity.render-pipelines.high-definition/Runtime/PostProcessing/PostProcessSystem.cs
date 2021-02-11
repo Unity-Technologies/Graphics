@@ -2412,7 +2412,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
                     Texture texture = element.lensFlareTexture;
                     float position = 2.0f * Mathf.Abs(element.position) * curvePos;
-                    Vector2 size = new Vector2(element.size * curveScale, element.size * element.aspectRatio * curveScale);
+                    Vector2 size = new Vector2(element.size * curveScale * element.aspectRatio, element.size * curveScale);
                     float rotation = element.rotation;
                     Vector4 tint;
 
