@@ -39,8 +39,6 @@ namespace UnityEditor.Rendering.HighDefinition
 
         private static LightUnitSliderUIDrawer k_LightUnitSlider;
 
-        static readonly string[] s_MidGrayNames = { "Grey 12.5%", "Grey 14.0%", "Grey 18.0%" };
-
         public override void OnEnable()
         {
             var o = new PropertyFetcher<Exposure>(serializedObject);
@@ -182,24 +180,9 @@ namespace UnityEditor.Rendering.HighDefinition
                     PropertyField(m_AdaptationSpeedLightToDark, EditorGUIUtility.TrTextContent("Speed Light to Dark"));
                 }
 
-                // Custom property still requires testing manually. The scope will take care of the background animation.
                 if (BeginAdditionalPropertiesScope())
                 {
-                    EditorGUILayout.Space();
-
-                    using (new EditorGUILayout.HorizontalScope())
-                    {
-                        // Override checkbox
-                        DrawOverrideCheckbox(m_TargetMidGray);
-
-                        // Property
-                        using (new EditorGUI.DisabledScope(!m_TargetMidGray.overrideState.boolValue))
-                        {
-                            // Default unity field
-                            m_TargetMidGray.value.intValue = EditorGUILayout.Popup(EditorGUIUtility.TrTextContent("Target Mid Grey", "Sets the desired Mid gray level used by the auto exposure (i.e. to what grey value the auto exposure system maps the average scene luminance)."),
-                                m_TargetMidGray.value.intValue, s_MidGrayNames);
-                        }
-                    }
+                    PropertyField(m_TargetMidGray, EditorGUIUtility.TrTextContent("Target Mid Grey", "Sets the desired Mid gray level used by the auto exposure (i.e. to what grey value the auto exposure system maps the average scene luminance)."));
                 }
                 EndAdditionalPropertiesScope();
             }
