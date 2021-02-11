@@ -174,7 +174,7 @@ namespace UnityEditor.ShaderGraph
 
         string GetFunctionName()
         {
-            return $"Unity_LinearBlendSkinning_{concretePrecision.ToShaderString()}";
+            return "Unity_LinearBlendSkinning_$precision";
         }
     }
 }

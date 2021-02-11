@@ -25,12 +25,20 @@ namespace UnityEditor.ShaderGraph.Drawing.Inspector
             return labelVisualElement;
         }
 
+        internal enum UIPrecisionForShaderGraphs
+        {
+            Inherit = Precision.Inherit,
+            Single = Precision.Single,
+            Half = Precision.Half,
+            UseGraphPrecision = Precision.Graph,
+        }
+
         internal static void AddDefaultNodeProperties(VisualElement parentElement, AbstractMaterialNode node, Action setNodesAsDirtyCallback, Action updateNodeViewsCallback)
         {
             EnumField precisionField = null;
             if (node.canSetPrecision)
             {
-                precisionField = new EnumField(node.precision);
+                precisionField = new EnumField((UIPrecisionForShaderGraphs)node.precision);
                 var propertyRow = new PropertyRow(new Label("Precision"));
                 propertyRow.Add(precisionField, (field) =>
                 {
