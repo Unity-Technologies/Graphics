@@ -18,19 +18,6 @@ MonoBehaviour:
     keywordFilter: SHADOWS_SHADOWMASK&DECALS_OFF&LIGHT_LAYERS
     passNameFilter: +GBuffer
   m_AssetDefinitions:
-  - assetAlias: LitShaderGraph
-    assetCategory: Default
-    testName: Default
-    asset: {fileID: 2100000, guid: d21ceb45c06d0f840bbac5ce3ba6076b, type: 2}
-    filter:
-      filterType: 0
-      referenceName: 
-      definition:
-        name: 
-        category: 
-        keywordFilter: 
-        passNameFilter: 
-    includeInTargets: 1f000000
   - assetAlias: Deferred
     assetCategory: Default
     testName: Default
