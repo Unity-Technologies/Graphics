@@ -63,13 +63,14 @@ namespace UnityEngine.Experimental.Rendering.Universal
             LayerUtility.maxTextureCount = math.max(4, maxTextureCount);
         }
 
-        private static bool CompareLightsInLayer(int layerIndex1, int layerIndex2, SortingLayer[] sortingLayers, ILight2DCullResult lightCullResult)
+        private static bool CanBatchLightsInLayer(int layerIndex1, int layerIndex2, SortingLayer[] sortingLayers, ILight2DCullResult lightCullResult)
         {
             var layerId1 = sortingLayers[layerIndex1].id;
             var layerId2 = sortingLayers[layerIndex2].id;
             foreach (var light in lightCullResult.visibleLights)
             {
-                if (light.IsLitLayer(layerId1) != light.IsLitLayer(layerId2))
+                // If the lit layers are different, or if they are lit but this is a shadow casting light then don't batch.
+                if ((light.IsLitLayer(layerId1) != light.IsLitLayer(layerId2)) || (light.IsLitLayer(layerId1) && light.shadowsEnabled))
                     return false;
             }
             return true;
@@ -80,7 +81,7 @@ namespace UnityEngine.Experimental.Rendering.Universal
             // start checking at the next layer
             for (var i = startLayerIndex + 1; i < sortingLayers.Length; i++)
             {
-                if (!CompareLightsInLayer(startLayerIndex, i, sortingLayers, lightCullResult))
+                if (!CanBatchLightsInLayer(startLayerIndex, i, sortingLayers, lightCullResult))
                     return i - 1;
             }
             return sortingLayers.Length - 1;

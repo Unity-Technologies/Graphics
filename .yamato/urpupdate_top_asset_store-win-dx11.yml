@@ -18,6 +18,10 @@ URPUpdate_Top_Asset_Store_Win_DX11_playmode_mono_Linear_trunk:
         UTR_VERSION: "current"
         TEST_FILTER: .*
     commands:
+      -  git clone https://github.cds.internal.unity3d.com/sophia/URP-Update-testing.git TestProjects/URP-Update-Testing
+      -  Xcopy /E /I "com.unity.render-pipelines.core" "TestProjects/URP-Update-Testing/Top-URP-Assets/Packages/com.unity.render-pipelines.core" /Y
+      -  Xcopy /E /I "com.unity.render-pipelines.universal" "TestProjects/URP-Update-Testing/Top-URP-Assets/Packages/com.unity.render-pipelines.universal" /Y
+      -  Xcopy /E /I "com.unity.shadergraph" "TestProjects/URP-Update-Testing/Top-URP-Assets/Packages/com.unity.shadergraph" /Y
       -  NetSh Advfirewall set allprofiles state off
       -  curl -s https://artifactory.prd.it.unity3d.com/artifactory/unity-tools-local/utr-standalone/utr.bat --output utr.bat
       -  choco install unity-downloader-cli -y -s https://artifactory.prd.it.unity3d.com/artifactory/api/nuget/unity-choco-local
@@ -27,12 +31,12 @@ URPUpdate_Top_Asset_Store_Win_DX11_playmode_mono_Linear_trunk:
               set /p GIT_REVISIONDATE=<revdate.tmp
               echo %GIT_REVISIONDATE%
               del revdate.tmp
-              utr --artifacts_path=TestProjects/Top-URP-Assets/test-results --editor-location=.Editor --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-force-d3d11" --scripting-backend=Mono2x --suite=playmode --testfilter=%TEST_FILTER% --testproject=./TestProjects/Top-URP-Assets --zero-tests-are-ok=1
+              utr --artifacts_path=TestProjects/URP-Update-Testing/Top-URP-Assets/test-results --editor-location=.Editor --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-force-d3d11" --scripting-backend=Mono2x --suite=playmode --testfilter=%TEST_FILTER% --testproject=./TestProjects/URP-Update-Testing/Top-URP-Assets --zero-tests-are-ok=1
     artifacts:
         logs:
             paths:
               -  "**/test-results/**"
-              -  "TestProjects/Top-URP-Assets/Logs/*.log"
+              -  "TestProjects/URP-Update-Testing/Top-URP-Assets/Logs/*.log"
 URPUpdate_Top_Asset_Store_Win_DX11_editmode_mono_Linear_trunk:
     name: URPUpdate_Top_Asset_Store on Win_DX11_editmode_mono_Linear on version trunk
     agent:
@@ -44,6 +48,10 @@ URPUpdate_Top_Asset_Store_Win_DX11_editmode_mono_Linear_trunk:
         UTR_VERSION: "current"
         TEST_FILTER: .*
     commands:
+      -  git clone https://github.cds.internal.unity3d.com/sophia/URP-Update-testing.git TestProjects/URP-Update-Testing
+      -  Xcopy /E /I "com.unity.render-pipelines.core" "TestProjects/URP-Update-Testing/Top-URP-Assets/Packages/com.unity.render-pipelines.core" /Y
+      -  Xcopy /E /I "com.unity.render-pipelines.universal" "TestProjects/URP-Update-Testing/Top-URP-Assets/Packages/com.unity.render-pipelines.universal" /Y
+      -  Xcopy /E /I "com.unity.shadergraph" "TestProjects/URP-Update-Testing/Top-URP-Assets/Packages/com.unity.shadergraph" /Y
       -  NetSh Advfirewall set allprofiles state off
       -  curl -s https://artifactory.prd.it.unity3d.com/artifactory/unity-tools-local/utr-standalone/utr.bat --output utr.bat
       -  choco install unity-downloader-cli -y -s https://artifactory.prd.it.unity3d.com/artifactory/api/nuget/unity-choco-local
@@ -53,12 +61,12 @@ URPUpdate_Top_Asset_Store_Win_DX11_editmode_mono_Linear_trunk:
               set /p GIT_REVISIONDATE=<revdate.tmp
               echo %GIT_REVISIONDATE%
               del revdate.tmp
-              utr --artifacts_path=TestProjects/Top-URP-Assets/test-results --editor-location=.Editor --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-force-d3d11" --extra-editor-arg="-playergraphicsapi=Direct3D11" --platform=editmode --scripting-backend=Mono2x --suite=editor --testfilter=%TEST_FILTER% --testproject=./TestProjects/Top-URP-Assets --zero-tests-are-ok=1
+              utr --artifacts_path=TestProjects/URP-Update-Testing/Top-URP-Assets/test-results --editor-location=.Editor --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-force-d3d11" --extra-editor-arg="-playergraphicsapi=Direct3D11" --platform=editmode --scripting-backend=Mono2x --suite=editor --testfilter=%TEST_FILTER% --testproject=./TestProjects/URP-Update-Testing/Top-URP-Assets --zero-tests-are-ok=1
     artifacts:
         logs:
             paths:
               -  "**/test-results/**"
-              -  "TestProjects/Top-URP-Assets/Logs/*.log"
+              -  "TestProjects/URP-Update-Testing/Top-URP-Assets/Logs/*.log"
 URPUpdate_Top_Asset_Store_Win_DX11_playmode_mono_Linear_CUSTOM-REVISION:
     name: URPUpdate_Top_Asset_Store on Win_DX11_playmode_mono_Linear on version CUSTOM-REVISION
     agent:
@@ -71,6 +79,10 @@ URPUpdate_Top_Asset_Store_Win_DX11_playmode_mono_Linear_CUSTOM-REVISION:
         UTR_VERSION: "current"
         TEST_FILTER: .*
     commands:
+      -  git clone https://github.cds.internal.unity3d.com/sophia/URP-Update-testing.git TestProjects/URP-Update-Testing
+      -  Xcopy /E /I "com.unity.render-pipelines.core" "TestProjects/URP-Update-Testing/Top-URP-Assets/Packages/com.unity.render-pipelines.core" /Y
+      -  Xcopy /E /I "com.unity.render-pipelines.universal" "TestProjects/URP-Update-Testing/Top-URP-Assets/Packages/com.unity.render-pipelines.universal" /Y
+      -  Xcopy /E /I "com.unity.shadergraph" "TestProjects/URP-Update-Testing/Top-URP-Assets/Packages/com.unity.shadergraph" /Y
       -  NetSh Advfirewall set allprofiles state off
       -  curl -s https://artifactory.prd.it.unity3d.com/artifactory/unity-tools-local/utr-standalone/utr.bat --output utr.bat
       -  choco install unity-downloader-cli -y -s https://artifactory.prd.it.unity3d.com/artifactory/api/nuget/unity-choco-local
@@ -80,12 +92,12 @@ URPUpdate_Top_Asset_Store_Win_DX11_playmode_mono_Linear_CUSTOM-REVISION:
               set /p GIT_REVISIONDATE=<revdate.tmp
               echo %GIT_REVISIONDATE%
               del revdate.tmp
-              utr --artifacts_path=TestProjects/Top-URP-Assets/test-results --editor-location=.Editor --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-force-d3d11" --scripting-backend=Mono2x --suite=playmode --testfilter=%TEST_FILTER% --testproject=./TestProjects/Top-URP-Assets --zero-tests-are-ok=1
+              utr --artifacts_path=TestProjects/URP-Update-Testing/Top-URP-Assets/test-results --editor-location=.Editor --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-force-d3d11" --scripting-backend=Mono2x --suite=playmode --testfilter=%TEST_FILTER% --testproject=./TestProjects/URP-Update-Testing/Top-URP-Assets --zero-tests-are-ok=1
     artifacts:
         logs:
             paths:
               -  "**/test-results/**"
-              -  "TestProjects/Top-URP-Assets/Logs/*.log"
+              -  "TestProjects/URP-Update-Testing/Top-URP-Assets/Logs/*.log"
     dependencies:
       -  path: .yamato/_editor_priming.yml#editor:priming:CUSTOM-REVISION:Win
          rerun: always
@@ -101,6 +113,10 @@ URPUpdate_Top_Asset_Store_Win_DX11_editmode_mono_Linear_CUSTOM-REVISION:
         UTR_VERSION: "current"
         TEST_FILTER: .*
     commands:
+      -  git clone https://github.cds.internal.unity3d.com/sophia/URP-Update-testing.git TestProjects/URP-Update-Testing
+      -  Xcopy /E /I "com.unity.render-pipelines.core" "TestProjects/URP-Update-Testing/Top-URP-Assets/Packages/com.unity.render-pipelines.core" /Y
+      -  Xcopy /E /I "com.unity.render-pipelines.universal" "TestProjects/URP-Update-Testing/Top-URP-Assets/Packages/com.unity.render-pipelines.universal" /Y
+      -  Xcopy /E /I "com.unity.shadergraph" "TestProjects/URP-Update-Testing/Top-URP-Assets/Packages/com.unity.shadergraph" /Y
       -  NetSh Advfirewall set allprofiles state off
       -  curl -s https://artifactory.prd.it.unity3d.com/artifactory/unity-tools-local/utr-standalone/utr.bat --output utr.bat
       -  choco install unity-downloader-cli -y -s https://artifactory.prd.it.unity3d.com/artifactory/api/nuget/unity-choco-local
@@ -110,12 +126,12 @@ URPUpdate_Top_Asset_Store_Win_DX11_editmode_mono_Linear_CUSTOM-REVISION:
               set /p GIT_REVISIONDATE=<revdate.tmp
               echo %GIT_REVISIONDATE%
               del revdate.tmp
-              utr --artifacts_path=TestProjects/Top-URP-Assets/test-results --editor-location=.Editor --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-force-d3d11" --extra-editor-arg="-playergraphicsapi=Direct3D11" --platform=editmode --scripting-backend=Mono2x --suite=editor --testfilter=%TEST_FILTER% --testproject=./TestProjects/Top-URP-Assets --zero-tests-are-ok=1
+              utr --artifacts_path=TestProjects/URP-Update-Testing/Top-URP-Assets/test-results --editor-location=.Editor --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-force-d3d11" --extra-editor-arg="-playergraphicsapi=Direct3D11" --platform=editmode --scripting-backend=Mono2x --suite=editor --testfilter=%TEST_FILTER% --testproject=./TestProjects/URP-Update-Testing/Top-URP-Assets --zero-tests-are-ok=1
     artifacts:
         logs:
             paths:
               -  "**/test-results/**"
-              -  "TestProjects/Top-URP-Assets/Logs/*.log"
+              -  "TestProjects/URP-Update-Testing/Top-URP-Assets/Logs/*.log"
     dependencies:
       -  path: .yamato/_editor_priming.yml#editor:priming:CUSTOM-REVISION:Win
          rerun: always
