@@ -1043,7 +1043,6 @@ namespace UnityEngine.Rendering.HighDefinition
             }
         }
 
-
         struct SendGeometryGraphcisBuffersParameters
         {
             public HDCamera hdCamera;
