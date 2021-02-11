@@ -62,16 +62,16 @@ namespace UnityEditor.Rendering.HighDefinition
                     return ref probe.frameSettings;
                 default:
                     {
-                        if (obj is HDDefaultSettings defaultSettings)
+                        if (obj is HDGlobalSettings globalSettings)
                         {
                             switch (DefaultSettingsPanelIMGUI.selectedFrameSettings)
                             {
                                 case DefaultSettingsPanelIMGUI.SelectedFrameSettings.Camera:
-                                    return ref defaultSettings.GetDefaultFrameSettings(FrameSettingsRenderType.Camera);
+                                    return ref globalSettings.GetDefaultFrameSettings(FrameSettingsRenderType.Camera);
                                 case DefaultSettingsPanelIMGUI.SelectedFrameSettings.BakedOrCustomReflection:
-                                    return ref defaultSettings.GetDefaultFrameSettings(FrameSettingsRenderType.CustomOrBakedReflection);
+                                    return ref globalSettings.GetDefaultFrameSettings(FrameSettingsRenderType.CustomOrBakedReflection);
                                 case DefaultSettingsPanelIMGUI.SelectedFrameSettings.RealtimeReflection:
-                                    return ref defaultSettings.GetDefaultFrameSettings(FrameSettingsRenderType.RealtimeReflection);
+                                    return ref globalSettings.GetDefaultFrameSettings(FrameSettingsRenderType.RealtimeReflection);
                             }
                         }
 
@@ -87,7 +87,7 @@ namespace UnityEditor.Rendering.HighDefinition
                 return (obj as HDAdditionalCameraData).renderingPathCustomFrameSettingsOverrideMask;
             if (obj is HDProbe)
                 return (obj as HDProbe).frameSettingsOverrideMask;
-            if (obj is HDDefaultSettings)
+            if (obj is HDGlobalSettings)
                 return null;
             throw new System.ArgumentException("Unknown kind of object");
         }

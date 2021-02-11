@@ -69,7 +69,7 @@ namespace UnityEngine.Rendering.HighDefinition
             if (!SystemInfo.IsFormatSupported(densityVolumeAtlasFormat, FormatUsage.LoadStore))
                 return;
 
-            if (volume.parameters.volumeMask != null)
+            if (volume.parameters.volumeMask != null && volumeAtlas != null)
             {
                 if (volumeAtlas.IsTextureValid(volume.parameters.volumeMask))
                 {

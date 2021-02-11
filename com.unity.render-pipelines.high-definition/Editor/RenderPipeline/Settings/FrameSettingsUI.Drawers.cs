@@ -140,8 +140,8 @@ namespace UnityEditor.Rendering.HighDefinition
         static FrameSettings GetDefaultFrameSettingsFor(Editor owner)
         {
             return owner is IDefaultFrameSettingsType getType
-                ? HDDefaultSettings.instance.GetDefaultFrameSettings(getType.GetFrameSettingsType())
-                : HDDefaultSettings.instance.GetDefaultFrameSettings(FrameSettingsRenderType.Camera);
+                ? HDGlobalSettings.instance.GetDefaultFrameSettings(getType.GetFrameSettingsType())
+                : HDGlobalSettings.instance.GetDefaultFrameSettings(FrameSettingsRenderType.Camera);
         }
 
         static void Drawer_SectionRenderingSettings(SerializedFrameSettings serialized, Editor owner, bool withOverride)

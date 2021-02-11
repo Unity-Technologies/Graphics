@@ -228,13 +228,13 @@ namespace UnityEditor.Rendering.HighDefinition
 
         internal static void DrawDecalLayerMask_Internal(Rect rect, GUIContent label, SerializedProperty property)
         {
-            if (HDDefaultSettings.instance == null)
+            if (HDGlobalSettings.instance == null)
                 return;
 
             EditorGUI.BeginProperty(rect, label, property);
 
             EditorGUI.BeginChangeCheck();
-            int changedValue = EditorGUI.MaskField(rect, label ?? GUIContent.none, property.intValue, HDDefaultSettings.instance.decalLayerNames);
+            int changedValue = EditorGUI.MaskField(rect, label ?? GUIContent.none, property.intValue, HDGlobalSettings.instance.decalLayerNames);
             if (EditorGUI.EndChangeCheck())
                 property.intValue = changedValue;
 
@@ -247,11 +247,11 @@ namespace UnityEditor.Rendering.HighDefinition
         internal static int DrawLightLayerMask(Rect rect, int value, GUIContent label = null)
         {
             int lightLayer = HDAdditionalLightData.RenderingLayerMaskToLightLayer(value);
-            if (HDDefaultSettings.instance == null)
+            if (HDGlobalSettings.instance == null)
                 return lightLayer;
 
             EditorGUI.BeginChangeCheck();
-            lightLayer = EditorGUI.MaskField(rect, label ?? GUIContent.none, lightLayer, HDDefaultSettings.instance.lightLayerNames);
+            lightLayer = EditorGUI.MaskField(rect, label ?? GUIContent.none, lightLayer, HDGlobalSettings.instance.lightLayerNames);
             if (EditorGUI.EndChangeCheck())
                 lightLayer = HDAdditionalLightData.LightLayerToRenderingLayerMask(lightLayer, value);
             return lightLayer;

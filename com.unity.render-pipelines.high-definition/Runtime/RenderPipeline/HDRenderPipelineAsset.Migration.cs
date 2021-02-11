@@ -1,7 +1,7 @@
 using System;
-using UnityEngine.Serialization;
-using UnityEditor;
 using System.Collections.Generic; //needed for list of Custom Post Processes injections
+using UnityEditor;
+using UnityEngine.Serialization;
 
 namespace UnityEngine.Rendering.HighDefinition
 {
@@ -27,7 +27,7 @@ namespace UnityEngine.Rendering.HighDefinition
             RemoveCookieCubeAtlasToOctahedral2D,
             RoughDistortion,
             VirtualTexturing,
-            DefaultSettingsAsAnAsset
+            AddedHDGlobalSettings
         }
 
         static readonly MigrationDescription<Version, HDRenderPipelineAsset> k_Migration = MigrationDescription.New(
@@ -157,7 +157,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 FrameSettings.MigrateVirtualTexturing(ref data.m_ObsoleteRealtimeReflectionFrameSettingsMovedToDefaultSettings);
 #pragma warning restore 618
             }) ,
-            MigrationStep.New(Version.DefaultSettingsAsAnAsset, (HDRenderPipelineAsset data) =>
+            MigrationStep.New(Version.AddedHDGlobalSettings, (HDRenderPipelineAsset data) =>
             {
 #if UNITY_EDITOR
                 // 2/ it acted as the definition of the Default Settings - now migrated to its own asset
@@ -165,9 +165,9 @@ namespace UnityEngine.Rendering.HighDefinition
                 if (data == GraphicsSettings.defaultRenderPipeline)
 #pragma warning restore 618
                 {
-                    HDDefaultSettings defaultSettings = HDDefaultSettings.MigrateFromHDRPAsset(data, true);
-                    HDDefaultSettings.UpdateGraphicsSettings(defaultSettings);
-                    EditorUtility.SetDirty(defaultSettings);
+                    HDGlobalSettings globalSettings = HDGlobalSettings.MigrateFromHDRPAsset(data, true);
+                    HDGlobalSettings.UpdateGraphicsSettings(globalSettings);
+                    EditorUtility.SetDirty(globalSettings);
                 }
 #endif
             })
@@ -190,52 +190,52 @@ namespace UnityEngine.Rendering.HighDefinition
         [FormerlySerializedAs("m_RealtimeReflectionFrameSettings"), Obsolete("For data migration")]
         ObsoleteFrameSettings m_ObsoleteRealtimeReflectionFrameSettings;
 
-        #region Settings Moved from the HDRP Asset to HDDefaultSettings
+        #region Settings Moved from the HDRP Asset to HDGlobalSettings
         [SerializeField]
-        [FormerlySerializedAs("m_DefaultVolumeProfile"), Obsolete("Moved from HDRPAsset to HDDefault Settings")]
+        [FormerlySerializedAs("m_DefaultVolumeProfile"), Obsolete("Moved from HDRPAsset to HDGlobal Settings")]
         internal VolumeProfile m_ObsoleteDefaultVolumeProfile;
         [SerializeField]
-        [FormerlySerializedAs("m_DefaultLookDevProfile"), Obsolete("Moved from HDRPAsset to HDDefault Settings")]
+        [FormerlySerializedAs("m_DefaultLookDevProfile"), Obsolete("Moved from HDRPAsset to HDGlobal Settings")]
         internal VolumeProfile m_ObsoleteDefaultLookDevProfile;
 
         [SerializeField]
-        [FormerlySerializedAs("m_RenderingPathDefaultCameraFrameSettings"), Obsolete("Moved from HDRPAsset to HDDefault Settings")]
+        [FormerlySerializedAs("m_RenderingPathDefaultCameraFrameSettings"), Obsolete("Moved from HDRPAsset to HDGlobal Settings")]
         internal FrameSettings m_ObsoleteFrameSettingsMovedToDefaultSettings;
         [SerializeField]
-        [FormerlySerializedAs("m_RenderingPathDefaultBakedOrCustomReflectionFrameSettings"), Obsolete("Moved from HDRPAsset to HDDefault Settings")]
+        [FormerlySerializedAs("m_RenderingPathDefaultBakedOrCustomReflectionFrameSettings"), Obsolete("Moved from HDRPAsset to HDGlobal Settings")]
         internal FrameSettings m_ObsoleteBakedOrCustomReflectionFrameSettingsMovedToDefaultSettings;
         [SerializeField]
-        [FormerlySerializedAs("m_RenderingPathDefaultRealtimeReflectionFrameSettings"), Obsolete("Moved from HDRPAsset to HDDefault Settings")]
+        [FormerlySerializedAs("m_RenderingPathDefaultRealtimeReflectionFrameSettings"), Obsolete("Moved from HDRPAsset to HDGlobal Settings")]
         internal FrameSettings m_ObsoleteRealtimeReflectionFrameSettingsMovedToDefaultSettings;
 
         [SerializeField]
-        [FormerlySerializedAs("m_RenderPipelineResources"), Obsolete("Moved from HDRPAsset to HDDefault Settings")]
+        [FormerlySerializedAs("m_RenderPipelineResources"), Obsolete("Moved from HDRPAsset to HDGlobal Settings")]
         internal RenderPipelineResources m_ObsoleteRenderPipelineResources;
         [SerializeField]
-        [FormerlySerializedAs("m_RenderPipelineRayTracingResources"), Obsolete("Moved from HDRPAsset to HDDefault Settings")]
+        [FormerlySerializedAs("m_RenderPipelineRayTracingResources"), Obsolete("Moved from HDRPAsset to HDGlobal Settings")]
         internal HDRenderPipelineRayTracingResources m_ObsoleteRenderPipelineRayTracingResources;
 
         [SerializeField]
-        [FormerlySerializedAs("beforeTransparentCustomPostProcesses"), Obsolete("Moved from HDRPAsset to HDDefault Settings")]
+        [FormerlySerializedAs("beforeTransparentCustomPostProcesses"), Obsolete("Moved from HDRPAsset to HDGlobal Settings")]
         internal List<string> m_ObsoleteBeforeTransparentCustomPostProcesses;
         [SerializeField]
-        [FormerlySerializedAs("beforePostProcessCustomPostProcesses"), Obsolete("Moved from HDRPAsset to HDDefault Settings")]
+        [FormerlySerializedAs("beforePostProcessCustomPostProcesses"), Obsolete("Moved from HDRPAsset to HDGlobal Settings")]
         internal List<string> m_ObsoleteBeforePostProcessCustomPostProcesses;
         [SerializeField]
-        [FormerlySerializedAs("afterPostProcessCustomPostProcesses"), Obsolete("Moved from HDRPAsset to HDDefault Settings")]
+        [FormerlySerializedAs("afterPostProcessCustomPostProcesses"), Obsolete("Moved from HDRPAsset to HDGlobal Settings")]
         internal List<string> m_ObsoleteAfterPostProcessCustomPostProcesses;
         [SerializeField]
-        [FormerlySerializedAs("beforeTAACustomPostProcesses"), Obsolete("Moved from HDRPAsset to HDDefault Settings")]
+        [FormerlySerializedAs("beforeTAACustomPostProcesses"), Obsolete("Moved from HDRPAsset to HDGlobal Settings")]
         internal List<string> m_ObsoleteBeforeTAACustomPostProcesses;
 
         [SerializeField]
-        [FormerlySerializedAs("shaderVariantLogLevel"), Obsolete("Moved from HDRPAsset to HDDefault Settings")]
+        [FormerlySerializedAs("shaderVariantLogLevel"), Obsolete("Moved from HDRPAsset to HDGlobal Settings")]
         internal ShaderVariantLogLevel m_ObsoleteShaderVariantLogLevel;
         [SerializeField]
-        [FormerlySerializedAs("m_LensAttenuation"), Obsolete("Moved from HDRPAsset to HDDefault Settings")]
+        [FormerlySerializedAs("m_LensAttenuation"), Obsolete("Moved from HDRPAsset to HDGlobal Settings")]
         internal LensAttenuationMode m_ObsoleteLensAttenuation;
         [SerializeField]
-        [FormerlySerializedAs("diffusionProfileSettingsList"), Obsolete("Moved from HDRPAsset to HDDefault Settings")]
+        [FormerlySerializedAs("diffusionProfileSettingsList"), Obsolete("Moved from HDRPAsset to HDGlobal Settings")]
         internal DiffusionProfileSettings[] m_ObsoleteDiffusionProfileSettingsList;
         #endregion
 

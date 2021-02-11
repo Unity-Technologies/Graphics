@@ -21,28 +21,28 @@ namespace UnityEngine.Rendering.HighDefinition
     }
 
     /// <summary>
-    /// High Definition Render Pipeline Default Settings.
-    /// Default settings are unique per Render Pipeline type. In HD, Default Settings contain:
+    /// High Definition Render Pipeline's Global Settings.
+    /// Global settings are unique per Render Pipeline type. In HD, Global Settings contain:
     /// - a default Volume (Global) combined with its Default Profile (defines which components are active by default)
-    /// - this Volume's profile
+    /// - the default Volume's profile
     /// - the LookDev Volume Profile
-    /// - Frame Settings
-    /// - Various resources for runtime, editor-only, and raytracing
+    /// - Frame Settings applied by default to Camera, ReflectionProbe
+    /// - Various resources (such as Shaders) for runtime, editor-only, and raytracing
     /// </summary>
-    public partial class HDDefaultSettings : RenderPipelineGlobalSettings
+    public partial class HDGlobalSettings : RenderPipelineGlobalSettings
     {
-        private static HDDefaultSettings cachedInstance = null;
-        public static HDDefaultSettings instance
+        private static HDGlobalSettings cachedInstance = null;
+        public static HDGlobalSettings instance
         {
             get
             {
                 if (cachedInstance == null)
-                    cachedInstance = GraphicsSettings.GetSettingsForRenderPipeline<HDRenderPipeline>() as HDDefaultSettings;
+                    cachedInstance = GraphicsSettings.GetSettingsForRenderPipeline<HDRenderPipeline>() as HDGlobalSettings;
                 return cachedInstance;
             }
         }
 
-        static public void UpdateGraphicsSettings(HDDefaultSettings newSettings)
+        static public void UpdateGraphicsSettings(HDGlobalSettings newSettings)
         {
             if (newSettings == null || newSettings == cachedInstance)
                 return;
@@ -51,39 +51,39 @@ namespace UnityEngine.Rendering.HighDefinition
         }
 
 #if UNITY_EDITOR
-        //Making sure there is at least one HDDefaultSettings instance in the project
-        static public HDDefaultSettings Ensure()
+        //Making sure there is at least one HDGlobalSettings instance in the project
+        static public HDGlobalSettings Ensure()
         {
-            if (HDDefaultSettings.instance)
-                return HDDefaultSettings.instance;
+            if (HDGlobalSettings.instance)
+                return HDGlobalSettings.instance;
 
-            HDDefaultSettings assetCreated = null;
-            string path = "Assets/HDRPDefaultResources/HDGraphicsSettings.asset";
-            assetCreated = AssetDatabase.LoadAssetAtPath<HDDefaultSettings>(path);
+            HDGlobalSettings assetCreated = null;
+            string path = "Assets/HDRPDefaultResources/HDGlobalSettings.asset";
+            assetCreated = AssetDatabase.LoadAssetAtPath<HDGlobalSettings>(path);
             if (assetCreated == null)
             {
-                var guidHDDefaultAssets = AssetDatabase.FindAssets("t:HDDefaultSettings");
+                var guidHDGlobalAssets = AssetDatabase.FindAssets("t:HDGlobalSettings");
                 //If we could not find the asset at the default path, find the first one
-                if (guidHDDefaultAssets.Length > 0)
+                if (guidHDGlobalAssets.Length > 0)
                 {
-                    var curGUID = guidHDDefaultAssets[0];
+                    var curGUID = guidHDGlobalAssets[0];
                     path = AssetDatabase.GUIDToAssetPath(curGUID);
-                    assetCreated = AssetDatabase.LoadAssetAtPath<HDDefaultSettings>(path);
+                    assetCreated = AssetDatabase.LoadAssetAtPath<HDGlobalSettings>(path);
                 }
                 else // or create one altogether
                 {
                     if (!AssetDatabase.IsValidFolder("Assets/HDRPDefaultResources/"))
                         AssetDatabase.CreateFolder("Assets", "HDRPDefaultResources");
-                    assetCreated = ScriptableObject.CreateInstance<HDDefaultSettings>();
+                    assetCreated = ScriptableObject.CreateInstance<HDGlobalSettings>();
                     AssetDatabase.CreateAsset(assetCreated, path);
                     assetCreated.Init();
                     AssetDatabase.SaveAssets();
                     AssetDatabase.Refresh();
                 }
             }
-            Debug.Assert(assetCreated, "Could not create HD Default Settings - HDRP may not work correctly - Open the Graphics Window for additional help.");
+            Debug.Assert(assetCreated, "Could not create HD Global Settings - HDRP may not work correctly - Open the Graphics Window for additional help.");
             UpdateGraphicsSettings(assetCreated);
-            return HDDefaultSettings.instance;
+            return HDGlobalSettings.instance;
         }
 
 #endif
@@ -124,23 +124,23 @@ namespace UnityEngine.Rendering.HighDefinition
         }
 
         #if UNITY_EDITOR
-        internal static HDDefaultSettings MigrateFromHDRPAsset(HDRenderPipelineAsset oldAsset, bool bClearObsoleteFields = true)
+        internal static HDGlobalSettings MigrateFromHDRPAsset(HDRenderPipelineAsset oldAsset, bool bClearObsoleteFields = true)
         {
-            string path = "Assets/HDRPDefaultResources/HDGraphicsSettings.asset";
+            string path = "Assets/HDRPDefaultResources/HDGlobalSettings.asset";
             return MigrateFromHDRPAsset(oldAsset, path, bClearObsoleteFields);
         }
 
-        internal static HDDefaultSettings MigrateFromHDRPAsset(HDRenderPipelineAsset oldAsset, string path, bool bClearObsoleteFields = true)
+        internal static HDGlobalSettings MigrateFromHDRPAsset(HDRenderPipelineAsset oldAsset, string path, bool bClearObsoleteFields = true)
         {
-            HDDefaultSettings assetCreated = null;
+            HDGlobalSettings assetCreated = null;
 
             // 1. Load or Create the HDAsset and save it on disk
-            assetCreated = AssetDatabase.LoadAssetAtPath<HDDefaultSettings>(path);
+            assetCreated = AssetDatabase.LoadAssetAtPath<HDGlobalSettings>(path);
             if (assetCreated == null)
             {
                 if (!AssetDatabase.IsValidFolder("Assets/HDRPDefaultResources/"))
                     AssetDatabase.CreateFolder("Assets", "HDRPDefaultResources");
-                assetCreated = ScriptableObject.CreateInstance<HDDefaultSettings>();
+                assetCreated = ScriptableObject.CreateInstance<HDGlobalSettings>();
                 AssetDatabase.CreateAsset(assetCreated, path);
                 assetCreated.Init();
                 AssetDatabase.SaveAssets();
@@ -209,15 +209,15 @@ namespace UnityEngine.Rendering.HighDefinition
             return assetCreated;
         }
 
-        internal static HDDefaultSettings Create(string path, HDDefaultSettings src = null)
+        internal static HDGlobalSettings Create(string path, HDGlobalSettings src = null)
         {
-            HDDefaultSettings assetCreated = null;
+            HDGlobalSettings assetCreated = null;
 
             // make sure the asset does not already exists
-            assetCreated = AssetDatabase.LoadAssetAtPath<HDDefaultSettings>(path);
+            assetCreated = AssetDatabase.LoadAssetAtPath<HDGlobalSettings>(path);
             if (assetCreated == null)
             {
-                assetCreated = ScriptableObject.CreateInstance<HDDefaultSettings>();
+                assetCreated = ScriptableObject.CreateInstance<HDGlobalSettings>();
                 AssetDatabase.CreateAsset(assetCreated, path);
                 assetCreated.Init();
                 if (assetCreated != null)

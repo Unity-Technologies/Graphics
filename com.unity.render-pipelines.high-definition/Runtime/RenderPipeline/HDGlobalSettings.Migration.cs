@@ -3,11 +3,11 @@ using UnityEngine.Serialization;
 
 namespace UnityEngine.Rendering.HighDefinition
 {
-    public partial class HDDefaultSettings : IVersionable<HDDefaultSettings.Version>
+    public partial class HDGlobalSettings : IVersionable<HDGlobalSettings.Version>
     {
         enum Version
         {
-            First
+            First,
         }
 
         [SerializeField]

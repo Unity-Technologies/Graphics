@@ -186,18 +186,18 @@ namespace UnityEngine.Rendering.HighDefinition.Compositor
                     m_AlphaSupport = AlphaChannelSupport.Rendering;
                 }
 
-                int indx = HDDefaultSettings.instance.beforePostProcessCustomPostProcesses.FindIndex(x => x == typeof(ChromaKeying).AssemblyQualifiedName);
+                int indx = HDGlobalSettings.instance.beforePostProcessCustomPostProcesses.FindIndex(x => x == typeof(ChromaKeying).AssemblyQualifiedName);
                 if (indx < 0)
                 {
                     //Debug.Log("Registering chroma keying pass for the HDRP pipeline");
-                    HDDefaultSettings.instance.beforePostProcessCustomPostProcesses.Add(typeof(ChromaKeying).AssemblyQualifiedName);
+                    HDGlobalSettings.instance.beforePostProcessCustomPostProcesses.Add(typeof(ChromaKeying).AssemblyQualifiedName);
                 }
 
-                indx = HDDefaultSettings.instance.beforePostProcessCustomPostProcesses.FindIndex(x => x == typeof(AlphaInjection).AssemblyQualifiedName);
+                indx = HDGlobalSettings.instance.beforePostProcessCustomPostProcesses.FindIndex(x => x == typeof(AlphaInjection).AssemblyQualifiedName);
                 if (indx < 0)
                 {
                     //Debug.Log("Registering alpha injection pass for the HDRP pipeline");
-                    HDDefaultSettings.instance.beforePostProcessCustomPostProcesses.Add(typeof(AlphaInjection).AssemblyQualifiedName);
+                    HDGlobalSettings.instance.beforePostProcessCustomPostProcesses.Add(typeof(AlphaInjection).AssemblyQualifiedName);
                 }
                 return true;
             }

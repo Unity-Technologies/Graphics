@@ -3,22 +3,22 @@ using UnityEngine;
 
 namespace UnityEditor.Rendering.HighDefinition
 {
-    [CustomEditor(typeof(HDDefaultSettings))]
+    [CustomEditor(typeof(HDGlobalSettings))]
     [CanEditMultipleObjects]
-    sealed class HDDefaultSettingsEditor : Editor
+    sealed class HDGlobalSettingsEditor : Editor
     {
-        SerializedHDDefaultSettings m_SerializedHDDefaultSettings;
+        SerializedHDGlobalSettings m_SerializedHDGlobalSettings;
 
         internal bool largeLabelWidth = true;
 
         void OnEnable()
         {
-            m_SerializedHDDefaultSettings = new SerializedHDDefaultSettings(serializedObject);
+            m_SerializedHDGlobalSettings = new SerializedHDGlobalSettings(serializedObject);
         }
 
         public override void OnInspectorGUI()
         {
-            var serialized = m_SerializedHDDefaultSettings;
+            var serialized = m_SerializedHDGlobalSettings;
 
             serialized.serializedObject.Update();
 

@@ -306,7 +306,7 @@ namespace UnityEngine.Rendering.HighDefinition
             if (m_Material == null)
             {
 #if UNITY_EDITOR
-                m_Material = HDDefaultSettings.instance != null ? HDDefaultSettings.instance.GetDefaultDecalMaterial() : null;
+                m_Material = HDGlobalSettings.instance != null ? HDGlobalSettings.instance.GetDefaultDecalMaterial() : null;
 #else
                 m_Material = null;
 #endif

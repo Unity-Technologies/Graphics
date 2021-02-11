@@ -393,24 +393,24 @@ namespace UnityEditor.Rendering.HighDefinition
 
         bool IsHdrpAssetRuntimeResourcesCorrect()
             => IsHdrpAssetUsedCorrect()
-            && HDDefaultSettings.instance.AreResourcesCreated();
+            && HDGlobalSettings.instance.AreResourcesCreated();
         void FixHdrpAssetRuntimeResources(bool fromAsyncUnused)
         {
             if (!IsHdrpAssetUsedCorrect())
                 FixHdrpAssetUsed(fromAsync: false);
 
-            HDDefaultSettings.instance.EnsureResources(forceReload: true);
+            HDGlobalSettings.instance.EnsureResources(forceReload: true);
         }
 
         bool IsHdrpAssetEditorResourcesCorrect()
             => IsHdrpAssetUsedCorrect()
-            && HDDefaultSettings.instance.AreEditorResourcesCreated();
+            && HDGlobalSettings.instance.AreEditorResourcesCreated();
         void FixHdrpAssetEditorResources(bool fromAsyncUnused)
         {
             if (!IsHdrpAssetUsedCorrect())
                 FixHdrpAssetUsed(fromAsync: false);
 
-            HDDefaultSettings.instance.EnsureEditorResources(forceReload: true);
+            HDGlobalSettings.instance.EnsureEditorResources(forceReload: true);
         }
 
         bool IsSRPBatcherCorrect()
@@ -463,7 +463,7 @@ namespace UnityEditor.Rendering.HighDefinition
             if (!IsHdrpAssetUsedCorrect())
                 return false;
 
-            return HDDefaultSettings.instance.IsVolumeProfileFromResources();
+            return HDGlobalSettings.instance.IsVolumeProfileFromResources();
         }
 
         void FixDefaultVolumeProfileAssigned(bool fromAsyncUnused)
@@ -475,7 +475,7 @@ namespace UnityEditor.Rendering.HighDefinition
             if (hdrpAsset == null)
                 return;
 
-            VolumeProfile defaultSettingsVolumeProfileInPackage = HDDefaultSettings.instance.renderPipelineEditorResources.defaultSettingsVolumeProfile;
+            VolumeProfile defaultSettingsVolumeProfileInPackage = HDGlobalSettings.instance.renderPipelineEditorResources.defaultSettingsVolumeProfile;
             string defaultSettingsVolumeProfilePath = "Assets/" + HDProjectSettings.projectSettingsFolderPath + '/' + defaultSettingsVolumeProfileInPackage.name + ".asset";
 
             //try load one if one already exist
@@ -486,7 +486,7 @@ namespace UnityEditor.Rendering.HighDefinition
                 AssetDatabase.CopyAsset(AssetDatabase.GetAssetPath(defaultSettingsVolumeProfileInPackage), defaultSettingsVolumeProfilePath);
                 defaultSettingsVolumeProfile = AssetDatabase.LoadAssetAtPath<VolumeProfile>(defaultSettingsVolumeProfilePath);
             }
-            HDDefaultSettings.instance.volumeProfile = defaultSettingsVolumeProfile;
+            HDGlobalSettings.instance.volumeProfile = defaultSettingsVolumeProfile;
 
             EditorUtility.SetDirty(hdrpAsset);
         }
@@ -616,14 +616,14 @@ namespace UnityEditor.Rendering.HighDefinition
         }
 
         bool IsDXRAssetCorrect()
-            => HDDefaultSettings.instance.AreRayTracingResourcesCreated()
+            => HDGlobalSettings.instance.AreRayTracingResourcesCreated()
             && SystemInfo.supportsRayTracing;
         void FixDXRAsset(bool fromAsyncUnused)
         {
             if (!IsHdrpAssetUsedCorrect())
                 FixHdrpAssetUsed(fromAsync: false);
 
-            HDDefaultSettings.instance.EnsureRayTracingResources(forceReload: true);
+            HDGlobalSettings.instance.EnsureRayTracingResources(forceReload: true);
 
             // IMPORTANT: We display the error only if we are D3D12 as the supportsRayTracing always return false in any other device even if OS/HW supports DXR.
             // The D3D12 is a separate check in the wizard, so it is fine not to display an error in case we are not D3D12.

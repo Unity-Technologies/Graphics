@@ -8,7 +8,7 @@ using System; //Type
 
 namespace UnityEditor.Rendering.HighDefinition
 {
-    class SerializedHDDefaultSettings
+    class SerializedHDGlobalSettings
     {
         public SerializedObject serializedObject;
 
@@ -52,7 +52,7 @@ namespace UnityEditor.Rendering.HighDefinition
                 var initialValue = firstEditorResources;
                 for (int index = 1; index < serializedObject.targetObjects.Length; ++index)
                 {
-                    if (initialValue != (serializedObject.targetObjects[index] as HDDefaultSettings)?.renderPipelineEditorResources)
+                    if (initialValue != (serializedObject.targetObjects[index] as HDGlobalSettings)?.renderPipelineEditorResources)
                         return true;
                 }
                 return false;
@@ -60,9 +60,9 @@ namespace UnityEditor.Rendering.HighDefinition
         }
 
         public HDRenderPipelineEditorResources firstEditorResources
-            => (serializedObject.targetObjects[0] as HDDefaultSettings)?.renderPipelineEditorResources;
+            => (serializedObject.targetObjects[0] as HDGlobalSettings)?.renderPipelineEditorResources;
 
-        public SerializedHDDefaultSettings(SerializedObject serializedObject)
+        public SerializedHDGlobalSettings(SerializedObject serializedObject)
         {
             this.serializedObject = serializedObject;
 
@@ -78,28 +78,28 @@ namespace UnityEditor.Rendering.HighDefinition
             volumeProfileDefault  = serializedObject.FindProperty("m_VolumeProfileDefault");
             volumeProfileLookDev  = serializedObject.FindProperty("m_VolumeProfileLookDev");
 
-            lightLayerName0 = serializedObject.Find((HDDefaultSettings s) => s.lightLayerName0);
-            lightLayerName1 = serializedObject.Find((HDDefaultSettings s) => s.lightLayerName1);
-            lightLayerName2 = serializedObject.Find((HDDefaultSettings s) => s.lightLayerName2);
-            lightLayerName3 = serializedObject.Find((HDDefaultSettings s) => s.lightLayerName3);
-            lightLayerName4 = serializedObject.Find((HDDefaultSettings s) => s.lightLayerName4);
-            lightLayerName5 = serializedObject.Find((HDDefaultSettings s) => s.lightLayerName5);
-            lightLayerName6 = serializedObject.Find((HDDefaultSettings s) => s.lightLayerName6);
-            lightLayerName7 = serializedObject.Find((HDDefaultSettings s) => s.lightLayerName7);
+            lightLayerName0 = serializedObject.Find((HDGlobalSettings s) => s.lightLayerName0);
+            lightLayerName1 = serializedObject.Find((HDGlobalSettings s) => s.lightLayerName1);
+            lightLayerName2 = serializedObject.Find((HDGlobalSettings s) => s.lightLayerName2);
+            lightLayerName3 = serializedObject.Find((HDGlobalSettings s) => s.lightLayerName3);
+            lightLayerName4 = serializedObject.Find((HDGlobalSettings s) => s.lightLayerName4);
+            lightLayerName5 = serializedObject.Find((HDGlobalSettings s) => s.lightLayerName5);
+            lightLayerName6 = serializedObject.Find((HDGlobalSettings s) => s.lightLayerName6);
+            lightLayerName7 = serializedObject.Find((HDGlobalSettings s) => s.lightLayerName7);
 
-            decalLayerName0 = serializedObject.Find((HDDefaultSettings s) => s.decalLayerName0);
-            decalLayerName1 = serializedObject.Find((HDDefaultSettings s) => s.decalLayerName1);
-            decalLayerName2 = serializedObject.Find((HDDefaultSettings s) => s.decalLayerName2);
-            decalLayerName3 = serializedObject.Find((HDDefaultSettings s) => s.decalLayerName3);
-            decalLayerName4 = serializedObject.Find((HDDefaultSettings s) => s.decalLayerName4);
-            decalLayerName5 = serializedObject.Find((HDDefaultSettings s) => s.decalLayerName5);
-            decalLayerName6 = serializedObject.Find((HDDefaultSettings s) => s.decalLayerName6);
-            decalLayerName7 = serializedObject.Find((HDDefaultSettings s) => s.decalLayerName7);
+            decalLayerName0 = serializedObject.Find((HDGlobalSettings s) => s.decalLayerName0);
+            decalLayerName1 = serializedObject.Find((HDGlobalSettings s) => s.decalLayerName1);
+            decalLayerName2 = serializedObject.Find((HDGlobalSettings s) => s.decalLayerName2);
+            decalLayerName3 = serializedObject.Find((HDGlobalSettings s) => s.decalLayerName3);
+            decalLayerName4 = serializedObject.Find((HDGlobalSettings s) => s.decalLayerName4);
+            decalLayerName5 = serializedObject.Find((HDGlobalSettings s) => s.decalLayerName5);
+            decalLayerName6 = serializedObject.Find((HDGlobalSettings s) => s.decalLayerName6);
+            decalLayerName7 = serializedObject.Find((HDGlobalSettings s) => s.decalLayerName7);
 
-            shaderVariantLogLevel = serializedObject.Find((HDDefaultSettings s) => s.shaderVariantLogLevel);
+            shaderVariantLogLevel = serializedObject.Find((HDGlobalSettings s) => s.shaderVariantLogLevel);
 
             lensAttenuation = serializedObject.FindProperty("m_LensAttenuation");
-            diffusionProfileSettingsList = serializedObject.Find((HDDefaultSettings s) => s.diffusionProfileSettingsList);
+            diffusionProfileSettingsList = serializedObject.Find((HDGlobalSettings s) => s.diffusionProfileSettingsList);
         }
 
         internal ReorderableList uiBeforeTransparentCustomPostProcesses;
@@ -124,11 +124,11 @@ namespace UnityEditor.Rendering.HighDefinition
                 ppVolumeTypeInjectionPoints[ppVolumeType] = comp.injectionPoint;
                 CoreUtils.Destroy(comp);
             }
-            var defaultSettings = serializedObject.targetObject as HDDefaultSettings;
-            InitList(ref uiBeforeTransparentCustomPostProcesses, defaultSettings.beforeTransparentCustomPostProcesses, "After Opaque And Sky", CustomPostProcessInjectionPoint.AfterOpaqueAndSky);
-            InitList(ref uiBeforePostProcessCustomPostProcesses, defaultSettings.beforePostProcessCustomPostProcesses, "Before Post Process", CustomPostProcessInjectionPoint.BeforePostProcess);
-            InitList(ref uiAfterPostProcessCustomPostProcesses, defaultSettings.afterPostProcessCustomPostProcesses, "After Post Process", CustomPostProcessInjectionPoint.AfterPostProcess);
-            InitList(ref uiBeforeTAACustomPostProcesses, defaultSettings.beforeTAACustomPostProcesses, "Before TAA", CustomPostProcessInjectionPoint.BeforeTAA);
+            var globalSettings = serializedObject.targetObject as HDGlobalSettings;
+            InitList(ref uiBeforeTransparentCustomPostProcesses, globalSettings.beforeTransparentCustomPostProcesses, "After Opaque And Sky", CustomPostProcessInjectionPoint.AfterOpaqueAndSky);
+            InitList(ref uiBeforePostProcessCustomPostProcesses, globalSettings.beforePostProcessCustomPostProcesses, "Before Post Process", CustomPostProcessInjectionPoint.BeforePostProcess);
+            InitList(ref uiAfterPostProcessCustomPostProcesses, globalSettings.afterPostProcessCustomPostProcesses, "After Post Process", CustomPostProcessInjectionPoint.AfterPostProcess);
+            InitList(ref uiBeforeTAACustomPostProcesses, globalSettings.beforeTAACustomPostProcesses, "Before TAA", CustomPostProcessInjectionPoint.BeforeTAA);
 
             void InitList(ref ReorderableList reorderableList, List<string> customPostProcessTypes, string headerName, CustomPostProcessInjectionPoint injectionPoint)
             {

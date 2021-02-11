@@ -298,7 +298,7 @@ namespace UnityEditor.Rendering.HighDefinition
                 return;
 
             var exportLog = ShaderBuildPreprocessor.hdrpAssets.Count > 0
-                && (HDDefaultSettings.instance.shaderVariantLogLevel != ShaderVariantLogLevel.Disabled);
+                && (HDGlobalSettings.instance.shaderVariantLogLevel != ShaderVariantLogLevel.Disabled);
 
             Stopwatch shaderStripingWatch = new Stopwatch();
             shaderStripingWatch.Start();
@@ -343,13 +343,13 @@ namespace UnityEditor.Rendering.HighDefinition
                         inputData.RemoveAt(i);
                 }
 
-                if (HDDefaultSettings.instance.shaderVariantLogLevel != ShaderVariantLogLevel.Disabled)
+                if (HDGlobalSettings.instance.shaderVariantLogLevel != ShaderVariantLogLevel.Disabled)
                 {
                     foreach (var hdAsset in hdPipelineAssets)
                     {
                         m_TotalVariantsInputCount += preStrippingCount;
                         m_TotalVariantsOutputCount += (uint)inputData.Count;
-                        LogShaderVariants(shader, kernelName, HDDefaultSettings.instance.shaderVariantLogLevel, preStrippingCount, (uint)inputData.Count);
+                        LogShaderVariants(shader, kernelName, HDGlobalSettings.instance.shaderVariantLogLevel, preStrippingCount, (uint)inputData.Count);
                     }
                 }
             }
@@ -453,7 +453,7 @@ namespace UnityEditor.Rendering.HighDefinition
                 return;
 
             var exportLog = ShaderBuildPreprocessor.hdrpAssets.Count > 0
-                && (HDDefaultSettings.instance.shaderVariantLogLevel != ShaderVariantLogLevel.Disabled);
+                && (HDGlobalSettings.instance.shaderVariantLogLevel != ShaderVariantLogLevel.Disabled);
 
             Stopwatch shaderStripingWatch = new Stopwatch();
             shaderStripingWatch.Start();
@@ -514,13 +514,13 @@ namespace UnityEditor.Rendering.HighDefinition
                     for (int i = inputData.Count - 1; i >= inputShaderVariantCount; --i)
                         inputData.RemoveAt(i);
 
-                if (HDDefaultSettings.instance.shaderVariantLogLevel != ShaderVariantLogLevel.Disabled)
+                if (HDGlobalSettings.instance.shaderVariantLogLevel != ShaderVariantLogLevel.Disabled)
                 {
                     foreach (var hdAsset in hdPipelineAssets)
                     {
                         m_TotalVariantsInputCount += preStrippingCount;
                         m_TotalVariantsOutputCount += (uint)inputData.Count;
-                        LogShaderVariants(shader, snippet, HDDefaultSettings.instance.shaderVariantLogLevel, preStrippingCount, (uint)inputData.Count);
+                        LogShaderVariants(shader, snippet, HDGlobalSettings.instance.shaderVariantLogLevel, preStrippingCount, (uint)inputData.Count);
                     }
                 }
             }

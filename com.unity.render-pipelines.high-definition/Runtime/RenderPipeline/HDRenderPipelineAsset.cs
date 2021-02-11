@@ -36,7 +36,7 @@ namespace UnityEngine.Rendering.HighDefinition
         {
             isInOnValidateCall = true;
 #if UNITY_EDITOR
-            HDDefaultSettings.Ensure();
+            HDGlobalSettings.Ensure();
 #endif
             //Do not reconstruct the pipeline if we modify other assets.
             //OnValidate is called once at first selection of the asset.
@@ -48,11 +48,11 @@ namespace UnityEngine.Rendering.HighDefinition
             isInOnValidateCall = false;
         }
 
-        public HDDefaultSettings defaultSettings => HDDefaultSettings.instance;
+        public HDGlobalSettings defaultSettings => HDGlobalSettings.instance;
 
         internal RenderPipelineResources renderPipelineResources
         {
-            get { return defaultSettings.renderPipelineResources; }
+            get { return HDGlobalSettings.Ensure().renderPipelineResources; }
             set { defaultSettings.renderPipelineResources = value; }
         }
 
@@ -108,23 +108,23 @@ namespace UnityEngine.Rendering.HighDefinition
         {
             m_RenderingLayerNames = new string[32];
 
-            m_RenderingLayerNames[0] = HDDefaultSettings.instance.lightLayerName0;
-            m_RenderingLayerNames[1] = HDDefaultSettings.instance.lightLayerName1;
-            m_RenderingLayerNames[2] = HDDefaultSettings.instance.lightLayerName2;
-            m_RenderingLayerNames[3] = HDDefaultSettings.instance.lightLayerName3;
-            m_RenderingLayerNames[4] = HDDefaultSettings.instance.lightLayerName4;
-            m_RenderingLayerNames[5] = HDDefaultSettings.instance.lightLayerName5;
-            m_RenderingLayerNames[6] = HDDefaultSettings.instance.lightLayerName6;
-            m_RenderingLayerNames[7] = HDDefaultSettings.instance.lightLayerName7;
+            m_RenderingLayerNames[0] = HDGlobalSettings.instance.lightLayerName0;
+            m_RenderingLayerNames[1] = HDGlobalSettings.instance.lightLayerName1;
+            m_RenderingLayerNames[2] = HDGlobalSettings.instance.lightLayerName2;
+            m_RenderingLayerNames[3] = HDGlobalSettings.instance.lightLayerName3;
+            m_RenderingLayerNames[4] = HDGlobalSettings.instance.lightLayerName4;
+            m_RenderingLayerNames[5] = HDGlobalSettings.instance.lightLayerName5;
+            m_RenderingLayerNames[6] = HDGlobalSettings.instance.lightLayerName6;
+            m_RenderingLayerNames[7] = HDGlobalSettings.instance.lightLayerName7;
 
-            m_RenderingLayerNames[8]  = HDDefaultSettings.instance.decalLayerName0;
-            m_RenderingLayerNames[9]  = HDDefaultSettings.instance.decalLayerName1;
-            m_RenderingLayerNames[10] = HDDefaultSettings.instance.decalLayerName2;
-            m_RenderingLayerNames[11] = HDDefaultSettings.instance.decalLayerName3;
-            m_RenderingLayerNames[12] = HDDefaultSettings.instance.decalLayerName4;
-            m_RenderingLayerNames[13] = HDDefaultSettings.instance.decalLayerName5;
-            m_RenderingLayerNames[14] = HDDefaultSettings.instance.decalLayerName6;
-            m_RenderingLayerNames[15] = HDDefaultSettings.instance.decalLayerName7;
+            m_RenderingLayerNames[8]  = HDGlobalSettings.instance.decalLayerName0;
+            m_RenderingLayerNames[9]  = HDGlobalSettings.instance.decalLayerName1;
+            m_RenderingLayerNames[10] = HDGlobalSettings.instance.decalLayerName2;
+            m_RenderingLayerNames[11] = HDGlobalSettings.instance.decalLayerName3;
+            m_RenderingLayerNames[12] = HDGlobalSettings.instance.decalLayerName4;
+            m_RenderingLayerNames[13] = HDGlobalSettings.instance.decalLayerName5;
+            m_RenderingLayerNames[14] = HDGlobalSettings.instance.decalLayerName6;
+            m_RenderingLayerNames[15] = HDGlobalSettings.instance.decalLayerName7;
 
             // Unused
             for (int i = 16; i < m_RenderingLayerNames.Length; ++i)
@@ -157,12 +157,12 @@ namespace UnityEngine.Rendering.HighDefinition
         /// <summary>
         /// Names used for display of light layers.
         /// </summary>
-        public string[] lightLayerNames => HDDefaultSettings.instance.lightLayerNames;
+        public string[] lightLayerNames => HDGlobalSettings.instance.lightLayerNames;
 
         /// <summary>
         /// Names used for display of decal layers.
         /// </summary>
-        public string[] decalLayerNames => HDDefaultSettings.instance.decalLayerNames;
+        public string[] decalLayerNames => HDGlobalSettings.instance.decalLayerNames;
 
         /// <summary>HDRP default shader.</summary>
         public override Shader defaultShader

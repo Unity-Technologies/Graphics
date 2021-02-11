@@ -23,12 +23,12 @@ namespace UnityEngine.Rendering.HighDefinition
     /// </summary>
     public partial class HDRenderPipeline : RenderPipeline
     {
-        #region Default Settings
-        internal static HDDefaultSettings defaultAsset
-            => HDDefaultSettings.instance;
+        #region Global Settings
+        internal static HDGlobalSettings defaultAsset
+            => HDGlobalSettings.instance;
 
-        private HDDefaultSettings m_defaultSettings;
-        public override RenderPipelineGlobalSettings defaultSettings => m_defaultSettings;
+        private HDGlobalSettings m_globalSettings;
+        public override RenderPipelineGlobalSettings defaultSettings => m_globalSettings;
 
         internal static HDRenderPipelineAsset currentAsset
             => GraphicsSettings.currentRenderPipeline is HDRenderPipelineAsset hdrpAsset ? hdrpAsset : null;
@@ -48,7 +48,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
         readonly HDRenderPipelineAsset m_Asset;
         internal HDRenderPipelineAsset asset { get { return m_Asset; } }
-        internal RenderPipelineResources defaultResources { get { return m_defaultSettings.renderPipelineResources; } }
+        internal RenderPipelineResources defaultResources { get { return HDGlobalSettings.instance.renderPipelineResources; } }
 
         internal RenderPipelineSettings currentPlatformRenderPipelineSettings { get { return m_Asset.currentPlatformRenderPipelineSettings; } }
 
@@ -295,9 +295,9 @@ namespace UnityEngine.Rendering.HighDefinition
         public HDRenderPipeline(HDRenderPipelineAsset asset)
         {
 #if UNITY_EDITOR
-            m_defaultSettings = HDDefaultSettings.Ensure();
+            m_globalSettings = HDGlobalSettings.Ensure();
 #else
-            m_defaultSettings = HDDefaultSettings.instance;
+            m_globalSettings = HDGlobalSettings.instance;
 #endif
             m_Asset = asset;
             HDProbeSystem.Parameters = asset.reflectionSystemParameters;
@@ -310,8 +310,8 @@ namespace UnityEngine.Rendering.HighDefinition
 
             // Initialize lod settings with the default frame settings. This will pull LoD values from the current quality level HDRP asset if necessary.
             // This will make the LoD Group UI consistent with the scene view camera like it is for builtin pipeline.
-            QualitySettings.lodBias = m_defaultSettings.GetDefaultFrameSettings(FrameSettingsRenderType.Camera).GetResolvedLODBias(m_Asset);
-            QualitySettings.maximumLODLevel = m_defaultSettings.GetDefaultFrameSettings(FrameSettingsRenderType.Camera).GetResolvedMaximumLODLevel(m_Asset);
+            QualitySettings.lodBias = m_globalSettings.GetDefaultFrameSettings(FrameSettingsRenderType.Camera).GetResolvedLODBias(m_Asset);
+            QualitySettings.maximumLODLevel = m_globalSettings.GetDefaultFrameSettings(FrameSettingsRenderType.Camera).GetResolvedMaximumLODLevel(m_Asset);
 
             // The first thing we need to do is to set the defines that depend on the render pipeline settings
             m_RayTracingSupported = GatherRayTracingSupport(m_Asset.currentPlatformRenderPipelineSettings);
@@ -322,14 +322,14 @@ namespace UnityEngine.Rendering.HighDefinition
             //In case we are loading element in the asset pipeline (occurs when library is not fully constructed) the creation of the HDRenderPipeline is done at a time we cannot access resources.
             //So in this case, the reloader would fail and the resources cannot be validated. So skip validation here.
             //The HDRenderPipeline will be reconstructed in a few frame which will fix this issue.
-            if ((m_defaultSettings.AreResourcesCreated() == false)
-                || (m_defaultSettings.AreEditorResourcesCreated() == false)
-                || (m_RayTracingSupported && !m_defaultSettings.AreRayTracingResourcesCreated()))
+            if ((m_globalSettings.AreResourcesCreated() == false)
+                || (m_globalSettings.AreEditorResourcesCreated() == false)
+                || (m_RayTracingSupported && !m_globalSettings.AreRayTracingResourcesCreated()))
                 return;
             else
                 m_ResourcesInitialized = true;
 
-            m_defaultSettings.EnsureShadersCompiled();
+            m_globalSettings.EnsureShadersCompiled();
 #endif
 
             // We need to call this after the resource initialization as we attempt to use them in checking the supported API.
@@ -339,11 +339,11 @@ namespace UnityEngine.Rendering.HighDefinition
                 return;
             }
 
-            if (m_defaultSettings.lensAttenuationMode == LensAttenuationMode.ImperfectLens)
+            if (m_globalSettings.lensAttenuationMode == LensAttenuationMode.ImperfectLens)
             {
                 ColorUtils.s_LensAttenuation = 0.65f;
             }
-            else if (m_defaultSettings.lensAttenuationMode == LensAttenuationMode.PerfectLens)
+            else if (m_globalSettings.lensAttenuationMode == LensAttenuationMode.PerfectLens)
             {
                 ColorUtils.s_LensAttenuation = 0.78f;
             }
@@ -480,8 +480,8 @@ namespace UnityEngine.Rendering.HighDefinition
             CameraCaptureBridge.enabled = true;
 
             InitializePrepass(m_Asset);
-            m_ColorResolveMaterial = CoreUtils.CreateEngineMaterial(m_defaultSettings.renderPipelineResources.shaders.colorResolvePS);
-            m_MotionVectorResolve = CoreUtils.CreateEngineMaterial(m_defaultSettings.renderPipelineResources.shaders.resolveMotionVecPS);
+            m_ColorResolveMaterial = CoreUtils.CreateEngineMaterial(m_globalSettings.renderPipelineResources.shaders.colorResolvePS);
+            m_MotionVectorResolve = CoreUtils.CreateEngineMaterial(m_globalSettings.renderPipelineResources.shaders.resolveMotionVecPS);
 
             CustomPassUtils.Initialize();
         }
@@ -493,23 +493,23 @@ namespace UnityEngine.Rendering.HighDefinition
             m_Asset.EvaluateSettings();
 
             // Check that the serialized Resources are not broken
-            m_defaultSettings.EnsureResources(forceReload: true);
-            m_defaultSettings.EnsureEditorResources(forceReload: true);
+            m_globalSettings.EnsureResources(forceReload: true);
+            m_globalSettings.EnsureEditorResources(forceReload: true);
 
             if (m_RayTracingSupported)
             {
-                m_defaultSettings.EnsureRayTracingResources(forceReload: true);
+                m_globalSettings.EnsureRayTracingResources(forceReload: true);
             }
             else
             {
                 // If ray tracing is not enabled we do not want to have ray tracing resources referenced
-                m_defaultSettings.ClearRayTracingResources();
+                m_globalSettings.ClearRayTracingResources();
             }
         }
 
         void ValidateResources()
         {
-            HDDefaultSettings.instance.EnsureShadersCompiled();
+            HDGlobalSettings.instance.EnsureShadersCompiled();
         }
 
 #endif
@@ -1135,7 +1135,7 @@ namespace UnityEngine.Rendering.HighDefinition
 #endif
                 return;
 
-            m_defaultSettings.GetOrCreateDefaultVolume();
+            m_globalSettings.GetOrCreateDefaultVolume();
 
             // This function should be called once every render (once for all camera)
             LightLoopNewRender();
