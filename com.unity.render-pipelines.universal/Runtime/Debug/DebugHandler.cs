@@ -5,7 +5,7 @@ using UnityEngine.Rendering.Universal.Internal;
 
 namespace UnityEngine.Rendering.Universal
 {
-    public class DebugHandler
+    public class DebugHandler : IDebugDisplaySettingsQuery
     {
         private readonly Material m_FullScreenDebugMaterial;
         private readonly Texture2D m_NumberFontTexture;
@@ -39,25 +39,30 @@ namespace UnityEngine.Rendering.Universal
         private DebugDisplaySettingsRendering RenderingSettings => m_DebugDisplaySettings.renderingSettings;
         private DebugDisplaySettingsValidation ValidationSettings => m_DebugDisplaySettings.Validation;
 
-        public bool IsSceneOverrideActive => RenderingSettings.debugSceneOverrideMode != DebugSceneOverrideMode.None;
-        public bool IsVertexAttributeOverrideActive => MaterialSettings.DebugVertexAttributeIndexData != DebugVertexAttributeMode.None;
-        public bool IsLightingDebugActive => LightingSettings.DebugLightingMode != DebugLightingMode.None;
-        public bool IsLightingFeatureActive => (int)LightingSettings.DebugLightingFeatureFlagsMask != 0;
-        public bool IsMaterialOverrideActive => MaterialSettings.DebugMaterialModeData != DebugMaterialMode.None;
-        public bool AreShadowCascadesActive => LightingSettings.DebugLightingMode == DebugLightingMode.ShadowCascades;
-        public bool IsMipInfoDebugActive => RenderingSettings.mipInfoModeDebugMode != DebugMipInfoMode.None;
+        #region IDebugDisplaySettingsQuery
+        public bool AreAnySettingsActive => m_DebugDisplaySettings.AreAnySettingsActive;
+        public bool IsPostProcessingAllowed => m_DebugDisplaySettings.IsPostProcessingAllowed;
+        public bool IsDebugMaterialActive => m_DebugDisplaySettings.IsDebugMaterialActive;
+        public bool IsLightingActive => m_DebugDisplaySettings.IsLightingActive;
 
-        public bool IsReplacementMaterialNeeded => IsSceneOverrideActive || IsVertexAttributeOverrideActive;
+        public bool TryGetScreenClearColor(ref Color color)
+        {
+            return m_DebugDisplaySettings.TryGetScreenClearColor(ref color);
+        }
+        #endregion
 
-        public bool IsDebugMaterialActive
+        public DebugDisplaySettings DebugDisplaySettings => m_DebugDisplaySettings;
+
+        public bool IsReplacementMaterialNeeded => (RenderingSettings.debugSceneOverrideMode != DebugSceneOverrideMode.None) ||
+                                                   (MaterialSettings.DebugVertexAttributeIndexData != DebugVertexAttributeMode.None);
+
+        public bool IsScreenClearNeeded
         {
             get
             {
-                bool isMaterialDebugActive = IsLightingDebugActive || IsMaterialOverrideActive || IsLightingFeatureActive ||
-                                             IsVertexAttributeOverrideActive || IsMipInfoDebugActive ||
-                                             ValidationSettings.validationMode == DebugValidationMode.ValidateAlbedo;
+                Color color = Color.black;
 
-                return isMaterialDebugActive;
+                return TryGetScreenClearColor(ref color);
             }
         }
 
@@ -112,12 +117,6 @@ namespace UnityEngine.Rendering.Universal
                 replacementMaterial = default;
                 return false;
             }
-        }
-
-        public bool TryGetSceneOverride(out DebugSceneOverrideMode debugSceneOverrideMode)
-        {
-            debugSceneOverrideMode = RenderingSettings.debugSceneOverrideMode;
-            return IsSceneOverrideActive;
         }
 
         public bool TryGetFullscreenDebugMode(out DebugFullScreenMode debugFullScreenMode)

@@ -1,3 +1,4 @@
+using UnityEngine;
 using UnityEngine.Rendering;
 using UnityEngine.Rendering.Universal;
 
@@ -30,9 +31,19 @@ namespace UnityEditor.Rendering
 
         #region IDebugDisplaySettingsData
         public bool AreAnySettingsActive => (DebugLightingMode != DebugLightingMode.None) ||
-                                             (DebugLightingFeatureFlagsMask != DebugLightingFeatureFlags.None);
+                                            (DebugLightingFeatureFlagsMask != DebugLightingFeatureFlags.None);
 
         public bool IsPostProcessingAllowed => true;
+
+        public bool IsDebugMaterialActive => (DebugLightingMode != DebugLightingMode.None) ||
+                                             (DebugLightingFeatureFlagsMask != DebugLightingFeatureFlags.None);
+
+        public bool IsLightingActive => true;
+
+        public bool TryGetScreenClearColor(ref Color color)
+        {
+            return false;
+        }
 
         public IDebugDisplaySettingsPanelDisposable CreatePanel()
         {

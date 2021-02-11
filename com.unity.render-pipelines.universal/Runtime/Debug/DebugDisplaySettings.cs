@@ -1,11 +1,12 @@
 
 using System;
 using System.Collections.Generic;
+using UnityEngine;
 using UnityEngine.Rendering.Universal;
 
 namespace UnityEditor.Rendering
 {
-    public class DebugDisplaySettings
+    public class DebugDisplaySettings : IDebugDisplaySettingsQuery
     {
         private readonly HashSet<IDebugDisplaySettingsData> m_Settings = new HashSet<IDebugDisplaySettingsData>();
 
@@ -17,7 +18,31 @@ namespace UnityEditor.Rendering
         public DebugDisplaySettingsLighting Lighting { get; private set; }
         public DebugDisplaySettingsValidation Validation { get; private set; }
 
-        public bool IsPostProcessingEnabled
+        #region IDebugDisplaySettingsQuery
+        public bool AreAnySettingsActive => materialSettings.AreAnySettingsActive ||
+                                            Lighting.AreAnySettingsActive ||
+                                            renderingSettings.AreAnySettingsActive ||
+                                            Validation.AreAnySettingsActive;
+
+        public bool IsDebugMaterialActive => materialSettings.IsDebugMaterialActive ||
+                                             Lighting.IsDebugMaterialActive ||
+                                             renderingSettings.IsDebugMaterialActive ||
+                                             Validation.IsDebugMaterialActive;
+
+        public bool TryGetScreenClearColor(ref Color color)
+        {
+            return materialSettings.TryGetScreenClearColor(ref color) ||
+                   renderingSettings.TryGetScreenClearColor(ref color) ||
+                   Lighting.TryGetScreenClearColor(ref color) ||
+                   Validation.TryGetScreenClearColor(ref color);
+        }
+
+        public bool IsLightingActive => materialSettings.IsLightingActive &&
+                                        renderingSettings.IsLightingActive &&
+                                        Lighting.IsLightingActive &&
+                                        Validation.IsLightingActive;
+
+        public bool IsPostProcessingAllowed
         {
             get
             {
@@ -51,6 +76,7 @@ namespace UnityEditor.Rendering
                 } // End of switch.
             }
         }
+        #endregion
 
         private TData Add<TData>(TData newData) where TData: IDebugDisplaySettingsData
         {

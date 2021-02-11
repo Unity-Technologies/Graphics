@@ -1,4 +1,5 @@
 
+using UnityEngine;
 using UnityEngine.Rendering;
 using UnityEngine.Rendering.Universal;
 
@@ -32,6 +33,16 @@ namespace UnityEditor.Rendering
 
         public bool IsPostProcessingAllowed => (DebugMaterialModeData == DebugMaterialMode.None) &&
                                                (DebugVertexAttributeIndexData == DebugVertexAttributeMode.None);
+
+        public bool IsDebugMaterialActive => (DebugMaterialModeData != DebugMaterialMode.None) ||
+                                             (DebugVertexAttributeIndexData != DebugVertexAttributeMode.None);
+
+        public bool IsLightingActive => true;
+
+        public bool TryGetScreenClearColor(ref Color color)
+        {
+            return false;
+        }
 
         public IDebugDisplaySettingsPanelDisposable CreatePanel()
         {

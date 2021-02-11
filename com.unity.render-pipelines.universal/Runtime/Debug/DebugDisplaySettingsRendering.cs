@@ -1,4 +1,6 @@
 ﻿
+using System;
+using UnityEngine;
 using UnityEngine.Rendering;
 using UnityEngine.Rendering.Universal;
 
@@ -38,6 +40,32 @@ namespace UnityEditor.Rendering
 
         public bool IsPostProcessingAllowed => (debugPostProcessingMode != DebugPostProcessingMode.Disabled) &&
                                                (debugSceneOverrideMode == DebugSceneOverrideMode.None);
+
+        public bool IsDebugMaterialActive => (debugFullScreenMode != DebugFullScreenMode.None) ||
+                                             (debugSceneOverrideMode != DebugSceneOverrideMode.None);
+
+        public bool IsLightingActive => (debugSceneOverrideMode == DebugSceneOverrideMode.None);
+
+        public bool TryGetScreenClearColor(ref Color color)
+        {
+            switch(debugSceneOverrideMode)
+            {
+                case DebugSceneOverrideMode.None:
+                    return false;
+
+                case DebugSceneOverrideMode.Overdraw:
+                    color = Color.black;
+                    return true;
+
+                case DebugSceneOverrideMode.Wireframe:
+                case DebugSceneOverrideMode.SolidWireframe:
+                    color = new Color(0.1f, 0.1f, 0.1f, 1.0f);
+                    return true;
+
+                default:
+                    throw new ArgumentOutOfRangeException(nameof(color));
+            }       // End of switch.
+        }
 
         public IDebugDisplaySettingsPanelDisposable CreatePanel()
         {

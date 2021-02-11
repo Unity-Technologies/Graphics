@@ -407,7 +407,7 @@ namespace UnityEngine.Rendering.Universal
                                          && createDepthTexture;
             bool copyColorPass = renderingData.cameraData.requiresOpaqueTexture || renderPassInputs.requiresColorTexture;
 
-            if(DebugHandler.IsSceneOverrideActive)
+            if(!DebugHandler.IsLightingActive)
             {
                 mainLightShadows = false;
                 additionalLightShadows = false;

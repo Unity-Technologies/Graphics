@@ -1122,7 +1122,7 @@ namespace UnityEngine.Rendering.Universal
                 if (!renderingSettings.enableHDR)
                     cameraData.isHdrEnabled = false;
 
-                if (!debugDisplaySettings.IsPostProcessingEnabled)
+                if (!debugDisplaySettings.IsPostProcessingAllowed)
                     cameraData.postProcessEnabled = false;
 
                 cameraData.cameraTargetDescriptor = CreateRenderTextureDescriptor(cameraData.camera,
