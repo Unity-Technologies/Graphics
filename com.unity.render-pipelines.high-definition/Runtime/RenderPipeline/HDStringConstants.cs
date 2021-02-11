@@ -248,6 +248,7 @@ namespace UnityEngine.Rendering.HighDefinition
         public static readonly int _WorldSpaceCameraPos = Shader.PropertyToID("_WorldSpaceCameraPos");
         public static readonly int _PrevCamPosRWS = Shader.PropertyToID("_PrevCamPosRWS");
         public static readonly int _ViewMatrix = Shader.PropertyToID("_ViewMatrix");
+        public static readonly int _CameraViewMatrix = Shader.PropertyToID("_CameraViewMatrix");
         public static readonly int _InvViewMatrix = Shader.PropertyToID("_InvViewMatrix");
         public static readonly int _ProjMatrix = Shader.PropertyToID("_ProjMatrix");
         public static readonly int _InvProjMatrix = Shader.PropertyToID("_InvProjMatrix");

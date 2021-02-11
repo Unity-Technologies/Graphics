@@ -2434,6 +2434,7 @@ MonoBehaviour:
   frustumCulling: 0
   castShadows: 0
   useExposureWeight: 0
+  flipbookLayout: 0
   useTargetOffset: 1
   useNativeLines: 0
 --- !u!114 &114978967300245268

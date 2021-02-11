@@ -6,12 +6,18 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ## [12.0.0] - 2021-01-11
 
-Version Updated
-The version number for this package has increased due to a version update of a related graphics package.
+### Added
+  - Stereo Eye Index, Instance ID, and Vertex ID nodes added to the shadergraph library.
+
+### Changed
+- Change Asset/Create/Shader/Blank Shader Graph to Asset/Create/Shader Graph/Blank Shader Graph
+- Change Asset/Create/Shader/Sub Graph to Asset/Create/Shader Graph/Sub Graph
+- Change Asset/Create/Shader/VFX Shader Graph to Asset/Create/Shader Graph/VFX Shader Graph
 
 ### Fixed
 - Fixed the Custom Editor GUI field in the Graph settings that was ignored.
 - Node included HLSL files are now tracked more robustly, so they work after file moves and renames [1301915] (https://issuetracker.unity3d.com/product/unity/issues/guid/1301915/)
+- Clean up console error reporting from node shader compilation so errors are reported in the graph rather than the Editor console [1296291] (https://issuetracker.unity3d.com/product/unity/issues/guid/1296291/)
 - Fixed treatment of node precision in subgraphs, now allows subgraphs to switch precisions based on the subgraph node [1304050] (https://issuetracker.unity3d.com/issues/precision-errors-when-theres-a-precision-discrepancy-between-subgraphs-and-parent-graphs)
 
 ## [11.0.0] - 2020-10-21
