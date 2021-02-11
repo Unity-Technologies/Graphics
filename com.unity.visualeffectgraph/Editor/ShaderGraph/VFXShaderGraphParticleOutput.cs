@@ -107,7 +107,7 @@ namespace UnityEditor.VFX
     {
         //"protected" is only to be listed by VFXModel.GetSettings, we should always use GetOrRefreshShaderGraphObject
         [SerializeField, VFXSetting]
-        protected ShaderGraphVfxAsset shaderGraph;
+        internal ShaderGraphVfxAsset shaderGraph;
 
         public override void OnEnable()
         {
