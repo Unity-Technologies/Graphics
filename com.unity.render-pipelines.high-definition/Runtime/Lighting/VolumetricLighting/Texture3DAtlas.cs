@@ -5,7 +5,7 @@ namespace UnityEngine.Rendering.HighDefinition
 {
     public class Texture3DAtlas
     {
-        public static readonly int _ZOffset = Shader.PropertyToID("_ZOffset");
+        public static readonly int _ZBias = Shader.PropertyToID("_ZBias");
         public static readonly int _DstTex = Shader.PropertyToID("_DstTex");
         public static readonly int _SrcTex = Shader.PropertyToID("_SrcTex");
         public int NumTexturesInAtlas = 0;
@@ -16,7 +16,6 @@ namespace UnityEngine.Rendering.HighDefinition
         private TextureFormat m_format;
 
         private bool m_updateAtlas = false;
-        private int m_atlasSize = 0;
 
         public delegate void AtlasUpdated();
         public AtlasUpdated OnAtlasUpdated = null;
@@ -30,10 +29,9 @@ namespace UnityEngine.Rendering.HighDefinition
             }
         }
 
-        public Texture3DAtlas(TextureFormat format, int textureSize)
+        public Texture3DAtlas(TextureFormat format)
         {
             m_format = format;
-            m_atlasSize = textureSize;
         }
 
         public void AddVolume(DensityVolume volume)
@@ -41,29 +39,12 @@ namespace UnityEngine.Rendering.HighDefinition
             bool addTexture = true;
             if (volume.parameters.volumeMask == null && volume.parameters.volumeShader == null)
             {
-                volume.parameters.textureIndex = -1;
+                volume.parameters.atlasIndex = -1;
                 addTexture = false;
             }
             else if (volume.parameters.volumeMask != null)
             {
                 var tex = volume.parameters.volumeMask;
-                // Check that the texture size and format is as expected
-                if (tex.width != m_atlasSize ||
-                    tex.height != m_atlasSize ||
-                    tex.depth != m_atlasSize)
-                {
-                    // TODO (Apoorva): Re-enable this check after support has been added for variable-resolution sub-textures:
-                    /*
-                    Debug.LogError(String.Format("3D Texture Atlas: Added texture {4} size {0}x{1}x{2} does not match size of atlas {3}x{3}x{3}",
-                        tex.width,
-                        tex.height,
-                        tex.depth,
-                        m_atlasSize,
-                        tex.name
-                    ));
-                    return;
-                    */
-                }
 
                 if (volume.parameters.volumeMask.format != m_format)
                 {
@@ -84,7 +65,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
                     if (v.parameters.volumeMask == volume.parameters.volumeMask)
                     {
-                        volume.parameters.textureIndex = v.parameters.textureIndex;
+                        volume.parameters.atlasIndex = v.parameters.atlasIndex;
                         addTexture = false;
                         break;
                     }
@@ -93,7 +74,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
             if (addTexture)
             {
-                volume.parameters.textureIndex = NumTexturesInAtlas;
+                volume.parameters.atlasIndex = NumTexturesInAtlas;
                 NumTexturesInAtlas++;
                 m_updateAtlas = true;
             }
@@ -119,7 +100,6 @@ namespace UnityEngine.Rendering.HighDefinition
         public void UpdateAtlas(CommandBuffer cmd, ComputeShader blit3dShader)
         {
             const int NUM_THREADS = 8; // Defined as [numthreads(8,8,8)] in the compute shader
-            int dispatchSize = DensityVolumeManager.volumeTextureSize / NUM_THREADS;
 
             if (m_updateAtlas)
             {
@@ -127,17 +107,87 @@ namespace UnityEngine.Rendering.HighDefinition
 
                 if (m_volumes.Count > 0)
                 {
-                    // Ensure that number of textures is at least one to avoid a zero-sized atlas
                     var clampedNumTextures = Math.Max(1, NumTexturesInAtlas);
-                    m_atlas = RTHandles.Alloc(m_atlasSize,
-                                              m_atlasSize,
-                                              m_atlasSize * clampedNumTextures,
-                                                dimension: TextureDimension.Tex3D,
-                                                colorFormat: Experimental.Rendering.GraphicsFormat.R8_UNorm,
-                                                enableRandomWrite: true,
-                                                useMipMap: true,
-                                                autoGenerateMips: false,
-                                                name: "DensityVolumeAtlas");
+
+                    // Calculate the size of the atlas
+                    var depths = new int[clampedNumTextures];
+                    Vector3Int atlasDim = new Vector3Int();
+                    foreach (DensityVolume v in m_volumes)
+                    {
+                        Vector3Int curDim = new Vector3Int();
+                        if (v.parameters.volumeShader != null)
+                        {
+                            curDim = v.parameters.volumeShaderResolution;
+                        }
+                        else if (v.parameters.volumeMask != null)
+                        {
+                            curDim = new Vector3Int(
+                                v.parameters.volumeMask.width,
+                                v.parameters.volumeMask.height,
+                                v.parameters.volumeMask.depth
+                            );
+                        }
+                        atlasDim.x = Mathf.Max(atlasDim.x, curDim.x);
+                        atlasDim.y = Mathf.Max(atlasDim.y, curDim.y);
+                        atlasDim.z += curDim.z;
+                        depths[v.parameters.atlasIndex] = curDim.z;
+                    }
+
+                    // Calculate the atlas offset for each volume
+                    foreach (DensityVolume v in m_volumes)
+                    {
+                        if (v.parameters.atlasIndex == -1)
+                        {
+                            v.parameters.atlasBias = -1.0f;
+                            v.parameters.atlasScale = Vector3.one;
+                        }
+                        else
+                        {
+                            int offset = 0;
+                            // Sum up the depths of the previous textures in the atlas
+                            // to get the current texture's offset
+                            for (int i = 0; i < v.parameters.atlasIndex; i++)
+                            {
+                                offset += depths[i];
+                            }
+                            // Divide by the total atlas depth to get a bias
+                            // in the range [0, 1]
+                            v.parameters.atlasBias = (float)offset / atlasDim.z;
+
+                            Vector3Int curDim = new Vector3Int();
+                            if (v.parameters.volumeShader != null)
+                            {
+                                curDim = v.parameters.volumeShaderResolution;
+                            }
+                            else if (v.parameters.volumeMask != null)
+                            {
+                                curDim = new Vector3Int(
+                                    v.parameters.volumeMask.width,
+                                    v.parameters.volumeMask.height,
+                                    v.parameters.volumeMask.depth
+                                );
+                            }
+                            v.parameters.atlasScale = new Vector3(
+                                (float)curDim.x / atlasDim.x,
+                                (float)curDim.y / atlasDim.y,
+                                (float)curDim.z / atlasDim.z
+                            );
+                        }
+                    }
+
+                    // Allocate the atlas
+                    m_atlas = RTHandles.Alloc(
+                        atlasDim.x,
+                        atlasDim.y,
+                        atlasDim.z,
+                        dimension: TextureDimension.Tex3D,
+                        colorFormat: Experimental.Rendering.GraphicsFormat.R8_UNorm,
+                        enableRandomWrite: true,
+                        useMipMap: true,
+                        autoGenerateMips: false,
+                        name: "DensityVolumeAtlas"
+                    );
+
 
                     var isCopied = new bool[clampedNumTextures];
                     var oldRt = RenderTexture.active;
@@ -146,17 +196,23 @@ namespace UnityEngine.Rendering.HighDefinition
                     foreach (DensityVolume v in m_volumes)
                     {
                         if (v.parameters.volumeShader != null ||
-                            v.parameters.textureIndex == -1 ||
-                            isCopied[v.parameters.textureIndex])
+                            v.parameters.atlasIndex == -1 ||
+                            isCopied[v.parameters.atlasIndex])
                             continue;
 
-                        isCopied[v.parameters.textureIndex] = true;
+                        isCopied[v.parameters.atlasIndex] = true;
 
                         var cs = blit3dShader;
                         cmd.SetComputeTextureParam(cs, 0, _DstTex, m_atlas);
                         cmd.SetComputeTextureParam(cs, 0, _SrcTex, v.parameters.volumeMask);
-                        cmd.SetComputeIntParam(cs, _ZOffset, m_atlasSize * v.parameters.textureIndex);
-                        cmd.DispatchCompute(cs, 0, dispatchSize, dispatchSize, dispatchSize);
+                        cmd.SetComputeIntParam(cs, _ZBias, Mathf.RoundToInt(v.parameters.atlasBias * m_atlas.rt.volumeDepth));
+                        cmd.DispatchCompute(
+                            cs,
+                            0,
+                            v.parameters.volumeMask.width / NUM_THREADS,
+                            v.parameters.volumeMask.height / NUM_THREADS,
+                            v.parameters.volumeMask.depth / NUM_THREADS
+                        );
                     }
                     RenderTexture.active = oldRt;
                 }
@@ -168,15 +224,11 @@ namespace UnityEngine.Rendering.HighDefinition
 
             if (m_atlas != null)
             {
-                var isRun = new bool[NumTexturesInAtlas];
-
                 foreach (DensityVolume v in m_volumes)
                 {
                     if (v.parameters.volumeShader != null &&
-                        v.parameters.textureIndex != -1 &&
-                        !isRun[v.parameters.textureIndex])
+                        v.parameters.atlasIndex != -1)
                     {
-                        isRun[v.parameters.textureIndex] = true;
                         var cs = v.parameters.volumeShader;
                         DensityVolumeManager.ComputeShaderParamsDelegate callback;
                         if (DensityVolumeManager.ComputeShaderParams.TryGetValue(v, out callback))
@@ -184,8 +236,15 @@ namespace UnityEngine.Rendering.HighDefinition
                             callback?.Invoke(v, cs, cmd);
                         }
                         cmd.SetComputeTextureParam(cs, 0, HDShaderIDs._VolumeMaskAtlas, m_atlas);
-                        cmd.SetComputeIntParam(cs, _ZOffset, m_atlasSize * v.parameters.textureIndex);
-                        cmd.DispatchCompute(cs, 0, dispatchSize, dispatchSize, dispatchSize);
+                        int zBias = Mathf.RoundToInt(v.parameters.atlasBias * m_atlas.rt.volumeDepth);
+                        cmd.SetComputeIntParam(cs, _ZBias, zBias);
+                        cmd.DispatchCompute(
+                            cs,
+                            0,
+                            v.parameters.volumeShaderResolution.x / NUM_THREADS,
+                            v.parameters.volumeShaderResolution.y / NUM_THREADS,
+                            v.parameters.volumeShaderResolution.z / NUM_THREADS
+                        );
                     }
                 }
                 m_atlas.rt.GenerateMips();

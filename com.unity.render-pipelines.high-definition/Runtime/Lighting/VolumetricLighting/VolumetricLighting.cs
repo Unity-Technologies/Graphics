@@ -13,7 +13,8 @@ namespace UnityEngine.Rendering.HighDefinition
         public Vector3 scattering;    // [0, 1]
         public float   extinction;    // [0, 1]
         public Vector3 textureTiling;
-        public int     textureIndex;
+        public float   atlasBias;
+        public Vector3 atlasScale;
         public Vector3 textureScroll;
         public int     invertFade;    // bool...
         public Vector3 rcpPosFaceFade;
@@ -27,7 +28,8 @@ namespace UnityEngine.Rendering.HighDefinition
 
             data.scattering             = Vector3.zero;
             data.extinction             = 0;
-            data.textureIndex           = -1;
+            data.atlasBias              = -1.0f;
+            data.atlasScale             = Vector3.one;
             data.textureTiling          = Vector3.one;
             data.textureScroll          = Vector3.zero;
             data.rcpPosFaceFade         = new Vector3(float.MaxValue, float.MaxValue, float.MaxValue);

@@ -51,7 +51,9 @@ namespace UnityEngine.Rendering.HighDefinition
         /// <summary>Distance at which density fading ends.</summary>
         public float     distanceFadeEnd;
         [SerializeField]
-        internal int     textureIndex;
+        internal int     atlasIndex;
+        internal float   atlasBias;
+        internal Vector3 atlasScale;
         /// <summary>Allows translation of the tiling density texture.</summary>
         [SerializeField, FormerlySerializedAs("volumeScrollingAmount")]
         public Vector3   textureOffset;
@@ -67,7 +69,9 @@ namespace UnityEngine.Rendering.HighDefinition
             anisotropy            = _anisotropy;
 
             volumeMask            = null;
-            textureIndex          = -1;
+            atlasIndex            = -1;
+            atlasBias             = -1.0f;
+            atlasScale            = Vector3.one;
             textureScrollingSpeed = Vector3.zero;
             textureTiling         = Vector3.one;
             textureOffset         = textureScrollingSpeed;
@@ -126,7 +130,8 @@ namespace UnityEngine.Rendering.HighDefinition
             data.extinction     = VolumeRenderingUtils.ExtinctionFromMeanFreePath(meanFreePath);
             data.scattering     = VolumeRenderingUtils.ScatteringFromExtinctionAndAlbedo(data.extinction, (Vector3)(Vector4)albedo);
 
-            data.textureIndex   = textureIndex;
+            data.atlasBias      = atlasBias;
+            data.atlasScale = atlasScale;
             data.textureScroll  = textureOffset;
             data.textureTiling  = textureTiling;
 

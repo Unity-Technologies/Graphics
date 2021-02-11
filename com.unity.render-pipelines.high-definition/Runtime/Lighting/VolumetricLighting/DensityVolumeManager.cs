@@ -27,14 +27,11 @@ namespace UnityEngine.Rendering.HighDefinition
         public Texture3DAtlas volumeAtlas = null;
         private bool atlasNeedsRefresh = false;
 
-        //TODO: hardcoded size....:-(
-        public static int volumeTextureSize = 48;
-
         private DensityVolumeManager()
         {
             volumes = new List<DensityVolume>();
 
-            volumeAtlas = new Texture3DAtlas(TextureFormat.Alpha8, volumeTextureSize);
+            volumeAtlas = new Texture3DAtlas(TextureFormat.Alpha8);
 
             volumeAtlas.OnAtlasUpdated += AtlasUpdated;
         }
