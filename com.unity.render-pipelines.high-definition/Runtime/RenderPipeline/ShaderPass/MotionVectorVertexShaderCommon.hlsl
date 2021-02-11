@@ -87,7 +87,6 @@ void MotionVectorPositionZBias(VaryingsToPS input)
 
 PackedVaryingsType MotionVectorVS(inout VaryingsType varyingsType, AttributesMesh inputMesh, AttributesPass inputPass)
 {
-
 #if !defined(TESSELLATION_ON)
     MotionVectorPositionZBias(varyingsType);
 #endif

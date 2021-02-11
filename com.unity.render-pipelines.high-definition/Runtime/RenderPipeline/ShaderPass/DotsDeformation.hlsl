@@ -19,8 +19,8 @@ void FetchComputeVertexData(inout AttributesMesh input)
     const int doSkinning = deformProperty.z;
     if (doSkinning == 1)
     {
-        const int streamIndex = _HybridDeformedVertexStreamIndex;
-        const int startIndex = deformProperty[streamIndex];
+        const uint streamIndex = _HybridDeformedVertexStreamIndex;
+        const uint startIndex = deformProperty[streamIndex];
         const DeformedVertexData vertexData = _DeformedMeshData[startIndex + input.vertexID];
 
         input.positionOS = vertexData.Position;
@@ -34,7 +34,7 @@ void FetchComputeVertexData(inout AttributesMesh input)
 }
 
 // Reads vertex position for compute skinned meshes in Hybdrid Renderer
-// also previous frame position if skinned motion vectors are used
+// and also previous frame position if skinned motion vectors are used
 void FetchComputeVertexPosition(inout float3 currPos, inout float3 prevPos, uint vertexID)
 {
     // x,y = current and previous frame indices
@@ -42,19 +42,25 @@ void FetchComputeVertexPosition(inout float3 currPos, inout float3 prevPos, uint
     // w = skinned motion vectors
     const int4 deformProperty = asint(unity_DOTSDeformationParams);
     const int computeSkin = deformProperty.z;
+    const uint streamIndex = _HybridDeformedVertexStreamIndex;
     if (computeSkin == 1)
     {
-        const int currStreamIndex = _HybridDeformedVertexStreamIndex;
-        const int currMeshStart = deformProperty[currStreamIndex];
+        const uint currMeshStart = deformProperty[streamIndex]; 
+        const uint currStreamIndex = _HybridDeformedVertexStreamIndex;
         currPos = _DeformedMeshData[currMeshStart + vertexID].Position;
     }
 
     const int skinMotionVec = deformProperty.w;
     if (skinMotionVec == 1)
     {
-        const int prevStreamIndex = _HybridDeformedVertexStreamIndex ^ 1;
+        const uint prevStreamIndex = streamIndex ^ 1;
         const int prevMeshStart = deformProperty[prevStreamIndex];
-        prevPos = _PreviousFrameDeformedMeshData[prevMeshStart + vertexID].Position;
+
+        if(prevMeshStart == -1)
+            prevPos = _DeformedMeshData[prevMeshStart + vertexID].Position;
+        else
+            prevPos = _PreviousFrameDeformedMeshData[prevMeshStart + vertexID].Position;
+
     }
 }
 #endif
