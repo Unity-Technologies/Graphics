@@ -47,7 +47,6 @@ namespace UnityEditor.Rendering.HighDefinition
                 if (materials[0].FindPass("ForwardEmissiveForDeferred") != -1)
                     materialEditor.ShaderProperty(forceForwardEmissive, Styles.forceForwardEmissiveText);
             }
-                
         }
     }
 }
