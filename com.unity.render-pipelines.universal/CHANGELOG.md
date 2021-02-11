@@ -11,6 +11,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Enabled deferred renderer in UI.
 
 ### Changed
+- The Forward Renderer asset is renamed to the Universal Renderer asset. The Universal Renderer asset contains the property Rendering Path that lets you select the Forward or the Deferred Rendering Path.
 - Move Assets/Create/Rendering/Universal Render Pipeline/Pipeline Asset (2D Renderer) to Assets/Create/Rendering/URP Asset (with 2D Renderer)
 - Move Assets/Create/Rendering/Universal Render Pipeline/2D Renderer to Assets/Create/Rendering/URP 2D Renderer
 - Move Assets/Create/Rendering/Universal Render Pipeline/Renderer Feature to Assets/Create/Rendering/URP Renderer Feature
@@ -18,6 +19,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Move Assets/Create/Rendering/Universal Render Pipeline/Pipeline Asset (Forward Renderer) to Assets/Create/Rendering/URP Asset (with Forward Renderer)
 - Move Assets/Create/Rendering/Universal Render Pipeline/XR System Data to Assets/Create/Rendering/URP XR System Data
 - Move Assets/Create/Rendering/Universal Render Pipeline/Forward Renderer to Assets/Create/Rendering/URP Forward Renderer
+- Removing unused temporary depth buffers for Depth of Field and Panini Projection.
 - Optimized the Bokeh Depth of Field shader on mobile by using half precision floats.
 
 ### Fixed
@@ -40,6 +42,14 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Change Asset/Create/Shader/Universal Render Pipeline/Sprite Lit Shader Graph to Asset/Create/Shader Graph/URP/Sprite Lit Shader Graph
 - Change Asset/Create/Shader/Universal Render Pipeline/Unlit Shader Graph to Asset/Create/Shader Graph/URP/Unlit Shader Graph
 - Change Asset/Create/Shader/Universal Render Pipeline/Sprite Unlit Shader Graph to Asset/Create/Shader Graph/URP/Sprite Unlit Shader Graph
+
+### Fixed
+- Fixed a case where shadow fade was clipped too early.
+
+### Changed
+- Deprecated GetShadowFade in Shadows.hlsl, use GetMainLightShadowFade or GetAdditionalLightShadowFade.
+- Improved shadow cascade GUI drawing with pixel perfect, hover and focus functionalities.
+- Shadow fade now uses border value for calculating shadow fade distance and fall off linearly.
 
 ## [11.0.0] - 2020-10-21
 ### Added
