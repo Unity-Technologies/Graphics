@@ -6,6 +6,7 @@ using NUnit.Framework.Internal;
 using NUnit.Framework.Internal.Builders;
 using UnityEngine;
 using UnityEngine.Rendering;
+using UnityEngine.TestTools.Graphics;
 //using UnityEngine.XR.Management;
 using Attribute = System.Attribute;
 
@@ -33,10 +34,15 @@ public class UseTestAssetTestCaseAttribute : UnityEngine.TestTools.UnityTestAttr
         //foreach material we will be testing on the asset 
         foreach(var shaderGraphTest in ShaderGraphTests)
         {
-            foreach(var mat in shaderGraphTest.testMaterial)
+            foreach(var materialTest in shaderGraphTest.testMaterial)
             {
-                TestCaseData data = new TestCaseData(new object[] {mat, shaderGraphTest.isCameraPerspective});
-                data.SetName(mat.name);
+                if(materialTest.enabled == false || materialTest.material == null)
+                {
+                    continue;
+                }
+
+                TestCaseData data = new TestCaseData(new object[] {materialTest.material, shaderGraphTest.isCameraPerspective, new Texture2D(32,32), new ImageComparisonSettings(), null});
+                data.SetName(materialTest.material.name);
                 data.ExpectedResult = new UnityEngine.Object();
                 data.HasExpectedResult = true;
                 data.SetCategory(shaderGraphTest.name);
@@ -45,7 +51,7 @@ public class UseTestAssetTestCaseAttribute : UnityEngine.TestTools.UnityTestAttr
                 if (test.parms != null)
                     test.parms.HasExpectedResult = false;
 
-                test.Name = $"{shaderGraphTest.name} {mat.name}";
+                test.Name = $"{shaderGraphTest.name} {materialTest.material.name}";
                 results.Add(test);
             }
         }

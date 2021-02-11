@@ -26,8 +26,8 @@ public class ShaderGraphTestAssetBehavior : MonoBehaviour
         {
             foreach (var mat in testAsset.testMaterial)
             {
-                m_ObjectRenderer.material = mat;
-                var screenshotName = mat.name;
+                m_ObjectRenderer.material = mat.material;
+                var screenshotName = mat.material.name;
                 ScreenCapture.CaptureScreenshot(Application.dataPath + "/Testing/Screenshots/" + screenshotName + ".png");
                 Debug.Log(screenshotName);
             }

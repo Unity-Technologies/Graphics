@@ -13,17 +13,22 @@ public class ShaderGraphIndividualTests
     public void SetupTestScene()
     {
         GameObject.CreatePrimitive(PrimitiveType.Sphere).transform.position = Vector3.zero; //this is an example - just make a sphere in the scene. Could load a specific template scene as well
+        
     }
+
+    private Camera camera;
+    private Renderer sphereRenderer;
+
 
     [UnityTest, Category("ShaderGraph")]
     [PrebuildSetup("SetupGraphicsTestCases")]
     //[UseGraphicsTestCases]
     [UseTestAssetTestCase]
-    public IEnumerator RunIndividualTests(Material mat, bool isPerspective)
+    public IEnumerator RunIndividualTests(Material mat, bool isPerspective, Texture2D refImage, ImageComparisonSettings settings, Mesh customMesh = null) //reference image, test hash, reference hash
     {
         // Always wait one frame for scene load
         yield return null;
-        Debug.Log(mat.name + " " + isPerspective);
+        Debug.Log(mat.name + " " + isPerspective + " " + settings.ToString());
 
         //Adding New Tests Materials
         //1.find shadergraphTestAsset and get test materials
@@ -42,7 +47,7 @@ public class ShaderGraphIndividualTests
        // var sphereRenderer = Object.FindObjectOfType<Renderer>();
 
        // var camera = GameObject.FindGameObjectWithTag("MainCamera").GetComponent<Camera>();
-       // var settings = Object.FindObjectOfType<ShaderGraphIndividualTestSetting>();
+        //var settings = Object.FindObjectOfType<ShaderGraphIndividualTestSetting>();
        // Assert.IsNotNull(settings, "Invalid test scene, couldn't find ShaderGraphIndividualTestSetting");
 
        // for (int i = 0; i < settings.WaitFrames; i++)
