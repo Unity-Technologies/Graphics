@@ -1,8 +1,7 @@
+
 using System;
+using System.Collections;
 using System.Collections.Generic;
-using System.Diagnostics;
-using UnityEditor.Rendering;
-using UnityEditor.Rendering.Universal;
 using System.ComponentModel;
 using UnityEngine.Scripting.APIUpdating;
 
@@ -182,7 +181,7 @@ namespace UnityEngine.Rendering.Universal
         ClearFlag m_ClearFlag = ClearFlag.None;
         Color m_ClearColor = Color.black;
 
-        private static readonly ShaderTagId s_DebugMaterialShaderTagId = new ShaderTagId("DebugMaterial");
+        protected static readonly ShaderTagId s_DebugMaterialShaderTagId = new ShaderTagId("DebugMaterial");
 
         public DebugHandler DebugHandler { get; set; }
 
@@ -408,73 +407,201 @@ namespace UnityEngine.Rendering.Universal
             return lhs.renderPassEvent > rhs.renderPassEvent;
         }
 
-        [Conditional("DEVELOPMENT_BUILD"), Conditional("UNITY_EDITOR")]
-        protected void RenderObjectWithDebug(ScriptableRenderContext context, List<ShaderTagId> shaderTagIds,
-            ref RenderingData renderingData, FilteringSettings filterSettings, SortingCriteria sortingCriteria)
+        #region Debug Views
+        protected class DebugRenderPass : IDisposable
         {
-            bool overrideMaterial = DebugHandler.TryGetReplacementMaterial(out Material replacementMaterial);
-            DrawingSettings debugSettings = overrideMaterial
-                ? CreateDrawingSettings(shaderTagIds, ref renderingData, sortingCriteria)
-                : CreateDrawingSettings(s_DebugMaterialShaderTagId, ref renderingData, sortingCriteria);
+            private readonly DebugHandler m_DebugHandler;
+            private readonly CommandBuffer m_CommandBuffer;
+            private readonly int m_Index;
 
-            if (overrideMaterial)
+            private void Begin()
             {
-                RenderStateBlock wireframeRasterState = new RenderStateBlock();
-                bool wireframe = false;
+                DebugSceneOverrideMode sceneOverrideMode = m_DebugHandler.DebugDisplaySettings.RenderingSettings.debugSceneOverrideMode;
 
-                debugSettings.overrideMaterial = replacementMaterial;
+                m_DebugHandler.SetupShaderProperties(m_CommandBuffer, m_Index);
 
-                DebugSceneOverrideMode sceneOverride = DebugHandler.DebugDisplaySettings.RenderingSettings.debugSceneOverrideMode;
-
-                if(sceneOverride != DebugSceneOverrideMode.None)
+                switch(sceneOverrideMode)
                 {
-                    switch (sceneOverride)
+                    case DebugSceneOverrideMode.Wireframe:
                     {
-                        case DebugSceneOverrideMode.Overdraw:
-                            debugSettings.overrideMaterialPassIndex = 0;
-                            break;
-
-                        case DebugSceneOverrideMode.Wireframe:
-                            debugSettings.overrideMaterialPassIndex = 1;
-                            wireframe = true;
-                            break;
-
-                        case DebugSceneOverrideMode.SolidWireframe:
-                            debugSettings.overrideMaterialPassIndex = 1;
-                            wireframe = true;
-
-                            replacementMaterial.SetColor("_DebugColor", Color.white);
-                            context.DrawRenderers(renderingData.cullResults, ref debugSettings, ref filterSettings);
-
-                            wireframeRasterState.rasterState = new RasterState(CullMode.Back, -1, -1, true);
-                            wireframeRasterState.mask = RenderStateMask.Raster;
-                            break;
+                        GL.wireframe = true;
+                        break;
                     }
-                }
-                else if(DebugHandler.DebugDisplaySettings.MaterialSettings.DebugVertexAttributeIndexData != DebugVertexAttributeMode.None)
-                {
-                    debugSettings.overrideMaterialPassIndex = 2;
-                }
 
-                if(wireframe)
-                {
-                    context.Submit();
-                    GL.wireframe = true;
+                    case DebugSceneOverrideMode.SolidWireframe:
+                    {
+                        if(m_Index == 1)
+                        {
+                            GL.wireframe = true;
+                        }
+                        break;
+                    }
 
-                    replacementMaterial.SetColor("_DebugColor", Color.black);
-                    context.DrawRenderers(renderingData.cullResults, ref debugSettings, ref filterSettings, ref wireframeRasterState);
-                    context.Submit();
-                    GL.wireframe = false;
-                }
-                else
-                {
-                    context.DrawRenderers(renderingData.cullResults, ref debugSettings, ref filterSettings);
-                }
+                    default:
+                    {
+                        break;
+                    }
+                } // End of switch.
             }
-            else
+
+            private void End()
             {
-                context.DrawRenderers(renderingData.cullResults, ref debugSettings, ref filterSettings);
+                DebugSceneOverrideMode sceneOverrideMode = m_DebugHandler.DebugDisplaySettings.RenderingSettings.debugSceneOverrideMode;
+
+                switch(sceneOverrideMode)
+                {
+                    case DebugSceneOverrideMode.Wireframe:
+                    {
+                        GL.wireframe = false;
+                        break;
+                    }
+
+                    case DebugSceneOverrideMode.SolidWireframe:
+                    {
+                        if(m_Index == 1)
+                        {
+                            GL.wireframe = false;
+                        }
+                        break;
+                    }
+
+                    default:
+                    {
+                        break;
+                    }
+                } // End of switch.
+            }
+
+            public DebugRenderPass(DebugHandler debugHandler, CommandBuffer commandBuffer, int passIndex)
+            {
+                m_DebugHandler = debugHandler;
+                m_CommandBuffer = commandBuffer;
+                m_Index = passIndex;
+
+                Begin();
+            }
+
+            public bool GetRenderStateBlock(out RenderStateBlock renderStateBlock)
+            {
+                DebugSceneOverrideMode sceneOverrideMode = m_DebugHandler.DebugDisplaySettings.RenderingSettings.debugSceneOverrideMode;
+
+                renderStateBlock = new RenderStateBlock();
+
+                switch(sceneOverrideMode)
+                {
+                    case DebugSceneOverrideMode.Wireframe:
+                    {
+                        return true;
+                    }
+
+                    case DebugSceneOverrideMode.SolidWireframe:
+                    {
+                        if(m_Index == 1)
+                        {
+                            renderStateBlock.rasterState = new RasterState(CullMode.Back, -1, -1);
+                            renderStateBlock.mask = RenderStateMask.Raster;
+                        }
+
+                        return true;
+                    }
+
+                    default:
+                    {
+                        return false;
+                    }
+                } // End of switch.
+            }
+
+            public void Dispose()
+            {
+                End();
+            }
+
+            public static int GetNumPasses(DebugHandler debugHandler)
+            {
+                DebugSceneOverrideMode sceneOverrideMode = debugHandler.DebugDisplaySettings.RenderingSettings.debugSceneOverrideMode;
+
+                return (sceneOverrideMode == DebugSceneOverrideMode.SolidWireframe) ? 2 : 1;
             }
         }
+
+        protected class DebugRenderPassEnumerable : IEnumerable<DebugRenderPass>
+        {
+            private class Enumerator : IEnumerator<DebugRenderPass>
+            {
+                private readonly DebugHandler m_DebugHandler;
+                private readonly CommandBuffer m_CommandBuffer;
+                private readonly int m_NumPasses;
+
+                private int m_Index;
+                private DebugRenderPass m_Current;
+
+                public DebugRenderPass Current => m_Current;
+                object IEnumerator.Current => Current;
+
+                public Enumerator(DebugHandler debugHandler, CommandBuffer commandBuffer)
+                {
+                    m_DebugHandler = debugHandler;
+                    m_CommandBuffer = commandBuffer;
+                    m_NumPasses = DebugRenderPass.GetNumPasses(debugHandler);
+
+                    m_Index = -1;
+                }
+
+                #region IEnumerator<DebugRenderPass>
+                public bool MoveNext()
+                {
+                    m_Current?.Dispose();
+
+                    if(++m_Index >= m_NumPasses)
+                    {
+                        return false;
+                    }
+                    else
+                    {
+                        m_Current = new DebugRenderPass(m_DebugHandler, m_CommandBuffer, m_Index);
+                        return true;
+                    }
+                }
+
+                public void Reset()
+                {
+                    if(m_Current != null)
+                    {
+                        m_Current.Dispose();
+                        m_Current = null;
+                    }
+                    m_Index = -1;
+                }
+
+                public void Dispose()
+                {
+                    m_Current?.Dispose();
+               }
+                #endregion
+            }
+
+            private readonly DebugHandler m_DebugHandler;
+            private readonly CommandBuffer m_CommandBuffer;
+
+            public DebugRenderPassEnumerable(DebugHandler debugHandler, CommandBuffer commandBuffer)
+            {
+                m_DebugHandler = debugHandler;
+                m_CommandBuffer = commandBuffer;
+            }
+
+            #region IEnumerable<DebugRenderPass>
+            public IEnumerator<DebugRenderPass> GetEnumerator()
+            {
+                return new Enumerator(m_DebugHandler, m_CommandBuffer);
+            }
+
+            IEnumerator IEnumerable.GetEnumerator()
+            {
+                return GetEnumerator();
+            }
+            #endregion
+        }
+        #endregion
     }
 }

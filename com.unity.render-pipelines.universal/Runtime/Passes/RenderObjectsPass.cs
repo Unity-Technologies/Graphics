@@ -121,27 +121,31 @@ namespace UnityEngine.Experimental.Rendering.Universal
                     }
                 }
 
-                context.ExecuteCommandBuffer(cmd);
-                cmd.Clear();
-
-                if((DebugHandler != null) &&
-                   (DebugHandler.IsDebugMaterialActive || DebugHandler.IsReplacementMaterialNeeded))
+                if((DebugHandler != null) && DebugHandler.IsDebugMaterialActive)
                 {
-                    if(DebugHandler.DebugDisplaySettings.LightingSettings.DebugLightingMode == DebugLightingMode.ShadowCascades)
+                    foreach(DebugRenderPass debugRenderPass in new DebugRenderPassEnumerable(DebugHandler, cmd))
                     {
-                        // we disable cubemap reflections, too distracting (in TemplateLWRP for ex.)
-                        cmd.EnableShaderKeyword("_DEBUG_ENVIRONMENTREFLECTIONS_OFF");
                         context.ExecuteCommandBuffer(cmd);
                         cmd.Clear();
-                    }
 
-                    RenderObjectWithDebug(context, m_ShaderTagIdList, ref renderingData, m_FilteringSettings,
-                        sortingCriteria);
+                        if(debugRenderPass.GetRenderStateBlock(out RenderStateBlock renderStateBlock))
+                        {
+                            context.DrawRenderers(renderingData.cullResults, ref drawingSettings, ref m_FilteringSettings, ref renderStateBlock);
+                        }
+                        else
+                        {
+                            context.DrawRenderers(renderingData.cullResults, ref drawingSettings, ref m_FilteringSettings, ref m_RenderStateBlock);
+                        }
+                    }
                 }
                 else
                 {
-                    context.DrawRenderers(renderingData.cullResults, ref drawingSettings, ref m_FilteringSettings,
-                        ref m_RenderStateBlock);
+                    // Ensure we flush our command-buffer before we render...
+                    context.ExecuteCommandBuffer(cmd);
+                    cmd.Clear();
+
+                    // Render the objects...
+                    context.DrawRenderers(renderingData.cullResults, ref drawingSettings, ref m_FilteringSettings, ref m_RenderStateBlock);
                 }
 
                 if (m_CameraSettings.overrideCamera && m_CameraSettings.restoreCamera && !cameraData.xr.enabled)

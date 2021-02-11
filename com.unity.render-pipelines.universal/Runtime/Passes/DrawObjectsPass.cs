@@ -97,26 +97,33 @@ namespace UnityEngine.Rendering.Universal.Internal
                 if ((DebugHandler != null) &&
                     (DebugHandler.IsDebugMaterialActive || DebugHandler.IsReplacementMaterialNeeded))
                 {
-                    if(DebugHandler.DebugDisplaySettings.LightingSettings.DebugLightingMode == DebugLightingMode.ShadowCascades)
+                    DrawingSettings drawSettings = CreateDrawingSettings(s_DebugMaterialShaderTagId, ref renderingData, sortFlags);
+
+                    foreach(DebugRenderPass debugRenderPass in new DebugRenderPassEnumerable(DebugHandler, cmd))
                     {
-                        // we disable cubemap reflections, too distracting (in TemplateLWRP for ex.)
-                        cmd.EnableShaderKeyword("_DEBUG_ENVIRONMENTREFLECTIONS_OFF");
                         context.ExecuteCommandBuffer(cmd);
                         cmd.Clear();
-                    }
 
-                    RenderObjectWithDebug(context, m_ShaderTagIdList, ref renderingData, filterSettings, sortFlags);
+                        if(debugRenderPass.GetRenderStateBlock(out RenderStateBlock renderStateBlock))
+                        {
+                            context.DrawRenderers(renderingData.cullResults, ref drawSettings, ref filterSettings, ref renderStateBlock);
+                        }
+                        else
+                        {
+                            context.DrawRenderers(renderingData.cullResults, ref drawSettings, ref filterSettings, ref m_RenderStateBlock);
+                        }
+                    }
                 }
                 else
                 {
-	                var drawSettings = CreateDrawingSettings(m_ShaderTagIdList, ref renderingData, sortFlags);
+	                DrawingSettings drawSettings = CreateDrawingSettings(m_ShaderTagIdList, ref renderingData, sortFlags);
 
             	    context.DrawRenderers(renderingData.cullResults, ref drawSettings, ref filterSettings, ref m_RenderStateBlock);
 
 	                // Render objects that did not match any shader pass with error shader
     	            RenderingUtils.RenderObjectsWithError(context, ref renderingData.cullResults, camera, filterSettings, SortingCriteria.None);
         	    }
-             }
+            }
             context.ExecuteCommandBuffer(cmd);
             CommandBufferPool.Release(cmd);
         }

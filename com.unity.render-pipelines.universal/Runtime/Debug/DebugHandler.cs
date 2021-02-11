@@ -7,9 +7,10 @@ namespace UnityEngine.Rendering.Universal
 {
     public class DebugHandler : IDebugDisplaySettingsQuery
     {
+        private static readonly int s_DebugColorPropertyId = Shader.PropertyToID("_DebugColor");
+
         private readonly Material m_FullScreenDebugMaterial;
         private readonly Texture2D m_NumberFontTexture;
-        private readonly Material m_ReplacementMaterial;
 
         // Material settings...
         private readonly int m_DebugMaterialModeId;
@@ -70,13 +71,11 @@ namespace UnityEngine.Rendering.Universal
         {
             Texture2D numberFontTexture = scriptableRendererData.NumberFont;
             Shader fullScreenDebugShader = scriptableRendererData.fullScreenDebugPS;
-            Shader debugReplacementShader = scriptableRendererData.debugReplacementPS;
 
             m_DebugDisplaySettings = DebugDisplaySettings.Instance;
 
             m_NumberFontTexture = numberFontTexture;
             m_FullScreenDebugMaterial = (fullScreenDebugShader == null) ? null : CoreUtils.CreateEngineMaterial(fullScreenDebugShader);
-            m_ReplacementMaterial = (debugReplacementShader == null) ? null : CoreUtils.CreateEngineMaterial(debugReplacementShader);
 
             // Material settings...
             m_DebugMaterialModeId = Shader.PropertyToID("_DebugMaterialMode");
@@ -105,24 +104,40 @@ namespace UnityEngine.Rendering.Universal
             return new DebugPass(evt, m_FullScreenDebugMaterial);
         }
 
-        public bool TryGetReplacementMaterial(out Material replacementMaterial)
-        {
-            if(IsReplacementMaterialNeeded)
-            {
-                replacementMaterial = m_ReplacementMaterial;
-                return true;
-            }
-            else
-            {
-                replacementMaterial = default;
-                return false;
-            }
-        }
-
         public bool TryGetFullscreenDebugMode(out DebugFullScreenMode debugFullScreenMode)
         {
             debugFullScreenMode = RenderingSettings.debugFullScreenMode;
             return debugFullScreenMode != DebugFullScreenMode.None;
+        }
+
+        public void SetupShaderProperties(CommandBuffer cmd, int passIndex = 0)
+        {
+            if(LightingSettings.DebugLightingMode == DebugLightingMode.ShadowCascades)
+            {
+                // we disable cubemap reflections, too distracting (in TemplateLWRP for ex.)
+                cmd.EnableShaderKeyword("_DEBUG_ENVIRONMENTREFLECTIONS_OFF");
+            }
+
+            switch(RenderingSettings.debugSceneOverrideMode)
+            {
+                case DebugSceneOverrideMode.Overdraw:
+                {
+                    cmd.SetGlobalColor(s_DebugColorPropertyId, new Color(0.1f, 0, 0, 1));
+                    break;
+                }
+
+                case DebugSceneOverrideMode.Wireframe:
+                {
+                    cmd.SetGlobalColor(s_DebugColorPropertyId, Color.black);
+                    break;
+                }
+
+                case DebugSceneOverrideMode.SolidWireframe:
+                {
+                    cmd.SetGlobalColor(s_DebugColorPropertyId, (passIndex == 0) ? Color.white : Color.black);
+                    break;
+                }
+            } // End of switch.
         }
 
         [Conditional("DEVELOPMENT_BUILD"), Conditional("UNITY_EDITOR")]
