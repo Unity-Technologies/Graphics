@@ -93,6 +93,75 @@ namespace UnityEditor.Rendering.HighDefinition
             volume.sharedProfile = profile;
         }
 
+        [MenuItem("Edit/Render Pipeline/HD Render Pipeline/Force Forward Emissive on Material/Enable in Selection")]
+        internal static void ForceForwardEmissiveOnMaterialEnableInSelection()
+        {
+            var selection = UnityEditor.Selection.objects;
+
+            foreach (var obj in selection)
+            {
+                if (obj is Material)
+                {
+                    Material material = obj as Material;
+                    if (material.HasProperty(HDMaterialProperties.kForceForwardEmissive))
+                    {
+                        material.SetInt(HDMaterialProperties.kForceForwardEmissive, 1);
+                        HDShaderUtils.ResetMaterialKeywords(material);
+                    }
+                }
+            }
+
+            // Also update Material on selected GameObject
+            foreach (var obj in selection)
+            {
+                GameObject gameObj = obj as GameObject;
+                MeshRenderer mesh;
+                if (gameObj.TryGetComponent<MeshRenderer>(out mesh))
+                {
+                    for (int i = 0; i < mesh.materials.Length; ++i)
+                    {
+                        var material = mesh.materials[i];
+
+                        if (material.HasProperty(HDMaterialProperties.kForceForwardEmissive))
+                        {
+                            material.SetInt(HDMaterialProperties.kForceForwardEmissive, 1);
+                            HDShaderUtils.ResetMaterialKeywords(material);
+                        }
+                    }
+                }
+            }
+        }
+
+        [MenuItem("Edit/Render Pipeline/HD Render Pipeline/Force Forward Emissive on Material/Enable in Scene")]
+        internal static void ForceForwardEmissiveOnMaterialEnableInScene()
+        {
+            var materials = Resources.FindObjectsOfTypeAll<Material>();
+
+            foreach (var material in materials)
+            {
+                if (material.HasProperty(HDMaterialProperties.kForceForwardEmissive))
+                {
+                    material.SetInt(HDMaterialProperties.kForceForwardEmissive, 1);
+                    HDShaderUtils.ResetMaterialKeywords(material);
+                }
+            }
+        }
+
+        [MenuItem("Edit/Render Pipeline/HD Render Pipeline/Force Forward Emissive on Material/Disable in Scene")]
+        internal static void ForceForwardEmissiveOnMaterialDisableInScene()
+        {
+            var materials = Resources.FindObjectsOfTypeAll<Material>();
+
+            foreach (var material in materials)
+            {
+                if (material.HasProperty(HDMaterialProperties.kForceForwardEmissive))
+                {
+                    material.SetInt(HDMaterialProperties.kForceForwardEmissive, 0);
+                    HDShaderUtils.ResetMaterialKeywords(material);
+                }
+            }
+        }
+
         [MenuItem("Edit/Render Pipeline/HD Render Pipeline/Upgrade from Previous Version /Upgrade HDRP Materials to Latest Version")]
         internal static void UpgradeMaterials()
         {
