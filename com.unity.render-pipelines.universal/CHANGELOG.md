@@ -19,6 +19,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Move Assets/Create/Rendering/Universal Render Pipeline/Pipeline Asset (Forward Renderer) to Assets/Create/Rendering/URP Asset (with Forward Renderer)
 - Move Assets/Create/Rendering/Universal Render Pipeline/XR System Data to Assets/Create/Rendering/URP XR System Data
 - Move Assets/Create/Rendering/Universal Render Pipeline/Forward Renderer to Assets/Create/Rendering/URP Forward Renderer
+- Removing unused temporary depth buffers for Depth of Field and Panini Projection.
 
 ### Fixed
 - Fixed an issue where objects in motion might jitter when the Pixel Perfect Camera is used. [case 1300474](https://issuetracker.unity3d.com/issues/urp-characters-sprite-repeats-in-the-build-when-using-pixel-perfect-camera-and-2d-renderer)
