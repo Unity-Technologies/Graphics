@@ -162,7 +162,7 @@ namespace UnityEditor.ShaderGraph.Drawing.Views.Blackboard
         internal void ResetReferenceAction()
         {
             m_Input.overrideReferenceName = null;
-            m_resetReferenceNameTrigger(shaderInput.referenceName);
+            m_resetReferenceNameTrigger?.Invoke(shaderInput.referenceName);
             DirtyNodes(ModificationScope.Graph);
         }
 
