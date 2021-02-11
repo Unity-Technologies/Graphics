@@ -81,7 +81,9 @@ namespace UnityEngine.Rendering.HighDefinition
             }
         }
 
-        bool RenderLightScreenSpaceShadows(RenderGraph renderGraph, HDCamera hdCamera, PrepassOutput prepassOutput, TextureHandle depthBuffer, TextureHandle normalBuffer, TextureHandle motionVectorsBuffer, TextureHandle rayCountTexture, TextureHandle screenSpaceShadowArray)
+        bool RenderLightScreenSpaceShadows(RenderGraph renderGraph, HDCamera hdCamera,
+            PrepassOutput prepassOutput, TextureHandle depthBuffer, TextureHandle normalBuffer, TextureHandle motionVectorsBuffer, TextureHandle historyValidityBuffer,
+            TextureHandle rayCountTexture, TextureHandle screenSpaceShadowArray)
         {
             m_ScreenSpaceShadowsLightData.SetData(m_CurrentScreenSpaceShadowLightData);
 
@@ -108,7 +110,7 @@ namespace UnityEngine.Rendering.HighDefinition
                     case GPULightType.Spot:
                     {
                         RenderPunctualScreenSpaceShadow(renderGraph, hdCamera, currentLight, currentAdditionalLightData, lightIdx,
-                            prepassOutput, depthBuffer, normalBuffer, motionVectorsBuffer, rayCountTexture, screenSpaceShadowArray);
+                            prepassOutput, depthBuffer, normalBuffer, motionVectorsBuffer, historyValidityBuffer, rayCountTexture, screenSpaceShadowArray);
                     }
                     break;
                 }
@@ -137,7 +139,8 @@ namespace UnityEngine.Rendering.HighDefinition
             return screenSpaceShadowDirectionalRequired || pointOrAreaLightShadowRequired;
         }
 
-        TextureHandle RenderScreenSpaceShadows(RenderGraph renderGraph, HDCamera hdCamera, PrepassOutput prepassOutput, TextureHandle depthBuffer, TextureHandle normalBuffer, TextureHandle motionVectorsBuffer, TextureHandle rayCountTexture)
+        TextureHandle RenderScreenSpaceShadows(RenderGraph renderGraph, HDCamera hdCamera,
+            PrepassOutput prepassOutput, TextureHandle depthBuffer, TextureHandle normalBuffer, TextureHandle motionVectorsBuffer, TextureHandle historyValidityBuffer, TextureHandle rayCountTexture)
         {
             // If screen space shadows are not supported for this camera, we are done
             if (!hdCamera.frameSettings.IsEnabled(FrameSettingsField.ScreenSpaceShadows) || !RequestedScreenSpaceShadows())
@@ -149,12 +152,12 @@ namespace UnityEngine.Rendering.HighDefinition
                 TextureHandle screenSpaceShadowTexture = CreateScreenSpaceShadowTextureArray(renderGraph);
 
                 // First of all we handle the directional light
-                RenderDirectionalLightScreenSpaceShadow(renderGraph, hdCamera, depthBuffer, normalBuffer, motionVectorsBuffer, rayCountTexture, screenSpaceShadowTexture);
+                RenderDirectionalLightScreenSpaceShadow(renderGraph, hdCamera, depthBuffer, normalBuffer, motionVectorsBuffer, historyValidityBuffer, rayCountTexture, screenSpaceShadowTexture);
 
                 if (hdCamera.frameSettings.IsEnabled(FrameSettingsField.RayTracing))
                 {
                     // We handle the other light sources
-                    RenderLightScreenSpaceShadows(renderGraph, hdCamera, prepassOutput, depthBuffer, normalBuffer, motionVectorsBuffer, rayCountTexture, screenSpaceShadowTexture);
+                    RenderLightScreenSpaceShadows(renderGraph, hdCamera, prepassOutput, depthBuffer, normalBuffer, motionVectorsBuffer, historyValidityBuffer, rayCountTexture, screenSpaceShadowTexture);
                 }
 
                 // We render the debug view, if the texture is not used, it is not evaluated anyway

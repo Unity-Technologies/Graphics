@@ -135,6 +135,7 @@ namespace UnityEngine.Rendering.HighDefinition
         // RT Deferred Lighting
         RaytracingDeferredLighting,
         // Denoisers
+        HistoryValidity,
         TemporalFilter,
         DiffuseFilter,
 

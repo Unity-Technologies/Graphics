@@ -106,12 +106,13 @@ namespace UnityEditor.Rendering.HighDefinition
                 {
                     PropertyField(m_Tint);
 
-                    if (isInAdvancedMode)
+                    if (BeginAdditionalPropertiesScope())
                     {
                         PropertyField(m_MipFogNear);
                         PropertyField(m_MipFogFar);
                         PropertyField(m_MipFogMaxMip);
                     }
+                    EndAdditionalPropertiesScope();
                 }
             }
 
@@ -131,7 +132,7 @@ namespace UnityEditor.Rendering.HighDefinition
                     PropertyField(m_DepthExtent, s_DepthExtentLabel);
                     PropertyField(m_DenoisingMode);
 
-                    if (isInAdvancedMode)
+                    if (BeginAdditionalPropertiesScope())
                     {
                         PropertyField(m_SliceDistributionUniformity);
 
@@ -167,6 +168,7 @@ namespace UnityEditor.Rendering.HighDefinition
                                 MessageType.Info, wide: true);
                         }
                     }
+                    EndAdditionalPropertiesScope();
                 }
             }
         }
