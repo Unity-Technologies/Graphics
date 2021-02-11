@@ -4,7 +4,7 @@ The Silk shader is your starting point for rendering anisotropic fabrics in the 
 In general, silk and other synthetic fibers are smoother because they are produced as a single smooth filament. When this is weaved, it produces a fabric with anisotropic specular highlights.
 ![img](Images/HDRPFeatures-SilkShader.png)
 
-Under the hood, the Silk shader is a pre-configured Shader Graph. To learn more about the Silk shader implementation, or to create your own Silk shader variant, see the Shader Graph documentation about the [Fabric Master Node](Master-Node-Fabric.md).
+Under the hood, the Silk shader is a pre-configured Shader Graph. To learn more about the Silk shader implementation, or to create your own Silk shader variant, see the Shader Graph documentation about the [Fabric Master Stack](master-stack-fabric.md).
 
 ## Importing the Silk Fabric Sample
 
