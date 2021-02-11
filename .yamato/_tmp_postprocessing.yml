@@ -60,10 +60,6 @@ test_platforms:
     flavor: b1.large
   commands:
     - dir
-  triggers:
-    branches:
-      only:
-        - "/.*/"
   artifacts:
     logs:
       paths:
@@ -88,10 +84,6 @@ test_platforms:
   commands:
     - npm install upm-ci-utils@stable -g --registry https://artifactory.prd.cds.internal.unity3d.com/artifactory/api/npm/upm-npm
     - upm-ci package publish --package-path com.unity.postprocessing
-  triggers:
-    tags:
-      only:
-        - /^(r|R)(c|C)-\d+\.\d+\.\d+(-preview(\.\d+)?)?$/
   artifacts:
     artifacts:
       paths:
@@ -114,10 +106,6 @@ test_platforms:
   commands:
     - npm install upm-ci-utils@stable -g --registry https://artifactory.prd.cds.internal.unity3d.com/artifactory/api/npm/upm-npm
     - upm-ci package publish --dry-run --package-path com.unity.postprocessing
-  triggers:
-    tags:
-      only:
-        - /^(r|R)(c|C)-\d+\.\d+\.\d+(-preview(\.\d+)?)?$/
   artifacts:
     artifacts:
       paths:
