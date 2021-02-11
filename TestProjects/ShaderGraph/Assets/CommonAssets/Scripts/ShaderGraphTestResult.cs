@@ -5,21 +5,36 @@ using NUnit.Framework;
 using UnityEngine;
 
 [Serializable]
-public class ShaderGraphTestResult : UnityEngine.Object
+public class ShaderGraphTestResult : ScriptableObject 
 {
-    private ShaderGraphTestAsset m_testAsset;
-    public ShaderGraphTestResult(ShaderGraphTestAsset test)
+    //------------I dont think we can have a direct ref to another scriptable object in an assetbundle -------- need to doublec check
+    [SerializeField]
+    ShaderGraphTestAsset m_testAsset;
+
+    public ShaderGraphTestAsset TestAsset => m_testAsset;
+
+    [SerializeField]
+    List<HashTaggedTestResult> m_individualResults;
+
+    public void Initialize(ShaderGraphTestAsset test)
     {
         m_testAsset = test;
+        m_individualResults = new List<HashTaggedTestResult>();
+        foreach(var individual in test.testMaterial)
+        {
+            m_individualResults.Add(new HashTaggedTestResult(individual.material.name,
+                                                             new Texture2D(test.settings.TargetWidth, test.settings.TargetHeight, TextureFormat.ARGB32, false, test.settings.UseHDR),
+                                                             individual.hash));
+            
+        }
     }
-
-    List<HashTaggedTestResult> imageResults;
 
 }
 
 [Serializable]
 public class HashTaggedTestResult 
 {
+    public string name;
     public int hash;
     [SerializeField]
     private byte[] t_asPng;
@@ -29,6 +44,12 @@ public class HashTaggedTestResult
     private int t_height;
     [SerializeField]
     private TextureFormat t_format;
+
+    public HashTaggedTestResult(string testName, Texture2D testResult, int testHash)
+    {
+        name = testName;
+        SetImage(testResult, testHash);
+    }
 
     public void SetImage(Texture2D newResultImage, int newTestHash)
     {

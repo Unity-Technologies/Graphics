@@ -4,6 +4,7 @@ using NUnit.Framework;
 using NUnit.Framework.Interfaces;
 using NUnit.Framework.Internal;
 using NUnit.Framework.Internal.Builders;
+using UnityEditor;
 using UnityEngine;
 using UnityEngine.Rendering;
 using UnityEngine.TestTools.Graphics;
@@ -15,25 +16,23 @@ public class UseTestAssetTestCaseAttribute : UnityEngine.TestTools.UnityTestAttr
 
     NUnitTestCaseBuilder m_builder = new NUnitTestCaseBuilder();
 
-    IEnumerable<ShaderGraphTestAsset> ShaderGraphTests
-    {
-        get
-        {
-            var strings = UnityEditor.AssetDatabase.FindAssets("t:ShaderGraphTestAsset");
-            foreach(string path in strings)
-            {
-                yield return UnityEditor.AssetDatabase.LoadAssetAtPath<ShaderGraphTestAsset>(UnityEditor.AssetDatabase.GUIDToAssetPath(path));
-            }
-        }
-    }
-
     IEnumerable<TestMethod> ITestBuilder.BuildFrom(IMethodInfo method, Test suite)
     {
         List<TestMethod> results = new List<TestMethod>();
 
-        //foreach material we will be testing on the asset 
-        foreach(var shaderGraphTest in ShaderGraphTests)
+        //---------needs to support both editor and player------HACK
+        var expected = SetupTestAssetTestCases.CollectExpectedTestResults(QualitySettings.activeColorSpace, Application.platform, SystemInfo.graphicsDeviceType, "None");
+
+        foreach(var resultPathPair in expected)
         {
+            ShaderGraphTestResult res = AssetDatabase.LoadAssetAtPath<ShaderGraphTestResult>(resultPathPair.Value);
+            if(res == null)
+            {
+                continue;
+            }
+
+            ShaderGraphTestAsset shaderGraphTest = res.TestAsset;
+        //-----------ENDHACK
             foreach(var materialTest in shaderGraphTest.testMaterial)
             {
                 if(materialTest.enabled == false || materialTest.material == null)

@@ -83,6 +83,21 @@ public class SetupTestAssetTestCases : IPrebuildSetup
         }
     }
 
+
+    static IEnumerable<ShaderGraphTestAsset> ShaderGraphTests
+    {
+        get
+        {
+            var strings = UnityEditor.AssetDatabase.FindAssets("t:ShaderGraphTestAsset");
+            foreach(string path in strings)
+            {
+                yield return UnityEditor.AssetDatabase.LoadAssetAtPath<ShaderGraphTestAsset>(UnityEditor.AssetDatabase.GUIDToAssetPath(path));
+            }
+        }
+    }
+
+
+
     public void Setup()
     {
         ColorSpace colorSpace;
@@ -164,16 +179,17 @@ public class SetupTestAssetTestCases : IPrebuildSetup
         {
             foreach (var api in graphicsDevices)
             {
-                //var images = EditorGraphicsTestCaseProvider.CollectReferenceImagePathsFor(rootImageTemplatePath, colorSpace, runtimePlatform, api, xrsdk);
-
+                //--------------do we need to setup anthing here since we are storing the images as byte arrays in a scriptable object?
                 ////UnityEditor.TestTools.Graphics.Utils.SetupReferenceImageImportSettings(images.Values);
 
-                //bundleBuilds.Add(new AssetBundleBuild
-                //{
-                //    assetBundleName = string.Format("referenceimages-{0}-{1}-{2}-{3}", colorSpace, runtimePlatform, api, xrsdk),
-                //    addressableNames = images.Keys.ToArray(),
-                //    assetNames = images.Values.ToArray()
-                //});
+                var expected = CollectExpectedTestResults(colorSpace, runtimePlatform, api, xrsdk);
+
+                bundleBuilds.Add(new AssetBundleBuild
+                {
+                    assetBundleName = $"referenceimages--individual--{colorSpace}-{runtimePlatform}-{api}-{xrsdk}",
+                    addressableNames = expected.Keys.ToArray(),
+                    assetNames = expected.Values.ToArray()
+                });
             }
         }
 
@@ -193,6 +209,37 @@ public class SetupTestAssetTestCases : IPrebuildSetup
 
        // if (!IsBuildingForEditorPlaymode)
            // new CreateSceneListFileFromBuildSettings().Setup();
+    }
+
+    public static Dictionary<string, string> CollectExpectedTestResults(ColorSpace colorSpace, RuntimePlatform runtimePlatform, GraphicsDeviceType api, string xrsdk)
+    {
+        var output = new Dictionary<string, string>();
+
+        var fullPathPrefix = $"Assets/ReferenceImages/{colorSpace}/{runtimePlatform}/{api}/{xrsdk}/";
+
+        foreach(var testAsset in ShaderGraphTests)
+        {
+            ShaderGraphTestResult result;
+            var assetPath = Path.Combine(fullPathPrefix, $"{testAsset.name}_results.asset");
+            if(!File.Exists(assetPath))
+            {
+                result = ScriptableObject.CreateInstance<ShaderGraphTestResult>();
+                result.name = $"{testAsset.name}_results";
+                result.Initialize(testAsset);
+                AssetDatabase.CreateAsset(result, assetPath);
+                AssetDatabase.Refresh();
+            }
+
+            result = AssetDatabase.LoadAssetAtPath<ShaderGraphTestResult>(assetPath);
+            if(result == null)
+            {
+                continue;
+            }
+
+            output[$"{testAsset.name}_results"] = assetPath;
+        }
+
+        return output;
     }
 
     public static void SetGameViewSize(int width, int height)

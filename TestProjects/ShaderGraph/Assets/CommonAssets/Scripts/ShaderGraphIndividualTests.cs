@@ -21,7 +21,7 @@ public class ShaderGraphIndividualTests
 
 
     [UnityTest, Category("ShaderGraph")]
-    [PrebuildSetup("SetupGraphicsTestCases")]
+    [PrebuildSetup("SetupTestAssetTestCases")]
     //[UseGraphicsTestCases]
     [UseTestAssetTestCase]
     public IEnumerator RunIndividualTests(Material mat, bool isPerspective, Texture2D refImage, ImageComparisonSettings settings, Mesh customMesh = null) //reference image, test hash, reference hash
