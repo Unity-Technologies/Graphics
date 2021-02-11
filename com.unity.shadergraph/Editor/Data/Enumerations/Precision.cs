@@ -2,6 +2,23 @@ using System;
 
 namespace UnityEditor.ShaderGraph.Internal
 {
+    // ------------------------------------------------------------------------------------------
+    //
+    //  The general use of precision follows this data flow
+    //
+    //  Precision -- user selectable precision setting on each node
+    //       == apply precision inherit rules based on node inputs ==>
+    //  GraphPrecision -- where "GraphPrecision.Graph" means use the graph default setting
+    //       == fallback to graph defaults ==>
+    //  GraphPrecision -- where "GraphPrecision.Graph" means it is switchable when in a subgraph
+    //       == shadergraph concretization ==>
+    //  ConcretePrecision -- the actual precision used by the node, half or single
+    //
+    //  We could at some point separate the two GraphPrecision uses into separate enums,
+    //  but they're close enough we're using one enum for both uses at the moment
+    //
+    // ------------------------------------------------------------------------------------------
+
     // this is generally used for user-selectable precision
     [Serializable]
     enum Precision
