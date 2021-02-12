@@ -99,11 +99,8 @@ namespace UnityEngine.Rendering.Universal.Internal
                 {
                     DrawingSettings drawSettings = CreateDrawingSettings(s_DebugMaterialShaderTagId, ref renderingData, sortFlags);
 
-                    foreach(DebugRenderPass debugRenderPass in new DebugRenderPassEnumerable(DebugHandler, cmd))
+                    foreach(DebugRenderPass debugRenderPass in new DebugRenderPassEnumerable(DebugHandler, context, cmd))
                     {
-                        context.ExecuteCommandBuffer(cmd);
-                        cmd.Clear();
-
                         if(debugRenderPass.GetRenderStateBlock(out RenderStateBlock renderStateBlock))
                         {
                             context.DrawRenderers(renderingData.cullResults, ref drawSettings, ref filterSettings, ref renderStateBlock);

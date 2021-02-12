@@ -74,11 +74,8 @@ namespace UnityEngine.Rendering.Universal
                     CommandBuffer cmd = CommandBufferPool.Get();
 
                     // TODO: Can we rewrite this as an iterator?
-                    foreach(DebugRenderPass debugRenderPass in new DebugRenderPassEnumerable(DebugHandler, cmd))
+                    foreach(DebugRenderPass debugRenderPass in new DebugRenderPassEnumerable(DebugHandler, context, cmd))
                     {
-                        context.ExecuteCommandBuffer(cmd);
-                        cmd.Clear();
-
                         context.DrawSkybox(camera);
                     }
 
