@@ -175,6 +175,15 @@ Shader ""Hidden/GraphErrorShader2""
                     }
                 }
 
+                if (ShaderUtil.ShaderHasError(shader))
+                {
+                    var messages = ShaderUtil.GetShaderMessages(shader);
+                    if (messages.Length > 0)
+                    {
+                        MessageManager.Log(path, messages[0], shader);
+                    }
+                }
+
                 EditorMaterialUtility.SetShaderDefaults(
                     shader,
                     configuredTextures.Where(x => x.modifiable).Select(x => x.name).ToArray(),
