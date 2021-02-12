@@ -114,7 +114,7 @@ namespace UnityEditor.VFX
             return vfxObjects;
         }
 
-        [MenuItem("Edit/Visual Effects//Rebuild And Save All Visual Effect Graphs", priority = 320)]
+        [MenuItem("Edit/Visual Effects/Rebuild And Save All Visual Effect Graphs", priority = 320)]
         public static void Build()
         {
             var vfxObjects = GetAllVisualEffectObjects();
