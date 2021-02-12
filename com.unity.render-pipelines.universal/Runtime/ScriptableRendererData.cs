@@ -25,6 +25,9 @@ namespace UnityEngine.Rendering.Universal
 
         [SerializeField, Reload("Shaders/Debug/FullScreenDebug.shader")]
         public Shader fullScreenDebugPS;
+
+        [SerializeField, Reload("Shaders/Debug/DebugReplacement.shader")]
+        public Shader debugReplacementPS;
         #endregion
 
         /// <summary>

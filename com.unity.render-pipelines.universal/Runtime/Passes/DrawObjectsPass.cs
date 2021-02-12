@@ -94,10 +94,12 @@ namespace UnityEngine.Rendering.Universal.Internal
                 }
                 #endif
 
+                DrawingSettings drawSettings = CreateDrawingSettings(m_ShaderTagIdList, ref renderingData, sortFlags);
+
                 if ((DebugHandler != null) &&
                     (DebugHandler.IsDebugMaterialActive || DebugHandler.IsReplacementMaterialNeeded))
                 {
-                    DrawingSettings drawSettings = CreateDrawingSettings(s_DebugMaterialShaderTagId, ref renderingData, sortFlags);
+                    DebugHandler.UpdateDrawingSettings(ref drawSettings);
 
                     foreach(DebugRenderPass debugRenderPass in new DebugRenderPassEnumerable(DebugHandler, context, cmd))
                     {
@@ -113,8 +115,6 @@ namespace UnityEngine.Rendering.Universal.Internal
                 }
                 else
                 {
-	                DrawingSettings drawSettings = CreateDrawingSettings(m_ShaderTagIdList, ref renderingData, sortFlags);
-
             	    context.DrawRenderers(renderingData.cullResults, ref drawSettings, ref filterSettings, ref m_RenderStateBlock);
 
 	                // Render objects that did not match any shader pass with error shader

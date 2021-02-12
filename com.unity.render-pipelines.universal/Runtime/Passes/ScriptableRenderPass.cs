@@ -385,16 +385,23 @@ namespace UnityEngine.Rendering.Universal
         public DrawingSettings CreateDrawingSettings(List<ShaderTagId> shaderTagIdList,
             ref RenderingData renderingData, SortingCriteria sortingCriteria)
         {
-            if (shaderTagIdList == null || shaderTagIdList.Count == 0)
+            if((DebugHandler != null) && DebugHandler.IsDebugMaterialActive)
             {
-                Debug.LogWarning("ShaderTagId list is invalid. DrawingSettings is created with default pipeline ShaderTagId");
-                return CreateDrawingSettings(new ShaderTagId("UniversalPipeline"), ref renderingData, sortingCriteria);
+                return CreateDrawingSettings(s_DebugMaterialShaderTagId, ref renderingData, sortingCriteria);
             }
+            else
+            {
+                if (shaderTagIdList == null || shaderTagIdList.Count == 0)
+                {
+                    Debug.LogWarning("ShaderTagId list is invalid. DrawingSettings is created with default pipeline ShaderTagId");
+                    return CreateDrawingSettings(new ShaderTagId("UniversalPipeline"), ref renderingData, sortingCriteria);
+                }
 
-            DrawingSettings settings = CreateDrawingSettings(shaderTagIdList[0], ref renderingData, sortingCriteria);
-            for (int i = 1; i < shaderTagIdList.Count; ++i)
-                settings.SetShaderPassName(i, shaderTagIdList[i]);
-            return settings;
+                DrawingSettings settings = CreateDrawingSettings(shaderTagIdList[0], ref renderingData, sortingCriteria);
+                for (int i = 1; i < shaderTagIdList.Count; ++i)
+                    settings.SetShaderPassName(i, shaderTagIdList[i]);
+                return settings;
+            }
         }
 
         public static bool operator<(ScriptableRenderPass lhs, ScriptableRenderPass rhs)

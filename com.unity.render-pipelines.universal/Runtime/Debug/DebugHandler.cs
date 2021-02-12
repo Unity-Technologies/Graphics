@@ -11,6 +11,7 @@ namespace UnityEngine.Rendering.Universal
 
         private readonly Material m_FullScreenDebugMaterial;
         private readonly Texture2D m_NumberFontTexture;
+        private readonly Material m_ReplacementMaterial;
 
         // Material settings...
         private readonly int m_DebugMaterialModeId;
@@ -54,8 +55,7 @@ namespace UnityEngine.Rendering.Universal
 
         public DebugDisplaySettings DebugDisplaySettings => m_DebugDisplaySettings;
 
-        public bool IsReplacementMaterialNeeded => (RenderingSettings.debugSceneOverrideMode != DebugSceneOverrideMode.None) ||
-                                                   (MaterialSettings.DebugVertexAttributeIndexData != DebugVertexAttributeMode.None);
+        public bool IsReplacementMaterialNeeded => (MaterialSettings.DebugVertexAttributeIndexData != DebugVertexAttributeMode.None);
 
         public bool IsScreenClearNeeded
         {
@@ -71,11 +71,13 @@ namespace UnityEngine.Rendering.Universal
         {
             Texture2D numberFontTexture = scriptableRendererData.NumberFont;
             Shader fullScreenDebugShader = scriptableRendererData.fullScreenDebugPS;
+            Shader debugReplacementShader = scriptableRendererData.debugReplacementPS;
 
             m_DebugDisplaySettings = DebugDisplaySettings.Instance;
 
             m_NumberFontTexture = numberFontTexture;
             m_FullScreenDebugMaterial = (fullScreenDebugShader == null) ? null : CoreUtils.CreateEngineMaterial(fullScreenDebugShader);
+            m_ReplacementMaterial = (debugReplacementShader == null) ? null : CoreUtils.CreateEngineMaterial(debugReplacementShader);
 
             // Material settings...
             m_DebugMaterialModeId = Shader.PropertyToID("_DebugMaterialMode");
@@ -102,6 +104,20 @@ namespace UnityEngine.Rendering.Universal
         internal DebugPass CreatePass(RenderPassEvent evt)
         {
             return new DebugPass(evt, m_FullScreenDebugMaterial);
+        }
+
+        public bool TryGetReplacementMaterial(out Material replacementMaterial)
+        {
+            if(IsReplacementMaterialNeeded)
+            {
+                replacementMaterial = m_ReplacementMaterial;
+                return true;
+            }
+            else
+            {
+                replacementMaterial = default;
+                return false;
+            }
         }
 
         public bool TryGetFullscreenDebugMode(out DebugFullScreenMode debugFullScreenMode)
@@ -174,6 +190,14 @@ namespace UnityEngine.Rendering.Universal
             cmd.SetGlobalTexture("_DebugNumberTexture", m_NumberFontTexture);
             context.ExecuteCommandBuffer(cmd);
             CommandBufferPool.Release(cmd);
+        }
+
+        public void UpdateDrawingSettings(ref DrawingSettings drawingSettings)
+        {
+            if(TryGetReplacementMaterial(out Material replacementMaterial))
+            {
+                drawingSettings.overrideMaterial = replacementMaterial;
+            }
         }
     }
 }
