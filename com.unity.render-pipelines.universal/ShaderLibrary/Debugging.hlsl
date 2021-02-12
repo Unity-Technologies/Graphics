@@ -455,6 +455,15 @@ bool CalculateColorForDebug(in InputData inputData, in SurfaceData surfaceData, 
 
 #endif
 
+bool IsAlphaDiscardEnabled()
+{
+    #if defined(_DEBUG_SHADER)
+    return (_DebugSceneOverrideMode == DEBUGSCENEOVERRIDEMODE_NONE);
+    #else
+    return true;
+    #endif
+}
+
 bool IsLightingFeatureEnabled(uint bitMask)
 {
     #if defined(_DEBUG_SHADER)

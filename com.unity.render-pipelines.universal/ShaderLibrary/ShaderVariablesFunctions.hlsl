@@ -2,6 +2,7 @@
 #define UNITY_SHADER_VARIABLES_FUNCTIONS_INCLUDED
 
 #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/ShaderVariablesFunctions.deprecated.hlsl"
+#include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Debugging.hlsl"
 
 VertexPositionInputs GetVertexPositionInputs(float3 positionOS)
 {
@@ -135,6 +136,7 @@ void GetLeftHandedViewSpaceMatrices(out float4x4 viewMatrix, out float4x4 projMa
 void AlphaDiscard(real alpha, real cutoff, real offset = 0.0h)
 {
     #ifdef _ALPHATEST_ON
+    if(IsAlphaDiscardEnabled())
         clip(alpha - cutoff + offset);
     #endif
 }
