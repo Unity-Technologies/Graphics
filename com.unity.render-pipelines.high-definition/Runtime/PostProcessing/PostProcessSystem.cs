@@ -2418,6 +2418,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
                     float currentIntensity = comp.attenuation * element.localIntensity * data.globalIntensity * radialsScaleRadius * distanceAttenuation;
 
+                    ++elemIdx;
                     if (currentIntensity <= 0.0f)
                         continue;
 
@@ -2453,8 +2454,6 @@ namespace UnityEngine.Rendering.HighDefinition
                     cmd.SetGlobalVector(HDShaderIDs._FlareData, dataSrc);
                     cmd.SetGlobalFloat(HDShaderIDs._FlareSpeed, element.speed);
                     cmd.DrawProcedural(Matrix4x4.identity, usedMaterial, 0, MeshTopology.Quads, 6, 1, null);
-
-                    ++elemIdx;
                 }
             }
         }
