@@ -27,18 +27,17 @@ MonoBehaviour:
   m_Name: VolumetricClouds
   m_EditorClassIdentifier: 
   active: 1
-  m_AdvancedMode: 0
   enable:
     m_OverrideState: 1
     m_Value: 1
   earthCurvature:
     m_OverrideState: 1
-    m_Value: 1
+    m_Value: 0
     min: 0
     max: 1
   cloudTiling:
-    m_OverrideState: 0
-    m_Value: {x: 1, y: 1}
+    m_OverrideState: 1
+    m_Value: {x: 5, y: 5}
   cloudOffset:
     m_OverrideState: 0
     m_Value: {x: 0, y: 0}
@@ -62,7 +61,7 @@ MonoBehaviour:
     max: 32
   cloudMap:
     m_OverrideState: 1
-    m_Value: {fileID: 2800000, guid: 4f1015d86699e824f808554286b883b6, type: 3}
+    m_Value: {fileID: 2800000, guid: e9c4da07dec84e440bc5ce22500f0a2e, type: 3}
   cloudLut:
     m_OverrideState: 1
     m_Value: {fileID: 2800000, guid: c048349d208625040b34910e0ba90ee4, type: 3}
@@ -124,13 +123,13 @@ MonoBehaviour:
     min: 0
     max: 1
   densityMultiplier:
-    m_OverrideState: 0
-    m_Value: 0.25
+    m_OverrideState: 1
+    m_Value: 0.11
     min: 0
     max: 1
   shapeFactor:
-    m_OverrideState: 0
-    m_Value: 0.5
+    m_OverrideState: 1
+    m_Value: 0
     min: 0
     max: 1
   shapeScale:
@@ -178,8 +177,8 @@ MonoBehaviour:
     min: 0
     max: 1
   temporalAccumulationFactor:
-    m_OverrideState: 0
-    m_Value: 0.95
+    m_OverrideState: 1
+    m_Value: 1
     min: 0
     max: 1
   shadows:
