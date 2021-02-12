@@ -13,7 +13,7 @@ MonoBehaviour:
   m_Name: Probe Volume Profile
   m_EditorClassIdentifier: 
   cellSize: 64
-  brickSize: 4
-  maxSubdivision: 2
+  brickSize: 3
+  maxSubdivision: 3
   normalBias: 0.2
   indexDimensions: {x: 1024, y: 64, z: 1024}

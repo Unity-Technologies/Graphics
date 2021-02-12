@@ -5977,7 +5977,7 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 500513883}
   m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
-  m_LocalPosition: {x: 54.367893, y: 3.7017546, z: -0.19293594}
+  m_LocalPosition: {x: 38.7, y: 3.7017546, z: -0.19293594}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_Children: []
   m_Father: {fileID: 1377783}
@@ -5995,7 +5995,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 615ae7014a609a145921bb86593bf1bb, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  m_Profile: {fileID: 11400000, guid: af73c78bb2dfe764891c39b110aa51d6, type: 2}
+  m_Profile: {fileID: 11400000, guid: 011dadd457d2dde4bb4217db4967d213, type: 2}
   m_DrawProbes: 1
   m_DrawBricks: 1
   m_DrawCells: 1
@@ -16949,7 +16949,7 @@ MonoBehaviour:
     invertFade: 0
     distanceFadeStart: 50
     distanceFadeEnd: 60
-    textureOffset: {x: -0, y: -141.75041, z: 0}
+    textureOffset: {x: -0, y: -239.70906, z: 0}
     falloffMode: 0
   m_Version: 2
 --- !u!1001 &1504255721
