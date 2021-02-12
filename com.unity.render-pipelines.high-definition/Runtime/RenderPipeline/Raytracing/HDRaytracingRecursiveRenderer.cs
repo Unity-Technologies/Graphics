@@ -30,6 +30,8 @@ namespace UnityEngine.Rendering.HighDefinition
                 dimension = TextureXR.dimension,
                 enableRandomWrite = true,
                 useMipMap = true,
+                clearBuffer = true,
+                clearColor = Color.black,
                 name = "FlagMaskTexture"
             });
         }

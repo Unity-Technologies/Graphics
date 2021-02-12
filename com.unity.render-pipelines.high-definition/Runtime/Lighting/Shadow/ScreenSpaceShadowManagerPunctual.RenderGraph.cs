@@ -8,7 +8,7 @@ namespace UnityEngine.Rendering.HighDefinition
     {
         TextureHandle DenoisePunctualScreenSpaceShadow(RenderGraph renderGraph, HDCamera hdCamera,
             HDAdditionalLightData additionalLightData, in LightData lightData,
-            TextureHandle depthBuffer, TextureHandle normalBuffer, TextureHandle motionVetorsBuffer,
+            TextureHandle depthBuffer, TextureHandle normalBuffer, TextureHandle motionVetorsBuffer, TextureHandle historyValidityBuffer,
             TextureHandle noisyBuffer, TextureHandle velocityBuffer, TextureHandle distanceBufferI)
         {
             // Is the history still valid?
@@ -37,7 +37,7 @@ namespace UnityEngine.Rendering.HighDefinition
             RTHandle shadowHistoryValidityArray = RequestShadowHistoryValidityBuffer(hdCamera);
 
             temporalFilterResult = temporalFilter.DenoiseBuffer(renderGraph, hdCamera,
-                depthBuffer, normalBuffer, motionVetorsBuffer,
+                depthBuffer, normalBuffer, motionVetorsBuffer, historyValidityBuffer,
                 noisyBuffer, shadowHistoryArray,
                 distanceBuffer, shadowHistoryDistanceArray,
                 velocityBuffer,
@@ -91,7 +91,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
         void RenderPunctualScreenSpaceShadow(RenderGraph renderGraph, HDCamera hdCamera
             , in LightData lightData, HDAdditionalLightData additionalLightData, int lightIndex,
-            PrepassOutput prepassOutput, TextureHandle depthBuffer, TextureHandle normalBuffer, TextureHandle motionVectorsBuffer, TextureHandle rayCountTexture, TextureHandle screenSpaceShadowArray)
+            PrepassOutput prepassOutput, TextureHandle depthBuffer, TextureHandle normalBuffer, TextureHandle motionVectorsBuffer, TextureHandle historyValidityBuffer, TextureHandle rayCountTexture, TextureHandle screenSpaceShadowArray)
         {
             TextureHandle pointShadowBuffer;
             TextureHandle velocityBuffer;
@@ -142,7 +142,7 @@ namespace UnityEngine.Rendering.HighDefinition
             {
                 pointShadowBuffer = DenoisePunctualScreenSpaceShadow(renderGraph, hdCamera,
                     additionalLightData, lightData,
-                    depthBuffer, normalBuffer, motionVectorsBuffer,
+                    depthBuffer, normalBuffer, motionVectorsBuffer, historyValidityBuffer,
                     pointShadowBuffer, velocityBuffer, distanceBuffer);
             }
 

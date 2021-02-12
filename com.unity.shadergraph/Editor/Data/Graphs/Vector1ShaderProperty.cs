@@ -62,9 +62,9 @@ namespace UnityEditor.ShaderGraph.Internal
             }
         }
 
-        internal override string GetPropertyAsArgumentString()
+        internal override string GetPropertyAsArgumentString(string precisionString)
         {
-            return $"{concreteShaderValueType.ToShaderString(concretePrecision.ToShaderString())} {referenceName}";
+            return $"{concreteShaderValueType.ToShaderString(precisionString)} {referenceName}";
         }
 
         internal override void ForeachHLSLProperty(Action<HLSLProperty> action)
@@ -152,16 +152,12 @@ namespace UnityEditor.ShaderGraph.Internal
             return new Vector1ShaderProperty()
             {
                 displayName = displayName,
-                hidden = hidden,
                 value = value,
                 floatType = floatType,
                 rangeValues = rangeValues,
                 enumType = enumType,
                 enumNames = enumNames,
                 enumValues = enumValues,
-                precision = precision,
-                overrideHLSLDeclaration = overrideHLSLDeclaration,
-                hlslDeclarationOverride = hlslDeclarationOverride
             };
         }
 
