@@ -19,6 +19,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Node included HLSL files are now tracked more robustly, so they work after file moves and renames [1301915] (https://issuetracker.unity3d.com/product/unity/issues/guid/1301915/)
 - Clean up console error reporting from node shader compilation so errors are reported in the graph rather than the Editor console [1296291] (https://issuetracker.unity3d.com/product/unity/issues/guid/1296291/)
 - Fixed treatment of node precision in subgraphs, now allows subgraphs to switch precisions based on the subgraph node [1304050] (https://issuetracker.unity3d.com/issues/precision-errors-when-theres-a-precision-discrepancy-between-subgraphs-and-parent-graphs)
+- Fixed an issue where the Rectangle Node could lose detail at a distance.  New control offers additional method that preserves detail better [1156801]
 
 ## [11.0.0] - 2020-10-21
 
