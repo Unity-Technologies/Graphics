@@ -793,13 +793,7 @@ namespace UnityEngine.Rendering.Universal
                 int height = renderPass.srpDescriptor.height != -1 ? renderPass.srpDescriptor.height : desc.height;
                 sampleCount = renderPass.srpDescriptor.sampleCount != -1
                     ? renderPass.srpDescriptor.sampleCount
-                    :
-#if UNITY_EDITOR
-                    !isLastPassToBB ? sampleCount : 1;
-#else
-                    //In case MSAA is disabled on camera, we need to still check the QualitySettings, as backbuffer will be created with that setting in mind
-                    isLastPassToBB? QualitySettings.antiAliasing : sampleCount;
-#endif
+                    : sampleCount;
 
                 context.BeginRenderPass(width, height, Math.Max(sampleCount, 1), attachments,
                     useDepth ? (!renderPass.srpDescriptor.isDepthOnly ? validColorBuffersCount : 0) : -1);
@@ -1059,7 +1053,7 @@ namespace UnityEngine.Rendering.Universal
 
                     var depthAttachmentTarget = (cameraData.targetTexture != null)
                         ? m_CameraDepthTarget
-                        : ((cameraData.cameraTargetDescriptor.msaaSamples == 1) && (passDepthAttachment == BuiltinRenderTextureType.CameraTarget))
+                        : (passDepthAttachment == BuiltinRenderTextureType.CameraTarget)
                         ? BuiltinRenderTextureType.Depth
                         : passDepthAttachment;
 
