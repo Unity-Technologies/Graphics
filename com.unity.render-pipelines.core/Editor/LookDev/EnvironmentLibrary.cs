@@ -177,7 +177,7 @@ namespace UnityEditor.Rendering.LookDev
             m_Field = null;
         }
 
-        [MenuItem("Assets/Create/LookDev/Environment Library", priority = 2000)]
+        [MenuItem("Assets/Create/Rendering/Environment Library (Look Dev)", priority = CoreUtils.Priorities.assetsCreateRenderingMenuPriority)]
         static void Create()
         {
             var icon = EditorGUIUtility.FindTexture("ScriptableObject Icon");
