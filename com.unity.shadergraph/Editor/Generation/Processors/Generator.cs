@@ -408,7 +408,7 @@ namespace UnityEditor.ShaderGraph
             // Function Registry
             var functionBuilder = new ShaderStringBuilder();
             var graphIncludes = new IncludeCollection();
-            var functionRegistry = new FunctionRegistry(functionBuilder, graphIncludes);
+            var functionRegistry = new FunctionRegistry(functionBuilder, graphIncludes, true);
 
             // Hash table of named $splice(name) commands
             // Key: splice token
@@ -720,7 +720,7 @@ namespace UnityEditor.ShaderGraph
 
             using (var propertyBuilder = new ShaderStringBuilder())
             {
-                subShaderProperties.GetPropertiesDeclarationForTarget(propertyBuilder, m_Mode, m_GraphData.concretePrecision, target);
+                subShaderProperties.GetPropertiesDeclarationForTarget(propertyBuilder, m_Mode, m_GraphData.graphDefaultConcretePrecision, target);
                 if (propertyBuilder.length == 0)
                     propertyBuilder.AppendLine("// GraphProperties: <None>");
                 spliceCommands.Add("GraphProperties", propertyBuilder.ToCodeBlock());

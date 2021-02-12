@@ -157,10 +157,13 @@ Shader ""Hidden/GraphErrorShader2""
 
                 if (graph.messageManager.nodeMessagesChanged)
                 {
-                    foreach (var pair in graph.messageManager.GetNodeMessages())
+                    if (graph.messageManager.AnyError())
                     {
-                        var node = graph.GetNodeFromId(pair.Key);
-                        MessageManager.Log(node, path, pair.Value.First(), shader);
+                        Debug.LogError($"Shader Graph at {path} has at least one error.");
+                    }
+                    else
+                    {
+                        Debug.LogWarning($"Shader Graph at {path} has at least one warning.");
                     }
                 }
 
@@ -361,7 +364,7 @@ Shader ""Hidden/GraphErrorShader2""
 
                 foreach (var properties in graph.properties)
                 {
-                    properties.ValidateConcretePrecision(graph.concretePrecision);
+                    properties.SetupConcretePrecision(graph.graphDefaultConcretePrecision);
                 }
 
                 foreach (var node in nodes)
@@ -613,7 +616,7 @@ Shader ""Hidden/GraphErrorShader2""
                 {
                     var port = ports[portIndex];
                     portCodeIndices[portIndex].Add(codeSnippets.Count);
-                    codeSnippets.Add($"{nl}{indent}{port.concreteValueType.ToShaderString(graph.concretePrecision)} {port.shaderOutputName}_{originialPortIds[portIndex]};");
+                    codeSnippets.Add($"{nl}{indent}{port.concreteValueType.ToShaderString(graph.graphDefaultConcretePrecision)} {port.shaderOutputName}_{originialPortIds[portIndex]};");
                 }
 
                 sharedCodeIndices.Add(codeSnippets.Count);
@@ -654,7 +657,7 @@ Shader ""Hidden/GraphErrorShader2""
                     }
 
                     inputProperties.Add(property);
-                    codeSnippets.Add($",{nl}{indent}/* Property: {property.displayName} */ {property.GetPropertyAsArgumentString()}");
+                    codeSnippets.Add($",{nl}{indent}/* Property: {property.displayName} */ {property.GetPropertyAsArgumentString(property.concretePrecision.ToShaderString())}");
                 }
 
                 sharedCodeIndices.Add(codeSnippets.Count);
@@ -696,7 +699,7 @@ Shader ""Hidden/GraphErrorShader2""
                 {
                     var port = ports[portIndex];
                     portCodeIndices[portIndex].Add(codeSnippets.Count);
-                    codeSnippets.Add($"{indent}OUT.{port.shaderOutputName}_{originialPortIds[portIndex]} = {port.owner.GetSlotValue(port.id, GenerationMode.ForReals, graph.concretePrecision)};{nl}");
+                    codeSnippets.Add($"{indent}OUT.{port.shaderOutputName}_{originialPortIds[portIndex]} = {port.owner.GetSlotValue(port.id, GenerationMode.ForReals, graph.graphDefaultConcretePrecision)};{nl}");
                 }
 
                 #endregion
@@ -727,7 +730,7 @@ Shader ""Hidden/GraphErrorShader2""
                 asset.inputStructName = inputStructName;
                 asset.outputStructName = outputStructName;
                 asset.portRequirements = portRequirements;
-                asset.concretePrecision = graph.concretePrecision;
+                asset.concretePrecision = graph.graphDefaultConcretePrecision;
                 asset.SetProperties(inputProperties);
                 asset.outputPropertyIndices = new IntArray[ports.Count];
                 for (var portIndex = 0; portIndex < ports.Count; portIndex++)
