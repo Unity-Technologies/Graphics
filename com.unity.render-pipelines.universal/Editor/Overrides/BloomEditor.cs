@@ -45,7 +45,7 @@ namespace UnityEditor.Rendering.Universal
                 EditorGUILayout.HelpBox("High Quality Bloom isn't supported on GLES2 platforms.", MessageType.Warning);
 
             PropertyField(m_SkipIterations);
-            
+
             PropertyField(m_DirtTexture);
             PropertyField(m_DirtIntensity);
         }
