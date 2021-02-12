@@ -200,8 +200,10 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
         {
             public static KeywordCollection Unlit = new KeywordCollection
             {
+                // This contain lightmaps because without a proper custom lighting solution in Shadergraph,
+                // people start with the unlit then add lightmapping nodes to it.
+                // If we removed lightmaps from the unlit target this would ruin a lot of peoples days.
                 { CoreKeywordDescriptors.StaticLightmap },
-                // TODO ENLIGHTEN: Should this contain lightmaps at all?
                 { CoreKeywordDescriptors.DirectionalLightmapCombined },
                 { CoreKeywordDescriptors.SampleGI },
             };
