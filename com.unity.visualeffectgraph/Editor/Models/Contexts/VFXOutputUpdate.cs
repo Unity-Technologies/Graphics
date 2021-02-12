@@ -172,6 +172,9 @@ namespace UnityEditor.VFX
 
                 if (HasFeature(Features.MultiMesh))
                     yield return new VFXAttributeInfo(VFXAttribute.MeshIndex, VFXAttributeMode.Read);
+
+                if (HasFeature(Features.MotionVector) && output is VFXLineOutput)
+                    yield return new VFXAttributeInfo(VFXAttribute.TargetPosition, VFXAttributeMode.Read);
             }
         }
 
@@ -182,8 +185,14 @@ namespace UnityEditor.VFX
                 foreach (var d in base.additionalDefines)
                     yield return d;
 
+                yield return "INDIRECT_BUFFER_COUNT " + bufferCount;
+
                 if (HasFeature(Features.MotionVector))
+                {
                     yield return "VFX_FEATURE_MOTION_VECTORS";
+                    if (output.SupportsMotionVectorPerVertex(out uint vertsCount))
+                        yield return "VFX_FEATURE_MOTION_VECTORS_VERTS " + vertsCount;
+                }
                 if (HasFeature(Features.LOD))
                     yield return "VFX_FEATURE_LOD";
                 if (HasFeature(Features.Sort))
@@ -193,14 +202,72 @@ namespace UnityEditor.VFX
             }
         }
 
-        public override IEnumerable<string> additionalDataHeaders
+        public override IEnumerable<KeyValuePair<string, VFXShaderWriter>> additionalReplacements
         {
             get
             {
-                foreach (var d in base.additionalDataHeaders)
-                    yield return d;
+                if (HasFeature(Features.MotionVector))
+                {
+                    string motionVectorVerts = null;
 
-                yield return "#define INDIRECT_BUFFER_COUNT " + bufferCount;
+                    if (output is VFXLineOutput)
+                    {
+                        bool useTargetOffset = (bool)output.GetSettingValue("useTargetOffset");
+                        string targetPosition = useTargetOffset ? "mul(elementToVFX, float4(targetOffset, 1)).xyz" : "attributes.targetPosition";
+                        switch (output.taskType)
+                        {
+                            case VFXTaskType.ParticleQuadOutput:
+                                motionVectorVerts = @"float3 verts[] =
+{
+    attributes.position,
+    attributes.position,
+    " + targetPosition + @",
+    " + targetPosition + @"
+};";
+                                break;
+                            case VFXTaskType.ParticleLineOutput:
+                                motionVectorVerts = @"float3 verts[] =
+{
+    attributes.position,
+    " + targetPosition + @"
+};";
+                                break;
+                        }
+                    }
+                    else
+                    {
+                        switch (output.taskType)
+                        {
+                            case VFXTaskType.ParticleQuadOutput:
+                                motionVectorVerts = @"float3 verts[] =
+{
+    mul(elementToVFX, float4(-0.5f, -0.5f, 0.0f, 1.0f)).xyz,
+    mul(elementToVFX, float4( 0.5f, -0.5f, 0.0f, 1.0f)).xyz,
+    mul(elementToVFX, float4(-0.5f,  0.5f, 0.0f, 1.0f)).xyz,
+    mul(elementToVFX, float4( 0.5f,  0.5f, 0.0f, 1.0f)).xyz
+};";
+                                break;
+                            case VFXTaskType.ParticleTriangleOutput:
+                                motionVectorVerts = @"float3 verts[] =
+{
+    mul(elementToVFX, float4(-0.5f, -0.288675129413604736328125f, 0.0f, 1.0f)).xyz,
+    mul(elementToVFX, float4( 0.0f,  0.57735025882720947265625f, 0.0f, 1.0f)).xyz,
+    mul(elementToVFX, float4( 0.5f, -0.288675129413604736328125f, 0.0f, 1.0f)).xyz
+};";
+                                break;
+                            case VFXTaskType.ParticlePointOutput:
+                                motionVectorVerts = @"float3 verts[] = { elementToVFX._m03_m13_m23 };";
+                                break;
+                        }
+                    }
+
+                    if (motionVectorVerts != null)
+                    {
+                        var motionVectorVertsWriter = new VFXShaderWriter();
+                        motionVectorVertsWriter.Write(motionVectorVerts);
+                        yield return new KeyValuePair<string, VFXShaderWriter>("${VFXMotionVectorVerts}", motionVectorVertsWriter);
+                    }
+                }
             }
         }
     }
