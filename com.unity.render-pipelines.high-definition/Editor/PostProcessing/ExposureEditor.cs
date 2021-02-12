@@ -196,25 +196,29 @@ namespace UnityEditor.Rendering.HighDefinition
                 DrawOverrideCheckbox(exposureProperty);
 
                 using (new EditorGUI.DisabledScope(!exposureProperty.overrideState.boolValue))
-                    EditorGUILayout.LabelField(exposureProperty.displayName);
-            }
+                {
+                    using (new EditorGUILayout.VerticalScope())
+                    {
+                        EditorGUILayout.LabelField(exposureProperty.displayName);
 
-            using (new EditorGUI.DisabledScope(!exposureProperty.overrideState.boolValue))
-            {
-                var xOffset = EditorGUIUtility.labelWidth + 22;
-                var lineRect = EditorGUILayout.GetControlRect();
-                lineRect.x += xOffset;
-                lineRect.width -= xOffset;
+                        var xOffset = EditorGUIUtility.labelWidth;
 
-                var sliderRect = lineRect;
-                sliderRect.y -= EditorGUIUtility.singleLineHeight;
-                k_LightUnitSlider.SetSerializedObject(serializedObject);
-                k_LightUnitSlider.DrawExposureSlider(exposureProperty.value, sliderRect);
+                        var lineRect = EditorGUILayout.GetControlRect();
+                        lineRect.x += xOffset;
+                        lineRect.width -= xOffset;
 
-                // GUIContent.none disables horizontal scrolling, use TrTextContent and adjust the rect to make it work.
-                lineRect.x -= EditorGUIUtility.labelWidth + 2;
-                lineRect.width += EditorGUIUtility.labelWidth + 2;
-                EditorGUI.PropertyField(lineRect, exposureProperty.value, EditorGUIUtility.TrTextContent(" "));
+                        var sliderRect = lineRect;
+                        sliderRect.y -= EditorGUIUtility.singleLineHeight;
+                        k_LightUnitSlider.SetSerializedObject(serializedObject);
+                        k_LightUnitSlider.DrawExposureSlider(exposureProperty.value, sliderRect);
+
+                        // GUIContent.none disables horizontal scrolling, use TrTextContent and adjust the rect to make it work.
+                        lineRect.x -= EditorGUIUtility.labelWidth + 2;
+                        lineRect.y += EditorGUIUtility.standardVerticalSpacing;
+                        lineRect.width += EditorGUIUtility.labelWidth + 2;
+                        EditorGUI.PropertyField(lineRect, exposureProperty.value, EditorGUIUtility.TrTextContent(" "));
+                    }
+                }
             }
         }
     }
