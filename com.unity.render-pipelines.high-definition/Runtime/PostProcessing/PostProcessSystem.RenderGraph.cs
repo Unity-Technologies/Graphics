@@ -90,7 +90,16 @@ namespace UnityEngine.Rendering.HighDefinition
 
         class TemporalAntiAliasingData
         {
-            public TemporalAntiAliasingParameters parameters;
+            public Material temporalAAMaterial;
+            public MaterialPropertyBlock taaHistoryPropertyBlock;
+            public MaterialPropertyBlock taaPropertyBlock;
+            public bool resetPostProcessingHistory;
+
+            public Vector4 previousScreenSize;
+            public Vector4 taaParameters;
+            public Vector4 taaFilterWeights;
+            public bool motionVectorRejection;
+
             public TextureHandle source;
             public TextureHandle destination;
             public TextureHandle motionVecTexture;
@@ -565,48 +574,177 @@ namespace UnityEngine.Rendering.HighDefinition
             return source;
         }
 
-        TextureHandle DoTemporalAntialiasing(RenderGraph renderGraph, HDCamera hdCamera, TextureHandle depthBuffer, TextureHandle motionVectors, TextureHandle depthBufferMipChain, TextureHandle source)
+        void PrepareTAAPassData(RenderGraph renderGraph, RenderGraphBuilder builder, TemporalAntiAliasingData passData, HDCamera camera,
+            TextureHandle depthBuffer, TextureHandle motionVectors, TextureHandle depthBufferMipChain, TextureHandle sourceTexture, bool postDoF, string outputName)
+        {
+            passData.resetPostProcessingHistory = camera.resetPostProcessingHistory;
+
+            float minAntiflicker = 0.0f;
+            float maxAntiflicker = 3.5f;
+            float motionRejectionMultiplier = Mathf.Lerp(0.0f, 250.0f, camera.taaMotionVectorRejection * camera.taaMotionVectorRejection * camera.taaMotionVectorRejection);
+
+            // The anti flicker becomes much more aggressive on higher values
+            float temporalContrastForMaxAntiFlicker = 0.7f - Mathf.Lerp(0.0f, 0.3f, Mathf.SmoothStep(0.5f, 1.0f, camera.taaAntiFlicker));
+
+            passData.taaParameters = new Vector4(camera.taaHistorySharpening, postDoF ? maxAntiflicker : Mathf.Lerp(minAntiflicker, maxAntiflicker, camera.taaAntiFlicker), motionRejectionMultiplier, temporalContrastForMaxAntiFlicker);
+
+            // Precompute weights used for the Blackman-Harris filter. TODO: Note that these are slightly wrong as they don't take into account the jitter size. This needs to be fixed at some point.
+            float crossWeights = Mathf.Exp(-2.29f * 2);
+            float plusWeights = Mathf.Exp(-2.29f);
+            float centerWeight = 1;
+
+            float totalWeight = centerWeight + (4 * plusWeights);
+            if (camera.TAAQuality == HDAdditionalCameraData.TAAQualityLevel.High)
+            {
+                totalWeight += crossWeights * 4;
+            }
+
+            // Weights will be x: central, y: plus neighbours, z: cross neighbours, w: total
+            passData.taaFilterWeights = new Vector4(centerWeight / totalWeight, plusWeights / totalWeight, crossWeights / totalWeight, totalWeight);
+
+            passData.temporalAAMaterial = m_TemporalAAMaterial;
+            passData.temporalAAMaterial.shaderKeywords = null;
+
+            if (m_EnableAlpha)
+            {
+                passData.temporalAAMaterial.EnableKeyword("ENABLE_ALPHA");
+            }
+
+            if (camera.taaHistorySharpening == 0)
+            {
+                passData.temporalAAMaterial.EnableKeyword("FORCE_BILINEAR_HISTORY");
+            }
+
+            if (camera.taaHistorySharpening != 0 && camera.taaAntiRinging && camera.TAAQuality == HDAdditionalCameraData.TAAQualityLevel.High)
+            {
+                passData.temporalAAMaterial.EnableKeyword("ANTI_RINGING");
+            }
+
+            passData.motionVectorRejection = camera.taaMotionVectorRejection > 0;
+            if (passData.motionVectorRejection)
+            {
+                passData.temporalAAMaterial.EnableKeyword("ENABLE_MV_REJECTION");
+            }
+
+            if (postDoF)
+            {
+                passData.temporalAAMaterial.EnableKeyword("POST_DOF");
+            }
+            else
+            {
+                switch (camera.TAAQuality)
+                {
+                    case HDAdditionalCameraData.TAAQualityLevel.Low:
+                        passData.temporalAAMaterial.EnableKeyword("LOW_QUALITY");
+                        break;
+                    case HDAdditionalCameraData.TAAQualityLevel.Medium:
+                        passData.temporalAAMaterial.EnableKeyword("MEDIUM_QUALITY");
+                        break;
+                    case HDAdditionalCameraData.TAAQualityLevel.High:
+                        passData.temporalAAMaterial.EnableKeyword("HIGH_QUALITY");
+                        break;
+                    default:
+                        passData.temporalAAMaterial.EnableKeyword("MEDIUM_QUALITY");
+                        break;
+                }
+            }
+
+            GrabTemporalAntialiasingHistoryTextures(camera, out var prevHistory, out var nextHistory, postDoF);
+
+            passData.taaHistoryPropertyBlock = m_TAAHistoryBlitPropertyBlock;
+            passData.taaPropertyBlock = m_TAAPropertyBlock;
+            Vector2Int prevViewPort = camera.historyRTHandleProperties.previousViewportSize;
+            passData.previousScreenSize = new Vector4(prevViewPort.x, prevViewPort.y, 1.0f / prevViewPort.x, 1.0f / prevViewPort.y);
+
+            passData.source = builder.ReadTexture(sourceTexture);
+            passData.depthBuffer = builder.ReadTexture(depthBuffer);
+            passData.motionVecTexture = builder.ReadTexture(motionVectors);
+            passData.depthMipChain = builder.ReadTexture(depthBufferMipChain);
+            passData.prevHistory = builder.ReadTexture(renderGraph.ImportTexture(prevHistory));
+            if (passData.resetPostProcessingHistory)
+            {
+                passData.prevHistory = builder.WriteTexture(passData.prevHistory);
+            }
+            passData.nextHistory = builder.WriteTexture(renderGraph.ImportTexture(nextHistory));
+            if (!postDoF)
+            {
+                GrabVelocityMagnitudeHistoryTextures(camera, out var prevMVLen, out var nextMVLen);
+                passData.prevMVLen = builder.ReadTexture(renderGraph.ImportTexture(prevMVLen));
+                passData.nextMVLen = builder.WriteTexture(renderGraph.ImportTexture(nextMVLen));
+            }
+            else
+            {
+                passData.prevMVLen = TextureHandle.nullHandle;
+                passData.nextMVLen = TextureHandle.nullHandle;
+            }
+
+            passData.destination = builder.WriteTexture(GetPostprocessOutputHandle(renderGraph, outputName)); ;
+
+            TextureHandle dest = GetPostprocessOutputHandle(renderGraph, "Post-DoF TAA Destination");
+            passData.destination = builder.WriteTexture(dest); ;
+        }
+
+        TextureHandle DoTemporalAntialiasing(RenderGraph renderGraph, HDCamera hdCamera, TextureHandle depthBuffer, TextureHandle motionVectors, TextureHandle depthBufferMipChain, TextureHandle sourceTexture, bool postDoF, string outputName)
         {
             using (var builder = renderGraph.AddRenderPass<TemporalAntiAliasingData>("Temporal Anti-Aliasing", out var passData, ProfilingSampler.Get(HDProfileId.TemporalAntialiasing)))
             {
-                GrabTemporalAntialiasingHistoryTextures(hdCamera, out var prevHistory, out var nextHistory);
-                GrabVelocityMagnitudeHistoryTextures(hdCamera, out var prevMVLen, out var nextMVLen);
-
-                passData.source = builder.ReadTexture(source);
-                passData.parameters = PrepareTAAParameters(hdCamera);
-                passData.depthBuffer = builder.ReadTexture(depthBuffer);
-                passData.motionVecTexture = builder.ReadTexture(motionVectors);
-                passData.depthMipChain = builder.ReadTexture(depthBufferMipChain);
-                passData.prevHistory = builder.ReadTexture(renderGraph.ImportTexture(prevHistory));
-                if (passData.parameters.resetPostProcessingHistory)
-                {
-                    passData.prevHistory = builder.WriteTexture(passData.prevHistory);
-                }
-                passData.nextHistory = builder.WriteTexture(renderGraph.ImportTexture(nextHistory));
-                passData.prevMVLen = builder.ReadTexture(renderGraph.ImportTexture(prevMVLen));
-                passData.nextMVLen = builder.WriteTexture(renderGraph.ImportTexture(nextMVLen));
-
-                TextureHandle dest = GetPostprocessOutputHandle(renderGraph, "TAA Destination");
-                passData.destination = builder.WriteTexture(dest);;
+                PrepareTAAPassData(renderGraph, builder, passData, hdCamera, depthBuffer, motionVectors, depthBufferMipChain, sourceTexture, postDoF, outputName);
 
                 builder.SetRenderFunc(
                     (TemporalAntiAliasingData data, RenderGraphContext ctx) =>
                     {
-                        DoTemporalAntialiasing(data.parameters, ctx.cmd, data.source,
-                            data.destination,
-                            data.motionVecTexture,
-                            data.depthBuffer,
-                            data.depthMipChain,
-                            data.prevHistory,
-                            data.nextHistory,
-                            data.prevMVLen,
-                            data.nextMVLen);
+                        RTHandle source = data.source;
+                        RTHandle nextMVLenTexture = data.nextMVLen;
+                        RTHandle prevMVLenTexture = data.prevMVLen;
+
+                        if (data.resetPostProcessingHistory)
+                        {
+                            data.taaHistoryPropertyBlock.SetTexture(HDShaderIDs._BlitTexture, source);
+                            var rtScaleSource = source.rtHandleProperties.rtHandleScale;
+                            data.taaHistoryPropertyBlock.SetVector(HDShaderIDs._BlitScaleBias, new Vector4(rtScaleSource.x, rtScaleSource.y, 0.0f, 0.0f));
+                            data.taaHistoryPropertyBlock.SetFloat(HDShaderIDs._BlitMipLevel, 0);
+                            HDUtils.DrawFullScreen(ctx.cmd, HDUtils.GetBlitMaterial(source.rt.dimension), data.prevHistory, data.taaHistoryPropertyBlock, 0);
+                            HDUtils.DrawFullScreen(ctx.cmd, HDUtils.GetBlitMaterial(source.rt.dimension), data.nextHistory, data.taaHistoryPropertyBlock, 0);
+                        }
+
+                        data.taaPropertyBlock.SetInt(HDShaderIDs._StencilMask, (int)StencilUsage.ExcludeFromTAA);
+                        data.taaPropertyBlock.SetInt(HDShaderIDs._StencilRef, (int)StencilUsage.ExcludeFromTAA);
+                        data.taaPropertyBlock.SetTexture(HDShaderIDs._CameraMotionVectorsTexture, data.motionVecTexture);
+                        data.taaPropertyBlock.SetTexture(HDShaderIDs._InputTexture, source);
+                        data.taaPropertyBlock.SetTexture(HDShaderIDs._InputHistoryTexture, data.prevHistory);
+                        if (prevMVLenTexture != null && data.motionVectorRejection)
+                        {
+                            data.taaPropertyBlock.SetTexture(HDShaderIDs._InputVelocityMagnitudeHistory, prevMVLenTexture);
+                        }
+
+                        data.taaPropertyBlock.SetTexture(HDShaderIDs._DepthTexture, data.depthMipChain);
+
+                        var taaHistorySize = data.previousScreenSize;
+
+                        data.taaPropertyBlock.SetVector(HDShaderIDs._TaaPostParameters, data.taaParameters);
+                        data.taaPropertyBlock.SetVector(HDShaderIDs._TaaHistorySize, taaHistorySize);
+                        data.taaPropertyBlock.SetVector(HDShaderIDs._TaaFilterWeights, data.taaFilterWeights);
+
+                        CoreUtils.SetRenderTarget(ctx.cmd, data.destination, data.depthBuffer);
+                        ctx.cmd.SetRandomWriteTarget(1, data.nextHistory);
+                        if (nextMVLenTexture != null && data.motionVectorRejection)
+                        {
+                            ctx.cmd.SetRandomWriteTarget(2, nextMVLenTexture);
+                        }
+
+                        ctx.cmd.DrawProcedural(Matrix4x4.identity, data.temporalAAMaterial, 0, MeshTopology.Triangles, 3, 1, data.taaPropertyBlock);
+                        ctx.cmd.DrawProcedural(Matrix4x4.identity, data.temporalAAMaterial, 1, MeshTopology.Triangles, 3, 1, data.taaPropertyBlock);
+                        ctx.cmd.ClearRandomWriteTargets();
+
+                        if (data.postDoF)
+                        {
+                            // Temporary hack to make post-dof TAA work with rendergraph (still the first frame flashes black). We need a better solution.
+                            m_IsDoFHisotoryValid = true;
+                        }
                     });
 
-                source = passData.destination;
+                return passData.destination;
             }
-
-            return source;
         }
 
         TextureHandle SMAAPass(RenderGraph renderGraph, HDCamera hdCamera, TextureHandle depthBuffer, TextureHandle source)
@@ -809,49 +947,7 @@ namespace UnityEngine.Rendering.HighDefinition
             // When physically based DoF is enabled, TAA runs two times, first to stabilize the color buffer before DoF and then after DoF to accumulate more aperture samples
             if (taaEnabled && m_DepthOfField.physicallyBased)
             {
-                bool postDof = true;
-
-                using (var builder = renderGraph.AddRenderPass<TemporalAntiAliasingData>("Temporal Anti-Aliasing", out var passData, ProfilingSampler.Get(HDProfileId.TemporalAntialiasing)))
-                {
-                    GrabTemporalAntialiasingHistoryTextures(hdCamera, out var prevHistory, out var nextHistory, postDof);
-
-                    passData.source = builder.ReadTexture(source);
-                    passData.parameters = PrepareTAAParameters(hdCamera, postDof);
-                    passData.depthBuffer = builder.ReadTexture(depthBuffer);
-                    passData.motionVecTexture = builder.ReadTexture(motionVectors);
-                    passData.depthMipChain = builder.ReadTexture(depthBufferMipChain);
-                    passData.prevHistory = builder.ReadTexture(renderGraph.ImportTexture(prevHistory));
-                    if (passData.parameters.resetPostProcessingHistory)
-                    {
-                        passData.prevHistory = builder.WriteTexture(passData.prevHistory);
-                    }
-                    passData.nextHistory = builder.WriteTexture(renderGraph.ImportTexture(nextHistory));
-                    passData.prevMVLen = TextureHandle.nullHandle;
-                    passData.nextMVLen = TextureHandle.nullHandle;
-
-                    TextureHandle dest = GetPostprocessOutputHandle(renderGraph, "Post-DoF TAA Destination");
-                    passData.destination = builder.WriteTexture(dest);;
-
-                    builder.SetRenderFunc(
-                        (TemporalAntiAliasingData data, RenderGraphContext ctx) =>
-                        {
-                            DoTemporalAntialiasing(data.parameters, ctx.cmd, data.source,
-                                data.destination,
-                                data.motionVecTexture,
-                                data.depthBuffer,
-                                data.depthMipChain,
-                                data.prevHistory,
-                                data.nextHistory,
-                                data.prevMVLen,
-                                data.nextMVLen);
-
-                            // Temporary hack to make post-dof TAA work with rendergraph (still the first frame flashes black). We need a better solution.
-                            m_IsDoFHisotoryValid = true;
-                        });
-
-                    source = passData.destination;
-                }
-
+                source = DoTemporalAntialiasing(renderGraph, hdCamera, depthBuffer, motionVectors, depthBufferMipChain, source, postDoF: true, "Post-DoF TAA Destination");
                 postDoFTAAEnabled = true;
             }
             else
@@ -1241,7 +1337,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 {
                     if (hdCamera.antialiasing == HDAdditionalCameraData.AntialiasingMode.TemporalAntialiasing)
                     {
-                        source = DoTemporalAntialiasing(renderGraph, hdCamera, depthBuffer, motionVectors, depthBufferMipChain, source);
+                        source = DoTemporalAntialiasing(renderGraph, hdCamera, depthBuffer, motionVectors, depthBufferMipChain, source, postDoF: false, "TAA Destination");
                     }
                     else if (hdCamera.antialiasing == HDAdditionalCameraData.AntialiasingMode.SubpixelMorphologicalAntiAliasing)
                     {
