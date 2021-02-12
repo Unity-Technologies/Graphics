@@ -42,12 +42,14 @@ VertexDescriptionInputs AttributesMeshToVertexDescriptionInputs(AttributesMesh i
 // This is used for injecting the define below.
 $splice(CustomInterpolatorPreVertex)
 
-#if defined(USE_CUSTOMINTERP_APPLYMESHMOD) // mirrored in VertMesh.hlsl
-// use ifdef via TESSELLATION_ON to use VaryingsMeshToDS (Domain varyings instead of pixel varyings) whenever SG is modified to support Tess.
-    AttributesMesh ApplyMeshModificationWithCustomInterp(AttributesMesh input, float3 timeParameters, inout VaryingsMeshToPS varyings)
-#else
-    AttributesMesh ApplyMeshModification(AttributesMesh input, float3 timeParameters)
+
+
+    AttributesMesh ApplyMeshModification(AttributesMesh input, float3 timeParameters
+#if defined(USE_CUSTOMINTERP_APPLYMESHMOD) // mirrored in VertMesh.hlsl and MotionVectorVertexShaderCommon.hlsl
+        // use ifdef via TESSELLATION_ON to use VaryingsMeshToDS (Domain varyings instead of pixel varyings) whenever SG is modified to support Tess.
+        , inout VaryingsMeshToPS varyings
 #endif
+    )
 {
     // build graph inputs
     VertexDescriptionInputs vertexDescriptionInputs = AttributesMeshToVertexDescriptionInputs(input);
