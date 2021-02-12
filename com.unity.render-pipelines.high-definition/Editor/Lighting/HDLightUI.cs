@@ -1,5 +1,6 @@
 using System;
 using System.Linq.Expressions;
+using System.Reflection;
 using UnityEngine;
 using UnityEngine.Rendering.HighDefinition;
 using UnityEngine.Rendering;
@@ -92,6 +93,7 @@ namespace UnityEditor.Rendering.HighDefinition
         }
 
         static Action<GUIContent, SerializedProperty, LightEditor.Settings> SliderWithTexture;
+        static Func<LightingSettings> GetLightingSettingsOrDefaultsFallback;
 
         static HDLightUI()
         {
@@ -168,6 +170,11 @@ namespace UnityEditor.Rendering.HighDefinition
                 Expression.Constant(null, typeof(GUILayoutOption[])));
             var lambda = Expression.Lambda<Action<GUIContent, SerializedProperty, LightEditor.Settings>>(sliderWithTextureCall, paramLabel, paramProperty, paramSettings);
             SliderWithTexture = lambda.Compile();
+
+            Type lightMappingType = typeof(Lightmapping);
+            var getLightingSettingsOrDefaultsFallbackInfo = lightMappingType.GetMethod("GetLightingSettingsOrDefaultsFallback", BindingFlags.Static | BindingFlags.NonPublic);
+            var getLightingSettingsOrDefaultsFallbackLambda = Expression.Lambda<Func<LightingSettings>>(Expression.Call(null, getLightingSettingsOrDefaultsFallbackInfo));
+            GetLightingSettingsOrDefaultsFallback = getLightingSettingsOrDefaultsFallbackLambda.Compile();
         }
 
         static void DrawGeneralContent(SerializedHDLight serialized, Editor owner)
@@ -292,7 +299,7 @@ namespace UnityEditor.Rendering.HighDefinition
                     }
 
                     // If realtime GI is enabled and the shape is unsupported or not implemented, show a warning.
-                    if (serialized.settings.isRealtime && SupportedRenderingFeatures.active.enlighten)
+                    if (serialized.settings.isRealtime && SupportedRenderingFeatures.active.enlighten && GetLightingSettingsOrDefaultsFallback.Invoke().realtimeGI)
                     {
                         if (serialized.spotLightShape.GetEnumValue<SpotLightShape>() == SpotLightShape.Box
                          || serialized.spotLightShape.GetEnumValue<SpotLightShape>() == SpotLightShape.Pyramid)
@@ -405,7 +412,7 @@ namespace UnityEditor.Rendering.HighDefinition
                                 serialized.settings.areaSizeY.floatValue = k_MinLightSize;
                             }
                             // If realtime GI is enabled and the shape is unsupported or not implemented, show a warning.
-                            if (serialized.settings.isRealtime && SupportedRenderingFeatures.active.enlighten)
+                            if (serialized.settings.isRealtime && SupportedRenderingFeatures.active.enlighten && GetLightingSettingsOrDefaultsFallback.Invoke().realtimeGI)
                             {
                                 EditorGUILayout.HelpBox(s_Styles.unsupportedLightShapeWarning, MessageType.Warning);
                             }
