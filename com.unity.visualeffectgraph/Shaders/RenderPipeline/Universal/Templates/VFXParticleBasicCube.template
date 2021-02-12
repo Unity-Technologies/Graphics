@@ -8,5 +8,6 @@
 		${VFXInclude("Shaders/ParticleHexahedron/PassDepth.template"),IS_OPAQUE_PARTICLE}
 		${VFXInclude("Shaders/ParticleHexahedron/PassBasicForward.template")}
 		${VFXInclude("Shaders/ParticleHexahedron/PassShadowCaster.template"),USE_CAST_SHADOWS_PASS}
+		${VFXIncludeRP("Templates/ParticleHexahedron/PassForward2D.template")}
 	}
 }
