@@ -286,8 +286,23 @@ namespace UnityEngine.Rendering.Universal
 
                     var state = m_RenderOpaqueForwardPassZDisabled.RenderStateBlock;
                     state.rasterState = new RasterState(CullMode.Back, 0, -0.02f);
+                    // There is no Z buffer for selection mask, use blending to make sure "unoccluded" (G = 1) values
+                    // always remain on top.
+                    state.blendState = new BlendState
+                    {
+                        blendState0 = new RenderTargetBlendState
+                        {
+                            colorBlendOperation = BlendOp.Max,
+                            sourceColorBlendMode = BlendMode.One,
+                            destinationColorBlendMode = BlendMode.One,
+                            alphaBlendOperation = BlendOp.Max,
+                            sourceAlphaBlendMode = BlendMode.One,
+                            destinationAlphaBlendMode = BlendMode.One,
+                            writeMask = ColorWriteMask.Green | ColorWriteMask.Blue | ColorWriteMask.Alpha,
+                        }
+                    };
                     state.depthState = new DepthState {compareFunction = CompareFunction.Always, writeEnabled = false};
-                    state.mask = RenderStateMask.Raster | RenderStateMask.Depth;
+                    state.mask = RenderStateMask.Everything;
                     m_RenderOpaqueForwardPassZDisabled.RenderStateBlock = state;
                     m_RenderTransparentForwardPassZDisabled.RenderStateBlock = state;
                 }
