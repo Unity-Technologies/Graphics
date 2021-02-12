@@ -549,7 +549,7 @@ half3 SampleSHPixel(half3 L2Term, half3 normalWS)
 #define LIGHTMAP_SAMPLE_EXTRA_ARGS staticLightmapUV
 #endif
 
-// Sample baked lightmap. Non-Direction and Directional if available.
+// Sample baked and/or realtime lightmap. Non-Direction and Directional if available.
 half3 SampleLightmap(float2 staticLightmapUV, float2 dynamicLightmapUV, half3 normalWS)
 {
 #ifdef UNITY_LIGHTMAP_FULL_HDR
@@ -586,6 +586,14 @@ half3 SampleLightmap(float2 staticLightmapUV, float2 dynamicLightmapUV, half3 no
 #endif
 
     return diffuseLighting;
+}
+
+// Legacy version of SampleLightmap where Realtime GI is not supported.
+half3 SampleLightmap(float2 staticLightmapUV, half3 normalWS)
+{
+    float2 dummyDynamicLightmapUV = float2(0,0);
+    half3 result = SampleLightmap(staticLightmapUV, dummyDynamicLightmapUV, normalWS);
+    return result;
 }
 
 // We either sample GI from baked lightmap or from probes.
