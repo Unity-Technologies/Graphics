@@ -175,8 +175,16 @@ namespace UnityEngine.Rendering.Universal
         internal bool isBlitRenderPass { get; set; }
 
         internal bool useNativeRenderPass { get; set; }
-        internal ScriptableRenderPassDescriptor srpDescriptor { get; set; }
 
+        internal int renderTargetWidth { get; set; }
+        internal int renderTargetHeight { get; set; }
+        internal int renderTargetSampleCount { get; set; }
+
+        internal bool depthOnly { get; set; }
+        internal bool isLastPass { get; set; }
+
+
+        internal GraphicsFormat[] renderTargetFormat { get; set; }
         RenderTargetIdentifier[] m_ColorAttachments = new RenderTargetIdentifier[] {BuiltinRenderTextureType.CameraTarget};
         RenderTargetIdentifier m_DepthAttachment = BuiltinRenderTextureType.CameraTarget;
         ScriptableRenderPassInput m_Input = ScriptableRenderPassInput.None;
@@ -194,7 +202,15 @@ namespace UnityEngine.Rendering.Universal
             isBlitRenderPass = false;
             profilingSampler = new ProfilingSampler(nameof(ScriptableRenderPass));
             useNativeRenderPass = true;
-            srpDescriptor = new ScriptableRenderPassDescriptor(GraphicsFormat.None);
+            renderTargetWidth = -1;
+            renderTargetHeight = -1;
+            renderTargetSampleCount = -1;
+            renderTargetFormat = new GraphicsFormat[]
+            {
+                GraphicsFormat.None, GraphicsFormat.None, GraphicsFormat.None,
+                GraphicsFormat.None, GraphicsFormat.None, GraphicsFormat.None, GraphicsFormat.None, GraphicsFormat.None
+            };
+            depthOnly = false;
         }
 
         /// <summary>
@@ -221,6 +237,12 @@ namespace UnityEngine.Rendering.Universal
             ConfigureTarget(colorAttachment);
         }
 
+		internal void ConfigureTarget(RenderTargetIdentifier colorAttachment, RenderTargetIdentifier depthAttachment, GraphicsFormat format)
+		{
+            m_DepthAttachment = depthAttachment;
+            ConfigureTarget(colorAttachment, format);
+		}
+
         /// <summary>
         /// Configures render targets for this render pass. Call this instead of CommandBuffer.SetRenderTarget.
         /// This method should be called inside Configure.
@@ -238,7 +260,16 @@ namespace UnityEngine.Rendering.Universal
 
             m_ColorAttachments = colorAttachments;
             m_DepthAttachment = depthAttachment;
+
+
         }
+
+		internal void ConfigureTarget(RenderTargetIdentifier[] colorAttachments, RenderTargetIdentifier depthAttachment, GraphicsFormat[] formats)
+		{
+			ConfigureTarget(colorAttachments, depthAttachment);
+            for (int i = 0; i < formats.Length; ++i)
+                renderTargetFormat[i] = formats[i];
+		}
 
         /// <summary>
         /// Configures render targets for this render pass. Call this instead of CommandBuffer.SetRenderTarget.
@@ -254,6 +285,19 @@ namespace UnityEngine.Rendering.Universal
             for (int i = 1; i < m_ColorAttachments.Length; ++i)
                 m_ColorAttachments[i] = 0;
         }
+
+		internal void ConfigureTarget(RenderTargetIdentifier colorAttachment, GraphicsFormat format, int width = -1, int height = -1, int sampleCount = -1, bool depth = false)
+		{
+			ConfigureTarget(colorAttachment);
+            for (int i = 1; i < m_ColorAttachments.Length; ++i)
+                renderTargetFormat[i] = GraphicsFormat.None;
+
+            renderTargetWidth = width;
+            renderTargetHeight = height;
+            renderTargetSampleCount = sampleCount;
+            depthOnly = depth;
+            renderTargetFormat[0] = format;
+		}
 
         /// <summary>
         /// Configures render targets for this render pass. Call this instead of CommandBuffer.SetRenderTarget.
