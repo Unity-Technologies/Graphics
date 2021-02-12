@@ -333,8 +333,6 @@ namespace UnityEngine.Rendering.Universal
         bool m_FirstTimeCameraColorTargetIsBound = true; // flag used to track when m_CameraColorTarget should be cleared (if necessary), as well as other special actions only performed the first time m_CameraColorTarget is bound as a render target
         bool m_FirstTimeCameraDepthTargetIsBound = true; // flag used to track when m_CameraDepthTarget should be cleared (if necessary), the first time m_CameraDepthTarget is bound as a render target
 
-        bool m_FirstTimeColorClear = true;
-
         // The pipeline can only guarantee the camera target texture are valid when the pipeline is executing.
         // Trying to access the camera target before or after might be that the pipeline texture have already been disposed.
         bool m_IsPipelineExecuting = false;
@@ -911,8 +909,6 @@ namespace UnityEngine.Rendering.Universal
                     bool isLastPass = renderPass.isLastPass;
                     bool isLastPassToBB = false;
 
-                    if (cameraData.renderType == CameraRenderType.Overlay)
-                        m_FirstTimeColorClear = false;
                     for (int i = 0; i < validColorBuffersCount; ++i)
                     {
                         isLastPassToBB |= isLastPass && (renderPass.colorAttachments[i] == BuiltinRenderTextureType.CameraTarget);
@@ -925,10 +921,9 @@ namespace UnityEngine.Rendering.Universal
                     }
 
                     m_ActiveDepthAttachmentDescriptor = new AttachmentDescriptor(GraphicsFormat.DepthAuto);
-                    m_ActiveDepthAttachmentDescriptor.ConfigureTarget(renderPass.depthAttachment, false, !isLastPassToBB);
+                    m_ActiveDepthAttachmentDescriptor.ConfigureTarget(renderPass.depthAttachment, !needCustomCameraDepthClear, !isLastPassToBB);
                     if (needCustomCameraDepthClear)
                         m_ActiveDepthAttachmentDescriptor.ConfigureClear(Color.black, 1.0f, 0);
-                    m_FirstTimeColorClear = false;
                 }
 
                 // Bind all attachments, clear color only if there was no custom behaviour for cameraColorTarget, clear depth as needed.
@@ -1058,20 +1053,18 @@ namespace UnityEngine.Rendering.Universal
                         : passDepthAttachment;
 
                     bool isLastPassToBB = isLastPass && (colorAttachmentTarget == BuiltinRenderTextureType.CameraTarget);
+                    m_ActiveColorAttachmentDescriptors[0].ConfigureTarget(colorAttachmentTarget, ((uint) finalClearFlag & (uint) ClearFlag.Color) == 0, !(samples > 1 && isLastPassToBB));
 
-                    m_ActiveColorAttachmentDescriptors[0].ConfigureTarget(colorAttachmentTarget, !m_FirstTimeColorClear, !(samples > 1 && isLastPassToBB));
                     m_ActiveDepthAttachmentDescriptor = new AttachmentDescriptor(GraphicsFormat.DepthAuto);
-                    m_ActiveDepthAttachmentDescriptor.ConfigureTarget(depthAttachmentTarget, !m_FirstTimeColorClear , !isLastPassToBB);
+                    m_ActiveDepthAttachmentDescriptor.ConfigureTarget(depthAttachmentTarget, ((uint)finalClearFlag & (uint)ClearFlag.Depth) == 0 , !isLastPassToBB);
 
-                    if (m_FirstTimeColorClear)
+                    if (finalClearFlag != ClearFlag.None)
                     {
                         // We don't clear color for Overlay render targets, however pipeline set's up depth only render passes as color attachments which we do need to clear
-                        if (cameraData.renderType != CameraRenderType.Overlay || renderPass.depthOnly)
+                        if ((cameraData.renderType != CameraRenderType.Overlay || renderPass.depthOnly && ((uint) finalClearFlag & (uint) ClearFlag.Color) != 0))
                             m_ActiveColorAttachmentDescriptors[0].ConfigureClear(finalClearColor, 1.0f, 0);
-                        if (!isLastPassToBB)
+                        if (((uint) finalClearFlag & (uint) ClearFlag.Depth) != 0)
                             m_ActiveDepthAttachmentDescriptor.ConfigureClear(Color.black, 1.0f, 0);
-                        if (!renderPass.depthOnly)
-                            m_FirstTimeColorClear = false;
                     }
 
                     if (samples > 1)
@@ -1235,8 +1228,6 @@ namespace UnityEngine.Rendering.Universal
                 }
                 m_ActiveRenderPassQueue.Clear();
             }
-
-            m_FirstTimeColorClear = true;
 
             context.ExecuteCommandBuffer(cmd);
             CommandBufferPool.Release(cmd);
