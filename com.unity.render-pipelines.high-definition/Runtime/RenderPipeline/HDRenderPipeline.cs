@@ -3287,6 +3287,8 @@ namespace UnityEngine.Rendering.HighDefinition
                 camera.TryGetCullingParameters(out var cullingParameters);
                 var cullingResults = context.Cull(ref cullingParameters);
 
+                var renderState = new RenderStateBlock(RenderStateMask.Nothing);
+
                 ShaderTagId shaderTagId;
                 switch (m_SceneSelectionMode)
                 {
@@ -3296,6 +3298,24 @@ namespace UnityEngine.Rendering.HighDefinition
                         break;
                     case Camera.RenderRequestMode.SelectionMask:
                         shaderTagId = new ShaderTagId("SceneSelectionPass");
+                        renderState.rasterState = new RasterState(CullMode.Back, 0, -0.02f);
+                        // There is no Z buffer for selection mask, use blending to make sure "unoccluded" (G = 1) values
+                        // always remain on top.
+                        renderState.blendState = new BlendState
+                        {
+                            blendState0 = new RenderTargetBlendState
+                            {
+                                colorBlendOperation = BlendOp.Max,
+                                sourceColorBlendMode = BlendMode.One,
+                                destinationColorBlendMode = BlendMode.One,
+                                alphaBlendOperation = BlendOp.Max,
+                                sourceAlphaBlendMode = BlendMode.One,
+                                destinationAlphaBlendMode = BlendMode.One,
+                                writeMask = ColorWriteMask.Green | ColorWriteMask.Blue | ColorWriteMask.Alpha,
+                            }
+                        };
+                        renderState.depthState = new DepthState {compareFunction = CompareFunction.Always, writeEnabled = false};
+                        renderState.mask = RenderStateMask.Everything;
                         break;
                     default:
                         return;
@@ -3311,7 +3331,8 @@ namespace UnityEngine.Rendering.HighDefinition
                 context.DrawRenderers(
                     cullingResults,
                     ref drawingSettings,
-                    ref filteringSettings);
+                    ref filteringSettings,
+                    ref renderState);
             }
         }
 
