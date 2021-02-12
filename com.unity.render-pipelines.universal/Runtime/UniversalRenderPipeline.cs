@@ -237,10 +237,11 @@ namespace UnityEngine.Rendering.Universal
                     return;
                 }
 
+                //@TODO: What crazy sauce is this?
                 var data = ScriptableObject.CreateInstance<RenderRequestRendererData>();
                 data.request = renderRequest;
                 InitializeCameraData(camera, additionalCameraData, true, out var cameraData);
-                cameraData.isRenderRequest = true;
+                cameraData.renderRequestMode = renderRequest.mode;
                 cameraData.renderer = data.InternalCreateRenderer();
                 RenderSingleCamera(renderContext, cameraData, false);
                 Object.DestroyImmediate(data);
