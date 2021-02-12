@@ -115,7 +115,6 @@ namespace UnityEditor.ShaderGraph.UnitTests
                 // check that the generated shader is the same after versioning twice
                 // this is important to ensure we're not importing shaders non-deterministically when they are out-of-date on disk
                 string fileNameNoExtension = Path.GetFileNameWithoutExtension(fullPath);
-                var fileExtension = Path.GetExtension(fullPath);
                 var generator = new Generator(graphData, graphData.outputNode, GenerationMode.ForReals, fileNameNoExtension, null);
                 string shader = generator.generatedShader;
 
