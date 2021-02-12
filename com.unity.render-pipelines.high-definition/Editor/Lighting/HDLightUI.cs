@@ -86,7 +86,7 @@ namespace UnityEditor.Rendering.HighDefinition
         }
 
         static Func<LightingSettings> GetLightingSettingsOrDefaultsFallback;
-		
+
         static HDLightUI()
         {
             Inspector = CED.Group(
@@ -282,7 +282,7 @@ namespace UnityEditor.Rendering.HighDefinition
                     if (serialized.settings.isRealtime && SupportedRenderingFeatures.active.enlighten && GetLightingSettingsOrDefaultsFallback.Invoke().realtimeGI)
                     {
                         if (serialized.spotLightShape.GetEnumValue<SpotLightShape>() == SpotLightShape.Box
-                         || serialized.spotLightShape.GetEnumValue<SpotLightShape>() == SpotLightShape.Pyramid)
+                            || serialized.spotLightShape.GetEnumValue<SpotLightShape>() == SpotLightShape.Pyramid)
                             EditorGUILayout.HelpBox(s_Styles.unsupportedLightShapeWarning, MessageType.Warning);
                     }
 
