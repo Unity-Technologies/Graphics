@@ -19,11 +19,14 @@ EditorSettings:
   m_ProjectGenerationRootNamespace: 
   m_EnableTextureStreamingInEditMode: 1
   m_EnableTextureStreamingInPlayMode: 1
-  m_EnableRoslynAnalyzers: 0
   m_AsyncShaderCompilation: 1
   m_CachingShaderPreprocessor: 1
+  m_PrefabModeAllowAutoSave: 1
   m_EnterPlayModeOptionsEnabled: 0
   m_EnterPlayModeOptions: 3
+  m_GameObjectNamingDigits: 2
+  m_GameObjectNamingScheme: 0
+  m_AssetNamingUsesSpace: 1
   m_UseLegacyProbeSampleCount: 0
   m_SerializeInlineMappingsOnOneLine: 1
   m_DisableCookiesInLightmapper: 0
