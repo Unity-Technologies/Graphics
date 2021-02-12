@@ -29,6 +29,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed nullref in layered lit shader editor.
 - Fix issue with Depth of Field CoC debug view.
 - Fixed an issue where first frame of SSAO could exhibit ghosting artefacts.
+- Fixed an issue with the mipmap generation internal format after rendering format change.
 
 ### Changed
 - Changed Window/Render Pipeline/HD Render Pipeline Wizard to Window/Rendering/HDRP Wizard
