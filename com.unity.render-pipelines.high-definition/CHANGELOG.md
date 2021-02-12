@@ -24,6 +24,10 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed lightmaps not working properly with shader graphs in ray traced reflections (case 1305335).
 - Fixed skybox for ortho cameras.
 - Fixed model import by adding additional data if needed.
+- Fix screen being over-exposed when changing very different skies.
+- VFX: Debug material view were rendering pink for albedo. (case 1290752)
+- VFX: Debug material view incorrect depth test. (case 1293291)
+- VFX: Fixed LPPV with lit particles in deferred (case 1293608)
 
 ### Changed
 - Changed Window/Render Pipeline/HD Render Pipeline Wizard to Window/Rendering/HDRP Wizard
@@ -46,6 +50,10 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Change Assets/Create/Rendering/Diffusion Profile to Assets/Create/Rendering/HDRP Diffusion Profile
 - Change Assets/Create/Rendering/C# Custom Pass to Assets/Create/Rendering/HDRP C# Custom Pass
 - Change Assets/Create/Rendering/C# Post Process Volume to Assets/Create/Rendering/HDRP C# Post Process Volume
+- Change labels about scroll direction and cloud type.
+
+### Changed
+- Improved shadow cascade GUI drawing with pixel perfect, hover and focus functionalities.
 
 ## [11.0.0] - 2020-10-21
 
