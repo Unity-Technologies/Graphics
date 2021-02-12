@@ -34,7 +34,16 @@ public class ShaderGraphIndividualTests
     {
         // Always wait one frame for scene load
         yield return null;
-        camera.orthographic = !isPerspective;
+        if (!isPerspective)
+        {
+            camera.orthographic = true;
+            camera.orthographicSize = 3;
+        }
+        else
+        {
+            camera.orthographic = false;
+
+        }
         if (customMesh != null)
             mesh.GetComponent<MeshFilter>().mesh = customMesh;
         if (mat != null)
