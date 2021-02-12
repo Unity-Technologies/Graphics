@@ -73,10 +73,13 @@ namespace UnityEngine.Rendering.Universal
                 {
                     CommandBuffer cmd = CommandBufferPool.Get();
 
-                    // TODO: Can we rewrite this as an iterator?
                     foreach(DebugRenderPass debugRenderPass in new DebugRenderPassEnumerable(DebugHandler, context, cmd))
                     {
-                        context.DrawSkybox(camera);
+                        // TODO: The skybox needs to work the same as the other shaders, but until it does we'll not render it under certain circumstances...
+                        if(!DebugHandler.IsScreenClearNeeded)
+                        {
+                            context.DrawSkybox(camera);
+                        }
                     }
 
                     context.ExecuteCommandBuffer(cmd);
