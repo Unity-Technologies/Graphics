@@ -793,8 +793,7 @@ namespace UnityEngine.Rendering.Universal.Internal
         public override void Configure(CommandBuffer cmd, RenderTextureDescriptor cameraTextureDescriptor)
         {
             m_AdditionalLightsShadowmapTexture = ShadowUtils.GetTemporaryShadowTexture(m_ShadowmapWidth, m_ShadowmapHeight, k_ShadowmapBufferBits);
-            srpDescriptor.ConfigureDescriptor(GraphicsFormat.ShadowAuto, m_ShadowmapWidth, m_ShadowmapHeight, 1, true);
-            ConfigureTarget(new RenderTargetIdentifier(m_AdditionalLightsShadowmapTexture));
+            ConfigureTarget(new RenderTargetIdentifier(m_AdditionalLightsShadowmapTexture), GraphicsFormat.ShadowAuto, m_ShadowmapWidth, m_ShadowmapHeight, 1, true);
             ConfigureClear(ClearFlag.All, Color.black);
         }
 
