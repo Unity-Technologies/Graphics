@@ -291,6 +291,14 @@ namespace UnityEditor.Rendering.HighDefinition
                         UpdateLightIntensityUnit(serialized, owner);
                     }
 
+                    // If realtime GI is enabled and the shape is unsupported or not implemented, show a warning.
+                    if (serialized.settings.isRealtime && SupportedRenderingFeatures.active.enlighten)
+                    {
+                        if (serialized.spotLightShape.GetEnumValue<SpotLightShape>() == SpotLightShape.Box
+                         || serialized.spotLightShape.GetEnumValue<SpotLightShape>() == SpotLightShape.Pyramid)
+                            EditorGUILayout.HelpBox(s_Styles.unsupportedLightShapeWarning, MessageType.Warning);
+                    }
+
                     switch (serialized.spotLightShape.GetEnumValue<SpotLightShape>())
                     {
                         case SpotLightShape.Box:
@@ -395,6 +403,11 @@ namespace UnityEditor.Rendering.HighDefinition
                                 // Fake line with a small rectangle in vanilla unity for GI
                                 serialized.settings.areaSizeX.floatValue = serialized.shapeWidth.floatValue;
                                 serialized.settings.areaSizeY.floatValue = k_MinLightSize;
+                            }
+                            // If realtime GI is enabled and the shape is unsupported or not implemented, show a warning.
+                            if (serialized.settings.isRealtime && SupportedRenderingFeatures.active.enlighten)
+                            {
+                                EditorGUILayout.HelpBox(s_Styles.unsupportedLightShapeWarning, MessageType.Warning);
                             }
                             break;
                         case AreaLightShape.Disc:
