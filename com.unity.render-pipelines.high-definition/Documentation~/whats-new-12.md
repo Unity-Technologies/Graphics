@@ -14,7 +14,7 @@ The following is a list of improvements Unity made to the High Definition Render
 
 ### Additional Properties
 
-From HDRP 12.0, More Options have become Additional Properties. The way to access them has also changed. The cogwheel present in component headers has been replaced by an entry in the contextual menu. When enabling additional properties their background will now be highlighted for a few seconds to show users where they are.
+From HDRP 12.0, More Options have become Additional Properties. The way to access them has also changed. The cogwheel that was present in component headers has been replaced by an entry in the contextual menu. When you enable additional properties, Unity highlights the background of each additional property for a few seconds to show you where they are.
 
 ## Issues resolved
 
