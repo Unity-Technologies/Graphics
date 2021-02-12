@@ -19,7 +19,7 @@ struct InputData //TODO use generic name (indexCount isn't always what it expect
 
 ByteAddressBuffer inputGpuBuffer;
 StructuredBuffer<InputData> inputCpuBuffer;
-RWStructuredBuffer<uint> outputIndirectArgs; // Has to be a RWStructuredBuffer (not RWBuffer) to work with DXC https://github.com/KhronosGroup/SPIRV-Cross/issues/1362
+RWBuffer<uint> outputIndirectArgs;
 RWByteAddressBuffer outputAdditional;
 
 [numthreads(NB_THREADS_PER_GROUP,1,1)]

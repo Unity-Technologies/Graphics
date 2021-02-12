@@ -26,8 +26,7 @@ ByteAddressBuffer deadListCount;
 #endif
 
 #if HAS_STRIPS
-// Has to be a StructuredBuffer (not Buffer) to work with DXC https://github.com/KhronosGroup/SPIRV-Cross/issues/1362
-StructuredBuffer<uint> stripDataBuffer;
+Buffer<uint> stripDataBuffer;
 #endif
 
 #if WRITE_MOTION_VECTOR_IN_FORWARD || USE_MOTION_VECTORS_PASS

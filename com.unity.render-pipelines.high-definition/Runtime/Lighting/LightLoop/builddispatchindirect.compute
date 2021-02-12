@@ -18,7 +18,7 @@
 #define NR_THREADS              64                                  // default to 64 threads per group on other platforms..
 #endif
 
-RWStructuredBuffer<uint> g_DispatchIndirectBuffer : register( u0 ); // Has to be a RWStructuredBuffer (not RWBuffer) to work with DXC https://github.com/KhronosGroup/SPIRV-Cross/issues/1362
+RWBuffer<uint> g_DispatchIndirectBuffer : register( u0 );   // Indirect arguments have to be in a _buffer_, not a structured buffer
 RWStructuredBuffer<uint> g_TileList;
 StructuredBuffer<uint> g_TileFeatureFlags;
 

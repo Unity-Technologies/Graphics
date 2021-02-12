@@ -20,7 +20,7 @@ Shader "Hidden/HDRP/CustomPassUtils"
 
     float           _Radius;
     float           _SampleCount;
-    StructuredBuffer<float>   _GaussianWeights; // Has to be a StructuredBuffer (not Buffer) to work with DXC https://github.com/KhronosGroup/SPIRV-Cross/issues/1362
+    Buffer<float>   _GaussianWeights;
 
     float2 GetScaledUVs(Varyings varyings)
     {

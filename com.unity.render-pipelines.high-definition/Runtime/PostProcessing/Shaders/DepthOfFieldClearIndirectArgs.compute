@@ -4,8 +4,9 @@
 
 #pragma kernel KClear
 
+// Indirect arguments have to be in a RWBuffer
 // The first three uints are near threadgroups, the last three are far threadgroups
-RWStructuredBuffer<uint> _IndirectBuffer; // Has to be a RWStructuredBuffer (not RWBuffer) to work with DXC https://github.com/KhronosGroup/SPIRV-Cross/issues/1362
+RWBuffer<uint> _IndirectBuffer;
 
 
 [numthreads(2, 1, 1)]
