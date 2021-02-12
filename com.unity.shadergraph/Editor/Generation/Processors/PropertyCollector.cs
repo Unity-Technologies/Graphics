@@ -23,11 +23,12 @@ namespace UnityEditor.ShaderGraph
             properties.Add(chunk);
         }
 
-        public void GetPropertiesDeclaration(ShaderStringBuilder builder, GenerationMode mode, ConcretePrecision inheritedPrecision)
+        public void GetPropertiesDeclaration(ShaderStringBuilder builder, GenerationMode mode, ConcretePrecision defaultPrecision)
         {
             foreach (var prop in properties)
             {
-                prop.ValidateConcretePrecision(inheritedPrecision);
+                // set up switched properties to use the inherited precision
+                prop.SetupConcretePrecision(defaultPrecision);
             }
 
             // build a list of all HLSL properties
