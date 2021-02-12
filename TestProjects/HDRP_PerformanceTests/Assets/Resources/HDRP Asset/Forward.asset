@@ -22,7 +22,7 @@ MonoBehaviour:
     type: 2}
   m_RenderingPathDefaultCameraFrameSettings:
     bitDatas:
-      data1: 140666621394765
+      data1: 139567109766989
       data2: 4539628429758103576
     lodBias: 1
     lodBiasMode: 0
@@ -113,6 +113,7 @@ MonoBehaviour:
     supportTerrainHole: 0
     supportProbeVolume: 0
     probeVolumeMemoryBudget: 1024
+    probeVolumeSHBands: 1
     supportRayTracing: 0
     supportedRayTracingMode: 3
     lightLoopSettings:
@@ -266,10 +267,6 @@ MonoBehaviour:
       - 0.5
       - 0.25
       RTGISecondDenoise: 010101
-      RTGISecondDenoiserRadius:
-      - 0
-      - 0
-      - 0
       RTRMinSmoothness:
       - 0.6
       - 0.4
