@@ -204,7 +204,8 @@ namespace UnityEditor.Rendering.HighDefinition
 
             if (editMode == k_EditShapePreservingUV || editMode == k_EditShapeWithoutPreservingUV)
             {
-                using (new Handles.DrawingScope(Color.white, Matrix4x4.TRS(decalProjector.transform.position, decalProjector.transform.rotation, Vector3.one)))
+                Vector3 scale = decalProjector.transform.lossyScale;
+                using (new Handles.DrawingScope(Color.white, Matrix4x4.TRS(decalProjector.transform.position, decalProjector.transform.rotation, scale)))
                 {
                     bool needToRefreshDecalProjector = false;
 
@@ -223,8 +224,26 @@ namespace UnityEditor.Rendering.HighDefinition
                         // Adjust decal transform if handle changed.
                         Undo.RecordObject(decalProjector, "Decal Projector Change");
 
-                        decalProjector.size = handle.size;
-                        decalProjector.offset = handle.center;
+                        // Preserve serialized state for axes with scale 0.
+                        Vector3 newSize = decalProjector.size;
+                        Vector3 newOffset = decalProjector.offset;
+                        if (scale.x != 0f)
+                        {
+                            newSize.x = handle.size.x;
+                            newOffset.x = handle.center.x;
+                        }
+                        if (scale.y != 0f)
+                        {
+                            newSize.y = handle.size.y;
+                            newOffset.y = handle.center.y;
+                        }
+                        if (scale.z != 0f)
+                        {
+                            newSize.z = handle.size.z;
+                            newOffset.z = handle.center.z;
+                        }
+                        decalProjector.size = newSize;
+                        decalProjector.offset = newOffset;
 
                         Vector3 boundsSizeCurrentOS = handle.size;
                         Vector3 boundsMinCurrentOS = handle.size * -0.5f + handle.center;
@@ -233,14 +252,19 @@ namespace UnityEditor.Rendering.HighDefinition
                         {
                             // Treat decal projector bounds as a crop tool, rather than a scale tool.
                             // Compute a new uv scale and bias terms to pin decal projection pixels in world space, irrespective of projector bounds.
+                            // Preserve serialized state for axes with scale 0.
                             Vector2 uvScale = decalProjector.uvScale;
-                            uvScale.x *= Mathf.Max(1e-5f, boundsSizeCurrentOS.x) / Mathf.Max(1e-5f, boundsSizePreviousOS.x);
-                            uvScale.y *= Mathf.Max(1e-5f, boundsSizeCurrentOS.y) / Mathf.Max(1e-5f, boundsSizePreviousOS.y);
+                            if (scale.x != 0f)
+                                uvScale.x *= Mathf.Max(1e-5f, boundsSizeCurrentOS.x) / Mathf.Max(1e-5f, boundsSizePreviousOS.x);
+                            if (scale.y != 0f)
+                                uvScale.y *= Mathf.Max(1e-5f, boundsSizeCurrentOS.y) / Mathf.Max(1e-5f, boundsSizePreviousOS.y);
                             decalProjector.uvScale = uvScale;
 
                             Vector2 uvBias = decalProjector.uvBias;
-                            uvBias.x += (boundsMinCurrentOS.x - boundsMinPreviousOS.x) / Mathf.Max(1e-5f, boundsSizeCurrentOS.x) * decalProjector.uvScale.x;
-                            uvBias.y += (boundsMinCurrentOS.y - boundsMinPreviousOS.y) / Mathf.Max(1e-5f, boundsSizeCurrentOS.y) * decalProjector.uvScale.y;
+                            if (scale.x != 0f)
+                                uvBias.x += (boundsMinCurrentOS.x - boundsMinPreviousOS.x) / Mathf.Max(1e-5f, boundsSizeCurrentOS.x) * decalProjector.uvScale.x;
+                            if (scale.y != 0f)
+                                uvBias.y += (boundsMinCurrentOS.y - boundsMinPreviousOS.y) / Mathf.Max(1e-5f, boundsSizeCurrentOS.y) * decalProjector.uvScale.y;
                             decalProjector.uvBias = uvBias;
                         }
 
@@ -263,7 +287,7 @@ namespace UnityEditor.Rendering.HighDefinition
                         // Re-center the transform to the center of the decal projector bounds,
                         // while maintaining the world-space coordinates of the decal projector boundings vertices.
                         // Center of the decal projector is not the same of the HierarchicalBox as we want it to be on the z face as lights
-                        decalProjector.transform.Translate(decalProjector.offset + new Vector3(0f, 0f, handle.size.z * -0.5f), Space.Self);
+                        decalProjector.transform.Translate(Vector3.Scale(decalProjector.offset + new Vector3(0f, 0f, handle.size.z * -0.5f), scale), Space.Self);
 
                         decalProjector.offset = new Vector3(0f, 0f, handle.size.z * 0.5f);
                         if (PrefabUtility.IsPartOfNonAssetPrefabInstance(decalProjector))
@@ -290,18 +314,22 @@ namespace UnityEditor.Rendering.HighDefinition
         [DrawGizmo(GizmoType.Selected | GizmoType.Active)]
         static void DrawGizmosSelected(DecalProjector decalProjector, GizmoType gizmoType)
         {
-            //draw them scale independent
+            //draw them with scale applied to size and offset instead of TRS to keep proportions of the arrow and bold lines.
             using (new Handles.DrawingScope(Color.white, Matrix4x4.TRS(decalProjector.transform.position, decalProjector.transform.rotation, Vector3.one)))
             {
-                handle.center = decalProjector.offset;
-                handle.size = decalProjector.size;
+                Vector3 scale = decalProjector.transform.lossyScale;
+                Vector3 scaledOffset = Vector3.Scale(decalProjector.offset, scale);
+                Vector3 scaledSize = Vector3.Scale(decalProjector.size, scale);
+
+                handle.center = scaledOffset;
+                handle.size = scaledSize;
                 bool inEditMode = editMode == k_EditShapePreservingUV || editMode == k_EditShapeWithoutPreservingUV;
                 handle.DrawHull(inEditMode);
 
                 Quaternion arrowRotation = Quaternion.LookRotation(Vector3.down, Vector3.right);
-                float arrowSize = decalProjector.size.z * 0.25f;
-                Vector3 pivot = decalProjector.offset;
-                Vector3 projectedPivot = pivot + decalProjector.size.z * 0.5f * Vector3.back;
+                float arrowSize = scaledSize.z * 0.25f;
+                Vector3 pivot = scaledOffset;
+                Vector3 projectedPivot = pivot + scaledSize.z * 0.5f * Vector3.back;
                 Handles.ArrowHandleCap(0, projectedPivot, Quaternion.identity, arrowSize, EventType.Repaint);
 
                 //[TODO: add editable pivot. Uncomment this when ready]
@@ -315,13 +343,13 @@ namespace UnityEditor.Rendering.HighDefinition
                 //Handles.DrawLine(projectedPivot, projectedPivot + decalProjector.m_Size.z * 0.5f * Vector3.forward);
 
                 //draw UV and bolder edges
-                using (new Handles.DrawingScope(Matrix4x4.TRS(decalProjector.transform.position - decalProjector.transform.rotation * (decalProjector.size * 0.5f + decalProjector.offset.z * Vector3.back), decalProjector.transform.rotation, Vector3.one)))
+                using (new Handles.DrawingScope(Matrix4x4.TRS(decalProjector.transform.position - decalProjector.transform.rotation * (scaledSize * 0.5f + scaledOffset.z * Vector3.back), decalProjector.transform.rotation, Vector3.one)))
                 {
                     if (inEditMode)
                     {
                         Vector2 size = new Vector2(
-                            (decalProjector.uvScale.x > 100000 || decalProjector.uvScale.x < -100000 ? 0f : 1f / decalProjector.uvScale.x) * decalProjector.size.x,
-                            (decalProjector.uvScale.y > 100000 || decalProjector.uvScale.y < -100000 ? 0f : 1f / decalProjector.uvScale.y) * decalProjector.size.y
+                            (decalProjector.uvScale.x > 100000 || decalProjector.uvScale.x < -100000 ? 0f : 1f / decalProjector.uvScale.x) * scaledSize.x,
+                            (decalProjector.uvScale.y > 100000 || decalProjector.uvScale.y < -100000 ? 0f : 1f / decalProjector.uvScale.y) * scaledSize.y
                             );
                         Vector2 start = (Vector2)projectedPivot - new Vector2(decalProjector.uvBias.x * size.x, decalProjector.uvBias.y * size.y);
                         Handles.DrawDottedLines(
@@ -335,7 +363,7 @@ namespace UnityEditor.Rendering.HighDefinition
                             5f);
                     }
 
-                    Vector2 halfSize = decalProjector.size * .5f;
+                    Vector2 halfSize = scaledSize * .5f;
                     Vector2 halfSize2 = new Vector2(halfSize.x, -halfSize.y);
                     Vector2 center = (Vector2)projectedPivot + halfSize;
                     Handles.DrawLine(center - halfSize,  center - halfSize2, 3f);
