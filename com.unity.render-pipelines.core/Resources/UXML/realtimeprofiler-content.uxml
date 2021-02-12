@@ -1,5 +1,5 @@
 <ui:UXML xmlns:ui="UnityEngine.UIElements" xmlns:uie="UnityEditor.UIElements" editor-extension-mode="False">
-    <Style src="../Styles/realtimeprofiler-content.uss" />
+    <Style src="/Packages/com.unity.render-pipelines.core/Resources/Styles/realtimeprofiler-content.uss" />
     <ui:VisualElement name="Root" style="margin: 2px; flex-direction: row; margin: 4px; min-width: auto; min-height: auto;">
         <ui:VisualElement style="flex-direction: column; justify-content: flex-start; flex-grow: 1; min-width: 200px; max-width: none; min-height: 300px;">
             <ui:Foldout text="Frame times&#10;" name="FrameTimes" value="true" class="section-header">
@@ -50,8 +50,8 @@
                     </ui:VisualElement>
                 </ui:VisualElement>
             </ui:Foldout>
-            <ui:Foldout text="Details&#10;" name="Details" value="false" class="section-header">
-                <ui:Label text="Label" display-tooltip-when-elided="true" style="-unity-font-style: normal;" />
+            <ui:Foldout text="Options" name="Options" value="true" class="section-header">
+                <ui:SliderInt picking-mode="Ignore" label="History size" value="1" high-value="16" tooltip="Controls the size of the history window that is maintaned. UI values are averaged over the amount of latest samples selected." low-value="1" show-input-field="true" name="HistorySize" direction="Horizontal" />
             </ui:Foldout>
         </ui:VisualElement>
     </ui:VisualElement>

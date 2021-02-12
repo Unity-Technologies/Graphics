@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.ComponentModel;
 using Unity.Profiling.LowLevel.Unsafe;
 using UnityEngine;
 using UnityEngine.UIElements;
@@ -30,6 +31,11 @@ namespace UnityEditor.Rendering
             this.minSize = new Vector2(400, 250);
 
             EditorApplication.playModeStateChanged += PlayModeStateChanged;
+            m_ViewModel.PropertyChanged += (o, e) =>
+            {
+                if (m_Model != null && e.PropertyName == "HistorySize")
+                    m_Model.HistorySize = m_ViewModel.HistorySize;
+            };
         }
 
         public void OnDisable()
@@ -52,9 +58,10 @@ namespace UnityEditor.Rendering
 
         public void OnInspectorUpdate()
         {
+            m_ViewModel.Update(this.rootVisualElement);
             if (m_Model != null)
             {
-                m_ViewModel.UpdateUI(m_Model, this.rootVisualElement);
+                m_ViewModel.UpdateValues(m_Model, this.rootVisualElement);
             }
         }
     }

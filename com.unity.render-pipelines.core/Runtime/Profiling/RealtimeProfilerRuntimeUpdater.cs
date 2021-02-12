@@ -24,6 +24,15 @@ public class RealtimeProfilerRuntimeUpdater : MonoBehaviour
         updater.m_Document.visualTreeAsset = Resources.Load<VisualTreeAsset>("UXML/realtimeprofiler-player-container");
     }
 
+    public void OnEnable()
+    {
+        m_ViewModel.PropertyChanged += (o, e) =>
+        {
+            if (m_Model != null && e.PropertyName == "HistorySize")
+                m_Model.HistorySize = m_ViewModel.HistorySize;
+        };
+    }
+
     void OnDisable()
     {
         Destroy(gameObject);
@@ -31,7 +40,7 @@ public class RealtimeProfilerRuntimeUpdater : MonoBehaviour
 
     void Update()
     {
-        if (m_Document != null && m_Model != null)
-            m_ViewModel.UpdateUI(m_Model, m_Document.rootVisualElement);
+        m_ViewModel.Update(m_Document.rootVisualElement);
+        m_ViewModel.UpdateValues(m_Model, m_Document.rootVisualElement);
     }
 }
