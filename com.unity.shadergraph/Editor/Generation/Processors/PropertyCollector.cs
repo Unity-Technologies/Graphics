@@ -193,7 +193,7 @@ namespace UnityEditor.ShaderGraph
 
         public void GetPropertiesDeclarationForTarget(ShaderStringBuilder builder, GenerationMode mode, ConcretePrecision defaultPrecision, Target target)
         {
-            ForEachPropertyUsedByTarget(target, p => p.ValidateConcretePrecision(defaultPrecision));
+            ForEachPropertyUsedByTarget(target, p => p.SetupConcretePrecision(defaultPrecision));
 
             var hlslProps = BuildHLSLPropertyListForTarget(target);
 
