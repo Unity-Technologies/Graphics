@@ -307,8 +307,8 @@ EnvironmentLighting EvaluateEnvironmentLighting(CloudRay ray)
 {
     // Sun parameters
     EnvironmentLighting environmentLight;
-    environmentLight.sunDirection = _SunDirection;
-    environmentLight.sunColor = _SunLightColor * (_ExposureSunColor ? GetCurrentExposureMultiplier() : 1.0);
+    environmentLight.sunDirection = _SunDirection.xyz;
+    environmentLight.sunColor = _SunLightColor.xyz * (_ExposureSunColor ? GetCurrentExposureMultiplier() : 1.0);
     environmentLight.ambientTerm = SampleSH9(_AmbientProbeCoeffs, ray.direction) * GetCurrentExposureMultiplier();
 
 #ifdef PHYSICALLY_BASED_SUN
@@ -1117,22 +1117,22 @@ void ComputeVolumetricCloudsShadow(uint3 currentCoords : SV_DispatchThreadID, ui
     }
 
     // First we compute the location of the shadow plane in the planet coordinate system
-    float3 shadowPlaneOrigin = _SunDirection * (_HighestCloudAltitude + _EarthRadius);
-    float3 shadowPlaneNormal = -_SunDirection;
+    float3 shadowPlaneOrigin = _SunDirection.xyz * (_HighestCloudAltitude + _EarthRadius);
+    float3 shadowPlaneNormal = -_SunDirection.xyz;
 
     // Here the plane is guaranteed to intersect, we don't need to test the result
     float t;
-    IntersectPlane(float3(0, _EarthRadius, 0), _SunDirection, shadowPlaneOrigin, shadowPlaneNormal, t);
+    IntersectPlane(float3(0, _EarthRadius, 0), _SunDirection.xyz, shadowPlaneOrigin, shadowPlaneNormal, t);
 
     // Compute the position of the shadow plane
-    float3 shadowCookieCenter = float3(_WorldSpaceCameraPos.x, _EarthRadius + _ShadowPlaneOffset, _WorldSpaceCameraPos.z) + t * _SunDirection;
+    float3 shadowCookieCenter = float3(_WorldSpaceCameraPos.x, _EarthRadius + _ShadowPlaneOffset, _WorldSpaceCameraPos.z) + t * _SunDirection.xyz;
 
     // Compute the normalized coordinate on the shadow plane
     float2 normalizedCoord = (currentCoords.xy - _ShadowCookieResolution * 0.5f) / (_ShadowCookieResolution * 0.5f);
 
     // Compute the origin of the ray properties  in the planet space
-    float3 rayOrigin = (normalizedCoord.x * _SunRight * _ShadowRegionSize.x + normalizedCoord.y * _SunUp * _ShadowRegionSize.y) + shadowCookieCenter;
-    float3 rayDirection = -_SunDirection;
+    float3 rayOrigin = (normalizedCoord.x * _SunRight.xyz * _ShadowRegionSize.x + normalizedCoord.y * _SunUp.xyz * _ShadowRegionSize.y) + shadowCookieCenter;
+    float3 rayDirection = -_SunDirection.xyz;
 
     // Compute the attenuation
     float transmittance = 1.0f;

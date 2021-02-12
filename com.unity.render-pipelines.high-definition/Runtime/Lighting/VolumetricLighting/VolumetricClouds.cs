@@ -112,7 +112,7 @@ namespace UnityEngine.Rendering.HighDefinition
         [Tooltip("Offset (x,y) of the cloud map")]
         public Vector2Parameter cloudOffset = new Vector2Parameter(new Vector2(0.0f, 0.0f));
 
-        [Tooltip("Altitude of the lowest cloud in meters.")]
+        [Tooltip("Controls the altitude the cloud volume starts at.")]
         public MinFloatParameter lowestCloudAltitude = new MinFloatParameter(500, 0.01f);
 
         [Tooltip("Controls the thickness of the volumetric clouds volume in meters.")]
@@ -136,31 +136,31 @@ namespace UnityEngine.Rendering.HighDefinition
         [Tooltip("Specifies the weather preset in Simple mode.")]
         public CloudPresetsParameter cloudPreset = new CloudPresetsParameter(CloudPresets.Cloudy);
 
-        [Tooltip("Controls the lower cloud layer distribution in the advanced mode.")]
+        [Tooltip("Specifies the lower cloud layer distribution in the advanced mode.")]
         public TextureParameter cumulusMap = new TextureParameter(null);
 
         [Tooltip("Overrides the coverage of the lower cloud layer specified in the cumulus map in the advanced mode.")]
         public ClampedFloatParameter cumulusMapMultiplier = new ClampedFloatParameter(1.0f, 0.0f, 1.0f);
 
-        [Tooltip("Control the higher cloud layer distribution in the advanced mode.")]
+        [Tooltip("Specifies the higher cloud layer distribution in the advanced mode.")]
         public TextureParameter altoStratusMap = new TextureParameter(null);
 
         [Tooltip("Overrides the coverage of the higher cloud layer specified in the alto stratus map in the advanced mode.")]
         public ClampedFloatParameter altoStratusMapMultiplier = new ClampedFloatParameter(1.0f, 0.0f, 1.0f);
 
-        [Tooltip("Control the anvil shaped clouds distribution in the advanced mode.")]
+        [Tooltip("Specifies the anvil shaped clouds distribution in the advanced mode.")]
         public TextureParameter cumulonimbusMap = new TextureParameter(null);
 
         [Tooltip("Overrides the coverage of the anvil shaped clouds specified in the cumulonimbus map in the advanced mode.")]
         public ClampedFloatParameter cumulonimbusMapMultiplier = new ClampedFloatParameter(1.0f, 0.0f, 1.0f);
 
-        [Tooltip("Control the rain distribution in the advanced mode.")]
+        [Tooltip("Specifies the rain distribution in the advanced mode.")]
         public TextureParameter rainMap = new TextureParameter(null);
 
-        [Tooltip("Controls the internal texture resolution used for the cloud map in the advanced mode. A lower value will lead to higher performance, but less precise cloud type transitions.")]
+        [Tooltip("Specifies the internal texture resolution used for the cloud map in the advanced mode. A lower value will lead to higher performance, but less precise cloud type transitions.")]
         public CloudMapResolutionParameter cloudMapResolution = new CloudMapResolutionParameter(CloudMapResolution.Medium64x64);
 
-        [Tooltip("Direction of the scattering. 0.0 is backward 1.0 is forward.")]
+        [Tooltip("Controls the direction of the scattering. 0.0 is backward 1.0 is forward.")]
         public ClampedFloatParameter scatteringDirection = new ClampedFloatParameter(0.5f, 0.0f, 1.0f);
 
         [Tooltip("Specifies the tint of the cloud scattering color.")]
@@ -197,7 +197,7 @@ namespace UnityEngine.Rendering.HighDefinition
         [AdditionalProperty]
         public ClampedFloatParameter orientation = new ClampedFloatParameter(0.0f, 0.0f, 360.0f);
 
-        [Tooltip("Multiplier to the speed of the cloud map.")]
+        [Tooltip("Controls the multiplier to the speed of the cloud map.")]
         [AdditionalProperty]
         public ClampedFloatParameter cloudMapSpeedMultiplier = new ClampedFloatParameter(1.0f, 0.0f, 1.0f);
 
@@ -218,7 +218,7 @@ namespace UnityEngine.Rendering.HighDefinition
         [Tooltip("Specifies the resolution of the volumetric clouds shadow map.")]
         public CloudShadowResolutionParameter shadowResolution = new CloudShadowResolutionParameter(CloudShadowResolution.Medium256);
 
-        [Tooltip("Vertical offset applied to compute the volumetric clouds shadow.")]
+        [Tooltip("Controls the vertical offset applied to compute the volumetric clouds shadow. To have accurate results, enter the average height at which the volumetric clouds shadow is received.")]
         [AdditionalProperty]
         public FloatParameter shadowPlaneHeightOffset = new FloatParameter(0.0f);
 

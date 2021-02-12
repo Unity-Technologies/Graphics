@@ -145,7 +145,7 @@ namespace UnityEditor.Rendering.HighDefinition
                 return;
             }
 
-            EditorGUILayout.HelpBox("Volumetric Clouds are only displayed up to the far plane of the used camera. Make sure to increase the far plane accordingly.", MessageType.Info);
+            EditorGUILayout.HelpBox("Volumetric Clouds are only displayed up to the far plane of the used camera. Make sure to increase the far and near planes accordingly.", MessageType.Info);
 
             EditorGUILayout.LabelField("General", EditorStyles.miniLabel);
             PropertyField(m_Enable);
