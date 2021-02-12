@@ -62,13 +62,9 @@ namespace UnityEditor.ShaderGraph
             var subGraphPath = ctx.assetPath;
             var subGraphGuid = AssetDatabase.AssetPathToGUID(subGraphPath);
             graphAsset.assetGuid = subGraphGuid;
-            var textGraph = File.ReadAllText(subGraphPath, Encoding.UTF8);
+
             var messageManager = new MessageManager();
-            var graphData = new GraphData
-            {
-                isSubGraph = true, assetGuid = subGraphGuid, messageManager = messageManager
-            };
-            MultiJson.Deserialize(graphData, textGraph);
+            var graphData = GraphUtil.LoadGraphDataFromAssetFile(subGraphPath, messageManager);
 
             try
             {
@@ -158,10 +154,6 @@ namespace UnityEditor.ShaderGraph
             registry.names.Clear();
             asset.functions.Clear();
             asset.isValid = true;
-
-            graph.OnEnable();
-            graph.messageManager.ClearAll();
-            graph.ValidateGraph();
 
             var assetPath = AssetDatabase.GUIDToAssetPath(asset.assetGuid);
             asset.hlslName = NodeUtils.GetHLSLSafeName(Path.GetFileNameWithoutExtension(assetPath));

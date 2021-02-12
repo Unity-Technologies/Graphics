@@ -17,6 +17,7 @@ using UnityEditor.ShaderGraph.Internal;
 using UnityEngine;
 using UnityEngine.Rendering;
 using Object = System.Object;
+using UnityEditor.ShaderGraph.Serialization;
 
 namespace UnityEditor.ShaderGraph
 {
@@ -197,6 +198,41 @@ namespace UnityEditor.ShaderGraph
             graphItem.blocks = blockDescriptors;
             ProjectWindowUtil.StartNameEditingIfProjectWindowExists(0, graphItem,
                 string.Format("New Shader Graph.{0}", ShaderGraphImporter.Extension), null, null);
+        }
+
+        public static GraphData LoadGraphDataFromAssetFile(string assetPath, MessageManager messageManager = null, Action<string> OnFileContents = null)
+        {
+            var textGraph = File.ReadAllText(assetPath, Encoding.UTF8);
+            OnFileContents?.Invoke(textGraph);
+
+            bool isSubGraph;
+            {
+                // Path.GetExtension returns the extension prefixed with ".", so we remove it. We force lower case such that
+                // the comparison will be case-insensitive.
+                var extension = Path.GetExtension(assetPath).Substring(1).ToLowerInvariant();
+                switch (extension)
+                {
+                    case ShaderGraphImporter.Extension:
+                        isSubGraph = false;
+                        break;
+                    case ShaderSubGraphImporter.Extension:
+                        isSubGraph = true;
+                        break;
+                    default:
+                        throw new Exception($"Invalid file extension {extension}");
+                }
+            }
+            var assetGuid = AssetDatabase.AssetPathToGUID(assetPath);
+            var graph = new GraphData
+            {
+                assetGuid = assetGuid,
+                isSubGraph = isSubGraph,
+                messageManager = messageManager
+            };
+            MultiJson.Deserialize(graph, textGraph);
+            graph.OnEnable();
+            graph.ValidateGraph();
+            return graph;
         }
 
         public static bool TryGetMetadataOfType<T>(this Shader shader, out T obj) where T : ScriptableObject

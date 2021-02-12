@@ -17,13 +17,7 @@ namespace UnityEditor.ShaderGraph.UnitTests
         {
             hideFlags = HideFlags.HideAndDontSave;
 
-            var textGraph = File.ReadAllText(graphPath, Encoding.UTF8);
-            graph = new GraphData();
-            graph.messageManager = new MessageManager();
-            graph.assetGuid = AssetDatabase.AssetPathToGUID(graphPath);
-            MultiJson.Deserialize(graph, textGraph);
-            graph.OnEnable();
-            graph.ValidateGraph();
+            graph = GraphUtil.LoadGraphDataFromAssetFile(graphPath, new MessageManager());
         }
 
         public override void RegisterCompleteObjectUndo(string actionName)

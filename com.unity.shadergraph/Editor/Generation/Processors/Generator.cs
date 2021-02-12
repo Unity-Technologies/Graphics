@@ -90,6 +90,7 @@ namespace UnityEditor.ShaderGraph
         void BuildShader()
         {
             var activeNodeList = Pool.ListPool<AbstractMaterialNode>.Get();
+            bool ignoreActiveState = (m_Mode == GenerationMode.Preview);  // for previews, we ignore node active state
             if (m_OutputNode == null)
             {
                 foreach (var block in m_Blocks)
@@ -99,12 +100,12 @@ namespace UnityEditor.ShaderGraph
                     if (!block.isActive)
                         continue;
 
-                    NodeUtils.DepthFirstCollectNodesFromNode(activeNodeList, block, NodeUtils.IncludeSelf.Include);
+                    NodeUtils.DepthFirstCollectNodesFromNode(activeNodeList, block, NodeUtils.IncludeSelf.Include, null, ignoreActiveState);
                 }
             }
             else
             {
-                NodeUtils.DepthFirstCollectNodesFromNode(activeNodeList, m_OutputNode);
+                NodeUtils.DepthFirstCollectNodesFromNode(activeNodeList, m_OutputNode, IncludeSelf.Include, null, ignoreActiveState);
             }
 
             var allShaderProperties = new PropertyCollector();

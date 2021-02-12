@@ -1107,39 +1107,26 @@ namespace UnityEditor.ShaderGraph.Drawing
                     return;
 
                 var path = AssetDatabase.GetAssetPath(asset);
-                var extension = Path.GetExtension(path);
-                if (extension == null)
-                    return;
-                // Path.GetExtension returns the extension prefixed with ".", so we remove it. We force lower case such that
-                // the comparison will be case-insensitive.
-                extension = extension.Substring(1).ToLowerInvariant();
-                bool isSubGraph;
-                switch (extension)
-                {
-                    case ShaderGraphImporter.Extension:
-                        isSubGraph = false;
-                        break;
-                    case ShaderSubGraphImporter.Extension:
-                        isSubGraph = true;
-                        break;
-                    default:
-                        return;
-                }
-
-                selectedGuid = assetGuid;
 
                 using (GraphLoadMarker.Auto())
                 {
-                    m_LastSerializedFileContents = File.ReadAllText(path, Encoding.UTF8);
+                    GraphData loadedGraph;
+                    try
+                    {
+                        loadedGraph = GraphUtil.LoadGraphDataFromAssetFile(path, messageManager, text => { m_LastSerializedFileContents = text; });
+                    }
+                    catch (Exception e)
+                    {
+                        // this exception is thrown when the file has an unrecognized extension
+                        Debug.LogException(e);
+                        return;
+                    }
+
+                    selectedGuid = assetGuid;
+
                     graphObject = CreateInstance<GraphObject>();
                     graphObject.hideFlags = HideFlags.HideAndDontSave;
-                    graphObject.graph = new GraphData
-                    {
-                        assetGuid = assetGuid, isSubGraph = isSubGraph, messageManager = messageManager
-                    };
-                    MultiJson.Deserialize(graphObject.graph, m_LastSerializedFileContents);
-                    graphObject.graph.OnEnable();
-                    graphObject.graph.ValidateGraph();
+                    graphObject.graph = loadedGraph;
                 }
 
                 using (CreateGraphEditorViewMarker.Auto())

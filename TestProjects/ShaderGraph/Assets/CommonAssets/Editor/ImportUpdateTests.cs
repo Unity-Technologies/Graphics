@@ -90,19 +90,13 @@ namespace UnityEditor.ShaderGraph.UnitTests
             AssetDatabase.ImportAsset(unityLocalPath, ImportAssetOptions.ForceSynchronousImport | ImportAssetOptions.ForceUpdate | ImportAssetOptions.DontDownloadFromCacheServer);
 
             // double check we can load it up and validate it
-            string fileContents = File.ReadAllText(fullPath);
+
+            string fileContents = null;
+            var messageManager = new MessageManager();
+            var graphData = GraphUtil.LoadGraphDataFromAssetFile(unityLocalPath, messageManager, text => { fileContents = text; });
             Assert.Greater(fileContents.Length, 0);
 
-            var graphGuid = AssetDatabase.AssetPathToGUID(unityLocalPath);
-            var messageManager = new MessageManager();
-            GraphData graphData = new GraphData() { assetGuid = graphGuid, messageManager = messageManager };
-            MultiJson.Deserialize(graphData, fileContents);
-            graphData.OnEnable();
-            graphData.ValidateGraph();
-
-            string fileExtension = Path.GetExtension(fullPath).ToLower();
-            bool isSubgraph = (fileExtension == "shadersubgraph");
-            if (isSubgraph)
+            if (graphData.isSubGraph)
             {
                 // check that the SubGraphAsset is the same after versioning twice
                 // this is important to ensure we're not importing subgraphs non-deterministically when they are out-of-date on disk
@@ -121,14 +115,12 @@ namespace UnityEditor.ShaderGraph.UnitTests
                 // check that the generated shader is the same after versioning twice
                 // this is important to ensure we're not importing shaders non-deterministically when they are out-of-date on disk
                 string fileNameNoExtension = Path.GetFileNameWithoutExtension(fullPath);
+                var fileExtension = Path.GetExtension(fullPath);
                 var generator = new Generator(graphData, graphData.outputNode, GenerationMode.ForReals, fileNameNoExtension, null);
                 string shader = generator.generatedShader;
 
-                // version again
-                GraphData graphData2 = new GraphData() { assetGuid = graphGuid, messageManager = messageManager };
-                MultiJson.Deserialize(graphData2, fileContents);
-                graphData2.OnEnable();
-                graphData2.ValidateGraph();
+                // version again by loading a second time
+                var graphData2 = GraphUtil.LoadGraphDataFromAssetFile(unityLocalPath, messageManager);
                 var generator2 = new Generator(graphData2, graphData2.outputNode, GenerationMode.ForReals, fileNameNoExtension, null);
                 string shader2 = generator2.generatedShader;
 

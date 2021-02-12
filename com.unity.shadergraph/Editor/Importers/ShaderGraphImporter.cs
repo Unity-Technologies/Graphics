@@ -32,7 +32,6 @@ namespace UnityEditor.ShaderGraph
     class ShaderGraphImporter : ScriptedImporter
     {
         public const string Extension = "shadergraph";
-        public const string LegacyExtension = "ShaderGraph";
 
         public const string k_ErrorShader = @"
 Shader ""Hidden/GraphErrorShader2""
@@ -120,14 +119,7 @@ Shader ""Hidden/GraphErrorShader2""
             AssetCollection assetCollection = new AssetCollection();
             MinimalGraphData.GatherMinimalDependenciesFromFile(assetPath, assetCollection);
 
-            var textGraph = File.ReadAllText(path, Encoding.UTF8);
-            var graph = new GraphData
-            {
-                messageManager = new MessageManager(), assetGuid = AssetDatabase.AssetPathToGUID(path)
-            };
-            MultiJson.Deserialize(graph, textGraph);
-            graph.OnEnable();
-            graph.ValidateGraph();
+            var graph = GraphUtil.LoadGraphDataFromAssetFile(path, new MessageManager());
 
             Shader shader = null;
 #if VFX_GRAPH_10_0_0_OR_NEWER
@@ -296,28 +288,14 @@ Shader ""Hidden/GraphErrorShader2""
 
         internal static string GetShaderText(string path, out List<PropertyCollector.TextureInfo> configuredTextures, AssetCollection assetCollection, out GraphData graph)
         {
-            var textGraph = File.ReadAllText(path, Encoding.UTF8);
-            graph = new GraphData
-            {
-                messageManager = new MessageManager(), assetGuid = AssetDatabase.AssetPathToGUID(path)
-            };
-            MultiJson.Deserialize(graph, textGraph);
-            graph.OnEnable();
-            graph.ValidateGraph();
+            graph = GraphUtil.LoadGraphDataFromAssetFile(path, new MessageManager());
 
             return GetShaderText(path, out configuredTextures, assetCollection, graph);
         }
 
         internal static string GetShaderText(string path, out List<PropertyCollector.TextureInfo> configuredTextures)
         {
-            var textGraph = File.ReadAllText(path, Encoding.UTF8);
-            GraphData graph = new GraphData
-            {
-                messageManager = new MessageManager(), assetGuid = AssetDatabase.AssetPathToGUID(path)
-            };
-            MultiJson.Deserialize(graph, textGraph);
-            graph.OnEnable();
-            graph.ValidateGraph();
+            var graph = GraphUtil.LoadGraphDataFromAssetFile(path, new MessageManager());
 
             return GetShaderText(path, out configuredTextures, null, graph);
         }
