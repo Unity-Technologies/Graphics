@@ -12,9 +12,9 @@ The following is a list of features Unity added to version 12 of the High Defini
 
 The following is a list of improvements Unity made to the High Definition Render Pipeline in version 12. Each entry includes a summary of the improvement and, if relevant, a link to any documentation.
 
+### Additional Properties
 
-
-
+From HDRP 12.0, More Options have become Additional Properties. The way to access them has also changed. The cogwheel that was present in component headers has been replaced by an entry in the contextual menu. When you enable additional properties, Unity highlights the background of each additional property for a few seconds to show you where they are.
 
 ## Issues resolved
 
