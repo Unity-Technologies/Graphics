@@ -10,7 +10,12 @@ The following is a list of features Unity added to version 12 of the High Defini
 
 ## Improvements
 
-The following is a list of improvements Unity made to the High Definition Render Pipeline in version 12. Each entry includes a summary of the improvement and, if relevant, a link to any documentation.
+### AOV API Improvements
+
+From HDRP 12.0, The AOV API includes the following improvements
+- It is now possible to override the render buffer format that is used internally by HDRP when rendering **AOVs**. This can be done by a call to aovRequest.SetOverrideRenderFormat(true);
+- There is now a world space position output buffer (see DebugFullScreen.WorldSpacePosition).
+- The MaterialSharedProperty.Specular output now includes sensible information even for materials that use the metallic workflow (by converting the metallic parameter to fresnel 0).
 
 ### Additional Properties
 

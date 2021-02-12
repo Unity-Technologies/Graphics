@@ -29,6 +29,9 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - VFX: Debug material view incorrect depth test. (case 1293291)
 - VFX: Fixed LPPV with lit particles in deferred (case 1293608)
 
+### Added
+- Added new AOV APIs for overriding the internal rendering format, and for outputing the world space position.
+
 ### Changed
 - Changed Window/Render Pipeline/HD Render Pipeline Wizard to Window/Rendering/HDRP Wizard
 - Removed the material pass probe volumes evaluation mode.
