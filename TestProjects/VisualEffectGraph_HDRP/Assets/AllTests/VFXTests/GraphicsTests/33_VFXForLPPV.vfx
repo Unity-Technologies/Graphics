@@ -1104,6 +1104,7 @@ MonoBehaviour:
   frustumCulling: 0
   castShadows: 1
   useExposureWeight: 0
+  flipbookLayout: 0
   shaderGraph: {fileID: 0}
   materialType: 0
   onlyAmbientLighting: 0
