@@ -138,6 +138,15 @@ namespace UnityEngine.Rendering.Universal
                     break;
                 }
             } // End of switch.
+
+            if(ValidationSettings.validationMode == DebugValidationMode.ValidateAlbedo)
+            {
+                cmd.SetGlobalFloat(m_DebugValidateAlbedoMinLuminanceId, ValidationSettings.AlbedoMinLuminance);
+                cmd.SetGlobalFloat(m_DebugValidateAlbedoMaxLuminanceId, ValidationSettings.AlbedoMaxLuminance);
+                cmd.SetGlobalFloat(m_DebugValidateAlbedoSaturationToleranceId, ValidationSettings.AlbedoSaturationTolerance);
+                cmd.SetGlobalFloat(m_DebugValidateAlbedoHueToleranceId, ValidationSettings.AlbedoHueTolerance);
+                cmd.SetGlobalColor(m_DebugValidateAlbedoCompareColorId, ValidationSettings.AlbedoCompareColor.linear);
+            }
         }
 
         [Conditional("DEVELOPMENT_BUILD"), Conditional("UNITY_EDITOR")]
@@ -160,12 +169,8 @@ namespace UnityEngine.Rendering.Universal
 
             // Validation settings...
             cmd.SetGlobalInt(m_DebugValidationModeId, (int)ValidationSettings.validationMode);
-            cmd.SetGlobalFloat(m_DebugValidateAlbedoMinLuminanceId, ValidationSettings.AlbedoMinLuminance);
-            cmd.SetGlobalFloat(m_DebugValidateAlbedoMaxLuminanceId, ValidationSettings.AlbedoMaxLuminance);
-            cmd.SetGlobalFloat(m_DebugValidateAlbedoSaturationToleranceId, ValidationSettings.AlbedoSaturationTolerance);
-            cmd.SetGlobalFloat(m_DebugValidateAlbedoHueToleranceId, ValidationSettings.AlbedoHueTolerance);
-            cmd.SetGlobalColor(m_DebugValidateAlbedoCompareColorId, ValidationSettings.AlbedoCompareColor.linear);
 
+            // Set-up any other persistent properties...
             cmd.SetGlobalTexture("_DebugNumberTexture", m_NumberFontTexture);
             context.ExecuteCommandBuffer(cmd);
             CommandBufferPool.Release(cmd);

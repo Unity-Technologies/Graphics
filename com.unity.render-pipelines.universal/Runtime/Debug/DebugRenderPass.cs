@@ -84,10 +84,21 @@ namespace UnityEngine.Rendering.Universal
         {
             DebugSceneOverrideMode sceneOverrideMode = m_DebugHandler.DebugDisplaySettings.RenderingSettings.debugSceneOverrideMode;
 
+            // Create an empty render-state block and only enable the parts we wish to override...
             renderStateBlock = new RenderStateBlock();
 
             switch(sceneOverrideMode)
             {
+                case DebugSceneOverrideMode.Overdraw:
+                {
+                    RenderTargetBlendState additiveBlend = new RenderTargetBlendState(sourceColorBlendMode: BlendMode.One, destinationColorBlendMode: BlendMode.One);
+
+                    // Additive-blend but leave z-write and culling as they are when we draw normally...
+                    renderStateBlock.blendState = new BlendState{blendState0 = additiveBlend};
+                    renderStateBlock.mask = RenderStateMask.Blend;
+                    return true;
+                }
+
                 case DebugSceneOverrideMode.Wireframe:
                 {
                     return true;
@@ -97,7 +108,8 @@ namespace UnityEngine.Rendering.Universal
                 {
                     if(m_Index == 1)
                     {
-                        renderStateBlock.rasterState = new RasterState(CullMode.Back, -1, -1);
+                        // Ensure we render the wireframe in front of the solid triangles of the previous pass...
+                        renderStateBlock.rasterState = new RasterState(offsetUnits: -1, offsetFactor: -1);
                         renderStateBlock.mask = RenderStateMask.Raster;
                     }
 
@@ -106,6 +118,7 @@ namespace UnityEngine.Rendering.Universal
 
                 default:
                 {
+                    // We're not going to override anything...
                     return false;
                 }
             } // End of switch.
