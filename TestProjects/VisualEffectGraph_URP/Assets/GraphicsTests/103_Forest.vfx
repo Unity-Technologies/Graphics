@@ -19,7 +19,7 @@ MonoBehaviour:
     serializedVersion: 2
     x: -897
     y: -190
-    width: 2677
+    width: 2673
     height: 1393
 --- !u!114 &114350483966674976
 MonoBehaviour:
@@ -844,7 +844,7 @@ MonoBehaviour:
   excludeFromTAA: 0
   m_SubOutputs: []
   cullMode: 0
-  zWriteMode: 1
+  zWriteMode: 0
   zTestMode: 7
   colorMapping: 0
   uvMode: 0
@@ -3539,7 +3539,7 @@ MonoBehaviour:
   m_Children:
   - {fileID: 8926484042661614801}
   - {fileID: 8926484042661614802}
-  m_UIPosition: {x: 1356, y: 819}
+  m_UIPosition: {x: 1352, y: 819}
   m_UICollapsed: 0
   m_UISuperCollapsed: 0
   m_InputSlots:
@@ -3559,7 +3559,7 @@ MonoBehaviour:
   excludeFromTAA: 0
   m_SubOutputs: []
   cullMode: 0
-  zWriteMode: 1
+  zWriteMode: 0
   zTestMode: 7
   colorMapping: 0
   uvMode: 0
