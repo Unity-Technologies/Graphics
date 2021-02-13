@@ -1187,7 +1187,7 @@ namespace UnityEditor.VFX
                 var type = Type.GetType("UnityEditor.RendererEditorBase, UnityEditor");
                 if (type != null)
                 {
-                    var property = type.GetProperty("defaultRenderingLayerNames", BindingFlags.Static | BindingFlags.GetField | BindingFlags.NonPublic);
+                    var property = type.GetProperty("defaultRenderingLayerNames", BindingFlags.Static | BindingFlags.GetField | BindingFlags.NonPublic | BindingFlags.Public);
                     if (property != null)
                     {
                         var invokeResult = property.GetMethod.Invoke(null, null);
@@ -1196,6 +1196,38 @@ namespace UnityEditor.VFX
                     }
                 }
                 return null;
+            }
+
+            public static readonly Action<GUIContent, SerializedProperty, GUIStyle, GUIStyle> s_fnGetSortingLayerField = GetSortingLayerField();
+
+            private static Action<GUIContent, SerializedProperty, GUIStyle, GUIStyle> GetSortingLayerField()
+            {
+                //Find UnityEditor.EditorGUILayout.SortingLayerField by reflection to avoid any breakage due to an API change
+                var type = typeof(EditorGUILayout);
+                var function = type.GetMethods(BindingFlags.Static | BindingFlags.InvokeMethod | BindingFlags.NonPublic | BindingFlags.Public)
+                    .FirstOrDefault(f => f.Name == "SortingLayerField" && f.GetParameters().Length == 4);
+                if (function != null)
+                {
+                    var parameters = function.GetParameters();
+                    if (parameters[0].ParameterType == typeof(GUIContent)
+                        && parameters[1].ParameterType == typeof(SerializedProperty)
+                        && parameters[2].ParameterType == typeof(GUIStyle)
+                        && parameters[3].ParameterType == typeof(GUIStyle))
+                    {
+                        return delegate(GUIContent label, SerializedProperty layerID, GUIStyle style, GUIStyle labelStyle)
+                        {
+                            function.Invoke(null, new object[] { label, layerID, style, labelStyle });
+                        };
+                    }
+                }
+                return null;
+            }
+
+            static void SortingLayerField(GUIContent label, SerializedProperty layerID, GUIStyle style, GUIStyle labelStyle)
+            {
+                if (s_fnGetSortingLayerField == null)
+                    return;
+                s_fnGetSortingLayerField.Invoke(label, layerID, style, labelStyle);
             }
 
             static bool HasPrefabOverride(SerializedProperty property)
@@ -1310,8 +1342,7 @@ namespace UnityEditor.VFX
                     if (m_SortingOrder != null && m_SortingLayerID != null)
                     {
                         var hasPrefabOverride = HasPrefabOverride(m_SortingLayerID);
-                        //TODOPAUL : Still internal function
-                        EditorGUILayout.SortingLayerField(Contents.sortingLayerStyle, m_SortingLayerID, hasPrefabOverride ? Contents.boldPopupStyle : EditorStyles.popup, hasPrefabOverride ? EditorStyles.boldLabel : EditorStyles.label);
+                        SortingLayerField(Contents.sortingLayerStyle, m_SortingLayerID, hasPrefabOverride ? Contents.boldPopupStyle : EditorStyles.popup, hasPrefabOverride ? EditorStyles.boldLabel : EditorStyles.label);
                         EditorGUILayout.PropertyField(m_SortingOrder, Contents.sortingOrderStyle);
                     }
                 }
