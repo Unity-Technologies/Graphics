@@ -1198,6 +1198,11 @@ namespace UnityEditor.VFX
                 return null;
             }
 
+            static bool HasPrefabOverride(SerializedProperty property)
+            {
+                return property != null && property.serializedObject.targetObjectsCount == 1 && property.isInstantiatedPrefab && property.prefabOverride;
+            }
+
             public void OnInspectorGUI()
             {
                 m_SerializedRenderers.Update();
@@ -1304,8 +1309,10 @@ namespace UnityEditor.VFX
 
                     if (m_SortingOrder != null && m_SortingLayerID != null)
                     {
-                        //TODOPAUL : avoid reference an internal function
-                        SortingLayerEditorUtility.RenderSortingLayerFields(m_SortingOrder, m_SortingLayerID);
+                        var hasPrefabOverride = HasPrefabOverride(m_SortingLayerID);
+                        //TODOPAUL : Still internal function
+                        EditorGUILayout.SortingLayerField(Contents.sortingLayerStyle, m_SortingLayerID, hasPrefabOverride ? Contents.boldPopupStyle : EditorStyles.popup, hasPrefabOverride ? EditorStyles.boldLabel : EditorStyles.label);
+                        EditorGUILayout.PropertyField(m_SortingOrder, Contents.sortingOrderStyle);
                     }
                 }
                 EditorGUILayout.EndFoldoutHeaderGroup();
@@ -1325,6 +1332,11 @@ namespace UnityEditor.VFX
 
                 public static readonly GUIContent probeSettings =                   EditorGUIUtility.TrTextContent("Probes");
                 public static readonly GUIContent otherSettings =                   EditorGUIUtility.TrTextContent("Additional Settings");
+
+                public static readonly GUIContent sortingLayerStyle =               EditorGUIUtility.TrTextContent("Sorting Layer", "Name of the Renderer's sorting layer");
+                public static readonly GUIContent sortingOrderStyle =               EditorGUIUtility.TrTextContent("Order in Layer", "Renderer's order within a sorting layer");
+
+                public static readonly GUIStyle boldPopupStyle =                    new GUIStyle(EditorStyles.popup) { fontStyle = FontStyle.Bold };
             }
         }
 
