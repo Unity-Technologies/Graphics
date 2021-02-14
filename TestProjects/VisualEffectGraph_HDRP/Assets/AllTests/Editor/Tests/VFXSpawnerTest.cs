@@ -467,8 +467,8 @@ namespace UnityEditor.VFX.Test
             outputEvent.LinkFrom(basicSpawner);
             AssetDatabase.ImportAsset(AssetDatabase.GetAssetPath(graph));
 
-            s_receivedEvent = new List<int>();
-            vfxComponent.outputEventReceived += OnEventReceived;
+            s_ReceivedEventNamedId = new List<int>();
+            vfxComponent.outputEventReceived += OnEventReceived_RegisterNameID;
 
             int maxFrame = 512;
             while (vfxComponent.culled && --maxFrame > 0)
@@ -481,18 +481,18 @@ namespace UnityEditor.VFX.Test
             float deltaTime = 0.1f;
             uint count = 32;
             vfxComponent.Simulate(deltaTime, count);
-            Assert.AreEqual(0u, s_receivedEvent.Count); //The simulate is asynchronous
+            Assert.AreEqual(0u, s_ReceivedEventNamedId.Count); //The simulate is asynchronous
 
             float simulateTime = deltaTime * count;
             uint expectedEventCount = (uint)Mathf.Floor(simulateTime / spawnCountValue);
 
-            maxFrame = 64; s_receivedEvent.Clear();
+            maxFrame = 64; s_ReceivedEventNamedId.Clear();
             cameraObj.SetActive(false);
-            while (s_receivedEvent.Count == 0u && --maxFrame > 0)
+            while (s_ReceivedEventNamedId.Count == 0u && --maxFrame > 0)
             {
                 yield return null;
             }
-            Assert.AreEqual(expectedEventCount, (uint)s_receivedEvent.Count);
+            Assert.AreEqual(expectedEventCount, (uint)s_ReceivedEventNamedId.Count);
             yield return null;
 
             yield return new ExitPlayMode();
