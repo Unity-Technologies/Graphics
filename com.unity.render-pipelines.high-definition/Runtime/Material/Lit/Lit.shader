@@ -170,6 +170,7 @@ Shader "HDRP/Lit"
         [ToggleUI] _DoubleSidedEnable("Double sided enable", Float) = 0.0
         [Enum(Flip, 0, Mirror, 1, None, 2)] _DoubleSidedNormalMode("Double sided normal mode", Float) = 1
         [HideInInspector] _DoubleSidedConstants("_DoubleSidedConstants", Vector) = (1, 1, -1, 0)
+        [Enum(Auto, 0, On, 1, Off, 2)] _DoubleSidedGIMode("Double sided GI mode", Float) = 0
 
         [Enum(UV0, 0, UV1, 1, UV2, 2, UV3, 3, Planar, 4, Triplanar, 5)] _UVBase("UV Set for base", Float) = 0
         _TexWorldScale("Scale to apply on world coordinate", Float) = 1.0
