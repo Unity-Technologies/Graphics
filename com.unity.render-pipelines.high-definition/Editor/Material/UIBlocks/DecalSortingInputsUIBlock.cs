@@ -25,8 +25,8 @@ namespace UnityEditor.Rendering.HighDefinition
         }
 
         ExpandableBit  m_ExpandableBit;
- 
-		MaterialProperty decalMeshBiasType = new MaterialProperty();
+
+        MaterialProperty decalMeshBiasType = new MaterialProperty();
         const string kDecalMeshBiasType = "_DecalMeshBiasType";
 
         MaterialProperty decalMeshDepthBias = new MaterialProperty();

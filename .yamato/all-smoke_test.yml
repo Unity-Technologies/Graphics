@@ -24,6 +24,9 @@ Nightly_Smoke_Test_2021.1:
     dependencies:
       -  path: .yamato/all-smoke_test.yml#PR_Smoke_Test_2021.1
          rerun: on-new-revision
+    variables:
+        UTR_VERSION: "current"
+        TEST_FILTER: .*
 PR_Smoke_Test_CUSTOM-REVISION:
     name: Smoke_Test PR Job - CUSTOM-REVISION
     dependencies:
@@ -44,3 +47,5 @@ Nightly_Smoke_Test_CUSTOM-REVISION:
          rerun: always
     variables:
         CUSTOM_REVISION: custom_revision_not_set
+        UTR_VERSION: "current"
+        TEST_FILTER: .*
