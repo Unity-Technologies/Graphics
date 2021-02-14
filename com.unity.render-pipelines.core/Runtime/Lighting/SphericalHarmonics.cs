@@ -3,12 +3,27 @@ using System;
 namespace UnityEngine.Rendering
 {
     [Serializable]
+    /// <summary>
+    /// Structure holding Spherical Harmonic L1 coefficient.
+    /// </summary>
     public struct SphericalHarmonicsL1
     {
+        /// <summary>
+        /// Red channel of each of the three L1 SH coefficient.
+        /// </summary>
         public Vector4 shAr;
+        /// <summary>
+        /// Green channel of each of the three L1 SH coefficient.
+        /// </summary>
         public Vector4 shAg;
+        /// <summary>
+        /// Blue channel of each of the three L1 SH coefficient.
+        /// </summary>
         public Vector4 shAb;
 
+        /// <summary>
+        /// A set of L1 coefficients initialized to zero.
+        /// </summary>
         public static readonly SphericalHarmonicsL1 zero = new SphericalHarmonicsL1
         {
             shAr = Vector4.zero,
@@ -17,6 +32,13 @@ namespace UnityEngine.Rendering
         };
 
         // These operators are implemented so that SphericalHarmonicsL1 matches API of SphericalHarmonicsL2.
+
+        /// <summary>
+        /// Sum two SphericalHarmonicsL1.
+        /// </summary>
+        /// <param name="lhs">First SphericalHarmonicsL1.</param>
+        /// <param name="rhs">Second SphericalHarmonicsL1.</param>
+        /// <returns>The resulting SphericalHarmonicsL1.</returns>
         public static SphericalHarmonicsL1 operator+(SphericalHarmonicsL1 lhs, SphericalHarmonicsL1 rhs) => new SphericalHarmonicsL1()
         {
             shAr = lhs.shAr + rhs.shAr,
@@ -24,6 +46,12 @@ namespace UnityEngine.Rendering
             shAb = lhs.shAb + rhs.shAb
         };
 
+        /// <summary>
+        /// Subtract two SphericalHarmonicsL1.
+        /// </summary>
+        /// <param name="lhs">First SphericalHarmonicsL1.</param>
+        /// <param name="rhs">Second SphericalHarmonicsL1.</param>
+        /// <returns>The resulting SphericalHarmonicsL1.</returns>
         public static SphericalHarmonicsL1 operator-(SphericalHarmonicsL1 lhs, SphericalHarmonicsL1 rhs) => new SphericalHarmonicsL1()
         {
             shAr = lhs.shAr - rhs.shAr,
@@ -31,6 +59,12 @@ namespace UnityEngine.Rendering
             shAb = lhs.shAb - rhs.shAb
         };
 
+        /// <summary>
+        /// Multiply two SphericalHarmonicsL1.
+        /// </summary>
+        /// <param name="lhs">First SphericalHarmonicsL1.</param>
+        /// <param name="rhs">Second SphericalHarmonicsL1.</param>
+        /// <returns>The resulting SphericalHarmonicsL1.</returns>
         public static SphericalHarmonicsL1 operator*(SphericalHarmonicsL1 lhs, float rhs) => new SphericalHarmonicsL1()
         {
             shAr = lhs.shAr * rhs,
@@ -38,6 +72,12 @@ namespace UnityEngine.Rendering
             shAb = lhs.shAb * rhs
         };
 
+        /// <summary>
+        /// Divide two SphericalHarmonicsL1.
+        /// </summary>
+        /// <param name="lhs">First SphericalHarmonicsL1.</param>
+        /// <param name="rhs">Second SphericalHarmonicsL1.</param>
+        /// <returns>The resulting SphericalHarmonicsL1.</returns>
         public static SphericalHarmonicsL1 operator/(SphericalHarmonicsL1 lhs, float rhs) => new SphericalHarmonicsL1()
         {
             shAr = lhs.shAr / rhs,
@@ -45,6 +85,12 @@ namespace UnityEngine.Rendering
             shAb = lhs.shAb / rhs
         };
 
+        /// <summary>
+        /// Compare two SphericalHarmonicsL1.
+        /// </summary>
+        /// <param name="lhs">First SphericalHarmonicsL1.</param>
+        /// <param name="rhs">Second SphericalHarmonicsL1.</param>
+        /// <returns>Whether the SphericalHarmonicsL1 match.</returns>
         public static bool operator==(SphericalHarmonicsL1 lhs, SphericalHarmonicsL1 rhs)
         {
             return lhs.shAr == rhs.shAr
@@ -52,17 +98,32 @@ namespace UnityEngine.Rendering
                 && lhs.shAb == rhs.shAb;
         }
 
+        /// <summary>
+        /// Check two SphericalHarmonicsL1 inequality.
+        /// </summary>
+        /// <param name="lhs">First SphericalHarmonicsL1.</param>
+        /// <param name="rhs">Second SphericalHarmonicsL1.</param>
+        /// <returns>Whether the SphericalHarmonicsL1 are different.</returns>
         public static bool operator!=(SphericalHarmonicsL1 lhs, SphericalHarmonicsL1 rhs)
         {
             return !(lhs == rhs);
         }
 
+        /// <summary>
+        /// Compare this SphericalHarmonicsL1 with an object.
+        /// </summary>
+        /// <param name="other">The object to compare with.</param>
+        /// <returns>Whether the SphericalHarmonicsL1 is equal to the object passed.</returns>
         public override bool Equals(object other)
         {
             if (!(other is SphericalHarmonicsL1)) return false;
             return this == (SphericalHarmonicsL1)other;
         }
 
+        /// <summary>
+        /// Produces an hash code of the SphericalHarmonicsL1.
+        /// </summary>
+        /// <returns>The hash code for this SphericalHarmonicsL1.</returns>
         public override int GetHashCode()
         {
             return ((17 * 23 + shAr.GetHashCode()) * 23 + shAg.GetHashCode()) * 23 + shAb.GetHashCode();

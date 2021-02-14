@@ -305,9 +305,6 @@ namespace UnityEngine.Rendering.HighDefinition
         int m_MaxEnvLightsOnScreen;
         int m_MaxPlanarReflectionOnScreen;
 
-        Texture2DArray  m_DefaultTexture2DArray;
-        Cubemap         m_DefaultTextureCube;
-
         internal class LightLoopTextureCaches
         {
             // Structure for cookies used by directional and spotlights
@@ -843,15 +840,6 @@ namespace UnityEngine.Rendering.HighDefinition
             for (int i = 0; i < LightDefinitions.s_NumFeatureVariants; ++i)
                 s_variantNames[i] = "VARIANT" + i;
 
-            m_DefaultTexture2DArray = new Texture2DArray(1, 1, 1, TextureFormat.ARGB32, false);
-            m_DefaultTexture2DArray.hideFlags = HideFlags.HideAndDontSave;
-            m_DefaultTexture2DArray.name = CoreUtils.GetTextureAutoName(1, 1, TextureFormat.ARGB32, depth: 1, dim: TextureDimension.Tex2DArray, name: "LightLoopDefault");
-            m_DefaultTexture2DArray.SetPixels32(new Color32[1] { new Color32(128, 128, 128, 128) }, 0);
-            m_DefaultTexture2DArray.Apply();
-
-            m_DefaultTextureCube = new Cubemap(16, TextureFormat.ARGB32, false);
-            m_DefaultTextureCube.Apply();
-
             // Setup shadow algorithms
             var shadowParams = asset.currentPlatformRenderPipelineSettings.hdShadowInitParams;
             var shadowKeywords = new[] {"SHADOW_LOW", "SHADOW_MEDIUM", "SHADOW_HIGH"};
@@ -895,9 +883,6 @@ namespace UnityEngine.Rendering.HighDefinition
             s_lightVolumes.ReleaseData();
 
             DeinitShadowSystem();
-
-            CoreUtils.Destroy(m_DefaultTexture2DArray);
-            CoreUtils.Destroy(m_DefaultTextureCube);
 
             m_TextureCaches.Cleanup();
             m_LightLoopLightData.Cleanup();
