@@ -94,6 +94,11 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed sub-shadow rendering for cached shadow maps.
 - Fixed PCSS filtering issues with cached shadow maps.
 - Fix screen being over-exposed when changing very different skies.
+- Fixed incorrect debug wireframe overlay on tessellated geometry (using littessellation), caused by the picking pass using an incorrect camera matrix.
+- Fixed nullref in layered lit shader editor.
+- Fix issue with Depth of Field CoC debug view.
+- Fixed an issue where first frame of SSAO could exhibit ghosting artefacts.
+- Fixed an issue with the mipmap generation internal format after rendering format change.
 
 ### Changed
 - Removed the material pass probe volumes evaluation mode.
