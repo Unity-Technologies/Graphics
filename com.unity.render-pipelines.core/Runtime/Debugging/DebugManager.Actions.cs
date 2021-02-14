@@ -252,7 +252,7 @@ namespace UnityEngine.Rendering
 
         void RegisterInputs()
         {
-#if UNITY_EDITOR && !USE_INPUT_SYSTEM
+#if UNITY_EDITOR
             var inputEntries = new List<InputManagerEntry>
             {
                 new InputManagerEntry { name = kEnableDebugBtn1,  kind = InputManagerEntry.Kind.KeyOrButton, btnPositive = "left ctrl",   altBtnPositive = "joystick button 8" },
