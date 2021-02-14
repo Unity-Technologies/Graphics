@@ -1,6 +1,7 @@
 using System;
 using System.Linq;
 using UnityEngine;
+using UnityEngine.Scripting.APIUpdating;
 
 namespace UnityEditor.Rendering.LWRP
 {
@@ -13,6 +14,16 @@ namespace UnityEditor.Rendering.LWRP
 
 namespace UnityEditor.Rendering.Universal
 {
+    [Obsolete("ForwardRendererDataEditor has been deprecated. Use UniversalRendererDataEditor instead (UnityUpgradable) -> UniversalRendererDataEditor", true)]
+    [MovedFrom("UnityEditor.Rendering.LWRP")]
+    public class ForwardRendererDataEditor : ScriptableRendererDataEditor
+    {
+        public override void OnInspectorGUI()
+        {
+            throw new NotSupportedException("ForwardRendererDataEditor has been deprecated. Use UniversalRendererDataEditor instead");
+        }
+    }
+
     static partial class EditorUtils
     {
         [Obsolete("This is obsolete, please use DrawCascadeSplitGUI<T>(ref SerializedProperty shadowCascadeSplit, float distance, int cascadeCount, Unit unit) instead.", false)]

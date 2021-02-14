@@ -13,4 +13,12 @@ namespace UnityEngine.Rendering
         /// <summary>Display order used in UI.</summary>
         public int order;
     }
+
+    /// <summary>
+    /// Attribute used to customize UI display to allow properties only be visible when "Show Additional Properties" is selected
+    /// </summary>
+    [AttributeUsage(AttributeTargets.Field)]
+    public class AdditionalPropertyAttribute : Attribute
+    {
+    }
 }

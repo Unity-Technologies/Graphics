@@ -51,16 +51,14 @@ namespace UnityEngine.Rendering.HighDefinition
     /// </summary>
     public enum CloudShadowsResolution
     {
-        /// <summary>Size 32</summary>
-        CloudShadowsResolution32 = 32,
         /// <summary>Size 64</summary>
-        CloudShadowsResolution64 = 64,
+        VeryLow = 64,
         /// <summary>Size 128</summary>
-        CloudShadowsResolution128 = 128,
+        Low = 128,
         /// <summary>Size 256</summary>
-        CloudShadowsResolution256 = 256,
+        Medium = 256,
         /// <summary>Size 512</summary>
-        CloudShadowsResolution512 = 512,
+        High = 512,
     }
 
 
@@ -92,11 +90,13 @@ namespace UnityEngine.Rendering.HighDefinition
         [Tooltip("Controls the global opacity of the cloud layer.")]
         public ClampedFloatParameter opacity = new ClampedFloatParameter(1.0f, 0.0f, 1.0f);
         /// <summary>Enable to cover only the upper part of the sky.</summary>
+        [AdditionalProperty]
         [Tooltip("Check this box if the cloud layer covers only the upper part of the sky.")]
         public BoolParameter upperHemisphereOnly = new BoolParameter(true);
         /// <summary>Choose the number of cloud layers.</summary>
         public VolumeParameter<CloudMapMode> layers = new VolumeParameter<CloudMapMode>();
         /// <summary>Choose the resolution of the baked cloud texture.</summary>
+        [AdditionalProperty]
         [Tooltip("Specifies the resolution of the texture HDRP uses to represent the clouds.")]
         public CloudLayerEnumParameter<CloudResolution> resolution = new CloudLayerEnumParameter<CloudResolution>(CloudResolution.CloudResolution1024);
 
@@ -108,8 +108,9 @@ namespace UnityEngine.Rendering.HighDefinition
         [Tooltip("Controls the tint of the cloud shadows.")]
         public ColorParameter shadowTint = new ColorParameter(Color.black, false, false, true);
         /// <summary>Choose the resolution of the texture for the cloud shadows.</summary>
+        [AdditionalProperty]
         [Tooltip("Specifies the resolution of the texture HDRP uses to represent the cloud shadows.")]
-        public CloudLayerEnumParameter<CloudShadowsResolution> shadowResolution = new CloudLayerEnumParameter<CloudShadowsResolution>(CloudShadowsResolution.CloudShadowsResolution128);
+        public CloudLayerEnumParameter<CloudShadowsResolution> shadowResolution = new CloudLayerEnumParameter<CloudShadowsResolution>(CloudShadowsResolution.Medium);
 
 
         /// <summary>
