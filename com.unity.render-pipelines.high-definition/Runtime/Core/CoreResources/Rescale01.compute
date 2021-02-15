@@ -1,165 +1,56 @@
 #pragma only_renderers d3d11 ps4 xboxone vulkan metal switch
 
-#pragma kernel CSMainH HORIZONTAL
-#pragma kernel CSMainV VERTICAL
+#pragma kernel CSMainH      HORIZONTAL  KerName=CSMainH
+#pragma kernel CSMainV      VERTICAL    KerName=CSMainV
+#pragma kernel CSMainS      SINGLE      KerName=CSMainS
+#pragma kernel CSMainValue  VALUE       KerName=CSMainValue
+
+#pragma multi_compile _ READ_WRITE
+#pragma multi_compile _ VALUE
 
 #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Common.hlsl"
 #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Macros.hlsl"
 #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Sampling/Sampling.hlsl"
 #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Packing.hlsl"
-#include "Packages/com.unity.render-pipelines.high-definition/Runtime/ShaderLibrary/ShaderVariables.hlsl"
-#include "Packages/com.unity.render-pipelines.high-definition/Runtime/ShaderLibrary/ShaderVariablesFunctions.hlsl"
 
-  Texture2D<float>  _CDF;
-  Texture2D<float>  _PDF;
+#ifdef VALUE
+            float4  _MinMax;
+#else
+  Texture2D<float4> _MinMax;
+#endif
+
+#ifdef READ_WRITE
 RWTexture2D<float4> _Output;
+#define _Input      _Output
+#else
+  Texture2D<float4> _Input;
+RWTexture2D<float4> _Output;
+#endif
 
-uint4               _Sizes; // xy: InputSize; zw: OutputSize
+uint4 _Sizes; // xy: InputSize; zw: OutputSize
 
 #define _InputSize  _Sizes.xy
 #define _OutputSize _Sizes.zw
 
-float Rescale01(float x, float min, float max)
-{
-    return      x - min
-         / // -----------
-               max - min;
-}
-
-float Rescale(float x, float min, float max, float newMin, float newMax)
-{
-    return Rescale01(x, min, max)*(newMax - newMin) + newMin;
-}
-
 [numthreads(8, 8, 1)]
-#ifdef HORIZONTAL
-void CSMainH(uint3 id : SV_DispatchThreadID)
-#else
-void CSMainV(uint3 id : SV_DispatchThreadID)
-#endif
+void KerName(uint3 id : SV_DispatchThreadID)
 {
+    if (all(id.xy < _OutputSize))
+    {
+#ifndef VALUE
     #ifdef HORIZONTAL
-    if (id.x == 0)
-    {
-        float u1 = saturate(_CDF[id.xy].x);
-        _Output[id.xy] = float4(0.0f,
-                                _PDF[id.xy].x,
-                                _CDF[id.xy].x,
-                                1.0f);
-    }
-    else if (id.x == _OutputSize.x - 1)
-    {
-        float u1 = saturate(_CDF[id.xy].x);
-        _Output[id.xy] = float4(1.0f,
-                                _PDF[id.xy].x,
-                                _CDF[id.xy].x,
-                                1.0f);
-    }
-    #else
-    if (id.y == 0)
-    {
-        float u1 = saturate(_CDF[id.xy].x);
-        _Output[id.xy] = float4(0.0f,
-                                _PDF[id.xy].x,
-                                _CDF[id.xy].x,
-                                1.0f);
-    }
-    else if (id.y == _OutputSize.y - 1)
-    {
-        float u1 = saturate(_CDF[id.xy].x);
-        _Output[uint2(id.x, _OutputSize.x - 1)] = float4(   1.0f,
-                                                            _PDF[id.xy].x,
-                                                            _CDF[id.xy].x,
-                                                            1.0f);
-    }
+        const float2 minMax = _MinMax[uint2(0, id.y)].xy;
+    #elif defined(VERTICAL)
+        const float2 minMax = _MinMax[uint2(id.x, 0)].xy;
+    #else //if defined(SINGLE)
+        const float2 minMax = _MinMax[uint2(0, 0)].xy;
     #endif
-    else if (all(id.xy < _OutputSize))
-    {
-        float u1 = saturate(_CDF[id.xy].x);
+#else
+        const float2 minMax = _MinMax.xy;
+#endif
+        const float  minVal = minMax.x;
+        const float  maxVal = minMax.y;
 
-        int i;
-
-        float2 scale = (_OutputSize.xy - float2(1.0f, 1.0f))/_OutputSize.xy;
-        float2 bias  = 0.5f/_OutputSize.xy;
-
-    #ifdef HORIZONTAL
-        float u0 = saturate(_CDF[uint2(id.x == 0 ? id.x : id.x - 1, id.y)].x);
-        float dp = 1.0f/_OutputSize.x;
-        float d  = (u1 - u0);
-        if (d <= dp)
-        {
-            _Output[uint2(u1*_InputSize.x, id.y)] = float4(
-                                                        saturate(float(id.x)*dp),
-                                                        _PDF[uint2(u1*_InputSize.x, id.y)].x,
-                                                        _CDF[uint2(u1*_InputSize.x, id.y)].x,
-                                                        1.0f);
-        }
-        else
-        {
-            const int maxIter = ceil(d*_InputSize.x);
-
-            const float y0 = float(id.x - 1)*dp;
-            const float y1 = float(id.x)*dp;
-            const float x0 = float(u0*_InputSize.x);
-            const float x1 = float(u1*_InputSize.x);
-
-            const float a  =    (y0 - y1)
-                           / // ---------
-                                (x0 - x1);
-
-            const float b  = (x0*y1 - x1*y0)
-                        / // ---------------
-                                (x0 - x1);
-
-            for (i = 1; i <= maxIter; ++i)
-            {
-                uint xi = uint(u0*_InputSize.x + i);
-                _Output[uint2(xi, id.y)] = float4(
-                                                saturate(a*float(xi) + b),
-                                                _PDF[uint2(xi, id.y)].x,
-                                                _CDF[uint2(xi, id.y)].x,
-                                                1.0f);
-            }
-        }
-    #else
-        float u0 = saturate(_CDF[uint2(id.x, id.y == 0 ? id.y : id.y - 1)].x);
-        float dp = 1.0f/_OutputSize.y;
-        float d  = (u1 - u0);
-        if (d <= dp)
-        {
-            _Output[uint2(id.x, u1*_InputSize.y)] = float4(
-                                                        saturate(float(id.y)*dp),
-                                                        _PDF[uint2(id.x, u1*_InputSize.y)].x,
-                                                        _CDF[uint2(id.x, u1*_InputSize.y)].x,
-                                                        1.0f);
-        }
-        else
-        {
-            const int maxIter = ceil(d*_InputSize.y);
-
-            const float y0 = float(id.y - 1)*dp;
-            const float y1 = float(id.y)*dp;
-            const float x0 = float(u0*_InputSize.y);
-            const float x1 = float(u1*_InputSize.y);
-
-            const float a  =    (y0 - y1)
-                           / // ----------
-                                (x0 - x1);
-
-            const float b  = (x0*y1 - x1*y0)
-                        / // ---------------
-                                (x0 - x1);
-
-            for (i = 1; i <= maxIter; ++i)
-            {
-                uint xi = uint(u0*_InputSize.y + i);
-                _Output[uint2(id.x, xi)] = float4(
-                                                saturate(a*float(xi) + b),
-                                                _PDF[uint2(id.x, xi)].x,
-                                                _CDF[uint2(xi, id.y)].x,
-                                                1.0f);
-            }
-        }
-    #endif
+        _Output[id.xy] = saturate(((_Input[id.xy].x - minVal)/(maxVal - minVal))).xxxx;
     }
 }

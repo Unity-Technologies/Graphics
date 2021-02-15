@@ -1,64 +1,165 @@
 #pragma only_renderers d3d11 ps4 xboxone vulkan metal switch
 
-#pragma kernel CSMain
+#pragma kernel CSMainH HORIZONTAL
+#pragma kernel CSMainV VERTICAL
 
 #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Common.hlsl"
 #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Macros.hlsl"
 #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Sampling/Sampling.hlsl"
 #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Packing.hlsl"
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/ShaderLibrary/ShaderVariables.hlsl"
+#include "Packages/com.unity.render-pipelines.high-definition/Runtime/ShaderLibrary/ShaderVariablesFunctions.hlsl"
 
-TEXTURECUBE(_Cubemap);
-SAMPLER(sampler_Cubemap);
-
-Texture2D<float4>   _Samples;   // Samples generated like with ImportanceSample2D.compute
-                                // #Samples x 1 {RG: UV LatLong, B: Density [not normalized PDF]}
+  Texture2D<float>  _CDF;
+  Texture2D<float>  _PDF;
 RWTexture2D<float4> _Output;
 
-Texture2D<float4>   _Integral;  // Integral to normalized the Density
+uint4               _Sizes; // xy: InputSize; zw: OutputSize
 
-float4               _Sizes;    // XY: SamplesSize, Z: SamplesCount
+#define _InputSize  _Sizes.xy
+#define _OutputSize _Sizes.zw
 
-#define OutputSize      _Sizes.xy
-#define SamplesCount    _Sizes.z
-
-float3 SphericalTexCoordinateToDirection(float2 sphTexCoord)
+float Rescale01(float x, float min, float max)
 {
-    float pi    = 3.1415926535897932384626433832795f;
-    float theta = (1.0f - sphTexCoord.x)*(2.0f*pi);
-    float phi   = (sphTexCoord.y - 0.5f)*pi;
-
-    float csTh, siTh, csPh, siPh;
-    sincos(theta, siTh, csTh);
-    sincos(phi, siPh, csPh);
-
-    // theta is 0 at negative Z (backwards). Coordinate frame is (-Z,X) meaning negative Z is primary axis and X is secondary axis.
-    return float3(siTh*csPh, siPh, -csTh*csPh);
+    return      (x - min)
+         / // -------------
+               (max - min);
 }
 
-[numthreads(8, 1, 1)]
-void CSMain(uint3 id : SV_DispatchThreadID)
+float Rescale(float x, float min, float max, float newMin, float newMax)
 {
-    if (all(id.xy < (uint2)OutputSize))
+    return Rescale01(x, min, max)*(newMax - newMin) + newMin;
+}
+
+[numthreads(8, 8, 1)]
+#ifdef HORIZONTAL
+void CSMainH(uint3 id : SV_DispatchThreadID)
+#else
+void CSMainV(uint3 id : SV_DispatchThreadID)
+#endif
+{
+    #ifdef HORIZONTAL
+    if (id.x == 0)
     {
-        uint2  pos      = uint2(id.x, 0);
-        float  integral = _Integral[uint2(0, 0)].r;
-        float4 input    = _Samples[pos];
-        float  density  = input.z; // PDF not normalized
+        float u1 = saturate(_CDF[id.xy].x);
+        _Output[id.xy] = float4(0.0f,
+                                _PDF[id.xy].x,
+                                _CDF[id.xy].x,
+                                1.0f);
+    }
+    else if (id.x == _OutputSize.x - 1)
+    {
+        float u1 = saturate(_CDF[id.xy].x);
+        _Output[id.xy] = float4(1.0f,
+                                _PDF[id.xy].x,
+                                _CDF[id.xy].x,
+                                1.0f);
+    }
+    #else
+    if (id.y == 0)
+    {
+        float u1 = saturate(_CDF[id.xy].x);
+        _Output[id.xy] = float4(0.0f,
+                                _PDF[id.xy].x,
+                                _CDF[id.xy].x,
+                                1.0f);
+    }
+    else if (id.y == _OutputSize.y - 1)
+    {
+        float u1 = saturate(_CDF[id.xy].x);
+        _Output[uint2(id.x, _OutputSize.x - 1)] = float4(   1.0f,
+                                                            _PDF[id.xy].x,
+                                                            _CDF[id.xy].x,
+                                                            1.0f);
+    }
+    #endif
+    else if (all(id.xy < _OutputSize))
+    {
+        float u1 = saturate(_CDF[id.xy].x);
 
-        float2 latLongUV    = input.xy;
-        float3 dir          = SphericalTexCoordinateToDirection(latLongUV);
-        float  sin0         = sin(latLongUV.y*PI);
+        int i;
 
-        float3 signal = sin0*SAMPLE_TEXTURECUBE_LOD(_Cubemap, sampler_Cubemap, dir, 0).rgb;
+        float2 scale = (_OutputSize.xy - float2(1.0f, 1.0f))/_OutputSize.xy;
+        float2 bias  = 0.5f/_OutputSize.xy;
 
-        float  pdf     = density/integral;
-
-        if (pdf == 0.0f)
-            signal  = 0.0f;
+    #ifdef HORIZONTAL
+        float u0 = saturate(_CDF[uint2(id.x == 0 ? id.x : id.x - 1, id.y)].x);
+        float dp = 1.0f/_OutputSize.x;
+        float d  = (u1 - u0);
+        if (d <= dp)
+        {
+            _Output[uint2(u1*_InputSize.x, id.y)] = float4(
+                                                        saturate(float(id.x)*dp),
+                                                        _PDF[uint2(u1*_InputSize.x, id.y)].x,
+                                                        _CDF[uint2(u1*_InputSize.x, id.y)].x,
+                                                        1.0f);
+        }
         else
-            signal /= pdf;
+        {
+            const int maxIter = ceil(d*_InputSize.x);
 
-        _Output[pos] = float4(signal.rgb, max(signal.r, max(signal.g, signal.b)));
+            const float y0 = float(id.x - 1)*dp;
+            const float y1 = float(id.x)*dp;
+            const float x0 = float(u0*_InputSize.x);
+            const float x1 = float(u1*_InputSize.x);
+
+            const float a  =    (y0 - y1)
+                           / // ---------
+                                (x0 - x1);
+
+            const float b  = (x0*y1 - x1*y0)
+                        / // ---------------
+                                (x0 - x1);
+
+            for (i = 1; i <= maxIter; ++i)
+            {
+                uint xi = uint(u0*_InputSize.x + i);
+                _Output[uint2(xi, id.y)] = float4(
+                                                saturate(a*float(xi) + b),
+                                                _PDF[uint2(xi, id.y)].x,
+                                                _CDF[uint2(xi, id.y)].x,
+                                                1.0f);
+            }
+        }
+    #else
+        float u0 = saturate(_CDF[uint2(id.x, id.y == 0 ? id.y : id.y - 1)].x);
+        float dp = 1.0f/_OutputSize.y;
+        float d  = (u1 - u0);
+        if (d <= dp)
+        {
+            _Output[uint2(id.x, u1*_InputSize.y)] = float4(
+                                                        saturate(float(id.y)*dp),
+                                                        _PDF[uint2(id.x, u1*_InputSize.y)].x,
+                                                        _CDF[uint2(id.x, u1*_InputSize.y)].x,
+                                                        1.0f);
+        }
+        else
+        {
+            const int maxIter = ceil(d*_InputSize.y);
+
+            const float y0 = float(id.y - 1)*dp;
+            const float y1 = float(id.y)*dp;
+            const float x0 = float(u0*_InputSize.y);
+            const float x1 = float(u1*_InputSize.y);
+
+            const float a  =    (y0 - y1)
+                           / // ----------
+                                (x0 - x1);
+
+            const float b  = (x0*y1 - x1*y0)
+                        / // ---------------
+                                (x0 - x1);
+
+            for (i = 1; i <= maxIter; ++i)
+            {
+                uint xi = uint(u0*_InputSize.y + i);
+                _Output[uint2(id.x, xi)] = float4(
+                                                saturate(a*float(xi) + b),
+                                                _PDF[uint2(id.x, xi)].x,
+                                                _CDF[uint2(xi, id.y)].x,
+                                                1.0f);
+            }
+        }
+    #endif
     }
 }
