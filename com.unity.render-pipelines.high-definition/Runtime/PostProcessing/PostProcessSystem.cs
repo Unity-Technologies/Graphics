@@ -1989,41 +1989,6 @@ namespace UnityEngine.Rendering.HighDefinition
 
         #endregion
 
-        #region FXAA
-        struct FXAAParameters
-        {
-            public ComputeShader fxaaCS;
-            public int fxaaKernel;
-
-            public int width;
-            public int height;
-            public int viewCount;
-        }
-
-        FXAAParameters PrepareFXAAParameters(HDCamera camera)
-        {
-            FXAAParameters parameters = new FXAAParameters();
-            parameters.fxaaCS = m_Resources.shaders.FXAACS;
-            parameters.fxaaKernel = parameters.fxaaCS.FindKernel("FXAA");
-
-            parameters.width = camera.actualWidth;
-            parameters.height = camera.actualHeight;
-            parameters.viewCount = camera.viewCount;
-
-            return parameters;
-        }
-
-        void DoFXAA(in FXAAParameters parameters, CommandBuffer cmd, RTHandle source, RTHandle destination)
-        {
-            var cs = parameters.fxaaCS;
-            int kernel = parameters.fxaaKernel;
-            cmd.SetComputeTextureParam(cs, kernel, HDShaderIDs._InputTexture, source);
-            cmd.SetComputeTextureParam(cs, kernel, HDShaderIDs._OutputTexture, destination);
-            cmd.DispatchCompute(cs, kernel, (parameters.width + 7) / 8, (parameters.height + 7) / 8, parameters.viewCount);
-        }
-
-        #endregion
-
         #region CAS
         struct CASParameters
         {

@@ -185,7 +185,12 @@ namespace UnityEngine.Rendering.HighDefinition
 
         class FXAAData
         {
-            public FXAAParameters parameters;
+            public ComputeShader fxaaCS;
+            public int fxaaKernel;
+            public int width;
+            public int height;
+            public int viewCount;
+
             public TextureHandle source;
             public TextureHandle destination;
         }
@@ -1794,15 +1799,21 @@ namespace UnityEngine.Rendering.HighDefinition
             {
                 using (var builder = renderGraph.AddRenderPass<FXAAData>("FXAA", out var passData, ProfilingSampler.Get(HDProfileId.FXAA)))
                 {
+                    passData.fxaaCS = m_Resources.shaders.FXAACS;
+                    passData.fxaaKernel = passData.fxaaCS.FindKernel("FXAA");
+                    passData.width = hdCamera.actualWidth;
+                    passData.height = hdCamera.actualHeight;
+                    passData.viewCount = hdCamera.viewCount;
+
                     passData.source = builder.ReadTexture(source);
-                    passData.parameters = PrepareFXAAParameters(hdCamera);
-                    TextureHandle dest = GetPostprocessOutputHandle(renderGraph, "FXAA Destination");
-                    passData.destination = builder.WriteTexture(dest);;
+                    passData.destination = builder.WriteTexture(GetPostprocessOutputHandle(renderGraph, "FXAA Destination"));;
 
                     builder.SetRenderFunc(
                         (FXAAData data, RenderGraphContext ctx) =>
                         {
-                            DoFXAA(data.parameters, ctx.cmd, data.source, data.destination);
+                            ctx.cmd.SetComputeTextureParam(data.fxaaCS, data.fxaaKernel, HDShaderIDs._InputTexture, data.source);
+                            ctx.cmd.SetComputeTextureParam(data.fxaaCS, data.fxaaKernel, HDShaderIDs._OutputTexture, data.destination);
+                            ctx.cmd.DispatchCompute(data.fxaaCS, data.fxaaKernel, (data.width + 7) / 8, (data.height + 7) / 8, data.viewCount);
                         });
 
                     source = passData.destination;
