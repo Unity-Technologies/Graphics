@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.VFX;
 
-public class DirectLink : MonoBehaviour
+public class DirectLinkRLE : MonoBehaviour
 {
     public Texture2D m_SourceTexture;
 
