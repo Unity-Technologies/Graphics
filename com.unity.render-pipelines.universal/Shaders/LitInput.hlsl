@@ -10,8 +10,10 @@
 #define _DETAIL
 #endif
 
+#pragma target 5.1
+
 // NOTE: Do not ifdef the properties here as SRP batcher can not handle different layouts.
-CBUFFER_START(UnityPerMaterial)
+CBUFFER_STARTS(UnityPerMaterial, b0, space1)
 float4 _BaseMap_ST;
 float4 _DetailAlbedoMap_ST;
 half4 _BaseColor;

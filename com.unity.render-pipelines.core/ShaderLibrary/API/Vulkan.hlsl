@@ -13,6 +13,7 @@
 #define IS_FRONT_VFACE(VAL, FRONT, BACK) ((VAL) ? (FRONT) : (BACK))
 
 #define CBUFFER_START(name) cbuffer name {
+#define CBUFFER_STARTS(name, _register, _space) cbuffer name : register(_register, _space) {
 #define CBUFFER_END };
 
 #define PLATFORM_SUPPORTS_EXPLICIT_BINDING
@@ -43,6 +44,12 @@
 #define TEXTURECUBE(textureName)              TextureCube textureName
 #define TEXTURECUBE_ARRAY(textureName)        TextureCubeArray textureName
 #define TEXTURE3D(textureName)                Texture3D textureName
+
+#define TEXTURE2DS(textureName, _register, _space)               Texture2D textureName : register(_register, _space)
+#define TEXTURE2D_ARRAYS(textureName, _register, _space)         Texture2DArray textureName : register(_register, _space)
+#define TEXTURECUBES(textureName, _register, _space)             TextureCube textureName : register(_register, _space)
+#define TEXTURECUBE_ARRAYS(textureName, _register, _space)       TextureCubeArray textureName : register(_register, _space)
+#define TEXTURE3DS(textureName, _register, _space)               Texture3D textureName : register(_register, _space)
 
 #define TEXTURE2D_FLOAT(textureName)          Texture2D_float textureName
 #define TEXTURE2D_ARRAY_FLOAT(textureName)    Texture2DArray_float textureName
