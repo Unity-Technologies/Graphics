@@ -215,8 +215,11 @@ real ComputeFogIntensity(real fogFactor)
 half3 MixFogColor(real3 fragColor, real3 fogColor, real fogFactor)
 {
     #if defined(FOG_LINEAR) || defined(FOG_EXP) || defined(FOG_EXP2)
+    if(IsFogEnabled())
+    {
         real fogIntensity = ComputeFogIntensity(fogFactor);
         fragColor = lerp(fogColor, fragColor, fogIntensity);
+    }
     #endif
     return fragColor;
 }
