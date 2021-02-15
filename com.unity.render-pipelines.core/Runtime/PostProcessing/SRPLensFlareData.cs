@@ -3,19 +3,33 @@ using UnityEditor;
 
 namespace UnityEngine
 {
+    /// <summary>
+    /// SRPLensFlareBlendMode defined the available blend mode for each LensFlareElement
+    /// </summary>
     [System.Serializable]
     public enum SRPLensFlareBlendMode
     {
+        /// <summary>
+        /// Lerp: Blend SrcAlpha OneMinusSrcAlpha
+        /// </summary>
         Lerp,
+        /// <summary>
+        /// Additive: Blend One One
+        /// </summary>
         Additive,
+        /// <summary>
+        /// Premultiply:
+        ///     Blend One OneMinusSrcAlpha
+        ///     ColorMask RGB
+        /// </summary>
         Premultiply
     }
 
-    /////   /// <summary>
-    /////   /// Asset that define a set image of SRP-LensFlare-DataDriven
-    /////   /// </summary>
+    /// <summary>
+    /// SRPLensFlareDataElement defines a single texture used in a SRPLensFlareData
+    /// </summary>
     [System.Serializable]
-    public sealed class SRPLensFlareDataElement //: ScriptableObject
+    public sealed class SRPLensFlareDataElement
     {
         public SRPLensFlareDataElement()
         {
@@ -50,6 +64,9 @@ namespace UnityEngine
         public bool isFoldOpened;
     }
 
+    /// <summary>
+    /// SRPLensFlareData defines a Lens Flare with a set of SRPLensFlareDataElement
+    /// </summary>
     [System.Serializable]
     public sealed class SRPLensFlareData : ScriptableObject
     {
@@ -60,10 +77,22 @@ namespace UnityEngine
             positionCurve = new AnimationCurve(new Keyframe(-1.0f, -1.0f, 1.0f, 1.0f), new Keyframe(0.0f, 0.0f, 1.0f, 1.0f), new Keyframe(1.0f, 1.0f, 1.0f, 1.0f));
         }
 
+        /// <summary>
+        /// GlobalIntensity is used as a multiplier of each elements in the array of SRPLensFlareDataElement
+        /// </summary>
         [Min(0)]
         public float globalIntensity;
+        /// <summary>
+        /// ScaleCurve allow us to define the global shape the lens flares
+        /// </summary>
         public AnimationCurve scaleCurve;
+        /// <summary>
+        /// PositionCurve allow us to place each element of the flare
+        /// </summary>
         public AnimationCurve positionCurve;
+        /// <summary>
+        /// List of SRPLensFlareDataElement
+        /// </summary>
         [SerializeField]
         public SRPLensFlareDataElement[] elements;
     }

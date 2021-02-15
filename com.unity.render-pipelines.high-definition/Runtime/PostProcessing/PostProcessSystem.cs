@@ -2238,8 +2238,8 @@ namespace UnityEngine.Rendering.HighDefinition
                 cmd.SetGlobalFloat(HDShaderIDs._FlareOffscreen, comp.allowOffScreen ? 1.0f : -1.0f);
                 cmd.SetGlobalVector(HDShaderIDs._FlareScreenPos, screenPos);
 
-                Vector3 screenPosZ = cam.WorldToViewportPoint(positionWS);
-                cmd.SetGlobalFloat(HDShaderIDs._FlareDepth, screenPosZ.z * comp.zOcclusionOffset);
+                Vector3 screenPosZ = cam.WorldToViewportPoint(positionWS - comp.zOcclusionOffset * cam.transform.forward);
+                cmd.SetGlobalFloat(HDShaderIDs._FlareDepth, screenPosZ.z);
 
                 Vector2 radPos = new Vector2(screenPos.x * screenRatio, screenPos.y);
                 float radius = radPos.magnitude;
