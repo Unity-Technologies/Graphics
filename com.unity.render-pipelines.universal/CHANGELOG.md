@@ -6,8 +6,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ## [7.5.4] - 2021-01-28
 
-Version Updated
-The version number for this package has increased due to a version update of a related graphics package.
+### Fixed
+- Fixed an issue such that it is now posible to enqueue render passes at runtime.
 
 ## [7.5.3] - 2021-01-11
 
