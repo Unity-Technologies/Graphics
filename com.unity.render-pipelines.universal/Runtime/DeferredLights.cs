@@ -308,22 +308,43 @@ namespace UnityEngine.Rendering.Universal.Internal
         internal int GBufferShadowMask { get { return UseShadowMask ? GBufferLightingIndex + 1 : -1; } }
         internal int GBufferSliceCount { get { return 4 + (UseRenderPass ? 1 : 0) + (UseShadowMask ? 1 : 0); } }
 
-        internal GraphicsFormat GetGBufferFormat(int index)
+        internal static GraphicsFormat GetGBufferFormat(GBufferHandles handle, bool accurateNormals = false)
         {
-            if (index == GBufferAlbedoIndex) // sRGB albedo, materialFlags
+            if (handle == GBufferHandles.Albedo) // sRGB albedo, materialFlags
                 return QualitySettings.activeColorSpace == ColorSpace.Linear ? GraphicsFormat.R8G8B8A8_SRGB : GraphicsFormat.R8G8B8A8_UNorm;
-            else if (index == GBufferSpecularMetallicIndex) // sRGB specular, [unused]
+            else if (handle == GBufferHandles.SpecularMetallic) // sRGB specular, [unused]
                 return GraphicsFormat.R8G8B8A8_UNorm;
-            else if (index == GBufferNormalSmoothnessIndex)
-                return this.AccurateGbufferNormals ? GraphicsFormat.R8G8B8A8_UNorm : GraphicsFormat.R8G8B8A8_SNorm; // normal normal normal packedSmoothness
-            else if (index == GBufferLightingIndex) // Emissive+baked: Most likely B10G11R11_UFloatPack32 or R16G16B16A16_SFloat
+            else if (handle == GBufferHandles.NormalSmoothness)
+                return accurateNormals ? GraphicsFormat.R8G8B8A8_UNorm : GraphicsFormat.R8G8B8A8_SNorm; // normal normal normal packedSmoothness
+            else if (handle == GBufferHandles.Lighting) // Emissive+baked: Most likely B10G11R11_UFloatPack32 or R16G16B16A16_SFloat
                 return GraphicsFormat.None;
-            else if (index == GbufferDepthIndex) // Render-pass on mobiles: reading back real depth-buffer is either inefficient (Arm Vulkan) or impossible (Metal).
+            else if (handle == GBufferHandles.DepthAsColor) // Render-pass on mobiles: reading back real depth-buffer is either inefficient (Arm Vulkan) or impossible (Metal).
                 return GraphicsFormat.R32_SFloat;
-            else if (index == GBufferShadowMask) // Optional: shadow mask is outputed in mixed lighting subtractive mode for non-static meshes only
+            else if (handle == GBufferHandles.ShadowMask) // Optional: shadow mask is output in mixed lighting subtractive mode for non-static meshes only
                 return GraphicsFormat.R8G8B8A8_UNorm;
             else
                 return GraphicsFormat.None;
+        }
+
+        internal GraphicsFormat GetGBufferFormat(int index)
+        {
+            GBufferHandles handle;
+            if (index == GBufferAlbedoIndex) // sRGB albedo, materialFlags
+                handle = GBufferHandles.Albedo;
+            else if (index == GBufferSpecularMetallicIndex) // sRGB specular, [unused]
+                handle = GBufferHandles.SpecularMetallic;
+            else if (index == GBufferNormalSmoothnessIndex)
+                handle = GBufferHandles.NormalSmoothness;
+            else if (index == GBufferLightingIndex) // Emissive+baked: Most likely B10G11R11_UFloatPack32 or R16G16B16A16_SFloat
+                handle = GBufferHandles.Lighting;
+            else if (index == GbufferDepthIndex) // Render-pass on mobiles: reading back real depth-buffer is either inefficient (Arm Vulkan) or impossible (Metal).
+                handle = GBufferHandles.DepthAsColor;
+            else if (index == GBufferShadowMask) // Optional: shadow mask is output in mixed lighting subtractive mode for non-static meshes only
+                handle = GBufferHandles.ShadowMask;
+            else
+                return GraphicsFormat.None;
+
+            return GetGBufferFormat(handle, this.AccurateGbufferNormals);
         }
 
         // This may return different values depending on what lights are rendered for a given frame.
@@ -1555,7 +1576,7 @@ namespace UnityEngine.Rendering.Universal.Internal
                 if (vl.light.bakingOutput.lightmapBakeType == LightmapBakeType.Mixed)
                     lightFlags |= (int)LightFlag.SubtractiveMixedLighting;
 
-                // Setup shadow paramters:
+                // Setup shadow parameters:
                 // - for the main light, they have already been setup globally, so nothing to do.
                 // - for other directional lights, it is actually not supported by URP, but the code would look like this.
                 bool hasDeferredShadows;
