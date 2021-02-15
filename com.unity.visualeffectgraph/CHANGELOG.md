@@ -17,6 +17,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Move Assets/Create/Visual Effects/Visual Effect Subgraph Operator to Assets/Create/VFX/VFX Subgraph Operator
 - Move Assets/Create/Visual Effects/Visual Effect Subgraph Block to Assets/Create/VFX/VFX Subgraph Block
 - Allow remaking an existing link.
+- Sphere and Cube outputs are now experimental
 
 ### Fixed
 - VFXEventBinderBase throwing a null reference exception in runtime

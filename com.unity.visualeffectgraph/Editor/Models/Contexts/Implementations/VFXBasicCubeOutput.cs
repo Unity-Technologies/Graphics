@@ -7,7 +7,7 @@ using UnityEngine.VFX;
 
 namespace UnityEditor.VFX
 {
-    [VFXInfo]
+    [VFXInfo(experimental = true)]
     class VFXBasicCubeOutput : VFXAbstractParticleOutput
     {
         public override string name { get { return "Output Particle Cube"; } }
