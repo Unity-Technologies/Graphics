@@ -279,6 +279,13 @@ namespace  UnityEditor.VFX.UI
                             graph.RecompileIfNeeded(true, true);
 
                         controller.RecompileExpressionGraphIfNeeded();
+
+                        // Hack to avoid infinite recompilation (due to subgraphs implementation...) TODO: Fix correctly
+                        if (graph.IsExpressionGraphDirty())
+                        {
+                            Debug.LogError("Expression graph was marked as dirty after compiling context for UI. Discard to avoid infinite compilation loop.");
+                            graph.SetExpressionGraphDirty(false);
+                        }
                     }
                 }
             }
