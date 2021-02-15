@@ -819,6 +819,7 @@ namespace UnityEngine.Rendering.HighDefinition
         public static readonly int _SrcCubeTextureArray            = Shader.PropertyToID("_SrcCubeTextureArray");
         public static readonly int _CubeMipLvl                     = Shader.PropertyToID("_CubeMipLvl");
         public static readonly int _CubeArrayIndex                 = Shader.PropertyToID("_CubeArrayIndex");
+        public static readonly int _ManualTex2SRGB                 = Shader.PropertyToID("_ManualTex2SRGB");
         public static readonly int _BuildPDF                       = Shader.PropertyToID("_BuildPDF");
         public static readonly int _PreMultiplyByJacobian          = Shader.PropertyToID("_PreMultiplyByJacobian");
         public static readonly int _PreMultiplyByCosTheta          = Shader.PropertyToID("_PreMultiplyByCosTheta");

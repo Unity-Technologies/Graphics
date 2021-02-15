@@ -437,6 +437,7 @@ namespace UnityEngine.Rendering.HighDefinition
                     usedMat.SetInt      (HDShaderIDs._PreMultiplyBySolidAngle,  0);
                     usedMat.SetInt      (HDShaderIDs._PreMultiplyByCosTheta,    0);
                     usedMat.SetInt      (HDShaderIDs._PreMultiplyByJacobian,    1);
+                    usedMat.SetInt      (HDShaderIDs._ManualTex2SRGB,           0);
                     usedMat.SetVector   (HDShaderIDs._Sizes, new Vector4(      (float)latLongMap.rt.width,        (float)latLongMap.rt.height,
                                                                          1.0f/((float)latLongMap.rt.width), 1.0f/((float)latLongMap.rt.height)));
 
