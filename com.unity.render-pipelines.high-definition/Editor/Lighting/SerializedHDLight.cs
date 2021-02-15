@@ -80,7 +80,6 @@ namespace UnityEditor.Rendering.HighDefinition
         // Editor stuff
         public SerializedProperty useOldInspector;
         public SerializedProperty showFeatures;
-        public SerializedProperty showAdditionalSettings;
         public SerializedProperty useVolumetric;
 
         // Layers
@@ -396,7 +395,6 @@ namespace UnityEditor.Rendering.HighDefinition
                 // Editor stuff
                 useOldInspector = o.Find("useOldInspector");
                 showFeatures = o.Find("featuresFoldout");
-                showAdditionalSettings = o.Find("showAdditionalSettings");
                 useVolumetric = o.Find("useVolumetric");
                 renderingLayerMask = settings.renderingLayerMask;
 
