@@ -185,7 +185,7 @@ namespace UnityEditor.Rendering.Universal
             // We can strip variants that have directional lightmap enabled but not static nor dynamic lightmap.
             if (compilerData.shaderKeywordSet.IsEnabled(m_DirectionalLightmap) &&
                 !(compilerData.shaderKeywordSet.IsEnabled(m_Lightmap) ||
-                    compilerData.shaderKeywordSet.IsEnabled(m_DynamicLightmap)))
+                  compilerData.shaderKeywordSet.IsEnabled(m_DynamicLightmap)))
                 return true;
 
             // As GLES2 has low amount of registers, we strip:
