@@ -15,6 +15,7 @@ namespace UnityEngine
         public AnimationCurve radialAttenuationCurve = new AnimationCurve(new Keyframe(0.0f, 1.0f), new Keyframe(1.0f, 1.0f));
         public AnimationCurve distanceAttenuationCurve = new AnimationCurve(new Keyframe(0.0f, 1.0f), new Keyframe(10.0f, 0.0f));
         public float attenuation = 1.0f;
+        public float zOcclusionOffset = 0.0f;
 
         public SRPLensFlareOverride()
         {
@@ -22,7 +23,7 @@ namespace UnityEngine
 
         public void OnEnable()
         {
-            if (lensFlareData && gameObject.active)
+            if (lensFlareData && (gameObject.activeInHierarchy || gameObject.activeSelf))
                 SRPLensFlareCommon.Instance.AddData(this);
             else
                 SRPLensFlareCommon.Instance.RemoveData(this);
@@ -42,7 +43,7 @@ namespace UnityEngine
 
         public void Start()
         {
-            if (lensFlareData != null && gameObject.active)
+            if (lensFlareData != null && (gameObject.activeInHierarchy || gameObject.activeSelf))
             {
                 SRPLensFlareCommon.Instance.AddData(this);
             }
