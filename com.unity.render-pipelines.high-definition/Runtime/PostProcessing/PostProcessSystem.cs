@@ -2228,31 +2228,21 @@ namespace UnityEngine.Rendering.HighDefinition
 
                 float screenRatio = (float)hdCam.actualWidth / (float)hdCam.actualHeight;
 
-                Vector2 radPos = new Vector2(screenPos.x * screenRatio, screenPos.y);
+                Vector2 occlusionRadiusEdgeScreenPos0 = (Vector2)cam.WorldToViewportPoint(positionWS);
+                Vector2 occlusionRadiusEdgeScreenPos1 = (Vector2)cam.WorldToViewportPoint(positionWS + cam.transform.up * comp.occlusionRadius);
+                Vector2 occlusionRadiusEdgeScreenPos2 = (Vector2)cam.WorldToViewportPoint(cam.transform.up * comp.occlusionRadius);
+                float occlusionRadius = (occlusionRadiusEdgeScreenPos1 - occlusionRadiusEdgeScreenPos0).magnitude;
 
-                Vector2 occlusionRadiusEdgeScreenPos = (Vector2)cam.WorldToViewportPoint(positionWS + cam.transform.up * comp.occlusionRadius);
-                float occlusionRadius = ((Vector2)viewportPos - occlusionRadiusEdgeScreenPos).magnitude;
                 cmd.SetGlobalFloat(HDShaderIDs._FlareOcclusionRadius, occlusionRadius);
-
-                //Vector2 ScreenUVToNDC(Vector2 uv) { return new Vector2(uv.x * 2 - 1, 1 - uv.y * 2); }
+                cmd.SetGlobalFloat(HDShaderIDs._FlareOcclusionSamplesCount, comp.samplesCount);
 
                 cmd.SetGlobalFloat(HDShaderIDs._FlareOffscreen, comp.allowOffScreen ? 1.0f : -1.0f);
-
-                //cmd.SetGlobalVector(HDShaderIDs._FlareScreenPos, ScreenUVToNDC(screenPos));
-                //cmd.SetGlobalVector(HDShaderIDs._FlareScreenPos, new Vector2(screenPos.x * 2 - 1, 1 - screenPos.y * 2));
                 cmd.SetGlobalVector(HDShaderIDs._FlareScreenPos, screenPos);
-                //if (!data.allowOffScreen)
-                //    cmd.SetGlobalFloat(HDShaderIDs._FlareDepth, Mathf.Abs(viewportPos.z));
-                //else
-                //Vector3 screenPosZ = cam.WorldToViewportPoint(positionWS);
-                Vector3 screenPosZ = cam.worldToCameraMatrix * positionWS;
+
+                Vector3 screenPosZ = cam.WorldToViewportPoint(positionWS);
                 cmd.SetGlobalFloat(HDShaderIDs._FlareDepth, screenPosZ.z);
 
-                //Vector2 screenPosPanini = ScreenUVToNDC(screenPos);
-                //cmd.SetGlobalVector(HDShaderIDs._FlareScreenPosPanini, screenPosPanini);
-
-                //DrawCircle(positionWS, cam.transform.right, cam.transform.up, data.occlusionRadius, Color.red, 16);
-
+                Vector2 radPos = new Vector2(screenPos.x * screenRatio, screenPos.y);
                 float radius = radPos.magnitude;
                 float radialsScaleRadius = comp.radialAttenuationCurve.length > 0 ? comp.radialAttenuationCurve.Evaluate(radius) : 1.0f;
 
@@ -2299,7 +2289,6 @@ namespace UnityEngine.Rendering.HighDefinition
                                 break;
                             case HDLightType.Point:
                                 // Do nothing point are omnidirectional for the Lens Flare
-                                //lightAttenuationFactor = 1.0f / (4.0f * Mathf.PI * distToLight);
                                 break;
                             case HDLightType.Spot:
                                 switch (hdLightData.spotLightShape)
@@ -2384,8 +2373,6 @@ namespace UnityEngine.Rendering.HighDefinition
 
                 CoreUtils.SetRenderTarget(cmd, target);
 
-                cmd.SetGlobalFloat(HDShaderIDs._FlareOcclusionRadius, comp.occlusionRadius);
-                cmd.SetGlobalFloat(HDShaderIDs._FlareOcclusionSamplesCount, comp.samplesCount);
                 int elemIdx = 0;
                 float curLengthPos = 0.0f;
                 float curLengthNeg = 0.0f;

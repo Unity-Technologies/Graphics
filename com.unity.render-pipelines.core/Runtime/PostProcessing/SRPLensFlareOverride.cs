@@ -10,7 +10,7 @@ namespace UnityEngine
         public bool allowOffScreen = false;
         [Min(0)]
         public float occlusionRadius = 0.01f;
-        [Min(1)]
+        [Range(0, 16)]
         public uint samplesCount = 4;
         public AnimationCurve radialAttenuationCurve = new AnimationCurve(new Keyframe(0.0f, 1.0f), new Keyframe(1.0f, 1.0f));
         public AnimationCurve distanceAttenuationCurve = new AnimationCurve(new Keyframe(0.0f, 1.0f), new Keyframe(10.0f, 0.0f));

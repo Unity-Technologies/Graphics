@@ -1,3 +1,8 @@
+//C:\Code\pkgs\GraphicsHTTPS\com.unity.render-pipelines.core\ShaderLibrary\Random.hlsl
+#include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Common.hlsl"
+#include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Random.hlsl"
+#include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Sampling/Sampling.hlsl"
+
 struct Attributes
 {
     uint vertexID : SV_VertexID;
@@ -16,7 +21,6 @@ sampler2D _FlareTex;
 float2 _FlareScreenPos;
 float _FlareDepth;
 float _FlareSpeed;
-float _OcclusionRadius;
 float _FlareOcclusionRadius;
 float _FlareOcclusionSamplesCount;
 //float _OcclusionManual;
@@ -66,39 +70,29 @@ static float2 samples[DEPTH_SAMPLE_COUNT] = {
     float2(-0.106764614582,-0.618209302425)
 };
 
-float GetOcclusion(float2 screenPos, float depth, float ratio)
+float GetOcclusion(float2 screenPos, float flareDepth, float ratio)
 {
     float contrib = 0.0f;
-    //float sample_Contrib = 1.0 / _FlareOcclusionSamplesCount;
-    float sample_Contrib = 1.0;
-    //float2 ratioScale = float2(1 / ratio, 1.0);
-    float2 ratioScale = float2(1.0f, 1.0f);
-    //float2 ratioScale = float2(1.0f, 1.0f / ratio);
-    //float2 ratioScale = float2(1 / ratio, 1.0);
-    //for (uint i = 0; i < (uint)_FlareOcclusionSamplesCount; i++)
+    float sample_Contrib = 1.0f / _FlareOcclusionSamplesCount;
+    float2 ratioScale = float2(1.0f / ratio, 1.0);
+    if (_FlareOcclusionSamplesCount == 0.0f)
+        return 1.0f;
+
+    for (uint i = 0; i < (uint)_FlareOcclusionSamplesCount; i++)
     {
-        //float2 pos = screenPos + (samples[i % DEPTH_SAMPLE_COUNT] * _FlareOcclusionRadius * ratioScale) / _ScreenSize.xy;
-        //float2 pos = screenPos.xy * 0.5f + 0.5f;// +(samples[i % DEPTH_SAMPLE_COUNT] * _FlareOcclusionRadius * ratioScale) / _ScreenSize.xy;
-        float2 pos = screenPos.xy * 0.5f + 0.5f;
-        //pos = pos * 0.5 + 0.5;
-        //pos.y = 1 - pos.y;
-        //if (pos.x >= 0 && pos.x <= 1 && pos.y >= 0 && pos.y <= 1)
+        float2 dir = _FlareOcclusionRadius * SampleDiskUniform(Hash(2 * i + 0 + 1), Hash(2 * i + 1 + 1));
+        float2 pos = screenPos + dir;
+        pos.xy = pos * 0.5f + 0.5f;
+        pos.y = 1.0f - pos.y;
         if (all(pos >= 0) && all(pos <= 1))
         {
-            //float sampledDepth = LinearEyeDepth(SAMPLE_TEXTURE2D_LOD(_CameraDepthTexture, sampler_CameraDepthTexture, pos, 0).r, _ZBufferParams);
-            //float depth0 = LoadCameraDepth(pos * _ScreenSize.xy);
-            float depth0 = SampleCameraDepth(pos);
-            //float depth0 = LinearEyeDepth(depth0, _ZBufferParams).x;
-            //contrib += depth0;
-            if (depth0 > depth)
-                //contrib += depth0;// sample_Contrib;
+            float depth0 = LinearEyeDepth(SampleCameraDepth(pos), _ZBufferParams);
+            if (flareDepth < depth0)
                 contrib += sample_Contrib;
         }
     }
 
-    return 1.0f;
-    //return contrib;
-    //return //contrib / _FlareOcclusionSamplesCount;
+    return contrib;
 }
 
 Varyings vert(Attributes input)
@@ -107,23 +101,15 @@ Varyings vert(Attributes input)
     UNITY_SETUP_INSTANCE_ID(input);
     UNITY_INITIALIZE_VERTEX_OUTPUT_STEREO(output);
 
-    float screenRatio = (_ScreenSize.x) / (_ScreenSize.y);
+    float screenRatio = _ScreenSize.x / _ScreenSize.y;
     float2 flareSize = _FlareData.zw;
-    //float flareRatio = _FlareData.z / _FlareData.w;
-    //float ratio = screenRatio / flareRatio;
 
     float4 posPreScale = float4(2.0f, 2.0f, 1.0f, 1.0f) * GetQuadVertexPosition(input.vertexID) - float4(1.0f, 1.0f, 0.0f, 0.0);
     output.texcoord = GetQuadTexCoord(input.vertexID);
-
     float4 flareData = _FlareData;
     float2 screenPos = _FlareScreenPos;
-        // _FlareScreenPosPanini;
 
-    float radius = _OcclusionRadius;
-
-    //float occlusion = _OcclusionManual;
-
-    //// position and rotate
+    // position and rotate
     float angle = flareData.y;
     // negative stands for: also rotate to face the light
     if (angle >= 0)
@@ -150,20 +136,12 @@ Varyings vert(Attributes input)
 
     output.positionCS = centerPos;
     output.positionCS.xy += rayOffset;
+    float occlusion = GetOcclusion(_FlareScreenPos.xy, _FlareDepth, screenRatio);
 
-    //float _FlareOcclusionRadius;
-    //float _FlareOcclusionSamplesCount;
+    if (_FlareOffscreen < 0.0f && // No lens flare off screen
+        (any(_FlareScreenPos.xy < -1) || any(_FlareScreenPos.xy >= 1)))
 
-    //float occlusion = GetOcclusion(local.xy, _FlareDepth, screenRatio);
-        //1.0f;// GetOcclusion(_FlareScreenPos.xy, _FlareDepth, screenRatio);
-
-    //if (_FlareDepth > 0.0f)
-
-    float occlusion = 1.0f;
-    //if (_FlareOffscreen < 0.0f || // No lens flare off screen
-    //    (all(_FlareScreenPos.xy >= 0) && all(_FlareScreenPos.xy <= 1)))
-    //    occlusion = GetOcclusion(_FlareScreenPos.xy, _FlareDepth, screenRatio);
-    output.occlusion = 1.0f;
+    output.occlusion = occlusion;
 
     return output;
 }
