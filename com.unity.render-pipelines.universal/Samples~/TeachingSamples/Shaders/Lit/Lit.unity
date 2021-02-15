@@ -397,6 +397,18 @@ PrefabInstance:
       propertyPath: m_CharacterSize
       value: 0.03
       objectReference: {fileID: 0}
+    - target: {fileID: 707564616722749779, guid: a62ae87b83afd45458e3e92c3f072830, type: 3}
+      propertyPath: m_LocalRotation.w
+      value: -0.37843886
+      objectReference: {fileID: 0}
+    - target: {fileID: 707564616722749779, guid: a62ae87b83afd45458e3e92c3f072830, type: 3}
+      propertyPath: m_LocalRotation.y
+      value: 0.92562634
+      objectReference: {fileID: 0}
+    - target: {fileID: 707564616722749779, guid: a62ae87b83afd45458e3e92c3f072830, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.y
+      value: 224.474
+      objectReference: {fileID: 0}
     - target: {fileID: 792100534224308606, guid: a62ae87b83afd45458e3e92c3f072830, type: 3}
       propertyPath: m_Materials.Array.data[0]
       value: 
@@ -1756,7 +1768,7 @@ MonoBehaviour:
     m_HorizontalOverflow: 0
     m_VerticalOverflow: 1
     m_LineSpacing: 1
-  m_Text: This sample works as visual reference for how the properties for the Lit
+  m_Text: This sample works as visual reference for how the properties of the Lit
     shader affect the surface. Use the scene and the supplied textures as guide lines
     on how to set up materials.
 --- !u!222 &2094455581
