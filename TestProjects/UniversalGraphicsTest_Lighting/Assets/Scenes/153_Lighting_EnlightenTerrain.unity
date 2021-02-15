@@ -284,7 +284,6 @@ GameObject:
   - component: {fileID: 684879533}
   - component: {fileID: 684879532}
   - component: {fileID: 684879531}
-  - component: {fileID: 684879530}
   - component: {fileID: 684879528}
   m_Layer: 0
   m_Name: Camera Deferred
@@ -325,14 +324,6 @@ MonoBehaviour:
   m_RequiresDepthTexture: 0
   m_RequiresColorTexture: 0
   m_Version: 2
---- !u!81 &684879530
-AudioListener:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 684879527}
-  m_Enabled: 1
 --- !u!124 &684879531
 Behaviour:
   m_ObjectHideFlags: 0
@@ -409,7 +400,6 @@ GameObject:
   - component: {fileID: 971756575}
   - component: {fileID: 971756574}
   - component: {fileID: 971756572}
-  - component: {fileID: 971756571}
   - component: {fileID: 971756573}
   m_Layer: 0
   m_Name: Camera Forward
@@ -418,14 +408,6 @@ GameObject:
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
   m_IsActive: 1
---- !u!81 &971756571
-AudioListener:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 971756569}
-  m_Enabled: 1
 --- !u!124 &971756572
 Behaviour:
   m_ObjectHideFlags: 0
