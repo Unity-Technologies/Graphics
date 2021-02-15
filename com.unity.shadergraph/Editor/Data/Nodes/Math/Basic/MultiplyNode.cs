@@ -36,11 +36,9 @@ namespace UnityEditor.ShaderGraph
 
         public override bool hasPreview => true;
 
-        string GetFunctionHeader()
+        string GetFunctionName()
         {
-            return "Unity_Multiply" + "_" + concretePrecision.ToShaderString()
-                + (this.GetSlots<DynamicVectorMaterialSlot>().Select(s => NodeUtils.GetSlotDimension(s.concreteValueType)).FirstOrDefault() ?? "")
-                + (this.GetSlots<DynamicMatrixMaterialSlot>().Select(s => NodeUtils.GetSlotDimension(s.concreteValueType)).FirstOrDefault() ?? "");
+            return $"Unity_Multiply_{FindSlot<MaterialSlot>(Input1SlotId).concreteValueType.ToShaderString()}_{FindSlot<MaterialSlot>(Input2SlotId).concreteValueType.ToShaderString()}";
         }
 
         public sealed override void UpdateNodeAfterDeserialization()
@@ -58,23 +56,21 @@ namespace UnityEditor.ShaderGraph
             var outputValue = GetSlotValue(OutputSlotId, generationMode);
 
             sb.AppendLine("{0} {1};", FindOutputSlot<MaterialSlot>(OutputSlotId).concreteValueType.ToShaderString(), GetVariableNameForSlot(OutputSlotId));
-            sb.AppendLine("{0}({1}, {2}, {3});", GetFunctionHeader(), input1Value, input2Value, outputValue);
-        }
-
-        string GetFunctionName()
-        {
-            return $"Unity_Multiply_{FindSlot<MaterialSlot>(Input1SlotId).concreteValueType.ToShaderString(concretePrecision)}_{FindSlot<MaterialSlot>(Input2SlotId).concreteValueType.ToShaderString(concretePrecision)}";
+            sb.AppendLine("{0}({1}, {2}, {3});", GetFunctionName(), input1Value, input2Value, outputValue);
         }
 
         public void GenerateNodeFunction(FunctionRegistry registry, GenerationMode generationMode)
         {
-            registry.ProvideFunction(GetFunctionName(), s =>
+            var functionName = GetFunctionName();
+
+            registry.ProvideFunction(functionName, s =>
             {
                 s.AppendLine("void {0}({1} A, {2} B, out {3} Out)",
-                    GetFunctionHeader(),
+                    functionName,
                     FindInputSlot<MaterialSlot>(Input1SlotId).concreteValueType.ToShaderString(),
                     FindInputSlot<MaterialSlot>(Input2SlotId).concreteValueType.ToShaderString(),
-                    FindOutputSlot<MaterialSlot>(OutputSlotId).concreteValueType.ToShaderString());
+                    FindOutputSlot<MaterialSlot>(OutputSlotId).concreteValueType.ToShaderString());     // TODO: should this type be part of the function name?
+                                                                                                        // is output concrete value type related to node's concrete precision??
                 using (s.BlockScope())
                 {
                     switch (m_MultiplyType)

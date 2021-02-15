@@ -140,7 +140,7 @@ namespace UnityEditor.ShaderGraph
         }
 
         // argument string used to pass this property to a subgraph
-        internal override string GetPropertyAsArgumentString()
+        internal override string GetPropertyAsArgumentString(string precisionString)
         {
             return "VTPropertyWithTextureType " + referenceName;
         }
@@ -165,9 +165,7 @@ namespace UnityEditor.ShaderGraph
             var vt =  new VirtualTextureShaderProperty
             {
                 displayName = displayName,
-                hidden = hidden,
                 value = new SerializableVirtualTexture(),
-                precision = precision
             };
 
             // duplicate layer data, but reset reference names (they should be unique)

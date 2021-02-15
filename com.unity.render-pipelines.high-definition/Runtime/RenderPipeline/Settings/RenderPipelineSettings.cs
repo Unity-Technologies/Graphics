@@ -135,7 +135,8 @@ namespace UnityEngine.Rendering.HighDefinition
                 lightLayerName6 = "Light Layer 6",
                 lightLayerName7 = "Light Layer 7",
                 supportProbeVolume = false,
-                probeVolumeSettings = GlobalProbeVolumeSettings.@default,
+                probeVolumeMemoryBudget = ProbeVolumeTextureMemoryBudget.MemoryBudgetMedium,
+                probeVolumeSHBands = ProbeVolumeSHBands.SphericalHarmonicsL1,
             };
             return settings;
         }
@@ -267,14 +268,17 @@ namespace UnityEngine.Rendering.HighDefinition
         /// <summary>Support terrain holes.</summary>
         public bool supportTerrainHole;
         /// <summary>Support Probe Volumes.</summary>
-        [SerializeField] internal bool supportProbeVolume;
+        public bool supportProbeVolume;
+        /// <summary>Support Probe Volumes.</summary>
+        public ProbeVolumeTextureMemoryBudget probeVolumeMemoryBudget;
+        /// <summary>Probe Volumes SH Bands.</summary>
+        public ProbeVolumeSHBands probeVolumeSHBands;
+
         /// <summary>Support ray tracing.</summary>
         public bool supportRayTracing;
         /// <summary>Support ray tracing mode.</summary>
         public SupportedRayTracingMode supportedRayTracingMode;
 
-        /// <summary>Global Probe Volume settings.</summary>
-        [SerializeField] internal GlobalProbeVolumeSettings probeVolumeSettings;
         /// <summary>Global light loop settings.</summary>
         public GlobalLightLoopSettings lightLoopSettings;
         /// <summary>Global shadows settings.</summary>

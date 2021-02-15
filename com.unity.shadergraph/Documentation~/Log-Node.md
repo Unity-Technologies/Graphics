@@ -2,7 +2,7 @@
 
 ## Description
 
-Returns the logarithm of input **In**. **Log** is the inverse operation to the [Exponential Node](Exponential-Node.md). 
+Returns the logarithm of input **In**. **Log** is the inverse operation to the [Exponential Node](Exponential-Node.md).
 
 For example, the result of a base-2 **Exponential** using an input value of 3 is 8.
 
@@ -10,7 +10,7 @@ For example, the result of a base-2 **Exponential** using an input value of 3 is
 
 Therefore the result of a base-2 **Log** using an input value of 8 is 3.
 
-The logarithmic base can be switched between base-e, base-2 and base-10 from the **Base** dropdown on the node. 
+The logarithmic base can be switched between base-e, base-2 and base-10 from the **Base** dropdown on the node.
 
 ## Ports
 
