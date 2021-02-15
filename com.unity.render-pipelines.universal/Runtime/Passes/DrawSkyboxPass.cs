@@ -69,7 +69,7 @@ namespace UnityEngine.Rendering.Universal
             else
 #endif
             {
-                if((DebugHandler != null) && DebugHandler.IsDebugMaterialActive)
+                if((DebugHandler != null) && DebugHandler.IsDebugPassEnabled(ref renderingData.cameraData))
                 {
                     CommandBuffer cmd = CommandBufferPool.Get();
 

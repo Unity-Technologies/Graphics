@@ -96,8 +96,7 @@ namespace UnityEngine.Rendering.Universal.Internal
 
                 DrawingSettings drawSettings = CreateDrawingSettings(m_ShaderTagIdList, ref renderingData, sortFlags);
 
-                if ((DebugHandler != null) &&
-                    (DebugHandler.IsDebugMaterialActive || DebugHandler.IsReplacementMaterialNeeded))
+                if((DebugHandler != null) && DebugHandler.IsDebugPassEnabled(ref renderingData.cameraData))
                 {
                     foreach(DebugRenderPass debugRenderPass in DebugHandler.CreateDebugRenderPasses(context, cmd, ref drawSettings))
                     {

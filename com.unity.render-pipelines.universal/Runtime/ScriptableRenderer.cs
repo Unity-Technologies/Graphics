@@ -636,7 +636,7 @@ namespace UnityEngine.Rendering.Universal
 
             // Always clear on first render pass in mobile as it's same perf of DontCare and avoid tile clearing issues.
             if(Application.isMobilePlatform ||
-               (DebugHandler != null && DebugHandler.IsScreenClearNeeded))
+               (!cameraData.isPreviewCamera && DebugHandler != null && DebugHandler.IsScreenClearNeeded))
                 return ClearFlag.All;
 
             if ((cameraClearFlags == CameraClearFlags.Skybox && RenderSettings.skybox != null) ||
@@ -913,7 +913,10 @@ namespace UnityEngine.Rendering.Universal
                     finalClearFlag |= (renderPass.clearFlag & ClearFlag.Depth);
 
                 // If the debug-handler needs to clear the screen, update "finalClearColor" accordingly...
-                DebugHandler?.TryGetScreenClearColor(ref finalClearColor);
+                if((DebugHandler != null) && DebugHandler.IsDebugPassEnabled(ref cameraData))
+                {
+                    DebugHandler.TryGetScreenClearColor(ref finalClearColor);
+                }
 
                 // Only setup render target if current render pass attachments are different from the active ones
                 if (passColorAttachment != m_ActiveColorAttachments[0] || passDepthAttachment != m_ActiveDepthAttachment || finalClearFlag != ClearFlag.None)

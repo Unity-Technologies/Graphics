@@ -262,15 +262,18 @@ namespace UnityEngine.Rendering.Universal
 
         public override void Setup(ScriptableRenderContext context, ref RenderingData renderingData)
         {
-            DebugHandler.Setup(context);
+            ref CameraData cameraData = ref renderingData.cameraData;
+            Camera camera = cameraData.camera;
+            RenderTextureDescriptor cameraTargetDescriptor = cameraData.cameraTargetDescriptor;
+
+            if(!cameraData.isPreviewCamera)
+            {
+                DebugHandler.Setup(context);
+            }
 
 #if ADAPTIVE_PERFORMANCE_2_1_0_OR_NEWER
             bool needTransparencyPass = !UniversalRenderPipeline.asset.useAdaptivePerformance || !AdaptivePerformance.AdaptivePerformanceRenderSettings.SkipTransparentObjects;
 #endif
-            Camera camera = renderingData.cameraData.camera;
-            ref CameraData cameraData = ref renderingData.cameraData;
-            RenderTextureDescriptor cameraTargetDescriptor = renderingData.cameraData.cameraTargetDescriptor;
-
             // Special path for depth only offscreen cameras. Only write opaques + transparents.
             bool isOffscreenDepthTexture = cameraData.targetTexture != null && cameraData.targetTexture.format == RenderTextureFormat.Depth;
             if (isOffscreenDepthTexture)
@@ -407,7 +410,7 @@ namespace UnityEngine.Rendering.Universal
                                          && createDepthTexture;
             bool copyColorPass = renderingData.cameraData.requiresOpaqueTexture || renderPassInputs.requiresColorTexture;
 
-            if(!DebugHandler.IsLightingActive)
+            if(DebugHandler.IsDebugPassEnabled(ref cameraData) && !DebugHandler.IsLightingActive)
             {
                 mainLightShadows = false;
                 additionalLightShadows = false;
@@ -621,7 +624,8 @@ namespace UnityEngine.Rendering.Universal
                 EnqueuePass(postProcessPass);
             }
 
-            if (DebugHandler.TryGetFullscreenDebugMode(out DebugFullScreenMode fullScreenDebugMode))
+            if(DebugHandler.IsDebugPassEnabled(ref cameraData) &&
+               DebugHandler.TryGetFullscreenDebugMode(out DebugFullScreenMode fullScreenDebugMode))
             {
                 RenderTargetIdentifier debugBuffer;
                 float screenWidth = camera.pixelWidth;

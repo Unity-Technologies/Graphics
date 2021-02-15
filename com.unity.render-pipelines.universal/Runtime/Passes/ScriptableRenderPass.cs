@@ -385,7 +385,7 @@ namespace UnityEngine.Rendering.Universal
         public DrawingSettings CreateDrawingSettings(List<ShaderTagId> shaderTagIdList,
             ref RenderingData renderingData, SortingCriteria sortingCriteria)
         {
-            if((DebugHandler != null) && DebugHandler.IsDebugMaterialActive)
+            if((DebugHandler != null) && DebugHandler.IsDebugPassEnabled(ref renderingData.cameraData) && DebugHandler.IsDebugMaterialActive)
             {
                 return CreateDrawingSettings(s_DebugMaterialShaderTagId, ref renderingData, sortingCriteria);
             }

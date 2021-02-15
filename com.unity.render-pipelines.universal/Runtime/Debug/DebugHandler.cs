@@ -103,6 +103,12 @@ namespace UnityEngine.Rendering.Universal
             m_DebugValidateAlbedoCompareColorId = Shader.PropertyToID("_DebugValidateAlbedoCompareColor");
         }
 
+        public bool IsDebugPassEnabled(ref CameraData cameraData)
+        {
+            return !cameraData.isPreviewCamera &&
+                   (IsDebugMaterialActive || IsReplacementMaterialNeeded);
+        }
+
         internal DebugPass CreatePass(RenderPassEvent evt)
         {
             return new DebugPass(evt, m_FullScreenDebugMaterial);
