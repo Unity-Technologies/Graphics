@@ -1412,7 +1412,6 @@ namespace UnityEngine.Rendering.HighDefinition
 
         TextureHandle ColorGradingPass(RenderGraph renderGraph, HDCamera hdCamera)
         {
-            TextureHandle logLutOutput;
             using (var builder = renderGraph.AddRenderPass<ColorGradingPassData>("Color Grading", out var passData, ProfilingSampler.Get(HDProfileId.ColorGradingLUTBuilder)))
             {
                 TextureHandle logLut = renderGraph.CreateTexture(new TextureDesc(m_LutSize, m_LutSize)
@@ -1431,7 +1430,6 @@ namespace UnityEngine.Rendering.HighDefinition
 
                 PrepareColorGradingParameters(passData);
                 passData.logLut = builder.WriteTexture(logLut);
-                logLutOutput = passData.logLut;
 
                 builder.SetRenderFunc(
                     (ColorGradingPassData data, RenderGraphContext ctx) =>
@@ -1504,9 +1502,9 @@ namespace UnityEngine.Rendering.HighDefinition
                             (int)((data.lutSize + threadZ - 1u) / threadZ)
                         );
                     });
-            }
 
-            return logLutOutput;
+                return passData.logLut;
+            }
         }
 
         #endregion
