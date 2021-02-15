@@ -778,7 +778,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 requiredFields = CoreRequiredFields.LitMinimal,
                 renderStates = CoreRenderStates.Forward,
                 pragmas = CorePragmas.DotsInstancedInV1AndV2,
-                defines = CoreDefines.Forward,
+                defines = CoreDefines.ForwardLit,
                 includes = ForwardIncludes,
 
                 virtualTextureFeedback = true,
