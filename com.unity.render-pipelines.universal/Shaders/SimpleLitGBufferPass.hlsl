@@ -76,7 +76,11 @@ void InitializeInputData(Varyings input, half3 normalTS, out InputData inputData
 
     inputData.fogCoord = 0; // we don't apply fog in the guffer pass
     inputData.vertexLighting = input.vertexLighting.xyz;
+#if defined(DYNAMICLIGHTMAP_ON)
     inputData.bakedGI = SAMPLE_GI(input.staticLightmapUV, input.dynamicLightmapUV, input.vertexSH, inputData.normalWS);
+#else
+    inputData.bakedGI = SAMPLE_GI(input.staticLightmapUV, input.vertexSH, inputData.normalWS);
+#endif
     inputData.normalizedScreenSpaceUV = GetNormalizedScreenSpaceUV(input.positionCS);
     inputData.shadowMask = SAMPLE_SHADOWMASK(input.staticLightmapUV);
 }

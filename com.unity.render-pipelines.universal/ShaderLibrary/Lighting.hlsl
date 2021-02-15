@@ -604,9 +604,9 @@ half3 SampleLightmap(float2 staticLightmapUV, half3 normalWS)
 #elif defined(DYNAMICLIGHTMAP_ON)
 #define SAMPLE_GI(staticLmName, dynamicLmName, shName, normalWSName) SampleLightmap(0, dynamicLmName, normalWSName)
 #elif defined(LIGHTMAP_ON)
-#define SAMPLE_GI(staticLmName, dynamicLmName, shName, normalWSName) SampleLightmap(staticLmName, 0, normalWSName)
+#define SAMPLE_GI(staticLmName, shName, normalWSName) SampleLightmap(staticLmName, 0, normalWSName)
 #else
-#define SAMPLE_GI(staticLmName, dynamicLmName, shName, normalWSName) SampleSHPixel(shName, normalWSName)
+#define SAMPLE_GI(staticLmName, shName, normalWSName) SampleSHPixel(shName, normalWSName)
 #endif
 
 half3 GlossyEnvironmentReflection(half3 reflectVector, half perceptualRoughness, half occlusion)
