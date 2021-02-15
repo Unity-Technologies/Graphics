@@ -240,28 +240,22 @@ namespace UnityEditor.VFX
 
                 r.WriteLine("int sourceIndex = 0;");
 
-                //TODOPAUL correctly handle this
-                bool skipLoop = staticSourceCount <= 1 && !hasDirectLink;
+                if (staticSourceCount > 1 || hasDirectLink)
+                {
+                    if (!hasDirectLink)
+                        r.WriteLineFormat("uint nbEvents = {0};", staticSourceCount);
+                    //else, nbEvents is provided by constant buffer
 
-                if (skipLoop)
-                    r.WriteLine("/*//Loop with 1 iteration generate a wrong IL Assembly (and actually, useless code)");
-
-                r.WriteLine("#if !VFX_USE_DIRECT_LINK_EVENT");
-                r.WriteLineFormat("uint nbEvents = {0};", staticSourceCount);
-                r.WriteLine("#endif");
-
-                r.WriteLine("uint currentSumSpawnCount = 0u;");
-                r.WriteLine("for (sourceIndex=0; sourceIndex < nbEvents; sourceIndex++)");
-                r.EnterScope();
-                r.WriteLineFormat("currentSumSpawnCount += uint({0});", context.GetData().GetLoadAttributeCode(VFXAttribute.SpawnCount, VFXAttributeLocation.Source));
-                r.WriteLine("if (id < currentSumSpawnCount)");
-                r.EnterScope();
-                r.WriteLine("break;");
-                r.ExitScope();
-                r.ExitScope();
-
-                if (skipLoop)
-                    r.WriteLine("*/");
+                    r.WriteLine("uint currentSumSpawnCount = 0u;");
+                    r.WriteLine("for (sourceIndex=0; sourceIndex < nbEvents; sourceIndex++)");
+                    r.EnterScope();
+                    r.WriteLineFormat("currentSumSpawnCount += uint({0});", context.GetData().GetLoadAttributeCode(VFXAttribute.SpawnCount, VFXAttributeLocation.Source));
+                    r.WriteLine("if (id < currentSumSpawnCount)");
+                    r.EnterScope();
+                    r.WriteLine("break;");
+                    r.ExitScope();
+                    r.ExitScope();
+                }
             }
             else
             {
