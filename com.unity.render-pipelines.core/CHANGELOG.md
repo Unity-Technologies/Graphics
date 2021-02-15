@@ -22,6 +22,9 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Moved Edit/Render Pipeline/Generate Shader Includes to Edit/Rendering/Generate Shader Includes
 - Moved Assets/Create/LookDev/Environment Library to Assets/Create/Rendering/Environment Library (Look Dev)
 
+### Added
+- Added class for drawing shadow cascades `UnityEditor.Rendering.ShadowCascadeGUI.DrawShadowCascades`.
+
 ## [11.0.0] - 2020-10-21
 
 ### Fixed
