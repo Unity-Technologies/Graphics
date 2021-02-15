@@ -113,7 +113,11 @@ namespace UnityEngine.Rendering.HighDefinition
 
         class SMAAData
         {
-            public SMAAParameters parameters;
+            public Material smaaMaterial;
+            public Texture smaaAreaTex;
+            public Texture smaaSearchTex;
+            public Vector4 smaaRTMetrics;
+
             public TextureHandle source;
             public TextureHandle destination;
             public TextureHandle depthBuffer;
@@ -744,14 +748,34 @@ namespace UnityEngine.Rendering.HighDefinition
         {
             using (var builder = renderGraph.AddRenderPass<SMAAData>("Subpixel Morphological Anti-Aliasing", out var passData, ProfilingSampler.Get(HDProfileId.SMAA)))
             {
+                passData.smaaMaterial = m_SMAAMaterial;
+                passData.smaaAreaTex = m_Resources.textures.SMAAAreaTex;
+                passData.smaaSearchTex = m_Resources.textures.SMAASearchTex;
+                passData.smaaMaterial.shaderKeywords = null;
+                passData.smaaRTMetrics = new Vector4(1.0f / hdCamera.actualWidth, 1.0f / hdCamera.actualHeight, hdCamera.actualWidth, hdCamera.actualHeight);
+
+                switch (hdCamera.SMAAQuality)
+                {
+                    case HDAdditionalCameraData.SMAAQualityLevel.Low:
+                        passData.smaaMaterial.EnableKeyword("SMAA_PRESET_LOW");
+                        break;
+                    case HDAdditionalCameraData.SMAAQualityLevel.Medium:
+                        passData.smaaMaterial.EnableKeyword("SMAA_PRESET_MEDIUM");
+                        break;
+                    case HDAdditionalCameraData.SMAAQualityLevel.High:
+                        passData.smaaMaterial.EnableKeyword("SMAA_PRESET_HIGH");
+                        break;
+                    default:
+                        passData.smaaMaterial.EnableKeyword("SMAA_PRESET_HIGH");
+                        break;
+                }
+
                 passData.source = builder.ReadTexture(source);
-                passData.parameters = PrepareSMAAParameters(hdCamera);
-                builder.ReadTexture(depthBuffer);
-                passData.depthBuffer = builder.WriteTexture(depthBuffer);
+                passData.depthBuffer = builder.ReadWriteTexture(depthBuffer);
                 passData.smaaEdgeTex = builder.CreateTransientTexture(new TextureDesc(Vector2.one, true, true)
-                    { colorFormat = GraphicsFormat.R8G8B8A8_UNorm, enableRandomWrite = true, name = "SMAA Edge Texture" });
+                    { colorFormat = GraphicsFormat.R8G8B8A8_UNorm, enableRandomWrite = true, clearBuffer = true, name = "SMAA Edge Texture" });
                 passData.smaaBlendTex = builder.CreateTransientTexture(new TextureDesc(Vector2.one, true, true)
-                    { colorFormat = GraphicsFormat.R8G8B8A8_UNorm, enableRandomWrite = true, name = "SMAA Blend Texture" });
+                    { colorFormat = GraphicsFormat.R8G8B8A8_UNorm, enableRandomWrite = true, clearBuffer = true, name = "SMAA Blend Texture" });
 
                 TextureHandle dest = GetPostprocessOutputHandle(renderGraph, "SMAA Destination");
                 passData.destination = builder.WriteTexture(dest);;
@@ -759,17 +783,31 @@ namespace UnityEngine.Rendering.HighDefinition
                 builder.SetRenderFunc(
                     (SMAAData data, RenderGraphContext ctx) =>
                     {
-                        DoSMAA(data.parameters, ctx.cmd, data.source,
-                            data.smaaEdgeTex,
-                            data.smaaBlendTex,
-                            data.destination,
-                            data.depthBuffer);
+                        data.smaaMaterial.SetVector(HDShaderIDs._SMAARTMetrics, data.smaaRTMetrics);
+                        data.smaaMaterial.SetTexture(HDShaderIDs._SMAAAreaTex, data.smaaAreaTex);
+                        data.smaaMaterial.SetTexture(HDShaderIDs._SMAASearchTex, data.smaaSearchTex);
+                        data.smaaMaterial.SetInt(HDShaderIDs._StencilRef, (int)StencilUsage.SMAA);
+                        data.smaaMaterial.SetInt(HDShaderIDs._StencilMask, (int)StencilUsage.SMAA);
+
+                        // -----------------------------------------------------------------------------
+                        // EdgeDetection stage
+                        ctx.cmd.SetGlobalTexture(HDShaderIDs._InputTexture, data.source);
+                        HDUtils.DrawFullScreen(ctx.cmd, data.smaaMaterial, data.smaaEdgeTex, data.depthBuffer, null, (int)SMAAStage.EdgeDetection);
+
+                        // -----------------------------------------------------------------------------
+                        // BlendWeights stage
+                        ctx.cmd.SetGlobalTexture(HDShaderIDs._InputTexture, data.smaaEdgeTex);
+                        HDUtils.DrawFullScreen(ctx.cmd, data.smaaMaterial, data.smaaBlendTex, data.depthBuffer, null, (int)SMAAStage.BlendWeights);
+
+                        // -----------------------------------------------------------------------------
+                        // NeighborhoodBlending stage
+                        ctx.cmd.SetGlobalTexture(HDShaderIDs._InputTexture, data.source);
+                        data.smaaMaterial.SetTexture(HDShaderIDs._SMAABlendTex, data.smaaBlendTex);
+                        HDUtils.DrawFullScreen(ctx.cmd, data.smaaMaterial, data.destination, null, (int)SMAAStage.NeighborhoodBlending);
                     });
 
-                source = passData.destination;
+                return passData.destination;
             }
-
-            return source;
         }
 
         TextureHandle DepthOfFieldPass(RenderGraph renderGraph, HDCamera hdCamera, TextureHandle depthBuffer, TextureHandle motionVectors, TextureHandle depthBufferMipChain, TextureHandle source)
