@@ -22,9 +22,9 @@ VertexDescriptionInputs BuildVertexDescriptionInputs(Attributes input)
     $VertexDescriptionInputs.AbsoluteWorldSpacePosition:output.AbsoluteWorldSpacePosition =  GetAbsolutePositionWS(TransformObjectToWorld(input.positionOS));
     $VertexDescriptionInputs.WorldSpaceViewDirection:   output.WorldSpaceViewDirection =     GetWorldSpaceNormalizeViewDir(output.WorldSpacePosition);
     $VertexDescriptionInputs.ObjectSpaceViewDirection:  output.ObjectSpaceViewDirection =    TransformWorldToObjectDir(output.WorldSpaceViewDirection);
-    $VertexDescriptionInputs.ViewSpaceViewDirection:    output.ViewSpaceViewDirection =      TransformWorldToViewDir(output.WorldSpaceViewDirection);
+    $VertexDescriptionInputs.ViewSpaceViewDirection:    output.ViewSpaceViewDirection =      length(output.WorldSpaceViewDirection) * TransformWorldToViewDir(output.WorldSpaceViewDirection);
     $VertexDescriptionInputs.TangentSpaceViewDirection: float3x3 tangentSpaceTransform =     float3x3(output.WorldSpaceTangent,output.WorldSpaceBiTangent,output.WorldSpaceNormal);
-    $VertexDescriptionInputs.TangentSpaceViewDirection: output.TangentSpaceViewDirection =   mul(tangentSpaceTransform, output.WorldSpaceViewDirection);
+    $VertexDescriptionInputs.TangentSpaceViewDirection: output.TangentSpaceViewDirection =   TransformWorldToTangent(output.WorldSpaceViewDirection, tangentSpaceTransform);
     $VertexDescriptionInputs.ScreenPosition:            output.ScreenPosition =              ComputeScreenPos(TransformWorldToHClip(output.WorldSpacePosition), _ProjectionParams.x);
     $VertexDescriptionInputs.uv0:                       output.uv0 =                         input.uv0;
     $VertexDescriptionInputs.uv1:                       output.uv1 =                         input.uv1;
