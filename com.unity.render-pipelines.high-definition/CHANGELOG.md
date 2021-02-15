@@ -13,6 +13,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Added a history rejection criterion based on if the pixel was moving in world space (case 1302392).
 - Added the default quality settings to the HDRP asset for RTAO, RTR and RTGI (case 1304370).
 - Added TargetMidGrayParameterDrawer
+- Added an option to have double sided GI be controlled separately from material double-sided option.
 
 ### Fixed
 - Fixed an exception when opening the color picker in the material UI (case 1307143).
@@ -26,6 +27,17 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed skybox for ortho cameras.
 - Fixed model import by adding additional data if needed.
 - Fix screen being over-exposed when changing very different skies.
+- VFX: Debug material view were rendering pink for albedo. (case 1290752)
+- VFX: Debug material view incorrect depth test. (case 1293291)
+- VFX: Fixed LPPV with lit particles in deferred (case 1293608)
+- Fixed incorrect debug wireframe overlay on tessellated geometry (using littessellation), caused by the picking pass using an incorrect camera matrix.
+- Fixed nullref in layered lit shader editor.
+- Fix issue with Depth of Field CoC debug view.
+- Fixed an issue where first frame of SSAO could exhibit ghosting artefacts.
+- Fixed an issue with the mipmap generation internal format after rendering format change.
+
+### Added
+- Added new AOV APIs for overriding the internal rendering format, and for outputing the world space position.
 
 ### Changed
 - Changed Window/Render Pipeline/HD Render Pipeline Wizard to Window/Rendering/HDRP Wizard

@@ -139,7 +139,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
         static void SetExposureTextureToEmpty(RTHandle exposureTexture)
         {
-            var tex = new Texture2D(1, 1, TextureFormat.RGHalf, false, true);
+            var tex = new Texture2D(1, 1, GraphicsFormat.R16G16_SFloat, TextureCreationFlags.None);
             tex.SetPixel(0, 0, new Color(1f, ColorUtils.ConvertExposureToEV100(1f), 0f, 0f));
             tex.Apply();
             Graphics.Blit(tex, exposureTexture);
@@ -859,7 +859,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
             if (m_ExposureCurveTexture == null)
             {
-                m_ExposureCurveTexture = new Texture2D(k_ExposureCurvePrecision, 1, TextureFormat.RGBAHalf, false, true)
+                m_ExposureCurveTexture = new Texture2D(k_ExposureCurvePrecision, 1, GraphicsFormat.R16G16B16A16_SFloat, TextureCreationFlags.None)
                 {
                     name = "Exposure Curve",
                     filterMode = FilterMode.Bilinear,
@@ -2786,7 +2786,7 @@ namespace UnityEngine.Rendering.HighDefinition
             {
                 if (m_InternalSpectralLut == null)
                 {
-                    m_InternalSpectralLut = new Texture2D(3, 1, TextureFormat.RGB24, false)
+                    m_InternalSpectralLut = new Texture2D(3, 1, GraphicsFormat.R8G8B8A8_SRGB, TextureCreationFlags.None)
                     {
                         name = "Chromatic Aberration Spectral LUT",
                         filterMode = FilterMode.Bilinear,
@@ -2797,9 +2797,9 @@ namespace UnityEngine.Rendering.HighDefinition
 
                     m_InternalSpectralLut.SetPixels(new[]
                     {
-                        new Color(1f, 0f, 0f),
-                        new Color(0f, 1f, 0f),
-                        new Color(0f, 0f, 1f)
+                        new Color(1f, 0f, 0f, 1f),
+                        new Color(0f, 1f, 0f, 1f),
+                        new Color(0f, 0f, 1f, 1f)
                     });
 
                     m_InternalSpectralLut.Apply();
