@@ -20,8 +20,8 @@
   ],
   "samples": [
     {
-      "displayName": "TeachingSamples",
-      "description": "Collection of scenes showing how to use different features of the Universal RP.",
+      "displayName": "Teaching Samples",
+      "description": "Collection of scenes showing how to use different features of the Universal Render Pipeline.",
       "path": "Samples~/TeachingSamples"
     }
   ]

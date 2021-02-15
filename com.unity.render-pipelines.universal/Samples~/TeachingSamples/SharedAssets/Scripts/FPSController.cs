@@ -1,3 +1,4 @@
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
@@ -14,23 +15,24 @@ public class FPSController : MonoBehaviour
     void Start()
     {
         rb = GetComponent<Rigidbody>();
+        Cursor.visible = false;
+        Cursor.lockState = CursorLockMode.Locked;
     }
 
-    void Awake()
-    {
-        transform.eulerAngles = Vector3.zero;
-    }
-
-    // Update is called once per frame
-    void FixedUpdate()
+    private void Update()
     {
         //Rotate based on mouse input
         float vert = Input.GetAxis("Mouse X") * Time.deltaTime * rotationSpeed * 100;
         float hori = Input.GetAxis("Mouse Y") * Time.deltaTime * rotationSpeed * 100;
 
-        Vector3 rotation = new Vector3(hori, vert, 0);
         transform.Rotate(Vector3.up * vert, Space.World);
         transform.Rotate(-Vector3.right * hori, Space.Self);
+    }
+
+    // Update is called once per frame
+    void FixedUpdate()
+    {
+        
 
         //Move based on wasd input
         Vector3 forward = transform.forward;
