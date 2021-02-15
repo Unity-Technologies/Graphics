@@ -5,6 +5,9 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.html).
 
 ## [10.4.0] - 2020-01-26
+### Changed
+- Sphere and Cube outputs are now experimental
+
 ### Fixed
 - VFXEventBinderBase throwing a null reference exception in runtime
 - Unexpected compilation warning in VFXMouseBinder [Case 1313003](https://issuetracker.unity3d.com/product/unity/issues/guid/1313003/)
