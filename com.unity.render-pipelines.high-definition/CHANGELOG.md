@@ -4,6 +4,34 @@ All notable changes to this package will be documented in this file.
 The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.html).
 
+## [10.4.0] - 2020-01-26
+
+### Fixed
+- Fixed model import by adding additional data if needed.
+- Fixed an exception when opening the color picker in the material UI (case 1307143).
+- Fixed lights shadow frustum near and far planes.
+- Fixed various issues with non-temporal SSAO and rendergraph.
+- Fixed white flashes on camera cuts on volumetric fog.
+- Fixed light layer issue when performing editing on multiple lights.
+- Fixed an issue where selection in a debug panel would reset when cycling through enum items.
+- Fixed material keywords with fbx importer.
+- Fixed lightmaps not working properly with shader graphs in ray traced reflections (case 1305335).
+- Fixed skybox for ortho cameras.
+- Fixed screen being over-exposed when changing very different skies.
+- Fixed incorrect debug wireframe overlay on tessellated geometry (using littessellation), caused by the picking pass using an incorrect camera matrix.
+- Fixed nullref in layered lit shader editor.
+- Fixed issue with Depth of Field CoC debug view.
+- Fixed an issue where first frame of SSAO could exhibit ghosting artefacts.
+- Fixed an issue with the mipmap generation internal format after rendering format change.
+
+### Changed
+- Updated the tooltip for the Decal Angle Fade property (requires to enable Decal Layers in both HDRP asset and Frame settings) (case 1308048).
+
+## [10.3.1] - 2020-01-26
+
+Version Updated
+The version number for this package has increased due to a version update of a related graphics package.
+
 ## [10.3.0] - 2020-12-01
 
 ### Added

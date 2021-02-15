@@ -7,15 +7,26 @@
 
 ---
 
-All_URPUpdate_BoatAttack_2020.2:
-    name: All URPUpdate_BoatAttack CI - 2020.2
+PR_URPUpdate_BoatAttack_2020.2:
+    name: URPUpdate_BoatAttack PR Job - 2020.2
     dependencies:
       -  path: .yamato/urpupdate_boatattack-win-dx11.yml#URPUpdate_BoatAttack_Win_DX11_editmode_mono_Linear_2020.2
          rerun: on-new-revision
       -  path: .yamato/urpupdate_boatattack-win-dx11.yml#URPUpdate_BoatAttack_Win_DX11_playmode_mono_Linear_2020.2
          rerun: on-new-revision
-All_URPUpdate_BoatAttack_CUSTOM-REVISION:
-    name: All URPUpdate_BoatAttack CI - CUSTOM-REVISION
+    variables:
+        UTR_VERSION: "current"
+        TEST_FILTER: .*
+Nightly_URPUpdate_BoatAttack_2020.2:
+    name: Nightly URPUpdate_BoatAttack - 2020.2
+    dependencies:
+      -  path: .yamato/all-urpupdate_boatattack.yml#PR_URPUpdate_BoatAttack_2020.2
+         rerun: on-new-revision
+    variables:
+        UTR_VERSION: "current"
+        TEST_FILTER: .*
+PR_URPUpdate_BoatAttack_CUSTOM-REVISION:
+    name: URPUpdate_BoatAttack PR Job - CUSTOM-REVISION
     dependencies:
       -  path: .yamato/urpupdate_boatattack-win-dx11.yml#URPUpdate_BoatAttack_Win_DX11_editmode_mono_Linear_CUSTOM-REVISION
          rerun: always
@@ -23,3 +34,14 @@ All_URPUpdate_BoatAttack_CUSTOM-REVISION:
          rerun: always
     variables:
         CUSTOM_REVISION: custom_revision_not_set
+        UTR_VERSION: "current"
+        TEST_FILTER: .*
+Nightly_URPUpdate_BoatAttack_CUSTOM-REVISION:
+    name: Nightly URPUpdate_BoatAttack - CUSTOM-REVISION
+    dependencies:
+      -  path: .yamato/all-urpupdate_boatattack.yml#PR_URPUpdate_BoatAttack_CUSTOM-REVISION
+         rerun: always
+    variables:
+        CUSTOM_REVISION: custom_revision_not_set
+        UTR_VERSION: "current"
+        TEST_FILTER: .*
