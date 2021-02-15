@@ -675,18 +675,17 @@ namespace UnityEditor.VFX
             }
         }
 
-        private static void FillEvent(List<EventDesc> outEventDesc, Dictionary<VFXContext, SpawnInfo> contextSpawnToSpawnInfo, uint systemCount /* TODOPAUL :remove this */, IEnumerable<VFXContext> contexts, IEnumerable<VFXData> compilableData, ref SubgraphInfos subgraphInfos)
+        private static void FillEvent(List<EventDesc> outEventDesc, Dictionary<VFXContext, SpawnInfo> contextSpawnToSpawnInfo, IEnumerable<VFXContext> contexts, IEnumerable<VFXData> compilableData, ref SubgraphInfos subgraphInfos)
         {
             var contextEffectiveInputLinks = subgraphInfos.contextEffectiveInputLinks;
 
             var allPlayNotLinked = contextSpawnToSpawnInfo.Where(o => !contextEffectiveInputLinks[o.Key][0].Any()).Select(o => o.Key).ToList();
             var allStopNotLinked = contextSpawnToSpawnInfo.Where(o => !contextEffectiveInputLinks[o.Key][1].Any()).Select(o => o.Key).ToList();
 
-            //TODOPAUL : eventDescTemp isn't needed anymore
-            var eventDescTemp = new[]
+            var eventDescTemp = new EventDesc[]
             {
-                new { eventName = VisualEffectAsset.PlayEventName, playSystems = allPlayNotLinked, stopSystems = new List<VFXContext>(), initSystems = new List<VFXContext>() },
-                new { eventName = VisualEffectAsset.StopEventName, playSystems = new List<VFXContext>(), stopSystems = allStopNotLinked, initSystems = new List<VFXContext>() },
+                new EventDesc() { name = VisualEffectAsset.PlayEventName, startSystems = allPlayNotLinked, stopSystems = new List<VFXContext>(), initSystems = new List<VFXContext>() },
+                new EventDesc() { name = VisualEffectAsset.StopEventName, startSystems = new List<VFXContext>(), stopSystems = allStopNotLinked, initSystems = new List<VFXContext>() },
             }.ToList();
 
             var specialNames = new HashSet<string>(new string[] {VisualEffectAsset.PlayEventName, VisualEffectAsset.StopEventName});
@@ -703,14 +702,14 @@ namespace UnityEditor.VFX
 
                 foreach (var link in effectiveOuts)
                 {
-                    var eventIndex = eventDescTemp.FindIndex(o => o.eventName == eventName);
+                    var eventIndex = eventDescTemp.FindIndex(o => o.name == eventName);
                     if (eventIndex == -1)
                     {
                         eventIndex = eventDescTemp.Count;
-                        eventDescTemp.Add(new
+                        eventDescTemp.Add(new EventDesc
                         {
-                            eventName = eventName,
-                            playSystems = new List<VFXContext>(),
+                            name = eventName,
+                            startSystems = new List<VFXContext>(),
                             stopSystems = new List<VFXContext>(),
                             initSystems = new List<VFXContext>()
                         });
@@ -724,7 +723,7 @@ namespace UnityEditor.VFX
                             var startSystem = link.slotIndex == 0;
                             if (startSystem)
                             {
-                                eventDesc.playSystems.Add(link.context);
+                                eventDesc.startSystems.Add(link.context);
                             }
                             else
                             {
@@ -743,14 +742,7 @@ namespace UnityEditor.VFX
                 }
             }
 
-            var relevantEvent = eventDescTemp.Where(o => o.playSystems.Any() || o.stopSystems.Any() || o.initSystems.Any()); //TODOPAUL : Do this later
-            outEventDesc.AddRange(relevantEvent.Select(o => new EventDesc()
-            {
-                name = o.eventName,
-                startSystems = o.playSystems.ToList(),
-                stopSystems = o.stopSystems.ToList(),
-                initSystems = o.initSystems.ToList()
-            }));
+            outEventDesc.AddRange(eventDescTemp);
         }
 
         private void GenerateShaders(List<GeneratedCodeData> outGeneratedCodeData, VFXExpressionGraph graph, IEnumerable<VFXContext> contexts, Dictionary<VFXContext, VFXContextCompiledData> contextToCompiledData, VFXCompilationMode compilationMode, HashSet<string> dependencies)
@@ -1127,7 +1119,7 @@ namespace UnityEditor.VFX
                 FillSpawner(contextSpawnToSpawnInfo, cpuBufferDescs, systemDescs, compilableContexts, m_ExpressionGraph, contextToCompiledData, ref subgraphInfos, m_Graph.systemNames);
 
                 var eventDescs = new List<EventDesc>();
-                FillEvent(eventDescs, contextSpawnToSpawnInfo, (uint)systemDescs.Count, compilableContexts, compilableData, ref subgraphInfos);
+                FillEvent(eventDescs, contextSpawnToSpawnInfo, compilableContexts, compilableData, ref subgraphInfos);
 
                 var dependentBuffersData = new VFXDependentBuffersData();
                 FillDependentBuffer(compilableData, bufferDescs, dependentBuffersData);
