@@ -84,7 +84,7 @@ float3 GetViewVFXPosition() { return VFXGetViewWorldPosition(); }
 #else
 float3 TransformDirectionVFXToWorld(float3 dir) { return mul(VFXGetObjectToWorldMatrix(), float4(dir, 0.0f)).xyz; }
 float3 TransformPositionVFXToWorld(float3 pos) { return mul(VFXGetObjectToWorldMatrix(), float4(pos, 1.0f)).xyz; }
-float3 TransformNormalVFXToWorld(float3 n) { return mul(n, (float3x3)GetWorldToObjectMatrix()); }
+float3 TransformNormalVFXToWorld(float3 n) { return mul(n, (float3x3)VFXGetWorldToObjectMatrix()); }
 float3 TransformPositionVFXToView(float3 pos) { return VFXTransformPositionWorldToView(mul(VFXGetObjectToWorldMatrix(), float4(pos, 1.0f)).xyz); }
 float4 TransformPositionVFXToClip(float3 pos) { return VFXTransformPositionObjectToClip(pos); }
 float4 TransformPositionVFXToPreviousClip(float3 pos) { return VFXTransformPositionObjectToPreviousClip(pos); }
