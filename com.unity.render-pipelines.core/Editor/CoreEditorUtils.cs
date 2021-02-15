@@ -77,7 +77,17 @@ namespace UnityEditor.Rendering
         /// <param name="action">Action performed when fix buttom is clicked</param>
         public static void DrawFixMeBox(string text, Action action)
         {
-            EditorGUILayout.HelpBox(text, MessageType.Warning);
+            DrawFixMeBox(text, MessageType.Warning, action);
+        }
+
+        // UI Helpers
+        /// <summary>Draw a Fix button</summary>
+        /// <param name="text">Displayed message</param>
+        /// <param name="action">Action performed when fix buttom is clicked</param>
+        /// <param name="messageType">Type of the message</param>
+        public static void DrawFixMeBox(string text, MessageType messageType, Action action)
+        {
+            EditorGUILayout.HelpBox(text, messageType);
 
             GUILayout.Space(-32);
             using (new EditorGUILayout.HorizontalScope())
