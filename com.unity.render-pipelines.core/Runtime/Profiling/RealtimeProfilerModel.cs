@@ -20,7 +20,12 @@ public class RealtimeProfilerModel : MonoBehaviour
     ProfilerCounterValue<float> m_AvgMainThreadCPUFrameTimeCounter     = new ProfilerCounterValue<float>(ProfilerCategory.Render, "Avg Main Thread CPU Frame Time", ProfilerMarkerDataUnit.TimeNanoseconds);
     ProfilerCounterValue<float> m_AvgRenderThreadCPUFrameTimeCounter   = new ProfilerCounterValue<float>(ProfilerCategory.Render, "Avg Render Thread CPU Frame Time", ProfilerMarkerDataUnit.TimeNanoseconds);
     ProfilerCounterValue<float> m_AvgGPUFrameTimeCounter               = new ProfilerCounterValue<float>(ProfilerCategory.Render, "Avg GPU Frame Time", ProfilerMarkerDataUnit.TimeNanoseconds);
-    #endif
+
+    ProfilerCounterValue<float> m_CPUBoundCounter           = new ProfilerCounterValue<float>(ProfilerCategory.Render, "CPU Bound", ProfilerMarkerDataUnit.Percent);
+    ProfilerCounterValue<float> m_GPUBoundCounter           = new ProfilerCounterValue<float>(ProfilerCategory.Render, "GPU Bound", ProfilerMarkerDataUnit.Percent);
+    ProfilerCounterValue<float> m_PresentLimitedCounter     = new ProfilerCounterValue<float>(ProfilerCategory.Render, "Present bound", ProfilerMarkerDataUnit.Percent);
+    ProfilerCounterValue<float> m_BalancedCounter           = new ProfilerCounterValue<float>(ProfilerCategory.Render, "Balanced", ProfilerMarkerDataUnit.Percent);
+#endif
 
     public struct FrameTimeSample
     {
@@ -37,6 +42,17 @@ public class RealtimeProfilerModel : MonoBehaviour
     FrameTiming[] m_Timing = new FrameTiming[1];
 
     public int HistorySize { get; set; } = 1;
+
+    public enum PerformanceBottleneck
+    {
+        Indeterminate,      // Cannot be determined
+        PresentLimited,     // Limited by presentation (vsync or framerate cap)
+        CPU,                // Limited by CPU (main and/or render thread)
+        GPU,                // Limited by GPU
+        Balanced,           // Limited by both CPU and GPU, i.e. well balanced
+    }
+
+    public PerformanceBottleneck Bottleneck = PerformanceBottleneck.Indeterminate;
 
     void Update()
     {
@@ -56,6 +72,7 @@ public class RealtimeProfilerModel : MonoBehaviour
         Samples.Add(frameTime);
 
         ComputeAverages();
+        Bottleneck = DetermineBottleneck(AverageSample);
 
         #if RTPROFILER_DEBUG
         const float msToNs = 1e6f;
@@ -69,7 +86,11 @@ public class RealtimeProfilerModel : MonoBehaviour
         m_AvgRenderThreadCPUFrameTimeCounter.Value = AverageSample.RenderThreadCPUFrameTime * msToNs;
         m_AvgGPUFrameTimeCounter.Value             = AverageSample.GPUFrameTime * msToNs;
 
-#endif
+        m_CPUBoundCounter.Value         = Bottleneck == PerformanceBottleneck.CPU ? 100f : 0f;
+        m_GPUBoundCounter.Value         = Bottleneck == PerformanceBottleneck.GPU ? 100f : 0f;
+        m_PresentLimitedCounter.Value   = Bottleneck == PerformanceBottleneck.PresentLimited ? 100f : 0f;
+        m_BalancedCounter.Value         = Bottleneck == PerformanceBottleneck.Balanced ? 100f : 0f;
+        #endif
     }
 
     void ComputeAverages()
@@ -78,5 +99,33 @@ public class RealtimeProfilerModel : MonoBehaviour
         AverageSample.MainThreadCPUFrameTime      = Samples.Average(s => s.MainThreadCPUFrameTime);
         AverageSample.RenderThreadCPUFrameTime    = Samples.Average(s => s.RenderThreadCPUFrameTime);
         AverageSample.GPUFrameTime                = Samples.Average(s => s.GPUFrameTime);
+    }
+
+    static PerformanceBottleneck DetermineBottleneck(FrameTimeSample s)
+    {
+        if (s.GPUFrameTime == 0 || s.MainThreadCPUFrameTime == 0 || s.RenderThreadCPUFrameTime == 0)
+            return PerformanceBottleneck.Indeterminate; // Missing data
+
+        const float balancedThreshold = 0.1f;
+        float fullFrameTimeWithMargin = (1f - balancedThreshold) * s.FullFrameTime;
+
+        // GPU time is close to frame time, CPU times are not
+        if (s.GPUFrameTime              > fullFrameTimeWithMargin &&
+            s.MainThreadCPUFrameTime    < fullFrameTimeWithMargin &&
+            s.RenderThreadCPUFrameTime  < fullFrameTimeWithMargin)
+            return PerformanceBottleneck.GPU;
+        // One of the CPU times is close to frame time, GPU is not
+        if (s.GPUFrameTime              < fullFrameTimeWithMargin &&
+            (s.MainThreadCPUFrameTime   > fullFrameTimeWithMargin ||
+             s.RenderThreadCPUFrameTime  > fullFrameTimeWithMargin))
+            return PerformanceBottleneck.CPU;
+
+        // None of the times are close to frame time
+        if (s.GPUFrameTime              < fullFrameTimeWithMargin &&
+            s.MainThreadCPUFrameTime    < fullFrameTimeWithMargin &&
+            s.RenderThreadCPUFrameTime  < fullFrameTimeWithMargin)
+            return PerformanceBottleneck.PresentLimited;
+
+        return PerformanceBottleneck.Balanced;
     }
 }
