@@ -232,7 +232,11 @@ namespace UnityEngine.Rendering.HighDefinition
 
         class CASData
         {
-            public CASParameters parameters;
+            public ComputeShader casCS;
+            public int initKernel;
+            public int mainKernel;
+            public int viewCount;
+
             public TextureHandle source;
             public TextureHandle destination;
 
@@ -1832,17 +1836,33 @@ namespace UnityEngine.Rendering.HighDefinition
             {
                 using (var builder = renderGraph.AddRenderPass<CASData>("Contrast Adaptive Sharpen", out var passData, ProfilingSampler.Get(HDProfileId.ContrastAdaptiveSharpen)))
                 {
+                    passData.casCS = m_Resources.shaders.contrastAdaptiveSharpenCS;
+                    passData.initKernel = passData.casCS.FindKernel("KInitialize");
+                    passData.mainKernel = passData.casCS.FindKernel("KMain");
+                    passData.viewCount = hdCamera.viewCount;
                     passData.source = builder.ReadTexture(source);
-                    passData.parameters = PrepareContrastAdaptiveSharpeningParameters(hdCamera);
-                    TextureHandle dest = GetPostprocessOutputHandle(renderGraph, "Contrast Adaptive Sharpen Destination");
-                    passData.destination = builder.WriteTexture(dest);;
-
+                    passData.destination = builder.WriteTexture(GetPostprocessOutputHandle(renderGraph, "Contrast Adaptive Sharpen Destination"));;
                     passData.casParametersBuffer = builder.CreateTransientComputeBuffer(new ComputeBufferDesc(2, sizeof(uint) * 4) { name = "Cas Parameters" });
 
                     builder.SetRenderFunc(
                         (CASData data, RenderGraphContext ctx) =>
                         {
-                            DoContrastAdaptiveSharpening(data.parameters, ctx.cmd, data.source, data.destination, data.casParametersBuffer);
+                            RTHandle sourceRT = data.source;
+                            RTHandle destinationRT = data.destination;
+
+                            ctx.cmd.SetComputeFloatParam(data.casCS, HDShaderIDs._Sharpness, 1);
+                            ctx.cmd.SetComputeTextureParam(data.casCS, data.mainKernel, HDShaderIDs._InputTexture, sourceRT);
+                            ctx.cmd.SetComputeVectorParam(data.casCS, HDShaderIDs._InputTextureDimensions, new Vector4(sourceRT.rt.width, sourceRT.rt.height));
+                            ctx.cmd.SetComputeTextureParam(data.casCS, data.mainKernel, HDShaderIDs._OutputTexture, destinationRT);
+                            ctx.cmd.SetComputeVectorParam(data.casCS, HDShaderIDs._OutputTextureDimensions, new Vector4(destinationRT.rt.width, destinationRT.rt.height));
+                            ctx.cmd.SetComputeBufferParam(data.casCS, data.initKernel, "CasParameters", data.casParametersBuffer);
+                            ctx.cmd.SetComputeBufferParam(data.casCS, data.mainKernel, "CasParameters", data.casParametersBuffer);
+                            ctx.cmd.DispatchCompute(data.casCS, data.initKernel, 1, 1, 1);
+
+                            int dispatchX = (int)Math.Ceiling(destinationRT.rt.width / 16.0f);
+                            int dispatchY = (int)Math.Ceiling(destinationRT.rt.height / 16.0f);
+
+                            ctx.cmd.DispatchCompute(data.casCS, data.mainKernel, dispatchX, dispatchY, data.viewCount);
                         });
 
                     source = passData.destination;
