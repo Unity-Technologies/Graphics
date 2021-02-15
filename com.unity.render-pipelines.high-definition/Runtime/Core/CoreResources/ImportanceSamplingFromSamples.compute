@@ -1,0 +1,64 @@
+#pragma only_renderers d3d11 ps4 xboxone vulkan metal switch
+
+#pragma kernel CSMain
+
+#include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Common.hlsl"
+#include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Macros.hlsl"
+#include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Sampling/Sampling.hlsl"
+#include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Packing.hlsl"
+#include "Packages/com.unity.render-pipelines.high-definition/Runtime/ShaderLibrary/ShaderVariables.hlsl"
+
+TEXTURECUBE(_Cubemap);
+SAMPLER(sampler_Cubemap);
+
+Texture2D<float4>   _Samples;   // Samples generated like with ImportanceSample2D.compute
+                                // #Samples x 1 {RG: UV LatLong, B: Density [not normalized PDF]}
+RWTexture2D<float4> _Output;
+
+Texture2D<float4>   _Integral;  // Integral to normalized the Density
+
+float4               _Sizes;    // XY: SamplesSize, Z: SamplesCount
+
+#define OutputSize      _Sizes.xy
+#define SamplesCount    _Sizes.z
+
+float3 SphericalTexCoordinateToDirection(float2 sphTexCoord)
+{
+    float pi    = 3.1415926535897932384626433832795f;
+    float theta = (1.0f - sphTexCoord.x)*(2.0f*pi);
+    float phi   = (sphTexCoord.y - 0.5f)*pi;
+
+    float csTh, siTh, csPh, siPh;
+    sincos(theta, siTh, csTh);
+    sincos(phi, siPh, csPh);
+
+    // theta is 0 at negative Z (backwards). Coordinate frame is (-Z,X) meaning negative Z is primary axis and X is secondary axis.
+    return float3(siTh*csPh, siPh, -csTh*csPh);
+}
+
+[numthreads(8, 1, 1)]
+void CSMain(uint3 id : SV_DispatchThreadID)
+{
+    if (all(id.xy < (uint2)OutputSize))
+    {
+        uint2  pos      = uint2(id.x, 0);
+        float  integral = _Integral[uint2(0, 0)].r;
+        float4 input    = _Samples[pos];
+        float  density  = input.z; // PDF not normalized
+
+        float2 latLongUV    = input.xy;
+        float3 dir          = SphericalTexCoordinateToDirection(latLongUV);
+        float  sin0         = sin(latLongUV.y*PI);
+
+        float3 signal = sin0*SAMPLE_TEXTURECUBE_LOD(_Cubemap, sampler_Cubemap, dir, 0).rgb;
+
+        float  pdf     = density/integral;
+
+        if (pdf == 0.0f)
+            signal  = 0.0f;
+        else
+            signal /= pdf;
+
+        _Output[pos] = float4(signal.rgb, max(signal.r, max(signal.g, signal.b)));
+    }
+}
