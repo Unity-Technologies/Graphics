@@ -15,6 +15,7 @@ namespace UnityEngine
         public AnimationCurve radialAttenuationCurve = new AnimationCurve(new Keyframe(0.0f, 1.0f), new Keyframe(1.0f, 1.0f));
         public AnimationCurve distanceAttenuationCurve = new AnimationCurve(new Keyframe(0.0f, 1.0f), new Keyframe(10.0f, 0.0f));
         public float attenuation = 1.0f;
+        [Range(0.0f, 1.0f)]
         public float zOcclusionOffset = 0.0f;
 
         public SRPLensFlareOverride()
