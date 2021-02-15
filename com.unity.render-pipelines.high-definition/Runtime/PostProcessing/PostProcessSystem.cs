@@ -2163,29 +2163,6 @@ namespace UnityEngine.Rendering.HighDefinition
             return parameters;
         }
 
-        static void DrawCircle(Vector3 center, Vector3 right, Vector3 up, float radius, Color color, int segment)
-        {
-            //segment
-            //Debug.DrawLine();
-            float dAngle = 2.0f * Mathf.PI / ((float)segment);
-
-            float angle = 0.0f;
-            for (int i = 0; i < segment; ++i)
-            {
-                float sin0 = Mathf.Sin(angle);
-                float cos0 = Mathf.Cos(angle);
-                float sin0Next = Mathf.Sin(angle + dAngle);
-                float cos0Next = Mathf.Cos(angle + dAngle);
-
-                Vector3 x0 = new Vector3(center.x, center.y, center.z) + right * cos0 * radius + up * sin0 * radius;
-                Vector3 x1 = new Vector3(center.x, center.y, center.z) + right * cos0Next * radius + up * sin0Next * radius;
-
-                Debug.DrawLine(x0, x1, color);
-
-                angle += dAngle;
-            }
-        }
-
         static void DoLensFlareDataDriven(in LensFlareParameters parameters, HDCamera hdCam, CommandBuffer cmd, RTHandle source, RTHandle target)
         {
             cmd.CopyTexture(source, target);
@@ -2304,7 +2281,6 @@ namespace UnityEngine.Rendering.HighDefinition
                                         break;
                                     default: throw new Exception($"Unknown {typeof(SpotLightShape)}: {hdLightData.type}");
                                 }
-                                //lightAttenuationFactor = 1.0f / (4.0f * Mathf.PI * distToLight);
                                 break;
                             case HDLightType.Area:
                                 switch (hdLightData.areaLightShape)

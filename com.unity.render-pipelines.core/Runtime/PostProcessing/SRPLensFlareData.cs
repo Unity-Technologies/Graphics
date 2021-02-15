@@ -46,22 +46,55 @@ namespace UnityEngine
             isFoldOpened = true;
         }
 
+        /// <summary>
+        /// Intensity of this element
+        /// </summary>
         [Range(0.0f, 1.0f)]
         public float localIntensity;
+        /// <summary>
+        /// Relative position compare to the previous one
+        /// </summary>
         public float position;
+        /// <summary>
+        /// Texture used to for this Lens Flare Element
+        /// </summary>
         public Texture lensFlareTexture;
+        /// <summary>
+        /// Scale applied on the width of the texture
+        /// </summary>
         [Min(0.0f)]
         public float size;
+        /// <summary>
+        /// Aspect ratio (height / width)
+        /// </summary>
         [Min(0.0f)]
         public float aspectRatio;
+        /// <summary>
+        /// Local rotation of the texture
+        /// </summary>
         [Range(0, 360)]
         public float rotation;
+        /// <summary>
+        /// Tint of the texture can be modulated by the light we are attached to
+        /// </summary>
         public Color tint;
+        /// <summary>
+        /// Speed of the element on the line
+        /// </summary>
         public float speed;
+        /// <summary>
+        /// Blend mode used
+        /// </summary>
         public SRPLensFlareBlendMode blendMode;
+        /// <summary>
+        /// Rotate the texture relative to the angle on the screen (the rotation will be added to the parameter 'rotation')
+        /// </summary>
         public bool autoRotate;
+        /// <summary>
+        /// Modulate by light color if the asset is used in a 'SRP Lens Flare Source Override'
+        /// </summary>
         public bool modulateByLightColor;
-        public bool isFoldOpened;
+        internal bool isFoldOpened;
     }
 
     /// <summary>
