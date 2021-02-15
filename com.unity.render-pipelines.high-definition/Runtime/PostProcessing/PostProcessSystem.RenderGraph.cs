@@ -9,7 +9,37 @@ namespace UnityEngine.Rendering.HighDefinition
     {
         class ColorGradingPassData
         {
-            public ColorGradingParameters parameters;
+            public ComputeShader builderCS;
+            public int builderKernel;
+
+            public int lutSize;
+
+            public Vector4 colorFilter;
+            public Vector3 lmsColorBalance;
+            public Vector4 hueSatCon;
+            public Vector4 channelMixerR;
+            public Vector4 channelMixerG;
+            public Vector4 channelMixerB;
+            public Vector4 shadows;
+            public Vector4 midtones;
+            public Vector4 highlights;
+            public Vector4 shadowsHighlightsLimits;
+            public Vector4 lift;
+            public Vector4 gamma;
+            public Vector4 gain;
+            public Vector4 splitShadows;
+            public Vector4 splitHighlights;
+
+            public ColorCurves curves;
+            public HableCurve hableCurve;
+
+            public Vector4 miscParams;
+
+            public Texture externalLuT;
+            public float lutContribution;
+
+            public TonemappingMode tonemappingMode;
+
             public TextureHandle logLut;
         }
 
@@ -148,7 +178,13 @@ namespace UnityEngine.Rendering.HighDefinition
 
         class PaniniProjectionData
         {
-            public PaniniProjectionParameters parameters;
+            public ComputeShader paniniProjectionCS;
+            public int paniniProjectionKernel;
+            public Vector4 paniniParams;
+            public int width;
+            public int height;
+            public int viewCount;
+
             public TextureHandle source;
             public TextureHandle destination;
         }
@@ -1059,6 +1095,53 @@ namespace UnityEngine.Rendering.HighDefinition
             return source;
         }
 
+        Vector2 CalcViewExtents(HDCamera camera)
+        {
+            float fovY = camera.camera.fieldOfView * Mathf.Deg2Rad;
+            float aspect = (float)camera.actualWidth / (float)camera.actualHeight;
+
+            float viewExtY = Mathf.Tan(0.5f * fovY);
+            float viewExtX = aspect * viewExtY;
+
+            return new Vector2(viewExtX, viewExtY);
+        }
+
+        Vector2 CalcCropExtents(HDCamera camera, float d)
+        {
+            // given
+            //    S----------- E--X-------
+            //    |    `  ~.  /,´
+            //    |-- ---    Q
+            //    |        ,/    `
+            //  1 |      ,´/       `
+            //    |    ,´ /         ´
+            //    |  ,´  /           ´
+            //    |,`   /             ,
+            //    O    /
+            //    |   /               ,
+            //  d |  /
+            //    | /                ,
+            //    |/                .
+            //    P
+            //    |              ´
+            //    |         , ´
+            //    +-    ´
+            //
+            // have X
+            // want to find E
+
+            float viewDist = 1f + d;
+
+            var projPos = CalcViewExtents(camera);
+            var projHyp = Mathf.Sqrt(projPos.x * projPos.x + 1f);
+
+            float cylDistMinusD = 1f / projHyp;
+            float cylDist = cylDistMinusD + d;
+            var cylPos = projPos * cylDistMinusD;
+
+            return cylPos * (viewDist / cylDist);
+        }
+
         TextureHandle PaniniProjectionPass(RenderGraph renderGraph, HDCamera hdCamera, TextureHandle source)
         {
             bool isSceneView = hdCamera.camera.cameraType == CameraType.SceneView;
@@ -1066,15 +1149,44 @@ namespace UnityEngine.Rendering.HighDefinition
             {
                 using (var builder = renderGraph.AddRenderPass<PaniniProjectionData>("Panini Projection", out var passData, ProfilingSampler.Get(HDProfileId.PaniniProjection)))
                 {
+                    passData.width = hdCamera.actualWidth;
+                    passData.height = hdCamera.actualHeight;
+                    passData.viewCount = hdCamera.viewCount;
+                    passData.paniniProjectionCS = m_Resources.shaders.paniniProjectionCS;
+                    passData.paniniProjectionCS.shaderKeywords = null;
+
+                    float distance = m_PaniniProjection.distance.value;
+                    var viewExtents = CalcViewExtents(hdCamera);
+                    var cropExtents = CalcCropExtents(hdCamera, distance);
+
+                    float scaleX = cropExtents.x / viewExtents.x;
+                    float scaleY = cropExtents.y / viewExtents.y;
+                    float scaleF = Mathf.Min(scaleX, scaleY);
+
+                    float paniniD = distance;
+                    float paniniS = Mathf.Lerp(1.0f, Mathf.Clamp01(scaleF), m_PaniniProjection.cropToFit.value);
+
+                    if (1f - Mathf.Abs(paniniD) > float.Epsilon)
+                        passData.paniniProjectionCS.EnableKeyword("GENERIC");
+                    else
+                        passData.paniniProjectionCS.EnableKeyword("UNITDISTANCE");
+
+                    passData.paniniParams = new Vector4(viewExtents.x, viewExtents.y, paniniD, paniniS);
+                    passData.paniniProjectionKernel = passData.paniniProjectionCS.FindKernel("KMain");
+
                     passData.source = builder.ReadTexture(source);
-                    passData.parameters = PreparePaniniProjectionParameters(hdCamera);
-                    TextureHandle dest = GetPostprocessOutputHandle(renderGraph, "Panini Projection Destination");
-                    passData.destination = builder.WriteTexture(dest);
+                    passData.destination = builder.WriteTexture(GetPostprocessOutputHandle(renderGraph, "Panini Projection Destination"));
 
                     builder.SetRenderFunc(
                         (PaniniProjectionData data, RenderGraphContext ctx) =>
                         {
-                            DoPaniniProjection(data.parameters, ctx.cmd, data.source, data.destination);
+                            var cs = data.paniniProjectionCS;
+                            int kernel = data.paniniProjectionKernel;
+
+                            ctx.cmd.SetComputeVectorParam(cs, HDShaderIDs._Params, data.paniniParams);
+                            ctx.cmd.SetComputeTextureParam(cs, kernel, HDShaderIDs._InputTexture, data.source);
+                            ctx.cmd.SetComputeTextureParam(cs, kernel, HDShaderIDs._OutputTexture, data.destination);
+                            ctx.cmd.DispatchCompute(cs, kernel, (data.width + 7) / 8, (data.height + 7) / 8, data.viewCount);
                         });
 
                     source = passData.destination;
@@ -1121,6 +1233,183 @@ namespace UnityEngine.Rendering.HighDefinition
             return bloomTexture;
         }
 
+        #region Color Grading
+
+        void PrepareColorGradingParameters(ColorGradingPassData passData)
+        {
+            passData.tonemappingMode = m_TonemappingFS ? m_Tonemapping.mode.value : TonemappingMode.None;
+
+            passData.builderCS = m_Resources.shaders.lutBuilder3DCS;
+            passData.builderKernel = passData.builderCS.FindKernel("KBuild");
+
+            // Setup lut builder compute & grab the kernel we need
+            passData.builderCS.shaderKeywords = null;
+
+            if (m_Tonemapping.IsActive() && m_TonemappingFS)
+            {
+                switch (passData.tonemappingMode)
+                {
+                    case TonemappingMode.Neutral: passData.builderCS.EnableKeyword("TONEMAPPING_NEUTRAL"); break;
+                    case TonemappingMode.ACES: passData.builderCS.EnableKeyword("TONEMAPPING_ACES"); break;
+                    case TonemappingMode.Custom: passData.builderCS.EnableKeyword("TONEMAPPING_CUSTOM"); break;
+                    case TonemappingMode.External: passData.builderCS.EnableKeyword("TONEMAPPING_EXTERNAL"); break;
+                }
+            }
+            else
+            {
+                passData.builderCS.EnableKeyword("TONEMAPPING_NONE");
+            }
+
+            passData.lutSize = m_LutSize;
+
+            //passData.colorFilter;
+            passData.lmsColorBalance = GetColorBalanceCoeffs(m_WhiteBalance.temperature.value, m_WhiteBalance.tint.value);
+            passData.hueSatCon = new Vector4(m_ColorAdjustments.hueShift.value / 360f, m_ColorAdjustments.saturation.value / 100f + 1f, m_ColorAdjustments.contrast.value / 100f + 1f, 0f);
+            passData.channelMixerR = new Vector4(m_ChannelMixer.redOutRedIn.value / 100f, m_ChannelMixer.redOutGreenIn.value / 100f, m_ChannelMixer.redOutBlueIn.value / 100f, 0f);
+            passData.channelMixerG = new Vector4(m_ChannelMixer.greenOutRedIn.value / 100f, m_ChannelMixer.greenOutGreenIn.value / 100f, m_ChannelMixer.greenOutBlueIn.value / 100f, 0f);
+            passData.channelMixerB = new Vector4(m_ChannelMixer.blueOutRedIn.value / 100f, m_ChannelMixer.blueOutGreenIn.value / 100f, m_ChannelMixer.blueOutBlueIn.value / 100f, 0f);
+
+            ComputeShadowsMidtonesHighlights(out passData.shadows, out passData.midtones, out passData.highlights, out passData.shadowsHighlightsLimits);
+            ComputeLiftGammaGain(out passData.lift, out passData.gamma, out passData.gain);
+            ComputeSplitToning(out passData.splitShadows, out passData.splitHighlights);
+
+            // Be careful, if m_Curves is modified between preparing the render pass and executing it, result will be wrong.
+            // However this should be fine for now as all updates should happen outisde rendering.
+            passData.curves = m_Curves;
+
+            if (passData.tonemappingMode == TonemappingMode.Custom)
+            {
+                passData.hableCurve = m_HableCurve;
+                passData.hableCurve.Init(
+                    m_Tonemapping.toeStrength.value,
+                    m_Tonemapping.toeLength.value,
+                    m_Tonemapping.shoulderStrength.value,
+                    m_Tonemapping.shoulderLength.value,
+                    m_Tonemapping.shoulderAngle.value,
+                    m_Tonemapping.gamma.value
+                );
+            }
+            else if (passData.tonemappingMode == TonemappingMode.External)
+            {
+                passData.externalLuT = m_Tonemapping.lutTexture.value;
+                passData.lutContribution = m_Tonemapping.lutContribution.value;
+            }
+
+            passData.colorFilter = m_ColorAdjustments.colorFilter.value.linear;
+            passData.miscParams = new Vector4(m_ColorGradingFS ? 1f : 0f, 0f, 0f, 0f);
+        }
+
+        // Returns color balance coefficients in the LMS space
+        public static Vector3 GetColorBalanceCoeffs(float temperature, float tint)
+        {
+            // Range ~[-1.5;1.5] works best
+            float t1 = temperature / 65f;
+            float t2 = tint / 65f;
+
+            // Get the CIE xy chromaticity of the reference white point.
+            // Note: 0.31271 = x value on the D65 white point
+            float x = 0.31271f - t1 * (t1 < 0f ? 0.1f : 0.05f);
+            float y = ColorUtils.StandardIlluminantY(x) + t2 * 0.05f;
+
+            // Calculate the coefficients in the LMS space.
+            var w1 = new Vector3(0.949237f, 1.03542f, 1.08728f); // D65 white point
+            var w2 = ColorUtils.CIExyToLMS(x, y);
+            return new Vector3(w1.x / w2.x, w1.y / w2.y, w1.z / w2.z);
+        }
+
+        void ComputeShadowsMidtonesHighlights(out Vector4 shadows, out Vector4 midtones, out Vector4 highlights, out Vector4 limits)
+        {
+            float weight;
+
+            shadows = m_ShadowsMidtonesHighlights.shadows.value;
+            shadows.x = Mathf.GammaToLinearSpace(shadows.x);
+            shadows.y = Mathf.GammaToLinearSpace(shadows.y);
+            shadows.z = Mathf.GammaToLinearSpace(shadows.z);
+            weight = shadows.w * (Mathf.Sign(shadows.w) < 0f ? 1f : 4f);
+            shadows.x = Mathf.Max(shadows.x + weight, 0f);
+            shadows.y = Mathf.Max(shadows.y + weight, 0f);
+            shadows.z = Mathf.Max(shadows.z + weight, 0f);
+            shadows.w = 0f;
+
+            midtones = m_ShadowsMidtonesHighlights.midtones.value;
+            midtones.x = Mathf.GammaToLinearSpace(midtones.x);
+            midtones.y = Mathf.GammaToLinearSpace(midtones.y);
+            midtones.z = Mathf.GammaToLinearSpace(midtones.z);
+            weight = midtones.w * (Mathf.Sign(midtones.w) < 0f ? 1f : 4f);
+            midtones.x = Mathf.Max(midtones.x + weight, 0f);
+            midtones.y = Mathf.Max(midtones.y + weight, 0f);
+            midtones.z = Mathf.Max(midtones.z + weight, 0f);
+            midtones.w = 0f;
+
+            highlights = m_ShadowsMidtonesHighlights.highlights.value;
+            highlights.x = Mathf.GammaToLinearSpace(highlights.x);
+            highlights.y = Mathf.GammaToLinearSpace(highlights.y);
+            highlights.z = Mathf.GammaToLinearSpace(highlights.z);
+            weight = highlights.w * (Mathf.Sign(highlights.w) < 0f ? 1f : 4f);
+            highlights.x = Mathf.Max(highlights.x + weight, 0f);
+            highlights.y = Mathf.Max(highlights.y + weight, 0f);
+            highlights.z = Mathf.Max(highlights.z + weight, 0f);
+            highlights.w = 0f;
+
+            limits = new Vector4(
+                m_ShadowsMidtonesHighlights.shadowsStart.value,
+                m_ShadowsMidtonesHighlights.shadowsEnd.value,
+                m_ShadowsMidtonesHighlights.highlightsStart.value,
+                m_ShadowsMidtonesHighlights.highlightsEnd.value
+            );
+        }
+
+        void ComputeLiftGammaGain(out Vector4 lift, out Vector4 gamma, out Vector4 gain)
+        {
+            lift = m_LiftGammaGain.lift.value;
+            lift.x = Mathf.GammaToLinearSpace(lift.x) * 0.15f;
+            lift.y = Mathf.GammaToLinearSpace(lift.y) * 0.15f;
+            lift.z = Mathf.GammaToLinearSpace(lift.z) * 0.15f;
+
+            float lumLift = ColorUtils.Luminance(lift);
+            lift.x = lift.x - lumLift + lift.w;
+            lift.y = lift.y - lumLift + lift.w;
+            lift.z = lift.z - lumLift + lift.w;
+            lift.w = 0f;
+
+            gamma = m_LiftGammaGain.gamma.value;
+            gamma.x = Mathf.GammaToLinearSpace(gamma.x) * 0.8f;
+            gamma.y = Mathf.GammaToLinearSpace(gamma.y) * 0.8f;
+            gamma.z = Mathf.GammaToLinearSpace(gamma.z) * 0.8f;
+
+            float lumGamma = ColorUtils.Luminance(gamma);
+            gamma.w += 1f;
+            gamma.x = 1f / Mathf.Max(gamma.x - lumGamma + gamma.w, 1e-03f);
+            gamma.y = 1f / Mathf.Max(gamma.y - lumGamma + gamma.w, 1e-03f);
+            gamma.z = 1f / Mathf.Max(gamma.z - lumGamma + gamma.w, 1e-03f);
+            gamma.w = 0f;
+
+            gain = m_LiftGammaGain.gain.value;
+            gain.x = Mathf.GammaToLinearSpace(gain.x) * 0.8f;
+            gain.y = Mathf.GammaToLinearSpace(gain.y) * 0.8f;
+            gain.z = Mathf.GammaToLinearSpace(gain.z) * 0.8f;
+
+            float lumGain = ColorUtils.Luminance(gain);
+            gain.w += 1f;
+            gain.x = gain.x - lumGain + gain.w;
+            gain.y = gain.y - lumGain + gain.w;
+            gain.z = gain.z - lumGain + gain.w;
+            gain.w = 0f;
+        }
+
+        void ComputeSplitToning(out Vector4 shadows, out Vector4 highlights)
+        {
+            // As counter-intuitive as it is, to make split-toning work the same way it does in
+            // Adobe products we have to do all the maths in sRGB... So do not convert these to
+            // linear before sending them to the shader, this isn't a bug!
+            shadows = m_SplitToning.shadows.value;
+            highlights = m_SplitToning.highlights.value;
+
+            // Balance is stored in `shadows.w`
+            shadows.w = m_SplitToning.balance.value / 100f;
+            highlights.w = 0f;
+        }
+
         TextureHandle ColorGradingPass(RenderGraph renderGraph, HDCamera hdCamera)
         {
             TextureHandle logLutOutput;
@@ -1140,19 +1429,87 @@ namespace UnityEngine.Rendering.HighDefinition
                     enableRandomWrite = true
                 });
 
-                passData.parameters = PrepareColorGradingParameters();
+                PrepareColorGradingParameters(passData);
                 passData.logLut = builder.WriteTexture(logLut);
                 logLutOutput = passData.logLut;
 
                 builder.SetRenderFunc(
                     (ColorGradingPassData data, RenderGraphContext ctx) =>
                     {
-                        DoColorGrading(data.parameters, data.logLut, ctx.cmd);
+                        var builderCS = data.builderCS;
+                        var builderKernel = data.builderKernel;
+
+                        // Fill-in constant buffers & textures.
+                        // TODO: replace with a real constant buffers
+                        ctx.cmd.SetComputeTextureParam(builderCS, builderKernel, HDShaderIDs._OutputTexture, data.logLut);
+                        ctx.cmd.SetComputeVectorParam(builderCS, HDShaderIDs._Size, new Vector4(data.lutSize, 1f / (data.lutSize - 1f), 0f, 0f));
+                        ctx.cmd.SetComputeVectorParam(builderCS, HDShaderIDs._ColorBalance, data.lmsColorBalance);
+                        ctx.cmd.SetComputeVectorParam(builderCS, HDShaderIDs._ColorFilter, data.colorFilter);
+                        ctx.cmd.SetComputeVectorParam(builderCS, HDShaderIDs._ChannelMixerRed, data.channelMixerR);
+                        ctx.cmd.SetComputeVectorParam(builderCS, HDShaderIDs._ChannelMixerGreen, data.channelMixerG);
+                        ctx.cmd.SetComputeVectorParam(builderCS, HDShaderIDs._ChannelMixerBlue, data.channelMixerB);
+                        ctx.cmd.SetComputeVectorParam(builderCS, HDShaderIDs._HueSatCon, data.hueSatCon);
+                        ctx.cmd.SetComputeVectorParam(builderCS, HDShaderIDs._Lift, data.lift);
+                        ctx.cmd.SetComputeVectorParam(builderCS, HDShaderIDs._Gamma, data.gamma);
+                        ctx.cmd.SetComputeVectorParam(builderCS, HDShaderIDs._Gain, data.gain);
+                        ctx.cmd.SetComputeVectorParam(builderCS, HDShaderIDs._Shadows, data.shadows);
+                        ctx.cmd.SetComputeVectorParam(builderCS, HDShaderIDs._Midtones, data.midtones);
+                        ctx.cmd.SetComputeVectorParam(builderCS, HDShaderIDs._Highlights, data.highlights);
+                        ctx.cmd.SetComputeVectorParam(builderCS, HDShaderIDs._ShaHiLimits, data.shadowsHighlightsLimits);
+                        ctx.cmd.SetComputeVectorParam(builderCS, HDShaderIDs._SplitShadows, data.splitShadows);
+                        ctx.cmd.SetComputeVectorParam(builderCS, HDShaderIDs._SplitHighlights, data.splitHighlights);
+
+                        // YRGB
+                        ctx.cmd.SetComputeTextureParam(builderCS, builderKernel, HDShaderIDs._CurveMaster, data.curves.master.value.GetTexture());
+                        ctx.cmd.SetComputeTextureParam(builderCS, builderKernel, HDShaderIDs._CurveRed, data.curves.red.value.GetTexture());
+                        ctx.cmd.SetComputeTextureParam(builderCS, builderKernel, HDShaderIDs._CurveGreen, data.curves.green.value.GetTexture());
+                        ctx.cmd.SetComputeTextureParam(builderCS, builderKernel, HDShaderIDs._CurveBlue, data.curves.blue.value.GetTexture());
+
+                        // Secondary curves
+                        ctx.cmd.SetComputeTextureParam(builderCS, builderKernel, HDShaderIDs._CurveHueVsHue, data.curves.hueVsHue.value.GetTexture());
+                        ctx.cmd.SetComputeTextureParam(builderCS, builderKernel, HDShaderIDs._CurveHueVsSat, data.curves.hueVsSat.value.GetTexture());
+                        ctx.cmd.SetComputeTextureParam(builderCS, builderKernel, HDShaderIDs._CurveLumVsSat, data.curves.lumVsSat.value.GetTexture());
+                        ctx.cmd.SetComputeTextureParam(builderCS, builderKernel, HDShaderIDs._CurveSatVsSat, data.curves.satVsSat.value.GetTexture());
+
+                        // Artist-driven tonemap curve
+                        if (data.tonemappingMode == TonemappingMode.Custom)
+                        {
+                            ctx.cmd.SetComputeVectorParam(builderCS, HDShaderIDs._CustomToneCurve, data.hableCurve.uniforms.curve);
+                            ctx.cmd.SetComputeVectorParam(builderCS, HDShaderIDs._ToeSegmentA, data.hableCurve.uniforms.toeSegmentA);
+                            ctx.cmd.SetComputeVectorParam(builderCS, HDShaderIDs._ToeSegmentB, data.hableCurve.uniforms.toeSegmentB);
+                            ctx.cmd.SetComputeVectorParam(builderCS, HDShaderIDs._MidSegmentA, data.hableCurve.uniforms.midSegmentA);
+                            ctx.cmd.SetComputeVectorParam(builderCS, HDShaderIDs._MidSegmentB, data.hableCurve.uniforms.midSegmentB);
+                            ctx.cmd.SetComputeVectorParam(builderCS, HDShaderIDs._ShoSegmentA, data.hableCurve.uniforms.shoSegmentA);
+                            ctx.cmd.SetComputeVectorParam(builderCS, HDShaderIDs._ShoSegmentB, data.hableCurve.uniforms.shoSegmentB);
+                        }
+                        else if (data.tonemappingMode == TonemappingMode.External)
+                        {
+                            ctx.cmd.SetComputeTextureParam(builderCS, builderKernel, HDShaderIDs._LogLut3D, data.externalLuT);
+                            ctx.cmd.SetComputeVectorParam(builderCS, HDShaderIDs._LogLut3D_Params, new Vector4(1f / data.lutSize, data.lutSize - 1f, data.lutContribution, 0f));
+                        }
+
+                        // Misc parameters
+                        ctx.cmd.SetComputeVectorParam(builderCS, HDShaderIDs._Params, data.miscParams);
+
+                        // Generate the lut
+                        // See the note about Metal & Intel in LutBuilder3D.compute
+                        // GetKernelThreadGroupSizes  is currently broken on some binary versions.
+                        //builderCS.GetKernelThreadGroupSizes(builderKernel, out uint threadX, out uint threadY, out uint threadZ);
+                        uint threadX = 4;
+                        uint threadY = 4;
+                        uint threadZ = 4;
+                        ctx.cmd.DispatchCompute(builderCS, builderKernel,
+                            (int)((data.lutSize + threadX - 1u) / threadX),
+                            (int)((data.lutSize + threadY - 1u) / threadY),
+                            (int)((data.lutSize + threadZ - 1u) / threadZ)
+                        );
                     });
             }
 
             return logLutOutput;
         }
+
+        #endregion
 
         TextureHandle UberPass(RenderGraph renderGraph, HDCamera hdCamera, TextureHandle logLut, TextureHandle bloomTexture, TextureHandle source)
         {
