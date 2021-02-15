@@ -51,8 +51,10 @@
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Builtin/BuiltinData.hlsl"
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Lighting/ScreenSpaceLighting/BilateralUpsample.hlsl"
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/Raytracing/Shaders/RayTracingCommon.hlsl"
-#include "Packages/com.unity.render-pipelines.high-definition/Runtime/Lighting/VolumetricLighting/VolumetricCloudsUtilities.hlsl"
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Lighting/AtmosphericScattering/AtmosphericScattering.hlsl"
+
+#define REAL_TIME_VOLUMETRIC_CLOUDS
+#include "Packages/com.unity.render-pipelines.high-definition/Runtime/Lighting/VolumetricLighting/VolumetricCloudsUtilities.hlsl"
 
 // Input textures
 TEXTURE2D_X(_HalfResDepthBuffer);
@@ -710,35 +712,7 @@ void RenderClouds(uint3 traceCoord : SV_DispatchThreadID, uint2 groupThreadId : 
     _CloudsDepthTextureRW[COORD_TEXTURE2D_X(traceCoord.xy)] = cloudMinDepth;
 }
 
-// Our dispatch is a 8x8 tile. We access 3x3 values at dispatch's half resolution around the center pixel which represents a total of 36 uniques values for the tile.
-groupshared float gs_cacheR[36];
-groupshared float gs_cacheG[36];
-groupshared float gs_cacheB[36];
-groupshared float gs_cacheA[36];
-groupshared float gs_cacheDP[36];
-groupshared float gs_cacheDC[36];
-groupshared float gs_cachePS[36];
-
-struct CloudResult
-{
-    float4 cloudLighting;
-    float pixelDepth;
-    float cloudDepth;
-};
-
-CloudResult GetLDSSample(uint index)
-{
-    CloudResult outVal;
-    outVal.cloudLighting.r = gs_cacheR[index];
-    outVal.cloudLighting.g = gs_cacheG[index];
-    outVal.cloudLighting.b = gs_cacheB[index];
-    outVal.cloudLighting.a = gs_cacheA[index];
-    outVal.pixelDepth = gs_cacheDP[index];
-    outVal.cloudDepth = gs_cacheDC[index];
-    return outVal;
-}
-
-void FillLDS(uint groupIndex, uint2 groupOrigin)
+void FillCloudReprojectionLDS(uint groupIndex, uint2 groupOrigin)
 {
     // Define which value we will be acessing with this worker thread
     int acessCoordX = groupIndex % 6;
@@ -785,27 +759,14 @@ void ReprojectClouds(uint3 dispatchThreadId : SV_DispatchThreadID,
     if (groupIndex < 36)
     {
         // Load 1 value per thread
-        FillLDS(groupIndex, groupId * 8);
+        FillCloudReprojectionLDS(groupIndex, groupId * 8);
     }
 
     // Make sure all values are loaded in LDS by now.
     GroupMemoryBarrierWithGroupSync();
 
-    // Read the region we will be using from the LDS
-    CloudResult pixelRegion[9];
-    for (int yIdx = -1; yIdx <= 1; ++yIdx)
-    {
-        for (int xIdx = -1; xIdx <= 1; ++xIdx)
-        {
-            // Compute the tap coordinate in the 6x6 grid
-            int2 tapAddress = (int2)(groupThreadId / 2 + 1) + int2(xIdx, yIdx);
-            uint ldsTapAddress = (uint)(tapAddress.x) % 6 + tapAddress.y * 6;
-            pixelRegion[(xIdx + 1.0) + (yIdx + 1.0) * 3] = GetLDSSample(ldsTapAddress);
-        }
-    }
-
     // Average the depth of the cloud
-    float currentCloudDepth = pixelRegion[CENTER].cloudDepth;
+    float currentCloudDepth = GetCloudDepth_LDS(groupThreadId, int2(0, 0));
 
     // Compute the motionVector of the clouds
     float2 motionVector = EvaluateCloudMotionVectors(fullResCoord, currentCloudDepth, 1.0);
@@ -857,10 +818,13 @@ void ReprojectClouds(uint3 dispatchThreadId : SV_DispatchThreadID,
     {
         // We need to validate that within the 3x3 trace region, at least one of the pixels is not a background pixel (incluing the clouds)
         float cloudNeighborhood = 0.0f;
-        for(int i = 0; i < 9; ++i)
+        for (int y = -1; y <= 1; ++y)
         {
-            if(pixelRegion[i].cloudDepth != 0.0)
-                cloudNeighborhood += 1.0f;
+            for (int x = -1; x <= 1; ++x)
+            {
+                if (GetCloudDepth_LDS(groupThreadId, int2(x, y)) != 0.0f)
+                    cloudNeighborhood += 1.0f;
+            }
         }
 
         // If the target coordinate is out of the screen, we cannot use the history
@@ -875,7 +839,7 @@ void ReprojectClouds(uint3 dispatchThreadId : SV_DispatchThreadID,
         }
 
         // Accumulate the result with the previous frame
-        previousResult = accumulationFactor * previousResult + (1.0 - accumulationFactor) * pixelRegion[CENTER].cloudLighting;
+        previousResult = accumulationFactor * previousResult + (1.0 - accumulationFactor) * GetCloudLighting_LDS(groupThreadId, int2(0, 0));
         previousSampleCount = sampleCount;
         previousDepth = currentDepth;
         previousCloudDepth = currentCloudDepth;
@@ -889,20 +853,14 @@ void ReprojectClouds(uint3 dispatchThreadId : SV_DispatchThreadID,
         // is too different from the one of the current pixel, we cannot use the history
         if (!validHistory)
         {
-            float4 neighborhood[9];
-            float lowD[9];
-            float lowM[9];
-            for(int i = 0; i < 9; ++i)
-            {
-                neighborhood[i] = pixelRegion[i].cloudLighting;
-                lowD[i] = pixelRegion[i].pixelDepth;
-                lowM[i] = 1.0f;
-            }
+            // Structure that will hold everything 
+            NeighborhoodUpsampleData3x3 upsampleData;
+            FillCloudReprojectionNeighborhoodData(groupThreadId, upsampleData);
 
             // Make sure that at least one of the pixels in the neighborhood can be used
             float rejectNeighborhood = 0.0f;
-            int closestNeighbor = CENTER;
-            OverrideMaskValues(currentDepth, lowD, lowM, rejectNeighborhood, closestNeighbor);
+            int closestNeighbor = 4;
+            OverrideMaskValues(currentDepth, upsampleData, rejectNeighborhood, closestNeighbor);
 
             // 1.0  if we were able to produce a value 0.0 if we failed to
             previousSampleCount = 1.0f - rejectNeighborhood;
@@ -917,9 +875,9 @@ void ReprojectClouds(uint3 dispatchThreadId : SV_DispatchThreadID,
             {
                 // We don't have any history for this pixel, but there is at least one neighbor that can be used in the current frame tracing
                 previousSampleCount = 1.0f;
-                previousResult = BilUpColor3x3(currentDepth, lowD, neighborhood, lowM);
+                previousResult = BilUpColor3x3(currentDepth, upsampleData);
             }
-            previousCloudDepth = pixelRegion[closestNeighbor].cloudDepth;
+            previousCloudDepth = GetCloudDepth_LDS(groupThreadId, IndexToLocalOffsetCoords[closestNeighbor]);
         }
         previousDepth = currentDepth;
     }
@@ -973,27 +931,6 @@ void FillLDSUpscale(uint groupIndex, uint2 groupOrigin)
     gs_cacheDC[groupIndex] = depthStatusValue.z;
 }
 
-struct UpscaleData
-{
-    float4 cloudLighting;
-    float pixelDepth;
-    float pixelStatus;
-    float cloudDepth;
-};
-
-UpscaleData GetLDSUpscaleSample(uint index)
-{
-    UpscaleData outVal;
-    outVal.cloudLighting.r = gs_cacheR[index];
-    outVal.cloudLighting.g = gs_cacheG[index];
-    outVal.cloudLighting.b = gs_cacheB[index];
-    outVal.cloudLighting.a = gs_cacheA[index];
-    outVal.pixelDepth = gs_cacheDP[index];
-    outVal.pixelStatus = gs_cachePS[index];
-    outVal.cloudDepth = gs_cacheDC[index];
-    return outVal;
-}
-
 [numthreads(8, 8, 1)]
 void UpscaleAndCombineClouds(uint3 finalCoord : SV_DispatchThreadID,
                             int groupIndex : SV_GroupIndex,
@@ -1016,68 +953,25 @@ void UpscaleAndCombineClouds(uint3 finalCoord : SV_DispatchThreadID,
     if (any(finalCoord.xy > uint2(_ScreenSize.xy)))
         return;
 
-    // Read the region we will be using from the LDS
-    UpscaleData pixelRegion[9];
-    for (int yIdx = -1; yIdx <= 1; ++yIdx)
-    {
-        for (int xIdx = -1; xIdx <= 1; ++xIdx)
-        {
-            // Compute the tap coordinate in the 6x6 grid
-            int2 tapAddress = (int2)(groupThreadId / 2 + 1) + int2(xIdx, yIdx);
-            uint ldsTapAddress = (uint)(tapAddress.x) % 6 + tapAddress.y * 6;
-            pixelRegion[(xIdx + 1.0) + (yIdx + 1.0) * 3] = GetLDSUpscaleSample(ldsTapAddress);
-        }
-    }
+    // Structure that will hold everything 
+    NeighborhoodUpsampleData3x3 upsampleData;
 
     // Grab the depth value of the pixel
-    float depthValue = LOAD_TEXTURE2D_X(_DepthTexture, finalCoord.xy).x;
+    float highDepth = LOAD_TEXTURE2D_X(_DepthTexture, finalCoord.xy).x;
 
     // Read the color buffer
     float4 currentColor = _CameraColorTextureRW[COORD_TEXTURE2D_X(finalCoord.xy)];
 
-    // Read the cloud lighting data for every pixel (half res)
-    float4 lowC[9];
-    lowC[0] = pixelRegion[CENTER].cloudLighting;
-    lowC[1] = pixelRegion[PLUS_0].cloudLighting;
-    lowC[2] = pixelRegion[PLUS_1].cloudLighting;
-    lowC[3] = pixelRegion[PLUS_2].cloudLighting;
-    lowC[4] = pixelRegion[PLUS_3].cloudLighting;
-    lowC[5] = pixelRegion[CROSS_0].cloudLighting;
-    lowC[6] = pixelRegion[CROSS_1].cloudLighting;
-    lowC[7] = pixelRegion[CROSS_2].cloudLighting;
-    lowC[8] = pixelRegion[CROSS_3].cloudLighting;
-
-    // Read the pixel depths for every pixel (half res)
-    float lowD[9];
-    lowD[0] = pixelRegion[CENTER].pixelDepth;
-    lowD[1] = pixelRegion[PLUS_0].pixelDepth;
-    lowD[2] = pixelRegion[PLUS_1].pixelDepth;
-    lowD[3] = pixelRegion[PLUS_2].pixelDepth;
-    lowD[4] = pixelRegion[PLUS_3].pixelDepth;
-    lowD[5] = pixelRegion[CROSS_0].pixelDepth;
-    lowD[6] = pixelRegion[CROSS_1].pixelDepth;
-    lowD[7] = pixelRegion[CROSS_2].pixelDepth;
-    lowD[8] = pixelRegion[CROSS_3].pixelDepth;
-
-    // This flag allows us to track if one of the pixels is a background pixel
-    float lowM[9];
-    lowM[0] = pixelRegion[CENTER].pixelStatus;
-    lowM[1] = pixelRegion[PLUS_0].pixelStatus;
-    lowM[2] = pixelRegion[PLUS_1].pixelStatus;
-    lowM[3] = pixelRegion[PLUS_2].pixelStatus;
-    lowM[4] = pixelRegion[PLUS_3].pixelStatus;
-    lowM[5] = pixelRegion[CROSS_0].pixelStatus;
-    lowM[6] = pixelRegion[CROSS_1].pixelStatus;
-    lowM[7] = pixelRegion[CROSS_2].pixelStatus;
-    lowM[8] = pixelRegion[CROSS_3].pixelStatus;
+    // Fill the sample data
+    FillCloudUpscaleNeighborhoodData(groupThreadId.xy, upsampleData);
 
     // Flag that tells us which pixel holds valid information
     float rejectedNeighborhood = 0.0;
-    int closestNeighbor = CENTER;
-    OverrideMaskValues(depthValue, lowD, lowM, rejectedNeighborhood, closestNeighbor);
+    int closestNeighbor = 4;
+    OverrideMaskValues(highDepth, upsampleData, rejectedNeighborhood, closestNeighbor);
 
     // Do the bilateral upscale
-    float4 currentClouds = BilUpColor3x3(depthValue, lowD, lowC, lowM);
+    float4 currentClouds = BilUpColor3x3(highDepth, upsampleData);
 
     // Read the fallback value and use it if we defined that it was impossible for us to do something about it
     if (rejectedNeighborhood == 1.0f)
@@ -1088,7 +982,7 @@ void UpscaleAndCombineClouds(uint3 finalCoord : SV_DispatchThreadID,
     currentClouds.w = saturate(currentClouds.w);
 
     // Compute the pos input of the cloud position
-    PositionInputs cloudPosInput = GetPositionInput(finalCoord.xy, _FinalScreenSize.zw, pixelRegion[closestNeighbor].cloudDepth, UNITY_MATRIX_I_VP, GetWorldToViewMatrix(), 0);
+    PositionInputs cloudPosInput = GetPositionInput(finalCoord.xy, _FinalScreenSize.zw, GetCloudDepth_LDS(groupThreadId, IndexToLocalOffsetCoords[closestNeighbor]), UNITY_MATRIX_I_VP, GetWorldToViewMatrix(), 0);
 
     // Compute the view direction
     float3 viewDir = -normalize(cloudPosInput.positionWS);

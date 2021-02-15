@@ -111,6 +111,9 @@ float EvaluatePerlinFractalBrownianMotion(float3 position, float initialFrequenc
     return result;
 }
 
+// Real-time only code
+#ifdef REAL_TIME_VOLUMETRIC_CLOUDS
+
 float HenyeyGreenstein(float cosAngle, float g)
 {
     // There is a mistake in the GPU Gem7 Paper, the result should be divided by 1/(4.PI)
@@ -132,24 +135,24 @@ int RaySphereIntersection(float3 start, float3 dir, float radius, out float2 res
     float c = dot(start, start) - (radius * radius);
     float d = (b*b) - 4.0*a*c;
     result = 0.0;
-    if (d < 0.0)
-        return 0;
-
-    // Compute the values required for the solution eval
-    float sqrtD = sqrt(d);
-    float rcp2a = 1.0 / (2.0 * a);
-    result = float2((-b - sqrtD) * rcp2a, (-b + sqrtD) * rcp2a);
-
-    // Remove the solutions we do not want
-    int numSolutions = 2;
-    if (result.x < 0.0)
+    int numSolutions = 0;
+    if (d >= 0.0)
     {
-        numSolutions--;
-        result.x = result.y;
-    }
-    if (result.y < 0.0)
-        numSolutions--;
+        // Compute the values required for the solution eval
+        float sqrtD = sqrt(d);
+        float rcp2a = 1.0 / (2.0 * a);
+        result = float2((-b - sqrtD) * rcp2a, (-b + sqrtD) * rcp2a);
 
+        // Remove the solutions we do not want
+        numSolutions = 2;
+        if (result.x < 0.0)
+        {
+            numSolutions--;
+            result.x = result.y;
+        }
+        if (result.y < 0.0)
+            numSolutions--;
+    }
     // Return the number of solutions
     return numSolutions;
 }
@@ -161,26 +164,30 @@ bool RaySphereIntersection(float3 start, float3 dir, float radius)
     float c = dot(start, start) - (radius * radius);
     float d = (b*b) - 4.0*a*c;
 
-    if (d < 0.0)
-        return false;
-
-    // Compute the values required for the solution eval
-    float sqrtD = sqrt(d);
-    float rcp2a = 1.0 / (2.0 * a);
-    float2 result = float2((-b - sqrtD) * rcp2a, (-b + sqrtD) * rcp2a);
-    return result.x > 0.0 || result.y > 0.0;
+    bool flag = false;
+    if (d >= 0.0)
+    {
+        // Compute the values required for the solution eval
+        float sqrtD = sqrt(d);
+        float rcp2a = 1.0 / (2.0 * a);
+        float2 result = float2((-b - sqrtD) * rcp2a, (-b + sqrtD) * rcp2a);
+        flag = result.x > 0.0 || result.y > 0.0;
+    }
+    return flag;
 }
 
 bool IntersectPlane(float3 ray_origin, float3 ray_dir, float3 pos, float3 normal, out float t)
 {
     float denom = dot(normal, ray_dir);
+    bool flag = false;
+    t = -1.0f;
     if (abs(denom) > 1e-6)
     {
         float3 d = pos - ray_origin;
         t = dot(d, normal) / denom;
-        return (t >= 0);
+        flag = (t >= 0);
     }
-    return false;
+    return flag;
 }
 
 float ConvertCloudDepth(float3 position)
@@ -218,17 +225,180 @@ int ComputeCheckerBoardIndex(int2 traceCoord, int subPixelIndex)
     return checkerBoardLocation;
 }
 
-#define CENTER 4
-#define CENTER_WEIGHT 0.622269
-#define PLUS_0 1
-#define PLUS_1 3
-#define PLUS_2 5
-#define PLUS_3 7
-#define PLUS_WEIGHT 0.083286
-#define CROSS_0 0
-#define CROSS_1 2
-#define CROSS_2 6
-#define CROSS_3 8
-#define CROSS_WEIGHT 0.011147
+// Our dispatch is a 8x8 tile. We can access up to 3x3 values at dispatch's half resolution
+// around the center pixel which represents a total of 36 uniques values for the tile.
+groupshared float gs_cacheR[36];
+groupshared float gs_cacheG[36];
+groupshared float gs_cacheB[36];
+groupshared float gs_cacheA[36];
+groupshared float gs_cacheDP[36];
+groupshared float gs_cacheDC[36];
+groupshared float gs_cachePS[36];
+
+uint OffsetToLDSAdress(uint2 groupThreadId, int2 offset)
+{
+    // Compute the tap coordinate in the 6x6 grid
+    uint2 tapAddress = (uint2)((int2)(groupThreadId / 2 + 1) + offset);
+    return (uint)(tapAddress.x) % 6 + tapAddress.y * 6;
+}
+
+float GetCloudDepth_LDS(uint2 groupThreadId, int2 offset)
+{
+    return gs_cacheDC[OffsetToLDSAdress(groupThreadId, offset)];
+}
+
+float4 GetCloudLighting_LDS(uint2 groupThreadId, int2 offset)
+{
+    uint ldsTapAddress = OffsetToLDSAdress(groupThreadId, offset);
+    return float4(gs_cacheR[ldsTapAddress], gs_cacheG[ldsTapAddress], gs_cacheB[ldsTapAddress], gs_cacheA[ldsTapAddress]);
+}
+
+struct CloudReprojectionData
+{
+    float4 cloudLighting;
+    float pixelDepth;
+    float cloudDepth;
+};
+
+CloudReprojectionData GetCloudReprojectionDataSample(uint index)
+{
+    CloudReprojectionData outVal;
+    outVal.cloudLighting.r = gs_cacheR[index];
+    outVal.cloudLighting.g = gs_cacheG[index];
+    outVal.cloudLighting.b = gs_cacheB[index];
+    outVal.cloudLighting.a = gs_cacheA[index];
+    outVal.pixelDepth = gs_cacheDP[index];
+    outVal.cloudDepth = gs_cacheDC[index];
+    return outVal;
+}
+
+CloudReprojectionData GetCloudReprojectionDataSample(uint2 groupThreadId, int2 offset)
+{
+    return GetCloudReprojectionDataSample(OffsetToLDSAdress(groupThreadId, offset));
+}
+
+// Function that fills the struct as we cannot use arrays
+void FillCloudReprojectionNeighborhoodData(int2 groupThreadId, out NeighborhoodUpsampleData3x3 neighborhoodData)
+{
+    // Fill the sample data
+    CloudReprojectionData data = GetCloudReprojectionDataSample(groupThreadId, int2(-1, -1));
+    neighborhoodData.lowValue0 = data.cloudLighting;
+    neighborhoodData.lowDepthA.x = data.pixelDepth;
+
+    data = GetCloudReprojectionDataSample(groupThreadId, int2(0, -1));
+    neighborhoodData.lowValue1 = data.cloudLighting;
+    neighborhoodData.lowDepthA.y = data.pixelDepth;
+
+    data = GetCloudReprojectionDataSample(groupThreadId, int2(1, -1));
+    neighborhoodData.lowValue2 = data.cloudLighting;
+    neighborhoodData.lowDepthA.z = data.pixelDepth;
+
+    data = GetCloudReprojectionDataSample(groupThreadId, int2(-1, 0));
+    neighborhoodData.lowValue3 = data.cloudLighting;
+    neighborhoodData.lowDepthA.w = data.pixelDepth;
+
+    data = GetCloudReprojectionDataSample(groupThreadId, int2(0, 0));
+    neighborhoodData.lowValue4 = data.cloudLighting;
+    neighborhoodData.lowDepthB.x = data.pixelDepth;
+
+    data = GetCloudReprojectionDataSample(groupThreadId, int2(1, 0));
+    neighborhoodData.lowValue5 = data.cloudLighting;
+    neighborhoodData.lowDepthB.y = data.pixelDepth;
+
+    data = GetCloudReprojectionDataSample(groupThreadId, int2(-1, 1));
+    neighborhoodData.lowValue6 = data.cloudLighting;
+    neighborhoodData.lowDepthB.z = data.pixelDepth;
+
+    data = GetCloudReprojectionDataSample(groupThreadId, int2(0, 1));
+    neighborhoodData.lowValue7 = data.cloudLighting;
+    neighborhoodData.lowDepthB.w = data.pixelDepth;
+
+    data = GetCloudReprojectionDataSample(groupThreadId, int2(1, 1));
+    neighborhoodData.lowValue8 = data.cloudLighting;
+    neighborhoodData.lowDepthC = data.pixelDepth;
+
+    // In the reprojection case, all masks are valid
+    neighborhoodData.lowMasksA = 1.0f;
+    neighborhoodData.lowMasksB = 1.0f;
+    neighborhoodData.lowMasksC = 1.0f;
+}
+
+struct CloudUpscaleData
+{
+    float4 cloudLighting;
+    float pixelDepth;
+    float pixelStatus;
+    float cloudDepth;
+};
+
+CloudUpscaleData GetCloudUpscaleDataSample(uint index)
+{
+    CloudUpscaleData outVal;
+    outVal.cloudLighting.r = gs_cacheR[index];
+    outVal.cloudLighting.g = gs_cacheG[index];
+    outVal.cloudLighting.b = gs_cacheB[index];
+    outVal.cloudLighting.a = gs_cacheA[index];
+    outVal.pixelDepth = gs_cacheDP[index];
+    outVal.pixelStatus = gs_cachePS[index];
+    outVal.cloudDepth = gs_cacheDC[index];
+    return outVal;
+}
+
+CloudUpscaleData GetCloudUpscaleDataSample(uint2 groupThreadId, int2 offset)
+{
+    return GetCloudUpscaleDataSample(OffsetToLDSAdress(groupThreadId, offset));
+}
+
+// Function that fills the struct as we cannot use arrays
+void FillCloudUpscaleNeighborhoodData(int2 groupThreadId, out NeighborhoodUpsampleData3x3 neighborhoodData)
+{
+    // Fill the sample data
+    CloudUpscaleData data = GetCloudUpscaleDataSample(groupThreadId, int2(-1, -1));
+    neighborhoodData.lowValue0 = data.cloudLighting;
+    neighborhoodData.lowDepthA.x = data.pixelDepth;
+    neighborhoodData.lowMasksA.x = data.pixelStatus;
+
+    data = GetCloudUpscaleDataSample(groupThreadId, int2(0, -1));
+    neighborhoodData.lowValue1 = data.cloudLighting;
+    neighborhoodData.lowDepthA.y = data.pixelDepth;
+    neighborhoodData.lowMasksA.y = data.pixelStatus;
+
+    data = GetCloudUpscaleDataSample(groupThreadId, int2(1, -1));
+    neighborhoodData.lowValue2 = data.cloudLighting;
+    neighborhoodData.lowDepthA.z = data.pixelDepth;
+    neighborhoodData.lowMasksA.z = data.pixelStatus;
+
+    data = GetCloudUpscaleDataSample(groupThreadId, int2(-1, 0));
+    neighborhoodData.lowValue3 = data.cloudLighting;
+    neighborhoodData.lowDepthA.w = data.pixelDepth;
+    neighborhoodData.lowMasksA.w = data.pixelStatus;
+
+    data = GetCloudUpscaleDataSample(groupThreadId, int2(0, 0));
+    neighborhoodData.lowValue4 = data.cloudLighting;
+    neighborhoodData.lowDepthB.x = data.pixelDepth;
+    neighborhoodData.lowMasksB.x = data.pixelStatus;
+
+    data = GetCloudUpscaleDataSample(groupThreadId, int2(1, 0));
+    neighborhoodData.lowValue5 = data.cloudLighting;
+    neighborhoodData.lowDepthB.y = data.pixelDepth;
+    neighborhoodData.lowMasksB.y = data.pixelStatus;
+
+    data = GetCloudUpscaleDataSample(groupThreadId, int2(-1, 1));
+    neighborhoodData.lowValue6 = data.cloudLighting;
+    neighborhoodData.lowDepthB.z = data.pixelDepth;
+    neighborhoodData.lowMasksB.z = data.pixelStatus;
+
+    data = GetCloudUpscaleDataSample(groupThreadId, int2(0, 1));
+    neighborhoodData.lowValue7 = data.cloudLighting;
+    neighborhoodData.lowDepthB.w = data.pixelDepth;
+    neighborhoodData.lowMasksB.w = data.pixelStatus;
+
+    data = GetCloudUpscaleDataSample(groupThreadId, int2(1, 1));
+    neighborhoodData.lowValue8 = data.cloudLighting;
+    neighborhoodData.lowDepthC = data.pixelDepth;
+    neighborhoodData.lowMasksC = data.pixelStatus;
+}
+
+#endif // REAL_TIME_VOLUMETRIC_CLOUDS
 
 #endif // VOLUMETRIC_CLOUD_UTILITIES_H
