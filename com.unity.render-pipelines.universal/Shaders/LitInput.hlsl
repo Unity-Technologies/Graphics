@@ -11,6 +11,7 @@
 #endif
 
 #pragma target 5.1
+#pragma use_dxc
 
 // NOTE: Do not ifdef the properties here as SRP batcher can not handle different layouts.
 CBUFFER_STARTS(UnityPerMaterial, b0, space1)
@@ -181,6 +182,7 @@ half3 ApplyDetailAlbedo(float2 detailUv, half3 albedo, half detailMask)
 
     return albedo * LerpWhiteTo(detailAlbedo, detailMask);
 #endif
+    return half3(0, 0, 0);
 }
 
 half3 ApplyDetailNormal(float2 detailUv, half3 normalTS, half detailMask)
@@ -198,6 +200,7 @@ half3 ApplyDetailNormal(float2 detailUv, half3 normalTS, half detailMask)
 
     return lerp(normalTS, BlendNormalRNM(normalTS, detailNormalTS), detailMask); // todo: detailMask should lerp the angle of the quaternion rotation, not the normals
 #endif
+    return half3(0, 0, 0);
 }
 
 inline void InitializeStandardLitSurfaceData(float2 uv, out SurfaceData outSurfaceData)

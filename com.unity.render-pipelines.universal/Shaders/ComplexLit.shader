@@ -91,7 +91,7 @@ Shader "Universal Render Pipeline/Complex Lit"
 
             HLSLPROGRAM
             #pragma exclude_renderers gles gles3 glcore
-            #pragma target 4.5
+            #pragma target 5.1
 
             // -------------------------------------
             // Material Keywords
@@ -150,7 +150,7 @@ Shader "Universal Render Pipeline/Complex Lit"
 
             HLSLPROGRAM
             #pragma exclude_renderers gles gles3 glcore
-            #pragma target 4.5
+            #pragma target 5.1
 
             // -------------------------------------
             // Material Keywords
@@ -187,7 +187,7 @@ Shader "Universal Render Pipeline/Complex Lit"
 
             HLSLPROGRAM
             #pragma exclude_renderers gles gles3 glcore
-            #pragma target 4.5
+            #pragma target 5.1
 
             #pragma vertex DepthOnlyVertex
             #pragma fragment DepthOnlyFragment
@@ -218,7 +218,7 @@ Shader "Universal Render Pipeline/Complex Lit"
 
             HLSLPROGRAM
             #pragma exclude_renderers gles gles3 glcore
-            #pragma target 4.5
+            #pragma target 5.1
 
             #pragma vertex DepthNormalsVertex
             #pragma fragment DepthNormalsFragment
@@ -250,7 +250,7 @@ Shader "Universal Render Pipeline/Complex Lit"
 
             HLSLPROGRAM
             #pragma exclude_renderers gles gles3 glcore
-            #pragma target 4.5
+            #pragma target 5.1
 
             #pragma vertex DepthNormalsVertex
             #pragma fragment DepthNormalsFragment
@@ -285,7 +285,7 @@ Shader "Universal Render Pipeline/Complex Lit"
 
             HLSLPROGRAM
             #pragma exclude_renderers gles gles3 glcore
-            #pragma target 4.5
+            #pragma target 5.1
 
             #pragma vertex UniversalVertexMeta
             #pragma fragment UniversalFragmentMeta
@@ -315,7 +315,7 @@ Shader "Universal Render Pipeline/Complex Lit"
 
             HLSLPROGRAM
             #pragma exclude_renderers gles gles3 glcore
-            #pragma target 4.5
+            #pragma target 5.1
 
             #pragma vertex vert
             #pragma fragment frag
