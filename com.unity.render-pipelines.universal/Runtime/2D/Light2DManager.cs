@@ -1,9 +1,5 @@
 using System.Collections.Generic;
 
-#if UNITY_EDITOR
-
-#endif
-
 namespace UnityEngine.Experimental.Rendering.Universal
 {
     internal static class Light2DManager
