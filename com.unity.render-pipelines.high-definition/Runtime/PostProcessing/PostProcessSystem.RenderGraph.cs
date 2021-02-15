@@ -1871,11 +1871,82 @@ namespace UnityEngine.Rendering.HighDefinition
             return source;
         }
 
+        #region Final Pass
+
+        struct FinalPassParameters
+        {
+            public bool postProcessEnabled;
+            public Material finalPassMaterial;
+            public HDCamera hdCamera;
+            public BlueNoise blueNoise;
+            public bool flipY;
+            public System.Random random;
+            public bool useFXAA;
+            public bool enableAlpha;
+            public bool keepAlpha;
+
+            public bool filmGrainEnabled;
+            public Texture filmGrainTexture;
+            public float filmGrainIntensity;
+            public float filmGrainResponse;
+
+            public bool ditheringEnabled;
+        }
+
+        class FinalPassData
+        {
+            public bool postProcessEnabled;
+            public Material finalPassMaterial;
+            public HDCamera hdCamera;
+            public BlueNoise blueNoise;
+            public bool flipY;
+            public System.Random random;
+            public bool useFXAA;
+            public bool enableAlpha;
+            public bool keepAlpha;
+
+            public bool filmGrainEnabled;
+            public Texture filmGrainTexture;
+            public float filmGrainIntensity;
+            public float filmGrainResponse;
+
+            public bool ditheringEnabled;
+
+            public TextureHandle source;
+            public TextureHandle afterPostProcessTexture;
+            public TextureHandle alphaTexture;
+            public TextureHandle destination;
+        }
+
         void FinalPass(RenderGraph renderGraph, HDCamera hdCamera, TextureHandle afterPostProcessTexture, TextureHandle alphaTexture, TextureHandle finalRT, TextureHandle source, BlueNoise blueNoise, bool flipY)
         {
             using (var builder = renderGraph.AddRenderPass<FinalPassData>("Final Pass", out var passData, ProfilingSampler.Get(HDProfileId.FinalPost)))
             {
-                passData.parameters = PrepareFinalPass(hdCamera, blueNoise, flipY);
+                // General
+                passData.postProcessEnabled = m_PostProcessEnabled;
+                passData.finalPassMaterial = m_FinalPassMaterial;
+                passData.hdCamera = hdCamera;
+                passData.blueNoise = blueNoise;
+                passData.flipY = flipY;
+                passData.random = m_Random;
+                passData.enableAlpha = m_EnableAlpha;
+                passData.keepAlpha = m_KeepAlpha;
+
+                bool dynamicResIsOn = hdCamera.isMainGameView && DynamicResolutionHandler.instance.DynamicResolutionEnabled();
+                passData.useFXAA = hdCamera.antialiasing == HDAdditionalCameraData.AntialiasingMode.FastApproximateAntialiasing && !dynamicResIsOn && m_AntialiasingFS;
+
+                // Film Grain
+                passData.filmGrainEnabled = m_FilmGrain.IsActive() && m_FilmGrainFS;
+                if (m_FilmGrain.type.value != FilmGrainLookup.Custom)
+                    passData.filmGrainTexture = m_Resources.textures.filmGrainTex[(int)m_FilmGrain.type.value];
+                else
+                    passData.filmGrainTexture = m_FilmGrain.texture.value;
+                passData.filmGrainIntensity = m_FilmGrain.intensity.value;
+                passData.filmGrainResponse = m_FilmGrain.response.value;
+
+                // Dithering
+                passData.ditheringEnabled = hdCamera.dithering && m_DitheringFS;
+
                 passData.source = builder.ReadTexture(source);
                 passData.afterPostProcessTexture = builder.ReadTexture(afterPostProcessTexture);
                 passData.alphaTexture = builder.ReadTexture(alphaTexture);
@@ -1884,10 +1955,127 @@ namespace UnityEngine.Rendering.HighDefinition
                 builder.SetRenderFunc(
                     (FinalPassData data, RenderGraphContext ctx) =>
                     {
-                        DoFinalPass(data.parameters, data.source, data.afterPostProcessTexture, data.destination, data.alphaTexture, ctx.cmd);
+                        // Final pass has to be done in a pixel shader as it will be the one writing straight
+                        // to the backbuffer eventually
+                        Material finalPassMaterial = data.finalPassMaterial;
+
+                        finalPassMaterial.shaderKeywords = null;
+                        finalPassMaterial.SetTexture(HDShaderIDs._InputTexture, data.source);
+
+                        var dynResHandler = DynamicResolutionHandler.instance;
+                        if (data.hdCamera.isMainGameView && dynResHandler.DynamicResolutionEnabled())
+                        {
+                            switch (dynResHandler.filter)
+                            {
+                                case DynamicResUpscaleFilter.Bilinear:
+                                    finalPassMaterial.EnableKeyword("BILINEAR");
+                                    break;
+                                case DynamicResUpscaleFilter.CatmullRom:
+                                    finalPassMaterial.EnableKeyword("CATMULL_ROM_4");
+                                    break;
+                                case DynamicResUpscaleFilter.Lanczos:
+                                    finalPassMaterial.EnableKeyword("LANCZOS");
+                                    break;
+                                case DynamicResUpscaleFilter.ContrastAdaptiveSharpen:
+                                    finalPassMaterial.EnableKeyword("CONTRASTADAPTIVESHARPEN");
+                                    break;
+                            }
+                        }
+
+                        if (data.postProcessEnabled)
+                        {
+                            if (data.useFXAA)
+                                finalPassMaterial.EnableKeyword("FXAA");
+
+                            if (data.filmGrainEnabled)
+                            {
+                                if (data.filmGrainTexture != null) // Fail safe if the resources asset breaks :/
+                                {
+#if HDRP_DEBUG_STATIC_POSTFX
+                                    float offsetX = 0;
+                                    float offsetY = 0;
+#else
+                                    float offsetX = (float)(data.random.NextDouble());
+                                    float offsetY = (float)(data.random.NextDouble());
+#endif
+
+                                    finalPassMaterial.EnableKeyword("GRAIN");
+                                    finalPassMaterial.SetTexture(HDShaderIDs._GrainTexture, data.filmGrainTexture);
+                                    finalPassMaterial.SetVector(HDShaderIDs._GrainParams, new Vector2(data.filmGrainIntensity * 4f, data.filmGrainResponse));
+
+                                    float uvScaleX = data.hdCamera.actualWidth / (float)data.filmGrainTexture.width;
+                                    float uvScaleY = data.hdCamera.actualHeight / (float)data.filmGrainTexture.height;
+                                    float scaledOffsetX = offsetX * uvScaleX;
+                                    float scaledOffsetY = offsetY * uvScaleY;
+
+                                    finalPassMaterial.SetVector(HDShaderIDs._GrainTextureParams, new Vector4(uvScaleX, uvScaleY, offsetX, offsetY));
+                                }
+                            }
+
+                            if (data.ditheringEnabled)
+                            {
+                                var blueNoiseTexture = data.blueNoise.textureArray16L;
+
+#if HDRP_DEBUG_STATIC_POSTFX
+                                int textureId = 0;
+#else
+                                int textureId = (int)data.hdCamera.GetCameraFrameCount() % blueNoiseTexture.depth;
+#endif
+
+                                finalPassMaterial.EnableKeyword("DITHER");
+                                finalPassMaterial.SetTexture(HDShaderIDs._BlueNoiseTexture, blueNoiseTexture);
+                                finalPassMaterial.SetVector(HDShaderIDs._DitherParams, new Vector3(data.hdCamera.actualWidth / blueNoiseTexture.width,
+                                    data.hdCamera.actualHeight / blueNoiseTexture.height, textureId));
+                            }
+                        }
+
+                        RTHandle alphaRTHandle = data.alphaTexture; // Need explicit cast otherwise we get a wrong implicit conversion to RenderTexture :/
+                        finalPassMaterial.SetTexture(HDShaderIDs._AlphaTexture, alphaRTHandle);
+                        finalPassMaterial.SetFloat(HDShaderIDs._KeepAlpha, data.keepAlpha ? 1.0f : 0.0f);
+
+                        if (data.enableAlpha)
+                            finalPassMaterial.EnableKeyword("ENABLE_ALPHA");
+                        else
+                            finalPassMaterial.DisableKeyword("ENABLE_ALPHA");
+
+                        finalPassMaterial.SetVector(HDShaderIDs._UVTransform,
+                            data.flipY
+                            ? new Vector4(1.0f, -1.0f, 0.0f, 1.0f)
+                            : new Vector4(1.0f, 1.0f, 0.0f, 0.0f)
+                        );
+
+                        // Blit to backbuffer
+                        Rect backBufferRect = data.hdCamera.finalViewport;
+
+                        // When post process is not the final pass, we render at (0,0) so that subsequent rendering does not have to bother about viewports.
+                        // Final viewport is handled in the final blit in this case
+                        if (!HDUtils.PostProcessIsFinalPass(data.hdCamera))
+                        {
+                            if (dynResHandler.HardwareDynamicResIsEnabled())
+                            {
+                                var scaledSize = dynResHandler.GetLastScaledSize();
+                                backBufferRect.width = scaledSize.x;
+                                backBufferRect.height = scaledSize.y;
+                            }
+                            backBufferRect.x = backBufferRect.y = 0;
+                        }
+
+                        if (data.hdCamera.frameSettings.IsEnabled(FrameSettingsField.AfterPostprocess))
+                        {
+                            finalPassMaterial.EnableKeyword("APPLY_AFTER_POST");
+                            finalPassMaterial.SetTexture(HDShaderIDs._AfterPostProcessTexture, data.afterPostProcessTexture);
+                        }
+                        else
+                        {
+                            finalPassMaterial.SetTexture(HDShaderIDs._AfterPostProcessTexture, TextureXR.GetBlackTexture());
+                        }
+
+                        HDUtils.DrawFullScreen(ctx.cmd, backBufferRect, finalPassMaterial, data.destination);
                     });
             }
         }
+
+        #endregion
 
         internal void DoUserAfterOpaqueAndSky(RenderGraph renderGraph, HDCamera hdCamera, TextureHandle colorBuffer, TextureHandle depthBuffer, TextureHandle normalBuffer)
         {
@@ -2046,15 +2234,6 @@ namespace UnityEngine.Rendering.HighDefinition
             FinalPass(renderGraph, hdCamera, afterPostProcessTexture, alphaTexture, finalRT, source, blueNoise, flipY);
 
             renderGraph.EndProfilingSampler(ProfilingSampler.Get(HDProfileId.PostProcessing));
-        }
-
-        class FinalPassData
-        {
-            public FinalPassParameters  parameters;
-            public TextureHandle        source;
-            public TextureHandle        afterPostProcessTexture;
-            public TextureHandle        alphaTexture;
-            public TextureHandle        destination;
         }
     }
 }
