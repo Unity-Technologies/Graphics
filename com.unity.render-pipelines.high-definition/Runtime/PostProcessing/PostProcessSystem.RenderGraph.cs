@@ -45,7 +45,35 @@ namespace UnityEngine.Rendering.HighDefinition
 
         class UberPostPassData
         {
-            public UberPostParameters parameters;
+            public ComputeShader uberPostCS;
+            public int uberPostKernel;
+            public bool outputColorLog;
+            public int width;
+            public int height;
+            public int viewCount;
+
+            public Vector4 logLutSettings;
+
+            public Vector4 lensDistortionParams1;
+            public Vector4 lensDistortionParams2;
+
+            public Texture spectralLut;
+            public Vector4 chromaticAberrationParameters;
+
+            public Vector4 vignetteParams1;
+            public Vector4 vignetteParams2;
+            public Vector4 vignetteColor;
+            public Texture vignetteMask;
+
+            public Texture bloomDirtTexture;
+            public Vector4 bloomParams;
+            public Vector4 bloomTint;
+            public Vector4 bloomBicubicParams;
+            public Vector4 bloomDirtTileOffset;
+            public Vector4 bloomThreshold;
+
+            public Vector4 alphaScaleBias;
+
             public TextureHandle source;
             public TextureHandle destination;
             public TextureHandle logLut;
@@ -1509,6 +1537,168 @@ namespace UnityEngine.Rendering.HighDefinition
 
         #endregion
 
+        // Grabs all active feature flags
+        UberPostFeatureFlags GetUberFeatureFlags(bool isSceneView)
+        {
+            var flags = UberPostFeatureFlags.None;
+
+            if (m_ChromaticAberration.IsActive() && m_ChromaticAberrationFS)
+                flags |= UberPostFeatureFlags.ChromaticAberration;
+
+            if (m_Vignette.IsActive() && m_VignetteFS)
+                flags |= UberPostFeatureFlags.Vignette;
+
+            if (m_LensDistortion.IsActive() && !isSceneView && m_LensDistortionFS)
+                flags |= UberPostFeatureFlags.LensDistortion;
+
+            if (m_EnableAlpha)
+            {
+                flags |= UberPostFeatureFlags.EnableAlpha;
+            }
+
+            return flags;
+        }
+
+        void PrepareLensDistortionParameters(UberPostPassData data, UberPostFeatureFlags flags)
+        {
+            if ((flags & UberPostFeatureFlags.LensDistortion) != UberPostFeatureFlags.LensDistortion)
+                return;
+
+            data.uberPostCS.EnableKeyword("LENS_DISTORTION");
+
+            float amount = 1.6f * Mathf.Max(Mathf.Abs(m_LensDistortion.intensity.value * 100f), 1f);
+            float theta = Mathf.Deg2Rad * Mathf.Min(160f, amount);
+            float sigma = 2f * Mathf.Tan(theta * 0.5f);
+            var center = m_LensDistortion.center.value * 2f - Vector2.one;
+            data.lensDistortionParams1 = new Vector4(
+                center.x,
+                center.y,
+                Mathf.Max(m_LensDistortion.xMultiplier.value, 1e-4f),
+                Mathf.Max(m_LensDistortion.yMultiplier.value, 1e-4f)
+            );
+            data.lensDistortionParams2 = new Vector4(
+                m_LensDistortion.intensity.value >= 0f ? theta : 1f / theta,
+                sigma,
+                1f / m_LensDistortion.scale.value,
+                m_LensDistortion.intensity.value * 100f
+            );
+        }
+
+        void PrepareChromaticAberrationParameters(UberPostPassData data, UberPostFeatureFlags flags)
+        {
+            if ((flags & UberPostFeatureFlags.ChromaticAberration) != UberPostFeatureFlags.ChromaticAberration)
+                return;
+
+            data.uberPostCS.EnableKeyword("CHROMATIC_ABERRATION");
+
+            var spectralLut = m_ChromaticAberration.spectralLut.value;
+
+            // If no spectral lut is set, use a pre-generated one
+            if (spectralLut == null)
+            {
+                if (m_InternalSpectralLut == null)
+                {
+                    m_InternalSpectralLut = new Texture2D(3, 1, GraphicsFormat.R8G8B8A8_SRGB, TextureCreationFlags.None)
+                    {
+                        name = "Chromatic Aberration Spectral LUT",
+                        filterMode = FilterMode.Bilinear,
+                        wrapMode = TextureWrapMode.Clamp,
+                        anisoLevel = 0,
+                        hideFlags = HideFlags.DontSave
+                    };
+
+                    m_InternalSpectralLut.SetPixels(new[]
+                    {
+                        new Color(1f, 0f, 0f, 1f),
+                        new Color(0f, 1f, 0f, 1f),
+                        new Color(0f, 0f, 1f, 1f)
+                    });
+
+                    m_InternalSpectralLut.Apply();
+                }
+
+                spectralLut = m_InternalSpectralLut;
+            }
+
+            data.spectralLut = spectralLut;
+            data.chromaticAberrationParameters = new Vector4(m_ChromaticAberration.intensity.value * 0.05f, m_ChromaticAberration.maxSamples, 0f, 0f);
+        }
+
+        void PrepareVignetteParameters(UberPostPassData data, UberPostFeatureFlags flags)
+        {
+            if ((flags & UberPostFeatureFlags.Vignette) != UberPostFeatureFlags.Vignette)
+                return;
+
+            data.uberPostCS.EnableKeyword("VIGNETTE");
+
+            if (m_Vignette.mode.value == VignetteMode.Procedural)
+            {
+                float roundness = (1f - m_Vignette.roundness.value) * 6f + m_Vignette.roundness.value;
+                data.vignetteParams1 = new Vector4(m_Vignette.center.value.x, m_Vignette.center.value.y, 0f, 0f);
+                data.vignetteParams2 = new Vector4(m_Vignette.intensity.value * 3f, m_Vignette.smoothness.value * 5f, roundness, m_Vignette.rounded.value ? 1f : 0f);
+                data.vignetteColor = m_Vignette.color.value;
+                data.vignetteMask = Texture2D.blackTexture;
+            }
+            else // Masked
+            {
+                var color = m_Vignette.color.value;
+                color.a = Mathf.Clamp01(m_Vignette.opacity.value);
+
+                data.vignetteParams1 = new Vector4(0f, 0f, 1f, 0f);
+                data.vignetteColor = color;
+                data.vignetteMask = m_Vignette.mask.value;
+            }
+        }
+
+        Vector4 GetBloomThresholdParams()
+        {
+            const float k_Softness = 0.5f;
+            float lthresh = Mathf.GammaToLinearSpace(m_Bloom.threshold.value);
+            float knee = lthresh * k_Softness + 1e-5f;
+            return new Vector4(lthresh, lthresh - knee, knee * 2f, 0.25f / knee);
+        }
+
+        void PrepareUberBloomParameters(UberPostPassData data, HDCamera camera)
+        {
+            float intensity = Mathf.Pow(2f, m_Bloom.intensity.value) - 1f; // Makes intensity easier to control
+            var tint = m_Bloom.tint.value.linear;
+            var luma = ColorUtils.Luminance(tint);
+            tint = luma > 0f ? tint * (1f / luma) : Color.white;
+
+            var dirtTexture = m_Bloom.dirtTexture.value == null ? Texture2D.blackTexture : m_Bloom.dirtTexture.value;
+            int dirtEnabled = m_Bloom.dirtTexture.value != null && m_Bloom.dirtIntensity.value > 0f ? 1 : 0;
+            float dirtRatio = (float)dirtTexture.width / (float)dirtTexture.height;
+            float screenRatio = (float)camera.actualWidth / (float)camera.actualHeight;
+            var dirtTileOffset = new Vector4(1f, 1f, 0f, 0f);
+            float dirtIntensity = m_Bloom.dirtIntensity.value * intensity;
+
+            if (dirtRatio > screenRatio)
+            {
+                dirtTileOffset.x = screenRatio / dirtRatio;
+                dirtTileOffset.z = (1f - dirtTileOffset.x) * 0.5f;
+            }
+            else if (screenRatio > dirtRatio)
+            {
+                dirtTileOffset.y = dirtRatio / screenRatio;
+                dirtTileOffset.w = (1f - dirtTileOffset.y) * 0.5f;
+            }
+
+            data.bloomDirtTexture = dirtTexture;
+            data.bloomParams = new Vector4(intensity, dirtIntensity, 1f, dirtEnabled);
+            data.bloomTint = (Vector4)tint;
+            data.bloomDirtTileOffset = dirtTileOffset;
+            data.bloomThreshold = GetBloomThresholdParams();
+            data.bloomBicubicParams = new Vector4(m_BloomMipsInfo[0].x, m_BloomMipsInfo[0].y, 1.0f / m_BloomMipsInfo[0].x, 1.0f / m_BloomMipsInfo[0].y);
+        }
+
+        void PrepareAlphaScaleParameters(UberPostPassData data, HDCamera camera)
+        {
+            if (m_EnableAlpha)
+                data.alphaScaleBias = Compositor.CompositionManager.GetAlphaScaleAndBiasForCamera(camera);
+            else
+                data.alphaScaleBias = new Vector4(1.0f, 0.0f, 0.0f, 0.0f);
+        }
+
         TextureHandle UberPass(RenderGraph renderGraph, HDCamera hdCamera, TextureHandle logLut, TextureHandle bloomTexture, TextureHandle source)
         {
             bool isSceneView = hdCamera.camera.cameraType == CameraType.SceneView;
@@ -1516,7 +1706,35 @@ namespace UnityEngine.Rendering.HighDefinition
             {
                 TextureHandle dest = GetPostprocessOutputHandle(renderGraph, "Uber Post Destination");
 
-                passData.parameters = PrepareUberPostParameters(hdCamera, isSceneView);
+                // Feature flags are passed to all effects and it's their responsibility to check
+                // if they are used or not so they can set default values if needed
+                passData.uberPostCS = m_Resources.shaders.uberPostCS;
+                passData.uberPostCS.shaderKeywords = null;
+                var featureFlags = GetUberFeatureFlags(isSceneView);
+                passData.uberPostKernel = passData.uberPostCS.FindKernel("Uber");
+                if (m_EnableAlpha)
+                {
+                    passData.uberPostCS.EnableKeyword("ENABLE_ALPHA");
+                }
+
+                passData.outputColorLog = m_HDInstance.m_CurrentDebugDisplaySettings.data.fullScreenDebugMode == FullScreenDebugMode.ColorLog;
+                passData.width = hdCamera.actualWidth;
+                passData.height = hdCamera.actualHeight;
+                passData.viewCount = hdCamera.viewCount;
+
+                // Color grading
+                // This should be EV100 instead of EV but given that EV100(0) isn't equal to 1, it means
+                // we can't use 0 as the default neutral value which would be confusing to users
+                float postExposureLinear = Mathf.Pow(2f, m_ColorAdjustments.postExposure.value);
+                passData.logLutSettings = new Vector4(1f / m_LutSize, m_LutSize - 1f, postExposureLinear, 0f);
+
+                // Setup the rest of the effects
+                PrepareLensDistortionParameters(passData, featureFlags);
+                PrepareChromaticAberrationParameters(passData, featureFlags);
+                PrepareVignetteParameters(passData, featureFlags);
+                PrepareUberBloomParameters(passData, hdCamera);
+                PrepareAlphaScaleParameters(passData, hdCamera);
+
                 passData.source = builder.ReadTexture(source);
                 passData.bloomTexture = builder.ReadTexture(bloomTexture);
                 passData.logLut = builder.ReadTexture(logLut);
@@ -1525,12 +1743,41 @@ namespace UnityEngine.Rendering.HighDefinition
                 builder.SetRenderFunc(
                     (UberPostPassData data, RenderGraphContext ctx) =>
                     {
-                        DoUberPostProcess(data.parameters,
-                            data.source,
-                            data.destination,
-                            data.logLut,
-                            data.bloomTexture,
-                            ctx.cmd);
+                        // Color grading
+                        ctx.cmd.SetComputeTextureParam(data.uberPostCS, data.uberPostKernel, HDShaderIDs._LogLut3D, data.logLut);
+                        ctx.cmd.SetComputeVectorParam(data.uberPostCS, HDShaderIDs._LogLut3D_Params, data.logLutSettings);
+
+                        // Lens distortion
+                        ctx.cmd.SetComputeVectorParam(data.uberPostCS, HDShaderIDs._DistortionParams1, data.lensDistortionParams1);
+                        ctx.cmd.SetComputeVectorParam(data.uberPostCS, HDShaderIDs._DistortionParams2, data.lensDistortionParams2);
+
+                        // Chromatic aberration
+                        ctx.cmd.SetComputeTextureParam(data.uberPostCS, data.uberPostKernel, HDShaderIDs._ChromaSpectralLut, data.spectralLut);
+                        ctx.cmd.SetComputeVectorParam(data.uberPostCS, HDShaderIDs._ChromaParams, data.chromaticAberrationParameters);
+
+                        // Vignette
+                        ctx.cmd.SetComputeVectorParam(data.uberPostCS, HDShaderIDs._VignetteParams1, data.vignetteParams1);
+                        ctx.cmd.SetComputeVectorParam(data.uberPostCS, HDShaderIDs._VignetteParams2, data.vignetteParams2);
+                        ctx.cmd.SetComputeVectorParam(data.uberPostCS, HDShaderIDs._VignetteColor, data.vignetteColor);
+                        ctx.cmd.SetComputeTextureParam(data.uberPostCS, data.uberPostKernel, HDShaderIDs._VignetteMask, data.vignetteMask);
+
+                        // Bloom
+                        ctx.cmd.SetComputeTextureParam(data.uberPostCS, data.uberPostKernel, HDShaderIDs._BloomTexture, data.bloomTexture);
+                        ctx.cmd.SetComputeTextureParam(data.uberPostCS, data.uberPostKernel, HDShaderIDs._BloomDirtTexture, data.bloomDirtTexture);
+                        ctx.cmd.SetComputeVectorParam(data.uberPostCS, HDShaderIDs._BloomParams, data.bloomParams);
+                        ctx.cmd.SetComputeVectorParam(data.uberPostCS, HDShaderIDs._BloomTint, data.bloomTint);
+                        ctx.cmd.SetComputeVectorParam(data.uberPostCS, HDShaderIDs._BloomBicubicParams, data.bloomBicubicParams);
+                        ctx.cmd.SetComputeVectorParam(data.uberPostCS, HDShaderIDs._BloomDirtScaleOffset, data.bloomDirtTileOffset);
+                        ctx.cmd.SetComputeVectorParam(data.uberPostCS, HDShaderIDs._BloomThreshold, data.bloomThreshold);
+
+                        // Alpha scale and bias (only used when alpha is enabled)
+                        ctx.cmd.SetComputeVectorParam(data.uberPostCS, HDShaderIDs._AlphaScaleBias, data.alphaScaleBias);
+
+                        // Dispatch uber post
+                        ctx.cmd.SetComputeVectorParam(data.uberPostCS, "_DebugFlags", new Vector4(data.outputColorLog ? 1 : 0, 0, 0, 0));
+                        ctx.cmd.SetComputeTextureParam(data.uberPostCS, data.uberPostKernel, HDShaderIDs._InputTexture, data.source);
+                        ctx.cmd.SetComputeTextureParam(data.uberPostCS, data.uberPostKernel, HDShaderIDs._OutputTexture, data.destination);
+                        ctx.cmd.DispatchCompute(data.uberPostCS, data.uberPostKernel, (data.width + 7) / 8, (data.height + 7) / 8, data.viewCount);
                     });
 
                 source = passData.destination;
