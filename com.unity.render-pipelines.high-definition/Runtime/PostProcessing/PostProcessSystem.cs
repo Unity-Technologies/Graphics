@@ -2390,7 +2390,7 @@ namespace UnityEngine.Rendering.HighDefinition
                     float timeScale = data.elements.Length == 1 ? 1.0f : ((float)elemIdx) / ((float)(data.elements.Length - 1));
 
                     float curvePos = 0.0f;
-                    if (element.position > 0.0f)
+                    if (element.position >= 0.0f)
                         curvePos = data.positionCurve.length >= 1 ? data.positionCurve.Evaluate(timePosPos) : 1.0f;
                     else
                         curvePos = data.positionCurve.length >= 1 ? data.positionCurve.Evaluate(-timePosNeg) : 1.0f;
