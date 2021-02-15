@@ -7,6 +7,7 @@ namespace UnityEditor.Rendering
 {
     public class DebugDisplaySettingsValidation : IDebugDisplaySettingsData
     {
+        #region Albedo
         public enum AlbedoDebugValidationPreset
         {
             DefaultLuminance,
@@ -174,6 +175,12 @@ namespace UnityEditor.Rendering
         }
 
         public Color AlbedoCompareColor = new Color(127f/255f, 127f/255f, 127f/255f, 255f/255f);
+        #endregion
+
+        #region Metallic
+        public float MetallicMinValue = 0.0f;
+        public float MetallicMaxValue = 0.9f;
+        #endregion
 
         private class SettingsPanel : DebugDisplaySettingsPanel
         {
@@ -191,6 +198,9 @@ namespace UnityEditor.Rendering
                 AddWidget(new DebugUI.FloatField { displayName = "Albedo Max Luminance", getter = () => data.AlbedoMaxLuminance, setter = (value) => data.AlbedoMaxLuminance = value});
                 AddWidget(new DebugUI.FloatField { displayName = "Albedo Hue Tolerance", getter = () => data.AlbedoHueTolerance, setter = (value) => data.AlbedoHueTolerance = value});
                 AddWidget(new DebugUI.FloatField { displayName = "Albedo Saturation Tolerance", getter = () => data.AlbedoSaturationTolerance, setter = (value) => data.AlbedoSaturationTolerance = value});
+
+                AddWidget(new DebugUI.FloatField { displayName = "Metallic Min Value", getter = () => data.MetallicMinValue, setter = (value) => data.MetallicMinValue = value});
+                AddWidget(new DebugUI.FloatField { displayName = "Metallic Max Value", getter = () => data.MetallicMaxValue, setter = (value) => data.MetallicMaxValue = value});
             }
         }
 

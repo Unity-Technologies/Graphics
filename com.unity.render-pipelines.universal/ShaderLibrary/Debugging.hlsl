@@ -33,11 +33,15 @@ int _DebugLightingFeatureFlags;
 
 // Validation settings...
 int _DebugValidationMode;
+
 half _DebugValidateAlbedoMinLuminance = 0.01;
 half _DebugValidateAlbedoMaxLuminance = 0.90;
 half _DebugValidateAlbedoSaturationTolerance = 0.214;
 half _DebugValidateAlbedoHueTolerance = 0.104;
 half3 _DebugValidateAlbedoCompareColor = half3(0.5, 0.5, 0.5);
+
+half _DebugValidateMetallicMinValue = 0;
+half _DebugValidateMetallicMaxValue = 0.9;
 
 float4 _DebugColor;
 sampler2D _DebugNumberTexture;
@@ -296,43 +300,72 @@ half4 GetMipCountDebugColor(in InputData inputData, in SurfaceData surfaceData, 
     return CalculateDebugColorWithNumber(inputData, surfaceData, mipCount);
 }
 
+bool CalculateValidationAlbedo(half3 albedo, out half4 color)
+{
+    half luminance = LinearRgbToLuminance(albedo);
+
+    if(luminance < _DebugValidateAlbedoMinLuminance)
+    {
+        color = half4(1, 0, 0, 1);
+    }
+    else if(luminance > _DebugValidateAlbedoMaxLuminance)
+    {
+        color = half4(0, 0, 1, 1);
+    }
+    else
+    {
+        half3 hsv = UnityMeta_RGBToHSV(albedo);
+        half hue = hsv.r;
+        half sat = hsv.g;
+
+        half3 compHSV = UnityMeta_RGBToHSV(_DebugValidateAlbedoCompareColor.rgb);
+        half compHue = compHSV.r;
+        half compSat = compHSV.g;
+
+        if ((compSat - _DebugValidateAlbedoSaturationTolerance > sat) || ((compHue - _DebugValidateAlbedoHueTolerance > hue) && (compHue - _DebugValidateAlbedoHueTolerance + 1.0 > hue)))
+        {
+            color = kRedColor;
+        }
+        else if ((sat > compSat + _DebugValidateAlbedoSaturationTolerance) || ((hue > compHue + _DebugValidateAlbedoHueTolerance) && (hue > compHue + _DebugValidateAlbedoHueTolerance - 1.0)))
+        {
+            color = kBlueColor;
+        }
+        else
+        {
+            color = half4(luminance, luminance, luminance, 1.0);
+        }
+    }
+    return true;
+}
+
+bool CalculateValidationMetallic(half3 albedo, half metallic, out half4 color)
+{
+    if(metallic < _DebugValidateMetallicMinValue)
+    {
+        color = half4(1, 0, 0, 1);
+    }
+    else if(metallic > _DebugValidateMetallicMaxValue)
+    {
+        color = half4(0, 0, 1, 1);
+    }
+    else
+    {
+        half luminance = LinearRgbToLuminance(albedo);
+
+        color = half4(luminance, luminance, luminance, 1);
+    }
+    return true;
+}
+
 bool CalculateValidationColorForDebug(in InputData inputData, in SurfaceData surfaceData, in DebugData debugData, out half4 color)
 {
     if (_DebugValidationMode == DEBUGVALIDATIONMODE_VALIDATE_ALBEDO)
     {
-        half value = LinearRgbToLuminance(surfaceData.albedo);
-        if (_DebugValidateAlbedoMinLuminance > value)
-        {
-             color = half4(1.0f, 0.0f, 0.0f, 1.0f);
-        }
-        else if (_DebugValidateAlbedoMaxLuminance < value)
-        {
-             color = half4(0.0f, 1.0f, 0.0f, 1.0f);
-        }
-        else
-        {
-            half3 hsv = UnityMeta_RGBToHSV(surfaceData.albedo);
-            half hue = hsv.r;
-            half sat = hsv.g;
-
-            half3 compHSV = UnityMeta_RGBToHSV(_DebugValidateAlbedoCompareColor.rgb);
-            half compHue = compHSV.r;
-            half compSat = compHSV.g;
-
-            if ((compSat - _DebugValidateAlbedoSaturationTolerance > sat) || ((compHue - _DebugValidateAlbedoHueTolerance > hue) && (compHue - _DebugValidateAlbedoHueTolerance + 1.0 > hue)))
-            {
-                color = half4(1.0f, 0.0f, 0.0f, 1.0f);
-            }
-            else if ((sat > compSat + _DebugValidateAlbedoSaturationTolerance) || ((hue > compHue + _DebugValidateAlbedoHueTolerance) && (hue > compHue + _DebugValidateAlbedoHueTolerance - 1.0)))
-            {
-                color = half4(0.0f, 1.0f, 0.0f, 1.0f);
-            }
-            else
-            {
-                color = half4(value, value, value, 1.0);
-            }
-        }
-        return true;
+        return CalculateValidationAlbedo(surfaceData.albedo, color);
+    }
+    else if(_DebugValidationMode == DEBUGVALIDATIONMODE_VALIDATE_METALLIC)
+    {
+        return CalculateValidationMetallic(surfaceData.albedo, surfaceData.metallic, color);
     }
     else
     {

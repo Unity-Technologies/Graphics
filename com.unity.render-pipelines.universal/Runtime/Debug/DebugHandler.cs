@@ -1,4 +1,5 @@
 
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -30,11 +31,15 @@ namespace UnityEngine.Rendering.Universal
 
         // Validation settings...
         private readonly int m_DebugValidationModeId;
+
         private readonly int m_DebugValidateAlbedoMinLuminanceId;
         private readonly int m_DebugValidateAlbedoMaxLuminanceId;
         private readonly int m_DebugValidateAlbedoSaturationToleranceId;
         private readonly int m_DebugValidateAlbedoHueToleranceId;
         private readonly int m_DebugValidateAlbedoCompareColorId;
+
+        private readonly int m_DebugValidateMetallicMinValueId;
+        private readonly int m_DebugValidateMetallicMaxValueId;
 
         private readonly DebugDisplaySettings m_DebugDisplaySettings;
 
@@ -96,11 +101,15 @@ namespace UnityEngine.Rendering.Universal
 
             // ValidationSettings...
             m_DebugValidationModeId = Shader.PropertyToID("_DebugValidationMode");
+
             m_DebugValidateAlbedoMinLuminanceId = Shader.PropertyToID("_DebugValidateAlbedoMinLuminance");
             m_DebugValidateAlbedoMaxLuminanceId = Shader.PropertyToID("_DebugValidateAlbedoMaxLuminance");
             m_DebugValidateAlbedoSaturationToleranceId = Shader.PropertyToID("_DebugValidateAlbedoSaturationTolerance");
             m_DebugValidateAlbedoHueToleranceId = Shader.PropertyToID("_DebugValidateAlbedoHueTolerance");
             m_DebugValidateAlbedoCompareColorId = Shader.PropertyToID("_DebugValidateAlbedoCompareColor");
+
+            m_DebugValidateMetallicMinValueId = Shader.PropertyToID("_DebugValidateMetallicMinValue");
+            m_DebugValidateMetallicMaxValueId = Shader.PropertyToID("_DebugValidateMetallicMaxValue");
         }
 
         public bool IsDebugPassEnabled(ref CameraData cameraData)
@@ -161,16 +170,27 @@ namespace UnityEngine.Rendering.Universal
                     cmd.SetGlobalColor(s_DebugColorPropertyId, (passIndex == 0) ? Color.white : Color.black);
                     break;
                 }
-            } // End of switch.
+            }       // End of switch.
 
-            if(ValidationSettings.validationMode == DebugValidationMode.ValidateAlbedo)
+            switch(@ValidationSettings.validationMode)
             {
-                cmd.SetGlobalFloat(m_DebugValidateAlbedoMinLuminanceId, ValidationSettings.AlbedoMinLuminance);
-                cmd.SetGlobalFloat(m_DebugValidateAlbedoMaxLuminanceId, ValidationSettings.AlbedoMaxLuminance);
-                cmd.SetGlobalFloat(m_DebugValidateAlbedoSaturationToleranceId, ValidationSettings.AlbedoSaturationTolerance);
-                cmd.SetGlobalFloat(m_DebugValidateAlbedoHueToleranceId, ValidationSettings.AlbedoHueTolerance);
-                cmd.SetGlobalColor(m_DebugValidateAlbedoCompareColorId, ValidationSettings.AlbedoCompareColor.linear);
-            }
+                case DebugValidationMode.ValidateAlbedo:
+                {
+                    cmd.SetGlobalFloat(m_DebugValidateAlbedoMinLuminanceId, ValidationSettings.AlbedoMinLuminance);
+                    cmd.SetGlobalFloat(m_DebugValidateAlbedoMaxLuminanceId, ValidationSettings.AlbedoMaxLuminance);
+                    cmd.SetGlobalFloat(m_DebugValidateAlbedoSaturationToleranceId, ValidationSettings.AlbedoSaturationTolerance);
+                    cmd.SetGlobalFloat(m_DebugValidateAlbedoHueToleranceId, ValidationSettings.AlbedoHueTolerance);
+                    cmd.SetGlobalColor(m_DebugValidateAlbedoCompareColorId, ValidationSettings.AlbedoCompareColor.linear);
+                    break;
+                }
+
+                case DebugValidationMode.ValidateMetallic:
+                {
+                    cmd.SetGlobalFloat(m_DebugValidateMetallicMinValueId, ValidationSettings.MetallicMinValue);
+                    cmd.SetGlobalFloat(m_DebugValidateMetallicMaxValueId, ValidationSettings.MetallicMaxValue);
+                    break;
+                }
+            }       // End of switch.
         }
 
         [Conditional("DEVELOPMENT_BUILD"), Conditional("UNITY_EDITOR")]
@@ -196,6 +216,7 @@ namespace UnityEngine.Rendering.Universal
 
             // Set-up any other persistent properties...
             cmd.SetGlobalTexture("_DebugNumberTexture", m_NumberFontTexture);
+
             context.ExecuteCommandBuffer(cmd);
             CommandBufferPool.Release(cmd);
         }

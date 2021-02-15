@@ -104,7 +104,7 @@ namespace UnityEngine.Rendering.Universal
     }
     #endregion
 
-    #region Validation settings...
+    #region Validation settings
     [GenerateHLSL]
     public enum DebugValidationMode
     {
@@ -112,6 +112,7 @@ namespace UnityEngine.Rendering.Universal
         HighlightNanInfNegative,
         HighlightOutsideOfRange,
         ValidateAlbedo,
+        ValidateMetallic,
     }
     #endregion
 }
