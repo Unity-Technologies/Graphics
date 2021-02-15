@@ -370,8 +370,8 @@ namespace UnityEngine.Rendering.HighDefinition
             public TextureHandle outputBuffer;
         }
 
-        TextureHandle ConvertSSGI(RenderGraph renderGraph, HDCamera hdCamera, bool halfResolution, 
-            TextureHandle depthPyramid, TextureHandle stencilBuffer, TextureHandle normalBuffer, 
+        TextureHandle ConvertSSGI(RenderGraph renderGraph, HDCamera hdCamera, bool halfResolution,
+            TextureHandle depthPyramid, TextureHandle stencilBuffer, TextureHandle normalBuffer,
             TextureHandle inputBuffer0, TextureHandle inputBuffer1)
         {
             using (var builder = renderGraph.AddRenderPass<ConvertSSGIPassData>("Convert SSGI", out var passData, ProfilingSampler.Get(HDProfileId.SSGIConvert)))
@@ -422,20 +422,20 @@ namespace UnityEngine.Rendering.HighDefinition
                         ctx.cmd.SetComputeTextureParam(data.ssGICS, data.convertKernel, HDShaderIDs._NormalBufferTexture, data.normalBuffer);
                         ctx.cmd.SetComputeTextureParam(data.ssGICS, data.convertKernel, HDShaderIDs._StencilTexture, data.stencilBuffer, 0, RenderTextureSubElement.Stencil);
                         ctx.cmd.SetComputeBufferParam(data.ssGICS, data.convertKernel, HDShaderIDs._DepthPyramidMipLevelOffsets, data.offsetBuffer);
-                        
+
                         ctx.cmd.SetComputeTextureParam(data.ssGICS, data.convertKernel, HDShaderIDs._IndirectDiffuseTexture0, data.inputBuffer0);
                         ctx.cmd.SetComputeTextureParam(data.ssGICS, data.convertKernel, HDShaderIDs._IndirectDiffuseTexture1, data.inputBuffer1);
 
                         ctx.cmd.SetComputeTextureParam(data.ssGICS, data.convertKernel, HDShaderIDs._IndirectDiffuseTextureRW, data.outputBuffer);
-                        
+
                         ctx.cmd.DispatchCompute(data.ssGICS, data.convertKernel, numTilesXHR, numTilesYHR, data.viewCount);
                     });
                 return passData.outputBuffer;
             }
         }
 
-        TextureHandle RenderSSGI(RenderGraph renderGraph, HDCamera hdCamera, 
-            TextureHandle depthPyramid, TextureHandle stencilBuffer, TextureHandle normalBuffer, TextureHandle motionVectorsBuffer, 
+        TextureHandle RenderSSGI(RenderGraph renderGraph, HDCamera hdCamera,
+            TextureHandle depthPyramid, TextureHandle stencilBuffer, TextureHandle normalBuffer, TextureHandle motionVectorsBuffer,
             ShaderVariablesRaytracing shaderVariablesRayTracingCB, HDUtils.PackedMipChainInfo info)
         {
             // Grab the global illumination volume component
