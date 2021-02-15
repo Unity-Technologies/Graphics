@@ -394,7 +394,6 @@ namespace UnityEngine.Rendering.HighDefinition
             passData.nextExposure = builder.WriteTexture(renderGraph.ImportTexture(nextExposure));
         }
 
-
         void GrabExposureRequiredTextures(HDCamera camera, out RTHandle prevExposure, out RTHandle nextExposure)
         {
             GrabExposureHistoryTextures(camera, out prevExposure, out nextExposure);
@@ -678,10 +677,10 @@ namespace UnityEngine.Rendering.HighDefinition
                 passData.nextMVLen = TextureHandle.nullHandle;
             }
 
-            passData.destination = builder.WriteTexture(GetPostprocessOutputHandle(renderGraph, outputName)); ;
+            passData.destination = builder.WriteTexture(GetPostprocessOutputHandle(renderGraph, outputName));;
 
             TextureHandle dest = GetPostprocessOutputHandle(renderGraph, "Post-DoF TAA Destination");
-            passData.destination = builder.WriteTexture(dest); ;
+            passData.destination = builder.WriteTexture(dest);;
         }
 
         TextureHandle DoTemporalAntialiasing(RenderGraph renderGraph, HDCamera hdCamera, TextureHandle depthBuffer, TextureHandle motionVectors, TextureHandle depthBufferMipChain, TextureHandle sourceTexture, bool postDoF, string outputName)
@@ -735,12 +734,6 @@ namespace UnityEngine.Rendering.HighDefinition
                         ctx.cmd.DrawProcedural(Matrix4x4.identity, data.temporalAAMaterial, 0, MeshTopology.Triangles, 3, 1, data.taaPropertyBlock);
                         ctx.cmd.DrawProcedural(Matrix4x4.identity, data.temporalAAMaterial, 1, MeshTopology.Triangles, 3, 1, data.taaPropertyBlock);
                         ctx.cmd.ClearRandomWriteTargets();
-
-                        if (data.postDoF)
-                        {
-                            // Temporary hack to make post-dof TAA work with rendergraph (still the first frame flashes black). We need a better solution.
-                            m_IsDoFHisotoryValid = true;
-                        }
                     });
 
                 return passData.destination;
@@ -948,6 +941,8 @@ namespace UnityEngine.Rendering.HighDefinition
             if (taaEnabled && m_DepthOfField.physicallyBased)
             {
                 source = DoTemporalAntialiasing(renderGraph, hdCamera, depthBuffer, motionVectors, depthBufferMipChain, source, postDoF: true, "Post-DoF TAA Destination");
+                // Temporary hack to make post-dof TAA work with rendergraph (still the first frame flashes black). We need a better solution.
+                m_IsDoFHisotoryValid = true;
                 postDoFTAAEnabled = true;
             }
             else
