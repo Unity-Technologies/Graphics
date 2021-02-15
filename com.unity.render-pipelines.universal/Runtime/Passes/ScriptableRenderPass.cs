@@ -181,6 +181,7 @@ namespace UnityEngine.Rendering.Universal
         internal int renderTargetSampleCount { get; set; }
 
         internal bool depthOnly { get; set; }
+        // this flag is updated each frame to keep track of which pass is the last for the current camera
         internal bool isLastPass { get; set; }
 
 
@@ -237,11 +238,11 @@ namespace UnityEngine.Rendering.Universal
             ConfigureTarget(colorAttachment);
         }
 
-		internal void ConfigureTarget(RenderTargetIdentifier colorAttachment, RenderTargetIdentifier depthAttachment, GraphicsFormat format)
-		{
+        internal void ConfigureTarget(RenderTargetIdentifier colorAttachment, RenderTargetIdentifier depthAttachment, GraphicsFormat format)
+        {
             m_DepthAttachment = depthAttachment;
             ConfigureTarget(colorAttachment, format);
-		}
+        }
 
         /// <summary>
         /// Configures render targets for this render pass. Call this instead of CommandBuffer.SetRenderTarget.
@@ -260,16 +261,14 @@ namespace UnityEngine.Rendering.Universal
 
             m_ColorAttachments = colorAttachments;
             m_DepthAttachment = depthAttachment;
-
-
         }
 
-		internal void ConfigureTarget(RenderTargetIdentifier[] colorAttachments, RenderTargetIdentifier depthAttachment, GraphicsFormat[] formats)
-		{
-			ConfigureTarget(colorAttachments, depthAttachment);
+        internal void ConfigureTarget(RenderTargetIdentifier[] colorAttachments, RenderTargetIdentifier depthAttachment, GraphicsFormat[] formats)
+        {
+            ConfigureTarget(colorAttachments, depthAttachment);
             for (int i = 0; i < formats.Length; ++i)
                 renderTargetFormat[i] = formats[i];
-		}
+        }
 
         /// <summary>
         /// Configures render targets for this render pass. Call this instead of CommandBuffer.SetRenderTarget.
@@ -286,9 +285,9 @@ namespace UnityEngine.Rendering.Universal
                 m_ColorAttachments[i] = 0;
         }
 
-		internal void ConfigureTarget(RenderTargetIdentifier colorAttachment, GraphicsFormat format, int width = -1, int height = -1, int sampleCount = -1, bool depth = false)
-		{
-			ConfigureTarget(colorAttachment);
+        internal void ConfigureTarget(RenderTargetIdentifier colorAttachment, GraphicsFormat format, int width = -1, int height = -1, int sampleCount = -1, bool depth = false)
+        {
+            ConfigureTarget(colorAttachment);
             for (int i = 1; i < m_ColorAttachments.Length; ++i)
                 renderTargetFormat[i] = GraphicsFormat.None;
 
@@ -297,7 +296,7 @@ namespace UnityEngine.Rendering.Universal
             renderTargetSampleCount = sampleCount;
             depthOnly = depth;
             renderTargetFormat[0] = format;
-		}
+        }
 
         /// <summary>
         /// Configures render targets for this render pass. Call this instead of CommandBuffer.SetRenderTarget.

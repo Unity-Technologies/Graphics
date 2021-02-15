@@ -488,6 +488,8 @@ namespace UnityEngine.Rendering.Universal
             int lastPassIndex = m_ActiveRenderPassQueue.Count - 1;
 
             // Make sure the list is already sorted!
+
+            // reset all the passes last pass flag
             for (int i = 0; i < m_ActiveRenderPassQueue.Count - 1; ++i)
                 m_ActiveRenderPassQueue[i].isLastPass = false;
 
@@ -773,6 +775,7 @@ namespace UnityEngine.Rendering.Universal
                 int validColorBuffersCount = (int)RenderingUtils.GetValidColorBufferCount(renderPass.colorAttachments);
 
                 bool isLastPass = renderPass.isLastPass;
+                // keep track if this is the current camera's last pass and the RT is the backbuffer (BuiltinRenderTextureType.CameraTarget)
                 bool isLastPassToBB = isLastPass && (m_ActiveColorAttachmentDescriptors[0].loadStoreTarget == BuiltinRenderTextureType.CameraTarget);
                 bool useDepth = m_ActiveDepthAttachment == RenderTargetHandle.CameraTarget.Identifier() && (!(isLastPassToBB || (isLastPass && cameraData.camera.targetTexture != null)));
 
@@ -911,6 +914,7 @@ namespace UnityEngine.Rendering.Universal
 
                     for (int i = 0; i < validColorBuffersCount; ++i)
                     {
+                        // if this is the current camera's last pass, also check if one of the RTs is the backbuffer (BuiltinRenderTextureType.CameraTarget)
                         isLastPassToBB |= isLastPass && (renderPass.colorAttachments[i] == BuiltinRenderTextureType.CameraTarget);
 
                         m_ActiveColorAttachmentDescriptors[i] =
@@ -1052,8 +1056,11 @@ namespace UnityEngine.Rendering.Universal
                         ? BuiltinRenderTextureType.Depth
                         : passDepthAttachment;
 
+
+                    // keep track if this is the current camera's last pass and the RT is the backbuffer (BuiltinRenderTextureType.CameraTarget)
+                    // knowing isLastPassToBB can help decide the optimal store action as it gives us additional information about the current frame
                     bool isLastPassToBB = isLastPass && (colorAttachmentTarget == BuiltinRenderTextureType.CameraTarget);
-                    m_ActiveColorAttachmentDescriptors[0].ConfigureTarget(colorAttachmentTarget, ((uint) finalClearFlag & (uint) ClearFlag.Color) == 0, !(samples > 1 && isLastPassToBB));
+                    m_ActiveColorAttachmentDescriptors[0].ConfigureTarget(colorAttachmentTarget, ((uint)finalClearFlag & (uint)ClearFlag.Color) == 0, !(samples > 1 && isLastPassToBB));
 
                     m_ActiveDepthAttachmentDescriptor = new AttachmentDescriptor(GraphicsFormat.DepthAuto);
                     m_ActiveDepthAttachmentDescriptor.ConfigureTarget(depthAttachmentTarget, ((uint)finalClearFlag & (uint)ClearFlag.Depth) == 0 , !isLastPassToBB);
@@ -1061,9 +1068,9 @@ namespace UnityEngine.Rendering.Universal
                     if (finalClearFlag != ClearFlag.None)
                     {
                         // We don't clear color for Overlay render targets, however pipeline set's up depth only render passes as color attachments which we do need to clear
-                        if ((cameraData.renderType != CameraRenderType.Overlay || renderPass.depthOnly && ((uint) finalClearFlag & (uint) ClearFlag.Color) != 0))
+                        if ((cameraData.renderType != CameraRenderType.Overlay || renderPass.depthOnly && ((uint)finalClearFlag & (uint)ClearFlag.Color) != 0))
                             m_ActiveColorAttachmentDescriptors[0].ConfigureClear(finalClearColor, 1.0f, 0);
-                        if (((uint) finalClearFlag & (uint) ClearFlag.Depth) != 0)
+                        if (((uint)finalClearFlag & (uint)ClearFlag.Depth) != 0)
                             m_ActiveDepthAttachmentDescriptor.ConfigureClear(Color.black, 1.0f, 0);
                     }
 
