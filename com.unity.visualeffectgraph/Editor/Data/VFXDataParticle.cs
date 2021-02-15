@@ -754,6 +754,8 @@ namespace UnityEditor.VFX
 
                 var context = m_Contexts[i];
                 var contextData = contextToCompiledData[context];
+                contextData.indexInSystemDesc = outSystemDescs.Count;
+                contextToCompiledData[context] = contextData;
 
                 var taskDesc = new VFXEditorTaskDesc();
                 taskDesc.type = (UnityEngine.VFX.VFXTaskType)context.taskType;

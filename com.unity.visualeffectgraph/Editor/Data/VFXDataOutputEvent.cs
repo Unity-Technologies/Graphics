@@ -61,7 +61,7 @@ namespace UnityEditor.VFX
                 return;
             }
 
-            var allMatchingVFXDataOutputEvent = contextToCompiledData.Keys.Where(context =>
+            var allMatchingVFXOutputEvent = contextToCompiledData.Keys.Where(context =>
             {
                 if (context.contextType == VFXContextType.OutputEvent)
                 {
@@ -71,8 +71,9 @@ namespace UnityEditor.VFX
                     }
                 }
                 return false;
-            }).Select(o => o.GetData()).Cast<VFXDataOutputEvent>().ToArray();
+            }).ToArray();
 
+            var allMatchingVFXDataOutputEvent = allMatchingVFXOutputEvent.Select(o => o.GetData()).Cast<VFXDataOutputEvent>().ToArray();
             var flowInputLinks = allMatchingVFXDataOutputEvent.SelectMany(data => data.m_Contexts.SelectMany(context =>
             {
                 if (effectiveFlowInputLinks.ContainsKey(context))
@@ -96,6 +97,13 @@ namespace UnityEditor.VFX
                     name = "spawner_input",
                     index = contextSpawnToBufferIndex[spawner]
                 });
+            }
+
+            foreach (var context in allMatchingVFXOutputEvent)
+            {
+                var compiledData = contextToCompiledData[context];
+                compiledData.indexInSystemDesc = outBufferDescs.Count;
+                contextToCompiledData[context] = compiledData;
             }
 
             outSystemDescs.Add(new VFXEditorSystemDesc()
