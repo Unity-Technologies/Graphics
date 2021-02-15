@@ -1,8 +1,7 @@
+
 using System;
+using System.Collections;
 using System.Collections.Generic;
-using System.Diagnostics;
-using UnityEditor.Rendering;
-using UnityEditor.Rendering.Universal;
 using System.ComponentModel;
 using UnityEngine.Scripting.APIUpdating;
 
@@ -182,7 +181,7 @@ namespace UnityEngine.Rendering.Universal
         ClearFlag m_ClearFlag = ClearFlag.None;
         Color m_ClearColor = Color.black;
 
-        private static readonly ShaderTagId s_DebugMaterialShaderTagId = new ShaderTagId("DebugMaterial");
+        protected static readonly ShaderTagId s_DebugMaterialShaderTagId = new ShaderTagId("DebugMaterial");
 
         public DebugHandler DebugHandler { get; set; }
 
@@ -386,16 +385,23 @@ namespace UnityEngine.Rendering.Universal
         public DrawingSettings CreateDrawingSettings(List<ShaderTagId> shaderTagIdList,
             ref RenderingData renderingData, SortingCriteria sortingCriteria)
         {
-            if (shaderTagIdList == null || shaderTagIdList.Count == 0)
+            if((DebugHandler != null) && DebugHandler.IsDebugMaterialActive)
             {
-                Debug.LogWarning("ShaderTagId list is invalid. DrawingSettings is created with default pipeline ShaderTagId");
-                return CreateDrawingSettings(new ShaderTagId("UniversalPipeline"), ref renderingData, sortingCriteria);
+                return CreateDrawingSettings(s_DebugMaterialShaderTagId, ref renderingData, sortingCriteria);
             }
+            else
+            {
+                if (shaderTagIdList == null || shaderTagIdList.Count == 0)
+                {
+                    Debug.LogWarning("ShaderTagId list is invalid. DrawingSettings is created with default pipeline ShaderTagId");
+                    return CreateDrawingSettings(new ShaderTagId("UniversalPipeline"), ref renderingData, sortingCriteria);
+                }
 
-            DrawingSettings settings = CreateDrawingSettings(shaderTagIdList[0], ref renderingData, sortingCriteria);
-            for (int i = 1; i < shaderTagIdList.Count; ++i)
-                settings.SetShaderPassName(i, shaderTagIdList[i]);
-            return settings;
+                DrawingSettings settings = CreateDrawingSettings(shaderTagIdList[0], ref renderingData, sortingCriteria);
+                for (int i = 1; i < shaderTagIdList.Count; ++i)
+                    settings.SetShaderPassName(i, shaderTagIdList[i]);
+                return settings;
+            }
         }
 
         public static bool operator<(ScriptableRenderPass lhs, ScriptableRenderPass rhs)
@@ -406,75 +412,6 @@ namespace UnityEngine.Rendering.Universal
         public static bool operator>(ScriptableRenderPass lhs, ScriptableRenderPass rhs)
         {
             return lhs.renderPassEvent > rhs.renderPassEvent;
-        }
-
-        [Conditional("DEVELOPMENT_BUILD"), Conditional("UNITY_EDITOR")]
-        protected void RenderObjectWithDebug(ScriptableRenderContext context, List<ShaderTagId> shaderTagIds,
-            ref RenderingData renderingData, FilteringSettings filterSettings, SortingCriteria sortingCriteria)
-        {
-            bool overrideMaterial = DebugHandler.TryGetReplacementMaterial(out Material replacementMaterial);
-            DrawingSettings debugSettings = overrideMaterial
-                ? CreateDrawingSettings(shaderTagIds, ref renderingData, sortingCriteria)
-                : CreateDrawingSettings(s_DebugMaterialShaderTagId, ref renderingData, sortingCriteria);
-
-            if (overrideMaterial)
-            {
-                RenderStateBlock wireframeRasterState = new RenderStateBlock();
-                bool wireframe = false;
-
-                debugSettings.overrideMaterial = replacementMaterial;
-
-                DebugSceneOverrideMode sceneOverride = DebugHandler.DebugDisplaySettings.RenderingSettings.debugSceneOverrideMode;
-
-                if(sceneOverride != DebugSceneOverrideMode.None)
-                {
-                    switch (sceneOverride)
-                    {
-                        case DebugSceneOverrideMode.Overdraw:
-                            debugSettings.overrideMaterialPassIndex = 0;
-                            break;
-
-                        case DebugSceneOverrideMode.Wireframe:
-                            debugSettings.overrideMaterialPassIndex = 1;
-                            wireframe = true;
-                            break;
-
-                        case DebugSceneOverrideMode.SolidWireframe:
-                            debugSettings.overrideMaterialPassIndex = 1;
-                            wireframe = true;
-
-                            replacementMaterial.SetColor("_DebugColor", Color.white);
-                            context.DrawRenderers(renderingData.cullResults, ref debugSettings, ref filterSettings);
-
-                            wireframeRasterState.rasterState = new RasterState(CullMode.Back, -1, -1, true);
-                            wireframeRasterState.mask = RenderStateMask.Raster;
-                            break;
-                    }
-                }
-                else if(DebugHandler.DebugDisplaySettings.MaterialSettings.DebugVertexAttributeIndexData != DebugVertexAttributeMode.None)
-                {
-                    debugSettings.overrideMaterialPassIndex = 2;
-                }
-
-                if(wireframe)
-                {
-                    context.Submit();
-                    GL.wireframe = true;
-
-                    replacementMaterial.SetColor("_DebugColor", Color.black);
-                    context.DrawRenderers(renderingData.cullResults, ref debugSettings, ref filterSettings, ref wireframeRasterState);
-                    context.Submit();
-                    GL.wireframe = false;
-                }
-                else
-                {
-                    context.DrawRenderers(renderingData.cullResults, ref debugSettings, ref filterSettings);
-                }
-            }
-            else
-            {
-                context.DrawRenderers(renderingData.cullResults, ref debugSettings, ref filterSettings);
-            }
         }
     }
 }

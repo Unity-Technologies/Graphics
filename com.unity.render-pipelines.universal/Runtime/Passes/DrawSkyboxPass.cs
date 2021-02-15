@@ -1,4 +1,3 @@
-using UnityEditor.Rendering;
 
 namespace UnityEngine.Rendering.Universal
 {
@@ -19,6 +18,8 @@ namespace UnityEngine.Rendering.Universal
         /// <inheritdoc/>
         public override void Execute(ScriptableRenderContext context, ref RenderingData renderingData)
         {
+            Camera camera = renderingData.cameraData.camera;
+
 #if ENABLE_VR && ENABLE_XR_MODULE
             // XRTODO: Remove this code once Skybox pass is moved to SRP land.
             if (renderingData.cameraData.xr.enabled)
@@ -45,7 +46,7 @@ namespace UnityEngine.Rendering.Universal
                     // Disable Legacy XR path
                     cmd.SetSinglePassStereo(SinglePassStereoMode.None);
                     context.ExecuteCommandBuffer(cmd);
-                    // We do not need to submit here due to special handling of stereo matricies in core.
+                    // We do not need to submit here due to special handling of stereo matrices in core.
                     // context.Submit();
                     CommandBufferPool.Release(cmd);
 
@@ -68,21 +69,25 @@ namespace UnityEngine.Rendering.Universal
             else
 #endif
             {
-                if(DebugHandler != null && DebugHandler.TryGetReplacementMaterial(out Material replacementMaterial))
-        	    {
-            	    Material skyboxMaterial = RenderSettings.skybox;
+                if((DebugHandler != null) && DebugHandler.IsDebugMaterialActive)
+                {
+                    CommandBuffer cmd = CommandBufferPool.Get();
 
-                	RenderSettings.skybox = replacementMaterial;
+                    foreach(DebugRenderPass debugRenderPass in DebugHandler.CreateDebugRenderPasses(context, cmd))
+                    {
+                        // TODO: The skybox needs to work the same as the other shaders, but until it does we'll not render it under certain circumstances...
+                        if(!DebugHandler.IsScreenClearNeeded)
+                        {
+                            context.DrawSkybox(camera);
+                        }
+                    }
 
-	                context.Submit();
-    	            context.DrawSkybox(renderingData.cameraData.camera);
-        	        context.Submit();
-
-            	    RenderSettings.skybox = skyboxMaterial;
-	            }
+                    context.ExecuteCommandBuffer(cmd);
+                    CommandBufferPool.Release(cmd);
+                }
     	        else
         	    {
-                	context.DrawSkybox(renderingData.cameraData.camera);
+                	context.DrawSkybox(camera);
             	}
             }
         }

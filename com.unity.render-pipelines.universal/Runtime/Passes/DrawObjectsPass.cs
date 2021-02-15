@@ -94,29 +94,31 @@ namespace UnityEngine.Rendering.Universal.Internal
                 }
                 #endif
 
+                DrawingSettings drawSettings = CreateDrawingSettings(m_ShaderTagIdList, ref renderingData, sortFlags);
+
                 if ((DebugHandler != null) &&
                     (DebugHandler.IsDebugMaterialActive || DebugHandler.IsReplacementMaterialNeeded))
                 {
-                    if(DebugHandler.DebugDisplaySettings.LightingSettings.DebugLightingMode == DebugLightingMode.ShadowCascades)
+                    foreach(DebugRenderPass debugRenderPass in DebugHandler.CreateDebugRenderPasses(context, cmd, ref drawSettings))
                     {
-                        // we disable cubemap reflections, too distracting (in TemplateLWRP for ex.)
-                        cmd.EnableShaderKeyword("_DEBUG_ENVIRONMENTREFLECTIONS_OFF");
-                        context.ExecuteCommandBuffer(cmd);
-                        cmd.Clear();
+                        if(debugRenderPass.GetRenderStateBlock(out RenderStateBlock renderStateBlock))
+                        {
+                            context.DrawRenderers(renderingData.cullResults, ref drawSettings, ref filterSettings, ref renderStateBlock);
+                        }
+                        else
+                        {
+                            context.DrawRenderers(renderingData.cullResults, ref drawSettings, ref filterSettings, ref m_RenderStateBlock);
+                        }
                     }
-
-                    RenderObjectWithDebug(context, m_ShaderTagIdList, ref renderingData, filterSettings, sortFlags);
                 }
                 else
                 {
-	                var drawSettings = CreateDrawingSettings(m_ShaderTagIdList, ref renderingData, sortFlags);
-
             	    context.DrawRenderers(renderingData.cullResults, ref drawSettings, ref filterSettings, ref m_RenderStateBlock);
 
 	                // Render objects that did not match any shader pass with error shader
     	            RenderingUtils.RenderObjectsWithError(context, ref renderingData.cullResults, camera, filterSettings, SortingCriteria.None);
         	    }
-             }
+            }
             context.ExecuteCommandBuffer(cmd);
             CommandBufferPool.Release(cmd);
         }

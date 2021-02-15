@@ -39,6 +39,7 @@ half _DebugValidateAlbedoSaturationTolerance = 0.214;
 half _DebugValidateAlbedoHueTolerance = 0.104;
 half3 _DebugValidateAlbedoCompareColor = half3(0.5, 0.5, 0.5);
 
+float4 _DebugColor;
 sampler2D _DebugNumberTexture;
 
 struct DebugData
@@ -295,7 +296,7 @@ half4 GetMipCountDebugColor(in InputData inputData, in SurfaceData surfaceData, 
     return CalculateDebugColorWithNumber(inputData, surfaceData, mipCount);
 }
 
-bool CalculateValidationColorForDebug(InputData inputData, SurfaceData surfaceData, DebugData debugData, out half4 color)
+bool CalculateValidationColorForDebug(in InputData inputData, in SurfaceData surfaceData, in DebugData debugData, out half4 color)
 {
     if (_DebugValidationMode == DEBUGVALIDATIONMODE_VALIDATE_ALBEDO)
     {
@@ -340,80 +341,100 @@ bool CalculateValidationColorForDebug(InputData inputData, SurfaceData surfaceDa
     }
 }
 
-bool CalculateValidationColorForMipMaps(InputData inputData, SurfaceData surfaceData, DebugData debugData, out half4 color)
+bool CalculateValidationColorForMipMaps(in InputData inputData, in SurfaceData surfaceData, in DebugData debugData, out half4 color)
 {
-    color = half4(surfaceData.albedo, 1);
-
     switch (_DebugMipInfoMode)
     {
         case DEBUGMIPINFOMODE_LEVEL:
             color = GetMipLevelDebugColor(inputData, surfaceData, debugData);
             return true;
+
         case DEBUGMIPINFOMODE_COUNT:
             color = GetMipCountDebugColor(inputData, surfaceData, debugData);
             return true;
+
         default:
+            color = half4(0, 0, 0, 1);
             return false;
     }
 }
 
-bool CalculateColorForDebugMaterial(InputData inputData, SurfaceData surfaceData, DebugData debugData, out half4 color)
+bool CalculateColorForDebugMaterial(in InputData inputData, in SurfaceData surfaceData, in DebugData debugData, out half4 color)
 {
-    color = half4(0, 0, 0, 1);
-
     // Debug materials...
     switch(_DebugMaterialMode)
     {
         case DEBUGMATERIALMODE_UNLIT:
-            color.rgb = surfaceData.albedo;
+            color = half4(surfaceData.albedo, 1);
             return true;
 
         case DEBUGMATERIALMODE_DIFFUSE:
-            color.rgb = debugData.brdfDiffuse;
+            color = half4(debugData.brdfDiffuse, 1);
             return true;
 
         case DEBUGMATERIALMODE_SPECULAR:
-            color.rgb = debugData.brdfSpecular;
+            color = half4(debugData.brdfSpecular, 1);
             return true;
 
         case DEBUGMATERIALMODE_ALPHA:
-            color.rgb = surfaceData.alpha.rrr;
+            color = half4(surfaceData.alpha.rrr, 1);
             return true;
 
         case DEBUGMATERIALMODE_SMOOTHNESS:
-            color.rgb = surfaceData.smoothness.rrr;
+            color = half4(surfaceData.smoothness.rrr, 1);
             return true;
 
         case DEBUGMATERIALMODE_AMBIENT_OCCLUSION:
-            color.rgb = surfaceData.occlusion.rrr;
+            color = half4(surfaceData.occlusion.rrr, 1);
             return true;
 
         case DEBUGMATERIALMODE_EMISSION:
-            color.rgb = surfaceData.emission;
+            color = half4(surfaceData.emission, 1);
             return true;
 
         case DEBUGMATERIALMODE_NORMAL_WORLD_SPACE:
-            color.rgb = inputData.normalWS.xyz * 0.5 + 0.5;
+            color = half4(inputData.normalWS.xyz * 0.5 + 0.5, 1);
             return true;
 
         case DEBUGMATERIALMODE_NORMAL_TANGENT_SPACE:
-            color.rgb = surfaceData.normalTS.xyz * 0.5 + 0.5;
+            color = half4(surfaceData.normalTS.xyz * 0.5 + 0.5, 1);
             return true;
+
         case DEBUGMATERIALMODE_LOD:
-            color.rgb = GetLODDebugColor();
+            color = half4(GetLODDebugColor(), 1);
             return true;
+
         case DEBUGMATERIALMODE_METALLIC:
-            color.rgb = surfaceData.metallic.rrr;
+            color = half4(surfaceData.metallic.rrr, 1);
             return true;
 
         default:
+            color = half4(0, 0, 0, 1);
             return false;
     }
 }
 
-bool CalculateColorForDebug(InputData inputData, SurfaceData surfaceData, DebugData debugData, out half4 color)
+bool CalculateColorForDebugSceneOverride(in InputData inputData, in SurfaceData surfaceData, in DebugData debugData, out half4 color)
 {
-    if(CalculateColorForDebugMaterial(inputData, surfaceData, debugData, color))
+    if(_DebugSceneOverrideMode == DEBUGSCENEOVERRIDEMODE_NONE)
+    {
+        color = half4(0, 0, 0, 1);
+        return false;
+    }
+    else
+    {
+        color = _DebugColor;
+        return true;
+    }
+}
+
+bool CalculateColorForDebug(in InputData inputData, in SurfaceData surfaceData, in DebugData debugData, out half4 color)
+{
+    if(CalculateColorForDebugSceneOverride(inputData, surfaceData, debugData, color))
+    {
+        return true;
+    }
+    else if(CalculateColorForDebugMaterial(inputData, surfaceData, debugData, color))
     {
         return true;
     }
@@ -433,6 +454,26 @@ bool CalculateColorForDebug(InputData inputData, SurfaceData surfaceData, DebugD
 }
 
 #endif
+
+bool IsAlphaDiscardEnabled()
+{
+    #if defined(_DEBUG_SHADER)
+    return (_DebugSceneOverrideMode == DEBUGSCENEOVERRIDEMODE_NONE) ||
+           (_DebugMaterialMode == DEBUGMATERIALMODE_NONE) ||
+           (_DebugMipInfoMode == DEBUGMIPINFOMODE_NONE);
+    #else
+    return true;
+    #endif
+}
+
+bool IsFogEnabled()
+{
+    #if defined(_DEBUG_SHADER)
+    return (_DebugSceneOverrideMode == DEBUGSCENEOVERRIDEMODE_NONE);
+    #else
+    return true;
+    #endif
+}
 
 bool IsLightingFeatureEnabled(uint bitMask)
 {

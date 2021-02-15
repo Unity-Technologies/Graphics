@@ -1,4 +1,6 @@
 
+using System.Collections;
+using System.Collections.Generic;
 using System.Diagnostics;
 using UnityEditor.Rendering;
 using UnityEngine.Rendering.Universal.Internal;
@@ -7,6 +9,8 @@ namespace UnityEngine.Rendering.Universal
 {
     public class DebugHandler : IDebugDisplaySettingsQuery
     {
+        private static readonly int s_DebugColorPropertyId = Shader.PropertyToID("_DebugColor");
+
         private readonly Material m_FullScreenDebugMaterial;
         private readonly Texture2D m_NumberFontTexture;
         private readonly Material m_ReplacementMaterial;
@@ -53,8 +57,7 @@ namespace UnityEngine.Rendering.Universal
 
         public DebugDisplaySettings DebugDisplaySettings => m_DebugDisplaySettings;
 
-        public bool IsReplacementMaterialNeeded => (RenderingSettings.debugSceneOverrideMode != DebugSceneOverrideMode.None) ||
-                                                   (MaterialSettings.DebugVertexAttributeIndexData != DebugVertexAttributeMode.None);
+        public bool IsReplacementMaterialNeeded => (MaterialSettings.DebugVertexAttributeIndexData != DebugVertexAttributeMode.None);
 
         public bool IsScreenClearNeeded
         {
@@ -125,6 +128,45 @@ namespace UnityEngine.Rendering.Universal
             return debugFullScreenMode != DebugFullScreenMode.None;
         }
 
+        public void SetupShaderProperties(CommandBuffer cmd, int passIndex = 0)
+        {
+            if(LightingSettings.DebugLightingMode == DebugLightingMode.ShadowCascades)
+            {
+                // we disable cubemap reflections, too distracting (in TemplateLWRP for ex.)
+                cmd.EnableShaderKeyword("_DEBUG_ENVIRONMENTREFLECTIONS_OFF");
+            }
+
+            switch(RenderingSettings.debugSceneOverrideMode)
+            {
+                case DebugSceneOverrideMode.Overdraw:
+                {
+                    cmd.SetGlobalColor(s_DebugColorPropertyId, new Color(0.1f, 0, 0, 1));
+                    break;
+                }
+
+                case DebugSceneOverrideMode.Wireframe:
+                {
+                    cmd.SetGlobalColor(s_DebugColorPropertyId, Color.black);
+                    break;
+                }
+
+                case DebugSceneOverrideMode.SolidWireframe:
+                {
+                    cmd.SetGlobalColor(s_DebugColorPropertyId, (passIndex == 0) ? Color.white : Color.black);
+                    break;
+                }
+            } // End of switch.
+
+            if(ValidationSettings.validationMode == DebugValidationMode.ValidateAlbedo)
+            {
+                cmd.SetGlobalFloat(m_DebugValidateAlbedoMinLuminanceId, ValidationSettings.AlbedoMinLuminance);
+                cmd.SetGlobalFloat(m_DebugValidateAlbedoMaxLuminanceId, ValidationSettings.AlbedoMaxLuminance);
+                cmd.SetGlobalFloat(m_DebugValidateAlbedoSaturationToleranceId, ValidationSettings.AlbedoSaturationTolerance);
+                cmd.SetGlobalFloat(m_DebugValidateAlbedoHueToleranceId, ValidationSettings.AlbedoHueTolerance);
+                cmd.SetGlobalColor(m_DebugValidateAlbedoCompareColorId, ValidationSettings.AlbedoCompareColor.linear);
+            }
+        }
+
         [Conditional("DEVELOPMENT_BUILD"), Conditional("UNITY_EDITOR")]
         public void Setup(ScriptableRenderContext context)
         {
@@ -145,15 +187,112 @@ namespace UnityEngine.Rendering.Universal
 
             // Validation settings...
             cmd.SetGlobalInt(m_DebugValidationModeId, (int)ValidationSettings.validationMode);
-            cmd.SetGlobalFloat(m_DebugValidateAlbedoMinLuminanceId, ValidationSettings.AlbedoMinLuminance);
-            cmd.SetGlobalFloat(m_DebugValidateAlbedoMaxLuminanceId, ValidationSettings.AlbedoMaxLuminance);
-            cmd.SetGlobalFloat(m_DebugValidateAlbedoSaturationToleranceId, ValidationSettings.AlbedoSaturationTolerance);
-            cmd.SetGlobalFloat(m_DebugValidateAlbedoHueToleranceId, ValidationSettings.AlbedoHueTolerance);
-            cmd.SetGlobalColor(m_DebugValidateAlbedoCompareColorId, ValidationSettings.AlbedoCompareColor.linear);
 
+            // Set-up any other persistent properties...
             cmd.SetGlobalTexture("_DebugNumberTexture", m_NumberFontTexture);
             context.ExecuteCommandBuffer(cmd);
             CommandBufferPool.Release(cmd);
         }
+
+        #region DebugRenderPasses
+        private class DebugRenderPassEnumerable : IEnumerable<DebugRenderPass>
+        {
+            private class Enumerator : IEnumerator<DebugRenderPass>
+            {
+                private readonly DebugHandler m_DebugHandler;
+                private readonly ScriptableRenderContext m_Context;
+                private readonly CommandBuffer m_CommandBuffer;
+                private readonly int m_NumPasses;
+
+                private int m_Index;
+
+                public DebugRenderPass Current { get; private set; }
+                object IEnumerator.Current => Current;
+
+                public Enumerator(DebugHandler debugHandler, ScriptableRenderContext context, CommandBuffer commandBuffer)
+                {
+                    m_DebugHandler = debugHandler;
+                    m_Context = context;
+                    m_CommandBuffer = commandBuffer;
+                    m_NumPasses = DebugRenderPass.GetNumPasses(debugHandler);
+
+                    m_Index = -1;
+                }
+
+                #region IEnumerator<DebugRenderPass>
+                public bool MoveNext()
+                {
+                    Current?.Dispose();
+
+                    if(++m_Index >= m_NumPasses)
+                    {
+                        return false;
+                    }
+                    else
+                    {
+                        Current = new DebugRenderPass(m_DebugHandler, m_Context, m_CommandBuffer, m_Index);
+                        return true;
+                    }
+                }
+
+                public void Reset()
+                {
+                    if(Current != null)
+                    {
+                        Current.Dispose();
+                        Current = null;
+                    }
+                    m_Index = -1;
+                }
+
+                public void Dispose()
+                {
+                    Current?.Dispose();
+                }
+                #endregion
+            }
+
+            private readonly DebugHandler m_DebugHandler;
+            private readonly ScriptableRenderContext m_Context;
+            private readonly CommandBuffer m_CommandBuffer;
+
+            public DebugRenderPassEnumerable(DebugHandler debugHandler, ScriptableRenderContext context, CommandBuffer commandBuffer)
+            {
+                m_DebugHandler = debugHandler;
+                m_Context = context;
+                m_CommandBuffer = commandBuffer;
+            }
+
+            #region IEnumerable<DebugRenderPass>
+            public IEnumerator<DebugRenderPass> GetEnumerator()
+            {
+                return new Enumerator(m_DebugHandler, m_Context, m_CommandBuffer);
+            }
+
+            IEnumerator IEnumerable.GetEnumerator()
+            {
+                return GetEnumerator();
+            }
+            #endregion
+        }
+
+        public IEnumerable<DebugRenderPass> CreateDebugRenderPasses(ScriptableRenderContext context,
+                                                                    CommandBuffer commandBuffer)
+        {
+            return new DebugRenderPassEnumerable(this, context, commandBuffer);
+        }
+
+        public IEnumerable<DebugRenderPass> CreateDebugRenderPasses(ScriptableRenderContext context,
+                                                                    CommandBuffer commandBuffer,
+                                                                    ref DrawingSettings drawingSettings)
+        {
+            if(TryGetReplacementMaterial(out Material replacementMaterial))
+            {
+                drawingSettings.overrideMaterial = replacementMaterial;
+            }
+
+            return CreateDebugRenderPasses(context, commandBuffer);
+        }
+        #endregion
     }
 }

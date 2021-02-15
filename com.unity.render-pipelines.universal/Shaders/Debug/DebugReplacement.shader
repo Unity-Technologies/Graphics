@@ -6,95 +6,6 @@ Shader "Hidden/Universal Render Pipeline/Debug/DebugReplacement"
 
         Pass
         {
-            Name "Overdraw"
-            Tags {"LightMode" = "UniversalForward"}
-
-            Blend One One
-            ZWrite On
-            Cull Back
-
-            HLSLPROGRAM
-            // Required to compile gles 2.0 with standard SRP library
-            // All shaders must be compiled with HLSLcc and currently only gles is not using HLSLcc by default
-            #pragma prefer_hlslcc gles
-            #pragma exclude_renderers d3d11_9x
-            #pragma target 2.0
-
-            #pragma vertex vert
-            #pragma fragment frag
-
-            #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Core.hlsl"
-            #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Debugging.hlsl"
-
-            struct Attributes
-            {
-                float4 positionOS : POSITION;
-            };
-
-            struct Varyings
-            {
-                float4 positionCS : SV_POSITION;
-            };
-
-            Varyings vert(Attributes IN)
-            {
-                Varyings OUT;
-                OUT.positionCS = TransformObjectToHClip(IN.positionOS.xyz);
-                return OUT;
-            }
-
-            half4 frag(Varyings IN) : SV_Target
-            {
-                return kRedColor * half4(0.1, 0.1, 0.1, 1.0);
-            }
-            ENDHLSL
-        }
-
-        Pass
-        {
-            Name "Wireframe"
-            Tags {"LightMode" = "UniversalForward"}
-
-            HLSLPROGRAM
-            // Required to compile gles 2.0 with standard SRP library
-            // All shaders must be compiled with HLSLcc and currently only gles is not using HLSLcc by default
-            #pragma prefer_hlslcc gles
-            #pragma exclude_renderers d3d11_9x
-            #pragma target 2.0
-
-            #pragma vertex vert
-            #pragma fragment frag
-
-            #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Core.hlsl"
-
-            struct Attributes
-            {
-                float4 positionOS : POSITION;
-            };
-
-            struct Varyings
-            {
-                float4 positionCS : SV_POSITION;
-            };
-
-            float3 _DebugColor;
-
-            Varyings vert(Attributes IN)
-            {
-                Varyings OUT;
-                OUT.positionCS = TransformObjectToHClip(IN.positionOS.xyz);
-                return OUT;
-            }
-
-            half4 frag(Varyings IN) : SV_Target
-            {
-                return half4(_DebugColor, 1.0);
-            }
-            ENDHLSL
-        }
-
-        Pass
-        {
             Name "Vertex Attributes"
             Tags {"LightMode" = "UniversalForward"}
 
@@ -129,13 +40,13 @@ Shader "Hidden/Universal Render Pipeline/Debug/DebugReplacement"
             struct Varyings
             {
                 float4 positionCS : SV_POSITION;
-                float4 texcoord0         : TEXCOORD0;
-                float4 texcoord1         : TEXCOORD1;
-                float4 texcoord2         : TEXCOORD2;
-                float4 texcoord3         : TEXCOORD3;
-                float4 color             : COLOR;
-                float4 normal            : NORMAL;
-                float4 tangent           : TANGENT;
+                float4 texcoord0  : TEXCOORD0;
+                float4 texcoord1  : TEXCOORD1;
+                float4 texcoord2  : TEXCOORD2;
+                float4 texcoord3  : TEXCOORD3;
+                float4 color      : COLOR;
+                float4 normal     : NORMAL;
+                float4 tangent    : TANGENT;
             };
 
             Varyings vert(Attributes input)
