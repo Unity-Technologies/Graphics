@@ -203,7 +203,7 @@ void TEMPORAL_FILTER(uint3 dispatchThreadId : SV_DispatchThreadID
 #else
     DecodeMotionVector(LOAD_TEXTURE2D_X(_CameraMotionVectorsTexture, (float2)centerCoord), velocity);
 #endif
-    
+
 #if HALF_RES
     // Compute the pixel coordinate for the history tapping
     float2 historyTapCoord = (float2)((posInputs.positionNDC - velocity) * _HalfScreenSize.xy);

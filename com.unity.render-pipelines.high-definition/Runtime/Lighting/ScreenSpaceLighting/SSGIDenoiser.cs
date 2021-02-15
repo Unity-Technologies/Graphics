@@ -324,9 +324,9 @@ namespace UnityEngine.Rendering.HighDefinition
 
                 // Output buffers
                 passData.outputBuffer0 = builder.WriteTexture(renderGraph.CreateTexture(new TextureDesc(Vector2.one, true, true)
-                { colorFormat = GraphicsFormat.B10G11R11_UFloatPack32, enableRandomWrite = true, name = "SSGI Denoised 0" }));
+                    { colorFormat = GraphicsFormat.B10G11R11_UFloatPack32, enableRandomWrite = true, name = "SSGI Denoised 0" }));
                 passData.outputBuffer1 = builder.WriteTexture(renderGraph.CreateTexture(new TextureDesc(Vector2.one, true, true)
-                { colorFormat = GraphicsFormat.R16G16_SFloat, enableRandomWrite = true, name = "SSGI Denoised 1" }));
+                    { colorFormat = GraphicsFormat.R16G16_SFloat, enableRandomWrite = true, name = "SSGI Denoised 1" }));
 
                 // Parameters
                 passData.parameters = PrepareSSGIDenoiserParameters(hdCamera, halfResolution, historyValidity, historyRequireClear, depthMipInfo);
