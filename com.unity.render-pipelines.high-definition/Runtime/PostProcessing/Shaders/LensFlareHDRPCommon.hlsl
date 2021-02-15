@@ -140,6 +140,7 @@ Varyings vert(Attributes input)
 
     if (_FlareOffscreen < 0.0f && // No lens flare off screen
         (any(_FlareScreenPos.xy < -1) || any(_FlareScreenPos.xy >= 1)))
+        occlusion *= 0.0f;
 
     output.occlusion = occlusion;
 
