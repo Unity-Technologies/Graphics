@@ -32,8 +32,6 @@ public class FPSController : MonoBehaviour
     // Update is called once per frame
     void FixedUpdate()
     {
-        
-
         //Move based on wasd input
         Vector3 forward = transform.forward;
         forward.y = 0;
