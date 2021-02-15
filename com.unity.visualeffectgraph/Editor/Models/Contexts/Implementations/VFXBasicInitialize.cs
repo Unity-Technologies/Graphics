@@ -43,7 +43,7 @@ namespace UnityEditor.VFX
                     yield return "VFX_USE_SPAWNER_FROM_GPU";
 
                 if (hasDynamicSourceCount)
-                    yield return "VFX_USE_DIRECT_LINK_EVENT"; //TODOPAUL : Rename define
+                    yield return "VFX_USE_DYNAMIC_SOURCE_COUNT";
 
                 if (ownedType == VFXDataType.ParticleStrip)
                     yield return "HAS_STRIPS";

@@ -12,8 +12,8 @@ CBUFFER_START(initParams)
     uint nbSpawned;					// Numbers of particle spawned
     uint spawnIndex;				// Index of the first particle spawned
     uint dispatchWidth;
-#if VFX_USE_DIRECT_LINK_EVENT
-    uint nbEvents;
+#if VFX_USE_DYNAMIC_SOURCE_COUNT
+    uint nbEvents;					// Number of spawn events
 #endif
 #else
     uint offsetInAdditionalOutput;
