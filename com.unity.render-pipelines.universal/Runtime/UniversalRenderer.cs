@@ -227,15 +227,30 @@ namespace UnityEngine.Rendering.Universal
 
             m_DepthTexture = RTHandles.Alloc(Shader.PropertyToID("_CameraDepthTexture"), "_CameraDepthTexture");
             m_NormalsTexture = RTHandles.Alloc(Shader.PropertyToID("_CameraNormalsTexture"), "_CameraNormalsTexture");
-            if (this.renderingMode == RenderingMode.Deferred)
+            if (renderingMode == RenderingMode.Deferred)
             {
                 m_GBufferHandles = new RTHandle[(int)DeferredLights.GBufferHandles.Count];
-                m_GBufferHandles[(int)DeferredLights.GBufferHandles.DepthAsColor] = RTHandles.Alloc("_CameraOpaqueTexture", "_CameraOpaqueTexture");
-                m_GBufferHandles[(int)DeferredLights.GBufferHandles.Albedo] = RTHandles.Alloc("_GBuffer0", "_GBuffer0");
-                m_GBufferHandles[(int)DeferredLights.GBufferHandles.SpecularMetallic] = RTHandles.Alloc("_GBuffer1", "_GBuffer1");
-                m_GBufferHandles[(int)DeferredLights.GBufferHandles.NormalSmoothness] = RTHandles.Alloc("_GBuffer2", "_GBuffer2");
-                m_GBufferHandles[(int)DeferredLights.GBufferHandles.Lighting] = RTHandles.Alloc("_GBuffer3", "_GBuffer3");
-                m_GBufferHandles[(int)DeferredLights.GBufferHandles.ShadowMask] = RTHandles.Alloc("_GBuffer4", "_GBuffer4");
+                m_GBufferHandles[(int)DeferredLights.GBufferHandles.DepthAsColor] = RTHandles.Alloc(
+                    Vector2.one,
+                    colorFormat: DeferredLights.GetGBufferFormat(DeferredLights.GBufferHandles.DepthAsColor),
+                    name: "_CameraOpaqueTexture");
+                m_GBufferHandles[(int)DeferredLights.GBufferHandles.Albedo] = RTHandles.Alloc(
+                    Vector2.one,
+                    colorFormat: DeferredLights.GetGBufferFormat(DeferredLights.GBufferHandles.Albedo),
+                    name: "_GBuffer0");
+                m_GBufferHandles[(int)DeferredLights.GBufferHandles.SpecularMetallic] = RTHandles.Alloc(
+                    Vector2.one,
+                    colorFormat: DeferredLights.GetGBufferFormat(DeferredLights.GBufferHandles.SpecularMetallic),
+                    name: "_GBuffer1");
+                m_GBufferHandles[(int)DeferredLights.GBufferHandles.NormalSmoothness] = RTHandles.Alloc(
+                    Vector2.one,
+                    colorFormat: DeferredLights.GetGBufferFormat(DeferredLights.GBufferHandles.NormalSmoothness, accurateGbufferNormals),
+                    name: "_GBuffer2");
+                m_GBufferHandles[(int)DeferredLights.GBufferHandles.Lighting] = null; // Set to be m_ActiveCameraAttachments during runtime
+                m_GBufferHandles[(int)DeferredLights.GBufferHandles.ShadowMask] = RTHandles.Alloc(
+                    Vector2.one,
+                    colorFormat: DeferredLights.GetGBufferFormat(DeferredLights.GBufferHandles.ShadowMask),
+                    name: "_GBuffer4");
             }
             m_OpaqueColor = RTHandles.Alloc(size =>
                 {
@@ -298,6 +313,11 @@ namespace UnityEngine.Rendering.Universal
             m_CameraAttachments.color.Release();
             m_CameraAttachments.depth.Release();
             m_OpaqueColor.Release();
+            m_GBufferHandles[(int)DeferredLights.GBufferHandles.DepthAsColor].Release();
+            m_GBufferHandles[(int)DeferredLights.GBufferHandles.Albedo].Release();
+            m_GBufferHandles[(int)DeferredLights.GBufferHandles.SpecularMetallic].Release();
+            m_GBufferHandles[(int)DeferredLights.GBufferHandles.NormalSmoothness].Release();
+            m_GBufferHandles[(int)DeferredLights.GBufferHandles.ShadowMask].Release();
 
             Blitter.Cleanup();
         }
