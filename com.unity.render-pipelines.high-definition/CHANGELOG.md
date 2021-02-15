@@ -12,6 +12,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Added color and intensity customization for Decals.
 - Added a history rejection criterion based on if the pixel was moving in world space (case 1302392).
 - Added the default quality settings to the HDRP asset for RTAO, RTR and RTGI (case 1304370).
+- Added an option to have double sided GI be controlled separately from material double-sided option.
+- Added new AOV APIs for overriding the internal rendering format, and for outputing the world space position.
 
 ### Fixed
 - Fixed an exception when opening the color picker in the material UI (case 1307143).
@@ -28,6 +30,11 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - VFX: Debug material view were rendering pink for albedo. (case 1290752)
 - VFX: Debug material view incorrect depth test. (case 1293291)
 - VFX: Fixed LPPV with lit particles in deferred (case 1293608)
+- Fixed incorrect debug wireframe overlay on tessellated geometry (using littessellation), caused by the picking pass using an incorrect camera matrix.
+- Fixed nullref in layered lit shader editor.
+- Fix issue with Depth of Field CoC debug view.
+- Fixed an issue where first frame of SSAO could exhibit ghosting artefacts.
+- Fixed an issue with the mipmap generation internal format after rendering format change.
 
 ### Changed
 - Changed Window/Render Pipeline/HD Render Pipeline Wizard to Window/Rendering/HDRP Wizard
@@ -50,6 +57,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Change Assets/Create/Rendering/Diffusion Profile to Assets/Create/Rendering/HDRP Diffusion Profile
 - Change Assets/Create/Rendering/C# Custom Pass to Assets/Create/Rendering/HDRP C# Custom Pass
 - Change Assets/Create/Rendering/C# Post Process Volume to Assets/Create/Rendering/HDRP C# Post Process Volume
+- Change labels about scroll direction and cloud type.
+- Improved shadow cascade GUI drawing with pixel perfect, hover and focus functionalities.
 
 ## [11.0.0] - 2020-10-21
 
