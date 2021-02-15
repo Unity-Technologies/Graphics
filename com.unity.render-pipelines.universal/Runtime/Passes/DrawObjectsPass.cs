@@ -98,7 +98,7 @@ namespace UnityEngine.Rendering.Universal.Internal
 
                 if((DebugHandler != null) && DebugHandler.IsDebugPassEnabled(ref renderingData.cameraData))
                 {
-                    foreach(DebugRenderPass debugRenderPass in DebugHandler.CreateDebugRenderPasses(context, cmd, ref drawSettings))
+                    foreach(DebugRenderSetup debugRenderPass in DebugHandler.CreateDebugRenderSetupEnumerable(context, cmd, ref drawSettings))
                     {
                         if(debugRenderPass.GetRenderStateBlock(out RenderStateBlock renderStateBlock))
                         {

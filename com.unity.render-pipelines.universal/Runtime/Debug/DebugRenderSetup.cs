@@ -3,7 +3,7 @@ using System;
 
 namespace UnityEngine.Rendering.Universal
 {
-    public class DebugRenderPass : IDisposable
+    public class DebugRenderSetup : IDisposable
     {
         private readonly DebugHandler m_DebugHandler;
         private readonly ScriptableRenderContext m_Context;
@@ -70,12 +70,12 @@ namespace UnityEngine.Rendering.Universal
             } // End of switch.
         }
 
-        public DebugRenderPass(DebugHandler debugHandler, ScriptableRenderContext context, CommandBuffer commandBuffer, int passIndex)
+        public DebugRenderSetup(DebugHandler debugHandler, ScriptableRenderContext context, CommandBuffer commandBuffer, int index)
         {
             m_DebugHandler = debugHandler;
             m_Context = context;
             m_CommandBuffer = commandBuffer;
-            m_Index = passIndex;
+            m_Index = index;
 
             Begin();
         }
@@ -127,13 +127,6 @@ namespace UnityEngine.Rendering.Universal
         public void Dispose()
         {
             End();
-        }
-
-        public static int GetNumPasses(DebugHandler debugHandler)
-        {
-            DebugSceneOverrideMode sceneOverrideMode = debugHandler.DebugDisplaySettings.RenderingSettings.debugSceneOverrideMode;
-
-            return (sceneOverrideMode == DebugSceneOverrideMode.SolidWireframe) ? 2 : 1;
         }
     }
 }

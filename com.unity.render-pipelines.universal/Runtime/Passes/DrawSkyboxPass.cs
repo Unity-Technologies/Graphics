@@ -73,7 +73,7 @@ namespace UnityEngine.Rendering.Universal
                 {
                     CommandBuffer cmd = CommandBufferPool.Get();
 
-                    foreach(DebugRenderPass debugRenderPass in DebugHandler.CreateDebugRenderPasses(context, cmd))
+                    foreach(DebugRenderSetup debugRenderPass in DebugHandler.CreateDebugRenderSetupEnumerable(context, cmd))
                     {
                         // TODO: The skybox needs to work the same as the other shaders, but until it does we'll not render it under certain circumstances...
                         if(!DebugHandler.IsScreenClearNeeded)

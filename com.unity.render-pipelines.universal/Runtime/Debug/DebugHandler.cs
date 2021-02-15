@@ -201,42 +201,44 @@ namespace UnityEngine.Rendering.Universal
         }
 
         #region DebugRenderPasses
-        private class DebugRenderPassEnumerable : IEnumerable<DebugRenderPass>
+        private class DebugRenderPassEnumerable : IEnumerable<DebugRenderSetup>
         {
-            private class Enumerator : IEnumerator<DebugRenderPass>
+            private class Enumerator : IEnumerator<DebugRenderSetup>
             {
                 private readonly DebugHandler m_DebugHandler;
                 private readonly ScriptableRenderContext m_Context;
                 private readonly CommandBuffer m_CommandBuffer;
-                private readonly int m_NumPasses;
+                private readonly int m_NumIterations;
 
                 private int m_Index;
 
-                public DebugRenderPass Current { get; private set; }
+                public DebugRenderSetup Current { get; private set; }
                 object IEnumerator.Current => Current;
 
                 public Enumerator(DebugHandler debugHandler, ScriptableRenderContext context, CommandBuffer commandBuffer)
                 {
+                    DebugSceneOverrideMode sceneOverrideMode = debugHandler.DebugDisplaySettings.RenderingSettings.debugSceneOverrideMode;
+
                     m_DebugHandler = debugHandler;
                     m_Context = context;
                     m_CommandBuffer = commandBuffer;
-                    m_NumPasses = DebugRenderPass.GetNumPasses(debugHandler);
+                    m_NumIterations = (sceneOverrideMode == DebugSceneOverrideMode.SolidWireframe) ? 2 : 1;
 
                     m_Index = -1;
                 }
 
-                #region IEnumerator<DebugRenderPass>
+                #region IEnumerator<DebugRenderSetup>
                 public bool MoveNext()
                 {
                     Current?.Dispose();
 
-                    if(++m_Index >= m_NumPasses)
+                    if(++m_Index >= m_NumIterations)
                     {
                         return false;
                     }
                     else
                     {
-                        Current = new DebugRenderPass(m_DebugHandler, m_Context, m_CommandBuffer, m_Index);
+                        Current = new DebugRenderSetup(m_DebugHandler, m_Context, m_CommandBuffer, m_Index);
                         return true;
                     }
                 }
@@ -269,8 +271,8 @@ namespace UnityEngine.Rendering.Universal
                 m_CommandBuffer = commandBuffer;
             }
 
-            #region IEnumerable<DebugRenderPass>
-            public IEnumerator<DebugRenderPass> GetEnumerator()
+            #region IEnumerable<DebugRenderSetup>
+            public IEnumerator<DebugRenderSetup> GetEnumerator()
             {
                 return new Enumerator(m_DebugHandler, m_Context, m_CommandBuffer);
             }
@@ -282,22 +284,22 @@ namespace UnityEngine.Rendering.Universal
             #endregion
         }
 
-        public IEnumerable<DebugRenderPass> CreateDebugRenderPasses(ScriptableRenderContext context,
-                                                                    CommandBuffer commandBuffer)
+        public IEnumerable<DebugRenderSetup> CreateDebugRenderSetupEnumerable(ScriptableRenderContext context,
+                                                                              CommandBuffer commandBuffer)
         {
             return new DebugRenderPassEnumerable(this, context, commandBuffer);
         }
 
-        public IEnumerable<DebugRenderPass> CreateDebugRenderPasses(ScriptableRenderContext context,
-                                                                    CommandBuffer commandBuffer,
-                                                                    ref DrawingSettings drawingSettings)
+        public IEnumerable<DebugRenderSetup> CreateDebugRenderSetupEnumerable(ScriptableRenderContext context,
+                                                                              CommandBuffer commandBuffer,
+                                                                              ref DrawingSettings drawingSettings)
         {
             if(TryGetReplacementMaterial(out Material replacementMaterial))
             {
                 drawingSettings.overrideMaterial = replacementMaterial;
             }
 
-            return CreateDebugRenderPasses(context, commandBuffer);
+            return CreateDebugRenderSetupEnumerable(context, commandBuffer);
         }
         #endregion
     }
