@@ -5,8 +5,10 @@
 #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/SurfaceData.hlsl"
 #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Packing.hlsl"
 #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/CommonMaterial.hlsl"
-
-TEXTURE2D(_BaseMap);            SAMPLER(sampler_BaseMap);
+#pragma target 5.1
+#pragma use_dxc
+#pragma enable_bind_sets
+TEXTURE2DS(_BaseMap, t1, space1);            SAMPLER(sampler_BaseMap);
 TEXTURE2D(_BumpMap);            SAMPLER(sampler_BumpMap);
 TEXTURE2D(_EmissionMap);        SAMPLER(sampler_EmissionMap);
 
