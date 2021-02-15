@@ -23,7 +23,11 @@ Pass
 		#if USE_FLIPBOOK_INTERPOLATION
 		float4 uv : TEXCOORD1;
 		#else
+		#if USE_FLIPBOOK_ARRAY_LAYOUT
+		float3 uv : TEXCOORD1;
+		#else
 		float2 uv : TEXCOORD1;	
+		#endif
 		#endif
 		#if USE_SOFT_PARTICLE || USE_ALPHA_TEST || USE_FLIPBOOK_INTERPOLATION
 		// x: inverse soft particles fade distance

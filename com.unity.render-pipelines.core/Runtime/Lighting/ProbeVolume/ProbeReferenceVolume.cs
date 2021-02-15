@@ -38,6 +38,9 @@ namespace UnityEngine.Rendering
     /// </summary>
     public class ProbeReferenceVolume
     {
+        /// <summary>
+        /// The size of each chunk of allocation in the data pool.
+        /// </summary>
         public static int s_ProbeIndexPoolAllocationSize = 128;
 
         [System.Serializable]
@@ -152,10 +155,21 @@ namespace UnityEngine.Rendering
             /// Texture containing the second channel of Spherical Harmonics L1 band data and third coefficient of L1_R.
             /// </summary>
             public Texture3D L1_B_rz;
-
+            /// <summary>
+            /// Texture containing the first coefficient of Spherical Harmonics L2 band data and first channel of the fifth.
+            /// </summary>
             public Texture3D L2_0;
+            /// <summary>
+            /// Texture containing the second coefficient of Spherical Harmonics L2 band data and second channel of the fifth.
+            /// </summary>
             public Texture3D L2_1;
+            /// <summary>
+            /// Texture containing the third coefficient of Spherical Harmonics L2 band data and third channel of the fifth.
+            /// </summary>
             public Texture3D L2_2;
+            /// <summary>
+            /// Texture containing the fourth coefficient of Spherical Harmonics L2 band data.
+            /// </summary>
             public Texture3D L2_3;
         }
 
