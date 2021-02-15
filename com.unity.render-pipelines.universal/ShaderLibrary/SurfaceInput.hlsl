@@ -7,7 +7,7 @@
 #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/CommonMaterial.hlsl"
 #pragma target 5.1
 #pragma use_dxc
-#pragma enable_bind_sets
+#pragma enable_bindsets
 TEXTURE2DS(_BaseMap, t1, space1);            SAMPLER(sampler_BaseMap);
 TEXTURE2D(_BumpMap);            SAMPLER(sampler_BumpMap);
 TEXTURE2D(_EmissionMap);        SAMPLER(sampler_EmissionMap);
