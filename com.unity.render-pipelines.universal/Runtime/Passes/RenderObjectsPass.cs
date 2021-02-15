@@ -123,9 +123,7 @@ namespace UnityEngine.Experimental.Rendering.Universal
 
                 if((DebugHandler != null) && DebugHandler.IsDebugMaterialActive)
                 {
-                    DebugHandler.UpdateDrawingSettings(ref drawingSettings);
-
-                    foreach(DebugRenderPass debugRenderPass in new DebugRenderPassEnumerable(DebugHandler, context, cmd))
+                    foreach(DebugRenderPass debugRenderPass in DebugHandler.CreateDebugRenderPasses(context, cmd, ref drawingSettings))
                     {
                         if(debugRenderPass.GetRenderStateBlock(out RenderStateBlock renderStateBlock))
                         {
