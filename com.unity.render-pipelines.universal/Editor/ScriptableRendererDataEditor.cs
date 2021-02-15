@@ -135,19 +135,6 @@ namespace UnityEditor.Rendering.Universal
                 }
             }
         }
-
-        // void AssignRendererToRPAsset(string rpName)
-        // {
-        //     foreach (var asset in rpAssets)
-        //     {
-        //         if (asset.name == rpName)
-        //         {
-        //             Debug.Log("Adding");
-        //             asset.AddRendererToRendererDataList(target as ScriptableRendererData);
-        //             return;
-        //         }
-        //     }
-        // }
     }
 
     [CustomEditor(typeof(ScriptableRendererData), true)]
@@ -180,7 +167,6 @@ namespace UnityEditor.Rendering.Universal
         [SerializeField] private bool falseBool = false;
         List<Editor> m_Editors = new List<Editor>();
 
-        string[] options = {};
         private void OnEnable()
         {
             m_RendererFeatures = serializedObject.FindProperty(nameof(ScriptableRendererData.m_RendererFeatures));
