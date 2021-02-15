@@ -235,12 +235,13 @@ namespace UnityEditor.VFX
             var r = new VFXShaderWriter();
             if (!context.GetData().dependenciesIn.Any())
             {
-                var staticSourceCount = context.GetData().sourceCount;
+                var staticSourceCount = context.GetData().staticSourceCount;
+                var hasDirectLink = context.GetData().hasDynamicSourceCount;
 
                 r.WriteLine("int sourceIndex = 0;");
 
                 //TODOPAUL correctly handle this
-                bool skipLoop = staticSourceCount <= 1 && !(context.GetData() as VFXDataParticle).hasDirectEventLink;
+                bool skipLoop = staticSourceCount <= 1 && !hasDirectLink;
 
                 if (skipLoop)
                     r.WriteLine("/*//Loop with 1 iteration generate a wrong IL Assembly (and actually, useless code)");

@@ -26,11 +26,19 @@ namespace UnityEditor.VFX
     {
         public abstract VFXDataType type { get; }
 
-        public virtual uint sourceCount
+        public virtual uint staticSourceCount
         {
             get
             {
                 return 0u;
+            }
+        }
+
+        public virtual bool hasDynamicSourceCount
+        {
+            get
+            {
+                return false;
             }
         }
 

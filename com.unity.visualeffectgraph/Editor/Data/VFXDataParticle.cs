@@ -390,7 +390,7 @@ namespace UnityEditor.VFX
 
         uint m_SourceCount = 0xFFFFFFFFu;
 
-        public override uint sourceCount
+        public override uint staticSourceCount
         {
             get
             {
@@ -398,17 +398,13 @@ namespace UnityEditor.VFX
             }
         }
 
-        public bool hasDirectEventLink
+        public override bool hasDynamicSourceCount
         {
             get
             {
-                //TODOPAUL : not sure it's needed
-                if (m_Contexts.Count() > 0 && m_Contexts.First().contextType == VFXContextType.Init)
-                {
-                    bool anyDirectLinkFromEvent = m_Contexts.First().inputFlowSlot.SelectMany(o => o.link).Any(o => o.context.contextType == VFXContextType.Event);
-                    return anyDirectLinkFromEvent;
-                }
-                return false;
+                return m_Contexts.Any(
+                    o => o.contextType == VFXContextType.Init
+                    && o.inputFlowSlot.Any(flow => flow.link.Any(link => link.context.contextType == VFXContextType.Event)));
             }
         }
 
@@ -601,7 +597,7 @@ namespace UnityEditor.VFX
                 }
 
                 attributeSourceBufferIndex = outBufferDescs.Count;
-                outBufferDescs.Add(m_layoutAttributeSource.GetBufferDesc(sourceCount));
+                outBufferDescs.Add(m_layoutAttributeSource.GetBufferDesc(staticSourceCount));
             }
 
             if (attributeSourceBufferIndex != -1)

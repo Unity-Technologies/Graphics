@@ -33,6 +33,8 @@ namespace UnityEditor.VFX
 
         private bool hasGPUSpawner => inputContexts.Any(o => o.contextType == VFXContextType.SpawnerGPU);
 
+        private bool hasDynamicSourceCount => GetData() != null ? GetData().hasDynamicSourceCount : false;
+
         public override IEnumerable<string> additionalDefines
         {
             get
@@ -40,9 +42,8 @@ namespace UnityEditor.VFX
                 if (hasGPUSpawner)
                     yield return "VFX_USE_SPAWNER_FROM_GPU";
 
-                //TODOPAUL : should remove this cast and have proper design
-                if ((GetData() as VFXDataParticle).hasDirectEventLink)
-                    yield return "VFX_USE_DIRECT_LINK_EVENT";
+                if (hasDynamicSourceCount)
+                    yield return "VFX_USE_DIRECT_LINK_EVENT"; //TODOPAUL : Rename define
 
                 if (ownedType == VFXDataType.ParticleStrip)
                     yield return "HAS_STRIPS";
