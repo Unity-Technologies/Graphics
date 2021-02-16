@@ -2687,7 +2687,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
                 if (HasVolumetricCloudsShadows(hdCamera))
                 {
-                    m_lightList.directionalLights[m_CurrentSunLightIndex] = OverrideDirectionalLightData(hdCamera, m_lightList.directionalLights[m_CurrentSunLightIndex]);
+                    m_lightList.directionalLights[m_CurrentSunLightIndex] = OverrideDirectionalLightDataForVolumetricCloudsShadows(hdCamera, m_lightList.directionalLights[m_CurrentSunLightIndex]);
                 }
 
                 PushLightDataGlobalParams(cmd);

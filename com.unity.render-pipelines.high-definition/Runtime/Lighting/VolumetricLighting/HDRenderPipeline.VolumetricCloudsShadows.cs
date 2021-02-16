@@ -40,7 +40,7 @@ namespace UnityEngine.Rendering.HighDefinition
             return HasVolumetricCloudsShadows(hdCamera, settings);
         }
 
-        DirectionalLightData OverrideDirectionalLightData(HDCamera hdCamera, DirectionalLightData directionalLightData)
+        DirectionalLightData OverrideDirectionalLightDataForVolumetricCloudsShadows(HDCamera hdCamera, DirectionalLightData directionalLightData)
         {
             // Grab the current sun light
             Light sunLight = GetCurrentSunLight();

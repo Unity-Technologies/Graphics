@@ -198,7 +198,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
         float ComputeNormalizationFactor(float earthRadius, float lowerCloudRadius)
         {
-            return Mathf.Sqrt((earthRadius + lowerCloudRadius) * (earthRadius + lowerCloudRadius) - earthRadius * earthRadius);
+            return Mathf.Sqrt((k_EarthRadius + lowerCloudRadius) * (k_EarthRadius + lowerCloudRadius) - k_EarthRadius * earthRadius);
         }
 
         void GetPresetCloudMapValues(VolumetricClouds.CloudPresets preset, out float densityMultiplier, out float shapeFactor, out float shapeScale, out float erosionFactor, out float erosionScale)
@@ -252,14 +252,14 @@ namespace UnityEngine.Rendering.HighDefinition
         }
 
         // The earthRadius
-        const float earthRadius = 6378100.0f;
+        const float k_EarthRadius = 6378100.0f;
 
         void UpdateShaderVariableslClouds(ref ShaderVariablesClouds cb, HDCamera hdCamera, VolumetricClouds settings, HDUtils.PackedMipChainInfo info, in VolumetricCloudsParameters parameters, bool shadowPass)
         {
             // Convert to kilometers
             cb._LowestCloudAltitude = settings.lowestCloudAltitude.value;
             cb._HighestCloudAltitude = settings.lowestCloudAltitude.value + settings.cloudThickness.value;
-            cb._EarthRadius = Mathf.Lerp(1.0f, 0.025f, settings.earthCurvature.value) * earthRadius;
+            cb._EarthRadius = Mathf.Lerp(1.0f, 0.025f, settings.earthCurvature.value) * k_EarthRadius;
             cb._CloudRangeSquared.Set(Square(cb._LowestCloudAltitude + cb._EarthRadius), Square(cb._HighestCloudAltitude + cb._EarthRadius));
 
             cb._NumPrimarySteps = settings.numPrimarySteps.value;
