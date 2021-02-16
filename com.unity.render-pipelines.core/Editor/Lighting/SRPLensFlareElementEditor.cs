@@ -155,16 +155,16 @@ namespace UnityEditor.Rendering
         sealed class Styles
         {
             static public readonly GUIContent intensity = new GUIContent("Intensity", "Intensity of this element.");
-            static public readonly GUIContent position = new GUIContent("Relative Position Scale", "Relative position compare to the previous one. Can be positive or negative, negative values describes flare behind the light following the diagonal.");
+            static public readonly GUIContent position = new GUIContent("Relative Position Scale", "Relative position compared to the previous element. Can be positive or negative. Negative values describe the flares behind the light following the diagonal.");
             static public readonly GUIContent flareTexture = new GUIContent("Flare Texture", "Texture used to for this Lens Flare Element.");
-            static public readonly GUIContent tint = new GUIContent("Tint", "Tint of the texture can be modulated by the light we are attached to.");
+            static public readonly GUIContent tint = new GUIContent("Tint", "Tint of the texture can be modulated by the light it is attached to if Modulate By Light Color is enabled..");
             static public readonly GUIContent blendMode = new GUIContent("Blend Mode", "Blend mode used.");
-            static public readonly GUIContent size = new GUIContent("Size", "Scale applied on the width of the texture.");
-            static public readonly GUIContent aspectRatio = new GUIContent("Aspect Ratio", "Aspect ratio (height / width).");
+            static public readonly GUIContent size = new GUIContent("Size", "Scale applied to the element.");
+            static public readonly GUIContent aspectRatio = new GUIContent("Aspect Ratio", "Aspect ratio (width / height).");
             static public readonly GUIContent rotation = new GUIContent("Rotation", "Local rotation of the texture.");
             static public readonly GUIContent speed = new GUIContent("Speed", "Speed of the element on the line.");
             static public readonly GUIContent autoRotate = new GUIContent("Auto Rotate", "Rotate the texture relative to the angle on the screen (the rotation will be added to the parameter 'rotation').");
-            static public readonly GUIContent modulateByLightColor = new GUIContent("Modulate By Light Color", "Modulate by light color if the asset is used in a 'SRP Lens Flare Source Override'.");
+            static public readonly GUIContent modulateByLightColor = new GUIContent("Modulate By Light Color", "Modulate by light color if the asset is used on the same object as a light component..");
         }
     }
 }
