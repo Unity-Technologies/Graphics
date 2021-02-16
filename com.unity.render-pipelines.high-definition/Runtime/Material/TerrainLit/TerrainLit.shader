@@ -86,6 +86,9 @@ Shader "HDRP/TerrainLit"
     #pragma vertex Vert
     #pragma fragment Frag
 
+    // Define _DEFERRED_CAPABLE_MATERIAL for shader capable to run in deferred pass
+    #define _DEFERRED_CAPABLE_MATERIAL
+
     #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/TerrainLit/TerrainLit_Splatmap_Includes.hlsl"
 
     ENDHLSL
