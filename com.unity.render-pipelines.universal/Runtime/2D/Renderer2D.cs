@@ -143,7 +143,7 @@ namespace UnityEngine.Experimental.Rendering.Universal
 
 #if UNITY_EDITOR
             // The scene view camera cannot be uninitialized or skybox when using the 2D renderer.
-            if(cameraData.cameraType == CameraType.SceneView)
+            if (cameraData.cameraType == CameraType.SceneView)
             {
                 renderingData.cameraData.camera.clearFlags = CameraClearFlags.SolidColor;
             }
