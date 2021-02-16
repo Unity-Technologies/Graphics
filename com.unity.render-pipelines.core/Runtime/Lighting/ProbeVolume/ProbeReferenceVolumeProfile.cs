@@ -81,6 +81,8 @@ namespace UnityEngine.Rendering
 
         public override void OnInspectorGUI()
         {
+            EditorGUI.BeginChangeCheck();
+
             EditorGUILayout.PropertyField(m_CellSize, s_Styles.cellSizeStyle);
             EditorGUILayout.PropertyField(m_BrickSize, s_Styles.brickSizeStyle);
             EditorGUILayout.PropertyField(m_MaxSubdivision, s_Styles.maxSubdivStyle);
@@ -88,6 +90,11 @@ namespace UnityEngine.Rendering
             EditorGUILayout.PropertyField(m_IndexDimensions, s_Styles.indexDimensions);
 
             ProbeReferenceVolume.instance.normalBiasFromProfile = m_NormalBias.floatValue;
+
+            if (EditorGUI.EndChangeCheck())
+            {
+                serializedObject.ApplyModifiedProperties();
+            }
         }
     }
 }
