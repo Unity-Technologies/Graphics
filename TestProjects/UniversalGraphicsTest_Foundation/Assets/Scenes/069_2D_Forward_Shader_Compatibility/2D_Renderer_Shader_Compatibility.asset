@@ -22,27 +22,15 @@ MonoBehaviour:
   - name: Default
     maskTextureChannel: 0
     blendMode: 1
-    customBlendFactors:
-      multiplicative: 0
-      additive: 0
   - name: Blend Style 1
     maskTextureChannel: 0
     blendMode: 1
-    customBlendFactors:
-      multiplicative: 0
-      additive: 0
   - name: Blend Style 2
     maskTextureChannel: 0
     blendMode: 1
-    customBlendFactors:
-      multiplicative: 0
-      additive: 0
   - name: Blend Style 3
     maskTextureChannel: 0
     blendMode: 1
-    customBlendFactors:
-      multiplicative: 0
-      additive: 0
   m_UseDepthStencilBuffer: 1
   m_UseCameraSortingLayersTexture: 0
   m_CameraSortingLayersTextureBound: -1
@@ -62,7 +50,7 @@ MonoBehaviour:
     type: 3}
   m_FallbackErrorShader: {fileID: 4800000, guid: e6e9a19c3678ded42a3bc431ebef7dbd,
     type: 3}
-  m_PostProcessData: {fileID: 11400000, guid: 41439944d30ece34e96484bdb6645b55, type: 2}
+  m_PostProcessData: {fileID: 0}
   m_FallOffLookup: {fileID: 2800000, guid: 5688ab254e4c0634f8d6c8e0792331ca, type: 3}
   m_DefaultMaterialType: 0
   m_DefaultCustomMaterial: {fileID: 2100000, guid: a97c105638bdf8b4a8650670310a4cd3,
