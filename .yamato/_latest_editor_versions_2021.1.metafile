@@ -59,14 +59,14 @@ editor_versions:
       updated_at: '2021-02-15 00:00:35.381012'
       version: ''
     OSX:
-      revision: 00b485a595ec2409e23b0740114aca857c0f90e2
-      updated_at: '2021-02-15 00:00:35.381012'
+      revision: 7e85389c73a93d6ce5d9c0d9c201ffb4682c633c
+      updated_at: '2021-02-16 00:02:34.426880'
       version: ''
     Win:
       revision: 7e85389c73a93d6ce5d9c0d9c201ffb4682c633c
       updated_at: '2021-02-15 00:00:35.381012'
       version: ''
     iPhone:
-      revision: 00b485a595ec2409e23b0740114aca857c0f90e2
-      updated_at: '2021-02-15 00:00:35.381012'
+      revision: 7e85389c73a93d6ce5d9c0d9c201ffb4682c633c
+      updated_at: '2021-02-16 00:02:34.426880'
       version: ''
