@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using System.Linq;
 using UnityEditor.Rendering;
 using UnityEngine.Rendering.HighDefinition;
 using UnityEditorInternal; //ReorderableList
@@ -45,26 +46,44 @@ namespace UnityEditor.Rendering.HighDefinition
         public SerializedProperty diffusionProfileSettingsList;
 
         //RenderPipelineResources not always exist and thus cannot be serialized normally.
+        bool? m_hasEditorResourceHasMultipleDifferentValues;
         public bool editorResourceHasMultipleDifferentValues
         {
             get
             {
-                var initialValue = firstEditorResources;
-                for (int index = 1; index < serializedObject.targetObjects.Length; ++index)
+                if (m_hasEditorResourceHasMultipleDifferentValues.HasValue)
+                    return m_hasEditorResourceHasMultipleDifferentValues.Value;
+
+                if (serializedObject.targetObjects.Length < 2)
                 {
-                    if (initialValue != (serializedObject.targetObjects[index] as HDRenderPipelineGlobalSettings)?.renderPipelineEditorResources)
-                        return true;
+                    m_hasEditorResourceHasMultipleDifferentValues = false;
                 }
-                return false;
+                else
+                {
+                    m_hasEditorResourceHasMultipleDifferentValues = serializedSettings.Skip(1).Any(t => t.renderPipelineEditorResources != firstEditorResources);
+                }
+
+                return m_hasEditorResourceHasMultipleDifferentValues.Value;
             }
         }
 
         public HDRenderPipelineEditorResources firstEditorResources
-            => (serializedObject.targetObjects[0] as HDRenderPipelineGlobalSettings)?.renderPipelineEditorResources;
+            => serializedSettings[0]?.renderPipelineEditorResources;
+
+        private List<HDRenderPipelineGlobalSettings> serializedSettings = new List<HDRenderPipelineGlobalSettings>();
 
         public SerializedHDRenderPipelineGlobalSettings(SerializedObject serializedObject)
         {
             this.serializedObject = serializedObject;
+
+            // do the cast only once
+            foreach (var currentSetting in serializedObject.targetObjects)
+            {
+                if (currentSetting is HDRenderPipelineGlobalSettings)
+                    serializedSettings.Add(currentSetting as HDRenderPipelineGlobalSettings);
+                else
+                    throw new Exception($"Target object has an invalid object, objects must be of type {typeof(HDRenderPipelineGlobalSettings)}");
+            }
 
             renderPipelineResources = serializedObject.FindProperty("m_RenderPipelineResources");
             renderPipelineRayTracingResources = serializedObject.FindProperty("m_RenderPipelineRayTracingResources");
@@ -115,11 +134,8 @@ namespace UnityEditor.Rendering.HighDefinition
             var ppVolumeTypeInjectionPoints = new Dictionary<Type, CustomPostProcessInjectionPoint>();
 
             var ppVolumeTypes = TypeCache.GetTypesDerivedFrom<CustomPostProcessVolumeComponent>();
-            foreach (var ppVolumeType in ppVolumeTypes)
+            foreach (var ppVolumeType in ppVolumeTypes.Where(t => !t.IsAbstract))
             {
-                if (ppVolumeType.IsAbstract)
-                    continue;
-
                 var comp = ScriptableObject.CreateInstance(ppVolumeType) as CustomPostProcessVolumeComponent;
                 ppVolumeTypeInjectionPoints[ppVolumeType] = comp.injectionPoint;
                 CoreUtils.Destroy(comp);
