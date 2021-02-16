@@ -158,7 +158,6 @@ namespace UnityEngine.Rendering.HighDefinition
             return HasVolumetricClouds(hdCamera, in settings);
         }
 
-  
         struct VolumetricCloudsParameters
         {
             // Resolution parameters
@@ -309,7 +308,7 @@ namespace UnityEngine.Rendering.HighDefinition
             // Compute the theta angle for the wind direction
             float theta = settings.orientation.value / 180.0f * Mathf.PI;
             // We apply a minus to see something moving in the right direction
-            cb._WindDirection = new Vector2(-Mathf.Cos(theta),- Mathf.Sin(theta));
+            cb._WindDirection = new Vector2(-Mathf.Cos(theta), -Mathf.Sin(theta));
             cb._WindVector = hdCamera.volumetricCloudsAnimationData.cloudOffset;
 
             cb._LargeWindSpeed = settings.cloudMapSpeedMultiplier.value;
@@ -412,7 +411,7 @@ namespace UnityEngine.Rendering.HighDefinition
             parameters.viewCount = hdCamera.viewCount;
             parameters.previousViewportSize = hdCamera.historyRTHandleProperties.previousViewportSize;
             parameters.historyValidity = historyValidity;
-            
+
             // Compute shader and kernels
             parameters.volumetricCloudsCS = m_Asset.renderPipelineResources.shaders.volumetricCloudsCS;
             parameters.depthDownscaleKernel = m_CloudDownscaleDepthKernel;

@@ -40,7 +40,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
         // Color * intensity of the directional light
         public Vector4 _SunLightColor;
- 
+
         // Direction to the sun
         public Vector4 _SunDirection;
 
@@ -116,6 +116,5 @@ namespace UnityEngine.Rendering.HighDefinition
         // Padding
         public float _Padding0;
         public float _Padding1;
-
     }
 }

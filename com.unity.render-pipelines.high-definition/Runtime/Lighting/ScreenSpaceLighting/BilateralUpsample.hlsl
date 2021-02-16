@@ -66,8 +66,8 @@ struct NeighborhoodUpsampleData3x3
     float4 lowValue8;
 };
 
-void EvaluateMaskValidity(float linearHighDepth, float lowDepth, int currentIndex, 
-                            inout float inputMask, inout int closestNeighhor, 
+void EvaluateMaskValidity(float linearHighDepth, float lowDepth, int currentIndex,
+                            inout float inputMask, inout int closestNeighhor,
                             inout float currentDistance, inout float rejectedNeighborhood)
 {
     if(inputMask == 0.0f)
@@ -91,7 +91,7 @@ void EvaluateMaskValidity(float linearHighDepth, float lowDepth, int currentInde
     rejectedNeighborhood *= (validSample ? 0.0f : 1.0f);
 }
 
-void OverrideMaskValues(float highDepth, inout NeighborhoodUpsampleData3x3 data, 
+void OverrideMaskValues(float highDepth, inout NeighborhoodUpsampleData3x3 data,
                         out float rejectedNeighborhood, out int closestNeighhor)
 {
     // First of all compute the linear version of the high depth

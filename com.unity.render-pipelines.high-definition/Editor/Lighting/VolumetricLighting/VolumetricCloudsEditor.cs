@@ -99,7 +99,7 @@ namespace UnityEditor.Rendering.HighDefinition
 
             m_LowestCloudAltitude = Unpack(o.Find(x => x.lowestCloudAltitude));
             m_CloudThickness = Unpack(o.Find(x => x.cloudThickness));
-        
+
             m_DensityMultiplier = Unpack(o.Find(x => x.densityMultiplier));
             m_ShapeFactor = Unpack(o.Find(x => x.shapeFactor));
             m_ShapeScale = Unpack(o.Find(x => x.shapeScale));
@@ -136,7 +136,6 @@ namespace UnityEditor.Rendering.HighDefinition
 
         public override void OnInspectorGUI()
         {
-
 #if UNITY_EDITOR
             UnityEditor.BuildTarget activeBuildTarget = UnityEditor.EditorUserBuildSettings.activeBuildTarget;
             if (activeBuildTarget == UnityEditor.BuildTarget.XboxOne || activeBuildTarget == UnityEditor.BuildTarget.StandaloneOSX)

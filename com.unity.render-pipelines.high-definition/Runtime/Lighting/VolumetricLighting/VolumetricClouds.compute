@@ -853,7 +853,7 @@ void ReprojectClouds(uint3 dispatchThreadId : SV_DispatchThreadID,
         // is too different from the one of the current pixel, we cannot use the history
         if (!validHistory)
         {
-            // Structure that will hold everything 
+            // Structure that will hold everything
             NeighborhoodUpsampleData3x3 upsampleData;
             FillCloudReprojectionNeighborhoodData(groupThreadId, upsampleData);
 
@@ -953,7 +953,7 @@ void UpscaleAndCombineClouds(uint3 finalCoord : SV_DispatchThreadID,
     if (any(finalCoord.xy > uint2(_ScreenSize.xy)))
         return;
 
-    // Structure that will hold everything 
+    // Structure that will hold everything
     NeighborhoodUpsampleData3x3 upsampleData;
 
     // Grab the depth value of the pixel

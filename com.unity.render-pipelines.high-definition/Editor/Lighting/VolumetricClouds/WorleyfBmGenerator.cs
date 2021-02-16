@@ -51,6 +51,7 @@ internal class WorleyfBmGenerator : MonoBehaviour
         // Return the result
         return tex2d;
     }
+
     /*
     // This functions generates the set of textures required for the real-time volumetric cloud simulation
     [MenuItem("Generation/Generate Worley Textures")]

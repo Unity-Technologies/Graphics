@@ -85,7 +85,7 @@ namespace UnityEngine.Rendering.HighDefinition
             public VolumetricCloudsParameters parameters;
             public TextureHandle shadowTexture;
         }
-        
+
 
         RTHandle RequestShadowTexture(in VolumetricClouds settings)
         {

@@ -44,7 +44,7 @@ namespace UnityEngine.Rendering.HighDefinition
         {
             // Evaluate if we need to recompute the texture
             bool status = (HasVolumetricClouds(hdCamera, in settings)
-                    && settings.cloudControl.value == VolumetricClouds.CloudControl.Advanced);
+                && settings.cloudControl.value == VolumetricClouds.CloudControl.Advanced);
 
             if (status)
             {
@@ -127,7 +127,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 cmd.SetComputeFloatParam(parameters.generationCS, HDShaderIDs._CumulusMapMultiplier, parameters.cumulusMapMultiplier);
 
                 cmd.SetComputeTextureParam(parameters.generationCS, parameters.generationKernel, HDShaderIDs._AltostratusMap, parameters.altostratusMap);
-                cmd.SetComputeFloatParam(parameters.generationCS,HDShaderIDs._AltostratusMapMultiplier, parameters.altoStratusMapMultiplier);
+                cmd.SetComputeFloatParam(parameters.generationCS, HDShaderIDs._AltostratusMapMultiplier, parameters.altoStratusMapMultiplier);
 
                 cmd.SetComputeTextureParam(parameters.generationCS, parameters.generationKernel, HDShaderIDs._CumulonimbusMap, parameters.cumulonimbusMap);
                 cmd.SetComputeFloatParam(parameters.generationCS, HDShaderIDs._CumulonimbusMapMultiplier, parameters.cumulonimbusMapMultiplier);
