@@ -55,6 +55,7 @@ pr:
       color_space: Linear
       test_platforms:
         - editmode
+        - playmode
 nightly:
   dependencies:
     - project: URPUpdate_Top_Asset_Store
