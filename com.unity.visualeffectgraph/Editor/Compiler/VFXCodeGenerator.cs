@@ -247,9 +247,9 @@ namespace UnityEditor.VFX
                     //else, nbEvents is provided by constant buffer
 
                     r.WriteLine("uint currentSumSpawnCount = 0u;");
-                    r.WriteLine("for (sourceIndex=0; sourceIndex < nbEvents; sourceIndex++)");
+                    r.WriteLine("for (sourceIndex=0; sourceIndex < (int)nbEvents; sourceIndex++)");
                     r.EnterScope();
-                    r.WriteLineFormat("currentSumSpawnCount += uint({0});", context.GetData().GetLoadAttributeCode(VFXAttribute.SpawnCount, VFXAttributeLocation.Source));
+                    r.WriteLineFormat("currentSumSpawnCount += (uint){0};", context.GetData().GetLoadAttributeCode(VFXAttribute.SpawnCount, VFXAttributeLocation.Source));
                     r.WriteLine("if (id < currentSumSpawnCount)");
                     r.EnterScope();
                     r.WriteLine("break;");
