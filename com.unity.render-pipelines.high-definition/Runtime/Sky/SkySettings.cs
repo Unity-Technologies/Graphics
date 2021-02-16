@@ -218,6 +218,51 @@ namespace UnityEngine.Rendering.HighDefinition
         }
 
         /// <summary>
+        /// Returns the sky intensity as determined by this SkySetting.
+        /// </summary>
+        /// <returns>The sky intensity.</returns>
+        public float GetIntensityFromSettings()
+        {
+            float skyIntensity = 1.0f;
+            switch (skyIntensityMode.value)
+            {
+                case SkyIntensityMode.Exposure:
+                    // Note: Here we use EV100 of sky as a multiplier, so it is the opposite of when use with a Camera
+                    // because for sky/light, higher EV mean brighter, but for camera higher EV mean darker scene
+                    skyIntensity *= ColorUtils.ConvertEV100ToExposure(-exposure.value);
+                    break;
+                case SkyIntensityMode.Multiplier:
+                    skyIntensity *= multiplier.value;
+                    break;
+                case SkyIntensityMode.Lux:
+                    skyIntensity *= desiredLuxValue.value / Mathf.Max(upperHemisphereLuxValue.value, 1e-5f);
+                    break;
+            }
+            return skyIntensity;
+        }
+
+        /// <summary>
+        /// Determines if the SkySettings is significantly divergent from another. This is going to be used to determine whether
+        /// to reset completely the ambient probe instead of using previous one when waiting for current data upon changes.
+        /// Override this to have a per-sky specific heuristic.
+        /// </summary>
+        /// <param name="otherSettings">The settings to compare with.</param>
+        /// <returns>Whether the settings are deemed very different.</returns>
+        public virtual bool SignificantlyDivergesFrom(SkySettings otherSettings)
+        {
+            if (otherSettings == null || otherSettings.GetSkyRendererType() != GetSkyRendererType())
+                return true;
+
+            float thisIntensity = GetIntensityFromSettings();
+            float otherIntensity = otherSettings.GetIntensityFromSettings();
+
+            // This is an arbitrary difference threshold. This needs to be re-evaluated in case it is proven problematic
+            float intensityRatio = thisIntensity > otherIntensity ? (thisIntensity / otherIntensity) : (otherIntensity / thisIntensity);
+            const float ratioThreshold = 3.0f;
+            return intensityRatio > ratioThreshold;
+        }
+
+        /// <summary>
         /// Returns the class type of the SkyRenderer associated with this Sky Settings.
         /// </summary>
         /// <returns>The class type of the SkyRenderer associated with this Sky Settings.</returns>
