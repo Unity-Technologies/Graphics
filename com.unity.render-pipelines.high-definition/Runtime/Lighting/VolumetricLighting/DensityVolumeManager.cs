@@ -12,6 +12,11 @@ namespace UnityEngine.Rendering.HighDefinition
             ComputeShaderParams[volume] = callback;
         }
 
+        public static void RemoveComputeShaderCallback(DensityVolume volume)
+        {
+            ComputeShaderParams.Remove(volume);
+        }
+
         public static DensityVolumeManager manager
         {
             get
