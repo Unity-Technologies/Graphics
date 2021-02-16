@@ -26,7 +26,7 @@ namespace UnityEngine.Rendering.HighDefinition
         /// The thickness of the depth buffer value used for the ray marching step
         /// </summary>
         [Tooltip("Controls the thickness of the depth buffer used for ray marching.")]
-        public ClampedFloatParameter depthBufferThickness = new ClampedFloatParameter(0.2f, 0.0f, 0.5f);
+        public ClampedFloatParameter depthBufferThickness = new ClampedFloatParameter(0.1f, 0.0f, 0.5f);
 
         GlobalIllumination()
         {
@@ -49,24 +49,7 @@ namespace UnityEngine.Rendering.HighDefinition
         }
         [SerializeField]
         [Tooltip("Controls the number of steps used for ray marching.")]
-        private ClampedIntParameter m_RaySteps = new ClampedIntParameter(24, 16, 128);
-
-        /// <summary>
-        /// Defines if the effect should be evaluated at full resolution.
-        /// </summary>
-        public bool fullResolutionSS
-        {
-            get
-            {
-                if (!UsesQualitySettings())
-                    return m_FullResolutionSS.value;
-                else
-                    return GetLightingQualitySettings().SSGIFullResolution[(int)quality.value];
-            }
-            set { m_FullResolutionSS.value = value; }
-        }
-        [SerializeField]
-        private BoolParameter m_FullResolutionSS = new BoolParameter(true);
+        private ClampedIntParameter m_RaySteps = new ClampedIntParameter(48, 32, 256);
 
         /// <summary>
         /// Defines the radius for the spatial filter
@@ -84,7 +67,7 @@ namespace UnityEngine.Rendering.HighDefinition
         }
         [Tooltip("Filter Radius")]
         [SerializeField]
-        private ClampedIntParameter m_FilterRadius = new ClampedIntParameter(2, 2, 8);
+        private ClampedIntParameter m_FilterRadius = new ClampedIntParameter(2, 2, 16);
 
         /// <summary>
         /// Toggles ray traced global illumination.
