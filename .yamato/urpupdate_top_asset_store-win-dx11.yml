@@ -21,7 +21,7 @@ URPUpdate_Top_Asset_Store_Win_DX11_playmode_mono_Linear_trunk:
         TEST_FILTER: .*
     commands:
       -  git clone https://github.cds.internal.unity3d.com/sophia/URP-Update-testing.git -b %ASSETSTORE_UPDATE_PROJECT_BRANCH% TestProjects/URP-Update-Testing
-      -  git checkout %ASSETSTORE_UPDATE_PROJECT_REVISION%
+      -  cd TestProjects/URP-Update-Testing && git checkout %ASSETSTORE_UPDATE_PROJECT_REVISION%
       -  Xcopy /E /I "com.unity.render-pipelines.core" "TestProjects/URP-Update-Testing/Top-URP-Assets/Packages/com.unity.render-pipelines.core" /Y
       -  Xcopy /E /I "com.unity.render-pipelines.universal" "TestProjects/URP-Update-Testing/Top-URP-Assets/Packages/com.unity.render-pipelines.universal" /Y
       -  Xcopy /E /I "com.unity.shadergraph" "TestProjects/URP-Update-Testing/Top-URP-Assets/Packages/com.unity.shadergraph" /Y
@@ -54,7 +54,7 @@ URPUpdate_Top_Asset_Store_Win_DX11_editmode_mono_Linear_trunk:
         TEST_FILTER: .*
     commands:
       -  git clone https://github.cds.internal.unity3d.com/sophia/URP-Update-testing.git -b %ASSETSTORE_UPDATE_PROJECT_BRANCH% TestProjects/URP-Update-Testing
-      -  git checkout %ASSETSTORE_UPDATE_PROJECT_REVISION%
+      -  cd TestProjects/URP-Update-Testing && git checkout %ASSETSTORE_UPDATE_PROJECT_REVISION%
       -  Xcopy /E /I "com.unity.render-pipelines.core" "TestProjects/URP-Update-Testing/Top-URP-Assets/Packages/com.unity.render-pipelines.core" /Y
       -  Xcopy /E /I "com.unity.render-pipelines.universal" "TestProjects/URP-Update-Testing/Top-URP-Assets/Packages/com.unity.render-pipelines.universal" /Y
       -  Xcopy /E /I "com.unity.shadergraph" "TestProjects/URP-Update-Testing/Top-URP-Assets/Packages/com.unity.shadergraph" /Y
@@ -88,7 +88,7 @@ URPUpdate_Top_Asset_Store_Win_DX11_playmode_mono_Linear_CUSTOM-REVISION:
         TEST_FILTER: .*
     commands:
       -  git clone https://github.cds.internal.unity3d.com/sophia/URP-Update-testing.git -b %ASSETSTORE_UPDATE_PROJECT_BRANCH% TestProjects/URP-Update-Testing
-      -  git checkout %ASSETSTORE_UPDATE_PROJECT_REVISION%
+      -  cd TestProjects/URP-Update-Testing && git checkout %ASSETSTORE_UPDATE_PROJECT_REVISION%
       -  Xcopy /E /I "com.unity.render-pipelines.core" "TestProjects/URP-Update-Testing/Top-URP-Assets/Packages/com.unity.render-pipelines.core" /Y
       -  Xcopy /E /I "com.unity.render-pipelines.universal" "TestProjects/URP-Update-Testing/Top-URP-Assets/Packages/com.unity.render-pipelines.universal" /Y
       -  Xcopy /E /I "com.unity.shadergraph" "TestProjects/URP-Update-Testing/Top-URP-Assets/Packages/com.unity.shadergraph" /Y
@@ -125,7 +125,7 @@ URPUpdate_Top_Asset_Store_Win_DX11_editmode_mono_Linear_CUSTOM-REVISION:
         TEST_FILTER: .*
     commands:
       -  git clone https://github.cds.internal.unity3d.com/sophia/URP-Update-testing.git -b %ASSETSTORE_UPDATE_PROJECT_BRANCH% TestProjects/URP-Update-Testing
-      -  git checkout %ASSETSTORE_UPDATE_PROJECT_REVISION%
+      -  cd TestProjects/URP-Update-Testing && git checkout %ASSETSTORE_UPDATE_PROJECT_REVISION%
       -  Xcopy /E /I "com.unity.render-pipelines.core" "TestProjects/URP-Update-Testing/Top-URP-Assets/Packages/com.unity.render-pipelines.core" /Y
       -  Xcopy /E /I "com.unity.render-pipelines.universal" "TestProjects/URP-Update-Testing/Top-URP-Assets/Packages/com.unity.render-pipelines.universal" /Y
       -  Xcopy /E /I "com.unity.shadergraph" "TestProjects/URP-Update-Testing/Top-URP-Assets/Packages/com.unity.shadergraph" /Y

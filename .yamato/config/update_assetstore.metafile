@@ -10,8 +10,8 @@ reuse_blocks:
     - [iPhone_Metal, OSX_Metal, Linux_Vulkan]: git clone https://github.cds.internal.unity3d.com/sophia/URP-Update-testing.git -b $ASSETSTORE_UPDATE_PROJECT_BRANCH TestProjects/URP-Update-Testing
     - [Win_DX11, Win_DX12, Win_Vulkan, Android_OpenGLES3, Android_Vulkan]: git clone https://github.cds.internal.unity3d.com/sophia/URP-Update-testing.git -b %ASSETSTORE_UPDATE_PROJECT_BRANCH% TestProjects/URP-Update-Testing
       
-    - [iPhone_Metal, OSX_Metal, Linux_Vulkan]: git checkout $ASSETSTORE_UPDATE_PROJECT_REVISION
-    - [Win_DX11, Win_DX12, Win_Vulkan, Android_OpenGLES3, Android_Vulkan]: git checkout %ASSETSTORE_UPDATE_PROJECT_REVISION%
+    - [iPhone_Metal, OSX_Metal, Linux_Vulkan]: cd TestProjects/URP-Update-Testing && git checkout $ASSETSTORE_UPDATE_PROJECT_REVISION
+    - [Win_DX11, Win_DX12, Win_Vulkan, Android_OpenGLES3, Android_Vulkan]: cd TestProjects/URP-Update-Testing && git checkout %ASSETSTORE_UPDATE_PROJECT_REVISION%
 
     - [Win_DX11, Win_DX12, Win_Vulkan]: Xcopy /E /I "com.unity.render-pipelines.core" "TestProjects/<PROJECT_FOLDER>/Packages/com.unity.render-pipelines.core" /Y
     - [Win_DX11, Win_DX12, Win_Vulkan]: Xcopy /E /I "com.unity.render-pipelines.universal" "TestProjects/<PROJECT_FOLDER>/Packages/com.unity.render-pipelines.universal" /Y
