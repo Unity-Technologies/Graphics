@@ -73,6 +73,7 @@
 #define RW_TEXTURE3D(type, textureName)       RWTexture3D<type> textureName
 
 #define SAMPLER(samplerName)                  SamplerState samplerName
+#define SAMPLERS(samplerName, _space)         SamplerState samplerName : register(_space)
 #define SAMPLER_CMP(samplerName)              SamplerComparisonState samplerName
 #define ASSIGN_SAMPLER(samplerName, samplerValue) samplerName = samplerValue
 

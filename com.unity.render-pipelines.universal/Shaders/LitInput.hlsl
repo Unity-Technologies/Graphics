@@ -70,14 +70,14 @@ UNITY_DOTS_INSTANCING_END(MaterialPropertyMetadata)
 #define _Surface                UNITY_ACCESS_DOTS_INSTANCED_PROP_FROM_MACRO(float  , Metadata__Surface)
 #endif
 
-TEXTURE2DS(_ParallaxMap, space1);        SAMPLER(sampler_ParallaxMap);
-TEXTURE2DS(_OcclusionMap, space1);       SAMPLER(sampler_OcclusionMap);
-TEXTURE2DS(_DetailMask, space1);         SAMPLER(sampler_DetailMask);
-TEXTURE2DS(_DetailAlbedoMap, space1);    SAMPLER(sampler_DetailAlbedoMap);
-TEXTURE2DS(_DetailNormalMap, space1);    SAMPLER(sampler_DetailNormalMap);
-TEXTURE2DS(_MetallicGlossMap, space1);   SAMPLER(sampler_MetallicGlossMap);
-TEXTURE2DS(_SpecGlossMap, space1);       SAMPLER(sampler_SpecGlossMap);
-TEXTURE2DS(_ClearCoatMap, space1);       SAMPLER(sampler_ClearCoatMap);
+TEXTURE2DS(_ParallaxMap, space1);        SAMPLERS(sampler_ParallaxMap, space1);
+TEXTURE2DS(_OcclusionMap, space1);       SAMPLERS(sampler_OcclusionMap, space1);
+TEXTURE2DS(_DetailMask, space1);         SAMPLERS(sampler_DetailMask, space1);
+TEXTURE2DS(_DetailAlbedoMap, space1);    SAMPLERS(sampler_DetailAlbedoMap, space1);
+TEXTURE2DS(_DetailNormalMap, space1);    SAMPLERS(sampler_DetailNormalMap, space1);
+TEXTURE2DS(_MetallicGlossMap, space1);   SAMPLERS(sampler_MetallicGlossMap, space1);
+TEXTURE2DS(_SpecGlossMap, space1);       SAMPLERS(sampler_SpecGlossMap, space1);
+TEXTURE2DS(_ClearCoatMap, space1);       SAMPLERS(sampler_ClearCoatMap, space1);
 
 #ifdef _SPECULAR_SETUP
     #define SAMPLE_METALLICSPECULAR(uv) SAMPLE_TEXTURE2D(_SpecGlossMap, sampler_SpecGlossMap, uv)
