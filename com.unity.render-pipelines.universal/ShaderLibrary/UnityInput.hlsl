@@ -103,7 +103,7 @@ float4x4 unity_CameraToWorld;
 #pragma enable_bindsets
 
 // Block Layout should be respected due to SRP Batcher
-CBUFFER_STARTS(UnityPerDraw, b0, space2)
+CBUFFER_STARTS(UnityPerDraw, space2)
 // Space block Feature
 float4x4 unity_ObjectToWorld;
 float4x4 unity_WorldToObject;

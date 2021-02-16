@@ -9,9 +9,9 @@
 #pragma target 5.1
 #pragma use_dxc
 #pragma enable_bindsets
-TEXTURE2DS(_BaseMap, t1, space1);       SAMPLER(sampler_BaseMap);
-TEXTURE2DS(_BumpMap, t2, space1);       SAMPLER(sampler_BumpMap);
-TEXTURE2DS(_EmissionMap, t3, space1);   SAMPLER(sampler_EmissionMap);
+TEXTURE2DS(_BaseMap, space1);       SAMPLER(sampler_BaseMap);
+TEXTURE2DS(_BumpMap, space1);       SAMPLER(sampler_BumpMap);
+TEXTURE2DS(_EmissionMap, space1);   SAMPLER(sampler_EmissionMap);
 
 ///////////////////////////////////////////////////////////////////////////////
 //                      Material Property Helpers                            //

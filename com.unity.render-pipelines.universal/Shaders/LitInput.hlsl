@@ -14,7 +14,7 @@
 #pragma use_dxc
 
 // NOTE: Do not ifdef the properties here as SRP batcher can not handle different layouts.
-CBUFFER_STARTS(UnityPerMaterial, b0, space1)
+CBUFFER_STARTS(UnityPerMaterial, space1)
 float4 _BaseMap_ST;
 float4 _DetailAlbedoMap_ST;
 half4 _BaseColor;
@@ -70,14 +70,14 @@ UNITY_DOTS_INSTANCING_END(MaterialPropertyMetadata)
 #define _Surface                UNITY_ACCESS_DOTS_INSTANCED_PROP_FROM_MACRO(float  , Metadata__Surface)
 #endif
 
-TEXTURE2DS(_ParallaxMap, t4, space1);        SAMPLER(sampler_ParallaxMap);
-TEXTURE2DS(_OcclusionMap, t5, space1);       SAMPLER(sampler_OcclusionMap);
-TEXTURE2DS(_DetailMask, t6, space1);         SAMPLER(sampler_DetailMask);
-TEXTURE2DS(_DetailAlbedoMap, t7, space1);    SAMPLER(sampler_DetailAlbedoMap);
-TEXTURE2DS(_DetailNormalMap, t8, space1);    SAMPLER(sampler_DetailNormalMap);
-TEXTURE2DS(_MetallicGlossMap, t9, space1);   SAMPLER(sampler_MetallicGlossMap);
-TEXTURE2DS(_SpecGlossMap, t10, space1);       SAMPLER(sampler_SpecGlossMap);
-TEXTURE2DS(_ClearCoatMap, t11, space1);       SAMPLER(sampler_ClearCoatMap);
+TEXTURE2DS(_ParallaxMap, space1);        SAMPLER(sampler_ParallaxMap);
+TEXTURE2DS(_OcclusionMap, space1);       SAMPLER(sampler_OcclusionMap);
+TEXTURE2DS(_DetailMask, space1);         SAMPLER(sampler_DetailMask);
+TEXTURE2DS(_DetailAlbedoMap, space1);    SAMPLER(sampler_DetailAlbedoMap);
+TEXTURE2DS(_DetailNormalMap, space1);    SAMPLER(sampler_DetailNormalMap);
+TEXTURE2DS(_MetallicGlossMap, space1);   SAMPLER(sampler_MetallicGlossMap);
+TEXTURE2DS(_SpecGlossMap, space1);       SAMPLER(sampler_SpecGlossMap);
+TEXTURE2DS(_ClearCoatMap, space1);       SAMPLER(sampler_ClearCoatMap);
 
 #ifdef _SPECULAR_SETUP
     #define SAMPLE_METALLICSPECULAR(uv) SAMPLE_TEXTURE2D(_SpecGlossMap, sampler_SpecGlossMap, uv)
