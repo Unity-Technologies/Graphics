@@ -39,6 +39,7 @@
 #define FULLSCREENDEBUGMODE_MAX_MATERIAL_FULL_SCREEN_DEBUG (29)
 #define FULLSCREENDEBUGMODE_SCREEN_SPACE_REFLECTIONS_PREV (30)
 #define FULLSCREENDEBUGMODE_SCREEN_SPACE_REFLECTIONS_ACCUM (31)
+#define FULLSCREENDEBUGMODE_WORLD_SPACE_POSITION (32)
 
 // Generated from UnityEngine.Rendering.HighDefinition.ShaderVariablesDebugDisplay
 // PackingRules = Exact
@@ -67,8 +68,7 @@ CBUFFER_START(ShaderVariablesDebugDisplay)
     int _MatcapMixAlbedo;
     float _MatcapViewScale;
     int _DebugSingleShadowIndex;
-    int _DebugProbeVolumeMode;
-    float3 _DebugDisplayPad0;
+    int _DebugDisplayPad0;
 CBUFFER_END
 
 

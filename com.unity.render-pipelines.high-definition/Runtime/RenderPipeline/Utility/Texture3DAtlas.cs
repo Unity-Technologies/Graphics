@@ -525,7 +525,8 @@ namespace UnityEngine.Rendering.HighDefinition
         public void Release()
         {
             ClearTextures();
-            m_Atlas.Release();
+            CoreUtils.Destroy(m_Atlas);
+            CoreUtils.Destroy(m_MipMapGenerationTemp);
         }
 
         public static long GetApproxCacheSizeInByte(int elementSize, int elementCount, GraphicsFormat format, bool hasMipMaps)

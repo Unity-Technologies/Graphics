@@ -18,4 +18,3 @@ The **bool** inline Operator allows you to store an instance of a bool. This is 
 | **Output** | bool   | The value of the Operator. |
 
 [!include[](Snippets/Operator-InlineNotes.md)]
-

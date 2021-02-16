@@ -23,8 +23,6 @@ namespace UnityEditor.Rendering.HighDefinition
         SerializedDataParameter m_DepthCmpScale;
         SerializedDataParameter m_CameraMotionBlur;
 
-        public override bool hasAdvancedMode => true;
-
         public override void OnEnable()
         {
             var o = new PropertyFetcher<MotionBlur>(serializedObject);
@@ -45,8 +43,6 @@ namespace UnityEditor.Rendering.HighDefinition
 
         public override void OnInspectorGUI()
         {
-            bool advanced = isInAdvancedMode;
-
             PropertyField(m_Intensity);
 
             base.OnInspectorGUI();
@@ -60,7 +56,7 @@ namespace UnityEditor.Rendering.HighDefinition
             PropertyField(m_MaxVelocityInPixels);
             PropertyField(m_MinVelInPixels);
 
-            if (advanced)
+            if (BeginAdditionalPropertiesScope())
             {
                 PropertyField(m_DepthCmpScale);
 
@@ -95,6 +91,7 @@ namespace UnityEditor.Rendering.HighDefinition
                     }
                 }
             }
+            EndAdditionalPropertiesScope();
         }
 
         public override QualitySettingsBlob SaveCustomQualitySettingsAsObject(QualitySettingsBlob settings = null)

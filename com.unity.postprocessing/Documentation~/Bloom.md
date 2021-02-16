@@ -44,4 +44,3 @@ Lower resolution lens dirt textures  result in faster lookup and blending across
 ### Requirements
 
 - Shader model 3
-

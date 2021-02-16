@@ -120,6 +120,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 maximumLODLevel = new IntScalableSetting(new[] { 0, 0, 0 }, ScalableSettingSchemaId.With3Levels),
                 supportProbeVolume = false,
                 probeVolumeMemoryBudget = ProbeVolumeTextureMemoryBudget.MemoryBudgetMedium,
+                probeVolumeSHBands = ProbeVolumeSHBands.SphericalHarmonicsL1,
             };
             return settings;
         }
@@ -315,9 +316,11 @@ namespace UnityEngine.Rendering.HighDefinition
         /// <summary>Support terrain holes.</summary>
         public bool supportTerrainHole;
         /// <summary>Support Probe Volumes.</summary>
-        [SerializeField] internal bool supportProbeVolume;
+        public bool supportProbeVolume;
         /// <summary>Support Probe Volumes.</summary>
-        [SerializeField] internal ProbeVolumeTextureMemoryBudget probeVolumeMemoryBudget;
+        public ProbeVolumeTextureMemoryBudget probeVolumeMemoryBudget;
+        /// <summary>Probe Volumes SH Bands.</summary>
+        public ProbeVolumeSHBands probeVolumeSHBands;
 
         /// <summary>Support ray tracing.</summary>
         public bool supportRayTracing;

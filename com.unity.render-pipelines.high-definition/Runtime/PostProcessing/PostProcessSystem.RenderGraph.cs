@@ -504,10 +504,13 @@ namespace UnityEngine.Rendering.HighDefinition
                             passData.farCoC = TextureHandle.nullHandle;
                         }
 
-                        passData.fullresCoC = builder.CreateTransientTexture(new TextureDesc(Vector2.one, true, true)
-                            { colorFormat = k_CoCFormat, enableRandomWrite = true, name = "Full res CoC" });
+                        passData.fullresCoC = builder.ReadWriteTexture(renderGraph.CreateTexture(new TextureDesc(Vector2.one, true, true)
+                            { colorFormat = k_CoCFormat, enableRandomWrite = true, name = "Full res CoC" }));
 
-                        int passCount = Mathf.CeilToInt((passData.parameters.nearMaxBlur + 2f) / 4f);
+                        GetDoFResolutionScale(passData.parameters, out float unused, out float resolutionScale);
+                        float actualNearMaxBlur = passData.parameters.nearMaxBlur * resolutionScale;
+                        int passCount = Mathf.CeilToInt((actualNearMaxBlur + 2f) / 4f);
+
                         passData.dilationPingPongRT = TextureHandle.nullHandle;
                         if (passCount > 1)
                         {
@@ -554,11 +557,13 @@ namespace UnityEngine.Rendering.HighDefinition
                             });
 
                         source = passData.destination;
+
+                        m_HDInstance.PushFullScreenDebugTexture(renderGraph, passData.fullresCoC, FullScreenDebugMode.DepthOfFieldCoc);
                     }
                     else
                     {
-                        passData.fullresCoC = builder.CreateTransientTexture(new TextureDesc(Vector2.one, true, true)
-                            { colorFormat = k_CoCFormat, enableRandomWrite = true, useMipMap = true, name = "Full res CoC" });
+                        passData.fullresCoC = builder.ReadWriteTexture(renderGraph.CreateTexture(new TextureDesc(Vector2.one, true, true)
+                            { colorFormat = k_CoCFormat, enableRandomWrite = true, useMipMap = true, name = "Full res CoC" }));
 
                         passData.pingFarRGB = builder.CreateTransientTexture(new TextureDesc(Vector2.one, true, true)
                             { colorFormat = m_ColorFormat, useMipMap = true, enableRandomWrite = true, name = "DoF Source Pyramid" });
@@ -570,6 +575,7 @@ namespace UnityEngine.Rendering.HighDefinition
                             });
 
                         source = passData.destination;
+                        m_HDInstance.PushFullScreenDebugTexture(renderGraph, passData.fullresCoC, FullScreenDebugMode.DepthOfFieldCoc);
                     }
                 }
             }
