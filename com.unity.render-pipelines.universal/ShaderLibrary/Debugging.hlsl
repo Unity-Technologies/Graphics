@@ -324,11 +324,11 @@ bool CalculateValidationAlbedo(half3 albedo, out half4 color)
 
         if ((compSat - _DebugValidateAlbedoSaturationTolerance > sat) || ((compHue - _DebugValidateAlbedoHueTolerance > hue) && (compHue - _DebugValidateAlbedoHueTolerance + 1.0 > hue)))
         {
-            color = kRedColor;
+            color = half4(1, 0, 0, 1);
         }
         else if ((sat > compSat + _DebugValidateAlbedoSaturationTolerance) || ((hue > compHue + _DebugValidateAlbedoHueTolerance) && (hue > compHue + _DebugValidateAlbedoHueTolerance - 1.0)))
         {
-            color = kBlueColor;
+            color = half4(0, 0, 1, 1);
         }
         else
         {
