@@ -46,7 +46,7 @@ namespace UnityEngine
             speed = 1.0f;
             blendMode = SRPLensFlareBlendMode.Additive;
             autoRotate = false;
-            isFoldOpened = true;
+            isFoldOpened = false;
         }
 
         /// <summary>

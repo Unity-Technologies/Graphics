@@ -2210,17 +2210,17 @@ namespace UnityEngine.Rendering.HighDefinition
                 float occlusionRadius = (occlusionRadiusEdgeScreenPos1 - occlusionRadiusEdgeScreenPos0).magnitude;
 
                 cmd.SetGlobalFloat(HDShaderIDs._FlareOcclusionRadius, occlusionRadius);
-                cmd.SetGlobalFloat(HDShaderIDs._FlareOcclusionSamplesCount, comp.samplesCount);
+                cmd.SetGlobalFloat(HDShaderIDs._FlareOcclusionSamplesCount, comp.sampleCount);
 
                 cmd.SetGlobalFloat(HDShaderIDs._FlareOffscreen, comp.allowOffScreen ? 1.0f : -1.0f);
                 cmd.SetGlobalVector(HDShaderIDs._FlareScreenPos, screenPos);
 
-                Vector3 screenPosZ = cam.WorldToViewportPoint(positionWS - comp.zOcclusionOffset * cam.transform.forward);
+                Vector3 screenPosZ = cam.WorldToViewportPoint(positionWS - comp.occlusionOffset * cam.transform.forward);
                 cmd.SetGlobalFloat(HDShaderIDs._FlareDepth, screenPosZ.z);
 
                 Vector2 radPos = new Vector2(screenPos.x, screenPos.y);
                 float radius = radPos.magnitude;
-                float radialsScaleRadius = comp.radialAttenuationCurve.length > 0 ? comp.radialAttenuationCurve.Evaluate(radius) : 1.0f;
+                float radialsScaleRadius = comp.radialScreenAttenuationCurve.length > 0 ? comp.radialScreenAttenuationCurve.Evaluate(radius) : 1.0f;
 
                 float totalLengthPos = 0.0f;
                 float totalLengthNeg = 0.0f;
@@ -2380,7 +2380,7 @@ namespace UnityEngine.Rendering.HighDefinition
                     float rotation = element.rotation;
                     Vector4 tint;
 
-                    float currentIntensity = comp.globalIntensity * element.localIntensity * data.globalIntensity * radialsScaleRadius * distanceAttenuation;
+                    float currentIntensity = comp.intensity * element.localIntensity * data.globalIntensity * radialsScaleRadius * distanceAttenuation;
 
                     ++elemIdx;
                     if (currentIntensity <= 0.0f)

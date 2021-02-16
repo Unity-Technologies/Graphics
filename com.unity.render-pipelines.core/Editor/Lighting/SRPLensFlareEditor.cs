@@ -4,6 +4,9 @@ using UnityEngine;
 
 namespace UnityEditor.Rendering
 {
+    /// <summary>
+    /// SRPLensFlareEditor shows how the SRP Lens Flare Asset is shown in the UI
+    /// </summary>
     [CustomEditor(typeof(SRPLensFlareData))]
     public class SRPLensFlareEditor : Editor
     {
@@ -12,6 +15,9 @@ namespace UnityEditor.Rendering
         SerializedProperty m_PositionCurve;
         SerializedProperty m_Elements;
 
+        /// <summary>
+        /// Prepare the code for the UI
+        /// </summary>
         public void OnEnable()
         {
             PropertyFetcher<SRPLensFlareData> entryPoint = new PropertyFetcher<SRPLensFlareData>(serializedObject);
@@ -21,6 +27,9 @@ namespace UnityEditor.Rendering
             m_Elements = entryPoint.Find(x => x.elements);
         }
 
+        /// <summary>
+        /// Implement this function to make a custom inspector
+        /// </summary>
         public override void OnInspectorGUI()
         {
             EditorGUI.BeginChangeCheck();
