@@ -13,40 +13,41 @@ namespace UnityEngine
         /// </summary>
         public SRPLensFlareData lensFlareData = null;
         /// <summary>
+        /// Global intensity
+        /// </summary>
+        public float globalIntensity = 1.0f;
+        /// <summary>
+        /// Attenuation by distance, uses world space values
+        /// </summary>
+        public AnimationCurve distanceAttenuationCurve = new AnimationCurve(new Keyframe(0.0f, 1.0f), new Keyframe(10.0f, 0.0f));
+        /// <summary>
         /// If component attached to a light, attenuation the lens flare per light type
         /// </summary>
-        public bool attenuationByLight = true;
+        public bool attenuationByLightShape = true;
         /// <summary>
-        /// If allowOffScreen is true then If the lens flare is outside the screen we still emit the flare on screen
+        /// Attenuation used radially, which allow for instance to enable flare only on the edge of the screen
         /// </summary>
-        public bool allowOffScreen = false;
+        public AnimationCurve radialAttenuationCurve = new AnimationCurve(new Keyframe(0.0f, 1.0f), new Keyframe(1.0f, 1.0f));
+
         /// <summary>
         /// Radius around the light used to occlude the flare (value in world space)
         /// </summary>
         [Min(0)]
         public float occlusionRadius = 0.01f;
         /// <summary>
+        /// Random Samples Count used inside the disk with 'occlusionRadius'
+        /// </summary>
+        [Range(0, 64)]
+        public uint samplesCount = 4;
+        /// <summary>
         /// Z Occlusion Offset allow us to offset the plane where the disc of occlusion is place (closer to camera), value on world space.
         /// Useful for instance to sample occlusion outside a light bulb if we place a flare inside the light bulb
         /// </summary>
         public float zOcclusionOffset = 0.0f;
         /// <summary>
-        /// Random Samples Count used inside the disk with 'occlusionRadius'
+        /// If allowOffScreen is true then If the lens flare is outside the screen we still emit the flare on screen
         /// </summary>
-        [Range(0, 16)]
-        public uint samplesCount = 4;
-        /// <summary>
-        /// Attenuation used radially, which allow for instance to enable flare only on the edge of the screen
-        /// </summary>
-        public AnimationCurve radialAttenuationCurve = new AnimationCurve(new Keyframe(0.0f, 1.0f), new Keyframe(1.0f, 1.0f));
-        /// <summary>
-        /// Attenuation by distance, uses world space values
-        /// </summary>
-        public AnimationCurve distanceAttenuationCurve = new AnimationCurve(new Keyframe(0.0f, 1.0f), new Keyframe(10.0f, 0.0f));
-        /// <summary>
-        /// Global attenuation
-        /// </summary>
-        public float attenuation = 1.0f;
+        public bool allowOffScreen = false;
 
         /// <summary>
         /// Add or remove the lens flare to the queue of PostProcess

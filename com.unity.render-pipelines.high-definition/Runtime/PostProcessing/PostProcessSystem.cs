@@ -2218,7 +2218,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 Vector3 screenPosZ = cam.WorldToViewportPoint(positionWS - comp.zOcclusionOffset * cam.transform.forward);
                 cmd.SetGlobalFloat(HDShaderIDs._FlareDepth, screenPosZ.z);
 
-                Vector2 radPos = new Vector2(screenPos.x * screenRatio, screenPos.y);
+                Vector2 radPos = new Vector2(screenPos.x, screenPos.y);
                 float radius = radPos.magnitude;
                 float radialsScaleRadius = comp.radialAttenuationCurve.length > 0 ? comp.radialAttenuationCurve.Evaluate(radius) : 1.0f;
 
@@ -2256,7 +2256,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
                     HDAdditionalLightData hdLightData = light.GetComponent<HDAdditionalLightData>();
                     // Must always be true
-                    if (hdLightData != null && comp.attenuationByLight)
+                    if (hdLightData != null && comp.attenuationByLightShape)
                     {
                         switch (hdLightData.type)
                         {
@@ -2353,7 +2353,9 @@ namespace UnityEngine.Rendering.HighDefinition
                 float curLengthNeg = 0.0f;
                 foreach (SRPLensFlareDataElement element in data.elements)
                 {
-                    if (element == null || element.lensFlareTexture == null)
+                    if (element == null ||
+                        element.lensFlareTexture == null ||
+                        element.localIntensity <= 0.0f)
                         continue;
 
                     if (element.position > 0.0f)
@@ -2378,7 +2380,7 @@ namespace UnityEngine.Rendering.HighDefinition
                     float rotation = element.rotation;
                     Vector4 tint;
 
-                    float currentIntensity = comp.attenuation * element.localIntensity * data.globalIntensity * radialsScaleRadius * distanceAttenuation;
+                    float currentIntensity = comp.globalIntensity * element.localIntensity * data.globalIntensity * radialsScaleRadius * distanceAttenuation;
 
                     ++elemIdx;
                     if (currentIntensity <= 0.0f)
@@ -2389,7 +2391,7 @@ namespace UnityEngine.Rendering.HighDefinition
                     else
                         tint = currentIntensity * element.tint;
 
-                    if (comp.attenuationByLight)
+                    if (comp.attenuationByLightShape)
                         tint.Scale(modulationAttenuation);
 
                     SRPLensFlareBlendMode blendMode = element.blendMode;
