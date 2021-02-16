@@ -31,6 +31,9 @@ namespace UnityEngine
     [System.Serializable]
     public sealed class SRPLensFlareDataElement
     {
+        /// <summary>
+        /// Initialize default values
+        /// </summary>
         public SRPLensFlareDataElement()
         {
             localIntensity = 1.0f;
@@ -94,7 +97,10 @@ namespace UnityEngine
         /// Modulate by light color if the asset is used in a 'SRP Lens Flare Source Override'
         /// </summary>
         public bool modulateByLightColor;
-        internal bool isFoldOpened;
+        /// <summary>
+        /// Internal value use to store the state of minimized or maximized LensFlareElement
+        /// </summary>
+        public bool isFoldOpened;
     }
 
     /// <summary>
@@ -103,11 +109,15 @@ namespace UnityEngine
     [System.Serializable]
     public sealed class SRPLensFlareData : ScriptableObject
     {
+        /// <summary>
+        /// Initialize default value
+        /// </summary>
         public SRPLensFlareData()
         {
             globalIntensity = 1.0f;
             scaleCurve = new AnimationCurve(new Keyframe(0.0f, 1.0f), new Keyframe(1.0f, 1.0f));
             positionCurve = new AnimationCurve(new Keyframe(-1.0f, -1.0f, 1.0f, 1.0f), new Keyframe(0.0f, 0.0f, 1.0f, 1.0f), new Keyframe(1.0f, 1.0f, 1.0f, 1.0f));
+            elements = null;
         }
 
         /// <summary>
