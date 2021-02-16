@@ -408,7 +408,7 @@ namespace UnityEngine.Rendering.HighDefinition
                         m_IsGPUTextureUpToDate[key] = (int)rtA.updateCount;
                         return true;
                     }
-                    else if (rtB.updateCount != updateCount) // implicitly rtB != null
+                    else if (rtB != null && rtB.updateCount != updateCount)
                     {
                         m_IsGPUTextureUpToDate[key] = (int)rtB.updateCount;
                         return true;

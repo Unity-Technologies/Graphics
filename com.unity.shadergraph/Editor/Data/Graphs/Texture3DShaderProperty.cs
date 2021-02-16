@@ -34,7 +34,7 @@ namespace UnityEditor.ShaderGraph.Internal
             action(new HLSLProperty(HLSLType._SamplerState, "sampler" + referenceName, HLSLDeclaration.Global));
         }
 
-        internal override string GetPropertyAsArgumentString()
+        internal override string GetPropertyAsArgumentString(string precisionString)
         {
             return "UnityTexture3D " + referenceName;
         }
@@ -75,9 +75,7 @@ namespace UnityEditor.ShaderGraph.Internal
             return new Texture3DShaderProperty()
             {
                 displayName = displayName,
-                hidden = hidden,
                 value = value,
-                precision = precision
             };
         }
     }
