@@ -818,6 +818,9 @@ namespace UnityEngine.Rendering.HighDefinition
 
         void GenerateDebugImageHistogram(RenderGraph renderGraph, HDCamera hdCamera, TextureHandle source)
         {
+            if (m_CurrentDebugDisplaySettings.data.lightingDebugSettings.exposureDebugMode != ExposureDebugMode.FinalImageHistogramView)
+                return;
+
             using (var builder = renderGraph.AddRenderPass<DebugImageHistogramData>("Generate Debug Image Histogram", out var passData, ProfilingSampler.Get(HDProfileId.FinalImageHistogram)))
             {
                 passData.source = builder.ReadTexture(source);
