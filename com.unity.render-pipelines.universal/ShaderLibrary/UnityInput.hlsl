@@ -98,8 +98,12 @@ float4x4 unity_CameraToWorld;
 
 // ----------------------------------------------------------------------------
 
+#pragma target 5.1
+#pragma use_dxc
+#pragma enable_bindsets
+
 // Block Layout should be respected due to SRP Batcher
-CBUFFER_START(UnityPerDraw)
+CBUFFER_STARTS(UnityPerDraw, b0, space2)
 // Space block Feature
 float4x4 unity_ObjectToWorld;
 float4x4 unity_WorldToObject;
