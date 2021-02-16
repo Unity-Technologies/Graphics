@@ -197,7 +197,28 @@ namespace UnityEngine.Rendering.HighDefinition
 
         class MotionBlurData
         {
-            public MotionBlurParameters parameters;
+            public ComputeShader motionVecPrepCS;
+            public ComputeShader tileGenCS;
+            public ComputeShader tileNeighbourhoodCS;
+            public ComputeShader tileMergeCS;
+            public ComputeShader motionBlurCS;
+
+            public int motionVecPrepKernel;
+            public int tileGenKernel;
+            public int tileNeighbourhoodKernel;
+            public int tileMergeKernel;
+            public int motionBlurKernel;
+
+            public HDCamera camera;
+
+            public Vector4 tileTargetSize;
+            public Vector4 motionBlurParams0;
+            public Vector4 motionBlurParams1;
+            public Vector4 motionBlurParams2;
+            public Vector4 motionBlurParams3;
+
+            public bool motionblurSupportScattering;
+
             public TextureHandle source;
             public TextureHandle destination;
             public TextureHandle depthBuffer;
@@ -1073,56 +1094,282 @@ namespace UnityEngine.Rendering.HighDefinition
             return source;
         }
 
+        #region Motion Blur
+
+        void PrepareMotionBlurPassData(RenderGraph renderGraph, in RenderGraphBuilder builder, MotionBlurData data, HDCamera hdCamera, TextureHandle source, TextureHandle motionVectors, TextureHandle depthTexture)
+        {
+            data.camera = hdCamera;
+
+            int tileSize = 32;
+
+            if (m_MotionBlurSupportsScattering)
+            {
+                tileSize = 16;
+            }
+
+            int tileTexWidth = Mathf.CeilToInt(hdCamera.actualWidth / tileSize);
+            int tileTexHeight = Mathf.CeilToInt(hdCamera.actualHeight / tileSize);
+            data.tileTargetSize = new Vector4(tileTexWidth, tileTexHeight, 1.0f / tileTexWidth, 1.0f / tileTexHeight);
+
+            float screenMagnitude = (new Vector2(hdCamera.actualWidth, hdCamera.actualHeight).magnitude);
+            data.motionBlurParams0 = new Vector4(
+                screenMagnitude,
+                screenMagnitude * screenMagnitude,
+                m_MotionBlur.minimumVelocity.value,
+                m_MotionBlur.minimumVelocity.value * m_MotionBlur.minimumVelocity.value
+            );
+
+            data.motionBlurParams1 = new Vector4(
+                m_MotionBlur.intensity.value,
+                m_MotionBlur.maximumVelocity.value / screenMagnitude,
+                0.25f, // min/max velocity ratio for high quality.
+                m_MotionBlur.cameraRotationVelocityClamp.value
+            );
+
+            uint sampleCount = (uint)m_MotionBlur.sampleCount;
+            data.motionBlurParams2 = new Vector4(
+                m_MotionBlurSupportsScattering ? (sampleCount + (sampleCount & 1)) : sampleCount,
+                tileSize,
+                m_MotionBlur.depthComparisonExtent.value,
+                m_MotionBlur.cameraMotionBlur.value ? 0.0f : 1.0f
+            );
+
+            data.motionVecPrepCS = m_Resources.shaders.motionBlurMotionVecPrepCS;
+            data.motionVecPrepKernel = data.motionVecPrepCS.FindKernel("MotionVecPreppingCS");
+            data.motionVecPrepCS.shaderKeywords = null;
+
+            if (!m_MotionBlur.cameraMotionBlur.value)
+            {
+                data.motionVecPrepCS.EnableKeyword("CAMERA_DISABLE_CAMERA");
+            }
+            else
+            {
+                var clampMode = m_MotionBlur.specialCameraClampMode.value;
+                if (clampMode == CameraClampMode.None)
+                    data.motionVecPrepCS.EnableKeyword("NO_SPECIAL_CLAMP");
+                else if (clampMode == CameraClampMode.Rotation)
+                    data.motionVecPrepCS.EnableKeyword("CAMERA_ROT_CLAMP");
+                else if (clampMode == CameraClampMode.Translation)
+                    data.motionVecPrepCS.EnableKeyword("CAMERA_TRANS_CLAMP");
+                else if (clampMode == CameraClampMode.SeparateTranslationAndRotation)
+                    data.motionVecPrepCS.EnableKeyword("CAMERA_SEPARATE_CLAMP");
+                else if (clampMode == CameraClampMode.FullCameraMotionVector)
+                    data.motionVecPrepCS.EnableKeyword("CAMERA_FULL_CLAMP");
+            }
+
+            data.motionBlurParams3 = new Vector4(
+                m_MotionBlur.cameraTranslationVelocityClamp.value,
+                m_MotionBlur.cameraVelocityClamp.value,
+                0, 0);
+
+
+            data.tileGenCS = m_Resources.shaders.motionBlurGenTileCS;
+            data.tileGenCS.shaderKeywords = null;
+            if (m_MotionBlurSupportsScattering)
+            {
+                data.tileGenCS.EnableKeyword("SCATTERING");
+            }
+            data.tileGenKernel = data.tileGenCS.FindKernel("TileGenPass");
+
+            data.tileNeighbourhoodCS = m_Resources.shaders.motionBlurNeighborhoodTileCS;
+            data.tileNeighbourhoodCS.shaderKeywords = null;
+            if (m_MotionBlurSupportsScattering)
+            {
+                data.tileNeighbourhoodCS.EnableKeyword("SCATTERING");
+            }
+            data.tileNeighbourhoodKernel = data.tileNeighbourhoodCS.FindKernel("TileNeighbourhood");
+
+            data.tileMergeCS = m_Resources.shaders.motionBlurMergeTileCS;
+            data.tileMergeKernel = data.tileMergeCS.FindKernel("TileMerge");
+
+            data.motionBlurCS = m_Resources.shaders.motionBlurCS;
+            data.motionBlurCS.shaderKeywords = null;
+            CoreUtils.SetKeyword(data.motionBlurCS, "ENABLE_ALPHA", m_EnableAlpha);
+            data.motionBlurKernel = data.motionBlurCS.FindKernel("MotionBlurCS");
+
+            data.motionblurSupportScattering = m_MotionBlurSupportsScattering;
+
+            data.source = builder.ReadTexture(source);
+            data.motionVecTexture = builder.ReadTexture(motionVectors);
+            data.depthBuffer = builder.ReadTexture(depthTexture);
+
+            Vector2 tileTexScale = new Vector2((float)data.tileTargetSize.x / hdCamera.actualWidth, (float)data.tileTargetSize.y / hdCamera.actualHeight);
+
+            data.preppedMotionVec = builder.CreateTransientTexture(new TextureDesc(Vector2.one, true, true)
+                { colorFormat = GraphicsFormat.B10G11R11_UFloatPack32, enableRandomWrite = true, name = "Prepped Motion Vectors" });
+
+            data.minMaxTileVel = builder.CreateTransientTexture(new TextureDesc(tileTexScale, true, true)
+                { colorFormat = GraphicsFormat.B10G11R11_UFloatPack32, enableRandomWrite = true, name = "MinMax Tile Motion Vectors" });
+
+            data.maxTileNeigbourhood = builder.CreateTransientTexture(new TextureDesc(tileTexScale, true, true)
+                { colorFormat = GraphicsFormat.B10G11R11_UFloatPack32, enableRandomWrite = true, name = "Max Neighborhood Tile" });
+
+            data.tileToScatterMax = TextureHandle.nullHandle;
+            data.tileToScatterMin = TextureHandle.nullHandle;
+
+            if (data.motionblurSupportScattering)
+            {
+                data.tileToScatterMax = builder.CreateTransientTexture(new TextureDesc(tileTexScale, true, true)
+                    { colorFormat = GraphicsFormat.R32_UInt, enableRandomWrite = true, name = "Tile to Scatter Max" });
+
+                data.tileToScatterMin = builder.CreateTransientTexture(new TextureDesc(tileTexScale, true, true)
+                    { colorFormat = GraphicsFormat.R16_SFloat, enableRandomWrite = true, name = "Tile to Scatter Min" });
+            }
+
+            data.destination = builder.WriteTexture(GetPostprocessOutputHandle(renderGraph, "Motion Blur Destination"));;
+        }
+
+        static void DoMotionBlur(MotionBlurData data, CommandBuffer cmd)
+        {
+            int tileSize = 32;
+
+            if (data.motionblurSupportScattering)
+            {
+                tileSize = 16;
+            }
+
+            // -----------------------------------------------------------------------------
+            // Prep motion vectors
+
+            // - Pack normalized motion vectors and linear depth in R11G11B10
+            ComputeShader cs;
+            int kernel;
+            int threadGroupX;
+            int threadGroupY;
+            int groupSizeX = 8;
+            int groupSizeY = 8;
+
+            using (new ProfilingScope(cmd, ProfilingSampler.Get(HDProfileId.MotionBlurMotionVecPrep)))
+            {
+                cs = data.motionVecPrepCS;
+                kernel = data.motionVecPrepKernel;
+                cmd.SetComputeTextureParam(cs, kernel, HDShaderIDs._MotionVecAndDepth, data.preppedMotionVec);
+                cmd.SetComputeTextureParam(cs, kernel, HDShaderIDs._CameraDepthTexture, data.depthBuffer);
+                cmd.SetComputeVectorParam(cs, HDShaderIDs._MotionBlurParams, data.motionBlurParams0);
+                cmd.SetComputeVectorParam(cs, HDShaderIDs._MotionBlurParams1, data.motionBlurParams1);
+                cmd.SetComputeVectorParam(cs, HDShaderIDs._MotionBlurParams2, data.motionBlurParams2);
+                cmd.SetComputeVectorParam(cs, HDShaderIDs._MotionBlurParams3, data.motionBlurParams3);
+
+                cmd.SetComputeTextureParam(cs, kernel, HDShaderIDs._CameraMotionVectorsTexture, data.motionVecTexture);
+
+                cmd.SetComputeMatrixParam(cs, HDShaderIDs._PrevVPMatrixNoTranslation, data.camera.mainViewConstants.prevViewProjMatrixNoCameraTrans);
+                cmd.SetComputeMatrixParam(cs, HDShaderIDs._CurrVPMatrixNoTranslation, data.camera.mainViewConstants.viewProjectionNoCameraTrans);
+
+                threadGroupX = (data.camera.actualWidth + (groupSizeX - 1)) / groupSizeX;
+                threadGroupY = (data.camera.actualHeight + (groupSizeY - 1)) / groupSizeY;
+                cmd.DispatchCompute(cs, kernel, threadGroupX, threadGroupY, data.camera.viewCount);
+            }
+
+
+            // -----------------------------------------------------------------------------
+            // Generate MinMax motion vectors tiles
+
+            using (new ProfilingScope(cmd, ProfilingSampler.Get(HDProfileId.MotionBlurTileMinMax)))
+            {
+                // We store R11G11B10 with RG = Max vel and B = Min vel magnitude
+                cs = data.tileGenCS;
+                kernel = data.tileGenKernel;
+
+                cmd.SetComputeTextureParam(cs, kernel, HDShaderIDs._TileMinMaxMotionVec, data.minMaxTileVel);
+                cmd.SetComputeTextureParam(cs, kernel, HDShaderIDs._MotionVecAndDepth, data.preppedMotionVec);
+                cmd.SetComputeVectorParam(cs, HDShaderIDs._MotionBlurParams, data.motionBlurParams0);
+                cmd.SetComputeVectorParam(cs, HDShaderIDs._MotionBlurParams1, data.motionBlurParams1);
+                cmd.SetComputeVectorParam(cs, HDShaderIDs._MotionBlurParams2, data.motionBlurParams2);
+
+
+                if (data.motionblurSupportScattering)
+                {
+                    cmd.SetComputeTextureParam(cs, kernel, HDShaderIDs._TileToScatterMax, data.tileToScatterMax);
+                    cmd.SetComputeTextureParam(cs, kernel, HDShaderIDs._TileToScatterMin, data.tileToScatterMin);
+                }
+
+                threadGroupX = (data.camera.actualWidth + (tileSize - 1)) / tileSize;
+                threadGroupY = (data.camera.actualHeight + (tileSize - 1)) / tileSize;
+                cmd.DispatchCompute(cs, kernel, threadGroupX, threadGroupY, data.camera.viewCount);
+            }
+
+            // -----------------------------------------------------------------------------
+            // Generate max tiles neigbhourhood
+
+            using (new ProfilingScope(cmd, data.motionblurSupportScattering ? ProfilingSampler.Get(HDProfileId.MotionBlurTileScattering) : ProfilingSampler.Get(HDProfileId.MotionBlurTileNeighbourhood)))
+            {
+                cs = data.tileNeighbourhoodCS;
+                kernel = data.tileNeighbourhoodKernel;
+
+
+                cmd.SetComputeVectorParam(cs, HDShaderIDs._TileTargetSize, data.tileTargetSize);
+                cmd.SetComputeTextureParam(cs, kernel, HDShaderIDs._TileMinMaxMotionVec, data.minMaxTileVel);
+                cmd.SetComputeTextureParam(cs, kernel, HDShaderIDs._TileMaxNeighbourhood, data.maxTileNeigbourhood);
+                cmd.SetComputeVectorParam(cs, HDShaderIDs._MotionBlurParams, data.motionBlurParams0);
+                cmd.SetComputeVectorParam(cs, HDShaderIDs._MotionBlurParams1, data.motionBlurParams1);
+                cmd.SetComputeVectorParam(cs, HDShaderIDs._MotionBlurParams2, data.motionBlurParams2);
+
+                if (data.motionblurSupportScattering)
+                {
+                    cmd.SetComputeTextureParam(cs, kernel, HDShaderIDs._TileToScatterMax, data.tileToScatterMax);
+                    cmd.SetComputeTextureParam(cs, kernel, HDShaderIDs._TileToScatterMin, data.tileToScatterMin);
+                }
+                groupSizeX = 8;
+                groupSizeY = 8;
+                threadGroupX = ((int)data.tileTargetSize.x + (groupSizeX - 1)) / groupSizeX;
+                threadGroupY = ((int)data.tileTargetSize.y + (groupSizeY - 1)) / groupSizeY;
+                cmd.DispatchCompute(cs, kernel, threadGroupX, threadGroupY, data.camera.viewCount);
+            }
+
+            // -----------------------------------------------------------------------------
+            // Merge min/max info spreaded above.
+
+            if (data.motionblurSupportScattering)
+            {
+                cs = data.tileMergeCS;
+                kernel = data.tileMergeKernel;
+                cmd.SetComputeVectorParam(cs, HDShaderIDs._TileTargetSize, data.tileTargetSize);
+                cmd.SetComputeTextureParam(cs, kernel, HDShaderIDs._TileToScatterMax, data.tileToScatterMax);
+                cmd.SetComputeTextureParam(cs, kernel, HDShaderIDs._TileToScatterMin, data.tileToScatterMin);
+                cmd.SetComputeTextureParam(cs, kernel, HDShaderIDs._TileMaxNeighbourhood, data.maxTileNeigbourhood);
+                cmd.SetComputeVectorParam(cs, HDShaderIDs._MotionBlurParams, data.motionBlurParams0);
+                cmd.SetComputeVectorParam(cs, HDShaderIDs._MotionBlurParams1, data.motionBlurParams1);
+                cmd.SetComputeVectorParam(cs, HDShaderIDs._MotionBlurParams2, data.motionBlurParams2);
+
+                cmd.DispatchCompute(cs, kernel, threadGroupX, threadGroupY, data.camera.viewCount);
+            }
+
+            // -----------------------------------------------------------------------------
+            // Blur kernel
+            using (new ProfilingScope(cmd, ProfilingSampler.Get(HDProfileId.MotionBlurKernel)))
+            {
+                cs = data.motionBlurCS;
+                kernel = data.motionBlurKernel;
+
+                cmd.SetComputeVectorParam(cs, HDShaderIDs._TileTargetSize, data.tileTargetSize);
+                cmd.SetComputeTextureParam(cs, kernel, HDShaderIDs._MotionVecAndDepth, data.preppedMotionVec);
+                cmd.SetComputeTextureParam(cs, kernel, HDShaderIDs._OutputTexture, data.destination);
+                cmd.SetComputeTextureParam(cs, kernel, HDShaderIDs._TileMaxNeighbourhood, data.maxTileNeigbourhood);
+                cmd.SetComputeTextureParam(cs, kernel, HDShaderIDs._InputTexture, data.source);
+                cmd.SetComputeVectorParam(cs, HDShaderIDs._MotionBlurParams, data.motionBlurParams0);
+                cmd.SetComputeVectorParam(cs, HDShaderIDs._MotionBlurParams1, data.motionBlurParams1);
+                cmd.SetComputeVectorParam(cs, HDShaderIDs._MotionBlurParams2, data.motionBlurParams2);
+
+                groupSizeX = 16;
+                groupSizeY = 16;
+                threadGroupX = (data.camera.actualWidth + (groupSizeX - 1)) / groupSizeX;
+                threadGroupY = (data.camera.actualHeight + (groupSizeY - 1)) / groupSizeY;
+                cmd.DispatchCompute(cs, kernel, threadGroupX, threadGroupY, data.camera.viewCount);
+            }
+        }
+
         TextureHandle MotionBlurPass(RenderGraph renderGraph, HDCamera hdCamera, TextureHandle depthTexture, TextureHandle motionVectors, TextureHandle source)
         {
             if (m_MotionBlur.IsActive() && m_AnimatedMaterialsEnabled && !hdCamera.resetPostProcessingHistory && m_MotionBlurFS)
             {
                 using (var builder = renderGraph.AddRenderPass<MotionBlurData>("Motion Blur", out var passData, ProfilingSampler.Get(HDProfileId.MotionBlur)))
                 {
-                    passData.source = builder.ReadTexture(source);
-                    passData.parameters = PrepareMotionBlurParameters(hdCamera);
-
-                    passData.motionVecTexture = builder.ReadTexture(motionVectors);
-                    passData.depthBuffer = builder.ReadTexture(depthTexture);
-
-                    Vector2 tileTexScale = new Vector2((float)passData.parameters.tileTargetSize.x / hdCamera.actualWidth, (float)passData.parameters.tileTargetSize.y / hdCamera.actualHeight);
-
-                    passData.preppedMotionVec = builder.CreateTransientTexture(new TextureDesc(Vector2.one, true, true)
-                        { colorFormat = GraphicsFormat.B10G11R11_UFloatPack32, enableRandomWrite = true, name = "Prepped Motion Vectors" });
-
-                    passData.minMaxTileVel = builder.CreateTransientTexture(new TextureDesc(tileTexScale, true, true)
-                        { colorFormat = GraphicsFormat.B10G11R11_UFloatPack32, enableRandomWrite = true, name = "MinMax Tile Motion Vectors" });
-
-                    passData.maxTileNeigbourhood = builder.CreateTransientTexture(new TextureDesc(tileTexScale, true, true)
-                        { colorFormat = GraphicsFormat.B10G11R11_UFloatPack32, enableRandomWrite = true, name = "Max Neighbourhood Tile" });
-
-                    passData.tileToScatterMax = TextureHandle.nullHandle;
-                    passData.tileToScatterMin = TextureHandle.nullHandle;
-
-                    if (passData.parameters.motionblurSupportScattering)
-                    {
-                        passData.tileToScatterMax = builder.CreateTransientTexture(new TextureDesc(tileTexScale, true, true)
-                            { colorFormat = GraphicsFormat.R32_UInt, enableRandomWrite = true, name = "Tile to Scatter Max" });
-
-                        passData.tileToScatterMin = builder.CreateTransientTexture(new TextureDesc(tileTexScale, true, true)
-                            { colorFormat = GraphicsFormat.R16_SFloat, enableRandomWrite = true, name = "Tile to Scatter Min" });
-                    }
-
-                    TextureHandle dest = GetPostprocessOutputHandle(renderGraph, "Motion Blur Destination");
-                    passData.destination = builder.WriteTexture(dest);;
+                    PrepareMotionBlurPassData(renderGraph, builder, passData, hdCamera, source, motionVectors, depthTexture);
 
                     builder.SetRenderFunc(
                         (MotionBlurData data, RenderGraphContext ctx) =>
                         {
-                            DoMotionBlur(data.parameters, ctx.cmd, data.source,
-                                data.destination,
-                                data.depthBuffer,
-                                data.motionVecTexture,
-                                data.preppedMotionVec,
-                                data.minMaxTileVel,
-                                data.maxTileNeigbourhood,
-                                data.tileToScatterMax,
-                                data.tileToScatterMin);
+                            DoMotionBlur(data, ctx.cmd);
                         });
 
                     source = passData.destination;
@@ -1131,6 +1378,8 @@ namespace UnityEngine.Rendering.HighDefinition
 
             return source;
         }
+
+        #endregion
 
         Vector2 CalcViewExtents(HDCamera camera)
         {
