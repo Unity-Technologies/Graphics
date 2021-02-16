@@ -1,7 +1,7 @@
-using UnityEditor.Rendering;
 using UnityEngine;
 using UnityEngine.Rendering.HighDefinition;
 using UnityEngine.Rendering;
+using UnityEngine.Experimental.Rendering;
 
 namespace UnityEditor.Rendering.HighDefinition
 {
@@ -27,8 +27,8 @@ namespace UnityEditor.Rendering.HighDefinition
 
             internal Profile()
             {
-                profileRT       = new RenderTexture(256, 256, 0, RenderTextureFormat.DefaultHDR);
-                transmittanceRT = new RenderTexture(16, 256, 0, RenderTextureFormat.DefaultHDR);
+                profileRT       = new RenderTexture(256, 256, 0, GraphicsFormat.R16G16B16A16_SFloat);
+                transmittanceRT = new RenderTexture(16, 256, 0, GraphicsFormat.R16G16B16A16_SFloat);
             }
 
             internal void Release()
