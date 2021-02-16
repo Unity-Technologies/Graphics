@@ -1,6 +1,5 @@
 project:
   name: URP_Performance_BoatAttack
-  repo: BoatAttack
   folder: BoatAttack
   variables:
     BOAT_ATTACK_BRANCH: master
