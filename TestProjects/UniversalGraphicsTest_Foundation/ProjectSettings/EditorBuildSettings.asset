@@ -120,6 +120,9 @@ EditorBuildSettings:
     path: Assets/Scenes/127_ClearRenderTexture.unity
     guid: ecb4f57b7a1788b4b85f618d4cbc6677
   - enabled: 1
+    path: Assets/Scenes/129_CameraStack3DOnUI.unity
+    guid: 810b97dd4e5e5204b9e6ed3d05c42498
+  - enabled: 1
     path: Assets/Scenes/130_ClearCoat.unity
     guid: 2242f9ac270754ebea6016ff9370de29
   - enabled: 1
