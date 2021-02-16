@@ -245,7 +245,22 @@ namespace UnityEngine.Rendering.HighDefinition
 
         class BloomData
         {
-            public BloomParameters parameters;
+            public ComputeShader bloomPrefilterCS;
+            public ComputeShader bloomBlurCS;
+            public ComputeShader bloomUpsampleCS;
+
+            public int bloomPrefilterKernel;
+            public int bloomBlurKernel;
+            public int bloomDownsampleKernel;
+            public int bloomUpsampleKernel;
+
+            public int viewCount;
+            public int bloomMipCount;
+            public Vector4[] bloomMipInfo = new Vector4[k_MaxBloomMipCount + 1];
+
+            public float bloomScatterParam;
+            public Vector4 thresholdParams;
+
             public TextureHandle source;
             public TextureHandle[] mipsDown = new TextureHandle[k_MaxBloomMipCount + 1];
             public TextureHandle[] mipsUp = new TextureHandle[k_MaxBloomMipCount + 1];
@@ -309,34 +324,6 @@ namespace UnityEngine.Rendering.HighDefinition
             return renderGraph.CreateTexture(new TextureDesc(Vector2.one, true, true)
             {
                 name = name,
-                colorFormat = m_ColorFormat,
-                useMipMap = false,
-                enableRandomWrite = true
-            });
-        }
-
-        void FillBloomMipsTextureHandles(BloomData bloomData, RenderGraph renderGraph, RenderGraphBuilder builder)
-        {
-            for (int i = 0; i < m_BloomMipCount; i++)
-            {
-                var scale = new Vector2(m_BloomMipsInfo[i].z, m_BloomMipsInfo[i].w);
-                var pixelSize = new Vector2Int((int)m_BloomMipsInfo[i].x, (int)m_BloomMipsInfo[i].y);
-
-                bloomData.mipsDown[i] = builder.CreateTransientTexture(new TextureDesc(scale, true, true)
-                    { colorFormat = m_ColorFormat, enableRandomWrite = true, name = "BloomMipDown" });
-
-                if (i != 0)
-                {
-                    bloomData.mipsUp[i] = builder.CreateTransientTexture(new TextureDesc(scale, true, true)
-                        { colorFormat = m_ColorFormat, enableRandomWrite = true, name = "BloomMipUp" });
-                }
-            }
-
-            // the mip up 0 will be used by uber, so not allocated as transient.
-            var mip0Scale = new Vector2(m_BloomMipsInfo[0].z, m_BloomMipsInfo[0].w);
-            bloomData.mipsUp[0] = renderGraph.CreateTexture(new TextureDesc(mip0Scale, true, true)
-            {
-                name = "Bloom final mip up",
                 colorFormat = m_ColorFormat,
                 useMipMap = false,
                 enableRandomWrite = true
@@ -1482,34 +1469,198 @@ namespace UnityEngine.Rendering.HighDefinition
             return source;
         }
 
+        #region Bloom
+
+        void PrepareBloomData(RenderGraph renderGraph, in RenderGraphBuilder builder, BloomData passData, HDCamera camera, TextureHandle source)
+        {
+            passData.viewCount = camera.viewCount;
+            passData.bloomPrefilterCS = m_Resources.shaders.bloomPrefilterCS;
+            passData.bloomPrefilterKernel = passData.bloomPrefilterCS.FindKernel("KMain");
+
+            passData.bloomPrefilterCS.shaderKeywords = null;
+            if (m_Bloom.highQualityPrefiltering)
+                passData.bloomPrefilterCS.EnableKeyword("HIGH_QUALITY");
+            else
+                passData.bloomPrefilterCS.EnableKeyword("LOW_QUALITY");
+            if (m_EnableAlpha)
+                passData.bloomPrefilterCS.EnableKeyword("ENABLE_ALPHA");
+
+            passData.bloomBlurCS = m_Resources.shaders.bloomBlurCS;
+            passData.bloomBlurKernel = passData.bloomBlurCS.FindKernel("KMain");
+            passData.bloomDownsampleKernel = passData.bloomBlurCS.FindKernel("KDownsample");
+            passData.bloomUpsampleCS = m_Resources.shaders.bloomUpsampleCS;
+            passData.bloomUpsampleCS.shaderKeywords = null;
+
+            var highQualityFiltering = m_Bloom.highQualityFiltering;
+            // We switch to bilinear upsampling as it goes less wide than bicubic and due to our border/RTHandle handling, going wide on small resolution
+            // where small mips have a strong influence, might result problematic.
+            if (camera.actualWidth < 800 || camera.actualHeight < 450) highQualityFiltering = false;
+
+            if (highQualityFiltering)
+                passData.bloomUpsampleCS.EnableKeyword("HIGH_QUALITY");
+            else
+                passData.bloomUpsampleCS.EnableKeyword("LOW_QUALITY");
+
+            passData.bloomUpsampleKernel = passData.bloomUpsampleCS.FindKernel("KMain");
+            passData.bloomScatterParam = Mathf.Lerp(0.05f, 0.95f, m_Bloom.scatter.value);
+            passData.thresholdParams = GetBloomThresholdParams();
+
+            var resolution = m_Bloom.resolution;
+            float scaleW = 1f / ((int)resolution / 2f);
+            float scaleH = 1f / ((int)resolution / 2f);
+
+            // If the scene is less than 50% of 900p, then we operate on full res, since it's going to be cheap anyway and this might improve quality in challenging situations.
+            if (camera.actualWidth < 800 || camera.actualHeight < 450)
+            {
+                scaleW = 1.0f;
+                scaleH = 1.0f;
+            }
+
+            if (m_Bloom.anamorphic.value)
+            {
+                // Positive anamorphic ratio values distort vertically - negative is horizontal
+                float anamorphism = m_PhysicalCamera.anamorphism * 0.5f;
+                scaleW *= anamorphism < 0 ? 1f + anamorphism : 1f;
+                scaleH *= anamorphism > 0 ? 1f - anamorphism : 1f;
+            }
+
+            // Determine the iteration count
+            int maxSize = Mathf.Max(camera.actualWidth, camera.actualHeight);
+            int iterations = Mathf.FloorToInt(Mathf.Log(maxSize, 2f) - 2 - (resolution == BloomResolution.Half ? 0 : 1));
+            passData.bloomMipCount = Mathf.Clamp(iterations, 1, k_MaxBloomMipCount);
+
+            for (int i = 0; i < passData.bloomMipCount; i++)
+            {
+                float p = 1f / Mathf.Pow(2f, i + 1f);
+                float sw = scaleW * p;
+                float sh = scaleH * p;
+                int pw, ph;
+                if (DynamicResolutionHandler.instance.HardwareDynamicResIsEnabled())
+                {
+                    pw = Mathf.Max(1, Mathf.CeilToInt(sw * camera.actualWidth));
+                    ph = Mathf.Max(1, Mathf.CeilToInt(sh * camera.actualHeight));
+                }
+                else
+                {
+                    pw = Mathf.Max(1, Mathf.RoundToInt(sw * camera.actualWidth));
+                    ph = Mathf.Max(1, Mathf.RoundToInt(sh * camera.actualHeight));
+                }
+                var scale = new Vector2(sw, sh);
+                var pixelSize = new Vector2Int(pw, ph);
+
+                passData.bloomMipInfo[i] = new Vector4(pw, ph, sw, sh);
+                passData.mipsDown[i] = builder.CreateTransientTexture(new TextureDesc(scale, true, true)
+                    { colorFormat = m_ColorFormat, enableRandomWrite = true, name = "BloomMipDown" });
+
+                if (i != 0)
+                {
+                    passData.mipsUp[i] = builder.CreateTransientTexture(new TextureDesc(scale, true, true)
+                        { colorFormat = m_ColorFormat, enableRandomWrite = true, name = "BloomMipUp" });
+                }
+            }
+
+            // the mip up 0 will be used by uber, so not allocated as transient.
+            var mip0Scale = new Vector2(m_BloomMipsInfo[0].z, m_BloomMipsInfo[0].w);
+            passData.mipsUp[0] = builder.WriteTexture(renderGraph.CreateTexture(new TextureDesc(mip0Scale, true, true)
+            {
+                name = "Bloom final mip up",
+                colorFormat = m_ColorFormat,
+                useMipMap = false,
+                enableRandomWrite = true
+            }));
+            passData.source = builder.ReadTexture(source);
+        }
+
         TextureHandle BloomPass(RenderGraph renderGraph, HDCamera hdCamera, TextureHandle source)
         {
             bool bloomActive = m_Bloom.IsActive() && m_BloomFS;
             TextureHandle bloomTexture = renderGraph.defaultResources.blackTextureXR;
             if (bloomActive)
             {
-                ComputeBloomMipSizesAndScales(hdCamera);
                 using (var builder = renderGraph.AddRenderPass<BloomData>("Bloom", out var passData, ProfilingSampler.Get(HDProfileId.Bloom)))
                 {
-                    passData.source = builder.ReadTexture(source);
-                    passData.parameters = PrepareBloomParameters(hdCamera);
-                    FillBloomMipsTextureHandles(passData, renderGraph, builder);
-                    passData.mipsUp[0] = builder.WriteTexture(passData.mipsUp[0]);
-
+                    PrepareBloomData(renderGraph, builder, passData, hdCamera, source);
 
                     builder.SetRenderFunc(
                         (BloomData data, RenderGraphContext ctx) =>
                         {
-                            var bloomMipDown = ctx.renderGraphPool.GetTempArray<RTHandle>(data.parameters.bloomMipCount);
-                            var bloomMipUp = ctx.renderGraphPool.GetTempArray<RTHandle>(data.parameters.bloomMipCount);
+                            RTHandle sourceRT = data.source;
 
-                            for (int i = 0; i < data.parameters.bloomMipCount; ++i)
+                            // All the computes for this effect use the same group size so let's use a local
+                            // function to simplify dispatches
+                            // Make sure the thread group count is sufficient to draw the guard bands
+                            void DispatchWithGuardBands(CommandBuffer cmd, ComputeShader shader, int kernelId, in Vector2Int size, in int viewCount)
                             {
-                                bloomMipDown[i] = data.mipsDown[i];
-                                bloomMipUp[i] = data.mipsUp[i];
+                                int w = size.x;
+                                int h = size.y;
+
+                                if (w < sourceRT.rt.width && w % 8 < k_RTGuardBandSize)
+                                    w += k_RTGuardBandSize;
+                                if (h < sourceRT.rt.height && h % 8 < k_RTGuardBandSize)
+                                    h += k_RTGuardBandSize;
+
+                                cmd.DispatchCompute(shader, kernelId, (w + 7) / 8, (h + 7) / 8, viewCount);
                             }
 
-                            DoBloom(data.parameters, ctx.cmd, data.source, bloomMipDown, bloomMipUp);
+                            // Pre-filtering
+                            ComputeShader cs;
+                            int kernel;
+                            {
+                                var size = new Vector2Int((int)data.bloomMipInfo[0].x, (int)data.bloomMipInfo[0].y);
+                                cs = data.bloomPrefilterCS;
+                                kernel = data.bloomPrefilterKernel;
+
+                                ctx.cmd.SetComputeTextureParam(cs, kernel, HDShaderIDs._InputTexture, sourceRT);
+                                ctx.cmd.SetComputeTextureParam(cs, kernel, HDShaderIDs._OutputTexture, data.mipsUp[0]); // Use m_BloomMipsUp as temp target
+                                ctx.cmd.SetComputeVectorParam(cs, HDShaderIDs._TexelSize, new Vector4(size.x, size.y, 1f / size.x, 1f / size.y));
+                                ctx.cmd.SetComputeVectorParam(cs, HDShaderIDs._BloomThreshold, data.thresholdParams);
+                                DispatchWithGuardBands(ctx.cmd, cs, kernel, size, data.viewCount);
+
+                                cs = data.bloomBlurCS;
+                                kernel = data.bloomBlurKernel;
+
+                                ctx.cmd.SetComputeTextureParam(cs, kernel, HDShaderIDs._InputTexture, data.mipsUp[0]);
+                                ctx.cmd.SetComputeTextureParam(cs, kernel, HDShaderIDs._OutputTexture, data.mipsDown[0]);
+                                ctx.cmd.SetComputeVectorParam(cs, HDShaderIDs._TexelSize, new Vector4(size.x, size.y, 1f / size.x, 1f / size.y));
+                                DispatchWithGuardBands(ctx.cmd, cs, kernel, size, data.viewCount);
+                            }
+
+                            // Blur pyramid
+                            kernel = data.bloomDownsampleKernel;
+
+                            for (int i = 0; i < data.bloomMipCount - 1; i++)
+                            {
+                                var src = data.mipsDown[i];
+                                var dst = data.mipsDown[i + 1];
+                                var size = new Vector2Int((int)data.bloomMipInfo[i + 1].x, (int)data.bloomMipInfo[i + 1].y);
+
+                                ctx.cmd.SetComputeTextureParam(cs, kernel, HDShaderIDs._InputTexture, src);
+                                ctx.cmd.SetComputeTextureParam(cs, kernel, HDShaderIDs._OutputTexture, dst);
+                                ctx.cmd.SetComputeVectorParam(cs, HDShaderIDs._TexelSize, new Vector4(size.x, size.y, 1f / size.x, 1f / size.y));
+                                DispatchWithGuardBands(ctx.cmd, cs, kernel, size, data.viewCount);
+                            }
+
+                            // Upsample & combine
+                            cs = data.bloomUpsampleCS;
+                            kernel = data.bloomUpsampleKernel;
+
+                            for (int i = data.bloomMipCount - 2; i >= 0; i--)
+                            {
+                                var low = (i == data.bloomMipCount - 2) ? data.mipsDown : data.mipsUp;
+                                var srcLow = low[i + 1];
+                                var srcHigh = data.mipsDown[i];
+                                var dst = data.mipsUp[i];
+                                var highSize = new Vector2Int((int)data.bloomMipInfo[i].x, (int)data.bloomMipInfo[i].y);
+                                var lowSize = new Vector2Int((int)data.bloomMipInfo[i + 1].x, (int)data.bloomMipInfo[i + 1].y);
+
+                                ctx.cmd.SetComputeTextureParam(cs, kernel, HDShaderIDs._InputLowTexture, srcLow);
+                                ctx.cmd.SetComputeTextureParam(cs, kernel, HDShaderIDs._InputHighTexture, srcHigh);
+                                ctx.cmd.SetComputeTextureParam(cs, kernel, HDShaderIDs._OutputTexture, dst);
+                                ctx.cmd.SetComputeVectorParam(cs, HDShaderIDs._Params, new Vector4(data.bloomScatterParam, 0f, 0f, 0f));
+                                ctx.cmd.SetComputeVectorParam(cs, HDShaderIDs._BloomBicubicParams, new Vector4(lowSize.x, lowSize.y, 1f / lowSize.x, 1f / lowSize.y));
+                                ctx.cmd.SetComputeVectorParam(cs, HDShaderIDs._TexelSize, new Vector4(highSize.x, highSize.y, 1f / highSize.x, 1f / highSize.y));
+                                DispatchWithGuardBands(ctx.cmd, cs, kernel, highSize, data.viewCount);
+                            }
                         });
 
                     bloomTexture = passData.mipsUp[0];
@@ -1518,6 +1669,8 @@ namespace UnityEngine.Rendering.HighDefinition
 
             return bloomTexture;
         }
+
+        #endregion
 
         #region Color Grading
 
