@@ -1,18 +1,65 @@
 
 using System;
+using UnityEditor.Rendering;
 
 namespace UnityEngine.Rendering.Universal
 {
     public class DebugRenderSetup : IDisposable
     {
+        private static readonly ShaderTagId s_DebugMaterialShaderTagId = new ShaderTagId("DebugMaterial");
+
         private readonly DebugHandler m_DebugHandler;
         private readonly ScriptableRenderContext m_Context;
         private readonly CommandBuffer m_CommandBuffer;
         private readonly int m_Index;
 
+        private DebugMaterialSettings MaterialSettings => m_DebugHandler.DebugDisplaySettings.MaterialSettings;
+        private DebugDisplaySettingsRendering RenderingSettings => m_DebugHandler.DebugDisplaySettings.RenderingSettings;
+        private DebugDisplaySettingsLighting LightingSettings => m_DebugHandler.DebugDisplaySettings.LightingSettings;
+        private DebugDisplaySettingsValidation ValiationSettings => m_DebugHandler.DebugDisplaySettings.ValidationSettings;
+
+        private bool IsDebugPassNeeded()
+        {
+            if((MaterialSettings.DebugMaterialModeData != DebugMaterialMode.None) ||
+               (RenderingSettings.debugMipInfoMode != DebugMipInfoMode.None) ||
+               (LightingSettings.DebugLightingMode != DebugLightingMode.None) ||
+               (LightingSettings.DebugLightingFeatureFlagsMask != DebugLightingFeatureFlags.None) ||
+               (ValiationSettings.validationMode != DebugValidationMode.None))
+            {
+                return true;
+            }
+            else
+            {
+                switch(RenderingSettings.debugSceneOverrideMode)
+                {
+                    case DebugSceneOverrideMode.None:
+                    {
+                        return false;
+                    }
+
+                    case DebugSceneOverrideMode.Overdraw:
+                    case DebugSceneOverrideMode.Wireframe:
+                    case DebugSceneOverrideMode.SolidWireframe:
+                    {
+                        return true;
+                    }
+
+                    case DebugSceneOverrideMode.ShadedWireframe:
+                    {
+                        return (m_Index == 1);
+                    }
+
+                    default:
+                    {
+                        throw new ArgumentOutOfRangeException(nameof(RenderingSettings.debugSceneOverrideMode));
+                    }
+                }       // End of switch.
+            }
+        }
+
         private void Begin()
         {
-            DebugSceneOverrideMode sceneOverrideMode = m_DebugHandler.DebugDisplaySettings.RenderingSettings.debugSceneOverrideMode;
+            DebugSceneOverrideMode sceneOverrideMode = RenderingSettings.debugSceneOverrideMode;
 
             switch(sceneOverrideMode)
             {
@@ -24,6 +71,7 @@ namespace UnityEngine.Rendering.Universal
                 }
 
                 case DebugSceneOverrideMode.SolidWireframe:
+                case DebugSceneOverrideMode.ShadedWireframe:
                 {
                     if(m_Index == 1)
                     {
@@ -42,7 +90,7 @@ namespace UnityEngine.Rendering.Universal
 
         private void End()
         {
-            DebugSceneOverrideMode sceneOverrideMode = m_DebugHandler.DebugDisplaySettings.RenderingSettings.debugSceneOverrideMode;
+            DebugSceneOverrideMode sceneOverrideMode = RenderingSettings.debugSceneOverrideMode;
 
             switch(sceneOverrideMode)
             {
@@ -54,6 +102,7 @@ namespace UnityEngine.Rendering.Universal
                 }
 
                 case DebugSceneOverrideMode.SolidWireframe:
+                case DebugSceneOverrideMode.ShadedWireframe:
                 {
                     if(m_Index == 1)
                     {
@@ -80,9 +129,36 @@ namespace UnityEngine.Rendering.Universal
             Begin();
         }
 
+        public DrawingSettings CreateDrawingSettings(ref RenderingData renderingData, DrawingSettings drawingSettings, SortingCriteria sortingCriteria)
+        {
+            bool usesReplacementMaterial = (MaterialSettings.DebugVertexAttributeIndexData != DebugVertexAttributeMode.None);
+
+            if(usesReplacementMaterial)
+            {
+                Material replacementMaterial = m_DebugHandler.ReplacementMaterial;
+                DrawingSettings modifiedDrawingSettings = drawingSettings;
+
+                modifiedDrawingSettings.overrideMaterial = replacementMaterial;
+                modifiedDrawingSettings.overrideMaterialPassIndex = 0;
+                return modifiedDrawingSettings;
+            }
+            else
+            {
+                if(IsDebugPassNeeded())
+                {
+                    return ScriptableRenderPass.CreateDrawingSettings(s_DebugMaterialShaderTagId, ref renderingData, sortingCriteria);
+                }
+                else
+                {
+                    // Nothing special - simply return a copy of the original drawing settings...
+                    return drawingSettings;
+                }
+            }
+        }
+
         public bool GetRenderStateBlock(out RenderStateBlock renderStateBlock)
         {
-            DebugSceneOverrideMode sceneOverrideMode = m_DebugHandler.DebugDisplaySettings.RenderingSettings.debugSceneOverrideMode;
+            DebugSceneOverrideMode sceneOverrideMode = RenderingSettings.debugSceneOverrideMode;
 
             // Create an empty render-state block and only enable the parts we wish to override...
             renderStateBlock = new RenderStateBlock();
@@ -105,6 +181,7 @@ namespace UnityEngine.Rendering.Universal
                 }
 
                 case DebugSceneOverrideMode.SolidWireframe:
+                case DebugSceneOverrideMode.ShadedWireframe:
                 {
                     if(m_Index == 1)
                     {

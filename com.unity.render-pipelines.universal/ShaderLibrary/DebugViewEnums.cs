@@ -56,6 +56,7 @@ namespace UnityEngine.Rendering.Universal
         Overdraw,
         Wireframe,
         SolidWireframe,
+        ShadedWireframe,
     }
 
     [GenerateHLSL]

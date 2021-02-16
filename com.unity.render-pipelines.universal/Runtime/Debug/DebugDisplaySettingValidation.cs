@@ -207,7 +207,6 @@ namespace UnityEditor.Rendering
         #region IDebugDisplaySettingsData
         public bool AreAnySettingsActive => (validationMode != DebugValidationMode.None);
         public bool IsPostProcessingAllowed => (validationMode == DebugValidationMode.None);
-        public bool IsDebugMaterialActive => (validationMode != DebugValidationMode.None);
         public bool IsLightingActive => true;
 
         public bool TryGetScreenClearColor(ref Color color)

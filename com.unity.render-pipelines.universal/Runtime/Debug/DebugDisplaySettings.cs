@@ -24,11 +24,6 @@ namespace UnityEditor.Rendering
                                             RenderingSettings.AreAnySettingsActive ||
                                             ValidationSettings.AreAnySettingsActive;
 
-        public bool IsDebugMaterialActive => MaterialSettings.IsDebugMaterialActive ||
-                                             LightingSettings.IsDebugMaterialActive ||
-                                             RenderingSettings.IsDebugMaterialActive ||
-                                             ValidationSettings.IsDebugMaterialActive;
-
         public bool TryGetScreenClearColor(ref Color color)
         {
             return MaterialSettings.TryGetScreenClearColor(ref color) ||

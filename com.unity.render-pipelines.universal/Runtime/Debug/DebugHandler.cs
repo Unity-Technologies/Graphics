@@ -51,7 +51,6 @@ namespace UnityEngine.Rendering.Universal
         #region IDebugDisplaySettingsQuery
         public bool AreAnySettingsActive => m_DebugDisplaySettings.AreAnySettingsActive;
         public bool IsPostProcessingAllowed => m_DebugDisplaySettings.IsPostProcessingAllowed;
-        public bool IsDebugMaterialActive => m_DebugDisplaySettings.IsDebugMaterialActive;
         public bool IsLightingActive => m_DebugDisplaySettings.IsLightingActive;
 
         public bool TryGetScreenClearColor(ref Color color)
@@ -60,9 +59,8 @@ namespace UnityEngine.Rendering.Universal
         }
         #endregion
 
+        public Material ReplacementMaterial => m_ReplacementMaterial;
         public DebugDisplaySettings DebugDisplaySettings => m_DebugDisplaySettings;
-
-        public bool IsReplacementMaterialNeeded => (MaterialSettings.DebugVertexAttributeIndexData != DebugVertexAttributeMode.None);
 
         public bool IsScreenClearNeeded
         {
@@ -114,27 +112,12 @@ namespace UnityEngine.Rendering.Universal
 
         public bool IsDebugPassEnabled(ref CameraData cameraData)
         {
-            return !cameraData.isPreviewCamera &&
-                   (IsDebugMaterialActive || IsReplacementMaterialNeeded);
+            return !cameraData.isPreviewCamera && AreAnySettingsActive;
         }
 
         internal DebugPass CreatePass(RenderPassEvent evt)
         {
             return new DebugPass(evt, m_FullScreenDebugMaterial);
-        }
-
-        public bool TryGetReplacementMaterial(out Material replacementMaterial)
-        {
-            if(IsReplacementMaterialNeeded)
-            {
-                replacementMaterial = m_ReplacementMaterial;
-                return true;
-            }
-            else
-            {
-                replacementMaterial = default;
-                return false;
-            }
         }
 
         public bool TryGetFullscreenDebugMode(out DebugFullScreenMode debugFullScreenMode)
@@ -168,6 +151,15 @@ namespace UnityEngine.Rendering.Universal
                 case DebugSceneOverrideMode.SolidWireframe:
                 {
                     cmd.SetGlobalColor(s_DebugColorPropertyId, (passIndex == 0) ? Color.white : Color.black);
+                    break;
+                }
+
+                case DebugSceneOverrideMode.ShadedWireframe:
+                {
+                    if(passIndex == 1)
+                    {
+                        cmd.SetGlobalColor(s_DebugColorPropertyId, Color.black);
+                    }
                     break;
                 }
             }       // End of switch.
@@ -243,7 +235,7 @@ namespace UnityEngine.Rendering.Universal
                     m_DebugHandler = debugHandler;
                     m_Context = context;
                     m_CommandBuffer = commandBuffer;
-                    m_NumIterations = (sceneOverrideMode == DebugSceneOverrideMode.SolidWireframe) ? 2 : 1;
+                    m_NumIterations = ((sceneOverrideMode == DebugSceneOverrideMode.SolidWireframe) || (sceneOverrideMode == DebugSceneOverrideMode.ShadedWireframe)) ? 2 : 1;
 
                     m_Index = -1;
                 }
@@ -309,18 +301,6 @@ namespace UnityEngine.Rendering.Universal
                                                                               CommandBuffer commandBuffer)
         {
             return new DebugRenderPassEnumerable(this, context, commandBuffer);
-        }
-
-        public IEnumerable<DebugRenderSetup> CreateDebugRenderSetupEnumerable(ScriptableRenderContext context,
-                                                                              CommandBuffer commandBuffer,
-                                                                              ref DrawingSettings drawingSettings)
-        {
-            if(TryGetReplacementMaterial(out Material replacementMaterial))
-            {
-                drawingSettings.overrideMaterial = replacementMaterial;
-            }
-
-            return CreateDebugRenderSetupEnumerable(context, commandBuffer);
         }
         #endregion
     }

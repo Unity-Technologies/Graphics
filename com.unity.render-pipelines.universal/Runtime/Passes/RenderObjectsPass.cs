@@ -123,15 +123,17 @@ namespace UnityEngine.Experimental.Rendering.Universal
 
                 if((DebugHandler != null) && DebugHandler.IsDebugPassEnabled(ref cameraData))
                 {
-                    foreach(DebugRenderSetup debugRenderSetup in DebugHandler.CreateDebugRenderSetupEnumerable(context, cmd, ref drawingSettings))
+                    foreach(DebugRenderSetup debugRenderSetup in DebugHandler.CreateDebugRenderSetupEnumerable(context, cmd))
                     {
+                        DrawingSettings debugDrawingSettings = debugRenderSetup.CreateDrawingSettings(ref renderingData, drawingSettings, sortingCriteria);
+
                         if(debugRenderSetup.GetRenderStateBlock(out RenderStateBlock renderStateBlock))
                         {
-                            context.DrawRenderers(renderingData.cullResults, ref drawingSettings, ref m_FilteringSettings, ref renderStateBlock);
+                            context.DrawRenderers(renderingData.cullResults, ref debugDrawingSettings, ref m_FilteringSettings, ref renderStateBlock);
                         }
                         else
                         {
-                            context.DrawRenderers(renderingData.cullResults, ref drawingSettings, ref m_FilteringSettings, ref m_RenderStateBlock);
+                            context.DrawRenderers(renderingData.cullResults, ref debugDrawingSettings, ref m_FilteringSettings, ref m_RenderStateBlock);
                         }
                     }
                 }

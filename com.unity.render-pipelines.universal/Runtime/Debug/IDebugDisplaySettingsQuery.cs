@@ -16,11 +16,6 @@ namespace UnityEditor.Rendering
         bool IsPostProcessingAllowed { get; }
 
         /// <summary>
-        /// Checks whether these settings need to use the "DebugMaterial" pass.
-        /// </summary>
-        bool IsDebugMaterialActive { get; }
-
-        /// <summary>
         /// Checks whether lighting is active for these settings.
         /// </summary>
         bool IsLightingActive { get; }

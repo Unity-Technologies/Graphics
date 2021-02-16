@@ -35,9 +35,6 @@ namespace UnityEditor.Rendering
 
         public bool IsPostProcessingAllowed => true;
 
-        public bool IsDebugMaterialActive => (DebugLightingMode != DebugLightingMode.None) ||
-                                             (DebugLightingFeatureFlagsMask != DebugLightingFeatureFlags.None);
-
         public bool IsLightingActive => true;
 
         public bool TryGetScreenClearColor(ref Color color)

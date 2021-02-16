@@ -181,8 +181,6 @@ namespace UnityEngine.Rendering.Universal
         ClearFlag m_ClearFlag = ClearFlag.None;
         Color m_ClearColor = Color.black;
 
-        protected static readonly ShaderTagId s_DebugMaterialShaderTagId = new ShaderTagId("DebugMaterial");
-
         public DebugHandler DebugHandler { get; set; }
 
         public ScriptableRenderPass()
@@ -358,7 +356,7 @@ namespace UnityEngine.Rendering.Universal
         /// <param name="sortingCriteria">Criteria to sort objects being rendered.</param>
         /// <returns></returns>
         /// <seealso cref="DrawingSettings"/>
-        public DrawingSettings CreateDrawingSettings(ShaderTagId shaderTagId, ref RenderingData renderingData, SortingCriteria sortingCriteria)
+        public static DrawingSettings CreateDrawingSettings(ShaderTagId shaderTagId, ref RenderingData renderingData, SortingCriteria sortingCriteria)
         {
             Camera camera = renderingData.cameraData.camera;
             SortingSettings sortingSettings = new SortingSettings(camera) { criteria = sortingCriteria };
@@ -382,26 +380,19 @@ namespace UnityEngine.Rendering.Universal
         /// <param name="sortingCriteria">Criteria to sort objects being rendered.</param>
         /// <returns></returns>
         /// <seealso cref="DrawingSettings"/>
-        public DrawingSettings CreateDrawingSettings(List<ShaderTagId> shaderTagIdList,
+        public static DrawingSettings CreateDrawingSettings(List<ShaderTagId> shaderTagIdList,
             ref RenderingData renderingData, SortingCriteria sortingCriteria)
         {
-            if((DebugHandler != null) && DebugHandler.IsDebugPassEnabled(ref renderingData.cameraData) && DebugHandler.IsDebugMaterialActive)
+            if (shaderTagIdList == null || shaderTagIdList.Count == 0)
             {
-                return CreateDrawingSettings(s_DebugMaterialShaderTagId, ref renderingData, sortingCriteria);
+                Debug.LogWarning("ShaderTagId list is invalid. DrawingSettings is created with default pipeline ShaderTagId");
+                return CreateDrawingSettings(new ShaderTagId("UniversalPipeline"), ref renderingData, sortingCriteria);
             }
-            else
-            {
-                if (shaderTagIdList == null || shaderTagIdList.Count == 0)
-                {
-                    Debug.LogWarning("ShaderTagId list is invalid. DrawingSettings is created with default pipeline ShaderTagId");
-                    return CreateDrawingSettings(new ShaderTagId("UniversalPipeline"), ref renderingData, sortingCriteria);
-                }
 
-                DrawingSettings settings = CreateDrawingSettings(shaderTagIdList[0], ref renderingData, sortingCriteria);
-                for (int i = 1; i < shaderTagIdList.Count; ++i)
-                    settings.SetShaderPassName(i, shaderTagIdList[i]);
-                return settings;
-            }
+            DrawingSettings settings = CreateDrawingSettings(shaderTagIdList[0], ref renderingData, sortingCriteria);
+            for (int i = 1; i < shaderTagIdList.Count; ++i)
+                settings.SetShaderPassName(i, shaderTagIdList[i]);
+            return settings;
         }
 
         public static bool operator<(ScriptableRenderPass lhs, ScriptableRenderPass rhs)
