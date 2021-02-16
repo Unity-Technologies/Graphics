@@ -51,7 +51,7 @@ namespace UnityEditor.Rendering
             if (EditorGUI.BeginFoldoutHeaderGroup(new Rect(position.x + 0.25f * m_Indent, position.y, position.width - 0.25f * m_Indent, GUIStyle.none.lineHeight), isFoldOpened.boolValue, EditorGUIUtility.TrTextContent("Lens Flare Element")))
             {
                 Texture tmpTex;
-                if ((tmpTex = (EditorGUI.ObjectField(rect, EditorGUIUtility.TrTextContent("Flare Texture"), lensFlareProp.objectReferenceValue, typeof(Texture), false) as Texture)) != (lensFlareProp.objectReferenceValue as Texture))
+                if ((tmpTex = (EditorGUI.ObjectField(rect, Styles.flareTexture, lensFlareProp.objectReferenceValue, typeof(Texture), false) as Texture)) != (lensFlareProp.objectReferenceValue as Texture))
                 {
                     lensFlareProp.objectReferenceValue = tmpTex;
                     aspectRatioProp.floatValue = ((float)tmpTex.height) / ((float)tmpTex.width);
@@ -60,47 +60,47 @@ namespace UnityEditor.Rendering
                 rect.y += EditorGUIUtility.singleLineHeight + EditorGUIUtility.standardVerticalSpacing;
 
                 Color tmpCol;
-                if ((tmpCol = EditorGUI.ColorField(rect, EditorGUIUtility.TrTextContent("Tint"), tintProp.colorValue)) != tintProp.colorValue)
+                if ((tmpCol = EditorGUI.ColorField(rect, Styles.tint, tintProp.colorValue)) != tintProp.colorValue)
                     tintProp.colorValue = tmpCol;
                 rect.y += EditorGUIUtility.singleLineHeight + EditorGUIUtility.standardVerticalSpacing;
 
                 bool tmpBool;
-                if ((tmpBool = EditorGUI.Toggle(rect, EditorGUIUtility.TrTextContent("Modulate By Light Color"), modulateByLightColor.boolValue)) != modulateByLightColor.boolValue)
+                if ((tmpBool = EditorGUI.Toggle(rect, Styles.modulateByLightColor, modulateByLightColor.boolValue)) != modulateByLightColor.boolValue)
                     modulateByLightColor.boolValue = tmpBool;
                 rect.y += EditorGUIUtility.singleLineHeight + EditorGUIUtility.standardVerticalSpacing;
 
                 float tmp;
-                if ((tmp = EditorGUI.FloatField(rect, EditorGUIUtility.TrTextContent("Intensity"), intensityProp.floatValue)) != intensityProp.floatValue)
+                if ((tmp = EditorGUI.FloatField(rect, Styles.intensity, intensityProp.floatValue)) != intensityProp.floatValue)
                     intensityProp.floatValue = Mathf.Max(tmp, 0.0f);
                 rect.y += EditorGUIUtility.singleLineHeight + EditorGUIUtility.standardVerticalSpacing;
 
                 SRPLensFlareBlendMode newBlendMode;
                 SRPLensFlareBlendMode blendModeValue = (UnityEngine.SRPLensFlareBlendMode)blendModeProp.enumValueIndex;
-                if ((newBlendMode = ((SRPLensFlareBlendMode)(EditorGUI.EnumPopup(rect, "Blend Mode", blendModeValue)))) != blendModeValue)
+                if ((newBlendMode = ((SRPLensFlareBlendMode)(EditorGUI.EnumPopup(rect, Styles.blendMode, blendModeValue)))) != blendModeValue)
                     blendModeProp.enumValueIndex = (int)newBlendMode;
                 rect.y += EditorGUIUtility.singleLineHeight + EditorGUIUtility.standardVerticalSpacing;
 
-                if ((tmp = EditorGUI.FloatField(rect, EditorGUIUtility.TrTextContent("Relative Position Scale"), positionProp.floatValue)) != positionProp.floatValue)
+                if ((tmp = EditorGUI.FloatField(rect, Styles.position, positionProp.floatValue)) != positionProp.floatValue)
                     positionProp.floatValue = tmp;
                 rect.y += EditorGUIUtility.singleLineHeight + EditorGUIUtility.standardVerticalSpacing;
 
-                if ((tmp = EditorGUI.FloatField(rect, EditorGUIUtility.TrTextContent("Size"), sizeProp.floatValue)) != sizeProp.floatValue)
+                if ((tmp = EditorGUI.FloatField(rect, Styles.size, sizeProp.floatValue)) != sizeProp.floatValue)
                     sizeProp.floatValue = Mathf.Max(tmp, 1e-5f);
                 rect.y += EditorGUIUtility.singleLineHeight + EditorGUIUtility.standardVerticalSpacing;
 
-                if ((tmp = EditorGUI.FloatField(rect, EditorGUIUtility.TrTextContent("Aspect Ratio"), aspectRatioProp.floatValue)) != aspectRatioProp.floatValue)
+                if ((tmp = EditorGUI.FloatField(rect, Styles.aspectRatio, aspectRatioProp.floatValue)) != aspectRatioProp.floatValue)
                     aspectRatioProp.floatValue = Mathf.Max(tmp, 1e-5f);
                 rect.y += EditorGUIUtility.singleLineHeight + EditorGUIUtility.standardVerticalSpacing;
 
-                if ((tmp = EditorGUI.FloatField(rect, EditorGUIUtility.TrTextContent("Rotation"), rotationProp.floatValue)) != rotationProp.floatValue)
+                if ((tmp = EditorGUI.FloatField(rect, Styles.rotation, rotationProp.floatValue)) != rotationProp.floatValue)
                     rotationProp.floatValue = Mathf.Max(tmp, 0.0f);
                 rect.y += EditorGUIUtility.singleLineHeight + EditorGUIUtility.standardVerticalSpacing;
 
-                if ((tmp = EditorGUI.FloatField(rect, EditorGUIUtility.TrTextContent("Speed"), speedProp.floatValue)) != speedProp.floatValue)
+                if ((tmp = EditorGUI.FloatField(rect, Styles.speed, speedProp.floatValue)) != speedProp.floatValue)
                     speedProp.floatValue = tmp;
                 rect.y += EditorGUIUtility.singleLineHeight + EditorGUIUtility.standardVerticalSpacing;
 
-                if ((tmpBool = EditorGUI.Toggle(rect, EditorGUIUtility.TrTextContent("Auto Rotate"), autoRotateProp.boolValue)) != autoRotateProp.boolValue)
+                if ((tmpBool = EditorGUI.Toggle(rect, Styles.autoRotate, autoRotateProp.boolValue)) != autoRotateProp.boolValue)
                     autoRotateProp.boolValue = tmpBool;
                 rect.y += EditorGUIUtility.singleLineHeight + EditorGUIUtility.standardVerticalSpacing;
 
@@ -108,9 +108,8 @@ namespace UnityEditor.Rendering
             }
             else
             {
-                //rect.y += EditorGUIUtility.singleLineHeight + EditorGUIUtility.standardVerticalSpacing;
                 Texture tmpTex;
-                if ((tmpTex = (EditorGUI.ObjectField(rect, EditorGUIUtility.TrTextContent("Flare Texture"), lensFlareProp.objectReferenceValue, typeof(Texture), false) as Texture)) != (lensFlareProp.objectReferenceValue as Texture))
+                if ((tmpTex = (EditorGUI.ObjectField(rect, Styles.flareTexture, lensFlareProp.objectReferenceValue, typeof(Texture), false) as Texture)) != (lensFlareProp.objectReferenceValue as Texture))
                 {
                     lensFlareProp.objectReferenceValue = tmpTex;
                     aspectRatioProp.floatValue = ((float)tmpTex.width) / ((float)tmpTex.height);
@@ -119,16 +118,16 @@ namespace UnityEditor.Rendering
                 rect.y += EditorGUIUtility.singleLineHeight + EditorGUIUtility.standardVerticalSpacing;
 
                 Color tmpCol;
-                if ((tmpCol = EditorGUI.ColorField(rect, EditorGUIUtility.TrTextContent("Tint"), tintProp.colorValue)) != tintProp.colorValue)
+                if ((tmpCol = EditorGUI.ColorField(rect, Styles.tint, tintProp.colorValue)) != tintProp.colorValue)
                     tintProp.colorValue = tmpCol;
                 rect.y += EditorGUIUtility.singleLineHeight + EditorGUIUtility.standardVerticalSpacing;
 
                 float tmp;
-                if ((tmp = EditorGUI.FloatField(rect, EditorGUIUtility.TrTextContent("Intensity"), intensityProp.floatValue)) != intensityProp.floatValue)
+                if ((tmp = EditorGUI.FloatField(rect, Styles.intensity, intensityProp.floatValue)) != intensityProp.floatValue)
                     intensityProp.floatValue = Mathf.Max(tmp, 0.0f);
                 rect.y += EditorGUIUtility.singleLineHeight + EditorGUIUtility.standardVerticalSpacing;
 
-                if ((tmp = EditorGUI.FloatField(rect, EditorGUIUtility.TrTextContent("Relative Position Scale"), positionProp.floatValue)) != positionProp.floatValue)
+                if ((tmp = EditorGUI.FloatField(rect, Styles.position, positionProp.floatValue)) != positionProp.floatValue)
                     positionProp.floatValue = tmp;
                 rect.y += EditorGUIUtility.singleLineHeight + EditorGUIUtility.standardVerticalSpacing;
 
@@ -151,6 +150,21 @@ namespace UnityEditor.Rendering
             float coef = isFoldOpened.boolValue ? 12.0f : 5.0f;
 
             return coef * (EditorGUIUtility.singleLineHeight + EditorGUIUtility.standardVerticalSpacing);
+        }
+
+        sealed class Styles
+        {
+            static public readonly GUIContent intensity = new GUIContent("Intensity", "Intensity of this element.");
+            static public readonly GUIContent position = new GUIContent("Relative Position Scale", "Relative position compare to the previous one. Can be positive or negative, negative values describes flare behind the light following the diagonal.");
+            static public readonly GUIContent flareTexture = new GUIContent("Flare Texture", "Texture used to for this Lens Flare Element.");
+            static public readonly GUIContent tint = new GUIContent("Tint", "Tint of the texture can be modulated by the light we are attached to.");
+            static public readonly GUIContent blendMode = new GUIContent("Blend Mode", "Blend mode used.");
+            static public readonly GUIContent size = new GUIContent("Size", "Scale applied on the width of the texture.");
+            static public readonly GUIContent aspectRatio = new GUIContent("Aspect Ratio", "Aspect ratio (height / width).");
+            static public readonly GUIContent rotation = new GUIContent("Rotation", "Local rotation of the texture.");
+            static public readonly GUIContent speed = new GUIContent("Speed", "Speed of the element on the line.");
+            static public readonly GUIContent autoRotate = new GUIContent("Auto Rotate", "Rotate the texture relative to the angle on the screen (the rotation will be added to the parameter 'rotation').");
+            static public readonly GUIContent modulateByLightColor = new GUIContent("Modulate By Light Color", "Modulate by light color if the asset is used in a 'SRP Lens Flare Source Override'.");
         }
     }
 }

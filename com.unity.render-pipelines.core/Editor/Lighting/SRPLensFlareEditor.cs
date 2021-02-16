@@ -33,14 +33,14 @@ namespace UnityEditor.Rendering
         public override void OnInspectorGUI()
         {
             EditorGUI.BeginChangeCheck();
-            EditorGUILayout.PropertyField(m_Intensity);
+            EditorGUILayout.PropertyField(m_Intensity, Styles.intensity);
             if (EditorGUI.EndChangeCheck())
             {
                 m_Intensity.serializedObject.ApplyModifiedProperties();
             }
             EditorGUI.BeginChangeCheck();
-            EditorGUILayout.PropertyField(m_ScaleCurve);
-            EditorGUILayout.PropertyField(m_PositionCurve);
+            EditorGUILayout.PropertyField(m_ScaleCurve, Styles.scaleCurve);
+            EditorGUILayout.PropertyField(m_PositionCurve, Styles.positionCurve);
             if (EditorGUI.EndChangeCheck())
             {
                 m_ScaleCurve.serializedObject.ApplyModifiedProperties();
@@ -49,7 +49,7 @@ namespace UnityEditor.Rendering
             EditorGUI.BeginChangeCheck();
             SRPLensFlareData lensFlareDat = m_Elements.serializedObject.targetObject as SRPLensFlareData;
             int countBefore = lensFlareDat != null && lensFlareDat.elements != null ? lensFlareDat.elements.Length : 0;
-            EditorGUILayout.PropertyField(m_Elements);
+            EditorGUILayout.PropertyField(m_Elements, Styles.elements);
             if (EditorGUI.EndChangeCheck())
             {
                 m_Elements.serializedObject.ApplyModifiedProperties();
@@ -63,6 +63,14 @@ namespace UnityEditor.Rendering
                     m_Elements.serializedObject.Update();
                 }
             }
+        }
+
+        sealed class Styles
+        {
+            static public readonly GUIContent intensity = new GUIContent("Intensity", "Modulate the whole lens flare.");
+            static public readonly GUIContent scaleCurve = new GUIContent("Scale Curve", "Curve between 0 and 1 which describes the scale of each element, the index of each element is remap between 0 and 1 to read the scale.");
+            static public readonly GUIContent positionCurve = new GUIContent("Position Curve", "Curve between -1 and 1 which describes the scale of each element, if the relative position is negative HDRP read the negative part of the curve, the positive part otherwise.");
+            static public readonly GUIContent elements = new GUIContent("Elements", "List of elements of Lens Flares.");
         }
     }
 }
