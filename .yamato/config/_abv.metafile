@@ -31,8 +31,6 @@ nightly:
       pr: true
     - project: URP_Performance_LostCrypt
       pr: true
-    - project: URPUpdate
-      pr: true
     - project: HDRP_PerformanceTests
       pr: true
 trunk_verification: # jobs to include in trunk verification job
