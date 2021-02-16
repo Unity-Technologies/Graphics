@@ -355,7 +355,7 @@ namespace UnityEngine.Rendering.Universal.Internal
         internal int RenderHeight { get; set; }
 
         // Output lighting result.
-        internal RenderTargetHandle[] GbufferAttachments { get; set; }
+        internal RTHandle[] GbufferAttachments { get; set; }
         // Input depth texture, also bound as read-only RT
         internal RenderTargetHandle DepthAttachment { get; set; }
         //
@@ -745,7 +745,7 @@ namespace UnityEngine.Rendering.Universal.Internal
             RTHandle depthInfoTexture,
             RTHandle tileDepthInfoTexture,
             RenderTargetHandle depthAttachment,
-            RenderTargetHandle[] gbufferHandles)
+            RTHandle[] gbufferHandles)
         {
             m_AdditionalLightsShadowCasterPass = additionalLightsShadowCasterPass;
             this.HasDepthPrepass = hasDepthPrepass;
@@ -757,7 +757,7 @@ namespace UnityEngine.Rendering.Universal.Internal
             // Depending on the scene rendered, adjust gbuffer MRT count.
             // For instance, we do not need shadowMask output if no visible lights have mixed lighting subtractive mode.
             if (this.GbufferAttachments == null || this.GbufferAttachments.Length != this.GBufferSliceCount)
-                this.GbufferAttachments = new RenderTargetHandle[this.GBufferSliceCount];
+                this.GbufferAttachments = new RTHandle[this.GBufferSliceCount];
             this.GbufferAttachments[this.GBufferAlbedoIndex] = gbufferHandles[(int)GBufferHandles.Albedo];
             this.GbufferAttachments[this.GBufferSpecularMetallicIndex] = gbufferHandles[(int)GBufferHandles.SpecularMetallic];
             this.GbufferAttachments[this.GBufferNormalSmoothnessIndex] = gbufferHandles[(int)GBufferHandles.NormalSmoothness];
@@ -778,7 +778,7 @@ namespace UnityEngine.Rendering.Universal.Internal
             }
             for (int i = 0; i < this.GbufferAttachments.Length; ++i)
             {
-                this.GbufferAttachmentIdentifiers[i] = this.GbufferAttachments[i].Identifier();
+                this.GbufferAttachmentIdentifiers[i] = this.GbufferAttachments[i].nameID;
                 this.GbufferFormats[i] = this.GetGBufferFormat(i);
             }
             this.DepthAttachmentIdentifier = depthAttachment.Identifier();
