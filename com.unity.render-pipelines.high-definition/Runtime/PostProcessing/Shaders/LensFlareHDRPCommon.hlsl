@@ -27,9 +27,9 @@ float _FlareOcclusionSamplesCount;
 float _FlareOffscreen;
 float4 _FlareColor;
 // LensFlare Data :
-//		* X = RayPos
-//		* Y = Rotation (< 0 = Auto)
-//		* ZW = Size (Width, Height) in Screen Height Ratio
+//      * X = RayPos
+//      * Y = Rotation (< 0 = Auto)
+//      * ZW = Size (Width, Height) in Screen Height Ratio
 float4 _FlareData;
 float _FlareIntensity;
 

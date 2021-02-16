@@ -1,4 +1,3 @@
-
 namespace UnityEngine
 {
     public sealed class SRPLensFlareCommon
@@ -112,7 +111,7 @@ namespace UnityEngine
             //  d |  /
             //    | /                ,
             //    |/                .
-            //    P 
+            //    P
             //    |              ´
             //    |         , ´
             //    +-    ´
@@ -169,7 +168,7 @@ namespace UnityEngine
 
             return cylPos * (viewDist / cylDist);
         }
-        #endregion
 
+        #endregion
     }
 }
