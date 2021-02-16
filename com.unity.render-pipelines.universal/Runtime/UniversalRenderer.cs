@@ -70,7 +70,7 @@ namespace UnityEngine.Rendering.Universal
         RTHandle m_CameraDepthAttachment;
         RTHandle m_DepthTexture;
         RTHandle m_NormalsTexture;
-        RenderTargetHandle[] m_GBufferHandles;
+        RTHandle[] m_GBufferHandles;
         RTHandle m_OpaqueColor;
         // For tiled-deferred shading.
         RTHandle m_DepthInfoTexture;
@@ -197,13 +197,13 @@ namespace UnityEngine.Rendering.Universal
             m_NormalsTexture = RTHandles.Alloc(URPShaderIDs._CameraNormalsTexture, "_CameraNormalsTexture");
             if (this.renderingMode == RenderingMode.Deferred)
             {
-                m_GBufferHandles = new RenderTargetHandle[(int)DeferredLights.GBufferHandles.Count];
-                m_GBufferHandles[(int)DeferredLights.GBufferHandles.DepthAsColor].Init(URPShaderIDs._CameraOpaqueTexture);
-                m_GBufferHandles[(int)DeferredLights.GBufferHandles.Albedo].Init(URPShaderIDs._GBuffer[0]);
-                m_GBufferHandles[(int)DeferredLights.GBufferHandles.SpecularMetallic].Init(URPShaderIDs._GBuffer[1]);
-                m_GBufferHandles[(int)DeferredLights.GBufferHandles.NormalSmoothness].Init(URPShaderIDs._GBuffer[2]);
-                m_GBufferHandles[(int)DeferredLights.GBufferHandles.Lighting].Init(URPShaderIDs._GBuffer[3]);
-                m_GBufferHandles[(int)DeferredLights.GBufferHandles.ShadowMask].Init(URPShaderIDs._GBuffer[4]);
+                m_GBufferHandles = new RTHandle[(int)DeferredLights.GBufferHandles.Count];
+                m_GBufferHandles[(int)DeferredLights.GBufferHandles.DepthAsColor] = RTHandles.Alloc(URPShaderIDs._CameraOpaqueTexture, "_CameraOpaqueTexture");
+                m_GBufferHandles[(int)DeferredLights.GBufferHandles.Albedo] = RTHandles.Alloc(URPShaderIDs._GBuffer[0], "_GBuffer0");
+                m_GBufferHandles[(int)DeferredLights.GBufferHandles.SpecularMetallic] = RTHandles.Alloc(URPShaderIDs._GBuffer[1], "_GBuffer1");
+                m_GBufferHandles[(int)DeferredLights.GBufferHandles.NormalSmoothness] = RTHandles.Alloc(URPShaderIDs._GBuffer[2], "_GBuffer2");
+                m_GBufferHandles[(int)DeferredLights.GBufferHandles.Lighting] = RTHandles.Alloc(URPShaderIDs._GBuffer[3], "_GBuffer3");
+                m_GBufferHandles[(int)DeferredLights.GBufferHandles.ShadowMask] = RTHandles.Alloc(URPShaderIDs._GBuffer[4], "_GBuffer4");
             }
             m_OpaqueColor = RTHandles.Alloc(URPShaderIDs._CameraOpaqueTexture, "_CameraOpaqueTexture");
             m_DepthInfoTexture = RTHandles.Alloc(URPShaderIDs._DepthInfoTexture, "_DepthInfoTexture");
@@ -452,7 +452,7 @@ namespace UnityEngine.Rendering.Universal
                         // to get them before the SSAO pass.
 
                         int gbufferNormalIndex = m_DeferredLights.GBufferNormalSmoothnessIndex;
-                        m_DepthNormalPrepass.Setup(cameraTargetDescriptor, m_ActiveCameraDepthAttachment, m_GBufferHandles[(int)DeferredLights.GBufferHandles.NormalSmoothness]);
+                        m_DepthNormalPrepass.Setup(cameraTargetDescriptor, m_ActiveCameraDepthAttachment, new RenderTargetHandle(Shader.PropertyToID(m_GBufferHandles[(int)DeferredLights.GBufferHandles.NormalSmoothness].name)));
 
                         // Change the normal format to the one used by the gbuffer.
                         RenderTextureDescriptor normalDescriptor = m_DepthNormalPrepass.normalDescriptor;
@@ -688,7 +688,7 @@ namespace UnityEngine.Rendering.Universal
         void EnqueueDeferred(ref RenderingData renderingData, bool hasDepthPrepass, bool hasNormalPrepass, bool applyMainShadow, bool applyAdditionalShadow)
         {
             // the last slice is the lighting buffer created in DeferredRenderer.cs
-            m_GBufferHandles[(int)DeferredLights.GBufferHandles.Lighting] = m_ActiveCameraColorAttachment;
+            m_GBufferHandles[(int)DeferredLights.GBufferHandles.Lighting] = RTHandles.Alloc(m_ActiveCameraColorAttachment.Identifier());
 
             m_DeferredLights.Setup(
                 ref renderingData,
