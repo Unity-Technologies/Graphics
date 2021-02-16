@@ -1560,7 +1560,8 @@ namespace UnityEngine.Rendering.HighDefinition
             }
 
             // the mip up 0 will be used by uber, so not allocated as transient.
-            var mip0Scale = new Vector2(m_BloomMipsInfo[0].z, m_BloomMipsInfo[0].w);
+            m_BloomBicubicParams = new Vector4(passData.bloomMipInfo[0].x, passData.bloomMipInfo[0].y, 1.0f / passData.bloomMipInfo[0].x, 1.0f / passData.bloomMipInfo[0].y);
+            var mip0Scale = new Vector2(passData.bloomMipInfo[0].z, passData.bloomMipInfo[0].w);
             passData.mipsUp[0] = builder.WriteTexture(renderGraph.CreateTexture(new TextureDesc(mip0Scale, true, true)
             {
                 name = "Bloom final mip up",
@@ -2099,7 +2100,7 @@ namespace UnityEngine.Rendering.HighDefinition
             data.bloomTint = (Vector4)tint;
             data.bloomDirtTileOffset = dirtTileOffset;
             data.bloomThreshold = GetBloomThresholdParams();
-            data.bloomBicubicParams = new Vector4(m_BloomMipsInfo[0].x, m_BloomMipsInfo[0].y, 1.0f / m_BloomMipsInfo[0].x, 1.0f / m_BloomMipsInfo[0].y);
+            data.bloomBicubicParams = m_BloomBicubicParams;
         }
 
         void PrepareAlphaScaleParameters(UberPostPassData data, HDCamera camera)

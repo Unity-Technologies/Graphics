@@ -59,8 +59,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
         // Bloom data
         const int k_MaxBloomMipCount = 16;
-        readonly Vector4[] m_BloomMipsInfo = new Vector4[k_MaxBloomMipCount + 1];   // xy: size, zw: scale
-        //int m_BloomMipCount = k_MaxBloomMipCount;
+        Vector4 m_BloomBicubicParams; // Needed for uber pass
 
         // Chromatic aberration data
         Texture2D m_InternalSpectralLut;
