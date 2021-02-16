@@ -20,7 +20,7 @@ namespace UnityEditor.Rendering.HighDefinition
             public static void Clone(HDRenderPipelineGlobalSettings src)
             {
                 settings = src;
-                var icon = EditorGUIUtility.FindTexture("ScriptableObject Icon");
+                var icon = CoreEditorStyles.globalSettingsIcon;
                 var assetCreator = ScriptableObject.CreateInstance<HDRenderPipelineGlobalSettingsCreator>();
                 ProjectWindowUtil.StartNameEditingIfProjectWindowExists(assetCreator.GetInstanceID(), assetCreator, $"Assets/{HDProjectSettings.projectSettingsFolderPath}/{src.name}.asset", icon, null);
             }
@@ -29,7 +29,7 @@ namespace UnityEditor.Rendering.HighDefinition
         [MenuItem("Assets/Create/Rendering/HDRP Global Settings Asset", priority = CoreUtils.Sections.section1 + CoreUtils.Priorities.assetsCreateRenderingMenuPriority + 1)]
         internal static void CreateHDRenderPipelineGlobalSettings()
         {
-            var icon = EditorGUIUtility.FindTexture("ScriptableObject Icon");
+            var icon = CoreEditorStyles.globalSettingsIcon;
             ProjectWindowUtil.StartNameEditingIfProjectWindowExists(0, ScriptableObject.CreateInstance<HDRenderPipelineGlobalSettingsCreator>(), $"Assets/{HDProjectSettings.projectSettingsFolderPath}/HDRenderPipelineGlobalSettings.asset", icon, null);
         }
     }

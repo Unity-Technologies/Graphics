@@ -44,6 +44,9 @@ namespace UnityEditor.Rendering
         /// <summary>Hightlited background color.</summary>
         public static Color backgroundHighlightColor { get { return EditorGUIUtility.isProSkin ? m_DarkThemeBackgroundHighlightColor : m_LightThemeBackgroundHighlightColor; } }
 
+        /// <summary>RenderPipeline Global Settings icon</summary>
+        public static readonly Texture2D globalSettingsIcon;
+
         static CoreEditorStyles()
         {
             smallTickbox = new GUIStyle("ShurikenToggle");
@@ -84,6 +87,8 @@ namespace UnityEditor.Rendering
             var contextTooltip = ""; // To be defined (see with UX)
             contextMenuIcon = new GUIContent(paneOptionsIcon, contextTooltip);
             contextMenuStyle = new GUIStyle("IconButton");
+
+            globalSettingsIcon = EditorGUIUtility.FindTexture("ScriptableObject Icon");
         }
     }
 }
