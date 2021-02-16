@@ -27,6 +27,9 @@ EditorBuildSettings:
     path: Assets/Scenes/010_AdditionalLightsSorted.unity
     guid: 169aede566e462449812f4bfb3f8d20d
   - enabled: 1
+    path: Assets/Scenes/010_AdditionalLightsSorted_Deferred.unity
+    guid: 85cbe36f834a9444681d081748b85f9f
+  - enabled: 1
     path: Assets/Scenes/012_PBS_EnvironmentBRDF_Spheres.unity
     guid: fddcdd964deca1d42b2952f32f67f694
   - enabled: 1
