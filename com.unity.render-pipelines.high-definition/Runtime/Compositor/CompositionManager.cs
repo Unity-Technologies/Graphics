@@ -79,14 +79,13 @@ namespace UnityEngine.Rendering.HighDefinition.Compositor
                     }
 
                     // Toggle the compositor-related custom passes
-                    var hdPipeline = RenderPipelineManager.currentPipeline as HDRenderPipeline;
                     if (value)
                     {
-                        RegisterCustomPasses(hdPipeline);
+                        RegisterCustomPasses();
                     }
                     else
                     {
-                        UnRegisterCustomPasses(hdPipeline);
+                        UnRegisterCustomPasses();
                     }
                 }
             }
@@ -197,7 +196,7 @@ namespace UnityEngine.Rendering.HighDefinition.Compositor
                     m_AlphaSupport = AlphaChannelSupport.Rendering;
                 }
 
-                RegisterCustomPasses(hdPipeline);
+                RegisterCustomPasses();
                 return true;
             }
             return false;
@@ -553,8 +552,7 @@ namespace UnityEngine.Rendering.HighDefinition.Compositor
             }
 
             // We don't need the custom passes anymore
-            var hdPipeline = RenderPipelineManager.currentPipeline as HDRenderPipeline;
-            UnRegisterCustomPasses(hdPipeline);
+            UnRegisterCustomPasses();
 
             // By now the s_CompositorManagedCameras should be empty, but clear it just to be safe
             CompositorCameraRegistry.GetInstance().CleanUpCameraOrphans();
@@ -928,41 +926,31 @@ namespace UnityEngine.Rendering.HighDefinition.Compositor
         }
 
         // Register the custom pp passes used by the compositor
-        static internal void RegisterCustomPasses(HDRenderPipeline hdPipeline)
+        static internal void RegisterCustomPasses()
         {
-            if (hdPipeline == null)
-            {
-                return;
-            }
-
             // If custom post processes are not registered in the HDRP asset, they are never executed so we have to add them manually
-            if (!hdPipeline.asset.beforePostProcessCustomPostProcesses.Contains(typeof(ChromaKeying).AssemblyQualifiedName))
+            if (!HDRenderPipelineGlobalSettings.instance.beforePostProcessCustomPostProcesses.Contains(typeof(ChromaKeying).AssemblyQualifiedName))
             {
-                hdPipeline.asset.beforePostProcessCustomPostProcesses.Add(typeof(ChromaKeying).AssemblyQualifiedName);
+                HDRenderPipelineGlobalSettings.instance.beforePostProcessCustomPostProcesses.Add(typeof(ChromaKeying).AssemblyQualifiedName);
             }
 
-            if (!hdPipeline.asset.beforePostProcessCustomPostProcesses.Contains(typeof(AlphaInjection).AssemblyQualifiedName))
+            if (!HDRenderPipelineGlobalSettings.instance.beforePostProcessCustomPostProcesses.Contains(typeof(AlphaInjection).AssemblyQualifiedName))
             {
-                hdPipeline.asset.beforePostProcessCustomPostProcesses.Add(typeof(AlphaInjection).AssemblyQualifiedName);
+                HDRenderPipelineGlobalSettings.instance.beforePostProcessCustomPostProcesses.Add(typeof(AlphaInjection).AssemblyQualifiedName);
             }
         }
 
         // Unregister the custom pp passes used by the compositor
-        static internal void UnRegisterCustomPasses(HDRenderPipeline hdPipeline)
+        static internal void UnRegisterCustomPasses()
         {
-            if (hdPipeline == null)
+            if (HDRenderPipelineGlobalSettings.instance.beforePostProcessCustomPostProcesses.Contains(typeof(ChromaKeying).AssemblyQualifiedName))
             {
-                return;
+                HDRenderPipelineGlobalSettings.instance.beforePostProcessCustomPostProcesses.Remove(typeof(ChromaKeying).AssemblyQualifiedName);
             }
 
-            if (hdPipeline.asset.beforePostProcessCustomPostProcesses.Contains(typeof(ChromaKeying).AssemblyQualifiedName))
+            if (HDRenderPipelineGlobalSettings.instance.beforePostProcessCustomPostProcesses.Contains(typeof(AlphaInjection).AssemblyQualifiedName))
             {
-                hdPipeline.asset.beforePostProcessCustomPostProcesses.Remove(typeof(ChromaKeying).AssemblyQualifiedName);
-            }
-
-            if (hdPipeline.asset.beforePostProcessCustomPostProcesses.Contains(typeof(AlphaInjection).AssemblyQualifiedName))
-            {
-                hdPipeline.asset.beforePostProcessCustomPostProcesses.Remove(typeof(AlphaInjection).AssemblyQualifiedName);
+                HDRenderPipelineGlobalSettings.instance.beforePostProcessCustomPostProcesses.Remove(typeof(AlphaInjection).AssemblyQualifiedName);
             }
         }
     }

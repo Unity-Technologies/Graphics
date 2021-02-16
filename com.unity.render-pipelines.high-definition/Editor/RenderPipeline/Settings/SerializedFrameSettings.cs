@@ -61,22 +61,22 @@ namespace UnityEditor.Rendering.HighDefinition
                 case HDProbe probe:
                     return ref probe.frameSettings;
                 default:
+                {
+                    if (obj is HDRenderPipelineGlobalSettings globalSettings)
                     {
-                        if (obj is HDGlobalSettings globalSettings)
+                        switch (DefaultSettingsPanelIMGUI.selectedFrameSettings)
                         {
-                            switch (DefaultSettingsPanelIMGUI.selectedFrameSettings)
-                            {
-                                case DefaultSettingsPanelIMGUI.SelectedFrameSettings.Camera:
-                                    return ref globalSettings.GetDefaultFrameSettings(FrameSettingsRenderType.Camera);
-                                case DefaultSettingsPanelIMGUI.SelectedFrameSettings.BakedOrCustomReflection:
-                                    return ref globalSettings.GetDefaultFrameSettings(FrameSettingsRenderType.CustomOrBakedReflection);
-                                case DefaultSettingsPanelIMGUI.SelectedFrameSettings.RealtimeReflection:
-                                    return ref globalSettings.GetDefaultFrameSettings(FrameSettingsRenderType.RealtimeReflection);
-                            }
+                            case DefaultSettingsPanelIMGUI.SelectedFrameSettings.Camera:
+                                return ref globalSettings.GetDefaultFrameSettings(FrameSettingsRenderType.Camera);
+                            case DefaultSettingsPanelIMGUI.SelectedFrameSettings.BakedOrCustomReflection:
+                                return ref globalSettings.GetDefaultFrameSettings(FrameSettingsRenderType.CustomOrBakedReflection);
+                            case DefaultSettingsPanelIMGUI.SelectedFrameSettings.RealtimeReflection:
+                                return ref globalSettings.GetDefaultFrameSettings(FrameSettingsRenderType.RealtimeReflection);
                         }
-
-                        break;
                     }
+
+                    break;
+                }
             }
             throw new System.ArgumentException("Unknown kind of object");
         }
@@ -87,7 +87,7 @@ namespace UnityEditor.Rendering.HighDefinition
                 return (obj as HDAdditionalCameraData).renderingPathCustomFrameSettingsOverrideMask;
             if (obj is HDProbe)
                 return (obj as HDProbe).frameSettingsOverrideMask;
-            if (obj is HDGlobalSettings)
+            if (obj is HDRenderPipelineGlobalSettings)
                 return null;
             throw new System.ArgumentException("Unknown kind of object");
         }

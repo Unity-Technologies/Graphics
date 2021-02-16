@@ -22,7 +22,7 @@ namespace UnityEditor.Rendering.HighDefinition
                 newAsset.name = Path.GetFileName(pathName);
                 // Load default renderPipelineResources / Material / Shader
                 newAsset.renderPipelineResources = AssetDatabase.LoadAssetAtPath<RenderPipelineResources>(s_RenderPipelineResourcesPath);
-                HDGlobalSettings.instance.GetOrCreateDefaultVolumeProfile();
+                HDRenderPipelineGlobalSettings.instance.GetOrCreateDefaultVolumeProfile();
 
                 //as we must init the editor resources with lazy init, it is not required here
 
@@ -111,30 +111,30 @@ namespace UnityEditor.Rendering.HighDefinition
             ProjectWindowUtil.StartNameEditingIfProjectWindowExists(0, ScriptableObject.CreateInstance<DoCreateNewAssetHDRenderPipelineEditorResources>(), "New HDRenderPipelineEditorResources.asset", icon, null);
         }
 
-        internal class HDGlobalSettingsCreator : UnityEditor.ProjectWindowCallback.EndNameEditAction
+        internal class HDRenderPipelineGlobalSettingsCreator : UnityEditor.ProjectWindowCallback.EndNameEditAction
         {
             public override void Action(int instanceId, string pathName, string resourceFile)
             {
-                var newAsset = HDGlobalSettings.Create(pathName, settings);
-                HDGlobalSettings.UpdateGraphicsSettings(newAsset);
+                var newAsset = HDRenderPipelineGlobalSettings.Create(pathName, settings);
+                HDRenderPipelineGlobalSettings.UpdateGraphicsSettings(newAsset);
                 ProjectWindowUtil.ShowCreatedAsset(newAsset);
             }
 
-            static HDGlobalSettings settings;
-            public static void Clone(HDGlobalSettings src)
+            static HDRenderPipelineGlobalSettings settings;
+            public static void Clone(HDRenderPipelineGlobalSettings src)
             {
                 settings = src;
                 var icon = EditorGUIUtility.FindTexture("ScriptableObject Icon");
-                var assetCreator = ScriptableObject.CreateInstance<HDGlobalSettingsCreator>();
+                var assetCreator = ScriptableObject.CreateInstance<HDRenderPipelineGlobalSettingsCreator>();
                 ProjectWindowUtil.StartNameEditingIfProjectWindowExists(assetCreator.GetInstanceID(), assetCreator, $"Assets/{HDProjectSettings.projectSettingsFolderPath}/{src.name}.asset", icon, null);
             }
         }
 
-        [MenuItem("Assets/Create/Rendering/High Definition Default Settings Asset", priority = CoreUtils.assetCreateMenuPriority2)]
-        internal static void CreateHDGlobalSettings()
+        [MenuItem("Assets/Create/Rendering/HDRP Global Settings Asset", priority = CoreUtils.Sections.section1 + CoreUtils.Priorities.assetsCreateRenderingMenuPriority + 1)]
+        internal static void CreateHDRenderPipelineGlobalSettings()
         {
             var icon = EditorGUIUtility.FindTexture("ScriptableObject Icon");
-            ProjectWindowUtil.StartNameEditingIfProjectWindowExists(0, ScriptableObject.CreateInstance<HDGlobalSettingsCreator>(), $"Assets/{HDProjectSettings.projectSettingsFolderPath}/HDGlobalSettings.asset", icon, null);
+            ProjectWindowUtil.StartNameEditingIfProjectWindowExists(0, ScriptableObject.CreateInstance<HDRenderPipelineGlobalSettingsCreator>(), $"Assets/{HDProjectSettings.projectSettingsFolderPath}/HDRenderPipelineGlobalSettings.asset", icon, null);
         }
     }
 }

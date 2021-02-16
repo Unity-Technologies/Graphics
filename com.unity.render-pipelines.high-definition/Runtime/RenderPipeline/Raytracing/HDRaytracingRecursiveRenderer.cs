@@ -74,7 +74,7 @@ namespace UnityEngine.Rendering.HighDefinition
             // Other data
             rrParams.accelerationStructure = RequestAccelerationStructure();
             rrParams.lightCluster = RequestLightCluster();
-            rrParams.recursiveRenderingRT = HDGlobalSettings.instance.renderPipelineRayTracingResources.forwardRaytracing;
+            rrParams.recursiveRenderingRT = HDRenderPipelineGlobalSettings.instance.renderPipelineRayTracingResources.forwardRaytracing;
             rrParams.skyTexture = m_SkyManager.GetSkyReflection(hdCamera);
             rrParams.shaderVariablesRayTracingCB = m_ShaderVariablesRayTracingCB;
             BlueNoise blueNoise = GetBlueNoiseManager();

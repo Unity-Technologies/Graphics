@@ -36,7 +36,7 @@ namespace UnityEngine.Rendering.HighDefinition
         {
             isInOnValidateCall = true;
 #if UNITY_EDITOR
-            HDGlobalSettings.Ensure();
+            HDRenderPipelineGlobalSettings.Ensure();
 #endif
             //Do not reconstruct the pipeline if we modify other assets.
             //OnValidate is called once at first selection of the asset.
@@ -48,11 +48,11 @@ namespace UnityEngine.Rendering.HighDefinition
             isInOnValidateCall = false;
         }
 
-        public HDGlobalSettings defaultSettings => HDGlobalSettings.instance;
+        public HDRenderPipelineGlobalSettings defaultSettings => HDRenderPipelineGlobalSettings.instance;
 
         internal RenderPipelineResources renderPipelineResources
         {
-            get { return HDGlobalSettings.Ensure().renderPipelineResources; }
+            get { return HDRenderPipelineGlobalSettings.Ensure().renderPipelineResources; }
             set { defaultSettings.renderPipelineResources = value; }
         }
 
@@ -108,23 +108,23 @@ namespace UnityEngine.Rendering.HighDefinition
         {
             m_RenderingLayerNames = new string[32];
 
-            m_RenderingLayerNames[0] = HDGlobalSettings.instance.lightLayerName0;
-            m_RenderingLayerNames[1] = HDGlobalSettings.instance.lightLayerName1;
-            m_RenderingLayerNames[2] = HDGlobalSettings.instance.lightLayerName2;
-            m_RenderingLayerNames[3] = HDGlobalSettings.instance.lightLayerName3;
-            m_RenderingLayerNames[4] = HDGlobalSettings.instance.lightLayerName4;
-            m_RenderingLayerNames[5] = HDGlobalSettings.instance.lightLayerName5;
-            m_RenderingLayerNames[6] = HDGlobalSettings.instance.lightLayerName6;
-            m_RenderingLayerNames[7] = HDGlobalSettings.instance.lightLayerName7;
+            m_RenderingLayerNames[0] = HDRenderPipelineGlobalSettings.instance.lightLayerName0;
+            m_RenderingLayerNames[1] = HDRenderPipelineGlobalSettings.instance.lightLayerName1;
+            m_RenderingLayerNames[2] = HDRenderPipelineGlobalSettings.instance.lightLayerName2;
+            m_RenderingLayerNames[3] = HDRenderPipelineGlobalSettings.instance.lightLayerName3;
+            m_RenderingLayerNames[4] = HDRenderPipelineGlobalSettings.instance.lightLayerName4;
+            m_RenderingLayerNames[5] = HDRenderPipelineGlobalSettings.instance.lightLayerName5;
+            m_RenderingLayerNames[6] = HDRenderPipelineGlobalSettings.instance.lightLayerName6;
+            m_RenderingLayerNames[7] = HDRenderPipelineGlobalSettings.instance.lightLayerName7;
 
-            m_RenderingLayerNames[8]  = HDGlobalSettings.instance.decalLayerName0;
-            m_RenderingLayerNames[9]  = HDGlobalSettings.instance.decalLayerName1;
-            m_RenderingLayerNames[10] = HDGlobalSettings.instance.decalLayerName2;
-            m_RenderingLayerNames[11] = HDGlobalSettings.instance.decalLayerName3;
-            m_RenderingLayerNames[12] = HDGlobalSettings.instance.decalLayerName4;
-            m_RenderingLayerNames[13] = HDGlobalSettings.instance.decalLayerName5;
-            m_RenderingLayerNames[14] = HDGlobalSettings.instance.decalLayerName6;
-            m_RenderingLayerNames[15] = HDGlobalSettings.instance.decalLayerName7;
+            m_RenderingLayerNames[8]  = HDRenderPipelineGlobalSettings.instance.decalLayerName0;
+            m_RenderingLayerNames[9]  = HDRenderPipelineGlobalSettings.instance.decalLayerName1;
+            m_RenderingLayerNames[10] = HDRenderPipelineGlobalSettings.instance.decalLayerName2;
+            m_RenderingLayerNames[11] = HDRenderPipelineGlobalSettings.instance.decalLayerName3;
+            m_RenderingLayerNames[12] = HDRenderPipelineGlobalSettings.instance.decalLayerName4;
+            m_RenderingLayerNames[13] = HDRenderPipelineGlobalSettings.instance.decalLayerName5;
+            m_RenderingLayerNames[14] = HDRenderPipelineGlobalSettings.instance.decalLayerName6;
+            m_RenderingLayerNames[15] = HDRenderPipelineGlobalSettings.instance.decalLayerName7;
 
             // Unused
             for (int i = 16; i < m_RenderingLayerNames.Length; ++i)
@@ -157,12 +157,12 @@ namespace UnityEngine.Rendering.HighDefinition
         /// <summary>
         /// Names used for display of light layers.
         /// </summary>
-        public string[] lightLayerNames => HDGlobalSettings.instance.lightLayerNames;
+        public string[] lightLayerNames => HDRenderPipelineGlobalSettings.instance.lightLayerNames;
 
         /// <summary>
         /// Names used for display of decal layers.
         /// </summary>
-        public string[] decalLayerNames => HDGlobalSettings.instance.decalLayerNames;
+        public string[] decalLayerNames => HDRenderPipelineGlobalSettings.instance.decalLayerNames;
 
         /// <summary>HDRP default shader.</summary>
         public override Shader defaultShader

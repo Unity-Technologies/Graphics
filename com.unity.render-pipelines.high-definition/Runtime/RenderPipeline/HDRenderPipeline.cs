@@ -24,10 +24,10 @@ namespace UnityEngine.Rendering.HighDefinition
     public partial class HDRenderPipeline : RenderPipeline
     {
         #region Global Settings
-        internal static HDGlobalSettings defaultAsset
-            => HDGlobalSettings.instance;
+        internal static HDRenderPipelineGlobalSettings defaultAsset
+            => HDRenderPipelineGlobalSettings.instance;
 
-        private HDGlobalSettings m_globalSettings;
+        private HDRenderPipelineGlobalSettings m_globalSettings;
         public override RenderPipelineGlobalSettings defaultSettings => m_globalSettings;
 
         internal static HDRenderPipelineAsset currentAsset
@@ -48,7 +48,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
         readonly HDRenderPipelineAsset m_Asset;
         internal HDRenderPipelineAsset asset { get { return m_Asset; } }
-        internal RenderPipelineResources defaultResources { get { return HDGlobalSettings.instance.renderPipelineResources; } }
+        internal RenderPipelineResources defaultResources { get { return HDRenderPipelineGlobalSettings.instance.renderPipelineResources; } }
 
         internal RenderPipelineSettings currentPlatformRenderPipelineSettings { get { return m_Asset.currentPlatformRenderPipelineSettings; } }
 
@@ -250,9 +250,9 @@ namespace UnityEngine.Rendering.HighDefinition
         public HDRenderPipeline(HDRenderPipelineAsset asset)
         {
 #if UNITY_EDITOR
-            m_globalSettings = HDGlobalSettings.Ensure();
+            m_globalSettings = HDRenderPipelineGlobalSettings.Ensure();
 #else
-            m_globalSettings = HDGlobalSettings.instance;
+            m_globalSettings = HDRenderPipelineGlobalSettings.instance;
 #endif
             m_Asset = asset;
             HDProbeSystem.Parameters = asset.reflectionSystemParameters;
@@ -468,7 +468,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
         void ValidateResources()
         {
-            HDGlobalSettings.instance.EnsureShadersCompiled();
+            HDRenderPipelineGlobalSettings.instance.EnsureShadersCompiled();
         }
 
 #endif

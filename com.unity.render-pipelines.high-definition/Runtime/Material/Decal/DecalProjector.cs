@@ -316,7 +316,7 @@ namespace UnityEngine.Rendering.HighDefinition
             if (m_Material == null)
             {
 #if UNITY_EDITOR
-                m_Material = HDGlobalSettings.instance != null ? HDGlobalSettings.instance.GetDefaultDecalMaterial() : null;
+                m_Material = HDRenderPipelineGlobalSettings.instance != null ? HDRenderPipelineGlobalSettings.instance.GetDefaultDecalMaterial() : null;
 #else
                 m_Material = null;
 #endif

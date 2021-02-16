@@ -189,7 +189,7 @@ namespace UnityEngine.Rendering.HighDefinition
             var newParameters = component.parameters;
             var profileParameters = componentFromProfile.parameters;
 
-            var defaultVolume = HDGlobalSettings.instance.GetOrCreateDefaultVolume();
+            var defaultVolume = HDRenderPipelineGlobalSettings.instance.GetOrCreateDefaultVolume();
             T defaultComponent = null;
             if (defaultVolume.sharedProfile != null)     // This can happen with old projects.
                 defaultVolume.sharedProfile.TryGet(type, out defaultComponent);

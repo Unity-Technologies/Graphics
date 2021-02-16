@@ -1,5 +1,6 @@
 using System.Collections.Generic; //needed for list of Custom Post Processes injections
 using System.IO;
+using System.Linq;
 #if UNITY_EDITOR
 using UnityEditorInternal;
 using UnityEditor;
@@ -29,20 +30,20 @@ namespace UnityEngine.Rendering.HighDefinition
     /// - Frame Settings applied by default to Camera, ReflectionProbe
     /// - Various resources (such as Shaders) for runtime, editor-only, and raytracing
     /// </summary>
-    public partial class HDGlobalSettings : RenderPipelineGlobalSettings
+    public partial class HDRenderPipelineGlobalSettings : RenderPipelineGlobalSettings
     {
-        private static HDGlobalSettings cachedInstance = null;
-        public static HDGlobalSettings instance
+        private static HDRenderPipelineGlobalSettings cachedInstance = null;
+        public static HDRenderPipelineGlobalSettings instance
         {
             get
             {
                 if (cachedInstance == null)
-                    cachedInstance = GraphicsSettings.GetSettingsForRenderPipeline<HDRenderPipeline>() as HDGlobalSettings;
+                    cachedInstance = GraphicsSettings.GetSettingsForRenderPipeline<HDRenderPipeline>() as HDRenderPipelineGlobalSettings;
                 return cachedInstance;
             }
         }
 
-        static public void UpdateGraphicsSettings(HDGlobalSettings newSettings)
+        static public void UpdateGraphicsSettings(HDRenderPipelineGlobalSettings newSettings)
         {
             if (newSettings == null || newSettings == cachedInstance)
                 return;
@@ -51,39 +52,39 @@ namespace UnityEngine.Rendering.HighDefinition
         }
 
 #if UNITY_EDITOR
-        //Making sure there is at least one HDGlobalSettings instance in the project
-        static public HDGlobalSettings Ensure()
+        //Making sure there is at least one HDRenderPipelineGlobalSettings instance in the project
+        static public HDRenderPipelineGlobalSettings Ensure()
         {
-            if (HDGlobalSettings.instance)
-                return HDGlobalSettings.instance;
+            if (HDRenderPipelineGlobalSettings.instance)
+                return HDRenderPipelineGlobalSettings.instance;
 
-            HDGlobalSettings assetCreated = null;
-            string path = "Assets/HDRPDefaultResources/HDGlobalSettings.asset";
-            assetCreated = AssetDatabase.LoadAssetAtPath<HDGlobalSettings>(path);
+            HDRenderPipelineGlobalSettings assetCreated = null;
+            string path = "Assets/HDRPDefaultResources/HDRenderPipelineGlobalSettings.asset";
+            assetCreated = AssetDatabase.LoadAssetAtPath<HDRenderPipelineGlobalSettings>(path);
             if (assetCreated == null)
             {
-                var guidHDGlobalAssets = AssetDatabase.FindAssets("t:HDGlobalSettings");
+                var guidHDGlobalAssets = AssetDatabase.FindAssets("t:HDRenderPipelineGlobalSettings");
                 //If we could not find the asset at the default path, find the first one
                 if (guidHDGlobalAssets.Length > 0)
                 {
                     var curGUID = guidHDGlobalAssets[0];
                     path = AssetDatabase.GUIDToAssetPath(curGUID);
-                    assetCreated = AssetDatabase.LoadAssetAtPath<HDGlobalSettings>(path);
+                    assetCreated = AssetDatabase.LoadAssetAtPath<HDRenderPipelineGlobalSettings>(path);
                 }
                 else // or create one altogether
                 {
                     if (!AssetDatabase.IsValidFolder("Assets/HDRPDefaultResources/"))
                         AssetDatabase.CreateFolder("Assets", "HDRPDefaultResources");
-                    assetCreated = ScriptableObject.CreateInstance<HDGlobalSettings>();
+                    assetCreated = ScriptableObject.CreateInstance<HDRenderPipelineGlobalSettings>();
                     AssetDatabase.CreateAsset(assetCreated, path);
                     assetCreated.Init();
                     AssetDatabase.SaveAssets();
                     AssetDatabase.Refresh();
                 }
             }
-            Debug.Assert(assetCreated, "Could not create HD Global Settings - HDRP may not work correctly - Open the Graphics Window for additional help.");
+            Debug.Assert(assetCreated, "Could not create HDRP's Global Settings - HDRP may not work correctly - Open the Graphics Window for additional help.");
             UpdateGraphicsSettings(assetCreated);
-            return HDGlobalSettings.instance;
+            return HDRenderPipelineGlobalSettings.instance;
         }
 
 #endif
@@ -124,23 +125,23 @@ namespace UnityEngine.Rendering.HighDefinition
         }
 
         #if UNITY_EDITOR
-        internal static HDGlobalSettings MigrateFromHDRPAsset(HDRenderPipelineAsset oldAsset, bool bClearObsoleteFields = true)
+        internal static HDRenderPipelineGlobalSettings MigrateFromHDRPAsset(HDRenderPipelineAsset oldAsset, bool bClearObsoleteFields = true)
         {
-            string path = "Assets/HDRPDefaultResources/HDGlobalSettings.asset";
+            string path = "Assets/HDRPDefaultResources/HDRenderPipelineGlobalSettings.asset";
             return MigrateFromHDRPAsset(oldAsset, path, bClearObsoleteFields);
         }
 
-        internal static HDGlobalSettings MigrateFromHDRPAsset(HDRenderPipelineAsset oldAsset, string path, bool bClearObsoleteFields = true)
+        internal static HDRenderPipelineGlobalSettings MigrateFromHDRPAsset(HDRenderPipelineAsset oldAsset, string path, bool bClearObsoleteFields = true)
         {
-            HDGlobalSettings assetCreated = null;
+            HDRenderPipelineGlobalSettings assetCreated = null;
 
             // 1. Load or Create the HDAsset and save it on disk
-            assetCreated = AssetDatabase.LoadAssetAtPath<HDGlobalSettings>(path);
+            assetCreated = AssetDatabase.LoadAssetAtPath<HDRenderPipelineGlobalSettings>(path);
             if (assetCreated == null)
             {
                 if (!AssetDatabase.IsValidFolder("Assets/HDRPDefaultResources/"))
                     AssetDatabase.CreateFolder("Assets", "HDRPDefaultResources");
-                assetCreated = ScriptableObject.CreateInstance<HDGlobalSettings>();
+                assetCreated = ScriptableObject.CreateInstance<HDRenderPipelineGlobalSettings>();
                 AssetDatabase.CreateAsset(assetCreated, path);
                 assetCreated.Init();
                 AssetDatabase.SaveAssets();
@@ -209,15 +210,15 @@ namespace UnityEngine.Rendering.HighDefinition
             return assetCreated;
         }
 
-        internal static HDGlobalSettings Create(string path, HDGlobalSettings src = null)
+        internal static HDRenderPipelineGlobalSettings Create(string path, HDRenderPipelineGlobalSettings src = null)
         {
-            HDGlobalSettings assetCreated = null;
+            HDRenderPipelineGlobalSettings assetCreated = null;
 
             // make sure the asset does not already exists
-            assetCreated = AssetDatabase.LoadAssetAtPath<HDGlobalSettings>(path);
+            assetCreated = AssetDatabase.LoadAssetAtPath<HDRenderPipelineGlobalSettings>(path);
             if (assetCreated == null)
             {
-                assetCreated = ScriptableObject.CreateInstance<HDGlobalSettings>();
+                assetCreated = ScriptableObject.CreateInstance<HDRenderPipelineGlobalSettings>();
                 AssetDatabase.CreateAsset(assetCreated, path);
                 assetCreated.Init();
                 if (assetCreated != null)
@@ -454,15 +455,19 @@ namespace UnityEngine.Rendering.HighDefinition
             if (AreResourcesCreated())
                 return;
 
-            m_RenderPipelineResources = AssetDatabase.LoadAssetAtPath<RenderPipelineResources>(HDUtils.GetHDRenderPipelinePath() + "Runtime/RenderPipelineResources/HDRenderPipelineResources.asset");
+            var runtimeResourcesPath = HDUtils.GetHDRenderPipelinePath() + "Runtime/RenderPipelineResources/HDRenderPipelineResources.asset";
+            var objs = InternalEditorUtility.LoadSerializedFileAndForget(runtimeResourcesPath);
+            m_RenderPipelineResources = objs != null && objs.Length > 0 ? objs.First() as RenderPipelineResources : null;
 
             if (forceReload)
             {
-#if UNITY_EDITOR_LINUX // Temp hack to be able to make linux test run. To clarify
-                ResourceReloader.TryReloadAllNullIn(m_RenderPipelineResources, HDUtils.GetHDRenderPipelinePath());
-#else
-                ResourceReloader.ReloadAllNullIn(m_RenderPipelineResources, HDUtils.GetHDRenderPipelinePath());
-#endif
+                if (ResourceReloader.ReloadAllNullIn(m_RenderPipelineResources, HDUtils.GetHDRenderPipelinePath()))
+                {
+                    InternalEditorUtility.SaveToSerializedFileAndForget(
+                        new UnityEngine.Object[] { m_RenderPipelineResources },
+                        runtimeResourcesPath,
+                        true);
+                }
             }
         }
 
@@ -732,7 +737,7 @@ namespace UnityEngine.Rendering.HighDefinition
             }
             else
             {
-                Debug.LogErrorFormat("We cannot add the diffusion profile {0} to the HDRP default settings as we only allow 14 custom profiles. Please remove one before adding a new one.", profile.name);
+                Debug.LogErrorFormat("We cannot add the diffusion profile {0} to the HDRP's Global Settings as we only allow 14 custom profiles. Please remove one before adding a new one.", profile.name);
                 return false;
             }
         }

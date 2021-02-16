@@ -4,14 +4,14 @@ using UnityEngine.Rendering.HighDefinition;
 
 namespace UnityEditor.Rendering.HighDefinition
 {
-    [Obsolete("Please use HDGlobalSettings.instance.* instead.", false)]
+    [Obsolete("Please use HDRenderPipelineGlobalSettings.instance.* instead.", false)]
     static class EditorDefaultSettings
     {
         /// <summary>Get the current default VolumeProfile asset. If it is missing, the builtin one is assigned to the current settings.</summary>
         /// <returns>The default VolumeProfile if an HDRenderPipelineAsset is the base SRP asset, null otherwise.</returns>
         internal static VolumeProfile GetOrAssignDefaultVolumeProfile()
         {
-            return HDGlobalSettings.instance.GetOrCreateDefaultVolumeProfile();
+            return HDRenderPipelineGlobalSettings.instance.GetOrCreateDefaultVolumeProfile();
         }
 
         /// <summary>Get the current default VolumeProfile asset. If it is missing, the builtin one is assigned to the current settings.</summary>
@@ -34,7 +34,7 @@ namespace UnityEditor.Rendering.HighDefinition
         /// <returns>The default VolumeProfile if an HDRenderPipelineAsset is the base SRP asset, null otherwise.</returns>
         internal static VolumeProfile GetOrAssignLookDevVolumeProfile(HDRenderPipelineAsset hdrpAsset)
         {
-            return HDGlobalSettings.instance.GetOrAssignLookDevVolumeProfile();
+            return HDRenderPipelineGlobalSettings.instance.GetOrAssignLookDevVolumeProfile();
         }
     }
 }

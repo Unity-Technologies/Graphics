@@ -37,7 +37,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ### Added
 - Added new AOV APIs for overriding the internal rendering format, and for outputing the world space position.
-- HDRP Global Settings are now saved into their own asset (HDGlobalSettings) and HDRenderPipeline's default asset refers to this new asset.
+- HDRP Global Settings are now saved into their own asset (HDRenderPipelineGlobalSettings) and HDRenderPipeline's default asset refers to this new asset.
 
 ### Changed
 - Changed Window/Render Pipeline/HD Render Pipeline Wizard to Window/Rendering/HDRP Wizard

@@ -27,7 +27,7 @@ namespace UnityEngine.Rendering.HighDefinition
             RemoveCookieCubeAtlasToOctahedral2D,
             RoughDistortion,
             VirtualTexturing,
-            AddedHDGlobalSettings
+            AddedHDRenderPipelineGlobalSettings
         }
 
         static readonly MigrationDescription<Version, HDRenderPipelineAsset> k_Migration = MigrationDescription.New(
@@ -157,7 +157,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 FrameSettings.MigrateVirtualTexturing(ref data.m_ObsoleteRealtimeReflectionFrameSettingsMovedToDefaultSettings);
 #pragma warning restore 618
             }) ,
-            MigrationStep.New(Version.AddedHDGlobalSettings, (HDRenderPipelineAsset data) =>
+            MigrationStep.New(Version.AddedHDRenderPipelineGlobalSettings, (HDRenderPipelineAsset data) =>
             {
 #if UNITY_EDITOR
                 // 2/ it acted as the definition of the Default Settings - now migrated to its own asset
@@ -165,8 +165,8 @@ namespace UnityEngine.Rendering.HighDefinition
                 if (data == GraphicsSettings.defaultRenderPipeline)
 #pragma warning restore 618
                 {
-                    HDGlobalSettings globalSettings = HDGlobalSettings.MigrateFromHDRPAsset(data, true);
-                    HDGlobalSettings.UpdateGraphicsSettings(globalSettings);
+                    HDRenderPipelineGlobalSettings globalSettings = HDRenderPipelineGlobalSettings.MigrateFromHDRPAsset(data, true);
+                    HDRenderPipelineGlobalSettings.UpdateGraphicsSettings(globalSettings);
                     EditorUtility.SetDirty(globalSettings);
                 }
 #endif
@@ -190,7 +190,7 @@ namespace UnityEngine.Rendering.HighDefinition
         [FormerlySerializedAs("m_RealtimeReflectionFrameSettings"), Obsolete("For data migration")]
         ObsoleteFrameSettings m_ObsoleteRealtimeReflectionFrameSettings;
 
-        #region Settings Moved from the HDRP Asset to HDGlobalSettings
+        #region Settings Moved from the HDRP Asset to HDRenderPipelineGlobalSettings
         [SerializeField]
         [FormerlySerializedAs("m_DefaultVolumeProfile"), Obsolete("Moved from HDRPAsset to HDGlobal Settings")]
         internal VolumeProfile m_ObsoleteDefaultVolumeProfile;

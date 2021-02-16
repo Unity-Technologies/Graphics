@@ -180,50 +180,50 @@ namespace UnityEngine.Rendering.HighDefinition
         /// <summary>Name for light layer 0.</summary>
         public string lightLayerName0
         {
-            get { return HDGlobalSettings.instance.lightLayerName0; }
-            set { HDGlobalSettings.instance.lightLayerName0 = value; }
+            get { return HDRenderPipelineGlobalSettings.instance.lightLayerName0; }
+            set { HDRenderPipelineGlobalSettings.instance.lightLayerName0 = value; }
         }
         /// <summary>Name for light layer 1.</summary>
         public string lightLayerName1
         {
-            get { return HDGlobalSettings.instance.lightLayerName1; }
-            set { HDGlobalSettings.instance.lightLayerName1 = value; }
+            get { return HDRenderPipelineGlobalSettings.instance.lightLayerName1; }
+            set { HDRenderPipelineGlobalSettings.instance.lightLayerName1 = value; }
         }
         /// <summary>Name for light layer 2.</summary>
         public string lightLayerName2
         {
-            get { return HDGlobalSettings.instance.lightLayerName2; }
-            set { HDGlobalSettings.instance.lightLayerName2 = value; }
+            get { return HDRenderPipelineGlobalSettings.instance.lightLayerName2; }
+            set { HDRenderPipelineGlobalSettings.instance.lightLayerName2 = value; }
         }
         /// <summary>Name for light layer 3.</summary>
         public string lightLayerName3
         {
-            get { return HDGlobalSettings.instance.lightLayerName3; }
-            set { HDGlobalSettings.instance.lightLayerName3 = value; }
+            get { return HDRenderPipelineGlobalSettings.instance.lightLayerName3; }
+            set { HDRenderPipelineGlobalSettings.instance.lightLayerName3 = value; }
         }
         /// <summary>Name for light layer 4.</summary>
         public string lightLayerName4
         {
-            get { return HDGlobalSettings.instance.lightLayerName4; }
-            set { HDGlobalSettings.instance.lightLayerName4 = value; }
+            get { return HDRenderPipelineGlobalSettings.instance.lightLayerName4; }
+            set { HDRenderPipelineGlobalSettings.instance.lightLayerName4 = value; }
         }
         /// <summary>Name for light layer 5.</summary>
         public string lightLayerName5
         {
-            get { return HDGlobalSettings.instance.lightLayerName5; }
-            set { HDGlobalSettings.instance.lightLayerName5 = value; }
+            get { return HDRenderPipelineGlobalSettings.instance.lightLayerName5; }
+            set { HDRenderPipelineGlobalSettings.instance.lightLayerName5 = value; }
         }
         /// <summary>Name for light layer 6.</summary>
         public string lightLayerName6
         {
-            get { return HDGlobalSettings.instance.lightLayerName6; }
-            set { HDGlobalSettings.instance.lightLayerName6 = value; }
+            get { return HDRenderPipelineGlobalSettings.instance.lightLayerName6; }
+            set { HDRenderPipelineGlobalSettings.instance.lightLayerName6 = value; }
         }
         /// <summary>Name for light layer 7.</summary>
         public string lightLayerName7
         {
-            get { return HDGlobalSettings.instance.lightLayerName7; }
-            set { HDGlobalSettings.instance.lightLayerName7 = value; }
+            get { return HDRenderPipelineGlobalSettings.instance.lightLayerName7; }
+            set { HDRenderPipelineGlobalSettings.instance.lightLayerName7 = value; }
         }
         /// <summary>Support distortion.</summary>
         public bool supportDistortion;
@@ -251,50 +251,50 @@ namespace UnityEngine.Rendering.HighDefinition
         /// <summary>Name for decal layer 0.</summary>
         public string decalLayerName0
         {
-            get { return HDGlobalSettings.instance.decalLayerName0; }
-            set { HDGlobalSettings.instance.decalLayerName0 = value; }
+            get { return HDRenderPipelineGlobalSettings.instance.decalLayerName0; }
+            set { HDRenderPipelineGlobalSettings.instance.decalLayerName0 = value; }
         }
         /// <summary>Name for decal layer 1.</summary>
         public string decalLayerName1
         {
-            get { return HDGlobalSettings.instance.decalLayerName1; }
-            set { HDGlobalSettings.instance.decalLayerName1 = value; }
+            get { return HDRenderPipelineGlobalSettings.instance.decalLayerName1; }
+            set { HDRenderPipelineGlobalSettings.instance.decalLayerName1 = value; }
         }
         /// <summary>Name for decal layer 2.</summary>
         public string decalLayerName2
         {
-            get { return HDGlobalSettings.instance.decalLayerName2; }
-            set { HDGlobalSettings.instance.decalLayerName2 = value; }
+            get { return HDRenderPipelineGlobalSettings.instance.decalLayerName2; }
+            set { HDRenderPipelineGlobalSettings.instance.decalLayerName2 = value; }
         }
         /// <summary>Name for decal layer 3.</summary>
         public string decalLayerName3
         {
-            get { return HDGlobalSettings.instance.decalLayerName3; }
-            set { HDGlobalSettings.instance.decalLayerName3 = value; }
+            get { return HDRenderPipelineGlobalSettings.instance.decalLayerName3; }
+            set { HDRenderPipelineGlobalSettings.instance.decalLayerName3 = value; }
         }
         /// <summary>Name for decal layer 4.</summary>
         public string decalLayerName4
         {
-            get { return HDGlobalSettings.instance.decalLayerName4; }
-            set { HDGlobalSettings.instance.decalLayerName4 = value; }
+            get { return HDRenderPipelineGlobalSettings.instance.decalLayerName4; }
+            set { HDRenderPipelineGlobalSettings.instance.decalLayerName4 = value; }
         }
         /// <summary>Name for decal layer 5.</summary>
         public string decalLayerName5
         {
-            get { return HDGlobalSettings.instance.decalLayerName5; }
-            set { HDGlobalSettings.instance.decalLayerName5 = value; }
+            get { return HDRenderPipelineGlobalSettings.instance.decalLayerName5; }
+            set { HDRenderPipelineGlobalSettings.instance.decalLayerName5 = value; }
         }
         /// <summary>Name for decal layer 6.</summary>
         public string decalLayerName6
         {
-            get { return HDGlobalSettings.instance.decalLayerName6; }
-            set { HDGlobalSettings.instance.decalLayerName6 = value; }
+            get { return HDRenderPipelineGlobalSettings.instance.decalLayerName6; }
+            set { HDRenderPipelineGlobalSettings.instance.decalLayerName6 = value; }
         }
         /// <summary>Name for decal layer 7.</summary>
         public string decalLayerName7
         {
-            get { return HDGlobalSettings.instance.decalLayerName7; }
-            set { HDGlobalSettings.instance.decalLayerName7 = value; }
+            get { return HDRenderPipelineGlobalSettings.instance.decalLayerName7; }
+            set { HDRenderPipelineGlobalSettings.instance.decalLayerName7 = value; }
         }
 
         /// <summary>Number of samples when using MSAA.</summary>
