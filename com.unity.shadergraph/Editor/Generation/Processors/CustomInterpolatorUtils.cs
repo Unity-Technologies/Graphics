@@ -127,14 +127,19 @@ namespace UnityEditor.ShaderGraph
                 }
                 else // it's a full compile and cin isn't inlined, so do all the things.
                 {
-                    activeFields.AddAll(cin.e_targetBlockNode.descriptor); // add the BlockFieldDescriptor for VertexDescription
-                    customBlockNodes.Add(cin.e_targetBlockNode);
+                    if (!customBlockNodes.Contains(cin.e_targetBlockNode))
+                    {
+                        activeFields.AddAll(cin.e_targetBlockNode.descriptor); // add the BlockFieldDescriptor for VertexDescription
+                        customBlockNodes.Add(cin.e_targetBlockNode);
+                    }
 
                     // vertex nodes should not require hierarchical insertion, but if they do (master preview is failing)-- use the "InsertAntecedent" solve above.
                     vertexNodes.AddRange(anties);
 
-                    vertexNodes.Add(cin.e_targetBlockNode);
-                    vertexSlots.Add(cin.e_targetBlockNode.FindSlot<MaterialSlot>(0));
+                    if (!vertexNodes.Contains(cin.e_targetBlockNode))
+                        vertexNodes.Add(cin.e_targetBlockNode);
+                    if(!vertexSlots.Contains(cin.e_targetBlockNode.FindSlot<MaterialSlot>(0)))
+                        vertexSlots.Add(cin.e_targetBlockNode.FindSlot<MaterialSlot>(0));
                 }
             }
         }
