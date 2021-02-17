@@ -34,9 +34,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed an issue where first frame of SSAO could exhibit ghosting artefacts.
 - Fixed an issue with the mipmap generation internal format after rendering format change.
 - Fixed performance issue with ShaderGraph and Alpha Test
-
-### Added
-- Added new AOV APIs for overriding the internal rendering format, and for outputing the world space position.
+- Fixed error when increasing the maximum planar reflection limit (case 1306530).
 
 ### Changed
 - Changed Window/Render Pipeline/HD Render Pipeline Wizard to Window/Rendering/HDRP Wizard
@@ -60,8 +58,6 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Change Assets/Create/Rendering/C# Custom Pass to Assets/Create/Rendering/HDRP C# Custom Pass
 - Change Assets/Create/Rendering/C# Post Process Volume to Assets/Create/Rendering/HDRP C# Post Process Volume
 - Change labels about scroll direction and cloud type.
-
-### Changed
 - Improved shadow cascade GUI drawing with pixel perfect, hover and focus functionalities.
 
 ## [11.0.0] - 2020-10-21
