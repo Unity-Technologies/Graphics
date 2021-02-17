@@ -10,25 +10,24 @@ namespace UnityEditor.ShaderGraph.Internal
     [Serializable]
     [FormerName("UnityEditor.ShaderGraph.FloatShaderProperty")]
     [FormerName("UnityEditor.ShaderGraph.Vector1ShaderProperty")]
+    [BlackboardInputInfo(0, "Float")]
     public sealed class Vector1ShaderProperty : AbstractShaderProperty<float>
     {
         internal Vector1ShaderProperty()
         {
-            displayName = "Vector1";
+            displayName = "Float";
         }
-        
-        public override PropertyType propertyType => PropertyType.Vector1;
-        
-        internal override bool isBatchable => true;
+
+        public override PropertyType propertyType => PropertyType.Float;
+
         internal override bool isExposable => true;
         internal override bool isRenamable => true;
-        internal override bool isGpuInstanceable => true;
-        
+
         string enumTagString
         {
             get
             {
-                switch(enumType)
+                switch (enumType)
                 {
                     case EnumType.CSharpEnum:
                         return $"[Enum({m_CSharpEnumType.ToString()})]";
@@ -50,10 +49,10 @@ namespace UnityEditor.ShaderGraph.Internal
         {
             string valueString = NodeUtils.FloatToShaderValueShaderLabSafe(value);
 
-            switch(floatType)
+            switch (floatType)
             {
                 case FloatType.Slider:
-                    return $"{hideTagString}{referenceName}(\"{displayName}\", Range({NodeUtils.FloatToShaderValue(m_RangeValues.x)}, {NodeUtils.FloatToShaderValue(m_RangeValues.y)})) = {valueString}";
+                    return $"{hideTagString}{referenceName}(\"{displayName}\", Range({NodeUtils.FloatToShaderValueShaderLabSafe(m_RangeValues.x)}, {NodeUtils.FloatToShaderValueShaderLabSafe(m_RangeValues.y)})) = {valueString}";
                 case FloatType.Integer:
                     return $"{hideTagString}{referenceName}(\"{displayName}\", Int) = {valueString}";
                 case FloatType.Enum:
@@ -61,6 +60,17 @@ namespace UnityEditor.ShaderGraph.Internal
                 default:
                     return $"{hideTagString}{referenceName}(\"{displayName}\", Float) = {valueString}";
             }
+        }
+
+        internal override string GetPropertyAsArgumentString(string precisionString)
+        {
+            return $"{concreteShaderValueType.ToShaderString(precisionString)} {referenceName}";
+        }
+
+        internal override void ForeachHLSLProperty(Action<HLSLProperty> action)
+        {
+            HLSLDeclaration decl = GetDefaultHLSLDeclaration();
+            action(new HLSLProperty(HLSLType._float, referenceName, decl, concretePrecision));
         }
 
         [SerializeField]
@@ -88,7 +98,7 @@ namespace UnityEditor.ShaderGraph.Internal
             get => m_EnumType;
             set => m_EnumType = value;
         }
-    
+
         Type m_CSharpEnumType;
 
         public Type cSharpEnumType
@@ -98,7 +108,7 @@ namespace UnityEditor.ShaderGraph.Internal
         }
 
         List<string> m_EnumNames = new List<string>();
-        
+
         public List<string> enumNames
         {
             get => m_EnumNames;
@@ -112,7 +122,7 @@ namespace UnityEditor.ShaderGraph.Internal
             get => m_EnumValues;
             set => m_EnumValues = value;
         }
-        
+
         internal override AbstractMaterialNode ToConcreteNode()
         {
             switch (m_FloatType)
@@ -142,16 +152,23 @@ namespace UnityEditor.ShaderGraph.Internal
             return new Vector1ShaderProperty()
             {
                 displayName = displayName,
-                hidden = hidden,
                 value = value,
                 floatType = floatType,
                 rangeValues = rangeValues,
                 enumType = enumType,
                 enumNames = enumNames,
                 enumValues = enumValues,
-                precision = precision,
-                gpuInstanced = gpuInstanced,
             };
+        }
+
+        public override int latestVersion => 1;
+        public override void OnAfterDeserialize(string json)
+        {
+            if (sgVersion == 0)
+            {
+                LegacyShaderPropertyData.UpgradeToHLSLDeclarationOverride(json, this);
+                ChangeVersion(1);
+            }
         }
     }
 

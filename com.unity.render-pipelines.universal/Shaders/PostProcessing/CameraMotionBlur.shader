@@ -1,6 +1,8 @@
 Shader "Hidden/Universal Render Pipeline/CameraMotionBlur"
 {
     HLSLINCLUDE
+        #pragma exclude_renderers gles
+
         #pragma multi_compile _ _USE_DRAW_PROCEDURAL
         #pragma multi_compile _ _CAMERA_ONLY
 
@@ -11,13 +13,20 @@ Shader "Hidden/Universal Render Pipeline/CameraMotionBlur"
         #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/DeclareDepthTexture.hlsl"
 
         TEXTURE2D_X(_SourceTex);
-        TEXTURE2D(_MotionVectorTexture);       SAMPLER(sampler_MotionVectorTexture);
+        TEXTURE2D(_MotionVectorTexture);
+       SAMPLER(sampler_MotionVectorTexture);
 
+#if defined(USING_STEREO_MATRICES)
+        float4x4 _PrevViewProjMStereo[2];
+#define _PrevViewProjM  _PrevViewProjMStereo[unity_StereoEyeIndex]
+#define _ViewProjM unity_MatrixVP
+#else
         float4x4 _ViewProjM;
         float4x4 _PrevViewProjM;
-        float _Intensity;
-        float _Clamp;
-        float4 _SourceTex_TexelSize;
+#endif
+        half _Intensity;
+        half _Clamp;
+        half4 _SourceSize;
 
         struct VaryingsCMB
         {
@@ -26,7 +35,7 @@ Shader "Hidden/Universal Render Pipeline/CameraMotionBlur"
             UNITY_VERTEX_OUTPUT_STEREO
         };
 
-        VaryingsCMB VertCMB(FullscreenAttributes input)
+        VaryingsCMB VertCMB(Attributes input)
         {
             VaryingsCMB output;
             UNITY_SETUP_INSTANCE_ID(input);
@@ -45,15 +54,15 @@ Shader "Hidden/Universal Render Pipeline/CameraMotionBlur"
             return output;
         }
 
-        float2 ClampVelocity(float2 velocity, float maxVelocity)
+        half2 ClampVelocity(half2 velocity, half maxVelocity)
         {
-            float len = length(velocity);
+            half len = length(velocity);
             return (len > 0.0) ? min(len, maxVelocity) * (velocity * rcp(len)) : 0.0;
         }
 
         #if _CAMERA_ONLY
         // Per-pixel camera velocity
-        float2 GetVelocity(float4 uv)
+        half2 GetVelocity(float4 uv)
         {
             float depth = SAMPLE_TEXTURE2D_X(_CameraDepthTexture, sampler_PointClamp, uv.xy).r;
 
@@ -70,8 +79,8 @@ Shader "Hidden/Universal Render Pipeline/CameraMotionBlur"
             float4 prevClipPos = mul(_PrevViewProjM, prevPos);
             float4 curClipPos = mul(_ViewProjM, worldPos);
 
-            float2 prevPosCS = prevClipPos.xy / prevClipPos.w;
-            float2 curPosCS = curClipPos.xy / curClipPos.w;
+            half2 prevPosCS = prevClipPos.xy / prevClipPos.w;
+            half2 curPosCS = curClipPos.xy / curClipPos.w;
 
             return ClampVelocity(prevPosCS - curPosCS, _Clamp);
         }
@@ -82,9 +91,9 @@ Shader "Hidden/Universal Render Pipeline/CameraMotionBlur"
         }
         #endif
 
-        float3 GatherSample(float sampleNumber, float2 velocity, float invSampleCount, float2 centerUV, float randomVal, float velocitySign)
+        half3 GatherSample(half sampleNumber, half2 velocity, half invSampleCount, float2 centerUV, half randomVal, half velocitySign)
         {
-            float  offsetLength = (sampleNumber + 0.5) + (velocitySign * (randomVal - 0.5));
+            half  offsetLength = (sampleNumber + 0.5h) + (velocitySign * (randomVal - 0.5h));
             float2 sampleUV = centerUV + (offsetLength * invSampleCount) * velocity * velocitySign;
             return SAMPLE_TEXTURE2D_X(_SourceTex, sampler_PointClamp, sampleUV).xyz;
         }
@@ -94,9 +103,9 @@ Shader "Hidden/Universal Render Pipeline/CameraMotionBlur"
             UNITY_SETUP_STEREO_EYE_INDEX_POST_VERTEX(input);
 
             float2 uv = UnityStereoTransformScreenSpaceTex(input.uv.xy);
-            float2 velocity = GetVelocity(float4(uv, input.uv.zw)) * _Intensity;
-            float randomVal = InterleavedGradientNoise(uv * _SourceTex_TexelSize.zw, 0);
-            float invSampleCount = rcp(iterations * 2.0);
+            half2 velocity = GetVelocity(float4(uv, input.uv.zw)) * _Intensity;
+            half randomVal = InterleavedGradientNoise(uv * _SourceTex_TexelSize.zw, 0);
+            half invSampleCount = rcp(iterations * 2.0);
 
             half3 color = 0.0;
 

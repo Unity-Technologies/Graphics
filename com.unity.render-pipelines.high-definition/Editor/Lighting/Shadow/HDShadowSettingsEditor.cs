@@ -23,7 +23,6 @@ namespace UnityEditor.Rendering.HighDefinition
             m_State = new EditorPrefBoolFlags<Unit>(Key);
         }
 
-
         public override void OnEnable()
         {
             var o = new PropertyFetcher<HDShadowSettings>(serializedObject);
@@ -78,34 +77,38 @@ namespace UnityEditor.Rendering.HighDefinition
 
             if (!m_CascadeShadowSplitCount.value.hasMultipleDifferentValues)
             {
-                EditorGUI.indentLevel++;
-                int cascadeCount = m_CascadeShadowSplitCount.value.intValue;
-                Debug.Assert(cascadeCount <= 4); // If we add support for more than 4 cascades, then we should add new entries in the next line
-                string[] cascadeOrder = { "first", "second", "third" };
+                int cascadeCount;
 
-                for (int i = 0; i < cascadeCount - 1; i++)
+                using (new HDEditorUtils.IndentScope())
                 {
-                    string tooltipOverride = (unit == Unit.Metric) ?
-                        $"Distance from the Camera (in meters) to the {cascadeOrder[i]} cascade split." :
-                        $"Distance from the Camera (as a percentage of Max Distance) to the {cascadeOrder[i]} cascade split.";
-                    PropertyField(m_CascadeShadowSplits[i], EditorGUIUtility.TrTextContent(string.Format("Split {0}", i + 1), tooltipOverride));
-                }
+                    cascadeCount = m_CascadeShadowSplitCount.value.intValue;
+                    Debug.Assert(cascadeCount <= 4); // If we add support for more than 4 cascades, then we should add new entries in the next line
+                    string[] cascadeOrder = { "first", "second", "third" };
 
-                if (HDRenderPipeline.s_UseCascadeBorders)
-                {
-                    EditorGUILayout.Space();
-
-                    for (int i = 0; i < cascadeCount; i++)
+                    for (int i = 0; i < cascadeCount - 1; i++)
                     {
-                        PropertyField(m_CascadeShadowBorders[i], EditorGUIUtility.TrTextContent(string.Format("Border {0}", i + 1)));
+                        string tooltipOverride = (unit == Unit.Metric) ?
+                            $"Distance from the Camera (in meters) to the {cascadeOrder[i]} cascade split." :
+                            $"Distance from the Camera (as a percentage of Max Distance) to the {cascadeOrder[i]} cascade split.";
+                        PropertyField(m_CascadeShadowSplits[i], EditorGUIUtility.TrTextContent(string.Format("Split {0}", i + 1), tooltipOverride));
+                    }
+
+                    if (HDRenderPipeline.s_UseCascadeBorders)
+                    {
+                        EditorGUILayout.Space();
+
+                        for (int i = 0; i < cascadeCount; i++)
+                        {
+                            PropertyField(m_CascadeShadowBorders[i], EditorGUIUtility.TrTextContent(string.Format("Border {0}", i + 1)));
+                        }
                     }
                 }
 
                 EditorGUILayout.Space();
 
                 GUILayout.Label("Cascade splits");
-                ShadowCascadeGUI.DrawCascadeSplitGUI(m_CascadeShadowSplits, HDRenderPipeline.s_UseCascadeBorders ? m_CascadeShadowBorders : null, (uint)cascadeCount, blendLastCascade: true, useMetric: unit == Unit.Metric, baseMetric: m_MaxShadowDistance.value.floatValue);
-                EditorGUI.indentLevel--;
+
+                DrawShadowCascades(cascadeCount, unit == Unit.Metric, m_MaxShadowDistance.value.floatValue);
             }
 
             HDRenderPipeline hdrp = UnityEngine.Rendering.RenderPipelineManager.currentPipeline as HDRenderPipeline;
@@ -118,9 +121,54 @@ namespace UnityEditor.Rendering.HighDefinition
             visualizeCascade.x += EditorGUIUtility.labelWidth + 20;
             visualizeCascade.width -= EditorGUIUtility.labelWidth + 20;
             bool currentCascadeValue = hdrp.showCascade;
-            bool newCascadeValue = GUI.Toggle(visualizeCascade, currentCascadeValue, EditorGUIUtility.TrTextContent("Visualize Cascades"), EditorStyles.miniButton);
+            bool newCascadeValue = GUI.Toggle(visualizeCascade, currentCascadeValue, EditorGUIUtility.TrTextContent("Show Cascades"), EditorStyles.miniButton);
             if (currentCascadeValue ^ newCascadeValue)
                 hdrp.showCascade = newCascadeValue;
+        }
+
+        private void DrawShadowCascades(int cascadeCount, bool useMetric, float baseMetric)
+        {
+            var cascades = new ShadowCascadeGUI.Cascade[cascadeCount];
+
+            float lastCascadePartitionSplit = 0;
+            for (int i = 0; i < cascadeCount - 1; ++i)
+            {
+                cascades[i] = new ShadowCascadeGUI.Cascade()
+                {
+                    size = i == 0 ? m_CascadeShadowSplits[i].value.floatValue : m_CascadeShadowSplits[i].value.floatValue - lastCascadePartitionSplit, // Calculate the size of cascade
+                    borderSize = m_CascadeShadowBorders[i].value.floatValue,
+                    cascadeHandleState = m_CascadeShadowSplits[i].overrideState.boolValue ? ShadowCascadeGUI.HandleState.Enabled : ShadowCascadeGUI.HandleState.Disabled,
+                    borderHandleState = m_CascadeShadowBorders[i].overrideState.boolValue ? ShadowCascadeGUI.HandleState.Enabled : ShadowCascadeGUI.HandleState.Disabled,
+                };
+                lastCascadePartitionSplit = m_CascadeShadowSplits[i].value.floatValue;
+            }
+
+            // Last cascade is special
+            var lastCascade = cascadeCount - 1;
+            cascades[lastCascade] = new ShadowCascadeGUI.Cascade()
+            {
+                size = lastCascade == 0 ? 1.0f : 1 - m_CascadeShadowSplits[lastCascade - 1].value.floatValue, // Calculate the size of cascade
+                borderSize = m_CascadeShadowBorders[lastCascade].value.floatValue,
+                cascadeHandleState = ShadowCascadeGUI.HandleState.Hidden,
+                borderHandleState = m_CascadeShadowBorders[lastCascade].overrideState.boolValue ? ShadowCascadeGUI.HandleState.Enabled : ShadowCascadeGUI.HandleState.Disabled,
+            };
+
+            EditorGUI.BeginChangeCheck();
+            ShadowCascadeGUI.DrawCascades(ref cascades, useMetric, baseMetric);
+            if (EditorGUI.EndChangeCheck())
+            {
+                float lastCascadeSize = 0;
+                for (int i = 0; i < cascadeCount - 1; ++i)
+                {
+                    m_CascadeShadowSplits[i].value.floatValue = lastCascadeSize + cascades[i].size;
+                    lastCascadeSize = m_CascadeShadowSplits[i].value.floatValue;
+                }
+
+                for (int i = 0; i < cascadeCount; ++i)
+                {
+                    m_CascadeShadowBorders[i].value.floatValue = cascades[i].borderSize;
+                }
+            }
         }
     }
 
@@ -164,7 +212,7 @@ namespace UnityEditor.Rendering.HighDefinition
             float modifiableValue = value.floatValue * max;
             EditorGUI.BeginChangeCheck();
             modifiableValue = EditorGUILayout.Slider(title, modifiableValue, 0f, max);
-            if(EditorGUI.EndChangeCheck())
+            if (EditorGUI.EndChangeCheck())
                 value.floatValue = Mathf.Clamp01(modifiableValue / max);
             return true;
         }

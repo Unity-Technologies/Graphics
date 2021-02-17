@@ -22,7 +22,6 @@ namespace UnityEditor.ShaderGraph
             UpdateNodeAfterDeserialization();
         }
 
-
         public sealed override void UpdateNodeAfterDeserialization()
         {
             AddSlot(new Vector1MaterialSlot(OutputSlotId, kOutputSlotName, kOutputSlotName, SlotType.Output, 0));
@@ -64,7 +63,7 @@ namespace UnityEditor.ShaderGraph
             if (generationMode.IsPreview())
                 return;
 
-            sb.AppendLine(string.Format(CultureInfo.InvariantCulture,"$precision {0} = {1};", GetVariableNameForNode(), m_Value.x));
+            sb.AppendLine(string.Format(CultureInfo.InvariantCulture, "$precision {0} = {1};", GetVariableNameForNode(), m_Value.x));
         }
 
         public override string GetVariableNameForSlot(int slotId)
@@ -74,7 +73,7 @@ namespace UnityEditor.ShaderGraph
 
         public override void CollectPreviewMaterialProperties(List<PreviewProperty> properties)
         {
-            properties.Add(new PreviewProperty(PropertyType.Vector1)
+            properties.Add(new PreviewProperty(PropertyType.Float)
             {
                 name = GetVariableNameForNode(),
                 floatValue = m_Value.x

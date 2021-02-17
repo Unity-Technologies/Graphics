@@ -14,13 +14,13 @@ To find these Samples:
 
 Additional Post-Processing Data gives you access to Textures you can use with post-processing effects. It provides:
 
-- Lens Dirt Textures (designed for use in [Bloom](Post-Processing-Bloom.html)).
-- Spectral Look-up Textures (designed for use in [Chromatic Aberrations](Post-Processing-Chromatic-Aberration.html)).
+- Lens Dirt Textures (designed for use in [Bloom](Post-Processing-Bloom.md)).
+- Spectral Look-up Textures (designed for use in [Chromatic Aberrations](Post-Processing-Chromatic-Aberration.md)).
 - Look-Up Textures.
 
 ## Procedural Sky
 
-The [Procedural Sky](Override-Procedural-Sky.html) is a deprecated sky type from older versions of HDRP which you can use for compatibility. This Sample also includes an example of how to create a custom sky in your Project that is compatible with HDRP's [Volume framework](Volumes.html). HDRP will remove the Procedural Sky in a future version because it behaves incorrectly with HDRP's physically based light units.
+The [Procedural Sky](Override-Procedural-Sky.md) is a deprecated sky type from older versions of HDRP which you can use for compatibility. This Sample also includes an example of how to create a custom sky in your Project that is compatible with HDRP's [Volume framework](Volumes.md). HDRP will remove the Procedural Sky in a future version because it behaves incorrectly with HDRP's physically based light units.
 
 ## Particle System Shader Samples
 
@@ -30,5 +30,8 @@ This Sample includes various examples of lit and unlit particle effects.
 
 ![Material Samples](Images/MaterialSamples.png)
 
-This Sample includes various examples of Materials. It includes Materials that use the [Lit Shader](Lit-Shader.html), [Fabric Master Node](Master-Node-Fabric.html), [Hair Master Node](Master-Node-Hair.html), and [Decal Master Node](Master-Node-Decal.html). The included Materials use effects such as subsurface scattering, displacement, and anisotropy. The **MaterialSamples** Scene requires Text Mesh Pro to display the text explanations.
-The Fabric and Hair Master Nodes usually require various work from artists inside the Shader Graph and the Samples are a good head start.
+This Sample includes various examples of Materials. It includes Materials that use the [Lit Shader](Lit-Shader.md), [Fabric Master Stack](master-stack-fabric.md), [Hair Master Stack](master-stack-hair.md), [Eye Shader](eye-shader.md) and [Decal Master Stack](master-stack-decal.md). The included Materials use effects such as subsurface scattering, displacement, and anisotropy. The **MaterialSamples** Scene requires Text Mesh Pro to display the text explanations.
+
+The Fabric, Hair and Eye Master Nodes usually require various work from artists inside the Shader Graph and the Samples are a good head start.
+
+In the **Eye** Scene, the eye examples use a carefully designed mesh with a particular UV setup. If you want to produce eyes of similar quality, open the eye mesh in 3D modelling software to see how the mesh is contructed and the UVs are setup.

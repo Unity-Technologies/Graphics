@@ -1,23 +1,27 @@
 # Procedural Sky
 
-The **Procedural Sky Volume** component override lets you specify the type of sky that the High Definition Render Pipeline (HDRP) generates. For example, you can set up the sun size, ground color and sky tint.  
+The **Procedural Sky Volume** component override lets you specify the type of sky that the High Definition Render Pipeline (HDRP) generates. For example, you can set up the sun size, ground color and sky tint.
 
 This sky is similar to the procedural sky in Unity’s built-in render pipeline. It differs as it includes extra properties that the built-in render pipeline lacks. HDRP’s **Procedural Sky** exposes a **Multiplier**, **Update Mode** properties, and the option to include the sun in HDRP’s baking process.
 
 ## Deprecation
 
-HDRP deprecated **Procedural Sky** in 2019.3 and replaced it with [Physically Based Sky](Override-Physically-Based-Sky.html). To use Procedural Sky for HDRP Projects in Unity 2019.3 or later, follow the instructions on the [Upgrading from 2019.2 to 2019.3 guide](Upgrading-From-2019.2-to-2019.3.html#ProceduralSky).
+HDRP deprecated **Procedural Sky** in 2019.3 and replaced it with [Physically Based Sky](Override-Physically-Based-Sky.md). To use Procedural Sky for HDRP Projects in Unity 2019.3 or later, follow the instructions on the [Upgrading from 2019.2 to 2019.3 guide](Upgrading-from-2019.2-to-2019.3.md#ProceduralSky).
 
 ## Using Procedural Sky
 
-**Procedural Sky** uses the [Volume](Volumes.html) framework, so to enable and modify **Procedural Sky** properties, you must add a **Procedural Sky** override to a [Volume](Volumes.html) in your Scene. To add **Procedural Sky** to a Volume:
+**Procedural Sky** uses the [Volume](Volumes.md) framework, so to enable and modify **Procedural Sky** properties, you must add a **Procedural Sky** override to a [Volume](Volumes.md) in your Scene. To add **Procedural Sky** to a Volume:
 
 1. In the Scene or Hierarchy view, select a GameObject that contains a Volume component to view it in the Inspector.
 2. In the Inspector, navigate to **Add Override > Sky** and click on **Procedural Sky**.
 
-After you add a **Procedural Sky** override, you must set the Volume to use **Procedural  Sky**. The [Visual Environment](Override-Visual-Environment.html) override controls which type of sky the Volume uses. In the **Visual Environment** override, navigate to the **Sky** section and set the **Type** to **Procedural Sky**. HDRP now renders a **Procedural Sky** for any Camera this Volume affects.
+After you add a **Procedural Sky** override, you must set the Volume to use **Procedural  Sky**. The [Visual Environment](Override-Visual-Environment.md) override controls which type of sky the Volume uses. In the **Visual Environment** override, navigate to the **Sky** section and set the **Type** to **Procedural Sky**. HDRP now renders a **Procedural Sky** for any Camera this Volume affects.
+
+[!include[](snippets/volume-override-api.md)]
 
 ## Properties
+
+[!include[](snippets/Volume-Override-Enable-Properties.md)]
 
 | Property                  | Description                                                  |
 | ------------------------- | ------------------------------------------------------------ |

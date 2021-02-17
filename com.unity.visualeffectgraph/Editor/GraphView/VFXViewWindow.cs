@@ -1,19 +1,14 @@
 #define USE_EXIT_WORKAROUND_FOGBUGZ_1062258
 using System;
-using System.Linq;
-using UnityEditor.UIElements;
-using UnityEditor.Experimental.GraphView;
-using UnityEngine;
-using UnityEngine.VFX;
-using UnityEditor.VFX;
-using UnityEngine.UIElements;
 using System.Collections.Generic;
-using UnityEditor;
-using UnityObject = UnityEngine.Object;
-using System.IO;
+using System.Linq;
+using UnityEditor.Experimental.GraphView;
 using UnityEditor.VersionControl;
+using UnityEngine;
+using UnityEngine.UIElements;
+using UnityEngine.VFX;
 
-namespace  UnityEditor.VFX.UI
+namespace UnityEditor.VFX.UI
 {
     [Serializable]
     class VFXViewWindow : EditorWindow
@@ -43,7 +38,7 @@ namespace  UnityEditor.VFX.UI
 
         public static VFXViewWindow currentWindow;
 
-        [MenuItem("Window/Visual Effects/Visual Effect Graph", false, 3011)]
+        [MenuItem("Window/VFX/VFX Graph", false, 3011)]
         public static void ShowWindow()
         {
             GetWindow<VFXViewWindow>();
@@ -154,6 +149,9 @@ namespace  UnityEditor.VFX.UI
         {
             VFXManagerEditor.CheckVFXManager();
 
+            if (m_ResourceHistory == null)
+                m_ResourceHistory = new List<VisualEffectResource>();
+
             graphView = new VFXView();
             graphView.StretchToParentSize();
             SetupFramingShortcutHandler(graphView);
@@ -187,7 +185,7 @@ namespace  UnityEditor.VFX.UI
             EditorApplication.wantsToQuit += Quitting_Workaround;
 #endif
 
-            var icon = AssetDatabase.LoadAssetAtPath<Texture2D>(VisualEffectGraphPackageInfo.assetPackagePath + "/Editor Default Resources/VFX/" + (EditorGUIUtility.isProSkin ? "vfx_graph_icon_gray_dark.png" : "vfx_graph_icon_gray_light.png"));
+            var icon = AssetDatabase.LoadAssetAtPath<Texture2D>(VisualEffectAssetEditorUtility.editorResourcesPath + "/VFX/" + (EditorGUIUtility.isProSkin ? "vfx_graph_icon_gray_dark.png" : "vfx_graph_icon_gray_light.png"));
             titleContent.image = icon;
         }
 
@@ -263,7 +261,13 @@ namespace  UnityEditor.VFX.UI
                         if (autoCompile && graph.IsExpressionGraphDirty() && !graph.GetResource().isSubgraph)
                         {
                             VFXGraph.explicitCompile = true;
-                            AssetDatabase.ImportAsset(AssetDatabase.GetAssetPath(graphView.controller.model));
+                            graph.errorManager.ClearAllErrors(null, VFXErrorOrigin.Compilation);
+                            using (var reporter = new VFXCompileErrorReporter(controller.graph.errorManager))
+                            {
+                                VFXGraph.compileReporter = reporter;
+                                AssetDatabase.ImportAsset(AssetDatabase.GetAssetPath(graphView.controller.model));
+                                VFXGraph.compileReporter = null;
+                            }
                             VFXGraph.explicitCompile = false;
                         }
                         else
@@ -274,18 +278,17 @@ namespace  UnityEditor.VFX.UI
                 }
             }
 
-            if (VFXViewModicationProcessor.assetMoved)
+            if (VFXViewModificationProcessor.assetMoved)
             {
                 graphView.AssetMoved();
-                VFXViewModicationProcessor.assetMoved = false;
+                VFXViewModificationProcessor.assetMoved = false;
             }
             titleContent.text = filename;
 
             if (graphView?.controller?.model?.visualEffectObject != null)
             {
                 graphView.checkoutButton.visible = true;
-                if (!AssetDatabase.IsOpenForEdit(graphView.controller.model.visualEffectObject,
-                    StatusQueryOptions.UseCachedIfPossible) && Provider.isActive && Provider.enabled)
+                if (!graphView.IsAssetEditable() && Provider.isActive && Provider.enabled)
                 {
                     graphView.checkoutButton.SetEnabled(true);
                 }

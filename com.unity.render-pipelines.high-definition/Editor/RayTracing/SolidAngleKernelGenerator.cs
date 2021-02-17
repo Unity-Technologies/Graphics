@@ -1,8 +1,5 @@
-using System.Collections;
-using System.Collections.Generic;
-using System.IO;
-using UnityEngine;
 using UnityEditor;
+using UnityEngine.Experimental.Rendering;
 
 namespace UnityEngine.Rendering.HighDefinition
 {
@@ -70,7 +67,7 @@ namespace UnityEngine.Rendering.HighDefinition
             localY = Vector3.Cross(localZ, localX);
         }
 
-        bool intersectPlane(Vector3 n, Vector3 p0, Vector3 l0, Vector3 l, ref float t) 
+        bool intersectPlane(Vector3 n, Vector3 p0, Vector3 l0, Vector3 l, ref float t)
         {
             float denom = Vector3.Dot(n, l);
             if (Mathf.Abs(denom) > 1e-6)
@@ -79,13 +76,13 @@ namespace UnityEngine.Rendering.HighDefinition
                 t = Vector3.Dot(p0l0, n) / denom;
                 return (t >= 0);
             }
-            return false; 
+            return false;
         }
 
         public void GenerateTable(CameraParameters cameraParameters, int angleSubdivision, float brdfPercentage, int outputWidth, int outputHeight, int outputDepth)
         {
             // Allocate our output texture
-            Texture3D kernelSize = new Texture3D(outputWidth, outputHeight, outputDepth, TextureFormat.RGBAFloat, false);
+            Texture3D kernelSize = new Texture3D(outputWidth, outputHeight, outputDepth, GraphicsFormat.R32G32B32A32_SFloat, TextureCreationFlags.None);
 
             // First of all, let's compute the projection matrix
             Matrix4x4 cameraProjection = Matrix4x4.Perspective(cameraParameters.fov, cameraParameters.aspect, cameraParameters.nearPlane, cameraParameters.farPlane);
@@ -120,7 +117,7 @@ namespace UnityEngine.Rendering.HighDefinition
                         // Let's compute the rotated normal (takes degrees)
                         Vector3 normalVector = Quaternion.AngleAxis(cameraParameters.planeAngle, Vector3.right) * -Vector3.forward;
 
-                        // Let's compute the local to world matrix 
+                        // Let's compute the local to world matrix
                         Vector3 localX = new Vector3(1.0f, 0.0f, 0.0f);
                         Vector3 localY = new Vector3();
                         GetLocalFrame(normalVector, localX, out localY);

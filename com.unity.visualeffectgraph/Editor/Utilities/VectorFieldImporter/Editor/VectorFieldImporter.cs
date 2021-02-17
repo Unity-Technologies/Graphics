@@ -37,7 +37,7 @@ namespace UnityEditor.VFXToolbox
             return result;
         }
 
-        public override void OnImportAsset(UnityEditor.AssetImporters.AssetImportContext ctx)
+        public override void OnImportAsset(AssetImportContext ctx)
         {
             byte[] bytes = File.ReadAllBytes(ctx.assetPath);
             int width = 1, height = 1, depth = 1;

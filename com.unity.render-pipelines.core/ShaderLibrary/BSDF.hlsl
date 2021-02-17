@@ -168,6 +168,11 @@ real3 CoatRefract(real3 X, real3 N, real ieta)
 // Specular BRDF
 //-----------------------------------------------------------------------------
 
+float Lambda_GGX(float roughness, float3 V)
+{
+    return 0.5 * (sqrt(1.0 + (Sq(roughness * V.x) + Sq(roughness * V.y)) / Sq(V.z)) - 1.0);
+}
+
 real D_GGXNoPI(real NdotH, real roughness)
 {
     real a2 = Sq(roughness);

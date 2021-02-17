@@ -222,7 +222,7 @@ void GetSurfaceAndBuiltinData(FragInputs input, float3 V, inout PositionInputs p
     float alphaCutoff = _AlphaCutoffPrepass;
     #elif SHADERPASS == SHADERPASS_TRANSPARENT_DEPTH_POSTPASS
     float alphaCutoff = _AlphaCutoffPostpass;
-    #elif SHADERPASS == SHADERPASS_SHADOWS
+    #elif (SHADERPASS == SHADERPASS_SHADOWS) || (SHADERPASS == SHADERPASS_RAYTRACING_VISIBILITY)
     float alphaCutoff = _UseShadowThreshold ? _AlphaCutoffShadow : _AlphaCutoff;
     #else
     float alphaCutoff = _AlphaCutoff;
@@ -247,8 +247,8 @@ void GetSurfaceAndBuiltinData(FragInputs input, float3 V, inout PositionInputs p
     if (_EnableDecals)
     {
         // Both uses and modifies 'surfaceData.normalWS'.
-        DecalSurfaceData decalSurfaceData = GetDecalSurfaceData(posInput, alpha);
-        ApplyDecalToSurfaceData(decalSurfaceData, surfaceData);
+        DecalSurfaceData decalSurfaceData = GetDecalSurfaceData(posInput, input.tangentToWorld[2], alpha);
+        ApplyDecalToSurfaceData(decalSurfaceData, input.tangentToWorld[2], surfaceData);
     }
 #endif
 

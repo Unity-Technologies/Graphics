@@ -21,24 +21,22 @@ MatCap mode preserves the normal maps and you can use the original Material albe
 
 ## Default material captures
 
-HDRP provides neutral and metallic default MatCaps. You can change the MatCap in your [HDRP Asset's](HDRP-Asset.html) **HDRenderPipelineResources**. To do this:
+HDRP provides neutral and metallic default MatCaps. You can change the MatCap in your [HDRP Asset's](HDRP-Asset.md) **HDRenderPipelineResources**. To do this:
 
 1. Select the HDRP Asset in the Project window to view it in the Inspector.
-2. Go to the **General** section and double-click on the Asset assigned to the **Render Pipeline Resources** property to view that in the Inspector.
-3. Go to the **Textures** section and assign your custom MatCap Texture to the **MatCap Tex** property.
+2. Enter [Debug mode](https://docs.unity3d.com/Manual/InspectorOptions.html) then find the **Render Pipeline Resources** property.
+3. Double-click the asset assigned to the **Render Pipeline Resources** property to view it in the Inspector.
+4. Go to the **Textures** section and assign your custom MatCap Texture to the **MatCap Tex** property.
 
-You can also activate MatCap view as a **Lighting Debug Mode** in the [Render Pipeline Debugger](Render-Pipeline-Debug-Window.html).
+You can also activate MatCap view as a **Lighting Debug Mode** in the [Render Pipeline Debugger](Render-Pipeline-Debug-Window.md).
 
 ## MatCap examples
 
-**MatCap off:**
-
+MatCap off:
 ![](Images/MatCap2.png)
 
-**MatCap on:**
-
+MatCap on:
 ![](Images/MatCap3.png)
 
-**MatCap on with albedo:**
-
+MatCap on with albedo:
 ![](Images/MatCap4.png)

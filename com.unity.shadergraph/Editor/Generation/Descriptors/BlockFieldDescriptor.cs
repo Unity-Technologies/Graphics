@@ -12,7 +12,7 @@ namespace UnityEditor.ShaderGraph
         internal string path { get; set; }
 
         public BlockFieldDescriptor(string tag, string referenceName, string define, IControl control, ShaderStage shaderStage, bool isHidden = false, bool isUnknown = false)
-            : base (tag, referenceName, define)
+            : base(tag, referenceName, define)
         {
             this.displayName = referenceName;
             this.control = control;
@@ -22,7 +22,7 @@ namespace UnityEditor.ShaderGraph
         }
 
         public BlockFieldDescriptor(string tag, string referenceName, string displayName, string define, IControl control, ShaderStage shaderStage, bool isHidden = false, bool isUnknown = false)
-            : base (tag, referenceName, define)
+            : base(tag, referenceName, define)
         {
             this.displayName = displayName;
             this.control = control;
@@ -39,13 +39,13 @@ namespace UnityEditor.ShaderGraph
         public Func<MaterialSlot> createSlot;
 
         public CustomSlotBlockFieldDescriptor(string tag, string referenceName, string define, Func<MaterialSlot> createSlot)
-            : base (tag, referenceName, define, null, ShaderStage.Fragment)
+            : base(tag, referenceName, define, null, ShaderStage.Fragment)
         {
             this.createSlot = createSlot;
         }
 
         public CustomSlotBlockFieldDescriptor(string tag, string referenceName, string displayName, string define, Func<MaterialSlot> createSlot)
-            : base (tag, referenceName, displayName, define, null, ShaderStage.Fragment)
+            : base(tag, referenceName, displayName, define, null, ShaderStage.Fragment)
         {
             this.createSlot = createSlot;
         }

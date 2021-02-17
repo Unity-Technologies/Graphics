@@ -1,5 +1,5 @@
 //
-// This file was automatically generated. Please don't edit by hand.
+// This file was automatically generated. Please don't edit by hand. Execute Editor command [ Edit / Render Pipeline / Generate Shader Includes ] instead
 //
 
 #ifndef SHADERVARIABLESGLOBAL_CS_HLSL
@@ -11,12 +11,14 @@
 #define RENDERING_LIGHT_LAYERS_MASK_SHIFT (0)
 #define RENDERING_DECAL_LAYERS_MASK (65280)
 #define RENDERING_DECAL_LAYERS_MASK_SHIFT (8)
+#define DEFAULT_RENDERING_LAYER_MASK (257)
 #define MAX_ENV2DLIGHT (32)
 
 // Generated from UnityEngine.Rendering.HighDefinition.ShaderVariablesGlobal
 // PackingRules = Exact
 GLOBAL_CBUFFER_START(ShaderVariablesGlobal, b0)
     float4x4 _ViewMatrix;
+    float4x4 _CameraViewMatrix;
     float4x4 _InvViewMatrix;
     float4x4 _ProjMatrix;
     float4x4 _InvProjMatrix;
@@ -59,7 +61,7 @@ GLOBAL_CBUFFER_START(ShaderVariablesGlobal, b0)
     float _HeightFogBaseExtinction;
     float _HeightFogBaseHeight;
     float _GlobalFogAnisotropy;
-    float _Pad3;
+    int _VolumetricFilteringEnabled;
     float2 _HeightFogExponents;
     float _Pad4;
     float _Pad5;
@@ -149,9 +151,9 @@ GLOBAL_CBUFFER_START(ShaderVariablesGlobal, b0)
     uint _EnableDecalLayers;
     float4 _ProbeVolumeAmbientProbeFallbackPackedCoeffs[7];
     int _TransparentCameraOnlyMotionVectors;
-    float _Pad8;
+    float _GlobalTessellationFactorMultiplier;
+    float _SpecularOcclusionBlend;
     float _Pad9;
-    float _Pad10;
 CBUFFER_END
 
 

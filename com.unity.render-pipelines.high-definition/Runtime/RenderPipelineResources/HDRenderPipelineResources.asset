@@ -12,7 +12,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 8b6f86e1523e69a4282e92d393be89a4, type: 3}
   m_Name: HDRenderPipelineResources
   m_EditorClassIdentifier: 
-  m_Version: 4
   shaders:
     defaultPS: {fileID: 4800000, guid: 6e4ae4064600d784cac1e41a9e6f2e59, type: 3}
     debugDisplayLatlongPS: {fileID: 4800000, guid: c1d1d149a043a5349ba367da6c2051ba, type: 3}
@@ -25,9 +24,11 @@ MonoBehaviour:
     debugLightVolumeCS: {fileID: 7200000, guid: f5d5d21faef5cf445ac2c5d8ff9c4184, type: 3}
     debugBlitQuad: {fileID: 4800000, guid: cf5ca5b6ef18b3f429ed707ee9ceac9f, type: 3}
     debugViewVirtualTexturingBlit: {fileID: 4800000, guid: 55d195396b03b804eb78c92d468e3c8e, type: 3}
+    materialError: {fileID: 4800000, guid: 79a966a5200a456188dec0d48d805614, type: 3}
     deferredPS: {fileID: 4800000, guid: 00dd221e34a6ab349a1196b0f2fab693, type: 3}
     colorPyramidPS: {fileID: 4800000, guid: 2fcfb8d92f45e4549b3f0bad5d0654bf, type: 3}
     depthPyramidCS: {fileID: 7200000, guid: 64a553bb564274041906f78ffba955e4, type: 3}
+    maxZCS: {fileID: 7200000, guid: e95abf8c7230c344595f41c4dd5ff517, type: 3}
     copyChannelCS: {fileID: 7200000, guid: a4d45eda75e8e474dbe24a31f741f3b4, type: 3}
     screenSpaceReflectionsCS: {fileID: 7200000, guid: d1de9ac7d9016204da289affe9677942, type: 3}
     applyDistortionPS: {fileID: 4800000, guid: 02ae56f4306413c4a96dcf005cde1971, type: 3}
@@ -53,11 +54,13 @@ MonoBehaviour:
     debugDisplayProbeVolumePS: {fileID: 4800000, guid: e7c19cfee7a88394fbb53652b9644cc0, type: 3}
     subsurfaceScatteringCS: {fileID: 7200000, guid: b06a7993621def248addd55d0fe931b1, type: 3}
     combineLightingPS: {fileID: 4800000, guid: 2e37131331fbdca449b1a2bc47a639ca, type: 3}
+    debugDensityVolumeAtlasPS: {fileID: 4800000, guid: 8371b763f09c7304889c22aa97ebdfd2, type: 3}
     cameraMotionVectorsPS: {fileID: 4800000, guid: 035941b63024d1943af48811c1db20d9, type: 3}
     clearStencilBufferPS: {fileID: 4800000, guid: 8ea49ef16606acd489439e676ab84040, type: 3}
     copyStencilBufferPS: {fileID: 4800000, guid: 3d1574f1cdfa0ce4995f9bc79ed7f8ec, type: 3}
     copyDepthBufferPS: {fileID: 4800000, guid: 42dfcc8fe803ece4096c58630689982f, type: 3}
     blitPS: {fileID: 4800000, guid: 370f7a9cc4e362d488af024d371091e8, type: 3}
+    blitColorAndDepthPS: {fileID: 4800000, guid: c6e57f5bdbd2a284a86a3097c03884c8, type: 3}
     downsampleDepthPS: {fileID: 4800000, guid: 67d6171b0acc6554aad48c845ec7e67f, type: 3}
     upsampleTransparentPS: {fileID: 4800000, guid: 2ad7ce40f0dbaf64dadef1f58d8524d3, type: 3}
     resolveStencilCS: {fileID: 7200000, guid: 65b89cac5f286b043a31bf8041776ee7, type: 3}
@@ -76,6 +79,9 @@ MonoBehaviour:
     inScatteredRadiancePrecomputationCS: {fileID: 7200000, guid: 70c69d514688f8545855680760d77418, type: 3}
     physicallyBasedSkyPS: {fileID: 4800000, guid: a06934a4863e778498be65d8f865b7a4, type: 3}
     planarReflectionFilteringCS: {fileID: 7200000, guid: 9f3f8a01b8caaaa4595591dc96d43dd2, type: 3}
+    cloudLayerPS: {fileID: 4800000, guid: 001a47fa123e95a4bba13ecb0442d944, type: 3}
+    bakeCloudTextureCS: {fileID: 7200000, guid: 09a7f6850ee9fb4439e5ebd632127da5, type: 3}
+    bakeCloudShadowsCS: {fileID: 7200000, guid: 3e7317e0800c066448ee07a3e47f102b, type: 3}    
     preIntegratedFGD_GGXDisneyDiffusePS: {fileID: 4800000, guid: 123f13d52852ef547b2962de4bd9eaad, type: 3}
     preIntegratedFGD_CharlieFabricLambertPS: {fileID: 4800000, guid: 3b3bf235775cf8b4baae7f3306787ab0, type: 3}
     preIntegratedFGD_WardPS: {fileID: 4800000, guid: d279c46a545b0af4f9f0c4fa82cd489e, type: 3}
@@ -87,14 +93,15 @@ MonoBehaviour:
     clearUIntTextureCS: {fileID: 7200000, guid: d067ad4b88af51c498875426894aef76, type: 3}
     customPassUtils: {fileID: 4800000, guid: 7e3722d0388000848acb25fd3cc8c088, type: 3}
     customPassRenderersUtils: {fileID: 4800000, guid: cef5ba33ee5063d4c8b495d2292e394d, type: 3}
+    texture3DAtlasCS: {fileID: 7200000, guid: 81522e314a83afd4a8ed43bd00757051, type: 3}
     xrMirrorViewPS: {fileID: 4800000, guid: e6255f98cf405eb45ab6f9006cf11e1f, type: 3}
     xrOcclusionMeshPS: {fileID: 4800000, guid: 46a45b32bb110604fb36216b63bcdb81, type: 3}
     shadowClearPS: {fileID: 4800000, guid: e3cab24f27741f44d8af1e94d006267c, type: 3}
     evsmBlurCS: {fileID: 7200000, guid: fb36979473602464fa32deacb9630c08, type: 3}
     debugHDShadowMapPS: {fileID: 4800000, guid: 93d40cc9a6e13994f86f576a624efa18, type: 3}
     momentShadowsCS: {fileID: 7200000, guid: 4dea53e2ff15ed0448817c2aa4246e53, type: 3}
+    shadowBlitPS: {fileID: 4800000, guid: ca059f1af4587a24b9a9eed3b66cff0f, type: 3}
     decalNormalBufferPS: {fileID: 4800000, guid: fd532bf1795188c4daaa66ea798b8b0a, type: 3}
-    decalClearPropertyMaskBufferCS: {fileID: 7200000, guid: 1076a08965d4a91479b72599724f7fd6, type: 3}
     GTAOCS: {fileID: 7200000, guid: 6710b06492bd58c4bb8aec0fdc1fced3, type: 3}
     GTAOSpatialDenoiseCS: {fileID: 7200000, guid: 2cb33c21587d12b4388d7866ab6c65f6, type: 3}
     GTAOTemporalDenoiseCS: {fileID: 7200000, guid: 31e0ca4c210f97c468037d11a5b832bb, type: 3}
@@ -242,8 +249,9 @@ MonoBehaviour:
     SMAASearchTex: {fileID: 2800000, guid: dc95d70472e232b438d0fd38651e7ec2, type: 3}
     SMAAAreaTex: {fileID: 2800000, guid: 92e0d85ab4eca874098e7fcf6f8f674e, type: 3}
     defaultHDRISky: {fileID: 8900000, guid: 8253d41e6e8b11a4cbe77a4f8f82934d, type: 3}
-    defaultCloudLayer: {fileID: 8600000, guid: da544156f6db72d42b0d827428ba4b8b, type: 2}
+    defaultCloudMap: {fileID: 2800000, guid: 57a33fc2476a01644865bfde5f06e2f4, type: 3}
   assets:
     defaultDiffusionProfile: {fileID: 11400000, guid: 2b7005ba3a4d8474b8cdc34141ad766e, type: 2}
     emissiveCylinderMesh: {fileID: 2534964839176971238, guid: accb6d90f0d50fe4ca0f68159b4323de, type: 3}
     emissiveQuadMesh: {fileID: 4300000, guid: 1d5a8595286f94f4bb54171d49f473c3, type: 3}
+  m_Version: 4

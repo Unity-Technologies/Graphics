@@ -39,13 +39,13 @@ void VFXTransformPSInputs(inout VFX_VARYING_PS_INPUTS input)
 float4 VFXTransformFinalColor(float4 color)
 {
 #ifdef DEBUG_DISPLAY
-	if (_DebugFullScreenMode == FULLSCREENDEBUGMODE_TRANSPARENCY_OVERDRAW)
+    if (_DebugFullScreenMode == FULLSCREENDEBUGMODE_TRANSPARENCY_OVERDRAW)
     {
         color = _DebugTransparencyOverdrawWeight * float4(TRANSPARENCY_OVERDRAW_COST, TRANSPARENCY_OVERDRAW_COST, TRANSPARENCY_OVERDRAW_COST, TRANSPARENCY_OVERDRAW_A);
     }
 
 #endif
-	return color;
+    return color;
 }
 
 float4 VFXTransformPositionWorldToClip(float3 posWS)
@@ -80,6 +80,15 @@ float3 VFXTransformPositionWorldToView(float3 posWS)
     posWS = GetCameraRelativePositionWS(posWS);
 #endif
     return TransformWorldToView(posWS);
+}
+
+float3 VFXTransformPositionWorldToCameraRelative(float3 posWS)
+{
+#if VFX_WORLD_SPACE
+    return GetCameraRelativePositionWS(posWS);
+#else
+    return posWS;
+#endif
 }
 
 float4x4 VFXGetObjectToWorldMatrix()
@@ -175,3 +184,8 @@ float4 VFXApplyPreExposure(float4 color, VFX_VARYING_PS_INPUTS input)
 #endif
 }
 #endif
+
+float3 VFXGetCameraWorldDirection()
+{
+    return -_CameraViewMatrix._m20_m21_m22;
+}

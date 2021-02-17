@@ -16,14 +16,9 @@ Shader "Universal Render Pipeline/Particles/Lit"
         _BumpScale("Scale", Float) = 1.0
         _BumpMap("Normal Map", 2D) = "bump" {}
 
-        _EmissionColor("Color", Color) = (0,0,0)
+        [HDR] _EmissionColor("Color", Color) = (0,0,0)
         _EmissionMap("Emission", 2D) = "white" {}
         _ReceiveShadows("Receive Shadows", Float) = 1.0
-
-        _ClearCoat("Clear Coat", Float) = 0.0
-        _ClearCoatMap("Clear Coat Map", 2D) = "white" {}
-        _ClearCoatMask("Clear Coat Mask", Range(0.0, 1.0)) = 0.0
-        //_ClearCoatSmoothness("Clear Coat Smoothness", Range(0.0, 1.0)) = 1.0 // TODO: enable
 
         // -------------------------------------
         // Particle specific
@@ -67,7 +62,7 @@ Shader "Universal Render Pipeline/Particles/Lit"
 
     SubShader
     {
-        Tags{"RenderType" = "Opaque" "IgnoreProjector" = "True" "PreviewType" = "Plane" "PerformanceChecks" = "False" "RenderPipeline" = "UniversalPipeline"}
+        Tags{"RenderType" = "Opaque" "IgnoreProjector" = "True" "PreviewType" = "Plane" "PerformanceChecks" = "False" "RenderPipeline" = "UniversalPipeline" "UniversalMaterialType" = "Lit"}
 
         // ------------------------------------------------------------------
         //  Forward pass.
@@ -84,7 +79,6 @@ Shader "Universal Render Pipeline/Particles/Lit"
             Cull[_Cull]
 
             HLSLPROGRAM
-            #pragma exclude_renderers d3d11_9x
             #pragma target 2.0
 
             // -------------------------------------
@@ -93,7 +87,6 @@ Shader "Universal Render Pipeline/Particles/Lit"
             #pragma shader_feature_local_fragment _EMISSION
             #pragma shader_feature_local_fragment _METALLICSPECGLOSSMAP
             #pragma shader_feature_local _RECEIVE_SHADOWS_OFF
-            #pragma shader_feature_local_fragment _ _CLEARCOAT _CLEARCOATMAP
 
             // -------------------------------------
             // Particle Keywords
@@ -107,8 +100,7 @@ Shader "Universal Render Pipeline/Particles/Lit"
 
             // -------------------------------------
             // Universal Pipeline keywords
-            #pragma multi_compile _ _MAIN_LIGHT_SHADOWS
-            #pragma multi_compile _ _MAIN_LIGHT_SHADOWS_CASCADE
+            #pragma multi_compile _ _MAIN_LIGHT_SHADOWS _MAIN_LIGHT_SHADOWS_CASCADE _MAIN_LIGHT_SHADOWS_SCREEN
             #pragma multi_compile _ _ADDITIONAL_LIGHTS_VERTEX _ADDITIONAL_LIGHTS
             #pragma multi_compile_fragment _ _ADDITIONAL_LIGHT_SHADOWS
             #pragma multi_compile_fragment _ _SHADOWS_SOFT
@@ -126,7 +118,7 @@ Shader "Universal Render Pipeline/Particles/Lit"
             #include "Packages/com.unity.render-pipelines.universal/Shaders/Particles/ParticlesLitForwardPass.hlsl"
             ENDHLSL
         }
-	// ------------------------------------------------------------------
+        // ------------------------------------------------------------------
         //  GBuffer pass.
         Pass
         {
@@ -138,19 +130,8 @@ Shader "Universal Render Pipeline/Particles/Lit"
             ZWrite[_ZWrite]
             Cull[_Cull]
 
-            // [Stencil] Bit 5-6 material type. 00 = unlit/bakedLit, 01 = Lit, 10 = SimpleLit
-            // This is a Lit material.
-            Stencil {
-                Ref 32       // 0b00100000
-                WriteMask 96 // 0b01100000
-                Comp Always
-                Pass Replace
-                Fail Keep
-                ZFail Keep
-            }
-
             HLSLPROGRAM
-            #pragma exclude_renderers d3d11_9x
+            #pragma exclude_renderers gles
             #pragma target 2.0
 
             // -------------------------------------
@@ -172,8 +153,7 @@ Shader "Universal Render Pipeline/Particles/Lit"
 
             // -------------------------------------
             // Universal Pipeline keywords
-            #pragma multi_compile _ _MAIN_LIGHT_SHADOWS
-            #pragma multi_compile _ _MAIN_LIGHT_SHADOWS_CASCADE
+            #pragma multi_compile _ _MAIN_LIGHT_SHADOWS _MAIN_LIGHT_SHADOWS_CASCADE _MAIN_LIGHT_SHADOWS_SCREEN
             //#pragma multi_compile _ _ADDITIONAL_LIGHTS_VERTEX _ADDITIONAL_LIGHTS
             //#pragma multi_compile _ _ADDITIONAL_LIGHT_SHADOWS
             #pragma multi_compile _ _SHADOWS_SOFT
@@ -183,12 +163,12 @@ Shader "Universal Render Pipeline/Particles/Lit"
             // Unity defined keywords
             #pragma multi_compile_instancing
             #pragma instancing_options procedural:ParticleInstancingSetup
-	    
+
             #pragma vertex ParticlesGBufferVertex
             #pragma fragment ParticlesGBufferFragment
 
             #include "Packages/com.unity.render-pipelines.universal/Shaders/Particles/ParticlesLitInput.hlsl"
-            #include "Packages/com.unity.render-pipelines.universal/Shaders/Particles/ParticlesLitGBufferPass.hlsl"
+            #include "Packages/com.unity.render-pipelines.universal/Shaders/Particles/ParticlesLitGbufferPass.hlsl"
             ENDHLSL
         }
         // ------------------------------------------------------------------
@@ -204,7 +184,7 @@ Shader "Universal Render Pipeline/Particles/Lit"
             Cull Off
 
             HLSLPROGRAM
-            #pragma exclude_renderers d3d11_9x
+            #define PARTICLES_EDITOR_META_PASS
             #pragma target 2.0
 
             // -------------------------------------
@@ -238,7 +218,7 @@ Shader "Universal Render Pipeline/Particles/Lit"
             Cull Off
 
             HLSLPROGRAM
-            #pragma exclude_renderers d3d11_9x
+            #define PARTICLES_EDITOR_META_PASS
             #pragma target 2.0
 
             // -------------------------------------
@@ -269,8 +249,6 @@ Shader "Universal Render Pipeline/Particles/Lit"
             Cull[_Cull]
 
             HLSLPROGRAM
-            #pragma exclude_renderers d3d11_9x
-
             #pragma vertex vert
             #pragma fragment frag
             #pragma shader_feature_local_fragment _ALPHATEST_ON
@@ -282,6 +260,6 @@ Shader "Universal Render Pipeline/Particles/Lit"
         }
     }
 
-    Fallback "Universal Render Pipeline/Particles/SimpleLit"
+    Fallback "Universal Render Pipeline/Particles/Simple Lit"
     CustomEditor "UnityEditor.Rendering.Universal.ShaderGUI.ParticlesLitShader"
 }

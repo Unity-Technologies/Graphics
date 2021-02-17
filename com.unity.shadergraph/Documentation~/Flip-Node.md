@@ -16,7 +16,7 @@ Flips the individual channels of input **In** selected by the [Node](Node.md)'s 
 | Name        | Type           | Options  | Description |
 |:------------ |:-------------|:-----|:---|
 | Red      | Toggle | True, False | If true red channel will be flipped. |
-| Green      | Toggle | True, False | If true green channel will be flipped. Disabled if **In** is Vector 1. |
+| Green      | Toggle | True, False | If true green channel will be flipped. Disabled if **In** is Float. |
 | Blue      | Toggle | True, False | If true blue channel will be flipped. Disabled if **In** is Vector 2 or smaller. |
 | Alpha      | Toggle | True, False | If true alpha channel will be flipped. Disabled if **In** is Vector 3 or smaller. |
 

@@ -7,6 +7,7 @@ namespace UnityEngine.Rendering.Universal
     {
         // Parameters
         [SerializeField] internal bool Downsample = false;
+        [SerializeField] internal bool AfterOpaque = false;
         [SerializeField] internal DepthSource Source = DepthSource.DepthNormals;
         [SerializeField] internal NormalQuality NormalSamples = NormalQuality.Medium;
         [SerializeField] internal float Intensity = 3.0f;
@@ -18,8 +19,7 @@ namespace UnityEngine.Rendering.Universal
         internal enum DepthSource
         {
             Depth = 0,
-            DepthNormals = 1,
-            //GBuffer = 2
+            DepthNormals = 1
         }
 
         internal enum NormalQuality
@@ -49,7 +49,6 @@ namespace UnityEngine.Rendering.Universal
         private const string k_NormalReconstructionHighKeyword = "_RECONSTRUCT_NORMAL_HIGH";
         private const string k_SourceDepthKeyword = "_SOURCE_DEPTH";
         private const string k_SourceDepthNormalsKeyword = "_SOURCE_DEPTH_NORMALS";
-        private const string k_SourceGBufferKeyword = "_SOURCE_GBUFFER";
 
         /// <inheritdoc/>
         public override void Create()
@@ -62,7 +61,6 @@ namespace UnityEngine.Rendering.Universal
 
             GetMaterial();
             m_SSAOPass.profilerTag = name;
-            m_SSAOPass.renderPassEvent = RenderPassEvent.BeforeRenderingOpaques;
         }
 
         /// <inheritdoc/>
@@ -76,7 +74,7 @@ namespace UnityEngine.Rendering.Universal
                 return;
             }
 
-            bool shouldAdd = m_SSAOPass.Setup(m_Settings);
+            bool shouldAdd = m_SSAOPass.Setup(m_Settings, renderer);
             if (shouldAdd)
             {
                 renderer.EnqueuePass(m_SSAOPass);
@@ -113,13 +111,22 @@ namespace UnityEngine.Rendering.Universal
         // The SSAO Pass
         private class ScreenSpaceAmbientOcclusionPass : ScriptableRenderPass
         {
+            // Properties
+            internal bool isRendererDeferred { get { return m_Renderer != null && m_Renderer is UniversalRenderer && ((UniversalRenderer)m_Renderer).renderingMode == RenderingMode.Deferred; } }
+
             // Public Variables
             internal string profilerTag;
             internal Material material;
 
             // Private Variables
+            private ScriptableRenderer m_Renderer = null;
             private ScreenSpaceAmbientOcclusionSettings m_CurrentSettings;
-            private ProfilingSampler m_ProfilingSampler = new ProfilingSampler("SSAO.Execute()");
+            private Matrix4x4[] m_CameraViewProjections = new Matrix4x4[2];
+            private Vector4[] m_CameraTopLeftCorner = new Vector4[2];
+            private Vector4[] m_CameraXExtent = new Vector4[2];
+            private Vector4[] m_CameraYExtent = new Vector4[2];
+            private Vector4[] m_CameraZExtent = new Vector4[2];
+            private ProfilingSampler m_ProfilingSampler = ProfilingSampler.Get(URPProfileId.SSAO);
             private RenderTargetIdentifier m_SSAOTexture1Target = new RenderTargetIdentifier(s_SSAOTexture1ID, 0, CubemapFace.Unknown, -1);
             private RenderTargetIdentifier m_SSAOTexture2Target = new RenderTargetIdentifier(s_SSAOTexture2ID, 0, CubemapFace.Unknown, -1);
             private RenderTargetIdentifier m_SSAOTexture3Target = new RenderTargetIdentifier(s_SSAOTexture3ID, 0, CubemapFace.Unknown, -1);
@@ -131,8 +138,13 @@ namespace UnityEngine.Rendering.Universal
 
             // Statics
             private static readonly int s_BaseMapID = Shader.PropertyToID("_BaseMap");
-            private static readonly int s_ScaleBiasID = Shader.PropertyToID("_ScaleBiasRt");
             private static readonly int s_SSAOParamsID = Shader.PropertyToID("_SSAOParams");
+            private static readonly int s_ProjectionParams2ID = Shader.PropertyToID("_ProjectionParams2");
+            private static readonly int s_CameraViewProjectionsID = Shader.PropertyToID("_CameraViewProjections");
+            private static readonly int s_CameraViewTopLeftCornerID = Shader.PropertyToID("_CameraViewTopLeftCorner");
+            private static readonly int s_CameraViewXExtentID = Shader.PropertyToID("_CameraViewXExtent");
+            private static readonly int s_CameraViewYExtentID = Shader.PropertyToID("_CameraViewYExtent");
+            private static readonly int s_CameraViewZExtentID = Shader.PropertyToID("_CameraViewZExtent");
             private static readonly int s_SSAOTexture1ID = Shader.PropertyToID("_SSAO_OcclusionTexture1");
             private static readonly int s_SSAOTexture2ID = Shader.PropertyToID("_SSAO_OcclusionTexture2");
             private static readonly int s_SSAOTexture3ID = Shader.PropertyToID("_SSAO_OcclusionTexture3");
@@ -142,7 +154,8 @@ namespace UnityEngine.Rendering.Universal
                 AO = 0,
                 BlurHorizontal = 1,
                 BlurVertical = 2,
-                BlurFinal = 3
+                BlurFinal = 3,
+                AfterOpaque = 4
             }
 
             internal ScreenSpaceAmbientOcclusionPass()
@@ -150,24 +163,32 @@ namespace UnityEngine.Rendering.Universal
                 m_CurrentSettings = new ScreenSpaceAmbientOcclusionSettings();
             }
 
-            internal bool Setup(ScreenSpaceAmbientOcclusionSettings featureSettings)
+            internal bool Setup(ScreenSpaceAmbientOcclusionSettings featureSettings, ScriptableRenderer renderer)
             {
+                this.renderPassEvent = featureSettings.AfterOpaque ? RenderPassEvent.AfterRenderingOpaques : RenderPassEvent.AfterRenderingGbuffer;
+
+                m_Renderer = renderer;
                 m_CurrentSettings = featureSettings;
-                switch (m_CurrentSettings.Source)
+
+                ScreenSpaceAmbientOcclusionSettings.DepthSource source = this.isRendererDeferred
+                    ? ScreenSpaceAmbientOcclusionSettings.DepthSource.DepthNormals
+                    : m_CurrentSettings.Source;
+
+                switch (source)
                 {
                     case ScreenSpaceAmbientOcclusionSettings.DepthSource.Depth:
                         ConfigureInput(ScriptableRenderPassInput.Depth);
                         break;
                     case ScreenSpaceAmbientOcclusionSettings.DepthSource.DepthNormals:
-                        ConfigureInput(ScriptableRenderPassInput.Normal);
+                        ConfigureInput(ScriptableRenderPassInput.Normal);// need depthNormal prepass for forward-only geometry
                         break;
                     default:
                         throw new ArgumentOutOfRangeException();
                 }
                 return material != null
-                       &&  m_CurrentSettings.Intensity > 0.0f
-                       &&  m_CurrentSettings.Radius > 0.0f
-                       &&  m_CurrentSettings.SampleCount > 0;
+                    &&  m_CurrentSettings.Intensity > 0.0f
+                    &&  m_CurrentSettings.Radius > 0.0f
+                    &&  m_CurrentSettings.SampleCount > 0;
             }
 
             /// <inheritdoc/>
@@ -185,10 +206,48 @@ namespace UnityEngine.Rendering.Universal
                 );
                 material.SetVector(s_SSAOParamsID, ssaoParams);
 
+#if ENABLE_VR && ENABLE_XR_MODULE
+                int eyeCount = renderingData.cameraData.xr.enabled && renderingData.cameraData.xr.singlePassEnabled ? 2 : 1;
+#else
+                int eyeCount = 1;
+#endif
+                for (int eyeIndex = 0; eyeIndex < eyeCount; eyeIndex++)
+                {
+                    Matrix4x4 view = renderingData.cameraData.GetViewMatrix(eyeIndex);
+                    Matrix4x4 proj = renderingData.cameraData.GetProjectionMatrix(eyeIndex);
+                    m_CameraViewProjections[eyeIndex] = proj * view;
+
+                    // camera view space without translation, used by SSAO.hlsl ReconstructViewPos() to calculate view vector.
+                    Matrix4x4 cview = view;
+                    cview.SetColumn(3, new Vector4(0.0f, 0.0f, 0.0f, 1.0f));
+                    Matrix4x4 cviewProj = proj * cview;
+                    Matrix4x4 cviewProjInv = cviewProj.inverse;
+
+                    Vector4 topLeftCorner = cviewProjInv.MultiplyPoint(new Vector4(-1, 1, -1, 1));
+                    Vector4 topRightCorner = cviewProjInv.MultiplyPoint(new Vector4(1, 1, -1, 1));
+                    Vector4 bottomLeftCorner = cviewProjInv.MultiplyPoint(new Vector4(-1, -1, -1, 1));
+                    Vector4 farCentre = cviewProjInv.MultiplyPoint(new Vector4(0, 0, 1, 1));
+                    m_CameraTopLeftCorner[eyeIndex] = topLeftCorner;
+                    m_CameraXExtent[eyeIndex] = topRightCorner - topLeftCorner;
+                    m_CameraYExtent[eyeIndex] = bottomLeftCorner - topLeftCorner;
+                    m_CameraZExtent[eyeIndex] = farCentre;
+                }
+
+                material.SetVector(s_ProjectionParams2ID, new Vector4(1.0f / renderingData.cameraData.camera.nearClipPlane, 0.0f, 0.0f, 0.0f));
+                material.SetMatrixArray(s_CameraViewProjectionsID, m_CameraViewProjections);
+                material.SetVectorArray(s_CameraViewTopLeftCornerID, m_CameraTopLeftCorner);
+                material.SetVectorArray(s_CameraViewXExtentID, m_CameraXExtent);
+                material.SetVectorArray(s_CameraViewYExtentID, m_CameraYExtent);
+                material.SetVectorArray(s_CameraViewZExtentID, m_CameraZExtent);
+
                 // Update keywords
                 CoreUtils.SetKeyword(material, k_OrthographicCameraKeyword, renderingData.cameraData.camera.orthographic);
 
-                if (m_CurrentSettings.Source == ScreenSpaceAmbientOcclusionSettings.DepthSource.Depth)
+                ScreenSpaceAmbientOcclusionSettings.DepthSource source = this.isRendererDeferred
+                    ? ScreenSpaceAmbientOcclusionSettings.DepthSource.DepthNormals
+                    : m_CurrentSettings.Source;
+
+                if (source == ScreenSpaceAmbientOcclusionSettings.DepthSource.Depth)
                 {
                     switch (m_CurrentSettings.NormalSamples)
                     {
@@ -212,17 +271,15 @@ namespace UnityEngine.Rendering.Universal
                     }
                 }
 
-                switch (m_CurrentSettings.Source)
+                switch (source)
                 {
                     case ScreenSpaceAmbientOcclusionSettings.DepthSource.DepthNormals:
                         CoreUtils.SetKeyword(material, k_SourceDepthKeyword, false);
                         CoreUtils.SetKeyword(material, k_SourceDepthNormalsKeyword, true);
-                        CoreUtils.SetKeyword(material, k_SourceGBufferKeyword, false);
                         break;
                     default:
                         CoreUtils.SetKeyword(material, k_SourceDepthKeyword, true);
                         CoreUtils.SetKeyword(material, k_SourceDepthNormalsKeyword, false);
-                        CoreUtils.SetKeyword(material, k_SourceGBufferKeyword, false);
                         break;
                 }
 
@@ -241,7 +298,7 @@ namespace UnityEngine.Rendering.Universal
                 cmd.GetTemporaryRT(s_SSAOTexture3ID, m_Descriptor, FilterMode.Bilinear);
 
                 // Configure targets and clear color
-                ConfigureTarget(s_SSAOTexture2ID);
+                ConfigureTarget(m_CurrentSettings.AfterOpaque ? m_Renderer.cameraColorTarget : s_SSAOTexture2ID);
                 ConfigureClear(ClearFlag.None, Color.white);
             }
 
@@ -257,19 +314,11 @@ namespace UnityEngine.Rendering.Universal
                 CommandBuffer cmd = CommandBufferPool.Get();
                 using (new ProfilingScope(cmd, m_ProfilingSampler))
                 {
-                    CoreUtils.SetKeyword(cmd, ShaderKeywordStrings.ScreenSpaceOcclusion, true);
-
-                    // Blit has logic to flip projection matrix when rendering to render texture.
-                    // Currently the y-flip is handled in CopyDepthPass.hlsl by checking _ProjectionParams.x
-                    // If you replace this Blit with a Draw* that sets projection matrix double check
-                    // to also update shader.
-                    // scaleBias.x = flipSign
-                    // scaleBias.y = scale
-                    // scaleBias.z = bias
-                    // scaleBias.w = unused
-                    float flipSign = (renderingData.cameraData.IsCameraProjectionMatrixFlipped()) ? -1.0f : 1.0f;
-                    Vector4 scaleBias = (flipSign < 0.0f) ? new Vector4(flipSign, 1.0f, -1.0f, 1.0f) : new Vector4(flipSign, 0.0f, 1.0f, 1.0f);
-                    cmd.SetGlobalVector(s_ScaleBiasID, scaleBias);
+                    if (!m_CurrentSettings.AfterOpaque)
+                    {
+                        CoreUtils.SetKeyword(cmd, ShaderKeywordStrings.ScreenSpaceOcclusion, true);
+                    }
+                    PostProcessUtils.SetSourceSize(cmd, m_Descriptor);
 
                     // Execute the SSAO
                     Render(cmd, m_SSAOTexture1Target, ShaderPasses.AO);
@@ -282,6 +331,18 @@ namespace UnityEngine.Rendering.Universal
                     // Set the global SSAO texture and AO Params
                     cmd.SetGlobalTexture(k_SSAOTextureName, m_SSAOTexture2Target);
                     cmd.SetGlobalVector(k_SSAOAmbientOcclusionParamName, new Vector4(0f, 0f, 0f, m_CurrentSettings.DirectLightingStrength));
+
+                    // If true, SSAO pass is inserted after opaque pass and is expected to modulate lighting result now.
+                    if (m_CurrentSettings.AfterOpaque)
+                    {
+                        // This implicitely also bind depth attachment. Explicitely binding m_Renderer.cameraDepthTarget does not work.
+                        cmd.SetRenderTarget(
+                            m_Renderer.cameraColorTarget,
+                            RenderBufferLoadAction.Load,
+                            RenderBufferStoreAction.Store
+                        );
+                        cmd.DrawMesh(RenderingUtils.fullscreenMesh, Matrix4x4.identity, material, 0, (int)ShaderPasses.AfterOpaque);
+                    }
                 }
 
                 context.ExecuteCommandBuffer(cmd);
@@ -298,7 +359,7 @@ namespace UnityEngine.Rendering.Universal
                     RenderBufferLoadAction.DontCare,
                     RenderBufferStoreAction.DontCare
                 );
-                cmd.DrawMesh(RenderingUtils.fullscreenMesh, Matrix4x4.identity, material, 0, (int) pass);
+                cmd.DrawMesh(RenderingUtils.fullscreenMesh, Matrix4x4.identity, material, 0, (int)pass);
             }
 
             private void RenderAndSetBaseMap(CommandBuffer cmd, RenderTargetIdentifier baseMap, RenderTargetIdentifier target, ShaderPasses pass)
@@ -315,7 +376,11 @@ namespace UnityEngine.Rendering.Universal
                     throw new ArgumentNullException("cmd");
                 }
 
-                CoreUtils.SetKeyword(cmd, ShaderKeywordStrings.ScreenSpaceOcclusion, false);
+                if (!m_CurrentSettings.AfterOpaque)
+                {
+                    CoreUtils.SetKeyword(cmd, ShaderKeywordStrings.ScreenSpaceOcclusion, false);
+                }
+
                 cmd.ReleaseTemporaryRT(s_SSAOTexture1ID);
                 cmd.ReleaseTemporaryRT(s_SSAOTexture2ID);
                 cmd.ReleaseTemporaryRT(s_SSAOTexture3ID);

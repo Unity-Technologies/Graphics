@@ -14,8 +14,6 @@ namespace UnityEngine.Rendering
     /// </summary>
     public sealed class VolumeManager
     {
-        internal static bool needIsolationFilteredByRenderer = false;
-
         static readonly Lazy<VolumeManager> s_Instance = new Lazy<VolumeManager>(() => new VolumeManager());
 
         /// <summary>
@@ -100,10 +98,12 @@ namespace UnityEngine.Rendering
             baseComponentTypes = CoreUtils.GetAllTypesDerivedFrom<VolumeComponent>()
                 .Where(t => !t.IsAbstract);
 
+            var flags = System.Reflection.BindingFlags.Static | System.Reflection.BindingFlags.Public | System.Reflection.BindingFlags.NonPublic;
             // Keep an instance of each type to be used in a virtual lowest priority global volume
             // so that we have a default state to fallback to when exiting volumes
             foreach (var type in baseComponentTypes)
             {
+                type.GetMethod("Init", flags)?.Invoke(null, null);
                 var inst = (VolumeComponent)ScriptableObject.CreateInstance(type);
                 m_ComponentsDefaultState.Add(inst);
             }
@@ -124,7 +124,8 @@ namespace UnityEngine.Rendering
             // Look for existing cached layer masks and add it there if needed
             foreach (var kvp in m_SortedVolumes)
             {
-                if ((kvp.Key & (1 << layer)) != 0)
+                // We add the volume to sorted lists only if the layer match and if it doesn't contain the volume already.
+                if ((kvp.Key & (1 << layer)) != 0 && !kvp.Value.Contains(volume))
                     kvp.Value.Add(volume);
             }
 
@@ -226,8 +227,11 @@ namespace UnityEngine.Rendering
 
                 for (int i = 0; i < count; i++)
                 {
-                    target.parameters[i].overrideState = false;
-                    target.parameters[i].SetValue(component.parameters[i]);
+                    if (target.parameters[i] != null)
+                    {
+                        target.parameters[i].overrideState = false;
+                        target.parameters[i].SetValue(component.parameters[i]);
+                    }
                 }
             }
         }
@@ -315,18 +319,12 @@ namespace UnityEngine.Rendering
             if (!onlyGlobal)
                 trigger.TryGetComponent<Camera>(out camera);
 
-#if UNITY_EDITOR
-            // requested or prefab isolation mode.
-            bool needIsolation = needIsolationFilteredByRenderer || (UnityEditor.SceneManagement.StageUtility.GetCurrentStageHandle() != UnityEditor.SceneManagement.StageUtility.GetMainStageHandle());
-#endif
-
             // Traverse all volumes
             foreach (var volume in volumes)
             {
 #if UNITY_EDITOR
                 // Skip volumes that aren't in the scene currently displayed in the scene view
-                if (needIsolation
-                    && !IsVolumeRenderedByCamera(volume, camera))
+                if (!IsVolumeRenderedByCamera(volume, camera))
                     continue;
 #endif
 
@@ -465,19 +463,18 @@ namespace UnityEngine.Rendering
     /// <summary>
     /// A scope in which a Camera filters a Volume.
     /// </summary>
+    [Obsolete("VolumeIsolationScope is deprecated, it does not have any effect anymore.")]
     public struct VolumeIsolationScope : IDisposable
     {
         /// <summary>
         /// Constructs a scope in which a Camera filters a Volume.
         /// </summary>
         /// <param name="unused">Unused parameter.</param>
-        public VolumeIsolationScope(bool unused)
-            => VolumeManager.needIsolationFilteredByRenderer = true;
+        public VolumeIsolationScope(bool unused) {}
 
         /// <summary>
         /// Stops the Camera from filtering a Volume.
         /// </summary>
-        void IDisposable.Dispose()
-            => VolumeManager.needIsolationFilteredByRenderer = false;
+        void IDisposable.Dispose() {}
     }
 }

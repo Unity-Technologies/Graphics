@@ -26,6 +26,8 @@ struct FragInputs
     // When not using surface gradient, each vector of tangentToWorld are normalize (TODO: Maybe they should not even in case of no surface gradient ? Ask Morten)
     float3x3 tangentToWorld;
 
+    uint primitiveID; // Only with fullscreen pass debug currently - not supported on all platforms
+
     // For two sided lighting
     bool isFrontFace;
 };
@@ -53,7 +55,7 @@ void GetVaryingsDataDebug(uint paramId, FragInputs input, inout float3 result, i
         result = input.tangentToWorld[1].xyz * 0.5 + 0.5;
         break;
     case DEBUGVIEWVARYING_VERTEX_NORMAL_WS:
-        result = input.tangentToWorld[2].xyz * 0.5 + 0.5;
+        result = IsNormalized(input.tangentToWorld[2].xyz) ?  input.tangentToWorld[2].xyz * 0.5 + 0.5 : float3(1.0, 0.0, 0.0);
         break;
     case DEBUGVIEWVARYING_VERTEX_COLOR:
         result = input.color.rgb; needLinearToSRGB = true;

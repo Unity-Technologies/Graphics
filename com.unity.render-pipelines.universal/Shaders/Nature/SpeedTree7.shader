@@ -21,6 +21,7 @@ Shader "Universal Render Pipeline/Nature/SpeedTree7"
             "RenderType" = "Opaque"
             "DisableBatching" = "LODFading"
             "RenderPipeline" = "UniversalPipeline"
+            "UniversalMaterialType" = "SimpleLit"
         }
         LOD 400
         Cull [_Cull]
@@ -35,13 +36,14 @@ Shader "Universal Render Pipeline/Nature/SpeedTree7"
             #pragma vertex SpeedTree7Vert
             #pragma fragment SpeedTree7Frag
 
-            #pragma multi_compile _ _MAIN_LIGHT_SHADOWS
-            #pragma multi_compile _ _MAIN_LIGHT_SHADOWS_CASCADE
+            #pragma multi_compile _ _MAIN_LIGHT_SHADOWS _MAIN_LIGHT_SHADOWS_CASCADE _MAIN_LIGHT_SHADOWS_SCREEN
             #pragma multi_compile _ _ADDITIONAL_LIGHTS_VERTEX _ADDITIONAL_LIGHTS
             #pragma multi_compile _ _ADDITIONAL_LIGHT_SHADOWS
             #pragma multi_compile _ _SHADOWS_SOFT
+            #pragma multi_compile _ LOD_FADE_CROSSFADE
             #pragma multi_compile_fragment _ _SCREEN_SPACE_OCCLUSION
             #pragma multi_compile_vertex LOD_FADE_PERCENTAGE
+
             #pragma multi_compile_fog
 
             #pragma multi_compile_instancing
@@ -64,8 +66,6 @@ Shader "Universal Render Pipeline/Nature/SpeedTree7"
         {
             Name "SceneSelectionPass"
             Tags{"LightMode" = "SceneSelectionPass"}
-
-            ColorMask 0
 
             HLSLPROGRAM
 
@@ -91,11 +91,14 @@ Shader "Universal Render Pipeline/Nature/SpeedTree7"
             Name "ShadowCaster"
             Tags{"LightMode" = "ShadowCaster"}
 
+            ColorMask 0
+
             HLSLPROGRAM
 
             #pragma vertex SpeedTree7VertDepth
             #pragma fragment SpeedTree7FragDepth
 
+            #pragma multi_compile _ LOD_FADE_CROSSFADE
             #pragma multi_compile_vertex LOD_FADE_PERCENTAGE
 
             #pragma multi_compile_instancing
@@ -107,6 +110,12 @@ Shader "Universal Render Pipeline/Nature/SpeedTree7"
             #define DEPTH_ONLY
             #define SHADOW_CASTER
 
+            // -------------------------------------
+            // Universal Pipeline keywords
+
+            // This is used during shadow map generation to differentiate between directional and punctual light shadows, as they use different formulas to apply Normal Bias
+            #pragma multi_compile_vertex _ _CASTING_PUNCTUAL_LIGHT_SHADOW
+
             #include "SpeedTree7Input.hlsl"
             #include "SpeedTree7Passes.hlsl"
             ENDHLSL
@@ -117,27 +126,17 @@ Shader "Universal Render Pipeline/Nature/SpeedTree7"
             Name "GBuffer"
             Tags{"LightMode" = "UniversalGBuffer"}
 
-            // [Stencil] Bit 5-6 material type. 00 = unlit/bakedLit, 01 = Lit, 10 = SimpleLit
-            // This is a SimpleLit material.
-            Stencil {
-                Ref 64       // 0b01000000
-                WriteMask 96 // 0b01100000
-                Comp Always
-                Pass Replace
-                Fail Keep
-                ZFail Keep
-            }
-
             HLSLPROGRAM
 
+            #pragma exclude_renderers gles
             #pragma vertex SpeedTree7Vert
             #pragma fragment SpeedTree7Frag
 
-            #pragma multi_compile _ _MAIN_LIGHT_SHADOWS
-            #pragma multi_compile _ _MAIN_LIGHT_SHADOWS_CASCADE
+            #pragma multi_compile _ _MAIN_LIGHT_SHADOWS _MAIN_LIGHT_SHADOWS_CASCADE _MAIN_LIGHT_SHADOWS_SCREEN
             //#pragma multi_compile _ _ADDITIONAL_LIGHTS_VERTEX _ADDITIONAL_LIGHTS
             //#pragma multi_compile _ _ADDITIONAL_LIGHT_SHADOWS
             #pragma multi_compile _ _SHADOWS_SOFT
+            #pragma multi_compile _ LOD_FADE_CROSSFADE
             #pragma multi_compile_vertex LOD_FADE_PERCENTAGE
             #pragma multi_compile_fragment _ _GBUFFER_NORMALS_OCT
 
@@ -170,6 +169,7 @@ Shader "Universal Render Pipeline/Nature/SpeedTree7"
             #pragma vertex SpeedTree7VertDepth
             #pragma fragment SpeedTree7FragDepth
 
+            #pragma multi_compile _ LOD_FADE_CROSSFADE
             #pragma multi_compile_vertex LOD_FADE_PERCENTAGE
 
             #pragma multi_compile_instancing
@@ -193,10 +193,10 @@ Shader "Universal Render Pipeline/Nature/SpeedTree7"
             Tags{"LightMode" = "DepthNormals"}
 
             HLSLPROGRAM
-
             #pragma vertex SpeedTree7VertDepthNormal
             #pragma fragment SpeedTree7FragDepthNormal
 
+            #pragma multi_compile _ LOD_FADE_CROSSFADE
             #pragma multi_compile_vertex LOD_FADE_PERCENTAGE
 
             #pragma multi_compile_instancing

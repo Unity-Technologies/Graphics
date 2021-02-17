@@ -23,7 +23,11 @@ Pass
 		#if USE_FLIPBOOK_INTERPOLATION
 		float4 uv : TEXCOORD1;
 		#else
+		#if USE_FLIPBOOK_ARRAY_LAYOUT
+		float3 uv : TEXCOORD1;
+		#else
 		float2 uv : TEXCOORD1;	
+		#endif
 		#endif
 		#if USE_SOFT_PARTICLE || USE_ALPHA_TEST || USE_FLIPBOOK_INTERPOLATION
 		// x: inverse soft particles fade distance
@@ -93,12 +97,13 @@ ${VFXEnd}
 		${VFXComputeNormalWS}
 
         #ifdef VFX_SHADERGRAPH
-           ${VFXAdditionalInterpolantsPreparation}
-           ${SHADERGRAPH_PIXEL_CALL_GBUFFER}
-           ${VFXIncludeRP("VFXSGSurfaceData.template")}
-            
-           VFXSetupBuiltin(builtin,surface,builtin.emissiveColor, i);
-           ENCODE_INTO_GBUFFER(surface, builtin, i.VFX_VARYING_POSCS.xy, outGBuffer);
+            ${VFXAdditionalInterpolantsPreparation}
+            ${SHADERGRAPH_PIXEL_CALL_GBUFFER}
+            ${VFXIncludeRP("VFXSGSurfaceData.template")}
+
+            BuiltinData builtin;
+            VFXSetupBuiltinForGBuffer(i, surface, builtinEmissiveColor, builtinOpacity, builtin);
+            ENCODE_INTO_GBUFFER(surface, builtin, i.VFX_VARYING_POSCS.xy, outGBuffer);
         #else
             VFXComputePixelOutputToGBuffer(i,normalWS,uvData,outGBuffer);
         #endif

@@ -51,6 +51,8 @@ namespace UnityEditor.VFX.UI
             else
             {
                 result = CreateSliderField(out m_Slider);
+                m_Slider.onValueDragFinished = ValueDragFinished;
+                m_Slider.onValueDragStarted = ValueDragStarted;
                 m_Slider.RegisterCallback<BlurEvent>(OnFocusLost);
                 m_Slider.range = range;
             }
@@ -72,7 +74,19 @@ namespace UnityEditor.VFX.UI
             UpdateGUI(true);
         }
 
-        protected void DelayedNotifyValueChange()
+        protected void ValueDragFinished()
+        {
+            m_Provider.EndLiveModification();
+            hasChangeDelayed = false;
+            NotifyValueChanged();
+        }
+
+        protected void ValueDragStarted()
+        {
+            m_Provider.StartLiveModification();
+        }
+
+        void DelayedNotifyValueChange()
         {
             if (isDelayed && hasChangeDelayed)
             {
@@ -168,13 +182,15 @@ namespace UnityEditor.VFX.UI
         public UintPropertyRM(IPropertyRMProvider controller, float labelWidth) : base(controller, labelWidth)
         {
         }
+
         public override float GetPreferredControlWidth()
         {
             if (m_Provider.attributes.Is(VFXPropertyAttributes.Type.Enum))
                 return 120;
 
-            return base.GetPreferredControlWidth() ;
+            return base.GetPreferredControlWidth();
         }
+
         protected VFXEnumValuePopup m_EnumPopup;
 
         public override INotifyValueChanged<long> CreateField()
@@ -203,7 +219,7 @@ namespace UnityEditor.VFX.UI
             if (m_Provider.attributes.Is(VFXPropertyAttributes.Type.Enum) == (m_EnumPopup == null))
                 return false;
 
-            if(m_Provider.attributes.Is(VFXPropertyAttributes.Type.Enum))
+            if (m_Provider.attributes.Is(VFXPropertyAttributes.Type.Enum))
             {
                 string[] enumValues = m_Provider.attributes.FindEnum();
 
@@ -222,7 +238,8 @@ namespace UnityEditor.VFX.UI
             }
             var field =  new VFXLabeledField<LongField, long>(m_Label);
 
-            field.onValueDragFinished = t => DelayedNotifyValueChange();
+            field.onValueDragFinished = t => ValueDragFinished();
+            field.onValueDragStarted = t => ValueDragStarted();
             textField = field.control;
             return field;
         }
@@ -286,7 +303,8 @@ namespace UnityEditor.VFX.UI
         {
             var field = new VFXLabeledField<IntegerField, int>(m_Label);
             textField = field.control;
-            field.onValueDragFinished = t => DelayedNotifyValueChange();
+            field.onValueDragFinished = t => ValueDragFinished();
+            field.onValueDragStarted = t => ValueDragStarted();
             return field;
         }
 
@@ -327,7 +345,8 @@ namespace UnityEditor.VFX.UI
         protected override INotifyValueChanged<float> CreateSimpleField(out TextValueField<float> textField)
         {
             var field = new VFXLabeledField<FloatField, float>(m_Label);
-            field.onValueDragFinished = t => DelayedNotifyValueChange();
+            field.onValueDragFinished = t => ValueDragFinished();
+            field.onValueDragStarted = t => ValueDragStarted();
             textField = field.control;
             return field;
         }

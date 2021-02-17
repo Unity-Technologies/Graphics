@@ -1,6 +1,7 @@
-﻿using System.IO;
+using System.IO;
 using UnityEngine;
 using UnityEditor.AssetImporters;
+using UnityEngine.Rendering;
 using UnityEngine.Rendering.Universal;
 
 namespace UnityEditor.Rendering.Universal
@@ -22,6 +23,10 @@ namespace UnityEditor.Rendering.Universal
 
         public void OnPreprocessMaterialDescription(MaterialDescription description, Material material, AnimationClip[] clips)
         {
+            var pipelineAsset = GraphicsSettings.currentRenderPipeline;
+            if (!pipelineAsset || pipelineAsset.GetType() != typeof(UniversalRenderPipelineAsset))
+                return;
+
             var lowerCasePath = Path.GetExtension(assetPath).ToLower();
             if (lowerCasePath != ".skp")
                 return;
@@ -36,7 +41,7 @@ namespace UnityEditor.Rendering.Universal
             Vector4 vectorProperty;
             TexturePropertyDescription textureProperty;
 
-            if (description.TryGetProperty("DiffuseMap", out textureProperty) && textureProperty.texture!=null)
+            if (description.TryGetProperty("DiffuseMap", out textureProperty) && textureProperty.texture != null)
             {
                 SetMaterialTextureProperty("_BaseMap", material, textureProperty);
                 SetMaterialTextureProperty("_MainTex", material, textureProperty);
@@ -54,27 +59,27 @@ namespace UnityEditor.Rendering.Universal
 
             if (description.TryGetProperty("IsTransparent", out floatProperty) && floatProperty == 1.0f)
             {
-                material.SetFloat("_Mode", (float)3.0); // From C# enum BlendMode
+                material.SetFloat("_Mode", 3.0f); // From C# enum BlendMode
                 material.SetOverrideTag("RenderType", "Transparent");
-                material.SetInt("_SrcBlend", (int)UnityEngine.Rendering.BlendMode.One);
-                material.SetInt("_DstBlend", (int)UnityEngine.Rendering.BlendMode.OneMinusSrcAlpha);
-                material.SetInt("_ZWrite", 0);
+                material.SetFloat("_SrcBlend", (float)UnityEngine.Rendering.BlendMode.One);
+                material.SetFloat("_DstBlend", (float)UnityEngine.Rendering.BlendMode.OneMinusSrcAlpha);
+                material.SetFloat("_ZWrite", 0.0f);
                 material.EnableKeyword("_ALPHAPREMULTIPLY_ON");
                 material.renderQueue = (int)UnityEngine.Rendering.RenderQueue.Transparent;
-                material.SetInt("_Surface", 1);
+                material.SetFloat("_Surface", 1.0f);
             }
             else
             {
-                material.SetFloat("_Mode", (float)0.0); // From C# enum BlendMode
+                material.SetFloat("_Mode", 0.0f); // From C# enum BlendMode
                 material.SetOverrideTag("RenderType", "");
-                material.SetInt("_SrcBlend", (int)UnityEngine.Rendering.BlendMode.One);
-                material.SetInt("_DstBlend", (int)UnityEngine.Rendering.BlendMode.Zero);
-                material.SetInt("_ZWrite", 1);
+                material.SetFloat("_SrcBlend", (float)UnityEngine.Rendering.BlendMode.One);
+                material.SetFloat("_DstBlend", (float)UnityEngine.Rendering.BlendMode.Zero);
+                material.SetFloat("_ZWrite", 1.0f);
                 material.DisableKeyword("_ALPHATEST_ON");
                 material.DisableKeyword("_ALPHABLEND_ON");
                 material.DisableKeyword("_ALPHAPREMULTIPLY_ON");
                 material.renderQueue = -1;
-                material.SetInt("_Surface", 0);
+                material.SetFloat("_Surface", 0.0f);
             }
         }
 
@@ -86,4 +91,3 @@ namespace UnityEditor.Rendering.Universal
         }
     }
 }
-

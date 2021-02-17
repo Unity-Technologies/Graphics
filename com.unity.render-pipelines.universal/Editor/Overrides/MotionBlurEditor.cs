@@ -22,10 +22,20 @@ namespace UnityEditor.Rendering.Universal
 
         public override void OnInspectorGUI()
         {
+            //PropertyField(m_Mode);
+
+            //if (m_Mode.value.intValue == (int)MotionBlurMode.CameraOnly)
+            //{
+
             PropertyField(m_Mode);
             PropertyField(m_Quality);
             PropertyField(m_Intensity);
             PropertyField(m_Clamp);
+            //}
+            //else
+            //{
+            //    EditorGUILayout.HelpBox("Object motion blur is not supported on the Universal Render Pipeline yet.", MessageType.Info);
+            //}
         }
     }
 }

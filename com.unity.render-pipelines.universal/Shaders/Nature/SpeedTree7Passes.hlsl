@@ -157,6 +157,8 @@ SpeedTreeVertexOutput SpeedTree7Vert(SpeedTreeVertexInput input)
     output.positionWS = vertexInput.positionWS;
     output.clipPos = vertexInput.positionCS;
 
+    OUTPUT_SH(output.normalWS.xyz, output.vertexSH);
+
     return output;
 }
 
@@ -172,9 +174,18 @@ SpeedTreeVertexDepthOutput SpeedTree7VertDepth(SpeedTreeVertexInput input)
     output.uvHueVariation.xy = input.texcoord.xy;
     VertexPositionInputs vertexInput = GetVertexPositionInputs(input.vertex.xyz);
 
+    output.viewDirWS = GetWorldSpaceViewDir(vertexInput.positionWS);
+
 #ifdef SHADOW_CASTER
     half3 normalWS = TransformObjectToWorldNormal(input.normal);
-    output.clipPos = TransformWorldToHClip(ApplyShadowBias(vertexInput.positionWS, normalWS, _LightDirection));
+
+#if _CASTING_PUNCTUAL_LIGHT_SHADOW
+    float3 lightDirectionWS = normalize(_LightPosition - vertexInput.positionWS);
+#else
+    float3 lightDirectionWS = _LightDirection;
+#endif
+
+    output.clipPos = TransformWorldToHClip(ApplyShadowBias(vertexInput.positionWS, normalWS, lightDirectionWS));
 #else
     output.clipPos = vertexInput.positionCS;
 #endif
@@ -213,6 +224,7 @@ SpeedTreeVertexDepthNormalOutput SpeedTree7VertDepthNormal(SpeedTreeVertexInput 
         output.bitangentWS.w = viewDirWS.z;
     #else
         output.normalWS = normalWS;
+        output.viewDirWS = viewDirWS;
     #endif
 
     output.clipPos = vertexInput.positionCS;

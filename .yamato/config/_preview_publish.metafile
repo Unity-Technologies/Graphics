@@ -1,6 +1,6 @@
 publishing:
-  auto_publish: true
-  auto_version: true
+  auto_publish: false
+  auto_version: false
 platforms:
   - name: Win
   - name: OSX

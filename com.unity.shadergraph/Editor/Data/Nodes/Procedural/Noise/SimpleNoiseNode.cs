@@ -11,7 +11,6 @@ namespace UnityEditor.ShaderGraph
             name = "Simple Noise";
         }
 
-
         protected override MethodInfo GetFunctionToConvert()
         {
             return GetType().GetMethod("Unity_SimpleNoise", BindingFlags.Static | BindingFlags.NonPublic);
@@ -23,7 +22,7 @@ namespace UnityEditor.ShaderGraph
             [Slot(2, Binding.None)] out Vector1 Out)
         {
             return
-                @"
+@"
 {
     $precision t = 0.0;
 
@@ -46,20 +45,20 @@ namespace UnityEditor.ShaderGraph
 
         public override void GenerateNodeFunction(FunctionRegistry registry, GenerationMode generationMode)
         {
-            registry.ProvideFunction($"Unity_SimpleNoise_RandomValue_{concretePrecision.ToShaderString()}", s => s.Append(@"
+            registry.ProvideFunction("Unity_SimpleNoise_RandomValue_$precision", s => s.Append(@"
 inline $precision Unity_SimpleNoise_RandomValue_$precision ($precision2 uv)
 {
     return frac(sin(dot(uv, $precision2(12.9898, 78.233)))*43758.5453);
 }"));
 
-            registry.ProvideFunction($"Unity_SimpleNnoise_Interpolate_{concretePrecision.ToShaderString()}", s => s.Append(@"
+            registry.ProvideFunction($"Unity_SimpleNnoise_Interpolate_$precision", s => s.Append(@"
 inline $precision Unity_SimpleNnoise_Interpolate_$precision ($precision a, $precision b, $precision t)
 {
     return (1.0-t)*a + (t*b);
 }
 "));
 
-            registry.ProvideFunction($"Unity_SimpleNoise_ValueNoise_{concretePrecision.ToShaderString()}", s => s.Append(@"
+            registry.ProvideFunction($"Unity_SimpleNoise_ValueNoise_$precision", s => s.Append(@"
 inline $precision Unity_SimpleNoise_ValueNoise_$precision ($precision2 uv)
 {
     $precision2 i = floor(uv);

@@ -8,23 +8,17 @@
 #pragma multi_compile _ TO_TEMPORAL
 
 TEXTURE2D_X(_AOPackedData);
-
-#ifdef TO_TEMPORAL
-RW_TEXTURE2D_X(float, _AOPackedBlurred);
-#else
 RW_TEXTURE2D_X(float, _OcclusionTexture);
-#endif
 
 #define DEBUG_VISUALIZE_BILATERAL_WEIGHTS 0
 
-#define DEPTH_SCALE 1
 #define BILATERAL_EPSILON 0.01
 
 float BilateralWeight(float sampleDepth, float linearCentralDepth)
 {
     float linearSample = LinearEyeDepth(sampleDepth, _ZBufferParams);
     float delta = abs(linearSample - linearCentralDepth);
-    float w = saturate(1.0f - (DEPTH_SCALE * delta + BILATERAL_EPSILON));
+    float w = saturate(1.0f - (_AOSpatialBilateralAggressiveness * delta + BILATERAL_EPSILON));
 
     return w;
 }
@@ -136,7 +130,7 @@ void SpatialDenoise(uint3 dispatchThreadId : SV_DispatchThreadID)
     float final = Blur(dispatchThreadId.xy, centralDepth, centralAO);
 
 #if TO_TEMPORAL
-    _AOPackedBlurred[COORD_TEXTURE2D_X(dispatchThreadId.xy)] = PackAOOutput(final, centralDepth);
+    _OcclusionTexture[COORD_TEXTURE2D_X(dispatchThreadId.xy)] = PackAOOutput(final, centralDepth);
 #else
     _OcclusionTexture[COORD_TEXTURE2D_X(dispatchThreadId.xy)] = OutputFinalAO(final);
 #endif

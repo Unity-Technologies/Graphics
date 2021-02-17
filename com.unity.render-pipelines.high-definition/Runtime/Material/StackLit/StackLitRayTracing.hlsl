@@ -1,3 +1,21 @@
+float3 SampleSpecularBRDF(BSDFData bsdfData, float2 theSample, float3 viewWS)
+{
+    float roughness = bsdfData.roughnessAT;
+    float3x3 localToWorld;
+    if (HasFlag(bsdfData.materialFeatures, MATERIALFEATUREFLAGS_STACK_LIT_ANISOTROPY))
+    {
+        localToWorld = float3x3(bsdfData.tangentWS, bsdfData.bitangentWS, bsdfData.normalWS);
+    }
+    else
+    {
+        localToWorld = GetLocalFrame(bsdfData.normalWS);
+    }
+    float NdotL, NdotH, VdotH;
+    float3 sampleDir;
+    SampleGGXDir(theSample, viewWS, localToWorld, roughness, sampleDir, NdotL, NdotH, VdotH);
+    return sampleDir;
+}
+
 #ifdef HAS_LIGHTLOOP
 
 IndirectLighting EvaluateBSDF_RaytracedReflection(LightLoopContext lightLoopContext,
@@ -55,7 +73,7 @@ void FitToStandardLit( SurfaceData surfaceData
                         , BuiltinData builtinData
                         , uint2 positionSS
                         , out StandardBSDFData outStandardlit)
-{    
+{
     outStandardlit.baseColor = surfaceData.baseColor;
     outStandardlit.specularOcclusion = surfaceData.specularOcclusionCustomInput;
     outStandardlit.normalWS = surfaceData.normalWS;

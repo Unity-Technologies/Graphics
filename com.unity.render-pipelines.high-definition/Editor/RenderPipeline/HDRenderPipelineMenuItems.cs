@@ -32,7 +32,7 @@ namespace UnityEditor.Rendering.HighDefinition
                     mat.shader = litShader;
                     // We remove all keyword already present
                     CoreEditorUtils.RemoveMaterialKeywords(mat);
-                    LitGUI.SetupMaterialKeywordsAndPass(mat);
+                    LitGUI.SetupLitKeywordsAndPass(mat);
                     EditorUtility.SetDirty(mat);
                 }
                 else if (mat.shader.name == "HDRP/LayeredLitTessellation")
@@ -40,7 +40,7 @@ namespace UnityEditor.Rendering.HighDefinition
                     mat.shader = layeredLitShader;
                     // We remove all keyword already present
                     CoreEditorUtils.RemoveMaterialKeywords(mat);
-                    LayeredLitGUI.SetupMaterialKeywordsAndPass(mat);
+                    LayeredLitGUI.SetupLayeredLitKeywordsAndPass(mat);
                     EditorUtility.SetDirty(mat);
                 }
             }
@@ -76,10 +76,7 @@ namespace UnityEditor.Rendering.HighDefinition
         static void CreateSceneSettingsGameObject(MenuCommand menuCommand)
         {
             var parent = menuCommand.context as GameObject;
-            var settings = CoreEditorUtils.CreateGameObject(parent, "Sky and Fog Volume");
-            GameObjectUtility.SetParentAndAlign(settings, menuCommand.context as GameObject);
-            Undo.RegisterCreatedObjectUndo(settings, "Create " + settings.name);
-            Selection.activeObject = settings;
+            var settings = CoreEditorUtils.CreateGameObject("Sky and Fog Volume", parent);
 
             var profile = VolumeProfileFactory.CreateVolumeProfile(settings.scene, "Sky and Fog Settings");
             var visualEnv = VolumeProfileFactory.CreateVolumeComponent<VisualEnvironment>(profile, true, false);
@@ -110,14 +107,18 @@ namespace UnityEditor.Rendering.HighDefinition
 
             foreach (var mesh in meshRenderers)
             {
+                Undo.RecordObject(mesh, "MeshRenderer Layer Mask update");
                 mesh.renderingLayerMask |= (ShaderVariablesGlobal.DefaultRenderingLayerMask & ShaderVariablesGlobal.RenderingDecalLayersMask);
+                EditorUtility.SetDirty(mesh);
             }
 
             var terrains = Resources.FindObjectsOfTypeAll<Terrain>();
 
             foreach (var terrain in terrains)
             {
+                Undo.RecordObject(terrain, "Terrain Layer Mask update");
                 terrain.renderingLayerMask |= (ShaderVariablesGlobal.DefaultRenderingLayerMask & ShaderVariablesGlobal.RenderingDecalLayersMask);
+                EditorUtility.SetDirty(terrain);
             }
         }
 
@@ -134,13 +135,17 @@ namespace UnityEditor.Rendering.HighDefinition
                     MeshRenderer mesh;
                     if (gameObj.TryGetComponent<MeshRenderer>(out mesh))
                     {
+                        Undo.RecordObject(mesh, "MeshRenderer Layer Mask update");
                         mesh.renderingLayerMask |= (ShaderVariablesGlobal.DefaultRenderingLayerMask & ShaderVariablesGlobal.RenderingDecalLayersMask);
+                        EditorUtility.SetDirty(mesh);
                     }
 
                     Terrain terrain;
                     if (gameObj.TryGetComponent<Terrain>(out terrain))
                     {
+                        Undo.RecordObject(terrain, "Terrain Layer Mask update");
                         terrain.renderingLayerMask |= (ShaderVariablesGlobal.DefaultRenderingLayerMask & ShaderVariablesGlobal.RenderingDecalLayersMask);
+                        EditorUtility.SetDirty(terrain);
                     }
                 }
             }
@@ -169,42 +174,42 @@ namespace UnityEditor.Rendering.HighDefinition
             }
         }
 
-        [MenuItem("Assets/Create/Rendering/Diffusion Profile", priority = CoreUtils.assetCreateMenuPriority2)]
+        [MenuItem("Assets/Create/Rendering/HDRP Diffusion Profile", priority = CoreUtils.Sections.section4 + CoreUtils.Priorities.assetsCreateRenderingMenuPriority)]
         static void MenuCreateDiffusionProfile()
         {
             var icon = EditorGUIUtility.FindTexture("ScriptableObject Icon");
             ProjectWindowUtil.StartNameEditingIfProjectWindowExists(0, ScriptableObject.CreateInstance<DoCreateNewAssetDiffusionProfileSettings>(), "New Diffusion Profile.asset", icon, null);
         }
 
-        [MenuItem("Assets/Create/Shader/HDRP/Custom FullScreen Pass")]
+        [MenuItem("Assets/Create/Shader/HDRP Custom FullScreen Pass")]
         static void MenuCreateCustomFullScreenPassShader()
         {
             string templatePath = $"{HDUtils.GetHDRenderPipelinePath()}/Editor/RenderPipeline/CustomPass/CustomPassFullScreenShader.template";
             ProjectWindowUtil.CreateScriptAssetFromTemplateFile(templatePath, "New FullScreen CustomPass.shader");
         }
 
-        [MenuItem("Assets/Create/Shader/HDRP/Custom Renderers Pass")]
+        [MenuItem("Assets/Create/Shader/HDRP Custom Renderers Pass")]
         static void MenuCreateCustomRenderersPassShader()
         {
             string templatePath = $"{HDUtils.GetHDRenderPipelinePath()}/Editor/RenderPipeline/CustomPass/CustomPassRenderersShader.template";
             ProjectWindowUtil.CreateScriptAssetFromTemplateFile(templatePath, "New Renderers CustomPass.shader");
         }
 
-        [MenuItem("Assets/Create/Rendering/C# Custom Pass")]
+        [MenuItem("Assets/Create/Rendering/HDRP C# Custom Pass", priority = CoreUtils.Sections.section6 + CoreUtils.Priorities.assetsCreateRenderingMenuPriority)]
         static void MenuCreateCustomPassCSharpScript()
         {
             string templatePath = $"{HDUtils.GetHDRenderPipelinePath()}/Editor/RenderPipeline/CustomPass/CustomPassCSharpScript.template";
             ProjectWindowUtil.CreateScriptAssetFromTemplateFile(templatePath, "New Custom Pass.cs");
         }
 
-        [MenuItem("Assets/Create/Rendering/C# Post Process Volume", priority = CoreUtils.assetCreateMenuPriority3)]
+        [MenuItem("Assets/Create/Rendering/HDRP C# Post Process Volume", priority = CoreUtils.Sections.section6 + CoreUtils.Priorities.assetsCreateRenderingMenuPriority)]
         static void MenuCreateCSharpPostProcessVolume()
         {
             string templatePath = $"{HDUtils.GetHDRenderPipelinePath()}/Editor/PostProcessing/Templates/CustomPostProcessingVolume.template";
             ProjectWindowUtil.CreateScriptAssetFromTemplateFile(templatePath, "New Post Process Volume.cs");
         }
 
-        [MenuItem("Assets/Create/Shader/HDRP/Post Process", priority = CoreUtils.assetCreateMenuPriority3)]
+        [MenuItem("Assets/Create/Shader/HDRP Post Process", priority = CoreUtils.Sections.section1)]
         static void MenuCreatePostProcessShader()
         {
             string templatePath = $"{HDUtils.GetHDRenderPipelinePath()}/Editor/PostProcessing/Templates/CustomPostProcessingShader.template";
@@ -303,7 +308,7 @@ namespace UnityEditor.Rendering.HighDefinition
 
             try
             {
-                var scenes = AssetDatabase.FindAssets("t:Scene", new string[]{ "Assets" });
+                var scenes = AssetDatabase.FindAssets("t:Scene", new string[] { "Assets" });
                 var scale = 1f / Mathf.Max(1, scenes.Length);
                 for (var i = 0; i < scenes.Length; ++i)
                 {
@@ -338,7 +343,7 @@ namespace UnityEditor.Rendering.HighDefinition
 
         static void ResetAllMaterialAssetsKeywords(float progressScale, float progressOffset)
         {
-            var matIds = AssetDatabase.FindAssets("t:Material", new string[]{ "Assets" }); // do not include packages
+            var matIds = AssetDatabase.FindAssets("t:Material", new string[] { "Assets" }); // do not include packages
 
             bool VCSEnabled = (UnityEditor.VersionControl.Provider.enabled && UnityEditor.VersionControl.Provider.isActive);
 
@@ -435,7 +440,7 @@ namespace UnityEditor.Rendering.HighDefinition
                 currentRenderer.GetSharedMaterials(materialArray);
                 if (materialArray == null)
                 {
-                    Debug.LogWarning("The object "+ currentRenderer.name + " has a null material array.");
+                    Debug.LogWarning("The object " + currentRenderer.name + " has a null material array.");
                     generalErrorFlag = true;
                     continue;
                 }
@@ -465,6 +470,14 @@ namespace UnityEditor.Rendering.HighDefinition
                     numSubMeshes = skinnedMesh.sharedMesh.subMeshCount;
                 }
 
+                // Check the number of sub-meshes
+                if (numSubMeshes >= 32)
+                {
+                    Debug.LogWarning("The object " + currentRenderer.name + " has more than 32 sub-meshes. Above this limit, the cutoff and double sided flags may not match the one defined in the materials.");
+                    generalErrorFlag = true;
+                    continue;
+                }
+
                 bool materialIsOnlyTransparent = true;
                 bool hasTransparentSubMaterial = false;
 
@@ -481,7 +494,7 @@ namespace UnityEditor.Rendering.HighDefinition
                         {
                             bool materialIsTransparent = currentMaterial.IsKeywordEnabled("_SURFACE_TYPE_TRANSPARENT")
                                 || (HDRenderQueue.k_RenderQueue_Transparent.lowerBound <= currentMaterial.renderQueue
-                                && HDRenderQueue.k_RenderQueue_Transparent.upperBound >= currentMaterial.renderQueue);
+                                    && HDRenderQueue.k_RenderQueue_Transparent.upperBound >= currentMaterial.renderQueue);
 
                             // aggregate the transparency info
                             materialIsOnlyTransparent &= materialIsTransparent;

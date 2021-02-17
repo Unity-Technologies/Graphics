@@ -1,8 +1,12 @@
-using UnityEditor.AssetImporters;
 using UnityEditor.Experimental;
 using UnityEngine;
 using UnityEngine.Rendering;
+using UnityEngine.Rendering.Universal;
+#if UNITY_2020_2_OR_NEWER
+using UnityEditor.AssetImporters;
+#else
 using UnityEditor.Experimental.AssetImporters;
+#endif
 
 namespace UnityEditor.Rendering.Universal
 {
@@ -10,8 +14,8 @@ namespace UnityEditor.Rendering.Universal
     {
         static readonly uint k_Version = 1;
         static readonly int k_Order = 4;
-        static readonly string k_ShaderPath = "Packages/com.unity.render-pipelines.universal/Runtime/Materials/PhysicalMaterial3DsMax/PhysicalMaterial3DsMax.ShaderGraph";
-        static readonly string k_ShaderTransparentPath = "Packages/com.unity.render-pipelines.universal/Runtime/Materials/PhysicalMaterial3DsMax/PhysicalMaterial3DsMaxTransparent.ShaderGraph";
+        static readonly string k_ShaderPath = "Packages/com.unity.render-pipelines.universal/Runtime/Materials/PhysicalMaterial3DsMax/PhysicalMaterial3DsMax.shadergraph";
+        static readonly string k_ShaderTransparentPath = "Packages/com.unity.render-pipelines.universal/Runtime/Materials/PhysicalMaterial3DsMax/PhysicalMaterial3DsMaxTransparent.shadergraph";
 
         public override uint GetVersion()
         {
@@ -22,14 +26,16 @@ namespace UnityEditor.Rendering.Universal
         {
             return k_Order;
         }
-        
+
         static bool Is3DsMaxPhysicalMaterial(MaterialDescription description)
         {
             float classIdA;
             float classIdB;
+            string originalMtl;
             description.TryGetProperty("ClassIDa", out classIdA);
             description.TryGetProperty("ClassIDb", out classIdB);
-            return classIdA == 1030429932 && classIdB == -559038463;
+            description.TryGetProperty("ORIGINAL_MTL", out originalMtl);
+            return classIdA == 1030429932 && classIdB == -559038463 || originalMtl == "PHYSICAL_MTL";
         }
 
         static bool Is3DsMaxSimplifiedPhysicalMaterial(MaterialDescription description)
@@ -39,13 +45,17 @@ namespace UnityEditor.Rendering.Universal
             float useGlossiness;
             description.TryGetProperty("ClassIDa", out classIdA);
             description.TryGetProperty("ClassIDb", out classIdB);
-            description.TryGetProperty("useGlossiness", out useGlossiness); 
-            
+            description.TryGetProperty("useGlossiness", out useGlossiness);
+
             return classIdA == -804315648 && classIdB == -1099438848 && useGlossiness == 2.0f;
         }
 
         public void OnPreprocessMaterialDescription(MaterialDescription description, Material material, AnimationClip[] clips)
         {
+            var pipelineAsset = GraphicsSettings.currentRenderPipeline;
+            if (!pipelineAsset || pipelineAsset.GetType() != typeof(UniversalRenderPipelineAsset))
+                return;
+
             if (Is3DsMaxPhysicalMaterial(description))
             {
                 CreateFrom3DsPhysicalMaterial(description, material, clips);
@@ -63,11 +73,11 @@ namespace UnityEditor.Rendering.Universal
             TexturePropertyDescription textureProperty;
 
             description.TryGetProperty("basecolor", out vectorProperty);
-            bool hasTransparencyScalar = vectorProperty.w !=1.0f;
+            bool hasTransparencyScalar = vectorProperty.w != 1.0f;
             var hasTransparencyMap = description.TryGetProperty("opacity_map", out textureProperty);
             bool isTransparent = hasTransparencyMap | hasTransparencyScalar;
 
-            
+
             Shader shader;
             if (isTransparent)
                 shader = GraphicsSettings.currentRenderPipeline.autodeskInteractiveTransparentShader;
@@ -274,7 +284,7 @@ namespace UnityEditor.Rendering.Universal
                 material.SetTexture(outPropName + "_MAP", textureProperty.texture);
                 material.SetColor(outPropName, Color.white);
             }
-            else if(description.TryGetProperty(inPropName, out Vector4 color))
+            else if (description.TryGetProperty(inPropName, out Vector4 color))
             {
                 material.SetColor(outPropName, color);
             }
@@ -288,7 +298,7 @@ namespace UnityEditor.Rendering.Universal
                 material.SetTexture(outPropName + "_MAP", textureProperty.texture);
                 material.SetFloat(outPropName, 1.0f);
             }
-            else if(description.TryGetProperty(inPropName, out float floatProperty))
+            else if (description.TryGetProperty(inPropName, out float floatProperty))
             {
                 material.SetFloat(outPropName, floatProperty);
             }

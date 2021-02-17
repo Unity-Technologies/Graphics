@@ -72,6 +72,10 @@ namespace UnityEditor.VFX
             {
                 return "m_NamedObject";
             }
+            else if (type == typeof(SkinnedMeshRenderer))
+            {
+                return "m_NamedObject";
+            }
             else if (type == typeof(float))
             {
                 return "m_Float";
@@ -165,14 +169,36 @@ namespace UnityEditor.VFX
             {
                 EditorGUILayout.PropertyField(m_VisualEffectAsset, Contents.assetPath);
 
-                GUI.enabled = !m_VisualEffectAsset.hasMultipleDifferentValues && m_VisualEffectAsset.objectReferenceValue != null && resource != null; // Enabled state will be kept for all content until the end of the inspectorGUI.
-                if (GUILayout.Button(Contents.openEditor, EditorStyles.miniButton, Styles.MiniButtonWidth))
+                bool saveEnabled = GUI.enabled;
+                if (m_VisualEffectAsset.objectReferenceValue == null && !m_VisualEffectAsset.hasMultipleDifferentValues)
                 {
-                    VFXViewWindow window = EditorWindow.GetWindow<VFXViewWindow>();
-                    var asset = m_VisualEffectAsset.objectReferenceValue as VisualEffectAsset;
-                    window.LoadAsset(asset, targets.Length > 1 ? null : target as VisualEffect);
+                    GUI.enabled = saveEnabled;
+                    if (GUILayout.Button(Contents.createAsset, EditorStyles.miniButton, Styles.MiniButtonWidth))
+                    {
+                        string filePath = EditorUtility.SaveFilePanelInProject("", "New Graph", "vfx", "Create new VisualEffect Graph");
+                        if (!string.IsNullOrEmpty(filePath))
+                        {
+                            VisualEffectAssetEditorUtility.CreateTemplateAsset(filePath);
+                            var asset = AssetDatabase.LoadAssetAtPath<VisualEffectAsset>(filePath);
+                            m_VisualEffectAsset.objectReferenceValue = asset;
+                            serializedObject.ApplyModifiedProperties();
+
+                            VFXViewWindow window = EditorWindow.GetWindow<VFXViewWindow>();
+                            window.LoadAsset(asset, targets.Length > 1 ? null : target as VisualEffect);
+                        }
+                    }
                 }
-                GUI.enabled = true;
+                else
+                {
+                    GUI.enabled = saveEnabled && !m_VisualEffectAsset.hasMultipleDifferentValues && m_VisualEffectAsset.objectReferenceValue != null && resource != null; // Enabled state will be kept for all content until the end of the inspectorGUI.
+                    if (GUILayout.Button(Contents.openEditor, EditorStyles.miniButton, Styles.MiniButtonWidth))
+                    {
+                        VFXViewWindow window = EditorWindow.GetWindow<VFXViewWindow>();
+                        var asset = m_VisualEffectAsset.objectReferenceValue as VisualEffectAsset;
+                        window.LoadAsset(asset, targets.Length > 1 ? null : target as VisualEffect);
+                    }
+                }
+                GUI.enabled = saveEnabled;
             }
         }
 
@@ -693,7 +719,8 @@ namespace UnityEditor.VFX
                     Repaint();
                 }
 
-                GUI.enabled = m_GizmoedParameter != null;
+                bool saveEnabled = GUI.enabled;
+                GUI.enabled = saveEnabled && m_GizmoedParameter != null;
                 if (GUILayout.Button(VFXSlotContainerEditor.Contents.gizmoFrame, VFXSlotContainerEditor.Styles.frameButtonStyle, GUILayout.Width(19), GUILayout.Height(18)))
                 {
                     if (m_GizmoDisplayed && m_GizmoedParameter != null)
@@ -707,7 +734,7 @@ namespace UnityEditor.VFX
                         sceneView.Frame(bounds, false);
                     }
                 }
-                GUI.enabled = true;
+                GUI.enabled = saveEnabled;
                 GUILayout.EndHorizontal();
             }
         }

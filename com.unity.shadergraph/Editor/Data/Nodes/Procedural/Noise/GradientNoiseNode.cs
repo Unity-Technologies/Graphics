@@ -11,7 +11,6 @@ namespace UnityEditor.ShaderGraph
             name = "Gradient Noise";
         }
 
-
         protected override MethodInfo GetFunctionToConvert()
         {
             return GetType().GetMethod("Unity_GradientNoise", BindingFlags.Static | BindingFlags.NonPublic);
@@ -23,8 +22,8 @@ namespace UnityEditor.ShaderGraph
             [Slot(2, Binding.None)] out Vector1 Out)
         {
             return
-                @"
-{ 
+@"
+{
     $precision2 p = UV * Scale;
     $precision2 ip = floor(p);
     $precision2 fp = frac(p);
@@ -40,7 +39,7 @@ namespace UnityEditor.ShaderGraph
 
         public override void GenerateNodeFunction(FunctionRegistry registry, GenerationMode generationMode)
         {
-            registry.ProvideFunction($"Unity_GradientNoise_Dir_{concretePrecision.ToShaderString()}", s => s.Append(@"
+            registry.ProvideFunction("Unity_GradientNoise_Dir_$precision", s => s.Append(@"
 $precision2 Unity_GradientNoise_Dir_$precision($precision2 p)
 {
     // Permutation and hashing used in webgl-nosie goo.gl/pX7HtC

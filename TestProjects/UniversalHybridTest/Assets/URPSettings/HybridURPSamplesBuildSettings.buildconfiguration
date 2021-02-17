@@ -4,7 +4,8 @@
         {
             "$type": "Unity.Build.Common.GeneralSettings, Unity.Build",
             "ProductName": "UniversalHybridTest",
-            "CompanyName": "UnityGraphics"
+            "CompanyName": "UnityGraphics",
+            "Version": "1.0.0"
         },
         {
             "$type": "Unity.Build.Common.SceneList, Unity.Build",
@@ -45,6 +46,10 @@
                 },
                 {
                     "Scene": "GlobalObjectId_V1-1-89a2c7e6bbb468049a7fc3504d2d302e-102900000-0",
+                    "AutoLoad": false
+                },
+                {
+                    "Scene": "GlobalObjectId_V1-1-d0a3bd29f260c7e47b5fe138fa9e23f9-102900000-0",
                     "AutoLoad": false
                 }
             ]

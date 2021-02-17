@@ -54,9 +54,14 @@ packages:
       - core
       - config
     hascodependencies: 1
+#  - name: Postprocessing
+#    id: postprocessing
+#    packagename: com.unity.postprocessing
+#    dependencies:
+#      - postprocessing
 platforms:
   - name: Win
   - name: OSX
-agent_pack: package_ci_win_large 
-agent_publish: package_ci_win_large 
-agent_publish_all: package_ci_ubuntu_large 
+agent_pack: package_ci_win_large
+agent_publish: package_ci_win_large
+agent_publish_all: package_ci_ubuntu_large
