@@ -264,6 +264,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
 
             // Defines & Headers - Not all are necessary, however some important ones are mixed in like indirect draw, strips, flipbook, particle strip info...
             ShaderStringBuilder additionalDefines = new ShaderStringBuilder();
+            // TODO: Need to add defines for current/source usage (i.e. scale).
             foreach (var header in context.additionalDataHeaders)
                 additionalDefines.AppendLine(header);
             foreach (var define in context.additionalDefines)

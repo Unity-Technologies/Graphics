@@ -51,9 +51,32 @@ $splice(VFXParameterBuffer)
 
 $splice(VFXGeneratedBlockFunction)
 
-#define VaryingsMeshType VaryingsMeshToPS
+float3 GetSize(Attributes attributes)
+{
+    float3 size3 = float3(attributes.size,attributes.size,attributes.size);
 
-void GetElementData(uint index, inout Attributes attributes, inout VaryingsMeshType output)
+    // TODO: Currently these do not get defined/generated.
+#if VFX_USE_SCALEX_CURRENT
+    size3.x *= attributes.scaleX;
+#endif
+#if VFX_USE_SCALEY_CURRENT
+    size3.y *= attributes.scaleY;
+#endif
+#if VFX_USE_SCALEZ_CURRENT
+    size3.z *= attributes.scaleZ;
+#endif
+
+#if HAS_STRIPS
+     // Add an epsilon so that size is never 0 for strips
+     size3 += size3 < 0.0f ? -VFX_EPSILON : VFX_EPSILON;
+#endif
+
+    return size3;
+}
+
+// Loads the element-specific attribute data, as well as fills any interpolator.
+#define VaryingsMeshType VaryingsMeshToPS
+void GetElementAndInterpolator(uint index, inout Attributes attributes, inout VaryingsMeshType output)
 {
     uint deadCount = 0;
     #if USE_DEAD_LIST_COUNT
@@ -78,25 +101,16 @@ void GetElementData(uint index, inout Attributes attributes, inout VaryingsMeshT
     $splice(VFXInterpolantsGeneration)
 }
 
+// Configure the output type-spcific mesh definition and index calculation for the rest of the element data.
 $OutputType.Mesh:            $include("VFX/ConfigMesh.template.hlsl")
 $OutputType.PlanarPrimitive: $include("VFX/ConfigPlanarPrimitive.template.hlsl")
 
-float3 TransformElementToWorld(float3 positionOS, Attributes attributes)
+// Transform utility for going from object space into particle space.
+// For the current frame, this is done by constructing the particle (element) space matrix.
+// For the previous frame, the element matrices are cached and read back by the mesh element index.
+AttributesMesh TransformMeshToElement(AttributesMesh input, Attributes attributes)
 {
-    // TODO: Collapse
-    float3 size3 = float3(attributes.size,attributes.size,attributes.size);
-    #if VFX_USE_SCALEX_CURRENT
-    size3.x *= attributes.scaleX;
-    #endif
-    #if VFX_USE_SCALEY_CURRENT
-    size3.y *= attributes.scaleY;
-    #endif
-    #if VFX_USE_SCALEZ_CURRENT
-    size3.z *= attributes.scaleZ;
-    #endif
-    #if HAS_STRIPS
-        size3 += size3 < 0.0f ? -VFX_EPSILON : VFX_EPSILON; // Add an epsilon so that size is never 0 for strips
-    #endif
+    float3 size = GetSize(attributes);
 
     float4x4 elementToVFX = GetElementToVFXMatrix(
         attributes.axisX,
@@ -104,62 +118,73 @@ float3 TransformElementToWorld(float3 positionOS, Attributes attributes)
         attributes.axisZ,
         float3(attributes.angleX, attributes.angleY, attributes.angleZ),
         float3(attributes.pivotX, attributes.pivotY, attributes.pivotZ),
-        size3,
+        size,
         attributes.position);
 
-    float3 positionPS = mul(elementToVFX, float4(positionOS, 1.0f)).xyz;
-    float3 positionWS = TransformPositionVFXToWorld(positionPS);
+    input.positionOS = mul(elementToVFX, float4(input.positionOS, 1.0f)).xyz;
+
+#ifdef ATTRIBUTES_NEED_NORMAL
+    float3x3 elementToVFX_N = GetElementToVFXMatrixNormal(
+        attributes.axisX,
+        attributes.axisY,
+        attributes.axisZ,
+        float3(attributes.angleX, attributes.angleY, attributes.angleZ),
+        size);
+
+    input.normalOS = normalize(mul(elementToVFX_N, input.normalOS));
+#endif
+
+    return input;
+}
+
+AttributesMesh TransformMeshToPreviousElement(AttributesMesh input, uint elementIndex)
+{
+    uint elementToVFXBaseIndex = elementIndex * 13;
+    uint previousFrameIndex = elementToVFXBufferPrevious.Load(elementToVFXBaseIndex++ << 2);
+
+    float4x4 previousElementToVFX = (float4x4)0;
+    previousElementToVFX[3] = float4(0,0,0,1);
+
+    UNITY_UNROLL
+    for (int itIndexMatrixRow = 0; itIndexMatrixRow < 3; ++itIndexMatrixRow)
+    {
+        uint4 read = elementToVFXBufferPrevious.Load4((elementToVFXBaseIndex + itIndexMatrixRow * 4) << 2);
+        previousElementToVFX[itIndexMatrixRow] = asfloat(read);
+    }
+
+    input.positionOS = mul(previousElementToVFX, float4(input.positionOS, 1.0f)).xyz;
+
+#ifdef ATTRIBUTES_NEED_NORMAL
+    // TODO? Not necesarry for MV?
+#endif
+
+    return input;
+}
+
+// Here we define some overrides of the core space transforms.
+// VFX lets users work in two spaces: Local and World.
+// Local means local to "Particle Space" which in this case we treat similarly to Object Space.
+// World means that position users define in their graph are placed in the absolute world.
+// Becuase of these two spaces we must be careful how we transform into world space for current and previous frame.
+#define TransformObjectToWorld TransformObjectToWorldVFX
+float3 TransformObjectToWorldVFX(float3 positionOS)
+{
+    float3 positionWS = TransformPositionVFXToWorld(positionOS);
 
 #ifdef VFX_WORLD_SPACE
-    positionWS = GetCameraRelativePositionWS(positionWS);
+    positionWS = GetCameraRelativePositionWS(positionOS);
 #endif
 
     return positionWS;
 }
 
-float3 TransformElementToWorldNormal(float3 normalOS, Attributes attributes)
+#ifdef VFX_WORLD_SPACE
+#define TransformPreviousObjectToWorld TransformPreviousObjectToWorldVFX
+float3 TransformPreviousObjectToWorldVFX(float3 positionOS)
 {
-    float3 size3 = float3(attributes.size,attributes.size,attributes.size);
-
-    float3x3 elementToVFX_N = GetElementToVFXMatrixNormal(
-        attributes.axisX,
-        attributes.axisY,
-        attributes.axisZ,
-        float3(attributes.angleX,attributes.angleY,attributes.angleZ),
-        size3);
-
-    float3 normalPS = normalize(mul(elementToVFX_N, normalOS));
-    return TransformObjectToWorldNormal(normalPS);
+    return GetCameraRelativePositionWS(positionOS);
 }
-
-float3 TransformPreviousElementToWorld(float3 positionOS, uint index)
-{
-    uint elementToVFXBaseIndex = index * 13;
-    uint previousFrameIndex = elementToVFXBufferPrevious.Load(elementToVFXBaseIndex++ << 2);
-
-   if (asuint(currentFrameIndex) - previousFrameIndex == 1u)    //if (dot(previousElementToVFX[0], 1) != 0)
-   {
-        float4x4 previousElementToVFX = (float4x4)0;
-        previousElementToVFX[3] = float4(0,0,0,1);
-
-        UNITY_UNROLL
-        for (int itIndexMatrixRow = 0; itIndexMatrixRow < 3; ++itIndexMatrixRow)
-        {
-            uint4 read = elementToVFXBufferPrevious.Load4((elementToVFXBaseIndex + itIndexMatrixRow * 4) << 2);
-            previousElementToVFX[itIndexMatrixRow] = asfloat(read);
-        }
-
-        float3 positionPS = mul(previousElementToVFX, float4(positionOS, 1.0f)).xyz;
-        float3 positionWS = TransformPositionVFXToWorld(positionPS);
-
-    #ifdef VFX_WORLD_SPACE
-        positionWS = GetCameraRelativePositionWS(positionWS);
-    #endif
-        return positionWS;
-    }
-
-    return TransformPreviousObjectToWorld(positionOS);
-}
+#endif
 
 // Need to redefine GetVaryingsDataDebug since we omit FragInputs.hlsl and generate one procedurally.
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Debug/MaterialDebug.cs.hlsl"

@@ -38,7 +38,7 @@ float3 GetStripTangent(float3 currentPos, uint relativeIndex, const StripData st
 }
 #endif
 
-AttributesMesh GetMeshVFX(AttributesMesh input, inout uint index)
+void GetMeshAndElementIndex(inout AttributesMesh input, inout uint index)
 {
     uint id = input.vertexID;
 
@@ -55,7 +55,7 @@ AttributesMesh GetMeshVFX(AttributesMesh input, inout uint index)
         uint maxEdgeIndex = relativeIndexInStrip - PARTICLE_IN_EDGE + 1;
 
         if (maxEdgeIndex >= stripData.nextIndex)
-            return input;
+            return;
 
         index = GetParticleIndex(relativeIndexInStrip, stripData);
     #else
@@ -132,6 +132,4 @@ AttributesMesh GetMeshVFX(AttributesMesh input, inout uint index)
 #ifdef ATTRIBUTES_NEED_TEXCOORD0
     input.uv0 = uv;
 #endif
-
-    return input;
 }

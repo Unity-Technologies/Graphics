@@ -1,6 +1,6 @@
 // Output Type: Mesh
 
-AttributesMesh GetMeshVFX(AttributesMesh input, inout uint index)
+void GetMeshAndElementIndex(inout AttributesMesh input, inout uint index)
 {
     index = input.instanceID;
 
@@ -8,6 +8,5 @@ AttributesMesh GetMeshVFX(AttributesMesh input, inout uint index)
     index = indirectBuffer[index];
     #endif
 
-    // Mesh output requires no preliminary configuration.
-    return input;
+    // Mesh requires no preliminary configuration.
 }

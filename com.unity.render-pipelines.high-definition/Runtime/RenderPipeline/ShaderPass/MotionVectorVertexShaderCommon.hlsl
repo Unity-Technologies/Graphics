@@ -107,10 +107,13 @@ PackedVaryingsType MotionVectorVS(inout VaryingsType varyingsType, AttributesMes
     {
         bool hasDeformation = unity_MotionVectorsParams.x > 0.0; // Skin or morph target
 
-        // Re-configure the input mesh (in case of procedural primitive output).
 #if defined(HAVE_VFX_MODIFICATION)
-        uint indexVFX = 0;
-        inputMesh = GetMeshVFX(inputMesh, indexVFX);
+        // Re-construct the VFX mesh (i.e. in case of procedural output like planar primitives).
+        // And fetch element index to sample the previous element matrix.
+        uint elementIndex;
+        GetMeshAndElementIndex(inputMesh, elementIndex);
+
+        inputMesh = TransformMeshToPreviousElement(inputMesh, elementIndex);
 #endif
 
         float3 effectivePositionOS = (hasDeformation ? inputPass.previousPositionOS : inputMesh.positionOS);
@@ -124,11 +127,7 @@ PackedVaryingsType MotionVectorVS(inout VaryingsType varyingsType, AttributesMes
         previousMesh.positionOS = effectivePositionOS;
 
         previousMesh = ApplyMeshModification(previousMesh, _LastTimeParameters.xyz);
-#if defined(HAVE_VFX_MODIFICATION)
-        float3 previousPositionRWS = TransformPreviousElementToWorld(previousMesh.positionOS, indexVFX);
-#else
         float3 previousPositionRWS = TransformPreviousObjectToWorld(previousMesh.positionOS);
-#endif
 #else
         float3 previousPositionRWS = TransformPreviousObjectToWorld(effectivePositionOS);
 #endif
