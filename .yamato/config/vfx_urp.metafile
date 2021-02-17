@@ -10,7 +10,7 @@ test_platforms:
   - type: Standalone
     name: Standalone_PerformanceTests
     utr_flags:
-      - [all]: --performance-project-version=../.. --report-performance-data --performance-project-id=VFX
+      - [all]: --performance-project-version=. --report-performance-data --performance-project-id=VFX
     utr_flags_build:
       - [all]: --testfilter="VFX.PerformanceTest"
   - type: playmode
@@ -30,7 +30,7 @@ test_platforms:
     name: playmode_PerformanceTests
     utr_flags:
       - [all]: --testfilter="VFX.PerformanceTest"
-      - [all]: --performance-project-version=../.. --report-performance-data --performance-project-id=VFX
+      - [all]: --performance-project-version=. --report-performance-data --performance-project-id=VFX
   - type: editmode
     utr_flags:
       - [all]: --testfilter="VFX.Test"
@@ -38,7 +38,7 @@ test_platforms:
     name: editmode_PerformanceTests
     utr_flags:
       - [all]: --testfilter="VFX.PerformanceTest"
-      - [all]: --performance-project-version=../.. --report-performance-data --performance-project-id=VFX
+      - [all]: --performance-project-version=. --report-performance-data --performance-project-id=VFX
   - type: Standalone
     name: Standalone_cache
     utr_flags:

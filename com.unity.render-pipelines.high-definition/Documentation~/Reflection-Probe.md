@@ -64,7 +64,7 @@ The following properties control the method that the Reflection Probe uses to ca
 | **Clip Planes - Far**        | The furthest point relative to the Reflection Probe that it  captures reflections. |
 | **Probe Layer Mask**         | Acts as a culling mask for environment lights (light from Planar Reflection Probes and Reflection Probes). This Reflection Probe ignores all Reflection Probes that are on Layers not included in this Layer mask, so use this property to ignore certain Reflection Probes when rendering this one. |
 | **Custom Frame Settings**    | Allows you to define custom [Frame Settings](Frame-Settings.md) for this Probe. Disable this property to use the **Default Frame Settings** in your Unity Project’s [HDRP Asset](HDRP-Asset.md). |
-| **Range Compression Factor** | The factor which HDRP divides the result of the probe's rendering by. This is useful to deal with very bright or dark objects in the reflections that would otherwise be saturated.<br/>This property only appears when you enable [more options](More-Options.md) for this section. |
+| **Range Compression Factor** | The factor which HDRP divides the result of the probe's rendering by. This is useful to deal with very bright or dark objects in the reflections that would otherwise be saturated.<br/>This property only appears when you enable [additional properties](More-Options.md) for this section. |
 
 ### Custom Settings
 
