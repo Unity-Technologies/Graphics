@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Globalization;
 using System.Linq;
 using UnityEngine;
 using UnityEditor.ShaderGraph;
@@ -265,6 +266,17 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             // Defines & Headers - Not all are necessary, however some important ones are mixed in like indirect draw, strips, flipbook, particle strip info...
             ShaderStringBuilder additionalDefines = new ShaderStringBuilder();
             // TODO: Need to add defines for current/source usage (i.e. scale).
+
+            var allCurrentAttributes = context.GetData().GetAttributes().Where(a =>
+                (context.GetData().IsCurrentAttributeUsed(a.attrib, context)) ||
+                (context.contextType == VFXContextType.Init && context.GetData().IsAttributeStored(a.attrib))); // In init, needs to declare all stored attributes for intialization
+
+            var allSourceAttributes = context.GetData().GetAttributes().Where(a => (context.GetData().IsSourceAttributeUsed(a.attrib, context)));
+
+            foreach (var attribute in allCurrentAttributes)
+                additionalDefines.AppendLine("#define VFX_USE_{0}_{1} 1", attribute.attrib.name.ToUpper(CultureInfo.InvariantCulture), "CURRENT");
+            foreach (var attribute in allSourceAttributes)
+                additionalDefines.AppendLine("#define VFX_USE_{0}_{1} 1", attribute.attrib.name.ToUpper(CultureInfo.InvariantCulture), "SOURCE");
             foreach (var header in context.additionalDataHeaders)
                 additionalDefines.AppendLine(header);
             foreach (var define in context.additionalDefines)
