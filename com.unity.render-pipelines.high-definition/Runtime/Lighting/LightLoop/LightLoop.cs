@@ -158,6 +158,10 @@ namespace UnityEngine.Rendering.HighDefinition
 
             // We could decode the category from the key, but it is probably not worth the effort.
             m_Views[viewIndex].entitySortKeys[m_TotalEntityCount] = key;
+        }
+
+        public void IncrementEntityCount(BoundedEntityCategory category)
+        {
             m_EntityCountPerCategory[(int)category]++;
             m_TotalEntityCount++;
         }
@@ -270,6 +274,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 {
                     switch (category)
                     {
+                        // XRTODO: Verify the logic here. The count is not per view so the count might be larger than light data list size.
                         case BoundedEntityCategory.PunctualLight:
                             Debug.Assert(m_Views[i].punctualLightData.Count == count);
                             m_EntityDataBufferPerCategory[c].SetData(m_Views[i].punctualLightData,   0, i * count, count);
@@ -3024,7 +3029,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
                         m_BoundedEntityCollection.AddEntitySortKey(viewIndex, BoundedEntityCategory.ReflectionProbe, key);
                     }
-
+                    m_BoundedEntityCollection.IncrementEntityCount(BoundedEntityCategory.ReflectionProbe);
                     includedProbeCount++;
                 }
             }
@@ -3055,7 +3060,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
                         m_BoundedEntityCollection.AddEntitySortKey(viewIndex, BoundedEntityCategory.ReflectionProbe, key);
                     }
-
+                    m_BoundedEntityCollection.IncrementEntityCount(BoundedEntityCategory.ReflectionProbe);
                     includedProbeCount++;
                 }
             }
@@ -3085,7 +3090,13 @@ namespace UnityEngine.Rendering.HighDefinition
                     var gpuLightType = (GPULightType)((sortKey >> layout.lightTypeOffset) & ((1ul << layout.lightTypeBitCount) - 1));
                     var probeIndex   = (int)((sortKey >> layout.indexOffset)     & ((1ul << layout.indexBitCount)     - 1));
 
-                    Debug.Assert(category == BoundedEntityCategory.ReflectionProbe);
+                    if(category != BoundedEntityCategory.ReflectionProbe)
+                    {
+                        Debug.LogWarning("Reflection probe");
+
+                        //int i = 1;
+                        //return;
+                    }
 
                     ProcessedProbeData processedProbe = (gpuLightType == GPULightType.PlanarReflection) ? m_ProcessedPlanarProbeData[probeIndex]
                         : m_ProcessedReflectionProbeData[probeIndex];
@@ -3186,6 +3197,7 @@ namespace UnityEngine.Rendering.HighDefinition
                         ulong key = GenerateBoundedEntitySortingKey(decalIndex, BoundedEntityCategory.Decal, decalIndex);
                         m_BoundedEntityCollection.AddEntitySortKey(viewIndex, BoundedEntityCategory.Decal, key);
                     }
+                    m_BoundedEntityCollection.IncrementEntityCount(BoundedEntityCategory.Decal);
                 }
 
                 int densityVolumeCount = (densityVolumes.data != null) ? Math.Min(densityVolumes.data.Count, m_MaxDensityVolumesOnScreen) : 0;
@@ -3201,6 +3213,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
                         m_BoundedEntityCollection.AddEntitySortKey(viewIndex, BoundedEntityCategory.DensityVolume, key);
                     }
+                    m_BoundedEntityCollection.IncrementEntityCount(BoundedEntityCategory.DensityVolume);
                 }
 
                 /* ---------------------------- Step 2 ---------------------------- */
