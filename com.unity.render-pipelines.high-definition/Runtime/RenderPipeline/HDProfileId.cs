@@ -55,7 +55,7 @@ namespace UnityEngine.Rendering.HighDefinition
         ColorPyramid,
         DepthPyramid,
         PostProcessing,
-        AfterPostProcessing,
+        AfterPostProcessingObjects,
         RenderFullScreenDebug,
         ClearBuffers,
         ClearStencil,
