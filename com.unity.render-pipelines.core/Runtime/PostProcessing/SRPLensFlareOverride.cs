@@ -122,24 +122,15 @@ namespace UnityEngine
             }
         }
 
-        //void OnDrawGizmosSelected()
-        //{
-        //
-        //}
         void OnDrawGizmosSelected()
         {
-            //Gizmos.DrawWireSphere(transform.position, occlusionRadius);
             Camera mainCam = Camera.current;
             if (mainCam != null)
             {
                 Color previous = Handles.color;
-                Color previousH = Gizmos.color;
                 Handles.color = Color.red;
-                Gizmos.color = Handles.color;
                 Vector3 dir = (mainCam.transform.position - transform.position).normalized;
-                Handles.DrawWireDisc(transform.position + dir * occlusionOffset, dir, occlusionRadius, 2.0f);
-                //Gizmos.DrawWireSphere(transform.position, occlusionRadius);
-                Gizmos.color = previousH;
+                Handles.DrawWireDisc(transform.position + dir * occlusionOffset, dir, occlusionRadius, Mathf.SmoothStep(1.0f, 10.0f, Mathf.Clamp01((occlusionOffset + 10.0f) / 20.0f)));
                 Handles.color = previous;
             }
         }
