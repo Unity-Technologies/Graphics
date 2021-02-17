@@ -144,8 +144,9 @@ namespace UnityEditor.ShaderGraph
 
                 if (fieldIsActive)
                 {
-                    //if field is active:
-                    if (subscript.HasPreprocessor())
+                    // special case, "SHADER_STAGE_FRAGMENT" fields must be packed at the end of the struct,
+                    // otherwise the vertex output struct will have different semantic ordering than the fragment input struct.
+                    if (subscript.HasPreprocessor() && subscript.preprocessor.Contains("SHADER_STAGE_FRAGMENT"))
                         postUnpackedSubscripts.Add(subscript);
                     else if (subscript.HasSemantic() || subscript.vectorCount == 0)
                         packedSubscripts.Add(subscript);
