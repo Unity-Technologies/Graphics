@@ -25,7 +25,7 @@ namespace UnityEditor.ShaderGraph
     [FormerName("UnityEditor.ShaderGraph.AbstractMaterialGraph")]
     sealed partial class GraphData : JsonObject
     {
-        public override int latestVersion => 2;
+        public override int latestVersion => 3;
 
         public GraphObject owner { get; set; }
 
@@ -274,13 +274,45 @@ namespace UnityEditor.ShaderGraph
         public MessageManager messageManager { get; set; }
         public bool isSubGraph { get; set; }
 
+        // we default this to Graph for subgraphs
+        // but for shadergraphs, this will get replaced with Single
         [SerializeField]
-        private ConcretePrecision m_ConcretePrecision = ConcretePrecision.Single;
+        private GraphPrecision m_GraphPrecision = GraphPrecision.Graph;
 
-        public ConcretePrecision concretePrecision
+        public GraphPrecision graphDefaultPrecision
         {
-            get => m_ConcretePrecision;
-            set => m_ConcretePrecision = value;
+            get
+            {
+                // shader graphs are not allowed to have graph precision
+                // we force them to Single if they somehow get set to graph
+                if ((!isSubGraph) && (m_GraphPrecision == GraphPrecision.Graph))
+                    return GraphPrecision.Single;
+
+                return m_GraphPrecision;
+            }
+        }
+
+        public ConcretePrecision graphDefaultConcretePrecision
+        {
+            get
+            {
+                // when in "Graph switchable" mode, we choose Half as the default concrete precision
+                // so you can visualize the worst-case
+                return m_GraphPrecision.ToConcrete(ConcretePrecision.Half);
+            }
+        }
+
+        public void SetGraphDefaultPrecision(GraphPrecision newGraphDefaultPrecision)
+        {
+            if ((!isSubGraph) && (newGraphDefaultPrecision == GraphPrecision.Graph))
+            {
+                // shader graphs can't be set to "Graph", only subgraphs can
+                Debug.LogError("Cannot set ShaderGraph to a default precision of Graph");
+            }
+            else
+            {
+                m_GraphPrecision = newGraphDefaultPrecision;
+            }
         }
 
         // NOTE: having preview mode default to 3D preserves the old behavior of pre-existing subgraphs
@@ -1595,7 +1627,7 @@ namespace UnityEditor.ShaderGraph
             if (other == null)
                 throw new ArgumentException("Can only replace with another AbstractMaterialGraph", "other");
 
-            concretePrecision = other.concretePrecision;
+            m_GraphPrecision = other.m_GraphPrecision;
             m_PreviewMode = other.m_PreviewMode;
             m_OutputNode = other.m_OutputNode;
 
@@ -1906,6 +1938,7 @@ namespace UnityEditor.ShaderGraph
                 }
                 else
                 {
+                    // graphData.m_Version == 0  (matches current sgVersion)
                     Guid assetGuid;
                     if (!Guid.TryParse(this.assetGuid, out assetGuid))
                         assetGuid = JsonObject.GenerateNamespaceUUID(Guid.Empty, json);
@@ -2071,17 +2104,15 @@ namespace UnityEditor.ShaderGraph
                     }
                 }
             }
-
-
-            // In V2 we need to defer version set to in OnAfterMultiDeserialize
-            // This is because we need access to m_OutputNode to convert it to Targets and Stacks
-            // The JsonObject will not be fully deserialized until OnAfterMultiDeserialize
-            bool deferredUpgrades = sgVersion < 2;
-            if (!deferredUpgrades)
-            {
-                ChangeVersion(latestVersion);
-            }
         }
+
+        [Serializable]
+        class OldGraphDataReadConcretePrecision
+        {
+            // old value just for upgrade
+            [SerializeField]
+            public ConcretePrecision m_ConcretePrecision = ConcretePrecision.Single;
+        };
 
         public override void OnAfterMultiDeserialize(string json)
         {
@@ -2234,6 +2265,22 @@ namespace UnityEditor.ShaderGraph
                     }
 
                     m_NodeEdges.Clear();
+                }
+
+                if (sgVersion < 3)
+                {
+                    var oldGraph = JsonUtility.FromJson<OldGraphDataReadConcretePrecision>(json);
+
+                    // upgrade concrete precision to the new graph precision
+                    switch (oldGraph.m_ConcretePrecision)
+                    {
+                        case ConcretePrecision.Half:
+                            m_GraphPrecision = GraphPrecision.Half;
+                            break;
+                        case ConcretePrecision.Single:
+                            m_GraphPrecision = GraphPrecision.Single;
+                            break;
+                    }
                 }
 
                 ChangeVersion(latestVersion);
