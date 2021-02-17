@@ -46,24 +46,24 @@ namespace UnityEditor.Rendering.HighDefinition
         public SerializedProperty diffusionProfileSettingsList;
 
         //RenderPipelineResources not always exist and thus cannot be serialized normally.
-        bool? m_hasEditorResourceHasMultipleDifferentValues;
+        bool? m_HasEditorResourceHasMultipleDifferentValues;
         public bool editorResourceHasMultipleDifferentValues
         {
             get
             {
-                if (m_hasEditorResourceHasMultipleDifferentValues.HasValue)
-                    return m_hasEditorResourceHasMultipleDifferentValues.Value;
+                if (m_HasEditorResourceHasMultipleDifferentValues.HasValue)
+                    return m_HasEditorResourceHasMultipleDifferentValues.Value;
 
                 if (serializedObject.targetObjects.Length < 2)
                 {
-                    m_hasEditorResourceHasMultipleDifferentValues = false;
+                    m_HasEditorResourceHasMultipleDifferentValues = false;
                 }
                 else
                 {
-                    m_hasEditorResourceHasMultipleDifferentValues = serializedSettings.Skip(1).Any(t => t.renderPipelineEditorResources != firstEditorResources);
+                    m_HasEditorResourceHasMultipleDifferentValues = serializedSettings.Skip(1).Any(t => t.renderPipelineEditorResources != firstEditorResources);
                 }
 
-                return m_hasEditorResourceHasMultipleDifferentValues.Value;
+                return m_HasEditorResourceHasMultipleDifferentValues.Value;
             }
         }
 
@@ -79,8 +79,8 @@ namespace UnityEditor.Rendering.HighDefinition
             // do the cast only once
             foreach (var currentSetting in serializedObject.targetObjects)
             {
-                if (currentSetting is HDRenderPipelineGlobalSettings)
-                    serializedSettings.Add(currentSetting as HDRenderPipelineGlobalSettings);
+                if (currentSetting is HDRenderPipelineGlobalSettings hdrpSettings)
+                    serializedSettings.Add(hdrpSettings);
                 else
                     throw new Exception($"Target object has an invalid object, objects must be of type {typeof(HDRenderPipelineGlobalSettings)}");
             }
