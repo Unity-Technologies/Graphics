@@ -14,7 +14,7 @@ half4 CombinedShapeLightShared(half4 color, half4 mask, half2 lightingUV)
     #if defined(_DEBUG_SHADER)
     half4 debugColor;
 
-    if(CalculateColorForDebugSceneOverride(debugColor))
+    if(CalculateDebugColor(color.rgb, color.a, mask.rgb, lightingUV, debugColor))
     {
         return debugColor;
     }

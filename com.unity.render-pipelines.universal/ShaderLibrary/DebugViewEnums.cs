@@ -20,6 +20,7 @@ namespace UnityEngine.Rendering.Universal
         LightingComplexity,
         LOD,
         Metallic,
+        SpriteMask,
     }
 
     [GenerateHLSL]
