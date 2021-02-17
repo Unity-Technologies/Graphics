@@ -213,7 +213,7 @@ Every non abstract class that inherit from `CustomPass` will be listed when you 
 
 ### C# Template
 
-To Create a new C# Custom pass go to **Create/Rendering/C# Custom Pass**, it will generate a C# file containing a class like this one:
+To Create a new C# Custom pass go to **Create > Rendering > HDRP C# Custom Pass**, it will generate a C# file containing a class like this one:
 
 ```CSharp
 class #SCRIPTNAME# : CustomPass

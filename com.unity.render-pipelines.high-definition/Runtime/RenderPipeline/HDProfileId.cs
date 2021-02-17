@@ -55,7 +55,7 @@ namespace UnityEngine.Rendering.HighDefinition
         ColorPyramid,
         DepthPyramid,
         PostProcessing,
-        AfterPostProcessing,
+        AfterPostProcessingObjects,
         RenderFullScreenDebug,
         ClearBuffers,
         ClearStencil,
@@ -131,6 +131,7 @@ namespace UnityEngine.Rendering.HighDefinition
         // RT Deferred Lighting
         RaytracingDeferredLighting,
         // Denoisers
+        HistoryValidity,
         TemporalFilter,
         DiffuseFilter,
 

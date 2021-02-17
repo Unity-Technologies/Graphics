@@ -16,14 +16,14 @@ namespace UnityEditor.ShaderGraph.Drawing.Colors
 
         protected override bool GetClassFromNode(AbstractMaterialNode node, out string ussClass)
         {
-            ussClass = node.concretePrecision.ToString();
-
+            var graphPrecision = node.graphPrecision.GraphFallback(node.owner.graphDefaultPrecision);
+            ussClass = graphPrecision.ToString();
             return !string.IsNullOrEmpty(ussClass);
         }
 
         public override void ClearColor(IShaderNodeView nodeView)
         {
-            foreach (var type in ConcretePrecision.GetValues(typeof(ConcretePrecision)))
+            foreach (var type in GraphPrecision.GetValues(typeof(GraphPrecision)))
             {
                 nodeView.colorElement.RemoveFromClassList(type.ToString());
             }
