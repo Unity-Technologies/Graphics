@@ -12,6 +12,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Added color and intensity customization for Decals.
 - Added a history rejection criterion based on if the pixel was moving in world space (case 1302392).
 - Added the default quality settings to the HDRP asset for RTAO, RTR and RTGI (case 1304370).
+- Added TargetMidGrayParameterDrawer
 - Added an option to have double sided GI be controlled separately from material double-sided option.
 - Added new AOV APIs for overriding the internal rendering format, and for outputing the world space position.
 
