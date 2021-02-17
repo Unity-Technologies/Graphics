@@ -31,7 +31,6 @@ namespace Tests
                 yield return new TestCaseData(BuildTarget.XboxOne);
                 yield return new TestCaseData(BuildTarget.GameCoreXboxOne);
                 yield return new TestCaseData(BuildTarget.GameCoreXboxSeries);
-
             }
         }
 

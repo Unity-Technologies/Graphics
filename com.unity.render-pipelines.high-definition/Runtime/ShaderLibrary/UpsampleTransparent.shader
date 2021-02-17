@@ -103,7 +103,7 @@ Shader "Hidden/HDRP/UpsampleTransparent"
             return SAMPLE_TEXTURE2D_X_LOD(_LowResTransparent, s_linear_clamp_sampler, ClampAndScaleUVForBilinear(uv, halfResTexelSize), 0.0);
 
         #endif
-        
+
 
         }
     ENDHLSL

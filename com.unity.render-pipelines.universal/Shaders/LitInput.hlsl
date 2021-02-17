@@ -178,7 +178,7 @@ half3 ApplyDetailAlbedo(float2 detailUv, half3 albedo, half detailMask)
 #endif
 
     return albedo * LerpWhiteTo(detailAlbedo, detailMask);
-#else   
+#else
     return albedo;
 #endif
 }
