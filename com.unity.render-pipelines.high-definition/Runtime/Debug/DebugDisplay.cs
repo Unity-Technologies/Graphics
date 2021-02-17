@@ -120,7 +120,10 @@ namespace UnityEngine.Rendering.HighDefinition
         /// <summary>Display Screen Space Reflections buffer of the previous frame accumulated.</summary>
         ScreenSpaceReflectionsPrev,
         /// <summary>Display Screen Space Reflections buffer of the current frame hit.</summary>
-        ScreenSpaceReflectionsAccum
+        ScreenSpaceReflectionsAccum,
+
+        /// <summary>Display the world space position.</summary>
+        WorldSpacePosition,
     }
 
     /// <summary>
@@ -988,10 +991,6 @@ namespace UnityEngine.Rendering.HighDefinition
         void RefreshDisplayStatsDebug<T>(DebugUI.Field<T> field, T value)
         {
             UnregisterDebugItems(k_PanelDisplayStats, m_DebugDisplayStatsItems);
-
-            if (DebugManager.instance.displayRuntimeUI)
-                DebugManager.instance.ReDrawOnScreenDebug();
-
             RegisterDisplayStatsDebug();
         }
 
@@ -999,50 +998,30 @@ namespace UnityEngine.Rendering.HighDefinition
         void RefreshLightingDebug<T>(DebugUI.Field<T> field, T value)
         {
             UnregisterDebugItems(k_PanelLighting, m_DebugLightingItems);
-
-            if (DebugManager.instance.displayRuntimeUI)
-                DebugManager.instance.ReDrawOnScreenDebug();
-
             RegisterLightingDebug();
         }
 
         void RefreshDecalsDebug<T>(DebugUI.Field<T> field, T value)
         {
             UnregisterDebugItems(k_PanelDecals, m_DebugDecalsAffectingTransparentItems);
-
-            if (DebugManager.instance.displayRuntimeUI)
-                DebugManager.instance.ReDrawOnScreenDebug();
-
             RegisterDecalsDebug();
         }
 
         void RefreshRenderingDebug<T>(DebugUI.Field<T> field, T value)
         {
             UnregisterDebugItems(k_PanelRendering, m_DebugRenderingItems);
-
-            if (DebugManager.instance.displayRuntimeUI)
-                DebugManager.instance.ReDrawOnScreenDebug();
-
             RegisterRenderingDebug();
         }
 
         void RefreshMaterialDebug<T>(DebugUI.Field<T> field, T value)
         {
             UnregisterDebugItems(k_PanelMaterials, m_DebugMaterialItems);
-
-            if (DebugManager.instance.displayRuntimeUI)
-                DebugManager.instance.ReDrawOnScreenDebug();
-
             RegisterMaterialDebug();
         }
 
         void RefreshVolumeDebug<T>(DebugUI.Field<T> field, T value)
         {
             UnregisterDebugItems(k_PanelVolume, m_DebugVolumeItems);
-
-            if (DebugManager.instance.displayRuntimeUI)
-                DebugManager.instance.ReDrawOnScreenDebug();
-
             RegisterVolumeDebug();
         }
 

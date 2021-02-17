@@ -1,6 +1,6 @@
 # Decal Projector
 
-The High Definition Render Pipeline (HDRP) includes the Decal Projector component, which allows you to project specific Materials (decals) into the Scene. Decals are Materials that use the [Decal Shader](Decal-Shader.md) or [Decal master node](Master-Node-Decal.md). When the Decal Projector component projects decals into the Scene, they interact with the Scene’s lighting and wrap around Meshes. You can use thousands of decals in your Scene simultaneously because HDRP instances them. This means that the rendering process is not resource intensive as long as the decals use the same Material.
+The High Definition Render Pipeline (HDRP) includes the Decal Projector component, which allows you to project specific Materials (decals) into the Scene. Decals are Materials that use the [Decal Shader](Decal-Shader.md) or [Decal Master Stack](master-stack-decal.md). When the Decal Projector component projects decals into the Scene, they interact with the Scene’s lighting and wrap around Meshes. You can use thousands of decals in your Scene simultaneously because HDRP instances them. This means that the rendering process is not resource intensive as long as the decals use the same Material.
 
 The Decal Projector also supports [Decal Layers](Decal.md) which means you can control which Materials receive decals on a Layer by Layer basis.
 
@@ -54,7 +54,7 @@ Using the Inspector allows you to change all of the Decal Projector properties, 
 
 ## Limitations
 
-- The Decal Projector can affect opaque Materials with either a [Decal Shader](Decal-Shader.md) or a [Decal master node](Master-Node-Decal.md). However, it can only affect transparent Materials with the [Decal Shader](Decal-Shader.md).
+- The Decal Projector can affect opaque Materials with either a [Decal Shader](Decal-Shader.md) or a [Decal Master Stack](master-stack-decal.md). However, it can only affect transparent Materials with the [Decal Shader](Decal-Shader.md).
 - Decal Emissive isn't supported on Transparent Material.
 - The **Receive Decals** property of Materials in HDRP does not affect emissive decals. HDRP always renders emissive decals unless you use Decal Layers, which can disable emissive decals on a Layer by Layer basis.
 - If you project a decal onto a transparent surface, HDRP ignores the decal's Texture tiling.
