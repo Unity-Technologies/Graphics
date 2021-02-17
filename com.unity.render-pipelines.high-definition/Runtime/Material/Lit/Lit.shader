@@ -336,7 +336,8 @@ Shader "HDRP/Lit"
     #pragma shader_feature_local _ADD_PRECOMPUTED_VELOCITY
 
     // not local as it is use in shader stripper to discard the pass if not needed
-    #pragma shader_feature_fragment _FORCE_FORWARD_EMISSIVE
+    // not _fragment as it prevent the stripper to work
+    #pragma shader_feature _FORCE_FORWARD_EMISSIVE
 
     //-------------------------------------------------------------------------------------
     // Define

@@ -1371,8 +1371,8 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             referenceName = "_FORCE_FORWARD_EMISSIVE",
             type = KeywordType.Boolean,
             definition = KeywordDefinition.ShaderFeature,
-            scope = KeywordScope.Global,
-            stages = KeywordShaderStage.Fragment,
+            scope = KeywordScope.Global, // not local as it is use in shader stripper to discard the pass if not needed
+            // stages = KeywordShaderStage.Fragment, // not _fragment as it prevent the stripper to work
         };
 
         public static KeywordDescriptor TransparentWritesMotionVector = new KeywordDescriptor
