@@ -121,6 +121,7 @@ namespace UnityEditor.ShaderGraph
                 name = "Packed" + shaderStruct.name, packFields = true,
                 fields = new FieldDescriptor[] {} };
             List<FieldDescriptor> packedSubscripts = new List<FieldDescriptor>();
+            List<FieldDescriptor> postUnpackedSubscripts = new List<FieldDescriptor>();
             List<int> packedCounts = new List<int>();
 
             foreach (FieldDescriptor subscript in shaderStruct.fields)
@@ -144,7 +145,9 @@ namespace UnityEditor.ShaderGraph
                 if (fieldIsActive)
                 {
                     //if field is active:
-                    if (subscript.HasSemantic() || subscript.vectorCount == 0)
+                    if (subscript.HasPreprocessor())
+                        postUnpackedSubscripts.Add(subscript);
+                    else if (subscript.HasSemantic() || subscript.vectorCount == 0)
                         packedSubscripts.Add(subscript);
                     else
                     {
@@ -175,7 +178,7 @@ namespace UnityEditor.ShaderGraph
                 var packedSubscript = new FieldDescriptor(packStruct.name, "interp" + i, "", "float" + packedCounts[i], "INTERP" + i, "", StructFieldOptions.Static);
                 packedSubscripts.Add(packedSubscript);
             }
-            packStruct.fields = packedSubscripts.ToArray();
+            packStruct.fields = packedSubscripts.Concat(postUnpackedSubscripts).ToArray();
         }
 
         internal static void GenerateInterpolatorFunctions(StructDescriptor shaderStruct, IActiveFields activeFields, out ShaderStringBuilder interpolatorBuilder)
