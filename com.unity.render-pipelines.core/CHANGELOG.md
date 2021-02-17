@@ -19,6 +19,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Changed Window/Render Pipeline/Render Graph Viewer to Window/Analysis/Render Graph Viewer
 - Changed Window/Render Pipeline/Graphics Compositor to Window/Rendering/Graphics Compositor
 - Volume Gizmo Color setting is now under Colors->Scene->Volume Gizmo
+- Moved Edit/Render Pipeline/Generate Shader Includes to Edit/Rendering/Generate Shader Includes
 - Moved Assets/Create/LookDev/Environment Library to Assets/Create/Rendering/Environment Library (Look Dev)
 
 ### Added

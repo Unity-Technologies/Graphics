@@ -42,6 +42,12 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Removed the material pass probe volumes evaluation mode.
 - Move the Decal Gizmo Color initialization to preferences
 - Unifying the history validation pass so that it is only done once for the whole frame and not per effect.
+- Moved Edit/Render Pipeline/HD Render Pipeline/Render Selected Camera to log Exr to Edit/Rendering/Render Selected HDRP Camera to log Exr
+- Moved Edit/Render Pipeline/HD Render Pipeline/Export Sky to Image to Edit/Rendering/Export HDRP Sky to Image
+- Moved Edit/Render Pipeline/HD Render Pipeline/Check Scene Content for Ray Tracing to Edit/Rendering/Check Scene Content for HDRP Ray Tracing
+- Moved Edit/Render Pipeline/HD Render Pipeline/Upgrade from Builtin pipeline/Upgrade Project Materials to High Definition Materials to Edit/Rendering/Materials/Convert All Built-in Materials to HDRP"
+- Moved Edit/Render Pipeline/HD Render Pipeline/Upgrade from Builtin pipeline/Upgrade Selected Materials to High Definition Materials to Edit/Rendering/Materials/Convert Selected Built-in Materials to HDRP
+- Moved Edit/Render Pipeline/HD Render Pipeline/Upgrade from Builtin pipeline/Upgrade Scene Terrains to High Definition Terrains to Edit/Rendering/Materials/Convert Scene Terrains to HDRP Terrains
 - Updated the tooltip for the Decal Angle Fade property (requires to enable Decal Layers in both HDRP asset and Frame settings) (case 1308048).
 - The RTAO's history is now discarded if the occlusion caster was moving (case 1303418).
 - Change Asset/Create/Shader/HD Render Pipeline/Decal Shader Graph to Asset/Create/Shader Graph/HDRP/Decal Shader Graph
