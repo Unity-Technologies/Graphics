@@ -94,7 +94,6 @@ namespace UnityEngine.Rendering.Universal
         }
 
         public Camera camera;
-        public Camera baseCamera;
         public CameraRenderType renderType;
         public RenderTexture targetTexture;
         public RenderTextureDescriptor cameraTargetDescriptor;

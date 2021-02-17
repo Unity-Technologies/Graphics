@@ -534,7 +534,7 @@ namespace UnityEngine.Rendering.Universal
 
                         using (new ProfilingScope(null, Profiling.Pipeline.beginCameraRendering))
                         {
-                            BeginCameraRendering(context, baseCamera);
+                            BeginCameraRendering(context, currCamera);
                         }
 #if VISUAL_EFFECT_GRAPH_0_0_1_OR_NEWER
                         //It should be called before culling to prepare material. When there isn't any VisualEffect component, this method has no effect.
@@ -550,7 +550,7 @@ namespace UnityEngine.Rendering.Universal
 
                         using (new ProfilingScope(null, Profiling.Pipeline.endCameraRendering))
                         {
-                            EndCameraRendering(context, baseCamera);
+                            EndCameraRendering(context, currCamera);
                         }
                     }
                 }
@@ -692,8 +692,6 @@ namespace UnityEngine.Rendering.Universal
             cameraData.targetTexture = baseCamera.targetTexture;
             cameraData.cameraType = baseCamera.cameraType;
             bool isSceneViewCamera = cameraData.isSceneViewCamera;
-
-            cameraData.baseCamera = baseCamera;
 
             ///////////////////////////////////////////////////////////////////
             // Environment and Post-processing settings                       /
