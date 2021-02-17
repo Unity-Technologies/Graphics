@@ -14,7 +14,7 @@ Shader "Hidden/Universal Render Pipeline/CameraMotionBlur"
 
         TEXTURE2D_X(_SourceTex);
         TEXTURE2D(_MotionVectorTexture);
-       SAMPLER(sampler_MotionVectorTexture);
+        SAMPLER(sampler_MotionVectorTexture);
 
 #if defined(USING_STEREO_MATRICES)
         float4x4 _PrevViewProjMStereo[2];
@@ -27,6 +27,7 @@ Shader "Hidden/Universal Render Pipeline/CameraMotionBlur"
         half _Intensity;
         half _Clamp;
         half4 _SourceSize;
+        float4 _SourceTex_TexelSize;
 
         struct VaryingsCMB
         {

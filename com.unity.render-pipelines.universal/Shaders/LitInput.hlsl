@@ -28,6 +28,11 @@ half _ClearCoatSmoothness;
 half _DetailAlbedoMapScale;
 half _DetailNormalMapScale;
 half _Surface;
+float4x4 unity_MatrixPreviousM;
+//X : Use last frame positions (right now skinned meshes are the only objects that use this
+//Y : Force No Motion
+//Z : Z bias value
+float4 unity_MotionVectorsParams;
 CBUFFER_END
 
 // NOTE: Do not ifdef the properties for dots instancing, but ifdef the actual usage.
