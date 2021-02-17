@@ -318,7 +318,7 @@ namespace UnityEngine.Rendering.Universal
             // - If game or offscreen camera requires it we check if we can copy the depth from the rendering opaques pass and use that instead.
             // - Scene or preview cameras always require a depth texture. We do a depth pre-pass to simplify it and it shouldn't matter much for editor.
             // - Render passes require it
-            bool requiresDepthPrepass = requiresDepthTexture && !CanCopyDepth(ref renderingData.cameraData);
+            bool requiresDepthPrepass = renderPassInputs.requiresDepthTexture && !CanCopyDepth(ref renderingData.cameraData);
             requiresDepthPrepass |= isSceneViewCamera;
             requiresDepthPrepass |= isGizmosEnabled;
             requiresDepthPrepass |= isPreviewCamera;
@@ -481,8 +481,9 @@ namespace UnityEngine.Rendering.Universal
                 EnqueuePass(m_DrawSkyboxPass);
 
             // If a depth texture was created we necessarily need to copy it, otherwise we could have render it to a renderbuffer.
-            bool requiresDepthCopyPass = !requiresDepthPrepass
-                && renderingData.cameraData.requiresDepthTexture
+            bool requiresDepthCopyPass =
+                requiresDepthTexture
+                && !requiresDepthPrepass
                 && createDepthTexture;
             if (requiresDepthCopyPass)
             {
@@ -492,6 +493,13 @@ namespace UnityEngine.Rendering.Universal
                     m_CopyDepthPass.AllocateRT = false; // m_DepthTexture is already allocated by m_GBufferCopyDepthPass.
 
                 EnqueuePass(m_CopyDepthPass);
+            }
+
+            if (renderPassInputs.requiresMotionVectors)
+            {
+                var data = MotionVectorRendering.instance.GetMotionDataForCamera(renderingData.cameraData.camera);
+                m_MotionVectorPass.Setup(data);
+                EnqueuePass(m_MotionVectorPass);
             }
 
             // For Base Cameras: Set the depth texture to the far Z if we do not have a depth prepass or copy depth

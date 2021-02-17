@@ -10,20 +10,17 @@ namespace kTools.Motion
     {
 #region Fields
         const string kCameraShader = "Hidden/kMotion/CameraMotionVectors";
-        const string kObjectShader = "Hidden/kMotion/ObjectMotionVectors";
         const string kPreviousViewProjectionMatrix = "_PrevViewProjMatrix";
         const string kMotionVectorTexture = "_MotionVectorTexture";
-        const string kProfilingTag = "Motion Vectors";
+      //  const string kProfilingTag = "Motion Vectors";
 
         static readonly string[] s_ShaderTags = new string[]
         {
-            "UniversalForward",
-            "LightweightForward",
+            "MotionVectors"
         };
 
         RenderTargetHandle m_MotionVectorHandle;
         Material m_CameraMaterial;
-        Material m_ObjectMaterial;
         MotionData m_MotionData;
 #endregion
 
@@ -41,7 +38,6 @@ namespace kTools.Motion
             // Set data
             m_MotionData = motionData;
             m_CameraMaterial = new Material(Shader.Find(kCameraShader));
-            m_ObjectMaterial = new Material(Shader.Find(kObjectShader));
         }
 
         public override void Configure(CommandBuffer cmd, RenderTextureDescriptor cameraTextureDescriptor)
@@ -53,14 +49,14 @@ namespace kTools.Motion
             cmd.GetTemporaryRT(m_MotionVectorHandle.id, rtd, FilterMode.Point);
             ConfigureTarget(m_MotionVectorHandle.Identifier(), m_MotionVectorHandle.Identifier());
             cmd.SetRenderTarget(m_MotionVectorHandle.Identifier(), m_MotionVectorHandle.Identifier());
-                
+
             // TODO: Why do I have to clear here?
             cmd.ClearRenderTarget(true, true, Color.black, 1.0f);
         }
 #endregion
 
 #region Execution
-    private static readonly ProfilingSampler m_ProfilingSampler = new ProfilingSampler(kProfilingTag);
+    //private static readonly ProfilingSampler m_ProfilingSampler = new ProfilingSampler(kProfilingTag);
 
         public override void Execute(ScriptableRenderContext context, ref RenderingData renderingData)
         {
@@ -72,8 +68,8 @@ namespace kTools.Motion
                 return;
 
             // Profiling command
-            CommandBuffer cmd = CommandBufferPool.Get(kProfilingTag);
-            using (new ProfilingScope(cmd, m_ProfilingSampler))
+            CommandBuffer cmd = CommandBufferPool.Get();
+           // using (new ProfilingScope(cmd, m_ProfilingSampler))
             {
                 ExecuteCommand(context, cmd);
 
@@ -108,10 +104,6 @@ namespace kTools.Motion
             {
                 drawingSettings.SetShaderPassName(i, new ShaderTagId(s_ShaderTags[i]));
             }
-            
-            // Material
-            drawingSettings.overrideMaterial = m_ObjectMaterial;
-            drawingSettings.overrideMaterialPassIndex = 0;
             return drawingSettings;
         }
 
@@ -124,20 +116,12 @@ namespace kTools.Motion
 
         void DrawObjectMotionVectors(ScriptableRenderContext context, ref RenderingData renderingData, CommandBuffer cmd, Camera camera)
         {
-            // Get CullingParameters
-            var cullingParameters = new ScriptableCullingParameters();
-            if (!camera.TryGetCullingParameters(out cullingParameters))
-                return;
-
-            // Culling Results
-            var cullingResults = context.Cull(ref cullingParameters);
-
             var drawingSettings = GetDrawingSettings(ref renderingData);
             var filteringSettings = new FilteringSettings(RenderQueueRange.opaque, camera.cullingMask);
             var renderStateBlock = new RenderStateBlock(RenderStateMask.Nothing);
-            
+
             // Draw Renderers
-            context.DrawRenderers(cullingResults, ref drawingSettings, ref filteringSettings, ref renderStateBlock);
+            context.DrawRenderers(renderingData.cullResults, ref drawingSettings, ref filteringSettings, ref renderStateBlock);
         }
 #endregion
 
@@ -146,7 +130,7 @@ namespace kTools.Motion
         {
             if (cmd == null)
                 throw new ArgumentNullException("cmd");
-            
+
             // Reset Render Target
             if (m_MotionVectorHandle != RenderTargetHandle.CameraTarget)
             {

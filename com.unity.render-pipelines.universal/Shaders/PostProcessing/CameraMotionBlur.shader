@@ -13,7 +13,7 @@ Shader "Hidden/Universal Render Pipeline/CameraMotionBlur"
         #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/DeclareDepthTexture.hlsl"
 
         TEXTURE2D_X(_SourceTex);
-        TEXTURE2D(_MotionVectorTexture);      
+        TEXTURE2D(_MotionVectorTexture);
         SAMPLER(sampler_MotionVectorTexture);
 
 #if defined(USING_STEREO_MATRICES)
@@ -27,6 +27,7 @@ Shader "Hidden/Universal Render Pipeline/CameraMotionBlur"
         half _Intensity;
         half _Clamp;
         half4 _SourceSize;
+        float4 _SourceTex_TexelSize;
 
         struct VaryingsCMB
         {

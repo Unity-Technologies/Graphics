@@ -4,8 +4,8 @@
     {
         Pass
         {
-            Cull Off 
-            ZWrite Off 
+            Cull Off
+            ZWrite On
             ZTest Always
 
             HLSLPROGRAM
@@ -20,10 +20,7 @@
             // -------------------------------------
             // Includes
             #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Core.hlsl"
-
-            // -------------------------------------
-            // Inputs
-            TEXTURE2D(_CameraDepthTexture);       SAMPLER(sampler_CameraDepthTexture);
+            #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/DeclareDepthTexture.hlsl"
 
             // -------------------------------------
             // Structs
@@ -48,10 +45,11 @@
 
             // -------------------------------------
             // Fragment
-            half4 frag(Varyings input) : SV_Target
+            half4 frag(Varyings input, out float outDepth : SV_Depth) : SV_Target
             {
                 // Calculate PositionInputs
-                half depth = LOAD_TEXTURE2D(_CameraDepthTexture, input.position.xy).x;
+                half depth = LoadSceneDepth(input.position.xy).x;
+                outDepth = depth;
                 half2 screenSize = half2(1/_ScreenParams.x, 1/_ScreenParams.y);
                 PositionInputs positionInputs = GetPositionInput(input.position.xy, screenSize, depth, UNITY_MATRIX_I_VP, UNITY_MATRIX_V);
 
