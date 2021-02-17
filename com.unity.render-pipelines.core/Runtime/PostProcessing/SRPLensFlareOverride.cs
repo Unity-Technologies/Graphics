@@ -127,11 +127,15 @@ namespace UnityEngine
             Camera mainCam = Camera.current;
             if (mainCam != null)
             {
-                Color previous = Handles.color;
+                Color previousH = Handles.color;
+                Color previousG = Gizmos.color;
                 Handles.color = Color.red;
+                Gizmos.color = Color.red;
                 Vector3 dir = (mainCam.transform.position - transform.position).normalized;
-                Handles.DrawWireDisc(transform.position + dir * occlusionOffset, dir, occlusionRadius, Mathf.SmoothStep(1.0f, 10.0f, Mathf.Clamp01((occlusionOffset + 10.0f) / 20.0f)));
-                Handles.color = previous;
+                Handles.DrawWireDisc(transform.position + dir * occlusionOffset, dir, occlusionRadius, 1.0f);
+                Gizmos.DrawWireSphere(transform.position, occlusionOffset);
+                Gizmos.color = previousG;
+                Handles.color = previousH;
             }
         }
     }

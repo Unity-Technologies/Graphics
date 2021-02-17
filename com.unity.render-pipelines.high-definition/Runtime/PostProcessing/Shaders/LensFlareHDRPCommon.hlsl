@@ -55,6 +55,10 @@ float GetOcclusion(float2 screenPos, float flareDepth, float ratio)
             if (flareDepth < depth0)
                 contrib += sample_Contrib;
         }
+        else if (_FlareOffscreen > 0.0f)
+        {
+            contrib += sample_Contrib;
+        }
     }
 
     return contrib;

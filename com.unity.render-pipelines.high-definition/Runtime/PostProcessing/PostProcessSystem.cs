@@ -2360,16 +2360,23 @@ namespace UnityEngine.Rendering.HighDefinition
                     else if (element.position < 0.0f)
                         curLengthNeg += Mathf.Abs(element.position);
 
-                    float timePosPos = curLengthPos / totalLengthPos;
-                    float timePosNeg = curLengthNeg / totalLengthNeg;
+                    float timePosPos = totalLengthPos > 0.0f ? curLengthPos / totalLengthPos : 0.0f;
+                    float timePosNeg = totalLengthNeg > 0.0f ? curLengthNeg / totalLengthNeg : 0.0f;
                     float timeScale = data.elements.Length == 1 ? 1.0f : ((float)elemIdx) / ((float)(data.elements.Length - 1));
+                    ++elemIdx;
 
                     float curvePos = 0.0f;
+                    float curveScale = 1.0f;
                     if (element.position >= 0.0f)
+                    {
                         curvePos = data.positionCurve.length >= 1 ? data.positionCurve.Evaluate(timePosPos) : 1.0f;
+                        curveScale = data.scaleCurve.length >= 1 ? data.scaleCurve.Evaluate(timePosPos) : 1.0f;
+                    }
                     else
+                    {
                         curvePos = data.positionCurve.length >= 1 ? data.positionCurve.Evaluate(-timePosNeg) : 1.0f;
-                    float curveScale = data.scaleCurve.length >= 1 ? data.scaleCurve.Evaluate(timeScale) : 1.0f;
+                        curveScale = data.scaleCurve.length >= 1 ? data.scaleCurve.Evaluate(-timePosNeg) : 1.0f;
+                    }
 
                     Texture texture = element.lensFlareTexture;
                     float position = 2.0f * Mathf.Abs(element.position) * curvePos;
@@ -2379,7 +2386,6 @@ namespace UnityEngine.Rendering.HighDefinition
 
                     float currentIntensity = comp.intensity * element.localIntensity * data.globalIntensity * radialsScaleRadius * distanceAttenuation;
 
-                    ++elemIdx;
                     if (currentIntensity <= 0.0f)
                         continue;
 
