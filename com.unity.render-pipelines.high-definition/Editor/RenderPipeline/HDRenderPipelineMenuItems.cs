@@ -93,16 +93,15 @@ namespace UnityEditor.Rendering.HighDefinition
             volume.sharedProfile = profile;
         }
 
-        [MenuItem("Edit/Render Pipeline/HD Render Pipeline/Force Forward Emissive on Material/Enable in Selection")]
+        [MenuItem("Edit/Render Pipeline/Rendering/Materials/Enable Force Forward Emissive on Selected Materials")]
         internal static void ForceForwardEmissiveOnMaterialEnableInSelection()
         {
             var selection = UnityEditor.Selection.objects;
 
             foreach (var obj in selection)
             {
-                if (obj is Material)
+                if (obj is Material material)
                 {
-                    Material material = obj as Material;
                     if (material.HasProperty(HDMaterialProperties.kForceForwardEmissive))
                     {
                         material.SetInt(HDMaterialProperties.kForceForwardEmissive, 1);
@@ -132,7 +131,7 @@ namespace UnityEditor.Rendering.HighDefinition
             }
         }
 
-        [MenuItem("Edit/Render Pipeline/HD Render Pipeline/Force Forward Emissive on Material/Enable in Scene")]
+        [MenuItem("Edit/Render Pipeline/Rendering/Materials/Enable Force Forward Emissive on All Materials")]
         internal static void ForceForwardEmissiveOnMaterialEnableInScene()
         {
             var materials = Resources.FindObjectsOfTypeAll<Material>();
@@ -147,7 +146,7 @@ namespace UnityEditor.Rendering.HighDefinition
             }
         }
 
-        [MenuItem("Edit/Render Pipeline/HD Render Pipeline/Force Forward Emissive on Material/Disable in Scene")]
+        [MenuItem("Edit/Render Pipeline/Rendering/Materials/Disable Force Forward Emissive on All Materials")]
         internal static void ForceForwardEmissiveOnMaterialDisableInScene()
         {
             var materials = Resources.FindObjectsOfTypeAll<Material>();

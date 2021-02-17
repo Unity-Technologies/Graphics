@@ -81,7 +81,7 @@ namespace UnityEditor.Rendering.HighDefinition
                 bool isForwardEmissiveForDeferred = snippet.passName == "ForwardEmissiveForDeferred";
                 if (isForwardEmissiveForDeferred)
                 {
-                    if (hdrpAsset.currentPlatformRenderPipelineSettings.supportedLitShaderMode == RenderPipelineSettings.SupportedLitShaderMode.ForwardOnly && isForwardEmissiveForDeferred)
+                    if (hdrpAsset.currentPlatformRenderPipelineSettings.supportedLitShaderMode == RenderPipelineSettings.SupportedLitShaderMode.ForwardOnly)
                         return true;
 
                     // If the pass is not used because the keyword ForceForwardEmissive is not enabled, then discard

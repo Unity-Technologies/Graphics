@@ -16,7 +16,7 @@ namespace UnityEditor.Rendering.HighDefinition
     {
         internal new class Styles
         {
-            public static readonly GUIContent forceForwardEmissiveText = new GUIContent("Force Forward Emissive", "When in Lit shader mode: Deferred. It force the emissive part of the material to be render into an additional forward pass. This can improve quality and solve artifact with effects (SSGI) but have additional CPU and GPU cost.");
+            public static readonly GUIContent forceForwardEmissiveText = new GUIContent("Force Forward Emissive", "When in Lit shader mode: deferred. It forceS the emissive part of the material to be renderED into an additional forward pass. This can improve quality and solve artEfactS when using SSGI but have an additional CPU and GPU cost.");
         }
 
         MaterialProperty forceForwardEmissive = null;
@@ -38,13 +38,16 @@ namespace UnityEditor.Rendering.HighDefinition
             forceForwardEmissive = FindProperty(kForceForwardEmissive);
         }
 
+        /// <summary>
+        /// Renders the advanced options in the advanced option foldout
+        /// </summary>
         protected override void DrawAdvancedOptionsGUI()
         {
             base.DrawAdvancedOptionsGUI();
 
             if (forceForwardEmissive != null)
             {
-                if (materials[0].FindPass("ForwardEmissiveForDeferred") != -1)
+                if (materials[0].FindPass("ForwardEmissiveForDeferred") != -1 && ((SurfaceType)materials[0].GetFloat(kSurfaceType) != SurfaceType.Transparent))
                     materialEditor.ShaderProperty(forceForwardEmissive, Styles.forceForwardEmissiveText);
             }
         }
