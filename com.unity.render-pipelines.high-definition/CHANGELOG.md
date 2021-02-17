@@ -35,6 +35,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fix issue with Depth of Field CoC debug view.
 - Fixed an issue where first frame of SSAO could exhibit ghosting artefacts.
 - Fixed an issue with the mipmap generation internal format after rendering format change.
+- Fixed multiple any hit occuring on transparent objects (case 1294927).
 
 ### Changed
 - Changed Window/Render Pipeline/HD Render Pipeline Wizard to Window/Rendering/HDRP Wizard
@@ -59,6 +60,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Change Assets/Create/Rendering/C# Post Process Volume to Assets/Create/Rendering/HDRP C# Post Process Volume
 - Change labels about scroll direction and cloud type.
 - Improved shadow cascade GUI drawing with pixel perfect, hover and focus functionalities.
+- Improving the screen space global illumination.
 
 ## [11.0.0] - 2020-10-21
 
