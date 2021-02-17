@@ -555,6 +555,42 @@ namespace UnityEngine.Rendering
             SetViewportAndClear(cmd, colorBuffer, clearFlag, clearColor);
         }
 
+        // Explicit load and store actions
+        /// <summary>
+        /// Set the current render texture.
+        /// </summary>
+        /// <param name="cmd">CommandBuffer used for rendering commands.</param>
+        /// <param name="buffer">Color buffer RTHandleRTR.</param>
+        /// <param name="loadAction">Load action.</param>
+        /// <param name="storeAction">Store action.</param>
+        /// <param name="clearFlag">If not set to ClearFlag.None, specifies how to clear the render target after setup.</param>
+        /// <param name="clearColor">If applicable, color with which to clear the render texture after setup.</param>
+        public static void SetRenderTarget(CommandBuffer cmd, RTHandle buffer, RenderBufferLoadAction loadAction, RenderBufferStoreAction storeAction, ClearFlag clearFlag, Color clearColor)
+        {
+            cmd.SetRenderTarget(buffer, loadAction, storeAction);
+            SetViewportAndClear(cmd, buffer, clearFlag, clearColor);
+        }
+
+        /// <summary>
+        /// Set the current render texture.
+        /// </summary>
+        /// <param name="cmd">CommandBuffer used for rendering commands.</param>
+        /// <param name="colorBuffer">Color buffer RTHandle.</param>
+        /// <param name="colorLoadAction">Color buffer load action.</param>
+        /// <param name="colorStoreAction">Color buffer store action.</param>
+        /// <param name="depthBuffer">Depth buffer RTHandle.</param>
+        /// <param name="depthLoadAction">Depth buffer load action.</param>
+        /// <param name="depthStoreAction">Depth buffer store action.</param>
+        /// <param name="clearFlag">If not set to ClearFlag.None, specifies how to clear the render target after setup.</param>
+        /// <param name="clearColor">If applicable, color with which to clear the render texture after setup.</param>
+        public static void SetRenderTarget(CommandBuffer cmd, RTHandle colorBuffer, RenderBufferLoadAction colorLoadAction, RenderBufferStoreAction colorStoreAction,
+            RTHandle depthBuffer, RenderBufferLoadAction depthLoadAction, RenderBufferStoreAction depthStoreAction,
+            ClearFlag clearFlag, Color clearColor)
+        {
+            cmd.SetRenderTarget(colorBuffer.rt, colorLoadAction, colorStoreAction, depthBuffer.rt, depthLoadAction, depthStoreAction);
+            SetViewportAndClear(cmd, colorBuffer, clearFlag, clearColor);
+        }
+
         /// <summary>
         /// Set the current multiple render texture.
         /// </summary>
