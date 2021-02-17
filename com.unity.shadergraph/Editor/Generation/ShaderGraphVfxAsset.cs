@@ -146,7 +146,7 @@ namespace UnityEditor.ShaderGraph.Internal
 
             foreach (var property in m_Data.m_Properties.SelectValue())
             {
-                property.ValidateConcretePrecision(m_ConcretePrecision);
+                property.SetupConcretePrecision(m_ConcretePrecision);
             }
         }
 

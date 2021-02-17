@@ -34,7 +34,7 @@ namespace UnityEditor.ShaderGraph.Internal
             action(new HLSLProperty(HLSLType._SamplerState, "sampler" + referenceName, HLSLDeclaration.Global));
         }
 
-        internal override string GetPropertyAsArgumentString()
+        internal override string GetPropertyAsArgumentString(string precisionString)
         {
             return "UnityTexture2DArray " + referenceName;
         }

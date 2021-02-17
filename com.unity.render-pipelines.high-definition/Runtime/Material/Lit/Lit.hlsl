@@ -994,6 +994,15 @@ void GetSurfaceDataDebug(uint paramId, SurfaceData surfaceData, inout float3 res
     case DEBUGVIEW_LIT_SURFACEDATA_INDEX_OF_REFRACTION:
         result = saturate((surfaceData.ior - 1.0) / 1.5).xxx;
         break;
+    case DEBUGVIEW_LIT_SURFACEDATA_SPECULAR_COLOR:
+        {
+            if (!HasFlag(surfaceData.materialFeatures, MATERIALFEATUREFLAGS_LIT_SPECULAR_COLOR))
+            {
+                // Derive the specular/fresnel0 term from the metallic parameter
+                result = ComputeFresnel0(surfaceData.baseColor, surfaceData.metallic.x, DEFAULT_SPECULAR_VALUE);
+            }
+            break;
+        }
     }
 }
 

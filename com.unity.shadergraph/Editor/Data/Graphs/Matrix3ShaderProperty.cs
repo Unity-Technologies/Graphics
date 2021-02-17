@@ -17,9 +17,9 @@ namespace UnityEditor.ShaderGraph
 
         public override PropertyType propertyType => PropertyType.Matrix3;
 
-        internal override string GetPropertyAsArgumentString()
+        internal override string GetPropertyAsArgumentString(string precisionString)
         {
-            return $"{concretePrecision.ToShaderString()}3x3 {referenceName}";
+            return $"{precisionString}3x3 {referenceName}";
         }
 
         internal override AbstractMaterialNode ToConcreteNode()

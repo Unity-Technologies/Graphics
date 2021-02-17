@@ -19,7 +19,6 @@
         "com.unity.testing.hdrp": "file:../../../com.unity.testing.hdrp",
         "com.unity.testing.xr": "file:../../../com.unity.testing.xr",
         "com.unity.textmeshpro": "3.0.0-preview.1",
-        "com.unity.timeline": "1.2.6",
         "com.unity.ugui": "1.0.0",
         "com.unity.visualeffectgraph": "file:../../../com.unity.visualeffectgraph",
         "com.unity.modules.ai": "1.0.0",
