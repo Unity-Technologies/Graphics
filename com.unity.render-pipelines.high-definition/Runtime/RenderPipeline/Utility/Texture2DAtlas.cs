@@ -300,31 +300,9 @@ namespace UnityEngine.Rendering.HighDefinition
             }
         }
 
-        protected int GetTextureHash(Texture texture)
-        {
-            int hash = texture.GetHashCode();
-
-            unchecked
-            {
-#if UNITY_EDITOR
-                hash = 23 * hash + texture.imageContentsHash.GetHashCode();
-#endif
-                hash = 23 * hash + texture.GetInstanceID().GetHashCode();
-                hash = 23 * hash + texture.graphicsFormat.GetHashCode();
-                hash = 23 * hash + texture.wrapMode.GetHashCode();
-                hash = 23 * hash + texture.width.GetHashCode();
-                hash = 23 * hash + texture.height.GetHashCode();
-                hash = 23 * hash + texture.filterMode.GetHashCode();
-                hash = 23 * hash + texture.anisoLevel.GetHashCode();
-                hash = 23 * hash + texture.mipmapCount.GetHashCode();
-            }
-
-            return hash;
-        }
-
         protected int GetTextureHash(Texture textureA, Texture textureB)
         {
-            int hash = GetTextureHash(textureA) + 23 * GetTextureHash(textureB);
+            int hash = HDUtils.GetTextureHash(textureA) + 23 * HDUtils.GetTextureHash(textureB);
             return hash;
         }
 
@@ -351,7 +329,7 @@ namespace UnityEngine.Rendering.HighDefinition
         {
             RenderTexture   rt = texture as RenderTexture;
             int             key = GetTextureID(texture);
-            int             textureHash = GetTextureHash(texture);
+            int             textureHash = HDUtils.GetTextureHash(texture);
 
             // Update the render texture if needed
             if (rt != null)
