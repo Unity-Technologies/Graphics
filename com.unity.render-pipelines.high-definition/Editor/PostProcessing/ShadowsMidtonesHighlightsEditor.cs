@@ -1,7 +1,7 @@
-using UnityEditor.Rendering;
 using UnityEngine;
 using UnityEngine.Rendering.HighDefinition;
 using UnityEngine.Rendering;
+using UnityEngine.Experimental.Rendering;
 
 namespace UnityEditor.Rendering.HighDefinition
 {
@@ -77,17 +77,11 @@ namespace UnityEditor.Rendering.HighDefinition
                 Handles.DrawSolidRectangleWithOutline(m_CurveRect, Color.clear, Color.white * 0.4f);
             }
 
-            EditorGUILayout.Space();
-
-            EditorGUILayout.LabelField("Shadow Limits", EditorStyles.miniLabel);
             PropertyField(m_ShadowsStart, EditorGUIUtility.TrTextContent("Start"));
             m_ShadowsStart.value.floatValue = Mathf.Min(m_ShadowsStart.value.floatValue, m_ShadowsEnd.value.floatValue);
             PropertyField(m_ShadowsEnd, EditorGUIUtility.TrTextContent("End"));
             m_ShadowsEnd.value.floatValue = Mathf.Max(m_ShadowsStart.value.floatValue, m_ShadowsEnd.value.floatValue);
 
-            EditorGUILayout.Space();
-
-            EditorGUILayout.LabelField("Highlight Limits", EditorStyles.miniLabel);
             PropertyField(m_HighlightsStart, EditorGUIUtility.TrTextContent("Start"));
             m_HighlightsStart.value.floatValue = Mathf.Min(m_HighlightsStart.value.floatValue, m_HighlightsEnd.value.floatValue);
             PropertyField(m_HighlightsEnd, EditorGUIUtility.TrTextContent("End"));
@@ -99,7 +93,7 @@ namespace UnityEditor.Rendering.HighDefinition
             if (m_CurveTex == null || !m_CurveTex.IsCreated() || m_CurveTex.width != width || m_CurveTex.height != height)
             {
                 CoreUtils.Destroy(m_CurveTex);
-                m_CurveTex = new RenderTexture(width, height, 0, RenderTextureFormat.ARGB32);
+                m_CurveTex = new RenderTexture(width, height, 0, GraphicsFormat.R8G8B8A8_SRGB);
                 m_CurveTex.hideFlags = HideFlags.HideAndDontSave;
             }
         }

@@ -140,7 +140,7 @@ namespace UnityEditor.Graphing
                 nodeList.Add(node);
         }
 
-        private static List<AbstractMaterialNode> GetParentNodes(AbstractMaterialNode node)
+        internal static List<AbstractMaterialNode> GetParentNodes(AbstractMaterialNode node)
         {
             List<AbstractMaterialNode> nodeList = new List<AbstractMaterialNode>();
             var ids = node.GetInputSlots<MaterialSlot>().Select(x => x.id);

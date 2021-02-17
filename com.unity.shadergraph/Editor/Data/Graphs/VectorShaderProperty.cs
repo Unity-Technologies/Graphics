@@ -16,9 +16,9 @@ namespace UnityEditor.ShaderGraph.Internal
             return $"{hideTagString}{referenceName}(\"{displayName}\", Vector) = ({NodeUtils.FloatToShaderValueShaderLabSafe(value.x)}, {NodeUtils.FloatToShaderValueShaderLabSafe(value.y)}, {NodeUtils.FloatToShaderValueShaderLabSafe(value.z)}, {NodeUtils.FloatToShaderValueShaderLabSafe(value.w)})";
         }
 
-        internal override string GetPropertyAsArgumentString()
+        internal override string GetPropertyAsArgumentString(string precisionString)
         {
-            return $"{concreteShaderValueType.ToShaderString(concretePrecision.ToShaderString())} {referenceName}";
+            return $"{concreteShaderValueType.ToShaderString(precisionString)} {referenceName}";
         }
     }
 }
