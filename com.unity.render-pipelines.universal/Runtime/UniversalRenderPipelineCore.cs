@@ -191,6 +191,11 @@ namespace UnityEngine.Rendering.Universal
         /// When rendering a stack of cameras only the last camera in the stack will resolve to camera target.
         /// </summary>
         public bool resolveFinalTarget;
+
+        /// <summary>
+        /// Camera position in world space.
+        /// </summary>
+        public Vector3 worldSpaceCameraPos;
     }
 
     [MovedFrom("UnityEngine.Rendering.LWRP")] public struct ShadowData

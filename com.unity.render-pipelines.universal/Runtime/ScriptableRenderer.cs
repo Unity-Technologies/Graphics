@@ -204,7 +204,7 @@ namespace UnityEngine.Rendering.Universal
             Vector4 orthoParams = new Vector4(camera.orthographicSize * cameraData.aspectRatio, camera.orthographicSize, 0.0f, isOrthographic);
 
             // Camera and Screen variables as described in https://docs.unity3d.com/Manual/SL-UnityShaderVariables.html
-            cmd.SetGlobalVector(ShaderPropertyId.worldSpaceCameraPos, camera.transform.position);
+            cmd.SetGlobalVector(ShaderPropertyId.worldSpaceCameraPos, cameraData.worldSpaceCameraPos);
             cmd.SetGlobalVector(ShaderPropertyId.screenParams, new Vector4(cameraWidth, cameraHeight, 1.0f + 1.0f / cameraWidth, 1.0f + 1.0f / cameraHeight));
             cmd.SetGlobalVector(ShaderPropertyId.scaledScreenParams, new Vector4(scaledCameraWidth, scaledCameraHeight, 1.0f + 1.0f / scaledCameraWidth, 1.0f + 1.0f / scaledCameraHeight));
             cmd.SetGlobalVector(ShaderPropertyId.zBufferParams, zBufferParams);
@@ -231,7 +231,7 @@ namespace UnityEngine.Rendering.Universal
         void SetPerCameraBillboardProperties(CommandBuffer cmd, ref CameraData cameraData)
         {
             Matrix4x4 worldToCameraMatrix = cameraData.GetViewMatrix();
-            Vector3 cameraPos = cameraData.camera.transform.position;
+            Vector3 cameraPos = cameraData.worldSpaceCameraPos;
 
             CoreUtils.SetKeyword(cmd, ShaderKeywordStrings.BillboardFaceCameraPos, QualitySettings.billboardsFaceCameraPosition);
 
@@ -287,9 +287,7 @@ namespace UnityEngine.Rendering.Universal
         // TODO: Move this to SetPerCameraShaderVariables once we get rid of context.SetupCameraProperties
         private void SetPerCameraClippingPlaneProperties(CommandBuffer cmd, in CameraData cameraData)
         {
-            // We need this to correctly handle projection inversion if needed
-            Matrix4x4 projectionMatrix = GL.GetGPUProjectionMatrix(cameraData.GetProjectionMatrix(), cameraData.targetTexture != null);
-
+            Matrix4x4 projectionMatrix = cameraData.GetGPUProjectionMatrix();
             Matrix4x4 viewMatrix = cameraData.GetViewMatrix();
 
             Matrix4x4 viewProj = CoreMatrixUtils.MultiplyProjectionMatrix(projectionMatrix, viewMatrix, cameraData.camera.orthographic);
