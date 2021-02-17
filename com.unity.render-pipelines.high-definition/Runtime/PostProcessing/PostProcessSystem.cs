@@ -2297,36 +2297,47 @@ namespace UnityEngine.Rendering.HighDefinition
 
                                         Vector3 p1Global = hdLightData.transform.position + hdLightData.transform.right * hdLightData.shapeWidth * 0.5f;
                                         Vector3 p2Global = hdLightData.transform.position - hdLightData.transform.right * hdLightData.shapeWidth * 0.5f;
+                                        Vector3 p1Front = hdLightData.transform.position + cam.transform.right * hdLightData.shapeWidth * 0.5f;
+                                        Vector3 p2Front = hdLightData.transform.position - cam.transform.right * hdLightData.shapeWidth * 0.5f;
 
-                                        Vector3 p1 = cam.transform.InverseTransformPoint(p1Global);
-                                        Vector3 p2 = cam.transform.InverseTransformPoint(p2Global);
+                                        Vector3 p1World = cam.transform.InverseTransformPoint(p1Global);
+                                        Vector3 p2World = cam.transform.InverseTransformPoint(p2Global);
+                                        Vector3 p1WorldFront = cam.transform.InverseTransformPoint(p1Front);
+                                        Vector3 p2WorldFront = cam.transform.InverseTransformPoint(p2Front);
 
-                                        float diffIntegral;
-                                        // tangent
-                                        Vector3 wt = (p2 - p1).normalized;
-                                        // clamping
-                                        if (p1.z <= 0.0 && p2.z <= 0.0)
+                                        float DiffLineIntegral(Vector3 p1, Vector3 p2)
                                         {
-                                            diffIntegral = 0.0f;
+                                            float diffIntegral;
+                                            // tangent
+                                            Vector3 wt = (p2 - p1).normalized;
+                                            // clamping
+                                            if (p1.z <= 0.0 && p2.z <= 0.0)
+                                            {
+                                                diffIntegral = 0.0f;
+                                            }
+                                            else
+                                            {
+                                                if (p1.z < 0.0)
+                                                    p1 = (p1 * p2.z - p2 * p1.z) / (+p2.z - p1.z);
+                                                if (p2.z < 0.0)
+                                                    p2 = (-p1 * p2.z + p2 * p1.z) / (-p2.z + p1.z);
+                                                // parameterization
+                                                float l1 = Vector3.Dot(p1, wt);
+                                                float l2 = Vector3.Dot(p2, wt);
+                                                // shading point orthonormal projection on the line
+                                                Vector3 po = p1 - l1 * wt;
+                                                // distance to line
+                                                float d = po.magnitude;
+                                                // integral
+                                                float integral = (Fpo(d, l2) - Fpo(d, l1)) * po.z + (Fwt(d, l2) - Fwt(d, l1)) * wt.z;
+                                                diffIntegral = integral / Mathf.PI;
+                                            }
+
+                                            return diffIntegral;
                                         }
-                                        else
-                                        {
-                                            if (p1.z < 0.0)
-                                                p1 = (p1 * p2.z - p2 * p1.z) / (+p2.z - p1.z);
-                                            if (p2.z < 0.0)
-                                                p2 = (-p1 * p2.z + p2 * p1.z) / (-p2.z + p1.z);
-                                            // parameterization
-                                            float l1 = Vector3.Dot(p1, wt);
-                                            float l2 = Vector3.Dot(p2, wt);
-                                            // shading point orthonormal projection on the line
-                                            Vector3 po = p1 - l1 * wt;
-                                            // distance to line
-                                            float d = po.magnitude;
-                                            // integral
-                                            float integral = (Fpo(d, l2) - Fpo(d, l1)) * po.z + (Fwt(d, l2) - Fwt(d, l1)) * wt.z;
-                                            diffIntegral = integral / Mathf.PI;
-                                        }
-                                        modulationAttenuation *= diffIntegral;
+                                        float frontModulation = DiffLineIntegral(p1WorldFront, p2WorldFront);
+                                        float worldModulation = DiffLineIntegral(p1World, p2World);
+                                        modulationAttenuation *= frontModulation > 0.0f ? worldModulation / frontModulation : 1.0f;
                                     }
                                     break;
                                     case AreaLightShape.Rectangle:
