@@ -195,22 +195,58 @@ namespace UnityEngine.Experimental.Rendering.Universal
                         context.ExecuteCommandBuffer(cmd);
                         cmd.Clear();
 
-
                         short cameraSortingLayerBoundsIndex = GetCameraSortingLayerBoundsIndex();
                         // If our camera sorting layer texture bound is inside our batch we need to break up the DrawRenderers into two batches
                         if (cameraSortingLayerBoundsIndex >= layerBatch.layerRange.lowerBound && cameraSortingLayerBoundsIndex < layerBatch.layerRange.upperBound && m_Renderer2DData.useCameraSortingLayerTexture)
                         {
                             filterSettings.sortingLayerRange = new SortingLayerRange(layerBatch.layerRange.lowerBound, cameraSortingLayerBoundsIndex);
-                            context.DrawRenderers(renderingData.cullResults, ref drawSettings, ref filterSettings);
-                            CopyCameraSortingLayerRenderTexture(context, renderingData);
 
-                            filterSettings.sortingLayerRange = new SortingLayerRange((short)(cameraSortingLayerBoundsIndex + 1), layerBatch.layerRange.upperBound);
-                            context.DrawRenderers(renderingData.cullResults, ref drawSettings, ref filterSettings);
+                            if((DebugHandler != null) && DebugHandler.IsDebugPassEnabled(ref renderingData.cameraData))
+                            {
+                                foreach(DebugRenderSetup debugRenderSetup in DebugHandler.CreateDebugRenderSetupEnumerable(context, cmd))
+                                {
+                                    DrawingSettings debugDrawSettings = debugRenderSetup.CreateDrawingSettings(ref renderingData, drawSettings);
+
+                                    context.DrawRenderers(renderingData.cullResults, ref debugDrawSettings, ref filterSettings);
+                                }
+
+                                CopyCameraSortingLayerRenderTexture(context, renderingData);
+
+                                filterSettings.sortingLayerRange = new SortingLayerRange((short)(cameraSortingLayerBoundsIndex + 1), layerBatch.layerRange.upperBound);
+                                foreach(DebugRenderSetup debugRenderSetup in DebugHandler.CreateDebugRenderSetupEnumerable(context, cmd))
+                                {
+                                    DrawingSettings debugDrawSettings = debugRenderSetup.CreateDrawingSettings(ref renderingData, drawSettings);
+
+                                    context.DrawRenderers(renderingData.cullResults, ref debugDrawSettings, ref filterSettings);
+                                }
+                            }
+                            else
+                            {
+                                context.DrawRenderers(renderingData.cullResults, ref drawSettings, ref filterSettings);
+                                CopyCameraSortingLayerRenderTexture(context, renderingData);
+
+                                filterSettings.sortingLayerRange = new SortingLayerRange((short)(cameraSortingLayerBoundsIndex + 1), layerBatch.layerRange.upperBound);
+                                context.DrawRenderers(renderingData.cullResults, ref drawSettings, ref filterSettings);
+                            }
                         }
                         else
                         {
                             filterSettings.sortingLayerRange = new SortingLayerRange(layerBatch.layerRange.lowerBound, layerBatch.layerRange.upperBound);
-                            context.DrawRenderers(renderingData.cullResults, ref drawSettings, ref filterSettings);
+
+                            if((DebugHandler != null) && DebugHandler.IsDebugPassEnabled(ref renderingData.cameraData))
+                            {
+                                foreach(DebugRenderSetup debugRenderSetup in DebugHandler.CreateDebugRenderSetupEnumerable(context, cmd))
+                                {
+                                    DrawingSettings debugDrawSettings = debugRenderSetup.CreateDrawingSettings(ref renderingData, drawSettings);
+
+                                    context.DrawRenderers(renderingData.cullResults, ref debugDrawSettings, ref filterSettings);
+                                }
+                            }
+                            else
+                            {
+                                context.DrawRenderers(renderingData.cullResults, ref drawSettings, ref filterSettings);
+                            }
+
                             if (cameraSortingLayerBoundsIndex == layerBatch.layerRange.upperBound && m_Renderer2DData.useCameraSortingLayerTexture)
                                 CopyCameraSortingLayerRenderTexture(context, renderingData);
                         }

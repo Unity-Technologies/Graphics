@@ -1,5 +1,7 @@
-#if !defined(COMBINED_SHAPE_LIGHT_PASS)
+#ifndef COMBINED_SHAPE_LIGHT_PASS
 #define COMBINED_SHAPE_LIGHT_PASS
+
+#include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Debugging2D.hlsl"
 
 half _HDREmulationScale;
 half _UseSceneLighting;
@@ -7,8 +9,16 @@ half4 _RendererColor;
 
 half4 CombinedShapeLightShared(half4 color, half4 mask, half2 lightingUV)
 {
-    if (color.a == 0.0)
-        discard;
+    AlphaDiscard(color.a, 0);
+
+    #if defined(_DEBUG_SHADER)
+    half4 debugColor;
+
+    if(CalculateColorForDebugSceneOverride(debugColor))
+    {
+        return debugColor;
+    }
+    #endif
 
     color = color * _RendererColor; // This is needed for sprite shape
 

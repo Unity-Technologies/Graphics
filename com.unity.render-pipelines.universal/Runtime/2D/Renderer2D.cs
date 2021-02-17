@@ -48,6 +48,9 @@ namespace UnityEngine.Experimental.Rendering.Universal
 
             m_UseDepthStencilBuffer = data.useDepthStencilBuffer;
 
+            // Hook in the debug-render where appropriate...
+            m_Render2DLightingPass.DebugHandler = DebugHandler;
+
             // We probably should declare these names in the base class,
             // as they must be the same across all ScriptableRenderer types for camera stacking to work.
             k_ColorTextureHandle.Init("_CameraColorTexture");
@@ -140,6 +143,11 @@ namespace UnityEngine.Experimental.Rendering.Universal
             PixelPerfectCamera ppc = null;
             bool ppcUsesOffscreenRT = false;
             bool ppcUpscaleRT = false;
+
+            if(DebugHandler.IsDebugPassEnabled(ref cameraData))
+            {
+                DebugHandler.Setup(context);
+            }
 
             // Pixel Perfect Camera doesn't support camera stacking.
             if (cameraData.renderType == CameraRenderType.Base && lastCameraInStack)
