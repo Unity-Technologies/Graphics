@@ -732,16 +732,6 @@ namespace UnityEngine.Rendering.HighDefinition
             m_CascadeCount = 0;
         }
 
-        public struct ShadowDebugAtlasTextures
-        {
-            public RTHandle punctualShadowAtlas;
-            public RTHandle cascadeShadowAtlas;
-            public RTHandle areaShadowAtlas;
-
-            public RTHandle cachedPunctualShadowAtlas;
-            public RTHandle cachedAreaShadowAtlas;
-        }
-
         // Warning: must be called after ProcessShadowRequests and RenderShadows to have valid informations
         public void DisplayShadowAtlas(RTHandle atlasTexture, CommandBuffer cmd, Material debugMaterial, float screenX, float screenY, float screenSizeX, float screenSizeY, float minValue, float maxValue, MaterialPropertyBlock mpb)
         {
@@ -773,7 +763,7 @@ namespace UnityEngine.Rendering.HighDefinition
         }
 
         // Warning: must be called after ProcessShadowRequests and RenderShadows to have valid informations
-        public void DisplayShadowMap(in ShadowDebugAtlasTextures atlasTextures, int shadowIndex, CommandBuffer cmd, Material debugMaterial, float screenX, float screenY, float screenSizeX, float screenSizeY, float minValue, float maxValue, MaterialPropertyBlock mpb)
+        public void DisplayShadowMap(in ShadowResult atlasTextures, int shadowIndex, CommandBuffer cmd, Material debugMaterial, float screenX, float screenY, float screenSizeX, float screenSizeY, float minValue, float maxValue, MaterialPropertyBlock mpb)
         {
             if (shadowIndex >= m_ShadowRequestCount)
                 return;
@@ -785,14 +775,14 @@ namespace UnityEngine.Rendering.HighDefinition
                 case ShadowMapType.PunctualAtlas:
                 {
                     if (shadowRequest.isInCachedAtlas)
-                        cachedShadowManager.punctualShadowAtlas.DisplayAtlas(atlasTextures.cachedPunctualShadowAtlas, cmd, debugMaterial, shadowRequest.cachedAtlasViewport, screenX, screenY, screenSizeX, screenSizeY, minValue, maxValue, mpb);
+                        cachedShadowManager.punctualShadowAtlas.DisplayAtlas(atlasTextures.cachedPunctualShadowResult, cmd, debugMaterial, shadowRequest.cachedAtlasViewport, screenX, screenY, screenSizeX, screenSizeY, minValue, maxValue, mpb);
                     else
-                        m_Atlas.DisplayAtlas(atlasTextures.punctualShadowAtlas, cmd, debugMaterial, shadowRequest.dynamicAtlasViewport, screenX, screenY, screenSizeX, screenSizeY, minValue, maxValue, mpb);
+                        m_Atlas.DisplayAtlas(atlasTextures.punctualShadowResult, cmd, debugMaterial, shadowRequest.dynamicAtlasViewport, screenX, screenY, screenSizeX, screenSizeY, minValue, maxValue, mpb);
                     break;
                 }
                 case ShadowMapType.CascadedDirectional:
                 {
-                    m_CascadeAtlas.DisplayAtlas(atlasTextures.cascadeShadowAtlas, cmd, debugMaterial, shadowRequest.dynamicAtlasViewport, screenX, screenY, screenSizeX, screenSizeY, minValue, maxValue, mpb);
+                    m_CascadeAtlas.DisplayAtlas(atlasTextures.directionalShadowResult, cmd, debugMaterial, shadowRequest.dynamicAtlasViewport, screenX, screenY, screenSizeX, screenSizeY, minValue, maxValue, mpb);
                     break;
                 }
                 case ShadowMapType.AreaLightAtlas:
@@ -800,9 +790,9 @@ namespace UnityEngine.Rendering.HighDefinition
                     if (ShaderConfig.s_AreaLights == 1)
                     {
                         if (shadowRequest.isInCachedAtlas)
-                            cachedShadowManager.areaShadowAtlas.DisplayAtlas(atlasTextures.cachedAreaShadowAtlas, cmd, debugMaterial, shadowRequest.cachedAtlasViewport, screenX, screenY, screenSizeX, screenSizeY, minValue, maxValue, mpb);
+                            cachedShadowManager.areaShadowAtlas.DisplayAtlas(atlasTextures.cachedAreaShadowResult, cmd, debugMaterial, shadowRequest.cachedAtlasViewport, screenX, screenY, screenSizeX, screenSizeY, minValue, maxValue, mpb);
                         else
-                            m_AreaLightShadowAtlas.DisplayAtlas(atlasTextures.areaShadowAtlas, cmd, debugMaterial, shadowRequest.dynamicAtlasViewport, screenX, screenY, screenSizeX, screenSizeY, minValue, maxValue, mpb);
+                            m_AreaLightShadowAtlas.DisplayAtlas(atlasTextures.areaShadowResult, cmd, debugMaterial, shadowRequest.dynamicAtlasViewport, screenX, screenY, screenSizeX, screenSizeY, minValue, maxValue, mpb);
                     }
                     break;
                 }

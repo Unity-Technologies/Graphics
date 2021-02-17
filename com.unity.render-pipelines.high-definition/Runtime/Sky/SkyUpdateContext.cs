@@ -14,7 +14,7 @@ namespace UnityEngine.Rendering.HighDefinition
         public int          skyParametersHash = -1;
         public float        currentUpdateTime = 0.0f;
 
-        public bool        settingsHadBigDifferenceWithPrev { get; private set; }
+        public bool settingsHadBigDifferenceWithPrev { get; private set; }
 
         public SkySettings skySettings
         {
