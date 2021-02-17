@@ -31,10 +31,16 @@ public static class PerformanceTestUtils
     /// Don't forget to call CleanupTestSceneIfNeeded to release the render texture.
     /// </summary>
     /// <returns></returns>
-    public static PerformanceTestSceneSettings SetupTestScene()
+    public static PerformanceTestSceneSettings SetupTestScene(Vector2Int overrideCameraSize = default(Vector2Int))
     {
         var sceneSettings = GameObject.FindObjectOfType<PerformanceTestSceneSettings>();
         var camera = sceneSettings?.GetComponent<Camera>() ?? GameObject.FindObjectOfType<Camera>();
+
+        if (overrideCameraSize != default(Vector2Int))
+        {
+            sceneSettings.cameraWidth = overrideCameraSize.x;
+            sceneSettings.cameraHeight = overrideCameraSize.y;
+        }
 
         if (sceneSettings != null)
         {

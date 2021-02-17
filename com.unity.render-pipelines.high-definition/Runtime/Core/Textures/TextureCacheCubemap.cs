@@ -104,7 +104,6 @@ namespace UnityEngine.Rendering.HighDefinition
                 int panoHeightTop = 2 * width;
 
                 // create panorama 2D array. Hardcoding the render target for now. No convenient way atm to
-                // map from TextureFormat to RenderTextureFormat and don't want to deal with sRGB issues for now.
                 m_CacheNoCubeArray = new Texture2DArray(panoWidthTop, panoHeightTop, numCubeMaps, format, isMipMapped ? TextureCreationFlags.MipChain : TextureCreationFlags.None)
                 {
                     hideFlags = HideFlags.HideAndDontSave,

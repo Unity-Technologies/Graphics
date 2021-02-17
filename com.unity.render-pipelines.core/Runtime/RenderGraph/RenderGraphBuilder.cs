@@ -24,7 +24,7 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
         /// <returns>An updated resource handle to the input resource.</returns>
         public TextureHandle UseColorBuffer(in TextureHandle input, int index)
         {
-            CheckResource(input.handle);
+            CheckResource(input.handle, true);
             m_Resources.IncrementWriteCount(input.handle);
             m_RenderPass.SetColorBuffer(input, index);
             return input;
@@ -38,7 +38,7 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
         /// <returns>An updated resource handle to the input resource.</returns>
         public TextureHandle UseDepthBuffer(in TextureHandle input, DepthAccess flags)
         {
-            CheckResource(input.handle);
+            CheckResource(input.handle, true);
             m_Resources.IncrementWriteCount(input.handle);
             m_RenderPass.SetDepthBuffer(input, flags);
             return input;
@@ -252,13 +252,14 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
             m_Disposed = true;
         }
 
-        void CheckResource(in ResourceHandle res)
+        void CheckResource(in ResourceHandle res, bool dontCheckTransientReadWrite = false)
         {
 #if DEVELOPMENT_BUILD || UNITY_EDITOR
             if (res.IsValid())
             {
                 int transientIndex = m_Resources.GetRenderGraphResourceTransientIndex(res);
-                if (transientIndex == m_RenderPass.index)
+                // We have dontCheckTransientReadWrite here because users may want to use UseColorBuffer/UseDepthBuffer API to benefit from render target auto binding. In this case we don't want to raise the error.
+                if (transientIndex == m_RenderPass.index && !dontCheckTransientReadWrite)
                 {
                     Debug.LogError($"Trying to read or write a transient resource at pass {m_RenderPass.name}.Transient resource are always assumed to be both read and written.");
                 }
