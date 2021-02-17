@@ -717,7 +717,8 @@ namespace UnityEditor.ShaderGraph.Drawing.Inspector.PropertyDrawers
                     {
                         var svt = m_VTReorderableList.list[index] as SerializableVirtualTextureLayer;
                         var otherPropertyRefNames = graphData.BuildPropertyReferenceNameList(virtualTextureProperty, svt.layerName);
-                        var newLayerRefName = GraphUtil.SanitizeName(otherPropertyRefNames, "{0}_{1}", evt.newValue);
+                        var newName = NodeUtils.ConvertToValidHLSLIdentifier(evt.newValue);
+                        var newLayerRefName = GraphUtil.SanitizeName(otherPropertyRefNames, "{0}_{1}", newName);
                         if (newLayerRefName != svt.layerRefName)
                         {
                             this._preChangeValueCallback("Change Layer Ref Name");
