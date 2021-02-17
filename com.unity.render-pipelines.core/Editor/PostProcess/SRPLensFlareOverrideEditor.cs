@@ -61,9 +61,9 @@ namespace UnityEditor.Rendering
             EditorGUILayout.EndFoldoutHeaderGroup();
             EditorGUILayout.BeginFoldoutHeaderGroup(false, "    Occlusion", EditorStyles.boldLabel);
             {
-                EditorGUILayout.PropertyField(m_OcclusionRadius);   // Occlusion Fade Radius
+                EditorGUILayout.PropertyField(m_OcclusionRadius); // Occlusion Fade Radius
                 ++EditorGUI.indentLevel;
-                EditorGUILayout.PropertyField(m_SamplesCount);      //
+                EditorGUILayout.PropertyField(m_SamplesCount);
                 --EditorGUI.indentLevel;
                 EditorGUILayout.PropertyField(m_OcclusionOffset);
                 EditorGUILayout.PropertyField(m_AllowOffScreen);

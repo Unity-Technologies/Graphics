@@ -1,3 +1,7 @@
+#if UNITY_EDITOR
+using UnityEditor;
+#endif
+
 namespace UnityEngine
 {
     /// <summary>
@@ -115,6 +119,28 @@ namespace UnityEngine
             if (lensFlareData == null)
             {
                 SRPLensFlareCommon.Instance.RemoveData(this);
+            }
+        }
+
+        //void OnDrawGizmosSelected()
+        //{
+        //
+        //}
+        void OnDrawGizmosSelected()
+        {
+            //Gizmos.DrawWireSphere(transform.position, occlusionRadius);
+            Camera mainCam = Camera.current;
+            if (mainCam != null)
+            {
+                Color previous = Handles.color;
+                Color previousH = Gizmos.color;
+                Handles.color = Color.red;
+                Gizmos.color = Handles.color;
+                Vector3 dir = (mainCam.transform.position - transform.position).normalized;
+                Handles.DrawWireDisc(transform.position + dir * occlusionOffset, dir, occlusionRadius, 2.0f);
+                //Gizmos.DrawWireSphere(transform.position, occlusionRadius);
+                Gizmos.color = previousH;
+                Handles.color = previous;
             }
         }
     }

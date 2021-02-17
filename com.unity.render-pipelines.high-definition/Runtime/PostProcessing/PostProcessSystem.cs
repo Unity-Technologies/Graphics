@@ -2209,7 +2209,8 @@ namespace UnityEngine.Rendering.HighDefinition
                 Vector2 occlusionRadiusEdgeScreenPos1 = (Vector2)cam.WorldToViewportPoint(positionWS + cam.transform.up * comp.occlusionRadius);
                 float occlusionRadius = (occlusionRadiusEdgeScreenPos1 - occlusionRadiusEdgeScreenPos0).magnitude;
 
-                Vector3 screenPosZ = cam.WorldToViewportPoint(positionWS - comp.occlusionOffset * cam.transform.forward);
+                Vector3 dir = (cam.transform.position - comp.transform.position).normalized;
+                Vector3 screenPosZ = cam.WorldToViewportPoint(positionWS + dir * comp.occlusionOffset);
                 Vector4 flareData1 = new Vector4(screenPos.x, screenPos.y, screenPosZ.z, occlusionRadius);
                 cmd.SetGlobalVector(HDShaderIDs._FlareData1, flareData1);
 
