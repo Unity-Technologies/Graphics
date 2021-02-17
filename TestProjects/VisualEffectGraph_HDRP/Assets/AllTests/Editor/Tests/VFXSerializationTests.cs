@@ -8,8 +8,11 @@ using UnityEditor.VFX.Block.Test;
 using UnityEngine.VFX;
 using UnityEditor.VFX;
 
+
 using Object = UnityEngine.Object;
 using System.IO;
+using UnityEngine.TestTools;
+using System.Collections;
 
 namespace UnityEditor.VFX.Test
 {
@@ -495,6 +498,42 @@ namespace UnityEditor.VFX.Test
 
             Assert.AreEqual(1, recordedSize.GroupBy(o => o).Count());
         }
+
+        //Cover regression test : 1315191
+        [UnityTest]
+        public IEnumerator Save_Then_Modify_Something_Check_The_Content_Isnt_Reverted()
+        {
+            string path = null;
+            uint baseValue = 100;
+            var graph = VFXTestCommon.MakeTemporaryGraph();
+            {
+                path = AssetDatabase.GetAssetPath(graph);
+
+                var unsigned = ScriptableObject.CreateInstance<VFXInlineOperator>();
+                unsigned.SetSettingValue("m_Type", (SerializableType)typeof(uint));
+                unsigned.inputSlots[0].value = baseValue;
+                graph.AddChild(unsigned);
+
+                AssetDatabase.ImportAsset(path);
+            }
+            yield return null;
+
+            for (uint i = 0; i < 3; ++i)
+            {
+                var inlineOperator = graph.children.OfType<VFXInlineOperator>().FirstOrDefault();
+                Assert.IsNotNull(inlineOperator);
+                Assert.AreEqual(baseValue + i, (uint)inlineOperator.inputSlots[0].value, "Failing at iteration : " + i);
+                graph.GetResource().WriteAsset();
+
+                inlineOperator.inputSlots[0].value = baseValue + i + 1; //Update for next iteration
+                Assert.AreEqual(baseValue + i + 1, (uint)inlineOperator.inputSlots[0].value);
+                AssetDatabase.ImportAsset(path);
+                yield return null;
+            }
+
+            VFXTestCommon.DeleteAllTemporaryGraph(); //TODOPAUL : use tear down
+        }
+
     }
 }
 #endif

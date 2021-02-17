@@ -100,8 +100,20 @@ namespace UnityEditor.VFX
     }
 
     [Serializable]
-    class VFXSerializableObject
+    class VFXSerializableObject : ISerializationCallbackReceiver
     {
+        public virtual void OnBeforeSerialize()
+        {
+            if (!string.IsNullOrEmpty(m_SerializableObject))
+                Debug.Log("OnBeforeSerialize : " + m_SerializableObject);
+        }
+
+        public virtual void OnAfterDeserialize()
+        {
+            if (!string.IsNullOrEmpty(m_SerializableObject))
+                Debug.Log("OnAfterDeserialize : " + m_SerializableObject);
+        }
+
         private VFXSerializableObject() {}
 
         public VFXSerializableObject(Type type, object obj) : this(type)
@@ -267,6 +279,7 @@ namespace UnityEditor.VFX
 
             if (obj.GetType().IsPrimitive)
             {
+                Debug.Log("Saving : " + obj);
                 return string.Format(CultureInfo.InvariantCulture, "{0}", obj);
             }
             else if (obj is UnityEngine.Object) //type is a unity object
@@ -372,10 +385,10 @@ namespace UnityEditor.VFX
                     catch (MissingMethodException)
                     {
                         Debug.LogError(type.Name + " Doesn't seem to have a default constructor");
-
                         throw;
                     }
 
+                Debug.Log("Loading : " + text);
                 return Convert.ChangeType(text, type, CultureInfo.InvariantCulture);
             }
             else if (typeof(UnityEngine.Object).IsAssignableFrom(type))
