@@ -2008,7 +2008,21 @@ namespace UnityEngine.Rendering.HighDefinition
 
                 try
                 {
-                    ExecuteWithRenderGraph(renderRequest, aovRequest, aovBuffers, aovCustomPassBuffers, renderContext, cmd);
+                    using (new ProfilingScope(null, ProfilingSampler.Get(HDProfileId.BuildHDRPRenderGraph)))
+                    {
+                        BuildRenderGraph(renderRequest, aovRequest, aovBuffers, aovCustomPassBuffers, renderContext, cmd);
+                    }
+
+                    m_RenderGraph.Execute();
+
+                    if (aovRequest.isValid)
+                    {
+                        // aovRequest.Execute don't go through render graph for now
+                        using (new ProfilingScope(cmd, ProfilingSampler.Get(HDProfileId.AOVExecute)))
+                        {
+                            aovRequest.Execute(cmd, aovBuffers, aovCustomPassBuffers, RenderOutputProperties.From(hdCamera));
+                        }
+                    }
                 }
                 catch (Exception e)
                 {

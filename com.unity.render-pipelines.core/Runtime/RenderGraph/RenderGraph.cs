@@ -566,50 +566,56 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
         /// </summary>
         public void Execute()
         {
-            m_ExecutionExceptionWasRaised = false;
-
-            try
+            using (new ProfilingScope(null, ProfilingSampler.Get(RenderGraphProfileId.RenderGraphExecute)))
             {
-                if (m_RenderGraphContext.cmd == null)
-                    throw new InvalidOperationException("RenderGraph.Begin was not called before executing the render graph.");
+                m_ExecutionExceptionWasRaised = false;
 
-
-                if (!m_DebugParameters.immediateMode)
+                try
                 {
-                    LogFrameInformation();
+                    if (m_RenderGraphContext.cmd == null)
+                        throw new InvalidOperationException("RenderGraph.Begin was not called before executing the render graph.");
 
-                    CompileRenderGraph();
 
-                    m_Resources.BeginExecute(m_CurrentFrameIndex);
+                    if (!m_DebugParameters.immediateMode)
+                    {
+                        LogFrameInformation();
 
-                    ExecuteRenderGraph();
+                        CompileRenderGraph();
+
+                        m_Resources.BeginExecute(m_CurrentFrameIndex);
+
+                        ExecuteRenderGraph();
+                    }
                 }
-            }
-            catch (Exception e)
-            {
-                Debug.LogError("Render Graph Execution error");
-                if (!m_ExecutionExceptionWasRaised) // Already logged. TODO: There is probably a better way in C# to handle that.
-                    Debug.LogException(e);
-                m_ExecutionExceptionWasRaised = true;
-            }
-            finally
-            {
-                if (!m_ExecutionExceptionWasRaised && requireDebugData)
-                    GenerateDebugData();
+                catch (Exception e)
+                {
+                    Debug.LogError("Render Graph Execution error");
+                    if (!m_ExecutionExceptionWasRaised) // Already logged. TODO: There is probably a better way in C# to handle that.
+                        Debug.LogException(e);
+                    m_ExecutionExceptionWasRaised = true;
+                }
+                finally
+                {
+                    using (new ProfilingScope(null, ProfilingSampler.Get(RenderGraphProfileId.RenderGraphFinalize)))
+                    {
+                        if (!m_ExecutionExceptionWasRaised && requireDebugData)
+                            GenerateDebugData();
 
-                if (m_DebugParameters.immediateMode)
-                    ReleaseImmediateModeResources();
+                        if (m_DebugParameters.immediateMode)
+                            ReleaseImmediateModeResources();
 
-                ClearCompiledGraph();
+                        ClearCompiledGraph();
 
-                if (m_DebugParameters.logFrameInformation || m_DebugParameters.logResources)
-                    Debug.Log(m_Logger.GetLog());
+                        if (m_DebugParameters.logFrameInformation || m_DebugParameters.logResources)
+                            Debug.Log(m_Logger.GetLog());
 
-                m_Resources.EndExecute();
+                        m_Resources.EndExecute();
 
-                InvalidateContext();
+                        InvalidateContext();
 
-                m_HasRenderGraphBegun = false;
+                        m_HasRenderGraphBegun = false;
+                    }
+                }
             }
         }
 
@@ -1061,11 +1067,14 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
         // - Cull unused render passes.
         internal void CompileRenderGraph()
         {
-            InitializeCompilationData();
-            CountReferences();
-            CullUnusedPasses();
-            UpdateResourceAllocationAndSynchronization();
-            LogRendererListsCreation();
+            using (new ProfilingScope(null, ProfilingSampler.Get(RenderGraphProfileId.RenderGraphCompile)))
+            {
+                InitializeCompilationData();
+                CountReferences();
+                CullUnusedPasses();
+                UpdateResourceAllocationAndSynchronization();
+                LogRendererListsCreation();
+            }
         }
 
         ref CompiledPassInfo CompilePassImmediatly(RenderGraphPass pass)
@@ -1092,7 +1101,7 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
                         m_ImmediateModeResourceList[iType].Add(res);
                     }
 
-#if DEVELOPMENT_BUILD || UNITY_EDITOR
+#if DIAGNOSTIC_CODE
                     passInfo.debugResourceWrites[iType].Add(m_Resources.GetRenderGraphResourceName(res));
 #endif
                 }
@@ -1102,7 +1111,7 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
                     passInfo.resourceCreateList[iType].Add(res);
                     passInfo.resourceReleaseList[iType].Add(res);
 
-#if DEVELOPMENT_BUILD || UNITY_EDITOR
+#if DIAGNOSTIC_CODE
                     passInfo.debugResourceWrites[iType].Add(m_Resources.GetRenderGraphResourceName(res));
                     passInfo.debugResourceReads[iType].Add(m_Resources.GetRenderGraphResourceName(res));
 #endif
@@ -1110,7 +1119,7 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
 
                 foreach (var res in pass.resourceReadLists[iType])
                 {
-#if DEVELOPMENT_BUILD || UNITY_EDITOR
+#if DIAGNOSTIC_CODE
                     passInfo.debugResourceReads[iType].Add(m_Resources.GetRenderGraphResourceName(res));
 #endif
                 }
@@ -1168,9 +1177,12 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
         // Execute the compiled render graph
         void ExecuteRenderGraph()
         {
-            for (int passIndex = 0; passIndex < m_CompiledPassInfos.size; ++passIndex)
+            using (new ProfilingScope(null, ProfilingSampler.Get(RenderGraphProfileId.RenderGraphExecutePasses)))
             {
-                ExecuteCompiledPass(ref m_CompiledPassInfos[passIndex], passIndex);
+                for (int passIndex = 0; passIndex < m_CompiledPassInfos.size; ++passIndex)
+                {
+                    ExecuteCompiledPass(ref m_CompiledPassInfos[passIndex], passIndex);
+                }
             }
         }
 

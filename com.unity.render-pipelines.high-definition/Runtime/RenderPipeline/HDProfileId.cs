@@ -4,6 +4,8 @@ namespace UnityEngine.Rendering.HighDefinition
 {
     internal enum HDProfileId
     {
+        BuildHDRPRenderGraph,
+
         CopyDepthBuffer,
         CopyDepthInTargetTexture,
         BuildCoarseStencilAndResolveIfNeeded,

@@ -17,7 +17,7 @@ namespace UnityEngine.Rendering.HighDefinition
         internal bool m_ShouldOverrideColorBufferFormat = false;
         GraphicsFormat m_AOVGraphicsFormat = GraphicsFormat.None;
 
-        void ExecuteWithRenderGraph(RenderRequest           renderRequest,
+        void BuildRenderGraph(RenderRequest           renderRequest,
             AOVRequestData          aovRequest,
             List<RTHandle>          aovBuffers,
             List<RTHandle>          aovCustomPassBuffers,
@@ -310,17 +310,6 @@ namespace UnityEngine.Rendering.HighDefinition
             RenderWireOverlay(m_RenderGraph, hdCamera, backBuffer);
 
             RenderGizmos(m_RenderGraph, hdCamera, colorBuffer, GizmoSubset.PostImageEffects);
-
-            m_RenderGraph.Execute();
-
-            if (aovRequest.isValid)
-            {
-                // aovRequest.Execute don't go through render graph for now
-                using (new ProfilingScope(commandBuffer, ProfilingSampler.Get(HDProfileId.AOVExecute)))
-                {
-                    aovRequest.Execute(commandBuffer, aovBuffers, aovCustomPassBuffers, RenderOutputProperties.From(hdCamera));
-                }
-            }
         }
 
         class FinalBlitPassData
