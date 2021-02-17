@@ -22,8 +22,6 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed lights shadow frustum near and far planes.
 - Fixed various issues with non-temporal SSAO and rendergraph.
 - Fixed white flashes on camera cuts on volumetric fog.
-- Fix screen being over-exposed when changing very different skies.
-- White flashes on camera cuts on volumetric fog.
 - Fixed light layer issue when performing editing on multiple lights.
 - Fixed an issue where selection in a debug panel would reset when cycling through enum items.
 - Fixed material keywords with fbx importer.
@@ -45,10 +43,6 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Changed Window/Render Pipeline/HD Render Pipeline Wizard to Window/Rendering/HDRP Wizard
 - Removed the material pass probe volumes evaluation mode.
 - Move the Decal Gizmo Color initialization to preferences
-- Change the source value for the ray tracing frame index iterator from m_FrameCount to the camera frame count (case 1301356).
-- Change some light unit slider value ranges to better reflect the lighting scenario.
-- Transparent materials created by the Model Importer are set to not cast shadows. ( case 1295747)
-- Change the tooltip for color shadows and semi-transparent shadows (case 1307704).
 - Unifying the history validation pass so that it is only done once for the whole frame and not per effect.
 - Moved Edit/Render Pipeline/HD Render Pipeline/Render Selected Camera to log Exr to Edit/Rendering/Render Selected HDRP Camera to log Exr
 - Moved Edit/Render Pipeline/HD Render Pipeline/Export Sky to Image to Edit/Rendering/Export HDRP Sky to Image
@@ -75,8 +69,6 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Change labels about scroll direction and cloud type.
 - Improved shadow cascade GUI drawing with pixel perfect, hover and focus functionalities.
 - Improving the screen space global illumination.
-- Updated the tooltip for the Decal Angle Fade property (requires to enable Decal Layers in both HDRP asset and Frame settings) (case 1308048).
-- Fixed skybox for ortho cameras.
 - Changed resolution (to match the render buffer) of the sky used for camera misses in Path Tracing. (case 1304114).
 
 ## [11.0.0] - 2020-10-21
