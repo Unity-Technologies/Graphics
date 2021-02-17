@@ -76,15 +76,8 @@ float3 GetSize(Attributes attributes)
 
 // Loads the element-specific attribute data, as well as fills any interpolator.
 #define VaryingsMeshType VaryingsMeshToPS
-void GetElementAndInterpolator(uint index, inout Attributes attributes, inout VaryingsMeshType output)
+bool GetElementAndInterpolator(uint index, inout Attributes attributes, inout VaryingsMeshType output)
 {
-    uint deadCount = 0;
-    #if USE_DEAD_LIST_COUNT
-    deadCount = deadListCount.Load(0);
-    #endif
-    if (index >= asuint(nbMax) - deadCount)
-        return;
-
     $splice(VFXLoadAttribute)
 
     #if HAS_STRIPS
@@ -95,10 +88,21 @@ void GetElementAndInterpolator(uint index, inout Attributes attributes, inout Va
 
     #if !HAS_STRIPS
     if (!attributes.alive)
-        return;
+        return false;
     #endif
 
     $splice(VFXInterpolantsGeneration)
+
+    return true;
+}
+
+bool ShouldCull(uint index)
+{
+    uint deadCount = 0;
+#if USE_DEAD_LIST_COUNT
+    deadCount = deadListCount.Load(0);
+#endif
+    return (index >= asuint(nbMax) - deadCount);
 }
 
 // Configure the output type-spcific mesh definition and index calculation for the rest of the element data.

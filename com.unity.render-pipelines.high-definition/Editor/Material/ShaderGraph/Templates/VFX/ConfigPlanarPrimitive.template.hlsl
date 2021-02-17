@@ -38,7 +38,7 @@ float3 GetStripTangent(float3 currentPos, uint relativeIndex, const StripData st
 }
 #endif
 
-void GetMeshAndElementIndex(inout AttributesMesh input, inout uint index)
+bool GetMeshAndElementIndex(inout AttributesMesh input, inout uint index)
 {
     uint id = input.vertexID;
 
@@ -55,7 +55,7 @@ void GetMeshAndElementIndex(inout AttributesMesh input, inout uint index)
         uint maxEdgeIndex = relativeIndexInStrip - PARTICLE_IN_EDGE + 1;
 
         if (maxEdgeIndex >= stripData.nextIndex)
-            return;
+            return false;
 
         index = GetParticleIndex(relativeIndexInStrip, stripData);
     #else
@@ -64,6 +64,9 @@ void GetMeshAndElementIndex(inout AttributesMesh input, inout uint index)
     #elif VFX_PRIMITIVE_OCTAGON
         index = (id >> 3) + VFX_GET_INSTANCE_ID(i) * 1024;
     #endif
+
+    if (ShouldCull(index))
+        return false;
 
     #if VFX_HAS_INDIRECT_DRAW
     index = indirectBuffer[index];
@@ -132,4 +135,6 @@ void GetMeshAndElementIndex(inout AttributesMesh input, inout uint index)
 #ifdef ATTRIBUTES_NEED_TEXCOORD0
     input.uv0 = uv;
 #endif
+
+    return true;
 }

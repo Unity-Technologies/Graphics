@@ -136,13 +136,15 @@ VaryingsMeshType VertMesh(AttributesMesh input, float3 worldSpaceOffset)
     UNITY_TRANSFER_INSTANCE_ID(input, output);
 
 #if defined(HAVE_VFX_MODIFICATION)
-    uint elementIndex;
-    GetMeshAndElementIndex(input, elementIndex);
-
-    // TODO: Maybe split this up.
-    Attributes element;
     ZERO_INITIALIZE(VaryingsMeshType, output);
-    GetElementAndInterpolator(elementIndex, element, output);
+
+    uint elementIndex;
+    if(!GetMeshAndElementIndex(input, elementIndex))
+        return output;
+
+    Attributes element;
+    if(!GetElementAndInterpolator(elementIndex, element, output))
+        return output;
 
     input = TransformMeshToElement(input, element);
 #endif
