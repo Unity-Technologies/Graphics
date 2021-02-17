@@ -2,6 +2,7 @@ using UnityEditor.SceneManagement;
 using UnityEngine;
 using UnityEngine.Rendering.Universal;
 using UnityEngine.Experimental.Rendering.Universal;
+using UnityEngine.Rendering;
 
 namespace UnityEditor.Experimental.Rendering.Universal
 {
@@ -133,7 +134,7 @@ namespace UnityEditor.Experimental.Rendering.Universal
             }
         }
 
-        [MenuItem("Edit/Render Pipeline/Universal Render Pipeline/Upgrade Project Materials to 2D Renderer Materials", false)]
+        [MenuItem("Edit/Rendering/Materials/Convert All Built-in Materials to URP 2D Renderer", false, priority = CoreUtils.Sections.section1 + CoreUtils.Priorities.editMenuPriority + 2)]
         static void UpgradeProjectTo2DRenderer()
         {
             if (!EditorUtility.DisplayDialog("2D Renderer Upgrader", "The upgrade will search for all prefabs in your project that use Sprite Renderers and change the material references of those Sprite Renderers to a lit material. You can't undo this operation. It's highly recommended to backup your project before proceeding.", "Proceed", "Cancel"))
@@ -144,7 +145,7 @@ namespace UnityEditor.Experimental.Rendering.Universal
             Resources.UnloadUnusedAssets();
         }
 
-        [MenuItem("Edit/Render Pipeline/Universal Render Pipeline/Upgrade Scene Materials to 2D Renderer Materials", false)]
+        [MenuItem("Edit/Rendering/Materials/Convert All Built-in Scene Materials to URP 2D Renderer", false, priority = CoreUtils.Sections.section1 + CoreUtils.Priorities.editMenuPriority + 3)]
         static void UpgradeSceneTo2DRenderer()
         {
             if (!EditorUtility.DisplayDialog("2D Renderer Upgrader", "The upgrade will change the material references of Sprite Renderers in currently open scene(s) to a lit material. You can't undo this operation. Make sure you save the scene(s) before proceeding.", "Proceed", "Cancel"))
@@ -160,8 +161,8 @@ namespace UnityEditor.Experimental.Rendering.Universal
             }
         }
 
-        [MenuItem("Edit/Render Pipeline/Universal Render Pipeline/Upgrade Project Materials to 2D Renderer Materials", true)]
-        [MenuItem("Edit/Render Pipeline/Universal Render Pipeline/Upgrade Scene Materials to 2D Renderer Materials", true)]
+        [MenuItem("Edit/Rendering/Materials/Convert All Built-in Materials to URP 2D Renderer", true)]
+        [MenuItem("Edit/Rendering/Materials/Convert All Built-in Scene Materials to URP 2D Renderer", true)]
         static bool MenuValidation()
         {
             return Light2DEditorUtility.IsUsing2DRenderer();
@@ -200,13 +201,13 @@ namespace UnityEditor.Experimental.Rendering.Universal
 
         // Set priority to get these to the bottom. Add test for pipeline enabled
 
-        [MenuItem("Edit/Render Pipeline/Universal Render Pipeline/Upgrade Project Parametric Lights to Freeform", false)]
+        [MenuItem("Edit/Rendering/Lights/Convert Project URP Parametric Lights to Freeform", false, priority = CoreUtils.Priorities.editMenuPriority + 1)]
         public static void UpgradeParametricLightsInProject()
         {
             UpgradeParametricLightsInProject(true);
         }
 
-        [MenuItem("Edit/Render Pipeline/Universal Render Pipeline/Upgrade Scene Parametric Lights to Freeform", false)]
+        [MenuItem("Edit/Rendering/Lights/Convert Scene URP Parametric Lights to Freeform", false, priority = CoreUtils.Priorities.editMenuPriority + 2)]
         public static void UpgradeParametricLightsInScene()
         {
             UpgradeParametricLightsInScene(true);

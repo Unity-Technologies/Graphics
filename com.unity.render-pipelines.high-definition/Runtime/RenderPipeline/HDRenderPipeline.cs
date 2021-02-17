@@ -434,6 +434,7 @@ namespace UnityEngine.Rendering.HighDefinition
             m_SkyManager.Build(asset, defaultResources, m_IBLFilterArray);
 
             InitializeVolumetricLighting();
+            InitializeVolumetricClouds();
             InitializeSubsurfaceScattering();
 
             m_DebugDisplaySettings.RegisterDebug();
@@ -1858,6 +1859,11 @@ namespace UnityEngine.Rendering.HighDefinition
             foreach (HDAdditionalLightData lightData in m_ScreenSpaceShadowsUnion)
             {
                 lightData.previousTransform = lightData.transform.localToWorldMatrix;
+            }
+
+            if (m_CurrentSunLightAdditionalLightData != null)
+            {
+                m_CurrentSunLightAdditionalLightData.previousTransform = m_CurrentSunLightAdditionalLightData.transform.localToWorldMatrix;
             }
         }
 

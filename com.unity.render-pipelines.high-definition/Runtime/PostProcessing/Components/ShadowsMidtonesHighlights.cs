@@ -30,6 +30,7 @@ namespace UnityEngine.Rendering.HighDefinition
         /// <summary>
         /// Sets the start point of the transition between shadows and midtones.
         /// </summary>
+        [Header("Shadow Limits")]
         [Tooltip("Sets the start point of the transition between shadows and midtones.")]
         public MinFloatParameter shadowsStart = new MinFloatParameter(0f, 0f);
 
@@ -42,6 +43,7 @@ namespace UnityEngine.Rendering.HighDefinition
         /// <summary>
         /// Sets the start point of the transition between midtones and highlights.
         /// </summary>
+        [Header("Highlight Limits")]
         [Tooltip("Sets the start point of the transition between midtones and highlights.")]
         public MinFloatParameter highlightsStart = new MinFloatParameter(0.55f, 0f);
 
