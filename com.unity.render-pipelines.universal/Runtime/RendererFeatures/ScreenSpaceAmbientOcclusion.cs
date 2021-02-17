@@ -73,7 +73,7 @@ namespace UnityEngine.Rendering.Universal
                 return;
             }
 
-            bool shouldAdd = m_SSAOPass.Setup(m_Settings, name, renderer, m_Material);
+            bool shouldAdd = m_SSAOPass.Setup(m_Settings, renderer, m_Material);
             if (shouldAdd)
             {
                 renderer.EnqueuePass(m_SSAOPass);
@@ -111,7 +111,7 @@ namespace UnityEngine.Rendering.Universal
         private class ScreenSpaceAmbientOcclusionPass : ScriptableRenderPass
         {
             // Properties
-            internal bool isRendererDeferred { get { return m_Renderer != null && m_Renderer is UniversalRenderer && ((UniversalRenderer)m_Renderer).renderingMode == RenderingMode.Deferred; } }
+            private bool isRendererDeferred => m_Renderer != null && m_Renderer is UniversalRenderer && ((UniversalRenderer)m_Renderer).renderingMode == RenderingMode.Deferred;
 
             // Private Variables
             private string m_ProfilerTag;
@@ -130,21 +130,21 @@ namespace UnityEngine.Rendering.Universal
             private ScreenSpaceAmbientOcclusionSettings m_CurrentSettings;
 
             // Constants
-            private const string k_SSAOAmbientOcclusionParamName = "_AmbientOcclusionParam";
             private const string k_SSAOTextureName = "_ScreenSpaceOcclusionTexture";
+            private const string k_SSAOAmbientOcclusionParamName = "_AmbientOcclusionParam";
 
             // Statics
             private static readonly int s_BaseMapID = Shader.PropertyToID("_BaseMap");
             private static readonly int s_SSAOParamsID = Shader.PropertyToID("_SSAOParams");
-            private static readonly int s_ProjectionParams2ID = Shader.PropertyToID("_ProjectionParams2");
-            private static readonly int s_CameraViewProjectionsID = Shader.PropertyToID("_CameraViewProjections");
-            private static readonly int s_CameraViewTopLeftCornerID = Shader.PropertyToID("_CameraViewTopLeftCorner");
-            private static readonly int s_CameraViewXExtentID = Shader.PropertyToID("_CameraViewXExtent");
-            private static readonly int s_CameraViewYExtentID = Shader.PropertyToID("_CameraViewYExtent");
-            private static readonly int s_CameraViewZExtentID = Shader.PropertyToID("_CameraViewZExtent");
             private static readonly int s_SSAOTexture1ID = Shader.PropertyToID("_SSAO_OcclusionTexture1");
             private static readonly int s_SSAOTexture2ID = Shader.PropertyToID("_SSAO_OcclusionTexture2");
             private static readonly int s_SSAOTexture3ID = Shader.PropertyToID("_SSAO_OcclusionTexture3");
+            private static readonly int s_CameraViewXExtentID = Shader.PropertyToID("_CameraViewXExtent");
+            private static readonly int s_CameraViewYExtentID = Shader.PropertyToID("_CameraViewYExtent");
+            private static readonly int s_CameraViewZExtentID = Shader.PropertyToID("_CameraViewZExtent");
+            private static readonly int s_ProjectionParams2ID = Shader.PropertyToID("_ProjectionParams2");
+            private static readonly int s_CameraViewProjectionsID = Shader.PropertyToID("_CameraViewProjections");
+            private static readonly int s_CameraViewTopLeftCornerID = Shader.PropertyToID("_CameraViewTopLeftCorner");
 
             private enum ShaderPasses
             {
@@ -155,21 +155,20 @@ namespace UnityEngine.Rendering.Universal
                 AfterOpaque = 4
             }
 
-            internal ScreenSpaceAmbientOcclusionPass()
+            internal ScreenSpaceAmbientOcclusionPass(string profilerTag = "ScreenSpaceAmbientOcclusionPass")
             {
+                m_ProfilerTag = profilerTag;
                 m_CurrentSettings = new ScreenSpaceAmbientOcclusionSettings();
             }
 
-            internal bool Setup(ScreenSpaceAmbientOcclusionSettings featureSettings, string profilerTag, ScriptableRenderer renderer, Material material)
+            internal bool Setup(ScreenSpaceAmbientOcclusionSettings featureSettings, ScriptableRenderer renderer, Material material)
             {
-                this.renderPassEvent = featureSettings.AfterOpaque ? RenderPassEvent.AfterRenderingOpaques : RenderPassEvent.AfterRenderingGbuffer;
-
-                m_ProfilerTag = profilerTag;
                 m_Material = material;
                 m_Renderer = renderer;
                 m_CurrentSettings = featureSettings;
+                renderPassEvent = featureSettings.AfterOpaque ? RenderPassEvent.AfterRenderingOpaques : RenderPassEvent.AfterRenderingGbuffer;
 
-                ScreenSpaceAmbientOcclusionSettings.DepthSource source = this.isRendererDeferred
+                ScreenSpaceAmbientOcclusionSettings.DepthSource source = isRendererDeferred
                     ? ScreenSpaceAmbientOcclusionSettings.DepthSource.DepthNormals
                     : m_CurrentSettings.Source;
 
@@ -185,9 +184,9 @@ namespace UnityEngine.Rendering.Universal
                         throw new ArgumentOutOfRangeException();
                 }
                 return m_Material != null
-                    &&  m_CurrentSettings.Intensity > 0.0f
-                    &&  m_CurrentSettings.Radius > 0.0f
-                    &&  m_CurrentSettings.SampleCount > 0;
+                    && m_CurrentSettings.Intensity > 0.0f
+                    && m_CurrentSettings.Radius > 0.0f
+                    && m_CurrentSettings.SampleCount > 0;
             }
 
             /// <inheritdoc/>
