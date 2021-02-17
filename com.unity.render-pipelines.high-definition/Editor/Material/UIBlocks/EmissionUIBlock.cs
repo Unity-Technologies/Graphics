@@ -211,37 +211,9 @@ namespace UnityEditor.Rendering.HighDefinition
             // Emission for GI?
             if ((m_Features & Features.EnableEmissionForGI) != 0)
             {
-                BakedEmissionEnabledProperty(materialEditor);
+                // Change the GI emission flag and fix it up with emissive as black if necessary.
+                materialEditor.LightmapEmissionFlagsProperty(MaterialEditor.kMiniTextureFieldLabelIndentLevel, true);
             }
-        }
-
-        /// <summary>
-        /// Draw the Baked Emission Enabled field
-        /// </summary>
-        /// <param name="materialEditor">The current material editor in use.</param>
-        /// <returns>True if the property is enabled on all selected materials.</returns>
-        public static bool BakedEmissionEnabledProperty(MaterialEditor materialEditor)
-        {
-            Material[] materials = Array.ConvertAll(materialEditor.targets, (UnityEngine.Object o) => { return (Material)o; });
-
-            // Calculate isMixed
-            bool enabled = materials[0].globalIlluminationFlags == MaterialGlobalIlluminationFlags.BakedEmissive;
-            bool isMixed = materials.Any(m => m.globalIlluminationFlags != materials[0].globalIlluminationFlags);
-
-            // initial checkbox for enabling/disabling emission
-            EditorGUI.BeginChangeCheck();
-            EditorGUI.showMixedValue = isMixed;
-            enabled = EditorGUILayout.Toggle(Styles.bakedEmission, enabled);
-            EditorGUI.showMixedValue = false;
-            if (EditorGUI.EndChangeCheck())
-            {
-                foreach (Material mat in materials)
-                {
-                    mat.globalIlluminationFlags = enabled ? MaterialGlobalIlluminationFlags.BakedEmissive : MaterialGlobalIlluminationFlags.EmissiveIsBlack;
-                }
-                return enabled;
-            }
-            return !isMixed && enabled;
         }
 
         void DoEmissiveTextureProperty(MaterialProperty color)

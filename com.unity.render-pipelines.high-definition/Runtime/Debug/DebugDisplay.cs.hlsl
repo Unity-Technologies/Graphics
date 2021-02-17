@@ -1,5 +1,5 @@
 //
-// This file was automatically generated. Please don't edit by hand. Execute Editor command [ Edit / Render Pipeline / Generate Shader Includes ] instead
+// This file was automatically generated. Please don't edit by hand. Execute Editor command [ Edit > Rendering > Generate Shader Includes ] instead
 //
 
 #ifndef DEBUGDISPLAY_CS_HLSL
@@ -39,6 +39,7 @@
 #define FULLSCREENDEBUGMODE_MAX_MATERIAL_FULL_SCREEN_DEBUG (29)
 #define FULLSCREENDEBUGMODE_SCREEN_SPACE_REFLECTIONS_PREV (30)
 #define FULLSCREENDEBUGMODE_SCREEN_SPACE_REFLECTIONS_ACCUM (31)
+#define FULLSCREENDEBUGMODE_WORLD_SPACE_POSITION (32)
 
 // Generated from UnityEngine.Rendering.HighDefinition.ShaderVariablesDebugDisplay
 // PackingRules = Exact

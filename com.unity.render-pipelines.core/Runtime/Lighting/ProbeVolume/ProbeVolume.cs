@@ -18,6 +18,7 @@ namespace UnityEngine.Rendering
     } // class ProbeVolumeArtistParameters
 
     /// <summary>
+    /// A marker to determine what area of the scene is considered by the Probe Volumes system
     /// </summary>
     [ExecuteAlways]
     [AddComponentMenu("Light/Experimental/Probe Volume")]
@@ -25,6 +26,10 @@ namespace UnityEngine.Rendering
     {
         [SerializeField] internal ProbeVolumeArtistParameters parameters = new ProbeVolumeArtistParameters(Color.white);
 
+        /// <summary>
+        /// Returns the extents of the volume.
+        /// </summary>
+        /// <returns>The extents of the ProbeVolume.</returns>
         public Vector3 GetExtents()
         {
             return parameters.size;

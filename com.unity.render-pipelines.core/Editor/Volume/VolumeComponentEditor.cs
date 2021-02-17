@@ -315,7 +315,7 @@ namespace UnityEditor.Rendering
                 }
 
                 var parameter = new SerializedDataParameter(t.Item2);
-                return (new GUIContent(name), order, parameter);
+                return (EditorGUIUtility.TrTextContent(name), order, parameter);
             })
                 .OrderBy(t => t.order)
                 .ToList();
@@ -456,6 +456,24 @@ namespace UnityEditor.Rendering
             PropertyField(property, title);
         }
 
+        static readonly Dictionary<string, GUIContent> s_HeadersGuiContents = new Dictionary<string, GUIContent>();
+
+        /// <summary>
+        /// Draws a header into the inspector with the given title
+        /// </summary>
+        /// <param name="header">The title for the header</param>
+        protected void DrawHeader(string header)
+        {
+            if (!s_HeadersGuiContents.TryGetValue(header, out GUIContent content))
+            {
+                content = EditorGUIUtility.TrTextContent(header);
+                s_HeadersGuiContents.Add(header, content);
+            }
+
+            var rect = EditorGUI.IndentedRect(EditorGUILayout.GetControlRect(false, EditorGUIUtility.singleLineHeight));
+            EditorGUI.LabelField(rect, content, EditorStyles.miniLabel);
+        }
+
         /// <summary>
         /// Handles unity built-in decorators (Space, Header, Tooltips, ...) from <see cref="SerializedDataParameter"/> attributes
         /// </summary>
@@ -475,8 +493,7 @@ namespace UnityEditor.Rendering
                         break;
                     case HeaderAttribute headerAttribute:
                     {
-                        var rect = EditorGUI.IndentedRect(EditorGUILayout.GetControlRect(false, EditorGUIUtility.singleLineHeight));
-                        EditorGUI.LabelField(rect, headerAttribute.header, EditorStyles.miniLabel);
+                        DrawHeader(headerAttribute.header);
                         break;
                     }
                     case TooltipAttribute tooltipAttribute:
