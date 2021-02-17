@@ -236,6 +236,10 @@ namespace UnityEditor.Rendering.Universal
                     m_AdditionalCameraDataCameras.DeleteArrayElementAtIndex(list.index);
                     ReorderableList.defaultBehaviours.DoRemoveButton(list);
                     m_AdditionalCameraDataSO.ApplyModifiedProperties();
+
+                    // Force update the list as removed camera could been there
+                    m_TypeErrorCameras.Clear();
+                    m_OutputWarningCameras.Clear();
                 };
 
                 m_LayerList.onAddDropdownCallback = (rect, list) => AddCameraToCameraList(rect, list);
