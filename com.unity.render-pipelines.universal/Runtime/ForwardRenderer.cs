@@ -266,7 +266,7 @@ namespace UnityEngine.Rendering.Universal
             Camera camera = cameraData.camera;
             RenderTextureDescriptor cameraTargetDescriptor = cameraData.cameraTargetDescriptor;
 
-            if(!cameraData.isPreviewCamera)
+            if(DebugHandler.IsDebugPassEnabled(ref cameraData))
             {
                 DebugHandler.Setup(context);
             }

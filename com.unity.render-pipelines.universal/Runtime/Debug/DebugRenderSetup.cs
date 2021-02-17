@@ -129,7 +129,7 @@ namespace UnityEngine.Rendering.Universal
             Begin();
         }
 
-        public DrawingSettings CreateDrawingSettings(ref RenderingData renderingData, DrawingSettings drawingSettings, SortingCriteria sortingCriteria)
+        public DrawingSettings CreateDrawingSettings(ref RenderingData renderingData, DrawingSettings drawingSettings, SortingCriteria sortingCriteria = SortingCriteria.None)
         {
             bool usesReplacementMaterial = (MaterialSettings.DebugVertexAttributeIndexData != DebugVertexAttributeMode.None);
 
