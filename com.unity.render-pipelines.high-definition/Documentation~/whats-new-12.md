@@ -23,7 +23,7 @@ From HDRP 12.0, More Options have become Additional Properties. The way to acces
 
 ### Top level menus
 
-From HDRP 12.0, various top level menus are now more consistent with the Universal Render Pipeline. The top level menus this change affects are:
+From HDRP 12.0, various top level menus are now different. This is to make the top level menus more consistent between HDRP and the Universal Render Pipeline. The top level menus this change affects are:
 
 * **Window**
   * HD Render Pipeline Wizard is now at **Window > Rendering > HDRP Wizard**
