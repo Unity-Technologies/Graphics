@@ -2235,10 +2235,12 @@ namespace UnityEngine.Rendering.HighDefinition
                     totalLengthNeg += Mathf.Abs(element.position);
                 }
 
-                Light light = comp.GetComponent<Light>();
                 Vector4 modulationByColor = Vector4.one;
                 Vector4 modulationAttenuation = Vector4.one;
-                float distanceAttenuation = 1.0f;
+                Vector3 diffToObject = comp.transform.position - cam.transform.position;
+                float distToObject = diffToObject.magnitude;
+                float distanceAttenuation = comp.distanceAttenuationCurve.length > 0 ? comp.distanceAttenuationCurve.Evaluate(distToObject) : 1.0f;
+                Light light = comp.GetComponent<Light>();
                 if (light != null)
                 {
                     if (light.useColorTemperature)
@@ -2246,9 +2248,7 @@ namespace UnityEngine.Rendering.HighDefinition
                     else
                         modulationByColor = light.color;
 
-                    Vector3 diff = light.transform.position - cam.transform.position;
-                    float distToLight = diff.magnitude;
-                    Vector3 toLight = diff / distToLight;
+                    Vector3 toLight = diffToObject / distToObject;
 
                     HDAdditionalLightData hdLightData = light.GetComponent<HDAdditionalLightData>();
                     // Must always be true
@@ -2350,8 +2350,6 @@ namespace UnityEngine.Rendering.HighDefinition
                             default: throw new Exception($"Unknown {typeof(HDLightType)}: {hdLightData.type}");
                         }
                     }
-
-                    distanceAttenuation = comp.distanceAttenuationCurve.length > 0 ? comp.distanceAttenuationCurve.Evaluate(distToLight) : 1.0f;
                 }
 
                 CoreUtils.SetRenderTarget(cmd, target);
