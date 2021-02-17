@@ -430,15 +430,9 @@ namespace UnityEditor.VFX.Test
             InnerSaveAndReloadTest("AttributeParameter", write, read);
         }
 
-        static System.Text.StringBuilder tempStringBuilder = new System.Text.StringBuilder();
-        private static void  HandleLog(string message, string stack, LogType type)
-        {
-            tempStringBuilder.AppendLine(message);
-        }
-
-        //Cover unexpected behavior from 1307562
-        [Test]
-        public void Verify_Orphan_Dependencies_Are_Correctly_Cleared()
+        //Cover unexpected behavior : 1307562
+        [UnityTest]
+        public IEnumerable Verify_Orphan_Dependencies_Are_Correctly_Cleared()
         {
             string path = null;
             {
@@ -469,15 +463,15 @@ namespace UnityEditor.VFX.Test
                 quadOutput.LinkFrom(basicInitialize);
             }
 
-            Application.logMessageReceived += HandleLog; //TEMP : Helper to gather log if C++ debug a lot of detauls
             var recordedSize = new List<long>();
             for (uint i = 0; i < 16; ++i)
             {
-                AssetDatabase.ImportAsset(path); //<== This probably where "ghost" references are restored.
+                yield return null;
+                AssetDatabase.ImportAsset(path);
                 var asset = AssetDatabase.LoadAssetAtPath<VisualEffectAsset>(path);
-
                 var graph = asset.GetResource().GetOrCreateGraph();
                 graph.GetResource().WriteAsset();
+
                 recordedSize.Add(new FileInfo(path).Length);
 
                 var quadOutput = graph.children.OfType<VFXPlanarPrimitiveOutput>().FirstOrDefault();
@@ -492,9 +486,6 @@ namespace UnityEditor.VFX.Test
                 var basicInitialize = graph.children.OfType<VFXBasicInitialize>().FirstOrDefault();
                 newQuadOutput.LinkFrom(basicInitialize);
             }
-            Application.logMessageReceived -= HandleLog;
-            File.WriteAllText(path + ".txt", tempStringBuilder.ToString());
-            tempStringBuilder.Clear();
 
             Assert.AreEqual(1, recordedSize.GroupBy(o => o).Count());
         }
@@ -530,8 +521,12 @@ namespace UnityEditor.VFX.Test
                 AssetDatabase.ImportAsset(path);
                 yield return null;
             }
+        }
 
-            VFXTestCommon.DeleteAllTemporaryGraph(); //TODOPAUL : use tear down
+        [OneTimeTearDown]
+        public void CleanUp()
+        {
+            VFXTestCommon.DeleteAllTemporaryGraph();
         }
 
     }
