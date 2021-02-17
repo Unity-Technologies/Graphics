@@ -32,14 +32,14 @@ Rendering properties controls how the visual effect instance will render and rec
 
 | Item                  | Description                                                  |
 | --------------------- | ------------------------------------------------------------ |
-| Priority              | **High Definition SRP Only**: Controls the Transparency ordering of the effect. |
-| Rendering Layer Mask  | **High Definition SRP:** Controls the Lighting Layer Mask, if it is configured in the High Definition SRP Asset.<br />**Universal SRP:** Determines which rendering layer this renderer lives on. |
-| Reflection Probes     | **Universal SRP Only**: Specifies if or how the renderer is affected by reflections in the Scene. |
+| Priority              | Controls the Transparency ordering of the effect.<br/><br/>This property only appears if the Project uses the High Definition Render Pipeline.|
+| Rendering Layer Mask  | This property functions differently depending on which render pipeline your Project uses.<br/>&#8226; **High Definition Render Pipeline**: Controls the Lighting Layer Mask, if it is configured in the HDRP Asset.<br />&#8226; **Universal Render Pipeline:** Determines which rendering layer this Renderer lives on.
+| Reflection Probes     | Specifies how reflections in the Scene affect the Renderer. <br/><br/>This property only appears if the Project uses the Universal Render Pipeline.|
 | Light Probes          | Controls the Use of Light probes to compute the Ambient Lighting of the Effect. |
 | Anchor Override       | (Visible Only using Blend Probes option for Light Probes) : Defines an alternative transform to compute the position of the probe sampling. |
 | Proxy Volume Override | (Visible Only using Proxy Volume option for Light Probes) : Defines an alternative Light Probe Proxy volume in order to compute the probe sampling. |
-| Sorting Layer         | Renderer's group among other [SpriteRenderer](https://docs.unity3d.com/ScriptReference/SpriteRenderer.html) components. |
-| Order in Layer        | Renderer's order with a sorting layer relative to other [SpriteRenderer](https://docs.unity3d.com/ScriptReference/SpriteRenderer.html) components. See also [Renderer.sortingOrder](https://docs.unity3d.com/ScriptReference/Renderer-sortingOrder.html). |
+| Sorting Layer         | Specifies the Renderer's group among other [SpriteRenderer](https://docs.unity3d.com/ScriptReference/SpriteRenderer.html) components. |
+| Order in Layer        | Specifies the Renderer's order with a sorting layer relative to other [SpriteRenderer](https://docs.unity3d.com/ScriptReference/SpriteRenderer.html) components. See also [Renderer.sortingOrder](https://docs.unity3d.com/ScriptReference/Renderer-sortingOrder.html). |
 
 #### Properties
 
