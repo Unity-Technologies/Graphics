@@ -33,7 +33,7 @@ Rendering properties controls how the visual effect instance will render and rec
 | Item                  | Description                                                  |
 | --------------------- | ------------------------------------------------------------ |
 | Priority              | Controls the Transparency ordering of the effect.<br/><br/>This property only appears if the Project uses the High Definition Render Pipeline.|
-| Rendering Layer Mask  | This property functions differently depending on which render pipeline your Project uses.<br/>&#8226; **High Definition Render Pipeline**: Controls the Lighting Layer Mask, if it is configured in the HDRP Asset.<br />&#8226; **Universal Render Pipeline:** Determines which rendering layer this Renderer lives on.
+| Rendering Layer Mask  | This property functions differently depending on which render pipeline your Project uses.<br/>&#8226; **High Definition Render Pipeline**: Controls the Lighting Layer Mask, if it is configured in the HDRP Asset.<br />&#8226; **Universal Render Pipeline**: Determines which rendering layer this Renderer lives on.
 | Reflection Probes     | Specifies how reflections in the Scene affect the Renderer. <br/><br/>This property only appears if the Project uses the Universal Render Pipeline.|
 | Light Probes          | Controls the Use of Light probes to compute the Ambient Lighting of the Effect. |
 | Anchor Override       | (Visible Only using Blend Probes option for Light Probes) : Defines an alternative transform to compute the position of the probe sampling. |
