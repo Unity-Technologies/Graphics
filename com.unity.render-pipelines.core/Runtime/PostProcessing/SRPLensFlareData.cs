@@ -115,7 +115,8 @@ namespace UnityEngine
         public SRPLensFlareData()
         {
             globalIntensity = 1.0f;
-            scaleCurve = new AnimationCurve(new Keyframe(0.0f, 1.0f), new Keyframe(1.0f, 1.0f));
+            //scaleCurve = new AnimationCurve(new Keyframe(0.0f, 1.0f), new Keyframe(1.0f, 1.0f));
+            scaleCurve = new AnimationCurve(new Keyframe(-1.0f, 1.0f, -1.0f, -1.0f), new Keyframe(0.0f, 0.0f, -1.0f, 1.0f), new Keyframe(1.0f, 1.0f, 1.0f, 1.0f));
             positionCurve = new AnimationCurve(new Keyframe(-1.0f, -1.0f, 1.0f, 1.0f), new Keyframe(0.0f, 0.0f, 1.0f, 1.0f), new Keyframe(1.0f, 1.0f, 1.0f, 1.0f));
             elements = null;
         }
