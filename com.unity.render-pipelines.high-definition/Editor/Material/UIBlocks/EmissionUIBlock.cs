@@ -120,7 +120,7 @@ namespace UnityEditor.Rendering.HighDefinition
             }
         }
 
-        public static void UpdateEmissiveColorFromIntensityAndEmissiveColorLDR(MaterialEditor materialEditor, Material[] materials)
+        internal static void UpdateEmissiveColorFromIntensityAndEmissiveColorLDR(MaterialEditor materialEditor, Material[] materials)
         {
             materialEditor.serializedObject.ApplyModifiedProperties();
             foreach (Material target in materials)
@@ -130,7 +130,7 @@ namespace UnityEditor.Rendering.HighDefinition
             materialEditor.serializedObject.Update();
         }
 
-        public static void UpdateEmissiveColorLDRFromIntensityAndEmissiveColor(MaterialEditor materialEditor, Material[] materials)
+        internal static void UpdateEmissiveColorLDRFromIntensityAndEmissiveColor(MaterialEditor materialEditor, Material[] materials)
         {
             materialEditor.serializedObject.ApplyModifiedProperties();
             foreach (Material target in materials)
