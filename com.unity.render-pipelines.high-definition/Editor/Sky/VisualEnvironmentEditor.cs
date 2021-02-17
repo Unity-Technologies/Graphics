@@ -113,7 +113,7 @@ namespace UnityEditor.Rendering.HighDefinition
         {
             UpdateSkyAndFogIntPopupData();
 
-            EditorGUILayout.LabelField(EditorGUIUtility.TrTextContent("Sky"), EditorStyles.miniLabel);
+            DrawHeader("Sky");
             using (new EditorGUILayout.HorizontalScope())
             {
                 DrawOverrideCheckbox(m_SkyType);

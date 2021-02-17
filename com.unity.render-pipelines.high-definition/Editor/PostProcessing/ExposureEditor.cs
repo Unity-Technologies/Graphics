@@ -100,10 +100,6 @@ namespace UnityEditor.Rendering.HighDefinition
 
                 if (m_MeteringMode.value.intValue == (int)MeteringMode.ProceduralMask)
                 {
-                    EditorGUILayout.Space();
-                    EditorGUILayout.LabelField("Procedural Mask", EditorStyles.miniLabel);
-
-
                     PropertyField(m_CenterAroundTarget);
 
                     var centerLabel = EditorGUIUtility.TrTextContent("Center", "Sets the center of the procedural metering mask ([0,0] being bottom left of the screen and [1,1] top right of the screen)");
@@ -157,8 +153,6 @@ namespace UnityEditor.Rendering.HighDefinition
 
                 if (mode == (int)ExposureMode.AutomaticHistogram)
                 {
-                    EditorGUILayout.Space();
-                    EditorGUILayout.LabelField("Histogram", EditorStyles.miniLabel);
                     PropertyField(m_HistogramPercentages);
                     PropertyField(m_HistogramCurveRemapping, EditorGUIUtility.TrTextContent("Use Curve Remapping"));
                     if (m_HistogramCurveRemapping.value.boolValue)
@@ -168,9 +162,6 @@ namespace UnityEditor.Rendering.HighDefinition
                         PropertyField(m_CurveMax, EditorGUIUtility.TrTextContent("Limit Max"));
                     }
                 }
-
-                EditorGUILayout.Space();
-                EditorGUILayout.LabelField("Adaptation", EditorStyles.miniLabel);
 
                 PropertyField(m_AdaptationMode, EditorGUIUtility.TrTextContent("Mode"));
 
