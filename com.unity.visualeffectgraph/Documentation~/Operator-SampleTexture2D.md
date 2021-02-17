@@ -2,9 +2,11 @@
 
 Menu Path : **Operator > Sampling > Sample Texture2D**
 
-The **Sample Texture2D** Operator samples a Texture2D for a specified UV and Mip level. This Operator uses the same **Filter Mode** and **Wrap Mode** as the input texture’s [texture's import settings.](https://docs.unity3d.com/Manual/class-TextureImporter.html)
+The **Sample Texture2D** Operator samples a Texture2D for a specified UV and Mip level. This Operator uses the same **Filter Mode** and **Wrap Mode** as the input texture’s [import settings](https://docs.unity3d.com/Manual/class-TextureImporter.html).
 
-This translates to a Sample call on the texture in High-Level Shading Language (HLSL).
+This translates to a Sample() call on the texture in High-Level Shading Language (HLSL). For information on the differences between loading and sampling, see [Loading and sampling](#loading-and-sampling).
+
+[!include[](Snippets/Operator-LoadingAndSampling.md)]
 
 ## Operator properties
 

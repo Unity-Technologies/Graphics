@@ -1,10 +1,18 @@
 project:
   name: URPUpdate
   folder: URP-Update-Testing/URP-Update-Testing
+  variables:
+    TEMPLATE_UPDATE_PROJECT_BRANCH: master
+    TEMPLATE_UPDATE_PROJECT_REVISION: 61a06c2185bfd01c8c260a6210715edc53f23a54
 
 reuse_blocks:
   setup_with_utr:
-    - [all]: git clone https://github.cds.internal.unity3d.com/sophia/URP-Update-testing.git TestProjects/URP-Update-Testing
+    - [iPhone_Metal, OSX_Metal, Linux_Vulkan]: git clone https://github.cds.internal.unity3d.com/sophia/URP-Update-testing.git -b $TEMPLATE_UPDATE_PROJECT_BRANCH TestProjects/URP-Update-Testing
+    - [Win_DX11, Win_DX12, Win_Vulkan, Android_OpenGLES3, Android_Vulkan]: git clone https://github.cds.internal.unity3d.com/sophia/URP-Update-testing.git -b %TEMPLATE_UPDATE_PROJECT_BRANCH% TestProjects/URP-Update-Testing
+      
+    - [iPhone_Metal, OSX_Metal, Linux_Vulkan]: cd TestProjects/URP-Update-Testing && git checkout $TEMPLATE_UPDATE_PROJECT_REVISION
+    - [Win_DX11, Win_DX12, Win_Vulkan, Android_OpenGLES3, Android_Vulkan]: cd TestProjects/URP-Update-Testing && git checkout %TEMPLATE_UPDATE_PROJECT_REVISION%
+
     - [Win_DX11, Win_DX12, Win_Vulkan]: Xcopy /E /I "com.unity.render-pipelines.core" "TestProjects/<PROJECT_FOLDER>/Packages/com.unity.render-pipelines.core" /Y
     - [Win_DX11, Win_DX12, Win_Vulkan]: Xcopy /E /I "com.unity.render-pipelines.universal" "TestProjects/<PROJECT_FOLDER>/Packages/com.unity.render-pipelines.universal" /Y
     - [Win_DX11, Win_DX12, Win_Vulkan]: Xcopy /E /I "com.unity.shadergraph" "TestProjects/<PROJECT_FOLDER>/Packages/com.unity.shadergraph" /Y
