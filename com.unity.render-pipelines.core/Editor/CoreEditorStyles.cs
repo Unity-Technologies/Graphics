@@ -1,4 +1,5 @@
 using UnityEngine;
+using UnityEngine.Experimental.Rendering;
 
 namespace UnityEditor.Rendering
 {
@@ -48,7 +49,7 @@ namespace UnityEditor.Rendering
             smallTickbox = new GUIStyle("ShurikenToggle");
             smallMixedTickbox = new GUIStyle("ShurikenToggleMixed");
 
-            var transparentTexture = new Texture2D(1, 1, TextureFormat.ARGB32, false);
+            var transparentTexture = new Texture2D(1, 1, GraphicsFormat.R8G8B8A8_SRGB, TextureCreationFlags.None);
             transparentTexture.SetPixel(0, 0, Color.clear);
             transparentTexture.Apply();
 
