@@ -539,7 +539,7 @@ namespace UnityEngine.Rendering.HighDefinition
         /// Call this method with the mode <see cref="ProbeSettings.RealtimeMode.OnDemand"/> and the probe will
         /// be rendered the next time it will influence a camera rendering.
         ///
-        /// Note: A camera is influenced by a probe if the camera's frustum intersects the probe's influence volume.
+        /// Note: If any part of a Camera's frustum intersects a Reflection Probe's influence volume, the Reflection Probe influences the Camera.
         /// </summary>
         public void RequestRenderNextUpdate() => m_WasRenderedSinceLastOnDemandRequest = false;
 
