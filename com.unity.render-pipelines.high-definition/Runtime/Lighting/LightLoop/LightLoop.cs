@@ -2749,6 +2749,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
                         m_BoundedEntityCollection.AddEntitySortKey(viewIndex, processedData.lightCategory, key);
                     }
+                    m_BoundedEntityCollection.IncrementEntityCount(processedData.lightCategory);
                 }
 
                 includedLightCount++;
