@@ -135,14 +135,37 @@ VaryingsMeshType VertMesh(AttributesMesh input, float3 worldSpaceOffset)
     UNITY_SETUP_INSTANCE_ID(input);
     UNITY_TRANSFER_INSTANCE_ID(input, output);
 
+    // Preliminary configuration of vertex in case of VFX output like planar primitives.
+#if defined(HAVE_VFX_MODIFICATION)
+    uint indexVFX = 0;
+    input = GetMeshVFX(input, indexVFX);
+#endif
+
 #if defined(HAVE_MESH_MODIFICATION)
     input = ApplyMeshModification(input, _TimeParameters.xyz);
 #endif
 
+#if defined(HAVE_VFX_MODIFICATION)
+    // Ensure we initialize in case VFX partially injects some interpolants.
+    Attributes attributes;
+    ZERO_INITIALIZE(VaryingsMeshType, output);
+    ZERO_INITIALIZE(Attributes, attributes);
+
+    GetElementData(indexVFX, attributes, output);
+
+    float3 positionRWS = TransformElementToWorld(input.positionOS, attributes);
+#else
     // This return the camera relative position (if enable)
     float3 positionRWS = TransformObjectToWorld(input.positionOS) + worldSpaceOffset;
+#endif
+
+
 #ifdef ATTRIBUTES_NEED_NORMAL
+#if defined(HAVE_VFX_MODIFICATION)
+    float3 normalWS = TransformElementToWorldNormal(input.normalOS, attributes);
+#else
     float3 normalWS = TransformObjectToWorldNormal(input.normalOS);
+#endif
 #else
     float3 normalWS = float3(0.0, 0.0, 0.0); // We need this case to be able to compile ApplyVertexModification that doesn't use normal.
 #endif
@@ -191,10 +214,6 @@ VaryingsMeshType VertMesh(AttributesMesh input, float3 worldSpaceOffset)
 #endif
 #if defined(VARYINGS_NEED_COLOR) || defined(VARYINGS_DS_NEED_COLOR)
     output.color = input.color;
-#endif
-
-#if defined(HAVE_VFX_MODIFICATION)
-    ApplyVFXModification(input, output);
 #endif
 
     return output;

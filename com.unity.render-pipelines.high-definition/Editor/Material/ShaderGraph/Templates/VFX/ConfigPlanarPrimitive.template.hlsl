@@ -38,15 +38,13 @@ float3 GetStripTangent(float3 currentPos, uint relativeIndex, const StripData st
 }
 #endif
 
-void ApplyVFXModification(AttributesMesh input, inout VaryingsMeshType output)
+AttributesMesh GetMeshVFX(AttributesMesh input, inout uint index)
 {
-    Attributes attributes = (Attributes)0;
-
     uint id = input.vertexID;
 
     // Index Setup
     #if VFX_PRIMITIVE_TRIANGLE
-        uint index = id / 3;
+        index = id / 3;
     #elif VFX_PRIMITIVE_QUAD
     #if HAS_STRIPS
         id += VFX_GET_INSTANCE_ID(i) * 8192;
@@ -57,37 +55,21 @@ void ApplyVFXModification(AttributesMesh input, inout VaryingsMeshType output)
         uint maxEdgeIndex = relativeIndexInStrip - PARTICLE_IN_EDGE + 1;
 
         if (maxEdgeIndex >= stripData.nextIndex)
-            return;
+            return input;
 
-        uint index = GetParticleIndex(relativeIndexInStrip, stripData);
+        index = GetParticleIndex(relativeIndexInStrip, stripData);
     #else
-        uint index = (id >> 2) + VFX_GET_INSTANCE_ID(i) * 2048;
+        index = (id >> 2) + VFX_GET_INSTANCE_ID(i) * 2048;
     #endif
     #elif VFX_PRIMITIVE_OCTAGON
-        uint index = (id >> 3) + VFX_GET_INSTANCE_ID(i) * 1024;
+        index = (id >> 3) + VFX_GET_INSTANCE_ID(i) * 1024;
     #endif
 
     #if VFX_HAS_INDIRECT_DRAW
     index = indirectBuffer[index];
     #endif
 
-    // Load Attributes
-    $splice(VFXLoadAttribute)
-
-    // Initialize built-in needed attributes
-    #if HAS_STRIPS
-    InitStripAttributes(index, attributes, stripData);
-    #endif
-
-    // Process Blocks
-    $splice(VFXProcessBlocks)
-
-#if !HAS_STRIPS
-    if (!attributes.alive)
-        return;
-#endif
-
-    // Generate Vertex Offset
+    // Configure planar Primitive
     float4 uv = 0;
 
     #if VFX_PRIMITIVE_QUAD
@@ -143,64 +125,13 @@ void ApplyVFXModification(AttributesMesh input, inout VaryingsMeshType output)
         uv.xy = vOffsets + 0.5f;
     #endif
 
-#if defined(VARYINGS_NEED_TEXCOORD0)
-    output.texCoord0 = uv;
+    input.positionOS = float3(vOffsets, 0.0);
+#ifdef ATTRIBUTES_NEED_NORMAL
+    input.normalOS = float3(0, 0, -1);
+#endif
+#ifdef ATTRIBUTES_NEED_TEXCOORD0
+    input.uv0 = uv;
 #endif
 
-    // Instance to Particle
-    float3 size3 = float3(attributes.size,attributes.size,attributes.size);
-    #if VFX_USE_SCALEX_CURRENT
-    size3.x *= attributes.scaleX;
-    #endif
-    #if VFX_USE_SCALEY_CURRENT
-    size3.y *= attributes.scaleY;
-    #endif
-    #if VFX_USE_SCALEZ_CURRENT
-    size3.z *= attributes.scaleZ;
-    #endif
-#if HAS_STRIPS
-    size3 += size3 < 0.0f ? -VFX_EPSILON : VFX_EPSILON; // Add an epsilon so that size is never 0 for strips
-#endif
-
-    const float4x4 elementToVFX = GetElementToVFXMatrix(
-        attributes.axisX,
-        attributes.axisY,
-        attributes.axisZ,
-        float3(attributes.angleX,attributes.angleY,attributes.angleZ),
-        float3(attributes.pivotX,attributes.pivotY,attributes.pivotZ),
-        size3,
-        attributes.position);
-
-    float3 inputVertexPosition = float3(vOffsets, 0.0f);
-    float3 vPos = mul(elementToVFX,float4(inputVertexPosition,1.0f)).xyz;
-    float4 csPos = TransformPositionVFXToClip(vPos);
-
-    output.positionCS = csPos;
-
-    #ifdef VARYINGS_NEED_POSITION_WS
-    // Need to overwrite the position with the result from VFX.
-    // Warning: Need to be explicit about relative space.
-    output.positionRWS = TransformPositionVFXToWorld(vPos);
-    #endif
-
-#if VFX_NON_UNIFORM_SCALE
-    float3x3 elementToVFX_N = GetElementToVFXMatrixNormal(
-        attributes.axisX,
-        attributes.axisY,
-        attributes.axisZ,
-        float3(attributes.angleX,attributes.angleY,attributes.angleZ),
-        size3);
-#else
-    float3x3 elementToVFX_N = (float3x3)elementToVFX;
-#endif
-
-    float3 normalWS = normalize(TransformNormalVFXToWorld((-transpose(elementToVFX_N)[2])));
-
-    #ifdef VARYINGS_NEED_TANGENT_TO_WORLD
-    float normalFlip = (size3.x * size3.y * size3.z) < 0 ? -1 : 1;
-    output.normalWS = normalFlip * normalWS;
-    #endif
-
-    // Interpolants Generation
-    $splice(VFXInterpolantsGeneration)
+    return input;
 }

@@ -89,7 +89,7 @@ namespace UnityEditor.VFX
             }
 
             // TODO: Must draw the other various VFX Output Context info (indirect draw, shadow caster, etc.)
-            // base.OnInspectorGUI();
+            base.OnInspectorGUI();
 
             if (serializedObject.ApplyModifiedProperties() || materialChanged)
             {
