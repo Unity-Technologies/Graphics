@@ -115,7 +115,7 @@ namespace UnityEditor.Rendering.HighDefinition
             {
                 GameObject gameObj = obj as GameObject;
                 MeshRenderer mesh;
-                if (gameObj.TryGetComponent<MeshRenderer>(out mesh))
+                if (gameObj && gameObj.TryGetComponent<MeshRenderer>(out mesh))
                 {
                     for (int i = 0; i < mesh.materials.Length; ++i)
                     {
