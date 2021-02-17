@@ -44,6 +44,11 @@ namespace UnityEditor.VFX
             return new VFXTextureCubeArrayValue(value.GetInstanceID(), Mode.Constant);
         }
 
+        static public VFXValue<int> Constant(CameraBuffer value)
+        {
+            return new VFXCameraBufferValue(value, Mode.Constant);
+        }
+
         static public VFXValue<T> Constant<T>(T value = default(T))
         {
             return new VFXValue<T>(value, Mode.Constant);
