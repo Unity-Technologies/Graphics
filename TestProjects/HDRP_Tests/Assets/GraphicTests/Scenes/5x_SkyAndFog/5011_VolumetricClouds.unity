@@ -360,6 +360,11 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 114995348509370400, guid: c07ace9ab142ca9469fa377877c2f1e7,
         type: 3}
+      propertyPath: xrCompatible
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 114995348509370400, guid: c07ace9ab142ca9469fa377877c2f1e7,
+        type: 3}
       propertyPath: renderPipelineAsset
       value: 
       objectReference: {fileID: 11400000, guid: 408ec11a97cfdb94daab9acb55d71247,
@@ -1185,8 +1190,7 @@ Light:
   m_BounceIntensity: 1
   m_ColorTemperature: 6570
   m_UseColorTemperature: 1
-  m_BoundingSphereOverride: {x: 2.214207e-10, y: 0.00000016317864, z: 0.00000021161472,
-    w: 5.3477345e+22}
+  m_BoundingSphereOverride: {x: 1.02e-43, y: -2.1520224e-25, z: 4.5904e-41, w: 0}
   m_UseBoundingSphereOverride: 0
   m_UseViewFrustumForShadowCasterCull: 1
   m_ShadowRadius: 0
