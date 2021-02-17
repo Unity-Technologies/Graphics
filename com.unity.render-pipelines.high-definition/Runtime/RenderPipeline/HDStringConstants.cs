@@ -759,15 +759,10 @@ namespace UnityEngine.Rendering.HighDefinition
         public static readonly int _CoCTargetScale                 = Shader.PropertyToID("_CoCTargetScale");
 
         public static readonly int _FlareTex                       = Shader.PropertyToID("_FlareTex");
-        public static readonly int _FlareScreenPos                 = Shader.PropertyToID("_FlareScreenPos");
-        public static readonly int _FlareOffscreen                 = Shader.PropertyToID("_FlareOffscreen");
-        public static readonly int _FlareSpeed                     = Shader.PropertyToID("_FlareSpeed");
-        public static readonly int _FlareDepth                     = Shader.PropertyToID("_FlareDepth");
-        public static readonly int _FlareOcclusionRadius           = Shader.PropertyToID("_FlareOcclusionRadius");
-        public static readonly int _FlareOcclusionSamplesCount     = Shader.PropertyToID("_FlareOcclusionSamplesCount");
-        public static readonly int _FlareIntensity                 = Shader.PropertyToID("_FlareIntensity");
         public static readonly int _FlareColor                     = Shader.PropertyToID("_FlareColor");
-        public static readonly int _FlareData                      = Shader.PropertyToID("_FlareData");
+        public static readonly int _FlareData0                     = Shader.PropertyToID("_FlareData0");
+        public static readonly int _FlareData1                     = Shader.PropertyToID("_FlareData1");
+        public static readonly int _FlareData2                     = Shader.PropertyToID("_FlareData2");
 
         public static readonly int _BloomParams                    = Shader.PropertyToID("_BloomParams");
         public static readonly int _BloomTint                      = Shader.PropertyToID("_BloomTint");

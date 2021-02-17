@@ -2209,14 +2209,9 @@ namespace UnityEngine.Rendering.HighDefinition
                 Vector2 occlusionRadiusEdgeScreenPos1 = (Vector2)cam.WorldToViewportPoint(positionWS + cam.transform.up * comp.occlusionRadius);
                 float occlusionRadius = (occlusionRadiusEdgeScreenPos1 - occlusionRadiusEdgeScreenPos0).magnitude;
 
-                cmd.SetGlobalFloat(HDShaderIDs._FlareOcclusionRadius, occlusionRadius);
-                cmd.SetGlobalFloat(HDShaderIDs._FlareOcclusionSamplesCount, comp.sampleCount);
-
-                cmd.SetGlobalFloat(HDShaderIDs._FlareOffscreen, comp.allowOffScreen ? 1.0f : -1.0f);
-                cmd.SetGlobalVector(HDShaderIDs._FlareScreenPos, screenPos);
-
                 Vector3 screenPosZ = cam.WorldToViewportPoint(positionWS - comp.occlusionOffset * cam.transform.forward);
-                cmd.SetGlobalFloat(HDShaderIDs._FlareDepth, screenPosZ.z);
+                Vector4 flareData1 = new Vector4(screenPos.x, screenPos.y, screenPosZ.z, occlusionRadius);
+                cmd.SetGlobalVector(HDShaderIDs._FlareData1, flareData1);
 
                 Vector2 radPos = new Vector2(screenPos.x, screenPos.y);
                 float radius = radPos.magnitude;
@@ -2416,8 +2411,9 @@ namespace UnityEngine.Rendering.HighDefinition
                     rotation *= Mathf.Deg2Rad;
 
                     Vector4 dataSrc = new Vector4(position, rotation, size.x, size.y);
-                    cmd.SetGlobalVector(HDShaderIDs._FlareData, dataSrc);
-                    cmd.SetGlobalFloat(HDShaderIDs._FlareSpeed, element.speed);
+                    cmd.SetGlobalVector(HDShaderIDs._FlareData0, dataSrc);
+                    Vector4 flareData2 = new Vector4(comp.sampleCount, element.speed, comp.allowOffScreen ? 1.0f : -1.0f, 0.0f);
+                    cmd.SetGlobalVector(HDShaderIDs._FlareData2, flareData2);
                     cmd.DrawProcedural(Matrix4x4.identity, usedMaterial, 0, MeshTopology.Quads, 6, 1, null);
                 }
             }
