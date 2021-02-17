@@ -21,7 +21,7 @@ Shader "Universal Render Pipeline/Particles/Simple Lit"
         [HDR] _EmissionColor("Color", Color) = (0,0,0)
         _EmissionMap("Emission", 2D) = "white" {}
 
-        [HideInInspector] _SmoothnessSource("Smoothness Source", Float) = 0.0
+        [HideInInspector] _SmoothnessSource("Smoothness Source", Float) = 1.0
         [ToggleOff] _SpecularHighlights("Specular Highlights", Float) = 1.0
         _ReceiveShadows("Receive Shadows", Float) = 1.0
 

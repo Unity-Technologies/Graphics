@@ -89,7 +89,7 @@ namespace UnityEditor.Rendering.Universal
         internal static List<string> s_ImportedAssetThatNeedSaving = new List<string>();
         internal static bool s_NeedsSavingAssets = false;
 
-        internal static readonly Action<Material, ShaderPathID>[] k_Upgraders = { UpgradeV1, UpgradeV2, UpgradeV3, UpgradeV4 };
+        internal static readonly Action<Material, ShaderPathID>[] k_Upgraders = { UpgradeV1, UpgradeV2, UpgradeV3, UpgradeV4, UpgradeV5 };
 
         static internal void SaveAssetsToDisk()
         {
@@ -256,6 +256,22 @@ namespace UnityEditor.Rendering.Universal
 
         static void UpgradeV4(Material material, ShaderPathID shaderID)
         {}
+
+        static void UpgradeV5(Material material, ShaderPathID shaderID)
+        {
+            // Removing an enum that was the opposite of another Enum which caused a conflict.
+            // 1 needs to be 0 and 0 needs to be 1 to match the correct Enum from now on.
+            switch (shaderID)
+            {
+                case ShaderPathID.SimpleLit:
+                case ShaderPathID.ParticlesSimpleLit:
+                    if (material.HasProperty("_SmoothnessSource"))
+                    {
+                        material.SetFloat("_SmoothnessSource", 1 - material.GetFloat("_SmoothnessSource"));
+                    }
+                    break;
+            }
+        }
     }
 
     // Upgraders v1

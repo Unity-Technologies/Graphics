@@ -105,9 +105,9 @@ namespace UnityEditor.Rendering.Universal.ShaderGUI
             EditorGUI.BeginChangeCheck();
             EditorGUI.showMixedValue = properties.smoothnessMapChannel.hasMixedValue;
             if (opaque)
-                smoothnessSource = EditorGUILayout.Popup(Styles.smoothnessMapChannelText, smoothnessSource, Enum.GetNames(typeof(SmoothnessMapChannel)));
+                smoothnessSource = EditorGUILayout.Popup(Styles.smoothnessMapChannelText, smoothnessSource, Enum.GetNames(typeof(SmoothnessSource)));
             else
-                EditorGUILayout.Popup(Styles.smoothnessMapChannelText, 0, Enum.GetNames(typeof(SmoothnessMapChannel)));
+                EditorGUILayout.Popup(Styles.smoothnessMapChannelText, 0, Enum.GetNames(typeof(SmoothnessSource)));
             if (EditorGUI.EndChangeCheck())
                 properties.smoothnessMapChannel.floatValue = smoothnessSource;
             EditorGUI.showMixedValue = false;
@@ -133,17 +133,17 @@ namespace UnityEditor.Rendering.Universal.ShaderGUI
             }
             else
             {
-                var smoothnessSource = (SmoothnessMapChannel)material.GetFloat("_SmoothnessSource");
+                var smoothnessSource = (SmoothnessSource)material.GetFloat("_SmoothnessSource");
                 bool hasMap = material.GetTexture("_SpecGlossMap");
                 CoreUtils.SetKeyword(material, "_SPECGLOSSMAP", hasMap);
                 CoreUtils.SetKeyword(material, "_SPECULAR_COLOR", !hasMap);
                 if (opaque)
-                    CoreUtils.SetKeyword(material, "_GLOSSINESS_FROM_BASE_ALPHA", smoothnessSource == SmoothnessMapChannel.AlbedoAlpha);
+                    CoreUtils.SetKeyword(material, "_GLOSSINESS_FROM_BASE_ALPHA", smoothnessSource == SmoothnessSource.BaseAlpha);
                 else
                     CoreUtils.SetKeyword(material, "_GLOSSINESS_FROM_BASE_ALPHA", false);
 
                 string color;
-                if (smoothnessSource != SmoothnessMapChannel.AlbedoAlpha || !opaque)
+                if (smoothnessSource != SmoothnessSource.BaseAlpha || !opaque)
                     color = "_SpecColor";
                 else
                     color = "_BaseColor";
