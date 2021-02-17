@@ -466,7 +466,6 @@ namespace UnityEditor.VFX.Test
             var recordedSize = new List<long>();
             for (uint i = 0; i < 16; ++i)
             {
-                yield return null;
                 AssetDatabase.ImportAsset(path);
                 var asset = AssetDatabase.LoadAssetAtPath<VisualEffectAsset>(path);
                 var graph = asset.GetResource().GetOrCreateGraph();
@@ -488,6 +487,8 @@ namespace UnityEditor.VFX.Test
             }
 
             Assert.AreEqual(1, recordedSize.GroupBy(o => o).Count());
+            Assert.AreNotEqual(0u, recordedSize[0]);
+            yield return null;
         }
 
         //Cover regression test : 1315191
