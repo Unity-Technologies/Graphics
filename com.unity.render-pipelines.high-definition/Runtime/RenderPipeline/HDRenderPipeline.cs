@@ -216,7 +216,7 @@ namespace UnityEngine.Rendering.HighDefinition
         int m_FrameCount;
 
         GraphicsFormat GetColorBufferFormat()
-            => (GraphicsFormat)m_Asset.currentPlatformRenderPipelineSettings.colorBufferFormat;
+            => m_ShouldOverrideColorBufferFormat ? m_AOVGraphicsFormat : (GraphicsFormat)m_Asset.currentPlatformRenderPipelineSettings.colorBufferFormat;
 
         GraphicsFormat GetCustomBufferFormat()
             => (GraphicsFormat)m_Asset.currentPlatformRenderPipelineSettings.customBufferFormat;
@@ -625,9 +625,8 @@ namespace UnityEngine.Rendering.HighDefinition
                 rendererPriority = true,
                 overridesFog = true,
                 overridesOtherLightingSettings = true,
-                editableMaterialRenderQueue = false
-                    // Enlighten is deprecated in 2019.3 and above
-                , enlighten = false
+                editableMaterialRenderQueue = false,
+                enlighten = true
                 , overridesLODBias = true
                 , overridesMaximumLODLevel = true
                 , overridesShadowmask = true // Don't display the shadow mask UI in Quality Settings

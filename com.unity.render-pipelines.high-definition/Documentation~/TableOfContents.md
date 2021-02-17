@@ -12,7 +12,7 @@
   * [Upgrading to HDRP](Upgrading-To-HDRP.md)
   * [Render Pipeline Wizard](Render-Pipeline-Wizard.md)
   * [Forward and Deferred Rendering](Forward-And-Deferred-Rendering.md)
-  * [Exposing More Options](More-Options.md)
+  * [Exposing Additional Properties](More-Options.md)
   * [Sample Content](HDRP-Sample-Content.md)
   * [Sample project](HDRP-Sample-Projects.md)
   * [Menu Items](Menu-Items.md)

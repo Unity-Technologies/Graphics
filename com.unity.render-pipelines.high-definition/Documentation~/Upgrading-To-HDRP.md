@@ -124,7 +124,7 @@ To set up lighting in your HDRP Project:
 
     2. Change the **Intensity** to **17000** **Lumen**. This is to represent two 8500 Lumen light bulbs.
 
-    3. In the **Emission** section, enable [More Options](More-Options.md).
+    3. In the **Emission** section, enable [additional properties](More-Options.md).
 
     4. Enable the **Reflector** checkbox. This simulates a reflective surface behind the spot Light to adjust the visual intensity.
 9. Make the light bulb Material emissive:
