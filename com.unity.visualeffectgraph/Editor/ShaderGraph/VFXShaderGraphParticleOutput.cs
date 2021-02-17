@@ -429,6 +429,10 @@ namespace UnityEditor.VFX
                 case VFXDeviceTarget.CPU:
                 {
                     var material = particleData.GetOrCreateMaterial(this);
+
+                    // Enforce the disabling of motion vectors on the material level.
+                    material.SetShaderPassEnabled("MotionVectors", hasMotionVector);
+
                     var shader = material.shader;
 
                     // Map the material state values
