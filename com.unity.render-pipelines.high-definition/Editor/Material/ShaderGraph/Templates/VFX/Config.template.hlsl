@@ -51,6 +51,25 @@ $splice(VFXParameterBuffer)
 
 $splice(VFXGeneratedBlockFunction)
 
+struct AttributesElement
+{
+    uint index;
+    Attributes attributes;
+#if HAS_STRIPS
+    uint relativeIndexInStrip;
+    StripData stripData;
+#endif
+};
+
+bool ShouldCull(uint index)
+{
+    uint deadCount = 0;
+#if USE_DEAD_LIST_COUNT
+    deadCount = deadListCount.Load(0);
+#endif
+    return (index >= asuint(nbMax) - deadCount);
+}
+
 float3 GetSize(Attributes attributes)
 {
     float3 size3 = float3(attributes.size,attributes.size,attributes.size);
@@ -74,14 +93,23 @@ float3 GetSize(Attributes attributes)
     return size3;
 }
 
+// Configure the output type-spcific mesh definition and index calculation for the rest of the element data.
+$OutputType.Mesh:            $include("VFX/ConfigMesh.template.hlsl")
+$OutputType.PlanarPrimitive: $include("VFX/ConfigPlanarPrimitive.template.hlsl")
+
 // Loads the element-specific attribute data, as well as fills any interpolator.
 #define VaryingsMeshType VaryingsMeshToPS
-bool GetElementAndInterpolator(uint index, inout Attributes attributes, inout VaryingsMeshType output)
+bool GetInterpolatorAndElementData(inout VaryingsMeshType output, inout AttributesElement element)
 {
+    uint index = element.index;
+
+    Attributes attributes;
     $splice(VFXLoadAttribute)
 
     #if HAS_STRIPS
-    InitStripAttributes(index, attributes, stripData);
+    const StripData stripData = element.stripData;
+    const uint relativeIndexInStrip = element.relativeIndexInStrip;
+    InitStripAttributes(index, attributes, element.stripData);
     #endif
 
     $splice(VFXProcessBlocks)
@@ -93,46 +121,34 @@ bool GetElementAndInterpolator(uint index, inout Attributes attributes, inout Va
 
     $splice(VFXInterpolantsGeneration)
 
+    element.attributes = attributes;
     return true;
 }
-
-bool ShouldCull(uint index)
-{
-    uint deadCount = 0;
-#if USE_DEAD_LIST_COUNT
-    deadCount = deadListCount.Load(0);
-#endif
-    return (index >= asuint(nbMax) - deadCount);
-}
-
-// Configure the output type-spcific mesh definition and index calculation for the rest of the element data.
-$OutputType.Mesh:            $include("VFX/ConfigMesh.template.hlsl")
-$OutputType.PlanarPrimitive: $include("VFX/ConfigPlanarPrimitive.template.hlsl")
 
 // Transform utility for going from object space into particle space.
 // For the current frame, this is done by constructing the particle (element) space matrix.
 // For the previous frame, the element matrices are cached and read back by the mesh element index.
-AttributesMesh TransformMeshToElement(AttributesMesh input, Attributes attributes)
+AttributesMesh TransformMeshToElement(AttributesMesh input, AttributesElement element)
 {
-    float3 size = GetSize(attributes);
+    float3 size = GetSize(element.attributes);
 
     float4x4 elementToVFX = GetElementToVFXMatrix(
-        attributes.axisX,
-        attributes.axisY,
-        attributes.axisZ,
-        float3(attributes.angleX, attributes.angleY, attributes.angleZ),
-        float3(attributes.pivotX, attributes.pivotY, attributes.pivotZ),
+        element.attributes.axisX,
+        element.attributes.axisY,
+        element.attributes.axisZ,
+        float3(element.attributes.angleX, element.attributes.angleY, element.attributes.angleZ),
+        float3(element.attributes.pivotX, element.attributes.pivotY, element.attributes.pivotZ),
         size,
-        attributes.position);
+        element.attributes.position);
 
     input.positionOS = mul(elementToVFX, float4(input.positionOS, 1.0f)).xyz;
 
 #ifdef ATTRIBUTES_NEED_NORMAL
     float3x3 elementToVFX_N = GetElementToVFXMatrixNormal(
-        attributes.axisX,
-        attributes.axisY,
-        attributes.axisZ,
-        float3(attributes.angleX, attributes.angleY, attributes.angleZ),
+        element.attributes.axisX,
+        element.attributes.axisY,
+        element.attributes.axisZ,
+        float3(element.attributes.angleX, element.attributes.angleY, element.attributes.angleZ),
         size);
 
     input.normalOS = normalize(mul(elementToVFX_N, input.normalOS));
@@ -141,9 +157,9 @@ AttributesMesh TransformMeshToElement(AttributesMesh input, Attributes attribute
     return input;
 }
 
-AttributesMesh TransformMeshToPreviousElement(AttributesMesh input, uint elementIndex)
+AttributesMesh TransformMeshToPreviousElement(AttributesMesh input, AttributesElement element)
 {
-    uint elementToVFXBaseIndex = elementIndex * 13;
+    uint elementToVFXBaseIndex = element.index * 13;
     uint previousFrameIndex = elementToVFXBufferPrevious.Load(elementToVFXBaseIndex++ << 2);
 
     float4x4 previousElementToVFX = (float4x4)0;
@@ -167,7 +183,7 @@ AttributesMesh TransformMeshToPreviousElement(AttributesMesh input, uint element
 
 // Here we define some overrides of the core space transforms.
 // VFX lets users work in two spaces: Local and World.
-// Local means local to "Particle Space" which in this case we treat similarly to Object Space.
+// Local means local to "Particle Space" (or Element) which in this case we treat similarly to Object Space.
 // World means that position users define in their graph are placed in the absolute world.
 // Becuase of these two spaces we must be careful how we transform into world space for current and previous frame.
 #define TransformObjectToWorld TransformObjectToWorldVFX

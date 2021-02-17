@@ -38,11 +38,12 @@ float3 GetStripTangent(float3 currentPos, uint relativeIndex, const StripData st
 }
 #endif
 
-bool GetMeshAndElementIndex(inout AttributesMesh input, inout uint index)
+bool GetMeshAndElementIndex(inout AttributesMesh input, inout AttributesElement element)
 {
     uint id = input.vertexID;
 
     // Index Setup
+    uint index = 0;
     #if VFX_PRIMITIVE_TRIANGLE
         index = id / 3;
     #elif VFX_PRIMITIVE_QUAD
@@ -56,6 +57,9 @@ bool GetMeshAndElementIndex(inout AttributesMesh input, inout uint index)
 
         if (maxEdgeIndex >= stripData.nextIndex)
             return false;
+
+        element.stripData = stripData;
+        element.relativeIndexInStrip = relativeIndexInStrip;
 
         index = GetParticleIndex(relativeIndexInStrip, stripData);
     #else
@@ -71,6 +75,8 @@ bool GetMeshAndElementIndex(inout AttributesMesh input, inout uint index)
     #if VFX_HAS_INDIRECT_DRAW
     index = indirectBuffer[index];
     #endif
+
+    element.index = index;
 
     // Configure planar Primitive
     float4 uv = 0;

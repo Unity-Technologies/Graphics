@@ -1,8 +1,8 @@
 // Output Type: Mesh
 
-bool GetMeshAndElementIndex(inout AttributesMesh input, inout uint index)
+bool GetMeshAndElementIndex(inout AttributesMesh input, inout AttributesElement element)
 {
-    index = input.instanceID;
+    uint index = input.instanceID;
 
     if (ShouldCull(index))
         return false;
@@ -10,6 +10,8 @@ bool GetMeshAndElementIndex(inout AttributesMesh input, inout uint index)
     #if VFX_HAS_INDIRECT_DRAW
     index = indirectBuffer[index];
     #endif
+
+    element.index = index;
 
     // Mesh requires no preliminary configuration.
     return true;

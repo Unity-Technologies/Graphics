@@ -110,10 +110,12 @@ PackedVaryingsType MotionVectorVS(inout VaryingsType varyingsType, AttributesMes
 #if defined(HAVE_VFX_MODIFICATION)
         // Re-construct the VFX mesh (i.e. in case of procedural output like planar primitives).
         // And fetch element index to sample the previous element matrix.
-        uint elementIndex;
-        GetMeshAndElementIndex(inputMesh, elementIndex);
+        AttributesElement element;
+        ZERO_INITIALIZE(AttributesElement, element);
 
-        inputMesh = TransformMeshToPreviousElement(inputMesh, elementIndex);
+        GetMeshAndElementIndex(inputMesh, element);
+
+        inputMesh = TransformMeshToPreviousElement(inputMesh, element);
 #endif
 
         float3 effectivePositionOS = (hasDeformation ? inputPass.previousPositionOS : inputMesh.positionOS);
