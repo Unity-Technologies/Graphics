@@ -49,6 +49,12 @@ namespace UnityEditor.ShaderGraph
 
         public void Sort()
         {
+            if (m_ReadOnly)
+            {
+                Debug.LogError("Cannot sort the properties when the PropertyCollector is already marked ReadOnly");
+                return;
+            }
+
             m_Properties.Sort((a, b) => String.CompareOrdinal(a.property.referenceName, b.property.referenceName));
         }
 
@@ -59,9 +65,8 @@ namespace UnityEditor.ShaderGraph
 
         public void BeginTargetCollection(Target target)
         {
-            // Debug.Log("Begin Collection for Target " + target.displayName);
             if (m_Target != null)
-                Debug.LogError("BEGIN TARGET TWICE");
+                Debug.LogError("Mismatched Begin-End Target Collection in PropertyCollector: double Begin");
 
             int targetIndex = m_Targets.FindIndex(t => t == target);
             if (targetIndex < 0)
@@ -75,9 +80,9 @@ namespace UnityEditor.ShaderGraph
 
         public void EndTargetCollection(Target target)
         {
-            // Debug.Log("End Collection for Target " + target.displayName);
             if (m_Target != target)
-                Debug.LogError("MISMATCHED END != BEGIN");
+                Debug.LogError("Mismatched Begin-End Target Collection in PropertyCollector: End without Begin");
+
             m_Target = null;
             m_DeclarerFlag = (UInt64)DeclarerFlags._NodeOrGraph;
         }
