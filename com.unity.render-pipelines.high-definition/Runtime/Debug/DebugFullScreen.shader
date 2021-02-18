@@ -281,6 +281,12 @@ Shader "Hidden/HDRP/DebugFullScreen"
                     float4 color = LOAD_TEXTURE2D_X(_DebugFullScreenTexture, (uint2)input.positionCS.xy);
                     return color;
                 }
+                if (_FullScreenDebugMode == FULLSCREENDEBUGMODE_GRAYSCALE)
+                {
+                    float4 color = LOAD_TEXTURE2D_X(_DebugFullScreenTexture, (uint2)input.positionCS.xy);
+                    color.rgb = ApplyLut2D(TEXTURE2D_ARGS(_DebugLut, s_linear_clamp_sampler), color.rgb, _DebugLutParams.xyz);
+                    return color;
+                }
                 if (_FullScreenDebugMode == FULLSCREENDEBUGMODE_DEPTH_OF_FIELD_COC)
                 {
                     float coc = LOAD_TEXTURE2D_X(_DebugFullScreenTexture, (uint2)input.positionCS.xy).x;
