@@ -158,16 +158,6 @@ namespace UnityEngine.Rendering.HighDefinition
             return renderGraph.CreateTexture(motionVectorDesc);
         }
 
-        void BindPrepassColorBuffers(in RenderGraphBuilder builder, in PrepassOutput prepassOutput, HDCamera hdCamera)
-        {
-            int index = 0;
-            if (hdCamera.frameSettings.IsEnabled(FrameSettingsField.MSAA))
-            {
-                builder.UseColorBuffer(prepassOutput.depthAsColor, index++);
-            }
-            builder.UseColorBuffer(prepassOutput.normalBuffer, index++);
-        }
-
         void BindMotionVectorPassColorBuffers(in RenderGraphBuilder builder, in PrepassOutput prepassOutput, TextureHandle decalBuffer, HDCamera hdCamera)
         {
             bool msaa = hdCamera.frameSettings.IsEnabled(FrameSettingsField.MSAA);
@@ -236,6 +226,8 @@ namespace UnityEngine.Rendering.HighDefinition
                 }
 
                 PreRenderSky(renderGraph, hdCamera, colorBuffer, result.depthBuffer, result.normalBuffer);
+
+                PreRenderVolumetricClouds(renderGraph, hdCamera, GetDepthBufferMipChainInfo());
 
                 // At this point in forward all objects have been rendered to the prepass (depth/normal/motion vectors) so we can resolve them
                 ResolvePrepassBuffers(renderGraph, hdCamera, ref result);
