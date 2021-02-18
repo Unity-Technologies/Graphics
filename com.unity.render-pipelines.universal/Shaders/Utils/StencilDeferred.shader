@@ -120,6 +120,7 @@ Shader "Hidden/Universal Render Pipeline/StencilDeferred"
     TEXTURE2D_X_HALF(_GBuffer4);
     #endif
 
+    float4 _RTHandleScale;
     float4x4 _ScreenToWorld[2];
     SamplerState my_point_clamp_sampler;
 
@@ -143,7 +144,7 @@ Shader "Hidden/Universal Render Pipeline/StencilDeferred"
 
         // Using SAMPLE_TEXTURE2D is faster than using LOAD_TEXTURE2D on iOS platforms (5% faster shader).
         // Possible reason: HLSLcc upcasts Load() operation to float, which doesn't happen for Sample()?
-        float2 screen_uv = (input.screenUV.xy / input.screenUV.z);
+        float2 screen_uv = (input.screenUV.xy / input.screenUV.z) * _RTHandleScale.xy;
         float d        = SAMPLE_TEXTURE2D_X_LOD(_CameraDepthTexture, my_point_clamp_sampler, screen_uv, 0).x; // raw depth value has UNITY_REVERSED_Z applied on most platforms.
         half4 gbuffer0 = SAMPLE_TEXTURE2D_X_LOD(_GBuffer0, my_point_clamp_sampler, screen_uv, 0);
         half4 gbuffer1 = SAMPLE_TEXTURE2D_X_LOD(_GBuffer1, my_point_clamp_sampler, screen_uv, 0);
@@ -259,7 +260,7 @@ Shader "Hidden/Universal Render Pipeline/StencilDeferred"
 
     half4 FragFog(Varyings input) : SV_Target
     {
-        float d = LOAD_TEXTURE2D_X(_CameraDepthTexture, input.positionCS.xy).x;
+        float d = LOAD_TEXTURE2D_X(_CameraDepthTexture, input.positionCS.xy * _RTHandleScale.xy).x;
         float eye_z = LinearEyeDepth(d, _ZBufferParams);
         float clip_z = UNITY_MATRIX_P[2][2] * -eye_z + UNITY_MATRIX_P[2][3];
         half fogFactor = ComputeFogFactor(clip_z);
