@@ -34,6 +34,7 @@ namespace UnityEngine.Rendering.HighDefinition
         public Vector4 _DebugLightingMaterialValidatePureMetalColor;
         public Vector4 _MousePixelCoord;  // xy unorm, zw norm
         public Vector4 _MouseClickPixelCoord;  // xy unorm, zw norm
+        public Vector4 _DebugLutParams; // x: 1/width, y: 1/height, z: height-1, w: unused
 
         public int _MatcapMixAlbedo;
         public float _MatcapViewScale;
@@ -97,6 +98,8 @@ namespace UnityEngine.Rendering.HighDefinition
         NanTracker,
         /// <summary>Display Log of the color buffer.</summary>
         ColorLog,
+        /// <summary>Display the color buffer in grayscale.</summary>
+        Grayscale,
         /// <summary>Display Depth of Field circle of confusion.</summary>
         DepthOfFieldCoc,
         /// <summary>Display Transparency Overdraw.</summary>
@@ -246,6 +249,10 @@ namespace UnityEngine.Rendering.HighDefinition
             /// <summary>Minimum length a motion vector needs to be to be displayed in the debug display. Unit is pixels.</summary>
             public float minMotionVectorLength = 0.0f;
 
+            /// <summary>Which LUT to use for grayscale rendering debug.</summary>
+            public GrayscaleDebugMode grayscaleDebugMode;
+
+
             // TODO: The only reason this exist is because of Material/Engine debug enums
             // They have repeating values, which caused issues when iterating through the enum, thus the need for explicit indices
             // Once we refactor material/engine debug to avoid repeating values, we should be able to remove that.
@@ -271,6 +278,7 @@ namespace UnityEngine.Rendering.HighDefinition
             internal int debugCameraToFreezeEnumIndex;
             internal int volumeComponentEnumIndex;
             internal int volumeCameraEnumIndex;
+            internal int grayscaleDebugModeIndex;
             internal int probeVolumeDebugModeEnumIndex;
             internal int probeVolumeAtlasSliceModeEnumIndex;
 
@@ -1681,7 +1689,17 @@ namespace UnityEngine.Rendering.HighDefinition
                 new DebugUI.EnumField { displayName = "Fullscreen Debug Mode", getter = () => (int)data.fullScreenDebugMode, setter = value => SetFullScreenDebugMode((FullScreenDebugMode)value), onValueChanged = RefreshRenderingDebug, enumNames = s_RenderingFullScreenDebugStrings, enumValues = s_RenderingFullScreenDebugValues, getIndex = () => data.renderingFulscreenDebugModeEnumIndex, setIndex = value => { data.ResetExclusiveEnumIndices(); data.renderingFulscreenDebugModeEnumIndex = value; } }
             );
 
-            if (data.fullScreenDebugMode == FullScreenDebugMode.TransparencyOverdraw)
+            if (data.fullScreenDebugMode == FullScreenDebugMode.Grayscale)
+            {
+                widgetList.Add(new DebugUI.Container
+                {
+                    children =
+                    {
+                        new DebugUI.EnumField { displayName = "Grayscale Mode", getter = () => (int)data.grayscaleDebugMode, setter = value => data.grayscaleDebugMode = (GrayscaleDebugMode)value, autoEnum = typeof(GrayscaleDebugMode), getIndex = () => data.grayscaleDebugModeIndex, setIndex = value => data.grayscaleDebugModeIndex = value },
+                    }
+                });
+            }
+            else if (data.fullScreenDebugMode == FullScreenDebugMode.TransparencyOverdraw)
             {
                 widgetList.Add(new DebugUI.Container
                 {
@@ -1944,11 +1962,13 @@ namespace UnityEngine.Rendering.HighDefinition
         {
             DebugLightingMode debugLighting = data.lightingDebugSettings.debugLightingMode;
             DebugViewGbuffer debugGBuffer = (DebugViewGbuffer)data.materialDebugSettings.debugViewGBuffer;
+            ProbeVolumeDebugMode debugProbeVolume = data.lightingDebugSettings.probeVolumeDebugMode;
             return (debugLighting == DebugLightingMode.DirectDiffuseLighting || debugLighting == DebugLightingMode.DirectSpecularLighting || debugLighting == DebugLightingMode.IndirectDiffuseLighting || debugLighting == DebugLightingMode.ReflectionLighting || debugLighting == DebugLightingMode.RefractionLighting || debugLighting == DebugLightingMode.EmissiveLighting ||
                 debugLighting == DebugLightingMode.DiffuseLighting || debugLighting == DebugLightingMode.SpecularLighting || debugLighting == DebugLightingMode.VisualizeCascade) ||
                 (data.lightingDebugSettings.overrideAlbedo || data.lightingDebugSettings.overrideNormal || data.lightingDebugSettings.overrideSmoothness || data.lightingDebugSettings.overrideSpecularColor || data.lightingDebugSettings.overrideEmissiveColor || data.lightingDebugSettings.overrideAmbientOcclusion) ||
                 (debugGBuffer == DebugViewGbuffer.BakeDiffuseLightingWithAlbedoPlusEmissive) || (data.lightingDebugSettings.debugLightFilterMode != DebugLightFilterMode.None) ||
-                (data.fullScreenDebugMode == FullScreenDebugMode.PreRefractionColorPyramid || data.fullScreenDebugMode == FullScreenDebugMode.FinalColorPyramid || data.fullScreenDebugMode == FullScreenDebugMode.TransparentScreenSpaceReflections || data.fullScreenDebugMode == FullScreenDebugMode.ScreenSpaceReflections || data.fullScreenDebugMode == FullScreenDebugMode.ScreenSpaceReflectionsPrev || data.fullScreenDebugMode == FullScreenDebugMode.ScreenSpaceReflectionsAccum || data.fullScreenDebugMode == FullScreenDebugMode.LightCluster || data.fullScreenDebugMode == FullScreenDebugMode.ScreenSpaceShadows || data.fullScreenDebugMode == FullScreenDebugMode.NanTracker || data.fullScreenDebugMode == FullScreenDebugMode.ColorLog) || data.fullScreenDebugMode == FullScreenDebugMode.ScreenSpaceGlobalIllumination;
+                (data.fullScreenDebugMode == FullScreenDebugMode.PreRefractionColorPyramid || data.fullScreenDebugMode == FullScreenDebugMode.FinalColorPyramid || data.fullScreenDebugMode == FullScreenDebugMode.TransparentScreenSpaceReflections || data.fullScreenDebugMode == FullScreenDebugMode.ScreenSpaceReflections || data.fullScreenDebugMode == FullScreenDebugMode.ScreenSpaceReflectionsPrev || data.fullScreenDebugMode == FullScreenDebugMode.ScreenSpaceReflectionsAccum || data.fullScreenDebugMode == FullScreenDebugMode.LightCluster || data.fullScreenDebugMode == FullScreenDebugMode.ScreenSpaceShadows || data.fullScreenDebugMode == FullScreenDebugMode.NanTracker || data.fullScreenDebugMode == FullScreenDebugMode.ColorLog || data.fullScreenDebugMode == FullScreenDebugMode.Grayscale) || data.fullScreenDebugMode == FullScreenDebugMode.ScreenSpaceGlobalIllumination ||
+                (debugLighting == DebugLightingMode.ProbeVolume || debugProbeVolume == ProbeVolumeDebugMode.VisualizeAtlas);
         }
     }
 }
