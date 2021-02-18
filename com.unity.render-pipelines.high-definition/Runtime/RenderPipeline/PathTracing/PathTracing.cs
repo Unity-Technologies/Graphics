@@ -396,7 +396,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 if (m_RenderSky || m_SubFrameManager.isRecording)
                 {
                     RenderSky(m_RenderGraph, hdCamera, m_SkyTexture);
-                    m_RenderSky = false;   
+                    m_RenderSky = false;
                 }
 
                 RenderPathTracing(m_RenderGraph, parameters, m_FrameTexture, m_SkyTexture);
