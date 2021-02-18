@@ -119,6 +119,10 @@ namespace UnityEditor.Rendering.HighDefinition
 
             lensAttenuation = serializedObject.FindProperty("lensAttenuationMode");
             diffusionProfileSettingsList = serializedObject.Find((HDRenderPipelineGlobalSettings s) => s.diffusionProfileSettingsList);
+            m_DiffusionProfileUI = new DiffusionProfileSettingsListUI()
+            {
+                drawElement = DrawDiffusionProfileElement
+            };
         }
 
         internal ReorderableList uiBeforeTransparentCustomPostProcesses;
@@ -192,6 +196,14 @@ namespace UnityEditor.Rendering.HighDefinition
                     EditorUtility.SetDirty(serializedObject.targetObject);
                 };
             }
+        }
+
+        public DiffusionProfileSettingsListUI m_DiffusionProfileUI;
+
+        void DrawDiffusionProfileElement(SerializedProperty element, Rect rect, int index)
+        {
+            EditorGUI.BeginChangeCheck();
+            EditorGUI.ObjectField(rect, element, EditorGUIUtility.TrTextContent("Profile " + index));
         }
     }
 }

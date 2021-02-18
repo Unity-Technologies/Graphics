@@ -43,12 +43,10 @@ namespace UnityEngine.Rendering.HighDefinition
             if (GraphicsSettings.currentRenderPipeline == this)
                 base.OnValidate();
 
-            UpdateRenderingLayerNames();
-
             isInOnValidateCall = false;
         }
 
-        public HDRenderPipelineGlobalSettings defaultSettings => HDRenderPipelineGlobalSettings.instance;
+        HDRenderPipelineGlobalSettings defaultSettings => HDRenderPipelineGlobalSettings.instance;
 
         internal RenderPipelineResources renderPipelineResources
         {
@@ -104,55 +102,9 @@ namespace UnityEngine.Rendering.HighDefinition
         [Obsolete("Use diffusionProfileSettingsList instead")]
         internal DiffusionProfileSettings diffusionProfileSettings;
 
-        void UpdateRenderingLayerNames()
-        {
-            m_RenderingLayerNames = new string[32];
-
-            m_RenderingLayerNames[0] = HDRenderPipelineGlobalSettings.instance.lightLayerName0;
-            m_RenderingLayerNames[1] = HDRenderPipelineGlobalSettings.instance.lightLayerName1;
-            m_RenderingLayerNames[2] = HDRenderPipelineGlobalSettings.instance.lightLayerName2;
-            m_RenderingLayerNames[3] = HDRenderPipelineGlobalSettings.instance.lightLayerName3;
-            m_RenderingLayerNames[4] = HDRenderPipelineGlobalSettings.instance.lightLayerName4;
-            m_RenderingLayerNames[5] = HDRenderPipelineGlobalSettings.instance.lightLayerName5;
-            m_RenderingLayerNames[6] = HDRenderPipelineGlobalSettings.instance.lightLayerName6;
-            m_RenderingLayerNames[7] = HDRenderPipelineGlobalSettings.instance.lightLayerName7;
-
-            m_RenderingLayerNames[8]  = HDRenderPipelineGlobalSettings.instance.decalLayerName0;
-            m_RenderingLayerNames[9]  = HDRenderPipelineGlobalSettings.instance.decalLayerName1;
-            m_RenderingLayerNames[10] = HDRenderPipelineGlobalSettings.instance.decalLayerName2;
-            m_RenderingLayerNames[11] = HDRenderPipelineGlobalSettings.instance.decalLayerName3;
-            m_RenderingLayerNames[12] = HDRenderPipelineGlobalSettings.instance.decalLayerName4;
-            m_RenderingLayerNames[13] = HDRenderPipelineGlobalSettings.instance.decalLayerName5;
-            m_RenderingLayerNames[14] = HDRenderPipelineGlobalSettings.instance.decalLayerName6;
-            m_RenderingLayerNames[15] = HDRenderPipelineGlobalSettings.instance.decalLayerName7;
-
-            // Unused
-            for (int i = 16; i < m_RenderingLayerNames.Length; ++i)
-            {
-                m_RenderingLayerNames[i] = string.Format("Unused {0}", i);
-            }
-        }
-
-        // HDRP use GetRenderingLayerMaskNames to create its light linking system
-        // Mean here we define our name for light linking.
-        [System.NonSerialized]
-        string[] m_RenderingLayerNames;
-        string[] renderingLayerNames
-        {
-            get
-            {
-                if (m_RenderingLayerNames == null)
-                {
-                    UpdateRenderingLayerNames();
-                }
-
-                return m_RenderingLayerNames;
-            }
-        }
-
         /// <summary>Names used for display of rendering layer masks.</summary>
         public override string[] renderingLayerMaskNames
-            => renderingLayerNames;
+            => HDRenderPipelineGlobalSettings.instance.renderingLayerMaskNames;
 
         /// <summary>
         /// Names used for display of light layers.

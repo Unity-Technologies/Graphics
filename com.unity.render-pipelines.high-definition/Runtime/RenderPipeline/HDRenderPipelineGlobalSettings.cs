@@ -30,7 +30,7 @@ namespace UnityEngine.Rendering.HighDefinition
     /// - Frame Settings applied by default to Camera, ReflectionProbe
     /// - Various resources (such as Shaders) for runtime, editor-only, and raytracing
     /// </summary>
-    public partial class HDRenderPipelineGlobalSettings : RenderPipelineGlobalSettings
+    partial class HDRenderPipelineGlobalSettings : RenderPipelineGlobalSettings
     {
         private static HDRenderPipelineGlobalSettings cachedInstance = null;
         public static HDRenderPipelineGlobalSettings instance
@@ -43,7 +43,7 @@ namespace UnityEngine.Rendering.HighDefinition
             }
         }
 
-        static public void UpdateGraphicsSettings(HDRenderPipelineGlobalSettings newSettings)
+        static internal void UpdateGraphicsSettings(HDRenderPipelineGlobalSettings newSettings)
         {
             if (newSettings == null || newSettings == cachedInstance)
                 return;
@@ -53,7 +53,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
 #if UNITY_EDITOR
         //Making sure there is at least one HDRenderPipelineGlobalSettings instance in the project
-        static public HDRenderPipelineGlobalSettings Ensure()
+        static internal HDRenderPipelineGlobalSettings Ensure()
         {
             if (HDRenderPipelineGlobalSettings.instance)
                 return HDRenderPipelineGlobalSettings.instance;
@@ -116,6 +116,8 @@ namespace UnityEngine.Rendering.HighDefinition
             decalLayerName5 = "Decal Layer 5";
             decalLayerName6 = "Decal Layer 6";
             decalLayerName7 = "Decal Layer 7";
+
+            UpdateRenderingLayerNames();
 
             shaderVariantLogLevel = ShaderVariantLogLevel.Disabled;
 
@@ -618,7 +620,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
         #endregion
 
-        #region Layer Names [LIGHT]
+        #region Rendering Layer Names [Light + Decal]
 
         /// <summary>Name for light layer 0.</summary>
         public string lightLayerName0;
@@ -665,10 +667,6 @@ namespace UnityEngine.Rendering.HighDefinition
             }
         }
 
-        #endregion
-
-        #region Layer Names [DECAL]
-
         /// <summary>Name for decal layer 0.</summary>
         public string decalLayerName0;
         /// <summary>Name for decal layer 1.</summary>
@@ -712,6 +710,55 @@ namespace UnityEngine.Rendering.HighDefinition
                 return m_DecalLayerNames;
             }
         }
+
+
+        // HDRP use GetRenderingLayerMaskNames to create its light linking system
+        // Mean here we define our name for light linking.
+        [System.NonSerialized]
+        string[] m_RenderingLayerNames;
+        string[] renderingLayerNames
+        {
+            get
+            {
+                if (m_RenderingLayerNames == null)
+                {
+                    UpdateRenderingLayerNames();
+                }
+
+                return m_RenderingLayerNames;
+            }
+        }
+        public string[] renderingLayerMaskNames => renderingLayerNames;
+
+        void UpdateRenderingLayerNames()
+        {
+            m_RenderingLayerNames = new string[32];
+
+            m_RenderingLayerNames[0] = HDRenderPipelineGlobalSettings.instance.lightLayerName0;
+            m_RenderingLayerNames[1] = HDRenderPipelineGlobalSettings.instance.lightLayerName1;
+            m_RenderingLayerNames[2] = HDRenderPipelineGlobalSettings.instance.lightLayerName2;
+            m_RenderingLayerNames[3] = HDRenderPipelineGlobalSettings.instance.lightLayerName3;
+            m_RenderingLayerNames[4] = HDRenderPipelineGlobalSettings.instance.lightLayerName4;
+            m_RenderingLayerNames[5] = HDRenderPipelineGlobalSettings.instance.lightLayerName5;
+            m_RenderingLayerNames[6] = HDRenderPipelineGlobalSettings.instance.lightLayerName6;
+            m_RenderingLayerNames[7] = HDRenderPipelineGlobalSettings.instance.lightLayerName7;
+
+            m_RenderingLayerNames[8]  = HDRenderPipelineGlobalSettings.instance.decalLayerName0;
+            m_RenderingLayerNames[9]  = HDRenderPipelineGlobalSettings.instance.decalLayerName1;
+            m_RenderingLayerNames[10] = HDRenderPipelineGlobalSettings.instance.decalLayerName2;
+            m_RenderingLayerNames[11] = HDRenderPipelineGlobalSettings.instance.decalLayerName3;
+            m_RenderingLayerNames[12] = HDRenderPipelineGlobalSettings.instance.decalLayerName4;
+            m_RenderingLayerNames[13] = HDRenderPipelineGlobalSettings.instance.decalLayerName5;
+            m_RenderingLayerNames[14] = HDRenderPipelineGlobalSettings.instance.decalLayerName6;
+            m_RenderingLayerNames[15] = HDRenderPipelineGlobalSettings.instance.decalLayerName7;
+
+            // Unused
+            for (int i = 16; i < m_RenderingLayerNames.Length; ++i)
+            {
+                m_RenderingLayerNames[i] = string.Format("Unused {0}", i);
+            }
+        }
+
         #endregion
 
         #region Misc.

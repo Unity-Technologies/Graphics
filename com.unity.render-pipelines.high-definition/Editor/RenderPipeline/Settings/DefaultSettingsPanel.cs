@@ -82,6 +82,9 @@ namespace UnityEditor.Rendering.HighDefinition
 
             internal static readonly GUIContent lensAttenuationModeContent = EditorGUIUtility.TrTextContent("Lens Attenuation Mode", "Set the attenuation mode of the lens that is used to compute exposure. With imperfect lens some energy is lost when converting from EV100 to the exposure multiplier.");
 
+            internal static readonly GUIContent diffusionProfileSettingsIntro = EditorGUIUtility.TrTextContent("The High Definition Render Pipeline(HDRP) allows you to use up to 15 custom Diffusion Profiles in view at the same time.To use more than 15 custom Diffusion Profiles in a Scene,you can use the Diffusion Profile Override inside a Volume.This allows you to specify which Diffusion Profiles to use in a certain area(or in the Scene if the Volume is global");
+            internal static readonly GUIContent diffusionProfileSettingsLabel = EditorGUIUtility.TrTextContent("Diffusion Profile Assets");
+
             internal static GUIStyle sectionHeaderStyle = new GUIStyle(EditorStyles.boldLabel) { richText = true };
             internal static GUIStyle introStyle = new GUIStyle(EditorStyles.largeLabel) { wordWrap = true };
         }
@@ -102,6 +105,8 @@ namespace UnityEditor.Rendering.HighDefinition
                 CED.Group((serialized, owner) => EditorGUILayout.Space()),
                 CustomPostProcessesSection,
                 CED.Group((serialized, owner) => EditorGUILayout.Space()),
+                DiffusionProfileSettingsSection,
+                CED.Group((serialized, owner) => EditorGUILayout.Space()),
                 LayerNamesSection
             );
             // fix init of selection along what is serialized
@@ -115,7 +120,6 @@ namespace UnityEditor.Rendering.HighDefinition
 
         SerializedHDRenderPipelineGlobalSettings serializedSettings;
         HDRenderPipelineGlobalSettings settingsSerialized;
-        DiffusionProfileSettingsListUI m_DiffusionProfileUI;
         public void DoGUI(string searchContext)
         {
             if (HDRenderPipeline.currentPipeline == null)
@@ -332,6 +336,24 @@ namespace UnityEditor.Rendering.HighDefinition
         }
 
         #endregion // Custom Post Processes
+
+        #region Diffusion Profile Settings List
+
+        static readonly CED.IDrawer DiffusionProfileSettingsSection = CED.Group(
+            CED.Group((serialized, owner) => EditorGUILayout.LabelField(Styles.diffusionProfileSettingsLabel, Styles.sectionHeaderStyle)),
+            CED.Group(Drawer_DiffusionProfileSettings)
+        );
+        static void Drawer_DiffusionProfileSettings(SerializedHDRenderPipelineGlobalSettings serialized, Editor owner)
+        {
+            if (m_verboseMode)
+                EditorGUILayout.LabelField(Styles.diffusionProfileSettingsIntro, Styles.introStyle);
+            using (new EditorGUI.IndentLevelScope())
+            {
+                serialized.m_DiffusionProfileUI.OnGUI(serialized.diffusionProfileSettingsList);
+            }
+        }
+
+        #endregion //Diffusion Profile Settings List
 
         #region Volume Profiles
         static Editor m_CachedDefaultVolumeProfileEditor;
