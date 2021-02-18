@@ -9,6 +9,7 @@ namespace UnityEngine
     /// </summary>
     [ExecuteInEditMode]
     [AddComponentMenu("Rendering/SRP Lens Flare Source Override")]
+    [HelpURL(Rendering.Documentation.baseURL + Rendering.Documentation.version + Rendering.Documentation.subURL + "Common/srp-lens-flare-component" + Rendering.Documentation.endURL)]
     public sealed class SRPLensFlareOverride : MonoBehaviour
     {
         /// <summary>

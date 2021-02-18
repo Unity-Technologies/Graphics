@@ -8,6 +8,7 @@ namespace UnityEditor.Rendering
     /// SRPLensFlareEditor shows how the SRP Lens Flare Asset is shown in the UI
     /// </summary>
     [CustomEditor(typeof(SRPLensFlareData))]
+    [HelpURL(UnityEngine.Rendering.Documentation.baseURL + UnityEngine.Rendering.Documentation.version + UnityEngine.Rendering.Documentation.subURL + "Common/srp-lens-flare-asset" + UnityEngine.Rendering.Documentation.endURL)]
     public class SRPLensFlareEditor : Editor
     {
         SerializedProperty m_Intensity;
