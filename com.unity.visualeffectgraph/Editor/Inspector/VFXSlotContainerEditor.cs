@@ -228,6 +228,9 @@ class VFXSlotContainerEditor : Editor
     public override void OnInspectorGUI()
     {
         serializedObject.Update();
+        var referenceModel = serializedObject.targetObject as VFXModel;
+        GUI.enabled = referenceModel.GetResource().IsAssetEditable();
+
         SerializedProperty modifiedProperty = DoInspectorGUI();
 
         if (modifiedProperty != null && modifiedProperty.serializedObject.ApplyModifiedProperties())

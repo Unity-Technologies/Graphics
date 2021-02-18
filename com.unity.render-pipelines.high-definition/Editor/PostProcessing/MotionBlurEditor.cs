@@ -60,12 +60,7 @@ namespace UnityEditor.Rendering.HighDefinition
             {
                 PropertyField(m_DepthCmpScale);
 
-                EditorGUILayout.Space();
-                EditorGUILayout.LabelField("Camera Velocity", EditorStyles.miniLabel);
-
                 PropertyField(m_CameraMotionBlur);
-
-
                 using (new EditorGUI.DisabledScope(!m_CameraMotionBlur.value.boolValue))
                 {
                     PropertyField(m_CameraMVClampMode, EditorGUIUtility.TrTextContent("Camera Clamp Mode", "Determine if and how the component of the motion vectors coming from the camera is clamped in a special fashion."));

@@ -496,9 +496,8 @@ void RayGenDirectionalColorShadowSingle()
         rayIntersection.color = float3(1.0, 1.0, 1.0);
         rayIntersection.t = MISS_RAY_TRACING_SHADOW_DISTANCE;
 
-        TraceRay(_RaytracingAccelerationStructure, RAY_FLAG_CULL_FRONT_FACING_TRIANGLES 
-            | RAY_FLAG_FORCE_NON_OPAQUE, 
-            RAYTRACINGRENDERERFLAG_CAST_SHADOW_TRANSPARENT, 0, 1, 1, rayDescriptor, rayIntersection);
+        // Evaluate the ray visibility term
+        TraceRay(_RaytracingAccelerationStructure, RAY_FLAG_CULL_FRONT_FACING_TRIANGLES, RAYTRACINGRENDERERFLAG_CAST_SHADOW_TRANSPARENT, 0, 1, 1, rayDescriptor, rayIntersection);
     }
 
     _RaytracedColorShadowIntegration[COORD_TEXTURE2D_X(currentPixelCoord)] = float4(previousIntergrationValue + rayIntersection.color / (float)_RaytracingNumSamples, 1.0);
@@ -680,9 +679,8 @@ void RayGenSemiTransparentShadowSegmentSingle()
         rayIntersection.color = float3(1.0, 1.0, 1.0);
         rayIntersection.t = MISS_RAY_TRACING_SHADOW_DISTANCE;
 
-        TraceRay(_RaytracingAccelerationStructure, RAY_FLAG_CULL_FRONT_FACING_TRIANGLES 
-            | RAY_FLAG_FORCE_NON_OPAQUE, 
-            RAYTRACINGRENDERERFLAG_CAST_SHADOW_TRANSPARENT, 0, 1, 1, rayDescriptor, rayIntersection);
+        // Evaluate the ray visibility term
+        TraceRay(_RaytracingAccelerationStructure, RAY_FLAG_CULL_FRONT_FACING_TRIANGLES, RAYTRACINGRENDERERFLAG_CAST_SHADOW_TRANSPARENT, 0, 1, 1, rayDescriptor, rayIntersection);
     }
 
     // Add the contribution of this sample

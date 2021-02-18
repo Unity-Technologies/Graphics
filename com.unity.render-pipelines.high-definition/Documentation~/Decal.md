@@ -1,13 +1,13 @@
 # Decal
 
-The High Definition Render Pipeline (HDRP) includes two ways to create decals in a Scene. You can either use a decal Mesh and manually position the decal or use the [Decal Projector](Decal-Projector.md) component to project the decal. Both of these methods require that you create a decal Material, which is a Material that uses either the [Decal Shader](Decal-Shader.md) or [Decal master node](Master-Node-Decal.md). You can use either to create decal Materials that you can place or project into a Scene.
+The High Definition Render Pipeline (HDRP) includes two ways to create decals in a Scene. You can either use a decal Mesh and manually position the decal or use the [Decal Projector](Decal-Projector.md) component to project the decal. Both of these methods require that you create a decal Material, which is a Material that uses either the [Decal Shader](Decal-Shader.md) or [Decal Master Stack](master-stack-decal.md). You can use either to create decal Materials that you can place or project into a Scene.
 
 ![](Images/HDRPFeatures-DecalShader.png)
 
 **Limitation and compatibility**
 
-The Decal Projector can affect opaque Materials with either a [Decal Shader](Decal-Shader.md) or a [Decal master node](Master-Node-Decal.md). However, it can only affect transparent Materials with the [Decal Shader](Decal-Shader.md). It does not support emissive on Transparent Materials and does support Decal Layers.
-Decal Meshes can only affect opaque Materials with either a [Decal Shader](Decal-Shader.md) or a [Decal master node](Master-Node-Decal.md). They also do not support Decal Layers.
+The Decal Projector can affect opaque Materials with either a [Decal Shader](Decal-Shader.md) or a [Decal Master Stack](master-stack-decal.md). However, it can only affect transparent Materials with the [Decal Shader](Decal-Shader.md). It does not support emissive on Transparent Materials and does support Decal Layers.
+Decal Meshes can only affect opaque Materials with either a [Decal Shader](Decal-Shader.md) or a [Decal Master Stack](master-stack-decal.md). They also do not support Decal Layers.
 
 # Decal Layers
 

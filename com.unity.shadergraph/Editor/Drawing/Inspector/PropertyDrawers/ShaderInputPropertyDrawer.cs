@@ -139,7 +139,7 @@ namespace UnityEditor.ShaderGraph.Drawing.Inspector.PropertyDrawers
         void UpdateEnableState()
         {
             // some changes may change the exposed state
-            exposedToggle.SetValueWithoutNotify(shaderInput.isExposed);
+            exposedToggle?.SetValueWithoutNotify(shaderInput.isExposed);
             exposedToggle?.SetEnabled(shaderInput.isExposable && !shaderInput.isAlwaysExposed);
             if (shaderInput is ShaderKeyword keyword)
             {
@@ -431,7 +431,7 @@ namespace UnityEditor.ShaderGraph.Drawing.Inspector.PropertyDrawers
                 property.precision = (Precision)newValue;
                 this._precisionChangedCallback();
                 this._postChangeValueCallback();
-            }, property.precision, "Precision", Precision.Inherit, out var precisionField));
+            }, (PropertyDrawerUtils.UIPrecisionForShaderGraphs)property.precision, "Precision", PropertyDrawerUtils.UIPrecisionForShaderGraphs.Inherit, out var precisionField));
             if (property is Serialization.MultiJsonInternal.UnknownShaderPropertyType)
                 precisionField.SetEnabled(false);
         }
@@ -716,15 +716,18 @@ namespace UnityEditor.ShaderGraph.Drawing.Inspector.PropertyDrawers
                     if (index >= 0 && index < m_VTReorderableList.list.Count)
                     {
                         var svt = m_VTReorderableList.list[index] as SerializableVirtualTextureLayer;
-                        var otherPropertyRefNames = graphData.BuildPropertyReferenceNameList(virtualTextureProperty, svt.layerName);
-                        var newLayerRefName = GraphUtil.SanitizeName(otherPropertyRefNames, "{0}_{1}", evt.newValue);
+                        var otherPropertyRefNames = graphData.BuildPropertyReferenceNameList(virtualTextureProperty, svt.layerRefName);
+                        var newName = NodeUtils.ConvertToValidHLSLIdentifier(evt.newValue);
+                        var newLayerRefName = GraphUtil.SanitizeName(otherPropertyRefNames, "{0}_{1}", newName);
                         if (newLayerRefName != svt.layerRefName)
                         {
                             this._preChangeValueCallback("Change Layer Ref Name");
                             svt.layerRefName = newLayerRefName;
                             this._postChangeValueCallback(false, ModificationScope.Graph);
-                            m_VTLayer_RefName.SetValueWithoutNotify(newLayerRefName);
                         }
+                        // Always update the display name to the sanitized name. If an invalid name was entered that ended up being sanitized to the old value,
+                        // the text box still needs to be updated to display the sanitized name.
+                        m_VTLayer_RefName.SetValueWithoutNotify(newLayerRefName);
                     }
                 });
             AddPropertyRowToSheet(propertySheet, m_VTLayer_RefName, "  Layer Reference");
