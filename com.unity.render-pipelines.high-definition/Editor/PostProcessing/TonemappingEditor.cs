@@ -2,6 +2,7 @@ using System.IO;
 using UnityEngine;
 using UnityEngine.Rendering.HighDefinition;
 using UnityEngine.Rendering;
+using UnityEngine.Experimental.Rendering;
 
 namespace UnityEditor.Rendering.HighDefinition
 {
@@ -125,7 +126,7 @@ namespace UnityEditor.Rendering.HighDefinition
 
                 PropertyField(m_LutContribution, EditorGUIUtility.TrTextContent("Contribution"));
 
-                EditorGUILayout.HelpBox("Use \"Edit > Render Pipeline > HD Render Pipeline > Render Selected Camera to Log EXR\" to export a log-encoded frame for external grading.", MessageType.Info);
+                EditorGUILayout.HelpBox("Use \"Edit > Rendering > Render Selected HDRP Camera to Log EXR\" to export a log-encoded frame for external grading.", MessageType.Info);
             }
         }
 
@@ -134,7 +135,7 @@ namespace UnityEditor.Rendering.HighDefinition
             if (m_CurveTex == null || !m_CurveTex.IsCreated() || m_CurveTex.width != width || m_CurveTex.height != height)
             {
                 CoreUtils.Destroy(m_CurveTex);
-                m_CurveTex = new RenderTexture(width, height, 0, RenderTextureFormat.ARGB32);
+                m_CurveTex = new RenderTexture(width, height, 0, GraphicsFormat.R8G8B8A8_SRGB);
                 m_CurveTex.hideFlags = HideFlags.HideAndDontSave;
             }
         }
@@ -142,7 +143,7 @@ namespace UnityEditor.Rendering.HighDefinition
 
     sealed class ExrExportMenu
     {
-        [MenuItem("Edit/Render Pipeline/HD Render Pipeline/Render Selected Camera to Log EXR %#&e")]
+        [MenuItem("Edit/Rendering/Render Selected HDRP Camera to Log EXR %#&e", priority = CoreUtils.Sections.section2 + CoreUtils.Priorities.editMenuPriority + 1)]
         static void Export()
         {
             var camera = Selection.activeGameObject?.GetComponent<Camera>();
@@ -168,8 +169,8 @@ namespace UnityEditor.Rendering.HighDefinition
 
             var w = camera.pixelWidth;
             var h = camera.pixelHeight;
-            var texOut = new Texture2D(w, h, TextureFormat.RGBAFloat, false, true);
-            var target = RenderTexture.GetTemporary(w, h, 24, RenderTextureFormat.ARGBFloat, RenderTextureReadWrite.Linear);
+            var texOut = new Texture2D(w, h, GraphicsFormat.R32G32B32A32_SFloat, TextureCreationFlags.None);
+            var target = RenderTexture.GetTemporary(w, h, 24, GraphicsFormat.R32G32B32A32_SFloat);
             var lastActive = RenderTexture.active;
             var lastTargetSet = camera.targetTexture;
 
