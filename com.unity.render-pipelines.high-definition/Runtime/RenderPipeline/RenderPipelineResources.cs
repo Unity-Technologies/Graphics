@@ -360,6 +360,10 @@ namespace UnityEngine.Rendering.HighDefinition
             public Texture2D colorGradient;
             [Reload("Runtime/RenderPipelineResources/Texture/Matcap/DefaultMatcap.png")]
             public Texture2D matcapTex;
+            [Reload("Runtime/RenderPipelineResources/Texture/DebugGrayscaleLuminance.tga")]
+            public Texture2D debugGrayscaleLuminance;
+            [Reload("Runtime/RenderPipelineResources/Texture/DebugGrayscaleMunsell.tga")]
+            public Texture2D debugGrayscaleMunsell;
 
             // Pre-baked noise
             [Reload("Runtime/RenderPipelineResources/Texture/BlueNoise16/L/LDR_LLL1_{0}.png", 0, 32)]

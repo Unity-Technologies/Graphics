@@ -5271,6 +5271,18 @@ namespace UnityEngine.Rendering.HighDefinition
                     debugLightingMode = DebugLightingMode.MatcapView;
                 }
 
+                Texture2D debugLut = null;
+                if (m_CurrentDebugDisplaySettings.data.fullScreenDebugMode == FullScreenDebugMode.Grayscale)
+                {
+                    debugLut = defaultResources.textures.debugGrayscaleLuminance;
+
+                    if (m_CurrentDebugDisplaySettings.data.grayscaleDebugMode == GrayscaleDebugMode.MunsellValue)
+                    {
+                        debugLut = defaultResources.textures.debugGrayscaleMunsell;
+                    }
+                }
+                cmd.SetGlobalTexture(HDShaderIDs._DebugLut, debugLut);
+
                 ref var cb = ref m_ShaderVariablesDebugDisplayCB;
 
                 var debugMaterialIndices = m_CurrentDebugDisplaySettings.GetDebugMaterialIndexes();
@@ -5316,6 +5328,12 @@ namespace UnityEngine.Rendering.HighDefinition
                 cb._DebugSingleShadowIndex = m_CurrentDebugDisplaySettings.data.lightingDebugSettings.shadowDebugUseSelection ? m_DebugSelectedLightShadowIndex : (int)m_CurrentDebugDisplaySettings.data.lightingDebugSettings.shadowMapIndex;
 
                 cb._DebugAOVOutput = aovOutput ? 1 : 0;
+
+                cb._DebugLutParams = (debugLut == null) ? Vector4.zero : new Vector4(
+                    1f / debugLut.width,
+                    1f / debugLut.height,
+                    debugLut.height - 1,
+                    0f);
 
                 ConstantBuffer.PushGlobal(cmd, m_ShaderVariablesDebugDisplayCB, HDShaderIDs._ShaderVariablesDebugDisplay);
 
