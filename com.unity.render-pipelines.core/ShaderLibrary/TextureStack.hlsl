@@ -154,9 +154,8 @@ GraniteTilesetConstantBuffer GetConstantBuffer(GraniteStreamingTextureConstantBu
 
 #define DECLARE_STACK_LAYER(stackName, layerSamplerName, layerIndex) \
 TEXTURE2D_ARRAY(stackName##_c##layerIndex);\
-SAMPLER(sampler##stackName##_c##layerIndex);\
 \
-float4 SampleVT_##layerSamplerName(StackInfo info, int lodCalculation, int quality)\
+float4 SampleVT_##layerSamplerName(StackInfo info, int lodCalculation, int quality, sampler cacheSampler)\
 {\
     GraniteStreamingTextureConstantBuffer textureParamBlock;\
     textureParamBlock.data[0] = stackName##_atlasparams[0];\
@@ -170,7 +169,7 @@ float4 SampleVT_##layerSamplerName(StackInfo info, int lodCalculation, int quali
 \
     GraniteCacheTexture cache;\
     cache.TextureArray = stackName##_c##layerIndex;\
-    cache.Sampler = sampler##stackName##_c##layerIndex;\
+    cache.Sampler = cacheSampler;\
 \
     float4 output;\
     VirtualTexturingSample(grCB.tilesetBuffer, info.lookupData, cache, layerIndex, lodCalculation, quality, output);\
@@ -178,7 +177,7 @@ float4 SampleVT_##layerSamplerName(StackInfo info, int lodCalculation, int quali
 }
 
 #define DECLARE_BUILD_PROPERTIES(stackName, layers, layer0Index, layer1Index, layer2Index, layer3Index)\
-    VTProperty BuildVTProperties_##stackName()\
+    VTProperty BuildVTProperties_##stackName(sampler cacheSampler)\
     {\
         VTProperty vtProperty; \
         \
@@ -199,13 +198,13 @@ float4 SampleVT_##layerSamplerName(StackInfo info, int lodCalculation, int quali
         vtProperty.layerIndex[3] = layer3Index; \
         \
         vtProperty.cacheLayer[0].TextureArray = stackName##_c##layer0Index; \
-        vtProperty.cacheLayer[0].Sampler = sampler##stackName##_c##layer0Index;\
+        vtProperty.cacheLayer[0].Sampler = cacheSampler;\
         vtProperty.cacheLayer[1].TextureArray = stackName##_c##layer1Index; \
-        vtProperty.cacheLayer[1].Sampler = sampler##stackName##_c##layer1Index;\
+        vtProperty.cacheLayer[1].Sampler = cacheSampler;\
         vtProperty.cacheLayer[2].TextureArray = stackName##_c##layer2Index; \
-        vtProperty.cacheLayer[2].Sampler = sampler##stackName##_c##layer2Index;\
+        vtProperty.cacheLayer[2].Sampler = cacheSampler;\
         vtProperty.cacheLayer[3].TextureArray = stackName##_c##layer3Index; \
-        vtProperty.cacheLayer[3].Sampler = sampler##stackName##_c##layer3Index;\
+        vtProperty.cacheLayer[3].Sampler = cacheSampler;\
         \
         return vtProperty; \
     }

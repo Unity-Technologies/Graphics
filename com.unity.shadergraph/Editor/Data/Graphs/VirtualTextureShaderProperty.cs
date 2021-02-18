@@ -100,8 +100,14 @@ namespace UnityEditor.ShaderGraph
 
                 Action<ShaderStringBuilder> customDecl = (builder) =>
                 {
-                    // declare texture stack
+                    //Declare sampler if not defined already, use the first layer to get the proper settings for VT textures.
                     builder.AppendIndentation();
+                    builder.AppendLine("#ifndef VT_SAMPLER");
+                    builder.AppendLine("#define VT_SAMPLER " + "sampler" + referenceName + "_c0");
+                    builder.AppendLine("SAMPLER(sampler" + referenceName + "_c0);");
+                    builder.AppendLine("#endif");
+                    builder.AppendIndentation();
+                    // declare texture stack
                     builder.Append("DECLARE_STACK");
                     builder.Append((numLayers <= 1) ? "" : numLayers.ToString());
                     builder.Append("(");
@@ -121,7 +127,11 @@ namespace UnityEditor.ShaderGraph
                     builder.Append(referenceName);
                     builder.Append(" AddTextureType(BuildVTProperties_");
                     builder.Append(referenceName);
-                    builder.Append("()");
+                    builder.Append("(");
+#if VIRTUAL_TEXTURING_ENABLED
+                    builder.Append(" VT_SAMPLER ");
+#endif
+                    builder.Append(")");
                     for (int i = 0; i < value.layers.Count; i++)
                     {
                         builder.Append(",");
