@@ -25,6 +25,7 @@ StructuredBuffer<int2>  _DebugDepthPyramidOffsets;
 
 TEXTURE2D(_DebugFont); // Debug font to write string in shader
 TEXTURE2D(_DebugMatCapTexture);
+TEXTURE2D(_DebugLut);
 
 void GetPropertiesDataDebug(uint paramId, inout float3 result, inout bool needLinearToSRGB)
 {
