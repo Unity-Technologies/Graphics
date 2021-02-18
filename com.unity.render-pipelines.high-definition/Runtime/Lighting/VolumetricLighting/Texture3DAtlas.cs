@@ -5,6 +5,7 @@ namespace UnityEngine.Rendering.HighDefinition
 {
     public class Texture3DAtlas
     {
+        public static readonly int _Atlas = Shader.PropertyToID("_Atlas");
         public static readonly int _ZBias = Shader.PropertyToID("_ZBias");
         public static readonly int _DstTex = Shader.PropertyToID("_DstTex");
         public static readonly int _SrcTex = Shader.PropertyToID("_SrcTex");
@@ -235,7 +236,7 @@ namespace UnityEngine.Rendering.HighDefinition
                         {
                             callback?.Invoke(v, cs, cmd);
                         }
-                        cmd.SetComputeTextureParam(cs, 0, HDShaderIDs._VolumeMaskAtlas, m_atlas);
+                        cmd.SetComputeTextureParam(cs, 0, _Atlas, m_atlas);
                         int zBias = Mathf.RoundToInt(v.parameters.atlasBias * m_atlas.rt.volumeDepth);
                         cmd.SetComputeIntParam(cs, _ZBias, zBias);
                         cmd.DispatchCompute(
