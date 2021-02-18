@@ -52,11 +52,12 @@ namespace UnityEditor.Rendering
             GUILayout.BeginVertical();
 
             bool saveChangeState = GUI.changed;
+            string text = title.text;
             if (colorDot != default)
-                title.text = "   " + title.text;
+                text = "   " + text;
             expanded = subHeader
-                ? CoreEditorUtils.DrawSubHeaderFoldout(title, beforeExpanded, isBoxed: false)
-                : CoreEditorUtils.DrawHeaderFoldout(title, beforeExpanded);
+                ? CoreEditorUtils.DrawSubHeaderFoldout(text, beforeExpanded, isBoxed: false)
+                : CoreEditorUtils.DrawHeaderFoldout(text, beforeExpanded);
             if (colorDot != default)
             {
                 Rect dotRect = GUILayoutUtility.GetLastRect();
