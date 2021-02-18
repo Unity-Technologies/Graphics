@@ -69,6 +69,7 @@ namespace UnityEngine.Rendering.HighDefinition
 #endif // UNITY_EDITOR
         ulong m_CacheAccelSize = 0;
         uint  m_CacheLightCount = 0;
+        int   m_CameraID = 0;
         bool  m_RenderSky = true;
 
         TextureHandle m_FrameTexture; // stores the per-pixel results of path tracing for one frame
@@ -234,6 +235,13 @@ namespace UnityEngine.Rendering.HighDefinition
             {
                 m_CacheAccelSize = accelSize;
                 ResetPathTracing();
+            }
+
+            // If the camera has changed, re-render the sky texture
+            if (camID != m_CameraID)
+            {
+                m_RenderSky = true;
+                m_CameraID = camID;
             }
         }
 
