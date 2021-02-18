@@ -90,7 +90,8 @@ namespace UnityEditor.Rendering
         {
             get
             {
-                m_OverrideToggleSize ?? = CoreEditorStyles.smallTickbox.CalcSize(Styles.overrideSettingText);
+                if (!m_OverrideToggleSize.HasValue)
+                    m_OverrideToggleSize = CoreEditorStyles.smallTickbox.CalcSize(Styles.overrideSettingText);
                 return m_OverrideToggleSize.Value;
             }
         }
