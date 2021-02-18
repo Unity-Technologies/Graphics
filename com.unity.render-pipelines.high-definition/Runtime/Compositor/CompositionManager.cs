@@ -948,7 +948,6 @@ namespace UnityEngine.Rendering.HighDefinition.Compositor
             if (!m_globalSettings.beforePostProcessCustomPostProcesses.Contains(typeof(ChromaKeying).AssemblyQualifiedName))
             {
                 m_globalSettings.beforePostProcessCustomPostProcesses.Add(typeof(ChromaKeying).AssemblyQualifiedName);
-                Debug.Log("Adding ChromaKeying to beforePostProcessCustomPostProcesses");
             }
 
             if (!m_globalSettings.beforePostProcessCustomPostProcesses.Contains(typeof(AlphaInjection).AssemblyQualifiedName))
