@@ -45,6 +45,11 @@ namespace UnityEditor.Rendering.HighDefinition
         public SerializedProperty lensAttenuation;
         public SerializedProperty diffusionProfileSettingsList;
 
+        internal ReorderableList uiBeforeTransparentCustomPostProcesses;
+        internal ReorderableList uiBeforeTAACustomPostProcesses;
+        internal ReorderableList uiBeforePostProcessCustomPostProcesses;
+        internal ReorderableList uiAfterPostProcessCustomPostProcesses;
+
         //RenderPipelineResources not always exist and thus cannot be serialized normally.
         bool? m_HasEditorResourceHasMultipleDifferentValues;
         public bool editorResourceHasMultipleDifferentValues
@@ -91,7 +96,6 @@ namespace UnityEditor.Rendering.HighDefinition
             defaultBakedOrCustomReflectionFrameSettings = new SerializedFrameSettings(serializedObject.FindProperty("m_RenderingPathDefaultBakedOrCustomReflectionFrameSettings"), null); //no overrides in HDRPAsset
             defaultRealtimeReflectionFrameSettings = new SerializedFrameSettings(serializedObject.FindProperty("m_RenderingPathDefaultRealtimeReflectionFrameSettings"), null); //no overrides in HDRPAsset
 
-            // We are using ReorderableList for the UI. Since the integration with SerializedProperty is still WIP, in the meantime we will not use one
             InitializeCustomPostProcessesLists();
 
             volumeProfileDefault  = serializedObject.FindProperty("m_VolumeProfileDefault");
@@ -125,16 +129,8 @@ namespace UnityEditor.Rendering.HighDefinition
             };
         }
 
-        internal ReorderableList uiBeforeTransparentCustomPostProcesses;
-        internal ReorderableList uiBeforeTAACustomPostProcesses;
-        internal ReorderableList uiBeforePostProcessCustomPostProcesses;
-        internal ReorderableList uiAfterPostProcessCustomPostProcesses;
-
         void InitializeCustomPostProcessesLists()
         {
-            if (uiBeforeTransparentCustomPostProcesses != null)
-                return;
-
             var ppVolumeTypeInjectionPoints = new Dictionary<Type, CustomPostProcessInjectionPoint>();
 
             var ppVolumeTypes = TypeCache.GetTypesDerivedFrom<CustomPostProcessVolumeComponent>();
@@ -144,6 +140,7 @@ namespace UnityEditor.Rendering.HighDefinition
                 ppVolumeTypeInjectionPoints[ppVolumeType] = comp.injectionPoint;
                 CoreUtils.Destroy(comp);
             }
+
             var globalSettings = serializedObject.targetObject as HDRenderPipelineGlobalSettings;
             InitList(ref uiBeforeTransparentCustomPostProcesses, globalSettings.beforeTransparentCustomPostProcesses, "After Opaque And Sky", CustomPostProcessInjectionPoint.AfterOpaqueAndSky);
             InitList(ref uiBeforePostProcessCustomPostProcesses, globalSettings.beforePostProcessCustomPostProcesses, "Before Post Process", CustomPostProcessInjectionPoint.BeforePostProcess);
@@ -174,6 +171,8 @@ namespace UnityEditor.Rendering.HighDefinition
                             menu.AddItem(new GUIContent(kp.Key.ToString()), false, () =>
                             {
                                 Undo.RegisterCompleteObjectUndo(serializedObject.targetObject, $"Added {kp.Key.ToString()} Custom Post Process");
+
+                                Debug.Log("Added {kp.Key.ToString()} Custom Post Process");
                                 customPostProcessTypes.Add(kp.Key.AssemblyQualifiedName);
                             });
                     }
@@ -187,6 +186,7 @@ namespace UnityEditor.Rendering.HighDefinition
                 reorderableList.onRemoveCallback = (list) =>
                 {
                     Undo.RegisterCompleteObjectUndo(serializedObject.targetObject, $"Removed {list.list[list.index].ToString()} Custom Post Process");
+                    Debug.Log("Removed {list.list[list.index].ToString()} Custom Post Process");
                     customPostProcessTypes.RemoveAt(list.index);
                     EditorUtility.SetDirty(serializedObject.targetObject);
                 };

@@ -491,6 +491,8 @@ namespace UnityEngine.Rendering.HighDefinition.Compositor
             SetupLayerPriorities();
         }
 
+        static HDRenderPipelineGlobalSettings m_globalSettings;
+
         // Update is called once per frame
         void Update()
         {
@@ -928,29 +930,47 @@ namespace UnityEngine.Rendering.HighDefinition.Compositor
         // Register the custom pp passes used by the compositor
         static internal void RegisterCustomPasses()
         {
-            // If custom post processes are not registered in the HDRP asset, they are never executed so we have to add them manually
-            if (!HDRenderPipelineGlobalSettings.instance.beforePostProcessCustomPostProcesses.Contains(typeof(ChromaKeying).AssemblyQualifiedName))
+            if (m_globalSettings != HDRenderPipelineGlobalSettings.instance)
             {
-                HDRenderPipelineGlobalSettings.instance.beforePostProcessCustomPostProcesses.Add(typeof(ChromaKeying).AssemblyQualifiedName);
+                UnRegisterCustomPasses();
+                m_globalSettings = null;
             }
 
-            if (!HDRenderPipelineGlobalSettings.instance.beforePostProcessCustomPostProcesses.Contains(typeof(AlphaInjection).AssemblyQualifiedName))
+            if (m_globalSettings == null)
+                m_globalSettings = HDRenderPipelineGlobalSettings.instance;
+            if (m_globalSettings == null) // if the global settings are not ready let us early out for this frame
+                return;
+
+            if (m_globalSettings.beforePostProcessCustomPostProcesses == null) // global settings may not be ready yet
+                return;
+
+            // If custom post processes are not registered in the HDRP asset, they are never executed so we have to add them manually
+            if (!m_globalSettings.beforePostProcessCustomPostProcesses.Contains(typeof(ChromaKeying).AssemblyQualifiedName))
             {
-                HDRenderPipelineGlobalSettings.instance.beforePostProcessCustomPostProcesses.Add(typeof(AlphaInjection).AssemblyQualifiedName);
+                m_globalSettings.beforePostProcessCustomPostProcesses.Add(typeof(ChromaKeying).AssemblyQualifiedName);
+                Debug.Log("Adding ChromaKeying to beforePostProcessCustomPostProcesses");
+            }
+
+            if (!m_globalSettings.beforePostProcessCustomPostProcesses.Contains(typeof(AlphaInjection).AssemblyQualifiedName))
+            {
+                m_globalSettings.beforePostProcessCustomPostProcesses.Add(typeof(AlphaInjection).AssemblyQualifiedName);
             }
         }
 
         // Unregister the custom pp passes used by the compositor
         static internal void UnRegisterCustomPasses()
         {
-            if (HDRenderPipelineGlobalSettings.instance.beforePostProcessCustomPostProcesses.Contains(typeof(ChromaKeying).AssemblyQualifiedName))
+            if (m_globalSettings == null || m_globalSettings.beforePostProcessCustomPostProcesses == null) // global settings may not be ready yet
+                return;
+
+            if (m_globalSettings.beforePostProcessCustomPostProcesses.Contains(typeof(ChromaKeying).AssemblyQualifiedName))
             {
-                HDRenderPipelineGlobalSettings.instance.beforePostProcessCustomPostProcesses.Remove(typeof(ChromaKeying).AssemblyQualifiedName);
+                m_globalSettings.beforePostProcessCustomPostProcesses.Remove(typeof(ChromaKeying).AssemblyQualifiedName);
             }
 
-            if (HDRenderPipelineGlobalSettings.instance.beforePostProcessCustomPostProcesses.Contains(typeof(AlphaInjection).AssemblyQualifiedName))
+            if (m_globalSettings.beforePostProcessCustomPostProcesses.Contains(typeof(AlphaInjection).AssemblyQualifiedName))
             {
-                HDRenderPipelineGlobalSettings.instance.beforePostProcessCustomPostProcesses.Remove(typeof(AlphaInjection).AssemblyQualifiedName);
+                m_globalSettings.beforePostProcessCustomPostProcesses.Remove(typeof(AlphaInjection).AssemblyQualifiedName);
             }
         }
     }
