@@ -124,6 +124,43 @@ namespace UnityEditor.ShaderGraph.UnitTests
                 string shader2 = generator2.generatedShader;
 
                 Assert.AreEqual(shader, shader2, $"Importing the graph {unityLocalPath} twice resulted in different generated shaders.");
+
+                // also check that the shader is SRP Batcher compatible
+                // NOTE: Force the shader compilation to ensure GetSRPBatcherCompatibilityCode will be up to date
+                // create shader and material to check
+                var shaderAsset = ShaderUtil.CreateShaderAsset(shader, true);
+                var material = new Material(shaderAsset);
+
+                var shaderUtil = typeof(ShaderUtil);
+                if (shaderUtil != null)
+                {
+                    var getShaderActiveSubshaderIndex = shaderUtil.GetMethod("GetShaderActiveSubshaderIndex", System.Reflection.BindingFlags.Static | System.Reflection.BindingFlags.NonPublic);
+                    var getSRPBatcherCompatibilityCode = shaderUtil.GetMethod("GetSRPBatcherCompatibilityCode", System.Reflection.BindingFlags.Static | System.Reflection.BindingFlags.NonPublic);
+
+                    if ((getShaderActiveSubshaderIndex != null) && (getSRPBatcherCompatibilityCode != null))
+                    {
+                        var wasAsyncAllowed = ShaderUtil.allowAsyncCompilation;
+                        ShaderUtil.allowAsyncCompilation = false;
+
+                        for (int p = 0; p < material.passCount; p++)
+                        {
+                            ShaderUtil.CompilePass(material, p);
+                        }
+
+                        for (int p = 0; p < material.passCount; p++)
+                        {
+                            material.SetPass(p);
+                            int subShader = (int)getShaderActiveSubshaderIndex.Invoke(null, new object[] { shaderAsset });
+                            int SRPErrCode = (int)getSRPBatcherCompatibilityCode.Invoke(null, new object[] { shaderAsset, subShader });
+                            if (SRPErrCode != 0)
+                                Debug.LogError("Pass " + p + " is not SRP Batcher compatible");
+                        }
+
+                        ShaderUtil.allowAsyncCompilation = wasAsyncAllowed;
+                    }
+                    else
+                        Debug.LogError("Unable to find GetSRPBatcherCompatibilityCode function via reflection");
+                }
             }
         }
 
