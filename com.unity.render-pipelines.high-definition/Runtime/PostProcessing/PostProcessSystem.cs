@@ -818,6 +818,7 @@ namespace UnityEngine.Rendering.HighDefinition
                         DoUberPostProcess(uberPostParams, source, destination, m_InternalLogLut, bloomActive ? m_BloomMipsUp[0] : TextureXR.GetBlackTexture(), cmd);
 
                         m_HDInstance.PushFullScreenDebugTexture(camera, cmd, destination, FullScreenDebugMode.ColorLog);
+                        m_HDInstance.PushFullScreenDebugTexture(camera, cmd, destination, FullScreenDebugMode.Grayscale);
 
                         // Cleanup
                         if (bloomActive) m_Pool.Recycle(m_BloomMipsUp[0]);
