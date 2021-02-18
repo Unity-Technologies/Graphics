@@ -247,7 +247,8 @@ namespace UnityEditor.VFX.UI
             set
             {
                 if (m_ComponentBoard.parent == null)
-                    ToggleComponentBoard();
+                    m_ToggleComponentBoard.value = true;
+
                 if (value == null)
                     m_ComponentBoard.Detach();
                 else
