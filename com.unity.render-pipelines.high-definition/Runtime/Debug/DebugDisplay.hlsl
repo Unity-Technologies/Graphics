@@ -88,7 +88,7 @@ void GetPropertiesDataDebug(uint paramId, inout float3 result, inout bool needLi
 
         case DEBUGVIEWPROPERTIES_DEFERRED_MATERIALS:
 #ifdef _DEFERRED_CAPABLE_MATERIAL
-            result = float3(0.0, 1.0, 0.0);
+            result = _DebugIsLitShaderModeDeferred ? float3(0.0, 1.0, 0.0) : float3(1.0, 0.0, 0.0);
 #else
             result = float3(1.0, 0.0, 0.0);
 #endif

@@ -50,6 +50,7 @@ CBUFFER_START(ShaderVariablesDebugDisplay)
     int _DebugLightLayersMask;
     int _DebugShadowMapMode;
     int _DebugMipMapMode;
+    int _DebugIsLitShaderModeDeferred;
     int _DebugFullScreenMode;
     float _DebugTransparencyOverdrawWeight;
     int _DebugMipMapModeTerrainTexture;
