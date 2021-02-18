@@ -68,7 +68,7 @@ namespace UnityEditor.Rendering
         sealed class Styles
         {
             static public readonly GUIContent intensity = new GUIContent("Intensity", "Modulate the whole lens flare.");
-            static public readonly GUIContent scaleCurve = new GUIContent("Scale Curve", "Curve between 0 and 1 which describes the scale of each element, the index of each element is remapped between 0 and 1 to read the scale.");
+            static public readonly GUIContent scaleCurve = new GUIContent("Scale Curve", "Curve between 0 and 1 which describes the scale of each element, if the relative position is negative HDRP will read the negative part of the curve, the positive part otherwise.");
             static public readonly GUIContent positionCurve = new GUIContent("Position Curve", "Curve between -1 and 1 which describes the scale of each element, if the relative position is negative HDRP will read the negative part of the curve, the positive part otherwise.");
             static public readonly GUIContent elements = new GUIContent("Elements", "List of elements in the Lens Flare.");
         }

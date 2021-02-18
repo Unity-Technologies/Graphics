@@ -12,6 +12,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ### Added
 - Support for the PlayStation 5 platform has been added.
+- Support for Lens Flare Data Driven (from images), on HDRP
+- New SRPLensFlareData Asset
 
 ### Changed
 - Changed Window/Render Pipeline/Render Pipeline Debug to Window/Rendering/Render Pipeline Debugger
