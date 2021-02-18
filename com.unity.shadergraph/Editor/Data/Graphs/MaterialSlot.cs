@@ -259,8 +259,29 @@ namespace UnityEditor.ShaderGraph
 
         public bool IsCompatibleStageWith(MaterialSlot otherSlot)
         {
+            var downStreamShaderSatge = ShaderStageCapability.All;
+            var connectedStage = new List<ShaderStageCapability>();
+            var fromNode = otherSlot.owner;
+            var downstreamNodeList = new List<AbstractMaterialNode>();
+            NodeUtils.GetDownsteamNodesForNode(downstreamNodeList, fromNode);
+            foreach (var n in downstreamNodeList)
+            {
+                if (n.GetType() == typeof(BlockNode))
+                {
+                    var inputSlots = n.GetInputSlots<MaterialSlot>();
+                    connectedStage.Add(inputSlots.First().stageCapability);
+                }
+                else
+                {
+                    downStreamShaderSatge = otherSlot.stageCapability;
+                }
+            }
+            if (!connectedStage.Contains(ShaderStageCapability.Fragment))
+                downStreamShaderSatge = ShaderStageCapability.Vertex;
+            if (!connectedStage.Contains(ShaderStageCapability.Vertex))
+                downStreamShaderSatge = ShaderStageCapability.Fragment;
             var candidateStage = otherSlot.stageCapability;
-            return stageCapability == ShaderStageCapability.All || candidateStage == stageCapability;
+            return stageCapability == ShaderStageCapability.All || candidateStage == stageCapability || stageCapability == downStreamShaderSatge;
         }
 
         public string GetDefaultValue(GenerationMode generationMode, ConcretePrecision concretePrecision)
