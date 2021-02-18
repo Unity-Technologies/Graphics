@@ -51,22 +51,22 @@ namespace UnityEditor.Rendering
             ++EditorGUI.indentLevel;
             EditorGUILayout.BeginFoldoutHeaderGroup(true, "    General", EditorStyles.boldLabel);
             {
-                EditorGUILayout.PropertyField(m_LensFlareData);
-                EditorGUILayout.PropertyField(m_Intensity);
-                EditorGUILayout.PropertyField(m_DistanceAttenuationCurve);
+                EditorGUILayout.PropertyField(m_LensFlareData, Styles.lensFlareData);
+                EditorGUILayout.PropertyField(m_Intensity, Styles.intensity);
+                EditorGUILayout.PropertyField(m_DistanceAttenuationCurve, Styles.distanceAttenuationCurve);
                 if (attachedToLight)
-                    EditorGUILayout.PropertyField(m_AttenuationByLightShape);
-                EditorGUILayout.PropertyField(m_RadialScreenAttenuationCurve);
+                    EditorGUILayout.PropertyField(m_AttenuationByLightShape, Styles.attenuationByLightShape);
+                EditorGUILayout.PropertyField(m_RadialScreenAttenuationCurve, Styles.radialScreenAttenuationCurve);
             }
             EditorGUILayout.EndFoldoutHeaderGroup();
             EditorGUILayout.BeginFoldoutHeaderGroup(false, "    Occlusion", EditorStyles.boldLabel);
             {
-                EditorGUILayout.PropertyField(m_OcclusionRadius); // Occlusion Fade Radius
+                EditorGUILayout.PropertyField(m_OcclusionRadius, Styles.occlusionRadius);
                 ++EditorGUI.indentLevel;
-                EditorGUILayout.PropertyField(m_SamplesCount);
+                EditorGUILayout.PropertyField(m_SamplesCount, Styles.sampleCount);
                 --EditorGUI.indentLevel;
-                EditorGUILayout.PropertyField(m_OcclusionOffset);
-                EditorGUILayout.PropertyField(m_AllowOffScreen);
+                EditorGUILayout.PropertyField(m_OcclusionOffset, Styles.occlusionOffset);
+                EditorGUILayout.PropertyField(m_AllowOffScreen, Styles.allowOffScreen);
             }
             EditorGUILayout.EndFoldoutHeaderGroup();
             --EditorGUI.indentLevel;
@@ -81,11 +81,11 @@ namespace UnityEditor.Rendering
             static public readonly GUIContent lensFlareData = new GUIContent("Lens Flare Data", "Lens flare asset used on this component.");
             static public readonly GUIContent intensity = new GUIContent("Intensity", "Intensity.");
             static public readonly GUIContent distanceAttenuationCurve = new GUIContent("Distance Attenuation Curve", "Attenuation by distance, uses world space values.");
-            static public readonly GUIContent attenuationByLightShape = new GUIContent("Distance Attenuation Curve", "If component attached to a light, attenuation the lens flare per light type.");
+            static public readonly GUIContent attenuationByLightShape = new GUIContent("Attenuation By Light Shape", "If component attached to a light, attenuation the lens flare per light type.");
             static public readonly GUIContent radialScreenAttenuationCurve = new GUIContent("Radial Screen Attenuation Curve", "Attenuation used radially, which allow for instance to enable flare only on the edge of the screen.");
             static public readonly GUIContent occlusionRadius = new GUIContent("Occlusion Radius", "Radius around the light used to occlude the flare (value in world space).");
             static public readonly GUIContent sampleCount = new GUIContent("Sample Count", "Random Samples Count used inside the disk with 'occlusionRadius'.");
-            static public readonly GUIContent occlusionOffset = new GUIContent("Occlusion Offset", "Z Occlusion Offset allow us to offset the plane where the disc of occlusion is place (closer to camera), value on world space.\nUseful for instance to sample occlusion outside a light bulb if we place a flare inside the light bulb.");
+            static public readonly GUIContent occlusionOffset = new GUIContent("Occlusion Offset", "Occlusion Offset allow us to offset the plane where the disc of occlusion is place (closer to camera), value on world space.\nUseful for instance to sample occlusion outside a light bulb if we place a flare inside the light bulb.");
             static public readonly GUIContent allowOffScreen = new GUIContent("Allow Off Screen", "If allowOffScreen is true then If the lens flare is outside the screen we still emit the flare on screen.");
         }
     }
