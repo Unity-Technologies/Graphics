@@ -90,8 +90,7 @@ namespace UnityEditor.Rendering
         {
             get
             {
-                if (!m_OverrideToggleSize.HasValue)
-                    m_OverrideToggleSize = CoreEditorStyles.smallTickbox.CalcSize(Styles.overrideSettingText);
+                m_OverrideToggleSize ?? = CoreEditorStyles.smallTickbox.CalcSize(Styles.overrideSettingText);
                 return m_OverrideToggleSize.Value;
             }
         }
@@ -118,9 +117,12 @@ namespace UnityEditor.Rendering
         /// </summary>
         public SerializedProperty activeProperty { get; internal set; }
 
-        EditorPrefBool m_ShowAdditionalProperties;
+        #region Additional Properties
 
+        AnimFloat             m_AdditionalPropertiesAnimation;
+        EditorPrefBool        m_ShowAdditionalProperties;
         List<VolumeParameter> m_VolumeNotAdditionalParameters;
+
         /// <summary>
         /// Override this property if your editor makes use of the "Additional Properties" feature.
         /// </summary>
@@ -129,7 +131,6 @@ namespace UnityEditor.Rendering
         /// <summary>
         /// Set to true to show additional properties.
         /// </summary>
-
         public bool showAdditionalProperties
         {
             get => m_ShowAdditionalProperties.value;
@@ -145,36 +146,19 @@ namespace UnityEditor.Rendering
             }
         }
 
-        /// <summary>
-        /// Start a scope for additional properties.
-        /// This will handle the highlight of the background when toggled on and off.
-        /// </summary>
-        /// <returns>True if the additional content should be drawn.</returns>
-        protected bool BeginAdditionalPropertiesScope()
+        class AdditionalPropertiesScope : IDisposable
         {
-            if (hasAdditionalProperties && showAdditionalProperties)
+            internal AdditionalPropertiesScope(AnimFloat animFloat)
             {
-                CoreEditorUtils.BeginAdditionalPropertiesHighlight(m_AdditionalPropertiesAnimation);
-                return true;
+                CoreEditorUtils.BeginAdditionalPropertiesHighlight(animFloat);
             }
-            else
-            {
-                return false;
-            }
-        }
 
-        /// <summary>
-        /// End a scope for additional properties.
-        /// </summary>
-        protected void EndAdditionalPropertiesScope()
-        {
-            if (hasAdditionalProperties && showAdditionalProperties)
+            void IDisposable.Dispose()
             {
                 CoreEditorUtils.EndAdditionalPropertiesHighlight();
             }
         }
-
-        AnimFloat m_AdditionalPropertiesAnimation;
+        #endregion
 
         /// <summary>
         /// A reference to the parent editor in the Inspector.
@@ -203,10 +187,7 @@ namespace UnityEditor.Rendering
 
             // Look for all the valid parameter drawers
             var types = CoreUtils.GetAllTypesDerivedFrom<VolumeParameterDrawer>()
-                .Where(
-                    t => t.IsDefined(typeof(VolumeParameterDrawerAttribute), false)
-                    && !t.IsAbstract
-                );
+                .Where(t => t.IsDefined(typeof(VolumeParameterDrawerAttribute), false) && !t.IsAbstract);
 
             // Store them
             foreach (var type in types)
@@ -304,10 +285,12 @@ namespace UnityEditor.Rendering
             GetFields(target, fields);
 
             m_Parameters = fields
-                .Select(t => {
+                .Select(t =>
+            {
                 var name = "";
                 var order = 0;
-                var attr = (DisplayInfoAttribute[])t.Item1.GetCustomAttributes(typeof(DisplayInfoAttribute), true);
+                var(fieldInfo, serializedProperty) = t;
+                var attr = (DisplayInfoAttribute[])fieldInfo.GetCustomAttributes(typeof(DisplayInfoAttribute), true);
                 if (attr.Length != 0)
                 {
                     name = attr[0].name;
@@ -331,14 +314,17 @@ namespace UnityEditor.Rendering
         internal void OnInternalInspectorGUI()
         {
             serializedObject.Update();
-            TopRowFields();
-            OnInspectorGUI();
-            EditorGUILayout.Space();
+            using (new EditorGUILayout.VerticalScope())
+            {
+                TopRowFields();
+                OnInspectorGUI();
+                EditorGUILayout.Space();
+            }
             serializedObject.ApplyModifiedProperties();
         }
 
         /// <summary>
-        /// Unity calls this method everytime it re-draws the Inspector.
+        /// Unity calls this method each time it re-draws the Inspector.
         /// </summary>
         /// <remarks>
         /// You can safely override this method and not call <c>base.OnInspectorGUI()</c> unless you
@@ -450,10 +436,12 @@ namespace UnityEditor.Rendering
         /// Draws a given <see cref="SerializedDataParameter"/> in the editor.
         /// </summary>
         /// <param name="property">The property to draw in the editor</param>
-        protected void PropertyField(SerializedDataParameter property)
+        /// <returns>true if the property field has been rendered</returns>
+        protected bool PropertyField(SerializedDataParameter property)
         {
-            var title = EditorGUIUtility.TrTextContent(property.displayName, property.GetAttribute<TooltipAttribute>()?.tooltip);
-            PropertyField(property, title);
+            var title = EditorGUIUtility.TrTextContent(property.displayName,
+                property.GetAttribute<TooltipAttribute>()?.tooltip);
+            return PropertyField(property, title);
         }
 
         static readonly Dictionary<string, GUIContent> s_HeadersGuiContents = new Dictionary<string, GUIContent>();
@@ -515,13 +503,46 @@ namespace UnityEditor.Rendering
         /// </summary>
         /// <param name="property">The property to draw in the editor.</param>
         /// <param name="title">A custom label and/or tooltip.</param>
-        protected void PropertyField(SerializedDataParameter property, GUIContent title)
+        /// <returns>true if the property field has been rendered</returns>
+        protected bool PropertyField(SerializedDataParameter property, GUIContent title)
+        {
+            bool draw = false;
+            if (property.GetAttribute<AdditionalPropertyAttribute>() == null)
+            {
+                // If the property doesn't have the attribute render it right away
+                DrawPropertyField(property, title);
+                draw = true;
+            }
+            else
+            {
+                // The user had selected the option 'Show additional Properties'?
+                if (hasAdditionalProperties && showAdditionalProperties)
+                {
+                    // Handle the highlight, and draw the property
+                    using (new AdditionalPropertiesScope(m_AdditionalPropertiesAnimation))
+                    {
+                        DrawPropertyField(property, title);
+                        draw = true;
+                    }
+                }
+            }
+
+            // Return if the property has been
+            return draw;
+        }
+
+        /// <summary>
+        /// Draws a given <see cref="SerializedDataParameter"/> in the editor using a custom label
+        /// and tooltip.
+        /// </summary>
+        /// <param name="property">The property to draw in the editor.</param>
+        /// <param name="title">A custom label and/or tooltip.</param>
+        private void DrawPropertyField(SerializedDataParameter property, GUIContent title)
         {
             HandleDecorators(property, title);
 
             // Custom parameter drawer
-            VolumeParameterDrawer drawer;
-            s_ParameterDrawers.TryGetValue(property.referenceType, out drawer);
+            s_ParameterDrawers.TryGetValue(property.referenceType, out VolumeParameterDrawer drawer);
 
             bool invalidProp = false;
 
