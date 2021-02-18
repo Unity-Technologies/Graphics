@@ -46,6 +46,8 @@ PR_Universal_trunk:
          rerun: on-new-revision
       -  path: .yamato/all-shadergraph.yml#PR_ShaderGraph_trunk
          rerun: on-new-revision
+      -  path: .yamato/all-urpupdate.yml#PR_URPUpdate_trunk
+         rerun: on-new-revision
     variables:
         UTR_VERSION: "current"
         TEST_FILTER: .*
@@ -113,6 +115,8 @@ PR_Universal_CUSTOM-REVISION:
       -  path: .yamato/all-vfx_urp.yml#PR_VFX_URP_CUSTOM-REVISION
          rerun: always
       -  path: .yamato/all-shadergraph.yml#PR_ShaderGraph_CUSTOM-REVISION
+         rerun: always
+      -  path: .yamato/all-urpupdate.yml#PR_URPUpdate_CUSTOM-REVISION
          rerun: always
     variables:
         CUSTOM_REVISION: custom_revision_not_set
