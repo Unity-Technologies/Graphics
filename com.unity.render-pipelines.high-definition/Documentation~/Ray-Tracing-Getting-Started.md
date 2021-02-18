@@ -15,9 +15,27 @@ This document covers:
 ## Hardware requirements
 
 Full ray tracing hardware acceleration is available on following GPUs:
-- NVIDIA GeForce RTX 2060, RTX 2060 Super, RTX 2070, RTX 2070 Super, RTX 2080, RTX 2080 Super, RTX 2080 Ti, and
-NVIDIA TITAN RTX
-- NVIDIA Quadro RTX 3000 (laptop only), RTX 4000, RTX 5000, RTX 6000, RTX 8000
+- NVIDIA GeForce 20 series:
+  - RTX 2060
+  - RTX 2060 Super
+  - RTX 2070
+  - RTX 2070 Super
+  - RTX 2080
+  - RTX 2080 Super
+  - RTX 2080 Ti
+  - NVIDIA TITAN RTX
+- NVIDIA GeForce 30 series:
+  - RTX 3060
+  - RTX 3060Ti
+  - RTX 3070
+  - RTX 3080
+  - RTX 3090
+- NVIDIA Quadro:
+  - RTX 3000 (laptop only)
+  - RTX 4000
+  - RTX 5000
+  - RTX 6000
+  - RTX 8000
 
 NVIDIA also provides a ray tracing fallback for some previous generation graphics cards:
 - NVIDIA GeForce GTX
