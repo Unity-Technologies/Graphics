@@ -16,6 +16,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Added an option to have double sided GI be controlled separately from material double-sided option.
 - Added new AOV APIs for overriding the internal rendering format, and for outputing the world space position.
 - Added a complete solution for volumetric clouds for HDRP including a cloud map generation tool.
+- Added a Force Forward Emissive option for Lit Material that forces the Emissive contribution to render in a separate forward pass when the Lit Material is in Deferred Lit shader Mode.
 
 ### Fixed
 - Fixed an exception when opening the color picker in the material UI (case 1307143).
