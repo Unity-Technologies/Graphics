@@ -14,7 +14,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Added the default quality settings to the HDRP asset for RTAO, RTR and RTGI (case 1304370).
 - Added an option to have double sided GI be controlled separately from material double-sided option.
 - Added new AOV APIs for overriding the internal rendering format, and for outputing the world space position.
-- Added shader graph unit test for IsFrontFrace node
+- Added shader graph unit test for IsFrontFace node
 
 ### Fixed
 - Fixed an exception when opening the color picker in the material UI (case 1307143).
