@@ -109,26 +109,6 @@ namespace UnityEditor.Rendering.HighDefinition
                     }
                 }
             }
-
-            // Also update Material on selected GameObject
-            foreach (var obj in selection)
-            {
-                GameObject gameObj = obj as GameObject;
-                MeshRenderer mesh;
-                if (gameObj && gameObj.TryGetComponent<MeshRenderer>(out mesh))
-                {
-                    for (int i = 0; i < mesh.materials.Length; ++i)
-                    {
-                        var material = mesh.materials[i];
-
-                        if (material.HasProperty(HDMaterialProperties.kForceForwardEmissive))
-                        {
-                            material.SetInt(HDMaterialProperties.kForceForwardEmissive, 1);
-                            HDShaderUtils.ResetMaterialKeywords(material);
-                        }
-                    }
-                }
-            }
         }
 
         [MenuItem("Edit/Render Pipeline/Rendering/Materials/Enable Force Forward Emissive on All Materials")]
