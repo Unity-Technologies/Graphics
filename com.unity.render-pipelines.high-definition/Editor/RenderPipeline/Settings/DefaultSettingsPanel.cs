@@ -433,9 +433,9 @@ namespace UnityEditor.Rendering.HighDefinition
         static readonly CED.IDrawer LayerNamesSection = CED.Group(
             CED.Group((serialized, owner) => EditorGUILayout.LabelField(Styles.generalSettingsLabel, Styles.sectionHeaderStyle)),
             CED.Group((serialized, owner) => EditorGUILayout.PropertyField(serialized.shaderVariantLogLevel, Styles.shaderVariantLogLevel)),
+            CED.Group((serialized, owner) => EditorGUILayout.PropertyField(serialized.lensAttenuation, Styles.lensAttenuationModeContent)),
             CED.Group(Drawer_LightLayerNames),
-            CED.Group(Drawer_DecalLayerNames)/*,
-            CED.Group((serialized,owner) => EditorGUILayout.PropertyField(serialized.lensAttenuation,Styles.lensAttenuationModeContent))*/
+            CED.Group(Drawer_DecalLayerNames)
         );
 
         static private bool m_ShowLightLayerNames = false;

@@ -117,7 +117,7 @@ namespace UnityEditor.Rendering.HighDefinition
 
             shaderVariantLogLevel = serializedObject.Find((HDRenderPipelineGlobalSettings s) => s.shaderVariantLogLevel);
 
-            lensAttenuation = serializedObject.FindProperty("m_LensAttenuation");
+            lensAttenuation = serializedObject.FindProperty("lensAttenuationMode");
             diffusionProfileSettingsList = serializedObject.Find((HDRenderPipelineGlobalSettings s) => s.diffusionProfileSettingsList);
         }
 
