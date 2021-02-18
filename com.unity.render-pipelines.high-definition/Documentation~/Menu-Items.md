@@ -38,6 +38,6 @@ This group of menu items is useful when you upgrade your Unity Project from usin
 | **Render Selected HDRP Camera to Log EXR**   | Exports the current [Camera](HDRP-Camera.md)'s view to a log-encoded EXR file. This is useful when [authoring lookup textures](Authoring-LUTs.md). |
 | **Export HDRP Sky to Image**                 | Exports the current sky as a static HDRI.                    |
 | **Check Scene Content for HDRP Ray Tracing** | Checks every GameObject in the current scene and throws warnings if:A Mesh Filter references a null Mesh.A Mesh Renderer references a null Material.A Submesh within a single Renderer reference both a transparent and opaque Material. |
-| **Enable Force Forward Emissive on Selected Materials** | Checks every Material and Material on GameObjects in the current selection and Enable the Force Emissive Forward property if it exist. |
-| **Enable Force Forward Emissive on All Materials**      | Checks every Material in the current scene and Enable the Force Emissive Forward property if it exist. |
-| **Disable Force Forward Emissive on All Materials**     | Checks every Material and Material in the current scene and Enable the Force Emissive Forward property if it exist. |
+| **Enable HDRP Force Forward Emissive on Selected Materials** | Checks every Material and Material on GameObjects in the current selection and Enable the Force Emissive Forward property if it exist. |
+| **Enable HDRP Force Forward Emissive on All Materials**      | Checks every Material in the current scene and Enable the Force Emissive Forward property if it exist. |
+| **Disable HDRP Force Forward Emissive on All Materials**     | Checks every Material and Material in the current scene and Enable the Force Emissive Forward property if it exist. |
