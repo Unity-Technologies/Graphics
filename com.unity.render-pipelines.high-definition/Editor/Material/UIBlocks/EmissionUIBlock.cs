@@ -46,13 +46,13 @@ namespace UnityEditor.Rendering.HighDefinition
 
             public static GUIContent albedoAffectEmissiveText = new GUIContent("Emission multiply with Base", "Specifies whether or not the emission color is multiplied by the albedo.");
             public static GUIContent useEmissiveIntensityText = new GUIContent("Use Emission Intensity", "Specifies whether to use to a HDR color or a LDR color with a separate multiplier.");
-            public static GUIContent emissiveIntensityText = new GUIContent("Emission Intensity", "");
+            public static GUIContent emissiveIntensityText = new GUIContent("Emission Intensity", "Emission intensity in provided Unit");
             public static GUIContent emissiveIntensityFromHDRColorText = new GUIContent("The emission intensity is from the HDR color picker in luminance", "");
             public static GUIContent emissiveExposureWeightText = new GUIContent("Exposure weight", "Controls how the camera exposure influences the perceived intensity of the emissivity. A weight of 0 means that the emissive intensity is calculated ignoring the exposure; increasing this weight progressively increases the influence of exposure on the final emissive value.");
 
             public static GUIContent UVEmissiveMappingText = new GUIContent("Emission UV mapping", "");
             public static GUIContent texWorldScaleText = new GUIContent("World Scale", "Sets the tiling factor HDRP applies to Planar/Trilinear mapping.");
-            public static GUIContent bakedEmission = new GUIContent("Baked Emission", "");
+            public static GUIContent bakedEmissionText = new GUIContent("Baked Emission", "Specifies whether or not the emission will contribute to global illumination.");
         }
 
         MaterialProperty emissiveColorLDR = null;
@@ -150,6 +150,7 @@ namespace UnityEditor.Rendering.HighDefinition
             materialEditor.ShaderProperty(useEmissiveIntensity, Styles.useEmissiveIntensityText);
             bool updateEmissiveColor = EditorGUI.EndChangeCheck();
 
+            // This flag allows us to track is a material has a non-null emission color. That would require us to enable the target pass
             if (useEmissiveIntensity.floatValue == 0)
             {
                 EditorGUI.BeginChangeCheck();
@@ -241,37 +242,9 @@ namespace UnityEditor.Rendering.HighDefinition
             // Emission for GI?
             if ((m_Features & Features.EnableEmissionForGI) != 0)
             {
-                BakedEmissionEnabledProperty(materialEditor);
+                // Change the GI emission flag and fix it up with emissive as black if necessary.
+                materialEditor.LightmapEmissionFlagsProperty(MaterialEditor.kMiniTextureFieldLabelIndentLevel, true);
             }
-        }
-
-        /// <summary>
-        /// Draw the Baked Emission Enabled field
-        /// </summary>
-        /// <param name="materialEditor">The current material editor in use.</param>
-        /// <returns>True if the property is enabled on all selected materials.</returns>
-        public static bool BakedEmissionEnabledProperty(MaterialEditor materialEditor)
-        {
-            Material[] materials = Array.ConvertAll(materialEditor.targets, (UnityEngine.Object o) => { return (Material)o; });
-
-            // Calculate isMixed
-            bool enabled = materials[0].globalIlluminationFlags == MaterialGlobalIlluminationFlags.BakedEmissive;
-            bool isMixed = materials.Any(m => m.globalIlluminationFlags != materials[0].globalIlluminationFlags);
-
-            // initial checkbox for enabling/disabling emission
-            EditorGUI.BeginChangeCheck();
-            EditorGUI.showMixedValue = isMixed;
-            enabled = EditorGUILayout.Toggle(Styles.bakedEmission, enabled);
-            EditorGUI.showMixedValue = false;
-            if (EditorGUI.EndChangeCheck())
-            {
-                foreach (Material mat in materials)
-                {
-                    mat.globalIlluminationFlags = enabled ? MaterialGlobalIlluminationFlags.BakedEmissive : MaterialGlobalIlluminationFlags.EmissiveIsBlack;
-                }
-                return enabled;
-            }
-            return !isMixed && enabled;
         }
 
         void DoEmissiveTextureProperty(MaterialProperty color)
