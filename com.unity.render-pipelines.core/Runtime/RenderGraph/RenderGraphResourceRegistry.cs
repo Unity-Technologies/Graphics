@@ -1,5 +1,8 @@
+#if DEVELOPMENT_BUILD || UNITY_EDITOR
+//#define DIAGNOSTIC_CODE
+#endif
+
 using System;
-using System.Diagnostics;
 using System.Collections.Generic;
 using UnityEngine.Rendering;
 
@@ -120,6 +123,21 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
                 return null;
 
             return GetComputeBufferResource(handle.handle).graphicsResource;
+        }
+
+        public IRenderGraphResource GetResource(in ResourceHandle handle)
+        {
+            return m_RenderGraphResources[handle.iType].resourceArray[handle.index];
+        }
+
+        public IRenderGraphResource GetResource(int type, int index)
+        {
+            return m_RenderGraphResources[type].resourceArray[index];
+        }
+
+        public int GetResourceCount(int type)
+        {
+            return m_RenderGraphResources[type].resourceArray.size;
         }
 
         private RenderGraphResourceRegistry()
@@ -472,7 +490,7 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
 
         void ValidateTextureDesc(in TextureDesc desc)
         {
-#if DEVELOPMENT_BUILD || UNITY_EDITOR
+#if DIAGNOSTIC_CODE
             if (desc.colorFormat == GraphicsFormat.None && desc.depthBufferBits == DepthBits.None)
             {
                 throw new ArgumentException("Texture was created with an invalid color format.");
@@ -506,7 +524,7 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
 
         void ValidateRendererListDesc(in RendererListDesc desc)
         {
-#if DEVELOPMENT_BUILD || UNITY_EDITOR
+#if DIAGNOSTIC_CODE
 
             if (desc.passName != ShaderTagId.none && desc.passNames != null
                 || desc.passName == ShaderTagId.none && desc.passNames == null)
@@ -528,7 +546,7 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
 
         void ValidateComputeBufferDesc(in ComputeBufferDesc desc)
         {
-#if DEVELOPMENT_BUILD || UNITY_EDITOR
+#if DIAGNOSTIC_CODE
             if (desc.stride % 4 != 0)
             {
                 throw new ArgumentException("Invalid Compute Buffer creation descriptor: Compute Buffer stride must be at least 4.");

@@ -7,6 +7,11 @@
 #define UNITY_USE_RECORDER
 #endif
 
+#if DEVELOPMENT_BUILD || UNITY_EDITOR
+#define DIAGNOSTIC_CODE
+#endif
+
+
 using System;
 using System.Linq;
 using System.Collections.Generic;
@@ -217,7 +222,7 @@ namespace UnityEngine.Rendering
         ProfilingSampler() {}
     }
 
-#if DEVELOPMENT_BUILD || UNITY_EDITOR
+#if DIAGNOSTIC_CODE
     /// <summary>
     /// Scoped Profiling markers
     /// </summary>

@@ -1,5 +1,8 @@
+#if DEVELOPMENT_BUILD || UNITY_EDITOR
+//#define DIAGNOSTIC_CODE
+#endif
+
 using System;
-using System.Collections.Generic;
 using UnityEngine.Rendering;
 
 namespace UnityEngine.Experimental.Rendering.RenderGraphModule
@@ -25,8 +28,8 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
         public TextureHandle UseColorBuffer(in TextureHandle input, int index)
         {
             CheckResource(input.handle, true);
-            m_Resources.IncrementWriteCount(input.handle);
             m_RenderPass.SetColorBuffer(input, index);
+            AddResourceWrite(input.handle);
             return input;
         }
 
@@ -39,8 +42,12 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
         public TextureHandle UseDepthBuffer(in TextureHandle input, DepthAccess flags)
         {
             CheckResource(input.handle, true);
-            m_Resources.IncrementWriteCount(input.handle);
+            //m_Resources.IncrementWriteCount(input.handle);
             m_RenderPass.SetDepthBuffer(input, flags);
+            if ((flags & DepthAccess.Read) != 0)
+                AddResourceRead(input.handle);
+            if ((flags & DepthAccess.Write) != 0)
+                AddResourceWrite(input.handle);
             return input;
         }
 
@@ -70,7 +77,8 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
                 }
             }
 
-            m_RenderPass.AddResourceRead(input.handle);
+            AddResourceRead(input.handle);
+
             return input;
         }
 
@@ -82,9 +90,8 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
         public TextureHandle WriteTexture(in TextureHandle input)
         {
             CheckResource(input.handle);
-            m_Resources.IncrementWriteCount(input.handle);
             // TODO RENDERGRAPH: Manage resource "version" for debugging purpose
-            m_RenderPass.AddResourceWrite(input.handle);
+            AddResourceWrite(input.handle);
             return input;
         }
 
@@ -96,10 +103,50 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
         public TextureHandle ReadWriteTexture(in TextureHandle input)
         {
             CheckResource(input.handle);
-            m_Resources.IncrementWriteCount(input.handle);
-            m_RenderPass.AddResourceWrite(input.handle);
-            m_RenderPass.AddResourceRead(input.handle);
+            AddResourceWrite(input.handle);
+            AddResourceRead(input.handle);
             return input;
+        }
+
+        void AddResourceRead(in ResourceHandle handle)
+        {
+            var resource = m_Resources.GetResource(handle);
+            resource.consumers.Add(m_RenderPass.index);
+            resource.refCount++;
+
+            m_RenderPass.resourceReadLists[handle.iType].Add(handle);
+#if DIAGNOSTIC_CODE
+            m_RenderPass.debugResourceReads[handle.iType].Add(resource.GetName());
+#endif
+        }
+
+        void AddResourceWrite(in ResourceHandle res)
+        {
+            var resource = m_Resources.GetResource(res);
+            resource.producers.Add(m_RenderPass.index);
+            resource.writeCount++;
+
+            m_RenderPass.refCount++;
+            // Writing to an imported texture is considered as a side effect because we don't know what users will do with it outside of render graph.
+            if (resource.imported)
+                m_RenderPass.hasSideEffect = true;
+#if DIAGNOSTIC_CODE
+            m_RenderPass.debugResourceWrites[handle.iType].Add(resource.GetName());
+#endif
+        }
+
+        void AddTransientResource(in ResourceHandle res)
+        {
+            var resource = m_Resources.GetResource(res);
+
+            resource.refCount++;
+            resource.consumers.Add(m_RenderPass.index);
+            resource.producers.Add(m_RenderPass.index);
+
+#if DIAGNOSTIC_CODE
+            m_RenderPass.debugResourceReads[handle.iType].Add(resource.GetName());
+            m_RenderPass.debugResourceWrites[handle.iType].Add(resource.GetName());
+#endif
         }
 
         /// <summary>
@@ -111,7 +158,7 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
         public TextureHandle CreateTransientTexture(in TextureDesc desc)
         {
             var result = m_Resources.CreateTexture(desc, m_RenderPass.index);
-            m_RenderPass.AddTransientResource(result.handle);
+            AddTransientResource(result.handle);
             return result;
         }
 
@@ -125,7 +172,7 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
         {
             var desc = m_Resources.GetTextureResourceDesc(texture.handle);
             var result = m_Resources.CreateTexture(desc, m_RenderPass.index);
-            m_RenderPass.AddTransientResource(result.handle);
+            AddTransientResource(result.handle);
             return result;
         }
 
@@ -148,7 +195,7 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
         public ComputeBufferHandle ReadComputeBuffer(in ComputeBufferHandle input)
         {
             CheckResource(input.handle);
-            m_RenderPass.AddResourceRead(input.handle);
+            AddResourceRead(input.handle);
             return input;
         }
 
@@ -160,8 +207,8 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
         public ComputeBufferHandle WriteComputeBuffer(in ComputeBufferHandle input)
         {
             CheckResource(input.handle);
-            m_RenderPass.AddResourceWrite(input.handle);
-            m_Resources.IncrementWriteCount(input.handle);
+            AddResourceWrite(input.handle);
+            //m_Resources.IncrementWriteCount(input.handle);
             return input;
         }
 
@@ -174,7 +221,7 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
         public ComputeBufferHandle CreateTransientComputeBuffer(in ComputeBufferDesc desc)
         {
             var result = m_Resources.CreateComputeBuffer(desc, m_RenderPass.index);
-            m_RenderPass.AddTransientResource(result.handle);
+            AddTransientResource(result.handle);
             return result;
         }
 
@@ -188,7 +235,7 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
         {
             var desc = m_Resources.GetComputeBufferResourceDesc(computebuffer.handle);
             var result = m_Resources.CreateComputeBuffer(desc, m_RenderPass.index);
-            m_RenderPass.AddTransientResource(result.handle);
+            AddTransientResource(result.handle);
             return result;
         }
 
@@ -254,7 +301,7 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
 
         void CheckResource(in ResourceHandle res, bool dontCheckTransientReadWrite = false)
         {
-#if DEVELOPMENT_BUILD || UNITY_EDITOR
+#if DIAGNOSTIC_CODE
             if (res.IsValid())
             {
                 int transientIndex = m_Resources.GetRenderGraphResourceTransientIndex(res);

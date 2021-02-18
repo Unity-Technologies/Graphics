@@ -1,6 +1,5 @@
-using System;
 using System.Diagnostics;
-using UnityEngine.Rendering;
+using System.Collections.Generic;
 
 namespace UnityEngine.Experimental.Rendering.RenderGraphModule
 {
@@ -73,6 +72,10 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
 
         protected IRenderGraphResourcePool m_Pool;
 
+        public List<int> producers;
+        public List<int> consumers;
+        public int refCount;
+
         public virtual void Reset(IRenderGraphResourcePool pool)
         {
             imported = false;
@@ -85,6 +88,15 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
             writeCount = 0;
 
             m_Pool = pool;
+
+            if (producers == null)
+                producers = new List<int>();
+            if (consumers == null)
+                consumers = new List<int>();
+
+            producers.Clear();
+            consumers.Clear();
+            refCount = 0;
         }
 
         public virtual string GetName()
