@@ -187,7 +187,7 @@ namespace UnityEditor.VFX
 
                     if (!skip)
                         Invalidate(InvalidationCause.kExpressionGraphChanged);
-                }                  
+                }
             }
         }
 
