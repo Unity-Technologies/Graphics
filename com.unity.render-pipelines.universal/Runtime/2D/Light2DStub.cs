@@ -1,8 +1,8 @@
 using System;
 
-namespace UnityEngine.Experimental.Rendering.LWRP
+namespace UnityEngine.Rendering.LWRP
 {
-    [Obsolete("LWRP -> Universal (UnityUpgradable) -> UnityEngine.Experimental.Rendering.Universal.Light2D", true)]
+    [Obsolete("LWRP -> Universal (UnityUpgradable) -> UnityEngine.Rendering.Universal.Light2D", true)]
     public class Light2D
     {}
 }

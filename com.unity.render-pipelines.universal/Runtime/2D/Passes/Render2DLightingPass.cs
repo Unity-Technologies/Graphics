@@ -2,9 +2,8 @@ using System.Collections.Generic;
 using Unity.Mathematics;
 using UnityEngine.Rendering;
 using UnityEngine.Profiling;
-using UnityEngine.Rendering.Universal;
 
-namespace UnityEngine.Experimental.Rendering.Universal
+namespace UnityEngine.Rendering.Universal
 {
     internal class Render2DLightingPass : ScriptableRenderPass, IRenderPass2D
     {

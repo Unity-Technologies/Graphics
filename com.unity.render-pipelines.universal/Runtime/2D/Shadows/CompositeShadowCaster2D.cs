@@ -1,12 +1,11 @@
-using System.Collections;
-using System.Collections.Generic;
-using UnityEngine;
+using UnityEngine.Scripting.APIUpdating;
 
 
-namespace UnityEngine.Experimental.Rendering.Universal
+namespace UnityEngine.Rendering.Universal
 {
     [AddComponentMenu("Rendering/2D/Composite Shadow Caster 2D (Experimental)")]
     [ExecuteInEditMode]
+    [MovedFrom("UnityEngine.Experimental.Rendering.Universal")]
     public class CompositeShadowCaster2D : ShadowCasterGroup2D
     {
         protected void OnEnable()

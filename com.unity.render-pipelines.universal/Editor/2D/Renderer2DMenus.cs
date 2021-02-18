@@ -4,7 +4,6 @@ using System.ComponentModel;
 using System.Linq;
 
 using UnityEngine;
-using UnityEngine.Experimental.Rendering.Universal;
 using UnityEngine.Rendering;
 using UnityEngine.Rendering.Universal;
 using UnityEngine.Scripting.APIUpdating;
@@ -15,7 +14,7 @@ using UnityEditor.ProjectWindowCallback;
 using UnityEditorInternal;
 
 
-namespace UnityEditor.Experimental.Rendering.Universal
+namespace UnityEditor.Rendering.Universal
 {
     static class Renderer2DMenus
     {

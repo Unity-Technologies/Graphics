@@ -1,7 +1,6 @@
 using System;
 using System.Collections.Generic;
 using UnityEngine.Rendering;
-using UnityEngine.Rendering.Universal;
 using UnityEngine.Scripting.APIUpdating;
 using UnityEngine.Serialization;
 
@@ -10,10 +9,10 @@ using UnityEditor;
 using UnityEditor.ProjectWindowCallback;
 #endif
 
-namespace UnityEngine.Experimental.Rendering.Universal
+namespace UnityEngine.Rendering.Universal
 {
     [Serializable, ReloadGroup, ExcludeFromPreset]
-    [MovedFrom("UnityEngine.Experimental.Rendering.LWRP")]
+    [MovedFrom("UnityEngine.Experimental.Rendering.Universal")]
     [HelpURL("https://docs.unity3d.com/Packages/com.unity.render-pipelines.universal@latest/index.html?subfolder=/manual/2DRendererData_overview.html")]
     public partial class Renderer2DData : ScriptableRendererData
     {

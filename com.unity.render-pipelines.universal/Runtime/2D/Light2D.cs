@@ -2,12 +2,12 @@ using System;
 using System.Collections.Generic;
 using UnityEngine.Serialization;
 using UnityEngine.Rendering;
-using UnityEngine.Rendering.Universal;
+using UnityEngine.Scripting.APIUpdating;
 #if UNITY_EDITOR
 using UnityEditor.Experimental.SceneManagement;
 #endif
 
-namespace UnityEngine.Experimental.Rendering.Universal
+namespace UnityEngine.Rendering.Universal
 {
     /// <summary>
     /// Class <c>Light2D</c> is a 2D light which can be used with the 2D Renderer.
@@ -15,6 +15,7 @@ namespace UnityEngine.Experimental.Rendering.Universal
     ///
     [ExecuteAlways, DisallowMultipleComponent]
     [AddComponentMenu("Rendering/2D/Light 2D")]
+    [MovedFrom("UnityEngine.Experimental.Rendering.Universal")]
     [HelpURL("https://docs.unity3d.com/Packages/com.unity.render-pipelines.universal@latest/index.html?subfolder=/manual/2DLightProperties.html")]
     public sealed partial class Light2D : MonoBehaviour
     {
