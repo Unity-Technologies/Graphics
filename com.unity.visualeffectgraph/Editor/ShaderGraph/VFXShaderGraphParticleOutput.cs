@@ -418,11 +418,71 @@ namespace UnityEditor.VFX
             get { return hdrpInfo; }
         }
 
+        void InjectMaterialState(Material material, VFXExpressionMapper mapper)
+        {
+            if (material == null)
+                return;
+
+            // Enforce the disabling of motion vectors on the material level.
+            material.SetShaderPassEnabled("MotionVectors", hasMotionVector);
+
+            var shader = material.shader;
+
+            // Map the material state values
+            if (shader != null)
+            {
+                VFXLibrary.currentSRPBinder.SetupMaterial(material);
+
+                // Properties
+                for (int i = 0; i < ShaderUtil.GetPropertyCount(shader); ++i)
+                {
+                    if (ShaderUtil.IsShaderPropertyHidden(shader, i))
+                    {
+                        var name = ShaderUtil.GetPropertyName(shader, i);
+                        var nameId = Shader.PropertyToID(name);
+                        if (!material.HasProperty(nameId))
+                            continue;
+
+                        VFXExpression expr = null;
+
+                        switch (ShaderUtil.GetPropertyType(shader, i))
+                        {
+                            case ShaderUtil.ShaderPropertyType.Float:
+                                expr = VFXValue.Constant<float>(material.GetFloat(nameId));
+                                break;
+                            default:
+                                break;
+                        }
+
+                        if (expr != null)
+                        {
+                            mapper.AddExpression(expr, name, -1);
+                        }
+                    }
+                }
+
+                // Pass
+                for (int i = 0; i < material.passCount; i++)
+                {
+                    var passName = material.GetPassName(i);
+                    if (passName == string.Empty)
+                        continue;
+
+                    var expr = VFXValue.Constant<bool>(material.GetShaderPassEnabled(passName));
+                    mapper.AddExpression(expr, passName, -1);
+                }
+
+                // Render Queue
+                var renderQueueExpression = VFXValue.Constant<int>(material.renderQueue);
+                mapper.AddExpression(renderQueueExpression, "RenderQueue", -1);
+            }
+        }
 
         public override VFXExpressionMapper GetExpressionMapper(VFXDeviceTarget target)
         {
             var mapper = base.GetExpressionMapper(target);
             var particleData = (VFXDataParticle)GetData();
+            var shaderGraph = GetOrRefreshShaderGraphObject();
 
             switch (target)
             {
@@ -430,63 +490,11 @@ namespace UnityEditor.VFX
                 {
                     var material = particleData.GetOrCreateMaterial(this);
 
-                    // Enforce the disabling of motion vectors on the material level.
-                    material.SetShaderPassEnabled("MotionVectors", hasMotionVector);
-
-                    var shader = material.shader;
-
-                    // Map the material state values
-                    if (shader != null)
-                    {
-                        VFXLibrary.currentSRPBinder.SetupMaterial(material);
-
-                        // Properties
-                        for (int i = 0; i < ShaderUtil.GetPropertyCount(shader); ++i)
-                        {
-                            if (ShaderUtil.IsShaderPropertyHidden(shader, i))
-                            {
-                                var name = ShaderUtil.GetPropertyName(shader, i);
-                                var nameId = Shader.PropertyToID(name);
-                                if (!material.HasProperty(nameId))
-                                    continue;
-
-                                VFXExpression expr = null;
-
-                                switch (ShaderUtil.GetPropertyType(shader, i))
-                                {
-                                    case ShaderUtil.ShaderPropertyType.Float:
-                                        expr = VFXValue.Constant<float>(material.GetFloat(nameId));
-                                        break;
-                                    default:
-                                        break;
-                                }
-
-                                if (expr != null)
-                                {
-                                    mapper.AddExpression(expr, name, -1);
-                                }
-                            }
-                        }
-
-                        // Pass
-                        for (int i = 0; i < material.passCount; i++)
-                        {
-                            var passName = material.GetPassName(i);
-                            if (passName == string.Empty)
-                                continue;
-
-                            var expr = VFXValue.Constant<bool>(material.GetShaderPassEnabled(passName));
-                            mapper.AddExpression(expr, passName, -1);
-                        }
-
-                        // Render Queue
-                        var renderQueueExpression = VFXValue.Constant<int>(material.renderQueue);
-                        mapper.AddExpression(renderQueueExpression, "RenderQueue", -1);
-                    }
+                    if (shaderGraph.generatesWithShaderGraph)
+                        InjectMaterialState(material, mapper);
                 }
                 break;
                 case VFXDeviceTarget.GPU:
-                    var shaderGraph = GetOrRefreshShaderGraphObject();
                     if (shaderGraph != null)
                     {
                         foreach (var tex in shaderGraph.textureInfos.Where(t => t.texture != null).OrderBy(t => t.name))

@@ -1049,10 +1049,15 @@ namespace UnityEditor.VFX
                     }
                 }
 
-                if (context is VFXShaderGraphParticleOutput)
+                if (context is VFXShaderGraphParticleOutput shaderGraphOutputContext)
                 {
-                    var material = GetOrCreateMaterial(context);
-                    AppendMaterialParameters(material, additionalParameters, contextData, expressionGraph);
+                    var shaderGraph = shaderGraphOutputContext.GetOrRefreshShaderGraphObject();
+
+                    if (shaderGraph.generatesWithShaderGraph)
+                    {
+                        var material = GetOrCreateMaterial(context);
+                        AppendMaterialParameters(material, additionalParameters, contextData, expressionGraph);
+                    }
                 }
 
                 taskDesc.buffers = bufferMappings.ToArray();

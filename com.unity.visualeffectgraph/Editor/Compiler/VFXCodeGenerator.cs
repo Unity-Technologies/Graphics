@@ -464,6 +464,7 @@ namespace UnityEditor.VFX
 
             if (context is VFXShaderGraphParticleOutput shaderGraphContext &&
                 shaderGraphContext.shaderGraph != null &&
+                shaderGraphContext.shaderGraph.generatesWithShaderGraph &&
                 VFXViewPreference.generateOutputContextWithShaderGraph)
             {
                 var result = TryBuildFromShaderGraph(shaderGraphContext, contextData);
