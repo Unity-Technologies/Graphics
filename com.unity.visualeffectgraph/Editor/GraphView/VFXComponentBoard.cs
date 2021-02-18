@@ -323,6 +323,18 @@ namespace UnityEditor.VFX.UI
                 m_DebugUI.Notify(VFXUIDebug.Events.VFXReset);
         }
 
+        public void OnVisualEffectComponentChanged(IEnumerable<VisualEffect> visualEffects)
+        {
+            OnSelectionChanged();
+            if (m_AttachedComponent != null
+                &&  visualEffects.Contains(m_AttachedComponent)
+                &&  m_AttachedComponent.visualEffectAsset != controller.graph.visualEffectResource.asset)
+            {
+                //The Visual Effect Asset has been switch, we have to detach
+                m_View.attachedComponent = null;
+            }
+        }
+
         void OnAttachToPanel(AttachToPanelEvent e)
         {
             OnSelectionChanged();
@@ -385,7 +397,7 @@ namespace UnityEditor.VFX.UI
             m_AttachButton.text = m_AttachedComponent != null ? "Detach" : "Attach";
         }
 
-        void Detach()
+        public void Detach()
         {
             if (m_AttachedComponent != null)
             {
