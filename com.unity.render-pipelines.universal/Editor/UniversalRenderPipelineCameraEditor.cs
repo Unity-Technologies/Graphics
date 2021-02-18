@@ -145,9 +145,8 @@ namespace UnityEditor.Rendering.Universal
         SerializedProperty m_AdditionalCameraDataStopNaN;
         SerializedProperty m_AdditionalCameraDataDithering;
         SerializedProperty m_AdditionalCameraClearDepth;
-#if ENABLE_VR && ENABLE_XR_MODULE
         SerializedProperty m_AdditionalCameraDataAllowXRRendering;
-#endif
+
         void SetAnimationTarget(AnimBool anim, bool initialize, bool targetValue)
         {
             if (initialize)
@@ -425,9 +424,7 @@ namespace UnityEditor.Rendering.Universal
             m_AdditionalCameraClearDepth = m_AdditionalCameraDataSO.FindProperty("m_ClearDepth");
             m_AdditionalCameraDataCameraTypeProp = m_AdditionalCameraDataSO.FindProperty("m_CameraType");
             m_AdditionalCameraDataCameras = m_AdditionalCameraDataSO.FindProperty("m_Cameras");
-#if ENABLE_VR && ENABLE_XR_MODULE
             m_AdditionalCameraDataAllowXRRendering = m_AdditionalCameraDataSO.FindProperty("m_AllowXRRendering");
-#endif
         }
 
         public new void OnDisable()

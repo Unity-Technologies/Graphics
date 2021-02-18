@@ -97,7 +97,7 @@ namespace UnityEngine.Rendering.Universal
 #if ENABLE_VR && ENABLE_XR_MODULE
             if (cameraData.xr.enabled)
             {
-                cameraData.xr.UpdateGPUViewAndProjectionMatrices(cmd, ref cameraData, cameraData.xr.renderTargetIsRenderTexture);
+                XRBuiltinShaderConstants.Update(cameraData.xr, cmd, false);
                 return;
             }
 #endif
@@ -834,8 +834,7 @@ namespace UnityEngine.Rendering.Universal
                             // SetRenderTarget might alter the internal device state(winding order).
                             // Non-stereo buffer is already updated internally when switching render target. We update stereo buffers here to keep the consistency.
                             int xrTargetIndex = RenderingUtils.IndexOf(renderPass.colorAttachments, cameraData.xr.renderTarget);
-                            bool isRenderToBackBufferTarget = (xrTargetIndex != -1) && !cameraData.xr.renderTargetIsRenderTexture;
-                            cameraData.xr.UpdateGPUViewAndProjectionMatrices(cmd, ref cameraData, !isRenderToBackBufferTarget);
+                            XRBuiltinShaderConstants.Update(cameraData.xr, cmd, xrTargetIndex == -1);
                         }
                     #endif
                     }
@@ -908,8 +907,7 @@ namespace UnityEngine.Rendering.Universal
                     {
                         // SetRenderTarget might alter the internal device state(winding order).
                         // Non-stereo buffer is already updated internally when switching render target. We update stereo buffers here to keep the consistency.
-                        bool isRenderToBackBufferTarget = (passColorAttachment == cameraData.xr.renderTarget) && !cameraData.xr.renderTargetIsRenderTexture;
-                        cameraData.xr.UpdateGPUViewAndProjectionMatrices(cmd, ref cameraData, !isRenderToBackBufferTarget);
+                        XRBuiltinShaderConstants.Update(cameraData.xr, cmd, passColorAttachment != cameraData.xr.renderTarget);
                     }
 #endif
                 }

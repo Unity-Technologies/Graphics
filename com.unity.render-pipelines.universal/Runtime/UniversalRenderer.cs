@@ -98,7 +98,7 @@ namespace UnityEngine.Rendering.Universal
         public UniversalRenderer(UniversalRendererData data) : base(data)
         {
 #if ENABLE_VR && ENABLE_XR_MODULE
-            UniversalRenderPipeline.m_XRSystem.InitializeXRSystemData(data.xrSystemData);
+            XRSystem.Initialize(data.xrSystemData.shaders.xrOcclusionMeshPS, data.xrSystemData.shaders.xrMirrorViewPS);
 #endif
 
             m_BlitMaterial = CoreUtils.CreateEngineMaterial(data.shaders.blitPS);
@@ -371,7 +371,7 @@ namespace UnityEngine.Rendering.Universal
             // Configure all settings require to start a new camera stack (base camera only)
             if (cameraData.renderType == CameraRenderType.Base)
             {
-                RenderTargetHandle cameraTargetHandle = RenderTargetHandle.GetCameraTarget(cameraData.xr);
+                RenderTargetHandle cameraTargetHandle = RenderTargetHandle.GetCameraTarget(cameraData);
 
                 m_ActiveCameraColorAttachment = (createColorTexture) ? m_CameraColorAttachment : cameraTargetHandle;
                 m_ActiveCameraDepthAttachment = (createDepthTexture) ? m_CameraDepthAttachment : cameraTargetHandle;
@@ -562,7 +562,7 @@ namespace UnityEngine.Rendering.Universal
                     // no final PP but we have PP stack. In that case it blit unless there are render pass after PP
                     (applyPostProcessing && !hasPassesAfterPostProcessing) ||
                     // offscreen camera rendering to a texture, we don't need a blit pass to resolve to screen
-                    m_ActiveCameraColorAttachment == RenderTargetHandle.GetCameraTarget(cameraData.xr);
+                    m_ActiveCameraColorAttachment == RenderTargetHandle.GetCameraTarget(cameraData);
 
                 // We need final blit to resolve to screen
                 if (!cameraTargetResolved)
@@ -574,11 +574,11 @@ namespace UnityEngine.Rendering.Universal
 #if ENABLE_VR && ENABLE_XR_MODULE
                 bool depthTargetResolved =
                     // active depth is depth target, we don't need a blit pass to resolve
-                    m_ActiveCameraDepthAttachment == RenderTargetHandle.GetCameraTarget(cameraData.xr);
+                    m_ActiveCameraDepthAttachment == RenderTargetHandle.GetCameraTarget(cameraData);
 
                 if (!depthTargetResolved && cameraData.xr.copyDepth)
                 {
-                    m_XRCopyDepthPass.Setup(m_ActiveCameraDepthAttachment, RenderTargetHandle.GetCameraTarget(cameraData.xr));
+                    m_XRCopyDepthPass.Setup(m_ActiveCameraDepthAttachment, RenderTargetHandle.GetCameraTarget(cameraData));
                     EnqueuePass(m_XRCopyDepthPass);
                 }
 #endif

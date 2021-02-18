@@ -288,6 +288,10 @@ namespace UnityEngine.Rendering.HighDefinition
                 if (aovRequest.isValid)
                     aovRequest.PushCameraTexture(m_RenderGraph, AOVBuffers.Output, hdCamera, postProcessDest, aovBuffers);
             }
+            else
+            {
+                StopXRSinglePass(m_RenderGraph, hdCamera);
+            }
 
             // This code is only for planar reflections. Given that the depth texture cannot be shared currently with the other depth copy that we do
             // we need to do this separately.
@@ -298,9 +302,6 @@ namespace UnityEngine.Rendering.HighDefinition
                     BlitFinalCameraTexture(m_RenderGraph, hdCamera, prepassOutput.resolvedDepthBuffer, m_RenderGraph.ImportTexture(target.targetDepth), viewIndex);
                 }
             }
-
-            // XR mirror view and blit do device
-            EndCameraXR(m_RenderGraph, hdCamera);
 
             SendColorGraphicsBuffer(m_RenderGraph, hdCamera);
 
