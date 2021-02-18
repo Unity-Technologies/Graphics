@@ -1584,6 +1584,7 @@ namespace UnityEngine.Rendering.Universal.Internal
                 CoreUtils.SetKeyword(cmd, ShaderKeywordStrings._DEFERRED_LIGHT_SHADOWS, hasDeferredLightShadows);
                 CoreUtils.SetKeyword(cmd, ShaderKeywordStrings.SoftShadows, hasSoftShadow);
 
+                cmd.SetGlobalVector(URPShaderIDs._RTHandleScale, RTHandles.rtHandleProperties.rtHandleScale);
                 cmd.SetGlobalVector(URPShaderIDs._LightPosWS, lightPos);
                 cmd.SetGlobalVector(URPShaderIDs._LightColor, lightColor);
                 cmd.SetGlobalVector(URPShaderIDs._LightAttenuation, lightAttenuation);
@@ -1642,6 +1643,7 @@ namespace UnityEngine.Rendering.Universal.Internal
                 cmd.SetGlobalVector(URPShaderIDs._SpotLightScale, new Vector4(sinAlpha, sinAlpha, 1.0f - cosAlpha, vl.range));
                 cmd.SetGlobalVector(URPShaderIDs._SpotLightBias, new Vector4(0.0f, 0.0f, cosAlpha, 0.0f));
                 cmd.SetGlobalVector(URPShaderIDs._SpotLightGuard, new Vector4(guard, guard, guard, cosAlpha * vl.range));
+                cmd.SetGlobalVector(URPShaderIDs._RTHandleScale, RTHandles.rtHandleProperties.rtHandleScale);
                 cmd.SetGlobalVector(URPShaderIDs._LightPosWS, lightPos);
                 cmd.SetGlobalVector(URPShaderIDs._LightColor, lightColor);
                 cmd.SetGlobalVector(URPShaderIDs._LightAttenuation, lightAttenuation);
