@@ -172,11 +172,16 @@ Shader "Hidden/HDRP/DebugFullScreen"
 
                     if (AnyIsNaN(color) || AnyIsInf(color))
                     {
-                        color = float4(1.0, 0.0, 0.0, 1.0);
+                        float freq = 3.0; // Internet seems to say that over 5 is likely getting into epilepsy territory.
+                        float time = _TimeParameters.x * freq;
+                        float4 flagColor = float4(0.0, 1.0, 0.0, 1.0);
+                        float4 flashColor = float4(0.0, 0.0, 0.0, 1.0);
+                        color = (time - floor(time)) < 0.75 ? flagColor : flashColor;
                     }
                     else
                     {
-                        color.rgb = Luminance(color.rgb).xxx;
+                        // Remap to a low contrast greyscale to make flag color more visible.
+                        color.rgb = (pow(saturate(Luminance(color.rgb).xxx), 0.5) * 0.5) + 0.1;
                     }
 
                     return color;
