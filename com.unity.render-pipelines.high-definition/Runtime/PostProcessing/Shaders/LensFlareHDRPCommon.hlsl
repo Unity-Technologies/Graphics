@@ -83,7 +83,7 @@ Varyings vert(Attributes input)
     if (angle >= 0)
     {
         angle = -angle;
-        float2 dir = normalize(screenPos);
+        float2 dir = normalize(screenPos * float2(screenRatio, 1.0f));
         angle += atan2(dir.y, dir.x) + 1.57079632675; // arbitrary, we need V to face the source, not U;
     }
 
