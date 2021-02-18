@@ -23,6 +23,10 @@ namespace UnityEditor.Rendering
         static readonly Texture2D paneOptionsIconDark;
         static readonly Texture2D paneOptionsIconLight;
 
+        public static readonly Texture2D redTexture;
+        public static readonly Texture2D greenTexture;
+        public static readonly Texture2D blueTexture;
+
         /// <summary> PaneOption icon </summary>
         public static Texture2D paneOptionsIcon { get { return EditorGUIUtility.isProSkin ? paneOptionsIconDark : paneOptionsIconLight; } }
 
@@ -84,6 +88,10 @@ namespace UnityEditor.Rendering
             var contextTooltip = ""; // To be defined (see with UX)
             contextMenuIcon = new GUIContent(paneOptionsIcon, contextTooltip);
             contextMenuStyle = new GUIStyle("IconButton");
+
+            redTexture = CoreEditorUtils.CreateColoredTexture2D(Color.red);
+            greenTexture = CoreEditorUtils.CreateColoredTexture2D(Color.green);
+            blueTexture = CoreEditorUtils.CreateColoredTexture2D(Color.blue);
         }
     }
 }

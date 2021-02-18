@@ -71,7 +71,37 @@ namespace UnityEditor.Rendering
             return sb.ToString();
         }
 
+
         // UI Helpers
+
+        /// <summary>Creates a 1x1 <see cref="Texture2D"/> with a plain <see cref="Color"/></summary>
+        /// <param name="color">The color to fill the texture</param> 
+        public static Texture2D CreateColoredTexture2D(Color color)
+        {
+            Texture2D tex2 = new Texture2D(1, 1);
+            tex2.SetPixels32(new Color32[]{color});
+            tex2.Apply();
+            return tex2;
+        }
+
+        /// <summary>Changes the icon size of the <see cref="EditorGUIUtility"/>, and restore it back</summary>
+        public class IconSizeScope : IDisposable
+        {
+            Vector2 m_OldIconSize = EditorGUIUtility.GetIconSize();
+
+            /// <summary>Constructor</summary>
+            /// <param name="size">The size of the icons during the lifetime of the scope</param>
+            public IconSizeScope(Vector2 size)
+            {
+                EditorGUIUtility.SetIconSize(size);
+            }
+
+            public void Dispose()
+            {
+                EditorGUIUtility.SetIconSize(m_OldIconSize);
+            }
+        }
+
         /// <summary>Draw a Fix button</summary>
         /// <param name="text">Displayed message</param>
         /// <param name="action">Action performed when fix buttom is clicked</param>
