@@ -54,7 +54,6 @@ namespace UnityEditor.Rendering
                 if ((tmpTex = (EditorGUI.ObjectField(rect, Styles.flareTexture, lensFlareProp.objectReferenceValue, typeof(Texture), false) as Texture)) != (lensFlareProp.objectReferenceValue as Texture))
                 {
                     lensFlareProp.objectReferenceValue = tmpTex;
-                    aspectRatioProp.floatValue = ((float)tmpTex.height) / ((float)tmpTex.width);
                     aspectRatioProp.serializedObject.ApplyModifiedProperties();
                 }
                 rect.y += EditorGUIUtility.singleLineHeight + EditorGUIUtility.standardVerticalSpacing;

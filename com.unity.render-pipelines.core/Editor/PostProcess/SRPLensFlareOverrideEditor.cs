@@ -84,8 +84,8 @@ namespace UnityEditor.Rendering
             static public readonly GUIContent attenuationByLightShape = new GUIContent("Attenuation By Light Shape", "If component attached to a light, attenuation the lens flare per light type.");
             static public readonly GUIContent radialScreenAttenuationCurve = new GUIContent("Radial Screen Attenuation Curve", "Attenuation used radially, which allow for instance to enable flare only on the edge of the screen.");
             static public readonly GUIContent occlusionRadius = new GUIContent("Occlusion Radius", "Radius around the light used to occlude the flare (value in world space).");
-            static public readonly GUIContent sampleCount = new GUIContent("Sample Count", "Random Samples Count used inside the disk with 'occlusionRadius'.");
-            static public readonly GUIContent occlusionOffset = new GUIContent("Occlusion Offset", "Occlusion Offset allow us to offset the plane where the disc of occlusion is place (closer to camera), value on world space.\nUseful for instance to sample occlusion outside a light bulb if we place a flare inside the light bulb.");
+            static public readonly GUIContent sampleCount = new GUIContent("Sample Count", "Random sample count used inside the disk with 'occlusion radius'. Higher sample counts will give a smoother attenuation when being occluded.");
+            static public readonly GUIContent occlusionOffset = new GUIContent("Occlusion Offset", "Occlusion Offset allows us to offset the plane for where the disc of occlusion is placed in world space (which will make it appear smaller or larger on the debug view as it is moving relative to the camera).\nThis is useful in order to sample occlusion outside a light bulb if a flare was placed inside.");
             static public readonly GUIContent allowOffScreen = new GUIContent("Allow Off Screen", "If allowOffScreen is true then If the lens flare is outside the screen we still emit the flare on screen.");
         }
     }

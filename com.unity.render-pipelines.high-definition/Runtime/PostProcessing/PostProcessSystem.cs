@@ -2356,7 +2356,6 @@ namespace UnityEngine.Rendering.HighDefinition
 
                 int elemIdx = 0;
                 float curLengthPos = 0.0f;
-                float curLengthNeg = 0.0f;
                 foreach (SRPLensFlareDataElement element in data.elements)
                 {
                     if (element == null ||
@@ -2364,10 +2363,23 @@ namespace UnityEngine.Rendering.HighDefinition
                         element.localIntensity <= 0.0f)
                         continue;
 
+                    float curLengthNeg = 0.0f;
                     if (element.position > 0.0f)
                         curLengthPos += element.position;
                     else if (element.position < 0.0f)
-                        curLengthNeg += Mathf.Abs(element.position);
+                    {
+                        for (int i = data.elements.Length - 1; i >= 0; i--)
+                        {
+                            if (data.elements[i].position < 0.0f)
+                            {
+                                curLengthNeg += Mathf.Abs(element.position);
+                                if (data.elements[i] == element)
+                                {
+                                    break;
+                                }
+                            }
+                        }
+                    }
 
                     float timePosPos = totalLengthPos > 0.0f ? curLengthPos / totalLengthPos : 0.0f;
                     float timePosNeg = totalLengthNeg > 0.0f ? curLengthNeg / totalLengthNeg : 0.0f;
