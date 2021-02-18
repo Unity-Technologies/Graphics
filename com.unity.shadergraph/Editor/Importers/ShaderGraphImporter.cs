@@ -667,6 +667,7 @@ Shader ""Hidden/GraphErrorShader2""
 
                 var inputProperties = new List<AbstractShaderProperty>();
                 var portPropertyIndices = new List<int>[ports.Count];
+                var propertiesStages = new List<ShaderStageCapability>();
                 for (var portIndex = 0; portIndex < ports.Count; portIndex++)
                 {
                     portPropertyIndices[portIndex] = new List<int>();
@@ -682,6 +683,7 @@ Shader ""Hidden/GraphErrorShader2""
                     var propertyIndex = inputProperties.Count;
                     var codeIndex = codeSnippets.Count;
 
+                    ShaderStageCapability stageCapability = 0;
                     for (var portIndex = 0; portIndex < ports.Count; portIndex++)
                     {
                         var portPropertySet = portPropertySets[portIndex];
@@ -689,9 +691,11 @@ Shader ""Hidden/GraphErrorShader2""
                         {
                             portCodeIndices[portIndex].Add(codeIndex);
                             portPropertyIndices[portIndex].Add(propertyIndex);
+                            stageCapability |= ports[portIndex].stageCapability;
                         }
                     }
 
+                    propertiesStages.Add(stageCapability);
                     inputProperties.Add(property);
                     codeSnippets.Add($",{nl}{indent}/* Property: {property.displayName} */ {property.GetPropertyAsArgumentString()}");
                 }
@@ -766,6 +770,7 @@ Shader ""Hidden/GraphErrorShader2""
                 asset.inputStructName = inputStructName;
                 asset.outputStructName = outputStructName;
                 asset.portRequirements = portRequirements;
+                asset.m_PropertiesStages = propertiesStages.ToArray();
                 asset.concretePrecision = graph.concretePrecision;
                 asset.SetProperties(inputProperties);
                 asset.outputPropertyIndices = new IntArray[ports.Count];

@@ -38,7 +38,8 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 out var defineSpaceDescriptor,
                 out var parameterBufferDescriptor,
                 out var additionalDefinesDescriptor,
-                out var loadPositionAttributeDescriptor
+                out var loadPositionAttributeDescriptor,
+                out var vertexPropertiesGenerationDescriptor
             );
 
             var passes = subShaderDescriptor.passes.ToArray();
@@ -81,7 +82,8 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                     defineSpaceDescriptor,
                     parameterBufferDescriptor,
                     additionalDefinesDescriptor,
-                    loadPositionAttributeDescriptor
+                    loadPositionAttributeDescriptor,
+                    vertexPropertiesGenerationDescriptor
                 };
 
                 vfxPasses.Add(passDescriptor, passes[i].fieldConditions);
@@ -227,7 +229,8 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             out AdditionalCommandDescriptor defineSpaceDescriptor,
             out AdditionalCommandDescriptor parameterBufferDescriptor,
             out AdditionalCommandDescriptor additionalDefinesDescriptor,
-            out AdditionalCommandDescriptor loadPositionAttributeDescriptor)
+            out AdditionalCommandDescriptor loadPositionAttributeDescriptor,
+            out AdditionalCommandDescriptor vertexPropertiesGenerationDescriptor)
         {
             // TODO: Collapse as much of this as possible into a single generate header descriptor.
 
@@ -239,6 +242,10 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
 
             blockFunctionDescriptor = new AdditionalCommandDescriptor("VFXGeneratedBlockFunction", blockFunction);
             blockCallFunctionDescriptor = new AdditionalCommandDescriptor("VFXProcessBlocks", blockCallFunction);
+
+            // Vertex Input
+            VFXCodeGenerator.BuildVertexPropertes(context, contextData, out var vertexPropertiesGeneration);
+            vertexPropertiesGenerationDescriptor = new AdditionalCommandDescriptor("VFXVertexPropertiesGeneration", vertexPropertiesGeneration);
 
             // Interpolator
             VFXCodeGenerator.BuildInterpolatorBlocks(context, contextData, out var interpolatorsGeneration);

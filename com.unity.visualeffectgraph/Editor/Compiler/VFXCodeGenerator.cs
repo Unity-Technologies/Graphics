@@ -397,6 +397,41 @@ namespace UnityEditor.VFX
             parameterBufferContent = parameterBuffer.ToString();
         }
 
+        internal static void BuildVertexPropertes(VFXContext context, VFXContextCompiledData contextData, out string vertexProperties)
+        {
+            var expressionToName = context.GetData().GetAttributes().ToDictionary(o => new VFXAttributeExpression(o.attrib) as VFXExpression, o => (new VFXAttributeExpression(o.attrib)).GetCodeString(null));
+            expressionToName = expressionToName.Union(contextData.uniformMapper.expressionToCode).ToDictionary(s => s.Key, s => s.Value);
+
+            var mainParameters = contextData.gpuMapper.CollectExpression(-1).ToArray();
+
+            var additionalVertexProperties = new VFXShaderWriter();
+
+            foreach (string vertexParameter in context.vertexParameters)
+            {
+                var filteredNamedExpression = mainParameters.FirstOrDefault(o => vertexParameter == o.name &&
+                    !(expressionToName.ContainsKey(o.exp) && expressionToName[o.exp] == o.name));                                                              // if parameter already in the global scope, there's nothing to do
+
+                if (filteredNamedExpression.exp != null)
+                {
+                    additionalVertexProperties.WriteVariable(filteredNamedExpression.exp.valueType, filteredNamedExpression.name, "0");
+                    var expressionToNameLocal = new Dictionary<VFXExpression, string>(expressionToName);
+                    additionalVertexProperties.EnterScope();
+                    {
+                        if (!expressionToNameLocal.ContainsKey(filteredNamedExpression.exp))
+                        {
+                            additionalVertexProperties.WriteVariable(filteredNamedExpression.exp, expressionToNameLocal);
+                            additionalVertexProperties.WriteLine();
+                        }
+                        additionalVertexProperties.WriteAssignement(filteredNamedExpression.exp.valueType, filteredNamedExpression.name, expressionToNameLocal[filteredNamedExpression.exp]);
+                        additionalVertexProperties.WriteLine();
+                    }
+                    additionalVertexProperties.ExitScope();
+                }
+            }
+
+            vertexProperties = additionalVertexProperties.ToString();
+        }
+
         internal static void BuildInterpolatorBlocks(VFXContext context, VFXContextCompiledData contextData,
             out string interpolatorsGeneration)
         {
