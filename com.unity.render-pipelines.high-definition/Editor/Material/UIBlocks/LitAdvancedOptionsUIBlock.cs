@@ -16,7 +16,7 @@ namespace UnityEditor.Rendering.HighDefinition
     {
         internal new class Styles
         {
-            public static readonly GUIContent forceForwardEmissiveText = new GUIContent("Force Forward Emissive", "When in Lit shader mode: deferred. It forces the emissive part of the material to be rendered into an additional forward pass. This can improve quality and solve artefactd when using SSGI but have an additional CPU and GPU cost.");
+            public static readonly GUIContent forceForwardEmissiveText = new GUIContent("Force Forward Emissive", "When in Lit shader mode: deferred. It forces the emissive part of the material to be rendered into an additional forward pass. This can improve quality and solve artefacts when using SSGI but have an additional CPU and GPU cost.");
         }
 
         MaterialProperty forceForwardEmissive = null;
