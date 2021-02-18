@@ -89,7 +89,21 @@ namespace UnityEditor.ShaderGraph
 
                 if (!value.procedural)
                 {
-                    // declare regular texture properties (for fallback case)
+                    //declare shared sampler for VT cache samples
+                    action(new HLSLProperty(HLSLType._CUSTOM, "VT_SAMPLER", HLSLDeclaration.UnityPerMaterial, concretePrecision)
+                    {
+                        customDeclaration = (ssb) =>
+                        {
+                            ssb.AppendIndentation();
+                            ssb.AppendLine("#ifndef VT_SAMPLER");
+                            ssb.AppendLine("#define VT_SAMPLER sampler_clamp_trilinear_aniso4");
+                            ssb.AppendLine("SAMPLER(sampler_clamp_trilinear_aniso4);");
+                            ssb.AppendLine("#endif");
+                            ssb.AppendIndentation();
+                        }
+                    });
+
+                    //declare regular texture properties (for fallback case)
                     for (int i = 0; i < numLayers; i++)
                     {
                         string layerRefName = value.layers[i].layerRefName;
@@ -100,8 +114,8 @@ namespace UnityEditor.ShaderGraph
 
                 Action<ShaderStringBuilder> customDecl = (builder) =>
                 {
-                    // declare texture stack
                     builder.AppendIndentation();
+                    // declare texture stack
                     builder.Append("DECLARE_STACK");
                     builder.Append((numLayers <= 1) ? "" : numLayers.ToString());
                     builder.Append("(");
@@ -121,7 +135,11 @@ namespace UnityEditor.ShaderGraph
                     builder.Append(referenceName);
                     builder.Append(" AddTextureType(BuildVTProperties_");
                     builder.Append(referenceName);
-                    builder.Append("()");
+                    builder.Append("(");
+#if ENABLE_VIRTUALTEXTURES
+                    builder.Append(" VT_SAMPLER ");
+#endif
+                    builder.Append(")");
                     for (int i = 0; i < value.layers.Count; i++)
                     {
                         builder.Append(",");
