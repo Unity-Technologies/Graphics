@@ -325,6 +325,7 @@ namespace UnityEditor.VFX.UI
 
         void OnAttachToPanel(AttachToPanelEvent e)
         {
+            OnSelectionChanged();
             Selection.selectionChanged += OnSelectionChanged;
         }
 
