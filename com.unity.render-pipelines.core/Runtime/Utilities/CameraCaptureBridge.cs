@@ -1,4 +1,3 @@
-
 using System;
 using System.Collections.Generic;
 
@@ -9,7 +8,6 @@ namespace UnityEngine.Rendering
     /// </summary>
     public static class CameraCaptureBridge
     {
-
         private static Dictionary<Camera, HashSet<Action<RenderTargetIdentifier, CommandBuffer>>> actionDict =
             new Dictionary<Camera, HashSet<Action<RenderTargetIdentifier, CommandBuffer>>>();
 
@@ -37,7 +35,6 @@ namespace UnityEngine.Rendering
         /// <returns>Enumeration of actions</returns>
         public static IEnumerator<Action<RenderTargetIdentifier, CommandBuffer>> GetCaptureActions(Camera camera)
         {
-
             if (!actionDict.TryGetValue(camera, out var actions))
                 return null;
 
