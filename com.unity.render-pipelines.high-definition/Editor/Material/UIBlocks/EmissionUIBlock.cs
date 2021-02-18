@@ -146,13 +146,15 @@ namespace UnityEditor.Rendering.HighDefinition
             bool intensityIsMixed = unitIsMixed || emissiveIntensity.hasMixedValue;
 
             using (new EditorGUILayout.HorizontalScope())
-            using (new EditorGUI.DisabledScope(unitIsMixed))
             {
                 EditorGUI.showMixedValue = intensityIsMixed;
                 EmissiveIntensityUnit unit = (EmissiveIntensityUnit)emissiveIntensityUnit.floatValue;
 
                 if (unitIsMixed)
-                    materialEditor.ShaderProperty(emissiveIntensity, Styles.emissiveIntensityText);
+                {
+                    using (new EditorGUI.DisabledScope(unitIsMixed))
+                        materialEditor.ShaderProperty(emissiveIntensity, Styles.emissiveIntensityText);
+                }
                 else
                 {
                     if (!intensityIsMixed && unit == EmissiveIntensityUnit.EV100)
