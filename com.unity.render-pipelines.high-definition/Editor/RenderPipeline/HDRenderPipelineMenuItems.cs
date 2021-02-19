@@ -111,7 +111,7 @@ namespace UnityEditor.Rendering.HighDefinition
             }
         }
 
-        [MenuItem("Edit/Rendering/Materials/Enable HDRP Force Forward Emissive on All Materials")]
+        [MenuItem("Edit/Rendering/Materials/Enable HDRP Force Forward Emissive on Scene Materials")]
         internal static void ForceForwardEmissiveOnMaterialEnableInScene()
         {
             var materials = Resources.FindObjectsOfTypeAll<Material>();
@@ -126,7 +126,7 @@ namespace UnityEditor.Rendering.HighDefinition
             }
         }
 
-        [MenuItem("Edit/Rendering/Materials/Disable HDRP Force Forward Emissive on All Materials")]
+        [MenuItem("Edit/Rendering/Materials/Disable HDRP Force Forward Emissive on Scene Materials")]
         internal static void ForceForwardEmissiveOnMaterialDisableInScene()
         {
             var materials = Resources.FindObjectsOfTypeAll<Material>();
