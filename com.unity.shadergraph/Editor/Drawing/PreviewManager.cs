@@ -217,7 +217,7 @@ namespace UnityEditor.ShaderGraph.Drawing
         static HashSet<AbstractMaterialNode> m_TempAddedToNodeWave = new HashSet<AbstractMaterialNode>();
 
         // cache the Action to avoid GC
-        Action<AbstractMaterialNode> AddNextLevelNodesToWave =
+        static Action<AbstractMaterialNode> AddNextLevelNodesToWave =
             nextLevelNode =>
             {
                 if (!m_TempAddedToNodeWave.Contains(nextLevelNode))
@@ -227,7 +227,7 @@ namespace UnityEditor.ShaderGraph.Drawing
                 }
             };
 
-        enum PropagationDirection
+        internal enum PropagationDirection
         {
             Upstream,
             Downstream
@@ -236,7 +236,7 @@ namespace UnityEditor.ShaderGraph.Drawing
         // ADDs all nodes in sources, and all nodes in the given direction relative to them, into result
         // sources and result can be the same HashSet
         private static readonly ProfilerMarker PropagateNodesMarker = new ProfilerMarker("PropagateNodes");
-        void PropagateNodes(HashSet<AbstractMaterialNode> sources, PropagationDirection dir, HashSet<AbstractMaterialNode> result)
+        internal static void PropagateNodes(HashSet<AbstractMaterialNode> sources, PropagationDirection dir, HashSet<AbstractMaterialNode> result)
         {
             using (PropagateNodesMarker.Auto())
             if (sources.Count > 0)

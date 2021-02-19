@@ -150,11 +150,14 @@ namespace UnityEditor.ShaderGraph.Serialization
                 if (m_activeBlocks == null)
                 {
                     m_activeBlocks = new List<BlockFieldDescriptor>();
-                    foreach (var cur in context.currentBlocks)
+                    if (context.currentBlocks != null)
                     {
-                        if (cur.isUnknown && !string.IsNullOrEmpty(cur.displayName))
+                        foreach (var cur in context.currentBlocks)
                         {
-                            m_activeBlocks.Add(cur);
+                            if (cur.isUnknown && !string.IsNullOrEmpty(cur.displayName))
+                            {
+                                m_activeBlocks.Add(cur);
+                            }
                         }
                     }
                 }
