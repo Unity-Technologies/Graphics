@@ -272,6 +272,10 @@ namespace UnityEngine.Rendering.HighDefinition
             public int initKernel;
             public int mainKernel;
             public int viewCount;
+            public int inputWidth;
+            public int inputHeight;
+            public int outputWidth;
+            public int outputHeight;
 
             public TextureHandle source;
             public TextureHandle destination;
@@ -319,15 +323,20 @@ namespace UnityEngine.Rendering.HighDefinition
             public CustomPostProcessVolumeComponent customPostProcess;
         }
 
-        TextureHandle GetPostprocessOutputHandle(RenderGraph renderGraph, string name)
+        TextureHandle GetPostprocessOutputHandle(RenderGraph renderGraph,  string name, bool dynamicResolution = true)
         {
-            return renderGraph.CreateTexture(new TextureDesc(Vector2.one, true, true)
+            return renderGraph.CreateTexture(new TextureDesc(Vector2.one, dynamicResolution, true)
             {
                 name = name,
                 colorFormat = m_ColorFormat,
                 useMipMap = false,
                 enableRandomWrite = true
             });
+        }
+
+        TextureHandle GetPostprocessUpsampledOutputHandle(RenderGraph renderGraph, string name)
+        {
+            return GetPostprocessOutputHandle(renderGraph, name, false);
         }
 
         TextureHandle DoCopyAlpha(RenderGraph renderGraph, HDCamera hdCamera, TextureHandle source)
@@ -635,7 +644,7 @@ namespace UnityEngine.Rendering.HighDefinition
                         passData.prevExposure = builder.ReadTexture(renderGraph.ImportTexture(GetPreviousExposureTexture(hdCamera)));
 
                         TextureHandle dest = GetPostprocessOutputHandle(renderGraph, "Apply Exposure Destination");
-                        passData.destination = builder.WriteTexture(dest);;
+                        passData.destination = builder.WriteTexture(dest);
 
                         builder.SetRenderFunc(
                             (ApplyExposureData data, RenderGraphContext ctx) =>
@@ -765,7 +774,7 @@ namespace UnityEngine.Rendering.HighDefinition
             passData.destination = builder.WriteTexture(GetPostprocessOutputHandle(renderGraph, outputName));;
 
             TextureHandle dest = GetPostprocessOutputHandle(renderGraph, "Post-DoF TAA Destination");
-            passData.destination = builder.WriteTexture(dest);;
+            passData.destination = builder.WriteTexture(dest);
         }
 
         TextureHandle DoTemporalAntialiasing(RenderGraph renderGraph, HDCamera hdCamera, TextureHandle depthBuffer, TextureHandle motionVectors, TextureHandle depthBufferMipChain, TextureHandle sourceTexture, bool postDoF, string outputName)
@@ -1203,7 +1212,7 @@ namespace UnityEngine.Rendering.HighDefinition
                     { colorFormat = GraphicsFormat.R16_SFloat, enableRandomWrite = true, name = "Tile to Scatter Min" });
             }
 
-            data.destination = builder.WriteTexture(GetPostprocessOutputHandle(renderGraph, "Motion Blur Destination"));;
+            data.destination = builder.WriteTexture(GetPostprocessOutputHandle(renderGraph, "Motion Blur Destination"));
         }
 
         static void DoMotionBlur(MotionBlurData data, CommandBuffer cmd)
@@ -2243,27 +2252,28 @@ namespace UnityEngine.Rendering.HighDefinition
                     passData.initKernel = passData.casCS.FindKernel("KInitialize");
                     passData.mainKernel = passData.casCS.FindKernel("KMain");
                     passData.viewCount = hdCamera.viewCount;
+                    passData.inputWidth = hdCamera.actualWidth;
+                    passData.inputHeight = hdCamera.actualHeight;
+                    passData.outputWidth = Mathf.RoundToInt(hdCamera.finalViewport.width);
+                    passData.outputHeight = Mathf.RoundToInt(hdCamera.finalViewport.height);
                     passData.source = builder.ReadTexture(source);
-                    passData.destination = builder.WriteTexture(GetPostprocessOutputHandle(renderGraph, "Contrast Adaptive Sharpen Destination"));;
+                    passData.destination = builder.WriteTexture(GetPostprocessUpsampledOutputHandle(renderGraph, "Contrast Adaptive Sharpen Destination"));;
                     passData.casParametersBuffer = builder.CreateTransientComputeBuffer(new ComputeBufferDesc(2, sizeof(uint) * 4) { name = "Cas Parameters" });
 
                     builder.SetRenderFunc(
                         (CASData data, RenderGraphContext ctx) =>
                         {
-                            RTHandle sourceRT = data.source;
-                            RTHandle destinationRT = data.destination;
-
                             ctx.cmd.SetComputeFloatParam(data.casCS, HDShaderIDs._Sharpness, 1);
-                            ctx.cmd.SetComputeTextureParam(data.casCS, data.mainKernel, HDShaderIDs._InputTexture, sourceRT);
-                            ctx.cmd.SetComputeVectorParam(data.casCS, HDShaderIDs._InputTextureDimensions, new Vector4(sourceRT.rt.width, sourceRT.rt.height));
-                            ctx.cmd.SetComputeTextureParam(data.casCS, data.mainKernel, HDShaderIDs._OutputTexture, destinationRT);
-                            ctx.cmd.SetComputeVectorParam(data.casCS, HDShaderIDs._OutputTextureDimensions, new Vector4(destinationRT.rt.width, destinationRT.rt.height));
+                            ctx.cmd.SetComputeTextureParam(data.casCS, data.mainKernel, HDShaderIDs._InputTexture, data.source);
+                            ctx.cmd.SetComputeVectorParam(data.casCS, HDShaderIDs._InputTextureDimensions, new Vector4(data.inputWidth, data.inputHeight));
+                            ctx.cmd.SetComputeTextureParam(data.casCS, data.mainKernel, HDShaderIDs._OutputTexture, data.destination);
+                            ctx.cmd.SetComputeVectorParam(data.casCS, HDShaderIDs._OutputTextureDimensions, new Vector4(data.outputWidth, data.outputHeight));
                             ctx.cmd.SetComputeBufferParam(data.casCS, data.initKernel, "CasParameters", data.casParametersBuffer);
                             ctx.cmd.SetComputeBufferParam(data.casCS, data.mainKernel, "CasParameters", data.casParametersBuffer);
                             ctx.cmd.DispatchCompute(data.casCS, data.initKernel, 1, 1, 1);
 
-                            int dispatchX = (int)Math.Ceiling(destinationRT.rt.width / 16.0f);
-                            int dispatchY = (int)Math.Ceiling(destinationRT.rt.height / 16.0f);
+                            int dispatchX = HDUtils.DivRoundUp(data.outputWidth, 16);
+                            int dispatchY = HDUtils.DivRoundUp(data.outputHeight, 16);
 
                             ctx.cmd.DispatchCompute(data.casCS, data.mainKernel, dispatchX, dispatchY, data.viewCount);
                         });
@@ -2447,6 +2457,9 @@ namespace UnityEngine.Rendering.HighDefinition
                             : new Vector4(1.0f, 1.0f, 0.0f, 0.0f)
                         );
 
+                        finalPassMaterial.SetVector(HDShaderIDs._ViewPortSize,
+                            new Vector4(hdCamera.finalViewport.width, hdCamera.finalViewport.height, 1.0f / hdCamera.finalViewport.width, 1.0f / hdCamera.finalViewport.height));
+
                         // Blit to backbuffer
                         Rect backBufferRect = data.hdCamera.finalViewport;
 
@@ -2454,12 +2467,6 @@ namespace UnityEngine.Rendering.HighDefinition
                         // Final viewport is handled in the final blit in this case
                         if (!HDUtils.PostProcessIsFinalPass(data.hdCamera))
                         {
-                            if (dynResHandler.HardwareDynamicResIsEnabled())
-                            {
-                                var scaledSize = dynResHandler.GetLastScaledSize();
-                                backBufferRect.width = scaledSize.x;
-                                backBufferRect.height = scaledSize.y;
-                            }
                             backBufferRect.x = backBufferRect.y = 0;
                         }
 

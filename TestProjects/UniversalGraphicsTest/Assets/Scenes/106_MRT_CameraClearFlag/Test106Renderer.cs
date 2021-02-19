@@ -11,7 +11,7 @@ namespace UnityEngine.Rendering.Universal
 
         OutputColorsToMRTsRenderPass m_ColorsToMrtsPass;
         RenderTargetHandle[] m_ColorToMrtOutputs; // outputs of render pass "OutputColorsToMRTs"
-        
+
         CopyToViewportRenderPass[] m_CopyToViewportPasses;
         Rect m_Viewport = new Rect(660, 200, 580, 320); // viewport to copy the results into
 
@@ -26,12 +26,12 @@ namespace UnityEngine.Rendering.Universal
             m_ColorsToMrtsPass = new OutputColorsToMRTsRenderPass(colorToMrtMaterial);
 
             m_ColorToMrtOutputs = new RenderTargetHandle[2];
-          //m_ColorToMrtOutputs[0].Init("_ColorToMrtOutput0");
+            //m_ColorToMrtOutputs[0].Init("_ColorToMrtOutput0");
             m_ColorToMrtOutputs[1].Init("_ColorToMrtOutput1");
 
             Material copyToViewportMaterial = CoreUtils.CreateEngineMaterial(data.shaders.copyToViewportPS);
             m_CopyToViewportPasses = new CopyToViewportRenderPass[2];
-          //m_CopyToViewportPasses[0] = new CopyToViewportRenderPass(copyToViewportMaterial);
+            //m_CopyToViewportPasses[0] = new CopyToViewportRenderPass(copyToViewportMaterial);
             m_CopyToViewportPasses[1] = new CopyToViewportRenderPass(copyToViewportMaterial);
 
             Material blitMaterial = CoreUtils.CreateEngineMaterial(data.shaders.blitPS);
