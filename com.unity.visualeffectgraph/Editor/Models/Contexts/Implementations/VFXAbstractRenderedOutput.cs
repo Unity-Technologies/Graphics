@@ -29,6 +29,9 @@ namespace UnityEditor.VFX
         [VFXSetting(VFXSettingAttribute.VisibleFlags.InInspector), SerializeField, Tooltip("When enabled, particles will not be affected by temporal anti-aliasing.")]
         protected bool excludeFromTAA = false;
 
+        [VFXSetting(VFXSettingAttribute.VisibleFlags.InInspector), SerializeField, Tooltip("TODOPAUL.")]
+        protected bool useCustomMaterialOffset = false;
+
         public bool isBlendModeOpaque { get { return blendMode == BlendMode.Opaque; } }
 
         public virtual bool hasMotionVector
@@ -203,6 +206,38 @@ namespace UnityEditor.VFX
                 }
             }
             base.Sanitize(version);
+        }
+
+        class MaterialOffset
+        {
+            [Tooltip("TODOPAUL.")]
+            public int materialOffset = 0;
+        }
+
+        protected override IEnumerable<VFXPropertyWithValue> inputProperties
+        {
+            get
+            {
+                IEnumerable<VFXPropertyWithValue> properties = base.inputProperties;
+                if (useCustomMaterialOffset && subOutput.supportsMaterialOffset)
+                    properties = properties.Concat(PropertiesFromType(typeof(MaterialOffset)));
+                return properties;
+            }
+        }
+
+        public override VFXExpressionMapper GetExpressionMapper(VFXDeviceTarget target)
+        {
+            var mapper = new VFXExpressionMapper();
+            switch (target)
+            {
+                case VFXDeviceTarget.GPU:
+                    break;
+                case VFXDeviceTarget.CPU:
+                    if (useCustomMaterialOffset && subOutput.supportsMaterialOffset)
+                        mapper.AddExpression(inputSlots.FirstOrDefault(o => o.name == nameof(MaterialOffset.materialOffset)).GetExpression(), "custom_material_offset", -1);
+                    break;
+            }
+            return mapper;
         }
 
         [SerializeField]
