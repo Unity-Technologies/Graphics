@@ -115,6 +115,10 @@ PackedVaryingsType MotionVectorVS(inout VaryingsType varyingsType, AttributesMes
 
         GetMeshAndElementIndex(inputMesh, element);
 
+        // NOTE: We have to re-evaluate the attributes here, not good.
+        // TODO: organize things so that VFX mesh and attributes get computed once.
+        GetElementData(element);
+
         inputMesh = TransformMeshToPreviousElement(inputMesh, element);
 #endif
 
@@ -128,7 +132,12 @@ PackedVaryingsType MotionVectorVS(inout VaryingsType varyingsType, AttributesMes
         AttributesMesh previousMesh = inputMesh;
         previousMesh.positionOS = effectivePositionOS;
 
+#if defined(HAVE_VFX_MODIFICATION)
+        previousMesh = ApplyMeshModification(previousMesh, element, _LastTimeParameters.xyz);
+#else
         previousMesh = ApplyMeshModification(previousMesh, _LastTimeParameters.xyz);
+#endif
+
         float3 previousPositionRWS = TransformPreviousObjectToWorld(previousMesh.positionOS);
 #else
         float3 previousPositionRWS = TransformPreviousObjectToWorld(effectivePositionOS);

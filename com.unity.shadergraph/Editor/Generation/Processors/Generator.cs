@@ -604,19 +604,6 @@ namespace UnityEditor.ShaderGraph
                 pixelGraphInputName,
                 pass.virtualTextureFeedback);
 
-            if (m_Mode == GenerationMode.VFX)
-            {
-                using (var vfxSurfaceDescriptionInputs = new ShaderStringBuilder())
-                {
-                    m_GraphData.ForeachHLSLProperty(h =>
-                    {
-                        vfxSurfaceDescriptionInputs.Append($", fragInputs.{h.name}");
-                    });
-
-                    spliceCommands.Add("VFXSurfaceDescriptionInputs", vfxSurfaceDescriptionInputs.ToString());
-                }
-            }
-
             using (var pixelBuilder = new ShaderStringBuilder())
             {
                 // Generate final shader strings
@@ -654,6 +641,20 @@ namespace UnityEditor.ShaderGraph
             using (var propertyBuilder = new ShaderStringBuilder())
             {
                 propertyCollector.GetPropertiesDeclaration(propertyBuilder, m_Mode, m_GraphData.concretePrecision);
+
+                if (m_Mode == GenerationMode.VFX)
+                {
+                    const string k_GraphPropertiesStruct = "GraphProperties";
+                    propertyBuilder.AppendLine($"struct {k_GraphPropertiesStruct}");
+                    using (propertyBuilder.BlockSemicolonScope())
+                    {
+                        m_GraphData.ForeachHLSLProperty(h =>
+                        {
+                            h.AppendTo(propertyBuilder);
+                        });
+                    }
+                }
+
                 if (propertyBuilder.length == 0)
                     propertyBuilder.AppendLine("// GraphProperties: <None>");
                 spliceCommands.Add("GraphProperties", propertyBuilder.ToCodeBlock());

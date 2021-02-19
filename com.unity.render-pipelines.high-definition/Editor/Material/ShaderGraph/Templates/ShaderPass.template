@@ -215,7 +215,17 @@ Pass
         #endif // SHADER_UNLIT
 
         SurfaceDescriptionInputs surfaceDescriptionInputs = FragInputsToSurfaceDescriptionInputs(fragInputs, V);
-        SurfaceDescription surfaceDescription = SurfaceDescriptionFunction(surfaceDescriptionInputs $splice(VFXSurfaceDescriptionInputs));
+
+        #if defined(HAVE_VFX_MODIFICATION)
+        GraphProperties properties;
+        ZERO_INITIALIZE(GraphProperties, properties);
+
+        GetElementPixelProperties(fragInputs, properties);
+
+        SurfaceDescription surfaceDescription = SurfaceDescriptionFunction(surfaceDescriptionInputs, properties);
+        #else
+        SurfaceDescription surfaceDescription = SurfaceDescriptionFunction(surfaceDescriptionInputs);
+        #endif
 
         // Perform alpha test very early to save performance (a killed pixel will not sample textures)
         // TODO: split graph evaluation to grab just alpha dependencies first? tricky..

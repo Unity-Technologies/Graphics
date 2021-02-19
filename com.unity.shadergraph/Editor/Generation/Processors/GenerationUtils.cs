@@ -794,18 +794,14 @@ namespace UnityEditor.ShaderGraph
 
             graph.CollectShaderProperties(shaderProperties, mode);
 
-            var vfxPropertiesBuilder = new ShaderStringBuilder();
-
-            // Extend the SurfaceDescriptionFunction signature with properties computed by VFX.
             if (mode == GenerationMode.VFX)
             {
-                graph.ForeachHLSLProperty(h =>
-                {
-                    vfxPropertiesBuilder.Append($", {h.GetValueTypeString()} {h.name}");
-                });
+                const string k_GraphProperties = "GraphProperties";
+                surfaceDescriptionFunction.AppendLine(String.Format("{0} {1}(SurfaceDescriptionInputs IN, {2} PROP)", surfaceDescriptionName, functionName, k_GraphProperties), false);
             }
+            else
+                surfaceDescriptionFunction.AppendLine(String.Format("{0} {1}(SurfaceDescriptionInputs IN)", surfaceDescriptionName, functionName), false);
 
-            surfaceDescriptionFunction.AppendLine(String.Format("{0} {1}(SurfaceDescriptionInputs IN{2})", surfaceDescriptionName, functionName, vfxPropertiesBuilder.ToString()), false);
             using (surfaceDescriptionFunction.BlockScope())
             {
                 surfaceDescriptionFunction.AppendLine("{0} surface = ({0})0;", surfaceDescriptionName);
@@ -972,7 +968,14 @@ namespace UnityEditor.ShaderGraph
 
             graph.CollectShaderProperties(shaderProperties, mode);
 
-            builder.AppendLine("{0} {1}({2} IN)", graphOutputStructName, functionName, graphInputStructName);
+            if (mode == GenerationMode.VFX)
+            {
+                const string k_GraphProperties = "GraphProperties";
+                builder.AppendLine("{0} {1}({2} IN, {3} PROP)", graphOutputStructName, functionName, graphInputStructName, k_GraphProperties);
+            }
+            else
+                builder.AppendLine("{0} {1}({2} IN)", graphOutputStructName, functionName, graphInputStructName);
+
             using (builder.BlockScope())
             {
                 builder.AppendLine("{0} description = ({0})0;", graphOutputStructName);

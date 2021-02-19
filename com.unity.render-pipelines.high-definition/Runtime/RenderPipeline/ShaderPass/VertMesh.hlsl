@@ -152,7 +152,9 @@ VaryingsMeshType VertMesh(AttributesMesh input, float3 worldSpaceOffset)
     input = TransformMeshToElement(input, element);
 #endif
 
-#if defined(HAVE_MESH_MODIFICATION)
+#if   defined(HAVE_MESH_MODIFICATION) && defined(HAVE_VFX_MODIFICATION)
+    input = ApplyMeshModification(input, element, _TimeParameters.xyz);
+#elif defined(HAVE_MESH_MODIFICATION)
     input = ApplyMeshModification(input, _TimeParameters.xyz);
 #endif
 

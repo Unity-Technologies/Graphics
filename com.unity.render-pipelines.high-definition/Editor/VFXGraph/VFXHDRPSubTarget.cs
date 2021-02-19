@@ -35,11 +35,13 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 out var blockCallFunctionDescriptor,
                 out var interpolantsGenerationDescriptor,
                 out var buildVFXFragInputs,
+                out var pixelPropertiesAssignDescriptor,
                 out var defineSpaceDescriptor,
                 out var parameterBufferDescriptor,
                 out var additionalDefinesDescriptor,
                 out var loadPositionAttributeDescriptor,
-                out var vertexPropertiesGenerationDescriptor
+                out var vertexPropertiesGenerationDescriptor,
+                out var vertexPropertiesAssignDescriptor
             );
 
             var passes = subShaderDescriptor.passes.ToArray();
@@ -79,11 +81,13 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                     blockCallFunctionDescriptor,
                     interpolantsGenerationDescriptor,
                     buildVFXFragInputs,
+                    pixelPropertiesAssignDescriptor,
                     defineSpaceDescriptor,
                     parameterBufferDescriptor,
                     additionalDefinesDescriptor,
                     loadPositionAttributeDescriptor,
-                    vertexPropertiesGenerationDescriptor
+                    vertexPropertiesGenerationDescriptor,
+                    vertexPropertiesAssignDescriptor
                 };
 
                 vfxPasses.Add(passDescriptor, passes[i].fieldConditions);
@@ -226,13 +230,15 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             out AdditionalCommandDescriptor blockCallFunctionDescriptor,
             out AdditionalCommandDescriptor interpolantsGenerationDescriptor,
             out AdditionalCommandDescriptor buildVFXFragInputsDescriptor,
+            out AdditionalCommandDescriptor pixelPropertiesAssignDescriptor,
             out AdditionalCommandDescriptor defineSpaceDescriptor,
             out AdditionalCommandDescriptor parameterBufferDescriptor,
             out AdditionalCommandDescriptor additionalDefinesDescriptor,
             out AdditionalCommandDescriptor loadPositionAttributeDescriptor,
-            out AdditionalCommandDescriptor vertexPropertiesGenerationDescriptor)
+            out AdditionalCommandDescriptor vertexPropertiesGenerationDescriptor,
+            out AdditionalCommandDescriptor vertexPropertiesAssignDescriptor)
         {
-            // TODO: Collapse as much of this as possible into a single generate header descriptor.
+            // TODO: Clean all of this up. Currently just an adapter between VFX Code Gen + SG Code Gen and *everything* has been stuffed here.
 
             // Load Attributes
             loadAttributeDescriptor = new AdditionalCommandDescriptor("VFXLoadAttribute", VFXCodeGenerator.GenerateLoadAttribute(".", context).ToString());
@@ -244,17 +250,22 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             blockCallFunctionDescriptor = new AdditionalCommandDescriptor("VFXProcessBlocks", blockCallFunction);
 
             // Vertex Input
-            VFXCodeGenerator.BuildVertexPropertes(context, contextData, out var vertexPropertiesGeneration);
+            VFXCodeGenerator.BuildVertexProperties(context, contextData, out var vertexPropertiesGeneration);
             vertexPropertiesGenerationDescriptor = new AdditionalCommandDescriptor("VFXVertexPropertiesGeneration", vertexPropertiesGeneration);
+
+            VFXCodeGenerator.BuildVertexPropertiesAssign(context, contextData, out var vertexPropertiesAssign);
+            vertexPropertiesAssignDescriptor = new AdditionalCommandDescriptor("VFXVertexPropertiesAssign", vertexPropertiesAssign);
 
             // Interpolator
             VFXCodeGenerator.BuildInterpolatorBlocks(context, contextData, out var interpolatorsGeneration);
-
             interpolantsGenerationDescriptor = new AdditionalCommandDescriptor("VFXInterpolantsGeneration", interpolatorsGeneration);
 
             // Frag Inputs - Only VFX will know if frag inputs come from interpolator or the CBuffer.
             VFXCodeGenerator.BuildFragInputsGeneration(context, contextData, out var buildFragInputsGeneration);
             buildVFXFragInputsDescriptor = new AdditionalCommandDescriptor("VFXSetFragInputs", buildFragInputsGeneration);
+
+            VFXCodeGenerator.BuildPixelPropertiesAssign(context, contextData, out var pixelPropertiesAssign);
+            pixelPropertiesAssignDescriptor = new AdditionalCommandDescriptor("VFXPixelPropertiesAssign", pixelPropertiesAssign);
 
             // Define coordinate space
             var defineSpaceDescriptorContent = string.Empty;

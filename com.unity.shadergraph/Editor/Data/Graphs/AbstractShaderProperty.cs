@@ -22,9 +22,17 @@ namespace UnityEditor.ShaderGraph.Internal
             set {}
         }
 
+        internal virtual string GetHLSLVariableName(bool isSubgraphProperty, GenerationMode mode)
+        {
+            if (mode == GenerationMode.VFX)
+                return $"PROP.{referenceName}";
+
+            return referenceName;
+        }
+
         internal virtual string GetHLSLVariableName(bool isSubgraphProperty)
         {
-            return referenceName;
+            return GetHLSLVariableName(isSubgraphProperty, GenerationMode.ForReals);
         }
 
         // NOTE: this does not tell you the HLSLDeclaration of the entire property...

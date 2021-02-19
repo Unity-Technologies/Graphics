@@ -397,7 +397,7 @@ namespace UnityEditor.VFX
             parameterBufferContent = parameterBuffer.ToString();
         }
 
-        internal static void BuildVertexPropertes(VFXContext context, VFXContextCompiledData contextData, out string vertexProperties)
+        internal static void BuildVertexProperties(VFXContext context, VFXContextCompiledData contextData, out string vertexProperties)
         {
             var expressionToName = context.GetData().GetAttributes().ToDictionary(o => new VFXAttributeExpression(o.attrib) as VFXExpression, o => (new VFXAttributeExpression(o.attrib)).GetCodeString(null));
             expressionToName = expressionToName.Union(contextData.uniformMapper.expressionToCode).ToDictionary(s => s.Key, s => s.Value);
@@ -430,6 +430,26 @@ namespace UnityEditor.VFX
             }
 
             vertexProperties = additionalVertexProperties.ToString();
+        }
+
+        internal static void BuildVertexPropertiesAssign(VFXContext context, VFXContextCompiledData contextData, out string buildVertexPropertiesGeneration)
+        {
+            var expressionToName = context.GetData().GetAttributes().ToDictionary(o => new VFXAttributeExpression(o.attrib) as VFXExpression, o => (new VFXAttributeExpression(o.attrib)).GetCodeString(null));
+            expressionToName = expressionToName.Union(contextData.uniformMapper.expressionToCode).ToDictionary(s => s.Key, s => s.Value);
+
+            var mainParameters = contextData.gpuMapper.CollectExpression(-1).ToArray();
+
+            var vertexInputsGeneration = new VFXShaderWriter();
+
+            foreach (string vertexParameter in context.vertexParameters)
+            {
+                var filteredNamedExpression = mainParameters.FirstOrDefault(o => vertexParameter == o.name);
+
+                vertexInputsGeneration.WriteAssignement(filteredNamedExpression.exp.valueType, $"properties.{filteredNamedExpression.name}", $"{filteredNamedExpression.name}");
+                vertexInputsGeneration.WriteLine();
+            }
+
+            buildVertexPropertiesGeneration = vertexInputsGeneration.ToString();
         }
 
         internal static void BuildInterpolatorBlocks(VFXContext context, VFXContextCompiledData contextData,
@@ -486,6 +506,25 @@ namespace UnityEditor.VFX
                 var isInterpolant = !(expressionToName.ContainsKey(filteredNamedExpression.exp) && expressionToName[filteredNamedExpression.exp] == filteredNamedExpression.name);
 
                 fragInputsGeneration.WriteAssignement(filteredNamedExpression.exp.valueType, $"output.{filteredNamedExpression.name}", $"{(isInterpolant ? "input." : string.Empty)}{filteredNamedExpression.name}");
+                fragInputsGeneration.WriteLine();
+            }
+
+            buildFragInputsGeneration = fragInputsGeneration.ToString();
+        }
+
+        internal static void BuildPixelPropertiesAssign(VFXContext context, VFXContextCompiledData contextData, out string buildFragInputsGeneration)
+        {
+            var expressionToName = context.GetData().GetAttributes().ToDictionary(o => new VFXAttributeExpression(o.attrib) as VFXExpression, o => (new VFXAttributeExpression(o.attrib)).GetCodeString(null));
+            expressionToName = expressionToName.Union(contextData.uniformMapper.expressionToCode).ToDictionary(s => s.Key, s => s.Value);
+
+            var mainParameters = contextData.gpuMapper.CollectExpression(-1).ToArray();
+
+            var fragInputsGeneration = new VFXShaderWriter();
+
+            foreach (string fragmentParameter in context.fragmentParameters)
+            {
+                var filteredNamedExpression = mainParameters.FirstOrDefault(o => fragmentParameter == o.name);
+                fragInputsGeneration.WriteAssignement(filteredNamedExpression.exp.valueType, $"properties.{filteredNamedExpression.name}", $"fragInputs.{filteredNamedExpression.name}");
                 fragInputsGeneration.WriteLine();
             }
 

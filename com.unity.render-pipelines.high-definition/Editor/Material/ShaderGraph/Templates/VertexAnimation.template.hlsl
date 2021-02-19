@@ -39,7 +39,11 @@ VertexDescriptionInputs AttributesMeshToVertexDescriptionInputs(AttributesMesh i
     return output;
 }
 
+#if defined(HAVE_VFX_MODIFICATION)
+AttributesMesh ApplyMeshModification(AttributesMesh input, AttributesElement element, float3 timeParameters)
+#else
 AttributesMesh ApplyMeshModification(AttributesMesh input, float3 timeParameters)
+#endif
 {
     // build graph inputs
     VertexDescriptionInputs vertexDescriptionInputs = AttributesMeshToVertexDescriptionInputs(input);
@@ -47,7 +51,17 @@ AttributesMesh ApplyMeshModification(AttributesMesh input, float3 timeParameters
     $VertexDescriptionInputs.TimeParameters: vertexDescriptionInputs.TimeParameters = timeParameters;
 
     // evaluate vertex graph
+#if defined(HAVE_VFX_MODIFICATION)
+    GraphProperties properties;
+    ZERO_INITIALIZE(GraphProperties, properties);
+
+    // Fetch the vertex graph properties for the particle instance.
+    GetElementVertexProperties(element, properties);
+
+    VertexDescription vertexDescription = VertexDescriptionFunction(vertexDescriptionInputs, properties);
+#else
     VertexDescription vertexDescription = VertexDescriptionFunction(vertexDescriptionInputs);
+#endif
 
     // copy graph output to the results
     $VertexDescription.Position: input.positionOS = vertexDescription.Position;

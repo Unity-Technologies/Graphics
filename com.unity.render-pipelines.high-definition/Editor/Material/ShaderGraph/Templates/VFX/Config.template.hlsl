@@ -97,9 +97,7 @@ float3 GetSize(Attributes attributes)
 $OutputType.Mesh:            $include("VFX/ConfigMesh.template.hlsl")
 $OutputType.PlanarPrimitive: $include("VFX/ConfigPlanarPrimitive.template.hlsl")
 
-// Loads the element-specific attribute data, as well as fills any interpolator.
-#define VaryingsMeshType VaryingsMeshToPS
-bool GetInterpolatorAndElementData(inout VaryingsMeshType output, inout AttributesElement element)
+void GetElementData(inout AttributesElement element)
 {
     uint index = element.index;
 
@@ -114,6 +112,16 @@ bool GetInterpolatorAndElementData(inout VaryingsMeshType output, inout Attribut
 
     $splice(VFXProcessBlocks)
 
+    element.attributes = attributes;
+}
+
+// Loads the element-specific attribute data, as well as fills any interpolator.
+#define VaryingsMeshType VaryingsMeshToPS
+bool GetInterpolatorAndElementData(inout VaryingsMeshType output, inout AttributesElement element)
+{
+    GetElementData(element);
+    const Attributes attributes = element.attributes;
+
     #if !HAS_STRIPS
     if (!attributes.alive)
         return false;
@@ -121,7 +129,6 @@ bool GetInterpolatorAndElementData(inout VaryingsMeshType output, inout Attribut
 
     $splice(VFXInterpolantsGeneration)
 
-    element.attributes = attributes;
     return true;
 }
 
@@ -205,6 +212,19 @@ float3 TransformPreviousObjectToWorldVFX(float3 positionOS)
     return GetCameraRelativePositionWS(positionOS);
 }
 #endif
+
+// Vertex + Pixel Graph Properties Generation
+void GetElementVertexProperties(AttributesElement element, inout GraphProperties properties)
+{
+    const Attributes attributes = element.attributes;
+    $splice(VFXVertexPropertiesGeneration)
+    $splice(VFXVertexPropertiesAssign)
+}
+
+void GetElementPixelProperties(FragInputs fragInputs, inout GraphProperties properties)
+{
+    $splice(VFXPixelPropertiesAssign)
+}
 
 // Need to redefine GetVaryingsDataDebug since we omit FragInputs.hlsl and generate one procedurally.
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Debug/MaterialDebug.cs.hlsl"
