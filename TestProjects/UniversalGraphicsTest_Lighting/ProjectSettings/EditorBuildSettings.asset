@@ -22,7 +22,7 @@ EditorBuildSettings:
     guid: 99da9ba2c3d1f4b1d92f851028bb7d0a
   - enabled: 1
     path: Assets/Scenes/023_Lighting_Mixed_Indirect_deferred.unity
-    guid: 04bddea172aa24f47a71b37c582fedba
+    guid: 2390977fa927ed74cadd2a62016007cb
   - enabled: 1
     path: Assets/Scenes/031_Shader_GlossyEnvironmentSky.unity
     guid: 2d287b701f8e1bf429c14805ac505eb9
