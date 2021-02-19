@@ -18,7 +18,6 @@ namespace UnityEngine.Rendering.HighDefinition
         public int _DebugLightLayersMask;
         public int _DebugShadowMapMode;
         public int _DebugMipMapMode; // Match enum DebugMipMapMode
-        public int _DebugIsLitShaderModeDeferred;
 
         public int _DebugFullScreenMode;
         public float _DebugTransparencyOverdrawWeight;
@@ -40,7 +39,7 @@ namespace UnityEngine.Rendering.HighDefinition
         public int _MatcapMixAlbedo;
         public float _MatcapViewScale;
         public int _DebugSingleShadowIndex;
-        public int _DebugDisplayPad0;
+        public int _DebugIsLitShaderModeDeferred;
     }
 
     /// <summary>

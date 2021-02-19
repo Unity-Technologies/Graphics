@@ -52,7 +52,6 @@ CBUFFER_START(ShaderVariablesDebugDisplay)
     int _DebugLightLayersMask;
     int _DebugShadowMapMode;
     int _DebugMipMapMode;
-    int _DebugIsLitShaderModeDeferred;
     int _DebugFullScreenMode;
     float _DebugTransparencyOverdrawWeight;
     int _DebugMipMapModeTerrainTexture;
@@ -71,7 +70,7 @@ CBUFFER_START(ShaderVariablesDebugDisplay)
     int _MatcapMixAlbedo;
     float _MatcapViewScale;
     int _DebugSingleShadowIndex;
-    int _DebugDisplayPad0;
+    int _DebugIsLitShaderModeDeferred;
 CBUFFER_END
 
 
