@@ -32,6 +32,7 @@ namespace UnityEditor.Rendering
             SerializedProperty blendModeProp = property.FindPropertyRelative("blendMode");
             SerializedProperty sizeProp = property.FindPropertyRelative("size");
             SerializedProperty aspectRatioProp = property.FindPropertyRelative("aspectRatio");
+            SerializedProperty countProp = property.FindPropertyRelative("count");
             SerializedProperty rotationProp = property.FindPropertyRelative("rotation");
             SerializedProperty speedProp = property.FindPropertyRelative("speed");
             SerializedProperty autoRotateProp = property.FindPropertyRelative("autoRotate");
@@ -91,6 +92,11 @@ namespace UnityEditor.Rendering
                     aspectRatioProp.floatValue = Mathf.Max(tmp, 1e-5f);
                 rect.y += EditorGUIUtility.singleLineHeight + EditorGUIUtility.standardVerticalSpacing;
 
+                int iTmp;
+                if ((iTmp = EditorGUI.IntField(rect, Styles.count, countProp.intValue)) != countProp.intValue)
+                    countProp.intValue = Mathf.Max(iTmp, 1);
+                rect.y += EditorGUIUtility.singleLineHeight + EditorGUIUtility.standardVerticalSpacing;
+
                 if ((tmp = EditorGUI.FloatField(rect, Styles.rotation, rotationProp.floatValue)) != rotationProp.floatValue)
                     rotationProp.floatValue = Mathf.Max(tmp, 0.0f);
                 rect.y += EditorGUIUtility.singleLineHeight + EditorGUIUtility.standardVerticalSpacing;
@@ -146,7 +152,7 @@ namespace UnityEditor.Rendering
         {
             SerializedProperty isFoldOpened = property.FindPropertyRelative("isFoldOpened");
 
-            float coef = isFoldOpened.boolValue ? 12.0f : 5.0f;
+            float coef = isFoldOpened.boolValue ? 13.0f : 5.0f;
 
             return coef * (EditorGUIUtility.singleLineHeight + EditorGUIUtility.standardVerticalSpacing);
         }
@@ -160,6 +166,7 @@ namespace UnityEditor.Rendering
             static public readonly GUIContent blendMode = new GUIContent("Blend Mode", "Blend mode used.");
             static public readonly GUIContent size = new GUIContent("Size", "Scale applied to the element.");
             static public readonly GUIContent aspectRatio = new GUIContent("Aspect Ratio", "Aspect ratio (width / height).");
+            static public readonly GUIContent count = new GUIContent("Count", "REPLACE ME.");
             static public readonly GUIContent rotation = new GUIContent("Rotation", "Local rotation of the texture.");
             static public readonly GUIContent speed = new GUIContent("Speed", "Speed of the element on the line.");
             static public readonly GUIContent autoRotate = new GUIContent("Auto Rotate", "Rotate the texture relative to the angle on the screen (the rotation will be added to the parameter 'rotation').");

@@ -41,6 +41,7 @@ namespace UnityEngine
             lensFlareTexture = null;
             size = 1.0f;
             aspectRatio = 1.0f;
+            count = 1;
             rotation = 0.0f;
             tint = new Color(1.0f, 1.0f, 1.0f, 0.5f);
             speed = 1.0f;
@@ -67,6 +68,11 @@ namespace UnityEngine
         /// </summary>
         [Min(0.0f)]
         public float size;
+        /// <summary>
+        /// Element can be repeated 'count' times
+        /// </summary>
+        [Min(1)]
+        public int count;
         /// <summary>
         /// Aspect ratio (height / width)
         /// </summary>

@@ -2222,17 +2222,17 @@ namespace UnityEngine.Rendering.HighDefinition
                 float totalLengthNeg = 0.0f;
                 foreach (SRPLensFlareDataElement element in data.elements)
                 {
-                    if (element == null || element.lensFlareTexture == null || element.position < 0.0f)
+                    if (element == null || element.lensFlareTexture == null || element.position < 0.0f || element.count <= 0)
                         continue;
 
-                    totalLengthPos += element.position;
+                    totalLengthPos += element.count * element.position;
                 }
                 foreach (SRPLensFlareDataElement element in data.elements)
                 {
-                    if (element == null || element.lensFlareTexture == null || element.position > 0.0f)
+                    if (element == null || element.lensFlareTexture == null || element.position > 0.0f || element.count <= 0)
                         continue;
 
-                    totalLengthNeg += Mathf.Abs(element.position);
+                    totalLengthNeg += element.count * Mathf.Abs(element.position);
                 }
 
                 Vector4 modulationByColor = Vector4.one;
@@ -2359,92 +2359,96 @@ namespace UnityEngine.Rendering.HighDefinition
                 {
                     if (element == null ||
                         element.lensFlareTexture == null ||
-                        element.localIntensity <= 0.0f)
+                        element.localIntensity <= 0.0f ||
+                        element.count <= 0)
                         continue;
 
-                    float curLengthNeg = 0.0f;
-                    if (element.position > 0.0f)
-                        curLengthPos += element.position;
-                    else if (element.position < 0.0f)
+                    for (int elemIdx = 1; elemIdx <= element.count; ++elemIdx)
                     {
-                        for (int i = data.elements.Length - 1; i >= 0; i--)
+                        float curLengthNeg = 0.0f;
+                        if (element.position > 0.0f)
+                            curLengthPos += element.position;
+                        else if (element.position < 0.0f)
                         {
-                            if (data.elements[i].position < 0.0f)
+                            for (int i = data.elements.Length - 1; i >= 0; i--)
                             {
-                                curLengthNeg += Mathf.Abs(element.position);
-                                if (data.elements[i] == element)
+                                if (data.elements[i].position < 0.0f)
                                 {
-                                    break;
+                                    curLengthNeg += (float)elemIdx * Mathf.Abs(element.position);
+                                    if (data.elements[i] == element)
+                                    {
+                                        break;
+                                    }
                                 }
                             }
                         }
+
+                        float timePosPos = totalLengthPos > 0.0f ? curLengthPos / totalLengthPos : 0.0f;
+                        float timePosNeg = totalLengthNeg > 0.0f ? curLengthNeg / totalLengthNeg : 0.0f;
+
+                        float curvePos = 0.0f;
+                        float curveScale = 1.0f;
+                        float coefForGradient;
+                        if (element.position >= 0.0f)
+                        {
+                            curvePos = data.positionCurve.length >= 1 ? data.positionCurve.Evaluate(timePosPos) : 1.0f;
+                            curveScale = data.scaleCurve.length >= 1 ? data.scaleCurve.Evaluate(timePosPos) : 1.0f;
+                            coefForGradient = totalLengthPos > 0.0f ? 0.5f + 0.5f * curLengthPos / totalLengthPos : 0.5f;
+                        }
+                        else
+                        {
+                            curvePos = data.positionCurve.length >= 1 ? data.positionCurve.Evaluate(-timePosNeg) : 1.0f;
+                            curveScale = data.scaleCurve.length >= 1 ? data.scaleCurve.Evaluate(-timePosNeg) : 1.0f;
+                            coefForGradient = totalLengthNeg > 0.0f ? (0.5f - 0.5f * timePosNeg) : 0.5f;
+                        }
+
+                        Vector4 gradientModulation = data.colorGradient.Evaluate(coefForGradient);
+
+                        Texture texture = element.lensFlareTexture;
+                        float position = 2.0f * Mathf.Abs(element.position) * curvePos;
+                        Vector2 size = new Vector2(element.size * curveScale * element.aspectRatio, element.size * curveScale);
+                        float rotation = element.rotation;
+                        Vector4 tint = Vector4.Scale(element.tint, gradientModulation);
+
+                        float currentIntensity = comp.intensity * element.localIntensity * data.globalIntensity * radialsScaleRadius * distanceAttenuation;
+
+                        if (currentIntensity <= 0.0f)
+                            continue;
+
+                        if (element.modulateByLightColor)
+                            tint = currentIntensity * Vector4.Scale(tint, modulationByColor);
+                        else
+                            tint = currentIntensity * tint;
+
+                        if (comp.attenuationByLightShape)
+                            tint.Scale(modulationAttenuation);
+
+                        SRPLensFlareBlendMode blendMode = element.blendMode;
+                        bool autoRotate = element.autoRotate;
+
+                        Material usedMaterial = null;
+                        if (blendMode == SRPLensFlareBlendMode.Lerp)
+                            usedMaterial = parameters.lensFlareLerp;
+                        else if (blendMode == SRPLensFlareBlendMode.Additive)
+                            usedMaterial = parameters.lensFlareAdditive;
+                        else
+                            usedMaterial = parameters.lensFlarePremultiply;
+
+                        cmd.SetGlobalTexture(HDShaderIDs._FlareTex, element.lensFlareTexture);
+                        cmd.SetGlobalColor(HDShaderIDs._FlareColor, tint);
+
+                        rotation += 180.0f;
+                        if (!autoRotate)
+                            rotation = Mathf.Abs(rotation) < 1e-4f ? -360.0f : -rotation;
+
+                        rotation *= Mathf.Deg2Rad;
+
+                        Vector4 dataSrc = new Vector4(position, rotation, size.x, size.y);
+                        cmd.SetGlobalVector(HDShaderIDs._FlareData0, dataSrc);
+                        Vector4 flareData2 = new Vector4(comp.sampleCount, element.speed, comp.allowOffScreen ? 1.0f : -1.0f, 0.0f);
+                        cmd.SetGlobalVector(HDShaderIDs._FlareData2, flareData2);
+                        cmd.DrawProcedural(Matrix4x4.identity, usedMaterial, 0, MeshTopology.Quads, 6, 1, null);
                     }
-
-                    float timePosPos = totalLengthPos > 0.0f ? curLengthPos / totalLengthPos : 0.0f;
-                    float timePosNeg = totalLengthNeg > 0.0f ? curLengthNeg / totalLengthNeg : 0.0f;
-
-                    float curvePos = 0.0f;
-                    float curveScale = 1.0f;
-                    float coefForGradient;
-                    if (element.position >= 0.0f)
-                    {
-                        curvePos = data.positionCurve.length >= 1 ? data.positionCurve.Evaluate(timePosPos) : 1.0f;
-                        curveScale = data.scaleCurve.length >= 1 ? data.scaleCurve.Evaluate(timePosPos) : 1.0f;
-                        coefForGradient = totalLengthPos > 0.0f ? 0.5f + 0.5f * curLengthPos / totalLengthPos : 0.5f;
-                    }
-                    else
-                    {
-                        curvePos = data.positionCurve.length >= 1 ? data.positionCurve.Evaluate(-timePosNeg) : 1.0f;
-                        curveScale = data.scaleCurve.length >= 1 ? data.scaleCurve.Evaluate(-timePosNeg) : 1.0f;
-                        coefForGradient = totalLengthNeg > 0.0f ? (0.5f - 0.5f * timePosNeg) : 0.5f;
-                    }
-
-                    Vector4 gradientModulation = data.colorGradient.Evaluate(coefForGradient);
-
-                    Texture texture = element.lensFlareTexture;
-                    float position = 2.0f * Mathf.Abs(element.position) * curvePos;
-                    Vector2 size = new Vector2(element.size * curveScale * element.aspectRatio, element.size * curveScale);
-                    float rotation = element.rotation;
-                    Vector4 tint = Vector4.Scale(element.tint, gradientModulation);
-
-                    float currentIntensity = comp.intensity * element.localIntensity * data.globalIntensity * radialsScaleRadius * distanceAttenuation;
-
-                    if (currentIntensity <= 0.0f)
-                        continue;
-
-                    if (element.modulateByLightColor)
-                        tint = currentIntensity * Vector4.Scale(tint, modulationByColor);
-                    else
-                        tint = currentIntensity * tint;
-
-                    if (comp.attenuationByLightShape)
-                        tint.Scale(modulationAttenuation);
-
-                    SRPLensFlareBlendMode blendMode = element.blendMode;
-                    bool autoRotate = element.autoRotate;
-
-                    Material usedMaterial = null;
-                    if (blendMode == SRPLensFlareBlendMode.Lerp)
-                        usedMaterial = parameters.lensFlareLerp;
-                    else if (blendMode == SRPLensFlareBlendMode.Additive)
-                        usedMaterial = parameters.lensFlareAdditive;
-                    else
-                        usedMaterial = parameters.lensFlarePremultiply;
-
-                    cmd.SetGlobalTexture(HDShaderIDs._FlareTex, element.lensFlareTexture);
-                    cmd.SetGlobalColor(HDShaderIDs._FlareColor, tint);
-
-                    rotation += 180.0f;
-                    if (!autoRotate)
-                        rotation = Mathf.Abs(rotation) < 1e-4f ? -360.0f : -rotation;
-
-                    rotation *= Mathf.Deg2Rad;
-
-                    Vector4 dataSrc = new Vector4(position, rotation, size.x, size.y);
-                    cmd.SetGlobalVector(HDShaderIDs._FlareData0, dataSrc);
-                    Vector4 flareData2 = new Vector4(comp.sampleCount, element.speed, comp.allowOffScreen ? 1.0f : -1.0f, 0.0f);
-                    cmd.SetGlobalVector(HDShaderIDs._FlareData2, flareData2);
-                    cmd.DrawProcedural(Matrix4x4.identity, usedMaterial, 0, MeshTopology.Quads, 6, 1, null);
                 }
             }
         }
