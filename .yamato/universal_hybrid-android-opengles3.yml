@@ -7,8 +7,8 @@
 
 ---
 
-Universal_Hybrid_Android_OpenGLES3_Standalone_mono_Linear_2020.2:
-    name: Universal_Hybrid on Android_OpenGLES3_Standalone_mono_Linear on version 2020.2
+Universal_Hybrid_Android_OpenGLES3_Standalone_DOTS_mono_Linear_2020.2:
+    name: Universal_Hybrid on Android_OpenGLES3_Standalone_DOTS_mono_Linear on version 2020.2
     agent:
         type: Unity::mobile::android
         image: mobile/android-execution-r19:stable
@@ -29,17 +29,16 @@ Universal_Hybrid_Android_OpenGLES3_Standalone_mono_Linear_2020.2:
               echo %GIT_REVISIONDATE%
               del revdate.tmp
               utr --architecture=ARM64 --artifacts_path=TestProjects/UniversalHybridTest/test-results --compilation-errors-as-warnings --platform=Android --player-load-path=players --suite=playmode --timeout=1200 --zero-tests-are-ok=1
-      -  start %ANDROID_SDK_ROOT%\platform-tools\adb.exe kill-server
     artifacts:
         logs:
             paths:
               -  "**/test-results/**"
               -  "TestProjects/UniversalHybridTest/Logs/*.log"
     dependencies:
-      -  path: .yamato/universal_hybrid-android-opengles3.yml#Build_Universal_Hybrid_Android_OpenGLES3_Standalone_mono_Linear_2020.2
+      -  path: .yamato/universal_hybrid-android-opengles3.yml#Build_Universal_Hybrid_Android_OpenGLES3_Standalone_DOTS_mono_Linear_2020.2
          rerun: on-new-revision
-Build_Universal_Hybrid_Android_OpenGLES3_Standalone_mono_Linear_2020.2:
-    name: Build Universal_Hybrid on Android_OpenGLES3_mono_Linear_Standalone_build_Player on version 2020.2
+Build_Universal_Hybrid_Android_OpenGLES3_Standalone_DOTS_mono_Linear_2020.2:
+    name: Build Universal_Hybrid on Android_OpenGLES3_mono_Linear_Standalone_DOTS_build_Player on version 2020.2
     agent:
         type: Unity::VM
         image: mobile/android-execution-r19:stable
@@ -59,7 +58,7 @@ Build_Universal_Hybrid_Android_OpenGLES3_Standalone_mono_Linear_2020.2:
               set /p GIT_REVISIONDATE=<revdate.tmp
               echo %GIT_REVISIONDATE%
               del revdate.tmp
-              utr ---extra-editor-arg="-executemethod" --extra-editor-arg="SetupProject.ApplySettings" --extra-editor-arg="gles3" --extra-editor-arg="Linear" --architecture=ARM64 --artifacts_path=TestProjects/UniversalHybridTest/test-results --build-only --compilation-errors-as-warnings --editor-location=./WindowsEditor --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-playergraphicsapi=OpenGLES3" --platform=Android --player-save-path=players --scripting-backend=Mono2x --suite=playmode --testfilter=%TEST_FILTER% --testproject=./TestProjects/UniversalHybridTest --timeout=2700
+              utr ---extra-editor-arg="-executemethod" --extra-editor-arg="SetupProject.ApplySettings" --extra-editor-arg="gles3" --extra-editor-arg="Linear" --architecture=ARM64 --artifacts_path=TestProjects/UniversalHybridTest/test-results --build-only --compilation-errors-as-warnings --editor-location=./WindowsEditor --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-playergraphicsapi=OpenGLES3" --extra-editor-arg="-playmodePlayerBuilder" --extra-editor-arg="BuildConfiguration" ---extra-editor-arg="-executemethod" --extra-editor-arg="SetupProject.ApplySettings" --extra-editor-arg="gles3" --extra-editor-arg="Linear" --platform=Android --player-save-path=players --scripting-backend=Mono2x --suite=playmode --testfilter=%TEST_FILTER% --testproject=./TestProjects/UniversalHybridTest --timeout=2700
     artifacts:
         logs:
             paths:
@@ -68,8 +67,8 @@ Build_Universal_Hybrid_Android_OpenGLES3_Standalone_mono_Linear_2020.2:
         players:
             paths:
               -  "players*/**"
-Universal_Hybrid_Android_OpenGLES3_Standalone_cache_mono_Linear_2020.2:
-    name: Universal_Hybrid on Android_OpenGLES3_Standalone_cache_mono_Linear on version 2020.2
+Universal_Hybrid_Android_OpenGLES3_Standalone_DOTS_cache_mono_Linear_2020.2:
+    name: Universal_Hybrid on Android_OpenGLES3_Standalone_DOTS_cache_mono_Linear on version 2020.2
     agent:
         type: Unity::mobile::android
         image: mobile/android-execution-r19:stable
@@ -89,18 +88,17 @@ Universal_Hybrid_Android_OpenGLES3_Standalone_cache_mono_Linear_2020.2:
               set /p GIT_REVISIONDATE=<revdate.tmp
               echo %GIT_REVISIONDATE%
               del revdate.tmp
-              utr --architecture=ARM64 --artifacts_path=TestProjects/UniversalHybridTest/test-results --extra-editor-arg="-adb2" --extra-editor-arg="-cacheServerEnableDownload" --extra-editor-arg="true" --extra-editor-arg="-cacheServerEnableUpload" --extra-editor-arg="true" --extra-editor-arg="-cacheServerEndpoint" --extra-editor-arg="cacheserver-slo.hq.unity3d.com" --extra-editor-arg="-cacheServerNamespacePrefix" --extra-editor-arg="SRP" --extra-editor-arg="-enableCacheServer" --platform=Android --player-load-path=players --suite=playmode --timeout=1200 --zero-tests-are-ok=1
-      -  start %ANDROID_SDK_ROOT%\platform-tools\adb.exe kill-server
+              utr --architecture=ARM64 --artifacts_path=TestProjects/UniversalHybridTest/test-results --compilation-errors-as-warnings --platform=Android --player-load-path=players --suite=playmode --timeout=1200 --zero-tests-are-ok=1
     artifacts:
         logs:
             paths:
               -  "**/test-results/**"
               -  "TestProjects/UniversalHybridTest/Logs/*.log"
     dependencies:
-      -  path: .yamato/universal_hybrid-android-opengles3.yml#Build_Universal_Hybrid_Android_OpenGLES3_Standalone_cache_mono_Linear_2020.2
+      -  path: .yamato/universal_hybrid-android-opengles3.yml#Build_Universal_Hybrid_Android_OpenGLES3_Standalone_DOTS_cache_mono_Linear_2020.2
          rerun: on-new-revision
-Build_Universal_Hybrid_Android_OpenGLES3_Standalone_cache_mono_Linear_2020.2:
-    name: Build Universal_Hybrid on Android_OpenGLES3_mono_Linear_Standalone_cache_build_Player on version 2020.2
+Build_Universal_Hybrid_Android_OpenGLES3_Standalone_DOTS_cache_mono_Linear_2020.2:
+    name: Build Universal_Hybrid on Android_OpenGLES3_mono_Linear_Standalone_DOTS_cache_build_Player on version 2020.2
     agent:
         type: Unity::VM
         image: mobile/android-execution-r19:stable
@@ -120,7 +118,7 @@ Build_Universal_Hybrid_Android_OpenGLES3_Standalone_cache_mono_Linear_2020.2:
               set /p GIT_REVISIONDATE=<revdate.tmp
               echo %GIT_REVISIONDATE%
               del revdate.tmp
-              utr ---extra-editor-arg="-executemethod" --extra-editor-arg="SetupProject.ApplySettings" --extra-editor-arg="gles3" --extra-editor-arg="Linear" --architecture=ARM64 --artifacts_path=TestProjects/UniversalHybridTest/test-results --build-only --editor-location=./WindowsEditor --extra-editor-arg="-adb2" --extra-editor-arg="-cacheServerEnableDownload" --extra-editor-arg="true" --extra-editor-arg="-cacheServerEnableUpload" --extra-editor-arg="true" --extra-editor-arg="-cacheServerEndpoint" --extra-editor-arg="cacheserver-slo.hq.unity3d.com" --extra-editor-arg="-cacheServerNamespacePrefix" --extra-editor-arg="SRP" --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-enableCacheServer" --extra-editor-arg="-playergraphicsapi=OpenGLES3" --platform=Android --player-save-path=players --scripting-backend=Mono2x --suite=playmode --testfilter=%TEST_FILTER% --testproject=./TestProjects/UniversalHybridTest --timeout=3000
+              utr ---extra-editor-arg="-executemethod" --extra-editor-arg="SetupProject.ApplySettings" --extra-editor-arg="gles3" --extra-editor-arg="Linear" --architecture=ARM64 --artifacts_path=TestProjects/UniversalHybridTest/test-results --build-only --compilation-errors-as-warnings --editor-location=./WindowsEditor --extra-editor-arg="-adb2" --extra-editor-arg="-cacheServerEnableDownload" --extra-editor-arg="true" --extra-editor-arg="-cacheServerEnableUpload" --extra-editor-arg="true" --extra-editor-arg="-cacheServerEndpoint" --extra-editor-arg="cacheserver-slo.hq.unity3d.com" --extra-editor-arg="-cacheServerNamespacePrefix" --extra-editor-arg="SRP" --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-enableCacheServer" --extra-editor-arg="-playergraphicsapi=OpenGLES3" --extra-editor-arg="-playmodePlayerBuilder" --extra-editor-arg="BuildConfiguration" ---extra-editor-arg="-executemethod" --extra-editor-arg="SetupProject.ApplySettings" --extra-editor-arg="gles3" --extra-editor-arg="Linear" --platform=Android --player-save-path=players --scripting-backend=Mono2x --suite=playmode --testfilter=%TEST_FILTER% --testproject=./TestProjects/UniversalHybridTest --timeout=3000
     artifacts:
         logs:
             paths:
@@ -129,8 +127,8 @@ Build_Universal_Hybrid_Android_OpenGLES3_Standalone_cache_mono_Linear_2020.2:
         players:
             paths:
               -  "players*/**"
-Universal_Hybrid_Android_OpenGLES3_Standalone_mono_Linear_CUSTOM-REVISION:
-    name: Universal_Hybrid on Android_OpenGLES3_Standalone_mono_Linear on version CUSTOM-REVISION
+Universal_Hybrid_Android_OpenGLES3_Standalone_DOTS_mono_Linear_CUSTOM-REVISION:
+    name: Universal_Hybrid on Android_OpenGLES3_Standalone_DOTS_mono_Linear on version CUSTOM-REVISION
     agent:
         type: Unity::mobile::android
         image: mobile/android-execution-r19:stable
@@ -152,7 +150,6 @@ Universal_Hybrid_Android_OpenGLES3_Standalone_mono_Linear_CUSTOM-REVISION:
               echo %GIT_REVISIONDATE%
               del revdate.tmp
               utr --architecture=ARM64 --artifacts_path=TestProjects/UniversalHybridTest/test-results --compilation-errors-as-warnings --platform=Android --player-load-path=players --suite=playmode --timeout=1200 --zero-tests-are-ok=1
-      -  start %ANDROID_SDK_ROOT%\platform-tools\adb.exe kill-server
     artifacts:
         logs:
             paths:
@@ -161,10 +158,10 @@ Universal_Hybrid_Android_OpenGLES3_Standalone_mono_Linear_CUSTOM-REVISION:
     dependencies:
       -  path: .yamato/_editor_priming.yml#editor:priming:CUSTOM-REVISION:Android
          rerun: always
-      -  path: .yamato/universal_hybrid-android-opengles3.yml#Build_Universal_Hybrid_Android_OpenGLES3_Standalone_mono_Linear_CUSTOM-REVISION
+      -  path: .yamato/universal_hybrid-android-opengles3.yml#Build_Universal_Hybrid_Android_OpenGLES3_Standalone_DOTS_mono_Linear_CUSTOM-REVISION
          rerun: always
-Build_Universal_Hybrid_Android_OpenGLES3_Standalone_mono_Linear_CUSTOM-REVISION:
-    name: Build Universal_Hybrid on Android_OpenGLES3_mono_Linear_Standalone_build_Player on version CUSTOM-REVISION
+Build_Universal_Hybrid_Android_OpenGLES3_Standalone_DOTS_mono_Linear_CUSTOM-REVISION:
+    name: Build Universal_Hybrid on Android_OpenGLES3_mono_Linear_Standalone_DOTS_build_Player on version CUSTOM-REVISION
     agent:
         type: Unity::VM
         image: mobile/android-execution-r19:stable
@@ -185,7 +182,7 @@ Build_Universal_Hybrid_Android_OpenGLES3_Standalone_mono_Linear_CUSTOM-REVISION:
               set /p GIT_REVISIONDATE=<revdate.tmp
               echo %GIT_REVISIONDATE%
               del revdate.tmp
-              utr ---extra-editor-arg="-executemethod" --extra-editor-arg="SetupProject.ApplySettings" --extra-editor-arg="gles3" --extra-editor-arg="Linear" --architecture=ARM64 --artifacts_path=TestProjects/UniversalHybridTest/test-results --build-only --compilation-errors-as-warnings --editor-location=./WindowsEditor --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-playergraphicsapi=OpenGLES3" --platform=Android --player-save-path=players --scripting-backend=Mono2x --suite=playmode --testfilter=%TEST_FILTER% --testproject=./TestProjects/UniversalHybridTest --timeout=2700
+              utr ---extra-editor-arg="-executemethod" --extra-editor-arg="SetupProject.ApplySettings" --extra-editor-arg="gles3" --extra-editor-arg="Linear" --architecture=ARM64 --artifacts_path=TestProjects/UniversalHybridTest/test-results --build-only --compilation-errors-as-warnings --editor-location=./WindowsEditor --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-playergraphicsapi=OpenGLES3" --extra-editor-arg="-playmodePlayerBuilder" --extra-editor-arg="BuildConfiguration" ---extra-editor-arg="-executemethod" --extra-editor-arg="SetupProject.ApplySettings" --extra-editor-arg="gles3" --extra-editor-arg="Linear" --platform=Android --player-save-path=players --scripting-backend=Mono2x --suite=playmode --testfilter=%TEST_FILTER% --testproject=./TestProjects/UniversalHybridTest --timeout=2700
     artifacts:
         logs:
             paths:
@@ -197,8 +194,8 @@ Build_Universal_Hybrid_Android_OpenGLES3_Standalone_mono_Linear_CUSTOM-REVISION:
     dependencies:
       -  path: .yamato/_editor_priming.yml#editor:priming:CUSTOM-REVISION:Android
          rerun: always
-Universal_Hybrid_Android_OpenGLES3_Standalone_cache_mono_Linear_CUSTOM-REVISION:
-    name: Universal_Hybrid on Android_OpenGLES3_Standalone_cache_mono_Linear on version CUSTOM-REVISION
+Universal_Hybrid_Android_OpenGLES3_Standalone_DOTS_cache_mono_Linear_CUSTOM-REVISION:
+    name: Universal_Hybrid on Android_OpenGLES3_Standalone_DOTS_cache_mono_Linear on version CUSTOM-REVISION
     agent:
         type: Unity::mobile::android
         image: mobile/android-execution-r19:stable
@@ -219,8 +216,7 @@ Universal_Hybrid_Android_OpenGLES3_Standalone_cache_mono_Linear_CUSTOM-REVISION:
               set /p GIT_REVISIONDATE=<revdate.tmp
               echo %GIT_REVISIONDATE%
               del revdate.tmp
-              utr --architecture=ARM64 --artifacts_path=TestProjects/UniversalHybridTest/test-results --extra-editor-arg="-adb2" --extra-editor-arg="-cacheServerEnableDownload" --extra-editor-arg="true" --extra-editor-arg="-cacheServerEnableUpload" --extra-editor-arg="true" --extra-editor-arg="-cacheServerEndpoint" --extra-editor-arg="cacheserver-slo.hq.unity3d.com" --extra-editor-arg="-cacheServerNamespacePrefix" --extra-editor-arg="SRP" --extra-editor-arg="-enableCacheServer" --platform=Android --player-load-path=players --suite=playmode --timeout=1200 --zero-tests-are-ok=1
-      -  start %ANDROID_SDK_ROOT%\platform-tools\adb.exe kill-server
+              utr --architecture=ARM64 --artifacts_path=TestProjects/UniversalHybridTest/test-results --compilation-errors-as-warnings --platform=Android --player-load-path=players --suite=playmode --timeout=1200 --zero-tests-are-ok=1
     artifacts:
         logs:
             paths:
@@ -229,10 +225,10 @@ Universal_Hybrid_Android_OpenGLES3_Standalone_cache_mono_Linear_CUSTOM-REVISION:
     dependencies:
       -  path: .yamato/_editor_priming.yml#editor:priming:CUSTOM-REVISION:Android
          rerun: always
-      -  path: .yamato/universal_hybrid-android-opengles3.yml#Build_Universal_Hybrid_Android_OpenGLES3_Standalone_cache_mono_Linear_CUSTOM-REVISION
+      -  path: .yamato/universal_hybrid-android-opengles3.yml#Build_Universal_Hybrid_Android_OpenGLES3_Standalone_DOTS_cache_mono_Linear_CUSTOM-REVISION
          rerun: always
-Build_Universal_Hybrid_Android_OpenGLES3_Standalone_cache_mono_Linear_CUSTOM-REVISION:
-    name: Build Universal_Hybrid on Android_OpenGLES3_mono_Linear_Standalone_cache_build_Player on version CUSTOM-REVISION
+Build_Universal_Hybrid_Android_OpenGLES3_Standalone_DOTS_cache_mono_Linear_CUSTOM-REVISION:
+    name: Build Universal_Hybrid on Android_OpenGLES3_mono_Linear_Standalone_DOTS_cache_build_Player on version CUSTOM-REVISION
     agent:
         type: Unity::VM
         image: mobile/android-execution-r19:stable
@@ -253,7 +249,7 @@ Build_Universal_Hybrid_Android_OpenGLES3_Standalone_cache_mono_Linear_CUSTOM-REV
               set /p GIT_REVISIONDATE=<revdate.tmp
               echo %GIT_REVISIONDATE%
               del revdate.tmp
-              utr ---extra-editor-arg="-executemethod" --extra-editor-arg="SetupProject.ApplySettings" --extra-editor-arg="gles3" --extra-editor-arg="Linear" --architecture=ARM64 --artifacts_path=TestProjects/UniversalHybridTest/test-results --build-only --editor-location=./WindowsEditor --extra-editor-arg="-adb2" --extra-editor-arg="-cacheServerEnableDownload" --extra-editor-arg="true" --extra-editor-arg="-cacheServerEnableUpload" --extra-editor-arg="true" --extra-editor-arg="-cacheServerEndpoint" --extra-editor-arg="cacheserver-slo.hq.unity3d.com" --extra-editor-arg="-cacheServerNamespacePrefix" --extra-editor-arg="SRP" --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-enableCacheServer" --extra-editor-arg="-playergraphicsapi=OpenGLES3" --platform=Android --player-save-path=players --scripting-backend=Mono2x --suite=playmode --testfilter=%TEST_FILTER% --testproject=./TestProjects/UniversalHybridTest --timeout=3000
+              utr ---extra-editor-arg="-executemethod" --extra-editor-arg="SetupProject.ApplySettings" --extra-editor-arg="gles3" --extra-editor-arg="Linear" --architecture=ARM64 --artifacts_path=TestProjects/UniversalHybridTest/test-results --build-only --compilation-errors-as-warnings --editor-location=./WindowsEditor --extra-editor-arg="-adb2" --extra-editor-arg="-cacheServerEnableDownload" --extra-editor-arg="true" --extra-editor-arg="-cacheServerEnableUpload" --extra-editor-arg="true" --extra-editor-arg="-cacheServerEndpoint" --extra-editor-arg="cacheserver-slo.hq.unity3d.com" --extra-editor-arg="-cacheServerNamespacePrefix" --extra-editor-arg="SRP" --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-enableCacheServer" --extra-editor-arg="-playergraphicsapi=OpenGLES3" --extra-editor-arg="-playmodePlayerBuilder" --extra-editor-arg="BuildConfiguration" ---extra-editor-arg="-executemethod" --extra-editor-arg="SetupProject.ApplySettings" --extra-editor-arg="gles3" --extra-editor-arg="Linear" --platform=Android --player-save-path=players --scripting-backend=Mono2x --suite=playmode --testfilter=%TEST_FILTER% --testproject=./TestProjects/UniversalHybridTest --timeout=3000
     artifacts:
         logs:
             paths:
