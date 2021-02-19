@@ -17,6 +17,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Added an option to have double sided GI be controlled separately from material double-sided option.
 - Added new AOV APIs for overriding the internal rendering format, and for outputing the world space position.
 - Added a complete solution for volumetric clouds for HDRP including a cloud map generation tool.
+- Added a Force Forward Emissive option for Lit Material that forces the Emissive contribution to render in a separate forward pass when the Lit Material is in Deferred Lit shader Mode.
 
 ### Fixed
 - Fixed an exception when opening the color picker in the material UI (case 1307143).
@@ -30,6 +31,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed skybox for ortho cameras.
 - Fixed model import by adding additional data if needed.
 - Fix screen being over-exposed when changing very different skies.
+- Fixed pixelated appearance of Contrast Adaptive Sharpen upscaler and several other issues when Hardware DRS is on
 - VFX: Debug material view were rendering pink for albedo. (case 1290752)
 - VFX: Debug material view incorrect depth test. (case 1293291)
 - VFX: Fixed LPPV with lit particles in deferred (case 1293608)
@@ -39,6 +41,9 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed an issue where first frame of SSAO could exhibit ghosting artefacts.
 - Fixed an issue with the mipmap generation internal format after rendering format change.
 - Fixed multiple any hit occuring on transparent objects (case 1294927).
+
+- Fixed sub-shadow rendering for cached shadow maps.
+- Fixed PCSS filtering issues with cached shadow maps.
 
 ### Changed
 - Changed Window/Render Pipeline/HD Render Pipeline Wizard to Window/Rendering/HDRP Wizard
