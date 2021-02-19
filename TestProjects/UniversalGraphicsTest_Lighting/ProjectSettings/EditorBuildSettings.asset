@@ -46,7 +46,7 @@ EditorBuildSettings:
     guid: a27d5eebd041b42dab7ad89ce8249e81
   - enabled: 1
     path: Assets/Scenes/043_Lighting_Mixed_ShadowMask_deferred.unity
-    guid: 3f83db3b61934d541bfec0a548930011
+    guid: 149f6ec36de310842bf26e54caf9240b
   - enabled: 1
     path: Assets/Scenes/049_Lighting_Mixed_Subtractive.unity
     guid: ffaad23a2c7fc41b48e4e7ab7e9273e4
