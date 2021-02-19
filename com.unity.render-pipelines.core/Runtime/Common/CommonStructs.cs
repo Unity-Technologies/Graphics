@@ -4,18 +4,19 @@ namespace UnityEngine.Rendering
 {
     /// <summary>
     /// Render Textures clear flag.
+    /// This is an legacy alias for RTClearFlags.
     /// </summary>
     [Flags]
     public enum ClearFlag
     {
         /// <summary>Don't clear.</summary>
-        None  = 0,
+        None  = RTClearFlags.None,
         /// <summary>Clear the color buffer.</summary>
-        Color = 1,
+        Color = RTClearFlags.Color,
         /// <summary>Clear the depth buffer.</summary>
-        Depth = 2,
+        Depth = RTClearFlags.Depth,
         /// <summary>Clear the stencil buffer.</summary>
-        Stencil = 4,
+        Stencil = RTClearFlags.Stencil,
         /// <summary>Clear the depth and stencil buffers.</summary>
         DepthStencil = Depth | Stencil,
         /// <summary>Clear the color and stencil buffers.</summary>
