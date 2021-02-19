@@ -1,0 +1,47 @@
+{
+    "folders" :
+    [
+        {
+            "name": "CoreRP",
+            "path": "./com.unity.render-pipelines.core",
+            "file_exclude_patterns": ["*.meta"]
+        },
+        {
+            "name": "HDRP",
+            "path": "./com.unity.render-pipelines.high-definition",
+            "folder_exclude_patterns":
+            [
+                "Documentation~/Images"
+            ],
+            "file_exclude_patterns": ["*.meta"]
+        },
+        {
+            "name": "HDRPConfig",
+            "path": "./com.unity.render-pipelines.high-definition-config",
+            "folder_exclude_patterns":
+            [
+                "Documentation~/Images"
+            ],
+            "file_exclude_patterns": ["*.meta"]
+        },
+        {
+            "name": "URP",
+            "path": "./com.unity.render-pipelines.universal",
+            "folder_exclude_patterns":
+            [
+                "Documentation~/Images"
+            ],
+            "file_exclude_patterns": ["*.meta"]
+        },
+        {
+            "name": "ShaderGraph",
+            "path": "./com.unity.shadergraph",
+            "file_exclude_patterns": ["*.meta"]
+        },
+        {
+            "name": "VFXGraph",
+            "path": "./com.unity.visualeffectgraph",
+            "file_exclude_patterns": ["*.meta"]
+        }
+    ]
+}
