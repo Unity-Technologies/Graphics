@@ -119,9 +119,9 @@ PackedVaryingsType MotionVectorVS(inout VaryingsType varyingsType, AttributesMes
     
         previousMesh = ApplyMeshModification(previousMesh, _LastTimeParameters.xyz
     #if defined(USE_CUSTOMINTERP_APPLYMESHMOD)
-        , varyingsType.vmesh
+            , varyingsType.vmesh
     #endif
-        );
+            );
 
         float3 previousPositionRWS = TransformPreviousObjectToWorld(previousMesh.positionOS);
 #else
