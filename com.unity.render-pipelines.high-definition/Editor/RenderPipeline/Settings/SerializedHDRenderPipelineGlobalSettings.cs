@@ -171,8 +171,6 @@ namespace UnityEditor.Rendering.HighDefinition
                             menu.AddItem(new GUIContent(kp.Key.ToString()), false, () =>
                             {
                                 Undo.RegisterCompleteObjectUndo(serializedObject.targetObject, $"Added {kp.Key.ToString()} Custom Post Process");
-
-                                Debug.Log("Added {kp.Key.ToString()} Custom Post Process");
                                 customPostProcessTypes.Add(kp.Key.AssemblyQualifiedName);
                             });
                     }
@@ -186,7 +184,6 @@ namespace UnityEditor.Rendering.HighDefinition
                 reorderableList.onRemoveCallback = (list) =>
                 {
                     Undo.RegisterCompleteObjectUndo(serializedObject.targetObject, $"Removed {list.list[list.index].ToString()} Custom Post Process");
-                    Debug.Log("Removed {list.list[list.index].ToString()} Custom Post Process");
                     customPostProcessTypes.RemoveAt(list.index);
                     EditorUtility.SetDirty(serializedObject.targetObject);
                 };
