@@ -305,7 +305,6 @@ namespace UnityEngine.Rendering.HighDefinition
 
         Material                    m_ClearShadowMaterial;
         Material                    m_BlitShadowMaterial;
-        MaterialPropertyBlock       m_BlitShadowPropertyBlock = new MaterialPropertyBlock();
 
         public static HDCachedShadowManager cachedShadowManager {  get { return HDCachedShadowManager.instance; } }
 
@@ -915,48 +914,13 @@ namespace UnityEngine.Rendering.HighDefinition
             }
         }
 
-        class BlitCachedShadowPassData
+        void BlitCachedShadows(RenderGraph renderGraph)
         {
-            public TextureHandle sourceCachedAtlas;
-            public TextureHandle atlasTexture;
+            m_Atlas.BlitCachedIntoAtlas(renderGraph, cachedShadowManager.punctualShadowAtlas, m_BlitShadowMaterial, "Blit Punctual Mixed Cached Shadows", HDProfileId.BlitPunctualMixedCachedShadowMaps);
 
-            public HDDynamicShadowAtlas.ShadowBlitParameters shadowBlitParameters;
-        }
-
-        internal void BlitCachedShadows(RenderGraph renderGraph)
-        {
-            if (m_Atlas.HasPendingBlitsRequests())
+            if (ShaderConfig.s_AreaLights == 1)
             {
-                using (var builder = renderGraph.AddRenderPass<BlitCachedShadowPassData>("Blit Punctual Mixed Cached Shadows", out var passData, ProfilingSampler.Get(HDProfileId.BlitPunctualMixedCachedShadowMaps)))
-                {
-                    passData.shadowBlitParameters = m_Atlas.PrepareShadowBlitParameters(cachedShadowManager.punctualShadowAtlas, m_BlitShadowMaterial, m_BlitShadowPropertyBlock);
-
-                    passData.sourceCachedAtlas = builder.ReadTexture(cachedShadowManager.punctualShadowAtlas.GetOutputTexture(renderGraph));
-                    passData.atlasTexture = builder.WriteTexture(m_Atlas.GetOutputTexture(renderGraph));
-
-                    builder.SetRenderFunc(
-                        (BlitCachedShadowPassData data, RenderGraphContext ctx) =>
-                        {
-                            HDDynamicShadowAtlas.BlitCachedIntoAtlas(data.shadowBlitParameters, data.atlasTexture, data.sourceCachedAtlas, ctx.cmd);
-                        });
-                }
-            }
-
-            if (ShaderConfig.s_AreaLights == 1 && m_AreaLightShadowAtlas.HasPendingBlitsRequests())
-            {
-                using (var builder = renderGraph.AddRenderPass<BlitCachedShadowPassData>("Blit Area Mixed Cached Shadows", out var passData, ProfilingSampler.Get(HDProfileId.BlitAreaMixedCachedShadowMaps)))
-                {
-                    passData.shadowBlitParameters = m_AreaLightShadowAtlas.PrepareShadowBlitParameters(cachedShadowManager.areaShadowAtlas, m_BlitShadowMaterial, m_BlitShadowPropertyBlock);
-
-                    passData.sourceCachedAtlas = builder.ReadTexture(cachedShadowManager.areaShadowAtlas.GetOutputTexture(renderGraph));
-                    passData.atlasTexture = builder.WriteTexture(m_AreaLightShadowAtlas.GetOutputTexture(renderGraph));
-
-                    builder.SetRenderFunc(
-                        (BlitCachedShadowPassData data, RenderGraphContext ctx) =>
-                        {
-                            HDDynamicShadowAtlas.BlitCachedIntoAtlas(data.shadowBlitParameters, data.atlasTexture, data.sourceCachedAtlas, ctx.cmd);
-                        });
-                }
+                m_AreaLightShadowAtlas.BlitCachedIntoAtlas(renderGraph, cachedShadowManager.areaShadowAtlas, m_BlitShadowMaterial, "Blit Area Mixed Cached Shadows", HDProfileId.BlitAreaMixedCachedShadowMaps);
             }
         }
     }
