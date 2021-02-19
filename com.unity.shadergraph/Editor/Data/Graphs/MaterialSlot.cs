@@ -259,29 +259,35 @@ namespace UnityEditor.ShaderGraph
 
         public bool IsCompatibleStageWith(MaterialSlot otherSlot)
         {
-            var downStreamShaderSatge = ShaderStageCapability.All;
+            var candidateStage = otherSlot.stageCapability;
+            var downStreamNodeStageCapability = ShaderStageCapability.All;
             var connectedStage = new List<ShaderStageCapability>();
-            var fromNode = otherSlot.owner;
             var downstreamNodeList = new List<AbstractMaterialNode>();
-            NodeUtils.GetDownsteamNodesForNode(downstreamNodeList, fromNode);
+            bool isBlockNodeConnected = false;
+            NodeUtils.GetDownsteamNodesForNode(downstreamNodeList, otherSlot.owner);
             foreach (var n in downstreamNodeList)
             {
                 if (n.GetType() == typeof(BlockNode))
                 {
+                    isBlockNodeConnected = true;
                     var inputSlots = n.GetInputSlots<MaterialSlot>();
                     connectedStage.Add(inputSlots.First().stageCapability);
                 }
-                else
+            }
+
+            if (isBlockNodeConnected)
+            {
+                if (!connectedStage.Contains(ShaderStageCapability.Fragment))
                 {
-                    downStreamShaderSatge = otherSlot.stageCapability;
+                    downStreamNodeStageCapability = ShaderStageCapability.Vertex;
+                }
+                else if (!connectedStage.Contains(ShaderStageCapability.Vertex))
+                {
+                    downStreamNodeStageCapability = ShaderStageCapability.Fragment;
                 }
             }
-            if (!connectedStage.Contains(ShaderStageCapability.Fragment))
-                downStreamShaderSatge = ShaderStageCapability.Vertex;
-            if (!connectedStage.Contains(ShaderStageCapability.Vertex))
-                downStreamShaderSatge = ShaderStageCapability.Fragment;
-            var candidateStage = otherSlot.stageCapability;
-            return stageCapability == ShaderStageCapability.All || candidateStage == stageCapability || stageCapability == downStreamShaderSatge;
+
+            return stageCapability == ShaderStageCapability.All || stageCapability == candidateStage || stageCapability == downStreamNodeStageCapability||downStreamNodeStageCapability ==ShaderStageCapability.All;
         }
 
         public string GetDefaultValue(GenerationMode generationMode, ConcretePrecision concretePrecision)
