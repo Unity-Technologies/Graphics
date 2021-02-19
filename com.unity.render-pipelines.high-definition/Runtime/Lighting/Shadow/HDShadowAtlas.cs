@@ -398,7 +398,7 @@ namespace UnityEngine.Rendering.HighDefinition
                         }
                     });
 
-                return passData.atlasTexture;
+                return passData.momentAtlasTexture1;
             }
         }
 
