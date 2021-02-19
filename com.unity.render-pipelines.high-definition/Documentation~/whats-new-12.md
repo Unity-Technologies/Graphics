@@ -54,9 +54,6 @@ From HDRP 12.0, various top level menus are now different. This is to make the t
   * **Density Volume** is now at **GameObject > Volume > Density Volume**
   * **Decal Projector** is now at **GameObject > Decal Projector**
   * **Sky and Fog Volume** is now at **GameObject > Volume > Sky and Fog Global Volume**
-* **Edit**
-  * **Enable HDRP Force Forward Emissive on All Materials** is now called **Enable HDRP Force Forward Emissive on Scene Materials**
-  * **Disable HDRP Force Forward Emissive on All Materials** is now called **Disable HDRP Force Forward Emissive on Scene Materials**
 
 ## Issues resolved
 
