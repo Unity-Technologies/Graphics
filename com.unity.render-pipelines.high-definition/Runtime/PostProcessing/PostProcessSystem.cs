@@ -2356,6 +2356,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
                 int elemIdx = 0;
                 float curLengthPos = 0.0f;
+                float curLengthNegGlobal = 0.0f;
                 foreach (SRPLensFlareDataElement element in data.elements)
                 {
                     if (element == null ||
@@ -2381,6 +2382,9 @@ namespace UnityEngine.Rendering.HighDefinition
                         }
                     }
 
+                    if (element.position < 0.0f)
+                        curLengthNegGlobal += Mathf.Abs(element.position);
+
                     float timePosPos = totalLengthPos > 0.0f ? curLengthPos / totalLengthPos : 0.0f;
                     float timePosNeg = totalLengthNeg > 0.0f ? curLengthNeg / totalLengthNeg : 0.0f;
                     float timeScale = data.elements.Length == 1 ? 1.0f : ((float)elemIdx) / ((float)(data.elements.Length - 1));
@@ -2399,11 +2403,22 @@ namespace UnityEngine.Rendering.HighDefinition
                         curveScale = data.scaleCurve.length >= 1 ? data.scaleCurve.Evaluate(-timePosNeg) : 1.0f;
                     }
 
+                    float coefForGradient;
+                    if (element.position >= 0.0f)
+                    {
+                        coefForGradient = totalLengthPos > 0.0f ? 0.5f + 0.5f * curLengthPos / totalLengthPos : 0.5f;
+                    }
+                    else
+                    {
+                        coefForGradient = totalLengthNeg > 0.0f ? 0.5f - 0.5f * curLengthNegGlobal / totalLengthNeg : 0.5f;
+                    }
+                    Vector4 gradientModulation = data.colorGradient.Evaluate(coefForGradient);
+
                     Texture texture = element.lensFlareTexture;
                     float position = 2.0f * Mathf.Abs(element.position) * curvePos;
                     Vector2 size = new Vector2(element.size * curveScale * element.aspectRatio, element.size * curveScale);
                     float rotation = element.rotation;
-                    Vector4 tint;
+                    Vector4 tint = Vector4.Scale(element.tint, gradientModulation);
 
                     float currentIntensity = comp.intensity * element.localIntensity * data.globalIntensity * radialsScaleRadius * distanceAttenuation;
 
@@ -2411,9 +2426,9 @@ namespace UnityEngine.Rendering.HighDefinition
                         continue;
 
                     if (element.modulateByLightColor)
-                        tint = currentIntensity * element.tint * modulationByColor;
+                        tint = currentIntensity * Vector4.Scale(tint, modulationByColor);
                     else
-                        tint = currentIntensity * element.tint;
+                        tint = currentIntensity * tint;
 
                     if (comp.attenuationByLightShape)
                         tint.Scale(modulationAttenuation);

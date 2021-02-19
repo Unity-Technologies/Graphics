@@ -14,6 +14,7 @@ namespace UnityEditor.Rendering
         SerializedProperty m_Intensity;
         SerializedProperty m_ScaleCurve;
         SerializedProperty m_PositionCurve;
+        SerializedProperty m_ColorGradient;
         SerializedProperty m_Elements;
 
         /// <summary>
@@ -25,6 +26,7 @@ namespace UnityEditor.Rendering
             m_Intensity = entryPoint.Find(x => x.globalIntensity);
             m_ScaleCurve = entryPoint.Find(x => x.scaleCurve);
             m_PositionCurve = entryPoint.Find(x => x.positionCurve);
+            m_ColorGradient = entryPoint.Find(x => x.colorGradient);
             m_Elements = entryPoint.Find(x => x.elements);
         }
 
@@ -42,6 +44,7 @@ namespace UnityEditor.Rendering
             EditorGUI.BeginChangeCheck();
             EditorGUILayout.PropertyField(m_ScaleCurve, Styles.scaleCurve);
             EditorGUILayout.PropertyField(m_PositionCurve, Styles.positionCurve);
+            EditorGUILayout.PropertyField(m_ColorGradient, Styles.gradientCurve);
             if (EditorGUI.EndChangeCheck())
             {
                 m_ScaleCurve.serializedObject.ApplyModifiedProperties();
@@ -71,6 +74,7 @@ namespace UnityEditor.Rendering
             static public readonly GUIContent intensity = new GUIContent("Intensity", "Modulate the whole lens flare.");
             static public readonly GUIContent scaleCurve = new GUIContent("Scale Curve", "Curve between 0 and 1 which describes the scale of each element, if the relative position is negative HDRP will read the negative part of the curve, the positive part otherwise.");
             static public readonly GUIContent positionCurve = new GUIContent("Position Curve", "Curve between -1 and 1 which describes the scale of each element, if the relative position is negative HDRP will read the negative part of the curve, the positive part otherwise.");
+            static public readonly GUIContent gradientCurve = new GUIContent("Gradient Curve", "REPLACE ME.");
             static public readonly GUIContent elements = new GUIContent("Elements", "List of elements in the Lens Flare.");
         }
     }
