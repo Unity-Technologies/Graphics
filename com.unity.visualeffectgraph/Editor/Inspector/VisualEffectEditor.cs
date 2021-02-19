@@ -786,7 +786,7 @@ namespace UnityEditor.VFX
             if (serializedObject.ApplyModifiedProperties())
             {
                 var window = EditorWindow.GetWindow<VFXViewWindow>();
-                if (window)
+                if (window != null)
                     window.OnVisualEffectComponentChanged(targets.Cast<VisualEffect>());
             }
         }

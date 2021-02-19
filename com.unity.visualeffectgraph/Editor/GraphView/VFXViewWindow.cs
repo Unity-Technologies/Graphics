@@ -232,7 +232,8 @@ namespace UnityEditor.VFX.UI
 
         public void OnVisualEffectComponentChanged(IEnumerable<VisualEffect> componentChanged)
         {
-            graphView.OnVisualEffectComponentChanged(componentChanged);
+            if (graphView != null)
+                graphView.OnVisualEffectComponentChanged(componentChanged);
         }
 
         public bool autoCompile { get; set; }

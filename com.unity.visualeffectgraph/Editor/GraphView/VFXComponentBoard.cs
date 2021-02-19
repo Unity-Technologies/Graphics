@@ -327,10 +327,10 @@ namespace UnityEditor.VFX.UI
         {
             OnSelectionChanged();
             if (m_AttachedComponent != null
-                &&  visualEffects.Contains(m_AttachedComponent)
-                &&  m_AttachedComponent.visualEffectAsset != controller.graph.visualEffectResource.asset)
+                && visualEffects.Contains(m_AttachedComponent)
+                && m_AttachedComponent.visualEffectAsset != controller.graph.visualEffectResource.asset)
             {
-                //The Visual Effect Asset has been switch, we have to detach
+                //The Visual Effect Asset has been changed and is no longer valid, we don't want to modify capacity on the wrong graph. We have to detach.
                 m_View.attachedComponent = null;
             }
         }
