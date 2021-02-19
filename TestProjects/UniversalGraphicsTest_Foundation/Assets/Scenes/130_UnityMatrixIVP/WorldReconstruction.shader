@@ -45,7 +45,7 @@
 					UNITY_TRANSFER_INSTANCE_ID(v, o);
 					UNITY_INITIALIZE_VERTEX_OUTPUT_STEREO(o);
 
-				    VertexPositionInputs vtxIn = GetVertexPositionInputs(v.vertex);
+				    VertexPositionInputs vtxIn = GetVertexPositionInputs(v.vertex.xyz);
 
 					o.pos = vtxIn.positionCS;
 					o.scrPos = vtxIn.positionNDC;
