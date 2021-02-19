@@ -213,7 +213,7 @@ namespace UnityEngine.Rendering.HighDefinition
             this.owner = owner;
             this.currentRenderTarget = targets;
             this.currentHDCamera = hdCamera;
-
+            OnRenderEvent(new CustomPassRenderEventContext() { hdCamera = hdCamera, eventType = CustomPassRenderEventContext.EventType.OnExecute });
             using (var builder = renderGraph.AddRenderPass<ExecutePassData>(name, out ExecutePassData passData, profilingSampler))
             {
                 passData.customPass = this;
@@ -348,6 +348,11 @@ namespace UnityEngine.Rendering.HighDefinition
 #pragma warning disable CS0618 // Member is obsolete
             Execute(ctx.renderContext, ctx.cmd, ctx.hdCamera, ctx.cullingResults);
 #pragma warning restore CS0618
+        }
+
+        protected virtual void OnRenderEvent(CustomPassRenderEventContext ctx)
+        {
+
         }
 
         /// <summary>

@@ -3312,6 +3312,8 @@ namespace UnityEngine.Rendering.HighDefinition
             public bool             useFXAA;
             public bool             enableAlpha;
             public bool             keepAlpha;
+            public bool             dynamicResIsOn;
+            public DynamicResUpscaleFilter dynamicResFilter;
 
             public bool             filmGrainEnabled;
             public Texture          filmGrainTexture;
@@ -3336,7 +3338,9 @@ namespace UnityEngine.Rendering.HighDefinition
             parameters.keepAlpha = m_KeepAlpha;
 
             var dynResHandler = DynamicResolutionHandler.instance;
-            bool dynamicResIsOn = hdCamera.isMainGameView && dynResHandler.DynamicResolutionEnabled();
+            bool dynamicResIsOn = hdCamera.canDoDynamicResolution && dynResHandler.DynamicResolutionEnabled();
+            parameters.dynamicResIsOn = dynamicResIsOn;
+            parameters.dynamicResFilter = dynResHandler.filter;
             parameters.useFXAA = hdCamera.antialiasing == AntialiasingMode.FastApproximateAntialiasing && !dynamicResIsOn && m_AntialiasingFS;
 
             // Film Grain
@@ -3371,12 +3375,9 @@ namespace UnityEngine.Rendering.HighDefinition
             finalPassMaterial.shaderKeywords = null;
             finalPassMaterial.SetTexture(HDShaderIDs._InputTexture, source);
 
-            var dynResHandler = DynamicResolutionHandler.instance;
-            bool dynamicResIsOn = hdCamera.isMainGameView && dynResHandler.DynamicResolutionEnabled();
-
-            if (dynamicResIsOn)
+            if (parameters.dynamicResIsOn)
             {
-                switch (dynResHandler.filter)
+                switch (parameters.dynamicResFilter)
                 {
                     case DynamicResUpscaleFilter.Bilinear:
                         finalPassMaterial.EnableKeyword("BILINEAR");
