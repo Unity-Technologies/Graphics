@@ -9,25 +9,25 @@ editor_version_names:
 editor_versions:
   2020_2_latest_internal:
     Android:
-      revision: e2c53f129de5
-      updated_at: '2021-02-12 00:18:06.542281'
-      version: 2020.2.5f1
+      revision: 0015daafb73f
+      updated_at: '2021-02-18 22:11:47.499449'
+      version: 2020.2.6f1
     Linux:
-      revision: e2c53f129de5
-      updated_at: '2021-02-12 00:18:06.542281'
-      version: 2020.2.5f1
+      revision: 0015daafb73f
+      updated_at: '2021-02-18 22:11:47.499449'
+      version: 2020.2.6f1
     OSX:
-      revision: e2c53f129de5
-      updated_at: '2021-02-12 00:18:06.542281'
-      version: 2020.2.5f1
+      revision: 0015daafb73f
+      updated_at: '2021-02-18 22:11:47.499449'
+      version: 2020.2.6f1
     Win:
-      revision: e2c53f129de5
-      updated_at: '2021-02-12 00:18:06.542281'
-      version: 2020.2.5f1
+      revision: 0015daafb73f
+      updated_at: '2021-02-18 22:11:47.499449'
+      version: 2020.2.6f1
     iPhone:
-      revision: e2c53f129de5
-      updated_at: '2021-02-12 00:18:06.542281'
-      version: 2020.2.5f1
+      revision: 0015daafb73f
+      updated_at: '2021-02-18 22:11:47.499449'
+      version: 2020.2.6f1
   2020_2_latest_public:
     Android:
       revision: becced5a802b
@@ -55,22 +55,22 @@ editor_versions:
       version: 2020.2.4f1
   2020_2_staging:
     Android:
-      revision: df93ba79f86794599861d9e9aa5d368385a260a7
-      updated_at: '2021-02-17 00:57:38.210156'
+      revision: 0015daafb73fad7a5cabb77de832aa0cd22276b6
+      updated_at: '2021-02-18 22:11:47.499449'
       version: ''
     Linux:
       revision: df93ba79f86794599861d9e9aa5d368385a260a7
       updated_at: '2021-02-17 00:57:38.210156'
       version: ''
     OSX:
-      revision: df93ba79f86794599861d9e9aa5d368385a260a7
-      updated_at: '2021-02-17 00:57:38.210156'
+      revision: 0015daafb73fad7a5cabb77de832aa0cd22276b6
+      updated_at: '2021-02-18 22:11:47.499449'
       version: ''
     Win:
-      revision: df93ba79f86794599861d9e9aa5d368385a260a7
-      updated_at: '2021-02-17 00:57:38.210156'
+      revision: 0015daafb73fad7a5cabb77de832aa0cd22276b6
+      updated_at: '2021-02-18 22:11:47.499449'
       version: ''
     iPhone:
-      revision: df93ba79f86794599861d9e9aa5d368385a260a7
-      updated_at: '2021-02-17 00:57:38.210156'
+      revision: 0015daafb73fad7a5cabb77de832aa0cd22276b6
+      updated_at: '2021-02-18 22:11:47.499449'
       version: ''
