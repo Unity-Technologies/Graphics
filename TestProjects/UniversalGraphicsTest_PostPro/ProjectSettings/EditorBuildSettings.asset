@@ -80,4 +80,7 @@ EditorBuildSettings:
   - enabled: 1
     path: Assets/Scenes/146_MSAA_RenderToBackbuffer.unity
     guid: aee9f891d65e44daf811d30053402efd
+  - enabled: 1
+    path: Assets/Scenes/133_DepthOfField_DynamicResolution.unity
+    guid: 90c6c79a97ec2e54bb7bd46b47644640
   m_configObjects: {}
