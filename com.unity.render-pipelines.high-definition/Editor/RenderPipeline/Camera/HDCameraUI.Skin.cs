@@ -1,4 +1,3 @@
-using UnityEditor.Rendering;
 using UnityEngine;
 
 namespace UnityEditor.Rendering.HighDefinition
