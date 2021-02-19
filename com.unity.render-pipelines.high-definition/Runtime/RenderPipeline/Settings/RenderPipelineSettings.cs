@@ -1,5 +1,6 @@
 using System;
 using UnityEngine.Experimental.Rendering;
+using UnityEngine.Serialization;
 
 namespace UnityEngine.Rendering.HighDefinition
 {
@@ -358,38 +359,54 @@ namespace UnityEngine.Rendering.HighDefinition
         [Obsolete("For data migration")]
         internal bool m_ObsoleteincreaseSssSampleCount;
 
-        [Obsolete("Moved to HDGlobal Settings")]
+        [SerializeField]
+        [FormerlySerializedAs("lightLayerName0"), Obsolete("Moved to HDGlobal Settings")]
         internal string m_ObsoleteLightLayerName0;
-        [Obsolete("Moved to HDGlobal Settings")]
+        [SerializeField]
+        [FormerlySerializedAs("lightLayerName1"), Obsolete("Moved to HDGlobal Settings")]
         internal string m_ObsoleteLightLayerName1;
-        [Obsolete("Moved to HDGlobal Settings")]
+        [SerializeField]
+        [FormerlySerializedAs("lightLayerName2"), Obsolete("Moved to HDGlobal Settings")]
         internal string m_ObsoleteLightLayerName2;
-        [Obsolete("Moved to HDGlobal Settings")]
+        [SerializeField]
+        [FormerlySerializedAs("lightLayerName3"), Obsolete("Moved to HDGlobal Settings")]
         internal string m_ObsoleteLightLayerName3;
-        [Obsolete("Moved to HDGlobal Settings")]
+        [SerializeField]
+        [FormerlySerializedAs("lightLayerName4"), Obsolete("Moved to HDGlobal Settings")]
         internal string m_ObsoleteLightLayerName4;
-        [Obsolete("Moved to HDGlobal Settings")]
+        [SerializeField]
+        [FormerlySerializedAs("lightLayerName5"), Obsolete("Moved to HDGlobal Settings")]
         internal string m_ObsoleteLightLayerName5;
-        [Obsolete("Moved to HDGlobal Settings")]
+        [SerializeField]
+        [FormerlySerializedAs("lightLayerName6"), Obsolete("Moved to HDGlobal Settings")]
         internal string m_ObsoleteLightLayerName6;
-        [Obsolete("Moved to HDGlobal Settings")]
+        [SerializeField]
+        [FormerlySerializedAs("lightLayerName7"), Obsolete("Moved to HDGlobal Settings")]
         internal string m_ObsoleteLightLayerName7;
 
-        [Obsolete("Moved to HDGlobal Settings")]
+        [SerializeField]
+        [FormerlySerializedAs("decalLayerName0"), Obsolete("Moved to HDGlobal Settings")]
         internal string m_ObsoleteDecalLayerName0;
-        [Obsolete("Moved to HDGlobal Settings")]
+        [SerializeField]
+        [FormerlySerializedAs("decalLayerName1"), Obsolete("Moved to HDGlobal Settings")]
         internal string m_ObsoleteDecalLayerName1;
-        [Obsolete("Moved to HDGlobal Settings")]
+        [SerializeField]
+        [FormerlySerializedAs("decalLayerName2"), Obsolete("Moved to HDGlobal Settings")]
         internal string m_ObsoleteDecalLayerName2;
-        [Obsolete("Moved to HDGlobal Settings")]
+        [SerializeField]
+        [FormerlySerializedAs("decalLayerName3"), Obsolete("Moved to HDGlobal Settings")]
         internal string m_ObsoleteDecalLayerName3;
-        [Obsolete("Moved to HDGlobal Settings")]
+        [SerializeField]
+        [FormerlySerializedAs("decalLayerName4"), Obsolete("Moved to HDGlobal Settings")]
         internal string m_ObsoleteDecalLayerName4;
-        [Obsolete("Moved to HDGlobal Settings")]
+        [SerializeField]
+        [FormerlySerializedAs("decalLayerName5"), Obsolete("Moved to HDGlobal Settings")]
         internal string m_ObsoleteDecalLayerName5;
-        [Obsolete("Moved to HDGlobal Settings")]
+        [SerializeField]
+        [FormerlySerializedAs("decalLayerName6"), Obsolete("Moved to HDGlobal Settings")]
         internal string m_ObsoleteDecalLayerName6;
-        [Obsolete("Moved to HDGlobal Settings")]
+        [SerializeField]
+        [FormerlySerializedAs("decalLayerName7"), Obsolete("Moved to HDGlobal Settings")]
         internal string m_ObsoleteDecalLayerName7;
     #pragma warning restore 618
     }

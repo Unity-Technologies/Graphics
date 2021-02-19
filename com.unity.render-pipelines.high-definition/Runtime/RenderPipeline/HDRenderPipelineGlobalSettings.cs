@@ -167,23 +167,23 @@ namespace UnityEngine.Rendering.HighDefinition
             assetCreated.afterPostProcessCustomPostProcesses.AddRange(oldAsset.m_ObsoleteAfterPostProcessCustomPostProcesses);
             assetCreated.beforeTAACustomPostProcesses.AddRange(oldAsset.m_ObsoleteBeforeTAACustomPostProcesses);
 
-            assetCreated.lightLayerName0 = oldAsset.currentPlatformRenderPipelineSettings.m_ObsoleteLightLayerName0;
-            assetCreated.lightLayerName1 = oldAsset.currentPlatformRenderPipelineSettings.m_ObsoleteLightLayerName1;
-            assetCreated.lightLayerName2 = oldAsset.currentPlatformRenderPipelineSettings.m_ObsoleteLightLayerName2;
-            assetCreated.lightLayerName3 = oldAsset.currentPlatformRenderPipelineSettings.m_ObsoleteLightLayerName3;
-            assetCreated.lightLayerName4 = oldAsset.currentPlatformRenderPipelineSettings.m_ObsoleteLightLayerName4;
-            assetCreated.lightLayerName5 = oldAsset.currentPlatformRenderPipelineSettings.m_ObsoleteLightLayerName5;
-            assetCreated.lightLayerName6 = oldAsset.currentPlatformRenderPipelineSettings.m_ObsoleteLightLayerName6;
-            assetCreated.lightLayerName7 = oldAsset.currentPlatformRenderPipelineSettings.m_ObsoleteLightLayerName7;
+            assetCreated.lightLayerName0 = System.String.Copy(oldAsset.currentPlatformRenderPipelineSettings.m_ObsoleteLightLayerName0);
+            assetCreated.lightLayerName1 = System.String.Copy(oldAsset.currentPlatformRenderPipelineSettings.m_ObsoleteLightLayerName1);
+            assetCreated.lightLayerName2 = System.String.Copy(oldAsset.currentPlatformRenderPipelineSettings.m_ObsoleteLightLayerName2);
+            assetCreated.lightLayerName3 = System.String.Copy(oldAsset.currentPlatformRenderPipelineSettings.m_ObsoleteLightLayerName3);
+            assetCreated.lightLayerName4 = System.String.Copy(oldAsset.currentPlatformRenderPipelineSettings.m_ObsoleteLightLayerName4);
+            assetCreated.lightLayerName5 = System.String.Copy(oldAsset.currentPlatformRenderPipelineSettings.m_ObsoleteLightLayerName5);
+            assetCreated.lightLayerName6 = System.String.Copy(oldAsset.currentPlatformRenderPipelineSettings.m_ObsoleteLightLayerName6);
+            assetCreated.lightLayerName7 = System.String.Copy(oldAsset.currentPlatformRenderPipelineSettings.m_ObsoleteLightLayerName7);
 
-            assetCreated.decalLayerName0 = oldAsset.currentPlatformRenderPipelineSettings.m_ObsoleteLightLayerName0;
-            assetCreated.decalLayerName1 = oldAsset.currentPlatformRenderPipelineSettings.m_ObsoleteLightLayerName1;
-            assetCreated.decalLayerName2 = oldAsset.currentPlatformRenderPipelineSettings.m_ObsoleteLightLayerName2;
-            assetCreated.decalLayerName3 = oldAsset.currentPlatformRenderPipelineSettings.m_ObsoleteLightLayerName3;
-            assetCreated.decalLayerName4 = oldAsset.currentPlatformRenderPipelineSettings.m_ObsoleteLightLayerName4;
-            assetCreated.decalLayerName5 = oldAsset.currentPlatformRenderPipelineSettings.m_ObsoleteLightLayerName5;
-            assetCreated.decalLayerName6 = oldAsset.currentPlatformRenderPipelineSettings.m_ObsoleteLightLayerName6;
-            assetCreated.decalLayerName7 = oldAsset.currentPlatformRenderPipelineSettings.m_ObsoleteLightLayerName7;
+            assetCreated.decalLayerName0 = System.String.Copy(oldAsset.currentPlatformRenderPipelineSettings.m_ObsoleteLightLayerName0);
+            assetCreated.decalLayerName1 = System.String.Copy(oldAsset.currentPlatformRenderPipelineSettings.m_ObsoleteLightLayerName1);
+            assetCreated.decalLayerName2 = System.String.Copy(oldAsset.currentPlatformRenderPipelineSettings.m_ObsoleteLightLayerName2);
+            assetCreated.decalLayerName3 = System.String.Copy(oldAsset.currentPlatformRenderPipelineSettings.m_ObsoleteLightLayerName3);
+            assetCreated.decalLayerName4 = System.String.Copy(oldAsset.currentPlatformRenderPipelineSettings.m_ObsoleteLightLayerName4);
+            assetCreated.decalLayerName5 = System.String.Copy(oldAsset.currentPlatformRenderPipelineSettings.m_ObsoleteLightLayerName5);
+            assetCreated.decalLayerName6 = System.String.Copy(oldAsset.currentPlatformRenderPipelineSettings.m_ObsoleteLightLayerName6);
+            assetCreated.decalLayerName7 = System.String.Copy(oldAsset.currentPlatformRenderPipelineSettings.m_ObsoleteLightLayerName7);
 
             assetCreated.shaderVariantLogLevel = oldAsset.m_ObsoleteShaderVariantLogLevel;
             assetCreated.lensAttenuationMode = oldAsset.m_ObsoleteLensAttenuation;
@@ -248,23 +248,23 @@ namespace UnityEngine.Rendering.HighDefinition
                     assetCreated.afterPostProcessCustomPostProcesses.AddRange(src.afterPostProcessCustomPostProcesses);
                     assetCreated.beforeTAACustomPostProcesses.AddRange(src.beforeTAACustomPostProcesses);
 
-                    assetCreated.lightLayerName0 = src.lightLayerName0;
-                    assetCreated.lightLayerName1 = src.lightLayerName1;
-                    assetCreated.lightLayerName2 = src.lightLayerName2;
-                    assetCreated.lightLayerName3 = src.lightLayerName3;
-                    assetCreated.lightLayerName4 = src.lightLayerName4;
-                    assetCreated.lightLayerName5 = src.lightLayerName5;
-                    assetCreated.lightLayerName6 = src.lightLayerName6;
-                    assetCreated.lightLayerName7 = src.lightLayerName7;
+                    assetCreated.lightLayerName0 = System.String.Copy(src.lightLayerName0);
+                    assetCreated.lightLayerName1 = System.String.Copy(src.lightLayerName1);
+                    assetCreated.lightLayerName2 = System.String.Copy(src.lightLayerName2);
+                    assetCreated.lightLayerName3 = System.String.Copy(src.lightLayerName3);
+                    assetCreated.lightLayerName4 = System.String.Copy(src.lightLayerName4);
+                    assetCreated.lightLayerName5 = System.String.Copy(src.lightLayerName5);
+                    assetCreated.lightLayerName6 = System.String.Copy(src.lightLayerName6);
+                    assetCreated.lightLayerName7 = System.String.Copy(src.lightLayerName7);
 
-                    assetCreated.decalLayerName0 = src.decalLayerName0;
-                    assetCreated.decalLayerName1 = src.decalLayerName1;
-                    assetCreated.decalLayerName2 = src.decalLayerName2;
-                    assetCreated.decalLayerName3 = src.decalLayerName3;
-                    assetCreated.decalLayerName4 = src.decalLayerName4;
-                    assetCreated.decalLayerName5 = src.decalLayerName5;
-                    assetCreated.decalLayerName6 = src.decalLayerName6;
-                    assetCreated.decalLayerName7 = src.decalLayerName7;
+                    assetCreated.decalLayerName0 = System.String.Copy(src.decalLayerName0);
+                    assetCreated.decalLayerName1 = System.String.Copy(src.decalLayerName1);
+                    assetCreated.decalLayerName2 = System.String.Copy(src.decalLayerName2);
+                    assetCreated.decalLayerName3 = System.String.Copy(src.decalLayerName3);
+                    assetCreated.decalLayerName4 = System.String.Copy(src.decalLayerName4);
+                    assetCreated.decalLayerName5 = System.String.Copy(src.decalLayerName5);
+                    assetCreated.decalLayerName6 = System.String.Copy(src.decalLayerName6);
+                    assetCreated.decalLayerName7 = System.String.Copy(src.decalLayerName7);
 
                     assetCreated.shaderVariantLogLevel = src.shaderVariantLogLevel;
                     assetCreated.lensAttenuationMode = src.lensAttenuationMode;
@@ -734,23 +734,23 @@ namespace UnityEngine.Rendering.HighDefinition
         {
             m_RenderingLayerNames = new string[32];
 
-            m_RenderingLayerNames[0] = HDRenderPipelineGlobalSettings.instance.lightLayerName0;
-            m_RenderingLayerNames[1] = HDRenderPipelineGlobalSettings.instance.lightLayerName1;
-            m_RenderingLayerNames[2] = HDRenderPipelineGlobalSettings.instance.lightLayerName2;
-            m_RenderingLayerNames[3] = HDRenderPipelineGlobalSettings.instance.lightLayerName3;
-            m_RenderingLayerNames[4] = HDRenderPipelineGlobalSettings.instance.lightLayerName4;
-            m_RenderingLayerNames[5] = HDRenderPipelineGlobalSettings.instance.lightLayerName5;
-            m_RenderingLayerNames[6] = HDRenderPipelineGlobalSettings.instance.lightLayerName6;
-            m_RenderingLayerNames[7] = HDRenderPipelineGlobalSettings.instance.lightLayerName7;
+            m_RenderingLayerNames[0] = lightLayerName0;
+            m_RenderingLayerNames[1] = lightLayerName1;
+            m_RenderingLayerNames[2] = lightLayerName2;
+            m_RenderingLayerNames[3] = lightLayerName3;
+            m_RenderingLayerNames[4] = lightLayerName4;
+            m_RenderingLayerNames[5] = lightLayerName5;
+            m_RenderingLayerNames[6] = lightLayerName6;
+            m_RenderingLayerNames[7] = lightLayerName7;
 
-            m_RenderingLayerNames[8]  = HDRenderPipelineGlobalSettings.instance.decalLayerName0;
-            m_RenderingLayerNames[9]  = HDRenderPipelineGlobalSettings.instance.decalLayerName1;
-            m_RenderingLayerNames[10] = HDRenderPipelineGlobalSettings.instance.decalLayerName2;
-            m_RenderingLayerNames[11] = HDRenderPipelineGlobalSettings.instance.decalLayerName3;
-            m_RenderingLayerNames[12] = HDRenderPipelineGlobalSettings.instance.decalLayerName4;
-            m_RenderingLayerNames[13] = HDRenderPipelineGlobalSettings.instance.decalLayerName5;
-            m_RenderingLayerNames[14] = HDRenderPipelineGlobalSettings.instance.decalLayerName6;
-            m_RenderingLayerNames[15] = HDRenderPipelineGlobalSettings.instance.decalLayerName7;
+            m_RenderingLayerNames[8]  = decalLayerName0;
+            m_RenderingLayerNames[9]  = decalLayerName1;
+            m_RenderingLayerNames[10] = decalLayerName2;
+            m_RenderingLayerNames[11] = decalLayerName3;
+            m_RenderingLayerNames[12] = decalLayerName4;
+            m_RenderingLayerNames[13] = decalLayerName5;
+            m_RenderingLayerNames[14] = decalLayerName6;
+            m_RenderingLayerNames[15] = decalLayerName7;
 
             // Unused
             for (int i = 16; i < m_RenderingLayerNames.Length; ++i)
