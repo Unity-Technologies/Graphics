@@ -133,17 +133,14 @@ namespace UnityEditor.Rendering.HighDefinition
             User19 = 1 << 30,
         }
 
-        internal void         Initialize(MaterialEditor materialEditor, MaterialProperty[] properties, MaterialUIBlockList parent)
+        internal void Initialize(MaterialEditor materialEditor, MaterialProperty[] properties, MaterialUIBlockList parent)
         {
             this.materialEditor = materialEditor;
             this.parent = parent;
             materials = materialEditor.targets.Select(target => target as Material).ToArray();
-
-            // We should always register the key used to keep collapsable state
-            materialEditor.InitExpandableState();
         }
 
-        internal void         UpdateMaterialProperties(MaterialProperty[] properties)
+        internal void UpdateMaterialProperties(MaterialProperty[] properties)
         {
             this.properties = properties;
             LoadMaterialProperties();
