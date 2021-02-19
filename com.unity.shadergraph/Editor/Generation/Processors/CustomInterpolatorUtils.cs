@@ -138,7 +138,7 @@ namespace UnityEditor.ShaderGraph
 
                     if (!vertexNodes.Contains(cin.e_targetBlockNode))
                         vertexNodes.Add(cin.e_targetBlockNode);
-                    if(!vertexSlots.Contains(cin.e_targetBlockNode.FindSlot<MaterialSlot>(0)))
+                    if (!vertexSlots.Contains(cin.e_targetBlockNode.FindSlot<MaterialSlot>(0)))
                         vertexSlots.Add(cin.e_targetBlockNode.FindSlot<MaterialSlot>(0));
                 }
             }
