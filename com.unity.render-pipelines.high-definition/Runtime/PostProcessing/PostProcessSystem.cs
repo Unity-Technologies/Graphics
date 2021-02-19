@@ -2410,7 +2410,7 @@ namespace UnityEngine.Rendering.HighDefinition
                     }
                     else
                     {
-                        coefForGradient = totalLengthNeg > 0.0f ? 0.5f - 0.5f * curLengthNegGlobal / totalLengthNeg : 0.5f;
+                        coefForGradient = totalLengthNeg > 0.0f ? 0.5f * curLengthNegGlobal / totalLengthNeg : 0.5f;
                     }
                     Vector4 gradientModulation = data.colorGradient.Evaluate(coefForGradient);
 
