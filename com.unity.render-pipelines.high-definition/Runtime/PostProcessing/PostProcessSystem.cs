@@ -2354,9 +2354,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
                 CoreUtils.SetRenderTarget(cmd, target);
 
-                int elemIdx = 0;
                 float curLengthPos = 0.0f;
-                float curLengthNegGlobal = 0.0f;
                 foreach (SRPLensFlareDataElement element in data.elements)
                 {
                     if (element == null ||
@@ -2384,8 +2382,6 @@ namespace UnityEngine.Rendering.HighDefinition
 
                     float timePosPos = totalLengthPos > 0.0f ? curLengthPos / totalLengthPos : 0.0f;
                     float timePosNeg = totalLengthNeg > 0.0f ? curLengthNeg / totalLengthNeg : 0.0f;
-                    float timeScale = data.elements.Length == 1 ? 1.0f : ((float)elemIdx) / ((float)(data.elements.Length - 1));
-                    ++elemIdx;
 
                     float curvePos = 0.0f;
                     float curveScale = 1.0f;
