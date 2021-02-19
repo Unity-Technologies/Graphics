@@ -2458,7 +2458,7 @@ namespace UnityEngine.Rendering.HighDefinition
                         );
 
                         finalPassMaterial.SetVector(HDShaderIDs._ViewPortSize,
-                            new Vector4(hdCamera.finalViewport.width, hdCamera.finalViewport.height, 1.0f / hdCamera.finalViewport.width, 1.0f / hdCamera.finalViewport.height));
+                            new Vector4(data.hdCamera.finalViewport.width, data.hdCamera.finalViewport.height, 1.0f / data.hdCamera.finalViewport.width, 1.0f / data.hdCamera.finalViewport.height));
 
                         // Blit to backbuffer
                         Rect backBufferRect = data.hdCamera.finalViewport;
