@@ -69,6 +69,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Change labels about scroll direction and cloud type.
 - Improved shadow cascade GUI drawing with pixel perfect, hover and focus functionalities.
 - Improving the screen space global illumination.
+- Improved the Camera Inspector, new sections and better grouping of fields
 
 ## [11.0.0] - 2020-10-21
 

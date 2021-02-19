@@ -19,6 +19,8 @@ namespace UnityEditor.Rendering.HighDefinition
             Output = 1 << 2,
             Orthographic = 1 << 3,
             RenderLoop = 1 << 4,
+            Rendering = 1 << 5,
+            Environment = 1 << 6,
         }
 
         enum ProjectionType
@@ -92,10 +94,10 @@ namespace UnityEditor.Rendering.HighDefinition
         {
             Inspector = new[]
             {
-                CED.space,
                 SectionGeneralSettings,
+                SectionRenderingSettings,
                 SectionFrameSettings,
-                SectionPhysicalSettings,
+                SectionEnvironmentSettings,
                 SectionOutputSettings,
             };
 
@@ -109,44 +111,48 @@ namespace UnityEditor.Rendering.HighDefinition
             generalSettingsHeaderContent,
             Expandable.General,
             k_ExpandedState,
-            FoldoutOption.Indent | FoldoutOption.NoSpaceAtEnd, //no space as FrameSettings is drawn just under
-            CED.Group(
-                Drawer_FieldClear,
-                Drawer_FieldCullingMask,
-                Drawer_FieldVolumeLayerMask,
-                Drawer_FieldVolumeAnchorOverride,
-                (p, owner) => EditorGUILayout.PropertyField(p.probeLayerMask, probeLayerMaskContent),
-                Drawer_FieldOcclusionCulling,
-                Drawer_FieldExposureTarget
-                ),
-            CED.space,
+            FoldoutOption.Indent,
             CED.Group(
                 Drawer_Projection,
                 Drawer_FieldClippingPlanes
-                ),
-            CED.space,
+            ),
+            CED.FoldoutGroup(physicalSettingsHeaderContent, Expandable.Physical, k_ExpandedState,
+                FoldoutOption.SubFoldout,
+                CED.Group(
+                    GroupOption.Indent,
+                    Drawer_PhysicalCamera
+                )
+            )
+        );
+
+        public static readonly CED.IDrawer SectionRenderingSettings = CED.FoldoutGroup(
+            renderingSettingsHeaderContent,
+            Expandable.Rendering,
+            k_ExpandedState,
+            FoldoutOption.Indent,
             CED.Group(
                 Drawer_Antialiasing,
+                Drawer_StopNaNs,
                 Drawer_Dithering,
-                Drawer_StopNaNs
-                ),
-            CED.space,
-            CED.Group(
-                Drawer_AllowDynamicResolution
-                ),
-            CED.space,
-            CED.Group(
+                Drawer_FieldCullingMask,
+                Drawer_FieldOcclusionCulling,
+                Drawer_FieldExposureTarget,
+                Drawer_AllowDynamicResolution,
                 Drawer_CameraWarnings,
                 Drawer_FieldRenderingPath
             )
         );
 
-        public static readonly CED.IDrawer SectionPhysicalSettings = CED.FoldoutGroup(
-            physicalSettingsHeaderContent,
-            Expandable.Physical,
+        public static readonly CED.IDrawer SectionEnvironmentSettings = CED.FoldoutGroup(
+            environmentSettingsHeaderContent,
+            Expandable.Environment,
             k_ExpandedState,
+            FoldoutOption.Indent,
             CED.Group(
-                Drawer_PhysicalCamera
+                Drawer_FieldClear,
+                Drawer_FieldVolumeLayerMask,
+                Drawer_FieldVolumeAnchorOverride,
+                (p, owner) => EditorGUILayout.PropertyField(p.probeLayerMask, probeLayerMaskContent)
             )
         );
 
@@ -154,6 +160,7 @@ namespace UnityEditor.Rendering.HighDefinition
             outputSettingsHeaderContent,
             Expandable.Output,
             k_ExpandedState,
+            FoldoutOption.Indent,
             CED.Group(
 #if ENABLE_VR && ENABLE_XR_MANAGEMENT
                 Drawer_SectionXRRendering,
@@ -173,8 +180,6 @@ namespace UnityEditor.Rendering.HighDefinition
             {
                 if (!serialized.passThrough.boolValue && serialized.customRenderingSettings.boolValue)
                     FrameSettingsUI.Inspector().Draw(serialized.frameSettings, owner);
-                else
-                    EditorGUILayout.Space();
             })
         );
 
@@ -297,8 +302,6 @@ namespace UnityEditor.Rendering.HighDefinition
                     float focalLengthVal = Camera.FieldOfViewToFocalLength(s_FovLastValue, sensorLength);
                     cam.focalLength.floatValue = EditorGUILayout.FloatField(focalLengthContent, focalLengthVal);
                 }
-
-                EditorGUILayout.Space();
             }
         }
 
@@ -533,8 +536,8 @@ namespace UnityEditor.Rendering.HighDefinition
         static void Drawer_FieldClear(SerializedHDCamera p, Editor owner)
         {
             EditorGUILayout.PropertyField(p.clearColorMode, clearModeContent);
-            // if(p.clearColorMode.GetEnumValue<HDAdditionalCameraData.ClearColorMode>() == HDAdditionalCameraData.ClearColorMode.BackgroundColor) or no sky in scene
-            EditorGUILayout.PropertyField(p.backgroundColorHDR, backgroundColorContent);
+            if(p.clearColorMode.GetEnumValue<HDAdditionalCameraData.ClearColorMode>() == HDAdditionalCameraData.ClearColorMode.Color)
+                EditorGUILayout.PropertyField(p.backgroundColorHDR, backgroundColorContent);
 
             if (p.clearDepth.boolValue == false)
                 p.clearDepth.boolValue = true;

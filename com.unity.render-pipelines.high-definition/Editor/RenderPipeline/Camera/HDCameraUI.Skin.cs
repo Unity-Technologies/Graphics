@@ -6,13 +6,15 @@ namespace UnityEditor.Rendering.HighDefinition
     static partial class HDCameraUI
     {
         const string generalSettingsHeaderContent = "General";
-        const string physicalSettingsHeaderContent = "Physical";
+        const string renderingSettingsHeaderContent = "Rendering";
+        const string physicalSettingsHeaderContent = "Physical Camera";
+        const string environmentSettingsHeaderContent = "Environment";
         const string outputSettingsHeaderContent = "Output";
 
         const string clippingPlaneMultiFieldTitle = "Clipping Planes";
 
         const string msaaWarningMessage = "Manual MSAA target set with deferred rendering. This will lead to undefined behavior.";
-
+        
         static readonly GUIContent clearModeContent = EditorGUIUtility.TrTextContent("Background Type", "Specifies the type of background the Camera applies when it clears the screen before rendering a frame. Be aware that when setting this to None, the background is never cleared and since HDRP shares render texture between cameras, you may end up with garbage from previous rendering.");
         static readonly GUIContent backgroundColorContent = EditorGUIUtility.TrTextContent("Background Color", "The Background Color used to clear the screen when selecting Background Color before rendering.");
         static readonly GUIContent cullingMaskContent = EditorGUIUtility.TrTextContent("Culling Mask");
