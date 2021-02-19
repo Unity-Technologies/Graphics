@@ -84,7 +84,7 @@ namespace UnityEditor.ShaderGraph.Drawing
             m_InspectorUpdateDelegate = inspectorUpdateDelegate;
             if (propertyDrawer is GraphDataPropertyDrawer graphDataPropertyDrawer)
             {
-                graphDataPropertyDrawer.GetPropertyData(this.ChangeTargetSettings, ChangeConcretePrecision);
+                graphDataPropertyDrawer.GetPropertyData(this.ChangeTargetSettings, ChangePrecision);
             }
         }
 
@@ -101,17 +101,19 @@ namespace UnityEditor.ShaderGraph.Drawing
             this.m_InspectorUpdateDelegate();
         }
 
-        void ChangeConcretePrecision(ConcretePrecision newValue)
+        void ChangePrecision(GraphPrecision newGraphDefaultPrecision)
         {
+            if (graph.graphDefaultPrecision == newGraphDefaultPrecision)
+                return;
+
+            graph.owner.RegisterCompleteObjectUndo("Change Graph Default Precision");
+
+            graph.SetGraphDefaultPrecision(newGraphDefaultPrecision);
+
             var graphEditorView = this.GetFirstAncestorOfType<GraphEditorView>();
             if (graphEditorView == null)
                 return;
 
-            graph.owner.RegisterCompleteObjectUndo("Change Precision");
-            if (graph.concretePrecision == newValue)
-                return;
-
-            graph.concretePrecision = newValue;
             var nodeList = this.Query<MaterialNodeView>().ToList();
             graphEditorView.colorManager.SetNodesDirty(nodeList);
 
@@ -732,7 +734,6 @@ namespace UnityEditor.ShaderGraph.Drawing
 
                 var converter = node as IPropertyFromNode;
                 var prop = converter.AsShaderProperty();
-                graph.SanitizeGraphInputName(prop);
                 graph.AddGraphInput(prop);
 
                 var propNode = new PropertyNode();
@@ -943,7 +944,7 @@ namespace UnityEditor.ShaderGraph.Drawing
             for (int x = 0; x < numberOfSections; x++)
                 indexPerSection.Add(-1);
 
-            if (blackboard == null || !blackboard.selection.Any())
+            if (blackboard == null || blackboard.selection == null || blackboard.selection.Count == 0)
                 return indexPerSection;
 
             foreach (ISelectable selection in blackboard.selection)
@@ -1163,12 +1164,7 @@ namespace UnityEditor.ShaderGraph.Drawing
                         // This could be from another graph, in which case we add a copy of the ShaderInput to this graph.
                         if (graph.properties.FirstOrDefault(p => p == property) == null)
                         {
-                            var copy = (AbstractShaderProperty)property.Copy();
-                            graph.SanitizeGraphInputName(copy);
-                            graph.SanitizeGraphInputReferenceName(copy, property.overrideReferenceName); // We do want to copy the overrideReferenceName
-
-                            property = copy;
-                            graph.AddGraphInput(property);
+                            property = (AbstractShaderProperty)graph.AddCopyOfShaderInput(property);
                         }
 
                         var node = new PropertyNode();
@@ -1186,12 +1182,7 @@ namespace UnityEditor.ShaderGraph.Drawing
                         // This could be from another graph, in which case we add a copy of the ShaderInput to this graph.
                         if (graph.keywords.FirstOrDefault(k => k == keyword) == null)
                         {
-                            var copy = (ShaderKeyword)keyword.Copy();
-                            graph.SanitizeGraphInputName(copy);
-                            graph.SanitizeGraphInputReferenceName(copy, keyword.overrideReferenceName); // We do want to copy the overrideReferenceName
-
-                            keyword = copy;
-                            graph.AddGraphInput(keyword);
+                            keyword = (ShaderKeyword)graph.AddCopyOfShaderInput(keyword);
                         }
 
                         var node = new KeywordNode();
@@ -1257,11 +1248,9 @@ namespace UnityEditor.ShaderGraph.Drawing
                 switch (input)
                 {
                     case AbstractShaderProperty property:
-                        var copiedProperty = (AbstractShaderProperty)DuplicateShaderInputs(input, graphView.graph, indicies[BlackboardProvider.k_PropertySectionIndex]);
+                        var copiedProperty = (AbstractShaderProperty)graphView.graph.AddCopyOfShaderInput(input, indicies[BlackboardProvider.k_PropertySectionIndex]);
                         if (copiedProperty != null) // some property types cannot be duplicated (unknown types)
                         {
-                            graphView.graph.SanitizeGraphInputReferenceName(copiedProperty, input.referenceName);
-
                             // Increment for next within the same section
                             if (indicies[BlackboardProvider.k_PropertySectionIndex] >= 0)
                                 indicies[BlackboardProvider.k_PropertySectionIndex]++;
@@ -1281,8 +1270,7 @@ namespace UnityEditor.ShaderGraph.Drawing
                         if ((input as ShaderKeyword).isBuiltIn && graphView.graph.keywords.Where(p => p.referenceName == input.referenceName).Any())
                             continue;
 
-                        var copiedKeyword = (ShaderKeyword)DuplicateShaderInputs(input, graphView.graph, indicies[BlackboardProvider.k_KeywordSectionIndex]);
-                        graphView.graph.SanitizeGraphInputReferenceName(copiedKeyword, input.referenceName);
+                        var copiedKeyword = (ShaderKeyword)graphView.graph.AddCopyOfShaderInput(input, indicies[BlackboardProvider.k_KeywordSectionIndex]);
 
                         // Increment for next within the same section
                         if (indicies[BlackboardProvider.k_KeywordSectionIndex] >= 0)
@@ -1342,18 +1330,6 @@ namespace UnityEditor.ShaderGraph.Drawing
                     });
                 }
             }
-        }
-
-        static ShaderInput DuplicateShaderInputs(ShaderInput original, GraphData graph, int index)
-        {
-            ShaderInput copy = original.Copy();
-            if (copy != null) // some ShaderInputs cannot be copied
-            {
-                graph.SanitizeGraphInputName(copy);
-                graph.AddGraphInput(copy, index);
-                copy.generatePropertyBlock = original.generatePropertyBlock;
-            }
-            return copy;
         }
 
         private static void ClampNodesWithinView(MaterialGraphView graphView, IEnumerable<AbstractMaterialNode> nodeList)

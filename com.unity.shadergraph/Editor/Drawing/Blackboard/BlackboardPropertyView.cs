@@ -34,7 +34,7 @@ namespace UnityEditor.ShaderGraph.Drawing
         TextField m_TextField;
         Label m_TypeLabel;
 
-        ShaderInputPropertyDrawer.ChangeReferenceNameCallback m_ResetReferenceNameTrigger;
+        Action m_ResetReferenceNameTrigger;
         List<Node> m_SelectedNodes = new List<Node>();
 
         public string text
@@ -154,7 +154,7 @@ namespace UnityEditor.ShaderGraph.Drawing
                         var resetReferenceNameAction = new ResetReferenceNameAction();
                         resetReferenceNameAction.ShaderInputReference = shaderInput;
                         ViewModel.RequestModelChangeAction(resetReferenceNameAction);
-                        m_ResetReferenceNameTrigger(shaderInput.referenceName);
+                        m_ResetReferenceNameTrigger();
                     },
                     DropdownMenuAction.AlwaysEnabled);
             }
@@ -235,7 +235,7 @@ namespace UnityEditor.ShaderGraph.Drawing
                             inspectorUpdateDelegate();
 
                     }));
-                m_ResetReferenceNameTrigger = shaderInputPropertyDrawer._resetReferenceNameCallback;
+                m_ResetReferenceNameTrigger = shaderInputPropertyDrawer.ResetReferenceName;
                 this.RegisterCallback<DetachFromPanelEvent>(evt => inspectorUpdateDelegate());
 
                 m_InspectorUpdateDelegate = inspectorUpdateDelegate;

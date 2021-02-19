@@ -1,10 +1,9 @@
+using System;
+using System.Linq;
+using System.Runtime.InteropServices;
 using UnityEngine;
 using UnityEngine.Rendering.HighDefinition;
-using System.Runtime.InteropServices;
 using UnityEngine.UIElements;
-using UnityEditor.UIElements;
-using System.Linq;
-using System;
 
 namespace UnityEditor.Rendering.HighDefinition
 {
@@ -13,7 +12,7 @@ namespace UnityEditor.Rendering.HighDefinition
     {
         static class Style
         {
-            public static readonly GUIContent title = EditorGUIUtility.TrTextContent("Render Pipeline Wizard");
+            public static readonly GUIContent title = EditorGUIUtility.TrTextContent("HDRP Wizard");
 
             public const string hdrpProjectSettingsPathLabel = "Default Resources Folder";
             public const string hdrpProjectSettingsPathTooltip = "Resources Folder will be the one where to get project elements related to HDRP as default scene and default settings.";
@@ -40,8 +39,8 @@ namespace UnityEditor.Rendering.HighDefinition
             public const string installConfigPackageInfoInProgress = "The local config package is being installed in your project's LocalPackage folder.";
             public const string installConfigPackageInfoFinished = "The local config package is already installed in your project's LocalPackage folder.";
 
-            public const string migrateAllButton = "Upgrade Project Materials to High Definition Materials";
-            public const string migrateSelectedButton = "Upgrade Selected Materials to High Definition Materials";
+            public const string migrateAllButton = "Convert All Built-in Materials to HDRP";
+            public const string migrateSelectedButton = "Convert Selected Built-in Materials to HDRP";
             public const string migrateMaterials = "Upgrade HDRP Materials to Latest Version";
 
             public const string HDRPVersion = "Current HDRP version: ";
@@ -135,7 +134,7 @@ namespace UnityEditor.Rendering.HighDefinition
                 error: "Auto Graphics API is not supported!");
             public static readonly ConfigStyle dxrD3D12 = new ConfigStyle(
                 label: "Direct3D 12",
-                error: "Direct3D 12 is needed! (Editor restart is required)");
+                error: "Direct3D 12 needs to be the active device! (Editor restart is required). If an API different than D3D12 is forced via command line argument, clicking Fix won't change it, so please consider removing it if wanting to run DXR.");
             public static readonly ConfigStyle dxrScreenSpaceShadow = new ConfigStyle(
                 label: "Screen Space Shadows (Asset)",
                 error: "Screen Space Shadows are disabled in the current HDRP Asset which means you cannot enable ray-traced shadows for lights in your scene. To enable this feature, open your HDRP Asset, go to Lighting > Shadows, and enable Screen Space Shadows", messageType: MessageType.Warning);
@@ -210,10 +209,10 @@ namespace UnityEditor.Rendering.HighDefinition
         VisualElement m_InstallConfigPackageButton = null;
         Label m_InstallConfigPackageHelpboxLabel;
 
-        [MenuItem("Window/Render Pipeline/HD Render Pipeline Wizard", priority = 10000)]
+        [MenuItem("Window/Rendering/HDRP Wizard", priority = 10000)]
         static void OpenWindow()
         {
-            var window = GetWindow<HDWizard>("HD Render Pipeline Wizard");
+            var window = GetWindow<HDWizard>(Style.title.text);
             window.minSize = new Vector2(500, 450);
             HDProjectSettings.wizardPopupAlreadyShownOnce = true;
         }

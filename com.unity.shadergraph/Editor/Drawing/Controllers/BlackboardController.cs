@@ -29,7 +29,6 @@ namespace UnityEditor.ShaderGraph.Drawing
                     return;
                 }
 
-                m_GraphData.SanitizeGraphInputName(BlackboardItemReference);
                 BlackboardItemReference.generatePropertyBlock = BlackboardItemReference.isExposable;
 
                 m_GraphData.owner.RegisterCompleteObjectUndo("Add Blackboard Item");

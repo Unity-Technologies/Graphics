@@ -110,8 +110,7 @@ namespace UnityEditor.ShaderGraph.Drawing
             //graphData.owner.RegisterCompleteObjectUndo("Change Display Name");
             if (NewDisplayNameValue != ShaderInputReference.displayName)
             {
-                ShaderInputReference.displayName = NewDisplayNameValue;
-                graphData.SanitizeGraphInputName(ShaderInputReference);
+                graphData.SanitizeGraphInputName(ShaderInputReference, NewDisplayNameValue);
             }
         }
 

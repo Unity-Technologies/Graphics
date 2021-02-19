@@ -406,7 +406,7 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
                 var list = kvp.Value;
                 list.RemoveAll(obj =>
                 {
-                    if (obj.frameIndex < s_CurrentFrameIndex)
+                    if (ShouldReleaseResource(obj.frameIndex, s_CurrentFrameIndex))
                     {
                         obj.resource.Release();
                         return true;
