@@ -36,6 +36,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Artefact in VFXView using efficient debug mode in component target board [Case 1243947](https://issuetracker.unity3d.com/product/unity/issues/guid/1243947/)
 - Sample Mesh Color when value is stored as float.
 - Compilation error due to direct access to GetWorldToObjectMatrix instead of VFXGetWorldToObjectMatrix [Case 1308481](https://issuetracker.unity3d.com/product/unity/issues/guid/1308481/)
+- Target GameObject attach button does not allow attaching a valid VFX if the last selection was invalid. [Case 1312178](https://issuetracker.unity3d.com/product/unity/issues/guid/1312178/)
 
 ## [11.0.0] - 2020-10-21
 
