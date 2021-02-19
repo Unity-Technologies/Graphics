@@ -1244,11 +1244,14 @@ namespace UnityEngine.Rendering
             if (!rendererList.isValid)
                 throw new ArgumentException("Invalid renderer list provided to DrawRendererList");
 
+#if RENDERLIST_COMMANDBUFFER
+            cmd.DrawRendererList(rendererList);
+#else
             // This is done here because DrawRenderers API lives outside command buffers so we need to make call this before doing any DrawRenders or things will be executed out of order
             renderContext.ExecuteCommandBuffer(cmd);
             cmd.Clear();
-
             renderContext.DrawRendererList(rendererList);
+#endif
         }
     }
 }

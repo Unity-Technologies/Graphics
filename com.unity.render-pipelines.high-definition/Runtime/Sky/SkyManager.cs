@@ -833,6 +833,9 @@ namespace UnityEngine.Rendering.HighDefinition
                                     {
                                         cmd.WaitAllAsyncReadbackRequests();
                                         renderContext.ExecuteCommandBuffer(cmd);
+#if RENDERLIST_COMMANDBUFFER
+                                        cmd.ClearRendererLists();
+#endif
                                         CommandBufferPool.Release(cmd);
                                         renderContext.Submit();
                                         cmd = CommandBufferPool.Get();

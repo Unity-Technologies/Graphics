@@ -198,6 +198,7 @@ namespace UnityEditor.Rendering.HighDefinition
             EditorGUILayout.PropertyField(serialized.shaderVariantLogLevel, Styles.GeneralSection.shaderVariantLogLevel);
 
             EditorGUILayout.PropertyField(serialized.lensAttenuation, Styles.GeneralSection.lensAttenuationModeContent);
+            EditorGUILayout.PropertyField(serialized.enableRendererListCulling, Styles.GeneralSection.enableRendererListCullingContent);
 
             m_ShowLightLayerNames = EditorGUILayout.Foldout(m_ShowLightLayerNames, Styles.lightLayerNamesText, true);
             if (m_ShowLightLayerNames)

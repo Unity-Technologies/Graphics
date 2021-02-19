@@ -157,6 +157,8 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
         ///<summary>Maximum number of MRTs supported by Render Graph.</summary>
         public static readonly int kMaxMRTCount = 8;
 
+        public bool cullRendererLists;
+
         internal struct CompiledResourceInfo
         {
             public List<int>    producers;
@@ -583,7 +585,8 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
                     m_Resources.BeginExecute(m_CurrentFrameIndex);
 
                     // Should be called after BeginExecute, since we need valid resource handles
-                    CullRendererLists();
+                    if (cullRendererLists)
+                        CullRendererLists();
 
                     ExecuteRenderGraph();
                 }
@@ -1054,7 +1057,7 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
             }
 
             // Creates all renderer lists
-            m_Resources.CreateRendererLists(m_RendererLists, m_RenderGraphContext.renderContext);
+            m_Resources.CreateRendererLists(m_RendererLists, m_RenderGraphContext);
         }
 
         void CullPassAtIndex(int passIndex)
@@ -1107,7 +1110,11 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
                         ulong num = 0;
                         foreach (var renderList in pass.usedRendererListList)
                         {
+#if RENDERLIST_COMMANDBUFFER
+                            num += m_RenderGraphContext.cmd.QueryRendererList(renderList);
+#else
                             num += m_RenderGraphContext.renderContext.QueryRendererList(renderList);
+#endif
                         }
 
                         if (num == 0)
@@ -1187,7 +1194,7 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
                 if (!m_Resources.IsRendererListCreated(rl))
                     m_RendererLists.Add(rl);
             }
-            m_Resources.CreateRendererLists(m_RendererLists, m_RenderGraphContext.renderContext);
+            m_Resources.CreateRendererLists(m_RendererLists, m_RenderGraphContext);
             m_RendererLists.Clear();
 
             return ref passInfo;

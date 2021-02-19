@@ -534,7 +534,7 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
 #endif
         }
 
-        internal void CreateRendererLists(List<RendererListHandle> rendererLists, ScriptableRenderContext context)
+        internal void CreateRendererLists(List<RendererListHandle> rendererLists, RenderGraphContext context)
         {
             int index = 0;
             RendererList[] allRendererLists = new RendererList[rendererLists.Count];
@@ -550,8 +550,11 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
                 lookup[rendererList.handle] = index++;
             }
 
-            context.PrepareRendererListsAsync(ref allRendererLists);
-
+#if RENDERLIST_COMMANDBUFFER
+            context.cmd.PrepareRendererListsAsync(ref allRendererLists);
+#else
+            context.renderContext.PrepareRendererListsAsync(ref allRendererLists);
+#endif
             // TODO: this is not nice...
             foreach (var rendererList in rendererLists)
             {

@@ -335,6 +335,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
             RenderGizmos(m_RenderGraph, hdCamera, colorBuffer, GizmoSubset.PostImageEffects);
 
+            m_RenderGraph.cullRendererLists = m_Asset.enableRendererListCulling;
             m_RenderGraph.Execute();
 
             if (aovRequest.isValid)

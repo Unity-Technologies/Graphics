@@ -1833,6 +1833,9 @@ namespace UnityEngine.Rendering.HighDefinition
                                 renderContext.ExecuteCommandBuffer(cmd);
                                 renderContext.Submit();
                                 cmd.Clear();
+#if RENDERLIST_COMMANDBUFFER
+                                cmd.ClearRendererLists();
+#endif
                             }
 
                             using (new ProfilingScope(cmd, renderRequest.hdCamera.profilingSampler))
@@ -1883,8 +1886,11 @@ namespace UnityEngine.Rendering.HighDefinition
                             PropagateScreenSpaceShadowData();
 
                             renderContext.ExecuteCommandBuffer(cmd);
-                            CommandBufferPool.Release(cmd);
                             renderContext.Submit();
+#if RENDERLIST_COMMANDBUFFER
+                            cmd.ClearRendererLists();
+#endif
+                            CommandBufferPool.Release(cmd);
                         }
                     }
                 }

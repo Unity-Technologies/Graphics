@@ -92,6 +92,14 @@ namespace UnityEngine.Rendering.HighDefinition
             set => m_LensAttenuation = value;
         }
 
+        [SerializeField] private bool m_EnableRendererListCulling;
+
+        internal bool enableRendererListCulling
+        {
+            get => m_EnableRendererListCulling;
+            set => m_EnableRendererListCulling = value;
+        }
+
 #if UNITY_EDITOR
         [SerializeField] private VolumeProfile m_DefaultLookDevProfile;
 
