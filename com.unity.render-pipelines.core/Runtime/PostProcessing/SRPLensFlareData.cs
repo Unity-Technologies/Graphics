@@ -118,8 +118,8 @@ namespace UnityEngine
             scaleCurve = new AnimationCurve(new Keyframe(-1.0f, 1.0f), new Keyframe(0.0f, 0.5f), new Keyframe(1.0f, 1.0f));
             positionCurve = new AnimationCurve(new Keyframe(-1.0f, -1.0f, 1.0f, 1.0f), new Keyframe(0.0f, 0.0f, 1.0f, 1.0f), new Keyframe(1.0f, 1.0f, 1.0f, 1.0f));
             colorGradient = new Gradient();
-            colorGradient.SetKeys(new GradientColorKey[] { new GradientColorKey(Color.white, 0.0f), new GradientColorKey(Color.grey, 0.5f), new GradientColorKey(Color.white, 1.0f) },
-                                  new GradientAlphaKey[] { new GradientAlphaKey(1.0f, 0.0f), new GradientAlphaKey(0.5f, 0.5f), new GradientAlphaKey(1.0f, 1.0f) });
+            colorGradient.SetKeys(new GradientColorKey[] { new GradientColorKey(Color.white, 0.0f), new GradientColorKey(Color.white, 0.5f), new GradientColorKey(Color.white, 1.0f) },
+                                  new GradientAlphaKey[] { new GradientAlphaKey(1.0f, 0.0f), new GradientAlphaKey(0.5f, 0.1f), new GradientAlphaKey(1.0f, 1.0f) });
             elements = null;
         }
 
