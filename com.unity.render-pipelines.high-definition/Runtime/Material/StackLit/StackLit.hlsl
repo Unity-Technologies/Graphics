@@ -4093,7 +4093,7 @@ DirectLighting EvaluateBSDF_Rect(   LightLoopContext lightLoopContext,
                 {
                     // Compute the cookie data for the specular term
                     float3 formFactorS =  PolygonFormFactor(LS);
-                    ltcValue *= SampleAreaLightCookie(lightData.cookieScaleOffset, LS, formFactorS);
+                    ltcValue *= SampleAreaLightCookie(lightData.cookieScaleOffset, LS, formFactorS, bsdfData.perceptualRoughnessA);
                 }
 
                 lighting.specular += preLightData.energyCompensationFactor[BASE_LOBEB_IDX] * preLightData.specularFGD[BASE_LOBEB_IDX] * ltcValue;
