@@ -6,13 +6,27 @@ This page contains an overview of new features, improvements, and issues resolve
 
 The following is a list of features Unity added to version 12 of the High Definition Render Pipeline, embedded in Unity 2021.2. Each entry includes a summary of the feature and a link to any relevant documentation.
 
+### Render the Emissive contribution of a Lit Deferred Material in a separate forward pass.
+
+From HDRP 12.0, you can render the Emissive contribution of a Lit Material in a separate pass when the Lit Shader Mode is set to Both or Deferred in the HDRP settings. You can do this instead of using the GBuffer pass.
+This can be used to fix artefacts when using [Screen Space Global Illumination](Override-Screen-Space-GI.md) - With or without Raytracing enabled - and Emissive Material with Lit Shader Mode setup as Both or Deferred. Previously it Emissive contributoin was drop, now it is keep. Same usage for the new Adaptive probe volumes.
+Limitation: When Unity performs a separate pass for the Emissive contribution, it also performs an additional DrawCall. This means it uses more resources on your CPU.
+Group of Materials / GameObject can be setup to use Force Emissive forward with the script "Edit/Render Pipeline/HD Render Pipeline/Force Forward Emissive on Material/Enable In Selection".
 
 
 ## Improvements
 
-### AOV API Improvements
+### Dynamic Resolution Scale
+This version of HDRP introduces multiple improvements to Dynamic Resolution Scaling:
+- The exposure and pixel to pixel quality now match between the software and hardware modes.
+- The rendering artifact that caused black edges to appear on screen when in hardware mode no longer occurs.
+- The rendering artifacts that appeared when using the Lanczos filter in software mode no longer occur.
+- Hardware mode now utilizes the Contrast Adaptive Sharpening filter to prevent the results from looking too pixelated. This uses FidelityFX (CAS) AMD™. For information about FidelityFX and Contrast Adaptive Sharpening, see [AMD FidelityFX](https://www.amd.com/en/technologies/radeon-software-fidelityfx).
 
-From HDRP 12.0, The AOV API includes the following improvements
+
+### AOV API
+
+From HDRP 12.0, The AOV API includes the following improvements:
 - It is now possible to override the render buffer format that is used internally by HDRP when rendering **AOVs**. This can be done by a call to aovRequest.SetOverrideRenderFormat(true);
 - There is now a world space position output buffer (see DebugFullScreen.WorldSpacePosition).
 - The MaterialSharedProperty.Specular output now includes sensible information even for materials that use the metallic workflow (by converting the metallic parameter to fresnel 0).

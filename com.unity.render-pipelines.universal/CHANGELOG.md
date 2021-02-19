@@ -36,6 +36,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed wrong shader / properties assignement to materials created from 3DsMax 2021 Physical Material. (case 1293576)
 - Normalized the view direction in Shader Graph to be consistent across Scriptable Render Pieplines.
 - Fixed material upgrader to run in batch mode [case 1305402]
+- Fixed gizmos drawing in game view. [case 1302504](https://issuetracker.unity3d.com/issues/urp-handles-with-set-ztest-do-not-respect-depth-sorting-in-the-game-view)
 - Fixed an issue in shaderGraph target where the ShaderPass.hlsl was being included after SHADERPASS was defined
 - Fixed an issue where Particle Lit shader had an incorrect fallback shader [case 1312459]
 - Fixed an issue with backbuffer MSAA on Vulkan desktop platforms.
