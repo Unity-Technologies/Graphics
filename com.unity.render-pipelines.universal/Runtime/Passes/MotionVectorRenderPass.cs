@@ -10,17 +10,20 @@ namespace kTools.Motion
     {
 #region Fields
         const string kCameraShader = "Hidden/kMotion/CameraMotionVectors";
+        const string kObjectShader = "Hidden/kMotion/ObjectMotionVectors";
         const string kPreviousViewProjectionMatrix = "_PrevViewProjMatrix";
         const string kMotionVectorTexture = "_MotionVectorTexture";
       //  const string kProfilingTag = "Motion Vectors";
 
         static readonly string[] s_ShaderTags = new string[]
         {
-            "MotionVectors"
+            "MotionVectors",
+            "MotionVectorsOnlyTransformMoved"
         };
 
         RenderTargetHandle m_MotionVectorHandle;
         Material m_CameraMaterial;
+        Material m_ObjectMaterial;
         MotionData m_MotionData;
 #endregion
 
@@ -38,6 +41,7 @@ namespace kTools.Motion
             // Set data
             m_MotionData = motionData;
             m_CameraMaterial = new Material(Shader.Find(kCameraShader));
+            m_ObjectMaterial = new Material(Shader.Find(kObjectShader));
         }
 
         public override void Configure(CommandBuffer cmd, RenderTextureDescriptor cameraTextureDescriptor)
@@ -104,6 +108,9 @@ namespace kTools.Motion
             {
                 drawingSettings.SetShaderPassName(i, new ShaderTagId(s_ShaderTags[i]));
             }
+
+            // Material
+            drawingSettings.fallbackMaterial = m_ObjectMaterial;
             return drawingSettings;
         }
 
