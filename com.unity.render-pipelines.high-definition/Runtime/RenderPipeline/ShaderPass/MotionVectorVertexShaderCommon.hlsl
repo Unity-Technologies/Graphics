@@ -116,7 +116,7 @@ PackedVaryingsType MotionVectorVS(inout VaryingsType varyingsType, AttributesMes
 #if defined(HAVE_MESH_MODIFICATION)
         AttributesMesh previousMesh = inputMesh;
         previousMesh.positionOS = effectivePositionOS;
-    
+
         previousMesh = ApplyMeshModification(previousMesh, _LastTimeParameters.xyz
     #if defined(USE_CUSTOMINTERP_APPLYMESHMOD)
             , varyingsType.vmesh
