@@ -8,6 +8,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ### Added
   - Stereo Eye Index, Instance ID, and Vertex ID nodes added to the shadergraph library.
+  - Added information about selecting and unselecting items to the Blackboard article. 
 
 ### Changed
 - Change Asset/Create/Shader/Blank Shader Graph to Asset/Create/Shader Graph/Blank Shader Graph
