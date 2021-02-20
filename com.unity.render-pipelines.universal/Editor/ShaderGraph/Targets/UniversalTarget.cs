@@ -369,6 +369,32 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
             customInterpolators = CoreCustomInterpDescriptors.Common
         };
 
+        public static readonly PassDescriptor MotionVectors = new PassDescriptor()
+        {
+            // Definition
+            displayName = "MotionVectors",
+            referenceName = "SHADERPASS_MOTIONVECTORS",
+            lightMode = "MotionVectors",
+            useInPreview = true,
+
+            // Template
+            passTemplatePath = UniversalTarget.kTemplatePath,
+            sharedTemplateDirectories = UniversalTarget.kSharedTemplateDirectories,
+
+            // Port Mask
+            validVertexBlocks = CoreBlockMasks.Vertex,
+            validPixelBlocks = CoreBlockMasks.FragmentAlphaOnly,
+
+            // Fields
+            structs = CoreStructCollections.Default,
+            fieldDependencies = CoreFieldDependencies.Default,
+
+            // Conditional State
+            renderStates = CoreRenderStates.DepthOnly,
+            pragmas = CorePragmas.Instanced,
+            includes = CoreIncludes.DepthOnly,
+        };
+
         public static readonly PassDescriptor ShadowCaster = new PassDescriptor()
         {
             // Definition

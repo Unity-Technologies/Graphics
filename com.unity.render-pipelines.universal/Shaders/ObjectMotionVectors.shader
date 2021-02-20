@@ -5,7 +5,7 @@
         Pass
         {
             // Lightmode tag required setup motion vector parameters by C++ (legacy Unity)
-            Tags{ "LightMode" = "MotionVectors" }
+            Tags{ "LightMode" = "MotionVectorsOnlyTransformMoved" }
 
             HLSLPROGRAM
             // Required to compile gles 2.0 with standard srp library
@@ -26,7 +26,7 @@
 
             // -------------------------------------
             // Inputs
-            
+
             CBUFFER_START(UnityPerMaterial)
             float4x4 unity_MatrixPreviousM;
 
@@ -73,7 +73,7 @@
                 #else
                     output.positionCS.z += unity_MotionVectorsParams.z * output.positionCS.w;
                 #endif
-                
+
                 output.positionVP = mul(UNITY_MATRIX_VP, mul(UNITY_MATRIX_M, input.position));
                 output.previousPositionVP = mul(_PrevViewProjMatrix, mul(unity_MatrixPreviousM, unity_MotionVectorsParams.x == 1 ? float4(input.positionOld, 1) : input.position));
                 return output;
@@ -92,7 +92,7 @@
                 {
                     return float4(0.0, 0.0, 0.0, 0.0);
                 }
-                
+
                 // Calculate positions
                 input.positionVP.xy = input.positionVP.xy / input.positionVP.w;
                 input.previousPositionVP.xy = input.previousPositionVP.xy / input.previousPositionVP.w;

@@ -130,6 +130,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
                 passes = new PassCollection
                 {
                     { UnlitPasses.Unlit },
+                    { CorePasses.MotionVectors },
                     { CorePasses.ShadowCaster },
                     { CorePasses.DepthOnly },
                 },
@@ -141,11 +142,13 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
                 {
                     var unlit = UnlitPasses.Unlit;
                     var shadowCaster = CorePasses.ShadowCaster;
+                    var motionVectors = CorePasses.MotionVectors;
                     var depthOnly = CorePasses.DepthOnly;
 
                     unlit.pragmas = CorePragmas.DOTSForward;
                     shadowCaster.pragmas = CorePragmas.DOTSInstanced;
                     depthOnly.pragmas = CorePragmas.DOTSInstanced;
+                    motionVectors.pragmas = CorePragmas.DOTSInstanced;
 
                     return new SubShaderDescriptor()
                     {
@@ -157,6 +160,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
                             { unlit },
                             { shadowCaster },
                             { depthOnly },
+                            { motionVectors },
                         },
                     };
                 }
