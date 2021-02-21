@@ -29,6 +29,8 @@ namespace Tests
                 yield return new TestCaseData(BuildTarget.WebGL);
                 yield return new TestCaseData(BuildTarget.WSAPlayer);
                 yield return new TestCaseData(BuildTarget.XboxOne);
+                yield return new TestCaseData(BuildTarget.GameCoreXboxOne);
+                yield return new TestCaseData(BuildTarget.GameCoreXboxSeries);
             }
         }
 
@@ -52,6 +54,8 @@ namespace Tests
                 case BuildTarget.Switch:
                 case BuildTarget.WSAPlayer:
                 case BuildTarget.XboxOne:
+                case BuildTarget.GameCoreXboxOne:
+                case BuildTarget.GameCoreXboxSeries:
                     return true;
             }
             throw new System.ArgumentException("Unhandled BuildTarget case '" + buildTarget.ToString() + "'", nameof(buildTarget));

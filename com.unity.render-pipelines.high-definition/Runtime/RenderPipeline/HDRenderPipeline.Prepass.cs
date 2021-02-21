@@ -261,7 +261,10 @@ namespace UnityEngine.Rendering.HighDefinition
                 bool mip1FromDownsampleForLowResTrans = SystemInfo.graphicsDeviceType == GraphicsDeviceType.PlayStation4 ||
                     SystemInfo.graphicsDeviceType == GraphicsDeviceType.PlayStation5 ||
                     SystemInfo.graphicsDeviceType == GraphicsDeviceType.XboxOne ||
-                    SystemInfo.graphicsDeviceType == GraphicsDeviceType.XboxOneD3D12;
+                    SystemInfo.graphicsDeviceType == GraphicsDeviceType.XboxOneD3D12 ||
+                    SystemInfo.graphicsDeviceType == GraphicsDeviceType.GameCoreXboxOne ||
+                    SystemInfo.graphicsDeviceType == GraphicsDeviceType.GameCoreXboxSeries;
+
                 mip1FromDownsampleForLowResTrans = mip1FromDownsampleForLowResTrans && hdCamera.frameSettings.IsEnabled(FrameSettingsField.LowResTransparent);
 
                 DownsampleDepthForLowResTransparency(renderGraph, hdCamera, mip1FromDownsampleForLowResTrans, ref result);
@@ -815,7 +818,9 @@ namespace UnityEngine.Rendering.HighDefinition
             bool canReadBoundDepthBuffer = SystemInfo.graphicsDeviceType == GraphicsDeviceType.PlayStation4 ||
                 SystemInfo.graphicsDeviceType == GraphicsDeviceType.PlayStation5 ||
                 SystemInfo.graphicsDeviceType == GraphicsDeviceType.XboxOne ||
-                SystemInfo.graphicsDeviceType == GraphicsDeviceType.XboxOneD3D12;
+                SystemInfo.graphicsDeviceType == GraphicsDeviceType.XboxOneD3D12 ||
+                SystemInfo.graphicsDeviceType == GraphicsDeviceType.GameCoreXboxOne ||
+                SystemInfo.graphicsDeviceType == GraphicsDeviceType.GameCoreXboxSeries;
 
             if (!canReadBoundDepthBuffer)
             {

@@ -6,6 +6,9 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ## [10.4.0] - 2020-01-26
 
+### Added
+- Added support for XboxSeries platform.
+
 ### Fixed
 - Fixed model import by adding additional data if needed.
 - Fixed an exception when opening the color picker in the material UI (case 1307143).
