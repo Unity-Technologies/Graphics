@@ -387,7 +387,7 @@ Shader "Universal Render Pipeline/Simple Lit"
             #pragma fragment ShadowPassFragment
 
             #include "Packages/com.unity.render-pipelines.universal/Shaders/SimpleLitInput.hlsl"
-            #include "Packages/com.unity.render-pipelines.universal/Shaders/ShadowCasterPass.hlsl"
+            #include "Packages/com.unity.render-pipelines.universal/Shaders/ShadowCasterPass.hlsl" 
             ENDHLSL
         }
 
