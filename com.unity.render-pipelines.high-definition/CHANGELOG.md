@@ -7,6 +7,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 ## [12.0.0] - 2021-01-11
 
 ### Added
+- Added support for XboxSeries platform.
 - Added pivot point manipulation for Decals (inspector and edit mode).
 - Added UV manipulation for Decals (edit mode).
 - Added color and intensity customization for Decals.
