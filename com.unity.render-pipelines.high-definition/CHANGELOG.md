@@ -22,6 +22,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Added color and intensity customization for Decals.
 - New function in GeometryTools.hlsl to calculate triangle edge and full triangle culling.
 - Added support for the PlayStation 5 platform.
+- Added support the XboxSeries platform.
 
 ### Fixed
 - Fixed probe volumes debug views.
