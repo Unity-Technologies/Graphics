@@ -4,18 +4,19 @@ All notable changes to this package are documented in this file.
 The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.html).
 
-## [10.5.0] -
+## [10.5.0] - 2021-02-20
 
 ### Fixed
+- Fixed an issue where the exposed checkbox was removed from keyword inspectors [1312779] (https://issuetracker.unity3d.com/issues/shader-graph-exposed-parameter-for-keywords-removed-by-accident)
 - Fixed issue with SRP Batcher compatibility [1307728] (https://issuetracker.unity3d.com/issues/srp-batcher-on-the-shader-graph-with-hdrp-and-universal-targets-is-not-compatible-when-hdrp-package-was-installed-after-urp)
 - Fixed issue with Hybrid renderer compatibility [1296776]
 
-## [10.4.0] - 2020-01-26
+## [10.4.0] - 2021-01-27
 
 Version Updated
 The version number for this package has increased due to a version update of a related graphics package.
 
-## [10.3.1] - 2020-01-26
+## [10.3.1] - 2021-01-26
 
 Version Updated
 The version number for this package has increased due to a version update of a related graphics package.

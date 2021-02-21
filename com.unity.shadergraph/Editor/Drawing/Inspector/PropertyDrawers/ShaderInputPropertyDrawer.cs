@@ -1065,6 +1065,8 @@ namespace UnityEditor.ShaderGraph.Drawing.Inspector.PropertyDrawers
                     BuildEnumKeywordField(propertySheet, keyword);
                     break;
             }
+
+            BuildExposedField(propertySheet);
         }
 
         void BuildBooleanKeywordField(PropertySheet propertySheet, ShaderKeyword keyword)
