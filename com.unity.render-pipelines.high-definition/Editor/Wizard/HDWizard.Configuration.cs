@@ -456,18 +456,18 @@ namespace UnityEditor.Rendering.HighDefinition
         }
 
         bool IsDefaultVolumeProfileAssigned()
-            => IsHdrpAssetUsedCorrect() && HDRenderPipelineGlobalSettings.instance.IsVolumeProfileFromResources();
+            => IsHdrpAssetUsedCorrect() && HDRenderPipelineGlobalSettings.instance.volumeProfile != null;
 
         void FixDefaultVolumeProfileAssigned(bool fromAsyncUnused)
         {
             if (!IsHdrpAssetUsedCorrect())
                 FixHdrpAssetUsed(fromAsync: false);
 
-            var hdrpAsset = HDRenderPipeline.currentAsset;
-            if (hdrpAsset == null)
+            var hdrpSettings = HDRenderPipelineGlobalSettings.instance;
+            if (hdrpSettings == null)
                 return;
 
-            VolumeProfile defaultSettingsVolumeProfileInPackage = HDRenderPipelineGlobalSettings.instance.renderPipelineEditorResources.defaultSettingsVolumeProfile;
+            VolumeProfile defaultSettingsVolumeProfileInPackage = hdrpSettings.renderPipelineEditorResources.defaultSettingsVolumeProfile;
             string defaultSettingsVolumeProfilePath = "Assets/" + HDProjectSettings.projectSettingsFolderPath + '/' + defaultSettingsVolumeProfileInPackage.name + ".asset";
 
             //try load one if one already exist
@@ -480,7 +480,7 @@ namespace UnityEditor.Rendering.HighDefinition
             }
             HDRenderPipelineGlobalSettings.instance.volumeProfile = defaultSettingsVolumeProfile;
 
-            EditorUtility.SetDirty(hdrpAsset);
+            EditorUtility.SetDirty(hdrpSettings);
         }
 
         #endregion
