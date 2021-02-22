@@ -766,6 +766,7 @@ namespace UnityEngine.Rendering.HighDefinition
         [SerializeField]
         internal DiffusionProfileSettings[] diffusionProfileSettingsList = new DiffusionProfileSettings[0];
 
+#if UNITY_EDITOR
         internal bool AddDiffusionProfile(DiffusionProfileSettings profile)
         {
             if (diffusionProfileSettingsList.Length < 15)
@@ -782,6 +783,8 @@ namespace UnityEngine.Rendering.HighDefinition
                 return false;
             }
         }
+
+#endif
 
         #endregion
     }
