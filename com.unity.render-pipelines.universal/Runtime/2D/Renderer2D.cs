@@ -92,7 +92,6 @@ namespace UnityEngine.Experimental.Rendering.Universal
                     || cameraData.isSceneViewCamera
                     || !cameraData.isDefaultViewport
                     || cameraData.requireSrgbConversion
-                    || !m_UseDepthStencilBuffer
                     || !cameraData.resolveFinalTarget
                     || m_Renderer2DData.useCameraSortingLayerTexture
                     || !Mathf.Approximately(cameraData.renderScale, 1.0f);
@@ -142,6 +141,14 @@ namespace UnityEngine.Experimental.Rendering.Universal
             bool ppcUsesOffscreenRT = false;
             bool ppcUpscaleRT = false;
 
+#if UNITY_EDITOR
+            // The scene view camera cannot be uninitialized or skybox when using the 2D renderer.
+            if (cameraData.cameraType == CameraType.SceneView)
+            {
+                renderingData.cameraData.camera.clearFlags = CameraClearFlags.SolidColor;
+            }
+#endif
+
             // Pixel Perfect Camera doesn't support camera stacking.
             if (cameraData.renderType == CameraRenderType.Base && lastCameraInStack)
             {
@@ -184,8 +191,8 @@ namespace UnityEngine.Experimental.Rendering.Universal
                 EnqueuePass(colorGradingLutPass);
             }
 
-            var hasValidDepth = m_CreateDepthTexture || !m_CreateColorTexture || m_UseDepthStencilBuffer;
-            m_Render2DLightingPass.Setup(hasValidDepth);
+            var needsDepth = m_CreateDepthTexture || (!m_CreateColorTexture && m_UseDepthStencilBuffer);
+            m_Render2DLightingPass.Setup(needsDepth);
             m_Render2DLightingPass.ConfigureTarget(colorTargetHandle.Identifier(), depthTargetHandle.Identifier());
             EnqueuePass(m_Render2DLightingPass);
 

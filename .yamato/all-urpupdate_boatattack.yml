@@ -17,6 +17,8 @@ PR_URPUpdate_BoatAttack_trunk:
     variables:
         UTR_VERSION: "current"
         TEST_FILTER: .*
+        BA_UPDATE_PROJECT_BRANCH: master
+        BA_UPDATE_PROJECT_REVISION: 06c67d682225354dd909728e2511ac17115b18b9
 Nightly_URPUpdate_BoatAttack_trunk:
     name: Nightly URPUpdate_BoatAttack - trunk
     dependencies:
@@ -25,6 +27,8 @@ Nightly_URPUpdate_BoatAttack_trunk:
     variables:
         UTR_VERSION: "current"
         TEST_FILTER: .*
+        BA_UPDATE_PROJECT_BRANCH: master
+        BA_UPDATE_PROJECT_REVISION: 06c67d682225354dd909728e2511ac17115b18b9
 PR_URPUpdate_BoatAttack_CUSTOM-REVISION:
     name: URPUpdate_BoatAttack PR Job - CUSTOM-REVISION
     dependencies:
@@ -36,6 +40,8 @@ PR_URPUpdate_BoatAttack_CUSTOM-REVISION:
         CUSTOM_REVISION: custom_revision_not_set
         UTR_VERSION: "current"
         TEST_FILTER: .*
+        BA_UPDATE_PROJECT_BRANCH: master
+        BA_UPDATE_PROJECT_REVISION: 06c67d682225354dd909728e2511ac17115b18b9
 Nightly_URPUpdate_BoatAttack_CUSTOM-REVISION:
     name: Nightly URPUpdate_BoatAttack - CUSTOM-REVISION
     dependencies:
@@ -45,3 +51,5 @@ Nightly_URPUpdate_BoatAttack_CUSTOM-REVISION:
         CUSTOM_REVISION: custom_revision_not_set
         UTR_VERSION: "current"
         TEST_FILTER: .*
+        BA_UPDATE_PROJECT_BRANCH: master
+        BA_UPDATE_PROJECT_REVISION: 06c67d682225354dd909728e2511ac17115b18b9
