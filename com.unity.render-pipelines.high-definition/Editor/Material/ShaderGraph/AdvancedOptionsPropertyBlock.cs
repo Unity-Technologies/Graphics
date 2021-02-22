@@ -21,7 +21,6 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
         {
             None                    = 0,
             SpecularOcclusion       = 1 << 0,
-            VFX                     = 1 << 1,
 
             StackLit                = All ^ SpecularOcclusion,
             All                     = ~0
@@ -31,7 +30,6 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
         {
             public static GUIContent overrideBakedGI = new GUIContent("Override Baked GI", "When enabled, inputs to override the current GI are exposed on the master node.");
             public static GUIContent supportLodCrossFade = new GUIContent("Support LOD CrossFade", "When enabled, allow to use the animated transition for LOD feature on this material.");
-            public static GUIContent supportVFX = new GUIContent("Support VFX Output", "TODO");
         }
 
         Features enabledFeatures;
