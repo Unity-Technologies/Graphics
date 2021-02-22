@@ -95,10 +95,11 @@ Shader "Universal Render Pipeline/2D/Sprite-Lit-Default"
 
             half4 CombinedShapeLightFragment(Varyings i) : SV_Target
             {
-                half4 main = i.color * SAMPLE_TEXTURE2D(_MainTex, sampler_MainTex, i.uv);
-                half4 mask = SAMPLE_TEXTURE2D(_MaskTex, sampler_MaskTex, i.uv);
+                const half4 main = i.color * SAMPLE_TEXTURE2D(_MainTex, sampler_MainTex, i.uv);
+                const half4 mask = SAMPLE_TEXTURE2D(_MaskTex, sampler_MaskTex, i.uv);
+                const SurfaceData2D surfaceData = CreateSurfaceData(main.rgb, main.a, mask, i.lightingUV);
 
-                return CombinedShapeLightShared(main, mask, i.lightingUV);
+                return CombinedShapeLightShared(surfaceData);
             }
             ENDHLSL
         }
@@ -158,8 +159,9 @@ Shader "Universal Render Pipeline/2D/Sprite-Lit-Default"
 
             half4 NormalsRenderingFragment(Varyings i) : SV_Target
             {
-                half4 mainTex = i.color * SAMPLE_TEXTURE2D(_MainTex, sampler_MainTex, i.uv);
-                half3 normalTS = UnpackNormal(SAMPLE_TEXTURE2D(_NormalMap, sampler_NormalMap, i.uv));
+                const half4 mainTex = i.color * SAMPLE_TEXTURE2D(_MainTex, sampler_MainTex, i.uv);
+                const half3 normalTS = UnpackNormal(SAMPLE_TEXTURE2D(_NormalMap, sampler_NormalMap, i.uv));
+
                 return NormalsRenderingShared(mainTex, normalTS, i.tangentWS.xyz, i.bitangentWS.xyz, i.normalWS.xyz);
             }
             ENDHLSL
@@ -254,6 +256,8 @@ Shader "Universal Render Pipeline/2D/Sprite-Lit-Default"
             SAMPLER(sampler_MainTex);
             TEXTURE2D(_MaskTex);
             SAMPLER(sampler_MaskTex);
+            TEXTURE2D(_NormalMap);
+            SAMPLER(sampler_NormalMap);
             half4 _MainTex_ST;
 
             #if USE_SHAPE_LIGHT_TYPE_0
@@ -289,10 +293,12 @@ Shader "Universal Render Pipeline/2D/Sprite-Lit-Default"
 
             half4 CombinedShapeLightFragment(Varyings i) : SV_Target
             {
-                half4 main = i.color * SAMPLE_TEXTURE2D(_MainTex, sampler_MainTex, i.uv);
-                half4 mask = SAMPLE_TEXTURE2D(_MaskTex, sampler_MaskTex, i.uv);
+                const half4 main = i.color * SAMPLE_TEXTURE2D(_MainTex, sampler_MainTex, i.uv);
+                const half4 mask = SAMPLE_TEXTURE2D(_MaskTex, sampler_MaskTex, i.uv);
+                const half3 normalTS = UnpackNormal(SAMPLE_TEXTURE2D(_NormalMap, sampler_NormalMap, i.uv));
+                const SurfaceData2D surfaceData = CreateSurfaceData(main.rgb, main.a, mask, normalTS, i.lightingUV);
 
-                return CombinedShapeLightShared(main, mask, i.lightingUV);
+                return CombinedShapeLightShared(surfaceData);
             }
             ENDHLSL
         }

@@ -6,25 +6,31 @@
 
 #if defined(_DEBUG_SHADER)
 
-bool CalculateDebugColor(half3 albedo, half alpha, half3 mask, half2 lightingUV, out half4 debugColor)
+bool CalculateDebugColor(in SurfaceData2D surfaceData, out half4 debugColor)
 {
     switch(_DebugMaterialMode)
     {
         case DEBUGMATERIALMODE_UNLIT:
         {
-            debugColor = half4(albedo, 1);
+            debugColor = half4(surfaceData.albedo, 1);
             return true;
         }
 
         case DEBUGMATERIALMODE_ALPHA:
         {
-            debugColor = half4(alpha, alpha, alpha, 1);
+            debugColor = half4(surfaceData.alpha, surfaceData.alpha, surfaceData.alpha, 1);
             return true;
         }
 
         case DEBUGMATERIALMODE_SPRITE_MASK:
         {
-            debugColor = half4(mask, 1);
+            debugColor = surfaceData.mask;
+            return true;
+        }
+
+        case DEBUGMATERIALMODE_NORMAL_TANGENT_SPACE:
+        {
+            debugColor = half4(surfaceData.normalTS, 1);
             return true;
         }
 
