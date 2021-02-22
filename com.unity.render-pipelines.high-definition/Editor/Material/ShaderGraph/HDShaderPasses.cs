@@ -457,6 +457,47 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
 
         #endregion
 
+        #region Forward Emissive For Deferred
+
+        public static PassDescriptor GenerateForwardEmissiveForDeferredPass()
+        {
+            return new PassDescriptor
+            {
+                // Definition
+                displayName = "ForwardEmissiveForDeferred",
+                referenceName = "SHADERPASS_FORWARD_EMISSIVE_FOR_DEFERRED",
+                lightMode = "ForwardEmissiveForDeferred",
+                useInPreview = false,
+
+                // Collections
+                requiredFields = GenerateRequiredFields(),
+                renderStates = CoreRenderStates.ForwardEmissiveForDeferred,
+                pragmas = CorePragmas.DotsInstancedInV2Only,
+                defines = CoreDefines.ForwardEmissiveForDeferred,
+                includes = GenerateIncludes(),
+
+                virtualTextureFeedback = true,
+            };
+
+            FieldCollection GenerateRequiredFields()
+            {
+                return CoreRequiredFields.LitFull;
+            }
+
+            IncludeCollection GenerateIncludes()
+            {
+                var includes = new IncludeCollection();
+                includes.Add(CoreIncludes.CorePregraph);
+                includes.Add(CoreIncludes.kPassPlaceholder, IncludeLocation.Pregraph);
+                includes.Add(CoreIncludes.CoreUtility);
+                includes.Add(CoreIncludes.kShaderGraphFunctions, IncludeLocation.Pregraph);
+                includes.Add(CoreIncludes.kPassForwardEmissiveForDeferred, IncludeLocation.Postgraph);
+                return includes;
+            }
+        }
+
+        #endregion
+
         #region Back then front pass
 
         public static PassDescriptor GenerateBackThenFront(bool supportLighting)

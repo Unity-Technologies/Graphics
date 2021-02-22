@@ -23,8 +23,8 @@ namespace UnityEditor.ShaderGraph.Drawing
 
         MaterialPropertyBlock m_SharedPreviewPropertyBlock;         // stores preview properties (shared among ALL preview nodes)
 
-        Dictionary<string, PreviewRenderData> m_RenderDatas = new Dictionary<string, PreviewRenderData>();  // stores all of the PreviewRendererData, mapped by node object ID
-        PreviewRenderData m_MasterRenderData;                                                               // cache ref to preview renderer data for the master node
+        Dictionary<AbstractMaterialNode, PreviewRenderData> m_RenderDatas = new Dictionary<AbstractMaterialNode, PreviewRenderData>();  // stores all of the PreviewRendererData, mapped by node
+        PreviewRenderData m_MasterRenderData;                                                               // ref to preview renderer data for the master node
 
         int m_MaxPreviewsCompiling = 2;                                                                     // max preview shaders we want to async compile at once
 
@@ -94,7 +94,7 @@ namespace UnityEditor.ShaderGraph.Drawing
             }
             else
             {
-                m_RenderDatas.TryGetValue(node.objectId, out result);
+                m_RenderDatas.TryGetValue(node, out result);
             }
 
             return result;
@@ -185,7 +185,7 @@ namespace UnityEditor.ShaderGraph.Drawing
             };
             renderData.shaderData = shaderData;
 
-            m_RenderDatas.Add(node.objectId, renderData);
+            m_RenderDatas.Add(node, renderData);
             node.RegisterCallback(OnNodeModified);
 
             m_PreviewsNeedsRecompile.Add(renderData);
@@ -307,21 +307,28 @@ namespace UnityEditor.ShaderGraph.Drawing
 
         public void HandleGraphChanges()
         {
-            foreach (var node in m_Graph.removedNodes)
-            {
-                DestroyPreview(node);
-                m_TopologyDirty = true;
-            }
-
-            // remove the nodes from the state trackers
-            m_NodesShaderChanged.ExceptWith(m_Graph.removedNodes);
-            m_NodesPropertyChanged.ExceptWith(m_Graph.removedNodes);
-
-            m_Messenger.ClearNodesFromProvider(this, m_Graph.removedNodes);
-
             foreach (var node in m_Graph.addedNodes)
             {
                 AddPreview(node);
+                m_TopologyDirty = true;
+            }
+
+            foreach (var edge in m_Graph.addedEdges)
+            {
+                var node = edge.inputSlot.node;
+                if (node != null)
+                {
+                    if ((node is BlockNode) || (node is SubGraphOutputNode))
+                        UpdateMasterPreview(ModificationScope.Topological);
+                    else
+                        m_NodesShaderChanged.Add(node);
+                    m_TopologyDirty = true;
+                }
+            }
+
+            foreach (var node in m_Graph.removedNodes)
+            {
+                DestroyPreview(node);
                 m_TopologyDirty = true;
             }
 
@@ -340,6 +347,7 @@ namespace UnityEditor.ShaderGraph.Drawing
 
                 m_TopologyDirty = true;
             }
+
             foreach (var edge in m_Graph.addedEdges)
             {
                 var node = edge.inputSlot.node;
@@ -354,6 +362,12 @@ namespace UnityEditor.ShaderGraph.Drawing
                     m_TopologyDirty = true;
                 }
             }
+
+            // remove the nodes from the state trackers
+            m_NodesShaderChanged.ExceptWith(m_Graph.removedNodes);
+            m_NodesPropertyChanged.ExceptWith(m_Graph.removedNodes);
+
+            m_Messenger.ClearNodesFromProvider(this, m_Graph.removedNodes);
         }
 
         private static readonly ProfilerMarker CollectPreviewPropertiesMarker = new ProfilerMarker("CollectPreviewProperties");
@@ -1196,18 +1210,16 @@ namespace UnityEditor.ShaderGraph.Drawing
 
         void DestroyPreview(AbstractMaterialNode node)
         {
-            string nodeId = node.objectId;
-
             if (node is BlockNode)
             {
                 // block nodes don't have preview render data
-                Assert.IsFalse(m_RenderDatas.ContainsKey(node.objectId));
+                Assert.IsFalse(m_RenderDatas.ContainsKey(node));
                 node.UnregisterCallback(OnNodeModified);
                 UpdateMasterPreview(ModificationScope.Topological);
                 return;
             }
 
-            if (!m_RenderDatas.TryGetValue(nodeId, out var renderData))
+            if (!m_RenderDatas.TryGetValue(node, out var renderData))
             {
                 return;
             }
@@ -1218,7 +1230,7 @@ namespace UnityEditor.ShaderGraph.Drawing
             m_TimedPreviews.Remove(renderData);
 
             DestroyRenderData(renderData);
-            m_RenderDatas.Remove(nodeId);
+            m_RenderDatas.Remove(node);
         }
 
         void ReleaseUnmanagedResources()
