@@ -50,7 +50,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
         internal RenderPipelineResources renderPipelineResources
         {
-            get { return HDRenderPipelineGlobalSettings.Ensure().renderPipelineResources; }
+            get { return defaultSettings.renderPipelineResources; }
             set { defaultSettings.renderPipelineResources = value; }
         }
 
