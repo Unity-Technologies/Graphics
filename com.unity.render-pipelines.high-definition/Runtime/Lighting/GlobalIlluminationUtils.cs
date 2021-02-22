@@ -34,7 +34,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
             float lightDimmer = 1;
 
-            if (lightMode != LightMode.Baked && add.affectDiffuse)
+            if (lightMode == LightMode.Realtime && add.affectDiffuse)
                 lightDimmer = add.lightDimmer;
 
             lightDataGI.instanceID = light.GetInstanceID();
