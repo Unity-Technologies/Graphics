@@ -40,20 +40,20 @@ From HDRP 12.0, More Options have become Additional Properties. The way to acces
 From HDRP 12.0, various top level menus are now different. This is to make the top level menus more consistent between HDRP and the Universal Render Pipeline. The top level menus this change affects are:
 
 * **Window**
-  * HD Render Pipeline Wizard is now at **Window > Rendering > HDRP Wizard**
+  * **HD Render Pipeline Wizard** is now at **Window > Rendering > HDRP Wizard**
 * **Assets**
-  * HDRP Shader Graphs are now at **Assets > Create > Shader Graph > HDRP**
-  * Custom FullScreen Pass is now at **Assets > Create > Shader > HDRP Custom FullScreen Pass**
-  * Custom Renderers Pass is now at **Assets > Create > Shader > HDRP Custom Renderers Pass**
-  * Post Process Pass is now at **Assets > Create > Shader > HDRP Post Process**
-  * High Definition Render Pipeline Asset is now at **Assets > Create > Rendering > HDRP Asset**
-  * Diffusion Profile is now at **Assets > Create > Rendering > HDRP Diffusion Profile**
-  * C# Custom Pass is now at **Assets > Create > Rendering > HDRP C# Custom Pass**
-  * C# Post Process Volume is now at **Assets > Create > Rendering > HDRP C# Post Process Volume**
+  * HDRP Shader Graphs are now in **Assets > Create > Shader Graph > HDRP**
+  * **Custom FullScreen Pass** is now at **Assets > Create > Shader > HDRP Custom FullScreen Pass**
+  * **Custom Renderers Pass** is now at **Assets > Create > Shader > HDRP Custom Renderers Pass**
+  * **Post Process Pass** is now at **Assets > Create > Shader > HDRP Post Process**
+  * **High Definition Render Pipeline Asset** is now at **Assets > Create > Rendering > HDRP Asset**
+  * **Diffusion Profile** is now at **Assets > Create > Rendering > HDRP Diffusion Profile**
+  * **C# Custom Pass** is now at **Assets > Create > Rendering > HDRP C# Custom Pass**
+  * **C# Post Process Volume** is now at **Assets > Create > Rendering > HDRP C# Post Process Volume**
 * **GameObject**
-  * Density Volume is now at **GameObject > Volume > Density Volume**
-  * Decal Projector is now at **GameObject > Decal Projector**
-  * Sky and Fog Volume is now at **GameObject > Volume > Sky and Fog Global Volume**
+  * **Density Volume** is now at **GameObject > Volume > Density Volume**
+  * **Decal Projector** is now at **GameObject > Decal Projector**
+  * **Sky and Fog Volume** is now at **GameObject > Volume > Sky and Fog Global Volume**
 
 ## Issues resolved
 
