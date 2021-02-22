@@ -3,9 +3,10 @@ using System.Linq;
 using System.Reflection;
 using UnityEngine;
 
-namespace UnityEditor.Rendering.HighDefinition
+namespace UnityEditor.Rendering
 {
-    class DisplacableRectHandles
+    // TODO : was not public before
+    public class DisplacableRectHandles
     {
         const float k_HandleSizeCoef = 0.05f;
 

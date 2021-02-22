@@ -5,54 +5,21 @@ using UnityEditor.ShortcutManagement;
 using UnityEngine;
 using UnityEngine.Rendering.HighDefinition;
 using static UnityEditorInternal.EditMode;
+using UnityEditor.Rendering;
 
 namespace UnityEditor.Rendering.HighDefinition
 {
     [CustomEditor(typeof(DecalProjector))]
     [CanEditMultipleObjects]
-    partial class DecalProjectorEditor : Editor
+    partial class DecalProjectorEditor : DecalEditorBase
     {
         const float k_Limit = 100000;
         const float k_LimitInv = 1 / k_Limit;
 
-        static Color fullColor
-        {
-            get
-            {
-                Color c = s_LastColor;
-                c.a = 1;
-                return c;
-            }
-        }
-        static Color s_LastColor;
-        static void UpdateColorsInHandlesIfRequired()
-        {
-            Color c = HDRenderPipelinePreferences.decalGizmoColor;
-            if (c != s_LastColor)
-            {
-                if (s_BoxHandle != null && !s_BoxHandle.Equals(null))
-                    s_BoxHandle = null;
 
-                if (s_uvHandles != null && !s_uvHandles.Equals(null))
-                    s_uvHandles.baseColor = c;
-
-                s_LastColor = c;
-            }
-        }
-
-        MaterialEditor m_MaterialEditor = null;
-        SerializedProperty m_MaterialProperty;
         SerializedProperty m_DrawDistanceProperty;
         SerializedProperty m_FadeScaleProperty;
-        SerializedProperty m_StartAngleFadeProperty;
-        SerializedProperty m_EndAngleFadeProperty;
-        SerializedProperty m_UVScaleProperty;
-        SerializedProperty m_UVBiasProperty;
         SerializedProperty m_AffectsTransparencyProperty;
-        SerializedProperty m_Size;
-        SerializedProperty[] m_SizeValues;
-        SerializedProperty m_Offset;
-        SerializedProperty[] m_OffsetValues;
         SerializedProperty m_FadeFactor;
         SerializedProperty m_DecalLayerMask;
 
@@ -96,139 +63,16 @@ namespace UnityEditor.Rendering.HighDefinition
             }
         }
 
-        static HierarchicalBox s_BoxHandle;
-        static HierarchicalBox boxHandle
+        protected override void OnEnable()
         {
-            get
-            {
-                if (s_BoxHandle == null || s_BoxHandle.Equals(null))
-                {
-                    Color c = fullColor;
-                    s_BoxHandle = new HierarchicalBox(s_LastColor, new[] { c, c, c, c, c, c });
-                    s_BoxHandle.SetBaseColor(s_LastColor);
-                    s_BoxHandle.monoHandle = false;
-                }
-                return s_BoxHandle;
-            }
-        }
+            base.OnEnable();
 
-        static DisplacableRectHandles s_uvHandles;
-        static DisplacableRectHandles uvHandles
-        {
-            get
-            {
-                if (s_uvHandles == null || s_uvHandles.Equals(null))
-                    s_uvHandles = new DisplacableRectHandles(s_LastColor);
-                return s_uvHandles;
-            }
-        }
-
-        static readonly BoxBoundsHandle s_AreaLightHandle =
-            new BoxBoundsHandle { axes = PrimitiveBoundsHandle.Axes.X | PrimitiveBoundsHandle.Axes.Y };
-
-        const SceneViewEditMode k_EditShapeWithoutPreservingUV = (SceneViewEditMode)90;
-        const SceneViewEditMode k_EditShapePreservingUV = (SceneViewEditMode)91;
-        const SceneViewEditMode k_EditUVAndPivot = (SceneViewEditMode)92;
-        static readonly SceneViewEditMode[] k_EditVolumeModes = new SceneViewEditMode[]
-        {
-            k_EditShapeWithoutPreservingUV,
-            k_EditShapePreservingUV
-        };
-        static readonly SceneViewEditMode[] k_EditUVAndPivotModes = new SceneViewEditMode[]
-        {
-            k_EditUVAndPivot
-        };
-
-        static Func<Vector3, Quaternion, Vector3> s_DrawPivotHandle;
-
-        static GUIContent[] k_EditVolumeLabels = null;
-        static GUIContent[] editVolumeLabels => k_EditVolumeLabels ?? (k_EditVolumeLabels = new GUIContent[]
-        {
-            EditorGUIUtility.TrIconContent("d_ScaleTool", k_EditShapeWithoutPreservingUVTooltip),
-            EditorGUIUtility.TrIconContent("d_RectTool", k_EditShapePreservingUVTooltip)
-        });
-        static GUIContent[] k_EditPivotLabels = null;
-        static GUIContent[] editPivotLabels => k_EditPivotLabels ?? (k_EditPivotLabels = new GUIContent[]
-        {
-            EditorGUIUtility.TrIconContent("d_MoveTool", k_EditUVTooltip)
-        });
-
-        static List<DecalProjectorEditor> s_Instances = new List<DecalProjectorEditor>();
-
-        static DecalProjectorEditor FindEditorFromSelection()
-        {
-            GameObject[] selection = Selection.gameObjects;
-            DecalProjector[] selectionTargets = Selection.GetFiltered<DecalProjector>(SelectionMode.Unfiltered);
-
-            foreach (DecalProjectorEditor editor in s_Instances)
-            {
-                if (selectionTargets.Length != editor.targets.Length)
-                    continue;
-                bool allOk = true;
-                foreach (DecalProjector selectionTarget in selectionTargets)
-                    if (!Array.Find(editor.targets, t => t == selectionTarget))
-                    {
-                        allOk = false;
-                        break;
-                    }
-                if (!allOk)
-                    continue;
-                return editor;
-            }
-            return null;
-        }
-
-        private void OnEnable()
-        {
-            s_Instances.Add(this);
-
-            // Create an instance of the MaterialEditor
-            UpdateMaterialEditor();
-            foreach (var decalProjector in targets)
-            {
-                (decalProjector as DecalProjector).OnMaterialChange += RequireUpdateMaterialEditor;
-            }
-
-            // Fetch serialized properties
-            m_MaterialProperty = serializedObject.FindProperty("m_Material");
             m_DrawDistanceProperty = serializedObject.FindProperty("m_DrawDistance");
             m_FadeScaleProperty = serializedObject.FindProperty("m_FadeScale");
-            m_StartAngleFadeProperty = serializedObject.FindProperty("m_StartAngleFade");
-            m_EndAngleFadeProperty = serializedObject.FindProperty("m_EndAngleFade");
-            m_UVScaleProperty = serializedObject.FindProperty("m_UVScale");
-            m_UVBiasProperty = serializedObject.FindProperty("m_UVBias");
             m_AffectsTransparencyProperty = serializedObject.FindProperty("m_AffectsTransparency");
-            m_Size = serializedObject.FindProperty("m_Size");
-            m_SizeValues = new[]
-            {
-                m_Size.FindPropertyRelative("x"),
-                m_Size.FindPropertyRelative("y"),
-                m_Size.FindPropertyRelative("z"),
-            };
-            m_Offset = serializedObject.FindProperty("m_Offset");
-            m_OffsetValues = new[]
-            {
-                m_Offset.FindPropertyRelative("x"),
-                m_Offset.FindPropertyRelative("y"),
-                m_Offset.FindPropertyRelative("z"),
-            };
             m_FadeFactor = serializedObject.FindProperty("m_FadeFactor");
             m_DecalLayerMask = serializedObject.FindProperty("m_DecalLayerMask");
         }
-
-        private void OnDisable()
-        {
-            foreach (DecalProjector decalProjector in targets)
-            {
-                if (decalProjector != null)
-                    decalProjector.OnMaterialChange -= RequireUpdateMaterialEditor;
-            }
-
-            s_Instances.Remove(this);
-        }
-
-        private void OnDestroy() =>
-            DestroyImmediate(m_MaterialEditor);
 
         public bool HasFrameBounds()
         {
@@ -240,32 +84,6 @@ namespace UnityEditor.Rendering.HighDefinition
             DecalProjector decalProjector = target as DecalProjector;
 
             return new Bounds(decalProjector.transform.position, boxHandle.size);
-        }
-
-        private bool m_RequireUpdateMaterialEditor = false;
-
-        private void RequireUpdateMaterialEditor() => m_RequireUpdateMaterialEditor = true;
-
-        public void UpdateMaterialEditor()
-        {
-            int validMaterialsCount = 0;
-            for (int index = 0; index < targets.Length; ++index)
-            {
-                DecalProjector decalProjector = (targets[index] as DecalProjector);
-                if ((decalProjector != null) && (decalProjector.material != null))
-                    validMaterialsCount++;
-            }
-            // Update material editor with the new material
-            UnityEngine.Object[] materials = new UnityEngine.Object[validMaterialsCount];
-            validMaterialsCount = 0;
-            for (int index = 0; index < targets.Length; ++index)
-            {
-                DecalProjector decalProjector = (targets[index] as DecalProjector);
-
-                if ((decalProjector != null) && (decalProjector.material != null))
-                    materials[validMaterialsCount++] = (targets[index] as DecalProjector).material;
-            }
-            m_MaterialEditor = (MaterialEditor)CreateEditor(materials);
         }
 
         void OnSceneGUI()
@@ -441,42 +259,20 @@ namespace UnityEditor.Rendering.HighDefinition
             }
         }
 
-        static Func<Bounds> GetBoundsGetter(DecalProjector decalProjector)
-        {
-            return () =>
-            {
-                var bounds = new Bounds();
-                var decalTransform = decalProjector.transform;
-                bounds.Encapsulate(decalTransform.position);
-                return bounds;
-            };
-        }
-
-        void UpdateSize(int axe, float newSize, float oldSize)
-        {
-            m_SizeValues[axe].floatValue = newSize;
-            if (oldSize > Mathf.Epsilon)
-                m_OffsetValues[axe].floatValue *= newSize / oldSize;
-        }
-
         public override void OnInspectorGUI()
         {
-            serializedObject.Update();
-
-            if (m_RequireUpdateMaterialEditor)
-            {
-                UpdateMaterialEditor();
-                m_RequireUpdateMaterialEditor = false;
-            }
+            base.OnInspectorGUI();
 
             EditorGUI.BeginChangeCheck();
             {
+                /*
                 EditorGUILayout.BeginHorizontal();
                 GUILayout.FlexibleSpace();
                 DoInspectorToolbar(k_EditVolumeModes, editVolumeLabels, GetBoundsGetter(target as DecalProjector), this);
                 DoInspectorToolbar(k_EditUVAndPivotModes, editPivotLabels, GetBoundsGetter(target as DecalProjector), this);
                 GUILayout.FlexibleSpace();
                 EditorGUILayout.EndHorizontal();
+
 
                 EditorGUILayout.Space();
 
@@ -506,6 +302,9 @@ namespace UnityEditor.Rendering.HighDefinition
 
                 EditorGUILayout.PropertyField(m_MaterialProperty, k_MaterialContent);
 
+                */
+
+                // HDRP Specific
                 bool decalLayerEnabled = false;
                 HDRenderPipelineAsset hdrp = HDRenderPipeline.currentAsset;
                 if (hdrp != null)
@@ -541,9 +340,6 @@ namespace UnityEditor.Rendering.HighDefinition
                     EditorGUILayout.HelpBox("Enable 'Decal Layers' in your HDRP Asset if you want to control the Angle Fade. There is a performance cost of enabling this option.",
                         MessageType.Info);
                 }
-
-                EditorGUILayout.PropertyField(m_UVScaleProperty, k_UVScaleContent);
-                EditorGUILayout.PropertyField(m_UVBiasProperty, k_UVBiasContent);
                 EditorGUILayout.PropertyField(m_FadeFactor, k_FadeFactorContent);
 
                 // only display the affects transparent property if material is HDRP/decal
