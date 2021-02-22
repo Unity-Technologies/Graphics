@@ -14,6 +14,9 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Change Asset/Create/Shader/Sub Graph to Asset/Create/Shader Graph/Sub Graph
 - Change Asset/Create/Shader/VFX Shader Graph to Asset/Create/Shader Graph/VFX Shader Graph
 
+### Added
+- Support for the XboxSeries platform has been added.
+
 ### Fixed
 - Fixed the Custom Editor GUI field in the Graph settings that was ignored.
 - Node included HLSL files are now tracked more robustly, so they work after file moves and renames [1301915] (https://issuetracker.unity3d.com/product/unity/issues/guid/1301915/)
