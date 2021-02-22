@@ -167,14 +167,15 @@ namespace UnityEditor.VFX
             if (cause == InvalidationCause.kStructureChanged ||
                 cause == InvalidationCause.kConnectionChanged ||
                 cause == InvalidationCause.kExpressionInvalidated ||
-                cause == InvalidationCause.kSettingChanged)
+                cause == InvalidationCause.kSettingChanged ||
+                cause == InvalidationCause.kEnableChanged)
             {
                 if (hasBeenCompiled || CanBeCompiled())
                 {
                     bool skip = false;
 
                     // Check if the invalidation comes from a disable block and in that case don't recompile
-                    if (cause != InvalidationCause.kStructureChanged) // don't do it for structure changed event
+                    if (cause != InvalidationCause.kEnableChanged)
                     {
                         VFXBlock block = null;
                         if (model is VFXBlock)
