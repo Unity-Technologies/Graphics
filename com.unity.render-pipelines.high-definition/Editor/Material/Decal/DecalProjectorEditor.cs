@@ -336,6 +336,8 @@ namespace UnityEditor.Rendering.HighDefinition
 
                     decalProjector.pivot += Quaternion.Inverse(decalProjector.transform.rotation) * (decalProjector.transform.position - newPosition);
                     decalProjector.transform.position = newPosition;
+
+                    ResetSavedRatioSizePivotPosition();
                 }
             }
         }
@@ -452,11 +454,24 @@ namespace UnityEditor.Rendering.HighDefinition
             };
         }
 
+        // Temporarilly save ratio beetwin size and pivot position while editing in inspector.
+        // NaN is used to say that there is no saved ratio.
+        // Aim is to keep propotion while sliding the value to 0 in Inspector and then go back to something else.
+        // Current solution only work for the life of this editor, but is enough in most case.
+        // Wich means if you go to there, selection something else and go back on it, pivot position is thus null.
+        float[] ratioSizePivotPositionSaved = new float[3] {float.NaN, float.NaN, float.NaN};
+
+        void ResetSavedRatioSizePivotPosition()
+            => ratioSizePivotPositionSaved = new float[3] {float.NaN, float.NaN, float.NaN};
+
         void UpdateSize(int axe, float newSize, float oldSize)
         {
+            // Save old ratio if not registered
+            if (float.IsNaN(ratioSizePivotPositionSaved[axe]))
+                ratioSizePivotPositionSaved[axe] = Mathf.Abs(oldSize) <= Mathf.Epsilon ? 0f : m_OffsetValues[axe].floatValue / oldSize;
+
             m_SizeValues[axe].floatValue = newSize;
-            if (oldSize > Mathf.Epsilon)
-                m_OffsetValues[axe].floatValue *= newSize / oldSize;
+            m_OffsetValues[axe].floatValue = ratioSizePivotPositionSaved[axe] * newSize;
         }
 
         public override void OnInspectorGUI()
@@ -502,7 +517,10 @@ namespace UnityEditor.Rendering.HighDefinition
                     UpdateSize(2, Mathf.Max(0, m_SizeValues[2].floatValue), oldSizeZ);
                 }
 
+                EditorGUI.BeginChangeCheck();
                 EditorGUILayout.PropertyField(m_Offset, k_Offset);
+                if (EditorGUI.EndChangeCheck())
+                    ResetSavedRatioSizePivotPosition();
 
                 EditorGUILayout.PropertyField(m_MaterialProperty, k_MaterialContent);
 
