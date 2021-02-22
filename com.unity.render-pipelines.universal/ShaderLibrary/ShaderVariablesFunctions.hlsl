@@ -232,7 +232,7 @@ float ComputeFogIntensity(float fogFactor)
 half3 MixFogColor(half3 fragColor, half3 fogColor, half fogFactor)
 {
     #if defined(FOG_LINEAR) || defined(FOG_EXP) || defined(FOG_EXP2)
-        real fogIntensity = ComputeFogIntensity(fogFactor);
+        half fogIntensity = ComputeFogIntensity(fogFactor);
         fragColor = lerp(fogColor, fragColor, fogIntensity);
     #endif
     return fragColor;
@@ -241,7 +241,7 @@ half3 MixFogColor(half3 fragColor, half3 fogColor, half fogFactor)
 float3 MixFogColor(float3 fragColor, float3 fogColor, float fogFactor)
 {
     #if defined(FOG_LINEAR) || defined(FOG_EXP) || defined(FOG_EXP2)
-        real fogIntensity = ComputeFogIntensity(fogFactor);
+        float fogIntensity = ComputeFogIntensity(fogFactor);
         fragColor = lerp(fogColor, fragColor, fogIntensity);
     #endif
     return fragColor;
