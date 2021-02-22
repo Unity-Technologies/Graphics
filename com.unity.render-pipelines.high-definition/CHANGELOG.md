@@ -35,6 +35,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed an issue with the mipmap generation internal format after rendering format change.
 - Fixed performance issue with ShaderGraph and Alpha Test
 - Fixed error when increasing the maximum planar reflection limit (case 1306530).
+- Fixed loss of persistency of ratio between pivot position and size when sliding by 0 in DecalProjector inspector (case 1308338)
 
 ### Changed
 - Changed Window/Render Pipeline/HD Render Pipeline Wizard to Window/Rendering/HDRP Wizard
