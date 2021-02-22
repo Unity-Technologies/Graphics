@@ -117,8 +117,8 @@ namespace UnityEngine.Rendering.HighDefinition
         // - If post processing is disabled, the alpha channel of the rendering passes (if any) will be passed to the frame buffer by the final pass
         // - If post processing is enabled, then post processing passes will either copy (exposure, color grading, etc) or process (DoF, TAA, etc) the alpha channel, if one exists.
         // If the user explicitly requests a color buffer without alpha for post-processing (for performance reasons) but the rendering passes have alpha, then the alpha will be copied.
-        readonly bool m_EnableAlpha;
-        readonly bool m_KeepAlpha;
+        bool m_EnableAlpha;
+        bool m_KeepAlpha;
 
         readonly bool m_UseSafePath;
         bool m_PostProcessEnabled;
@@ -177,18 +177,6 @@ namespace UnityEngine.Rendering.HighDefinition
             // Use a custom RNG, we don't want to mess with the Unity one that the users might be
             // relying on (breaks determinism in their code)
             m_Random = new System.Random();
-
-            m_ColorFormat = (GraphicsFormat)postProcessSettings.bufferFormat;
-            m_KeepAlpha = false;
-
-            // if both rendering and post-processing support an alpha channel, then post-processing will process (or copy) the alpha
-            m_EnableAlpha = hdAsset.currentPlatformRenderPipelineSettings.supportsAlpha && postProcessSettings.supportsAlpha;
-
-            if (m_EnableAlpha == false)
-            {
-                // if only rendering has an alpha channel (and not post-processing), then we just copy the alpha to the output (but we don't process it).
-                m_KeepAlpha = hdAsset.currentPlatformRenderPipelineSettings.supportsAlpha;
-            }
 
             // Setup a default exposure textures and clear it to neutral values so that the exposure
             // multiplier is 1 and thus has no effect
@@ -296,6 +284,17 @@ namespace UnityEngine.Rendering.HighDefinition
             m_DebugExposureCompensation = m_HDInstance.m_CurrentDebugDisplaySettings.data.lightingDebugSettings.debugExposure;
 
             CheckRenderTexturesValidity();
+
+            var hdAsset = (HDRenderPipeline)(RenderPipelineManager.currentPipeline);
+            var postProcessSettings = hdAsset.currentPlatformRenderPipelineSettings.postProcessSettings;
+            m_ColorFormat = (GraphicsFormat)postProcessSettings.bufferFormat;
+            m_KeepAlpha = false;
+
+            if (m_EnableAlpha == false)
+            {
+                // if only rendering has an alpha channel (and not post-processing), then we just copy the alpha to the output (but we don't process it).
+                m_KeepAlpha = hdAsset.currentPlatformRenderPipelineSettings.SupportsAlpha();
+            }
 
             // Handle fixed exposure & disabled pre-exposure by forcing an exposure multiplier of 1
             if (!m_ExposureControlFS)
