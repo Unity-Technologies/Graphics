@@ -51,16 +51,14 @@ namespace UnityEngine.Rendering.HighDefinition
     /// </summary>
     public enum CloudShadowsResolution
     {
-        /// <summary>Size 32</summary>
-        CloudShadowsResolution32 = 32,
         /// <summary>Size 64</summary>
-        CloudShadowsResolution64 = 64,
+        VeryLow = 64,
         /// <summary>Size 128</summary>
-        CloudShadowsResolution128 = 128,
+        Low = 128,
         /// <summary>Size 256</summary>
-        CloudShadowsResolution256 = 256,
+        Medium = 256,
         /// <summary>Size 512</summary>
-        CloudShadowsResolution512 = 512,
+        High = 512,
     }
 
 
@@ -104,6 +102,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
 
         /// <summary>Controls the opacity of the cloud shadows.</summary>
+        [Header("Cloud Shadows")]
         [Tooltip("Controls the opacity of the cloud shadows.")]
         public MinFloatParameter shadowMultiplier = new MinFloatParameter(1.0f, 0.0f);
         /// <summary>Controls the tint of the cloud shadows.</summary>
@@ -112,7 +111,7 @@ namespace UnityEngine.Rendering.HighDefinition
         /// <summary>Choose the resolution of the texture for the cloud shadows.</summary>
         [AdditionalProperty]
         [Tooltip("Specifies the resolution of the texture HDRP uses to represent the cloud shadows.")]
-        public CloudLayerEnumParameter<CloudShadowsResolution> shadowResolution = new CloudLayerEnumParameter<CloudShadowsResolution>(CloudShadowsResolution.CloudShadowsResolution128);
+        public CloudLayerEnumParameter<CloudShadowsResolution> shadowResolution = new CloudLayerEnumParameter<CloudShadowsResolution>(CloudShadowsResolution.Medium);
 
 
         /// <summary>
@@ -154,7 +153,6 @@ namespace UnityEngine.Rendering.HighDefinition
             [Tooltip("Distortion mode used to simulate cloud movement.")]
             public VolumeParameter<CloudDistortionMode> distortionMode = new VolumeParameter<CloudDistortionMode>();
             /// <summary>Direction of the distortion.</summary>
-            [Tooltip("Sets the rotation of the distortion (in degrees).")]
             public ClampedFloatParameter scrollDirection = new ClampedFloatParameter(0.0f, 0.0f, 360.0f);
             /// <summary>Speed of the distortion.</summary>
             [Tooltip("Sets the cloud scrolling speed. The higher the value, the faster the clouds will move.")]
