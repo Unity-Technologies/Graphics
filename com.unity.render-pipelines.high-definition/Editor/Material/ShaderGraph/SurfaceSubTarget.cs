@@ -159,7 +159,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             pass.keywords.Add(CoreKeywordDescriptors.TransparentWritesMotionVector);
             pass.keywords.Add(CoreKeywordDescriptors.FogOnTransparent);
 
-            if (pass.IsLightingOrMaterial())
+            if (pass.IsLightingOrMaterial() || pass.IsForwardEmissiveForDeferred())
                 pass.keywords.Add(CoreKeywordDescriptors.DebugDisplay);
 
             if (!pass.IsDXR())
