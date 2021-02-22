@@ -1,13 +1,13 @@
 # HDRP Global Settings Window
 
-The High Definition Render Pipeline (HDRP) adds the HDRP Default Settings tab to Unity's Graphics Settings window. You can use this tab to set up default settings for certain features in your Project. You can:
+The High Definition Render Pipeline (HDRP) adds the HDRP Settings tab to Unity's Graphics Settings window. You can use this tab to set up default settings for certain features in your Project. You can:
 
 - Assign Render Pipeline Resources Assets for your HDRP Project.
 - Set the verboseness of Shader variant information that Unity writes to the Console window when you build your Project.
 - Set up default [Frame Settings](Frame-Settings.md) for [Cameras](HDRP-Camera.md) to use.
 - Assign and edit a default [Volume Profile](Volume-Profile.md).
 
-The HDRP Default Settings tab is part of the Graphics Settings window. To get to this tab, select **Edit > Project Settings > Graphics** and then, in the sidebar, click **HDRP Settings**.
+The HDRP Settings tab is part of the Graphics Settings window. To get to this tab, select **Edit > Project Settings > Graphics** and then, in the sidebar, click **HDRP Settings**.
 
 <a name="Resources"></a>
 ## Resources
