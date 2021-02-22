@@ -22,7 +22,12 @@ namespace UnityEditor.Rendering.HighDefinition
                 settings = src;
                 var icon = CoreEditorStyles.globalSettingsIcon;
                 var assetCreator = ScriptableObject.CreateInstance<HDRenderPipelineGlobalSettingsCreator>();
-                ProjectWindowUtil.StartNameEditingIfProjectWindowExists(assetCreator.GetInstanceID(), assetCreator, $"Assets/{HDProjectSettings.projectSettingsFolderPath}/{src.name}.asset", icon, null);
+
+                if (!AssetDatabase.IsValidFolder("Assets/" + HDProjectSettings.projectSettingsFolderPath))
+                    AssetDatabase.CreateFolder("Assets", HDProjectSettings.projectSettingsFolderPath);
+                var path = "Assets/" + HDProjectSettings.projectSettingsFolderPath + "/" + src.name + ".asset";
+
+                ProjectWindowUtil.StartNameEditingIfProjectWindowExists(assetCreator.GetInstanceID(), assetCreator, path, icon, null);
             }
         }
 
@@ -30,7 +35,12 @@ namespace UnityEditor.Rendering.HighDefinition
         internal static void CreateHDRenderPipelineGlobalSettings()
         {
             var icon = CoreEditorStyles.globalSettingsIcon;
-            ProjectWindowUtil.StartNameEditingIfProjectWindowExists(0, ScriptableObject.CreateInstance<HDRenderPipelineGlobalSettingsCreator>(), $"Assets/{HDProjectSettings.projectSettingsFolderPath}/HDRenderPipelineGlobalSettings.asset", icon, null);
+
+            if (!AssetDatabase.IsValidFolder("Assets/" + HDProjectSettings.projectSettingsFolderPath))
+                AssetDatabase.CreateFolder("Assets", HDProjectSettings.projectSettingsFolderPath);
+            var path = "Assets/" + HDProjectSettings.projectSettingsFolderPath + "/HDRenderPipelineGlobalSettings.asset";
+
+            ProjectWindowUtil.StartNameEditingIfProjectWindowExists(0, ScriptableObject.CreateInstance<HDRenderPipelineGlobalSettingsCreator>(), path, icon, null);
         }
     }
 }
