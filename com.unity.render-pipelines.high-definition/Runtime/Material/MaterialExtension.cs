@@ -32,6 +32,13 @@ namespace UnityEditor.Rendering.HighDefinition
         None
     }
 
+    enum DoubleSidedGIMode
+    {
+        Auto,
+        On,
+        Off
+    }
+
     enum TessellationMode
     {
         None,
@@ -180,6 +187,20 @@ namespace UnityEditor.Rendering.HighDefinition
                 Color emissiveColorLDR = material.GetColor(kEmissiveColorLDR);
                 Color emissiveColorLDRLinear = new Color(Mathf.GammaToLinearSpace(emissiveColorLDR.r), Mathf.GammaToLinearSpace(emissiveColorLDR.g), Mathf.GammaToLinearSpace(emissiveColorLDR.b));
                 material.SetColor(kEmissiveColor, emissiveColorLDRLinear * material.GetFloat(kEmissiveIntensity));
+            }
+        }
+
+        public static void UpdateEmissiveColorLDRFromIntensityAndEmissiveColor(this Material material)
+        {
+            const string kEmissiveColorLDR = "_EmissiveColorLDR";
+            const string kEmissiveColor = "_EmissiveColor";
+            const string kEmissiveIntensity = "_EmissiveIntensity";
+
+            if (material.HasProperty(kEmissiveColorLDR) && material.HasProperty(kEmissiveIntensity) && material.HasProperty(kEmissiveColor))
+            {
+                Color emissiveColorLDRLinear = material.GetColor(kEmissiveColor) / material.GetFloat(kEmissiveIntensity);
+                Color emissiveColorLDR = new Color(Mathf.LinearToGammaSpace(emissiveColorLDRLinear.r), Mathf.LinearToGammaSpace(emissiveColorLDRLinear.g), Mathf.LinearToGammaSpace(emissiveColorLDRLinear.b));
+                material.SetColor(kEmissiveColorLDR, emissiveColorLDR);
             }
         }
     }
