@@ -18,13 +18,6 @@ test_platforms:
   - type: editmode
   - type: Standalone
     name: Standalone_cache
-    utr_flags:
-    - [all]: --extra-editor-arg="-adb2"
-    - [all]: --extra-editor-arg="-enableCacheServer"
-    - [all]: --extra-editor-arg="-cacheServerEndpoint" --extra-editor-arg="cacheserver-slo.hq.unity3d.com"
-    - [all]: --extra-editor-arg="-cacheServerNamespacePrefix" --extra-editor-arg="SRP"
-    - [all]: --extra-editor-arg="-cacheServerEnableDownload" --extra-editor-arg="true"
-    - [all]: --extra-editor-arg="-cacheServerEnableUpload" --extra-editor-arg="true"
     utr_flags_build:
     - [all]: --timeout=3000
     - [all]: --extra-editor-arg="-adb2"
@@ -33,7 +26,7 @@ test_platforms:
     - [all]: --extra-editor-arg="-cacheServerNamespacePrefix" --extra-editor-arg="SRP"
     - [all]: --extra-editor-arg="-cacheServerEnableDownload" --extra-editor-arg="true"
     - [all]: --extra-editor-arg="-cacheServerEnableUpload" --extra-editor-arg="true"
-expression_trigger: 
+expression_trigger:
   expression: 'pull_request.target eq "<TARGET_BRANCH>" AND NOT pull_request.draft AND pull_request.changes.any match ["com.unity.shadergraph/**/*", "TestProjects/ShaderGraph/**/*"] AND NOT pull_request.push.changes.all match ["*.md", "**/*.md", "doc/**/*", "**/Documentation*/**/*"]'
 platforms:
   - name: Win
@@ -80,7 +73,7 @@ platforms:
     color_spaces:
       - Linear
   - name: Linux
-    apis: 
+    apis:
       - name: OpenGLCore
         exclude_test_platforms:
           - name: Standalone
@@ -133,7 +126,7 @@ pr:
       build_config: mono
       color_space: Linear
       test_platforms:
-        - editmode 
+        - editmode
     - platform: Linux
       api: Vulkan
       build_config: mono
