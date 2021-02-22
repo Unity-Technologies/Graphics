@@ -234,7 +234,17 @@ namespace UnityEditor.VFX
                     break;
                 case VFXDeviceTarget.CPU:
                     if (useCustomMaterialOffset && subOutput.supportsMaterialOffset)
-                        mapper.AddExpression(inputSlots.FirstOrDefault(o => o.name == nameof(MaterialOffset.materialOffset)).GetExpression(), "custom_material_offset", -1);
+                    {
+                        var materialOffset = inputSlots.FirstOrDefault(o => o.name == nameof(MaterialOffset.materialOffset)).GetExpression();
+
+                        var baseOffsetRange = VFXValue.Constant(subOutput.GetRenderQueueOffsetRange());
+                        var minusOne = VFXOperatorUtility.MinusOneExpression[UnityEngine.VFX.VFXValueType.Int32];
+                        materialOffset = VFXOperatorUtility.Clamp(materialOffset, minusOne * baseOffsetRange, baseOffsetRange);
+
+                        var baseOffset = VFXValue.Constant(subOutput.GetRenderQueueOffset());
+                        mapper.AddExpression(baseOffset + materialOffset, "customRenderQueue", -1);
+                    }
+
                     break;
             }
             return mapper;

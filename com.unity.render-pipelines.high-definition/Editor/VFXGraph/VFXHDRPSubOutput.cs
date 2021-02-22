@@ -100,23 +100,41 @@ namespace UnityEditor.VFX
             }
         }
 
-        public override string GetRenderQueueStr()
+        private RenderQueueType GetRenderQueueType()
         {
             RenderQueueType renderQueueType;
+            if (owner.isBlendModeOpaque)
+                renderQueueType = HDRenderQueue.ConvertFromOpaqueRenderQueue(opaqueRenderQueue);
+            else
+                renderQueueType = HDRenderQueue.ConvertFromTransparentRenderQueue(transparentRenderQueue);
+            return renderQueueType;
+        }
+
+        public override string GetRenderQueueStr()
+        {
             string prefix = string.Empty;
             if (owner.isBlendModeOpaque)
             {
                 prefix = "Geometry";
-                renderQueueType = HDRenderQueue.ConvertFromOpaqueRenderQueue(opaqueRenderQueue);
             }
             else
             {
                 prefix = "Transparent";
-                renderQueueType = HDRenderQueue.ConvertFromTransparentRenderQueue(transparentRenderQueue);
             }
 
-            int renderQueue = HDRenderQueue.ChangeType(renderQueueType, 0, owner.hasAlphaClipping) - (int)(owner.isBlendModeOpaque ? Priority.Opaque : Priority.Transparent);
+            int renderQueue = GetRenderQueueOffset() - (int)(owner.isBlendModeOpaque ? Priority.Opaque : Priority.Transparent);
             return prefix + renderQueue.ToString("+#;-#;+0");
+        }
+
+        public override int GetRenderQueueOffset()
+        {
+            var renderQueueType = GetRenderQueueType();
+            return HDRenderQueue.ChangeType(renderQueueType, 0, owner.hasAlphaClipping);
+        }
+
+        public override int GetRenderQueueOffsetRange()
+        {
+            return HDRenderQueue.k_TransparentPriorityQueueRange;
         }
 
         private void GetStencilStateCommon(out int stencilWriteMask, out int stencilRef)

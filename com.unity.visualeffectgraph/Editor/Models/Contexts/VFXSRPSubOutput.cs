@@ -63,6 +63,29 @@ namespace UnityEditor.VFX
             }
         }
 
+        public virtual int GetRenderQueueOffset()
+        {
+            switch (owner.blendMode)
+            {
+                case BlendMode.Additive:
+                case BlendMode.Alpha:
+                case BlendMode.AlphaPremultiplied:
+                    return (int)UnityEngine.Rendering.RenderQueue.Transparent;
+                case BlendMode.Opaque:
+                    if (owner.hasAlphaClipping)
+                        return (int)UnityEngine.Rendering.RenderQueue.AlphaTest;
+                    else
+                        return (int)UnityEngine.Rendering.RenderQueue.Geometry;
+                default:
+                    throw new NotImplementedException("Unknown blend mode");
+            }
+        }
+
+        public virtual int GetRenderQueueOffsetRange()
+        {
+            return 50;
+        }
+
         public virtual IEnumerable<KeyValuePair<string, VFXShaderWriter>> GetStencilStateOverridesStr()
         {
             return Enumerable.Empty<KeyValuePair<string, VFXShaderWriter>>();
