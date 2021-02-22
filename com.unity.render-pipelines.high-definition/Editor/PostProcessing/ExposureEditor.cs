@@ -214,19 +214,22 @@ namespace UnityEditor.Rendering.HighDefinition
                 17 * m_LimitMax.value.floatValue.GetHashCode() +
                 17 * m_Compensation.value.floatValue.GetHashCode();
 
-            if (automaticCurrSettingHash != m_SettingsForDoubleRefreshHash)
+            if (mode == (int)ExposureMode.Automatic || mode == (int)ExposureMode.AutomaticHistogram)
             {
-                m_RepaintsAfterChange = 2;
-            }
-            else
-            {
-                m_RepaintsAfterChange = Mathf.Max(0, m_RepaintsAfterChange - 1);
-            }
-            m_SettingsForDoubleRefreshHash = automaticCurrSettingHash;
+                if (automaticCurrSettingHash != m_SettingsForDoubleRefreshHash)
+                {
+                    m_RepaintsAfterChange = 2;
+                }
+                else
+                {
+                    m_RepaintsAfterChange = Mathf.Max(0, m_RepaintsAfterChange - 1);
+                }
+                m_SettingsForDoubleRefreshHash = automaticCurrSettingHash;
 
-            if (m_RepaintsAfterChange > 0)
-            {
-                SceneView.RepaintAll();
+                if (m_RepaintsAfterChange > 0)
+                {
+                    SceneView.RepaintAll();
+                }
             }
         }
 
