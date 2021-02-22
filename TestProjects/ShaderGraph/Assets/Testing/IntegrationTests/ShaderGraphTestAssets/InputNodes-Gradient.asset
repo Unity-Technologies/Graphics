@@ -10,35 +10,32 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 4917167f55103344894cd53d7187c673, type: 3}
-  m_Name: ArtisticNodes-Adjustment
+  m_Name: InputNodes-Gradient
   m_EditorClassIdentifier: 
   testMaterial:
-  - hash: 1345718932
-    material: {fileID: 2100000, guid: e41317c6fe1a9f9498e4b645c3d6b46f, type: 2}
+  - hash: 1682425712
+    material: {fileID: 2100000, guid: 926e0d4b739a9404bba0d7a39f2b6cbc, type: 2}
     enabled: 1
-  - hash: 819377110
-    material: {fileID: 2100000, guid: dfd0a6306cff74e458801872123ec3be, type: 2}
+  - hash: 1715031922
+    material: {fileID: 2100000, guid: 48efbae969fbcc4449e681032cc712e3, type: 2}
     enabled: 1
-  - hash: 2102463030
-    material: {fileID: 2100000, guid: 0547ce6b6175da44cad16d7e6e25444f, type: 2}
+  - hash: 1747267956
+    material: {fileID: 2100000, guid: 10fab06966d1aa34fbe3eaa323f5d56c, type: 2}
     enabled: 1
-  - hash: 84261388
-    material: {fileID: 2100000, guid: 4daeabc46e6130940943fb0473869415, type: 2}
+  - hash: 1747503982
+    material: {fileID: 2100000, guid: 371e6315996922048b6fe61c752b9eef, type: 2}
     enabled: 1
-  - hash: 39684090
-    material: {fileID: 2100000, guid: fe6b485c71b8f45439f03305dfc66df9, type: 2}
+  - hash: 1265177590
+    material: {fileID: 2100000, guid: acfaf5a269468ff49b0e1a2ef6e1745c, type: 2}
     enabled: 1
-  - hash: 1832736772
-    material: {fileID: 2100000, guid: 38a65c487ed471a47ae4562e64c563e6, type: 2}
-    enabled: 1
-  - hash: 1498175742
-    material: {fileID: 2100000, guid: 63e68041b0cd6e04ab6b7b6c451e22e9, type: 2}
+  - hash: 481881016
+    material: {fileID: 2100000, guid: ba2b2652d185cf944a076dc8eb1663e1, type: 2}
     enabled: 1
   customMesh: {fileID: 0}
-  isCameraPerspective: 1
+  isCameraPerspective: 0
   settings:
-    TargetWidth: 32
-    TargetHeight: 32
+    TargetWidth: 512
+    TargetHeight: 512
     PerPixelCorrectnessThreshold: 0.00075
     PerPixelGammaThreshold: 0.003921569
     PerPixelAlphaThreshold: 0.003921569

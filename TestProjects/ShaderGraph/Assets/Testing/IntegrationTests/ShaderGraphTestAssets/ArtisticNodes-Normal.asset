@@ -10,35 +10,35 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 4917167f55103344894cd53d7187c673, type: 3}
-  m_Name: ArtisticNodes-Adjustment
+  m_Name: ArtisticNodes-Normal
   m_EditorClassIdentifier: 
   testMaterial:
-  - hash: 1345718932
-    material: {fileID: 2100000, guid: e41317c6fe1a9f9498e4b645c3d6b46f, type: 2}
+  - hash: 216047084
+    material: {fileID: 2100000, guid: 155408f90764b454b8e32371e12890f8, type: 2}
     enabled: 1
-  - hash: 819377110
-    material: {fileID: 2100000, guid: dfd0a6306cff74e458801872123ec3be, type: 2}
+  - hash: 2132355022
+    material: {fileID: 2100000, guid: 11e058c2bf663a448934a80bee7144a2, type: 2}
     enabled: 1
-  - hash: 2102463030
-    material: {fileID: 2100000, guid: 0547ce6b6175da44cad16d7e6e25444f, type: 2}
+  - hash: 1957758160
+    material: {fileID: 2100000, guid: 4464a8626a2d8b046b5d394fcafe02e7, type: 2}
     enabled: 1
-  - hash: 84261388
-    material: {fileID: 2100000, guid: 4daeabc46e6130940943fb0473869415, type: 2}
+  - hash: 1698346450
+    material: {fileID: 2100000, guid: a2e8817511e68b24aaf8ee1c173b5a34, type: 2}
     enabled: 1
-  - hash: 39684090
-    material: {fileID: 2100000, guid: fe6b485c71b8f45439f03305dfc66df9, type: 2}
+  - hash: 946110804
+    material: {fileID: 2100000, guid: 406298d8097380e4894f5ad55404962b, type: 2}
     enabled: 1
-  - hash: 1832736772
-    material: {fileID: 2100000, guid: 38a65c487ed471a47ae4562e64c563e6, type: 2}
+  - hash: 1291873878
+    material: {fileID: 2100000, guid: a8548b634c4e52448b32502c603864e0, type: 2}
     enabled: 1
-  - hash: 1498175742
-    material: {fileID: 2100000, guid: 63e68041b0cd6e04ab6b7b6c451e22e9, type: 2}
+  - hash: 879918680
+    material: {fileID: 2100000, guid: c11be39808f8d584babd7dc9ccdead9d, type: 2}
     enabled: 1
   customMesh: {fileID: 0}
   isCameraPerspective: 1
   settings:
-    TargetWidth: 32
-    TargetHeight: 32
+    TargetWidth: 512
+    TargetHeight: 512
     PerPixelCorrectnessThreshold: 0.00075
     PerPixelGammaThreshold: 0.003921569
     PerPixelAlphaThreshold: 0.003921569
