@@ -865,7 +865,7 @@ half4 UniversalFragmentPBR(InputData inputData, SurfaceData surfaceData)
 #if defined(SHADOWS_SHADOWMASK) && defined(LIGHTMAP_ON)
     half4 shadowMask = inputData.shadowMask;
 #elif !defined (LIGHTMAP_ON)
-    half4 shadowMask = half4(unity_ProbesOcclusion);
+    half4 shadowMask = unity_ProbesOcclusion;
 #else
     half4 shadowMask = half4(1, 1, 1, 1);
 #endif
@@ -932,7 +932,7 @@ half4 UniversalFragmentBlinnPhong(InputData inputData, half3 diffuse, half4 spec
 #if defined(SHADOWS_SHADOWMASK) && defined(LIGHTMAP_ON)
     half4 shadowMask = inputData.shadowMask;
 #elif !defined (LIGHTMAP_ON)
-    half4 shadowMask = half4(unity_ProbesOcclusion);
+    half4 shadowMask = unity_ProbesOcclusion;
 #else
     half4 shadowMask = half4(1, 1, 1, 1);
 #endif
