@@ -58,6 +58,7 @@ namespace UnityEngine.Rendering.HighDefinition
         Material m_LensFlareLerp;
         Material m_LensFlareAdditive;
         Material m_LensFlarePreMultiply;
+        RTHandle m_LensFlareOcclusionTexture;
 
         //  AMD-CAS data
         ComputeBuffer m_ContrastAdaptiveSharpen;
@@ -212,6 +213,9 @@ namespace UnityEngine.Rendering.HighDefinition
                 enableRandomWrite: true, name: "Debug Exposure Info");
 
             SetExposureTextureToEmpty(m_EmptyExposureTexture);
+
+            // Lens Flare
+            m_LensFlareOcclusionTexture = RTHandles.Alloc(1024, 1, colorFormat: GraphicsFormat.R8_UInt, enableRandomWrite: true, name: "Lens Flare Occlusion");
         }
 
         public void Cleanup()
@@ -2170,6 +2174,57 @@ namespace UnityEngine.Rendering.HighDefinition
             if (parameters.lensFlares.Data.Count == 0)
                 return;
 
+            // Estimate Occlusion
+            //m_LensFlareOcclusionTexture
+            int flareIdx = 0;
+            //foreach (SRPLensFlareOverride comp in parameters.lensFlares.Data)
+            //{
+            //    if (comp == null)
+            //        continue;
+
+            //    SRPLensFlareData data = comp.lensFlareData;
+
+            //    if (!comp.enabled ||
+            //        data.globalIntensity <= 0.0f ||
+            //        !comp.gameObject.activeSelf ||
+            //        !comp.gameObject.activeInHierarchy ||
+            //        data == null ||
+            //        data.elements == null ||
+            //        data.elements.Length == 0)
+            //        continue;
+
+            //    Camera cam = hdCam.camera;
+
+            //    Vector3 positionWS = comp.transform.position;
+            //    Vector3 viewportPos = cam.WorldToViewportPoint(positionWS);
+
+            //    if (viewportPos.z < 0.0f)
+            //        continue;
+
+            //    if (!comp.allowOffScreen)
+            //    {
+            //        if (viewportPos.x < 0.0f || viewportPos.x > 1.0f ||
+            //            viewportPos.y < 0.0f || viewportPos.y > 1.0f)
+            //            continue;
+            //    }
+            //    ++flareIdx;
+            //    Vector2 screenPos = new Vector2(2.0f * viewportPos.x - 1.0f, 1.0f - 2.0f * viewportPos.y);
+
+            //    float screenRatio = (float)hdCam.actualWidth / (float)hdCam.actualHeight;
+
+            //    Vector2 occlusionRadiusEdgeScreenPos0 = (Vector2)cam.WorldToViewportPoint(positionWS);
+            //    Vector2 occlusionRadiusEdgeScreenPos1 = (Vector2)cam.WorldToViewportPoint(positionWS + cam.transform.up * comp.occlusionRadius);
+            //    float occlusionRadius = (occlusionRadiusEdgeScreenPos1 - occlusionRadiusEdgeScreenPos0).magnitude;
+
+            //    Vector3 dir = (cam.transform.position - comp.transform.position).normalized;
+            //    Vector3 screenPosZ = cam.WorldToViewportPoint(positionWS + dir * comp.occlusionOffset);
+            //    //Vector4 flareData1 = new Vector4(screenPos.x, screenPos.y, screenPosZ.z, occlusionRadius);
+            //    //comp.sampleCount
+            //}
+
+            // Render Quads
+            flareIdx = 0;
+            CoreUtils.SetRenderTarget(cmd, target);
             foreach (SRPLensFlareOverride comp in parameters.lensFlares.Data)
             {
                 if (comp == null)
@@ -2200,6 +2255,7 @@ namespace UnityEngine.Rendering.HighDefinition
                         viewportPos.y < 0.0f || viewportPos.y > 1.0f)
                         continue;
                 }
+                ++flareIdx;
 
                 Vector2 screenPos = new Vector2(2.0f * viewportPos.x - 1.0f, 1.0f - 2.0f * viewportPos.y);
 
@@ -2352,8 +2408,6 @@ namespace UnityEngine.Rendering.HighDefinition
                     }
                 }
 
-                CoreUtils.SetRenderTarget(cmd, target);
-
                 float curLengthPos = 0.0f;
                 foreach (SRPLensFlareDataElement element in data.elements)
                 {
@@ -2374,7 +2428,7 @@ namespace UnityEngine.Rendering.HighDefinition
                             {
                                 if (data.elements[i].position < 0.0f)
                                 {
-                                    curLengthNeg += (float)elemIdx * Mathf.Abs(element.position);
+                                    curLengthNeg += Mathf.Abs(element.position);
                                     if (data.elements[i] == element)
                                     {
                                         break;
