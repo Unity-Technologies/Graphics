@@ -7,7 +7,6 @@ using UnityEngine;
 [Serializable]
 public class ShaderGraphTestResult : ScriptableObject 
 {
-    //------------I dont think we can have a direct ref to another scriptable object in an assetbundle -------- need to doublec check
     [SerializeField]
     ShaderGraphTestAsset m_testAsset;
 
