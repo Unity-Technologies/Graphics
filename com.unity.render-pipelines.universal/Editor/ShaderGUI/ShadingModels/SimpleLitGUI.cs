@@ -5,18 +5,12 @@ using UnityEngine.Scripting.APIUpdating;
 
 namespace UnityEditor.Rendering.Universal.ShaderGUI
 {
-    [MovedFrom("UnityEditor.Rendering.LWRP.ShaderGUI")] public static class SimpleLitGUI
+    [MovedFrom("UnityEditor.Rendering.LWRP.ShaderGUI")] public static partial class SimpleLitGUI
     {
         public enum SpecularSource
         {
             SpecularTextureAndColor,
             NoSpecular
-        }
-
-        public enum SmoothnessMapChannel
-        {
-            SpecularAlpha,
-            AlbedoAlpha,
         }
 
         public static class Styles
@@ -105,9 +99,9 @@ namespace UnityEditor.Rendering.Universal.ShaderGUI
             EditorGUI.BeginChangeCheck();
             EditorGUI.showMixedValue = properties.smoothnessMapChannel.hasMixedValue;
             if (opaque)
-                smoothnessSource = EditorGUILayout.Popup(Styles.smoothnessMapChannelText, smoothnessSource, Enum.GetNames(typeof(SmoothnessSource)));
+                smoothnessSource = EditorGUILayout.Popup(Styles.smoothnessMapChannelText, smoothnessSource, Enum.GetNames(typeof(BaseShaderGUI.SmoothnessSource)));
             else
-                EditorGUILayout.Popup(Styles.smoothnessMapChannelText, 0, Enum.GetNames(typeof(SmoothnessSource)));
+                EditorGUILayout.Popup(Styles.smoothnessMapChannelText, 0, Enum.GetNames(typeof(BaseShaderGUI.SmoothnessSource)));
             if (EditorGUI.EndChangeCheck())
                 properties.smoothnessMapChannel.floatValue = smoothnessSource;
             EditorGUI.showMixedValue = false;
@@ -133,17 +127,17 @@ namespace UnityEditor.Rendering.Universal.ShaderGUI
             }
             else
             {
-                var smoothnessSource = (SmoothnessSource)material.GetFloat("_SmoothnessSource");
+                var smoothnessSource = (BaseShaderGUI.SmoothnessSource)material.GetFloat("_SmoothnessSource");
                 bool hasMap = material.GetTexture("_SpecGlossMap");
                 CoreUtils.SetKeyword(material, "_SPECGLOSSMAP", hasMap);
                 CoreUtils.SetKeyword(material, "_SPECULAR_COLOR", !hasMap);
                 if (opaque)
-                    CoreUtils.SetKeyword(material, "_GLOSSINESS_FROM_BASE_ALPHA", smoothnessSource == SmoothnessSource.BaseAlpha);
+                    CoreUtils.SetKeyword(material, "_GLOSSINESS_FROM_BASE_ALPHA", smoothnessSource == BaseShaderGUI.SmoothnessSource.BaseAlpha);
                 else
                     CoreUtils.SetKeyword(material, "_GLOSSINESS_FROM_BASE_ALPHA", false);
 
                 string color;
-                if (smoothnessSource != SmoothnessSource.BaseAlpha || !opaque)
+                if (smoothnessSource != BaseShaderGUI.SmoothnessSource.BaseAlpha || !opaque)
                     color = "_SpecColor";
                 else
                     color = "_BaseColor";

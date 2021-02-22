@@ -270,6 +270,12 @@ namespace UnityEditor.Rendering.Universal
                         material.SetFloat("_SmoothnessSource", 1 - material.GetFloat("_SmoothnessSource"));
                     }
                     break;
+                case ShaderPathID.Lit:
+                    if (material.HasProperty("_SmoothnessTextureChannel"))
+                    {
+                        material.SetFloat("_SmoothnessTextureChannel", 1 - material.GetFloat("_SmoothnessTextureChannel"));
+                    }
+                    break;
             }
         }
     }

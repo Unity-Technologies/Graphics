@@ -28,3 +28,37 @@ namespace UnityEditor.Rendering.Universal
     {
     }
 }
+
+namespace UnityEditor.Rendering.Universal.ShaderGUI
+{
+    public static partial class SimpleLitGUI
+    {
+        [Obsolete("This is obsolete, use SmoothnessSource instead, from BaseShaderGUI.cs", false)]
+        public enum SmoothnessMapChannel
+        {
+            SpecularAlpha,
+            AlbedoAlpha,
+        }
+    }
+
+
+    public static partial class LitGUI
+    {
+        [Obsolete("This is obsolete, use SmoothnessSource instead", false)]
+        public enum SmoothnessMapChannel
+        {
+            SpecularMetallicAlpha,
+            AlbedoAlpha,
+        }
+
+        [Obsolete("This is obsolete, use GetSmoothnessSource instead", false)]
+        public static SmoothnessMapChannel GetSmoothnessMapChannel(Material material)
+        {
+            int ch = (int)material.GetFloat("_SmoothnessTextureChannel");
+            if (ch == (int)SmoothnessSource.AlbedoAlpha)
+                return SmoothnessMapChannel.AlbedoAlpha;
+
+            return SmoothnessMapChannel.SpecularMetallicAlpha;
+        }
+    }
+}

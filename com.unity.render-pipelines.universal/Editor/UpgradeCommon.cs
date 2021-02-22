@@ -22,6 +22,7 @@ namespace UnityEditor.Rendering.Universal
         NoSpecular
     }
 
+    // This follows the SmoothnessSource from BaseShaderGUI.cs
     [MovedFrom("UnityEditor.Rendering.LWRP")] public enum SmoothnessSource
     {
         BaseAlpha,

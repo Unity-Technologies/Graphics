@@ -5,7 +5,7 @@ using UnityEngine.Scripting.APIUpdating;
 
 namespace UnityEditor.Rendering.Universal.ShaderGUI
 {
-    [MovedFrom("UnityEditor.Rendering.LWRP.ShaderGUI")] public static class LitGUI
+    [MovedFrom("UnityEditor.Rendering.LWRP.ShaderGUI")] public static partial class LitGUI
     {
         public enum WorkflowMode
         {
@@ -13,10 +13,10 @@ namespace UnityEditor.Rendering.Universal.ShaderGUI
             Metallic
         }
 
-        public enum SmoothnessMapChannel
+        public enum SmoothnessSource
         {
-            SpecularMetallicAlpha,
             AlbedoAlpha,
+            SpecularMetallicAlpha,
         }
 
         public static class Styles
@@ -254,13 +254,13 @@ namespace UnityEditor.Rendering.Universal.ShaderGUI
             EditorGUI.indentLevel--;
         }
 
-        public static SmoothnessMapChannel GetSmoothnessMapChannel(Material material)
+        public static SmoothnessSource GetSmoothnessSource(Material material)
         {
             int ch = (int)material.GetFloat("_SmoothnessTextureChannel");
-            if (ch == (int)SmoothnessMapChannel.AlbedoAlpha)
-                return SmoothnessMapChannel.AlbedoAlpha;
+            if (ch == (int)SmoothnessSource.AlbedoAlpha)
+                return SmoothnessSource.AlbedoAlpha;
 
-            return SmoothnessMapChannel.SpecularMetallicAlpha;
+            return SmoothnessSource.SpecularMetallicAlpha;
         }
 
         public static void SetMaterialKeywords(Material material)
@@ -303,7 +303,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGUI
             if (material.HasProperty("_SmoothnessTextureChannel"))
             {
                 CoreUtils.SetKeyword(material, "_SMOOTHNESS_TEXTURE_ALBEDO_CHANNEL_A",
-                    GetSmoothnessMapChannel(material) == SmoothnessMapChannel.AlbedoAlpha && opaque);
+                    GetSmoothnessSource(material) == SmoothnessSource.AlbedoAlpha && opaque);
             }
 
             // Clear coat keywords are independent to remove possiblity of invalid combinations.
