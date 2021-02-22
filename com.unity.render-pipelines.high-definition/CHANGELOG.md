@@ -7,6 +7,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 ## [12.0.0] - 2021-01-11
 
 ### Added
+- Added support for XboxSeries platform.
 - Added pivot point manipulation for Decals (inspector and edit mode).
 - Added UV manipulation for Decals (edit mode).
 - Added color and intensity customization for Decals.
@@ -15,6 +16,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Added TargetMidGrayParameterDrawer
 - Added an option to have double sided GI be controlled separately from material double-sided option.
 - Added new AOV APIs for overriding the internal rendering format, and for outputing the world space position.
+- Added browsing of the documentation of Compositor Window
 - Added a complete solution for volumetric clouds for HDRP including a cloud map generation tool.
 - Added a Force Forward Emissive option for Lit Material that forces the Emissive contribution to render in a separate forward pass when the Lit Material is in Deferred Lit shader Mode.
 
@@ -40,6 +42,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed an issue where first frame of SSAO could exhibit ghosting artefacts.
 - Fixed an issue with the mipmap generation internal format after rendering format change.
 - Fixed multiple any hit occuring on transparent objects (case 1294927).
+- Cleanup Shader UI.
 
 - Fixed sub-shadow rendering for cached shadow maps.
 - Fixed PCSS filtering issues with cached shadow maps.
@@ -74,6 +77,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Change labels about scroll direction and cloud type.
 - Improved shadow cascade GUI drawing with pixel perfect, hover and focus functionalities.
 - Improving the screen space global illumination.
+- Moving MaterialHeaderScopes to Core
 
 ## [11.0.0] - 2020-10-21
 

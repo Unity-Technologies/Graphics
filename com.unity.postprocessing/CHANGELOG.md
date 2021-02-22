@@ -8,6 +8,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ### Added
 - Support for the PlayStation 5 platform has been added.
+- Support for the XboxSeries platform has been added.
 
 ## [3.0.3] - 2021-02-19
 
