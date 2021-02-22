@@ -35,8 +35,8 @@ namespace UnityEngine.Experimental.Rendering.Universal
             Transform transformToCheck = shadowCaster.transform.parent;
             while (transformToCheck != null)
             {
-                CompositeShadowCaster2D currentGroup = transformToCheck.GetComponent<CompositeShadowCaster2D>();
-                if (currentGroup != null)
+                CompositeShadowCaster2D currentGroup;
+                if (transformToCheck.TryGetComponent<CompositeShadowCaster2D>(out currentGroup))
                     retGroup = currentGroup;
 
                 transformToCheck = transformToCheck.parent;

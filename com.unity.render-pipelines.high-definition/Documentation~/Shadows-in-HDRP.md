@@ -44,7 +44,7 @@ In HDRP, each individual Light component controls its own shadow biasing using t
 - **Slope-Scale Depth Bias**
 - **Normal Bias**
 
-Find these settings under the **Shadows** section. If some of the property fields are missing, click the [more options](More-Options.md) gear to expose them. For details on how each property controls the shadow biasing, see the [Light documentation](Light-Component.md).
+Find these settings under the **Shadows** section. If some of the property fields are missing, enable [additional properties](More-Options.md) to show them. For details on how each property controls the shadow biasing, see the [Light documentation](Light-Component.md).
 
 ![](Images/Shadows1.png)
 
@@ -121,9 +121,9 @@ HDRP caches shadow maps for punctual Lights into one atlas, area Lights into ano
 2. For punctual lights, go to **Lighting > Shadows > Punctual Light Shadows**. For area lights, go to **Lighting > Shadows > Area Light Shadows**.
 3. Set the value for **Cached Shadow Atlas Resolution** to the value you want. To help with shadow atlas organisation, try to keep the resolution of individual shadow maps as a multiple of 64. For the most optimal organisation, set the same resolution to as many shadow maps as possible.
 
-If the shadow atlas is full when a Light requests a spot, the cached shadow manager does not add the Light's shadow map and thus the Light does not cast shadows. This means that it is important to manage the space you have available. To check if a Light can fit in the shadow atlas, you can use the `HDCachedShadowManager.instance.WouldFitInAtlas` helper function. To see if a Light already has a place in the atlas or if it is waiting for one, the [Render Pipeline Debug window](Render-Pipeline-Debug-Window.md) includes an option which logs the status of the cached shadow atlas. To use this:
+If the shadow atlas is full when a Light requests a spot, the cached shadow manager does not add the Light's shadow map and thus the Light does not cast shadows. This means that it is important to manage the space you have available. To check if a Light can fit in the shadow atlas, you can use the `HDCachedShadowManager.instance.WouldFitInAtlas` helper function. To see if a Light already has a place in the atlas or if it is waiting for one, the [Render Pipeline Debugger window](Render-Pipeline-Debug-Window.md) includes an option which logs the status of the cached shadow atlas. To use this:
 
-1. Click menu: **Window > Render Pipeline > Render Pipeline Debug**.
+1. Click menu: **Window > Render Pipeline > Render Pipeline Debugger**.
 2. Go to **Lighting > Shadows**.
 3. Click the **Log Cached Shadow Atlas Status** button. This prints a message to the Console window which describes whether a Light has a place in the atlas or is waiting for one.
 
