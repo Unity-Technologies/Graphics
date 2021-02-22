@@ -212,8 +212,8 @@ namespace UnityEditor.ShaderGraph
                 if (outputNode == null)
                 {
                     // shader graph builds active nodes starting from the set of active blocks
-                    var currentBlockDescriptors = new List<BlockFieldDescriptor>();
-                    var activeBlockContext = new TargetActiveBlockContext(null, null);
+                    var currentBlocks = graph.GetNodes<BlockNode>();
+                    var activeBlockContext = new TargetActiveBlockContext(currentBlocks.Select(x => x.descriptor).ToList(), null);
                     target.GetActiveBlocks(ref activeBlockContext);
 
                     foreach (var blockFieldDesc in activeBlockContext.activeBlocks)
