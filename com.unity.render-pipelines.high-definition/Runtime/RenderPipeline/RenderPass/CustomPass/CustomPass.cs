@@ -352,7 +352,6 @@ namespace UnityEngine.Rendering.HighDefinition
 
         protected virtual void OnRenderEvent(CustomPassRenderEventContext ctx)
         {
-
         }
 
         /// <summary>
