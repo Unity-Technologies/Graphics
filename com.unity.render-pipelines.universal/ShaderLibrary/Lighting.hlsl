@@ -190,7 +190,7 @@ uint GetPerObjectLightIndexOffset()
 #if USE_STRUCTURED_BUFFER_FOR_LIGHT_DATA
     return uint(unity_LightData.x);
 #else
-    return uint(0);
+    return 0;
 #endif
 }
 
