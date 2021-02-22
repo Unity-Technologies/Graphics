@@ -25,6 +25,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Added support the XboxSeries platform.
 - Added the default quality settings to the HDRP asset for RTAO, RTR and RTGI (case 1304370).
 - Added a history rejection criterion based on if the pixel was moving in world space (case 1302392).
+- Added new API in CachedShadowManager
 
 ### Fixed
 - Fixed probe volumes debug views.
@@ -90,7 +91,6 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed lightmaps not working properly with shader graphs in ray traced reflections (case 1305335).
 - Fixed skybox for ortho cameras.
 - Fixed issue when debug full screen 'Transparent Screen Space Reflection' do not take in consideration debug exposure
-- Unifying the history validation pass so that it is only done once for the whole frame and not per effect.
 
 ### Changed
 - Removed the material pass probe volumes evaluation mode.
@@ -115,6 +115,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Transparent materials created by the Model Importer are set to not cast shadows. ( case 1295747)
 - Updated the tooltip for the Decal Angle Fade property (requires to enable Decal Layers in both HDRP asset and Frame settings) (case 1308048).
 - The RTAO's history is now discarded if the occlusion caster was moving (case 1303418).
+- Unifying the history validation pass so that it is only done once for the whole frame and not per effect.
 
 ## [10.3.0] - 2020-12-01
 
