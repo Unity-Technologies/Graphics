@@ -36,6 +36,8 @@ namespace UnityEngine.Rendering.HighDefinition
         internal static HDRenderPipeline currentPipeline
             => RenderPipelineManager.currentPipeline is HDRenderPipeline hdrp ? hdrp : null;
 
+        internal static bool isReady => HDRenderPipeline.currentAsset != null && HDRenderPipelineGlobalSettings.instance != null;
+
         internal static bool pipelineSupportsRayTracing => HDRenderPipeline.currentPipeline != null && HDRenderPipeline.currentPipeline.rayTracingSupported;
 
         internal static bool pipelineSupportsScreenSpaceShadows => GraphicsSettings.currentRenderPipeline is HDRenderPipelineAsset hdrpAsset ? hdrpAsset.currentPlatformRenderPipelineSettings.hdShadowInitParams.supportScreenSpaceShadows : false;

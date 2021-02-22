@@ -177,7 +177,13 @@ namespace UnityEngine.Rendering.HighDefinition
         Version m_Version = MigrationDescription.LastVersion<Version>();
         Version IVersionable<Version>.version { get => m_Version; set => m_Version = value; }
 
-        void OnEnable() => k_Migration.Migrate(this);
+        void OnEnable()
+        {
+#if UNITY_EDITOR
+            HDRenderPipelineGlobalSettings.Ensure();
+#endif
+            k_Migration.Migrate(this);
+        }
 
 #pragma warning disable 618 // Type or member is obsolete
         [SerializeField]
