@@ -43,11 +43,6 @@ namespace UnityEditor.Rendering.HighDefinition
 
             // All the bits exclusively related to lit are ignored inside the BaseLitGUI function.
             BaseLitGUI.SetupStencil(material, receivesSSR: false, useSplitLighting: false);
-
-            if (material.HasProperty(kAddPrecomputedVelocity))
-            {
-                CoreUtils.SetKeyword(material, "_ADD_PRECOMPUTED_VELOCITY", material.GetInt(kAddPrecomputedVelocity) != 0);
-            }
         }
     }
 } // namespace UnityEditor
