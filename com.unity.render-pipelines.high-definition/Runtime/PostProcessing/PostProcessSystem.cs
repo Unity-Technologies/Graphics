@@ -137,6 +137,8 @@ namespace UnityEngine.Rendering.HighDefinition
 
         bool m_IsDoFHisotoryValid = false;
 
+        HDRenderPipeline.DynResRequest m_DynResRequest;
+
         static void SetExposureTextureToEmpty(RTHandle exposureTexture)
         {
             var tex = new Texture2D(1, 1, GraphicsFormat.R16G16_SFloat, TextureCreationFlags.None);
@@ -240,11 +242,13 @@ namespace UnityEngine.Rendering.HighDefinition
             HDUtils.CheckRTCreated(m_DebugExposureData.rt);
         }
 
-        public void BeginFrame(CommandBuffer cmd, HDCamera camera, HDRenderPipeline hdInstance)
+        public void BeginFrame(CommandBuffer cmd, HDCamera camera, HDRenderPipeline.DynResRequest dynResRequest, HDRenderPipeline hdInstance)
         {
             m_HDInstance = hdInstance;
             m_PostProcessEnabled = camera.frameSettings.IsEnabled(FrameSettingsField.Postprocess) && CoreUtils.ArePostProcessesEnabled(camera.camera);
             m_AnimatedMaterialsEnabled = camera.animateMaterials;
+
+            m_DynResRequest = dynResRequest;
 
             // Grab physical camera settings or a default instance if it's null (should only happen
             // in rare occasions due to how HDAdditionalCameraData is added to the camera)
@@ -2601,7 +2605,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 float sw = scaleW * p;
                 float sh = scaleH * p;
                 int pw, ph;
-                if (DynamicResolutionHandler.instance.HardwareDynamicResIsEnabled())
+                if (m_DynResRequest.hardwareEnabled)
                 {
                     pw = Mathf.Max(1, Mathf.CeilToInt(sw * camera.actualWidth));
                     ph = Mathf.Max(1, Mathf.CeilToInt(sh * camera.actualHeight));
@@ -3337,10 +3341,9 @@ namespace UnityEngine.Rendering.HighDefinition
             parameters.enableAlpha = m_EnableAlpha;
             parameters.keepAlpha = m_KeepAlpha;
 
-            var dynResHandler = DynamicResolutionHandler.instance;
-            bool dynamicResIsOn = hdCamera.canDoDynamicResolution && dynResHandler.DynamicResolutionEnabled();
+            bool dynamicResIsOn = hdCamera.canDoDynamicResolution && m_DynResRequest.enabled;
             parameters.dynamicResIsOn = dynamicResIsOn;
-            parameters.dynamicResFilter = dynResHandler.filter;
+            parameters.dynamicResFilter = m_DynResRequest.filter;
             parameters.useFXAA = hdCamera.antialiasing == AntialiasingMode.FastApproximateAntialiasing && !dynamicResIsOn && m_AntialiasingFS;
 
             // Film Grain
