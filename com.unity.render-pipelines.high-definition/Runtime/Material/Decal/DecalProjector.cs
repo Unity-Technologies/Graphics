@@ -180,7 +180,7 @@ namespace UnityEngine.Rendering.HighDefinition
         }
 
         [SerializeField]
-        private Vector3 m_Offset = new Vector3(0, 0, 0.5f);
+        private Vector3 m_Offset = new Vector3(0, 0, 0);
         /// <summary>
         /// Change the pivot position.
         /// It is an offset between the center of the projection and the transform position.
