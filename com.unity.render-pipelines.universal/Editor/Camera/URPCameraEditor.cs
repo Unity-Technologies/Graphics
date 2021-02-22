@@ -198,9 +198,6 @@ namespace UnityEditor.Rendering.Universal
 
         void UpdateCameras()
         {
-            if (m_LayerList != null)
-                return;
-
             var camType = (CameraRenderType) m_SerializedCamera.cameraType.intValue;
             if (camType != CameraRenderType.Base)
                 return;
@@ -213,7 +210,7 @@ namespace UnityEditor.Rendering.Universal
                 {
                     m_SerializedCamera.cameras.DeleteArrayElementAtIndex(list.index);
                     ReorderableList.defaultBehaviours.DoRemoveButton(list);
-                    m_SerializedCamera.Apply();
+                    m_SerializedCamera.serializedObject.ApplyModifiedProperties();
                 },
                 onAddDropdownCallback = AddCameraToCameraList
             };
@@ -430,7 +427,7 @@ namespace UnityEditor.Rendering.Universal
             }
 
             settings.Update();
-            m_SerializedCamera.Update();
+            m_SerializedCamera.serializedObject.Update();
             UpdateAnimationValues(false);
 
             // Get the type of Camera we are using
@@ -461,7 +458,7 @@ namespace UnityEditor.Rendering.Universal
 
             EditorGUI.indentLevel--;
             settings.ApplyModifiedProperties();
-            m_SerializedCamera.Apply();
+            m_SerializedCamera.serializedObject.ApplyModifiedProperties();
         }
 
         void DrawCommonSettings()
@@ -498,7 +495,7 @@ namespace UnityEditor.Rendering.Universal
             if (m_StackSettingsFoldout.value)
             {
                 m_LayerList.DoLayoutList();
-                m_SerializedCamera.Apply();
+                m_SerializedCamera.serializedObject.ApplyModifiedProperties();
 
                 if (errorCameras.Any())
                 {
@@ -568,7 +565,7 @@ namespace UnityEditor.Rendering.Universal
                 {
                     DrawPostProcessingOverlay(rpAsset);
                     EditorGUILayout.PropertyField(m_SerializedCamera.clearDepth, Styles.clearDepth);
-                    m_SerializedCamera.Apply();
+                    m_SerializedCamera.serializedObject.ApplyModifiedProperties();
                 }
 
                 DrawRenderShadows();
@@ -798,7 +795,7 @@ namespace UnityEditor.Rendering.Universal
             {
                 m_SerializedCamera.volumeLayerMask.intValue = selectedVolumeLayerMask;
                 m_SerializedCamera.volumeTrigger.objectReferenceValue = selectedVolumeTrigger;
-                m_SerializedCamera.Apply();
+                m_SerializedCamera.serializedObject.ApplyModifiedProperties();
             }
         }
 
@@ -831,7 +828,7 @@ namespace UnityEditor.Rendering.Universal
             if (EditorGUI.EndChangeCheck())
             {
                 m_SerializedCamera.renderer.intValue = selectedRenderer;
-                m_SerializedCamera.Apply();
+                m_SerializedCamera.serializedObject.ApplyModifiedProperties();
             }
         }
 
