@@ -791,6 +791,7 @@ namespace UnityEditor.ShaderGraph.Drawing
                 else
                 {
                     ShaderUtil.ClearCachedData(shaderData.shader);
+                    ShaderUtil.ClearShaderMessages(shaderData.shader);
                     ShaderUtil.UpdateShaderAsset(shaderData.shader, shaderStr, false);
                 }
 
@@ -1112,6 +1113,7 @@ namespace UnityEditor.ShaderGraph.Drawing
                         return;
 
                     m_Messenger.AddOrAppendError(this, shaderData.node.objectId, messages[0]);
+                    ShaderUtil.ClearShaderMessages(shaderData.shader);
                 }
             }
         }
@@ -1159,6 +1161,7 @@ namespace UnityEditor.ShaderGraph.Drawing
                 }
                 if (renderData.shaderData.shader != null)
                 {
+                    ShaderUtil.ClearShaderMessages(renderData.shaderData.shader);
                     Object.DestroyImmediate(renderData.shaderData.shader, true);
                 }
             }

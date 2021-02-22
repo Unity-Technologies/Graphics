@@ -441,9 +441,6 @@ namespace UnityEngine.Experimental.Rendering.Universal
 
         public static Bounds GenerateSpriteMesh(Light2D light, Sprite sprite)
         {
-            // this needs to be called before getting UV at the line below.
-            // Venky fixed it, enroute to trunk
-            var uvs = sprite.uv;
             var mesh = light.lightMesh;
 
             if (sprite == null)
@@ -451,6 +448,10 @@ namespace UnityEngine.Experimental.Rendering.Universal
                 mesh.Clear();
                 return new Bounds(Vector3.zero, Vector3.zero);
             }
+
+            // this needs to be called before getting UV at the line below.
+            // Venky fixed it, enroute to trunk
+            var uvs = sprite.uv;
 
             var srcVertices = sprite.GetVertexAttribute<Vector3>(VertexAttribute.Position);
             var srcUVs = sprite.GetVertexAttribute<Vector2>(VertexAttribute.TexCoord0);

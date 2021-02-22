@@ -326,7 +326,7 @@ namespace UnityEditor.ShaderGraph
             // Function Registry
             var functionBuilder = new ShaderStringBuilder();
             var graphIncludes = new IncludeCollection();
-            var functionRegistry = new FunctionRegistry(functionBuilder, graphIncludes);
+            var functionRegistry = new FunctionRegistry(functionBuilder, graphIncludes, true);
 
             // Hash table of named $splice(name) commands
             // Key: splice token
@@ -640,7 +640,7 @@ namespace UnityEditor.ShaderGraph
 
             using (var propertyBuilder = new ShaderStringBuilder())
             {
-                propertyCollector.GetPropertiesDeclaration(propertyBuilder, m_Mode, m_GraphData.concretePrecision);
+                propertyCollector.GetPropertiesDeclaration(propertyBuilder, m_Mode, m_GraphData.graphDefaultConcretePrecision);
                 if (propertyBuilder.length == 0)
                     propertyBuilder.AppendLine("// GraphProperties: <None>");
                 spliceCommands.Add("GraphProperties", propertyBuilder.ToCodeBlock());
@@ -676,7 +676,7 @@ namespace UnityEditor.ShaderGraph
                 #if !ENABLE_HYBRID_RENDERER_V2
                 if (hasDotsProperties)
                 {
-                    dotsInstancingOptionsBuilder.AppendLine("#if SHADER_TARGET >= 35 && (defined(SHADER_API_D3D11) || defined(SHADER_API_GLES3) || defined(SHADER_API_GLCORE) || defined(SHADER_API_XBOXONE) || defined(SHADER_API_PSSL) || defined(SHADER_API_VULKAN) || defined(SHADER_API_METAL))");
+                    dotsInstancingOptionsBuilder.AppendLine("#if SHADER_TARGET >= 35 && (defined(SHADER_API_D3D11) || defined(SHADER_API_GLES3) || defined(SHADER_API_GLCORE) || defined(SHADER_API_XBOXONE)  || defined(SHADER_API_GAMECORE) || defined(SHADER_API_PSSL) || defined(SHADER_API_VULKAN) || defined(SHADER_API_METAL))");
                     dotsInstancingOptionsBuilder.AppendLine("    #define UNITY_SUPPORT_INSTANCING");
                     dotsInstancingOptionsBuilder.AppendLine("#endif");
                     dotsInstancingOptionsBuilder.AppendLine("#if defined(UNITY_SUPPORT_INSTANCING) && defined(INSTANCING_ON)");
