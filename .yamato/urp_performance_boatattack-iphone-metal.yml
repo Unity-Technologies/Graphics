@@ -24,10 +24,10 @@ URP_Performance_BoatAttack_iPhone_Metal_performance_playmode_runtime_il2cpp_Line
       -  chmod +x ./utr
       -  |5-
               export GIT_REVISIONDATE=`git rev-parse HEAD | git show -s --format=%cI`
-              ./utr --artifacts_path=TestProjects/BoatAttack/test-results --performance-project-id=BoatAttack --platform=iOS --player-load-path=playersLow --report-performance-data --suite=playmode --timeout=2400 --zero-tests-are-ok=1
+              ./utr --artifacts_path=TestProjects/BoatAttack/test-results --performance-project-id=BoatAttack --platform=iOS --player-load-path=playersLow --report-performance-data --suite=playmode --testfilter=Low --timeout=2400 --zero-tests-are-ok=1
       -  |5-
               export GIT_REVISIONDATE=`git rev-parse HEAD | git show -s --format=%cI`
-              ./utr --artifacts_path=TestProjects/BoatAttack/test-results --performance-project-id=BoatAttack --platform=iOS --player-load-path=playersMedium --report-performance-data --suite=playmode --timeout=2400 --zero-tests-are-ok=1
+              ./utr --artifacts_path=TestProjects/BoatAttack/test-results --performance-project-id=BoatAttack --platform=iOS --player-load-path=playersMedium --report-performance-data --suite=playmode --testfilter=Medium --timeout=2400 --zero-tests-are-ok=1
     artifacts:
         logs:
             paths:
@@ -158,10 +158,10 @@ URP_Performance_BoatAttack_iPhone_Metal_performance_playmode_runtime_il2cpp_Line
       -  chmod +x ./utr
       -  |5-
               export GIT_REVISIONDATE=`git rev-parse HEAD | git show -s --format=%cI`
-              ./utr --artifacts_path=TestProjects/BoatAttack/test-results --performance-project-id=BoatAttack --platform=iOS --player-load-path=playersLow --report-performance-data --suite=playmode --timeout=2400 --zero-tests-are-ok=1
+              ./utr --artifacts_path=TestProjects/BoatAttack/test-results --performance-project-id=BoatAttack --platform=iOS --player-load-path=playersLow --report-performance-data --suite=playmode --testfilter=Low --timeout=2400 --zero-tests-are-ok=1
       -  |5-
               export GIT_REVISIONDATE=`git rev-parse HEAD | git show -s --format=%cI`
-              ./utr --artifacts_path=TestProjects/BoatAttack/test-results --performance-project-id=BoatAttack --platform=iOS --player-load-path=playersMedium --report-performance-data --suite=playmode --timeout=2400 --zero-tests-are-ok=1
+              ./utr --artifacts_path=TestProjects/BoatAttack/test-results --performance-project-id=BoatAttack --platform=iOS --player-load-path=playersMedium --report-performance-data --suite=playmode --testfilter=Medium --timeout=2400 --zero-tests-are-ok=1
     artifacts:
         logs:
             paths:
