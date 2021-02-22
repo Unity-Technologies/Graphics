@@ -211,7 +211,7 @@ namespace UnityEngine.Rendering.HighDefinition
             }
             if (lightType == HDLightType.Directional)
             {
-                Debug.Assert(numberOfCascades < m_MaxShadowCascades, "numberOfCascades is bigger than the maximum cascades allowed");
+                Debug.Assert(numberOfCascades <= m_MaxShadowCascades, "numberOfCascades is bigger than the maximum cascades allowed");
                 bool hasRendered = true;
                 for (int i = 0; i < numberOfCascades; ++i)
                 {
