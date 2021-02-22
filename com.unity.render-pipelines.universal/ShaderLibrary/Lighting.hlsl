@@ -188,9 +188,9 @@ Light GetAdditionalPerObjectLight(int perObjectLightIndex, float3 positionWS)
 uint GetPerObjectLightIndexOffset()
 {
 #if USE_STRUCTURED_BUFFER_FOR_LIGHT_DATA
-    return unity_LightData.x;
+    return uint(unity_LightData.x);
 #else
-    return 0;
+    return uint(0);
 #endif
 }
 
@@ -206,13 +206,13 @@ int GetPerObjectLightIndex(uint index)
 // There are limitation in mobile GPUs to use SSBO (performance / no vertex shader support) /
 /////////////////////////////////////////////////////////////////////////////////////////////
 #if USE_STRUCTURED_BUFFER_FOR_LIGHT_DATA
-    uint offset = unity_LightData.x;
+    uint offset = uint(unity_LightData.x);
     return _AdditionalLightsIndices[offset + index];
 
 /////////////////////////////////////////////////////////////////////////////////////////////
 // UBO path                                                                                 /
 //                                                                                          /
-// We store 8 light indices in float4 unity_LightIndices[2];                                /
+// We store 8 light indices in half4 unity_LightIndices[2];                                 /
 // Due to memory alignment unity doesn't support int[] or float[]                           /
 // Even trying to reinterpret cast the unity_LightIndices to float[] won't work             /
 // it will cast to float4[] and create extra register pressure. :(                          /
@@ -225,7 +225,7 @@ int GetPerObjectLightIndex(uint index)
     // replacing unity_LightIndicesX[i] with a dp4 with identity matrix.
     // u_xlat16_40 = dot(unity_LightIndices[int(u_xlatu13)], ImmCB_0_0_0[u_xlati1]);
     // This increases both arithmetic and register pressure.
-    return unity_LightIndices[index / 4][index % 4];
+    return int(unity_LightIndices[index / 4][index % 4]);
 #else
     // Fallback to GLES2. No bitfield magic here :(.
     // We limit to 4 indices per object and only sample unity_4LightIndices0.
@@ -234,7 +234,7 @@ int GetPerObjectLightIndex(uint index)
     half indexHalf = half(index);
     half2 lightIndex2 = (indexHalf < half(2.0)) ? unity_LightIndices[0].xy : unity_LightIndices[0].zw;
     half i_rem = (indexHalf < half(2.0)) ? indexHalf : indexHalf - half(2.0);
-    return (i_rem < half(1.0)) ? lightIndex2.x : lightIndex2.y;
+    return int((i_rem < half(1.0)) ? lightIndex2.x : lightIndex2.y);
 #endif
 }
 
@@ -266,7 +266,7 @@ int GetAdditionalLightsCount()
     // TODO: we need to expose in SRP api an ability for the pipeline cap the amount of lights
     // in the culling. This way we could do the loop branch with an uniform
     // This would be helpful to support baking exceeding lights in SH as well
-    return min(_AdditionalLightsCount.x, unity_LightData.y);
+    return int(min(_AdditionalLightsCount.x, unity_LightData.y));
 }
 
 ///////////////////////////////////////////////////////////////////////////////

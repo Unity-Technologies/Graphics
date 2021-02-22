@@ -158,7 +158,7 @@ half OutputAlpha(half outputAlpha, half surfaceType = half(0.0))
 //
 // Always normalize per-pixel.
 // Too many bug like lighting quality issues otherwise.
-real3 NormalizeNormalPerVertex(real3 normalWS)
+half3 NormalizeNormalPerVertex(half3 normalWS)
 {
     #if defined(SHADER_QUALITY_LOW) && defined(_NORMALMAP)
         return normalWS;
@@ -167,7 +167,21 @@ real3 NormalizeNormalPerVertex(real3 normalWS)
     #endif
 }
 
-real3 NormalizeNormalPerPixel(real3 normalWS)
+float3 NormalizeNormalPerVertex(float3 normalWS)
+{
+    #if defined(SHADER_QUALITY_LOW) && defined(_NORMALMAP)
+        return normalWS;
+    #else
+        return normalize(normalWS);
+    #endif
+}
+
+half3 NormalizeNormalPerPixel(half3 normalWS)
+{
+    return normalize(normalWS);
+}
+
+float3 NormalizeNormalPerPixel(float3 normalWS)
 {
     return normalize(normalWS);
 }
