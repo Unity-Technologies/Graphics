@@ -18,6 +18,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Added a complete solution for volumetric clouds for HDRP including a cloud map generation tool.
 
 ### Fixed
+- Fixed Intensity Multiplier not affecting realtime global illumination.
 - Fixed an exception when opening the color picker in the material UI (case 1307143).
 - Fixed lights shadow frustum near and far planes.
 - Fixed various issues with non-temporal SSAO and rendergraph.
