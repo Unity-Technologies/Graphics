@@ -20,6 +20,7 @@ namespace UnityEngine.Rendering.HighDefinition
             internal int shadowIndex;
             internal int viewportSize;                               // We assume only square shadows maps.
             internal Vector4 offsetInAtlas;                          // When is registered xy is the offset in the texture atlas, in UVs, the zw is the entry offset in the C# representation.
+            internal bool rendersOnPlacement;
         }
 
         // We need an extra struct to track differences in the light transform
@@ -349,6 +350,8 @@ namespace UnityEngine.Rendering.HighDefinition
                     record.shadowIndex = currentLightData.lightIdxForCachedShadows + i;
                     record.viewportSize = resolution;
                     record.offsetInAtlas = new Vector4(-1, -1, -1, -1); // Will be set later.
+                    // Only situation in which we allow not to render on placement if it is OnDemand and onDomandShadowRenderOnPlacement is false
+                    record.rendersOnPlacement = (currentLightData.shadowUpdateMode == ShadowUpdateMode.OnDemand && !currentLightData.onDomandShadowRenderOnPlacement) ? false : true;
 
                     recordList.Add(record);
                 }

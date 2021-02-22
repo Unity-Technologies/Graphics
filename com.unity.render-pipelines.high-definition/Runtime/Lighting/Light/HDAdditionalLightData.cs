@@ -1586,6 +1586,25 @@ namespace UnityEngine.Rendering.HighDefinition
             }
         }
 
+        [SerializeField]
+        bool m_OnDemandShadowRenderOnPlacement = true;
+        /// <summary>
+        /// If the shadow update mode is set to OnDemand, this parameter controls whether the shadows are rendered the first time without needing an explicit render request. If this properties is false,
+        /// the OnDemand shadows will never be rendered unless a render request is performed explicitly.
+        /// </summary>
+        public bool onDomandShadowRenderOnPlacement
+        {
+            get => m_OnDemandShadowRenderOnPlacement;
+            set
+            {
+                if (m_OnDemandShadowRenderOnPlacement == value)
+                    return;
+
+                m_OnDemandShadowRenderOnPlacement = value;
+            }
+        }
+
+
         /// <summary>
         /// True if the light affects volumetric fog, false otherwise
         /// </summary>
