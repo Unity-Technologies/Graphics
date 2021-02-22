@@ -39,28 +39,7 @@ namespace UnityEditor.Rendering.HighDefinition
         Material[]      m_MaterialLayers = new Material[kMaxLayerCount];
         AssetImporter   m_MaterialImporter;
 
-        int numLayer
-        {
-            get { return (int)layerCount.floatValue; }
-            set
-            {
-                layerCount.floatValue = (float)value;
-                UpdateEditorExpended(value);
-            }
-        }
-
-        void UpdateEditorExpended(int layerNumber)
-        {
-            if (layerNumber == 4)
-            {
-                materialEditor.SetExpandedAreas((uint)ExpandableBit.ShowLayer3, true);
-            }
-            if (layerNumber >= 3)
-            {
-                materialEditor.SetExpandedAreas((uint)ExpandableBit.ShowLayer2, true);
-            }
-            materialEditor.SetExpandedAreas((uint)ExpandableBit.ShowLayer1, true);
-        }
+        int numLayer => (int)layerCount.floatValue;
 
         /// <summary>
         /// Constructs a LayerListUIBlock based on the parameters.
