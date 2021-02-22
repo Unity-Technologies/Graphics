@@ -636,7 +636,7 @@ namespace UnityEditor.ShaderGraph
 
                 foreach (var key in keywordCollector.keywords.Where(x => x.generatePropertyBlock))
                 {
-                    sb.AppendLine(key.GetPropertyBlockString());
+                    key.AppendPropertyBlockStrings(sb);
                 }
             }
         }
