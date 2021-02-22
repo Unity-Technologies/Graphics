@@ -42,7 +42,7 @@ namespace UnityEngine
         /// Random Samples Count used inside the disk with 'occlusionRadius'
         /// </summary>
         [Range(0, 64)]
-        public uint sampleCount = 4;
+        public uint sampleCount = 32;
         /// <summary>
         /// Z Occlusion Offset allow us to offset the plane where the disc of occlusion is place (closer to camera), value on world space.
         /// Useful for instance to sample occlusion outside a light bulb if we place a flare inside the light bulb
