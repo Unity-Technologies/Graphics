@@ -120,7 +120,8 @@ namespace UnityEngine.Rendering.HighDefinition
         /// <param name="aggregatedFrameSettings">The aggregated FrameSettings result.</param>
         /// <param name="camera">The camera rendering.</param>
         /// <param name="additionalData">Additional data of the camera rendering.</param>
-        public static void AggregateFrameSettings(ref FrameSettings aggregatedFrameSettings, Camera camera, HDAdditionalCameraData additionalData, HDRenderPipelineAsset hdrpAsset)
+        /// <param name="hdrpAsset">HDRenderPipelineAsset contening supported features.</param>
+        public static void AggregateFrameSettings(ref FrameSettings aggregatedFrameSettings, Camera camera, HDAdditionalCameraData additionalData, HDRenderPipelineAsset hdrpAsset, HDRenderPipelineAsset defaultHdrpAsset)
             => AggregateFrameSettings(
                 ref aggregatedFrameSettings,
                 camera,
