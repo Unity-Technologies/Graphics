@@ -5,6 +5,7 @@
 #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/DebuggingCommon.hlsl"
 
 #if defined(_DEBUG_SHADER)
+
 bool CalculateDebugColor(half3 albedo, half alpha, half3 mask, half2 lightingUV, out half4 debugColor)
 {
     switch(_DebugMaterialMode)

@@ -14,10 +14,6 @@ Shader "Universal Render Pipeline/2D/Sprite-Lit-Default"
         [HideInInspector] _EnableExternalAlpha("Enable External Alpha", Float) = 0
     }
 
-    HLSLINCLUDE
-    #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Core.hlsl"
-    ENDHLSL
-
     SubShader
     {
         Tags {"Queue" = "Transparent" "RenderType" = "Transparent" "RenderPipeline" = "UniversalPipeline" }
@@ -29,9 +25,13 @@ Shader "Universal Render Pipeline/2D/Sprite-Lit-Default"
         Pass
         {
             Tags { "LightMode" = "Universal2D" }
+
             HLSLPROGRAM
+            #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Core.hlsl"
+
             #pragma vertex CombinedShapeLightVertex
             #pragma fragment CombinedShapeLightFragment
+
             #pragma multi_compile USE_SHAPE_LIGHT_TYPE_0 __
             #pragma multi_compile USE_SHAPE_LIGHT_TYPE_1 __
             #pragma multi_compile USE_SHAPE_LIGHT_TYPE_2 __
@@ -106,7 +106,10 @@ Shader "Universal Render Pipeline/2D/Sprite-Lit-Default"
         Pass
         {
             Tags { "LightMode" = "NormalsRendering"}
+
             HLSLPROGRAM
+            #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Core.hlsl"
+
             #pragma vertex NormalsRenderingVertex
             #pragma fragment NormalsRenderingFragment
 
@@ -161,11 +164,14 @@ Shader "Universal Render Pipeline/2D/Sprite-Lit-Default"
             }
             ENDHLSL
         }
+
         Pass
         {
             Tags { "LightMode" = "UniversalForward" "Queue"="Transparent" "RenderType"="Transparent"}
 
             HLSLPROGRAM
+            #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Core.hlsl"
+
             #pragma vertex UnlitVertex
             #pragma fragment UnlitFragment
 
@@ -215,6 +221,8 @@ Shader "Universal Render Pipeline/2D/Sprite-Lit-Default"
 
             HLSLPROGRAM
             #define _DEBUG_SHADER
+
+            #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Core.hlsl"
 
             #pragma vertex CombinedShapeLightVertex
             #pragma fragment CombinedShapeLightFragment
