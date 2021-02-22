@@ -60,6 +60,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Change Assets/Create/Rendering/C# Post Process Volume to Assets/Create/Rendering/HDRP C# Post Process Volume
 - Change labels about scroll direction and cloud type.
 - Improved shadow cascade GUI drawing with pixel perfect, hover and focus functionalities.
+- Changed Path Tracing's maximum intensity from clamped (0 to 100) to positive value (case 1310514).
 
 ## [11.0.0] - 2020-10-21
 
