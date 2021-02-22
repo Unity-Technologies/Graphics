@@ -454,7 +454,7 @@ namespace UnityEngine.Rendering.HighDefinition
             m_Asset.EvaluateSettings();
 
             // Check that the serialized Resources are not broken
-            m_globalSettings.EnsureResources(forceReload: true);
+            m_globalSettings.EnsureRuntimeResources(forceReload: true);
             m_globalSettings.EnsureEditorResources(forceReload: true);
 
             if (m_RayTracingSupported)
@@ -1014,6 +1014,15 @@ namespace UnityEngine.Rendering.HighDefinition
 #endif
                 return;
 
+#if UNITY_EDITOR
+            if (m_globalSettings == null)
+            {
+                Debug.LogError("No HDRP Global Settings Asset is assigned. One will be created for you. If you want to modify it, go to Project Settings > Graphics > HDRP Settings.");
+                m_globalSettings = HDRenderPipelineGlobalSettings.Ensure();
+                m_globalSettings.EnsureShadersCompiled();
+                return;
+            }
+#endif
             m_globalSettings.GetOrCreateDefaultVolume();
 
             // This function should be called once every render (once for all camera)

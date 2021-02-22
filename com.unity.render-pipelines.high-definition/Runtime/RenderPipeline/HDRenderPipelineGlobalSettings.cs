@@ -75,11 +75,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 {
                     if (!AssetDatabase.IsValidFolder("Assets/HDRPDefaultResources/"))
                         AssetDatabase.CreateFolder("Assets", "HDRPDefaultResources");
-                    assetCreated = ScriptableObject.CreateInstance<HDRenderPipelineGlobalSettings>();
-                    AssetDatabase.CreateAsset(assetCreated, path);
-                    assetCreated.Init();
-                    AssetDatabase.SaveAssets();
-                    AssetDatabase.Refresh();
+                    assetCreated = Create(path);
                 }
             }
             Debug.Assert(assetCreated, "Could not create HDRP's Global Settings - HDRP may not work correctly - Open the Graphics Window for additional help.");
@@ -275,7 +271,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 }
                 else
                 {
-                    assetCreated.EnsureResources(forceReload: false);
+                    assetCreated.EnsureRuntimeResources(forceReload: false);
                     assetCreated.EnsureRayTracingResources(forceReload: false);
                     assetCreated.GetOrCreateDefaultVolumeProfile();
                     assetCreated.GetOrAssignLookDevVolumeProfile();
@@ -441,18 +437,12 @@ namespace UnityEngine.Rendering.HighDefinition
 
         internal RenderPipelineResources renderPipelineResources
         {
-            get
-            {
-#if UNITY_EDITOR
-                EnsureResources(forceReload: false);
-#endif
-                return m_RenderPipelineResources;
-            }
+            get => m_RenderPipelineResources;
             set { m_RenderPipelineResources = value; }
         }
 
 #if UNITY_EDITOR
-        internal void EnsureResources(bool forceReload)
+        internal void EnsureRuntimeResources(bool forceReload)
         {
             if (AreResourcesCreated())
                 return;
@@ -470,6 +460,10 @@ namespace UnityEngine.Rendering.HighDefinition
                         runtimeResourcesPath,
                         true);
                 }
+            }
+            else if (!EditorUtility.IsPersistent(m_RenderPipelineResources))
+            {
+                m_RenderPipelineResources = AssetDatabase.LoadAssetAtPath<RenderPipelineResources>(runtimeResourcesPath);
             }
         }
 

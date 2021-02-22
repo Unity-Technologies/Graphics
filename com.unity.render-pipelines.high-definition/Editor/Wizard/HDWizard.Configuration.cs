@@ -397,7 +397,7 @@ namespace UnityEditor.Rendering.HighDefinition
             if (!IsHdrpAssetUsedCorrect())
                 FixHdrpAssetUsed(fromAsync: false);
 
-            HDRenderPipelineGlobalSettings.instance.EnsureResources(forceReload: true);
+            HDRenderPipelineGlobalSettings.instance.EnsureRuntimeResources(forceReload: true);
         }
 
         bool IsHdrpAssetEditorResourcesCorrect()
