@@ -239,7 +239,7 @@ namespace UnityEditor.VFX
 
                         var baseOffsetRange = VFXValue.Constant(subOutput.GetRenderQueueOffsetRange());
                         var minusOne = VFXOperatorUtility.MinusOneExpression[UnityEngine.VFX.VFXValueType.Int32];
-                        materialOffset = VFXOperatorUtility.Clamp(materialOffset, minusOne * baseOffsetRange, baseOffsetRange);
+                        materialOffset = VFXOperatorUtility.Clamp(materialOffset, minusOne * baseOffsetRange, baseOffsetRange, false);
 
                         var baseOffset = VFXValue.Constant(subOutput.GetRenderQueueOffset());
                         mapper.AddExpression(baseOffset + materialOffset, "customRenderQueue", -1);
