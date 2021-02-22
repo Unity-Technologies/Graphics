@@ -2,29 +2,29 @@ using UnityEngine.Rendering.Universal;
 
 namespace UnityEditor.Rendering.Universal
 {
-    class URPSerializedCamera
+    internal class URPSerializedCamera
     {
-        public SerializedObject serializedObject;
+        internal SerializedObject serializedObject;
 
-        public SerializedProperty renderShadows { get; }
-        public SerializedProperty renderDepth { get; }
-        public SerializedProperty renderOpaque { get; }
-        public SerializedProperty renderer { get; }
-        public SerializedProperty cameraType { get; }
-        public SerializedProperty cameras { get; }
-        public SerializedProperty volumeLayerMask { get; }
-        public SerializedProperty volumeTrigger { get; }
-        public SerializedProperty renderPostProcessing { get; }
-        public SerializedProperty antialiasing { get; }
-        public SerializedProperty antialiasingQuality { get; }
-        public SerializedProperty stopNaN { get; }
-        public SerializedProperty dithering { get; }
-        public SerializedProperty clearDepth { get; }
+        internal SerializedProperty renderShadows { get; }
+        internal SerializedProperty renderDepth { get; }
+        internal SerializedProperty renderOpaque { get; }
+        internal SerializedProperty renderer { get; }
+        internal SerializedProperty cameraType { get; }
+        internal SerializedProperty cameras { get; }
+        internal SerializedProperty volumeLayerMask { get; }
+        internal SerializedProperty volumeTrigger { get; }
+        internal SerializedProperty renderPostProcessing { get; }
+        internal SerializedProperty antialiasing { get; }
+        internal SerializedProperty antialiasingQuality { get; }
+        internal SerializedProperty stopNaN { get; }
+        internal SerializedProperty dithering { get; }
+        internal SerializedProperty clearDepth { get; }
 #if ENABLE_VR && ENABLE_XR_MODULE
-        public SerializedProperty allowXRRendering { get; }
+        internal SerializedProperty allowXRRendering { get; }
 #endif
 
-        public URPSerializedCamera(SerializedObject serializedObject)
+        internal URPSerializedCamera(SerializedObject serializedObject)
         {
             this.serializedObject = serializedObject;
 
@@ -48,12 +48,12 @@ namespace UnityEditor.Rendering.Universal
 #endif
         }
 
-        public void Update()
+        internal void Update()
         {
             serializedObject.Update();
         }
 
-        public void Apply()
+        internal void Apply()
         {
             serializedObject.ApplyModifiedProperties();
 
