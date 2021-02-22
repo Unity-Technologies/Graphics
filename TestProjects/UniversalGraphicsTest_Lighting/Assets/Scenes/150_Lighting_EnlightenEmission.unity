@@ -197,8 +197,8 @@ GameObject:
   - component: {fileID: 971756574}
   - component: {fileID: 971756572}
   - component: {fileID: 971756571}
-  - component: {fileID: 971756570}
   - component: {fileID: 971756573}
+  - component: {fileID: 971756570}
   m_Layer: 0
   m_Name: Main Camera
   m_TagString: MainCamera
@@ -221,10 +221,10 @@ MonoBehaviour:
   ImageComparisonSettings:
     TargetWidth: 640
     TargetHeight: 320
-    PerPixelCorrectnessThreshold: 0.005
+    PerPixelCorrectnessThreshold: 0.001
     PerPixelGammaThreshold: 0.003921569
     PerPixelAlphaThreshold: 0.003921569
-    AverageCorrectnessThreshold: 0.001
+    AverageCorrectnessThreshold: 0.005
     IncorrectPixelsThreshold: 0.0000038146973
     UseHDR: 0
     UseBackBuffer: 0
