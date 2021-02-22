@@ -46,10 +46,10 @@ namespace UnityEngine.Rendering.HighDefinition
         public ClampedIntParameter maximumDepth = new ClampedIntParameter(4, 1, 10);
 
         /// <summary>
-        /// Defines the maximum intensity value computed for a path segment.
+        /// Defines the maximum, post-exposed luminance computed for indirect path segments.
         /// </summary>
-        [Tooltip("Defines the maximum intensity value computed for a path segment.")]
-        public ClampedFloatParameter maximumIntensity = new ClampedFloatParameter(10f, 0f, 100f);
+        [Tooltip("Defines the maximum, post-exposed luminance computed for indirect path segments. Lower values help against noise and fireflies (very bright pixels), but introduce bias by darkening the overall result. Increase this value if your image looks too dark.")]
+        public MinFloatParameter maximumIntensity = new MinFloatParameter(10f, 0f);
 
         /// <summary>
         /// Default constructor for the path tracing volume component.
