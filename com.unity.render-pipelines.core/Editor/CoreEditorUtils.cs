@@ -87,7 +87,7 @@ namespace UnityEditor.Rendering
         /// <summary>Changes the icon size of the <see cref="EditorGUIUtility"/>, and restore it back</summary>
         public class IconSizeScope : IDisposable
         {
-            Vector2 m_OldIconSize = EditorGUIUtility.GetIconSize();
+            readonly Vector2 m_OldIconSize = EditorGUIUtility.GetIconSize();
 
             /// <summary>Constructor</summary>
             /// <param name="size">The size of the icons during the lifetime of the scope</param>
