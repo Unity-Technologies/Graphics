@@ -8,8 +8,7 @@ namespace UnityEngine.Rendering.Universal
     public enum DebugMaterialMode
     {
         None,
-        Unlit,
-        Diffuse,
+        Albedo,
         Specular,
         Alpha,
         Smoothness,

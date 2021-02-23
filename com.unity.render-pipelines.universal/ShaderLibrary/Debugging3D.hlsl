@@ -173,16 +173,12 @@ bool CalculateColorForDebugMaterial(in InputData inputData, in SurfaceData surfa
     // Debug materials...
     switch(_DebugMaterialMode)
     {
-        case DEBUGMATERIALMODE_UNLIT:
+        case DEBUGMATERIALMODE_ALBEDO:
             color = half4(surfaceData.albedo, 1);
             return true;
 
-        case DEBUGMATERIALMODE_DIFFUSE:
-            color = half4(debugData.brdfDiffuse, 1);
-            return true;
-
         case DEBUGMATERIALMODE_SPECULAR:
-            color = half4(debugData.brdfSpecular, 1);
+            color = half4(surfaceData.specular, 1);
             return true;
 
         case DEBUGMATERIALMODE_ALPHA:
