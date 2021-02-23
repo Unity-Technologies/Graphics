@@ -214,6 +214,8 @@ namespace UnityEditor.Rendering.HighDefinition
             };
             m_FadeFactor = serializedObject.FindProperty("m_FadeFactor");
             m_DecalLayerMask = serializedObject.FindProperty("m_DecalLayerMask");
+
+            ReinitSavedRatioSizePivotPosition();
         }
 
         private void OnDisable()
@@ -337,7 +339,7 @@ namespace UnityEditor.Rendering.HighDefinition
                     decalProjector.pivot += Quaternion.Inverse(decalProjector.transform.rotation) * (decalProjector.transform.position - newPosition);
                     decalProjector.transform.position = newPosition;
 
-                    ResetSavedRatioSizePivotPosition();
+                    ReinitSavedRatioSizePivotPosition();
                 }
             }
         }
@@ -459,19 +461,43 @@ namespace UnityEditor.Rendering.HighDefinition
         // Aim is to keep propotion while sliding the value to 0 in Inspector and then go back to something else.
         // Current solution only work for the life of this editor, but is enough in most case.
         // Wich means if you go to there, selection something else and go back on it, pivot position is thus null.
-        float[] ratioSizePivotPositionSaved = new float[3] {float.NaN, float.NaN, float.NaN};
+        Dictionary<DecalProjector, Vector3> ratioSizePivotPositionSaved = new Dictionary<DecalProjector, Vector3>();
 
-        void ResetSavedRatioSizePivotPosition()
-            => ratioSizePivotPositionSaved = new float[3] {float.NaN, float.NaN, float.NaN};
+        void ReinitSavedRatioSizePivotPosition()
+        {
+            foreach (DecalProjector projector in targets)
+                ratioSizePivotPositionSaved[projector] = new Vector3(float.NaN, float.NaN, float.NaN);
+        }
 
         void UpdateSize(int axe, float newSize, float oldSize)
         {
-            // Save old ratio if not registered
-            if (float.IsNaN(ratioSizePivotPositionSaved[axe]))
-                ratioSizePivotPositionSaved[axe] = Mathf.Abs(oldSize) <= Mathf.Epsilon ? 0f : m_OffsetValues[axe].floatValue / oldSize;
+            void UpdateSizeOfOneTarget(DecalProjector currentTarget)
+            {
+                // Save old ratio if not registered
+                // Either or are NaN or no one, check only first
+                Vector3 saved = ratioSizePivotPositionSaved[currentTarget];
+                if (float.IsNaN(saved[axe]))
+                {
+                    saved[axe] =  Mathf.Abs(oldSize) <= Mathf.Epsilon ? 0f : currentTarget.m_Offset[axe] / oldSize;
+                    ratioSizePivotPositionSaved[currentTarget] = saved;
+                }
 
-            m_SizeValues[axe].floatValue = newSize;
-            m_OffsetValues[axe].floatValue = ratioSizePivotPositionSaved[axe] * newSize;
+                currentTarget.m_Size[axe] = newSize;
+                currentTarget.m_Offset[axe] = saved[axe] * newSize;
+            }
+
+            // Apply any change on target first
+            serializedObject.ApplyModifiedProperties();
+
+            // update each target
+            foreach (DecalProjector decalProjector in targets)
+                UpdateSizeOfOneTarget(decalProjector);
+
+            // update again serialize object to register change in targets
+            serializedObject.Update();
+
+            // change was not tracked by SerializeReference so force repaint the scene views and game views
+            UnityEditorInternal.InternalEditorUtility.RepaintAllViews();
         }
 
         public override void OnInspectorGUI()
@@ -509,18 +535,17 @@ namespace UnityEditor.Rendering.HighDefinition
                 EditorGUI.EndProperty();
                 EditorGUI.EndProperty();
 
+                EditorGUI.BeginProperty(rect, k_ProjectionDepthContent, m_SizeValues[2]);
                 EditorGUI.BeginChangeCheck();
-                float oldSizeZ = m_SizeValues[2].floatValue;
-                EditorGUILayout.PropertyField(m_SizeValues[2], k_ProjectionDepthContent);
+                float newSizeZ = EditorGUILayout.FloatField(k_ProjectionDepthContent, m_SizeValues[2].floatValue);
                 if (EditorGUI.EndChangeCheck())
-                {
-                    UpdateSize(2, Mathf.Max(0, m_SizeValues[2].floatValue), oldSizeZ);
-                }
+                    UpdateSize(2, Mathf.Max(0, newSizeZ), m_SizeValues[2].floatValue);
 
                 EditorGUI.BeginChangeCheck();
                 EditorGUILayout.PropertyField(m_Offset, k_Offset);
                 if (EditorGUI.EndChangeCheck())
-                    ResetSavedRatioSizePivotPosition();
+                    ReinitSavedRatioSizePivotPosition();
+                EditorGUI.EndProperty();
 
                 EditorGUILayout.PropertyField(m_MaterialProperty, k_MaterialContent);
 
