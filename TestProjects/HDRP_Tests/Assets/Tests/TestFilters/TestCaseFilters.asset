@@ -11,7 +11,7 @@ MonoBehaviour:
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 5f6aa9f32113aec4a8bded44c1febe5c, type: 3}
   m_Name: TestCaseFilters
-  m_EditorClassIdentifier: 
+  m_EditorClassIdentifier:
   filters:
   - FilteredScene: {fileID: 0}
     FilteredScenes:
@@ -19,7 +19,7 @@ MonoBehaviour:
     ColorSpace: 1
     BuildPlatform: -2
     GraphicsDevice: 18
-    XrSdk: 
+    XrSdk:
     StereoModes: 0
     Reason: Fail on DX12 XR but not DX12...
   - FilteredScene: {fileID: 0}
@@ -28,7 +28,7 @@ MonoBehaviour:
     ColorSpace: 1
     BuildPlatform: -2
     GraphicsDevice: 16
-    XrSdk: 
+    XrSdk:
     StereoModes: 0
     Reason: unstable on yamato
   - FilteredScene: {fileID: 0}
@@ -37,7 +37,7 @@ MonoBehaviour:
     ColorSpace: 1
     BuildPlatform: -2
     GraphicsDevice: 16
-    XrSdk: 
+    XrSdk:
     StereoModes: 0
     Reason: unstable on yamato
   - FilteredScene: {fileID: 0}
@@ -46,7 +46,7 @@ MonoBehaviour:
     ColorSpace: 1
     BuildPlatform: -2
     GraphicsDevice: 16
-    XrSdk: 
+    XrSdk:
     StereoModes: 0
     Reason: unstable on yamato
   - FilteredScene: {fileID: 0}
@@ -55,7 +55,7 @@ MonoBehaviour:
     ColorSpace: 1
     BuildPlatform: -2
     GraphicsDevice: 16
-    XrSdk: 
+    XrSdk:
     StereoModes: 0
     Reason: weird artifact
   - FilteredScene: {fileID: 0}
@@ -64,7 +64,7 @@ MonoBehaviour:
     ColorSpace: 1
     BuildPlatform: -2
     GraphicsDevice: 16
-    XrSdk: 
+    XrSdk:
     StereoModes: 0
     Reason: Disable this test as we disable the feature for Yamto on Mac
   - FilteredScene: {fileID: 0}
@@ -73,7 +73,7 @@ MonoBehaviour:
     ColorSpace: 1
     BuildPlatform: -2
     GraphicsDevice: 16
-    XrSdk: 
+    XrSdk:
     StereoModes: 0
     Reason: unstable on yamato
   - FilteredScene: {fileID: 0}
@@ -82,7 +82,7 @@ MonoBehaviour:
     ColorSpace: 1
     BuildPlatform: -2
     GraphicsDevice: 21
-    XrSdk: 
+    XrSdk:
     StereoModes: 0
     Reason: 'linux: inconclusive / out of memory on yamato'
   - FilteredScene: {fileID: 0}
@@ -91,7 +91,7 @@ MonoBehaviour:
     ColorSpace: 1
     BuildPlatform: -2
     GraphicsDevice: 16
-    XrSdk: 
+    XrSdk:
     StereoModes: 0
     Reason: unstable on yamato
   - FilteredScene: {fileID: 0}
@@ -100,7 +100,7 @@ MonoBehaviour:
     ColorSpace: 1
     BuildPlatform: -2
     GraphicsDevice: 16
-    XrSdk: 
+    XrSdk:
     StereoModes: 0
     Reason: unstable on yamato
   - FilteredScene: {fileID: 0}
@@ -109,7 +109,7 @@ MonoBehaviour:
     ColorSpace: 1
     BuildPlatform: -2
     GraphicsDevice: 16
-    XrSdk: 
+    XrSdk:
     StereoModes: 0
     Reason: With rendergraph - unstable on yamato
   - FilteredScene: {fileID: 0}
@@ -118,7 +118,7 @@ MonoBehaviour:
     ColorSpace: 1
     BuildPlatform: -2
     GraphicsDevice: 16
-    XrSdk: 
+    XrSdk:
     StereoModes: 0
     Reason: unstable on yamato
   - FilteredScene: {fileID: 0}
@@ -127,7 +127,7 @@ MonoBehaviour:
     ColorSpace: 1
     BuildPlatform: -2
     GraphicsDevice: 16
-    XrSdk: 
+    XrSdk:
     StereoModes: 0
     Reason: unstable on yamato
   - FilteredScene: {fileID: 0}
@@ -136,7 +136,7 @@ MonoBehaviour:
     ColorSpace: 1
     BuildPlatform: -2
     GraphicsDevice: 16
-    XrSdk: 
+    XrSdk:
     StereoModes: 0
     Reason: unstable on yamato
   - FilteredScene: {fileID: 0}
@@ -145,7 +145,7 @@ MonoBehaviour:
     ColorSpace: 1
     BuildPlatform: -2
     GraphicsDevice: 16
-    XrSdk: 
+    XrSdk:
     StereoModes: 0
     Reason: unstable on yamato
   - FilteredScene: {fileID: 0}
@@ -154,7 +154,7 @@ MonoBehaviour:
     ColorSpace: -1
     BuildPlatform: -2
     GraphicsDevice: 21
-    XrSdk: 
+    XrSdk:
     StereoModes: 0
     Reason: black screen  on yamato
   - FilteredScene: {fileID: 0}
@@ -163,7 +163,7 @@ MonoBehaviour:
     ColorSpace: 1
     BuildPlatform: -2
     GraphicsDevice: 16
-    XrSdk: 
+    XrSdk:
     StereoModes: 0
     Reason: Cause a black screen on first frame
   - FilteredScene: {fileID: 0}
@@ -172,7 +172,7 @@ MonoBehaviour:
     ColorSpace: 1
     BuildPlatform: -2
     GraphicsDevice: 18
-    XrSdk: 
+    XrSdk:
     StereoModes: 0
     Reason: cause swap chain error on yamato
   - FilteredScene: {fileID: 0}
@@ -181,7 +181,7 @@ MonoBehaviour:
     ColorSpace: 1
     BuildPlatform: -2
     GraphicsDevice: 16
-    XrSdk: 
+    XrSdk:
     StereoModes: 0
     Reason: unstable on yamato
   - FilteredScene: {fileID: 0}
@@ -190,7 +190,7 @@ MonoBehaviour:
     ColorSpace: 1
     BuildPlatform: -2
     GraphicsDevice: 21
-    XrSdk: 
+    XrSdk:
     StereoModes: 0
     Reason: cause inconclusive on Yamato
   - FilteredScene: {fileID: 0}
@@ -199,7 +199,7 @@ MonoBehaviour:
     ColorSpace: 1
     BuildPlatform: -2
     GraphicsDevice: 16
-    XrSdk: 
+    XrSdk:
     StereoModes: 0
     Reason: cause inconclusive on Yamato
   - FilteredScene: {fileID: 0}
@@ -208,7 +208,7 @@ MonoBehaviour:
     ColorSpace: 1
     BuildPlatform: -2
     GraphicsDevice: 16
-    XrSdk: 
+    XrSdk:
     StereoModes: 0
     Reason: unstable on yamato
   - FilteredScene: {fileID: 0}
@@ -217,7 +217,7 @@ MonoBehaviour:
     ColorSpace: 1
     BuildPlatform: -2
     GraphicsDevice: 16
-    XrSdk: 
+    XrSdk:
     StereoModes: 0
     Reason: unstable on yamato
   - FilteredScene: {fileID: 0}
@@ -226,7 +226,7 @@ MonoBehaviour:
     ColorSpace: 1
     BuildPlatform: -2
     GraphicsDevice: 16
-    XrSdk: 
+    XrSdk:
     StereoModes: 0
     Reason: unstable on yamato
   - FilteredScene: {fileID: 0}
@@ -235,7 +235,7 @@ MonoBehaviour:
     ColorSpace: 1
     BuildPlatform: -2
     GraphicsDevice: 16
-    XrSdk: 
+    XrSdk:
     StereoModes: 0
     Reason: unstable on yamato
   - FilteredScene: {fileID: 0}
@@ -244,7 +244,7 @@ MonoBehaviour:
     ColorSpace: 1
     BuildPlatform: -2
     GraphicsDevice: 16
-    XrSdk: 
+    XrSdk:
     StereoModes: 0
     Reason: unstable on yamato
   - FilteredScene: {fileID: 0}
@@ -253,7 +253,7 @@ MonoBehaviour:
     ColorSpace: 1
     BuildPlatform: -2
     GraphicsDevice: 16
-    XrSdk: 
+    XrSdk:
     StereoModes: 0
     Reason: unstable on yamato
   - FilteredScene: {fileID: 0}
@@ -262,7 +262,7 @@ MonoBehaviour:
     ColorSpace: 1
     BuildPlatform: -2
     GraphicsDevice: 16
-    XrSdk: 
+    XrSdk:
     StereoModes: 0
     Reason: unstable on yamato
   - FilteredScene: {fileID: 0}
@@ -271,7 +271,7 @@ MonoBehaviour:
     ColorSpace: 1
     BuildPlatform: -2
     GraphicsDevice: 16
-    XrSdk: 
+    XrSdk:
     StereoModes: 0
     Reason: unstable on yamato
   - FilteredScene: {fileID: 0}
@@ -280,7 +280,7 @@ MonoBehaviour:
     ColorSpace: 1
     BuildPlatform: -2
     GraphicsDevice: 16
-    XrSdk: 
+    XrSdk:
     StereoModes: 0
     Reason: unstable on yamato
   - FilteredScene: {fileID: 0}
@@ -289,7 +289,7 @@ MonoBehaviour:
     ColorSpace: 1
     BuildPlatform: -2
     GraphicsDevice: 16
-    XrSdk: 
+    XrSdk:
     StereoModes: 0
     Reason: unstable on yamato
   - FilteredScene: {fileID: 0}
@@ -298,7 +298,7 @@ MonoBehaviour:
     ColorSpace: 1
     BuildPlatform: -2
     GraphicsDevice: 16
-    XrSdk: 
+    XrSdk:
     StereoModes: 0
     Reason: unstable on yamato
   - FilteredScene: {fileID: 0}
@@ -307,16 +307,7 @@ MonoBehaviour:
     ColorSpace: 1
     BuildPlatform: -2
     GraphicsDevice: 16
-    XrSdk: 
-    StereoModes: 0
-    Reason: unstable on yamato
-  - FilteredScene: {fileID: 0}
-    FilteredScenes:
-    - {fileID: 102900000, guid: 134ab13db8156a14891996196de4cf63, type: 3}
-    ColorSpace: 1
-    BuildPlatform: -2
-    GraphicsDevice: 16
-    XrSdk: 
+    XrSdk:
     StereoModes: 0
     Reason: unstable on yamato
   - FilteredScene: {fileID: 0}
@@ -325,7 +316,7 @@ MonoBehaviour:
     ColorSpace: 1
     BuildPlatform: -2
     GraphicsDevice: 21
-    XrSdk: 
+    XrSdk:
     StereoModes: 0
     Reason: unstable on  XR yamato
   - FilteredScene: {fileID: 0}
@@ -334,7 +325,7 @@ MonoBehaviour:
     ColorSpace: 1
     BuildPlatform: -2
     GraphicsDevice: 16
-    XrSdk: 
+    XrSdk:
     StereoModes: 0
     Reason: unsupported yet
   - FilteredScene: {fileID: 0}
@@ -343,6 +334,6 @@ MonoBehaviour:
     ColorSpace: 1
     BuildPlatform: -2
     GraphicsDevice: 16
-    XrSdk: 
+    XrSdk:
     StereoModes: 0
     Reason: unsupported yet
