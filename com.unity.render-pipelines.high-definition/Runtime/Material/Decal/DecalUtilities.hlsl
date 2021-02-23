@@ -270,14 +270,10 @@ DecalSurfaceData GetDecalSurfaceData(PositionInputs posInput, FragInputs input, 
 #ifdef _DOUBLESIDED_ON
     if (!input.isFrontFace)
     {
-        if (_DoubleSidedConstants.x == -1.0f)
+        if (_DoubleSidedConstants.x == -1.0f) // Flip mode
             decalSurfaceData.normalWS.xyz *= -1.0f;
-        else if (_DoubleSidedConstants.z == -1.0f)
-        {
-            float3 normalTS = TransformWorldToTangent(decalSurfaceData.normalWS.xyz, input.tangentToWorld);
-            normalTS.z *= -1.0f;
-            decalSurfaceData.normalWS.xyz = SafeNormalize(TransformTangentToWorld(normalTS, input.tangentToWorld));
-        }
+        else if (_DoubleSidedConstants.z == -1.0f) // Mirror mode
+            decalSurfaceData.normalWS.z *= -1.0f;
     }
 #endif // _DOUBLESIDED_ON
 
