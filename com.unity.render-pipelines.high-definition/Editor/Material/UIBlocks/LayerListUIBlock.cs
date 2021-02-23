@@ -90,7 +90,7 @@ namespace UnityEditor.Rendering.HighDefinition
             float height = EditorGUIUtility.singleLineHeight + EditorGUIUtility.standardVerticalSpacing;
 
             EditorGUIUtility.labelWidth = labelWidth;
-            
+
             Rect headerLineRect = GUILayoutUtility.GetRect(1, height);
             Rect headerLabelRect = new Rect(headerLineRect.x, headerLineRect.y, EditorGUIUtility.labelWidth - indentOffset + 15f, height);
             Rect headerUVRect = new Rect(headerLineRect.x + headerLineRect.width - 37f - resetButtonWidth - endOffset, headerLineRect.y, UVWidth + 5, height);

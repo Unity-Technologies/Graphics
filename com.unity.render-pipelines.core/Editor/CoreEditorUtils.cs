@@ -71,7 +71,6 @@ namespace UnityEditor.Rendering
             return sb.ToString();
         }
 
-
         // UI Helpers
 
         /// <summary>Creates a 1x1 <see cref="Texture2D"/> with a plain <see cref="Color"/></summary>
