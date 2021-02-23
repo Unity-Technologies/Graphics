@@ -132,9 +132,12 @@ namespace UnityEditor.VFX
                 case VFXValueType.TextureCube: return "TextureCube";
                 case VFXValueType.TextureCubeArray: return "TextureCubeArray";
                 case VFXValueType.Matrix4x4: return "float4x4";
-                case VFXValueType.Mesh: return "ByteAddressBuffer";
+                case VFXValueType.Mesh:
+                case VFXValueType.SkinnedMeshRenderer:
+                case VFXValueType.Buffer: return "ByteAddressBuffer";
                 case VFXValueType.Boolean: return "bool";
             }
+
             throw new NotImplementedException(type.ToString());
         }
 
@@ -195,7 +198,6 @@ namespace UnityEditor.VFX
                 case VFXValueType.TextureCube:
                 case VFXValueType.TextureCubeArray:
                 case VFXValueType.Matrix4x4:
-                case VFXValueType.Mesh:
                 case VFXValueType.Boolean:
                     return true;
             }
@@ -216,6 +218,7 @@ namespace UnityEditor.VFX
                 case VFXValueType.TextureCube:
                 case VFXValueType.TextureCubeArray:
                 case VFXValueType.Mesh:
+                case VFXValueType.SkinnedMeshRenderer:
                     return false;
             }
             return true;
@@ -302,6 +305,7 @@ namespace UnityEditor.VFX
             if (type == typeof(AnimationCurve)) return VFXValueType.Curve;
             if (type == typeof(Gradient)) return VFXValueType.ColorGradient;
             if (type == typeof(Mesh)) return VFXValueType.Mesh;
+            if (type == typeof(SkinnedMeshRenderer)) return VFXValueType.SkinnedMeshRenderer;
             if (type == typeof(List<Vector3>)) return VFXValueType.Spline;
             if (type == typeof(bool)) return VFXValueType.Boolean;
             return VFXValueType.None;
@@ -556,6 +560,8 @@ namespace UnityEditor.VFX
 
                     if (parent.IsAny(Flags.NotCompilableOnCPU) && parent.Is(Flags.InvalidOnGPU))
                         m_Flags |= Flags.InvalidOnGPU; // Only propagate GPU validity for per element expressions
+                    if (parent.Is(Flags.InvalidConstant))
+                        m_Flags |= Flags.InvalidConstant;
                 }
                 if (foldable)
                     m_Flags |= Flags.Foldable;
