@@ -58,6 +58,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Deprecated GetShadowFade in Shadows.hlsl, use GetMainLightShadowFade or GetAdditionalLightShadowFade.
 - Improved shadow cascade GUI drawing with pixel perfect, hover and focus functionalities.
 - Shadow fade now uses border value for calculating shadow fade distance and fall off linearly.
+- Using the same MaterialHeaderScope for material editor as HDRP is using
 
 ## [11.0.0] - 2020-10-21
 ### Added
