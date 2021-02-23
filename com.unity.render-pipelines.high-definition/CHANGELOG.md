@@ -14,6 +14,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Added new API in CachedShadowManager
 - Added the default quality settings to the HDRP asset for RTAO, RTR and RTGI (case 1304370).
 - API to allow OnDemand shadows to not render upon placement in the Cached Shadow Atlas.
+- Exposed update upon light movement for directional light shadows in UI.
 
 ### Fixed
 - Fixed an exception when opening the color picker in the material UI (case 1307143).
