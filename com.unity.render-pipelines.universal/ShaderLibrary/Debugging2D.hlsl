@@ -29,6 +29,7 @@ bool CalculateDebugColor(in SurfaceData2D surfaceData, out half4 debugColor)
         }
 
         case DEBUGMATERIALMODE_NORMAL_TANGENT_SPACE:
+        case DEBUGMATERIALMODE_NORMAL_WORLD_SPACE:
         {
             debugColor = half4(surfaceData.normalTS, 1);
             return true;
