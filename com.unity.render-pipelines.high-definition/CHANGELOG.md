@@ -13,6 +13,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Added a history rejection criterion based on if the pixel was moving in world space (case 1302392).
 - Added new API in CachedShadowManager
 - Added the default quality settings to the HDRP asset for RTAO, RTR and RTGI (case 1304370).
+- API to allow OnDemand shadows to not render upon placement in the Cached Shadow Atlas.
 
 ### Fixed
 - Fixed an exception when opening the color picker in the material UI (case 1307143).
@@ -37,8 +38,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed performance issue with ShaderGraph and Alpha Test
 - Fixed error when increasing the maximum planar reflection limit (case 1306530).
 - Fixed alpha output in debug view and AOVs when using shadow matte (case 1311830).
-
 - Fixed WouldFitInAtlas that would previously return wrong results if any one face of a point light would fit (it used to return true even though the light in entirety wouldn't fit).
+- Fixed update upon light movement for directional light rotation.
 
 ### Changed
 - Changed Window/Render Pipeline/HD Render Pipeline Wizard to Window/Rendering/HDRP Wizard
