@@ -11,7 +11,6 @@ Shader "Universal Render Pipeline/Lit"
         _Cutoff("Alpha Cutoff", Range(0.0, 1.0)) = 0.5
 
         _Smoothness("Smoothness", Range(0.0, 1.0)) = 0.5
-        _GlossMapScale("Smoothness Scale", Range(0.0, 1.0)) = 1.0
         _SmoothnessTextureChannel("Smoothness texture channel", Float) = 0
 
         _Metallic("Metallic", Range(0.0, 1.0)) = 0.0
@@ -61,6 +60,7 @@ Shader "Universal Render Pipeline/Lit"
         // ObsoleteProperties
         [HideInInspector] _MainTex("BaseMap", 2D) = "white" {}
         [HideInInspector] _Color("Base Color", Color) = (1, 1, 1, 1)
+        [HideInInspector] _GlossMapScale("Smoothness", Float) = 0.0
         [HideInInspector] _Glossiness("Smoothness", Float) = 0.0
         [HideInInspector] _GlossyReflections("EnvironmentReflections", Float) = 0.0
 
