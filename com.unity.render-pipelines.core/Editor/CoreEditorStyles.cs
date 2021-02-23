@@ -23,8 +23,11 @@ namespace UnityEditor.Rendering
         static readonly Texture2D paneOptionsIconDark;
         static readonly Texture2D paneOptionsIconLight;
 
+        /// <summary><see cref="Texture2D"/> 1x1 pixels with red color</summary>
         public static readonly Texture2D redTexture;
+        /// <summary><see cref="Texture2D"/> 1x1 pixels with green color</summary>
         public static readonly Texture2D greenTexture;
+        /// <summary><see cref="Texture2D"/> 1x1 pixels with blue color</summary>
         public static readonly Texture2D blueTexture;
 
         /// <summary> PaneOption icon </summary>

@@ -84,7 +84,7 @@ namespace UnityEditor.Rendering.HighDefinition
             if (layerUIBlocks == null)
                 CreateUIBlockLayers();
 
-            using (new CoreEditorUtils.IconSizeScope(Styles.layerIconSize))
+            using (new EditorGUIUtility.IconSizeScope(Styles.layerIconSize))
             {
                 for (int layerIndex = 0; layerIndex < layerCount.floatValue; layerIndex++)
                 {

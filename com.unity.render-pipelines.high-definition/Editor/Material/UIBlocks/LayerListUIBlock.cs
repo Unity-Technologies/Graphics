@@ -115,7 +115,7 @@ namespace UnityEditor.Rendering.HighDefinition
                     resetRect.yMin += EditorGUIUtility.standardVerticalSpacing;
 
                     EditorGUI.BeginChangeCheck();
-                    using (new CoreEditorUtils.IconSizeScope(LayersUIBlock.Styles.layerIconSize))
+                    using (new EditorGUIUtility.IconSizeScope(LayersUIBlock.Styles.layerIconSize))
                         m_MaterialLayers[layerIndex] = EditorGUI.ObjectField(materialRect, LayersUIBlock.Styles.layers[layerIndex], m_MaterialLayers[layerIndex], typeof(Material), allowSceneObjects: true) as Material;
                     if (EditorGUI.EndChangeCheck())
                     {
