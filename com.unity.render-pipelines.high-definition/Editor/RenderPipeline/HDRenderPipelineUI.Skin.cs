@@ -108,6 +108,13 @@ namespace UnityEditor.Rendering.HighDefinition
             public static readonly GUIContent RTGIDenoiserRadius = EditorGUIUtility.TrTextContent("Denoiser Radius");
             public static readonly GUIContent RTGISecondDenoise = EditorGUIUtility.TrTextContent("Second Denoiser Pass");
 
+            // SSGI
+            public static readonly GUIContent SSGISettingsSubTitle = EditorGUIUtility.TrTextContent("Screen Space Global Illumination");
+            public static readonly GUIContent SSGIRaySteps = EditorGUIUtility.TrTextContent("Ray Steps");
+            public static readonly GUIContent SSGIRadius = EditorGUIUtility.TrTextContent("Radius");
+            public static readonly GUIContent SSGIClampValue = EditorGUIUtility.TrTextContent("Clamp Value");
+            public static readonly GUIContent SSGIFilterRadius = EditorGUIUtility.TrTextContent("Filter Radius");
+
             // Fog
             public static readonly GUIContent FogSettingsSubTitle = EditorGUIUtility.TrTextContent("Volumetric Fog");
             public static readonly GUIContent FogSettingsBudget = EditorGUIUtility.TrTextContent("Volumetric Fog Budget");

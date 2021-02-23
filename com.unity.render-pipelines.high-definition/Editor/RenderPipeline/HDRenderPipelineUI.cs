@@ -47,7 +47,8 @@ namespace UnityEditor.Rendering.HighDefinition
             RTAOQuality = 1 << 31,
             RTRQuality = 1 << 32,
             RTGIQuality = 1 << 33,
-            VolumetricClouds = 1 << 34
+            SSGIQuality = 1 << 34,
+            VolumetricClouds = 1 << 35
         }
 
         static readonly ExpandedState<Expandable, HDRenderPipelineAsset> k_ExpandedState = new ExpandedState<Expandable, HDRenderPipelineAsset>(Expandable.CameraFrameSettings | Expandable.General, "HDRP");
@@ -102,7 +103,8 @@ namespace UnityEditor.Rendering.HighDefinition
                     CED.FoldoutGroup(Styles.SSRSettingsSubTitle, Expandable.SSRQuality, k_ExpandedState, FoldoutOption.Indent | FoldoutOption.SubFoldout | FoldoutOption.NoSpaceAtEnd, Drawer_SectionSSRQualitySettings),
                     CED.FoldoutGroup(Styles.RTRSettingsSubTitle, Expandable.RTRQuality, k_ExpandedState, FoldoutOption.Indent | FoldoutOption.SubFoldout | FoldoutOption.NoSpaceAtEnd, Drawer_SectionRTRQualitySettings),
                     CED.FoldoutGroup(Styles.FogSettingsSubTitle, Expandable.FogQuality, k_ExpandedState, FoldoutOption.Indent | FoldoutOption.SubFoldout | FoldoutOption.NoSpaceAtEnd, Drawer_SectionFogQualitySettings),
-                    CED.FoldoutGroup(Styles.RTGISettingsSubTitle, Expandable.RTGIQuality, k_ExpandedState, FoldoutOption.Indent | FoldoutOption.SubFoldout | FoldoutOption.NoSpaceAtEnd, Drawer_SectionRTGIQualitySettings)
+                    CED.FoldoutGroup(Styles.RTGISettingsSubTitle, Expandable.RTGIQuality, k_ExpandedState, FoldoutOption.Indent | FoldoutOption.SubFoldout | FoldoutOption.NoSpaceAtEnd, Drawer_SectionRTGIQualitySettings),
+                    CED.FoldoutGroup(Styles.SSGISettingsSubTitle, Expandable.SSGIQuality, k_ExpandedState, FoldoutOption.Indent | FoldoutOption.SubFoldout | FoldoutOption.NoSpaceAtEnd, Drawer_SectionSSGIQualitySettings)
                     ),
                 CED.FoldoutGroup(Styles.materialSectionTitle, Expandable.Material, k_ExpandedState, Drawer_SectionMaterialUnsorted),
                 CED.FoldoutGroup(Styles.postProcessSectionTitle, Expandable.PostProcess, k_ExpandedState, Drawer_SectionPostProcessSettings),
@@ -1145,6 +1147,45 @@ namespace UnityEditor.Rendering.HighDefinition
             {
                 int quality = (int)ScalableSettingLevelParameter.Level.High;
                 DrawRTGIQualitySetting(serialized, quality);
+            }
+        }
+
+        static private bool m_ShowSSGILowQualitySection = false;
+        static private bool m_ShowSSGIMediumQualitySection = false;
+        static private bool m_ShowSSGIHighQualitySection = false;
+
+        static void DrawSSGIQualitySetting(SerializedHDRenderPipelineAsset serialized, int tier)
+        {
+            ++EditorGUI.indentLevel;
+            EditorGUILayout.PropertyField(serialized.renderPipelineSettings.lightingQualitySettings.SSGIRaySteps.GetArrayElementAtIndex(tier), Styles.SSGIRaySteps);
+            EditorGUILayout.PropertyField(serialized.renderPipelineSettings.lightingQualitySettings.SSGIFilterRadius.GetArrayElementAtIndex(tier), Styles.SSGIFilterRadius);
+            --EditorGUI.indentLevel;
+        }
+
+        static void Drawer_SectionSSGIQualitySettings(SerializedHDRenderPipelineAsset serialized, Editor owner)
+        {
+            m_ShowSSGILowQualitySection = EditorGUILayout.Foldout(m_ShowSSGILowQualitySection, Styles.lowQualityContent);
+            CheckFoldoutClick(GUILayoutUtility.GetLastRect(), ref m_ShowSSGILowQualitySection);
+            if (m_ShowSSGILowQualitySection)
+            {
+                int quality = (int)ScalableSettingLevelParameter.Level.Low;
+                DrawSSGIQualitySetting(serialized, quality);
+            }
+
+            m_ShowSSGIMediumQualitySection = EditorGUILayout.Foldout(m_ShowSSGIMediumQualitySection, Styles.mediumQualityContent);
+            CheckFoldoutClick(GUILayoutUtility.GetLastRect(), ref m_ShowSSGIMediumQualitySection);
+            if (m_ShowSSGIMediumQualitySection)
+            {
+                int quality = (int)ScalableSettingLevelParameter.Level.Medium;
+                DrawSSGIQualitySetting(serialized, quality);
+            }
+
+            m_ShowSSGIHighQualitySection = EditorGUILayout.Foldout(m_ShowSSGIHighQualitySection, Styles.highQualityContent);
+            CheckFoldoutClick(GUILayoutUtility.GetLastRect(), ref m_ShowSSGIHighQualitySection);
+            if (m_ShowSSGIHighQualitySection)
+            {
+                int quality = (int)ScalableSettingLevelParameter.Level.High;
+                DrawSSGIQualitySetting(serialized, quality);
             }
         }
 

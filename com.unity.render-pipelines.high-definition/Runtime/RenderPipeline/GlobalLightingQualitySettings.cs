@@ -173,16 +173,8 @@ namespace UnityEngine.Rendering.HighDefinition
 
         // Screen Space Global Illumination
         /// <summary>Screen space global illumination step count for the ray marching.</summary>
-        [NonSerialized]
         public int[] SSGIRaySteps = new int[s_QualitySettingCount];
-        /// <summary>Screen space global illumination's world space maximal radius.</summary>
-        [NonSerialized]
-        public float[] SSGIRadius = new float[s_QualitySettingCount];
-        /// <summary>Screen space global illumination signal clamping value.</summary>
-        [NonSerialized]
-        public float[] SSGIClampValue = new float[s_QualitySettingCount];
         /// <summary>Screen space global illumination's filter size.</summary>
-        [NonSerialized]
         public int[] SSGIFilterRadius = new int[s_QualitySettingCount];
 
         // Ray Traced Ambient Occlusion
