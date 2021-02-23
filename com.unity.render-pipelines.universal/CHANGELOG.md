@@ -6,8 +6,12 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ## [10.4.0] - 2020-01-26
 
-Version Updated
-The version number for this package has increased due to a version update of a related graphics package.
+### Fixed
+- Fixed an issue where objects in motion might jitter when the Pixel Perfect Camera is used. [case 1300474](https://issuetracker.unity3d.com/issues/urp-characters-sprite-repeats-in-the-build-when-using-pixel-perfect-camera-and-2d-renderer)
+- Fixed an issue where the letter box/pillar box areas were not properly cleared when the Pixel Perfect Camera is used. [case 1291224](https://issuetracker.unity3d.com/issues/pixel-perfect-image-artifact-appear-between-the-reference-resolution-and-screen-resolution-borders-when-strech-fill-is-enabled)
+- Fixed an issue where the Cinemachine Pixel Perfect Extension might cause the Orthographic Size of the Camera to jump to 1 when the Scene is loaded. [case 1249076](https://issuetracker.unity3d.com/issues/cinemachine-pixel-perfect-camera-extension-causes-the-orthogonal-size-to-jump-to-1-when-the-scene-is-loaded)
+- Fixed an issue where no preview would show for the lit sprite master node in shadergraph
+- Fixed an issue where no shader was generated for unlit sprite shaders in shadergraph 
 
 ## [10.3.1] - 2020-01-26
 
