@@ -80,8 +80,6 @@ test_platforms:
       - [all]: <shared.platform.commands.setup_utr>
       - [OSX_Metal]: <shared.platform.commands.unity_downloader_cli>
       - [all]: <shared.platform.commands.call_utr>
-        flags:
-          - <reuse_blocks.cache_server>
       - [Android_OpenGLES3, Android_Vulkan]: <shared.platform.commands.kill_server>
     commands_build:
       - <reuse_blocks.setup_without_utr>
