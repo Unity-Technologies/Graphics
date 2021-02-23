@@ -19,6 +19,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Added browsing of the documentation of Compositor Window
 - Added a complete solution for volumetric clouds for HDRP including a cloud map generation tool.
 - Added a Force Forward Emissive option for Lit Material that forces the Emissive contribution to render in a separate forward pass when the Lit Material is in Deferred Lit shader Mode.
+- Added an additional check in the "check scene for ray tracing" (case 1314963).
 
 ### Fixed
 - Fixed an exception when opening the color picker in the material UI (case 1307143).
@@ -48,6 +49,9 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed performance issue with ShaderGraph and Alpha Test
 - Fixed error when increasing the maximum planar reflection limit (case 1306530).
 - Fixed alpha output in debug view and AOVs when using shadow matte (case 1311830).
+- Fixed an issue with transparent meshes writing their depths and recursive rendering (case 1314409).
+- Fixed issue with compositor custom pass hooks added/removed repeatedly (case 1315971).
+- Fixed: SSR with transparent (case 1311088)
 - Fixed decals in material debug display.
 
 ### Changed
