@@ -650,7 +650,8 @@ namespace UnityEditor.ShaderGraph
                     {
                         m_GraphData.ForeachHLSLProperty(h =>
                         {
-                            h.AppendTo(propertyBuilder);
+                            if (!h.IsObjectType())
+                                h.AppendTo(propertyBuilder);
                         });
                     }
                 }

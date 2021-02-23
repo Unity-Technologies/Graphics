@@ -228,6 +228,15 @@ namespace UnityEditor.ShaderGraph.Internal
             "SAMPLER",
         };
 
+        public bool IsObjectType()
+        {
+            return type == HLSLType._SamplerState ||
+                type == HLSLType._Texture2D    ||
+                type == HLSLType._Texture3D    ||
+                type == HLSLType._TextureCube  ||
+                type == HLSLType._Texture2DArray;
+        }
+
         public string GetValueTypeString()
         {
             if (type < HLSLType.FirstObjectType)
