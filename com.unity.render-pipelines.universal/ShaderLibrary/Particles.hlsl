@@ -52,9 +52,9 @@ void InitParticleParams(VaryingsParticle input, out ParticleParams output)
 #if defined(_ALPHAPREMULTIPLY_ON)
     #define SOFT_PARTICLE_MUL_ALBEDO(albedo, val) albedo * val
 #elif defined(_ALPHAMODULATE_ON)
-    #define SOFT_PARTICLE_MUL_ALBEDO(albedo, val) half4(lerp(half3(1.0h, 1.0h, 1.0h), albedo.rgb, albedo.a * val), albedo.a * val)
+    #define SOFT_PARTICLE_MUL_ALBEDO(albedo, val) half4(lerp(half3(1.0, 1.0, 1.0), albedo.rgb, albedo.a * val), albedo.a * val)
 #else
-    #define SOFT_PARTICLE_MUL_ALBEDO(albedo, val) albedo * half4(1.0h, 1.0h, 1.0h, val)
+    #define SOFT_PARTICLE_MUL_ALBEDO(albedo, val) albedo * half4(1.0, 1.0, 1.0, val)
 #endif
 
 // Color blending fragment function
@@ -140,7 +140,7 @@ half4 BlendTexture(TEXTURE2D_PARAM(_Texture, sampler_Texture), float2 uv, float3
     half4 color = half4(SAMPLE_TEXTURE2D(_Texture, sampler_Texture, uv));
 #ifdef _FLIPBOOKBLENDING_ON
     half4 color2 = half4(SAMPLE_TEXTURE2D(_Texture, sampler_Texture, blendUv.xy));
-    color = lerp(color, color2, blendUv.z);
+    color = lerp(color, color2, half(blendUv.z));
 #endif
     return color;
 }
