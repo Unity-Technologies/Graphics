@@ -486,6 +486,9 @@ namespace UnityEditor.Rendering.HighDefinition
                 currentTarget.m_Offset[axe] = saved[axe] * newSize;
             }
 
+            // Manually register Undo as we work directly on the target
+            Undo.RecordObjects(targets, "Change DecalProjector Size or Depth");
+
             // Apply any change on target first
             serializedObject.ApplyModifiedProperties();
 
