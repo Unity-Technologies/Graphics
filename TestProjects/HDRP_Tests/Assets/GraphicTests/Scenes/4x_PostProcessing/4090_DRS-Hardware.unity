@@ -130,20 +130,65 @@ PrefabInstance:
   m_Modification:
     m_TransformParent: {fileID: 0}
     m_Modifications:
+    - target: {fileID: 301724922916721747, guid: 91f1cced658d376468f66760e80544da,
+        type: 3}
+      propertyPath: m_Intensity
+      value: 563.17377
+      objectReference: {fileID: 0}
+    - target: {fileID: 498672758140544453, guid: 91f1cced658d376468f66760e80544da,
+        type: 3}
+      propertyPath: m_Intensity
+      value: 563.17377
+      objectReference: {fileID: 0}
+    - target: {fileID: 1062659291855993892, guid: 91f1cced658d376468f66760e80544da,
+        type: 3}
+      propertyPath: allowDynamicResolution
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 1455966451090593770, guid: 91f1cced658d376468f66760e80544da,
+        type: 3}
+      propertyPath: allowDynamicResolution
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 2207891929631915933, guid: 91f1cced658d376468f66760e80544da,
+        type: 3}
+      propertyPath: m_Intensity
+      value: 563.17377
+      objectReference: {fileID: 0}
+    - target: {fileID: 2365205568683055851, guid: 91f1cced658d376468f66760e80544da,
+        type: 3}
+      propertyPath: m_AllowDynamicResolution
+      value: 0
+      objectReference: {fileID: 0}
     - target: {fileID: 3117185047111072886, guid: 91f1cced658d376468f66760e80544da,
         type: 3}
       propertyPath: m_Name
       value: drsAllFiltersScene
       objectReference: {fileID: 0}
+    - target: {fileID: 3546631295676244499, guid: 91f1cced658d376468f66760e80544da,
+        type: 3}
+      propertyPath: DrsFilter
+      value: 3
+      objectReference: {fileID: 0}
+    - target: {fileID: 4204416835310661925, guid: 91f1cced658d376468f66760e80544da,
+        type: 3}
+      propertyPath: m_AllowDynamicResolution
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 4953044138730108114, guid: 91f1cced658d376468f66760e80544da,
+        type: 3}
+      propertyPath: m_Intensity
+      value: 563.17377
+      objectReference: {fileID: 0}
     - target: {fileID: 6768448358767245804, guid: 91f1cced658d376468f66760e80544da,
         type: 3}
       propertyPath: m_RootOrder
-      value: 1
+      value: 2
       objectReference: {fileID: 0}
     - target: {fileID: 6768448358767245804, guid: 91f1cced658d376468f66760e80544da,
         type: 3}
       propertyPath: m_LocalPosition.x
-      value: 0
+      value: 5.1
       objectReference: {fileID: 0}
     - target: {fileID: 6768448358767245804, guid: 91f1cced658d376468f66760e80544da,
         type: 3}
@@ -189,6 +234,11 @@ PrefabInstance:
         type: 3}
       propertyPath: m_LocalEulerAnglesHint.z
       value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 9043293612720666843, guid: 91f1cced658d376468f66760e80544da,
+        type: 3}
+      propertyPath: m_Intensity
+      value: 563.17377
       objectReference: {fileID: 0}
     m_RemovedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: 91f1cced658d376468f66760e80544da, type: 3}

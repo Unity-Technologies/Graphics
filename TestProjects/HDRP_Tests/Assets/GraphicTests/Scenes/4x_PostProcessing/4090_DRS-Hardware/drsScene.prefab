@@ -10,7 +10,7 @@ GameObject:
   m_Component:
   - component: {fileID: 3114247244912838655}
   - component: {fileID: 1573578343628367140}
-  - component: {fileID: 9069829961904572720}
+  - component: {fileID: 1104697659931411620}
   m_Layer: 0
   m_Name: Spot Light
   m_TagString: Untagged
@@ -85,7 +85,7 @@ Light:
   m_RenderingLayerMask: 1
   m_Lightmapping: 4
   m_LightShadowCasterMode: 2
-  m_AreaSize: {x: 1, y: 1}
+  m_AreaSize: {x: 0.5, y: 0.5}
   m_BounceIntensity: 1
   m_ColorTemperature: 6570
   m_UseColorTemperature: 1
@@ -94,7 +94,7 @@ Light:
   m_UseViewFrustumForShadowCasterCull: 1
   m_ShadowRadius: 0
   m_ShadowAngle: 0
---- !u!114 &9069829961904572720
+--- !u!114 &1104697659931411620
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -459,7 +459,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 6c796bc36a8e5d6428fcf9afccb40c26, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  EnableDrs: 0
   DrsFilter: 0
 --- !u!1 &8303362299537850998
 GameObject:

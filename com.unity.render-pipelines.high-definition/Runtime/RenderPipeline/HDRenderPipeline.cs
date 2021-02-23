@@ -1048,24 +1048,6 @@ namespace UnityEngine.Rendering.HighDefinition
             CoreUtils.SetKeyword(cmd, "WRITE_MSAA_DEPTH", hdCamera.frameSettings.IsEnabled(FrameSettingsField.MSAA));
         }
 
-        public struct DynResRequest
-        {
-            public bool enabled;
-            public bool cameraRequested;
-            public bool hardwareEnabled;
-            public DynamicResUpscaleFilter filter;
-        }
-
-        internal DynResRequest CreateDynResRequest(bool camRequested, DynamicResolutionHandler dynResHandler)
-        {
-            return new DynResRequest() {
-                enabled = dynResHandler.DynamicResolutionEnabled(),
-                cameraRequested = camRequested,
-                hardwareEnabled = dynResHandler.HardwareDynamicResIsEnabled(),
-                filter = dynResHandler.filter
-            };
-        }
-
         struct RenderRequest
         {
             public struct Target
@@ -1078,7 +1060,6 @@ namespace UnityEngine.Rendering.HighDefinition
             public HDCamera hdCamera;
             public bool clearCameraSettings;
             public Target target;
-            public DynResRequest dynResRequest;
             public HDCullingResults cullingResults;
             public int index;
             // Indices of render request to render before this one
@@ -1313,6 +1294,8 @@ namespace UnityEngine.Rendering.HighDefinition
                     if (hdCamera.xr.enabled && hdCamera.xr.renderTargetValid)
                         targetId = hdCamera.xr.renderTarget;
 
+                    hdCamera.RequestDynamicResolution(cameraRequestedDynamicRes, dynResHandler);
+
                     // Add render request
                     var request = new RenderRequest
                     {
@@ -1323,7 +1306,6 @@ namespace UnityEngine.Rendering.HighDefinition
                             id = targetId,
                             face = CubemapFace.Unknown
                         },
-                        dynResRequest = CreateDynResRequest(cameraRequestedDynamicRes, dynResHandler),
                         dependsOnRenderRequestIndices = ListPool<int>.Get(),
                         index = renderRequests.Count,
                         cameraSettings = CameraSettings.From(hdCamera),
@@ -1974,7 +1956,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 cmd.DisableScissorRect();
 
                 Resize(hdCamera);
-                m_PostProcessSystem.BeginFrame(cmd, hdCamera, renderRequest.dynResRequest, this);
+                m_PostProcessSystem.BeginFrame(cmd, hdCamera, this);
 
                 ApplyDebugDisplaySettings(hdCamera, cmd);
 

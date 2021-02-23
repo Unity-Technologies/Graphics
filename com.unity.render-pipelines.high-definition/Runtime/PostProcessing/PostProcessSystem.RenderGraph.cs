@@ -833,7 +833,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
         TextureHandle FXAAPass(RenderGraph renderGraph, HDCamera hdCamera, TextureHandle source)
         {
-            if (m_DynResRequest.enabled &&     // Dynamic resolution is on.
+            if (hdCamera.DynResRequest.enabled &&     // Dynamic resolution is on.
                 hdCamera.antialiasing == HDAdditionalCameraData.AntialiasingMode.FastApproximateAntialiasing &&
                 m_AntialiasingFS)
             {
@@ -859,8 +859,8 @@ namespace UnityEngine.Rendering.HighDefinition
 
         TextureHandle ContrastAdaptiveSharpeningPass(RenderGraph renderGraph, HDCamera hdCamera, TextureHandle source)
         {
-            if (m_DynResRequest.enabled &&
-                m_DynResRequest.filter == DynamicResUpscaleFilter.ContrastAdaptiveSharpen)
+            if (hdCamera.DynResRequest.enabled &&
+                hdCamera.DynResRequest.filter == DynamicResUpscaleFilter.ContrastAdaptiveSharpen)
             {
                 using (var builder = renderGraph.AddRenderPass<CASData>("Contrast Adaptive Sharpen", out var passData, ProfilingSampler.Get(HDProfileId.ContrastAdaptiveSharpen)))
                 {
