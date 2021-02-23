@@ -29,8 +29,8 @@ namespace UnityEditor.VFX
         [VFXSetting(VFXSettingAttribute.VisibleFlags.InInspector), SerializeField, Tooltip("When enabled, particles will not be affected by temporal anti-aliasing.")]
         protected bool excludeFromTAA = false;
 
-        [VFXSetting(VFXSettingAttribute.VisibleFlags.InInspector), SerializeField, Tooltip("TODOPAUL.")]
-        protected bool useCustomMaterialOffset = false;
+        [VFXSetting(VFXSettingAttribute.VisibleFlags.InInspector), SerializeField, Tooltip("When enabled, the material queue can be offset by an integer.")]
+        protected bool useMaterialOffset = false;
 
         public bool isBlendModeOpaque { get { return blendMode == BlendMode.Opaque; } }
 
@@ -210,7 +210,7 @@ namespace UnityEditor.VFX
 
         class MaterialOffset
         {
-            [Tooltip("TODOPAUL.")]
+            [Tooltip("Specifies an offset applied to the material render queue.")]
             public int materialOffset = 0;
         }
 
@@ -219,7 +219,7 @@ namespace UnityEditor.VFX
             get
             {
                 IEnumerable<VFXPropertyWithValue> properties = base.inputProperties;
-                if (useCustomMaterialOffset && subOutput.supportsMaterialOffset)
+                if (useMaterialOffset && subOutput.supportsMaterialOffset)
                     properties = properties.Concat(PropertiesFromType(typeof(MaterialOffset)));
                 return properties;
             }
@@ -233,7 +233,7 @@ namespace UnityEditor.VFX
                 case VFXDeviceTarget.GPU:
                     break;
                 case VFXDeviceTarget.CPU:
-                    if (useCustomMaterialOffset && subOutput.supportsMaterialOffset)
+                    if (useMaterialOffset && subOutput.supportsMaterialOffset)
                     {
                         var materialOffset = inputSlots.FirstOrDefault(o => o.name == nameof(MaterialOffset.materialOffset)).GetExpression();
 
