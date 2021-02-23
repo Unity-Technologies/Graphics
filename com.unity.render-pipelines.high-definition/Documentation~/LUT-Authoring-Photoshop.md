@@ -13,7 +13,7 @@ This is a fixed size; if you change it later, you need to rebake all of your LUT
 Export the current [Camera](HDRP-Camera.md)'s view to a log-encoded EXR file. To do this:
 
 1. In the Scene view or Hierarchy, select a GameObject that contains a Camera component.
-2. Select **Edit** > **Render Pipeline** > **Render Selected Camera to Log EXR** **(**or press **Ctrl+Shift+Alt+E)**.
+2. Select **Edit** > **Rendering** > **Render Selected HDRP Camera to Log EXR** **(**or press **Ctrl+Shift+Alt+E)**.
 3. Save the EXR file.
 
 ![](Images/LUTAuthoringPhototshop1.png)

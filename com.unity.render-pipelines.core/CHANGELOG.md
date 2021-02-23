@@ -6,24 +6,45 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ## [12.0.0] - 2021-01-11
 
-Version Updated
-The version number for this package has increased due to a version update of a related graphics package.
+### Fixed
+- Fixed missing warning UI about Projector component being unsupported (case 1300327).
+- Fixed the display name of a Volume Parameter when is defined the attribute InspectorName
+- Calculating correct rtHandleScale by considering the possible pixel rounding when DRS is on
 
 ### Added
 - Support for the PlayStation 5 platform has been added.
+- Support for the XboxSeries platform has been added.
+- Added Editor window that allow showing an icon to browse the documentation
+- New method DrawHeaders for VolumeComponentsEditors
+- Unification of Material Editor Headers Scopes
+- New API functions with no side effects in DynamicResolutionHandler, to retrieve resolved drs scale and to apply DRS on a size.
+
+### Changed
+- Changed Window/Render Pipeline/Render Pipeline Debug to Window/Rendering/Render Pipeline Debugger
+- Changed Window/Render Pipeline/Look Dev to Window/Analysis/Look Dev
+- Changed Window/Render Pipeline/Render Graph Viewer to Window/Analysis/Render Graph Viewer
+- Changed Window/Render Pipeline/Graphics Compositor to Window/Rendering/Graphics Compositor
+- Volume Gizmo Color setting is now under Colors->Scene->Volume Gizmo
+- Moved Edit/Render Pipeline/Generate Shader Includes to Edit/Rendering/Generate Shader Includes
+- Moved Assets/Create/LookDev/Environment Library to Assets/Create/Rendering/Environment Library (Look Dev)
+
+### Added
+- Added class for drawing shadow cascades `UnityEditor.Rendering.ShadowCascadeGUI.DrawShadowCascades`.
 
 ## [11.0.0] - 2020-10-21
 
 ### Fixed
 - Fixed the default background color for previews to use the original color.
-
-### Fixed
+- Fixed spacing between property fields on the Volume Component Editors.
+- Fixed ALL/NONE to maintain the state on the Volume Component Editors.
+- Fixed the selection of the Additional properties from ALL/NONE when the option "Show additional properties" is disabled
 - Fixed ACES tonemaping for Nintendo Switch by forcing some shader color conversion functions to full float precision.
 - Fixed a bug in FreeCamera which would only provide a speed boost for the first frame when pressing the Shfit key.
 
 ### Added
 - New View Lighting Tool, a component which allow to setup light in the camera space
 - New function in GeometryTools.hlsl to calculate triangle edge and full triangle culling.
+- Several utils functions to access SphericalHarmonicsL2 in a more verbose and intuitive fashion.
 
 ## [10.2.0] - 2020-10-19
 

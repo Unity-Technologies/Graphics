@@ -12,8 +12,7 @@ namespace UnityEditor.Rendering.HighDefinition
     {
         readonly GUIContent sunLabel        = new GUIContent("Sun light", "The main directional light, used for lighting and shadow casting.");
         readonly GUIContent shadowTiling    = new GUIContent("Shadow Tiling", "The tiling of the cloud shadows texture. Controlled by the cookie size parameter on the sun light.");
-
-        public override bool hasAdvancedMode => true;
+        readonly GUIContent scrollLabel     = new GUIContent("Scroll Orientation", "Sets the orientation of the distortion (in degrees).");
 
         struct CloudMapParameter
         {
@@ -95,8 +94,7 @@ namespace UnityEditor.Rendering.HighDefinition
 
         void PropertyField(CloudMapParameter map, string label)
         {
-            EditorGUILayout.Space();
-            EditorGUILayout.LabelField(label, EditorStyles.miniLabel);
+            DrawHeader(label);
 
             PropertyField(map.cloudMap);
             using (new HDEditorUtils.IndentScope())
@@ -112,7 +110,7 @@ namespace UnityEditor.Rendering.HighDefinition
             PropertyField(map.distortion);
             using (new HDEditorUtils.IndentScope())
             {
-                PropertyField(map.scrollDirection);
+                PropertyField(map.scrollDirection, scrollLabel);
                 PropertyField(map.scrollSpeed);
                 if (map.distortion.value.intValue == (int)CloudDistortionMode.Flowmap)
                 {
@@ -136,10 +134,10 @@ namespace UnityEditor.Rendering.HighDefinition
             bool prevShadows = CastShadows;
 
             PropertyField(m_Opacity);
-            if (isInAdvancedMode)
+            if (showAdditionalProperties)
                 PropertyField(m_UpperHemisphereOnly);
             PropertyField(m_LayerCount);
-            if (isInAdvancedMode)
+            if (showAdditionalProperties)
                 PropertyField(m_Resolution);
 
             PropertyField(m_Layers[0], "Layer A");
@@ -149,12 +147,9 @@ namespace UnityEditor.Rendering.HighDefinition
             Light sun = HDRenderPipeline.currentPipeline?.GetCurrentSunLight();
             if (sun != null && sun.TryGetComponent(out HDAdditionalLightData hdSun))
             {
-                EditorGUILayout.Space();
-                EditorGUILayout.LabelField("Cloud Shadows", EditorStyles.miniLabel);
-
                 PropertyField(m_ShadowMultiplier);
                 PropertyField(m_ShadowTint);
-                if (isInAdvancedMode)
+                if (showAdditionalProperties)
                     PropertyField(m_ShadowResolution);
 
                 bool shadows = CastShadows;
