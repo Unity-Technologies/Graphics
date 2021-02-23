@@ -15,13 +15,6 @@ namespace _2D.ShaderGraph
         LightTex3,
     }
 
-    // IsNodeAllowedByTarget
-    // we can make a big node with a lot of output but no code culling
-    // use geneerate code to output the refactored line
-    //
-    // need CollectShaderProperty? don't need, because it is not expose to user
-    // customize preview: see colornode for example
-
     [Title("Input", "2D", "Light Texture")]
     class LightTextureNode :  AbstractMaterialNode
     {
@@ -75,7 +68,5 @@ namespace _2D.ShaderGraph
                 modifiable = false
             });
         }
-
-        public int outputSlotId => OutputSlotId;
     }
 }
