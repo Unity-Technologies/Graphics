@@ -1015,7 +1015,9 @@ namespace UnityEngine.Rendering.HighDefinition
                 return;
 
 #if UNITY_EDITOR
-            if (m_globalSettings == null)
+            // We do not want to start rendering if HDRP global settings are not ready (m_globalSettings is null)
+            // or been deleted/moved (m_globalSettings is not ncessarily null)
+            if (m_globalSettings == null || HDRenderPipelineGlobalSettings.instance == null)
             {
                 Debug.LogError("No HDRP Global Settings Asset is assigned. One will be created for you. If you want to modify it, go to Project Settings > Graphics > HDRP Settings.");
                 m_globalSettings = HDRenderPipelineGlobalSettings.Ensure();
