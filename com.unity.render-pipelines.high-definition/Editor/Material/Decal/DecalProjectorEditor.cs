@@ -457,27 +457,35 @@ namespace UnityEditor.Rendering.HighDefinition
         }
 
         // Temporarilly save ratio beetwin size and pivot position while editing in inspector.
-        // NaN is used to say that there is no saved ratio.
+        // null or NaN is used to say that there is no saved ratio.
         // Aim is to keep propotion while sliding the value to 0 in Inspector and then go back to something else.
         // Current solution only work for the life of this editor, but is enough in most case.
         // Wich means if you go to there, selection something else and go back on it, pivot position is thus null.
-        Dictionary<DecalProjector, Vector3> ratioSizePivotPositionSaved = new Dictionary<DecalProjector, Vector3>();
+        Dictionary<DecalProjector, Vector3> ratioSizePivotPositionSaved = null;
 
         void ReinitSavedRatioSizePivotPosition()
         {
-            foreach (DecalProjector projector in targets)
-                ratioSizePivotPositionSaved[projector] = new Vector3(float.NaN, float.NaN, float.NaN);
+            ratioSizePivotPositionSaved = null;
         }
 
-        void UpdateSize(int axe, float newSize, float oldSize)
+        void UpdateSize(int axe, float newSize)
         {
             void UpdateSizeOfOneTarget(DecalProjector currentTarget)
             {
+                //lazy init on demand as targets array cannot be accessed from OnSceneGUI so in edit mode.
+                if (ratioSizePivotPositionSaved == null)
+                {
+                    ratioSizePivotPositionSaved = new Dictionary<DecalProjector, Vector3>();
+                    foreach (DecalProjector projector in targets)
+                        ratioSizePivotPositionSaved[projector] = new Vector3(float.NaN, float.NaN, float.NaN);
+                }
+
                 // Save old ratio if not registered
                 // Either or are NaN or no one, check only first
                 Vector3 saved = ratioSizePivotPositionSaved[currentTarget];
                 if (float.IsNaN(saved[axe]))
                 {
+                    float oldSize = currentTarget.m_Size[axe];
                     saved[axe] =  Mathf.Abs(oldSize) <= Mathf.Epsilon ? 0f : currentTarget.m_Offset[axe] / oldSize;
                     ratioSizePivotPositionSaved[currentTarget] = saved;
                 }
@@ -527,14 +535,23 @@ namespace UnityEditor.Rendering.HighDefinition
                 Rect rect = EditorGUILayout.GetControlRect(true, EditorGUI.GetPropertyHeight(SerializedPropertyType.Vector2, k_SizeContent));
                 EditorGUI.BeginProperty(rect, k_SizeSubContent[0], m_SizeValues[0]);
                 EditorGUI.BeginProperty(rect, k_SizeSubContent[1], m_SizeValues[1]);
+                bool savedHasMultipleDifferentValue = EditorGUI.showMixedValue;
+                EditorGUI.showMixedValue = m_SizeValues[0].hasMultipleDifferentValues || m_SizeValues[1].hasMultipleDifferentValues;
                 float[] size = new float[2] { m_SizeValues[0].floatValue, m_SizeValues[1].floatValue };
                 EditorGUI.BeginChangeCheck();
                 EditorGUI.MultiFloatField(rect, k_SizeContent, k_SizeSubContent, size);
                 if (EditorGUI.EndChangeCheck())
                 {
                     for (int i = 0; i < 2; ++i)
-                        UpdateSize(i, Mathf.Max(0, size[i]), m_SizeValues[i].floatValue);
+                    {
+                        float clampedSize = Mathf.Max(0, size[i]);
+                        UpdateSize(i, clampedSize);
+
+                        // strange: we need to force it throu serialization to update multiple differente value state
+                        m_SizeValues[i].floatValue = clampedSize;
+                    }
                 }
+                EditorGUI.showMixedValue = savedHasMultipleDifferentValue;
                 EditorGUI.EndProperty();
                 EditorGUI.EndProperty();
 
@@ -542,7 +559,7 @@ namespace UnityEditor.Rendering.HighDefinition
                 EditorGUI.BeginChangeCheck();
                 float newSizeZ = EditorGUILayout.FloatField(k_ProjectionDepthContent, m_SizeValues[2].floatValue);
                 if (EditorGUI.EndChangeCheck())
-                    UpdateSize(2, Mathf.Max(0, newSizeZ), m_SizeValues[2].floatValue);
+                    UpdateSize(2, Mathf.Max(0, newSizeZ));
 
                 EditorGUI.BeginChangeCheck();
                 EditorGUILayout.PropertyField(m_Offset, k_Offset);
