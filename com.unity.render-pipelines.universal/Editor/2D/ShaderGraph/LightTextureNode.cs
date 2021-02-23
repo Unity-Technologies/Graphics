@@ -7,12 +7,12 @@ using UnityEngine;
 
 namespace _2D.ShaderGraph
 {
-    enum LightTextureId
+    enum BlendStyle
     {
-        LightTexture0,
-        LightTexture1,
-        LightTexture2,
-        LightTexture3,
+        LightTex0,
+        LightTex1,
+        LightTex2,
+        LightTex3,
     }
 
     // IsNodeAllowedByTarget
@@ -28,18 +28,18 @@ namespace _2D.ShaderGraph
         private const int OutputSlotId = 0;
         private const string kOutputSlotName = "Out";
 
-        [SerializeField] private LightTextureId m_LightTextureId = LightTextureId.LightTexture0;
+        [SerializeField] private BlendStyle m_BlendStyle = BlendStyle.LightTex0;
 
         [EnumControl("")]
-        public LightTextureId matrixType
+        public BlendStyle blendStyle
         {
-            get { return m_LightTextureId; }
+            get { return m_BlendStyle; }
             set
             {
-                if (m_LightTextureId == value)
+                if (m_BlendStyle == value)
                     return;
 
-                m_LightTextureId = value;
+                m_BlendStyle = value;
                 Dirty(ModificationScope.Graph);
             }
         }
@@ -57,7 +57,7 @@ namespace _2D.ShaderGraph
 
         string GetVariableName()
         {
-            return $"_ShapeLightTexture{(int)m_LightTextureId}";
+            return $"_ShapeLightTexture{(int)m_BlendStyle}";
         }
 
         public override string GetVariableNameForSlot(int slotId)
