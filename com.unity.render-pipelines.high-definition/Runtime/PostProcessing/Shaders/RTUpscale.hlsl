@@ -41,12 +41,12 @@ void WeightedAcc(CTYPE value, float weight, inout CTYPE accumulated, inout float
 
 // https://en.wikipedia.org/wiki/Lanczos_resampling
 // TODO: Revisit derivation.
-CTYPE Lanczos(TEXTURE2D_X(_InputTexture), float2 inUV)
+CTYPE Lanczos(TEXTURE2D_X(_InputTexture), float2 inUV, float2 textureSize)
 {
     const float epsilon = 0.0000000001;
     const float a = 3.0;     // Lanczos 3
 
-    float2 TexSize = _ScreenSize.xy * (_RTHandleScale.xy);
+    float2 TexSize = textureSize.xy;
     float2 TexelSize = rcp(TexSize);
     float2 texelLoc = inUV * TexSize;
     float2 center = floor(texelLoc - 0.5) + 0.5;
@@ -142,4 +142,9 @@ CTYPE Lanczos(TEXTURE2D_X(_InputTexture), float2 inUV)
 
     return colorAccumulation /= weightAccumulation;
 #endif
+}
+
+CTYPE Lanczos(TEXTURE2D_X(_InputTexture), float2 inUV)
+{
+    return Lanczos(_InputTexture, inUV, _ScreenSize.xy * _RTHandleScale.xy);
 }

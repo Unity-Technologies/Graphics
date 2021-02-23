@@ -3,7 +3,7 @@
 //--------------------------------------------------------------------------------------------------
 
 // #pragma enable_d3d11_debug_symbols
-#pragma only_renderers d3d11 playstation xboxone vulkan metal switch
+#pragma only_renderers d3d11 playstation xboxone xboxseries vulkan metal switch
 
 #pragma kernel VolumetricLighting
 
@@ -85,7 +85,12 @@ TEXTURE2D_X(_MaxZMaskTexture);
 
 #if PRE_FILTER_LIGHT_LIST
 
-#define MAX_SUPPORTED_LIGHTS min(48, MAX_NR_BIG_TILE_LIGHTS_PLUS_ONE)
+#if MAX_NR_BIG_TILE_LIGHTS_PLUS_ONE > 48
+#define MAX_SUPPORTED_LIGHTS 48
+#else
+#define MAX_SUPPORTED_LIGHTS MAX_NR_BIG_TILE_LIGHTS_PLUS_ONE
+#endif
+
 groupshared int gs_localLightList[GROUP_SIZE_1D*GROUP_SIZE_1D][MAX_SUPPORTED_LIGHTS];
 
 #endif
