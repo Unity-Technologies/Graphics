@@ -1604,6 +1604,8 @@ namespace UnityEngine.Rendering.HighDefinition
             }
         }
 
+        // This is a bit confusing, but it is an override to ignore the onDomandShadowRenderOnPlacement field when a light is registered for the first time as a consequence of a request for shadow update.
+        internal bool forceRenderOnPlacement = false;
 
         /// <summary>
         /// True if the light affects volumetric fog, false otherwise
