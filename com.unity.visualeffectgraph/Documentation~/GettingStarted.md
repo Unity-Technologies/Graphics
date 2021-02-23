@@ -10,11 +10,11 @@ For information on system requirements for the Visual Effect Graph, see [Require
 
 To install the Visual Effect Graph package:
 
-
-1. In the Unity Editor, go to __Window__ &gt; __Package Manager__. In the top navigation bar, make sure __All packages__ is selected.
-2. Note: On version prior to Unity 2019.3, you will have to check the "Show preview packages" "Advanced" option for the Visual Effect Graph to appear in the list.
-3. Select the __Visual Effect Graph__ package.
-4. In the bottom right corner, click __Install__.
+1. Open a Unity project.
+2. Open the __Package Manager__ window (__Window > Package Manager__).
+3. In the __Package Manager__ window, in the **Packages** field, select **Unity Registry**.
+4. Select **Visual Effect Graph** from the list of packages.
+5. In the bottom right corner of the Package Manager window, select __Install__. Unity installs URP into your Project.
 
 ![](Images/InstallVisualEffectGraph.png)
 

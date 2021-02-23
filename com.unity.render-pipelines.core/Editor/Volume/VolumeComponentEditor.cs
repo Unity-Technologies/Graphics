@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
+using UnityEditor.AnimatedValues;
 using UnityEngine;
 using UnityEngine.Assertions;
 using UnityEngine.Rendering;
@@ -117,29 +118,63 @@ namespace UnityEditor.Rendering
         /// </summary>
         public SerializedProperty activeProperty { get; internal set; }
 
-        SerializedProperty m_AdvancedMode;
+        EditorPrefBool m_ShowAdditionalProperties;
 
         List<VolumeParameter> m_VolumeNotAdditionalParameters;
         /// <summary>
-        /// Override this property if your editor makes use of the "More Options" feature.
+        /// Override this property if your editor makes use of the "Additional Properties" feature.
         /// </summary>
-        public virtual bool hasAdvancedMode => target.parameters.Count != m_VolumeNotAdditionalParameters.Count;
+        public virtual bool hasAdditionalProperties => target.parameters.Count != m_VolumeNotAdditionalParameters.Count;
 
         /// <summary>
-        /// Checks if the editor currently has the "More Options" feature toggled on.
+        /// Set to true to show additional properties.
         /// </summary>
-        public bool isInAdvancedMode
+
+        public bool showAdditionalProperties
         {
-            get => m_AdvancedMode != null && m_AdvancedMode.boolValue;
-            internal set
+            get => m_ShowAdditionalProperties.value;
+            set
             {
-                if (m_AdvancedMode != null)
+                if (value && !m_ShowAdditionalProperties.value)
                 {
-                    m_AdvancedMode.boolValue = value;
-                    serializedObject.ApplyModifiedProperties();
+                    m_AdditionalPropertiesAnimation.value = 1.0f;
+                    m_AdditionalPropertiesAnimation.target = 0.0f;
                 }
+
+                SetAdditionalPropertiesPreference(value);
             }
         }
+
+        /// <summary>
+        /// Start a scope for additional properties.
+        /// This will handle the highlight of the background when toggled on and off.
+        /// </summary>
+        /// <returns>True if the additional content should be drawn.</returns>
+        protected bool BeginAdditionalPropertiesScope()
+        {
+            if (hasAdditionalProperties && showAdditionalProperties)
+            {
+                CoreEditorUtils.BeginAdditionalPropertiesHighlight(m_AdditionalPropertiesAnimation);
+                return true;
+            }
+            else
+            {
+                return false;
+            }
+        }
+
+        /// <summary>
+        /// End a scope for additional properties.
+        /// </summary>
+        protected void EndAdditionalPropertiesScope()
+        {
+            if (hasAdditionalProperties && showAdditionalProperties)
+            {
+                CoreEditorUtils.EndAdditionalPropertiesHighlight();
+            }
+        }
+
+        AnimFloat m_AdditionalPropertiesAnimation;
 
         /// <summary>
         /// A reference to the parent editor in the Inspector.
@@ -187,7 +222,22 @@ namespace UnityEditor.Rendering
         /// </summary>
         public void Repaint()
         {
-            m_Inspector.Repaint();
+            if (m_Inspector != null) // Can happen in tests.
+                m_Inspector.Repaint();
+            // Volume Component Editors can be shown in the ProjectSettings window (default volume profile)
+            // This will force a repaint of the whole window, otherwise, additional properties highlight animation does not work properly.
+            SettingsService.RepaintAllSettingsWindow();
+        }
+
+        internal void InitAdditionalPropertiesPreference()
+        {
+            string key = $"UI_Show_Additional_Properties_{GetType()}";
+            m_ShowAdditionalProperties = new EditorPrefBool(key);
+        }
+
+        internal void SetAdditionalPropertiesPreference(bool value)
+        {
+            m_ShowAdditionalProperties.value = value;
         }
 
         internal void Init(VolumeComponent target, Editor inspector)
@@ -196,7 +246,13 @@ namespace UnityEditor.Rendering
             m_Inspector = inspector;
             serializedObject = new SerializedObject(target);
             activeProperty = serializedObject.FindProperty("active");
-            m_AdvancedMode = serializedObject.FindProperty("m_AdvancedMode");
+
+            InitAdditionalPropertiesPreference();
+
+            m_AdditionalPropertiesAnimation = new AnimFloat(0, Repaint)
+            {
+                speed = CoreEditorConstants.additionalPropertiesHightLightSpeed
+            };
 
             InitParameters();
 
@@ -259,7 +315,7 @@ namespace UnityEditor.Rendering
                 }
 
                 var parameter = new SerializedDataParameter(t.Item2);
-                return (new GUIContent(name), order, parameter);
+                return (EditorGUIUtility.TrTextContent(name), order, parameter);
             })
                 .OrderBy(t => t.order)
                 .ToList();
@@ -294,7 +350,7 @@ namespace UnityEditor.Rendering
             // Display every field as-is
             foreach (var parameter in m_Parameters)
             {
-                if (parameter.displayName.text != "")
+                if (!string.IsNullOrEmpty(parameter.displayName.text))
                     PropertyField(parameter.param, parameter.displayName);
                 else
                     PropertyField(parameter.param);
@@ -333,7 +389,7 @@ namespace UnityEditor.Rendering
         /// <param name="state">The state to check</param>
         internal bool AreOverridesTo(bool state)
         {
-            if (hasAdvancedMode && isInAdvancedMode)
+            if (hasAdditionalProperties && showAdditionalProperties)
                 return AreAllOverridesTo(state);
 
             for (int i = 0; i < m_VolumeNotAdditionalParameters.Count; ++i)
@@ -350,7 +406,7 @@ namespace UnityEditor.Rendering
         /// <param name="state">The state to check</param>
         internal void SetOverridesTo(bool state)
         {
-            if (hasAdvancedMode && isInAdvancedMode)
+            if (hasAdditionalProperties && showAdditionalProperties)
                 SetAllOverridesTo(state);
             else
             {
@@ -400,6 +456,59 @@ namespace UnityEditor.Rendering
             PropertyField(property, title);
         }
 
+        static readonly Dictionary<string, GUIContent> s_HeadersGuiContents = new Dictionary<string, GUIContent>();
+
+        /// <summary>
+        /// Draws a header into the inspector with the given title
+        /// </summary>
+        /// <param name="header">The title for the header</param>
+        protected void DrawHeader(string header)
+        {
+            if (!s_HeadersGuiContents.TryGetValue(header, out GUIContent content))
+            {
+                content = EditorGUIUtility.TrTextContent(header);
+                s_HeadersGuiContents.Add(header, content);
+            }
+
+            var rect = EditorGUI.IndentedRect(EditorGUILayout.GetControlRect(false, EditorGUIUtility.singleLineHeight));
+            EditorGUI.LabelField(rect, content, EditorStyles.miniLabel);
+        }
+
+        /// <summary>
+        /// Handles unity built-in decorators (Space, Header, Tooltips, ...) from <see cref="SerializedDataParameter"/> attributes
+        /// </summary>
+        /// <param name="property">The property to obtain the attributes and handle the decorators</param>
+        /// <param name="title">A custom label and/or tooltip that might be updated by <see cref="TooltipAttribute"/> and/or by <see cref="InspectorNameAttribute"/></param>
+        void HandleDecorators(SerializedDataParameter property, GUIContent title)
+        {
+            foreach (var attr in property.attributes)
+            {
+                if (!(attr is PropertyAttribute))
+                    continue;
+
+                switch (attr)
+                {
+                    case SpaceAttribute spaceAttribute:
+                        EditorGUILayout.GetControlRect(false, spaceAttribute.height);
+                        break;
+                    case HeaderAttribute headerAttribute:
+                    {
+                        DrawHeader(headerAttribute.header);
+                        break;
+                    }
+                    case TooltipAttribute tooltipAttribute:
+                    {
+                        if (string.IsNullOrEmpty(title.tooltip))
+                            title.tooltip = tooltipAttribute.tooltip;
+                        break;
+                    }
+                    case InspectorNameAttribute inspectorNameAttribute:
+                        title.text = inspectorNameAttribute.displayName;
+                        break;
+                }
+            }
+        }
+
         /// <summary>
         /// Draws a given <see cref="SerializedDataParameter"/> in the editor using a custom label
         /// and tooltip.
@@ -408,29 +517,7 @@ namespace UnityEditor.Rendering
         /// <param name="title">A custom label and/or tooltip.</param>
         protected void PropertyField(SerializedDataParameter property, GUIContent title)
         {
-            // Handle unity built-in decorators (Space, Header, Tooltip etc)
-            foreach (var attr in property.attributes)
-            {
-                if (attr is PropertyAttribute)
-                {
-                    if (attr is SpaceAttribute)
-                    {
-                        EditorGUILayout.GetControlRect(false, (attr as SpaceAttribute).height);
-                    }
-                    else if (attr is HeaderAttribute)
-                    {
-                        var rect = EditorGUILayout.GetControlRect(false, EditorGUIUtility.singleLineHeight);
-                        rect.y += 0f;
-                        rect = EditorGUI.IndentedRect(rect);
-                        EditorGUI.LabelField(rect, (attr as HeaderAttribute).header, EditorStyles.miniLabel);
-                    }
-                    else if (attr is TooltipAttribute)
-                    {
-                        if (string.IsNullOrEmpty(title.tooltip))
-                            title.tooltip = (attr as TooltipAttribute).tooltip;
-                    }
-                }
-            }
+            HandleDecorators(property, title);
 
             // Custom parameter drawer
             VolumeParameterDrawer drawer;
@@ -484,12 +571,13 @@ namespace UnityEditor.Rendering
                 {
                     if (drawer != null && !invalidProp)
                     {
-                        if (drawer.OnGUI(property, title))
-                            return;
+                        drawer.OnGUI(property, title);
                     }
-
-                    // Default unity field
-                    EditorGUILayout.PropertyField(property.value, title);
+                    else
+                    {
+                        // Default unity field
+                        EditorGUILayout.PropertyField(property.value, title);
+                    }
                 }
             }
         }
