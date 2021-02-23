@@ -7,7 +7,7 @@ Material:
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  m_Name: Enlighten_Shader Graph
+  m_Name: Enlighten_Shader_Graph
   m_Shader: {fileID: -6465566751694194690, guid: 8b0c4a3f4546f934783c50d0bca18a30,
     type: 3}
   m_ShaderKeywords: 
