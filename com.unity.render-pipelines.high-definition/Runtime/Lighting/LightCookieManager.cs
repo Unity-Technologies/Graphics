@@ -181,8 +181,12 @@ namespace UnityEngine.Rendering.HighDefinition
                     m_MPBFilterAreaLights.SetInt(s_sourceMipLevel, 0);
                     m_MPBFilterAreaLights.SetTexture(s_texSource, source);
 
+
+                    // First clear the area needed with some border
+                    int border = 1;
+                    m_MPBFilterAreaLights.SetVector(s_sourceSize, new Vector4(viewportWidth, viewportHeight, (float)(viewportWidth + border) / viewportWidth, (float)(viewportHeight + border) / viewportHeight));
                     cmd.SetRenderTarget(m_TempRenderTexture0, 0);
-                    cmd.SetViewport(new Rect(0, 0, viewportWidth, viewportHeight));
+                    cmd.SetViewport(new Rect(0, 0, viewportWidth + border, viewportHeight + border));
                     cmd.DrawProcedural(Matrix4x4.identity, m_MaterialFilterAreaLights, 0, MeshTopology.Triangles, 3, 1, m_MPBFilterAreaLights);
                 }
 
