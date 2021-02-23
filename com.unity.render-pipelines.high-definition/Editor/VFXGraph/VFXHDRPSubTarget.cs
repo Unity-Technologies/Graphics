@@ -65,7 +65,6 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 passDescriptor.pragmas = new PragmaCollection
                 {
                     passDescriptor.pragmas,
-                    // Pragma.DebugSymbolsD3D,
                     Pragma.MultiCompileInstancing
                 };
 
