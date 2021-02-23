@@ -7,6 +7,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 ## [12.0.0] - 2021-01-11
 
 ### Added
+  - Added ability to define custom vertex-to-fragment interpolators.
   - Stereo Eye Index, Instance ID, and Vertex ID nodes added to the shadergraph library.
 
 ### Changed
@@ -25,6 +26,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed treatment of node precision in subgraphs, now allows subgraphs to switch precisions based on the subgraph node [1304050] (https://issuetracker.unity3d.com/issues/precision-errors-when-theres-a-precision-discrepancy-between-subgraphs-and-parent-graphs)
 - Fixed an issue where the Rectangle Node could lose detail at a distance.  New control offers additional method that preserves detail better [1156801]
 - Fixed virtual texture layer reference names allowing invalid characters [1304146]
+
 
 ## [11.0.0] - 2020-10-21
 

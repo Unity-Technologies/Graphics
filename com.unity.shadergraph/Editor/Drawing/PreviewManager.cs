@@ -294,6 +294,15 @@ namespace UnityEditor.ShaderGraph.Drawing
                     }
                 }
             }
+
+            // Custom Interpolator Blocks have implied connections to their Custom Interpolator Nodes
+            if (dir == PropagationDirection.Downstream && node is BlockNode bnode && bnode.isCustomBlock)
+            {
+                foreach (var cin in CustomInterpolatorUtils.GetCustomBlockNodeDependents(bnode))
+                {
+                    action(cin);
+                }
+            }
         }
 
         public void HandleGraphChanges()
@@ -327,15 +336,31 @@ namespace UnityEditor.ShaderGraph.Drawing
             {
                 var node = edge.inputSlot.node;
                 if ((node is BlockNode) || (node is SubGraphOutputNode))
-                    UpdateMasterPreview(ModificationScope.Topological);
-                else
                 {
-                    m_NodesShaderChanged.Add(node);
-                    //When an edge gets deleted, if the node had the edge on creation, the properties would get out of sync and no value would get set.
-                    //Fix for https://fogbugz.unity3d.com/f/cases/1284033/
-                    m_NodesPropertyChanged.Add(node);
+                    UpdateMasterPreview(ModificationScope.Topological);
                 }
+
+                m_NodesShaderChanged.Add(node);
+                //When an edge gets deleted, if the node had the edge on creation, the properties would get out of sync and no value would get set.
+                //Fix for https://fogbugz.unity3d.com/f/cases/1284033/
+                m_NodesPropertyChanged.Add(node);
+
                 m_TopologyDirty = true;
+            }
+
+            foreach (var edge in m_Graph.addedEdges)
+            {
+                var node = edge.inputSlot.node;
+                if (node != null)
+                {
+                    if ((node is BlockNode) || (node is SubGraphOutputNode))
+                    {
+                        UpdateMasterPreview(ModificationScope.Topological);
+                    }
+
+                    m_NodesShaderChanged.Add(node);
+                    m_TopologyDirty = true;
+                }
             }
 
             // remove the nodes from the state trackers
@@ -436,6 +461,16 @@ namespace UnityEditor.ShaderGraph.Drawing
 
                 if (requestShaders)
                     UpdateShaders();
+
+                // Need to late capture custom interpolators because of how their type changes
+                // can have downstream impacts on dynamic slots.
+                HashSet<AbstractMaterialNode> customProps = new HashSet<AbstractMaterialNode>();
+                PropagateNodes(
+                    new HashSet<AbstractMaterialNode>(m_NodesPropertyChanged.OfType<BlockNode>().Where(b => b.isCustomBlock)),
+                    PropagationDirection.Downstream,
+                    customProps);
+
+                m_NodesPropertyChanged.UnionWith(customProps);
 
                 // all nodes downstream of a changed property must be redrawn (to display the updated the property value)
                 PropagateNodes(m_NodesPropertyChanged, PropagationDirection.Downstream, nodesToDraw);
