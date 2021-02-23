@@ -33,8 +33,7 @@ namespace UnityEditor.Rendering
         }
 
         #region IDebugDisplaySettingsData
-        public bool AreAnySettingsActive => enableMsaa || enableHDR ||
-                                            (debugPostProcessingMode != DebugPostProcessingMode.Disabled) ||
+        public bool AreAnySettingsActive => (debugPostProcessingMode != DebugPostProcessingMode.Auto) ||
                                             (debugFullScreenMode != DebugFullScreenMode.None) ||
                                             (debugSceneOverrideMode != DebugSceneOverrideMode.None) ||
                                             (debugMipInfoMode != DebugMipInfoMode.None);
