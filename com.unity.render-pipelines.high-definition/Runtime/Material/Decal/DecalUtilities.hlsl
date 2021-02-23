@@ -261,3 +261,25 @@ DecalSurfaceData GetDecalSurfaceData(PositionInputs posInput, float3 vtxNormal, 
 
     return decalSurfaceData;
 }
+
+DecalSurfaceData GetDecalSurfaceData(PositionInputs posInput, FragInputs input, inout float alpha)
+{
+    float3 vtxNormal = input.tangentToWorld[2];
+    DecalSurfaceData decalSurfaceData = GetDecalSurfaceData(posInput, vtxNormal, alpha);
+
+#ifdef _DOUBLESIDED_ON
+    if (!input.isFrontFace)
+    {
+        if (_DoubleSidedConstants.x == -1.0f)
+            decalSurfaceData.normalWS.xyz *= -1.0f;
+        else if (_DoubleSidedConstants.z == -1.0f)
+        {
+            float3 normalTS = TransformWorldToTangent(decalSurfaceData.normalWS.xyz, input.tangentToWorld);
+            normalTS.z *= -1.0f;
+            decalSurfaceData.normalWS.xyz = SafeNormalize(TransformTangentToWorld(normalTS, input.tangentToWorld));
+        }
+    }
+#endif // _DOUBLESIDED_ON
+
+    return decalSurfaceData;
+}
