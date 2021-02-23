@@ -10,7 +10,7 @@ bool CalculateDebugColor(in SurfaceData2D surfaceData, out half4 debugColor)
 {
     switch(_DebugMaterialMode)
     {
-        case DEBUGMATERIALMODE_UNLIT:
+        case DEBUGMATERIALMODE_ALBEDO:
         {
             debugColor = half4(surfaceData.albedo, 1);
             return true;
@@ -18,7 +18,7 @@ bool CalculateDebugColor(in SurfaceData2D surfaceData, out half4 debugColor)
 
         case DEBUGMATERIALMODE_ALPHA:
         {
-            debugColor = half4(surfaceData.alpha, surfaceData.alpha, surfaceData.alpha, 1);
+            debugColor = half4(surfaceData.alpha.rrr, 1);
             return true;
         }
 
