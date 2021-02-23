@@ -51,6 +51,9 @@ namespace UnityEditor.Rendering
         /// <summary>Hightlited background color.</summary>
         public static Color backgroundHighlightColor { get { return EditorGUIUtility.isProSkin ? m_DarkThemeBackgroundHighlightColor : m_LightThemeBackgroundHighlightColor; } }
 
+        public static GUIContent iconHelp { get; }
+        public static GUIStyle iconHelpStyle { get; }
+
         static CoreEditorStyles()
         {
             smallTickbox = new GUIStyle("ShurikenToggle");
@@ -95,6 +98,9 @@ namespace UnityEditor.Rendering
             redTexture = CoreEditorUtils.CreateColoredTexture2D(Color.red);
             greenTexture = CoreEditorUtils.CreateColoredTexture2D(Color.green);
             blueTexture = CoreEditorUtils.CreateColoredTexture2D(Color.blue);
+          
+            iconHelp = new GUIContent(EditorGUIUtility.FindTexture("_Help"));
+            iconHelpStyle = GUI.skin.FindStyle("IconButton") ?? EditorGUIUtility.GetBuiltinSkin(EditorSkin.Inspector).FindStyle("IconButton");
         }
     }
 }
