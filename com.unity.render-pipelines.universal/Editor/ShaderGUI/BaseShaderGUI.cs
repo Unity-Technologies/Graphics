@@ -35,8 +35,8 @@ namespace UnityEditor
 
         public enum SmoothnessSource
         {
+            SpecularAlpha,
             BaseAlpha,
-            SpecularAlpha
         }
 
         public enum RenderFace
