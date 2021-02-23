@@ -122,6 +122,9 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
                 pragmas = CorePragmas._2DDefault,
                 keywords = SpriteLitKeywords.Lit,
                 includes = SpriteLitIncludes.Lit,
+
+                // Custom Interpolator Support
+                customInterpolators = CoreCustomInterpDescriptors.Common
             };
 
             public static PassDescriptor Normal = new PassDescriptor
@@ -149,6 +152,9 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
                 renderStates = CoreRenderStates.Default,
                 pragmas = CorePragmas._2DDefault,
                 includes = SpriteLitIncludes.Normal,
+
+                // Custom Interpolator Support
+                customInterpolators = CoreCustomInterpDescriptors.Common
             };
 
             public static PassDescriptor Forward = new PassDescriptor
@@ -176,6 +182,9 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
                 renderStates = CoreRenderStates.Default,
                 pragmas = CorePragmas._2DDefault,
                 includes = SpriteLitIncludes.Forward,
+
+                // Custom Interpolator Support
+                customInterpolators = CoreCustomInterpDescriptors.Common
             };
         }
         #endregion
