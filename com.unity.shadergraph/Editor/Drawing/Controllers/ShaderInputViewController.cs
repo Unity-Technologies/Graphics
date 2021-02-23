@@ -191,6 +191,7 @@ namespace UnityEditor.ShaderGraph.Drawing
             InitializeViewModel();
 
             m_BlackboardPropertyView = new BlackboardPropertyView(ViewModel);
+
             m_BlackboardPropertyView.controller = this;
 
             m_BlackboardRowView = new SGBlackboardRow(m_BlackboardPropertyView, null);
@@ -207,6 +208,8 @@ namespace UnityEditor.ShaderGraph.Drawing
             {
                 case AbstractShaderProperty shaderProperty:
                     ViewModel.InputTypeName = shaderProperty.GetPropertyTypeString();
+                    // HACK: Handles upgrade fix for deprecated old Color property
+                    shaderProperty.onBeforeVersionChange += (_) => DataStoreState.owner.RegisterCompleteObjectUndo($"Change {shaderProperty.displayName} Version");
                     break;
                 case ShaderKeyword shaderKeyword:
                     ViewModel.InputTypeName = shaderKeyword.keywordType  + " Keyword";

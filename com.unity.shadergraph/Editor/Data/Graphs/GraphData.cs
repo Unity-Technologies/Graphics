@@ -73,6 +73,15 @@ namespace UnityEditor.ShaderGraph
 
         #endregion
 
+        #region Category Data
+
+        [SerializeField]
+        List<JsonData<CategoryData>> m_InputCategoryData = new List<JsonData<CategoryData>>();
+
+        public DataValueEnumerable<CategoryData> inputCategories => m_InputCategoryData.SelectValue();
+
+        #endregion
+
         #region Node data
 
         [SerializeField]

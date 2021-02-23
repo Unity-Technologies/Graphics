@@ -4,6 +4,7 @@ using UnityEngine;
 using UnityEditor.Experimental.GraphView;
 using UnityEngine.UIElements;
 using System;
+using UnityEditor.Graphing;
 using UnityEditor.ShaderGraph.Drawing.Views;
 using UnityEditor.ShaderGraph.Internal;
 using UnityEngine.Assertions;
@@ -103,7 +104,7 @@ namespace UnityEditor.ShaderGraph.Drawing
             Blackboard = new SGBlackboard(ViewModel);
             Blackboard.controller = this;
 
-            // Temporary patch-fix for how GraphView handles deleting graph selections, should go through data store ideally
+            // TODO: Temporary patch-fix for how GraphView handles deleting graph selections, should go through data store ideally
             if (ViewModel.ParentView is MaterialGraphView graphView)
                 graphView.blackboardItemRemovedDelegate += RemoveBlackboardRow;
 
@@ -203,6 +204,25 @@ namespace UnityEditor.ShaderGraph.Drawing
                 // Rows should auto-expand when an input is first added
                 blackboardRow.expanded = true;
             }
+            else if (changeAction is DeleteShaderInputAction deleteShaderInputAction)
+            {
+                RemoveBlackboardRow(deleteShaderInputAction.ShaderInputReference);
+            }
+            else if (changeAction is HandleUndoRedoAction handleUndoRedoAction)
+            {
+                foreach(var shaderInput in graphData.removedInputs)
+                    RemoveBlackboardRow(shaderInput);
+
+                foreach(var shaderInput in graphData.addedInputs)
+                    CreateBlackboardRow(shaderInput);
+
+                foreach (var shaderInput in graphData.movedInputs)
+                {
+                    // TODO: Handle this
+                    // Recreate category data, instead of recreating the rows and sections etc
+                    // For each category data, find a SGBlackboardSection that matches (if not create), then clear sections visual elements and
+                }
+            }
 
             // Reconstruct view-model first
             // TODO: (would be cool to have some scoping here to see if the action was one that changed the UI or not, could avoid reconstructing the ViewModel based on that)
@@ -264,6 +284,42 @@ namespace UnityEditor.ShaderGraph.Drawing
         public BlackboardRow GetBlackboardRow(ShaderInput blackboardItem)
         {
             return new BlackboardRow(new VisualElement(), null);
+        }
+
+        // A map from shaderInput reference names to the viewDataKey of the BlackboardPropertyView that is used to represent them
+        // This data is used to re-select the shaderInputs in the blackboard after an undo/redo is performed
+        Dictionary<string, string> oldSelectionPersistenceData { get; set; } = new Dictionary<string, string>();
+
+        /*void UpdateSelectionAfterUndoRedo(AttachToPanelEvent evt)
+        {
+            var newFieldView = evt.target as BlackboardPropertyView;
+            // If this field view represents a value that was previously selected
+            var refName = newFieldView?.shaderInput?.referenceName;
+            if (refName != null && oldSelectionPersistenceData.TryGetValue(refName, out var oldViewDataKey))
+            {
+                // ViewDataKey is how UIElements handles UI state persistence,
+                // This selects the newly added field view
+                newFieldView.viewDataKey = oldViewDataKey;
+            }
+        }*/
+
+        public void HandleGraphChanges(bool wasUndoRedoPerformed)
+        {
+            // This tries to maintain the selection the user had before the undo/redo was performed,
+            // if the user hasn't added or removed any inputs
+            if (wasUndoRedoPerformed)
+            {
+                //oldSelectionPersistenceData.Clear();
+                foreach (var item in Blackboard.selection)
+                {
+                    Debug.Log(item);
+                    /*if (item is BlackboardPropertyView blackboardPropertyView)
+                    {
+                        var guid = blackboardPropertyView.shaderInput.referenceName;
+                        oldSelectionPersistenceData.Add(guid, blackboardFieldView.viewDataKey);
+                    }*/
+                }
+            }
         }
     }
 }

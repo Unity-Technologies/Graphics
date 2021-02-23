@@ -102,26 +102,24 @@ namespace UnityEditor.ShaderGraph.UnitTests
             }
         }
 
-        public static void SendMouseEventToVisualElement(
+        public static void MouseDownEvent(
+            EditorWindow parentWindow,
             VisualElement elementToNotify,
             EventType eventType,
             MouseButton mouseButton = MouseButton.LeftMouse,
-            Vector2 eventPositionOffset = default)
+            int clickCount = 1,
+            EventModifiers eventModifiers = EventModifiers.None)
         {
-            var screenButtonPosition = GetScreenPosition(elementToNotify);
-            // Apply offset if any was specified
-            screenButtonPosition += eventPositionOffset;
-            using var evt = ShaderGraphUITestHelpers.MakeMouseEvent(eventType, screenButtonPosition, mouseButton);
-            evt.target = elementToNotify;
-            elementToNotify.SendEvent(evt);
+            var screenButtonPosition = GetScreenPosition(parentWindow, elementToNotify);
+            parentWindow.SendEvent(new Event() {type = eventType, mousePosition = screenButtonPosition, clickCount =  clickCount, button = (int)mouseButton, modifiers = eventModifiers});
         }
 
-        public static Vector2 GetScreenPosition(VisualElement visualElement)
+        public static Vector2 GetScreenPosition(EditorWindow parentWindow, VisualElement visualElement)
         {
             // WorldBound is the "global" xposition of this element, relative to the top-left corner of this editor window
             var screenPosition = visualElement.worldBound.position;
             // EditorWindow.position is the top-left position of the window in desktop-space
-            screenPosition = (screenPosition + EditorWindow.focusedWindow.position.position);
+            screenPosition = (screenPosition + parentWindow.position.position);
             // To account for 4k screens with virtual coordinates, need to be multiply by EditorGUI.pixelsPerPoint to get actual desktop pixels.
             //actualScreenPosition *= EditorGUIUtility.pixelsPerPoint;
             return screenPosition;

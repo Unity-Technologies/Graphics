@@ -8,7 +8,6 @@ using Object = UnityEngine.Object;
 using UnityEditor.Experimental.GraphView;
 using UnityEditor.ShaderGraph.Drawing.Inspector.PropertyDrawers;
 using UnityEditor.ShaderGraph.Drawing.Views;
-using UnityEditor.ShaderGraph.Drawing.Views.Blackboard;
 using UnityEditor.ShaderGraph.Internal;
 using UnityEditor.ShaderGraph.Serialization;
 using UnityEngine.UIElements;
@@ -20,6 +19,10 @@ namespace UnityEditor.ShaderGraph.Drawing
 {
     sealed class MaterialGraphView : GraphView, IInspectable, ISelectionProvider
     {
+        //TODO: Temp, remove
+        public int k_PropertySectionIndex = 0;
+        public int k_KeywordSectionIndex = 1;
+
         public MaterialGraphView()
         {
             styleSheets.Add(Resources.Load<StyleSheet>("Styles/MaterialGraphView"));
@@ -921,6 +924,7 @@ namespace UnityEditor.ShaderGraph.Drawing
                 }
             }
 
+            // TODO: Replace with IGraphDataAction
             for (int i = 0; i < removedInputs.Count; i++)
             {
                 // Called to update the blackboard when a graph input is removed
@@ -947,11 +951,13 @@ namespace UnityEditor.ShaderGraph.Drawing
             if (blackboard == null || blackboard.selection == null || blackboard.selection.Count == 0)
                 return indexPerSection;
 
+            // TODO: Replace this with instead a more opaque method of giving blackboard selected elements (which is just graph views selection)
+            // and get list of selected elements
             foreach (ISelectable selection in blackboard.selection)
             {
                 if (selection is BlackboardPropertyView blackboardPropertyView)
                 {
-                    BlackboardRow row = blackboardPropertyView.GetFirstAncestorOfType<BlackboardRow>();
+                    SGBlackboardRow row = blackboardPropertyView.GetFirstAncestorOfType<SGBlackboardRow>();
                     SGBlackboardSection section = blackboardPropertyView.GetFirstAncestorOfType<SGBlackboardSection>();
                     if (row == null || section == null)
                         continue;
@@ -1242,18 +1248,24 @@ namespace UnityEditor.ShaderGraph.Drawing
             // Get the position to insert the new shader inputs per section.
             List<int> indicies = MaterialGraphView.GetIndicesToInsert(blackboard);
 
+            // TODO: All of this assumes that the Blackboard only has 2 sections, and also that the sections are exact recreations of the order of properties and keywords as they are in GraphData
+            // This won't be true with property groups, so if we could move away from that right now, it'd be great
+
+            // If we were to introduce property group data right now but only for the two default sections that would be cool, as then it would be completely up to the blackboard how to organize the properties and keywords as it needed
+            // No interference needed on this side to find selected elements
+
             // Make new inputs from the copied graph
             foreach (ShaderInput input in copyGraph.inputs)
             {
                 switch (input)
                 {
                     case AbstractShaderProperty property:
-                        var copiedProperty = (AbstractShaderProperty)graphView.graph.AddCopyOfShaderInput(input, indicies[BlackboardProvider.k_PropertySectionIndex]);
+                        var copiedProperty = (AbstractShaderProperty)graphView.graph.AddCopyOfShaderInput(input, indicies[0]);
                         if (copiedProperty != null) // some property types cannot be duplicated (unknown types)
                         {
                             // Increment for next within the same section
-                            if (indicies[BlackboardProvider.k_PropertySectionIndex] >= 0)
-                                indicies[BlackboardProvider.k_PropertySectionIndex]++;
+                            if (indicies[graphView.k_PropertySectionIndex] >= 0)
+                                indicies[graphView.k_PropertySectionIndex]++;
 
                             // Update the property nodes that depends on the copied node
                             var dependentPropertyNodes = copyGraph.GetNodes<PropertyNode>().Where(x => x.property == input);
@@ -1270,11 +1282,11 @@ namespace UnityEditor.ShaderGraph.Drawing
                         if ((input as ShaderKeyword).isBuiltIn && graphView.graph.keywords.Where(p => p.referenceName == input.referenceName).Any())
                             continue;
 
-                        var copiedKeyword = (ShaderKeyword)graphView.graph.AddCopyOfShaderInput(input, indicies[BlackboardProvider.k_KeywordSectionIndex]);
+                        var copiedKeyword = (ShaderKeyword)graphView.graph.AddCopyOfShaderInput(input, indicies[1]);
 
                         // Increment for next within the same section
-                        if (indicies[BlackboardProvider.k_KeywordSectionIndex] >= 0)
-                            indicies[BlackboardProvider.k_KeywordSectionIndex]++;
+                        if (indicies[graphView.k_KeywordSectionIndex] >= 0)
+                            indicies[graphView.k_KeywordSectionIndex]++;
 
                         // Update the keyword nodes that depends on the copied node
                         var dependentKeywordNodes = copyGraph.GetNodes<KeywordNode>().Where(x => x.keyword == input);

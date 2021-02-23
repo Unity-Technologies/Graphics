@@ -88,6 +88,16 @@ namespace UnityEditor.ShaderGraph.Drawing
             // we handle this in controller if we change it through BlackboardPropertyView, but its possible to change through PropertyNodeView as well
             shaderInput.displayNameUpdateTrigger += newDisplayName => text = newDisplayName;
 
+            // HACK: Handles the upgrade fix for the old color property deprecation
+            if (shaderInput is AbstractShaderProperty property)
+            {
+                property.onAfterVersionChange += () =>
+                {
+                    this.typeText = property.GetPropertyTypeString();
+                    this.m_InspectorUpdateDelegate();
+                };
+            }
+
             Add(mainContainer);
 
             RegisterCallback<MouseDownEvent>(OnMouseDownEvent);
@@ -133,7 +143,6 @@ namespace UnityEditor.ShaderGraph.Drawing
                 RegisterCallback<DragEnterEvent>(evt => blackboard.ShowScrollBoundaryRegions());
                 RegisterCallback<DragExitedEvent>(evt => blackboard.HideScrollBoundaryRegions());
             }
-
         }
 
         ~BlackboardPropertyView()
@@ -207,7 +216,7 @@ namespace UnityEditor.ShaderGraph.Drawing
         // --- ISGControlledElement implementation
 
         [Inspectable("Shader Input", null)]
-        ShaderInput shaderInput => ViewModel.Model;
+        public ShaderInput shaderInput => ViewModel.Model;
 
         public string inspectorTitle => ViewModel.InputName + " " + ViewModel.InputTypeName;
 

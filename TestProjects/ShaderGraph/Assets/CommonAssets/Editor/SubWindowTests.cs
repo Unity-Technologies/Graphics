@@ -2,7 +2,6 @@ using System.Collections;
 using NUnit.Framework;
 using UnityEditor.ShaderGraph.Drawing;
 using UnityEditor.ShaderGraph.Drawing.Inspector;
-using UnityEditor.ShaderGraph.Drawing.Views.Blackboard;
 using UnityEngine;
 using UnityEngine.UIElements;
 using UnityEngine.TestTools;

@@ -9,7 +9,6 @@ using UnityEditor.ShaderGraph.Internal;
 using UnityEngine;
 using UnityEngine.UIElements;
 using UnityEditor.ShaderGraph.Drawing.Inspector.PropertyDrawers;
-using UnityEditor.ShaderGraph.Drawing.Views.Blackboard;
 using ContextualMenuManipulator = UnityEngine.UIElements.ContextualMenuManipulator;
 
 namespace UnityEditor.ShaderGraph
@@ -227,7 +226,7 @@ namespace UnityEditor.ShaderGraph
         {
             var graph = node?.owner as GraphData;
             if ((graph != null) && (property != null))
-                icon = (graph.isSubGraph || property.isExposed) ? BlackboardProvider.exposedIcon : null;
+                icon = (graph.isSubGraph || property.isExposed) ? exposedIcon : null;
             else
                 icon = null;
         }

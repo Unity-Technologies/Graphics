@@ -16,7 +16,6 @@ using UnityEditor.VersionControl;
 using UnityEditor.Searcher;
 
 using Unity.Profiling;
-using UnityEditor.ShaderGraph.Drawing.Views.Blackboard;
 
 namespace UnityEditor.ShaderGraph.Drawing
 {
@@ -656,7 +655,7 @@ namespace UnityEditor.ShaderGraph.Drawing
             }
 
             previewManager.RenderPreviews();
-            //m_BlackboardProvider.HandleGraphChanges(wasUndoRedoPerformed);
+            m_BlackboardController.HandleGraphChanges(wasUndoRedoPerformed);
             if (wasUndoRedoPerformed || m_InspectorView.DoesInspectorNeedUpdate())
                 m_InspectorView.Update();
             m_GroupHashSet.Clear();

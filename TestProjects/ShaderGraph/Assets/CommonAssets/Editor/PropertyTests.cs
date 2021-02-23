@@ -4,7 +4,6 @@ using System.Collections.Generic;
 using NUnit.Framework;
 using UnityEngine;
 using UnityEditor.ShaderGraph.Drawing;
-using UnityEditor.ShaderGraph.Drawing.Views.Blackboard;
 using UnityEditor.ShaderGraph.Internal;
 using UnityEngine.TestTools;
 using UnityEngine.UIElements;
@@ -86,10 +85,10 @@ namespace UnityEditor.ShaderGraph.UnitTests
             var fieldViewElements = m_GraphEditorView.Query("blackboardFieldView");
             foreach (var visualElement in fieldViewElements.ToList())
             {
-                var blackboardFieldView = (BlackboardFieldView)visualElement;
-                if (blackboardFieldView == null) continue;
+                var blackboardPropertyView = (BlackboardPropertyView)visualElement;
+                if (blackboardPropertyView == null) continue;
 
-                var shaderInput = (AbstractShaderProperty)blackboardFieldView.shaderInput;
+                var shaderInput = (AbstractShaderProperty)blackboardPropertyView.shaderInput;
                 var originalReferenceName = shaderInput.referenceName;
                 var propertyType = shaderInput.GetPropertyTypeString();
                 var modifiedReferenceName = $"{propertyType}_Test";
@@ -98,8 +97,12 @@ namespace UnityEditor.ShaderGraph.UnitTests
                 Assert.IsTrue(shaderInput.referenceName != originalReferenceName);
 
                 // Needed so that the inspector gets triggered and the callbacks and triggers are initialized
-                ShaderGraphUITestHelpers.SendMouseEventToVisualElement(blackboardFieldView, EventType.MouseDown);
-                ShaderGraphUITestHelpers.SendMouseEventToVisualElement(blackboardFieldView, EventType.MouseUp);
+                ShaderGraphUITestHelpers.MouseDownEvent(m_Window, blackboardPropertyView, EventType.MouseDown);
+
+                // Wait a frame for the inspector updates to trigger
+                yield return null;
+
+                ShaderGraphUITestHelpers.MouseDownEvent(m_Window, blackboardPropertyView, EventType.MouseUp);
 
                 // Wait a frame for the inspector updates to trigger
                 yield return null;
@@ -112,6 +115,12 @@ namespace UnityEditor.ShaderGraph.UnitTests
                 if (shaderInput.referenceName != originalReferenceName)
                     Assert.Fail("Failed to reset reference name to original value.");
             }
+        }
+
+        [Test]
+        public void AddPropertyTests()
+        {
+
         }
 
         [Test]

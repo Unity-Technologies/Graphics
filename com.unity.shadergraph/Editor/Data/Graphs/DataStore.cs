@@ -18,7 +18,7 @@ namespace UnityEditor.ShaderGraph
             State = initialState;
         }
 
-        internal void Dispatch(ActionType action)
+        public void Dispatch(ActionType action)
         {
             try
             {

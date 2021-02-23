@@ -6,6 +6,18 @@ using UnityEngine;
 
 namespace UnityEditor.Graphing
 {
+    class HandleUndoRedoAction : IGraphDataAction
+    {
+        void HandleGraphUndoRedo(GraphData m_GraphData)
+        {
+            m_GraphData?.ReplaceWith(NewGraphData);
+        }
+
+        public Action<GraphData> ModifyGraphDataAction => HandleGraphUndoRedo;
+
+        public GraphData NewGraphData { get; set; }
+    }
+
     class GraphObject : ScriptableObject, ISerializationCallbackReceiver
     {
         [SerializeField]
@@ -92,7 +104,10 @@ namespace UnityEditor.Graphing
         {
             Debug.Assert(wasUndoRedoPerformed);
             var deserializedGraph = DeserializeGraph();
-            m_Graph.ReplaceWith(deserializedGraph);
+
+            var handleUndoRedoAction = new HandleUndoRedoAction();
+            handleUndoRedoAction.NewGraphData = deserializedGraph;
+            graphDataStore.Dispatch(handleUndoRedoAction);
         }
 
         GraphData DeserializeGraph()
@@ -115,7 +130,7 @@ namespace UnityEditor.Graphing
         }
 
         // This is a very simple reducer, all it does is take the action and apply it to the graph data, which causes some mutation in state
-        // This isn't strictly redux anymore but its needed given that our state tree is quite large and we don't want to be creating copies of it everywhere by returning it from functions
+        // This isn't strictly redux anymore but its needed given that our state tree is quite large and we don't want to be creating copies of it everywhere by unboxing
         void ReduceGraphDataAction(GraphData initialState, IGraphDataAction graphDataAction)
         {
             graphDataAction.ModifyGraphDataAction(initialState);
