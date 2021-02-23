@@ -36,27 +36,29 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed wrong shader / properties assignement to materials created from 3DsMax 2021 Physical Material. (case 1293576)
 - Normalized the view direction in Shader Graph to be consistent across Scriptable Render Pieplines.
 - Fixed material upgrader to run in batch mode [case 1305402]
+- Fixed gizmos drawing in game view. [case 1302504](https://issuetracker.unity3d.com/issues/urp-handles-with-set-ztest-do-not-respect-depth-sorting-in-the-game-view)
 - Fixed an issue in shaderGraph target where the ShaderPass.hlsl was being included after SHADERPASS was defined
 - Fixed an issue where Particle Lit shader had an incorrect fallback shader [case 1312459]
 - Fixed an issue with backbuffer MSAA on Vulkan desktop platforms.
 - Fixed shadow cascade blend culling factor.
 - Removed Custom.meta which was causing warnings. [case 1314288](https://issuetracker.unity3d.com/issues/urp-warnings-about-missing-metadata-appear-after-installing)
-- Fixed an issue where LitGUI and SimpleLitGUI smoothness enum didn't match BaseShaderGUI SmoothnessSource enum. [1306432]
-- Fixed multi editing of Bias property on lights. [case 1289620]
+- Fixed a case where shadow fade was clipped too early.
 
 ### Changed
 - Change Asset/Create/Shader/Universal Render Pipeline/Lit Shader Graph to Asset/Create/Shader Graph/URP/Lit Shader Graph
 - Change Asset/Create/Shader/Universal Render Pipeline/Sprite Lit Shader Graph to Asset/Create/Shader Graph/URP/Sprite Lit Shader Graph
 - Change Asset/Create/Shader/Universal Render Pipeline/Unlit Shader Graph to Asset/Create/Shader Graph/URP/Unlit Shader Graph
 - Change Asset/Create/Shader/Universal Render Pipeline/Sprite Unlit Shader Graph to Asset/Create/Shader Graph/URP/Sprite Unlit Shader Graph
-
-### Fixed
-- Fixed a case where shadow fade was clipped too early.
-
-### Changed
+- Moved Edit/Render Pipeline/Universal Render Pipeline/Upgrade Project Materials to 2D Renderer Materials to Edit/Rendering/Materials/Convert All Built-in Materials to URP 2D Renderer
+- Moved Edit/Render Pipeline/Universal Render Pipeline/Upgrade Scene Materials to 2D Renderer Materials to Edit/Rendering/Materials/Convert All Built-in Scene Materials to URP 2D Renderer
+- Moved Edit/Render Pipeline/Universal Render Pipeline/Upgrade Project URP Parametric Lights to Freeform to Edit/Rendering/Lights/Convert Project URP Parametric Lights to Freeform
+- Moved Edit/Render Pipeline/Universal Render Pipeline/Upgrade Scene URP Parametric Lights to Freeform to Edit/Rendering/Lights/Convert Scene URP Parametric Lights to Freeform
+- Moved Edit/Render Pipeline/Universal Render Pipeline/Upgrade Project Materials to URP Materials to Edit/Rendering/Materials/Convert All Built-in Materials to URP
+- Moved Edit/Render Pipeline/Universal Render Pipeline/Upgrade Selected Materials to URP Materials to Edit/Rendering/Materials/Convert Selected Built-in Materials to URP
 - Deprecated GetShadowFade in Shadows.hlsl, use GetMainLightShadowFade or GetAdditionalLightShadowFade.
 - Improved shadow cascade GUI drawing with pixel perfect, hover and focus functionalities.
 - Shadow fade now uses border value for calculating shadow fade distance and fall off linearly.
+- Using the same MaterialHeaderScope for material editor as HDRP is using
 
 ## [11.0.0] - 2020-10-21
 ### Added
@@ -527,7 +529,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Classes have moved to the Universal namespace (from LWRP).
 
 ### Upgrade Guide
-- Upgrading to UniversalRP is designed to be almost seamless from the user side.
+- Upgrading to URP is designed to be almost seamless from the user side.
 - LWRP package still exists, this forwards includes and classes to the UniversalRP Package.
 - Please see the more involved upgrade guide (https://docs.google.com/document/d/1Xd5bZa8pYZRHri-EnNkyhwrWEzSa15vtnpcg--xUCIs/).
 
