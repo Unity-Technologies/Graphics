@@ -193,6 +193,7 @@ namespace UnityEditor.Rendering.HighDefinition
                 // Setup the material to draw the quad with the exposure texture
                 var material = GUITextureBlit2SRGBMaterial;
                 material.SetTexture("_Exposure", exposureTex);
+                material.SetFloat("_ExposureBias", (float)Math.Log(1.0f / p.ProbeExposureValue(), 2.0));
                 Graphics.DrawTexture(c, p.texture, new Rect(0, 0, 1, 1), 0, 0, 0, 0, GUI.color, material, -1);
 
                 // We now display the FoV and aspect used during the capture of the planar reflection
@@ -299,7 +300,7 @@ namespace UnityEditor.Rendering.HighDefinition
 
             k_PreviewMaterial.SetTexture("_MainTex", probe.texture);
             k_PreviewMaterial.SetMatrix("_CaptureVPMatrix", vp);
-            k_PreviewMaterial.SetFloat("_Exposure", 1.0f);
+            k_PreviewMaterial.SetFloat("_Exposure", (float)Math.Log(1.0 / probe.ProbeExposureValue(), 2.0));
             k_PreviewMaterial.SetVector("_CameraPositionWS", new Vector4(cameraPositionWS.x, cameraPositionWS.y, -cameraPositionWS.z, 0));
             k_PreviewMaterial.SetVector("_CapturePositionWS", new Vector4(capturePositionWS.x, capturePositionWS.y, -capturePositionWS.z, 0));
             k_PreviewMaterial.SetPass(0);
