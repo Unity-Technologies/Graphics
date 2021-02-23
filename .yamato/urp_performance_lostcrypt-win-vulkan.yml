@@ -28,19 +28,19 @@ URP_Performance_LostCrypt_Win_Vulkan_performance_playmode_runtime_mono_Linear_tr
               set /p GIT_REVISIONDATE=<revdate.tmp
               echo %GIT_REVISIONDATE%
               del revdate.tmp
-              utr --artifacts_path=TestProjects/2d-sara/test-results --performance-project-id=LostCrypt --platform=StandaloneWindows64 --player-connection-ip=auto --player-load-path=playersLow --report-performance-data --suite=playmode --testfilter=Low --timeout=1200 --zero-tests-are-ok=1
+              utr --artifacts_path=TestProjects/2d-sara/test-results --performance-project-id=LostCrypt --platform=StandaloneWindows64 --player-connection-ip=auto --player-load-path=playersLow --report-performance-data --suite=playmode --timeout=1200 --zero-tests-are-ok=1
       -  |5-
               git rev-parse HEAD | git show -s --format=%%cI > revdate.tmp
               set /p GIT_REVISIONDATE=<revdate.tmp
               echo %GIT_REVISIONDATE%
               del revdate.tmp
-              utr --artifacts_path=TestProjects/2d-sara/test-results --performance-project-id=LostCrypt --platform=StandaloneWindows64 --player-connection-ip=auto --player-load-path=playersMedium --report-performance-data --suite=playmode --testfilter=Medium --timeout=1200 --zero-tests-are-ok=1
+              utr --artifacts_path=TestProjects/2d-sara/test-results --performance-project-id=LostCrypt --platform=StandaloneWindows64 --player-connection-ip=auto --player-load-path=playersMedium --report-performance-data --suite=playmode --timeout=1200 --zero-tests-are-ok=1
       -  |5-
               git rev-parse HEAD | git show -s --format=%%cI > revdate.tmp
               set /p GIT_REVISIONDATE=<revdate.tmp
               echo %GIT_REVISIONDATE%
               del revdate.tmp
-              utr --artifacts_path=TestProjects/2d-sara/test-results --performance-project-id=LostCrypt --platform=StandaloneWindows64 --player-connection-ip=auto --player-load-path=playersHigh --report-performance-data --suite=playmode --testfilter=High --timeout=1200 --zero-tests-are-ok=1
+              utr --artifacts_path=TestProjects/2d-sara/test-results --performance-project-id=LostCrypt --platform=StandaloneWindows64 --player-connection-ip=auto --player-load-path=playersHigh --report-performance-data --suite=playmode --timeout=1200 --zero-tests-are-ok=1
     artifacts:
         logs:
             paths:
@@ -199,19 +199,19 @@ URP_Performance_LostCrypt_Win_Vulkan_performance_playmode_runtime_mono_Linear_CU
               set /p GIT_REVISIONDATE=<revdate.tmp
               echo %GIT_REVISIONDATE%
               del revdate.tmp
-              utr --artifacts_path=TestProjects/2d-sara/test-results --performance-project-id=LostCrypt --platform=StandaloneWindows64 --player-connection-ip=auto --player-load-path=playersLow --report-performance-data --suite=playmode --testfilter=Low --timeout=1200 --zero-tests-are-ok=1
+              utr --artifacts_path=TestProjects/2d-sara/test-results --performance-project-id=LostCrypt --platform=StandaloneWindows64 --player-connection-ip=auto --player-load-path=playersLow --report-performance-data --suite=playmode --timeout=1200 --zero-tests-are-ok=1
       -  |5-
               git rev-parse HEAD | git show -s --format=%%cI > revdate.tmp
               set /p GIT_REVISIONDATE=<revdate.tmp
               echo %GIT_REVISIONDATE%
               del revdate.tmp
-              utr --artifacts_path=TestProjects/2d-sara/test-results --performance-project-id=LostCrypt --platform=StandaloneWindows64 --player-connection-ip=auto --player-load-path=playersMedium --report-performance-data --suite=playmode --testfilter=Medium --timeout=1200 --zero-tests-are-ok=1
+              utr --artifacts_path=TestProjects/2d-sara/test-results --performance-project-id=LostCrypt --platform=StandaloneWindows64 --player-connection-ip=auto --player-load-path=playersMedium --report-performance-data --suite=playmode --timeout=1200 --zero-tests-are-ok=1
       -  |5-
               git rev-parse HEAD | git show -s --format=%%cI > revdate.tmp
               set /p GIT_REVISIONDATE=<revdate.tmp
               echo %GIT_REVISIONDATE%
               del revdate.tmp
-              utr --artifacts_path=TestProjects/2d-sara/test-results --performance-project-id=LostCrypt --platform=StandaloneWindows64 --player-connection-ip=auto --player-load-path=playersHigh --report-performance-data --suite=playmode --testfilter=High --timeout=1200 --zero-tests-are-ok=1
+              utr --artifacts_path=TestProjects/2d-sara/test-results --performance-project-id=LostCrypt --platform=StandaloneWindows64 --player-connection-ip=auto --player-load-path=playersHigh --report-performance-data --suite=playmode --timeout=1200 --zero-tests-are-ok=1
     artifacts:
         logs:
             paths:

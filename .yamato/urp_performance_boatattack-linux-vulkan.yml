@@ -22,9 +22,9 @@ URP_Performance_BoatAttack_Linux_Vulkan_performance_playmode_runtime_mono_Linear
     commands:
       -  curl -s https://artifactory.prd.it.unity3d.com/artifactory/unity-tools-local/utr-standalone/utr --output utr
       -  chmod +x utr
-      -  DISPLAY=:0.0 ./utr --artifacts_path=TestProjects/BoatAttack/test-results --performance-project-id=BoatAttack --platform=StandaloneLinux64 --player-connection-ip=auto --player-load-path=playersLow --report-performance-data --suite=playmode --testfilter=Low --timeout=1200 --zero-tests-are-ok=1
-      -  DISPLAY=:0.0 ./utr --artifacts_path=TestProjects/BoatAttack/test-results --performance-project-id=BoatAttack --platform=StandaloneLinux64 --player-connection-ip=auto --player-load-path=playersMedium --report-performance-data --suite=playmode --testfilter=Medium --timeout=1200 --zero-tests-are-ok=1
-      -  DISPLAY=:0.0 ./utr --artifacts_path=TestProjects/BoatAttack/test-results --performance-project-id=BoatAttack --platform=StandaloneLinux64 --player-connection-ip=auto --player-load-path=playersHigh --report-performance-data --suite=playmode --testfilter=High --timeout=1200 --zero-tests-are-ok=1
+      -  DISPLAY=:0.0 ./utr --artifacts_path=TestProjects/BoatAttack/test-results --performance-project-id=BoatAttack --platform=StandaloneLinux64 --player-connection-ip=auto --player-load-path=playersLow --report-performance-data --suite=playmode --timeout=1200 --zero-tests-are-ok=1
+      -  DISPLAY=:0.0 ./utr --artifacts_path=TestProjects/BoatAttack/test-results --performance-project-id=BoatAttack --platform=StandaloneLinux64 --player-connection-ip=auto --player-load-path=playersMedium --report-performance-data --suite=playmode --timeout=1200 --zero-tests-are-ok=1
+      -  DISPLAY=:0.0 ./utr --artifacts_path=TestProjects/BoatAttack/test-results --performance-project-id=BoatAttack --platform=StandaloneLinux64 --player-connection-ip=auto --player-load-path=playersHigh --report-performance-data --suite=playmode --timeout=1200 --zero-tests-are-ok=1
     artifacts:
         logs:
             paths:
@@ -206,9 +206,9 @@ URP_Performance_BoatAttack_Linux_Vulkan_performance_playmode_runtime_mono_Linear
     commands:
       -  curl -s https://artifactory.prd.it.unity3d.com/artifactory/unity-tools-local/utr-standalone/utr --output utr
       -  chmod +x utr
-      -  DISPLAY=:0.0 ./utr --artifacts_path=TestProjects/BoatAttack/test-results --performance-project-id=BoatAttack --platform=StandaloneLinux64 --player-connection-ip=auto --player-load-path=playersLow --report-performance-data --suite=playmode --testfilter=Low --timeout=1200 --zero-tests-are-ok=1
-      -  DISPLAY=:0.0 ./utr --artifacts_path=TestProjects/BoatAttack/test-results --performance-project-id=BoatAttack --platform=StandaloneLinux64 --player-connection-ip=auto --player-load-path=playersMedium --report-performance-data --suite=playmode --testfilter=Medium --timeout=1200 --zero-tests-are-ok=1
-      -  DISPLAY=:0.0 ./utr --artifacts_path=TestProjects/BoatAttack/test-results --performance-project-id=BoatAttack --platform=StandaloneLinux64 --player-connection-ip=auto --player-load-path=playersHigh --report-performance-data --suite=playmode --testfilter=High --timeout=1200 --zero-tests-are-ok=1
+      -  DISPLAY=:0.0 ./utr --artifacts_path=TestProjects/BoatAttack/test-results --performance-project-id=BoatAttack --platform=StandaloneLinux64 --player-connection-ip=auto --player-load-path=playersLow --report-performance-data --suite=playmode --timeout=1200 --zero-tests-are-ok=1
+      -  DISPLAY=:0.0 ./utr --artifacts_path=TestProjects/BoatAttack/test-results --performance-project-id=BoatAttack --platform=StandaloneLinux64 --player-connection-ip=auto --player-load-path=playersMedium --report-performance-data --suite=playmode --timeout=1200 --zero-tests-are-ok=1
+      -  DISPLAY=:0.0 ./utr --artifacts_path=TestProjects/BoatAttack/test-results --performance-project-id=BoatAttack --platform=StandaloneLinux64 --player-connection-ip=auto --player-load-path=playersHigh --report-performance-data --suite=playmode --timeout=1200 --zero-tests-are-ok=1
     artifacts:
         logs:
             paths:
