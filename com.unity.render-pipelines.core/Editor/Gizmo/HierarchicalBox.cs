@@ -115,15 +115,22 @@ namespace UnityEditor.Rendering
             set
             {
                 value.a = 8f / 255;
-                m_MonochromeFillColor = value;
-                material.color = m_MonochromeFillColor;
-                value.a = 1f;
-                m_MonochromeHandleColor = value;
-                value.a = 0.7f;
-                m_WireframeColor = value;
-                value.a = 0.2f;
-                m_WireframeColorBehind = value;
+                SetBaseColor(value);
             }
+        }
+
+        /// <summary>
+        /// Set the baseColor used to fill hull. All other colors are deduced from it except specific handle colors.
+        /// Instead of <see cref="baseColor">baseColor</see> set, this will not force the opacity and keep what is provided for the filled faces.
+        /// </summary>
+        /// <param name="color">The color to use</param>
+        public void SetBaseColor(Color color)
+        {
+            m_MonochromeFillColor = color;
+            material.color = m_MonochromeFillColor;
+            m_MonochromeHandleColor = GizmoUtility.GetHandleColor(color);
+            m_WireframeColor = GizmoUtility.GetWireframeColor(color);
+            m_WireframeColorBehind = GizmoUtility.GetWireframeColorBehindObjects(color);
         }
 
         //Note: Handles.Slider not allow to use a specific ControlID.
