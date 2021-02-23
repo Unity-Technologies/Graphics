@@ -183,13 +183,13 @@ namespace UnityEditor.Rendering.HighDefinition
 
                 if (GUILayout.Button(EditorGUIUtility.TrTextContent("New", "Create a HD Global Settings Asset in your default resource folder (defined in Wizard)"), GUILayout.Width(45), GUILayout.Height(18)))
                 {
-                    HDAssetFactory.CreateHDRenderPipelineGlobalSettings();
+                    HDAssetFactory.HDRenderPipelineGlobalSettingsCreator.Create(useProjectSettingsFolder: true, activateAsset: true);
                 }
                 bool guiEnabled = GUI.enabled;
                 GUI.enabled = guiEnabled && (settingsSerialized != null);
                 if (GUILayout.Button(EditorGUIUtility.TrTextContent("Clone", "Clone a HD Global Settings Asset in your default resource folder (defined in Wizard)"), GUILayout.Width(45), GUILayout.Height(18)))
                 {
-                    HDAssetFactory.HDRenderPipelineGlobalSettingsCreator.Clone(settingsSerialized);
+                    HDAssetFactory.HDRenderPipelineGlobalSettingsCreator.Clone(settingsSerialized, activateAsset: true);
                 }
                 GUI.enabled = guiEnabled;
             }

@@ -12,35 +12,46 @@ namespace UnityEditor.Rendering.HighDefinition
             public override void Action(int instanceId, string pathName, string resourceFile)
             {
                 var newAsset = HDRenderPipelineGlobalSettings.Create(pathName, settings);
-                HDRenderPipelineGlobalSettings.UpdateGraphicsSettings(newAsset);
+                if (updateGraphicsSettings)
+                    HDRenderPipelineGlobalSettings.UpdateGraphicsSettings(newAsset);
                 ProjectWindowUtil.ShowCreatedAsset(newAsset);
             }
 
             static HDRenderPipelineGlobalSettings settings;
-            public static void Clone(HDRenderPipelineGlobalSettings src)
+            static bool updateGraphicsSettings = false;
+            public static void Clone(HDRenderPipelineGlobalSettings src, bool activateAsset)
             {
                 settings = src;
-                var icon = CoreEditorStyles.globalSettingsIcon;
+                updateGraphicsSettings = activateAsset;
                 var assetCreator = ScriptableObject.CreateInstance<HDRenderPipelineGlobalSettingsCreator>();
 
                 if (!AssetDatabase.IsValidFolder("Assets/" + HDProjectSettings.projectSettingsFolderPath))
                     AssetDatabase.CreateFolder("Assets", HDProjectSettings.projectSettingsFolderPath);
                 var path = "Assets/" + HDProjectSettings.projectSettingsFolderPath + "/" + src.name + ".asset";
 
-                ProjectWindowUtil.StartNameEditingIfProjectWindowExists(assetCreator.GetInstanceID(), assetCreator, path, icon, null);
+                ProjectWindowUtil.StartNameEditingIfProjectWindowExists(assetCreator.GetInstanceID(), assetCreator, path, CoreEditorStyles.globalSettingsIcon, null);
+            }
+
+            public static void Create(bool useProjectSettingsFolder, bool activateAsset)
+            {
+                settings = null;
+                updateGraphicsSettings = activateAsset;
+
+                var path = "HDRenderPipelineGlobalSettings.asset";
+                if (useProjectSettingsFolder)
+                {
+                    if (!AssetDatabase.IsValidFolder("Assets/" + HDProjectSettings.projectSettingsFolderPath))
+                        AssetDatabase.CreateFolder("Assets", HDProjectSettings.projectSettingsFolderPath);
+                    path = "Assets/" + HDProjectSettings.projectSettingsFolderPath + "/HDRenderPipelineGlobalSettings.asset";
+                }
+                ProjectWindowUtil.StartNameEditingIfProjectWindowExists(0, ScriptableObject.CreateInstance<HDRenderPipelineGlobalSettingsCreator>(), path, CoreEditorStyles.globalSettingsIcon, null);
             }
         }
 
         [MenuItem("Assets/Create/Rendering/HDRP Global Settings Asset", priority = CoreUtils.Sections.section1 + CoreUtils.Priorities.assetsCreateRenderingMenuPriority + 1)]
         internal static void CreateHDRenderPipelineGlobalSettings()
         {
-            var icon = CoreEditorStyles.globalSettingsIcon;
-
-            if (!AssetDatabase.IsValidFolder("Assets/" + HDProjectSettings.projectSettingsFolderPath))
-                AssetDatabase.CreateFolder("Assets", HDProjectSettings.projectSettingsFolderPath);
-            var path = "Assets/" + HDProjectSettings.projectSettingsFolderPath + "/HDRenderPipelineGlobalSettings.asset";
-
-            ProjectWindowUtil.StartNameEditingIfProjectWindowExists(0, ScriptableObject.CreateInstance<HDRenderPipelineGlobalSettingsCreator>(), path, icon, null);
+            HDRenderPipelineGlobalSettingsCreator.Create(useProjectSettingsFolder: false, activateAsset: false);
         }
     }
 }
