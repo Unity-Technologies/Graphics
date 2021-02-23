@@ -1043,19 +1043,17 @@ namespace UnityEngine.Rendering.Universal
                     bool isLastPass = renderPass.isLastPass;
                     var samples = renderPass.renderTargetSampleCount != -1 ? renderPass.renderTargetSampleCount : cameraData.cameraTargetDescriptor.msaaSamples;
 
-                    var colorAttachmentTarget = (renderPass.depthOnly ||
-                        passColorAttachment != BuiltinRenderTextureType.CameraTarget)
+                    var colorAttachmentTarget = (renderPass.depthOnly || passColorAttachment != BuiltinRenderTextureType.CameraTarget)
                         ? passColorAttachment
                         : (cameraData.targetTexture != null
-                            ? new RenderTargetIdentifier(cameraData.targetTexture)
-                            : RenderTargetHandle.CameraTarget.Identifier());
+                            ? new RenderTargetIdentifier(cameraData.targetTexture.colorBuffer)
+                            : BuiltinRenderTextureType.CameraTarget);
 
-                    var depthAttachmentTarget = (cameraData.targetTexture != null)
-                        ? m_CameraDepthTarget
-                        : (passDepthAttachment == BuiltinRenderTextureType.CameraTarget)
-                        ? BuiltinRenderTextureType.Depth
-                        : passDepthAttachment;
-
+                    var depthAttachmentTarget = (passDepthAttachment != BuiltinRenderTextureType.CameraTarget)
+                        ? passDepthAttachment
+                        : (cameraData.targetTexture != null
+                            ? new RenderTargetIdentifier(cameraData.targetTexture.depthBuffer)
+                            : BuiltinRenderTextureType.Depth);
 
                     // keep track if this is the current camera's last pass and the RT is the backbuffer (BuiltinRenderTextureType.CameraTarget)
                     // knowing isLastPassToBB can help decide the optimal store action as it gives us additional information about the current frame
