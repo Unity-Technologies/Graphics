@@ -94,6 +94,12 @@ namespace UnityEditor.ShaderGraph
             }
         }
 
+        public string hlslFunctionName
+        {
+            get => m_FunctionName + "_$precision";
+        }
+
+
         public static string defaultFunctionName => k_DefaultFunctionName;
 
         [SerializeField]
@@ -155,8 +161,8 @@ namespace UnityEditor.ShaderGraph
 
                 // call function
                 sb.AppendIndentation();
-                sb.Append(functionName);
-                sb.Append("_$precision(");
+                sb.Append(hlslFunctionName);
+                sb.Append("(");
                 bool first = true;
 
                 foreach (var input in inputSlots)
@@ -241,30 +247,16 @@ namespace UnityEditor.ShaderGraph
             switch (sourceType)
             {
                 case HlslSourceType.File:
-                    registry.ProvideFunction(functionSource, builder =>
-                    {
-                        string path = AssetDatabase.GUIDToAssetPath(functionSource);
+                    string path = AssetDatabase.GUIDToAssetPath(functionSource);
 
-                        // This is required for upgrading without console errors
-                        if (string.IsNullOrEmpty(path))
-                            path = functionSource;
+                    // This is required for upgrading without console errors
+                    if (string.IsNullOrEmpty(path))
+                        path = functionSource;
 
-                        string hash;
-                        try
-                        {
-                            hash = AssetDatabase.GetAssetDependencyHash(path).ToString();
-                        }
-                        catch
-                        {
-                            hash = "Failed to compute hash for include";
-                        }
-
-                        builder.AppendLine($"// {hash}");
-                        builder.AppendLine($"#include \"{path}\"");
-                    });
+                    registry.RequiresIncludePath(path);
                     break;
                 case HlslSourceType.String:
-                    registry.ProvideFunction(functionName, builder =>
+                    registry.ProvideFunction(hlslFunctionName, builder =>
                     {
                         GetFunctionHeader(builder);
                         using (builder.BlockScope())
@@ -287,8 +279,8 @@ namespace UnityEditor.ShaderGraph
                 GetOutputSlots(outputSlots);
 
                 sb.Append("void ");
-                sb.Append(functionName);
-                sb.Append("_$precision(");
+                sb.Append(hlslFunctionName);
+                sb.Append("(");
 
                 var first = true;
 
@@ -422,9 +414,9 @@ namespace UnityEditor.ShaderGraph
             base.ValidateNode();
         }
 
-        public bool Reload(HashSet<string> changedFileDependencies)
+        public bool Reload(HashSet<string> changedFileDependencyGUIDs)
         {
-            if (changedFileDependencies.Contains(m_FunctionSource))
+            if (changedFileDependencyGUIDs.Contains(m_FunctionSource))
             {
                 owner.ClearErrorsForNode(this);
                 ValidateNode();
@@ -443,6 +435,8 @@ namespace UnityEditor.ShaderGraph
             Guid guid;
             if (!string.IsNullOrEmpty(functionSource) && !Guid.TryParse(functionSource, out guid))
             {
+                // not sure why we don't use AssetDatabase.AssetPathToGUID...
+                // I guess we are testing that it actually exists and can be loaded here before converting?
                 string guidString = string.Empty;
                 TextAsset textAsset = AssetDatabase.LoadAssetAtPath<TextAsset>(functionSource);
                 if (textAsset != null)

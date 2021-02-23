@@ -4,8 +4,8 @@ Shader "Hidden/HDRP/UpsampleTransparent"
 
         #pragma target 4.5
         #pragma editor_sync_compilation
-        #pragma multi_compile_local BILINEAR NEAREST_DEPTH
-        #pragma only_renderers d3d11 playstation xboxone vulkan metal switch
+        #pragma multi_compile_local_fragment BILINEAR NEAREST_DEPTH
+        #pragma only_renderers d3d11 playstation xboxone xboxseries vulkan metal switch
         #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Common.hlsl"
         #include "Packages/com.unity.render-pipelines.high-definition/Runtime/ShaderLibrary/ShaderVariables.hlsl"
 
@@ -40,7 +40,6 @@ Shader "Hidden/HDRP/UpsampleTransparent"
 #define DEBUG_EDGE 0
 #endif
 
-
         float4 Frag(Varyings input) : SV_Target
         {
             UNITY_SETUP_STEREO_EYE_INDEX_POST_VERTEX(input);
@@ -49,9 +48,7 @@ Shader "Hidden/HDRP/UpsampleTransparent"
             float2 fullResTexelSize = _ScreenSize.zw;
             float2 halfResTexelSize = 2.0f * fullResTexelSize;
 
-        #ifdef BILINEAR
-            return SAMPLE_TEXTURE2D_X_LOD(_LowResTransparent, s_linear_clamp_sampler, ClampAndScaleUVForBilinear(uv, halfResTexelSize), 0.0);
-        #elif NEAREST_DEPTH
+        #ifdef NEAREST_DEPTH
 
             // The following is an implementation of NVIDIA's http://developer.download.nvidia.com/assets/gamedev/files/sdk/11/OpacityMappingSDKWhitePaper.pdf
 
@@ -101,10 +98,14 @@ Shader "Hidden/HDRP/UpsampleTransparent"
                 return SAMPLE_TEXTURE2D_X_LOD(_LowResTransparent, s_point_clamp_sampler, ClampAndScaleUVForPoint(nearestUV), 0);
 #endif
             }
+        #else // BILINEAR
+
+            return SAMPLE_TEXTURE2D_X_LOD(_LowResTransparent, s_linear_clamp_sampler, ClampAndScaleUVForBilinear(uv, halfResTexelSize), 0.0);
+
         #endif
 
-        }
 
+        }
     ENDHLSL
 
     SubShader

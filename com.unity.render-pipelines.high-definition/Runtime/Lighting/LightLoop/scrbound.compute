@@ -1,5 +1,5 @@
 // #pragma enable_d3d11_debug_symbols
-#pragma only_renderers d3d11 playstation xboxone vulkan metal switch
+#pragma only_renderers d3d11 playstation xboxone xboxseries vulkan metal switch
 
 #pragma kernel main
 
@@ -117,6 +117,7 @@ float4x4 PerspectiveProjection4x4(float a, float g, float n, float f)
 #undef PLATFORM_SUPPORTS_WAVE_INTRINSICS
 #endif
 
+
 #define CLEAR_SIGN_BIT(X)  (asint(X) & INT_MAX)
 #define DIV_ROUND_UP(N, D) (((N) + (D) - 1) / (D)) // No division by 0 checks
 
@@ -215,8 +216,36 @@ groupshared uint  gs_NdcAaBbMinPtW[LIGHTS_PER_GROUP]; // View-space Z coordinate
 groupshared uint  gs_NdcAaBbMaxPtW[LIGHTS_PER_GROUP]; // View-space Z coordinate
 #endif // PLATFORM_SUPPORTS_WAVE_INTRINSICS
 
+
+// ----------- Use LDS for the vertex ring buffer as otherwise on FXC we create register spilling
+
+groupshared float gs_VertexRingBufferX[MAX_CLIP_VERTS * THREADS_PER_GROUP];
+groupshared float gs_VertexRingBufferY[MAX_CLIP_VERTS * THREADS_PER_GROUP];
+groupshared float gs_VertexRingBufferZ[MAX_CLIP_VERTS * THREADS_PER_GROUP];
+groupshared float gs_VertexRingBufferW[MAX_CLIP_VERTS * THREADS_PER_GROUP];
+
+float4 GetFromRingBuffer(uint threadIdx, uint entry)
+{
+    float4 outV;
+    outV.x = gs_VertexRingBufferX[threadIdx * MAX_CLIP_VERTS + entry];
+    outV.y = gs_VertexRingBufferY[threadIdx * MAX_CLIP_VERTS + entry];
+    outV.z = gs_VertexRingBufferZ[threadIdx * MAX_CLIP_VERTS + entry];
+    outV.w = gs_VertexRingBufferW[threadIdx * MAX_CLIP_VERTS + entry];
+    return outV;
+}
+
+void WriteToRingBuffer(uint threadIdx, uint entry, float4 value)
+{
+    gs_VertexRingBufferX[threadIdx * MAX_CLIP_VERTS + entry] = value.x;
+    gs_VertexRingBufferY[threadIdx * MAX_CLIP_VERTS + entry] = value.y;
+    gs_VertexRingBufferZ[threadIdx * MAX_CLIP_VERTS + entry] = value.z;
+    gs_VertexRingBufferW[threadIdx * MAX_CLIP_VERTS + entry] = value.w;
+}
+/////////////////////////////////////////////////////////
+
+
 // Returns 'true' if it manages to cull the face.
-bool TryCullFace(uint f, uint behindMasksOfVerts[NUM_VERTS])
+bool TryCullFace(uint f, uint baseOffsetVertex)
 {
     uint cullMaskOfFace = FACE_MASK; // Initially behind
     uint vertListOfFace = GetVertexListOfFace(f);
@@ -225,7 +254,7 @@ bool TryCullFace(uint f, uint behindMasksOfVerts[NUM_VERTS])
     {
         uint v = BitFieldExtract(vertListOfFace, 3 * j, 3);
         // Non-zero if ALL the vertices are behind any of the planes.
-        cullMaskOfFace &= behindMasksOfVerts[v];
+        cullMaskOfFace &= gs_BehindMasksOfVerts[baseOffsetVertex + v];
     }
 
     return (cullMaskOfFace != 0);
@@ -260,13 +289,13 @@ float4 IntersectEdgeAgainstPlane(ClipVertex v0, ClipVertex v1)
 }
 
 void ClipPolygonAgainstPlane(uint p, uint srcBegin, uint srcSize,
-                             inout float4 vertRingBuffer[MAX_CLIP_VERTS],
+                             uint threadIdx,
                              out uint dstBegin, out uint dstSize)
 {
     dstBegin = srcBegin + srcSize; // Start at the end; we don't use modular arithmetic here
     dstSize  = 0;
 
-    ClipVertex tailVert = CreateClipVertex(p, vertRingBuffer[(srcBegin + srcSize - 1) % MAX_CLIP_VERTS]);
+    ClipVertex tailVert = CreateClipVertex(p, GetFromRingBuffer(threadIdx, (srcBegin + srcSize - 1) % MAX_CLIP_VERTS));
 
 #ifdef OBTUSE_COMPILER
     uint modSrcIdx = srcBegin % MAX_CLIP_VERTS;
@@ -278,7 +307,7 @@ void ClipPolygonAgainstPlane(uint p, uint srcBegin, uint srcSize,
     #ifndef OBTUSE_COMPILER
         uint modSrcIdx = j % MAX_CLIP_VERTS;
     #endif
-        ClipVertex leadVert = CreateClipVertex(p, vertRingBuffer[modSrcIdx]);
+        ClipVertex leadVert = CreateClipVertex(p, GetFromRingBuffer(threadIdx, modSrcIdx));
 
         // Execute Blinn's line clipping algorithm.
         // Classify the line segment. 4 cases:
@@ -295,7 +324,7 @@ void ClipPolygonAgainstPlane(uint p, uint srcBegin, uint srcSize,
         #ifndef OBTUSE_COMPILER
             uint modDstIdx = (dstBegin + dstSize++) % MAX_CLIP_VERTS;
         #endif
-            vertRingBuffer[modDstIdx] = clipVert;
+            WriteToRingBuffer(threadIdx, modDstIdx, clipVert);
         #ifdef OBTUSE_COMPILER
             dstSize++;
             modDstIdx++;
@@ -308,7 +337,9 @@ void ClipPolygonAgainstPlane(uint p, uint srcBegin, uint srcSize,
         #ifndef OBTUSE_COMPILER
             uint modDstIdx = (dstBegin + dstSize++) % MAX_CLIP_VERTS;
         #endif
-            vertRingBuffer[modDstIdx] = leadVert.pt;
+            WriteToRingBuffer(threadIdx, modDstIdx, leadVert.pt);
+
+            //vertRingBuffer[modDstIdx] = leadVert.pt;
         #ifdef OBTUSE_COMPILER
             dstSize++;
             modDstIdx++;
@@ -324,9 +355,9 @@ void ClipPolygonAgainstPlane(uint p, uint srcBegin, uint srcSize,
     }
 }
 
-void ClipFaceAgainstViewVolume(uint f, uint behindMasksOfVerts[NUM_VERTS], uint baseVertexOffset,
+void ClipFaceAgainstViewVolume(uint f, uint baseVertexOffset,
                                out uint srcBegin, out uint srcSize,
-                               out float4 vertRingBuffer[MAX_CLIP_VERTS])
+                               uint threadIdx)
 {
     srcBegin = 0;
     srcSize  = 4;
@@ -338,14 +369,15 @@ void ClipFaceAgainstViewVolume(uint f, uint behindMasksOfVerts[NUM_VERTS], uint 
     {
         uint v = BitFieldExtract(vertListOfFace, 3 * j, 3);
         // Non-zero if ANY of the vertices are behind any of the planes.
-        clipMaskOfFace |= behindMasksOfVerts[v];
+        clipMaskOfFace |= gs_BehindMasksOfVerts[baseVertexOffset + v];
 
         // Not all edges may require clipping. However, filtering the vertex list
         // is somewhat expensive, so we currently don't do it.
-        vertRingBuffer[j].x = gs_HapVertsX[baseVertexOffset + v];
-        vertRingBuffer[j].y = gs_HapVertsY[baseVertexOffset + v];
-        vertRingBuffer[j].z = gs_HapVertsZ[baseVertexOffset + v];
-        vertRingBuffer[j].w = gs_HapVertsW[baseVertexOffset + v];
+        WriteToRingBuffer(threadIdx, j, float4(gs_HapVertsX[baseVertexOffset + v], gs_HapVertsY[baseVertexOffset + v], gs_HapVertsZ[baseVertexOffset + v], gs_HapVertsW[baseVertexOffset + v]));
+        //vertRingBuffer[j].x = gs_HapVertsX[baseVertexOffset + v];
+        //vertRingBuffer[j].y = gs_HapVertsY[baseVertexOffset + v];
+        //vertRingBuffer[j].z = gs_HapVertsZ[baseVertexOffset + v];
+        //vertRingBuffer[j].w = gs_HapVertsW[baseVertexOffset + v];
     }
 
     // Sutherland-Hodgeman polygon clipping algorithm.
@@ -355,7 +387,7 @@ void ClipFaceAgainstViewVolume(uint f, uint behindMasksOfVerts[NUM_VERTS], uint 
         uint p = firstbitlow(clipMaskOfFace);
 
         uint dstBegin, dstSize;
-        ClipPolygonAgainstPlane(p, srcBegin, srcSize, vertRingBuffer, dstBegin, dstSize);
+        ClipPolygonAgainstPlane(p, srcBegin, srcSize, threadIdx, dstBegin, dstSize);
 
         srcBegin = dstBegin;
         srcSize  = dstSize;
@@ -364,7 +396,7 @@ void ClipFaceAgainstViewVolume(uint f, uint behindMasksOfVerts[NUM_VERTS], uint 
     }
 }
 
-void UpdateAaBb(uint srcBegin, uint srcSize, float4 vertRingBuffer[MAX_CLIP_VERTS],
+void UpdateAaBb(uint srcBegin, uint srcSize, uint threadIdx,
                 bool isOrthoProj, float4x4 invProjMat,
                 inout float4 ndcAaBbMinPt, inout float4 ndcAaBbMaxPt)
 {
@@ -376,7 +408,7 @@ void UpdateAaBb(uint srcBegin, uint srcSize, float4 vertRingBuffer[MAX_CLIP_VERT
     #ifndef OBTUSE_COMPILER
         uint modSrcIdx = j % MAX_CLIP_VERTS;
     #endif
-        float4 hapVert = vertRingBuffer[modSrcIdx];
+        float4 hapVert = GetFromRingBuffer(threadIdx, modSrcIdx);
         // Clamp to the bounds in case of numerical errors (may still generate -0).
         float3 rapVertNDC = saturate(hapVert.xyz * rcp(hapVert.w));
         float  rbpVertVSz = hapVert.w;
@@ -714,13 +746,6 @@ void main(uint threadID : SV_GroupIndex, uint3 groupID : SV_GroupID)
     GroupMemoryBarrierWithGroupSync();
 #endif
 
-    uint behindMasksOfVerts[NUM_VERTS];
-
-    for (i = 0; i < NUM_VERTS; i++)
-    {
-        behindMasksOfVerts[i] = gs_BehindMasksOfVerts[baseVertexOffset + i];
-    }
-
     // (3) Cull the faces.
     {
         const uint cullFaceMask   = cullClipFaceMask;
@@ -734,7 +759,7 @@ void main(uint threadID : SV_GroupIndex, uint3 groupID : SV_GroupID)
             {
                 uint f = NthBitLow(cullFaceMask, n);
 
-                if (TryCullFace(f, behindMasksOfVerts))
+                if (TryCullFace(f, baseVertexOffset))
                 {
                     cullClipFaceMask ^= 1 << f; // Clear the bit
                 }
@@ -773,10 +798,9 @@ void main(uint threadID : SV_GroupIndex, uint3 groupID : SV_GroupID)
                 uint f = NthBitLow(clipFaceMask, n);
 
                 uint   srcBegin, srcSize;
-                float4 vertRingBuffer[MAX_CLIP_VERTS];
-                ClipFaceAgainstViewVolume(f, behindMasksOfVerts, baseVertexOffset,
-                                          srcBegin, srcSize, vertRingBuffer);
-                UpdateAaBb(srcBegin, srcSize, vertRingBuffer, g_isOrthographic != 0, invProjMat,
+                ClipFaceAgainstViewVolume(f, baseVertexOffset,
+                                          srcBegin, srcSize, t);
+                UpdateAaBb(srcBegin, srcSize, t, g_isOrthographic != 0, invProjMat,
                            ndcAaBbMinPt, ndcAaBbMaxPt);
             }
         }

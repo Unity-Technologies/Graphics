@@ -2,12 +2,12 @@
 
 Before you begin, make sure that your project is set up properly, and the graphs are loading correctly. See [Getting started with Shader Graph](Getting-Started) for more information.
 
-## Create a New Graph 
-Use the Project Browser to create a new [Shader Graph Asset](Shader-Graph-Asset.md) in your project. The **Create > Shaders** will display the various creation options. 
+## Create a New Graph
+Use the Project Browser to create a new [Shader Graph Asset](Shader-Graph-Asset.md) in your project. The **Create > Shader Graph** will display the various creation options.
 
-A **Blank Shader Graph** will create a Shader Graph with no selected active [targets]() or [block nodes](Block-Node). You will need to select a target via the [Graph Settings Menu](Graph-Settings-Menu.md) to continue. 
+A **Blank Shader Graph** will create a Shader Graph with no selected active [targets]() or [block nodes](Block-Node). You will need to select a target via the [Graph Settings Menu](Graph-Settings-Menu.md) to continue.
 
-Certain integrations, like Render Pipelines, can also provide pre-configured options for Shader Graphs. For this example, a **Universal > Lit** Shader Graph has been created and opened. 
+Certain integrations, like Render Pipelines, can also provide pre-configured options for Shader Graphs. For this example, a **Universal > Lit** Shader Graph has been created and opened.
 
 ## Create a new node
 
@@ -24,7 +24,7 @@ In the menu, you can type in the search bar to look for specific nodes, or brows
 
 To build a graph, you need to connect nodes together. To do so, click the **Output Slot** of a node, and drag that connection into the **Input Slot** of another node.
 
-Start by connecting the Color node to the **Base Color** [block]() of our [Fragment Stack](). 
+Start by connecting the Color node to the **Base Color** [block]() of our [Fragment Stack]().
 
 ![](images/MyFirstShaderGraph_02.png)
 
@@ -99,7 +99,7 @@ Save your graph, and return to the Material's Inspector. The property now appear
 
 ## More Tutorials
 
-Older tutorials use an outdated format of Shader Graph with master nodes. When looking at older tutorials, reference the [Upgrade Guide]() for tips on how to convert the master node to a [Master Stack](). 
+Older tutorials use an outdated format of Shader Graph with master nodes. When looking at older tutorials, reference the [Upgrade Guide]() for tips on how to convert the master node to a [Master Stack]().
 
 To keep exploring how to use Shader Graph to author shaders, check out these blog posts:
 
@@ -111,4 +111,3 @@ To keep exploring how to use Shader Graph to author shaders, check out these blo
 - [Introduction to Shader Graph: Build your shaders with a visual editor](https://blogs.unity3d.com/2018/02/27/introduction-to-shader-graph-build-your-shaders-with-a-visual-editor/)
 
 You can also visit the [Unity YouTube Channel](https://www.youtube.com/channel/UCG08EqOAXJk_YXPDsAvReSg) and look for [video tutorials on Shader Graph](https://www.youtube.com/user/Unity3D/search?query=shader+graph), or head to our [user forum](https://forum.unity.com/forums/shader-graph.346/) to find the latest information and conversations about Shader Graph.
-

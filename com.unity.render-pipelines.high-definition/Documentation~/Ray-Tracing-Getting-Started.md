@@ -15,9 +15,27 @@ This document covers:
 ## Hardware requirements
 
 Full ray tracing hardware acceleration is available on following GPUs:
-- NVIDIA GeForce RTX 2060, RTX 2060 Super, RTX 2070, RTX 2070 Super, RTX 2080, RTX 2080 Super, RTX 2080 Ti, and
-NVIDIA TITAN RTX
-- NVIDIA Quadro RTX 3000 (laptop only), RTX 4000, RTX 5000, RTX 6000, RTX 8000
+- NVIDIA GeForce 20 series:
+  - RTX 2060
+  - RTX 2060 Super
+  - RTX 2070
+  - RTX 2070 Super
+  - RTX 2080
+  - RTX 2080 Super
+  - RTX 2080 Ti
+  - NVIDIA TITAN RTX
+- NVIDIA GeForce 30 series:
+  - RTX 3060
+  - RTX 3060Ti
+  - RTX 3070
+  - RTX 3080
+  - RTX 3090
+- NVIDIA Quadro:
+  - RTX 3000 (laptop only)
+  - RTX 4000
+  - RTX 5000
+  - RTX 6000
+  - RTX 8000
 
 NVIDIA also provides a ray tracing fallback for some previous generation graphics cards:
 - NVIDIA GeForce GTX
@@ -51,10 +69,10 @@ Once you have completed one of these, move onto [Final setup](#FinalSetup).
 
 You can use the [Render Pipeline Wizard](Render-Pipeline-Wizard.md) to set up ray tracing in your HDRP Project.
 
-1. To open the Render Pipeline Wizard, go to Window > Render Pipeline and select HD Render Pipeline Wizard.
+1. To open the HDRP Wizard, go to Window > Rendering > HDRP Wizard.
 2. Select the HDRP + DXR tab.
 3. Click the Fix All button.
-4. (Optional) Enable the HDRP asset features that are required for the ray tracing effects. 
+4. (Optional) Enable the HDRP asset features that are required for the ray tracing effects.
 
 Your HDRP Project now supports ray tracing. For information on how to set up ray tracing for your Scene, see [final setup](#FinalSetup).
 
@@ -193,7 +211,7 @@ Depending on which ray tracing mode you select, HDRP may expose difference prope
 You can change which ray tracing mode HDRP uses on either a Project level or effect level. To change it for your entire Project:
 
 1. Click on your HDRP Asset in the Project window to view it in the Inspector.
-2. In the Rendering section, select a ray tracing mode from the **Supported Ray Tracing Mode** drop-down. 
+2. In the Rendering section, select a ray tracing mode from the **Supported Ray Tracing Mode** drop-down.
 
 If you select **Both**, you can change the ray tracing mode for each ray-traced effect. To do this:
 

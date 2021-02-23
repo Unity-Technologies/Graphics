@@ -7,6 +7,7 @@ using System.Reflection;
 using System.Text;
 using UnityEngine;
 using UnityEngine.Rendering;
+using UnityEditor.AnimatedValues;
 
 namespace UnityEditor.Rendering
 {
@@ -15,100 +16,6 @@ namespace UnityEditor.Rendering
     /// <summary>Utility class for Editor</summary>
     public static class CoreEditorUtils
     {
-        class Styles
-        {
-            static readonly Color k_Normal_AllTheme = new Color32(0, 0, 0, 0);
-            //static readonly Color k_Hover_Dark = new Color32(70, 70, 70, 255);
-            //static readonly Color k_Hover = new Color32(193, 193, 193, 255);
-            static readonly Color k_Active_Dark = new Color32(80, 80, 80, 255);
-            static readonly Color k_Active = new Color32(216, 216, 216, 255);
-
-            static readonly int s_MoreOptionsHash = "MoreOptions".GetHashCode();
-
-            static public GUIContent moreOptionsLabel { get; private set; }
-            static public GUIStyle moreOptionsStyle { get; private set; }
-            static public GUIStyle moreOptionsLabelStyle { get; private set; }
-
-            static Styles()
-            {
-                moreOptionsLabel = EditorGUIUtility.TrIconContent("MoreOptions", "More Options");
-
-                moreOptionsStyle = new GUIStyle(GUI.skin.toggle);
-                Texture2D normalColor = new Texture2D(1, 1);
-                normalColor.SetPixel(1, 1, k_Normal_AllTheme);
-                moreOptionsStyle.normal.background = normalColor;
-                moreOptionsStyle.onActive.background = normalColor;
-                moreOptionsStyle.onFocused.background = normalColor;
-                moreOptionsStyle.onNormal.background = normalColor;
-                moreOptionsStyle.onHover.background = normalColor;
-                moreOptionsStyle.active.background = normalColor;
-                moreOptionsStyle.focused.background = normalColor;
-                moreOptionsStyle.hover.background = normalColor;
-
-                moreOptionsLabelStyle = new GUIStyle(GUI.skin.label);
-                moreOptionsLabelStyle.padding = new RectOffset(0, 0, 0, -1);
-            }
-
-            //Note:
-            // - GUIStyle seams to be broken: all states have same state than normal light theme
-            // - Hover with event will not be updated right when we enter the rect
-            //-> Removing hover for now. Keep theme color for refactoring with UIElement later
-            static public bool DrawMoreOptions(Rect rect, bool active)
-            {
-                int id = GUIUtility.GetControlID(s_MoreOptionsHash, FocusType.Passive, rect);
-                var evt = Event.current;
-                switch (evt.type)
-                {
-                    case EventType.Repaint:
-                        Color background = k_Normal_AllTheme;
-                        if (active)
-                            background = EditorGUIUtility.isProSkin ? k_Active_Dark : k_Active;
-                        EditorGUI.DrawRect(rect, background);
-                        GUI.Label(rect, moreOptionsLabel, moreOptionsLabelStyle);
-                        break;
-                    case EventType.KeyDown:
-                        bool anyModifiers = (evt.alt || evt.shift || evt.command || evt.control);
-                        if ((evt.keyCode == KeyCode.Space || evt.keyCode == KeyCode.Return || evt.keyCode == KeyCode.KeypadEnter) && !anyModifiers && GUIUtility.keyboardControl == id)
-                        {
-                            evt.Use();
-                            GUI.changed = true;
-                            return !active;
-                        }
-                        break;
-                    case EventType.MouseDown:
-                        if (rect.Contains(evt.mousePosition))
-                        {
-                            GrabMouseControl(id);
-                            evt.Use();
-                        }
-                        break;
-                    case EventType.MouseUp:
-                        if (HasMouseControl(id))
-                        {
-                            ReleaseMouseControl();
-                            evt.Use();
-                            if (rect.Contains(evt.mousePosition))
-                            {
-                                GUI.changed = true;
-                                return !active;
-                            }
-                        }
-                        break;
-                    case EventType.MouseDrag:
-                        if (HasMouseControl(id))
-                            evt.Use();
-                        break;
-                }
-
-                return active;
-            }
-
-            static int s_GrabbedID = -1;
-            static void GrabMouseControl(int id) => s_GrabbedID = id;
-            static void ReleaseMouseControl() => s_GrabbedID = -1;
-            static bool HasMouseControl(int id) => s_GrabbedID == id;
-        }
-
         static GraphicsDeviceType[] m_BuildTargets;
 
         /// <summary>Build targets</summary>
@@ -312,16 +219,6 @@ namespace UnityEditor.Rendering
             foldoutRect.height = 13f;
             foldoutRect.x = labelRect.xMin + 15 * (EditorGUI.indentLevel - 1); //fix for presset
 
-            // More options 1/2
-            var moreOptionsRect = new Rect();
-            if (hasMoreOptions != null)
-            {
-                moreOptionsRect = backgroundRect;
-                moreOptionsRect.x += moreOptionsRect.width - 16 - 1;
-                moreOptionsRect.height = 15;
-                moreOptionsRect.width = 16;
-            }
-
             // Background rect should be full-width
             backgroundRect.xMin = 0f;
             backgroundRect.width += 4f;
@@ -338,28 +235,45 @@ namespace UnityEditor.Rendering
             float backgroundTint = EditorGUIUtility.isProSkin ? 0.1f : 1f;
             EditorGUI.DrawRect(backgroundRect, new Color(backgroundTint, backgroundTint, backgroundTint, 0.2f));
 
-            // More options 2/2
-            if (hasMoreOptions != null)
-            {
-                EditorGUI.BeginChangeCheck();
-                Styles.DrawMoreOptions(moreOptionsRect, hasMoreOptions());
-                if (EditorGUI.EndChangeCheck() && toggleMoreOptions != null)
-                {
-                    toggleMoreOptions();
-                }
-            }
-
             // Title
             EditorGUI.LabelField(labelRect, title, EditorStyles.boldLabel);
 
             // Active checkbox
             state = GUI.Toggle(foldoutRect, state, GUIContent.none, EditorStyles.foldout);
 
-            var e = Event.current;
-            if (e.type == EventType.MouseDown && backgroundRect.Contains(e.mousePosition) && !moreOptionsRect.Contains(e.mousePosition) && e.button == 0)
+            // Context menu
+            var menuIcon = CoreEditorStyles.paneOptionsIcon;
+            var menuRect = new Rect(labelRect.xMax + 3f, labelRect.y + 1f, menuIcon.width, menuIcon.height);
+
+            // Add context menu for "Additional Properties"
+            Action<Vector2> contextAction = null;
+            if (hasMoreOptions != null)
             {
-                state = !state;
-                e.Use();
+                contextAction = pos => OnContextClick(pos, hasMoreOptions, toggleMoreOptions);
+            }
+
+            if (contextAction != null)
+            {
+                if (GUI.Button(menuRect, CoreEditorStyles.contextMenuIcon, CoreEditorStyles.contextMenuStyle))
+                    contextAction(new Vector2(menuRect.x, menuRect.yMax));
+            }
+
+            var e = Event.current;
+
+            if (e.type == EventType.MouseDown)
+            {
+                if (backgroundRect.Contains(e.mousePosition))
+                {
+                    if (e.button != 0 && contextAction != null)
+                        contextAction(e.mousePosition);
+                    else if (e.button == 0)
+                    {
+                        state = !state;
+                        e.Use();
+                    }
+
+                    e.Use();
+                }
             }
 
             return state;
@@ -372,8 +286,9 @@ namespace UnityEditor.Rendering
         /// <param name="hasMoreOptions"> [optional] Delegate used to draw the right state of the advanced button. If null, no button drawn. </param>
         /// <param name="toggleMoreOptions"> [optional] Callback call when advanced button clicked. Should be used to toggle its state. </param>
         /// <returns>return the state of the sub foldout header</returns>
+        [Obsolete("'More Options' versions of DrawSubHeaderFoldout are obsolete. Please use DrawSubHeaderFoldout without 'More Options'")]
         public static bool DrawSubHeaderFoldout(string title, bool state, bool isBoxed = false, Func<bool> hasMoreOptions = null, Action toggleMoreOptions = null)
-            => DrawSubHeaderFoldout(EditorGUIUtility.TrTextContent(title), state, isBoxed, hasMoreOptions, toggleMoreOptions);
+            => DrawSubHeaderFoldout(EditorGUIUtility.TrTextContent(title), state, isBoxed);
 
         /// <summary> Draw a foldout header </summary>
         /// <param name="title"> The title of the header </param>
@@ -382,7 +297,28 @@ namespace UnityEditor.Rendering
         /// <param name="hasMoreOptions"> [optional] Delegate used to draw the right state of the advanced button. If null, no button drawn. </param>
         /// <param name="toggleMoreOptions"> [optional] Callback call when advanced button clicked. Should be used to toggle its state. </param>
         /// <returns>return the state of the foldout header</returns>
+        [Obsolete("'More Options' versions of DrawSubHeaderFoldout are obsolete. Please use DrawSubHeaderFoldout without 'More Options'")]
         public static bool DrawSubHeaderFoldout(GUIContent title, bool state, bool isBoxed = false, Func<bool> hasMoreOptions = null, Action toggleMoreOptions = null)
+            => DrawSubHeaderFoldout(title, state, isBoxed);
+
+        /// <summary>
+        /// Draw a foldout sub header
+        /// </summary>
+        /// <param name="title"> The title of the header </param>
+        /// <param name="state"> The state of the header </param>
+        /// <param name="isBoxed"> [optional] is the eader contained in a box style ? </param>
+        /// <returns>return the state of the sub foldout header</returns>
+        public static bool DrawSubHeaderFoldout(string title, bool state, bool isBoxed = false)
+            => DrawSubHeaderFoldout(EditorGUIUtility.TrTextContent(title), state, isBoxed);
+
+        /// <summary>
+        /// Draw a foldout sub header
+        /// </summary>
+        /// <param name="title"> The title of the header </param>
+        /// <param name="state"> The state of the header </param>
+        /// <param name="isBoxed"> [optional] is the eader contained in a box style ? </param>
+        /// <returns>return the state of the sub foldout header</returns>
+        public static bool DrawSubHeaderFoldout(GUIContent title, bool state, bool isBoxed = false)
         {
             const float height = 17f;
             var backgroundRect = GUILayoutUtility.GetRect(1f, height);
@@ -396,21 +332,6 @@ namespace UnityEditor.Rendering
             foldoutRect.x += 15 * EditorGUI.indentLevel; //GUI do not handle indent. Handle it here
             foldoutRect.width = 13f;
             foldoutRect.height = 13f;
-
-            // More options
-            var advancedRect = new Rect();
-            if (hasMoreOptions != null)
-            {
-                advancedRect = backgroundRect;
-                advancedRect.x += advancedRect.width - 16 - 1;
-                advancedRect.height = 16;
-                advancedRect.width = 16;
-
-                bool moreOptions = hasMoreOptions();
-                bool newMoreOptions = Styles.DrawMoreOptions(advancedRect, moreOptions);
-                if (moreOptions ^ newMoreOptions)
-                    toggleMoreOptions?.Invoke();
-            }
 
             // Background rect should be full-width
             backgroundRect.xMin = 0f;
@@ -431,7 +352,7 @@ namespace UnityEditor.Rendering
             state = GUI.Toggle(foldoutRect, state, GUIContent.none, EditorStyles.foldout);
 
             var e = Event.current;
-            if (e.type == EventType.MouseDown && backgroundRect.Contains(e.mousePosition) && !advancedRect.Contains(e.mousePosition) && e.button == 0)
+            if (e.type == EventType.MouseDown && backgroundRect.Contains(e.mousePosition) && e.button == 0)
             {
                 state = !state;
                 e.Use();
@@ -502,21 +423,6 @@ namespace UnityEditor.Rendering
             toggleRect.width = 13f;
             toggleRect.height = 13f;
 
-            // More options 1/2
-            var moreOptionsRect = new Rect();
-            if (hasMoreOptions != null)
-            {
-                moreOptionsRect = backgroundRect;
-
-                moreOptionsRect.x += moreOptionsRect.width - 16 - 1 - 16 - 5;
-
-                if (!string.IsNullOrEmpty(documentationURL))
-                    moreOptionsRect.x -= 16 + 7;
-
-                moreOptionsRect.height = 15;
-                moreOptionsRect.width = 16;
-            }
-
             // Background rect should be full-width
             backgroundRect.xMin = 0f;
             backgroundRect.width += 4f;
@@ -539,26 +445,26 @@ namespace UnityEditor.Rendering
             activeField.boolValue = GUI.Toggle(toggleRect, activeField.boolValue, GUIContent.none, CoreEditorStyles.smallTickbox);
             activeField.serializedObject.ApplyModifiedProperties();
 
-            // More options 2/2
-            if (hasMoreOptions != null)
+            // Context menu
+            var contextMenuIcon = CoreEditorStyles.contextMenuIcon.image;
+            var contextMenuRect = new Rect(labelRect.xMax + 3f + 16 + 5, labelRect.y + 1f, 16, 16);
+
+            if (contextAction == null && hasMoreOptions != null)
             {
-                bool moreOptions = hasMoreOptions();
-                bool newMoreOptions = Styles.DrawMoreOptions(moreOptionsRect, moreOptions);
-                if (moreOptions ^ newMoreOptions)
-                    toggleMoreOptions?.Invoke();
+                // If no contextual menu add one for the additional properties.
+                contextAction = pos => OnContextClick(pos, hasMoreOptions, toggleMoreOptions);
             }
 
-            // Context menu
-            var menuIcon = CoreEditorStyles.paneOptionsIcon;
-            var menuRect = new Rect(labelRect.xMax + 3f + 16 + 5 , labelRect.y + 1f, menuIcon.width, menuIcon.height);
-
             if (contextAction != null)
-                GUI.DrawTexture(menuRect, menuIcon);
+            {
+                if (GUI.Button(contextMenuRect, CoreEditorStyles.contextMenuIcon, CoreEditorStyles.contextMenuStyle))
+                    contextAction(new Vector2(contextMenuRect.x, contextMenuRect.yMax));
+            }
 
             // Documentation button
             if (!String.IsNullOrEmpty(documentationURL))
             {
-                var documentationRect = menuRect;
+                var documentationRect = contextMenuRect;
                 documentationRect.x -= 16 + 5;
                 documentationRect.y -= 1;
 
@@ -575,15 +481,12 @@ namespace UnityEditor.Rendering
 
             if (e.type == EventType.MouseDown)
             {
-                if (contextAction != null && menuRect.Contains(e.mousePosition))
+                if (backgroundRect.Contains(e.mousePosition))
                 {
-                    contextAction(new Vector2(menuRect.x, menuRect.yMax));
-                    e.Use();
-                }
-                else if (labelRect.Contains(e.mousePosition))
-                {
+                    // Left click: Expand/Collapse
                     if (e.button == 0)
                         group.isExpanded = !group.isExpanded;
+                    // Right click: Context menu
                     else if (contextAction != null)
                         contextAction(e.mousePosition);
 
@@ -592,6 +495,16 @@ namespace UnityEditor.Rendering
             }
 
             return group.isExpanded;
+        }
+
+        static void OnContextClick(Vector2 position, Func<bool> hasMoreOptions, Action toggleMoreOptions)
+        {
+            var menu = new GenericMenu();
+
+            menu.AddItem(EditorGUIUtility.TrTextContent("Show Additional Properties"), hasMoreOptions.Invoke(), () => toggleMoreOptions.Invoke());
+            menu.AddItem(EditorGUIUtility.TrTextContent("Show All Additional Properties..."), false, () => CoreRenderPipelinePreferences.Open());
+
+            menu.DropDown(new Rect(position, Vector2.zero));
         }
 
         static readonly GUIContent[][] k_DrawVector6_Label =
@@ -884,6 +797,27 @@ namespace UnityEditor.Rendering
             return data;
         }
 
+        /// <summary>Add the appropriate AdditionalData to the given GameObject and its children containing the original component</summary>
+        /// <typeparam name="T">The type of the original component</typeparam>
+        /// <typeparam name="AdditionalT">The type of the AdditionalData component</typeparam>
+        /// <param name="go">The root object to update</param>
+        /// <param name="initDefault">[Optional] The default value to use if there is no AdditionalData</param>
+        public static void AddAdditionalData<T, AdditionalT>(GameObject go, Action<AdditionalT> initDefault = null)
+            where T : Component
+            where AdditionalT : Component
+        {
+            var components = go.GetComponentsInChildren(typeof(T), true);
+            foreach (var c in components)
+            {
+                if (!c.TryGetComponent<AdditionalT>(out _))
+                {
+                    var hd = c.gameObject.AddComponent<AdditionalT>();
+                    if (initDefault != null)
+                        initDefault(hd);
+                }
+            }
+        }
+
         /// <summary>Create a game object</summary>
         /// <param name="parent">The parent</param>
         /// <param name="name">The wanted name (can be updated with a number if a sibling with same name exist</param>
@@ -1028,5 +962,18 @@ namespace UnityEditor.Rendering
         }
 
         #endregion
+
+        internal static void BeginAdditionalPropertiesHighlight(AnimFloat animation)
+        {
+            var oldColor = GUI.color;
+            GUI.color = Color.Lerp(CoreEditorStyles.backgroundColor, CoreEditorStyles.backgroundHighlightColor, animation.value);
+            EditorGUILayout.BeginVertical(CoreEditorStyles.additionalPropertiesHighlightStyle);
+            GUI.color = oldColor;
+        }
+
+        internal static void EndAdditionalPropertiesHighlight()
+        {
+            EditorGUILayout.EndVertical();
+        }
     }
 }
