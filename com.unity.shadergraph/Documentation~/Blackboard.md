@@ -12,8 +12,8 @@ Drag a Property or Keyword from the Blackboard to the graph to create a node of 
 ![](images/blackboard_shadergraph_path.png) ![](images/blackboard_subgraph_path.png)
 
 ## Modifying Properties and Keywords
-* To reorder items listed on the Blackboard, drag and drop them. 
-* To delete items, use the Delete key on Windows or Command + Backspace keys on macOS. 
-* To rename an item, double-click on its name, then enter a new one. The Unity Editor strips quotation marks from display names and replaces them with underscores. 
-* To select multiple items, hold down your Ctrl key while making your selections. 
+* To reorder items listed on the Blackboard, drag and drop them.
+* To delete items, use the Delete key on Windows or Command + Backspace keys on macOS.
+* To rename an item, double-click on its name, then enter a new one. The Unity Editor strips quotation marks from display names and replaces them with underscores.
+* To select multiple items, hold down your Ctrl key while making your selections.
 * To unselect items, hold down your Ctrl key while clicking on the items you want to unselect.
