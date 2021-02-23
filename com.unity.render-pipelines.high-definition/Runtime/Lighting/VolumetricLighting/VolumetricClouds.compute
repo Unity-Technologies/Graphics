@@ -162,7 +162,7 @@ CloudRay BuildRay(uint2 halfResCoord)
     // 1.0 means above the cloud domain
     if (ray.toEarthCenter < _EarthRadius)
         ray.insideClouds = -2.0;
-    else if (ray.toEarthCenter < (_LowestCloudAltitude + _EarthRadius))
+    else if (ray.toEarthCenter <= (_LowestCloudAltitude + _EarthRadius))
         ray.insideClouds = -1.0;
     else if (ray.toEarthCenter > (_HighestCloudAltitude + _EarthRadius))
         ray.insideClouds = 1.0f;

@@ -54,8 +54,9 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed issue with compositor custom pass hooks added/removed repeatedly (case 1315971).
 - Fixed: SSR with transparent (case 1311088)
 - Fixed decals in material debug display.
-
 - Fixed WouldFitInAtlas that would previously return wrong results if any one face of a point light would fit (it used to return true even though the light in entirety wouldn't fit).
+- Fixed a limit case when the camera is exactly at the lower cloud level (case 1316988).
+- Fixed the various history buffers being discarded when the fog was enabled/disabled (case 1316072).
 
 ### Changed
 - Changed Window/Render Pipeline/HD Render Pipeline Wizard to Window/Rendering/HDRP Wizard
