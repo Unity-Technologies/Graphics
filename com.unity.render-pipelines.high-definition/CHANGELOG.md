@@ -111,6 +111,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed preview camera updating the skybox material triggering GI baking (case 1314361/1314373).
 - The default LookDev volume profile is now copied and referened in the Asset folder instead of the package folder.
 - Fixed SSS on console platforms.
+- Fixed Exposure Frame Settings control issues on Planar reflection probes (case 1312153). Dynamic reflections now keep their own exposure relative to their parent camera.
 
 ### Changed
 - Changed Window/Render Pipeline/HD Render Pipeline Wizard to Window/Rendering/HDRP Wizard
