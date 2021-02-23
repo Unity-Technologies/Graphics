@@ -488,10 +488,13 @@ namespace UnityEditor.VFX
             {
                 case VFXDeviceTarget.CPU:
                 {
-                    var material = particleData.GetOrCreateMaterial(this);
+                    if (shaderGraph != null)
+                    {
+                        var material = particleData.GetOrCreateMaterial(this);
 
-                    if (shaderGraph.generatesWithShaderGraph)
-                        InjectMaterialState(material, mapper);
+                        if (shaderGraph.generatesWithShaderGraph)
+                            InjectMaterialState(material, mapper);
+                    }
                 }
                 break;
                 case VFXDeviceTarget.GPU:

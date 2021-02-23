@@ -1053,7 +1053,7 @@ namespace UnityEditor.VFX
                 {
                     var shaderGraph = shaderGraphOutputContext.GetOrRefreshShaderGraphObject();
 
-                    if (shaderGraph.generatesWithShaderGraph)
+                    if (shaderGraph != null && shaderGraph.generatesWithShaderGraph)
                     {
                         var material = GetOrCreateMaterial(context);
                         AppendMaterialParameters(material, additionalParameters, contextData, expressionGraph);
