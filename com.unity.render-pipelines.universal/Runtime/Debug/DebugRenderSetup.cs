@@ -129,7 +129,7 @@ namespace UnityEngine.Rendering.Universal
             Begin();
         }
 
-        public DrawingSettings CreateDrawingSettings(ref RenderingData renderingData, DrawingSettings drawingSettings, SortingCriteria sortingCriteria = SortingCriteria.None)
+        public DrawingSettings CreateDrawingSettings(ref RenderingData renderingData, DrawingSettings drawingSettings)
         {
             bool usesReplacementMaterial = (MaterialSettings.DebugVertexAttributeIndexData != DebugVertexAttributeMode.None);
 
@@ -146,7 +146,7 @@ namespace UnityEngine.Rendering.Universal
             {
                 if(IsDebugPassNeeded())
                 {
-                    return ScriptableRenderPass.CreateDrawingSettings(s_DebugMaterialShaderTagId, ref renderingData, sortingCriteria);
+                    return ScriptableRenderPass.CreateDrawingSettings(s_DebugMaterialShaderTagId, ref renderingData, drawingSettings.sortingSettings.criteria);
                 }
                 else
                 {
