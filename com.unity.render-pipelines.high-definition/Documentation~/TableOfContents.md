@@ -64,6 +64,7 @@
       * [HDRI Sky](Override-HDRI-Sky.md)
       * [Physically Based Sky](Override-Physically-Based-Sky.md)
       * [Procedural Sky](Override-Procedural-Sky.md)
+      * [Volumetric Clouds](Override-Volumetric-Clouds.md)
     * [Visual Environment](Override-Visual-Environment.md)
   * [Volumes API](Volumes-API.md)
 * Render Pipeline Settings
@@ -129,6 +130,7 @@
       * [Reflection Proxy Volume](Reflection-Proxy-Volume.md)
   * [Light](Light-Component.md)
   * [Environment Lighting](Environment-Lighting.md)
+  * [Clouds in HDRP](clouds-in-hdrp.md)
   * [Atmospheric Scattering](Atmospheric-Scattering.md)
   * [Density Volume](Density-Volume.md)
   * [Light Layers](Light-Layers.md)
