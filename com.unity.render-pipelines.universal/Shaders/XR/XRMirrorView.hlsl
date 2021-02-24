@@ -31,7 +31,7 @@ Varyings VertQuad(Attributes input)
 
 #if UNITY_UV_STARTS_AT_TOP
     // Unity viewport convention is bottom left as origin. Adjust Scalebias to read the correct region.
-    _ScaleBias.w = 1 - _ScaleBias.w - _ScaleBias.y;
+    //_ScaleBias.w = 1 - _ScaleBias.w - _ScaleBias.y;
 #endif
     output.texcoord = GetQuadTexCoord(input.vertexID) * _ScaleBias.xy + _ScaleBias.zw;
     return output;
