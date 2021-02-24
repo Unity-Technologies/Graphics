@@ -3,7 +3,7 @@ The Eye Shader is your starting point for rendering eyes in the High Definition 
 
 ![](Images/HDRPFeatures-EyeShader.png)
 
-Under the hood, the Eye shader is a pre-configured Shader Graph. To learn more about the Eye shader implementation, or to create your own Eye shader variant, see the Shader Graph documentation about the [Eye Master Node](Master-Node-Eye.md).
+Under the hood, the Eye shader is a pre-configured Shader Graph. To learn more about the Eye shader implementation, or to create your own Eye shader variant, see the Shader Graph documentation about the [Eye Master Stack](master-stack-eye.md).
 
 ## Eye anatomy
 

@@ -12,11 +12,15 @@ PR_Universal_trunk:
     dependencies:
       -  path: .yamato/universal-win-dx11.yml#Universal_Win_DX11_Standalone_cache_mono_Linear_trunk
          rerun: on-new-revision
+      -  path: .yamato/universal-win-dx11.yml#Universal_Win_DX11_Standalone_XR_cache_mono_Linear_trunk
+         rerun: on-new-revision
       -  path: .yamato/universal-win-dx11.yml#Universal_Win_DX11_playmode_XR_cache_mono_Linear_trunk
          rerun: on-new-revision
       -  path: .yamato/universal-win-dx11.yml#Universal_Win_DX11_editmode_mono_Linear_trunk
          rerun: on-new-revision
       -  path: .yamato/universal-win-dx12.yml#Universal_Win_DX12_Standalone_cache_mono_Linear_trunk
+         rerun: on-new-revision
+      -  path: .yamato/universal-win-dx12.yml#Universal_Win_DX12_Standalone_XR_cache_mono_Linear_trunk
          rerun: on-new-revision
       -  path: .yamato/universal-win-vulkan.yml#Universal_Win_Vulkan_Standalone_cache_mono_Linear_trunk
          rerun: on-new-revision
@@ -46,8 +50,8 @@ PR_Universal_trunk:
          rerun: on-new-revision
       -  path: .yamato/all-shadergraph.yml#PR_ShaderGraph_trunk
          rerun: on-new-revision
-    triggers:
-        expression: pull_request.target eq "master" AND NOT pull_request.draft AND pull_request.changes.any match ["com.unity.render-pipelines.universal/**/*", "TestProjects/UniversalGraphicsTest/**/*"] AND NOT pull_request.push.changes.all match ["*.md", "**/*.md", "doc/**/*", "**/Documentation*/**/*"]
+      -  path: .yamato/all-urpupdate.yml#PR_URPUpdate_trunk
+         rerun: on-new-revision
     variables:
         UTR_VERSION: "current"
         TEST_FILTER: .*
@@ -82,11 +86,15 @@ PR_Universal_CUSTOM-REVISION:
     dependencies:
       -  path: .yamato/universal-win-dx11.yml#Universal_Win_DX11_Standalone_cache_mono_Linear_CUSTOM-REVISION
          rerun: always
+      -  path: .yamato/universal-win-dx11.yml#Universal_Win_DX11_Standalone_XR_cache_mono_Linear_CUSTOM-REVISION
+         rerun: always
       -  path: .yamato/universal-win-dx11.yml#Universal_Win_DX11_playmode_XR_cache_mono_Linear_CUSTOM-REVISION
          rerun: always
       -  path: .yamato/universal-win-dx11.yml#Universal_Win_DX11_editmode_mono_Linear_CUSTOM-REVISION
          rerun: always
       -  path: .yamato/universal-win-dx12.yml#Universal_Win_DX12_Standalone_cache_mono_Linear_CUSTOM-REVISION
+         rerun: always
+      -  path: .yamato/universal-win-dx12.yml#Universal_Win_DX12_Standalone_XR_cache_mono_Linear_CUSTOM-REVISION
          rerun: always
       -  path: .yamato/universal-win-vulkan.yml#Universal_Win_Vulkan_Standalone_cache_mono_Linear_CUSTOM-REVISION
          rerun: always
@@ -115,6 +123,8 @@ PR_Universal_CUSTOM-REVISION:
       -  path: .yamato/all-vfx_urp.yml#PR_VFX_URP_CUSTOM-REVISION
          rerun: always
       -  path: .yamato/all-shadergraph.yml#PR_ShaderGraph_CUSTOM-REVISION
+         rerun: always
+      -  path: .yamato/all-urpupdate.yml#PR_URPUpdate_CUSTOM-REVISION
          rerun: always
     variables:
         CUSTOM_REVISION: custom_revision_not_set

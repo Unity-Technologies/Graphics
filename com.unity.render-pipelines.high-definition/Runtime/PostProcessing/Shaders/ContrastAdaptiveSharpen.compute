@@ -89,7 +89,7 @@ void KInitialize()
     uint4 c0;
     uint4 c1;
 
-    CasSetup(c0, c1, Sharpness, InputTextureDimensions * _RTHandleScale.xy, OutputTextureDimensions);
+    CasSetup(c0, c1, Sharpness, InputTextureDimensions, OutputTextureDimensions);
 
     CasParameters[0] = c0;
     CasParameters[1] = c1;
