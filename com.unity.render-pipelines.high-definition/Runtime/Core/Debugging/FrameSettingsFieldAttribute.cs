@@ -44,18 +44,29 @@ namespace UnityEngine.Rendering.HighDefinition
 
         static int autoOrder = 0;
 
-        private static Dictionary<FrameSettingsField, string> s_FrameSettingsAutoNames = new Dictionary<FrameSettingsField, string>();
+        private static Dictionary<FrameSettingsField, string> s_FrameSettingsEnumNameMap = null;
+
+        public static Dictionary<FrameSettingsField, string> GetEnumNameMap()
+        {
+            if (s_FrameSettingsEnumNameMap == null)
+            {
+                s_FrameSettingsEnumNameMap = new Dictionary<FrameSettingsField, string>();
+                Type type = typeof(FrameSettingsField);
+                foreach (string enumName in Enum.GetNames(type))
+                {
+                    if (type.GetField(enumName).GetCustomAttribute<ObsoleteAttribute>() != null)
+                        continue;
+
+                    s_FrameSettingsEnumNameMap.Add((FrameSettingsField)Enum.Parse(type, enumName), enumName);
+                }
+            }
+
+            return s_FrameSettingsEnumNameMap;
+        }
 
         static FrameSettingsFieldAttribute()
         {
-            Type type = typeof(FrameSettingsField);
-            foreach (string enumName in Enum.GetNames(type))
-            {
-                if (type.GetField(enumName).GetCustomAttribute<ObsoleteAttribute>() != null)
-                    continue;
-
-                s_FrameSettingsAutoNames.Add((FrameSettingsField)Enum.Parse(type, enumName), enumName.CamelToPascalCaseWithSpace());
-            }
+            GetEnumNameMap();//build the enum name map.
         }
 
         /// <summary>Attribute contenaing generation info for inspector and DebugMenu</summary>
@@ -81,7 +92,7 @@ namespace UnityEngine.Rendering.HighDefinition
             int customOrderInGroup = -1)
         {
             if (string.IsNullOrEmpty(displayedName))
-                displayedName = s_FrameSettingsAutoNames[autoName];
+                displayedName = s_FrameSettingsEnumNameMap[autoName].CamelToPascalCaseWithSpace();
 
             // Editor and Runtime debug menu
             this.group = group;
