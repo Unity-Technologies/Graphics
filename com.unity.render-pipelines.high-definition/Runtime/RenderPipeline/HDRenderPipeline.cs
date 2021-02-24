@@ -4791,15 +4791,22 @@ namespace UnityEngine.Rendering.HighDefinition
                 if (ssrSettings.usedAlgorithm.value == ScreenSpaceReflectionAlgorithm.PBRAccumulation)
                 {
                     CoreUtils.SetRenderTarget(cmd, ssrAccum, ClearFlag.Color, Color.clear);
-                    if (ssrNeedReset || hdCamera.isFirstFrame)
+                    if (ssrNeedReset || hdCamera.isFirstFrame || hdCamera.resetPostProcessingHistory)
                     {
                         CoreUtils.SetRenderTarget(cmd, ssrAccumPrev, ClearFlag.Color, Color.clear);
                     }
                 }
             }
 
-            CoreUtils.SetKeyword(cs, "SSR_APPROX", !parameters.usePBRAlgo);
-            CoreUtils.SetKeyword(cs, "DEPTH_SOURCE_NOT_FROM_MIP_CHAIN", parameters.transparentSSR);
+            if (!parameters.usePBRAlgo)
+                cmd.EnableShaderKeyword("SSR_APPROX");
+            else
+                cmd.DisableShaderKeyword("SSR_APPROX");
+
+            if (parameters.transparentSSR)
+                cmd.EnableShaderKeyword("DEPTH_SOURCE_NOT_FROM_MIP_CHAIN");
+            else
+                cmd.DisableShaderKeyword("DEPTH_SOURCE_NOT_FROM_MIP_CHAIN");
 
             using (new ProfilingScope(cmd, ProfilingSampler.Get(HDProfileId.SsrTracing)))
             {

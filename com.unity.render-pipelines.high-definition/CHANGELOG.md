@@ -6,6 +6,9 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ## [10.4.0] - 2020-01-26
 
+### Added
+- Added an additional check in the "check scene for ray tracing" (case 1314963).
+
 ### Fixed
 - Fixed model import by adding additional data if needed.
 - Fixed an exception when opening the color picker in the material UI (case 1307143).
@@ -23,6 +26,13 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed issue with Depth of Field CoC debug view.
 - Fixed an issue where first frame of SSAO could exhibit ghosting artefacts.
 - Fixed an issue with the mipmap generation internal format after rendering format change.
+- Fixed performance issue with ShaderGraph and Alpha Test
+- Fixed error when increasing the maximum planar reflection limit (case 1306530).
+- Fixed alpha output in debug view and AOVs when using shadow matte (case 1311830).
+- Fixed an issue with transparent meshes writing their depths and recursive rendering (case 1314409).
+- Fixed issue with compositor custom pass hooks added/removed repeatedly (case 1315971).
+- Fixed: SSR with transparent (case 1311088)
+- Fixed decals in material debug display.
 
 ### Changed
 - Updated the tooltip for the Decal Angle Fade property (requires to enable Decal Layers in both HDRP asset and Frame settings) (case 1308048).
