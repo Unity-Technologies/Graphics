@@ -88,6 +88,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
                     { SpriteLitPasses.Lit },
                     { SpriteLitPasses.Normal },
                     { SpriteLitPasses.Forward },
+                    { SpriteLitPasses.DebugMaterial },
                 },
             };
         }
@@ -176,6 +177,54 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
                 renderStates = CoreRenderStates.Default,
                 pragmas = CorePragmas._2DDefault,
                 includes = SpriteLitIncludes.Forward,
+            };
+
+            public static PassDescriptor DebugMaterial = new PassDescriptor
+            {
+                // Definition
+                displayName = "Debug Material",
+                referenceName = "SHADERPASS_DEBUGMATERIAL",
+                lightMode = "DebugMaterial",
+                useInPreview = false,
+
+                // Template
+                passTemplatePath = GenerationUtils.GetDefaultTemplatePath("PassMesh.template"),
+                sharedTemplateDirectories = GenerationUtils.GetDefaultSharedTemplateDirectories(),
+
+                // Port Mask
+                validVertexBlocks = CoreBlockMasks.Vertex,
+                validPixelBlocks = SpriteLitBlockMasks.FragmentLit,
+
+                // Fields
+                structs = CoreStructCollections.Default,
+                requiredFields = SpriteLitRequiredFields.Lit,
+                fieldDependencies = CoreFieldDependencies.Default,
+
+                // Conditional State
+                renderStates = CoreRenderStates.Default,
+                pragmas = CorePragmas._2DDefault,
+                keywords = SpriteLitKeywords.Lit,
+                includes = SpriteLitIncludes.Lit,
+                defines = SpriteLitDefines.DebugLit,
+            };
+        }
+        #endregion
+
+        #region Defines
+        static class SpriteLitDefines
+        {
+            public static readonly KeywordDescriptor DebugShader = new KeywordDescriptor()
+            {
+                displayName = "Debug Shader",
+                referenceName = "_DEBUG_SHADER",
+                type = KeywordType.Boolean,
+                definition = KeywordDefinition.ShaderFeature,
+                scope = KeywordScope.Local,
+            };
+
+            public static readonly DefineCollection DebugLit = new DefineCollection()
+            {
+                {DebugShader, 1},
             };
         }
         #endregion
