@@ -26,6 +26,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Added the default quality settings to the HDRP asset for RTAO, RTR and RTGI (case 1304370).
 - Added a history rejection criterion based on if the pixel was moving in world space (case 1302392).
 - Added new API in CachedShadowManager
+- Added an additional check in the "check scene for ray tracing" (case 1314963).
 
 ### Fixed
 - Fixed probe volumes debug views.
@@ -99,6 +100,13 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fix issue with Depth of Field CoC debug view.
 - Fixed an issue where first frame of SSAO could exhibit ghosting artefacts.
 - Fixed an issue with the mipmap generation internal format after rendering format change.
+- Fixed performance issue with ShaderGraph and Alpha Test
+- Fixed error when increasing the maximum planar reflection limit (case 1306530).
+- Fixed alpha output in debug view and AOVs when using shadow matte (case 1311830).
+- Fixed an issue with transparent meshes writing their depths and recursive rendering (case 1314409).
+- Fixed issue with compositor custom pass hooks added/removed repeatedly (case 1315971).
+- Fixed: SSR with transparent (case 1311088)
+- Fixed decals in material debug display.
 
 ### Changed
 - Removed the material pass probe volumes evaluation mode.
