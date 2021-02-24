@@ -1,0 +1,16 @@
+{
+    "name": "Unity.ShaderGraph.GraphicsTests.Common",
+    "rootNamespace": "",
+    "references": [
+        "GUID:c081bc530f560634bb5c21d4b323a7f1"
+    ],
+    "includePlatforms": [],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": false,
+    "precompiledReferences": [],
+    "autoReferenced": true,
+    "defineConstraints": [],
+    "versionDefines": [],
+    "noEngineReferences": false
+}

@@ -69,14 +69,14 @@ public class UseTestAssetTestCaseAttribute : UnityEngine.TestTools.UnityTestAttr
             imageComparisonSettings = testAsset.settings;
             customMesh = testAsset.customMesh;
             ExpectedResultPath = $"{testName}_{testMaterial.name}_image";
-            TestMaterialPath = $"{testName}_{testMaterial.name}_material";
+            TestMaterialPath = testMaterial.name;
             if(customMesh == null)
             {
                 CustomMeshPath = null;
             }
             else
             {
-                CustomMeshPath = $"{testName}_mesh";
+                CustomMeshPath = testAsset.customMesh.name;
             }
         }
     }
@@ -150,7 +150,7 @@ public class UseTestAssetTestCaseAttribute : UnityEngine.TestTools.UnityTestAttr
             AssetBundle referenceImagesBundle = null;
 
             // apparently unity automatically saves the asset bundle as all lower case
-            var referenceImagesBundlePath = string.Format("referenceimages-{0}-{1}-{2}-{3}",
+            var referenceImagesBundlePath = string.Format("referenceimages--individual--{0}-{1}-{2}-{3}",
                 UseGraphicsTestCasesAttribute.ColorSpace,
                 UseGraphicsTestCasesAttribute.Platform,
                 UseGraphicsTestCasesAttribute.GraphicsDevice,

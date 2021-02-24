@@ -1,18 +1,19 @@
 {
-    "name": "Unity.ShaderGraph.GraphicsTests",
+    "name": "Unity.ShaderGraph.GraphicsTests.Editor",
     "rootNamespace": "",
     "references": [
-        "UnityEngine.TestTools.Graphics",
         "Unity.ShaderGraph.Editor",
+        "UnityEngine.TestTools.Graphics",
+        "UnityEditor.TestTools.Graphics",
         "UnityEngine.TestRunner",
         "UnityEditor.TestRunner",
-        "Unity.Testing.XR.Editor",
-        "Unity.Testing.XR.Runtime",
-        "Unity.XR.Management.Editor",
         "Unity.XR.Management",
-        "UnityEditor.TestTools.Graphics"
+        "Unity.XR.Management.Editor",
+        "Unity.ShaderGraph.GraphicsTests.Common"
     ],
-    "includePlatforms": [],
+    "includePlatforms": [
+        "Editor"
+    ],
     "excludePlatforms": [],
     "allowUnsafeCode": false,
     "overrideReferences": true,

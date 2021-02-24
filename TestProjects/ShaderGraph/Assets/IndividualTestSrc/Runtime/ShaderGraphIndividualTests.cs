@@ -48,24 +48,9 @@ public class ShaderGraphIndividualTests
             mesh.GetComponent<MeshFilter>().mesh = customMesh;
         if (mat != null)
             sphereRenderer.material = mat;
-        ImageAssert.AreEqual(refImage, camera, settings);
         Debug.Log(mat.name + " " + isPerspective + " " + settings.ToString());
+        ImageAssert.AreEqual(refImage, camera, settings);
 
-    }
-    public static List<T> FindAssets<T>(string type) where T : UnityEngine.Object
-    {
-        List<T> assets = new List<T>();
-        string[] guids = AssetDatabase.FindAssets("t:"+type, null);
-        for (int i = 0; i < guids.Length; i++)
-        {
-            string assetPath = AssetDatabase.GUIDToAssetPath(guids[i]);
-            T asset = AssetDatabase.LoadAssetAtPath<T>(assetPath);
-            if (asset != null)
-            {
-                assets.Add(asset);
-            }
-        }
-        return assets;
     }
 
 #if UNITY_EDITOR

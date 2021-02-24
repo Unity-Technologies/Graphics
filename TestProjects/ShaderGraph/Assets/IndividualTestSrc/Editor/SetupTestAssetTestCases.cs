@@ -16,8 +16,7 @@ using UnityEngine.TestTools.Graphics;
 public class SetupTestAssetTestCases : IPrebuildSetup
 {
 
-
-    public static RuntimePlatform BuildTargetToRuntimePlatform(BuildTarget target)
+        public static RuntimePlatform BuildTargetToRuntimePlatform(BuildTarget target)
     {
         switch (target)
         {
@@ -265,7 +264,7 @@ public class SetupTestAssetTestCases : IPrebuildSetup
                         string resultImageHashPath = $"{directoryPath}{individualMaterialTest.material.name}{k_resultHashSuffix}";
                         if(!File.Exists(resultImageHashPath))
                         {
-                            UseTestAssetTestCaseAttribute.TestAssetTestData data = new UseTestAssetTestCaseAttribute.TestAssetTestData(testAsset, individualMaterialTest, result, -1);
+                            TestAssetTestData data = new TestAssetTestData(testAsset, individualMaterialTest, result, -1);
                             File.WriteAllText(resultImageHashPath, data.ToJson());
                             AssetDatabase.ImportAsset(resultImageHashPath);
                         }
@@ -292,7 +291,7 @@ public class SetupTestAssetTestCases : IPrebuildSetup
             var testResultsPath = Path.Combine(fullPathPrefix, $"{testAsset.name}/");
             if(testAsset.customMesh != null)
             {
-                output[$"{testAsset.name}_mesh"] = AssetDatabase.GetAssetPath(testAsset.customMesh);
+                output[testAsset.customMesh.name] = AssetDatabase.GetAssetPath(testAsset.customMesh);
             }
             foreach (var individualTest in testAsset.testMaterial)
             {
@@ -312,7 +311,7 @@ public class SetupTestAssetTestCases : IPrebuildSetup
 
                 output[$"{testAsset.name}_{individualTest.material.name}_image"] = imagePath;
                 output[$"{testAsset.name}_{individualTest.material.name}_hash"] = hashPath;
-                output[$"{testAsset.name}_{individualTest.material.name}_material"] = AssetDatabase.GetAssetPath(individualTest.material);
+                output[individualTest.material.name] = AssetDatabase.GetAssetPath(individualTest.material);
             }
         }
 
