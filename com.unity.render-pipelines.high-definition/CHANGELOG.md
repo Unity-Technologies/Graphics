@@ -88,6 +88,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Improved shadow cascade GUI drawing with pixel perfect, hover and focus functionalities.
 - Improving the screen space global illumination.
 - Moving MaterialHeaderScopes to Core
+- Moved the HDRP render graph debug panel content to the Rendering debug panel.
 
 ## [11.0.0] - 2020-10-21
 
