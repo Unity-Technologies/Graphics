@@ -7,6 +7,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 ## [10.4.0] - 2020-01-26
 ### Changed
 - Sphere and Cube outputs are now experimental
+- Property Binder : Handle Remove Component removing linked hidden scriptable objectfields
+- Property Binder : Prevent multiple VFXPropertyBinder within the same game object
 
 ### Fixed
 - VFXEventBinderBase throwing a null reference exception in runtime
@@ -22,6 +24,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Artefact in VFXView using efficient debug mode in component target board [Case 1243947](https://issuetracker.unity3d.com/product/unity/issues/guid/1243947/)
 - Compilation error due to direct access to GetWorldToObjectMatrix instead of VFXGetWorldToObjectMatrix [Case 1308481](https://issuetracker.unity3d.com/product/unity/issues/guid/1308481/)
 - Safe Normalization of Cross Products in Orient blocks [Case 1272724](https://issuetracker.unity3d.com/product/unity/issues/guid/1272724)
+- Property Binder : Undo after reset [Case 1293794](https://issuetracker.unity3d.com/product/unity/issues/guid/1293794/)
+- Property Binder : Allow copy/past from a game object to another
 
 ## [10.3.1] - 2020-01-26
 
