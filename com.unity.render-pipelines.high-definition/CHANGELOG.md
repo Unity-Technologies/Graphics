@@ -90,6 +90,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Improved shadow cascade GUI drawing with pixel perfect, hover and focus functionalities.
 - Improving the screen space global illumination.
 - Moving MaterialHeaderScopes to Core
+- Display a warning help box when decal atlas is out of size.
 
 ## [11.0.0] - 2020-10-21
 
