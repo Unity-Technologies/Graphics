@@ -27,9 +27,12 @@ namespace UnityEditor.Rendering.HighDefinition
             attributes = new Dictionary<FrameSettingsField, FrameSettingsFieldAttribute>();
             attributesGroup = new Dictionary<int, IOrderedEnumerable<KeyValuePair<FrameSettingsField, FrameSettingsFieldAttribute>>>();
             Type type = typeof(FrameSettingsField);
-            foreach (FrameSettingsField value in Enum.GetValues(type))
+            foreach (string enumName in Enum.GetNames(type))
             {
-                attributes[value] = type.GetField(Enum.GetName(type, value)).GetCustomAttribute<FrameSettingsFieldAttribute>();
+                if (type.GetField(enumName).GetCustomAttribute<ObsoleteAttribute>() != null)
+                    continue;
+
+                attributes[(FrameSettingsField)Enum.Parse(type, enumName)] = type.GetField(enumName).GetCustomAttribute<FrameSettingsFieldAttribute>();
             }
 
             frameSettingsKeywords = attributes
