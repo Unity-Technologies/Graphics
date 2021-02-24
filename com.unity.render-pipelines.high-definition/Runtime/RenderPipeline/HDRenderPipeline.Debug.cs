@@ -598,7 +598,8 @@ namespace UnityEngine.Rendering.HighDefinition
                             if (data.perVoxelOffset.IsValid())
                                 context.cmd.SetGlobalBuffer(HDShaderIDs.g_vLayeredOffsetsBuffer, data.perVoxelOffset);
                             DrawTransparentRendererList(context, data.frameSettings, data.transparentRendererList);
-                        });
+                        }
+                    });
                 }
             }
 
