@@ -16,7 +16,7 @@ namespace UnityEditor.Rendering.HighDefinition
             // CameraFrameSettings = 1 << 0, //obsolete
             // BakedOrCustomProbeFrameSettings = 1 << 1, //obsolete
             // RealtimeProbeFrameSettings = 1 << 2, //obsolete
-            General = 1 << 3,
+            // General = 1 << 3, // empty - settings moved to HD Global Settings
             Rendering = 1 << 4,
             Lighting = 1 << 5,
             Material = 1 << 6,
@@ -49,7 +49,7 @@ namespace UnityEditor.Rendering.HighDefinition
             RTGIQuality = 1 << 33
         }
 
-        static readonly ExpandedState<Expandable, HDRenderPipelineAsset> k_ExpandedState = new ExpandedState<Expandable, HDRenderPipelineAsset>(Expandable.VirtualTexturing | Expandable.General, "HDRP");
+        static readonly ExpandedState<Expandable, HDRenderPipelineAsset> k_ExpandedState = new ExpandedState<Expandable, HDRenderPipelineAsset>(Expandable.Rendering, "HDRP");
 
         enum ShadowResolutionValue
         {
@@ -107,12 +107,6 @@ namespace UnityEditor.Rendering.HighDefinition
         }
 
         public static readonly CED.IDrawer Inspector;
-
-        public static readonly CED.IDrawer GeneralSection = CED.Group(Drawer_SectionGeneral);
-
-        static void Drawer_SectionGeneral(SerializedHDRenderPipelineAsset serialized, Editor owner)
-        {
-        }
 
         static void Drawer_Volumetric(SerializedHDRenderPipelineAsset serialized, Editor owner)
         {
