@@ -8,15 +8,21 @@
 
 #if defined(_DEBUG_SHADER)
 
-void SetupDebugData(inout InputData2D inputData, float3 positionWS)
+void SetupDebugData(inout InputData2D inputData, float3 positionWS, float4 texelSize, uint mipCount)
 {
     inputData.positionWS = positionWS;
+    inputData.texelSize = texelSize;
+    inputData.mipCount = mipCount;
+}
 
-    // TODO: Pass the actual mipmap and texel data in here somehow, but we don't have access to textures here...
+void SetupDebugData(inout InputData2D inputData, float3 positionWS)
+{
     const int textureWdith = 1024;
     const int textureHeight = 1024;
-    inputData.texelSize = half4(1.0h / textureWdith, 1.0h / textureHeight, textureWdith, textureHeight);
-    inputData.mipCount = 9;
+    const float4 texelSize = half4(1.0h / textureWdith, 1.0h / textureHeight, textureWdith, textureHeight);
+    const uint mipCount = 9;
+
+    SetupDebugData(inputData, positionWS, texelSize, mipCount);
 }
 
 bool CalculateDebugColorMaterialSettings(in SurfaceData2D surfaceData, in InputData2D inputData, out half4 debugColor)
