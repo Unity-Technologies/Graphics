@@ -57,10 +57,10 @@ To create a new Layered Lit Material, navigate to your Project's Asset window, r
 | **Emission UV Mapping**         | Use the drop-down to select the type of UV mapping that HDRP uses for the **Emission Map**.<br />&#8226; Unity manages four UV channels for a vertex: **UV0**, **UV1**, **UV2**, and **UV3**.<br />&#8226; **Planar:** A planar projection from top to bottom.<br />&#8226; **Triplanar**: A planar projection in three directions:<br />X-axis: Left to right<br />Y-axis: Top to bottom<br />Z-axis: Front to back<br /><br />Unity blends these three projections together to produce the final result.<br />&#8226; **Same as Base**: Unity will use the **Base UV Mapping** selected in the **Surface Inputs**. If the Surface has **Pixel displacement** enabled, this option will apply displacement on the emissive map too. |
 | **- Tiling**                    | Set an **X** and **Y** tile rate for the **Emission Map** UV. HDRP uses the **X** and **Y** values to tile the Texture assigned to the **Emission Map** across the Material’s surface, in object space. |
 | **- Offset**                    | Set an **X** and **Y** offset for the **Emission Map** UV. HDRP uses the **X** and **Y** values to offset the Texture assigned to the **Emission Map** across the Material’s surface, in object space. |
-| **Emission Intensity**          | Set the overall strength of the emission effect for this Material.Use the drop-down to select one of the following [physical light units](Physical-Light-Units.md) to use for intensity:<br />&#8226; [Nits](Physical-Light-Units.md#Nits)<br />&#8226; [EV<sub>100</sub>](Physical-Light-Units.md#EV) |
+| **Emission Intensity**          | Set the overall strength of the emission effect for this Material. Use the drop-down to select one of the following [physical light units](Physical-Light-Units.md) to use for intensity:<br />&#8226; [Nits](Physical-Light-Units.md#Nits)<br />&#8226; [EV<sub>100</sub>](Physical-Light-Units.md#EV) |
 | **Exposure Weight**             | Use the slider to set how much effect the exposure has on the emission power. For example, if you create a neon tube, you would want to apply the emissive glow effect at every exposure. |
 | **Emission Multiply with Base** | Enable the checkbox to make HDRP use the base color of the Material when it calculates the final color of the emission. When enabled, HDRP multiplies the emission color by the base color to calculate the final emission color. |
-| **Emission**                    | Toggles whether emission affects global illumination. |
+| **Emission**                    | Toggles whether emission affects global illumination.        |
 | **- Global Illumination**       | The mode HDRP uses to determine how color emission interacts with global illumination.<br />&#8226; **Realtime**: Select this option to make emission affect the result of real-time global illumination.<br />&#8226; **Baked**: Select this option to make emission only affect global illumination during the baking process.<br />&#8226; **None**: Select this option to make emission not affect global illumination. |
 
 ### Advanced Options
@@ -69,10 +69,10 @@ To create a new Layered Lit Material, navigate to your Project's Asset window, r
 <th>Property</th>
 <th>Description</th>
 </tr>
-[!include[](snippets/shader-properties/advanced-options/enable-gpu-instancing.md)
-[!include[](snippets/shader-properties/advanced-options/baked-emission.md)
-[!include[](snippets/shader-properties/advanced-options/motion-vector-for-vertex-animation.md)
-[!include[](snippets/shader-properties/advanced-options/specular-occlusion-mode.md)
-[!include[](snippets/shader-properties/advanced-options/add-precomputed-velocity.md)
-[!include[](snippets/shader-properties/advanced-options/force-forward-emissive.md)
+[!include[](snippets/shader-properties/advanced-options/enable-gpu-instancing.md)]
+[!include[](snippets/shader-properties/advanced-options/baked-emission.md)]
+[!include[](snippets/shader-properties/advanced-options/motion-vector-for-vertex-animation.md)]
+[!include[](snippets/shader-properties/advanced-options/specular-occlusion-mode.md)]
+[!include[](snippets/shader-properties/advanced-options/add-precomputed-velocity.md)]
+[!include[](snippets/shader-properties/advanced-options/force-forward-emissive.md)]
 </table>

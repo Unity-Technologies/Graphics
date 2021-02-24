@@ -22,29 +22,29 @@ These properties control the overall look of your Material's surface and how Uni
 <th>Property</th>
 <th>Description</th>
 </tr>
-[!include[](surface-type.md)]
-[!include[](rendering-pass.md)]
-[!include[](blending-mode.md)]
-[!include[](preserve-specular-lighting.md)]
-[!include[](sorting-priority.md)]
-[!include[](receive-fog.md)]
-[!include[](depth-write.md)]
-[!include[](depth-test.md)]
-[!include[](cull-mode.md)]
-[!include[](alpha-clipping.md)]
-[!include[](alpha-clipping-threshold.md)]
-[!include[](alpha-to-mask.md)]
-[!include[](double-sided.md)]
-[!include[](normal-mode.md)]
-[!include[](material-type-layered.md)]
-[!include[](transmission.md)]
-[!include[](receive-decals.md)]
-[!include[](geometric-specular-aa.md)]
-[!include[](screen-space-variance.md)]
-[!include[](gsaa-threshold.md)]
-[!include[](displacement-mode.md)]
-[!include[](lock-with-object-scale.md)]
-[!include[](lock-with-height-map-tiling-rate.md)]
+[!include[](snippets/shader-properties/surface-options/surface-type.md)]
+[!include[](snippets/shader-properties/surface-options/rendering-pass.md)]
+[!include[](snippets/shader-properties/surface-options/blending-mode.md)]
+[!include[](snippets/shader-properties/surface-options/preserve-specular-lighting.md)]
+[!include[](snippets/shader-properties/surface-options/sorting-priority.md)]
+[!include[](snippets/shader-properties/surface-options/receive-fog.md)]
+[!include[](snippets/shader-properties/surface-options/depth-write.md)]
+[!include[](snippets/shader-properties/surface-options/depth-test.md)]
+[!include[](snippets/shader-properties/surface-options/cull-mode.md)]
+[!include[](snippets/shader-properties/surface-options/alpha-clipping.md)]
+[!include[](snippets/shader-properties/surface-options/alpha-clipping-threshold.md)]
+[!include[](snippets/shader-properties/surface-options/alpha-to-mask.md)]
+[!include[](snippets/shader-properties/surface-options/double-sided.md)]
+[!include[](snippets/shader-properties/surface-options/normal-mode.md)]
+[!include[](snippets/shader-properties/surface-options/material-type-layered.md)]
+[!include[](snippets/shader-properties/surface-options/transmission.md)]
+[!include[](snippets/shader-properties/surface-options/receive-decals.md)]
+[!include[](snippets/shader-properties/surface-options/geometric-specular-aa.md)]
+[!include[](snippets/shader-properties/surface-options/screen-space-variance.md)]
+[!include[](snippets/shader-properties/surface-options/gsaa-threshold.md)]
+[!include[](snippets/shader-properties/surface-options/displacement-mode.md)]
+[!include[](snippets/shader-properties/surface-options/lock-with-object-scale.md)]
+[!include[](snippets/shader-properties/surface-options/lock-with-height-map-tiling-rate.md)]
 </table>
 
 
@@ -55,22 +55,24 @@ These properties control the overall look of your Material's surface and how Uni
 [!include[](snippets/shader-properties/surface-inputs/layered-surface-inputs.md)]
 ### Layer List
 [!include[](snippets/shader-properties/layer-list.md)]
+
 ### Layers
 [!include[](snippets/shader-properties/layers.md)]
+
 ### Emission inputs
 <table>
 <tr>
 <th>Property</th>
 <th>Description</th>
 </tr>
-[!include[](snippets/shader-properties/emission-inputs/use-emission-intensity.md)
-[!include[](snippets/shader-properties/emission-inputs/emissive-color.md)
-[!include[](snippets/shader-properties/emission-inputs/emission-uv-mapping-layered-tessellation.md)
-[!include[](snippets/shader-properties/emission-inputs/emission-uv-mapping-tiling.md)
-[!include[](snippets/shader-properties/emission-inputs/emission-uv-mapping-offset.md)
-[!include[](snippets/shader-properties/emission-inputs/emission-intensity.md)
-[!include[](snippets/shader-properties/emission-inputs/exposure-weight.md)
-[!include[](snippets/shader-properties/emission-inputs/emission-multiply-with-base.md)
+[!include[](snippets/shader-properties/emission-inputs/use-emission-intensity.md)]
+[!include[](snippets/shader-properties/emission-inputs/emissive-color.md)]
+[!include[](snippets/shader-properties/emission-inputs/emission-uv-mapping-layered-tessellation.md)]
+[!include[](snippets/shader-properties/emission-inputs/emission-uv-mapping-tiling.md)]
+[!include[](snippets/shader-properties/emission-inputs/emission-uv-mapping-offset.md)]
+[!include[](snippets/shader-properties/emission-inputs/emission-intensity.md)]
+[!include[](snippets/shader-properties/emission-inputs/exposure-weight.md)]
+[!include[](snippets/shader-properties/emission-inputs/emission-multiply-with-base.md)]
 </table>
 
 
@@ -80,10 +82,10 @@ These properties control the overall look of your Material's surface and how Uni
 <th>Property</th>
 <th>Description</th>
 </tr>
-[!include[](snippets/shader-properties/advanced-options/enable-gpu-instancing.md)
-[!include[](snippets/shader-properties/advanced-options/baked-emission.md)
-[!include[](snippets/shader-properties/advanced-options/motion-vector-for-vertex-animation.md)
-[!include[](snippets/shader-properties/advanced-options/specular-occlusion-mode.md)
-[!include[](snippets/shader-properties/advanced-options/add-precomputed-velocity.md)
-[!include[](snippets/shader-properties/advanced-options/force-forward-emissive.md)
+[!include[](snippets/shader-properties/advanced-options/enable-gpu-instancing.md)]
+[!include[](snippets/shader-properties/advanced-options/baked-emission.md)]
+[!include[](snippets/shader-properties/advanced-options/motion-vector-for-vertex-animation.md)]
+[!include[](snippets/shader-properties/advanced-options/specular-occlusion-mode.md)]
+[!include[](snippets/shader-properties/advanced-options/add-precomputed-velocity.md)]
+[!include[](snippets/shader-properties/advanced-options/force-forward-emissive.md)]
 </table>
