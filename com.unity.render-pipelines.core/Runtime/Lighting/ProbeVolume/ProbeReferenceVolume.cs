@@ -545,8 +545,10 @@ namespace UnityEngine.Rendering
             // rasterize bricks according to the coarsest grid
             Rasterize(vol, m_TmpBricks[0]);
 
+            int subDivCount = 0;
+
             // iterative subdivision
-            while (m_TmpBricks[0].Count > 0)
+            while (m_TmpBricks[0].Count > 0 && subDivCount < m_MaxSubdivision)
             {
                 m_TmpBricks[1].Clear();
                 m_TmpFlags.Clear();
@@ -582,6 +584,8 @@ namespace UnityEngine.Rendering
                     }
                     Profiler.EndSample();
                 }
+
+                subDivCount++;
             }
             Profiler.EndSample();
         }
