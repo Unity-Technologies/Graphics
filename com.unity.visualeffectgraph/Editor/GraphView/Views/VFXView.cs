@@ -901,7 +901,7 @@ namespace UnityEditor.VFX.UI
 
         public bool IsAssetEditable()
         {
-            return controller.model.IsAssetEditable();
+            return controller.model != null && controller.model.IsAssetEditable();
         }
 
         void NewControllerSet()
