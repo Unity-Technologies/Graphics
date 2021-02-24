@@ -114,7 +114,6 @@ namespace UnityEngine.Rendering.Universal
             private bool isRendererDeferred => m_Renderer != null && m_Renderer is UniversalRenderer && ((UniversalRenderer)m_Renderer).renderingMode == RenderingMode.Deferred;
 
             // Private Variables
-            private string m_ProfilerTag;
             private Material m_Material;
             private Vector4[] m_CameraTopLeftCorner = new Vector4[2];
             private Vector4[] m_CameraXExtent = new Vector4[2];
@@ -155,9 +154,8 @@ namespace UnityEngine.Rendering.Universal
                 AfterOpaque = 4
             }
 
-            internal ScreenSpaceAmbientOcclusionPass(string profilerTag = "ScreenSpaceAmbientOcclusionPass")
+            internal ScreenSpaceAmbientOcclusionPass()
             {
-                m_ProfilerTag = profilerTag;
                 m_CurrentSettings = new ScreenSpaceAmbientOcclusionSettings();
             }
 
@@ -305,7 +303,7 @@ namespace UnityEngine.Rendering.Universal
             {
                 if (m_Material == null)
                 {
-                    Debug.LogErrorFormat("{0}.Execute(): Missing material. {1} render pass will not execute. Check for missing reference in the renderer resources.", GetType().Name, m_ProfilerTag);
+                    Debug.LogErrorFormat("{0}.Execute(): Missing material. ScreenSpaceAmbientOcclusion pass will not execute. Check for missing reference in the renderer resources.", GetType().Name);
                     return;
                 }
 
