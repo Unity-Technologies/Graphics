@@ -64,9 +64,15 @@ To create a new Layered Lit Material, navigate to your Project's Asset window, r
 | **- Global Illumination**       | The mode HDRP uses to determine how color emission interacts with global illumination.<br />&#8226; **Realtime**: Select this option to make emission affect the result of real-time global illumination.<br />&#8226; **Baked**: Select this option to make emission only affect global illumination during the baking process.<br />&#8226; **None**: Select this option to make emission not affect global illumination. |
 
 ### Advanced Options
-
-| **Property**                            | **Description**                                              |
-| --------------------------------------- | ------------------------------------------------------------ |
-| **Enable GPU instancing**               | Enable the checkbox to tell HDRP to render Meshes with the same geometry and Material in one batch when possible. This makes rendering faster. HDRP cannot render Meshes in one batch if they have different Materials, or if the hardware does not support GPU instancing. For example, you cannot [static-batch](https://docs.unity3d.com/Manual/DrawCallBatching.html) GameObjects that have an animation based on the object pivot, but the GPU can instance them. |
-| **Specular Occlusion from Bent normal** | Enable the checkbox to make HDRP use the Bent Normal Map to process specular occlusion for Reflection Probes. |
-| **Force Forward Emissive** | Enable this checkbox to render the emissive contribution of this Material in a separate forward pass when the Lit Shader Mode is set to **Both** or **Deferred**. This removes a rendering artifact that makes emissive Materials appear completely black when HDRP processes them in the deferred rendering path when using either Screen Space or Ray-Traced Global Illumination. Limitation: When Unity performs a separate pass for the Emissive contribution, it also performs an additional DrawCall. This means it uses more resources on your CPU.
+<table>
+<tr>
+<th>Property</th>
+<th>Description</th>
+</tr>
+[!include[](snippets/shader-properties/advanced-options/enable-gpu-instancing.md)
+[!include[](snippets/shader-properties/advanced-options/baked-emission.md)
+[!include[](snippets/shader-properties/advanced-options/motion-vector-for-vertex-animation.md)
+[!include[](snippets/shader-properties/advanced-options/specular-occlusion-mode.md)
+[!include[](snippets/shader-properties/advanced-options/add-precomputed-velocity.md)
+[!include[](snippets/shader-properties/advanced-options/force-forward-emissive.md)
+</table>

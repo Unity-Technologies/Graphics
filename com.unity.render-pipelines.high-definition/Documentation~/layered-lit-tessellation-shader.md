@@ -85,4 +85,5 @@ These properties control the overall look of your Material's surface and how Uni
 [!include[](snippets/shader-properties/advanced-options/motion-vector-for-vertex-animation.md)
 [!include[](snippets/shader-properties/advanced-options/specular-occlusion-mode.md)
 [!include[](snippets/shader-properties/advanced-options/add-precomputed-velocity.md)
+[!include[](snippets/shader-properties/advanced-options/force-forward-emissive.md)
 </table>
