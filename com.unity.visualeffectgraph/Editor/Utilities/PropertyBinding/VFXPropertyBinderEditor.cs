@@ -14,6 +14,14 @@ namespace UnityEditor.Experimental.VFX.Utility
     [CustomEditor(typeof(VFXPropertyBinder))]
     class VFXPropertyBinderEditor : Editor
     {
+        [MenuItem("CONTEXT/VFXPropertyBinder/Remove Component", false, 5000)]
+        public static void RemoveComponent(MenuCommand command)
+        {
+            var propertyBinder = (VFXPropertyBinder)command.context;
+            propertyBinder.ClearPropertyBinders();
+            Undo.DestroyObjectImmediate(propertyBinder);
+        }
+
         ReorderableList m_List;
         SerializedProperty m_Elements;
         SerializedProperty m_Component;
@@ -246,7 +254,6 @@ namespace UnityEditor.Experimental.VFX.Utility
             if (element != null)
             {
                 Undo.DestroyObjectImmediate(element);
-                m_Elements.DeleteArrayElementAtIndex(index); // Delete object reference
             }
             else
             {
