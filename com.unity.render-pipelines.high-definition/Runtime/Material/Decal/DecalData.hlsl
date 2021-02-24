@@ -24,7 +24,7 @@ void GetSurfaceData(FragInputs input, float3 V, PositionInputs posInput, float a
 #endif
 
     float albedoMapBlend = fadeFactor;
-    float maskMapBlend = fadeFactor;
+    float maskMapBlend = _DecalMaskMapBlueScale * fadeFactor;
 
     ZERO_INITIALIZE(DecalSurfaceData, surfaceData);
 
@@ -57,7 +57,6 @@ void GetSurfaceData(FragInputs input, float3 V, PositionInputs posInput, float a
 #ifdef _MATERIAL_AFFECTS_MASKMAP
     #ifdef _MASKMAP
     surfaceData.mask = SAMPLE_TEXTURE2D(_MaskMap, sampler_MaskMap, texCoords);
-    surfaceData.mask.z *= _DecalMaskMapBlueScale;
     maskMapBlend *= surfaceData.mask.z; // store before overwriting with smoothness
     #ifdef DECALS_4RT
     surfaceData.mask.x = lerp(_MetallicRemapMin, _MetallicRemapMax, surfaceData.mask.x);
@@ -65,8 +64,6 @@ void GetSurfaceData(FragInputs input, float3 V, PositionInputs posInput, float a
     #endif
     surfaceData.mask.z = lerp(_SmoothnessRemapMin, _SmoothnessRemapMax, surfaceData.mask.w);
     #else
-    surfaceData.mask.z = _DecalMaskMapBlueScale;
-    maskMapBlend *= surfaceData.mask.z; // store before overwriting with smoothness
     #ifdef DECALS_4RT
     surfaceData.mask.x = _Metallic;
     surfaceData.mask.y = _AO;
