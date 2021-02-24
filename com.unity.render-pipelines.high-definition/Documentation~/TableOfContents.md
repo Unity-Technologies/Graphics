@@ -99,6 +99,7 @@
     * [Eye Shader](eye-shader.md)
     * [Hair Shader](hair-shader.md)
     * [Layered Lit Shader](Layered-Lit-Shader.md)
+    * [Layered Lit Tessellation Shader](layered-lit-tessellation-shader.md)
     * [Lit Tessellation Shader](Lit-Tessellation-Shader.md)
     * [Lit Shader](Lit-Shader.md)
     * [Silk Shader](silk-shader.md)
