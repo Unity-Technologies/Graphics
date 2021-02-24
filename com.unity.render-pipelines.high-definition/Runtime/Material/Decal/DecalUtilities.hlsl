@@ -270,7 +270,7 @@ DecalSurfaceData GetDecalSurfaceData(PositionInputs posInput, FragInputs input, 
 #ifdef _DOUBLESIDED_ON
     // 'doubleSidedConstants' is float3(-1, -1, -1) in flip mode and float3(1, 1, -1) in mirror mode.
     // It's float3(1, 1, 1) in the none mode.
-    float3 flipSign = input.isFrontFace ? float3(1.0, 1.0, 1.0) : doubleSidedConstants;
+    float3 flipSign = input.isFrontFace ? float3(1.0, 1.0, 1.0) : _DoubleSidedConstants;
     decalSurfaceData.normalWS *= flipSign;
 #endif // _DOUBLESIDED_ON
 
