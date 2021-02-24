@@ -8,13 +8,13 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ### Fixed
 - Fixed an issue where the exposed checkbox was removed from keyword inspectors [1312779] (https://issuetracker.unity3d.com/issues/shader-graph-exposed-parameter-for-keywords-removed-by-accident)
-- Fixed issue with SRP Batcher compatibility [1307728] (https://issuetracker.unity3d.com/issues/srp-batcher-on-the-shader-graph-with-hdrp-and-universal-targets-is-not-compatible-when-hdrp-package-was-installed-after-urp)
+- Fixed issue with SRP Batcher compatibility [1310624]
 - Fixed issue with Hybrid renderer compatibility [1296776]
 
 ## [10.4.0] - 2021-01-27
 
-Version Updated
-The version number for this package has increased due to a version update of a related graphics package.
+### Fixed
+- Fixed an issue where the exposed checkbox was removed from keyword inspectors [1312779] (https://issuetracker.unity3d.com/issues/shader-graph-exposed-parameter-for-keywords-removed-by-accident)
 
 ## [10.3.1] - 2021-01-26
 
