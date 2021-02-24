@@ -268,13 +268,10 @@ DecalSurfaceData GetDecalSurfaceData(PositionInputs posInput, FragInputs input, 
     DecalSurfaceData decalSurfaceData = GetDecalSurfaceData(posInput, vtxNormal, alpha);
 
 #ifdef _DOUBLESIDED_ON
-    if (!input.isFrontFace)
-    {
-        if (_DoubleSidedConstants.x == -1.0f) // Flip mode
-            decalSurfaceData.normalWS.xyz *= -1.0f;
-        else if (_DoubleSidedConstants.z == -1.0f) // Mirror mode
-            decalSurfaceData.normalWS.z *= -1.0f;
-    }
+    // 'doubleSidedConstants' is float3(-1, -1, -1) in flip mode and float3(1, 1, -1) in mirror mode.
+    // It's float3(1, 1, 1) in the none mode.
+    float3 flipSign = input.isFrontFace ? float3(1.0, 1.0, 1.0) : doubleSidedConstants;
+    decalSurfaceData.normalWS *= flipSign;
 #endif // _DOUBLESIDED_ON
 
     return decalSurfaceData;
