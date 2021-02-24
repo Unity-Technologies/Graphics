@@ -12,7 +12,7 @@ Shader "Hidden/HDRP/DebugFullScreen"
 
             HLSLPROGRAM
             #pragma target 4.5
-            #pragma only_renderers d3d11 playstation xboxone vulkan metal switch
+            #pragma only_renderers d3d11 playstation xboxone xboxseries vulkan metal switch
 
             #pragma vertex Vert
             #pragma fragment Frag
@@ -200,6 +200,16 @@ Shader "Hidden/HDRP/DebugFullScreen"
                 {
                     float4 color = LOAD_TEXTURE2D_X(_DebugFullScreenTexture, (uint2)input.positionCS.xy);
                     return color;
+                }
+                if ( _FullScreenDebugMode == FULLSCREENDEBUGMODE_VOLUMETRIC_CLOUDS)
+                {
+                    float4 color = LOAD_TEXTURE2D_X(_DebugFullScreenTexture, (uint2)(input.positionCS.xy));
+                    return float4(color.xyz * color.w, 1.0);
+                }
+                if ( _FullScreenDebugMode == FULLSCREENDEBUGMODE_VOLUMETRIC_CLOUDS_SHADOW)
+                {
+                    float4 color = LOAD_TEXTURE2D_X(_DebugFullScreenTexture, (uint2)(input.positionCS.xy));
+                    return float4(color.xxx, 1.0);
                 }
                 if ( _FullScreenDebugMode == FULLSCREENDEBUGMODE_SCREEN_SPACE_SHADOWS)
                 {
