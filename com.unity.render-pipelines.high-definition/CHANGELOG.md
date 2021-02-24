@@ -21,6 +21,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Added a Force Forward Emissive option for Lit Material that forces the Emissive contribution to render in a separate forward pass when the Lit Material is in Deferred Lit shader Mode.
 - Added new API in CachedShadowManager
 - Added an additional check in the "check scene for ray tracing" (case 1314963).
+- Added shader graph unit test for IsFrontFace node
 
 ### Fixed
 - Fixed an exception when opening the color picker in the material UI (case 1307143).
