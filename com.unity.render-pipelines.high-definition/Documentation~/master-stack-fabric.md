@@ -107,7 +107,7 @@ Depending on the [Graph Settings](#graph-settings) you use, Shader Graph can add
 <th>Property</th>
 <th>Description</th>
 </tr>
-[!include[](snippets/shader-properties/surface-options/fabric-material-type.md)]
+[!include[](snippets/shader-properties/surface-options/material-type-fabric.md)]
 [!include[](snippets/shader-properties/surface-options/surface-type.md)]
 [!include[](snippets/shader-properties/surface-options/rendering-pass.md)]
 [!include[](snippets/shader-properties/surface-options/blending-mode.md)]
