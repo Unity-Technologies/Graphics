@@ -2,11 +2,24 @@
 #ifndef UNIVERSAL_DEBUGGING2D_INCLUDED
 #define UNIVERSAL_DEBUGGING2D_INCLUDED
 
+#include "Packages/com.unity.render-pipelines.universal/Shaders/2D/Include/InputData2D.hlsl"
+#include "Packages/com.unity.render-pipelines.universal/Shaders/2D/Include/SurfaceData2D.hlsl"
 #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/DebuggingCommon.hlsl"
 
 #if defined(_DEBUG_SHADER)
 
-bool CalculateDebugColorMaterialSettings(in SurfaceData2D surfaceData, out half4 debugColor)
+void SetupDebugData(inout InputData2D inputData, float3 positionWS)
+{
+    inputData.positionWS = positionWS;
+
+    // TODO: Pass the actual mipmap and texel data in here somehow, but we don't have access to textures here...
+    const int textureWdith = 1024;
+    const int textureHeight = 1024;
+    inputData.texelSize = half4(1.0h / textureWdith, 1.0h / textureHeight, textureWdith, textureHeight);
+    inputData.mipCount = 9;
+}
+
+bool CalculateDebugColorMaterialSettings(in SurfaceData2D surfaceData, in InputData2D inputData, out half4 debugColor)
 {
     switch(_DebugMaterialMode)
     {
@@ -49,12 +62,38 @@ bool CalculateDebugColorMaterialSettings(in SurfaceData2D surfaceData, out half4
     }
 }
 
-bool CalculateDebugColorForRenderingSettings(in SurfaceData2D surfaceData, out half4 debugColor)
+bool CalculateDebugColorForRenderingSettings(in SurfaceData2D surfaceData, in InputData2D inputData, out half4 debugColor)
 {
-    return CalculateColorForDebugSceneOverride(debugColor);
+    if(CalculateColorForDebugSceneOverride(debugColor))
+    {
+        return true;
+    }
+    else
+    {
+        switch(_DebugMipInfoMode)
+        {
+            case DEBUGMIPINFOMODE_LEVEL:
+            {
+                debugColor = GetMipLevelDebugColor(inputData.positionWS, surfaceData.albedo, inputData.uv, inputData.texelSize);
+                return true;
+            }
+
+            case DEBUGMIPINFOMODE_COUNT:
+            {
+                debugColor = GetMipCountDebugColor(inputData.positionWS, surfaceData.albedo, inputData.mipCount);
+                return true;
+            }
+
+            default:
+            {
+                debugColor = 0;
+                return false;
+            }
+        }
+    }
 }
 
-bool CalculateDebugColorLightingSettings(in SurfaceData2D surfaceData, out half4 debugColor)
+bool CalculateDebugColorLightingSettings(in SurfaceData2D surfaceData, in InputData2D inputData, out half4 debugColor)
 {
     switch(_DebugLightingMode)
     {
@@ -74,17 +113,17 @@ bool CalculateDebugColorLightingSettings(in SurfaceData2D surfaceData, out half4
     }       // End of switch.
 }
 
-bool CalculateDebugColor(in SurfaceData2D surfaceData, out half4 debugColor)
+bool CalculateDebugColor(in SurfaceData2D surfaceData, in InputData2D inputData, out half4 debugColor)
 {
-    if(CalculateDebugColorMaterialSettings(surfaceData, debugColor))
+    if(CalculateDebugColorMaterialSettings(surfaceData, inputData, debugColor))
     {
         return true;
     }
-    else if(CalculateDebugColorForRenderingSettings(surfaceData, debugColor))
+    else if(CalculateDebugColorForRenderingSettings(surfaceData, inputData, debugColor))
     {
         return true;
     }
-    else if(CalculateDebugColorLightingSettings(surfaceData, debugColor))
+    else if(CalculateDebugColorLightingSettings(surfaceData, inputData, debugColor))
     {
         return true;
     }

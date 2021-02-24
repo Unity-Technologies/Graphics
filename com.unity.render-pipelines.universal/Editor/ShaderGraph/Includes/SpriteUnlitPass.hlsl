@@ -1,7 +1,4 @@
 
-#ifndef SPRITE_UNLIT_PASS_INCLUDED
-#define SPRITE_UNLIT_PASS_INCLUDED
-
 #include "Packages/com.unity.render-pipelines.universal/Shaders/2D/Include/SurfaceData2D.hlsl"
 #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Debugging2D.hlsl"
 
@@ -31,10 +28,13 @@ half4 frag(PackedVaryings packedInput) : SV_TARGET
 #endif
 
     #if defined(_DEBUG_SHADER)
-    SurfaceData2D surfaceData = CreateSurfaceData(color.rgb, color.a);
+    const SurfaceData2D surfaceData = CreateSurfaceData(color.rgb, color.a);
+    InputData2D inputData = CreateInputData(unpacked.positionWS, unpacked.texCoord0);
     half4 debugColor;
 
-    if(CalculateDebugColor(surfaceData, debugColor))
+    SetupDebugData(inputData, unpacked.positionWS);
+
+    if(CalculateDebugColor(surfaceData, inputData, debugColor))
     {
         return debugColor;
     }
@@ -43,5 +43,3 @@ half4 frag(PackedVaryings packedInput) : SV_TARGET
     color *= unpacked.color * _RendererColor;
     return color;
 }
-
-#endif

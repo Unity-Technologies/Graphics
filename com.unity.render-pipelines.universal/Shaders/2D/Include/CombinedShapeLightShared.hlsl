@@ -8,19 +8,19 @@ half _HDREmulationScale;
 half _UseSceneLighting;
 half4 _RendererColor;
 
-half4 CombinedShapeLightShared(in SurfaceData2D surfaceData)
+half4 CombinedShapeLightShared(in SurfaceData2D surfaceData, in InputData2D inputData)
 {
     half alpha = surfaceData.alpha;
     half4 color = half4(surfaceData.albedo, alpha);
     const half4 mask = surfaceData.mask;
-    const half2 lightingUV = surfaceData.lightingUV;
+    const half2 lightingUV = inputData.lightingUV;
 
     AlphaDiscard(alpha, 0);
 
     #if defined(_DEBUG_SHADER)
     half4 debugColor;
 
-    if(CalculateDebugColor(surfaceData, debugColor))
+    if(CalculateDebugColor(surfaceData, inputData, debugColor))
     {
         return debugColor;
     }

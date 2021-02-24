@@ -197,7 +197,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
 
                 // Fields
                 structs = CoreStructCollections.Default,
-                requiredFields = SpriteLitRequiredFields.Lit,
+                requiredFields = SpriteLitRequiredFields.DebugMaterial,
                 fieldDependencies = CoreFieldDependencies.Default,
 
                 // Conditional State
@@ -205,7 +205,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
                 pragmas = CorePragmas._2DDefault,
                 keywords = SpriteLitKeywords.Lit,
                 includes = SpriteLitIncludes.Lit,
-                defines = SpriteLitDefines.DebugLit,
+                defines = SpriteLitDefines.DebugMaterial,
             };
         }
         #endregion
@@ -222,7 +222,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
                 scope = KeywordScope.Local,
             };
 
-            public static readonly DefineCollection DebugLit = new DefineCollection()
+            public static readonly DefineCollection DebugMaterial = new DefineCollection()
             {
                 {DebugShader, 1},
             };
@@ -270,6 +270,14 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
             {
                 StructFields.Varyings.color,
                 StructFields.Varyings.texCoord0,
+            };
+
+            public static FieldCollection DebugMaterial = new FieldCollection()
+            {
+                StructFields.Varyings.color,
+                StructFields.Varyings.positionWS,
+                StructFields.Varyings.texCoord0,
+                StructFields.Varyings.screenPosition,
             };
         }
         #endregion

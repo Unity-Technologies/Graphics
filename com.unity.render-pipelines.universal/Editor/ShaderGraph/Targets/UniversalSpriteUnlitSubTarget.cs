@@ -166,7 +166,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
 
                 // Fields
                 structs = CoreStructCollections.Default,
-                requiredFields = SpriteUnlitRequiredFields.Unlit,
+                requiredFields = SpriteUnlitRequiredFields.DebugMaterial,
                 fieldDependencies = CoreFieldDependencies.Default,
 
                 // Conditional State
@@ -197,6 +197,15 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
             {
                 StructFields.Attributes.color,
                 StructFields.Attributes.uv0,
+                StructFields.Varyings.color,
+                StructFields.Varyings.texCoord0,
+            };
+
+            public static FieldCollection DebugMaterial = new FieldCollection()
+            {
+                StructFields.Attributes.color,
+                StructFields.Attributes.uv0,
+                StructFields.Varyings.positionWS,
                 StructFields.Varyings.color,
                 StructFields.Varyings.texCoord0,
             };
