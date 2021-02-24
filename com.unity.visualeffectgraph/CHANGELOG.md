@@ -4,10 +4,11 @@ All notable changes to this package will be documented in this file.
 The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.html).
 
-## [10.3.2] - 2020-02-18
+## [10.3.2] - 2021-02-24
 
-Version Updated
-The version number for this package has increased due to a version update of a related graphics package.
+#Fixed
+- Prevent infinite compilation loop [Case 1298466](https://issuetracker.unity3d.com/product/unity/issues/guid/1298466/)
+- Remove some useless compilation triggers (modifying not connected or disabled nodes for instance)
 
 ## [10.3.1] - 2020-01-26
 
