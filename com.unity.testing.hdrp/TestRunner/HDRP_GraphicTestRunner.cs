@@ -70,6 +70,8 @@ public class HDRP_GraphicTestRunner
             yield return new WaitForEndOfFrame();
         }
 
+        hdCamera.Reset();
+
         if (settings.waitForFrameCountMultiple)
         {
             // Get HDRP instance
