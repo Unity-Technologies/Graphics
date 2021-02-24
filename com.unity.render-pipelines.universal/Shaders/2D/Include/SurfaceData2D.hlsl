@@ -31,4 +31,9 @@ SurfaceData2D CreateSurfaceData(half3 albedo, half alpha, half4 mask, half2 ligh
     return CreateSurfaceData(albedo, alpha, mask, normalTS, lightingUV);
 }
 
+SurfaceData2D CreateSurfaceData(half3 albedo, half alpha)
+{
+    return CreateSurfaceData(albedo, alpha, 1, 0);
+}
+
 #endif

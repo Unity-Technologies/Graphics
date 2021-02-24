@@ -1,3 +1,10 @@
+
+#ifndef SPRITE_UNLIT_PASS_INCLUDED
+#define SPRITE_UNLIT_PASS_INCLUDED
+
+#include "Packages/com.unity.render-pipelines.universal/Shaders/2D/Include/SurfaceData2D.hlsl"
+#include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Debugging2D.hlsl"
+
 half4 _RendererColor;
 
 PackedVaryings vert(Attributes input)
@@ -23,6 +30,18 @@ half4 frag(PackedVaryings packedInput) : SV_TARGET
     half4 color = half4(surfaceDescription.BaseColor, surfaceDescription.Alpha);
 #endif
 
+    #if defined(_DEBUG_SHADER)
+    SurfaceData2D surfaceData = CreateSurfaceData(color.rgb, color.a);
+    half4 debugColor;
+
+    if(CalculateDebugColor(surfaceData, debugColor))
+    {
+        return debugColor;
+    }
+    #endif
+
     color *= unpacked.color * _RendererColor;
     return color;
 }
+
+#endif
