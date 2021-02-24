@@ -119,6 +119,29 @@ bool CalculateDebugColorLightingSettings(in SurfaceData2D surfaceData, in InputD
     }       // End of switch.
 }
 
+bool CalculateDebugColorValidationSettings(in SurfaceData2D surfaceData, in InputData2D inputData, out half4 debugColor)
+{
+    switch(_DebugValidationMode)
+    {
+        case DEBUGVALIDATIONMODE_VALIDATE_ALBEDO:
+        {
+            return CalculateValidationAlbedo(surfaceData.albedo, debugColor);
+        }
+
+        case DEBUGVALIDATIONMODE_VALIDATE_METALLIC:
+        {
+            debugColor = _DebugColorInvalidMode;
+            return true;
+        }
+
+        default:
+        {
+            debugColor = 0;
+            return false;
+        }
+    }
+}
+
 bool CalculateDebugColor(in SurfaceData2D surfaceData, in InputData2D inputData, out half4 debugColor)
 {
     if(CalculateDebugColorMaterialSettings(surfaceData, inputData, debugColor))
@@ -130,6 +153,10 @@ bool CalculateDebugColor(in SurfaceData2D surfaceData, in InputData2D inputData,
         return true;
     }
     else if(CalculateDebugColorLightingSettings(surfaceData, inputData, debugColor))
+    {
+        return true;
+    }
+    else if(CalculateDebugColorValidationSettings(surfaceData, inputData, debugColor))
     {
         return true;
     }
