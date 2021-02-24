@@ -492,6 +492,9 @@ namespace UnityEditor.Rendering.HighDefinition
 
                 currentTarget.m_Size[axe] = newSize;
                 currentTarget.m_Offset[axe] = saved[axe] * newSize;
+
+                // refresh DecalProjector to update projection
+                currentTarget.OnValidate();
             }
 
             // Manually register Undo as we work directly on the target
