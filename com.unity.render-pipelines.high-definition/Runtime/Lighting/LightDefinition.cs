@@ -132,10 +132,13 @@ namespace UnityEngine.Rendering.HighDefinition
         public float   iesCut;                  // Spot light
 
         public GPULightType lightType;          // TODO: move this up?
-
         public Vector3 right;                   // If spot: rescaled by cot(outerHalfAngle); if projector: rescaled by (2 / shapeWidth)
+
+        public float   penumbraTint;
         [SurfaceDataAttributes(precision = FieldPrecision.Real)]
         public float   range;
+        public CookieMode cookieMode;
+        public int     shadowIndex;             // -1 if unused (TODO: 16 bit)
 
         public Vector3 up;                      // If spot: rescaled by cot(outerHalfAngle); if projector: rescaled by (2 / shapeHeight)
         public float   rangeAttenuationScale;
@@ -143,12 +146,7 @@ namespace UnityEngine.Rendering.HighDefinition
         public Vector3 color;
         public float   rangeAttenuationBias;
 
-        public CookieMode cookieMode;
-
-        public int     shadowIndex;             // -1 if unused (TODO: 16 bit)
-
         public Vector4 cookieScaleOffset;       // coordinates of the cookie texture in the atlas
-        public int     contactShadowMask;       // negative if unused (TODO: 16 bit)
 
         public Vector3 shadowTint;              // Use to tint shadow color
         public float   shadowDimmer;
@@ -166,12 +164,13 @@ namespace UnityEngine.Rendering.HighDefinition
         [SurfaceDataAttributes(precision = FieldPrecision.Real)]
         public Vector4 size;                    // Used by area (X = length or width, Y = height, Z = CosBarnDoorAngle, W = BarnDoorLength) and punctual lights (X = radius)
 
+        public int     contactShadowMask;       // negative if unused (TODO: 16 bit)
         public float   diffuseDimmer;
         public float   specularDimmer;
-        public float   isRayTracedContactShadow;
-        public float   penumbraTint;
+        public float   __unused__;
 
-        public Vector3 padding;
+        public Vector2 padding;
+        public float   isRayTracedContactShadow;
         public float   boxLightSafeExtent;
     };
 

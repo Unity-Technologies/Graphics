@@ -93,6 +93,54 @@ namespace UnityEditor.Rendering.HighDefinition
             volume.sharedProfile = profile;
         }
 
+        [MenuItem("Edit/Rendering/Materials/Enable HDRP Force Forward Emissive on Selected Materials")]
+        internal static void ForceForwardEmissiveOnMaterialEnableInSelection()
+        {
+            var selection = UnityEditor.Selection.objects;
+
+            foreach (var obj in selection)
+            {
+                if (obj is Material material)
+                {
+                    if (material.HasProperty(HDMaterialProperties.kForceForwardEmissive))
+                    {
+                        material.SetInt(HDMaterialProperties.kForceForwardEmissive, 1);
+                        HDShaderUtils.ResetMaterialKeywords(material);
+                    }
+                }
+            }
+        }
+
+        [MenuItem("Edit/Rendering/Materials/Enable HDRP Force Forward Emissive on Scene Materials")]
+        internal static void ForceForwardEmissiveOnMaterialEnableInScene()
+        {
+            var materials = Resources.FindObjectsOfTypeAll<Material>();
+
+            foreach (var material in materials)
+            {
+                if (material.HasProperty(HDMaterialProperties.kForceForwardEmissive))
+                {
+                    material.SetInt(HDMaterialProperties.kForceForwardEmissive, 1);
+                    HDShaderUtils.ResetMaterialKeywords(material);
+                }
+            }
+        }
+
+        [MenuItem("Edit/Rendering/Materials/Disable HDRP Force Forward Emissive on Scene Materials")]
+        internal static void ForceForwardEmissiveOnMaterialDisableInScene()
+        {
+            var materials = Resources.FindObjectsOfTypeAll<Material>();
+
+            foreach (var material in materials)
+            {
+                if (material.HasProperty(HDMaterialProperties.kForceForwardEmissive))
+                {
+                    material.SetInt(HDMaterialProperties.kForceForwardEmissive, 0);
+                    HDShaderUtils.ResetMaterialKeywords(material);
+                }
+            }
+        }
+
         [MenuItem("Edit/Rendering/Materials/Upgrade HDRP Materials to Latest Version", priority = CoreUtils.Priorities.editMenuPriority)]
         internal static void UpgradeMaterials()
         {
@@ -480,6 +528,8 @@ namespace UnityEditor.Rendering.HighDefinition
 
                 bool materialIsOnlyTransparent = true;
                 bool hasTransparentSubMaterial = false;
+                bool singleSided = true;
+                bool hasSingleSided = false;
 
                 for (int meshIdx = 0; meshIdx < numSubMeshes; ++meshIdx)
                 {
@@ -499,6 +549,13 @@ namespace UnityEditor.Rendering.HighDefinition
                             // aggregate the transparency info
                             materialIsOnlyTransparent &= materialIsTransparent;
                             hasTransparentSubMaterial |= materialIsTransparent;
+
+                            // Evaluate if it is single sided
+                            bool doubleSided = currentMaterial.doubleSidedGI || currentMaterial.IsKeywordEnabled("_DOUBLESIDED_ON");
+
+                            // Aggregate the double sided information
+                            hasSingleSided |= !doubleSided;
+                            singleSided &= !doubleSided;
                         }
                         else
                         {
@@ -511,6 +568,12 @@ namespace UnityEditor.Rendering.HighDefinition
                 if (!materialIsOnlyTransparent && hasTransparentSubMaterial)
                 {
                     Debug.LogWarning("The object " + currentRenderer.name + " has both transparent and opaque sub-meshes. This may cause performance issues");
+                    generalErrorFlag = true;
+                }
+
+                if (!singleSided && hasSingleSided)
+                {
+                    Debug.LogWarning("The object " + currentRenderer.name + " has both double sided and single sided sub-meshes. The double sided flag will be ignored.");
                     generalErrorFlag = true;
                 }
             }

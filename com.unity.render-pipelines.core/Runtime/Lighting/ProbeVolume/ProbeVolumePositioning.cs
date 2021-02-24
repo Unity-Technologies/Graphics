@@ -14,51 +14,6 @@ namespace UnityEngine.Rendering
     {
         internal static Vector3[] m_Axes = new Vector3[6];
 
-        public static void SubdivisionAlgorithm(RefTrans refTrans, List<Brick> inBricks, List<Flags> outFlags)
-        {
-            Flags f = new Flags();
-            for (int i = 0; i < inBricks.Count; i++)
-            {
-                if (ShouldKeepBrick(ref refTrans, inBricks[i]))
-                {
-                    f.discard = false;
-                    f.subdivide = true;
-                }
-                else
-                {
-                    f.discard = true;
-                    f.subdivide = false;
-                }
-                outFlags.Add(f);
-            }
-        }
-
-        // TODO: Add subdivision criteria here,
-        // currently just keeps subdividing inside probe volumes
-        internal static bool ShouldKeepBrick(ref RefTrans refTrans, Brick brick)
-        {
-            Renderer[] renderers = Object.FindObjectsOfType<Renderer>();
-            foreach (Renderer r in renderers)
-            {
-                var flags = GameObjectUtility.GetStaticEditorFlags(r.gameObject) & StaticEditorFlags.ContributeGI;
-                bool contributeGI = (flags & StaticEditorFlags.ContributeGI) != 0;
-
-                if (!r.enabled || !contributeGI)
-                    continue;
-
-                ProbeReferenceVolume.Volume v = new ProbeReferenceVolume.Volume();
-                v.corner = r.bounds.center - r.bounds.size * 0.5f;
-                v.X = new Vector3(r.bounds.size.x, 0, 0);
-                v.Y = new Vector3(0, r.bounds.size.y, 0);
-                v.Z = new Vector3(0, 0, r.bounds.size.z);
-
-                if (OBBIntersect(ref refTrans, brick, ref v))
-                    return true;
-            }
-
-            return false;
-        }
-
         // TODO: Take refvol translation and rotation into account
         public static ProbeReferenceVolume.Volume CalculateBrickVolume(ref RefTrans refTrans, Brick brick)
         {
