@@ -298,7 +298,7 @@ namespace UnityEngine.Rendering.HighDefinition
             {
                 // Generate the mips
                 Texture filteredAreaLight = FilterAreaLightTexture(cmd, cookie, cookie.width, cookie.height);
-                Vector4 sourceScaleOffset = new Vector4(cookie.width / (float)atlasTexture.rt.width, cookie.height / (float)atlasTexture.rt.height, 0, 0);
+                Vector4 sourceScaleOffset = new Vector4((cookie.width - 0.5f) / (float)atlasTexture.rt.width, (cookie.height - 0.5f) / (float)atlasTexture.rt.height, 0, 0);
                 m_CookieAtlas.BlitTexture(cmd, scaleBias, filteredAreaLight, sourceScaleOffset, blitMips: true, overrideInstanceID: currentID);
             }
 
