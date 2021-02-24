@@ -40,5 +40,8 @@ half4 frag(PackedVaryings packedInput) : SV_TARGET
 #endif
 
     color *= unpacked.color;
-    return CombinedShapeLightShared(color, surfaceDescription.SpriteMask, unpacked.screenPosition.xy / unpacked.screenPosition.w);
+
+    const SurfaceData2D surfaceData = CreateSurfaceData(color.rgb, color.a, surfaceDescription.SpriteMask, unpacked.screenPosition.xy / unpacked.screenPosition.w);
+
+    return CombinedShapeLightShared(surfaceData);
 }
