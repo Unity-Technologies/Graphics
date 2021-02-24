@@ -47,7 +47,8 @@ class VFXParameterEditor : VFXSlotContainerEditor
         var saveEnabled = GUI.enabled;
 
         var referenceModel = serializedObject.targetObject as VFXModel;
-        if (!referenceModel.GetResource().IsAssetEditable())
+        var resource = referenceModel.GetResource();
+        if (resource != null && !resource.IsAssetEditable())
         {
             GUI.enabled = false;
             saveEnabled = false;
