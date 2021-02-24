@@ -254,6 +254,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 pragmas = DecalPragmas.Instanced,
                 defines = CoreDefines.ScenePicking,
                 includes = DecalIncludes.ScenePicking,
+                customInterpolators = CoreCustomInterpolators.Common,
             };
 
             public static PassDescriptor DBufferProjector = new PassDescriptor()
@@ -274,6 +275,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 pragmas = DecalPragmas.Instanced,
                 keywords = DecalDefines.Decals,
                 includes = DecalIncludes.Default,
+                customInterpolators = CoreCustomInterpolators.Common,
             };
 
             public static PassDescriptor DecalProjectorForwardEmissive = new PassDescriptor()
@@ -296,6 +298,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 pragmas = DecalPragmas.Instanced,
                 defines = DecalDefines.Emission,
                 includes = DecalIncludes.Default,
+                customInterpolators = CoreCustomInterpolators.Common,
             };
 
             public static PassDescriptor DBufferMesh = new PassDescriptor()
@@ -319,6 +322,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 pragmas = DecalPragmas.Instanced,
                 keywords = DecalDefines.Decals,
                 includes = DecalIncludes.Default,
+                customInterpolators = CoreCustomInterpolators.Common,
             };
 
             public static PassDescriptor DecalMeshForwardEmissive = new PassDescriptor()
@@ -342,6 +346,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 pragmas = DecalPragmas.Instanced,
                 defines = DecalDefines.Emission,
                 includes = DecalIncludes.Default,
+                customInterpolators = CoreCustomInterpolators.Common,
             };
 
             public static PassDescriptor Preview = new PassDescriptor()
@@ -364,6 +369,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 renderStates = DecalRenderStates.Preview,
                 pragmas = DecalPragmas.Instanced,
                 includes = DecalIncludes.Default,
+                customInterpolators = CoreCustomInterpolators.Common,
             };
         }
         #endregion

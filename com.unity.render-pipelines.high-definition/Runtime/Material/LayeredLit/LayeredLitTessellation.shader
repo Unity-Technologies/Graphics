@@ -398,7 +398,7 @@ Shader "HDRP/LayeredLitTessellation"
     HLSLINCLUDE
 
     #pragma target 5.0
-    #pragma only_renderers d3d11 playstation xboxone vulkan metal switch
+    #pragma only_renderers d3d11 playstation xboxone xboxseries vulkan metal switch
 
     #pragma shader_feature_local _ALPHATEST_ON
     #pragma shader_feature_local _ALPHATOMASK_ON
@@ -960,7 +960,6 @@ Shader "HDRP/LayeredLitTessellation"
 
             HLSLPROGRAM
 
-            #pragma only_renderers d3d11 playstation xboxone vulkan metal switch
             //enable GPU instancing support
             #pragma multi_compile_instancing
             #pragma multi_compile _ DOTS_INSTANCING_ON
