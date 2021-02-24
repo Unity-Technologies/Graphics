@@ -6,10 +6,16 @@
 
 #if defined(_DEBUG_SHADER)
 
-bool CalculateDebugColor(in SurfaceData2D surfaceData, out half4 debugColor)
+bool CalculateDebugColorMaterialSettings(in SurfaceData2D surfaceData, out half4 debugColor)
 {
     switch(_DebugMaterialMode)
     {
+        case DEBUGMATERIALMODE_NONE:
+        {
+            debugColor = 0;
+            return false;
+        }
+
         case DEBUGMATERIALMODE_ALBEDO:
         {
             debugColor = half4(surfaceData.albedo, 1);
@@ -35,17 +41,57 @@ bool CalculateDebugColor(in SurfaceData2D surfaceData, out half4 debugColor)
             return true;
         }
 
-        case DEBUGMATERIALMODE_NONE:
+        default:
         {
-            return CalculateColorForDebugSceneOverride(debugColor);
+            debugColor = _DebugColorInvalidMode;
+            return true;
+        }
+    }
+}
+
+bool CalculateDebugColorForRenderingSettings(in SurfaceData2D surfaceData, out half4 debugColor)
+{
+    return CalculateColorForDebugSceneOverride(debugColor);
+}
+
+bool CalculateDebugColorLightingSettings(in SurfaceData2D surfaceData, out half4 debugColor)
+{
+    switch(_DebugLightingMode)
+    {
+        case DEBUGLIGHTINGMODE_SHADOW_CASCADES:
+        case DEBUGLIGHTINGMODE_REFLECTIONS:
+        case DEBUGLIGHTINGMODE_REFLECTIONS_WITH_SMOOTHNESS:
+        {
+            debugColor = _DebugColorInvalidMode;
+            return true;
         }
 
         default:
         {
-            // We cannot display anything sensible for this mode - so display a color which tells us this...
-            debugColor = half4(0.5h, 0.25h, 0, 1);
-            return true;
+            debugColor = 0;
+            return false;
         }
+    }       // End of switch.
+}
+
+bool CalculateDebugColor(in SurfaceData2D surfaceData, out half4 debugColor)
+{
+    if(CalculateDebugColorMaterialSettings(surfaceData, debugColor))
+    {
+        return true;
+    }
+    else if(CalculateDebugColorForRenderingSettings(surfaceData, debugColor))
+    {
+        return true;
+    }
+    else if(CalculateDebugColorLightingSettings(surfaceData, debugColor))
+    {
+        return true;
+    }
+    else
+    {
+        debugColor = 0;
+        return false;
     }
 }
 #endif

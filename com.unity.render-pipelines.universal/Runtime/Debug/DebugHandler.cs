@@ -11,6 +11,8 @@ namespace UnityEngine.Rendering.Universal
     public class DebugHandler : IDebugDisplaySettingsQuery
     {
         private static readonly int s_DebugColorPropertyId = Shader.PropertyToID("_DebugColor");
+        private static readonly int s_DebugColorInvalidModePropertyId = Shader.PropertyToID("_DebugColorInvalidMode");
+        private static readonly int s_DebugNumberTexturePropertyId = Shader.PropertyToID("_DebugNumberTexture");
 
         private readonly Material m_FullScreenDebugMaterial;
         private readonly Texture2D m_NumberFontTexture;
@@ -207,7 +209,8 @@ namespace UnityEngine.Rendering.Universal
             cmd.SetGlobalInt(m_DebugValidationModeId, (int)ValidationSettings.validationMode);
 
             // Set-up any other persistent properties...
-            cmd.SetGlobalTexture("_DebugNumberTexture", m_NumberFontTexture);
+            cmd.SetGlobalColor(s_DebugColorInvalidModePropertyId, Color.red);
+            cmd.SetGlobalTexture(s_DebugNumberTexturePropertyId, m_NumberFontTexture);
 
             context.ExecuteCommandBuffer(cmd);
             CommandBufferPool.Release(cmd);

@@ -24,6 +24,10 @@ half4 CombinedShapeLightShared(in SurfaceData2D surfaceData)
     {
         return debugColor;
     }
+    else if((_DebugLightingMode == DEBUGLIGHTINGMODE_LIGHT_ONLY) || (_DebugLightingMode == DEBUGLIGHTINGMODE_LIGHT_DETAIL))
+    {
+        color = half4(1, 1, 1, alpha);
+    }
     #endif
 
     color = color * _RendererColor; // This is needed for sprite shape
@@ -102,8 +106,8 @@ half4 CombinedShapeLightShared(in SurfaceData2D surfaceData)
 #endif
 
     finalOutput.a = alpha;
+    finalOutput = lerp(color, finalOutput, _UseSceneLighting);
 
-    finalOutput = finalOutput *_UseSceneLighting + (1 - _UseSceneLighting)*color;
     return max(0, finalOutput);
 }
 #endif
