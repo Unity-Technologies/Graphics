@@ -14,7 +14,7 @@ This Project Template uses the following features:
 
 This Template utilizes the High Definition Render Pipeline.
 
-The High-Definition Render Pipeline prioritizes stunning, high-fidelity visuals and is intended for high-end hardware: GPU-compute-capable consoles, and PC hardware (DX11 and above, Xbox One, PS4, PS5, Metal (macOS),
+The High-Definition Render Pipeline prioritizes stunning, high-fidelity visuals and is intended for high-end hardware: GPU-compute-capable consoles, and PC hardware (DX11 and above, Xbox One, Xbox Series, PS4, PS5, Metal (macOS),
 and Vulkan (PC)).
 
 Because this Template was created to deliver great visuals the render pipeline asset, project, lighting, and post-processing settings have been tuned with a high-end experience in mind. This makes it a great starting point
