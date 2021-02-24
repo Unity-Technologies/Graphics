@@ -355,17 +355,17 @@ namespace UnityEditor.Rendering
             var componentProp = m_ComponentsProperty.GetArrayElementAtIndex(m_ComponentsProperty.arraySize - 1);
             componentProp.objectReferenceValue = component;
 
+            // Create & store the internal editor object for this effect
+            CreateEditor(component, componentProp, forceOpen: true);
+
+            m_SerializedObject.ApplyModifiedProperties();
+
             // Force save / refresh
             if (EditorUtility.IsPersistent(asset))
             {
                 EditorUtility.SetDirty(asset);
                 AssetDatabase.SaveAssets();
             }
-
-            // Create & store the internal editor object for this effect
-            CreateEditor(component, componentProp, forceOpen: true);
-
-            m_SerializedObject.ApplyModifiedProperties();
         }
 
         internal void RemoveComponent(int id)
