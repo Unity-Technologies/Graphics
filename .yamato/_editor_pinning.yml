@@ -53,7 +53,7 @@ editor-pinning-update:
                      fi
       -  git config --global user.name "noreply@unity3d.com"
       -  git config --global user.email "noreply@unity3d.com"
-      -  pipenv run python3 .yamato/script/editor_scripts/update_revisions.py --target-branch ci/editor-pinning --force-push
+      -  pipenv run python3 .yamato/script/editor_scripts/update_revisions.py --target-branch ci/editor-pinning
     dependencies:
       -  .yamato/_editor_pinning.yml#editor-pinning-target-to-ci
     triggers:

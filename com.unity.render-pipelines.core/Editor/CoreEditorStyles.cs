@@ -1,4 +1,5 @@
 using UnityEngine;
+using UnityEngine.Experimental.Rendering;
 
 namespace UnityEditor.Rendering
 {
@@ -43,12 +44,15 @@ namespace UnityEditor.Rendering
         /// <summary>Hightlited background color.</summary>
         public static Color backgroundHighlightColor { get { return EditorGUIUtility.isProSkin ? m_DarkThemeBackgroundHighlightColor : m_LightThemeBackgroundHighlightColor; } }
 
+        public static GUIContent iconHelp { get; }
+        public static GUIStyle iconHelpStyle { get; }
+
         static CoreEditorStyles()
         {
             smallTickbox = new GUIStyle("ShurikenToggle");
             smallMixedTickbox = new GUIStyle("ShurikenToggleMixed");
 
-            var transparentTexture = new Texture2D(1, 1, TextureFormat.ARGB32, false);
+            var transparentTexture = new Texture2D(1, 1, GraphicsFormat.R8G8B8A8_SRGB, TextureCreationFlags.None);
             transparentTexture.SetPixel(0, 0, Color.clear);
             transparentTexture.Apply();
 
@@ -83,6 +87,9 @@ namespace UnityEditor.Rendering
             var contextTooltip = ""; // To be defined (see with UX)
             contextMenuIcon = new GUIContent(paneOptionsIcon, contextTooltip);
             contextMenuStyle = new GUIStyle("IconButton");
+
+            iconHelp = new GUIContent(EditorGUIUtility.FindTexture("_Help"));
+            iconHelpStyle = GUI.skin.FindStyle("IconButton") ?? EditorGUIUtility.GetBuiltinSkin(EditorSkin.Inspector).FindStyle("IconButton");
         }
     }
 }
