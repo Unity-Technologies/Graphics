@@ -26,9 +26,9 @@ public class ArrayDrawer : MonoBehaviour
             _props = new MaterialPropertyBlock();
 
         var origin = transform.position + new Vector3(
-                interval * columns * -0.5f,
-                interval * columns * -0.5f, 0f
-            );
+            interval * columns * -0.5f,
+            interval * columns * -0.5f, 0f
+        );
         var rotation = transform.rotation;
         var scale = Vector3.one * cellSize;
 
