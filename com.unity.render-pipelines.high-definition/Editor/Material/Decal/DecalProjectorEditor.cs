@@ -512,6 +512,10 @@ namespace UnityEditor.Rendering.HighDefinition
 
             // change was not tracked by SerializeReference so force repaint the scene views and game views
             UnityEditorInternal.InternalEditorUtility.RepaintAllViews();
+
+            // strange: we need to force it throu serialization to update multiple differente value state (value are right but still detected as different)
+            if (m_SizeValues[axe].hasMultipleDifferentValues)
+                m_SizeValues[axe].floatValue = newSize;
         }
 
         public override void OnInspectorGUI()
@@ -546,13 +550,7 @@ namespace UnityEditor.Rendering.HighDefinition
                 if (EditorGUI.EndChangeCheck())
                 {
                     for (int i = 0; i < 2; ++i)
-                    {
-                        float clampedSize = Mathf.Max(0, size[i]);
-                        UpdateSize(i, clampedSize);
-
-                        // strange: we need to force it throu serialization to update multiple differente value state
-                        m_SizeValues[i].floatValue = clampedSize;
-                    }
+                        UpdateSize(i, Mathf.Max(0, size[i]));
                 }
                 EditorGUI.showMixedValue = savedHasMultipleDifferentValue;
                 EditorGUI.EndProperty();
