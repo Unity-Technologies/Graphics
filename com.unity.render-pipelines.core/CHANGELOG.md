@@ -10,6 +10,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed missing warning UI about Projector component being unsupported (case 1300327).
 - Fixed the display name of a Volume Parameter when is defined the attribute InspectorName
 - Calculating correct rtHandleScale by considering the possible pixel rounding when DRS is on
+- Problem on domain reload of Volume Parameter Ranges and UI values
 
 ### Added
 - Support for the PlayStation 5 platform has been added.
