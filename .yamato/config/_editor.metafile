@@ -55,8 +55,23 @@ nightly_job_definition: .yamato%252F_abv.yml%2523all_project_ci_nightly_trunk
 green_revision_jobs:
   - _Nightly ABV against trunk
   
-  - Nightly Universal - trunk
-  - Universal PR Job - trunk
+  - Nightly Universal_Split - trunk
+  - Universal_Split PR Job - trunk
+
+  - Nightly URP_2D - trunk
+  - URP_2D PR Job - trunk
+
+  - Nightly URP_Foundation - trunk
+  - URP_Foundation PR Job - trunk
+
+  - Nightly URP_Lighting - trunk
+  - URP_Lighting PR Job - trunk
+
+  - Nightly URP_PostPro - trunk
+  - URP_PostPro PR Job - trunk
+
+  - Nightly URP_Terrain - trunk
+  - URP_Terrain PR Job - trunk
   
   - Nightly HDRP - trunk
   - HDRP PR Job - trunk

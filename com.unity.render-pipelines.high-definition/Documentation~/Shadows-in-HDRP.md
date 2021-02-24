@@ -44,7 +44,7 @@ In HDRP, each individual Light component controls its own shadow biasing using t
 - **Slope-Scale Depth Bias**
 - **Normal Bias**
 
-Find these settings under the **Shadows** section. If some of the property fields are missing, click the [more options](More-Options.md) gear to expose them. For details on how each property controls the shadow biasing, see the [Light documentation](Light-Component.md).
+Find these settings under the **Shadows** section. If some of the property fields are missing, enable [additional properties](More-Options.md) to show them. For details on how each property controls the shadow biasing, see the [Light documentation](Light-Component.md).
 
 ![](Images/Shadows1.png)
 
@@ -131,6 +131,8 @@ If the shadow atlas is full when a Light requests a spot, the cached shadow mana
 
 After a Scene loads with all the already placed Lights, if you add a new Light with cached shadows to the Scene, HDRP tries to place it in order to fill the holes in the atlas. However, depending on the order of insertion, the atlas may be fragmented and the holes available are not enough to place the Light's shadow map in. In this case, you can defragment the atlas to allow for additional Lights. To do this, pass the target atlas into the following function: `HDCachedShadowManager.instance.DefragAtlas`
 Note that this causes HDRP to mark all the shadow maps in the atlas as dirty which means HDRP renders them the moment their parent Light becomes visible.
+
+It is possible to check if a light has its shadow maps has a placement in the cached shadow atlas   `HDCachedShadowManager.instance.LightHasBeenPlacedInAtlas` and if it has been placed and rendered at least once with `HDCachedShadowManager.instance.LightHasBeenPlaceAndRenderedAtLeastOnce`.
 
 ### Preserving shadow atlas placement
 

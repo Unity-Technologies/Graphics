@@ -29,7 +29,7 @@ namespace UnityEditor.Rendering.HighDefinition
 
             //Headers
             public static GUIContent filtersHeader = new GUIContent("Filters", "Filters.");
-            public static GUIContent renderHeader = new GUIContent("Overrides", "Different parts fo the rendering that you can choose to override.");
+            public static GUIContent renderHeader = new GUIContent("Overrides", "Different parts of the rendering that you can choose to override.");
 
             //Filters
             public static GUIContent renderQueueFilter = new GUIContent("Queue", "Filter the render queue range you want to render.");
@@ -40,11 +40,11 @@ namespace UnityEditor.Rendering.HighDefinition
             public static GUIContent overrideMaterial = new GUIContent("Material", "Chose an override material, every renderer will be rendered with this material.");
             public static GUIContent overrideMaterialPass = new GUIContent("Pass Name", "The pass for the override material to use.");
             public static GUIContent sortingCriteria = new GUIContent("Sorting", "Sorting settings used to render objects in a certain order.");
-            public static GUIContent shaderPass = new GUIContent("Shader Pass", "Sets which pass will be used to render the materials. If the pass does not exists, the material will not be rendered.");
+            public static GUIContent shaderPass = new GUIContent("Shader Pass", "Sets which pass will be used to render the materials. If the pass does not exist, the material will not be rendered.");
 
             //Depth Settings
             public static GUIContent overrideDepth = new GUIContent("Override Depth", "Override depth state of the objects rendered.");
-            public static GUIContent depthWrite = new GUIContent("Write Depth", "Chose to write depth to the screen.");
+            public static GUIContent depthWrite = new GUIContent("Write Depth", "Choose to write depth to the screen.");
             public static GUIContent depthCompareFunction = new GUIContent("Depth Test", "Choose a new test setting for the depth.");
 
             //Camera Settings
@@ -54,9 +54,9 @@ namespace UnityEditor.Rendering.HighDefinition
             public static GUIContent restoreCamera = new GUIContent("Restore", "Restore to the original camera projection before this pass.");
 
             public static string unlitShaderMessage = "HDRP Unlit shaders will force the shader passes to \"ForwardOnly\"";
-            public static string hdrpLitShaderMessage = "HDRP Lit shaders are not supported in a custom pass";
-            public static string opaqueObjectWithDeferred = "Your HDRP settings does not support ForwardOnly, some object might not render.";
-            public static string objectRendererTwiceWithMSAA = "MSAA is enabled, re-rendering same object twice will cause depth test artifacts in Before/After Post Process injection points";
+            public static string hdrpLitShaderMessage = "HDRP Lit shaders are not supported in a Custom Pass";
+            public static string opaqueObjectWithDeferred = "Your HDRP settings do not support ForwardOnly, some objects might not render.";
+            public static string objectRendererTwiceWithMSAA = "MSAA is enabled, re-rendering the same object twice will cause depth test artifacts in Before/After Post Process injection points";
         }
 
         //Headers and layout

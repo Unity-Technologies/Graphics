@@ -18,7 +18,7 @@ test_platforms:
   - type: playmode
     name: playmode_XR
     utr_flags:
-      - [all]: --extra-editor-arg="-xr-reuse-tests" 
+      - [all]: --extra-editor-arg="-xr-reuse-tests"
       - [all]: --compilation-errors-as-warnings
   - type: playmode
     name: playmode_XR_cache
@@ -41,14 +41,6 @@ test_platforms:
       - [all]: --compilation-errors-as-warnings
   - type: Standalone
     name: Standalone_cache
-    utr_flags:
-    - [all]: --compilation-errors-as-warnings
-    - [all]: --extra-editor-arg="-adb2"
-    - [all]: --extra-editor-arg="-enableCacheServer"
-    - [all]: --extra-editor-arg="-cacheServerEndpoint" --extra-editor-arg="cacheserver-slo.hq.unity3d.com"
-    - [all]: --extra-editor-arg="-cacheServerNamespacePrefix" --extra-editor-arg="SRP"
-    - [all]: --extra-editor-arg="-cacheServerEnableDownload" --extra-editor-arg="true"
-    - [all]: --extra-editor-arg="-cacheServerEnableUpload" --extra-editor-arg="true"
     utr_flags_build:
     - [all]: --compilation-errors-as-warnings
     - [all]: --timeout=3000
@@ -58,7 +50,7 @@ test_platforms:
     - [all]: --extra-editor-arg="-cacheServerNamespacePrefix" --extra-editor-arg="SRP"
     - [all]: --extra-editor-arg="-cacheServerEnableDownload" --extra-editor-arg="true"
     - [all]: --extra-editor-arg="-cacheServerEnableUpload" --extra-editor-arg="true"
-expression_trigger: 
+expression_trigger:
   expression: ""
 platforms:
   - name: Win
@@ -89,7 +81,7 @@ platforms:
         type: Unity::VM
         image: graphics-foundation/win10-dxr:stable
         flavor: b1.xlarge
-  - name: OSX 
+  - name: OSX
     apis:
       - name: Metal
         exclude_test_platforms:
@@ -99,7 +91,7 @@ platforms:
     color_spaces:
       - Linear
   - name: Linux
-    apis: 
+    apis:
       - name: OpenGLCore
         exclude_test_platforms:
           - name: Standalone
@@ -121,7 +113,8 @@ pr:
       build_config: mono
       color_space: Linear
       test_platforms:
-        - playmode_cache
+        - playmode
+        #- playmode_cache
 nightly:
   dependencies:
     - platform: Win
@@ -129,6 +122,7 @@ nightly:
       build_config: mono
       color_space: Linear
       test_platforms:
-        - playmode_XR_cache
+        - playmode_XR
+        #- playmode_XR_cache
     - project: HDRP_Hybrid
       pr: true

@@ -140,7 +140,7 @@ namespace UnityEditor.Graphing
                 nodeList.Add(node);
         }
 
-        private static List<AbstractMaterialNode> GetParentNodes(AbstractMaterialNode node)
+        internal static List<AbstractMaterialNode> GetParentNodes(AbstractMaterialNode node)
         {
             List<AbstractMaterialNode> nodeList = new List<AbstractMaterialNode>();
             var ids = node.GetInputSlots<MaterialSlot>().Select(x => x.id);
@@ -943,7 +943,7 @@ namespace UnityEditor.Graphing
         public static bool ValidateSlotName(string inName, out string errorMessage)
         {
             //check for invalid characters between display safe and hlsl safe name
-            if (GetDisplaySafeName(inName) != GetHLSLSafeName(inName))
+            if (GetDisplaySafeName(inName) != GetHLSLSafeName(inName) && GetDisplaySafeName(inName) != ConvertToValidHLSLIdentifier(inName))
             {
                 errorMessage = "Slot name(s) found invalid character(s). Valid characters: A-Z, a-z, 0-9, _ ( ) ";
                 return true;
