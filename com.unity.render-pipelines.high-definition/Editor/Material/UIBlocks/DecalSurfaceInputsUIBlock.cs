@@ -30,7 +30,6 @@ namespace UnityEditor.Rendering.HighDefinition
             public static GUIContent maskMapBlueScaleText = new GUIContent("Scale Mask Map Blue Channel", "Controls the scale of the blue channel of the Mask Map. You can use this as opacity depending on the blend source you choose.");
             public static GUIContent opacityBlueScaleText = new GUIContent("Mask Opacity", "Controls the opacity of the Mask (Metallic, Ambient Occlusion, Smoothness). You can use this as opacity depending on the blend source you choose.");
             public static GUIContent useEmissionIntensityText = new GUIContent("Use Emission Intensity", "When enabled, this Material separates emission color and intensity. This makes the Emission Map into an LDR color and exposes the Emission Intensity property.");
-            public static GUIContent emissionMapText = new GUIContent("Emission Map", "Specifies a map (RGB) that the Material uses for emission.");
             public static GUIContent emissiveIntensityText = new GUIContent("Emission Intensity", "Sets the overall strength of the emission effect.");
             public static GUIContent emissiveExposureWeightText = new GUIContent("Exposure weight", "Controls how the camera exposure influences the perceived intensity of the emissivity. A weight of 0 means that the emissive intensity is calculated ignoring the exposure; increasing this weight progressively increases the influence of exposure on the final emissive value.");
             public static GUIContent decalLayerText = new GUIContent("Decal Layer", "Specifies the current Decal Layers that the Decal affects.This Decal affect corresponding Material with the same Decal Layer flags.");
@@ -220,7 +219,7 @@ namespace UnityEditor.Rendering.HighDefinition
             if (materials.All(m => m.GetTexture(kNormalMap)))
             {
                 EditorGUI.indentLevel++;
-                PopupShaderProperty(normalBlendSrc, Styles.normalOpacityChannelText, allMaskMap ? blendSourceNames : blendSourceNamesNoMap);
+                materialEditor.PopupShaderProperty(normalBlendSrc, Styles.normalOpacityChannelText, allMaskMap ? blendSourceNames : blendSourceNamesNoMap);
                 EditorGUI.indentLevel--;
             }
 
@@ -230,11 +229,11 @@ namespace UnityEditor.Rendering.HighDefinition
             {
                 if (perChannelMask)
                 {
-                    MinMaxShaderProperty(metallicRemapMin, metallicRemapMax, 0.0f, 1.0f, Styles.metallicRemappingText);
-                    MinMaxShaderProperty(AORemapMin, AORemapMax, 0.0f, 1.0f, Styles.aoRemappingText);
+                    materialEditor.MinMaxShaderProperty(metallicRemapMin, metallicRemapMax, 0.0f, 1.0f, Styles.metallicRemappingText);
+                    materialEditor.MinMaxShaderProperty(AORemapMin, AORemapMax, 0.0f, 1.0f, Styles.aoRemappingText);
                 }
 
-                MinMaxShaderProperty(smoothnessRemapMin, smoothnessRemapMax, 0.0f, 1.0f, Styles.smoothnessRemappingText);
+                materialEditor.MinMaxShaderProperty(smoothnessRemapMin, smoothnessRemapMax, 0.0f, 1.0f, Styles.smoothnessRemappingText);
             }
             else
             {
@@ -246,7 +245,7 @@ namespace UnityEditor.Rendering.HighDefinition
                 materialEditor.ShaderProperty(smoothness, Styles.smoothnessText);
             }
 
-            PopupShaderProperty(maskBlendSrc, Styles.normalOpacityChannelText, allMaskMap ? blendSourceNames : blendSourceNamesNoMap);
+            materialEditor.PopupShaderProperty(maskBlendSrc, Styles.normalOpacityChannelText, allMaskMap ? blendSourceNames : blendSourceNamesNoMap);
 
             EditorGUI.indentLevel--;
 
@@ -260,14 +259,14 @@ namespace UnityEditor.Rendering.HighDefinition
             if (useEmissiveIntensity.floatValue == 0.0f)
             {
                 EditorGUI.BeginChangeCheck();
-                materialEditor.TexturePropertySingleLine(Styles.emissionMapText, emissiveColorMap, emissiveColorHDR);
+                EmissionUIBlock.DoEmissiveTextureProperty(materialEditor, emissiveColorMap, emissiveColorLDR);
                 if (EditorGUI.EndChangeCheck() || updateEmissiveColor)
                     emissiveColor.colorValue = emissiveColorHDR.colorValue;
             }
             else
             {
                 EditorGUI.BeginChangeCheck();
-                materialEditor.TexturePropertySingleLine(Styles.emissionMapText, emissiveColorMap, emissiveColorLDR);
+                EmissionUIBlock.DoEmissiveTextureProperty(materialEditor, emissiveColorMap, emissiveColorLDR);
                 EmissionUIBlock.DoEmissiveIntensityGUI(materialEditor, emissiveIntensity, emissiveIntensityUnit);
                 if (EditorGUI.EndChangeCheck() || updateEmissiveColor)
                     EmissionUIBlock.UpdateEmissiveColorFromIntensityAndEmissiveColorLDR(materialEditor, materials);
