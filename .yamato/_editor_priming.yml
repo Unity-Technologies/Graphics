@@ -39,7 +39,7 @@ editor:priming:test_min_editor:Win:
     commands:
       -  pip install unity-downloader-cli --user --upgrade --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
       -  python3 .yamato/script/editor_scripts/get_minimum_editor_version.py tmp_unity_revision.txt
-      -  unity-downloader-cli --source-file tmp_unity_revision.txt -c windows --wait --skip-download -c editor -c il2cpp  > unity_revision.txt
+      -  unity-downloader-cli --source-file tmp_unity_revision.txt -o windows --wait --skip-download -c editor -c il2cpp  > unity_revision.txt
       -  rm tmp_unity_revision.txt
     artifacts:
         unity_revision.zip:
@@ -77,7 +77,7 @@ editor:priming:test_min_editor:OSX:
     commands:
       -  pip install unity-downloader-cli --user --upgrade --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
       -  python3 .yamato/script/editor_scripts/get_minimum_editor_version.py tmp_unity_revision.txt
-      -  unity-downloader-cli --source-file tmp_unity_revision.txt -c macos --wait --skip-download -c editor -c il2cpp  > unity_revision.txt
+      -  unity-downloader-cli --source-file tmp_unity_revision.txt -o macos --wait --skip-download -c editor -c il2cpp  > unity_revision.txt
       -  rm tmp_unity_revision.txt
     artifacts:
         unity_revision.zip:
@@ -115,7 +115,7 @@ editor:priming:test_min_editor:Linux:
     commands:
       -  pip install unity-downloader-cli --user --upgrade --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
       -  python3 .yamato/script/editor_scripts/get_minimum_editor_version.py tmp_unity_revision.txt
-      -  unity-downloader-cli --source-file tmp_unity_revision.txt -c linux --wait --skip-download -c editor -c il2cpp  > unity_revision.txt
+      -  unity-downloader-cli --source-file tmp_unity_revision.txt -o linux --wait --skip-download -c editor -c il2cpp  > unity_revision.txt
       -  rm tmp_unity_revision.txt
     artifacts:
         unity_revision.zip:
@@ -153,7 +153,7 @@ editor:priming:test_min_editor:Android:
     commands:
       -  pip install unity-downloader-cli --user --upgrade --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
       -  python3 .yamato/script/editor_scripts/get_minimum_editor_version.py tmp_unity_revision.txt
-      -  unity-downloader-cli --source-file tmp_unity_revision.txt -c windows --wait --skip-download -c editor -c il2cpp -c android  > unity_revision.txt
+      -  unity-downloader-cli --source-file tmp_unity_revision.txt -o windows --wait --skip-download -c editor -c il2cpp -c android  > unity_revision.txt
       -  rm tmp_unity_revision.txt
     artifacts:
         unity_revision.zip:
@@ -191,7 +191,7 @@ editor:priming:test_min_editor:iPhone:
     commands:
       -  pip install unity-downloader-cli --user --upgrade --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
       -  python3 .yamato/script/editor_scripts/get_minimum_editor_version.py tmp_unity_revision.txt
-      -  unity-downloader-cli --source-file tmp_unity_revision.txt -c macos --wait --skip-download -c editor -c il2cpp -c ios  > unity_revision.txt
+      -  unity-downloader-cli --source-file tmp_unity_revision.txt -o macos --wait --skip-download -c editor -c il2cpp -c ios  > unity_revision.txt
       -  rm tmp_unity_revision.txt
     artifacts:
         unity_revision.zip:
