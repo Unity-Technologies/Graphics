@@ -47,13 +47,13 @@ VFXUVData GetUVData(VFX_VARYING_PS_INPUTS i,float2 uv) // uvs are provided from 
         float flipBookSize = i.VFX_VARYING_FLIPBOOKSIZE;
     #else
         float flipBookSize = 1.0f;
-    #endif 
+    #endif
 #else
     #ifdef VFX_VARYING_FLIPBOOKSIZE
         float2 flipBookSize = i.VFX_VARYING_FLIPBOOKSIZE;
     #else
         float2 flipBookSize = float2(1, 1);
-    #endif  
+    #endif
 #endif
 
 #ifdef VFX_VARYING_INVFLIPBOOKSIZE

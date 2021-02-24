@@ -79,7 +79,6 @@ namespace UnityEditor.VFX
             get
             {
                 yield return new VFXPropertyWithValue(new VFXProperty(GetFlipbookType(), "mainTexture", new TooltipAttribute("Specifies the base color (RGB) and opacity (A) of the particle.")), (usesFlipbook ? null : VFXResources.defaultResources.particleTexture));
-
             }
         }
         protected override IEnumerable<VFXPropertyWithValue> inputProperties

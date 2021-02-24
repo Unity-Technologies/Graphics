@@ -120,7 +120,7 @@
       * [Global Settings](Context-OutputSharedSettings.md)
       * [Lit Output Settings](Context-OutputLitSettings.md)
     * [Spawn](Context-Spawn.md)
-    * [Update Particle](Context-Update.md)  
+    * [Update Particle](Context-Update.md)
   * Operator
     * Attribute
       * [Age Over Lifetime](Operator-AgeOverLifetime.md)

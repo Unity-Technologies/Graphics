@@ -1,6 +1,6 @@
 ## Loading and sampling
 
-In the Visual Effect Graph, there are multiple Operators that can read texel values from a texture. In the underlying (HLSL), some of them use Load() and others use Sample(). 
+In the Visual Effect Graph, there are multiple Operators that can read texel values from a texture. In the underlying (HLSL), some of them use Load() and others use Sample().
 
 The differences between the Operators that use Load() and Operators that use Sample() is as follows:
 
