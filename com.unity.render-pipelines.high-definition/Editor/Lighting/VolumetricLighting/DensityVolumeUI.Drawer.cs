@@ -191,6 +191,25 @@ namespace UnityEditor.Rendering.HighDefinition
         {
             EditorGUILayout.PropertyField(serialized.volumeShader, Styles.s_VolumeShaderLabel);
             EditorGUILayout.PropertyField(serialized.volumeShaderResolution, Styles.s_VolumeShaderResolutionLabel);
+            Vector3Int res = serialized.volumeShaderResolution.vector3IntValue;
+            Vector3Int fixedRes = DensityVolume.FixupDynamicVolumeResolution(res);
+            if (fixedRes != res)
+            {
+                EditorGUILayout.LabelField(
+                    string.Format(
+                        "Effective resolution: {0} x {1} x {2}",
+                        fixedRes.x,
+                        fixedRes.y,
+                        fixedRes.z
+                    )
+                );
+                EditorGUILayout.LabelField(
+                    string.Format(
+                        "(Resolution must be non-zero and a multiple of {0})",
+                        DensityVolume.RESOLUTION_QUANTUM
+                    )
+                );
+            }
         }
     }
 }

@@ -177,6 +177,27 @@ namespace UnityEngine.Rendering.HighDefinition
         /// <summary>Action shich should be performed after updating the texture.</summary>
         public Action OnTextureUpdated;
 
+        /// <summary>
+        ///  If the user is runs a compute shader to write to a volume subatlas, the subatlas
+        ///  resolution needs to be a multiple of a number, e.g. 8. Then the compute shader
+        ///  can be dispatched using [numthreads(8,8,8)] for a balance of SM occupancy and GPU
+        ///  scheduling.
+        /// </summary>
+        public const int RESOLUTION_QUANTUM = 8;
+        /// <summary>
+        /// If the UI resolution is invalid, fix it so that it is a positive multiple of the
+        /// resolution quantum.
+        /// </summary>
+        internal static Vector3Int FixupDynamicVolumeResolution(Vector3Int inRes)
+        {
+            const int Q = RESOLUTION_QUANTUM;
+            Vector3Int outRes = new Vector3Int(
+                (inRes.x / Q) * Q,
+                (inRes.y / Q) * Q,
+                (inRes.z / Q) * Q
+            );
+            return Vector3Int.Max(new Vector3Int(Q, Q, Q), outRes);
+        }
 
         /// <summary>Gather and Update any parameters that may have changed.</summary>
         internal void PrepareParameters(bool animate, float time)

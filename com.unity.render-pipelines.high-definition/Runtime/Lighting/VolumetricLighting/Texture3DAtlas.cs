@@ -100,8 +100,6 @@ namespace UnityEngine.Rendering.HighDefinition
 
         public void UpdateAtlas(CommandBuffer cmd, ComputeShader blit3dShader)
         {
-            const int NUM_THREADS = 8; // Defined as [numthreads(8,8,8)] in the compute shader
-
             if (m_updateAtlas)
             {
                 m_updateAtlas = false;
@@ -118,7 +116,7 @@ namespace UnityEngine.Rendering.HighDefinition
                         Vector3Int curDim = new Vector3Int();
                         if (v.parameters.volumeShader != null)
                         {
-                            curDim = v.parameters.volumeShaderResolution;
+                            curDim = DensityVolume.FixupDynamicVolumeResolution(v.parameters.volumeShaderResolution);
                         }
                         else if (v.parameters.volumeMask != null)
                         {
@@ -158,7 +156,7 @@ namespace UnityEngine.Rendering.HighDefinition
                             Vector3Int curDim = new Vector3Int();
                             if (v.parameters.volumeShader != null)
                             {
-                                curDim = v.parameters.volumeShaderResolution;
+                                curDim = DensityVolume.FixupDynamicVolumeResolution(v.parameters.volumeShaderResolution);
                             }
                             else if (v.parameters.volumeMask != null)
                             {
@@ -210,9 +208,9 @@ namespace UnityEngine.Rendering.HighDefinition
                         cmd.DispatchCompute(
                             cs,
                             0,
-                            v.parameters.volumeMask.width / NUM_THREADS,
-                            v.parameters.volumeMask.height / NUM_THREADS,
-                            v.parameters.volumeMask.depth / NUM_THREADS
+                            v.parameters.volumeMask.width / DensityVolume.RESOLUTION_QUANTUM,
+                            v.parameters.volumeMask.height / DensityVolume.RESOLUTION_QUANTUM,
+                            v.parameters.volumeMask.depth / DensityVolume.RESOLUTION_QUANTUM
                         );
                     }
                     RenderTexture.active = oldRt;
@@ -242,9 +240,9 @@ namespace UnityEngine.Rendering.HighDefinition
                         cmd.DispatchCompute(
                             cs,
                             0,
-                            v.parameters.volumeShaderResolution.x / NUM_THREADS,
-                            v.parameters.volumeShaderResolution.y / NUM_THREADS,
-                            v.parameters.volumeShaderResolution.z / NUM_THREADS
+                            v.parameters.volumeShaderResolution.x / DensityVolume.RESOLUTION_QUANTUM,
+                            v.parameters.volumeShaderResolution.y / DensityVolume.RESOLUTION_QUANTUM,
+                            v.parameters.volumeShaderResolution.z / DensityVolume.RESOLUTION_QUANTUM
                         );
                     }
                 }
