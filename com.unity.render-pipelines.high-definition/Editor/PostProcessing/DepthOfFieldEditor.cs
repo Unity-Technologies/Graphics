@@ -122,8 +122,16 @@ namespace UnityEditor.Rendering.HighDefinition
 
                 PropertyField(m_Resolution);
                 PropertyField(m_HighQualityFiltering);
-                if (PropertyField(m_PhysicallyBased) && m_PhysicallyBased.value.boolValue == true)
-                    EditorGUILayout.HelpBox(Styles.InfoBox, MessageType.Info);
+                PropertyField(m_PhysicallyBased);
+                if (m_PhysicallyBased.value.boolValue)
+                {
+                    if (BeginAdditionalPropertiesScope())
+                    {
+                        EditorGUILayout.Space();
+                        EditorGUILayout.HelpBox(Styles.InfoBox, MessageType.Info);
+                    }
+                    EndAdditionalPropertiesScope();
+                }
             }
         }
 

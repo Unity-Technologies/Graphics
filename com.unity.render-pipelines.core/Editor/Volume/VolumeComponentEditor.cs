@@ -120,8 +120,8 @@ namespace UnityEditor.Rendering
 
         #region Additional Properties
 
-        AnimFloat             m_AdditionalPropertiesAnimation;
-        EditorPrefBool        m_ShowAdditionalProperties;
+        AnimFloat m_AdditionalPropertiesAnimation;
+        EditorPrefBool m_ShowAdditionalProperties;
         List<VolumeParameter> m_VolumeNotAdditionalParameters;
 
         /// <summary>
@@ -147,18 +147,35 @@ namespace UnityEditor.Rendering
             }
         }
 
-        class AdditionalPropertiesScope : IDisposable
+        /// <summary>
+        /// Start a scope for additional properties.
+        /// This will handle the highlight of the background when toggled on and off.
+        /// </summary>
+        /// <returns>True if the additional content should be drawn.</returns>
+        protected bool BeginAdditionalPropertiesScope()
         {
-            internal AdditionalPropertiesScope(AnimFloat animFloat)
+            if (hasAdditionalProperties && showAdditionalProperties)
             {
-                CoreEditorUtils.BeginAdditionalPropertiesHighlight(animFloat);
+                CoreEditorUtils.BeginAdditionalPropertiesHighlight(m_AdditionalPropertiesAnimation);
+                return true;
             }
+            else
+            {
+                return false;
+            }
+        }
 
-            void IDisposable.Dispose()
+        /// <summary>
+        /// End a scope for additional properties.
+        /// </summary>
+        protected void EndAdditionalPropertiesScope()
+        {
+            if (hasAdditionalProperties && showAdditionalProperties)
             {
                 CoreEditorUtils.EndAdditionalPropertiesHighlight();
             }
         }
+
         #endregion
 
         /// <summary>
@@ -517,15 +534,12 @@ namespace UnityEditor.Rendering
             else
             {
                 // The user had selected the option 'Show additional Properties'?
-                if (hasAdditionalProperties && showAdditionalProperties)
+                if (BeginAdditionalPropertiesScope())
                 {
-                    // Handle the highlight, and draw the property
-                    using (new AdditionalPropertiesScope(m_AdditionalPropertiesAnimation))
-                    {
-                        DrawPropertyField(property, title);
-                        draw = true;
-                    }
+                    DrawPropertyField(property, title);
+                    draw = true;
                 }
+                EndAdditionalPropertiesScope();
             }
 
             // Return if the property has been

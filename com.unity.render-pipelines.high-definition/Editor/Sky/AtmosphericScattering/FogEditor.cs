@@ -153,12 +153,17 @@ namespace UnityEditor.Rendering.HighDefinition
                     }
 
                     PropertyField(m_DirectionalLightsOnly);
-                    if (PropertyField(m_Anisotropy, s_AnisotropyLabel) && m_Anisotropy.value.floatValue != 0.0f)
+                    PropertyField(m_Anisotropy, s_AnisotropyLabel);
+                    if (m_Anisotropy.value.floatValue != 0.0f)
                     {
-                        EditorGUILayout.Space();
-                        EditorGUILayout.HelpBox(
-                            "When the value is not 0, the anisotropy effect significantly increases the performance impact of volumetric fog.",
-                            MessageType.Info, wide: true);
+                        if (BeginAdditionalPropertiesScope())
+                        {
+                            EditorGUILayout.Space();
+                            EditorGUILayout.HelpBox(
+                                "When the value is not 0, the anisotropy effect significantly increases the performance impact of volumetric fog.",
+                                MessageType.Info, wide: true);
+                        }
+                        EndAdditionalPropertiesScope();
                     }
                 }
             }
