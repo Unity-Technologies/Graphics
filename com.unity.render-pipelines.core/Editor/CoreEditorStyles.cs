@@ -98,7 +98,7 @@ namespace UnityEditor.Rendering
             redTexture = CoreEditorUtils.CreateColoredTexture2D(Color.red);
             greenTexture = CoreEditorUtils.CreateColoredTexture2D(Color.green);
             blueTexture = CoreEditorUtils.CreateColoredTexture2D(Color.blue);
-          
+
             iconHelp = new GUIContent(EditorGUIUtility.FindTexture("_Help"));
             iconHelpStyle = GUI.skin.FindStyle("IconButton") ?? EditorGUIUtility.GetBuiltinSkin(EditorSkin.Inspector).FindStyle("IconButton");
         }
