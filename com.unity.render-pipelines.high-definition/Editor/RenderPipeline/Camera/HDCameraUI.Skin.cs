@@ -4,7 +4,7 @@ namespace UnityEditor.Rendering.HighDefinition
 {
     static partial class HDCameraUI
     {
-        const string generalSettingsHeaderContent = "General";
+        const string projectionSettingsHeaderContent = "Projection";
         const string renderingSettingsHeaderContent = "Rendering";
         const string physicalSettingsHeaderContent = "Physical Camera";
         const string environmentSettingsHeaderContent = "Environment";

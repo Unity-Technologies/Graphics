@@ -14,7 +14,7 @@ namespace UnityEditor.Rendering.HighDefinition
     {
         enum Expandable
         {
-            General = 1 << 0,
+            Projection = 1 << 0,
             Physical = 1 << 1,
             Output = 1 << 2,
             Orthographic = 1 << 3,
@@ -88,13 +88,13 @@ namespace UnityEditor.Rendering.HighDefinition
         static bool s_FovChanged;
         static float s_FovLastValue;
 
-        static readonly ExpandedState<Expandable, Camera> k_ExpandedState = new ExpandedState<Expandable, Camera>(Expandable.General, "HDRP");
+        static readonly ExpandedState<Expandable, Camera> k_ExpandedState = new ExpandedState<Expandable, Camera>(Expandable.Projection, "HDRP");
 
         static HDCameraUI()
         {
             Inspector = new[]
             {
-                SectionGeneralSettings,
+                SectionProjectionSettings,
                 SectionRenderingSettings,
                 SectionFrameSettings,
                 SectionEnvironmentSettings,
@@ -107,9 +107,9 @@ namespace UnityEditor.Rendering.HighDefinition
 
         public static readonly CED.IDrawer[] Inspector = null;
 
-        public static readonly CED.IDrawer SectionGeneralSettings = CED.FoldoutGroup(
-            generalSettingsHeaderContent,
-            Expandable.General,
+        public static readonly CED.IDrawer SectionProjectionSettings = CED.FoldoutGroup(
+            projectionSettingsHeaderContent,
+            Expandable.Projection,
             k_ExpandedState,
             FoldoutOption.Indent,
             CED.Group(
@@ -175,7 +175,7 @@ namespace UnityEditor.Rendering.HighDefinition
         );
 
         public static readonly CED.IDrawer SectionFrameSettings = CED.Conditional(
-            (serialized, owner) => k_ExpandedState[Expandable.General],
+            (serialized, owner) => k_ExpandedState[Expandable.Projection],
             CED.Group((serialized, owner) =>
             {
                 if (!serialized.passThrough.boolValue && serialized.customRenderingSettings.boolValue)
@@ -536,8 +536,12 @@ namespace UnityEditor.Rendering.HighDefinition
         static void Drawer_FieldClear(SerializedHDCamera p, Editor owner)
         {
             EditorGUILayout.PropertyField(p.clearColorMode, clearModeContent);
-            if(p.clearColorMode.GetEnumValue<HDAdditionalCameraData.ClearColorMode>() == HDAdditionalCameraData.ClearColorMode.Color)
+            if (p.clearColorMode.GetEnumValue<HDAdditionalCameraData.ClearColorMode>() == HDAdditionalCameraData.ClearColorMode.Color)
+            {
+                EditorGUI.indentLevel++;
                 EditorGUILayout.PropertyField(p.backgroundColorHDR, backgroundColorContent);
+                EditorGUI.indentLevel--;
+            }
 
             if (p.clearDepth.boolValue == false)
                 p.clearDepth.boolValue = true;
