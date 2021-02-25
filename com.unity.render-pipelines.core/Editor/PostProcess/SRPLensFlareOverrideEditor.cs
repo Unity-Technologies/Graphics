@@ -55,10 +55,10 @@ namespace UnityEditor.Rendering
             {
                 EditorGUILayout.PropertyField(m_LensFlareData, Styles.lensFlareData);
                 EditorGUILayout.PropertyField(m_Intensity, Styles.intensity);
-                EditorGUILayout.PropertyField(m_MaxAttenuationDistance, Styles.maxAttenuationDistance);
-                EditorGUILayout.PropertyField(m_DistanceAttenuationCurve, Styles.distanceAttenuationCurve);
                 if (attachedToLight)
                     EditorGUILayout.PropertyField(m_AttenuationByLightShape, Styles.attenuationByLightShape);
+                EditorGUILayout.PropertyField(m_MaxAttenuationDistance, Styles.maxAttenuationDistance);
+                EditorGUILayout.PropertyField(m_DistanceAttenuationCurve, Styles.distanceAttenuationCurve);
                 EditorGUILayout.PropertyField(m_RadialScreenAttenuationCurve, Styles.radialScreenAttenuationCurve);
             }
             EditorGUILayout.EndFoldoutHeaderGroup();
@@ -86,7 +86,7 @@ namespace UnityEditor.Rendering
             static public readonly GUIContent maxAttenuationDistance = new GUIContent("Max Attenuation Distance", "Distance used to scale the Distance Attenuation Curve.");
             static public readonly GUIContent distanceAttenuationCurve = new GUIContent("Distance Attenuation Curve", "Attenuation by distance, scaled by max distance.");
             static public readonly GUIContent attenuationByLightShape = new GUIContent("Attenuation By Light Shape", "If component attached to a light, attenuation the lens flare per light type.");
-            static public readonly GUIContent radialScreenAttenuationCurve = new GUIContent("Radial Screen Attenuation Curve", "Attenuation used radially, which allow for instance to enable flare only on the edge of the screen.");
+            static public readonly GUIContent radialScreenAttenuationCurve = new GUIContent("Screen Attenuation Curve", "Attenuation used radially, which allow for instance to enable flare only on the edge of the screen.");
             static public readonly GUIContent occlusionRadius = new GUIContent("Occlusion Radius", "Radius around the light used to occlude the flare (value in world space).");
             static public readonly GUIContent sampleCount = new GUIContent("Sample Count", "Random sample count used inside the disk with 'occlusion radius'. Higher sample counts will give a smoother attenuation when being occluded.");
             static public readonly GUIContent occlusionOffset = new GUIContent("Occlusion Offset", "Occlusion Offset allows us to offset the plane for where the disc of occlusion is placed in world space (which will make it appear smaller or larger on the debug view as it is moving relative to the camera).\nThis is useful in order to sample occlusion outside a light bulb if a flare was placed inside.");

@@ -2300,8 +2300,8 @@ namespace UnityEngine.Rendering.HighDefinition
                 Vector4 flareData1 = new Vector4(screenPos.x, screenPos.y, screenPosZ.z, occlusionRadius);
                 cmd.SetGlobalVector(HDShaderIDs._FlareData1, flareData1);
 
-                Vector2 radPos = new Vector2(screenPos.x, screenPos.y);
-                float radius = radPos.magnitude;
+                Vector2 radPos = new Vector2(Mathf.Abs(screenPos.x), Mathf.Abs(screenPos.y));
+                float radius = Mathf.Max(radPos.x, radPos.y); // l1 Norm
                 float radialsScaleRadius = comp.radialScreenAttenuationCurve.length > 0 ? comp.radialScreenAttenuationCurve.Evaluate(radius) : 1.0f;
 
                 float totalLengthPos = 0.0f;
