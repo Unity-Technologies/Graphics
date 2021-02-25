@@ -8,9 +8,8 @@ using UnityEditor.Build;
 using UnityEditor.Build.Reporting;
 using UnityEngine;
 
-public class SetupGraphicsTestCases : IPreprocessBuildWithReport
+public class SetupGraphicsTestCases : IPrebuildSetup
 {
-    public int callbackOrder { get { return 0; } }
     private static BuildTarget target;
     private static BuildConfiguration config;
 
