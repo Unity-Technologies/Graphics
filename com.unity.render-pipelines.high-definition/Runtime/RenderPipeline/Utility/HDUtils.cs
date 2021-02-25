@@ -43,7 +43,7 @@ namespace UnityEngine.Rendering.HighDefinition
             {
                 if (m_ClearTexture3D == null)
                 {
-                    m_ClearTexture3D = new Texture3D(1, 1, 1, TextureFormat.ARGB32, false) { name = "Transparent Texture 3D" };
+                    m_ClearTexture3D = new Texture3D(1, 1, 1, GraphicsFormat.R8G8B8A8_SRGB, TextureCreationFlags.None) { name = "Transparent Texture 3D" };
                     m_ClearTexture3D.SetPixel(0, 0, 0, Color.clear);
                     m_ClearTexture3D.Apply();
 
@@ -328,6 +328,20 @@ namespace UnityEngine.Rendering.HighDefinition
         }
 
         /// <summary>
+        /// Blit a RTHandle texture 2D.
+        /// </summary>
+        /// <param name="cmd">Command Buffer used for rendering.</param>
+        /// <param name="source">Source RTHandle.</param>
+        /// <param name="scaleBias">Scale and bias for sampling the input texture.</param>
+        /// <param name="mipLevel">Mip level to blit.</param>
+        /// <param name="bilinear">Enable bilinear filtering.</param>
+        public static void BlitTexture2D(CommandBuffer cmd, RTHandle source, Vector4 scaleBias, float mipLevel, bool bilinear)
+        {
+            s_PropertyBlock.SetFloat(HDShaderIDs._BlitMipLevel, mipLevel);
+            BlitTexture(cmd, source, scaleBias, GetBlitMaterial(TextureDimension.Tex2D), bilinear ? 1 : 0);
+        }
+
+        /// <summary>
         /// Blit a 2D texture and depth buffer.
         /// </summary>
         /// <param name="cmd">Command Buffer used for rendering.</param>
@@ -386,6 +400,23 @@ namespace UnityEngine.Rendering.HighDefinition
             // Will set the correct camera viewport as well.
             CoreUtils.SetRenderTarget(cmd, destination);
             BlitTexture(cmd, source, viewportScale, mipLevel, bilinear);
+        }
+
+        /// <summary>
+        /// Blit a RThandle Texture2D RTHandle to another RTHandle.
+        /// This will properly account for partial usage (in term of resolution) of the texture for the current viewport.
+        /// </summary>
+        /// <param name="cmd">Command Buffer used for rendering.</param>
+        /// <param name="source">Source RTHandle.</param>
+        /// <param name="destination">Destination RTHandle.</param>
+        /// <param name="mipLevel">Mip level to blit.</param>
+        /// <param name="bilinear">Enable bilinear filtering.</param>
+        public static void BlitCameraTexture2D(CommandBuffer cmd, RTHandle source, RTHandle destination, float mipLevel = 0.0f, bool bilinear = false)
+        {
+            Vector2 viewportScale = new Vector2(source.rtHandleProperties.rtHandleScale.x, source.rtHandleProperties.rtHandleScale.y);
+            // Will set the correct camera viewport as well.
+            CoreUtils.SetRenderTarget(cmd, destination);
+            BlitTexture2D(cmd, source, viewportScale, mipLevel, bilinear);
         }
 
         /// <summary>
@@ -732,6 +763,8 @@ namespace UnityEngine.Rendering.HighDefinition
                 graphicDevice == GraphicsDeviceType.PlayStation5 ||
                 graphicDevice == GraphicsDeviceType.XboxOne ||
                 graphicDevice == GraphicsDeviceType.XboxOneD3D12 ||
+                graphicDevice == GraphicsDeviceType.GameCoreXboxOne ||
+                graphicDevice == GraphicsDeviceType.GameCoreXboxSeries ||
                 graphicDevice == GraphicsDeviceType.Metal ||
                 graphicDevice == GraphicsDeviceType.Vulkan
                 // Switch isn't supported currently (19.3)
@@ -749,6 +782,8 @@ namespace UnityEngine.Rendering.HighDefinition
                 buildTarget == UnityEditor.BuildTarget.StandaloneOSX ||
                 buildTarget == UnityEditor.BuildTarget.WSAPlayer ||
                 buildTarget == UnityEditor.BuildTarget.XboxOne ||
+                buildTarget == UnityEditor.BuildTarget.GameCoreXboxOne ||
+                buildTarget == UnityEditor.BuildTarget.GameCoreXboxSeries  ||
                 buildTarget == UnityEditor.BuildTarget.PS4 ||
                 buildTarget == UnityEditor.BuildTarget.PS5 ||
                 // buildTarget == UnityEditor.BuildTarget.iOS || // IOS isn't supported
@@ -1170,6 +1205,28 @@ namespace UnityEngine.Rendering.HighDefinition
                 msg += "To do this, go to Project Settings > Player > Other Settings and modify the Graphics APIs for " + os + " list.";
 
             return msg;
+        }
+
+        internal static int GetTextureHash(Texture texture)
+        {
+            int hash = texture.GetHashCode();
+
+            unchecked
+            {
+#if UNITY_EDITOR
+                hash = 23 * hash + texture.imageContentsHash.GetHashCode();
+#endif
+                hash = 23 * hash + texture.GetInstanceID().GetHashCode();
+                hash = 23 * hash + texture.graphicsFormat.GetHashCode();
+                hash = 23 * hash + texture.wrapMode.GetHashCode();
+                hash = 23 * hash + texture.width.GetHashCode();
+                hash = 23 * hash + texture.height.GetHashCode();
+                hash = 23 * hash + texture.filterMode.GetHashCode();
+                hash = 23 * hash + texture.anisoLevel.GetHashCode();
+                hash = 23 * hash + texture.mipmapCount.GetHashCode();
+            }
+
+            return hash;
         }
 
         internal static void ReleaseComponentSingletons()

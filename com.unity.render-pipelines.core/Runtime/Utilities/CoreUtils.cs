@@ -105,7 +105,7 @@ namespace UnityEngine.Rendering
             {
                 if (m_BlackCubeTexture == null)
                 {
-                    m_BlackCubeTexture = new Cubemap(1, TextureFormat.ARGB32, false);
+                    m_BlackCubeTexture = new Cubemap(1, GraphicsFormat.R8G8B8A8_SRGB, TextureCreationFlags.None);
                     for (int i = 0; i < 6; ++i)
                         m_BlackCubeTexture.SetPixel((CubemapFace)i, 0, 0, Color.black);
                     m_BlackCubeTexture.Apply();
@@ -125,7 +125,7 @@ namespace UnityEngine.Rendering
             {
                 if (m_MagentaCubeTexture == null)
                 {
-                    m_MagentaCubeTexture = new Cubemap(1, TextureFormat.ARGB32, false);
+                    m_MagentaCubeTexture = new Cubemap(1, GraphicsFormat.R8G8B8A8_SRGB, TextureCreationFlags.None);
                     for (int i = 0; i < 6; ++i)
                         m_MagentaCubeTexture.SetPixel((CubemapFace)i, 0, 0, Color.magenta);
                     m_MagentaCubeTexture.Apply();
@@ -145,7 +145,7 @@ namespace UnityEngine.Rendering
             {
                 if (m_MagentaCubeTextureArray == null)
                 {
-                    m_MagentaCubeTextureArray = new CubemapArray(1, 1, TextureFormat.RGBAFloat, false);
+                    m_MagentaCubeTextureArray = new CubemapArray(1, 1, GraphicsFormat.R32G32B32A32_SFloat, TextureCreationFlags.None);
                     for (int i = 0; i < 6; ++i)
                     {
                         Color[] colors = { Color.magenta };
@@ -168,7 +168,7 @@ namespace UnityEngine.Rendering
             {
                 if (m_WhiteCubeTexture == null)
                 {
-                    m_WhiteCubeTexture = new Cubemap(1, TextureFormat.ARGB32, false);
+                    m_WhiteCubeTexture = new Cubemap(1, GraphicsFormat.R8G8B8A8_SRGB, TextureCreationFlags.None);
                     for (int i = 0; i < 6; ++i)
                         m_WhiteCubeTexture.SetPixel((CubemapFace)i, 0, 0, Color.white);
                     m_WhiteCubeTexture.Apply();
@@ -208,7 +208,7 @@ namespace UnityEngine.Rendering
                 if (m_BlackVolumeTexture == null)
                 {
                     Color[] colors = { Color.black };
-                    m_BlackVolumeTexture = new Texture3D(1, 1, 1, TextureFormat.ARGB32, false);
+                    m_BlackVolumeTexture = new Texture3D(1, 1, 1, GraphicsFormat.R8G8B8A8_SRGB, TextureCreationFlags.None);
                     m_BlackVolumeTexture.SetPixels(colors, 0);
                     m_BlackVolumeTexture.Apply();
                 }

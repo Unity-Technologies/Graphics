@@ -17,6 +17,7 @@ namespace UnityEngine.Rendering.Universal.Internal
         private RenderTargetHandle source { get; set; }
         private RenderTargetHandle destination { get; set; }
         internal bool AllocateRT  { get; set; }
+        internal int MssaSamples { get; set; }
         Material m_CopyDepthMaterial;
         public CopyDepthPass(RenderPassEvent evt, Material copyDepthMaterial)
         {
@@ -36,6 +37,7 @@ namespace UnityEngine.Rendering.Universal.Internal
             this.source = source;
             this.destination = destination;
             this.AllocateRT = !destination.HasInternalRenderTargetId();
+            this.MssaSamples = -1;
         }
 
         public override void OnCameraSetup(CommandBuffer cmd, ref RenderingData renderingData)
@@ -63,8 +65,15 @@ namespace UnityEngine.Rendering.Universal.Internal
             CommandBuffer cmd = CommandBufferPool.Get();
             using (new ProfilingScope(cmd, ProfilingSampler.Get(URPProfileId.CopyDepth)))
             {
-                RenderTextureDescriptor descriptor = renderingData.cameraData.cameraTargetDescriptor;
-                int cameraSamples = descriptor.msaaSamples;
+                int cameraSamples = 0;
+
+                if (MssaSamples == -1)
+                {
+                    RenderTextureDescriptor descriptor = renderingData.cameraData.cameraTargetDescriptor;
+                    cameraSamples = descriptor.msaaSamples;
+                }
+                else
+                    cameraSamples = MssaSamples;
 
                 CameraData cameraData = renderingData.cameraData;
 
@@ -130,7 +139,10 @@ namespace UnityEngine.Rendering.Universal.Internal
                     // scaleBias.y = scale
                     // scaleBias.z = bias
                     // scaleBias.w = unused
-                    float flipSign = (cameraData.IsCameraProjectionMatrixFlipped()) ? -1.0f : 1.0f;
+                    // In game view final target acts as back buffer were target is not flipped
+                    bool isGameViewFinalTarget = (cameraData.cameraType == CameraType.Game && destination == RenderTargetHandle.CameraTarget);
+                    bool yflip = (cameraData.IsCameraProjectionMatrixFlipped()) && !isGameViewFinalTarget;
+                    float flipSign = yflip ? -1.0f : 1.0f;
                     Vector4 scaleBiasRt = (flipSign < 0.0f)
                         ? new Vector4(flipSign, 1.0f, -1.0f, 1.0f)
                         : new Vector4(flipSign, 0.0f, 1.0f, 1.0f);
