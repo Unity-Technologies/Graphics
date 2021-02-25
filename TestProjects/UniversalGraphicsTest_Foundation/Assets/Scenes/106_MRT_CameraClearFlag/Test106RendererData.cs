@@ -28,6 +28,7 @@ namespace UnityEngine.Rendering.Universal
         {
             ProjectWindowUtil.StartNameEditingIfProjectWindowExists(0, CreateInstance<CreateTest106RendererAsset>(), "Test106RendererData.asset", null, null);
         }
+
 #endif
 
         [Serializable, ReloadGroup]

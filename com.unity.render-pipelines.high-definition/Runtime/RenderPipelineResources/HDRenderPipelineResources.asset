@@ -82,6 +82,8 @@ MonoBehaviour:
     cloudLayerPS: {fileID: 4800000, guid: 001a47fa123e95a4bba13ecb0442d944, type: 3}
     bakeCloudTextureCS: {fileID: 7200000, guid: 09a7f6850ee9fb4439e5ebd632127da5, type: 3}
     bakeCloudShadowsCS: {fileID: 7200000, guid: 3e7317e0800c066448ee07a3e47f102b, type: 3}    
+    volumetricCloudsCS: {fileID: 7200000, guid: f911a8577fa9a4546a6b255bcf888baf, type: 3}
+    volumetricCloudMapGeneratorCS: {fileID: 7200000, guid: 6b22771f0aa98744cb09f455a5a818cb, type: 3}
     preIntegratedFGD_GGXDisneyDiffusePS: {fileID: 4800000, guid: 123f13d52852ef547b2962de4bd9eaad, type: 3}
     preIntegratedFGD_CharlieFabricLambertPS: {fileID: 4800000, guid: 3b3bf235775cf8b4baae7f3306787ab0, type: 3}
     preIntegratedFGD_WardPS: {fileID: 4800000, guid: d279c46a545b0af4f9f0c4fa82cd489e, type: 3}
@@ -235,6 +237,9 @@ MonoBehaviour:
     scramblingTile8SPP: {fileID: 2800000, guid: 152f8b933250a7b448fc2d4d301b9944, type: 3}
     rankingTile256SPP: {fileID: 2800000, guid: 1e604a266c415cd46b36d97cd9220aa8, type: 3}
     scramblingTile256SPP: {fileID: 2800000, guid: 882fb55d7b3e7c94598a318df9376e32, type: 3}
+    cloudLutRainAO: {fileID: 2800000, guid: e0bcfddf26ed5584ba3d8b94d3200114, type: 3}
+    worleyNoise128RGBA: {fileID: 11700000, guid: 1fe54a721d0e2504e89f121c723404a8, type: 3}
+    worleyNoise32RGB: {fileID: 11700000, guid: ec156c314a242914dbb706f73ad78cf2, type: 3}
     filmGrainTex:
     - {fileID: 2800000, guid: 284a1ac236869fa4eacf377d73c7dff8, type: 3}
     - {fileID: 2800000, guid: bd74961b009b93145a998ae93a5fc186, type: 3}

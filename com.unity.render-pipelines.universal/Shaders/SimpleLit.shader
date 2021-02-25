@@ -451,7 +451,7 @@ Shader "Universal Render Pipeline/Simple Lit"
         Pass
         {
             Name "Meta"
-            Tags{ "LightMode" = "Meta" }
+            Tags{ "LightMode" =  "Meta" }
 
             Cull Off
 
@@ -490,6 +490,6 @@ Shader "Universal Render Pipeline/Simple Lit"
             ENDHLSL
         }
     }
-    Fallback "Hidden/Universal Render Pipeline/FallbackError"
+    Fallback  "Hidden/Universal Render Pipeline/FallbackError"
     CustomEditor "UnityEditor.Rendering.Universal.ShaderGUI.SimpleLitShader"
 }

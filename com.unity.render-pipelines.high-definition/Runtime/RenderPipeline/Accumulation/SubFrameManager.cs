@@ -286,7 +286,7 @@ namespace UnityEngine.Rendering.HighDefinition
             parameters.accumulationCS.shaderKeywords = null;
             if (inputFromRadianceTexture)
             {
-                parameters.accumulationCS.EnableKeyword("INPUT_FROM_RADIANCE_TEXTURE");
+                parameters.accumulationCS.EnableKeyword("INPUT_FROM_FRAME_TEXTURE");
             }
             return parameters;
         }
@@ -311,7 +311,7 @@ namespace UnityEngine.Rendering.HighDefinition
             cmd.SetComputeTextureParam(accumulationShader, parameters.accumulationKernel, HDShaderIDs._CameraColorTextureRW, outputTexture);
             if (!inputTexture.Equals(outputTexture))
             {
-                cmd.SetComputeTextureParam(accumulationShader, parameters.accumulationKernel, HDShaderIDs._RadianceTexture, inputTexture);
+                cmd.SetComputeTextureParam(accumulationShader, parameters.accumulationKernel, HDShaderIDs._FrameTexture, inputTexture);
             }
             cmd.SetComputeVectorParam(accumulationShader, HDShaderIDs._AccumulationWeights, frameWeights);
             cmd.SetComputeIntParam(accumulationShader, HDShaderIDs._AccumulationNeedsExposure, parameters.needExposure ? 1 : 0);
