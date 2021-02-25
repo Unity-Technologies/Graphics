@@ -6,6 +6,9 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ## [10.4.0] - 2021-01-27
 
+### Added
+- Support for the XboxSeries platform has been added.
+
 ### Fixed
 - Fixed an issue where the exposed checkbox was removed from keyword inspectors [1312779] (https://issuetracker.unity3d.com/issues/shader-graph-exposed-parameter-for-keywords-removed-by-accident)
 - Fixed issue with SRP Batcher compatibility [1310624]
