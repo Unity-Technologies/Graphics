@@ -960,12 +960,6 @@ Shader "HDRP/LayeredLitTessellation"
 
             HLSLPROGRAM
 
-            //enable GPU instancing support
-            #pragma multi_compile_instancing
-            #pragma multi_compile _ DOTS_INSTANCING_ON
-            // enable dithering LOD crossfade
-            #pragma multi_compile _ LOD_FADE_CROSSFADE
-
             #pragma multi_compile _ DEBUG_DISPLAY // This pass is only for opaque
 
             #define SHADERPASS SHADERPASS_FORWARD_EMISSIVE_FOR_DEFERRED
