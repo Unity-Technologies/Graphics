@@ -22,7 +22,12 @@ namespace UnityEngine
         ///     Blend One OneMinusSrcAlpha
         ///     ColorMask RGB
         /// </summary>
-        Premultiply
+        Premultiply,
+        /// <summary>
+        /// Screen:
+        ///     Blend One OneMinusSrcColor
+        /// </summary>
+        Screen
     }
 
     /// <summary>
@@ -44,7 +49,6 @@ namespace UnityEngine
             count = 1;
             rotation = 0.0f;
             tint = new Color(1.0f, 1.0f, 1.0f, 0.5f);
-            speed = 1.0f;
             blendMode = SRPLensFlareBlendMode.Additive;
             autoRotate = false;
             isFoldOpened = false;
@@ -79,6 +83,10 @@ namespace UnityEngine
         [Min(0.0f)]
         public float aspectRatio;
         /// <summary>
+        /// Preserve  Aspect Ratio
+        /// </summary>
+        public bool preserveAspectRatio;
+        /// <summary>
         /// Local rotation of the texture
         /// </summary>
         [Range(0, 360)]
@@ -87,10 +95,6 @@ namespace UnityEngine
         /// Tint of the texture can be modulated by the light we are attached to
         /// </summary>
         public Color tint;
-        /// <summary>
-        /// Speed of the element on the line
-        /// </summary>
-        public float speed;
         /// <summary>
         /// Blend mode used
         /// </summary>

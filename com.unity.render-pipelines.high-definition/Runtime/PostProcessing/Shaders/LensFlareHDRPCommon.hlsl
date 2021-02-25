@@ -13,15 +13,17 @@ struct Varyings
 {
     float4 positionCS : SV_POSITION;
     float2 texcoord : TEXCOORD0;
-    float4 occlusion : TEXCOORD1;
+    float occlusion : TEXCOORD1;
     UNITY_VERTEX_OUTPUT_STEREO
 };
 
 sampler2D _FlareTex;
+TEXTURE2D_X(_FlareOcclusionBufferTex);
+//sampler2D _FlareOcclusionBufferTex;
 float4 _FlareColor;
 float4 _FlareData0; // x: RayPos, y: AngleRotation (< 0 == Auto), zw: Size (Width, Height) in Screen Height Ratio
 float4 _FlareData1; // xy: ScreenPos, z: Depth, w: Occlusion radius
-float4 _FlareData2; // x: Sample Count, y: Speed, z: _FlareOffscreen
+float4 _FlareData2; // x: Sample Count, y: 0.0f, z: _FlareOffscreen, w: _LensFlareIndex
 
 #define _RayPos _FlareData0.x
 #define _Angle _FlareData0.y
@@ -32,8 +34,8 @@ float4 _FlareData2; // x: Sample Count, y: Speed, z: _FlareOffscreen
 #define _FlareOcclusionRadius _FlareData1.w
 
 #define _FlareOcclusionSamplesCount _FlareData2.x
-#define _FlareSpeed _FlareData2.y
 #define _FlareOffscreen _FlareData2.z
+#define _LensFlareIndex _FlareData2.w
 
 float GetOcclusion(float2 screenPos, float flareDepth, float ratio)
 {
@@ -100,11 +102,14 @@ Varyings vert(Attributes input)
                               local.y,
                               posPreScale.z,
                               posPreScale.w);
-    float2 rayOffset = -screenPos * (_RayPos - 1.0f) * _FlareSpeed;
+    float2 rayOffset = -screenPos * (_RayPos - 1.0f);
 
     output.positionCS = centerPos;
     output.positionCS.xy += rayOffset;
     float occlusion = GetOcclusion(_FlareScreenPos.xy, _FlareDepth, screenRatio);
+    //float occlusion = tex2D(_FlareOcclusionBufferTex, _LensFlareIndex / 16.0f).r;
+    //float occlusion = LOAD_TEXTURE2D_X_LOD(_FlareOcclusionBufferTex, uint2(_LensFlareIndex, 0), 0).r;
+    //float occlusion = tex2D(_FlareOcclusionBufferTex, float2(_LensFlareIndex/16.0f, 0.0f));
 
     if (_FlareOffscreen < 0.0f && // No lens flare off screen
         (any(_FlareScreenPos.xy < -1) || any(_FlareScreenPos.xy >= 1)))

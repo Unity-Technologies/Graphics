@@ -21,9 +21,14 @@ namespace UnityEngine
         /// </summary>
         public float intensity = 1.0f;
         /// <summary>
+        /// Distance used to scale the Distance Attenuation Curve
+        /// </summary>
+        [Min(1e-5f)]
+        public float maxAttenuationDistance = 10.0f;
+        /// <summary>
         /// Attenuation by distance, uses world space values
         /// </summary>
-        public AnimationCurve distanceAttenuationCurve = new AnimationCurve(new Keyframe(0.0f, 1.0f), new Keyframe(10.0f, 0.0f));
+        public AnimationCurve distanceAttenuationCurve = new AnimationCurve(new Keyframe(0.0f, 1.0f), new Keyframe(1.0f, 0.0f));
         /// <summary>
         /// If component attached to a light, attenuation the lens flare per light type
         /// </summary>

@@ -1,4 +1,4 @@
-Shader "Hidden/HDRP/LensFlare (HDRP Additive)"
+Shader "Hidden/HDRP/LensFlare (HDRP Screen)"
 {
     Properties
     {
@@ -11,7 +11,7 @@ Shader "Hidden/HDRP/LensFlare (HDRP Additive)"
             Name "ForwardUnlit"
             Tags{ "LightMode" = "Forward"  "RenderQueue" = "Transparent" }
 
-            Blend One One
+            Blend One OneMinusSrcColor
             ZWrite Off
             Cull Off
             ZTest Always
@@ -30,8 +30,6 @@ Shader "Hidden/HDRP/LensFlare (HDRP Additive)"
             float4 frag(Varyings i) : SV_Target
             {
                 UNITY_SETUP_STEREO_EYE_INDEX_POST_VERTEX(i);
-
-                //float occ = LOAD_TEXTURE2D_X_LOD(_FlareOcclusionBufferTex, uint2(_LensFlareIndex, 0), 0).r;
 
                 float4 col = tex2D(_FlareTex, i.texcoord);
                 return col * _FlareColor * i.occlusion;

@@ -58,6 +58,8 @@ namespace UnityEngine.Rendering.HighDefinition
         Material m_LensFlareLerp;
         Material m_LensFlareAdditive;
         Material m_LensFlarePreMultiply;
+        Material m_LensFlareScreen;
+        Material m_LensFlareOcclusion;
         RTHandle m_LensFlareOcclusionTexture;
 
         //  AMD-CAS data
@@ -165,6 +167,8 @@ namespace UnityEngine.Rendering.HighDefinition
             m_LensFlareLerp = CoreUtils.CreateEngineMaterial(m_Resources.shaders.lensFlareLerpPS);
             m_LensFlareAdditive = CoreUtils.CreateEngineMaterial(m_Resources.shaders.lensFlareAdditivePS);
             m_LensFlarePreMultiply = CoreUtils.CreateEngineMaterial(m_Resources.shaders.lensFlarePremultipliedPS);
+            m_LensFlareScreen = CoreUtils.CreateEngineMaterial(m_Resources.shaders.lensFlareScreenPS);
+            m_LensFlareOcclusion = CoreUtils.CreateEngineMaterial(m_Resources.shaders.lensFlareOcclusionPS);
 
             // Some compute shaders fail on specific hardware or vendors so we'll have to use a
             // safer but slower code path for them
@@ -215,7 +219,7 @@ namespace UnityEngine.Rendering.HighDefinition
             SetExposureTextureToEmpty(m_EmptyExposureTexture);
 
             // Lens Flare
-            m_LensFlareOcclusionTexture = RTHandles.Alloc(1024, 1, colorFormat: GraphicsFormat.R8_UInt, enableRandomWrite: true, name: "Lens Flare Occlusion");
+            m_LensFlareOcclusionTexture = RTHandles.Alloc(16, 1, colorFormat: GraphicsFormat.R32_SFloat, enableRandomWrite: true, name: "Lens Flare Occlusion");
         }
 
         public void Cleanup()
@@ -232,6 +236,7 @@ namespace UnityEngine.Rendering.HighDefinition
             CoreUtils.Destroy(m_LensFlareLerp);
             CoreUtils.Destroy(m_LensFlareAdditive);
             CoreUtils.Destroy(m_LensFlarePreMultiply);
+            CoreUtils.Destroy(m_LensFlareScreen);
             CoreUtils.SafeRelease(m_HistogramBuffer);
             CoreUtils.SafeRelease(m_DebugImageHistogramBuffer);
             RTHandles.Release(m_DebugExposureData);
@@ -245,6 +250,7 @@ namespace UnityEngine.Rendering.HighDefinition
             m_LensFlareLerp = null;
             m_LensFlareAdditive = null;
             m_LensFlarePreMultiply = null;
+            m_LensFlareScreen = null;
             m_HistogramBuffer = null;
             m_DebugImageHistogramBuffer = null;
             m_DebugExposureData = null;
@@ -2151,7 +2157,10 @@ namespace UnityEngine.Rendering.HighDefinition
             public Material lensFlareLerp;
             public Material lensFlareAdditive;
             public Material lensFlarePremultiply;
+            public Material lensFlareScreen;
+            public Material lensFlareOcclusion;
             public SRPLensFlareCommon lensFlares;
+            public RTHandle occlusionTexture;
         }
 
         LensFlareParameters PrepareLensFlareParameters(HDCamera camera)
@@ -2163,68 +2172,23 @@ namespace UnityEngine.Rendering.HighDefinition
             parameters.lensFlareLerp = m_LensFlareLerp;
             parameters.lensFlareAdditive = m_LensFlareAdditive;
             parameters.lensFlarePremultiply = m_LensFlarePreMultiply;
+            parameters.lensFlareScreen = m_LensFlareScreen;
+            parameters.lensFlareOcclusion = m_LensFlareOcclusion;
+            parameters.occlusionTexture = m_LensFlareOcclusionTexture;
 
             return parameters;
         }
 
+        //float LinearSample();
+
         static void DoLensFlareDataDriven(in LensFlareParameters parameters, HDCamera hdCam, CommandBuffer cmd, RTHandle source, RTHandle target)
         {
-            cmd.CopyTexture(source, target);
-
             if (parameters.lensFlares.Data.Count == 0)
                 return;
 
-            // Estimate Occlusion
-            //m_LensFlareOcclusionTexture
             int flareIdx = 0;
-            //foreach (SRPLensFlareOverride comp in parameters.lensFlares.Data)
-            //{
-            //    if (comp == null)
-            //        continue;
-
-            //    SRPLensFlareData data = comp.lensFlareData;
-
-            //    if (!comp.enabled ||
-            //        data.globalIntensity <= 0.0f ||
-            //        !comp.gameObject.activeSelf ||
-            //        !comp.gameObject.activeInHierarchy ||
-            //        data == null ||
-            //        data.elements == null ||
-            //        data.elements.Length == 0)
-            //        continue;
-
-            //    Camera cam = hdCam.camera;
-
-            //    Vector3 positionWS = comp.transform.position;
-            //    Vector3 viewportPos = cam.WorldToViewportPoint(positionWS);
-
-            //    if (viewportPos.z < 0.0f)
-            //        continue;
-
-            //    if (!comp.allowOffScreen)
-            //    {
-            //        if (viewportPos.x < 0.0f || viewportPos.x > 1.0f ||
-            //            viewportPos.y < 0.0f || viewportPos.y > 1.0f)
-            //            continue;
-            //    }
-            //    ++flareIdx;
-            //    Vector2 screenPos = new Vector2(2.0f * viewportPos.x - 1.0f, 1.0f - 2.0f * viewportPos.y);
-
-            //    float screenRatio = (float)hdCam.actualWidth / (float)hdCam.actualHeight;
-
-            //    Vector2 occlusionRadiusEdgeScreenPos0 = (Vector2)cam.WorldToViewportPoint(positionWS);
-            //    Vector2 occlusionRadiusEdgeScreenPos1 = (Vector2)cam.WorldToViewportPoint(positionWS + cam.transform.up * comp.occlusionRadius);
-            //    float occlusionRadius = (occlusionRadiusEdgeScreenPos1 - occlusionRadiusEdgeScreenPos0).magnitude;
-
-            //    Vector3 dir = (cam.transform.position - comp.transform.position).normalized;
-            //    Vector3 screenPosZ = cam.WorldToViewportPoint(positionWS + dir * comp.occlusionOffset);
-            //    //Vector4 flareData1 = new Vector4(screenPos.x, screenPos.y, screenPosZ.z, occlusionRadius);
-            //    //comp.sampleCount
-            //}
-
-            // Render Quads
-            flareIdx = 0;
-            CoreUtils.SetRenderTarget(cmd, target);
+            CoreUtils.SetRenderTarget(cmd, parameters.occlusionTexture);
+            cmd.ClearRenderTarget(false, true, Color.black);
             foreach (SRPLensFlareOverride comp in parameters.lensFlares.Data)
             {
                 if (comp == null)
@@ -2255,7 +2219,73 @@ namespace UnityEngine.Rendering.HighDefinition
                         viewportPos.y < 0.0f || viewportPos.y > 1.0f)
                         continue;
                 }
+
+                Vector2 screenPos = new Vector2(2.0f * viewportPos.x - 1.0f, 1.0f - 2.0f * viewportPos.y);
+
+                float screenRatio = (float)hdCam.actualWidth / (float)hdCam.actualHeight;
+
+                Vector2 occlusionRadiusEdgeScreenPos0 = (Vector2)cam.WorldToViewportPoint(positionWS);
+                Vector2 occlusionRadiusEdgeScreenPos1 = (Vector2)cam.WorldToViewportPoint(positionWS + cam.transform.up * comp.occlusionRadius);
+                float occlusionRadius = (occlusionRadiusEdgeScreenPos1 - occlusionRadiusEdgeScreenPos0).magnitude;
+
+                Vector3 dir = (cam.transform.position - comp.transform.position).normalized;
+                Vector3 screenPosZ = cam.WorldToViewportPoint(positionWS + dir * comp.occlusionOffset);
+                Vector4 flareData1 = new Vector4(screenPos.x, screenPos.y, screenPosZ.z, occlusionRadius);
+                cmd.SetGlobalVector(HDShaderIDs._FlareData1, flareData1);
+
+                Vector2 radPos = new Vector2(screenPos.x, screenPos.y);
+                float radius = radPos.magnitude;
+                float radialsScaleRadius = comp.radialScreenAttenuationCurve.length > 0 ? comp.radialScreenAttenuationCurve.Evaluate(radius) : 1.0f;
+
+                Vector4 modulationByColor = Vector4.one;
+                Vector4 modulationAttenuation = Vector4.one;
+                Vector3 diffToObject = comp.transform.position - cam.transform.position;
+                float distToObject = diffToObject.magnitude;
+                float distanceAttenuation = comp.distanceAttenuationCurve.length > 0 ? comp.distanceAttenuationCurve.Evaluate(distToObject / comp.maxAttenuationDistance) : 1.0f;
+
+                Vector4 flareData2 = new Vector4(comp.sampleCount, 0.0f, comp.allowOffScreen ? 1.0f : -1.0f, flareIdx);
+                cmd.SetViewport(new Rect(flareIdx, 0, 1, 1));
+                cmd.SetGlobalVector(HDShaderIDs._FlareData2, flareData2);
+                cmd.DrawProcedural(Matrix4x4.identity, parameters.lensFlareOcclusion, 0, MeshTopology.Quads, 6, 1, null);
                 ++flareIdx;
+            }
+ 
+            // Render Quads
+            flareIdx = 0;
+            cmd.CopyTexture(source, target);
+            CoreUtils.SetRenderTarget(cmd, target);
+            //cmd.ClearRenderTarget(false, true, Color.black);
+            //cmd.ClearRenderTarget(false, true, Color.black);
+            foreach (SRPLensFlareOverride comp in parameters.lensFlares.Data)
+            {
+                if (comp == null)
+                    continue;
+
+                SRPLensFlareData data = comp.lensFlareData;
+
+                if (!comp.enabled ||
+                    data.globalIntensity <= 0.0f ||
+                    !comp.gameObject.activeSelf ||
+                    !comp.gameObject.activeInHierarchy ||
+                    data == null ||
+                    data.elements == null ||
+                    data.elements.Length == 0)
+                    continue;
+
+                Camera cam = hdCam.camera;
+
+                Vector3 positionWS = comp.transform.position;
+                Vector3 viewportPos = cam.WorldToViewportPoint(positionWS);
+
+                if (viewportPos.z < 0.0f)
+                    continue;
+
+                if (!comp.allowOffScreen)
+                {
+                    if (viewportPos.x < 0.0f || viewportPos.x > 1.0f ||
+                        viewportPos.y < 0.0f || viewportPos.y > 1.0f)
+                        continue;
+                }
 
                 Vector2 screenPos = new Vector2(2.0f * viewportPos.x - 1.0f, 1.0f - 2.0f * viewportPos.y);
 
@@ -2295,7 +2325,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 Vector4 modulationAttenuation = Vector4.one;
                 Vector3 diffToObject = comp.transform.position - cam.transform.position;
                 float distToObject = diffToObject.magnitude;
-                float distanceAttenuation = comp.distanceAttenuationCurve.length > 0 ? comp.distanceAttenuationCurve.Evaluate(distToObject) : 1.0f;
+                float distanceAttenuation = comp.distanceAttenuationCurve.length > 0 ? comp.distanceAttenuationCurve.Evaluate(distToObject / comp.maxAttenuationDistance) : 1.0f;
                 Light light = comp.GetComponent<Light>();
                 if (light != null)
                 {
@@ -2417,6 +2447,9 @@ namespace UnityEngine.Rendering.HighDefinition
                         element.count <= 0)
                         continue;
 
+                    cmd.SetGlobalTexture(HDShaderIDs._FlareOcclusionBufferTex, (Texture)parameters.occlusionTexture);
+                    cmd.SetGlobalTexture(HDShaderIDs._FlareTex, element.lensFlareTexture);
+
                     for (int elemIdx = 1; elemIdx <= element.count; ++elemIdx)
                     {
                         float curLengthNeg = 0.0f;
@@ -2460,7 +2493,10 @@ namespace UnityEngine.Rendering.HighDefinition
 
                         Texture texture = element.lensFlareTexture;
                         float position = 2.0f * Mathf.Abs(element.position) * curvePos;
-                        Vector2 size = new Vector2(element.size * curveScale * element.aspectRatio, element.size * curveScale);
+
+                        float usedAspectRatio = element.preserveAspectRatio ? (((float)texture.width) / ((float)texture.height)) : element.aspectRatio;
+
+                        Vector2 size = new Vector2(element.size * curveScale * usedAspectRatio, element.size * curveScale);
                         float rotation = element.rotation;
                         Vector4 tint = Vector4.Scale(element.tint, gradientModulation);
 
@@ -2485,10 +2521,13 @@ namespace UnityEngine.Rendering.HighDefinition
                             usedMaterial = parameters.lensFlareLerp;
                         else if (blendMode == SRPLensFlareBlendMode.Additive)
                             usedMaterial = parameters.lensFlareAdditive;
-                        else
+                        else if (blendMode == SRPLensFlareBlendMode.Premultiply)
                             usedMaterial = parameters.lensFlarePremultiply;
+                        else if (blendMode == SRPLensFlareBlendMode.Screen)
+                            usedMaterial = parameters.lensFlareScreen;
+                        else
+                            usedMaterial = parameters.lensFlareLerp;
 
-                        cmd.SetGlobalTexture(HDShaderIDs._FlareTex, element.lensFlareTexture);
                         cmd.SetGlobalColor(HDShaderIDs._FlareColor, tint);
 
                         rotation += 180.0f;
@@ -2499,11 +2538,12 @@ namespace UnityEngine.Rendering.HighDefinition
 
                         Vector4 dataSrc = new Vector4(position, rotation, size.x, size.y);
                         cmd.SetGlobalVector(HDShaderIDs._FlareData0, dataSrc);
-                        Vector4 flareData2 = new Vector4(comp.sampleCount, element.speed, comp.allowOffScreen ? 1.0f : -1.0f, 0.0f);
+                        Vector4 flareData2 = new Vector4(comp.sampleCount, 0.0f, comp.allowOffScreen ? 1.0f : -1.0f, flareIdx);
                         cmd.SetGlobalVector(HDShaderIDs._FlareData2, flareData2);
                         cmd.DrawProcedural(Matrix4x4.identity, usedMaterial, 0, MeshTopology.Quads, 6, 1, null);
                     }
                 }
+                ++flareIdx;
             }
         }
 

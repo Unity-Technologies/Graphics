@@ -9,6 +9,7 @@ namespace UnityEditor.Rendering
     {
         SerializedProperty m_LensFlareData;
         SerializedProperty m_Intensity;
+        SerializedProperty m_MaxAttenuationDistance;
         SerializedProperty m_DistanceAttenuationCurve;
         SerializedProperty m_AttenuationByLightShape;
         SerializedProperty m_RadialScreenAttenuationCurve;
@@ -25,6 +26,7 @@ namespace UnityEditor.Rendering
             PropertyFetcher<SRPLensFlareOverride> entryPoint = new PropertyFetcher<SRPLensFlareOverride>(serializedObject);
             m_LensFlareData = entryPoint.Find(x => x.lensFlareData);
             m_Intensity = entryPoint.Find(x => x.intensity);
+            m_MaxAttenuationDistance = entryPoint.Find(x => x.maxAttenuationDistance);
             m_DistanceAttenuationCurve = entryPoint.Find(x => x.distanceAttenuationCurve);
             m_AttenuationByLightShape = entryPoint.Find(x => x.attenuationByLightShape);
             m_RadialScreenAttenuationCurve = entryPoint.Find(x => x.radialScreenAttenuationCurve);
@@ -53,6 +55,7 @@ namespace UnityEditor.Rendering
             {
                 EditorGUILayout.PropertyField(m_LensFlareData, Styles.lensFlareData);
                 EditorGUILayout.PropertyField(m_Intensity, Styles.intensity);
+                EditorGUILayout.PropertyField(m_MaxAttenuationDistance, Styles.maxAttenuationDistance);
                 EditorGUILayout.PropertyField(m_DistanceAttenuationCurve, Styles.distanceAttenuationCurve);
                 if (attachedToLight)
                     EditorGUILayout.PropertyField(m_AttenuationByLightShape, Styles.attenuationByLightShape);
@@ -80,7 +83,8 @@ namespace UnityEditor.Rendering
         {
             static public readonly GUIContent lensFlareData = new GUIContent("Lens Flare Data", "Lens flare asset used on this component.");
             static public readonly GUIContent intensity = new GUIContent("Intensity", "Intensity.");
-            static public readonly GUIContent distanceAttenuationCurve = new GUIContent("Distance Attenuation Curve", "Attenuation by distance, uses world space values.");
+            static public readonly GUIContent maxAttenuationDistance = new GUIContent("Max Attenuation Distance", "Distance used to scale the Distance Attenuation Curve.");
+            static public readonly GUIContent distanceAttenuationCurve = new GUIContent("Distance Attenuation Curve", "Attenuation by distance, scaled by max distance.");
             static public readonly GUIContent attenuationByLightShape = new GUIContent("Attenuation By Light Shape", "If component attached to a light, attenuation the lens flare per light type.");
             static public readonly GUIContent radialScreenAttenuationCurve = new GUIContent("Radial Screen Attenuation Curve", "Attenuation used radially, which allow for instance to enable flare only on the edge of the screen.");
             static public readonly GUIContent occlusionRadius = new GUIContent("Occlusion Radius", "Radius around the light used to occlude the flare (value in world space).");

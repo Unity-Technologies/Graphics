@@ -311,6 +311,10 @@ namespace UnityEngine.Rendering.HighDefinition
             public Shader lensFlareAdditivePS;
             [Reload("Runtime/PostProcessing/Shaders/LensFlareHDRPPremultiplied.shader")]
             public Shader lensFlarePremultipliedPS;
+            [Reload("Runtime/PostProcessing/Shaders/LensFlareHDRPScreen.shader")]
+            public Shader lensFlareScreenPS;
+            [Reload("Runtime/PostProcessing/Shaders/LensFlareHDRPOcclusion.shader")]
+            public Shader lensFlareOcclusionPS;
 
             // Physicaly based DoF
             [Reload("Runtime/PostProcessing/Shaders/DoFCircleOfConfusion.compute")]
