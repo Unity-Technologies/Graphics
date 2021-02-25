@@ -389,7 +389,7 @@ namespace UnityEditor.Rendering.HighDefinition
 
                     if (GUILayout.Button(EditorGUIUtility.TrTextContent("New", "Create a new Volume Profile for default in your default resource folder (defined in Wizard)"), GUILayout.Width(38), GUILayout.Height(18)))
                     {
-                        VolumeProfileCreator.CreateAndAssign(VolumeProfileCreator.Kind.Default, globalSettings);
+                        HDAssetFactory.VolumeProfileCreator.CreateAndAssign(HDAssetFactory.VolumeProfileCreator.Kind.Default, globalSettings);
                     }
                 }
 
@@ -427,7 +427,7 @@ namespace UnityEditor.Rendering.HighDefinition
 
                     if (GUILayout.Button(EditorGUIUtility.TrTextContent("New", "Create a new Volume Profile for default in your default resource folder (defined in Wizard)"), GUILayout.Width(38), GUILayout.Height(18)))
                     {
-                        VolumeProfileCreator.CreateAndAssign(VolumeProfileCreator.Kind.LookDev, globalSettings);
+                        HDAssetFactory.VolumeProfileCreator.CreateAndAssign(HDAssetFactory.VolumeProfileCreator.Kind.LookDev, globalSettings);
                     }
                 }
                 if (lookDevAsset != null)
@@ -501,67 +501,5 @@ namespace UnityEditor.Rendering.HighDefinition
         }
 
         #endregion
-    }
-
-    class VolumeProfileCreator : ProjectWindowCallback.EndNameEditAction
-    {
-        public enum Kind { Default, LookDev }
-        Kind m_Kind;
-
-        void SetKind(Kind kind) => m_Kind = kind;
-
-        public override void Action(int instanceId, string pathName, string resourceFile)
-        {
-            var profile = VolumeProfileFactory.CreateVolumeProfileAtPath(pathName);
-            ProjectWindowUtil.ShowCreatedAsset(profile);
-            Assign(profile);
-        }
-
-        void Assign(VolumeProfile profile)
-        {
-            switch (m_Kind)
-            {
-                case Kind.Default:
-                    settings.volumeProfile = profile;
-                    break;
-                case Kind.LookDev:
-                    settings.volumeProfileLookDev = profile;
-                    break;
-            }
-            EditorUtility.SetDirty(settings);
-        }
-
-        static string GetDefaultName(Kind kind)
-        {
-            string defaultName;
-            switch (kind)
-            {
-                case Kind.Default:
-                    defaultName = "VolumeProfile_Default";
-                    break;
-                case Kind.LookDev:
-                    defaultName = "LookDevProfile_Default";
-                    break;
-                default:
-                    defaultName = "N/A";
-                    break;
-            }
-            return defaultName;
-        }
-
-        static HDRenderPipelineGlobalSettings settings;
-        public static void CreateAndAssign(Kind kind, HDRenderPipelineGlobalSettings globalSettings)
-        {
-            settings = globalSettings;
-
-            if (settings == null)
-            {
-                Debug.LogError("Trying to create a Volume Profile for a null HDRP Global Settings. Operation aborted.");
-                return;
-            }
-            var assetCreator = ScriptableObject.CreateInstance<VolumeProfileCreator>();
-            assetCreator.SetKind(kind);
-            ProjectWindowUtil.StartNameEditingIfProjectWindowExists(assetCreator.GetInstanceID(), assetCreator, $"Assets/{HDProjectSettings.projectSettingsFolderPath}/{globalSettings.name}_{GetDefaultName(kind)}.asset", null, null);
-        }
     }
 }
