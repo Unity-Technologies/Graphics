@@ -76,9 +76,13 @@ namespace UnityEditor.Rendering
         /// <summary>Creates a 1x1 <see cref="Texture2D"/> with a plain <see cref="Color"/></summary>
         /// <param name="color">The color to fill the texture</param>
         /// <returns>a <see cref="Texture2D"/></returns>
-        public static Texture2D CreateColoredTexture2D(Color color)
+        public static Texture2D CreateColoredTexture2D(Color color, string textureName)
         {
-            Texture2D tex2 = new Texture2D(1, 1);
+            Texture2D tex2 = new Texture2D(1, 1)
+            {
+                hideFlags = HideFlags.HideAndDontSave,
+                name = textureName
+            };
             tex2.SetPixel(1, 1, color);
             tex2.Apply();
             return tex2;
