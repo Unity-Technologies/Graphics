@@ -29,6 +29,9 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Deleting a context node and a block while both are selected throws a null ref exception. [Case 315578](https://issuetracker.unity3d.com/product/unity/issues/guid/1315578/)
 - Fixed shader compilation errors with textures in shader graph [Case 1309219](https://issuetracker.unity3d.com/product/unity/issues/guid/1309219/)
 
+### Changed
+- Tidy up of platform abstraction code for random number generation, requires a dependency on com.unity.render-pipelines.core for those abstractions.
+ 
 ## [10.3.1] - 2020-01-26
 
 Version Updated
