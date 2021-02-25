@@ -43,8 +43,9 @@ half4 frag(PackedVaryings packedInput) : SV_TARGET
                 float3 normalWS = surfaceDescription.NormalWS;
             #endif
         #else
-            float3 normal = unpacked.normalWS;
+            float3 normalWS = unpacked.normalWS;
         #endif
+
         return half4(NormalizeNormalPerPixel(normalWS), 0.0);
     #endif
 }
