@@ -1,5 +1,7 @@
 using System.Collections.Generic;
+#if UNITY_EDITOR
 using UnityEditor;
+#endif
 
 namespace UnityEngine.Rendering
 {
@@ -48,6 +50,7 @@ namespace UnityEngine.Rendering
         }
     }
 
+#if UNITY_EDITOR
     [CanEditMultipleObjects]
     [CustomEditor(typeof(ProbeReferenceVolumeProfile))]
     internal class ProbeReferenceVolumeProfileEditor : Editor
@@ -97,4 +100,5 @@ namespace UnityEngine.Rendering
             }
         }
     }
+#endif
 }
