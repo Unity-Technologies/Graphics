@@ -1398,6 +1398,5 @@ namespace UnityEditor.ShaderGraph.Drawing.Inspector.PropertyDrawers
             var entryList = m_KeywordReorderableList.list as List<KeywordEntry>;
             return entryList.FindIndex(entry => entry.id != id && entry.referenceName == referenceName);
         }
-
     }
 }
