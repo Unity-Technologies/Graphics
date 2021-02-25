@@ -10,7 +10,7 @@ namespace UnityEditor.Rendering.Universal
         public SerializedProperty renderOpaque { get; }
         public SerializedProperty renderer { get; }
         public SerializedProperty cameraType { get; }
-        public SerializedProperty cameras { get; }
+        public SerializedProperty cameras { get; set; }
         public SerializedProperty volumeLayerMask { get; }
         public SerializedProperty volumeTrigger { get; }
         public SerializedProperty renderPostProcessing { get; }
@@ -40,11 +40,16 @@ namespace UnityEditor.Rendering.Universal
             dithering = serializedObject.FindProperty("m_Dithering");
             clearDepth = serializedObject.FindProperty("m_ClearDepth");
             cameraType = serializedObject.FindProperty("m_CameraType");
-            var o = new PropertyFetcher<UniversalAdditionalCameraData>(serializedObject);
-            cameras = o.Find("m_Cameras");
+            cameras = serializedObject.FindProperty("m_Cameras");
 #if ENABLE_VR && ENABLE_XR_MODULE
             allowXRRendering = serializedObject.FindProperty("m_AllowXRRendering");
 #endif
+        }
+
+        internal void RefreshCameras()
+        {
+            var o = new PropertyFetcher<UniversalAdditionalCameraData>(serializedObject);
+            cameras = o.Find("m_Cameras");
         }
     }
 }

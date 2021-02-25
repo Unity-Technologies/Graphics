@@ -198,6 +198,8 @@ namespace UnityEditor.Rendering.Universal
 
         void UpdateCameras()
         {
+            m_SerializedCamera.RefreshCameras();
+
             var camType = (CameraRenderType) m_SerializedCamera.cameraType.intValue;
             if (camType != CameraRenderType.Base)
                 return;
