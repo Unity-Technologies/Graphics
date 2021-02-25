@@ -3,6 +3,7 @@ using UnityEditor.PackageManager;
 using System.Diagnostics;
 using UnityEngine;
 
+[assembly: InternalsVisibleTo("Unity.RenderPipelines.Core.Editor.Tests")]
 
 namespace UnityEngine.Rendering
 {
