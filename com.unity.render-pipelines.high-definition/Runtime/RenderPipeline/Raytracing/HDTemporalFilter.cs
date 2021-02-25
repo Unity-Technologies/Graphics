@@ -3,7 +3,7 @@ using UnityEngine.Experimental.Rendering.RenderGraphModule;
 
 namespace UnityEngine.Rendering.HighDefinition
 {
-    partial class HDTemporalFilter
+    class HDTemporalFilter
     {
         // Resources used for the denoiser
         ComputeShader m_TemporalFilterCS;

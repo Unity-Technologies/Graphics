@@ -172,8 +172,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
                 // Apply the diffuse denoiser
                 HDDiffuseDenoiser diffuseDenoiser = GetDiffuseDenoiser();
-                DiffuseDenoiserParameters ddParams = diffuseDenoiser.PrepareDiffuseDenoiserParameters(hdCamera, true, aoSettings.denoiserRadius, false, false);
-                return diffuseDenoiser.Denoise(renderGraph, hdCamera, ddParams, denoisedRTAO, depthBuffer, normalBuffer, traceAOResult.signalBuffer);
+                return diffuseDenoiser.Denoise(renderGraph, hdCamera, singleChannel: true, kernelSize: aoSettings.denoiserRadius, halfResolutionFilter: false, jitterFilter: false, denoisedRTAO, depthBuffer, normalBuffer, traceAOResult.signalBuffer);
             }
             else
                 return traceAOResult.signalBuffer;
