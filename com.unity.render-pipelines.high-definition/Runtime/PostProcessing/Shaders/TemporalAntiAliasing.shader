@@ -23,7 +23,12 @@ Shader "Hidden/HDRP/TemporalAntialiasing"
 
         TEXTURE2D_X(_InputTexture);
         TEXTURE2D_X(_InputHistoryTexture);
-        RW_TEXTURE2D_X(CTYPE, _OutputHistoryTexture);
+		
+		#if defined(PLATFORM_SUPPORTS_EXPLICIT_BINDING)
+			RW_TEXTURE2D_X(CTYPE, _OutputHistoryTexture) : register(u1);
+		#else
+			RW_TEXTURE2D_X(CTYPE, _OutputHistoryTexture);
+		#endif	
 
         struct Attributes
         {
