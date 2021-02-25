@@ -2,10 +2,10 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
+using UnityEditor.AnimatedValues;
 using UnityEngine;
 using UnityEngine.Assertions;
 using UnityEngine.Rendering;
-using UnityEditor.AnimatedValues;
 
 namespace UnityEditor.Rendering
 {
@@ -315,7 +315,7 @@ namespace UnityEditor.Rendering
                 }
 
                 var parameter = new SerializedDataParameter(t.Item2);
-                return (new GUIContent(name), order, parameter);
+                return (EditorGUIUtility.TrTextContent(name), order, parameter);
             })
                 .OrderBy(t => t.order)
                 .ToList();
@@ -350,7 +350,7 @@ namespace UnityEditor.Rendering
             // Display every field as-is
             foreach (var parameter in m_Parameters)
             {
-                if (parameter.displayName.text != "")
+                if (!string.IsNullOrEmpty(parameter.displayName.text))
                     PropertyField(parameter.param, parameter.displayName);
                 else
                     PropertyField(parameter.param);
@@ -456,6 +456,59 @@ namespace UnityEditor.Rendering
             PropertyField(property, title);
         }
 
+        static readonly Dictionary<string, GUIContent> s_HeadersGuiContents = new Dictionary<string, GUIContent>();
+
+        /// <summary>
+        /// Draws a header into the inspector with the given title
+        /// </summary>
+        /// <param name="header">The title for the header</param>
+        protected void DrawHeader(string header)
+        {
+            if (!s_HeadersGuiContents.TryGetValue(header, out GUIContent content))
+            {
+                content = EditorGUIUtility.TrTextContent(header);
+                s_HeadersGuiContents.Add(header, content);
+            }
+
+            var rect = EditorGUI.IndentedRect(EditorGUILayout.GetControlRect(false, EditorGUIUtility.singleLineHeight));
+            EditorGUI.LabelField(rect, content, EditorStyles.miniLabel);
+        }
+
+        /// <summary>
+        /// Handles unity built-in decorators (Space, Header, Tooltips, ...) from <see cref="SerializedDataParameter"/> attributes
+        /// </summary>
+        /// <param name="property">The property to obtain the attributes and handle the decorators</param>
+        /// <param name="title">A custom label and/or tooltip that might be updated by <see cref="TooltipAttribute"/> and/or by <see cref="InspectorNameAttribute"/></param>
+        void HandleDecorators(SerializedDataParameter property, GUIContent title)
+        {
+            foreach (var attr in property.attributes)
+            {
+                if (!(attr is PropertyAttribute))
+                    continue;
+
+                switch (attr)
+                {
+                    case SpaceAttribute spaceAttribute:
+                        EditorGUILayout.GetControlRect(false, spaceAttribute.height);
+                        break;
+                    case HeaderAttribute headerAttribute:
+                    {
+                        DrawHeader(headerAttribute.header);
+                        break;
+                    }
+                    case TooltipAttribute tooltipAttribute:
+                    {
+                        if (string.IsNullOrEmpty(title.tooltip))
+                            title.tooltip = tooltipAttribute.tooltip;
+                        break;
+                    }
+                    case InspectorNameAttribute inspectorNameAttribute:
+                        title.text = inspectorNameAttribute.displayName;
+                        break;
+                }
+            }
+        }
+
         /// <summary>
         /// Draws a given <see cref="SerializedDataParameter"/> in the editor using a custom label
         /// and tooltip.
@@ -464,29 +517,7 @@ namespace UnityEditor.Rendering
         /// <param name="title">A custom label and/or tooltip.</param>
         protected void PropertyField(SerializedDataParameter property, GUIContent title)
         {
-            // Handle unity built-in decorators (Space, Header, Tooltip etc)
-            foreach (var attr in property.attributes)
-            {
-                if (attr is PropertyAttribute)
-                {
-                    if (attr is SpaceAttribute)
-                    {
-                        EditorGUILayout.GetControlRect(false, (attr as SpaceAttribute).height);
-                    }
-                    else if (attr is HeaderAttribute)
-                    {
-                        var rect = EditorGUILayout.GetControlRect(false, EditorGUIUtility.singleLineHeight);
-                        rect.y += 0f;
-                        rect = EditorGUI.IndentedRect(rect);
-                        EditorGUI.LabelField(rect, (attr as HeaderAttribute).header, EditorStyles.miniLabel);
-                    }
-                    else if (attr is TooltipAttribute)
-                    {
-                        if (string.IsNullOrEmpty(title.tooltip))
-                            title.tooltip = (attr as TooltipAttribute).tooltip;
-                    }
-                }
-            }
+            HandleDecorators(property, title);
 
             // Custom parameter drawer
             VolumeParameterDrawer drawer;

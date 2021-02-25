@@ -46,15 +46,11 @@ namespace UnityEngine.Rendering.HighDefinition
             /* Screen Space Global Illumination */
             SSGIRaySteps[(int)ScalableSettingLevelParameter.Level.Low] = 32;
             SSGIRaySteps[(int)ScalableSettingLevelParameter.Level.Medium] = 64;
-            SSGIRaySteps[(int)ScalableSettingLevelParameter.Level.High] = 96;
+            SSGIRaySteps[(int)ScalableSettingLevelParameter.Level.High] = 128;
 
-            SSGIFullResolution[(int)ScalableSettingLevelParameter.Level.Low] = false;
-            SSGIFullResolution[(int)ScalableSettingLevelParameter.Level.Medium] = true;
-            SSGIFullResolution[(int)ScalableSettingLevelParameter.Level.High] = true;
-
-            SSGIFilterRadius[(int)ScalableSettingLevelParameter.Level.Low] = 3;
-            SSGIFilterRadius[(int)ScalableSettingLevelParameter.Level.Medium] = 5;
-            SSGIFilterRadius[(int)ScalableSettingLevelParameter.Level.High] = 7;
+            SSGIFilterRadius[(int)ScalableSettingLevelParameter.Level.Low] = 16;
+            SSGIFilterRadius[(int)ScalableSettingLevelParameter.Level.Medium] = 14;
+            SSGIFilterRadius[(int)ScalableSettingLevelParameter.Level.High] = 12;
 
             // Ray Traced Ambient Occlusion
             RTAORayLength[(int)ScalableSettingLevelParameter.Level.Low] = 0.5f;
@@ -182,9 +178,6 @@ namespace UnityEngine.Rendering.HighDefinition
         /// <summary>Screen space global illumination's world space maximal radius.</summary>
         [NonSerialized]
         public float[] SSGIRadius = new float[s_QualitySettingCount];
-        /// <summary>Screen space global illumination flag to define if the effect is computed at full resolution.</summary>
-        [NonSerialized]
-        public bool[] SSGIFullResolution = new bool[s_QualitySettingCount];
         /// <summary>Screen space global illumination signal clamping value.</summary>
         [NonSerialized]
         public float[] SSGIClampValue = new float[s_QualitySettingCount];
@@ -219,8 +212,6 @@ namespace UnityEngine.Rendering.HighDefinition
         public float[] RTGIDenoiserRadius = new float[s_QualitySettingCount];
         /// <summary>Flag that enables the second denoising pass.</summary>
         public bool[] RTGISecondDenoise = new bool[s_QualitySettingCount];
-        /// <summary>Flag that defines the radius of the second denoiser.</summary>
-        public float[] RTGISecondDenoiserRadius = new float[s_QualitySettingCount];
 
         // Ray Traced Reflections
         /// <summary>Controls the minimal smoothness.</summary>

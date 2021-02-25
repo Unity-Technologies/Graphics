@@ -31,6 +31,7 @@ namespace UnityEditor.Rendering.HighDefinition
 
             public static readonly GUIContent lightLayerSubTitle = EditorGUIUtility.TrTextContent("Light Layers");
             public static readonly GUIContent volumetricSubTitle = EditorGUIUtility.TrTextContent("Volumetrics");
+            public static readonly GUIContent volumetricCloudsSubTitle = EditorGUIUtility.TrTextContent("Volumetric Clouds");
             public static readonly GUIContent probeVolumeSubTitle = EditorGUIUtility.TrTextContent("Probe Volume");
             public static readonly GUIContent cookiesSubTitle = EditorGUIUtility.TrTextContent("Cookies");
             public static readonly GUIContent reflectionsSubTitle = EditorGUIUtility.TrTextContent("Reflections");
@@ -64,6 +65,7 @@ namespace UnityEditor.Rendering.HighDefinition
             public static readonly GUIContent dofPhysicallyBased = EditorGUIUtility.TrTextContent("Physically Based");
             public static readonly GUIContent maxSamplesQuality = EditorGUIUtility.TrTextContent("Max Samples");
 
+            // SSAO
             public static readonly GUIContent SSAOQualitySettingSubTitle = EditorGUIUtility.TrTextContent("Screen Space Ambient Occlusion");
             public static readonly GUIContent AOStepCount = EditorGUIUtility.TrTextContent("Step Count");
             public static readonly GUIContent AOFullRes = EditorGUIUtility.TrTextContent("Full Resolution");
@@ -71,12 +73,42 @@ namespace UnityEditor.Rendering.HighDefinition
             public static readonly GUIContent AODirectionCount = EditorGUIUtility.TrTextContent("Direction Count");
             public static readonly GUIContent AOBilateralUpsample = EditorGUIUtility.TrTextContent("Bilateral Upsample");
 
+            // RTAO
+            public static readonly GUIContent RTAOQualitySettingSubTitle = EditorGUIUtility.TrTextContent("Ray Traced Ambient Occlusion");
+            public static readonly GUIContent RTAORayLength = EditorGUIUtility.TrTextContent("Max Ray Length");
+            public static readonly GUIContent RTAOSampleCount = EditorGUIUtility.TrTextContent("Sample Count");
+            public static readonly GUIContent RTAODenoise = EditorGUIUtility.TrTextContent("Denoise");
+            public static readonly GUIContent RTAODenoiserRadius = EditorGUIUtility.TrTextContent("Denoiser Radius");
+
             public static readonly GUIContent contactShadowsSettingsSubTitle = EditorGUIUtility.TrTextContent("Contact Shadows");
             public static readonly GUIContent contactShadowsSampleCount = EditorGUIUtility.TrTextContent("Sample Count");
 
             public static readonly GUIContent SSRSettingsSubTitle = EditorGUIUtility.TrTextContent("Screen Space Reflection");
             public static readonly GUIContent SSRMaxRaySteps = EditorGUIUtility.TrTextContent("Max Ray Steps");
 
+            // RTR
+            public static readonly GUIContent RTRSettingsSubTitle = EditorGUIUtility.TrTextContent("Ray Traced Reflections (Performance)");
+            public static readonly GUIContent RTRMinSmoothness = EditorGUIUtility.TrTextContent("Minimum Smoothness");
+            public static readonly GUIContent RTRSmoothnessFadeStart = EditorGUIUtility.TrTextContent("Smoothness Fade Start");
+            public static readonly GUIContent RTRRayLength = EditorGUIUtility.TrTextContent("Max Ray Length");
+            public static readonly GUIContent RTRClampValue = EditorGUIUtility.TrTextContent("Clamp Value");
+            public static readonly GUIContent RTRFullResolution = EditorGUIUtility.TrTextContent("Full Resolution");
+            public static readonly GUIContent RTRDenoise = EditorGUIUtility.TrTextContent("Denoise");
+            public static readonly GUIContent RTRDenoiserRadius = EditorGUIUtility.TrTextContent("Denoiser Radius");
+            public static readonly GUIContent RTRSmoothDenoising = EditorGUIUtility.TrTextContent("Affect Smooth Surfaces");
+
+            // RTGI
+            public static readonly GUIContent RTGISettingsSubTitle = EditorGUIUtility.TrTextContent("Ray Traced Global Illumination (Performance)");
+            public static readonly GUIContent RTGIRayLength = EditorGUIUtility.TrTextContent("Max Ray Length");
+            public static readonly GUIContent RTGIClampValue = EditorGUIUtility.TrTextContent("Clamp Value");
+            public static readonly GUIContent RTGIFullResolution = EditorGUIUtility.TrTextContent("Full Resolution");
+            public static readonly GUIContent RTGIUpScaleRadius = EditorGUIUtility.TrTextContent("Upscale Radius");
+            public static readonly GUIContent RTGIDenoise = EditorGUIUtility.TrTextContent("Denoise");
+            public static readonly GUIContent RTGIHalfResDenoise = EditorGUIUtility.TrTextContent("Half Resolution Denoiser");
+            public static readonly GUIContent RTGIDenoiserRadius = EditorGUIUtility.TrTextContent("Denoiser Radius");
+            public static readonly GUIContent RTGISecondDenoise = EditorGUIUtility.TrTextContent("Second Denoiser Pass");
+
+            // Fog
             public static readonly GUIContent FogSettingsSubTitle = EditorGUIUtility.TrTextContent("Volumetric Fog");
             public static readonly GUIContent FogSettingsBudget = EditorGUIUtility.TrTextContent("Volumetric Fog Budget");
             public static readonly GUIContent FogSettingsRatio = EditorGUIUtility.TrTextContent("Volumetric Fog Ratio");
@@ -96,6 +128,7 @@ namespace UnityEditor.Rendering.HighDefinition
             public static readonly GUIContent supportedSSSContent = EditorGUIUtility.TrTextContent("Subsurface Scattering", "When enabled, HDRP allocates memory for processing subsurface scattering (SSS). This allows you to use SSS in your Unity Project.");
             public static readonly GUIContent sssSampleBudget = EditorGUIUtility.TrTextContent("Sample Budget", "Maximum number of samples the Subsurface Scattering algorithm is allowed to take.");
             public static readonly GUIContent supportVolumetricContent = EditorGUIUtility.TrTextContent("Volumetrics", "When enabled, HDRP allocates Shader variants and memory for volumetric effects. This allows you to use volumetric lighting and fog in your Unity Project.");
+            public static readonly GUIContent supportVolumetricCloudsContent = EditorGUIUtility.TrTextContent("Volumetric Clouds", "When enabled, HDRP allocates memory for processing volumetric clouds. This allows you to use volumetric clouds in your Unity Project.");
             public static readonly GUIContent volumetricResolutionContent = EditorGUIUtility.TrTextContent("High Quality ", "When enabled, HDRP increases the resolution of volumetric lighting buffers. Warning: There is a high performance cost, do not enable on consoles.");
             public static readonly GUIContent supportLightLayerContent = EditorGUIUtility.TrTextContent("Light Layers", "When enabled, HDRP allocates memory for processing Light Layers. This allows you to use Light Layers in your Unity Project. For deferred rendering, this allocation includes an extra render target in memory and extra cost.");
             public static readonly GUIContent lightLayerName0 = EditorGUIUtility.TrTextContent("Light Layer Name 0", "The display name for Light Layer 0. This is purely cosmetic, and can be used to articulate intended use of Light Layer 0");
@@ -138,10 +171,11 @@ namespace UnityEditor.Rendering.HighDefinition
             public static readonly GUIContent LODBias = EditorGUIUtility.TrTextContent("LOD Bias");
             public static readonly GUIContent supportProbeVolumeContent = EditorGUIUtility.TrTextContent("Enable", "When enabled, HDRP allocates Shader variants and memory for probe volume based GI. This allows you to use probe volumes in your Unity Project.");
             public static readonly GUIContent probeVolumeMemoryBudget = EditorGUIUtility.TrTextContent("Memory Budget", "Determines the width and height of the textures used to store GI data from probes. Note that the textures also have a fixed depth dimension.");
-            internal const string probeVolumeInfo = "Warning: Probe Volumes is a highly experimental feature.\nIt is disabled by default for this reason.\nIt's functionality is subject to breaking changes and whole sale removal.\nIt is not recommended for use outside of for providing feedback.\nIt should not be used in production.\nTo enable, set:\nEnableProbeVolumes = 1\ninside of ShaderConfig.cs\and inside of the editor run:\nEdit->Render Pipeline->Generate Shader Includes\nProbe Volumes feature must also be enabled here.";
+            internal const string probeVolumeInfo = "Warning: Probe Volumes is a highly experimental feature.\nIt is disabled by default for this reason.\nIt's functionality is subject to breaking changes and whole sale removal.\nIt is not recommended for use outside of for providing feedback.\nIt should not be used in production.\nTo enable, set:\nEnableProbeVolumes = 1\ninside of ShaderConfig.cs\and inside of the editor run:\nEdit > Rendering > Generate Shader Includes\nProbe Volumes feature must also be enabled here.";
+            public static readonly GUIContent probeVolumeSHBands = EditorGUIUtility.TrTextContent("SH Bands", "Determines up to what SH bands the Probe Volume will use. Chosing L2 will lead to better quality, but also higher memory and runtime cost.");
             public static readonly GUIContent maxDensityVolumeSizeStyle = EditorGUIUtility.TrTextContent("Max Density Volume Size", "Specifies the maximum size for the individual 3D density volume texture that HDRP uses for Density Volumes. This settings will affect your memory consumption.");
             public static readonly GUIContent maxDensityVolumesOnScreenStyle = EditorGUIUtility.TrTextContent("Max Density Volumes On Screen", "Sets the maximum number of density volume HDRP can handle on screen at once. This settings will affect your memory consumption.");
-            public const string probeVolumeNotEnabled = "Warning: Probe Volumes are not enabled.\nIt is an highly experimental feature and disabled by default for this reason.\nIt's functionality is subject to breaking changes and whole sale removal.\nIt is not recommended for use outside of for providing feedback.\nIt should not be used in production.\nTo enable, set:\nEnableProbeVolumes = 1\ninside of ShaderConfig.cs\and inside of the editor run:\nEdit->Render Pipeline->Generate Shader Includes\nProbe Volumes feature must also be enabled here.";
+            public const string probeVolumeNotEnabled = "Warning: Probe Volumes are not enabled.\nIt is an highly experimental feature and disabled by default for this reason.\nIt's functionality is subject to breaking changes and whole sale removal.\nIt is not recommended for use outside of for providing feedback.\nIt should not be used in production.\nTo enable, set:\nEnableProbeVolumes = 1\ninside of ShaderConfig.cs\and inside of the editor run:\nEdit > Rendering > Generate Shader Includes\nProbe Volumes feature must also be enabled here.";
 
 
             public const string cacheErrorFormat = "This configuration will lead to more than 2 GB reserved for this cache at runtime! ({0} requested) Only {1} element will be reserved instead.";
@@ -157,7 +191,7 @@ namespace UnityEditor.Rendering.HighDefinition
             public static readonly GUIContent pointCoockieSizeContent = EditorGUIUtility.TrTextContent("Point Cookie Size", "Specifies the maximum size for the Cube cookies HDRP uses for Point Lights.");
 #endif
             public static readonly GUIContent pointCookieTextureArraySizeContent = EditorGUIUtility.TrTextContent("Cubemap Array Size", "Sets the maximum Texture Array size for the Cube cookies HDRP uses for Directional and Spot Lights. Higher values allow HDRP to use more cookies concurrently on screen.");
-            public static readonly GUIContent maxPlanarReflectionOnScreen = EditorGUIUtility.TrTextContent("Max Planar Reflection On Screen", "Sets the maximum number of the Planar Reflection HDRP can handle on screen at once.");
+            public static readonly GUIContent maxPlanarReflectionOnScreen = EditorGUIUtility.TrTextContent("Max Planar Reflection On Screen", "Sets the maximum number of the Planar Reflection HDRP can handle on screen at once. For performance reasons this number cannot be higher than 32.");
 
             public static readonly GUIContent cookieAtlasSizeContent = EditorGUIUtility.TrTextContent("2D Atlas Size", "Specifies the size of the atlas used for 2D cookies (Directional, Spot and Rectangle Lights).");
             public static readonly GUIContent cookieAtlasFormatContent = EditorGUIUtility.TrTextContent("Format", "Specifies the HDR format of the atlas used for 2D cookies. R16G16B16A16 can be use for EXR cookies (it provides more precision than R11G11B10)");

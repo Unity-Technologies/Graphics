@@ -415,37 +415,10 @@ namespace UnityEditor.Rendering.HighDefinition
             else
             {
                 if (hasMetallic)
-                {
-                    float metallicMin = metallicRemapMin[m_LayerIndex].floatValue;
-                    float metallicMax = metallicRemapMax[m_LayerIndex].floatValue;
-                    EditorGUI.BeginChangeCheck();
-                    EditorGUILayout.MinMaxSlider(Styles.metallicRemappingText, ref metallicMin, ref metallicMax, 0.0f, 1.0f);
-                    if (EditorGUI.EndChangeCheck())
-                    {
-                        metallicRemapMin[m_LayerIndex].floatValue = metallicMin;
-                        metallicRemapMax[m_LayerIndex].floatValue = metallicMax;
-                    }
-                }
+                    MinMaxShaderProperty(metallicRemapMin[m_LayerIndex], metallicRemapMax[m_LayerIndex], 0.0f, 1.0f, Styles.metallicRemappingText);
 
-                float remapMin = smoothnessRemapMin[m_LayerIndex].floatValue;
-                float remapMax = smoothnessRemapMax[m_LayerIndex].floatValue;
-                EditorGUI.BeginChangeCheck();
-                EditorGUILayout.MinMaxSlider(Styles.smoothnessRemappingText, ref remapMin, ref remapMax, 0.0f, 1.0f);
-                if (EditorGUI.EndChangeCheck())
-                {
-                    smoothnessRemapMin[m_LayerIndex].floatValue = remapMin;
-                    smoothnessRemapMax[m_LayerIndex].floatValue = remapMax;
-                }
-
-                float aoMin = aoRemapMin[m_LayerIndex].floatValue;
-                float aoMax = aoRemapMax[m_LayerIndex].floatValue;
-                EditorGUI.BeginChangeCheck();
-                EditorGUILayout.MinMaxSlider(Styles.aoRemappingText, ref aoMin, ref aoMax, 0.0f, 1.0f);
-                if (EditorGUI.EndChangeCheck())
-                {
-                    aoRemapMin[m_LayerIndex].floatValue = aoMin;
-                    aoRemapMax[m_LayerIndex].floatValue = aoMax;
-                }
+                MinMaxShaderProperty(smoothnessRemapMin[m_LayerIndex], smoothnessRemapMax[m_LayerIndex], 0.0f, 1.0f, Styles.smoothnessRemappingText);
+                MinMaxShaderProperty(aoRemapMin[m_LayerIndex], aoRemapMax[m_LayerIndex], 0.0f, 1.0f, Styles.aoRemappingText);
             }
 
             materialEditor.TexturePropertySingleLine((materials.All(m => m.GetMaterialId() == MaterialId.LitSpecular)) ? Styles.maskMapSpecularText : Styles.maskMapSText, maskMap[m_LayerIndex]);
@@ -619,13 +592,7 @@ namespace UnityEditor.Rendering.HighDefinition
                 {
                     materialEditor.TexturePropertySingleLine(Styles.thicknessMapText, thicknessMap[m_LayerIndex]);
                     // Display the remap of texture values.
-                    Vector2 remap = thicknessRemap[m_LayerIndex].vectorValue;
-                    EditorGUI.BeginChangeCheck();
-                    EditorGUILayout.MinMaxSlider(Styles.thicknessRemapText, ref remap.x, ref remap.y, 0.0f, 1.0f);
-                    if (EditorGUI.EndChangeCheck())
-                    {
-                        thicknessRemap[m_LayerIndex].vectorValue = remap;
-                    }
+                    MinMaxShaderProperty(thicknessRemap[m_LayerIndex], 0.0f, 1.0f, Styles.thicknessRemapText);
                 }
                 else
                 {
@@ -665,13 +632,7 @@ namespace UnityEditor.Rendering.HighDefinition
             {
                 materialEditor.TexturePropertySingleLine(Styles.iridescenceThicknessMapText, iridescenceThicknessMap);
                 // Display the remap of texture values.
-                Vector2 remap = iridescenceThicknessRemap.vectorValue;
-                EditorGUI.BeginChangeCheck();
-                EditorGUILayout.MinMaxSlider(Styles.iridescenceThicknessRemapText, ref remap.x, ref remap.y, 0.0f, 1.0f);
-                if (EditorGUI.EndChangeCheck())
-                {
-                    iridescenceThicknessRemap.vectorValue = remap;
-                }
+                MinMaxShaderProperty(iridescenceThicknessRemap, 0.0f, 1.0f, Styles.iridescenceThicknessRemapText);
             }
             else
             {
@@ -687,17 +648,7 @@ namespace UnityEditor.Rendering.HighDefinition
 
         void DrawLayerOptionsGUI()
         {
-            EditorGUI.showMixedValue = layerCount.hasMixedValue;
-            EditorGUI.BeginChangeCheck();
-            int newLayerCount = EditorGUILayout.IntSlider(Styles.layerCountText, (int)layerCount.floatValue, 2, 4);
-            if (EditorGUI.EndChangeCheck())
-            {
-                Material material = materialEditor.target as Material;
-                Undo.RecordObject(material, "Change layer count");
-                // Technically not needed (i think), TODO: check
-                // numLayer = newLayerCount;
-                layerCount.floatValue = (float)newLayerCount;
-            }
+            IntSliderShaderProperty(layerCount, 2, 4, Styles.layerCountText);
 
             materialEditor.TexturePropertySingleLine(Styles.layerMapMaskText, layerMaskMap);
 
@@ -722,22 +673,8 @@ namespace UnityEditor.Rendering.HighDefinition
             EditorGUI.indentLevel--;
 
             materialEditor.ShaderProperty(vertexColorMode, Styles.vertexColorModeText);
-
-            EditorGUI.BeginChangeCheck();
-            EditorGUI.showMixedValue = useMainLayerInfluence.hasMixedValue;
-            bool mainLayerModeInfluenceEnable = EditorGUILayout.Toggle(Styles.useMainLayerInfluenceModeText, useMainLayerInfluence.floatValue > 0.0f);
-            if (EditorGUI.EndChangeCheck())
-            {
-                useMainLayerInfluence.floatValue = mainLayerModeInfluenceEnable ? 1.0f : 0.0f;
-            }
-
-            EditorGUI.BeginChangeCheck();
-            EditorGUI.showMixedValue = useHeightBasedBlend.hasMixedValue;
-            m_UseHeightBasedBlend = EditorGUILayout.Toggle(Styles.useHeightBasedBlendText, useHeightBasedBlend.floatValue > 0.0f);
-            if (EditorGUI.EndChangeCheck())
-            {
-                useHeightBasedBlend.floatValue = m_UseHeightBasedBlend ? 1.0f : 0.0f;
-            }
+            materialEditor.ShaderProperty(useMainLayerInfluence, Styles.useMainLayerInfluenceModeText);
+            materialEditor.ShaderProperty(useHeightBasedBlend, Styles.useHeightBasedBlendText);
 
             if (m_UseHeightBasedBlend)
             {
@@ -746,6 +683,7 @@ namespace UnityEditor.Rendering.HighDefinition
                 EditorGUI.indentLevel--;
             }
 
+            bool mainLayerModeInfluenceEnable  = useMainLayerInfluence.floatValue > 0.0f;
             materialEditor.ShaderProperty(objectScaleAffectTile, mainLayerModeInfluenceEnable ? Styles.objectScaleAffectTileText2 : Styles.objectScaleAffectTileText);
         }
     }

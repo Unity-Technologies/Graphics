@@ -402,15 +402,6 @@ namespace UnityEditor.VFX
             }
 
             //< Final composition
-            var renderTemplatePipePath = VFXLibrary.currentSRPBinder.templatePath;
-            var renderRuntimePipePath = VFXLibrary.currentSRPBinder.runtimePath;
-            string renderPipeCommon = context.doesIncludeCommonCompute ? "Packages/com.unity.visualeffectgraph/Shaders/Common/VFXCommonCompute.hlsl" : VFXLibrary.currentSRPBinder.runtimePath + "/VFXCommon.hlsl";
-            string renderPipePasses = null;
-            if (!context.codeGeneratorCompute && !string.IsNullOrEmpty(renderTemplatePipePath))
-            {
-                renderPipePasses = renderTemplatePipePath + "/VFXPasses.template";
-            }
-
             var globalIncludeContent = new VFXShaderWriter();
             globalIncludeContent.WriteLine("#define NB_THREADS_PER_GROUP 64");
             globalIncludeContent.WriteLine("#define HAS_ATTRIBUTES 1");
@@ -428,10 +419,15 @@ namespace UnityEditor.VFX
                 globalIncludeContent.WriteLine(additionnalHeader);
 
             foreach (var additionnalDefine in context.additionalDefines)
-                globalIncludeContent.WriteLineFormat("#define {0} 1", additionnalDefine);
+                globalIncludeContent.WriteLineFormat("#define {0}{1}", additionnalDefine, additionnalDefine.Contains(' ') ? "" : " 1");
 
-            if (renderPipePasses != null)
+            var renderTemplatePipePath = VFXLibrary.currentSRPBinder.templatePath;
+            var renderRuntimePipePath = VFXLibrary.currentSRPBinder.runtimePath;
+            if (!context.codeGeneratorCompute && !string.IsNullOrEmpty(renderTemplatePipePath))
+            {
+                string renderPipePasses = renderTemplatePipePath + "/VFXPasses.template";
                 globalIncludeContent.Write(GetFlattenedTemplateContent(renderPipePasses, new List<string>(), context.additionalDefines, dependencies));
+            }
 
             if (context.GetData() is ISpaceable)
             {
@@ -441,8 +437,13 @@ namespace UnityEditor.VFX
             globalIncludeContent.WriteLineFormat("#include \"{0}/VFXDefines.hlsl\"", renderRuntimePipePath);
 
             var perPassIncludeContent = new VFXShaderWriter();
+            string renderPipeCommon = context.doesIncludeCommonCompute ? "Packages/com.unity.visualeffectgraph/Shaders/Common/VFXCommonCompute.hlsl" : renderRuntimePipePath + "/VFXCommon.hlsl";
             perPassIncludeContent.WriteLine("#include \"" + renderPipeCommon + "\"");
             perPassIncludeContent.WriteLine("#include \"Packages/com.unity.visualeffectgraph/Shaders/VFXCommon.hlsl\"");
+            if (!context.codeGeneratorCompute)
+            {
+                perPassIncludeContent.WriteLine("#include \"Packages/com.unity.visualeffectgraph/Shaders/VFXCommonOutput.hlsl\"");
+            }
 
             // Per-block includes
             var includes = Enumerable.Empty<string>();
