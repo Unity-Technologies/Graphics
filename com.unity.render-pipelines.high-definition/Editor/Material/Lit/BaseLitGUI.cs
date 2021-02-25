@@ -11,7 +11,7 @@ namespace UnityEditor.Rendering.HighDefinition
     {
         // Properties for Base Lit material keyword setup
         protected const string kDoubleSidedNormalMode = "_DoubleSidedNormalMode";
-
+        protected const string kDoubleSidedGIMode = "_DoubleSidedGIMode";
         protected const string kDisplacementLockObjectScale = "_DisplacementLockObjectScale";
         protected const string kDisplacementLockTilingScale = "_DisplacementLockTilingScale";
 
@@ -26,6 +26,11 @@ namespace UnityEditor.Rendering.HighDefinition
 
         // SSR
         protected MaterialProperty receivesSSR = null;
+
+        // Emission
+        const string kUseEmissiveIntensity = "_UseEmissiveIntensity";
+        const string kEmissiveIntensity = "_EmissiveIntensity";
+        const string kEmissiveColor = "_EmissiveColor";
 
         protected virtual void UpdateDisplacement() {}
 
@@ -102,6 +107,11 @@ namespace UnityEditor.Rendering.HighDefinition
                 CoreUtils.SetKeyword(material, "_REFRACTION_PLANE", (refractionModelValue == ScreenSpaceRefraction.RefractionModel.Box) && canHaveRefraction);
                 CoreUtils.SetKeyword(material, "_REFRACTION_SPHERE", (refractionModelValue == ScreenSpaceRefraction.RefractionModel.Sphere) && canHaveRefraction);
                 CoreUtils.SetKeyword(material, "_REFRACTION_THIN", (refractionModelValue == ScreenSpaceRefraction.RefractionModel.Thin) && canHaveRefraction);
+            }
+
+            if (material.HasProperty(kForceForwardEmissive))
+            {
+                CoreUtils.SetKeyword(material, "_FORCE_FORWARD_EMISSIVE", material.GetInt(kForceForwardEmissive) != 0);
             }
         }
 
@@ -189,6 +199,42 @@ namespace UnityEditor.Rendering.HighDefinition
         static public void SetupBaseLitMaterialPass(Material material)
         {
             material.SetupBaseUnlitPass();
+
+            if (material.HasProperty(kForceForwardEmissive))
+            {
+                // Emissive check below is only for the lit shader
+                // It is possible that it works with SG if the SG properties have the same name.
+                bool emissiveIsDisabled = false;
+                if (material.HasProperty(kUseEmissiveIntensity))
+                {
+                    var useIntensity = material.GetInt(kUseEmissiveIntensity);
+                    if (useIntensity == 0)
+                    {
+                        if (material.HasProperty(kEmissiveColor))
+                        {
+                            var emissionColor = material.GetColor(kEmissiveColor);
+                            if (emissionColor.r == 0.0 && emissionColor.g == 0.0 && emissionColor.b == 0.0)
+                            {
+                                emissiveIsDisabled = true;
+                            }
+                        }
+                    }
+                    else
+                    {
+                        if (material.HasProperty(kEmissiveIntensity))
+                        {
+                            var intensityValue = material.GetFloat(kEmissiveIntensity);
+                            if (intensityValue == 0.0)
+                            {
+                                emissiveIsDisabled = true;
+                            }
+                        }
+                    }
+                }
+
+                bool forceForwardEmissive = (material.GetFloat(kForceForwardEmissive) > 0.0f) && ((SurfaceType)material.GetFloat(kSurfaceType) == SurfaceType.Opaque);
+                material.SetShaderPassEnabled(HDShaderPassNames.s_ForwardEmissiveForDeferredStr, forceForwardEmissive && !emissiveIsDisabled);
+            }
         }
     }
 } // namespace UnityEditor

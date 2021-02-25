@@ -86,7 +86,7 @@ Shader "Universal Render Pipeline/2D/Sprite-Lit-Default"
 
                 o.positionCS = TransformObjectToHClip(v.positionOS);
                 o.uv = TRANSFORM_TEX(v.uv, _MainTex);
-                o.lightingUV = ComputeNormalizedDeviceCoordinates(o.positionCS);
+                o.lightingUV = ComputeNormalizedDeviceCoordinates(o.positionCS.xyz);
                 o.color = v.color;
                 return o;
             }

@@ -2,6 +2,7 @@
 
 # Universal RP General
 /com.unity.render-pipelines.universal/ @Unity-Technologies/universal-rp-team
+/TestProjects/UniversalGraphicsTest/ @hdb-unity
 
 # Universal RP 2D Renderer
 /com.unity.render-pipelines.universal/Editor/2D @Unity-Technologies/2d-graphics

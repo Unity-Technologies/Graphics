@@ -85,8 +85,10 @@ namespace UnityEngine.Rendering.Universal
     [MovedFrom("UnityEngine.Rendering.LWRP")] public enum RendererType
     {
         Custom,
-        ForwardRenderer,
+        UniversalRenderer,
         _2DRenderer,
+        [Obsolete("ForwardRenderer has been renamed (UnityUpgradable) -> UniversalRenderer", true)]
+        ForwardRenderer = UniversalRenderer,
     }
 
     public enum ColorGradingMode
@@ -102,11 +104,11 @@ namespace UnityEngine.Rendering.Universal
         ScriptableRenderer[] m_Renderers = new ScriptableRenderer[1];
 
         // Default values set when a new UniversalRenderPipeline asset is created
-        [SerializeField] int k_AssetVersion = 7;
-        [SerializeField] int k_AssetPreviousVersion = 7;
+        [SerializeField] int k_AssetVersion = 8;
+        [SerializeField] int k_AssetPreviousVersion = 8;
 
         // Deprecated settings for upgrading sakes
-        [SerializeField] RendererType m_RendererType = RendererType.ForwardRenderer;
+        [SerializeField] RendererType m_RendererType = RendererType.UniversalRenderer;
         [EditorBrowsable(EditorBrowsableState.Never)]
         [SerializeField] internal ScriptableRendererData m_RendererData = null;
 
@@ -148,6 +150,7 @@ namespace UnityEngine.Rendering.Universal
         [SerializeField] float m_Cascade2Split = 0.25f;
         [SerializeField] Vector2 m_Cascade3Split = new Vector2(0.1f, 0.3f);
         [SerializeField] Vector3 m_Cascade4Split = new Vector3(0.067f, 0.2f, 0.467f);
+        [SerializeField] float m_CascadeBorder = 0.2f;
         [SerializeField] float m_ShadowDepthBias = 1.0f;
         [SerializeField] float m_ShadowNormalBias = 1.0f;
         [SerializeField] bool m_SoftShadowsSupported = false;
@@ -198,7 +201,7 @@ namespace UnityEngine.Rendering.Universal
             if (rendererData != null)
                 instance.m_RendererDataList[0] = rendererData;
             else
-                instance.m_RendererDataList[0] = CreateInstance<ForwardRendererData>();
+                instance.m_RendererDataList[0] = CreateInstance<UniversalRendererData>();
 
             // Initialize default Renderer
             instance.m_EditorResourcesAsset = instance.editorResources;
@@ -212,11 +215,11 @@ namespace UnityEngine.Rendering.Universal
             public override void Action(int instanceId, string pathName, string resourceFile)
             {
                 //Create asset
-                AssetDatabase.CreateAsset(Create(CreateRendererAsset(pathName, RendererType.ForwardRenderer)), pathName);
+                AssetDatabase.CreateAsset(Create(CreateRendererAsset(pathName, RendererType.UniversalRenderer)), pathName);
             }
         }
 
-        [MenuItem("Assets/Create/Rendering/Universal Render Pipeline/Pipeline Asset (Forward Renderer)", priority = CoreUtils.assetCreateMenuPriority1)]
+        [MenuItem("Assets/Create/Rendering/URP Asset (with Universal Renderer)", priority = CoreUtils.Sections.section2 + CoreUtils.Priorities.assetsCreateRenderingMenuPriority)]
         static void CreateUniversalPipeline()
         {
             ProjectWindowUtil.StartNameEditingIfProjectWindowExists(0, CreateInstance<CreateUniversalPipelineAsset>(),
@@ -240,18 +243,19 @@ namespace UnityEngine.Rendering.Universal
         {
             switch (type)
             {
-                case RendererType.ForwardRenderer:
-                    return CreateInstance<ForwardRendererData>();
+                case RendererType.UniversalRenderer:
+                    return CreateInstance<UniversalRendererData>();
                 // 2D renderer is experimental
                 case RendererType._2DRenderer:
                     return CreateInstance<Experimental.Rendering.Universal.Renderer2DData>();
-                // Forward Renderer is the fallback renderer that works on all platforms
+                // Universal Renderer is the fallback renderer that works on all platforms
                 default:
-                    return CreateInstance<ForwardRendererData>();
+                    return CreateInstance<UniversalRendererData>();
             }
         }
 
-        //[MenuItem("Assets/Create/Rendering/Universal Pipeline Editor Resources", priority = CoreUtils.assetCreateMenuPriority1)]
+        // Hide: User aren't suppose to have to create it.
+        //[MenuItem("Assets/Create/Rendering/URP Editor Resources", priority = CoreUtils.Sections.section8 + CoreUtils.Priorities.assetsCreateRenderingMenuPriority)]
         static void CreateUniversalPipelineEditorResources()
         {
             var instance = CreateInstance<UniversalRenderPipelineEditorResources>();
@@ -274,12 +278,12 @@ namespace UnityEngine.Rendering.Universal
         }
 #endif
 
-        public ScriptableRendererData LoadBuiltinRendererData(RendererType type = RendererType.ForwardRenderer)
+        public ScriptableRendererData LoadBuiltinRendererData(RendererType type = RendererType.UniversalRenderer)
         {
 #if UNITY_EDITOR
             EditorUtility.SetDirty(this);
             return m_RendererDataList[0] =
-                CreateRendererAsset("Assets/ForwardRenderer.asset", type, false);
+                CreateRendererAsset("Assets/UniversalRenderer.asset", type, false);
 #else
             m_RendererDataList[0] = null;
             return m_RendererDataList[0];
@@ -667,6 +671,15 @@ namespace UnityEngine.Rendering.Universal
         }
 
         /// <summary>
+        /// Last cascade fade distance in percentage.
+        /// </summary>
+        public float cascadeBorder
+        {
+            get { return m_CascadeBorder; }
+            set { cascadeBorder = value; }
+        }
+
+        /// <summary>
         /// The Shadow Depth Bias, controls the offset of the lit pixels.
         /// </summary>
         public float shadowDepthBias
@@ -921,6 +934,13 @@ namespace UnityEngine.Rendering.Universal
                 k_AssetVersion = 7;
             }
 
+            if (k_AssetVersion < 8)
+            {
+                k_AssetPreviousVersion = k_AssetVersion;
+                m_CascadeBorder = 0.1f; // In previous version we had this hard coded
+                k_AssetVersion = 8;
+            }
+
 #if UNITY_EDITOR
             if (k_AssetPreviousVersion != k_AssetVersion)
             {
@@ -934,9 +954,9 @@ namespace UnityEngine.Rendering.Universal
         {
             if (asset.k_AssetPreviousVersion < 5)
             {
-                if (asset.m_RendererType == RendererType.ForwardRenderer)
+                if (asset.m_RendererType == RendererType.UniversalRenderer)
                 {
-                    var data = AssetDatabase.LoadAssetAtPath<ForwardRendererData>("Assets/ForwardRenderer.asset");
+                    var data = AssetDatabase.LoadAssetAtPath<UniversalRendererData>("Assets/UniversalRenderer.asset");
                     if (data)
                     {
                         asset.m_RendererDataList[0] = data;
@@ -951,10 +971,10 @@ namespace UnityEngine.Rendering.Universal
                 asset.k_AssetPreviousVersion = 5;
             }
 
-            if (asset.k_AssetPreviousVersion < 7)
+            if (asset.k_AssetPreviousVersion < 8)
             {
                 // The added feature was reverted, we keep this version to avoid breakage in case somebody already has version 7
-                asset.k_AssetPreviousVersion = 7;
+                asset.k_AssetPreviousVersion = 8;
             }
 
             EditorUtility.SetDirty(asset);

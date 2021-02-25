@@ -20,7 +20,7 @@ The preview used for Sub Graphs is determined by the first port of the Output No
 ## Sub Graphs and shader stages
 If a Node within a Sub Graph specifies a shader stage (for example, how the [Sample Texture 2D Node](Sample-Texture-2D-Node.md) specifies the **fragment** shader stage), the Editor locks the entire Sub Graph to that stage. You cannot connect any Nodes that specify a different shader stage to the Sub Graph Output Node, and the Editor locks any Sub Graph Nodes that references the graph to that shader stage.
 
-From 10.3 onward, Texture and SamplerState type inputs and outputs to Sub Graphs benefit from an improved data structure. For a detailed explanation, see [Custom Function Node](Custom-Function-Node.md). 
+From 10.3 onward, Texture and SamplerState type inputs and outputs to Sub Graphs benefit from an improved data structure. For a detailed explanation, see [Custom Function Node](Custom-Function-Node.md).
 
 ## Sub Graphs and Keywords
 [Keywords](Keywords.md) that you define on the [Blackboard](Blackboard.md) in a Sub Graph behave similarly to those in regular Shader Graphs. When you add a Sub Graph Node to a Shader Graph, Unity defines all Keywords in that Sub Graph in the Shader Graph as well, so that the Sub Graph works as intended.

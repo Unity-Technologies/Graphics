@@ -13,7 +13,7 @@ The Bloom effect also has a **Lens Dirt** feature, which you can use to apply a 
 1. In the Scene or Hierarchy view, select a GameObject that contains a Volume component to view it in the Inspector.
 2. In the Inspector, navigate to **Add Override > Post-processing** and click on **Bloom**. HDRP now applies **Bloom** to any Camera this Volume affects.
 
-Bloom includes [more options](More-Options.md) that you must manually expose.
+Bloom includes [additional properties](More-Options.md) that you must manually expose.
 
 [!include[](snippets/volume-override-api.md)]
 
@@ -41,10 +41,10 @@ Bloom includes [more options](More-Options.md) that you must manually expose.
 
 | **Property**               | **Description**                                              |
 | -------------------------- | ------------------------------------------------------------ |
-| **Resolution**             | Use the drop-down to set the resolution at which HDRP processes the Bloom effect. If you target consoles that use a very high resolution (for example, 4k), select **Quarter,** because it is less resource-intensive.<br />&#8226; **Quarter**: Uses quarter the screen resolution.<br />&#8226; **Half**: Uses half the screen resolution.<br/>This property only appears when you enable [more options](More-Options.md). |
-| **High Quality Prefiltering** | Enable the checkbox to make HDRP use 13 samples instead of 4 during the prefiltering pass. This increases the resource intensity of the Bloom effect, but results in less flickering by small and bright objects like the sun.<br />This property only appears when you enable [more options](More-Options.md). |
-| **High Quality Filtering** | Enable the checkbox to make HDRP use bicubic filtering instead of bilinear filtering. This increases the resource intensity of the Bloom effect, but results in smoother visuals.<br />This property only appears when you enable [more options](More-Options.md). |
-| **Anamorphic**             | Enable the checkbox to make the bloom effect take the **Anamorphism** property of the Camera into account. This stretches the bloom horizontally or vertically like it would on anamorphic sensors.<br />This property only appears when you enable [more options](More-Options.md). |
+| **Resolution**             | Use the drop-down to set the resolution at which HDRP processes the Bloom effect. If you target consoles that use a very high resolution (for example, 4k), select **Quarter,** because it is less resource-intensive.<br />&#8226; **Quarter**: Uses quarter the screen resolution.<br />&#8226; **Half**: Uses half the screen resolution.<br/>This property only appears when you enable [additional properties](More-Options.md). |
+| **High Quality Prefiltering** | Enable the checkbox to make HDRP use 13 samples instead of 4 during the prefiltering pass. This increases the resource intensity of the Bloom effect, but results in less flickering by small and bright objects like the sun.<br />This property only appears when you enable [additional properties](More-Options.md). |
+| **High Quality Filtering** | Enable the checkbox to make HDRP use bicubic filtering instead of bilinear filtering. This increases the resource intensity of the Bloom effect, but results in smoother visuals.<br />This property only appears when you enable [additional properties](More-Options.md). |
+| **Anamorphic**             | Enable the checkbox to make the bloom effect take the **Anamorphism** property of the Camera into account. This stretches the bloom horizontally or vertically like it would on anamorphic sensors.<br />This property only appears when you enable [additional properties](More-Options.md). |
 
 ## Details
 

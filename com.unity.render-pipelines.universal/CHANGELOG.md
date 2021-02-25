@@ -5,20 +5,63 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.html).
 
 ## [12.0.0] - 2021-01-11
-
 ### Added
+- Added View Vector node to mimic old behavior of View Direction node in URP.
 - Added support for the PlayStation 5 platform.
+- Enabled deferred renderer in UI.
+
+### Changed
+- The Forward Renderer asset is renamed to the Universal Renderer asset. The Universal Renderer asset contains the property Rendering Path that lets you select the Forward or the Deferred Rendering Path.
+- Move Assets/Create/Rendering/Universal Render Pipeline/Pipeline Asset (2D Renderer) to Assets/Create/Rendering/URP Asset (with 2D Renderer)
+- Move Assets/Create/Rendering/Universal Render Pipeline/2D Renderer to Assets/Create/Rendering/URP 2D Renderer
+- Move Assets/Create/Rendering/Universal Render Pipeline/Renderer Feature to Assets/Create/Rendering/URP Renderer Feature
+- Move Assets/Create/Rendering/Universal Render Pipeline/Post-process Data to Assets/Create/Rendering/URP Post-process Data
+- Move Assets/Create/Rendering/Universal Render Pipeline/Pipeline Asset (Forward Renderer) to Assets/Create/Rendering/URP Asset (with Forward Renderer)
+- Move Assets/Create/Rendering/Universal Render Pipeline/XR System Data to Assets/Create/Rendering/URP XR System Data
+- Move Assets/Create/Rendering/Universal Render Pipeline/Forward Renderer to Assets/Create/Rendering/URP Forward Renderer
+- Removing unused temporary depth buffers for Depth of Field and Panini Projection.
+- Optimized the Bokeh Depth of Field shader on mobile by using half precision floats.
+- Added Depth and DepthNormals passes to particles shaders.
 
 ### Fixed
+- Fixed an issue where ShadowCaster2D was generating garbage when running in the editor. [case 1304158](https://issuetracker.unity3d.com/product/unity/issues/guid/1304158/)
 - Fixed an issue where objects in motion might jitter when the Pixel Perfect Camera is used. [case 1300474](https://issuetracker.unity3d.com/issues/urp-characters-sprite-repeats-in-the-build-when-using-pixel-perfect-camera-and-2d-renderer)
+- Fixed an issue where the scene view camera was not correctly cleared for the 2D Renderer. [case 1311377](https://issuetracker.unity3d.com/product/unity/issues/guid/1311377/)
 - Fixed an issue where the letter box/pillar box areas were not properly cleared when the Pixel Perfect Camera is used. [case 1291224](https://issuetracker.unity3d.com/issues/pixel-perfect-image-artifact-appear-between-the-reference-resolution-and-screen-resolution-borders-when-strech-fill-is-enabled)
 - Fixed an issue where the Cinemachine Pixel Perfect Extension might cause the Orthographic Size of the Camera to jump to 1 when the Scene is loaded. [case 1249076](https://issuetracker.unity3d.com/issues/cinemachine-pixel-perfect-camera-extension-causes-the-orthogonal-size-to-jump-to-1-when-the-scene-is-loaded)
+- Fixed an issue where 2D Shadows were casting to the wrong layers [case 1300753][https://issuetracker.unity3d.com/product/unity/issues/guid/1300753/]
 - Fixed an issue where render scale was breaking SSAO in scene view. [case 1296710](https://issuetracker.unity3d.com/issues/ssao-effect-floating-in-the-air-in-scene-view-when-2-objects-with-shadergraph-materials-are-on-top-of-each-other)
 - Fixed GC allocations from XR occlusion mesh when using multipass.
 - Fixed an issue where the inspector of Renderer Data would break after adding RenderObjects renderer feature and then adding another renderer feature.
 - Fixed an issue where soft particles did not work with orthographic projection. [case 1294607](https://issuetracker.unity3d.com/product/unity/issues/guid/1294607/)
 - Fixed wrong shader / properties assignement to materials created from 3DsMax 2021 Physical Material. (case 1293576)
+- Normalized the view direction in Shader Graph to be consistent across Scriptable Render Pieplines.
+- Fixed material upgrader to run in batch mode [case 1305402]
+- Fixed gizmos drawing in game view. [case 1302504](https://issuetracker.unity3d.com/issues/urp-handles-with-set-ztest-do-not-respect-depth-sorting-in-the-game-view)
+- Fixed an issue in shaderGraph target where the ShaderPass.hlsl was being included after SHADERPASS was defined
+- Fixed an issue where Particle Lit shader had an incorrect fallback shader [case 1312459]
+- Fixed an issue with backbuffer MSAA on Vulkan desktop platforms.
+- Fixed shadow cascade blend culling factor.
+- Removed Custom.meta which was causing warnings. [case 1314288](https://issuetracker.unity3d.com/issues/urp-warnings-about-missing-metadata-appear-after-installing)
+- Fixed a case where shadow fade was clipped too early.
+- Fixed lit shader property duplication issue. [case 1315032](https://issuetracker.unity3d.com/issues/shader-dot-propertytoid-returns-the-same-id-when-shaders-properties-have-the-same-name-but-different-type)
+- Fixed undo issues for the additional light property on the UniversalRenderPipeline Asset. [case 1300367]
 
+### Changed
+- Change Asset/Create/Shader/Universal Render Pipeline/Lit Shader Graph to Asset/Create/Shader Graph/URP/Lit Shader Graph
+- Change Asset/Create/Shader/Universal Render Pipeline/Sprite Lit Shader Graph to Asset/Create/Shader Graph/URP/Sprite Lit Shader Graph
+- Change Asset/Create/Shader/Universal Render Pipeline/Unlit Shader Graph to Asset/Create/Shader Graph/URP/Unlit Shader Graph
+- Change Asset/Create/Shader/Universal Render Pipeline/Sprite Unlit Shader Graph to Asset/Create/Shader Graph/URP/Sprite Unlit Shader Graph
+- Moved Edit/Render Pipeline/Universal Render Pipeline/Upgrade Project Materials to 2D Renderer Materials to Edit/Rendering/Materials/Convert All Built-in Materials to URP 2D Renderer
+- Moved Edit/Render Pipeline/Universal Render Pipeline/Upgrade Scene Materials to 2D Renderer Materials to Edit/Rendering/Materials/Convert All Built-in Scene Materials to URP 2D Renderer
+- Moved Edit/Render Pipeline/Universal Render Pipeline/Upgrade Project URP Parametric Lights to Freeform to Edit/Rendering/Lights/Convert Project URP Parametric Lights to Freeform
+- Moved Edit/Render Pipeline/Universal Render Pipeline/Upgrade Scene URP Parametric Lights to Freeform to Edit/Rendering/Lights/Convert Scene URP Parametric Lights to Freeform
+- Moved Edit/Render Pipeline/Universal Render Pipeline/Upgrade Project Materials to URP Materials to Edit/Rendering/Materials/Convert All Built-in Materials to URP
+- Moved Edit/Render Pipeline/Universal Render Pipeline/Upgrade Selected Materials to URP Materials to Edit/Rendering/Materials/Convert Selected Built-in Materials to URP
+- Deprecated GetShadowFade in Shadows.hlsl, use GetMainLightShadowFade or GetAdditionalLightShadowFade.
+- Improved shadow cascade GUI drawing with pixel perfect, hover and focus functionalities.
+- Shadow fade now uses border value for calculating shadow fade distance and fall off linearly.
+- Using the same MaterialHeaderScope for material editor as HDRP is using
 
 ## [11.0.0] - 2020-10-21
 ### Added
@@ -65,6 +108,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 ### Fixed
 - Fixed an issue where additional lights would not render with WebGL 1
 - Fixed an issue where the 2D Renderer was incorrectly rendering transparency with normal maps on an empty background.
+- Fixed an issue that that caused a null error when creating a Sprite Light. [case 1307125](https://issuetracker.unity3d.com/issues/urp-nullreferenceexception-thrown-on-creating-sprite-light-2d-object-in-the-hierarchy)
 - Fixed an issue where Sprites on one Sorting Layer were fully lit even when there's no 2D light targeting that layer.
 - Fixed an issue where null reference exception was thrown when creating a 2D Renderer Data asset while scripts are compiling. [case 1263040](https://issuetracker.unity3d.com/issues/urp-nullreferenceexception-error-is-thrown-on-creating-2d-renderer-asset)
 - Fixed an issue where no preview would show for the lit sprite master node in shadergraph
@@ -248,7 +292,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ### Fixed
 - Fixed an issue that caused WebGL to render blank screen when Depth texture was enabled [case 1240228](https://issuetracker.unity3d.com/issues/webgl-urp-scene-is-rendered-black-in-webgl-build-when-depth-texture-is-enabled)
-- Fixed NaNs in tonemap algorithms (neutral and ACES) on Nintendo Switch.
+- Fixed NaNs in tonemap algorithms (neutral and ACES) on platforms defaulting to lower precision.
 - Fixed a performance problem with ShaderPreprocessor with large amount of active shader variants in the project
 - Fixed an issue where linear to sRGB conversion occurred twice on certain Android devices.
 - Fixed an issue where there were 2 widgets showing the outer angle of a spot light.
@@ -309,7 +353,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed an issue that allowed height-based blending on Terrains with more than 4 materials, which is not supported.
 - Fixed an issue where opaque objects were outputting incorrect alpha values [case 1168283](https://issuetracker.unity3d.com/issues/lwrp-alpha-clipping-material-makes-other-materials-look-like-alpha-clipping-when-gameobject-is-shown-in-render-texture)
 - Fixed an issue where a depth texture was always created when post-processing was enabled, even if no effects made use of it.
-- Fixed incorrect light attenuation on Nintendo Switch.
+- Fixed incorrect light attenuation on some platforms.
 - Fixed an issue where the Volume System would not use the Cameras Transform when no `Volume Trigger` was set.
 - Fixed an issue where post processing disappeared when using custom renderers and SMAA or no AA
 - Fixed an issue where the 2D Renderer upgrader did not upgrade using the correct default material
@@ -364,7 +408,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed shader compilation errors when using multiple lights in DX10 level GPU. [case 1222302](https://issuetracker.unity3d.com/issues/urp-no-materials-apart-from-ui-are-rendered-when-using-direct3d11-graphics-api-on-a-dx10-gpu)
 - Fixed an issue with shadows not being correctly calculated in some shaders.
 - Fixed invalid implementation of one function in LWRP -> URP backward compatibility support.
-- Fixed issue on Nintendo Switch where maximum number of visible lights in C# code did not match maximum number in shader code.
+- Fixed issue where maximum number of visible lights in C# code did not match maximum number in shader code on some platforms.
 - Fixed OpenGL ES 3.0 support for URP ShaderGraph. [case 1230890](https://issuetracker.unity3d.com/issues/urptemplate-gles3-android-custom-shader-fails-to-compile-on-adreno-306-gpu)
 - Fixed an issue where multi edit camera properties didn't work. [case 1230080](https://issuetracker.unity3d.com/issues/urp-certain-settings-are-not-applied-to-all-cameras-when-multi-editing-in-the-inspector)
 - Fixed an issue where the emission value in particle shaders would not update in the editor without entering the Play mode.
@@ -488,7 +532,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Classes have moved to the Universal namespace (from LWRP).
 
 ### Upgrade Guide
-- Upgrading to UniversalRP is designed to be almost seamless from the user side.
+- Upgrading to URP is designed to be almost seamless from the user side.
 - LWRP package still exists, this forwards includes and classes to the UniversalRP Package.
 - Please see the more involved upgrade guide (https://docs.google.com/document/d/1Xd5bZa8pYZRHri-EnNkyhwrWEzSa15vtnpcg--xUCIs/).
 
@@ -505,7 +549,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 ### Changed
 - Replaced beginCameraRendering callbacks by non obsolete implementation in Light2D
 - Updated `ScriptableRendererFeature` and `ScriptableRenderPass` API docs.
-- Shader type Real translates to FP16 precision on Nintendo Switch.
+- Changed shader type Real to translate to FP16 precision on some platforms.
 
 ### Fixed
 - Fixed a case where built-in Shader time values could be out of sync with actual time. [case 1142495](https://fogbugz.unity3d.com/f/cases/1142495/)
@@ -523,7 +567,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed support for LWRP per-pixel terrain. [case 1110520](https://fogbugz.unity3d.com/f/cases/1110520)
 - Fixed some basic UI/usability issues with LWRP terrain Materials (use of warnings and modal value changes).
 - Fixed an issue where using LWRP and Sprite Shape together would produce meta file conflicts.
-- Fixed fp16 overflow in Switch in specular calculation
+- Fixed specular calculation fp16 overflow on some platforms
 - Fixed shader compilation errors for Android XR projects.
 - Updated the pipeline Asset UI to cap the render scale at 2x so that it matches the render pipeline implementation limit.
 
@@ -856,7 +900,7 @@ Read/write XRGraphicsConfig -> Read-only XRGraphics interface to XRSettings.
 - GLES2 shader compiler error in IntegrationTests
 - Can't set RenderScale and ShadowDistance by script
 - VR Single Pass Instancing shadows
-- Fixed compilation errors on Nintendo Switch (limited XRSetting support).
+- Fixed compilation errors on platforms with limited XRSetting support.
 
 ## [2.0.0-preview] - 2018-01-01
 

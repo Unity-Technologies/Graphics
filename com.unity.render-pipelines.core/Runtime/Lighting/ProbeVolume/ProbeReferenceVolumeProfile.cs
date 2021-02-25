@@ -37,6 +37,7 @@ namespace UnityEngine.Rendering
         /// <summary>
         /// Determines if the Probe Reference Volume Profile is equivalent to another one.
         /// </summary>
+        /// <param name ="otherProfile">The profile to compare with.</param>
         /// <returns>Whether the Probe Reference Volume Profile is equivalent to another one.</returns>
         public bool IsEquivalent(ProbeReferenceVolumeProfile otherProfile)
         {
