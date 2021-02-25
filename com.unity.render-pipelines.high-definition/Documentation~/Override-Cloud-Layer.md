@@ -26,8 +26,6 @@ If you enable **Upper Hemisphere Only**, the map is interpreted as containing on
 
 By default, HDRP uses a cloud map named `DefaultCloudMap`. This texture contains cumulus clouds in the red channel, stratus clouds in the green channel, cirrus clouds in the blue channel and wispy clouds in the alpha channel.
 
-**Note**: This cloud map is formatted differently to the cloud map that the [Volumetric Clouds](Override-Volumetric-Clouds.md) feature uses.
-
 ## Controlling cloud movement
 
 The Cloud Layer override provides a way to move clouds at runtime, using a flowmap. A flowmap has the same layout as the [cloud map](#about-the-cloud-map), in that it is a LatLong layout 2D texture, and also uses the **Upper Hemisphere Only** property to determine the area it affects.

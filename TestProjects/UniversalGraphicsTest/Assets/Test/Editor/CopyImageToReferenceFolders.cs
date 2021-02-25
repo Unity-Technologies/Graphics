@@ -15,7 +15,7 @@ public class CopyImageToReferenceFolders
         string referenceImagesPath = Path.Combine("Assets", "ReferenceImages", "Linear");
         string[] leafFolders = EnumerateLeafFolders(referenceImagesPath).ToArray<string>();
         int numOfLeafFolders = leafFolders.Length;
-
+        
         Object[] selectedObjects = Selection.objects;
         int numOfCopies = numOfLeafFolders * selectedObjects.Length;
 

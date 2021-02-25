@@ -30,11 +30,6 @@ struct FragInputs
 
     // For two sided lighting
     bool isFrontFace;
-
-    // append a substruct for custom interpolators to be copied correctly into SDI from Varyings.
-    #if defined(USE_CUSTOMINTERP_SUBSTRUCT)
-        CustomInterpolators customInterpolators;
-    #endif
 };
 
 void GetVaryingsDataDebug(uint paramId, FragInputs input, inout float3 result, inout bool needLinearToSRGB)

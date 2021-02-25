@@ -23,7 +23,6 @@ Material:
   - TransparentDepthPrepass
   - TransparentDepthPostpass
   - RayTracingPrepass
-  - ForwardEmissiveForDeferred
   m_SavedProperties:
     serializedVersion: 3
     m_TexEnvs:
@@ -39,7 +38,6 @@ Material:
         m_Texture: {fileID: 0}
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
-    m_Ints: []
     m_Floats:
     - Vector1_2038AEEA: 0.36
     - _AddPrecomputedVelocity: 0
@@ -58,7 +56,6 @@ Material:
     - _DstBlend: 10
     - _EnableBlendModePreserveSpecularLighting: 0
     - _EnableFogOnTransparent: 0
-    - _ForceForwardEmissive: 0
     - _OpaqueCullMode: 2
     - _RayTracing: 0
     - _ReceivesSSR: 1
@@ -108,4 +105,4 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: da692e001514ec24dbc4cca1949ff7e8, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  version: 12
+  version: 11

@@ -71,7 +71,9 @@ namespace UnityEngine.Rendering.HighDefinition
 
         const int maxNumSubMeshes = 32;
         Dictionary<int, int> m_RayTracingRendererReference = new Dictionary<int, int>();
-        RayTracingSubMeshFlags[] subMeshFlagArray = new RayTracingSubMeshFlags[maxNumSubMeshes];
+        bool[] subMeshFlagArray = new bool[maxNumSubMeshes];
+        bool[] subMeshCutoffArray = new bool[maxNumSubMeshes];
+        bool[] subMeshTransparentArray = new bool[maxNumSubMeshes];
         ReflectionProbe reflectionProbe = new ReflectionProbe();
         List<Material> materialArray = new List<Material>(maxNumSubMeshes);
 
@@ -112,20 +114,6 @@ namespace UnityEngine.Rendering.HighDefinition
                 m_DiffuseShadowDenoiser.Release();
             if (m_DiffuseDenoiser != null)
                 m_DiffuseDenoiser.Release();
-        }
-
-        static bool IsTransparentMaterial(Material currentMaterial)
-        {
-            return currentMaterial.IsKeywordEnabled("_SURFACE_TYPE_TRANSPARENT")
-                || (HDRenderQueue.k_RenderQueue_Transparent.lowerBound <= currentMaterial.renderQueue
-                    && HDRenderQueue.k_RenderQueue_Transparent.upperBound >= currentMaterial.renderQueue);
-        }
-
-        static bool IsAlphaTestedMaterial(Material currentMaterial)
-        {
-            return currentMaterial.IsKeywordEnabled("_ALPHATEST_ON")
-                || (HDRenderQueue.k_RenderQueue_OpaqueAlphaTest.lowerBound <= currentMaterial.renderQueue
-                    && HDRenderQueue.k_RenderQueue_OpaqueAlphaTest.upperBound >= currentMaterial.renderQueue);
         }
 
         AccelerationStructureStatus AddInstanceToRAS(Renderer currentRenderer,
@@ -183,23 +171,21 @@ namespace UnityEngine.Rendering.HighDefinition
                     {
                         // Mesh is valid given that all requirements are ok
                         validMesh = true;
+                        subMeshFlagArray[meshIdx] = true;
 
-                        // First mark the thing as valid
-                        subMeshFlagArray[meshIdx] = RayTracingSubMeshFlags.Enabled;
-
-                        // Evaluate what kind of materials we are dealing with
-                        bool alphaTested = IsAlphaTestedMaterial(currentMaterial);
-                        bool transparentMaterial = IsTransparentMaterial(currentMaterial);
+                        // Is the sub material transparent?
+                        subMeshTransparentArray[meshIdx] = currentMaterial.IsKeywordEnabled("_SURFACE_TYPE_TRANSPARENT")
+                            || (HDRenderQueue.k_RenderQueue_Transparent.lowerBound <= currentMaterial.renderQueue
+                                && HDRenderQueue.k_RenderQueue_Transparent.upperBound >= currentMaterial.renderQueue);
 
                         // Aggregate the transparency info
-                        materialIsOnlyTransparent &= transparentMaterial;
-                        hasTransparentSubMaterial |= transparentMaterial;
+                        materialIsOnlyTransparent &= subMeshTransparentArray[meshIdx];
+                        hasTransparentSubMaterial |= subMeshTransparentArray[meshIdx];
 
-                        // Append the additional flags depending on what kind of sub mesh this is
-                        if (!transparentMaterial && !alphaTested)
-                            subMeshFlagArray[meshIdx] |= RayTracingSubMeshFlags.ClosestHitOnly;
-                        else if (transparentMaterial)
-                            subMeshFlagArray[meshIdx] |= RayTracingSubMeshFlags.UniqueAnyHitCalls;
+                        // Is the material alpha tested?
+                        subMeshCutoffArray[meshIdx] = currentMaterial.IsKeywordEnabled("_ALPHATEST_ON")
+                            || (HDRenderQueue.k_RenderQueue_OpaqueAlphaTest.lowerBound <= currentMaterial.renderQueue
+                                && HDRenderQueue.k_RenderQueue_OpaqueAlphaTest.upperBound >= currentMaterial.renderQueue);
 
                         // Force it to be non single sided if it has the keyword if there is a reason
                         bool doubleSided = currentMaterial.doubleSidedGI || currentMaterial.IsKeywordEnabled("_DOUBLESIDED_ON");
@@ -226,16 +212,20 @@ namespace UnityEngine.Rendering.HighDefinition
                 // If the mesh was not valid, exclude it
                 if (!validMesh)
                 {
-                    subMeshFlagArray[meshIdx] = RayTracingSubMeshFlags.Disabled;
+                    subMeshFlagArray[meshIdx] = false;
+                    subMeshCutoffArray[meshIdx] = false;
                     singleSided = true;
                 }
             }
 
-            // If the material is considered opaque, every sub-mesh has to be enabled and with unique any hit calls
+            // If the material is considered opaque, but has some transparent sub-materials
             if (!materialIsOnlyTransparent && hasTransparentSubMaterial)
+            {
                 for (int meshIdx = 0; meshIdx < numSubMeshes; ++meshIdx)
-                    subMeshFlagArray[meshIdx] = RayTracingSubMeshFlags.Enabled | RayTracingSubMeshFlags.UniqueAnyHitCalls;
-
+                {
+                    subMeshCutoffArray[meshIdx] = subMeshTransparentArray[meshIdx] ? true : subMeshCutoffArray[meshIdx];
+                }
+            }
 
             // Propagate the opacity mask only if all sub materials are opaque
             bool isOpaque = !hasTransparentSubMaterial;
@@ -295,7 +285,7 @@ namespace UnityEngine.Rendering.HighDefinition
             if (instanceFlag == 0) return AccelerationStructureStatus.Added;
 
             // Add it to the acceleration structure
-            m_CurrentRAS.AddInstance(currentRenderer, subMeshFlags: subMeshFlagArray, enableTriangleCulling: singleSided, mask: instanceFlag);
+            m_CurrentRAS.AddInstance(currentRenderer, subMeshMask: subMeshFlagArray, subMeshTransparencyFlags: subMeshCutoffArray, enableTriangleCulling: singleSided, mask: instanceFlag);
 
             // Indicates that a transform has changed in our scene (mesh or light)
             m_TransformDirty |= currentRenderer.transform.hasChanged;

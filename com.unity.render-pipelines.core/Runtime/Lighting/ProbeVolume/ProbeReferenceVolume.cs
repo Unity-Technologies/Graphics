@@ -229,8 +229,6 @@ namespace UnityEngine.Rendering
         private Vector3Int m_PendingIndexDimChange;
         private bool m_NeedsIndexDimChange = false;
 
-        internal float normalBiasFromProfile;
-
         static private ProbeReferenceVolume _instance = new ProbeReferenceVolume();
 
         /// <summary>
@@ -309,15 +307,6 @@ namespace UnityEngine.Rendering
             }
         }
 
-        private void PerformPendingNormalBiasChange()
-        {
-            if (m_NormalBias != normalBiasFromProfile)
-            {
-                m_NormalBias = normalBiasFromProfile;
-                m_Index.WriteConstants(ref m_Transform, m_Pool.GetPoolDimensions(), m_NormalBias);
-            }
-        }
-
         private void LoadAsset(ProbeVolumeAsset asset)
         {
             var path = asset.GetSerializedFullPath();
@@ -390,7 +379,6 @@ namespace UnityEngine.Rendering
         public void PerformPendingOperations()
         {
             PerformPendingDeletion();
-            PerformPendingNormalBiasChange();
             PerformPendingIndexDimensionChange();
             PerformPendingLoading();
         }
@@ -557,10 +545,8 @@ namespace UnityEngine.Rendering
             // rasterize bricks according to the coarsest grid
             Rasterize(vol, m_TmpBricks[0]);
 
-            int subDivCount = 0;
-
             // iterative subdivision
-            while (m_TmpBricks[0].Count > 0 && subDivCount < m_MaxSubdivision)
+            while (m_TmpBricks[0].Count > 0)
             {
                 m_TmpBricks[1].Clear();
                 m_TmpFlags.Clear();
@@ -596,8 +582,6 @@ namespace UnityEngine.Rendering
                     }
                     Profiler.EndSample();
                 }
-
-                subDivCount++;
             }
             Profiler.EndSample();
         }

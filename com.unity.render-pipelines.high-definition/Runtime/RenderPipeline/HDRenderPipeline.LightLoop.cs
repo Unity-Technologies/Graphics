@@ -508,13 +508,13 @@ namespace UnityEngine.Rendering.HighDefinition
                     passData.reprojectionKernel = m_SsrReprojectionKernel;
                     passData.accumulateKernel = m_SsrAccumulateKernel;
                     passData.transparentSSR = transparent;
-                    passData.usePBRAlgo = usePBRAlgo;
+                    passData.usePBRAlgo = !transparent && volumeSettings.usedAlgorithm.value == ScreenSpaceReflectionAlgorithm.PBRAccumulation;
                     passData.width = hdCamera.actualWidth;
                     passData.height = hdCamera.actualHeight;
                     passData.viewCount = hdCamera.viewCount;
                     passData.offsetBufferData = m_DepthBufferMipChainInfo.GetOffsetBufferData(m_DepthPyramidMipLevelOffsetsBuffer);
                     passData.accumNeedClear = usePBRAlgo;
-                    passData.previousAccumNeedClear = usePBRAlgo && (hdCamera.currentSSRAlgorithm == ScreenSpaceReflectionAlgorithm.Approximation || hdCamera.isFirstFrame || hdCamera.resetPostProcessingHistory);
+                    passData.previousAccumNeedClear = usePBRAlgo && (hdCamera.currentSSRAlgorithm == ScreenSpaceReflectionAlgorithm.Approximation || hdCamera.isFirstFrame);
                     hdCamera.currentSSRAlgorithm = volumeSettings.usedAlgorithm.value; // Store for next frame comparison
 
                     passData.depthBuffer = builder.ReadTexture(prepassOutput.depthBuffer);
@@ -554,15 +554,8 @@ namespace UnityEngine.Rendering.HighDefinition
                             if (data.previousAccumNeedClear)
                                 CoreUtils.SetRenderTarget(ctx.cmd, data.ssrAccumPrev, ClearFlag.Color, Color.clear);
 
-                            if (!data.usePBRAlgo)
-                                ctx.cmd.EnableShaderKeyword("SSR_APPROX");
-                            else
-                                ctx.cmd.DisableShaderKeyword("SSR_APPROX");
-
-                            if (data.transparentSSR)
-                                ctx.cmd.EnableShaderKeyword("DEPTH_SOURCE_NOT_FROM_MIP_CHAIN");
-                            else
-                                ctx.cmd.DisableShaderKeyword("DEPTH_SOURCE_NOT_FROM_MIP_CHAIN");
+                            CoreUtils.SetKeyword(cs, "SSR_APPROX", !data.usePBRAlgo);
+                            CoreUtils.SetKeyword(cs, "DEPTH_SOURCE_NOT_FROM_MIP_CHAIN", data.transparentSSR);
 
                             using (new ProfilingScope(ctx.cmd, ProfilingSampler.Get(HDProfileId.SsrTracing)))
                             {

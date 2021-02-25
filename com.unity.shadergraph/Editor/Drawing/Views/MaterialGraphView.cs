@@ -185,8 +185,6 @@ namespace UnityEditor.ShaderGraph.Drawing
                 // solution is to call its DragLeave until its interface can be improved.
                 context.DragLeave(null, null, null, null);
             }
-            if (selectedBlocknodes.Length > 0)
-                graph.ValidateCustomBlockLimit();
             return selectedBlocknodes.Length > 0;
         }
 

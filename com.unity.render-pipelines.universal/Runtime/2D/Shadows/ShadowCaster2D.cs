@@ -140,8 +140,8 @@ namespace UnityEngine.Experimental.Rendering.Universal
 
         public void Update()
         {
-            Renderer renderer;
-            m_HasRenderer = TryGetComponent<Renderer>(out renderer);
+            Renderer renderer = GetComponent<Renderer>();
+            m_HasRenderer = renderer != null;
 
             bool rebuildMesh = LightUtility.CheckForChange(m_ShapePathHash, ref m_PreviousPathHash);
             if (rebuildMesh)

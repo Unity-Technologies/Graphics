@@ -132,8 +132,6 @@ If the shadow atlas is full when a Light requests a spot, the cached shadow mana
 After a Scene loads with all the already placed Lights, if you add a new Light with cached shadows to the Scene, HDRP tries to place it in order to fill the holes in the atlas. However, depending on the order of insertion, the atlas may be fragmented and the holes available are not enough to place the Light's shadow map in. In this case, you can defragment the atlas to allow for additional Lights. To do this, pass the target atlas into the following function: `HDCachedShadowManager.instance.DefragAtlas`
 Note that this causes HDRP to mark all the shadow maps in the atlas as dirty which means HDRP renders them the moment their parent Light becomes visible.
 
-It is possible to check if a light has its shadow maps has a placement in the cached shadow atlas   `HDCachedShadowManager.instance.LightHasBeenPlacedInAtlas` and if it has been placed and rendered at least once with `HDCachedShadowManager.instance.LightHasBeenPlaceAndRenderedAtLeastOnce`.
-
 ### Preserving shadow atlas placement
 
 If you disable the Light or change its **Update Mode** to **Every Frame**, the cached shadow manager unreserves the Light's shadow map's space in the cached shadow atlas and HDRP begins to render the Light's shadow map to the normal shadow atlases every frame. If the cached shadow manager needs to allocate space on the atlas for another Light, it can overwrite the space currently taken up by the original Light's shadow map.

@@ -27,7 +27,6 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 pragmas = CorePragmas.DotsInstancedInV1AndV2,
                 defines = CoreDefines.ShaderGraphRaytracingDefault,
                 includes = GenerateIncludes(),
-                customInterpolators = CoreCustomInterpolators.Common,
             };
 
             RenderStateCollection GenerateRenderState()
@@ -91,7 +90,6 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 pragmas = CorePragmas.DotsInstancedInV1AndV2EditorSync,
                 defines = CoreDefines.ScenePicking,
                 includes = GenerateIncludes(),
-                customInterpolators = CoreCustomInterpolators.Common,
             };
 
             IncludeCollection GenerateIncludes()
@@ -128,7 +126,6 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 pragmas = CorePragmas.DotsInstancedInV1AndV2EditorSync,
                 defines = CoreDefines.SceneSelection,
                 includes = GenerateIncludes(),
-                customInterpolators = CoreCustomInterpolators.Common,
             };
 
             IncludeCollection GenerateIncludes()
@@ -179,7 +176,6 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 renderStates = CoreRenderStates.ShadowCaster,
                 pragmas = CorePragmas.DotsInstancedInV2Only,
                 includes = GenerateIncludes(),
-                customInterpolators = CoreCustomInterpolators.Common,
             };
 
             IncludeCollection GenerateIncludes()
@@ -269,7 +265,6 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 pragmas = CorePragmas.DotsInstancedInV2Only,
                 defines = supportLighting ? CoreDefines.DepthForwardOnly : CoreDefines.DepthForwardOnlyUnlit,
                 includes = GenerateIncludes(),
-                customInterpolators = CoreCustomInterpolators.Common,
             };
 
             RenderStateCollection GenerateRenderState()
@@ -336,7 +331,6 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 defines = GenerateDefines(),
                 pragmas = CorePragmas.DotsInstancedInV2Only,
                 includes = GenerateIncludes(),
-                customInterpolators = CoreCustomInterpolators.Common,
             };
 
             DefineCollection GenerateDefines()
@@ -408,7 +402,6 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 includes = GenerateIncludes(),
 
                 virtualTextureFeedback = true,
-                customInterpolators = CoreCustomInterpolators.Common
             };
 
             FieldCollection GenerateRequiredFields()
@@ -457,47 +450,6 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
 
         #endregion
 
-        #region Forward Emissive For Deferred
-
-        public static PassDescriptor GenerateForwardEmissiveForDeferredPass()
-        {
-            return new PassDescriptor
-            {
-                // Definition
-                displayName = "ForwardEmissiveForDeferred",
-                referenceName = "SHADERPASS_FORWARD_EMISSIVE_FOR_DEFERRED",
-                lightMode = "ForwardEmissiveForDeferred",
-                useInPreview = false,
-
-                // Collections
-                requiredFields = GenerateRequiredFields(),
-                renderStates = CoreRenderStates.ForwardEmissiveForDeferred,
-                pragmas = CorePragmas.DotsInstancedInV2Only,
-                defines = CoreDefines.ForwardEmissiveForDeferred,
-                includes = GenerateIncludes(),
-
-                virtualTextureFeedback = true,
-            };
-
-            FieldCollection GenerateRequiredFields()
-            {
-                return CoreRequiredFields.LitFull;
-            }
-
-            IncludeCollection GenerateIncludes()
-            {
-                var includes = new IncludeCollection();
-                includes.Add(CoreIncludes.CorePregraph);
-                includes.Add(CoreIncludes.kPassPlaceholder, IncludeLocation.Pregraph);
-                includes.Add(CoreIncludes.CoreUtility);
-                includes.Add(CoreIncludes.kShaderGraphFunctions, IncludeLocation.Pregraph);
-                includes.Add(CoreIncludes.kPassForwardEmissiveForDeferred, IncludeLocation.Postgraph);
-                return includes;
-            }
-        }
-
-        #endregion
-
         #region Back then front pass
 
         public static PassDescriptor GenerateBackThenFront(bool supportLighting)
@@ -516,7 +468,6 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 pragmas = CorePragmas.DotsInstancedInV1AndV2,
                 defines = CoreDefines.BackThenFront,
                 includes = GenerateIncludes(),
-                customInterpolators = CoreCustomInterpolators.Common
             };
 
             IncludeCollection GenerateIncludes()
@@ -591,7 +542,6 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 pragmas = CorePragmas.DotsInstancedInV1AndV2,
                 defines = CoreDefines.TransparentDepthPrepass,
                 includes = GenerateIncludes(),
-                customInterpolators = CoreCustomInterpolators.Common,
             };
 
             RenderStateCollection GenerateRenderState()
@@ -678,7 +628,6 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 pragmas = CorePragmas.DotsInstancedInV1AndV2,
                 defines = CoreDefines.TransparentDepthPostpass,
                 includes = GenerateIncludes(),
-                customInterpolators = CoreCustomInterpolators.Common,
             };
 
             IncludeCollection GenerateIncludes()
@@ -735,7 +684,6 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 defines = CoreDefines.ShaderGraphRaytracingDefault,
                 keywords = LitDepthOnlyKeywords,
                 includes = DepthOnlyIncludes,
-                customInterpolators = CoreCustomInterpolators.Common,
             };
         }
 
@@ -777,7 +725,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 defines = CoreDefines.ShaderGraphRaytracingDefault,
                 keywords = GBufferKeywords,
                 includes = GBufferIncludes,
-                customInterpolators = CoreCustomInterpolators.Common,
+
                 virtualTextureFeedback = true,
             };
         }
@@ -832,7 +780,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 pragmas = CorePragmas.DotsInstancedInV1AndV2,
                 defines = CoreDefines.Forward,
                 includes = ForwardIncludes,
-                customInterpolators = CoreCustomInterpolators.Common,
+
                 virtualTextureFeedback = true,
             };
         }

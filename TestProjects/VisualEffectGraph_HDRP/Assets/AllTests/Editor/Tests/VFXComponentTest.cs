@@ -346,14 +346,14 @@ namespace UnityEditor.VFX.Test
                 yield return null;
             Assert.IsFalse(vfx.culled);
             vfx.enabled = false;
-            //Assert.IsTrue(vfx.culled); //Culled state is not set to false on disabled anymore, but it will not be rendered anyway
+            Assert.IsTrue(vfx.culled); //Should be implicitly removed from the scene at this point.
 
             var renderer = currentObject.GetComponent<Renderer>();
             renderer.enabled = true;
             for (int i = 0; i < 4; ++i)
             {
                 Assert.IsTrue(renderer.enabled);
-                //Assert.IsTrue(vfx.culled); //Culled state is not set to false on disabled anymore, but it will not be rendered anyway
+                Assert.IsTrue(vfx.culled);
                 yield return null;
             }
 

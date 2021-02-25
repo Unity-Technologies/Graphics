@@ -12,7 +12,6 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Placement option (Vertex, Edge, Surface) in Sample Mesh & Skinned Mesh, allows triangle sampling.
 
 ### Changed
-- Moved Edit/Visual Effects/Rebuild And Save All VFX Graphs to Edit/VFX/Rebuild And Save All Visual Effect Graphs
 - Move Assets/Create/Visual Effects/Visual Effect Graph to Assets/Create/VFX/VFX Graph
 - Move Assets/Create/Visual Effects/Visual Effect Defaults to Assets/Create/VFX/VFX Defaults
 - Move Assets/Create/Visual Effects/Visual Effect Subgraph Operator to Assets/Create/VFX/VFX Subgraph Operator

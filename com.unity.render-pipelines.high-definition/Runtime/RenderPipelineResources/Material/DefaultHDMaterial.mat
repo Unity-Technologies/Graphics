@@ -12,7 +12,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: da692e001514ec24dbc4cca1949ff7e8, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  version: 12
+  version: 11
 --- !u!21 &2100000
 Material:
   serializedVersion: 6
@@ -36,7 +36,6 @@ Material:
   - TransparentDepthPostpass
   - TransparentBackface
   - RayTracingPrepass
-  - ForwardEmissiveForDeferred
   m_SavedProperties:
     serializedVersion: 3
     m_TexEnvs:
@@ -250,7 +249,6 @@ Material:
     - _EnableTransparentFog: 1
     - _EnableWind: 0
     - _EnergyConservingSpecularColor: 1
-    - _ForceForwardEmissive: 0
     - _GlossMapScale: 1
     - _Glossiness: 0.5
     - _GlossyReflections: 1

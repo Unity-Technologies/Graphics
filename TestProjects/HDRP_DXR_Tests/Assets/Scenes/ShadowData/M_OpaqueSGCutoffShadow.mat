@@ -19,12 +19,12 @@ Material:
     MotionVector: User
     RenderType: TransparentCutout
   disabledShaderPasses:
-  - RayTracingPrepass
+  - DistortionVectors
   - MOTIONVECTORS
   - TransparentDepthPrepass
   - TransparentDepthPostpass
   - TransparentBackface
-  - ForwardEmissiveForDeferred
+  - RayTracingPrepass
   m_SavedProperties:
     serializedVersion: 3
     m_TexEnvs:
@@ -128,7 +128,6 @@ Material:
         m_Texture: {fileID: 0}
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
-    m_Ints: []
     m_Floats:
     - Vector1_d6216a6180894c54aff632d9d553e0f7: 0.5
     - Vector1_de12680fa66f4d83acef056744cdab8a: 0
@@ -186,7 +185,6 @@ Material:
     - _EnableFogOnTransparent: 1
     - _EnableGeometricSpecularAA: 0
     - _EnergyConservingSpecularColor: 1
-    - _ForceForwardEmissive: 0
     - _HeightAmplitude: 0.02
     - _HeightCenter: 0.5
     - _HeightMapParametrization: 0
@@ -291,4 +289,4 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: da692e001514ec24dbc4cca1949ff7e8, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  version: 12
+  version: 11

@@ -102,7 +102,7 @@ namespace UnityEditor.Graphing
         }
 
         public static void DepthFirstCollectNodesFromNode(List<AbstractMaterialNode> nodeList, AbstractMaterialNode node,
-            IncludeSelf includeSelf = IncludeSelf.Include, List<KeyValuePair<ShaderKeyword, int>> keywordPermutation = null, bool ignoreActiveState = false)
+            IncludeSelf includeSelf = IncludeSelf.Include, List<KeyValuePair<ShaderKeyword, int>> keywordPermutation = null)
         {
             // no where to start
             if (node == null)
@@ -132,11 +132,11 @@ namespace UnityEditor.Graphing
                 {
                     var outputNode = edge.outputSlot.node;
                     if (outputNode != null)
-                        DepthFirstCollectNodesFromNode(nodeList, outputNode, keywordPermutation: keywordPermutation, ignoreActiveState: ignoreActiveState);
+                        DepthFirstCollectNodesFromNode(nodeList, outputNode, keywordPermutation: keywordPermutation);
                 }
             }
 
-            if (includeSelf == IncludeSelf.Include && (node.isActive || ignoreActiveState))
+            if (includeSelf == IncludeSelf.Include && node.isActive)
                 nodeList.Add(node);
         }
 
@@ -943,7 +943,7 @@ namespace UnityEditor.Graphing
         public static bool ValidateSlotName(string inName, out string errorMessage)
         {
             //check for invalid characters between display safe and hlsl safe name
-            if (GetDisplaySafeName(inName) != GetHLSLSafeName(inName) && GetDisplaySafeName(inName) != ConvertToValidHLSLIdentifier(inName))
+            if (GetDisplaySafeName(inName) != GetHLSLSafeName(inName))
             {
                 errorMessage = "Slot name(s) found invalid character(s). Valid characters: A-Z, a-z, 0-9, _ ( ) ";
                 return true;

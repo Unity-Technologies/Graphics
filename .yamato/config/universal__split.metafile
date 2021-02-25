@@ -22,8 +22,6 @@ pr:
       pr: true
     - project: ShaderGraph
       pr: true
-    - project: URPUpdate
-      pr: true
 nightly:
   dependencies:
     - project: URP_2D
@@ -45,6 +43,4 @@ nightly:
     - project: ShaderGraph
       nightly: true
     - project: Smoke_Test
-      nightly: true
-    - project: URPUpdate
       nightly: true

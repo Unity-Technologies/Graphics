@@ -102,7 +102,6 @@ namespace UnityEngine.Rendering.HighDefinition
 
 
         /// <summary>Controls the opacity of the cloud shadows.</summary>
-        [Header("Cloud Shadows")]
         [Tooltip("Controls the opacity of the cloud shadows.")]
         public MinFloatParameter shadowMultiplier = new MinFloatParameter(1.0f, 0.0f);
         /// <summary>Controls the tint of the cloud shadows.</summary>

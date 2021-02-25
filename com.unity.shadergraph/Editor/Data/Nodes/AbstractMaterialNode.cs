@@ -38,8 +38,6 @@ namespace UnityEditor.ShaderGraph
 
         public GraphData owner { get; set; }
 
-        internal virtual bool ExposeToSearcher => true;
-
         OnNodeModified m_OnModified;
 
         public GroupData group
@@ -447,12 +445,8 @@ namespace UnityEditor.ShaderGraph
                 return null;
 
             var edges = owner.GetEdges(inputSlot.slotReference).ToArray();
-            AbstractMaterialNode fromNode = null;
-            if (edges.Count() > 0)
-            {
-                var fromSocketRef = edges[0].outputSlot;
-                fromNode = fromSocketRef.node;
-            }
+            var fromSocketRef = edges[0].outputSlot;
+            var fromNode = fromSocketRef.node;
             return fromNode;
         }
 

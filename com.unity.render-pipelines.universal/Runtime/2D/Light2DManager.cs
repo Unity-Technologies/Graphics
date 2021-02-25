@@ -1,5 +1,9 @@
 using System.Collections.Generic;
 
+#if UNITY_EDITOR
+using UnityEditor.Experimental.SceneManagement;
+#endif
+
 namespace UnityEngine.Experimental.Rendering.Universal
 {
     internal static class Light2DManager
@@ -52,7 +56,7 @@ namespace UnityEngine.Experimental.Rendering.Universal
                 var inCurrentPrefabStage = true;
 #if UNITY_EDITOR
                 // If we found the first global light in our prefab stage
-                inCurrentPrefabStage = UnityEditor.SceneManagement.PrefabStageUtility.GetCurrentPrefabStage()?.IsPartOfPrefabContents(light.gameObject) ?? true;
+                inCurrentPrefabStage = PrefabStageUtility.GetCurrentPrefabStage()?.IsPartOfPrefabContents(light.gameObject) ?? true;
 #endif
 
                 if (inCurrentPrefabStage)
@@ -86,7 +90,7 @@ namespace UnityEngine.Experimental.Rendering.Universal
                 {
 #if UNITY_EDITOR
                     // If we found the first global light in our prefab stage
-                    if (UnityEditor.SceneManagement.PrefabStageUtility.GetPrefabStage(light.gameObject) == UnityEditor.SceneManagement.PrefabStageUtility.GetCurrentPrefabStage())
+                    if (PrefabStageUtility.GetPrefabStage(light.gameObject) == PrefabStageUtility.GetCurrentPrefabStage())
 #endif
                     {
                         if (globalLightCount > 0)

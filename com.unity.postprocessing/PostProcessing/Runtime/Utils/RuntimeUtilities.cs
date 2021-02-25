@@ -381,11 +381,6 @@ namespace UnityEngine.Rendering.PostProcessing
             }
         }
 
-        internal static bool isValidResources()
-        {
-            return s_Resources != null;
-        }
-
         internal static void UpdateResources(PostProcessResources resources)
         {
             Destroy(s_CopyMaterial);
@@ -931,13 +926,7 @@ namespace UnityEngine.Rendering.PostProcessing
             // TODO: Is there more proper way to determine this? What about SRPs?
             var gtype = SystemInfo.graphicsDeviceType;
             return camera.actualRenderingPath == RenderingPath.DeferredShading &&
-                (gtype == GraphicsDeviceType.Direct3D11
-                    || gtype == GraphicsDeviceType.Direct3D12
-                    || gtype == GraphicsDeviceType.GameCoreXboxSeries
-                    || gtype == GraphicsDeviceType.GameCoreXboxOne
-                    || gtype == GraphicsDeviceType.XboxOne
-                    || gtype == GraphicsDeviceType.XboxOneD3D12
-                );
+                (gtype == GraphicsDeviceType.Direct3D11 || gtype == GraphicsDeviceType.Direct3D12 || gtype == GraphicsDeviceType.XboxOne);
         }
 
         /// <summary>

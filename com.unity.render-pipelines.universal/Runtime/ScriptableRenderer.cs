@@ -32,7 +32,6 @@ namespace UnityEngine.Rendering.Universal
             public static readonly ProfilingSampler clearRenderingState         = new ProfilingSampler($"{k_Name}.{nameof(ClearRenderingState)}");
             public static readonly ProfilingSampler internalStartRendering      = new ProfilingSampler($"{k_Name}.{nameof(InternalStartRendering)}");
             public static readonly ProfilingSampler internalFinishRendering     = new ProfilingSampler($"{k_Name}.{nameof(InternalFinishRendering)}");
-            public static readonly ProfilingSampler drawGizmos                  = new ProfilingSampler($"{nameof(DrawGizmos)}");
 
             public static class RenderBlock
             {
@@ -1006,20 +1005,8 @@ namespace UnityEngine.Rendering.Universal
         void DrawGizmos(ScriptableRenderContext context, Camera camera, GizmoSubset gizmoSubset)
         {
 #if UNITY_EDITOR
-            if (!UnityEditor.Handles.ShouldRenderGizmos())
-                return;
-
-            CommandBuffer cmd = CommandBufferPool.Get();
-            using (new ProfilingScope(cmd, Profiling.drawGizmos))
-            {
-                context.ExecuteCommandBuffer(cmd);
-                cmd.Clear();
-
+            if (UnityEditor.Handles.ShouldRenderGizmos())
                 context.DrawGizmos(camera, gizmoSubset);
-            }
-
-            context.ExecuteCommandBuffer(cmd);
-            CommandBufferPool.Release(cmd);
 #endif
         }
 

@@ -227,8 +227,6 @@ namespace UnityEngine.Rendering.HighDefinition
 
                 PreRenderSky(renderGraph, hdCamera, colorBuffer, result.depthBuffer, result.normalBuffer);
 
-                PreRenderVolumetricClouds(renderGraph, hdCamera, GetDepthBufferMipChainInfo());
-
                 // At this point in forward all objects have been rendered to the prepass (depth/normal/motion vectors) so we can resolve them
                 ResolvePrepassBuffers(renderGraph, hdCamera, ref result);
 
@@ -249,10 +247,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 bool mip1FromDownsampleForLowResTrans = SystemInfo.graphicsDeviceType == GraphicsDeviceType.PlayStation4 ||
                     SystemInfo.graphicsDeviceType == GraphicsDeviceType.PlayStation5 ||
                     SystemInfo.graphicsDeviceType == GraphicsDeviceType.XboxOne ||
-                    SystemInfo.graphicsDeviceType == GraphicsDeviceType.XboxOneD3D12 ||
-                    SystemInfo.graphicsDeviceType == GraphicsDeviceType.GameCoreXboxOne ||
-                    SystemInfo.graphicsDeviceType == GraphicsDeviceType.GameCoreXboxSeries;
-
+                    SystemInfo.graphicsDeviceType == GraphicsDeviceType.XboxOneD3D12;
                 mip1FromDownsampleForLowResTrans = mip1FromDownsampleForLowResTrans && hdCamera.frameSettings.IsEnabled(FrameSettingsField.LowResTransparent);
 
                 DownsampleDepthForLowResTransparency(renderGraph, hdCamera, mip1FromDownsampleForLowResTrans, ref result);
@@ -898,9 +893,7 @@ namespace UnityEngine.Rendering.HighDefinition
             bool canReadBoundDepthBuffer = SystemInfo.graphicsDeviceType == GraphicsDeviceType.PlayStation4 ||
                 SystemInfo.graphicsDeviceType == GraphicsDeviceType.PlayStation5 ||
                 SystemInfo.graphicsDeviceType == GraphicsDeviceType.XboxOne ||
-                SystemInfo.graphicsDeviceType == GraphicsDeviceType.XboxOneD3D12 ||
-                SystemInfo.graphicsDeviceType == GraphicsDeviceType.GameCoreXboxOne ||
-                SystemInfo.graphicsDeviceType == GraphicsDeviceType.GameCoreXboxSeries;
+                SystemInfo.graphicsDeviceType == GraphicsDeviceType.XboxOneD3D12;
 
             if (!canReadBoundDepthBuffer)
             {

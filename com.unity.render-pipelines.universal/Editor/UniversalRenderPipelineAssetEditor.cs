@@ -149,6 +149,7 @@ namespace UnityEditor.Rendering.Universal
 
         SerializedProperty m_ShaderVariantLogLevel;
 
+        LightRenderingMode selectedLightRenderingMode;
         SerializedProperty m_ColorGradingMode;
         SerializedProperty m_ColorGradingLutSize;
         SerializedProperty m_UseFastSRGBLinearConversion;
@@ -235,6 +236,8 @@ namespace UnityEditor.Rendering.Universal
             m_UseFastSRGBLinearConversion = serializedObject.FindProperty("m_UseFastSRGBLinearConversion");
 
             m_UseAdaptivePerformance = serializedObject.FindProperty("m_UseAdaptivePerformance");
+
+            selectedLightRenderingMode = (LightRenderingMode)m_AdditionalLightsRenderingModeProp.intValue;
 
             string Key = "Universal_Shadow_Setting_Unit:UI_State";
             m_State = new EditorPrefBoolFlags<EditorUtils.Unit>(Key);
@@ -323,7 +326,8 @@ namespace UnityEditor.Rendering.Universal
                 EditorGUILayout.Space();
 
                 // Additional light
-                EditorGUILayout.PropertyField(m_AdditionalLightsRenderingModeProp, Styles.addditionalLightsRenderingModeText);
+                selectedLightRenderingMode = (LightRenderingMode)EditorGUILayout.EnumPopup(Styles.addditionalLightsRenderingModeText, selectedLightRenderingMode);
+                m_AdditionalLightsRenderingModeProp.intValue = (int)selectedLightRenderingMode;
                 EditorGUI.indentLevel++;
 
                 disableGroup = m_AdditionalLightsRenderingModeProp.intValue == (int)LightRenderingMode.Disabled;

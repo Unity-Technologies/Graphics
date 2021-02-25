@@ -67,14 +67,10 @@ Pass
     $splice(DotsInstancingVars)
 
     // Includes
-    $splice(CustomInterpolatorPreInclude)
-
     $splice(PreGraphIncludes)
 
     // --------------------------------------------------
     // Structs and Packing
-
-    $splice(CustomInterpolatorPrePacking)
 
     $splice(PassStructs)
 
@@ -89,12 +85,8 @@ Pass
     // Graph Functions
     $splice(GraphFunctions)
 
-    $splice(CustomInterpolatorPreVertex)
-
     // Graph Vertex
     $splice(GraphVertex)
-
-    $splice(CustomInterpolatorPreSurface)
 
     // Graph Pixel
     $splice(GraphPixel)

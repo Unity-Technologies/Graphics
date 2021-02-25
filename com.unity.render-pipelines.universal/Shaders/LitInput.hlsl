@@ -178,8 +178,6 @@ half3 ApplyDetailAlbedo(float2 detailUv, half3 albedo, half detailMask)
 #endif
 
     return albedo * LerpWhiteTo(detailAlbedo, detailMask);
-#else
-    return albedo;
 #endif
 }
 
@@ -197,8 +195,6 @@ half3 ApplyDetailNormal(float2 detailUv, half3 normalTS, half detailMask)
     detailNormalTS = normalize(detailNormalTS);
 
     return lerp(normalTS, BlendNormalRNM(normalTS, detailNormalTS), detailMask); // todo: detailMask should lerp the angle of the quaternion rotation, not the normals
-#else
-    return normalTS;
 #endif
 }
 

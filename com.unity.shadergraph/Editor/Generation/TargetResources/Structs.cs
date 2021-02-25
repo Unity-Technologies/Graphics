@@ -73,7 +73,6 @@ namespace UnityEditor.ShaderGraph
         {
             name = "SurfaceDescriptionInputs",
             packFields = false,
-            populateWithCustomInterpolators = true,
             fields = new FieldDescriptor[]
             {
                 StructFields.SurfaceDescriptionInputs.ObjectSpaceNormal,

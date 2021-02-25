@@ -1,3 +1,5 @@
+using UnityEditor.Rendering;
+using UnityEngine;
 using UnityEngine.Rendering.HighDefinition;
 
 namespace UnityEditor.Rendering.HighDefinition
@@ -41,16 +43,20 @@ namespace UnityEditor.Rendering.HighDefinition
         {
             base.OnInspectorGUI();
 
+            EditorGUILayout.LabelField("Bloom", EditorStyles.miniLabel);
             PropertyField(m_Threshold);
             PropertyField(m_Intensity);
             PropertyField(m_Scatter);
             PropertyField(m_Tint);
 
+            EditorGUILayout.LabelField("Lens Dirt", EditorStyles.miniLabel);
             PropertyField(m_DirtTexture, EditorGUIUtility.TrTextContent("Texture"));
             PropertyField(m_DirtIntensity, EditorGUIUtility.TrTextContent("Intensity"));
 
             if (BeginAdditionalPropertiesScope())
             {
+                EditorGUILayout.LabelField("Advanced Tweaks", EditorStyles.miniLabel);
+
                 using (new QualityScope(this))
                 {
                     PropertyField(m_Resolution);

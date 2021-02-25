@@ -38,7 +38,7 @@ class ForwardToUniversalRendererPostprocessor : AssetPostprocessor
         if (noOfFwdRendererData == 0) return;
 
         //Gets all the Pipeline Assets in project
-        Object[] allRPassets = Resources.FindObjectsOfTypeAll(typeof(UniversalRenderPipelineAsset));
+        Object[] allRPassets = Resources.FindObjectsOfTypeAll(typeof(RenderPipelineAsset));
         for (int i = 0; i < allRPassets.Length; i++)
         {
             //Make some changes on the Pipeline assets
@@ -46,14 +46,11 @@ class ForwardToUniversalRendererPostprocessor : AssetPostprocessor
             SerializedObject soAsset = new SerializedObject(allRPassets[i]);
             SerializedProperty scriptPropertyAsset = soAsset.FindProperty("m_RequireDepthTexture");
             soAsset.Update();
-            if (scriptPropertyAsset != null)
-            {
-                bool tmp = scriptPropertyAsset.boolValue;
-                scriptPropertyAsset.boolValue = !scriptPropertyAsset.boolValue; //make the changes
-                soAsset.ApplyModifiedProperties();
-                scriptPropertyAsset.boolValue = tmp; //revert the changes
-                soAsset.ApplyModifiedProperties();
-            }
+            bool tmp = scriptPropertyAsset.boolValue;
+            scriptPropertyAsset.boolValue = !scriptPropertyAsset.boolValue; //make the changes
+            soAsset.ApplyModifiedProperties();
+            scriptPropertyAsset.boolValue = tmp; //revert the changes
+            soAsset.ApplyModifiedProperties();
         }
     }
 }

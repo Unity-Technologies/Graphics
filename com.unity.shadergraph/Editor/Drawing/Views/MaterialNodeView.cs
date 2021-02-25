@@ -178,16 +178,7 @@ namespace UnityEditor.ShaderGraph.Drawing
             }
 
             Add(badge);
-
-            if (node is BlockNode)
-            {
-                FindPort(node.GetSlotReference(0), out var port);
-                badge.AttachTo(port.parent, SpriteAlignment.RightCenter);
-            }
-            else
-            {
-                badge.AttachTo(m_TitleContainer, SpriteAlignment.RightCenter);
-            }
+            badge.AttachTo(m_TitleContainer, SpriteAlignment.RightCenter);
         }
 
         public void SetActive(bool state)

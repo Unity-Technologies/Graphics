@@ -80,7 +80,6 @@ namespace UnityEngine.Rendering.HighDefinition
         /// <summary>
         /// Sets the distance from the Camera at which the near field blur begins to decrease in intensity.
         /// </summary>
-        [Header("Near Range")]
         [Tooltip("Sets the distance from the Camera at which the near field blur begins to decrease in intensity.")]
         public MinFloatParameter nearFocusStart = new MinFloatParameter(0f, 0f);
 
@@ -93,7 +92,6 @@ namespace UnityEngine.Rendering.HighDefinition
         /// <summary>
         /// Sets the distance from the Camera at which the far field starts blurring.
         /// </summary>
-        [Header("Far Range")]
         [Tooltip("Sets the distance from the Camera at which the far field starts blurring.")]
         public MinFloatParameter farFocusStart = new MinFloatParameter(10f, 0f);
 
@@ -252,7 +250,6 @@ namespace UnityEngine.Rendering.HighDefinition
         }
 
 
-        [Header("Near Blur")]
         [Tooltip("Sets the number of samples to use for the near field.")]
         [SerializeField, FormerlySerializedAs("nearSampleCount")]
         ClampedIntParameter m_NearSampleCount = new ClampedIntParameter(5, 3, 8);
@@ -261,7 +258,6 @@ namespace UnityEngine.Rendering.HighDefinition
         [Tooltip("Sets the maximum radius the near blur can reach.")]
         ClampedFloatParameter m_NearMaxBlur = new ClampedFloatParameter(4f, 0f, 8f);
 
-        [Header("Far Blur")]
         [Tooltip("Sets the number of samples to use for the far field.")]
         [SerializeField, FormerlySerializedAs("farSampleCount")]
         ClampedIntParameter m_FarSampleCount = new ClampedIntParameter(7, 3, 16);
@@ -273,16 +269,15 @@ namespace UnityEngine.Rendering.HighDefinition
         // -------------------------------------------
         // Advanced settings
         //
-        [Header("Advanced Tweaks")]
-        [AdditionalProperty]
-        [Tooltip("Specifies the resolution at which HDRP processes the depth of field effect.")]
-        [SerializeField, FormerlySerializedAs("resolution")]
-        DepthOfFieldResolutionParameter m_Resolution = new DepthOfFieldResolutionParameter(DepthOfFieldResolution.Half);
-
         [AdditionalProperty]
         [Tooltip("When enabled, HDRP uses bicubic filtering instead of bilinear filtering for the depth of field effect.")]
         [SerializeField, FormerlySerializedAs("highQualityFiltering")]
         BoolParameter m_HighQualityFiltering = new BoolParameter(true);
+
+        [AdditionalProperty]
+        [Tooltip("Specifies the resolution at which HDRP processes the depth of field effect.")]
+        [SerializeField, FormerlySerializedAs("resolution")]
+        DepthOfFieldResolutionParameter m_Resolution = new DepthOfFieldResolutionParameter(DepthOfFieldResolution.Half);
 
         [AdditionalProperty]
         [SerializeField]
