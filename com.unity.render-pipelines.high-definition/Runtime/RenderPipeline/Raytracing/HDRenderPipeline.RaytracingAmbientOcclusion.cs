@@ -167,10 +167,8 @@ namespace UnityEngine.Rendering.HighDefinition
                 float historyValidity = EvaluateHistoryValidity(hdCamera);
 
                 // Run the temporal denoiser
-                HDTemporalFilter temporalFilter = GetTemporalFilter();
-                TemporalFilterParameters tfParameters = temporalFilter.PrepareTemporalFilterParameters(hdCamera, true, historyValidity);
                 TextureHandle historyBuffer = renderGraph.ImportTexture(RequestAmbientOcclusionHistoryTexture(hdCamera));
-                TextureHandle denoisedRTAO = temporalFilter.Denoise(renderGraph, hdCamera, tfParameters, traceAOResult.signalBuffer, traceAOResult.velocityBuffer, historyBuffer, depthBuffer, normalBuffer, motionVectorBuffer, historyValidationBuffer);
+                TextureHandle denoisedRTAO = GetTemporalFilter().Denoise(renderGraph, hdCamera, singleChannel: true, historyValidity, traceAOResult.signalBuffer, traceAOResult.velocityBuffer, historyBuffer, depthBuffer, normalBuffer, motionVectorBuffer, historyValidationBuffer);
 
                 // Apply the diffuse denoiser
                 HDDiffuseDenoiser diffuseDenoiser = GetDiffuseDenoiser();
