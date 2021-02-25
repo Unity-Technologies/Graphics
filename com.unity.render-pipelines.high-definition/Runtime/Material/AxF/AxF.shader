@@ -139,6 +139,7 @@ Shader "HDRP/AxF"
         [ToggleUI] _DoubleSidedEnable("Double sided enable", Float) = 0.0
         [Enum(Flip, 0, Mirror, 1, None, 2)] _DoubleSidedNormalMode("Double sided normal mode", Float) = 1 // This is for the editor only, see BaseLitUI.cs: _DoubleSidedConstants will be set based on the mode.
         [HideInInspector] _DoubleSidedConstants("_DoubleSidedConstants", Vector) = (1, 1, -1, 0)
+        [Enum(Auto, 0, On, 1, Off, 2)] _DoubleSidedGIMode("Double sided GI mode", Float) = 0
 
         [ToggleUI] _EnableGeometricSpecularAA("EnableGeometricSpecularAA", Float) = 0.0
         _SpecularAAScreenSpaceVariance("SpecularAAScreenSpaceVariance", Range(0.0, 1.0)) = 0.1
@@ -248,11 +249,11 @@ Shader "HDRP/AxF"
             // We reuse depth prepass for the scene selection, allow to handle alpha correctly as well as tessellation and vertex animation
             #define SHADERPASS SHADERPASS_DEPTH_ONLY
             #define SCENEPICKINGPASS
+            #include "Packages/com.unity.render-pipelines.high-definition/Runtime/ShaderLibrary/PickingSpaceTransforms.hlsl"
             #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Material.hlsl"
             #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/AxF/AxF.hlsl"
             #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/AxF/ShaderPass/AxFDepthPass.hlsl"
             #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/AxF/AxFData.hlsl"
-            #include "Packages/com.unity.render-pipelines.high-definition/Runtime/ShaderLibrary/PickingSpaceTransforms.hlsl"
             #include "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/ShaderPass/ShaderPassDepthOnly.hlsl"
 
             #pragma vertex Vert
@@ -272,7 +273,7 @@ Shader "HDRP/AxF"
 
             HLSLPROGRAM
 
-            #pragma only_renderers d3d11 playstation xboxone vulkan metal switch
+            #pragma only_renderers d3d11 playstation xboxone xboxseries vulkan metal switch
 
             //enable GPU instancing support
             #pragma multi_compile_instancing
@@ -310,7 +311,7 @@ Shader "HDRP/AxF"
 
             HLSLPROGRAM
 
-            #pragma only_renderers d3d11 playstation xboxone vulkan metal switch
+            #pragma only_renderers d3d11 playstation xboxone xboxseries vulkan metal switch
             //enable GPU instancing support
             #pragma multi_compile_instancing
             #pragma instancing_options renderinglayer
@@ -349,7 +350,7 @@ Shader "HDRP/AxF"
 
             HLSLPROGRAM
 
-            #pragma only_renderers d3d11 playstation xboxone vulkan metal switch
+            #pragma only_renderers d3d11 playstation xboxone xboxseries vulkan metal switch
             //enable GPU instancing support
             #pragma multi_compile_instancing
             #pragma instancing_options renderinglayer
@@ -389,7 +390,7 @@ Shader "HDRP/AxF"
 
             HLSLPROGRAM
 
-            #pragma only_renderers d3d11 playstation xboxone vulkan metal switch
+            #pragma only_renderers d3d11 playstation xboxone xboxseries vulkan metal switch
             //enable GPU instancing support
             #pragma multi_compile_instancing
             #pragma instancing_options renderinglayer
@@ -434,7 +435,7 @@ Shader "HDRP/AxF"
 
             HLSLPROGRAM
 
-            #pragma only_renderers d3d11 playstation xboxone vulkan metal switch
+            #pragma only_renderers d3d11 playstation xboxone xboxseries vulkan metal switch
             //enable GPU instancing support
             #pragma multi_compile_instancing
             #pragma instancing_options renderinglayer
@@ -481,7 +482,7 @@ Shader "HDRP/AxF"
 
             HLSLPROGRAM
 
-            #pragma only_renderers d3d11 playstation xboxone vulkan metal switch
+            #pragma only_renderers d3d11 playstation xboxone xboxseries vulkan metal switch
             //enable GPU instancing support
             #pragma multi_compile_instancing
             #pragma instancing_options renderinglayer
@@ -551,7 +552,7 @@ Shader "HDRP/AxF"
 
             HLSLPROGRAM
 
-            #pragma only_renderers d3d11 playstation xboxone vulkan metal switch
+            #pragma only_renderers d3d11 playstation xboxone xboxseries vulkan metal switch
             // enable dithering LOD crossfade
             #pragma multi_compile _ LOD_FADE_CROSSFADE
 
@@ -580,7 +581,7 @@ Shader "HDRP/AxF"
 
             HLSLPROGRAM
 
-            #pragma only_renderers d3d11 playstation xboxone vulkan metal switch
+            #pragma only_renderers d3d11 playstation xboxone xboxseries vulkan metal switch
             // enable dithering LOD crossfade
             #pragma multi_compile _ LOD_FADE_CROSSFADE
 

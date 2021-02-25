@@ -24,9 +24,9 @@ namespace UnityEditor.ShaderGraph
     // sure that all shader graphs get re-imported. Re-importing is required,
     // because the shader graph codegen is different for V2.
     // This ifdef can be removed once V2 is the only option.
-    [ScriptedImporter(110, Extension, -902)]
+    [ScriptedImporter(111, Extension, -902)]
 #else
-    [ScriptedImporter(43, Extension, -902)]
+    [ScriptedImporter(44, Extension, -902)]
 #endif
 
     class ShaderGraphImporter : ScriptedImporter
@@ -163,17 +163,7 @@ Shader ""Hidden/GraphErrorShader2""
                 }
 #endif
 
-                if (graph.messageManager.nodeMessagesChanged)
-                {
-                    if (graph.messageManager.AnyError())
-                    {
-                        Debug.LogError($"Shader Graph at {path} has at least one error.");
-                    }
-                    else
-                    {
-                        Debug.LogWarning($"Shader Graph at {path} has at least one warning.");
-                    }
-                }
+                ReportErrors(graph, shader, path);
 
                 EditorMaterialUtility.SetShaderDefaults(
                     shader,
@@ -267,6 +257,28 @@ Shader ""Hidden/GraphErrorShader2""
                     ctx.DependsOnArtifact(asset.Key);
                 }
             }
+        }
+
+        static void ReportErrors(GraphData graph, Shader shader, string path)
+        {
+            // Grab any messages from the shader compiler
+            var messages = ShaderUtil.GetShaderMessages(shader);
+
+            bool anyNodeHasError = graph.messageManager.nodeMessagesChanged && graph.messageManager.AnyError();
+            // Find the first compiler message that's an error
+            int firstShaderUtilErrorIndex = -1;
+            if (messages != null)
+                firstShaderUtilErrorIndex = Array.FindIndex(messages, m => (m.severity == Rendering.ShaderCompilerMessageSeverity.Error));
+
+            // Display only one message. Bias towards shader compiler messages over node messages and within that bias errors over warnings.
+            if (firstShaderUtilErrorIndex != -1)
+                MessageManager.Log(path, messages[firstShaderUtilErrorIndex], shader);
+            else if (anyNodeHasError)
+                Debug.LogError($"Shader Graph at {path} has at least one error.");
+            else if (messages.Length != 0)
+                MessageManager.Log(path, messages[0], shader);
+            else if (graph.messageManager.nodeMessagesChanged)
+                Debug.LogWarning($"Shader Graph at {path} has at least one warning.");
         }
 
         internal static string GetShaderText(string path, out List<PropertyCollector.TextureInfo> configuredTextures, AssetCollection assetCollection, GraphData graph)
