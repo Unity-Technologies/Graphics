@@ -26,9 +26,13 @@ namespace UnityEngine
         [Min(1e-5f)]
         public float maxAttenuationDistance = 10.0f;
         /// <summary>
-        /// Attenuation by distance, uses world space values
+        /// Attenuation by distance
         /// </summary>
         public AnimationCurve distanceAttenuationCurve = new AnimationCurve(new Keyframe(0.0f, 1.0f), new Keyframe(1.0f, 0.0f));
+        /// <summary>
+        /// Scale by distance, use the same distance as distanceAttenuationCurve
+        /// </summary>
+        public AnimationCurve scaleByDistanceCurve = new AnimationCurve(new Keyframe(0.0f, 1.0f), new Keyframe(1.0f, 0.0f));
         /// <summary>
         /// If component attached to a light, attenuation the lens flare per light type
         /// </summary>
@@ -39,10 +43,14 @@ namespace UnityEngine
         public AnimationCurve radialScreenAttenuationCurve = new AnimationCurve(new Keyframe(0.0f, 1.0f), new Keyframe(1.0f, 1.0f));
 
         /// <summary>
+        /// Enable Occlusion feature
+        /// </summary>
+        public bool useOcclusion = true;
+        /// <summary>
         /// Radius around the light used to occlude the flare (value in world space)
         /// </summary>
         [Min(0)]
-        public float occlusionRadius = 0.01f;
+        public float occlusionRadius = 1.0f;
         /// <summary>
         /// Random Samples Count used inside the disk with 'occlusionRadius'
         /// </summary>

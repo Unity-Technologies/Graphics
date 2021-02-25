@@ -2325,7 +2325,9 @@ namespace UnityEngine.Rendering.HighDefinition
                 Vector4 modulationAttenuation = Vector4.one;
                 Vector3 diffToObject = comp.transform.position - cam.transform.position;
                 float distToObject = diffToObject.magnitude;
-                float distanceAttenuation = comp.distanceAttenuationCurve.length > 0 ? comp.distanceAttenuationCurve.Evaluate(distToObject / comp.maxAttenuationDistance) : 1.0f;
+                float coefDistSample = distToObject / comp.maxAttenuationDistance;
+                float distanceAttenuation = comp.distanceAttenuationCurve.length > 0 ? comp.distanceAttenuationCurve.Evaluate(coefDistSample) : 1.0f;
+                float scaleByDistance = comp.scaleByDistanceCurve.length >= 1 ? comp.scaleByDistanceCurve.Evaluate(coefDistSample) : 1.0f;
                 Light light = comp.GetComponent<Light>();
                 if (light != null)
                 {
@@ -2496,7 +2498,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
                         float usedAspectRatio = element.preserveAspectRatio ? (((float)texture.width) / ((float)texture.height)) : element.aspectRatio;
 
-                        Vector2 size = new Vector2(element.size * curveScale * usedAspectRatio, element.size * curveScale);
+                        Vector2 size = new Vector2(scaleByDistance * element.size * curveScale * usedAspectRatio, scaleByDistance * element.size * curveScale);
                         float rotation = element.rotation;
                         Vector4 tint = Vector4.Scale(element.tint, gradientModulation);
 
@@ -2526,7 +2528,7 @@ namespace UnityEngine.Rendering.HighDefinition
                         else if (blendMode == SRPLensFlareBlendMode.Screen)
                             usedMaterial = parameters.lensFlareScreen;
                         else
-                            usedMaterial = parameters.lensFlareLerp;
+                            usedMaterial = parameters.lensFlareAdditive;
 
                         cmd.SetGlobalColor(HDShaderIDs._FlareColor, tint);
 
@@ -2538,7 +2540,8 @@ namespace UnityEngine.Rendering.HighDefinition
 
                         Vector4 dataSrc = new Vector4(position, rotation, size.x, size.y);
                         cmd.SetGlobalVector(HDShaderIDs._FlareData0, dataSrc);
-                        Vector4 flareData2 = new Vector4(comp.sampleCount, 0.0f, comp.allowOffScreen ? 1.0f : -1.0f, flareIdx);
+                        uint occlusionSampleCount = !comp.useOcclusion ? 0u : comp.sampleCount;
+                        Vector4 flareData2 = new Vector4(occlusionSampleCount, 0.0f, comp.allowOffScreen ? 1.0f : -1.0f, flareIdx);
                         cmd.SetGlobalVector(HDShaderIDs._FlareData2, flareData2);
                         cmd.DrawProcedural(Matrix4x4.identity, usedMaterial, 0, MeshTopology.Quads, 6, 1, null);
                     }

@@ -11,8 +11,10 @@ namespace UnityEditor.Rendering
         SerializedProperty m_Intensity;
         SerializedProperty m_MaxAttenuationDistance;
         SerializedProperty m_DistanceAttenuationCurve;
+        SerializedProperty m_ScaleByDistanceCurve;
         SerializedProperty m_AttenuationByLightShape;
         SerializedProperty m_RadialScreenAttenuationCurve;
+        SerializedProperty m_UseOcclusion;
         SerializedProperty m_OcclusionRadius;
         SerializedProperty m_SamplesCount;
         SerializedProperty m_OcclusionOffset;
@@ -29,7 +31,9 @@ namespace UnityEditor.Rendering
             m_MaxAttenuationDistance = entryPoint.Find(x => x.maxAttenuationDistance);
             m_DistanceAttenuationCurve = entryPoint.Find(x => x.distanceAttenuationCurve);
             m_AttenuationByLightShape = entryPoint.Find(x => x.attenuationByLightShape);
+            m_ScaleByDistanceCurve = entryPoint.Find(x => x.scaleByDistanceCurve);
             m_RadialScreenAttenuationCurve = entryPoint.Find(x => x.radialScreenAttenuationCurve);
+            m_UseOcclusion = entryPoint.Find(x => x.useOcclusion);
             m_OcclusionRadius = entryPoint.Find(x => x.occlusionRadius);
             m_SamplesCount = entryPoint.Find(x => x.sampleCount);
             m_OcclusionOffset = entryPoint.Find(x => x.occlusionOffset);
@@ -51,7 +55,7 @@ namespace UnityEditor.Rendering
 
             EditorGUI.BeginChangeCheck();
             ++EditorGUI.indentLevel;
-            EditorGUILayout.BeginFoldoutHeaderGroup(true, "    General", EditorStyles.boldLabel);
+            EditorGUILayout.BeginFoldoutHeaderGroup(false, "      General", EditorStyles.boldLabel);
             {
                 EditorGUILayout.PropertyField(m_LensFlareData, Styles.lensFlareData);
                 EditorGUILayout.PropertyField(m_Intensity, Styles.intensity);
@@ -59,10 +63,25 @@ namespace UnityEditor.Rendering
                     EditorGUILayout.PropertyField(m_AttenuationByLightShape, Styles.attenuationByLightShape);
                 EditorGUILayout.PropertyField(m_MaxAttenuationDistance, Styles.maxAttenuationDistance);
                 EditorGUILayout.PropertyField(m_DistanceAttenuationCurve, Styles.distanceAttenuationCurve);
+                EditorGUILayout.PropertyField(m_ScaleByDistanceCurve, Styles.scaleByDistanceCurve);
                 EditorGUILayout.PropertyField(m_RadialScreenAttenuationCurve, Styles.radialScreenAttenuationCurve);
             }
             EditorGUILayout.EndFoldoutHeaderGroup();
-            EditorGUILayout.BeginFoldoutHeaderGroup(false, "    Occlusion", EditorStyles.boldLabel);
+            EditorGUILayout.BeginHorizontal();
+            bool oldValue = m_UseOcclusion.boolValue;
+            bool curValue;
+            Rect rect = EditorGUILayout.GetControlRect();
+            rect.x -= 26.0f;
+            rect.width = 26.0f;
+            if ((curValue = EditorGUI.Toggle(rect, oldValue)) != oldValue)
+            {
+                m_UseOcclusion.boolValue = curValue;
+            }
+            rect.x += 43.0f;
+            rect.width = 92.0f;
+            EditorGUI.BeginFoldoutHeaderGroup(rect, false, "Occlusion", EditorStyles.boldLabel);
+            EditorGUILayout.EndHorizontal();
+            if (m_UseOcclusion.boolValue)
             {
                 EditorGUILayout.PropertyField(m_OcclusionRadius, Styles.occlusionRadius);
                 ++EditorGUI.indentLevel;
@@ -71,7 +90,6 @@ namespace UnityEditor.Rendering
                 EditorGUILayout.PropertyField(m_OcclusionOffset, Styles.occlusionOffset);
                 EditorGUILayout.PropertyField(m_AllowOffScreen, Styles.allowOffScreen);
             }
-            EditorGUILayout.EndFoldoutHeaderGroup();
             --EditorGUI.indentLevel;
             if (EditorGUI.EndChangeCheck())
             {
@@ -85,6 +103,7 @@ namespace UnityEditor.Rendering
             static public readonly GUIContent intensity = new GUIContent("Intensity", "Intensity.");
             static public readonly GUIContent maxAttenuationDistance = new GUIContent("Max Attenuation Distance", "Distance used to scale the Distance Attenuation Curve.");
             static public readonly GUIContent distanceAttenuationCurve = new GUIContent("Distance Attenuation Curve", "Attenuation by distance, scaled by max distance.");
+            static public readonly GUIContent scaleByDistanceCurve = new GUIContent("Distance Scale Curve", ".");
             static public readonly GUIContent attenuationByLightShape = new GUIContent("Attenuation By Light Shape", "If component attached to a light, attenuation the lens flare per light type.");
             static public readonly GUIContent radialScreenAttenuationCurve = new GUIContent("Screen Attenuation Curve", "Attenuation used radially, which allow for instance to enable flare only on the edge of the screen.");
             static public readonly GUIContent occlusionRadius = new GUIContent("Occlusion Radius", "Radius around the light used to occlude the flare (value in world space).");

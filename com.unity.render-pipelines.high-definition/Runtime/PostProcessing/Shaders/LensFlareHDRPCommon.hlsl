@@ -39,11 +39,12 @@ float4 _FlareData2; // x: Sample Count, y: 0.0f, z: _FlareOffscreen, w: _LensFla
 
 float GetOcclusion(float2 screenPos, float flareDepth, float ratio)
 {
+    if (_FlareOcclusionSamplesCount == 0.0f)
+        return 1.0f;
+
     float contrib = 0.0f;
     float sample_Contrib = 1.0f / _FlareOcclusionSamplesCount;
     float2 ratioScale = float2(1.0f / ratio, 1.0);
-    if (_FlareOcclusionSamplesCount == 0.0f)
-        return 1.0f;
 
     for (uint i = 0; i < (uint)_FlareOcclusionSamplesCount; i++)
     {
