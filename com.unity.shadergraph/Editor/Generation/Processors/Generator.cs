@@ -284,6 +284,7 @@ namespace UnityEditor.ShaderGraph
             // Setup
 
             // Initiailize Collectors
+            // NOTE: propertyCollector is not really used anymore -- we use the subshader PropertyCollector instead
             var propertyCollector = new PropertyCollector();
             var keywordCollector = new KeywordCollector();
             m_GraphData.CollectShaderKeywords(keywordCollector, m_Mode);
