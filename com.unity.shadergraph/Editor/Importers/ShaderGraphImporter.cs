@@ -333,12 +333,12 @@ Shader ""Hidden/GraphErrorShader2""
             // we need to override graph.isSubgraph, so save old state to restore it
             // (this is not great, but whole VFX pipeline is rather hacky at the moment)
             // use try/finally to ensure it always gets restored
+            // UPDATE(2/24/2021) @gabriel.delacruz: Not required anymore, as we are not
+            // forcing graph.isSubgraph to be true. Kept in case we have to go back to that,
+            // but most likely this code will be soon replaced by direct generation from SG
             bool oldIsSubGraph = graph.isSubGraph;
             try
             {
-                // override to generate as a subgraph, as that is what VFX is using it as
-                graph.isSubGraph = true;
-
                 var nl = Environment.NewLine;
                 var indent = new string(' ', 4);
                 var asset = ScriptableObject.CreateInstance<ShaderGraphVfxAsset>();
@@ -670,7 +670,7 @@ Shader ""Hidden/GraphErrorShader2""
                     }
 
                     inputProperties.Add(property);
-                    codeSnippets.Add($",{nl}{indent}/* Property: {property.displayName} */ {property.GetPropertyAsArgumentString()}");
+                    codeSnippets.Add($",{nl}{indent}/* Property: {property.displayName} */ {property.GetPropertyAsArgumentString(true)}");
                 }
 
                 sharedCodeIndices.Add(codeSnippets.Count);
