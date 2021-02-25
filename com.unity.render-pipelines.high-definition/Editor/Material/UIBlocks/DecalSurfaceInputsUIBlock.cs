@@ -246,7 +246,7 @@ namespace UnityEditor.Rendering.HighDefinition
                 materialEditor.ShaderProperty(smoothness, Styles.smoothnessText);
             }
 
-            PopupShaderProperty(maskBlendSrc, Styles.normalOpacityChannelText, allMaskMap ? blendSourceNames : blendSourceNamesNoMap);
+            PopupShaderProperty(maskBlendSrc, Styles.maskOpacityChannelText, allMaskMap ? blendSourceNames : blendSourceNamesNoMap);
 
             EditorGUI.indentLevel--;
 
