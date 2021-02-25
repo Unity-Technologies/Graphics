@@ -1,5 +1,8 @@
-void BuildInputData(Varyings input, SurfaceDescription surfaceDescription, out InputData inputData)
+
+InputData CreateInputData(Varyings input, SurfaceDescription surfaceDescription)
 {
+    InputData inputData = (inputData)0;
+
     inputData.positionWS = input.positionWS;
 
     #ifdef _NORMALMAP
@@ -41,9 +44,7 @@ void BuildInputData(Varyings input, SurfaceDescription surfaceDescription, out I
     inputData.vertexSH = input.sh;
     #endif
 
-    #if defined(_DEBUG_SHADER)
-    inputData.uv = input.uv;
-    #endif
+    return inputData;
 }
 
 PackedVaryings vert(Attributes input)
@@ -73,8 +74,8 @@ FragmentOutput frag(PackedVaryings packedInput)
         half alpha = 1;
     #endif
 
-    InputData inputData;
-    BuildInputData(unpacked, surfaceDescription, inputData);
+    InputData inputData = CreateInputData(unpacked, surfaceDescription);
+    //SETUP_DEBUG_TEXTURE_DATA(inputData, unpacked.uv, _MainTex);
 
     #ifdef _SPECULAR_SETUP
         float3 specular = surfaceDescription.Specular;

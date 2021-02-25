@@ -85,8 +85,10 @@ struct SpeedTreeVertexDepthNormalOutput
     UNITY_VERTEX_OUTPUT_STEREO
 };
 
-void InitializeInputData(SpeedTreeVertexOutput input, half3 normalTS, out InputData inputData)
+InputData CreateInputData(SpeedTreeVertexOutput input, half3 normalTS)
 {
+    InputData inputData = (InputData)0;
+
     inputData.positionWS = input.positionWS.xyz;
 
     #ifdef EFFECT_BUMP
@@ -126,9 +128,7 @@ void InitializeInputData(SpeedTreeVertexOutput input, half3 normalTS, out InputD
     inputData.tangentMatrixWS = half3x3(input.tangentWS.xyz, input.bitangentWS.xyz, input.normalWS.xyz);
     #endif
 
-    #if defined(_DEBUG_SHADER)
-    inputData.uv = input.uvHueVariation.xy;
-    #endif
+    return inputData;
 }
 
 #ifdef GBUFFER
@@ -187,8 +187,8 @@ half4 SpeedTree7Frag(SpeedTreeVertexOutput input) : SV_Target
         half3 normalTs = half3(0, 0, 1);
     #endif
 
-    InputData inputData;
-    InitializeInputData(input, normalTs, inputData);
+    InputData inputData = CreateInputData(input, normalTs);
+    SETUP_DEBUG_TEXTURE_DATA(inputData, input.uvHueVariation.xy, _MainTex);
 
     #ifdef VERTEX_COLOR
         diffuseColor.rgb *= input.color.rgb;

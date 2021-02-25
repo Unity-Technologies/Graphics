@@ -1026,15 +1026,13 @@ bool CanDebugOverrideOutputColor(inout InputData inputData, inout SurfaceData su
     }
     else
     {
-        DebugData debugData = CreateDebugData(brdfData.diffuse, brdfData.specular, inputData.uv);
-
         debugColor = half4(0, 0, 0, 1);
 
         if(_DebugLightingMode == DEBUGLIGHTINGMODE_SHADOW_CASCADES)
         {
             surfaceData.albedo = CalculateDebugShadowCascadeColor(inputData);
         }
-        else if ((_DebugMaterialMode == DEBUGMATERIALMODE_LOD) && CalculateColorForDebug(inputData, surfaceData, debugData, debugColor))
+        else if ((_DebugMaterialMode == DEBUGMATERIALMODE_LOD) && CalculateColorForDebug(inputData, surfaceData, debugColor))
         {
             surfaceData.albedo = debugColor.rgb;
         }
@@ -1050,11 +1048,11 @@ bool CanDebugOverrideOutputColor(inout InputData inputData, inout SurfaceData su
         // Update the BRDF data following any changes to the input/surface above...
         brdfData = CreateBRDFData(surfaceData);
 
-        return (_DebugMaterialMode != DEBUGMATERIALMODE_LOD) && CalculateColorForDebug(inputData, surfaceData, debugData, debugColor);
+        return (_DebugMaterialMode != DEBUGMATERIALMODE_LOD) && CalculateColorForDebug(inputData, surfaceData, debugColor);
     }
 }
 
-bool CanDebugOverrideOutputColor(inout InputData inputData, inout SurfaceData surfaceData, DebugData debugData, out half4 debugColor)
+bool CanDebugOverrideOutputColor(inout InputData inputData, inout SurfaceData surfaceData, out half4 debugColor)
 {
     if(_DebugMaterialMode == DEBUGMATERIALMODE_LIGHTING_COMPLEXITY)
     {
@@ -1069,7 +1067,7 @@ bool CanDebugOverrideOutputColor(inout InputData inputData, inout SurfaceData su
         {
             surfaceData.albedo = CalculateDebugShadowCascadeColor(inputData);
         }
-        else if ((_DebugMaterialMode == DEBUGMATERIALMODE_LOD) && CalculateColorForDebug(inputData, surfaceData, debugData, debugColor))
+        else if ((_DebugMaterialMode == DEBUGMATERIALMODE_LOD) && CalculateColorForDebug(inputData, surfaceData, debugColor))
         {
             surfaceData.albedo = debugColor.rgb;
         }
@@ -1082,7 +1080,7 @@ bool CanDebugOverrideOutputColor(inout InputData inputData, inout SurfaceData su
             }
         }
 
-        return (_DebugMaterialMode != DEBUGMATERIALMODE_LOD) && CalculateColorForDebug(inputData, surfaceData, debugData, debugColor);
+        return (_DebugMaterialMode != DEBUGMATERIALMODE_LOD) && CalculateColorForDebug(inputData, surfaceData, debugColor);
     }
 }
 
@@ -1186,10 +1184,9 @@ half4 LightweightFragmentPBR(InputData inputData, half3 albedo, half metallic, h
 half4 UniversalFragmentBlinnPhong(InputData inputData, SurfaceData surfaceData)
 {
     #if defined(_DEBUG_SHADER)
-    DebugData debugData = CreateDebugData(surfaceData.albedo, surfaceData.specular, inputData.uv);
     half4 debugColor;
 
-    if(CanDebugOverrideOutputColor(inputData, surfaceData, debugData, debugColor))
+    if(CanDebugOverrideOutputColor(inputData, surfaceData, debugColor))
     {
         return debugColor;
     }
@@ -1258,10 +1255,9 @@ half4 UniversalFragmentBakedLit(InputData inputData, SurfaceData surfaceData)
     #endif
 
     #if defined(_DEBUG_SHADER)
-    DebugData debugData = CreateDebugData(surfaceData.albedo, surfaceData.specular, inputData.uv);
     half4 debugColor;
 
-    if(CanDebugOverrideOutputColor(inputData, surfaceData, debugData, debugColor))
+    if(CanDebugOverrideOutputColor(inputData, surfaceData, debugColor))
     {
         return debugColor;
     }
@@ -1307,10 +1303,9 @@ half4 UniversalFragmentUnlit(InputData inputData, SurfaceData surfaceData)
     #endif
 
     #if defined(_DEBUG_SHADER)
-    DebugData debugData = CreateDebugData(surfaceData.albedo, surfaceData.specular, inputData.uv);
     half4 debugColor;
 
-    if(CanDebugOverrideOutputColor(inputData, surfaceData, debugData, debugColor))
+    if(CanDebugOverrideOutputColor(inputData, surfaceData, debugColor))
     {
         return debugColor;
     }

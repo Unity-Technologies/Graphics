@@ -38,8 +38,10 @@ struct GrassVertexOutput
     UNITY_VERTEX_OUTPUT_STEREO
 };
 
-void InitializeInputData(GrassVertexOutput input, out InputData inputData)
+InputData CreateInputData(GrassVertexOutput input)
 {
+    InputData inputData = (InputData)0;
+
     inputData.positionWS = input.posWSShininess.xyz;
 
     half3 viewDirWS = input.viewDir;
@@ -72,11 +74,8 @@ void InitializeInputData(GrassVertexOutput input, out InputData inputData)
     inputData.vertexSH = input.vertexSH;
     #endif
 
-    #if defined(_DEBUG_SHADER)
-    inputData.uv = input.uv;
-    #endif
+    return inputData;
 }
-
 
 void InitializeVertData(GrassVertexInput input, inout GrassVertexOutput vertData)
 {
@@ -189,8 +188,8 @@ half4 LitPassFragmentGrass(GrassVertexOutput input) : SV_Target
     SurfaceData surfaceData;
     InitializeSimpleLitSurfaceData(input, surfaceData);
 
-    InputData inputData;
-    InitializeInputData(input, inputData);
+    InputData inputData = CreateInputData(input);
+    SETUP_DEBUG_TEXTURE_DATA(inputData, input.uv, _MainTex);
 
 #ifdef TERRAIN_GBUFFER
     half4 color = half4(inputData.bakedGI * surfaceData.albedo + surfaceData.emission, surfaceData.alpha);

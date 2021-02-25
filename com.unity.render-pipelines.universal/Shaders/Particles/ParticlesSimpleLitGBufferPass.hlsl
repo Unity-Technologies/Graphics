@@ -5,9 +5,9 @@
 #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/UnityGBuffer.hlsl"
 #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Particles.hlsl"
 
-void InitializeInputData(VaryingsParticle input, half3 normalTS, out InputData output)
+InputData CreateInputData(VaryingsParticle input, half3 normalTS)
 {
-    output = (InputData)0;
+    InputData output = (InputData)0;
 
     output.positionWS = input.positionWS.xyz;
 
@@ -41,6 +41,8 @@ void InitializeInputData(VaryingsParticle input, half3 normalTS, out InputData o
     output.bakedGI = SampleSHPixel(input.vertexSH, output.normalWS);
     output.normalizedScreenSpaceUV = GetNormalizedScreenSpaceUV(input.clipPos);
     output.shadowMask = half4(1, 1, 1, 1);
+
+    return output;
 }
 
 inline void InitializeParticleSimpleLitSurfaceData(VaryingsParticle input, out SurfaceData outSurfaceData)
@@ -137,8 +139,8 @@ FragmentOutput ParticlesLitGBufferFragment(VaryingsParticle input)
     SurfaceData surfaceData;
     InitializeParticleSimpleLitSurfaceData(input, surfaceData);
 
-    InputData inputData;
-    InitializeInputData(input, surfaceData.normalTS, inputData);
+    InputData inputData = CreateInputData(input, surfaceData.normalTS);
+    SETUP_DEBUG_TEXTURE_DATA(inputData, input.texcoord, _BaseMap);
 
     half4 color = half4(inputData.bakedGI * surfaceData.albedo + surfaceData.emission, surfaceData.alpha);
 

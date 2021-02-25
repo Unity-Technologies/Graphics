@@ -8,33 +8,22 @@
 
 #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/SurfaceData.hlsl"
 
-struct DebugData
-{
-    half3 brdfDiffuse;
-    half3 brdfSpecular;
-    float2 uv;
-
-    float4 texelSize;   // 1 / width, 1 / height, width, height
-    uint mipCount;
-};
+#define SETUP_DEBUG_TEXTURE_DATA(inputData, uv, texture)    SetupDebugDataTexture(inputData, uv, texture##_TexelSize, texture##_MipInfo, GetMipCount(texture))
 
 half4 GetShadowCascadeColor(float4 shadowCoord, float3 positionWS);
 
-DebugData CreateDebugData(half3 brdfDiffuse, half3 brdfSpecular, float2 uv)
+void SetupDebugDataTexture(inout InputData inputData, float2 uv, float4 texelSize, float4 mipInfo, uint mipCount)
 {
-    DebugData debugData;
+    inputData.uv = uv;
+    inputData.texelSize = texelSize;
+    inputData.mipInfo = mipInfo;
+    inputData.mipCount = mipCount;
+}
 
-    debugData.brdfDiffuse = brdfDiffuse;
-    debugData.brdfSpecular = brdfSpecular;
-    debugData.uv = uv;
-
-    // TODO: Pass the actual mipmap and texel data in here somehow, but we don't have access to textures here...
-    const int textureWdith = 1024;
-    const int textureHeight = 1024;
-    debugData.texelSize = half4(1.0h / textureWdith, 1.0h / textureHeight, textureWdith, textureHeight);
-    debugData.mipCount = 9;
-
-    return debugData;
+void SetupDebugDataBrdf(inout InputData inputData, half3 brdfDiffuse, half3 brdfSpecular)
+{
+    inputData.brdfDiffuse = brdfDiffuse;
+    inputData.brdfSpecular = brdfSpecular;
 }
 
 half3 GetLODDebugColor()
@@ -133,7 +122,7 @@ bool CalculateValidationMetallic(half3 albedo, half metallic, out half4 color)
     return true;
 }
 
-bool CalculateValidationColorForDebug(in InputData inputData, in SurfaceData surfaceData, in DebugData debugData, out half4 color)
+bool CalculateValidationColorForDebug(in InputData inputData, in SurfaceData surfaceData, out half4 color)
 {
     if (_DebugValidationMode == DEBUGVALIDATIONMODE_VALIDATE_ALBEDO)
     {
@@ -150,16 +139,16 @@ bool CalculateValidationColorForDebug(in InputData inputData, in SurfaceData sur
     }
 }
 
-bool CalculateValidationColorForMipMaps(in InputData inputData, in SurfaceData surfaceData, in DebugData debugData, out half4 color)
+bool CalculateValidationColorForMipMaps(in InputData inputData, in SurfaceData surfaceData, out half4 color)
 {
     switch (_DebugMipInfoMode)
     {
         case DEBUGMIPINFOMODE_LEVEL:
-            color = GetMipLevelDebugColor(inputData.positionWS, surfaceData.albedo, debugData.uv, debugData.texelSize);
+            color = GetMipLevelDebugColor(inputData.positionWS, surfaceData.albedo, inputData.uv, inputData.texelSize);
             return true;
 
         case DEBUGMIPINFOMODE_COUNT:
-            color = GetMipCountDebugColor(inputData.positionWS, surfaceData.albedo, debugData.mipCount);
+            color = GetMipCountDebugColor(inputData.positionWS, surfaceData.albedo, inputData.mipCount);
             return true;
 
         default:
@@ -168,7 +157,7 @@ bool CalculateValidationColorForMipMaps(in InputData inputData, in SurfaceData s
     }
 }
 
-bool CalculateColorForDebugMaterial(in InputData inputData, in SurfaceData surfaceData, in DebugData debugData, out half4 color)
+bool CalculateColorForDebugMaterial(in InputData inputData, in SurfaceData surfaceData, out half4 color)
 {
     // Debug materials...
     switch(_DebugMaterialMode)
@@ -219,21 +208,21 @@ bool CalculateColorForDebugMaterial(in InputData inputData, in SurfaceData surfa
     }
 }
 
-bool CalculateColorForDebug(in InputData inputData, in SurfaceData surfaceData, in DebugData debugData, out half4 color)
+bool CalculateColorForDebug(in InputData inputData, in SurfaceData surfaceData, out half4 color)
 {
     if(CalculateColorForDebugSceneOverride(color))
     {
         return true;
     }
-    else if(CalculateColorForDebugMaterial(inputData, surfaceData, debugData, color))
+    else if(CalculateColorForDebugMaterial(inputData, surfaceData, color))
     {
         return true;
     }
-    else if(CalculateValidationColorForDebug(inputData, surfaceData, debugData, color))
+    else if(CalculateValidationColorForDebug(inputData, surfaceData, color))
     {
         return true;
     }
-    else if(CalculateValidationColorForMipMaps(inputData, surfaceData, debugData, color))
+    else if(CalculateValidationColorForMipMaps(inputData, surfaceData, color))
     {
         return true;
     }
@@ -243,6 +232,11 @@ bool CalculateColorForDebug(in InputData inputData, in SurfaceData surfaceData, 
         return false;
     }
 }
+
+#else
+
+// When "_DEBUG_SHADER" isn't defined this macro does nothing - there's no debug-data to set-up...
+#define SETUP_DEBUG_TEXTURE_DATA(inputData, uv, texture)
 
 #endif
 

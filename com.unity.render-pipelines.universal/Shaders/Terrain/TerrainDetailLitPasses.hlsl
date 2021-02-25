@@ -33,7 +33,7 @@ struct Varyings
 
 InputData CreateInputData(Varyings input)
 {
-    InputData inputData;
+    InputData inputData = (InputData)0;
 
     inputData.normalWS = half3(0, 1, 0);
     inputData.viewDirectionWS = half3(0, 0, 1);
@@ -90,10 +90,9 @@ SurfaceData CreateSurfaceData(half3 albedo, half alpha)
 half4 UniversalTerrainLit(InputData inputData, SurfaceData surfaceData)
 {
     #if defined(_DEBUG_SHADER)
-    DebugData debugData = CreateDebugData(surfaceData.albedo, surfaceData.specular, inputData.uv);
     half4 debugColor;
 
-    if(CanDebugOverrideOutputColor(inputData, surfaceData, debugData, debugColor))
+    if(CanDebugOverrideOutputColor(inputData, surfaceData, debugColor))
     {
         return debugColor;
     }

@@ -245,7 +245,7 @@ BRDFData BRDFDataFromGbuffer(half4 gbuffer0, half4 gbuffer1, half4 gbuffer2)
 
 InputData InputDataFromGbufferAndWorldPosition(half4 gbuffer2, float3 wsPos)
 {
-    InputData inputData;
+    InputData inputData = (InputData)0;
 
     inputData.positionWS = wsPos;
     inputData.normalWS = normalize(UnpackNormal(gbuffer2.xyz)); // normalize() is required because terrain shaders use additive blending for normals (not unit-length anymore)

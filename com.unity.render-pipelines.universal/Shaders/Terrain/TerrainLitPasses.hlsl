@@ -69,9 +69,9 @@ struct Varyings
     UNITY_VERTEX_OUTPUT_STEREO
 };
 
-void InitializeInputData(Varyings IN, half3 normalTS, out InputData input)
+InputData CreateInputData(Varyings IN, half3 normalTS)
 {
-    input = (InputData)0;
+    InputData input = (InputData)0;
 
     input.positionWS = IN.positionWS;
     half3 SH = half3(0, 0, 0);
@@ -127,6 +127,8 @@ void InitializeInputData(Varyings IN, half3 normalTS, out InputData input)
     #else
     input.vertexSH = SH;
     #endif
+
+    return input;
 }
 
 #ifndef TERRAIN_SPLAT_BASEPASS
@@ -401,8 +403,8 @@ half4 SplatmapFragment(Varyings IN) : SV_TARGET
     half alpha = weight;
 #endif
 
-    InputData inputData;
-    InitializeInputData(IN, normalTS, inputData);
+    InputData inputData = CreateInputData(IN, normalTS);
+    SETUP_DEBUG_TEXTURE_DATA(inputData, IN.uvMainAndLM.xy, _BaseMap);
 
 #ifdef TERRAIN_GBUFFER
 
