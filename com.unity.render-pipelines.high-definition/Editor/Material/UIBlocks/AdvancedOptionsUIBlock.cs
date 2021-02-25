@@ -32,7 +32,7 @@ namespace UnityEditor.Rendering.HighDefinition
             EmissionGI              = 1 << 4,
             /// <summary>Display the motion vector field.</summary>
             MotionVector            = 1 << 5,
-            /// <summary>Display the fields for Lit shaders.</summary>
+            /// <summary>Display the fields for the shaders.</summary>
             StandardLit             = Instancing | SpecularOcclusion | AddPrecomputedVelocity,
             /// <summary>Display all the field.</summary>
             All                     = ~0
@@ -43,7 +43,7 @@ namespace UnityEditor.Rendering.HighDefinition
             public const string header = "Advanced Options";
             public static GUIContent specularOcclusionModeText = new GUIContent("Specular Occlusion Mode", "Determines the mode used to compute specular occlusion");
             public static GUIContent addPrecomputedVelocityText = new GUIContent("Add Precomputed Velocity", "Requires additional per vertex velocity info");
-            public static readonly GUIContent bakedEmission = new GUIContent("Baked Emission", "");
+            public static GUIContent bakedEmission = new GUIContent("Baked Emission", "");
             public static readonly GUIContent motionVectorForVertexAnimationText = new GUIContent("Motion Vector For Vertex Animation", "When enabled, HDRP will correctly handle velocity for vertex animated object. Only enable if there is vertex animation in the ShaderGraph.");
         }
 
@@ -99,7 +99,10 @@ namespace UnityEditor.Rendering.HighDefinition
             }
         }
 
-        void DrawAdvancedOptionsGUI()
+        /// <summary>
+        /// Renders the advanced options in the advanced option foldout
+        /// </summary>
+        protected virtual void DrawAdvancedOptionsGUI()
         {
             if ((m_Features & Features.Instancing) != 0)
                 materialEditor.EnableInstancingField();
@@ -113,7 +116,7 @@ namespace UnityEditor.Rendering.HighDefinition
             }
 
             if ((m_Features & Features.EmissionGI) != 0)
-                DrawEmissionGI();
+                materialEditor.LightmapEmissionFlagsProperty(MaterialEditor.kMiniTextureFieldLabelIndentLevel, true);
 
             if ((m_Features & Features.MotionVector) != 0)
                 DrawMotionVectorToggle();
@@ -124,11 +127,6 @@ namespace UnityEditor.Rendering.HighDefinition
                 if (addPrecomputedVelocity != null)
                     materialEditor.ShaderProperty(addPrecomputedVelocity, Styles.addPrecomputedVelocityText);
             }
-        }
-
-        void DrawEmissionGI()
-        {
-            EmissionUIBlock.BakedEmissionEnabledProperty(materialEditor);
         }
 
         void DrawMotionVectorToggle()
