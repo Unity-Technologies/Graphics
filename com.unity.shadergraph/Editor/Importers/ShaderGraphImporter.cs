@@ -440,7 +440,7 @@ Shader ""Hidden/GraphErrorShader2""
                     node.CollectShaderProperties(shaderProperties, GenerationMode.ForReals);
                 }
 
-                asset.SetTextureInfos(shaderProperties.GetConfiguredTexutres());
+                asset.SetTextureInfos(shaderProperties.GetConfiguredTextures());
 
                 var codeSnippets = new List<string>();
                 var portCodeIndices = new List<int>[ports.Count];

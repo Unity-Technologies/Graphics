@@ -341,24 +341,25 @@ namespace UnityEditor.VFX
                     RefreshShaderGraphObject();
                     if (shaderGraph != null)
                     {
-                        foreach (var tex in shaderGraph.textureInfos.Where(t => t.texture != null).OrderBy(t => t.name))
+                        foreach (var tex in shaderGraph.textureInfos)
                         {
-                            switch (tex.texture.dimension)
+                            switch (tex.dimension)
                             {
+                                default:
                                 case TextureDimension.Tex2D:
-                                    mapper.AddExpression(new VFXTexture2DValue(tex.texture.GetInstanceID(), VFXValue.Mode.Variable), tex.name, -1);
+                                    mapper.AddExpression(new VFXTexture2DValue(tex.instanceID, VFXValue.Mode.Variable), tex.name, -1);
                                     break;
                                 case TextureDimension.Tex3D:
-                                    mapper.AddExpression(new VFXTexture3DValue(tex.texture.GetInstanceID(), VFXValue.Mode.Variable), tex.name, -1);
+                                    mapper.AddExpression(new VFXTexture3DValue(tex.instanceID, VFXValue.Mode.Variable), tex.name, -1);
                                     break;
                                 case TextureDimension.Cube:
-                                    mapper.AddExpression(new VFXTextureCubeValue(tex.texture.GetInstanceID(), VFXValue.Mode.Variable), tex.name, -1);
+                                    mapper.AddExpression(new VFXTextureCubeValue(tex.instanceID, VFXValue.Mode.Variable), tex.name, -1);
                                     break;
                                 case TextureDimension.Tex2DArray:
-                                    mapper.AddExpression(new VFXTexture2DArrayValue(tex.texture.GetInstanceID(), VFXValue.Mode.Variable), tex.name, -1);
+                                    mapper.AddExpression(new VFXTexture2DArrayValue(tex.instanceID, VFXValue.Mode.Variable), tex.name, -1);
                                     break;
                                 case TextureDimension.CubeArray:
-                                    mapper.AddExpression(new VFXTextureCubeArrayValue(tex.texture.GetInstanceID(), VFXValue.Mode.Variable), tex.name, -1);
+                                    mapper.AddExpression(new VFXTextureCubeArrayValue(tex.instanceID, VFXValue.Mode.Variable), tex.name, -1);
                                     break;
                             }
                         }
