@@ -56,8 +56,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed: SSR with transparent (case 1311088)
 - Fixed decals in material debug display.
 - Fix crash on VolumeComponentWithQualityEditor when the current Pipeline is not HDRP
-
 - Fixed WouldFitInAtlas that would previously return wrong results if any one face of a point light would fit (it used to return true even though the light in entirety wouldn't fit).
+- Fixed issue with NaNs in Volumetric Clouds on some platforms.
 
 ### Changed
 - Changed Window/Render Pipeline/HD Render Pipeline Wizard to Window/Rendering/HDRP Wizard
