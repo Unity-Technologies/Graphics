@@ -22,6 +22,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Added new API in CachedShadowManager
 - Added an additional check in the "check scene for ray tracing" (case 1314963).
 - Added shader graph unit test for IsFrontFace node
+- API to allow OnDemand shadows to not render upon placement in the Cached Shadow Atlas.
+- Exposed update upon light movement for directional light shadows in UI.
 
 ### Fixed
 - Fixed an exception when opening the color picker in the material UI (case 1307143).
@@ -58,6 +60,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fix crash on VolumeComponentWithQualityEditor when the current Pipeline is not HDRP
 - Fixed WouldFitInAtlas that would previously return wrong results if any one face of a point light would fit (it used to return true even though the light in entirety wouldn't fit).
 - Fixed issue with NaNs in Volumetric Clouds on some platforms.
+- Fixed update upon light movement for directional light rotation.
 
 ### Changed
 - Changed Window/Render Pipeline/HD Render Pipeline Wizard to Window/Rendering/HDRP Wizard
