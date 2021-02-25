@@ -26,6 +26,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed issue with Depth of Field CoC debug view.
 - Fixed an issue where first frame of SSAO could exhibit ghosting artefacts.
 - Fixed an issue with the mipmap generation internal format after rendering format change.
+- Fix crash on VolumeComponentWithQualityEditor when the current Pipeline is not HDRP
 
 ### Changed
 - Updated the tooltip for the Decal Angle Fade property (requires to enable Decal Layers in both HDRP asset and Frame settings) (case 1308048).
