@@ -88,7 +88,6 @@ namespace UnityEditor.VFX
                 }
             }
 
-            // TODO: Must draw the other various VFX Output Context info (indirect draw, shadow caster, etc.)
             base.OnInspectorGUI();
 
             if (serializedObject.ApplyModifiedProperties() || materialChanged)
@@ -98,8 +97,6 @@ namespace UnityEditor.VFX
                     context.Invalidate(VFXModel.InvalidationCause.kSettingChanged);
                 }
             }
-
-            DisplaySummary();
         }
     }
 
@@ -197,6 +194,21 @@ namespace UnityEditor.VFX
             }
         }
 
+        // Here we maintain a list of settings that we do not need if we are using the ShaderGraph generation path (it will be in the material inspector).
+        static IEnumerable<string> FilterOutBuiltinSettings()
+        {
+            // TODO: blendMode indirectly configures indirect draw, need to let SG configure it.
+            yield return "blendMode";
+            yield return "cullMode";
+            yield return "zWriteMode";
+            yield return "zTestMode";
+            yield return "excludeFromTAA";
+            yield return "preserveSpecularLighting";
+            yield return "doubleSided";
+            yield return "onlyAmbientLighting";
+            yield return "useExposureWeight";
+        }
+
         protected override IEnumerable<string> filteredOutSettings
         {
             get
@@ -207,6 +219,12 @@ namespace UnityEditor.VFX
                 {
                     yield return "colorMapping";
                     yield return "useAlphaClipping";
+
+                    if (shaderGraph.generatesWithShaderGraph)
+                    {
+                        foreach (var builtinSetting in FilterOutBuiltinSettings())
+                            yield return builtinSetting;
+                    }
                 }
                 if (!VFXViewPreference.displayExperimentalOperator)
                     yield return "shaderGraph";
