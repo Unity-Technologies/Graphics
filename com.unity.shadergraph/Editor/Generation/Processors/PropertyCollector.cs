@@ -1,7 +1,9 @@
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using UnityEditor.ShaderGraph.Internal;
+using UnityEngine;
 
 namespace UnityEditor.ShaderGraph
 {
@@ -14,13 +16,117 @@ namespace UnityEditor.ShaderGraph
             public bool modifiable;
         }
 
-        public readonly List<AbstractShaderProperty> properties = new List<AbstractShaderProperty>();
+        bool m_ReadOnly;
+        List<HLSLProperty> m_HLSLProperties = null;
 
-        public void AddShaderProperty(AbstractShaderProperty chunk)
+        // reference name ==> property index in list
+        Dictionary<string, int> m_ReferenceNames = new Dictionary<string, int>();
+
+        // list of properties (kept in a list to maintain deterministic declaration order)
+        List<AbstractShaderProperty> m_Properties = new List<AbstractShaderProperty>();
+
+        public int propertyCount => m_Properties.Count;
+        public IEnumerable<AbstractShaderProperty> properties => m_Properties;
+        public AbstractShaderProperty GetProperty(int index) { return m_Properties[index]; }
+
+        public void Sort()
         {
-            if (properties.Any(x => x.referenceName == chunk.referenceName))
+            if (m_ReadOnly)
+            {
+                Debug.LogError("Cannot sort the properties when the PropertyCollector is already marked ReadOnly");
                 return;
-            properties.Add(chunk);
+            }
+
+            m_Properties.Sort((a, b) => String.CompareOrdinal(a.referenceName, b.referenceName));
+        }
+
+        public void SetReadOnly()
+        {
+            m_ReadOnly = true;
+        }
+
+        private static bool EquivalentHLSLProperties(AbstractShaderProperty a, AbstractShaderProperty b)
+        {
+            bool equivalent = true;
+            var bHLSLProps = new List<HLSLProperty>();
+            b.ForeachHLSLProperty(bh => bHLSLProps.Add(bh));
+            a.ForeachHLSLProperty(ah =>
+            {
+                var i = bHLSLProps.FindIndex(bh => bh.name == ah.name);
+                if (i < 0)
+                    equivalent = false;
+                else
+                {
+                    var bh = bHLSLProps[i];
+                    if ((ah.name != bh.name) ||
+                        (ah.type != bh.type) ||
+                        (ah.precision != bh.precision) ||
+                        (ah.declaration != bh.declaration) ||
+                        ((ah.customDeclaration == null) != (bh.customDeclaration == null)))
+                    {
+                        equivalent = false;
+                    }
+                    else if (ah.customDeclaration != null)
+                    {
+                        var ssba = new ShaderStringBuilder();
+                        var ssbb = new ShaderStringBuilder();
+                        ah.customDeclaration(ssba);
+                        bh.customDeclaration(ssbb);
+                        if (ssba.ToCodeBlock() != ssbb.ToCodeBlock())
+                            equivalent = false;
+                    }
+                    bHLSLProps.RemoveAt(i);
+                }
+            });
+            return equivalent && (bHLSLProps.Count == 0);
+        }
+
+        public void AddShaderProperty(AbstractShaderProperty prop)
+        {
+            if (m_ReadOnly)
+            {
+                Debug.LogError("ERROR attempting to add property to readonly collection");
+                return;
+            }
+
+            int propIndex = -1;
+            if (m_ReferenceNames.TryGetValue(prop.referenceName, out propIndex))
+            {
+                // existing referenceName
+                var existingProp = m_Properties[propIndex];
+                if (existingProp != prop)
+                {
+                    // duplicate reference name, but different property instances
+                    if (existingProp.GetType() != prop.GetType())
+                    {
+                        Debug.LogError("Two properties with the same reference name (" + prop.referenceName + ") using different types");
+                    }
+                    else
+                    {
+                        if (!EquivalentHLSLProperties(existingProp, prop))
+                            Debug.LogError("Two properties with the same reference name (" + prop.referenceName + ") produce different HLSL properties");
+                    }
+                }
+            }
+            else
+            {
+                // new referenceName, new property
+                propIndex = m_Properties.Count;
+                m_Properties.Add(prop);
+                m_ReferenceNames.Add(prop.referenceName, propIndex);
+            }
+        }
+
+        private List<HLSLProperty> BuildHLSLPropertyList()
+        {
+            SetReadOnly();
+            if (m_HLSLProperties == null)
+            {
+                m_HLSLProperties = new List<HLSLProperty>();
+                foreach (var p in m_Properties)
+                    p.ForeachHLSLProperty(h => m_HLSLProperties.Add(h));
+            }
+            return m_HLSLProperties;
         }
 
         public void GetPropertiesDeclaration(ShaderStringBuilder builder, GenerationMode mode, ConcretePrecision inheritedPrecision)
@@ -31,8 +137,7 @@ namespace UnityEditor.ShaderGraph
             }
 
             // build a list of all HLSL properties
-            var hlslProps = new List<HLSLProperty>();
-            properties.ForEach(p => p.ForeachHLSLProperty(h => hlslProps.Add(h)));
+            var hlslProps = BuildHLSLPropertyList();
 
             if (mode == GenerationMode.Preview)
             {
@@ -150,6 +255,18 @@ namespace UnityEditor.ShaderGraph
                     h.AppendTo(builder);
         }
 
+        public bool HasDotsProperties()
+        {
+            var hlslProps = BuildHLSLPropertyList();
+            bool hasDotsProperties = false;
+            foreach (var h in hlslProps)
+            {
+                if (h.declaration == HLSLDeclaration.HybridPerInstance)
+                    hasDotsProperties = true;
+            }
+            return hasDotsProperties;
+        }
+
         public string GetDotsInstancingPropertiesDeclaration(GenerationMode mode)
         {
             // Hybrid V1 needs to declare a special macro to that is injected into
@@ -160,12 +277,7 @@ namespace UnityEditor.ShaderGraph
             var batchAll = (mode == GenerationMode.Preview);
 
             // build a list of all HLSL properties
-            var hybridHLSLProps = new List<HLSLProperty>();
-            properties.ForEach(p => p.ForeachHLSLProperty(h =>
-                {
-                    if (h.declaration == HLSLDeclaration.HybridPerInstance)
-                        hybridHLSLProps.Add(h);
-                }));
+            var hybridHLSLProps = BuildHLSLPropertyList().Where(h => h.declaration == HLSLDeclaration.HybridPerInstance);
 
             if (hybridHLSLProps.Any())
             {
