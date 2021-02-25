@@ -47,10 +47,7 @@ half4 frag(PackedVaryings packedInput) : SV_TARGET
 
     const SurfaceData2D surfaceData = CreateSurfaceData(color.rgb, color.a, surfaceDescription.SpriteMask);
     InputData2D inputData = CreateInputData(unpacked.texCoord0, unpacked.screenPosition.xy / unpacked.screenPosition.w);
-
-    #if defined(_DEBUG_SHADER)
-    SetupDebugData(inputData, unpacked.positionWS);
-    #endif
+    SETUP_DEBUG_DATA(inputData, unpacked.positionWS);
 
     return CombinedShapeLightShared(surfaceData, inputData);
 }

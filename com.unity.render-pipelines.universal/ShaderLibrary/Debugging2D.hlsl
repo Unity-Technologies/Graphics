@@ -8,21 +8,21 @@
 
 #if defined(_DEBUG_SHADER)
 
-void SetupDebugData(inout InputData2D inputData, float3 positionWS, float4 texelSize, uint mipCount)
-{
-    inputData.positionWS = positionWS;
-    inputData.texelSize = texelSize;
-    inputData.mipCount = mipCount;
-}
+#define SETUP_DEBUG_TEXTURE_DATA(inputData, positionWS, texture)    SetupDebugDataTexture(inputData, positionWS, texture##_TexelSize, texture##_MipInfo, GetMipCount(texture))
+#define SETUP_DEBUG_DATA(inputData, positionWS)                     SetupDebugData(inputData, positionWS)
 
 void SetupDebugData(inout InputData2D inputData, float3 positionWS)
 {
-    const int textureWdith = 1024;
-    const int textureHeight = 1024;
-    const float4 texelSize = half4(1.0h / textureWdith, 1.0h / textureHeight, textureWdith, textureHeight);
-    const uint mipCount = 9;
+    inputData.positionWS = positionWS;
+}
 
-    SetupDebugData(inputData, positionWS, texelSize, mipCount);
+void SetupDebugDataTexture(inout InputData2D inputData, float3 positionWS, float4 texelSize, float4 mipInfo, uint mipCount)
+{
+    SetupDebugData(inputData, positionWS);
+
+    inputData.texelSize = texelSize;
+    inputData.mipInfo = mipInfo;
+    inputData.mipCount = mipCount;
 }
 
 bool CalculateDebugColorMaterialSettings(in SurfaceData2D surfaceData, in InputData2D inputData, out half4 debugColor)
@@ -128,6 +128,11 @@ bool CalculateDebugColorValidationSettings(in SurfaceData2D surfaceData, in Inpu
             return CalculateValidationAlbedo(surfaceData.albedo, debugColor);
         }
 
+        case DEBUGVALIDATIONMODE_VALIDATE_MIPMAPS:
+        {
+            return CalculateValidationMipLevel(inputData.mipInfo.w, inputData.uv, inputData.texelSize, surfaceData.albedo, surfaceData.alpha, debugColor);
+        }
+
         case DEBUGVALIDATIONMODE_VALIDATE_METALLIC:
         {
             debugColor = _DebugColorInvalidMode;
@@ -166,6 +171,12 @@ bool CalculateDebugColor(in SurfaceData2D surfaceData, in InputData2D inputData,
         return false;
     }
 }
+
+#else
+
+#define SETUP_DEBUG_TEXTURE_DATA(inputData, positionWS, texture)
+#define SETUP_DEBUG_DATA(inputData, positionWS)
+
 #endif
 
 #endif

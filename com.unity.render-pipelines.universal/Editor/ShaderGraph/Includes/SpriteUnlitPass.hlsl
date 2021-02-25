@@ -32,7 +32,7 @@ half4 frag(PackedVaryings packedInput) : SV_TARGET
     InputData2D inputData = CreateInputData(unpacked.positionWS, unpacked.texCoord0);
     half4 debugColor;
 
-    SetupDebugData(inputData, unpacked.positionWS);
+    SETUP_DEBUG_DATA(inputData, unpacked.positionWS);
 
     if(CalculateDebugColor(surfaceData, inputData, debugColor))
     {

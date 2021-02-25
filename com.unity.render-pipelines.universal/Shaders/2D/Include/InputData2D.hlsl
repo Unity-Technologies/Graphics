@@ -10,13 +10,14 @@ struct InputData2D
     #if defined(_DEBUG_SHADER)
     float3 positionWS;
     float4 texelSize;
+    float4 mipInfo;
     uint mipCount;
     #endif
 };
 
 InputData2D CreateInputData(float2 uv, half2 lightingUV)
 {
-    InputData2D inputData;
+    InputData2D inputData = (InputData2D)0;
 
     inputData.uv = uv;
     inputData.lightingUV = lightingUV;

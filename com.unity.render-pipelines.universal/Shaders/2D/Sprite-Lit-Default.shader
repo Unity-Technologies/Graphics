@@ -262,6 +262,7 @@ Shader "Universal Render Pipeline/2D/Sprite-Lit-Default"
             SAMPLER(sampler_NormalMap);
             half4 _MainTex_ST;
             float4 _MainTex_TexelSize;
+            float4 _MainTex_MipInfo;
 
             #if USE_SHAPE_LIGHT_TYPE_0
             SHAPE_LIGHT(0)
@@ -300,10 +301,9 @@ Shader "Universal Render Pipeline/2D/Sprite-Lit-Default"
                 const half4 main = i.color * SAMPLE_TEXTURE2D(_MainTex, sampler_MainTex, i.uv);
                 const half4 mask = SAMPLE_TEXTURE2D(_MaskTex, sampler_MaskTex, i.uv);
                 const half3 normalTS = UnpackNormal(SAMPLE_TEXTURE2D(_NormalMap, sampler_NormalMap, i.uv));
-                SurfaceData2D surfaceData = CreateSurfaceData(main.rgb, main.a, mask, normalTS);
+                const SurfaceData2D surfaceData = CreateSurfaceData(main.rgb, main.a, mask, normalTS);
                 InputData2D inputData = CreateInputData(i.uv, i.lightingUV);
-
-                SetupDebugData(inputData, i.positionWS, _MainTex_TexelSize, GetMipCount(_MainTex));
+                SETUP_DEBUG_TEXTURE_DATA(inputData, i.positionWS, _MainTex);
 
                 return CombinedShapeLightShared(surfaceData, inputData);
             }
