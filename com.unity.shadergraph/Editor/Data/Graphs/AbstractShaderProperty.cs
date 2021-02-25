@@ -100,7 +100,7 @@ namespace UnityEditor.ShaderGraph.Internal
 
         internal abstract void ForeachHLSLProperty(Action<HLSLProperty> action);
 
-        internal virtual string GetPropertyAsArgumentString(bool isVfxGraph)
+        internal virtual string GetPropertyAsArgumentStringForVFX()
         {
             return GetPropertyAsArgumentString();
         }

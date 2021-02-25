@@ -41,12 +41,9 @@ namespace UnityEditor.ShaderGraph.Internal
             return "UnityTextureCube " + referenceName;
         }
 
-        internal override string GetPropertyAsArgumentString(bool isVfxGraph)
+        internal override string GetPropertyAsArgumentStringForVFX()
         {
-            if (isVfxGraph)
-                return "TEXTURECUBE(" + referenceName + ")";
-            else
-                return GetPropertyAsArgumentString();
+            return "TEXTURECUBE(" + referenceName + ")";
         }
 
         internal override string GetHLSLVariableName(bool isSubgraphProperty)
