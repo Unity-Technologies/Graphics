@@ -17,71 +17,7 @@ using Attribute = System.Attribute;
 public class UseTestAssetTestCaseAttribute : UnityEngine.TestTools.UnityTestAttribute, ITestBuilder
 {
 
-    [System.Serializable]
-    public class TestAssetTestData
-    {
-        public string testName;
-        [NonSerialized]
-        public Texture2D expectedResult;
-        [SerializeField]
-        public string ExpectedResultPath { get; private set; }
-        public int expectedHash;
-        [NonSerialized]
-        public Material testMaterial;
-        [SerializeField]
-        public string TestMaterialPath { get; private set; }
-        public int testHash;
-        public bool isCameraPersective;
-        [NonSerialized]
-        public ImageComparisonSettings imageComparisonSettings;
-        [SerializeField]
-        private string json_imageComp;
-        [NonSerialized]
-        public Mesh customMesh;
-        [SerializeField]
-        public string CustomMeshPath { get; private set; }
-
-        public string ToJson()
-        {
-            json_imageComp = JsonUtility.ToJson(imageComparisonSettings);
-            return JsonUtility.ToJson(this);
-        }
-
-        public void FromJson(string json)
-        {
-            JsonUtility.FromJsonOverwrite(json, this);
-            imageComparisonSettings = JsonUtility.FromJson<ImageComparisonSettings>(json_imageComp);
-        }
-
-        public TestAssetTestData()
-        {
-
-        }
-
-        public TestAssetTestData(ShaderGraphTestAsset testAsset, ShaderGraphTestAsset.MaterialTest individualTest, Texture2D expectedResultImage, int expectedResultHash)
-        {
-            testName = testAsset.name;
-            expectedResult = expectedResultImage;
-            expectedHash = expectedResultHash;
-            testMaterial = individualTest.material;
-            testHash = individualTest.hash;
-            isCameraPersective = testAsset.isCameraPerspective;
-            imageComparisonSettings = testAsset.settings;
-            customMesh = testAsset.customMesh;
-            ExpectedResultPath = $"{testName}_{testMaterial.name}_image";
-            TestMaterialPath = testMaterial.name;
-            if(customMesh == null)
-            {
-                CustomMeshPath = null;
-            }
-            else
-            {
-                CustomMeshPath = testAsset.customMesh.name;
-            }
-        }
-    }
-
-    public interface ITestAssetTestProvider
+     public interface ITestAssetTestProvider
     {
         public IEnumerable<TestAssetTestData> GetTestCases();
     }
@@ -120,7 +56,7 @@ public class UseTestAssetTestCaseAttribute : UnityEngine.TestTools.UnityTestAttr
             {
                 foreach(var individualTest in testAsset.testMaterial)
                 {
-                    var hashPath = $"{k_fileLocation}/{testAsset.name}/{individualTest.material.name}{SetupTestAssetTestCases.k_resultHashSuffix}";
+                    var hashPath = $"{k_fileLocation}/{testAsset.name}/{testAsset.name}_{individualTest.material.name}_{SetupTestAssetTestCases.k_resultHashSuffix}";
                     if(!File.Exists(hashPath))
                     {
                         continue;
@@ -128,10 +64,10 @@ public class UseTestAssetTestCaseAttribute : UnityEngine.TestTools.UnityTestAttr
 
                     TestAssetTestData data = new TestAssetTestData();
                     data.FromJson(File.ReadAllText(hashPath));
-                    data.expectedResult = AssetDatabase.LoadAssetAtPath<Texture2D>($"{k_fileLocation}/{testAsset.name}/{individualTest.material.name}{SetupTestAssetTestCases.k_resultImageSuffix}");
+                    data.expectedResult = AssetDatabase.LoadAssetAtPath<Texture2D>($"{k_fileLocation}/{testAsset.name}/{testAsset.name}_{individualTest.material.name}_{SetupTestAssetTestCases.k_resultImageSuffix}");
                     data.testMaterial = individualTest.material;
                     data.customMesh = testAsset.customMesh;
-                    if(data.expectedResult == null || data.testMaterial == null)
+                    if(data.testMaterial == null)
                     {
                         continue;
                     }
@@ -175,11 +111,14 @@ public class UseTestAssetTestCaseAttribute : UnityEngine.TestTools.UnityTestAttr
                 {
                     TestAssetTestData data = new TestAssetTestData();
                     data.FromJson(individualTestData.text);
-                    data.expectedResult = referenceImagesBundle.LoadAsset<Texture2D>(data.ExpectedResultPath);
                     data.testMaterial = referenceImagesBundle.LoadAsset<Material>(data.TestMaterialPath);
                     if(data.CustomMeshPath != null)
                     {
                         data.customMesh = referenceImagesBundle.LoadAsset<Mesh>(data.CustomMeshPath);
+                    }
+                    if(data.ExpectedResultPath != null)
+                    {
+                        data.expectedResult = referenceImagesBundle.LoadAsset<Texture2D>(data.ExpectedResultPath);
                     }
 
                     yield return data;

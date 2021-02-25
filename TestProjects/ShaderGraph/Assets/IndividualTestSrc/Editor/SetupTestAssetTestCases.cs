@@ -213,8 +213,8 @@ public class SetupTestAssetTestCases : IPrebuildSetup
         // new CreateSceneListFileFromBuildSettings().Setup();
     }
 
-    public const string k_resultImageSuffix = "_result.png";
-    public const string k_resultHashSuffix = "_result_metadata.txt";
+    public const string k_resultImageSuffix = "result.png";
+    public const string k_resultHashSuffix = "result_metadata.txt";
 
     private void EnsureExpectedTestResultsInitialized(ColorSpace colorSpace, RuntimePlatform runtimePlatform, GraphicsDeviceType[] graphicsDevices, string xrsdk)
     {
@@ -235,33 +235,29 @@ public class SetupTestAssetTestCases : IPrebuildSetup
                 {
                     foreach (var individualMaterialTest in testAsset.testMaterial)
                     {
-                        string resultImageFilePath = $"{directoryPath}{individualMaterialTest.material.name}{k_resultImageSuffix}";
-                        if (!File.Exists(resultImageFilePath))
+                        Texture2D result = null;
+                        string resultImageFilePath = $"{directoryPath}{testAsset.name}_{individualMaterialTest.material.name}_{k_resultImageSuffix}";
+                        if (File.Exists(resultImageFilePath))
                         {
-                            AssetDatabase.StopAssetEditing();
-                            Texture2D resultImage = new Texture2D(testAsset.settings.TargetWidth, testAsset.settings.TargetHeight, TextureFormat.ARGB32, false, testAsset.settings.UseHDR);
-                            File.WriteAllBytes(resultImageFilePath, ImageConversion.EncodeToPNG(resultImage));
-                            AssetDatabase.ImportAsset(resultImageFilePath);
-                            AssetDatabase.StartAssetEditing();
-                        }
-                        var result = AssetDatabase.LoadAssetAtPath<Texture2D>(resultImageFilePath);
-                        var importer = AssetImporter.GetAtPath(resultImageFilePath) as TextureImporter;
-                        if (importer == null)
-                        {
-                            throw new Exception();
-                        }
+                            result = AssetDatabase.LoadAssetAtPath<Texture2D>(resultImageFilePath);
+                            var importer = AssetImporter.GetAtPath(resultImageFilePath) as TextureImporter;
+                            if (importer == null)
+                            {
+                                throw new Exception();
+                            }
 
-                        if (importer.textureCompression != TextureImporterCompression.Uncompressed || !importer.isReadable)
-                        {
-                            importer.textureCompression = TextureImporterCompression.Uncompressed;
-                            importer.isReadable = true;
-                            importer.mipmapEnabled = false;
-                            importer.npotScale = TextureImporterNPOTScale.None;
-                            AssetDatabase.ImportAsset(resultImageFilePath);
+                            if (importer.textureCompression != TextureImporterCompression.Uncompressed || !importer.isReadable)
+                            {
+                                importer.textureCompression = TextureImporterCompression.Uncompressed;
+                                importer.isReadable = true;
+                                importer.mipmapEnabled = false;
+                                importer.npotScale = TextureImporterNPOTScale.None;
+                                AssetDatabase.ImportAsset(resultImageFilePath);
+                            }
                         }
 
 
-                        string resultImageHashPath = $"{directoryPath}{individualMaterialTest.material.name}{k_resultHashSuffix}";
+                        string resultImageHashPath = $"{directoryPath}{testAsset.name}_{individualMaterialTest.material.name}_{k_resultHashSuffix}";
                         if(!File.Exists(resultImageHashPath))
                         {
                             TestAssetTestData data = new TestAssetTestData(testAsset, individualMaterialTest, result, -1);
@@ -295,21 +291,24 @@ public class SetupTestAssetTestCases : IPrebuildSetup
             }
             foreach (var individualTest in testAsset.testMaterial)
             {
-                var imagePath = $"{testResultsPath}{individualTest.material.name}{k_resultImageSuffix}";
-                var hashPath = $"{testResultsPath}{individualTest.material.name}{k_resultHashSuffix}";
-                if (!File.Exists(imagePath) || !File.Exists(hashPath))
+                var hashPath = $"{testResultsPath}{testAsset.name}_{individualTest.material.name}_{k_resultHashSuffix}";
+                if (!File.Exists(hashPath))
                 {
                     continue;
                 }
 
-                result = AssetDatabase.LoadAssetAtPath<Texture2D>(imagePath);
                 hash = File.ReadAllText(hashPath);
-                if (result == null || hash == null || hash.Length == 0)
+                if (hash == null || hash.Length == 0)
                 {
                     continue;
                 }
+                var imagePath = $"{testResultsPath}{testAsset.name}_{individualTest.material.name}_{k_resultImageSuffix}";
+                result = AssetDatabase.LoadAssetAtPath<Texture2D>(imagePath);
+                if(result != null)
+                {
+                    output[$"{testAsset.name}_{individualTest.material.name}_image"] = imagePath;
+                }
 
-                output[$"{testAsset.name}_{individualTest.material.name}_image"] = imagePath;
                 output[$"{testAsset.name}_{individualTest.material.name}_hash"] = hashPath;
                 output[individualTest.material.name] = AssetDatabase.GetAssetPath(individualTest.material);
             }

@@ -54,7 +54,14 @@ public class TestAssetTestData
         isCameraPersective = testAsset.isCameraPerspective;
         imageComparisonSettings = testAsset.settings;
         customMesh = testAsset.customMesh;
-        ExpectedResultPath = $"{testName}_{testMaterial.name}_image";
+        if (expectedResult == null)
+        {
+            ExpectedResultPath = null;
+        }
+        else
+        {
+            ExpectedResultPath = $"{testName}_{testMaterial.name}_image";
+        }
         TestMaterialPath = testMaterial.name;
         if (customMesh == null)
         {
