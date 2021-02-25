@@ -89,7 +89,19 @@ namespace UnityEditor.ShaderGraph
 
                 if (!value.procedural)
                 {
-                    // declare regular texture properties (for fallback case)
+                    //declare shared sampler for VT cache samples
+                    action(new HLSLProperty(HLSLType._CUSTOM, "VT_SAMPLER", HLSLDeclaration.UnityPerMaterial, concretePrecision)
+                    {
+                        customDeclaration = (ssb) =>
+                        {
+                            ssb.AppendIndentation();
+                            ssb.AppendLine("#define VT_SAMPLER " + "sampler" + referenceName + "_c0");
+                            ssb.AppendLine("SAMPLER(sampler" + referenceName + "_c0);");
+                            ssb.AppendIndentation();
+                        }
+                    });
+
+                    //declare regular texture properties (for fallback case)
                     for (int i = 0; i < numLayers; i++)
                     {
                         string layerRefName = value.layers[i].layerRefName;
@@ -100,12 +112,6 @@ namespace UnityEditor.ShaderGraph
 
                 Action<ShaderStringBuilder> customDecl = (builder) =>
                 {
-                    //Declare sampler if not defined already, use the first layer to get the proper settings for VT textures.
-                    builder.AppendIndentation();
-                    builder.AppendLine("#ifndef VT_SAMPLER");
-                    builder.AppendLine("#define VT_SAMPLER " + "sampler" + referenceName + "_c0");
-                    builder.AppendLine("SAMPLER(sampler" + referenceName + "_c0);");
-                    builder.AppendLine("#endif");
                     builder.AppendIndentation();
                     // declare texture stack
                     builder.Append("DECLARE_STACK");
@@ -128,7 +134,7 @@ namespace UnityEditor.ShaderGraph
                     builder.Append(" AddTextureType(BuildVTProperties_");
                     builder.Append(referenceName);
                     builder.Append("(");
-#if VIRTUAL_TEXTURING_ENABLED
+#if ENABLE_VIRTUALTEXTURES
                     builder.Append(" VT_SAMPLER ");
 #endif
                     builder.Append(")");

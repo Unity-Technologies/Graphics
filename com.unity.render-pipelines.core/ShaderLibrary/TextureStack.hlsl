@@ -153,28 +153,7 @@ GraniteTilesetConstantBuffer GetConstantBuffer(GraniteStreamingTextureConstantBu
 #define jj(a, b) jj2(a, b)
 
 #define DECLARE_STACK_LAYER(stackName, layerSamplerName, layerIndex) \
-TEXTURE2D_ARRAY(stackName##_c##layerIndex);\
-\
-float4 SampleVT_##layerSamplerName(StackInfo info, int lodCalculation, int quality, sampler cacheSampler)\
-{\
-    GraniteStreamingTextureConstantBuffer textureParamBlock;\
-    textureParamBlock.data[0] = stackName##_atlasparams[0];\
-    textureParamBlock.data[1] = stackName##_atlasparams[1];\
-\
-    GraniteTilesetConstantBuffer graniteParamBlock = GetConstantBuffer_##stackName(); \
-\
-    GraniteConstantBuffers grCB;\
-    grCB.tilesetBuffer = graniteParamBlock;\
-    grCB.streamingTextureBuffer = textureParamBlock;\
-\
-    GraniteCacheTexture cache;\
-    cache.TextureArray = stackName##_c##layerIndex;\
-    cache.Sampler = cacheSampler;\
-\
-    float4 output;\
-    VirtualTexturingSample(grCB.tilesetBuffer, info.lookupData, cache, layerIndex, lodCalculation, quality, output);\
-    return output;\
-}
+TEXTURE2D_ARRAY(stackName##_c##layerIndex);
 
 #define DECLARE_BUILD_PROPERTIES(stackName, layers, layer0Index, layer1Index, layer2Index, layer3Index)\
     VTProperty BuildVTProperties_##stackName(sampler cacheSampler)\
