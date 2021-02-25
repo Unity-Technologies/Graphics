@@ -8,33 +8,22 @@
 
 #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/SurfaceData.hlsl"
 
-struct DebugData
-{
-    half3 brdfDiffuse;
-    half3 brdfSpecular;
-    float2 uv;
-
-    float4 texelSize;   // 1 / width, 1 / height, width, height
-    uint mipCount;
-};
+#define SETUP_DEBUG_TEXTURE_DATA(inputData, uv, texture)    SetupDebugDataTexture(inputData, uv, texture##_TexelSize, texture##_MipInfo, GetMipCount(texture))
 
 half4 GetShadowCascadeColor(float4 shadowCoord, float3 positionWS);
 
-DebugData CreateDebugData(half3 brdfDiffuse, half3 brdfSpecular, float2 uv)
+void SetupDebugDataTexture(inout InputData inputData, float2 uv, float4 texelSize, float4 mipInfo, uint mipCount)
 {
-    DebugData debugData;
+    inputData.uv = uv;
+    inputData.texelSize = texelSize;
+    inputData.mipInfo = mipInfo;
+    inputData.mipCount = mipCount;
+}
 
-    debugData.brdfDiffuse = brdfDiffuse;
-    debugData.brdfSpecular = brdfSpecular;
-    debugData.uv = uv;
-
-    // TODO: Pass the actual mipmap and texel data in here somehow, but we don't have access to textures here...
-    const int textureWdith = 1024;
-    const int textureHeight = 1024;
-    debugData.texelSize = half4(1.0h / textureWdith, 1.0h / textureHeight, textureWdith, textureHeight);
-    debugData.mipCount = 9;
-
-    return debugData;
+void SetupDebugDataBrdf(inout InputData inputData, half3 brdfDiffuse, half3 brdfSpecular)
+{
+    inputData.brdfDiffuse = brdfDiffuse;
+    inputData.brdfSpecular = brdfSpecular;
 }
 
 half3 GetLODDebugColor()
@@ -65,9 +54,9 @@ bool UpdateSurfaceAndInputDataForDebug(inout SurfaceData surfaceData, inout Inpu
 
     if (_DebugLightingMode == DEBUGLIGHTINGMODE_LIGHT_ONLY || _DebugLightingMode == DEBUGLIGHTINGMODE_LIGHT_DETAIL)
     {
-        surfaceData.albedo = half3(1, 1, 1);
-        surfaceData.emission = half3(0, 0, 0);
-        surfaceData.specular = half3(0, 0, 0);
+        surfaceData.albedo = 1;
+        surfaceData.emission = 0;
+        surfaceData.specular = 0;
         surfaceData.occlusion = 1;
         surfaceData.clearCoatMask = 0;
         surfaceData.clearCoatSmoothness = 1;
@@ -77,20 +66,20 @@ bool UpdateSurfaceAndInputDataForDebug(inout SurfaceData surfaceData, inout Inpu
     }
     else if (_DebugLightingMode == DEBUGLIGHTINGMODE_REFLECTIONS || _DebugLightingMode == DEBUGLIGHTINGMODE_REFLECTIONS_WITH_SMOOTHNESS)
     {
-        surfaceData.albedo = half3(0, 0, 0);
-        surfaceData.emission = half3(0, 0, 0);
+        surfaceData.albedo = 0;
+        surfaceData.emission = 0;
         surfaceData.occlusion = 1;
         surfaceData.clearCoatMask = 0;
         surfaceData.clearCoatSmoothness = 1;
         if (_DebugLightingMode == DEBUGLIGHTINGMODE_REFLECTIONS)
         {
-            surfaceData.specular = half3(1, 1, 1);
+            surfaceData.specular = 1;
             surfaceData.metallic = 0;
             surfaceData.smoothness = 1;
         }
         else if (_DebugLightingMode == DEBUGLIGHTINGMODE_REFLECTIONS_WITH_SMOOTHNESS)
         {
-            surfaceData.specular = half3(0, 0, 0);
+            surfaceData.specular = 0;
             surfaceData.metallic = 1;
             surfaceData.smoothness = 0;
         }
@@ -99,7 +88,7 @@ bool UpdateSurfaceAndInputDataForDebug(inout SurfaceData surfaceData, inout Inpu
 
     if (_DebugLightingMode == DEBUGLIGHTINGMODE_LIGHT_ONLY || _DebugLightingMode == DEBUGLIGHTINGMODE_REFLECTIONS)
     {
-        half3 normalTS = half3(0, 0, 1);
+        const half3 normalTS = half3(0, 0, 1);
 
         #if defined(_NORMALMAP)
         inputData.normalWS = TransformTangentToWorld(normalTS, inputData.tangentMatrixWS);
@@ -114,135 +103,144 @@ bool UpdateSurfaceAndInputDataForDebug(inout SurfaceData surfaceData, inout Inpu
     return changed;
 }
 
-bool CalculateValidationMetallic(half3 albedo, half metallic, out half4 color)
+bool CalculateValidationMetallic(half3 albedo, half metallic, out half4 debugColor)
 {
     if(metallic < _DebugValidateMetallicMinValue)
     {
-        color = half4(1, 0, 0, 1);
+        debugColor = _DebugValidateBelowMinThresholdColor;
     }
     else if(metallic > _DebugValidateMetallicMaxValue)
     {
-        color = half4(0, 0, 1, 1);
+        debugColor = _DebugValidateAboveMaxThresholdColor;
     }
     else
     {
         half luminance = LinearRgbToLuminance(albedo);
 
-        color = half4(luminance, luminance, luminance, 1);
+        debugColor = half4(luminance, luminance, luminance, 1);
     }
     return true;
 }
 
-bool CalculateValidationColorForDebug(in InputData inputData, in SurfaceData surfaceData, in DebugData debugData, out half4 color)
+bool CalculateValidationColorForDebug(in InputData inputData, in SurfaceData surfaceData, out half4 debugColor)
 {
-    if (_DebugValidationMode == DEBUGVALIDATIONMODE_VALIDATE_ALBEDO)
+    switch(_DebugValidationMode)
     {
-        return CalculateValidationAlbedo(surfaceData.albedo, color);
-    }
-    else if(_DebugValidationMode == DEBUGVALIDATIONMODE_VALIDATE_METALLIC)
-    {
-        return CalculateValidationMetallic(surfaceData.albedo, surfaceData.metallic, color);
-    }
-    else
-    {
-        color = 0;
-        return false;
+        case DEBUGVALIDATIONMODE_VALIDATE_ALBEDO:
+            return CalculateValidationAlbedo(surfaceData.albedo, debugColor);
+
+        case DEBUGVALIDATIONMODE_VALIDATE_METALLIC:
+            return CalculateValidationMetallic(surfaceData.albedo, surfaceData.metallic, debugColor);
+
+        case DEBUGVALIDATIONMODE_VALIDATE_MIPMAPS:
+            return CalculateValidationMipLevel(inputData.mipInfo.w, inputData.uv, inputData.texelSize, surfaceData.albedo, surfaceData.alpha, debugColor);
+
+        default:
+        {
+            debugColor = 0;
+            return false;
+        }
     }
 }
 
-bool CalculateValidationColorForMipMaps(in InputData inputData, in SurfaceData surfaceData, in DebugData debugData, out half4 color)
+bool CalculateDebugColorForMipmaps(in InputData inputData, in SurfaceData surfaceData, out half4 debugColor)
 {
     switch (_DebugMipInfoMode)
     {
         case DEBUGMIPINFOMODE_LEVEL:
-            color = GetMipLevelDebugColor(inputData.positionWS, surfaceData.albedo, debugData.uv, debugData.texelSize);
+            debugColor = GetMipLevelDebugColor(inputData.positionWS, surfaceData.albedo, inputData.uv, inputData.texelSize);
             return true;
 
         case DEBUGMIPINFOMODE_COUNT:
-            color = GetMipCountDebugColor(inputData.positionWS, surfaceData.albedo, debugData.mipCount);
+            debugColor = GetMipCountDebugColor(inputData.positionWS, surfaceData.albedo, inputData.mipCount);
             return true;
 
         default:
-            color = 0;
+            debugColor = 0;
             return false;
     }
 }
 
-bool CalculateColorForDebugMaterial(in InputData inputData, in SurfaceData surfaceData, in DebugData debugData, out half4 color)
+bool CalculateColorForDebugMaterial(in InputData inputData, in SurfaceData surfaceData, out half4 debugColor)
 {
     // Debug materials...
     switch(_DebugMaterialMode)
     {
         case DEBUGMATERIALMODE_ALBEDO:
-            color = half4(surfaceData.albedo, 1);
+            debugColor = half4(surfaceData.albedo, 1);
             return true;
 
         case DEBUGMATERIALMODE_SPECULAR:
-            color = half4(surfaceData.specular, 1);
+            debugColor = half4(surfaceData.specular, 1);
             return true;
 
         case DEBUGMATERIALMODE_ALPHA:
-            color = half4(surfaceData.alpha.rrr, 1);
+            debugColor = half4(surfaceData.alpha.rrr, 1);
             return true;
 
         case DEBUGMATERIALMODE_SMOOTHNESS:
-            color = half4(surfaceData.smoothness.rrr, 1);
+            debugColor = half4(surfaceData.smoothness.rrr, 1);
             return true;
 
         case DEBUGMATERIALMODE_AMBIENT_OCCLUSION:
-            color = half4(surfaceData.occlusion.rrr, 1);
+            debugColor = half4(surfaceData.occlusion.rrr, 1);
             return true;
 
         case DEBUGMATERIALMODE_EMISSION:
-            color = half4(surfaceData.emission, 1);
+            debugColor = half4(surfaceData.emission, 1);
             return true;
 
         case DEBUGMATERIALMODE_NORMAL_WORLD_SPACE:
-            color = half4(inputData.normalWS.xyz * 0.5 + 0.5, 1);
+            debugColor = half4(inputData.normalWS.xyz * 0.5 + 0.5, 1);
             return true;
 
         case DEBUGMATERIALMODE_NORMAL_TANGENT_SPACE:
-            color = half4(surfaceData.normalTS.xyz * 0.5 + 0.5, 1);
+            debugColor = half4(surfaceData.normalTS.xyz * 0.5 + 0.5, 1);
             return true;
 
         case DEBUGMATERIALMODE_LOD:
-            color = half4(GetLODDebugColor(), 1);
+            debugColor = half4(GetLODDebugColor(), 1);
             return true;
 
         case DEBUGMATERIALMODE_METALLIC:
-            color = half4(surfaceData.metallic.rrr, 1);
+            debugColor = half4(surfaceData.metallic.rrr, 1);
             return true;
 
         default:
-            color = 0;
+            debugColor = 0;
             return false;
     }
 }
 
-bool CalculateColorForDebug(in InputData inputData, in SurfaceData surfaceData, in DebugData debugData, out half4 color)
+bool CalculateColorForDebug(in InputData inputData, in SurfaceData surfaceData, out half4 debugColor)
 {
-    if(CalculateColorForDebugSceneOverride(color))
+    if(CalculateColorForDebugSceneOverride(debugColor))
     {
         return true;
     }
-    else if(CalculateColorForDebugMaterial(inputData, surfaceData, debugData, color))
+    else if(CalculateColorForDebugMaterial(inputData, surfaceData, debugColor))
     {
         return true;
     }
-    else if(CalculateValidationColorForDebug(inputData, surfaceData, debugData, color))
+    else if(CalculateValidationColorForDebug(inputData, surfaceData, debugColor))
     {
         return true;
     }
-    else if(CalculateValidationColorForMipMaps(inputData, surfaceData, debugData, color))
+    else if(CalculateDebugColorForMipmaps(inputData, surfaceData, debugColor))
     {
         return true;
     }
     else
     {
-        color = 0;
+        debugColor = 0;
         return false;
     }
 }
+
+#else
+
+// When "_DEBUG_SHADER" isn't defined this macro does nothing - there's no debug-data to set-up...
+#define SETUP_DEBUG_TEXTURE_DATA(inputData, uv, texture)
 
 #endif
 

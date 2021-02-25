@@ -40,8 +40,10 @@ struct Varyings
     UNITY_VERTEX_OUTPUT_STEREO
 };
 
-void InitializeInputData(Varyings input, half3 normalTS, out InputData inputData)
+InputData CreateInputData(Varyings input, half3 normalTS)
 {
+    InputData inputData = (InputData)0;
+
     inputData.positionWS = input.positionWS;
 
 #ifdef _NORMALMAP
@@ -80,9 +82,7 @@ void InitializeInputData(Varyings input, half3 normalTS, out InputData inputData
     inputData.vertexSH = input.vertexSH;
     #endif
 
-    #if defined(_DEBUG_SHADER)
-    inputData.uv = input.uv;
-    #endif
+    return inputData;
 }
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -138,8 +138,8 @@ half4 LitPassFragmentSimple(Varyings input) : SV_Target
     SurfaceData surfaceData;
     InitializeSimpleLitSurfaceData(input.uv, surfaceData);
 
-    InputData inputData;
-    InitializeInputData(input, surfaceData.normalTS, inputData);
+    InputData inputData = CreateInputData(input, surfaceData.normalTS);
+    SETUP_DEBUG_TEXTURE_DATA(inputData, input.uv, _BaseMap);
 
     half4 color = UniversalFragmentBlinnPhong(inputData, surfaceData);
     color.rgb = MixFog(color.rgb, inputData.fogCoord);

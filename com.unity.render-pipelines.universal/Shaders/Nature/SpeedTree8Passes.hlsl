@@ -309,8 +309,10 @@ SpeedTreeVertexDepthOutput SpeedTree8VertDepth(SpeedTreeVertexInput input)
     return output;
 }
 
-void InitializeInputData(SpeedTreeFragmentInput input, half3 normalTS, out InputData inputData)
+InputData CreateInputData(SpeedTreeFragmentInput input, half3 normalTS)
 {
+    InputData inputData = (InputData)0;
+
     inputData.positionWS = input.interpolated.positionWS.xyz;
 
 #ifdef EFFECT_BUMP
@@ -349,9 +351,8 @@ void InitializeInputData(SpeedTreeFragmentInput input, half3 normalTS, out Input
     #if defined(_NORMALMAP)
     inputData.tangentMatrixWS = half3x3(input.interpolated.tangentWS.xyz, input.interpolated.bitangentWS.xyz, input.interpolated.normalWS.xyz);
     #endif
-    #if defined(_DEBUG_SHADER)
-    inputData.uv = input.interpolated.uv;
-    #endif
+
+    return inputData;
 }
 
 #ifdef GBUFFER
@@ -439,8 +440,8 @@ half4 SpeedTree8Frag(SpeedTreeFragmentInput input) : SV_Target
         emission = tex2D(_SubsurfaceTex, uv).rgb * _SubsurfaceColor.rgb;
     #endif
 
-    InputData inputData;
-    InitializeInputData(input, normalTs, inputData);
+    InputData inputData = CreateInputData(input, normalTs);
+    SETUP_DEBUG_TEXTURE_DATA(inputData, input.interpolated.uv, _MainTex);
 
 #ifdef GBUFFER
     // in LitForwardPass GlobalIllumination (and temporarily LightingPhysicallyBased) are called inside UniversalFragmentPBR

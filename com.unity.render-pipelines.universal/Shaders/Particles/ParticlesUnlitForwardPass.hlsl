@@ -6,7 +6,7 @@
 
 InputData CreateInputData(VaryingsParticle input, SurfaceData surfaceData)
 {
-    InputData output;
+    InputData output = (InputData)0;
 
     output.positionWS = input.positionWS.xyz;
 
@@ -39,10 +39,6 @@ InputData CreateInputData(VaryingsParticle input, SurfaceData surfaceData)
     output.lightmapUV = half2(0, 0);
     #else
     output.vertexSH = input.vertexSH;
-    #endif
-
-    #if defined(_DEBUG_SHADER)
-    output.uv = input.texcoord;
     #endif
 
     return output;
@@ -143,6 +139,7 @@ half4 fragParticleUnlit(VaryingsParticle input) : SV_Target
 
     SurfaceData surfaceData = CreateSurfaceData(particleParams);
     InputData inputData = CreateInputData(input, surfaceData);
+    SETUP_DEBUG_TEXTURE_DATA(inputData, input.texcoord, _BaseMap);
 
     half4 finalColor = UniversalFragmentUnlit(inputData, surfaceData);
     half fogFactor = input.positionWS.w;

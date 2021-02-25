@@ -28,6 +28,8 @@
 
 TEXTURE2D(_MainTex);
 SAMPLER(sampler_MainTex);
+float4 _MainTex_TexelSize;
+float4 _MainTex_MipInfo;
 
 #ifdef EFFECT_HUE_VARIATION
     half4 _HueVariation;

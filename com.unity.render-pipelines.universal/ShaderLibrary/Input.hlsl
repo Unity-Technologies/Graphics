@@ -41,7 +41,24 @@ struct InputData
     #endif
 
     #if defined(_DEBUG_SHADER)
+    half3 brdfDiffuse;
+    half3 brdfSpecular;
     float2 uv;
+    uint mipCount;
+
+    // texelSize :
+    // x = 1 / width
+    // y = 1 / height
+    // z = width
+    // w = height
+    float4 texelSize;
+
+    // mipInfo :
+    // x = quality settings minStreamingMipLevel
+    // y = original mip count for texture
+    // z = desired on screen mip level
+    // w = loaded mip level
+    float4 mipInfo;
     #endif
 };
 

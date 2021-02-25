@@ -114,6 +114,7 @@ namespace UnityEngine.Rendering.Universal
         HighlightOutsideOfRange,
         ValidateAlbedo,
         ValidateMetallic,
+        ValidateMipmaps,
     }
     #endregion
 }

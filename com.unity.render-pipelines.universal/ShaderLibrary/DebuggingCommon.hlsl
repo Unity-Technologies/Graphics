@@ -44,6 +44,8 @@ half _DebugValidateMetallicMaxValue = 0.9;
 
 float4 _DebugColor;
 float4 _DebugColorInvalidMode;
+float4 _DebugValidateBelowMinThresholdColor;
+float4 _DebugValidateAboveMaxThresholdColor;
 sampler2D _DebugNumberTexture;
 
 half3 GetDebugColor(uint index)
@@ -139,7 +141,10 @@ half4 GetTextNumber(uint numberValue, float3 positionWS)
 #endif
 
     // There are currently 10 characters in the font texture, 0-9.
-    const float invNumChar = 1.0 / 10.0f;
+    const int numChar = 10;
+    const float invNumChar = 1.0 / numChar;
+    numberValue = clamp(0, numChar - 1, numberValue);
+
     // The following are hardcoded scales that make the font size readable.
     ndc.x *= 5.0;
     ndc.y *= 15.0;
@@ -150,11 +155,11 @@ half4 GetTextNumber(uint numberValue, float3 positionWS)
 
 half4 CalculateDebugColorWithNumber(float3 positionWS, half3 color, uint index)
 {
-    // TODO: Opacity could be user-defined...
-    const float opacity = 0.8f;
-    half3 debugColor = GetDebugColor(index);
-    half3 fc = lerp(color, debugColor, opacity);
-    half4 textColor = GetTextNumber(index, positionWS);
+    const float opacity = 0.8f; // TODO: Opacity could be user-defined.
+
+    const half3 debugColor = GetDebugColor(index);
+    const half3 fc = lerp(color, debugColor, opacity);
+    const half4 textColor = GetTextNumber(index, positionWS);
 
     return textColor * half4(fc, 1);
 }
@@ -183,17 +188,67 @@ half4 GetMipCountDebugColor(float3 positionWS, half3 albedo, uint mipCount)
     return CalculateDebugColorWithNumber(positionWS, albedo, mipCount);
 }
 
+// float2 GetMipTexelSize(Texture2D tex, float2 texelSizeWH, float4 mipInfo)
+// {
+//     uint originalTextureMipCount = uint(mipInfo.y);
+//     if (originalTextureMipCount != 0)
+//     {
+//         // mipInfo :
+//         // x = quality setings minStreamingMipLevel
+//         // y = original mip count for texture
+//         // z = desired on screen mip level
+//         // w = loaded mip level
+//
+//         // Mip count has been reduced but the texelSize was not updated to take that into account
+//         uint mipCount = GetMipCount(tex);
+//         if (mipCount == 0)
+//         {
+//             // Can't calculate, use the passed value
+//             mipCount = originalTextureMipCount - uint(mipInfo.w);
+//         }
+//         uint mipReductionLevel = originalTextureMipCount - mipCount;
+//         uint mipReductionFactor = 1 << mipReductionLevel;
+//         if (mipReductionFactor)
+//         {
+//             float oneOverMipReductionFactor = 1.0 / mipReductionFactor;
+//             texelSizeWH *= oneOverMipReductionFactor;
+//         }
+//     }
+//
+//     return texelSizeWH;
+// }
+//
+// #define COMPUTE_MIP_UVS(uv)     (uv * GetMipTexelSize(_MainTex, _MainTex_TexelSize.zw, _MainTex_MipInfo) / 8.0)
+
+bool CalculateValidationMipLevel(uint loadedMipLevel, float2 uv, float4 texelSize, half3 albedo, half alpha, out half4 color)
+{
+    const float opacity = 0.8f;     // TODO: Opacity could be user-defined.
+    const int optimalMipLevel = GetMipMapLevel(uv * texelSize.zw);
+
+    color = half4(albedo, alpha);
+
+    if(loadedMipLevel < optimalMipLevel)
+    {
+        color = lerp(color, _DebugValidateBelowMinThresholdColor, opacity);
+    }
+    else if(loadedMipLevel > optimalMipLevel)
+    {
+        color = lerp(color, _DebugValidateAboveMaxThresholdColor, opacity);
+    }
+    return true;
+}
+
 bool CalculateValidationAlbedo(half3 albedo, out half4 color)
 {
     half luminance = LinearRgbToLuminance(albedo);
 
     if(luminance < _DebugValidateAlbedoMinLuminance)
     {
-        color = half4(1, 0, 0, 1);
+        color = _DebugValidateBelowMinThresholdColor;
     }
     else if(luminance > _DebugValidateAlbedoMaxLuminance)
     {
-        color = half4(0, 0, 1, 1);
+        color = _DebugValidateAboveMaxThresholdColor;
     }
     else
     {
@@ -207,11 +262,11 @@ bool CalculateValidationAlbedo(half3 albedo, out half4 color)
 
         if ((compSat - _DebugValidateAlbedoSaturationTolerance > sat) || ((compHue - _DebugValidateAlbedoHueTolerance > hue) && (compHue - _DebugValidateAlbedoHueTolerance + 1.0 > hue)))
         {
-            color = half4(1, 0, 0, 1);
+            color = _DebugValidateBelowMinThresholdColor;
         }
         else if ((sat > compSat + _DebugValidateAlbedoSaturationTolerance) || ((hue > compHue + _DebugValidateAlbedoHueTolerance) && (hue > compHue + _DebugValidateAlbedoHueTolerance - 1.0)))
         {
-            color = half4(0, 0, 1, 1);
+            color = _DebugValidateAboveMaxThresholdColor;
         }
         else
         {

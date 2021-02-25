@@ -4,9 +4,9 @@
 #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Lighting.hlsl"
 #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/UnityGBuffer.hlsl"
 
-void InitializeInputData(VaryingsParticle input, half3 normalTS, out InputData output)
+InputData CreateInputData(VaryingsParticle input, half3 normalTS)
 {
-    output = (InputData)0;
+    InputData output = (InputData)0;
 
     output.positionWS = input.positionWS.xyz;
 
@@ -40,6 +40,8 @@ void InitializeInputData(VaryingsParticle input, half3 normalTS, out InputData o
     output.bakedGI = SampleSHPixel(input.vertexSH, output.normalWS);
     output.normalizedScreenSpaceUV = GetNormalizedScreenSpaceUV(input.clipPos);
     output.shadowMask = half4(1, 1, 1, 1);
+
+    return output;
 }
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -114,8 +116,8 @@ FragmentOutput ParticlesGBufferFragment(VaryingsParticle input)
     SurfaceData surfaceData;
     InitializeParticleLitSurfaceData(input.texcoord, blendUv, input.color, projectedPosition, surfaceData);
 
-    InputData inputData = (InputData)0;
-    InitializeInputData(input, surfaceData.normalTS, inputData);
+    InputData inputData = CreateInputData(input, surfaceData.normalTS);
+    SETUP_DEBUG_TEXTURE_DATA(inputData, input.texcoord, _BaseMap);
 
     // Stripped down version of UniversalFragmentPBR().
 

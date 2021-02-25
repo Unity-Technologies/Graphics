@@ -34,7 +34,7 @@ struct Varyings
 
 InputData CreateInputData(Varyings input, half3 normalTS)
 {
-    InputData inputData;
+    InputData inputData = (InputData)0;
 
     #if defined(_DEBUG_SHADER)
     inputData.positionWS = input.positionWS;
@@ -66,10 +66,6 @@ InputData CreateInputData(Varyings input, half3 normalTS)
     inputData.lightmapUV = input.lightmapUV;
     #else
     inputData.vertexSH = input.vertexSH;
-    #endif
-
-    #if defined(_DEBUG_SHADER)
-    inputData.uv = input.uv0AndFogCoord.xy;
     #endif
 
     return inputData;
@@ -120,6 +116,8 @@ half4 BakedLitForwardPassFragment(Varyings input) : SV_Target
     half3 normalTS = half3(0, 0, 1);
     #endif
     InputData inputData = CreateInputData(input, normalTS);
+    SETUP_DEBUG_TEXTURE_DATA(inputData, input.uv0AndFogCoord.xy, _BaseMap);
+
     half4 texColor = SAMPLE_TEXTURE2D(_BaseMap, sampler_BaseMap, uv);
     half3 color = texColor.rgb * _BaseColor.rgb;
     half alpha = texColor.a * _BaseColor.a;

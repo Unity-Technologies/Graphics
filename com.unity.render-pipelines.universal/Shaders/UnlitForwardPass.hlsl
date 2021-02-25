@@ -30,8 +30,10 @@ struct Varyings
     UNITY_VERTEX_OUTPUT_STEREO
 };
 
-void InitializeInputData(Varyings input, out InputData inputData)
+InputData CreateInputData(Varyings input)
 {
+    InputData inputData = (InputData)0;
+
     #if defined(_DEBUG_SHADER)
     inputData.positionWS = input.positionWS;
     inputData.normalWS = input.normalWS;
@@ -55,9 +57,7 @@ void InitializeInputData(Varyings input, out InputData inputData)
     inputData.vertexSH = half3(0, 0, 0);
     #endif
 
-    #if defined(_DEBUG_SHADER)
-    inputData.uv = input.uv;
-    #endif
+    return inputData;
 }
 
 Varyings UniversalVertexUnlit(Attributes input)
@@ -102,8 +102,8 @@ half4 UniversalFragmentUnlit(Varyings input) : SV_Target
 
     AlphaDiscard(alpha, _Cutoff);
 
-    InputData inputData = (InputData)0;
-    InitializeInputData(input, inputData);
+    InputData inputData = CreateInputData(input);
+    SETUP_DEBUG_TEXTURE_DATA(inputData, input.uv, _BaseMap);
 
     half4 finalColor = UniversalFragmentUnlit(inputData, color, alpha);
 

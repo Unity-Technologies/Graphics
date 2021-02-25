@@ -4,9 +4,9 @@
 #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Lighting.hlsl"
 #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Particles.hlsl"
 
-void InitializeInputData(VaryingsParticle input, half3 normalTS, out InputData output)
+InputData CreateInputData(VaryingsParticle input, half3 normalTS)
 {
-    output = (InputData)0;
+    InputData output = (InputData)0;
 
     output.positionWS = input.positionWS.xyz;
 
@@ -42,6 +42,8 @@ void InitializeInputData(VaryingsParticle input, half3 normalTS, out InputData o
     output.normalTS = normalTS;
     output.vertexSH = input.vertexSH;
     output.shadowMask = half4(1, 1, 1, 1);
+
+    return output;
 }
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -124,8 +126,7 @@ half4 ParticlesLitFragment(VaryingsParticle input) : SV_Target
     diffuse = Distortion(half4(diffuse, alpha), normalTS, _DistortionStrengthScaled, _DistortionBlend, particleParams.projectedPosition);
 #endif
 
-    InputData inputData;
-    InitializeInputData(input, normalTS, inputData);
+    InputData inputData = CreateInputData(input, normalTS);
 
     half4 color = UniversalFragmentBlinnPhong(inputData, diffuse, specularGloss, specularGloss.a, emission, alpha, normalTS);
 
