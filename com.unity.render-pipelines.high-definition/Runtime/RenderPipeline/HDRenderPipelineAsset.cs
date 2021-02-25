@@ -59,6 +59,9 @@ namespace UnityEngine.Rendering.HighDefinition
             isInOnValidateCall = false;
         }
 
+        private CoreRenderPipelineAsset m_CorePipelineAsset = new CoreRenderPipelineAsset();
+        internal CoreRenderPipelineAsset corePipelineAsset => m_CorePipelineAsset;
+
         [SerializeField]
         RenderPipelineResources m_RenderPipelineResources;
 

@@ -154,11 +154,6 @@ namespace UnityEngine.Rendering.HighDefinition
 
         Material m_ErrorMaterial;
 
-        Material m_Blit;
-        Material m_BlitTexArray;
-        Material m_BlitTexArraySingleSlice;
-        Material m_BlitColorAndDepth;
-
         Lazy<RTHandle> m_CustomPassColorBuffer;
         Lazy<RTHandle> m_CustomPassDepthBuffer;
 
@@ -250,9 +245,6 @@ namespace UnityEngine.Rendering.HighDefinition
 
         private CameraCache<(Transform viewer, HDProbe probe, int face)> m_ProbeCameraCache = new
             CameraCache<(Transform viewer, HDProbe probe, int face)>();
-
-        internal Material GetBlitMaterial(bool useTexArray, bool singleSlice) { return useTexArray ? (singleSlice ? m_BlitTexArraySingleSlice : m_BlitTexArray) : m_Blit; }
-        internal Material GetBlitColorAndDepthMaterial() { return m_BlitColorAndDepth; }
 
         ComputeBuffer m_DepthPyramidMipLevelOffsetsBuffer = null;
 
@@ -402,18 +394,9 @@ namespace UnityEngine.Rendering.HighDefinition
 
             InitializeDebug();
 
-            m_Blit = CoreUtils.CreateEngineMaterial(defaultResources.shaders.blitPS);
-            m_BlitColorAndDepth = CoreUtils.CreateEngineMaterial(defaultResources.shaders.blitColorAndDepthPS);
-            m_ErrorMaterial = CoreUtils.CreateEngineMaterial("Hidden/InternalErrorShader");
+            m_Asset.corePipelineAsset.InitFeatureBlitter(defaultResources.shaders.blitPS, defaultResources.shaders.blitColorAndDepthPS);
 
-            // With texture array enabled, we still need the normal blit version for other systems like atlas
-            if (TextureXR.useTexArray)
-            {
-                m_Blit.EnableKeyword("DISABLE_TEXTURE2D_X_ARRAY");
-                m_BlitTexArray = CoreUtils.CreateEngineMaterial(defaultResources.shaders.blitPS);
-                m_BlitTexArraySingleSlice = CoreUtils.CreateEngineMaterial(defaultResources.shaders.blitPS);
-                m_BlitTexArraySingleSlice.EnableKeyword("BLIT_SINGLE_SLICE");
-            }
+            m_ErrorMaterial = CoreUtils.CreateEngineMaterial("Hidden/InternalErrorShader");
 
             m_MaterialList.ForEach(material => material.Build(asset, defaultResources));
 
@@ -793,9 +776,8 @@ namespace UnityEngine.Rendering.HighDefinition
 
             CleanupDebug();
 
-            CoreUtils.Destroy(m_Blit);
-            CoreUtils.Destroy(m_BlitTexArray);
-            CoreUtils.Destroy(m_BlitTexArraySingleSlice);
+            m_Asset.corePipelineAsset.Dispose();
+
             CoreUtils.Destroy(m_CopyDepth);
             CoreUtils.Destroy(m_ErrorMaterial);
             CoreUtils.Destroy(m_UpsampleTransparency);

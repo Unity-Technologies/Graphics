@@ -1,13 +1,12 @@
 using System.Collections.Generic;
 using UnityEngine.Experimental.Rendering;
-using System.Linq;
 using System;
 
 #if UNITY_EDITOR
 using UnityEditor;
 #endif
 
-namespace UnityEngine.Rendering.HighDefinition
+namespace UnityEngine.Rendering
 {
     class AtlasAllocator
     {
@@ -131,7 +130,7 @@ namespace UnityEngine.Rendering.HighDefinition
         }
     }
 
-    class Texture2DAtlas
+    public class Texture2DAtlas
     {
         protected RTHandle m_AtlasTexture = null;
         internal bool m_IsAtlasTextureOwner = false;
@@ -208,7 +207,7 @@ namespace UnityEngine.Rendering.HighDefinition
             for (int mipLevel = 0; mipLevel < mipCount; mipLevel++)
             {
                 cmd.SetRenderTarget(m_AtlasTexture, mipLevel);
-                HDUtils.BlitQuad(cmd, Texture2D.blackTexture, fullScaleOffset, fullScaleOffset, mipLevel, true);
+                CoreRenderPipelineAsset.blitter.BlitQuad(cmd, Texture2D.blackTexture, fullScaleOffset, fullScaleOffset, mipLevel, true);
             }
 
             m_IsGPUTextureUpToDate.Clear(); // mark all GPU textures as invalid.
@@ -241,7 +240,7 @@ namespace UnityEngine.Rendering.HighDefinition
             for (int mipLevel = 0; mipLevel < mipCount; mipLevel++)
             {
                 cmd.SetRenderTarget(m_AtlasTexture, mipLevel);
-                HDUtils.BlitQuad(cmd, texture, sourceScaleOffset, scaleOffset, mipLevel, true);
+                CoreRenderPipelineAsset.blitter.BlitQuad(cmd, texture, sourceScaleOffset, scaleOffset, mipLevel, true);
             }
         }
 
@@ -302,7 +301,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
         protected int GetTextureHash(Texture textureA, Texture textureB)
         {
-            int hash = HDUtils.GetTextureHash(textureA) + 23 * HDUtils.GetTextureHash(textureB);
+            int hash = CoreUtils.GetTextureHash(textureA) + 23 * CoreUtils.GetTextureHash(textureB);
             return hash;
         }
 
@@ -329,7 +328,7 @@ namespace UnityEngine.Rendering.HighDefinition
         {
             RenderTexture   rt = texture as RenderTexture;
             int             key = GetTextureID(texture);
-            int             textureHash = HDUtils.GetTextureHash(texture);
+            int             textureHash = CoreUtils.GetTextureHash(texture);
 
             // Update the render texture if needed
             if (rt != null)

@@ -1256,5 +1256,30 @@ namespace UnityEngine.Rendering
                 renderContext.DrawRenderers(rendererList.cullingResult, ref rendererList.drawSettings, ref rendererList.filteringSettings, ref renderStateBlock);
             }
         }
+
+        /// <summary>
+        /// Compute a hash of texture properties.
+        /// </summary>
+        internal static int GetTextureHash(Texture texture)
+        {
+            int hash = texture.GetHashCode();
+
+            unchecked
+            {
+#if UNITY_EDITOR
+                hash = 23 * hash + texture.imageContentsHash.GetHashCode();
+#endif
+                hash = 23 * hash + texture.GetInstanceID().GetHashCode();
+                hash = 23 * hash + texture.graphicsFormat.GetHashCode();
+                hash = 23 * hash + texture.wrapMode.GetHashCode();
+                hash = 23 * hash + texture.width.GetHashCode();
+                hash = 23 * hash + texture.height.GetHashCode();
+                hash = 23 * hash + texture.filterMode.GetHashCode();
+                hash = 23 * hash + texture.anisoLevel.GetHashCode();
+                hash = 23 * hash + texture.mipmapCount.GetHashCode();
+            }
+
+            return hash;
+        }
     }
 }
