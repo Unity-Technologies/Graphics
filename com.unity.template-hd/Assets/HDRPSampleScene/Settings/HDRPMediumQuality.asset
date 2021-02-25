@@ -20,7 +20,7 @@ MonoBehaviour:
   m_RenderingPathDefaultCameraFrameSettings:
     bitDatas:
       data1: 140666621263709
-      data2: 4539628425463136280
+      data2: 4539628427610619928
     lodBias: 1
     lodBiasMode: 0
     lodBiasQualityLevel: 0
@@ -64,7 +64,7 @@ MonoBehaviour:
     supportSSR: 0
     supportSSRTransparent: 0
     supportSSAO: 1
-    supportSSGI: 0
+    supportSSGI: 1
     supportSubsurfaceScattering: 1
     sssSampleBudget:
       m_Values: 140000002800000050000000

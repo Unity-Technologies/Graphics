@@ -10,7 +10,7 @@
 all_project_ci_trunk:
     name: _ABV for SRP repository (all PR jobs) - trunk
     dependencies:
-      -  path: .yamato/all-universal.yml#PR_Universal_trunk
+      -  path: .yamato/all-universal_split.yml#PR_Universal_Split_trunk
          rerun: on-new-revision
       -  path: .yamato/all-shadergraph.yml#PR_ShaderGraph_trunk
          rerun: on-new-revision
@@ -27,7 +27,7 @@ all_project_ci_trunk:
 all_project_ci_nightly_trunk:
     name: _Nightly ABV against trunk
     dependencies:
-      -  path: .yamato/all-universal.yml#Nightly_Universal_trunk
+      -  path: .yamato/all-universal_split.yml#Nightly_Universal_Split_trunk
          rerun: on-new-revision
       -  path: .yamato/all-shadergraph.yml#Nightly_ShaderGraph_trunk
          rerun: on-new-revision
@@ -40,8 +40,6 @@ all_project_ci_nightly_trunk:
       -  path: .yamato/all-urp_performance_boatattack.yml#PR_URP_Performance_BoatAttack_trunk
          rerun: on-new-revision
       -  path: .yamato/all-urp_performance_lostcrypt.yml#PR_URP_Performance_LostCrypt_trunk
-         rerun: on-new-revision
-      -  path: .yamato/all-urpupdate.yml#PR_URPUpdate_trunk
          rerun: on-new-revision
       -  path: .yamato/all-hdrp_performancetests.yml#PR_HDRP_PerformanceTests_trunk
          rerun: on-new-revision
@@ -57,9 +55,25 @@ all_project_ci_weekly_trunk:
 trunk_verification_trunk:
     name: Trunk verification - trunk
     dependencies:
-      -  path: .yamato/universal-win-dx11.yml#Universal_Win_DX11_playmode_cache_mono_Linear_trunk
+      -  path: .yamato/urp_2d-win-dx11.yml#URP_2D_Win_DX11_playmode_cache_mono_Linear_trunk
          rerun: on-new-revision
-      -  path: .yamato/universal-win-dx11.yml#Universal_Win_DX11_editmode_mono_Linear_trunk
+      -  path: .yamato/urp_2d-win-dx11.yml#URP_2D_Win_DX11_editmode_mono_Linear_trunk
+         rerun: on-new-revision
+      -  path: .yamato/urp_foundation-win-dx11.yml#URP_Foundation_Win_DX11_playmode_cache_mono_Linear_trunk
+         rerun: on-new-revision
+      -  path: .yamato/urp_foundation-win-dx11.yml#URP_Foundation_Win_DX11_editmode_mono_Linear_trunk
+         rerun: on-new-revision
+      -  path: .yamato/urp_lighting-win-dx11.yml#URP_Lighting_Win_DX11_playmode_cache_mono_Linear_trunk
+         rerun: on-new-revision
+      -  path: .yamato/urp_lighting-win-dx11.yml#URP_Lighting_Win_DX11_editmode_mono_Linear_trunk
+         rerun: on-new-revision
+      -  path: .yamato/urp_postpro-win-dx11.yml#URP_PostPro_Win_DX11_playmode_cache_mono_Linear_trunk
+         rerun: on-new-revision
+      -  path: .yamato/urp_postpro-win-dx11.yml#URP_PostPro_Win_DX11_editmode_mono_Linear_trunk
+         rerun: on-new-revision
+      -  path: .yamato/urp_terrain-win-dx11.yml#URP_Terrain_Win_DX11_playmode_cache_mono_Linear_trunk
+         rerun: on-new-revision
+      -  path: .yamato/urp_terrain-win-dx11.yml#URP_Terrain_Win_DX11_editmode_mono_Linear_trunk
          rerun: on-new-revision
       -  path: .yamato/shadergraph-win-dx11.yml#ShaderGraph_Win_DX11_playmode_cache_mono_Linear_trunk
          rerun: on-new-revision
@@ -78,7 +92,7 @@ trunk_verification_trunk:
 all_project_ci_CUSTOM-REVISION:
     name: _ABV for SRP repository (all PR jobs) - CUSTOM-REVISION
     dependencies:
-      -  path: .yamato/all-universal.yml#PR_Universal_CUSTOM-REVISION
+      -  path: .yamato/all-universal_split.yml#PR_Universal_Split_CUSTOM-REVISION
          rerun: always
       -  path: .yamato/all-shadergraph.yml#PR_ShaderGraph_CUSTOM-REVISION
          rerun: always
@@ -95,7 +109,7 @@ all_project_ci_CUSTOM-REVISION:
 all_project_ci_nightly_CUSTOM-REVISION:
     name: _Nightly ABV against CUSTOM-REVISION
     dependencies:
-      -  path: .yamato/all-universal.yml#Nightly_Universal_CUSTOM-REVISION
+      -  path: .yamato/all-universal_split.yml#Nightly_Universal_Split_CUSTOM-REVISION
          rerun: always
       -  path: .yamato/all-shadergraph.yml#Nightly_ShaderGraph_CUSTOM-REVISION
          rerun: always
@@ -108,8 +122,6 @@ all_project_ci_nightly_CUSTOM-REVISION:
       -  path: .yamato/all-urp_performance_boatattack.yml#PR_URP_Performance_BoatAttack_CUSTOM-REVISION
          rerun: always
       -  path: .yamato/all-urp_performance_lostcrypt.yml#PR_URP_Performance_LostCrypt_CUSTOM-REVISION
-         rerun: always
-      -  path: .yamato/all-urpupdate.yml#PR_URPUpdate_CUSTOM-REVISION
          rerun: always
       -  path: .yamato/all-hdrp_performancetests.yml#PR_HDRP_PerformanceTests_CUSTOM-REVISION
          rerun: always
@@ -125,9 +137,25 @@ all_project_ci_weekly_CUSTOM-REVISION:
 trunk_verification_CUSTOM-REVISION:
     name: Trunk verification - CUSTOM-REVISION
     dependencies:
-      -  path: .yamato/universal-win-dx11.yml#Universal_Win_DX11_playmode_cache_mono_Linear_CUSTOM-REVISION
+      -  path: .yamato/urp_2d-win-dx11.yml#URP_2D_Win_DX11_playmode_cache_mono_Linear_CUSTOM-REVISION
          rerun: always
-      -  path: .yamato/universal-win-dx11.yml#Universal_Win_DX11_editmode_mono_Linear_CUSTOM-REVISION
+      -  path: .yamato/urp_2d-win-dx11.yml#URP_2D_Win_DX11_editmode_mono_Linear_CUSTOM-REVISION
+         rerun: always
+      -  path: .yamato/urp_foundation-win-dx11.yml#URP_Foundation_Win_DX11_playmode_cache_mono_Linear_CUSTOM-REVISION
+         rerun: always
+      -  path: .yamato/urp_foundation-win-dx11.yml#URP_Foundation_Win_DX11_editmode_mono_Linear_CUSTOM-REVISION
+         rerun: always
+      -  path: .yamato/urp_lighting-win-dx11.yml#URP_Lighting_Win_DX11_playmode_cache_mono_Linear_CUSTOM-REVISION
+         rerun: always
+      -  path: .yamato/urp_lighting-win-dx11.yml#URP_Lighting_Win_DX11_editmode_mono_Linear_CUSTOM-REVISION
+         rerun: always
+      -  path: .yamato/urp_postpro-win-dx11.yml#URP_PostPro_Win_DX11_playmode_cache_mono_Linear_CUSTOM-REVISION
+         rerun: always
+      -  path: .yamato/urp_postpro-win-dx11.yml#URP_PostPro_Win_DX11_editmode_mono_Linear_CUSTOM-REVISION
+         rerun: always
+      -  path: .yamato/urp_terrain-win-dx11.yml#URP_Terrain_Win_DX11_playmode_cache_mono_Linear_CUSTOM-REVISION
+         rerun: always
+      -  path: .yamato/urp_terrain-win-dx11.yml#URP_Terrain_Win_DX11_editmode_mono_Linear_CUSTOM-REVISION
          rerun: always
       -  path: .yamato/shadergraph-win-dx11.yml#ShaderGraph_Win_DX11_playmode_cache_mono_Linear_CUSTOM-REVISION
          rerun: always
