@@ -223,7 +223,7 @@ namespace UnityEditor.Rendering
         sealed class Styles
         {
             static public readonly GUIContent intensity = new GUIContent("Intensity", "Intensity of this element.");
-            static public readonly GUIContent position = new GUIContent("Relative Position Scale", "Relative position compared to the previous element. Can be positive or negative. Negative values describe the flares behind the light following the diagonal.");
+            static public readonly GUIContent position = new GUIContent("Starting Position", "Starting position.");
             static public readonly GUIContent flareTexture = new GUIContent("Flare Texture", "Texture used to for this Lens Flare Element.");
             static public readonly GUIContent tint = new GUIContent("Tint", "Tint of the texture can be modulated by the light it is attached to if Modulate By Light Color is enabled..");
             static public readonly GUIContent blendMode = new GUIContent("Blend Mode", "Blend mode used.");

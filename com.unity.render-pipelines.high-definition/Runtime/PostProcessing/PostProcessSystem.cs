@@ -2475,30 +2475,24 @@ namespace UnityEngine.Rendering.HighDefinition
                         float timePosPos = totalLengthPos > 0.0f ? curLengthPos / totalLengthPos : 0.0f;
                         float timePosNeg = totalLengthNeg > 0.0f ? curLengthNeg / totalLengthNeg : 0.0f;
 
-                        float curvePos = 0.0f;
-                        float curveScale = 1.0f;
                         float coefForGradient;
                         if (element.position >= 0.0f)
                         {
-                            curvePos = data.positionCurve.length >= 1 ? data.positionCurve.Evaluate(timePosPos) : 1.0f;
-                            curveScale = data.scaleCurve.length >= 1 ? data.scaleCurve.Evaluate(timePosPos) : 1.0f;
                             coefForGradient = totalLengthPos > 0.0f ? 0.5f + 0.5f * curLengthPos / totalLengthPos : 0.5f;
                         }
                         else
                         {
-                            curvePos = data.positionCurve.length >= 1 ? data.positionCurve.Evaluate(-timePosNeg) : 1.0f;
-                            curveScale = data.scaleCurve.length >= 1 ? data.scaleCurve.Evaluate(-timePosNeg) : 1.0f;
                             coefForGradient = totalLengthNeg > 0.0f ? (0.5f - 0.5f * timePosNeg) : 0.5f;
                         }
 
                         Vector4 gradientModulation = data.colorGradient.Evaluate(coefForGradient);
 
                         Texture texture = element.lensFlareTexture;
-                        float position = 2.0f * Mathf.Abs(element.position) * curvePos;
+                        float position = 2.0f * element.position;
 
                         float usedAspectRatio = element.preserveAspectRatio ? (((float)texture.width) / ((float)texture.height)) : element.aspectRatio;
 
-                        Vector2 size = new Vector2(scaleByDistance * element.size * curveScale * usedAspectRatio, scaleByDistance * element.size * curveScale);
+                        Vector2 size = new Vector2(scaleByDistance * element.size * usedAspectRatio, scaleByDistance * element.size);
                         float rotation = element.rotation;
                         Vector4 tint = Vector4.Scale(element.tint, gradientModulation);
 

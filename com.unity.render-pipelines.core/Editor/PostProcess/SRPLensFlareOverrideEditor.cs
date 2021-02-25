@@ -88,9 +88,9 @@ namespace UnityEditor.Rendering
                 EditorGUILayout.PropertyField(m_SamplesCount, Styles.sampleCount);
                 --EditorGUI.indentLevel;
                 EditorGUILayout.PropertyField(m_OcclusionOffset, Styles.occlusionOffset);
-                EditorGUILayout.PropertyField(m_AllowOffScreen, Styles.allowOffScreen);
             }
             --EditorGUI.indentLevel;
+            EditorGUILayout.PropertyField(m_AllowOffScreen, Styles.allowOffScreen);
             if (EditorGUI.EndChangeCheck())
             {
                 m_LensFlareData.serializedObject.ApplyModifiedProperties();

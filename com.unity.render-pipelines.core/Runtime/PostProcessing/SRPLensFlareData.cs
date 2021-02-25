@@ -55,14 +55,15 @@ namespace UnityEngine
         }
 
         /// <summary>
+        /// Position
+        /// </summary>
+        [Range(-1.0f, 1.0f)]
+        public float position;
+        /// <summary>
         /// Intensity of this element
         /// </summary>
         [Range(0.0f, 1.0f)]
         public float localIntensity;
-        /// <summary>
-        /// Relative position compare to the previous one
-        /// </summary>
-        public float position;
         /// <summary>
         /// Texture used to for this Lens Flare Element
         /// </summary>
@@ -125,8 +126,6 @@ namespace UnityEngine
         public SRPLensFlareData()
         {
             globalIntensity = 1.0f;
-            scaleCurve = new AnimationCurve(new Keyframe(-1.0f, 1.0f), new Keyframe(0.0f, 0.5f), new Keyframe(1.0f, 1.0f));
-            positionCurve = new AnimationCurve(new Keyframe(-1.0f, -1.0f, 1.0f, 1.0f), new Keyframe(0.0f, 0.0f, 1.0f, 1.0f), new Keyframe(1.0f, 1.0f, 1.0f, 1.0f));
             colorGradient = new Gradient();
             colorGradient.SetKeys(new GradientColorKey[] { new GradientColorKey(Color.white, 0.0f), new GradientColorKey(Color.white, 0.5f), new GradientColorKey(Color.white, 1.0f) },
                                   new GradientAlphaKey[] { new GradientAlphaKey(1.0f, 0.0f), new GradientAlphaKey(0.5f, 0.1f), new GradientAlphaKey(1.0f, 1.0f) });
@@ -138,14 +137,6 @@ namespace UnityEngine
         /// </summary>
         [Min(0)]
         public float globalIntensity;
-        /// <summary>
-        /// ScaleCurve allow us to define the global shape the lens flares
-        /// </summary>
-        public AnimationCurve scaleCurve;
-        /// <summary>
-        /// PositionCurve allow us to place each element of the flare
-        /// </summary>
-        public AnimationCurve positionCurve;
         /// <summary>
         /// ColorGradient allow us to setup the color of each elements
         /// </summary>

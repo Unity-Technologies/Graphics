@@ -12,8 +12,6 @@ namespace UnityEditor.Rendering
     public class SRPLensFlareEditor : Editor
     {
         SerializedProperty m_Intensity;
-        SerializedProperty m_ScaleCurve;
-        SerializedProperty m_PositionCurve;
         SerializedProperty m_ColorGradient;
         SerializedProperty m_Elements;
 
@@ -24,8 +22,6 @@ namespace UnityEditor.Rendering
         {
             PropertyFetcher<SRPLensFlareData> entryPoint = new PropertyFetcher<SRPLensFlareData>(serializedObject);
             m_Intensity = entryPoint.Find(x => x.globalIntensity);
-            m_ScaleCurve = entryPoint.Find(x => x.scaleCurve);
-            m_PositionCurve = entryPoint.Find(x => x.positionCurve);
             m_ColorGradient = entryPoint.Find(x => x.colorGradient);
             m_Elements = entryPoint.Find(x => x.elements);
         }
@@ -42,13 +38,10 @@ namespace UnityEditor.Rendering
                 m_Intensity.serializedObject.ApplyModifiedProperties();
             }
             EditorGUI.BeginChangeCheck();
-            EditorGUILayout.PropertyField(m_ScaleCurve, Styles.scaleCurve);
-            EditorGUILayout.PropertyField(m_PositionCurve, Styles.positionCurve);
             EditorGUILayout.PropertyField(m_ColorGradient, Styles.gradientCurve);
             if (EditorGUI.EndChangeCheck())
             {
-                m_ScaleCurve.serializedObject.ApplyModifiedProperties();
-                m_PositionCurve.serializedObject.ApplyModifiedProperties();
+                m_ColorGradient.serializedObject.ApplyModifiedProperties();
             }
             EditorGUI.BeginChangeCheck();
             SRPLensFlareData lensFlareDat = m_Elements.serializedObject.targetObject as SRPLensFlareData;
@@ -72,8 +65,6 @@ namespace UnityEditor.Rendering
         sealed class Styles
         {
             static public readonly GUIContent intensity = new GUIContent("Intensity", "Modulate the whole lens flare.");
-            static public readonly GUIContent scaleCurve = new GUIContent("Scale Curve", "Curve between 0 and 1 which describes the scale of each element, if the relative position is negative HDRP will read the negative part of the curve, the positive part otherwise.");
-            static public readonly GUIContent positionCurve = new GUIContent("Position Curve", "Curve between -1 and 1 which describes the scale of each element, if the relative position is negative HDRP will read the negative part of the curve, the positive part otherwise.");
             static public readonly GUIContent gradientCurve = new GUIContent("Gradient Curve", "REPLACE ME.");
             static public readonly GUIContent elements = new GUIContent("Elements", "List of elements in the Lens Flare.");
         }
