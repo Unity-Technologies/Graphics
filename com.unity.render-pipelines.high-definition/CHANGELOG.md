@@ -27,6 +27,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Added a history rejection criterion based on if the pixel was moving in world space (case 1302392).
 - Added new API in CachedShadowManager
 - Added an additional check in the "check scene for ray tracing" (case 1314963).
+- API to allow OnDemand shadows to not render upon placement in the Cached Shadow Atlas.
+- Exposed update upon light movement for directional light shadows in UI.
 
 ### Fixed
 - Fixed probe volumes debug views.
@@ -107,6 +109,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed issue with compositor custom pass hooks added/removed repeatedly (case 1315971).
 - Fixed: SSR with transparent (case 1311088)
 - Fixed decals in material debug display.
+- Fixed update upon light movement for directional light rotation.
 
 ### Changed
 - Removed the material pass probe volumes evaluation mode.
