@@ -12,6 +12,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ### Fixed
 - Fix for issue thrown upon unloading a scene from an AssetBundle (case 1262826)
+- Fix for MSVO when used with dynamic resolution reallocating temporary render targets whenever the dynamic resolution scale was changed which could cause a higher peak VRAM usage and fragmentation (Case 1285605). Temporary targets will now use dynamic scaling as well to solve this. Please note there is a bug in Unity that breaks this fix (case 1285577) To make use of dynamic resolution and MSVO please use Unity 2019.4.19f1, 2020.2.2f1, 2021.1.0a9 or later.
 
 ## [3.0.3] - 2021-02-19
 
