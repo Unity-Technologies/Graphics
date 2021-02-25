@@ -59,6 +59,7 @@ namespace UnityEditor.Rendering
 
             SerializedProperty intensityProp = property.FindPropertyRelative("localIntensity");
             SerializedProperty positionProp = property.FindPropertyRelative("position");
+            SerializedProperty positionOffsetProp = property.FindPropertyRelative("positionOffset");
             SerializedProperty lensFlareProp = property.FindPropertyRelative("lensFlareTexture");
             SerializedProperty tintProp = property.FindPropertyRelative("tint");
             SerializedProperty blendModeProp = property.FindPropertyRelative("blendMode");
@@ -90,6 +91,7 @@ namespace UnityEditor.Rendering
             bool tmpBool;
             float tmp;
             int iTmp;
+            Vector2 tmpVec2;
             if (EditorGUI.BeginFoldoutHeaderGroup(new Rect(position.x + 0.25f * m_Indent, position.y, position.width - 0.25f * m_Indent, GUIStyle.none.lineHeight), isFoldOpened.boolValue, EditorGUIUtility.TrTextContent("Lens Flare Element")))
             {
                 rect = GetNextRect();
@@ -134,6 +136,9 @@ namespace UnityEditor.Rendering
                     rect = GetNextRect();
                     if ((tmp = EditorGUI.FloatField(rect, Styles.position, positionProp.floatValue)) != positionProp.floatValue)
                         positionProp.floatValue = tmp;
+                    rect = GetNextRect();
+                    if ((tmpVec2 = EditorGUI.Vector2Field(rect, Styles.positionOffset, positionOffsetProp.vector2Value)) != positionOffsetProp.vector2Value)
+                        positionOffsetProp.vector2Value = tmpVec2;
                 }
                 --EditorGUI.indentLevel;
                 rect = GetNextRect();
@@ -208,9 +213,9 @@ namespace UnityEditor.Rendering
             if (isFoldOpened.boolValue)
             {
                 if (preserveAspectRatio.boolValue)
-                    coef = 16.0f;
-                else
                     coef = 17.0f;
+                else
+                    coef = 18.0f;
             }
             else
             {
@@ -224,6 +229,7 @@ namespace UnityEditor.Rendering
         {
             static public readonly GUIContent intensity = new GUIContent("Intensity", "Intensity of this element.");
             static public readonly GUIContent position = new GUIContent("Starting Position", "Starting position.");
+            static public readonly GUIContent positionOffset = new GUIContent("Position Offset", "Position Offset.");
             static public readonly GUIContent flareTexture = new GUIContent("Flare Texture", "Texture used to for this Lens Flare Element.");
             static public readonly GUIContent tint = new GUIContent("Tint", "Tint of the texture can be modulated by the light it is attached to if Modulate By Light Color is enabled..");
             static public readonly GUIContent blendMode = new GUIContent("Blend Mode", "Blend mode used.");

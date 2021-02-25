@@ -2287,23 +2287,6 @@ namespace UnityEngine.Rendering.HighDefinition
                         continue;
                 }
 
-                Vector2 screenPos = new Vector2(2.0f * viewportPos.x - 1.0f, 1.0f - 2.0f * viewportPos.y);
-
-                float screenRatio = (float)hdCam.actualWidth / (float)hdCam.actualHeight;
-
-                Vector2 occlusionRadiusEdgeScreenPos0 = (Vector2)cam.WorldToViewportPoint(positionWS);
-                Vector2 occlusionRadiusEdgeScreenPos1 = (Vector2)cam.WorldToViewportPoint(positionWS + cam.transform.up * comp.occlusionRadius);
-                float occlusionRadius = (occlusionRadiusEdgeScreenPos1 - occlusionRadiusEdgeScreenPos0).magnitude;
-
-                Vector3 dir = (cam.transform.position - comp.transform.position).normalized;
-                Vector3 screenPosZ = cam.WorldToViewportPoint(positionWS + dir * comp.occlusionOffset);
-                Vector4 flareData1 = new Vector4(screenPos.x, screenPos.y, screenPosZ.z, occlusionRadius);
-                cmd.SetGlobalVector(HDShaderIDs._FlareData1, flareData1);
-
-                Vector2 radPos = new Vector2(Mathf.Abs(screenPos.x), Mathf.Abs(screenPos.y));
-                float radius = Mathf.Max(radPos.x, radPos.y); // l1 Norm
-                float radialsScaleRadius = comp.radialScreenAttenuationCurve.length > 0 ? comp.radialScreenAttenuationCurve.Evaluate(radius) : 1.0f;
-
                 float totalLengthPos = 0.0f;
                 float totalLengthNeg = 0.0f;
                 foreach (SRPLensFlareDataElement element in data.elements)
@@ -2448,6 +2431,25 @@ namespace UnityEngine.Rendering.HighDefinition
                         element.localIntensity <= 0.0f ||
                         element.count <= 0)
                         continue;
+
+                    Vector2 screenPos = new Vector2(2.0f * viewportPos.x - 1.0f, 1.0f - 2.0f * viewportPos.y);
+
+                    screenPos += new Vector2(element.positionOffset.x, -element.positionOffset.y);
+
+                    float screenRatio = (float)hdCam.actualWidth / (float)hdCam.actualHeight;
+
+                    Vector2 occlusionRadiusEdgeScreenPos0 = (Vector2)cam.WorldToViewportPoint(positionWS);
+                    Vector2 occlusionRadiusEdgeScreenPos1 = (Vector2)cam.WorldToViewportPoint(positionWS + cam.transform.up * comp.occlusionRadius);
+                    float occlusionRadius = (occlusionRadiusEdgeScreenPos1 - occlusionRadiusEdgeScreenPos0).magnitude;
+
+                    Vector3 dir = (cam.transform.position - comp.transform.position).normalized;
+                    Vector3 screenPosZ = cam.WorldToViewportPoint(positionWS + dir * comp.occlusionOffset);
+                    Vector4 flareData1 = new Vector4(screenPos.x, screenPos.y, screenPosZ.z, occlusionRadius);
+                    cmd.SetGlobalVector(HDShaderIDs._FlareData1, flareData1);
+
+                    Vector2 radPos = new Vector2(Mathf.Abs(screenPos.x), Mathf.Abs(screenPos.y));
+                    float radius = Mathf.Max(radPos.x, radPos.y); // l1 Norm
+                    float radialsScaleRadius = comp.radialScreenAttenuationCurve.length > 0 ? comp.radialScreenAttenuationCurve.Evaluate(radius) : 1.0f;
 
                     cmd.SetGlobalTexture(HDShaderIDs._FlareOcclusionBufferTex, (Texture)parameters.occlusionTexture);
                     cmd.SetGlobalTexture(HDShaderIDs._FlareTex, element.lensFlareTexture);

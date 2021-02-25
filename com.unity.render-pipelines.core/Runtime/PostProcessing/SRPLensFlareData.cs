@@ -43,6 +43,7 @@ namespace UnityEngine
         {
             localIntensity = 1.0f;
             position = 1.0f;
+            positionOffset = new Vector2(0.0f, 0.0f);
             lensFlareTexture = null;
             size = 1.0f;
             aspectRatio = 1.0f;
@@ -59,6 +60,10 @@ namespace UnityEngine
         /// </summary>
         [Range(-1.0f, 1.0f)]
         public float position;
+        /// <summary>
+        /// Position offset
+        /// </summary>
+        public Vector2 positionOffset;
         /// <summary>
         /// Intensity of this element
         /// </summary>
