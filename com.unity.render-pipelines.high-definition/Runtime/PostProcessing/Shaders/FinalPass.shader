@@ -4,7 +4,7 @@ Shader "Hidden/HDRP/FinalPass"
 
         #pragma target 4.5
         #pragma editor_sync_compilation
-        #pragma only_renderers d3d11 playstation xboxone vulkan metal switch
+        #pragma only_renderers d3d11 playstation xboxone xboxseries vulkan metal switch
 
         #pragma multi_compile_local_fragment _ FXAA
         #pragma multi_compile_local_fragment _ GRAIN
@@ -35,6 +35,7 @@ Shader "Hidden/HDRP/FinalPass"
         float4 _GrainTextureParams;     // xy: _ScreenSize.xy / GrainTextureSize.xy, zw: (random offset in UVs) *  _GrainTextureParams.xy
         float3 _DitherParams;           // xy: _ScreenSize.xy / DitherTextureSize.xy, z: texture_id
         float4 _UVTransform;
+        float4 _ViewPortSize;
         float  _KeepAlpha;
 
         struct Attributes
@@ -70,7 +71,7 @@ Shader "Hidden/HDRP/FinalPass"
             #elif CATMULL_ROM_4
                 return CatmullRomFourSamples(_InputTexture, UV);
             #elif LANCZOS
-                return Lanczos(_InputTexture, UV);
+                return Lanczos(_InputTexture, UV, _ViewPortSize);
             #else
                 return Nearest(_InputTexture, UV);
             #endif
@@ -92,7 +93,7 @@ Shader "Hidden/HDRP/FinalPass"
             #if defined(BILINEAR) || defined(CATMULL_ROM_4) || defined(LANCZOS)
             CTYPE outColor = UpscaledResult(positionNDC.xy);
             #elif defined(CONTRASTADAPTIVESHARPEN)
-            CTYPE outColor = LOAD_TEXTURE2D_X(_InputTexture, positionSS / _RTHandleScale.xy).CTYPE_SWIZZLE;
+            CTYPE outColor = LOAD_TEXTURE2D_X(_InputTexture, round(input.texcoord * _ViewPortSize.xy)).CTYPE_SWIZZLE;
             #else
             CTYPE outColor = LOAD_TEXTURE2D_X(_InputTexture, positionSS).CTYPE_SWIZZLE;
             #endif
