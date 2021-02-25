@@ -122,7 +122,7 @@ namespace UnityEngine.Rendering.HighDefinition
 #endif
         }
 
-        #if UNITY_EDITOR
+#if UNITY_EDITOR
         internal static HDRenderPipelineGlobalSettings MigrateFromHDRPAsset(HDRenderPipelineAsset oldAsset, bool bClearObsoleteFields = true)
         {
             string path = "Assets/HDRPDefaultResources/HDRenderPipelineGlobalSettings.asset";
@@ -283,7 +283,7 @@ namespace UnityEngine.Rendering.HighDefinition
             return assetCreated;
         }
 
-        #endif // UNITY_EDITOR
+#endif // UNITY_EDITOR
 
         #region Volume
         private Volume s_DefaultVolume = null;
@@ -358,22 +358,22 @@ namespace UnityEngine.Rendering.HighDefinition
         /// <returns>The default VolumeProfile if an HDRenderPipelineAsset is the base SRP asset, null otherwise.</returns>
         internal VolumeProfile GetOrCreateDefaultVolumeProfile()
         {
-        #if UNITY_EDITOR
+#if UNITY_EDITOR
             if (volumeProfile == null || volumeProfile.Equals(null))
             {
                 volumeProfile = renderPipelineEditorResources.defaultSettingsVolumeProfile;
             }
-        #endif
+#endif
             return volumeProfile;
         }
 
-    #if UNITY_EDITOR
+#if UNITY_EDITOR
         internal bool IsVolumeProfileFromResources()
         {
             return volumeProfile != null && renderPipelineEditorResources != null && volumeProfile.Equals(renderPipelineEditorResources.defaultSettingsVolumeProfile);
         }
 
-    #endif
+#endif
 
         #endregion
 

@@ -522,12 +522,10 @@ namespace UnityEditor.Rendering.HighDefinition
             switch (m_Kind)
             {
                 case Kind.Default:
-                    if (settings != null)
-                        settings.volumeProfile = profile;
+                    settings.volumeProfile = profile;
                     break;
                 case Kind.LookDev:
-                    if (settings != null)
-                        settings.volumeProfileLookDev = profile;
+                    settings.volumeProfileLookDev = profile;
                     break;
             }
             EditorUtility.SetDirty(settings);
@@ -556,6 +554,11 @@ namespace UnityEditor.Rendering.HighDefinition
         {
             settings = globalSettings;
 
+            if (settings == null)
+            {
+                Debug.LogError("Trying to create a Volume Profile for a null HDRP Global Settings. Operation aborted.");
+                return;
+            }
             var assetCreator = ScriptableObject.CreateInstance<VolumeProfileCreator>();
             assetCreator.SetKind(kind);
             ProjectWindowUtil.StartNameEditingIfProjectWindowExists(assetCreator.GetInstanceID(), assetCreator, $"Assets/{HDProjectSettings.projectSettingsFolderPath}/{globalSettings.name}_{GetDefaultName(kind)}.asset", null, null);
