@@ -473,7 +473,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 InitRayTracedIndirectDiffuse();
                 InitRaytracingDeferred();
                 InitRecursiveRenderer();
-                InitPathTracing();
+                InitPathTracing(m_RenderGraph);
                 InitRayTracingAmbientOcclusion();
             }
 
