@@ -89,6 +89,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Improved shadow cascade GUI drawing with pixel perfect, hover and focus functionalities.
 - Improving the screen space global illumination.
 - Moving MaterialHeaderScopes to Core
+- Changed resolution (to match the render buffer) of the sky used for camera misses in Path Tracing. (case 1304114).
 
 ## [11.0.0] - 2020-10-21
 
