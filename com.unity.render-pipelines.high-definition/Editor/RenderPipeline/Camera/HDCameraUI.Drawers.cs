@@ -115,7 +115,7 @@ namespace UnityEditor.Rendering.HighDefinition
             CED.Group(
                 Drawer_Projection,
                 Drawer_FieldClippingPlanes
-            ),
+                ),
             CED.FoldoutGroup(physicalSettingsHeaderContent, Expandable.Physical, k_ExpandedState,
                 FoldoutOption.SubFoldout,
                 CED.Group(
