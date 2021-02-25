@@ -9,6 +9,9 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 ### Fixed
 - Fixed light layer issue when performing editing on multiple lights.
 
+## Changed
+- Tidy up of platform abstraction code for shader optimization.
+
 ## [7.5.3] - 2021-01-11
 
 ### Fixed

@@ -6,8 +6,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ## [7.5.4] - 2021-01-28
 
-Version Updated
-The version number for this package has increased due to a version update of a related graphics package.
+### Changed
+- Tidy up of platform abstraction code for random number generation, requires a dependency on com.unity.render-pipelines.core for those abstractions.
 
 ## [7.5.3] - 2021-01-11
 ### Fixed
