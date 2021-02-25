@@ -19,7 +19,7 @@ namespace UnityEditor.Rendering
         public static readonly GUIStyle smallMixedTickbox;
         /// <summary>Style for a minilabel button</summary>
         public static readonly GUIStyle miniLabelButton;
-        
+
         /// <summary><see cref="Texture2D"/> 1x1 pixels with red color</summary>
         public static readonly Texture2D redTexture;
         /// <summary><see cref="Texture2D"/> 1x1 pixels with green color</summary>
@@ -103,7 +103,7 @@ namespace UnityEditor.Rendering
             redTexture = CoreEditorUtils.CreateColoredTexture2D(Color.red, "Red 1x1");
             greenTexture = CoreEditorUtils.CreateColoredTexture2D(Color.green, "Green 1x1");
             blueTexture = CoreEditorUtils.CreateColoredTexture2D(Color.blue, "Blue 1x1");
-            
+
             iconHelp = new GUIContent(EditorGUIUtility.FindTexture("_Help"));
             iconHelpStyle = GUI.skin.FindStyle("IconButton") ?? EditorGUIUtility.GetBuiltinSkin(EditorSkin.Inspector).FindStyle("IconButton");
 
