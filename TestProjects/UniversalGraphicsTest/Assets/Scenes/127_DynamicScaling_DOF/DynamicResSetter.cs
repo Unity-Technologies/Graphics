@@ -1,10 +1,9 @@
-﻿using System;
+using System;
 using UnityEngine;
 
 [ExecuteAlways]
 public class DynamicResSetter : MonoBehaviour
 {
-
     public Camera m_camera;
 
     [Range(0.01f, 1f)]

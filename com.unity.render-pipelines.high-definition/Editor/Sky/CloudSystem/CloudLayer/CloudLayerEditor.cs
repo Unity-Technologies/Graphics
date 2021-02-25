@@ -94,8 +94,7 @@ namespace UnityEditor.Rendering.HighDefinition
 
         void PropertyField(CloudMapParameter map, string label)
         {
-            EditorGUILayout.Space();
-            EditorGUILayout.LabelField(label, EditorStyles.miniLabel);
+            DrawHeader(label);
 
             PropertyField(map.cloudMap);
             using (new HDEditorUtils.IndentScope())
@@ -148,9 +147,6 @@ namespace UnityEditor.Rendering.HighDefinition
             Light sun = HDRenderPipeline.currentPipeline?.GetCurrentSunLight();
             if (sun != null && sun.TryGetComponent(out HDAdditionalLightData hdSun))
             {
-                EditorGUILayout.Space();
-                EditorGUILayout.LabelField("Cloud Shadows", EditorStyles.miniLabel);
-
                 PropertyField(m_ShadowMultiplier);
                 PropertyField(m_ShadowTint);
                 if (showAdditionalProperties)

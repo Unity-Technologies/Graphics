@@ -64,6 +64,7 @@
       * [HDRI Sky](Override-HDRI-Sky.md)
       * [Physically Based Sky](Override-Physically-Based-Sky.md)
       * [Procedural Sky](Override-Procedural-Sky.md)
+      * [Volumetric Clouds](Override-Volumetric-Clouds.md)
     * [Visual Environment](Override-Visual-Environment.md)
   * [Volumes API](Volumes-API.md)
 * Render Pipeline Settings
@@ -101,6 +102,7 @@
     * [Eye Shader](eye-shader.md)
     * [Hair Shader](hair-shader.md)
     * [Layered Lit Shader](Layered-Lit-Shader.md)
+    * [Layered Lit Tessellation Shader](layered-lit-tessellation-shader.md)
     * [Lit Tessellation Shader](Lit-Tessellation-Shader.md)
     * [Lit Shader](Lit-Shader.md)
     * [Silk Shader](silk-shader.md)
@@ -129,6 +131,7 @@
       * [Reflection Proxy Volume](Reflection-Proxy-Volume.md)
   * [Light](Light-Component.md)
   * [Environment Lighting](Environment-Lighting.md)
+  * [Clouds in HDRP](clouds-in-hdrp.md)
   * [Atmospheric Scattering](Atmospheric-Scattering.md)
   * [Density Volume](Density-Volume.md)
   * [Light Layers](Light-Layers.md)
