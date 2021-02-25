@@ -1,0 +1,299 @@
+#sliced-container {
+    position: absolute;
+    left: 10px;
+    top: 10px;
+    width: 200px;
+    height: 260px;
+    background-color: gray;
+}
+
+#sliced-sprite0 {
+    position: absolute;
+    left: 5px;
+    top: 10px;
+    width: 190px;
+    height: 100px;
+    background-image: url("../../Sprites/9Slices.png#9Slices_0");
+}
+
+#sliced-sprite1 {
+    position: absolute;
+    left: 5px;
+    top: 120px;
+    width: 60px;
+    height: 80px;
+    background-image: url("../../Sprites/9Slices.png#9Slices_1");
+}
+
+#sliced-sprite2 {
+    position: absolute;
+    left: 5px;
+    top: 210px;
+    width: 40px;
+    height: 40px;
+    background-image: url("../../Sprites/9Slices.png#9Slices_2");
+}
+
+#sliced-sprite0-uss {
+    position: absolute;
+    left: 90px;
+    top: 120px;
+    width: 40px;
+    height: 40px;
+    background-image: url("../../Sprites/9Slices.png#9Slices_0");
+    -unity-slice-left: 13;
+    -unity-slice-top: 13;
+    -unity-slice-right: 13;
+    -unity-slice-bottom: 13;
+}
+
+#sliced-sprite1-uss {
+    position: absolute;
+    left: 90px;
+    top: 165px;
+    width: 40px;
+    height: 40px;
+    background-image: url("../../Sprites/9Slices.png#9Slices_1");
+    -unity-slice-left: 13;
+    -unity-slice-top: 13;
+    -unity-slice-right: 13;
+    -unity-slice-bottom: 13;
+}
+
+#sliced-sprite2-uss {
+    position: absolute;
+    left: 90px;
+    top: 210px;
+    width: 40px;
+    height: 40px;
+    background-image: url("../../Sprites/9Slices.png#9Slices_2");
+    -unity-slice-left: 13;
+    -unity-slice-top: 13;
+    -unity-slice-right: 13;
+    -unity-slice-bottom: 13;
+}
+
+#rounded-sprite0 {
+    position: absolute;
+    left: 145px;
+    top: 120px;
+    width: 40px;
+    height: 40px;
+    border-radius: 100%;
+    background-image: url("../../Sprites/square-red.png#square-red");
+}
+
+#rounded-sprite1 {
+    position: absolute;
+    left: 145px;
+    top: 165px;
+    width: 40px;
+    height: 40px;
+    border-radius: 100%;
+    background-image: url("../../Sprites/square-blue.png#square-blue");
+}
+
+#rounded-sprite2 {
+    position: absolute;
+    left: 145px;
+    top: 210px;
+    width: 40px;
+    height: 40px;
+    border-radius: 100%;
+    background-image: url("../../Sprites/square-black.png#square-black");
+}
+
+.sword {
+    background-image: url("../../Sprites/Tools.png#Sword");
+}
+
+#sword-container {
+    position: absolute;
+    left: 220px;
+    top: 10px;
+    width: 290px;
+    height: 150px;
+    background-color: gray;
+}
+
+#sword0 {
+    position: absolute;
+    left: 5px;
+    top: 10px;
+    width: 70px;
+    height: 70px;
+    -unity-background-scale-mode: stretch-to-fill;
+}
+
+#sword1 {
+    position: absolute;
+    left: 70px;
+    top: 10px;
+    width: 140px;
+    height: 70px;
+    opacity: 0.75;
+    -unity-background-scale-mode: scale-and-crop;
+}
+
+#sword2 {
+    position: absolute;
+    left: 210px;
+    top: 10px;
+    width: 70px;
+    height: 140px;
+    opacity: 0.5;
+    -unity-background-scale-mode: scale-and-crop;
+}
+
+#sword3 {
+    position: absolute;
+    left: 5px;
+    top: 80px;
+    width: 200px;
+    height: 70px;
+    opacity: 0.25;
+    -unity-background-scale-mode: scale-to-fit;
+}
+
+#map-container {
+    position: absolute;
+    left: 220px;
+    top: 170px;
+    width: 290px;
+    height: 180px;
+    background-color: gray;
+}
+
+.map {
+    --unity-image: url("../../Sprites/Tools.png#Map");
+}
+
+#map0 {
+    position: absolute;
+    left: 5px;
+    top: 10px;
+    width: 60px;
+    height: 80px;
+    --unity-image-size: stretch-to-fill;
+}
+
+#map1 {
+    position: absolute;
+    left: 70px;
+    top: 10px;
+    width: 120px;
+    height: 80px;
+    --unity-image-tint-color: rgb(255,0,0);
+    --unity-image-size: scale-and-crop;
+}
+
+#map2 {
+    position: absolute;
+    left: 200px;
+    top: 10px;
+    width: 80px;
+    height: 160px;
+    --unity-image-tint-color: rgb(0,255,0);
+    --unity-image-size: scale-and-crop;
+}
+
+#map3 {
+    position: absolute;
+    left: 5px;
+    top: 95px;
+    width: 200px;
+    height: 80px;
+    --unity-image-tint-color: rgb(0,0,255);
+    --unity-image-size: scale-to-fit;
+}
+
+#atlas-container {
+    position: absolute;
+    left: 10px;
+    top: 280px;
+    width: 200px;
+    height: 70px;
+    background-color: gray;
+}
+
+#square-red {
+    position: absolute;
+    left: 5px;
+    top: 5px;
+    width: 60px;
+    height: 60px;
+    background-image: url("../../Sprites/square-red.png#square-red");
+}
+
+#square-red-display-none {
+    position: absolute;
+    left: 20px;
+    top: 20px;
+    width: 60px;
+    height: 60px;
+    display: none;
+    background-image: url("../../Sprites/square-red.png#square-red");
+}
+
+#square-blue {
+    position: absolute;
+    left: 65px;
+    top: 5px;
+    width: 60px;
+    height: 60px;
+    background-image: url("../../Sprites/square-blue.png#square-blue");
+}
+
+#square-black {
+    position: absolute;
+    left: 125px;
+    top: 5px;
+    width: 60px;
+    height: 60px;
+    background-image: url("../../Sprites/square-black.png#square-black");
+}
+
+#arrows-container-large {
+    position: absolute;
+    left: 10px;
+    top: 360px;
+    width: 220px;
+    height: 120px;
+    background-color: gray;
+}
+
+#arrows-container-thin {
+    position: absolute;
+    left: 240px;
+    top: 360px;
+    width: 100px;
+    height: 120px;
+    background-color: gray;
+}
+
+.arrows-row {
+    width: 100%;
+    height: 100%;
+    flex-direction: row;
+}
+
+.arrow {
+    border-color: black;
+    border-width: 1px;
+}
+
+.arrow-black {
+    --unity-image: url("../../Sprites/ArrowBlack.png#ArrowBlack");
+}
+
+.arrow-red {
+    --unity-image: url("../../Sprites/ArrowRed.png#ArrowRed");
+}
+
+.arrow-green {
+    --unity-image: url("../../Sprites/ArrowGreen.png#ArrowGreen");
+}
+
+.arrow-blue {
+    --unity-image: url("../../Sprites/ArrowBlue.png#ArrowBlue");
+}

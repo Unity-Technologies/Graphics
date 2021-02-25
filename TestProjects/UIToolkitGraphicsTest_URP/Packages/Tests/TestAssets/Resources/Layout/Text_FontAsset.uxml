@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="utf-8"?>
+<engine:UXML
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xmlns:engine="UnityEngine.UIElements"
+    xmlns:editor="UnityEditor.UIElements"
+    xmlns:Tests.AA.Conflict="NamespaceHasCorrectXmlnsPrefixes.A.AA.Conflict"
+    xmlns:Tests.BB.Conflict="NamespaceHasCorrectXmlnsPrefixes.A.BB.Conflict"
+    xsi:noNamespaceSchemaLocation="../../../../UIElementsSchema/UIElements.xsd"
+>
+    <engine:Label text='This label is testing multi atlas textures. 123456789 !@#$%^*()_+|' class="red"/>
+
+</engine:UXML>

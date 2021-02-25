@@ -1,0 +1,20 @@
+<ui:UXML
+    xmlns:ui="UnityEngine.UIElements"
+    xmlns:uie="UnityEditor.UIElements"
+>
+    <ui:VisualElement class="background">
+        <ui:Label text="Styles" class="title"/>
+        <ui:VisualElement class="column1">
+            <ui:Label text="Bold" class="bold"/>
+            <ui:Label text="Italics" class="italic"/>
+            <ui:Label text='RED' class="red"/>
+            <ui:Label text='letter-spacing' class="letterSpacing" />
+            <ui:Label text='is word spacing working ?' class="wordSpacing" />
+            <ui:Label text='Paragraph &lt;br&gt;spacing' class="paragraphSpacing" />
+        </ui:VisualElement>
+        <ui:VisualElement class="column2">
+            <ui:Label text='Outline' class="outline" />
+            <ui:Button text='Button' class="button-shadow" />
+        </ui:VisualElement>
+    </ui:VisualElement>
+</ui:UXML>

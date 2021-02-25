@@ -1,0 +1,34 @@
+<ui:UXML xmlns:ui="UnityEngine.UIElements" xmlns:uie="UnityEditor.UIElements">
+    <ui:VisualElement class="background">
+        <ui:Label text="Rich Text Tags" class="title"/>
+        <ui:VisualElement class="container">
+            <ui:VisualElement class="column1">
+                    <ui:Label text="Normal" />
+                    <ui:Label text="&lt;allcaps&gt;uppercase&lt;/allcaps&gt;" />
+                    <ui:Label text="&lt;alpha=#FF&gt;FF &lt;alpha=#CC&gt;CC &lt;alpha=#AA&gt;AA &lt;alpha=#88&gt;88 &lt;alpha=#66&gt;66 &lt;alpha=#44&gt;44" />
+                    <ui:Label text="&lt;b&gt;Bold" />
+                    <ui:Label text='&lt;color="red"&gt;Changes &lt;color=#005500&gt; text &lt;#0000FF&gt; color' />
+                    <ui:Label text="&lt;i&gt;Italics" />
+                    <ui:Label text="&lt;lowercase&gt;LOWERCASE" />
+                    <ui:Label text="Text &lt;mark=#ffff00aa&gt;Highlighting" />
+                    <ui:Label text='This &lt;font="Electronic Highway Sign SDF"&gt;is &lt;font="Anton SDF"&gt;a lot &lt;font="Oswald-Bold SDF"&gt;of &lt;font="Bangers SDF"&gt; fonts' />
+                    <ui:Label text='Smile &lt;sprite index=0&gt;!'/>
+                    <ui:Label text='&lt;cspace=8&gt;Spacing&lt;/cspace&gt; is &lt;cspace=-5&gt;timing.&lt;/cspace&gt;' />
+                    <ui:Label text="at &lt;pos=75%&gt;75%&lt;br&gt;at &lt;pos=50%&gt;50%" class="multiline"/>
+            </ui:VisualElement>
+            <ui:VisualElement class="column2">
+                    <ui:Label text="Use noparse &lt;noparse&gt;&lt;b&gt;&lt;/noparse&gt;"/>
+                    <ui:Label text="UXML noparse &lt;b&gt;" enable-rich-text="false"/>
+                    <ui:Label text='&lt;rotate="10"&gt;R&lt;rotate="-10"&gt;o&lt;rotate="5"&gt;t&lt;rotate="-5"&gt;a&lt;rotate="5"&gt;t&lt;rotate="-10"&gt;e&lt;rotate="10"&gt;s' />
+                    <ui:Label text="&lt;size=100%&gt;Adjust &lt;size=85%&gt;font &lt;size=60%&gt;size" />
+                    <ui:Label text="&lt;smallcaps&gt;Converts to uppercase" />
+                    <ui:Label text="&lt;s&gt;Strikethrough" />
+                    <ui:Label text="Superscript - H&lt;sup&gt;2&lt;/sup&gt;O -" />
+                    <ui:Label text="Subscript - X&lt;sub&gt;3&lt;/sub&gt; -" />
+                    <ui:Label text="&lt;u&gt;Underline" />
+                    <ui:Label text='&lt;gradient="Yellow to Orange - Vertical"&gt;Gradient' />
+                    <ui:Label text='This is a &lt;style="Link"&gt;link' />
+            </ui:VisualElement>
+        </ui:VisualElement>
+    </ui:VisualElement>
+</ui:UXML>

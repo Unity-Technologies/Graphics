@@ -1,0 +1,33 @@
+Label {
+    -unity-font-definition: url("../Fonts & Materials/LiberationSans SDF.asset");
+    font-size: 50px;
+    color: white;
+    margin: 0px;
+    padding: 0px 2px 0px 1px;
+}
+
+.background {
+    flex-grow: 1;
+    background-color: #2e6da4;
+}
+
+.title {
+    font-size: 100px;
+    justify-content: center;
+    align-items: center;
+    -unity-text-align: upper-center;
+    text-shadow: 2px 2px 5px black;
+}
+
+.multiline {
+    width: 550px;
+    white-space: normal;
+}
+
+.paragraph {
+    min-width: 900px;
+}
+
+.tall {
+    height: 500px;
+}

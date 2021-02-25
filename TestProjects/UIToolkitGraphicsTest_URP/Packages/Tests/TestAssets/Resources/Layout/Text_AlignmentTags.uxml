@@ -1,0 +1,20 @@
+<ui:UXML
+    xmlns:ui="UnityEngine.UIElements"
+    xmlns:uie="UnityEditor.UIElements"
+>
+    <ui:VisualElement class="background">
+        <ui:Label text="Alignment Tags" class="title"/>
+            <ui:Label class="paragraph" text='&lt;align="left"&gt;&lt;b&gt;Left-aligned &lt;br&gt;&lt;align="center"&gt;&lt;b&gt;Center-aligned &lt;br&gt;&lt;align="right"&gt;&lt;b&gt;Right-aligned' />
+            <ui:Label text='&lt;align="justified"&gt;&lt;b&gt;Justified&lt;/b&gt;: stretched to fill the display area (except for the last line)' class="multiline" />
+            <ui:Label text='&lt;align="Flush"&gt;&lt;b&gt;Flush&lt;/b&gt;: stretched to fill the display area (including the last line)' class="multiline" />
+            <!--        <ui:VisualElement class="row" >-->
+            <!--            <ui:Label text='&lt;line-height=100%&gt; Line height at 100% &lt;line-height=50%&gt; Line height at 50% &lt;line-height=150%&gt; Line height at 150%' class="tall"/>-->
+            <!--            <ui:Label text='&lt;line-height=100%&gt;;' is-rich-text="false" />-->
+            <!--        </ui:VisualElement>-->
+
+            <!--        <ui:VisualElement class="row"  >-->
+            <!--            <ui:Label text="Renders the text as monospace" />-->
+            <!--            <ui:Label text="mspace" is-rich-text="false"/>-->
+            <!--        </ui:VisualElement>-->
+    </ui:VisualElement>
+</ui:UXML>

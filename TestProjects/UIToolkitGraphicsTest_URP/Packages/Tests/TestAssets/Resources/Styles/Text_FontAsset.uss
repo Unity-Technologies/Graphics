@@ -1,0 +1,7 @@
+Label {
+    -unity-font-definition: url("../Fonts & Materials/LiberationSans MultiAtlasTexture.asset");
+    font-size: 30px;
+    color: white;
+    margin: 0px;
+    padding: 0px 2px 0px 1px;
+}

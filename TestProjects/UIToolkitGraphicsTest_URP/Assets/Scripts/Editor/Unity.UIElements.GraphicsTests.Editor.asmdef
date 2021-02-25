@@ -1,0 +1,20 @@
+{
+    "name": "Unity.UIElements.GraphicsTests.Editor",
+    "rootNamespace": "",
+    "references": [
+        "GUID:e18141520846dcc44b725b2f74e91229",
+        "GUID:c081bc530f560634bb5c21d4b323a7f1",
+        "GUID:d8e0027a774cade46a176b424b8664b1"
+    ],
+    "includePlatforms": [
+        "Editor"
+    ],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": false,
+    "precompiledReferences": [],
+    "autoReferenced": true,
+    "defineConstraints": [],
+    "versionDefines": [],
+    "noEngineReferences": false
+}

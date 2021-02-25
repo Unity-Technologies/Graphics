@@ -1,0 +1,72 @@
+Label {
+    -unity-font-definition: url("../Fonts & Materials/LiberationSans SDF.asset");
+    /*-unity-font-definition: resource("Fonts/LiberationSans SDF.asset");*/
+    font-size: 50px;
+    color: white;
+    margin: 0px;
+    padding: 0px 2px 0px 1px;
+}
+
+.background {
+    flex-grow: 1;
+    background-color: #2e6da4;
+}
+
+.title {
+    font-size: 100px;
+    justify-content: center;
+    align-items: center;
+    -unity-text-align: upper-center;
+    text-shadow: 2px 2px 5px black;
+}
+
+.bold {
+    -unity-font-style: bold;
+}
+
+.italic {
+    -unity-font-style: italic;
+}
+
+.red {
+    color: red;
+}
+
+.letterSpacing {
+    letter-spacing: 20px;
+}
+
+.wordSpacing {
+    word-spacing: 20px;
+}
+
+.paragraphSpacing {
+    -unity-paragraph-spacing: 30px;
+}
+
+.outline {
+    font-size: 100px;
+    -unity-text-outline-color: black;
+    -unity-text-outline-width: 3px;
+}
+
+.button-shadow {
+    -unity-font-definition: url("../Fonts & Materials/LiberationSans SDF.asset");
+    font-size: 100px;
+    color: white;
+
+    margin: 1px 6px 3px 6px;
+    padding: 1px 6px 3px 6px;
+
+    border-radius: 3px;
+    background-color: #E4E4E4;
+
+    border-top-color: #B2B2B2;
+    border-right-color: #B2B2B2;
+    border-bottom-color: #939393;
+    border-left-color: #B2B2B2;
+
+    -unity-text-outline-color: black;
+    -unity-text-outline-width: 1px;
+    text-shadow: 2px 2px 6px black;
+}
