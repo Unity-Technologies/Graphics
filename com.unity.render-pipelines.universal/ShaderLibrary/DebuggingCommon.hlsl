@@ -138,7 +138,10 @@ half4 GetTextNumber(uint numberValue, float3 positionWS)
 #endif
 
     // There are currently 10 characters in the font texture, 0-9.
-    const float invNumChar = 1.0 / 10.0f;
+    const int numChar = 10;
+    const float invNumChar = 1.0 / numChar;
+    numberValue = clamp(0, numChar - 1, numberValue);
+
     // The following are hardcoded scales that make the font size readable.
     ndc.x *= 5.0;
     ndc.y *= 15.0;

@@ -88,7 +88,7 @@ bool UpdateSurfaceAndInputDataForDebug(inout SurfaceData surfaceData, inout Inpu
 
     if (_DebugLightingMode == DEBUGLIGHTINGMODE_LIGHT_ONLY || _DebugLightingMode == DEBUGLIGHTINGMODE_REFLECTIONS)
     {
-        half3 normalTS = half3(0, 0, 1);
+        const half3 normalTS = half3(0, 0, 1);
 
         #if defined(_NORMALMAP)
         inputData.normalWS = TransformTangentToWorld(normalTS, inputData.tangentMatrixWS);
