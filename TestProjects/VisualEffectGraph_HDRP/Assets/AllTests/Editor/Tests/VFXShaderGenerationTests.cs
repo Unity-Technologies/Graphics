@@ -8,6 +8,9 @@ using UnityEngine.VFX;
 using UnityEditor.VFX;
 using System.Collections.Generic;
 using UnityEditor.VFX.Block;
+using UnityEngine.TestTools;
+using UnityEditor.VFX.UI;
+using System.Collections;
 
 namespace UnityEditor.VFX.Test
 {
@@ -157,6 +160,51 @@ namespace UnityEditor.VFX.Test
             var code = stringBuilder.ToString();
             Assert.IsTrue(code.Contains(VFXBlockSourceVariantTest.sourceCodeVariant[0]));
             Assert.IsTrue(code.Contains(VFXBlockSourceVariantTest.sourceCodeVariant[1]));
+        }
+
+        public static readonly bool[] Create_Simple_Graph_Then_Remove_Edget_Between_Init_And_Update_TestCase = { true, false };
+
+        //Cover issue from 1315593 with system name
+        [UnityTest]
+        public IEnumerator Create_Simple_Graph_Then_Remove_Edget_Between_Init_And_Update([ValueSource(nameof(Create_Simple_Graph_Then_Remove_Edget_Between_Init_And_Update_TestCase))] bool autoCompile)
+        {
+            var graph = VFXTestCommon.MakeTemporaryGraph();
+            var path = AssetDatabase.GetAssetPath(graph);
+
+            var spawner = ScriptableObject.CreateInstance<VFXBasicSpawner>();
+
+            var init = ScriptableObject.CreateInstance<VFXBasicInitialize>();
+            var update = ScriptableObject.CreateInstance<VFXBasicUpdate>();
+            var output = ScriptableObject.CreateInstance<VFXPlanarPrimitiveOutput>();
+
+            graph.AddChild(spawner);
+            graph.AddChild(init);
+            graph.AddChild(update);
+            graph.AddChild(output);
+
+            init.LinkFrom(spawner);
+            update.LinkFrom(init);
+            output.LinkFrom(update);
+            AssetDatabase.ImportAsset(path);
+            yield return null;
+
+            //The issue was actually in VFXView
+            var window = EditorWindow.GetWindow<VFXViewWindow>();
+            window.Show();
+            var bckpAutoCompile = window.autoCompile;
+            window.autoCompile = autoCompile;
+            window.LoadAsset(graph.GetResource().asset, null);
+
+            //update.UnlinkFrom(init); //Doesn't reproduce the issue
+            var allFlowEdges = window.graphView.controller.allChildren.OfType<VFXFlowEdgeController>().ToArray();
+            var flowEdgeToDelete = allFlowEdges.Where(o => o.output.context.model.contextType == VFXContextType.Init && o.input.context.model.contextType == VFXContextType.Update).ToArray();
+            Assert.AreEqual(1u, flowEdgeToDelete.Length);
+            window.graphView.controller.Remove(flowEdgeToDelete);
+            window.graphView.controller.NotifyUpdate(); //<= This function will try to update system name
+
+            yield return null;
+
+            window.autoCompile = bckpAutoCompile;
         }
     }
 }
