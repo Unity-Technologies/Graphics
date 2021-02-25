@@ -14,38 +14,38 @@ public class SetupGraphicsTestCases : IPreprocessBuildWithReport
     private static BuildTarget target;
     private static BuildConfiguration config;
 
-    //public void Setup()
-    // {
-    //     TriggerPreparePlayerTest();
+    public void Setup()
+    {
+        TriggerPreparePlayerTest();
 
-    //     // Work around case #1033694, unable to use PrebuildSetup types directly from assemblies that don't have special names.
-    //     // Once that's fixed, this class can be deleted and the SetupGraphicsTestCases class in Unity.TestFramework.Graphics.Editor
-    //     // can be used directly instead.
-    //     UnityEditor.TestTools.Graphics.SetupGraphicsTestCases.Setup(GraphicsTests.path);
-    // }
+        // Work around case #1033694, unable to use PrebuildSetup types directly from assemblies that don't have special names.
+        // Once that's fixed, this class can be deleted and the SetupGraphicsTestCases class in Unity.TestFramework.Graphics.Editor
+        // can be used directly instead.
+        UnityEditor.TestTools.Graphics.SetupGraphicsTestCases.Setup(GraphicsTests.path);
+    }
 
-    // public static void TriggerPreparePlayerTest()
-    // {
-    //     var args = System.Environment.GetCommandLineArgs();
-    //     string testType = "playmode test";
-    //     for(int i=0; i<args.Length; i++)
-    //     {
-    //         //Debug
-    //         Log("*************** SetupGraphicsTestCases - Args "+i+" = "+args[i]);
+    public static void TriggerPreparePlayerTest()
+    {
+        var args = System.Environment.GetCommandLineArgs();
+        string testType = "playmode test";
+        for(int i=0; i<args.Length; i++)
+        {
+            //Debug
+            Log("*************** SetupGraphicsTestCases - Args "+i+" = "+args[i]);
 
-    //         //Tell whether yamato is running player test or playmode test
-    //         if( args[i].Contains("Standalone") )
-    //         {
-    //             testType = "standalone test";
-    //             PreparePlayerTest();
-    //             break;
-    //         }
-    //     }
-    //     Log("*************** SetupGraphicsTestCases - This is "+testType);
-    // }
+            //Tell whether yamato is running player test or playmode test
+            if( args[i].Contains("Standalone") )
+            {
+                testType = "standalone test";
+                PreparePlayerTest();
+                break;
+            }
+        }
+        Log("*************** SetupGraphicsTestCases - This is "+testType);
+    }
 
     [MenuItem("GraphicsTest/PreparePlayerTest")]
-    public void OnPreprocessBuild(BuildReport report)
+    public static void PreparePlayerTest()
     {
         Log("*************** SetupGraphicsTestCases - Getting BuildConfig");
 
@@ -64,7 +64,6 @@ public class SetupGraphicsTestCases : IPreprocessBuildWithReport
         Log("*************** SetupGraphicsTestCases - Moving subscene cache");
         CreateFolder();
         CopyFiles();
-        Debug.Log("SetupGraphicsTestCases.OnPreprocessBuild for target " + report.summary.platform + " at path " + report.summary.outputPath);
     }
 
     private static void Log(string t)
