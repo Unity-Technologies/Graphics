@@ -74,10 +74,10 @@ EditorBuildSettings:
   - enabled: 1
     path: Assets/Scenes/146_AdditionalLightShadowCustomResolution.unity
     guid: 5cb07294042344649a35ad91c91b539a
-  - enabled: 0
+  - enabled: 1
     path: Assets/Scenes/019_Lighting_Scene_PointLights.unity
     guid: c44973f9bcb9e469ea540fc8b0f0324a
-  - enabled: 0
+  - enabled: 1
     path: Assets/Scenes/042_Lighting_Scene_VertexLighting.unity
     guid: 700788280c77e4c63a4d1919a8bf97e3
   - enabled: 1
