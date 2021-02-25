@@ -43,6 +43,8 @@ half _DebugValidateMetallicMinValue = 0;
 half _DebugValidateMetallicMaxValue = 0.9;
 
 float4 _DebugColor;
+float4 _DebugValidateBelowMinThresholdColor;
+float4 _DebugValidateAboveMaxThresholdColor;
 sampler2D _DebugNumberTexture;
 
 half3 GetDebugColor(uint index)
@@ -226,11 +228,11 @@ bool CalculateValidationMipLevel(uint loadedMipLevel, float2 uv, float4 texelSiz
 
     if(loadedMipLevel < optimalMipLevel)
     {
-        color = lerp(color, half4(1, 0, 0, 1), opacity);
+        color = lerp(color, _DebugValidateBelowMinThresholdColor, opacity);
     }
     else if(loadedMipLevel > optimalMipLevel)
     {
-        color = lerp(color, half4(0, 0, 1, 1), opacity);
+        color = lerp(color, _DebugValidateAboveMaxThresholdColor, opacity);
     }
     return true;
 }
@@ -241,11 +243,11 @@ bool CalculateValidationAlbedo(half3 albedo, out half4 color)
 
     if(luminance < _DebugValidateAlbedoMinLuminance)
     {
-        color = half4(1, 0, 0, 1);
+        color = _DebugValidateBelowMinThresholdColor;
     }
     else if(luminance > _DebugValidateAlbedoMaxLuminance)
     {
-        color = half4(0, 0, 1, 1);
+        color = _DebugValidateAboveMaxThresholdColor;
     }
     else
     {
@@ -259,11 +261,11 @@ bool CalculateValidationAlbedo(half3 albedo, out half4 color)
 
         if ((compSat - _DebugValidateAlbedoSaturationTolerance > sat) || ((compHue - _DebugValidateAlbedoHueTolerance > hue) && (compHue - _DebugValidateAlbedoHueTolerance + 1.0 > hue)))
         {
-            color = half4(1, 0, 0, 1);
+            color = _DebugValidateBelowMinThresholdColor;
         }
         else if ((sat > compSat + _DebugValidateAlbedoSaturationTolerance) || ((hue > compHue + _DebugValidateAlbedoHueTolerance) && (hue > compHue + _DebugValidateAlbedoHueTolerance - 1.0)))
         {
-            color = half4(0, 0, 1, 1);
+            color = _DebugValidateAboveMaxThresholdColor;
         }
         else
         {

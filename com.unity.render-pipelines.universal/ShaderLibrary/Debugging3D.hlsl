@@ -54,9 +54,9 @@ bool UpdateSurfaceAndInputDataForDebug(inout SurfaceData surfaceData, inout Inpu
 
     if (_DebugLightingMode == DEBUGLIGHTINGMODE_LIGHT_ONLY || _DebugLightingMode == DEBUGLIGHTINGMODE_LIGHT_DETAIL)
     {
-        surfaceData.albedo = half3(1, 1, 1);
-        surfaceData.emission = half3(0, 0, 0);
-        surfaceData.specular = half3(0, 0, 0);
+        surfaceData.albedo = 1;
+        surfaceData.emission = 0;
+        surfaceData.specular = 0;
         surfaceData.occlusion = 1;
         surfaceData.clearCoatMask = 0;
         surfaceData.clearCoatSmoothness = 1;
@@ -66,20 +66,20 @@ bool UpdateSurfaceAndInputDataForDebug(inout SurfaceData surfaceData, inout Inpu
     }
     else if (_DebugLightingMode == DEBUGLIGHTINGMODE_REFLECTIONS || _DebugLightingMode == DEBUGLIGHTINGMODE_REFLECTIONS_WITH_SMOOTHNESS)
     {
-        surfaceData.albedo = half3(0, 0, 0);
-        surfaceData.emission = half3(0, 0, 0);
+        surfaceData.albedo = 0;
+        surfaceData.emission = 0;
         surfaceData.occlusion = 1;
         surfaceData.clearCoatMask = 0;
         surfaceData.clearCoatSmoothness = 1;
         if (_DebugLightingMode == DEBUGLIGHTINGMODE_REFLECTIONS)
         {
-            surfaceData.specular = half3(1, 1, 1);
+            surfaceData.specular = 1;
             surfaceData.metallic = 0;
             surfaceData.smoothness = 1;
         }
         else if (_DebugLightingMode == DEBUGLIGHTINGMODE_REFLECTIONS_WITH_SMOOTHNESS)
         {
-            surfaceData.specular = half3(0, 0, 0);
+            surfaceData.specular = 0;
             surfaceData.metallic = 1;
             surfaceData.smoothness = 0;
         }
@@ -107,11 +107,11 @@ bool CalculateValidationMetallic(half3 albedo, half metallic, out half4 debugCol
 {
     if(metallic < _DebugValidateMetallicMinValue)
     {
-        debugColor = half4(1, 0, 0, 1);
+        debugColor = _DebugValidateBelowMinThresholdColor;
     }
     else if(metallic > _DebugValidateMetallicMaxValue)
     {
-        debugColor = half4(0, 0, 1, 1);
+        debugColor = _DebugValidateAboveMaxThresholdColor;
     }
     else
     {

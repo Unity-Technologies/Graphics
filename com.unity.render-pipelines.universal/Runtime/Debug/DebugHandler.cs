@@ -10,36 +10,40 @@ namespace UnityEngine.Rendering.Universal
 {
     public class DebugHandler : IDebugDisplaySettingsQuery
     {
-        private static readonly int s_DebugColorPropertyId = Shader.PropertyToID("_DebugColor");
+        #region Property Id Constants
+        private static readonly int kDebugColorPropertyId = Shader.PropertyToID("_DebugColor");
+
+        // Material settings...
+        private static readonly int kDebugMaterialModeId = Shader.PropertyToID("_DebugMaterialMode");
+        private static readonly int kDebugVertexAttributeModeId = Shader.PropertyToID("_DebugVertexAttributeMode");
+
+        // Rendering settings...
+        private static readonly int kDebugMipInfoModeId = Shader.PropertyToID("_DebugMipInfoMode");
+        private static readonly int kDebugSceneOverrideModeId = Shader.PropertyToID("_DebugSceneOverrideMode");
+        private static readonly int kDebugFullScreenModeId = Shader.PropertyToID("_DebugFullScreenMode");
+
+        // Lighting settings...
+        private static readonly int kDebugLightingModeId = Shader.PropertyToID("_DebugLightingMode");
+        private static readonly int kDebugLightingFeatureFlagsId = Shader.PropertyToID("_DebugLightingFeatureFlags");
+
+        // ValidationSettings...
+        private static readonly int kDebugValidationModeId = Shader.PropertyToID("_DebugValidationMode");
+        private static readonly int kDebugValidateBelowMinThresholdColorPropertyId = Shader.PropertyToID("_DebugValidateBelowMinThresholdColor");
+        private static readonly int kDebugValidateAboveMaxThresholdColorPropertyId = Shader.PropertyToID("_DebugValidateAboveMaxThresholdColor");
+
+        private static readonly int kDebugValidateAlbedoMinLuminanceId = Shader.PropertyToID("_DebugValidateAlbedoMinLuminance");
+        private static readonly int kDebugValidateAlbedoMaxLuminanceId = Shader.PropertyToID("_DebugValidateAlbedoMaxLuminance");
+        private static readonly int kDebugValidateAlbedoSaturationToleranceId = Shader.PropertyToID("_DebugValidateAlbedoSaturationTolerance");
+        private static readonly int kDebugValidateAlbedoHueToleranceId = Shader.PropertyToID("_DebugValidateAlbedoHueTolerance");
+        private static readonly int kDebugValidateAlbedoCompareColorId = Shader.PropertyToID("_DebugValidateAlbedoCompareColor");
+
+        private static readonly int kDebugValidateMetallicMinValueId = Shader.PropertyToID("_DebugValidateMetallicMinValue");
+        private static readonly int kDebugValidateMetallicMaxValueId = Shader.PropertyToID("_DebugValidateMetallicMaxValue");
+        #endregion
 
         private readonly Material m_FullScreenDebugMaterial;
         private readonly Texture2D m_NumberFontTexture;
         private readonly Material m_ReplacementMaterial;
-
-        // Material settings...
-        private readonly int m_DebugMaterialModeId;
-        private readonly int m_DebugVertexAttributeModeId;
-
-        // Rendering settings...
-        private readonly int m_DebugFullScreenModeId;
-        private readonly int m_DebugSceneOverrideModeId;
-        private readonly int m_DebugMipInfoModeId;
-
-        // Lighting settings...
-        private readonly int m_DebugLightingModeId;
-        private readonly int m_DebugLightingFeatureFlagsId;
-
-        // Validation settings...
-        private readonly int m_DebugValidationModeId;
-
-        private readonly int m_DebugValidateAlbedoMinLuminanceId;
-        private readonly int m_DebugValidateAlbedoMaxLuminanceId;
-        private readonly int m_DebugValidateAlbedoSaturationToleranceId;
-        private readonly int m_DebugValidateAlbedoHueToleranceId;
-        private readonly int m_DebugValidateAlbedoCompareColorId;
-
-        private readonly int m_DebugValidateMetallicMinValueId;
-        private readonly int m_DebugValidateMetallicMaxValueId;
 
         private readonly DebugDisplaySettings m_DebugDisplaySettings;
 
@@ -83,31 +87,6 @@ namespace UnityEngine.Rendering.Universal
             m_NumberFontTexture = numberFontTexture;
             m_FullScreenDebugMaterial = (fullScreenDebugShader == null) ? null : CoreUtils.CreateEngineMaterial(fullScreenDebugShader);
             m_ReplacementMaterial = (debugReplacementShader == null) ? null : CoreUtils.CreateEngineMaterial(debugReplacementShader);
-
-            // Material settings...
-            m_DebugMaterialModeId = Shader.PropertyToID("_DebugMaterialMode");
-            m_DebugVertexAttributeModeId = Shader.PropertyToID("_DebugVertexAttributeMode");
-
-            // Rendering settings...
-            m_DebugMipInfoModeId = Shader.PropertyToID("_DebugMipInfoMode");
-            m_DebugSceneOverrideModeId = Shader.PropertyToID("_DebugSceneOverrideMode");
-            m_DebugFullScreenModeId = Shader.PropertyToID("_DebugFullScreenMode");
-
-            // Lighting settings...
-            m_DebugLightingModeId = Shader.PropertyToID("_DebugLightingMode");
-            m_DebugLightingFeatureFlagsId = Shader.PropertyToID("_DebugLightingFeatureFlags");
-
-            // ValidationSettings...
-            m_DebugValidationModeId = Shader.PropertyToID("_DebugValidationMode");
-
-            m_DebugValidateAlbedoMinLuminanceId = Shader.PropertyToID("_DebugValidateAlbedoMinLuminance");
-            m_DebugValidateAlbedoMaxLuminanceId = Shader.PropertyToID("_DebugValidateAlbedoMaxLuminance");
-            m_DebugValidateAlbedoSaturationToleranceId = Shader.PropertyToID("_DebugValidateAlbedoSaturationTolerance");
-            m_DebugValidateAlbedoHueToleranceId = Shader.PropertyToID("_DebugValidateAlbedoHueTolerance");
-            m_DebugValidateAlbedoCompareColorId = Shader.PropertyToID("_DebugValidateAlbedoCompareColor");
-
-            m_DebugValidateMetallicMinValueId = Shader.PropertyToID("_DebugValidateMetallicMinValue");
-            m_DebugValidateMetallicMaxValueId = Shader.PropertyToID("_DebugValidateMetallicMaxValue");
         }
 
         public bool IsDebugPassEnabled(ref CameraData cameraData)
@@ -133,24 +112,28 @@ namespace UnityEngine.Rendering.Universal
                 // we disable cubemap reflections, too distracting (in TemplateLWRP for ex.)
                 cmd.EnableShaderKeyword("_DEBUG_ENVIRONMENTREFLECTIONS_OFF");
             }
+            else
+            {
+                cmd.DisableShaderKeyword("_DEBUG_ENVIRONMENTREFLECTIONS_OFF");
+            }
 
             switch(RenderingSettings.debugSceneOverrideMode)
             {
                 case DebugSceneOverrideMode.Overdraw:
                 {
-                    cmd.SetGlobalColor(s_DebugColorPropertyId, new Color(0.1f, 0, 0, 1));
+                    cmd.SetGlobalColor(kDebugColorPropertyId, new Color(0.1f, 0, 0, 1));
                     break;
                 }
 
                 case DebugSceneOverrideMode.Wireframe:
                 {
-                    cmd.SetGlobalColor(s_DebugColorPropertyId, Color.black);
+                    cmd.SetGlobalColor(kDebugColorPropertyId, Color.black);
                     break;
                 }
 
                 case DebugSceneOverrideMode.SolidWireframe:
                 {
-                    cmd.SetGlobalColor(s_DebugColorPropertyId, (passIndex == 0) ? Color.white : Color.black);
+                    cmd.SetGlobalColor(kDebugColorPropertyId, (passIndex == 0) ? Color.white : Color.black);
                     break;
                 }
 
@@ -158,7 +141,7 @@ namespace UnityEngine.Rendering.Universal
                 {
                     if(passIndex == 1)
                     {
-                        cmd.SetGlobalColor(s_DebugColorPropertyId, Color.black);
+                        cmd.SetGlobalColor(kDebugColorPropertyId, Color.black);
                     }
                     break;
                 }
@@ -168,18 +151,18 @@ namespace UnityEngine.Rendering.Universal
             {
                 case DebugValidationMode.ValidateAlbedo:
                 {
-                    cmd.SetGlobalFloat(m_DebugValidateAlbedoMinLuminanceId, ValidationSettings.AlbedoMinLuminance);
-                    cmd.SetGlobalFloat(m_DebugValidateAlbedoMaxLuminanceId, ValidationSettings.AlbedoMaxLuminance);
-                    cmd.SetGlobalFloat(m_DebugValidateAlbedoSaturationToleranceId, ValidationSettings.AlbedoSaturationTolerance);
-                    cmd.SetGlobalFloat(m_DebugValidateAlbedoHueToleranceId, ValidationSettings.AlbedoHueTolerance);
-                    cmd.SetGlobalColor(m_DebugValidateAlbedoCompareColorId, ValidationSettings.AlbedoCompareColor.linear);
+                    cmd.SetGlobalFloat(kDebugValidateAlbedoMinLuminanceId, ValidationSettings.AlbedoMinLuminance);
+                    cmd.SetGlobalFloat(kDebugValidateAlbedoMaxLuminanceId, ValidationSettings.AlbedoMaxLuminance);
+                    cmd.SetGlobalFloat(kDebugValidateAlbedoSaturationToleranceId, ValidationSettings.AlbedoSaturationTolerance);
+                    cmd.SetGlobalFloat(kDebugValidateAlbedoHueToleranceId, ValidationSettings.AlbedoHueTolerance);
+                    cmd.SetGlobalColor(kDebugValidateAlbedoCompareColorId, ValidationSettings.AlbedoCompareColor.linear);
                     break;
                 }
 
                 case DebugValidationMode.ValidateMetallic:
                 {
-                    cmd.SetGlobalFloat(m_DebugValidateMetallicMinValueId, ValidationSettings.MetallicMinValue);
-                    cmd.SetGlobalFloat(m_DebugValidateMetallicMaxValueId, ValidationSettings.MetallicMaxValue);
+                    cmd.SetGlobalFloat(kDebugValidateMetallicMinValueId, ValidationSettings.MetallicMinValue);
+                    cmd.SetGlobalFloat(kDebugValidateMetallicMaxValueId, ValidationSettings.MetallicMaxValue);
                     break;
                 }
             }       // End of switch.
@@ -191,20 +174,22 @@ namespace UnityEngine.Rendering.Universal
             var cmd = CommandBufferPool.Get("");
 
             // Material settings...
-            cmd.SetGlobalFloat(m_DebugMaterialModeId, (int)MaterialSettings.DebugMaterialModeData);
-            cmd.SetGlobalFloat(m_DebugVertexAttributeModeId, (int)MaterialSettings.DebugVertexAttributeIndexData);
+            cmd.SetGlobalFloat(kDebugMaterialModeId, (int)MaterialSettings.DebugMaterialModeData);
+            cmd.SetGlobalFloat(kDebugVertexAttributeModeId, (int)MaterialSettings.DebugVertexAttributeIndexData);
 
             // Rendering settings...
-            cmd.SetGlobalInt(m_DebugMipInfoModeId, (int)RenderingSettings.debugMipInfoMode);
-            cmd.SetGlobalInt(m_DebugSceneOverrideModeId, (int)RenderingSettings.debugSceneOverrideMode);
-            cmd.SetGlobalInt(m_DebugFullScreenModeId, (int)RenderingSettings.debugFullScreenMode);
+            cmd.SetGlobalInt(kDebugMipInfoModeId, (int)RenderingSettings.debugMipInfoMode);
+            cmd.SetGlobalInt(kDebugSceneOverrideModeId, (int)RenderingSettings.debugSceneOverrideMode);
+            cmd.SetGlobalInt(kDebugFullScreenModeId, (int)RenderingSettings.debugFullScreenMode);
 
             // Lighting settings...
-            cmd.SetGlobalFloat(m_DebugLightingModeId, (int)LightingSettings.DebugLightingMode);
-            cmd.SetGlobalInt(m_DebugLightingFeatureFlagsId, (int)LightingSettings.DebugLightingFeatureFlagsMask);
+            cmd.SetGlobalFloat(kDebugLightingModeId, (int)LightingSettings.DebugLightingMode);
+            cmd.SetGlobalInt(kDebugLightingFeatureFlagsId, (int)LightingSettings.DebugLightingFeatureFlagsMask);
 
             // Validation settings...
-            cmd.SetGlobalInt(m_DebugValidationModeId, (int)ValidationSettings.validationMode);
+            cmd.SetGlobalInt(kDebugValidationModeId, (int)ValidationSettings.validationMode);
+            cmd.SetGlobalColor(kDebugValidateBelowMinThresholdColorPropertyId, Color.red);
+            cmd.SetGlobalColor(kDebugValidateAboveMaxThresholdColorPropertyId, Color.blue);
 
             // Set-up any other persistent properties...
             cmd.SetGlobalTexture("_DebugNumberTexture", m_NumberFontTexture);
