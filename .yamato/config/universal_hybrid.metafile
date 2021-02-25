@@ -33,12 +33,12 @@ test_platforms:
         flags:
           - [Android_OpenGles3, Android_Vulkan]: --timeout=2700
           - [all]: --compilation-errors-as-warnings
-          - [all]: --extra-editor-arg="-playmodePlayerBuilder" --extra-editor-arg="BuildConfiguration"
-          - [Win_DX11]: --extra-editor-arg="-playmodePlayerBuilder" --extra-editor-arg="BuildConfiguration" --extra-editor-arg="-executemethod" --extra-editor-arg="SetupProject.ApplySettings" --extra-editor-arg="d3d11" --extra-editor-arg="<COLORSPACE>"
-          - [Win_DX12]: --extra-editor-arg="-playmodePlayerBuilder" --extra-editor-arg="BuildConfiguration" --extra-editor-arg="-executemethod" --extra-editor-arg="SetupProject.ApplySettings" --extra-editor-arg="d3d12" --extra-editor-arg="<COLORSPACE>"
-          - [Win_Vulkan, Linux_Vulkan, Android_Vulkan]: --extra-editor-arg="-playmodePlayerBuilder" --extra-editor-arg="BuildConfiguration" --extra-editor-arg="-executemethod" --extra-editor-arg="SetupProject.ApplySettings" --extra-editor-arg="vulkan" --extra-editor-arg="<COLORSPACE>"
-          - [Android_OpenGLES3]: --extra-editor-arg="-playmodePlayerBuilder" --extra-editor-arg="BuildConfiguration" ---extra-editor-arg="-executemethod" --extra-editor-arg="SetupProject.ApplySettings" --extra-editor-arg="gles3" --extra-editor-arg="<COLORSPACE>"
-          - [iPhone_Metal]: --extra-editor-arg="-playmodePlayerBuilder" --extra-editor-arg="BuildConfiguration" --extra-editor-arg="-executemethod" --extra-editor-arg="SetupProject.ApplySettings" --extra-editor-arg="metal" --extra-editor-arg="<COLORSPACE>"
+          - [all]: --extra-editor-arg="-executemethod" --extra-editor-arg="SetupGraphicsTestCases.PreparePlayerTest"
+          - [Win_DX11]: --extra-editor-arg="-executemethod" --extra-editor-arg="SetupProject.ApplySettings" --extra-editor-arg="d3d11" --extra-editor-arg="<COLORSPACE>"
+          - [Win_DX12]: --extra-editor-arg="-executemethod" --extra-editor-arg="SetupProject.ApplySettings" --extra-editor-arg="d3d12" --extra-editor-arg="<COLORSPACE>"
+          - [Win_Vulkan, Linux_Vulkan, Android_Vulkan]: --extra-editor-arg="-executemethod" --extra-editor-arg="SetupProject.ApplySettings" --extra-editor-arg="vulkan" --extra-editor-arg="<COLORSPACE>"
+          - [Android_OpenGLES3]: ---extra-editor-arg="-executemethod" --extra-editor-arg="SetupProject.ApplySettings" --extra-editor-arg="gles3" --extra-editor-arg="<COLORSPACE>"
+          - [iPhone_Metal]: --extra-editor-arg="-executemethod" --extra-editor-arg="SetupProject.ApplySettings" --extra-editor-arg="metal" --extra-editor-arg="<COLORSPACE>"
   
   - type: Standalone
     name: Standalone_DOTS_cache
@@ -61,12 +61,12 @@ test_platforms:
         flags:
           - [all]: --timeout=3000
           - [all]: --compilation-errors-as-warnings
-          - [all]: --extra-editor-arg="-playmodePlayerBuilder" --extra-editor-arg="BuildConfiguration"
-          - [Win_DX11]: --extra-editor-arg="-playmodePlayerBuilder" --extra-editor-arg="BuildConfiguration" --extra-editor-arg="-executemethod" --extra-editor-arg="SetupProject.ApplySettings" --extra-editor-arg="d3d11" --extra-editor-arg="<COLORSPACE>"
-          - [Win_DX12]: --extra-editor-arg="-playmodePlayerBuilder" --extra-editor-arg="BuildConfiguration" --extra-editor-arg="-executemethod" --extra-editor-arg="SetupProject.ApplySettings" --extra-editor-arg="d3d12" --extra-editor-arg="<COLORSPACE>"
-          - [Win_Vulkan, Linux_Vulkan, Android_Vulkan]: --extra-editor-arg="-playmodePlayerBuilder" --extra-editor-arg="BuildConfiguration" --extra-editor-arg="-executemethod" --extra-editor-arg="SetupProject.ApplySettings" --extra-editor-arg="vulkan" --extra-editor-arg="<COLORSPACE>"
-          - [Android_OpenGLES3]: --extra-editor-arg="-playmodePlayerBuilder" --extra-editor-arg="BuildConfiguration" ---extra-editor-arg="-executemethod" --extra-editor-arg="SetupProject.ApplySettings" --extra-editor-arg="gles3" --extra-editor-arg="<COLORSPACE>"
-          - [iPhone_Metal]: --extra-editor-arg="-playmodePlayerBuilder" --extra-editor-arg="BuildConfiguration" --extra-editor-arg="-executemethod" --extra-editor-arg="SetupProject.ApplySettings" --extra-editor-arg="metal" --extra-editor-arg="<COLORSPACE>"
+          - [all]: --extra-editor-arg="-executemethod" --extra-editor-arg="SetupGraphicsTestCases.PreparePlayerTest"
+          - [Win_DX11]: --extra-editor-arg="-executemethod" --extra-editor-arg="SetupProject.ApplySettings" --extra-editor-arg="d3d11" --extra-editor-arg="<COLORSPACE>"
+          - [Win_DX12]: --extra-editor-arg="-executemethod" --extra-editor-arg="SetupProject.ApplySettings" --extra-editor-arg="d3d12" --extra-editor-arg="<COLORSPACE>"
+          - [Win_Vulkan, Linux_Vulkan, Android_Vulkan]: --extra-editor-arg="-executemethod" --extra-editor-arg="SetupProject.ApplySettings" --extra-editor-arg="vulkan" --extra-editor-arg="<COLORSPACE>"
+          - [Android_OpenGLES3]: ---extra-editor-arg="-executemethod" --extra-editor-arg="SetupProject.ApplySettings" --extra-editor-arg="gles3" --extra-editor-arg="<COLORSPACE>"
+          - [iPhone_Metal]: --extra-editor-arg="-executemethod" --extra-editor-arg="SetupProject.ApplySettings" --extra-editor-arg="metal" --extra-editor-arg="<COLORSPACE>"
           - [all]: --extra-editor-arg="-adb2"
           - [all]: --extra-editor-arg="-enableCacheServer"
           - [all]: --extra-editor-arg="-cacheServerEndpoint" --extra-editor-arg="cacheserver-slo.hq.unity3d.com"
