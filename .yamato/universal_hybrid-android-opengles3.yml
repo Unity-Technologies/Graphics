@@ -54,6 +54,7 @@ Build_Universal_Hybrid_Android_OpenGLES3_Standalone_DOTS_mono_Linear_2020.2:
       -  curl -s https://artifactory.prd.it.unity3d.com/artifactory/unity-tools-local/utr-standalone/utr.bat --output utr.bat
       -  pip install unity-downloader-cli --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
       -  unity-downloader-cli -u {{editor_versions.2020_2_staging.Android.revision}} -p WindowsEditor -c editor -c il2cpp -c android  --wait --published-only
+      -  C:\build\output\Unity-Technologies\Graphics\.Editor\Unity.exe -executemethod SetupGraphicsTestCases.PreparePlayerTest
       -  |5-
               set ANDROID_DEVICE_CONNECTION=%BOKKEN_DEVICE_IP%
               git rev-parse HEAD | git show -s --format=%%cI > revdate.tmp
@@ -116,7 +117,7 @@ Build_Universal_Hybrid_Android_OpenGLES3_Standalone_DOTS_cache_mono_Linear_2020.
       -  curl -s https://artifactory.prd.it.unity3d.com/artifactory/unity-tools-local/utr-standalone/utr.bat --output utr.bat
       -  pip install unity-downloader-cli --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
       -  unity-downloader-cli -u {{editor_versions.2020_2_staging.Android.revision}} -p WindowsEditor -c editor -c il2cpp -c android  --wait --published-only
-      -  ./.Editor/Unity.exe -executemethod SetupGraphicsTestCases.PreparePlayerTest
+      -  C:\build\output\Unity-Technologies\Graphics\.Editor\Unity.exe -executemethod SetupGraphicsTestCases.PreparePlayerTest
       -  |5-
               set ANDROID_DEVICE_CONNECTION=%BOKKEN_DEVICE_IP%
               git rev-parse HEAD | git show -s --format=%%cI > revdate.tmp
@@ -183,6 +184,7 @@ Build_Universal_Hybrid_Android_OpenGLES3_Standalone_DOTS_mono_Linear_CUSTOM-REVI
       -  curl -s https://artifactory.prd.it.unity3d.com/artifactory/unity-tools-local/utr-standalone/utr.bat --output utr.bat
       -  pip install unity-downloader-cli --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
       -  unity-downloader-cli --source-file unity_revision.txt -p WindowsEditor -c editor -c il2cpp -c android  --wait --published-only
+      -  C:\build\output\Unity-Technologies\Graphics\.Editor\Unity.exe -executemethod SetupGraphicsTestCases.PreparePlayerTest
       -  |5-
               set ANDROID_DEVICE_CONNECTION=%BOKKEN_DEVICE_IP%
               git rev-parse HEAD | git show -s --format=%%cI > revdate.tmp
@@ -252,7 +254,7 @@ Build_Universal_Hybrid_Android_OpenGLES3_Standalone_DOTS_cache_mono_Linear_CUSTO
       -  curl -s https://artifactory.prd.it.unity3d.com/artifactory/unity-tools-local/utr-standalone/utr.bat --output utr.bat
       -  pip install unity-downloader-cli --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
       -  unity-downloader-cli --source-file unity_revision.txt -p WindowsEditor -c editor -c il2cpp -c android  --wait --published-only
-      -  ./.Editor/Unity.exe -executemethod SetupGraphicsTestCases.PreparePlayerTest
+      -  C:\build\output\Unity-Technologies\Graphics\.Editor\Unity.exe -executemethod SetupGraphicsTestCases.PreparePlayerTest
       -  |5-
               set ANDROID_DEVICE_CONNECTION=%BOKKEN_DEVICE_IP%
               git rev-parse HEAD | git show -s --format=%%cI > revdate.tmp
