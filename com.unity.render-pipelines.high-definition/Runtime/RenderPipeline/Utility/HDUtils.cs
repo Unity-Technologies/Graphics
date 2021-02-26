@@ -580,6 +580,7 @@ namespace UnityEngine.Rendering.HighDefinition
             return (graphicDevice == GraphicsDeviceType.Direct3D11 ||
                     graphicDevice == GraphicsDeviceType.Direct3D12 ||
                     graphicDevice == GraphicsDeviceType.PlayStation4 ||
+                    graphicDevice == GraphicsDeviceType.PlayStation5 ||
                     graphicDevice == GraphicsDeviceType.XboxOne ||
                     graphicDevice == GraphicsDeviceType.XboxOneD3D12 ||
                     graphicDevice == GraphicsDeviceType.Metal ||
