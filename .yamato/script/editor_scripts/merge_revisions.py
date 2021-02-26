@@ -7,7 +7,7 @@ import os
 import subprocess
 import sys
 
-from update_revisions import load_config, DEFAULT_CONFIG_FILE, EXPECTATIONS_PATH
+from update_revisions import load_yml, DEFAULT_CONFIG_FILE
 from util.subprocess_helpers import git_cmd, run_cmd
 
 
@@ -26,7 +26,7 @@ def checkout_and_pull_branch(branch, working_dir):
     git_cmd('pull', working_dir)
 
 
-def apply_target_revision_changes(editor_versions_file, yml_files_path, commit, working_dir):
+def apply_target_revision_changes(editor_versions_file, commit, working_dir):
     """Apply the changes for the .metafile only (since expectations might have conflicts)
         Returns: True if any changes were applied, False otherwise.
     """
@@ -46,7 +46,6 @@ def apply_target_revision_changes(editor_versions_file, yml_files_path, commit, 
         return False
     
     changed_editor = apply_changes(editor_versions_file)
-    #changed_yml = apply_changes(yml_files_path)
     
     return changed_editor
 
@@ -86,7 +85,7 @@ def parse_args(flags):
 def main(argv):
     logging.basicConfig(level=logging.INFO, format='[%(levelname)s] %(message)s')
     args = parse_args(argv)
-    config = load_config(args.config)
+    config = config = load_yml(args.config)
     editor_versions_file = config['editor_versions_file'].replace('TRACK',str(args.track))
 
     try:
@@ -101,7 +100,7 @@ def main(argv):
             if git_cmd('rev-parse HEAD').strip() == args.revision:
                 logging.info('No changes compared to current revision. Exiting...')
                 return 0
-        if apply_target_revision_changes(editor_versions_file, config['yml_files_path'], args.revision, working_dir):
+        if apply_target_revision_changes(editor_versions_file, args.revision, working_dir):
             commit_msg = get_commit_message(args.revision)
             commit_and_push(commit_msg, working_dir, args.track, args.local)
         else:

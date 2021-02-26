@@ -10,7 +10,7 @@ test_platforms:
   - type: Standalone
     name: Standalone_PerformanceTests
     utr_flags:
-      - [all]: --performance-project-version=../.. --report-performance-data --performance-project-id=VFX
+      - [all]: --performance-project-version=. --report-performance-data --performance-project-id=VFX
     utr_flags_build:
       - [all]: --testfilter="VFX.PerformanceTest"
   - type: playmode
@@ -46,7 +46,7 @@ test_platforms:
     name: playmode_PerformanceTests
     utr_flags:
       - [all]: --testfilter="VFX.PerformanceTest"
-      - [all]: --performance-project-version=../.. --report-performance-data --performance-project-id=VFX
+      - [all]: --performance-project-version=. --report-performance-data --performance-project-id=VFX
   - type: editmode
     utr_flags:
       - [all]: --testfilter="VFX.Test"
@@ -54,16 +54,9 @@ test_platforms:
     name: editmode_PerformanceTests
     utr_flags:
       - [all]: --testfilter="VFX.PerformanceTest"
-      - [all]: --performance-project-version=../.. --report-performance-data --performance-project-id=VFX
+      - [all]: --performance-project-version=. --report-performance-data --performance-project-id=VFX
   - type: Standalone
     name: Standalone_cache
-    utr_flags:
-    - [all]: --extra-editor-arg="-adb2"
-    - [all]: --extra-editor-arg="-enableCacheServer"
-    - [all]: --extra-editor-arg="-cacheServerEndpoint" --extra-editor-arg="cacheserver-slo.hq.unity3d.com"
-    - [all]: --extra-editor-arg="-cacheServerNamespacePrefix" --extra-editor-arg="SRP"
-    - [all]: --extra-editor-arg="-cacheServerEnableDownload" --extra-editor-arg="true"
-    - [all]: --extra-editor-arg="-cacheServerEnableUpload" --extra-editor-arg="true"
     utr_flags_build:
     - [all]: --testfilter="VFX.Test"
     - [all]: --timeout=3000
@@ -153,3 +146,11 @@ nightly:
       color_space: Linear
       test_platforms:
         - playmode_cache
+    - platform: OSX
+      api: Metal
+      build_config: mono
+      color_space: Linear
+      test_platforms:
+        # - Standalone
+        - playmode_cache
+        # - Standalone_cache

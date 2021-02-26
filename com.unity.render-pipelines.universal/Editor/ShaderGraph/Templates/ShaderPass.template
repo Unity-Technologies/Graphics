@@ -44,6 +44,7 @@ $Attributes.uv1: #define ATTRIBUTES_NEED_TEXCOORD1
 $Attributes.uv2: #define ATTRIBUTES_NEED_TEXCOORD2
 $Attributes.uv3: #define ATTRIBUTES_NEED_TEXCOORD3
 $Attributes.color: #define ATTRIBUTES_NEED_COLOR
+$Attributes.vertexID: #define ATTRIBUTES_NEED_VERTEXID
 $Varyings.positionWS: #define VARYINGS_NEED_POSITION_WS
 $Varyings.normalWS: #define VARYINGS_NEED_NORMAL_WS
 $Varyings.tangentWS: #define VARYINGS_NEED_TANGENT_WS
@@ -63,11 +64,18 @@ $splice(PassInstancing)
 $splice(GraphDefines)
 $splice(DotsInstancingVars)
 
+
+// custom interpolator pre-include
+$splice(sgci_CustomInterpolatorPreInclude)
+
 // Includes
 $splice(PreGraphIncludes)
 
 // --------------------------------------------------
 // Structs and Packing
+
+// custom interpolators pre packing
+$splice(CustomInterpolatorPrePacking)
 
 $splice(PassStructs)
 
@@ -82,8 +90,14 @@ $splice(GraphProperties)
 // Graph Functions
 $splice(GraphFunctions)
 
+// Custom interpolators pre vertex
+$splice(CustomInterpolatorPreVertex)
+
 // Graph Vertex
 $splice(GraphVertex)
+
+// Custom interpolators, pre surface
+$splice(CustomInterpolatorPreSurface)
 
 // Graph Pixel
 $splice(GraphPixel)

@@ -19,6 +19,10 @@ Varyings BuildVaryings(Attributes input)
     VertexDescriptionInputs vertexDescriptionInputs = BuildVertexDescriptionInputs(input);
     VertexDescription vertexDescription = VertexDescriptionFunction(vertexDescriptionInputs);
 
+    #if defined(CUSTOMINTERPOLATOR_VARYPASSTHROUGH_FUNC)
+        CustomInterpolatorPassThroughFunc(output, vertexDescription);
+    #endif
+
     // Assign modified vertex attributes
     input.positionOS = vertexDescription.Position;
     #if defined(VARYINGS_NEED_NORMAL_WS)
