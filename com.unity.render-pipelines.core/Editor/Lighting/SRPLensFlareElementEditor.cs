@@ -89,6 +89,7 @@ namespace UnityEditor.Rendering
             SerializedProperty positionVariationProp = property.FindPropertyRelative("positionVariation");
             SerializedProperty scaleVariationProp = property.FindPropertyRelative("scaleVariation");
             SerializedProperty sizeVariationProp = property.FindPropertyRelative("sizeVariation");
+            SerializedProperty rotationVariationProp = property.FindPropertyRelative("rotationVariation");
 
             if (lensFlareProp.objectReferenceValue != null)
             {
@@ -225,6 +226,10 @@ namespace UnityEditor.Rendering
                             rect = GetNextRect();
                             if ((tmp = EditorGUI.FloatField(rect, Styles.scaleVariation, scaleVariationProp.floatValue)) != scaleVariationProp.floatValue)
                                 scaleVariationProp.floatValue = Mathf.Max(tmp, 0.0f);
+
+                            rect = GetNextRect();
+                            if ((tmp = EditorGUI.FloatField(rect, Styles.rotationVariation, rotationVariationProp.floatValue)) != rotationVariationProp.floatValue)
+                                rotationVariationProp.floatValue = Mathf.Max(tmp, 0.0f);
                         }
                         else if (newDistribution == SRPLensFlareDistribution.Curve)
                         {
@@ -300,7 +305,7 @@ namespace UnityEditor.Rendering
                     }
                     else if ((SRPLensFlareDistribution)distributionProp.enumValueIndex == SRPLensFlareDistribution.Random)
                     {
-                        coef += 5.0f;
+                        coef += 6.0f;
                     }
                     else if ((SRPLensFlareDistribution)distributionProp.enumValueIndex == SRPLensFlareDistribution.Curve)
                     {
@@ -318,32 +323,33 @@ namespace UnityEditor.Rendering
 
         sealed class Styles
         {
-            static public readonly GUIContent intensity = new GUIContent("Intensity", "Intensity of this element.");
-            static public readonly GUIContent position = new GUIContent("Starting Position", "Starting position.");
-            static public readonly GUIContent positionOffset = new GUIContent("Position Offset", "Position Offset.");
-            static public readonly GUIContent angularOffset = new GUIContent("Angular Offset", "Angular Offset.");
-            static public readonly GUIContent translationScale = new GUIContent("Translation Scale", "Translation Scale.");
-            static public readonly GUIContent flareTexture = new GUIContent("Flare Texture", "Texture used to for this Lens Flare Element.");
-            static public readonly GUIContent tint = new GUIContent("Tint", "Tint of the texture can be modulated by the light it is attached to if Modulate By Light Color is enabled..");
-            static public readonly GUIContent blendMode = new GUIContent("Blend Mode", "Blend mode used.");
-            static public readonly GUIContent size = new GUIContent("Size", "Scale applied to the element.");
-            static public readonly GUIContent aspectRatio = new GUIContent("Aspect Ratio", "Aspect ratio (width / height).");
-            static public readonly GUIContent preserveAspectRatio = new GUIContent("Preserve Aspect Ratio", "Preserve Aspect ratio (width / height).");
-            static public readonly GUIContent count = new GUIContent("Count", "REPLACE ME.");
-            static public readonly GUIContent rotation = new GUIContent("Rotation", "Local rotation of the texture.");
-            static public readonly GUIContent autoRotate = new GUIContent("Auto Rotate", "Rotate the texture relative to the angle on the screen (the rotation will be added to the parameter 'rotation').");
-            static public readonly GUIContent modulateByLightColor = new GUIContent("Modulate By Light Color", "Modulate by light color if the asset is used on the same object as a light component..");
+            static public readonly GUIContent intensity = EditorGUIUtility.TrTextContent("Intensity", "Intensity of this element.");
+            static public readonly GUIContent position = EditorGUIUtility.TrTextContent("Starting Position", "Starting position.");
+            static public readonly GUIContent positionOffset = EditorGUIUtility.TrTextContent("Position Offset", "Position Offset.");
+            static public readonly GUIContent angularOffset = EditorGUIUtility.TrTextContent("Angular Offset", "Angular Offset.");
+            static public readonly GUIContent translationScale = EditorGUIUtility.TrTextContent("Translation Scale", "Translation Scale.");
+            static public readonly GUIContent flareTexture = EditorGUIUtility.TrTextContent("Flare Texture", "Texture used to for this Lens Flare Element.");
+            static public readonly GUIContent tint = EditorGUIUtility.TrTextContent("Tint", "Tint of the texture can be modulated by the light it is attached to if Modulate By Light Color is enabled..");
+            static public readonly GUIContent blendMode = EditorGUIUtility.TrTextContent("Blend Mode", "Blend mode used.");
+            static public readonly GUIContent size = EditorGUIUtility.TrTextContent("Size", "Scale applied to the element.");
+            static public readonly GUIContent aspectRatio = EditorGUIUtility.TrTextContent("Aspect Ratio", "Aspect ratio (width / height).");
+            static public readonly GUIContent preserveAspectRatio = EditorGUIUtility.TrTextContent("Preserve Aspect Ratio", "Preserve Aspect ratio (width / height).");
+            static public readonly GUIContent count = EditorGUIUtility.TrTextContent("Count", "REPLACE ME.");
+            static public readonly GUIContent rotation = EditorGUIUtility.TrTextContent("Rotation", "Local rotation of the texture.");
+            static public readonly GUIContent autoRotate = EditorGUIUtility.TrTextContent("Auto Rotate", "Rotate the texture relative to the angle on the screen (the rotation will be added to the parameter 'rotation').");
+            static public readonly GUIContent modulateByLightColor = EditorGUIUtility.TrTextContent("Modulate By Light Color", "Modulate by light color if the asset is used on the same object as a light component..");
 
-            static public readonly GUIContent distribution = new GUIContent("Distribution", "REPLACE ME.");
-            static public readonly GUIContent lengthSpread = new GUIContent("Length Spread", "REPLACE ME.");
-            static public readonly GUIContent seed = new GUIContent("Seed", "REPLACE ME.");
+            static public readonly GUIContent distribution = EditorGUIUtility.TrTextContent("Distribution", "REPLACE ME.");
+            static public readonly GUIContent lengthSpread = EditorGUIUtility.TrTextContent("Length Spread", "REPLACE ME.");
+            static public readonly GUIContent seed = EditorGUIUtility.TrTextContent("Seed", "REPLACE ME.");
 
-            static public readonly GUIContent intensityVariation = new GUIContent("Intensity Variation", "REPLACE ME.");
-            static public readonly GUIContent positionVariation = new GUIContent("Position Variation", "REPLACE ME.");
-            static public readonly GUIContent scaleVariation = new GUIContent("Scale Variation", "REPLACE ME.");
-            static public readonly GUIContent colors = new GUIContent("Colors", "REPLACE ME.");
-            static public readonly GUIContent positionCurve = new GUIContent("Position Spacing", "REPLACE ME.");
-            static public readonly GUIContent scaleCurve = new GUIContent("Scale Variation", "REPLACE ME.");
+            static public readonly GUIContent intensityVariation = EditorGUIUtility.TrTextContent("Intensity Variation", "REPLACE ME.");
+            static public readonly GUIContent positionVariation = EditorGUIUtility.TrTextContent("Position Variation", "REPLACE ME.");
+            static public readonly GUIContent scaleVariation = EditorGUIUtility.TrTextContent("Scale Variation", "REPLACE ME.");
+            static public readonly GUIContent rotationVariation = EditorGUIUtility.TrTextContent("Rotation Variation", "REPLACE ME.");
+            static public readonly GUIContent colors = EditorGUIUtility.TrTextContent("Colors", "REPLACE ME.");
+            static public readonly GUIContent positionCurve = EditorGUIUtility.TrTextContent("Position Spacing", "REPLACE ME.");
+            static public readonly GUIContent scaleCurve = EditorGUIUtility.TrTextContent("Scale Variation", "REPLACE ME.");
         }
     }
 }

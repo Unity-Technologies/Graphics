@@ -2471,6 +2471,8 @@ namespace UnityEngine.Rendering.HighDefinition
 
                             Color randCol = element.colorGradient.Evaluate(Random.Range(0.0f, 1.0f));
                             tint.Scale(new Vector4(randCol.r, randCol.g, randCol.b, randCol.a));
+
+                            rotation += Random.Range(-Mathf.PI, Mathf.PI) * element.rotationVariation;
                         }
                         else if (element.distribution == SRPLensFlareDistribution.Curve)
                         {

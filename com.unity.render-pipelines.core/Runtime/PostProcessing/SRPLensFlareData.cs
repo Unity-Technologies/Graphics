@@ -90,6 +90,7 @@ namespace UnityEngine
             intensityVariation = 0.0f;
             positionVariation = new Vector2(0.0f, 0.0f);
             scaleVariation = 0.0f;
+            rotationVariation = 0.0f;
         }
 
         /// <summary>
@@ -175,6 +176,7 @@ namespace UnityEngine
         public float intensityVariation;
         public Vector2 positionVariation;
         public float scaleVariation;
+        public float rotationVariation;
     }
 
     /// <summary>
