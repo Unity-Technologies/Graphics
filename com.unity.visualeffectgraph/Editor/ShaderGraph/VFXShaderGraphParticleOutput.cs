@@ -194,10 +194,27 @@ namespace UnityEditor.VFX
             }
         }
 
+        public override bool HasSorting()
+        {
+            var materialBlendMode = BlendMode.Opaque;
+
+            var shaderGraph = GetOrRefreshShaderGraphObject();
+            if (shaderGraph != null && shaderGraph.generatesWithShaderGraph)
+            {
+                // VFX Blend Mode state configures important systems like sorting and indirect buffer.
+                // In the case of SG Generation path, we need to know the blend mode state of the SRP
+                // Material to configure the VFX blend mode.
+                var particleData = (VFXDataParticle)GetData();
+                var material = particleData.GetOrCreateMaterial(this);
+                materialBlendMode = VFXLibrary.currentSRPBinder.GetBlendModeFromMaterial(material);
+            }
+
+            return base.HasSorting() || (sort == SortMode.Auto && (materialBlendMode == BlendMode.Alpha || materialBlendMode == BlendMode.AlphaPremultiplied));
+        }
+
         // Here we maintain a list of settings that we do not need if we are using the ShaderGraph generation path (it will be in the material inspector).
         static IEnumerable<string> FilterOutBuiltinSettings()
         {
-            // TODO: blendMode indirectly configures indirect draw, need to let SG configure it.
             yield return "blendMode";
             yield return "cullMode";
             yield return "zWriteMode";
@@ -506,12 +523,10 @@ namespace UnityEditor.VFX
             {
                 case VFXDeviceTarget.CPU:
                 {
-                    if (shaderGraph != null)
+                    if (shaderGraph != null && shaderGraph.generatesWithShaderGraph)
                     {
                         var material = particleData.GetOrCreateMaterial(this);
-
-                        if (shaderGraph.generatesWithShaderGraph)
-                            InjectMaterialState(material, mapper);
+                        InjectMaterialState(material, mapper);
                     }
                 }
                 break;

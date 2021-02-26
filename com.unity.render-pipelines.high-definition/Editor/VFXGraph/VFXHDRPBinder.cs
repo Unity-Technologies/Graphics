@@ -23,5 +23,35 @@ namespace UnityEditor.VFX.HDRP
             catch (ArgumentException) // Silently catch the 'Unknown shader' in case of non HDRP shaders
             {}
         }
+
+        public override VFXAbstractRenderedOutput.BlendMode GetBlendModeFromMaterial(Material mat)
+        {
+            var blendMode = VFXAbstractRenderedOutput.BlendMode.Opaque;
+
+            if (!mat.HasProperty(HDMaterialProperties.kSurfaceType) ||
+                !mat.HasProperty(HDMaterialProperties.kBlendMode))
+            {
+                return blendMode;
+            }
+
+            var surfaceType = mat.GetFloat(HDMaterialProperties.kSurfaceType);
+            if (surfaceType == (int)SurfaceType.Transparent)
+            {
+                switch (mat.GetFloat(HDMaterialProperties.kBlendMode))
+                {
+                    case (int)BlendMode.Additive:
+                        blendMode = VFXAbstractRenderedOutput.BlendMode.Additive;
+                        break;
+                    case (int)BlendMode.Alpha:
+                        blendMode = VFXAbstractRenderedOutput.BlendMode.Alpha;
+                        break;
+                    case (int)BlendMode.Premultiply:
+                        blendMode = VFXAbstractRenderedOutput.BlendMode.AlphaPremultiplied;
+                        break;
+                }
+            }
+
+            return blendMode;
+        }
     }
 }

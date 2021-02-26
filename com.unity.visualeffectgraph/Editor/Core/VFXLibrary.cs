@@ -161,6 +161,11 @@ namespace UnityEditor.VFX
         abstract public Type SRPOutputDataType { get; }
 
         public virtual void SetupMaterial(Material mat) {}
+
+        public virtual VFXAbstractRenderedOutput.BlendMode GetBlendModeFromMaterial(Material mat)
+        {
+            return VFXAbstractRenderedOutput.BlendMode.Opaque;
+        }
     }
 
     // Not in Universal package because we dont want to add a dependency on VFXGraph
