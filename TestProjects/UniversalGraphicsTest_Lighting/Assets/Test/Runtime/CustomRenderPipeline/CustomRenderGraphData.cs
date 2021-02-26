@@ -9,4 +9,3 @@ namespace UnityEngine.Rendering.Universal
         }
     }
 }
-
