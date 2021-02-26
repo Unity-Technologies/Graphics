@@ -128,4 +128,7 @@ EditorBuildSettings:
   - enabled: 1
     path: Assets/Scenes/132_DetailMapping.unity
     guid: 0ad4d46f32f2cc942b4592c2f4368b83
+  - enabled: 1
+    path: Assets/Scenes/133_DoubleSidedNormals.unity
+    guid: 16dcbac9599a3407098556fa7dc1a05b
   m_configObjects: {}
