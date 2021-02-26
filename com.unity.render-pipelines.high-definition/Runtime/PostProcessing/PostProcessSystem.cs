@@ -2452,7 +2452,7 @@ namespace UnityEngine.Rendering.HighDefinition
                     cmd.SetGlobalTexture(HDShaderIDs._FlareOcclusionBufferTex, (Texture)parameters.occlusionTexture);
                     cmd.SetGlobalTexture(HDShaderIDs._FlareTex, element.lensFlareTexture);
 
-                    float dLength = element.lengthSpread / ((float)element.count);
+                    float dLength = 2.0f * element.lengthSpread / ((float)element.count);
                     Random.InitState(element.seed);
                     for (int elemIdx = 0; elemIdx < element.count; ++elemIdx)
                     {
@@ -2530,7 +2530,7 @@ namespace UnityEngine.Rendering.HighDefinition
                             float positionSpacing = element.positionCurve.length > 0 ? element.positionCurve.Evaluate(timeScale) : 1.0f;
 
                             position += ((float)elemIdx) * dLength;
-                            position += dLength * positionSpacing - dLength;
+                            position += 0.5f * dLength * positionSpacing - dLength;
 
                             float sizeCurveValue = element.scaleCurve.length > 0 ? element.scaleCurve.Evaluate(timeScale) : 1.0f;
                             size += ((new Vector2(usedAspectRatio, 1.0f)) * sizeCurveValue);
