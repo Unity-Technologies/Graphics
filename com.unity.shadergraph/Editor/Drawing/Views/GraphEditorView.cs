@@ -54,7 +54,7 @@ namespace UnityEditor.ShaderGraph.Drawing
 
         BlackboardController m_BlackboardController;
 
-        internal BlackboardController BlackboardController => m_BlackboardController;
+        internal BlackboardController blackboardController => m_BlackboardController;
 
         ColorManager m_ColorManager;
         EditorWindow m_EditorWindow;
@@ -206,7 +206,7 @@ namespace UnityEditor.ShaderGraph.Drawing
                 // after changing tabs. This was originally added to fix a bug with middle-mouse clicking while dragging a block node.
                 m_GraphView.RegisterCallback<MouseUpEvent>(evt => { if (evt.button == (int)MouseButton.MiddleMouse) m_GraphView.ResetSelectedBlockNodes(); });
                 // This takes care of when a property is dragged from BB and then the drag is ended by the Escape key, hides the scroll boundary regions if so
-                m_GraphView.RegisterCallback<DragExitedEvent>(evt => { BlackboardController.Blackboard.HideScrollBoundaryRegions(); });
+                m_GraphView.RegisterCallback<DragExitedEvent>(evt => { blackboardController.blackboard.HideScrollBoundaryRegions(); });
 
                 RegisterGraphViewCallbacks();
                 content.Add(m_GraphView);
@@ -347,9 +347,9 @@ namespace UnityEditor.ShaderGraph.Drawing
         {
             // Blackboard needs to be effectively removed when hidden to avoid bugs.
             if (m_UserViewSettings.isBlackboardVisible)
-                BlackboardController.Blackboard.ShowWindow();
+                blackboardController.blackboard.ShowWindow();
             else
-                BlackboardController.Blackboard.HideWindow();
+                blackboardController.blackboard.HideWindow();
 
             // Same for the inspector
             if (m_UserViewSettings.isInspectorVisible)
@@ -1256,7 +1256,7 @@ namespace UnityEditor.ShaderGraph.Drawing
 
             ApplyMasterPreviewLayout();
 
-            m_BlackboardController.Blackboard.DeserializeLayout();
+            m_BlackboardController.blackboard.DeserializeLayout();
 
             m_InspectorView.DeserializeLayout();
         }
@@ -1290,7 +1290,7 @@ namespace UnityEditor.ShaderGraph.Drawing
             m_FloatingWindowsLayout.previewLayout.CalculateDockingCornerAndOffset(m_MasterPreviewView.layout, m_GraphView.layout);
             m_FloatingWindowsLayout.previewLayout.ClampToParentWindow();
 
-            BlackboardController.Blackboard.ClampToParentLayout(m_GraphView.layout);
+            blackboardController.blackboard.ClampToParentLayout(m_GraphView.layout);
 
             m_InspectorView.ClampToParentLayout(m_GraphView.layout);
 

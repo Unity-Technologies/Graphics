@@ -304,7 +304,7 @@ namespace UnityEditor.ShaderGraph
             if (graphView == null)
                 return null;
 
-            var blackboardController = graphView.BlackboardController;
+            var blackboardController = graphView.blackboardController;
             if (blackboardController == null)
                 return null;
 

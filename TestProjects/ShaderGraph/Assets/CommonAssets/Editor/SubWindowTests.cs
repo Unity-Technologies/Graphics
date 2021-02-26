@@ -216,7 +216,7 @@ namespace UnityEditor.ShaderGraph.UnitTests
         {
             ToggleSubWindows(true, true, true);
 
-            SGBlackboard blackboard = m_GraphEditorView.blackboardProvider.blackboard;
+            SGBlackboard blackboard = m_GraphEditorView.blackboardController.blackboard;
             MasterPreviewView masterPreviewView = m_GraphEditorView.Q<MasterPreviewView>();
 
             blackboard.SetPosition(blackboardRect);
@@ -227,7 +227,7 @@ namespace UnityEditor.ShaderGraph.UnitTests
             OpenGraphWindow();
             yield return null;
 
-            blackboard = m_GraphEditorView.blackboardProvider.blackboard;
+            blackboard = m_GraphEditorView.blackboardController.blackboard;
 
             // Keep inside the GraphEditor in the same way as expected
             Rect editorViewContainer = m_GraphEditorView.graphView.contentContainer.layout;

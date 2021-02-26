@@ -152,7 +152,7 @@ namespace UnityEditor.ShaderGraph.Drawing
 
         SGBlackboard m_Blackboard;
 
-        internal SGBlackboard Blackboard
+        internal SGBlackboard blackboard
         {
             get => m_Blackboard;
             private set => m_Blackboard = value;
@@ -230,13 +230,13 @@ namespace UnityEditor.ShaderGraph.Drawing
         {
             InitializeViewModel();
 
-            Blackboard = new SGBlackboard(ViewModel);
-            Blackboard.controller = this;
+            blackboard = new SGBlackboard(ViewModel);
+            blackboard.controller = this;
 
             foreach (var categoryInfo in ViewModel.categoryInfoList)
             {
                 var blackboardSectionViewModel = new BlackboardSectionViewModel();
-                blackboardSectionViewModel.parentView = Blackboard;
+                blackboardSectionViewModel.parentView = blackboard;
                 blackboardSectionViewModel.requestModelChangeAction = ViewModel.requestModelChangeAction;
                 blackboardSectionViewModel.name = categoryInfo.name;
                 blackboardSectionViewModel.associatedCategoryGuid = categoryInfo.categoryGuid;
@@ -264,10 +264,10 @@ namespace UnityEditor.ShaderGraph.Drawing
                 };
 
 
-            Blackboard.PropertySection = m_PropertySectionController.BlackboardSectionView;
-            Blackboard.KeywordSection = m_KeywordSectionController.BlackboardSectionView;
-            Blackboard.contentContainer.Add(Blackboard.PropertySection);
-            Blackboard.contentContainer.Add(Blackboard.KeywordSection);
+            blackboard.PropertySection = m_PropertySectionController.BlackboardSectionView;
+            blackboard.KeywordSection = m_KeywordSectionController.BlackboardSectionView;
+            blackboard.contentContainer.Add(blackboard.PropertySection);
+            blackboard.contentContainer.Add(blackboard.KeywordSection);
         }
 
         protected override void RequestModelChange(IGraphDataAction changeAction)
@@ -395,10 +395,10 @@ namespace UnityEditor.ShaderGraph.Drawing
             for (int x = 0; x < numberOfSections; x++)
                 indexPerSection.Add(-1);
 
-            if (Blackboard?.selection == null || Blackboard.selection.Count == 0)
+            if (blackboard?.selection == null || blackboard.selection.Count == 0)
                 return indexPerSection;
 
-            foreach (ISelectable selection in Blackboard.selection)
+            foreach (ISelectable selection in blackboard.selection)
             {
                 if (selection is BlackboardPropertyView blackboardPropertyView)
                 {

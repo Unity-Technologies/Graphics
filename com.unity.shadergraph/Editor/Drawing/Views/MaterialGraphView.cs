@@ -1206,7 +1206,7 @@ namespace UnityEditor.ShaderGraph.Drawing
             // Keywords need to be tested against variant limit based on multiple factors
             bool keywordsDirty = false;
 
-            var blackboardController = graphView.GetFirstAncestorOfType<GraphEditorView>().BlackboardController;
+            var blackboardController = graphView.GetFirstAncestorOfType<GraphEditorView>().blackboardController;
 
             // Get the position to insert the new shader inputs per section.
             List<int> insertionIndices = blackboardController.GetIndicesOfSelectedItems();
