@@ -140,7 +140,7 @@ namespace UnityEditor.Rendering.HighDefinition
             materialEditor.serializedObject.Update();
         }
 
-        public static void DoEmissiveIntensityGUI(MaterialEditor materialEditor, MaterialProperty emissiveIntensity, MaterialProperty emissiveIntensityUnit)
+        internal static void DoEmissiveIntensityGUI(MaterialEditor materialEditor, MaterialProperty emissiveIntensity, MaterialProperty emissiveIntensityUnit)
         {
             bool unitIsMixed = emissiveIntensityUnit.hasMixedValue;
             bool intensityIsMixed = unitIsMixed || emissiveIntensity.hasMixedValue;
