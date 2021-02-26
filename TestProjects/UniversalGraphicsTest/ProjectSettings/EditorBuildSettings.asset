@@ -313,16 +313,4 @@ EditorBuildSettings:
   - enabled: 1
     path: Assets/Scenes/146-AdditionalLightShadowCustomResolution.unity
     guid: 10a24cfd90216dd43a030378aec679ef
-  - enabled: 1
-    path: Assets/Scenes/150_Lighting_EnlightenEmission.unity
-    guid: b2a47910b2788df489a1f84de6e4486c
-  - enabled: 1
-    path: Assets/Scenes/151_Lighting_EnlightenLights.unity
-    guid: a1c09e3c33ec7fc4084de318357c2fa0
-  - enabled: 1
-    path: Assets/Scenes/152_Lighting_EnlightenEnvironment.unity
-    guid: fb8f8e7cc18a5314f8d66d2ddfbfbaec
-  - enabled: 1
-    path: Assets/Scenes/153_Lighting_EnlightenTerrain.unity
-    guid: 677cb6424a7fe3947974395b6c3d70a4
   m_configObjects: {}
