@@ -188,22 +188,9 @@ namespace UnityEngine
         /// </summary>
         public SRPLensFlareData()
         {
-            globalIntensity = 1.0f;
-            colorGradient = new Gradient();
-            colorGradient.SetKeys(new GradientColorKey[] { new GradientColorKey(Color.white, 0.0f), new GradientColorKey(Color.white, 0.5f), new GradientColorKey(Color.white, 1.0f) },
-                                  new GradientAlphaKey[] { new GradientAlphaKey(1.0f, 0.0f), new GradientAlphaKey(0.5f, 0.1f), new GradientAlphaKey(1.0f, 1.0f) });
             elements = null;
         }
 
-        /// <summary>
-        /// GlobalIntensity is used as a multiplier of each elements in the array of SRPLensFlareDataElement
-        /// </summary>
-        [Min(0)]
-        public float globalIntensity;
-        /// <summary>
-        /// ColorGradient allow us to setup the color of each elements
-        /// </summary>
-        public Gradient colorGradient;
         /// <summary>
         /// List of SRPLensFlareDataElement
         /// </summary>

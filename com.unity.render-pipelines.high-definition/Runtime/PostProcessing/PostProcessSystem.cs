@@ -2197,7 +2197,6 @@ namespace UnityEngine.Rendering.HighDefinition
                 SRPLensFlareData data = comp.lensFlareData;
 
                 if (!comp.enabled ||
-                    data.globalIntensity <= 0.0f ||
                     !comp.gameObject.activeSelf ||
                     !comp.gameObject.activeInHierarchy ||
                     data == null ||
@@ -2264,7 +2263,6 @@ namespace UnityEngine.Rendering.HighDefinition
                 SRPLensFlareData data = comp.lensFlareData;
 
                 if (!comp.enabled ||
-                    data.globalIntensity <= 0.0f ||
                     !comp.gameObject.activeSelf ||
                     !comp.gameObject.activeInHierarchy ||
                     data == null ||
@@ -2487,7 +2485,7 @@ namespace UnityEngine.Rendering.HighDefinition
                             coefForGradient = totalLengthNeg > 0.0f ? (0.5f - 0.5f * timePosNeg) : 0.5f;
                         }
 
-                        Vector4 gradientModulation = data.colorGradient.Evaluate(coefForGradient);
+                        Vector4 gradientModulation = new Vector4(1.0f, 1.0f, 1.0f, 1.0f);
 
                         Texture texture = element.lensFlareTexture;
                         float usedAspectRatio = element.preserveAspectRatio ? (((float)texture.width) / ((float)texture.height)) : element.aspectRatio;
@@ -2496,7 +2494,7 @@ namespace UnityEngine.Rendering.HighDefinition
                         float rotation = element.rotation;
                         Vector4 tint = Vector4.Scale(element.tint, gradientModulation);
 
-                        float currentIntensity = comp.intensity * element.localIntensity * data.globalIntensity * radialsScaleRadius * distanceAttenuation;
+                        float currentIntensity = comp.intensity * element.localIntensity * radialsScaleRadius * distanceAttenuation;
 
                         float position = 2.0f * element.position;
                         if (element.distribution == SRPLensFlareDistribution.Uniform)
