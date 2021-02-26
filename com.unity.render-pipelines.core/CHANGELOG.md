@@ -14,7 +14,13 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 ### Added
 - Support for the PlayStation 5 platform has been added.
 - Support for additional properties for Volume Components without custom editor
+- Calculating correct rtHandleScale by considering the possible pixel rounding when DRS is on
+- Support for the PlayStation 5 platform has been added.
+- Support for the XboxSeries platform has been added.
+- Added Editor window that allow showing an icon to browse the documentation
 - New method DrawHeaders for VolumeComponentsEditors
+- Unification of Material Editor Headers Scopes
+- New API functions with no side effects in DynamicResolutionHandler, to retrieve resolved drs scale and to apply DRS on a size.
 
 ### Changed
 - Changed Window/Render Pipeline/Render Pipeline Debug to Window/Rendering/Render Pipeline Debugger
