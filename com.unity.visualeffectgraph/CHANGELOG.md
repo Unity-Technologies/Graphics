@@ -7,7 +7,6 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 ## [12.0.0] - 2021-01-11
 
 ### Changed
-- Changed GameObject/Visual Effects/Visual Effect to GameObject/VFX
 
 ## [11.0.0] - 2020-10-21
 ### Added
