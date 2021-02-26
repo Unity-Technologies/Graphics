@@ -50,6 +50,7 @@ namespace UnityEditor.Rendering
             switch(debugSceneOverrideMode)
             {
                 case DebugSceneOverrideMode.None:
+                case DebugSceneOverrideMode.ShadedWireframe:
                     return false;
 
                 case DebugSceneOverrideMode.Overdraw:
@@ -58,7 +59,6 @@ namespace UnityEditor.Rendering
 
                 case DebugSceneOverrideMode.Wireframe:
                 case DebugSceneOverrideMode.SolidWireframe:
-                case DebugSceneOverrideMode.ShadedWireframe:
                     color = new Color(0.1f, 0.1f, 0.1f, 1.0f);
                     return true;
 
