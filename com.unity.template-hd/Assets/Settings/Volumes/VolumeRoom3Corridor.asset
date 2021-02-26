@@ -1,45 +1,6 @@
 %YAML 1.1
 %TAG !u! tag:unity3d.com,2011:
---- !u!114 &-5339457426107574039
-MonoBehaviour:
-  m_ObjectHideFlags: 3
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 0}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: b51a78e223a2e504bb88a059b55229ea, type: 3}
-  m_Name: WhiteBalance
-  m_EditorClassIdentifier: 
-  active: 1
-  temperature:
-    m_OverrideState: 1
-    m_Value: 1
-    min: -100
-    max: 100
-  tint:
-    m_OverrideState: 0
-    m_Value: 0
-    min: -100
-    max: 100
---- !u!114 &11400000
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 0}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: d7fd9488000d3734a9e00ee676215985, type: 3}
-  m_Name: VolumeRoom2
-  m_EditorClassIdentifier: 
-  components:
-  - {fileID: -5339457426107574039}
-  - {fileID: 4022551663448852175}
-  - {fileID: 5933630138310514568}
---- !u!114 &4022551663448852175
+--- !u!114 &-8748022650394569708
 MonoBehaviour:
   m_ObjectHideFlags: 3
   m_CorrespondingSourceObject: {fileID: 0}
@@ -52,6 +13,7 @@ MonoBehaviour:
   m_Name: Exposure
   m_EditorClassIdentifier: 
   active: 1
+  m_AdvancedMode: 0
   mode:
     m_OverrideState: 0
     m_Value: 4
@@ -63,16 +25,16 @@ MonoBehaviour:
     m_Value: 1
   fixedExposure:
     m_OverrideState: 1
-    m_Value: 8.5
+    m_Value: 6
   compensation:
-    m_OverrideState: 1
+    m_OverrideState: 0
     m_Value: 0
   limitMin:
     m_OverrideState: 1
-    m_Value: 4
+    m_Value: 2
   limitMax:
     m_OverrideState: 1
-    m_Value: 8
+    m_Value: 7
   curveMap:
     m_OverrideState: 0
     m_Value:
@@ -184,7 +146,7 @@ MonoBehaviour:
     m_Value: {x: 0.5, y: 0.5}
   proceduralRadii:
     m_OverrideState: 0
-    m_Value: {x: 0.5, y: 0.5}
+    m_Value: {x: 0.15, y: 0.15}
   maskMinIntensity:
     m_OverrideState: 0
     m_Value: -30
@@ -195,7 +157,47 @@ MonoBehaviour:
     m_OverrideState: 0
     m_Value: 0.5
     min: 0
---- !u!114 &5933630138310514568
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: d7fd9488000d3734a9e00ee676215985, type: 3}
+  m_Name: VolumeRoom3Corridor
+  m_EditorClassIdentifier: 
+  components:
+  - {fileID: -8748022650394569708}
+  - {fileID: 334926820568832792}
+  - {fileID: 877566079516957005}
+--- !u!114 &334926820568832792
+MonoBehaviour:
+  m_ObjectHideFlags: 3
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: b51a78e223a2e504bb88a059b55229ea, type: 3}
+  m_Name: WhiteBalance
+  m_EditorClassIdentifier: 
+  active: 1
+  m_AdvancedMode: 0
+  temperature:
+    m_OverrideState: 1
+    m_Value: 0
+    min: -100
+    max: 100
+  tint:
+    m_OverrideState: 0
+    m_Value: 0
+    min: -100
+    max: 100
+--- !u!114 &877566079516957005
 MonoBehaviour:
   m_ObjectHideFlags: 3
   m_CorrespondingSourceObject: {fileID: 0}
@@ -208,12 +210,13 @@ MonoBehaviour:
   m_Name: Fog
   m_EditorClassIdentifier: 
   active: 1
+  m_AdvancedMode: 0
   quality:
     m_OverrideState: 0
-    m_Value: 3
+    m_Value: 1
   enabled:
     m_OverrideState: 0
-    m_Value: 0
+    m_Value: 1
   colorMode:
     m_OverrideState: 0
     m_Value: 1
@@ -254,7 +257,7 @@ MonoBehaviour:
     m_Value: 50
   meanFreePath:
     m_OverrideState: 1
-    m_Value: 20000
+    m_Value: 40000
     min: 1
   enableVolumetricFog:
     m_OverrideState: 0
@@ -302,12 +305,12 @@ MonoBehaviour:
     max: 1024
   m_VolumetricFogBudget:
     m_OverrideState: 0
-    m_Value: 0.021
+    m_Value: 0.333
     min: 0
     max: 1
   m_ResolutionDepthRatio:
     m_OverrideState: 0
-    m_Value: 0.666
+    m_Value: 0.5
     min: 0
     max: 1
   directionalLightsOnly:

@@ -10,8 +10,13 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: cd0a560c562a33e4b94f515804e2bd27, type: 3}
-  m_Name: DefaultVFXResources
+  m_Name: VFXDefaultResources
   m_EditorClassIdentifier: 
+  particleTexture: {fileID: 2800000, guid: 276d9e395ae18fe40a9b4988549f2349, type: 3}
+  noiseTexture: {fileID: 2800000, guid: 1d8481de16af723418a688958c41224b, type: 3}
+  vectorField: {fileID: 0}
+  signedDistanceField: {fileID: 0}
+  mesh: {fileID: 10208, guid: 0000000000000000e000000000000000, type: 0}
   animationCurve:
     serializedVersion: 2
     m_Curve:
@@ -104,9 +109,3 @@ MonoBehaviour:
     m_NumColorKeys: 6
     m_NumAlphaKeys: 2
   shader: {fileID: 0}
-  particleTexture: {fileID: 2800000, guid: 276d9e395ae18fe40a9b4988549f2349, type: 3}
-  noiseTexture: {fileID: 2800000, guid: 1d8481de16af723418a688958c41224b, type: 3}
-  vectorField: {fileID: 0}
-  signedDistanceField: {fileID: 0}
-  mesh: {fileID: 10208, guid: 0000000000000000e000000000000000, type: 0}
-  userTemplateDirectory: 
