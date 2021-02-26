@@ -153,12 +153,12 @@ half4 GetTextNumber(uint numberValue, float3 positionWS)
     return tex2D(_DebugNumberTexture, ndc.xy);
 }
 
-half4 CalculateDebugColorWithNumber(float3 positionWS, half3 color, uint index)
+half4 CalculateDebugColorWithNumber(float3 positionWS, half3 albedo, uint index)
 {
     const float opacity = 0.8f; // TODO: Opacity could be user-defined.
 
     const half3 debugColor = GetDebugColor(index);
-    const half3 fc = lerp(color, debugColor, opacity);
+    const half3 fc = lerp(albedo, debugColor, opacity);
     const half4 textColor = GetTextNumber(index, positionWS);
 
     return textColor * half4(fc, 1);

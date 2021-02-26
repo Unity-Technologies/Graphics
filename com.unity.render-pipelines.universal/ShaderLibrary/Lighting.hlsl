@@ -981,47 +981,27 @@ half3 CalculateBlinnPhong(Light light, InputData inputData, SurfaceData surfaceD
 
 #if defined(_DEBUG_SHADER)
 
-half3 CalculateDebugShadowCascadeColor(InputData inputData)
+half3 CalculateDebugShadowCascadeColor(in InputData inputData)
 {
     float3 positionWS = inputData.positionWS;
     half cascadeIndex = ComputeCascadeIndex(positionWS);
 
-    float4 cascadeColors[] =
-    {
-        kBlueColor,
-        kGreenColor,
-        kYellowGreenColor,
-        kOrangeBrownColor,
-        kRedColor,
-    };
-
-    return cascadeColors[cascadeIndex].rgb;
+    return GetDebugColor(cascadeIndex).rgb;
 }
 
-half4 CalculateDebugLightingComplexityColor(InputData inputData)
+half4 CalculateDebugLightingComplexityColor(in InputData inputData, in SurfaceData surfaceData)
 {
-    half4 lut[5] =
-    {
-        half4(0, 1, 0, 1),
-        half4(0.25, 0.75, 0, 1),
-        half4(0.498, 0.5019, 0.0039, 1),
-        half4(0.749, 0.247, 0, 1),
-        half4(1, 0, 0, 1)
-    };
-
     // Assume a main light and add 1 to the additional lights.
-    int numLights = clamp(GetAdditionalLightsCount()+1, 0, 4);
-    half4 fc = lut[numLights];
+    int numLights = GetAdditionalLightsCount() + 1;
 
-    fc *= GetTextNumber(numLights, inputData.positionWS);
-    return fc;
+    return CalculateDebugColorWithNumber(inputData.positionWS, surfaceData.albedo, numLights);
 }
 
 bool CanDebugOverrideOutputColor(inout InputData inputData, inout SurfaceData surfaceData, inout BRDFData brdfData, out half4 debugColor)
 {
     if(_DebugMaterialMode == DEBUGMATERIALMODE_LIGHTING_COMPLEXITY)
     {
-        debugColor = CalculateDebugLightingComplexityColor(inputData);
+        debugColor = CalculateDebugLightingComplexityColor(inputData, surfaceData);
         return true;
     }
     else
@@ -1056,7 +1036,7 @@ bool CanDebugOverrideOutputColor(inout InputData inputData, inout SurfaceData su
 {
     if(_DebugMaterialMode == DEBUGMATERIALMODE_LIGHTING_COMPLEXITY)
     {
-        debugColor = CalculateDebugLightingComplexityColor(inputData);
+        debugColor = CalculateDebugLightingComplexityColor(inputData, surfaceData);
         return true;
     }
     else
