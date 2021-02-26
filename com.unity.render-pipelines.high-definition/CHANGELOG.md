@@ -24,6 +24,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Added shader graph unit test for IsFrontFace node
 - API to allow OnDemand shadows to not render upon placement in the Cached Shadow Atlas.
 - Exposed update upon light movement for directional light shadows in UI.
+- Added support for volumetric clouds in planar reflections.
 
 ### Fixed
 - Fixed an exception when opening the color picker in the material UI (case 1307143).
