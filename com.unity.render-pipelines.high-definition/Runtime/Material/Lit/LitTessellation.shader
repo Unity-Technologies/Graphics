@@ -236,7 +236,7 @@ Shader "HDRP/LitTessellation"
     HLSLINCLUDE
 
     #pragma target 5.0
-    #pragma only_renderers d3d11 ps4 xboxone vulkan metal switch
+    #pragma only_renderers d3d11 playstation xboxone vulkan metal switch
 
     //-------------------------------------------------------------------------------------
     // Variant
