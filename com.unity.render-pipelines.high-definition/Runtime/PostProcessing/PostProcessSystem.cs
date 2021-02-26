@@ -2483,7 +2483,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
                             float positionSpacing = element.positionCurve.length > 0 ? element.positionCurve.Evaluate(timeScale) : 1.0f;
 
-                            position += positionSpacing * element.lengthSpread;
+                            position += positionSpacing * 2.0f * element.lengthSpread;
 
                             float sizeCurveValue = element.scaleCurve.length > 0 ? element.scaleCurve.Evaluate(timeScale) : 1.0f;
                             size *= sizeCurveValue;
