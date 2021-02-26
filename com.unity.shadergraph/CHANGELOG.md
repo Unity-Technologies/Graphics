@@ -14,7 +14,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Change Asset/Create/Shader/Blank Shader Graph to Asset/Create/Shader Graph/Blank Shader Graph
 - Change Asset/Create/Shader/Sub Graph to Asset/Create/Shader Graph/Sub Graph
 - Change Asset/Create/Shader/VFX Shader Graph to Asset/Create/Shader Graph/VFX Shader Graph
-- Adjusted Blackboard article to solve DOC-2592
+- Adjusted Blackboard article to clarify multi-select functionality
 
 ### Fixed
 - Fixed the Custom Editor GUI field in the Graph settings that was ignored.
