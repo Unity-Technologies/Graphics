@@ -367,7 +367,12 @@ namespace UnityEngine.Rendering.HighDefinition
                 {
                     float angleDiffThreshold = lightData.cachedShadowAngleUpdateThreshold;
                     Vector3 angleDiff = m_CachedDirectionalAngles - lightData.transform.eulerAngles;
-                    return (Mathf.Abs(angleDiff.x) > angleDiffThreshold || Mathf.Abs(angleDiff.y) > angleDiffThreshold || Mathf.Abs(angleDiff.z) > angleDiffThreshold);
+                    bool needsUpdate = (Mathf.Abs(angleDiff.x) > angleDiffThreshold || Mathf.Abs(angleDiff.y) > angleDiffThreshold || Mathf.Abs(angleDiff.z) > angleDiffThreshold);
+                    if (needsUpdate)
+                    {
+                        m_CachedDirectionalAngles = lightData.transform.eulerAngles;
+                    }
+                    return needsUpdate;
                 }
                 else if (lightType == HDLightType.Area)
                 {
