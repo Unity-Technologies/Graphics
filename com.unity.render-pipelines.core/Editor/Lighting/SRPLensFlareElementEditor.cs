@@ -198,7 +198,7 @@ namespace UnityEditor.Rendering
 
                         rect = GetNextRect();
                         if ((tmp = EditorGUI.FloatField(rect, Styles.lengthSpread, lengthSpreadProp.floatValue)) != lengthSpreadProp.floatValue)
-                            lengthSpreadProp.floatValue = Mathf.Max(tmp, 1e-1f);
+                            lengthSpreadProp.floatValue = Mathf.Max(tmp, 1e-3f);
 
                         if (newDistribution == SRPLensFlareDistribution.Uniform)
                         {
