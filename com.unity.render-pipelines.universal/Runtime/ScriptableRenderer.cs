@@ -1074,7 +1074,7 @@ namespace UnityEngine.Rendering.Universal
                     }
 
                     if (samples > 1)
-                        m_ActiveColorAttachmentDescriptors[0].ConfigureResolveTarget(m_CameraResolveTarget);
+                        m_ActiveColorAttachmentDescriptors[0].ConfigureResolveTarget(colorAttachmentTarget); // resolving to the implicit color target's resolve surface TODO: handle m_CameraResolveTarget if present?
                 }
                 else
                 {
