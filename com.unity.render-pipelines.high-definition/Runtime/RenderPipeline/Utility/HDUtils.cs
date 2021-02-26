@@ -624,6 +624,7 @@ namespace UnityEngine.Rendering.HighDefinition
                     buildTarget == UnityEditor.BuildTarget.WSAPlayer ||
                     buildTarget == UnityEditor.BuildTarget.XboxOne ||
                     buildTarget == UnityEditor.BuildTarget.PS4 ||
+                    buildTarget == UnityEditor.BuildTarget.PS5 ||
                     // buildTarget == UnityEditor.BuildTarget.iOS || // IOS isn't supported
                     // buildTarget == UnityEditor.BuildTarget.Switch || // Switch isn't supported
                     buildTarget == UnityEditor.BuildTarget.CloudRendering);
