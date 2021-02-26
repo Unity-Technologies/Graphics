@@ -83,6 +83,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
                 {
                     { SpriteUnlitPasses.Unlit },
                     { SpriteUnlitPasses.Forward },
+                    { SpriteUnlitPasses.DebugMaterial },
                 },
             };
         }
@@ -146,6 +147,34 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
                 pragmas = CorePragmas._2DDefault,
                 includes = SpriteUnlitIncludes.Unlit,
             };
+
+            public static PassDescriptor DebugMaterial = new PassDescriptor
+            {
+                // Definition
+                displayName = "Debug Material",
+                referenceName = "SHADERPASS_DEBUGMATERIAL",
+                lightMode = "DebugMaterial",
+                useInPreview = false,
+
+                // Template
+                passTemplatePath = GenerationUtils.GetDefaultTemplatePath("PassMesh.template"),
+                sharedTemplateDirectories = GenerationUtils.GetDefaultSharedTemplateDirectories(),
+
+                // Port Mask
+                validVertexBlocks = CoreBlockMasks.Vertex,
+                validPixelBlocks = SpriteUnlitBlockMasks.Fragment,
+
+                // Fields
+                structs = CoreStructCollections.Default,
+                requiredFields = SpriteUnlitRequiredFields.DebugMaterial,
+                fieldDependencies = CoreFieldDependencies.Default,
+
+                // Conditional State
+                renderStates = CoreRenderStates.Default,
+                pragmas = CorePragmas._2DDefault,
+                includes = SpriteUnlitIncludes.Unlit,
+                defines = SpriteUnlitDefines.DebugUnlit,
+            };
         }
         #endregion
 
@@ -170,6 +199,34 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
                 StructFields.Attributes.uv0,
                 StructFields.Varyings.color,
                 StructFields.Varyings.texCoord0,
+            };
+
+            public static FieldCollection DebugMaterial = new FieldCollection()
+            {
+                StructFields.Attributes.color,
+                StructFields.Attributes.uv0,
+                StructFields.Varyings.positionWS,
+                StructFields.Varyings.color,
+                StructFields.Varyings.texCoord0,
+            };
+        }
+        #endregion
+
+        #region Defines
+        static class SpriteUnlitDefines
+        {
+            public static readonly KeywordDescriptor DebugShader = new KeywordDescriptor()
+            {
+                displayName = "Debug Shader",
+                referenceName = "_DEBUG_SHADER",
+                type = KeywordType.Boolean,
+                definition = KeywordDefinition.ShaderFeature,
+                scope = KeywordScope.Local,
+            };
+
+            public static readonly DefineCollection DebugUnlit = new DefineCollection()
+            {
+                {DebugShader, 1},
             };
         }
         #endregion

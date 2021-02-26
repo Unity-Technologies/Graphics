@@ -10,6 +10,9 @@ namespace UnityEngine.Rendering.Universal
 {
     public class DebugHandler : IDebugDisplaySettingsQuery
     {
+        private static readonly int s_DebugColorInvalidModePropertyId = Shader.PropertyToID("_DebugColorInvalidMode");
+        private static readonly int s_DebugNumberTexturePropertyId = Shader.PropertyToID("_DebugNumberTexture");
+
         #region Property Id Constants
         private static readonly int kDebugColorPropertyId = Shader.PropertyToID("_DebugColor");
 
@@ -192,7 +195,8 @@ namespace UnityEngine.Rendering.Universal
             cmd.SetGlobalColor(kDebugValidateAboveMaxThresholdColorPropertyId, Color.blue);
 
             // Set-up any other persistent properties...
-            cmd.SetGlobalTexture("_DebugNumberTexture", m_NumberFontTexture);
+            cmd.SetGlobalColor(s_DebugColorInvalidModePropertyId, Color.red);
+            cmd.SetGlobalTexture(s_DebugNumberTexturePropertyId, m_NumberFontTexture);
 
             context.ExecuteCommandBuffer(cmd);
             CommandBufferPool.Release(cmd);

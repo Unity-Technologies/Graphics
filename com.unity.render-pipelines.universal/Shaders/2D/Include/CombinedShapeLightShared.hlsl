@@ -1,14 +1,34 @@
-#if !defined(COMBINED_SHAPE_LIGHT_PASS)
+#ifndef COMBINED_SHAPE_LIGHT_PASS
 #define COMBINED_SHAPE_LIGHT_PASS
+
+#include "Packages/com.unity.render-pipelines.universal/Shaders/2D/Include/SurfaceData2D.hlsl"
+#include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Debugging2D.hlsl"
 
 half _HDREmulationScale;
 half _UseSceneLighting;
 half4 _RendererColor;
 
-half4 CombinedShapeLightShared(half4 color, half4 mask, half2 lightingUV)
+half4 CombinedShapeLightShared(in SurfaceData2D surfaceData, in InputData2D inputData)
 {
-    if (color.a == 0.0)
-        discard;
+    half alpha = surfaceData.alpha;
+    half4 color = half4(surfaceData.albedo, alpha);
+    const half4 mask = surfaceData.mask;
+    const half2 lightingUV = inputData.lightingUV;
+
+    AlphaDiscard(alpha, 0);
+
+    #if defined(_DEBUG_SHADER)
+    half4 debugColor;
+
+    if(CalculateDebugColor(surfaceData, inputData, debugColor))
+    {
+        return debugColor;
+    }
+    else if((_DebugLightingMode == DEBUGLIGHTINGMODE_LIGHT_ONLY) || (_DebugLightingMode == DEBUGLIGHTINGMODE_LIGHT_DETAIL))
+    {
+        color = half4(1, 1, 1, alpha);
+    }
+    #endif
 
     color = color * _RendererColor; // This is needed for sprite shape
 
@@ -85,9 +105,9 @@ half4 CombinedShapeLightShared(half4 color, half4 mask, half2 lightingUV)
     finalOutput = _HDREmulationScale * (color * finalModulate + finalAdditve);
 #endif
 
-    finalOutput.a = color.a;
+    finalOutput.a = alpha;
+    finalOutput = lerp(color, finalOutput, _UseSceneLighting);
 
-    finalOutput = finalOutput *_UseSceneLighting + (1 - _UseSceneLighting)*color;
     return max(0, finalOutput);
 }
 #endif

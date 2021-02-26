@@ -43,6 +43,7 @@ half _DebugValidateMetallicMinValue = 0;
 half _DebugValidateMetallicMaxValue = 0.9;
 
 float4 _DebugColor;
+float4 _DebugColorInvalidMode;
 float4 _DebugValidateBelowMinThresholdColor;
 float4 _DebugValidateAboveMaxThresholdColor;
 sampler2D _DebugNumberTexture;

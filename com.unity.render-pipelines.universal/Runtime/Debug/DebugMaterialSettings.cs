@@ -30,14 +30,8 @@ namespace UnityEditor.Rendering
         #region IDebugDisplaySettingsData
         public bool AreAnySettingsActive => (DebugMaterialModeData != DebugMaterialMode.None) ||
                                              (DebugVertexAttributeIndexData != DebugVertexAttributeMode.None);
-
-        public bool IsPostProcessingAllowed => (DebugMaterialModeData == DebugMaterialMode.None) &&
-                                               (DebugVertexAttributeIndexData == DebugVertexAttributeMode.None);
-
-        public bool IsDebugMaterialActive => (DebugMaterialModeData != DebugMaterialMode.None) ||
-                                             (DebugVertexAttributeIndexData != DebugVertexAttributeMode.None);
-
-        public bool IsLightingActive => true;
+        public bool IsPostProcessingAllowed => AreAnySettingsActive;
+        public bool IsLightingActive => !AreAnySettingsActive;
 
         public bool TryGetScreenClearColor(ref Color color)
         {

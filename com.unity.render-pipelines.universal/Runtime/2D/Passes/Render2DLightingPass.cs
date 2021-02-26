@@ -104,6 +104,30 @@ namespace UnityEngine.Experimental.Rendering.Universal
             return short.MinValue;
         }
 
+        private void Render(ScriptableRenderContext context, CommandBuffer cmd, ref RenderingData renderingData, ref FilteringSettings filterSettings, DrawingSettings drawSettings, bool debugRender)
+        {
+            if(debugRender)
+            {
+                foreach(DebugRenderSetup debugRenderSetup in DebugHandler.CreateDebugRenderSetupEnumerable(context, cmd))
+                {
+                    DrawingSettings debugDrawSettings = debugRenderSetup.CreateDrawingSettings(ref renderingData, drawSettings);
+
+                    if(debugRenderSetup.GetRenderStateBlock(out RenderStateBlock renderStateBlock))
+                    {
+                        context.DrawRenderers(renderingData.cullResults, ref debugDrawSettings, ref filterSettings, ref renderStateBlock);
+                    }
+                    else
+                    {
+                        context.DrawRenderers(renderingData.cullResults, ref debugDrawSettings, ref filterSettings);
+                    }
+                }
+            }
+            else
+            {
+                context.DrawRenderers(renderingData.cullResults, ref drawSettings, ref filterSettings);
+            }
+        }
+
         private int DrawLayerBatches(
             LayerBatch[] layerBatches,
             int batchCount,
@@ -116,8 +140,10 @@ namespace UnityEngine.Experimental.Rendering.Universal
             ref DrawingSettings drawSettings,
             ref RenderTextureDescriptor desc)
         {
+            bool drawLights = (DebugHandler == null) || DebugHandler.IsLightingActive;
             var batchesDrawn = 0;
             var rtCount = 0U;
+
             // Draw lights
             using (new ProfilingScope(cmd, m_ProfilingDrawLights))
             {
@@ -195,28 +221,30 @@ namespace UnityEngine.Experimental.Rendering.Universal
                         context.ExecuteCommandBuffer(cmd);
                         cmd.Clear();
 
-
                         short cameraSortingLayerBoundsIndex = GetCameraSortingLayerBoundsIndex();
+                        bool debugRender = (DebugHandler != null) && DebugHandler.IsDebugPassEnabled(ref renderingData.cameraData);
+
                         // If our camera sorting layer texture bound is inside our batch we need to break up the DrawRenderers into two batches
                         if (cameraSortingLayerBoundsIndex >= layerBatch.layerRange.lowerBound && cameraSortingLayerBoundsIndex < layerBatch.layerRange.upperBound && m_Renderer2DData.useCameraSortingLayerTexture)
                         {
                             filterSettings.sortingLayerRange = new SortingLayerRange(layerBatch.layerRange.lowerBound, cameraSortingLayerBoundsIndex);
-                            context.DrawRenderers(renderingData.cullResults, ref drawSettings, ref filterSettings);
+                            Render(context, cmd, ref renderingData, ref filterSettings, drawSettings, debugRender);
                             CopyCameraSortingLayerRenderTexture(context, renderingData);
 
                             filterSettings.sortingLayerRange = new SortingLayerRange((short)(cameraSortingLayerBoundsIndex + 1), layerBatch.layerRange.upperBound);
-                            context.DrawRenderers(renderingData.cullResults, ref drawSettings, ref filterSettings);
+                            Render(context, cmd, ref renderingData, ref filterSettings, drawSettings, debugRender);
                         }
                         else
                         {
                             filterSettings.sortingLayerRange = new SortingLayerRange(layerBatch.layerRange.lowerBound, layerBatch.layerRange.upperBound);
-                            context.DrawRenderers(renderingData.cullResults, ref drawSettings, ref filterSettings);
+                            Render(context, cmd, ref renderingData, ref filterSettings, drawSettings, debugRender);
+
                             if (cameraSortingLayerBoundsIndex == layerBatch.layerRange.upperBound && m_Renderer2DData.useCameraSortingLayerTexture)
                                 CopyCameraSortingLayerRenderTexture(context, renderingData);
                         }
 
                         // Draw light volumes
-                        if (layerBatch.lightStats.totalVolumetricUsage > 0)
+                        if (drawLights && (layerBatch.lightStats.totalVolumetricUsage > 0))
                         {
                             var sampleName = "Render 2D Light Volumes";
                             cmd.BeginSample(sampleName);

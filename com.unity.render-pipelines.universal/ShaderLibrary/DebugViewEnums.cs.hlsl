@@ -19,6 +19,7 @@
 #define DEBUGMATERIALMODE_LIGHTING_COMPLEXITY (9)
 #define DEBUGMATERIALMODE_LOD (10)
 #define DEBUGMATERIALMODE_METALLIC (11)
+#define DEBUGMATERIALMODE_SPRITE_MASK (12)
 
 //
 // UnityEngine.Rendering.Universal.DebugVertexAttributeMode:  static fields
