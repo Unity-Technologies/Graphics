@@ -115,7 +115,7 @@ namespace UnityEditor.VFX
             return vfxObjects;
         }
 
-        [MenuItem("Edit/Visual Effects//Rebuild And Save All Visual Effect Graphs", priority = 320)]
+        [MenuItem("Edit/Visual Effects/Rebuild And Save All Visual Effect Graphs", priority = 320)]
         public static void Build()
         {
             var vfxObjects = GetAllVisualEffectObjects();
@@ -199,6 +199,11 @@ namespace UnityEditor.VFX
         public static void UpdateSubAssets(this VisualEffectResource resource)
         {
             resource.GetOrCreateGraph().UpdateSubAssets();
+        }
+
+        public static bool IsAssetEditable(this VisualEffectResource resource)
+        {
+            return AssetDatabase.IsOpenForEdit(resource.asset, StatusQueryOptions.UseCachedIfPossible);
         }
     }
 
