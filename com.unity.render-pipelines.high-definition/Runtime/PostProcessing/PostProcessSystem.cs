@@ -2529,11 +2529,10 @@ namespace UnityEngine.Rendering.HighDefinition
 
                             float positionSpacing = element.positionCurve.length > 0 ? element.positionCurve.Evaluate(timeScale) : 1.0f;
 
-                            position += ((float)elemIdx) * dLength;
-                            position += 0.5f * dLength * positionSpacing - dLength;
+                            position += positionSpacing * element.lengthSpread;
 
                             float sizeCurveValue = element.scaleCurve.length > 0 ? element.scaleCurve.Evaluate(timeScale) : 1.0f;
-                            size += ((new Vector2(usedAspectRatio, 1.0f)) * sizeCurveValue);
+                            size *= sizeCurveValue;
                         }
 
                         if (currentIntensity <= 0.0f)
