@@ -39,11 +39,17 @@ VertexDescriptionInputs AttributesMeshToVertexDescriptionInputs(AttributesMesh i
     return output;
 }
 
-#if defined(HAVE_VFX_MODIFICATION)
-AttributesMesh ApplyMeshModification(AttributesMesh input, AttributesElement element, float3 timeParameters)
-#else
-AttributesMesh ApplyMeshModification(AttributesMesh input, float3 timeParameters)
+// This is used for injecting the define below.
+$splice(CustomInterpolatorPreVertex)
+
+
+
+    AttributesMesh ApplyMeshModification(AttributesMesh input, float3 timeParameters
+#if defined(USE_CUSTOMINTERP_APPLYMESHMOD) // mirrored in VertMesh.hlsl and MotionVectorVertexShaderCommon.hlsl
+        // use ifdef via TESSELLATION_ON to use VaryingsMeshToDS (Domain varyings instead of pixel varyings) whenever SG is modified to support Tess.
+        , inout VaryingsMeshToPS varyings
 #endif
+    )
 {
     // build graph inputs
     VertexDescriptionInputs vertexDescriptionInputs = AttributesMeshToVertexDescriptionInputs(input);
@@ -51,22 +57,15 @@ AttributesMesh ApplyMeshModification(AttributesMesh input, float3 timeParameters
     $VertexDescriptionInputs.TimeParameters: vertexDescriptionInputs.TimeParameters = timeParameters;
 
     // evaluate vertex graph
-#if defined(HAVE_VFX_MODIFICATION)
-    GraphProperties properties;
-    ZERO_INITIALIZE(GraphProperties, properties);
-
-    // Fetch the vertex graph properties for the particle instance.
-    GetElementVertexProperties(element, properties);
-
-    VertexDescription vertexDescription = VertexDescriptionFunction(vertexDescriptionInputs, properties);
-#else
     VertexDescription vertexDescription = VertexDescriptionFunction(vertexDescriptionInputs);
-#endif
 
     // copy graph output to the results
     $VertexDescription.Position: input.positionOS = vertexDescription.Position;
     $VertexDescription.Normal:   input.normalOS = vertexDescription.Normal;
     $VertexDescription.Tangent:  input.tangentOS.xyz = vertexDescription.Tangent;
+
+    // The purpose of the above ifdef, this allows shader graph custom interpolators to write directly to the varyings structs.
+    $splice(CustomInterpolatorVertexDefinitionToVaryings)
 
     return input;
 }

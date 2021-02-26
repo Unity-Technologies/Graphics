@@ -107,21 +107,6 @@ PackedVaryingsType MotionVectorVS(inout VaryingsType varyingsType, AttributesMes
     {
         bool hasDeformation = unity_MotionVectorsParams.x > 0.0; // Skin or morph target
 
-#if defined(HAVE_VFX_MODIFICATION)
-        // Re-construct the VFX mesh (i.e. in case of procedural output like planar primitives).
-        // And fetch element index to sample the previous element matrix.
-        AttributesElement element;
-        ZERO_INITIALIZE(AttributesElement, element);
-
-        GetMeshAndElementIndex(inputMesh, element);
-
-        // NOTE: We have to re-evaluate the attributes here, not good.
-        // TODO: organize things so that VFX mesh and attributes get computed once.
-        GetElementData(element);
-
-        inputMesh = TransformMeshToPreviousElement(inputMesh, element);
-#endif
-
         float3 effectivePositionOS = (hasDeformation ? inputPass.previousPositionOS : inputMesh.positionOS);
 #if defined(_ADD_PRECOMPUTED_VELOCITY)
         effectivePositionOS -= inputPass.precomputedVelocity;
@@ -132,11 +117,11 @@ PackedVaryingsType MotionVectorVS(inout VaryingsType varyingsType, AttributesMes
         AttributesMesh previousMesh = inputMesh;
         previousMesh.positionOS = effectivePositionOS;
 
-#if defined(HAVE_VFX_MODIFICATION)
-        previousMesh = ApplyMeshModification(previousMesh, element, _LastTimeParameters.xyz);
-#else
-        previousMesh = ApplyMeshModification(previousMesh, _LastTimeParameters.xyz);
-#endif
+        previousMesh = ApplyMeshModification(previousMesh, _LastTimeParameters.xyz
+    #if defined(USE_CUSTOMINTERP_APPLYMESHMOD)
+            , varyingsType.vmesh
+    #endif
+            );
 
         float3 previousPositionRWS = TransformPreviousObjectToWorld(previousMesh.positionOS);
 #else

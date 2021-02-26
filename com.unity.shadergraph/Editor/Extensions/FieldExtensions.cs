@@ -6,12 +6,12 @@ namespace UnityEditor.ShaderGraph
     {
         public static bool HasPreprocessor(this FieldDescriptor descriptor)
         {
-            return (descriptor.preprocessor.Length > 0);
+            return (descriptor.preprocessor?.Length > 0);
         }
 
         public static bool HasSemantic(this FieldDescriptor descriptor)
         {
-            return (descriptor.semantic.Length > 0);
+            return (descriptor.semantic?.Length > 0);
         }
 
         public static bool HasFlag(this FieldDescriptor descriptor, StructFieldOptions options)

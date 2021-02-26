@@ -201,7 +201,9 @@ namespace UnityEditor.ShaderGraph.Drawing
                 m_GraphView.AddManipulator(new RectangleSelector());
                 m_GraphView.AddManipulator(new ClickSelector());
                 m_GraphView.RegisterCallback<KeyDownEvent>(OnKeyDown);
-                m_GraphView.RegisterCallback<MouseUpEvent>(evt => { m_GraphView.ResetSelectedBlockNodes(); });
+                // Bugfix 1312222. Running 'ResetSelectedBlockNodes' on all mouse up interactions will break selection
+                // after changing tabs. This was originally added to fix a bug with middle-mouse clicking while dragging a block node.
+                m_GraphView.RegisterCallback<MouseUpEvent>(evt => { if (evt.button == (int)MouseButton.MiddleMouse) m_GraphView.ResetSelectedBlockNodes(); });
                 // This takes care of when a property is dragged from BB and then the drag is ended by the Escape key, hides the scroll boundary regions if so
                 m_GraphView.RegisterCallback<DragExitedEvent>(evt => { m_BlackboardProvider.blackboard.HideScrollBoundaryRegions(); });
 
@@ -860,7 +862,8 @@ namespace UnityEditor.ShaderGraph.Drawing
                 else
                 {
                     var foundMessage = messageData.Value.First();
-                    nodeView.AttachMessage(foundMessage.message, foundMessage.severity);
+                    string messageString = foundMessage.message + " at line " + foundMessage.line;
+                    nodeView.AttachMessage(messageString, foundMessage.severity);
                 }
             }
         }
