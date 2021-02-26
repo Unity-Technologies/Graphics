@@ -26,7 +26,8 @@ namespace UnityEditor.Rendering.Universal
         DeferredWithoutAccurateGbufferNormals = (1 << 10),
         ScreenSpaceOcclusion = (1 << 11),
         ScreenSpaceShadows = (1 << 12),
-        UseFastSRGBLinearConversion = (1 << 13)
+        UseFastSRGBLinearConversion = (1 << 13),
+        LightLayers = (1 << 14),
     }
 
     internal class ShaderPreprocessor : IPreprocessShaders
@@ -60,6 +61,7 @@ namespace UnityEditor.Rendering.Universal
         ShaderKeyword m_UseDrawProcedural = new ShaderKeyword(ShaderKeywordStrings.UseDrawProcedural);
         ShaderKeyword m_ScreenSpaceOcclusion = new ShaderKeyword(ShaderKeywordStrings.ScreenSpaceOcclusion);
         ShaderKeyword m_UseFastSRGBLinearConversion = new ShaderKeyword(ShaderKeywordStrings.UseFastSRGBLinearConversion);
+        ShaderKeyword m_LightLayers = new ShaderKeyword(ShaderKeywordStrings.LightLayers);
 
         ShaderKeyword m_LocalDetailMulx2;
         ShaderKeyword m_LocalDetailScaled;
@@ -134,6 +136,10 @@ namespace UnityEditor.Rendering.Universal
             if ((compilerData.shaderKeywordSet.IsEnabled(m_LightmapShadowMixing) ||
                  compilerData.shaderKeywordSet.IsEnabled(m_ShadowsShadowMask)) &&
                 !IsFeatureEnabled(features, ShaderFeatures.MixedLighting))
+                return true;
+
+            if (compilerData.shaderKeywordSet.IsEnabled(m_LightLayers) &&
+                !IsFeatureEnabled(features, ShaderFeatures.LightLayers))
                 return true;
 
             // No additional light shadows
@@ -426,6 +432,9 @@ namespace UnityEditor.Rendering.Universal
 
             if (pipelineAsset.useFastSRGBLinearConversion)
                 shaderFeatures |= ShaderFeatures.UseFastSRGBLinearConversion;
+
+            if (pipelineAsset.supportsLightLayers)
+                shaderFeatures |= ShaderFeatures.LightLayers;
 
             bool hasScreenSpaceShadows = false;
             bool hasScreenSpaceOcclusion = false;

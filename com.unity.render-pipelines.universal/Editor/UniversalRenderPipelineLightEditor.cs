@@ -58,6 +58,10 @@ namespace UnityEditor.Rendering.Universal
                 new GUIContent("Custom"),
                 new GUIContent("Use Pipeline Settings")
             };
+
+            public readonly GUIContent LightLayer = EditorGUIUtility.TrTextContent("Light Layer", "Specifies the current Light Layers that the Light affects. This Light illuminates corresponding Renderers with the same Light Layer flags."); 
+            public readonly GUIContent linkLightAndShadowLayers = EditorGUIUtility.TrTextContent("Link Light Layer", "When enabled, the Light Layer property in the General section specifies the light layers for both lighting and for shadows. When disabled, you can use the Light Layer property below to specify the light layers for shadows seperately to lighting.");
+            public readonly GUIContent ShadowLayer = EditorGUIUtility.TrTextContent("Shadow Layer", "Specifies the light layer to use for shadows.");
         }
 
         static Styles s_Styles;
@@ -91,6 +95,10 @@ namespace UnityEditor.Rendering.Universal
         SerializedProperty m_UseAdditionalDataProp;                     // Does light use shadow bias settings defined in UniversalRP asset file?
         SerializedProperty m_AdditionalLightsShadowResolutionTierProp;  // Index of the AdditionalLights ShadowResolution Tier
 
+        SerializedProperty m_LightLayersMask;
+        SerializedProperty m_LinkLightLayers;
+        SerializedProperty m_ShadowLayersMask;
+
         protected override void OnEnable()
         {
             m_AdditionalLightData = lightProperty.gameObject.GetComponent<UniversalAdditionalLightData>();
@@ -107,11 +115,20 @@ namespace UnityEditor.Rendering.Universal
             m_UseAdditionalDataProp = m_AdditionalLightDataSO.FindProperty("m_UsePipelineSettings");
             m_AdditionalLightsShadowResolutionTierProp = m_AdditionalLightDataSO.FindProperty("m_AdditionalLightsShadowResolutionTier");
 
+            m_LightLayersMask = m_AdditionalLightDataSO.FindProperty("m_LightLayersMask");
+            m_LinkLightLayers = m_AdditionalLightDataSO.FindProperty("m_LinkLightLayers");
+            m_ShadowLayersMask = m_AdditionalLightDataSO.FindProperty("m_ShadowLayersMask");
+
             settings.ApplyModifiedProperties();
         }
 
         public override void OnInspectorGUI()
         {
+            // Light layers are stored in additional light data. We must create one if it doesn't exist.
+            UniversalRenderPipelineAsset urpAsset = UniversalRenderPipeline.asset;
+            if (urpAsset.supportsLightLayers && m_AdditionalLightDataSO == null)
+                CreateAdditionalLightData();
+
             if (s_Styles == null)
                 s_Styles = new Styles();
 
@@ -173,7 +190,26 @@ namespace UnityEditor.Rendering.Universal
             ShadowsGUI();
 
             settings.DrawRenderMode();
-            settings.DrawCullingMask();
+
+            if (UniversalRenderPipeline.asset.supportsLightLayers)
+            {
+                EditorGUI.BeginChangeCheck();
+                DrawLightLayerMask(m_LightLayersMask, s_Styles.LightLayer);
+                if (EditorGUI.EndChangeCheck())
+                {
+                    if (m_LinkLightLayers.boolValue)
+                    {
+                        m_ShadowLayersMask.intValue = m_LightLayersMask.intValue;
+                        lightProperty.renderingLayerMask = m_LightLayersMask.intValue;
+                    }
+
+                    m_AdditionalLightDataSO.ApplyModifiedProperties();
+                }
+            }
+            else
+                settings.DrawCullingMask();
+
+            settings.ApplyModifiedProperties();
 
             EditorGUILayout.Space();
 
@@ -235,7 +271,6 @@ namespace UnityEditor.Rendering.Universal
 
         void DrawAdditionalShadowData()
         {
-            bool hasChanged = false;
             int selectedUseAdditionalData; // 0: Custom bias - 1: Bias values defined in Pipeline settings
 
             if (m_AdditionalLightDataSO == null)
@@ -252,13 +287,11 @@ namespace UnityEditor.Rendering.Universal
             Rect controlRectAdditionalData = EditorGUILayout.GetControlRect(true);
             if (m_AdditionalLightDataSO != null)
                 EditorGUI.BeginProperty(controlRectAdditionalData, Styles.shadowBias, m_UseAdditionalDataProp);
-            EditorGUI.BeginChangeCheck();
 
+            EditorGUI.BeginChangeCheck();
             selectedUseAdditionalData = EditorGUI.IntPopup(controlRectAdditionalData, Styles.shadowBias, selectedUseAdditionalData, Styles.displayedDefaultOptions, Styles.optionDefaultValues);
-            if (EditorGUI.EndChangeCheck())
-            {
-                hasChanged = true;
-            }
+            bool useAdditionalLightDataChanged = EditorGUI.EndChangeCheck();
+
             if (m_AdditionalLightDataSO != null)
                 EditorGUI.EndProperty();
 
@@ -272,19 +305,16 @@ namespace UnityEditor.Rendering.Universal
                 m_AdditionalLightDataSO.ApplyModifiedProperties();
             }
 
-            if (hasChanged)
+            if (useAdditionalLightDataChanged)
             {
                 if (m_AdditionalLightDataSO == null)
                 {
-                    lightProperty.gameObject.AddComponent<UniversalAdditionalLightData>();
-                    m_AdditionalLightData = lightProperty.gameObject.GetComponent<UniversalAdditionalLightData>();
+                    CreateAdditionalLightData();
 
                     var asset = UniversalRenderPipeline.asset;
                     settings.shadowsBias.floatValue = asset.shadowDepthBias;
                     settings.shadowsNormalBias.floatValue = asset.shadowNormalBias;
                     settings.shadowsResolution.intValue = UniversalAdditionalLightData.AdditionalLightsShadowDefaultCustomResolution;
-
-                    init(m_AdditionalLightData);
                 }
 
                 m_UseAdditionalDataProp.intValue = selectedUseAdditionalData;
@@ -422,12 +452,59 @@ namespace UnityEditor.Rendering.Universal
                 }
             }
 
+            if (UniversalRenderPipeline.asset.supportsLightLayers)
+            {
+                EditorGUI.BeginChangeCheck();
+                EditorGUILayout.PropertyField(m_LinkLightLayers, s_Styles.linkLightAndShadowLayers);
+                // Undo the changes in the light component because the SyncLightAndShadowLayers will change the value automatically when link is ticked
+                if (EditorGUI.EndChangeCheck())
+                {
+                    if (m_LinkLightLayers.boolValue)
+                        m_ShadowLayersMask.intValue = m_LightLayersMask.intValue;
+                    lightProperty.renderingLayerMask = m_ShadowLayersMask.intValue;
+                    m_AdditionalLightDataSO.ApplyModifiedProperties();
+                }
+
+                using (new EditorGUI.DisabledGroupScope(m_LinkLightLayers.boolValue))
+                {
+                    EditorGUI.BeginChangeCheck();
+                    DrawLightLayerMask(m_ShadowLayersMask, s_Styles.ShadowLayer);
+                    if (EditorGUI.EndChangeCheck())
+                    {
+                        lightProperty.renderingLayerMask = m_ShadowLayersMask.intValue;
+                        m_AdditionalLightDataSO.ApplyModifiedProperties();
+                    }
+                }
+            }
+
             EditorGUI.indentLevel -= 1;
 
             if (bakingWarningValue)
                 EditorGUILayout.HelpBox(s_Styles.BakingWarning.text, MessageType.Warning);
 
             EditorGUILayout.Space();
+        }
+
+        void CreateAdditionalLightData()
+        {
+            lightProperty.gameObject.AddComponent<UniversalAdditionalLightData>();
+            m_AdditionalLightData = lightProperty.gameObject.GetComponent<UniversalAdditionalLightData>();
+            init(m_AdditionalLightData);
+        }
+
+        internal static void DrawLightLayerMask(SerializedProperty property, GUIContent label)
+        {
+            Rect lineRect = GUILayoutUtility.GetRect(1, EditorGUIUtility.singleLineHeight);
+            int lightLayer = property.intValue;
+
+            EditorGUI.BeginProperty(lineRect, label, property);
+
+            EditorGUI.BeginChangeCheck();
+            lightLayer = EditorGUI.MaskField(lineRect, label ?? GUIContent.none, lightLayer, UniversalRenderPipeline.asset.lightLayerMaskNames);
+            if (EditorGUI.EndChangeCheck())
+                property.intValue = lightLayer;
+
+            EditorGUI.EndProperty();
         }
 
         protected override void OnSceneGUI()
