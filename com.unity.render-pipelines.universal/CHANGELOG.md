@@ -6,6 +6,9 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ## [7.5.4] - 2021-01-28
 
+### Added
+- Support for the PlayStation 5 platform has been added.
+
 ### Fixed
 - Fixed an issue such that it is now posible to enqueue render passes at runtime.
 
