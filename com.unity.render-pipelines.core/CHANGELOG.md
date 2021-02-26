@@ -6,6 +6,9 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ## [10.4.0] - 2020-01-26
 
+### Added
+- Support for the XboxSeries platform has been added.
+
 ### Fixed
 - Fixed parameters order on inspectors for Volume Components without custom editor
 - Fixed the display name of a Volume Parameter when is defined the attribute InspectorName
