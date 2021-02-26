@@ -574,15 +574,26 @@ namespace UnityEngine.Rendering.HighDefinition
             if (AreRayTracingResourcesCreated())
                 return;
 
-            m_RenderPipelineRayTracingResources = UnityEditor.AssetDatabase.LoadAssetAtPath<HDRenderPipelineRayTracingResources>(HDUtils.GetHDRenderPipelinePath() + "Runtime/RenderPipelineResources/HDRenderPipelineRayTracingResources.asset");
-
+            var raytracingResourcesPath = HDUtils.GetHDRenderPipelinePath() + "Editor/RenderPipelineResources/HDRenderPipelineRayTracingResources.asset";
+            var objs = InternalEditorUtility.LoadSerializedFileAndForget(raytracingResourcesPath);
+            m_RenderPipelineRayTracingResources = (objs != null && objs.Length > 0) ? objs[0] as HDRenderPipelineRayTracingResources : null;
             if (forceReload)
             {
 #if UNITY_EDITOR_LINUX // Temp hack to be able to make linux test run. To clarify
                 ResourceReloader.TryReloadAllNullIn(m_RenderPipelineRayTracingResources, HDUtils.GetHDRenderPipelinePath());
 #else
-                ResourceReloader.ReloadAllNullIn(m_RenderPipelineRayTracingResources, HDUtils.GetHDRenderPipelinePath());
+                if (ResourceReloader.ReloadAllNullIn(m_RenderPipelineRayTracingResources, HDUtils.GetHDRenderPipelinePath()))
+                {
+                    InternalEditorUtility.SaveToSerializedFileAndForget(
+                        new Object[] { m_RenderPipelineRayTracingResources },
+                        raytracingResourcesPath,
+                        true);
+                }
 #endif
+            }
+            else if (!EditorUtility.IsPersistent(m_RenderPipelineRayTracingResources))
+            {
+                m_RenderPipelineRayTracingResources = AssetDatabase.LoadAssetAtPath<HDRenderPipelineRayTracingResources>(raytracingResourcesPath);
             }
         }
 
