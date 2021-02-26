@@ -453,7 +453,6 @@ namespace UnityEngine.Rendering.HighDefinition
 
             m_DepthPyramidMipLevelOffsetsBuffer = new ComputeBuffer(15, sizeof(int) * 2);
 
-            // TODO RENDERGRAPH: Moved those out of InitializeRenderTexture as they are still needed in render graph and would be deallocated otherwise when switching it on.
             m_CustomPassColorBuffer = new Lazy<RTHandle>(() => RTHandles.Alloc(Vector2.one, TextureXR.slices, dimension: TextureXR.dimension, colorFormat: GetCustomBufferFormat(), enableRandomWrite: true, useDynamicScale: true, name: "CustomPassColorBuffer"));
             m_CustomPassDepthBuffer = new Lazy<RTHandle>(() => RTHandles.Alloc(Vector2.one, TextureXR.slices, dimension: TextureXR.dimension, colorFormat: GraphicsFormat.R32_UInt, useDynamicScale: true, name: "CustomPassDepthBuffer", depthBufferBits: DepthBits.Depth32));
 
@@ -2624,9 +2623,7 @@ namespace UnityEngine.Rendering.HighDefinition
         /// </summary>
         public void ReleasePersistentShadowAtlases()
         {
-            // TODO RENDERGRAPH remove test when we have only one code path.
-            if (m_RenderGraph != null)
-                m_ShadowManager.ReleaseSharedShadowAtlases(m_RenderGraph);
+            m_ShadowManager.ReleaseSharedShadowAtlases(m_RenderGraph);
         }
     }
 }

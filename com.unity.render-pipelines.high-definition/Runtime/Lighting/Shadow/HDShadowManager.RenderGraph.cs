@@ -235,21 +235,17 @@ namespace UnityEngine.Rendering.HighDefinition
 
         protected void InitializeRenderGraphOutput(RenderGraph renderGraph, bool useSharedTexture)
         {
-            // TODO RENDERGRAPH remove null tests when we have only one path. RenderGraph should always be present.
-            if (renderGraph != null)
+            // First release if not needed anymore.
+            if (m_UseSharedTexture)
             {
-                // First release if not needed anymore.
-                if (m_UseSharedTexture)
-                {
-                    Debug.Assert(useSharedTexture, "Shadow atlas can't go from shared to non-shared texture");
-                }
-
-                m_UseSharedTexture = useSharedTexture;
-                // Else it's created on the fly like a regular render graph texture.
-                // Also when using shared texture (for static shadows) we want to manage lifetime manually. Otherwise this would break static shadow caching.
-                if (m_UseSharedTexture)
-                    m_Output = renderGraph.CreateSharedTexture(GetAtlasDesc(), explicitRelease: true);
+                Debug.Assert(useSharedTexture, "Shadow atlas can't go from shared to non-shared texture");
             }
+
+            m_UseSharedTexture = useSharedTexture;
+            // Else it's created on the fly like a regular render graph texture.
+            // Also when using shared texture (for static shadows) we want to manage lifetime manually. Otherwise this would break static shadow caching.
+            if (m_UseSharedTexture)
+                m_Output = renderGraph.CreateSharedTexture(GetAtlasDesc(), explicitRelease: true);
         }
 
         internal void CleanupRenderGraphOutput(RenderGraph renderGraph)

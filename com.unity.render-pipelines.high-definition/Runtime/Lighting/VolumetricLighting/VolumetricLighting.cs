@@ -609,7 +609,6 @@ namespace UnityEngine.Rendering.HighDefinition
             m_LightingBuffer = RTHandles.Alloc(minSize, minSize, minSize, colorFormat: GraphicsFormat.R16G16B16A16_SFloat, // 8888_sRGB is not precise enough
                 dimension: TextureDimension.Tex3D, enableRandomWrite: true, name: "VBufferLighting");
 
-
             m_MaxZMask8x = RTHandles.Alloc(Vector2.one * 0.125f, TextureXR.slices, dimension: TextureXR.dimension, colorFormat: GraphicsFormat.R32_SFloat,
                 enableRandomWrite: true, name: "MaxZ mask 8x");
 
