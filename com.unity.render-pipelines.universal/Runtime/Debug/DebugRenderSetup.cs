@@ -16,45 +16,44 @@ namespace UnityEngine.Rendering.Universal
         private DebugMaterialSettings MaterialSettings => m_DebugHandler.DebugDisplaySettings.MaterialSettings;
         private DebugDisplaySettingsRendering RenderingSettings => m_DebugHandler.DebugDisplaySettings.RenderingSettings;
         private DebugDisplaySettingsLighting LightingSettings => m_DebugHandler.DebugDisplaySettings.LightingSettings;
-        private DebugDisplaySettingsValidation ValiationSettings => m_DebugHandler.DebugDisplaySettings.ValidationSettings;
+        private DebugDisplaySettingsValidation ValidationSettings => m_DebugHandler.DebugDisplaySettings.ValidationSettings;
 
-        private bool IsDebugPassNeeded()
+        private bool IsDebugMaterialPassNeeded()
         {
             if((MaterialSettings.DebugMaterialModeData != DebugMaterialMode.None) ||
                (RenderingSettings.debugMipInfoMode != DebugMipInfoMode.None) ||
                (LightingSettings.DebugLightingMode != DebugLightingMode.None) ||
-               (LightingSettings.DebugLightingFeatureFlagsMask != DebugLightingFeatureFlags.None) ||
-               (ValiationSettings.validationMode != DebugValidationMode.None))
+               (LightingSettings.DebugLightingFeatureFlagsMask != DebugLightingFeatureFlags.None))
             {
                 return true;
             }
-            else
+
+            switch(ValidationSettings.validationMode)
             {
-                switch(RenderingSettings.debugSceneOverrideMode)
+                case DebugValidationMode.ValidateAlbedo:
+                case DebugValidationMode.ValidateMetallic:
+                case DebugValidationMode.ValidateMipmaps:
                 {
-                    case DebugSceneOverrideMode.None:
-                    {
-                        return false;
-                    }
-
-                    case DebugSceneOverrideMode.Overdraw:
-                    case DebugSceneOverrideMode.Wireframe:
-                    case DebugSceneOverrideMode.SolidWireframe:
-                    {
-                        return true;
-                    }
-
-                    case DebugSceneOverrideMode.ShadedWireframe:
-                    {
-                        return (m_Index == 1);
-                    }
-
-                    default:
-                    {
-                        throw new ArgumentOutOfRangeException(nameof(RenderingSettings.debugSceneOverrideMode));
-                    }
-                }       // End of switch.
+                    return true;
+                }
             }
+
+            switch(RenderingSettings.debugSceneOverrideMode)
+            {
+                case DebugSceneOverrideMode.Overdraw:
+                case DebugSceneOverrideMode.Wireframe:
+                case DebugSceneOverrideMode.SolidWireframe:
+                {
+                    return true;
+                }
+
+                case DebugSceneOverrideMode.ShadedWireframe:
+                {
+                    return (m_Index == 1);
+                }
+            } // End of switch.
+
+            return false;
         }
 
         private void Begin()
@@ -144,7 +143,7 @@ namespace UnityEngine.Rendering.Universal
             }
             else
             {
-                if(IsDebugPassNeeded())
+                if(IsDebugMaterialPassNeeded())
                 {
                     return ScriptableRenderPass.CreateDrawingSettings(s_DebugMaterialShaderTagId, ref renderingData, drawingSettings.sortingSettings.criteria);
                 }
