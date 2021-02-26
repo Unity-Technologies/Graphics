@@ -75,9 +75,7 @@ namespace UnityEditor.ShaderGraph.Internal
             return new Texture2DArrayShaderProperty()
             {
                 displayName = displayName,
-                hidden = hidden,
                 value = value,
-                precision = precision,
             };
         }
     }

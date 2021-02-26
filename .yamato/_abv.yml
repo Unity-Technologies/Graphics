@@ -52,10 +52,6 @@ all_project_ci_nightly_2021.1:
 all_project_ci_weekly_2021.1:
     name: _Weekly ABV against 2021.1
     dependencies: []
-    triggers:
-        recurring:
-          -  branch: 2021.1/staging
-             frequency: weekly
 trunk_verification_2021.1:
     name: Trunk verification - 2021.1
     dependencies:

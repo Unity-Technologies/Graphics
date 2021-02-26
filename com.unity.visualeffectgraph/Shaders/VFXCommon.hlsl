@@ -341,72 +341,7 @@ float FixedRand(uint seed)
 // Mesh sampling //
 ///////////////////
 
-float   FetchBuffer(ByteAddressBuffer buffer, int offset) { return asfloat(buffer.Load(offset << 2)); }
-float2  FetchBuffer2(ByteAddressBuffer buffer, int offset) { return asfloat(buffer.Load2(offset << 2)); }
-float3  FetchBuffer3(ByteAddressBuffer buffer, int offset) { return asfloat(buffer.Load3(offset << 2)); }
-float4  FetchBuffer4(ByteAddressBuffer buffer, int offset) { return asfloat(buffer.Load4(offset << 2)); }
-
-float4 SampleMeshFloat4(ByteAddressBuffer vertices, uint vertexIndex, uint channelOffset, uint vertexStride)
-{
-    float4 r = float4(0.0f, 0.0f, 0.0f, 0.0f);
-    [branch]
-    if (channelOffset != -1)
-    {
-        uint offset = vertexIndex * vertexStride + channelOffset;
-        r = FetchBuffer4(vertices, offset);
-    }
-    return r;
-}
-
-float3 SampleMeshFloat3(ByteAddressBuffer vertices, uint vertexIndex, uint channelOffset, uint vertexStride)
-{
-    float3 r = float3(0.0f, 0.0f, 0.0f);
-    [branch]
-    if (channelOffset != -1)
-    {
-        uint offset = vertexIndex * vertexStride + channelOffset;
-        r = FetchBuffer3(vertices, offset);
-    }
-    return r;
-}
-
-float2 SampleMeshFloat2(ByteAddressBuffer vertices, uint vertexIndex, uint channelOffset, uint vertexStride)
-{
-    float2 r = float2(0.0f, 0.0f);
-    [branch]
-    if (channelOffset != -1)
-    {
-        uint offset = vertexIndex * vertexStride + channelOffset;
-        r = FetchBuffer2(vertices, offset);
-    }
-    return r;
-}
-
-float SampleMeshFloat(ByteAddressBuffer vertices, uint vertexIndex, uint channelOffset, uint vertexStride)
-{
-    float r = 0.0f;
-    [branch]
-    if (channelOffset != -1)
-    {
-        uint offset = vertexIndex * vertexStride + channelOffset;
-        r = FetchBuffer(vertices, offset);
-    }
-    return r;
-}
-
-float4 SampleMeshColor(ByteAddressBuffer vertices, uint vertexIndex, uint channelOffset, uint vertexStride)
-{
-    float4 r = float4(0.0f, 0.0f, 0.0f, 0.0f);
-    [branch]
-    if (channelOffset != -1)
-    {
-        uint offset = vertexIndex * vertexStride + channelOffset;
-        uint colorByte = asuint(FetchBuffer(vertices, offset));
-        float4 colorSRGB = float4(uint4(colorByte, colorByte >> 8, colorByte >> 16, colorByte >> 24) & 255) / 255.0f;
-        r = float4(pow(abs(colorSRGB.rgb), 2.2f), colorSRGB.a); //Approximative SRGBToLinear
-    }
-    return r;
-}
+#include "VFXMeshSampling.hlsl"
 
 ///////////////////////////
 // Color transformations //

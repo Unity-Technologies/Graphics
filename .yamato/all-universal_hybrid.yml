@@ -10,9 +10,9 @@
 PR_Universal_Hybrid_2021.1:
     name: Universal_Hybrid PR Job - 2021.1
     dependencies:
-      -  path: .yamato/universal_hybrid-win-dx11.yml#Universal_Hybrid_Win_DX11_playmode_cache_mono_Linear_2021.1
+      -  path: .yamato/universal_hybrid-win-dx11.yml#Universal_Hybrid_Win_DX11_playmode_mono_Linear_2021.1
          rerun: on-new-revision
-      -  path: .yamato/universal_hybrid-osx-metal.yml#Universal_Hybrid_OSX_Metal_playmode_cache_mono_Linear_2021.1
+      -  path: .yamato/universal_hybrid-osx-metal.yml#Universal_Hybrid_OSX_Metal_playmode_mono_Linear_2021.1
          rerun: on-new-revision
     variables:
         UTR_VERSION: "current"
@@ -28,9 +28,9 @@ Nightly_Universal_Hybrid_2021.1:
 PR_Universal_Hybrid_CUSTOM-REVISION:
     name: Universal_Hybrid PR Job - CUSTOM-REVISION
     dependencies:
-      -  path: .yamato/universal_hybrid-win-dx11.yml#Universal_Hybrid_Win_DX11_playmode_cache_mono_Linear_CUSTOM-REVISION
+      -  path: .yamato/universal_hybrid-win-dx11.yml#Universal_Hybrid_Win_DX11_playmode_mono_Linear_CUSTOM-REVISION
          rerun: always
-      -  path: .yamato/universal_hybrid-osx-metal.yml#Universal_Hybrid_OSX_Metal_playmode_cache_mono_Linear_CUSTOM-REVISION
+      -  path: .yamato/universal_hybrid-osx-metal.yml#Universal_Hybrid_OSX_Metal_playmode_mono_Linear_CUSTOM-REVISION
          rerun: always
     variables:
         CUSTOM_REVISION: custom_revision_not_set

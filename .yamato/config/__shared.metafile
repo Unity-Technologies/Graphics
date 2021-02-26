@@ -16,7 +16,7 @@ editors: # applied for all yml files
     ci_triggers:
       pr_triggers_allowed: True # if expression_triggers on PRs allowed
       nightly_job_trigger: True # if true, adds recurrent trigger to nightly job
-      weekly_job_trigger: True # if true, adds recurrent trigger to weekly job
+      weekly_job_trigger: False # if true, adds recurrent trigger to weekly job
   - track: CUSTOM-REVISION
     name: CUSTOM-REVISION
     rerun_strategy: always

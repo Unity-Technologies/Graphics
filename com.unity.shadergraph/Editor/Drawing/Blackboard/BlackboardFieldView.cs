@@ -7,6 +7,7 @@ using UnityEditor.Experimental.GraphView;
 using UnityEditor.ShaderGraph.Drawing.Controls;
 using UnityEditor.ShaderGraph.Drawing.Inspector.PropertyDrawers;
 using UnityEditor.ShaderGraph.Internal;
+using ContextualMenuManipulator = UnityEngine.UIElements.ContextualMenuManipulator;
 
 namespace UnityEditor.ShaderGraph.Drawing.Views.Blackboard
 {
@@ -19,10 +20,6 @@ namespace UnityEditor.ShaderGraph.Drawing.Views.Blackboard
 
         [Inspectable("Shader Input", null)]
         public ShaderInput shaderInput => m_Input;
-
-        static Type s_ContextualMenuManipulatorType = TypeCache.GetTypesDerivedFrom<MouseManipulator>().FirstOrDefault(t => t.FullName == "UnityEngine.UIElements.ContextualMenuManipulator");
-
-        IManipulator m_RightClickMenuManipulator;
 
         private void DirtyNodes(ModificationScope modificationScope = ModificationScope.Node)
         {
@@ -63,7 +60,7 @@ namespace UnityEditor.ShaderGraph.Drawing.Views.Blackboard
 
         // When the properties are changed, these delegates are used to trigger an update in the other views that also represent those properties
         private Action m_inspectorUpdateTrigger;
-        private ShaderInputPropertyDrawer.ChangeReferenceNameCallback m_resetReferenceNameTrigger;
+        private Action m_ResetReferenceNameAction;
         Label m_NameLabelField;
 
         public string inspectorTitle
@@ -108,14 +105,20 @@ namespace UnityEditor.ShaderGraph.Drawing.Views.Blackboard
             this.name = "blackboardFieldView";
             ShaderGraphPreferences.onAllowDeprecatedChanged += UpdateTypeText;
 
-            UpdateRightClickMenu();
+            // add the right click context menu
+            IManipulator contextMenuManipulator = new ContextualMenuManipulator(AddContextMenuOptions);
+            this.AddManipulator(contextMenuManipulator);
+
             var nameTextField = this.Q("textField") as TextField;
             var textinput = nameTextField.Q(TextField.textInputUssName);
             // When a display name is changed through the BlackboardPill, this callback handle it
             textinput.RegisterCallback<FocusOutEvent>(e =>
             {
                 this.RegisterPropertyChangeUndo("Change Display Name");
-                ChangeDisplayNameField(nameTextField.text);
+
+                if (nameTextField.text != m_Input.displayName)
+                    m_Input.SetDisplayNameAndSanitizeForGraph(m_Graph, nameTextField.text);
+
                 // This gets triggered on property creation so need to check for inspector update trigger being valid (which it might not be at the time)
                 if (this.m_inspectorUpdateTrigger != null)
                     this.MarkNodesAsDirty(true, ModificationScope.Topological);
@@ -139,31 +142,21 @@ namespace UnityEditor.ShaderGraph.Drawing.Views.Blackboard
             return shaderInput;
         }
 
-        // Checks if the reference name has been overriden and appends menu action to reset it, if so
-        internal void UpdateRightClickMenu()
+        void AddContextMenuOptions(ContextualMenuPopulateEvent evt)
         {
-            if (string.IsNullOrEmpty(m_Input.overrideReferenceName))
+            // Checks if the reference name has been overridden and appends menu action to reset it, if so
+            if (m_Input.isRenamable &&
+                !string.IsNullOrEmpty(m_Input.overrideReferenceName))
             {
-                this.RemoveManipulator(m_RightClickMenuManipulator);
-                m_RightClickMenuManipulator = null;
+                evt.menu.AppendAction(
+                    "Reset Reference",
+                    e =>
+                    {
+                        m_ResetReferenceNameAction?.Invoke();
+                        DirtyNodes(ModificationScope.Graph);
+                    },
+                    DropdownMenuAction.AlwaysEnabled);
             }
-            else if (m_RightClickMenuManipulator == null)
-            {
-                m_RightClickMenuManipulator = (IManipulator)Activator.CreateInstance(s_ContextualMenuManipulatorType, (Action<ContextualMenuPopulateEvent>)BuildContextualMenu);
-                this.AddManipulator(m_RightClickMenuManipulator);
-            }
-        }
-
-        void BuildContextualMenu(ContextualMenuPopulateEvent evt)
-        {
-            evt.menu.AppendAction("Reset Reference", e => { ResetReferenceAction(); }, DropdownMenuAction.AlwaysEnabled);
-        }
-
-        internal void ResetReferenceAction()
-        {
-            m_Input.overrideReferenceName = null;
-            m_resetReferenceNameTrigger(shaderInput.referenceName);
-            DirtyNodes(ModificationScope.Graph);
         }
 
         #region PropertyDrawers
@@ -175,8 +168,6 @@ namespace UnityEditor.ShaderGraph.Drawing.Views.Blackboard
                     m_Graph.isSubGraph,
                     m_Graph,
                     ChangeExposedField,
-                    ChangeDisplayNameField,
-                    ChangeReferenceNameField,
                     () => m_Graph.ValidateGraph(),
                     () => m_Graph.OnKeywordChanged(),
                     ChangePropertyValue,
@@ -184,40 +175,21 @@ namespace UnityEditor.ShaderGraph.Drawing.Views.Blackboard
                     MarkNodesAsDirty);
 
                 m_inspectorUpdateTrigger = inspectorUpdateDelegate;
-                m_resetReferenceNameTrigger = shaderInputPropertyDrawer._resetReferenceNameCallback;
+                m_ResetReferenceNameAction = shaderInputPropertyDrawer.ResetReferenceName;
 
                 this.RegisterCallback<DetachFromPanelEvent>(evt => m_inspectorUpdateTrigger());
             }
-
-            UpdateRightClickMenu();
         }
 
         void ChangeExposedField(bool newValue)
         {
             m_Input.generatePropertyBlock = newValue;
-            icon = m_Input.generatePropertyBlock ? BlackboardProvider.exposedIcon : null;
-        }
-
-        void ChangeDisplayNameField(string newValue)
-        {
-            if (newValue != m_Input.displayName)
-            {
-                m_Input.displayName = newValue;
-                m_Graph.SanitizeGraphInputName(m_Input);
-            }
+            icon = (m_Graph.isSubGraph || m_Input.isExposed) ? BlackboardProvider.exposedIcon : null;
         }
 
         void UpdateDisplayNameText(string newDisplayName)
         {
             m_NameLabelField.text = newDisplayName;
-        }
-
-        void ChangeReferenceNameField(string newValue)
-        {
-            if (newValue != m_Input.referenceName)
-                m_Graph.SanitizeGraphInputReferenceName(m_Input, newValue);
-
-            UpdateRightClickMenu();
         }
 
         void RegisterPropertyChangeUndo(string actionName)

@@ -47,11 +47,7 @@ namespace UnityEditor.ShaderGraph
             return new Matrix4ShaderProperty()
             {
                 displayName = displayName,
-                hidden = hidden,
                 value = value,
-                precision = precision,
-                overrideHLSLDeclaration = overrideHLSLDeclaration,
-                hlslDeclarationOverride = hlslDeclarationOverride
             };
         }
 
