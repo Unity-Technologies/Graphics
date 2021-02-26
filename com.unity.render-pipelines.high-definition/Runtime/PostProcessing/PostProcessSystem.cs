@@ -2601,7 +2601,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 float sw = scaleW * p;
                 float sh = scaleH * p;
                 int pw, ph;
-                if (DynamicResolutionHandler.instance.HardwareDynamicResIsEnabled())
+                if (camera.DynResRequest.hardwareEnabled)
                 {
                     pw = Mathf.Max(1, Mathf.CeilToInt(sw * camera.actualWidth));
                     ph = Mathf.Max(1, Mathf.CeilToInt(sh * camera.actualHeight));
@@ -3312,6 +3312,8 @@ namespace UnityEngine.Rendering.HighDefinition
             public bool             useFXAA;
             public bool             enableAlpha;
             public bool             keepAlpha;
+            public bool             dynamicResIsOn;
+            public DynamicResUpscaleFilter dynamicResFilter;
 
             public bool             filmGrainEnabled;
             public Texture          filmGrainTexture;
@@ -3335,8 +3337,9 @@ namespace UnityEngine.Rendering.HighDefinition
             parameters.enableAlpha = m_EnableAlpha;
             parameters.keepAlpha = m_KeepAlpha;
 
-            var dynResHandler = DynamicResolutionHandler.instance;
-            bool dynamicResIsOn = hdCamera.isMainGameView && dynResHandler.DynamicResolutionEnabled();
+            bool dynamicResIsOn = hdCamera.canDoDynamicResolution && hdCamera.DynResRequest.enabled;
+            parameters.dynamicResIsOn = dynamicResIsOn;
+            parameters.dynamicResFilter = hdCamera.DynResRequest.filter;
             parameters.useFXAA = hdCamera.antialiasing == AntialiasingMode.FastApproximateAntialiasing && !dynamicResIsOn && m_AntialiasingFS;
 
             // Film Grain
@@ -3371,12 +3374,9 @@ namespace UnityEngine.Rendering.HighDefinition
             finalPassMaterial.shaderKeywords = null;
             finalPassMaterial.SetTexture(HDShaderIDs._InputTexture, source);
 
-            var dynResHandler = DynamicResolutionHandler.instance;
-            bool dynamicResIsOn = hdCamera.isMainGameView && dynResHandler.DynamicResolutionEnabled();
-
-            if (dynamicResIsOn)
+            if (parameters.dynamicResIsOn)
             {
-                switch (dynResHandler.filter)
+                switch (parameters.dynamicResFilter)
                 {
                     case DynamicResUpscaleFilter.Bilinear:
                         finalPassMaterial.EnableKeyword("BILINEAR");
