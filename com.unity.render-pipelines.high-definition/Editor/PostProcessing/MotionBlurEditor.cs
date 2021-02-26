@@ -55,9 +55,6 @@ namespace UnityEditor.Rendering.HighDefinition
             PropertyField(m_MinVelInPixels);
             PropertyField(m_DepthCmpScale);
 
-            EditorGUILayout.Space();
-            EditorGUILayout.LabelField("Camera Velocity", EditorStyles.miniLabel);
-
             PropertyField(m_CameraMotionBlur);
             using (new EditorGUI.DisabledScope(!m_CameraMotionBlur.value.boolValue))
             {
