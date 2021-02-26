@@ -268,7 +268,7 @@ namespace UnityEngine.Rendering.Universal
             Camera camera = cameraData.camera;
             RenderTextureDescriptor cameraTargetDescriptor = cameraData.cameraTargetDescriptor;
 
-            if(DebugHandler.IsDebugPassEnabled(ref cameraData))
+            if(DebugHandler.IsActiveForCamera(ref cameraData))
             {
                 DebugHandler.Setup(context);
             }
@@ -412,7 +412,7 @@ namespace UnityEngine.Rendering.Universal
                                          && createDepthTexture;
             bool copyColorPass = renderingData.cameraData.requiresOpaqueTexture || renderPassInputs.requiresColorTexture;
 
-            if(DebugHandler.IsDebugPassEnabled(ref cameraData) && !DebugHandler.IsLightingActive)
+            if(DebugHandler.IsActiveForCamera(ref cameraData) && !DebugHandler.IsLightingActive)
             {
                 mainLightShadows = false;
                 additionalLightShadows = false;
@@ -626,7 +626,7 @@ namespace UnityEngine.Rendering.Universal
                 EnqueuePass(postProcessPass);
             }
 
-            if(DebugHandler.IsDebugPassEnabled(ref cameraData) &&
+            if(DebugHandler.IsActiveForCamera(ref cameraData) &&
                DebugHandler.TryGetFullscreenDebugMode(out DebugFullScreenMode fullScreenDebugMode))
             {
                 RenderTargetIdentifier debugBuffer;

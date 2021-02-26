@@ -207,7 +207,9 @@ namespace UnityEditor.Rendering
         #region IDebugDisplaySettingsData
         public bool AreAnySettingsActive => (validationMode != DebugValidationMode.None);
 
-        public bool IsPostProcessingAllowed => (validationMode == DebugValidationMode.None);
+        public bool IsPostProcessingAllowed => (validationMode == DebugValidationMode.None) ||
+                                               (validationMode == DebugValidationMode.HighlightNanInfNegative) ||
+                                               (validationMode == DebugValidationMode.HighlightOutsideOfRange);
 
         public bool IsLightingActive => (validationMode == DebugValidationMode.None) ||
                                         (validationMode == DebugValidationMode.HighlightNanInfNegative) ||

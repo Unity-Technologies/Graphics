@@ -145,7 +145,7 @@ namespace UnityEngine.Experimental.Rendering.Universal
             bool ppcUsesOffscreenRT = false;
             bool ppcUpscaleRT = false;
 
-            if(DebugHandler.IsDebugPassEnabled(ref cameraData))
+            if(DebugHandler.IsActiveForCamera(ref cameraData))
             {
                 DebugHandler.Setup(context);
             }

@@ -222,7 +222,7 @@ namespace UnityEngine.Experimental.Rendering.Universal
                         cmd.Clear();
 
                         short cameraSortingLayerBoundsIndex = GetCameraSortingLayerBoundsIndex();
-                        bool debugRender = (DebugHandler != null) && DebugHandler.IsDebugPassEnabled(ref renderingData.cameraData);
+                        bool debugRender = (DebugHandler != null) && DebugHandler.IsActiveForCamera(ref renderingData.cameraData);
 
                         // If our camera sorting layer texture bound is inside our batch we need to break up the DrawRenderers into two batches
                         if (cameraSortingLayerBoundsIndex >= layerBatch.layerRange.lowerBound && cameraSortingLayerBoundsIndex < layerBatch.layerRange.upperBound && m_Renderer2DData.useCameraSortingLayerTexture)

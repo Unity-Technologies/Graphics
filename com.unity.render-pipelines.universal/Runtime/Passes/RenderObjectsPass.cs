@@ -121,7 +121,7 @@ namespace UnityEngine.Experimental.Rendering.Universal
                     }
                 }
 
-                if((DebugHandler != null) && DebugHandler.IsDebugPassEnabled(ref cameraData))
+                if((DebugHandler != null) && DebugHandler.IsActiveForCamera(ref cameraData))
                 {
                     foreach(DebugRenderSetup debugRenderSetup in DebugHandler.CreateDebugRenderSetupEnumerable(context, cmd))
                     {

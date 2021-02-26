@@ -95,7 +95,7 @@ namespace UnityEngine.Rendering.Universal
             m_ReplacementMaterial = (debugReplacementShader == null) ? null : CoreUtils.CreateEngineMaterial(debugReplacementShader);
         }
 
-        public bool IsDebugPassEnabled(ref CameraData cameraData)
+        public bool IsActiveForCamera(ref CameraData cameraData)
         {
             return !cameraData.isPreviewCamera && AreAnySettingsActive;
         }

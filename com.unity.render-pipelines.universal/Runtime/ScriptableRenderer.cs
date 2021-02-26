@@ -913,7 +913,7 @@ namespace UnityEngine.Rendering.Universal
                     finalClearFlag |= (renderPass.clearFlag & ClearFlag.Depth);
 
                 // If the debug-handler needs to clear the screen, update "finalClearColor" accordingly...
-                if((DebugHandler != null) && DebugHandler.IsDebugPassEnabled(ref cameraData))
+                if((DebugHandler != null) && DebugHandler.IsActiveForCamera(ref cameraData))
                 {
                     DebugHandler.TryGetScreenClearColor(ref finalClearColor);
                 }
