@@ -140,8 +140,10 @@ namespace UnityEngine.Experimental.Rendering.Universal
             ref DrawingSettings drawSettings,
             ref RenderTextureDescriptor desc)
         {
+            bool drawLights = (DebugHandler == null) || DebugHandler.IsLightingActive;
             var batchesDrawn = 0;
             var rtCount = 0U;
+
             // Draw lights
             using (new ProfilingScope(cmd, m_ProfilingDrawLights))
             {
@@ -242,7 +244,7 @@ namespace UnityEngine.Experimental.Rendering.Universal
                         }
 
                         // Draw light volumes
-                        if (layerBatch.lightStats.totalVolumetricUsage > 0)
+                        if (drawLights && (layerBatch.lightStats.totalVolumetricUsage > 0))
                         {
                             var sampleName = "Render 2D Light Volumes";
                             cmd.BeginSample(sampleName);

@@ -41,11 +41,8 @@ namespace UnityEditor.Rendering
         public bool IsPostProcessingAllowed => (debugPostProcessingMode != DebugPostProcessingMode.Disabled) &&
                                                (debugSceneOverrideMode == DebugSceneOverrideMode.None);
 
-        public bool IsDebugMaterialActive => (debugFullScreenMode != DebugFullScreenMode.None) ||
-                                             (debugSceneOverrideMode != DebugSceneOverrideMode.None)||
-                                             (debugMipInfoMode != DebugMipInfoMode.None);
-
-        public bool IsLightingActive => (debugSceneOverrideMode == DebugSceneOverrideMode.None);
+        public bool IsLightingActive => (debugSceneOverrideMode == DebugSceneOverrideMode.None) &&
+                                        (debugMipInfoMode == DebugMipInfoMode.None);
 
         public bool TryGetScreenClearColor(ref Color color)
         {
