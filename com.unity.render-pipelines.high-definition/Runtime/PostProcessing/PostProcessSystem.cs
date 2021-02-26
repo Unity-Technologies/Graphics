@@ -2285,23 +2285,6 @@ namespace UnityEngine.Rendering.HighDefinition
                         continue;
                 }
 
-                float totalLengthPos = 0.0f;
-                float totalLengthNeg = 0.0f;
-                foreach (SRPLensFlareDataElement element in data.elements)
-                {
-                    if (element == null || element.lensFlareTexture == null || element.position < 0.0f || element.count <= 0)
-                        continue;
-
-                    totalLengthPos += element.count * element.position;
-                }
-                foreach (SRPLensFlareDataElement element in data.elements)
-                {
-                    if (element == null || element.lensFlareTexture == null || element.position > 0.0f || element.count <= 0)
-                        continue;
-
-                    totalLengthNeg += element.count * Mathf.Abs(element.position);
-                }
-
                 Vector4 modulationByColor = Vector4.one;
                 Vector4 modulationAttenuation = Vector4.one;
                 Vector3 diffToObject = comp.transform.position - cam.transform.position;
@@ -2421,7 +2404,6 @@ namespace UnityEngine.Rendering.HighDefinition
                     }
                 }
 
-                float curLengthPos = 0.0f;
                 foreach (SRPLensFlareDataElement element in data.elements)
                 {
                     if (element == null ||
@@ -2454,43 +2436,14 @@ namespace UnityEngine.Rendering.HighDefinition
                     Random.InitState(element.seed);
                     for (int elemIdx = 0; elemIdx < element.count; ++elemIdx)
                     {
-                        float curLengthNeg = 0.0f;
-                        if (element.position > 0.0f)
-                            curLengthPos += element.position;
-                        else if (element.position < 0.0f)
-                        {
-                            for (int i = data.elements.Length - 1; i >= 0; i--)
-                            {
-                                if (data.elements[i].position < 0.0f)
-                                {
-                                    curLengthNeg += Mathf.Abs(element.position);
-                                    if (data.elements[i] == element)
-                                    {
-                                        break;
-                                    }
-                                }
-                            }
-                        }
-
-                        float timePosPos = totalLengthPos > 0.0f ? curLengthPos / totalLengthPos : 0.0f;
-                        float timePosNeg = totalLengthNeg > 0.0f ? curLengthNeg / totalLengthNeg : 0.0f;
-
-                        float coefForGradient;
-                        if (element.position >= 0.0f)
-                        {
-                            coefForGradient = totalLengthPos > 0.0f ? 0.5f + 0.5f * curLengthPos / totalLengthPos : 0.5f;
-                        }
-                        else
-                        {
-                            coefForGradient = totalLengthNeg > 0.0f ? (0.5f - 0.5f * timePosNeg) : 0.5f;
-                        }
-
                         Vector4 gradientModulation = new Vector4(1.0f, 1.0f, 1.0f, 1.0f);
 
                         Texture texture = element.lensFlareTexture;
                         float usedAspectRatio = element.preserveAspectRatio ? (((float)texture.width) / ((float)texture.height)) : element.aspectRatio;
 
                         Vector2 size = new Vector2(scaleByDistance * element.size * usedAspectRatio, scaleByDistance * element.size);
+                        size *= 0.1f; // Arbitrary values
+
                         float rotation = element.rotation;
                         Vector4 tint = Vector4.Scale(element.tint, gradientModulation);
 
