@@ -194,6 +194,8 @@ namespace UnityEngine.Rendering.Universal
 
             // Hook in the debug-render where appropriate...
             m_RenderOpaqueForwardPass.DebugHandler = DebugHandler;
+            m_FinalBlitPass.DebugHandler = DebugHandler;
+
             if(m_RenderOpaqueForwardOnlyPass != null)
             {
                 m_RenderOpaqueForwardOnlyPass.DebugHandler = DebugHandler;

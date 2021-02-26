@@ -50,6 +50,7 @@ namespace UnityEngine.Experimental.Rendering.Universal
 
             // Hook in the debug-render where appropriate...
             m_Render2DLightingPass.DebugHandler = DebugHandler;
+            m_FinalBlitPass.DebugHandler = DebugHandler;
 
             // We probably should declare these names in the base class,
             // as they must be the same across all ScriptableRenderer types for camera stacking to work.

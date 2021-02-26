@@ -1,5 +1,4 @@
 
-using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -42,6 +41,10 @@ namespace UnityEngine.Rendering.Universal
 
         private static readonly int kDebugValidateMetallicMinValueId = Shader.PropertyToID("_DebugValidateMetallicMinValue");
         private static readonly int kDebugValidateMetallicMaxValueId = Shader.PropertyToID("_DebugValidateMetallicMaxValue");
+
+        private static readonly int kRangeMinimumId = Shader.PropertyToID("_RangeMinimum");
+        private static readonly int kRangeMaximumId = Shader.PropertyToID("_RangeMaximum");
+        private static readonly int kHighlightOutOfRangeAlpha = Shader.PropertyToID("_HighlightOutOfRangeAlpha");
         #endregion
 
         private readonly Material m_FullScreenDebugMaterial;
@@ -108,6 +111,7 @@ namespace UnityEngine.Rendering.Universal
             return debugFullScreenMode != DebugFullScreenMode.None;
         }
 
+        [Conditional("DEVELOPMENT_BUILD"), Conditional("UNITY_EDITOR")]
         public void SetupShaderProperties(CommandBuffer cmd, int passIndex = 0)
         {
             if(LightingSettings.DebugLightingMode == DebugLightingMode.ShadowCascades)
@@ -169,6 +173,28 @@ namespace UnityEngine.Rendering.Universal
                     break;
                 }
             }       // End of switch.
+        }
+
+        [Conditional("DEVELOPMENT_BUILD"), Conditional("UNITY_EDITOR")]
+        public void SetupShaderPropertiesFinalBlitPass(CommandBuffer cmd)
+        {
+            DebugDisplaySettingsValidation validationSettings = DebugDisplaySettings.Instance.ValidationSettings;
+
+            if(validationSettings.validationMode == DebugValidationMode.None)
+            {
+                cmd.DisableShaderKeyword("_DEBUG_SHADER");
+            }
+            else
+            {
+                cmd.EnableShaderKeyword("_DEBUG_SHADER");
+            }
+
+            if (validationSettings.validationMode == DebugValidationMode.HighlightOutsideOfRange)
+            {
+                cmd.SetGlobalFloat(kRangeMinimumId, validationSettings.RangeMin);
+                cmd.SetGlobalFloat(kRangeMaximumId, validationSettings.RangeMax);
+                cmd.SetGlobalInt(kHighlightOutOfRangeAlpha, validationSettings.AlsoHighlightAlphaOutsideRange ? 1 : 0);
+            }
         }
 
         [Conditional("DEVELOPMENT_BUILD"), Conditional("UNITY_EDITOR")]

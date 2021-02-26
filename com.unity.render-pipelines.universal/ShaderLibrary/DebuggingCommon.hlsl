@@ -13,6 +13,13 @@
 #define kOrangeBrownColor float4(219.0 / 255.0, 119.0 / 255.0, 59.0 / 255.0, 1.0) // #4B92F3
 #define kGrayColor float4(174.0 / 255.0, 174.0 / 255.0, 174.0 / 255.0, 1.0) // #AEAEAE
 
+// Convert rgb to luminance
+// with rgb in linear space with sRGB primaries and D65 white point
+half LinearRgbToLuminance(half3 linearRgb)
+{
+    return dot(linearRgb, half3(0.2126729f, 0.7151522f, 0.0721750f));
+}
+
 #if defined(_DEBUG_SHADER)
 
 #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Debug.hlsl"
@@ -67,13 +74,6 @@ half3 GetDebugColor(uint index)
     uint clammpedIndex = clamp(index, 0, maxColors - 1);
 
     return lut[clammpedIndex].rgb;
-}
-
-// Convert rgb to luminance
-// with rgb in linear space with sRGB primaries and D65 white point
-half LinearRgbToLuminance(half3 linearRgb)
-{
-    return dot(linearRgb, half3(0.2126729f, 0.7151522f, 0.0721750f));
 }
 
 half3 UnityMeta_RGBToHSVHelper(float offset, half dominantColor, half colorone, half colortwo)

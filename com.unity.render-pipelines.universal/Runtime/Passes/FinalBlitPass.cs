@@ -1,4 +1,3 @@
-using UnityEditor.Rendering;
 
 namespace UnityEngine.Rendering.Universal.Internal
 {
@@ -14,18 +13,12 @@ namespace UnityEngine.Rendering.Universal.Internal
         RenderTargetHandle m_Source;
         Material m_BlitMaterial;
 
-        int m_RangeMinId;
-        int m_InverseRangeSizeId;
-
         public FinalBlitPass(RenderPassEvent evt, Material blitMaterial)
         {
             base.profilingSampler = new ProfilingSampler(nameof(FinalBlitPass));
 
             m_BlitMaterial = blitMaterial;
             renderPassEvent = evt;
-
-            m_RangeMinId = Shader.PropertyToID("_RangeMinimum");
-            m_InverseRangeSizeId = Shader.PropertyToID("_RangeMaximum");
         }
 
         /// <summary>
@@ -56,28 +49,7 @@ namespace UnityEngine.Rendering.Universal.Internal
             CommandBuffer cmd = CommandBufferPool.Get();
             using (new ProfilingScope(cmd, ProfilingSampler.Get(URPProfileId.FinalBlit)))
             {
-                DebugDisplaySettingsValidation validationSettings = DebugDisplaySettings.Instance.ValidationSettings;
-
-	            if (validationSettings.validationMode==DebugValidationMode.HighlightNanInfNegative)
-    	            cmd.EnableShaderKeyword("_DEBUG_HIGHLIGHT_NAN_INF_NEGATIVE_PIXELS");
-        	    else
-            	    cmd.DisableShaderKeyword("_DEBUG_HIGHLIGHT_NAN_INF_NEGATIVE_PIXELS");
-
-	            if (validationSettings.validationMode == DebugValidationMode.HighlightOutsideOfRange)
-    	        {
-        	        cmd.EnableShaderKeyword("_DEBUG_HIGHLIGHT_PIXELS_OUTSIDE_RANGE");
-            	    cmd.SetGlobalFloat(m_RangeMinId, validationSettings.RangeMin);
-                	cmd.SetGlobalFloat(m_InverseRangeSizeId, validationSettings.RangeMax);
-
-	                if(validationSettings.AlsoHighlightAlphaOutsideRange)
-    	                cmd.EnableShaderKeyword("_DEBUG_HIGHLIGHT_ALPHA_OUTSIDE_RANGE");
-        	        else
-            	        cmd.DisableShaderKeyword("_DEBUG_HIGHLIGHT_ALPHA_OUTSIDE_RANGE");
-	            }
-    	        else
-        	    {
-                	cmd.DisableShaderKeyword("_DEBUG_HIGHLIGHT_PIXELS_OUTSIDE_RANGE");
-            	}
+                DebugHandler?.SetupShaderPropertiesFinalBlitPass(cmd);
 
                 CoreUtils.SetKeyword(cmd, ShaderKeywordStrings.LinearToSRGBConversion,
                     cameraData.requireSrgbConversion);
@@ -112,7 +84,8 @@ namespace UnityEngine.Rendering.Universal.Internal
                 }
                 else
 #endif
-                if ((isSceneViewCamera || cameraData.isDefaultViewport) && (validationSettings.validationMode==DebugValidationMode.None))
+                if((isSceneViewCamera || cameraData.isDefaultViewport) &&
+                   (DebugHandler == null) || (DebugHandler.DebugDisplaySettings.ValidationSettings.validationMode == DebugValidationMode.None))
                 {
                     // This set render target is necessary so we change the LOAD state to DontCare.
                     cmd.SetRenderTarget(BuiltinRenderTextureType.CameraTarget,
