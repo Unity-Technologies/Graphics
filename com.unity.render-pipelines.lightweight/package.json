@@ -7,7 +7,7 @@
   "displayName": "Lightweight RP",
   "dependencies": {
     "com.unity.render-pipelines.universal": "10.3.2",
-    "com.unity.postprocessing": "2.1.7"
+    "com.unity.postprocessing": "3.0.1"
   },
   "keywords": [
     "graphics",
