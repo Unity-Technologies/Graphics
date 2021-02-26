@@ -10,14 +10,12 @@ namespace UnityEditor.Rendering
     [CustomPropertyDrawer(typeof(SRPLensFlareDataElement))]
     public class SRPLensFlareElementEditor : PropertyDrawer
     {
-        static float m_Indent = 0.0f;
-
         private float m_LastOffset = 0.0f;
         private Rect m_CurrentRect;
 
         private void InitFirstRect(Rect position)
         {
-            m_CurrentRect = new Rect(position.x + m_Indent, position.y, position.width - m_Indent, GUIStyle.none.lineHeight);
+            m_CurrentRect = new Rect(position.x, position.y, position.width, GUIStyle.none.lineHeight);
         }
 
         private Rect GetNextRect(float xOffset = 0.0f)
@@ -93,16 +91,26 @@ namespace UnityEditor.Rendering
 
             if (lensFlareProp.objectReferenceValue != null)
             {
-                float imgWidth = 1.5f * m_Indent;
-                float imgOffX = 0.5f * (GetPropertyHeight(property, label) - imgWidth - GUIStyle.none.lineHeight);
-                //Rect imgRect = new Rect(position.x - m_Indent + 15.0f, originY + imgOffY + GUIStyle.none.lineHeight, imgWidth, imgWidth);
-                Rect imgRect = new Rect(m_CurrentRect.x, m_CurrentRect.y, imgWidth, imgWidth);
                 Texture texture = lensFlareProp.objectReferenceValue as Texture;
+                float imgWidth = 1.5f * 35.0f;
                 float usedAspectRatio = preserveAspectRatioProp.boolValue ? (((float)texture.width) / ((float)texture.height)) : aspectRatioProp.floatValue;
-                EditorGUI.DrawTextureTransparent(imgRect, lensFlareProp.objectReferenceValue as Texture, ScaleMode.ScaleToFit, usedAspectRatio);
+                if (isFoldOpened.boolValue)
+                {
+                    Rect imgRect = new Rect(m_CurrentRect.x + 0.5f * (position.width - imgWidth), m_CurrentRect.y + GUIStyle.none.lineHeight + 5.0f, imgWidth, imgWidth);
+                    EditorGUI.DrawTextureTransparent(imgRect, lensFlareProp.objectReferenceValue as Texture, ScaleMode.ScaleToFit, usedAspectRatio);
+                }
+                else
+                {
+                    float imgOffY = 0.5f * (GetPropertyHeight(property, label) - imgWidth - GUIStyle.none.lineHeight);
+                    Rect imgRect = new Rect(position.x - 35.0f + 15.0f, position.y + imgOffY + GUIStyle.none.lineHeight, imgWidth, imgWidth);
+                    EditorGUI.DrawTextureTransparent(imgRect, lensFlareProp.objectReferenceValue as Texture, ScaleMode.ScaleToFit, usedAspectRatio);
+                }
             }
             Rect rect = m_CurrentRect;
-            m_CurrentRect.y += 1.5f * 35.0f;
+            if (isFoldOpened.boolValue)
+            {
+                m_CurrentRect.y += 1.5f * 35.0f;
+            }
             EditorGUI.BeginProperty(new Rect(rect.x, rect.y, rect.width, 2.0f * rect.height), label, property);
 
             float lineHeight = EditorGUIUtility.singleLineHeight + EditorGUIUtility.standardVerticalSpacing;
@@ -112,7 +120,7 @@ namespace UnityEditor.Rendering
             float tmp;
             int iTmp;
             Vector2 tmpVec2;
-            if (EditorGUI.BeginFoldoutHeaderGroup(new Rect(position.x + 0.25f * m_Indent, position.y, position.width - 0.25f * m_Indent, GUIStyle.none.lineHeight), isFoldOpened.boolValue, EditorGUIUtility.TrTextContent("Lens Flare Element")))
+            if (EditorGUI.BeginFoldoutHeaderGroup(new Rect(position.x, position.y, position.width, GUIStyle.none.lineHeight), isFoldOpened.boolValue, EditorGUIUtility.TrTextContent("Lens Flare Element")))
             {
                 rect = GetNextRect();
                 EditorGUI.TextArea(rect, "Common", EditorStyles.boldLabel);
@@ -251,7 +259,7 @@ namespace UnityEditor.Rendering
             else
             {
                 Texture tmpTex;
-                rect = GetNextRect();
+                rect = GetNextRect(35.0f);
                 if ((tmpTex = (EditorGUI.ObjectField(rect, Styles.flareTexture, lensFlareProp.objectReferenceValue, typeof(Texture), false) as Texture)) != (lensFlareProp.objectReferenceValue as Texture))
                 {
                     lensFlareProp.objectReferenceValue = tmpTex;
@@ -291,6 +299,7 @@ namespace UnityEditor.Rendering
             SerializedProperty countProp = property.FindPropertyRelative("count");
 
             float coef;
+            float offset = 0.0f;
             if (isFoldOpened.boolValue)
             {
                 if (preserveAspectRatio.boolValue)
@@ -314,13 +323,15 @@ namespace UnityEditor.Rendering
                         coef += 3.0f;
                     }
                 }
+
+                offset = 1.5f * 35.0f;
             }
             else
             {
                 coef = 5.0f;
             }
 
-            return coef * (EditorGUIUtility.singleLineHeight + EditorGUIUtility.standardVerticalSpacing) + 1.5f * 35.0f;
+            return coef * (EditorGUIUtility.singleLineHeight + EditorGUIUtility.standardVerticalSpacing) + offset;
         }
 
         sealed class Styles
