@@ -101,7 +101,7 @@ namespace UnityEditor.ShaderGraph.Drawing
             {
                 m_AssetName = value;
                 // Also update blackboard title
-                m_BlackboardController.ViewModel.Title = value;
+                m_BlackboardController.ViewModel.title = value;
             }
         }
 
@@ -219,7 +219,6 @@ namespace UnityEditor.ShaderGraph.Drawing
 
                 CreateBlackboard();
                 CreateMasterPreview();
-                // When Matt integrates his stacks work, the inspector will need to trigger preview updates
                 CreateInspector();
 
                 UpdateSubWindowsVisibility();
@@ -280,7 +279,7 @@ namespace UnityEditor.ShaderGraph.Drawing
 
         private void CreateBlackboard()
         {
-            var blackboardViewModel = new BlackboardViewModel() { ParentView = graphView, Model = m_Graph, Title = assetName };
+            var blackboardViewModel = new BlackboardViewModel() { parentView = graphView, model = m_Graph, title = assetName };
             m_BlackboardController = new BlackboardController(m_Graph, blackboardViewModel, m_Graph.owner.graphDataStore);
         }
 
@@ -393,8 +392,9 @@ namespace UnityEditor.ShaderGraph.Drawing
 
         void CreateInspector()
         {
-            var inspectorViewModel = new InspectorViewModel() { ParentView = this.graphView };
+            var inspectorViewModel = new InspectorViewModel() { parentView = this.graphView };
             m_InspectorView = new InspectorView(inspectorViewModel);
+            graphView.OnSelectionChange += m_InspectorView.TriggerInspectorUpdate;
         }
 
         void OnKeyDown(KeyDownEvent evt)
@@ -656,7 +656,7 @@ namespace UnityEditor.ShaderGraph.Drawing
 
             previewManager.RenderPreviews();
             m_BlackboardController.HandleGraphChanges(wasUndoRedoPerformed);
-            if (wasUndoRedoPerformed || m_InspectorView.DoesInspectorNeedUpdate())
+            if (wasUndoRedoPerformed || m_InspectorView.doesInspectorNeedUpdate)
                 m_InspectorView.Update();
             m_GroupHashSet.Clear();
 

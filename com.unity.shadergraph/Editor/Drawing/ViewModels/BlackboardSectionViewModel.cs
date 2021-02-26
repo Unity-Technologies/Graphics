@@ -1,23 +1,28 @@
 ﻿using System;
+using System.Collections.Generic;
 using UnityEngine.UIElements;
 
 namespace UnityEditor.ShaderGraph.Drawing
 {
     class BlackboardSectionViewModel : ISGViewModel
     {
-        public VisualElement ParentView { get; set; }
+        public VisualElement parentView { get; set; }
 
         // Wipes all data in this view-model
         public void Reset()
         {
-
+            parentView = null;
+            name = String.Empty;
+            isExpanded = false;
+            requestModelChangeAction = null;
         }
 
-        // Title of the section
-        internal string Name { get; set; }
+        internal string name { get; set; }
 
-        internal bool IsExpanded { get; set; }
+        internal Guid associatedCategoryGuid { get; set; }
 
-        internal Action<IGraphDataAction> RequestModelChangeAction { get; set; }
+        internal bool isExpanded { get; set; }
+
+        internal Action<IGraphDataAction> requestModelChangeAction { get; set; }
     }
 }

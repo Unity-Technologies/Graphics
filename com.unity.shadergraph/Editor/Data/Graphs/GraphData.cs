@@ -16,6 +16,7 @@ using Edge = UnityEditor.Graphing.Edge;
 using UnityEngine.UIElements;
 using UnityEngine.Assertions;
 using UnityEngine.Pool;
+using UnityEngine.Serialization;
 
 namespace UnityEditor.ShaderGraph
 {
@@ -76,9 +77,9 @@ namespace UnityEditor.ShaderGraph
         #region Category Data
 
         [SerializeField]
-        List<JsonData<CategoryData>> m_InputCategoryData = new List<JsonData<CategoryData>>();
+        List<JsonData<CategoryData>> m_CategoryData = new List<JsonData<CategoryData>>();
 
-        public DataValueEnumerable<CategoryData> inputCategories => m_InputCategoryData.SelectValue();
+        public DataValueEnumerable<CategoryData> categories => m_CategoryData.SelectValue();
 
         #endregion
 

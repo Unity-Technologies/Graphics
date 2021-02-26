@@ -13,7 +13,7 @@ namespace UnityEditor.Graphing
             m_GraphData?.ReplaceWith(NewGraphData);
         }
 
-        public Action<GraphData> ModifyGraphDataAction => HandleGraphUndoRedo;
+        public Action<GraphData> modifyGraphDataAction => HandleGraphUndoRedo;
 
         public GraphData NewGraphData { get; set; }
     }
@@ -133,7 +133,7 @@ namespace UnityEditor.Graphing
         // This isn't strictly redux anymore but its needed given that our state tree is quite large and we don't want to be creating copies of it everywhere by unboxing
         void ReduceGraphDataAction(GraphData initialState, IGraphDataAction graphDataAction)
         {
-            graphDataAction.ModifyGraphDataAction(initialState);
+            graphDataAction.modifyGraphDataAction(initialState);
         }
 
         void OnEnable()

@@ -8,7 +8,7 @@ namespace UnityEditor.ShaderGraph.Drawing
     {
         public GraphData Model { get; set; }
 
-        public VisualElement ParentView { get; set; }
+        public VisualElement parentView { get; set; }
 
         public void Reset()
         {

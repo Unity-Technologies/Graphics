@@ -20,7 +20,7 @@ namespace UnityEditor.ShaderGraph.Drawing
             ShaderInputReference.generatePropertyBlock = NewIsExposedValue;
         }
 
-        public Action<GraphData> ModifyGraphDataAction => ChangeExposedFlag;
+        public Action<GraphData> modifyGraphDataAction => ChangeExposedFlag;
 
         // Reference to the shader input being modified
         internal ShaderInput ShaderInputReference { get; set; }
@@ -90,7 +90,7 @@ namespace UnityEditor.ShaderGraph.Drawing
             }
         }
 
-        public Action<GraphData> ModifyGraphDataAction => ChangePropertyValue;
+        public Action<GraphData> modifyGraphDataAction => ChangePropertyValue;
 
         // Reference to the shader property being modified
         internal AbstractShaderProperty ShaderPropertyReference { get; set; }
@@ -110,11 +110,11 @@ namespace UnityEditor.ShaderGraph.Drawing
             //graphData.owner.RegisterCompleteObjectUndo("Change Display Name");
             if (NewDisplayNameValue != ShaderInputReference.displayName)
             {
-                graphData.SanitizeGraphInputName(ShaderInputReference, NewDisplayNameValue);
+                ShaderInputReference.SetDisplayNameAndSanitizeForGraph(graphData, NewDisplayNameValue);
             }
         }
 
-        public Action<GraphData> ModifyGraphDataAction =>  ChangeDisplayName;
+        public Action<GraphData> modifyGraphDataAction =>  ChangeDisplayName;
 
         // Reference to the shader input being modified
         internal ShaderInput ShaderInputReference { get; set; }
@@ -136,7 +136,7 @@ namespace UnityEditor.ShaderGraph.Drawing
             }
         }
 
-        public Action<GraphData> ModifyGraphDataAction =>  ChangeReferenceName;
+        public Action<GraphData> modifyGraphDataAction =>  ChangeReferenceName;
 
         // Reference to the shader input being modified
         internal ShaderInput ShaderInputReference { get; set; }
@@ -154,7 +154,7 @@ namespace UnityEditor.ShaderGraph.Drawing
             ShaderInputReference.overrideReferenceName = null;
         }
 
-        public Action<GraphData> ModifyGraphDataAction =>  ResetReferenceName;
+        public Action<GraphData> modifyGraphDataAction =>  ResetReferenceName;
 
         // Reference to the shader input being modified
         internal ShaderInput ShaderInputReference { get; set; }
@@ -168,22 +168,22 @@ namespace UnityEditor.ShaderGraph.Drawing
         void DeleteShaderInput(GraphData graphData)
         {
             Assert.IsNotNull(graphData, "GraphData is null while carrying out DeleteShaderInputAction");
-            Assert.IsNotNull(ShaderInputReference, "ShaderInputReference is null while carrying out DeleteShaderInputAction");
+            Assert.IsNotNull(shaderInputToDelete, "ShaderInputReference is null while carrying out DeleteShaderInputAction");
             graphData.owner.RegisterCompleteObjectUndo("Delete Graph Input");
-            graphData.RemoveGraphInput(ShaderInputReference);
+            graphData.RemoveGraphInput(shaderInputToDelete);
         }
 
-        public Action<GraphData> ModifyGraphDataAction =>  DeleteShaderInput;
+        public Action<GraphData> modifyGraphDataAction =>  DeleteShaderInput;
 
         // Reference to the shader input being deleted
-        internal ShaderInput ShaderInputReference { get; set; }
+        internal ShaderInput shaderInputToDelete { get; set; }
 
     }
 
     class ShaderInputViewController : SGViewController<ShaderInput, ShaderInputViewModel>
     {
         // Exposed for PropertyView
-        internal GraphData DataStoreState => DataStore.State;
+        internal GraphData graphData => DataStore.State;
 
         internal ShaderInputViewController(ShaderInput shaderInput, ShaderInputViewModel inViewModel, GraphDataStore graphDataStore)
             : base(shaderInput, inViewModel, graphDataStore)
@@ -191,7 +191,6 @@ namespace UnityEditor.ShaderGraph.Drawing
             InitializeViewModel();
 
             m_BlackboardPropertyView = new BlackboardPropertyView(ViewModel);
-
             m_BlackboardPropertyView.controller = this;
 
             m_BlackboardRowView = new SGBlackboardRow(m_BlackboardPropertyView, null);
@@ -209,7 +208,7 @@ namespace UnityEditor.ShaderGraph.Drawing
                 case AbstractShaderProperty shaderProperty:
                     ViewModel.InputTypeName = shaderProperty.GetPropertyTypeString();
                     // HACK: Handles upgrade fix for deprecated old Color property
-                    shaderProperty.onBeforeVersionChange += (_) => DataStoreState.owner.RegisterCompleteObjectUndo($"Change {shaderProperty.displayName} Version");
+                    shaderProperty.onBeforeVersionChange += (_) => graphData.owner.RegisterCompleteObjectUndo($"Change {shaderProperty.displayName} Version");
                     break;
                 case ShaderKeyword shaderKeyword:
                     ViewModel.InputTypeName = shaderKeyword.keywordType  + " Keyword";

@@ -9,33 +9,37 @@ namespace UnityEditor.ShaderGraph.Drawing
 {
     class BlackboardViewModel : ISGViewModel
     {
-        public GraphData Model { get; set; }
-        public VisualElement ParentView { get; set; }
-        public string Title { get; set; }
-        public string Subtitle { get; set; }
-        public Dictionary<string, IGraphDataAction> PropertyNameToAddActionMap { get; set; }
-        public Dictionary<string, IGraphDataAction> DefaultKeywordNameToAddActionMap { get; set; }
-        public Dictionary<string, IGraphDataAction> BuiltInKeywordNameToAddActionMap { get; set; }
+        public GraphData model { get; set; }
+        public VisualElement parentView { get; set; }
+        public string title { get; set; }
+        public string subtitle { get; set; }
+        public Dictionary<string, IGraphDataAction> propertyNameToAddActionMap { get; set; }
+        public Dictionary<string, IGraphDataAction> defaultKeywordNameToAddActionMap { get; set; }
+        public Dictionary<string, IGraphDataAction> builtInKeywordNameToAddActionMap { get; set; }
 
-        public Action<IGraphDataAction> RequestModelChangeAction { get; set; }
+        public Action<IGraphDataAction> requestModelChangeAction { get; set; }
+
+        public List<CategoryData> categoryInfoList { get; set; }
 
         // Can't add disbled keywords, so don't need an add action
-        public List<string> DisabledKeywordNameList { get; set; }
+        public List<string> disabledKeywordNameList { get; set; }
 
         public BlackboardViewModel()
         {
-            PropertyNameToAddActionMap = new Dictionary<string, IGraphDataAction>();
-            DefaultKeywordNameToAddActionMap = new Dictionary<string, IGraphDataAction>();
-            BuiltInKeywordNameToAddActionMap = new Dictionary<string, IGraphDataAction>();
-            DisabledKeywordNameList = new List<string>();
+            propertyNameToAddActionMap = new Dictionary<string, IGraphDataAction>();
+            defaultKeywordNameToAddActionMap = new Dictionary<string, IGraphDataAction>();
+            builtInKeywordNameToAddActionMap = new Dictionary<string, IGraphDataAction>();
+            categoryInfoList = new List<CategoryData>();
+            disabledKeywordNameList = new List<string>();
         }
 
         public void Reset()
         {
-            PropertyNameToAddActionMap.Clear();
-            DefaultKeywordNameToAddActionMap.Clear();
-            BuiltInKeywordNameToAddActionMap.Clear();
-            DisabledKeywordNameList.Clear();
+            propertyNameToAddActionMap.Clear();
+            defaultKeywordNameToAddActionMap.Clear();
+            builtInKeywordNameToAddActionMap.Clear();
+            categoryInfoList.Clear();
+            disabledKeywordNameList.Clear();
         }
     }
 }

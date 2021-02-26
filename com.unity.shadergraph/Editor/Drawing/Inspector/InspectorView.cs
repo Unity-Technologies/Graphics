@@ -14,8 +14,6 @@ namespace UnityEditor.ShaderGraph.Drawing.Inspector
     {
         readonly List<Type> m_PropertyDrawerList = new List<Type>();
 
-        List<ISelectable> m_CachedSelectionList = new List<ISelectable>();
-
         // There's persistent data that is stored in the graph settings property drawer that we need to hold onto between interactions
         IPropertyDrawer m_graphSettingsPropertyDrawer = new GraphDataPropertyDrawer();
         public override string windowTitle => "Graph Inspector";
@@ -91,11 +89,11 @@ namespace UnityEditor.ShaderGraph.Drawing.Inspector
             ShowGraphSettings_Internal(m_GraphSettingsContainer);
         }
 
-        // If any of the selected items are no longer selected, inspector requires an update
-        public bool DoesInspectorNeedUpdate()
+        public bool doesInspectorNeedUpdate { get; set; }
+
+        public void TriggerInspectorUpdate(IEnumerable<ISelectable> selectionList)
         {
-            var needUpdate = !m_CachedSelectionList.SequenceEqual(selection);
-            return needUpdate;
+            doesInspectorNeedUpdate = true;
         }
 
         public void Update()
@@ -127,8 +125,8 @@ namespace UnityEditor.ShaderGraph.Drawing.Inspector
                 Debug.LogError(e);
             }
 
-            // Store this for update checks later, copying list deliberately as we dont want a reference
-            m_CachedSelectionList = new List<ISelectable>(selection);
+            if (doesInspectorNeedUpdate)
+                doesInspectorNeedUpdate = false;
 
             m_NodeSettingsContainer.MarkDirtyRepaint();
         }

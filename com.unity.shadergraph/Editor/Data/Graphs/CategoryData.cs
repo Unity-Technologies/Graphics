@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using UnityEditor.ShaderGraph.Serialization;
 using UnityEngine;
+using UnityEngine.Serialization;
 
 namespace UnityEditor.ShaderGraph
 {
@@ -9,27 +10,27 @@ namespace UnityEditor.ShaderGraph
     public class CategoryData : JsonObject
     {
         [SerializeField]
-        string m_CategoryName;
+        string m_Name;
 
-        public string categoryName
+        public string name
         {
-            get => m_CategoryName;
-            set => m_CategoryName = value;
+            get => m_Name;
+            set => m_Name = value;
         }
 
         [SerializeField]
-        GUID m_CategoryID;
+        Guid m_CategoryGuid;
 
-        public GUID categoryID
+        public Guid categoryGuid
         {
-            get => m_CategoryID;
-            set => m_CategoryID = value;
+            get => m_CategoryGuid;
+            set => m_CategoryGuid = value;
         }
 
         [SerializeField]
-        List<GUID> m_ChildItemIDList;
+        List<Guid> m_ChildItemIDList;
 
-        public List<GUID> childItemIDList
+        public List<Guid> childItemIDList
         {
             get => m_ChildItemIDList;
             set => m_ChildItemIDList = value;
@@ -42,6 +43,13 @@ namespace UnityEditor.ShaderGraph
         {
             get => m_IsExpanded;
             set => m_IsExpanded = value;
+        }
+
+        public CategoryData(string inName,  List<Guid> inChildItemIDList = null, Guid inCategoryGuid = new Guid())
+        {
+            name = inName;
+            childItemIDList = inChildItemIDList;
+            categoryGuid = inCategoryGuid;
         }
     }
 }

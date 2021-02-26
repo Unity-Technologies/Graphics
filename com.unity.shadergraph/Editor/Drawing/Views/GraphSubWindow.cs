@@ -209,7 +209,7 @@ namespace UnityEditor.ShaderGraph.Drawing.Views
         protected GraphSubWindow(ISGViewModel viewModel)
         {
             ViewModel = viewModel;
-            m_ParentView = ViewModel.ParentView;
+            m_ParentView = ViewModel.parentView;
             ParentView.Add(this);
 
             var styleSheet = Resources.Load<StyleSheet>($"Styles/{styleName}");

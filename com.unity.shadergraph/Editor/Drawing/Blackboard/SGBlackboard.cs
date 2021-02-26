@@ -139,13 +139,13 @@ namespace UnityEditor.ShaderGraph.Drawing
                 KeywordSection.OnDragActionCanceled();
             });
 
-            m_TitleLabel.text = ViewModel.Title;
+            m_TitleLabel.text = ViewModel.title;
 
             m_SubTitleLabel.RegisterCallback<MouseDownEvent>(OnMouseDownEvent);
-            m_SubTitleLabel.text = ViewModel.Subtitle;
+            m_SubTitleLabel.text = ViewModel.subtitle;
 
             m_PathLabelTextField = this.Q<TextField>("subTitleTextField");
-            m_PathLabelTextField.value = ViewModel.Subtitle;
+            m_PathLabelTextField.value = ViewModel.subtitle;
             m_PathLabelTextField.visible = false;
             m_PathLabelTextField.Q("unity-text-input").RegisterCallback<FocusOutEvent>(e => { OnEditPathTextFinished(); });
             m_PathLabelTextField.Q("unity-text-input").RegisterCallback<KeyDownEvent>(OnPathTextFieldKeyPressed);
@@ -175,26 +175,6 @@ namespace UnityEditor.ShaderGraph.Drawing
             isWindowScrollable = true;
             isWindowResizable = true;
             focusable = true;
-        }
-
-        internal void AddPropertyRow(SGBlackboardRow blackboardRow)
-        {
-            PropertySection.Add(blackboardRow);
-        }
-
-        internal void AddKeywordRow(SGBlackboardRow blackboardRow)
-        {
-            KeywordSection.Add(blackboardRow);
-        }
-
-        internal void RemovePropertyRow(SGBlackboardRow blackboardRow)
-        {
-            PropertySection.Remove(blackboardRow);
-        }
-
-        internal void RemoveKeywordRow(SGBlackboardRow blackboardRow)
-        {
-            KeywordSection.Remove(blackboardRow);
         }
 
         public void ShowScrollBoundaryRegions()
@@ -271,30 +251,30 @@ namespace UnityEditor.ShaderGraph.Drawing
                 return;
             }
 
-            foreach (var nameToAddActionTuple in ViewModel.PropertyNameToAddActionMap)
+            foreach (var nameToAddActionTuple in ViewModel.propertyNameToAddActionMap)
             {
                 string propertyName = nameToAddActionTuple.Key;
                 IGraphDataAction addAction = nameToAddActionTuple.Value;
-                m_AddPropertyMenu.AddItem(new GUIContent(propertyName), false, ()=> ViewModel.RequestModelChangeAction(addAction));
+                m_AddPropertyMenu.AddItem(new GUIContent(propertyName), false, ()=> ViewModel.requestModelChangeAction(addAction));
             }
             m_AddPropertyMenu.AddSeparator($"/");
 
-            foreach (var nameToAddActionTuple in ViewModel.DefaultKeywordNameToAddActionMap)
+            foreach (var nameToAddActionTuple in ViewModel.defaultKeywordNameToAddActionMap)
             {
                 string defaultKeywordName = nameToAddActionTuple.Key;
                 IGraphDataAction addAction = nameToAddActionTuple.Value;
-                m_AddPropertyMenu.AddItem(new GUIContent($"Keyword/{defaultKeywordName}"), false, ()=> ViewModel.RequestModelChangeAction(addAction));
+                m_AddPropertyMenu.AddItem(new GUIContent($"Keyword/{defaultKeywordName}"), false, ()=> ViewModel.requestModelChangeAction(addAction));
             }
             m_AddPropertyMenu.AddSeparator($"Keyword/");
 
-            foreach (var nameToAddActionTuple in ViewModel.BuiltInKeywordNameToAddActionMap)
+            foreach (var nameToAddActionTuple in ViewModel.builtInKeywordNameToAddActionMap)
             {
                 string builtInKeywordName = nameToAddActionTuple.Key;
                 IGraphDataAction addAction = nameToAddActionTuple.Value;
-                m_AddPropertyMenu.AddItem(new GUIContent($"Keyword/{builtInKeywordName}"), false, ()=> ViewModel.RequestModelChangeAction(addAction));
+                m_AddPropertyMenu.AddItem(new GUIContent($"Keyword/{builtInKeywordName}"), false, ()=> ViewModel.requestModelChangeAction(addAction));
             }
 
-            foreach (string disabledKeywordName in ViewModel.DisabledKeywordNameList)
+            foreach (string disabledKeywordName in ViewModel.disabledKeywordNameList)
             {
                 m_AddPropertyMenu.AddDisabledItem(new GUIContent(disabledKeywordName));
             }
@@ -354,7 +334,7 @@ namespace UnityEditor.ShaderGraph.Drawing
             var pathChangeAction = new ChangeGraphPathAction();
             pathChangeAction.NewGraphPath = newPath;
             // Request graph path change action
-            ViewModel.RequestModelChangeAction(pathChangeAction);
+            ViewModel.requestModelChangeAction(pathChangeAction);
 
             m_SubTitleLabel.text =  BlackboardUtils.FormatPath(newPath);
             m_EditPathCancelled = false;

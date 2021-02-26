@@ -4,7 +4,7 @@ namespace UnityEditor.ShaderGraph.Drawing
 {
     interface ISGViewModel
     {
-        VisualElement ParentView { get; set; }
+        VisualElement parentView { get; set; }
 
         // Wipes all data in this view-model
         void Reset();

@@ -102,6 +102,10 @@ namespace UnityEditor.ShaderGraph.Drawing
 
             RegisterCallback<MouseDownEvent>(OnMouseDownEvent);
 
+            // Selection persistence
+            RegisterCallback<MouseUpEvent>((evt) => ViewModel.StoreSelectionStateAction(evt));
+            RegisterCallback<AttachToPanelEvent>((evt) => ViewModel.UpdateSelectionStateAction(evt));
+
             capabilities |= Capabilities.Selectable | Capabilities.Droppable | Capabilities.Deletable | Capabilities.Renamable;
 
             ClearClassList();
@@ -133,7 +137,8 @@ namespace UnityEditor.ShaderGraph.Drawing
             RegisterCallback<MouseLeaveEvent>(evt => OnMouseHover(evt, ViewModel.Model));
             RegisterCallback<DragUpdatedEvent>(OnDragUpdatedEvent);
 
-            if (ViewModel.ParentView is SGBlackboard blackboard)
+            var blackboard = ViewModel.parentView.GetFirstAncestorOfType<SGBlackboard>();
+            if (blackboard != null)
             {
                 // These callbacks are used for the property dragging scroll behavior
                 RegisterCallback<DragEnterEvent>(evt => blackboard.ShowScrollBoundaryRegions());
@@ -236,7 +241,9 @@ namespace UnityEditor.ShaderGraph.Drawing
                 // We've maintained all the old callbacks as they are in the PropertyDrawer to reduce possible halo changes and support PropertyNodeView functionality
                 // Instead we supply different underlying methods for the callbacks in the new BlackboardPropertyView,
                 // that way both code paths should work until we can refactor PropertyNodeView
-                shaderInputPropertyDrawer.GetViewModel(ViewModel, controller.DataStoreState,
+                shaderInputPropertyDrawer.GetViewModel(
+                    ViewModel,
+                    controller.graphData,
                     ((triggerInspectorUpdate, modificationScope) =>
                     {
                         controller.DirtyNodes(modificationScope);
@@ -244,24 +251,10 @@ namespace UnityEditor.ShaderGraph.Drawing
                             inspectorUpdateDelegate();
 
                     }));
+                RegisterCallback<DetachFromPanelEvent>(evt => inspectorUpdateDelegate());
+
                 m_ResetReferenceNameTrigger = shaderInputPropertyDrawer.ResetReferenceName;
-                this.RegisterCallback<DetachFromPanelEvent>(evt => inspectorUpdateDelegate());
-
                 m_InspectorUpdateDelegate = inspectorUpdateDelegate;
-            }
-        }
-
-        protected override void ExecuteDefaultAction(EventBase evt)
-        {
-            base.ExecuteDefaultAction(evt);
-
-            if (evt.eventTypeId == AttachToPanelEvent.TypeId())
-            {
-                int x = 0;
-                x++;
-                // TODO: Re-enable somehow (going to need to grab internal function which is gross but temporary at least)
-                //if (ViewModel.ParentView is GraphView graphView)
-                //    graphView.RestorePersitentSelectionForElement(this);
             }
         }
 
@@ -305,7 +298,7 @@ namespace UnityEditor.ShaderGraph.Drawing
         // Better way would be to send event to controller that notified of hover enter/exit and have other controllers be sent those events in turn
         void OnMouseHover(EventBase evt, ShaderInput input)
         {
-            var graphView = ViewModel.ParentView.GetFirstAncestorOfType<MaterialGraphView>();
+            var graphView = ViewModel.parentView.GetFirstAncestorOfType<MaterialGraphView>();
             if (evt.eventTypeId == MouseEnterEvent.TypeId())
             {
                 foreach (var node in graphView.nodes.ToList())

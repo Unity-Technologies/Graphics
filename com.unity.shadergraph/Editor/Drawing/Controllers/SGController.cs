@@ -19,7 +19,7 @@ namespace UnityEditor.ShaderGraph
 
         }
 
-        public Action<GraphData> ModifyGraphDataAction => OnDummyChangeAction;
+        public Action<GraphData> modifyGraphDataAction => OnDummyChangeAction;
     }
 
     struct SGControllerChangedEvent
