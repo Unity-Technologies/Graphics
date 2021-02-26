@@ -8,9 +8,6 @@ using UnityEngine.VFX;
 using UnityEditor.VFX;
 using System.Collections.Generic;
 using UnityEditor.VFX.Block;
-using UnityEngine.TestTools;
-using UnityEditor.VFX.UI;
-using System.Collections;
 
 namespace UnityEditor.VFX.Test
 {
