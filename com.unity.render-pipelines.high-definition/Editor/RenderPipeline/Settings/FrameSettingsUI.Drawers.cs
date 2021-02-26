@@ -91,17 +91,17 @@ namespace UnityEditor.Rendering.HighDefinition
         );
 
         //separated to add enum popup on default frame settings
-        internal static CED.IDrawer InspectorInnerbox(bool withOverride = true) => CED.Group(
-            CED.FoldoutGroup(renderingSettingsHeaderContent, Expandable.RenderingPasses, k_ExpandedState, FoldoutOption.Indent | FoldoutOption.Boxed,
+        internal static CED.IDrawer InspectorInnerbox(bool withOverride = true, bool isBoxed = true) => CED.Group(
+            CED.FoldoutGroup(renderingSettingsHeaderContent, Expandable.RenderingPasses, k_ExpandedState, isBoxed ? FoldoutOption.Indent | FoldoutOption.Boxed : FoldoutOption.Indent,
                 CED.Group(206, (serialized, owner) => Drawer_SectionRenderingSettings(serialized, owner, withOverride))
                 ),
-            CED.FoldoutGroup(lightSettingsHeaderContent, Expandable.LightingSettings, k_ExpandedState, FoldoutOption.Indent | FoldoutOption.Boxed,
+            CED.FoldoutGroup(lightSettingsHeaderContent, Expandable.LightingSettings, k_ExpandedState, isBoxed ? FoldoutOption.Indent | FoldoutOption.Boxed : FoldoutOption.Indent,
                 CED.Group(206, (serialized, owner) => Drawer_SectionLightingSettings(serialized, owner, withOverride))
                 ),
-            CED.FoldoutGroup(asyncComputeSettingsHeaderContent, Expandable.AsynComputeSettings, k_ExpandedState, FoldoutOption.Indent | FoldoutOption.Boxed,
+            CED.FoldoutGroup(asyncComputeSettingsHeaderContent, Expandable.AsynComputeSettings, k_ExpandedState, isBoxed ? FoldoutOption.Indent | FoldoutOption.Boxed : FoldoutOption.Indent,
                 CED.Group(206, (serialized, owner) => Drawer_SectionAsyncComputeSettings(serialized, owner, withOverride))
                 ),
-            CED.FoldoutGroup(lightLoopSettingsHeaderContent, Expandable.LightLoop, k_ExpandedState, FoldoutOption.Indent | FoldoutOption.Boxed,
+            CED.FoldoutGroup(lightLoopSettingsHeaderContent, Expandable.LightLoop, k_ExpandedState, isBoxed ? FoldoutOption.Indent | FoldoutOption.Boxed : FoldoutOption.Indent,
                 CED.Group(206, (serialized, owner) => Drawer_SectionLightLoopSettings(serialized, owner, withOverride))
                 ),
             CED.Group((serialized, owner) =>
@@ -144,7 +144,7 @@ namespace UnityEditor.Rendering.HighDefinition
                 : HDRenderPipelineGlobalSettings.instance.GetDefaultFrameSettings(FrameSettingsRenderType.Camera);
         }
 
-        static void Drawer_SectionRenderingSettings(SerializedFrameSettings serialized, Editor owner, bool withOverride)
+        static internal void Drawer_SectionRenderingSettings(SerializedFrameSettings serialized, Editor owner, bool withOverride)
         {
             bool isGUIenabled = GUI.enabled;
             FrameSettings defaultFrameSettings = GetDefaultFrameSettingsFor(owner);
@@ -325,7 +325,7 @@ namespace UnityEditor.Rendering.HighDefinition
             High
         }
 
-        static void Drawer_SectionLightingSettings(SerializedFrameSettings serialized, Editor owner, bool withOverride)
+        static internal void Drawer_SectionLightingSettings(SerializedFrameSettings serialized, Editor owner, bool withOverride)
         {
             bool isGUIenabled = GUI.enabled;
 
@@ -384,13 +384,13 @@ namespace UnityEditor.Rendering.HighDefinition
             GUI.enabled = isGUIenabled;
         }
 
-        static void Drawer_SectionAsyncComputeSettings(SerializedFrameSettings serialized, Editor owner, bool withOverride)
+        static internal void Drawer_SectionAsyncComputeSettings(SerializedFrameSettings serialized, Editor owner, bool withOverride)
         {
             var area = GetFrameSettingSectionContent(2, serialized, owner);
             area.Draw(withOverride);
         }
 
-        static void Drawer_SectionLightLoopSettings(SerializedFrameSettings serialized, Editor owner, bool withOverride)
+        static internal void Drawer_SectionLightLoopSettings(SerializedFrameSettings serialized, Editor owner, bool withOverride)
         {
             var area = GetFrameSettingSectionContent(3, serialized, owner);
             area.Draw(withOverride);
