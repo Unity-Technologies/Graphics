@@ -62,7 +62,7 @@ namespace UnityEngine
         public SRPLensFlareDataElement()
         {
             localIntensity = 1.0f;
-            position = 1.0f;
+            position = 0.0f;
             positionOffset = new Vector2(0.0f, 0.0f);
             angularOffset = 0.0f;
             translationScale = new Vector2(1.0f, 1.0f);
@@ -78,15 +78,15 @@ namespace UnityEngine
 
             distribution = SRPLensFlareDistribution.Uniform;
 
-            lengthSpread = 0.5f;
+            lengthSpread = 1f;
             colorGradient = new Gradient();
             colorGradient.SetKeys(new GradientColorKey[] { new GradientColorKey(Color.white, 0.0f), new GradientColorKey(Color.white, 1.0f) },
                                   new GradientAlphaKey[] { new GradientAlphaKey(1.0f, 0.0f), new GradientAlphaKey(1.0f, 1.0f) });
-            positionCurve = new AnimationCurve(new Keyframe(0.0f, 1.0f), new Keyframe(1.0f, 1.0f));
-            scaleCurve = new AnimationCurve(new Keyframe(0.0f, 0.0f), new Keyframe(1.0f, 0.0f));
+            positionCurve = new AnimationCurve(new Keyframe(0.0f, 0.0f, 1.0f, 1.0f), new Keyframe(1.0f, 1.0f, 1.0f, -1.0f));
+            scaleCurve = new AnimationCurve(new Keyframe(0.0f, 1.0f), new Keyframe(1.0f, 1.0f));
 
             // Random
-            seed = 97;
+            seed = 0;
             intensityVariation = 0.0f;
             positionVariation = new Vector2(0.0f, 0.0f);
             scaleVariation = 0.0f;
