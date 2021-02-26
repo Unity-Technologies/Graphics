@@ -12,7 +12,6 @@ namespace UnityEditor.Rendering
     public class SRPLensFlareEditor : Editor
     {
         SerializedProperty m_Intensity;
-        SerializedProperty m_ColorGradient;
         SerializedProperty m_Elements;
 
         /// <summary>
@@ -22,7 +21,6 @@ namespace UnityEditor.Rendering
         {
             PropertyFetcher<SRPLensFlareData> entryPoint = new PropertyFetcher<SRPLensFlareData>(serializedObject);
             m_Intensity = entryPoint.Find(x => x.globalIntensity);
-            m_ColorGradient = entryPoint.Find(x => x.colorGradient);
             m_Elements = entryPoint.Find(x => x.elements);
         }
 
@@ -36,12 +34,6 @@ namespace UnityEditor.Rendering
             if (EditorGUI.EndChangeCheck())
             {
                 m_Intensity.serializedObject.ApplyModifiedProperties();
-            }
-            EditorGUI.BeginChangeCheck();
-            EditorGUILayout.PropertyField(m_ColorGradient, Styles.gradientCurve);
-            if (EditorGUI.EndChangeCheck())
-            {
-                m_ColorGradient.serializedObject.ApplyModifiedProperties();
             }
             EditorGUI.BeginChangeCheck();
             SRPLensFlareData lensFlareDat = m_Elements.serializedObject.targetObject as SRPLensFlareData;
@@ -65,7 +57,6 @@ namespace UnityEditor.Rendering
         sealed class Styles
         {
             static public readonly GUIContent intensity = new GUIContent("Intensity", "Modulate the whole lens flare.");
-            static public readonly GUIContent gradientCurve = new GUIContent("Gradient Curve", "REPLACE ME.");
             static public readonly GUIContent elements = new GUIContent("Elements", "List of elements in the Lens Flare.");
         }
     }
