@@ -60,6 +60,8 @@ namespace UnityEditor.Rendering
             SerializedProperty intensityProp = property.FindPropertyRelative("localIntensity");
             SerializedProperty positionProp = property.FindPropertyRelative("position");
             SerializedProperty positionOffsetProp = property.FindPropertyRelative("positionOffset");
+            SerializedProperty angularOffsetProp = property.FindPropertyRelative("angularOffset");
+            SerializedProperty translationScaleProp = property.FindPropertyRelative("translationScale");
             SerializedProperty lensFlareProp = property.FindPropertyRelative("lensFlareTexture");
             SerializedProperty tintProp = property.FindPropertyRelative("tint");
             SerializedProperty blendModeProp = property.FindPropertyRelative("blendMode");
@@ -72,6 +74,21 @@ namespace UnityEditor.Rendering
             SerializedProperty preserveAspectRatioProp = property.FindPropertyRelative("preserveAspectRatio");
             SerializedProperty modulateByLightColor = property.FindPropertyRelative("modulateByLightColor");
             SerializedProperty isFoldOpened = property.FindPropertyRelative("isFoldOpened");
+
+            //
+            SerializedProperty distributionProp = property.FindPropertyRelative("distribution");
+
+            SerializedProperty lengthSpreadProp = property.FindPropertyRelative("lengthSpread");
+            SerializedProperty colorGradientProp = property.FindPropertyRelative("colorGradient");
+            SerializedProperty positionCurveProp = property.FindPropertyRelative("positionCurve");
+            SerializedProperty scaleCurveProp = property.FindPropertyRelative("scaleCurve");
+
+            // Random
+            SerializedProperty seedProp = property.FindPropertyRelative("seed");
+            SerializedProperty intensityVariationProp = property.FindPropertyRelative("intensityVariation");
+            SerializedProperty positionVariationProp = property.FindPropertyRelative("positionVariation");
+            SerializedProperty scaleVariationProp = property.FindPropertyRelative("scaleVariation");
+            SerializedProperty sizeVariationProp = property.FindPropertyRelative("sizeVariation");
 
             if (lensFlareProp.objectReferenceValue != null)
             {
@@ -139,6 +156,12 @@ namespace UnityEditor.Rendering
                     rect = GetNextRect();
                     if ((tmpVec2 = EditorGUI.Vector2Field(rect, Styles.positionOffset, positionOffsetProp.vector2Value)) != positionOffsetProp.vector2Value)
                         positionOffsetProp.vector2Value = tmpVec2;
+                    rect = GetNextRect();
+                    if ((tmp = EditorGUI.FloatField(rect, Styles.angularOffset, angularOffsetProp.floatValue)) != angularOffsetProp.floatValue)
+                        angularOffsetProp.floatValue = tmp;
+                    rect = GetNextRect();
+                    if ((tmpVec2 = EditorGUI.Vector2Field(rect, Styles.translationScale, translationScaleProp.vector2Value)) != translationScaleProp.vector2Value)
+                        translationScaleProp.vector2Value = tmpVec2;
                 }
                 --EditorGUI.indentLevel;
                 rect = GetNextRect();
@@ -164,6 +187,55 @@ namespace UnityEditor.Rendering
                     rect = GetNextRect();
                     if ((iTmp = EditorGUI.IntField(rect, Styles.count, countProp.intValue)) != countProp.intValue)
                         countProp.intValue = Mathf.Max(iTmp, 1);
+
+                    if (countProp.intValue > 1)
+                    {
+                        rect = GetNextRect();
+                        SRPLensFlareDistribution newDistribution;
+                        SRPLensFlareDistribution distributionValue = (UnityEngine.SRPLensFlareDistribution)distributionProp.enumValueIndex;
+                        if ((newDistribution = ((SRPLensFlareDistribution)(EditorGUI.EnumPopup(rect, Styles.distribution, distributionValue)))) != distributionValue)
+                            distributionProp.enumValueIndex = (int)newDistribution;
+
+                        rect = GetNextRect();
+                        if ((tmp = EditorGUI.FloatField(rect, Styles.lengthSpread, lengthSpreadProp.floatValue)) != lengthSpreadProp.floatValue)
+                            lengthSpreadProp.floatValue = Mathf.Max(tmp, 1e-1f);
+
+                        if (newDistribution == SRPLensFlareDistribution.Uniform)
+                        {
+                            rect = GetNextRect();
+                            EditorGUI.PropertyField(rect, colorGradientProp, Styles.colors);
+                        }
+                        else if (newDistribution == SRPLensFlareDistribution.Random)
+                        {
+                            rect = GetNextRect();
+                            if ((iTmp = EditorGUI.IntField(rect, Styles.seed, seedProp.intValue)) != seedProp.intValue)
+                                seedProp.intValue = Mathf.Max(iTmp, 0);
+
+                            rect = GetNextRect();
+                            if ((tmp = EditorGUI.FloatField(rect, Styles.intensityVariation, intensityVariationProp.floatValue)) != intensityVariationProp.floatValue)
+                                intensityVariationProp.floatValue = Mathf.Max(tmp, 0.0f);
+
+                            rect = GetNextRect();
+                            EditorGUI.PropertyField(rect, colorGradientProp, Styles.colors);
+
+                            rect = GetNextRect();
+                            if ((tmpVec2 = EditorGUI.Vector2Field(rect, Styles.positionVariation, positionVariationProp.vector2Value)) != positionVariationProp.vector2Value)
+                                positionVariationProp.vector2Value = tmpVec2;
+
+                            rect = GetNextRect();
+                            if ((tmp = EditorGUI.FloatField(rect, Styles.scaleVariation, scaleVariationProp.floatValue)) != scaleVariationProp.floatValue)
+                                scaleVariationProp.floatValue = Mathf.Max(tmp, 0.0f);
+                        }
+                        else if (newDistribution == SRPLensFlareDistribution.Curve)
+                        {
+                            rect = GetNextRect();
+                            EditorGUI.PropertyField(rect, colorGradientProp, Styles.colors);
+                            rect = GetNextRect();
+                            EditorGUI.PropertyField(rect, positionCurveProp, Styles.positionCurve);
+                            rect = GetNextRect();
+                            EditorGUI.PropertyField(rect, scaleCurveProp, Styles.scaleCurve);
+                        }
+                    }
                 }
                 --EditorGUI.indentLevel;
 
@@ -172,25 +244,25 @@ namespace UnityEditor.Rendering
             else
             {
                 Texture tmpTex;
+                rect = GetNextRect();
                 if ((tmpTex = (EditorGUI.ObjectField(rect, Styles.flareTexture, lensFlareProp.objectReferenceValue, typeof(Texture), false) as Texture)) != (lensFlareProp.objectReferenceValue as Texture))
                 {
                     lensFlareProp.objectReferenceValue = tmpTex;
                     aspectRatioProp.floatValue = ((float)tmpTex.width) / ((float)tmpTex.height);
                     aspectRatioProp.serializedObject.ApplyModifiedProperties();
                 }
-                rect.y += EditorGUIUtility.singleLineHeight + EditorGUIUtility.standardVerticalSpacing;
 
+                rect = GetNextRect();
                 if ((tmpCol = EditorGUI.ColorField(rect, Styles.tint, tintProp.colorValue)) != tintProp.colorValue)
                     tintProp.colorValue = tmpCol;
-                rect.y += EditorGUIUtility.singleLineHeight + EditorGUIUtility.standardVerticalSpacing;
 
+                rect = GetNextRect();
                 if ((tmp = EditorGUI.FloatField(rect, Styles.intensity, intensityProp.floatValue)) != intensityProp.floatValue)
                     intensityProp.floatValue = Mathf.Max(tmp, 0.0f);
-                rect.y += EditorGUIUtility.singleLineHeight + EditorGUIUtility.standardVerticalSpacing;
 
+                rect = GetNextRect();
                 if ((tmp = EditorGUI.FloatField(rect, Styles.position, positionProp.floatValue)) != positionProp.floatValue)
                     positionProp.floatValue = tmp;
-                rect.y += EditorGUIUtility.singleLineHeight + EditorGUIUtility.standardVerticalSpacing;
 
                 isFoldOpened.boolValue = false;
             }
@@ -208,14 +280,33 @@ namespace UnityEditor.Rendering
         {
             SerializedProperty isFoldOpened = property.FindPropertyRelative("isFoldOpened");
             SerializedProperty preserveAspectRatio = property.FindPropertyRelative("preserveAspectRatio");
+            SerializedProperty distributionProp = property.FindPropertyRelative("distribution");
+            SerializedProperty countProp = property.FindPropertyRelative("count");
 
             float coef;
             if (isFoldOpened.boolValue)
             {
                 if (preserveAspectRatio.boolValue)
-                    coef = 17.0f;
+                    coef = 19.0f;
                 else
-                    coef = 18.0f;
+                    coef = 20.0f;
+
+                if (countProp.intValue > 1)
+                {
+                    coef += 2.0f;
+                    if ((SRPLensFlareDistribution)distributionProp.enumValueIndex == SRPLensFlareDistribution.Uniform)
+                    {
+                        coef += 1.0f;
+                    }
+                    else if ((SRPLensFlareDistribution)distributionProp.enumValueIndex == SRPLensFlareDistribution.Random)
+                    {
+                        coef += 5.0f;
+                    }
+                    else if ((SRPLensFlareDistribution)distributionProp.enumValueIndex == SRPLensFlareDistribution.Curve)
+                    {
+                        coef += 3.0f;
+                    }
+                }
             }
             else
             {
@@ -230,6 +321,8 @@ namespace UnityEditor.Rendering
             static public readonly GUIContent intensity = new GUIContent("Intensity", "Intensity of this element.");
             static public readonly GUIContent position = new GUIContent("Starting Position", "Starting position.");
             static public readonly GUIContent positionOffset = new GUIContent("Position Offset", "Position Offset.");
+            static public readonly GUIContent angularOffset = new GUIContent("Angular Offset", "Angular Offset.");
+            static public readonly GUIContent translationScale = new GUIContent("Translation Scale", "Translation Scale.");
             static public readonly GUIContent flareTexture = new GUIContent("Flare Texture", "Texture used to for this Lens Flare Element.");
             static public readonly GUIContent tint = new GUIContent("Tint", "Tint of the texture can be modulated by the light it is attached to if Modulate By Light Color is enabled..");
             static public readonly GUIContent blendMode = new GUIContent("Blend Mode", "Blend mode used.");
@@ -240,6 +333,17 @@ namespace UnityEditor.Rendering
             static public readonly GUIContent rotation = new GUIContent("Rotation", "Local rotation of the texture.");
             static public readonly GUIContent autoRotate = new GUIContent("Auto Rotate", "Rotate the texture relative to the angle on the screen (the rotation will be added to the parameter 'rotation').");
             static public readonly GUIContent modulateByLightColor = new GUIContent("Modulate By Light Color", "Modulate by light color if the asset is used on the same object as a light component..");
+
+            static public readonly GUIContent distribution = new GUIContent("Distribution", "REPLACE ME.");
+            static public readonly GUIContent lengthSpread = new GUIContent("Length Spread", "REPLACE ME.");
+            static public readonly GUIContent seed = new GUIContent("Seed", "REPLACE ME.");
+
+            static public readonly GUIContent intensityVariation = new GUIContent("Intensity Variation", "REPLACE ME.");
+            static public readonly GUIContent positionVariation = new GUIContent("Position Variation", "REPLACE ME.");
+            static public readonly GUIContent scaleVariation = new GUIContent("Scale Variation", "REPLACE ME.");
+            static public readonly GUIContent colors = new GUIContent("Colors", "REPLACE ME.");
+            static public readonly GUIContent positionCurve = new GUIContent("Position Spacing", "REPLACE ME.");
+            static public readonly GUIContent scaleCurve = new GUIContent("Scale Variation", "REPLACE ME.");
         }
     }
 }

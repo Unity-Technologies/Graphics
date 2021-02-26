@@ -23,7 +23,8 @@ TEXTURE2D_X(_FlareOcclusionBufferTex);
 float4 _FlareColor;
 float4 _FlareData0; // x: RayPos, y: AngleRotation (< 0 == Auto), zw: Size (Width, Height) in Screen Height Ratio
 float4 _FlareData1; // xy: ScreenPos, z: Depth, w: Occlusion radius
-float4 _FlareData2; // x: Sample Count, y: 0.0f, z: _FlareOffscreen, w: _LensFlareIndex
+float4 _FlareData2; // x: Sample Count, y: angular Offset, z: _FlareOffscreen, w: _LensFlareIndex
+float4 _FlareData3; // xy: TranslationScale
 
 #define _RayPos _FlareData0.x
 #define _Angle _FlareData0.y
@@ -34,8 +35,12 @@ float4 _FlareData2; // x: Sample Count, y: 0.0f, z: _FlareOffscreen, w: _LensFla
 #define _FlareOcclusionRadius _FlareData1.w
 
 #define _FlareOcclusionSamplesCount _FlareData2.x
+#define _FlareAngularOffset _FlareData2.y
 #define _FlareOffscreen _FlareData2.z
-#define _LensFlareIndex _FlareData2.w
+#define _FlareIndex _FlareData2.w
+
+#define _FlareTranslationScale _FlareData3.xy
+#define _FlarePositionOffset _FlareData3.zw
 
 float GetOcclusion(float2 screenPos, float flareDepth, float ratio)
 {
@@ -80,14 +85,17 @@ Varyings vert(Attributes input)
     output.texcoord = GetQuadTexCoord(input.vertexID);
     float2 screenPos = _FlareScreenPos;
 
+    float cosOffset0 = cos(_FlareAngularOffset);
+    float sinOffset0 = sin(_FlareAngularOffset);
+
     // position and rotate
     float angle = _Angle;
     // negative stands for: also rotate to face the light
     if (angle >= 0)
     {
         angle = -angle;
-        float2 dir = normalize(screenPos * float2(screenRatio, 1.0f));
-        angle += atan2(dir.y, dir.x) + 1.57079632675; // arbitrary, we need V to face the source, not U;
+        float2 dir = normalize(screenPos * float2(screenRatio, 1.0f)) * _FlareTranslationScale;
+        angle += atan2(dir.y, dir.x) + 1.57079632675f; // arbitrary, we need V to face the source, not U;
     }
 
     float cos0 = cos(angle);
@@ -99,18 +107,17 @@ Varyings vert(Attributes input)
 
     local.x *= 1.0f / screenRatio;
 
-    float4 centerPos = float4(local.x,
-                              local.y,
+    float4 centerPos = float4(local.x + _FlarePositionOffset.x,
+                              local.y - _FlarePositionOffset.y,
                               posPreScale.z,
                               posPreScale.w);
-    float2 rayOffset = -screenPos * (_RayPos - 1.0f);
+
+    float2 rayOffset = -screenPos * (_RayPos.xx * _FlareTranslationScale - 1.0f);
 
     output.positionCS = centerPos;
     output.positionCS.xy += rayOffset;
+
     float occlusion = GetOcclusion(_FlareScreenPos.xy, _FlareDepth, screenRatio);
-    //float occlusion = tex2D(_FlareOcclusionBufferTex, _LensFlareIndex / 16.0f).r;
-    //float occlusion = LOAD_TEXTURE2D_X_LOD(_FlareOcclusionBufferTex, uint2(_LensFlareIndex, 0), 0).r;
-    //float occlusion = tex2D(_FlareOcclusionBufferTex, float2(_LensFlareIndex/16.0f, 0.0f));
 
     if (_FlareOffscreen < 0.0f && // No lens flare off screen
         (any(_FlareScreenPos.xy < -1) || any(_FlareScreenPos.xy >= 1)))

@@ -2434,8 +2434,6 @@ namespace UnityEngine.Rendering.HighDefinition
 
                     Vector2 screenPos = new Vector2(2.0f * viewportPos.x - 1.0f, 1.0f - 2.0f * viewportPos.y);
 
-                    screenPos += new Vector2(element.positionOffset.x, -element.positionOffset.y);
-
                     float screenRatio = (float)hdCam.actualWidth / (float)hdCam.actualHeight;
 
                     Vector2 occlusionRadiusEdgeScreenPos0 = (Vector2)cam.WorldToViewportPoint(positionWS);
@@ -2454,7 +2452,9 @@ namespace UnityEngine.Rendering.HighDefinition
                     cmd.SetGlobalTexture(HDShaderIDs._FlareOcclusionBufferTex, (Texture)parameters.occlusionTexture);
                     cmd.SetGlobalTexture(HDShaderIDs._FlareTex, element.lensFlareTexture);
 
-                    for (int elemIdx = 1; elemIdx <= element.count; ++elemIdx)
+                    float dLength = element.lengthSpread / ((float)element.count);
+                    Random.InitState(element.seed);
+                    for (int elemIdx = 0; elemIdx < element.count; ++elemIdx)
                     {
                         float curLengthNeg = 0.0f;
                         if (element.position > 0.0f)
@@ -2490,8 +2490,6 @@ namespace UnityEngine.Rendering.HighDefinition
                         Vector4 gradientModulation = data.colorGradient.Evaluate(coefForGradient);
 
                         Texture texture = element.lensFlareTexture;
-                        float position = 2.0f * element.position;
-
                         float usedAspectRatio = element.preserveAspectRatio ? (((float)texture.width) / ((float)texture.height)) : element.aspectRatio;
 
                         Vector2 size = new Vector2(scaleByDistance * element.size * usedAspectRatio, scaleByDistance * element.size);
@@ -2499,6 +2497,44 @@ namespace UnityEngine.Rendering.HighDefinition
                         Vector4 tint = Vector4.Scale(element.tint, gradientModulation);
 
                         float currentIntensity = comp.intensity * element.localIntensity * data.globalIntensity * radialsScaleRadius * distanceAttenuation;
+
+                        float position = 2.0f * element.position;
+                        if (element.distribution == SRPLensFlareDistribution.Uniform)
+                        {
+                            position += ((float)elemIdx) * dLength;
+
+                            float timeScale = element.count >= 2 ? ((float)elemIdx) / ((float)(element.count - 1)) : 0.5f;
+
+                            Color col = element.colorGradient.Evaluate(timeScale);
+                            tint.Scale(new Vector4(col.r, col.g, col.b, col.a));
+                        }
+                        else if (element.distribution == SRPLensFlareDistribution.Random)
+                        {
+                            position += ((float)elemIdx) * dLength;
+                            position += 0.5f * dLength * Random.Range(-1.0f, 1.0f) * element.positionVariation.x;
+
+                            currentIntensity += Random.Range(-1.0f, 1.0f) * element.intensityVariation;
+
+                            size += ((new Vector2(usedAspectRatio, 1.0f)) * element.scaleVariation * Random.Range(-1.0f, 1.0f));
+
+                            Color randCol = element.colorGradient.Evaluate(Random.Range(0.0f, 1.0f));
+                            tint.Scale(new Vector4(randCol.r, randCol.g, randCol.b, randCol.a));
+                        }
+                        else if (element.distribution == SRPLensFlareDistribution.Curve)
+                        {
+                            float timeScale = element.count >= 2 ? ((float)elemIdx) / ((float)(element.count - 1)) : 0.5f;
+
+                            Color col = element.colorGradient.Evaluate(timeScale);
+                            tint.Scale(new Vector4(col.r, col.g, col.b, col.a));
+
+                            float positionSpacing = element.positionCurve.length > 0 ? element.positionCurve.Evaluate(timeScale) : 1.0f;
+
+                            position += ((float)elemIdx) * dLength;
+                            position += dLength * positionSpacing - dLength;
+
+                            float sizeCurveValue = element.scaleCurve.length > 0 ? element.scaleCurve.Evaluate(timeScale) : 1.0f;
+                            size += ((new Vector2(usedAspectRatio, 1.0f)) * sizeCurveValue);
+                        }
 
                         if (currentIntensity <= 0.0f)
                             continue;
@@ -2526,7 +2562,7 @@ namespace UnityEngine.Rendering.HighDefinition
                         else
                             usedMaterial = parameters.lensFlareAdditive;
 
-                        cmd.SetGlobalColor(HDShaderIDs._FlareColor, tint);
+                        cmd.SetGlobalVector(HDShaderIDs._FlareColor, tint);
 
                         rotation += 180.0f;
                         if (!autoRotate)
@@ -2537,8 +2573,9 @@ namespace UnityEngine.Rendering.HighDefinition
                         Vector4 dataSrc = new Vector4(position, rotation, size.x, size.y);
                         cmd.SetGlobalVector(HDShaderIDs._FlareData0, dataSrc);
                         uint occlusionSampleCount = !comp.useOcclusion ? 0u : comp.sampleCount;
-                        Vector4 flareData2 = new Vector4(occlusionSampleCount, 0.0f, comp.allowOffScreen ? 1.0f : -1.0f, flareIdx);
+                        Vector4 flareData2 = new Vector4(occlusionSampleCount, element.angularOffset * Mathf.Deg2Rad, comp.allowOffScreen ? 1.0f : -1.0f, flareIdx);
                         cmd.SetGlobalVector(HDShaderIDs._FlareData2, flareData2);
+                        cmd.SetGlobalVector(HDShaderIDs._FlareData3, new Vector4(element.translationScale.x, element.translationScale.y, element.positionOffset.x, element.positionOffset.y));
                         cmd.DrawProcedural(Matrix4x4.identity, usedMaterial, 0, MeshTopology.Quads, 6, 1, null);
                     }
                 }

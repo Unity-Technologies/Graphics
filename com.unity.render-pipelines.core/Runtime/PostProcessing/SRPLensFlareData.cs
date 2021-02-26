@@ -31,6 +31,26 @@ namespace UnityEngine
     }
 
     /// <summary>
+    /// SRPLensFlareDistribution defined how we spread the flare element when count > 1
+    /// </summary>
+    [System.Serializable]
+    public enum SRPLensFlareDistribution
+    {
+        /// <summary>
+        /// Random distribution
+        /// </summary>
+        Random,
+        /// <summary>
+        /// Uniformly spread
+        /// </summary>
+        Uniform,
+        /// <summary>
+        /// Controlled with curved
+        /// </summary>
+        Curve
+    }
+
+    /// <summary>
     /// SRPLensFlareDataElement defines a single texture used in a SRPLensFlareData
     /// </summary>
     [System.Serializable]
@@ -44,6 +64,8 @@ namespace UnityEngine
             localIntensity = 1.0f;
             position = 1.0f;
             positionOffset = new Vector2(0.0f, 0.0f);
+            angularOffset = 0.0f;
+            translationScale = new Vector2(1.0f, 1.0f);
             lensFlareTexture = null;
             size = 1.0f;
             aspectRatio = 1.0f;
@@ -53,6 +75,21 @@ namespace UnityEngine
             blendMode = SRPLensFlareBlendMode.Additive;
             autoRotate = false;
             isFoldOpened = false;
+
+            distribution = SRPLensFlareDistribution.Uniform;
+
+            lengthSpread = 0.5f;
+            colorGradient = new Gradient();
+            colorGradient.SetKeys(new GradientColorKey[] { new GradientColorKey(Color.white, 0.0f), new GradientColorKey(Color.white, 1.0f) },
+                                  new GradientAlphaKey[] { new GradientAlphaKey(1.0f, 0.0f), new GradientAlphaKey(1.0f, 1.0f) });
+            positionCurve = new AnimationCurve(new Keyframe(0.0f, 1.0f), new Keyframe(1.0f, 1.0f));
+            scaleCurve = new AnimationCurve(new Keyframe(0.0f, 0.0f), new Keyframe(1.0f, 0.0f));
+
+            // Random
+            seed = 97;
+            intensityVariation = 0.0f;
+            positionVariation = new Vector2(0.0f, 0.0f);
+            scaleVariation = 0.0f;
         }
 
         /// <summary>
@@ -64,6 +101,14 @@ namespace UnityEngine
         /// Position offset
         /// </summary>
         public Vector2 positionOffset;
+        /// <summary>
+        /// Angular offset
+        /// </summary>
+        public float angularOffset;
+        /// <summary>
+        /// Translation Scale
+        /// </summary>
+        public Vector2 translationScale;
         /// <summary>
         /// Intensity of this element
         /// </summary>
@@ -117,6 +162,19 @@ namespace UnityEngine
         /// Internal value use to store the state of minimized or maximized LensFlareElement
         /// </summary>
         public bool isFoldOpened;
+        /// <summary>
+        /// SRPLensFlareDistribution defined how we spread the flare element when count > 1
+        /// </summary>
+        public SRPLensFlareDistribution distribution;
+        public float lengthSpread;
+        public AnimationCurve positionCurve;
+        public AnimationCurve scaleCurve;
+        // For Random
+        public int seed;
+        public Gradient colorGradient;
+        public float intensityVariation;
+        public Vector2 positionVariation;
+        public float scaleVariation;
     }
 
     /// <summary>
