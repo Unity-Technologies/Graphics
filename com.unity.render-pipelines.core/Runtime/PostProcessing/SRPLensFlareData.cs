@@ -62,7 +62,7 @@ namespace UnityEngine
         public SRPLensFlareDataElement()
         {
             localIntensity = 1.0f;
-            position = 1.0f;
+            position = 0.0f;
             positionOffset = new Vector2(0.0f, 0.0f);
             angularOffset = 0.0f;
             translationScale = new Vector2(1.0f, 1.0f);
