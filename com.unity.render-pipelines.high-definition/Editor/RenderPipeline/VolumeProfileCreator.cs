@@ -65,6 +65,10 @@ namespace UnityEditor.Rendering.HighDefinition
                 }
                 var assetCreator = ScriptableObject.CreateInstance<VolumeProfileCreator>();
                 assetCreator.SetKind(kind);
+
+                if (!AssetDatabase.IsValidFolder("Assets/" + HDProjectSettings.projectSettingsFolderPath))
+                    AssetDatabase.CreateFolder("Assets", HDProjectSettings.projectSettingsFolderPath);
+
                 ProjectWindowUtil.StartNameEditingIfProjectWindowExists(assetCreator.GetInstanceID(), assetCreator, $"Assets/{HDProjectSettings.projectSettingsFolderPath}/{globalSettings.name}_{GetDefaultName(kind)}.asset", null, null);
             }
         }
