@@ -235,6 +235,10 @@ public class SetupTestAssetTestCases : IPrebuildSetup
                 {
                     foreach (var individualMaterialTest in testAsset.testMaterial)
                     {
+                        if(testAsset.name == null || individualMaterialTest.material == null || individualMaterialTest.material.name == null)
+                        {
+                            continue;
+                        }
                         Texture2D result = null;
                         string resultImageFilePath = $"{directoryPath}{testAsset.name}_{individualMaterialTest.material.name}_{k_resultImageSuffix}";
                         if (File.Exists(resultImageFilePath))

@@ -56,6 +56,10 @@ public class UseTestAssetTestCaseAttribute : UnityEngine.TestTools.UnityTestAttr
             {
                 foreach(var individualTest in testAsset.testMaterial)
                 {
+                    if(testAsset.name == null || individualTest.material == null || individualTest.material.name == null)
+                    {
+                        continue;
+                    }
                     var hashPath = $"{k_fileLocation}/{testAsset.name}/{testAsset.name}_{individualTest.material.name}_{SetupTestAssetTestCases.k_resultHashSuffix}";
                     if(!File.Exists(hashPath))
                     {
