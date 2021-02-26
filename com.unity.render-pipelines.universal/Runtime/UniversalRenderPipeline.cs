@@ -1109,12 +1109,13 @@ namespace UnityEngine.Rendering.Universal
         static void CheckAndApplyDebugSettings(ref RenderingData renderingData)
         {
             DebugDisplaySettings debugDisplaySettings = DebugDisplaySettings.Instance;
-            DebugDisplaySettingsRendering renderingSettings = debugDisplaySettings.RenderingSettings;
             ref CameraData cameraData = ref renderingData.cameraData;
 
-            if (renderingSettings.AreAnySettingsActive && !cameraData.isPreviewCamera)
+            if (debugDisplaySettings.AreAnySettingsActive && !cameraData.isPreviewCamera)
             {
+                DebugDisplaySettingsRendering renderingSettings = debugDisplaySettings.RenderingSettings;
                 int msaaSamples = cameraData.cameraTargetDescriptor.msaaSamples;
+
                 if (!renderingSettings.enableMsaa)
                     msaaSamples = 1;
 

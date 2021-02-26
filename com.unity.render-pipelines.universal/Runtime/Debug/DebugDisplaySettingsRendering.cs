@@ -39,7 +39,8 @@ namespace UnityEditor.Rendering
                                             (debugMipInfoMode != DebugMipInfoMode.None);
 
         public bool IsPostProcessingAllowed => (debugPostProcessingMode != DebugPostProcessingMode.Disabled) &&
-                                               (debugSceneOverrideMode == DebugSceneOverrideMode.None);
+                                               (debugSceneOverrideMode == DebugSceneOverrideMode.None) &&
+                                               (debugMipInfoMode == DebugMipInfoMode.None);
 
         public bool IsLightingActive => (debugSceneOverrideMode == DebugSceneOverrideMode.None) &&
                                         (debugMipInfoMode == DebugMipInfoMode.None);
