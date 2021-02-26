@@ -31,6 +31,7 @@ namespace UnityEngine.Rendering.Universal.Internal
             m_SampleOffsetShaderHandle = Shader.PropertyToID("_SampleOffset");
             renderPassEvent = evt;
             m_DownsamplingMethod = Downsampling.None;
+            base.useNativeRenderPass = false;
         }
 
         /// <summary>
