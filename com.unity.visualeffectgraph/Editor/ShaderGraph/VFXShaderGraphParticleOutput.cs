@@ -224,6 +224,7 @@ namespace UnityEditor.VFX
             yield return "doubleSided";
             yield return "onlyAmbientLighting";
             yield return "useExposureWeight";
+            yield return "alphaThreshold";
         }
 
         protected override IEnumerable<string> filteredOutSettings

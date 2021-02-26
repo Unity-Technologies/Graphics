@@ -1056,6 +1056,7 @@ namespace UnityEditor.VFX
                     if (shaderGraph != null && shaderGraph.generatesWithShaderGraph)
                     {
                         var material = GetOrCreateMaterial(context);
+                        VFXLibrary.currentSRPBinder.SetupMaterial(material, shaderGraph);
                         AppendMaterialParameters(material, additionalParameters, contextData, expressionGraph);
                     }
                 }

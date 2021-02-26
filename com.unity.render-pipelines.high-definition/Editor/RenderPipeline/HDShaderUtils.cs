@@ -84,12 +84,18 @@ namespace UnityEditor.Rendering.HighDefinition
         /// </returns>
         public static bool ResetMaterialKeywords(Material material)
         {
+            var shaderID = GetShaderEnumFromShader(material.shader);
+            return ResetMaterialKeywords(material, shaderID);
+        }
+
+        internal static bool ResetMaterialKeywords(Material material, ShaderID shaderId)
+        {
             MaterialResetter resetter;
 
             // If we send a non HDRP material we don't throw an exception, the return type already handles errors.
             try
             {
-                k_MaterialResetters.TryGetValue(GetShaderEnumFromShader(material.shader), out resetter);
+                k_MaterialResetters.TryGetValue(shaderId, out resetter);
             }
             catch
             {

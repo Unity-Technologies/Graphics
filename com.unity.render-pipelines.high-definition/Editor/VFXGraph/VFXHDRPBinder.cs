@@ -1,5 +1,7 @@
 using System;
 using UnityEditor.Rendering.HighDefinition;
+using UnityEditor.Rendering.HighDefinition.ShaderGraph;
+using UnityEditor.ShaderGraph.Internal;
 using UnityEditor.VFX;
 using UnityEngine;
 using UnityEngine.Rendering.HighDefinition;
@@ -14,11 +16,45 @@ namespace UnityEditor.VFX.HDRP
         public override string SRPAssetTypeStr  { get { return typeof(HDRenderPipelineAsset).Name; } }
         public override Type SRPOutputDataType  { get { return typeof(VFXHDRPSubOutput); } }
 
-        public override void SetupMaterial(Material mat)
+        HDShaderUtils.ShaderID GetShaderEnumFromShaderGraph(ShaderGraphVfxAsset shaderGraph)
+        {
+            bool TryGetHDMetadata(out HDMetadata obj)
+            {
+                obj = null;
+
+                var path = AssetDatabase.GetAssetPath(shaderGraph);
+                foreach (var asset in AssetDatabase.LoadAllAssetsAtPath(path))
+                {
+                    if (asset is HDMetadata metadataAsset)
+                    {
+                        obj = metadataAsset;
+                        return true;
+                    }
+                }
+
+                return false;
+            }
+
+            HDMetadata obj;
+
+            if (!TryGetHDMetadata(out obj))
+                throw new ArgumentException("Unknown shader");
+
+            return obj.shaderID;
+        }
+
+        public override void SetupMaterial(Material mat, ShaderGraphVfxAsset shaderGraph = null)
         {
             try
             {
-                HDShaderUtils.ResetMaterialKeywords(mat);
+                if (shaderGraph != null)
+                {
+                    // Recover the HDRP Shader Enum from the VFX Shader Graph.
+                    var shaderID = GetShaderEnumFromShaderGraph(shaderGraph);
+                    HDShaderUtils.ResetMaterialKeywords(mat, shaderID);
+                }
+                else
+                    HDShaderUtils.ResetMaterialKeywords(mat);
             }
             catch (ArgumentException) // Silently catch the 'Unknown shader' in case of non HDRP shaders
             {}
