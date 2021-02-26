@@ -184,7 +184,7 @@ namespace UnityEngine.Experimental.Rendering.Universal
 
             ConfigureCameraTarget(colorTargetHandle.Identifier(), depthTargetHandle.Identifier());
 
-            // Add passes from Renderer Features.
+            // Add passes from Renderer Features. - NOTE: This should be reexamined in the future. Please see feedback from this PR https://github.com/Unity-Technologies/Graphics/pull/3147/files
             isCameraColorTargetValid = true;    // This is to make it possible to call ScriptableRenderer.cameraColorTarget in the custom passes.
             AddRenderPasses(ref renderingData);
             isCameraColorTargetValid = false;
