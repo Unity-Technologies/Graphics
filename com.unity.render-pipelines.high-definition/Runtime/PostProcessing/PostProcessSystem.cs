@@ -2443,7 +2443,7 @@ namespace UnityEngine.Rendering.HighDefinition
                         float usedAspectRatio = element.preserveAspectRatio ? (((float)texture.width) / ((float)texture.height)) : element.aspectRatio;
 
                         Vector2 size = new Vector2(scaleByDistance * element.size * usedAspectRatio, scaleByDistance * element.size);
-                        size *= 0.2f; // Arbitrary values
+                        size *= 0.1f; // Arbitrary values
 
                         float rotation = element.rotation;
                         Vector4 tint = Vector4.Scale(element.tint, gradientModulation);
