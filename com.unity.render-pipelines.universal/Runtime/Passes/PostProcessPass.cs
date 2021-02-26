@@ -1206,6 +1206,11 @@ namespace UnityEngine.Rendering.Universal.Internal
 
             cmd.SetGlobalTexture(ShaderPropertyId.sourceTex, m_Source.Identifier());
 
+            if((DebugHandler != null) && DebugHandler.IsPostProcessingAllowed)
+            {
+                DebugHandler.SetupShaderPropertiesFinalBlitPass(cmd);
+            }
+
             var colorLoadAction = cameraData.isDefaultViewport ? RenderBufferLoadAction.DontCare : RenderBufferLoadAction.Load;
 
             RenderTargetHandle cameraTargetHandle = RenderTargetHandle.GetCameraTarget(cameraData.xr);

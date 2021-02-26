@@ -20,12 +20,8 @@ Shader "Hidden/Universal Render Pipeline/Blit"
             #pragma multi_compile _ _DEBUG_SHADER
 
             #include "Packages/com.unity.render-pipelines.universal/Shaders/Utils/Fullscreen.hlsl"
-            #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/DebuggingCommon.hlsl"
+            #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/DebuggingFullscreen.hlsl"
             #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Color.hlsl"
-
-            float _RangeMinimum;
-            float _RangeMaximum;
-            int _HighlightOutOfRangeAlpha;
 
             TEXTURE2D_X(_SourceTex);
             SAMPLER(sampler_SourceTex);
@@ -41,41 +37,11 @@ Shader "Hidden/Universal Render Pipeline/Blit"
              	#endif
 
                 #if defined(_DEBUG_SHADER)
-                if(_DebugValidationMode == DEBUGVALIDATIONMODE_HIGHLIGHT_NAN_INF_NEGATIVE)
+                half4 debugColor;
+
+                if(CalculateDebugColor(col, debugColor))
                 {
-                    if (isnan(col.r) || isnan(col.g) || isnan(col.b) || isnan(col.a))
-                    {
-                        return half4(1, 0, 0, 1);
-                    }
-                    else if (isinf(col.r) || isinf(col.g) || isinf(col.b) || isinf(col.a))
-                    {
-                        return half4(0, 1, 0, 1);
-                    }
-                    else if (col.r < 0 || col.g < 0 || col.b < 0 || col.a < 0)
-                    {
-                        return half4(0, 0, 1, 1);
-                    }
-                    else
-                    {
-                        return half4(LinearRgbToLuminance(col.rgb).rrr, 1);
-                    }
-                }
-                else if(_DebugValidationMode == DEBUGVALIDATIONMODE_HIGHLIGHT_OUTSIDE_OF_RANGE)
-                {
-                    if(col.r < _RangeMinimum || col.g < _RangeMinimum || col.b < _RangeMinimum ||
-                        (_HighlightOutOfRangeAlpha && (col.a < _RangeMinimum)))
-                    {
-                        return _DebugValidateBelowMinThresholdColor;
-                    }
-                    else if(col.r > _RangeMaximum || col.g > _RangeMaximum || col.b > _RangeMaximum ||
-                            (_HighlightOutOfRangeAlpha && (col.a > _RangeMaximum)))
-                    {
-                        return _DebugValidateAboveMaxThresholdColor;
-                    }
-                    else
-                    {
-                        return half4(LinearRgbToLuminance(col.rgb).rrr, 1);
-                    }
+                    return debugColor;
                 }
                 #endif
 

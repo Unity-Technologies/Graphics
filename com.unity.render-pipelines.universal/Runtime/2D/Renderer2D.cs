@@ -52,6 +52,11 @@ namespace UnityEngine.Experimental.Rendering.Universal
             m_Render2DLightingPass.DebugHandler = DebugHandler;
             m_FinalBlitPass.DebugHandler = DebugHandler;
 
+            if(m_PostProcessPasses.finalPostProcessPass != null)
+            {
+                m_PostProcessPasses.finalPostProcessPass.DebugHandler = DebugHandler;
+            }
+
             // We probably should declare these names in the base class,
             // as they must be the same across all ScriptableRenderer types for camera stacking to work.
             k_ColorTextureHandle.Init("_CameraColorTexture");
