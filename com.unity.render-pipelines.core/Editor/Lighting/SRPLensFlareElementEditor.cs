@@ -10,7 +10,7 @@ namespace UnityEditor.Rendering
     [CustomPropertyDrawer(typeof(SRPLensFlareDataElement))]
     public class SRPLensFlareElementEditor : PropertyDrawer
     {
-        static float m_Indent = 35.0f;
+        static float m_Indent = 0.0f;
 
         private float m_LastOffset = 0.0f;
         private Rect m_CurrentRect;
@@ -52,7 +52,7 @@ namespace UnityEditor.Rendering
         /// <param name="label">The label of this property.</param>
         public override void OnGUI(Rect position, SerializedProperty property, GUIContent label)
         {
-            float originY = position.y;
+            float originX = position.x;
             float offsetHeight = 1.75f * (EditorGUIUtility.singleLineHeight + EditorGUIUtility.standardVerticalSpacing);
             //Rect rect = new Rect(position.x + m_Indent, position.y, position.width - m_Indent, GUIStyle.none.lineHeight);
             InitFirstRect(position);
@@ -94,13 +94,15 @@ namespace UnityEditor.Rendering
             if (lensFlareProp.objectReferenceValue != null)
             {
                 float imgWidth = 1.5f * m_Indent;
-                float imgOffY = 0.5f * (GetPropertyHeight(property, label) - imgWidth - GUIStyle.none.lineHeight);
-                Rect imgRect = new Rect(position.x - m_Indent + 15.0f, originY + imgOffY + GUIStyle.none.lineHeight, imgWidth, imgWidth);
+                float imgOffX = 0.5f * (GetPropertyHeight(property, label) - imgWidth - GUIStyle.none.lineHeight);
+                //Rect imgRect = new Rect(position.x - m_Indent + 15.0f, originY + imgOffY + GUIStyle.none.lineHeight, imgWidth, imgWidth);
+                Rect imgRect = new Rect(m_CurrentRect.x, m_CurrentRect.y, imgWidth, imgWidth);
                 Texture texture = lensFlareProp.objectReferenceValue as Texture;
                 float usedAspectRatio = preserveAspectRatioProp.boolValue ? (((float)texture.width) / ((float)texture.height)) : aspectRatioProp.floatValue;
                 EditorGUI.DrawTextureTransparent(imgRect, lensFlareProp.objectReferenceValue as Texture, ScaleMode.ScaleToFit, usedAspectRatio);
             }
             Rect rect = m_CurrentRect;
+            m_CurrentRect.y += 1.5f * 35.0f;
             EditorGUI.BeginProperty(new Rect(rect.x, rect.y, rect.width, 2.0f * rect.height), label, property);
 
             float lineHeight = EditorGUIUtility.singleLineHeight + EditorGUIUtility.standardVerticalSpacing;
@@ -318,7 +320,7 @@ namespace UnityEditor.Rendering
                 coef = 5.0f;
             }
 
-            return coef * (EditorGUIUtility.singleLineHeight + EditorGUIUtility.standardVerticalSpacing);
+            return coef * (EditorGUIUtility.singleLineHeight + EditorGUIUtility.standardVerticalSpacing) + 1.5f * 35.0f;
         }
 
         sealed class Styles
