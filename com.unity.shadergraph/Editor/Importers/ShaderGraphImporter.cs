@@ -281,7 +281,7 @@ Shader ""Hidden/GraphErrorShader2""
                 Debug.LogWarning($"Shader Graph at {path} has at least one warning.");
         }
 
-        internal static string GetShaderText(string path, out List<PropertyCollector.TextureInfo> configuredTextures, AssetCollection assetCollection, GraphData graph)
+        internal static string GetShaderText(string path, out List<PropertyCollector.TextureInfo> configuredTextures, AssetCollection assetCollection, GraphData graph, GenerationMode mode = GenerationMode.ForReals)
         {
             string shaderString = null;
             var shaderName = Path.GetFileNameWithoutExtension(path);
@@ -289,7 +289,7 @@ Shader ""Hidden/GraphErrorShader2""
             {
                 if (!string.IsNullOrEmpty(graph.path))
                     shaderName = graph.path + "/" + shaderName;
-                var generator = new Generator(graph, graph.outputNode, GenerationMode.ForReals, shaderName, assetCollection);
+                var generator = new Generator(graph, graph.outputNode, mode, shaderName, assetCollection);
                 shaderString = generator.generatedShader;
                 configuredTextures = generator.configuredTextures;
 
@@ -338,10 +338,14 @@ Shader ""Hidden/GraphErrorShader2""
         }
 
 #if VFX_GRAPH_10_0_0_OR_NEWER
-        // TODO: Fix this
+        // TODO: Fix this - VFX Graph can now use ShaderGraph as a code generation path. However, currently, the new
+        // generation path still slightly depends on this container (The implementation of it was tightly coupled in VFXShaderGraphParticleOutput,
+        // and we keep it now as there is no migration path for users yet). This will need to be decoupled so that we can eventually
+        // remove this container.
         static ShaderGraphVfxAsset GenerateVfxShaderGraphAsset(GraphData graph)
         {
-            var target = graph.activeTargets.FirstOrDefault(x => x is VFXTarget) as VFXTarget;
+            var target = graph.activeTargets.FirstOrDefault(x => x.WorksWithVFX());
+
             if (target == null)
                 return null;
 
@@ -351,8 +355,18 @@ Shader ""Hidden/GraphErrorShader2""
             var result = asset.compilationResult = new GraphCompilationResult();
             var mode = GenerationMode.ForReals;
 
-            asset.lit = target.lit;
-            asset.alphaClipping = target.alphaTest;
+            if (target is VFXTarget vfxTarget)
+            {
+                asset.lit = vfxTarget.lit;
+                asset.alphaClipping = vfxTarget.alphaTest;
+                asset.generatesWithShaderGraph = false;
+            }
+            else
+            {
+                asset.lit = true;
+                asset.alphaClipping = false;
+                asset.generatesWithShaderGraph = true;
+            }
 
             var assetGuid = graph.assetGuid;
             var assetPath = AssetDatabase.GUIDToAssetPath(assetGuid);
@@ -656,6 +670,7 @@ Shader ""Hidden/GraphErrorShader2""
 
             var inputProperties = new List<AbstractShaderProperty>();
             var portPropertyIndices = new List<int>[ports.Count];
+            var propertiesStages = new List<ShaderStageCapability>();
             for (var portIndex = 0; portIndex < ports.Count; portIndex++)
             {
                 portPropertyIndices[portIndex] = new List<int>();
@@ -671,6 +686,7 @@ Shader ""Hidden/GraphErrorShader2""
                 var propertyIndex = inputProperties.Count;
                 var codeIndex = codeSnippets.Count;
 
+                ShaderStageCapability stageCapability = 0;
                 for (var portIndex = 0; portIndex < ports.Count; portIndex++)
                 {
                     var portPropertySet = portPropertySets[portIndex];
@@ -678,9 +694,11 @@ Shader ""Hidden/GraphErrorShader2""
                     {
                         portCodeIndices[portIndex].Add(codeIndex);
                         portPropertyIndices[portIndex].Add(propertyIndex);
+                        stageCapability |= ports[portIndex].stageCapability;
                     }
                 }
 
+                propertiesStages.Add(stageCapability);
                 inputProperties.Add(property);
                 codeSnippets.Add($",{nl}{indent}/* Property: {property.displayName} */ {property.GetPropertyAsArgumentStringForVFX(property.concretePrecision.ToShaderString())}");
             }
@@ -755,6 +773,7 @@ Shader ""Hidden/GraphErrorShader2""
             asset.inputStructName = inputStructName;
             asset.outputStructName = outputStructName;
             asset.portRequirements = portRequirements;
+            asset.m_PropertiesStages = propertiesStages.ToArray();
             asset.concretePrecision = graph.graphDefaultConcretePrecision;
             asset.SetProperties(inputProperties);
             asset.outputPropertyIndices = new IntArray[ports.Count];

@@ -730,6 +730,21 @@ namespace UnityEditor.ShaderGraph
             using (var propertyBuilder = new ShaderStringBuilder())
             {
                 subShaderProperties.GetPropertiesDeclaration(propertyBuilder, m_Mode, m_GraphData.graphDefaultConcretePrecision);
+
+                if (m_Mode == GenerationMode.VFX)
+                {
+                    const string k_GraphPropertiesStruct = "GraphProperties";
+                    propertyBuilder.AppendLine($"struct {k_GraphPropertiesStruct}");
+                    using (propertyBuilder.BlockSemicolonScope())
+                    {
+                        m_GraphData.ForeachHLSLProperty(h =>
+                        {
+                            if (!h.IsObjectType())
+                                h.AppendTo(propertyBuilder);
+                        });
+                    }
+                }
+
                 if (propertyBuilder.length == 0)
                     propertyBuilder.AppendLine("// GraphProperties: <None>");
                 spliceCommands.Add("GraphProperties", propertyBuilder.ToCodeBlock());
@@ -885,6 +900,17 @@ namespace UnityEditor.ShaderGraph
 
                 // Add to splice commands
                 spliceCommands.Add("Debug", debugBuilder.ToCodeBlock());
+            }
+
+            // --------------------------------------------------
+            // Additional Commands
+
+            if (pass.additionalCommands != null)
+            {
+                foreach (AdditionalCommandCollection.Item additionalCommand in pass.additionalCommands)
+                {
+                    spliceCommands.Add(additionalCommand.field.token, additionalCommand.field.content);
+                }
             }
 
             // --------------------------------------------------

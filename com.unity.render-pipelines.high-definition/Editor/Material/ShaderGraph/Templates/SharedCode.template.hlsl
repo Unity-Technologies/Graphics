@@ -17,6 +17,11 @@ FragInputs BuildFragInputs(VaryingsMeshToPS input)
     $FragInputs.texCoord3:          output.texCoord3 = input.texCoord3;
     $FragInputs.color:              output.color = input.color;
 
+    #ifdef HAVE_VFX_MODIFICATION
+    // FragInputs from VFX come from two places: Interpolator or CBuffer.
+    $splice(VFXSetFragInputs)
+    #endif
+
     // splice point to copy custom interpolator fields from varyings to frag inputs
     $splice(CustomInterpolatorVaryingsToFragInputs)
 
