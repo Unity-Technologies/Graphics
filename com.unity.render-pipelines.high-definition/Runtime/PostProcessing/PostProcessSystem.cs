@@ -2290,8 +2290,9 @@ namespace UnityEngine.Rendering.HighDefinition
                 Vector3 diffToObject = comp.transform.position - cam.transform.position;
                 float distToObject = diffToObject.magnitude;
                 float coefDistSample = distToObject / comp.maxAttenuationDistance;
+                float coefScaleSample = distToObject / comp.maxAttenuationScale;
                 float distanceAttenuation = comp.distanceAttenuationCurve.length > 0 ? comp.distanceAttenuationCurve.Evaluate(coefDistSample) : 1.0f;
-                float scaleByDistance = comp.scaleByDistanceCurve.length >= 1 ? comp.scaleByDistanceCurve.Evaluate(coefDistSample) : 1.0f;
+                float scaleByDistance = comp.scaleByDistanceCurve.length >= 1 ? comp.scaleByDistanceCurve.Evaluate(coefScaleSample) : 1.0f;
                 Light light = comp.GetComponent<Light>();
                 if (light != null)
                 {

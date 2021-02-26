@@ -26,6 +26,11 @@ namespace UnityEngine
         [Min(1e-5f)]
         public float maxAttenuationDistance = 10.0f;
         /// <summary>
+        /// Distance used to scale the Scale Attenuation Curve
+        /// </summary>
+        [Min(1e-5f)]
+        public float maxAttenuationScale = 10.0f;
+        /// <summary>
         /// Attenuation by distance
         /// </summary>
         public AnimationCurve distanceAttenuationCurve = new AnimationCurve(new Keyframe(0.0f, 1.0f), new Keyframe(1.0f, 0.0f));

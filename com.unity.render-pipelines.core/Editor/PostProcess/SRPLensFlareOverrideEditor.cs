@@ -10,6 +10,7 @@ namespace UnityEditor.Rendering
         SerializedProperty m_LensFlareData;
         SerializedProperty m_Intensity;
         SerializedProperty m_MaxAttenuationDistance;
+        SerializedProperty m_MaxAttenuationScale;
         SerializedProperty m_DistanceAttenuationCurve;
         SerializedProperty m_ScaleByDistanceCurve;
         SerializedProperty m_AttenuationByLightShape;
@@ -30,8 +31,9 @@ namespace UnityEditor.Rendering
             m_Intensity = entryPoint.Find(x => x.intensity);
             m_MaxAttenuationDistance = entryPoint.Find(x => x.maxAttenuationDistance);
             m_DistanceAttenuationCurve = entryPoint.Find(x => x.distanceAttenuationCurve);
-            m_AttenuationByLightShape = entryPoint.Find(x => x.attenuationByLightShape);
+            m_MaxAttenuationScale = entryPoint.Find(x => x.maxAttenuationScale);
             m_ScaleByDistanceCurve = entryPoint.Find(x => x.scaleByDistanceCurve);
+            m_AttenuationByLightShape = entryPoint.Find(x => x.attenuationByLightShape);
             m_RadialScreenAttenuationCurve = entryPoint.Find(x => x.radialScreenAttenuationCurve);
             m_UseOcclusion = entryPoint.Find(x => x.useOcclusion);
             m_OcclusionRadius = entryPoint.Find(x => x.occlusionRadius);
@@ -55,32 +57,27 @@ namespace UnityEditor.Rendering
 
             EditorGUI.BeginChangeCheck();
             ++EditorGUI.indentLevel;
-            EditorGUILayout.BeginFoldoutHeaderGroup(false, "      General", EditorStyles.boldLabel);
+            EditorGUILayout.BeginFoldoutHeaderGroup(false, "     General", EditorStyles.boldLabel);
             {
                 EditorGUILayout.PropertyField(m_LensFlareData, Styles.lensFlareData);
                 EditorGUILayout.PropertyField(m_Intensity, Styles.intensity);
                 if (attachedToLight)
                     EditorGUILayout.PropertyField(m_AttenuationByLightShape, Styles.attenuationByLightShape);
                 EditorGUILayout.PropertyField(m_MaxAttenuationDistance, Styles.maxAttenuationDistance);
+                ++EditorGUI.indentLevel;
                 EditorGUILayout.PropertyField(m_DistanceAttenuationCurve, Styles.distanceAttenuationCurve);
+                --EditorGUI.indentLevel;
+                EditorGUILayout.PropertyField(m_MaxAttenuationScale, Styles.maxAttenuationScale);
+                ++EditorGUI.indentLevel;
                 EditorGUILayout.PropertyField(m_ScaleByDistanceCurve, Styles.scaleByDistanceCurve);
+                --EditorGUI.indentLevel;
                 EditorGUILayout.PropertyField(m_RadialScreenAttenuationCurve, Styles.radialScreenAttenuationCurve);
             }
             EditorGUILayout.EndFoldoutHeaderGroup();
-            EditorGUILayout.BeginHorizontal();
-            bool oldValue = m_UseOcclusion.boolValue;
-            bool curValue;
-            Rect rect = EditorGUILayout.GetControlRect();
-            rect.x -= 26.0f;
-            rect.width = 26.0f;
-            if ((curValue = EditorGUI.Toggle(rect, oldValue)) != oldValue)
-            {
-                m_UseOcclusion.boolValue = curValue;
-            }
-            rect.x += 43.0f;
-            rect.width = 92.0f;
-            EditorGUI.BeginFoldoutHeaderGroup(rect, false, "Occlusion", EditorStyles.boldLabel);
-            EditorGUILayout.EndHorizontal();
+            --EditorGUI.indentLevel;
+            ++EditorGUI.indentLevel;
+            EditorGUILayout.BeginFoldoutHeaderGroup(false, "     Occlusion", EditorStyles.boldLabel);
+            EditorGUILayout.PropertyField(m_UseOcclusion, Styles.enableOcclusion);
             if (m_UseOcclusion.boolValue)
             {
                 EditorGUILayout.PropertyField(m_OcclusionRadius, Styles.occlusionRadius);
@@ -89,8 +86,10 @@ namespace UnityEditor.Rendering
                 --EditorGUI.indentLevel;
                 EditorGUILayout.PropertyField(m_OcclusionOffset, Styles.occlusionOffset);
             }
+            EditorGUILayout.EndFoldoutHeaderGroup();
             --EditorGUI.indentLevel;
             EditorGUILayout.PropertyField(m_AllowOffScreen, Styles.allowOffScreen);
+
             if (EditorGUI.EndChangeCheck())
             {
                 m_LensFlareData.serializedObject.ApplyModifiedProperties();
@@ -99,17 +98,19 @@ namespace UnityEditor.Rendering
 
         sealed class Styles
         {
-            static public readonly GUIContent lensFlareData = new GUIContent("Lens Flare Data", "Lens flare asset used on this component.");
-            static public readonly GUIContent intensity = new GUIContent("Intensity", "Intensity.");
-            static public readonly GUIContent maxAttenuationDistance = new GUIContent("Max Attenuation Distance", "Distance used to scale the Distance Attenuation Curve.");
-            static public readonly GUIContent distanceAttenuationCurve = new GUIContent("Distance Attenuation Curve", "Attenuation by distance, scaled by max distance.");
-            static public readonly GUIContent scaleByDistanceCurve = new GUIContent("Distance Scale Curve", ".");
-            static public readonly GUIContent attenuationByLightShape = new GUIContent("Attenuation By Light Shape", "If component attached to a light, attenuation the lens flare per light type.");
-            static public readonly GUIContent radialScreenAttenuationCurve = new GUIContent("Screen Attenuation Curve", "Attenuation used radially, which allow for instance to enable flare only on the edge of the screen.");
-            static public readonly GUIContent occlusionRadius = new GUIContent("Occlusion Radius", "Radius around the light used to occlude the flare (value in world space).");
-            static public readonly GUIContent sampleCount = new GUIContent("Sample Count", "Random sample count used inside the disk with 'occlusion radius'. Higher sample counts will give a smoother attenuation when being occluded.");
-            static public readonly GUIContent occlusionOffset = new GUIContent("Occlusion Offset", "Occlusion Offset allows us to offset the plane for where the disc of occlusion is placed in world space (which will make it appear smaller or larger on the debug view as it is moving relative to the camera).\nThis is useful in order to sample occlusion outside a light bulb if a flare was placed inside.");
-            static public readonly GUIContent allowOffScreen = new GUIContent("Allow Off Screen", "If allowOffScreen is true then If the lens flare is outside the screen we still emit the flare on screen.");
+            static public readonly GUIContent lensFlareData = EditorGUIUtility.TrTextContent("Lens Flare Data", "Lens flare asset used on this component.");
+            static public readonly GUIContent intensity = EditorGUIUtility.TrTextContent("Intensity", "Intensity.");
+            static public readonly GUIContent maxAttenuationDistance = EditorGUIUtility.TrTextContent("Attenuation Distance Distance", "Distance used to scale the Distance Attenuation Curve.");
+            static public readonly GUIContent distanceAttenuationCurve = EditorGUIUtility.TrTextContent("Attenuation Distance Curve", "Attenuation by distance, scaled by max distance.");
+            static public readonly GUIContent maxAttenuationScale = EditorGUIUtility.TrTextContent("Attenuation Scale Distance", "Distance used to scale the Scale Attenuation Curve.");
+            static public readonly GUIContent scaleByDistanceCurve = EditorGUIUtility.TrTextContent("Scale Distance Curve", ".");
+            static public readonly GUIContent attenuationByLightShape = EditorGUIUtility.TrTextContent("Attenuation By Light Shape", "If component attached to a light, attenuation the lens flare per light type.");
+            static public readonly GUIContent radialScreenAttenuationCurve = EditorGUIUtility.TrTextContent("Screen Attenuation Curve", "Attenuation used radially, which allow for instance to enable flare only on the edge of the screen.");
+            static public readonly GUIContent enableOcclusion = EditorGUIUtility.TrTextContent("Enable", "Enable Occlusion.");
+            static public readonly GUIContent occlusionRadius = EditorGUIUtility.TrTextContent("Occlusion Radius", "Radius around the light used to occlude the flare (value in world space).");
+            static public readonly GUIContent sampleCount = EditorGUIUtility.TrTextContent("Sample Count", "Random sample count used inside the disk with 'occlusion radius'. Higher sample counts will give a smoother attenuation when being occluded.");
+            static public readonly GUIContent occlusionOffset = EditorGUIUtility.TrTextContent("Occlusion Offset", "Occlusion Offset allows us to offset the plane for where the disc of occlusion is placed in world space (which will make it appear smaller or larger on the debug view as it is moving relative to the camera).\nThis is useful in order to sample occlusion outside a light bulb if a flare was placed inside.");
+            static public readonly GUIContent allowOffScreen = EditorGUIUtility.TrTextContent("Allow Off Screen", "If allowOffScreen is true then If the lens flare is outside the screen we still emit the flare on screen.");
         }
     }
 }
