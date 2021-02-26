@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using UnityEditor.Experimental.GraphView;
@@ -62,13 +62,13 @@ namespace UnityEditor.ShaderGraph.Drawing
 
             foreach (var shaderInput in DataStore.State.properties)
             {
-                if(IsInputInSection(shaderInput))
+                if (IsInputInSection(shaderInput))
                     AddBlackboardRow(shaderInput);
             }
 
             foreach (var shaderInput in DataStore.State.keywords)
             {
-                if(IsInputInSection(shaderInput))
+                if (IsInputInSection(shaderInput))
                     AddBlackboardRow(shaderInput);
             }
         }
@@ -101,7 +101,7 @@ namespace UnityEditor.ShaderGraph.Drawing
                     if (IsInputInSection(shaderInput))
                         RemoveBlackboardRow(shaderInput);
 
-                foreach(var shaderInput in graphData.addedInputs)
+                foreach (var shaderInput in graphData.addedInputs)
                     if (IsInputInSection(shaderInput))
                         AddBlackboardRow(shaderInput);
             }

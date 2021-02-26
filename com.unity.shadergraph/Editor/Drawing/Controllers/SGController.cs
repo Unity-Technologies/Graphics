@@ -16,7 +16,6 @@ namespace UnityEditor.ShaderGraph
     {
         void OnDummyChangeAction(GraphData m_GraphData)
         {
-
         }
 
         public Action<GraphData> modifyGraphDataAction => OnDummyChangeAction;
@@ -139,7 +138,6 @@ namespace UnityEditor.ShaderGraph
         }
 
         List<ISGControlledElement> m_EventHandlers = new List<ISGControlledElement>();
-
     }
 
     abstract class SGController<T> : SGController

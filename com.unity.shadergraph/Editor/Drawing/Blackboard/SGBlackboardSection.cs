@@ -12,12 +12,10 @@ namespace UnityEditor.ShaderGraph.Drawing
         // --- Begin ISGControlledElement implementation
         public void OnControllerChanged(ref SGControllerChangedEvent e)
         {
-
         }
 
         public void OnControllerEvent(SGControllerEvent e)
         {
-
         }
 
         public BlackboardSectionController controller

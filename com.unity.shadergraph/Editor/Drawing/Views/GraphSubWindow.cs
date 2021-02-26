@@ -76,7 +76,7 @@ namespace UnityEditor.ShaderGraph.Drawing.Views
         {
             get
             {
-                if(ParentView is ISelectionProvider selectionProvider)
+                if (ParentView is ISelectionProvider selectionProvider)
                     return selectionProvider.GetSelection;
 
                 Debug.Log("ERROR: GraphSubWindow: Was unable to find a selection provider. Please check if parent view of: " + name + " implements ISelectionProvider::GetSelection");

@@ -1,4 +1,4 @@
-﻿using UnityEngine;
+using UnityEngine;
 using System;
 using UnityEditor.Graphing;
 using UnityEditor.ShaderGraph.Drawing.Controls;
@@ -177,7 +177,6 @@ namespace UnityEditor.ShaderGraph.Drawing
 
         // Reference to the shader input being deleted
         internal ShaderInput shaderInputToDelete { get; set; }
-
     }
 
     class ShaderInputViewController : SGViewController<ShaderInput, ShaderInputViewModel>

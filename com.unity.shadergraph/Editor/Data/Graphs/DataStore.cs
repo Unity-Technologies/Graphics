@@ -1,4 +1,4 @@
-﻿using UnityEditor.ShaderGraph;
+using UnityEditor.ShaderGraph;
 using ActionType = UnityEditor.ShaderGraph.IGraphDataAction;
 using System;
 using UnityEngine;
@@ -30,7 +30,7 @@ namespace UnityEditor.ShaderGraph
             }
 
             // Note: This would only work with reference types, as value types would require creating a new copy, this works given that we use GraphData which is a heap object
-			// Notifies any listeners about change in state
+            // Notifies any listeners about change in state
             Subscribe?.Invoke(State, action);
         }
     }

@@ -26,7 +26,6 @@ namespace UnityEditor.ShaderGraph.Drawing
 
         BlackboardGroupInfo()
         {
-
         }
     }
 
@@ -40,12 +39,10 @@ namespace UnityEditor.ShaderGraph.Drawing
         // --- Begin ISGControlledElement implementation
         public void OnControllerChanged(ref SGControllerChangedEvent e)
         {
-
         }
 
         public void OnControllerEvent(SGControllerEvent e)
         {
-
         }
 
         public BlackboardController controller
@@ -255,7 +252,7 @@ namespace UnityEditor.ShaderGraph.Drawing
             {
                 string propertyName = nameToAddActionTuple.Key;
                 IGraphDataAction addAction = nameToAddActionTuple.Value;
-                m_AddPropertyMenu.AddItem(new GUIContent(propertyName), false, ()=> ViewModel.requestModelChangeAction(addAction));
+                m_AddPropertyMenu.AddItem(new GUIContent(propertyName), false, () => ViewModel.requestModelChangeAction(addAction));
             }
             m_AddPropertyMenu.AddSeparator($"/");
 
@@ -263,7 +260,7 @@ namespace UnityEditor.ShaderGraph.Drawing
             {
                 string defaultKeywordName = nameToAddActionTuple.Key;
                 IGraphDataAction addAction = nameToAddActionTuple.Value;
-                m_AddPropertyMenu.AddItem(new GUIContent($"Keyword/{defaultKeywordName}"), false, ()=> ViewModel.requestModelChangeAction(addAction));
+                m_AddPropertyMenu.AddItem(new GUIContent($"Keyword/{defaultKeywordName}"), false, () => ViewModel.requestModelChangeAction(addAction));
             }
             m_AddPropertyMenu.AddSeparator($"Keyword/");
 
@@ -271,7 +268,7 @@ namespace UnityEditor.ShaderGraph.Drawing
             {
                 string builtInKeywordName = nameToAddActionTuple.Key;
                 IGraphDataAction addAction = nameToAddActionTuple.Value;
-                m_AddPropertyMenu.AddItem(new GUIContent($"Keyword/{builtInKeywordName}"), false, ()=> ViewModel.requestModelChangeAction(addAction));
+                m_AddPropertyMenu.AddItem(new GUIContent($"Keyword/{builtInKeywordName}"), false, () => ViewModel.requestModelChangeAction(addAction));
             }
 
             foreach (string disabledKeywordName in ViewModel.disabledKeywordNameList)

@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 
 using GraphData = UnityEditor.ShaderGraph.GraphData;
 

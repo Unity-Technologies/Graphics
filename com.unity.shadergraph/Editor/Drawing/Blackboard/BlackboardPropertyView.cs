@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
@@ -186,12 +186,10 @@ namespace UnityEditor.ShaderGraph.Drawing
         // --- Begin ISGControlledElement implementation
         public void OnControllerChanged(ref SGControllerChangedEvent e)
         {
-
         }
 
         public void OnControllerEvent(SGControllerEvent e)
         {
-
         }
 
         public ShaderInputViewController controller
@@ -249,7 +247,6 @@ namespace UnityEditor.ShaderGraph.Drawing
                         controller.DirtyNodes(modificationScope);
                         if (triggerInspectorUpdate)
                             inspectorUpdateDelegate();
-
                     }));
                 RegisterCallback<DetachFromPanelEvent>(evt => inspectorUpdateDelegate());
 

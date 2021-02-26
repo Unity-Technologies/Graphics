@@ -43,19 +43,19 @@ namespace UnityEditor.ShaderGraph.Drawing
         public BlackboardItem shaderInputReference { get; set; }
     }
 
-	class ChangeGraphPathAction : IGraphDataAction
+    class ChangeGraphPathAction : IGraphDataAction
     {
-		void ChangeGraphPath(GraphData graphData)
-		{
+        void ChangeGraphPath(GraphData graphData)
+        {
             if (graphData != null)
             {
                 graphData.path = NewGraphPath;
             }
-		}
+        }
 
         public Action<GraphData> modifyGraphDataAction => ChangeGraphPath;
 
-		public string NewGraphPath { get; set; }
+        public string NewGraphPath { get; set; }
     }
 
     class CopyShaderInputAction : IGraphDataAction
@@ -204,7 +204,7 @@ namespace UnityEditor.ShaderGraph.Drawing
                 }
             }
 
-			ViewModel.requestModelChangeAction = this.RequestModelChange;
+            ViewModel.requestModelChangeAction = this.RequestModelChange;
 
             ViewModel.categoryInfoList = DataStore.State.categories.ToList();
 
@@ -212,13 +212,13 @@ namespace UnityEditor.ShaderGraph.Drawing
             if (ViewModel.categoryInfoList.Count == 0)
             {
                 var propertyGUIDs = new List<Guid>();
-                foreach(var property in DataStore.State.properties)
+                foreach (var property in DataStore.State.properties)
                     propertyGUIDs.Add(property.guid);
                 var defaultPropertyCategory = new CategoryData("Properties", propertyGUIDs);
                 ViewModel.categoryInfoList.Add(defaultPropertyCategory);
 
                 var keywordGUIDs = new List<Guid>();
-                foreach(var keyword in DataStore.State.keywords)
+                foreach (var keyword in DataStore.State.keywords)
                     keywordGUIDs.Add(keyword.guid);
                 var defaultKeywordCategory = new CategoryData("Keywords", keywordGUIDs);
                 ViewModel.categoryInfoList.Add(defaultKeywordCategory);
@@ -306,7 +306,7 @@ namespace UnityEditor.ShaderGraph.Drawing
                     if (IsInputInDefaultCategory(shaderInput))
                         RemoveInputFromDefaultSection(shaderInput);
 
-                foreach(var shaderInput in graphData.addedInputs)
+                foreach (var shaderInput in graphData.addedInputs)
                     if (IsInputInDefaultCategory(shaderInput))
                         AddInputToDefaultSection(shaderInput);
             }
@@ -382,7 +382,6 @@ namespace UnityEditor.ShaderGraph.Drawing
 
         public void HandleGraphChanges(bool wasUndoRedoPerformed)
         {
-
         }
 
         internal int numberOfSections => m_BlackboardSectionControllers.Count;
