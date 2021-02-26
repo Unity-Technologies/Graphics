@@ -172,14 +172,14 @@ namespace UnityEngine.Rendering.HighDefinition
             assetCreated.lightLayerName6 = System.String.Copy(oldAsset.currentPlatformRenderPipelineSettings.m_ObsoleteLightLayerName6);
             assetCreated.lightLayerName7 = System.String.Copy(oldAsset.currentPlatformRenderPipelineSettings.m_ObsoleteLightLayerName7);
 
-            assetCreated.decalLayerName0 = System.String.Copy(oldAsset.currentPlatformRenderPipelineSettings.m_ObsoleteLightLayerName0);
-            assetCreated.decalLayerName1 = System.String.Copy(oldAsset.currentPlatformRenderPipelineSettings.m_ObsoleteLightLayerName1);
-            assetCreated.decalLayerName2 = System.String.Copy(oldAsset.currentPlatformRenderPipelineSettings.m_ObsoleteLightLayerName2);
-            assetCreated.decalLayerName3 = System.String.Copy(oldAsset.currentPlatformRenderPipelineSettings.m_ObsoleteLightLayerName3);
-            assetCreated.decalLayerName4 = System.String.Copy(oldAsset.currentPlatformRenderPipelineSettings.m_ObsoleteLightLayerName4);
-            assetCreated.decalLayerName5 = System.String.Copy(oldAsset.currentPlatformRenderPipelineSettings.m_ObsoleteLightLayerName5);
-            assetCreated.decalLayerName6 = System.String.Copy(oldAsset.currentPlatformRenderPipelineSettings.m_ObsoleteLightLayerName6);
-            assetCreated.decalLayerName7 = System.String.Copy(oldAsset.currentPlatformRenderPipelineSettings.m_ObsoleteLightLayerName7);
+            assetCreated.decalLayerName0 = System.String.Copy(oldAsset.currentPlatformRenderPipelineSettings.m_ObsoleteDecalLayerName0);
+            assetCreated.decalLayerName1 = System.String.Copy(oldAsset.currentPlatformRenderPipelineSettings.m_ObsoleteDecalLayerName1);
+            assetCreated.decalLayerName2 = System.String.Copy(oldAsset.currentPlatformRenderPipelineSettings.m_ObsoleteDecalLayerName2);
+            assetCreated.decalLayerName3 = System.String.Copy(oldAsset.currentPlatformRenderPipelineSettings.m_ObsoleteDecalLayerName3);
+            assetCreated.decalLayerName4 = System.String.Copy(oldAsset.currentPlatformRenderPipelineSettings.m_ObsoleteDecalLayerName4);
+            assetCreated.decalLayerName5 = System.String.Copy(oldAsset.currentPlatformRenderPipelineSettings.m_ObsoleteDecalLayerName5);
+            assetCreated.decalLayerName6 = System.String.Copy(oldAsset.currentPlatformRenderPipelineSettings.m_ObsoleteDecalLayerName6);
+            assetCreated.decalLayerName7 = System.String.Copy(oldAsset.currentPlatformRenderPipelineSettings.m_ObsoleteDecalLayerName7);
 
             assetCreated.shaderVariantLogLevel = oldAsset.m_ObsoleteShaderVariantLogLevel;
             assetCreated.lensAttenuationMode = oldAsset.m_ObsoleteLensAttenuation;
