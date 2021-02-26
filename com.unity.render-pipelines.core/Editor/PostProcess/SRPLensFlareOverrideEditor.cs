@@ -100,9 +100,9 @@ namespace UnityEditor.Rendering
         {
             static public readonly GUIContent lensFlareData = EditorGUIUtility.TrTextContent("Lens Flare Data", "Lens flare asset used on this component.");
             static public readonly GUIContent intensity = EditorGUIUtility.TrTextContent("Intensity", "Intensity.");
-            static public readonly GUIContent maxAttenuationDistance = EditorGUIUtility.TrTextContent("Attenuation Distance Distance", "Distance used to scale the Distance Attenuation Curve.");
+            static public readonly GUIContent maxAttenuationDistance = EditorGUIUtility.TrTextContent("Attenuation Distance", "Distance used to scale the Distance Attenuation Curve.");
             static public readonly GUIContent distanceAttenuationCurve = EditorGUIUtility.TrTextContent("Attenuation Distance Curve", "Attenuation by distance, scaled by max distance.");
-            static public readonly GUIContent maxAttenuationScale = EditorGUIUtility.TrTextContent("Attenuation Scale Distance", "Distance used to scale the Scale Attenuation Curve.");
+            static public readonly GUIContent maxAttenuationScale = EditorGUIUtility.TrTextContent("Scale Distance", "Distance used to scale the Scale Attenuation Curve.");
             static public readonly GUIContent scaleByDistanceCurve = EditorGUIUtility.TrTextContent("Scale Distance Curve", ".");
             static public readonly GUIContent attenuationByLightShape = EditorGUIUtility.TrTextContent("Attenuation By Light Shape", "If component attached to a light, attenuation the lens flare per light type.");
             static public readonly GUIContent radialScreenAttenuationCurve = EditorGUIUtility.TrTextContent("Screen Attenuation Curve", "Attenuation used radially, which allow for instance to enable flare only on the edge of the screen.");

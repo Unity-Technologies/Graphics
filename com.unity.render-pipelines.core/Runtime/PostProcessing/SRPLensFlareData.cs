@@ -74,7 +74,7 @@ namespace UnityEngine
             tint = new Color(1.0f, 1.0f, 1.0f, 0.5f);
             blendMode = SRPLensFlareBlendMode.Additive;
             autoRotate = false;
-            isFoldOpened = false;
+            isFoldOpened = true;
 
             distribution = SRPLensFlareDistribution.Uniform;
 

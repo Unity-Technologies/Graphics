@@ -226,12 +226,12 @@ namespace UnityEditor.Rendering
                                 positionVariationProp.vector2Value = tmpVec2;
 
                             rect = GetNextRect();
-                            if ((tmp = EditorGUI.FloatField(rect, Styles.scaleVariation, scaleVariationProp.floatValue)) != scaleVariationProp.floatValue)
-                                scaleVariationProp.floatValue = Mathf.Max(tmp, 0.0f);
-
-                            rect = GetNextRect();
                             if ((tmp = EditorGUI.FloatField(rect, Styles.rotationVariation, rotationVariationProp.floatValue)) != rotationVariationProp.floatValue)
                                 rotationVariationProp.floatValue = Mathf.Max(tmp, 0.0f);
+
+                            rect = GetNextRect();
+                            if ((tmp = EditorGUI.FloatField(rect, Styles.scaleVariation, scaleVariationProp.floatValue)) != scaleVariationProp.floatValue)
+                                scaleVariationProp.floatValue = Mathf.Max(tmp, 0.0f);
                         }
                         else if (newDistribution == SRPLensFlareDistribution.Curve)
                         {
@@ -250,6 +250,18 @@ namespace UnityEditor.Rendering
             }
             else
             {
+                rect = GetNextRect();
+                if ((tmp = EditorGUI.FloatField(rect, Styles.intensity, intensityProp.floatValue)) != intensityProp.floatValue)
+                    intensityProp.floatValue = Mathf.Max(tmp, 0.0f);
+
+                rect = GetNextRect();
+                if ((tmpCol = EditorGUI.ColorField(rect, Styles.tint, tintProp.colorValue)) != tintProp.colorValue)
+                    tintProp.colorValue = tmpCol;
+
+                rect = GetNextRect();
+                if ((tmp = EditorGUI.FloatField(rect, Styles.position, positionProp.floatValue)) != positionProp.floatValue)
+                    positionProp.floatValue = tmp;
+
                 Texture tmpTex;
                 rect = GetNextRect();
                 if ((tmpTex = (EditorGUI.ObjectField(rect, Styles.flareTexture, lensFlareProp.objectReferenceValue, typeof(Texture), false) as Texture)) != (lensFlareProp.objectReferenceValue as Texture))
@@ -258,18 +270,6 @@ namespace UnityEditor.Rendering
                     aspectRatioProp.floatValue = ((float)tmpTex.width) / ((float)tmpTex.height);
                     aspectRatioProp.serializedObject.ApplyModifiedProperties();
                 }
-
-                rect = GetNextRect();
-                if ((tmpCol = EditorGUI.ColorField(rect, Styles.tint, tintProp.colorValue)) != tintProp.colorValue)
-                    tintProp.colorValue = tmpCol;
-
-                rect = GetNextRect();
-                if ((tmp = EditorGUI.FloatField(rect, Styles.intensity, intensityProp.floatValue)) != intensityProp.floatValue)
-                    intensityProp.floatValue = Mathf.Max(tmp, 0.0f);
-
-                rect = GetNextRect();
-                if ((tmp = EditorGUI.FloatField(rect, Styles.position, positionProp.floatValue)) != positionProp.floatValue)
-                    positionProp.floatValue = tmp;
 
                 isFoldOpened.boolValue = false;
             }
