@@ -17,7 +17,7 @@ namespace UnityEngine.Rendering.Universal
         public static readonly string ReceiveShadows = "_ReceiveShadows";
         public static readonly string QueueOffset = "_QueueOffset";
 
-        public static readonly string AlphaCutoff = "_Cutoff";
+        //public static readonly string AlphaCutoff = "_Cutoff";
     }
 
     internal static class UniversalMaterialInspectorUtilities

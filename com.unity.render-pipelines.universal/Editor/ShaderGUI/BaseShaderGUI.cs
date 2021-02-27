@@ -146,7 +146,7 @@ namespace UnityEditor
             blendModeProp = FindProperty("_Blend", properties);
             cullingProp = FindProperty("_Cull", properties);
             alphaClipProp = FindProperty("_AlphaClip", properties);
-            alphaCutoffProp = FindProperty("_Cutoff", properties);
+            alphaCutoffProp = FindProperty("_Cutoff", properties, false);   // Not mandatory for shadergraphs
             receiveShadowsProp = FindProperty("_ReceiveShadows", properties, false);
             baseMapProp = FindProperty("_BaseMap", properties, false);
             baseColorProp = FindProperty("_BaseColor", properties, false);
@@ -236,7 +236,9 @@ namespace UnityEditor
                 alphaClipProp.floatValue = alphaClipEnabled ? 1 : 0;
             EditorGUI.showMixedValue = false;
 
-            if (alphaClipProp.floatValue == 1)
+            // TODO: hmm.. really should check if this property is defined by the shader or not... material may have it as a holdover from old settings
+            // but if the shader doesn't use it, then we probably shouldn't show it...
+            if ((alphaClipProp.floatValue == 1) && (alphaCutoffProp != null))
                 materialEditor.ShaderProperty(alphaCutoffProp, Styles.alphaClipThresholdText, 1);
 
             if (receiveShadowsProp != null)

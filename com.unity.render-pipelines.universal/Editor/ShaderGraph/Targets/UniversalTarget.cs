@@ -230,7 +230,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
             collector.AddFloatProperty(Property.ReceiveShadows, 1.0f);
             collector.AddFloatProperty(Property.QueueOffset, 0.0f);
 
-            collector.AddFloatProperty(Property.AlphaCutoff, 0.5f);   // _Cutoff("Alpha Cutoff", Range(0.0, 1.0)) = 0.5
+            // collector.AddFloatProperty(Property.AlphaCutoff, 0.5f);   // _Cutoff("Alpha Cutoff", Range(0.0, 1.0)) = 0.5
         }
 
         public override void GetPropertiesGUI(ref TargetPropertyGUIContext context, Action onChange, Action<String> registerUndo)
@@ -482,7 +482,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
             //public static readonly string alphaSrcBlend = "[_AlphaSrcBlend]";
             //public static readonly string alphaDstBlend = "[_AlphaDstBlend]";
             //public static readonly string alphaToMask = "[_AlphaToMask]";
-            public static readonly string cullMode = "[_CullMode]";
+            public static readonly string cullMode = "[_Cull]";
             //public static readonly string cullModeForward = "[_CullModeForward]";
             public static readonly string zTest = "[_ZTest]";
             //public static readonly string zTestDepthEqualForOpaque = "[_ZTestDepthEqualForOpaque]";
