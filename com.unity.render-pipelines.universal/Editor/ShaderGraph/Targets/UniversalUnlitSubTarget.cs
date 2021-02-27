@@ -8,9 +8,11 @@ using UnityEditor.UIElements;
 using UnityEngine.UIElements;
 using UnityEditor.ShaderGraph.Legacy;
 
+using static UnityEditor.Rendering.Universal.ShaderGraph.SubShaderUtils;
+
 namespace UnityEditor.Rendering.Universal.ShaderGraph
 {
-    sealed class UniversalUnlitSubTarget : SubTarget<UniversalTarget>, ILegacyTarget
+    sealed class UniversalUnlitSubTarget : UniversalSubTarget, ILegacyTarget
     {
         static readonly GUID kSourceCodeGuid = new GUID("97c3f7dcb477ec842aa878573640313a"); // UniversalUnlitSubTarget.cs
 
@@ -24,17 +26,24 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
         public override void Setup(ref TargetSetupContext context)
         {
             context.AddAssetDependency(kSourceCodeGuid, AssetCollection.Flags.SourceDependency);
+            base.Setup(ref context);
+
+            if (!context.HasCustomEditorForRenderPipeline(typeof(UnityEngine.Rendering.Universal.UniversalRenderPipelineAsset)))
+            {
+                // TODO use the new one
+                context.AddCustomEditorForRenderPipeline("UnityEditor.URPUnlitGUI", typeof(UnityEngine.Rendering.Universal.UniversalRenderPipelineAsset)); // TODO: This should be owned by URP
+            }
 
             // Process SubShaders
-            SubShaderDescriptor[] subShaders = { SubShaders.Unlit, SubShaders.UnlitDOTS };
-            for (int i = 0; i < subShaders.Length; i++)
+            SubShaderDescriptor[] unlitSubShaders = { SubShaders.Unlit, SubShaders.UnlitDOTS };
+            for (int i = 0; i < unlitSubShaders.Length; i++)
             {
-                // Update Render State
-                subShaders[i].renderType = target.renderType;
-                subShaders[i].renderQueue = target.renderQueue;
+                // Update Render State (target controls)
+                unlitSubShaders[i].renderType = target.renderType;
+                unlitSubShaders[i].renderQueue = target.renderQueue;
 
                 // Add
-                context.AddSubShader(subShaders[i]);
+                context.AddSubShader(unlitSubShaders[i]);
             }
         }
 
@@ -135,32 +144,18 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
                 },
             };
 
-            public static SubShaderDescriptor UnlitDOTS
+            public static SubShaderDescriptor UnlitDOTS = new SubShaderDescriptor()
             {
-                get
+                pipelineTag = UniversalTarget.kPipelineTag,
+                customTags = UniversalTarget.kUnlitMaterialTypeTag,
+                generatesPreview = true,
+                passes = new PassCollection
                 {
-                    var unlit = UnlitPasses.Unlit;
-                    var shadowCaster = CorePasses.ShadowCaster;
-                    var depthOnly = CorePasses.DepthOnly;
-
-                    unlit.pragmas = CorePragmas.DOTSForward;
-                    shadowCaster.pragmas = CorePragmas.DOTSInstanced;
-                    depthOnly.pragmas = CorePragmas.DOTSInstanced;
-
-                    return new SubShaderDescriptor()
-                    {
-                        pipelineTag = UniversalTarget.kPipelineTag,
-                        customTags = UniversalTarget.kUnlitMaterialTypeTag,
-                        generatesPreview = true,
-                        passes = new PassCollection
-                        {
-                            { unlit },
-                            { shadowCaster },
-                            { depthOnly },
-                        },
-                    };
-                }
-            }
+                    { PassVariant(UnlitPasses.Unlit, CorePragmas.DOTSForward) },
+                    { PassVariant(CorePasses.ShadowCaster, CorePragmas.DOTSInstanced) },
+                    { PassVariant(CorePasses.DepthOnly, CorePragmas.DOTSInstanced) },
+                },
+            };
         }
         #endregion
 
@@ -187,7 +182,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
                 fieldDependencies = CoreFieldDependencies.Default,
 
                 // Conditional State
-                renderStates = CoreRenderStates.Default,
+                renderStates = CoreRenderStates.UberDefault,
                 pragmas = CorePragmas.Forward,
                 keywords = UnlitKeywords.Unlit,
                 includes = UnlitIncludes.Unlit,
@@ -203,9 +198,11 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
         {
             public static KeywordCollection Unlit = new KeywordCollection
             {
-                { CoreKeywordDescriptors.Lightmap },
-                { CoreKeywordDescriptors.DirectionalLightmapCombined },
-                { CoreKeywordDescriptors.SampleGI },
+                CoreKeywordDescriptors.Lightmap,
+                CoreKeywordDescriptors.DirectionalLightmapCombined,
+                CoreKeywordDescriptors.SampleGI,
+                CoreKeywordDescriptors.AlphaTestOn,
+                CoreKeywordDescriptors.AlphaPremultiplyOn,
             };
         }
         #endregion

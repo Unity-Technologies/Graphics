@@ -8,9 +8,11 @@ using UnityEditor.UIElements;
 using UnityEngine.UIElements;
 using UnityEditor.ShaderGraph.Legacy;
 
+using static UnityEditor.Rendering.Universal.ShaderGraph.SubShaderUtils;
+
 namespace UnityEditor.Rendering.Universal.ShaderGraph
 {
-    sealed class UniversalLitSubTarget : SubTarget<UniversalTarget>, ILegacyTarget
+    sealed class UniversalLitSubTarget : UniversalSubTarget, ILegacyTarget
     {
         static readonly GUID kSourceCodeGuid = new GUID("d6c78107b64145745805d963de80cc17"); // UniversalLitSubTarget.cs
 
@@ -60,8 +62,12 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
         public override void Setup(ref TargetSetupContext context)
         {
             context.AddAssetDependency(kSourceCodeGuid, AssetCollection.Flags.SourceDependency);
+            base.Setup(ref context);
+
             if (!context.HasCustomEditorForRenderPipeline(typeof(UnityEngine.Rendering.Universal.UniversalRenderPipelineAsset)))
-                context.AddCustomEditorForRenderPipeline("ShaderGraph.PBRMasterGUI", typeof(UnityEngine.Rendering.Universal.UniversalRenderPipelineAsset)); // TODO: This should be owned by URP
+            {
+                context.AddCustomEditorForRenderPipeline("UnityEditor.URPLitGUI", typeof(UnityEngine.Rendering.Universal.UniversalRenderPipelineAsset));
+            }
 
             // Process SubShaders
             SubShaderDescriptor[] litSubShaders = { SubShaders.LitComputeDOTS, SubShaders.LitGLES };
@@ -261,28 +267,6 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
         #region SubShader
         static class SubShaders
         {
-            // Overloads to do inline PassDescriptor modifications
-            // NOTE: param order should match PassDescriptor field order for consistency
-            #region PassVariant
-            private static PassDescriptor PassVariant(in PassDescriptor source, PragmaCollection pragmas)
-            {
-                var result = source;
-                result.pragmas = pragmas;
-                return result;
-            }
-
-            private static PassDescriptor PassVariant(in PassDescriptor source, BlockFieldDescriptor[] vertexBlocks, BlockFieldDescriptor[] pixelBlocks, PragmaCollection pragmas, DefineCollection defines)
-            {
-                var result = source;
-                result.validVertexBlocks = vertexBlocks;
-                result.validPixelBlocks = pixelBlocks;
-                result.pragmas = pragmas;
-                result.defines = defines;
-                return result;
-            }
-
-            #endregion
-
             // SM 4.5, compute with dots instancing
             public readonly static SubShaderDescriptor LitComputeDOTS = new SubShaderDescriptor()
             {
@@ -382,7 +366,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
                 fieldDependencies = CoreFieldDependencies.Default,
 
                 // Conditional State
-                renderStates = CoreRenderStates.Default,
+                renderStates = CoreRenderStates.UberDefault,
                 pragmas  = CorePragmas.Forward,     // NOTE: SM 2.0 only GL
                 keywords = LitKeywords.Forward,
                 includes = LitIncludes.Forward,
@@ -413,7 +397,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
                 fieldDependencies = CoreFieldDependencies.Default,
 
                 // Conditional State
-                renderStates = CoreRenderStates.Default,
+                renderStates = CoreRenderStates.UberDefault,
                 pragmas  = CorePragmas.Forward,    // NOTE: SM 2.0 only GL
                 keywords = LitKeywords.Forward,
                 includes = LitIncludes.Forward,
@@ -444,7 +428,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
                 fieldDependencies = CoreFieldDependencies.Default,
 
                 // Conditional State
-                renderStates = CoreRenderStates.Default,
+                renderStates = CoreRenderStates.UberDefault,
                 pragmas = CorePragmas.DOTSGBuffer,
                 keywords = LitKeywords.GBuffer,
                 includes = LitIncludes.GBuffer,
@@ -502,7 +486,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
                 fieldDependencies = CoreFieldDependencies.Default,
 
                 // Conditional State
-                renderStates = CoreRenderStates.Default,
+                renderStates = CoreRenderStates.UberDefault,
                 pragmas = CorePragmas.Instanced,
                 includes = LitIncludes._2D,
 

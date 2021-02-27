@@ -381,10 +381,13 @@ namespace UnityEditor
             // Emission
             if (material.HasProperty("_EmissionColor"))
                 MaterialEditor.FixupEmissiveFlag(material);
+
             bool shouldEmissionBeEnabled =
                 (material.globalIlluminationFlags & MaterialGlobalIlluminationFlags.EmissiveIsBlack) == 0;
+
             if (material.HasProperty("_EmissionEnabled") && !shouldEmissionBeEnabled)
                 shouldEmissionBeEnabled = material.GetFloat("_EmissionEnabled") >= 0.5f;
+
             CoreUtils.SetKeyword(material, "_EMISSION", shouldEmissionBeEnabled);
 
             // Normal Map
@@ -405,14 +408,7 @@ namespace UnityEditor
             if (material.HasProperty("_AlphaClip"))
                 alphaClip = material.GetFloat("_AlphaClip") >= 0.5;
 
-            if (alphaClip)
-            {
-                material.EnableKeyword("_ALPHATEST_ON");
-            }
-            else
-            {
-                material.DisableKeyword("_ALPHATEST_ON");
-            }
+            CoreUtils.SetKeyword(material, "_ALPHATEST_ON", alphaClip);
 
             if (material.HasProperty("_Surface"))
             {
@@ -437,7 +433,7 @@ namespace UnityEditor
                     material.DisableKeyword("_ALPHAPREMULTIPLY_ON");
                     material.SetShaderPassEnabled("ShadowCaster", true);
                 }
-                else
+                else // SurfaceType Transparent
                 {
                     BlendMode blendMode = (BlendMode)material.GetFloat("_Blend");
 
@@ -570,14 +566,12 @@ namespace UnityEditor
         }
 
         // Copied from shaderGUI as it is a protected function in an abstract class, unavailable to others
-
         public new static MaterialProperty FindProperty(string propertyName, MaterialProperty[] properties)
         {
             return FindProperty(propertyName, properties, true);
         }
 
         // Copied from shaderGUI as it is a protected function in an abstract class, unavailable to others
-
         public new static MaterialProperty FindProperty(string propertyName, MaterialProperty[] properties, bool propertyIsMandatory)
         {
             for (int index = 0; index < properties.Length; ++index)

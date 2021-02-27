@@ -87,6 +87,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
             m_SubTargets = TargetUtils.GetSubTargets(this);
             m_SubTargetNames = m_SubTargets.Select(x => x.displayName).ToList();
             TargetUtils.ProcessSubTargetList(ref m_ActiveSubTarget, ref m_SubTargets);
+            // ProcessSubTargetDatas(m_ActiveSubTarget.value);
         }
 
         public string renderType
@@ -217,6 +218,19 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
             collector.AddShaderProperty(LightmappingShaderProperties.kLightmapsArray);
             collector.AddShaderProperty(LightmappingShaderProperties.kLightmapsIndirectionArray);
             collector.AddShaderProperty(LightmappingShaderProperties.kShadowMasksArray);
+
+            // TODO: collect from subshaders as well?
+            collector.AddFloatProperty(Property.Surface, (float)SurfaceType.Opaque);
+            collector.AddFloatProperty(Property.Blend, (float)BaseShaderGUI.BlendMode.Additive);
+            collector.AddFloatProperty(Property.AlphaClip, 0.0f);
+            collector.AddFloatProperty(Property.SrcBlend, 1.0f);
+            collector.AddFloatProperty(Property.DstBlend, 0.0f);
+            collector.AddFloatProperty(Property.ZWrite, 1.0f);
+            collector.AddFloatProperty(Property.Cull, 2.0f);
+            collector.AddFloatProperty(Property.ReceiveShadows, 1.0f);
+            collector.AddFloatProperty(Property.QueueOffset, 0.0f);
+
+            collector.AddFloatProperty(Property.AlphaCutoff, 0.5f);   // _Cutoff("Alpha Cutoff", Range(0.0, 1.0)) = 0.5
         }
 
         public override void GetPropertiesGUI(ref TargetPropertyGUIContext context, Action onChange, Action<String> registerUndo)
@@ -373,7 +387,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
             lightMode = "ShadowCaster",
 
             // Template
-            passTemplatePath = GenerationUtils.GetDefaultTemplatePath("PassMesh.template"),
+            passTemplatePath = UniversalTarget.kTemplatePath, //GenerationUtils.GetDefaultTemplatePath("PassMesh.template"),
             sharedTemplateDirectories = UniversalTarget.kSharedTemplateDirectories,
 
             // Port Mask
@@ -460,6 +474,34 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
     #region RenderStates
     static class CoreRenderStates
     {
+        public static class Uniforms
+        {
+            // TODO: this is a pure copy of HDRP uniforms, renamed -- some might not be needed in URP
+            public static readonly string srcBlend = "[_SrcBlend]";
+            public static readonly string dstBlend = "[_DstBlend]";
+            //public static readonly string alphaSrcBlend = "[_AlphaSrcBlend]";
+            //public static readonly string alphaDstBlend = "[_AlphaDstBlend]";
+            //public static readonly string alphaToMask = "[_AlphaToMask]";
+            public static readonly string cullMode = "[_CullMode]";
+            //public static readonly string cullModeForward = "[_CullModeForward]";
+            public static readonly string zTest = "[_ZTest]";
+            //public static readonly string zTestDepthEqualForOpaque = "[_ZTestDepthEqualForOpaque]";
+            //public static readonly string zTestTransparent = "[_ZTestTransparent]";
+            //public static readonly string zTestGBuffer = "[_ZTestGBuffer]";
+            public static readonly string zWrite = "[_ZWrite]";
+            public static readonly string zClip = "[_ZClip]";
+            //public static readonly string stencilWriteMaskDepth = "[_StencilWriteMaskDepth]";
+            public static readonly string stencilRefDepth = "[_StencilRefDepth]";
+            public static readonly string stencilWriteMaskMV = "[_StencilWriteMaskMV]";
+            public static readonly string stencilRefMV = "[_StencilRefMV]";
+            public static readonly string stencilWriteMask = "[_StencilWriteMask]";
+            public static readonly string stencilRef = "[_StencilRef]";
+            public static readonly string stencilWriteMaskGBuffer = "[_StencilWriteMaskGBuffer]";
+            public static readonly string stencilRefGBuffer = "[_StencilRefGBuffer]";
+            public static readonly string stencilRefDistortionVec = "[_StencilRefDistortionVec]";
+            public static readonly string stencilWriteMaskDistortionVec = "[_StencilWriteMaskDistortionVec]";
+        }
+
         public static readonly RenderStateCollection Default = new RenderStateCollection
         {
             { RenderState.ZTest(ZTest.LEqual) },
@@ -472,6 +514,23 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
             { RenderState.Blend(Blend.One, Blend.OneMinusSrcAlpha, Blend.One, Blend.OneMinusSrcAlpha), new FieldCondition(UniversalFields.BlendPremultiply, true) },
             { RenderState.Blend(Blend.SrcAlpha, Blend.One, Blend.One, Blend.One), new FieldCondition(UniversalFields.BlendAdd, true) },
             { RenderState.Blend(Blend.DstColor, Blend.Zero), new FieldCondition(UniversalFields.BlendMultiply, true) },
+        };
+
+        public static readonly RenderStateCollection UberDefault = new RenderStateCollection
+        {
+            // { RenderState.ZTest(Uniforms.zTest) },       // not used currently
+            { RenderState.ZWrite(Uniforms.zWrite) },
+            { RenderState.Cull(Uniforms.cullMode) },
+            { RenderState.Blend(Uniforms.srcBlend, Uniforms.dstBlend) }, //, Uniforms.alphaSrcBlend, Uniforms.alphaDstBlend) },
+//          { RenderState.ColorMask("ColorMask [_ColorMaskTransparentVel] 1") },
+//          { RenderState.Stencil(new StencilDescriptor()
+//                 {
+//                     WriteMask = Uniforms.stencilWriteMask,
+//                     Ref = Uniforms.stencilRef,
+//                     Comp = "Always",
+//                     Pass = "Replace",
+//                 })
+//          },
         };
 
         public static readonly RenderStateCollection Meta = new RenderStateCollection
@@ -715,6 +774,24 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
             type = KeywordType.Boolean,
             definition = KeywordDefinition.ShaderFeature,
             scope = KeywordScope.Global,
+        };
+
+        public static readonly KeywordDescriptor AlphaTestOn = new KeywordDescriptor()
+        {
+            displayName = "_ALPHATEST_ON",
+            referenceName = "_ALPHATEST_ON",
+            type = KeywordType.Boolean,
+            definition = KeywordDefinition.ShaderFeature,
+            scope = KeywordScope.Local, // TODO: LocalFragment ?
+        };
+
+        public static readonly KeywordDescriptor AlphaPremultiplyOn = new KeywordDescriptor()
+        {
+            displayName = "_ALPHAPREMULTIPLY_ON",
+            referenceName = "_ALPHAPREMULTIPLY_ON",
+            type = KeywordType.Boolean,
+            definition = KeywordDefinition.ShaderFeature,
+            scope = KeywordScope.Local, // TODO: LocalFragment ?
         };
 
         public static readonly KeywordDescriptor MainLightShadows = new KeywordDescriptor()
