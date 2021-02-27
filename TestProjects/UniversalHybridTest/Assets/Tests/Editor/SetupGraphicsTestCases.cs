@@ -19,6 +19,9 @@ public class SetupGraphicsTestCases : IPrebuildSetup
         // Once that's fixed, this class can be deleted and the SetupGraphicsTestCases class in Unity.TestFramework.Graphics.Editor
         // can be used directly instead.
         UnityEditor.TestTools.Graphics.SetupGraphicsTestCases.Setup(GraphicsTests.path);
+
+        // Configure project for XR tests
+        Unity.Testing.XR.Editor.InjectMockHMD.SetupLoader();
     }
 
     public static void TriggerPreparePlayerTest()

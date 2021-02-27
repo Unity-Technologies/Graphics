@@ -492,7 +492,7 @@ return specularTerm;
 half3 DirectBDRF(BRDFData brdfData, half3 normalWS, half3 lightDirectionWS, half3 viewDirectionWS, bool specularHighlightsOff)
 {
     // Can still do compile-time optimisation.
-    // If no compile-time optimized, extra overhead if branch taken is around +2.5% on Switch, -10% if not taken.
+    // If no compile-time optimized, extra overhead if branch taken is around +2.5% on some untethered platforms, -10% if not taken.
     [branch] if (!specularHighlightsOff)
     {
         half specularTerm = DirectBRDFSpecular(brdfData, normalWS, lightDirectionWS, viewDirectionWS);

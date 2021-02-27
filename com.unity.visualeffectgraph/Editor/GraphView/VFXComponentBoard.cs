@@ -427,9 +427,16 @@ namespace UnityEditor.VFX.UI
                 UpdateEventList();
                 m_SelectButton.visible = true;
 
+                var debugMode = VFXUIDebug.Modes.None;
+                if (m_DebugUI != null)
+                {
+                    debugMode = m_DebugUI.GetDebugMode();
+                    m_DebugUI.Clear();
+                }
+
                 m_DebugUI = new VFXUIDebug(m_View);
-                m_DebugUI.SetDebugMode(VFXUIDebug.Modes.None, this, true);
                 m_DebugUI.SetVisualEffect(m_AttachedComponent);
+                m_DebugUI.SetDebugMode(debugMode, this, true);
             }
         }
 

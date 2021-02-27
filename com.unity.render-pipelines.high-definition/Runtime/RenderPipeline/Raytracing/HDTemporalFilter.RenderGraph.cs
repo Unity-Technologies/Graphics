@@ -6,6 +6,55 @@ namespace UnityEngine.Rendering.HighDefinition
 {
     partial class HDTemporalFilter
     {
+        class HistoryValidityPassData
+        {
+            public HistoryValidityParameters parameters;
+            public TextureHandle depthStencilBuffer;
+            public TextureHandle normalBuffer;
+            public TextureHandle motionVectorBuffer;
+            public TextureHandle historyDepthTexture;
+            public TextureHandle historyNormalTexture;
+            public TextureHandle validationBuffer;
+        }
+
+        public TextureHandle HistoryValidity(RenderGraph renderGraph, HDCamera hdCamera, HistoryValidityParameters parameters,
+            TextureHandle depthBuffer, TextureHandle normalBuffer, TextureHandle motionVectorBuffer)
+        {
+            using (var builder = renderGraph.AddRenderPass<HistoryValidityPassData>("History Validity Evaluation", out var passData, ProfilingSampler.Get(HDProfileId.HistoryValidity)))
+            {
+                // Cannot run in async
+                builder.EnableAsyncCompute(false);
+
+                // Fetch all the resources
+                passData.parameters = parameters;
+                // Input Buffers
+                passData.depthStencilBuffer = builder.ReadTexture(depthBuffer);
+                passData.normalBuffer = builder.ReadTexture(normalBuffer);
+                passData.motionVectorBuffer = builder.ReadTexture(motionVectorBuffer);
+
+                // History buffers
+                passData.historyDepthTexture = builder.ReadTexture(renderGraph.ImportTexture(hdCamera.GetCurrentFrameRT((int)HDCameraFrameHistoryType.Depth)));
+                passData.historyNormalTexture = builder.ReadTexture(renderGraph.ImportTexture(hdCamera.GetCurrentFrameRT((int)HDCameraFrameHistoryType.Normal)));
+
+                // Output buffers
+                passData.validationBuffer = builder.WriteTexture(renderGraph.CreateTexture(new TextureDesc(Vector2.one, true, true) { colorFormat = GraphicsFormat.R8_UNorm, enableRandomWrite = true, name = "ValidationTexture" }));
+
+                builder.SetRenderFunc(
+                    (HistoryValidityPassData data, RenderGraphContext ctx) =>
+                    {
+                        HistoryValidityResources resources = new HistoryValidityResources();
+                        resources.depthStencilBuffer = data.depthStencilBuffer;
+                        resources.normalBuffer = data.normalBuffer;
+                        resources.motionVectorBuffer = data.motionVectorBuffer;
+                        resources.historyDepthTexture = data.historyDepthTexture;
+                        resources.historyNormalTexture = data.historyNormalTexture;
+                        resources.validationBuffer = data.validationBuffer;
+                        ExecuteHistoryValidity(ctx.cmd, data.parameters, resources);
+                    });
+                return passData.validationBuffer;
+            }
+        }
+
         class TemporalFilterPassData
         {
             public TemporalFilterParameters parameters;
@@ -13,15 +62,16 @@ namespace UnityEngine.Rendering.HighDefinition
             public TextureHandle normalBuffer;
             public TextureHandle motionVectorBuffer;
             public TextureHandle velocityBuffer;
-            public TextureHandle historyDepthTexture;
-            public TextureHandle historyNormalTexture;
             public TextureHandle noisyBuffer;
             public TextureHandle validationBuffer;
             public TextureHandle historyBuffer;
             public TextureHandle outputBuffer;
         }
 
-        public TextureHandle Denoise(RenderGraph renderGraph, HDCamera hdCamera, TemporalFilterParameters tfParameters, TextureHandle noisyBuffer, TextureHandle historyBuffer, TextureHandle depthPyramid, TextureHandle normalBuffer, TextureHandle motionVectorBuffer)
+        public TextureHandle Denoise(RenderGraph renderGraph, HDCamera hdCamera, TemporalFilterParameters tfParameters,
+            TextureHandle noisyBuffer, TextureHandle velocityBuffer,
+            TextureHandle historyBuffer,
+            TextureHandle depthBuffer, TextureHandle normalBuffer, TextureHandle motionVectorBuffer, TextureHandle historyValidationBuffer)
         {
             using (var builder = renderGraph.AddRenderPass<TemporalFilterPassData>("TemporalDenoiser", out var passData, ProfilingSampler.Get(HDProfileId.TemporalFilter)))
             {
@@ -30,20 +80,18 @@ namespace UnityEngine.Rendering.HighDefinition
 
                 // Fetch all the resources
                 passData.parameters = tfParameters;
-                // Input Buffers
-                passData.depthStencilBuffer = builder.ReadTexture(depthPyramid);
+
+                // Prepass Buffers
+                passData.depthStencilBuffer = builder.ReadTexture(depthBuffer);
                 passData.normalBuffer = builder.ReadTexture(normalBuffer);
                 passData.motionVectorBuffer = builder.ReadTexture(motionVectorBuffer);
 
-                passData.velocityBuffer = renderGraph.defaultResources.blackTextureXR;
+                // Effect buffers
+                passData.velocityBuffer = builder.ReadTexture(velocityBuffer);
                 passData.noisyBuffer = builder.ReadTexture(noisyBuffer);
+                passData.validationBuffer = builder.ReadTexture(historyValidationBuffer);
 
-                // Temporary buffers
-                passData.validationBuffer = builder.CreateTransientTexture(new TextureDesc(Vector2.one, true, true) { colorFormat = GraphicsFormat.R8_UNorm, enableRandomWrite = true, name = "ValidationTexture" });
-
-                // History buffers
-                passData.historyDepthTexture = builder.ReadTexture(renderGraph.ImportTexture(hdCamera.GetCurrentFrameRT((int)HDCameraFrameHistoryType.Depth)));
-                passData.historyNormalTexture = builder.ReadTexture(renderGraph.ImportTexture(hdCamera.GetCurrentFrameRT((int)HDCameraFrameHistoryType.Normal)));
+                // History buffer
                 passData.historyBuffer = builder.ReadWriteTexture(historyBuffer);
 
                 // Output buffers
@@ -58,8 +106,6 @@ namespace UnityEngine.Rendering.HighDefinition
                         tfResources.normalBuffer = data.normalBuffer;
                         tfResources.velocityBuffer = data.velocityBuffer;
                         tfResources.motionVectorBuffer = data.motionVectorBuffer;
-                        tfResources.historyDepthTexture = data.historyDepthTexture;
-                        tfResources.historyNormalTexture = data.historyNormalTexture;
                         tfResources.noisyBuffer = data.noisyBuffer;
                         tfResources.validationBuffer = data.validationBuffer;
                         tfResources.historyBuffer = data.historyBuffer;
@@ -79,20 +125,18 @@ namespace UnityEngine.Rendering.HighDefinition
         class TemporalFilterArrayPassData
         {
             public TemporalFilterArrayParameters parameters;
-            // Input buffers
+            // Prepass buffers
             public TextureHandle depthStencilBuffer;
             public TextureHandle normalBuffer;
             public TextureHandle motionVectorBuffer;
-            public TextureHandle velocityBuffer;
+
+            // Effect Buffers
             public TextureHandle noisyBuffer;
             public TextureHandle distanceBuffer;
-
-            // Intermediate buffers
             public TextureHandle validationBuffer;
+            public TextureHandle velocityBuffer;
 
             // History buffers
-            public TextureHandle historyDepthTexture;
-            public TextureHandle historyNormalTexture;
             public TextureHandle historyBuffer;
             public TextureHandle validationHistoryBuffer;
             public TextureHandle distanceHistorySignal;
@@ -103,7 +147,7 @@ namespace UnityEngine.Rendering.HighDefinition
         }
 
         public TemporalDenoiserArrayOutputData DenoiseBuffer(RenderGraph renderGraph, HDCamera hdCamera,
-            TextureHandle depthBuffer, TextureHandle normalBuffer, TextureHandle motionVectorBuffer,
+            TextureHandle depthBuffer, TextureHandle normalBuffer, TextureHandle motionVectorBuffer, TextureHandle historyValidationBuffer,
             TextureHandle noisyBuffer, RTHandle historyBuffer,
             TextureHandle distanceBuffer, RTHandle distanceHistorySignal,
             TextureHandle velocityBuffer,
@@ -128,13 +172,9 @@ namespace UnityEngine.Rendering.HighDefinition
                 passData.velocityBuffer = builder.ReadTexture(velocityBuffer);
                 passData.noisyBuffer = builder.ReadTexture(noisyBuffer);
                 passData.distanceBuffer = distanceBased ? builder.ReadTexture(distanceBuffer) : renderGraph.defaultResources.blackTextureXR;
-
-                // Intermediate buffers
-                passData.validationBuffer = builder.CreateTransientTexture(new TextureDesc(Vector2.one, true, true) { colorFormat = GraphicsFormat.R8_UNorm, enableRandomWrite = true, name = "ValidationTexture" });
+                passData.validationBuffer = builder.ReadTexture(historyValidationBuffer);
 
                 // History buffers
-                passData.historyDepthTexture = builder.ReadTexture(renderGraph.ImportTexture(hdCamera.GetCurrentFrameRT((int)HDCameraFrameHistoryType.Depth)));
-                passData.historyNormalTexture = builder.ReadTexture(renderGraph.ImportTexture(hdCamera.GetCurrentFrameRT((int)HDCameraFrameHistoryType.Normal)));
                 passData.historyBuffer = builder.ReadWriteTexture(renderGraph.ImportTexture(historyBuffer));
                 passData.validationHistoryBuffer = builder.ReadWriteTexture(renderGraph.ImportTexture(validationHistoryBuffer));
                 passData.distanceHistorySignal = distanceBased ? builder.ReadWriteTexture(renderGraph.ImportTexture(distanceHistorySignal)) : renderGraph.defaultResources.blackTextureXR;
@@ -153,8 +193,6 @@ namespace UnityEngine.Rendering.HighDefinition
                         resources.normalBuffer = data.normalBuffer;
                         resources.motionVectorBuffer = data.motionVectorBuffer;
                         resources.velocityBuffer = data.velocityBuffer;
-                        resources.historyDepthTexture = data.historyDepthTexture;
-                        resources.historyNormalTexture = data.historyNormalTexture;
                         resources.noisyBuffer = data.noisyBuffer;
                         resources.distanceBuffer = data.distanceBuffer;
                         resources.validationBuffer = data.validationBuffer;

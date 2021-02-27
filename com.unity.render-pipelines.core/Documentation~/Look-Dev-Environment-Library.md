@@ -10,14 +10,14 @@ An Environment Library is an Asset that contains a list of environments that you
 
 To create an Environment Library Asset, either:
 
-- Select **Assets > Create > Look Dev > Environment Library**.
+- Select **Assets > Create > Rendering Environment Library (Look Dev)**.
 - Open [Look Dev](Look-Dev.html) and click the **New Library** button.
 
 ## Creating and editing an environment
 
 After you create an Environment Library, you can add environments to it which you can then use in Look Dev. To create environments or edit their properties, use the Look Dev window itself. To create and edit environments, you need to open an Environment Library in Look Dev. To do this, either:
 
-- Go to the Look Dev window (menu: **Window > Render Pipeline > Look Dev**) and drag your Environment Library from your Project window into the sidebar.
+- Go to the Look Dev window (menu: **Window > Rendering > Look Dev**) and drag your Environment Library from your Project window into the sidebar.
 - In your Project window, click on your Environment Library Asset. Then, in the Inspector, click the **Open in LookDev window** button.
 
 If you already have environments in the Environment Library, you can see a list of them in the sidebar. When you click on any of the HDRI previews for an environment, a box appears at the bottom of the Environment Library list. This contains the selected environment's properties for you to edit.
