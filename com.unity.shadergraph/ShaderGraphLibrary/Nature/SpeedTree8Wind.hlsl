@@ -6,25 +6,25 @@
 ///////////////////////////////////////////////////////////////////////
 //  Wind Info
 
+CBUFFER_START(SpeedTreeWind)
+float4 _ST_WindVector;
+float4 _ST_WindGlobal;
+float4 _ST_WindBranch;
+float4 _ST_WindBranchTwitch;
+float4 _ST_WindBranchWhip;
+float4 _ST_WindBranchAnchor;
+float4 _ST_WindBranchAdherences;
+float4 _ST_WindTurbulences;
+float4 _ST_WindLeaf1Ripple;
+float4 _ST_WindLeaf1Tumble;
+float4 _ST_WindLeaf1Twitch;
+float4 _ST_WindLeaf2Ripple;
+float4 _ST_WindLeaf2Tumble;
+float4 _ST_WindLeaf2Twitch;
+float4 _ST_WindFrondRipple;
+float4 _ST_WindAnimation;
+CBUFFER_END
 
-//CBUFFER_START(SpeedTreeWind)
-//    float4 _ST_WindVector;
-//    float4 _ST_WindGlobal;
-//    float4 _ST_WindBranch;
-//    float4 _ST_WindBranchTwitch;
-//    float4 _ST_WindBranchWhip;
-//    float4 _ST_WindBranchAnchor;
-//    float4 _ST_WindBranchAdherences;
-//    float4 _ST_WindTurbulences;
-//    float4 _ST_WindLeaf1Ripple;
-//    float4 _ST_WindLeaf1Tumble;
-//    float4 _ST_WindLeaf1Twitch;
-//    float4 _ST_WindLeaf2Ripple;
-//    float4 _ST_WindLeaf2Tumble;
-//    float4 _ST_WindLeaf2Twitch;
-//    float4 _ST_WindFrondRipple;
-//    float4 _ST_WindAnimation;
-//CBUFFER_END
 
 #define ST_WIND_QUALITY_NONE 0
 #define ST_WIND_QUALITY_FASTEST 1
@@ -178,8 +178,7 @@ float Twitch(float3 vPos, float fAmount, float fSharpness, float fTime)
 //  Whip and oscillation are combined like this to minimize calls to
 //  TrigApproximate( ) when possible.
 
-float Oscillate(float4 windVector,
-	float3 vPos,
+float Oscillate(float3 vPos,
 	float fTime,
 	float fOffset,
 	float fWeight,
@@ -214,7 +213,7 @@ float Oscillate(float4 windVector,
 		fBroadDetail = lerp(fBroadDetail, fTarget, fAmount);
 		fBroadDetail = lerp(fBroadDetail, fTarget, fAmount);
 
-		fOscillation = fBroadDetail * fTwitch * (1.0 - windVector.w) + fFineDetail * (1.0 - fTwitch);
+		fOscillation = fBroadDetail * fTwitch * (1.0 - _ST_WindVector.w) + fFineDetail * (1.0 - fTwitch);
 
 		if (bWhip)
 			fOscillation *= 1.0 + (vOscillations.w * fWhip);
@@ -234,7 +233,7 @@ float Oscillate(float4 windVector,
 
 	//if (bRoll)
 	//{
-	//  fOscillation = Roll(fOscillation, windRollingBranches.x, windRollingBranches.y, windRollingBranches.z, windRollingBranches.w, vPos.xyz, fTime + fOffset, vRotatedWindVector);
+	//  fOscillation = Roll(fOscillation, _ST_WindRollingBranches.x, _ST_WindRollingBranches.y, _ST_WindRollingBranches.z, _ST_WindRollingBranches.w, vPos.xyz, fTime + fOffset, vRotatedWindVector);
 	//}
 
 	return fOscillation;
@@ -260,7 +259,7 @@ float Turbulence(float fTime, float fOffset, float fGlobalTime, float fTurbulenc
 //  This function positions any tree geometry based on their untransformed
 //  position and 4 wind floats.
 
-float3 GlobalWind(float4 windGlobal, float4 windBranchAdherences, float3 vPos, float3 vInstancePos, bool bPreserveShape, float3 vRotatedWindVector, float time)
+float3 GlobalWind(float3 vPos, float3 vInstancePos, bool bPreserveShape, float3 vRotatedWindVector, float time)
 {
 	// WIND_LOD_GLOBAL may be on, but if the global wind effect (WIND_EFFECT_GLOBAL_ST_Wind)
 	// was disabled for the tree in the Modeler, we should skip it
@@ -271,20 +270,20 @@ float3 GlobalWind(float4 windGlobal, float4 windBranchAdherences, float3 vPos, f
 
 	// compute how much the height contributes
 #ifdef SPEEDTREE_Z_UP
-	float fAdjust = max(vPos.z - (1.0 / windGlobal.z) * 0.25, 0.0) * windGlobal.z;
+	float fAdjust = max(vPos.z - (1.0 / _ST_WindGlobal.z) * 0.25, 0.0) * _ST_WindGlobal.z;
 #else
-	float fAdjust = max(vPos.y - (1.0 / windGlobal.z) * 0.25, 0.0) * windGlobal.z;
+	float fAdjust = max(vPos.y - (1.0 / _ST_WindGlobal.z) * 0.25, 0.0) * _ST_WindGlobal.z;
 #endif
 	if (fAdjust != 0.0)
-		fAdjust = pow(fAdjust, windGlobal.w);
+		fAdjust = pow(fAdjust, _ST_WindGlobal.w);
 
 	// primary oscillation
 	float4 vOscillations = TrigApproximate(float4(vInstancePos.x + time, vInstancePos.y + time * 0.8, 0.0, 0.0));
 	float fOsc = vOscillations.x + (vOscillations.y * vOscillations.y);
-	float fMoveAmount = windGlobal.y * fOsc;
+	float fMoveAmount = _ST_WindGlobal.y * fOsc;
 
 	// move a minimum amount based on direction adherence
-	fMoveAmount += windBranchAdherences.x / windGlobal.z;
+	fMoveAmount += _ST_WindBranchAdherences.x / _ST_WindGlobal.z;
 
 	// adjust based on how high up the tree this vertex is
 	fMoveAmount *= fAdjust;
@@ -306,8 +305,7 @@ float3 GlobalWind(float4 windGlobal, float4 windBranchAdherences, float3 vPos, f
 ///////////////////////////////////////////////////////////////////////
 //  SimpleBranchWind
 
-float3 SimpleBranchWind(float4 windVector,
-	float3 vPos,
+float3 SimpleBranchWind(float3 vPos,
 	float3 vInstancePos,
 	float fWeight,
 	float fOffset,
@@ -330,7 +328,7 @@ float3 SimpleBranchWind(float4 windVector,
 
 	// oscillate
 	float4 vOscillations;
-	float fOsc = Oscillate(windVector, vPos, fTime, fOffset, fWeight, fWhip, bWhip, bRoll, bComplex, fTwitch, fTwitchScale, vOscillations, vRotatedWindVector);
+	float fOsc = Oscillate(vPos, fTime, fOffset, fWeight, fWhip, bWhip, bRoll, bComplex, fTwitch, fTwitchScale, vOscillations, vRotatedWindVector);
 
 	vPos.xyz += vWindVector * fOsc * fDistance;
 
@@ -341,11 +339,7 @@ float3 SimpleBranchWind(float4 windVector,
 ///////////////////////////////////////////////////////////////////////
 //  DirectionalBranchWind
 
-float3 DirectionalBranchWind(
-	float4 windAnimation,
-//	float4 windRollingBranches,
-	float4 windVector,
-	float3 vPos,
+float3 DirectionalBranchWind(float3 vPos,
 	float3 vInstancePos,
 	float fWeight,
 	float fOffset,
@@ -371,20 +365,20 @@ float3 DirectionalBranchWind(
 
 	// oscillate
 	float4 vOscillations;
-	float fOsc = Oscillate(windVector, vPos, fTime, fOffset, fWeight, fWhip, bWhip, false, bComplex, fTwitch, fTwitchScale, vOscillations, vRotatedWindVector);
+	float fOsc = Oscillate(vPos, fTime, fOffset, fWeight, fWhip, bWhip, false, bComplex, fTwitch, fTwitchScale, vOscillations, vRotatedWindVector);
 
 	vPos.xyz += vWindVector * fOsc * fDistance;
 
 	// add in the direction, accounting for turbulence
 	float fAdherenceScale = 1.0;
 	if (bTurbulence)
-		fAdherenceScale = Turbulence(fTime, fOffset, windAnimation.x, fTurbulence);
+		fAdherenceScale = Turbulence(fTime, fOffset, _ST_WindAnimation.x, fTurbulence);
 
 	if (bWhip)
-		fAdherenceScale += vOscillations.w * windVector.w * fWhip;
+		fAdherenceScale += vOscillations.w * _ST_WindVector.w * fWhip;
 
 	//if (bRoll)
-	//  fAdherenceScale = Roll(fAdherenceScale, windRollingBranches.x, windRollingBranches.y, windRollingBranches.z, windRollingBranches.w, vPos.xyz, fTime + fOffset, vRotatedWindVector);
+	//  fAdherenceScale = Roll(fAdherenceScale, _ST_WindRollingBranches.x, _ST_WindRollingBranches.y, _ST_WindRollingBranches.z, _ST_WindRollingBranches.w, vPos.xyz, fTime + fOffset, vRotatedWindVector);
 
 	vPos.xyz += vRotatedWindVector * fAdherence * fAdherenceScale * fWeight;
 
@@ -395,11 +389,7 @@ float3 DirectionalBranchWind(
 ///////////////////////////////////////////////////////////////////////
 //  DirectionalBranchWindFrondStyle
 
-float3 DirectionalBranchWindFrondStyle(
-	float4 windAnimation,
-//	float4 windRollingBranches,
-	float4 windVector,
-	float3 vPos,
+float3 DirectionalBranchWindFrondStyle(float3 vPos,
 	float3 vInstancePos,
 	float fWeight,
 	float fOffset,
@@ -426,20 +416,20 @@ float3 DirectionalBranchWindFrondStyle(
 
 	// oscillate
 	float4 vOscillations;
-	float fOsc = Oscillate(windVector, vPos, fTime, fOffset, fWeight, fWhip, bWhip, false, bComplex, fTwitch, fTwitchScale, vOscillations, vRotatedWindVector);
+	float fOsc = Oscillate(vPos, fTime, fOffset, fWeight, fWhip, bWhip, false, bComplex, fTwitch, fTwitchScale, vOscillations, vRotatedWindVector);
 
 	vPos.xyz += vWindVector * fOsc * fDistance;
 
 	// add in the direction, accounting for turbulence
 	float fAdherenceScale = 1.0;
 	if (bTurbulence)
-		fAdherenceScale = Turbulence(fTime, fOffset, windAnimation.x, fTurbulence);
+		fAdherenceScale = Turbulence(fTime, fOffset, _ST_WindAnimation.x, fTurbulence);
 
 	//if (bRoll)
-	//  fAdherenceScale = Roll(fAdherenceScale, windRollingBranches.x, windRollingBranches.y, windRollingBranches.z, windRollingBranches.w, vPos.xyz, fTime + fOffset, vRotatedWindVector);
+	//  fAdherenceScale = Roll(fAdherenceScale, _ST_WindRollingBranches.x, _ST_WindRollingBranches.y, _ST_WindRollingBranches.z, _ST_WindRollingBranches.w, vPos.xyz, fTime + fOffset, vRotatedWindVector);
 
 	if (bWhip)
-		fAdherenceScale += vOscillations.w * windVector.w * fWhip;
+		fAdherenceScale += vOscillations.w * _ST_WindVector.w * fWhip;
 
 	float3 vWindAdherenceVector = vRotatedBranchAnchor - vPos.xyz;
 	vPos.xyz += vWindAdherenceVector * fAdherence * fAdherenceScale * fWeight;
@@ -452,15 +442,15 @@ float3 DirectionalBranchWindFrondStyle(
 //  BranchWind
 
 // Apply only to better, best, palm winds
-float3 BranchWind(float4 windAnimation, float4 windVector, float4 windBranch, float4 windTurbulences, float4 windBranchAdherences, float4 windBranchTwitch, float4 windBranchWhip, bool isPalmWind, float3 vPos, float3 vInstancePos, float4 vWindData, float3 vRotatedWindVector, float3 vRotatedBranchAnchor)
+float3 BranchWind(bool isPalmWind, float3 vPos, float3 vInstancePos, float4 vWindData, float3 vRotatedWindVector, float3 vRotatedBranchAnchor)
 {
 	if (isPalmWind)
 	{
-		vPos = DirectionalBranchWindFrondStyle(windVector, windAnimation, vPos, vInstancePos, vWindData.x, vWindData.y, windBranch.x, windBranch.y, windTurbulences.x, windBranchAdherences.y, windBranchTwitch.x, windBranchTwitch.y, windBranchWhip.x, true, false, true, true, vRotatedWindVector, vRotatedBranchAnchor);
+		vPos = DirectionalBranchWindFrondStyle(vPos, vInstancePos, vWindData.x, vWindData.y, _ST_WindBranch.x, _ST_WindBranch.y, _ST_WindTurbulences.x, _ST_WindBranchAdherences.y, _ST_WindBranchTwitch.x, _ST_WindBranchTwitch.y, _ST_WindBranchWhip.x, true, false, true, true, vRotatedWindVector, vRotatedBranchAnchor);
 	}
 	else
 	{
-		vPos = SimpleBranchWind(windVector, vPos, vInstancePos, vWindData.x, vWindData.y, windBranch.x, windBranch.y, windBranchTwitch.x, windBranchTwitch.y, windBranchWhip.x, false, false, true, vRotatedWindVector);
+		vPos = SimpleBranchWind(vPos, vInstancePos, vWindData.x, vWindData.y, _ST_WindBranch.x, _ST_WindBranch.y, _ST_WindBranchTwitch.x, _ST_WindBranchTwitch.y, _ST_WindBranchWhip.x, false, false, true, vRotatedWindVector);
 	}
 
 	return vPos;
@@ -568,14 +558,7 @@ float3 LeafTumble(float3 vPos,
 //  LeafWind
 //  Optimized (for instruction count) version. Assumes leaf 1 and 2 have the same options
 
-float3 LeafWind(
-	float4 windLeaf1Ripple,
-	float4 windLeaf2Ripple,
-	float4 windLeaf1Tumble,
-	float4 windLeaf2Tumble,
-	float4 windLeaf1Twitch,
-	float4 windLeaf2Twitch,
-	bool isBestWind,
+float3 LeafWind(bool isBestWind,
 	bool bLeaf2,
 	float3 vPos,
 	inout float3 vDirection,
@@ -588,19 +571,19 @@ float3 LeafWind(
 {
 
 	vPos = LeafRipple(vPos, vDirection, fScale, fPackedRippleDir,
-		(bLeaf2 ? windLeaf2Ripple.x : windLeaf1Ripple.x),
-		(bLeaf2 ? windLeaf2Ripple.y : windLeaf1Ripple.y),
+		(bLeaf2 ? _ST_WindLeaf2Ripple.x : _ST_WindLeaf1Ripple.x),
+		(bLeaf2 ? _ST_WindLeaf2Ripple.y : _ST_WindLeaf1Ripple.y),
 		false, fRippleTrigOffset);
 
 	if (isBestWind)
 	{
 		float3 vGrowthDir = UnpackNormalFromFloat(fPackedGrowthDir);
 		vPos = LeafTumble(vPos, vDirection, fScale, vAnchor, vGrowthDir, fPackedGrowthDir,
-			(bLeaf2 ? windLeaf2Tumble.x : windLeaf1Tumble.x),
-			(bLeaf2 ? windLeaf2Tumble.y : windLeaf1Tumble.y),
-			(bLeaf2 ? windLeaf2Tumble.z : windLeaf1Tumble.z),
-			(bLeaf2 ? windLeaf2Tumble.w : windLeaf1Tumble.w),
-			(bLeaf2 ? windLeaf2Twitch.xyz : windLeaf1Twitch.xyz),
+			(bLeaf2 ? _ST_WindLeaf2Tumble.x : _ST_WindLeaf1Tumble.x),
+			(bLeaf2 ? _ST_WindLeaf2Tumble.y : _ST_WindLeaf1Tumble.y),
+			(bLeaf2 ? _ST_WindLeaf2Tumble.z : _ST_WindLeaf1Tumble.z),
+			(bLeaf2 ? _ST_WindLeaf2Tumble.w : _ST_WindLeaf1Tumble.w),
+			(bLeaf2 ? _ST_WindLeaf2Twitch.xyz : _ST_WindLeaf1Twitch.xyz),
 			0.0f,
 			(bLeaf2 ? true : true),
 			(bLeaf2 ? true : true),
@@ -614,9 +597,7 @@ float3 LeafWind(
 ///////////////////////////////////////////////////////////////////////
 //  RippleFrondOneSided
 
-float3 RippleFrondOneSided(
-	float4 windFrondRipple,
-	float3 vPos,
+float3 RippleFrondOneSided(float3 vPos,
 	inout float3 vDirection,
 	float fU,
 	float fV,
@@ -631,14 +612,14 @@ float3 RippleFrondOneSided(
 	if (fU < 0.5)
 		fOffset = 0.75;
 
-	float4 vOscillations = TrigApproximate(float4((windFrondRipple.x + fV) * windFrondRipple.z + fOffset, 0.0, 0.0, 0.0));
+	float4 vOscillations = TrigApproximate(float4((_ST_WindFrondRipple.x + fV) * _ST_WindFrondRipple.z + fOffset, 0.0, 0.0, 0.0));
 
-	float fAmount = fRippleScale * vOscillations.x * windFrondRipple.y;
+	float fAmount = fRippleScale * vOscillations.x * _ST_WindFrondRipple.y;
 	float3 vOffset = fAmount * vDirection;
 	vPos.xyz += vOffset;
 
 #ifdef WIND_EFFECT_FROND_RIPPLE_ADJUST_LIGHTING
-	vTangent.xyz = normalize(vTangent.xyz + vOffset * windFrondRipple.w);
+	vTangent.xyz = normalize(vTangent.xyz + vOffset * _ST_WindFrondRipple.w);
 	float3 vNewNormal = normalize(wind_cross(vBinormal.xyz, vTangent.xyz));
 	if (dot(vNewNormal, vDirection.xyz) < 0.0)
 		vNewNormal = -vNewNormal;
@@ -651,9 +632,7 @@ float3 RippleFrondOneSided(
 ///////////////////////////////////////////////////////////////////////
 //  RippleFrondTwoSided
 
-float3 RippleFrondTwoSided(
-	float4 windFrondRipple,
-	float3 vPos,
+float3 RippleFrondTwoSided(float3 vPos,
 	inout float3 vDirection,
 	float fU,
 	float fLengthPercent,
@@ -665,17 +644,17 @@ float3 RippleFrondTwoSided(
 #endif
 )
 {
-	float4 vOscillations = TrigApproximate(float4(windFrondRipple.x * fLengthPercent * windFrondRipple.z, 0.0, 0.0, 0.0));
+	float4 vOscillations = TrigApproximate(float4(_ST_WindFrondRipple.x * fLengthPercent * _ST_WindFrondRipple.z, 0.0, 0.0, 0.0));
 
 	float3 vRippleDir = UnpackNormalFromFloat(fPackedRippleDir);
 
-	float fAmount = fRippleScale * vOscillations.x * windFrondRipple.y;
+	float fAmount = fRippleScale * vOscillations.x * _ST_WindFrondRipple.y;
 	float3 vOffset = fAmount * vRippleDir;
 
 	vPos.xyz += vOffset;
 
 #ifdef WIND_EFFECT_FROND_RIPPLE_ADJUST_LIGHTING
-	vTangent.xyz = normalize(vTangent.xyz + vOffset * windFrondRipple.w);
+	vTangent.xyz = normalize(vTangent.xyz + vOffset * _ST_WindFrondRipple.w);
 	float3 vNewNormal = normalize(wind_cross(vBinormal.xyz, vTangent.xyz));
 	if (dot(vNewNormal, vDirection.xyz) < 0.0)
 		vNewNormal = -vNewNormal;
@@ -689,9 +668,7 @@ float3 RippleFrondTwoSided(
 ///////////////////////////////////////////////////////////////////////
 //  RippleFrond
 
-float3 RippleFrond(
-	float4 windFrondRipple,
-	float3 vPos,
+float3 RippleFrond(float3 vPos,
 	inout float3 vDirection,
 	float fU,
 	float fV,
@@ -704,9 +681,7 @@ float3 RippleFrond(
 #endif
 )
 {
-	return RippleFrondOneSided(
-		windFrondRipple,
-		vPos,
+	return RippleFrondOneSided(vPos,
 		vDirection,
 		fU,
 		fV,
@@ -722,7 +697,7 @@ float3 RippleFrond(
 ///////////////////////////////////////////////////////////////////////
 //  SpeedTreeWind
 
-float3 SpeedTreeWind(float4 windVector, float4 windGlobal, float4 windBranch, float4 windBranchTwitch, float4 windBranchWhip, float4 windBranchAnchor, float4 windBranchAdherences, float4 windTurbulences, float4 windLeaf1Ripple, float4 windLeaf1Tumble, float4 windLeaf1Twitch, float4 windLeaf2Ripple, float4 windLeaf2Tumble, float4 windLeaf2Twitch, float4 windFrondRipple, float4 windAnimation, float3 vPos, float3 vNormal, float4 vTexcoord0, float4 vTexcoord1, float4 vTexcoord2, float4 vTexcoord3, int iWindQuality, bool bBillboard, bool bSmoothLOD)
+float3 SpeedTreeWind(float3 vPos, float3 vNormal, float4 vTexcoord0, float4 vTexcoord1, float4 vTexcoord2, float4 vTexcoord3, int iWindQuality, bool bBillboard, bool bCrossfade)
 {
 	float3 vReturnPos = vPos;
 
@@ -736,7 +711,7 @@ float3 SpeedTreeWind(float4 windVector, float4 windGlobal, float4 windBranch, fl
 	}
 
 	// smooth LOD
-	if (bSmoothLOD && !bBillboard)
+	if (!bCrossfade && !bBillboard)
 	{
 		vReturnPos = lerp(vReturnPos, vTexcoord2.xyz, unity_LODFade.x);
 	}
@@ -750,8 +725,8 @@ float3 SpeedTreeWind(float4 windVector, float4 windGlobal, float4 windBranch, fl
 		// face camera-facing leaf to camera
 		float offsetLen = length(facingPosition);
 		facingPosition = float3(facingPosition.x, -facingPosition.z, facingPosition.y);
-        float4x4 it_mv = transpose(mul(UNITY_MATRIX_I_M, UNITY_MATRIX_I_V));
-		facingPosition = mul(facingPosition.xyz, (float3x3)it_mv);
+        float4x4 itmv = transpose(mul(UNITY_MATRIX_I_M, UNITY_MATRIX_I_V));
+		facingPosition = mul(facingPosition.xyz, (float3x3)itmv);
 		facingPosition = normalize(facingPosition) * offsetLen; // make sure the offset vector is still scaled
 
 		vReturnPos = facingPosition + anchor;
@@ -760,7 +735,7 @@ float3 SpeedTreeWind(float4 windVector, float4 windGlobal, float4 windBranch, fl
 	// wind
 	if (iWindQuality > 0)
 	{
-		float3 rotatedWindVector = TransformWorldToObjectDir(windVector.xyz);
+		float3 rotatedWindVector = TransformWorldToObjectDir(_ST_WindVector.xyz);
 		float windLength = length(rotatedWindVector);
 		if (windLength < 1.0e-5)
 		{
@@ -786,7 +761,7 @@ float3 SpeedTreeWind(float4 windVector, float4 windGlobal, float4 windBranch, fl
 				{
 					bool bBestWind = (iWindQuality == ST_WIND_QUALITY_BEST);
 					float leafWindTrigOffset = anchor.x + anchor.y;
-					vReturnPos = LeafWind(windLeaf1Ripple, windLeaf2Ripple, windLeaf1Tumble, windLeaf2Tumble, windLeaf1Twitch, windLeaf2Twitch, bBestWind, leafTwo, vReturnPos, vNormal, vTexcoord3.x, float3(0, 0, 0), vTexcoord3.y, vTexcoord3.z, leafWindTrigOffset, rotatedWindVector);
+					vReturnPos = LeafWind(bBestWind, leafTwo, vReturnPos, vNormal, vTexcoord3.x, float3(0, 0, 0), vTexcoord3.y, vTexcoord3.z, leafWindTrigOffset, rotatedWindVector);
 				}
 
 				// move back out to anchor
@@ -800,33 +775,34 @@ float3 SpeedTreeWind(float4 windVector, float4 windGlobal, float4 windBranch, fl
 				bPalmWind = true;
 				if (geometryType == ST_GEOM_TYPE_FROND)
 				{
-					vReturnPos = RippleFrond(windFrondRipple, vReturnPos, vNormal, vTexcoord0.x, vTexcoord0.y, vTexcoord3.x, vTexcoord3.y, vTexcoord3.z);
+					vReturnPos = RippleFrond(vReturnPos, vNormal, vTexcoord0.x, vTexcoord0.y, vTexcoord3.x, vTexcoord3.y, vTexcoord3.z);
 				}
 			}
 
 			// branch wind (applies to all 3D geometry)
 			if ((iWindQuality == ST_WIND_QUALITY_BETTER) || (iWindQuality == ST_WIND_QUALITY_BEST) || (iWindQuality == ST_WIND_QUALITY_PALM))
 			{
-				float3 rotatedBranchAnchor = TransformWorldToObjectDir(windBranchAnchor.xyz) * windBranchAnchor.w;
-				vReturnPos = BranchWind(windAnimation, windVector, windBranch, windTurbulences, windBranchAdherences, windBranchTwitch, windBranchWhip, bPalmWind, vReturnPos, treePos, float4(vTexcoord0.zw, 0, 0), rotatedWindVector, rotatedBranchAnchor);
+				float3 rotatedBranchAnchor = TransformWorldToObjectDir(_ST_WindBranchAnchor.xyz) * _ST_WindBranchAnchor.w;
+				vReturnPos = BranchWind(bPalmWind, vReturnPos, treePos, float4(vTexcoord0.zw, 0, 0), rotatedWindVector, rotatedBranchAnchor);
 			}
 		}
 
 		// global wind
-		float globalWindTime = windGlobal.x;
+		float globalWindTime = _ST_WindGlobal.x;
 		//#if defined(EFFECT_BILLBOARD) && defined(UNITY_INSTANCING_ENABLED)
 		//	globalWindTime += UNITY_ACCESS_INSTANCED_PROP(STWind, _GlobalWindTime);
 		//#endif
-		vReturnPos = GlobalWind(windVector, windBranchAdherences, vReturnPos, treePos, true, rotatedWindVector, globalWindTime);
+		vReturnPos = GlobalWind(vReturnPos, treePos, true, rotatedWindVector, globalWindTime);
 	}
 
 	return vReturnPos;
 }
 
 // This version is used by ShaderGraph
-void SpeedTreeWind_float(float4 windVector, float4 windGlobal, float4 windBranch, float4 windBranchTwitch, float4 windBranchWhip, float4 windBranchAnchor, float4 windBranchAdherences, float4 windTurbulences, float4 windLeaf1Ripple, float4 windLeaf1Tumble, float4 windLeaf1Twitch, float4 windLeaf2Ripple, float4 windLeaf2Tumble, float4 windLeaf2Twitch, float4 windFrondRipple, float4 windAnimation, float3 vPos, float3 vNormal, float4 vTexcoord0, float4 vTexcoord1, float4 vTexcoord2, float4 vTexcoord3, int iWindQuality, bool bBillboard, bool bSmoothLOD, out float3 outPos)
+void SpeedTreeWind_float(float3 vPos, float3 vNormal, float4 vTexcoord0, float4 vTexcoord1, float4 vTexcoord2, float4 vTexcoord3, int iWindQuality, bool bBillboard, bool bCrossfade, out float3 outPos, out float4 windDebug)
 {
-	outPos = SpeedTreeWind(windVector, windGlobal, windBranch, windBranchTwitch, windBranchWhip, windBranchAnchor, windBranchAdherences, windTurbulences, windLeaf1Ripple, windLeaf1Tumble, windLeaf1Twitch, windLeaf2Ripple, windLeaf2Tumble, windLeaf2Twitch, windFrondRipple, windAnimation, vPos, vNormal, vTexcoord0, vTexcoord1, vTexcoord2, vTexcoord3, iWindQuality, bBillboard, bSmoothLOD);
+	outPos = SpeedTreeWind(vPos, vNormal, vTexcoord0, vTexcoord1, vTexcoord2, vTexcoord3, iWindQuality, bBillboard, bCrossfade);
+    windDebug = _ST_WindVector;
 }
 
 #endif // SPEEDTREE_WIND_INCLUDED

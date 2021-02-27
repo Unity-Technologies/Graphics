@@ -442,25 +442,72 @@ namespace UnityEditor.Rendering.Universal
     }
     internal class SpeedTree8Upgrader : MaterialUpgrader
     {
-        string m_OldShaderName;
+        private enum WindQuality
+        {
+            None = 0,
+            Fastest,
+            Fast,
+            Better,
+            Best,
+            Palm,
+            Count
+        }
+
+        private static string[] WindQualityString =
+        {
+            "_WINDQUALITY_NONE",
+            "_WINDQUALITY_FAST",
+            "_WINDQUALITY_FASTEST",
+            "_WINDQUALITY_BETTER",
+            "_WINDQUALITY_BEST",
+            "_WINDQUALITY_PALM"
+        };
         internal SpeedTree8Upgrader(string oldShaderName)
         {
-            // Since the target shader depends on whether the source material is for a billboard or not,
-            // redo the renames in the Upgrade override. We are still doing a rename here just to set
-            // the old shader name appropriately so that the upgrader gets picked up when needed.
-            m_OldShaderName = oldShaderName;
-            RenameShader(m_OldShaderName, ShaderUtils.GetShaderPath(ShaderPathID.SpeedTree8));
+            RenameShader(oldShaderName, ShaderUtils.GetShaderPath(ShaderPathID.SpeedTree8), SpeedTree8Finalizer);
         }
 
-        public override void Upgrade(Material material, UpgradeFlags flags)
+        static private void SpeedTree8Finalizer(Material mat)
         {
-            if (material.name.Contains("Billboard"))
-                RenameShader(m_OldShaderName, ShaderUtils.GetShaderPath(ShaderPathID.SpeedTree8Billboard));
-            else
-                RenameShader(m_OldShaderName, ShaderUtils.GetShaderPath(ShaderPathID.SpeedTree8));
+            mat.EnableKeyword("ENABLE_WIND");
+            int windInt = GetWindQualityFromKeywords(mat.shaderKeywords);
+            if (!WindIntValid(windInt))
+            {
+                windInt = mat.HasFloat("_WindQuality") ? (int)mat.GetFloat("_WindQuality") : 0;
+                if (!WindIntValid(windInt))
+                    windInt = 0;
+            }
 
-            base.Upgrade(material, flags);
+            mat.SetFloat("_WINDQUALITY", windInt);
+            // Builtin property that's checked when applying wind data.
+            // Doesn't update after initial import, unfortunately. 
+            mat.SetFloat("_WindQuality", windInt);
+
+            if (mat.name.Contains("Billboard"))
+            {
+                // Todo: Set cull mode.
+            }
         }
+        private static bool WindIntValid(int windInt)
+        {
+            return ((int)WindQuality.None <= windInt) && (windInt < (int)WindQuality.Count);
+        }
+        private static int GetWindQualityFromKeywords(string[] matKws)
+        {
+            foreach (string kw in matKws)
+            {
+                if (kw.StartsWith("_WINDQUALITY_"))
+                {
+                    for (int i = 0; i < (int)WindQuality.Count; i++)
+                    {
+                        if (kw.Equals(WindQualityString[i]))
+                            return i;
+                    }
+                }
+            }
+            return -1;
+        }
+
     }
 
     [MovedFrom("UnityEditor.Rendering.LWRP")] public class ParticleUpgrader : MaterialUpgrader

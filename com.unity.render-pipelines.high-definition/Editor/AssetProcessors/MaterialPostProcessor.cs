@@ -124,6 +124,29 @@ namespace UnityEditor.Rendering.HighDefinition
             HDShaderUtils.ResetMaterialKeywords(material);
         }
 
+        public void OnPostprocessSpeedTree(GameObject speedtree)
+        {
+            SpeedTreeImporter importer = assetImporter as SpeedTreeImporter;
+
+            int windQuality = 0; // None by default
+
+            LODGroup lg = speedtree.GetComponent<LODGroup>();
+            LOD[] lods = lg.GetLODs();
+            for (int l = 0; l < lods.Length; l++)
+            {
+                LOD lod = lods[l];
+                if (l < importer.windQualities.Length)
+                    windQuality = Mathf.Min(importer.windQualities[l], importer.bestWindQuality);
+                foreach (Renderer r in lod.renderers)
+                {
+                    foreach (Material m in r.sharedMaterials)
+                    {
+                        SpeedTree8MaterialUpgrader.SetST8MaterialKeywords(m, windQuality);
+                    }
+                }
+            }
+        }
+
         static void OnPostprocessAllAssets(string[] importedAssets, string[] deletedAssets, string[] movedAssets, string[] movedFromAssetPaths)
         {
             foreach (var asset in importedAssets)

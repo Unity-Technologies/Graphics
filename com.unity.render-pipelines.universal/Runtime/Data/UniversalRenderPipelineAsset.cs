@@ -856,10 +856,6 @@ namespace UnityEngine.Rendering.Universal
         {
             get { return editorResources?.shaders.defaultSpeedTree8PS; }
         }
-        public override Shader defaultSpeedTree8BillboardShader
-        {
-            get { return editorResources?.shaders.defaultSpeedTree8BillboardPS; }
-        }
 #endif
 
         public void OnBeforeSerialize()

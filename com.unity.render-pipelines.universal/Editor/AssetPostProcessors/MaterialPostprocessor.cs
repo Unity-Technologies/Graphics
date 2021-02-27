@@ -117,6 +117,37 @@ namespace UnityEditor.Rendering.Universal
             s_NeedsSavingAssets = false;
         }
 
+        public void OnPostprocessSpeedTree(GameObject speedtree)
+        {
+            SpeedTreeImporter importer = assetImporter as SpeedTreeImporter;
+
+            int windQuality = 0; // None by default
+
+            LODGroup lg = speedtree.GetComponent<LODGroup>();
+            LOD[] lods = lg.GetLODs();
+            for (int l = 0; l < lods.Length; l++)
+            {
+                LOD lod = lods[l];
+                if (l < importer.windQualities.Length)
+                    windQuality = Mathf.Min(importer.windQualities[l], importer.bestWindQuality);
+                foreach (Renderer r in lod.renderers)
+                {
+                    foreach (Material m in r.sharedMaterials)
+                    {
+                        m.EnableKeyword("ENABLE_WIND");
+                        m.SetFloat("_WINDQUALITY", windQuality);
+                        // Builtin property that's checked when applying wind data.
+                        // Doesn't update after initial import, unfortunately. 
+                        m.SetFloat("_WindQuality", windQuality);
+                        if (m.name.Contains("Billboard"))
+                        {
+                            // Todo: Set cull mode.
+                        }
+                    }
+                }
+            }
+        }
+
         static void OnPostprocessAllAssets(string[] importedAssets, string[] deletedAssets, string[] movedAssets, string[] movedFromAssetPaths)
         {
             var upgradeLog = "UniversalRP Material log:";
