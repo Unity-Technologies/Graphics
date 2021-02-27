@@ -1,5 +1,6 @@
 using UnityEngine;
 using System;
+using System.Collections.Generic;
 using UnityEditor.Graphing;
 using UnityEditor.ShaderGraph.Drawing.Controls;
 using UnityEditor.ShaderGraph.Internal;
@@ -14,20 +15,20 @@ namespace UnityEditor.ShaderGraph.Drawing
         void ChangeExposedFlag(GraphData graphData)
         {
             Assert.IsNotNull(graphData, "GraphData is null while carrying out ChangeExposedFlagAction");
-            Assert.IsNotNull(ShaderInputReference, "ShaderInputReference is null while carrying out ChangeExposedFlagAction");
+            Assert.IsNotNull(shaderInputReference, "ShaderInputReference is null while carrying out ChangeExposedFlagAction");
             // The Undos are currently handled in ShaderInputPropertyDrawer but we want to move that out from there and handle here
             //graphData.owner.RegisterCompleteObjectUndo("Change Exposed Toggle");
-            ShaderInputReference.generatePropertyBlock = NewIsExposedValue;
+            shaderInputReference.generatePropertyBlock = newIsExposedValue;
         }
 
         public Action<GraphData> modifyGraphDataAction => ChangeExposedFlag;
 
         // Reference to the shader input being modified
-        internal ShaderInput ShaderInputReference { get; set; }
+        internal ShaderInput shaderInputReference { get; set; }
 
         // New value of whether the shader input should be exposed to the material inspector
 
-        internal bool NewIsExposedValue { get; set; }
+        internal bool newIsExposedValue { get; set; }
     }
 
     class ChangePropertyValueAction : IGraphDataAction
@@ -35,55 +36,55 @@ namespace UnityEditor.ShaderGraph.Drawing
         void ChangePropertyValue(GraphData graphData)
         {
             Assert.IsNotNull(graphData, "GraphData is null while carrying out ChangePropertyValueAction");
-            Assert.IsNotNull(ShaderPropertyReference, "ShaderInputReference is null while carrying out ChangePropertyValueAction");
+            Assert.IsNotNull(shaderInputReference, "ShaderPropertyReference is null while carrying out ChangePropertyValueAction");
             // The Undos are currently handled in ShaderInputPropertyDrawer but we want to move that out from there and handle here
             //graphData.owner.RegisterCompleteObjectUndo("Change Property Value");
-            switch (ShaderPropertyReference)
+            switch (shaderInputReference)
             {
                 case BooleanShaderProperty booleanProperty:
-                    booleanProperty.value = ((ToggleData)NewShaderPropertyValue).isOn;
+                    booleanProperty.value = ((ToggleData)newShaderInputValue).isOn;
                     break;
                 case Vector1ShaderProperty vector1Property:
-                    vector1Property.value = (float)NewShaderPropertyValue;
+                    vector1Property.value = (float)newShaderInputValue;
                     break;
                 case Vector2ShaderProperty vector2Property:
-                    vector2Property.value = (Vector2)NewShaderPropertyValue;
+                    vector2Property.value = (Vector2)newShaderInputValue;
                     break;
                 case Vector3ShaderProperty vector3Property:
-                    vector3Property.value = (Vector3)NewShaderPropertyValue;
+                    vector3Property.value = (Vector3)newShaderInputValue;
                     break;
                 case Vector4ShaderProperty vector4Property:
-                    vector4Property.value = (Vector4)NewShaderPropertyValue;
+                    vector4Property.value = (Vector4)newShaderInputValue;
                     break;
                 case ColorShaderProperty colorProperty:
-                    colorProperty.value = (Color)NewShaderPropertyValue;
+                    colorProperty.value = (Color)newShaderInputValue;
                     break;
                 case Texture2DShaderProperty texture2DProperty:
-                    texture2DProperty.value.texture = (Texture)NewShaderPropertyValue;
+                    texture2DProperty.value.texture = (Texture)newShaderInputValue;
                     break;
                 case Texture2DArrayShaderProperty texture2DArrayProperty:
-                    texture2DArrayProperty.value.textureArray = (Texture2DArray)NewShaderPropertyValue;
+                    texture2DArrayProperty.value.textureArray = (Texture2DArray)newShaderInputValue;
                     break;
                 case Texture3DShaderProperty texture3DProperty:
-                    texture3DProperty.value.texture = (Texture3D)NewShaderPropertyValue;
+                    texture3DProperty.value.texture = (Texture3D)newShaderInputValue;
                     break;
                 case CubemapShaderProperty cubemapProperty:
-                    cubemapProperty.value.cubemap = (Cubemap)NewShaderPropertyValue;
+                    cubemapProperty.value.cubemap = (Cubemap)newShaderInputValue;
                     break;
                 case Matrix2ShaderProperty matrix2Property:
-                    matrix2Property.value = (Matrix4x4)NewShaderPropertyValue;
+                    matrix2Property.value = (Matrix4x4)newShaderInputValue;
                     break;
                 case Matrix3ShaderProperty matrix3Property:
-                    matrix3Property.value = (Matrix4x4)NewShaderPropertyValue;
+                    matrix3Property.value = (Matrix4x4)newShaderInputValue;
                     break;
                 case Matrix4ShaderProperty matrix4Property:
-                    matrix4Property.value = (Matrix4x4)NewShaderPropertyValue;
+                    matrix4Property.value = (Matrix4x4)newShaderInputValue;
                     break;
                 case SamplerStateShaderProperty samplerStateProperty:
-                    samplerStateProperty.value = (TextureSamplerState)NewShaderPropertyValue;
+                    samplerStateProperty.value = (TextureSamplerState)newShaderInputValue;
                     break;
                 case GradientShaderProperty gradientProperty:
-                    gradientProperty.value = (Gradient)NewShaderPropertyValue;
+                    gradientProperty.value = (Gradient)newShaderInputValue;
                     break;
                 default:
                     throw new ArgumentOutOfRangeException();
@@ -92,12 +93,12 @@ namespace UnityEditor.ShaderGraph.Drawing
 
         public Action<GraphData> modifyGraphDataAction => ChangePropertyValue;
 
-        // Reference to the shader property being modified
-        internal AbstractShaderProperty ShaderPropertyReference { get; set; }
+        // Reference to the shader input being modified
+        internal ShaderInput shaderInputReference { get; set; }
 
         // New value of the shader property
 
-        internal object NewShaderPropertyValue { get; set; }
+        internal object newShaderInputValue { get; set; }
     }
 
     class ChangeDisplayNameAction : IGraphDataAction
@@ -105,21 +106,20 @@ namespace UnityEditor.ShaderGraph.Drawing
         void ChangeDisplayName(GraphData graphData)
         {
             Assert.IsNotNull(graphData, "GraphData is null while carrying out ChangeDisplayNameAction");
-            Assert.IsNotNull(ShaderInputReference, "ShaderInputReference is null while carrying out ChangeDisplayNameAction");
-            // The Undos are currently handled in ShaderInputPropertyDrawer but we want to move that out from there and handle here
-            //graphData.owner.RegisterCompleteObjectUndo("Change Display Name");
-            if (NewDisplayNameValue != ShaderInputReference.displayName)
+            Assert.IsNotNull(shaderInputReference, "ShaderInputReference is null while carrying out ChangeDisplayNameAction");
+            graphData.owner.RegisterCompleteObjectUndo("Change Display Name");
+            if (newDisplayNameValue != shaderInputReference.displayName)
             {
-                ShaderInputReference.SetDisplayNameAndSanitizeForGraph(graphData, NewDisplayNameValue);
+                shaderInputReference.SetDisplayNameAndSanitizeForGraph(graphData, newDisplayNameValue);
             }
         }
 
         public Action<GraphData> modifyGraphDataAction =>  ChangeDisplayName;
 
         // Reference to the shader input being modified
-        internal ShaderInput ShaderInputReference { get; set; }
+        internal ShaderInput shaderInputReference { get; set; }
 
-        internal string NewDisplayNameValue { get; set; }
+        internal string newDisplayNameValue { get; set; }
     }
 
     class ChangeReferenceNameAction : IGraphDataAction
@@ -160,23 +160,26 @@ namespace UnityEditor.ShaderGraph.Drawing
         internal ShaderInput ShaderInputReference { get; set; }
     }
 
-    // TODO: GraphView handles deletion of selected items using MaterialGraphView::DeleteSelectionImplementation(), which keeps all child views out of the loop
-    // And forces state tracking hacks like the tracking of removed inputs etc, currently use a delegate called at input removal to handle BB cleanup
-    // Find a better way that uses GraphDataActions instead
     class DeleteShaderInputAction : IGraphDataAction
     {
         void DeleteShaderInput(GraphData graphData)
         {
             Assert.IsNotNull(graphData, "GraphData is null while carrying out DeleteShaderInputAction");
-            Assert.IsNotNull(shaderInputToDelete, "ShaderInputReference is null while carrying out DeleteShaderInputAction");
-            graphData.owner.RegisterCompleteObjectUndo("Delete Graph Input");
-            graphData.RemoveGraphInput(shaderInputToDelete);
+            Assert.IsNotNull(shaderInputsToDelete, "ShaderInputReference is null while carrying out DeleteShaderInputAction");
+
+            // This is called by MaterialGraphView currently, no need to repeat it here, though ideally it would live here
+            //graphData.owner.RegisterCompleteObjectUndo("Delete Graph Input(s)");
+
+            foreach (var shaderInput in shaderInputsToDelete)
+            {
+                graphData.RemoveGraphInput(shaderInput);
+            }
         }
 
         public Action<GraphData> modifyGraphDataAction =>  DeleteShaderInput;
 
-        // Reference to the shader input being deleted
-        internal ShaderInput shaderInputToDelete { get; set; }
+        // Reference to the shader input(s) being deleted
+        internal IList<ShaderInput> shaderInputsToDelete { get; set; } = new List<ShaderInput>();
     }
 
     class ShaderInputViewController : SGViewController<ShaderInput, ShaderInputViewModel>
@@ -191,6 +194,7 @@ namespace UnityEditor.ShaderGraph.Drawing
 
             m_BlackboardPropertyView = new BlackboardPropertyView(ViewModel);
             m_BlackboardPropertyView.controller = this;
+            m_BlackboardPropertyView.RegisterCallback<AttachToPanelEvent>((evt) => ViewModel.updateSelectionStateAction(evt));
 
             m_BlackboardRowView = new SGBlackboardRow(m_BlackboardPropertyView, null);
             m_BlackboardRowView.expanded = SessionState.GetBool($"Unity.ShaderGraph.Input.{shaderInput.objectId}.isExpanded", false);
@@ -215,7 +219,7 @@ namespace UnityEditor.ShaderGraph.Drawing
                     break;
             }
 
-            ViewModel.RequestModelChangeAction = this.RequestModelChange;
+            ViewModel.requestModelChangeAction = this.RequestModelChange;
         }
 
         SGBlackboardRow m_BlackboardRowView;

@@ -103,17 +103,25 @@ namespace UnityEditor.ShaderGraph.Drawing.Inspector.PropertyDrawers
             this._exposedFieldChangedCallback = newValue =>
             {
                 var changeExposedFlagAction = new ChangeExposedFlagAction();
-                changeExposedFlagAction.ShaderInputReference = shaderInput;
-                changeExposedFlagAction.NewIsExposedValue = newValue;
-                ViewModel.RequestModelChangeAction(changeExposedFlagAction);
+                changeExposedFlagAction.shaderInputReference = shaderInput;
+                changeExposedFlagAction.newIsExposedValue = newValue;
+                ViewModel.requestModelChangeAction(changeExposedFlagAction);
             };
 
             this._displayNameChangedCallback = newValue =>
             {
                 var changeDisplayNameAction = new ChangeDisplayNameAction();
-                changeDisplayNameAction.ShaderInputReference = shaderInput;
-                changeDisplayNameAction.NewDisplayNameValue = newValue;
-                ViewModel.RequestModelChangeAction(changeDisplayNameAction);
+                changeDisplayNameAction.shaderInputReference = shaderInput;
+                changeDisplayNameAction.newDisplayNameValue = newValue;
+                ViewModel.requestModelChangeAction(changeDisplayNameAction);
+            };
+
+            this._changeValueCallback = newValue =>
+            {
+                var changeDisplayNameAction = new ChangePropertyValueAction();
+                changeDisplayNameAction.shaderInputReference = shaderInput;
+                changeDisplayNameAction.newShaderInputValue = newValue;
+                ViewModel.requestModelChangeAction(changeDisplayNameAction);
             };
 
             this._referenceNameChangedCallback = newValue =>
@@ -121,7 +129,7 @@ namespace UnityEditor.ShaderGraph.Drawing.Inspector.PropertyDrawers
                 var changeReferenceNameAction = new ChangeReferenceNameAction();
                 changeReferenceNameAction.ShaderInputReference = shaderInput;
                 changeReferenceNameAction.NewReferenceNameValue = newValue;
-                ViewModel.RequestModelChangeAction(changeReferenceNameAction);
+                ViewModel.requestModelChangeAction(changeReferenceNameAction);
             };
 
             this._preChangeValueCallback = (actionName) => this.graphData.owner.RegisterCompleteObjectUndo(actionName);
@@ -129,11 +137,11 @@ namespace UnityEditor.ShaderGraph.Drawing.Inspector.PropertyDrawers
             if (shaderInput is AbstractShaderProperty abstractShaderProperty)
             {
                 var changePropertyValueAction = new ChangePropertyValueAction();
-                changePropertyValueAction.ShaderPropertyReference = abstractShaderProperty;
+                changePropertyValueAction.shaderInputReference = abstractShaderProperty;
                 this._changeValueCallback = newValue =>
                 {
-                    changePropertyValueAction.NewShaderPropertyValue = newValue;
-                    ViewModel.RequestModelChangeAction(changePropertyValueAction);
+                    changePropertyValueAction.newShaderInputValue = newValue;
+                    ViewModel.requestModelChangeAction(changePropertyValueAction);
                 };
             }
 

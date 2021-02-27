@@ -24,5 +24,7 @@ namespace UnityEditor.ShaderGraph.Drawing
         internal bool isExpanded { get; set; }
 
         internal Action<IGraphDataAction> requestModelChangeAction { get; set; }
+
+        internal Action<AttachToPanelEvent> updateSelectionStateAction { get; set; }
     }
 }

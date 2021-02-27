@@ -10,11 +10,11 @@ namespace UnityEditor.ShaderGraph.Drawing
         static readonly string k_UxmlTemplatePath = "UXML/GraphView/BlackboardRow";
         static readonly string k_StyleSheetPath = "Styles/Blackboard";
 
-        private VisualElement m_Root;
-        private Button m_ExpandButton;
-        private VisualElement m_ItemContainer;
-        private VisualElement m_PropertyViewContainer;
-        private bool m_Expanded = true;
+        VisualElement m_Root;
+        Button m_ExpandButton;
+        VisualElement m_ItemContainer;
+        VisualElement m_PropertyViewContainer;
+        bool m_Expanded = true;
 
         public bool expanded
         {

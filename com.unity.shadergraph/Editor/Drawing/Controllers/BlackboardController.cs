@@ -238,6 +238,7 @@ namespace UnityEditor.ShaderGraph.Drawing
                 var blackboardSectionViewModel = new BlackboardSectionViewModel();
                 blackboardSectionViewModel.parentView = blackboard;
                 blackboardSectionViewModel.requestModelChangeAction = ViewModel.requestModelChangeAction;
+                blackboardSectionViewModel.updateSelectionStateAction = UpdateSelectionAfterUndoRedo;
                 blackboardSectionViewModel.name = categoryInfo.name;
                 blackboardSectionViewModel.associatedCategoryGuid = categoryInfo.categoryGuid;
                 var blackboardSectionController = new BlackboardSectionController(model, blackboardSectionViewModel, graphDataStore);
@@ -257,12 +258,16 @@ namespace UnityEditor.ShaderGraph.Drawing
                     AddInputToDefaultSection(shaderKeyword);
 
             if (ViewModel.parentView is MaterialGraphView graphView)
+            {
                 graphView.blackboardItemRemovedDelegate += (removedInput) =>
                 {
                     if (IsInputInDefaultCategory(removedInput))
                         RemoveInputFromDefaultSection(removedInput);
                 };
 
+                // Selection persistence
+                graphView.OnSelectionChange += StoreSelection;
+            }
 
             blackboard.PropertySection = m_PropertySectionController.BlackboardSectionView;
             blackboard.KeywordSection = m_KeywordSectionController.BlackboardSectionView;
@@ -288,12 +293,22 @@ namespace UnityEditor.ShaderGraph.Drawing
                 var shaderInput = addBlackboardItemAction.shaderInputReference;
 
                 if (IsInputInDefaultCategory(shaderInput))
-                    AddInputToDefaultSection(shaderInput);
+                {
+                    var blackboardRow = AddInputToDefaultSection(shaderInput);
+                    // This selects the newly created property value without over-riding the undo stack in case user wants to undo
+                    var graphView = ViewModel.parentView as MaterialGraphView;
+                    graphView?.ClearSelectionNoUndoRecord();
+                    var propertyView = blackboardRow.Q<BlackboardPropertyView>();
+                    graphView?.AddToSelectionNoUndoRecord(propertyView);
+                }
             }
             else if (changeAction is DeleteShaderInputAction deleteShaderInputAction)
             {
-                if (IsInputInDefaultCategory(deleteShaderInputAction.shaderInputToDelete))
-                    RemoveInputFromDefaultSection(deleteShaderInputAction.shaderInputToDelete);
+                foreach (var shaderInput in deleteShaderInputAction.shaderInputsToDelete)
+                {
+                    if (IsInputInDefaultCategory(shaderInput))
+                        RemoveInputFromDefaultSection(shaderInput);
+                }
             }
             else if (changeAction is HandleUndoRedoAction handleUndoRedoAction)
             {
@@ -313,7 +328,14 @@ namespace UnityEditor.ShaderGraph.Drawing
             else if (changeAction is CopyShaderInputAction copyShaderInputAction)
             {
                 if (IsInputInDefaultCategory(copyShaderInputAction.copiedShaderInput))
-                    InsertInputInDefaultSection(copyShaderInputAction.copiedShaderInput, copyShaderInputAction.insertIndex);
+                {
+                    var blackboardRow = InsertInputInDefaultSection(copyShaderInputAction.copiedShaderInput, copyShaderInputAction.insertIndex);
+                    // This selects the newly created property value without over-riding the undo stack in case user wants to undo
+                    var graphView = ViewModel.parentView as MaterialGraphView;
+                    graphView?.ClearSelectionNoUndoRecord();
+                    var propertyView = blackboardRow.Q<BlackboardPropertyView>();
+                    graphView?.AddToSelectionNoUndoRecord(propertyView);
+                }
             }
 
             // Lets all event handlers this controller owns/manages know that the model has changed
@@ -324,30 +346,30 @@ namespace UnityEditor.ShaderGraph.Drawing
             ApplyChanges();
         }
 
-        void AddInputToDefaultSection(ShaderInput shaderInput)
+        SGBlackboardRow AddInputToDefaultSection(ShaderInput shaderInput)
         {
             switch (shaderInput)
             {
                 case AbstractShaderProperty property:
-                    m_PropertySectionController.AddBlackboardRow(property);
-                    break;
+                    return m_PropertySectionController.AddBlackboardRow(property);
                 case ShaderKeyword keyword:
-                    m_KeywordSectionController.AddBlackboardRow(keyword);
-                    break;
+                    return m_KeywordSectionController.AddBlackboardRow(keyword);
             }
+
+            return null;
         }
 
-        void InsertInputInDefaultSection(ShaderInput shaderInput, int insertionIndex)
+        SGBlackboardRow InsertInputInDefaultSection(ShaderInput shaderInput, int insertionIndex)
         {
             switch (shaderInput)
             {
                 case AbstractShaderProperty property:
-                    m_PropertySectionController.InsertBlackboardRow(property, insertionIndex);
-                    break;
+                    return m_PropertySectionController.InsertBlackboardRow(property, insertionIndex);
                 case ShaderKeyword keyword:
-                    m_KeywordSectionController.InsertBlackboardRow(keyword, insertionIndex);
-                    break;
+                    return m_KeywordSectionController.InsertBlackboardRow(keyword, insertionIndex);
             }
+
+            return null;
         }
 
         void RemoveInputFromDefaultSection(ShaderInput shaderInput)
@@ -420,6 +442,37 @@ namespace UnityEditor.ShaderGraph.Drawing
             }
 
             return indexPerSection;
+        }
+
+        // A map from shaderInput reference names to the viewDataKey of the BlackboardPropertyView that is used to represent them
+        // This data is used to re-select the shaderInputs in the blackboard after an undo/redo is performed
+        Dictionary<string, string> oldSelectionPersistenceData { get; set; } = new Dictionary<string, string>();
+
+        void UpdateSelectionAfterUndoRedo(AttachToPanelEvent evt)
+        {
+            var propertyView = evt.target as BlackboardPropertyView;
+            // If this field view represents a value that was previously selected
+            var refName = propertyView?.shaderInput?.referenceName;
+            if (refName != null && oldSelectionPersistenceData.TryGetValue(refName, out var oldViewDataKey))
+            {
+                var graphView = ViewModel.parentView as MaterialGraphView;
+                // This re-selects the property view if it existed, was deleted, and then an undo action added it back
+                graphView?.AddToSelectionNoUndoRecord(propertyView);
+            }
+        }
+
+        void StoreSelection(IList<ISelectable> newSelection)
+        {
+            oldSelectionPersistenceData.Clear();
+            // This tries to maintain the selection the user had before the undo/redo was performed
+            foreach (var item in newSelection)
+            {
+                if (item is BlackboardPropertyView blackboardPropertyView)
+                {
+                    var guid = blackboardPropertyView.shaderInput.referenceName;
+                    oldSelectionPersistenceData.Add(guid, blackboardPropertyView.viewDataKey);
+                }
+            }
         }
     }
 }

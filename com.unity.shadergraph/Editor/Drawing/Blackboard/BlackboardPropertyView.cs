@@ -102,10 +102,6 @@ namespace UnityEditor.ShaderGraph.Drawing
 
             RegisterCallback<MouseDownEvent>(OnMouseDownEvent);
 
-            // Selection persistence
-            RegisterCallback<MouseUpEvent>((evt) => ViewModel.StoreSelectionStateAction(evt));
-            RegisterCallback<AttachToPanelEvent>((evt) => ViewModel.UpdateSelectionStateAction(evt));
-
             capabilities |= Capabilities.Selectable | Capabilities.Droppable | Capabilities.Deletable | Capabilities.Renamable;
 
             ClearClassList();
@@ -126,9 +122,9 @@ namespace UnityEditor.ShaderGraph.Drawing
             textInputElement.RegisterCallback<FocusOutEvent>(e =>
             {
                 var changeDisplayNameAction = new ChangeDisplayNameAction();
-                changeDisplayNameAction.ShaderInputReference = shaderInput;
-                changeDisplayNameAction.NewDisplayNameValue = m_TextField.text;
-                ViewModel.RequestModelChangeAction(changeDisplayNameAction);
+                changeDisplayNameAction.shaderInputReference = shaderInput;
+                changeDisplayNameAction.newDisplayNameValue = m_TextField.text;
+                ViewModel.requestModelChangeAction(changeDisplayNameAction);
             });
 
             ShaderGraphPreferences.onAllowDeprecatedChanged += UpdateTypeText;
@@ -167,7 +163,7 @@ namespace UnityEditor.ShaderGraph.Drawing
                     {
                         var resetReferenceNameAction = new ResetReferenceNameAction();
                         resetReferenceNameAction.ShaderInputReference = shaderInput;
-                        ViewModel.RequestModelChangeAction(resetReferenceNameAction);
+                        ViewModel.requestModelChangeAction(resetReferenceNameAction);
                         m_ResetReferenceNameTrigger();
                     },
                     DropdownMenuAction.AlwaysEnabled);
@@ -263,9 +259,9 @@ namespace UnityEditor.ShaderGraph.Drawing
             if (text != m_TextField.text)
             {
                 var changeDisplayNameAction = new ChangeDisplayNameAction();
-                changeDisplayNameAction.ShaderInputReference = shaderInput;
-                changeDisplayNameAction.NewDisplayNameValue = m_TextField.text;
-                ViewModel.RequestModelChangeAction(changeDisplayNameAction);
+                changeDisplayNameAction.shaderInputReference = shaderInput;
+                changeDisplayNameAction.newDisplayNameValue = m_TextField.text;
+                ViewModel.requestModelChangeAction(changeDisplayNameAction);
                 m_InspectorUpdateDelegate?.Invoke();
             }
         }

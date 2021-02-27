@@ -18,11 +18,9 @@ namespace UnityEditor.ShaderGraph.Drawing
 
         internal string InputTypeName { get; set; }
 
-        internal Action<IGraphDataAction> RequestModelChangeAction { get; set; }
+        internal Action<IGraphDataAction> requestModelChangeAction { get; set; }
 
-        internal Action<MouseUpEvent> StoreSelectionStateAction { get; set; }
-
-        internal Action<AttachToPanelEvent> UpdateSelectionStateAction { get; set; }
+        internal Action<AttachToPanelEvent> updateSelectionStateAction { get; set; }
         public void Reset()
         {
         }

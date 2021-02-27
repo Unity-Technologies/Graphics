@@ -92,8 +92,11 @@ namespace UnityEditor.ShaderGraph.Drawing
             }
             else if (changeAction is DeleteShaderInputAction deleteShaderInputAction)
             {
-                if (IsInputInSection(deleteShaderInputAction.shaderInputToDelete))
-                    RemoveBlackboardRow(deleteShaderInputAction.shaderInputToDelete);
+                foreach (var shaderInput in deleteShaderInputAction.shaderInputsToDelete)
+                {
+                    if (IsInputInSection(shaderInput))
+                        RemoveBlackboardRow(shaderInput);
+                }
             }
             else if (changeAction is HandleUndoRedoAction handleUndoRedoAction)
             {
@@ -109,37 +112,6 @@ namespace UnityEditor.ShaderGraph.Drawing
             {
                 if (IsInputInSection(copyShaderInputAction.copiedShaderInput))
                     InsertBlackboardRow(copyShaderInputAction.copiedShaderInput, copyShaderInputAction.insertIndex);
-            }
-        }
-
-        // A map from shaderInput reference names to the viewDataKey of the BlackboardPropertyView that is used to represent them
-        // This data is used to re-select the shaderInputs in the blackboard after an undo/redo is performed
-        Dictionary<string, string> oldSelectionPersistenceData { get; set; } = new Dictionary<string, string>();
-
-        void UpdateSelectionAfterUndoRedo(AttachToPanelEvent evt)
-        {
-            var propertyView = evt.target as BlackboardPropertyView;
-            // If this field view represents a value that was previously selected
-            var refName = propertyView?.shaderInput?.referenceName;
-            if (refName != null && oldSelectionPersistenceData.TryGetValue(refName, out var oldViewDataKey))
-            {
-                var graphView = ViewModel.parentView.GetFirstAncestorOfType<MaterialGraphView>();
-                // This re-selects the property view if it existed, was deleted, and then an undo action added it back
-                graphView?.AddToSelection(propertyView);
-            }
-        }
-
-        void StoreSelection(MouseUpEvent evt)
-        {
-            oldSelectionPersistenceData.Clear();
-            // This tries to maintain the selection the user had before the undo/redo was performed
-            foreach (var item in blackboard.selection)
-            {
-                if (item is BlackboardPropertyView blackboardPropertyView)
-                {
-                    var guid = blackboardPropertyView.shaderInput.referenceName;
-                    oldSelectionPersistenceData.Add(guid, blackboardPropertyView.viewDataKey);
-                }
             }
         }
 
@@ -165,8 +137,7 @@ namespace UnityEditor.ShaderGraph.Drawing
             {
                 Model = shaderInput,
                 parentView = BlackboardSectionView,
-                StoreSelectionStateAction = StoreSelection,
-                UpdateSelectionStateAction = UpdateSelectionAfterUndoRedo
+                updateSelectionStateAction = ViewModel.updateSelectionStateAction
             };
 
             var blackboardItemController = new BlackboardItemController(shaderInput, shaderInputViewModel, DataStore);
@@ -189,8 +160,7 @@ namespace UnityEditor.ShaderGraph.Drawing
             {
                 Model = shaderInput,
                 parentView = BlackboardSectionView,
-                StoreSelectionStateAction = StoreSelection,
-                UpdateSelectionStateAction = UpdateSelectionAfterUndoRedo
+                updateSelectionStateAction = ViewModel.updateSelectionStateAction
             };
             var blackboardItemController = new BlackboardItemController(shaderInput, shaderInputViewModel, DataStore);
             m_BlackboardItemControllers.Insert(insertionIndex, blackboardItemController);

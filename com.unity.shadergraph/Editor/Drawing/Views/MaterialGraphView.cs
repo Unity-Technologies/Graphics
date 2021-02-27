@@ -430,15 +430,28 @@ namespace UnityEditor.ShaderGraph.Drawing
             }
         }
 
-        // TODO: Change inspector to use this instead of caching selection
         public delegate void SelectionChanged(List<ISelectable> selection);
         public SelectionChanged OnSelectionChange;
         public override void AddToSelection(ISelectable selectable)
         {
             base.AddToSelection(selectable);
 
-            if (OnSelectionChange != null)
-                OnSelectionChange(selection);
+            OnSelectionChange?.Invoke(selection);
+        }
+
+        // Replicating these private GraphView functions as we need them for our own purposes
+        internal void AddToSelectionNoUndoRecord(GraphElement graphElement)
+        {
+            graphElement.selected = true;
+            selection.Add(graphElement);
+            graphElement.OnSelected();
+
+            OnSelectionChange?.Invoke(selection);
+
+            // To ensure that the selected GraphElement gets unselected if it is removed from the GraphView.
+            graphElement.RegisterCallback<DetachFromPanelEvent>(OnSelectedElementDetachedFromPanel);
+
+            graphElement.MarkDirtyRepaint();
         }
 
         public override void RemoveFromSelection(ISelectable selectable)
@@ -449,12 +462,49 @@ namespace UnityEditor.ShaderGraph.Drawing
                 OnSelectionChange(selection);
         }
 
+        internal void RemoveFromSelectionNoUndoRecord(ISelectable selectable)
+        {
+            var graphElement = selectable as GraphElement;
+            if (graphElement == null)
+                return;
+            graphElement.selected = false;
+
+            OnSelectionChange?.Invoke(selection);
+
+            selection.Remove(selectable);
+            graphElement.OnUnselected();
+            graphElement.UnregisterCallback<DetachFromPanelEvent>(OnSelectedElementDetachedFromPanel);
+            graphElement.MarkDirtyRepaint();
+        }
+
+        private void OnSelectedElementDetachedFromPanel(DetachFromPanelEvent evt)
+        {
+            RemoveFromSelectionNoUndoRecord(evt.target as ISelectable);
+        }
+
         public override void ClearSelection()
         {
             base.ClearSelection();
 
-            if (OnSelectionChange != null)
-                OnSelectionChange(selection);
+            OnSelectionChange?.Invoke(selection);
+        }
+
+        internal bool ClearSelectionNoUndoRecord()
+        {
+            foreach (var graphElement in selection.OfType<GraphElement>())
+            {
+                graphElement.selected = false;
+                graphElement.OnUnselected();
+                graphElement.UnregisterCallback<DetachFromPanelEvent>(OnSelectedElementDetachedFromPanel);
+                graphElement.MarkDirtyRepaint();
+            }
+
+            OnSelectionChange?.Invoke(selection);
+
+            bool selectionWasNotEmpty = selection.Any();
+            selection.Clear();
+
+            return selectionWasNotEmpty;
         }
 
         private void RemoveNodesInsideGroup(DropdownMenuAction action, GroupData data)
@@ -908,15 +958,15 @@ namespace UnityEditor.ShaderGraph.Drawing
 
 
             var copiedSelectionList = new List<ISelectable>(selection);
+            var deleteShaderInputAction = new DeleteShaderInputAction();
+
             for (int index = 0; index < copiedSelectionList.Count; ++index)
             {
                 var selectable = copiedSelectionList[index];
                 if (selectable is BlackboardPropertyView field && field.userData != null)
                 {
                     var input = (ShaderInput)field.userData;
-                    var deleteShaderInputAction = new DeleteShaderInputAction();
-                    deleteShaderInputAction.shaderInputToDelete = input;
-                    graph.owner.graphDataStore.Dispatch(deleteShaderInputAction);
+                    deleteShaderInputAction.shaderInputsToDelete.Add(input);
 
                     // If deleting a Keyword test variant limit
                     if (input is ShaderKeyword keyword)
@@ -925,6 +975,8 @@ namespace UnityEditor.ShaderGraph.Drawing
                     }
                 }
             }
+
+            graph.owner.graphDataStore.Dispatch(deleteShaderInputAction);
 
             // Test Keywords against variant limit
             if (keywordsDirty)
