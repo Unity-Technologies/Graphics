@@ -181,8 +181,13 @@ namespace UnityEngine.Rendering.HighDefinition
                     m_MPBFilterAreaLights.SetInt(s_sourceMipLevel, 0);
                     m_MPBFilterAreaLights.SetTexture(s_texSource, source);
 
+
+                    // Since we blit the cookie texture into a common texture, to avoid leaking we blit with an extra border
+                    int border = 1;
                     cmd.SetRenderTarget(m_TempRenderTexture0, 0);
-                    cmd.SetViewport(new Rect(0, 0, viewportWidth, viewportHeight));
+                    cmd.SetViewport(new Rect(0, 0, viewportWidth + border, viewportHeight + border));
+
+                    m_MPBFilterAreaLights.SetVector(s_sourceSize, new Vector4(viewportWidth, viewportHeight, (float)(viewportWidth + border) / viewportWidth, (float)(viewportHeight + border) / viewportHeight));
                     cmd.DrawProcedural(Matrix4x4.identity, m_MaterialFilterAreaLights, 0, MeshTopology.Triangles, 3, 1, m_MPBFilterAreaLights);
                 }
 
@@ -293,7 +298,7 @@ namespace UnityEngine.Rendering.HighDefinition
             {
                 // Generate the mips
                 Texture filteredAreaLight = FilterAreaLightTexture(cmd, cookie, cookie.width, cookie.height);
-                Vector4 sourceScaleOffset = new Vector4(cookie.width / (float)atlasTexture.rt.width, cookie.height / (float)atlasTexture.rt.height, 0, 0);
+                Vector4 sourceScaleOffset = new Vector4((cookie.width - 0.5f) / (float)atlasTexture.rt.width, (cookie.height - 0.5f) / (float)atlasTexture.rt.height, 0, 0);
                 m_CookieAtlas.BlitTexture(cmd, scaleBias, filteredAreaLight, sourceScaleOffset, blitMips: true, overrideInstanceID: currentID);
             }
 
