@@ -508,12 +508,16 @@ namespace UnityEngine.Rendering.HighDefinition
             public Material debugGBufferMaterial;
             public FrameSettings frameSettings;
 
+            public bool decalsEnabled;
+            public ComputeBufferHandle perVoxelOffset;
+            public DBufferOutput dbuffer;
+
             public Texture clearColorTexture;
             public RenderTexture clearDepthTexture;
             public bool clearDepth;
         }
 
-        TextureHandle RenderDebugViewMaterial(RenderGraph renderGraph, CullingResults cull, HDCamera hdCamera)
+        TextureHandle RenderDebugViewMaterial(RenderGraph renderGraph, CullingResults cull, HDCamera hdCamera, BuildGPULightListOutput lightLists, DBufferOutput dbuffer)
         {
             bool msaa = hdCamera.frameSettings.IsEnabled(FrameSettingsField.MSAA);
 
@@ -562,6 +566,10 @@ namespace UnityEngine.Rendering.HighDefinition
                             rendererConfiguration: m_CurrentRendererConfigurationBakedLighting,
                             stateBlock: m_DepthStateNoWrite)));
 
+                    passData.decalsEnabled = (hdCamera.frameSettings.IsEnabled(FrameSettingsField.Decals)) && (DecalSystem.m_DecalDatasCount > 0);
+                    passData.perVoxelOffset = builder.ReadComputeBuffer(lightLists.perVoxelOffset);
+                    passData.dbuffer = ReadDBuffer(dbuffer, builder);
+
                     passData.clearColorTexture = Compositor.CompositionManager.GetClearTextureForStackedCamera(hdCamera);   // returns null if is not a stacked camera
                     passData.clearDepthTexture = Compositor.CompositionManager.GetClearDepthForStackedCamera(hdCamera);     // returns null if is not a stacked camera
                     passData.clearDepth = hdCamera.clearDepth;
@@ -569,14 +577,19 @@ namespace UnityEngine.Rendering.HighDefinition
                     builder.SetRenderFunc(
                     (DebugViewMaterialData data, RenderGraphContext context) =>
                     {
-                        // If we are doing camera stacking, then we want to clear the debug color and depth buffer using the data from the previous camera on the stack
-                        // Note: Ideally here we would like to draw directly on the same buffers as the previous camera, but currently the compositor is not using 
-                        // Texture Arrays so this would not work. We might need to revise this in the future. 
                         if (data.clearColorTexture != null)
                         {
                             HDUtils.BlitColorAndDepth(context.cmd, data.clearColorTexture, data.clearDepthTexture, new Vector4(1, 1, 0, 0), 0, !data.clearDepth);
                         }
+
+                        BindDBufferGlobalData(data.dbuffer, context);
                         DrawOpaqueRendererList(context, data.frameSettings, data.opaqueRendererList);
+
+                        if (data.decalsEnabled)
+                            DecalSystem.instance.SetAtlas(context.cmd); // for clustered decals
+                        if (data.perVoxelOffset.IsValid())
+                            context.cmd.SetGlobalBuffer(HDShaderIDs.g_vLayeredOffsetsBuffer, data.perVoxelOffset);
+
                         DrawTransparentRendererList(context, data.frameSettings, data.transparentRendererList);
                     });
                 }
