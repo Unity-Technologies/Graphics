@@ -1364,6 +1364,14 @@ namespace UnityEditor.VFX.Test
         }
 
         public static readonly string[] s_Layouts = new[] { "position", "position,color", "color,position,direction", "velocity,color,position,direction" };
+        private static readonly Dictionary<string, Vector3> s_TestValues = new Dictionary<string, Vector3>
+        {
+            { "position", new Vector3(48, 59, 26) },
+            { "color", new Vector3(3, 2, 4) },
+            { "direction", new Vector3(78, 54, 65) },
+            { "velocity", new Vector3(7, 8, 9) },
+        };
+
 
         [UnityTest]
         public IEnumerator Create_Two_Event_Attribute_With_Different_Layout_And_Try_Copy_One_Into_The_Other([ValueSource(nameof(s_Layouts))] string layout_A, [ValueSource(nameof(s_Layouts))] string layout_B)
@@ -1396,14 +1404,40 @@ namespace UnityEditor.VFX.Test
             foreach (var attribute in attributes_B)
                 Assert.IsTrue(event_B.HasVector3(attribute), "(B) Expecting :" + attribute);
 
-            var customPosition = new Vector3(48, 59, 26);
-            event_B.SetVector3("position", customPosition);
+            Assert.IsTrue(event_A.HasFloat("spawnCount"));
+            Assert.IsTrue(event_B.HasFloat("spawnCount"));
+
+            var spawnCountRef = 123.0f;
+            foreach (var attribute in attributes_B)
+                event_B.SetVector3(attribute, s_TestValues[attribute]);
+            event_B.SetFloat("spawnCount", spawnCountRef);
+
+            //Check content of event_A before
+            foreach (var attribute in attributes_A)
+            {
+                var refValue = s_TestValues[attribute];
+                var readValue = event_A.GetVector3(attribute);
+
+                Assert.AreNotEqual(refValue.x, readValue.x);
+                Assert.AreNotEqual(refValue.y, readValue.y);
+                Assert.AreNotEqual(refValue.z, readValue.z);
+            }
+            Assert.AreNotEqual(spawnCountRef, event_A.GetFloat("spawnCount"));
+
             event_A.CopyValuesFrom(event_B);
 
-            var copiedPosition = event_A.GetVector3("position");
-            Assert.AreEqual(customPosition.x, copiedPosition.x);
-            Assert.AreEqual(customPosition.y, copiedPosition.y);
-            Assert.AreEqual(customPosition.z, copiedPosition.z);
+            //Check content of event_A after copy
+            var matchingAttribute = attributes_A.Where(o => attributes_B.Contains(o));
+            foreach (var attribute in matchingAttribute)
+            {
+                var refValue = s_TestValues[attribute];
+                var readValue = event_A.GetVector3(attribute);
+
+                Assert.AreEqual(refValue.x, readValue.x);
+                Assert.AreEqual(refValue.y, readValue.y);
+                Assert.AreEqual(refValue.z, readValue.z);
+            }
+            Assert.AreEqual(spawnCountRef, event_A.GetFloat("spawnCount"));
 
             yield return null;
 
