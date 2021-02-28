@@ -9,6 +9,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 ### Added
 - Added support for XboxSeries platform.
 - Added an additional check in the "check scene for ray tracing" (case 1314963).
+- Added shader graph unit test for IsFrontFace node
 
 ### Fixed
 - Fixed model import by adding additional data if needed.
