@@ -14,9 +14,9 @@ public class AdditionalMenuItems : MonoBehaviour
         var subDirectories = Directory.GetDirectories(destPath);
 
         // If this is not a leaf directory then recurse into the subdirectories
-        if(subDirectories.Length > 0)
+        if (subDirectories.Length > 0)
         {
-            for(int i=0;i<subDirectories.Length;i++)
+            for (int i = 0; i < subDirectories.Length; i++)
             {
                 string subDirectory = subDirectories[i];
                 CopyFilesToLeafDirectories(subDirectory + "/", srcPath, imageFiles);
@@ -35,7 +35,6 @@ public class AdditionalMenuItems : MonoBehaviour
             }
         }
     }
-
 
     static string GetSrcReferencePath(bool isRelative)
     {
@@ -66,7 +65,7 @@ public class AdditionalMenuItems : MonoBehaviour
         CopyFilesToLeafDirectories(Application.dataPath + "/ReferenceImages/", srcReferencePath, imageFiles);
     }
 
-    [MenuItem("Assets/Goto Reference Directory", priority=0)]
+    [MenuItem("Assets/Goto Reference Directory", priority = 0)]
     static void SelectImageDirectory()
     {
         var imageFiles = Directory.GetFiles(GetSrcReferencePath(false), "*.png");
