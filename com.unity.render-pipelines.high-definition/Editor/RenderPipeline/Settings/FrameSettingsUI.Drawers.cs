@@ -186,6 +186,12 @@ namespace UnityEditor.Rendering.HighDefinition
                 ignoreDependencies: true,
                 overridedDefaultValue: msaaEnablable && defaultFrameSettings.IsEnabled(FrameSettingsField.MSAA));
 
+            bool msaaIsOff = (msaaEnablable && serialized.GetOverrides(FrameSettingsField.MSAA)) ? !(serialized.IsEnabled(FrameSettingsField.MSAA) ?? false) : !defaultFrameSettings.IsEnabled(FrameSettingsField.MSAA);
+            area.AmmendInfo(FrameSettingsField.AlphaToMask,
+                overrideable: () => msaaEnablable && !msaaIsOff,
+                ignoreDependencies: true,
+                overridedDefaultValue: msaaEnablable && defaultFrameSettings.IsEnabled(FrameSettingsField.AlphaToMask) && !msaaIsOff);
+
             bool depthPrepassEnablable = (hdrpAssetSupportDeferred && (defaultDeferredUsed || frameSettingsOverrideToDeferred)) || (hdrpAssetIsDeferred);
             area.AmmendInfo(FrameSettingsField.DepthPrepassWithDeferredRendering,
                 overrideable: () => depthPrepassEnablable,
