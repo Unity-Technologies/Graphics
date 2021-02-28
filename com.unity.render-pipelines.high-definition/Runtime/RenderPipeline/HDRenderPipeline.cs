@@ -473,7 +473,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 InitRayTracedIndirectDiffuse();
                 InitRaytracingDeferred();
                 InitRecursiveRenderer();
-                InitPathTracing();
+                InitPathTracing(m_RenderGraph);
                 InitRayTracingAmbientOcclusion();
             }
 
@@ -1293,6 +1293,8 @@ namespace UnityEngine.Rendering.HighDefinition
                     // Render directly to XR render target if active
                     if (hdCamera.xr.enabled && hdCamera.xr.renderTargetValid)
                         targetId = hdCamera.xr.renderTarget;
+
+                    hdCamera.RequestDynamicResolution(cameraRequestedDynamicRes, dynResHandler);
 
                     // Add render request
                     var request = new RenderRequest

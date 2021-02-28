@@ -721,12 +721,13 @@ namespace UnityEngine.Rendering.HighDefinition
         public static readonly int _SubSurfaceLightingBuffer        = Shader.PropertyToID("_SubSurfaceLightingBuffer");
         public static readonly int _IndirectDiffuseLightingBuffer   = Shader.PropertyToID("_IndirectDiffuseLightingBuffer");
 
-        // Accumulation
+        // Accumulation and path tracing
         public static readonly int _AccumulationFrameIndex          = Shader.PropertyToID("_AccumulationFrameIndex");
         public static readonly int _AccumulationNumSamples          = Shader.PropertyToID("_AccumulationNumSamples");
         public static readonly int _AccumulationWeights             = Shader.PropertyToID("_AccumulationWeights");
         public static readonly int _AccumulationNeedsExposure       = Shader.PropertyToID("_AccumulationNeedsExposure");
-        public static readonly int _RadianceTexture                 = Shader.PropertyToID("_RadianceTexture");
+        public static readonly int _FrameTexture                    = Shader.PropertyToID("_FrameTexture");
+        public static readonly int _SkyCameraTexture                = Shader.PropertyToID("_SkyCameraTexture");
 
         // Preintegrated texture name
         public static readonly int _PreIntegratedFGD_GGXDisneyDiffuse = Shader.PropertyToID("_PreIntegratedFGD_GGXDisneyDiffuse");
