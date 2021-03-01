@@ -67,9 +67,21 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed nullref when adding a volume component in a Volume profile asset (case 1317156).
 - Fixed decal normal for double sided materials (case 1312065).
 - Fixed multiple HDRP Frame Settings panel issues: missing "Refraction" Frame Setting. Fixing ordering of Rough Distortion, it should now be under the Distortion setting.
+- Fixed Rough Distortion frame setting not greyed out when Distortion is disabled in HDRP Asset
 - Fixed issue with automatic exposure settings not updating scene view.
 - Fixed issue with velocity rejection in post-DoF TAA. Fixing this reduces ghosting (case 1304381).
 - Fixed missing option to use POM on emissive for tessellated shaders.
+- Fixed an issue in the planar reflection probe convolution.
+- Fixed an issue with debug overriding emissive material color for deferred path (case 1313123).
+- Fixed a limit case when the camera is exactly at the lower cloud level (case 1316988).
+- Fixed the various history buffers being discarded when the fog was enabled/disabled (case 1316072).
+- Fixed resize IES when already baked in the Atlas 1299233
+- Fixed ability to override AlphaToMask FrameSetting while camera in deferred lit shader mode
+- Fixed issue with physically-based DoF computation and transparent materials with depth-writes ON.
+- Fixed issue of accessing default frame setting stored in current HDRPAsset instead fo the default HDRPAsset
+- Fixed SSGI frame setting not greyed out while SSGI is disabled in HDRP Asset
+- Fixed ability to override AlphaToMask FrameSetting while camera in deferred lit shader mode
+- Fixed Missing lighting quality settings for SSGI (case 1312067).
 
 ### Changed
 - Changed Window/Render Pipeline/HD Render Pipeline Wizard to Window/Rendering/HDRP Wizard
@@ -109,6 +121,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Changed resolution (to match the render buffer) of the sky used for camera misses in Path Tracing. (case 1304114).
 - Tidy up of platform abstraction code for shader optimization.
 - Display a warning help box when decal atlas is out of size.
+- Moved the HDRP render graph debug panel content to the Rendering debug panel.
+- Changed Path Tracing's maximum intensity from clamped (0 to 100) to positive value (case 1310514).
 
 ## [11.0.0] - 2020-10-21
 
