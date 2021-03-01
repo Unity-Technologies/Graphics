@@ -10,25 +10,21 @@ half4 _RendererColor;
 
 half4 CombinedShapeLightShared(in SurfaceData2D surfaceData, in InputData2D inputData)
 {
+    #if defined(_DEBUG_SHADER)
+    half4 debugColor;
+
+    if(CanDebugOverrideOutputColor(surfaceData, inputData, debugColor))
+    {
+        return debugColor;
+    }
+    #endif
+
     half alpha = surfaceData.alpha;
     half4 color = half4(surfaceData.albedo, alpha);
     const half4 mask = surfaceData.mask;
     const half2 lightingUV = inputData.lightingUV;
 
     AlphaDiscard(alpha, 0);
-
-    #if defined(_DEBUG_SHADER)
-    half4 debugColor;
-
-    if(CalculateDebugColor(surfaceData, inputData, debugColor))
-    {
-        return debugColor;
-    }
-    else if((_DebugLightingMode == DEBUGLIGHTINGMODE_LIGHT_ONLY) || (_DebugLightingMode == DEBUGLIGHTINGMODE_LIGHT_DETAIL))
-    {
-        color = half4(1, 1, 1, alpha);
-    }
-    #endif
 
     color = color * _RendererColor; // This is needed for sprite shape
 

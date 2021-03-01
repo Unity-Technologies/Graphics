@@ -99,7 +99,7 @@ bool CalculateDebugColorForRenderingSettings(in SurfaceData2D surfaceData, in In
     }
 }
 
-bool CalculateDebugColorLightingSettings(in SurfaceData2D surfaceData, in InputData2D inputData, out half4 debugColor)
+bool CalculateDebugColorLightingSettings(inout SurfaceData2D surfaceData, inout InputData2D inputData, out half4 debugColor)
 {
     switch(_DebugLightingMode)
     {
@@ -109,6 +109,14 @@ bool CalculateDebugColorLightingSettings(in SurfaceData2D surfaceData, in InputD
         {
             debugColor = _DebugColorInvalidMode;
             return true;
+        }
+
+        case DEBUGLIGHTINGMODE_LIGHT_ONLY:
+        case DEBUGLIGHTINGMODE_LIGHT_DETAIL:
+        {
+            surfaceData.albedo = 1;
+            debugColor = 0;
+            return false;
         }
 
         default:
@@ -147,7 +155,7 @@ bool CalculateDebugColorValidationSettings(in SurfaceData2D surfaceData, in Inpu
     }
 }
 
-bool CalculateDebugColor(in SurfaceData2D surfaceData, in InputData2D inputData, out half4 debugColor)
+bool CanDebugOverrideOutputColor(inout SurfaceData2D surfaceData, inout InputData2D inputData, out half4 debugColor)
 {
     if(CalculateDebugColorMaterialSettings(surfaceData, inputData, debugColor))
     {
