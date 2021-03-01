@@ -174,6 +174,8 @@ SpeedTreeVertexDepthOutput SpeedTree7VertDepth(SpeedTreeVertexInput input)
     output.uvHueVariation.xy = input.texcoord.xy;
     VertexPositionInputs vertexInput = GetVertexPositionInputs(input.vertex.xyz);
 
+    output.viewDirWS = GetWorldSpaceViewDir(vertexInput.positionWS);
+
 #ifdef SHADOW_CASTER
     half3 normalWS = TransformObjectToWorldNormal(input.normal);
 
@@ -222,6 +224,7 @@ SpeedTreeVertexDepthNormalOutput SpeedTree7VertDepthNormal(SpeedTreeVertexInput 
         output.bitangentWS.w = viewDirWS.z;
     #else
         output.normalWS = normalWS;
+        output.viewDirWS = viewDirWS;
     #endif
 
     output.clipPos = vertexInput.positionCS;

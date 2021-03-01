@@ -18,4 +18,3 @@ The **ArcSphere** inline Operator allows you to store an instance of an [ArcSphe
 | **Output** | ArcSphere   | The value of the Operator. |
 
 [!include[](Snippets/Operator-InlineNotes.md)]
-

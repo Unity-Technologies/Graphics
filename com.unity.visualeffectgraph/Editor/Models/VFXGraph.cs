@@ -520,17 +520,18 @@ namespace UnityEditor.VFX
             return compiledData.FindReducedExpressionIndexFromSlotCPU(slot);
         }
 
-        public void SetCompilationMode(VFXCompilationMode mode)
+        public void SetCompilationMode(VFXCompilationMode mode, bool reimport = true)
         {
             if (m_CompilationMode != mode)
             {
                 m_CompilationMode = mode;
                 SetExpressionGraphDirty();
-                AssetDatabase.ImportAsset(AssetDatabase.GetAssetPath(this));
+                if (reimport)
+                    AssetDatabase.ImportAsset(AssetDatabase.GetAssetPath(this));
             }
         }
 
-        public void SetForceShaderValidation(bool forceShaderValidation)
+        public void SetForceShaderValidation(bool forceShaderValidation, bool reimport = true)
         {
             if (m_ForceShaderValidation != forceShaderValidation)
             {
@@ -538,7 +539,8 @@ namespace UnityEditor.VFX
                 if (m_ForceShaderValidation)
                 {
                     SetExpressionGraphDirty();
-                    AssetDatabase.ImportAsset(AssetDatabase.GetAssetPath(this));
+                    if (reimport)
+                        AssetDatabase.ImportAsset(AssetDatabase.GetAssetPath(this));
                 }
             }
         }

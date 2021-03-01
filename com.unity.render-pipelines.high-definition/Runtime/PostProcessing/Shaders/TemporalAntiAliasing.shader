@@ -9,12 +9,12 @@ Shader "Hidden/HDRP/TemporalAA"
     HLSLINCLUDE
 
         #pragma target 4.5
-        #pragma multi_compile_local _ ORTHOGRAPHIC
-        #pragma multi_compile_local _ ENABLE_ALPHA
-        #pragma multi_compile_local _ FORCE_BILINEAR_HISTORY
-        #pragma multi_compile_local _ ENABLE_MV_REJECTION
-        #pragma multi_compile_local _ ANTI_RINGING
-        #pragma multi_compile_local LOW_QUALITY MEDIUM_QUALITY HIGH_QUALITY POST_DOF
+        #pragma multi_compile_local_fragment _ ORTHOGRAPHIC
+        #pragma multi_compile_local_fragment _ ENABLE_ALPHA
+        #pragma multi_compile_local_fragment _ FORCE_BILINEAR_HISTORY
+        #pragma multi_compile_local_fragment _ ENABLE_MV_REJECTION
+        #pragma multi_compile_local_fragment _ ANTI_RINGING
+        #pragma multi_compile_local_fragment LOW_QUALITY MEDIUM_QUALITY HIGH_QUALITY POST_DOF
 
         #pragma only_renderers d3d11 playstation xboxone vulkan metal switch
 

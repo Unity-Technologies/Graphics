@@ -95,6 +95,7 @@ float ComputeTotalSum(uint threadID, float threadVal)
     GroupMemoryBarrierWithGroupSync();
 
     sum = gs_partialSums[0];
+    [unroll]
     for (uint i = 1u; i < waveCount; ++i)
     {
         sum += gs_partialSums[i];

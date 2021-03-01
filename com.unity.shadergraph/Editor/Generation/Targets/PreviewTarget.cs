@@ -136,6 +136,7 @@ namespace UnityEditor.ShaderGraph
                 type = KeywordType.Boolean,
                 definition = KeywordDefinition.MultiCompile,
                 scope = KeywordScope.Global,
+                stages = KeywordShaderStage.All,
             };
         }
     }

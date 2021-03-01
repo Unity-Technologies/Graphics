@@ -18,6 +18,13 @@ namespace UnityEditor.ShaderGraph.Drawing.Inspector
             return labelVisualElement;
         }
 
+        public static Label CreateLabel(string text, int indentLevel = 0)
+        {
+            string label = new string(' ', indentLevel * 4);
+            var labelVisualElement = new Label(label + text);
+            return labelVisualElement;
+        }
+
         internal static void AddDefaultNodeProperties(VisualElement parentElement, AbstractMaterialNode node, Action setNodesAsDirtyCallback, Action updateNodeViewsCallback)
         {
             EnumField precisionField = null;

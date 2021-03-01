@@ -1,6 +1,6 @@
 # Procedural Sky
 
-The **Procedural Sky Volume** component override lets you specify the type of sky that the High Definition Render Pipeline (HDRP) generates. For example, you can set up the sun size, ground color and sky tint.  
+The **Procedural Sky Volume** component override lets you specify the type of sky that the High Definition Render Pipeline (HDRP) generates. For example, you can set up the sun size, ground color and sky tint.
 
 This sky is similar to the procedural sky in Unity’s built-in render pipeline. It differs as it includes extra properties that the built-in render pipeline lacks. HDRP’s **Procedural Sky** exposes a **Multiplier**, **Update Mode** properties, and the option to include the sun in HDRP’s baking process.
 

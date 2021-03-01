@@ -10,7 +10,7 @@ The __2D Renderer Data__ asset contains the settings that affect the way __2D Li
 
 Unity assigns a Material of the selected __Default Material Type__ to Sprites when they are created. The available options have the following properties and functions.
 
-__Lit__:  Unity assigns a Material with the Lit type (default Material: Sprite-Lit-Default). 2D Lights affect Materials of this type. 
+__Lit__:  Unity assigns a Material with the Lit type (default Material: Sprite-Lit-Default). 2D Lights affect Materials of this type.
 
 __Unlit__: Unity assigns a Material with the Unlit type (default Material:  Sprite-Lit-Default). 2D Lights do not affect Materials of this type.
 
@@ -21,7 +21,7 @@ __Custom__: Unity assigns a Material with the Custom type. When you select this 
 
 ## Use Depth/Stencil Buffer
 
-This option is enabled by default. Clear this option to disable the Depth/[Stencil](https://docs.unity3d.com/Manual/SL-Stencil.html) Buffer. Doing so might improve your project’s performance, especially on mobile platforms. You should clear this option if you are not using any features that require the Depth/Stencil Buffer (such as [Sprite Mask](https://docs.unity3d.com/Manual/class-SpriteMask.html)). 
+This option is enabled by default. Clear this option to disable the Depth/[Stencil](https://docs.unity3d.com/Manual/SL-Stencil.html) Buffer. Doing so might improve your project’s performance, especially on mobile platforms. You should clear this option if you are not using any features that require the Depth/Stencil Buffer (such as [Sprite Mask](https://docs.unity3d.com/Manual/class-SpriteMask.html)).
 
 ## Camera Sorting Layer Texture
 
@@ -32,6 +32,3 @@ All layers captured for use in the supplied texture will be drawn from the very 
 
 ### Downsampling Method
 Downsampling will reduce the texture resolution used by _CameraSortingLayerTexture_. The options are: __None__, __2x Bilinear__, __4x Box__, __4x Bilinear__
-
-
-

@@ -224,6 +224,16 @@ half3 MixFog(real3 fragColor, real fogFactor)
     return MixFogColor(fragColor, unity_FogColor.rgb, fogFactor);
 }
 
+// Linear depth buffer value between [0, 1] or [1, 0] to eye depth value between [near, far]
+real LinearDepthToEyeDepth(real rawDepth)
+{
+    #if UNITY_REVERSED_Z
+    return _ProjectionParams.z - (_ProjectionParams.z - _ProjectionParams.y) * rawDepth;
+    #else
+    return _ProjectionParams.y + (_ProjectionParams.z - _ProjectionParams.y) * rawDepth;
+    #endif
+}
+
 void TransformScreenUV(inout float2 uv, float screenHeight)
 {
     #if UNITY_UV_STARTS_AT_TOP

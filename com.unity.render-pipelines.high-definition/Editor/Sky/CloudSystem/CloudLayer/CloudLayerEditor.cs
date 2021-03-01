@@ -13,8 +13,6 @@ namespace UnityEditor.Rendering.HighDefinition
         readonly GUIContent sunLabel        = new GUIContent("Sun light", "The main directional light, used for lighting and shadow casting.");
         readonly GUIContent shadowTiling    = new GUIContent("Shadow Tiling", "The tiling of the cloud shadows texture. Controlled by the cookie size parameter on the sun light.");
 
-        public override bool hasAdvancedMode => true;
-
         struct CloudMapParameter
         {
             public SerializedDataParameter cloudMap;
@@ -136,10 +134,10 @@ namespace UnityEditor.Rendering.HighDefinition
             bool prevShadows = CastShadows;
 
             PropertyField(m_Opacity);
-            if (isInAdvancedMode)
+            if (showAdditionalProperties)
                 PropertyField(m_UpperHemisphereOnly);
             PropertyField(m_LayerCount);
-            if (isInAdvancedMode)
+            if (showAdditionalProperties)
                 PropertyField(m_Resolution);
 
             PropertyField(m_Layers[0], "Layer A");
@@ -154,7 +152,7 @@ namespace UnityEditor.Rendering.HighDefinition
 
                 PropertyField(m_ShadowMultiplier);
                 PropertyField(m_ShadowTint);
-                if (isInAdvancedMode)
+                if (showAdditionalProperties)
                     PropertyField(m_ShadowResolution);
 
                 bool shadows = CastShadows;

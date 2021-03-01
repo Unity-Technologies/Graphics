@@ -16,7 +16,7 @@ The AxF importer is available in [Unity Enterprise for Product Lifecycle](https:
 
 When you import an AxF file, you cannot modify any of its properties. If you want to edit your AxF Material, and have installed the AxF Importer package, you can create an editable copy of the imported AxF Material. To do this:
 
-1. Select an AxF file in your Unity Project and view it in the Inspector. 
+1. Select an AxF file in your Unity Project and view it in the Inspector.
 2. Right click on the **Imported Object** header area and select **Create AxF Material From This** from the context menu.
 
 This process does not duplicate the Textures and other resources that the original AxF file uses. Instead, the duplicate Material references the original file's Textures and resources, but every value in its Inspector is editable.
@@ -33,7 +33,7 @@ New Materials in HDRP use the [Lit Shader](Lit-Shader.md) by default. To create 
 
 It is possible to copy AxF Material properties from an imported AxF Material to your newly created AxF Material. To do this:
 
-1. Select an AxF file in your Unity Project and view it in the Inspector. 
+1. Select an AxF file in your Unity Project and view it in the Inspector.
 2. In the header area, right click on the **Shader** drop-down and select **Copy AxF Material Properties** from the context menu.
 3. Select your new AxF Material and view it in the Inspector.
 4. In the header area, right click on the **Shader** drop-down and select **Paste AxF Material Properties** from the context menu.

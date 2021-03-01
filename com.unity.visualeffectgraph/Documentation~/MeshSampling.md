@@ -73,4 +73,3 @@ The Mesh sampling feature has the following limitations:
 - The TexCoord attribute is limited and constrained to two dimension attributes. If a Mesh is not [readable](https://docs.unity3d.com/ScriptReference/Mesh-isReadable.html), the **Position (Mesh)** Block and **Sample Mesh** Operator return zero values when they attempt to sample it. For information on how to make a Mesh readable, see [Model import settings](https://docs.unity3d.com/Manual/FBXImporter-Model.html)
 
 <img src="Images/ReadWrite.png" alt="image-20200320154843722" style="zoom:78%;" />
-

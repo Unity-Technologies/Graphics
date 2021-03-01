@@ -78,6 +78,8 @@ namespace UnityEditor.ShaderGraph
 
         public void GenerateNodeFunction(FunctionRegistry registry, GenerationMode generationMode)
         {
+            // we don't declare this include via the registry include path
+            // because it uses macro magic, and can be included more than once, generating different functions
             string perPixelDisplacementInclude = @"#include ""Packages/com.unity.render-pipelines.core/ShaderLibrary/PerPixelDisplacement.hlsl""";
 
             // Texture sample inputs

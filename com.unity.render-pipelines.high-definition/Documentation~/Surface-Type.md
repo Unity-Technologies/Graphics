@@ -1,6 +1,6 @@
 # Surface Type
 
-The **Surface Type** option controls whether your Material supports transparency or not. Each **Surface Type** has a different workflow and so use the **Surface Type** that is most suitable for the Material you are creating. 
+The **Surface Type** option controls whether your Material supports transparency or not. Each **Surface Type** has a different workflow and so use the **Surface Type** that is most suitable for the Material you are creating.
 
 | **Surface Type** | **Description**                                              |
 | ---------------- | ------------------------------------------------------------ |
@@ -11,7 +11,7 @@ Materials with **Transparent Surface Types** are more resource intensive to rend
 
 ## Properties
 
-If you set the **Surface Type** to **Transparent**, HDRP exposes options to set the **Blending Mode** and other properties relating to transparency. 
+If you set the **Surface Type** to **Transparent**, HDRP exposes options to set the **Blending Mode** and other properties relating to transparency.
 
 ### Surface Options
 
@@ -51,4 +51,3 @@ To expose this section in the Material Inspector, set the **Surface Type** to **
 | **Distortion Scale**                  | A multiplier for the distortion effect on the light passing through the Material. Set this to a value higher than 1 to amplify the effect.<br />This property is available only for [Unlit Materials](Unlit-Shader.md). |
 | **Distortion Blur Scale**             | A multiplier for the distortion blur. Set this to a value higher than 1 to amplify the blur.<br />This property is available only for [Unlit Materials](Unlit-Shader.md). |
 | **Distortion Blur Remapping**         | Use this handle to clamp the values of the blue channel of the Distortion Vector Map. Use this to refine the blur setting.<br />This property is available only for [Unlit Materials](Unlit-Shader.md). |
-

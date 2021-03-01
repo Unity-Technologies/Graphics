@@ -24,10 +24,6 @@ namespace UnityEngine.Rendering.HighDefinition
             public Shader terrainDetailLitShader;
             public Shader terrainDetailGrassShader;
             public Shader terrainDetailGrassBillboardShader;
-
-            // ProbeVolumes
-            [Reload("Runtime/Debug/InstancedProbeShader.shader")]
-            public Shader instancedProbeShader;
         }
 
         [Serializable, ReloadGroup]
@@ -71,21 +67,11 @@ namespace UnityEngine.Rendering.HighDefinition
             public VolumeProfile defaultLookDevVolumeProfile;
         }
 
-
-        [Serializable, ReloadGroup]
-        public sealed class AssetResources
-        {
-            // Probe Volumes
-            [Reload("Runtime/Debug/DebugProbe.fbx")]
-            public Mesh debugProbeMesh;
-        }
-
         public ShaderResources shaders;
         public MaterialResources materials;
         public TextureResources textures;
         public ShaderGraphResources shaderGraphs;
         public LookDevResources lookDev;
-        public AssetResources assets;
     }
 
     [UnityEditor.CustomEditor(typeof(HDRenderPipelineEditorResources))]

@@ -252,7 +252,7 @@ namespace UnityEngine.Rendering.Universal.Internal
                 else if (shadowSliceResolution <= 1024)
                     fovBias += 0.17f;
 
-                // These values were verified to work on platforms for which m_SupportsBoxFilterForShadows is true (Mobile, Switch).
+                // These values were verified to work on untethered devices for which m_SupportsBoxFilterForShadows is true.
                 // TODO: Investigate finer-tuned values for those platforms. Soft shadows are implemented differently for them.
             }
 

@@ -84,18 +84,14 @@ namespace UnityEngine.Rendering.HighDefinition
 
         public override void RenderClouds(BuiltinSkyParameters builtinParams, bool renderForCubemap)
         {
+            var hdCamera = builtinParams.hdCamera;
             var cmd = builtinParams.commandBuffer;
             var cloudLayer = builtinParams.cloudSettings as CloudLayer;
             if (cloudLayer.opacity.value == 0.0f)
                 return;
 
-#if UNITY_EDITOR
-            float time = (float)EditorApplication.timeSinceStartup;
-#else
-            float time = Time.time;
-#endif
-            float dt = time - lastTime;
-            lastTime = time;
+            float dt = hdCamera.animateMaterials ? hdCamera.time - lastTime : 0.0f;
+            lastTime = hdCamera.time;
 
             m_CloudLayerMaterial.SetTexture(_CloudTexture, m_PrecomputedData.cloudTextureRT);
 

@@ -6,7 +6,7 @@ The following process uses Photoshop, but you can apply it for other digital con
 
 Decide on the lookup texture (LUT) size to use for the Project, and set it in your Project's [HDRP Asset](HDRP-Asset.md). To set the LUT size, use the HDRP Asset’s **Grading LUT Size** property.
 
-This is a fixed size; if you change it later, you need to rebake all of your LUTs. A size of **32** provides enough precision for real-time use. 
+This is a fixed size; if you change it later, you need to rebake all of your LUTs. A size of **32** provides enough precision for real-time use.
 
 ## Step 2: Render the Camera view to an EXR file
 

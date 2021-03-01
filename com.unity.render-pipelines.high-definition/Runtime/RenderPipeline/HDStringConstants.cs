@@ -220,7 +220,6 @@ namespace UnityEngine.Rendering.HighDefinition
         public static readonly int _DstBlend = Shader.PropertyToID("_DstBlend");
 
         public static readonly int _ColorMaskTransparentVel = Shader.PropertyToID("_ColorMaskTransparentVel");
-        public static readonly int _ColorMaskNormal = Shader.PropertyToID("_ColorMaskNormal");
         public static readonly int _DecalColorMask0 = Shader.PropertyToID(HDMaterialProperties.kDecalColorMask0);
         public static readonly int _DecalColorMask1 = Shader.PropertyToID(HDMaterialProperties.kDecalColorMask1);
         public static readonly int _DecalColorMask2 = Shader.PropertyToID(HDMaterialProperties.kDecalColorMask2);
@@ -243,6 +242,7 @@ namespace UnityEngine.Rendering.HighDefinition
         public static readonly int _DecalNormalBufferStencilRef = Shader.PropertyToID("_DecalNormalBufferStencilRef");
         public static readonly int _DecalPrepassTexture = Shader.PropertyToID("_DecalPrepassTexture");
         public static readonly int _DecalPrepassTextureMS = Shader.PropertyToID("_DecalPrepassTextureMS");
+        public static readonly int _DrawOrder = Shader.PropertyToID("_DrawOrder");
 
 
         public static readonly int _WorldSpaceCameraPos = Shader.PropertyToID("_WorldSpaceCameraPos");
@@ -581,6 +581,7 @@ namespace UnityEngine.Rendering.HighDefinition
         public static readonly int _CurrentEffectResolution         = Shader.PropertyToID("_CurrentEffectResolution");
         public static readonly int _SampleCountTextureRW            = Shader.PropertyToID("_SampleCountTextureRW");
         public static readonly int _AffectSmoothSurfaces            = Shader.PropertyToID("_AffectSmoothSurfaces");
+        public static readonly int _ObjectMotionStencilBit          = Shader.PropertyToID("_ObjectMotionStencilBit");
 
         // Reflections
         public static readonly int _ReflectionHistorybufferRW       = Shader.PropertyToID("_ReflectionHistorybufferRW");
@@ -890,10 +891,15 @@ namespace UnityEngine.Rendering.HighDefinition
 
         // Adaptive Probe Volume
         public static readonly int _APVResIndex                    = Shader.PropertyToID("_APVResIndex");
-        public static readonly int _APVResL0                       = Shader.PropertyToID("_APVResL0");
-        public static readonly int _APVResL1_R                     = Shader.PropertyToID("_APVResL1_R");
-        public static readonly int _APVResL1_G                     = Shader.PropertyToID("_APVResL1_G");
-        public static readonly int _APVResL1_B                     = Shader.PropertyToID("_APVResL1_B");
+        public static readonly int _APVResL0_L1Rx                  = Shader.PropertyToID("_APVResL0_L1Rx");
+        public static readonly int _APVResL1G_L1Ry                 = Shader.PropertyToID("_APVResL1G_L1Ry");
+        public static readonly int _APVResL1B_L1Rz                 = Shader.PropertyToID("_APVResL1B_L1Rz");
+
+
+        public static readonly int _APVResL2_0                     = Shader.PropertyToID("_APVResL2_0");
+        public static readonly int _APVResL2_1                     = Shader.PropertyToID("_APVResL2_1");
+        public static readonly int _APVResL2_2                     = Shader.PropertyToID("_APVResL2_2");
+        public static readonly int _APVResL2_3                     = Shader.PropertyToID("_APVResL2_3");
 
         // Custom Pass Utils API
         public static readonly int _SourceScaleBias                = Shader.PropertyToID("_SourceScaleBias");

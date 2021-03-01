@@ -77,9 +77,7 @@ namespace UnityEditor.ShaderGraph.Internal
             return new CubemapShaderProperty()
             {
                 displayName = displayName,
-                hidden = hidden,
                 value = value,
-                precision = precision,
             };
         }
     }

@@ -19,7 +19,7 @@ This Block is compatible with the following Contexts:
 
 ## Remarks
 
-You can emulate this Block with the following equivalent custom spawner callback implementation: 
+You can emulate this Block with the following equivalent custom spawner callback implementation:
 
 ```C#
 class VariableRateEquivalent : VFXSpawnerCallbacks

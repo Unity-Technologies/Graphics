@@ -249,18 +249,7 @@ namespace UnityEditor.ShaderGraph
                         if (string.IsNullOrEmpty(path))
                             path = functionSource;
 
-                        string hash;
-                        try
-                        {
-                            hash = AssetDatabase.GetAssetDependencyHash(path).ToString();
-                        }
-                        catch
-                        {
-                            hash = "Failed to compute hash for include";
-                        }
-
-                        builder.AppendLine($"// {hash}");
-                        builder.AppendLine($"#include \"{path}\"");
+                        registry.RequiresIncludePath(path);
                     });
                     break;
                 case HlslSourceType.String:
@@ -422,9 +411,9 @@ namespace UnityEditor.ShaderGraph
             base.ValidateNode();
         }
 
-        public bool Reload(HashSet<string> changedFileDependencies)
+        public bool Reload(HashSet<string> changedFileDependencyGUIDs)
         {
-            if (changedFileDependencies.Contains(m_FunctionSource))
+            if (changedFileDependencyGUIDs.Contains(m_FunctionSource))
             {
                 owner.ClearErrorsForNode(this);
                 ValidateNode();
@@ -443,6 +432,8 @@ namespace UnityEditor.ShaderGraph
             Guid guid;
             if (!string.IsNullOrEmpty(functionSource) && !Guid.TryParse(functionSource, out guid))
             {
+                // not sure why we don't use AssetDatabase.AssetPathToGUID...
+                // I guess we are testing that it actually exists and can be loaded here before converting?
                 string guidString = string.Empty;
                 TextAsset textAsset = AssetDatabase.LoadAssetAtPath<TextAsset>(functionSource);
                 if (textAsset != null)

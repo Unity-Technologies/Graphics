@@ -1,6 +1,7 @@
 using System;
 using UnityEditor;
 using UnityEditor.Rendering.HighDefinition;
+using UnityEngine.Rendering;
 
 namespace UnityEngine.Rendering.HighDefinition
 {
@@ -13,27 +14,8 @@ namespace UnityEngine.Rendering.HighDefinition
     [CanEditMultipleObjects]
 #endif
     [AddComponentMenu("Rendering/Decal Projector")]
-    public partial class DecalProjector : MonoBehaviour
+    public partial class DecalProjector : DecalBase
     {
-        internal static readonly Quaternion k_MinusYtoZRotation = Quaternion.Euler(-90, 0, 0);
-
-        [SerializeField]
-        private Material m_Material = null;
-        /// <summary>
-        /// The material used by the decal. It should be of type HDRP/Decal if you want to have transparency.
-        /// </summary>
-        public Material material
-        {
-            get
-            {
-                return m_Material;
-            }
-            set
-            {
-                m_Material = value;
-                OnValidate();
-            }
-        }
 
 #if UNITY_EDITOR
         private int m_Layer;
@@ -115,42 +97,6 @@ namespace UnityEngine.Rendering.HighDefinition
         }
 
         [SerializeField]
-        private Vector2 m_UVScale = new Vector2(1, 1);
-        /// <summary>
-        /// Tilling of the UV of the projected texture.
-        /// </summary>
-        public Vector2 uvScale
-        {
-            get
-            {
-                return m_UVScale;
-            }
-            set
-            {
-                m_UVScale = value;
-                OnValidate();
-            }
-        }
-
-        [SerializeField]
-        private Vector2 m_UVBias = new Vector2(0, 0);
-        /// <summary>
-        /// Offset of the UV of the projected texture.
-        /// </summary>
-        public Vector2 uvBias
-        {
-            get
-            {
-                return m_UVBias;
-            }
-            set
-            {
-                m_UVBias = value;
-                OnValidate();
-            }
-        }
-
-        [SerializeField]
         private bool m_AffectsTransparency = false;
         /// <summary>
         /// Change the transparency. It is only compatible when using HDRP/Decal shader.
@@ -180,43 +126,6 @@ namespace UnityEngine.Rendering.HighDefinition
         }
 
         [SerializeField]
-        private Vector3 m_Offset = new Vector3(0, 0, 0.5f);
-        /// <summary>
-        /// Change the offset position.
-        /// Do not expose: Could be changed by the inspector when manipulating the gizmo.
-        /// </summary>
-        internal Vector3 offset
-        {
-            get
-            {
-                return m_Offset;
-            }
-            set
-            {
-                m_Offset = value;
-                OnValidate();
-            }
-        }
-
-        [SerializeField]
-        Vector3 m_Size = new Vector3(1, 1, 1);
-        /// <summary>
-        /// The size of the projection volume.
-        /// </summary>
-        public Vector3 size
-        {
-            get
-            {
-                return m_Size;
-            }
-            set
-            {
-                m_Size = value;
-                OnValidate();
-            }
-        }
-
-        [SerializeField]
         [Range(0, 1)]
         private float m_FadeFactor = 1.0f;
         /// <summary>
@@ -235,20 +144,7 @@ namespace UnityEngine.Rendering.HighDefinition
             }
         }
 
-        private Material m_OldMaterial = null;
         private DecalSystem.DecalHandle m_Handle = null;
-
-
-        /// <summary>current rotation in a way the DecalSystem will be able to use it</summary>
-        internal Quaternion rotation => transform.rotation * k_MinusYtoZRotation;
-        /// <summary>current position in a way the DecalSystem will be able to use it</summary>
-        internal Vector3 position => transform.position;
-        /// <summary>current size in a way the DecalSystem will be able to use it</summary>
-        internal Vector3 decalSize => new Vector3(m_Size.x, m_Size.z, m_Size.y);
-        /// <summary>current size in a way the DecalSystem will be able to use it</summary>
-        internal Vector3 decalOffset => new Vector3(m_Offset.x, -m_Offset.z, m_Offset.y);
-        /// <summary>current uv parameters in a way the DecalSystem will be able to use it</summary>
-        internal Vector4 uvScaleBias => new Vector4(m_UVScale.x, m_UVScale.y, m_UVBias.x, m_UVBias.y);
 
         internal DecalSystem.DecalHandle Handle
         {
@@ -370,13 +266,9 @@ namespace UnityEngine.Rendering.HighDefinition
 #endif
         }
 
-        /// <summary>
-        /// Event called each time the used material change.
-        /// </summary>
-        public event Action OnMaterialChange;
-
         internal void OnValidate()
         {
+            base.OnValidate();
             if (m_Handle != null) // don't do anything if OnEnable hasn't been called yet when scene is loading.
             {
                 if (m_Material == null)
@@ -400,10 +292,7 @@ namespace UnityEngine.Rendering.HighDefinition
                     }
 
                     // notify the editor that material has changed so it can update the shader foldout
-                    if (OnMaterialChange != null)
-                    {
-                        OnMaterialChange();
-                    }
+                    RaiseOnMaterialChange();
 
                     m_OldMaterial = m_Material;
                 }

@@ -441,7 +441,11 @@ namespace UnityEditor.ShaderGraph.Drawing
             {
                 if (node.sgVersion < node.latestVersion)
                 {
-                    if (ShaderGraphPreferences.allowDeprecatedBehaviors)
+                    if (node is IHasCustomDeprecationMessage customDeprecationMessage)
+                    {
+                        title = customDeprecationMessage.GetCustomDeprecationLabel();
+                    }
+                    else if (ShaderGraphPreferences.allowDeprecatedBehaviors)
                     {
                         title = node.name + $" (Deprecated V{node.sgVersion})";
                     }

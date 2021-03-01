@@ -5,7 +5,7 @@ Shader "Hidden/HDRP/OpaqueAtmosphericScattering"
         #pragma editor_sync_compilation
         #pragma only_renderers d3d11 playstation xboxone vulkan metal switch
 
-        #pragma multi_compile _ DEBUG_DISPLAY
+        #pragma multi_compile_fragment _ DEBUG_DISPLAY
 
         // #pragma enable_d3d11_debug_symbols
 

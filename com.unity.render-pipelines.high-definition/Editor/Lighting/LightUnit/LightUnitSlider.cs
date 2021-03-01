@@ -569,12 +569,14 @@ namespace UnityEditor.Rendering.HighDefinition
             // Draw the exponential slider that fits 6500K to the white point on the gradient texture.
             var internalValue = GUI.HorizontalSlider(rect, ValueToSlider(value), 0f, 1f, SliderStyles.k_TemperatureBorder, SliderStyles.k_TemperatureThumb);
 
-            // Map the value back into kelvin.
-            value = SliderToValue(internalValue);
-
             // Round to nearest since so much precision is not necessary for kelvin while sliding.
             if (EditorGUI.EndChangeCheck())
+            {
+                // Map the value back into kelvin.
+                value = SliderToValue(internalValue);
+
                 value = Mathf.Round(value);
+            }
         }
     }
 

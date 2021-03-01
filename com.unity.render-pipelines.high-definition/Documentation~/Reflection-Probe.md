@@ -34,8 +34,8 @@ The Influence Volume defines the area around the Probe in which reflective Mater
 
 There are two workflows you can use to edit your Reflection Probe’s Influence Volume: **Normal** mode and **Advanced** mode. The two buttons in the top right of the **Influence Volume** section allow you to select which mode to use.
 
-- **Normal** mode allows you to set a single value for the **Blend Distance**. You can use **Normal** mode with **Box** and **Sphere** Influence Volumes. 
-- **Advanced** mode exposes the **Face Fade** property. It also allows you to set **Face Fade**, **Blend Distance**, and **Blend Normal Distance**, on a per axis, per direction basis for an Influence Volume with a **Box Shape**. 
+- **Normal** mode allows you to set a single value for the **Blend Distance**. You can use **Normal** mode with **Box** and **Sphere** Influence Volumes.
+- **Advanced** mode exposes the **Face Fade** property. It also allows you to set **Face Fade**, **Blend Distance**, and **Blend Normal Distance**, on a per axis, per direction basis for an Influence Volume with a **Box Shape**.
 
 | **Property**              | **Description**                                              |
 | ------------------------- | ------------------------------------------------------------ |

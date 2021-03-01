@@ -40,7 +40,7 @@ Particles orient to face towards the nearest point along the direction of an inf
 
 **Advanced**
 
-Particles orient to a custom particle space defined using two specified axes. The first axis is immutable and the Block uses the second axis to derive the third. It then recalculates the second axis to create an orthogonal particle space. 
+Particles orient to a custom particle space defined using two specified axes. The first axis is immutable and the Block uses the second axis to derive the third. It then recalculates the second axis to create an orthogonal particle space.
 
 ![](Images/Block-OrientAdvancedAxisBuilding.gif)
 
