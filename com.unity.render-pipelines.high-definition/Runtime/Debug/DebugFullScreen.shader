@@ -332,6 +332,17 @@ Shader "Hidden/HDRP/DebugFullScreen"
                     return float4(linearDepth.xxx, 1.0);
                 }
 
+                if (_FullScreenDebugMode == FULLSCREENDEBUGMODE_WORLD_SPACE_POSITION)
+                {
+                    float depth = LoadCameraDepth(input.positionCS.xy);
+                    PositionInputs posInput = GetPositionInput(input.positionCS.xy, _ScreenSize.zw, depth, UNITY_MATRIX_I_VP, UNITY_MATRIX_V);
+                    float3 positionWS = GetAbsolutePositionWS(posInput.positionWS);
+
+                    if (depth != 0)
+                        return float4(positionWS.xyz, 1.0);
+                    return float4(0.0, 0.0, 0.0, 0.0);
+                }
+
                 if (_FullScreenDebugMode == FULLSCREENDEBUGMODE_TRANSPARENCY_OVERDRAW)
                 {
                     float4 color = (float4)0;

@@ -103,6 +103,8 @@ namespace UnityEditor.Rendering.HighDefinition
             // Lit properties
             public static GUIContent doubleSidedNormalModeText = new GUIContent("Normal Mode", "Specifies the method HDRP uses to modify the normal base.\nMirror: Mirrors the normals with the vertex normal plane.\nFlip: Flips the normal.");
             public static GUIContent depthOffsetEnableText = new GUIContent("Depth Offset", "When enabled, HDRP uses the Height Map to calculate the depth offset for this Material.");
+            public static GUIContent doubleSidedGIText = new GUIContent("Double-Sided GI", "When selecting Auto, Double-Sided GI is enabled if the material is Double-Sided, otherwise On enables it and Off disables it.\n" +
+                "When enabled, the lightmapper accounts for both sides of the geometry when calculating Global Illumination. Backfaces are not rendered or added to lightmaps, but get treated as valid when seen from other objects. When using the Progressive Lightmapper backfaces bounce light using the same emission and albedo as frontfaces. (Currently this setting is only available when baking with the Progressive Lightmapper backend.).");
 
             // Displacement mapping (POM, tessellation, per vertex)
             //public static GUIContent enablePerPixelDisplacementText = new GUIContent("Per Pixel Displacement", "");
@@ -175,6 +177,8 @@ namespace UnityEditor.Rendering.HighDefinition
         // Lit properties
         MaterialProperty doubleSidedNormalMode = null;
         const string kDoubleSidedNormalMode = "_DoubleSidedNormalMode";
+        MaterialProperty doubleSidedGIMode = null;
+        const string kDoubleSidedGIMode = "_DoubleSidedGIMode";
         MaterialProperty materialID  = null;
         MaterialProperty supportDecals = null;
         const string kSupportDecals = "_SupportDecals";
@@ -357,7 +361,10 @@ namespace UnityEditor.Rendering.HighDefinition
             transmissionEnable = FindProperty(kTransmissionEnable);
 
             if ((m_Features & Features.DoubleSidedNormalMode) != 0)
+            {
                 doubleSidedNormalMode = FindProperty(kDoubleSidedNormalMode);
+            }
+            doubleSidedGIMode = FindProperty(kDoubleSidedGIMode);
             depthOffsetEnable = FindProperty(kDepthOffsetEnable);
 
             // MaterialID
@@ -528,11 +535,19 @@ namespace UnityEditor.Rendering.HighDefinition
                 materialEditor.ShaderProperty(doubleSidedEnable, Styles.doubleSidedEnableText);
 
             // This follow double sided option
-            if (doubleSidedNormalMode != null && doubleSidedEnable != null && doubleSidedEnable.floatValue > 0.0f)
+            if (doubleSidedEnable != null && doubleSidedEnable.floatValue > 0.0f)
             {
-                EditorGUI.indentLevel++;
-                materialEditor.ShaderProperty(doubleSidedNormalMode, Styles.doubleSidedNormalModeText);
-                EditorGUI.indentLevel--;
+                if (doubleSidedNormalMode != null)
+                {
+                    EditorGUI.indentLevel++;
+                    materialEditor.ShaderProperty(doubleSidedNormalMode, Styles.doubleSidedNormalModeText);
+                    EditorGUI.indentLevel--;
+                }
+            }
+
+            if (doubleSidedGIMode != null)
+            {
+                materialEditor.ShaderProperty(doubleSidedGIMode, Styles.doubleSidedGIText);
             }
         }
 

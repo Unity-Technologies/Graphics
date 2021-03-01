@@ -769,7 +769,9 @@ namespace UnityEngine.Rendering.Universal
             return true;
             #else
             // On Metal/iOS the MSAA resolve is done implicitly as part of the renderpass, so we do not need an extra intermediate pass for the explicit autoresolve.
-            return !SystemInfo.supportsMultisampleAutoResolve
+            // Note: On Vulkan Standalone, despite SystemInfo.supportsMultisampleAutoResolve being true, the backbuffer has only 1 sample, so we still require
+            // the explicit resolve on non-mobile platforms with supportsMultisampleAutoResolve.
+            return !(SystemInfo.supportsMultisampleAutoResolve && Application.isMobilePlatform)
                 && SystemInfo.graphicsDeviceType != GraphicsDeviceType.Metal;
             #endif
         }

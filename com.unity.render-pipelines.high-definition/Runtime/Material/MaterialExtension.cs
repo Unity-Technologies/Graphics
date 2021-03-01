@@ -32,6 +32,13 @@ namespace UnityEditor.Rendering.HighDefinition
         None
     }
 
+    enum DoubleSidedGIMode
+    {
+        Auto,
+        On,
+        Off
+    }
+
     enum TessellationMode
     {
         None,

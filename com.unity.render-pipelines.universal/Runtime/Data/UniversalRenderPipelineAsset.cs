@@ -104,8 +104,8 @@ namespace UnityEngine.Rendering.Universal
         ScriptableRenderer[] m_Renderers = new ScriptableRenderer[1];
 
         // Default values set when a new UniversalRenderPipeline asset is created
-        [SerializeField] int k_AssetVersion = 7;
-        [SerializeField] int k_AssetPreviousVersion = 7;
+        [SerializeField] int k_AssetVersion = 8;
+        [SerializeField] int k_AssetPreviousVersion = 8;
 
         // Deprecated settings for upgrading sakes
         [SerializeField] RendererType m_RendererType = RendererType.UniversalRenderer;
@@ -149,6 +149,7 @@ namespace UnityEngine.Rendering.Universal
         [SerializeField] float m_Cascade2Split = 0.25f;
         [SerializeField] Vector2 m_Cascade3Split = new Vector2(0.1f, 0.3f);
         [SerializeField] Vector3 m_Cascade4Split = new Vector3(0.067f, 0.2f, 0.467f);
+        [SerializeField] float m_CascadeBorder = 0.2f;
         [SerializeField] float m_ShadowDepthBias = 1.0f;
         [SerializeField] float m_ShadowNormalBias = 1.0f;
         [SerializeField] bool m_SoftShadowsSupported = false;
@@ -663,6 +664,15 @@ namespace UnityEngine.Rendering.Universal
         }
 
         /// <summary>
+        /// Last cascade fade distance in percentage.
+        /// </summary>
+        public float cascadeBorder
+        {
+            get { return m_CascadeBorder; }
+            set { cascadeBorder = value; }
+        }
+
+        /// <summary>
         /// The Shadow Depth Bias, controls the offset of the lit pixels.
         /// </summary>
         public float shadowDepthBias
@@ -917,6 +927,13 @@ namespace UnityEngine.Rendering.Universal
                 k_AssetVersion = 7;
             }
 
+            if (k_AssetVersion < 8)
+            {
+                k_AssetPreviousVersion = k_AssetVersion;
+                m_CascadeBorder = 0.1f; // In previous version we had this hard coded
+                k_AssetVersion = 8;
+            }
+
 #if UNITY_EDITOR
             if (k_AssetPreviousVersion != k_AssetVersion)
             {
@@ -947,10 +964,10 @@ namespace UnityEngine.Rendering.Universal
                 asset.k_AssetPreviousVersion = 5;
             }
 
-            if (asset.k_AssetPreviousVersion < 7)
+            if (asset.k_AssetPreviousVersion < 8)
             {
                 // The added feature was reverted, we keep this version to avoid breakage in case somebody already has version 7
-                asset.k_AssetPreviousVersion = 7;
+                asset.k_AssetPreviousVersion = 8;
             }
 
             EditorUtility.SetDirty(asset);

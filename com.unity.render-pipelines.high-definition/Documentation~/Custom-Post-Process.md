@@ -270,7 +270,7 @@ sealed class GrayScaleEditor : VolumeComponentEditor
 
 }
 ```
-This custom editor is not really useful as it produces the same result as the editor that Unity creates. Custom Volume component editors also support a [more options button](More-Options.md). To add it, you have to set hasAdvancedMode override to true. Then, inside the OnInspectorGUI, you can use the isInAdvancedMode boolean to display more properties.
+This custom editor is not really useful as it produces the same result as the editor that Unity creates. Custom Volume component editors also support an [additonal properties toggle](More-Options.md). To add it, you have to set hasAdvancedMode override to true. Then, inside the OnInspectorGUI, you can use the isInAdvancedMode boolean to display more properties.
 
 ## TroubleShooting
 

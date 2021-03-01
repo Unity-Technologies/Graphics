@@ -134,7 +134,7 @@ namespace UnityEditor.Rendering.HighDefinition
                 error: "Auto Graphics API is not supported!");
             public static readonly ConfigStyle dxrD3D12 = new ConfigStyle(
                 label: "Direct3D 12",
-                error: "Direct3D 12 is needed! (Editor restart is required)");
+                error: "Direct3D 12 needs to be the active device! (Editor restart is required). If an API different than D3D12 is forced via command line argument, clicking Fix won't change it, so please consider removing it if wanting to run DXR.");
             public static readonly ConfigStyle dxrScreenSpaceShadow = new ConfigStyle(
                 label: "Screen Space Shadows (Asset)",
                 error: "Screen Space Shadows are disabled in the current HDRP Asset which means you cannot enable ray-traced shadows for lights in your scene. To enable this feature, open your HDRP Asset, go to Lighting > Shadows, and enable Screen Space Shadows", messageType: MessageType.Warning);

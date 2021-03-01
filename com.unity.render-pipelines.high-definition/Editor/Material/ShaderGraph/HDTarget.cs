@@ -29,6 +29,13 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
         MirroredNormals,
     }
 
+    enum DoubleSidedGIMode
+    {
+        MatchMaterial,
+        ForceOn,
+        ForceOff,
+    }
+
     enum SpecularOcclusionMode
     {
         Off,

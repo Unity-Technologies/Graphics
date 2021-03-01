@@ -152,7 +152,6 @@ namespace UnityEngine.Rendering.HighDefinition
             [Tooltip("Distortion mode used to simulate cloud movement.")]
             public VolumeParameter<CloudDistortionMode> distortionMode = new VolumeParameter<CloudDistortionMode>();
             /// <summary>Direction of the distortion.</summary>
-            [Tooltip("Sets the rotation of the distortion (in degrees).")]
             public ClampedFloatParameter scrollDirection = new ClampedFloatParameter(0.0f, 0.0f, 360.0f);
             /// <summary>Speed of the distortion.</summary>
             [Tooltip("Sets the cloud scrolling speed. The higher the value, the faster the clouds will move.")]

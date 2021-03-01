@@ -140,7 +140,7 @@ namespace UnityEditor.ShaderGraph
         }
 
         // argument string used to pass this property to a subgraph
-        internal override string GetPropertyAsArgumentString()
+        internal override string GetPropertyAsArgumentString(string precisionString)
         {
             return "VTPropertyWithTextureType " + referenceName;
         }
