@@ -1294,6 +1294,8 @@ namespace UnityEngine.Rendering.HighDefinition
                     if (hdCamera.xr.enabled && hdCamera.xr.renderTargetValid)
                         targetId = hdCamera.xr.renderTarget;
 
+                    hdCamera.RequestDynamicResolution(cameraRequestedDynamicRes, dynResHandler);
+
                     // Add render request
                     var request = new RenderRequest
                     {

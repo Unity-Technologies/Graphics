@@ -239,7 +239,7 @@ uint OffsetToLDSAdress(uint2 groupThreadId, int2 offset)
 {
     // Compute the tap coordinate in the 6x6 grid
     uint2 tapAddress = (uint2)((int2)(groupThreadId / 2 + 1) + offset);
-    return (uint)(tapAddress.x) % 6 + tapAddress.y * 6;
+    return clamp((uint)(tapAddress.x) % 6 + tapAddress.y * 6, 0, 35);
 }
 
 float GetCloudDepth_LDS(uint2 groupThreadId, int2 offset)

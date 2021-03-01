@@ -39,6 +39,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Compilation error due to direct access to GetWorldToObjectMatrix instead of VFXGetWorldToObjectMatrix [Case 1308481](https://issuetracker.unity3d.com/product/unity/issues/guid/1308481/)
 - Prevent infinite compilation loop [Case 1298466](https://issuetracker.unity3d.com/product/unity/issues/guid/1298466/)
 - Remove some useless compilation triggers (modifying not connected or disabled nodes for instance)
+- Tidy up of platform abstraction code for random number generation, requires a dependency on com.unity.render-pipelines.core for those abstractions.
+- Fixed shader compilation errors with textures in shader graph [Case 1309219](https://issuetracker.unity3d.com/product/unity/issues/guid/1309219/)
 
 ## [11.0.0] - 2020-10-21
 

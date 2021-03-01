@@ -207,7 +207,7 @@ Shader "HDRP/LitTessellation"
         [ToggleUI] _LinkDetailsWithBase("LinkDetailsWithBase", Float) = 1.0
 
         [Enum(Use Emissive Color, 0, Use Emissive Mask, 1)] _EmissiveColorMode("Emissive color mode", Float) = 1
-        [Enum(UV0, 0, UV1, 1, UV2, 2, UV3, 3, Planar, 4, Triplanar, 5)] _UVEmissive("UV Set for emissive", Float) = 0
+        [Enum(UV0, 0, UV1, 1, UV2, 2, UV3, 3, Planar, 4, Triplanar, 5, Same as Base, 6)] _UVEmissive("UV Set for emissive", Float) = 0
         _TexWorldScaleEmissive("Scale to apply on world coordinate", Float) = 1.0
         [HideInInspector] _UVMappingMaskEmissive("_UVMappingMaskEmissive", Color) = (1, 0, 0, 0)
 
@@ -877,7 +877,7 @@ Shader "HDRP/LitTessellation"
             ENDHLSL
         }
 
-                Pass
+        Pass
         {
             Name "ForwardEmissiveForDeferred"
             Tags{ "LightMode" = "ForwardEmissiveForDeferred" } // This pass is solely used with deferred opaque Material that have emissive
@@ -889,13 +889,6 @@ Shader "HDRP/LitTessellation"
             Cull [_CullModeForward]
 
             HLSLPROGRAM
-
-            #pragma only_renderers d3d11 playstation xboxone xboxseries vulkan metal switch
-            //enable GPU instancing support
-            #pragma multi_compile_instancing
-            #pragma multi_compile _ DOTS_INSTANCING_ON
-            // enable dithering LOD crossfade
-            #pragma multi_compile _ LOD_FADE_CROSSFADE
 
             #pragma multi_compile _ DEBUG_DISPLAY // This pass is only for opaque
 
