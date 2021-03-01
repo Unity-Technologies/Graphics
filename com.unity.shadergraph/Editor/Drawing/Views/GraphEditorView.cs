@@ -395,6 +395,9 @@ namespace UnityEditor.ShaderGraph.Drawing
             var inspectorViewModel = new InspectorViewModel() { parentView = this.graphView };
             m_InspectorView = new InspectorView(inspectorViewModel);
             graphView.OnSelectionChange += m_InspectorView.TriggerInspectorUpdate;
+            // Undo/redo actions that only affect selection don't trigger the above callback for some reason, so we also have to do this
+            Undo.undoRedoPerformed += (() => m_InspectorView.TriggerInspectorUpdate(graphView.selection));
+
         }
 
         void OnKeyDown(KeyDownEvent evt)
