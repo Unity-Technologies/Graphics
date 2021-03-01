@@ -110,6 +110,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed: SSR with transparent (case 1311088)
 - Fixed decals in material debug display.
 - Fixed update upon light movement for directional light rotation.
+- Fixed an issue in the planar reflection probe convolution.
 
 ### Changed
 - Removed the material pass probe volumes evaluation mode.
