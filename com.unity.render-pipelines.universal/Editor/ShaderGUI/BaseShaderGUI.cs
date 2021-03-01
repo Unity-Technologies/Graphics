@@ -257,8 +257,6 @@ namespace UnityEditor
                 alphaClipProp.floatValue = alphaClipEnabled ? 1 : 0;
             EditorGUI.showMixedValue = false;
 
-            // TODO: hmm.. really should check if this property is defined by the shader or not... material may have it as a holdover from old settings
-            // but if the shader doesn't use it, then we probably shouldn't show it...
             if ((alphaClipProp.floatValue == 1) && (alphaCutoffProp != null))
                 materialEditor.ShaderProperty(alphaCutoffProp, Styles.alphaClipThresholdText, 1);
 

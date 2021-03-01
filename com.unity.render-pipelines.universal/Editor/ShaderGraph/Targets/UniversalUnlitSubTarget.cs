@@ -9,6 +9,7 @@ using UnityEngine.UIElements;
 using UnityEditor.ShaderGraph.Legacy;
 
 using static UnityEditor.Rendering.Universal.ShaderGraph.SubShaderUtils;
+using UnityEngine.Rendering.Universal;
 
 namespace UnityEditor.Rendering.Universal.ShaderGraph
 {
@@ -35,16 +36,8 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
             }
 
             // Process SubShaders
-            SubShaderDescriptor[] unlitSubShaders = { SubShaders.Unlit, SubShaders.UnlitDOTS };
-            for (int i = 0; i < unlitSubShaders.Length; i++)
-            {
-                // Update Render State (target controls)
-                unlitSubShaders[i].renderType = target.renderType;
-                unlitSubShaders[i].renderQueue = target.renderQueue;
-
-                // Add
-                context.AddSubShader(unlitSubShaders[i]);
-            }
+            context.AddSubShader(SubShaders.Unlit(target.renderType, target.renderQueue));
+            context.AddSubShader(SubShaders.UnlitDOTS(target.renderType, target.renderQueue));
         }
 
         public override void GetFields(ref TargetFieldContext context)
@@ -63,6 +56,18 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
         {
             context.AddBlock(BlockFields.SurfaceDescription.Alpha,              target.surfaceType == SurfaceType.Transparent || target.alphaClip);
             context.AddBlock(BlockFields.SurfaceDescription.AlphaClipThreshold, target.alphaClip);
+        }
+
+        public override void CollectShaderProperties(PropertyCollector collector, GenerationMode generationMode)
+        {
+            collector.AddFloatProperty(Property.Surface, (float)target.surfaceType);
+            collector.AddFloatProperty(Property.Blend, (float)target.alphaMode);
+            collector.AddFloatProperty(Property.AlphaClip, target.alphaClip ? 1.0f : 0.0f);
+            collector.AddFloatProperty(Property.SrcBlend, 1.0f);    // always set by material inspector (TODO : get src/dst blend and set here?)
+            collector.AddFloatProperty(Property.DstBlend, 0.0f);    // always set by material inspector
+            collector.AddFloatProperty(Property.ZWrite, (target.surfaceType == SurfaceType.Opaque) ? 1.0f : 0.0f);
+            collector.AddFloatProperty(Property.Cull, (float)(target.twoSided ? CullMode.Off : CullMode.Back));
+            collector.AddFloatProperty(Property.QueueOffset, 0.0f);
         }
 
         public override void GetPropertiesGUI(ref TargetPropertyGUIContext context, Action onChange, Action<String> registerUndo)
@@ -131,31 +136,43 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
         #region SubShader
         static class SubShaders
         {
-            public static SubShaderDescriptor Unlit = new SubShaderDescriptor()
+            public static SubShaderDescriptor Unlit(string renderType, string renderQueue)
             {
-                pipelineTag = UniversalTarget.kPipelineTag,
-                customTags = UniversalTarget.kUnlitMaterialTypeTag,
-                generatesPreview = true,
-                passes = new PassCollection
+                var result = new SubShaderDescriptor()
                 {
-                    { UnlitPasses.Unlit },
-                    { CorePasses.ShadowCaster },
-                    { CorePasses.DepthOnly },
-                },
-            };
+                    pipelineTag = UniversalTarget.kPipelineTag,
+                    customTags = UniversalTarget.kUnlitMaterialTypeTag,
+                    renderType = renderType,
+                    renderQueue = renderQueue,
+                    generatesPreview = true,
+                    passes = new PassCollection
+                    {
+                        { UnlitPasses.Unlit },
+                        { CorePasses.ShadowCaster },
+                        { CorePasses.DepthOnly },
+                    },
+                };
+                return result;
+            }
 
-            public static SubShaderDescriptor UnlitDOTS = new SubShaderDescriptor()
+            public static SubShaderDescriptor UnlitDOTS(string renderType, string renderQueue)
             {
-                pipelineTag = UniversalTarget.kPipelineTag,
-                customTags = UniversalTarget.kUnlitMaterialTypeTag,
-                generatesPreview = true,
-                passes = new PassCollection
+                var result = new SubShaderDescriptor()
                 {
-                    { PassVariant(UnlitPasses.Unlit, CorePragmas.DOTSForward) },
-                    { PassVariant(CorePasses.ShadowCaster, CorePragmas.DOTSInstanced) },
-                    { PassVariant(CorePasses.DepthOnly, CorePragmas.DOTSInstanced) },
-                },
-            };
+                    pipelineTag = UniversalTarget.kPipelineTag,
+                    customTags = UniversalTarget.kUnlitMaterialTypeTag,
+                    renderType = renderType,
+                    renderQueue = renderQueue,
+                    generatesPreview = true,
+                    passes = new PassCollection
+                    {
+                        { PassVariant(UnlitPasses.Unlit, CorePragmas.DOTSForward) },
+                        { PassVariant(CorePasses.ShadowCaster, CorePragmas.DOTSInstanced) },
+                        { PassVariant(CorePasses.DepthOnly, CorePragmas.DOTSInstanced) },
+                    },
+                };
+                return result;
+            }
         }
         #endregion
 

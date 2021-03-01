@@ -2,6 +2,7 @@ using System;
 using UnityEditor;
 using UnityEditor.ShaderGraph;
 using UnityEditor.ShaderGraph.Internal;
+using UnityEditor.Rendering.Universal.ShaderGraph;
 
 namespace UnityEngine.Rendering.Universal
 {
@@ -17,7 +18,7 @@ namespace UnityEngine.Rendering.Universal
         public static readonly string ReceiveShadows = "_ReceiveShadows";
         public static readonly string QueueOffset = "_QueueOffset";
 
-        public static Vector1ShaderProperty WorkflowMode(UnityEditor.Rendering.Universal.ShaderGraph.WorkflowMode workflowModeDefault)
+        public static Vector1ShaderProperty WorkflowModeProperty(WorkflowMode workflowModeDefault)
         {
             return new Vector1ShaderProperty()
             {
@@ -25,7 +26,7 @@ namespace UnityEngine.Rendering.Universal
                 hidden = true,
                 overrideHLSLDeclaration = true,
                 hlslDeclarationOverride = HLSLDeclaration.DoNotDeclare,
-                value = (float)workflowModeDefault,
+                value = (float)((workflowModeDefault == WorkflowMode.MaterialChoice) ? WorkflowMode.Metallic : workflowModeDefault),
                 displayName = "WorkflowMode",
                 overrideReferenceName = "_WorkflowMode",
             };

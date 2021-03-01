@@ -119,9 +119,19 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
         public override void CollectShaderProperties(PropertyCollector collector, GenerationMode generationMode)
         {
             if (workflowMode == WorkflowMode.MaterialChoice)
-                collector.AddShaderProperty(Property.WorkflowMode(WorkflowMode.Metallic));   // TODO: setup default correctly here based on subtarget state
+                collector.AddShaderProperty(Property.WorkflowModeProperty(workflowMode));
 
-            collector.AddFloatProperty(Property.ReceiveShadows, 1.0f);
+            collector.AddFloatProperty(Property.ReceiveShadows, 1.0f);      // TODO set up default
+
+            // setup properties using the defaults
+            collector.AddFloatProperty(Property.Surface, (float)target.surfaceType);
+            collector.AddFloatProperty(Property.Blend, (float)target.alphaMode);
+            collector.AddFloatProperty(Property.AlphaClip, target.alphaClip ? 1.0f : 0.0f);
+            collector.AddFloatProperty(Property.SrcBlend, 1.0f);    // always set by material inspector (TODO : get src/dst blend and set here?)
+            collector.AddFloatProperty(Property.DstBlend, 0.0f);    // always set by material inspector
+            collector.AddFloatProperty(Property.ZWrite, (target.surfaceType == SurfaceType.Opaque) ? 1.0f : 0.0f);
+            collector.AddFloatProperty(Property.Cull, (float)(target.twoSided ? CullMode.Off : CullMode.Back));
+            collector.AddFloatProperty(Property.QueueOffset, 0.0f);
         }
 
         public override void GetPropertiesGUI(ref TargetPropertyGUIContext context, Action onChange, Action<String> registerUndo)

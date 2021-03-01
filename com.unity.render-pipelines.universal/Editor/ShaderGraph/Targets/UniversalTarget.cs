@@ -220,18 +220,6 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
             collector.AddShaderProperty(LightmappingShaderProperties.kLightmapsArray);
             collector.AddShaderProperty(LightmappingShaderProperties.kLightmapsIndirectionArray);
             collector.AddShaderProperty(LightmappingShaderProperties.kShadowMasksArray);
-
-            // TODO: collect from subshaders as well?
-            collector.AddFloatProperty(Property.Surface, (float)SurfaceType.Opaque);
-            collector.AddFloatProperty(Property.Blend, (float)BaseShaderGUI.BlendMode.Additive);
-            collector.AddFloatProperty(Property.AlphaClip, 0.0f);
-            collector.AddFloatProperty(Property.SrcBlend, 1.0f);
-            collector.AddFloatProperty(Property.DstBlend, 0.0f);
-            collector.AddFloatProperty(Property.ZWrite, 1.0f);
-            collector.AddFloatProperty(Property.Cull, 2.0f);
-            collector.AddFloatProperty(Property.QueueOffset, 0.0f);
-
-            // collector.AddFloatProperty(Property.AlphaCutoff, 0.5f);   // _Cutoff("Alpha Cutoff", Range(0.0, 1.0)) = 0.5
         }
 
         public override void GetPropertiesGUI(ref TargetPropertyGUIContext context, Action onChange, Action<String> registerUndo)
