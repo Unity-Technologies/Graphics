@@ -142,8 +142,6 @@ namespace UnityEngine.Rendering.HighDefinition
                 assetCreated = ScriptableObject.CreateInstance<HDRenderPipelineGlobalSettings>();
                 AssetDatabase.CreateAsset(assetCreated, path);
                 assetCreated.Init();
-                AssetDatabase.SaveAssets();
-                AssetDatabase.Refresh();
             }
 
 #pragma warning disable 618 // Type or member is obsolete
@@ -204,6 +202,9 @@ namespace UnityEngine.Rendering.HighDefinition
                 oldAsset.m_ObsoleteDiffusionProfileSettingsList = null;
             }
 #pragma warning restore 618
+
+            AssetDatabase.SaveAssets();
+            AssetDatabase.Refresh();
 
             return assetCreated;
         }
