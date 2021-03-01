@@ -113,6 +113,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Changed resolution (to match the render buffer) of the sky used for camera misses in Path Tracing. (case 1304114).
 - Tidy up of platform abstraction code for shader optimization.
 - Display a warning help box when decal atlas is out of size.
+- Moved the HDRP render graph debug panel content to the Rendering debug panel.
 
 ## [11.0.0] - 2020-10-21
 
