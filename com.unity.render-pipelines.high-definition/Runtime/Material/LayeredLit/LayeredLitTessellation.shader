@@ -573,6 +573,10 @@ Shader "HDRP/LayeredLitTessellation"
     #define _DEFERRED_CAPABLE_MATERIAL
     #endif
 
+    // In this shader, the heightmap implies depth offsets away from the camera.
+    #if defined(_HEIGHTMAP0) || defined(_HEIGHTMAP1) || defined(_HEIGHTMAP2) || defined(_HEIGHTMAP3)
+    #define _CONSERVATIVE_DEPTH_OFFSET
+    #endif
     //-------------------------------------------------------------------------------------
     // Include
     //-------------------------------------------------------------------------------------
