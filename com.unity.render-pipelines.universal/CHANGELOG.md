@@ -46,6 +46,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed shadowCoord error when main light shadow defined in unlit shader graph [case 1175274](https://issuetracker.unity3d.com/issues/shadows-not-applying-when-using-file-in-a-custom-function-node-with-universal-rp)
 - Removed Custom.meta which was causing warnings. [case 1314288](https://issuetracker.unity3d.com/issues/urp-warnings-about-missing-metadata-appear-after-installing)
 - Fixed a case where shadow fade was clipped too early.
+- Fixed SafeNormalize returning invalid vector when using half with zero length. [case 1315956]
 - Fixed lit shader property duplication issue. [case 1315032](https://issuetracker.unity3d.com/issues/shader-dot-propertytoid-returns-the-same-id-when-shaders-properties-have-the-same-name-but-different-type)
 - Fixed undo issues for the additional light property on the UniversalRenderPipeline Asset. [case 1300367]
 - Fixed an issue where SSAO would sometimes not render with a recently imported renderer.
