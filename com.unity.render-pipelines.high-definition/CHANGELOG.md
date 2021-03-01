@@ -19,8 +19,14 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Added browsing of the documentation of Compositor Window
 - Added a complete solution for volumetric clouds for HDRP including a cloud map generation tool.
 - Added a Force Forward Emissive option for Lit Material that forces the Emissive contribution to render in a separate forward pass when the Lit Material is in Deferred Lit shader Mode.
+- Added new API in CachedShadowManager
+- Added an additional check in the "check scene for ray tracing" (case 1314963).
+- Added shader graph unit test for IsFrontFace node
+- API to allow OnDemand shadows to not render upon placement in the Cached Shadow Atlas.
+- Exposed update upon light movement for directional light shadows in UI.
 
 ### Fixed
+- Fixed Intensity Multiplier not affecting realtime global illumination.
 - Fixed an exception when opening the color picker in the material UI (case 1307143).
 - Fixed lights shadow frustum near and far planes.
 - Fixed various issues with non-temporal SSAO and rendergraph.
@@ -48,6 +54,24 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed performance issue with ShaderGraph and Alpha Test
 - Fixed error when increasing the maximum planar reflection limit (case 1306530).
 - Fixed alpha output in debug view and AOVs when using shadow matte (case 1311830).
+- Fixed an issue with transparent meshes writing their depths and recursive rendering (case 1314409).
+- Fixed issue with compositor custom pass hooks added/removed repeatedly (case 1315971).
+- Fixed: SSR with transparent (case 1311088)
+- Fixed decals in material debug display.
+- Fix crash on VolumeComponentWithQualityEditor when the current Pipeline is not HDRP
+- Fixed WouldFitInAtlas that would previously return wrong results if any one face of a point light would fit (it used to return true even though the light in entirety wouldn't fit).
+- Fixed issue with NaNs in Volumetric Clouds on some platforms.
+- Fixed update upon light movement for directional light rotation.
+- Fixed issue that caused a rebake of Probe Volume Data to see effect of changed normal bias.
+- Fixed loss of persistency of ratio between pivot position and size when sliding by 0 in DecalProjector inspector (case 1308338)
+- Fixed nullref when adding a volume component in a Volume profile asset (case 1317156).
+- Fixed decal normal for double sided materials (case 1312065).
+- Fixed multiple HDRP Frame Settings panel issues: missing "Refraction" Frame Setting. Fixing ordering of Rough Distortion, it should now be under the Distortion setting.
+- Fixed Rough Distortion frame setting not greyed out when Distortion is disabled in HDRP Asset
+- Fixed issue with automatic exposure settings not updating scene view.
+- Fixed issue with velocity rejection in post-DoF TAA. Fixing this reduces ghosting (case 1304381).
+- Fixed missing option to use POM on emissive for tessellated shaders.
+- Fixed ability to override AlphaToMask FrameSetting while camera in deferred lit shader mode
 - Fixed Missing lighting quality settings for SSGI (case 1312067).
 
 ### Changed
@@ -81,6 +105,9 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Improved shadow cascade GUI drawing with pixel perfect, hover and focus functionalities.
 - Improving the screen space global illumination.
 - Moving MaterialHeaderScopes to Core
+- Changed resolution (to match the render buffer) of the sky used for camera misses in Path Tracing. (case 1304114).
+- Tidy up of platform abstraction code for shader optimization.
+- Display a warning help box when decal atlas is out of size.
 
 ## [11.0.0] - 2020-10-21
 
