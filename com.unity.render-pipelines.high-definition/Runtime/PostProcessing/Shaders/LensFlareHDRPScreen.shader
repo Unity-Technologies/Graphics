@@ -12,6 +12,7 @@ Shader "Hidden/HDRP/LensFlare (HDRP Screen)"
             Tags{ "LightMode" = "Forward"  "RenderQueue" = "Transparent" }
 
             Blend One OneMinusSrcColor
+            BlendOp Max, Add
             ZWrite Off
             Cull Off
             ZTest Always
