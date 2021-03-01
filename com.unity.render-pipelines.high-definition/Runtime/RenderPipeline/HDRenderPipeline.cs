@@ -2143,7 +2143,6 @@ namespace UnityEngine.Rendering.HighDefinition
 
             // From this point, we should only use frame settings from the camera
             hdCamera.Update(currentFrameSettings, this, m_MSAASamples, xrPass);
-            ResizeVolumetricLightingBuffers(hdCamera); // Safe to update the Volumetric Lighting System now
 
             // Custom Render requires a proper HDCamera, so we return after the HDCamera was setup
             if (additionalCameraData != null && additionalCameraData.hasCustomRender)

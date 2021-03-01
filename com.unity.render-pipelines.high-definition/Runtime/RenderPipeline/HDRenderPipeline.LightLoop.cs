@@ -802,10 +802,8 @@ namespace UnityEngine.Rendering.HighDefinition
                     if (passData.parameters.tiledLighting)
                         passData.bigTileLightListBuffer = builder.ReadComputeBuffer(bigTileLightList);
 
-                    float tileSize = 0;
-                    Vector3Int viewportSize = ComputeVolumetricViewportSize(hdCamera, ref tileSize);
-
-                    passData.densityBuffer = builder.WriteTexture(renderGraph.ImportTexture(m_DensityBuffer));
+                    passData.densityBuffer = builder.WriteTexture(renderGraph.CreateTexture(new TextureDesc(s_CurrentVolumetricBufferSize.x, s_CurrentVolumetricBufferSize.y, false, false)
+                        { slices = s_CurrentVolumetricBufferSize.z, colorFormat = GraphicsFormat.R16G16B16A16_SFloat, dimension = TextureDimension.Tex3D, enableRandomWrite = true, name = "VBufferDensity" }));
 
                     builder.SetRenderFunc(
                         (VolumeVoxelizationPassData data, RenderGraphContext ctx) =>
@@ -846,12 +844,12 @@ namespace UnityEngine.Rendering.HighDefinition
                 {
                     passData.parameters = PrepareGenerateMaxZParameters(hdCamera, depthMipInfo);
                     passData.depthTexture = builder.ReadTexture(depthTexture);
-                    passData.maxZ8xBuffer = builder.ReadTexture(renderGraph.ImportTexture(m_MaxZMask8x));
-                    passData.maxZ8xBuffer = builder.WriteTexture(passData.maxZ8xBuffer);
-                    passData.maxZBuffer = builder.ReadTexture(renderGraph.ImportTexture(m_MaxZMask));
-                    passData.maxZBuffer = builder.WriteTexture(passData.maxZBuffer);
-                    passData.dilatedMaxZBuffer = builder.ReadTexture(renderGraph.ImportTexture(m_DilatedMaxZMask));
-                    passData.dilatedMaxZBuffer = builder.WriteTexture(passData.dilatedMaxZBuffer);
+                    passData.maxZ8xBuffer = builder.CreateTransientTexture(new TextureDesc(Vector2.one * 0.125f, false, true)
+                        { colorFormat = GraphicsFormat.R32_SFloat, enableRandomWrite = true, name = "MaxZ mask 8x" });
+                    passData.maxZBuffer = builder.CreateTransientTexture(new TextureDesc(Vector2.one * 0.125f, false, true)
+                        { colorFormat = GraphicsFormat.R32_SFloat, enableRandomWrite = true, name = "MaxZ mask" });
+                    passData.dilatedMaxZBuffer = builder.ReadWriteTexture(renderGraph.CreateTexture(new TextureDesc(Vector2.one / 16.0f, false, true)
+                        { colorFormat = GraphicsFormat.R32_SFloat, enableRandomWrite = true, name = "Dilated MaxZ mask" }));
 
                     builder.SetRenderFunc(
                         (GenerateMaxZMaskPassData data, RenderGraphContext ctx) =>
@@ -893,11 +891,8 @@ namespace UnityEngine.Rendering.HighDefinition
                     passData.densityBuffer = builder.ReadTexture(densityBuffer);
                     passData.depthTexture = builder.ReadTexture(depthTexture);
                     passData.maxZBuffer = builder.ReadTexture(maxZBuffer);
-
-                    float tileSize = 0;
-                    Vector3Int viewportSize = ComputeVolumetricViewportSize(hdCamera, ref tileSize);
-
-                    passData.lightingBuffer = builder.WriteTexture(renderGraph.ImportTexture(m_LightingBuffer));
+                    passData.lightingBuffer = builder.WriteTexture(renderGraph.CreateTexture(new TextureDesc(s_CurrentVolumetricBufferSize.x, s_CurrentVolumetricBufferSize.y, false, false)
+                        { slices = s_CurrentVolumetricBufferSize.z, colorFormat = GraphicsFormat.R16G16B16A16_SFloat, dimension = TextureDimension.Tex3D, enableRandomWrite = true, name = "VBufferLighting" }));
 
                     if (passData.parameters.enableReprojection)
                     {
