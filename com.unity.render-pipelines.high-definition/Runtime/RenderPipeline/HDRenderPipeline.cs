@@ -394,7 +394,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
             InitializeDebug();
 
-            m_Asset.corePipelineAsset.InitFeatureBlitter(defaultResources.shaders.blitPS, defaultResources.shaders.blitColorAndDepthPS);
+            Blitter.Initialize(defaultResources.shaders.blitPS, defaultResources.shaders.blitColorAndDepthPS);
 
             m_ErrorMaterial = CoreUtils.CreateEngineMaterial("Hidden/InternalErrorShader");
 
@@ -776,7 +776,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
             CleanupDebug();
 
-            m_Asset.corePipelineAsset.Dispose();
+            Blitter.Cleanup();
 
             CoreUtils.Destroy(m_CopyDepth);
             CoreUtils.Destroy(m_ErrorMaterial);
