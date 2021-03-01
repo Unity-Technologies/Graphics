@@ -152,7 +152,7 @@ namespace UnityEditor.VFX
             return r;
         }
 
-        static private VFXShaderWriter GenerateLoadParameter(string matching, VFXNamedExpression[] namedExpressions, Dictionary<VFXExpression, string> expressionToName)
+        static internal VFXShaderWriter GenerateLoadParameter(string matching, VFXNamedExpression[] namedExpressions, Dictionary<VFXExpression, string> expressionToName)
         {
             var r = new VFXShaderWriter();
             var regex = new Regex(matching);

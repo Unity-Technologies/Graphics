@@ -128,7 +128,11 @@ bool GetMeshAndElementIndex(inout AttributesMesh input, inout AttributesElement 
             float2(-0.5f, -0.5f),
         };
 
-        ${VFXLoadParameter:{cropFactor}}
+    GetElementData(element);
+    const Attributes attributes = element.attributes;
+        // Here we have to explicitly splice in the crop factor.
+        $splice(VFXLoadCropFactorParameter)
+
         cropFactor = id & 1 ? 1.0f - cropFactor : 1.0f;
         const float2 vOffsets = kUvs[id & 7] * cropFactor;
         uv.xy = vOffsets + 0.5f;

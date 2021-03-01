@@ -93,10 +93,6 @@ float3 GetSize(Attributes attributes)
     return size3;
 }
 
-// Configure the output type-spcific mesh definition and index calculation for the rest of the element data.
-$OutputType.Mesh:            $include("VFX/ConfigMesh.template.hlsl")
-$OutputType.PlanarPrimitive: $include("VFX/ConfigPlanarPrimitive.template.hlsl")
-
 void GetElementData(inout AttributesElement element)
 {
     uint index = element.index;
@@ -114,6 +110,10 @@ void GetElementData(inout AttributesElement element)
 
     element.attributes = attributes;
 }
+
+// Configure the output type-spcific mesh definition and index calculation for the rest of the element data.
+$OutputType.Mesh:            $include("VFX/ConfigMesh.template.hlsl")
+$OutputType.PlanarPrimitive: $include("VFX/ConfigPlanarPrimitive.template.hlsl")
 
 // Loads the element-specific attribute data, as well as fills any interpolator.
 #define VaryingsMeshType VaryingsMeshToPS

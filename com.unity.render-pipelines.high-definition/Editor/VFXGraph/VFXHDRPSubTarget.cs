@@ -40,6 +40,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 out var parameterBufferDescriptor,
                 out var additionalDefinesDescriptor,
                 out var loadPositionAttributeDescriptor,
+                out var loadCropFactorAttributesDescriptor,
                 out var vertexPropertiesGenerationDescriptor,
                 out var vertexPropertiesAssignDescriptor
             );
@@ -85,6 +86,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                     parameterBufferDescriptor,
                     additionalDefinesDescriptor,
                     loadPositionAttributeDescriptor,
+                    loadCropFactorAttributesDescriptor,
                     vertexPropertiesGenerationDescriptor,
                     vertexPropertiesAssignDescriptor
                 };
@@ -234,6 +236,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             out AdditionalCommandDescriptor parameterBufferDescriptor,
             out AdditionalCommandDescriptor additionalDefinesDescriptor,
             out AdditionalCommandDescriptor loadPositionAttributeDescriptor,
+            out AdditionalCommandDescriptor loadCropFactorAttributesDescriptor,
             out AdditionalCommandDescriptor vertexPropertiesGenerationDescriptor,
             out AdditionalCommandDescriptor vertexPropertiesAssignDescriptor)
         {
@@ -302,6 +305,12 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
 
             // Load Position Attribute
             loadPositionAttributeDescriptor = new AdditionalCommandDescriptor("VFXLoadPositionAttribute", VFXCodeGenerator.GenerateLoadAttribute("position", context).ToString().ToString());
+
+            // Load Crop Factor Attribute
+            var mainParameters = contextData.gpuMapper.CollectExpression(-1).ToArray();
+            var expressionToName = context.GetData().GetAttributes().ToDictionary(o => new VFXAttributeExpression(o.attrib) as VFXExpression, o => (new VFXAttributeExpression(o.attrib)).GetCodeString(null));
+            expressionToName = expressionToName.Union(contextData.uniformMapper.expressionToCode).ToDictionary(s => s.Key, s => s.Value);
+            loadCropFactorAttributesDescriptor = new AdditionalCommandDescriptor("VFXLoadCropFactorParameter", VFXCodeGenerator.GenerateLoadParameter("cropFactor", mainParameters, expressionToName).ToString().ToString());
         }
 
         static StructDescriptor GenerateVFXAttributesStruct(VFXContext context, VFXAttributeType attributeType)
