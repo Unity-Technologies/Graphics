@@ -1,6 +1,6 @@
 # HDRP custom Material Inspectors
 
-Custom Material Inspectors allow you to layout how Unity displays properties in the Material Inspector for a particular shader. The High Definition Render Pipeline (HDRP) makes heavy use of this feature to make the editing experience for all of its shaders as simple and intuitive as possible.
+Custom Material Inspectors allow you to define how Unity displays properties in the Material Inspector for a particular shader. The High Definition Render Pipeline (HDRP) makes heavy use of this feature to make the editing experience for all of its shaders as simple and intuitive as possible.
 
 This page contains information about how to create custom Material Inspectors in HDRP. For general information about what custom Material Inspectors are and how to assign one to a material, see [custom Material Inspector](https://docs.unity3d.com/Packages/com.unity.render-pipelines.core@latest?subfolder=/manual/custom-material-inspector.html).
 
