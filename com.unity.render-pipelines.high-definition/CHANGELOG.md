@@ -71,6 +71,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed issue with velocity rejection in post-DoF TAA. Fixing this reduces ghosting (case 1304381).
 - Fixed missing option to use POM on emissive for tessellated shaders.
 - Fixed an issue in the planar reflection probe convolution.
+- Fixed an issue with debug overriding emissive material color for deferred path (case 1313123).
 
 ### Changed
 - Changed Window/Render Pipeline/HD Render Pipeline Wizard to Window/Rendering/HDRP Wizard
