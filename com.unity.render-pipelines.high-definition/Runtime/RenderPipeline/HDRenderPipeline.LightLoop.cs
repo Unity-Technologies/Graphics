@@ -8,8 +8,6 @@ namespace UnityEngine.Rendering.HighDefinition
     {
         struct LightingBuffers
         {
-            // TODO RENDERGRAPH: Those two buffers aren't really lighting buffers but only used for SSS
-            // We should probably move them out of here.
             public TextureHandle    sssBuffer;
             public TextureHandle    diffuseLightingBuffer;
 

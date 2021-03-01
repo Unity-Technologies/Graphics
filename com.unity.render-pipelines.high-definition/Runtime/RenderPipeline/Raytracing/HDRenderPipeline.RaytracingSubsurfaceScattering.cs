@@ -78,7 +78,7 @@ namespace UnityEngine.Rendering.HighDefinition
             public TextureHandle outputBuffer;
         }
 
-        TextureHandle TraceRTSSS(RenderGraph renderGraph, HDCamera hdCamera, TextureHandle depthStencilBuffer, TextureHandle normalBuffer, TextureHandle sssColor, TextureHandle ssgiBuffer, TextureHandle diffuseLightingBuffer, TextureHandle colorBuffer)
+        TextureHandle TraceRTSSS(RenderGraph renderGraph, HDCamera hdCamera, TextureHandle depthStencilBuffer, TextureHandle normalBuffer, TextureHandle sssColor, TextureHandle ssgiBuffer, TextureHandle colorBuffer)
         {
             using (var builder = renderGraph.AddRenderPass<TraceRTSSSPassData>("Composing the result of RTSSS", out var passData, ProfilingSampler.Get(HDProfileId.RaytracingSSSTrace)))
             {
@@ -285,7 +285,7 @@ namespace UnityEngine.Rendering.HighDefinition
             using (new RenderGraphProfilingScope(renderGraph, ProfilingSampler.Get(HDProfileId.RaytracingSSS)))
             {
                 // Trace the signal
-                TextureHandle rtsssResult = TraceRTSSS(renderGraph, hdCamera, depthStencilBuffer, normalBuffer, sssColor, ssgiBuffer, diffuseBuffer, colorBuffer);
+                TextureHandle rtsssResult = TraceRTSSS(renderGraph, hdCamera, depthStencilBuffer, normalBuffer, sssColor, ssgiBuffer, colorBuffer);
 
                 // Denoise the result
                 rtsssResult = DenoiseRTSSS(renderGraph, hdCamera, rtsssResult, depthStencilBuffer, normalBuffer, motionVectorsBuffer, historyValidationTexture);
@@ -294,7 +294,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 rtsssResult = CombineRTSSS(renderGraph, hdCamera, rtsssResult, depthStencilBuffer, sssColor, ssgiBuffer, diffuseBuffer, colorBuffer);
 
                 // Push this version of the texture for debug
-                PushFullScreenDebugTexture(renderGraph, diffuseBuffer, FullScreenDebugMode.RayTracedSubSurface);
+                PushFullScreenDebugTexture(renderGraph, rtsssResult, FullScreenDebugMode.RayTracedSubSurface);
 
                 // Return the result
                 return rtsssResult;
