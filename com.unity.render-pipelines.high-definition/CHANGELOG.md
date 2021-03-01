@@ -70,6 +70,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed issue with automatic exposure settings not updating scene view.
 - Fixed issue with velocity rejection in post-DoF TAA. Fixing this reduces ghosting (case 1304381).
 - Fixed missing option to use POM on emissive for tessellated shaders.
+- Fixed ability to override AlphaToMask FrameSetting while camera in deferred lit shader mode
 
 ### Changed
 - Changed Window/Render Pipeline/HD Render Pipeline Wizard to Window/Rendering/HDRP Wizard
