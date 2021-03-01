@@ -120,6 +120,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - The RTAO's history is now discarded if the occlusion caster was moving (case 1303418).
 - Unifying the history validation pass so that it is only done once for the whole frame and not per effect.
 - Tidy up of platform abstraction code for shader optimization.
+- Changed Path Tracing's maximum intensity from clamped (0 to 100) to positive value (case 1310514).
 
 ## [10.3.0] - 2020-12-01
 
