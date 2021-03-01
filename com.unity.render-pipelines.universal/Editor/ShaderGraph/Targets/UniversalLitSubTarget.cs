@@ -675,6 +675,8 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
                 { CoreKeywordDescriptors.ShadowsSoft },
                 { CoreKeywordDescriptors.LightmapShadowMixing },
                 { CoreKeywordDescriptors.ShadowsShadowmask },
+                CoreKeywordDescriptors.AlphaTestOn,
+                CoreKeywordDescriptors.AlphaPremultiplyOn,    // TODO: double check if this is needed
             };
 
             public static readonly KeywordCollection GBuffer = new KeywordCollection

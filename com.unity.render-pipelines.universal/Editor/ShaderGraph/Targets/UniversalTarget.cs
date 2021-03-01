@@ -939,6 +939,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
         public static readonly KeywordCollection ShadowCaster = new KeywordCollection
         {
             { CoreKeywordDescriptors.CastingPunctualLightShadow },
+            CoreKeywordDescriptors.AlphaTestOn
         };
     }
     #endregion
