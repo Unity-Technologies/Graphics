@@ -15,24 +15,6 @@ MonoBehaviour:
   filters:
   - FilteredScene: {fileID: 0}
     FilteredScenes:
-    - {fileID: 102900000, guid: 7f2ec65906a47474383300df9c0aad69, type: 3}
-    ColorSpace: -1
-    BuildPlatform: 9
-    GraphicsDevice: 16
-    XrSdk: None
-    StereoModes: 0
-    Reason: 'Filtered out due to OoM issue (FB: 1304672)'
-  - FilteredScene: {fileID: 0}
-    FilteredScenes:
-    - {fileID: 102900000, guid: 8d65e7263d49aea4dad06fbbe0b9f438, type: 3}
-    ColorSpace: -1
-    BuildPlatform: 9
-    GraphicsDevice: 16
-    XrSdk: None
-    StereoModes: 0
-    Reason: 'Filtered out due to OoM issue (FB: 1304672)'
-  - FilteredScene: {fileID: 0}
-    FilteredScenes:
     - {fileID: 102900000, guid: 8d65e7263d49aea4dad06fbbe0b9f438, type: 3}
     ColorSpace: -1
     BuildPlatform: 19
@@ -49,33 +31,6 @@ MonoBehaviour:
     XrSdk: None
     StereoModes: 0
     Reason: Needs fixing in OpenGL
-  - FilteredScene: {fileID: 0}
-    FilteredScenes:
-    - {fileID: 102900000, guid: 2b6b74b7929ae4191b3b936c12236e0a, type: 3}
-    ColorSpace: -1
-    BuildPlatform: 9
-    GraphicsDevice: 16
-    XrSdk: None
-    StereoModes: 0
-    Reason: 'Filtered out due to OoM issue (FB: 1304672)'
-  - FilteredScene: {fileID: 0}
-    FilteredScenes:
-    - {fileID: 102900000, guid: a770620fcd2f84f248d06edf3744b2c0, type: 3}
-    ColorSpace: -1
-    BuildPlatform: 9
-    GraphicsDevice: 16
-    XrSdk: None
-    StereoModes: 0
-    Reason: 'Filtered out due to OoM issue (FB: 1304672)'
-  - FilteredScene: {fileID: 0}
-    FilteredScenes:
-    - {fileID: 102900000, guid: bcb8635ea84c143f0ae0823f1e9b6f25, type: 3}
-    ColorSpace: -1
-    BuildPlatform: 9
-    GraphicsDevice: 16
-    XrSdk: None
-    StereoModes: 0
-    Reason: 'Filtered out due to OoM issue (FB: 1304672)'
   - FilteredScene: {fileID: 0}
     FilteredScenes:
     - {fileID: 102900000, guid: bcb8635ea84c143f0ae0823f1e9b6f25, type: 3}
