@@ -943,21 +943,6 @@ namespace UnityEditor.VFX
             }
         }
 
-        static public Action<VisualEffectResource, bool> k_FnVFXResource_SetCompileInitialVariants = Find_FnVFXResource_SetCompileInitialVariants();
-
-        static Action<VisualEffectResource, bool> Find_FnVFXResource_SetCompileInitialVariants()
-        {
-            var property = typeof(VisualEffectResource).GetProperty("compileInitialVariants");
-            if (property != null)
-            {
-                return delegate(VisualEffectResource rsc, bool value)
-                {
-                    property.SetValue(rsc, value, null);
-                };
-            }
-            return null;
-        }
-
         void ComputeEffectiveInputLinks(ref SubgraphInfos subgraphInfos, IEnumerable<VFXContext> compilableContexts)
         {
             var contextEffectiveInputLinks = subgraphInfos.contextEffectiveInputLinks;
@@ -1166,12 +1151,10 @@ namespace UnityEditor.VFX
                         startSystems = e.startSystems.Select(s => contextToCompiledData[s].indexInSystemDesc).Where(i => i != -1).Select(i => (uint)i).ToArray(),
                         stopSystems = e.stopSystems.Select(s => contextToCompiledData[s].indexInSystemDesc).Where(i => i != -1).Select(i => (uint)i).ToArray(),
                     };
-                })
-                    .Where(e =>
+                }).Where(e =>
                     {
                         return e.initSystems.Length > 0 || e.startSystems.Length > 0 || e.stopSystems.Length > 0;
-                    })
-                    .ToArray();
+                    }).ToArray();
 
                 resource.SetRuntimeData(expressionSheet, systemDescs.ToArray(), vfxEventDesc, bufferDescs.ToArray(), cpuBufferDescs.ToArray(), temporaryBufferDescs.ToArray(), shaderSources, shadowCastingMode, motionVectorGenerationMode, compiledVersion);
                 m_ExpressionValues = expressionSheet.values;
@@ -1179,10 +1162,7 @@ namespace UnityEditor.VFX
                 foreach (var dep in sourceDependencies)
                     resource.AddSourceDependency(dep);
 
-                if (k_FnVFXResource_SetCompileInitialVariants != null)
-                {
-                    k_FnVFXResource_SetCompileInitialVariants(m_Graph.visualEffectResource, forceShaderValidation);
-                }
+                m_Graph.visualEffectResource.compileInitialVariants = forceShaderValidation;
             }
             catch (Exception e)
             {
