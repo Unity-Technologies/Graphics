@@ -244,7 +244,7 @@ namespace UnityEditor.VFX
                 {
                     if (!hasDirectLink)
                         r.WriteLineFormat("uint nbEvents = {0};", staticSourceCount);
-                    //else, nbEvents is provided by constant buffer
+                    //else, nbEvents is provided by the constant buffer
 
                     r.WriteLine("uint currentSumSpawnCount = 0u;");
                     r.WriteLine("for (sourceIndex=0; sourceIndex < (int)nbEvents; sourceIndex++)");
