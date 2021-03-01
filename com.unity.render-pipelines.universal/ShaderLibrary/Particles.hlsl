@@ -166,7 +166,7 @@ half4 GetParticleColor(half4 color)
 #if !defined(UNITY_PARTICLE_INSTANCE_DATA_NO_COLOR)
     UNITY_PARTICLE_INSTANCE_DATA data = unity_ParticleInstanceData[unity_InstanceID];
     color = lerp(half4(1.0, 1.0, 1.0, 1.0), color, unity_ParticleUseMeshColors);
-    color *= UnpackFromR8G8B8A8(data.color);
+    color *= half4(UnpackFromR8G8B8A8(data.color));
 #endif
 #endif
     return color;
