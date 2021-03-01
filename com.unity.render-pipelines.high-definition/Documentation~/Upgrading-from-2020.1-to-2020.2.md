@@ -222,6 +222,11 @@ In the Decal shader, the property `_MetallicRemapMin` have been added, and `_Met
 
 From 10.x, a new pass ScenePickingPass have been added to all the shader and master node to allow the editor to correctly handle the picking with tesselated objects and backfaced objects.
 
+From 10.x, a decal function in shader code has been added. To handle normal flipping for double sided materials, calls to `GetDecalSurfaceData()` should be updated from this function:
+`DecalSurfaceData GetDecalSurfaceData(PositionInputs posInput, float3 vtxNormal, inout float alpha)`
+to:
+`DecalSurfaceData GetDecalSurfaceData(PositionInputs posInput, FragInputs input, inout float alpha)
+
 ## Raytracing
 
 From Unity 2020.2, the Raytracing Node in shader graph now apply the raytraced path (previously low path) to all raytraced effects but path tracing.

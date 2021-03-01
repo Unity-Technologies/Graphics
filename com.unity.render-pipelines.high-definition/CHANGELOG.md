@@ -36,10 +36,17 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed issue with compositor custom pass hooks added/removed repeatedly (case 1315971).
 - Fixed: SSR with transparent (case 1311088)
 - Fixed decals in material debug display.
+- Fixed nullref when adding a volume component in a Volume profile asset (case 1317156).
+- Fixed decal normal for double sided materials (case 1312065).
+- Fixed multiple HDRP Frame Settings panel issues: missing "Refraction" Frame Setting. Fixing ordering of Rough Distortion, it should now be under the Distortion setting.
+- Fixed issue with automatic exposure settings not updating scene view.
+- Fixed issue with velocity rejection in post-DoF TAA. Fixing this reduces ghosting (case 1304381).
+- Fixed missing option to use POM on emissive for tessellated shaders.
 
 ### Changed
 - Updated the tooltip for the Decal Angle Fade property (requires to enable Decal Layers in both HDRP asset and Frame settings) (case 1308048).
 - Tidy up of platform abstraction code for shader optimization.
+- Display a warning help box when decal atlas is out of size.
 
 ## [10.3.1] - 2020-01-26
 
