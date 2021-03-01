@@ -6,25 +6,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
 {
     sealed class UniversalSpriteCustomSubTarget : SubTarget<UniversalTarget>
     {
-        [MenuItem("Assets/Create/Shader/Universal Render Pipeline/Sprite Custom Lit Shader Graph", false, 300)]
-        public static void CreateSpriteLitGraph()
-        {
-            var target = (UniversalTarget)Activator.CreateInstance(typeof(UniversalTarget));
-            target.TrySetActiveSubTarget(typeof(UniversalSpriteCustomSubTarget));
 
-            var blockDescriptors = new[]
-            {
-                BlockFields.VertexDescription.Position,
-                BlockFields.VertexDescription.Normal,
-                BlockFields.VertexDescription.Tangent,
-                BlockFields.SurfaceDescription.BaseColor,
-                UniversalBlockFields.SurfaceDescription.SpriteMask,
-                BlockFields.SurfaceDescription.NormalTS,
-                BlockFields.SurfaceDescription.Alpha,
-            };
-
-            GraphUtil.CreateNewGraphWithOutputs(new[] {target}, blockDescriptors);
-        }
 
         static readonly GUID kSourceCodeGuid = new GUID("69e608b3e7e0405bbc2f259ad9cfa196"); // UniversalUnlitSubTarget.cs
 
@@ -172,6 +154,9 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
                 renderStates = CoreRenderStates.Default,
                 pragmas = CorePragmas._2DDefault,
                 includes = SpriteLitIncludes.Forward,
+
+                // Custom Interpolator Support
+                customInterpolators = CoreCustomInterpDescriptors.Common
             };
         }
         #endregion

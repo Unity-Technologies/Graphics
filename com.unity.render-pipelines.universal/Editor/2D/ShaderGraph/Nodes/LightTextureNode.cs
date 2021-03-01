@@ -64,6 +64,7 @@ namespace _2D.ShaderGraph
             {
                 overrideReferenceName = GetVariableName(),
                 generatePropertyBlock = false,
+                defaultType = Texture2DShaderProperty.DefaultType.White,
                 // value = m_Texture,
                 modifiable = false
             });
