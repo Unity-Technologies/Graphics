@@ -124,6 +124,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed wrong shader / properties assignement to materials created from 3DsMax 2021 Physical Material. (case 1293576)
 - Fixed Emissive color property from Autodesk Interactive materials not editable in Inspector. (case 1307234)
 - Fixed Warnings about "SceneIdMap" missing script in eye material sample scene
+- Fixed resize IES when already baked in the Atlas 1299233
 
 ### Changed
 - Removed the material pass probe volumes evaluation mode.
