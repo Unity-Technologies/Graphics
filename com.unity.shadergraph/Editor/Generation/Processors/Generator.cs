@@ -114,10 +114,10 @@ namespace UnityEditor.ShaderGraph
             if (m_GraphData.GetKeywordPermutationCount() > ShaderGraphPreferences.variantLimit)
             {
                 string graphName = "";
-                if(m_GraphData.owner != null)
+                if (m_GraphData.owner != null)
                 {
                     string path = AssetDatabase.GUIDToAssetPath(m_GraphData.owner.AssetGuid);
-                    if(path != null)
+                    if (path != null)
                     {
                         graphName = Path.GetFileNameWithoutExtension(path);
                     }
