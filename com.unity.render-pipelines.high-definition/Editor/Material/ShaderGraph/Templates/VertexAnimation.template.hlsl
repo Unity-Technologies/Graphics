@@ -39,7 +39,17 @@ VertexDescriptionInputs AttributesMeshToVertexDescriptionInputs(AttributesMesh i
     return output;
 }
 
-AttributesMesh ApplyMeshModification(AttributesMesh input, float3 timeParameters)
+// This is used for injecting the define below.
+$splice(CustomInterpolatorPreVertex)
+
+
+
+    AttributesMesh ApplyMeshModification(AttributesMesh input, float3 timeParameters
+#if defined(USE_CUSTOMINTERP_APPLYMESHMOD) // mirrored in VertMesh.hlsl and MotionVectorVertexShaderCommon.hlsl
+        // use ifdef via TESSELLATION_ON to use VaryingsMeshToDS (Domain varyings instead of pixel varyings) whenever SG is modified to support Tess.
+        , inout VaryingsMeshToPS varyings
+#endif
+    )
 {
     // build graph inputs
     VertexDescriptionInputs vertexDescriptionInputs = AttributesMeshToVertexDescriptionInputs(input);
@@ -53,6 +63,9 @@ AttributesMesh ApplyMeshModification(AttributesMesh input, float3 timeParameters
     $VertexDescription.Position: input.positionOS = vertexDescription.Position;
     $VertexDescription.Normal:   input.normalOS = vertexDescription.Normal;
     $VertexDescription.Tangent:  input.tangentOS.xyz = vertexDescription.Tangent;
+
+    // The purpose of the above ifdef, this allows shader graph custom interpolators to write directly to the varyings structs.
+    $splice(CustomInterpolatorVertexDefinitionToVaryings)
 
     return input;
 }
