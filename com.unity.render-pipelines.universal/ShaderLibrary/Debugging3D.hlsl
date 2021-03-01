@@ -103,7 +103,7 @@ bool UpdateSurfaceAndInputDataForDebug(inout SurfaceData surfaceData, inout Inpu
     return changed;
 }
 
-bool CalculateValidationMetallic(half3 albedo, half metallic, out half4 debugColor)
+bool CalculateValidationMetallic(half3 albedo, half metallic, inout half4 debugColor)
 {
     if(metallic < _DebugValidateMetallicMinValue)
     {
@@ -122,10 +122,13 @@ bool CalculateValidationMetallic(half3 albedo, half metallic, out half4 debugCol
     return true;
 }
 
-bool CalculateValidationColorForDebug(in InputData inputData, in SurfaceData surfaceData, out half4 debugColor)
+bool CalculateValidationColorForDebug(in InputData inputData, in SurfaceData surfaceData, inout half4 debugColor)
 {
     switch(_DebugValidationMode)
     {
+        case DEBUGVALIDATIONMODE_NONE:
+            return false;
+
         case DEBUGVALIDATIONMODE_VALIDATE_ALBEDO:
             return CalculateValidationAlbedo(surfaceData.albedo, debugColor);
 
@@ -136,17 +139,18 @@ bool CalculateValidationColorForDebug(in InputData inputData, in SurfaceData sur
             return CalculateValidationMipLevel(inputData.mipInfo.w, inputData.uv, inputData.texelSize, surfaceData.albedo, surfaceData.alpha, debugColor);
 
         default:
-        {
-            debugColor = 0;
-            return false;
-        }
+            debugColor = _DebugColorInvalidMode;
+            return true;
     }
 }
 
-bool CalculateDebugColorForMipmaps(in InputData inputData, in SurfaceData surfaceData, out half4 debugColor)
+bool CalculateDebugColorForMipmaps(in InputData inputData, in SurfaceData surfaceData, inout half4 debugColor)
 {
     switch (_DebugMipInfoMode)
     {
+        case DEBUGMIPINFOMODE_NONE:
+            return false;
+
         case DEBUGMIPINFOMODE_LEVEL:
             debugColor = GetMipLevelDebugColor(inputData.positionWS, surfaceData.albedo, inputData.uv, inputData.texelSize);
             return true;
@@ -156,16 +160,19 @@ bool CalculateDebugColorForMipmaps(in InputData inputData, in SurfaceData surfac
             return true;
 
         default:
-            debugColor = 0;
-            return false;
+            debugColor = _DebugColorInvalidMode;
+            return true;
     }
 }
 
-bool CalculateColorForDebugMaterial(in InputData inputData, in SurfaceData surfaceData, out half4 debugColor)
+bool CalculateColorForDebugMaterial(in InputData inputData, in SurfaceData surfaceData, inout half4 debugColor)
 {
     // Debug materials...
     switch(_DebugMaterialMode)
     {
+        case DEBUGMATERIALMODE_NONE:
+            return false;
+
         case DEBUGMATERIALMODE_ALBEDO:
             debugColor = half4(surfaceData.albedo, 1);
             return true;
@@ -207,12 +214,12 @@ bool CalculateColorForDebugMaterial(in InputData inputData, in SurfaceData surfa
             return true;
 
         default:
-            debugColor = 0;
-            return false;
+            debugColor = _DebugColorInvalidMode;
+            return true;
     }
 }
 
-bool CalculateColorForDebug(in InputData inputData, in SurfaceData surfaceData, out half4 debugColor)
+bool CalculateColorForDebug(in InputData inputData, in SurfaceData surfaceData, inout half4 debugColor)
 {
     if(CalculateColorForDebugSceneOverride(debugColor))
     {
@@ -232,7 +239,6 @@ bool CalculateColorForDebug(in InputData inputData, in SurfaceData surfaceData, 
     }
     else
     {
-        debugColor = 0;
         return false;
     }
 }

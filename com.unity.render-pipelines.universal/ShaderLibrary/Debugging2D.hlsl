@@ -25,13 +25,12 @@ void SetupDebugDataTexture(inout InputData2D inputData, float3 positionWS, float
     inputData.mipCount = mipCount;
 }
 
-bool CalculateDebugColorMaterialSettings(in SurfaceData2D surfaceData, in InputData2D inputData, out half4 debugColor)
+bool CalculateDebugColorMaterialSettings(in SurfaceData2D surfaceData, in InputData2D inputData, inout half4 debugColor)
 {
     switch(_DebugMaterialMode)
     {
         case DEBUGMATERIALMODE_NONE:
         {
-            debugColor = 0;
             return false;
         }
 
@@ -68,7 +67,7 @@ bool CalculateDebugColorMaterialSettings(in SurfaceData2D surfaceData, in InputD
     }
 }
 
-bool CalculateDebugColorForRenderingSettings(in SurfaceData2D surfaceData, in InputData2D inputData, out half4 debugColor)
+bool CalculateDebugColorForRenderingSettings(in SurfaceData2D surfaceData, in InputData2D inputData, inout half4 debugColor)
 {
     if(CalculateColorForDebugSceneOverride(debugColor))
     {
@@ -78,31 +77,33 @@ bool CalculateDebugColorForRenderingSettings(in SurfaceData2D surfaceData, in In
     {
         switch(_DebugMipInfoMode)
         {
+            case DEBUGMIPINFOMODE_NONE:
+                return false;
+
             case DEBUGMIPINFOMODE_LEVEL:
-            {
                 debugColor = GetMipLevelDebugColor(inputData.positionWS, surfaceData.albedo, inputData.uv, inputData.texelSize);
                 return true;
-            }
 
             case DEBUGMIPINFOMODE_COUNT:
-            {
                 debugColor = GetMipCountDebugColor(inputData.positionWS, surfaceData.albedo, inputData.mipCount);
                 return true;
-            }
 
             default:
-            {
-                debugColor = 0;
-                return false;
-            }
+                debugColor = _DebugColorInvalidMode;
+                return true;
         }
     }
 }
 
-bool CalculateDebugColorLightingSettings(inout SurfaceData2D surfaceData, inout InputData2D inputData, out half4 debugColor)
+bool CalculateDebugColorLightingSettings(inout SurfaceData2D surfaceData, inout InputData2D inputData, inout half4 debugColor)
 {
     switch(_DebugLightingMode)
     {
+        case DEBUGLIGHTINGMODE_NONE:
+        {
+            return false;
+        }
+
         case DEBUGLIGHTINGMODE_SHADOW_CASCADES:
         case DEBUGLIGHTINGMODE_REFLECTIONS:
         case DEBUGLIGHTINGMODE_REFLECTIONS_WITH_SMOOTHNESS:
@@ -115,22 +116,28 @@ bool CalculateDebugColorLightingSettings(inout SurfaceData2D surfaceData, inout 
         case DEBUGLIGHTINGMODE_LIGHT_DETAIL:
         {
             surfaceData.albedo = 1;
-            debugColor = 0;
             return false;
         }
 
         default:
         {
-            debugColor = 0;
-            return false;
+            debugColor = _DebugColorInvalidMode;
+            return true;
         }
     }       // End of switch.
 }
 
-bool CalculateDebugColorValidationSettings(in SurfaceData2D surfaceData, in InputData2D inputData, out half4 debugColor)
+bool CalculateDebugColorValidationSettings(in SurfaceData2D surfaceData, in InputData2D inputData, inout half4 debugColor)
 {
     switch(_DebugValidationMode)
     {
+        case DEBUGVALIDATIONMODE_NONE:
+        case DEBUGVALIDATIONMODE_HIGHLIGHT_NAN_INF_NEGATIVE:
+        case DEBUGVALIDATIONMODE_HIGHLIGHT_OUTSIDE_OF_RANGE:
+        {
+            return false;
+        }
+
         case DEBUGVALIDATIONMODE_VALIDATE_ALBEDO:
         {
             return CalculateValidationAlbedo(surfaceData.albedo, debugColor);
@@ -141,21 +148,15 @@ bool CalculateDebugColorValidationSettings(in SurfaceData2D surfaceData, in Inpu
             return CalculateValidationMipLevel(inputData.mipInfo.w, inputData.uv, inputData.texelSize, surfaceData.albedo, surfaceData.alpha, debugColor);
         }
 
-        case DEBUGVALIDATIONMODE_VALIDATE_METALLIC:
+        default:
         {
             debugColor = _DebugColorInvalidMode;
             return true;
         }
-
-        default:
-        {
-            debugColor = 0;
-            return false;
-        }
     }
 }
 
-bool CanDebugOverrideOutputColor(inout SurfaceData2D surfaceData, inout InputData2D inputData, out half4 debugColor)
+bool CanDebugOverrideOutputColor(inout SurfaceData2D surfaceData, inout InputData2D inputData, inout half4 debugColor)
 {
     if(CalculateDebugColorMaterialSettings(surfaceData, inputData, debugColor))
     {
@@ -175,7 +176,6 @@ bool CanDebugOverrideOutputColor(inout SurfaceData2D surfaceData, inout InputDat
     }
     else
     {
-        debugColor = 0;
         return false;
     }
 }

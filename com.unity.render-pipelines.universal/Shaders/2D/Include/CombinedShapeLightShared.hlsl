@@ -11,7 +11,7 @@ half4 _RendererColor;
 half4 CombinedShapeLightShared(in SurfaceData2D surfaceData, in InputData2D inputData)
 {
     #if defined(_DEBUG_SHADER)
-    half4 debugColor;
+    half4 debugColor = 0;
 
     if(CanDebugOverrideOutputColor(surfaceData, inputData, debugColor))
     {

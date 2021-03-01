@@ -997,7 +997,7 @@ half4 CalculateDebugLightingComplexityColor(in InputData inputData, in SurfaceDa
     return CalculateDebugColorWithNumber(inputData.positionWS, surfaceData.albedo, numLights);
 }
 
-bool CanDebugOverrideOutputColor(inout InputData inputData, inout SurfaceData surfaceData, inout BRDFData brdfData, out half4 debugColor)
+bool CanDebugOverrideOutputColor(inout InputData inputData, inout SurfaceData surfaceData, inout BRDFData brdfData, inout half4 debugColor)
 {
     if(_DebugMaterialMode == DEBUGMATERIALMODE_LIGHTING_COMPLEXITY)
     {
@@ -1032,7 +1032,7 @@ bool CanDebugOverrideOutputColor(inout InputData inputData, inout SurfaceData su
     }
 }
 
-bool CanDebugOverrideOutputColor(inout InputData inputData, inout SurfaceData surfaceData, out half4 debugColor)
+bool CanDebugOverrideOutputColor(inout InputData inputData, inout SurfaceData surfaceData, inout half4 debugColor)
 {
     if(_DebugMaterialMode == DEBUGMATERIALMODE_LIGHTING_COMPLEXITY)
     {
@@ -1041,8 +1041,6 @@ bool CanDebugOverrideOutputColor(inout InputData inputData, inout SurfaceData su
     }
     else
     {
-        debugColor = half4(0, 0, 0, 1);
-
         if(_DebugLightingMode == DEBUGLIGHTINGMODE_SHADOW_CASCADES)
         {
             surfaceData.albedo = CalculateDebugShadowCascadeColor(inputData);
