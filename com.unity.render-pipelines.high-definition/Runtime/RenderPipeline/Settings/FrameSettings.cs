@@ -984,14 +984,16 @@ namespace UnityEngine.Rendering.HighDefinition
                     var attributes = new Dictionary<FrameSettingsField, FrameSettingsFieldAttribute>();
                     var groups = new List<DebuggerGroup>();
 
+                    Dictionary<FrameSettingsField, string> frameSettingsEnumNameMap = FrameSettingsFieldAttribute.GetEnumNameMap();
                     Type type = typeof(FrameSettingsField);
                     var noAttribute = new List<FrameSettingsField>();
-                    foreach (FrameSettingsField value in Enum.GetValues(type))
+                    foreach (FrameSettingsField enumVal in frameSettingsEnumNameMap.Keys)
                     {
-                        attributes[value] = type.GetField(Enum.GetName(type, value)).GetCustomAttribute<FrameSettingsFieldAttribute>();
-                        if (attributes[value] == null)
-                            noAttribute.Add(value);
+                        attributes[enumVal] = type.GetField(frameSettingsEnumNameMap[enumVal]).GetCustomAttribute<FrameSettingsFieldAttribute>();
+                        if (attributes[enumVal] == null)
+                            noAttribute.Add(enumVal);
                     }
+
                     var groupIndexes = attributes.Values.Where(a => a != null).Select(a => a.group).Distinct();
                     foreach (int groupIndex in groupIndexes)
                         groups.Add(new DebuggerGroup(FrameSettingsHistory.foldoutNames[groupIndex], attributes?.Where(pair => pair.Value?.group == groupIndex)?.OrderBy(pair => pair.Value.orderInGroup).Select(kvp => new DebuggerEntry(Enum.GetName(typeof(FrameSettingsField), kvp.Key), m_FrameSettings.bitDatas[(uint)kvp.Key])).ToArray()));
