@@ -193,6 +193,7 @@
   * [Creating a Custom Sky](Creating-a-Custom-Sky.md)
   * [Creating a Custom Post-Process Effect](Custom-Post-Process.md)
   * [Creating a Custom Render Pass](Custom-Pass.md)
+  * [Custom Material Inspector](hdrp-custom-material-inspector.md)
   * [Editing Frame Settings at Runtime](Frame-Settings-API.md)
   * [Render Graph](render-graph.md)
 * [HDRP Glossary](Glossary.md)
