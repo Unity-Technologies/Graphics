@@ -10,6 +10,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Added new setting in "Preferences -> Visual Effects" to control the fallback behavior of camera buffers from MainCamera node when the main camera is not rendered.
 - Sample vertices of a transformed skinned mesh with Position (Skinned Mesh) and Sample Skinned Mesh operator.
 - Placement option (Vertex, Edge, Surface) in Sample Mesh & Skinned Mesh, allows triangle sampling.
+- Provide explicit access to spawnCount in graph
 
 ### Changed
 - Move Assets/Create/Visual Effects/Visual Effect Graph to Assets/Create/VFX/VFX Graph
@@ -43,13 +44,13 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Property Binder : Allow copy/past from a game object to another
 - Deleting a context node and a block while both are selected throws a null ref exception. [Case 315578](https://issuetracker.unity3d.com/product/unity/issues/guid/1315578/)
 - Target GameObject attach button does not allow attaching a valid VFX if the last selection was invalid. [Case 1312178](https://issuetracker.unity3d.com/product/unity/issues/guid/1312178/)
+- Fix unexpected Spawn context execution ordering
 
 ## [11.0.0] - 2020-10-21
 
 ### Added
 - Added new setting to output nodes to exclude from TAA
 - New Sample Point cache & Sample Attribute map operators
-- Provide explicit access to spawnCount in graph
 
 ### Changed
 - Changed the "Edit" button so it becomes "New" when no asset is set on a Visual Effect component, in order to save a new visual effect graph asset.
@@ -65,8 +66,6 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fix [Case 1223747](https://fogbugz.unity3d.com/f/cases/1223747/)
 - Fix [Case 1290493](https://fogbugz.unity3d.com/f/cases/1290493/#BugEvent.1072735759)
 - Incorrect path on Linux while targetting Android, IOS or WebGL [Case 1279750](https://issuetracker.unity3d.com/product/unity/issues/guid/1279750/)
-- Forbid incorrect link between incompatible context [Case 1269756](https://issuetracker.unity3d.com/product/unity/issues/guid/1269756/)
-- Fix unexpected Spawn context execution ordering
 
 
 ## [10.2.0] - 2020-10-19
