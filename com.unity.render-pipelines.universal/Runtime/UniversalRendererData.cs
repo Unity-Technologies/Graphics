@@ -55,7 +55,21 @@ namespace UnityEngine.Rendering.Universal
 
             [Reload("Shaders/Utils/MaterialError.shader")]
             public Shader materialErrorPS;
+
+            [Reload("Shaders/Debug/FullScreenDebug.shader")]
+            public Shader fullScreenDebugPS;
+
+            [Reload("Shaders/Debug/DebugReplacement.shader")]
+            public Shader debugReplacementPS;
         }
+
+        public sealed class TextureResources
+        {
+            [SerializeField, Reload("Textures/numberFont.png")]
+            public Texture2D NumberFont;
+        }
+
+        public TextureResources textures = null;
 
         public PostProcessData postProcessData = null;
 

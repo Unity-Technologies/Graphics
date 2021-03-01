@@ -1,6 +1,5 @@
+
 using UnityEngine.Rendering.Universal.Internal;
-using UnityEngine.Experimental.Rendering;
-using System.Reflection;
 
 namespace UnityEngine.Rendering.Universal
 {
@@ -56,6 +55,7 @@ namespace UnityEngine.Rendering.Universal
         InvokeOnRenderObjectCallbackPass m_OnRenderObjectCallbackPass;
         FinalBlitPass m_FinalBlitPass;
         CapturePass m_CapturePass;
+        DebugPass m_DebugPass;
 #if ENABLE_VR && ENABLE_XR_MODULE
         XROcclusionMeshPass m_XROcclusionMeshPass;
         CopyDepthPass m_XRCopyDepthPass;
@@ -184,10 +184,32 @@ namespace UnityEngine.Rendering.Universal
 
             m_CapturePass = new CapturePass(RenderPassEvent.AfterRendering);
             m_FinalBlitPass = new FinalBlitPass(RenderPassEvent.AfterRendering + 1, m_BlitMaterial);
+            m_DebugPass =  DebugHandler.CreatePass(RenderPassEvent.AfterRendering + 2);
 
 #if UNITY_EDITOR
             m_FinalDepthCopyPass = new CopyDepthPass(RenderPassEvent.AfterRendering + 9, m_CopyDepthMaterial);
 #endif
+
+            // Hook in the debug-render where appropriate...
+            m_RenderOpaqueForwardPass.DebugHandler = DebugHandler;
+            m_FinalBlitPass.DebugHandler = DebugHandler;
+
+            if(m_RenderOpaqueForwardOnlyPass != null)
+            {
+                m_RenderOpaqueForwardOnlyPass.DebugHandler = DebugHandler;
+            }
+            if(m_RenderTransparentForwardPass != null)
+            {
+                m_RenderTransparentForwardPass.DebugHandler = DebugHandler;
+            }
+            if(m_DrawSkyboxPass != null)
+            {
+                m_DrawSkyboxPass.DebugHandler = DebugHandler;
+            }
+            if(m_PostProcessPasses.finalPostProcessPass != null)
+            {
+                m_PostProcessPasses.finalPostProcessPass.DebugHandler = DebugHandler;
+            }
 
             // RenderTexture format depends on camera and pipeline (HDR, non HDR, etc)
             // Samples (MSAA) depend on camera and pipeline
@@ -249,13 +271,18 @@ namespace UnityEngine.Rendering.Universal
         /// <inheritdoc />
         public override void Setup(ScriptableRenderContext context, ref RenderingData renderingData)
         {
+            ref CameraData cameraData = ref renderingData.cameraData;
+            Camera camera = cameraData.camera;
+            RenderTextureDescriptor cameraTargetDescriptor = cameraData.cameraTargetDescriptor;
+
+            if(DebugHandler.IsActiveForCamera(ref cameraData))
+            {
+                DebugHandler.Setup(context);
+            }
+
 #if ADAPTIVE_PERFORMANCE_2_1_0_OR_NEWER
             bool needTransparencyPass = !UniversalRenderPipeline.asset.useAdaptivePerformance || !AdaptivePerformance.AdaptivePerformanceRenderSettings.SkipTransparentObjects;
 #endif
-            Camera camera = renderingData.cameraData.camera;
-            ref CameraData cameraData = ref renderingData.cameraData;
-            RenderTextureDescriptor cameraTargetDescriptor = renderingData.cameraData.cameraTargetDescriptor;
-
             // Special path for depth only offscreen cameras. Only write opaques + transparents.
             bool isOffscreenDepthTexture = cameraData.targetTexture != null && cameraData.targetTexture.format == RenderTextureFormat.Depth;
             if (isOffscreenDepthTexture)
@@ -392,12 +419,31 @@ namespace UnityEngine.Rendering.Universal
 
                 // Doesn't create texture for Overlay cameras as they are already overlaying on top of created textures.
                 if (intermediateRenderTexture)
-                    CreateCameraRenderTarget(context, ref cameraTargetDescriptor, createColorTexture, createDepthTexture);
+                    CreateCameraRenderTarget(context, ref cameraTargetDescriptor);
             }
             else
             {
                 m_ActiveCameraColorAttachment = m_CameraColorAttachment;
                 m_ActiveCameraDepthAttachment = m_CameraDepthAttachment;
+            }
+
+            bool requiresDepthCopyPass = !requiresDepthPrepass
+                                         && renderingData.cameraData.requiresDepthTexture
+                                         && createDepthTexture;
+            bool copyColorPass = renderingData.cameraData.requiresOpaqueTexture || renderPassInputs.requiresColorTexture;
+
+            if(DebugHandler.IsActiveForCamera(ref cameraData) && !DebugHandler.IsLightingActive)
+            {
+                mainLightShadows = false;
+                additionalLightShadows = false;
+
+                if(!isSceneViewCamera)
+                {
+                    requiresDepthPrepass = false;
+                    generateColorGradingLUT = false;
+                    copyColorPass = false;
+                    requiresDepthCopyPass = false;
+                }
             }
 
             // Assign camera targets (color and depth)
@@ -480,16 +526,13 @@ namespace UnityEngine.Rendering.Universal
             else
                 EnqueuePass(m_RenderOpaqueForwardPass);
 
-            Skybox cameraSkybox;
-            cameraData.camera.TryGetComponent<Skybox>(out cameraSkybox);
-            bool isOverlayCamera = cameraData.renderType == CameraRenderType.Overlay;
-            if (camera.clearFlags == CameraClearFlags.Skybox && (RenderSettings.skybox != null || cameraSkybox?.material != null) && !isOverlayCamera)
-                EnqueuePass(m_DrawSkyboxPass);
+            if(camera.clearFlags == CameraClearFlags.Skybox && cameraData.renderType != CameraRenderType.Overlay)
+            {
+                if(RenderSettings.skybox != null || (camera.TryGetComponent(out Skybox cameraSkybox) && cameraSkybox.material != null))
+                    EnqueuePass(m_DrawSkyboxPass);
+            }
 
             // If a depth texture was created we necessarily need to copy it, otherwise we could have render it to a renderbuffer.
-            bool requiresDepthCopyPass = !requiresDepthPrepass
-                && renderingData.cameraData.requiresDepthTexture
-                && createDepthTexture;
             if (requiresDepthCopyPass)
             {
                 m_CopyDepthPass.Setup(m_ActiveCameraDepthAttachment, m_DepthTexture);
@@ -506,7 +549,7 @@ namespace UnityEngine.Rendering.Universal
                 Shader.SetGlobalTexture(m_DepthTexture.id, SystemInfo.usesReversedZBuffer ? Texture2D.blackTexture : Texture2D.whiteTexture);
             }
 
-            if (renderingData.cameraData.requiresOpaqueTexture || renderPassInputs.requiresColorTexture)
+            if (copyColorPass)
             {
                 // TODO: Downsampling method should be store in the renderer instead of in the asset.
                 // We need to migrate this data to renderer. For now, we query the method in the active asset.
@@ -600,6 +643,41 @@ namespace UnityEngine.Rendering.Universal
             {
                 postProcessPass.Setup(cameraTargetDescriptor, m_ActiveCameraColorAttachment, afterPostProcessColor, m_ActiveCameraDepthAttachment, colorGradingLut, false, false);
                 EnqueuePass(postProcessPass);
+            }
+
+            if(DebugHandler.IsActiveForCamera(ref cameraData) &&
+               DebugHandler.TryGetFullscreenDebugMode(out DebugFullScreenMode fullScreenDebugMode))
+            {
+                RenderTargetIdentifier debugBuffer;
+                float screenWidth = camera.pixelWidth;
+                float screenHeight = camera.pixelHeight;
+                float size = Mathf.Min(screenWidth, screenHeight);
+                Rect pixelRect = new Rect();
+
+                switch (fullScreenDebugMode)
+                {
+                    case DebugFullScreenMode.Depth:
+                        debugBuffer = m_DepthTexture.Identifier();
+                        break;
+                    // TODO: Restore this once we have access to the screen-space shadow texture...
+                    // case DebugFullScreenMode.MainLightShadowsOnly:
+                    //     debugBuffer = new RenderTargetIdentifier("_ScreenSpaceShadowmapTexture");
+                    //     break;
+                    case DebugFullScreenMode.AdditionalLightsShadowMap:
+                        debugBuffer = m_AdditionalLightsShadowCasterPass.m_AdditionalLightsShadowmapTexture;
+                        pixelRect = new Rect(screenWidth - size, screenHeight - size, size, size);
+                        break;
+                    case DebugFullScreenMode.MainLightShadowMap:
+                        debugBuffer = m_MainLightShadowCasterPass.m_MainLightShadowmapTexture;
+                        pixelRect = new Rect(screenWidth - size, screenHeight - size, size, size);
+                        break;
+                    default:
+                        debugBuffer = m_OpaqueColor.Identifier();
+                        break;
+                }
+
+                m_DebugPass.Setup(cameraTargetDescriptor, debugBuffer, fullScreenDebugMode, false, pixelRect);
+                EnqueuePass(m_DebugPass);
             }
 
 #if UNITY_EDITOR
@@ -747,12 +825,12 @@ namespace UnityEngine.Rendering.Universal
             return inputSummary;
         }
 
-        void CreateCameraRenderTarget(ScriptableRenderContext context, ref RenderTextureDescriptor descriptor, bool createColor, bool createDepth)
+        void CreateCameraRenderTarget(ScriptableRenderContext context, ref RenderTextureDescriptor descriptor)
         {
             CommandBuffer cmd = CommandBufferPool.Get();
             using (new ProfilingScope(cmd, Profiling.createCameraRenderTarget))
             {
-                if (createColor)
+                if (m_ActiveCameraColorAttachment != RenderTargetHandle.CameraTarget)
                 {
                     bool useDepthRenderBuffer = m_ActiveCameraDepthAttachment == RenderTargetHandle.CameraTarget;
                     var colorDescriptor = descriptor;
@@ -762,7 +840,7 @@ namespace UnityEngine.Rendering.Universal
                     cmd.GetTemporaryRT(m_ActiveCameraColorAttachment.id, colorDescriptor, FilterMode.Bilinear);
                 }
 
-                if (createDepth)
+                if (m_ActiveCameraDepthAttachment != RenderTargetHandle.CameraTarget)
                 {
                     var depthDescriptor = descriptor;
                     depthDescriptor.useMipMap = false;
