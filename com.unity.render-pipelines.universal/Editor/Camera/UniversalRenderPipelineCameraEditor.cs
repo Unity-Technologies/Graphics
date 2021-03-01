@@ -13,7 +13,7 @@ namespace UnityEditor.Rendering.Universal
 {
     [CustomEditorForRenderPipeline(typeof(Camera), typeof(UniversalRenderPipelineAsset))]
     [CanEditMultipleObjects]
-    class URPCameraEditor : CameraEditor
+    class UniversalRenderPipelineCameraEditor : CameraEditor
     {
         internal enum BackgroundType
         {
@@ -130,7 +130,7 @@ namespace UnityEditor.Rendering.Universal
         readonly AnimBool m_ShowOrthoAnim = new AnimBool();
         readonly AnimBool m_ShowTargetEyeAnim = new AnimBool();
 
-        URPSerializedCamera m_SerializedCamera;
+        UniversalRenderPipelineSerializedCamera m_SerializedCamera;
 
         void SetAnimationTarget(AnimBool anim, bool initialize, bool targetValue)
         {
@@ -393,7 +393,7 @@ namespace UnityEditor.Rendering.Universal
             if (additionalCameraData == null)
                 return;
 
-            m_SerializedCamera = new URPSerializedCamera(new SerializedObject(additionalCameraData.ToArray()));
+            m_SerializedCamera = new UniversalRenderPipelineSerializedCamera(new SerializedObject(additionalCameraData.ToArray()));
         }
 
         public new void OnDisable()

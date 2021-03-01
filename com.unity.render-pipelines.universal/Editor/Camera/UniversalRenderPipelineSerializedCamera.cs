@@ -2,7 +2,7 @@ using UnityEngine.Rendering.Universal;
 
 namespace UnityEditor.Rendering.Universal
 {
-    internal class URPSerializedCamera
+    internal class UniversalRenderPipelineSerializedCamera
     {
         public SerializedObject serializedObject { get; }
         public SerializedProperty renderShadows { get; }
@@ -23,7 +23,7 @@ namespace UnityEditor.Rendering.Universal
         public SerializedProperty allowXRRendering { get; }
 #endif
 
-        internal URPSerializedCamera(SerializedObject serializedObject)
+        public UniversalRenderPipelineSerializedCamera(SerializedObject serializedObject)
         {
             this.serializedObject = serializedObject;
 
