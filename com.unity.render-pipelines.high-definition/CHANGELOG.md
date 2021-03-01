@@ -77,6 +77,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed the various history buffers being discarded when the fog was enabled/disabled (case 1316072).
 - Fixed ability to override AlphaToMask FrameSetting while camera in deferred lit shader mode
 - Fixed issue with physically-based DoF computation and transparent materials with depth-writes ON.
+- Fixed issue of accessing default frame setting stored in current HDRPAsset instead fo the default HDRPAsset
 
 ### Changed
 - Changed Window/Render Pipeline/HD Render Pipeline Wizard to Window/Rendering/HDRP Wizard
