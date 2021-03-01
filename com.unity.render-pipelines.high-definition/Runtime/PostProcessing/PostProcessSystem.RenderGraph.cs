@@ -1544,7 +1544,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 float sw = scaleW * p;
                 float sh = scaleH * p;
                 int pw, ph;
-                if (DynamicResolutionHandler.instance.HardwareDynamicResIsEnabled())
+                if (camera.DynResRequest.hardwareEnabled)
                 {
                     pw = Mathf.Max(1, Mathf.CeilToInt(sw * camera.actualWidth));
                     ph = Mathf.Max(1, Mathf.CeilToInt(sh * camera.actualHeight));
@@ -2209,7 +2209,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
         TextureHandle FXAAPass(RenderGraph renderGraph, HDCamera hdCamera, TextureHandle source)
         {
-            if (DynamicResolutionHandler.instance.DynamicResolutionEnabled() &&     // Dynamic resolution is on.
+            if (hdCamera.DynResRequest.enabled &&     // Dynamic resolution is on.
                 hdCamera.antialiasing == HDAdditionalCameraData.AntialiasingMode.FastApproximateAntialiasing &&
                 m_AntialiasingFS)
             {
@@ -2241,10 +2241,8 @@ namespace UnityEngine.Rendering.HighDefinition
 
         TextureHandle ContrastAdaptiveSharpeningPass(RenderGraph renderGraph, HDCamera hdCamera, TextureHandle source)
         {
-            var dynResHandler = DynamicResolutionHandler.instance;
-
-            if (dynResHandler.DynamicResolutionEnabled() &&
-                dynResHandler.filter == DynamicResUpscaleFilter.ContrastAdaptiveSharpen)
+            if (hdCamera.DynResRequest.enabled &&
+                hdCamera.DynResRequest.filter == DynamicResUpscaleFilter.ContrastAdaptiveSharpen)
             {
                 using (var builder = renderGraph.AddRenderPass<CASData>("Contrast Adaptive Sharpen", out var passData, ProfilingSampler.Get(HDProfileId.ContrastAdaptiveSharpen)))
                 {
@@ -2286,26 +2284,6 @@ namespace UnityEngine.Rendering.HighDefinition
 
         #region Final Pass
 
-        struct FinalPassParameters
-        {
-            public bool postProcessEnabled;
-            public Material finalPassMaterial;
-            public HDCamera hdCamera;
-            public BlueNoise blueNoise;
-            public bool flipY;
-            public System.Random random;
-            public bool useFXAA;
-            public bool enableAlpha;
-            public bool keepAlpha;
-
-            public bool filmGrainEnabled;
-            public Texture filmGrainTexture;
-            public float filmGrainIntensity;
-            public float filmGrainResponse;
-
-            public bool ditheringEnabled;
-        }
-
         class FinalPassData
         {
             public bool postProcessEnabled;
@@ -2317,6 +2295,8 @@ namespace UnityEngine.Rendering.HighDefinition
             public bool useFXAA;
             public bool enableAlpha;
             public bool keepAlpha;
+            public bool dynamicResIsOn;
+            public DynamicResUpscaleFilter dynamicResFilter;
 
             public bool filmGrainEnabled;
             public Texture filmGrainTexture;
@@ -2344,9 +2324,9 @@ namespace UnityEngine.Rendering.HighDefinition
                 passData.random = m_Random;
                 passData.enableAlpha = m_EnableAlpha;
                 passData.keepAlpha = m_KeepAlpha;
-
-                bool dynamicResIsOn = hdCamera.isMainGameView && DynamicResolutionHandler.instance.DynamicResolutionEnabled();
-                passData.useFXAA = hdCamera.antialiasing == HDAdditionalCameraData.AntialiasingMode.FastApproximateAntialiasing && !dynamicResIsOn && m_AntialiasingFS;
+                passData.dynamicResIsOn = hdCamera.canDoDynamicResolution && hdCamera.DynResRequest.enabled;
+                passData.dynamicResFilter = hdCamera.DynResRequest.filter;
+                passData.useFXAA = hdCamera.antialiasing == HDAdditionalCameraData.AntialiasingMode.FastApproximateAntialiasing && !passData.dynamicResIsOn && m_AntialiasingFS;
 
                 // Film Grain
                 passData.filmGrainEnabled = m_FilmGrain.IsActive() && m_FilmGrainFS;
@@ -2375,10 +2355,9 @@ namespace UnityEngine.Rendering.HighDefinition
                         finalPassMaterial.shaderKeywords = null;
                         finalPassMaterial.SetTexture(HDShaderIDs._InputTexture, data.source);
 
-                        var dynResHandler = DynamicResolutionHandler.instance;
-                        if (data.hdCamera.isMainGameView && dynResHandler.DynamicResolutionEnabled())
+                        if (data.dynamicResIsOn)
                         {
-                            switch (dynResHandler.filter)
+                            switch (data.dynamicResFilter)
                             {
                                 case DynamicResUpscaleFilter.Bilinear:
                                     finalPassMaterial.EnableKeyword("BILINEAR");
