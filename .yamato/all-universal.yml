@@ -42,6 +42,8 @@ PR_Universal_2020.2:
          rerun: on-new-revision
       -  path: .yamato/all-shadergraph.yml#PR_ShaderGraph_2020.2
          rerun: on-new-revision
+      -  path: .yamato/all-urpupdate.yml#PR_URPUpdate_2020.2
+         rerun: on-new-revision
     triggers:
         expression: pull_request.target eq "10.x.x/release" AND NOT pull_request.draft AND pull_request.changes.any match ["com.unity.render-pipelines.universal/**/*", "TestProjects/UniversalGraphicsTest/**/*"] AND NOT pull_request.push.changes.all match ["*.md", "**/*.md", "doc/**/*", "**/Documentation*/**/*"]
     variables:
@@ -103,6 +105,8 @@ PR_Universal_CUSTOM-REVISION:
       -  path: .yamato/all-vfx_urp.yml#PR_VFX_URP_CUSTOM-REVISION
          rerun: always
       -  path: .yamato/all-shadergraph.yml#PR_ShaderGraph_CUSTOM-REVISION
+         rerun: always
+      -  path: .yamato/all-urpupdate.yml#PR_URPUpdate_CUSTOM-REVISION
          rerun: always
     variables:
         CUSTOM_REVISION: custom_revision_not_set
