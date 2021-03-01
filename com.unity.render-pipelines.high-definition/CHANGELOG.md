@@ -71,6 +71,9 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed issue with velocity rejection in post-DoF TAA. Fixing this reduces ghosting (case 1304381).
 - Fixed missing option to use POM on emissive for tessellated shaders.
 - Fixed an issue in the planar reflection probe convolution.
+- Fixed an issue with debug overriding emissive material color for deferred path (case 1313123).
+- Fixed a limit case when the camera is exactly at the lower cloud level (case 1316988).
+- Fixed the various history buffers being discarded when the fog was enabled/disabled (case 1316072).
 
 ### Changed
 - Changed Window/Render Pipeline/HD Render Pipeline Wizard to Window/Rendering/HDRP Wizard
@@ -110,6 +113,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Changed resolution (to match the render buffer) of the sky used for camera misses in Path Tracing. (case 1304114).
 - Tidy up of platform abstraction code for shader optimization.
 - Display a warning help box when decal atlas is out of size.
+- Moved the HDRP render graph debug panel content to the Rendering debug panel.
 - Changed Path Tracing's maximum intensity from clamped (0 to 100) to positive value (case 1310514).
 
 ## [11.0.0] - 2020-10-21
