@@ -115,6 +115,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Display a warning help box when decal atlas is out of size.
 - Moved the HDRP render graph debug panel content to the Rendering debug panel.
 - Changed Path Tracing's maximum intensity from clamped (0 to 100) to positive value (case 1310514).
+- Avoid unnecessary RenderGraphBuilder.ReadTexture in the "Set Final Target" pass
 
 ## [11.0.0] - 2020-10-21
 
