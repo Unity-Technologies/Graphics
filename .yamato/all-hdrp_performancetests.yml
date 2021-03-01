@@ -10,7 +10,7 @@
 PR_HDRP_PerformanceTests_trunk:
     name: HDRP_PerformanceTests PR Job - trunk
     dependencies:
-      -  path: .yamato/hdrp_performancetests-win-dx11.yml#HDRP_PerformanceTests_Win_DX11_performance_memory_il2cpp_Linear_trunk
+      -  path: .yamato/hdrp_performancetests-win-dx11.yml#HDRP_PerformanceTests_Win_DX11_performance_memory_cache_il2cpp_Linear_trunk
          rerun: on-new-revision
     variables:
         UTR_VERSION: "current"
@@ -28,7 +28,7 @@ Nightly_HDRP_PerformanceTests_trunk:
 PR_HDRP_PerformanceTests_CUSTOM-REVISION:
     name: HDRP_PerformanceTests PR Job - CUSTOM-REVISION
     dependencies:
-      -  path: .yamato/hdrp_performancetests-win-dx11.yml#HDRP_PerformanceTests_Win_DX11_performance_memory_il2cpp_Linear_CUSTOM-REVISION
+      -  path: .yamato/hdrp_performancetests-win-dx11.yml#HDRP_PerformanceTests_Win_DX11_performance_memory_cache_il2cpp_Linear_CUSTOM-REVISION
          rerun: always
     variables:
         CUSTOM_REVISION: custom_revision_not_set

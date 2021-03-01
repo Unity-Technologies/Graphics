@@ -139,7 +139,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
         static void SetExposureTextureToEmpty(RTHandle exposureTexture)
         {
-            var tex = new Texture2D(1, 1, TextureFormat.RGHalf, false, true);
+            var tex = new Texture2D(1, 1, GraphicsFormat.R16G16_SFloat, TextureCreationFlags.None);
             tex.SetPixel(0, 0, new Color(1f, ColorUtils.ConvertExposureToEV100(1f), 0f, 0f));
             tex.Apply();
             Graphics.Blit(tex, exposureTexture);
@@ -859,7 +859,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
             if (m_ExposureCurveTexture == null)
             {
-                m_ExposureCurveTexture = new Texture2D(k_ExposureCurvePrecision, 1, TextureFormat.RGBAHalf, false, true)
+                m_ExposureCurveTexture = new Texture2D(k_ExposureCurvePrecision, 1, GraphicsFormat.R16G16B16A16_SFloat, TextureCreationFlags.None)
                 {
                     name = "Exposure Curve",
                     filterMode = FilterMode.Bilinear,
@@ -2601,7 +2601,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 float sw = scaleW * p;
                 float sh = scaleH * p;
                 int pw, ph;
-                if (DynamicResolutionHandler.instance.HardwareDynamicResIsEnabled())
+                if (camera.DynResRequest.hardwareEnabled)
                 {
                     pw = Mathf.Max(1, Mathf.CeilToInt(sw * camera.actualWidth));
                     ph = Mathf.Max(1, Mathf.CeilToInt(sh * camera.actualHeight));
@@ -2786,7 +2786,7 @@ namespace UnityEngine.Rendering.HighDefinition
             {
                 if (m_InternalSpectralLut == null)
                 {
-                    m_InternalSpectralLut = new Texture2D(3, 1, TextureFormat.RGB24, false)
+                    m_InternalSpectralLut = new Texture2D(3, 1, GraphicsFormat.R8G8B8A8_SRGB, TextureCreationFlags.None)
                     {
                         name = "Chromatic Aberration Spectral LUT",
                         filterMode = FilterMode.Bilinear,
@@ -2797,9 +2797,9 @@ namespace UnityEngine.Rendering.HighDefinition
 
                     m_InternalSpectralLut.SetPixels(new[]
                     {
-                        new Color(1f, 0f, 0f),
-                        new Color(0f, 1f, 0f),
-                        new Color(0f, 0f, 1f)
+                        new Color(1f, 0f, 0f, 1f),
+                        new Color(0f, 1f, 0f, 1f),
+                        new Color(0f, 0f, 1f, 1f)
                     });
 
                     m_InternalSpectralLut.Apply();
@@ -3248,6 +3248,10 @@ namespace UnityEngine.Rendering.HighDefinition
             public int initKernel;
             public int mainKernel;
             public int viewCount;
+            public int inputWidth;
+            public int inputHeight;
+            public int outputWidth;
+            public int outputHeight;
         }
 
         CASParameters PrepareContrastAdaptiveSharpeningParameters(HDCamera camera)
@@ -3259,6 +3263,11 @@ namespace UnityEngine.Rendering.HighDefinition
             parameters.mainKernel = parameters.casCS.FindKernel("KMain");
 
             parameters.viewCount = camera.viewCount;
+
+            parameters.inputWidth = camera.actualWidth;
+            parameters.inputHeight = camera.actualHeight;
+            parameters.outputWidth = Mathf.RoundToInt(camera.finalViewport.width);
+            parameters.outputHeight = Mathf.RoundToInt(camera.finalViewport.height);
 
             return parameters;
         }
@@ -3272,17 +3281,17 @@ namespace UnityEngine.Rendering.HighDefinition
             {
                 cmd.SetComputeFloatParam(cs, HDShaderIDs._Sharpness, 1);
                 cmd.SetComputeTextureParam(cs, kMain, HDShaderIDs._InputTexture, source);
-                cmd.SetComputeVectorParam(cs, HDShaderIDs._InputTextureDimensions, new Vector4(source.rt.width, source.rt.height));
+                cmd.SetComputeVectorParam(cs, HDShaderIDs._InputTextureDimensions, new Vector4(parameters.inputWidth, parameters.inputHeight));
                 cmd.SetComputeTextureParam(cs, kMain, HDShaderIDs._OutputTexture, destination);
-                cmd.SetComputeVectorParam(cs, HDShaderIDs._OutputTextureDimensions, new Vector4(destination.rt.width, destination.rt.height));
+                cmd.SetComputeVectorParam(cs, HDShaderIDs._OutputTextureDimensions, new Vector4(parameters.outputWidth, parameters.outputHeight));
 
                 cmd.SetComputeBufferParam(cs, kInit, "CasParameters", casParametersBuffer);
                 cmd.SetComputeBufferParam(cs, kMain, "CasParameters", casParametersBuffer);
 
                 cmd.DispatchCompute(cs, kInit, 1, 1, 1);
 
-                int dispatchX = (int)System.Math.Ceiling(destination.rt.width / 16.0f);
-                int dispatchY = (int)System.Math.Ceiling(destination.rt.height / 16.0f);
+                int dispatchX = HDUtils.DivRoundUp(parameters.outputWidth, 16);
+                int dispatchY = HDUtils.DivRoundUp(parameters.outputHeight, 16);
 
                 cmd.DispatchCompute(cs, kMain, dispatchX, dispatchY, parameters.viewCount);
             }
@@ -3303,6 +3312,8 @@ namespace UnityEngine.Rendering.HighDefinition
             public bool             useFXAA;
             public bool             enableAlpha;
             public bool             keepAlpha;
+            public bool             dynamicResIsOn;
+            public DynamicResUpscaleFilter dynamicResFilter;
 
             public bool             filmGrainEnabled;
             public Texture          filmGrainTexture;
@@ -3326,8 +3337,9 @@ namespace UnityEngine.Rendering.HighDefinition
             parameters.enableAlpha = m_EnableAlpha;
             parameters.keepAlpha = m_KeepAlpha;
 
-            var dynResHandler = DynamicResolutionHandler.instance;
-            bool dynamicResIsOn = hdCamera.isMainGameView && dynResHandler.DynamicResolutionEnabled();
+            bool dynamicResIsOn = hdCamera.canDoDynamicResolution && hdCamera.DynResRequest.enabled;
+            parameters.dynamicResIsOn = dynamicResIsOn;
+            parameters.dynamicResFilter = hdCamera.DynResRequest.filter;
             parameters.useFXAA = hdCamera.antialiasing == AntialiasingMode.FastApproximateAntialiasing && !dynamicResIsOn && m_AntialiasingFS;
 
             // Film Grain
@@ -3362,12 +3374,9 @@ namespace UnityEngine.Rendering.HighDefinition
             finalPassMaterial.shaderKeywords = null;
             finalPassMaterial.SetTexture(HDShaderIDs._InputTexture, source);
 
-            var dynResHandler = DynamicResolutionHandler.instance;
-            bool dynamicResIsOn = hdCamera.isMainGameView && dynResHandler.DynamicResolutionEnabled();
-
-            if (dynamicResIsOn)
+            if (parameters.dynamicResIsOn)
             {
-                switch (dynResHandler.filter)
+                switch (parameters.dynamicResFilter)
                 {
                     case DynamicResUpscaleFilter.Bilinear:
                         finalPassMaterial.EnableKeyword("BILINEAR");
@@ -3445,6 +3454,9 @@ namespace UnityEngine.Rendering.HighDefinition
                 : new Vector4(1.0f,  1.0f, 0.0f, 0.0f)
             );
 
+            finalPassMaterial.SetVector(HDShaderIDs._ViewPortSize,
+                new Vector4(hdCamera.finalViewport.width, hdCamera.finalViewport.height, 1.0f / hdCamera.finalViewport.width, 1.0f / hdCamera.finalViewport.height));
+
             // Blit to backbuffer
             Rect backBufferRect = hdCamera.finalViewport;
 
@@ -3452,12 +3464,6 @@ namespace UnityEngine.Rendering.HighDefinition
             // Final viewport is handled in the final blit in this case
             if (!HDUtils.PostProcessIsFinalPass(hdCamera))
             {
-                if (dynResHandler.HardwareDynamicResIsEnabled())
-                {
-                    var scaledSize = dynResHandler.GetLastScaledSize();
-                    backBufferRect.width = scaledSize.x;
-                    backBufferRect.height = scaledSize.y;
-                }
                 backBufferRect.x = backBufferRect.y = 0;
             }
 

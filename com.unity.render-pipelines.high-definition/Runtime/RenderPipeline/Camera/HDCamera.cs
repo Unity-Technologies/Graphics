@@ -133,6 +133,10 @@ namespace UnityEngine.Rendering.HighDefinition
             volumetricHistoryIsValid = false;
             volumetricValidFrames = 0;
             colorPyramidHistoryIsValid = false;
+
+            // Reset the volumetric cloud offset animation data
+            volumetricCloudsAnimationData.lastTime = -1.0f;
+            volumetricCloudsAnimationData.cloudOffset = new Vector2(0.0f, 0.0f);
         }
 
         /// <summary>
@@ -186,6 +190,7 @@ namespace UnityEngine.Rendering.HighDefinition
             GlobalIllumination0,
             GlobalIllumination1,
             RayTracedReflections,
+            VolumetricClouds,
             Count
         }
 
@@ -197,6 +202,15 @@ namespace UnityEngine.Rendering.HighDefinition
             public int frameCount;
             public bool fullResolution;
             public bool rayTraced;
+        }
+
+        /// <summary>
+        // Struct that lists the data required to perform the volumetric clouds animation
+        /// </summary>
+        internal struct VolumetricCloudsAnimationData
+        {
+            public float lastTime;
+            public Vector2 cloudOffset;
         }
 
         internal Vector4[]              frustumPlaneEquations;
@@ -228,6 +242,9 @@ namespace UnityEngine.Rendering.HighDefinition
         internal ShadowHistoryUsage[]   shadowHistoryUsage = null;
         // This property allows us to track for the various history accumulation based effects, the last registered validity frame ubdex of each effect as well as the resolution at which it was built.
         internal HistoryEffectValidity[] historyEffectUsage = null;
+
+        // This property allows us to track the volumetric cloud animation data
+        internal VolumetricCloudsAnimationData volumetricCloudsAnimationData;
 
         internal SkyUpdateContext       m_LightingOverrideSky = new SkyUpdateContext();
 
@@ -268,6 +285,9 @@ namespace UnityEngine.Rendering.HighDefinition
         internal bool isFirstFrame { get; private set; }
 
         internal bool isMainGameView { get { return camera.cameraType == CameraType.Game && camera.targetTexture == null; } }
+
+        internal bool canDoDynamicResolution { get { return camera.cameraType == CameraType.Game; } }
+
 
         // Helper property to inform how many views are rendered simultaneously
         internal int viewCount { get => Math.Max(1, xr.viewCount); }
@@ -398,6 +418,28 @@ namespace UnityEngine.Rendering.HighDefinition
         internal uint GetCameraFrameCount()
         {
             return cameraFrameCount;
+        }
+
+        internal struct DynamicResolutionRequest
+        {
+            public bool enabled;
+            public bool cameraRequested;
+            public bool hardwareEnabled;
+            public DynamicResUpscaleFilter filter;
+        }
+
+        internal DynamicResolutionRequest DynResRequest { set; get; }
+
+        internal void RequestDynamicResolution(bool cameraRequestedDynamicRes, DynamicResolutionHandler dynResHandler)
+        {
+            //cache the state of the drs handler in the camera, it will be used by post processes later.
+            DynResRequest = new DynamicResolutionRequest()
+            {
+                enabled = dynResHandler.DynamicResolutionEnabled(),
+                cameraRequested = cameraRequestedDynamicRes,
+                hardwareEnabled = dynResHandler.HardwareDynamicResIsEnabled(),
+                filter = dynResHandler.filter
+            };
         }
 
         internal ProfilingSampler profilingSampler => m_AdditionalCameraData?.profilingSampler ?? ProfilingSampler.Get(HDProfileId.HDRenderPipelineRenderCamera);
@@ -572,7 +614,7 @@ namespace UnityEngine.Rendering.HighDefinition
             DynamicResolutionHandler.instance.finalViewport = new Vector2Int((int)finalViewport.width, (int)finalViewport.height);
 
             Vector2Int nonScaledViewport = new Vector2Int(actualWidth, actualHeight);
-            if (isMainGameView)
+            if (canDoDynamicResolution)
             {
                 Vector2Int scaledSize = DynamicResolutionHandler.instance.GetScaledSize(new Vector2Int(actualWidth, actualHeight));
                 actualWidth = scaledSize.x;
@@ -704,6 +746,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 && camera.cameraType == CameraType.Game;
 
             cb._ViewMatrix = mainViewConstants.viewMatrix;
+            cb._CameraViewMatrix = mainViewConstants.viewMatrix;
             cb._InvViewMatrix = mainViewConstants.invViewMatrix;
             cb._ProjMatrix = mainViewConstants.projMatrix;
             cb._InvProjMatrix = mainViewConstants.invProjMatrix;
@@ -783,7 +826,7 @@ namespace UnityEngine.Rendering.HighDefinition
             }
         }
 
-        internal void AllocateAmbientOcclusionHistoryBuffer(float scaleFactor)
+        internal bool AllocateAmbientOcclusionHistoryBuffer(float scaleFactor)
         {
             if (scaleFactor != m_AmbientOcclusionResolutionScale || GetCurrentFrameRT((int)HDCameraFrameHistoryType.AmbientOcclusion) == null)
             {
@@ -793,7 +836,10 @@ namespace UnityEngine.Rendering.HighDefinition
                 AllocHistoryFrameRT((int)HDCameraFrameHistoryType.AmbientOcclusion, aoAlloc.Allocator, 2);
 
                 m_AmbientOcclusionResolutionScale = scaleFactor;
+                return true;
             }
+
+            return false;
         }
 
         internal void AllocateScreenSpaceAccumulationHistoryBuffer(float scaleFactor)

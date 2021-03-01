@@ -345,7 +345,7 @@ namespace UnityEngine.Rendering.HighDefinition
         {
             if (m_BlackCubemapArray == null)
             {
-                m_BlackCubemapArray = new CubemapArray(1, m_IBLFilterArray.Length, TextureFormat.RGBA32, false)
+                m_BlackCubemapArray = new CubemapArray(1, m_IBLFilterArray.Length, GraphicsFormat.R8G8B8A8_SRGB, TextureCreationFlags.None)
                 {
                     hideFlags = HideFlags.HideAndDontSave,
                     wrapMode = TextureWrapMode.Repeat,
@@ -616,6 +616,11 @@ namespace UnityEngine.Rendering.HighDefinition
 
             if (context.renderingContext == null)
                 context.renderingContext = new SkyRenderingContext(m_Resolution, m_IBLFilterArray.Length, supportConvolution, previousAmbientProbe, name);
+
+            // If we detected a big difference with previous settings, then carrying over the previous ambient probe is probably going to lead to unexpected result.
+            // Instead we at least fallback to a neutral one until async readback has finished.
+            if (skyContext.settingsHadBigDifferenceWithPrev)
+                context.renderingContext.ClearAmbientProbe();
 
             skyContext.cachedSkyRenderingContextId = slot;
         }
@@ -1099,7 +1104,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
             int resolution = skyCubemap.width;
 
-            var tempRT = new RenderTexture(resolution * 6, resolution, 0, RenderTextureFormat.ARGBHalf, RenderTextureReadWrite.Linear)
+            var tempRT = new RenderTexture(resolution * 6, resolution, 0, GraphicsFormat.R16G16B16A16_SFloat)
             {
                 dimension = TextureDimension.Tex2D,
                 useMipMap = false,
@@ -1108,8 +1113,8 @@ namespace UnityEngine.Rendering.HighDefinition
             };
             tempRT.Create();
 
-            var temp = new Texture2D(resolution * 6, resolution, TextureFormat.RGBAFloat, false);
-            var result = new Texture2D(resolution * 6, resolution, TextureFormat.RGBAFloat, false);
+            var temp = new Texture2D(resolution * 6, resolution, GraphicsFormat.R32G32B32A32_SFloat, TextureCreationFlags.None);
+            var result = new Texture2D(resolution * 6, resolution, GraphicsFormat.R32G32B32A32_SFloat, TextureCreationFlags.None);
 
             // Note: We need to invert in Y the cubemap faces because the current sky cubemap is inverted (because it's a RT)
             // So to invert it again so that it's a proper cubemap image we need to do it in several steps because ReadPixels does not have scale parameters:

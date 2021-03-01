@@ -11,7 +11,7 @@ namespace UnityEditor.ShaderGraph.Internal
                 // no declaration from ShaderGraph side -- declared by SRP internal include files
             }
 
-            internal override string GetPropertyAsArgumentString()
+            internal override string GetPropertyAsArgumentString(string precisionString)
             {
                 return String.Empty;
             }

@@ -21,9 +21,9 @@ namespace UnityEditor.ShaderGraph.Internal
         internal override bool isExposable => true;
         internal override bool isRenamable => true;
 
-        internal override string GetPropertyAsArgumentString()
+        internal override string GetPropertyAsArgumentString(string precisionString)
         {
-            return $"{concreteShaderValueType.ToShaderString(concretePrecision.ToShaderString())} {referenceName}";
+            return $"{concreteShaderValueType.ToShaderString(precisionString)} {referenceName}";
         }
 
         internal override void ForeachHLSLProperty(Action<HLSLProperty> action)

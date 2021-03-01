@@ -12,7 +12,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: da692e001514ec24dbc4cca1949ff7e8, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  version: 11
+  version: 12
 --- !u!21 &2100000
 Material:
   serializedVersion: 6
@@ -22,8 +22,7 @@ Material:
   m_PrefabAsset: {fileID: 0}
   m_Name: SG_DistortionVectorMapNoDepthTest
   m_Shader: {fileID: 4800000, guid: 91c8b35cf25ced04da970874cfa4977f, type: 3}
-  m_ShaderKeywords: _BLENDMODE_PRESERVE_SPECULAR_LIGHTING _DISABLE_DECALS _DISABLE_SSR_TRANSPARENT
-    _SURFACE_TYPE_TRANSPARENT
+  m_ShaderKeywords: _DISABLE_DECALS _DISABLE_SSR_TRANSPARENT _SURFACE_TYPE_TRANSPARENT
   m_LightmapFlags: 4
   m_EnableInstancingVariants: 0
   m_DoubleSidedGI: 0
@@ -37,6 +36,7 @@ Material:
   - TransparentDepthPrepass
   - TransparentDepthPostpass
   - RayTracingPrepass
+  - ForwardEmissiveForDeferred
   m_SavedProperties:
     serializedVersion: 3
     m_TexEnvs:
@@ -56,6 +56,7 @@ Material:
         m_Texture: {fileID: 0}
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
+    m_Ints: []
     m_Floats:
     - Vector1_2D036B32: 0.5
     - Vector1_6B0C14DF: 200
@@ -75,6 +76,7 @@ Material:
     - _DstBlend: 10
     - _EnableBlendModePreserveSpecularLighting: 1
     - _EnableFogOnTransparent: 0
+    - _ForceForwardEmissive: 0
     - _OpaqueCullMode: 2
     - _RayTracing: 0
     - _ReceivesSSR: 1
