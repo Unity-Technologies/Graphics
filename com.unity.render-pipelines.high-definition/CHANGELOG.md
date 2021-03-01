@@ -75,6 +75,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed an issue with debug overriding emissive material color for deferred path (case 1313123).
 - Fixed a limit case when the camera is exactly at the lower cloud level (case 1316988).
 - Fixed the various history buffers being discarded when the fog was enabled/disabled (case 1316072).
+- Fixed resize IES when already baked in the Atlas 1299233
 - Fixed ability to override AlphaToMask FrameSetting while camera in deferred lit shader mode
 - Fixed issue with physically-based DoF computation and transparent materials with depth-writes ON.
 - Fixed issue of accessing default frame setting stored in current HDRPAsset instead fo the default HDRPAsset
@@ -119,6 +120,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Tidy up of platform abstraction code for shader optimization.
 - Display a warning help box when decal atlas is out of size.
 - Moved the HDRP render graph debug panel content to the Rendering debug panel.
+- Changed Path Tracing's maximum intensity from clamped (0 to 100) to positive value (case 1310514).
 
 ## [11.0.0] - 2020-10-21
 
