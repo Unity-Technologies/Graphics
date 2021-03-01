@@ -2186,6 +2186,11 @@ namespace UnityEngine.Rendering.HighDefinition
             if (parameters.lensFlares.Data.Count == 0)
                 return;
 
+            Camera cam = hdCam.camera;
+            Vector2 screenSize = new Vector2((float)hdCam.actualWidth, (float)hdCam.actualHeight);
+            float screenRatio = screenSize.x / screenSize.y;
+            Vector2 vScreenRatio = new Vector2(screenRatio, 1.0f);
+
             int flareIdx = 0;
             CoreUtils.SetRenderTarget(cmd, parameters.occlusionTexture);
             cmd.ClearRenderTarget(false, true, Color.black);
@@ -2204,8 +2209,6 @@ namespace UnityEngine.Rendering.HighDefinition
                     data.elements.Length == 0)
                     continue;
 
-                Camera cam = hdCam.camera;
-
                 Vector3 positionWS = comp.transform.position;
                 Vector3 viewportPos = cam.WorldToViewportPoint(positionWS);
 
@@ -2221,8 +2224,6 @@ namespace UnityEngine.Rendering.HighDefinition
 
                 Vector2 screenPos = new Vector2(2.0f * viewportPos.x - 1.0f, 1.0f - 2.0f * viewportPos.y);
 
-                float screenRatio = (float)hdCam.actualWidth / (float)hdCam.actualHeight;
-
                 Vector2 occlusionRadiusEdgeScreenPos0 = (Vector2)cam.WorldToViewportPoint(positionWS);
                 Vector2 occlusionRadiusEdgeScreenPos1 = (Vector2)cam.WorldToViewportPoint(positionWS + cam.transform.up * comp.occlusionRadius);
                 float occlusionRadius = (occlusionRadiusEdgeScreenPos1 - occlusionRadiusEdgeScreenPos0).magnitude;
@@ -2230,6 +2231,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 Vector3 dir = (cam.transform.position - comp.transform.position).normalized;
                 Vector3 screenPosZ = cam.WorldToViewportPoint(positionWS + dir * comp.occlusionOffset);
                 Vector4 flareData1 = new Vector4(screenPos.x, screenPos.y, screenPosZ.z, occlusionRadius);
+
                 cmd.SetGlobalVector(HDShaderIDs._FlareData1, flareData1);
 
                 Vector2 radPos = new Vector2(screenPos.x, screenPos.y);
@@ -2270,10 +2272,9 @@ namespace UnityEngine.Rendering.HighDefinition
                     data.elements.Length == 0)
                     continue;
 
-                Camera cam = hdCam.camera;
-
                 Vector3 positionWS = comp.transform.position;
                 Vector3 viewportPos = cam.WorldToViewportPoint(positionWS);
+                Vector3 positionScreen = cam.WorldToScreenPoint(positionWS);
 
                 if (viewportPos.z < 0.0f)
                     continue;
@@ -2414,8 +2415,16 @@ namespace UnityEngine.Rendering.HighDefinition
                         continue;
 
                     Vector2 screenPos = new Vector2(2.0f * viewportPos.x - 1.0f, 1.0f - 2.0f * viewportPos.y);
+                    Vector2 translationScale = new Vector2(element.translationScale.x, element.translationScale.y);
 
-                    float screenRatio = (float)hdCam.actualWidth / (float)hdCam.actualHeight;
+                    Vector2 side;
+                    {
+                        Vector3 rayOffset = new Vector3(positionScreen.x * 2.0f - (float)cam.pixelWidth, positionScreen.y * 2.0f - (float)cam.pixelHeight, 0.0f);
+                        rayOffset.Normalize();
+                        side = Vector3.Cross(rayOffset, new Vector3(0f, 0f, 1f));
+                        side.Normalize();
+                        side.Scale(new Vector2(vScreenRatio.y, vScreenRatio.x));
+                    }
 
                     Vector2 occlusionRadiusEdgeScreenPos0 = (Vector2)cam.WorldToViewportPoint(positionWS);
                     Vector2 occlusionRadiusEdgeScreenPos1 = (Vector2)cam.WorldToViewportPoint(positionWS + cam.transform.up * comp.occlusionRadius);
@@ -2451,6 +2460,7 @@ namespace UnityEngine.Rendering.HighDefinition
                         float currentIntensity = comp.intensity * element.localIntensity * radialsScaleRadius * distanceAttenuation;
 
                         float position = 2.0f * element.position;
+                        Vector2 positionOffset = element.positionOffset;
                         if (element.distribution == SRPLensFlareDistribution.Uniform)
                         {
                             position += ((float)elemIdx) * dLength;
@@ -2471,6 +2481,10 @@ namespace UnityEngine.Rendering.HighDefinition
 
                             Color randCol = element.colorGradient.Evaluate(Random.Range(0.0f, 1.0f));
                             tint.Scale(new Vector4(randCol.r, randCol.g, randCol.b, randCol.a));
+
+                            //Vector2 off = Random.Range(-1.0f, 1.0f) * side;
+                            //positionOffset += (element.positionVariation.y * Random.Range(-1.0f, 1.0f) )* (new Vector2(side.x, 1.0f - side.y));
+                            positionOffset += (element.positionVariation.y * Random.Range(-1.0f, 1.0f)) * (new Vector2(side.x, side.y));
 
                             rotation += Random.Range(-Mathf.PI, Mathf.PI) * element.rotationVariation;
                         }
@@ -2528,7 +2542,7 @@ namespace UnityEngine.Rendering.HighDefinition
                         uint occlusionSampleCount = !comp.useOcclusion ? 0u : comp.sampleCount;
                         Vector4 flareData2 = new Vector4(occlusionSampleCount, element.angularOffset * Mathf.Deg2Rad, comp.allowOffScreen ? 1.0f : -1.0f, flareIdx);
                         cmd.SetGlobalVector(HDShaderIDs._FlareData2, flareData2);
-                        cmd.SetGlobalVector(HDShaderIDs._FlareData3, new Vector4(element.translationScale.x, element.translationScale.y, element.positionOffset.x, element.positionOffset.y));
+                        cmd.SetGlobalVector(HDShaderIDs._FlareData3, new Vector4(element.translationScale.x, element.translationScale.y, positionOffset.x, positionOffset.y));
                         cmd.DrawProcedural(Matrix4x4.identity, usedMaterial, 0, MeshTopology.Quads, 6, 1, null);
                     }
                 }
