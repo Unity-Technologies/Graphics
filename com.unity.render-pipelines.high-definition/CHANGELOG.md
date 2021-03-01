@@ -59,9 +59,9 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed nullref when adding a volume component in a Volume profile asset (case 1317156).
 - Fixed decal normal for double sided materials (case 1312065).
 - Fixed multiple HDRP Frame Settings panel issues: missing "Refraction" Frame Setting. Fixing ordering of Rough Distortion, it should now be under the Distortion setting.
-- Fixed ability to override AlphaToMask FrameSetting while camera in deferred lit shader mode
 - Fixed issue with automatic exposure settings not updating scene view.
 - Fixed issue with velocity rejection in post-DoF TAA. Fixing this reduces ghosting (case 1304381).
+- Fixed ability to override AlphaToMask FrameSetting while camera in deferred lit shader mode
 
 ### Changed
 - Changed Window/Render Pipeline/HD Render Pipeline Wizard to Window/Rendering/HDRP Wizard
