@@ -72,11 +72,11 @@ namespace UnityEditor.Rendering.HighDefinition
             }
         }
 
-        [MenuItem("GameObject/Volume/Sky and Fog Volume", priority = CoreUtils.gameObjectMenuPriority)]
+        [MenuItem("GameObject/Volume/Sky and Fog Global Volume", priority = CoreUtils.Priorities.gameObjectMenuPriority + 1)]
         static void CreateSceneSettingsGameObject(MenuCommand menuCommand)
         {
             var parent = menuCommand.context as GameObject;
-            var settings = CoreEditorUtils.CreateGameObject("Sky and Fog Volume", parent);
+            var settings = CoreEditorUtils.CreateGameObject("Sky and Fog Global Volume", parent);
 
             var profile = VolumeProfileFactory.CreateVolumeProfile(settings.scene, "Sky and Fog Settings");
             var visualEnv = VolumeProfileFactory.CreateVolumeComponent<VisualEnvironment>(profile, true, false);
@@ -439,7 +439,7 @@ namespace UnityEditor.Rendering.HighDefinition
             return anyMaterialDirty;
         }
 
-        [MenuItem("GameObject/Volume/Custom Pass", priority = CoreUtils.gameObjectMenuPriority)]
+        [MenuItem("GameObject/Volume/Custom Pass", priority = CoreUtils.Sections.section2 + CoreUtils.Priorities.gameObjectMenuPriority + 1)]
         static void CreateGlobalVolume(MenuCommand menuCommand)
         {
             var go = CoreEditorUtils.CreateGameObject("Custom Pass", menuCommand.context);
