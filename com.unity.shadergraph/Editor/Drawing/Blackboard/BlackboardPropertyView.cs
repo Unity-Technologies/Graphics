@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Reflection;
 using UnityEngine;
 using UnityEngine.UIElements;
 using UnityEditor.Graphing;
@@ -119,13 +120,6 @@ namespace UnityEditor.ShaderGraph.Drawing
             // When a display name is changed through the BlackboardPill, bind this callback to handle it with appropriate change action
             var textInputElement = m_TextField.Q(TextField.textInputUssName);
             textInputElement.RegisterCallback<FocusOutEvent>(e => { OnEditTextFinished(); });
-            textInputElement.RegisterCallback<FocusOutEvent>(e =>
-            {
-                var changeDisplayNameAction = new ChangeDisplayNameAction();
-                changeDisplayNameAction.shaderInputReference = shaderInput;
-                changeDisplayNameAction.newDisplayNameValue = m_TextField.text;
-                ViewModel.requestModelChangeAction(changeDisplayNameAction);
-            });
 
             ShaderGraphPreferences.onAllowDeprecatedChanged += UpdateTypeText;
 
@@ -256,13 +250,18 @@ namespace UnityEditor.ShaderGraph.Drawing
             m_ContentItem.visible = true;
             m_TextField.style.display = DisplayStyle.None;
 
-            if (text != m_TextField.text)
+            if (text != m_TextField.text && m_TextField.text != String.Empty)
             {
                 var changeDisplayNameAction = new ChangeDisplayNameAction();
                 changeDisplayNameAction.shaderInputReference = shaderInput;
                 changeDisplayNameAction.newDisplayNameValue = m_TextField.text;
                 ViewModel.requestModelChangeAction(changeDisplayNameAction);
                 m_InspectorUpdateDelegate?.Invoke();
+            }
+            else
+            {
+                // Reset text field to original name
+                m_TextField.value = text;
             }
         }
 
@@ -338,7 +337,7 @@ namespace UnityEditor.ShaderGraph.Drawing
             }
         }
 
-        public void OpenTextEditor()
+        internal void OpenTextEditor()
         {
             m_TextField.SetValueWithoutNotify(text);
             m_TextField.style.display = DisplayStyle.Flex;

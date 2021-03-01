@@ -15,6 +15,13 @@ namespace UnityEditor.ShaderGraph.Drawing
 {
     class AddShaderInputAction : IGraphDataAction
     {
+        public enum AddActionSource
+        {
+            Default,
+            AddMenu
+        }
+
+
         void AddShaderInput(GraphData graphData)
         {
             Assert.IsNotNull(graphData, "GraphData is null while carrying out AddShaderInputAction");
@@ -41,6 +48,8 @@ namespace UnityEditor.ShaderGraph.Drawing
 
         // If the type field above is null and this is provided, then it is directly used as the item to add to blackboard
         public BlackboardItem shaderInputReference { get; set; }
+
+        public AddActionSource addInputActionType { get; set; }
     }
 
     class ChangeGraphPathAction : IGraphDataAction
@@ -180,27 +189,27 @@ namespace UnityEditor.ShaderGraph.Drawing
 
                 // QUICK FIX TO DEAL WITH DEPRECATED COLOR PROPERTY
                 if (name.Equals("Color", StringComparison.InvariantCultureIgnoreCase) && ShaderGraphPreferences.allowDeprecatedBehaviors)
-                    ViewModel.propertyNameToAddActionMap.Add("Color (Deprecated)", new AddShaderInputAction() { shaderInputReference = new ColorShaderProperty(ColorShaderProperty.deprecatedVersion) });
+                    ViewModel.propertyNameToAddActionMap.Add("Color (Deprecated)", new AddShaderInputAction() { shaderInputReference = new ColorShaderProperty(ColorShaderProperty.deprecatedVersion), addInputActionType = AddShaderInputAction.AddActionSource.AddMenu});
                 else
-                    ViewModel.propertyNameToAddActionMap.Add(name, new AddShaderInputAction() { blackboardItemType = shaderInputType });
+                    ViewModel.propertyNameToAddActionMap.Add(name, new AddShaderInputAction() { blackboardItemType = shaderInputType, addInputActionType = AddShaderInputAction.AddActionSource.AddMenu });
             }
 
             // Default Keywords next
-            ViewModel.defaultKeywordNameToAddActionMap.Add("Boolean",  new AddShaderInputAction() { shaderInputReference = new ShaderKeyword(KeywordType.Boolean) });
-            ViewModel.defaultKeywordNameToAddActionMap.Add("Enum",  new AddShaderInputAction() { shaderInputReference = new ShaderKeyword(KeywordType.Enum) });
+            ViewModel.defaultKeywordNameToAddActionMap.Add("Boolean",  new AddShaderInputAction() { shaderInputReference = new ShaderKeyword(KeywordType.Boolean), addInputActionType = AddShaderInputAction.AddActionSource.AddMenu });
+            ViewModel.defaultKeywordNameToAddActionMap.Add("Enum",  new AddShaderInputAction() { shaderInputReference = new ShaderKeyword(KeywordType.Enum), addInputActionType = AddShaderInputAction.AddActionSource.AddMenu });
 
             // Built-In Keywords last
             foreach (var builtinKeywordDescriptor in KeywordUtil.GetBuiltinKeywordDescriptors())
             {
                 var keyword = ShaderKeyword.CreateBuiltInKeyword(builtinKeywordDescriptor);
                 // Do not allow user to add built-in keywords that conflict with user-made keywords that have the same reference name
-                if (Model.keywords.Where(x => x.referenceName == keyword.referenceName).Any())
+                if (Model.keywords.Any(x => x.referenceName == keyword.referenceName))
                 {
                     ViewModel.disabledKeywordNameList.Add(keyword.displayName);
                 }
                 else
                 {
-                    ViewModel.builtInKeywordNameToAddActionMap.Add(keyword.displayName,  new AddShaderInputAction() { shaderInputReference = keyword.Copy() });
+                    ViewModel.builtInKeywordNameToAddActionMap.Add(keyword.displayName,  new AddShaderInputAction() { shaderInputReference = keyword.Copy(), addInputActionType = AddShaderInputAction.AddActionSource.AddMenu });
                 }
             }
 
@@ -284,7 +293,7 @@ namespace UnityEditor.ShaderGraph.Drawing
         protected override void ModelChanged(GraphData graphData, IGraphDataAction changeAction)
         {
             // Reconstruct view-model first
-            // TODO: (would be cool to have some scoping here to see if the action was one that changed the UI or not, could avoid reconstructing the ViewModel based on that)
+            // TODO: (would be cool to have some scoping here to see if the action was one that changed OUR UI or not, could avoid reconstructing the ViewModel based on that)
             InitializeViewModel();
 
             // If newly added input doesn't belong to any of the sections, add it to the appropriate default section
@@ -300,6 +309,9 @@ namespace UnityEditor.ShaderGraph.Drawing
                     graphView?.ClearSelectionNoUndoRecord();
                     var propertyView = blackboardRow.Q<BlackboardPropertyView>();
                     graphView?.AddToSelectionNoUndoRecord(propertyView);
+
+                    if(addBlackboardItemAction.addInputActionType == AddShaderInputAction.AddActionSource.AddMenu)
+                        propertyView.OpenTextEditor();
                 }
             }
             else if (changeAction is DeleteShaderInputAction deleteShaderInputAction)
@@ -312,10 +324,6 @@ namespace UnityEditor.ShaderGraph.Drawing
             }
             else if (changeAction is HandleUndoRedoAction handleUndoRedoAction)
             {
-                // TODO: How the graph data handles the added/removed inputs just can't work with the action system
-                // The actions can be issued by anyone at any time, and the graph data will add to the added/removed inputs
-                // But we as responders have no control over when the added/removed inputs are cleared, which is what leads to duplicate adds removes
-
                 // HandleUndo/Redo action is inherently unwieldy, should decompose to make it a series of add/remove operations
                 foreach (var shaderInput in graphData.removedInputs)
                     if (IsInputInDefaultCategory(shaderInput))
@@ -463,14 +471,20 @@ namespace UnityEditor.ShaderGraph.Drawing
 
         void StoreSelection(IList<ISelectable> newSelection)
         {
-            oldSelectionPersistenceData.Clear();
+            if (newSelection.Count == 0)
+            {
+                oldSelectionPersistenceData.Clear();
+                return;
+            }
+
             // This tries to maintain the selection the user had before the undo/redo was performed
             foreach (var item in newSelection)
             {
                 if (item is BlackboardPropertyView blackboardPropertyView)
                 {
                     var guid = blackboardPropertyView.shaderInput.referenceName;
-                    oldSelectionPersistenceData.Add(guid, blackboardPropertyView.viewDataKey);
+                    if(oldSelectionPersistenceData.TryGetValue(guid, out var viewDataKey) == false)
+                        oldSelectionPersistenceData.Add(guid, blackboardPropertyView.viewDataKey);
                 }
             }
         }
