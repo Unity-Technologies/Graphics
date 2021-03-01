@@ -92,7 +92,13 @@ namespace UnityEngine.Rendering.HighDefinition
             int customOrderInGroup = -1)
         {
             if (string.IsNullOrEmpty(displayedName))
-                displayedName = s_FrameSettingsEnumNameMap[autoName].CamelToPascalCaseWithSpace();
+            {
+                if (!s_FrameSettingsEnumNameMap.TryGetValue(autoName, out displayedName))
+                {
+                    displayedName = autoName.ToString();
+                }
+                displayedName = displayedName.CamelToPascalCaseWithSpace();
+            }
 
             // Editor and Runtime debug menu
             this.group = group;

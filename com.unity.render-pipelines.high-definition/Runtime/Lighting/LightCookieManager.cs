@@ -347,7 +347,7 @@ namespace UnityEngine.Rendering.HighDefinition
             if (width < k_MinCookieSize || height < k_MinCookieSize)
                 return;
 
-            if (!m_CookieAtlas.ReserveSpace(m_CookieAtlas.GetTextureID(cookieA, cookieB), width, height))
+            if (!m_CookieAtlas.ReserveSpace(cookieA, cookieB, width, height))
                 m_2DCookieAtlasNeedsLayouting = true;
         }
 
@@ -375,7 +375,7 @@ namespace UnityEngine.Rendering.HighDefinition
             if (projectionSize < k_MinCookieSize)
                 return;
 
-            if (!m_CookieAtlas.ReserveSpace(m_CookieAtlas.GetTextureID(cookie), projectionSize, projectionSize))
+            if (!m_CookieAtlas.ReserveSpace(cookie, projectionSize, projectionSize))
                 m_2DCookieAtlasNeedsLayouting = true;
         }
 
@@ -391,7 +391,7 @@ namespace UnityEngine.Rendering.HighDefinition
             if (projectionSize < k_MinCookieSize)
                 return;
 
-            if (!m_CookieAtlas.ReserveSpace(m_CookieAtlas.GetTextureID(cookieA, cookieB), projectionSize, projectionSize))
+            if (!m_CookieAtlas.ReserveSpace(cookieA, cookieB, projectionSize, projectionSize))
                 m_2DCookieAtlasNeedsLayouting = true;
         }
 
