@@ -202,6 +202,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
         RenderStateBlock m_DepthStateOpaque;
         RenderStateBlock m_DepthStateNoWrite;
+        RenderStateBlock m_DebugViewBlock;
         RenderStateBlock m_AlphaToMaskBlock;
 
         readonly List<CustomPassVolume> m_ActivePassVolumes = new List<CustomPassVolume>(6);
@@ -733,6 +734,13 @@ namespace UnityEngine.Rendering.HighDefinition
             {
                 depthState = new DepthState(false, CompareFunction.LessEqual),
                 mask = RenderStateMask.Depth
+            };
+
+            m_DebugViewBlock = new RenderStateBlock
+            {
+                blendState = new BlendState(false, false),
+                depthState = new DepthState(true, CompareFunction.LessEqual),
+                mask = RenderStateMask.Depth | RenderStateMask.Blend
             };
 
             m_AlphaToMaskBlock = new RenderStateBlock

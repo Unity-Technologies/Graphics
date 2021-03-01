@@ -1061,11 +1061,11 @@ namespace UnityEngine.Rendering.HighDefinition
                     passData.opaqueRendererList = builder.UseRendererList(
                         renderGraph.CreateRendererList(CreateOpaqueRendererListDesc(cull, hdCamera.camera, m_AllForwardOpaquePassNames,
                             rendererConfiguration: m_CurrentRendererConfigurationBakedLighting,
-                            stateBlock: m_DepthStateOpaque)));
+                            stateBlock: m_DebugViewBlock)));
                     passData.transparentRendererList = builder.UseRendererList(
                         renderGraph.CreateRendererList(CreateTransparentRendererListDesc(cull, hdCamera.camera, m_AllTransparentPassNames,
                             rendererConfiguration: m_CurrentRendererConfigurationBakedLighting,
-                            stateBlock: m_DepthStateNoWrite)));
+                            stateBlock: m_DebugViewBlock)));
 
                     passData.clearColorTexture = Compositor.CompositionManager.GetClearTextureForStackedCamera(hdCamera);   // returns null if is not a stacked camera
                     passData.clearDepthTexture = Compositor.CompositionManager.GetClearDepthForStackedCamera(hdCamera);     // returns null if is not a stacked camera
