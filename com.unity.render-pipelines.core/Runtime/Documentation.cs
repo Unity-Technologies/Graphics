@@ -1,7 +1,9 @@
 using System.Runtime.CompilerServices;
-using UnityEditor.PackageManager;
 using System.Diagnostics;
 using UnityEngine;
+#if UNITY_EDITOR
+using UnityEditor.PackageManager;
+#endif
 
 [assembly: InternalsVisibleTo("Unity.RenderPipelines.Core.Editor.Tests")]
 
@@ -53,8 +55,13 @@ namespace UnityEngine.Rendering
         {
             get
             {
-                PackageInfo packageInfo = PackageInfo.FindForAssembly(typeof(DocumentationInfo).Assembly);
+#if UNITY_EDITOR
+                UnityEditor.PackageManager.PackageInfo packageInfo = UnityEditor.PackageManager.PackageInfo.FindForAssembly(typeof(DocumentationInfo).Assembly);
                 return packageInfo == null ? fallbackVersion : packageInfo.version.Substring(0, 4);
+#else
+                return fallbackVersion;
+#endif
+
             }
         }
     }
