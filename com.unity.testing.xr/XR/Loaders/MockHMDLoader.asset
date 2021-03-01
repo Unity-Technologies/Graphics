@@ -9,7 +9,6 @@ MonoBehaviour:
   m_GameObject: {fileID: 0}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: c8bf066bf8a4947a1be502d267edb82f, type: 3}
-  m_Name: Mock HMD Build Settings
+  m_Script: {fileID: 11500000, guid: 0660e8fc444734757ae6f6c40c2d33a0, type: 3}
+  m_Name: MockHMDLoader
   m_EditorClassIdentifier: 
-  renderMode: 1
