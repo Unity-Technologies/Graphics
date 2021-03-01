@@ -418,7 +418,7 @@ namespace UnityEngine.Rendering
                     for (int mipLevel = 0; mipLevel < (texture as Texture2D).mipmapCount; mipLevel++)
                     {
                         cmd.SetRenderTarget(m_AtlasTexture, mipLevel);
-                        CoreRenderPipelineAsset.blitter.BlitQuad(cmd, texture, new Vector4(1, 1, 0, 0), scaleBias, mipLevel, false);
+                        Blitter.BlitQuad(cmd, texture, new Vector4(1, 1, 0, 0), scaleBias, mipLevel, false);
                     }
                     m_AllocationCache.Add(key, scaleBias);
                     return true;

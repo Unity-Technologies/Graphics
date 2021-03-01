@@ -1260,7 +1260,7 @@ namespace UnityEngine.Rendering
         /// <summary>
         /// Compute a hash of texture properties.
         /// </summary>
-        internal static int GetTextureHash(Texture texture)
+        public static int GetTextureHash(Texture texture)
         {
             int hash = texture.GetHashCode();
 

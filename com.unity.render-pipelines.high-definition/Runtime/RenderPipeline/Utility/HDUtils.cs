@@ -80,7 +80,7 @@ namespace UnityEngine.Rendering.HighDefinition
         /// <returns></returns>
         public static Material GetBlitMaterial(TextureDimension dimension, bool singleSlice = false)
         {
-            return CoreRenderPipelineAsset.blitter.GetBlitMaterial(dimension, singleSlice);
+            return Blitter.GetBlitMaterial(dimension, singleSlice);
         }
 
         /// <summary>
@@ -204,7 +204,7 @@ namespace UnityEngine.Rendering.HighDefinition
         /// <param name="bilinear">Enable bilinear filtering.</param>
         public static void BlitQuad(CommandBuffer cmd, Texture source, Vector4 scaleBiasTex, Vector4 scaleBiasRT, int mipLevelTex, bool bilinear)
         {
-            CoreRenderPipelineAsset.blitter.BlitQuad(cmd, source, scaleBiasTex, scaleBiasRT, mipLevelTex, bilinear);
+            Blitter.BlitQuad(cmd, source, scaleBiasTex, scaleBiasRT, mipLevelTex, bilinear);
         }
 
         /// <summary>
@@ -220,7 +220,7 @@ namespace UnityEngine.Rendering.HighDefinition
         /// <param name="paddingInPixels">Padding in pixels.</param>
         public static void BlitQuadWithPadding(CommandBuffer cmd, Texture source, Vector2 textureSize, Vector4 scaleBiasTex, Vector4 scaleBiasRT, int mipLevelTex, bool bilinear, int paddingInPixels)
         {
-            CoreRenderPipelineAsset.blitter.BlitQuadWithPadding(cmd, source, textureSize, scaleBiasTex, scaleBiasRT, mipLevelTex, bilinear, paddingInPixels);
+            Blitter.BlitQuadWithPadding(cmd, source, textureSize, scaleBiasTex, scaleBiasRT, mipLevelTex, bilinear, paddingInPixels);
         }
 
         /// <summary>
@@ -236,7 +236,7 @@ namespace UnityEngine.Rendering.HighDefinition
         /// <param name="paddingInPixels">Padding in pixels.</param>
         public static void BlitQuadWithPaddingMultiply(CommandBuffer cmd, Texture source, Vector2 textureSize, Vector4 scaleBiasTex, Vector4 scaleBiasRT, int mipLevelTex, bool bilinear, int paddingInPixels)
         {
-            CoreRenderPipelineAsset.blitter.BlitQuadWithPaddingMultiply(cmd, source, textureSize, scaleBiasTex, scaleBiasRT, mipLevelTex, bilinear, paddingInPixels);
+            Blitter.BlitQuadWithPaddingMultiply(cmd, source, textureSize, scaleBiasTex, scaleBiasRT, mipLevelTex, bilinear, paddingInPixels);
         }
 
         /// <summary>
@@ -252,7 +252,7 @@ namespace UnityEngine.Rendering.HighDefinition
         /// <param name="paddingInPixels">Padding in pixels.</param>
         public static void BlitOctahedralWithPadding(CommandBuffer cmd, Texture source, Vector2 textureSize, Vector4 scaleBiasTex, Vector4 scaleBiasRT, int mipLevelTex, bool bilinear, int paddingInPixels)
         {
-            CoreRenderPipelineAsset.blitter.BlitOctahedralWithPadding(cmd, source, textureSize, scaleBiasTex, scaleBiasRT, mipLevelTex, bilinear, paddingInPixels);
+            Blitter.BlitOctahedralWithPadding(cmd, source, textureSize, scaleBiasTex, scaleBiasRT, mipLevelTex, bilinear, paddingInPixels);
         }
 
         /// <summary>
@@ -268,7 +268,7 @@ namespace UnityEngine.Rendering.HighDefinition
         /// <param name="paddingInPixels">Padding in pixels.</param>
         public static void BlitOctahedralWithPaddingMultiply(CommandBuffer cmd, Texture source, Vector2 textureSize, Vector4 scaleBiasTex, Vector4 scaleBiasRT, int mipLevelTex, bool bilinear, int paddingInPixels)
         {
-            CoreRenderPipelineAsset.blitter.BlitOctahedralWithPaddingMultiply(cmd, source, textureSize, scaleBiasTex, scaleBiasRT, mipLevelTex, bilinear, paddingInPixels);
+            Blitter.BlitOctahedralWithPaddingMultiply(cmd, source, textureSize, scaleBiasTex, scaleBiasRT, mipLevelTex, bilinear, paddingInPixels);
         }
 
         /// <summary>
@@ -281,7 +281,7 @@ namespace UnityEngine.Rendering.HighDefinition
         /// <param name="bilinear">Enable bilinear filtering.</param>
         public static void BlitTexture(CommandBuffer cmd, RTHandle source, Vector4 scaleBias, float mipLevel, bool bilinear)
         {
-            CoreRenderPipelineAsset.blitter.BlitTexture(cmd, source, scaleBias, mipLevel, bilinear);
+            Blitter.BlitTexture(cmd, source, scaleBias, mipLevel, bilinear);
         }
 
         /// <summary>
@@ -294,7 +294,7 @@ namespace UnityEngine.Rendering.HighDefinition
         /// <param name="bilinear">Enable bilinear filtering.</param>
         public static void BlitTexture2D(CommandBuffer cmd, RTHandle source, Vector4 scaleBias, float mipLevel, bool bilinear)
         {
-            CoreRenderPipelineAsset.blitter.BlitTexture2D(cmd, source, scaleBias, mipLevel, bilinear);
+            Blitter.BlitTexture2D(cmd, source, scaleBias, mipLevel, bilinear);
         }
 
         /// <summary>
@@ -308,7 +308,7 @@ namespace UnityEngine.Rendering.HighDefinition
         /// <param name="bilinear">Enable bilinear filtering.</param>
         internal static void BlitColorAndDepth(CommandBuffer cmd, Texture sourceColor, RenderTexture sourceDepth, Vector4 scaleBias, float mipLevel, bool blitDepth)
         {
-            CoreRenderPipelineAsset.blitter.BlitColorAndDepth(cmd, sourceColor, sourceDepth, scaleBias, mipLevel, blitDepth);
+            Blitter.BlitColorAndDepth(cmd, sourceColor, sourceDepth, scaleBias, mipLevel, blitDepth);
         }
 
         /// <summary>
@@ -321,7 +321,7 @@ namespace UnityEngine.Rendering.HighDefinition
         /// <param name="pass">Pass idx within the material to invoke.</param>
         static void BlitTexture(CommandBuffer cmd, RTHandle source, Vector4 scaleBias, Material material, int pass)
         {
-            CoreRenderPipelineAsset.blitter.BlitTexture(cmd, source, scaleBias, material, pass);
+            Blitter.BlitTexture(cmd, source, scaleBias, material, pass);
         }
 
         // In the context of HDRP, the internal render targets used during the render loop are the same for all cameras, no matter the size of the camera.
@@ -339,7 +339,7 @@ namespace UnityEngine.Rendering.HighDefinition
         /// <param name="bilinear">Enable bilinear filtering.</param>
         public static void BlitCameraTexture(CommandBuffer cmd, RTHandle source, RTHandle destination, float mipLevel = 0.0f, bool bilinear = false)
         {
-            CoreRenderPipelineAsset.blitter.BlitCameraTexture(cmd, source, destination, mipLevel, bilinear);
+            Blitter.BlitCameraTexture(cmd, source, destination, mipLevel, bilinear);
         }
 
         /// <summary>
@@ -353,7 +353,7 @@ namespace UnityEngine.Rendering.HighDefinition
         /// <param name="bilinear">Enable bilinear filtering.</param>
         public static void BlitCameraTexture2D(CommandBuffer cmd, RTHandle source, RTHandle destination, float mipLevel = 0.0f, bool bilinear = false)
         {
-            CoreRenderPipelineAsset.blitter.BlitCameraTexture2D(cmd, source, destination, mipLevel, bilinear);
+            Blitter.BlitCameraTexture2D(cmd, source, destination, mipLevel, bilinear);
         }
 
         /// <summary>
@@ -368,7 +368,7 @@ namespace UnityEngine.Rendering.HighDefinition
         /// <param name="pass">pass to use of the provided material</param>
         public static void BlitCameraTexture(CommandBuffer cmd, RTHandle source, RTHandle destination, Material material, int pass)
         {
-            CoreRenderPipelineAsset.blitter.BlitCameraTexture(cmd, source, destination, material, pass);
+            Blitter.BlitCameraTexture(cmd, source, destination, material, pass);
         }
 
         /// <summary>
@@ -384,7 +384,7 @@ namespace UnityEngine.Rendering.HighDefinition
         /// <param name="bilinear">Enable bilinear filtering.</param>
         public static void BlitCameraTexture(CommandBuffer cmd, RTHandle source, RTHandle destination, Vector4 scaleBias, float mipLevel = 0.0f, bool bilinear = false)
         {
-            CoreRenderPipelineAsset.blitter.BlitCameraTexture(cmd, source, destination, scaleBias, mipLevel, bilinear);
+            Blitter.BlitCameraTexture(cmd, source, destination, scaleBias, mipLevel, bilinear);
         }
 
         /// <summary>
@@ -400,7 +400,7 @@ namespace UnityEngine.Rendering.HighDefinition
         /// <param name="bilinear">Enable bilinear filtering.</param>
         public static void BlitCameraTexture(CommandBuffer cmd, RTHandle source, RTHandle destination, Rect destViewport, float mipLevel = 0.0f, bool bilinear = false)
         {
-            CoreRenderPipelineAsset.blitter.BlitCameraTexture(cmd, source, destination, destViewport, mipLevel, bilinear);
+            Blitter.BlitCameraTexture(cmd, source, destination, destViewport, mipLevel, bilinear);
         }
 
         // These method should be used to render full screen triangles sampling auto-scaling RTs.
@@ -1138,24 +1138,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
         internal static int GetTextureHash(Texture texture)
         {
-            int hash = texture.GetHashCode();
-
-            unchecked
-            {
-#if UNITY_EDITOR
-                hash = 23 * hash + texture.imageContentsHash.GetHashCode();
-#endif
-                hash = 23 * hash + texture.GetInstanceID().GetHashCode();
-                hash = 23 * hash + texture.graphicsFormat.GetHashCode();
-                hash = 23 * hash + texture.wrapMode.GetHashCode();
-                hash = 23 * hash + texture.width.GetHashCode();
-                hash = 23 * hash + texture.height.GetHashCode();
-                hash = 23 * hash + texture.filterMode.GetHashCode();
-                hash = 23 * hash + texture.anisoLevel.GetHashCode();
-                hash = 23 * hash + texture.mipmapCount.GetHashCode();
-            }
-
-            return hash;
+            return CoreUtils.GetTextureHash(texture);
         }
 
         internal static void ReleaseComponentSingletons()

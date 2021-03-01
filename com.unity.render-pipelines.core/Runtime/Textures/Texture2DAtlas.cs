@@ -207,7 +207,7 @@ namespace UnityEngine.Rendering
             for (int mipLevel = 0; mipLevel < mipCount; mipLevel++)
             {
                 cmd.SetRenderTarget(m_AtlasTexture, mipLevel);
-                CoreRenderPipelineAsset.blitter.BlitQuad(cmd, Texture2D.blackTexture, fullScaleOffset, fullScaleOffset, mipLevel, true);
+                Blitter.BlitQuad(cmd, Texture2D.blackTexture, fullScaleOffset, fullScaleOffset, mipLevel, true);
             }
 
             m_IsGPUTextureUpToDate.Clear(); // mark all GPU textures as invalid.
@@ -240,7 +240,7 @@ namespace UnityEngine.Rendering
             for (int mipLevel = 0; mipLevel < mipCount; mipLevel++)
             {
                 cmd.SetRenderTarget(m_AtlasTexture, mipLevel);
-                CoreRenderPipelineAsset.blitter.BlitQuad(cmd, texture, sourceScaleOffset, scaleOffset, mipLevel, true);
+                Blitter.BlitQuad(cmd, texture, sourceScaleOffset, scaleOffset, mipLevel, true);
             }
         }
 
