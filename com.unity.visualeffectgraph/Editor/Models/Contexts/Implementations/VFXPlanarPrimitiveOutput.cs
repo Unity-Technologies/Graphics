@@ -30,7 +30,7 @@ namespace UnityEditor.VFX
                 return VFXPlanarPrimitiveHelper.GetTaskType(primitiveType);
             }
         }
-        public override bool supportsUV { get { return shaderGraph == null; } }
+        public override bool supportsUV { get { return GetOrRefreshShaderGraphObject() == null; } }
         public override bool implementsMotionVector { get { return true; } }
 
         public override IEnumerable<string> additionalDefines
@@ -74,19 +74,20 @@ namespace UnityEditor.VFX
                     yield return new VFXAttributeInfo(VFXAttribute.TexIndex, VFXAttributeMode.Read);
             }
         }
-        public class OptionalInputProperties
+        protected IEnumerable<VFXPropertyWithValue> optionalInputProperties
         {
-            [Tooltip("Specifies the base color (RGB) and opacity (A) of the particle.")]
-            public Texture2D mainTexture = VFXResources.defaultResources.particleTexture;
+            get
+            {
+                yield return new VFXPropertyWithValue(new VFXProperty(GetFlipbookType(), "mainTexture", new TooltipAttribute("Specifies the base color (RGB) and opacity (A) of the particle.")), (usesFlipbook ? null : VFXResources.defaultResources.particleTexture));
+            }
         }
-
         protected override IEnumerable<VFXPropertyWithValue> inputProperties
         {
             get
             {
                 IEnumerable<VFXPropertyWithValue> properties = base.inputProperties;
-                if (shaderGraph == null)
-                    properties = properties.Concat(PropertiesFromType("OptionalInputProperties"));
+                if (GetOrRefreshShaderGraphObject() == null)
+                    properties = properties.Concat(optionalInputProperties);
 
                 if (primitiveType == VFXPrimitiveType.Octagon)
                     properties = properties.Concat(PropertiesFromType(typeof(VFXPlanarPrimitiveHelper.OctagonInputProperties)));
@@ -98,7 +99,7 @@ namespace UnityEditor.VFX
         {
             foreach (var exp in base.CollectGPUExpressions(slotExpressions))
                 yield return exp;
-            if (shaderGraph == null)
+            if (GetOrRefreshShaderGraphObject() == null)
             {
                 yield return slotExpressions.First(o => o.name == "mainTexture");
             }
