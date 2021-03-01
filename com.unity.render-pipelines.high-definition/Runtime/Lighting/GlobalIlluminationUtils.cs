@@ -26,9 +26,15 @@ namespace UnityEngine.Rendering.HighDefinition
                 cct = Mathf.CorrelatedColorTemperatureToRGB(light.colorTemperature);
 #endif
 
+#if UNITY_EDITOR
+            LightMode lightMode = LightmapperUtils.Extract(light.lightmapBakeType);
+#else
+            LightMode lightMode = LightmapperUtils.Extract(light.bakingOutput.lightmapBakeType);
+#endif
+
             float lightDimmer = 1;
 
-            if (light.lightmapBakeType != LightmapBakeType.Baked && add.affectDiffuse)
+            if (lightMode == LightMode.Realtime && add.affectDiffuse)
                 lightDimmer = add.lightDimmer;
 
             lightDataGI.instanceID = light.GetInstanceID();
@@ -43,11 +49,6 @@ namespace UnityEngine.Rendering.HighDefinition
             indirectColor.green *= cct.g;
             indirectColor.blue *= cct.b;
             indirectColor.intensity *= lightDimmer;
-#if UNITY_EDITOR
-            LightMode lightMode = LightmapperUtils.Extract(light.lightmapBakeType);
-#else
-            LightMode lightMode = LightmapperUtils.Extract(light.bakingOutput.lightmapBakeType);
-#endif
 
             lightDataGI.color = directColor;
             lightDataGI.indirectColor = indirectColor;
