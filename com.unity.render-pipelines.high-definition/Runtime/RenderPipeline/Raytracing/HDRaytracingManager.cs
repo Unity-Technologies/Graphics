@@ -746,8 +746,7 @@ namespace UnityEngine.Rendering.HighDefinition
             if (temporalFilter != null)
             {
                 float historyValidity = EvaluateHistoryValidity(hdCamera);
-                HistoryValidityParameters parameters = temporalFilter.PrepareHistoryValidityParameters(hdCamera, historyValidity);
-                return temporalFilter.HistoryValidity(renderGraph, hdCamera, parameters, depthBuffer, normalBuffer, motionVectorsBuffer);
+                return temporalFilter.HistoryValidity(renderGraph, hdCamera, historyValidity, depthBuffer, normalBuffer, motionVectorsBuffer);
             }
             else
                 return renderGraph.defaultResources.whiteTexture;
