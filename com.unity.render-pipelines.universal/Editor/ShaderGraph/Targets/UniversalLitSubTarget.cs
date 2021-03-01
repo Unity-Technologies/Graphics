@@ -339,7 +339,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
                     renderStates = CoreRenderStates.UberDefault,
                     pragmas = pragmas ?? CorePragmas.Forward,     // NOTE: SM 2.0 only GL
                     defines = new DefineCollection(),
-                    keywords = new KeywordCollection() { LitKeywords.Forward },
+                    keywords = new KeywordCollection() { LitKeywords.Forward, LitKeywords.ReceiveShadows },
                     includes = LitIncludes.Forward,
 
                     // Custom Interpolator Support
@@ -387,7 +387,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
                     renderStates = CoreRenderStates.UberDefault,
                     pragmas = pragmas ?? CorePragmas.Forward,    // NOTE: SM 2.0 only GL
                     defines = new DefineCollection(),
-                    keywords = new KeywordCollection() { LitKeywords.Forward },
+                    keywords = new KeywordCollection() { LitKeywords.Forward, LitKeywords.ReceiveShadows },
                     includes = LitIncludes.Forward,
 
                     // Custom Interpolator Support
@@ -664,6 +664,15 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
         #region Keywords
         static class LitKeywords
         {
+            public static readonly KeywordDescriptor ReceiveShadows = new KeywordDescriptor()
+            {
+                displayName = "Receive Shadows Off",
+                referenceName = "_RECEIVE_SHADOWS_OFF",
+                type = KeywordType.Boolean,
+                definition = KeywordDefinition.ShaderFeature,
+                scope = KeywordScope.Local,
+            };
+
             public static readonly KeywordDescriptor GBufferNormalsOct = new KeywordDescriptor()
             {
                 displayName = "GBuffer normal octaedron encoding",
