@@ -1281,5 +1281,18 @@ namespace UnityEngine.Rendering
 
             return hash;
         }
+
+        internal static string GetCorePath()
+            => "Packages/com.unity.render-pipelines.core/";
+
+        public static void InitializeCoreFeatures(CoreResources resources)
+        {
+            Blitter.Initialize(resources.shaders.blitPS, resources.shaders.blitColorAndDepthPS);
+        }
+
+        public static void CleanupCoreFeatures(CoreResources resources)
+        {
+            Blitter.Cleanup();
+        }
     }
 }

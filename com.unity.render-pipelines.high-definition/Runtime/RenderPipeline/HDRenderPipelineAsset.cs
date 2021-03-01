@@ -59,8 +59,12 @@ namespace UnityEngine.Rendering.HighDefinition
             isInOnValidateCall = false;
         }
 
-        private CoreRenderPipelineAsset m_CorePipelineAsset = new CoreRenderPipelineAsset();
-        internal CoreRenderPipelineAsset corePipelineAsset => m_CorePipelineAsset;
+        [SerializeField] private CoreResources m_CoreResources;
+        internal CoreResources coreResources
+        {
+            get { return m_CoreResources; }
+            set { m_CoreResources = value; }
+        }
 
         [SerializeField]
         RenderPipelineResources m_RenderPipelineResources;

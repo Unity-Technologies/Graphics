@@ -394,7 +394,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
             InitializeDebug();
 
-            Blitter.Initialize(defaultResources.shaders.blitPS, defaultResources.shaders.blitColorAndDepthPS);
+            CoreUtils.InitializeCoreFeatures(m_Asset.coreResources);
 
             m_ErrorMaterial = CoreUtils.CreateEngineMaterial("Hidden/InternalErrorShader");
 
@@ -478,6 +478,15 @@ namespace UnityEngine.Rendering.HighDefinition
 #if UNITY_EDITOR
         void UpgradeResourcesInAssetIfNeeded(HDRenderPipelineAsset asset)
         {
+            // Check that the serialized Core Resources are not broken
+            if (asset.coreResources == null)
+                asset.coreResources = UnityEditor.AssetDatabase.LoadAssetAtPath<CoreResources>(HDUtils.GetCorePath() + "Runtime/RenderPipeline/CoreResources.asset");
+#if UNITY_EDITOR_LINUX // Temp hack to be able to make linux test run. To clarify
+            ResourceReloader.TryReloadAllNullIn(asset.coreResources, HDUtils.GetCorePath());
+#else
+            ResourceReloader.ReloadAllNullIn(asset.coreResources, HDUtils.GetCorePath());
+#endif
+
             // Check that the serialized Resources are not broken
             if (asset.renderPipelineResources == null)
                 asset.renderPipelineResources
@@ -776,7 +785,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
             CleanupDebug();
 
-            Blitter.Cleanup();
+            CoreUtils.CleanupCoreFeatures(m_Asset.coreResources);
 
             CoreUtils.Destroy(m_CopyDepth);
             CoreUtils.Destroy(m_ErrorMaterial);

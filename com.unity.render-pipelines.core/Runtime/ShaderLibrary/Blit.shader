@@ -1,4 +1,4 @@
-Shader "Hidden/HDRP/Blit"
+Shader "Hidden/Core/Blit"
 {
     HLSLINCLUDE
 
@@ -8,7 +8,23 @@ Shader "Hidden/HDRP/Blit"
         #pragma multi_compile _ DISABLE_TEXTURE2D_X_ARRAY
         #pragma multi_compile _ BLIT_SINGLE_SLICE
         #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Common.hlsl"
-        #include "Packages/com.unity.render-pipelines.high-definition/Runtime/ShaderLibrary/ShaderVariables.hlsl"
+        #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/UnityInstancing.hlsl"
+
+        // TODO: URP, also targets above ^^^
+        //
+        // Control if TEXTURE2D_X macros will expand to texture arrays
+        #if defined(UNITY_TEXTURE2D_X_ARRAY_SUPPORTED) && !defined(DISABLE_TEXTURE2D_X_ARRAY)
+            #define USE_TEXTURE2D_X_AS_ARRAY
+        #endif
+
+        // XR support
+        #if defined(USE_TEXTURE2D_X_AS_ARRAY)
+            #define TEXTURE2D_X                                                      TEXTURE2D_ARRAY
+            #define SAMPLE_TEXTURE2D_X_LOD(textureName, samplerName, coord2, lod)    SAMPLE_TEXTURE2D_ARRAY_LOD(textureName, samplerName, coord2, SLICE_ARRAY_INDEX, lod)
+        #else
+            #define TEXTURE2D_X                                                      TEXTURE2D
+            #define SAMPLE_TEXTURE2D_X_LOD                                           SAMPLE_TEXTURE2D_LOD
+        #endif
 
         TEXTURE2D_X(_BlitTexture);
         SamplerState sampler_PointClamp;

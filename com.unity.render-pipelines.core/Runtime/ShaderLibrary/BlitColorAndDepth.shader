@@ -1,4 +1,4 @@
-Shader "Hidden/HDRP/BlitColorAndDepth"
+Shader "Hidden/Core/BlitColorAndDepth"
 {
     HLSLINCLUDE
 
@@ -8,7 +8,7 @@ Shader "Hidden/HDRP/BlitColorAndDepth"
         #pragma multi_compile _ DISABLE_TEXTURE2D_X_ARRAY
         #pragma multi_compile _ BLIT_SINGLE_SLICE
         #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Common.hlsl"
-        #include "Packages/com.unity.render-pipelines.high-definition/Runtime/ShaderLibrary/ShaderVariables.hlsl"
+        #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/UnityInstancing.hlsl"
 
         TEXTURE2D (_BlitTexture);
         TEXTURE2D (_InputDepthTexture);

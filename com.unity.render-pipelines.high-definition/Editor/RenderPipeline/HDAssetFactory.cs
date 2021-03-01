@@ -88,6 +88,28 @@ namespace UnityEditor.Rendering.HighDefinition
             ProjectWindowUtil.StartNameEditingIfProjectWindowExists(0, ScriptableObject.CreateInstance<DoCreateNewAssetHDRenderPipelineRayTracingResources>(), "New HDRenderPipelineRayTracingResources.asset", icon, null);
         }
 
+        class DoCreateNewAssetCoreResources : ProjectWindowCallback.EndNameEditAction
+        {
+            public override void Action(int instanceId, string pathName, string resourceFile)
+            {
+                var newAsset = CreateInstance<CoreResources>();
+                newAsset.name = Path.GetFileName(pathName);
+
+                ResourceReloader.ReloadAllNullIn(newAsset, HDUtils.GetCorePath());
+
+                AssetDatabase.CreateAsset(newAsset, pathName);
+                ProjectWindowUtil.ShowCreatedAsset(newAsset);
+            }
+        }
+
+        // Hide: User aren't suppose to have to create it.
+        //[MenuItem("Assets/Create/Rendering/Core Resources", priority = CoreUtils.Sections.section7 + CoreUtils.Priorities.assetsCreateRenderingMenuPriority + 2)]
+        static void CreateCoreResources()
+        {
+            var icon = EditorGUIUtility.FindTexture("ScriptableObject Icon");
+            ProjectWindowUtil.StartNameEditingIfProjectWindowExists(0, ScriptableObject.CreateInstance<DoCreateNewAssetCoreResources>(), "New CoreResources.asset", icon, null);
+        }
+
         class DoCreateNewAssetHDRenderPipelineEditorResources : ProjectWindowCallback.EndNameEditAction
         {
             public override void Action(int instanceId, string pathName, string resourceFile)
