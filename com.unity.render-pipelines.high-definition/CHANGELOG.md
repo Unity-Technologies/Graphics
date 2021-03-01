@@ -63,10 +63,20 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed issue with NaNs in Volumetric Clouds on some platforms.
 - Fixed update upon light movement for directional light rotation.
 - Fixed issue that caused a rebake of Probe Volume Data to see effect of changed normal bias.
+- Fixed loss of persistency of ratio between pivot position and size when sliding by 0 in DecalProjector inspector (case 1308338)
+- Fixed nullref when adding a volume component in a Volume profile asset (case 1317156).
+- Fixed decal normal for double sided materials (case 1312065).
+- Fixed multiple HDRP Frame Settings panel issues: missing "Refraction" Frame Setting. Fixing ordering of Rough Distortion, it should now be under the Distortion setting.
+- Fixed issue with automatic exposure settings not updating scene view.
+- Fixed issue with velocity rejection in post-DoF TAA. Fixing this reduces ghosting (case 1304381).
+- Fixed missing option to use POM on emissive for tessellated shaders.
 
 ### Changed
 - Changed Window/Render Pipeline/HD Render Pipeline Wizard to Window/Rendering/HDRP Wizard
 - Removed the material pass probe volumes evaluation mode.
+- Changed GameObject/Rendering/Density Volume to GameObject/Volume/Density Volume
+- Changed GameObject/Rendering/Decal Projector to GameObject/Decal Projector
+- Changed GameObject/Volume/Sky and Fog Volume to GameObject/Volume/Sky and Fog Global Volume
 - Move the Decal Gizmo Color initialization to preferences
 - Unifying the history validation pass so that it is only done once for the whole frame and not per effect.
 - Moved Edit/Render Pipeline/HD Render Pipeline/Render Selected Camera to log Exr to Edit/Rendering/Render Selected HDRP Camera to log Exr
@@ -92,11 +102,13 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Change Assets/Create/Rendering/C# Custom Pass to Assets/Create/Rendering/HDRP C# Custom Pass
 - Change Assets/Create/Rendering/C# Post Process Volume to Assets/Create/Rendering/HDRP C# Post Process Volume
 - Change labels about scroll direction and cloud type.
+- Change the handling of additional properties to base class
 - Improved shadow cascade GUI drawing with pixel perfect, hover and focus functionalities.
 - Improving the screen space global illumination.
 - Moving MaterialHeaderScopes to Core
 - Changed resolution (to match the render buffer) of the sky used for camera misses in Path Tracing. (case 1304114).
 - Tidy up of platform abstraction code for shader optimization.
+- Display a warning help box when decal atlas is out of size.
 
 ## [11.0.0] - 2020-10-21
 
