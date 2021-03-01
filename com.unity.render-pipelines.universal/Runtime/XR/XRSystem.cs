@@ -165,11 +165,14 @@ namespace UnityEngine.Rendering.Universal
             {
                 // Disable vsync on the main display when rendering to a XR device.
                 QualitySettings.vSyncCount = 0;
+
+#if UNITY_ANDROID || UNITY_IOS
                 // On Android and iOS, vSyncCount is ignored and all frame rate control is done using Application.targetFrameRate.
                 // Set targetFrameRate to XR refresh rate (round up)
                 float frameRate = 120.0f;
                 frameRate = display.TryGetDisplayRefreshRate(out float refreshRate) ? refreshRate : frameRate;
                 Application.targetFrameRate = Mathf.CeilToInt(frameRate);
+#endif
 
                 CreateLayoutFromXrSdk(camera, singlePassAllowed: true);
 
