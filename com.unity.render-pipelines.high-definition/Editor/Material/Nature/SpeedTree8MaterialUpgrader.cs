@@ -11,6 +11,9 @@ namespace UnityEditor.Rendering.HighDefinition
     /// </summary>
     public class SpeedTree8MaterialUpgrader : MaterialUpgrader
     {
+        // _DoubleSidedConstants value should match comments in MaterialUtilities.hlsl
+        static Vector4 kDoubleSidedFlip = new Vector4(-1, -1, -1, 0);
+        static Vector4 kDoubleSidedNone = new Vector4(1, 1, 1, 0);
         private enum WindQuality
         {
             None = 0,
@@ -71,6 +74,8 @@ namespace UnityEditor.Rendering.HighDefinition
             {
                 material.EnableKeyword("_ALPHATEST_ON");
                 material.EnableKeyword("ENABLE_WIND");
+                // Assumes all ST8 materials are double-sided.
+                material.EnableKeyword("_DOUBLESIDED_ON");
 
                 if (!WindIntValid(windInt))
                 {
@@ -100,9 +105,16 @@ namespace UnityEditor.Rendering.HighDefinition
                         material.DisableKeyword("EFFECT_BILLBOARD");
                         material.SetFloat("EFFECT_BILLBOARD", 0);
                     }
-
-                    // Assumes all ST8 billboards are double-sided.
-                    material.SetFloat("_CullMode", 2); // Non-billboards don't need backfaces culled.
+                    // Billboards have double sided mode = none.
+                    material.SetVector("_DoubleSidedConstants", kDoubleSidedNone);
+                    material.SetFloat("_CullMode", 2); // Cull billboard backfaces to prevent Z-fighting
+                }
+                else
+                {
+                    // Non-billboards have double sided mode = flipped.
+                    // _DoubleSidedConstants value should match comments in MaterialUtilities.hlsl
+                    material.SetVector("_DoubleSidedConstants", kDoubleSidedFlip);
+                    material.SetFloat("_CullMode", 0); // Non-billboards don't need backfaces culled.
                 }
             }
         }

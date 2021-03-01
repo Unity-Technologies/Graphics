@@ -417,8 +417,6 @@ namespace UnityEngine.Rendering.HighDefinition
             // SpeedTree
             [Reload("Runtime/Material/Nature/SpeedTree8.shadergraph")]
             public Shader speedTree8Shader;
-            [Reload("Runtime/Material/Nature/SpeedTree8_Billboard.shadergraph")]
-            public Shader speedTree8BillboardShader;
         }
 
         [Serializable, ReloadGroup]
