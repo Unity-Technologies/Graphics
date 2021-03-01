@@ -122,7 +122,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
                 if (hdCamera.viewCount == 1)
                 {
-                    colorBuffer = RenderPathTracing(m_RenderGraph, hdCamera);
+                    colorBuffer = RenderPathTracing(m_RenderGraph, hdCamera, colorBuffer);
                 }
                 else
                 {

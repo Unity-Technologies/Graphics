@@ -617,7 +617,11 @@ namespace UnityEditor.Rendering.HighDefinition
                         EditorGUILayout.LabelField(EditorGUIUtility.TrTextContent("Multiple material type in selection"));
                 }
                 else if (showAffectTransparency)
+                {
                     EditorGUILayout.PropertyField(m_AffectsTransparencyProperty, k_AffectTransparentContent);
+                    if (m_AffectsTransparencyProperty.boolValue && !DecalSystem.instance.IsAtlasAllocatedSuccessfully())
+                        EditorGUILayout.HelpBox(DecalSystem.s_AtlasSizeWarningMessage, MessageType.Warning);
+                }
             }
             if (EditorGUI.EndChangeCheck())
                 serializedObject.ApplyModifiedProperties();

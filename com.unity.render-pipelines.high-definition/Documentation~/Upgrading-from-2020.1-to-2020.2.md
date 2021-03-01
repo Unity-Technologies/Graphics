@@ -61,6 +61,15 @@ From 10.x, the debug lens attenuation has been removed, however the lens attenua
 
 From 10.x, the [Screen Space Reflection](Override-Screen-Space-Reflection.md) effect always uses the color pyramid HDRP generates after the Before Refraction transparent pass. This means the color buffer only includes transparent GameObjects that use the **BeforeRefraction** [Rendering Pass](Surface-Type.md). Previously the content depended on whether the Distortion effect was active.
 
+## Volumetric Fog
+
+When upgrading a project to 10.2, the quality of volumetric fog in your Scene may degrade. This is because of the new volumetric fog control modes. To make volumetric fog look the same as it did in 8.x:
+
+1. In the [Fog](Override-Fog.md) Volume Override, set **Fog Control Mode** to **Manual**.
+2. For the properties this mode exposes, enter the same values as you had in 8.x
+
+Alternatively, set **Fog Control Mode** to **Balance** and use the new performance-oriented properties to define the quality of the volumetric fog.
+
 ## Shadows
 
 From 10.x, it is no longer necessary to change the [HDRP Config package](HDRP-Config-Package.md) to set the [shadow filtering quality](HDRP-Asset.md#filtering-qualities) for deferred rendering. Instead, you can now change the filtering quality directly on the [HDRP Asset](HDRP-Asset.md#filtering-qualities). Note if you previously had not set the shadow filtering quality to **Medium** on the HDRP Asset, the automatic project upgrade process changes the shadow quality which means you may need to manually change it back to its original value.
