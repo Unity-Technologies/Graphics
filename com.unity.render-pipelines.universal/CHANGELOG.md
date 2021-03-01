@@ -43,9 +43,11 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed an issue where Particle Lit shader had an incorrect fallback shader [case 1312459]
 - Fixed an issue with backbuffer MSAA on Vulkan desktop platforms.
 - Fixed shadow cascade blend culling factor.
+- Fixed shadowCoord error when main light shadow defined in unlit shader graph [case 1175274](https://issuetracker.unity3d.com/issues/shadows-not-applying-when-using-file-in-a-custom-function-node-with-universal-rp)
 - Removed Custom.meta which was causing warnings. [case 1314288](https://issuetracker.unity3d.com/issues/urp-warnings-about-missing-metadata-appear-after-installing)
 - Fixed a case where shadow fade was clipped too early.
 - Fixed an issue where bokeh dof is applied incorrectly when there is an overlay camera in the camera stack. [case 1303572](https://issuetracker.unity3d.com/issues/urp-bokeh-depth-of-field-is-applied-incorrectly-when-the-main-camera-has-an-overlay-camera-in-the-camera-stack)
+- Fixed SafeNormalize returning invalid vector when using half with zero length. [case 1315956]
 - Fixed lit shader property duplication issue. [case 1315032](https://issuetracker.unity3d.com/issues/shader-dot-propertytoid-returns-the-same-id-when-shaders-properties-have-the-same-name-but-different-type)
 - Fixed undo issues for the additional light property on the UniversalRenderPipeline Asset. [case 1300367]
 - Fixed an issue where SSAO would sometimes not render with a recently imported renderer.

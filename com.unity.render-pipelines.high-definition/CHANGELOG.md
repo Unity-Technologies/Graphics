@@ -26,6 +26,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Exposed update upon light movement for directional light shadows in UI.
 
 ### Fixed
+- Fixed Intensity Multiplier not affecting realtime global illumination.
 - Fixed an exception when opening the color picker in the material UI (case 1307143).
 - Fixed lights shadow frustum near and far planes.
 - Fixed various issues with non-temporal SSAO and rendergraph.
@@ -61,6 +62,14 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed WouldFitInAtlas that would previously return wrong results if any one face of a point light would fit (it used to return true even though the light in entirety wouldn't fit).
 - Fixed issue with NaNs in Volumetric Clouds on some platforms.
 - Fixed update upon light movement for directional light rotation.
+- Fixed issue that caused a rebake of Probe Volume Data to see effect of changed normal bias.
+- Fixed loss of persistency of ratio between pivot position and size when sliding by 0 in DecalProjector inspector (case 1308338)
+- Fixed nullref when adding a volume component in a Volume profile asset (case 1317156).
+- Fixed decal normal for double sided materials (case 1312065).
+- Fixed multiple HDRP Frame Settings panel issues: missing "Refraction" Frame Setting. Fixing ordering of Rough Distortion, it should now be under the Distortion setting.
+- Fixed issue with automatic exposure settings not updating scene view.
+- Fixed issue with velocity rejection in post-DoF TAA. Fixing this reduces ghosting (case 1304381).
+- Fixed missing option to use POM on emissive for tessellated shaders.
 
 ### Changed
 - Changed Window/Render Pipeline/HD Render Pipeline Wizard to Window/Rendering/HDRP Wizard
@@ -95,6 +104,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Moving MaterialHeaderScopes to Core
 - Changed resolution (to match the render buffer) of the sky used for camera misses in Path Tracing. (case 1304114).
 - Tidy up of platform abstraction code for shader optimization.
+- Display a warning help box when decal atlas is out of size.
 
 ## [11.0.0] - 2020-10-21
 
