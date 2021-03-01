@@ -155,10 +155,14 @@ namespace UnityEditor
             queueOffsetProp = FindProperty("_QueueOffset", properties, false);
         }
 
+        protected MaterialProperty[] properties;
+
         public override void OnGUI(MaterialEditor materialEditorIn, MaterialProperty[] properties)
         {
             if (materialEditorIn == null)
                 throw new ArgumentNullException("materialEditorIn");
+
+            this.properties = properties;
 
             FindProperties(properties); // MaterialProperties can be animated so we do not cache them but fetch them every event to ensure animated values are updated correctly
             materialEditor = materialEditorIn;
@@ -209,6 +213,23 @@ namespace UnityEditor
         // Drawing Functions              //
         ////////////////////////////////////
         #region DrawingFunctions
+
+        public void DrawShaderGraphProperties(Material material)
+        {
+            if (properties == null)
+                return;
+
+            for (var i = 0; i < properties.Length; i++)
+            {
+                if ((properties[i].flags & (MaterialProperty.PropFlags.HideInInspector | MaterialProperty.PropFlags.PerRendererData)) != 0)
+                    continue;
+
+                float h = materialEditor.GetPropertyHeight(properties[i], properties[i].displayName);
+                Rect r = EditorGUILayout.GetControlRect(true, h, EditorStyles.layerMaskField);
+
+                materialEditor.ShaderProperty(r, properties[i], properties[i].displayName);
+            }
+        }
 
         public virtual void DrawSurfaceOptions(Material material)
         {

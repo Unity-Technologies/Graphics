@@ -15,5 +15,11 @@ namespace UnityEditor
 
             SetMaterialKeywords(material);
         }
+
+        // material main surface inputs
+        public override void DrawSurfaceInputs(Material material)
+        {
+            DrawShaderGraphProperties(material);
+        }
     }
 } // namespace UnityEditor

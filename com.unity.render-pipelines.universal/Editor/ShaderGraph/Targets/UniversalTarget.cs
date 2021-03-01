@@ -229,7 +229,6 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
             collector.AddFloatProperty(Property.DstBlend, 0.0f);
             collector.AddFloatProperty(Property.ZWrite, 1.0f);
             collector.AddFloatProperty(Property.Cull, 2.0f);
-            collector.AddFloatProperty(Property.ReceiveShadows, 1.0f);
             collector.AddFloatProperty(Property.QueueOffset, 0.0f);
 
             // collector.AddFloatProperty(Property.AlphaCutoff, 0.5f);   // _Cutoff("Alpha Cutoff", Range(0.0, 1.0)) = 0.5

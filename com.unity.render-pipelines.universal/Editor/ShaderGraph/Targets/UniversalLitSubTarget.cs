@@ -120,6 +120,8 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
         {
             if (workflowMode == WorkflowMode.MaterialChoice)
                 collector.AddShaderProperty(Property.WorkflowMode(WorkflowMode.Metallic));   // TODO: setup default correctly here based on subtarget state
+
+            collector.AddFloatProperty(Property.ReceiveShadows, 1.0f);
         }
 
         public override void GetPropertiesGUI(ref TargetPropertyGUIContext context, Action onChange, Action<String> registerUndo)
@@ -433,7 +435,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
                     renderStates = CoreRenderStates.UberDefault,
                     pragmas = CorePragmas.DOTSGBuffer,
                     defines = new DefineCollection(),
-                    keywords = new KeywordCollection() { LitKeywords.GBuffer },
+                    keywords = new KeywordCollection() { LitKeywords.GBuffer, LitKeywords.ReceiveShadows },
                     includes = LitIncludes.GBuffer,
 
                     // Custom Interpolator Support

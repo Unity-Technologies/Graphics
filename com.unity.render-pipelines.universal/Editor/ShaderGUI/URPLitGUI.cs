@@ -48,5 +48,18 @@ namespace UnityEditor
             }
             base.DrawSurfaceOptions(material);
         }
+
+        // material main surface inputs
+        public override void DrawSurfaceInputs(Material material)
+        {
+            DrawShaderGraphProperties(material);
+
+            /*
+                        base.DrawSurfaceInputs(material);
+                        LitGUI.Inputs(litProperties, materialEditor, material);
+                        DrawEmissionProperties(material, true);
+                        DrawTileOffset(materialEditor, baseMapProp);
+            */
+        }
     }
 } // namespace UnityEditor
