@@ -250,6 +250,7 @@ namespace UnityEditor.Rendering.HighDefinition
                 area.AmmendInfo(FrameSettingsField.ObjectMotionVectors, overrideable: () => hdrpSettings.supportMotionVectors);
                 area.AmmendInfo(FrameSettingsField.TransparentsWriteMotionVector, overrideable: () => hdrpSettings.supportMotionVectors);
                 area.AmmendInfo(FrameSettingsField.Decals, overrideable: () => hdrpSettings.supportDecals);
+                area.AmmendInfo(FrameSettingsField.DecalLayers, overrideable: () => hdrpSettings.supportDecalLayers);
                 area.AmmendInfo(FrameSettingsField.Distortion, overrideable: () => hdrpSettings.supportDistortion);
             }
 
@@ -312,6 +313,7 @@ namespace UnityEditor.Rendering.HighDefinition
                 customSetter: v => serialized.materialQuality.intValue = (int)((MaterialQualityMode)v).Into(),
                 hasMixedValues: serialized.materialQuality.hasMultipleDifferentValues
             );
+
             area.Draw(withOverride);
             GUI.enabled = isGUIenabled;
         }
@@ -339,6 +341,7 @@ namespace UnityEditor.Rendering.HighDefinition
                 area.AmmendInfo(FrameSettingsField.SSR, overrideable: () => hdrpSettings.supportSSR);
                 area.AmmendInfo(FrameSettingsField.TransparentSSR, overrideable: () => (hdrpSettings.supportSSR && hdrpSettings.supportSSRTransparent));
                 area.AmmendInfo(FrameSettingsField.SSAO, overrideable: () => hdrpSettings.supportSSAO);
+                area.AmmendInfo(FrameSettingsField.VolumetricClouds, overrideable: () => hdrpSettings.supportVolumetricClouds);
 
                 // SSS
                 area.AmmendInfo(

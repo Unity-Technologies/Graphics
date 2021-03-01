@@ -141,6 +141,14 @@ namespace UnityEngine.Experimental.Rendering.Universal
             bool ppcUsesOffscreenRT = false;
             bool ppcUpscaleRT = false;
 
+#if UNITY_EDITOR
+            // The scene view camera cannot be uninitialized or skybox when using the 2D renderer.
+            if (cameraData.cameraType == CameraType.SceneView)
+            {
+                renderingData.cameraData.camera.clearFlags = CameraClearFlags.SolidColor;
+            }
+#endif
+
             // Pixel Perfect Camera doesn't support camera stacking.
             if (cameraData.renderType == CameraRenderType.Base && lastCameraInStack)
             {
@@ -175,6 +183,11 @@ namespace UnityEngine.Experimental.Rendering.Universal
             CommandBufferPool.Release(cmd);
 
             ConfigureCameraTarget(colorTargetHandle.Identifier(), depthTargetHandle.Identifier());
+
+            // Add passes from Renderer Features. - NOTE: This should be reexamined in the future. Please see feedback from this PR https://github.com/Unity-Technologies/Graphics/pull/3147/files
+            isCameraColorTargetValid = true;    // This is to make it possible to call ScriptableRenderer.cameraColorTarget in the custom passes.
+            AddRenderPasses(ref renderingData);
+            isCameraColorTargetValid = false;
 
             // We generate color LUT in the base camera only. This allows us to not break render pass execution for overlay cameras.
             if (stackHasPostProcess && cameraData.renderType == CameraRenderType.Base && m_PostProcessPasses.isCreated)

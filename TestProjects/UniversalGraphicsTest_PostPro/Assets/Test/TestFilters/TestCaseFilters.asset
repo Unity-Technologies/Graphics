@@ -51,24 +51,6 @@ MonoBehaviour:
     Reason: Needs fixing in OpenGL
   - FilteredScene: {fileID: 0}
     FilteredScenes:
-    - {fileID: 102900000, guid: bb1de3ccb0b7a7a439e79e00f33a78f8, type: 3}
-    ColorSpace: -1
-    BuildPlatform: 9
-    GraphicsDevice: 16
-    XrSdk: None
-    StereoModes: 0
-    Reason: 'Filtered out due to OoM issue (FB: 1304672)'
-  - FilteredScene: {fileID: 0}
-    FilteredScenes:
-    - {fileID: 102900000, guid: 25cb76fbf82e5924f817e3466acb803a, type: 3}
-    ColorSpace: -1
-    BuildPlatform: 9
-    GraphicsDevice: 16
-    XrSdk: None
-    StereoModes: 0
-    Reason: 'Filtered out due to OoM issue (FB: 1304672)'
-  - FilteredScene: {fileID: 0}
-    FilteredScenes:
     - {fileID: 102900000, guid: 25cb76fbf82e5924f817e3466acb803a, type: 3}
     ColorSpace: -1
     BuildPlatform: -2
@@ -85,15 +67,6 @@ MonoBehaviour:
     XrSdk: 
     StereoModes: 0
     Reason: https://fogbugz.unity3d.com/f/cases/1305922/
-  - FilteredScene: {fileID: 0}
-    FilteredScenes:
-    - {fileID: 102900000, guid: 44c3bddf1a7da4af28d764901f2e9507, type: 3}
-    ColorSpace: -1
-    BuildPlatform: 13
-    GraphicsDevice: 21
-    XrSdk: None
-    StereoModes: 0
-    Reason: Android Vulkan 143 regressed test scene
   - FilteredScene: {fileID: 0}
     FilteredScenes:
     - {fileID: 102900000, guid: 44c3bddf1a7da4af28d764901f2e9507, type: 3}

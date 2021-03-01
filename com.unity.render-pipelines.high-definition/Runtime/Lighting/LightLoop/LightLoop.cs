@@ -625,6 +625,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
         // Directional light
         Light m_CurrentSunLight;
+        int m_CurrentSunLightIndex;
         int m_CurrentShadowSortedSunLightIndex = -1;
         HDAdditionalLightData m_CurrentSunLightAdditionalLightData;
         DirectionalLightData m_CurrentSunLightDirectionalLightData;
@@ -1180,6 +1181,7 @@ namespace UnityEngine.Rendering.HighDefinition
                     m_ScreenSpaceShadowsUnion.Add(additionalLightData);
                 }
                 m_CurrentSunLight = lightComponent;
+                m_CurrentSunLightIndex = m_lightList.directionalLights.Count;
                 m_CurrentSunLightAdditionalLightData = additionalLightData;
                 m_CurrentSunLightDirectionalLightData = lightData;
                 m_CurrentShadowSortedSunLightIndex = sortedIndex;
@@ -1230,7 +1232,11 @@ namespace UnityEngine.Rendering.HighDefinition
             lightData.surfaceTint     = (Vector3)(Vector4)additionalLightData.surfaceTint;
 
             // Fallback to the first non shadow casting directional light.
-            m_CurrentSunLight = m_CurrentSunLight == null ? lightComponent : m_CurrentSunLight;
+            if (m_CurrentSunLight == null)
+            {
+                m_CurrentSunLight = lightComponent;
+                m_CurrentSunLightIndex = m_lightList.directionalLights.Count;
+            }
 
             m_lightList.directionalLights.Add(lightData);
         }
@@ -2577,6 +2583,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
                 // We need to properly reset this here otherwise if we go from 1 light to no visible light we would keep the old reference active.
                 m_CurrentSunLight = null;
+                m_CurrentSunLightIndex = 0;
                 m_CurrentSunLightAdditionalLightData = null;
                 m_CurrentShadowSortedSunLightIndex = -1;
                 m_DebugSelectedLightShadowIndex = -1;
@@ -2676,6 +2683,11 @@ namespace UnityEngine.Rendering.HighDefinition
 
                     Debug.Assert(m_lightList.lightsPerView[viewIndex].lightVolumes.Count == m_TotalLightCount);
                     m_lightList.lightsPerView[0].lightVolumes.AddRange(m_lightList.lightsPerView[viewIndex].lightVolumes);
+                }
+
+                if (HasVolumetricCloudsShadows(hdCamera))
+                {
+                    m_lightList.directionalLights[m_CurrentSunLightIndex] = OverrideDirectionalLightDataForVolumetricCloudsShadows(hdCamera, m_lightList.directionalLights[m_CurrentSunLightIndex]);
                 }
 
                 PushLightDataGlobalParams(cmd);

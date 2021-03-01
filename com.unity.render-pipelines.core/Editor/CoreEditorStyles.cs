@@ -44,6 +44,9 @@ namespace UnityEditor.Rendering
         /// <summary>Hightlited background color.</summary>
         public static Color backgroundHighlightColor { get { return EditorGUIUtility.isProSkin ? m_DarkThemeBackgroundHighlightColor : m_LightThemeBackgroundHighlightColor; } }
 
+        public static GUIContent iconHelp { get; }
+        public static GUIStyle iconHelpStyle { get; }
+
         /// <summary>RenderPipeline Global Settings icon</summary>
         public static readonly Texture2D globalSettingsIcon;
 
@@ -87,6 +90,9 @@ namespace UnityEditor.Rendering
             var contextTooltip = ""; // To be defined (see with UX)
             contextMenuIcon = new GUIContent(paneOptionsIcon, contextTooltip);
             contextMenuStyle = new GUIStyle("IconButton");
+
+            iconHelp = new GUIContent(EditorGUIUtility.FindTexture("_Help"));
+            iconHelpStyle = GUI.skin.FindStyle("IconButton") ?? EditorGUIUtility.GetBuiltinSkin(EditorSkin.Inspector).FindStyle("IconButton");
 
             globalSettingsIcon = EditorGUIUtility.FindTexture("ScriptableObject Icon");
         }
