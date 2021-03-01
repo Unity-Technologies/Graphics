@@ -38,9 +38,20 @@ void ShadowLoopMin(HDShadowContext shadowContext, PositionInputs posInput, float
             // Is it worth sampling the shadow map?
             if (light.lightDimmer > 0 && light.shadowDimmer > 0)
             {
-                float shadowD = GetDirectionalShadowAttenuation(shadowContext,
-                                                                posInput.positionSS, posInput.positionWS, normalWS,
-                                                                light.shadowIndex, wi);
+                SHADOW_TYPE shadowD = 1.0;
+#if defined(SCREEN_SPACE_SHADOWS_ON) && !defined(_SURFACE_TYPE_TRANSPARENT)
+                if ((light.screenSpaceShadowIndex & SCREEN_SPACE_SHADOW_INDEX_MASK) != INVALID_SCREEN_SPACE_SHADOW)
+                {
+                    shadowD = GetScreenSpaceColorShadow(posInput, light.screenSpaceShadowIndex).SHADOW_TYPE_SWIZZLE;
+                }
+                else
+#endif
+                {
+                    shadowD = GetDirectionalShadowAttenuation(shadowContext,
+                                                            posInput.positionSS, posInput.positionWS, normalWS,
+                                                            light.shadowIndex, wi);
+                }
+                
 #ifdef SHADOW_LOOP_MULTIPLY
                 shadow *= lerp(light.shadowTint, float3(1, 1, 1), shadowD);
 #elif defined(SHADOW_LOOP_AVERAGE)
@@ -111,8 +122,17 @@ void ShadowLoopMin(HDShadowContext shadowContext, PositionInputs posInput, float
                                                             s_lightData.angleScale,            s_lightData.angleOffset) > 0.0 &&
                         L.y > 0.0)
                     {
-                        shadowP = GetPunctualShadowAttenuation(shadowContext, posInput.positionSS, posInput.positionWS, normalWS, s_lightData.shadowIndex, L, distances.x, s_lightData.lightType == GPULIGHTTYPE_POINT, s_lightData.lightType != GPULIGHTTYPE_PROJECTOR_BOX);
-                        shadowP = s_lightData.nonLightMappedOnly ? min(1.0f, shadowP) : shadowP;
+#if defined(SCREEN_SPACE_SHADOWS_ON) && !defined(_SURFACE_TYPE_TRANSPARENT)
+                        if ((s_lightData.screenSpaceShadowIndex & SCREEN_SPACE_SHADOW_INDEX_MASK) != INVALID_SCREEN_SPACE_SHADOW)
+                        {
+                            shadowP = GetScreenSpaceShadow(posInput, s_lightData.screenSpaceShadowIndex);
+                        }
+                        else
+#endif
+                        {
+                            shadowP = GetPunctualShadowAttenuation(shadowContext, posInput.positionSS, posInput.positionWS, normalWS, s_lightData.shadowIndex, L, distances.x, s_lightData.lightType == GPULIGHTTYPE_POINT, s_lightData.lightType != GPULIGHTTYPE_PROJECTOR_BOX);
+                            shadowP = s_lightData.nonLightMappedOnly ? min(1.0f, shadowP) : shadowP;
+                        }
                         shadowP = lerp(1.0f, shadowP, s_lightData.shadowDimmer);
 
 #ifdef SHADOW_LOOP_MULTIPLY

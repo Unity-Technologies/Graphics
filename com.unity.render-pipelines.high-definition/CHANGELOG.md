@@ -24,6 +24,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Added shader graph unit test for IsFrontFace node
 - API to allow OnDemand shadows to not render upon placement in the Cached Shadow Atlas.
 - Exposed update upon light movement for directional light shadows in UI.
+- Added support for screen space shadows (directional and point, no area) for shadow matte unlit shader graph.
 
 ### Fixed
 - Fixed Intensity Multiplier not affecting realtime global illumination.
