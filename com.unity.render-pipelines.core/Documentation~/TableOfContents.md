@@ -12,7 +12,7 @@
 * [RTHandle system](rthandle-system.md)
   * [RTHandle fundamentals](rthandle-system-fundamentals.md)
   * [Using the RTHandle system](rthandle-system-using.md)
-
+* [Custom Material Inspector](custom-material-inspector.md)
 * [Look Dev](Look-Dev.md)
   * [Environment Library](Look-Dev-Environment-Library.md)
 
