@@ -86,7 +86,7 @@ namespace UnityEngine.Rendering.Universal.Internal
                 else
 #endif
                 if((isSceneViewCamera || cameraData.isDefaultViewport) &&
-                   (DebugHandler == null) || (DebugHandler.DebugDisplaySettings.ValidationSettings.validationMode == DebugValidationMode.None))
+                   ((DebugHandler == null) || (DebugHandler.DebugDisplaySettings.ValidationSettings.validationMode == DebugValidationMode.None)))
                 {
                     // This set render target is necessary so we change the LOAD state to DontCare.
                     cmd.SetRenderTarget(BuiltinRenderTextureType.CameraTarget,
