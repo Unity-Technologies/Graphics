@@ -623,7 +623,7 @@ namespace UnityEditor.VFX.UI
                 {
                     foreach (var anyNode in fromController.parentController.nodes)
                     {
-                        if(anyNode.infos.linkedSlots != null)
+                        if (anyNode.infos.linkedSlots != null)
                             anyNode.infos.linkedSlots.RemoveAll(t => t.inputSlot == resulting.inputSlot && t.outputSlot == resulting.outputSlot);
                     }
 

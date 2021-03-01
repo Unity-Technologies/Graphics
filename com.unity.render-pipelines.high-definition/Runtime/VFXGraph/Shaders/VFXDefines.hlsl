@@ -1,5 +1,6 @@
 #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Common.hlsl"
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/ShaderLibrary/ShaderVariables.hlsl"
+#include "Packages/com.unity.render-pipelines.high-definition/Runtime/ShaderLibrary/TextureXR.hlsl"
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/MaterialBlendModeEnum.cs.hlsl"
 
 #if VFX_BLENDMODE_ALPHA
@@ -36,4 +37,12 @@
 
 #if IS_TRANSPARENT_PARTICLE
 #define _SURFACE_TYPE_TRANSPARENT
+#endif
+
+#ifdef USE_TEXTURE2D_X_AS_ARRAY
+#define CameraBuffer Texture2DArray
+#define VFXSamplerCameraBuffer VFXSampler2DArray
+#else
+#define CameraBuffer Texture2D
+#define VFXSamplerCameraBuffer VFXSampler2D
 #endif

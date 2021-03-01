@@ -231,10 +231,86 @@ namespace UnityEditor.VFX.Test
             yield return new ExitPlayMode();
         }
 
-        static List<int> s_receivedEvent;
-        static void OnEventReceived(VFXOutputEventArgs evt)
+
+        static List<Vector3> s_RecordedPositions = new List<Vector3>();
+        static void OnEventReceived_SavePosition(VFXOutputEventArgs evt)
         {
-            s_receivedEvent.Add(evt.nameId);
+            s_RecordedPositions.Add(evt.eventAttribute.GetVector3("position"));
+        }
+
+        static bool[] s_Verify_Reseed_OnPlay_Behavior_options = new bool[] { false, true };
+
+        [UnityTest]
+        public IEnumerator Verify_Reseed_OnPlay_Behavior([ValueSource("s_Verify_Reseed_OnPlay_Behavior_options")] bool reseed, [ValueSource("s_Verify_Reseed_OnPlay_Behavior_options")] bool useSendEvent)
+        {
+            yield return new EnterPlayMode();
+
+            var spawnCountValue = 1.0f;
+            VisualEffect vfxComponent;
+            GameObject cameraObj, gameObj;
+            VFXGraph graph;
+            CreateAssetAndComponent(spawnCountValue, "OnPlay", out graph, out vfxComponent, out gameObj, out cameraObj);
+
+            var outputEvent = ScriptableObject.CreateInstance<VFXOutputEvent>();
+            var eventName = "qsdf";
+            outputEvent.SetSettingValue("eventName", eventName);
+            var basicSpawner = graph.children.OfType<VFXBasicSpawner>().FirstOrDefault();
+            graph.AddChild(outputEvent);
+            outputEvent.LinkFrom(basicSpawner);
+
+            //Add constant random to inspect the current seed
+            var setAttributePosition = ScriptableObject.CreateInstance<VFXSpawnerSetAttribute>();
+            setAttributePosition.SetSettingValue("attribute", "position");
+            basicSpawner.AddChild(setAttributePosition);
+
+            for (int i = 0; i < 3; ++i)
+            {
+                var random = ScriptableObject.CreateInstance<Operator.Random>();
+                random.SetSettingValue("seed", VFXSeedMode.PerComponent);
+                random.SetSettingValue("constant", true);
+                graph.AddChild(outputEvent);
+                random.outputSlots.First().Link(setAttributePosition.inputSlots.First()[i]);
+            }
+            AssetDatabase.ImportAsset(AssetDatabase.GetAssetPath(graph));
+
+            s_RecordedPositions = new List<Vector3>();
+            vfxComponent.outputEventReceived += OnEventReceived_SavePosition;
+            vfxComponent.resetSeedOnPlay = reseed;
+
+            int maxFrame = 256;
+            while (s_RecordedPositions.Count < 3 && --maxFrame > 0)
+                yield return null;
+
+            Assert.IsTrue(maxFrame > 0);
+            Assert.AreEqual(1, s_RecordedPositions.Distinct().Count());
+
+            for (int i = 0; i < 3; ++i)
+            {
+                //The seed should change depending on resetSeedOnPlay settings
+                if (useSendEvent)
+                    vfxComponent.SendEvent(VisualEffectAsset.PlayEventID);
+                else
+                    vfxComponent.Play();
+
+                maxFrame = 256;
+                while (s_RecordedPositions.Count < 3 + i * 3 && --maxFrame > 0)
+                    yield return null;
+                Assert.IsTrue(maxFrame > 0);
+            }
+
+            var distinctCount = s_RecordedPositions.Distinct().Count();
+            if (reseed)
+                Assert.AreNotEqual(1, distinctCount);
+            else
+                Assert.AreEqual(1, distinctCount);
+
+            yield return new ExitPlayMode();
+        }
+
+        static List<int> s_ReceivedEventNamedId;
+        static void OnEventReceived_RegisterNameID(VFXOutputEventArgs evt)
+        {
+            s_ReceivedEventNamedId.Add(evt.nameId);
         }
 
         [UnityTest]
@@ -257,8 +333,8 @@ namespace UnityEditor.VFX.Test
             outputEvent.LinkFrom(basicSpawner);
             AssetDatabase.ImportAsset(AssetDatabase.GetAssetPath(graph));
 
-            s_receivedEvent = new List<int>();
-            vfxComponent.outputEventReceived += OnEventReceived;
+            s_ReceivedEventNamedId = new List<int>();
+            vfxComponent.outputEventReceived += OnEventReceived_RegisterNameID;
 
             int maxFrame = 64;
             while (vfxComponent.culled && --maxFrame > 0)
@@ -274,19 +350,19 @@ namespace UnityEditor.VFX.Test
             Assert.AreEqual(outputEventName, eventName);
 
             //Checking invalid event (waiting for the first event)
-            Assert.AreEqual(0u, s_receivedEvent.Count);
+            Assert.AreEqual(0u, s_ReceivedEventNamedId.Count);
 
             //Checking on valid event while there is an event
-            maxFrame = 64; s_receivedEvent.Clear();
-            while (s_receivedEvent.Count == 0u && --maxFrame > 0)
+            maxFrame = 64; s_ReceivedEventNamedId.Clear();
+            while (s_ReceivedEventNamedId.Count == 0u && --maxFrame > 0)
             {
                 yield return null;
             }
             Assert.IsTrue(maxFrame > 0);
-            Assert.IsTrue(s_receivedEvent.Count > 0);
-            Assert.AreEqual(Shader.PropertyToID(eventName), s_receivedEvent.FirstOrDefault());
+            Assert.IsTrue(s_ReceivedEventNamedId.Count > 0);
+            Assert.AreEqual(Shader.PropertyToID(eventName), s_ReceivedEventNamedId.FirstOrDefault());
 
-            s_receivedEvent.Clear();
+            s_ReceivedEventNamedId.Clear();
 
             yield return new ExitPlayMode();
         }
@@ -309,8 +385,8 @@ namespace UnityEditor.VFX.Test
             outputEvent.LinkFrom(basicSpawner);
             AssetDatabase.ImportAsset(AssetDatabase.GetAssetPath(graph));
 
-            s_receivedEvent = new List<int>();
-            vfxComponent.outputEventReceived += OnEventReceived;
+            s_ReceivedEventNamedId = new List<int>();
+            vfxComponent.outputEventReceived += OnEventReceived_RegisterNameID;
 
             int maxFrame = 512;
             while (vfxComponent.culled && --maxFrame > 0)
@@ -323,23 +399,23 @@ namespace UnityEditor.VFX.Test
             float deltaTime = 0.1f;
             uint count = 32;
             vfxComponent.Simulate(deltaTime, count);
-            Assert.AreEqual(0u, s_receivedEvent.Count); //The simulate is asynchronous
+            Assert.AreEqual(0u, s_ReceivedEventNamedId.Count); //The simulate is asynchronous
 
             float simulateTime = deltaTime * count;
             uint expectedEventCount = (uint)Mathf.Floor(simulateTime / spawnCountValue);
 
-            maxFrame = 64; s_receivedEvent.Clear();
+            maxFrame = 64; s_ReceivedEventNamedId.Clear();
             cameraObj.SetActive(false);
-            while (s_receivedEvent.Count == 0u && --maxFrame > 0)
+            while (s_ReceivedEventNamedId.Count == 0u && --maxFrame > 0)
             {
                 yield return null;
             }
-            Assert.AreEqual(expectedEventCount, (uint)s_receivedEvent.Count);
+            Assert.AreEqual(expectedEventCount, (uint)s_ReceivedEventNamedId.Count);
             yield return null;
 
             yield return new ExitPlayMode();
         }
-
+        
         [UnityTest]
         public IEnumerator Create_Asset_And_Component_Spawner_With_Manual_Set_SpawnCount_And_Output_Event_Check_Expected_Count()
         {
@@ -421,7 +497,6 @@ namespace UnityEditor.VFX.Test
 
             yield return new ExitPlayMode();
         }
-
 
         [UnityTest]
         public IEnumerator Create_Asset_And_Component_Spawner()

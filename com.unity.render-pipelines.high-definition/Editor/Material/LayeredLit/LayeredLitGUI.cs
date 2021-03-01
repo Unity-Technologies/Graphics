@@ -348,7 +348,7 @@ namespace UnityEditor.Rendering.HighDefinition
                         layers[i] = AssetDatabase.LoadAssetAtPath(AssetDatabase.GUIDToAssetPath(layersGUID.GUIDArray[i]), typeof(Material)) as Material;
                     }
                 }
-                if (layersGUID.withUV.Length > 0)
+                if (layersGUID.withUV != null && layersGUID.withUV.Length > 0)
                 {
                     withUV = new bool[layersGUID.withUV.Length];
                     for (int i = 0; i < layersGUID.withUV.Length; ++i)

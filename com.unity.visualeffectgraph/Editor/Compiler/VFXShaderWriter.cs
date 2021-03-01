@@ -325,8 +325,7 @@ namespace UnityEditor.VFX
                 case VFXValueType.Texture3D: return "VFXSampler3D";
                 case VFXValueType.TextureCube: return "VFXSamplerCube";
                 case VFXValueType.TextureCubeArray: return "VFXSamplerCubeArray";
-                case VFXValueType.Mesh: return "ByteAddressBuffer";
-
+                case VFXValueType.CameraBuffer: return "VFXSamplerCameraBuffer";
                 default:
                     return VFXExpression.TypeToCode(type);
             }
@@ -342,6 +341,7 @@ namespace UnityEditor.VFX
                 case VFXValueType.Texture3D:
                 case VFXValueType.TextureCube:
                 case VFXValueType.TextureCubeArray: return string.Format("GetVFXSampler({0}, {1})", expressionName, ("sampler" + expressionName));
+                case VFXValueType.CameraBuffer: return string.Format("GetVFXSampler({0}, {1})", expressionName, ("sampler" + expressionName));
 
                 default:
                     return expressionName;

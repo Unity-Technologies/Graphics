@@ -31,12 +31,6 @@ namespace UnityEditor.Rendering
 
     sealed class DebugWindow : EditorWindow
     {
-        static readonly GUIContent k_ResetButtonContent = new GUIContent("Reset");
-        //static readonly GUIContent k_SaveButtonContent = new GUIContent("Save");
-        //static readonly GUIContent k_LoadButtonContent = new GUIContent("Load");
-
-        //static bool isMultiview = false;
-
         static Styles s_Styles;
         static GUIStyle s_SplitterLeft;
 
@@ -130,13 +124,15 @@ namespace UnityEditor.Rendering
             s_TypeMapDirty = false;
         }
 
-        [MenuItem("Window/Render Pipeline/Render Pipeline Debug", priority = 10005)] // 112 is hardcoded number given by the UxTeam to fit correctly in the Windows menu
+        [MenuItem("Window/Analysis/Render Pipeline Debugger", priority = 10005)]
         static void Init()
         {
             var window = GetWindow<DebugWindow>();
-            window.titleContent = new GUIContent("Debug");
+            window.titleContent = Styles.windowTitle;
+
             if (OnDebugWindowToggled == null)
                 OnDebugWindowToggled += DebugManager.instance.ToggleEditorUI;
+
             open = true;
         }
 
@@ -151,7 +147,7 @@ namespace UnityEditor.Rendering
                 m_Settings = CreateInstance<DebugWindowSettings>();
 
             // States are ScriptableObjects (necessary for Undo/Redo) but are not saved on disk so when the editor is closed then reopened, any existing debug window will have its states set to null
-            // Since we don't care about persistance in this case, we just re-init everything.
+            // Since we don't care about persistence in this case, we just re-init everything.
             if (m_WidgetStates == null || !AreWidgetStatesValid())
                 m_WidgetStates = new WidgetStateDictionary();
 
@@ -186,18 +182,18 @@ namespace UnityEditor.Rendering
 
         public void DestroyWidgetStates()
         {
-            if (m_WidgetStates != null)
-            {
-                // Clear all the states from memory
-                foreach (var state in m_WidgetStates)
-                {
-                    var s = state.Value;
-                    Undo.ClearUndo(s); // Don't leave dangling states in the global undo/redo stack
-                    DestroyImmediate(s);
-                }
+            if (m_WidgetStates == null)
+                return;
 
-                m_WidgetStates.Clear();
+            // Clear all the states from memory
+            foreach (var state in m_WidgetStates)
+            {
+                var s = state.Value;
+                Undo.ClearUndo(s); // Don't leave dangling states in the global undo/redo stack
+                DestroyImmediate(s);
             }
+
+            m_WidgetStates.Clear();
         }
 
         bool AreWidgetStatesValid()
@@ -229,8 +225,7 @@ namespace UnityEditor.Rendering
         void UpdateWidgetStates(DebugUI.IContainer container)
         {
             // Skip runtime only containers, we won't draw them so no need to serialize them either
-            var actualWidget = container as DebugUI.Widget;
-            if (actualWidget != null && actualWidget.isInactiveInEditor)
+            if (container is DebugUI.Widget actualWidget && actualWidget.isInactiveInEditor)
                 return;
 
             // Recursively update widget states
@@ -238,8 +233,7 @@ namespace UnityEditor.Rendering
             {
                 // Skip non-serializable widgets but still traverse them in case one of their
                 // children needs serialization support
-                var valueField = widget as DebugUI.IValueField;
-                if (valueField != null)
+                if (widget is DebugUI.IValueField valueField)
                 {
                     // Skip runtime & readonly only items
                     if (widget.isInactiveInEditor)
@@ -247,8 +241,7 @@ namespace UnityEditor.Rendering
 
                     var widgetType = widget.GetType();
                     string guid = widget.queryPath;
-                    Type stateType;
-                    s_WidgetStateMap.TryGetValue(widgetType, out stateType);
+                    s_WidgetStateMap.TryGetValue(widgetType, out Type stateType);
 
                     // Create missing states & recreate the ones that are null
                     if (stateType != null)
@@ -264,8 +257,7 @@ namespace UnityEditor.Rendering
                 }
 
                 // Recurse if the widget is a container
-                var containerField = widget as DebugUI.IContainer;
-                if (containerField != null)
+                if (widget is DebugUI.IContainer containerField)
                     UpdateWidgetStates(containerField);
             }
         }
@@ -287,9 +279,7 @@ namespace UnityEditor.Rendering
 
         void ApplyState(string queryPath, DebugState state)
         {
-            var widget = DebugManager.instance.GetItem(queryPath) as DebugUI.IValueField;
-
-            if (widget == null)
+            if (!(DebugManager.instance.GetItem(queryPath) is DebugUI.IValueField widget))
                 return;
 
             widget.SetValue(state.GetValue());
@@ -371,13 +361,8 @@ namespace UnityEditor.Rendering
 
 
             GUILayout.BeginHorizontal(EditorStyles.toolbar);
-            //isMultiview = GUILayout.Toggle(isMultiview, "multiview", EditorStyles.toolbarButton);
-            //if (isMultiview)
-            //    EditorGUILayout.Popup(0, new[] { new GUIContent("SceneView 1"), new GUIContent("SceneView 2") }, EditorStyles.toolbarDropDown, GUILayout.Width(100f));
             GUILayout.FlexibleSpace();
-            //GUILayout.Button(k_LoadButtonContent, EditorStyles.toolbarButton);
-            //GUILayout.Button(k_SaveButtonContent, EditorStyles.toolbarButton);
-            if (GUILayout.Button(k_ResetButtonContent, EditorStyles.toolbarButton))
+            if (GUILayout.Button(Styles.resetButtonContent, EditorStyles.toolbarButton))
                 DebugManager.instance.Reset();
             GUILayout.EndHorizontal();
 
@@ -500,12 +485,11 @@ namespace UnityEditor.Rendering
             if (widget.isInactiveInEditor)
                 return;
 
-            DebugState state; // State will be null for stateless widget
-            m_WidgetStates.TryGetValue(widget.queryPath, out state);
+            // State will be null for stateless widget
+            m_WidgetStates.TryGetValue(widget.queryPath, out DebugState state);
 
-            DebugUIDrawer drawer;
 
-            if (!s_WidgetDrawerMap.TryGetValue(widget.GetType(), out drawer))
+            if (!s_WidgetDrawerMap.TryGetValue(widget.GetType(), out DebugUIDrawer drawer))
             {
                 EditorGUILayout.LabelField("Drawer not found (" + widget.GetType() + ").");
             }
@@ -544,6 +528,11 @@ namespace UnityEditor.Rendering
         public class Styles
         {
             public static float s_DefaultLabelWidth = 0.5f;
+
+            public static GUIContent windowTitle { get; } = EditorGUIUtility.TrTextContent("Render Pipeline Debugger");
+
+            public static GUIContent resetButtonContent { get; } = EditorGUIUtility.TrTextContent("Reset");
+
 
             public readonly GUIStyle sectionScrollView = "PreferencesSectionBox";
             public readonly GUIStyle sectionElement = new GUIStyle("PreferencesSection");

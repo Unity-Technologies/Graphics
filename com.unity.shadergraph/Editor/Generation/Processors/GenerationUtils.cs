@@ -636,7 +636,7 @@ namespace UnityEditor.ShaderGraph
 
                 foreach (var key in keywordCollector.keywords.Where(x => x.generatePropertyBlock))
                 {
-                    sb.AppendLine(key.GetPropertyBlockString());
+                    key.AppendPropertyBlockStrings(sb);
                 }
             }
         }
@@ -837,7 +837,6 @@ namespace UnityEditor.ShaderGraph
             {
                 functionRegistry.builder.currentNode = activeNode;
                 functionNode.GenerateNodeFunction(functionRegistry, mode);
-                functionRegistry.builder.ReplaceInCurrentMapping(PrecisionUtil.Token, activeNode.concretePrecision.ToShaderString());
             }
 
             if (activeNode is IGeneratesBodyCode bodyNode)

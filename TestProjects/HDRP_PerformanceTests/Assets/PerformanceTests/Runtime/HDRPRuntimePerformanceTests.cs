@@ -49,9 +49,34 @@ public class HDRPRuntimePerformanceTests : PerformanceTests
                 yield return new MemoryTestDescription{ assetData = asset, sceneData = scene, assetType = objectType };
     }
 
+    static readonly Vector2Int[] memoryTestResolutions = new Vector2Int[]{
+        new Vector2Int(1920, 1080),
+        new Vector2Int(2560, 1440),
+        new Vector2Int(3840, 2160),
+    };
+
     [Timeout(GlobalTimeout), Version("1"), UnityTest, Performance]
     public IEnumerator Memory([ValueSource(nameof(GetMemoryTests))] MemoryTestDescription testDescription)
     {
-        yield return ReportMemoryUsage(testDescription);
+        yield return LoadScene(testDescription.sceneData.scene, testDescription.assetData.asset);
+
+        var unloadTask = Resources.UnloadUnusedAssets();
+        while (!unloadTask.isDone)
+            yield return new WaitForEndOfFrame();
+
+        // We run memory tests with 3 different resolutions for texture asset types:
+        if (testDescription.assetType.IsSubclassOf(typeof(Texture)))
+        {
+            foreach (var resolution in memoryTestResolutions)
+            {
+                var sceneSettings = SetupTestScene(resolution);
+                yield return ReportMemoryUsage(sceneSettings, testDescription);
+            }
+        }
+        else
+        {
+            var sceneSettings = SetupTestScene();
+            yield return ReportMemoryUsage(sceneSettings, testDescription);
+        }
     }
 }

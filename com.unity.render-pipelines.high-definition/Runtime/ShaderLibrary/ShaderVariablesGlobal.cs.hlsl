@@ -18,6 +18,7 @@
 // PackingRules = Exact
 GLOBAL_CBUFFER_START(ShaderVariablesGlobal, b0)
     float4x4 _ViewMatrix;
+    float4x4 _CameraViewMatrix;
     float4x4 _InvViewMatrix;
     float4x4 _ProjMatrix;
     float4x4 _InvProjMatrix;

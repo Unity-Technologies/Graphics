@@ -28,4 +28,4 @@ pr:
 nightly:
   dependencies:
     - project: Smoke_Test
-      pr: true        
+      pr: true      

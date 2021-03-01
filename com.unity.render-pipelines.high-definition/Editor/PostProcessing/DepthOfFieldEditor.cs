@@ -46,8 +46,6 @@ namespace UnityEditor.Rendering.HighDefinition
         SerializedDataParameter m_Resolution;
         SerializedDataParameter m_PhysicallyBased;
 
-        public override bool hasAdvancedMode => true;
-
         public override void OnEnable()
         {
             var o = new PropertyFetcher<DepthOfField>(serializedObject);
@@ -128,7 +126,7 @@ namespace UnityEditor.Rendering.HighDefinition
                 PropertyField(m_FarSampleCount, Styles.k_FarSampleCount);
                 PropertyField(m_FarMaxBlur, Styles.k_FarMaxBlur);
 
-                if (isInAdvancedMode)
+                if (BeginAdditionalPropertiesScope())
                 {
                     EditorGUILayout.LabelField("Advanced Tweaks", EditorStyles.miniLabel);
                     PropertyField(m_Resolution);
@@ -137,6 +135,7 @@ namespace UnityEditor.Rendering.HighDefinition
                     if (m_PhysicallyBased.value.boolValue == true)
                         EditorGUILayout.HelpBox(Styles.InfoBox, MessageType.Info);
                 }
+                EndAdditionalPropertiesScope();
             }
         }
 

@@ -19,7 +19,7 @@ class EditorTests
 
         try
         {
-            ForwardRendererData data = ScriptableObject.CreateInstance<ForwardRendererData>();
+            UniversalRendererData data = ScriptableObject.CreateInstance<UniversalRendererData>();
             UniversalRenderPipelineAsset asset = UniversalRenderPipelineAsset.Create(data);
             LogAssert.NoUnexpectedReceived();
             ScriptableObject.DestroyImmediate(asset);
@@ -32,9 +32,9 @@ class EditorTests
         }
     }
 
-    // When creating a new forward renderer asset it should not log any errors or throw exceptions.
+    // When creating a new Universal Renderer asset it should not log any errors or throw exceptions.
     [Test]
-    public void CreateForwardRendererAssetWithoutErrors()
+    public void CreateUniversalRendererAssetWithoutErrors()
     {
         // Test without any render pipeline assigned to GraphicsSettings.
         var renderPipelineAsset = GraphicsSettings.renderPipelineAsset;
@@ -42,7 +42,7 @@ class EditorTests
 
         try
         {
-            var asset = ScriptableObject.CreateInstance<ForwardRendererData>();
+            var asset = ScriptableObject.CreateInstance<UniversalRendererData>();
             ResourceReloader.ReloadAllNullIn(asset, UniversalRenderPipelineAsset.packagePath);
             var renderer = asset.InternalCreateRenderer();
             LogAssert.NoUnexpectedReceived();
@@ -116,7 +116,7 @@ class EditorTests
     [Test]
     public void ValidateNewAssetResources()
     {
-        ForwardRendererData data = ScriptableObject.CreateInstance<ForwardRendererData>();
+        UniversalRendererData data = ScriptableObject.CreateInstance<UniversalRendererData>();
         UniversalRenderPipelineAsset asset = UniversalRenderPipelineAsset.Create(data);
         Assert.AreNotEqual(null, asset.defaultMaterial);
         Assert.AreNotEqual(null, asset.defaultParticleMaterial);
@@ -141,7 +141,7 @@ class EditorTests
     public void ValidateAssetSettings()
     {
         // Create a new asset and validate invalid settings
-        ForwardRendererData data = ScriptableObject.CreateInstance<ForwardRendererData>();
+        UniversalRendererData data = ScriptableObject.CreateInstance<UniversalRendererData>();
         UniversalRenderPipelineAsset asset = UniversalRenderPipelineAsset.Create(data);
         if (asset != null)
         {

@@ -51,7 +51,7 @@ Once you have completed one of these, move onto [Final setup](#FinalSetup).
 
 You can use the [Render Pipeline Wizard](Render-Pipeline-Wizard.md) to set up ray tracing in your HDRP Project.
 
-1. To open the Render Pipeline Wizard, go to Window > Render Pipeline and select HD Render Pipeline Wizard.
+1. To open the HDRP Wizard, go to Window > Rendering > HDRP Wizard.
 2. Select the HDRP + DXR tab.
 3. Click the Fix All button.
 4. (Optional) Enable the HDRP asset features that are required for the ray tracing effects.

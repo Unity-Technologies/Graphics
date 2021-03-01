@@ -394,21 +394,8 @@ namespace UnityEditor.VFX
                         yield return "USE_MOTION_VECTORS_PASS";
                     else
                         yield return "VFX_FEATURE_MOTION_VECTORS_FORWARD";
-                    switch (taskType)
-                    {
-                        case VFXTaskType.ParticleQuadOutput:
-                            yield return "VFX_FEATURE_MOTION_VECTORS_VERTS 4";
-                            break;
-                        case VFXTaskType.ParticleTriangleOutput:
-                            yield return "VFX_FEATURE_MOTION_VECTORS_VERTS 3";
-                            break;
-                        case VFXTaskType.ParticleLineOutput:
-                            yield return "VFX_FEATURE_MOTION_VECTORS_VERTS 2";
-                            break;
-                        case VFXTaskType.ParticlePointOutput:
-                            yield return "VFX_FEATURE_MOTION_VECTORS_VERTS 1";
-                            break;
-                    }
+                    if (SupportsMotionVectorPerVertex(out uint vertsCount))
+                        yield return "VFX_FEATURE_MOTION_VECTORS_VERTS " + vertsCount;
                 }
 
                 if (hasShadowCasting)
@@ -591,6 +578,30 @@ namespace UnityEditor.VFX
                 if (HasStrips(false))
                     yield return new VFXMapping("strips", 1);
             }
+        }
+
+        public bool SupportsMotionVectorPerVertex(out uint vertsCount)
+        {
+            switch (taskType)
+            {
+                case VFXTaskType.ParticleQuadOutput:
+                    vertsCount = 4;
+                    break;
+                case VFXTaskType.ParticleTriangleOutput:
+                    vertsCount = 3;
+                    break;
+                case VFXTaskType.ParticleLineOutput:
+                    vertsCount = 2;
+                    break;
+                case VFXTaskType.ParticlePointOutput:
+                    vertsCount = 1;
+                    break;
+                default:
+                    vertsCount = 0;
+                    break;
+            }
+            // TODO: @gabriel.delacruz - Temporarily disable per vertex optimization
+            return false; //vertsCount != 0;
         }
     }
 }

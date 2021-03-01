@@ -1649,8 +1649,6 @@ namespace UnityEngine.Rendering.HighDefinition
         bool useVolumetric = true;
         [SerializeField, FormerlySerializedAs("featuresFoldout")]
         bool featuresFoldout = true;
-        [SerializeField, FormerlySerializedAs("showAdditionalSettings")]
-        byte showAdditionalSettings = 0;
 #pragma warning restore 0414
 
         HDShadowRequest[]   shadowRequests;
@@ -2085,8 +2083,8 @@ namespace UnityEngine.Rendering.HighDefinition
             HDShadowUtils.ExtractDirectionalLightData(
                 visibleLight, viewportSize, (uint)requestIndex, shadowSettings.cascadeShadowSplitCount.value,
                 shadowSettings.cascadeShadowSplits, nearPlaneOffset, cullResults, lightIndex,
-                out shadowRequest.view, out invViewProjection, out shadowRequest.deviceProjectionYFlip,
-                out shadowRequest.deviceProjection, out shadowRequest.splitData
+                out shadowRequest.view, out invViewProjection, out shadowRequest.projection,
+                out shadowRequest.deviceProjection, out shadowRequest.deviceProjectionYFlip, out shadowRequest.splitData
             );
 
             cullingSphere = shadowRequest.splitData.cullingSphere;
@@ -2116,8 +2114,8 @@ namespace UnityEngine.Rendering.HighDefinition
                     HDShadowUtils.ExtractPointLightData(
                         visibleLight, viewportSize, shadowNearPlane,
                         normalBias, (uint)shadowIndex, filteringQuality, out shadowRequest.view,
-                        out invViewProjection, out shadowRequest.deviceProjectionYFlip,
-                        out shadowRequest.deviceProjection, out shadowRequest.splitData
+                        out invViewProjection, out shadowRequest.projection,
+                        out shadowRequest.deviceProjection, out shadowRequest.deviceProjectionYFlip, out shadowRequest.splitData
                     );
                     break;
                 case HDLightType.Spot:
@@ -2125,8 +2123,8 @@ namespace UnityEngine.Rendering.HighDefinition
                     HDShadowUtils.ExtractSpotLightData(
                         spotLightShape, spotAngleForShadows, shadowNearPlane, aspectRatio, shapeWidth,
                         shapeHeight, visibleLight, viewportSize, normalBias, filteringQuality,
-                        out shadowRequest.view, out invViewProjection, out shadowRequest.deviceProjectionYFlip,
-                        out shadowRequest.deviceProjection, out shadowRequest.splitData
+                        out shadowRequest.view, out invViewProjection, out shadowRequest.projection,
+                        out shadowRequest.deviceProjection, out shadowRequest.deviceProjectionYFlip, out shadowRequest.splitData
                     );
                     break;
                 case HDLightType.Directional:
@@ -2140,7 +2138,7 @@ namespace UnityEngine.Rendering.HighDefinition
                             float offset = GetAreaLightOffsetForShadows(shapeSize, areaLightShadowCone);
                             Vector3 shadowOffset = offset * visibleLight.GetForward();
                             HDShadowUtils.ExtractRectangleAreaLightData(visibleLight, visibleLight.GetPosition() + shadowOffset, areaLightShadowCone, shadowNearPlane, shapeSize, viewportSize, normalBias, filteringQuality,
-                                out shadowRequest.view, out invViewProjection, out shadowRequest.deviceProjectionYFlip, out shadowRequest.deviceProjection, out shadowRequest.splitData);
+                                out shadowRequest.view, out invViewProjection, out shadowRequest.projection, out shadowRequest.deviceProjection, out shadowRequest.deviceProjectionYFlip, out shadowRequest.splitData);
                             break;
                         case AreaLightShape.Tube:
                             //Tube do not cast shadow at the moment.
@@ -2309,7 +2307,7 @@ namespace UnityEngine.Rendering.HighDefinition
             }
 
             // shadow clip planes (used for tessellation clipping)
-            GeometryUtility.CalculateFrustumPlanes(CoreMatrixUtils.MultiplyProjectionMatrix(shadowRequest.deviceProjectionYFlip, shadowRequest.view, hasOrthoMatrix), m_ShadowFrustumPlanes);
+            GeometryUtility.CalculateFrustumPlanes(CoreMatrixUtils.MultiplyProjectionMatrix(shadowRequest.projection, shadowRequest.view, hasOrthoMatrix), m_ShadowFrustumPlanes);
             if (shadowRequest.frustumPlanes?.Length != 6)
                 shadowRequest.frustumPlanes = new Vector4[6];
             // Left, right, top, bottom, near, far.
@@ -2594,7 +2592,6 @@ namespace UnityEngine.Rendering.HighDefinition
             data.m_ApplyRangeAttenuation = m_ApplyRangeAttenuation;
             data.useOldInspector = useOldInspector;
             data.featuresFoldout = featuresFoldout;
-            data.showAdditionalSettings = showAdditionalSettings;
             data.m_Intensity = m_Intensity;
             data.displayAreaLightEmissiveMesh = displayAreaLightEmissiveMesh;
             data.interactsWithSky = interactsWithSky;

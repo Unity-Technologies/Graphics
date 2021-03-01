@@ -10,7 +10,7 @@ test_platforms:
   - type: Standalone
     name: Standalone_PerformanceTests
     utr_flags:
-      - [all]: --performance-project-version=../.. --report-performance-data --performance-project-id=VFX
+      - [all]: --performance-project-version=. --report-performance-data --performance-project-id=VFX
     utr_flags_build:
       - [all]: --testfilter="VFX.PerformanceTest"
   - type: playmode
@@ -46,7 +46,7 @@ test_platforms:
     name: playmode_PerformanceTests
     utr_flags:
       - [all]: --testfilter="VFX.PerformanceTest"
-      - [all]: --performance-project-version=../.. --report-performance-data --performance-project-id=VFX
+      - [all]: --performance-project-version=. --report-performance-data --performance-project-id=VFX
   - type: editmode
     utr_flags:
       - [all]: --testfilter="VFX.Test"
@@ -54,7 +54,7 @@ test_platforms:
     name: editmode_PerformanceTests
     utr_flags:
       - [all]: --testfilter="VFX.PerformanceTest"
-      - [all]: --performance-project-version=../.. --report-performance-data --performance-project-id=VFX
+      - [all]: --performance-project-version=. --report-performance-data --performance-project-id=VFX
   - type: Standalone
     name: Standalone_cache
     utr_flags:
@@ -74,7 +74,7 @@ test_platforms:
     - [all]: --extra-editor-arg="-cacheServerEnableDownload" --extra-editor-arg="true"
     - [all]: --extra-editor-arg="-cacheServerEnableUpload" --extra-editor-arg="true"
 expression_trigger:
-  expression: 'pull_request.target eq "master" AND NOT pull_request.draft AND pull_request.changes.any match ["com.unity.visualeffectgraph/**/*", "TestProjects/VisualEffectGraph_HDRP/**/*"]'
+  expression: 'pull_request.target eq "<TARGET_BRANCH>" AND NOT pull_request.draft AND pull_request.changes.any match ["com.unity.visualeffectgraph/**/*", "TestProjects/VisualEffectGraph_HDRP/**/*"] AND NOT pull_request.push.changes.all match ["*.md", "**/*.md", "doc/**/*", "**/Documentation*/**/*"]'
 platforms:
   - name: Win
     apis:
@@ -86,7 +86,6 @@ platforms:
     color_spaces:
       - Linear
     agents_project:
-      # default: package_ci_mac
       default:
         type: Unity::VM::GPU
         image: sdet/gamecode_win10:stable
@@ -96,11 +95,6 @@ platforms:
         type: Unity::VM
         image: sdet/gamecode_win10:stable
         flavor: b1.large
-      standalone:
-        type: Unity::VM::GPU
-        image: sdet/gamecode_win10:stable
-        flavor: b1.xlarge
-        model: rtx2080
       standalone_build:
         type: Unity::VM
         image: sdet/gamecode_win10:stable
@@ -159,4 +153,3 @@ nightly:
       color_space: Linear
       test_platforms:
         - playmode_cache
-

@@ -43,6 +43,7 @@ namespace UnityEngine.Rendering.HighDefinition
         // ================================
         // TODO: all affine matrices should be 3x4.
         public Matrix4x4 _ViewMatrix;
+        public Matrix4x4 _CameraViewMatrix;
         public Matrix4x4 _InvViewMatrix;
         public Matrix4x4 _ProjMatrix;
         public Matrix4x4 _InvProjMatrix;

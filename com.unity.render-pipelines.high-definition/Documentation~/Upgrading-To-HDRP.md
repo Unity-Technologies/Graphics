@@ -27,9 +27,9 @@ Firstly, to install HDRP, add the High Definition RP package to your Unity Proje
 
 HDRP is now available to use in your Project. Note that when you install HDRP, Unity automatically attaches two HDRP-specific components to GameObjects in your Scene. It attaches the **HD Additional Light Data** component to Lights, and the **HD Additional Camera Data** component to Cameras. If you do not set your Project to use HDRP, and any HDRP component is present in your Scene, Unity throws errors. To fix these errors, see the following instructions on how to set up HDRP in your Project.
 
-To set up HDRP, use the [Render Pipeline Wizard](Render-Pipeline-Wizard.md).
+To set up HDRP, use the [HDRP Wizard](Render-Pipeline-Wizard.md).
 
-1. Open the Render Pipeline Wizard window (menu **Window > Render Pipeline > HD Render Pipeline Wizard**).
+1. Open the Render Pipeline Wizard window (menu **Window > Rendering > HD Render Pipeline Wizard**).
 
 2. In the **Configuration Checking** section, go to the **HDRP** tab and click **Fix All**. This fixes every HDRP configuration issue with your Project.
 
@@ -124,7 +124,7 @@ To set up lighting in your HDRP Project:
 
     2. Change the **Intensity** to **17000** **Lumen**. This is to represent two 8500 Lumen light bulbs.
 
-    3. In the **Emission** section, enable [More Options](More-Options.md).
+    3. In the **Emission** section, enable [additional properties](More-Options.md).
 
     4. Enable the **Reflector** checkbox. This simulates a reflective surface behind the spot Light to adjust the visual intensity.
 9. Make the light bulb Material emissive:
