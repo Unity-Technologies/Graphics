@@ -295,6 +295,10 @@ public class SetupTestAssetTestCases : IPrebuildSetup
             }
             foreach (var individualTest in testAsset.testMaterial)
             {
+                if(individualTest.material == null)
+                {
+                    continue;
+                }
                 var hashPath = $"{testResultsPath}{testAsset.name}_{individualTest.material.name}_{k_resultHashSuffix}";
                 if (!File.Exists(hashPath))
                 {
