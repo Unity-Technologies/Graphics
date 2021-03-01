@@ -45,13 +45,13 @@ VertexDescriptionInputs AttributesMeshToVertexDescriptionInputs(AttributesMesh i
 
 
     AttributesMesh ApplyMeshModification(AttributesMesh input,
-#if defined(HAVE_VFX_MODIFICATION)
-        AttributesElement element,
-#endif
           float3 timeParameters
 #if defined(USE_CUSTOMINTERP_APPLYMESHMOD) // mirrored in VertMesh.hlsl and MotionVectorVertexShaderCommon.hlsl
         // use ifdef via TESSELLATION_ON to use VaryingsMeshToDS (Domain varyings instead of pixel varyings) whenever SG is modified to support Tess.
         , inout VaryingsMeshToPS varyings
+#endif
+#if defined(HAVE_VFX_MODIFICATION)
+        , AttributesElement element
 #endif
     )
 {

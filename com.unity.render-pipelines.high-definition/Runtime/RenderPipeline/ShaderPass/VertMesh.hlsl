@@ -155,13 +155,13 @@ VaryingsMeshType VertMesh(AttributesMesh input, float3 worldSpaceOffset)
 
 #if defined(HAVE_MESH_MODIFICATION)
     input = ApplyMeshModification(input,
-    #if defined(HAVE_VFX_MODIFICATION)
-        element,
-    #endif
      _TimeParameters.xyz
     // If custom interpolators are in use, we need to write them to the shader graph generated VaryingsMesh
     #if defined(USE_CUSTOMINTERP_APPLYMESHMOD)
         , output
+    #endif
+    #if defined(HAVE_VFX_MODIFICATION)
+        , element
     #endif
     );
 #endif
