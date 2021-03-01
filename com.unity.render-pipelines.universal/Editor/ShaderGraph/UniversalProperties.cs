@@ -17,6 +17,20 @@ namespace UnityEngine.Rendering.Universal
         public static readonly string ReceiveShadows = "_ReceiveShadows";
         public static readonly string QueueOffset = "_QueueOffset";
 
+        public static Vector1ShaderProperty WorkflowMode(UnityEditor.Rendering.Universal.ShaderGraph.WorkflowMode workflowModeDefault)
+        {
+            return new Vector1ShaderProperty()
+            {
+                floatType = FloatType.Default,
+                hidden = true,
+                overrideHLSLDeclaration = true,
+                hlslDeclarationOverride = HLSLDeclaration.UnityPerMaterial,
+                value = (float)workflowModeDefault,
+                displayName = "WorkflowMode",
+                overrideReferenceName = "_WorkflowMode",
+            };
+        }
+
         //public static readonly string AlphaCutoff = "_Cutoff";
     }
 

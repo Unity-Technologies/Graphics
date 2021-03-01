@@ -47,6 +47,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
 */
         }
 
+        /*
         protected SubShaderDescriptor PostProcessSubShader(SubShaderDescriptor subShaderDescriptor)
         {
             // Update Render State
@@ -54,6 +55,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
             subShaderDescriptor.renderQueue = target.renderQueue;
             return subShaderDescriptor;
         }
+        */
     }
 
     internal static class SubShaderUtils
@@ -68,6 +70,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
             return result;
         }
 
+        /*
         internal static PassDescriptor PassVariant(in PassDescriptor source, BlockFieldDescriptor[] vertexBlocks, BlockFieldDescriptor[] pixelBlocks, PragmaCollection pragmas, DefineCollection defines)
         {
             var result = source;
@@ -77,6 +80,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
             result.defines = defines;
             return result;
         }
+        */
 
         #endregion
     }

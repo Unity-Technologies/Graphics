@@ -25,6 +25,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
     {
         Specular,
         Metallic,
+        MaterialChoice   // lets the Material choose the workflow (via the _SPECULAR_SETUP keyword)     // TODO: this should be a separate boolean
     }
 
     enum SurfaceType
@@ -116,7 +117,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
 
         public SubTarget activeSubTarget
         {
-            get => m_ActiveSubTarget;
+            get => m_ActiveSubTarget.value;
             set => m_ActiveSubTarget = value;
         }
 
@@ -214,6 +215,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
         public override void CollectShaderProperties(PropertyCollector collector, GenerationMode generationMode)
         {
             base.CollectShaderProperties(collector, generationMode);
+            activeSubTarget.CollectShaderProperties(collector, generationMode);
 
             collector.AddShaderProperty(LightmappingShaderProperties.kLightmapsArray);
             collector.AddShaderProperty(LightmappingShaderProperties.kLightmapsIndirectionArray);
@@ -373,6 +375,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
             // Conditional State
             renderStates = CoreRenderStates.DepthOnly,
             pragmas = CorePragmas.Instanced,
+            keywords = CoreKeywords.DepthOnly,
             includes = CoreIncludes.DepthOnly,
 
             // Custom Interpolator Support
@@ -782,7 +785,8 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
             referenceName = "_ALPHATEST_ON",
             type = KeywordType.Boolean,
             definition = KeywordDefinition.ShaderFeature,
-            scope = KeywordScope.Local, // TODO: LocalFragment ?
+            scope = KeywordScope.Local,
+            stages = KeywordShaderStage.Fragment,
         };
 
         public static readonly KeywordDescriptor AlphaPremultiplyOn = new KeywordDescriptor()
@@ -791,7 +795,8 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
             referenceName = "_ALPHAPREMULTIPLY_ON",
             type = KeywordType.Boolean,
             definition = KeywordDefinition.ShaderFeature,
-            scope = KeywordScope.Local, // TODO: LocalFragment ?
+            scope = KeywordScope.Local,
+            stages = KeywordShaderStage.Fragment,
         };
 
         public static readonly KeywordDescriptor MainLightShadows = new KeywordDescriptor()
@@ -879,6 +884,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
             scope = KeywordScope.Global,
         };
 
+        /*      // this is a per-shader keyword, shouldn't be declared globally...
         public static readonly KeywordDescriptor SmoothnessChannel = new KeywordDescriptor()
         {
             displayName = "Smoothness Channel",
@@ -887,6 +893,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
             definition = KeywordDefinition.ShaderFeature,
             scope = KeywordScope.Global,
         };
+        */
 
         public static readonly KeywordDescriptor ShapeLightType0 = new KeywordDescriptor()
         {
@@ -939,6 +946,11 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
         public static readonly KeywordCollection ShadowCaster = new KeywordCollection
         {
             { CoreKeywordDescriptors.CastingPunctualLightShadow },
+            CoreKeywordDescriptors.AlphaTestOn
+        };
+
+        public static readonly KeywordCollection DepthOnly = new KeywordCollection
+        {
             CoreKeywordDescriptors.AlphaTestOn
         };
     }

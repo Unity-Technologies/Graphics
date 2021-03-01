@@ -53,6 +53,17 @@ namespace UnityEditor.ShaderGraph
             }
         }
 
+        public static string ToDeclarationSuffix(this KeywordScope scope)
+        {
+            switch (scope)
+            {
+                case KeywordScope.Local:
+                    return "_local";
+                default:
+                    return string.Empty;
+            }
+        }
+
         public static string ToDeclarationString(this KeywordDefinition keywordDefinition)
         {
             switch (keywordDefinition)
@@ -113,7 +124,7 @@ namespace UnityEditor.ShaderGraph
         public static string ToDeclarationString(this KeywordDescriptor keyword)
         {
             // Get definition type using scope
-            string scopeString = keyword.scope == KeywordScope.Local ? "_local" : string.Empty;
+            string scopeString = keyword.scope.ToDeclarationSuffix();
             string definitionString = $"{keyword.definition.ToDeclarationString()}{scopeString}{keyword.stages.ToKeywordStagesString()}";
 
             switch (keyword.type)

@@ -156,7 +156,7 @@ namespace UnityEditor.ShaderGraph
                 return string.Empty;
 
             // Get definition type using scope
-            string scopeString = keywordScope == KeywordScope.Local ? "_local" : string.Empty;
+            string scopeString = keywordScope.ToDeclarationSuffix();
             string definitionString = $"{keywordDefinition.ToDeclarationString()}{scopeString}";
 
             switch (keywordType)

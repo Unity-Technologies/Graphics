@@ -18,7 +18,6 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
         public static FieldDescriptor BlendPremultiply =      new FieldDescriptor(kBlendMode,   "Premultiply",            "_ALPHAPREMULTIPLY_ON 1");
         public static FieldDescriptor BlendMultiply =         new FieldDescriptor(kBlendMode,   "Multiply",               "_BLENDMODE_MULTIPLY 1");
         public static FieldDescriptor VelocityPrecomputed =   new FieldDescriptor(string.Empty, "AddPrecomputedVelocity", "_ADD_PRECOMPUTED_VELOCITY");
-        public static FieldDescriptor SpecularSetup =         new FieldDescriptor(string.Empty, "SpecularSetup",          "_SPECULAR_SETUP");
         public static FieldDescriptor Normal =                new FieldDescriptor(string.Empty, "Normal",                 "_NORMALMAP 1");
         public static FieldDescriptor NormalDropOffTS =       new FieldDescriptor(string.Empty, "NormalDropOffTS",        "_NORMAL_DROPOFF_TS 1");
         public static FieldDescriptor NormalDropOffOS =       new FieldDescriptor(string.Empty, "NormalDropOffOS",        "_NORMAL_DROPOFF_OS 1");
