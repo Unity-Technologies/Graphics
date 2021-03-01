@@ -24,7 +24,7 @@ namespace UnityEngine.Rendering.Universal
                 floatType = FloatType.Default,
                 hidden = true,
                 overrideHLSLDeclaration = true,
-                hlslDeclarationOverride = HLSLDeclaration.UnityPerMaterial,
+                hlslDeclarationOverride = HLSLDeclaration.DoNotDeclare,
                 value = (float)workflowModeDefault,
                 displayName = "WorkflowMode",
                 overrideReferenceName = "_WorkflowMode",
