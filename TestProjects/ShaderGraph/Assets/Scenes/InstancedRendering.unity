@@ -831,7 +831,7 @@ MonoBehaviour:
   m_GameObject: {fileID: 1592147963}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 7de28847c8d6a2f4b9e5e48e2f1e59aa, type: 3}
+  m_Script: {fileID: 11500000, guid: de63e4bad50dfc44ea9b5b1362ee7bbb, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
   ImageComparisonSettings:
@@ -848,6 +848,8 @@ MonoBehaviour:
     ActiveImageTests: 1
     ActivePixelTests: 7
   WaitFrames: 0
+  SRPBatchingDisabledPipeline: {fileID: 11400000, guid: 9c068d834ef325345b87395bd103e074,
+    type: 2}
 --- !u!114 &1592147968
 MonoBehaviour:
   m_ObjectHideFlags: 0
