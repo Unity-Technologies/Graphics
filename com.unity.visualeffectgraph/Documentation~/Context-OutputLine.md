@@ -18,7 +18,7 @@ Below is a list of settings and properties specific to the Output Particle Line 
 
 | Setting | Type | Description |
 | ------- | ---- | ----------- |
-|**Use Target Offset**|bool|Indicates whether this Context should derive the end point of the line as an offset to the particle position, in particle space. If you disable this property, the Context uses the target position attribute of the particle as the end point.|
+|**Use Target Offset**|bool|Indicates whether this Context derives the end point of the line as an offset to the particle position, in particle space. If you disable this property, the Context uses the target position attribute of the particle as the end point.|
 
 ## Context properties
 

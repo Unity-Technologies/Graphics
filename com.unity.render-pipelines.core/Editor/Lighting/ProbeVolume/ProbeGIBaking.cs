@@ -161,47 +161,63 @@ namespace UnityEngine.Rendering
 
                 UnityEditor.Experimental.Lightmapping.GetAdditionalBakedProbes(cell.index, sh, validity, bakedProbeOctahedralDepth);
 
-                cell.sh = new SphericalHarmonicsL1[numProbes];
+                cell.sh = new SphericalHarmonicsL2[numProbes];
                 cell.validity = new float[numProbes];
+
                 for (int i = 0; i < numProbes; ++i)
                 {
-                    Vector4[] channels = new Vector4[3];
-
                     int j = bakingCells[c].probeIndices[i];
+                    SphericalHarmonicsL2 shv = sh[j];
 
-                    // compare to SphericalHarmonicsL2::GetShaderConstantsFromNormalizedSH
-                    channels[0] = new Vector4(sh[j][0, 3], sh[j][0, 1], sh[j][0, 2], sh[j][0, 0]);
-                    channels[1] = new Vector4(sh[j][1, 3], sh[j][1, 1], sh[j][1, 2], sh[j][1, 0]);
-                    channels[2] = new Vector4(sh[j][2, 3], sh[j][2, 1], sh[j][2, 2], sh[j][2, 0]);
-
-                    // It can be shown that |L1_i| <= |2*L0|
-                    // Precomputed Global Illumination in Frostbite by Yuriy O'Donnell.
-                    // https://media.contentapi.ea.com/content/dam/eacom/frostbite/files/gdc2018-precomputedgiobalilluminationinfrostbite.pdf
-                    //
-                    // So divide by L0 brings us to [-2, 2],
-                    // divide by 4 brings us to [-0.5, 0.5],
-                    // and plus by 0.5 brings us to [0, 1].
-                    for (int channel = 0; channel < 3; ++channel)
+                    // Compress the range of all coefficients but the DC component to [0..1]
+                    // Upper bounds taken from http://ppsloan.org/publications/Sig20_Advances.pptx
+                    // Divide each coefficient by DC*f to get to [-1,1] where f is from slide 33
+                    for (int rgb = 0; rgb < 3; ++rgb)
                     {
-                        var l0 = channels[channel][3];
+                        var l0 = sh[j][rgb, 0];
 
-                        if (l0 != 0.0f)
-                        {
-                            for (int axis = 0; axis < 3; ++axis)
-                            {
-                                channels[channel][axis] = channels[channel][axis] / (l0 * 4.0f) + 0.5f;
-                                Debug.Assert(channels[channel][axis] >= 0.0f && channels[channel][axis] <= 1.0f);
-                            }
-                        }
+                        if (l0 == 0.0f)
+                            continue;
+
+                        // TODO: We're working on irradiance instead of radiance coefficients
+                        //       Add safety margin 2 to avoid out-of-bounds values
+                        float l1scale = 1.7320508f; // 3/(2*sqrt(3)) * 2
+                        float l2scale = 3.5777088f; // 4/sqrt(5) * 2
+
+                        // L_1^m
+                        shv[rgb, 1] = sh[j][rgb, 1] / (l0 * l1scale * 2.0f) + 0.5f;
+                        shv[rgb, 2] = sh[j][rgb, 2] / (l0 * l1scale * 2.0f) + 0.5f;
+                        shv[rgb, 3] = sh[j][rgb, 3] / (l0 * l1scale * 2.0f) + 0.5f;
+
+                        // L_2^-2
+                        shv[rgb, 4] = sh[j][rgb, 4] / (l0 * l2scale * 2.0f) + 0.5f;
+                        shv[rgb, 5] = sh[j][rgb, 5] / (l0 * l2scale * 2.0f) + 0.5f;
+                        shv[rgb, 6] = sh[j][rgb, 6] / (l0 * l2scale * 2.0f) + 0.5f;
+                        shv[rgb, 7] = sh[j][rgb, 7] / (l0 * l2scale * 2.0f) + 0.5f;
+                        shv[rgb, 8] = sh[j][rgb, 8] / (l0 * l2scale * 2.0f) + 0.5f;
+
+                        // Assert coefficient range
+                        for (int coeff = 1; coeff < 9; ++coeff)
+                            Debug.Assert(shv[rgb, coeff] >= 0.0f && shv[rgb, coeff] <= 1.0f);
                     }
 
-                    SphericalHarmonicsL1 sh1 = new SphericalHarmonicsL1();
-                    sh1.shAr = channels[0];
-                    sh1.shAg = channels[1];
-                    sh1.shAb = channels[2];
+                    SphericalHarmonicsL2Utils.SetL0(ref cell.sh[i], new Vector3(shv[0, 0], shv[1, 0], shv[2, 0]));
+                    SphericalHarmonicsL2Utils.SetL1R(ref cell.sh[i], new Vector3(shv[0, 3], shv[0, 1], shv[0, 2]));
+                    SphericalHarmonicsL2Utils.SetL1G(ref cell.sh[i], new Vector3(shv[1, 3], shv[1, 1], shv[1, 2]));
+                    SphericalHarmonicsL2Utils.SetL1B(ref cell.sh[i], new Vector3(shv[2, 3], shv[2, 1], shv[2, 2]));
 
-                    cell.sh[i] = sh1;
                     cell.validity[i] = validity[j];
+                }
+
+                for (int i = 0; i < numProbes; ++i)
+                {
+                    int j = bakingCells[c].probeIndices[i];
+
+                    SphericalHarmonicsL2Utils.SetCoefficient(ref cell.sh[i], 4, new Vector3(sh[j][0, 4], sh[j][1, 4], sh[j][2, 4]));
+                    SphericalHarmonicsL2Utils.SetCoefficient(ref cell.sh[i], 5, new Vector3(sh[j][0, 5], sh[j][1, 5], sh[j][2, 5]));
+                    SphericalHarmonicsL2Utils.SetCoefficient(ref cell.sh[i], 6, new Vector3(sh[j][0, 6], sh[j][1, 6], sh[j][2, 6]));
+                    SphericalHarmonicsL2Utils.SetCoefficient(ref cell.sh[i], 7, new Vector3(sh[j][0, 7], sh[j][1, 7], sh[j][2, 7]));
+                    SphericalHarmonicsL2Utils.SetCoefficient(ref cell.sh[i], 8, new Vector3(sh[j][0, 8], sh[j][1, 8], sh[j][2, 8]));
                 }
 
                 // Reset index
@@ -294,7 +310,7 @@ namespace UnityEngine.Rendering
         }
 
         private static void DilateInvalidProbes(Vector3[] probePositions,
-            List<Brick> bricks, SphericalHarmonicsL1[] sh, float[] validity, ProbeDilationSettings dilationSettings)
+            List<Brick> bricks, SphericalHarmonicsL2[] sh, float[] validity, ProbeDilationSettings dilationSettings)
         {
             // For each brick
             List<DilationProbe> culledProbes = new List<DilationProbe>();
@@ -317,15 +333,19 @@ namespace UnityEngine.Rendering
                     FindNearProbes(probeIdx, probePositions, dilationSettings, culledProbes, nearProbes, out float invDistSum);
 
                     // Set invalid probe to weighted average of found neighboring probes
-                    var shAverage = new SphericalHarmonicsL1();
+                    var shAverage = new SphericalHarmonicsL2();
                     for (int nearProbeIdx = 0; nearProbeIdx < nearProbes.Count; nearProbeIdx++)
                     {
                         var nearProbe = nearProbes[nearProbeIdx];
                         float weight = nearProbe.dist / invDistSum;
                         var target = sh[nearProbe.idx];
-                        shAverage.shAr += target.shAr * weight;
-                        shAverage.shAg += target.shAg * weight;
-                        shAverage.shAb += target.shAb * weight;
+
+                        for (int c = 0; c < 9; ++c)
+                        {
+                            shAverage[0, c] += target[0, c] * weight;
+                            shAverage[1, c] += target[1, c] * weight;
+                            shAverage[2, c] += target[2, c] * weight;
+                        }
                     }
 
                     sh[probeIdx] = shAverage;

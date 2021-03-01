@@ -282,6 +282,37 @@ namespace UnityEditor.VFX
     }
 
     [VFXType, Serializable]
+    struct CameraBuffer
+    {
+        private Texture texture;
+
+        public CameraBuffer(Texture texture)
+        {
+            this.texture = texture;
+        }
+
+        public static implicit operator Texture(CameraBuffer cameraBuffer)
+        {
+            return cameraBuffer.texture;
+        }
+
+        public static implicit operator CameraBuffer(Texture texture)
+        {
+            return new CameraBuffer(texture);
+        }
+
+        public static implicit operator int(CameraBuffer cameraBuffer)
+        {
+            return cameraBuffer.texture?.GetInstanceID() ?? 0;
+        }
+
+        public static implicit operator CameraBuffer(int id)
+        {
+            return new CameraBuffer((Texture)EditorUtility.InstanceIDToObject(id));
+        }
+    }
+
+    [VFXType, Serializable]
     struct CameraType
     {
         [Tooltip("The camera's Transform in the world.")]
@@ -297,9 +328,9 @@ namespace UnityEditor.VFX
         [Min(0.0f), Tooltip("The width and height of the camera in pixels.")]
         public Vector2 pixelDimensions;
         [Tooltip("The depth buffer of the camera, containing the rendered depth information.")]
-        public Texture2DArray depthBuffer;
+        public CameraBuffer depthBuffer;
         [Tooltip("The color buffer of the camera, containing the rendered color information.")]
-        public Texture2DArray colorBuffer;
+        public CameraBuffer colorBuffer;
 
         public static CameraType defaultValue = new CameraType { transform = Transform.defaultValue, fieldOfView = 60.0f * Mathf.Deg2Rad, nearPlane = 0.3f, farPlane = 1000.0f, aspectRatio = 1.0f, pixelDimensions = new Vector2(1920, 1080) };
     }

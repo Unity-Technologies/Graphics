@@ -2,10 +2,6 @@
 
 #pragma multi_compile _ ENABLE_MSAA
 
-#ifdef SHADER_API_PSSL
-#   pragma argument( scheduler=minpressure ) // instruct the shader compiler to prefer minimizing vgpr usage
-#endif
-
 #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Common.hlsl"
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/ShaderLibrary/ShaderVariables.hlsl"
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/NormalBuffer.hlsl"
@@ -14,7 +10,11 @@
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Lighting/LightLoop/LightLoopDef.hlsl"
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Lighting/Shadow/ContactShadows.hlsl"
 
-#pragma only_renderers d3d11 playstation xboxone vulkan metal switch
+#pragma only_renderers d3d11 playstation xboxone xboxseries vulkan metal switch
+
+#ifdef SHADER_API_PSSL
+#include SHADER_COMPILER_GLOBAL_OPTIMIZE_REGISTER_USAGE
+#endif
 
 // #pragma enable_d3d11_debug_symbols
 

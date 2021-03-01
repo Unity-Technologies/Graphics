@@ -167,6 +167,9 @@ def checkout_and_push(editor_versions_files, target_branch, root, commit_message
     git_cmd(cmd, cwd=root)
 
     cmd = ['push', '--set-upstream', 'origin', target_branch]
+    assert not (target_branch in ('master', '2021.1/staging','10.x.x/release','8.x.x/release','7.x.x/release')), (
+            'Error: not allowed to force push to {target_branch}.')
+    cmd.append('--force')
     git_cmd(cmd, cwd=root)
     
     git_cmd(f'checkout {original_branch}', cwd=root)
