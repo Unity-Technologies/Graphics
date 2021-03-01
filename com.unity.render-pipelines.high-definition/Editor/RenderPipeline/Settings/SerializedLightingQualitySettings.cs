@@ -46,6 +46,10 @@ namespace UnityEditor.Rendering.HighDefinition
         public SerializedProperty RTGIDenoiserRadius;
         public SerializedProperty RTGISecondDenoise;
 
+        // Screen Space Global Illumination
+        public SerializedProperty SSGIRaySteps;
+        public SerializedProperty SSGIFilterRadius;
+
         // Fog
         public SerializedProperty VolumetricFogBudget;
         public SerializedProperty VolumetricFogRatio;
@@ -92,6 +96,10 @@ namespace UnityEditor.Rendering.HighDefinition
             RTGIHalfResDenoise = root.Find((GlobalLightingQualitySettings s) => s.RTGIHalfResDenoise);
             RTGIDenoiserRadius = root.Find((GlobalLightingQualitySettings s) => s.RTGIDenoiserRadius);
             RTGISecondDenoise = root.Find((GlobalLightingQualitySettings s) => s.RTGISecondDenoise);
+
+            // Screen Space Global Illumination
+            SSGIRaySteps = root.Find((GlobalLightingQualitySettings s) => s.SSGIRaySteps);
+            SSGIFilterRadius = root.Find((GlobalLightingQualitySettings s) => s.SSGIFilterRadius);
 
             // Fog
             VolumetricFogBudget = root.Find((GlobalLightingQualitySettings s) => s.Fog_Budget);
