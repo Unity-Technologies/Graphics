@@ -105,14 +105,9 @@ namespace UnityEditor.Rendering.HighDefinition
                 else
                 {
                     PropertyField(m_Tint);
-
-                    if (BeginAdditionalPropertiesScope())
-                    {
-                        PropertyField(m_MipFogNear);
-                        PropertyField(m_MipFogFar);
-                        PropertyField(m_MipFogMaxMip);
-                    }
-                    EndAdditionalPropertiesScope();
+                    PropertyField(m_MipFogNear);
+                    PropertyField(m_MipFogFar);
+                    PropertyField(m_MipFogMaxMip);
                 }
             }
 
@@ -132,17 +127,15 @@ namespace UnityEditor.Rendering.HighDefinition
                     PropertyField(m_DepthExtent, s_DepthExtentLabel);
                     PropertyField(m_DenoisingMode);
 
-                    if (BeginAdditionalPropertiesScope())
+                    PropertyField(m_SliceDistributionUniformity);
+
+                    base.OnInspectorGUI(); // Quality Setting
+
+                    using (new HDEditorUtils.IndentScope())
+                    using (new QualityScope(this))
                     {
-                        PropertyField(m_SliceDistributionUniformity);
-
-                        base.OnInspectorGUI(); // Quality Setting
-
-                        using (new HDEditorUtils.IndentScope())
-                        using (new QualityScope(this))
+                        if (PropertyField(m_FogControlMode))
                         {
-                            PropertyField(m_FogControlMode);
-
                             using (new HDEditorUtils.IndentScope())
                             {
                                 if ((FogControl)m_FogControlMode.value.intValue == FogControl.Balance)
@@ -157,18 +150,21 @@ namespace UnityEditor.Rendering.HighDefinition
                                 }
                             }
                         }
+                    }
 
-                        PropertyField(m_DirectionalLightsOnly);
-                        PropertyField(m_Anisotropy, s_AnisotropyLabel);
-                        if (m_Anisotropy.value.floatValue != 0.0f)
+                    PropertyField(m_DirectionalLightsOnly);
+                    PropertyField(m_Anisotropy, s_AnisotropyLabel);
+                    if (m_Anisotropy.value.floatValue != 0.0f)
+                    {
+                        if (BeginAdditionalPropertiesScope())
                         {
                             EditorGUILayout.Space();
                             EditorGUILayout.HelpBox(
                                 "When the value is not 0, the anisotropy effect significantly increases the performance impact of volumetric fog.",
                                 MessageType.Info, wide: true);
                         }
+                        EndAdditionalPropertiesScope();
                     }
-                    EndAdditionalPropertiesScope();
                 }
             }
         }

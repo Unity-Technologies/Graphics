@@ -180,7 +180,7 @@ namespace UnityEngine.Rendering.HighDefinition
         }
 
         [SerializeField]
-        private Vector3 m_Offset = new Vector3(0, 0, 0.5f);
+        internal Vector3 m_Offset = new Vector3(0, 0, 0);
         /// <summary>
         /// Change the pivot position.
         /// It is an offset between the center of the projection and the transform position.
@@ -199,7 +199,7 @@ namespace UnityEngine.Rendering.HighDefinition
         }
 
         [SerializeField]
-        Vector3 m_Size = new Vector3(1, 1, 1);
+        internal Vector3 m_Size = new Vector3(1, 1, 1);
         /// <summary>
         /// The size of the projection volume.
         /// See also <seealso cref="ResizeAroundPivot"/> to rescale relatively to the pivot position.

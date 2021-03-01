@@ -1,4 +1,5 @@
 using System;
+using UnityEngine.Experimental.Rendering;
 
 namespace UnityEngine.Rendering.Universal.Internal
 {
@@ -49,7 +50,7 @@ namespace UnityEngine.Rendering.Universal.Internal
                 cmd.GetTemporaryRT(destination.id, descriptor, FilterMode.Point);
 
             // On Metal iOS, prevent camera attachments to be bound and cleared during this pass.
-            ConfigureTarget(new RenderTargetIdentifier(destination.Identifier(), 0, CubemapFace.Unknown, -1));
+            ConfigureTarget(new RenderTargetIdentifier(destination.Identifier(), 0, CubemapFace.Unknown, -1), GraphicsFormat.DepthAuto, descriptor.width, descriptor.height, descriptor.msaaSamples, true);
             ConfigureClear(ClearFlag.None, Color.black);
         }
 
