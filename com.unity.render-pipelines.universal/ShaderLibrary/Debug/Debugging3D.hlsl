@@ -139,8 +139,7 @@ bool CalculateValidationColorForDebug(in InputData inputData, in SurfaceData sur
             return CalculateValidationMipLevel(inputData.mipInfo.w, inputData.uv, inputData.texelSize, surfaceData.albedo, surfaceData.alpha, debugColor);
 
         default:
-            debugColor = _DebugColorInvalidMode;
-            return true;
+            return TryGetDebugColorInvalidMode(debugColor);
     }
 }
 
@@ -160,8 +159,7 @@ bool CalculateDebugColorForMipmaps(in InputData inputData, in SurfaceData surfac
             return true;
 
         default:
-            debugColor = _DebugColorInvalidMode;
-            return true;
+            return TryGetDebugColorInvalidMode(debugColor);
     }
 }
 
@@ -214,8 +212,7 @@ bool CalculateColorForDebugMaterial(in InputData inputData, in SurfaceData surfa
             return true;
 
         default:
-            debugColor = _DebugColorInvalidMode;
-            return true;
+            return TryGetDebugColorInvalidMode(debugColor);
     }
 }
 

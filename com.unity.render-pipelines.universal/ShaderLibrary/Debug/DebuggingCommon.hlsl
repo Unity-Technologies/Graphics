@@ -76,6 +76,14 @@ half3 GetDebugColor(uint index)
     return lut[clammpedIndex].rgb;
 }
 
+bool TryGetDebugColorInvalidMode(out half4 debugColor)
+{
+    // Depending upon how we want to deal with invalid modes, this code may need to change,
+    // for now we'll simply make each pixel use "_DebugColorInvalidMode"...
+    debugColor = _DebugColorInvalidMode;
+    return true;
+}
+
 half3 UnityMeta_RGBToHSVHelper(float offset, half dominantColor, half colorone, half colortwo)
 {
     half H, S, V;

@@ -61,8 +61,7 @@ bool CalculateDebugColorMaterialSettings(in SurfaceData2D surfaceData, in InputD
 
         default:
         {
-            debugColor = _DebugColorInvalidMode;
-            return true;
+            return TryGetDebugColorInvalidMode(debugColor);
         }
     }
 }
@@ -78,19 +77,26 @@ bool CalculateDebugColorForRenderingSettings(in SurfaceData2D surfaceData, in In
         switch(_DebugMipInfoMode)
         {
             case DEBUGMIPINFOMODE_NONE:
+            {
                 return false;
+            }
 
             case DEBUGMIPINFOMODE_LEVEL:
+            {
                 debugColor = GetMipLevelDebugColor(inputData.positionWS, surfaceData.albedo, inputData.uv, inputData.texelSize);
                 return true;
+            }
 
             case DEBUGMIPINFOMODE_COUNT:
+            {
                 debugColor = GetMipCountDebugColor(inputData.positionWS, surfaceData.albedo, inputData.mipCount);
                 return true;
+            }
 
             default:
-                debugColor = _DebugColorInvalidMode;
-                return true;
+            {
+                return TryGetDebugColorInvalidMode(debugColor);
+            }
         }
     }
 }
@@ -104,14 +110,6 @@ bool CalculateDebugColorLightingSettings(inout SurfaceData2D surfaceData, inout 
             return false;
         }
 
-        case DEBUGLIGHTINGMODE_SHADOW_CASCADES:
-        case DEBUGLIGHTINGMODE_REFLECTIONS:
-        case DEBUGLIGHTINGMODE_REFLECTIONS_WITH_SMOOTHNESS:
-        {
-            debugColor = _DebugColorInvalidMode;
-            return true;
-        }
-
         case DEBUGLIGHTINGMODE_LIGHT_ONLY:
         case DEBUGLIGHTINGMODE_LIGHT_DETAIL:
         {
@@ -121,8 +119,7 @@ bool CalculateDebugColorLightingSettings(inout SurfaceData2D surfaceData, inout 
 
         default:
         {
-            debugColor = _DebugColorInvalidMode;
-            return true;
+            return TryGetDebugColorInvalidMode(debugColor);
         }
     }       // End of switch.
 }
@@ -150,8 +147,7 @@ bool CalculateDebugColorValidationSettings(in SurfaceData2D surfaceData, in Inpu
 
         default:
         {
-            debugColor = _DebugColorInvalidMode;
-            return true;
+            return TryGetDebugColorInvalidMode(debugColor);
         }
     }
 }
