@@ -573,8 +573,8 @@ namespace UnityEngine.Rendering.HighDefinition
             isFirstFrame = false;
             cameraFrameCount++;
 
-            HDRenderPipeline.UpdateVolumetricBufferParams(this, hdrp.GetFrameCount());
-            HDRenderPipeline.ResizeVolumetricHistoryBuffers(this, hdrp.GetFrameCount());
+            HDRenderPipeline.UpdateVolumetricBufferParams(this);
+            HDRenderPipeline.ResizeVolumetricHistoryBuffers(this);
         }
 
         /// <summary>Set the RTHandle scale to the actual camera size (can be scaled)</summary>
