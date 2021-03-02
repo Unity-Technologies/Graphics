@@ -89,7 +89,7 @@ Universal_Hybrid_Android_OpenGLES3_Standalone_cache_mono_Linear_2020.2:
               set /p GIT_REVISIONDATE=<revdate.tmp
               echo %GIT_REVISIONDATE%
               del revdate.tmp
-              utr --architecture=ARM64 --artifacts_path=TestProjects/UniversalHybridTest/test-results --platform=Android --player-load-path=players --suite=playmode --timeout=1200 --zero-tests-are-ok=1 compilation-errors-as-warnings
+              utr --architecture=ARM64 --artifacts_path=TestProjects/UniversalHybridTest/test-results --platform=Android --player-load-path=players --suite=playmode --timeout=1200 --zero-tests-are-ok=1
       -  start %ANDROID_SDK_ROOT%\platform-tools\adb.exe kill-server
     artifacts:
         logs:
@@ -219,7 +219,7 @@ Universal_Hybrid_Android_OpenGLES3_Standalone_cache_mono_Linear_CUSTOM-REVISION:
               set /p GIT_REVISIONDATE=<revdate.tmp
               echo %GIT_REVISIONDATE%
               del revdate.tmp
-              utr --architecture=ARM64 --artifacts_path=TestProjects/UniversalHybridTest/test-results --platform=Android --player-load-path=players --suite=playmode --timeout=1200 --zero-tests-are-ok=1 compilation-errors-as-warnings
+              utr --architecture=ARM64 --artifacts_path=TestProjects/UniversalHybridTest/test-results --platform=Android --player-load-path=players --suite=playmode --timeout=1200 --zero-tests-are-ok=1
       -  start %ANDROID_SDK_ROOT%\platform-tools\adb.exe kill-server
     artifacts:
         logs:
