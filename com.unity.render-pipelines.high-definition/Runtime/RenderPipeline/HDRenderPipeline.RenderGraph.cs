@@ -1557,36 +1557,6 @@ namespace UnityEngine.Rendering.HighDefinition
             }
         }
 
-        class RenderAccumulationPassData
-        {
-            public RenderAccumulationParameters parameters;
-            public TextureHandle input;
-            public TextureHandle output;
-            public TextureHandle history;
-        }
-
-        void RenderAccumulation(RenderGraph renderGraph, HDCamera hdCamera, TextureHandle inputTexture, TextureHandle outputTexture, bool needExposure)
-        {
-            using (var builder = renderGraph.AddRenderPass<RenderAccumulationPassData>("Render Accumulation", out var passData))
-            {
-                // Grab the history buffer
-                TextureHandle history = renderGraph.ImportTexture(hdCamera.GetCurrentFrameRT((int)HDCameraFrameHistoryType.PathTracing)
-                    ?? hdCamera.AllocHistoryFrameRT((int)HDCameraFrameHistoryType.PathTracing, PathTracingHistoryBufferAllocatorFunction, 1));
-
-                bool inputFromRadianceTexture = !inputTexture.Equals(outputTexture);
-                passData.parameters = PrepareRenderAccumulationParameters(hdCamera, needExposure, inputFromRadianceTexture);
-                passData.input = builder.ReadTexture(inputTexture);
-                passData.output = builder.WriteTexture(outputTexture);
-                passData.history = builder.WriteTexture(history);
-
-                builder.SetRenderFunc(
-                    (RenderAccumulationPassData data, RenderGraphContext ctx) =>
-                    {
-                        RenderAccumulation(data.parameters, data.input, data.output, data.history, ctx.cmd);
-                    });
-            }
-        }
-
 #if UNITY_EDITOR
         class RenderGizmosPassData
         {
