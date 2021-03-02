@@ -283,6 +283,15 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: a1ece4e0c5bdb6f479950fdf5ef4b28a, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  TargetWidth: 1024
+  TargetHeight: 1024
+  PerPixelCorrectnessThreshold: 0.001960784
+  PerPixelGammaThreshold: 0.003921569
+  PerPixelAlphaThreshold: 0.003921569
+  AverageCorrectnessThreshold: 0
+  IncorrectPixelsThreshold: 0.008
+  ActiveImageTests: 2
+  ActivePixelTests: 6
   settings:
     TargetWidth: 1024
     TargetHeight: 1024

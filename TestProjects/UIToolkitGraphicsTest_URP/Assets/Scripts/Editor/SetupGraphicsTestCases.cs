@@ -1,4 +1,4 @@
-#if UITK_ENABLE_GFX_TESTS
+#if UNITY_INCLUDE_TESTS
 using UnityEngine.TestTools;
 using UnityEngine.TestTools.Graphics;
 

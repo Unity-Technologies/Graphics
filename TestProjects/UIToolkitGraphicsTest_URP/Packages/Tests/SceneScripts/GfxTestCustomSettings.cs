@@ -87,10 +87,10 @@ public class GfxTestCustomSettings : MonoBehaviour
         DeltaGamma = 1 << 2
     }
 
-    public UnityEngine.TestTools.Graphics.ImageComparisonSettings settings;
+
 
 #if UNITY_INCLUDE_TESTS
-    public UnityEngine.TestTools.Graphics.ImageComparisonSettings settings2
+    public UnityEngine.TestTools.Graphics.ImageComparisonSettings settings
     {
         get
         {
