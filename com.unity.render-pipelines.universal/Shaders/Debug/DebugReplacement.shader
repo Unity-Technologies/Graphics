@@ -22,7 +22,7 @@ Shader "Hidden/Universal Render Pipeline/Debug/DebugReplacement"
             #define _DEBUG_SHADER
 
             #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Core.hlsl"
-            #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Debugging3D.hlsl"
+            #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Debug/Debugging3D.hlsl"
 
             struct Attributes
             {

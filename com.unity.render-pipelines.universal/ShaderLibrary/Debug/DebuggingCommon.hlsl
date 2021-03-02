@@ -1,8 +1,8 @@
 
-#ifndef UNIVERSAL_DEBUGGINGCOMMON_INCLUDED
-#define UNIVERSAL_DEBUGGINGCOMMON_INCLUDED
+#ifndef UNIVERSAL_DEBUGGING_COMMON_INCLUDED
+#define UNIVERSAL_DEBUGGING_COMMON_INCLUDED
 
-#include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/DebugViewEnums.cs.hlsl"
+#include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Debug/DebugViewEnums.cs.hlsl"
 
 // Set of colors that should still provide contrast for the Color-blind
 #define kPurpleColor float4(156.0 / 255.0, 79.0 / 255.0, 255.0 / 255.0, 1.0) // #9C4FFF

@@ -20,7 +20,7 @@ Shader "Hidden/Universal Render Pipeline/Blit"
             #pragma multi_compile _ _DEBUG_SHADER
 
             #include "Packages/com.unity.render-pipelines.universal/Shaders/Utils/Fullscreen.hlsl"
-            #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/DebuggingFullscreen.hlsl"
+            #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Debug/DebuggingFullscreen.hlsl"
             #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Color.hlsl"
 
             TEXTURE2D_X(_SourceTex);
