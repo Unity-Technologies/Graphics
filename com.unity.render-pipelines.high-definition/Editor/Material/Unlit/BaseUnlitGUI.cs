@@ -254,6 +254,7 @@ namespace UnityEditor.Rendering.HighDefinition
                 doubleSidedGI = true;
             else if (doubleSidedGIMode == DoubleSidedGIMode.Off)
                 doubleSidedGI = false;
+            // material always call setdirty, so set only if new value is different
             if (doubleSidedGI != material.doubleSidedGI)
                 material.doubleSidedGI = doubleSidedGI;
             serializedObject.ApplyModifiedProperties();
