@@ -132,7 +132,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
 
 
                 // Template
-                passTemplatePath = UniversalTarget.kTemplateFilePath,
+                passTemplatePath = UniversalTarget.kTemplatePath,
                 sharedTemplateDirectories = GenerationUtils.GetDefaultSharedTemplateDirectories(),
 
                 // Port Mask

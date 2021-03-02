@@ -105,7 +105,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
                 useInPreview = true,
 
                 // Template
-                passTemplatePath = UniversalTarget.kTemplateFilePath,
+                passTemplatePath = UniversalTarget.kTemplatePath,
                 sharedTemplateDirectories = GenerationUtils.GetDefaultSharedTemplateDirectories(),
 
                 // Port Mask
@@ -136,7 +136,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
                 useInPreview = true,
 
                 // Template
-                passTemplatePath = UniversalTarget.kTemplateFilePath,
+                passTemplatePath = UniversalTarget.kTemplatePath,
                 sharedTemplateDirectories = GenerationUtils.GetDefaultSharedTemplateDirectories(),
 
                 // Port Mask
@@ -166,7 +166,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
                 useInPreview = true,
 
                 // Template
-                passTemplatePath = UniversalTarget.kTemplateFilePath,
+                passTemplatePath = UniversalTarget.kTemplatePath,
                 sharedTemplateDirectories = GenerationUtils.GetDefaultSharedTemplateDirectories(),
 
                 // Port Mask
