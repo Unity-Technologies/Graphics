@@ -37,6 +37,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed an issue with half res ssgi upscale.
 - Fixed an issue with material using distortion from ShaderGraph init after Material creation (case 1294026)
 - Fixed timing issues with accumulation motion blur
+- Fixed model import by adding additional data if needed.
 - Fixed GC allocations from XR occlusion mesh when using multipass.
 - Fixed XR depth copy when using MSAA.
 - Fixed register spilling on  FXC in light list shaders.
