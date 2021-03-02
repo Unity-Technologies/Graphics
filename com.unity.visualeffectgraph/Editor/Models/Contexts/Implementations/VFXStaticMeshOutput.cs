@@ -41,6 +41,13 @@ namespace UnityEditor.VFX
             }
         }
 
+        public virtual void SetupMaterial(Material material)
+        {
+            VFXLibrary.currentSRPBinder.SetupMaterial(material); 
+
+            // TODO Deactivate mv and shadow passes if needed
+        }
+
         protected VFXStaticMeshOutput() : base(VFXContextType.Output, VFXDataType.Mesh, VFXDataType.None) {}
 
         public override void OnEnable()
