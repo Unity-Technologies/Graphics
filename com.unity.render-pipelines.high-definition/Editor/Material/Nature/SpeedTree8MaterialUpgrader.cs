@@ -72,49 +72,52 @@ namespace UnityEditor.Rendering.HighDefinition
 
             if (material != null)
             {
-                material.EnableKeyword("_ALPHATEST_ON");
-                material.EnableKeyword("ENABLE_WIND");
-                // Assumes all ST8 materials are double-sided.
-                material.EnableKeyword("_DOUBLESIDED_ON");
-
-                if (!WindIntValid(windInt))
+                if (material.shader.name.Equals("HDRP/Nature/SpeedTree8"))
                 {
-                    windInt = GetWindQualityFromKeywords(material.shaderKeywords);
-                    if (!WindIntValid(windInt))
-                        windInt = material.HasFloat("_WindQuality") ? (int)material.GetFloat("_WindQuality") : 0;
-                    if (!WindIntValid(windInt))
-                        windInt = 0;
-                }
+                    material.EnableKeyword("_ALPHATEST_ON");
+                    material.EnableKeyword("ENABLE_WIND");
+                    // Assumes all ST8 materials are double-sided.
+                    material.EnableKeyword("_DOUBLESIDED_ON");
 
-                material.EnableKeyword(WindQualityString[windInt]);
-                material.SetFloat("_WindQuality", windInt); // A legacy float used in native code to apply wind data
-                material.SetFloat("_WINDQUALITY", windInt); // The actual name of the keyword enum for the shadergraph
-
-                // Shadergraph sets cull mode from _CullMode, not _TwoSided (which is what ST uses)
-                if (material.name.Contains("Billboard"))
-                {
-                    bool billboardEnabled = material.IsKeywordEnabled("EFFECT_BILLBOARD")
-                        || material.GetFloat("EFFECT_BILLBOARD") != 0;
-                    if (billboardEnabled)
+                    if (!WindIntValid(windInt))
                     {
-                        material.EnableKeyword("EFFECT_BILLBOARD");
-                        material.SetFloat("EFFECT_BILLBOARD", 1);
+                        windInt = GetWindQualityFromKeywords(material.shaderKeywords);
+                        if (!WindIntValid(windInt))
+                            windInt = material.HasFloat("_WindQuality") ? (int)material.GetFloat("_WindQuality") : 0;
+                        if (!WindIntValid(windInt))
+                            windInt = 0;
+                    }
+
+                    material.EnableKeyword(WindQualityString[windInt]);
+                    material.SetFloat("_WindQuality", windInt); // A legacy float used in native code to apply wind data
+                    material.SetFloat("_WINDQUALITY", windInt); // The actual name of the keyword enum for the shadergraph
+
+                    // Shadergraph sets cull mode from _CullMode, not _TwoSided (which is what ST uses)
+                    if (material.name.Contains("Billboard"))
+                    {
+                        bool billboardEnabled = material.IsKeywordEnabled("EFFECT_BILLBOARD")
+                            || material.GetFloat("EFFECT_BILLBOARD") != 0;
+                        if (billboardEnabled)
+                        {
+                            material.EnableKeyword("EFFECT_BILLBOARD");
+                            material.SetFloat("EFFECT_BILLBOARD", 1);
+                        }
+                        else
+                        {
+                            material.DisableKeyword("EFFECT_BILLBOARD");
+                            material.SetFloat("EFFECT_BILLBOARD", 0);
+                        }
+                        // Billboards have double sided mode = none.
+                        material.SetVector("_DoubleSidedConstants", kDoubleSidedNone);
+                        material.SetFloat("_CullMode", 2); // Cull billboard backfaces to prevent Z-fighting
                     }
                     else
                     {
-                        material.DisableKeyword("EFFECT_BILLBOARD");
-                        material.SetFloat("EFFECT_BILLBOARD", 0);
+                        // Non-billboards have double sided mode = flipped.
+                        // _DoubleSidedConstants value should match comments in MaterialUtilities.hlsl
+                        material.SetVector("_DoubleSidedConstants", kDoubleSidedFlip);
+                        material.SetFloat("_CullMode", 0); // Non-billboards don't need backfaces culled.
                     }
-                    // Billboards have double sided mode = none.
-                    material.SetVector("_DoubleSidedConstants", kDoubleSidedNone);
-                    material.SetFloat("_CullMode", 2); // Cull billboard backfaces to prevent Z-fighting
-                }
-                else
-                {
-                    // Non-billboards have double sided mode = flipped.
-                    // _DoubleSidedConstants value should match comments in MaterialUtilities.hlsl
-                    material.SetVector("_DoubleSidedConstants", kDoubleSidedFlip);
-                    material.SetFloat("_CullMode", 0); // Non-billboards don't need backfaces culled.
                 }
             }
         }
