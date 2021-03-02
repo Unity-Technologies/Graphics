@@ -97,10 +97,16 @@ namespace UnityEngine.Rendering.HighDefinition
             }
             else if (m_CurrentDebugDisplaySettings.IsDebugMaterialDisplayEnabled() || m_CurrentDebugDisplaySettings.IsMaterialValidationEnabled() || CoreUtils.IsSceneLightingDisabled(hdCamera.camera))
             {
+                gpuLightListOutput = BuildGPULightList(m_RenderGraph, hdCamera, m_TileAndClusterData, m_TotalLightCount, ref m_ShaderVariablesLightListCB, prepassOutput.depthBuffer, prepassOutput.stencilBuffer, prepassOutput.gbuffer);
+
+                // For alpha output in AOVs or debug views, in case we have a shadow matte material, we need to render the shadow maps
+                if (m_CurrentDebugDisplaySettings.data.materialDebugSettings.debugViewMaterialCommonValue == Attributes.MaterialSharedProperty.Alpha)
+                    RenderShadows(m_RenderGraph, hdCamera, cullingResults, ref shadowResult);
+
                 // Stop Single Pass is after post process.
                 StartXRSinglePass(m_RenderGraph, hdCamera);
 
-                colorBuffer = RenderDebugViewMaterial(m_RenderGraph, cullingResults, hdCamera);
+                colorBuffer = RenderDebugViewMaterial(m_RenderGraph, cullingResults, hdCamera, gpuLightListOutput, prepassOutput.dbuffer);
                 colorBuffer = ResolveMSAAColor(m_RenderGraph, hdCamera, colorBuffer);
             }
             else if (hdCamera.frameSettings.IsEnabled(FrameSettingsField.RayTracing) &&
@@ -116,7 +122,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
                 if (hdCamera.viewCount == 1)
                 {
-                    colorBuffer = RenderPathTracing(m_RenderGraph, hdCamera);
+                    colorBuffer = RenderPathTracing(m_RenderGraph, hdCamera, colorBuffer);
                 }
                 else
                 {
@@ -985,11 +991,14 @@ namespace UnityEngine.Rendering.HighDefinition
             AOVRequestData              aovRequest,
             List<RTHandle>              aovCustomPassBuffers)
         {
+            // Transparent (non recursive) objects that are rendered in front of transparent (recursive) require the recursive rendering to be executed for that pixel.
+            // This means our flagging process needs to happen before the transparent depth prepass as we use the depth to discriminate pixels that do not need recursive rendering.
+            var flagMaskBuffer = RenderRayTracingFlagMask(renderGraph, cullingResults, hdCamera, prepassOutput.depthBuffer);
+
             RenderTransparentDepthPrepass(renderGraph, hdCamera, prepassOutput, cullingResults);
 
             var ssrLightingBuffer = RenderSSR(renderGraph, hdCamera, ref prepassOutput, renderGraph.defaultResources.blackTextureXR, rayCountTexture, skyTexture, transparent: true);
 
-            var flagMaskBuffer = RenderRayTracingFlagMask(renderGraph, cullingResults, hdCamera, prepassOutput.depthBuffer);
             colorBuffer = RaytracingRecursiveRender(renderGraph, hdCamera, colorBuffer, prepassOutput.depthBuffer, flagMaskBuffer, rayCountTexture);
 
             // TODO RENDERGRAPH: Remove this when we properly convert custom passes to full render graph with explicit color buffer reads.
@@ -1547,36 +1556,6 @@ namespace UnityEngine.Rendering.HighDefinition
             else
             {
                 return input;
-            }
-        }
-
-        class RenderAccumulationPassData
-        {
-            public RenderAccumulationParameters parameters;
-            public TextureHandle input;
-            public TextureHandle output;
-            public TextureHandle history;
-        }
-
-        void RenderAccumulation(RenderGraph renderGraph, HDCamera hdCamera, TextureHandle inputTexture, TextureHandle outputTexture, bool needExposure)
-        {
-            using (var builder = renderGraph.AddRenderPass<RenderAccumulationPassData>("Render Accumulation", out var passData))
-            {
-                // Grab the history buffer
-                TextureHandle history = renderGraph.ImportTexture(hdCamera.GetCurrentFrameRT((int)HDCameraFrameHistoryType.PathTracing)
-                    ?? hdCamera.AllocHistoryFrameRT((int)HDCameraFrameHistoryType.PathTracing, PathTracingHistoryBufferAllocatorFunction, 1));
-
-                bool inputFromRadianceTexture = !inputTexture.Equals(outputTexture);
-                passData.parameters = PrepareRenderAccumulationParameters(hdCamera, needExposure, inputFromRadianceTexture);
-                passData.input = builder.ReadTexture(inputTexture);
-                passData.output = builder.WriteTexture(outputTexture);
-                passData.history = builder.WriteTexture(history);
-
-                builder.SetRenderFunc(
-                    (RenderAccumulationPassData data, RenderGraphContext ctx) =>
-                    {
-                        RenderAccumulation(data.parameters, data.input, data.output, data.history, ctx.cmd);
-                    });
             }
         }
 
