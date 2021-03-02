@@ -192,6 +192,9 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
                 defines = CoreDefines.UseFragmentFog,
                 keywords = UnlitKeywords.Unlit,
                 includes = UnlitIncludes.Unlit,
+
+                // Custom Interpolator Support
+                customInterpolators = CoreCustomInterpDescriptors.Common
             };
         }
         #endregion

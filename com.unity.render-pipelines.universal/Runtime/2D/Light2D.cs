@@ -289,7 +289,8 @@ namespace UnityEngine.Experimental.Rendering.Universal
             if (!m_UseNormalMap && m_NormalMapQuality != NormalMapQuality.Disabled)
                 m_NormalMapQuality = NormalMapQuality.Disabled;
 
-            UpdateMesh(!hasCachedMesh);
+            bool updateMesh = !hasCachedMesh || (m_LightType == LightType.Sprite && m_LightCookieSprite.packed);
+            UpdateMesh(updateMesh);
             if (hasCachedMesh)
             {
                 lightMesh.SetVertexBufferParams(vertices.Length, LightUtility.LightMeshVertex.VertexLayout);

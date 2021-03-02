@@ -475,6 +475,8 @@ namespace UnityEngine.Rendering.Universal
 
             bool isStackedRendering = lastActiveOverlayCameraIndex != -1;
 
+            // Update volumeframework before initializing additional camera data
+            UpdateVolumeFramework(baseCamera, baseCameraAdditionalData);
             InitializeCameraData(baseCamera, baseCameraAdditionalData, !isStackedRendering, out var baseCameraData);
 
 #if ENABLE_VR && ENABLE_XR_MODULE
@@ -505,7 +507,6 @@ namespace UnityEngine.Rendering.Universal
             //It should be called before culling to prepare material. When there isn't any VisualEffect component, this method has no effect.
             VFX.VFXManager.PrepareCamera(baseCamera);
 #endif
-            UpdateVolumeFramework(baseCamera, baseCameraAdditionalData);
 #if ADAPTIVE_PERFORMANCE_2_0_0_OR_NEWER
             if (asset.useAdaptivePerformance)
                 ApplyAdaptivePerformance(ref baseCameraData);
@@ -971,6 +972,8 @@ namespace UnityEngine.Rendering.Universal
                     shadowData.mainLightShadowCascadesSplit = settings.cascade4Split;
                     break;
             }
+
+            shadowData.mainLightShadowCascadeBorder = settings.cascadeBorder;
 
             shadowData.supportsAdditionalLightShadows = SystemInfo.supportsShadows && settings.supportsAdditionalLightShadows && additionalLightsCastShadows;
             shadowData.additionalLightsShadowmapWidth = shadowData.additionalLightsShadowmapHeight = settings.additionalLightsShadowmapResolution;
