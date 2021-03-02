@@ -11,7 +11,7 @@ namespace UnityEditor.VFX
         public override string name { get { return "Output Particle Lit " + primitiveType.ToString(); } }
         public override string codeGeneratorTemplate { get { return RenderPipeTemplate("VFXParticleLitPlanarPrimitive"); } }
         public override VFXTaskType taskType { get { return VFXPlanarPrimitiveHelper.GetTaskType(primitiveType); } }
-        public override bool supportsUV { get { return shaderGraph == null; } }
+        public override bool supportsUV { get { return GetOrRefreshShaderGraphObject() == null; } }
         public sealed override bool implementsMotionVector { get { return true; } }
 
         [VFXSetting(VFXSettingAttribute.VisibleFlags.InInspector), SerializeField, Tooltip("Specifies what primitive type to use for this output. Triangle outputs have fewer vertices, octagons can be used to conform the geometry closer to the texture to avoid overdraw, and quads are a good middle ground.")]

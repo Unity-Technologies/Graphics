@@ -56,7 +56,7 @@ MonoBehaviour:
   m_UIInfos: {fileID: 3}
   m_ParameterInfo: []
   m_ImportDependencies: []
-  m_GraphVersion: 6
+  m_GraphVersion: 7
   m_ResourceVersion: 1
   m_saved: 1
   m_SubgraphDependencies: []
@@ -876,6 +876,7 @@ MonoBehaviour:
   frustumCulling: 0
   castShadows: 0
   useExposureWeight: 0
+  flipbookLayout: 0
   shaderGraph: {fileID: -5475051401550479605, guid: 19b3990ba8f3b294f936337407bdb35b,
     type: 3}
   primitiveType: 1
@@ -1371,6 +1372,7 @@ MonoBehaviour:
   frustumCulling: 0
   castShadows: 0
   useExposureWeight: 0
+  flipbookLayout: 0
   shaderGraph: {fileID: -5475051401550479605, guid: 19b3990ba8f3b294f936337407bdb35b,
     type: 3}
   MeshCount: 1
@@ -1708,6 +1710,7 @@ MonoBehaviour:
   frustumCulling: 0
   castShadows: 0
   useExposureWeight: 0
+  flipbookLayout: 0
   shaderGraph: {fileID: -5475051401550479605, guid: 9de362151ee19c3459bf0f63e1201177,
     type: 3}
   materialType: 0
@@ -1995,6 +1998,7 @@ MonoBehaviour:
   frustumCulling: 0
   castShadows: 0
   useExposureWeight: 0
+  flipbookLayout: 0
   shaderGraph: {fileID: -5475051401550479605, guid: 9de362151ee19c3459bf0f63e1201177,
     type: 3}
   materialType: 0
@@ -2348,6 +2352,7 @@ MonoBehaviour:
   frustumCulling: 0
   castShadows: 0
   useExposureWeight: 0
+  flipbookLayout: 0
   shaderGraph: {fileID: -5475051401550479605, guid: 19b3990ba8f3b294f936337407bdb35b,
     type: 3}
   primitiveType: 1
@@ -2619,6 +2624,7 @@ MonoBehaviour:
   frustumCulling: 0
   castShadows: 0
   useExposureWeight: 0
+  flipbookLayout: 0
   shaderGraph: {fileID: -5475051401550479605, guid: 19b3990ba8f3b294f936337407bdb35b,
     type: 3}
   MeshCount: 1
@@ -2956,6 +2962,7 @@ MonoBehaviour:
   frustumCulling: 0
   castShadows: 0
   useExposureWeight: 0
+  flipbookLayout: 0
   shaderGraph: {fileID: -5475051401550479605, guid: 9de362151ee19c3459bf0f63e1201177,
     type: 3}
   materialType: 0
@@ -3243,6 +3250,7 @@ MonoBehaviour:
   frustumCulling: 0
   castShadows: 0
   useExposureWeight: 0
+  flipbookLayout: 0
   shaderGraph: {fileID: -5475051401550479605, guid: 9de362151ee19c3459bf0f63e1201177,
     type: 3}
   materialType: 0
@@ -3597,6 +3605,7 @@ MonoBehaviour:
   frustumCulling: 0
   castShadows: 0
   useExposureWeight: 1
+  flipbookLayout: 0
   shaderGraph: {fileID: -5475051401550479605, guid: 19b3990ba8f3b294f936337407bdb35b,
     type: 3}
   primitiveType: 1
@@ -3869,6 +3878,7 @@ MonoBehaviour:
   frustumCulling: 0
   castShadows: 0
   useExposureWeight: 1
+  flipbookLayout: 0
   shaderGraph: {fileID: -5475051401550479605, guid: 19b3990ba8f3b294f936337407bdb35b,
     type: 3}
   MeshCount: 1
@@ -4374,6 +4384,7 @@ MonoBehaviour:
   frustumCulling: 0
   castShadows: 0
   useExposureWeight: 1
+  flipbookLayout: 0
   shaderGraph: {fileID: -5475051401550479605, guid: 19b3990ba8f3b294f936337407bdb35b,
     type: 3}
   primitiveType: 1
@@ -4681,6 +4692,7 @@ MonoBehaviour:
   frustumCulling: 0
   castShadows: 0
   useExposureWeight: 1
+  flipbookLayout: 0
   shaderGraph: {fileID: -5475051401550479605, guid: 19b3990ba8f3b294f936337407bdb35b,
     type: 3}
   MeshCount: 1

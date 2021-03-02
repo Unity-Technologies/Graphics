@@ -154,6 +154,25 @@ namespace UnityEngine.Rendering
             }
         }
 
+        /// <summary>
+        /// Return the scaled size of the RTHandle.
+        /// </summary>
+        /// <returns>The scaled size of the RTHandle.</returns>
+        public Vector2Int GetScaledSize()
+        {
+            if (scaleFunc != null)
+            {
+                return scaleFunc(referenceSize);
+            }
+            else
+            {
+                return new Vector2Int(
+                    x: Mathf.RoundToInt(scaleFactor.x * referenceSize.x),
+                    y: Mathf.RoundToInt(scaleFactor.y * referenceSize.y)
+                );
+            }
+        }
+
 #if UNITY_2020_2_OR_NEWER
         /// <summary>
         /// Switch the render target to fast memory on platform that have it.

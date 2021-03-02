@@ -51,15 +51,7 @@ namespace UnityEngine.Rendering.HighDefinition
         /// <returns>The copied Texture2D.</returns>
         public static Texture2D CopyRenderTextureToTexture2D(RenderTexture source)
         {
-            TextureFormat format = TextureFormat.RGBAFloat;
-            switch (source.format)
-            {
-                case RenderTextureFormat.ARGBFloat: format = TextureFormat.RGBAFloat; break;
-                case RenderTextureFormat.ARGBHalf: format = TextureFormat.RGBAHalf; break;
-                default:
-                    Assert.IsFalse(true, "Unmanaged format");
-                    break;
-            }
+            GraphicsFormat format = source.graphicsFormat;
 
             switch (source.dimension)
             {
@@ -73,7 +65,7 @@ namespace UnityEngine.Rendering.HighDefinition
                         cmd.CopyTexture(source, i, 0,  0, 0, resolution, resolution, result, 0, 0, i * resolution, 0);
                     Graphics.ExecuteCommandBuffer(cmd);
 
-                    var t2D = new Texture2D(resolution * 6, resolution, format, false);
+                    var t2D = new Texture2D(resolution * 6, resolution, format, TextureCreationFlags.None);
                     var a = RenderTexture.active;
                     RenderTexture.active = result;
                     t2D.ReadPixels(new Rect(0, 0, 6 * resolution, resolution), 0, 0, false);
@@ -85,7 +77,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 case TextureDimension.Tex2D:
                 {
                     var resolution = source.width;
-                    var result = new Texture2D(resolution, resolution, format, false);
+                    var result = new Texture2D(resolution, resolution, format, TextureCreationFlags.None);
 
                     Graphics.SetRenderTarget(source, 0);
                     result.ReadPixels(new Rect(0, 0, resolution, resolution), 0, 0);

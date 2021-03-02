@@ -279,7 +279,7 @@ namespace UnityEditor.ShaderGraph.Serialization
                 action(new HLSLProperty(HLSLType._float, referenceName, HLSLDeclaration.Global, concretePrecision));
             }
 
-            internal override string GetPropertyAsArgumentString() { return ""; }
+            internal override string GetPropertyAsArgumentString(string precisionString) { return ""; }
             internal override AbstractMaterialNode ToConcreteNode() { return null; }
 
             internal override PreviewProperty GetPreviewMaterialProperty()

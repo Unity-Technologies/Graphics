@@ -23,7 +23,7 @@ namespace UnityEditor.ShaderGraph.Drawing.Inspector.PropertyDrawers
     class ShaderInputPropertyDrawer : IPropertyDrawer
     {
         internal delegate void ChangeExposedFieldCallback(bool newValue);
-        internal delegate  void ChangeDisplayNameCallback(string newValue);
+        internal delegate void ChangeDisplayNameCallback(string newValue);
         internal delegate void ChangeReferenceNameCallback(string newValue);
         internal delegate void ChangeValueCallback(object newValue);
         internal delegate void PreChangeValueCallback(string actionName);
@@ -54,6 +54,9 @@ namespace UnityEditor.ShaderGraph.Drawing.Inspector.PropertyDrawers
         Toggle exposedToggle;
         VisualElement keywordScopeField;
 
+        const string m_DisplayNameDisallowedPattern = "[^\\w_ ]";
+        const string m_ReferenceNameDisallowedPattern = @"(?:[^A-Za-z_0-9_])";
+
         public ShaderInputPropertyDrawer()
         {
             greyLabel = new GUIStyle(EditorStyles.label);
@@ -63,7 +66,7 @@ namespace UnityEditor.ShaderGraph.Drawing.Inspector.PropertyDrawers
         }
 
         GraphData graphData;
-        bool isSubGraph { get; set;  }
+        bool isSubGraph { get; set; }
         ChangeExposedFieldCallback _exposedFieldChangedCallback;
         Action _precisionChangedCallback;
         Action _keywordChangedCallback;
@@ -139,7 +142,7 @@ namespace UnityEditor.ShaderGraph.Drawing.Inspector.PropertyDrawers
         void UpdateEnableState()
         {
             // some changes may change the exposed state
-            exposedToggle.SetValueWithoutNotify(shaderInput.isExposed);
+            exposedToggle?.SetValueWithoutNotify(shaderInput.isExposed);
             exposedToggle?.SetEnabled(shaderInput.isExposable && !shaderInput.isAlwaysExposed);
             if (shaderInput is ShaderKeyword keyword)
             {
@@ -431,7 +434,7 @@ namespace UnityEditor.ShaderGraph.Drawing.Inspector.PropertyDrawers
                 property.precision = (Precision)newValue;
                 this._precisionChangedCallback();
                 this._postChangeValueCallback();
-            }, property.precision, "Precision", Precision.Inherit, out var precisionField));
+            }, (PropertyDrawerUtils.UIPrecisionForShaderGraphs)property.precision, "Precision", PropertyDrawerUtils.UIPrecisionForShaderGraphs.Inherit, out var precisionField));
             if (property is Serialization.MultiJsonInternal.UnknownShaderPropertyType)
                 precisionField.SetEnabled(false);
         }
@@ -716,15 +719,18 @@ namespace UnityEditor.ShaderGraph.Drawing.Inspector.PropertyDrawers
                     if (index >= 0 && index < m_VTReorderableList.list.Count)
                     {
                         var svt = m_VTReorderableList.list[index] as SerializableVirtualTextureLayer;
-                        var otherPropertyRefNames = graphData.BuildPropertyReferenceNameList(virtualTextureProperty, svt.layerName);
-                        var newLayerRefName = GraphUtil.SanitizeName(otherPropertyRefNames, "{0}_{1}", evt.newValue);
+                        var otherPropertyRefNames = graphData.BuildPropertyReferenceNameList(virtualTextureProperty, svt.layerRefName);
+                        var newName = NodeUtils.ConvertToValidHLSLIdentifier(evt.newValue);
+                        var newLayerRefName = GraphUtil.SanitizeName(otherPropertyRefNames, "{0}_{1}", newName);
                         if (newLayerRefName != svt.layerRefName)
                         {
                             this._preChangeValueCallback("Change Layer Ref Name");
                             svt.layerRefName = newLayerRefName;
                             this._postChangeValueCallback(false, ModificationScope.Graph);
-                            m_VTLayer_RefName.SetValueWithoutNotify(newLayerRefName);
                         }
+                        // Always update the display name to the sanitized name. If an invalid name was entered that ended up being sanitized to the old value,
+                        // the text box still needs to be updated to display the sanitized name.
+                        m_VTLayer_RefName.SetValueWithoutNotify(newLayerRefName);
                     }
                 });
             AddPropertyRowToSheet(propertySheet, m_VTLayer_RefName, "  Layer Reference");
@@ -1208,18 +1214,27 @@ namespace UnityEditor.ShaderGraph.Drawing.Inspector.PropertyDrawers
                 Rect displayRect = new Rect(rect.x, rect.y, rect.width / 2, EditorGUIUtility.singleLineHeight);
                 var displayName = EditorGUI.DelayedTextField(displayRect, entry.displayName, EditorStyles.label);
                 //This is gross but I cant find any other way to make a DelayedTextField have a tooltip (tried doing the empty label on the field itself and it didnt work either)
-                EditorGUI.LabelField(displayRect, new GUIContent("", "Enum keyword display names can only use alphanumeric characters and `_`"));
+                EditorGUI.LabelField(displayRect, new GUIContent("", "Enum keyword display names can only use alphanumeric characters, whitespace and `_`"));
                 var referenceName = EditorGUI.TextField(new Rect(rect.x + rect.width / 2, rect.y, rect.width / 2, EditorGUIUtility.singleLineHeight), entry.referenceName,
                     keyword.isBuiltIn ? EditorStyles.label : greyLabel);
 
-                displayName = GetDuplicateSafeDisplayName(entry.id, displayName);
-                referenceName = GetDuplicateSafeReferenceName(entry.id, displayName.ToUpper());
-
                 if (EditorGUI.EndChangeCheck())
                 {
-                    keyword.entries[index] = new KeywordEntry(index + 1, displayName, referenceName);
+                    displayName = GetSanitizedDisplayName(displayName);
+                    referenceName = GetSanitizedReferenceName(displayName.ToUpper());
+                    var duplicateIndex = FindDuplicateReferenceNameIndex(entry.id, referenceName);
+                    if (duplicateIndex != -1)
+                    {
+                        var duplicateEntry = ((KeywordEntry)m_KeywordReorderableList.list[duplicateIndex]);
+                        Debug.LogWarning($"Display name '{displayName}' will create the same reference name '{referenceName}' as entry {duplicateIndex + 1} with display name '{duplicateEntry.displayName}'.");
+                    }
+                    else if (string.IsNullOrWhiteSpace(displayName))
+                        Debug.LogWarning("Invalid display name. Display names cannot be empty or all whitespace.");
+                    else if (int.TryParse(displayName, out int intVal) || float.TryParse(displayName, out float floatVal))
+                        Debug.LogWarning("Invalid display name. Display names cannot be valid integer or floating point numbers.");
+                    else
+                        keyword.entries[index] = new KeywordEntry(index + 1, displayName, referenceName);
 
-                    // Rebuild();
                     this._postChangeValueCallback(true);
                 }
             };
@@ -1288,8 +1303,9 @@ namespace UnityEditor.ShaderGraph.Drawing.Inspector.PropertyDrawers
             if (index <= 0)
                 return; // Error has already occured, don't attempt to add this entry.
 
-            var displayName = GetDuplicateSafeDisplayName(index, "New");
-            var referenceName = GetDuplicateSafeReferenceName(index, "NEW");
+            var displayName = "New";
+            var referenceName = "NEW";
+            GetDuplicateSafeEnumNames(index, "New", out displayName, out referenceName);
 
             // Add new entry
             keyword.entries.Add(new KeywordEntry(index, displayName, referenceName));
@@ -1331,14 +1347,56 @@ namespace UnityEditor.ShaderGraph.Drawing.Inspector.PropertyDrawers
         {
             name = name.Trim();
             var entryList = m_KeywordReorderableList.list as List<KeywordEntry>;
-            return GraphUtil.SanitizeName(entryList.Where(p => p.id != id).Select(p => p.displayName), "{0} ({1})", name, "[^\\w_#() .]");
+            return GraphUtil.SanitizeName(entryList.Where(p => p.id != id).Select(p => p.displayName), "{0} ({1})", name, m_DisplayNameDisallowedPattern);
+        }
+
+        public string GetDuplicateSafeEnumDisplayName(int id, string name)
+        {
+            name = name.Trim();
+            var entryList = m_KeywordReorderableList.list as List<KeywordEntry>;
+            return GraphUtil.SanitizeName(entryList.Where(p => p.id != id).Select(p => p.displayName), "{0} {1}", name, m_DisplayNameDisallowedPattern);
+        }
+
+        void GetDuplicateSafeEnumNames(int id, string name, out string displayName, out string referenceName)
+        {
+            name = name.Trim();
+            // Get de-duplicated display and reference names
+            displayName = GetDuplicateSafeEnumDisplayName(id, name);
+            referenceName = GetDuplicateSafeReferenceName(id, displayName.ToUpper());
+            // Check when the simple reference name should be for the display name.
+            // If these don't match then there will be a desync which causes the enum entry to not work.
+            // An example where this happens is ["new 1", "NEW_1"] already exists.
+            // The display name "New_1" is added.
+            // This new display name doesn't exist, but it finds the reference name of "NEW_1" already exists so we get the pair ["New_1", "NEW_2"] which is invalid.
+            // The easiest fix in this case is to just use the safe reference name as the new display name which is guaranteed to be unique.
+            var simpleReferenceName = Regex.Replace(displayName.ToUpper(), m_ReferenceNameDisallowedPattern, "_");
+            if (referenceName != simpleReferenceName)
+                displayName = referenceName;
+        }
+
+        string GetSanitizedDisplayName(string name)
+        {
+            name = name.Trim();
+            return Regex.Replace(name, m_DisplayNameDisallowedPattern, "_");
         }
 
         public string GetDuplicateSafeReferenceName(int id, string name)
         {
             name = name.Trim();
             var entryList = m_KeywordReorderableList.list as List<KeywordEntry>;
-            return GraphUtil.SanitizeName(entryList.Where(p => p.id != id).Select(p => p.referenceName), "{0}_{1}", name, @"(?:[^A-Za-z_0-9_])");
+            return GraphUtil.SanitizeName(entryList.Where(p => p.id != id).Select(p => p.referenceName), "{0}_{1}", name, m_ReferenceNameDisallowedPattern);
+        }
+
+        string GetSanitizedReferenceName(string name)
+        {
+            name = name.Trim();
+            return Regex.Replace(name, m_ReferenceNameDisallowedPattern, "_");
+        }
+
+        int FindDuplicateReferenceNameIndex(int id, string referenceName)
+        {
+            var entryList = m_KeywordReorderableList.list as List<KeywordEntry>;
+            return entryList.FindIndex(entry => entry.id != id && entry.referenceName == referenceName);
         }
     }
 }
