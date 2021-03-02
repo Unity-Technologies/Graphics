@@ -1902,8 +1902,10 @@ namespace UnityEngine.Rendering.HighDefinition
                                 cmd.SetInvertCulling(renderRequest.cameraSettings.invertFaceCulling);
                                 ExecuteRenderRequest(renderRequest, renderContext, cmd, AOVRequestData.defaultAOVRequestDataNonAlloc);
                                 cmd.SetInvertCulling(false);
-                                UnityEngine.Rendering.RenderPipeline.EndCameraRendering(renderContext, renderRequest.hdCamera.camera);
                             }
+
+                            //  EndCameraRendering callback should be executed outside of any profiling scope in case user code submits the renderContext
+                            EndCameraRendering(renderContext, renderRequest.hdCamera.camera);
 
                             {
                                 var target = renderRequest.target;
@@ -2116,7 +2118,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
                 try
                 {
-                    ExecuteWithRenderGraph(renderRequest, aovRequest, aovBuffers, renderContext, cmd);
+                    ExecuteWithRenderGraph(renderRequest, aovRequest, aovBuffers, aovCustomPassBuffers, renderContext, cmd);
                 }
                 catch (Exception e)
                 {

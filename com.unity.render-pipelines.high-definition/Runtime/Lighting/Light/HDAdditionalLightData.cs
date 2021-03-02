@@ -139,7 +139,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
         // Only for Spotlight, should be hide for other light
         [SerializeField, FormerlySerializedAs("enableSpotReflector")]
-        bool m_EnableSpotReflector = false;
+        bool m_EnableSpotReflector = true;
         /// <summary>
         /// Get/Set the Spot Reflection option on spot lights.
         /// </summary>

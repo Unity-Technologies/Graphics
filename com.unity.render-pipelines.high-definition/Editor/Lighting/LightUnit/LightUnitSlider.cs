@@ -21,6 +21,7 @@ namespace UnityEditor.Rendering.HighDefinition
             public const float k_MarkerHeight       = 2;
             public const float k_MarkerTooltipScale = 4;
             public const float k_ThumbTooltipSize   = 10;
+            public const float k_KnobSize           = 10;
         }
 
         protected static class SliderStyles
@@ -118,11 +119,16 @@ namespace UnityEditor.Rendering.HighDefinition
             // Vertically align with slider.
             markerRect.y += (EditorGUIUtility.singleLineHeight / 2f) - 1;
 
-            // Horizontally place on slider.
-            const float halfWidth = width * 0.5f;
-            markerRect.x = rect.x + rect.width * position;
+            // Horizontally place on slider. We need to take into account the "knob" size when doing this, because position 0 and 1 starts
+            // at the center of the knob when it's placed at the left and right corner respectively. We don't do this adjustment when placing
+            // the marker at the corners (to avoid havind the slider slightly extend past the marker)
+            float knobSize = (position > 0f && position < 1f) ? SliderConfig.k_KnobSize : 0f;
+            float start = rect.x + knobSize / 2f;
+            float range = rect.width - knobSize;
+            markerRect.x = start + range * position;
 
             // Center the marker on value.
+            const float halfWidth = width * 0.5f;
             markerRect.x -= halfWidth;
 
             // Clamp to the slider edges.

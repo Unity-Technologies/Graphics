@@ -8,6 +8,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ### Fixed
 - Fixed the default background color for previews to use the original color.
+- Fixed a bug in FreeCamera which would only provide a speed boost for the first frame when pressing the Shfit key.
 
 ## [10.2.0] - 2020-10-19
 
