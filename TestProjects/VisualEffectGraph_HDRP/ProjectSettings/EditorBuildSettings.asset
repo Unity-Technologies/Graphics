@@ -228,6 +228,8 @@ EditorBuildSettings:
     path: Assets/AllTests/VFXTests/GraphicsTests/27_SampleSDF.unity
     guid: 752aca8c0a90b8241adb9c287bc26b55
   - enabled: 1
+    path: Assets/AllTests/VFXTests/GraphicsTests/28_FlipBookArray.unity
+    guid: 69ce8d3ad279c734cbea097f07ebb1fc
     path: Assets/AllTests/VFXTests/GraphicsTests/28_CameraProject.unity
     guid: c479ba3b3ad2ba64dbfc1729ed0a7590
   - enabled: 1
@@ -236,6 +238,9 @@ EditorBuildSettings:
   - enabled: 1
     path: Assets/AllTests/VFXTests/GraphicsTests/26_NonUnifomScale.unity
     guid: 6500f9adfe104274fb2b90091786a2d4
+  - enabled: 1
+    path: Assets/AllTests/VFXTests/GraphicsTests/31_CameraBuffer.unity
+    guid: 022b924fd58e94e41bcc5a24218370fe
   - enabled: 0
     path: Assets/AllTests/VFXTests/GraphicsTests/32_ExcludeFromTAA.unity
     guid: 8f9c50f62a67d6d429a71cb9ad4a3f57

@@ -54,10 +54,12 @@ namespace UnityEngine.Rendering.Universal.Internal
         public override void Configure(CommandBuffer cmd, RenderTextureDescriptor cameraTextureDescriptor)
         {
             RenderTargetHandle[] gbufferAttachments = m_DeferredLights.GbufferAttachments;
+            GraphicsFormat[] gbufferFormats = new GraphicsFormat[gbufferAttachments.Length];
 
             // Create and declare the render targets used in the pass
             for (int i = 0; i < gbufferAttachments.Length; ++i)
             {
+                gbufferFormats[i] = m_DeferredLights.GetGBufferFormat(i);
                 // Lighting buffer has already been declared with line ConfigureCameraTarget(m_ActiveCameraColorAttachment.Identifier(), ...) in DeferredRenderer.Setup
                 if (i == m_DeferredLights.GBufferLightingIndex)
                     continue;
@@ -68,11 +70,11 @@ namespace UnityEngine.Rendering.Universal.Internal
                 RenderTextureDescriptor gbufferSlice = cameraTextureDescriptor;
                 gbufferSlice.depthBufferBits = 0; // make sure no depth surface is actually created
                 gbufferSlice.stencilFormat = GraphicsFormat.None;
-                gbufferSlice.graphicsFormat = m_DeferredLights.GetGBufferFormat(i);
+                gbufferSlice.graphicsFormat = gbufferFormats[i];
                 cmd.GetTemporaryRT(m_DeferredLights.GbufferAttachments[i].id, gbufferSlice);
             }
 
-            ConfigureTarget(m_DeferredLights.GbufferAttachmentIdentifiers, m_DeferredLights.DepthAttachmentIdentifier);
+            ConfigureTarget(m_DeferredLights.GbufferAttachmentIdentifiers, m_DeferredLights.DepthAttachmentIdentifier, gbufferFormats);
             // We must explicitely specify we don't want any clear to avoid unwanted side-effects.
             // ScriptableRenderer may still implicitely force a clear the first time the camera color/depth targets are bound.
             ConfigureClear(ClearFlag.None, Color.black);
@@ -87,7 +89,7 @@ namespace UnityEngine.Rendering.Universal.Internal
                 gbufferCommands.Clear();
 
                 // User can stack several scriptable renderers during rendering but deferred renderer should only lit pixels added by this gbuffer pass.
-                // If we detect we are in such case (camera isin  overlay mode), we clear the highest bits of stencil we have control of and use them to
+                // If we detect we are in such case (camera is in overlay mode), we clear the highest bits of stencil we have control of and use them to
                 // mark what pixel to shade during deferred pass. Gbuffer will always mark pixels using their material types.
                 if (m_DeferredLights.IsOverlay)
                 {

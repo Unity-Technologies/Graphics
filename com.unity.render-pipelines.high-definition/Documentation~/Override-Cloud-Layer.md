@@ -26,6 +26,8 @@ If you enable **Upper Hemisphere Only**, the map is interpreted as containing on
 
 By default, HDRP uses a cloud map named `DefaultCloudMap`. This texture contains cumulus clouds in the red channel, stratus clouds in the green channel, cirrus clouds in the blue channel and wispy clouds in the alpha channel.
 
+**Note**: This cloud map is formatted differently to the cloud map that the [Volumetric Clouds](Override-Volumetric-Clouds.md) feature uses.
+
 ## Controlling cloud movement
 
 The Cloud Layer override provides a way to move clouds at runtime, using a flowmap. A flowmap has the same layout as the [cloud map](#about-the-cloud-map), in that it is a LatLong layout 2D texture, and also uses the **Upper Hemisphere Only** property to determine the area it affects.
@@ -60,7 +62,7 @@ The Inspector shows the following properties for each cloud layer. The **Layers*
 | **Tint**               | The color HDRP uses to tint the clouds.                      |
 | **Exposure**           | The amount of light per unit area that HDRP applies to the cloud layer based on the main directional [Light](Light-Component.md) intensity. |
 | **Distortion Mode**    | Specifies the distortion mode HDRP uses to simulate cloud movement.<br />&#8226; **None**: No distortion.<br />&#8226; **Procedural**: HDRP distorts the clouds using a uniform wind direction.<br />&#8226; **Flowmap**: HDRP distorts the clouds using the **Flowmap** texture. |
-| - **Scroll direction** | The scrolling direction for the distortion.                  |
+| - **Scroll orientation** | The orientation of the scrolling for the distortion.                  |
 | - **Scroll speed**     | The speed at which HDRP scrolls the distortion texture.      |
 | - **Flowmap**          | The flowmap HDRP uses to distort UVs when rendering the clouds. For more information about the flowmap, see [controlling cloud movement](#controlling-cloud-movement).<br />This property only appears when you select **Flowmap** from the **Distortion** drop-down. |
 | **Lighting**           | Indicates whether HDRP calculates lighting for the clouds using the main directional light. When enabled, HDRP uses 2D raymarching on the Cloud Map to approximate self-shadowing from the sun light.<br /> The lighting computations are baked inside a texture and only recomputed when any of the relevant parameter changes. |

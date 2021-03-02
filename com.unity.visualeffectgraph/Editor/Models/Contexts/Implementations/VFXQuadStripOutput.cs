@@ -25,10 +25,12 @@ namespace UnityEditor.VFX
 
         public override bool supportsUV { get { return true; } }
 
-        public class OptionalInputProperties
+        protected IEnumerable<VFXPropertyWithValue> optionalInputProperties
         {
-            [Tooltip("Specifies the base color (RGB) and opacity (A) of the particle.")]
-            public Texture2D mainTexture = VFXResources.defaultResources.particleTexture;
+            get
+            {
+                yield return new VFXPropertyWithValue(new VFXProperty(GetFlipbookType(), "mainTexture", new TooltipAttribute("Specifies the base color (RGB) and opacity (A) of the particle.")), (usesFlipbook ? null : VFXResources.defaultResources.particleTexture));
+            }
         }
 
         public class CustomUVInputProperties
@@ -42,8 +44,8 @@ namespace UnityEditor.VFX
             get
             {
                 IEnumerable<VFXPropertyWithValue> properties = base.inputProperties;
-                if (shaderGraph == null)
-                    properties = properties.Concat(PropertiesFromType("OptionalInputProperties"));
+                if (GetOrRefreshShaderGraphObject() == null)
+                    properties = properties.Concat(optionalInputProperties);
                 if (tilingMode == StripTilingMode.Custom)
                     properties = properties.Concat(PropertiesFromType("CustomUVInputProperties"));
                 return properties;
@@ -55,7 +57,7 @@ namespace UnityEditor.VFX
             foreach (var exp in base.CollectGPUExpressions(slotExpressions))
                 yield return exp;
 
-            if (shaderGraph == null)
+            if (GetOrRefreshShaderGraphObject() == null)
                 yield return slotExpressions.First(o => o.name == "mainTexture");
             if (tilingMode == StripTilingMode.Custom)
                 yield return slotExpressions.First(o => o.name == "texCoord");

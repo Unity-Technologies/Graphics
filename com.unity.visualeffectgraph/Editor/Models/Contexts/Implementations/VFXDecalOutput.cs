@@ -17,10 +17,15 @@ namespace UnityEditor.VFX
         public override CullMode defaultCullMode { get { return CullMode.Back; } }
         public override bool hasShadowCasting { get { return false; } }
 
-        public class InputProperties
+        protected override IEnumerable<VFXPropertyWithValue> inputProperties
         {
-            [Tooltip("Specifies the base color (RGB) and opacity (A) of the particle.")]
-            public Texture2D mainTexture = VFXResources.defaultResources.particleTexture;
+            get
+            {
+                foreach (var input in base.inputProperties)
+                    yield return input;
+
+                yield return new VFXPropertyWithValue(new VFXProperty(GetFlipbookType(), "mainTexture", new TooltipAttribute("Specifies the base color (RGB) and opacity (A) of the particle.")), (usesFlipbook ? null : VFXResources.defaultResources.particleTexture));
+            }
         }
 
         public override void OnEnable()
