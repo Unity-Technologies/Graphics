@@ -627,18 +627,91 @@ half3 SampleLightmap(float2 lightmapUV, half3 normalWS)
 #define SAMPLE_GI(lmName, shName, normalWSName) SampleSHPixel(shName, normalWSName)
 #endif
 
-half3 GlossyEnvironmentReflection(half3 reflectVector, half perceptualRoughness, half occlusion)
+half3 BoxProjectedCubemapDirection(half3 reflectVector, half3 positionWS, real4 cubemapCenter, real4 boxMin, real4 boxMax)
+{
+    float3 boxMinMax = (reflectVector > 0.0f) ? boxMax.xyz : boxMin.xyz;
+    float3 rbMinMax = (boxMinMax - positionWS) / reflectVector;
+
+    float fa = min(min(rbMinMax.x, rbMinMax.y), rbMinMax.z);
+
+    half3 pos = positionWS - cubemapCenter.xyz;
+    return pos + reflectVector * fa;
+}
+
+float getWeight(half3 positionWS, real4 boxMin, real4 boxMax)
+{
+    //return boxMin.w;
+    float blendDist = boxMin.w;
+    float3 weightDir = min(positionWS + blendDist - boxMin.xyz, boxMax.xyz + blendDist - positionWS) / blendDist;
+    return saturate(min(weightDir.x, min(weightDir.y, weightDir.z)));
+}
+
+half3 getIrradianceFromReflectionProbes(half3 reflectVector, half3 positionWS, half perceptualRoughness)
+{
+    //This is not like for the builtin but the reverse order:
+    //Get a sorted list form largest reflection probe to the smallest and the smallest being rendered on top if they all have the same importance.
+    //To fade reach out by 1 on each direction (The same for the deferred builtin implementation).
+
+    //Such the the highest priority and smallest reflection probes is first.
+    float blendFactor = 1.0;
+    half3 irradiance = half3(0, 0, 0);
+
+    // #note use GetReflectionProbesCount() to determine how many reflection probes we should loop over
+    //    use 0 to GetReflectionProbesCount() in GetReflectionProbe(i) to get the probes
+
+    half3 originalReflectVector = reflectVector;
+
+    // Spec 0
+    {
+        float weight = min(getWeight(positionWS, unity_SpecCube0_BoxMin, unity_SpecCube0_BoxMax), blendFactor);
+        blendFactor = saturate(blendFactor - weight);
+
+        reflectVector = (1 - unity_SpecCube0_ProbePosition.w) * originalReflectVector
+            + unity_SpecCube0_ProbePosition.w * BoxProjectedCubemapDirection(originalReflectVector, positionWS, unity_SpecCube0_ProbePosition, unity_SpecCube0_BoxMin, unity_SpecCube0_BoxMax);
+        half mip = PerceptualRoughnessToMipmapLevel(perceptualRoughness);
+        // #note to do Sample TextureCubeArray   
+        //half4 encodedIrradiance = SAMPLE_TEXTURECUBE_ARRAY_LOD_ABSTRACT(_ReflectionProbeTextures, s_trilinear_clamp_sampler, reflectVector, probeIndex, mip);
+        half4 encodedIrradiance = SAMPLE_TEXTURECUBE_LOD(unity_SpecCube0, samplerunity_SpecCube0, reflectVector, mip);
+#if !defined(UNITY_USE_NATIVE_HDR)
+        irradiance += weight * DecodeHDREnvironment(encodedIrradiance, unity_SpecCube0_HDR);
+#else
+        irradiance += weight * encodedIrradiance.rbg;
+#endif
+    }
+
+    // Spec 1
+        {
+        float weight = min(getWeight(positionWS, unity_SpecCube1_BoxMin, unity_SpecCube1_BoxMax), blendFactor);
+        blendFactor = saturate(blendFactor - weight);
+
+        reflectVector = (1 - unity_SpecCube1_ProbePosition.w) * originalReflectVector
+            + unity_SpecCube1_ProbePosition.w * BoxProjectedCubemapDirection(originalReflectVector, positionWS, unity_SpecCube1_ProbePosition, unity_SpecCube1_BoxMin, unity_SpecCube1_BoxMax);
+        half mip = PerceptualRoughnessToMipmapLevel(perceptualRoughness);
+        // #note to do Sample TextureCubeArray   
+        //half4 encodedIrradiance = SAMPLE_TEXTURECUBE_ARRAY_LOD_ABSTRACT(_ReflectionProbeTextures, s_trilinear_clamp_sampler, reflectVector, probeIndex, mip);
+        half4 encodedIrradiance = SAMPLE_TEXTURECUBE_LOD(unity_SpecCube1, samplerunity_SpecCube0, reflectVector, mip);
+#if !defined(UNITY_USE_NATIVE_HDR)
+        irradiance += weight * DecodeHDREnvironment(encodedIrradiance, unity_SpecCube1_HDR);
+#else
+        irradiance += weight * encodedIrradiance.rbg;
+#endif
+        }
+
+    return irradiance;
+}
+
+half3 GlossyEnvironmentReflection(half3 reflectVector, half3 positionWS, half perceptualRoughness, half occlusion)
 {
 #if !defined(_ENVIRONMENTREFLECTIONS_OFF)
     half mip = PerceptualRoughnessToMipmapLevel(perceptualRoughness);
-    half4 encodedIrradiance = SAMPLE_TEXTURECUBE_LOD(unity_SpecCube0, samplerunity_SpecCube0, reflectVector, mip);
+    half3 encodedIrradiance = getIrradianceFromReflectionProbes(reflectVector, positionWS, perceptualRoughness); //SAMPLE_TEXTURECUBE_LOD(unity_SpecCube0, samplerunity_SpecCube0, reflectVector, mip);
 
-//TODO:DOTS - we need to port probes to live in c# so we can manage this manually.
-#if defined(UNITY_USE_NATIVE_HDR) || defined(UNITY_DOTS_INSTANCING_ENABLED)
+//    //TODO:DOTS - we need to port probes to live in c# so we can manage this manually.
+//#if defined(UNITY_USE_NATIVE_HDR) || defined(UNITY_DOTS_INSTANCING_ENABLED)
     half3 irradiance = encodedIrradiance.rgb;
-#else
-    half3 irradiance = DecodeHDREnvironment(encodedIrradiance, unity_SpecCube0_HDR);
-#endif
+//#else
+//    half3 irradiance = DecodeHDREnvironment(encodedIrradiance, unity_SpecCube0_HDR);
+//#endif
 
     return irradiance * occlusion;
 #endif // GLOSSY_REFLECTIONS
@@ -675,7 +748,7 @@ half3 SubtractDirectMainLightFromLightmap(Light mainLight, half3 normalWS, half3
 }
 
 half3 GlobalIllumination(BRDFData brdfData, BRDFData brdfDataClearCoat, float clearCoatMask,
-    half3 bakedGI, half occlusion,
+    half3 bakedGI, half occlusion, half3 positionWS,
     half3 normalWS, half3 viewDirectionWS)
 {
     half3 reflectVector = reflect(-viewDirectionWS, normalWS);
@@ -683,12 +756,12 @@ half3 GlobalIllumination(BRDFData brdfData, BRDFData brdfDataClearCoat, float cl
     half fresnelTerm = Pow4(1.0 - NoV);
 
     half3 indirectDiffuse = bakedGI;
-    half3 indirectSpecular = GlossyEnvironmentReflection(reflectVector, brdfData.perceptualRoughness, 1.0h);
+    half3 indirectSpecular = GlossyEnvironmentReflection(reflectVector, positionWS, brdfData.perceptualRoughness, 1.0h);
 
     half3 color = EnvironmentBRDF(brdfData, indirectDiffuse, indirectSpecular, fresnelTerm);
 
 #if defined(_CLEARCOAT) || defined(_CLEARCOATMAP)
-    half3 coatIndirectSpecular = GlossyEnvironmentReflection(reflectVector, brdfDataClearCoat.perceptualRoughness, 1.0h);
+    half3 coatIndirectSpecular = GlossyEnvironmentReflection(reflectVector, positionWS, brdfDataClearCoat.perceptualRoughness, 1.0h);
     // TODO: "grazing term" causes problems on full roughness
     half3 coatColor = EnvironmentBRDFClearCoat(brdfDataClearCoat, clearCoatMask, coatIndirectSpecular, fresnelTerm);
 
@@ -703,10 +776,10 @@ half3 GlobalIllumination(BRDFData brdfData, BRDFData brdfDataClearCoat, float cl
 }
 
 // Backwards compatiblity
-half3 GlobalIllumination(BRDFData brdfData, half3 bakedGI, half occlusion, half3 normalWS, half3 viewDirectionWS)
+half3 GlobalIllumination(BRDFData brdfData, half3 bakedGI, half occlusion, half3 positionWS, half3 normalWS, half3 viewDirectionWS)
 {
     const BRDFData noClearCoat = (BRDFData)0;
-    return GlobalIllumination(brdfData, noClearCoat, 0.0, bakedGI, occlusion, normalWS, viewDirectionWS);
+    return GlobalIllumination(brdfData, noClearCoat, 0.0, bakedGI, occlusion, positionWS, normalWS, viewDirectionWS);
 }
 
 void MixRealtimeAndBakedGI(inout Light light, half3 normalWS, inout half3 bakedGI)
@@ -876,7 +949,7 @@ half4 UniversalFragmentPBR(InputData inputData, SurfaceData surfaceData)
 
     MixRealtimeAndBakedGI(mainLight, inputData.normalWS, inputData.bakedGI);
     half3 color = GlobalIllumination(brdfData, brdfDataClearCoat, surfaceData.clearCoatMask,
-                                     inputData.bakedGI, surfaceData.occlusion,
+                                     inputData.bakedGI, surfaceData.occlusion, inputData.positionWS,
                                      inputData.normalWS, inputData.viewDirectionWS);
     color += LightingPhysicallyBased(brdfData, brdfDataClearCoat,
                                      mainLight,

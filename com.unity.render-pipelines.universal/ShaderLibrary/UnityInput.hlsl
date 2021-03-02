@@ -116,6 +116,14 @@ float4 unity_ProbesOcclusion;
 // Reflection Probe 0 block feature
 // HDR environment map decode instructions
 real4 unity_SpecCube0_HDR;
+real4 unity_SpecCube1_HDR;
+
+float4 unity_SpecCube0_BoxMax;
+float4 unity_SpecCube0_BoxMin;
+float4 unity_SpecCube0_ProbePosition;
+float4 unity_SpecCube1_BoxMax;
+float4 unity_SpecCube1_BoxMin;
+float4 unity_SpecCube1_ProbePosition;
 
 // Lightmap block feature
 float4 unity_LightmapST;
@@ -199,6 +207,7 @@ real4 unity_ShadowColor;
 // Unity specific
 TEXTURECUBE(unity_SpecCube0);
 SAMPLER(samplerunity_SpecCube0);
+TEXTURECUBE(unity_SpecCube1);
 
 // Main lightmap
 TEXTURE2D(unity_Lightmap);
