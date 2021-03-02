@@ -317,7 +317,7 @@ namespace UnityEngine.Rendering.Universal
         public static readonly string ShadowsShadowMask = "SHADOWS_SHADOWMASK";
 
         public static readonly string MainLightCookie        = "_MAIN_LIGHT_COOKIE";
-        public static readonly string AdditionalLightCookies = "_ADDITIONAL_LIGHT_COOKIE";
+        public static readonly string AdditionalLightCookies = "_ADDITIONAL_LIGHT_COOKIES";
 
         public static readonly string DepthNoMsaa = "_DEPTH_NO_MSAA";
         public static readonly string DepthMsaa2 = "_DEPTH_MSAA_2";

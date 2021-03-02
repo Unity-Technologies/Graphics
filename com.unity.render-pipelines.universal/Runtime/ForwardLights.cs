@@ -37,6 +37,9 @@ namespace UnityEngine.Rendering.Universal.Internal
 
         bool m_UseStructuredBuffer;
 
+        // TODO: move?
+        private LightCookieManager m_LightCookieManager;
+
         public ForwardLights()
         {
             m_UseStructuredBuffer = RenderingUtils.useStructuredBuffer;
@@ -66,6 +69,8 @@ namespace UnityEngine.Rendering.Universal.Internal
                 m_AdditionalLightSpotDirections = new Vector4[maxLights];
                 m_AdditionalLightOcclusionProbeChannels = new Vector4[maxLights];
             }
+
+            m_LightCookieManager = new LightCookieManager(LightCookieManager.LightCookieSettings.GetDefault());
         }
 
         public void Setup(ScriptableRenderContext context, ref RenderingData renderingData)
@@ -89,6 +94,7 @@ namespace UnityEngine.Rendering.Universal.Internal
                 CoreUtils.SetKeyword(cmd, ShaderKeywordStrings.ShadowsShadowMask, isShadowMask);
                 CoreUtils.SetKeyword(cmd, ShaderKeywordStrings.MixedLightingSubtractive, isSubtractive); // Backward compatibility
 
+                m_LightCookieManager.Setup(context, cmd, in renderingData.lightData);
                 // TODO: move to light cookie manager
                 if (renderingData.lightData.mainLightIndex >= 0)
                 {
