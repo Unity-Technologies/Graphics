@@ -142,7 +142,7 @@ bool CalculateDebugColorValidationSettings(in SurfaceData2D surfaceData, in Inpu
 
         case DEBUGVALIDATIONMODE_VALIDATE_MIPMAPS:
         {
-            return CalculateValidationMipLevel(inputData.mipInfo.w, inputData.uv, inputData.texelSize, surfaceData.albedo, surfaceData.alpha, debugColor);
+            return CalculateValidationMipLevel(inputData.mipCount, inputData.mipInfo.y, inputData.uv, inputData.texelSize, surfaceData.albedo, surfaceData.alpha, debugColor);
         }
 
         default:
