@@ -60,7 +60,8 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
         public override void Setup(ref TargetSetupContext context)
         {
             context.AddAssetDependency(kSourceCodeGuid, AssetCollection.Flags.SourceDependency);
-            context.SetDefaultShaderGUI("ShaderGraph.PBRMasterGUI"); // TODO: This should be owned by URP
+            if (!context.HasCustomEditorForRenderPipeline(typeof(UnityEngine.Rendering.Universal.UniversalRenderPipelineAsset)))
+                context.AddCustomEditorForRenderPipeline("ShaderGraph.PBRMasterGUI", typeof(UnityEngine.Rendering.Universal.UniversalRenderPipelineAsset)); // TODO: This should be owned by URP
 
             // Process SubShaders
             SubShaderDescriptor[] litSubShaders = { SubShaders.LitComputeDOTS, SubShaders.LitGLES };
@@ -90,24 +91,24 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
             var descs = context.blocks.Select(x => x.descriptor);
             // Surface Type & Blend Mode
             // These must be set per SubTarget as Sprite SubTargets override them
-            context.AddField(UniversalFields.SurfaceOpaque,       target.surfaceType == SurfaceType.Opaque);
+            context.AddField(UniversalFields.SurfaceOpaque,         target.surfaceType == SurfaceType.Opaque);
             if (target.surfaceType != SurfaceType.Opaque)
             {
-                context.AddField(UniversalFields.SurfaceTransparent,  true);
-                context.AddField(UniversalFields.BlendAdd,                   target.alphaMode == AlphaMode.Additive && !target.preserveSpecular);
-                context.AddField(UniversalFields.BlendAddPreserveSpecular,   target.alphaMode == AlphaMode.Additive && target.preserveSpecular);
-                context.AddField(Fields.BlendAlpha,                          target.alphaMode == AlphaMode.Alpha    && !target.preserveSpecular);
-                context.AddField(UniversalFields.BlendAlphaPreserveSpecular, target.alphaMode == AlphaMode.Alpha    && target.preserveSpecular);
-                context.AddField(UniversalFields.BlendMultiply,              target.alphaMode == AlphaMode.Multiply && !target.preserveSpecular);
-                context.AddField(UniversalFields.BlendPremultiply,           target.alphaMode == AlphaMode.Premultiply);
+                context.AddField(UniversalFields.SurfaceTransparent,         target.surfaceType != SurfaceType.Opaque);
+                context.AddField(UniversalFields.BlendAdd,                   target.surfaceType != SurfaceType.Opaque && target.alphaMode == AlphaMode.Additive && !target.preserveSpecular);
+                context.AddField(UniversalFields.BlendAddPreserveSpecular,   target.surfaceType != SurfaceType.Opaque && target.alphaMode == AlphaMode.Additive && target.preserveSpecular);
+                context.AddField(Fields.BlendAlpha,                          target.surfaceType != SurfaceType.Opaque && target.alphaMode == AlphaMode.Alpha    && !target.preserveSpecular);
+                context.AddField(UniversalFields.BlendAlphaPreserveSpecular, target.surfaceType != SurfaceType.Opaque && target.alphaMode == AlphaMode.Alpha    && target.preserveSpecular);
+                context.AddField(UniversalFields.BlendMultiply,              target.surfaceType != SurfaceType.Opaque && target.alphaMode == AlphaMode.Multiply && !target.preserveSpecular);
+                context.AddField(UniversalFields.BlendPremultiply,           target.surfaceType != SurfaceType.Opaque && target.alphaMode == AlphaMode.Premultiply);
             }
 
             // Lit
-            context.AddField(UniversalFields.NormalDropOffOS,     normalDropOffSpace == NormalDropOffSpace.Object);
-            context.AddField(UniversalFields.NormalDropOffTS,     normalDropOffSpace == NormalDropOffSpace.Tangent);
-            context.AddField(UniversalFields.NormalDropOffWS,     normalDropOffSpace == NormalDropOffSpace.World);
-            context.AddField(UniversalFields.SpecularSetup,       workflowMode == WorkflowMode.Specular);
-            context.AddField(UniversalFields.Normal,              descs.Contains(BlockFields.SurfaceDescription.NormalOS) ||
+            context.AddField(UniversalFields.NormalDropOffOS,       normalDropOffSpace == NormalDropOffSpace.Object);
+            context.AddField(UniversalFields.NormalDropOffTS,       normalDropOffSpace == NormalDropOffSpace.Tangent);
+            context.AddField(UniversalFields.NormalDropOffWS,       normalDropOffSpace == NormalDropOffSpace.World);
+            context.AddField(UniversalFields.SpecularSetup,         workflowMode == WorkflowMode.Specular);
+            context.AddField(UniversalFields.Normal,                descs.Contains(BlockFields.SurfaceDescription.NormalOS) ||
                 descs.Contains(BlockFields.SurfaceDescription.NormalTS) ||
                 descs.Contains(BlockFields.SurfaceDescription.NormalWS));
             // Complex Lit
@@ -128,8 +129,8 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
             context.AddBlock(BlockFields.SurfaceDescription.Metallic,           workflowMode == WorkflowMode.Metallic);
             context.AddBlock(BlockFields.SurfaceDescription.Alpha,              target.surfaceType == SurfaceType.Transparent || target.alphaClip);
             context.AddBlock(BlockFields.SurfaceDescription.AlphaClipThreshold, target.alphaClip);
-            context.AddBlock(UniversalBlockFields.SurfaceDescription.CoatMask,           clearCoat);
-            context.AddBlock(UniversalBlockFields.SurfaceDescription.CoatSmoothness,     clearCoat);
+            context.AddBlock(BlockFields.SurfaceDescription.CoatMask,           clearCoat);
+            context.AddBlock(BlockFields.SurfaceDescription.CoatSmoothness,     clearCoat);
         }
 
         public override void GetPropertiesGUI(ref TargetPropertyGUIContext context, Action onChange, Action<String> registerUndo)
@@ -387,8 +388,8 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
                 useInPreview = true,
 
                 // Template
-                passTemplatePath = UniversalTarget.kTemplateFilePath,
-                sharedTemplateDirectories = GenerationUtils.GetDefaultSharedTemplateDirectories(),
+                passTemplatePath = UniversalTarget.kTemplatePath,
+                sharedTemplateDirectories = UniversalTarget.kSharedTemplateDirectories,
 
                 // Port Mask
                 validVertexBlocks = CoreBlockMasks.Vertex,
@@ -404,6 +405,9 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
                 pragmas  = CorePragmas.Forward,     // NOTE: SM 2.0 only GL
                 keywords = LitKeywords.Forward,
                 includes = LitIncludes.Forward,
+
+                // Custom Interpolator Support
+                customInterpolators = CoreCustomInterpDescriptors.Common
             };
 
             public static PassDescriptor ForwardOnly = new PassDescriptor
@@ -415,8 +419,8 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
                 useInPreview = true,
 
                 // Template
-                passTemplatePath = UniversalTarget.kTemplateFilePath,
-                sharedTemplateDirectories = GenerationUtils.GetDefaultSharedTemplateDirectories(),
+                passTemplatePath = UniversalTarget.kTemplatePath,
+                sharedTemplateDirectories = UniversalTarget.kSharedTemplateDirectories,
 
                 // Port Mask
                 validVertexBlocks = CoreBlockMasks.Vertex,
@@ -432,6 +436,9 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
                 pragmas  = CorePragmas.Forward,    // NOTE: SM 2.0 only GL
                 keywords = LitKeywords.Forward,
                 includes = LitIncludes.Forward,
+
+                // Custom Interpolator Support
+                customInterpolators = CoreCustomInterpDescriptors.Common
             };
 
             // Deferred only in SM4.5, MRT not supported in GLES2
@@ -443,8 +450,8 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
                 lightMode = "UniversalGBuffer",
 
                 // Template
-                passTemplatePath = UniversalTarget.kTemplateFilePath,
-                sharedTemplateDirectories = GenerationUtils.GetDefaultSharedTemplateDirectories(),
+                passTemplatePath = UniversalTarget.kTemplatePath,
+                sharedTemplateDirectories = UniversalTarget.kSharedTemplateDirectories,
 
                 // Port Mask
                 validVertexBlocks = CoreBlockMasks.Vertex,
@@ -460,6 +467,9 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
                 pragmas = CorePragmas.DOTSGBuffer,
                 keywords = LitKeywords.GBuffer,
                 includes = LitIncludes.GBuffer,
+
+                // Custom Interpolator Support
+                customInterpolators = CoreCustomInterpDescriptors.Common
             };
 
             public static PassDescriptor Meta = new PassDescriptor()
@@ -470,8 +480,8 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
                 lightMode = "Meta",
 
                 // Template
-                passTemplatePath = UniversalTarget.kTemplateFilePath,
-                sharedTemplateDirectories = GenerationUtils.GetDefaultSharedTemplateDirectories(),
+                passTemplatePath = UniversalTarget.kTemplatePath,
+                sharedTemplateDirectories = UniversalTarget.kSharedTemplateDirectories,
 
                 // Port Mask
                 validVertexBlocks = CoreBlockMasks.Vertex,
@@ -487,6 +497,9 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
                 pragmas = CorePragmas.Default,
                 keywords = LitKeywords.Meta,
                 includes = LitIncludes.Meta,
+
+                // Custom Interpolator Support
+                customInterpolators = CoreCustomInterpDescriptors.Common
             };
 
             public static readonly PassDescriptor _2D = new PassDescriptor()
@@ -496,8 +509,8 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
                 lightMode = "Universal2D",
 
                 // Template
-                passTemplatePath = UniversalTarget.kTemplateFilePath,
-                sharedTemplateDirectories = GenerationUtils.GetDefaultSharedTemplateDirectories(),
+                passTemplatePath = UniversalTarget.kTemplatePath,
+                sharedTemplateDirectories = UniversalTarget.kSharedTemplateDirectories,
 
                 // Port Mask
                 validVertexBlocks = CoreBlockMasks.Vertex,
@@ -511,6 +524,9 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
                 renderStates = CoreRenderStates.Default,
                 pragmas = CorePragmas.Instanced,
                 includes = LitIncludes._2D,
+
+                // Custom Interpolator Support
+                customInterpolators = CoreCustomInterpDescriptors.Common
             };
 
             public static readonly PassDescriptor DepthNormalOnly = new PassDescriptor()
@@ -522,8 +538,8 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
                 useInPreview = false,
 
                 // Template
-                passTemplatePath = UniversalTarget.kTemplateFilePath,
-                sharedTemplateDirectories = GenerationUtils.GetDefaultSharedTemplateDirectories(),
+                passTemplatePath = UniversalTarget.kTemplatePath,
+                sharedTemplateDirectories = UniversalTarget.kSharedTemplateDirectories,
 
                 // Port Mask
                 validVertexBlocks = CoreBlockMasks.Vertex,
@@ -538,6 +554,9 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
                 renderStates = CoreRenderStates.DepthNormalsOnly,
                 pragmas = CorePragmas.Instanced,
                 includes = CoreIncludes.DepthNormalsOnly,
+
+                // Custom Interpolator Support
+                customInterpolators = CoreCustomInterpDescriptors.Common
             };
         }
         #endregion
@@ -573,8 +592,8 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
                 BlockFields.SurfaceDescription.Occlusion,
                 BlockFields.SurfaceDescription.Alpha,
                 BlockFields.SurfaceDescription.AlphaClipThreshold,
-                UniversalBlockFields.SurfaceDescription.CoatMask,
-                UniversalBlockFields.SurfaceDescription.CoatSmoothness,
+                BlockFields.SurfaceDescription.CoatMask,
+                BlockFields.SurfaceDescription.CoatSmoothness,
             };
 
             public static readonly BlockFieldDescriptor[] FragmentMeta = new BlockFieldDescriptor[]
@@ -686,7 +705,6 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
                 { CoreKeywordDescriptors.Lightmap },
                 { CoreKeywordDescriptors.DirectionalLightmapCombined },
                 { CoreKeywordDescriptors.MainLightShadows },
-                { CoreKeywordDescriptors.MainLightShadowsCascade },
                 { CoreKeywordDescriptors.AdditionalLights },
                 { CoreKeywordDescriptors.AdditionalLightShadows },
                 { CoreKeywordDescriptors.ShadowsSoft },
@@ -699,8 +717,8 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
                 { CoreKeywordDescriptors.Lightmap },
                 { CoreKeywordDescriptors.DirectionalLightmapCombined },
                 { CoreKeywordDescriptors.MainLightShadows },
-                { CoreKeywordDescriptors.MainLightShadowsCascade },
                 { CoreKeywordDescriptors.ShadowsSoft },
+                { CoreKeywordDescriptors.LightmapShadowMixing },
                 { CoreKeywordDescriptors.MixedLightingSubtractive },
                 { GBufferNormalsOct },
             };

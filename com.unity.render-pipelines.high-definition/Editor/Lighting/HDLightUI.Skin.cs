@@ -25,15 +25,13 @@ namespace UnityEditor.Rendering.HighDefinition
 
             // Base (copy from LightEditor.cs)
             public readonly GUIContent outterAngle = new GUIContent("Outer Angle", "Controls the angle, in degrees, at the base of a Spot Light's cone.");
-            public readonly GUIContent cookieSizeX = new GUIContent("Size X", "Sets the width of the Cookie mask currently assigned to the Light.");
-            public readonly GUIContent cookieSizeY = new GUIContent("Size Y", "Sets the height of the Cookie mask currently assigned to the Light.");
+            public readonly GUIContent cookieSize = new GUIContent("Size", "Sets the size of the Cookie mask currently assigned to the Light.");
             public readonly GUIContent shadowBias = new GUIContent("Bias", "Controls the distance at which HDRP pushes shadows away from the Light. Useful for avoiding false self-shadowing artifacts.");
             public readonly GUIContent shadowNormalBias = new GUIContent("Normal Bias", "Controls distance at which HDRP shrinks the shadow casting surfaces along the surface normal. Useful for avoiding false self-shadowing artifacts.");
             public readonly GUIContent shadowNearPlane = new GUIContent("Near Plane", "Controls the value for the active Camera's Near clipping Plane for rendering shadows. Currently clamped to 0.1 units or 1% of the lights range property, whichever is lower.");
             public readonly GUIContent bakedShadowRadius = new GUIContent("Radius", "Sets the amount of artificial softening the baking process applies to the edges of shadows cast by this Point or Spot Light.");
             public readonly GUIContent bakedShadowAngle = new GUIContent("Angle", "Controls the amount of artificial softening the baking process applies to the edges of shadows cast by Directional Lights.");
             public readonly GUIContent lightBounceIntensity = new GUIContent("Indirect Multiplier", "Controls the intensity of the indirect light this Light contributes to the Scene. A value of 0 with a Realtime Light causes HDRP to remove it from realtime global illumination. A value of 0 for Baked and Mixed Lights cause them to no longer emit indirect lighting. This has no effect if you disable both Realtime and Baked global illumination.");
-            public readonly GUIContent indirectBounceShadowWarning = new GUIContent("HDRP does not support real-time indirect bounce shadowing for Spot and Point lights.");
             public readonly GUIContent color = new GUIContent("Color", "Specifies the color this Light emits.");
             public readonly GUIContent lightAppearance = new GUIContent("Light Appearance", "Specifies the mode for how HDRP calculates this Light's color.");
             public readonly GUIContent colorFilter = new GUIContent("Filter", "Specifies a color which tints the Light source.");
@@ -98,7 +96,7 @@ namespace UnityEditor.Rendering.HighDefinition
 
             public readonly GUIContent shape = new GUIContent("Type", "Specifies the current type of Light. Possible Light types are Directional, Spot, Point, and Area.");
             public readonly GUIContent[] shapeNames;
-            public readonly GUIContent enableSpotReflector = new GUIContent("Reflector", "When enabled, HDRP simulates a Spot Light with a reflector making the intensity of the Light more focused with a narrower angle. When disabled, the intensity is constent whatever the size of the cone.");
+            public readonly GUIContent enableSpotReflector = new GUIContent("Reflector", "When enabled, HDRP simulates a physically correct Spot Light using a reflector. This means the narrower the Outer Angle, the more intense the Spot Light.  When disabled, the intensity of the Light matches the one of a Point Light and thus remains constant regardless of the Outer Angle.");
             public readonly GUIContent luxAtDistance = new GUIContent("At", "Sets the distance, in meters, where a surface receives the amount of light equivalent to the provided number of Lux.");
 
             // Volumetric Additional light data
@@ -141,8 +139,8 @@ namespace UnityEditor.Rendering.HighDefinition
             public readonly GUIContent denoiseTracedShadow = new GUIContent("Denoise", "This defines if the ray traced shadow should be filtered.");
             public readonly GUIContent denoiserRadius = new GUIContent("Denoiser Radius", "This defines the denoiser's radius used for filtering ray traced shadows.");
             public readonly GUIContent distanceBasedFiltering = new GUIContent("Distance Based Denoising", "This defines if the denoiser should use the distance to the occluder to improve the filtering.");
-            public readonly GUIContent semiTransparentShadow = new GUIContent("Semi Transparent Shadow", "When enabled, the light will cast a semi transparent ray traced shadow.");
-            public readonly GUIContent colorShadow = new GUIContent("Color Shadow", "When enabled, the directional light will cast a ray traced colored shadow.");
+            public readonly GUIContent semiTransparentShadow = new GUIContent("Semi Transparent Shadow", "When enabled, the opacity of shadow casters will be taken into account when generating the shadow.");
+            public readonly GUIContent colorShadow = new GUIContent("Color Shadow", "When enabled, the opacity and transmittance color of shadow casters will be taken into account when generating the shadow.");
             public readonly GUIContent evsmExponent = new GUIContent("EVSM Exponent", "Exponent used for depth warping. Increasing this could reduce light leak and result in a change in appearance of the shadow.");
             public readonly GUIContent evsmLightLeakBias = new GUIContent("Light Leak Bias", "Increasing this value light leaking, but it eats up a bit of the softness of the shadow.");
             public readonly GUIContent evsmVarianceBias = new GUIContent("Variance Bias", "Variance Bias for EVSM. This is to contrast numerical accuracy issues. ");
@@ -159,6 +157,9 @@ namespace UnityEditor.Rendering.HighDefinition
 
             // Settings
             public readonly GUIContent enableShadowMap = new GUIContent("Enable", "When enabled, this Light casts shadows.");
+
+            // Warnings
+            public readonly string unsupportedLightShapeWarning = "This light shape is not supported by Realtime Global Illumination.";
 
             public Styles()
             {

@@ -7,19 +7,41 @@
 
 ---
 
-All_Universal_Stereo_trunk:
-    name: All Universal_Stereo CI - trunk
+PR_Universal_Stereo_trunk:
+    name: Universal_Stereo PR Job - trunk
     dependencies:
-      -  path: .yamato/universal_stereo-win.yml#Universal_Stereo_Win_Standalone_mono_Linear_trunk
+      -  path: .yamato/universal_stereo-win.yml#Universal_Stereo_Win_Standalone_cache_mono_Linear_trunk
          rerun: on-new-revision
       -  path: .yamato/universal_stereo-win.yml#Universal_Stereo_Win_editmode_mono_Linear_trunk
          rerun: on-new-revision
-All_Universal_Stereo_CUSTOM-REVISION:
-    name: All Universal_Stereo CI - CUSTOM-REVISION
+    variables:
+        UTR_VERSION: "current"
+        TEST_FILTER: .*
+Nightly_Universal_Stereo_trunk:
+    name: Nightly Universal_Stereo - trunk
     dependencies:
-      -  path: .yamato/universal_stereo-win.yml#Universal_Stereo_Win_Standalone_mono_Linear_CUSTOM-REVISION
+      -  path: .yamato/all-universal_stereo.yml#PR_Universal_Stereo_trunk
+         rerun: on-new-revision
+    variables:
+        UTR_VERSION: "current"
+        TEST_FILTER: .*
+PR_Universal_Stereo_CUSTOM-REVISION:
+    name: Universal_Stereo PR Job - CUSTOM-REVISION
+    dependencies:
+      -  path: .yamato/universal_stereo-win.yml#Universal_Stereo_Win_Standalone_cache_mono_Linear_CUSTOM-REVISION
          rerun: always
       -  path: .yamato/universal_stereo-win.yml#Universal_Stereo_Win_editmode_mono_Linear_CUSTOM-REVISION
          rerun: always
     variables:
         CUSTOM_REVISION: custom_revision_not_set
+        UTR_VERSION: "current"
+        TEST_FILTER: .*
+Nightly_Universal_Stereo_CUSTOM-REVISION:
+    name: Nightly Universal_Stereo - CUSTOM-REVISION
+    dependencies:
+      -  path: .yamato/all-universal_stereo.yml#PR_Universal_Stereo_CUSTOM-REVISION
+         rerun: always
+    variables:
+        CUSTOM_REVISION: custom_revision_not_set
+        UTR_VERSION: "current"
+        TEST_FILTER: .*

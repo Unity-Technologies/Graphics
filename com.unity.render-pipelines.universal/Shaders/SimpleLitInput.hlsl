@@ -76,7 +76,7 @@ inline void InitializeSimpleLitSurfaceData(float2 uv, out SurfaceData outSurface
     outSurfaceData.specular = specularSmoothness.rgb;
     outSurfaceData.smoothness = specularSmoothness.a;
     outSurfaceData.normalTS = SampleNormal(uv, TEXTURE2D_ARGS(_BumpMap, sampler_BumpMap));
-    outSurfaceData.occlusion = 1.0; // unused
+    outSurfaceData.occlusion = 1.0;
     outSurfaceData.emission = SampleEmission(uv, _EmissionColor.rgb, TEXTURE2D_ARGS(_EmissionMap, sampler_EmissionMap));
 }
 

@@ -4,10 +4,51 @@ All notable changes to this package will be documented in this file.
 The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.html).
 
+## [12.0.0] - 2021-01-11
+
+### Fixed
+- Fixed missing warning UI about Projector component being unsupported (case 1300327).
+- Fixed the display name of a Volume Parameter when is defined the attribute InspectorName
+- Fixed Right Align of additional properties on Volume Components Editors
+
+### Added
+- Support for the PlayStation 5 platform has been added.
+- Support for additional properties for Volume Components without custom editor
+- Calculating correct rtHandleScale by considering the possible pixel rounding when DRS is on
+- Support for the PlayStation 5 platform has been added.
+- Support for the XboxSeries platform has been added.
+- Added Editor window that allow showing an icon to browse the documentation
+- New method DrawHeaders for VolumeComponentsEditors
+- Unification of Material Editor Headers Scopes
+- New API functions with no side effects in DynamicResolutionHandler, to retrieve resolved drs scale and to apply DRS on a size.
+
+### Changed
+- Changed Window/Render Pipeline/Render Pipeline Debug to Window/Rendering/Render Pipeline Debugger
+- Changed Window/Render Pipeline/Look Dev to Window/Analysis/Look Dev
+- Changed Window/Render Pipeline/Render Graph Viewer to Window/Analysis/Render Graph Viewer
+- Changed Window/Render Pipeline/Graphics Compositor to Window/Rendering/Graphics Compositor
+- Volume Gizmo Color setting is now under Colors->Scene->Volume Gizmo
+- Volume Gizmo alpha changed from 0.5 to 0.125
+- Moved Edit/Render Pipeline/Generate Shader Includes to Edit/Rendering/Generate Shader Includes
+- Moved Assets/Create/LookDev/Environment Library to Assets/Create/Rendering/Environment Library (Look Dev)
+
+### Added
+- Added class for drawing shadow cascades `UnityEditor.Rendering.ShadowCascadeGUI.DrawShadowCascades`.
+
 ## [11.0.0] - 2020-10-21
 
-Version Updated
-The version number for this package has increased due to a version update of a related graphics package.
+### Fixed
+- Fixed the default background color for previews to use the original color.
+- Fixed spacing between property fields on the Volume Component Editors.
+- Fixed ALL/NONE to maintain the state on the Volume Component Editors.
+- Fixed the selection of the Additional properties from ALL/NONE when the option "Show additional properties" is disabled
+- Fixed ACES tonemaping for Nintendo Switch by forcing some shader color conversion functions to full float precision.
+- Fixed a bug in FreeCamera which would only provide a speed boost for the first frame when pressing the Shfit key.
+
+### Added
+- New View Lighting Tool, a component which allow to setup light in the camera space
+- New function in GeometryTools.hlsl to calculate triangle edge and full triangle culling.
+- Several utils functions to access SphericalHarmonicsL2 in a more verbose and intuitive fashion.
 
 ## [10.2.0] - 2020-10-19
 
@@ -23,6 +64,7 @@ The version number for this package has increased due to a version update of a r
 ### Fixed
 - Fixed the scene view to scale correctly when hardware dynamic resolution is enabled (case 1158661)
 - Fixed game view artifacts on resizing when hardware dynamic resolution was enabled
+- Fixed issue that caused `UNITY_REVERSED_Z` and `UNITY_UV_STARTS_AT_TOP` being defined in platforms that don't support it.
 
 ### Changed
 - LookDev menu item entry is now disabled if the current pipeline does not support it.
@@ -72,6 +114,7 @@ The version number for this package has increased due to a version update of a r
 - Fix artifacts on Adreno 630 GPUs when using ACES Tonemapping
 - Fixed a null ref in the volume component list when there is no volume components in the project.
 - Fixed issue with volume manager trying to access a null volume.
+- HLSL codegen will work with C# file using both the `GenerateHLSL` and C# 7 features.
 
 ### Changed
 - Restored usage of ENABLE_VR to fix compilation errors on some platforms.

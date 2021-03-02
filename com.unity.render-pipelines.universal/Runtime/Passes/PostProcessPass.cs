@@ -74,6 +74,9 @@ namespace UnityEngine.Rendering.Universal.Internal
         // Option to use procedural draw instead of cmd.blit
         bool m_UseDrawProcedural;
 
+        // Use Fast conversions between SRGB and Linear
+        bool m_UseFastSRGBLinearConversion;
+
         Material m_BlitMaterial;
 
         public PostProcessPass(RenderPassEvent evt, PostProcessData data, Material blitMaterial)
@@ -124,6 +127,7 @@ namespace UnityEngine.Rendering.Universal.Internal
 
             m_MRT2 = new RenderTargetIdentifier[2];
             m_ResetHistory = true;
+            base.useNativeRenderPass = false;
         }
 
         public void Cleanup() => m_Materials.Cleanup();
@@ -208,6 +212,7 @@ namespace UnityEngine.Rendering.Universal.Internal
             m_Tonemapping         = stack.GetComponent<Tonemapping>();
             m_FilmGrain           = stack.GetComponent<FilmGrain>();
             m_UseDrawProcedural   = renderingData.cameraData.xr.enabled;
+            m_UseFastSRGBLinearConversion = renderingData.postProcessingData.useFastSRGBLinearConversion;
 
             if (m_IsFinalPass)
             {
@@ -243,7 +248,7 @@ namespace UnityEngine.Rendering.Universal.Internal
         }
 
         RenderTextureDescriptor GetCompatibleDescriptor()
-            => GetCompatibleDescriptor(m_Descriptor.width, m_Descriptor.height, m_Descriptor.graphicsFormat, m_Descriptor.depthBufferBits);
+            => GetCompatibleDescriptor(m_Descriptor.width, m_Descriptor.height, m_Descriptor.graphicsFormat);
 
         RenderTextureDescriptor GetCompatibleDescriptor(int width, int height, GraphicsFormat format, int depthBufferBits = 0)
         {
@@ -418,6 +423,11 @@ namespace UnityEngine.Rendering.Universal.Internal
 
                 if (RequireSRGBConversionBlitToBackBuffer(cameraData))
                     m_Materials.uber.EnableKeyword(ShaderKeywordStrings.LinearToSRGBConversion);
+
+                if (m_UseFastSRGBLinearConversion)
+                {
+                    m_Materials.uber.EnableKeyword(ShaderKeywordStrings.UseFastSRGBLinearConversion);
+                }
 
                 // Done with Uber, blit it
                 cmd.SetGlobalTexture(ShaderPropertyId.sourceTex, GetSource());
@@ -734,6 +744,7 @@ namespace UnityEngine.Rendering.Universal.Internal
             float maxRadius = GetMaxBokehRadiusInPixels(m_Descriptor.height);
             float rcpAspect = 1f / (wh / (float)hh);
 
+            CoreUtils.SetKeyword(material, ShaderKeywordStrings.UseFastSRGBLinearConversion, m_UseFastSRGBLinearConversion);
             cmd.SetGlobalVector(ShaderConstants._CoCParams, new Vector4(P, maxCoC, maxRadius, rcpAspect));
 
             // Prepare the bokeh kernel constant buffer

@@ -55,8 +55,7 @@ namespace UnityEditor.Experimental.Rendering.Universal
 
         private static class Styles
         {
-            public static readonly GUIContent InnerOuterSpotAngle = EditorGUIUtility.TrTextContent("Inner / Outer Spot Angle", "Controls the inner and outer angle in degrees, at the base of a Spot light's cone.");
-            public static readonly GUIContent SpotAngle = EditorGUIUtility.TrTextContent("Spot Angle", "Controls the angle in degrees at the base of a Spot light's cone.");
+            public static readonly GUIContent InnerOuterSpotAngle = EditorGUIUtility.TrTextContent("Inner / Outer Spot Angle", "Adjusts the inner / outer angles of this light to change the angle ranges of this Spot Light’s beam.");
 
             public static Texture lightCapTopRight = Resources.Load<Texture>("LightCapTopRight");
             public static Texture lightCapTopLeft = Resources.Load<Texture>("LightCapTopLeft");
@@ -78,37 +77,33 @@ namespace UnityEditor.Experimental.Rendering.Universal
             public static GUIContent volumetricSettingsFoldout = EditorGUIUtility.TrTextContent("Volumetric", "Options used for volumetric lighting");
             public static GUIContent normalMapsSettingsFoldout = EditorGUIUtility.TrTextContent("Normal Maps", "Options used for normal maps");
 
-            public static GUIContent generalLightType = EditorGUIUtility.TrTextContent("Light Type", "Specify the light type");
-            public static GUIContent generalFalloffSize = EditorGUIUtility.TrTextContent("Falloff", "Specify the falloff of the light");
-            public static GUIContent generalFalloffIntensity = EditorGUIUtility.TrTextContent("Falloff Intensity", "Adjusts the falloff curve");
-            public static GUIContent generalLightColor = EditorGUIUtility.TrTextContent("Color", "Specify the light color");
-            public static GUIContent generalLightIntensity = EditorGUIUtility.TrTextContent("Intensity", "Specify the light color's intensity");
-            public static GUIContent generalUseNormalMap = EditorGUIUtility.TrTextContent("Use Normal Map", "Specify whether the light considers normal maps");
-            public static GUIContent generalVolumeIntensity = EditorGUIUtility.TrTextContent("Intensity", "Specify the light's volumetric light volume intensity");
-            public static GUIContent generalBlendStyle = EditorGUIUtility.TrTextContent("Blend Style", "Specify the blend style");
-            public static GUIContent generalLightOverlapOperation = EditorGUIUtility.TrTextContent("Overlap Operation", "blending used when this light overlaps others");
-            public static GUIContent generalLightOrder = EditorGUIUtility.TrTextContent("Light Order", "The relative order in which lights of the same blend style get rendered.");
-            public static GUIContent generalShadowIntensity = EditorGUIUtility.TrTextContent("Strength", "Controls the shadow's darkness.");
-            public static GUIContent generalShadowVolumeIntensity = EditorGUIUtility.TrTextContent("Shadow Strength", "Controls the shadow volume's darkness.");
-            public static GUIContent generalSortingLayerPrefixLabel = EditorGUIUtility.TrTextContent("Target Sorting Layers", "Apply this light to the specified sorting layers.");
-            public static GUIContent generalLightNoLightEnabled = EditorGUIUtility.TrTextContentWithIcon("No valid blend styles are enabled.", MessageType.Error);
-            public static GUIContent generalNormalMapZDistance = EditorGUIUtility.TrTextContent("Normal Map Distance", "Specify the Z Distance of the light");
-            public static GUIContent generalNormalMapLightQuality = EditorGUIUtility.TrTextContent("Normal Map Quality", "Use accurate if there are noticeable visual issues");
+            public static GUIContent generalLightType = EditorGUIUtility.TrTextContent("Light Type", "Select the light type. \n\nGlobal Light: For ambient light. \nSpot Light: For a spot light / point light. \nFreeform Light: For a custom shape light. \nSprite Light: For a custom light cookie using Sprites.");
 
-            public static GUIContent pointLightInnerAngle =  EditorGUIUtility.TrTextContent("Inner Angle", "Specify the inner angle of the light");
-            public static GUIContent pointLightOuterAngle = EditorGUIUtility.TrTextContent("Outer Angle", "Specify the outer angle of the light");
-            public static GUIContent pointLightRadius = EditorGUIUtility.TrTextContent("Radius", "For adjusting the falloff of a light");
+            public static GUIContent generalFalloffSize = EditorGUIUtility.TrTextContent("Falloff", "Adjusts the falloff area of this light. The higher the falloff value, the larger area the falloff spans.");
+            public static GUIContent generalFalloffIntensity = EditorGUIUtility.TrTextContent("Falloff Strength", "Adjusts the falloff curve to control the softness of this light’s edges. The higher the falloff strength, the softer the edges of this light.");
+            public static GUIContent generalLightColor = EditorGUIUtility.TrTextContent("Color", "Adjusts this light’s color.");
+            public static GUIContent generalLightIntensity = EditorGUIUtility.TrTextContent("Intensity", "Adjusts this light’s color intensity by using multiply to brighten the Sprite beyond its original color.");
+            public static GUIContent generalVolumeIntensity = EditorGUIUtility.TrTextContent("Intensity", "Adjusts the intensity of this additional light volume that's additively blended on top of this light. To enable the Volumetric Shadow Strength, increase this Intensity to be greater than 0.");
+            public static GUIContent generalBlendStyle = EditorGUIUtility.TrTextContent("Blend Style", "Adjusts how this light blends with the Sprites on the Target Sorting Layers. Different Blend Styles can be customized in the 2D Renderer Data Asset.");
+            public static GUIContent generalLightOverlapOperation = EditorGUIUtility.TrTextContent("Overlap Operation", "Determines how this light blends with the other lights either through additive or alpha blending.");
+            public static GUIContent generalLightOrder = EditorGUIUtility.TrTextContent("Light Order", "Determines the relative order in which lights of the same Blend Style get rendered. Lights with lower values are rendered first.");
+            public static GUIContent generalShadowIntensity = EditorGUIUtility.TrTextContent("Strength", "Adjusts the amount of light occlusion from the Shadow Caster 2D component(s) when blocking this light.The higher the value, the more opaque the shadow becomes.");
+            public static GUIContent generalShadowVolumeIntensity = EditorGUIUtility.TrTextContent("Shadow Strength", "Adjusts the amount of volume light occlusion from the Shadow Caster 2D component(s) when blocking this light.");
+            public static GUIContent generalSortingLayerPrefixLabel = EditorGUIUtility.TrTextContent("Target Sorting Layers", "Determines which layers this light affects. To optimize performance, minimize the number of layers this light affects.");
+            public static GUIContent generalLightNoLightEnabled = EditorGUIUtility.TrTextContentWithIcon("No valid blend styles are enabled.", MessageType.Error);
+            public static GUIContent generalNormalMapZDistance = EditorGUIUtility.TrTextContent("Distance", "Adjusts the z-axis distance of this light and the lit Sprite(s). Do note that this distance does not Transform the position of this light in the Scene.");
+            public static GUIContent generalNormalMapLightQuality = EditorGUIUtility.TrTextContent("Quality", "Determines the accuracy of the lighting calculations when normal map is used. To optimize for performance, select Fast.");
+
+            public static GUIContent pointLightRadius = EditorGUIUtility.TrTextContent("Radius", "Adjusts the inner / outer radius of this light to change the size of this light.");
             public static GUIContent pointLightInner = EditorGUIUtility.TrTextContent("Inner", "Specify the inner radius of the light");
             public static GUIContent pointLightOuter = EditorGUIUtility.TrTextContent("Outer", "Specify the outer radius of the light");
             public static GUIContent pointLightSprite = EditorGUIUtility.TrTextContent("Sprite", "Specify the sprite (deprecated)");
 
-            public static GUIContent shapeLightSprite = EditorGUIUtility.TrTextContent("Sprite", "Specify the sprite");
-            public static GUIContent shapeLightParametricRadius = EditorGUIUtility.TrTextContent("Radius", "Adjust the size of the object");
-            public static GUIContent shapeLightParametricSides = EditorGUIUtility.TrTextContent("Sides", "Adjust the shapes number of sides");
+            public static GUIContent shapeLightSprite = EditorGUIUtility.TrTextContent("Sprite", "Assign a Sprite which acts as a mask to create a light cookie.");
 
             public static GUIContent deprecatedParametricLightWarningSingle = EditorGUIUtility.TrTextContentWithIcon("Parametic Lights have been deprecated. To continue, upgrade your Parametric Light to a Freeform Light to enjoy similar light functionality.", MessageType.Warning);
             public static GUIContent deprecatedParametricLightWarningMulti = EditorGUIUtility.TrTextContentWithIcon("Parametic Lights have been deprecated. To continue, upgrade your Parametric Lights to Freeform Lights to enjoy similar light functionality.", MessageType.Warning);
-            public static GUIContent deprecatedParametricLightInstructions = EditorGUIUtility.TrTextContent("Alternatively, you may choose to upgrade from the menu. Edit > Render Pipeline > Universal Render Pipeline > Upgrade Project/Scene Parametric Lights to Freeform");
+            public static GUIContent deprecatedParametricLightInstructions = EditorGUIUtility.TrTextContent("Alternatively, you may choose to upgrade from the menu. Edit > Rendering > Lights > Upgrade Project/Scene URP Parametric Lights to Freeform");
             public static GUIContent deprecatedParametricLightButtonSingle = EditorGUIUtility.TrTextContent("Upgrade Parametric Light");
             public static GUIContent deprecatedParametricLightButtonMulti = EditorGUIUtility.TrTextContent("Upgrade Parametric Lights");
 
@@ -244,7 +239,15 @@ namespace UnityEditor.Experimental.Rendering.Universal
                     blendStyleIndices.Add(i);
 
                     ref var blendStyle = ref rendererData.lightBlendStyles[i];
-                    blendStyleNames.Add(blendStyle.name);
+
+                    if (blendStyle.maskTextureChannel == Light2DBlendStyle.TextureChannel.None)
+                        blendStyleNames.Add(blendStyle.name);
+                    else
+                    {
+                        var name = string.Format("{0} ({1})", blendStyle.name, blendStyle.maskTextureChannel);
+                        blendStyleNames.Add(name);
+                    }
+
                     m_AnyBlendStyleEnabled = true;
                 }
             }

@@ -1,102 +1,79 @@
-abv: # specify the editor versions for which to create the expression trigger for all_project_ci job
-  projects:
-    - name: Universal
-    - name: ShaderGraph
-    - name: HDRP
-    - name: VFX_HDRP
-    - name: VFX_URP
-  build_configs:
-    - mono
-    - il2cpp
-  color_spaces: 
-    - Linear
+abv:
+  dependencies:
+    - project: Universal_Split
+      pr: true
+    - project: ShaderGraph
+      pr: true
+    - project: HDRP
+      pr: true
+    - project: VFX_HDRP
+      pr: true
+    - project: VFX_URP
+      pr: true
+  expression_trigger:
+    expression: 'pull_request.target eq "<TARGET_BRANCH>" AND NOT pull_request.draft AND pull_request.changes.any match ["com.unity.render-pipelines.core/**/*"] AND NOT pull_request.push.changes.all match ["*.md", "**/*.md", "doc/**/*", "**/Documentation*/**/*"]'
 weekly:
-  extra_dependencies: # additional project jobs to run weekly
+  dependencies:
     []
 nightly:
-  extra_dependencies: # additional project jobs to run nightly (in addition to ABV)
-    - project: Universal
-      platform: OSX
-      api: Metal
-      build_config: mono
-      color_space: Linear
-      test_platforms:
-        - playmode
-    - project: Smoke_Test
-      platform: Win
-      api: DX11
-      build_config: mono
-      color_space: Linear
-      test_platforms:
-        - playmode
-        - editmode
-        - Standalone
-    - project: Universal
-      platform: Android
-      api: OpenGLES3
-      build_config: il2cpp
-      color_space: Linear
-      test_platforms:
-        - Standalone
-    - project: Universal
-      platform: Android
-      api: Vulkan
-      build_config: il2cpp
-      color_space: Linear
-      test_platforms:
-        - Standalone
-    - project: Universal
-      platform: iPhone
-      api: Metal
-      build_config: il2cpp
-      color_space: Linear
-      test_platforms:
-        - Standalone
-    - project: Universal
-      platform: Win
-      api: Vulkan
-      build_config: mono
-      color_space: Linear
-      test_platforms:
-        - playmode
-        - playmode_XR
-    - project: Universal
-      platform: Win
-      api: DX12
-      build_config: mono
-      color_space: Linear
-      test_platforms:
-        - Standalone
-        - editmode
-        - playmode
-        # - playmode_XR # uncomment once bug fixed on XR side
-    - project: URPUpdate
-      platform: Win
-      api: DX11
-      build_config: mono
-      color_space: Linear
-      test_platforms:
-        - editmode
-        - playmode
-    - project: URPUpdate_Top_Asset_Store
-      platform: Win
-      api: DX11
-      build_config: mono
-      color_space: Linear
-      test_platforms:
-        - editmode
-        - playmode
+  dependencies:
+    - project: Universal_Split
+      nightly: true
+    - project: ShaderGraph
+      nightly: true
+    - project: HDRP
+      nightly: true
+    - project: VFX_HDRP
+      nightly: true
+    - project: VFX_URP
+      nightly: true
     - project: URP_Performance_BoatAttack
-      all: true
+      pr: true
+    - project: URP_Performance_LostCrypt
+      pr: true
+    - project: HDRP_PerformanceTests
+      pr: true
 trunk_verification: # jobs to include in trunk verification job
   dependencies:
-    - project: Universal
+    - project: URP_2D
       platform: Win
       api: DX11
       build_config: mono
       color_space: Linear
       test_platforms:
-        - playmode
+        - playmode_cache
+        - editmode
+    - project: URP_Foundation
+      platform: Win
+      api: DX11
+      build_config: mono
+      color_space: Linear
+      test_platforms:
+        - playmode_cache
+        - editmode
+    - project: URP_Lighting
+      platform: Win
+      api: DX11
+      build_config: mono
+      color_space: Linear
+      test_platforms:
+        - playmode_cache
+        - editmode
+    - project: URP_PostPro
+      platform: Win
+      api: DX11
+      build_config: mono
+      color_space: Linear
+      test_platforms:
+        - playmode_cache
+        - editmode
+    - project: URP_Terrain
+      platform: Win
+      api: DX11
+      build_config: mono
+      color_space: Linear
+      test_platforms:
+        - playmode_cache
         - editmode
     - project: ShaderGraph
       platform: Win
@@ -104,7 +81,7 @@ trunk_verification: # jobs to include in trunk verification job
       build_config: mono
       color_space: Linear
       test_platforms:
-        - playmode
+        - playmode_cache
         - editmode
     - project: HDRP
       platform: Win
@@ -112,7 +89,7 @@ trunk_verification: # jobs to include in trunk verification job
       build_config: mono
       color_space: Linear
       test_platforms:
-        - playmode
+        - playmode_cache
         - editmode
     - project: VFX_HDRP
       platform: Win
@@ -120,7 +97,7 @@ trunk_verification: # jobs to include in trunk verification job
       build_config: mono
       color_space: Linear
       test_platforms:
-        - playmode
+        - playmode_cache
         - editmode
     - project: VFX_URP
       platform: Win
@@ -128,4 +105,4 @@ trunk_verification: # jobs to include in trunk verification job
       build_config: mono
       color_space: Linear
       test_platforms:
-        - playmode
+        - playmode_cache

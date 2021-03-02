@@ -1,10 +1,9 @@
+using System;
+using System.Linq;
+using System.Runtime.InteropServices;
 using UnityEngine;
 using UnityEngine.Rendering.HighDefinition;
-using System.Runtime.InteropServices;
 using UnityEngine.UIElements;
-using UnityEditor.UIElements;
-using System.Linq;
-using System;
 
 namespace UnityEditor.Rendering.HighDefinition
 {
@@ -13,7 +12,7 @@ namespace UnityEditor.Rendering.HighDefinition
     {
         static class Style
         {
-            public static readonly GUIContent title = EditorGUIUtility.TrTextContent("Render Pipeline Wizard");
+            public static readonly GUIContent title = EditorGUIUtility.TrTextContent("HDRP Wizard");
 
             public const string hdrpProjectSettingsPathLabel = "Default Resources Folder";
             public const string hdrpProjectSettingsPathTooltip = "Resources Folder will be the one where to get project elements related to HDRP as default scene and default settings.";
@@ -40,14 +39,13 @@ namespace UnityEditor.Rendering.HighDefinition
             public const string installConfigPackageInfoInProgress = "The local config package is being installed in your project's LocalPackage folder.";
             public const string installConfigPackageInfoFinished = "The local config package is already installed in your project's LocalPackage folder.";
 
-            public const string migrateAllButton = "Upgrade Project Materials to High Definition Materials";
-            public const string migrateSelectedButton = "Upgrade Selected Materials to High Definition Materials";
+            public const string migrateAllButton = "Convert All Built-in Materials to HDRP";
+            public const string migrateSelectedButton = "Convert Selected Built-in Materials to HDRP";
             public const string migrateMaterials = "Upgrade HDRP Materials to Latest Version";
 
-            public const string hdrpVersionLast = "You are using High-Definition Render Pipeline lastest {0} version."; //{0} will be replaced when displayed by the version number.
-            public const string hdrpVersionNotLast = "You are using High-Definition Render Pipeline {0} version. A new {1} version is available."; //{0} and {1} will be replaced when displayed by the version number.
-            public const string hdrpVersionWithLocalPackage = "You are using High-Definition Render Pipeline local {0} version. Last packaged version available is {1}."; //{0} and {1} will be replaced when displayed by the version number.
-            public const string hdrpVersionChecking = "Checking last version available for High-Definition Render Pipeline.";
+            public const string HDRPVersion = "Current HDRP version: ";
+            public const string HDRPVersionUpdateButton = "Check update";
+
 
             //configuration debugger
             public const string resolve = "Fix";
@@ -136,7 +134,7 @@ namespace UnityEditor.Rendering.HighDefinition
                 error: "Auto Graphics API is not supported!");
             public static readonly ConfigStyle dxrD3D12 = new ConfigStyle(
                 label: "Direct3D 12",
-                error: "Direct3D 12 is needed! (Editor restart is required)");
+                error: "Direct3D 12 needs to be the active device! (Editor restart is required). If an API different than D3D12 is forced via command line argument, clicking Fix won't change it, so please consider removing it if wanting to run DXR.");
             public static readonly ConfigStyle dxrScreenSpaceShadow = new ConfigStyle(
                 label: "Screen Space Shadows (Asset)",
                 error: "Screen Space Shadows are disabled in the current HDRP Asset which means you cannot enable ray-traced shadows for lights in your scene. To enable this feature, open your HDRP Asset, go to Lighting > Shadows, and enable Screen Space Shadows", messageType: MessageType.Warning);
@@ -211,10 +209,10 @@ namespace UnityEditor.Rendering.HighDefinition
         VisualElement m_InstallConfigPackageButton = null;
         Label m_InstallConfigPackageHelpboxLabel;
 
-        [MenuItem("Window/Render Pipeline/HD Render Pipeline Wizard", priority = 10000)]
+        [MenuItem("Window/Rendering/HDRP Wizard", priority = 10000)]
         static void OpenWindow()
         {
-            var window = GetWindow<HDWizard>("HD Render Pipeline Wizard");
+            var window = GetWindow<HDWizard>(Style.title.text);
             window.minSize = new Vector2(500, 450);
             HDProjectSettings.wizardPopupAlreadyShownOnce = true;
         }
@@ -383,9 +381,9 @@ namespace UnityEditor.Rendering.HighDefinition
             var repopulate = new Button(Repopulate)
             {
                 text = Style.firstTimeInitLabel,
-                tooltip = Style.firstTimeInitTooltip,
-                name = "Repopulate"
+                tooltip = Style.firstTimeInitTooltip
             };
+            repopulate.AddToClassList("RightAnchoredButton");
 
             var row = new VisualElement() { name = "ResourceRow" };
             row.Add(defaultResourceFolder);
@@ -431,11 +429,11 @@ namespace UnityEditor.Rendering.HighDefinition
         }
 
         VisualElement CreateLargeButton(string title, Action action)
-            => new Button(action)
         {
-            text = title,
-            name = "LargeButton"
-        };
+            Button button = new Button(action) { text = title };
+            button.AddToClassList("LargeButton");
+            return button;
+        }
 
         VisualElement CreateInstallConfigPackageArea()
         {
@@ -533,38 +531,24 @@ namespace UnityEditor.Rendering.HighDefinition
             return label;
         }
 
-        HelpBox CreateHdrpVersionChecker()
+        VisualElement CreateHdrpVersionChecker()
         {
-            var helpBox = new HelpBox(HelpBox.Kind.Info, Style.hdrpVersionChecking);
+            VisualElement container = new VisualElement() { name = "HDRPVersionContainer" };
 
-            m_LastAvailablePackageRetriever.ProcessAsync(k_HdrpPackageName, version =>
-            {
-                m_UsedPackageRetriever.ProcessAsync(k_HdrpPackageName, (installed, packageInfo) =>
-                {
-                    // With recent introduction of preview srp version, our HDRP wizard don't work with Version() call
-                    // patch it for now until this is solve.
-                    bool compatibleWithVersionCall = version.ToString().Contains("preview") ? false : true;
+            TextElement label = new TextElement() { text = Style.HDRPVersion + "checking..." };
+            label.AddToClassList("normal");
+            container.Add(label);
 
-                    // installed is not used because this one will be always installed
-                    if (packageInfo.source == PackageManager.PackageSource.Local)
-                    {
-                        helpBox.kind = HelpBox.Kind.Info;
-                        helpBox.text = String.Format(Style.hdrpVersionWithLocalPackage, packageInfo.version, version);
-                    }
-                    else if (compatibleWithVersionCall && (new Version(packageInfo.version) < new Version(version)))
-                    {
-                        helpBox.kind = HelpBox.Kind.Warning;
-                        helpBox.text = String.Format(Style.hdrpVersionNotLast, packageInfo.version, version);
-                    }
-                    else if (compatibleWithVersionCall && (new Version(packageInfo.version) == new Version(version)))
-                    {
-                        helpBox.kind = HelpBox.Kind.Info;
-                        helpBox.text = String.Format(Style.hdrpVersionLast, version);
-                    }
-                });
-            });
+            Button button = new Button(() =>
+                UnityEditor.PackageManager.UI.Window.Open("com.unity.render-pipelines.high-definition"))
+            { text = Style.HDRPVersionUpdateButton };
+            button.AddToClassList("RightAnchoredButton");
+            container.Add(button);
 
-            return helpBox;
+            m_UsedPackageRetriever.ProcessAsync(k_HdrpPackageName, (installed, packageInfo)
+                => label.text = Style.HDRPVersion + packageInfo.version + (packageInfo.source == PackageManager.PackageSource.Local ? " (local)" : ""));
+
+            return container;
         }
 
         #endregion

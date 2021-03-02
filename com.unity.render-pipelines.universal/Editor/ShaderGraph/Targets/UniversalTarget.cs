@@ -49,9 +49,8 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
         public const string kPipelineTag = "UniversalPipeline";
         public const string kLitMaterialTypeTag = "\"UniversalMaterialType\" = \"Lit\"";
         public const string kUnlitMaterialTypeTag = "\"UniversalMaterialType\" = \"Unlit\"";
-
-        internal const string kTemplatePath = "Packages/com.unity.render-pipelines.universal/Editor/ShaderGraph/Templates/";
-        internal const string kTemplateFilePath = kTemplatePath + "UniversalShaderPass.template";
+        public static readonly string[] kSharedTemplateDirectories = GenerationUtils.GetDefaultSharedTemplateDirectories().Union(new string[] {"Packages/com.unity.render-pipelines.universal/Editor/ShaderGraph/Templates" }).ToArray();
+        public const string kTemplatePath = "Packages/com.unity.render-pipelines.universal/Editor/ShaderGraph/Templates/ShaderPass.template";
 
         // SubTarget
         List<SubTarget> m_SubTargets;
@@ -82,6 +81,9 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
 
         [SerializeField]
         string m_CustomEditorGUI;
+
+        internal override bool ignoreCustomInterpolators => false;
+        internal override int padCustomInterpolatorLimit => 4;
 
         public UniversalTarget()
         {
@@ -176,16 +178,14 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
             // Setup the Target
             context.AddAssetDependency(kSourceCodeGuid, AssetCollection.Flags.SourceDependency);
 
+            // Override EditorGUI (replaces the URP material editor by a custom one)
+            if (!string.IsNullOrEmpty(m_CustomEditorGUI))
+                context.AddCustomEditorForRenderPipeline(m_CustomEditorGUI, typeof(UniversalRenderPipelineAsset));
+
             // Setup the active SubTarget
             TargetUtils.ProcessSubTargetList(ref m_ActiveSubTarget, ref m_SubTargets);
             m_ActiveSubTarget.value.target = this;
             m_ActiveSubTarget.value.Setup(ref context);
-
-            // Override EditorGUI
-            if (!string.IsNullOrEmpty(m_CustomEditorGUI))
-            {
-                context.SetDefaultShaderGUI(m_CustomEditorGUI);
-            }
         }
 
         public override void OnAfterMultiDeserialize(string json)
@@ -198,12 +198,12 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
         {
             var descs = context.blocks.Select(x => x.descriptor);
             // Core fields
-            context.AddField(Fields.GraphVertex,            descs.Contains(BlockFields.VertexDescription.Position) ||
+            context.AddField(Fields.GraphVertex, descs.Contains(BlockFields.VertexDescription.Position) ||
                 descs.Contains(BlockFields.VertexDescription.Normal) ||
                 descs.Contains(BlockFields.VertexDescription.Tangent));
             context.AddField(Fields.GraphPixel);
-            context.AddField(Fields.AlphaClip,              alphaClip);
-            context.AddField(Fields.DoubleSided,            twoSided);
+            context.AddField(Fields.AlphaClip, alphaClip);
+            context.AddField(Fields.DoubleSided, twoSided);
             context.AddField(UniversalFields.PreserveSpecular, preserveSpecular);
 
             // SubTarget fields
@@ -357,8 +357,8 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
             useInPreview = true,
 
             // Template
-            passTemplatePath = UniversalTarget.kTemplateFilePath,
-            sharedTemplateDirectories = GenerationUtils.GetDefaultSharedTemplateDirectories(),
+            passTemplatePath = UniversalTarget.kTemplatePath,
+            sharedTemplateDirectories = UniversalTarget.kSharedTemplateDirectories,
 
             // Port Mask
             validVertexBlocks = CoreBlockMasks.Vertex,
@@ -372,6 +372,9 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
             renderStates = CoreRenderStates.DepthOnly,
             pragmas = CorePragmas.Instanced,
             includes = CoreIncludes.DepthOnly,
+
+            // Custom Interpolator Support
+            customInterpolators = CoreCustomInterpDescriptors.Common
         };
 
         public static readonly PassDescriptor ShadowCaster = new PassDescriptor()
@@ -382,8 +385,8 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
             lightMode = "ShadowCaster",
 
             // Template
-            passTemplatePath = UniversalTarget.kTemplateFilePath,
-            sharedTemplateDirectories = GenerationUtils.GetDefaultSharedTemplateDirectories(),
+            passTemplatePath = GenerationUtils.GetDefaultTemplatePath("PassMesh.template"),
+            sharedTemplateDirectories = UniversalTarget.kSharedTemplateDirectories,
 
             // Port Mask
             validVertexBlocks = CoreBlockMasks.Vertex,
@@ -397,7 +400,11 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
             // Conditional State
             renderStates = CoreRenderStates.ShadowCaster,
             pragmas = CorePragmas.Instanced,
+            keywords = CoreKeywords.ShadowCaster,
             includes = CoreIncludes.ShadowCaster,
+
+            // Custom Interpolator Support
+            customInterpolators = CoreCustomInterpDescriptors.Common
         };
     }
     #endregion
@@ -664,6 +671,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
     static class CoreIncludes
     {
         const string kColor = "Packages/com.unity.render-pipelines.core/ShaderLibrary/Color.hlsl";
+        const string kTexture = "Packages/com.unity.render-pipelines.core/ShaderLibrary/Texture.hlsl";
         const string kCore = "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Core.hlsl";
         const string kLighting = "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Lighting.hlsl";
         const string kGraphFunctions = "Packages/com.unity.render-pipelines.universal/ShaderLibrary/ShaderGraphFunctions.hlsl";
@@ -677,6 +685,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
         public static readonly IncludeCollection CorePregraph = new IncludeCollection
         {
             { kColor, IncludeLocation.Pregraph },
+            { kTexture, IncludeLocation.Pregraph },
             { kCore, IncludeLocation.Pregraph },
             { kLighting, IncludeLocation.Pregraph },
             { kTextureStack, IncludeLocation.Pregraph },        // TODO: put this on a conditional
@@ -689,7 +698,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
 
         public static readonly IncludeCollection CorePostgraph = new IncludeCollection
         {
-            { kShaderPass, IncludeLocation.Postgraph },
+            { kShaderPass, IncludeLocation.Pregraph },
             { kVaryings, IncludeLocation.Postgraph },
         };
 
@@ -773,16 +782,23 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
         public static readonly KeywordDescriptor MainLightShadows = new KeywordDescriptor()
         {
             displayName = "Main Light Shadows",
-            referenceName = "_MAIN_LIGHT_SHADOWS",
-            type = KeywordType.Boolean,
+            referenceName = "",
+            type = KeywordType.Enum,
             definition = KeywordDefinition.MultiCompile,
             scope = KeywordScope.Global,
+            entries = new KeywordEntry[]
+            {
+                new KeywordEntry() { displayName = "Off", referenceName = "" },
+                new KeywordEntry() { displayName = "No Cascade", referenceName = "MAIN_LIGHT_SHADOWS" },
+                new KeywordEntry() { displayName = "Cascade", referenceName = "MAIN_LIGHT_SHADOWS_CASCADE" },
+                new KeywordEntry() { displayName = "Screen", referenceName = "MAIN_LIGHT_SHADOWS_SCREEN" },
+            }
         };
 
-        public static readonly KeywordDescriptor MainLightShadowsCascade = new KeywordDescriptor()
+        public static readonly KeywordDescriptor CastingPunctualLightShadow = new KeywordDescriptor()
         {
-            displayName = "Main Light Shadows Cascade",
-            referenceName = "_MAIN_LIGHT_SHADOWS_CASCADE",
+            displayName = "Casting Punctual Light Shadow",
+            referenceName = "_CASTING_PUNCTUAL_LIGHT_SHADOW",
             type = KeywordType.Boolean,
             definition = KeywordDefinition.MultiCompile,
             scope = KeywordScope.Global,
@@ -902,10 +918,36 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
     }
     #endregion
 
+    #region Keywords
+    static class CoreKeywords
+    {
+        public static readonly KeywordCollection ShadowCaster = new KeywordCollection
+        {
+            { CoreKeywordDescriptors.CastingPunctualLightShadow },
+        };
+    }
+    #endregion
+
     #region FieldDescriptors
     static class CoreFields
     {
         public static readonly FieldDescriptor UseLegacySpriteBlocks = new FieldDescriptor("Universal", "UseLegacySpriteBlocks", "UNIVERSAL_USELEGACYSPRITEBLOCKS");
+    }
+    #endregion
+
+    #region CustomInterpolators
+    static class CoreCustomInterpDescriptors
+    {
+        public static readonly CustomInterpSubGen.Collection Common = new CustomInterpSubGen.Collection
+        {
+            // Custom interpolators are not explicitly defined in the SurfaceDescriptionInputs template.
+            // This entry point will let us generate a block of pass-through assignments for each field.
+            CustomInterpSubGen.Descriptor.MakeBlock(CustomInterpSubGen.Splice.k_spliceCopyToSDI, "output", "input"),
+
+            // sgci_PassThroughFunc is called from BuildVaryings in Varyings.hlsl to copy custom interpolators from vertex descriptions.
+            // this entry point allows for the function to be defined before it is used.
+            CustomInterpSubGen.Descriptor.MakeFunc(CustomInterpSubGen.Splice.k_splicePreSurface, "CustomInterpolatorPassThroughFunc", "Varyings", "VertexDescription", "CUSTOMINTERPOLATOR_VARYPASSTHROUGH_FUNC")
+        };
     }
     #endregion
 }

@@ -89,7 +89,7 @@ Available options:
 
 **Performance impact**: medium.
 
-In some scenarios, the **Depth** option produces results comparable with the **Depth Normals** option. But in certain cases, the **Depth Normals** option provides a significant increase in quality. The following images show an example of such case. 
+In some scenarios, the **Depth** option produces results comparable with the **Depth Normals** option. But in certain cases, the **Depth Normals** option provides a significant increase in quality. The following images show an example of such case.
 
 ![Source: Depth. Normal Quality: Low.](Images/post-proc/ssao/ssao-depth-q-low.png)
 <br>_Source: Depth. Normal Quality: Low._
@@ -131,9 +131,9 @@ When calculating the the Ambient Occlusion value, the SSAO effect takes samples 
 
 **Performance impact**: high.
 
-Lowering the **Radius** setting improves performance, because the SSAO Renderer Feature samples pixels closer to the source pixel. This makes caching more efficient. 
+Lowering the **Radius** setting improves performance, because the SSAO Renderer Feature samples pixels closer to the source pixel. This makes caching more efficient.
 
-Calculating the Ambient Occlusion Pass on objects closer to the Camera takes longer than on objects further from the Camera. This is because the **Radius** property is scaled with the object. 
+Calculating the Ambient Occlusion Pass on objects closer to the Camera takes longer than on objects further from the Camera. This is because the **Radius** property is scaled with the object.
 
 ### Sample Count
 

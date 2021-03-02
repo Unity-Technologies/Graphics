@@ -21,4 +21,3 @@ For information about ray tracing in HDRP, and how to set up your HDRP Project t
 ## Properties
 
 HDRP implements ray-traced global illumination on top of the Screen Space Global Illumination override. For information on the properties that control this effect, see [Ray-traced properties](Override-Screen-Space-GI.md#ray-traced).
-

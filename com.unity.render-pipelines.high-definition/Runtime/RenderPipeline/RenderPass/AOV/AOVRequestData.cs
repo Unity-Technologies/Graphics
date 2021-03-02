@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using UnityEngine.Assertions;
+using UnityEngine.Experimental.Rendering;
 using UnityEngine.Experimental.Rendering.RenderGraphModule;
 
 namespace UnityEngine.Rendering.HighDefinition
@@ -61,6 +62,9 @@ namespace UnityEngine.Rendering.HighDefinition
 
         /// <summary>Whether this frame pass is valid.</summary>
         public bool isValid => (m_RequestedAOVBuffers != null || m_CustomPassAOVBuffers != null) && (m_Callback != null || m_CallbackEx != null);
+
+        /// <summary>Whether internal rendering should be done at the same format as the user allocated AOV output buffer.</summary>
+        public bool overrideRenderFormat => m_Settings.overrideRenderFormat;
 
         /// <summary>Create a new frame pass.</summary>
         /// <param name="settings">Settings to use.</param>
@@ -170,33 +174,21 @@ namespace UnityEngine.Rendering.HighDefinition
             }
         }
 
-        /// <summary>Copy a camera sized texture into the texture buffers.</summary>
-        /// <param name="cmd">the command buffer to use for the copy.</param>
-        /// <param name="aovBufferId">The id of the buffer to copy.</param>
-        /// <param name="camera">The camera associated with the source texture.</param>
-        /// <param name="source">The source texture to copy</param>
-        /// <param name="targets">The target texture buffer.</param>
-        internal void PushCameraTexture(
-            CommandBuffer cmd,
-            AOVBuffers aovBufferId,
-            HDCamera camera,
-            RTHandle source,
-            List<RTHandle> targets
-        )
+        internal void OverrideBufferFormatForAOVs(ref GraphicsFormat format, List<RTHandle> aovBuffers)
         {
-            if (!isValid || m_RequestedAOVBuffers == null)
-                return;
-
-            Assert.IsNotNull(m_RequestedAOVBuffers);
-            Assert.IsNotNull(targets);
-
-            var index = Array.IndexOf(m_RequestedAOVBuffers, aovBufferId);
-            if (index == -1)
-                return;
-
-            using (new ProfilingScope(cmd, ProfilingSampler.Get(HDProfileId.AOVOutput + (int)aovBufferId)))
+            if (m_RequestedAOVBuffers == null || aovBuffers.Count == 0)
             {
-                HDUtils.BlitCameraTexture(cmd, source, targets[index]);
+                return;
+            }
+
+            var index = Array.IndexOf(m_RequestedAOVBuffers, AOVBuffers.Color);
+            if (index < 0)
+            {
+                index = Array.IndexOf(m_RequestedAOVBuffers, AOVBuffers.Output);
+            }
+            if (index >= 0)
+            {
+                format = aovBuffers[index].rt.graphicsFormat;
             }
         }
 
@@ -235,45 +227,6 @@ namespace UnityEngine.Rendering.HighDefinition
                     {
                         HDUtils.BlitCameraTexture(ctx.cmd, data.source, data.target);
                     });
-            }
-        }
-
-        internal void PushCustomPassTexture(
-            CommandBuffer cmd,
-            CustomPassInjectionPoint injectionPoint,
-            RTHandle cameraSource,
-            Lazy<RTHandle> customPassSource,
-            List<RTHandle> targets
-        )
-        {
-            if (!isValid || m_CustomPassAOVBuffers == null)
-                return;
-
-            Assert.IsNotNull(targets);
-
-            int index = -1;
-            for (int i = 0; i < m_CustomPassAOVBuffers.Length; ++i)
-            {
-                if (m_CustomPassAOVBuffers[i].injectionPoint == injectionPoint)
-                {
-                    index = i;
-                    break;
-                }
-            }
-
-            if (index == -1)
-                return;
-
-            if (m_CustomPassAOVBuffers[index].outputType == CustomPassAOVBuffers.OutputType.Camera)
-            {
-                HDUtils.BlitCameraTexture(cmd, cameraSource, targets[index]);
-            }
-            else
-            {
-                if (customPassSource.IsValueCreated)
-                {
-                    HDUtils.BlitCameraTexture(cmd, customPassSource.Value, targets[index]);
-                }
             }
         }
 

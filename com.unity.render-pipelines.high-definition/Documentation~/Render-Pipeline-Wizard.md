@@ -1,23 +1,22 @@
 # High Definition Render Pipeline Wizard
 
-The High Definition Render Pipeline (HDRP) includes the **HD Render Pipeline Wizard** to help you configure your Unity Project so that it is compatible with HDRP. 
+The High Definition Render Pipeline (HDRP) includes the **HDRP Wizard** to help you configure your Unity Project so that it is compatible with HDRP.
 
-To open the **Render Pipeline Wizard**, go to **Window > Render Pipeline** and select **HD Render Pipeline Wizard**.
+To open the **Render Pipeline Wizard**, go to **Window > Render Pipeline** and select **HDRP Wizard**.
 
 ![](Images/RenderPipelineWizard1.png)
 
 ## Packages
 
-At the top of the window, there is an information box that shows you the currently installed version of HDRP, as well as the latest version of HDRP that is compatible with your current Unity version.
+At the top of the window, there is an information text that shows you the currently installed version of HDRP. The **Check Update** button provides a shortcut to the HDRP package in the Package Manager window.
 
 You also have a button allow you to creates a local instance of the [High Definition Render Pipeline Config package](HDRP-Config-Package.md) in the **LocalPackage** folder of your HDRP Project. If already installed, some information about its location are displayed below.
 
 ## Default Path Settings
 
-| **Property**                               | **Description**                                              |
-| ------------------------------------------ | ------------------------------------------------------------ |
-| **Default Resources Folder**               | Set the folder name that the Render Pipeline Wizard uses when it loads or creates resources. Click the **Populate / Reset** button to populate the **Default Resources Folder** with the resources that HDRP needs to render a Scene (for details, see [Populating the default resources folder](#populating-the-default-resources-folder)). If a default Asset already exists in the folder then clicking the Populate/Reset button resets the existing Asset. |
-| **Install Configuration Editable Package** | Creates a local instance of the [High Definition Render Pipeline Config package](HDRP-Config-Package.md) in the **LocalPackage** folder of your HDRP Project. |
+| **Property**                 | **Description**                                              |
+| ---------------------------- | ------------------------------------------------------------ |
+| **Default Resources Folder** | Set the folder name that the Render Pipeline Wizard uses when it loads or creates resources. Click the **Populate / Reset** button to populate the **Default Resources Folder** with the resources that HDRP needs to render a Scene (for details, see [Populating the default resources folder](#populating-the-default-resources-folder)). If a default Asset already exists in the folder then clicking the Populate/Reset button resets the existing Asset. |
 
 ### Populating the default resources folder
 
@@ -36,7 +35,7 @@ Your Unity Project must adhere to all the configuration tests in this section fo
 There are three tabs that you can use to set up your HDRP Project for different use cases.
 * [HDRP](#HDRPTab): Use this tab to set up a default HDRP Project.
 * [HDRP + VR](#VRTab): Use this tab to set up your HDRP Project and enable support for virtual reality.
-* [HDRP + DXR](#DXRTab): Use this tab to set up your HDRP Project and enable support for ray tracing. 
+* [HDRP + DXR](#DXRTab): Use this tab to set up your HDRP Project and enable support for ray tracing.
 
 <a name="HDRPTab"></a>
 
@@ -54,6 +53,7 @@ This tab provides you with configuration options to help you make your Unity Pro
 | **- Assigned**                   | Checks to make sure you have assigned an [HDRP Asset](HDRP-Asset.md) to the **Scriptable Render Pipeline Settings** field (menu: **Edit** > **Project Settings** > **Graphics**).<br />Press the **Fix** button to open a pop-up that allows you to either assign an HDRP Asset or create and assign a new one. |
 | **- Runtime Resources**          | Checks to make sure that your HDRP Asset references a [**Render Pipeline Resources**](HDRP-Asset.md) Asset.<br />Press the **Fix** button to reload the runtime resources for the HDRP Asset. |
 | **- Editor Resources**           | Checks to make sure that your HDRP Asset references a [**Render Pipeline Editor Resources**](HDRP-Asset.md)  Asset.<br />Press the **Fix** button to reload the runtime resources for the HDRP Asset. |
+| **- SRP Batcher** | Checks to make sure that SRP Batcher is enabled.<br />Press the **Fix** button to enable it in the used HDRP Asset. |
 | **- Diffusion Profile**          | Checks to make sure that your HDRP Asset references a [**Diffusion Profile**](Diffusion-Profile.md) Asset.<br />Press the **Fix** button to reload the runtime resources for the HDRP Asset. |
 | **Default Volume Profile** | Checks to make sure you have assigned a **Default Volume Profile Asset** in **Edit** > **Project Settings** > **HDRP Default Settings** .<br />Press the **Fix** button to open a pop-up that allows you to either assign a Profile or create and assign a new one. |
 
@@ -93,9 +93,10 @@ Note that every **Fix** will be deactivated if your Hardware or OS do not suppor
 
 ## Project Migration Quick-links
 
-When upgrading a project from the built-in render pipeline to HDRP, you need to do upgrade your Materials. Use the following utility functions to help with the upgrade process:
+When upgrading a project from the built-in render pipeline to HDRP, you need to do convert your Materials. Use the following utility functions to help with the upgrade process:
 
-- **Upgrade Project Materials to High Definition Materials**: Upgrades every Material in your Unity Project to HDRP Materials.
-- **Upgrade Selected Materials to High Definition Materials**: Upgrades every Material currently selected to HDRP Materials.
+- **Convert All Built-in Materials to HDRP**: Upgrades every Material in your Unity Project to HDRP Materials.
+- **Convert Selected Built-in Materials to HDRP**: Upgrades every Material currently selected to HDRP Materials.
+- **Upgrade HDRP Materials to Latest Version:** Upgrades every Material in your Unity Project to the latest version.
 
 The lighting will not match as HDRP use a different attenuation function than built-in and use correct math to handle lighting model. There is no function that can convert the look. Thus the lighting will require to be redone.

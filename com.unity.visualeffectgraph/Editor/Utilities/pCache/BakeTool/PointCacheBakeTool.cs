@@ -1,12 +1,10 @@
-using System.Collections;
-using System.Collections.Generic;
 using UnityEngine;
 
 namespace UnityEditor.Experimental.VFX.Utility
 {
     partial class PointCacheBakeTool : EditorWindow
     {
-        [MenuItem("Window/Visual Effects/Utilities/Point Cache Bake Tool", false, 3012)]
+        [MenuItem("Window/VFX/Utilities/Point Cache Bake Tool", false, 3012)]
         static void OpenWindow()
         {
             GetWindow<PointCacheBakeTool>();

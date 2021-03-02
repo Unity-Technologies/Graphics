@@ -62,7 +62,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 => "Scene Camera";
 
             public MinimalHistoryContainer()
-                => m_FrameSettingsHistory.debug = HDRenderPipeline.defaultAsset?.GetDefaultFrameSettings(FrameSettingsRenderType.Camera) ?? new FrameSettings();
+                => m_FrameSettingsHistory.debug = HDRenderPipeline.defaultAsset?.GetDefaultFrameSettings(FrameSettingsRenderType.Camera) ?? FrameSettings.NewDefaultCamera();
 
             Action IDebugData.GetReset()
             //caution: we actually need to retrieve the
@@ -108,10 +108,11 @@ namespace UnityEngine.Rendering.HighDefinition
         {
             attributes = new Dictionary<FrameSettingsField, FrameSettingsFieldAttribute>();
             attributesGroup = new Dictionary<int, IOrderedEnumerable<KeyValuePair<FrameSettingsField, FrameSettingsFieldAttribute>>>();
+            Dictionary<FrameSettingsField, string> frameSettingsEnumNameMap = FrameSettingsFieldAttribute.GetEnumNameMap();
             Type type = typeof(FrameSettingsField);
-            foreach (FrameSettingsField value in Enum.GetValues(type))
+            foreach (FrameSettingsField enumVal in frameSettingsEnumNameMap.Keys)
             {
-                attributes[value] = type.GetField(Enum.GetName(type, value)).GetCustomAttribute<FrameSettingsFieldAttribute>();
+                attributes[enumVal] = type.GetField(frameSettingsEnumNameMap[enumVal]).GetCustomAttribute<FrameSettingsFieldAttribute>();
             }
         }
 

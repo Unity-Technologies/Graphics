@@ -198,8 +198,8 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
                 useInPreview = true,
 
                 // Template
-                passTemplatePath = UniversalTarget.kTemplateFilePath,
-                sharedTemplateDirectories = GenerationUtils.GetDefaultSharedTemplateDirectories(),
+                passTemplatePath = UniversalTarget.kTemplatePath,
+                sharedTemplateDirectories = UniversalTarget.kSharedTemplateDirectories,
 
                 // Port Mask
                 validVertexBlocks = CoreBlockMasks.Vertex,
@@ -214,6 +214,9 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
                 pragmas = CorePragmas.Forward,
                 keywords = UnlitKeywords.Unlit,
                 includes = UnlitIncludes.Unlit,
+
+                // Custom Interpolator Support
+                customInterpolators = CoreCustomInterpDescriptors.Common
             };
         }
         #endregion

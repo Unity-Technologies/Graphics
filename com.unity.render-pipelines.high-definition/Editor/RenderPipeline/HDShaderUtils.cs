@@ -53,22 +53,22 @@ namespace UnityEditor.Rendering.HighDefinition
         delegate void MaterialResetter(Material material);
         static Dictionary<ShaderID, MaterialResetter> k_MaterialResetters = new Dictionary<ShaderID, MaterialResetter>()
         {
-            { ShaderID.Lit, LitGUI.SetupMaterialKeywordsAndPass },
-            { ShaderID.LitTesselation, LitGUI.SetupMaterialKeywordsAndPass },
-            { ShaderID.LayeredLit,  LayeredLitGUI.SetupMaterialKeywordsAndPass },
-            { ShaderID.LayeredLitTesselation, LayeredLitGUI.SetupMaterialKeywordsAndPass },
+            { ShaderID.Lit, LitGUI.SetupLitKeywordsAndPass },
+            { ShaderID.LitTesselation, LitGUI.SetupLitKeywordsAndPass },
+            { ShaderID.LayeredLit,  LayeredLitGUI.SetupLayeredLitKeywordsAndPass },
+            { ShaderID.LayeredLitTesselation, LayeredLitGUI.SetupLayeredLitKeywordsAndPass },
             // no entry for ShaderID.StackLit
-            { ShaderID.Unlit, UnlitGUI.SetupUnlitMaterialKeywordsAndPass },
+            { ShaderID.Unlit, UnlitGUI.SetupUnlitKeywordsAndPass },
             // no entry for ShaderID.Fabric
-            { ShaderID.Decal, DecalUI.SetupMaterialKeywordsAndPass },
-            { ShaderID.TerrainLit, TerrainLitGUI.SetupMaterialKeywordsAndPass },
-            { ShaderID.AxF, AxFGUI.SetupMaterialKeywordsAndPass },
-            { ShaderID.SG_Unlit, HDUnlitGUI.SetupMaterialKeywordsAndPass },
-            { ShaderID.SG_Lit, LitShaderGraphGUI.SetupMaterialKeywordsAndPass },
-            { ShaderID.SG_Hair, LightingShaderGraphGUI.SetupMaterialKeywordsAndPass },
-            { ShaderID.SG_Fabric, LightingShaderGraphGUI.SetupMaterialKeywordsAndPass },
-            { ShaderID.SG_StackLit, LightingShaderGraphGUI.SetupMaterialKeywordsAndPass },
-            { ShaderID.SG_Decal, DecalGUI.SetupMaterialKeywordsAndPass },
+            { ShaderID.Decal, DecalUI.SetupDecalKeywordsAndPass },
+            { ShaderID.TerrainLit, TerrainLitGUI.SetupTerrainLitKeywordsAndPass },
+            { ShaderID.AxF, AxFGUI.SetupAxFKeywordsAndPass },
+            { ShaderID.SG_Unlit, UnlitShaderGraphGUI.SetupUnlitKeywordsAndPass },
+            { ShaderID.SG_Lit, LightingShaderGraphGUI.SetupLightingKeywordsAndPass },
+            { ShaderID.SG_Hair, LightingShaderGraphGUI.SetupLightingKeywordsAndPass },
+            { ShaderID.SG_Fabric, LightingShaderGraphGUI.SetupLightingKeywordsAndPass },
+            { ShaderID.SG_StackLit, LightingShaderGraphGUI.SetupLightingKeywordsAndPass },
+            { ShaderID.SG_Decal, DecalShaderGraphGUI.SetupDecalKeywordsAndPass },
             // no entry for ShaderID.SG_Decal
             // no entry for ShaderID.SG_Eye
         };

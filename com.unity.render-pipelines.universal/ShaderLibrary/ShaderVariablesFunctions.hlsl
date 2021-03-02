@@ -1,6 +1,8 @@
 #ifndef UNITY_SHADER_VARIABLES_FUNCTIONS_INCLUDED
 #define UNITY_SHADER_VARIABLES_FUNCTIONS_INCLUDED
 
+#include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/ShaderVariablesFunctions.deprecated.hlsl"
+
 VertexPositionInputs GetVertexPositionInputs(float3 positionOS)
 {
     VertexPositionInputs input;
@@ -150,9 +152,12 @@ half OutputAlpha(half outputAlpha, half surfaceType = 0.0)
 // 3) In fragment when using normal map, because mikktspace sets up non orthonormal basis.
 // However we will try to balance performance vs quality here as also let users configure that as
 // shader quality tiers.
-// Low Quality Tier: Normalize either per-vertex or per-pixel depending if normalmap is sampled.
-// Medium Quality Tier: Always normalize per-vertex. Normalize per-pixel only if using normal map
-// High Quality Tier: Normalize in both vertex and pixel shaders.
+// Low Quality Tier: Don't normalize per-vertex.
+// Medium Quality Tier: Always normalize per-vertex.
+// High Quality Tier: Always normalize per-vertex.
+//
+// Always normalize per-pixel.
+// Too many bug like lighting quality issues otherwise.
 real3 NormalizeNormalPerVertex(real3 normalWS)
 {
     #if defined(SHADER_QUALITY_LOW) && defined(_NORMALMAP)
@@ -164,21 +169,10 @@ real3 NormalizeNormalPerVertex(real3 normalWS)
 
 real3 NormalizeNormalPerPixel(real3 normalWS)
 {
-    #if defined(SHADER_QUALITY_HIGH) || defined(_NORMALMAP)
-        return normalize(normalWS);
-    #else
-        return normalWS;
-    #endif
+    return normalize(normalWS);
 }
 
-// TODO: A similar function should be already available in SRP lib on master. Use that instead
-float4 ComputeScreenPos(float4 positionCS)
-{
-    float4 o = positionCS * 0.5f;
-    o.xy = float2(o.x, o.y * _ProjectionParams.x) + o.w;
-    o.zw = positionCS.zw;
-    return o;
-}
+
 
 real ComputeFogFactor(float z)
 {
@@ -228,6 +222,16 @@ half3 MixFogColor(real3 fragColor, real3 fogColor, real fogFactor)
 half3 MixFog(real3 fragColor, real fogFactor)
 {
     return MixFogColor(fragColor, unity_FogColor.rgb, fogFactor);
+}
+
+// Linear depth buffer value between [0, 1] or [1, 0] to eye depth value between [near, far]
+real LinearDepthToEyeDepth(real rawDepth)
+{
+    #if UNITY_REVERSED_Z
+    return _ProjectionParams.z - (_ProjectionParams.z - _ProjectionParams.y) * rawDepth;
+    #else
+    return _ProjectionParams.y + (_ProjectionParams.z - _ProjectionParams.y) * rawDepth;
+    #endif
 }
 
 void TransformScreenUV(inout float2 uv, float screenHeight)

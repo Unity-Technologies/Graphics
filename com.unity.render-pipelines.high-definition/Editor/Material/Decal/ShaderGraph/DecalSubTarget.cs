@@ -26,7 +26,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             $"{HDUtils.GetHDRenderPipelinePath()}Editor/Material/ShaderGraph/Templates/"
         };
         protected override GUID subTargetAssetGuid => kSubTargetSourceCodeGuid;
-        protected override string customInspector => "Rendering.HighDefinition.DecalGUI";
+        protected override string customInspector => "Rendering.HighDefinition.DecalShaderGraphGUI";
         protected override string renderType => HDRenderTypeTags.Opaque.ToString();
         protected override string renderQueue => HDRenderQueue.GetShaderTagValue(HDRenderQueue.ChangeType(HDRenderQueue.RenderQueueType.Opaque, decalData.drawOrder, false, false));
         protected override ShaderID shaderID => HDShaderUtils.ShaderID.SG_Decal;
@@ -136,6 +136,17 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             drawOrder.value = 0;
             collector.AddShaderProperty(drawOrder);
 
+            collector.AddShaderProperty(new Vector1ShaderProperty
+            {
+                overrideReferenceName = "_DecalMeshBiasType",
+                floatType = FloatType.Enum,
+                value = (int)DecalMeshDepthBiasType.DepthBias,
+                enumNames = { "Depth Bias", "View Bias" },
+                enumValues = { (int)DecalMeshDepthBiasType.DepthBias, (int)DecalMeshDepthBiasType.ViewBias},
+                hidden = true
+            });
+
+
             Vector1ShaderProperty decalMeshDepthBias = new Vector1ShaderProperty();
             decalMeshDepthBias.overrideReferenceName = "_DecalMeshDepthBias";
             decalMeshDepthBias.displayName = "DecalMesh DepthBias";
@@ -143,6 +154,15 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             decalMeshDepthBias.floatType = FloatType.Default;
             decalMeshDepthBias.value = 0;
             collector.AddShaderProperty(decalMeshDepthBias);
+
+            Vector1ShaderProperty decalMeshViewBias = new Vector1ShaderProperty();
+            decalMeshViewBias.overrideReferenceName = "_DecalMeshViewBias";
+            decalMeshViewBias.displayName = "DecalMesh ViewBias";
+            decalMeshViewBias.hidden = true;
+            decalMeshViewBias.floatType = FloatType.Default;
+            decalMeshViewBias.value = 0;
+            collector.AddShaderProperty(decalMeshViewBias);
+
             AddStencilProperty(HDMaterialProperties.kDecalStencilWriteMask);
             AddStencilProperty(HDMaterialProperties.kDecalStencilRef);
 
@@ -234,6 +254,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 pragmas = DecalPragmas.Instanced,
                 defines = CoreDefines.ScenePicking,
                 includes = DecalIncludes.ScenePicking,
+                customInterpolators = CoreCustomInterpolators.Common,
             };
 
             public static PassDescriptor DBufferProjector = new PassDescriptor()
@@ -254,6 +275,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 pragmas = DecalPragmas.Instanced,
                 keywords = DecalDefines.Decals,
                 includes = DecalIncludes.Default,
+                customInterpolators = CoreCustomInterpolators.Common,
             };
 
             public static PassDescriptor DecalProjectorForwardEmissive = new PassDescriptor()
@@ -276,6 +298,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 pragmas = DecalPragmas.Instanced,
                 defines = DecalDefines.Emission,
                 includes = DecalIncludes.Default,
+                customInterpolators = CoreCustomInterpolators.Common,
             };
 
             public static PassDescriptor DBufferMesh = new PassDescriptor()
@@ -299,6 +322,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 pragmas = DecalPragmas.Instanced,
                 keywords = DecalDefines.Decals,
                 includes = DecalIncludes.Default,
+                customInterpolators = CoreCustomInterpolators.Common,
             };
 
             public static PassDescriptor DecalMeshForwardEmissive = new PassDescriptor()
@@ -322,6 +346,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 pragmas = DecalPragmas.Instanced,
                 defines = DecalDefines.Emission,
                 includes = DecalIncludes.Default,
+                customInterpolators = CoreCustomInterpolators.Common,
             };
 
             public static PassDescriptor Preview = new PassDescriptor()
@@ -344,6 +369,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 renderStates = DecalRenderStates.Preview,
                 pragmas = DecalPragmas.Instanced,
                 includes = DecalIncludes.Default,
+                customInterpolators = CoreCustomInterpolators.Common,
             };
         }
         #endregion
@@ -567,8 +593,8 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 { kColor, IncludeLocation.Pregraph },
                 { kFunctions, IncludeLocation.Pregraph },
                 { CoreIncludes.MinimalCorePregraph },
-                { kDecal, IncludeLocation.Pregraph },
                 { CoreIncludes.kPickingSpaceTransforms, IncludeLocation.Pregraph },
+                { kDecal, IncludeLocation.Pregraph },
                 { kPassDecal, IncludeLocation.Postgraph },
             };
         }

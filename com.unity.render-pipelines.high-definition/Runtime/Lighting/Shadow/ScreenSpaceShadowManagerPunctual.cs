@@ -89,30 +89,6 @@ namespace UnityEngine.Rendering.HighDefinition
             public RTHandle outputShadowBuffer;
         }
 
-        SSSPunctualRayTraceResources PrepareSSSPunctualRayTraceResources(RTHandle velocityBuffer, RTHandle directionBuffer, RTHandle rayLengthBuffer, RTHandle distanceBuffer, RTHandle outputShadowBuffer)
-        {
-            SSSPunctualRayTraceResources ssprtResources = new SSSPunctualRayTraceResources();
-
-            // Input Buffers
-            ssprtResources.depthStencilBuffer = m_SharedRTManager.GetDepthStencilBuffer();
-            ssprtResources.normalBuffer = m_SharedRTManager.GetNormalBuffer();
-
-            // Intermediate buffers
-            ssprtResources.directionBuffer = directionBuffer;
-            ssprtResources.rayLengthBuffer = rayLengthBuffer;
-
-            // Debug textures
-            RayCountManager rayCountManager = GetRayCountManager();
-            ssprtResources.rayCountTexture = rayCountManager.GetRayCountTexture();
-
-            // Output buffers
-            ssprtResources.velocityBuffer = velocityBuffer;
-            ssprtResources.distanceBuffer = distanceBuffer;
-            ssprtResources.outputShadowBuffer = outputShadowBuffer;
-
-            return ssprtResources;
-        }
-
         static void ExecuteSSSPunctualRayTrace(CommandBuffer cmd, SSSPunctualRayTraceParameters ssprtParams, SSSPunctualRayTraceResources ssprtResources)
         {
             // Inject the ray-tracing sampling data
@@ -207,92 +183,6 @@ namespace UnityEngine.Rendering.HighDefinition
             historyValidity *= EvaluateHistoryValidity(hdCamera);
 
             return historyValidity;
-        }
-
-        void DenoisePunctualScreenSpaceShadow(CommandBuffer cmd, HDCamera hdCamera,
-            HDAdditionalLightData additionalLightData, in LightData lightData,
-            RTHandle velocityBuffer, RTHandle distanceBufferI, RTHandle shadowBuffer)
-        {
-            // Request the additional temporary buffers we shall be using
-            RTHandle intermediateBuffer1 = GetRayTracingBuffer(InternalRayTracingBuffers.RGBA1);
-
-            // Is the history still valid?
-            float historyValidity = EvaluateHistoryValidityPointShadow(hdCamera, lightData, additionalLightData);
-
-            // Evaluate the channel mask
-            GetShadowChannelMask(lightData.screenSpaceShadowIndex, ScreenSpaceShadowType.GrayScale, ref m_ShadowChannelMask0);
-
-            HDTemporalFilter temporalFilter = GetTemporalFilter();
-
-            // Only set the distance based denoising buffers if required.
-            RTHandle distanceBuffer = null;
-            RTHandle shadowHistoryDistanceArray = null;
-            RTHandle denoisedDistanceBuffer = null;
-            if (additionalLightData.distanceBasedFiltering)
-            {
-                distanceBuffer = distanceBufferI;
-                shadowHistoryDistanceArray = hdCamera.GetCurrentFrameRT((int)HDCameraFrameHistoryType.RaytracedShadowDistanceValidity)
-                    ?? hdCamera.AllocHistoryFrameRT((int)HDCameraFrameHistoryType.RaytracedShadowDistanceValidity, ShadowHistoryDistanceBufferAllocatorFunction, 1);;
-                denoisedDistanceBuffer = GetRayTracingBuffer(InternalRayTracingBuffers.RG1);
-            }
-
-            // Grab the history buffers for shadows
-            RTHandle shadowHistoryArray = hdCamera.GetCurrentFrameRT((int)HDCameraFrameHistoryType.RaytracedShadowHistory)
-                ?? hdCamera.AllocHistoryFrameRT((int)HDCameraFrameHistoryType.RaytracedShadowHistory, ShadowHistoryBufferAllocatorFunction, 1);
-            RTHandle shadowHistoryValidityArray = hdCamera.GetCurrentFrameRT((int)HDCameraFrameHistoryType.RaytracedShadowHistoryValidity)
-                ?? hdCamera.AllocHistoryFrameRT((int)HDCameraFrameHistoryType.RaytracedShadowHistoryValidity, ShadowHistoryValidityBufferAllocatorFunction, 1);
-
-            // Apply the temporal denoiser
-            temporalFilter.DenoiseBuffer(cmd, hdCamera, shadowBuffer, shadowHistoryArray,
-                shadowHistoryValidityArray,
-                velocityBuffer,
-                intermediateBuffer1,
-                lightData.screenSpaceShadowIndex / 4, m_ShadowChannelMask0,
-                distanceBuffer, shadowHistoryDistanceArray, denoisedDistanceBuffer, m_ShadowChannelMask0,
-                additionalLightData.distanceBasedFiltering, singleChannel: true, historyValidity: historyValidity);
-
-
-            if (additionalLightData.distanceBasedFiltering)
-            {
-                // Apply the spatial denoiser
-                HDDiffuseShadowDenoiser shadowDenoiser = GetDiffuseShadowDenoiser();
-                shadowDenoiser.DenoiseBufferSphere(cmd, hdCamera, intermediateBuffer1, denoisedDistanceBuffer, shadowBuffer, additionalLightData.filterSizeTraced, additionalLightData.transform.position, additionalLightData.shapeRadius);
-            }
-            else
-            {
-                HDSimpleDenoiser simpleDenoiser = GetSimpleDenoiser();
-                simpleDenoiser.DenoiseBufferNoHistory(cmd, hdCamera, intermediateBuffer1, shadowBuffer, additionalLightData.filterSizeTraced, singleChannel: true);
-            }
-
-            // Now that we have overriden this history, mark is as used by this light
-            hdCamera.PropagateShadowHistory(additionalLightData, lightData.screenSpaceShadowIndex, lightData.lightType);
-        }
-
-        void RenderPunctualScreenSpaceShadow(CommandBuffer cmd, HDCamera hdCamera
-            , in LightData lightData, HDAdditionalLightData additionalLightData, int lightIndex)
-        {
-            // Request the intermediate buffers we shall be using
-            RTHandle outputShadowBuffer = GetRayTracingBuffer(InternalRayTracingBuffers.RGBA0);
-            RTHandle directionBuffer = GetRayTracingBuffer(InternalRayTracingBuffers.Direction);
-            RTHandle velocityBuffer = GetRayTracingBuffer(InternalRayTracingBuffers.R1);
-            RTHandle distanceBuffer = GetRayTracingBuffer(InternalRayTracingBuffers.RG0);
-            RTHandle rayLengthBuffer = GetRayTracingBuffer(InternalRayTracingBuffers.Distance);
-
-            // Ray trace for shadow evaluation
-            SSSPunctualRayTraceParameters ssprtParams = PrepareSSSPunctualRayTraceParameters(hdCamera, additionalLightData, lightData, lightIndex);
-            SSSPunctualRayTraceResources ssprtResources = PrepareSSSPunctualRayTraceResources(velocityBuffer, directionBuffer, rayLengthBuffer, distanceBuffer, outputShadowBuffer);
-            ExecuteSSSPunctualRayTrace(cmd, ssprtParams, ssprtResources);
-
-            // If required, denoise the shadow
-            if (additionalLightData.filterTracedShadow && ssprtParams.softShadow)
-            {
-                DenoisePunctualScreenSpaceShadow(cmd, hdCamera, additionalLightData, lightData, velocityBuffer, distanceBuffer, outputShadowBuffer);
-            }
-
-            // Write the result texture to the screen space shadow buffer
-            WriteScreenSpaceShadowParameters wsssParams = PrepareWriteScreenSpaceShadowParameters(hdCamera, lightData.screenSpaceShadowIndex, ScreenSpaceShadowType.GrayScale);
-            WriteScreenSpaceShadowResources wsssResources = PrepareWriteScreenSpaceShadowResources(outputShadowBuffer);
-            ExecuteWriteScreenSpaceShadow(cmd, wsssParams, wsssResources);
         }
     }
 }

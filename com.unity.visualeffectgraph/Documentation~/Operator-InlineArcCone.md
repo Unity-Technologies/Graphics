@@ -18,4 +18,3 @@ The **ArcCone** inline Operator allows you to store an instance of an [ArcCone](
 | **Output** | ArcCone   | The value of the Operator. |
 
 [!include[](Snippets/Operator-InlineNotes.md)]
-

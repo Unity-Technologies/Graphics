@@ -86,6 +86,6 @@ For more examples of indoor light levels see Archtoolbox’s web page on [Recomm
 
 ### Lighting and exposure diagram
 
-The following diagram shows scales of light and exposure values in different units. The icons along each scale represent light sources that match the marked value.
+The following cheat sheet contains the color temperature values and light intensities of common real-world [Light](Light-Component.md) sources. It also contains [Exposure](Override-Exposure.md) values for different illumination scenarios.
 
 ![](Images/LightCheatSheet.png)

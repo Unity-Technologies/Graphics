@@ -8,6 +8,7 @@ using UnityEditor.ShaderGraph.Internal;
 using UnityEditor.ShaderGraph.Drawing;
 using UnityEditor.ShaderGraph.Serialization;
 using UnityEngine.Assertions;
+using UnityEngine.Pool;
 
 namespace UnityEditor.ShaderGraph
 {
@@ -36,6 +37,8 @@ namespace UnityEditor.ShaderGraph
         List<JsonData<MaterialSlot>> m_Slots = new List<JsonData<MaterialSlot>>();
 
         public GraphData owner { get; set; }
+
+        internal virtual bool ExposeToSearcher => true;
 
         OnNodeModified m_OnModified;
 
@@ -96,6 +99,10 @@ namespace UnityEditor.ShaderGraph
             get { return true; }
         }
 
+        // this is the precision after the inherit/automatic behavior has been calculated
+        // it does NOT include fallback to any graph default precision
+        public GraphPrecision graphPrecision { get; set; } = GraphPrecision.Single;
+
         private ConcretePrecision m_ConcretePrecision = ConcretePrecision.Single;
 
         public ConcretePrecision concretePrecision
@@ -128,15 +135,20 @@ namespace UnityEditor.ShaderGraph
             }
         }
 
+        // by default, if this returns null, the system will allow creation of any previous version
+        public virtual IEnumerable<int> allowedNodeVersions => null;
+
         // Nodes that want to have a preview area can override this and return true
         public virtual bool hasPreview
         {
             get { return false; }
         }
 
+        [SerializeField]
+        internal PreviewMode m_PreviewMode = PreviewMode.Inherit;
         public virtual PreviewMode previewMode
         {
-            get { return PreviewMode.Preview2D; }
+            get { return m_PreviewMode; }
         }
 
         public virtual bool allowedInSubGraph
@@ -435,8 +447,12 @@ namespace UnityEditor.ShaderGraph
                 return null;
 
             var edges = owner.GetEdges(inputSlot.slotReference).ToArray();
-            var fromSocketRef = edges[0].outputSlot;
-            var fromNode = fromSocketRef.node;
+            AbstractMaterialNode fromNode = null;
+            if (edges.Count() > 0)
+            {
+                var fromSocketRef = edges[0].outputSlot;
+                fromNode = fromSocketRef.node;
+            }
             return fromNode;
         }
 
@@ -486,58 +502,52 @@ namespace UnityEditor.ShaderGraph
 
         protected const string k_validationErrorMessage = "Error found during node validation";
 
-        public virtual void EvaluateConcretePrecision()
+        // evaluate ALL the precisions...
+        public virtual void UpdatePrecision(List<MaterialSlot> inputSlots)
         {
-            // If Node has a precision override use that
-            if (precision != Precision.Inherit)
+            // first let's reduce from precision ==> graph precision
+            if (precision == Precision.Inherit)
             {
-                m_ConcretePrecision = precision.ToConcrete();
-                return;
-            }
-
-            // Get inputs
-            using (var tempSlots = PooledList<MaterialSlot>.Get())
-            {
-                GetInputSlots(tempSlots);
+                // inherit means calculate it automatically based on inputs
 
                 // If no inputs were found use the precision of the Graph
-                // This can be removed when parameters are considered as true inputs
-                if (tempSlots.Count == 0)
+                if (inputSlots.Count == 0)
                 {
-                    m_ConcretePrecision = owner.concretePrecision;
-                    return;
+                    graphPrecision = GraphPrecision.Graph;
                 }
-
-                // Otherwise compare precisions from inputs
-                var precisionsToCompare = new List<int>();
-
-                foreach (var inputSlot in tempSlots)
+                else
                 {
-                    // If input port doesnt have an edge use the Graph's precision for that input
-                    var edges = owner?.GetEdges(inputSlot.slotReference).ToList();
-                    if (!edges.Any())
+                    int curGraphPrecision = (int)GraphPrecision.Half;
+                    foreach (var inputSlot in inputSlots)
                     {
-                        precisionsToCompare.Add((int)owner.concretePrecision);
-                        continue;
+                        // If input port doesn't have an edge use the Graph's precision for that input
+                        var edges = owner?.GetEdges(inputSlot.slotReference).ToList();
+                        if (!edges.Any())
+                        {
+                            // disconnected inputs use graph precision
+                            curGraphPrecision = Math.Min(curGraphPrecision, (int)GraphPrecision.Graph);
+                        }
+                        else
+                        {
+                            var outputSlotRef = edges[0].outputSlot;
+                            var outputNode = outputSlotRef.node;
+                            curGraphPrecision = Math.Min(curGraphPrecision, (int)outputNode.graphPrecision);
+                        }
                     }
-
-                    // Get output node from edge
-                    var outputSlotRef = edges[0].outputSlot;
-                    var outputNode = outputSlotRef.node;
-
-                    // Use precision from connected Node
-                    precisionsToCompare.Add((int)outputNode.concretePrecision);
+                    graphPrecision = (GraphPrecision)curGraphPrecision;
                 }
-
-                // Use highest precision from all input sources
-                m_ConcretePrecision = (ConcretePrecision)precisionsToCompare.OrderBy(x => x).First();
-
-                // Clean up
-                return;
             }
+            else
+            {
+                // not inherited, just use the node's selected precision
+                graphPrecision = precision.ToGraphPrecision(GraphPrecision.Graph);
+            }
+
+            // calculate the concrete precision, with fall-back to the graph concrete precision
+            concretePrecision = graphPrecision.ToConcrete(owner.graphDefaultConcretePrecision);
         }
 
-        public virtual void EvaluateDynamicMaterialSlots()
+        public virtual void EvaluateDynamicMaterialSlots(List<MaterialSlot> inputSlots, List<MaterialSlot> outputSlots)
         {
             var dynamicInputSlotsToCompare = DictionaryPool<DynamicVectorMaterialSlot, ConcreteSlotValueType>.Get();
             var skippedDynamicSlots = ListPool<DynamicVectorMaterialSlot>.Get();
@@ -546,10 +556,8 @@ namespace UnityEditor.ShaderGraph
             var skippedDynamicMatrixSlots = ListPool<DynamicMatrixMaterialSlot>.Get();
 
             // iterate the input slots
-            using (var tempSlots = PooledList<MaterialSlot>.Get())
             {
-                GetInputSlots(tempSlots);
-                foreach (var inputSlot in tempSlots)
+                foreach (var inputSlot in inputSlots)
                 {
                     inputSlot.hasError = false;
                     // if there is a connection
@@ -610,9 +618,7 @@ namespace UnityEditor.ShaderGraph
                 foreach (var skippedSlot in skippedDynamicMatrixSlots)
                     skippedSlot.SetConcreteType(dynamicMatrixType);
 
-                tempSlots.Clear();
-                GetInputSlots(tempSlots);
-                bool inputError = tempSlots.Any(x => x.hasError);
+                bool inputError = inputSlots.Any(x => x.hasError);
                 if (inputError)
                 {
                     owner.AddConcretizationError(objectId, string.Format("Node {0} had input error", objectId));
@@ -623,9 +629,7 @@ namespace UnityEditor.ShaderGraph
                 // their slotType will either be the default output slotType
                 // or the above dynamic slotType for dynamic nodes
                 // or error if there is an input error
-                tempSlots.Clear();
-                GetOutputSlots(tempSlots);
-                foreach (var outputSlot in tempSlots)
+                foreach (var outputSlot in outputSlots)
                 {
                     outputSlot.hasError = false;
 
@@ -647,10 +651,7 @@ namespace UnityEditor.ShaderGraph
                     }
                 }
 
-
-                tempSlots.Clear();
-                GetOutputSlots(tempSlots);
-                if (tempSlots.Any(x => x.hasError))
+                if (outputSlots.Any(x => x.hasError))
                 {
                     owner.AddConcretizationError(objectId, string.Format("Node {0} had output error", objectId));
                     hasError = true;
@@ -669,8 +670,16 @@ namespace UnityEditor.ShaderGraph
         {
             hasError = false;
             owner?.ClearErrorsForNode(this);
-            EvaluateConcretePrecision();
-            EvaluateDynamicMaterialSlots();
+
+            using (var inputSlots = PooledList<MaterialSlot>.Get())
+            using (var outputSlots = PooledList<MaterialSlot>.Get())
+            {
+                GetInputSlots(inputSlots);
+                GetOutputSlots(outputSlots);
+
+                UpdatePrecision(inputSlots);
+                EvaluateDynamicMaterialSlots(inputSlots, outputSlots);
+            }
         }
 
         public virtual void ValidateNode()
@@ -710,9 +719,12 @@ namespace UnityEditor.ShaderGraph
                 {
                     tempPreviewProperties.Clear();
                     tempEdges.Clear();
-                    owner.GetEdges(s.slotReference, tempEdges);
-                    if (tempEdges.Any())
-                        continue;
+                    if (owner != null)
+                    {
+                        owner.GetEdges(s.slotReference, tempEdges);
+                        if (tempEdges.Any())
+                            continue;
+                    }
 
                     s.GetPreviewProperties(tempPreviewProperties, GetVariableNameForSlot(s.id));
                     for (int i = 0; i < tempPreviewProperties.Count; i++)

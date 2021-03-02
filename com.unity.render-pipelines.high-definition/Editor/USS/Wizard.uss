@@ -135,17 +135,28 @@ ToolbarRadio
     margin-right: 130px;
 }
 
-#Repopulate
+.RightAnchoredButton
 {
     position: absolute;
     right: 0px;
-    width: 120px;
+    width: 114px;
+    margin-top: 0px;
+    margin-right: 10px;
 }
 
-#LargeButton
+.LargeButton
 {
     margin-left: 20px;
     margin-right: 20px;
+}
+
+#HDRPVersionContainer
+{
+    flex-direction: row;
+    margin-top: 10px;
+    padding-top: 3px;
+    padding-bottom: 3px;
+    padding-left: 3px;
 }
 
 

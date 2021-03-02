@@ -53,13 +53,13 @@ editor-pinning-update:
                      fi
       -  git config --global user.name "noreply@unity3d.com"
       -  git config --global user.email "noreply@unity3d.com"
-      -  pipenv run python3 .yamato/ruamel/editor_pinning/update_revisions.py --target-branch ci/editor-pinning --force-push
+      -  pipenv run python3 .yamato/script/editor_scripts/update_revisions.py --target-branch ci/editor-pinning
     dependencies:
       -  .yamato/_editor_pinning.yml#editor-pinning-target-to-ci
     triggers:
         recurring:
           -  branch: master
-             frequency: 0 * * ?
+             frequency: 23 * * ?
 editor-pinning-merge-revisions-trunk:
     name: Merge [trunk] revisions to master [no ABV]
     agent:
@@ -83,7 +83,7 @@ editor-pinning-merge-revisions-trunk:
                      fi
       -  git config --global user.name "noreply@unity3d.com"
       -  git config --global user.email "noreply@unity3d.com"
-      -  pipenv run python3 .yamato/ruamel/editor_pinning/merge_revisions.py --revision $GIT_REVISION --target-branch master --track trunk
+      -  pipenv run python3 .yamato/script/editor_scripts/merge_revisions.py --revision $GIT_REVISION --target-branch master --track trunk
 editor-pinning-merge-revisions-trunk-abv:
     name: Merge [trunk] revisions to master [ABV]
     allow_failure: true
@@ -110,18 +110,34 @@ editor-pinning-merge-revisions-trunk-abv:
                      fi
       -  git config --global user.name "noreply@unity3d.com"
       -  git config --global user.email "noreply@unity3d.com"
-      -  pipenv run python3 .yamato/ruamel/editor_pinning/merge_revisions.py --revision $GIT_REVISION --target-branch master --track trunk
+      -  pipenv run python3 .yamato/script/editor_scripts/merge_revisions.py --revision $GIT_REVISION --target-branch master --track trunk
 editor-pinning-merge-all:
-    name: Merge all [no ABV] [no CI]
+    name: Merge all [no CI][trunk no ABV]
     variables:
         CI: true
     dependencies:
       -  .yamato/_editor_pinning.yml#editor-pinning-merge-revisions-trunk
-editor-pinning-merge-all-abv:
-    name: Merge all [ABV] [CI]
+editor-pinning-merge-all-ci:
+    name: Merge all [CI][trunk no ABV]
     triggers:
         expression: push.branch eq "ci/editor-pinning" AND push.changes.any match "**/_latest_editor_versions*.metafile"
     variables:
         CI: true
     dependencies:
-      -  .yamato/_editor_pinning.yml#editor-pinning-merge-revisions-trunk-abv
+      -  .yamato/_editor_pinning.yml#editor-pinning-merge-revisions-trunk
+editor-pinning-store-green:
+    name: Store green job revisions
+    agent:
+        type: Unity::VM
+        image: package-ci/ubuntu:stable
+        flavor: b1.small
+    commands:
+      -  sudo pip3 install pipenv --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple
+      -  python3 -m pipenv install --dev
+      -  git config --global user.name "noreply@unity3d.com"
+      -  git config --global user.email "noreply@unity3d.com"
+      -  pipenv run python3 .yamato/script/editor_scripts/store_green_revisions.py --target-branch $GIT_BRANCH --track trunk --apikey $YAMATO_KEY
+    triggers:
+        recurring:
+          -  branch: master
+             frequency: 7 * * ?

@@ -65,6 +65,7 @@ MonoBehaviour:
   blendMode: 0
   useAlphaClipping: 0
   generateMotionVector: 0
+  excludeFromTAA: 0
   m_SubOutputs:
   - {fileID: 8926484042661615572}
   cullMode: 0
@@ -80,6 +81,7 @@ MonoBehaviour:
   frustumCulling: 0
   castShadows: 0
   useExposureWeight: 0
+  flipbookLayout: 0
   shaderGraph: {fileID: 0}
   primitiveType: 1
   useGeometryShader: 0
@@ -607,7 +609,7 @@ MonoBehaviour:
   m_UIInfos: {fileID: 114878232584584390}
   m_ParameterInfo: []
   m_ImportDependencies: []
-  m_GraphVersion: 6
+  m_GraphVersion: 7
   m_ResourceVersion: 1
   m_saved: 1
   m_SubgraphDependencies: []
@@ -1578,6 +1580,7 @@ MonoBehaviour:
   blendMode: 0
   useAlphaClipping: 0
   generateMotionVector: 0
+  excludeFromTAA: 0
   m_SubOutputs:
   - {fileID: 8926484042661615573}
   cullMode: 0
@@ -1593,6 +1596,7 @@ MonoBehaviour:
   frustumCulling: 0
   castShadows: 0
   useExposureWeight: 0
+  flipbookLayout: 0
   shaderGraph: {fileID: 0}
   primitiveType: 1
   useGeometryShader: 0
@@ -2326,6 +2330,7 @@ MonoBehaviour:
   blendMode: 0
   useAlphaClipping: 0
   generateMotionVector: 0
+  excludeFromTAA: 0
   m_SubOutputs:
   - {fileID: 8926484042661615583}
   cullMode: 0
@@ -2341,6 +2346,7 @@ MonoBehaviour:
   frustumCulling: 0
   castShadows: 0
   useExposureWeight: 0
+  flipbookLayout: 0
   shaderGraph: {fileID: 0}
   primitiveType: 1
   useGeometryShader: 0
@@ -2803,6 +2809,7 @@ MonoBehaviour:
   blendMode: 0
   useAlphaClipping: 0
   generateMotionVector: 0
+  excludeFromTAA: 0
   m_SubOutputs:
   - {fileID: 8926484042661615584}
   cullMode: 0
@@ -2818,6 +2825,7 @@ MonoBehaviour:
   frustumCulling: 0
   castShadows: 0
   useExposureWeight: 0
+  flipbookLayout: 0
   shaderGraph: {fileID: 0}
   primitiveType: 1
   useGeometryShader: 0
@@ -3344,6 +3352,7 @@ MonoBehaviour:
   blendMode: 0
   useAlphaClipping: 0
   generateMotionVector: 0
+  excludeFromTAA: 0
   m_SubOutputs:
   - {fileID: 8926484042661615585}
   cullMode: 0
@@ -3359,6 +3368,7 @@ MonoBehaviour:
   frustumCulling: 0
   castShadows: 0
   useExposureWeight: 0
+  flipbookLayout: 0
   shaderGraph: {fileID: 0}
   primitiveType: 1
   useGeometryShader: 0
@@ -3855,6 +3865,7 @@ MonoBehaviour:
   blendMode: 0
   useAlphaClipping: 0
   generateMotionVector: 0
+  excludeFromTAA: 0
   m_SubOutputs:
   - {fileID: 8926484042661615586}
   cullMode: 0
@@ -3870,6 +3881,7 @@ MonoBehaviour:
   frustumCulling: 0
   castShadows: 0
   useExposureWeight: 0
+  flipbookLayout: 0
   shaderGraph: {fileID: 0}
   primitiveType: 1
   useGeometryShader: 0
@@ -4266,6 +4278,9 @@ MonoBehaviour:
   positionMode: 0
   spawnMode: 0
   mode: 1
+  placementMode: 0
+  surfaceCoordinates: 1
+  sourceMesh: 0
 --- !u!114 &8926484042661614747
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -4630,6 +4645,7 @@ MonoBehaviour:
   blendMode: 0
   useAlphaClipping: 0
   generateMotionVector: 0
+  excludeFromTAA: 0
   m_SubOutputs:
   - {fileID: 8926484042661615587}
   cullMode: 0
@@ -4645,6 +4661,7 @@ MonoBehaviour:
   frustumCulling: 0
   castShadows: 0
   useExposureWeight: 0
+  flipbookLayout: 0
   shaderGraph: {fileID: 0}
   primitiveType: 1
   useGeometryShader: 0
@@ -6242,6 +6259,7 @@ MonoBehaviour:
   blendMode: 0
   useAlphaClipping: 0
   generateMotionVector: 0
+  excludeFromTAA: 0
   m_SubOutputs:
   - {fileID: 8926484042661615588}
   cullMode: 0
@@ -6257,6 +6275,7 @@ MonoBehaviour:
   frustumCulling: 0
   castShadows: 0
   useExposureWeight: 0
+  flipbookLayout: 0
   shaderGraph: {fileID: 0}
   primitiveType: 1
   useGeometryShader: 0
@@ -7051,6 +7070,7 @@ MonoBehaviour:
   blendMode: 0
   useAlphaClipping: 0
   generateMotionVector: 0
+  excludeFromTAA: 0
   m_SubOutputs:
   - {fileID: 8926484042661615589}
   cullMode: 0
@@ -7066,6 +7086,7 @@ MonoBehaviour:
   frustumCulling: 0
   castShadows: 0
   useExposureWeight: 0
+  flipbookLayout: 0
   shaderGraph: {fileID: 0}
   primitiveType: 1
   useGeometryShader: 0
@@ -7589,6 +7610,7 @@ MonoBehaviour:
   blendMode: 0
   useAlphaClipping: 0
   generateMotionVector: 0
+  excludeFromTAA: 0
   m_SubOutputs:
   - {fileID: 8926484042661615590}
   cullMode: 0
@@ -7604,6 +7626,7 @@ MonoBehaviour:
   frustumCulling: 0
   castShadows: 0
   useExposureWeight: 0
+  flipbookLayout: 0
   shaderGraph: {fileID: 0}
   primitiveType: 1
   useGeometryShader: 0
@@ -8432,6 +8455,7 @@ MonoBehaviour:
   blendMode: 0
   useAlphaClipping: 0
   generateMotionVector: 0
+  excludeFromTAA: 0
   m_SubOutputs:
   - {fileID: 8926484042661615591}
   cullMode: 0
@@ -8447,6 +8471,7 @@ MonoBehaviour:
   frustumCulling: 0
   castShadows: 0
   useExposureWeight: 0
+  flipbookLayout: 0
   shaderGraph: {fileID: 0}
   primitiveType: 1
   useGeometryShader: 0
@@ -8968,6 +8993,9 @@ MonoBehaviour:
   positionMode: 0
   spawnMode: 0
   mode: 1
+  placementMode: 0
+  surfaceCoordinates: 1
+  sourceMesh: 0
 --- !u!114 &8926484042661614938
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -9088,6 +9116,7 @@ MonoBehaviour:
   blendMode: 0
   useAlphaClipping: 0
   generateMotionVector: 0
+  excludeFromTAA: 0
   m_SubOutputs:
   - {fileID: 8926484042661615592}
   cullMode: 0
@@ -9103,6 +9132,7 @@ MonoBehaviour:
   frustumCulling: 0
   castShadows: 0
   useExposureWeight: 0
+  flipbookLayout: 0
   shaderGraph: {fileID: 0}
   primitiveType: 1
   useGeometryShader: 0
@@ -9897,6 +9927,7 @@ MonoBehaviour:
   blendMode: 0
   useAlphaClipping: 0
   generateMotionVector: 0
+  excludeFromTAA: 0
   m_SubOutputs:
   - {fileID: 8926484042661615593}
   cullMode: 0
@@ -9912,6 +9943,7 @@ MonoBehaviour:
   frustumCulling: 0
   castShadows: 0
   useExposureWeight: 0
+  flipbookLayout: 0
   shaderGraph: {fileID: 0}
   primitiveType: 1
   useGeometryShader: 0
@@ -9981,6 +10013,7 @@ MonoBehaviour:
   blendMode: 0
   useAlphaClipping: 0
   generateMotionVector: 0
+  excludeFromTAA: 0
   m_SubOutputs:
   - {fileID: 8926484042661615594}
   cullMode: 0
@@ -9996,6 +10029,7 @@ MonoBehaviour:
   frustumCulling: 0
   castShadows: 0
   useExposureWeight: 0
+  flipbookLayout: 0
   shaderGraph: {fileID: 0}
   primitiveType: 1
   useGeometryShader: 0
@@ -11418,6 +11452,7 @@ MonoBehaviour:
   blendMode: 0
   useAlphaClipping: 0
   generateMotionVector: 0
+  excludeFromTAA: 0
   m_SubOutputs:
   - {fileID: 8926484042661615595}
   cullMode: 0
@@ -11433,6 +11468,7 @@ MonoBehaviour:
   frustumCulling: 0
   castShadows: 0
   useExposureWeight: 0
+  flipbookLayout: 0
   shaderGraph: {fileID: 0}
   primitiveType: 1
   useGeometryShader: 0
@@ -12227,6 +12263,7 @@ MonoBehaviour:
   blendMode: 0
   useAlphaClipping: 0
   generateMotionVector: 0
+  excludeFromTAA: 0
   m_SubOutputs:
   - {fileID: 8926484042661615596}
   cullMode: 0
@@ -12242,6 +12279,7 @@ MonoBehaviour:
   frustumCulling: 0
   castShadows: 0
   useExposureWeight: 0
+  flipbookLayout: 0
   shaderGraph: {fileID: 0}
   primitiveType: 1
   useGeometryShader: 0
@@ -12765,6 +12803,7 @@ MonoBehaviour:
   blendMode: 0
   useAlphaClipping: 0
   generateMotionVector: 0
+  excludeFromTAA: 0
   m_SubOutputs:
   - {fileID: 8926484042661615597}
   cullMode: 0
@@ -12780,6 +12819,7 @@ MonoBehaviour:
   frustumCulling: 0
   castShadows: 0
   useExposureWeight: 0
+  flipbookLayout: 0
   shaderGraph: {fileID: 0}
   primitiveType: 1
   useGeometryShader: 0
@@ -13608,6 +13648,7 @@ MonoBehaviour:
   blendMode: 0
   useAlphaClipping: 0
   generateMotionVector: 0
+  excludeFromTAA: 0
   m_SubOutputs:
   - {fileID: 8926484042661615598}
   cullMode: 0
@@ -13623,6 +13664,7 @@ MonoBehaviour:
   frustumCulling: 0
   castShadows: 0
   useExposureWeight: 0
+  flipbookLayout: 0
   shaderGraph: {fileID: 0}
   primitiveType: 1
   useGeometryShader: 0
@@ -14144,6 +14186,9 @@ MonoBehaviour:
   positionMode: 0
   spawnMode: 0
   mode: 1
+  placementMode: 0
+  surfaceCoordinates: 1
+  sourceMesh: 0
 --- !u!114 &8926484042661615133
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -14989,6 +15034,7 @@ MonoBehaviour:
   blendMode: 0
   useAlphaClipping: 0
   generateMotionVector: 0
+  excludeFromTAA: 0
   m_SubOutputs:
   - {fileID: 8926484042661615599}
   cullMode: 0
@@ -15004,6 +15050,7 @@ MonoBehaviour:
   frustumCulling: 0
   castShadows: 0
   useExposureWeight: 0
+  flipbookLayout: 0
   shaderGraph: {fileID: 0}
   primitiveType: 1
   useGeometryShader: 0
@@ -15073,6 +15120,7 @@ MonoBehaviour:
   blendMode: 0
   useAlphaClipping: 0
   generateMotionVector: 0
+  excludeFromTAA: 0
   m_SubOutputs:
   - {fileID: 8926484042661615600}
   cullMode: 0
@@ -15088,6 +15136,7 @@ MonoBehaviour:
   frustumCulling: 0
   castShadows: 0
   useExposureWeight: 0
+  flipbookLayout: 0
   shaderGraph: {fileID: 0}
   primitiveType: 1
   useGeometryShader: 0
@@ -15610,6 +15659,7 @@ MonoBehaviour:
   blendMode: 0
   useAlphaClipping: 0
   generateMotionVector: 0
+  excludeFromTAA: 0
   m_SubOutputs:
   - {fileID: 8926484042661615601}
   cullMode: 0
@@ -15625,6 +15675,7 @@ MonoBehaviour:
   frustumCulling: 0
   castShadows: 0
   useExposureWeight: 0
+  flipbookLayout: 0
   shaderGraph: {fileID: 0}
   primitiveType: 1
   useGeometryShader: 0
@@ -16660,6 +16711,7 @@ MonoBehaviour:
   blendMode: 0
   useAlphaClipping: 0
   generateMotionVector: 0
+  excludeFromTAA: 0
   m_SubOutputs:
   - {fileID: 8926484042661615602}
   cullMode: 0
@@ -16675,6 +16727,7 @@ MonoBehaviour:
   frustumCulling: 0
   castShadows: 0
   useExposureWeight: 0
+  flipbookLayout: 0
   shaderGraph: {fileID: 0}
   primitiveType: 1
   useGeometryShader: 0
@@ -17470,6 +17523,7 @@ MonoBehaviour:
   blendMode: 0
   useAlphaClipping: 0
   generateMotionVector: 0
+  excludeFromTAA: 0
   m_SubOutputs:
   - {fileID: 8926484042661615603}
   cullMode: 0
@@ -17485,6 +17539,7 @@ MonoBehaviour:
   frustumCulling: 0
   castShadows: 0
   useExposureWeight: 0
+  flipbookLayout: 0
   shaderGraph: {fileID: 0}
   primitiveType: 1
   useGeometryShader: 0
@@ -18009,6 +18064,7 @@ MonoBehaviour:
   blendMode: 0
   useAlphaClipping: 0
   generateMotionVector: 0
+  excludeFromTAA: 0
   m_SubOutputs:
   - {fileID: 8926484042661615604}
   cullMode: 0
@@ -18024,6 +18080,7 @@ MonoBehaviour:
   frustumCulling: 0
   castShadows: 0
   useExposureWeight: 0
+  flipbookLayout: 0
   shaderGraph: {fileID: 0}
   primitiveType: 1
   useGeometryShader: 0
@@ -18545,6 +18602,9 @@ MonoBehaviour:
   positionMode: 0
   spawnMode: 0
   mode: 1
+  placementMode: 0
+  surfaceCoordinates: 1
+  sourceMesh: 0
 --- !u!114 &8926484042661615330
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -19391,6 +19451,7 @@ MonoBehaviour:
   blendMode: 0
   useAlphaClipping: 0
   generateMotionVector: 0
+  excludeFromTAA: 0
   m_SubOutputs:
   - {fileID: 8926484042661615605}
   cullMode: 0
@@ -19406,6 +19467,7 @@ MonoBehaviour:
   frustumCulling: 0
   castShadows: 0
   useExposureWeight: 0
+  flipbookLayout: 0
   shaderGraph: {fileID: 0}
   primitiveType: 1
   useGeometryShader: 0
@@ -19475,6 +19537,7 @@ MonoBehaviour:
   blendMode: 0
   useAlphaClipping: 0
   generateMotionVector: 0
+  excludeFromTAA: 0
   m_SubOutputs:
   - {fileID: 8926484042661615606}
   cullMode: 0
@@ -19490,6 +19553,7 @@ MonoBehaviour:
   frustumCulling: 0
   castShadows: 0
   useExposureWeight: 0
+  flipbookLayout: 0
   shaderGraph: {fileID: 0}
   primitiveType: 1
   useGeometryShader: 0
@@ -20013,6 +20077,7 @@ MonoBehaviour:
   blendMode: 0
   useAlphaClipping: 0
   generateMotionVector: 0
+  excludeFromTAA: 0
   m_SubOutputs:
   - {fileID: 8926484042661615607}
   cullMode: 0
@@ -20028,6 +20093,7 @@ MonoBehaviour:
   frustumCulling: 0
   castShadows: 0
   useExposureWeight: 0
+  flipbookLayout: 0
   shaderGraph: {fileID: 0}
   primitiveType: 1
   useGeometryShader: 0
@@ -21129,6 +21195,7 @@ MonoBehaviour:
   blendMode: 0
   useAlphaClipping: 0
   generateMotionVector: 0
+  excludeFromTAA: 0
   m_SubOutputs:
   - {fileID: 8926484042661615608}
   cullMode: 0
@@ -21144,6 +21211,7 @@ MonoBehaviour:
   frustumCulling: 0
   castShadows: 0
   useExposureWeight: 0
+  flipbookLayout: 0
   shaderGraph: {fileID: 0}
   primitiveType: 1
   useGeometryShader: 0
@@ -21702,6 +21770,7 @@ MonoBehaviour:
   blendMode: 0
   useAlphaClipping: 0
   generateMotionVector: 0
+  excludeFromTAA: 0
   m_SubOutputs:
   - {fileID: 8926484042661615609}
   cullMode: 0
@@ -21717,6 +21786,7 @@ MonoBehaviour:
   frustumCulling: 0
   castShadows: 0
   useExposureWeight: 0
+  flipbookLayout: 0
   shaderGraph: {fileID: 0}
   primitiveType: 1
   useGeometryShader: 0
@@ -22238,6 +22308,9 @@ MonoBehaviour:
   positionMode: 0
   spawnMode: 0
   mode: 1
+  placementMode: 0
+  surfaceCoordinates: 1
+  sourceMesh: 0
 --- !u!114 &8926484042661615507
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -23118,6 +23191,7 @@ MonoBehaviour:
   blendMode: 0
   useAlphaClipping: 0
   generateMotionVector: 0
+  excludeFromTAA: 0
   m_SubOutputs:
   - {fileID: 8926484042661615610}
   cullMode: 0
@@ -23133,6 +23207,7 @@ MonoBehaviour:
   frustumCulling: 0
   castShadows: 0
   useExposureWeight: 0
+  flipbookLayout: 0
   shaderGraph: {fileID: 0}
   primitiveType: 1
   useGeometryShader: 0
@@ -23202,6 +23277,7 @@ MonoBehaviour:
   blendMode: 0
   useAlphaClipping: 0
   generateMotionVector: 0
+  excludeFromTAA: 0
   m_SubOutputs:
   - {fileID: 8926484042661615611}
   cullMode: 0
@@ -23217,6 +23293,7 @@ MonoBehaviour:
   frustumCulling: 0
   castShadows: 0
   useExposureWeight: 0
+  flipbookLayout: 0
   shaderGraph: {fileID: 0}
   primitiveType: 1
   useGeometryShader: 0
@@ -23774,6 +23851,7 @@ MonoBehaviour:
   blendMode: 0
   useAlphaClipping: 0
   generateMotionVector: 0
+  excludeFromTAA: 0
   m_SubOutputs:
   - {fileID: 8926484042661615612}
   cullMode: 0
@@ -23789,6 +23867,7 @@ MonoBehaviour:
   frustumCulling: 0
   castShadows: 0
   useExposureWeight: 0
+  flipbookLayout: 0
   shaderGraph: {fileID: 0}
   primitiveType: 1
   useGeometryShader: 0

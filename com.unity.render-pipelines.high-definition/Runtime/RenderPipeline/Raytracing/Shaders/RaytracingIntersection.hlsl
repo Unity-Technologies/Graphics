@@ -2,7 +2,7 @@
 #define UNITY_RAYTRACING_INTERSECTION_INCLUDED
 
 // Engine includes
-#include "UnityRaytracingMeshUtils.cginc"
+#include "UnityRayTracingMeshUtils.cginc"
 
 // Raycone structure that defines the stateof the ray
 struct RayCone
@@ -172,6 +172,17 @@ void GetCurrentIntersectionVertex(AttributeData attributeData, out IntersectionV
     outVertex.texCoord2Area = abs((v1.texCoord2.x - v0.texCoord2.x) * (v2.texCoord2.y - v0.texCoord2.y) - (v2.texCoord2.x - v0.texCoord2.x) * (v1.texCoord2.y - v0.texCoord2.y));
     outVertex.texCoord3Area = abs((v1.texCoord3.x - v0.texCoord3.x) * (v2.texCoord3.y - v0.texCoord3.y) - (v2.texCoord3.x - v0.texCoord3.x) * (v1.texCoord3.y - v0.texCoord3.y));
 #endif
+}
+
+// Compute the proper world space geometric normal from the intersected triangle
+void GetCurrentIntersectionGeometricNormal(AttributeData attributeData, out float3 geomNormalWS)
+{
+    uint3 triangleIndices = UnityRayTracingFetchTriangleIndices(PrimitiveIndex());
+    float3 p0 = UnityRayTracingFetchVertexAttribute3(triangleIndices.x, kVertexAttributePosition);
+    float3 p1 = UnityRayTracingFetchVertexAttribute3(triangleIndices.y, kVertexAttributePosition);
+    float3 p2 = UnityRayTracingFetchVertexAttribute3(triangleIndices.z, kVertexAttributePosition);
+
+    geomNormalWS = normalize(mul(cross(p1 - p0, p2 - p0), (float3x3)WorldToObject3x4()));
 }
 
 #endif // UNITY_RAYTRACING_INTERSECTION_INCLUDED

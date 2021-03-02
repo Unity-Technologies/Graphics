@@ -196,17 +196,25 @@ namespace UnityEngine.Rendering.Universal
     [MovedFrom("UnityEngine.Rendering.LWRP")] public struct ShadowData
     {
         public bool supportsMainLightShadows;
+        [Obsolete("Obsolete, this feature was replaced by new 'ScreenSpaceShadows' renderer feature")]
         public bool requiresScreenSpaceShadowResolve;
         public int mainLightShadowmapWidth;
         public int mainLightShadowmapHeight;
         public int mainLightShadowCascadesCount;
         public Vector3 mainLightShadowCascadesSplit;
+        /// <summary>
+        /// Main light last cascade shadow fade border.
+        /// Value represents the width of shadow fade that ranges from 0 to 1.
+        /// Where value 0 is used for no shadow fade.
+        /// </summary>
+        public float mainLightShadowCascadeBorder;
         public bool supportsAdditionalLightShadows;
         public int additionalLightsShadowmapWidth;
         public int additionalLightsShadowmapHeight;
         public bool supportsSoftShadows;
         public int shadowmapDepthBufferBits;
         public List<Vector4> bias;
+        public List<int> resolution;
     }
 
     // Precomputed tile data.
@@ -288,12 +296,18 @@ namespace UnityEngine.Rendering.Universal
     {
         public ColorGradingMode gradingMode;
         public int lutSize;
+        /// <summary>
+        /// True if fast approximation functions are used when converting between the sRGB and Linear color spaces, false otherwise.
+        /// </summary>
+        public bool useFastSRGBLinearConversion;
     }
 
     public static class ShaderKeywordStrings
     {
         public static readonly string MainLightShadows = "_MAIN_LIGHT_SHADOWS";
         public static readonly string MainLightShadowCascades = "_MAIN_LIGHT_SHADOWS_CASCADE";
+        public static readonly string MainLightShadowScreen = "_MAIN_LIGHT_SHADOWS_SCREEN";
+        public static readonly string CastingPunctualLightShadow = "_CASTING_PUNCTUAL_LIGHT_SHADOW"; // This is used during shadow map generation to differentiate between directional and punctual light shadows, as they use different formulas to apply Normal Bias
         public static readonly string AdditionalLightsVertex = "_ADDITIONAL_LIGHTS_VERTEX";
         public static readonly string AdditionalLightsPixel = "_ADDITIONAL_LIGHTS";
         public static readonly string AdditionalLightShadows = "_ADDITIONAL_LIGHT_SHADOWS";
@@ -308,6 +322,7 @@ namespace UnityEngine.Rendering.Universal
         public static readonly string DepthMsaa8 = "_DEPTH_MSAA_8";
 
         public static readonly string LinearToSRGBConversion = "_LINEAR_TO_SRGB_CONVERSION";
+        internal static readonly string UseFastSRGBLinearConversion = "_USE_FAST_SRGB_LINEAR_CONVERSION";
 
         public static readonly string SmaaLow = "_SMAA_PRESET_LOW";
         public static readonly string SmaaMedium = "_SMAA_PRESET_MEDIUM";
@@ -338,7 +353,9 @@ namespace UnityEngine.Rendering.Universal
         public static readonly string _SPOT = "_SPOT";
         public static readonly string _DIRECTIONAL = "_DIRECTIONAL";
         public static readonly string _POINT = "_POINT";
-        public static readonly string _DEFERRED_ADDITIONAL_LIGHT_SHADOWS = "_DEFERRED_ADDITIONAL_LIGHT_SHADOWS";
+        public static readonly string _DEFERRED_FIRST_LIGHT = "_DEFERRED_FIRST_LIGHT";
+        public static readonly string _DEFERRED_MAIN_LIGHT = "_DEFERRED_MAIN_LIGHT";
+        public static readonly string _DEFERRED_LIGHT_SHADOWS = "_DEFERRED_LIGHT_SHADOWS";
         public static readonly string _GBUFFER_NORMALS_OCT = "_GBUFFER_NORMALS_OCT";
         public static readonly string _DEFERRED_MIXED_LIGHTING = "_DEFERRED_MIXED_LIGHTING";
         public static readonly string LIGHTMAP_ON = "LIGHTMAP_ON";
@@ -367,6 +384,7 @@ namespace UnityEngine.Rendering.Universal
         static Vector4 k_DefaultLightsProbeChannel = new Vector4(0.0f, 0.0f, 0.0f, 0.0f);
 
         static List<Vector4> m_ShadowBiasData = new List<Vector4>();
+        static List<int> m_ShadowResolutionData = new List<int>();
 
         /// <summary>
         /// Checks if a camera is a game camera.
@@ -436,7 +454,7 @@ namespace UnityEngine.Rendering.Universal
 #endif
 
         static RenderTextureDescriptor CreateRenderTextureDescriptor(Camera camera, float renderScale,
-            bool isHdrEnabled, int msaaSamples, bool needsAlpha)
+            bool isHdrEnabled, int msaaSamples, bool needsAlpha, bool requiresOpaqueTexture)
         {
             RenderTextureDescriptor desc;
             GraphicsFormat renderTextureFormatDefault = SystemInfo.GetGraphicsFormat(DefaultFormat.LDR);
@@ -481,6 +499,12 @@ namespace UnityEngine.Rendering.Universal
             // check that the requested MSAA samples count is supported by the current platform. If it's not supported,
             // replace the requested desc.msaaSamples value with the actual value the engine falls back to
             desc.msaaSamples = SystemInfo.GetRenderTextureSupportedMSAASampleCount(desc);
+
+            // if the target platform doesn't support storing multisampled RTs and we are doing a separate opaque pass, using a Load load action on the subsequent passes
+            // will result in loading Resolved data, which on some platforms is discarded, resulting in losing the results of the previous passes.
+            // As a workaround we disable MSAA to make sure that the results of previous passes are stored. (fix for Case 1247423).
+            if (!SystemInfo.supportsStoreAndResolveAction && requiresOpaqueTexture)
+                desc.msaaSamples = 1;
 
             return desc;
         }
@@ -577,7 +601,7 @@ namespace UnityEngine.Rendering.Universal
                 float lightRangeSqrOverFadeRangeSqr = -lightRangeSqr / fadeRangeSqr;
                 float oneOverLightRangeSqr = 1.0f / Mathf.Max(0.0001f, lightRange * lightRange);
 
-                // On mobile and Nintendo Switch: Use the faster linear smoothing factor (SHADER_HINT_NICE_QUALITY).
+                // On untethered devices: Use the faster linear smoothing factor (SHADER_HINT_NICE_QUALITY).
                 // On other devices: Use the smoothing factor that matches the GI.
                 lightAttenuation.x = Application.isMobilePlatform || SystemInfo.graphicsDeviceType == GraphicsDeviceType.Switch ? oneOverFadeRangeSqr : oneOverLightRangeSqr;
                 lightAttenuation.y = lightRangeSqrOverFadeRangeSqr;

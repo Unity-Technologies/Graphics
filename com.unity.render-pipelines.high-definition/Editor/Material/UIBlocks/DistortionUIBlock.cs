@@ -5,7 +5,10 @@ using UnityEngine.Rendering.HighDefinition;
 
 namespace UnityEditor.Rendering.HighDefinition
 {
-    class DistortionUIBlock : MaterialUIBlock
+    /// <summary>
+    /// The UI block that displays distortion properties for materials.
+    /// </summary>
+    public class DistortionUIBlock : MaterialUIBlock
     {
         internal static class Styles
         {
@@ -20,33 +23,32 @@ namespace UnityEditor.Rendering.HighDefinition
             public static GUIContent distortionRoughInfoText = new GUIContent("Blur parameters will have an effect on the distortion if the Rough Distortion Frame Setting is enabled on the target camera.");
         }
 
-        protected MaterialProperty distortionEnable = null;
-        protected const string kDistortionEnable = "_DistortionEnable";
-        protected MaterialProperty distortionOnly = null;
-        protected const string kDistortionOnly = "_DistortionOnly";
-        protected MaterialProperty distortionDepthTest = null;
-        protected const string kDistortionDepthTest = "_DistortionDepthTest";
-        protected MaterialProperty distortionVectorMap = null;
-        protected const string kDistortionVectorMap = "_DistortionVectorMap";
-        protected MaterialProperty distortionBlendMode = null;
-        protected const string kDistortionBlendMode = "_DistortionBlendMode";
-        protected MaterialProperty distortionScale = null;
-        protected const string kDistortionScale = "_DistortionScale";
-        protected MaterialProperty distortionVectorScale = null;
-        protected const string kDistortionVectorScale = "_DistortionVectorScale";
-        protected MaterialProperty distortionVectorBias = null;
-        protected const string kDistortionVectorBias = "_DistortionVectorBias";
-        protected MaterialProperty distortionBlurScale = null;
-        protected const string kDistortionBlurScale = "_DistortionBlurScale";
-        protected MaterialProperty distortionBlurRemapMin = null;
-        protected const string kDistortionBlurRemapMin = "_DistortionBlurRemapMin";
-        protected MaterialProperty distortionBlurRemapMax = null;
-        protected const string kDistortionBlurRemapMax = "_DistortionBlurRemapMax";
+        MaterialProperty distortionEnable = null;
+        const string kDistortionEnable = "_DistortionEnable";
+        MaterialProperty distortionOnly = null;
+        const string kDistortionOnly = "_DistortionOnly";
+        MaterialProperty distortionDepthTest = null;
+        const string kDistortionDepthTest = "_DistortionDepthTest";
+        MaterialProperty distortionVectorMap = null;
+        const string kDistortionVectorMap = "_DistortionVectorMap";
+        MaterialProperty distortionBlendMode = null;
+        const string kDistortionBlendMode = "_DistortionBlendMode";
+        MaterialProperty distortionScale = null;
+        const string kDistortionScale = "_DistortionScale";
+        MaterialProperty distortionVectorScale = null;
+        const string kDistortionVectorScale = "_DistortionVectorScale";
+        MaterialProperty distortionVectorBias = null;
+        const string kDistortionVectorBias = "_DistortionVectorBias";
+        MaterialProperty distortionBlurScale = null;
+        const string kDistortionBlurScale = "_DistortionBlurScale";
+        MaterialProperty distortionBlurRemapMin = null;
+        const string kDistortionBlurRemapMin = "_DistortionBlurRemapMin";
+        MaterialProperty distortionBlurRemapMax = null;
+        const string kDistortionBlurRemapMax = "_DistortionBlurRemapMax";
 
-        public DistortionUIBlock()
-        {
-        }
-
+        /// <summary>
+        /// Loads the material properties for the block.
+        /// </summary>
         public override void LoadMaterialProperties()
         {
             distortionEnable = FindProperty(kDistortionEnable, false);
@@ -62,6 +64,9 @@ namespace UnityEditor.Rendering.HighDefinition
             distortionBlurRemapMax = FindProperty(kDistortionBlurRemapMax, false);
         }
 
+        /// <summary>
+        /// Renders the distortion properties.
+        /// </summary>
         public override void OnGUI()
         {
             if (distortionEnable != null)

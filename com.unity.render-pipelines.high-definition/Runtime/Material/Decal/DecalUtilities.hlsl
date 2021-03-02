@@ -36,7 +36,8 @@ void EvalDecalMask( PositionInputs posInput, float3 vtxNormal, float3 positionRW
         // The test against _EnableDecalLayers is done here to refresh realtime as AngleFade is cached data and need a decal refresh to be updated.
         if (angleFade.y < 0.0f && _EnableDecalLayers) // if angle fade is enabled
         {
-            float dotAngle = dot(vtxNormal, decalData.normalToWorld[2].xyz);
+            float3 decalNormal = float3(decalData.normalToWorld[0].z, decalData.normalToWorld[1].z, decalData.normalToWorld[2].z);
+            float dotAngle = dot(vtxNormal, decalNormal);
             // See equation in DecalSystem.cs - simplified to a madd mul add here
             float angleFadeFactor = saturate(angleFade.x + angleFade.y * (dotAngle * (dotAngle - 2.0)));
             fadeFactor *= angleFadeFactor;
@@ -257,6 +258,21 @@ DecalSurfaceData GetDecalSurfaceData(PositionInputs posInput, float3 vtxNormal, 
 
     DecalSurfaceData decalSurfaceData;
     DECODE_FROM_DBUFFER(DBuffer, decalSurfaceData);
+
+    return decalSurfaceData;
+}
+
+DecalSurfaceData GetDecalSurfaceData(PositionInputs posInput, FragInputs input, inout float alpha)
+{
+    float3 vtxNormal = input.tangentToWorld[2];
+    DecalSurfaceData decalSurfaceData = GetDecalSurfaceData(posInput, vtxNormal, alpha);
+
+#ifdef _DOUBLESIDED_ON
+    // 'doubleSidedConstants' is float3(-1, -1, -1) in flip mode and float3(1, 1, -1) in mirror mode.
+    // It's float3(1, 1, 1) in the none mode.
+    float3 flipSign = input.isFrontFace ? float3(1.0, 1.0, 1.0) : _DoubleSidedConstants.xyz;
+    decalSurfaceData.normalWS.xyz *= flipSign;
+#endif // _DOUBLESIDED_ON
 
     return decalSurfaceData;
 }

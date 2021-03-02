@@ -11,6 +11,7 @@ namespace UnityEditor.VFX
         public override string name { get { return "Output Particle Line"; } }
         public override string codeGeneratorTemplate { get { return RenderPipeTemplate(useNativeLines ? "VFXParticleLinesHW" : "VFXParticleLinesSW"); } }
         public override VFXTaskType taskType { get { return useNativeLines ? VFXTaskType.ParticleLineOutput : VFXTaskType.ParticleQuadOutput; } }
+        public override bool implementsMotionVector { get { return true; } }
 
         [VFXSetting, SerializeField, FormerlySerializedAs("targetFromAttributes"), Tooltip("When enabled, a custom offset from the particle position can be specified for the particle line to connect to. When disabled, the line connects with the particle’s Target Position attribute.")]
         protected bool useTargetOffset = true;

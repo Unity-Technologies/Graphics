@@ -5,11 +5,10 @@
 #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Shadow/ShadowSamplingTent.hlsl"
 #include "Core.hlsl"
 
-#define SHADOWS_SCREEN 0
 #define MAX_SHADOW_CASCADES 4
 
 #if !defined(_RECEIVE_SHADOWS_OFF)
-    #if defined(_MAIN_LIGHT_SHADOWS)
+    #if defined(_MAIN_LIGHT_SHADOWS) || defined(_MAIN_LIGHT_SHADOWS_CASCADE) || defined(_MAIN_LIGHT_SHADOWS_SCREEN)
         #define MAIN_LIGHT_CALCULATE_SHADOWS
 
         #if !defined(_MAIN_LIGHT_SHADOWS_CASCADE)
@@ -72,36 +71,59 @@ half4       _MainLightShadowOffset0;
 half4       _MainLightShadowOffset1;
 half4       _MainLightShadowOffset2;
 half4       _MainLightShadowOffset3;
-half4       _MainLightShadowParams;  // (x: shadowStrength, y: 1.0 if soft shadows, 0.0 otherwise, z: oneOverFadeDist, w: minusStartFade)
-float4      _MainLightShadowmapSize; // (xy: 1/width and 1/height, zw: width and height)
+half4       _MainLightShadowParams;   // (x: shadowStrength, y: 1.0 if soft shadows, 0.0 otherwise, z: main light fade scale, w: main light fade bias)
+float4      _MainLightShadowmapSize;  // (xy: 1/width and 1/height, zw: width and height)
 #ifndef SHADER_API_GLES3
 CBUFFER_END
 #endif
 
 #if USE_STRUCTURED_BUFFER_FOR_LIGHT_DATA
-StructuredBuffer<ShadowData> _AdditionalShadowsBuffer;
-StructuredBuffer<int> _AdditionalShadowsIndices;
+
+StructuredBuffer<float4>   _AdditionalShadowParams_SSBO;        // Per-light data - TODO: test if splitting _AdditionalShadowParams_SSBO[lightIndex].w into a separate StructuredBuffer<int> buffer is faster
+StructuredBuffer<float4x4> _AdditionalLightsWorldToShadow_SSBO; // Per-shadow-slice-data - A shadow casting light can have 6 shadow slices (if it's a point light)
+
 half4       _AdditionalShadowOffset0;
 half4       _AdditionalShadowOffset1;
 half4       _AdditionalShadowOffset2;
 half4       _AdditionalShadowOffset3;
+half4       _AdditionalShadowFadeParams; // x: additional light fade scale, y: additional light fade bias, z: 0.0, w: 0.0)
 float4      _AdditionalShadowmapSize; // (xy: 1/width and 1/height, zw: width and height)
+
 #else
+
+
+#if defined(SHADER_API_MOBILE) || (defined(SHADER_API_GLCORE) && !defined(SHADER_API_SWITCH)) || defined(SHADER_API_GLES) || defined(SHADER_API_GLES3) // Workaround because SHADER_API_GLCORE is also defined when SHADER_API_SWITCH is
+// Point lights can use 6 shadow slices, but on some mobile GPUs performance decrease drastically with uniform blocks bigger than 8kb. This number ensures size of buffer AdditionalLightShadows stays reasonable.
+// It also avoids shader compilation errors on SHADER_API_GLES30 devices where max number of uniforms per shader GL_MAX_FRAGMENT_UNIFORM_VECTORS is low (224)
+// Keep in sync with MAX_PUNCTUAL_LIGHT_SHADOW_SLICES_IN_UBO in AdditionalLightsShadowCasterPass.cs
+#define MAX_PUNCTUAL_LIGHT_SHADOW_SLICES_IN_UBO (MAX_VISIBLE_LIGHTS)
+#else
+// Point lights can use 6 shadow slices, but on some platforms max uniform block size is 64kb. This number ensures size of buffer AdditionalLightShadows does not exceed this 64kb limit.
+// Keep in sync with MAX_PUNCTUAL_LIGHT_SHADOW_SLICES_IN_UBO in AdditionalLightsShadowCasterPass.cs
+#define MAX_PUNCTUAL_LIGHT_SHADOW_SLICES_IN_UBO 545
+#endif
+
 // GLES3 causes a performance regression in some devices when using CBUFFER.
 #ifndef SHADER_API_GLES3
 CBUFFER_START(AdditionalLightShadows)
 #endif
-float4x4    _AdditionalLightsWorldToShadow[MAX_VISIBLE_LIGHTS];
-half4       _AdditionalShadowParams[MAX_VISIBLE_LIGHTS];
+
+half4       _AdditionalShadowParams[MAX_VISIBLE_LIGHTS];                              // Per-light data
+float4x4    _AdditionalLightsWorldToShadow[MAX_PUNCTUAL_LIGHT_SHADOW_SLICES_IN_UBO];  // Per-shadow-slice-data
+
 half4       _AdditionalShadowOffset0;
 half4       _AdditionalShadowOffset1;
 half4       _AdditionalShadowOffset2;
 half4       _AdditionalShadowOffset3;
+half4       _AdditionalShadowFadeParams; // x: additional light fade scale, y: additional light fade bias, z: 0.0, w: 0.0)
 float4      _AdditionalShadowmapSize; // (xy: 1/width and 1/height, zw: width and height)
+
 #ifndef SHADER_API_GLES3
 CBUFFER_END
 #endif
+
 #endif
+
 
 float4 _ShadowBias; // x: depth bias, y: normal bias
 
@@ -119,22 +141,32 @@ struct ShadowSamplingData
 ShadowSamplingData GetMainLightShadowSamplingData()
 {
     ShadowSamplingData shadowSamplingData;
+
+    // shadowOffsets are used in SampleShadowmapFiltered #if defined(SHADER_API_MOBILE) || defined(SHADER_API_SWITCH)
     shadowSamplingData.shadowOffset0 = _MainLightShadowOffset0;
     shadowSamplingData.shadowOffset1 = _MainLightShadowOffset1;
     shadowSamplingData.shadowOffset2 = _MainLightShadowOffset2;
     shadowSamplingData.shadowOffset3 = _MainLightShadowOffset3;
+
+    // shadowmapSize is used in SampleShadowmapFiltered for other platforms
     shadowSamplingData.shadowmapSize = _MainLightShadowmapSize;
+
     return shadowSamplingData;
 }
 
 ShadowSamplingData GetAdditionalLightShadowSamplingData()
 {
     ShadowSamplingData shadowSamplingData;
+
+    // shadowOffsets are used in SampleShadowmapFiltered #if defined(SHADER_API_MOBILE) || defined(SHADER_API_SWITCH)
     shadowSamplingData.shadowOffset0 = _AdditionalShadowOffset0;
     shadowSamplingData.shadowOffset1 = _AdditionalShadowOffset1;
     shadowSamplingData.shadowOffset2 = _AdditionalShadowOffset2;
     shadowSamplingData.shadowOffset3 = _AdditionalShadowOffset3;
+
+    // shadowmapSize is used in SampleShadowmapFiltered for other platforms
     shadowSamplingData.shadowmapSize = _AdditionalShadowmapSize;
+
     return shadowSamplingData;
 }
 
@@ -150,10 +182,12 @@ half4 GetMainLightShadowParams()
 // ShadowParams
 // x: ShadowStrength
 // y: 1.0 if shadow is soft, 0.0 otherwise
+// z: 1.0 if cast by a point light (6 shadow slices), 0.0 if cast by a spot light (1 shadow slice)
+// w: first shadow slice index for this light, there can be 6 in case of point lights. (-1 for non-shadow-casting-lights)
 half4 GetAdditionalLightShadowParams(int lightIndex)
 {
 #if USE_STRUCTURED_BUFFER_FOR_LIGHT_DATA
-    return _AdditionalShadowsBuffer[lightIndex].shadowParams;
+    return _AdditionalShadowParams_SSBO[lightIndex];
 #else
     return _AdditionalShadowParams[lightIndex];
 #endif
@@ -215,13 +249,17 @@ real SampleShadowmap(TEXTURE2D_SHADOW_PARAM(ShadowMap, sampler_ShadowMap), float
     real attenuation;
     real shadowStrength = shadowParams.x;
 
-    // TODO: We could branch on if this light has soft shadows (shadowParams.y) to save perf on some platforms.
 #ifdef _SHADOWS_SOFT
-    attenuation = SampleShadowmapFiltered(TEXTURE2D_SHADOW_ARGS(ShadowMap, sampler_ShadowMap), shadowCoord, samplingData);
-#else
-    // 1-tap hardware comparison
-    attenuation = SAMPLE_TEXTURE2D_SHADOW(ShadowMap, sampler_ShadowMap, shadowCoord.xyz);
+    if(shadowParams.y != 0)
+    {
+        attenuation = SampleShadowmapFiltered(TEXTURE2D_SHADOW_ARGS(ShadowMap, sampler_ShadowMap), shadowCoord, samplingData);
+    }
+    else
 #endif
+    {
+        // 1-tap hardware comparison
+        attenuation = SAMPLE_TEXTURE2D_SHADOW(ShadowMap, sampler_ShadowMap, shadowCoord.xyz);
+    }
 
     attenuation = LerpWhiteTo(attenuation, shadowStrength);
 
@@ -254,21 +292,25 @@ float4 TransformWorldToShadowCoord(float3 positionWS)
 
     float4 shadowCoord = mul(_MainLightWorldToShadow[cascadeIndex], float4(positionWS, 1.0));
 
-    return float4(shadowCoord.xyz, cascadeIndex);
+    return float4(shadowCoord.xyz, 0);
 }
 
 half MainLightRealtimeShadow(float4 shadowCoord)
 {
 #if !defined(MAIN_LIGHT_CALCULATE_SHADOWS)
     return 1.0h;
-#endif
-
+#elif defined(_MAIN_LIGHT_SHADOWS_SCREEN)
+    return SampleScreenSpaceShadowmap(shadowCoord);
+#else
     ShadowSamplingData shadowSamplingData = GetMainLightShadowSamplingData();
     half4 shadowParams = GetMainLightShadowParams();
     return SampleShadowmap(TEXTURE2D_ARGS(_MainLightShadowmapTexture, sampler_MainLightShadowmapTexture), shadowCoord, shadowSamplingData, shadowParams, false);
+#endif
 }
 
-half AdditionalLightRealtimeShadow(int lightIndex, float3 positionWS)
+// returns 0.0 if position is in light's shadow
+// returns 1.0 if position is in light
+half AdditionalLightRealtimeShadow(int lightIndex, float3 positionWS, half3 lightDirection)
 {
 #if !defined(ADDITIONAL_LIGHT_CALCULATE_SHADOWS)
     return 1.0h;
@@ -276,31 +318,49 @@ half AdditionalLightRealtimeShadow(int lightIndex, float3 positionWS)
 
     ShadowSamplingData shadowSamplingData = GetAdditionalLightShadowSamplingData();
 
-#if USE_STRUCTURED_BUFFER_FOR_LIGHT_DATA
-    lightIndex = _AdditionalShadowsIndices[lightIndex];
+    half4 shadowParams = GetAdditionalLightShadowParams(lightIndex);
 
-    // We have to branch here as otherwise we would sample buffer with lightIndex == -1.
-    // However this should be ok for platforms that store light in SSBO.
+    int shadowSliceIndex = shadowParams.w;
+
     UNITY_BRANCH
-    if (lightIndex < 0)
+    if (shadowSliceIndex < 0)
         return 1.0;
 
-    float4 shadowCoord = mul(_AdditionalShadowsBuffer[lightIndex].worldToShadowMatrix, float4(positionWS, 1.0));
+    half isPointLight = shadowParams.z;
+
+    UNITY_BRANCH
+    if (isPointLight)
+    {
+        // This is a point light, we have to find out which shadow slice to sample from
+        float cubemapFaceId = CubeMapFaceID(-lightDirection);
+        shadowSliceIndex += cubemapFaceId;
+    }
+
+#if USE_STRUCTURED_BUFFER_FOR_LIGHT_DATA
+    float4 shadowCoord = mul(_AdditionalLightsWorldToShadow_SSBO[shadowSliceIndex], float4(positionWS, 1.0));
 #else
-    float4 shadowCoord = mul(_AdditionalLightsWorldToShadow[lightIndex], float4(positionWS, 1.0));
+    float4 shadowCoord = mul(_AdditionalLightsWorldToShadow[shadowSliceIndex], float4(positionWS, 1.0));
 #endif
 
-    half4 shadowParams = GetAdditionalLightShadowParams(lightIndex);
     return SampleShadowmap(TEXTURE2D_ARGS(_AdditionalLightsShadowmapTexture, sampler_AdditionalLightsShadowmapTexture), shadowCoord, shadowSamplingData, shadowParams, true);
 }
 
-half GetShadowFade(float3 positionWS)
+half GetMainLightShadowFade(float3 positionWS)
 {
     float3 camToPixel = positionWS - _WorldSpaceCameraPos;
     float distanceCamToPixel2 = dot(camToPixel, camToPixel);
 
     half fade = saturate(distanceCamToPixel2 * _MainLightShadowParams.z + _MainLightShadowParams.w);
-    return fade * fade;
+    return fade;
+}
+
+half GetAdditionalLightShadowFade(float3 positionWS)
+{
+    float3 camToPixel = positionWS - _WorldSpaceCameraPos;
+    float distanceCamToPixel2 = dot(camToPixel, camToPixel);
+
+    half fade = saturate(distanceCamToPixel2 * _AdditionalShadowFadeParams.x + _AdditionalShadowFadeParams.y);
+    return fade;
 }
 
 half MixRealtimeAndBakedShadows(half realtimeShadow, half bakedShadow, half shadowFade)
@@ -333,24 +393,17 @@ half MainLightShadow(float4 shadowCoord, float3 positionWS, half4 shadowMask, ha
 #endif
 
 #ifdef MAIN_LIGHT_CALCULATE_SHADOWS
-    half shadowFade = GetShadowFade(positionWS);
+    half shadowFade = GetMainLightShadowFade(positionWS);
 #else
     half shadowFade = 1.0h;
-#endif
-
-#if defined(_MAIN_LIGHT_SHADOWS_CASCADE) && defined(CALCULATE_BAKED_SHADOWS)
-    // shadowCoord.w represents shadow cascade index
-    // in case we are out of shadow cascade we need to set shadow fade to 1.0 for correct blending
-    // it is needed when realtime shadows gets cut to early during fade and causes disconnect between baked shadow
-    shadowFade = shadowCoord.w == 4 ? 1.0h : shadowFade;
 #endif
 
     return MixRealtimeAndBakedShadows(realtimeShadow, bakedShadow, shadowFade);
 }
 
-half AdditionalLightShadow(int lightIndex, float3 positionWS, half4 shadowMask, half4 occlusionProbeChannels)
+half AdditionalLightShadow(int lightIndex, float3 positionWS, half3 lightDirection, half4 shadowMask, half4 occlusionProbeChannels)
 {
-    half realtimeShadow = AdditionalLightRealtimeShadow(lightIndex, positionWS);
+    half realtimeShadow = AdditionalLightRealtimeShadow(lightIndex, positionWS, lightDirection);
 
 #ifdef CALCULATE_BAKED_SHADOWS
     half bakedShadow = BakedShadow(shadowMask, occlusionProbeChannels);
@@ -359,7 +412,7 @@ half AdditionalLightShadow(int lightIndex, float3 positionWS, half4 shadowMask, 
 #endif
 
 #ifdef ADDITIONAL_LIGHT_CALCULATE_SHADOWS
-    half shadowFade = GetShadowFade(positionWS);
+    half shadowFade = GetAdditionalLightShadowFade(positionWS);
 #else
     half shadowFade = 1.0h;
 #endif
@@ -369,7 +422,11 @@ half AdditionalLightShadow(int lightIndex, float3 positionWS, half4 shadowMask, 
 
 float4 GetShadowCoord(VertexPositionInputs vertexInput)
 {
+#if defined(_MAIN_LIGHT_SHADOWS_SCREEN)
+    return ComputeScreenPos(vertexInput.positionCS);
+#else
     return TransformWorldToShadowCoord(vertexInput.positionWS);
+#endif
 }
 
 float3 ApplyShadowBias(float3 positionWS, float3 normalWS, float3 lightDirection)
@@ -390,6 +447,16 @@ float3 ApplyShadowBias(float3 positionWS, float3 normalWS, float3 lightDirection
 // Renamed -> _MainLightShadowParams
 #define _MainLightShadowData _MainLightShadowParams
 
+// Deprecated: Use GetMainLightShadowFade or GetAdditionalLightShadowFade instead.
+half GetShadowFade(float3 positionWS)
+{
+    float3 camToPixel = positionWS - _WorldSpaceCameraPos;
+    float distanceCamToPixel2 = dot(camToPixel, camToPixel);
+
+    half fade = saturate(distanceCamToPixel2 * _MainLightShadowParams.z + _MainLightShadowParams.w);
+    return fade * fade;
+}
+
 // Deprecated: Use GetShadowFade instead.
 float ApplyShadowFade(float shadowAttenuation, float3 positionWS)
 {
@@ -407,7 +474,7 @@ half GetMainLightShadowStrength()
 half GetAdditionalLightShadowStrenth(int lightIndex)
 {
 #if USE_STRUCTURED_BUFFER_FOR_LIGHT_DATA
-    return _AdditionalShadowsBuffer[lightIndex].shadowParams.x;
+    return _AdditionalShadowParams_SSBO[lightIndex].x;
 #else
     return _AdditionalShadowParams[lightIndex].x;
 #endif
@@ -418,6 +485,12 @@ real SampleShadowmap(float4 shadowCoord, TEXTURE2D_SHADOW_PARAM(ShadowMap, sampl
 {
     half4 shadowParams = half4(shadowStrength, 1.0, 0.0, 0.0);
     return SampleShadowmap(TEXTURE2D_SHADOW_ARGS(ShadowMap, sampler_ShadowMap), shadowCoord, samplingData, shadowParams, isPerspectiveProjection);
+}
+
+// Deprecated: Use AdditionalLightRealtimeShadow(int lightIndex, float3 positionWS, half3 lightDirection) in Shadows.hlsl instead, as it supports Point Light shadows
+half AdditionalLightRealtimeShadow(int lightIndex, float3 positionWS)
+{
+    return AdditionalLightRealtimeShadow(lightIndex, positionWS, half3(1, 0, 0));
 }
 
 #endif

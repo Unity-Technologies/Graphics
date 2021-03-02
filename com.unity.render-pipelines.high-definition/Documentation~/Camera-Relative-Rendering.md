@@ -6,7 +6,7 @@ Absolute precision of floating point numbers decreases as numbers become larger.
 
 ## Using Camera-relative rendering
 
-Camera-relative rendering is enabled by default in the ShaderConfig.cs file (in your Project window go to **Packages > Runtime > ShaderLibrary** and click on **ShaderConfig.cs**). To disable this feature, set `CameraRelativeRendering` to `0`, and then generate Shader includes to update the ShaderConfig.cs.hlsl file (menu: **Edit > Render Pipeline** and click **Generate Shader Includes)**.
+Camera-relative rendering is enabled by default in the ShaderConfig.cs file (in your Project window go to **Packages > High Definition RP Config > Runtime > ShaderLibrary** and click on **ShaderConfig.cs**). To disable this feature, set `CameraRelativeRendering` to `0`, and then generate Shader includes to update the ShaderConfig.cs.hlsl file (menu: **Edit > Render Pipeline** and click **Generate Shader Includes)**.
 
 ## How Camera-relative rendering works
 
@@ -27,5 +27,3 @@ If you enable Camera-relative rendering:
 If you disable Camera-relative rendering:
 
 - `GetAbsolutePositionWS()` and `GetCameraRelativePositionWS()` return the position you pass into them without any modification.
-
- 

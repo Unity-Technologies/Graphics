@@ -308,7 +308,7 @@ namespace UnityEngine.Rendering.HighDefinition
         /// <param name="overrideMaterial">Optional material that will be used to render the objects.</param>
         /// <param name="overrideMaterialIndex">Pass index to use for the override material.</param>
         /// <param name="overrideRenderState">The render states to override when rendering the objects.</param>
-        public static void DrawRenderers(in CustomPassContext ctx, LayerMask layerMask, CustomPass.RenderQueueType renderQueueFilter = CustomPass.RenderQueueType.All, Material overrideMaterial = null, int overrideMaterialIndex = 0, RenderStateBlock overrideRenderState = default(RenderStateBlock))
+        public static void DrawRenderers(in CustomPassContext ctx, LayerMask layerMask, CustomPass.RenderQueueType renderQueueFilter = CustomPass.RenderQueueType.All, Material overrideMaterial = null, int overrideMaterialIndex = 0, RenderStateBlock overrideRenderState = default(RenderStateBlock), SortingCriteria sorting = SortingCriteria.CommonOpaque)
         {
             PerObjectData renderConfig = ctx.hdCamera.frameSettings.IsEnabled(FrameSettingsField.Shadowmask) ? HDUtils.k_RendererConfigurationBakedLightingWithShadowMask : HDUtils.k_RendererConfigurationBakedLighting;
 
@@ -316,7 +316,7 @@ namespace UnityEngine.Rendering.HighDefinition
             {
                 rendererConfiguration = renderConfig,
                 renderQueueRange = GetRenderQueueRangeFromRenderQueueType(renderQueueFilter),
-                sortingCriteria = SortingCriteria.CommonOpaque,
+                sortingCriteria = sorting,
                 overrideMaterial = overrideMaterial,
                 overrideMaterialPassIndex = overrideMaterialIndex,
                 excludeObjectMotionVectors = false,
