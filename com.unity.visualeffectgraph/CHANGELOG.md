@@ -11,6 +11,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Sample vertices of a transformed skinned mesh with Position (Skinned Mesh) and Sample Skinned Mesh operator.
 - Placement option (Vertex, Edge, Surface) in Sample Mesh & Skinned Mesh, allows triangle sampling.
 - Provide explicit access to spawnCount in graph
+- Support of direct link event to initialize context (which support several event within the same frame)
 
 ### Changed
 - Move Assets/Create/Visual Effects/Visual Effect Graph to Assets/Create/VFX/VFX Graph
