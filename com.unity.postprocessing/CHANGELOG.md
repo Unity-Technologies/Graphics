@@ -8,6 +8,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ### Fixed
 - Fix for compilation error in the FinalPass shader with GLES2/WebGL1 (case 1311160)
+- Fix for MSVO errors on unsupported Android platforms (case 1316915)
 
 ## [3.1.0] - 2021-02-20
 
