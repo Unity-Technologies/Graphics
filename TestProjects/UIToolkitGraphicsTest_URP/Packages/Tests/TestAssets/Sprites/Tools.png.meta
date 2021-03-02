@@ -62,12 +62,12 @@ TextureImporter:
   maxTextureSize: 2048
   textureSettings:
     serializedVersion: 2
-    filterMode: -1
-    aniso: -1
-    mipBias: -100
+    filterMode: 1
+    aniso: 1
+    mipBias: 0
     wrapU: 1
     wrapV: 1
-    wrapW: -1
+    wrapW: 0
   nPOTScale: 0
   lightmap: 0
   compressionQuality: 50
@@ -340,6 +340,17 @@ TextureImporter:
     edges: []
     weights: []
     secondaryTextures: []
+    nameFileIdTable:
+      BowArrow: 4858919519181452133
+      Tools: 6451205499376113164
+      Map: 2860006914309871096
+      Handle: 6232742816020895870
+      Sword: -2318285518543234687
+      Rod: 1666225654822289539
+      Bag: -855942343913074080
+      Blade: -2376758258213490438
+      Axe: -3569232777630780389
+      FoldedMap: 3379066624450153177
   spritePackingTag: 
   pSDRemoveMatte: 0
   pSDShowRemoveMatteOption: 0

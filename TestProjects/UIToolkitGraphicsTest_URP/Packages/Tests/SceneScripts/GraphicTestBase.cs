@@ -9,9 +9,9 @@ public class GraphicTestBase : MonoBehaviour
         var document = GetComponentInChildren<UIDocument>();
         if (document == null)
             document = FindObjectOfType<UIDocument>();
-        Assume.That(document, Is.Not.Null);
+        Debug.Assert(document != null);
         var panelSettings = document.panelSettings;
-        Assume.That(panelSettings, Is.Not.Null);
+        Debug.Assert(panelSettings != null);
 
         // Backup
         var previousTexture = panelSettings.targetTexture;

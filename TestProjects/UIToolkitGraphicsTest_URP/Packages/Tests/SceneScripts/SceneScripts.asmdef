@@ -1,5 +1,5 @@
 {
-    "name": "Unity.UIElements",
+    "name": "Unity.UIElements.PlayModeTests",
     "rootNamespace": "",
     "references": [
         "UnityEngine.TestRunner",
@@ -19,9 +19,7 @@
         "nunit.framework.dll"
     ],
     "autoReferenced": false,
-    "defineConstraints": [
-        "UNITY_INCLUDE_TESTS"
-    ],
+    "defineConstraints": [],
     "versionDefines": [],
     "noEngineReferences": false
 }

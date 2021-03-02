@@ -18,7 +18,7 @@ public class UIRendererTests : GraphicTestBase
 
     AtlasTest m_AtlasTest = new AtlasTest();
 
-    void OnEnable()
+    void setup()
     {
         // Scissor clipping container
         var container = new VisualElement() {
@@ -1064,6 +1064,7 @@ public class UIRendererTests : GraphicTestBase
     private int m_FrameCount;
     void Start()
     {
+        setup();
         m_FrameCount = 0;
     }
 
