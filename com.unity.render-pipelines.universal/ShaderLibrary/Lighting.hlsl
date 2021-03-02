@@ -641,8 +641,8 @@ half3 BoxProjectedCubemapDirection(half3 reflectVector, half3 positionWS, real4 
 float getWeight(half3 positionWS, real4 boxMin, real4 boxMax)
 {
     //return boxMin.w;
-    float blendDist = boxMin.w;
-    float3 weightDir = min(positionWS + blendDist - boxMin.xyz, boxMax.xyz + blendDist - positionWS) / blendDist;
+    float blendDist = 1.0f;
+    float3 weightDir = min(positionWS - boxMin.xyz, boxMax.xyz - positionWS) / blendDist;
     return saturate(min(weightDir.x, min(weightDir.y, weightDir.z)));
 }
 
@@ -669,7 +669,7 @@ half3 getIrradianceFromReflectionProbes(half3 reflectVector, half3 positionWS, h
         reflectVector = (1 - unity_SpecCube0_ProbePosition.w) * originalReflectVector
             + unity_SpecCube0_ProbePosition.w * BoxProjectedCubemapDirection(originalReflectVector, positionWS, unity_SpecCube0_ProbePosition, unity_SpecCube0_BoxMin, unity_SpecCube0_BoxMax);
         half mip = PerceptualRoughnessToMipmapLevel(perceptualRoughness);
-        // #note to do Sample TextureCubeArray   
+        // #note to do Sample TextureCubeArray
         //half4 encodedIrradiance = SAMPLE_TEXTURECUBE_ARRAY_LOD_ABSTRACT(_ReflectionProbeTextures, s_trilinear_clamp_sampler, reflectVector, probeIndex, mip);
         half4 encodedIrradiance = SAMPLE_TEXTURECUBE_LOD(unity_SpecCube0, samplerunity_SpecCube0, reflectVector, mip);
 #if !defined(UNITY_USE_NATIVE_HDR)
@@ -680,14 +680,14 @@ half3 getIrradianceFromReflectionProbes(half3 reflectVector, half3 positionWS, h
     }
 
     // Spec 1
-        {
+    {
         float weight = min(getWeight(positionWS, unity_SpecCube1_BoxMin, unity_SpecCube1_BoxMax), blendFactor);
         blendFactor = saturate(blendFactor - weight);
 
         reflectVector = (1 - unity_SpecCube1_ProbePosition.w) * originalReflectVector
             + unity_SpecCube1_ProbePosition.w * BoxProjectedCubemapDirection(originalReflectVector, positionWS, unity_SpecCube1_ProbePosition, unity_SpecCube1_BoxMin, unity_SpecCube1_BoxMax);
         half mip = PerceptualRoughnessToMipmapLevel(perceptualRoughness);
-        // #note to do Sample TextureCubeArray   
+        // #note to do Sample TextureCubeArray
         //half4 encodedIrradiance = SAMPLE_TEXTURECUBE_ARRAY_LOD_ABSTRACT(_ReflectionProbeTextures, s_trilinear_clamp_sampler, reflectVector, probeIndex, mip);
         half4 encodedIrradiance = SAMPLE_TEXTURECUBE_LOD(unity_SpecCube1, samplerunity_SpecCube0, reflectVector, mip);
 #if !defined(UNITY_USE_NATIVE_HDR)
@@ -695,7 +695,7 @@ half3 getIrradianceFromReflectionProbes(half3 reflectVector, half3 positionWS, h
 #else
         irradiance += weight * encodedIrradiance.rbg;
 #endif
-        }
+    }
 
     return irradiance;
 }
