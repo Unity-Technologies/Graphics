@@ -8,16 +8,17 @@ Shader "Universal Render Pipeline/Baked Lit"
         _BumpMap("Normal Map", 2D) = "bump" {}
 
         // BlendMode
-        [HideInInspector] _Surface("__surface", Float) = 0.0
-        [HideInInspector] _Blend("__blend", Float) = 0.0
-        [HideInInspector] _AlphaClip("__clip", Float) = 0.0
-        [HideInInspector] _SrcBlend("Src", Float) = 1.0
-        [HideInInspector] _DstBlend("Dst", Float) = 0.0
-        [HideInInspector] _ZWrite("ZWrite", Float) = 1.0
-        [HideInInspector] _Cull("__cull", Float) = 2.0
+        _Surface("__surface", Float) = 0.0
+        _Blend("__mode", Float) = 0.0
+        _Cull("__cull", Float) = 2.0
+        [ToggleUI] _AlphaClip("__clip", Float) = 0.0
+        [HideInInspector] _BlendOp("__blendop", Float) = 0.0
+        [HideInInspector] _SrcBlend("__src", Float) = 1.0
+        [HideInInspector] _DstBlend("__dst", Float) = 0.0
+        [HideInInspector] _ZWrite("__zw", Float) = 1.0
 
         // Editmode props
-        [HideInInspector] _QueueOffset("Queue offset", Float) = 0.0
+        _QueueOffset("Queue offset", Float) = 0.0
 
         [HideInInspector][NoScaleOffset]unity_Lightmaps("unity_Lightmaps", 2DArray) = "" {}
         [HideInInspector][NoScaleOffset]unity_LightmapsInd("unity_LightmapsInd", 2DArray) = "" {}
