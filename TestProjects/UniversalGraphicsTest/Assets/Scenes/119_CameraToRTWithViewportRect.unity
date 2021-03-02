@@ -1368,11 +1368,16 @@ MonoBehaviour:
     TargetWidth: 640
     TargetHeight: 360
     PerPixelCorrectnessThreshold: 0.005
+    PerPixelGammaThreshold: 0.003921569
+    PerPixelAlphaThreshold: 0.003921569
     AverageCorrectnessThreshold: 0.002
+    IncorrectPixelsThreshold: 0.0000038146973
     UseHDR: 0
     UseBackBuffer: 1
     ImageResolution: 4
-  WaitFrames: 2
+    ActiveImageTests: 1
+    ActivePixelTests: 7
+  WaitFrames: 10
   XRCompatible: 1
 --- !u!114 &393419561
 MonoBehaviour:
