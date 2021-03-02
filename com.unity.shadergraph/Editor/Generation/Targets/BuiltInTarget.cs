@@ -15,9 +15,7 @@ namespace UnityEditor.Rendering.BuiltIn.ShaderGraph
     public enum MaterialType
     {
         Lit,
-        UnLit,
-        SpriteLit,
-        SpriteUnlit,
+        UnLit
     }
 
     public enum WorkflowMode

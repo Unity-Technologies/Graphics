@@ -63,8 +63,8 @@ namespace UnityEditor.Rendering.BuiltIn.ShaderGraph
             //context.AddCustomEditorForRenderPipeline("ShaderGraph.PBRMasterGUI", typeof(UnityEngine.Rendering.Universal.UniversalRenderPipelineAsset)); // TODO: This should be owned by URP
 
             // Process SubShaders
-            //SubShaderDescriptor[] litSubShaders = { SubShaders.LitComputeDOTS, SubShaders.LitGLES };
-            //SubShaderDescriptor[] complexLitSubShaders = { SubShaders.ComplexLitComputeDOTS, SubShaders.LitGLESForwardOnly};
+            SubShaderDescriptor[] litSubShaders = { SubShaders.LitComputeDOTS, SubShaders.LitGLES };
+            SubShaderDescriptor[] complexLitSubShaders = { SubShaders.ComplexLitComputeDOTS, SubShaders.LitGLESForwardOnly};
 
             // TODO: In the future:
             // We could take a copy of subshaders and dynamically modify them here.
@@ -73,8 +73,8 @@ namespace UnityEditor.Rendering.BuiltIn.ShaderGraph
             // Currently ClearCoat is always on for a ComplexLit, but it's only used when ClearCoat is on.
             // An alternative is to rely on shader branches and reduce variants/unique graph generations.
 
-            //SubShaderDescriptor[] subShaders = complexLit ? complexLitSubShaders : litSubShaders;
-            SubShaderDescriptor[] subShaders = { SubShaders.LitGLES };
+            SubShaderDescriptor[] subShaders = complexLit ? complexLitSubShaders : litSubShaders;
+            //SubShaderDescriptor[] subShaders = { SubShaders.LitGLES };
             for (int i = 0; i < subShaders.Length; i++)
             {
                 // Update Render State
