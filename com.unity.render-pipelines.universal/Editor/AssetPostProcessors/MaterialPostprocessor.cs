@@ -134,14 +134,20 @@ namespace UnityEditor.Rendering.Universal
                 {
                     foreach (Material m in r.sharedMaterials)
                     {
-                        m.EnableKeyword("ENABLE_WIND");
-                        m.SetFloat("_WINDQUALITY", windQuality);
-                        // Builtin property that's checked when applying wind data.
-                        // Doesn't update after initial import, unfortunately. 
-                        m.SetFloat("_WindQuality", windQuality);
-                        if (m.name.Contains("Billboard"))
+                        if (m != null)
                         {
-                            // Todo: Set cull mode.
+                            if (m.shader.name.Equals("Universal/Nature/SpeedTree8_PBRLit"))
+                            {
+                                m.EnableKeyword("ENABLE_WIND");
+                                m.SetFloat("_WINDQUALITY", windQuality);
+                                // Builtin property that's checked when applying wind data.
+                                // Doesn't update after initial import, unfortunately. 
+                                m.SetFloat("_WindQuality", windQuality);
+                                if (m.name.Contains("Billboard"))
+                                {
+                                    // Todo: Set cull mode.
+                                }
+                            }
                         }
                     }
                 }

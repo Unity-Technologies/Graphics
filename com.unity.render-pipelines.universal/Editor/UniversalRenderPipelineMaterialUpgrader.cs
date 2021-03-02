@@ -49,7 +49,6 @@ namespace UnityEditor.Rendering.Universal
             shadersToIgnore.Add("Universal Render Pipeline/Nature/SpeedTree7 Billboard");
             shadersToIgnore.Add("Universal Render Pipeline/Nature/SpeedTree8");
             shadersToIgnore.Add("Universal Render Pipeline/Nature/SpeedTree8_PBRLit");
-            shadersToIgnore.Add("Universal Render Pipeline/Nature/SpeedTree8_PBRLit Billboard");
             shadersToIgnore.Add("Universal Render Pipeline/2D/Sprite-Lit-Default");
             shadersToIgnore.Add("Universal Render Pipeline/Terrain/Lit");
             shadersToIgnore.Add("Universal Render Pipeline/Unlit");
@@ -469,23 +468,26 @@ namespace UnityEditor.Rendering.Universal
 
         static private void SpeedTree8Finalizer(Material mat)
         {
-            mat.EnableKeyword("ENABLE_WIND");
-            int windInt = GetWindQualityFromKeywords(mat.shaderKeywords);
-            if (!WindIntValid(windInt))
+            if (mat.shader.name.Equals("Universal/Nature/SpeedTree8_PBRLit"))
             {
-                windInt = mat.HasFloat("_WindQuality") ? (int)mat.GetFloat("_WindQuality") : 0;
+                mat.EnableKeyword("ENABLE_WIND");
+                int windInt = GetWindQualityFromKeywords(mat.shaderKeywords);
                 if (!WindIntValid(windInt))
-                    windInt = 0;
-            }
+                {
+                    windInt = mat.HasFloat("_WindQuality") ? (int)mat.GetFloat("_WindQuality") : 0;
+                    if (!WindIntValid(windInt))
+                        windInt = 0;
+                }
 
-            mat.SetFloat("_WINDQUALITY", windInt);
-            // Builtin property that's checked when applying wind data.
-            // Doesn't update after initial import, unfortunately. 
-            mat.SetFloat("_WindQuality", windInt);
+                mat.SetFloat("_WINDQUALITY", windInt);
+                // Builtin property that's checked when applying wind data.
+                // Doesn't update after initial import, unfortunately. 
+                mat.SetFloat("_WindQuality", windInt);
 
-            if (mat.name.Contains("Billboard"))
-            {
-                // Todo: Set cull mode.
+                if (mat.name.Contains("Billboard"))
+                {
+                    // Todo: Set cull mode.
+                }
             }
         }
         private static bool WindIntValid(int windInt)

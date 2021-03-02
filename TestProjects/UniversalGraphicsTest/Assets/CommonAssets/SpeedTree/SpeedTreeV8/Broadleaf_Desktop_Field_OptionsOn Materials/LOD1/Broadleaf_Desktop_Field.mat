@@ -21,8 +21,7 @@ Material:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_Name: Broadleaf_Desktop_Field
-  m_Shader: {fileID: -6465566751694194690, guid: 9789917cb4022514b881ac563e23247f,
-    type: 3}
+  m_Shader: {fileID: 4800000, guid: 99134b1f0c27d54469a840832a28fadf, type: 3}
   m_ShaderKeywords: EFFECT_BUMP EFFECT_EXTRA_TEX EFFECT_HUE_VARIATION EFFECT_SUBSURFACE
     _WINDQUALITY_BEST
   m_LightmapFlags: 4
