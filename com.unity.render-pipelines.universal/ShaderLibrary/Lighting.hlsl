@@ -709,10 +709,11 @@ half3 getIrradianceFromReflectionProbes(half3 reflectVector, half3 positionWS, h
         // #note to do Sample TextureCubeArray
         //half4 encodedIrradiance = SAMPLE_TEXTURECUBE_ARRAY_LOD_ABSTRACT(_ReflectionProbeTextures, s_trilinear_clamp_sampler, reflectVector, probeIndex, mip);
         half4 encodedIrradiance = SAMPLE_TEXTURECUBE_LOD(unity_SpecCube1, samplerunity_SpecCube1, reflectVector, mip);
+        half useSpecCube1 = 1.0;//unity_SpecCube0_BoxMin.w != 1.0 ? 1.0 : 0.0;
 #if !defined(UNITY_USE_NATIVE_HDR)
-        irradiance += specCube1_weight_final * DecodeHDREnvironment(encodedIrradiance, unity_SpecCube1_HDR);
+        irradiance += useSpecCube1*specCube1_weight_final * DecodeHDREnvironment(encodedIrradiance, unity_SpecCube1_HDR);
 #else
-        irradiance += specCube1_weight_final * encodedIrradiance.rbg;
+        irradiance += useSpecCube1*specCube1_weight_final * encodedIrradiance.rbg;
 #endif
     }
 
@@ -723,15 +724,18 @@ half3 GlossyEnvironmentReflection(half3 reflectVector, half3 positionWS, half pe
 {
 #if !defined(_ENVIRONMENTREFLECTIONS_OFF)
     half mip = PerceptualRoughnessToMipmapLevel(perceptualRoughness);
+#if defined(UNITY_SPECCUBE_BLENDING)
     half3 encodedIrradiance = getIrradianceFromReflectionProbes(reflectVector, positionWS, perceptualRoughness); //SAMPLE_TEXTURECUBE_LOD(unity_SpecCube0, samplerunity_SpecCube0, reflectVector, mip);
+#else
+    half4 encodedIrradiance = half4(SAMPLE_TEXTURECUBE_LOD(unity_SpecCube0, samplerunity_SpecCube0, reflectVector, mip));
+#endif
 
-//    //TODO:DOTS - we need to port probes to live in c# so we can manage this manually.
+//TODO:DOTS - we need to port probes to live in c# so we can manage this manually.
 //#if defined(UNITY_USE_NATIVE_HDR) || defined(UNITY_DOTS_INSTANCING_ENABLED)
     half3 irradiance = encodedIrradiance.rgb;
 //#else
 //    half3 irradiance = DecodeHDREnvironment(encodedIrradiance, unity_SpecCube0_HDR);
 //#endif
-
     return irradiance * occlusion;
 #endif // GLOSSY_REFLECTIONS
 
