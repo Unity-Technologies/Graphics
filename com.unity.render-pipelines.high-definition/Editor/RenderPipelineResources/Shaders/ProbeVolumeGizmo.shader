@@ -1,4 +1,4 @@
-Shader "Hidden/InstancedProbeShader"
+Shader "Hidden/HDRP/ProbeVolumeGizmo"
 {
     Properties
     {
@@ -9,8 +9,14 @@ Shader "Hidden/InstancedProbeShader"
         Tags{ "RenderPipeline" = "HDRenderPipeline" "RenderType" = "Opaque" }
         LOD 100
 
-        CGINCLUDE
-        #include "UnityCG.cginc"
+        HLSLINCLUDE
+        #pragma editor_sync_compilation
+        #pragma target 4.5
+        #pragma only_renderers d3d11 playstation xboxone xboxseries vulkan metal switch
+
+        #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Common.hlsl"
+        #include "Packages/com.unity.render-pipelines.high-definition/Runtime/ShaderLibrary/ShaderVariables.hlsl"
+        #include "Packages/com.unity.render-pipelines.high-definition/Runtime/ShaderLibrary/EditorShaderVariables.hlsl"
 
         uniform int _ShadingMode;
         uniform float _Exposure;
@@ -38,8 +44,6 @@ Shader "Hidden/InstancedProbeShader"
             UNITY_DEFINE_INSTANCED_PROP(float4, _Validity)
         UNITY_INSTANCING_BUFFER_END(Props)
 
-        Texture2D _ExposureTexture;
-
         v2f vert(appdata v)
         {
             v2f o;
@@ -47,8 +51,8 @@ Shader "Hidden/InstancedProbeShader"
             UNITY_SETUP_INSTANCE_ID(v);
             UNITY_TRANSFER_INSTANCE_ID(v, o);
 
-            o.vertex = UnityObjectToClipPos(v.vertex * _ProbeSize);
-            o.normal = UnityObjectToWorldNormal(v.normal);
+            o.vertex = mul(UNITY_MATRIX_VP, mul(UNITY_MATRIX_M, float4(v.vertex.xyz * _ProbeSize, 1.0)));
+            o.normal = normalize(mul(v.normal, (float3x3)UNITY_MATRIX_M));
 
             return o;
         }
@@ -81,8 +85,7 @@ Shader "Hidden/InstancedProbeShader"
                 float4 g = UNITY_ACCESS_INSTANCED_PROP(Props, _G);
                 float4 b = UNITY_ACCESS_INSTANCED_PROP(Props, _B);
 
-                float currentExposureMultiplier = _ExposureTexture.Load(uint3(0, 0, 0));
-                return float4(evalSH(normalize(i.normal), r, g, b) * exp2(_Exposure) * currentExposureMultiplier, 1);
+                return float4(evalSH(normalize(i.normal), r, g, b) * exp2(_Exposure) * GetCurrentExposureMultiplier(), 1);
             }
             else if (_ShadingMode == 2)
             {
@@ -90,7 +93,7 @@ Shader "Hidden/InstancedProbeShader"
             }
             return _Color;
         }
-        ENDCG
+        ENDHLSL
 
         Pass
         {
@@ -99,11 +102,11 @@ Shader "Hidden/InstancedProbeShader"
 
             ZWrite On
 
-            CGPROGRAM
+            HLSLPROGRAM
             #pragma vertex vert
             #pragma fragment frag
             #pragma multi_compile_instancing
-            ENDCG
+            ENDHLSL
         }
 
         Pass
@@ -114,11 +117,11 @@ Shader "Hidden/InstancedProbeShader"
             ZTest LEqual
             ZWrite On
 
-            CGPROGRAM
+            HLSLPROGRAM
             #pragma vertex vert
             #pragma fragment frag
             #pragma multi_compile_instancing
-            ENDCG
+            ENDHLSL
         }
     }
 }
