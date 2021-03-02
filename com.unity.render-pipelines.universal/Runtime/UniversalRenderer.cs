@@ -313,11 +313,14 @@ namespace UnityEngine.Rendering.Universal
             m_CameraAttachments.color.Release();
             m_CameraAttachments.depth.Release();
             m_OpaqueColor.Release();
-            m_GBufferHandles[(int)DeferredLights.GBufferHandles.DepthAsColor].Release();
-            m_GBufferHandles[(int)DeferredLights.GBufferHandles.Albedo].Release();
-            m_GBufferHandles[(int)DeferredLights.GBufferHandles.SpecularMetallic].Release();
-            m_GBufferHandles[(int)DeferredLights.GBufferHandles.NormalSmoothness].Release();
-            m_GBufferHandles[(int)DeferredLights.GBufferHandles.ShadowMask].Release();
+            if (m_GBufferHandles != null)
+            {
+                m_GBufferHandles[(int) DeferredLights.GBufferHandles.DepthAsColor]?.Release();
+                m_GBufferHandles[(int) DeferredLights.GBufferHandles.Albedo]?.Release();
+                m_GBufferHandles[(int) DeferredLights.GBufferHandles.SpecularMetallic]?.Release();
+                m_GBufferHandles[(int) DeferredLights.GBufferHandles.NormalSmoothness]?.Release();
+                m_GBufferHandles[(int) DeferredLights.GBufferHandles.ShadowMask]?.Release();
+            }
 
             Blitter.Cleanup();
         }
