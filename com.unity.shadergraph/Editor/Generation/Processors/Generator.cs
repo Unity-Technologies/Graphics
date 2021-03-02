@@ -113,9 +113,18 @@ namespace UnityEditor.ShaderGraph
 
             if (m_GraphData.GetKeywordPermutationCount() > ShaderGraphPreferences.variantLimit)
             {
-                m_GraphData.AddValidationError(m_OutputNode.objectId, ShaderKeyword.kVariantLimitWarning, Rendering.ShaderCompilerMessageSeverity.Error);
+                string graphName = "";
+                if (m_GraphData.owner != null)
+                {
+                    string path = AssetDatabase.GUIDToAssetPath(m_GraphData.owner.AssetGuid);
+                    if (path != null)
+                    {
+                        graphName = Path.GetFileNameWithoutExtension(path);
+                    }
+                }
+                Debug.LogError($"Error in Shader Graph {graphName}:{ShaderKeyword.kVariantLimitWarning}");
 
-                m_ConfiguredTextures = shaderProperties.GetConfiguredTexutres();
+                m_ConfiguredTextures = shaderProperties.GetConfiguredTextures();
                 m_Builder.AppendLines(ShaderGraphImporter.k_ErrorShader);
             }
 
@@ -171,7 +180,7 @@ namespace UnityEditor.ShaderGraph
                 m_Builder.AppendLine(@"FallBack ""Hidden/Shader Graph/FallbackError""");
             }
 
-            m_ConfiguredTextures = shaderProperties.GetConfiguredTexutres();
+            m_ConfiguredTextures = shaderProperties.GetConfiguredTextures();
         }
 
         void GenerateSubShader(int targetIndex, SubShaderDescriptor descriptor, PropertyCollector subShaderProperties)

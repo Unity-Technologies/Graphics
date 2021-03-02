@@ -46,10 +46,10 @@ namespace UnityEngine.Rendering.HighDefinition
         public ClampedIntParameter maximumDepth = new ClampedIntParameter(4, 1, 10);
 
         /// <summary>
-        /// Defines the maximum intensity value computed for a path segment.
+        /// Defines the maximum, post-exposed luminance computed for indirect path segments.
         /// </summary>
-        [Tooltip("Defines the maximum intensity value computed for a path segment.")]
-        public ClampedFloatParameter maximumIntensity = new ClampedFloatParameter(10f, 0f, 100f);
+        [Tooltip("Defines the maximum, post-exposed luminance computed for indirect path segments. Lower values help against noise and fireflies (very bright pixels), but introduce bias by darkening the overall result. Increase this value if your image looks too dark.")]
+        public MinFloatParameter maximumIntensity = new MinFloatParameter(10f, 0f);
 
         /// <summary>
         /// Default constructor for the path tracing volume component.
@@ -252,99 +252,82 @@ namespace UnityEngine.Rendering.HighDefinition
                 name: string.Format("{0}_PathTracingHistoryBuffer{1}", viewName, frameIndex));
         }
 
-        struct PathTracingParameters
-        {
-            public RayTracingShader                 pathTracingShader;
-            public CameraData                       cameraData;
-            public BlueNoise.DitheredTextureSet     ditheredTextureSet;
-            public ShaderVariablesRaytracing        shaderVariablesRaytracingCB;
-            public Color                            backgroundColor;
-            public Texture                          skyReflection;
-            public Matrix4x4                        pixelCoordToViewDirWS;
-            public Vector4                          dofParameters;
-            public int                              width, height;
-            public RayTracingAccelerationStructure  accelerationStructure;
-            public HDRaytracingLightCluster         lightCluster;
-        }
-
-        PathTracingParameters PreparePathTracingParameters(HDCamera hdCamera)
-        {
-            PathTracingParameters parameters = new PathTracingParameters();
-
-            parameters.pathTracingShader = m_Asset.renderPipelineRayTracingResources.pathTracing;
-            parameters.cameraData = m_SubFrameManager.GetCameraData(hdCamera.camera.GetInstanceID());
-            parameters.ditheredTextureSet = GetBlueNoiseManager().DitheredTextureSet256SPP();
-            parameters.backgroundColor = hdCamera.backgroundColorHDR;
-            parameters.skyReflection = m_SkyManager.GetSkyReflection(hdCamera);
-            parameters.pixelCoordToViewDirWS = hdCamera.mainViewConstants.pixelCoordToViewDirWS;
-            parameters.dofParameters = ComputeDoFConstants(hdCamera, m_PathTracingSettings);
-            parameters.width = hdCamera.actualWidth;
-            parameters.height = hdCamera.actualHeight;
-            parameters.accelerationStructure = RequestAccelerationStructure();
-            parameters.lightCluster = RequestLightCluster();
-
-            parameters.shaderVariablesRaytracingCB = m_ShaderVariablesRayTracingCB;
-            parameters.shaderVariablesRaytracingCB._RaytracingNumSamples = (int)m_SubFrameManager.subFrameCount;
-            parameters.shaderVariablesRaytracingCB._RaytracingMinRecursion = m_PathTracingSettings.minimumDepth.value;
-            parameters.shaderVariablesRaytracingCB._RaytracingMaxRecursion = m_PathTracingSettings.maximumDepth.value;
-            parameters.shaderVariablesRaytracingCB._RaytracingIntensityClamp = m_PathTracingSettings.maximumIntensity.value;
-            parameters.shaderVariablesRaytracingCB._RaytracingSampleIndex = (int)parameters.cameraData.currentIteration;
-
-            return parameters;
-        }
-
-        static void RenderPathTracing(in PathTracingParameters parameters, RTHandle frameTexture, RTHandle skyTexture, CommandBuffer cmd)
-        {
-            // Define the shader pass to use for the path tracing pass
-            cmd.SetRayTracingShaderPass(parameters.pathTracingShader, "PathTracingDXR");
-
-            // Set the acceleration structure for the pass
-            cmd.SetRayTracingAccelerationStructure(parameters.pathTracingShader, HDShaderIDs._RaytracingAccelerationStructureName, parameters.accelerationStructure);
-
-            // Inject the ray-tracing sampling data
-            BlueNoise.BindDitheredTextureSet(cmd, parameters.ditheredTextureSet);
-
-            // Update the global constant buffer
-            ConstantBuffer.PushGlobal(cmd, parameters.shaderVariablesRaytracingCB, HDShaderIDs._ShaderVariablesRaytracing);
-
-            // LightLoop data
-            cmd.SetGlobalBuffer(HDShaderIDs._RaytracingLightCluster, parameters.lightCluster.GetCluster());
-            cmd.SetGlobalBuffer(HDShaderIDs._LightDatasRT, parameters.lightCluster.GetLightDatas());
-
-            // Set the data for the ray miss
-            cmd.SetRayTracingIntParam(parameters.pathTracingShader, HDShaderIDs._RaytracingCameraSkyEnabled, parameters.cameraData.skyEnabled ? 1 : 0);
-            cmd.SetRayTracingVectorParam(parameters.pathTracingShader, HDShaderIDs._RaytracingCameraClearColor, parameters.backgroundColor);
-            cmd.SetRayTracingTextureParam(parameters.pathTracingShader, HDShaderIDs._SkyCameraTexture, skyTexture);
-            cmd.SetRayTracingTextureParam(parameters.pathTracingShader, HDShaderIDs._SkyTexture, parameters.skyReflection);
-
-            // Additional data for path tracing
-            cmd.SetRayTracingTextureParam(parameters.pathTracingShader, HDShaderIDs._FrameTexture, frameTexture);
-            cmd.SetRayTracingMatrixParam(parameters.pathTracingShader, HDShaderIDs._PixelCoordToViewDirWS, parameters.pixelCoordToViewDirWS);
-            cmd.SetRayTracingVectorParam(parameters.pathTracingShader, HDShaderIDs._PathTracedDoFConstants, parameters.dofParameters);
-
-            // Run the computation
-            cmd.DispatchRays(parameters.pathTracingShader, "RayGen", (uint)parameters.width, (uint)parameters.height, 1);
-        }
-
         class RenderPathTracingData
         {
-            public PathTracingParameters parameters;
+            public RayTracingShader pathTracingShader;
+            public CameraData cameraData;
+            public BlueNoise.DitheredTextureSet ditheredTextureSet;
+            public ShaderVariablesRaytracing shaderVariablesRaytracingCB;
+            public Color backgroundColor;
+            public Texture skyReflection;
+            public Matrix4x4 pixelCoordToViewDirWS;
+            public Vector4 dofParameters;
+            public int width, height;
+            public RayTracingAccelerationStructure accelerationStructure;
+            public HDRaytracingLightCluster lightCluster;
+
             public TextureHandle output;
             public TextureHandle sky;
         }
 
-        TextureHandle RenderPathTracing(RenderGraph renderGraph, in PathTracingParameters parameters, TextureHandle pathTracingBuffer, TextureHandle skyBuffer)
+        TextureHandle RenderPathTracing(RenderGraph renderGraph, HDCamera hdCamera, in CameraData cameraData, TextureHandle pathTracingBuffer, TextureHandle skyBuffer)
         {
             using (var builder = renderGraph.AddRenderPass<RenderPathTracingData>("Render PathTracing", out var passData))
             {
-                passData.parameters = parameters;
+                passData.pathTracingShader = m_Asset.renderPipelineRayTracingResources.pathTracing;
+                passData.cameraData = cameraData;
+                passData.ditheredTextureSet = GetBlueNoiseManager().DitheredTextureSet256SPP();
+                passData.backgroundColor = hdCamera.backgroundColorHDR;
+                passData.skyReflection = m_SkyManager.GetSkyReflection(hdCamera);
+                passData.pixelCoordToViewDirWS = hdCamera.mainViewConstants.pixelCoordToViewDirWS;
+                passData.dofParameters = ComputeDoFConstants(hdCamera, m_PathTracingSettings);
+                passData.width = hdCamera.actualWidth;
+                passData.height = hdCamera.actualHeight;
+                passData.accelerationStructure = RequestAccelerationStructure();
+                passData.lightCluster = RequestLightCluster();
+
+                passData.shaderVariablesRaytracingCB = m_ShaderVariablesRayTracingCB;
+                passData.shaderVariablesRaytracingCB._RaytracingNumSamples = (int)m_SubFrameManager.subFrameCount;
+                passData.shaderVariablesRaytracingCB._RaytracingMinRecursion = m_PathTracingSettings.minimumDepth.value;
+                passData.shaderVariablesRaytracingCB._RaytracingMaxRecursion = m_PathTracingSettings.maximumDepth.value;
+                passData.shaderVariablesRaytracingCB._RaytracingIntensityClamp = m_PathTracingSettings.maximumIntensity.value;
+                passData.shaderVariablesRaytracingCB._RaytracingSampleIndex = (int)cameraData.currentIteration;
+
                 passData.output = builder.WriteTexture(pathTracingBuffer);
                 passData.sky = builder.ReadTexture(skyBuffer);
 
                 builder.SetRenderFunc(
                     (RenderPathTracingData data, RenderGraphContext ctx) =>
                     {
-                        RenderPathTracing(data.parameters, data.output, data.sky, ctx.cmd);
+                        // Define the shader pass to use for the path tracing pass
+                        ctx.cmd.SetRayTracingShaderPass(data.pathTracingShader, "PathTracingDXR");
+
+                        // Set the acceleration structure for the pass
+                        ctx.cmd.SetRayTracingAccelerationStructure(data.pathTracingShader, HDShaderIDs._RaytracingAccelerationStructureName, data.accelerationStructure);
+
+                        // Inject the ray-tracing sampling data
+                        BlueNoise.BindDitheredTextureSet(ctx.cmd, data.ditheredTextureSet);
+
+                        // Update the global constant buffer
+                        ConstantBuffer.PushGlobal(ctx.cmd, data.shaderVariablesRaytracingCB, HDShaderIDs._ShaderVariablesRaytracing);
+
+                        // LightLoop data
+                        ctx.cmd.SetGlobalBuffer(HDShaderIDs._RaytracingLightCluster, data.lightCluster.GetCluster());
+                        ctx.cmd.SetGlobalBuffer(HDShaderIDs._LightDatasRT, data.lightCluster.GetLightDatas());
+
+                        // Set the data for the ray miss
+                        ctx.cmd.SetRayTracingIntParam(data.pathTracingShader, HDShaderIDs._RaytracingCameraSkyEnabled, data.cameraData.skyEnabled ? 1 : 0);
+                        ctx.cmd.SetRayTracingVectorParam(data.pathTracingShader, HDShaderIDs._RaytracingCameraClearColor, data.backgroundColor);
+                        ctx.cmd.SetRayTracingTextureParam(data.pathTracingShader, HDShaderIDs._SkyCameraTexture, data.sky);
+                        ctx.cmd.SetRayTracingTextureParam(data.pathTracingShader, HDShaderIDs._SkyTexture, data.skyReflection);
+
+                        // Additional data for path tracing
+                        ctx.cmd.SetRayTracingTextureParam(data.pathTracingShader, HDShaderIDs._FrameTexture, data.output);
+                        ctx.cmd.SetRayTracingMatrixParam(data.pathTracingShader, HDShaderIDs._PixelCoordToViewDirWS, data.pixelCoordToViewDirWS);
+                        ctx.cmd.SetRayTracingVectorParam(data.pathTracingShader, HDShaderIDs._PathTracedDoFConstants, data.dofParameters);
+
+                        // Run the computation
+                        ctx.cmd.DispatchRays(data.pathTracingShader, "RayGen", (uint)data.width, (uint)data.height, 1);
                     });
 
                 return passData.output;
@@ -397,8 +380,8 @@ namespace UnityEngine.Rendering.HighDefinition
                 m_SubFrameManager.subFrameCount = 1;
 #endif
 
-            var parameters = PreparePathTracingParameters(hdCamera);
-            if (parameters.cameraData.currentIteration < m_SubFrameManager.subFrameCount)
+            var cameraData = m_SubFrameManager.GetCameraData(hdCamera.camera.GetInstanceID());
+            if (cameraData.currentIteration < m_SubFrameManager.subFrameCount)
             {
                 // Keep a sky texture around, that we compute only once per accumulation (except when recording, with potential camera motion blur)
                 if (m_RenderSky || m_SubFrameManager.isRecording)
@@ -407,7 +390,7 @@ namespace UnityEngine.Rendering.HighDefinition
                     m_RenderSky = false;
                 }
 
-                RenderPathTracing(m_RenderGraph, parameters, m_FrameTexture, m_SkyTexture);
+                RenderPathTracing(m_RenderGraph, hdCamera, cameraData, m_FrameTexture, m_SkyTexture);
             }
 
             RenderAccumulation(m_RenderGraph, hdCamera, m_FrameTexture, colorBuffer, true);
