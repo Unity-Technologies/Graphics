@@ -573,10 +573,10 @@ namespace UnityEngine.Rendering.HighDefinition
                         { colorFormat = m_ColorFormat, useMipMap = true, enableRandomWrite = true, name = "DoF Source Pyramid" });
 
                         builder.SetRenderFunc(
-                        (DepthofFieldData data, RenderGraphContext ctx) =>
-                        {
-                            DoPhysicallyBasedDepthOfField(data.parameters, ctx.cmd, data.source, data.destination, data.fullresCoC, data.prevCoC, data.nextCoC, data.motionVecTexture, data.pingFarRGB, data.taaEnabled);
-                        });
+                            (DepthofFieldData data, RenderGraphContext ctx) =>
+                            {
+                                DoPhysicallyBasedDepthOfField(data.parameters, ctx.cmd, data.source, data.destination, data.fullresCoC, data.prevCoC, data.nextCoC, data.motionVecTexture, data.pingFarRGB, data.depthBuffer, data.taaEnabled);
+                            });
 
                         source = passData.destination;
                         m_HDInstance.PushFullScreenDebugTexture(renderGraph, passData.fullresCoC, FullScreenDebugMode.DepthOfFieldCoc);
