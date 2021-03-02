@@ -66,3 +66,5 @@ These properties only appear if you enable [more options](More-Options.md).
 | - **Reset Color** | Resets the saved **Shadow Tint** for the shadow. HDRP calculates a new default shadow tint when the HDRI changes. |
 
 **Note**: To use ambient occlusion in the backplate, increase the value of the **Direct Lighting Strength** property on the [Ambient Occlusion](Override-Ambient-Occlusion.md) component override. As the backplate does not have global illumination, it can only get ambient occlusion from direct lighting.
+
+**Limitation**: The backplate only appears in local reflection probes and it does not appear in the default sky reflection. This is because the default sky reflection is a cubemap projected at infinity which is incompatible with how Unity renders the backplate.
