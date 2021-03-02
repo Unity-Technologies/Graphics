@@ -51,10 +51,14 @@ namespace UnityEngine.Rendering.Universal.Internal
             m_RenderStateBlocks[3] = m_RenderStateBlocks[0];
         }
 
+        // TEMP FIX SO MY TESTS DO NOT FAIL BECAUSE OF ALLOC ISSUES. WILL DELETE.
+        internal GraphicsFormat[] gbufferFormats { get; set; }
         public override void Configure(CommandBuffer cmd, RenderTextureDescriptor cameraTextureDescriptor)
         {
             RenderTargetHandle[] gbufferAttachments = m_DeferredLights.GbufferAttachments;
-            GraphicsFormat[] gbufferFormats = new GraphicsFormat[gbufferAttachments.Length];
+
+            if (gbufferFormats == null || gbufferFormats.Length != gbufferAttachments.Length)
+                gbufferFormats = new GraphicsFormat[gbufferAttachments.Length];
 
             // Create and declare the render targets used in the pass
             for (int i = 0; i < gbufferAttachments.Length; ++i)

@@ -129,6 +129,7 @@ namespace UnityEngine.Rendering.Universal
             private RenderTextureDescriptor m_AOPassDescriptor;
             private RenderTextureDescriptor m_BlurPassesDescriptor;
             private RenderTextureDescriptor m_FinalDescriptor;
+            private ScreenSpaceAmbientOcclusionSettings m_CurrentSettings;
 
 
             // Constants
