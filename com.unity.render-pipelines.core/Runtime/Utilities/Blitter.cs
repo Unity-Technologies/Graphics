@@ -29,7 +29,7 @@ namespace UnityEngine.Rendering
             public static readonly int _InputDepth      = Shader.PropertyToID("_InputDepthTexture");
         }
 
-        internal static void Initialize(Shader blitPS, Shader blitColorAndDepthPS)
+        public static void Initialize(Shader blitPS, Shader blitColorAndDepthPS)
         {
             s_Blit = CoreUtils.CreateEngineMaterial(blitPS);
             s_BlitColorAndDepth = CoreUtils.CreateEngineMaterial(blitColorAndDepthPS);
@@ -44,7 +44,7 @@ namespace UnityEngine.Rendering
             }
         }
 
-        internal static void Cleanup()
+        public static void Cleanup()
         {
             CoreUtils.Destroy(s_Blit);
             CoreUtils.Destroy(s_BlitTexArray);
