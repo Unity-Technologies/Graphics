@@ -45,7 +45,7 @@ public class UseTestAssetTestCaseAttribute : UnityEngine.TestTools.UnityTestAttr
         }
     }
 
-#if !UNITY_EDITOR
+#if UNITY_EDITOR
     public class EditorProvider : ITestAssetTestProvider
     {
         static string k_fileLocation = $"Assets/ReferenceImages/{QualitySettings.activeColorSpace}/{Application.platform}/{SystemInfo.graphicsDeviceType}/{LoadedXRDevice}";
