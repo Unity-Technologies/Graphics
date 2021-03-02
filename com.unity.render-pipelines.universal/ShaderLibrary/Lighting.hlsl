@@ -629,13 +629,20 @@ half3 SampleLightmap(float2 lightmapUV, half3 normalWS)
 
 half3 BoxProjectedCubemapDirection(half3 reflectVector, half3 positionWS, real4 cubemapCenter, real4 boxMin, real4 boxMax)
 {
-    float3 boxMinMax = (reflectVector > 0.0f) ? boxMax.xyz : boxMin.xyz;
-    float3 rbMinMax = (boxMinMax - positionWS) / reflectVector;
+    // Do we have a valid reflection probe?
+    UNITY_BRANCH
+    if (cubemapCenter.w > 0.0)
+    {
+        float3 boxMinMax = (reflectVector > 0.0f) ? boxMax.xyz : boxMin.xyz;
+        float3 rbMinMax = (boxMinMax - positionWS) / reflectVector;
 
-    float fa = min(min(rbMinMax.x, rbMinMax.y), rbMinMax.z);
+        float fa = min(min(rbMinMax.x, rbMinMax.y), rbMinMax.z);
 
-    half3 pos = positionWS - cubemapCenter.xyz;
-    return pos + reflectVector * fa;
+        half3 pos = positionWS - cubemapCenter.xyz;
+        return pos + reflectVector * fa;
+    }
+
+    return reflectVector;
 }
 
 float getWeight(half3 positionWS, real4 boxMin, real4 boxMax)
@@ -701,7 +708,7 @@ half3 getIrradianceFromReflectionProbes(half3 reflectVector, half3 positionWS, h
         half mip = PerceptualRoughnessToMipmapLevel(perceptualRoughness);
         // #note to do Sample TextureCubeArray
         //half4 encodedIrradiance = SAMPLE_TEXTURECUBE_ARRAY_LOD_ABSTRACT(_ReflectionProbeTextures, s_trilinear_clamp_sampler, reflectVector, probeIndex, mip);
-        half4 encodedIrradiance = SAMPLE_TEXTURECUBE_LOD(unity_SpecCube1, samplerunity_SpecCube0, reflectVector, mip);
+        half4 encodedIrradiance = SAMPLE_TEXTURECUBE_LOD(unity_SpecCube1, samplerunity_SpecCube1, reflectVector, mip);
 #if !defined(UNITY_USE_NATIVE_HDR)
         irradiance += specCube1_weight_final * DecodeHDREnvironment(encodedIrradiance, unity_SpecCube1_HDR);
 #else
