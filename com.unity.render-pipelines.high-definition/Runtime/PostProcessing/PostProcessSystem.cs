@@ -2416,14 +2416,26 @@ namespace UnityEngine.Rendering.HighDefinition
 
                     Vector2 screenPos = new Vector2(2.0f * viewportPos.x - 1.0f, 1.0f - 2.0f * viewportPos.y);
                     Vector2 translationScale = new Vector2(element.translationScale.x, element.translationScale.y);
-
                     Vector2 side;
+                    Vector3 rayOffset = new Vector3(translationScale.x * (positionScreen.x * 2.0f - (float)cam.pixelWidth) / (float)cam.pixelWidth,
+                                                    translationScale.y * (positionScreen.y * 2.0f - (float)cam.pixelHeight) / (float)cam.pixelHeight, 0.0f);
                     {
-                        Vector3 rayOffset = new Vector3(positionScreen.x * 2.0f - (float)cam.pixelWidth, positionScreen.y * 2.0f - (float)cam.pixelHeight, 0.0f);
-                        rayOffset.Normalize();
-                        side = Vector3.Cross(rayOffset, new Vector3(0f, 0f, 1f));
+                        side = Vector3.Cross(rayOffset.normalized, new Vector3(0f, 0f, 1f));
                         side.Normalize();
                         side.Scale(new Vector2(vScreenRatio.y, vScreenRatio.x));
+                    }
+
+                    if (element.angularOffset != 0.0f)
+                    {
+                        float cos0 = Mathf.Cos(element.angularOffset * Mathf.Deg2Rad);
+                        float sin0 = Mathf.Sin(element.angularOffset * Mathf.Deg2Rad);
+
+                        //Vector2 rayOff = -screenPos * (position * _FlareTranslationScale - 1.0f);
+                        //Vector2 rayOff = -screenPos * (position - 1.0f);
+
+                        //screenPos += screenPos.magnitude * (new Vector2(-sin0, cos0));
+                        //screenPos = new Vector2(cos0 * screenPos.x - sin0 * screenPos.y,
+                        //                        sin0 * screenPos.x + cos0 * screenPos.y);
                     }
 
                     Vector2 occlusionRadiusEdgeScreenPos0 = (Vector2)cam.WorldToViewportPoint(positionWS);
@@ -2459,6 +2471,9 @@ namespace UnityEngine.Rendering.HighDefinition
 
                         float currentIntensity = comp.intensity * element.localIntensity * radialsScaleRadius * distanceAttenuation;
 
+                        if (currentIntensity <= 0.0f)
+                            continue;
+
                         float position = 2.0f * element.position;
                         Vector2 positionOffset = element.positionOffset;
                         if (element.distribution == SRPLensFlareDistribution.Uniform)
@@ -2482,8 +2497,6 @@ namespace UnityEngine.Rendering.HighDefinition
                             Color randCol = element.colorGradient.Evaluate(Random.Range(0.0f, 1.0f));
                             tint.Scale(new Vector4(randCol.r, randCol.g, randCol.b, randCol.a));
 
-                            //Vector2 off = Random.Range(-1.0f, 1.0f) * side;
-                            //positionOffset += (element.positionVariation.y * Random.Range(-1.0f, 1.0f) )* (new Vector2(side.x, 1.0f - side.y));
                             positionOffset += (element.positionVariation.y * Random.Range(-1.0f, 1.0f)) * (new Vector2(side.x, side.y));
 
                             rotation += Random.Range(-Mathf.PI, Mathf.PI) * element.rotationVariation;
@@ -2506,7 +2519,48 @@ namespace UnityEngine.Rendering.HighDefinition
                         if (currentIntensity <= 0.0f)
                             continue;
 
-                        if (element.modulateByLightColor)
+                        if (element.angularOffset != 0.0f)
+                        {
+                            //float cos0 = (Mathf.Cos(element.angularOffset * Mathf.Deg2Rad));
+                            //float sin0 = (Mathf.Sin(element.angularOffset * Mathf.Deg2Rad));
+                            Vector2 rayOffset2 = (Vector2)rayOffset;
+                            //positionOffset -= rayOffset2;
+                            //positionOffset += position * (new Vector2(cos0, sin0));
+                            //positionOffset += rayOffset2;
+                            float cos0 = Mathf.Cos(element.angularOffset * Mathf.Deg2Rad);
+                            float sin0 = Mathf.Sin(element.angularOffset * Mathf.Deg2Rad);
+
+                            //positionOffset -= rayOffset2;
+                            //rayOffset2 = new Vector2(cos0 * rayOffset2.x - sin0 * rayOffset2.y,
+                            //                         sin0 * rayOffset2.x + sin0 * rayOffset2.y);
+                            //positionOffset += position * (new Vector2(cos0, sin0));
+                            //positionOffset += rayOffset2;
+                        }
+
+                        if (element.angularOffset != 0.0f)
+                        {
+                            float cos0 = Mathf.Cos(element.angularOffset * Mathf.Deg2Rad);
+                            float sin0 = Mathf.Sin(element.angularOffset * Mathf.Deg2Rad);
+
+                            //screenPos -= (Vector2)rayOffset;
+                            //screenPos = (new Vector2(cos0 * screenPos.x - sin0 * screenPos.y,
+                            //                         sin0 * screenPos.x + sin0 * screenPos.y)) * ((Vector2)rayOffset).magnitude;
+                            //screenPos += (Vector2)rayOffset;
+                            //-screenPos * (_RayPos.xx * _FlareTranslationScale - 1.0f)
+                        }
+
+                        //if (element.angularOffset != 0.0f)
+                        //{
+                        //    float cos0 = Mathf.Cos(element.angularOffset * Mathf.Deg2Rad);
+                        //    float sin0 = Mathf.Sin(element.angularOffset * Mathf.Deg2Rad);
+
+                        //    //Vector2 rayOff = -screenPos * (position * _FlareTranslationScale - 1.0f);
+                        //    Vector2 rayOff = -screenPos * (position - 1.0f);
+
+                        //    screenPos += screenPos.magnitude * (new Vector2(cos0, sin0));
+                        //}
+
+                            if (element.modulateByLightColor)
                             tint = currentIntensity * Vector4.Scale(tint, modulationByColor);
                         else
                             tint = currentIntensity * tint;
