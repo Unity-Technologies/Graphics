@@ -646,6 +646,12 @@ float getWeight(half3 positionWS, real4 boxMin, real4 boxMax)
     return saturate(min(weightDir.x, min(weightDir.y, weightDir.z)));
 }
 
+float getReflectionProbeDiagSizeSquared(real4 boxMin, real4 boxMax)
+{
+    float3 diff = boxMax - boxMin;
+    return dot(diff, diff);
+}
+
 half3 getIrradianceFromReflectionProbes(half3 reflectVector, half3 positionWS, half perceptualRoughness)
 {
     //This is not like for the builtin but the reverse order:
@@ -653,7 +659,6 @@ half3 getIrradianceFromReflectionProbes(half3 reflectVector, half3 positionWS, h
     //To fade reach out by 1 on each direction (The same for the deferred builtin implementation).
 
     //Such the the highest priority and smallest reflection probes is first.
-    float blendFactor = 1.0;
     half3 irradiance = half3(0, 0, 0);
 
     // #note use GetReflectionProbesCount() to determine how many reflection probes we should loop over
@@ -661,11 +666,21 @@ half3 getIrradianceFromReflectionProbes(half3 reflectVector, half3 positionWS, h
 
     half3 originalReflectVector = reflectVector;
 
+    float specCube0_diagSquaredMag = getReflectionProbeDiagSizeSquared(unity_SpecCube0_BoxMin, unity_SpecCube0_BoxMax);
+    float specCube1_diagSquaredMag = getReflectionProbeDiagSizeSquared(unity_SpecCube1_BoxMin, unity_SpecCube1_BoxMax);
+    bool isSmaller = specCube0_diagSquaredMag < specCube1_diagSquaredMag;
+    bool isEq = specCube0_diagSquaredMag == specCube1_diagSquaredMag;
+    float specCube0_weight = getWeight(positionWS, unity_SpecCube0_BoxMin, unity_SpecCube0_BoxMax);
+    float specCube1_weight = getWeight(positionWS, unity_SpecCube1_BoxMin, unity_SpecCube1_BoxMax);
+    float specCube0_weight_final = isSmaller ? specCube0_weight : min(specCube0_weight, 1 - specCube1_weight);
+    float specCube1_weight_final = isSmaller ? min(specCube1_weight, 1 - specCube0_weight) : specCube1_weight;
+    float totalWeight = max(specCube0_weight + specCube1_weight, 1.0f);
+    specCube0_weight_final = isEq ? specCube0_weight / totalWeight : specCube0_weight_final;
+    specCube1_weight_final = isEq ? specCube1_weight / totalWeight : specCube1_weight_final;
+
+
     // Spec 0
     {
-        float weight = min(getWeight(positionWS, unity_SpecCube0_BoxMin, unity_SpecCube0_BoxMax), blendFactor);
-        blendFactor = saturate(blendFactor - weight);
-
         reflectVector = (1 - unity_SpecCube0_ProbePosition.w) * originalReflectVector
             + unity_SpecCube0_ProbePosition.w * BoxProjectedCubemapDirection(originalReflectVector, positionWS, unity_SpecCube0_ProbePosition, unity_SpecCube0_BoxMin, unity_SpecCube0_BoxMax);
         half mip = PerceptualRoughnessToMipmapLevel(perceptualRoughness);
@@ -673,17 +688,14 @@ half3 getIrradianceFromReflectionProbes(half3 reflectVector, half3 positionWS, h
         //half4 encodedIrradiance = SAMPLE_TEXTURECUBE_ARRAY_LOD_ABSTRACT(_ReflectionProbeTextures, s_trilinear_clamp_sampler, reflectVector, probeIndex, mip);
         half4 encodedIrradiance = SAMPLE_TEXTURECUBE_LOD(unity_SpecCube0, samplerunity_SpecCube0, reflectVector, mip);
 #if !defined(UNITY_USE_NATIVE_HDR)
-        irradiance += weight * DecodeHDREnvironment(encodedIrradiance, unity_SpecCube0_HDR);
+        irradiance += specCube0_weight_final * DecodeHDREnvironment(encodedIrradiance, unity_SpecCube0_HDR);
 #else
-        irradiance += weight * encodedIrradiance.rbg;
+        irradiance += specCube0_weight_final * encodedIrradiance.rbg;
 #endif
     }
 
     // Spec 1
     {
-        float weight = min(getWeight(positionWS, unity_SpecCube1_BoxMin, unity_SpecCube1_BoxMax), blendFactor);
-        blendFactor = saturate(blendFactor - weight);
-
         reflectVector = (1 - unity_SpecCube1_ProbePosition.w) * originalReflectVector
             + unity_SpecCube1_ProbePosition.w * BoxProjectedCubemapDirection(originalReflectVector, positionWS, unity_SpecCube1_ProbePosition, unity_SpecCube1_BoxMin, unity_SpecCube1_BoxMax);
         half mip = PerceptualRoughnessToMipmapLevel(perceptualRoughness);
@@ -691,9 +703,9 @@ half3 getIrradianceFromReflectionProbes(half3 reflectVector, half3 positionWS, h
         //half4 encodedIrradiance = SAMPLE_TEXTURECUBE_ARRAY_LOD_ABSTRACT(_ReflectionProbeTextures, s_trilinear_clamp_sampler, reflectVector, probeIndex, mip);
         half4 encodedIrradiance = SAMPLE_TEXTURECUBE_LOD(unity_SpecCube1, samplerunity_SpecCube0, reflectVector, mip);
 #if !defined(UNITY_USE_NATIVE_HDR)
-        irradiance += weight * DecodeHDREnvironment(encodedIrradiance, unity_SpecCube1_HDR);
+        irradiance += specCube1_weight_final * DecodeHDREnvironment(encodedIrradiance, unity_SpecCube1_HDR);
 #else
-        irradiance += weight * encodedIrradiance.rbg;
+        irradiance += specCube1_weight_final * encodedIrradiance.rbg;
 #endif
     }
 
