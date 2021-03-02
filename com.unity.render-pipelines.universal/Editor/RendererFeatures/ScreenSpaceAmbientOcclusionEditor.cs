@@ -69,9 +69,9 @@ namespace UnityEditor.Rendering.Universal
             EditorGUILayout.PropertyField(m_NormalQuality, Styles.NormalQuality);
             GUI.enabled = true;
 
-            m_Intensity.floatValue = EditorGUILayout.Slider(Styles.Intensity, m_Intensity.floatValue, 0f, 10f);
-            m_DirectLightingStrength.floatValue = EditorGUILayout.Slider(Styles.DirectLightingStrength, m_DirectLightingStrength.floatValue, 0f, 1f);
+            EditorGUILayout.PropertyField(m_Intensity, Styles.Intensity);
             EditorGUILayout.PropertyField(m_Radius, Styles.Radius);
+            m_DirectLightingStrength.floatValue = EditorGUILayout.Slider(Styles.DirectLightingStrength, m_DirectLightingStrength.floatValue, 0f, 1f);
             m_Radius.floatValue = Mathf.Clamp(m_Radius.floatValue, 0f, m_Radius.floatValue);
             m_SampleCount.intValue = EditorGUILayout.IntSlider(Styles.SampleCount, m_SampleCount.intValue, 4, 20);
         }

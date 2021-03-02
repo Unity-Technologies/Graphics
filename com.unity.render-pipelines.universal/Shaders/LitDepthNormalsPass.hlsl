@@ -104,7 +104,7 @@ half4 DepthNormalsFragment(Varyings input) : SV_TARGET
         #if defined(_NORMALMAP) || defined(_DETAIL)
             float sgn = input.tangentWS.w;      // should be either +1 or -1
             float3 bitangent = sgn * cross(input.normalWS.xyz, input.tangentWS.xyz);
-            float3 normalTS = SampleNormal(uv, TEXTURE2D_ARGS(_BumpMap, sampler_BumpMap), 1.0);
+            float3 normalTS = SampleNormal(uv, TEXTURE2D_ARGS(_BumpMap, sampler_BumpMap), _BumpScale);
 
             #if defined(_DETAIL)
                 half detailMask = SAMPLE_TEXTURE2D(_DetailMask, sampler_DetailMask, uv).a;

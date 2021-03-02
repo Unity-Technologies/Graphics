@@ -71,10 +71,8 @@ half4 DepthNormalsFragment(Varyings input) : SV_TARGET
         float2 uv = input.uv;
 
         #if defined(_NORMALMAP)
-            float sgn = input.tangentWS.w;      // should be either +1 or -1
-            float3 bitangent = sgn * cross(input.normalWS.xyz, input.tangentWS.xyz);
-            float3 normalTS = SampleNormal(uv, TEXTURE2D_ARGS(_BumpMap, sampler_BumpMap), 1.0);
-            float3 normalWS = TransformTangentToWorld(normalTS, half3x3(input.tangentWS.xyz, bitangent.xyz, input.normalWS.xyz));
+            float3 normalTS = SampleNormal(uv, TEXTURE2D_ARGS(_BumpMap, sampler_BumpMap));
+            float3 normalWS = TransformTangentToWorld(normalTS, half3x3(input.tangentWS.xyz, input.bitangentWS.xyz, input.normalWS.xyz));
         #else
             float3 normalWS = input.normalWS;
         #endif

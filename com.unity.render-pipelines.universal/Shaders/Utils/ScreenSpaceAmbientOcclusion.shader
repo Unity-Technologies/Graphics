@@ -8,15 +8,15 @@ Shader "Hidden/Universal Render Pipeline/ScreenSpaceAmbientOcclusion"
 
         struct Attributes
         {
-            half4 positionHCS   : POSITION;
-            half2 uv           : TEXCOORD0;
+            float4 positionHCS   : POSITION;
+            float2 uv           : TEXCOORD0;
             UNITY_VERTEX_INPUT_INSTANCE_ID
         };
 
         struct Varyings
         {
-            half4  positionCS  : SV_POSITION;
-            half2  uv          : TEXCOORD0;
+            float4  positionCS  : SV_POSITION;
+            float2  uv          : TEXCOORD0;
             UNITY_VERTEX_OUTPUT_STEREO
         };
 
@@ -28,7 +28,7 @@ Shader "Hidden/Universal Render Pipeline/ScreenSpaceAmbientOcclusion"
 
             // Note: The pass is setup with a mesh already in CS
             // Therefore, we can just output vertex position
-            output.positionCS = half4(input.positionHCS.xyz, 1.0);
+            output.positionCS = float4(input.positionHCS.xyz, 1.0);
 
             #if UNITY_UV_STARTS_AT_TOP
             output.positionCS.y *= -1;
@@ -127,7 +127,6 @@ Shader "Hidden/Universal Render Pipeline/ScreenSpaceAmbientOcclusion"
                 #pragma vertex VertDefault
                 #pragma fragment FragAfterOpaque
 
-                #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Core.hlsl"
                 #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Lighting.hlsl"
 
                 half4 FragAfterOpaque(Varyings input) : SV_Target

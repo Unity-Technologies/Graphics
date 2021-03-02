@@ -7,7 +7,7 @@
 struct AttributesDepthNormal
 {
     float4 positionOS : POSITION;
-    float3 normalOS : NORMAL;
+    half3 normalOS : NORMAL;
     float2 texcoord : TEXCOORD0;
     UNITY_VERTEX_INPUT_INSTANCE_ID
 };
@@ -21,11 +21,11 @@ struct VaryingsDepthNormal
     #endif
 
     #if defined(_NORMALMAP) && !defined(ENABLE_TERRAIN_PERPIXEL_NORMAL)
-        float4 normal                   : TEXCOORD3;    // xyz: normal, w: viewDir.x
-        float4 tangent                  : TEXCOORD4;    // xyz: tangent, w: viewDir.y
-        float4 bitangent                : TEXCOORD5;    // xyz: bitangent, w: viewDir.z
+        half4 normal                   : TEXCOORD3;    // xyz: normal, w: viewDir.x
+        half4 tangent                  : TEXCOORD4;    // xyz: tangent, w: viewDir.y
+        half4 bitangent                : TEXCOORD5;    // xyz: bitangent, w: viewDir.z
     #else
-        float3 normal                   : TEXCOORD3;
+        half3 normal                   : TEXCOORD3;
     #endif
 
     float4 clipPos                  : SV_POSITION;
@@ -40,7 +40,7 @@ VaryingsDepthNormal DepthNormalOnlyVertex(AttributesDepthNormal v)
     UNITY_INITIALIZE_VERTEX_OUTPUT_STEREO(o);
     TerrainInstancing(v.positionOS, v.normalOS, v.texcoord);
 
-    VertexPositionInputs Attributes = GetVertexPositionInputs(v.positionOS.xyz);
+    const VertexPositionInputs attributes = GetVertexPositionInputs(v.positionOS.xyz);
 
     o.uvMainAndLM.xy = v.texcoord;
     o.uvMainAndLM.zw = v.texcoord * unity_LightmapST.xy + unity_LightmapST.zw;
@@ -52,10 +52,7 @@ VaryingsDepthNormal DepthNormalOnlyVertex(AttributesDepthNormal v)
     #endif
 
     #if defined(_NORMALMAP) && !defined(ENABLE_TERRAIN_PERPIXEL_NORMAL)
-        half3 viewDirWS = GetWorldSpaceViewDir(Attributes.positionWS);
-        #if !SHADER_HINT_NICE_QUALITY
-            viewDirWS = SafeNormalize(viewDirWS);
-        #endif
+        half3 viewDirWS = GetWorldSpaceNormalizeViewDir(attributes.positionWS);
         float4 vertexTangent = float4(cross(float3(0, 0, 1), v.normalOS), 1.0);
         VertexNormalInputs normalInput = GetVertexNormalInputs(v.normalOS, vertexTangent);
 
@@ -66,7 +63,7 @@ VaryingsDepthNormal DepthNormalOnlyVertex(AttributesDepthNormal v)
         o.normal = TransformObjectToWorldNormal(v.normalOS);
     #endif
 
-    o.clipPos = Attributes.positionCS;
+    o.clipPos = attributes.positionCS;
     return o;
 }
 
