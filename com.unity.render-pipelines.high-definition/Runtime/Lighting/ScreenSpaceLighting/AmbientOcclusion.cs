@@ -204,6 +204,7 @@ namespace UnityEngine.Rendering.HighDefinition
         [SerializeField, FormerlySerializedAs("maximumRadiusInPixels")]
         private ClampedIntParameter m_MaximumRadiusInPixels = new ClampedIntParameter(40, 16, 256);
         // Temporal only parameter
+        [AdditionalProperty]
         [SerializeField, FormerlySerializedAs("bilateralUpsample")]
         private BoolParameter m_BilateralUpsample = new BoolParameter(true);
         // Non-temporal only parameters
@@ -240,6 +241,16 @@ namespace UnityEngine.Rendering.HighDefinition
         internal void InitRaytracing(HDRenderPipeline renderPipeline)
         {
             m_RaytracingAmbientOcclusion.Init(renderPipeline);
+        }
+
+        internal float EvaluateSpecularOcclusionFlag(HDCamera hdCamera)
+        {
+            AmbientOcclusion ssoSettings = hdCamera.volumeStack.GetComponent<AmbientOcclusion>();
+            bool enableRTAO = hdCamera.frameSettings.IsEnabled(FrameSettingsField.RayTracing) && ssoSettings.rayTracing.value;
+            if (enableRTAO)
+                return m_RaytracingAmbientOcclusion.EvaluateRTSpecularOcclusionFlag(hdCamera, ssoSettings);
+            else
+                return 1.0f;
         }
 
         internal bool IsActive(HDCamera camera, AmbientOcclusion settings) => camera.frameSettings.IsEnabled(FrameSettingsField.SSAO) && settings.intensity.value > 0f;

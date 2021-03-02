@@ -128,9 +128,14 @@ void RayGenIntegration()
    	// Normalize the value
     finalColor *= 1.0f / _RaytracingNumSamples;
 
-    // Expose and clamp the final color
-    finalColor = clamp(finalColor * GetCurrentExposureMultiplier(), 0.0, _RaytracingIntensityClamp);
+    // Convert to HSV space
+    finalColor = RgbToHsv(finalColor * GetCurrentExposureMultiplier());
 
+    // Expose and clamp the final color
+    finalColor.z = clamp(finalColor.z, 0.0, _RaytracingIntensityClamp);
+
+    // Convert back to HSV space
+    finalColor = HsvToRgb(finalColor) * GetInverseCurrentExposureMultiplier();
     // We store the sampled color and the weight that shall be used for it (1.0f)
     _IndirectDiffuseTextureRW[COORD_TEXTURE2D_X(currentCoord)] = float4(finalColor, 1.0f);
 }

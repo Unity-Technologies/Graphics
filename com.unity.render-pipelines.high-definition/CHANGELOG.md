@@ -20,6 +20,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Added pivot point manipulation for Decals (inspector and edit mode).
 - Added UV manipulation for Decals (edit mode).
 - Added color and intensity customization for Decals.
+- New function in GeometryTools.hlsl to calculate triangle edge and full triangle culling.
 
 ### Fixed
 - Fixed probe volumes debug views.
@@ -37,6 +38,32 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed an issue with material using distortion from ShaderGraph init after Material creation (case 1294026)
 - Fixed timing issues with accumulation motion blur
 - Fixed model import by adding additional data if needed.
+- Fixed GC allocations from XR occlusion mesh when using multipass.
+- Fixed XR depth copy when using MSAA.
+- Fixed register spilling on  FXC in light list shaders.
+- Fixed issue with shadow mask and area lights.
+- Fixed an issue with the capture callback (now includes post processing results).
+- Fixed decal draw order for ShaderGraph decal materials.
+- Fixed StackLit ShaderGraph surface option property block to only display energy conserving specular color option for the specular parametrization (case 1257050)
+- Fixed missing BeginCameraRendering call for custom render mode of a Camera.
+- Fixed LayerMask editor for volume parameters.
+- Fixed the condition on temporal accumulation in the reflection denoiser (case 1303504).
+- Fixed box light attenuation.
+- Fixed issues with compositor's undo (cases 1305633, 1307170).
+- Fixed after post process custom pass scale issue when dynamic resolution is enabled (case 1299194).
+- Fixed an issue with light intensity prefab override application not visible in the inspector (case 1299563).
+- Fixed Undo/Redo instability of light temperature.
+- Fixed label style in pbr sky editor.
+- Fixed side effect on styles during compositor rendering.
+- Fixed size and spacing of compositor info boxes (case 1305652).
+- Fixed spacing of UI widgets in the Graphics Compositor (case 1305638).
+- Fixed undo-redo on layered lit editor.
+- Fixed tesselation culling, big triangles using lit tesselation shader would dissapear when camera is too close to them (case 1299116)
+- Fixed issue with compositor related custom passes still active after disabling the compositor (case 1305330)
+- Fixed some render texture leaks.
+- Fixed regression in Wizard that not fix runtime ressource anymore (case 1287627)
+- Fixed error in Depth Of Field near radius blur calculation (case 1306228).
+- Fixed a reload bug when using objects from the scene in the lookdev (case 1300916).
 
 ### Changed
 - Removed the material pass probe volumes evaluation mode.
@@ -51,6 +78,11 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Improved robustness of volumetric sampling in path tracing (case 1295187).
 - Changed the convergence time of ssgi to 16 frames and the preset value
 - Removed the material pass probe volumes evaluation mode.
+- Changed the name from the Depth Buffer Thickness to Depth Tolerance for SSGI (case 1301352).
+- Changed the clamping approach for RTR and RTGI (in both perf and quality) to improve visual quality.
+- Changed the warning message for ray traced area shadows (case 1303410).
+- Disabled specular occlusion for what we consider medium and larger scale ao > 1.25 with a 25cm falloff interval.
+- Change the source value for the ray tracing frame index iterator from m_FrameCount to the camera frame count (case 1301356).
 
 ## [10.3.0] - 2020-12-01
 
