@@ -2251,6 +2251,14 @@ namespace UnityEngine.Rendering.HighDefinition
             // Retrieve debug display settings to init FrameSettings, unless we are a reflection and in this case we don't have debug settings apply.
             DebugDisplaySettings debugDisplaySettings = (camera.cameraType == CameraType.Reflection || camera.cameraType == CameraType.Preview) ? s_NeutralDebugDisplaySettings : m_DebugDisplaySettings;
 
+            // Getting the background color from preferences to add to the preview camera
+#if UNITY_EDITOR
+            if (camera.cameraType == CameraType.Preview)
+            {
+                camera.backgroundColor = CoreRenderPipelinePreferences.previewBackgroundColor;
+            }
+#endif
+
             // Disable post process if we enable debug mode or if the post process layer is disabled
             if (debugDisplaySettings.IsDebugDisplayEnabled())
             {

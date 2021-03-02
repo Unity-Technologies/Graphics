@@ -27,8 +27,10 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed computation of geometric normal in path tracing (case 1293029).
 - Fixed issues with path-traced volumetric scattering (cases 1295222, 1295234).
 - Fixed an issue with the frame count management for the volumetric fog (case 1299251).
+- Fixed the default background color for previews to use the original color.
+- Fixed Clearcoat on Stacklit or Lit breaks when URP is imported into the project (case 1297806)
 - Fixed issues with path-traced volumetric scattering (cases 1295222, 1295234).
-	
+
 ### Changed
 - Removed the material pass probe volumes evaluation mode.
 - Volume parameter of type Cubemap can now accept Cubemap render textures and custom render textures.
