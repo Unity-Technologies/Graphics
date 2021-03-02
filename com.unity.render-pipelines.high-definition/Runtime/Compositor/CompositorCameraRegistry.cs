@@ -18,12 +18,13 @@ namespace UnityEngine.Rendering.HighDefinition.Compositor
         {
             s_CompositorManagedCameras.Add(camera);
         }
+
         internal void UnregisterInternalCamera(Camera camera)
         {
             s_CompositorManagedCameras.Remove(camera);
         }
 
-        // Checks for any compositor allocated cameras that are now unused and frees their resources. 
+        // Checks for any compositor allocated cameras that are now unused and frees their resources.
         internal void CleanUpCameraOrphans(List<CompositorLayer> layers = null)
         {
             s_CompositorManagedCameras.RemoveAll(x => x == null);
