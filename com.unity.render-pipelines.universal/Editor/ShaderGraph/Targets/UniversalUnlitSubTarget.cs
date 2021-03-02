@@ -9,7 +9,7 @@ using UnityEngine.UIElements;
 using UnityEditor.ShaderGraph.Legacy;
 
 using static UnityEditor.Rendering.Universal.ShaderGraph.SubShaderUtils;
-using UnityEngine.Rendering.Universal;
+using UnityEditor.Rendering.Universal;
 
 namespace UnityEditor.Rendering.Universal.ShaderGraph
 {

@@ -2,6 +2,7 @@ using System;
 using UnityEngine;
 using UnityEngine.Rendering;
 using UnityEngine.Scripting.APIUpdating;
+using UnityEditor.Rendering.Universal;
 
 namespace UnityEditor.Rendering.Universal.ShaderGUI
 {
@@ -221,10 +222,16 @@ namespace UnityEditor.Rendering.Universal.ShaderGUI
             EditorGUI.indentLevel--;
         }
 
+        public static bool IsOpaque(Material material)
+        {
+            bool opaque = true;
+            if (material.HasProperty(Property.Surface))
+                opaque = ((BaseShaderGUI.SurfaceType)material.GetFloat(Property.Surface) == BaseShaderGUI.SurfaceType.Opaque);
+            return opaque;
+        }
+
         public static void DoSmoothness(LitProperties properties, Material material, string[] smoothnessChannelNames)
         {
-            var opaque = ((BaseShaderGUI.SurfaceType)material.GetFloat("_Surface") ==
-                BaseShaderGUI.SurfaceType.Opaque);
             EditorGUI.indentLevel++;
             EditorGUI.BeginChangeCheck();
             EditorGUI.showMixedValue = properties.smoothness.hasMixedValue;
@@ -235,6 +242,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGUI
 
             if (properties.smoothnessMapChannel != null) // smoothness channel
             {
+                var opaque = IsOpaque(material);
                 EditorGUI.indentLevel++;
                 EditorGUI.BeginDisabledGroup(!opaque);
                 EditorGUI.BeginChangeCheck();
@@ -263,28 +271,26 @@ namespace UnityEditor.Rendering.Universal.ShaderGUI
             return SmoothnessMapChannel.SpecularMetallicAlpha;
         }
 
+        // setup base keywords (shared by all lit shaders, including shadergraph Lit Target and Lit.shader)
+        public static void SetMaterialKeywordsBase(Material material, out bool isSpecularWorkflow)
+        {
+            isSpecularWorkflow = false;     // default is metallic workflow
+
+            if (material.HasProperty(Property.SpecularWorkflowMode))
+                isSpecularWorkflow = ((WorkflowMode)material.GetFloat(Property.SpecularWorkflowMode)) == WorkflowMode.Specular;
+
+            CoreUtils.SetKeyword(material, "_SPECULAR_SETUP", isSpecularWorkflow);
+        }
+
+        // setup keywords for Lit.shader
         public static void SetMaterialKeywords(Material material)
         {
+            SetMaterialKeywordsBase(material, out bool isSpecularWorkFlow);
+
             // Note: keywords must be based on Material value not on MaterialProperty due to multi-edit & material animation
             // (MaterialProperty value might come from renderer material property block)
-            var hasGlossMap = false;
-            var isSpecularWorkFlow = false;
-            var opaque = ((BaseShaderGUI.SurfaceType)material.GetFloat("_Surface") ==
-                BaseShaderGUI.SurfaceType.Opaque);
-            if (material.HasProperty("_WorkflowMode"))
-            {
-                isSpecularWorkFlow = (WorkflowMode)material.GetFloat("_WorkflowMode") == WorkflowMode.Specular;
-                if (isSpecularWorkFlow)
-                    hasGlossMap = material.GetTexture("_SpecGlossMap") != null;
-                else
-                    hasGlossMap = material.GetTexture("_MetallicGlossMap") != null;
-            }
-            else
-            {
-                hasGlossMap = material.GetTexture("_MetallicGlossMap") != null;
-            }
-
-            CoreUtils.SetKeyword(material, "_SPECULAR_SETUP", isSpecularWorkFlow);
+            var specularGlossMap = isSpecularWorkFlow ? "_SpecGlossMap" : "_MetallicGlossMap";
+            var hasGlossMap = material.GetTexture(specularGlossMap) != null;
 
             CoreUtils.SetKeyword(material, "_METALLICSPECGLOSSMAP", hasGlossMap);
 
@@ -302,6 +308,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGUI
 
             if (material.HasProperty("_SmoothnessTextureChannel"))
             {
+                var opaque = IsOpaque(material);
                 CoreUtils.SetKeyword(material, "_SMOOTHNESS_TEXTURE_ALBEDO_CHANNEL_A",
                     GetSmoothnessMapChannel(material) == SmoothnessMapChannel.AlbedoAlpha && opaque);
             }

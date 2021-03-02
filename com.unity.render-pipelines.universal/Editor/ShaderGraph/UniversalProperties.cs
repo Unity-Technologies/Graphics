@@ -4,10 +4,12 @@ using UnityEditor.ShaderGraph;
 using UnityEditor.ShaderGraph.Internal;
 using UnityEditor.Rendering.Universal.ShaderGraph;
 
-namespace UnityEngine.Rendering.Universal
+
+namespace UnityEditor.Rendering.Universal
 {
     internal static class Property
     {
+        public static readonly string SpecularWorkflowMode = "_WorkflowMode";
         public static readonly string Surface = "_Surface";
         public static readonly string Blend = "_Blend";
         public static readonly string AlphaClip = "_AlphaClip";
@@ -27,8 +29,8 @@ namespace UnityEngine.Rendering.Universal
                 overrideHLSLDeclaration = true,
                 hlslDeclarationOverride = HLSLDeclaration.DoNotDeclare,
                 value = (float)((workflowModeDefault == WorkflowMode.MaterialChoice) ? WorkflowMode.Metallic : workflowModeDefault),
-                displayName = "WorkflowMode",
-                overrideReferenceName = "_WorkflowMode",
+                displayName = "Workflow Mode",
+                overrideReferenceName = SpecularWorkflowMode,
             };
         }
 

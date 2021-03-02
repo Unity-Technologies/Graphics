@@ -8,23 +8,25 @@ namespace UnityEditor
     // Used for ShaderGraph Lit shaders
     class URPLitGUI : BaseShaderGUI
     {
-        private LitGUI.LitProperties litProperties;
+        //private LitGUI.LitProperties litProperties;
+        public MaterialProperty workflowMode;
 
         // collect properties from the material properties
         public override void FindProperties(MaterialProperty[] properties)
         {
             base.FindProperties(properties);
-            litProperties = new LitGUI.LitProperties(properties);
+
+            //litProperties = new LitGUI.LitProperties(properties);
+            workflowMode = BaseShaderGUI.FindProperty("_WorkflowMode", properties, false);
         }
 
         public override void MaterialChanged(Material material)
         {
-            Debug.Log("URPLitGUI Material Changed");
-
             if (material == null)
                 throw new ArgumentNullException("material");
 
-            SetMaterialKeywords(material, LitGUI.SetMaterialKeywords); //, LitDetailGUI.SetMaterialKeywords);
+            SetMaterialKeywords(material);
+            LitGUI.SetMaterialKeywordsBase(material, out bool isSpecularWorkflow);
         }
 
         public override void DrawSurfaceOptions(Material material)
@@ -37,9 +39,9 @@ namespace UnityEditor
 
             // Detect any changes to the material
             EditorGUI.BeginChangeCheck();
-            if (litProperties.workflowMode != null)
+            if (workflowMode != null)
             {
-                DoPopup(LitGUI.Styles.workflowModeText, litProperties.workflowMode, Enum.GetNames(typeof(LitGUI.WorkflowMode)));
+                DoPopup(LitGUI.Styles.workflowModeText, workflowMode, Enum.GetNames(typeof(LitGUI.WorkflowMode)));
             }
             if (EditorGUI.EndChangeCheck())
             {
