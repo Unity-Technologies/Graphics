@@ -102,7 +102,9 @@ public class GfxTestCustomSettings : MonoBehaviour
                 PerPixelGammaThreshold =PerPixelGammaThreshold,
                 PerPixelAlphaThreshold = PerPixelAlphaThreshold,
                 AverageCorrectnessThreshold = AverageCorrectnessThreshold,
-                IncorrectPixelsThreshold = IncorrectPixelsThreshold
+                IncorrectPixelsThreshold = IncorrectPixelsThreshold,
+                ActiveImageTests = (UnityEngine.TestTools.Graphics.ImageComparisonSettings.ImageTests)ActiveImageTests,
+                ActivePixelTests = (UnityEngine.TestTools.Graphics.ImageComparisonSettings.PixelTests)ActivePixelTests,
             };
         }
     }
