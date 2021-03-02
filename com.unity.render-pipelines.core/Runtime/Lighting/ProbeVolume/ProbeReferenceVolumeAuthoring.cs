@@ -209,23 +209,13 @@ namespace UnityEngine.Rendering
 
         private bool ShouldCull(Vector3 cellPosition)
         {
-            var refVolTranslation = this.transform.position;
-            var refVolRotation = this.transform.rotation;
+            if (Vector3.Distance(SceneView.lastActiveSceneView.camera.transform.position, cellPosition) > m_CullingDistance)
+                return true;
 
-            Transform cam = SceneView.lastActiveSceneView.camera.transform;
-            Vector3 camPos = cam.position;
-            Vector3 camVec = cam.forward;
+            var frustumPlanes = GeometryUtility.CalculateFrustumPlanes(SceneView.lastActiveSceneView.camera);
+            var volumeAABB = new Bounds(cellPosition, m_Profile.cellSize * Vector3.one);
 
-            float halfCellSize = m_Profile.cellSize * 0.5f;
-
-            Vector3 cellPos = cellPosition * m_Profile.cellSize + halfCellSize * Vector3.one + refVolTranslation;
-            Vector3 camToCell = cellPos - camPos;
-
-            float angle = Vector3.Dot(camVec.normalized, camToCell.normalized);
-
-            bool shouldRender = (camToCell.magnitude < m_CullingDistance && angle > 0);// || (Mathf.Abs(camToCell.x) < halfCellSize && Mathf.Abs(camToCell.y) < halfCellSize && Mathf.Abs(camToCell.z) < halfCellSize);
-
-            return !shouldRender;
+            return !GeometryUtility.TestPlanesAABB(frustumPlanes, volumeAABB);
         }
 
         private void CreateInstancedProbes()
