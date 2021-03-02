@@ -28,13 +28,13 @@ half4 frag(PackedVaryings packedInput) : SV_TARGET
 #endif
 
     #if defined(_DEBUG_SHADER)
-    const SurfaceData2D surfaceData = CreateSurfaceData(color.rgb, color.a);
+    SurfaceData2D surfaceData = CreateSurfaceData(color.rgb, color.a);
     InputData2D inputData = CreateInputData(unpacked.positionWS, unpacked.texCoord0);
-    half4 debugColor;
+    half4 debugColor = 0;
 
     SETUP_DEBUG_DATA(inputData, unpacked.positionWS);
 
-    if(CalculateDebugColor(surfaceData, inputData, debugColor))
+    if(CanDebugOverrideOutputColor(surfaceData, inputData, debugColor))
     {
         return debugColor;
     }
