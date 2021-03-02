@@ -1,4 +1,3 @@
-using System;
 using UnityEngine;
 
 namespace UnityEditor.Rendering
@@ -78,7 +77,7 @@ namespace UnityEditor.Rendering
         /// <param name="prop">The MaterialProperty to make a field for</param>
         /// <param name="label">Label for the property</param>
         /// <param name="transform">Optional function to apply on the new value</param>
-        public static void IntShaderProperty(this MaterialEditor editor, MaterialProperty prop, GUIContent label, Func<int, int> transform = null)
+        public static void IntShaderProperty(this MaterialEditor editor, MaterialProperty prop, GUIContent label, System.Func<int, int> transform = null)
         {
             EditorGUI.BeginChangeCheck();
             EditorGUI.showMixedValue = prop.hasMixedValue;
@@ -109,6 +108,8 @@ namespace UnityEditor.Rendering
         /// </summary>
         /// <param name="editor"><see cref="MaterialEditor"/></param>
         /// <param name="prop">The MaterialProperty to make a field for</param>
+        /// <param name="min">The value at the left end of the slider</param>
+        /// <param name="max">The value at the right end of the slider</param>
         /// <param name="label">Label for the property</param>
         public static void IntSliderShaderProperty(this MaterialEditor editor, MaterialProperty prop, int min, int max, GUIContent label)
         {

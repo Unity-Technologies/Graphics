@@ -87,7 +87,6 @@ namespace UnityEditor.Rendering
         /// <param name="spaceAtEnd">Set this to true to make the block include space at the bottom of its UI. Set to false to not include any space.</param>
         /// <param name="colorDot">Specify a color to display a dot, like in the layered UI.</param>
         /// <param name="subHeader">Set to true to make this into a sub-header. This affects the style of the header. Set to false to make this use the standard style.</param>
-        /// <param name="keyPrefix">The key prefix for the preferences</param>
         public MaterialHeaderScope(string title, uint bitExpanded, MaterialEditor materialEditor, bool spaceAtEnd = true, Color colorDot = default, bool subHeader = false)
             : this(EditorGUIUtility.TrTextContent(title, string.Empty), bitExpanded, materialEditor, spaceAtEnd, colorDot, subHeader)
         {
