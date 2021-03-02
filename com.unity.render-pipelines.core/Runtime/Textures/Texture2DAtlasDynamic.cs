@@ -3,7 +3,7 @@ using UnityEngine.Experimental.Rendering;
 using System;
 using System.Runtime.InteropServices;
 
-namespace UnityEngine.Rendering.HighDefinition
+namespace UnityEngine.Rendering
 {
     class AtlasAllocatorDynamic
     {
@@ -418,7 +418,7 @@ namespace UnityEngine.Rendering.HighDefinition
                     for (int mipLevel = 0; mipLevel < (texture as Texture2D).mipmapCount; mipLevel++)
                     {
                         cmd.SetRenderTarget(m_AtlasTexture, mipLevel);
-                        HDUtils.BlitQuad(cmd, texture, new Vector4(1, 1, 0, 0), scaleBias, mipLevel, false);
+                        Blitter.BlitQuad(cmd, texture, new Vector4(1, 1, 0, 0), scaleBias, mipLevel, false);
                     }
                     m_AllocationCache.Add(key, scaleBias);
                     return true;

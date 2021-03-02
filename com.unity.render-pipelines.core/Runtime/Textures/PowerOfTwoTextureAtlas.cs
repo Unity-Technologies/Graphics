@@ -1,12 +1,9 @@
-using System.Collections;
 using System.Collections.Generic;
-using UnityEngine;
-using UnityEngine.Rendering;
 using UnityEngine.Experimental.Rendering;
 
-namespace UnityEngine.Rendering.HighDefinition
+namespace UnityEngine.Rendering
 {
-    class PowerOfTwoTextureAtlas : Texture2DAtlas
+    public class PowerOfTwoTextureAtlas : Texture2DAtlas
     {
         public int mipPadding;
         const float k_MipmapFactorApprox = 1.33f;
@@ -25,6 +22,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
         int GetTexturePadding() => (int)Mathf.Pow(2, mipPadding) * 2;
 
+        // TODO: should this be in core utils??
         // branchless previous power of two: Hacker’s Delight, Second Edition page 66
         static int PreviousPowerOfTwo(int size)
         {
@@ -49,12 +47,12 @@ namespace UnityEngine.Rendering.HighDefinition
             if (!blitMips)
                 mipCount = 1;
 
-            using (new ProfilingScope(cmd, ProfilingSampler.Get(HDProfileId.BlitTextureInPotAtlas)))
+            using (new ProfilingScope(cmd, ProfilingSampler.Get(CoreProfileId.BlitTextureInPotAtlas)))
             {
                 for (int mipLevel = 0; mipLevel < mipCount; mipLevel++)
                 {
                     cmd.SetRenderTarget(m_AtlasTexture, mipLevel);
-                    HDUtils.BlitQuadWithPadding(cmd, texture, textureSize, sourceScaleOffset, scaleOffset, mipLevel, bilinear, pixelPadding);
+                    Blitter.BlitQuadWithPadding(cmd, texture, textureSize, sourceScaleOffset, scaleOffset, mipLevel, bilinear, pixelPadding);
                 }
             }
         }
@@ -69,12 +67,12 @@ namespace UnityEngine.Rendering.HighDefinition
             if (!blitMips)
                 mipCount = 1;
 
-            using (new ProfilingScope(cmd, ProfilingSampler.Get(HDProfileId.BlitTextureInPotAtlas)))
+            using (new ProfilingScope(cmd, ProfilingSampler.Get(CoreProfileId.BlitTextureInPotAtlas)))
             {
                 for (int mipLevel = 0; mipLevel < mipCount; mipLevel++)
                 {
                     cmd.SetRenderTarget(m_AtlasTexture, mipLevel);
-                    HDUtils.BlitQuadWithPaddingMultiply(cmd, texture, textureSize, sourceScaleOffset, scaleOffset, mipLevel, bilinear, pixelPadding);
+                    Blitter.BlitQuadWithPaddingMultiply(cmd, texture, textureSize, sourceScaleOffset, scaleOffset, mipLevel, bilinear, pixelPadding);
                 }
             }
         }
@@ -89,12 +87,12 @@ namespace UnityEngine.Rendering.HighDefinition
             if (!blitMips)
                 mipCount = 1;
 
-            using (new ProfilingScope(cmd, ProfilingSampler.Get(HDProfileId.BlitTextureInPotAtlas)))
+            using (new ProfilingScope(cmd, ProfilingSampler.Get(CoreProfileId.BlitTextureInPotAtlas)))
             {
                 for (int mipLevel = 0; mipLevel < mipCount; mipLevel++)
                 {
                     cmd.SetRenderTarget(m_AtlasTexture, mipLevel);
-                    HDUtils.BlitOctahedralWithPadding(cmd, texture, textureSize, sourceScaleOffset, scaleOffset, mipLevel, bilinear, pixelPadding);
+                    Blitter.BlitOctahedralWithPadding(cmd, texture, textureSize, sourceScaleOffset, scaleOffset, mipLevel, bilinear, pixelPadding);
                 }
             }
         }
@@ -109,12 +107,12 @@ namespace UnityEngine.Rendering.HighDefinition
             if (!blitMips)
                 mipCount = 1;
 
-            using (new ProfilingScope(cmd, ProfilingSampler.Get(HDProfileId.BlitTextureInPotAtlas)))
+            using (new ProfilingScope(cmd, ProfilingSampler.Get(CoreProfileId.BlitTextureInPotAtlas)))
             {
                 for (int mipLevel = 0; mipLevel < mipCount; mipLevel++)
                 {
                     cmd.SetRenderTarget(m_AtlasTexture, mipLevel);
-                    HDUtils.BlitOctahedralWithPaddingMultiply(cmd, texture, textureSize, sourceScaleOffset, scaleOffset, mipLevel, bilinear, pixelPadding);
+                    Blitter.BlitOctahedralWithPaddingMultiply(cmd, texture, textureSize, sourceScaleOffset, scaleOffset, mipLevel, bilinear, pixelPadding);
                 }
             }
         }
@@ -244,12 +242,12 @@ namespace UnityEngine.Rendering.HighDefinition
         }
 
         public static long GetApproxCacheSizeInByte(int nbElement, int resolution, bool hasMipmap, GraphicsFormat format)
-            => (long)(nbElement * resolution * resolution * (double)((hasMipmap ? k_MipmapFactorApprox : 1.0f) * HDUtils.GetFormatSizeInBytes(format)));
+            => (long)(nbElement * resolution * resolution * (double)((hasMipmap ? k_MipmapFactorApprox : 1.0f) * GraphicsFormatUtility.GetBlockSize(format)));
 
         public static int GetMaxCacheSizeForWeightInByte(int weight, bool hasMipmap, GraphicsFormat format)
         {
             // Compute the max size of a power of two atlas for a given size in byte (weight)
-            float bytePerPixel = (float)HDUtils.GetFormatSizeInBytes(format) * (hasMipmap ? k_MipmapFactorApprox : 1.0f);
+            float bytePerPixel = (float)GraphicsFormatUtility.GetBlockSize(format) * (hasMipmap ? k_MipmapFactorApprox : 1.0f);
             var maxAtlasSquareSize = Mathf.Sqrt((float)weight / bytePerPixel);
             return PreviousPowerOfTwo((int)maxAtlasSquareSize);
         }
