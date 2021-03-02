@@ -340,7 +340,10 @@ namespace UnityEngine.Rendering
             viewport.y      *= renderPass.renderTargetDesc.height;
             viewport.height *= renderPass.renderTargetDesc.height;
 
-            return new XRView(renderParameter.projection, renderParameter.view, viewport, renderParameter.occlusionMesh, renderParameter.textureArraySlice);
+            // XRTODO: remove this line and use XRSettings.useOcclusionMesh instead when it's fixed
+            Mesh occlusionMesh = XRGraphicsAutomatedTests.running ? null : renderParameter.occlusionMesh;
+
+            return new XRView(renderParameter.projection, renderParameter.view, viewport, occlusionMesh, renderParameter.textureArraySlice);
         }
 
         static XRPassCreateInfo BuildPass(XRDisplaySubsystem.XRRenderPass xrRenderPass, ScriptableCullingParameters cullingParameters)

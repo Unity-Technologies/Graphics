@@ -10,8 +10,8 @@ using UnityEngine.TestTools.Graphics;
 
 class InjectMockHMDTest
 {
-	[Test]
-	public void ValidateLoaderTest()
+    [Test]
+    public void ValidateLoaderTest()
     {
         if (RuntimeSettings.reuseTestsForXR)
         {
