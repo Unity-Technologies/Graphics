@@ -53,6 +53,7 @@ namespace UnityEngine.Rendering.Universal.Internal
                     cameraData.requireSrgbConversion);
 
                 cmd.SetGlobalTexture(URPShaderIDs._SourceTex, m_Source);
+                cmd.SetGlobalVector(URPShaderIDs._RTHandleScale, RTHandles.rtHandleProperties.rtHandleScale);
 
 #if ENABLE_VR && ENABLE_XR_MODULE
                 if (cameraData.xr.enabled)
