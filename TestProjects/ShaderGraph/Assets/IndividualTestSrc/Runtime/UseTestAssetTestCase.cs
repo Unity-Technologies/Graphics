@@ -51,9 +51,11 @@ public class UseTestAssetTestCaseAttribute : UnityEngine.TestTools.UnityTestAttr
         static string k_fileLocation = $"Assets/ReferenceImages/{QualitySettings.activeColorSpace}/{Application.platform}/{SystemInfo.graphicsDeviceType}/{LoadedXRDevice}";
         public IEnumerable<TestAssetTestData> GetTestCases()
         {
+            Debug.Log("EditorProvider.GetTestCases()");
             List<TestAssetTestData> output = new List<TestAssetTestData>();
             foreach(var testAsset in SetupTestAssetTestCases.ShaderGraphTests)
             {
+                Debug.Log("TestAsset:" + testAsset.name);
                 foreach(var individualTest in testAsset.testMaterial)
                 {
                     if(testAsset.name == null || individualTest.material == null || individualTest.material.name == null)
@@ -70,6 +72,7 @@ public class UseTestAssetTestCaseAttribute : UnityEngine.TestTools.UnityTestAttr
                     data.FromJson(File.ReadAllText(hashPath));
                     data.expectedResult = AssetDatabase.LoadAssetAtPath<Texture2D>($"{k_fileLocation}/{testAsset.name}/{testAsset.name}_{individualTest.material.name}_{SetupTestAssetTestCases.k_resultImageSuffix}");
                     data.testMaterial = individualTest.material;
+                    data.TestMaterialPath = individualTest.material.name;
                     data.customMesh = testAsset.customMesh;
                     if(data.testMaterial == null)
                     {
@@ -87,6 +90,7 @@ public class UseTestAssetTestCaseAttribute : UnityEngine.TestTools.UnityTestAttr
     {
         public IEnumerable<TestAssetTestData> GetTestCases()
         {
+            Debug.Log("PlayerProvider.GetTestCases()");
             AssetBundle referenceImagesBundle = null;
 
             // apparently unity automatically saves the asset bundle as all lower case
@@ -115,20 +119,23 @@ public class UseTestAssetTestCaseAttribute : UnityEngine.TestTools.UnityTestAttr
                 {
                     TestAssetTestData data = new TestAssetTestData();
                     data.FromJson(individualTestData.text);
-                    if (data.testMaterial == null)
+                    Debug.Log("data:" + data.testName);
+                    if (data.TestMaterialPath == null || data.TestMaterialPath.Length == 0)
                     {
                         continue;
                     }
+                    Debug.Log("data.TestMaterialPath:" + data.TestMaterialPath);
                     data.testMaterial = referenceImagesBundle.LoadAsset<Material>(data.TestMaterialPath);
-                    if(data.CustomMeshPath != null)
+                    Debug.Log("material loaded " + (data.testMaterial != null).ToString());
+                    if(data.CustomMeshPath != null && data.CustomMeshPath.Length > 0)
                     {
                         data.customMesh = referenceImagesBundle.LoadAsset<Mesh>(data.CustomMeshPath);
                     }
-                    if(data.ExpectedResultPath != null)
+                    if(data.ExpectedResultPath != null && data.ExpectedResultPath.Length > 0)
                     {
                         data.expectedResult = referenceImagesBundle.LoadAsset<Texture2D>(data.ExpectedResultPath);
                     }
-
+                    Debug.Log("returning data");
                     yield return data;
                 }
             }

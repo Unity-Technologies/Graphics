@@ -10,12 +10,14 @@ public class TestAssetTestData
     [NonSerialized]
     public Texture2D expectedResult;
     [SerializeField]
-    public string ExpectedResultPath { get; private set; }
+    private string m_expectedResultPath;
+    public string ExpectedResultPath { get => m_expectedResultPath; private set => m_expectedResultPath = value; }
     public int expectedHash;
     [NonSerialized]
     public Material testMaterial;
     [SerializeField]
-    public string TestMaterialPath { get; private set; }
+    private string m_testMaterialPath;
+    public string TestMaterialPath { get => m_testMaterialPath; set => m_testMaterialPath = value; }
     public int testHash;
     public bool isCameraPersective;
     [NonSerialized]
@@ -25,7 +27,8 @@ public class TestAssetTestData
     [NonSerialized]
     public Mesh customMesh;
     [SerializeField]
-    public string CustomMeshPath { get; private set; }
+    private string m_customMeshPath;
+    public string CustomMeshPath { get => m_customMeshPath; private set => m_customMeshPath = value; }
 
     public string ToJson()
     {
