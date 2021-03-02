@@ -45,7 +45,7 @@ public class UseTestAssetTestCaseAttribute : UnityEngine.TestTools.UnityTestAttr
         }
     }
 
-#if UNITY_EDITOR
+#if !UNITY_EDITOR
     public class EditorProvider : ITestAssetTestProvider
     {
         static string k_fileLocation = $"Assets/ReferenceImages/{QualitySettings.activeColorSpace}/{Application.platform}/{SystemInfo.graphicsDeviceType}/{LoadedXRDevice}";
@@ -115,6 +115,10 @@ public class UseTestAssetTestCaseAttribute : UnityEngine.TestTools.UnityTestAttr
                 {
                     TestAssetTestData data = new TestAssetTestData();
                     data.FromJson(individualTestData.text);
+                    if (data.testMaterial == null)
+                    {
+                        continue;
+                    }
                     data.testMaterial = referenceImagesBundle.LoadAsset<Material>(data.TestMaterialPath);
                     if(data.CustomMeshPath != null)
                     {
