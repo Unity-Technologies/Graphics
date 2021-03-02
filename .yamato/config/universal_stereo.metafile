@@ -8,6 +8,8 @@ test_platforms:
   - type: editmode
   - type: Standalone
     name: Standalone_cache
+    utr_flags:
+    - [all]: compilation-errors-as-warnings
     utr_flags_build:
     - [all]: compilation-errors-as-warnings
     - [all]: --timeout=3000
