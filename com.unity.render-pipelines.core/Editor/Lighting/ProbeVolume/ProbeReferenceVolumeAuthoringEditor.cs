@@ -2,6 +2,9 @@
 
 using UnityEditor;
 using UnityEditor.Rendering;
+using System.Reflection;
+using System;
+using System.Collections.Generic;
 
 namespace UnityEngine.Rendering
 {
@@ -9,6 +12,16 @@ namespace UnityEngine.Rendering
     [CustomEditor(typeof(ProbeReferenceVolumeAuthoring))]
     internal class ProbeReferenceVolumeAuthoringEditor : Editor
     {
+        // debug gizmo data
+        class CellInstancedDebugProbes
+        {
+            public List<Matrix4x4[]> probeBuffers;
+            public List<MaterialPropertyBlock> props;
+            public List<int[]> probeMaps;
+            public Hash128 cellHash;
+            public Vector3 cellPosition;
+        }
+
         private SerializedProperty m_DrawProbes;
         private SerializedProperty m_DrawBricks;
         private SerializedProperty m_DrawCells;
@@ -36,6 +49,17 @@ namespace UnityEngine.Rendering
 
         ProbeReferenceVolumeAuthoring actualTarget => target as ProbeReferenceVolumeAuthoring;
 
+        // Debug Properties
+        Mesh debugMesh;
+        Material debugMaterial;
+        const int probesPerBatch = 1023;
+        List<CellInstancedDebugProbes> cellDebugData = new List<CellInstancedDebugProbes>();
+
+        //Once the onRenderPipelineTypeChanged event is made public, we won't need the following:
+        static EventInfo onRenderPipelineTypeChanged = typeof(RenderPipelineManager).GetEvent("activeRenderPipelineTypeChanged", BindingFlags.NonPublic | BindingFlags.Static);
+        static MethodInfo addHandler = onRenderPipelineTypeChanged.GetAddMethod(nonPublic: true);
+        static MethodInfo removeHandler = onRenderPipelineTypeChanged.GetAddMethod(nonPublic: true);
+
         private void OnEnable()
         {
             m_Profile = serializedObject.FindProperty("m_Profile");
@@ -53,6 +77,15 @@ namespace UnityEngine.Rendering
             m_VolumeAsset = serializedObject.FindProperty("volumeAsset");
 
             DilationValidityThresholdInverted = 1f - m_DilationValidityThreshold.floatValue;
+
+            // Update debug material in case the current render pipeline has a custom one
+            CheckInit();
+            addHandler.Invoke(null, new Action[] { UpdateDebugMaterial });
+        }
+
+        void OnDisable()
+        {
+            removeHandler.Invoke(null, new Action[] { UpdateDebugMaterial });
         }
 
         public override void OnInspectorGUI()
@@ -125,7 +158,7 @@ namespace UnityEngine.Rendering
                     EditorGUI.BeginDisabledGroup(!m_DrawProbes.boolValue);
                     m_ProbeShading.enumValueIndex = EditorGUILayout.Popup("Probe Shading Mode", m_ProbeShading.enumValueIndex, ProbeShadingModes);
                     EditorGUI.BeginDisabledGroup(m_ProbeShading.enumValueIndex != 1);
-                    m_Exposure.floatValue = EditorGUILayout.FloatField("Probe exposure", m_Exposure.floatValue);
+                    m_Exposure.floatValue = EditorGUILayout.FloatField("Probe Exposure Offset", m_Exposure.floatValue);
                     EditorGUI.EndDisabledGroup();
                     EditorGUI.EndDisabledGroup();
                     m_CullingDistance.floatValue = EditorGUILayout.FloatField("Culling Distance", m_CullingDistance.floatValue);
@@ -165,12 +198,141 @@ namespace UnityEngine.Rendering
             m_DilationValidityThreshold.floatValue = 1f - DilationValidityThresholdInverted;
         }
 
+        private void CheckInit()
+        {
+            if (debugMesh == null || debugMaterial == null)
+            {
+                // Load debug mesh, material
+                debugMesh = AssetDatabase.LoadAssetAtPath<Mesh>("Packages/com.unity.render-pipelines.core/Editor/Resources/DebugProbe.fbx");
+                UpdateDebugMaterial();
+            }
+        }
+
+        void UpdateDebugMaterial()
+        {
+            Shader debugShader = Shader.Find("Hidden/InstancedProbeShader");
+            if (GraphicsSettings.renderPipelineAsset is IOverrideCoreEditorResources overrideResources)
+                debugShader = overrideResources.GetProbeVolumeProbeShader();
+
+            debugMaterial = new Material(Shader.Find("Hidden/InstancedProbeShader")) { enableInstancing = true };
+        }
+
         public void OnSceneGUI()
         {
-            ProbeReferenceVolumeAuthoring pvra = target as ProbeReferenceVolumeAuthoring;
+            // if (Event.current.type == EventType.Repaint)
+            DrawProbeGizmos();
+        }
 
-            if (Event.current.type == EventType.Layout)
-                pvra.DrawProbeGizmos();
+        void DrawProbeGizmos()
+        {
+            if (m_DrawProbes.boolValue)
+            {
+                // TODO: Update data on ref vol changes
+                if (cellDebugData.Count == 0)
+                    CreateInstancedProbes();
+
+                // Debug data has not been loaded yet.
+                if (debugMesh == null || debugMaterial == null)
+                    return;
+
+                foreach (var debug in cellDebugData)
+                {
+                    if (actualTarget.ShouldCull(debug.cellPosition))
+                        continue;
+
+                    for (int i = 0; i < debug.probeBuffers.Count; ++i)
+                    {
+                        var probeBuffer = debug.probeBuffers[i];
+                        var props = debug.props[i];
+                        props.SetInt("_ShadingMode", m_ProbeShading.intValue);
+                        props.SetFloat("_Exposure", -m_Exposure.floatValue);
+                        props.SetFloat("_ProbeSize", Gizmos.probeSize * 100);
+
+                        var debugCam = SceneView.lastActiveSceneView.camera;
+                        Graphics.DrawMeshInstanced(debugMesh, 0, debugMaterial, probeBuffer, probeBuffer.Length, props, ShadowCastingMode.Off, false, 0, debugCam, LightProbeUsage.Off, null);
+                    }
+                }
+            }
+        }
+
+        void CreateInstancedProbes()
+        {
+            foreach (var cell in ProbeReferenceVolume.instance.cells.Values)
+            {
+                if (cell.sh == null || cell.sh.Length == 0)
+                    continue;
+
+                float largestBrickSize = cell.bricks.Count == 0 ? 0 : cell.bricks[0].size;
+
+                List<Matrix4x4[]> probeBuffers = new List<Matrix4x4[]>();
+                List<MaterialPropertyBlock> props = new List<MaterialPropertyBlock>();
+                List<int[]> probeMaps = new List<int[]>();
+
+                // Batch probes for instanced rendering
+                for (int brickSize = 0; brickSize < largestBrickSize + 1; brickSize++)
+                {
+                    List<Matrix4x4> probeBuffer = new List<Matrix4x4>();
+                    List<int> probeMap = new List<int>();
+
+                    for (int i = 0; i < cell.probePositions.Length; i++)
+                    {
+                        // Skip probes which aren't of current brick size
+                        if (cell.bricks[i / 64].size == brickSize)
+                        {
+                            probeBuffer.Add(Matrix4x4.TRS(cell.probePositions[i], Quaternion.identity, Vector3.one * (0.3f * (brickSize + 1))));
+                            probeMap.Add(i);
+                        }
+
+                        // Batch limit reached or out of probes
+                        if (probeBuffer.Count >= probesPerBatch || i == cell.probePositions.Length - 1)
+                        {
+                            MaterialPropertyBlock prop = new MaterialPropertyBlock();
+                            float gradient = largestBrickSize == 0 ? 1 : brickSize / largestBrickSize;
+                            prop.SetColor("_Color", Color.Lerp(Color.red, Color.green, gradient));
+                            props.Add(prop);
+
+                            probeBuffers.Add(probeBuffer.ToArray());
+                            probeBuffer = new List<Matrix4x4>();
+                            probeMaps.Add(probeMap.ToArray());
+                            probeMap = new List<int>();
+                        }
+                    }
+                }
+
+                var debugData = new CellInstancedDebugProbes();
+                debugData.probeBuffers = probeBuffers;
+                debugData.props = props;
+                debugData.probeMaps = probeMaps;
+                debugData.cellPosition = cell.position;
+
+                Vector4[][] shBuffer = new Vector4[4][];
+                for (int i = 0; i < shBuffer.Length; i++)
+                    shBuffer[i] = new Vector4[probesPerBatch];
+
+                Vector4[] validityColors = new Vector4[probesPerBatch];
+
+                for (int batchIndex = 0; batchIndex < debugData.probeMaps.Count; batchIndex++)
+                {
+                    for (int indexInBatch = 0; indexInBatch < debugData.probeMaps[batchIndex].Length; indexInBatch++)
+                    {
+                        int probeIdx = debugData.probeMaps[batchIndex][indexInBatch];
+
+                        shBuffer[0][indexInBatch] = new Vector4(cell.sh[probeIdx][0, 3], cell.sh[probeIdx][0, 1], cell.sh[probeIdx][0, 2], cell.sh[probeIdx][0, 0]);
+                        shBuffer[1][indexInBatch] = new Vector4(cell.sh[probeIdx][1, 3], cell.sh[probeIdx][1, 1], cell.sh[probeIdx][1, 2], cell.sh[probeIdx][1, 0]);
+                        shBuffer[2][indexInBatch] = new Vector4(cell.sh[probeIdx][2, 3], cell.sh[probeIdx][2, 1], cell.sh[probeIdx][2, 2], cell.sh[probeIdx][2, 0]);
+
+                        validityColors[indexInBatch] = Color.Lerp(Color.green, Color.red, cell.validity[probeIdx]);
+                    }
+
+                    debugData.props[batchIndex].SetVectorArray("_R", shBuffer[0]);
+                    debugData.props[batchIndex].SetVectorArray("_G", shBuffer[1]);
+                    debugData.props[batchIndex].SetVectorArray("_B", shBuffer[2]);
+
+                    debugData.props[batchIndex].SetVectorArray("_Validity", validityColors);
+                }
+
+                cellDebugData.Add(debugData);
+            }
         }
     }
 }
