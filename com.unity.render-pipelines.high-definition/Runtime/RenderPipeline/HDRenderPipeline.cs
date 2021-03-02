@@ -260,7 +260,7 @@ namespace UnityEngine.Rendering.HighDefinition
         bool frozenCullingParamAvailable = false;
 
         // RENDER GRAPH
-        RenderGraph m_RenderGraph = new RenderGraph("HDRPGraph");
+        RenderGraph m_RenderGraph = new RenderGraph("HDRP");
 
         // MSAA resolve materials
         Material m_ColorResolveMaterial = null;
@@ -710,11 +710,6 @@ namespace UnityEngine.Rendering.HighDefinition
 #endif
         }
 
-        void InitializeRenderGraph()
-        {
-            m_RenderGraph = new RenderGraph("HDRPGraph");
-        }
-
         void CleanupRenderGraph()
         {
             m_RenderGraph.Cleanup();
@@ -871,9 +866,9 @@ namespace UnityEngine.Rendering.HighDefinition
             }
 
 #endif
-
-                CleanupRenderGraph();
             }
+
+            CleanupRenderGraph();
 
             ConstantBuffer.ReleaseAll();
 
@@ -1293,6 +1288,8 @@ namespace UnityEngine.Rendering.HighDefinition
                     // Render directly to XR render target if active
                     if (hdCamera.xr.enabled && hdCamera.xr.renderTargetValid)
                         targetId = hdCamera.xr.renderTarget;
+
+                    hdCamera.RequestDynamicResolution(cameraRequestedDynamicRes, dynResHandler);
 
                     // Add render request
                     var request = new RenderRequest
