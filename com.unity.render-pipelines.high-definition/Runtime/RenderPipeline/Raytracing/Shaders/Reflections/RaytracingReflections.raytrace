@@ -112,14 +112,14 @@ void RayGenIntegration()
         int globalSampleIndex = _RaytracingFrameIndex * realSampleCount + sampleIndex;
 
         // Generate the new sample (follwing values of the sequence)
-        float2 sample;
-        sample.x = GetBNDSequenceSample(currentCoord, globalSampleIndex, 0);
-        sample.y = GetBNDSequenceSample(currentCoord, globalSampleIndex, 1);
+        float2 theSample;
+        theSample.x = GetBNDSequenceSample(currentCoord, globalSampleIndex, 0);
+        theSample.y = GetBNDSequenceSample(currentCoord, globalSampleIndex, 1);
 
         // Importance sample the direction using GGX
         float3 sampleDir = float3(0.0, 0.0, 0.0);
         float NdotL, NdotH, VdotH;
-        SampleGGXDir(sample, viewWS, localToWorld, roughness, sampleDir, NdotL, NdotH, VdotH);
+        SampleGGXDir(theSample, viewWS, localToWorld, roughness, sampleDir, NdotL, NdotH, VdotH);
 
         // If the sample is under the surface
         if (dot(sampleDir, normalData.normalWS) <= 0.0)

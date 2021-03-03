@@ -4,7 +4,55 @@ All notable changes to this package will be documented in this file.
 The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.html).
 
+<<<<<<< HEAD
 ## [11.0.0] - 2020-12-02
+=======
+## [12.0.0] - 2021-01-11
+
+### Added
+- Added support for the PlayStation 5 platform.
+
+### Fixed
+- Fixed GC allocations from XR occlusion mesh when using multipass.
+- Fixed XR depth copy when using MSAA.
+- Fixed register spilling on  FXC in light list shaders.
+- Fixed after post process custom pass scale issue when dynamic resolution is enabled (case 1299194).
+- Fixed an issue with light intensity prefab override application not visible in the inspector (case 1299563).
+- Fixed Undo/Redo instability of light temperature.
+- Fixed label style in pbr sky editor.
+- Fixed side effect on styles during compositor rendering.
+- Fixed size and spacing of compositor info boxes (case 1305652).
+- Fixed spacing of UI widgets in the Graphics Compositor (case 1305638).
+- Fixed undo-redo on layered lit editor.
+- Fixed tesselation culling, big triangles using lit tesselation shader would dissapear when camera is too close to them (case 1299116)
+- Fixed issue with compositor related custom passes still active after disabling the compositor (case 1305330)
+- Fixed some render texture leaks.
+- Fixed regression in Wizard that not fix runtime ressource anymore (case 1287627)
+- Fixed error in Depth Of Field near radius blur calculation (case 1306228).
+- Fixed a reload bug when using objects from the scene in the lookdev (case 1300916).
+- Fixed light gizmo showing shadow near plane when shadows are disabled.
+- Fixed path tracing alpha channel support (case 1304187).
+- Fixed shadow matte not working with ambient occlusion when MSAA is enabled
+- Fixed issues with compositor's undo (cases 1305633, 1307170).
+- Fixed wrong shader / properties assignement to materials created from 3DsMax 2021 Physical Material. (case 1293576)
+- Fixed Emissive color property from Autodesk Interactive materials not editable in Inspector. (case 1307234)
+- Fixed exception when changing the current render pipeline to from HDRP to universal (case 1306291).
+- Fixed an issue in shadergraph when switch from a RenderingPass (case 1307653)
+- Fixed LookDev environment library assignement after leaving playmode.
+- Fixed a locale issue with the diffusion profile property values in ShaderGraph on PC where comma is the decimal separator.
+- Fixed error in the RTHandle scale of Depth Of Field when TAA is enabled.
+- Fixed Quality Level set to the last one of the list after a Build (case 1307450)
+- Fixed XR depth copy (case 1286908).
+- Fixed Warnings about "SceneIdMap" missing script in eye material sample scene
+
+### Changed
+- Change the source value for the ray tracing frame index iterator from m_FrameCount to the camera frame count (case 1301356).
+- Change some light unit slider value ranges to better reflect the lighting scenario.
+- Transparent materials created by the Model Importer are set to not cast shadows. ( case 1295747)
+- Change the tooltip for color shadows and semi-transparent shadows (case 1307704).
+
+## [11.0.0] - 2020-10-21
+>>>>>>> 39aa6247e5... [HDRP] Update eye sample scene (#3227)
 
 ### Added
 - Added a new API to bake HDRP probes from C# (case 1276360)
@@ -76,6 +124,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed Quality Level set to the last one of the list after a Build (case 1307450)
 - Fixed wrong shader / properties assignement to materials created from 3DsMax 2021 Physical Material. (case 1293576)
 - Fixed Emissive color property from Autodesk Interactive materials not editable in Inspector. (case 1307234)
+- Fixed Warnings about "SceneIdMap" missing script in eye material sample scene
+- Fixed resize IES when already baked in the Atlas 1299233
 
 ### Changed
 - Removed the material pass probe volumes evaluation mode.
