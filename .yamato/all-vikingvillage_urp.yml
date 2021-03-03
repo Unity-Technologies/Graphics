@@ -20,12 +20,6 @@ PR_VikingVillage_URP_trunk:
          rerun: on-new-revision
       -  path: .yamato/vikingvillage_urp-win-vulkan.yml#VikingVillage_URP_Win_Vulkan_performance_build_editmode_mono_Linear_trunk
          rerun: on-new-revision
-      -  path: .yamato/vikingvillage_urp-win-dx12.yml#VikingVillage_URP_Win_DX12_performance_playmode_runtime_mono_Linear_trunk
-         rerun: on-new-revision
-      -  path: .yamato/vikingvillage_urp-win-dx12.yml#VikingVillage_URP_Win_DX12_performance_playmode_editor_mono_Linear_trunk
-         rerun: on-new-revision
-      -  path: .yamato/vikingvillage_urp-win-dx12.yml#VikingVillage_URP_Win_DX12_performance_build_editmode_mono_Linear_trunk
-         rerun: on-new-revision
       -  path: .yamato/vikingvillage_urp-android-opengles3.yml#VikingVillage_URP_Android_OpenGLES3_performance_playmode_runtime_il2cpp_Linear_trunk
          rerun: on-new-revision
       -  path: .yamato/vikingvillage_urp-android-opengles3.yml#VikingVillage_URP_Android_OpenGLES3_performance_build_editmode_il2cpp_Linear_trunk
@@ -71,12 +65,6 @@ PR_VikingVillage_URP_CUSTOM-REVISION:
       -  path: .yamato/vikingvillage_urp-win-vulkan.yml#VikingVillage_URP_Win_Vulkan_performance_playmode_runtime_mono_Linear_CUSTOM-REVISION
          rerun: always
       -  path: .yamato/vikingvillage_urp-win-vulkan.yml#VikingVillage_URP_Win_Vulkan_performance_build_editmode_mono_Linear_CUSTOM-REVISION
-         rerun: always
-      -  path: .yamato/vikingvillage_urp-win-dx12.yml#VikingVillage_URP_Win_DX12_performance_playmode_runtime_mono_Linear_CUSTOM-REVISION
-         rerun: always
-      -  path: .yamato/vikingvillage_urp-win-dx12.yml#VikingVillage_URP_Win_DX12_performance_playmode_editor_mono_Linear_CUSTOM-REVISION
-         rerun: always
-      -  path: .yamato/vikingvillage_urp-win-dx12.yml#VikingVillage_URP_Win_DX12_performance_build_editmode_mono_Linear_CUSTOM-REVISION
          rerun: always
       -  path: .yamato/vikingvillage_urp-android-opengles3.yml#VikingVillage_URP_Android_OpenGLES3_performance_playmode_runtime_il2cpp_Linear_CUSTOM-REVISION
          rerun: always

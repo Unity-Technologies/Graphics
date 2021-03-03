@@ -278,14 +278,6 @@ pr:
         - performance_playmode_runtime
         #- performance_playmode_editor
         - performance_build_editmode
-    - platform: Win
-      api: DX12
-      build_config: mono
-      color_space: Linear
-      test_platforms:
-        - performance_playmode_runtime
-        - performance_playmode_editor
-        - performance_build_editmode
     - platform: Android
       api: OpenGLES3
       build_config: il2cpp
