@@ -1,5 +1,3 @@
-using UnityEngine.Experimental.Rendering;
-
 namespace UnityEngine.Rendering.HighDefinition
 {
     partial class LTCAreaLight
@@ -30,13 +28,27 @@ namespace UnityEngine.Rendering.HighDefinition
             m_refCounting = 0;
         }
 
-        // Load LUT with 3x3 matrix in RGBA of a tex2D (some part are zero)
-        public static void LoadLUT(Texture2DArray tex, int arrayElement, GraphicsFormat format, double[,] LUTTransformInv)
+        // Load LUT with one scalar in alpha of a tex2D
+        public static void LoadLUT(Texture2DArray tex, int arrayElement, TextureFormat format, float[] LUTScalar)
         {
             const int count = k_LtcLUTResolution * k_LtcLUTResolution;
             Color[] pixels = new Color[count];
 
-            float clampValue = (format == GraphicsFormat.R16G16B16A16_SFloat) ? 65504.0f : float.MaxValue;
+            for (int i = 0; i < count; i++)
+            {
+                pixels[i] = new Color(0, 0, 0, LUTScalar[i]);
+            }
+
+            tex.SetPixels(pixels, arrayElement);
+        }
+
+        // Load LUT with 3x3 matrix in RGBA of a tex2D (some part are zero)
+        public static void LoadLUT(Texture2DArray tex, int arrayElement, TextureFormat format, double[,] LUTTransformInv)
+        {
+            const int count = k_LtcLUTResolution * k_LtcLUTResolution;
+            Color[] pixels = new Color[count];
+
+            float clampValue = (format == TextureFormat.RGBAHalf) ? 65504.0f : float.MaxValue;
 
             for (int i = 0; i < count; i++)
             {
@@ -57,16 +69,16 @@ namespace UnityEngine.Rendering.HighDefinition
 
             if (m_refCounting == 0)
             {
-                m_LtcData = new Texture2DArray(k_LtcLUTResolution, k_LtcLUTResolution, 3, GraphicsFormat.R16G16B16A16_SFloat, TextureCreationFlags.None)
+                m_LtcData = new Texture2DArray(k_LtcLUTResolution, k_LtcLUTResolution, 3, TextureFormat.RGBAHalf, false /*mipmap*/, true /* linear */)
                 {
                     hideFlags = HideFlags.HideAndDontSave,
                     wrapMode = TextureWrapMode.Clamp,
                     filterMode = FilterMode.Bilinear,
-                    name = CoreUtils.GetTextureAutoName(k_LtcLUTResolution, k_LtcLUTResolution, GraphicsFormat.R16G16B16A16_SFloat, depth: 2, dim: TextureDimension.Tex2DArray, name: "LTC_LUT")
+                    name = CoreUtils.GetTextureAutoName(k_LtcLUTResolution, k_LtcLUTResolution, TextureFormat.RGBAHalf, depth: 2, dim: TextureDimension.Tex2DArray, name: "LTC_LUT")
                 };
 
-                LoadLUT(m_LtcData, 0, GraphicsFormat.R16G16B16A16_SFloat, s_LtcGGXMatrixData);
-                LoadLUT(m_LtcData, 1, GraphicsFormat.R16G16B16A16_SFloat, s_LtcDisneyDiffuseMatrixData);
+                LoadLUT(m_LtcData, 0, TextureFormat.RGBAHalf, s_LtcGGXMatrixData);
+                LoadLUT(m_LtcData, 1, TextureFormat.RGBAHalf, s_LtcDisneyDiffuseMatrixData);
 
                 m_LtcData.Apply();
             }

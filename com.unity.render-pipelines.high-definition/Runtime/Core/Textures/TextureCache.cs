@@ -332,6 +332,20 @@ namespace UnityEngine.Rendering.HighDefinition
             }
         }
 
+        public static TextureFormat GetPreferredHDRCompressedTextureFormat
+        {
+            get
+            {
+                var format = TextureFormat.RGBAHalf;
+                var probeFormat = TextureFormat.BC6H;
+
+                if (SystemInfo.SupportsTextureFormat(probeFormat) && !UnityEngine.Rendering.GraphicsSettings.HasShaderDefine(UnityEngine.Rendering.BuiltinShaderDefine.UNITY_NO_DXT5nm))
+                    format = probeFormat;
+
+                return format;
+            }
+        }
+
         public static bool supportsCubemapArrayTextures
         {
             get

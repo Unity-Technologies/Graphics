@@ -59,9 +59,9 @@ namespace UnityEditor.ShaderGraph.Internal
 
         ConcretePrecision m_ConcretePrecision = ConcretePrecision.Single;
         public ConcretePrecision concretePrecision => m_ConcretePrecision;
-        internal void SetupConcretePrecision(ConcretePrecision defaultPrecision)
+        internal void ValidateConcretePrecision(ConcretePrecision graphPrecision)
         {
-            m_ConcretePrecision = precision.ToConcrete(defaultPrecision, defaultPrecision);
+            m_ConcretePrecision = (precision == Precision.Inherit) ? graphPrecision : precision.ToConcrete();
         }
 
         [SerializeField]
@@ -100,12 +100,7 @@ namespace UnityEditor.ShaderGraph.Internal
 
         internal abstract void ForeachHLSLProperty(Action<HLSLProperty> action);
 
-        internal virtual string GetPropertyAsArgumentStringForVFX(string precisionString)
-        {
-            return GetPropertyAsArgumentString(precisionString);
-        }
-
-        internal abstract string GetPropertyAsArgumentString(string precisionString);
+        internal abstract string GetPropertyAsArgumentString();
         internal abstract AbstractMaterialNode ToConcreteNode();
         internal abstract PreviewProperty GetPreviewMaterialProperty();
 

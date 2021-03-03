@@ -304,14 +304,9 @@ namespace UnityEditor.ShaderGraph.Drawing
                         reloadedSomething |= reloaded;
                     }
 
-                    // reloading files may change serialization
+                    // reloading files may change serilization
                     if (reloadedSomething)
-                    {
                         updateTitle = true;
-
-                        // may also need to re-run validation/concretization
-                        graphObject.Validate();
-                    }
 
                     m_ChangedFileDependencyGUIDs.Clear();
                 }

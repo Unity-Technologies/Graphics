@@ -1,5 +1,8 @@
+using System.Collections;
+using System.Collections.Generic;
+using System.IO;
+using UnityEngine;
 using UnityEditor;
-using UnityEngine.Experimental.Rendering;
 
 namespace UnityEngine.Rendering.HighDefinition
 {
@@ -82,7 +85,7 @@ namespace UnityEngine.Rendering.HighDefinition
         public void GenerateTable(CameraParameters cameraParameters, int angleSubdivision, float brdfPercentage, int outputWidth, int outputHeight, int outputDepth)
         {
             // Allocate our output texture
-            Texture3D kernelSize = new Texture3D(outputWidth, outputHeight, outputDepth, GraphicsFormat.R32G32B32A32_SFloat, TextureCreationFlags.None);
+            Texture3D kernelSize = new Texture3D(outputWidth, outputHeight, outputDepth, TextureFormat.RGBAFloat, false);
 
             // First of all, let's compute the projection matrix
             Matrix4x4 cameraProjection = Matrix4x4.Perspective(cameraParameters.fov, cameraParameters.aspect, cameraParameters.nearPlane, cameraParameters.farPlane);

@@ -72,10 +72,6 @@ namespace UnityEditor.VFX
             {
                 return "m_NamedObject";
             }
-            else if (type == typeof(SkinnedMeshRenderer))
-            {
-                return "m_NamedObject";
-            }
             else if (type == typeof(float))
             {
                 return "m_Float";

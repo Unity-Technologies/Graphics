@@ -1,5 +1,4 @@
 using System;
-using UnityEngine.Experimental.Rendering;
 
 namespace UnityEngine.Rendering.Universal.Internal
 {
@@ -17,7 +16,6 @@ namespace UnityEngine.Rendering.Universal.Internal
         private RenderTargetHandle source { get; set; }
         private RenderTargetHandle destination { get; set; }
         internal bool AllocateRT  { get; set; }
-        internal int MssaSamples { get; set; }
         Material m_CopyDepthMaterial;
         public CopyDepthPass(RenderPassEvent evt, Material copyDepthMaterial)
         {
@@ -37,7 +35,6 @@ namespace UnityEngine.Rendering.Universal.Internal
             this.source = source;
             this.destination = destination;
             this.AllocateRT = !destination.HasInternalRenderTargetId();
-            this.MssaSamples = -1;
         }
 
         public override void OnCameraSetup(CommandBuffer cmd, ref RenderingData renderingData)
@@ -50,7 +47,7 @@ namespace UnityEngine.Rendering.Universal.Internal
                 cmd.GetTemporaryRT(destination.id, descriptor, FilterMode.Point);
 
             // On Metal iOS, prevent camera attachments to be bound and cleared during this pass.
-            ConfigureTarget(new RenderTargetIdentifier(destination.Identifier(), 0, CubemapFace.Unknown, -1), GraphicsFormat.DepthAuto, descriptor.width, descriptor.height, descriptor.msaaSamples, true);
+            ConfigureTarget(new RenderTargetIdentifier(destination.Identifier(), 0, CubemapFace.Unknown, -1));
             ConfigureClear(ClearFlag.None, Color.black);
         }
 
@@ -65,15 +62,8 @@ namespace UnityEngine.Rendering.Universal.Internal
             CommandBuffer cmd = CommandBufferPool.Get();
             using (new ProfilingScope(cmd, ProfilingSampler.Get(URPProfileId.CopyDepth)))
             {
-                int cameraSamples = 0;
-
-                if (MssaSamples == -1)
-                {
-                    RenderTextureDescriptor descriptor = renderingData.cameraData.cameraTargetDescriptor;
-                    cameraSamples = descriptor.msaaSamples;
-                }
-                else
-                    cameraSamples = MssaSamples;
+                RenderTextureDescriptor descriptor = renderingData.cameraData.cameraTargetDescriptor;
+                int cameraSamples = descriptor.msaaSamples;
 
                 CameraData cameraData = renderingData.cameraData;
 
@@ -139,10 +129,7 @@ namespace UnityEngine.Rendering.Universal.Internal
                     // scaleBias.y = scale
                     // scaleBias.z = bias
                     // scaleBias.w = unused
-                    // In game view final target acts as back buffer were target is not flipped
-                    bool isGameViewFinalTarget = (cameraData.cameraType == CameraType.Game && destination == RenderTargetHandle.CameraTarget);
-                    bool yflip = (cameraData.IsCameraProjectionMatrixFlipped()) && !isGameViewFinalTarget;
-                    float flipSign = yflip ? -1.0f : 1.0f;
+                    float flipSign = (cameraData.IsCameraProjectionMatrixFlipped()) ? -1.0f : 1.0f;
                     Vector4 scaleBiasRt = (flipSign < 0.0f)
                         ? new Vector4(flipSign, 1.0f, -1.0f, 1.0f)
                         : new Vector4(flipSign, 0.0f, 1.0f, 1.0f);

@@ -25,13 +25,9 @@ Pass
 		#if USE_FLIPBOOK_INTERPOLATION
 		float4 uv : TEXCOORD1;
 		#else
-		#if USE_FLIPBOOK_ARRAY_LAYOUT
-		float3 uv : TEXCOORD1;
-		#else
 		float2 uv : TEXCOORD1;	
 		#endif
-		#endif
-		#if USE_SOFT_PARTICLE || USE_ALPHA_TEST || USE_FLIPBOOK_INTERPOLATION || VFX_FEATURE_MOTION_VECTORS_FORWARD
+		#if USE_SOFT_PARTICLE || USE_ALPHA_TEST || USE_FLIPBOOK_INTERPOLATION || WRITE_MOTION_VECTOR_IN_FORWARD
 		// x: inverse soft particles fade distance
 		// y: alpha threshold
 		// z: frame blending factor
@@ -52,7 +48,7 @@ Pass
 		float2 bentFactors : TEXCOORD6;
 		#endif
 
-		#if VFX_FEATURE_MOTION_VECTORS_FORWARD
+		#if WRITE_MOTION_VECTOR_IN_FORWARD
 		float4 cPosPrevious : TEXCOORD7;
 		float4 cPosNonJiterred : TEXCOORD8;
 		#endif
@@ -82,7 +78,7 @@ ${VFXHDRPLitVaryingsMacros}
 #endif
 #define VFX_VARYING_POSWS posWS
 
-#if VFX_FEATURE_MOTION_VECTORS_FORWARD
+#if WRITE_MOTION_VECTOR_IN_FORWARD
 #define VFX_VARYING_VELOCITY_CPOS cPosNonJiterred
 #define VFX_VARYING_VELOCITY_CPOS_PREVIOUS cPosPrevious
 #endif
@@ -103,7 +99,7 @@ ${VFXEnd}
 	#if USE_DOUBLE_SIDED
 	, bool frontFace : SV_IsFrontFace
 	#endif
-	#if VFX_FEATURE_MOTION_VECTORS_FORWARD
+	#if WRITE_MOTION_VECTOR_IN_FORWARD
 	, out float4 outMotionVector : SV_Target1
 	#endif
 	)
@@ -121,12 +117,12 @@ ${VFXEnd}
         #else
             outColor = VFXGetPixelOutputForward(i, normalWS, uvData);
         #endif
-
-        #if VFX_FEATURE_MOTION_VECTORS_FORWARD
-            ${VFXComputeOutputMotionVector}
-            outMotionVector = encodedMotionVector;
-            outMotionVector.a = outColor.a < i.VFX_VARYING_ALPHATHRESHOLD ? 0.0f : 1.0f; //Independant clipping for motion vector pass
-        #endif
+		
+#if WRITE_MOTION_VECTOR_IN_FORWARD
+		${VFXComputeOutputMotionVector}
+		outMotionVector = encodedMotionVector;
+		outMotionVector.a = outColor.a < i.VFX_VARYING_ALPHATHRESHOLD ? 0.0f : 1.0f; //Independant clipping for motion vector pass
+#endif
 	}
 	ENDHLSL
 }

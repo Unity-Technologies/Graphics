@@ -2,7 +2,7 @@
 #define UNITY_RAYTRACING_INTERSECTION_INCLUDED
 
 // Engine includes
-#include "UnityRayTracingMeshUtils.cginc"
+#include "UnityRaytracingMeshUtils.cginc"
 
 // Raycone structure that defines the stateof the ray
 struct RayCone

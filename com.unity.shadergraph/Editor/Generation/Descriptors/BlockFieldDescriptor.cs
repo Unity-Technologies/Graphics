@@ -8,11 +8,10 @@ namespace UnityEditor.ShaderGraph
         public ShaderStage shaderStage { get; }
         public bool isHidden { get; }
         public bool isUnknown { get; }
-        public bool isCustom { get; }
 
         internal string path { get; set; }
 
-        public BlockFieldDescriptor(string tag, string referenceName, string define, IControl control, ShaderStage shaderStage, bool isHidden = false, bool isUnknown = false, bool isCustom = false)
+        public BlockFieldDescriptor(string tag, string referenceName, string define, IControl control, ShaderStage shaderStage, bool isHidden = false, bool isUnknown = false)
             : base(tag, referenceName, define)
         {
             this.displayName = referenceName;
@@ -20,10 +19,9 @@ namespace UnityEditor.ShaderGraph
             this.shaderStage = shaderStage;
             this.isHidden = isHidden;
             this.isUnknown = isUnknown;
-            this.isCustom = isCustom;
         }
 
-        public BlockFieldDescriptor(string tag, string referenceName, string displayName, string define, IControl control, ShaderStage shaderStage, bool isHidden = false, bool isUnknown = false, bool isCustom = false)
+        public BlockFieldDescriptor(string tag, string referenceName, string displayName, string define, IControl control, ShaderStage shaderStage, bool isHidden = false, bool isUnknown = false)
             : base(tag, referenceName, define)
         {
             this.displayName = displayName;
@@ -31,7 +29,6 @@ namespace UnityEditor.ShaderGraph
             this.shaderStage = shaderStage;
             this.isHidden = isHidden;
             this.isUnknown = isUnknown;
-            this.isCustom = isCustom;
         }
     }
 

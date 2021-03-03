@@ -1,5 +1,5 @@
 {
-    "m_SGVersion": 3,
+    "m_SGVersion": 2,
     "m_Type": "UnityEditor.ShaderGraph.GraphData",
     "m_ObjectId": "60ca904df98c4c1f9f421c2faee403b1",
     "m_Properties": [
@@ -1345,8 +1345,7 @@
         }
     },
     "m_Path": "HDRP",
-    "m_GraphPrecision": 0,
-    "m_PreviewMode": 2,
+    "m_ConcretePrecision": 0,
     "m_OutputNode": {
         "m_Id": ""
     },
@@ -1364,6 +1363,7 @@
     "m_Id": 0,
     "m_DisplayName": "Smoothness",
     "m_SlotType": 0,
+    "m_Priority": 2147483647,
     "m_Hidden": false,
     "m_ShaderOutputName": "Smoothness",
     "m_StageCapability": 2,
@@ -1381,6 +1381,7 @@
     "m_Id": 0,
     "m_DisplayName": "MinimalPupilAperture",
     "m_SlotType": 1,
+    "m_Priority": 2147483647,
     "m_Hidden": false,
     "m_ShaderOutputName": "Out",
     "m_StageCapability": 3,
@@ -1417,7 +1418,6 @@
     "synonyms": [],
     "m_Precision": 0,
     "m_PreviewExpanded": true,
-    "m_PreviewMode": 0,
     "m_CustomColors": {
         "m_SerializableColors": []
     },
@@ -1433,6 +1433,7 @@
     "m_Id": 6,
     "m_DisplayName": "B",
     "m_SlotType": 1,
+    "m_Priority": 2147483647,
     "m_Hidden": false,
     "m_ShaderOutputName": "B",
     "m_StageCapability": 2,
@@ -1450,6 +1451,7 @@
     "m_Id": 1,
     "m_DisplayName": "X",
     "m_SlotType": 0,
+    "m_Priority": 2147483647,
     "m_Hidden": false,
     "m_ShaderOutputName": "X",
     "m_StageCapability": 3,
@@ -1467,6 +1469,7 @@
     "m_Id": 0,
     "m_DisplayName": "IrisClampColor",
     "m_SlotType": 1,
+    "m_Priority": 2147483647,
     "m_Hidden": false,
     "m_ShaderOutputName": "Out",
     "m_StageCapability": 3,
@@ -1486,7 +1489,7 @@
 }
 
 {
-    "m_SGVersion": 1,
+    "m_SGVersion": 0,
     "m_Type": "UnityEditor.ShaderGraph.ViewDirectionNode",
     "m_ObjectId": "0358f633aae44214ad01442ac8626b00",
     "m_Group": {
@@ -1511,7 +1514,6 @@
     "synonyms": [],
     "m_Precision": 0,
     "m_PreviewExpanded": false,
-    "m_PreviewMode": 2,
     "m_CustomColors": {
         "m_SerializableColors": []
     },
@@ -1525,10 +1527,10 @@
     "m_Id": 0,
     "m_DisplayName": "ScleraTexture",
     "m_SlotType": 1,
+    "m_Priority": 2147483647,
     "m_Hidden": false,
     "m_ShaderOutputName": "Out",
-    "m_StageCapability": 3,
-    "m_BareResource": false
+    "m_StageCapability": 3
 }
 
 {
@@ -1538,6 +1540,7 @@
     "m_Id": 1,
     "m_DisplayName": "Sclera Normal",
     "m_SlotType": 0,
+    "m_Priority": 2147483647,
     "m_Hidden": false,
     "m_ShaderOutputName": "ScleraNormal",
     "m_StageCapability": 3,
@@ -1565,6 +1568,7 @@
     "m_Id": 3,
     "m_DisplayName": "Limbal Ring Fade",
     "m_SlotType": 0,
+    "m_Priority": 2147483647,
     "m_Hidden": false,
     "m_ShaderOutputName": "LimbalRingFade",
     "m_StageCapability": 3,
@@ -1582,6 +1586,7 @@
     "m_Id": 0,
     "m_DisplayName": "PupilRadius",
     "m_SlotType": 1,
+    "m_Priority": 2147483647,
     "m_Hidden": false,
     "m_ShaderOutputName": "Out",
     "m_StageCapability": 3,
@@ -1599,6 +1604,7 @@
     "m_Id": 4,
     "m_DisplayName": "R",
     "m_SlotType": 1,
+    "m_Priority": 2147483647,
     "m_Hidden": false,
     "m_ShaderOutputName": "R",
     "m_StageCapability": 2,
@@ -1642,6 +1648,7 @@
     "m_Id": 0,
     "m_DisplayName": "A",
     "m_SlotType": 0,
+    "m_Priority": 2147483647,
     "m_Hidden": false,
     "m_ShaderOutputName": "A",
     "m_StageCapability": 3,
@@ -1690,6 +1697,7 @@
     "m_Id": 0,
     "m_DisplayName": "Diffusion Profile",
     "m_SlotType": 0,
+    "m_Priority": 2147483647,
     "m_Hidden": false,
     "m_ShaderOutputName": "DiffusionProfileHash",
     "m_StageCapability": 2,
@@ -1753,7 +1761,6 @@
     "synonyms": [],
     "m_Precision": 0,
     "m_PreviewExpanded": false,
-    "m_PreviewMode": 0,
     "m_CustomColors": {
         "m_SerializableColors": []
     },
@@ -1787,7 +1794,6 @@
     "synonyms": [],
     "m_Precision": 0,
     "m_PreviewExpanded": false,
-    "m_PreviewMode": 0,
     "m_CustomColors": {
         "m_SerializableColors": []
     },
@@ -1803,6 +1809,7 @@
     "m_Id": 0,
     "m_DisplayName": "Out",
     "m_SlotType": 1,
+    "m_Priority": 2147483647,
     "m_Hidden": false,
     "m_ShaderOutputName": "Out",
     "m_StageCapability": 3,
@@ -1820,6 +1827,7 @@
     "m_Id": 6,
     "m_DisplayName": "Limbal Ring Factor",
     "m_SlotType": 1,
+    "m_Priority": 2147483647,
     "m_Hidden": false,
     "m_ShaderOutputName": "LimbalRingFactor",
     "m_StageCapability": 3,
@@ -1837,6 +1845,7 @@
     "m_Id": 2,
     "m_DisplayName": "Pupil Aperture",
     "m_SlotType": 0,
+    "m_Priority": 2147483647,
     "m_Hidden": false,
     "m_ShaderOutputName": "PupilAperture",
     "m_StageCapability": 3,
@@ -1854,6 +1863,7 @@
     "m_Id": 8,
     "m_DisplayName": "Diffusion Profile Sclera",
     "m_SlotType": 0,
+    "m_Priority": 2147483647,
     "m_Hidden": false,
     "m_ShaderOutputName": "DiffusionProfileSclera",
     "m_StageCapability": 3,
@@ -1871,6 +1881,7 @@
     "m_Id": 0,
     "m_DisplayName": "MaximalPupilAperture",
     "m_SlotType": 1,
+    "m_Priority": 2147483647,
     "m_Hidden": false,
     "m_ShaderOutputName": "Out",
     "m_StageCapability": 3,
@@ -1907,7 +1918,6 @@
     "synonyms": [],
     "m_Precision": 0,
     "m_PreviewExpanded": true,
-    "m_PreviewMode": 0,
     "m_CustomColors": {
         "m_SerializableColors": []
     },
@@ -1923,6 +1933,7 @@
     "m_Id": 2,
     "m_DisplayName": "Out",
     "m_SlotType": 1,
+    "m_Priority": 2147483647,
     "m_Hidden": false,
     "m_ShaderOutputName": "Out",
     "m_StageCapability": 3,
@@ -1950,6 +1961,7 @@
     "m_Id": 5,
     "m_DisplayName": "Limbal Ring Factor",
     "m_SlotType": 1,
+    "m_Priority": 2147483647,
     "m_Hidden": false,
     "m_ShaderOutputName": "LimbalRingFactor",
     "m_StageCapability": 3,
@@ -1991,7 +2003,6 @@
     ],
     "m_Precision": 0,
     "m_PreviewExpanded": true,
-    "m_PreviewMode": 0,
     "m_CustomColors": {
         "m_SerializableColors": []
     },
@@ -2005,6 +2016,7 @@
     "m_Id": 0,
     "m_DisplayName": "Iris UV",
     "m_SlotType": 0,
+    "m_Priority": 2147483647,
     "m_Hidden": false,
     "m_ShaderOutputName": "IrisUV",
     "m_StageCapability": 3,
@@ -2029,6 +2041,7 @@
     "m_Id": 0,
     "m_DisplayName": "LimbalRingFade",
     "m_SlotType": 1,
+    "m_Priority": 2147483647,
     "m_Hidden": false,
     "m_ShaderOutputName": "Out",
     "m_StageCapability": 3,
@@ -2046,6 +2059,7 @@
     "m_Id": 1,
     "m_DisplayName": "Iris Radius",
     "m_SlotType": 0,
+    "m_Priority": 2147483647,
     "m_Hidden": false,
     "m_ShaderOutputName": "IrisRadius",
     "m_StageCapability": 3,
@@ -2063,6 +2077,7 @@
     "m_Id": 4,
     "m_DisplayName": "Iris Normal",
     "m_SlotType": 0,
+    "m_Priority": 2147483647,
     "m_Hidden": false,
     "m_ShaderOutputName": "IrisNormal",
     "m_StageCapability": 3,
@@ -2090,10 +2105,10 @@
     "m_Id": 0,
     "m_DisplayName": "IrisNormal",
     "m_SlotType": 1,
+    "m_Priority": 2147483647,
     "m_Hidden": false,
     "m_ShaderOutputName": "Out",
-    "m_StageCapability": 3,
-    "m_BareResource": false
+    "m_StageCapability": 3
 }
 
 {
@@ -2103,6 +2118,7 @@
     "m_Id": 5,
     "m_DisplayName": "Cornea Smoothness",
     "m_SlotType": 0,
+    "m_Priority": 2147483647,
     "m_Hidden": false,
     "m_ShaderOutputName": "CorneaSmoothness",
     "m_StageCapability": 3,
@@ -2120,6 +2136,7 @@
     "m_Id": 1,
     "m_DisplayName": "View Direction OS",
     "m_SlotType": 0,
+    "m_Priority": 2147483647,
     "m_Hidden": false,
     "m_ShaderOutputName": "ViewDirectionOS",
     "m_StageCapability": 3,
@@ -2147,6 +2164,7 @@
     "m_Id": 7,
     "m_DisplayName": "Position OS",
     "m_SlotType": 0,
+    "m_Priority": 2147483647,
     "m_Hidden": false,
     "m_ShaderOutputName": "PositionOS",
     "m_StageCapability": 3,
@@ -2174,6 +2192,7 @@
     "m_Id": 5,
     "m_DisplayName": "Surface Color",
     "m_SlotType": 1,
+    "m_Priority": 2147483647,
     "m_Hidden": false,
     "m_ShaderOutputName": "SurfaceColor",
     "m_StageCapability": 3,
@@ -2220,7 +2239,6 @@
     "synonyms": [],
     "m_Precision": 0,
     "m_PreviewExpanded": true,
-    "m_PreviewMode": 0,
     "m_CustomColors": {
         "m_SerializableColors": []
     },
@@ -2234,6 +2252,7 @@
     "m_Id": 15,
     "m_DisplayName": "Surface Diffusion Profile",
     "m_SlotType": 1,
+    "m_Priority": 2147483647,
     "m_Hidden": false,
     "m_ShaderOutputName": "SurfaceDiffusionProfile",
     "m_StageCapability": 3,
@@ -2251,6 +2270,7 @@
     "m_Id": 3,
     "m_DisplayName": "Iris Color",
     "m_SlotType": 0,
+    "m_Priority": 2147483647,
     "m_Hidden": false,
     "m_ShaderOutputName": "IrisColor",
     "m_StageCapability": 3,
@@ -2278,6 +2298,7 @@
     "m_Id": 0,
     "m_DisplayName": "RGBA",
     "m_SlotType": 1,
+    "m_Priority": 2147483647,
     "m_Hidden": false,
     "m_ShaderOutputName": "RGBA",
     "m_StageCapability": 2,
@@ -2328,7 +2349,6 @@
     "synonyms": [],
     "m_Precision": 0,
     "m_PreviewExpanded": false,
-    "m_PreviewMode": 0,
     "m_CustomColors": {
         "m_SerializableColors": []
     }
@@ -2379,7 +2399,6 @@
     "synonyms": [],
     "m_Precision": 0,
     "m_PreviewExpanded": true,
-    "m_PreviewMode": 0,
     "m_CustomColors": {
         "m_SerializableColors": []
     },
@@ -2394,8 +2413,6 @@
         "m_GuidSerialized": "325a1688-6c35-45f4-9581-2bdc9546fb1f"
     },
     "m_Name": "LimbalRingFade",
-    "m_DefaultRefNameVersion": 0,
-    "m_RefNameGeneratedByDisplayName": "",
     "m_DefaultReferenceName": "Vector1_6C2C412D",
     "m_OverrideReferenceName": "",
     "m_GeneratePropertyBlock": true,
@@ -2437,7 +2454,6 @@
     "synonyms": [],
     "m_Precision": 0,
     "m_PreviewExpanded": true,
-    "m_PreviewMode": 0,
     "m_CustomColors": {
         "m_SerializableColors": []
     },
@@ -2451,6 +2467,7 @@
     "m_Id": 0,
     "m_DisplayName": "Out",
     "m_SlotType": 1,
+    "m_Priority": 2147483647,
     "m_Hidden": false,
     "m_ShaderOutputName": "Out",
     "m_StageCapability": 3,
@@ -2499,7 +2516,6 @@
     "synonyms": [],
     "m_Precision": 0,
     "m_PreviewExpanded": false,
-    "m_PreviewMode": 0,
     "m_CustomColors": {
         "m_SerializableColors": []
     }
@@ -2513,8 +2529,6 @@
         "m_GuidSerialized": "31f90d24-1dd3-4541-b63b-13e08a8eac71"
     },
     "m_Name": "ScleraDiffusionProfile",
-    "m_DefaultRefNameVersion": 0,
-    "m_RefNameGeneratedByDisplayName": "",
     "m_DefaultReferenceName": "DiffusionProfile_261f48f1fbc94ccbafc421414859c159",
     "m_OverrideReferenceName": "",
     "m_GeneratePropertyBlock": true,
@@ -2534,6 +2548,7 @@
     "m_Id": 7,
     "m_DisplayName": "A",
     "m_SlotType": 1,
+    "m_Priority": 2147483647,
     "m_Hidden": false,
     "m_ShaderOutputName": "A",
     "m_StageCapability": 2,
@@ -2551,6 +2566,7 @@
     "m_Id": 2,
     "m_DisplayName": "Displaced Iris UV",
     "m_SlotType": 1,
+    "m_Priority": 2147483647,
     "m_Hidden": false,
     "m_ShaderOutputName": "DisplacedIrisUV",
     "m_StageCapability": 3,
@@ -2595,6 +2611,7 @@
     "m_Id": 2,
     "m_DisplayName": "Y",
     "m_SlotType": 0,
+    "m_Priority": 2147483647,
     "m_Hidden": false,
     "m_ShaderOutputName": "Y",
     "m_StageCapability": 3,
@@ -2637,7 +2654,6 @@
     "synonyms": [],
     "m_Precision": 0,
     "m_PreviewExpanded": false,
-    "m_PreviewMode": 0,
     "m_CustomColors": {
         "m_SerializableColors": []
     }
@@ -2650,6 +2666,7 @@
     "m_Id": 0,
     "m_DisplayName": "RGBA",
     "m_SlotType": 1,
+    "m_Priority": 2147483647,
     "m_Hidden": false,
     "m_ShaderOutputName": "RGBA",
     "m_StageCapability": 2,
@@ -2675,6 +2692,7 @@
     "m_Id": 0,
     "m_DisplayName": "Iris UV",
     "m_SlotType": 0,
+    "m_Priority": 2147483647,
     "m_Hidden": false,
     "m_ShaderOutputName": "IrisUV",
     "m_StageCapability": 3,
@@ -2696,6 +2714,7 @@
     "m_Id": 12,
     "m_DisplayName": "Diffuse Normal",
     "m_SlotType": 1,
+    "m_Priority": 2147483647,
     "m_Hidden": false,
     "m_ShaderOutputName": "DiffuseNormal",
     "m_StageCapability": 3,
@@ -2723,6 +2742,7 @@
     "m_Id": 1,
     "m_DisplayName": "Pupil Radius",
     "m_SlotType": 0,
+    "m_Priority": 2147483647,
     "m_Hidden": false,
     "m_ShaderOutputName": "PupilRadius",
     "m_StageCapability": 3,
@@ -2740,6 +2760,7 @@
     "m_Id": 5,
     "m_DisplayName": "G",
     "m_SlotType": 1,
+    "m_Priority": 2147483647,
     "m_Hidden": false,
     "m_ShaderOutputName": "G",
     "m_StageCapability": 2,
@@ -2757,6 +2778,7 @@
     "m_Id": 0,
     "m_DisplayName": "Out",
     "m_SlotType": 1,
+    "m_Priority": 2147483647,
     "m_Hidden": false,
     "m_ShaderOutputName": "Out",
     "m_StageCapability": 3,
@@ -2784,6 +2806,7 @@
     "m_Id": 0,
     "m_DisplayName": "Out",
     "m_SlotType": 1,
+    "m_Priority": 2147483647,
     "m_Hidden": false,
     "m_ShaderOutputName": "Out",
     "m_StageCapability": 3,
@@ -2801,6 +2824,7 @@
     "m_Id": 4,
     "m_DisplayName": "Iris Plane Offset",
     "m_SlotType": 0,
+    "m_Priority": 2147483647,
     "m_Hidden": false,
     "m_ShaderOutputName": "IrisPlaneOffset",
     "m_StageCapability": 3,
@@ -2816,6 +2840,7 @@
     "m_Id": 1,
     "m_DisplayName": "Strength",
     "m_SlotType": 0,
+    "m_Priority": 2147483647,
     "m_Hidden": false,
     "m_ShaderOutputName": "Strength",
     "m_StageCapability": 3,
@@ -2867,7 +2892,6 @@
     "synonyms": [],
     "m_Precision": 0,
     "m_PreviewExpanded": true,
-    "m_PreviewMode": 0,
     "m_CustomColors": {
         "m_SerializableColors": []
     }
@@ -2881,8 +2905,6 @@
         "m_GuidSerialized": "c3743b78-816c-456f-a839-a2885a95c200"
     },
     "m_Name": "MaximalPupilAperture",
-    "m_DefaultRefNameVersion": 0,
-    "m_RefNameGeneratedByDisplayName": "",
     "m_DefaultReferenceName": "Vector1_49C490F5",
     "m_OverrideReferenceName": "",
     "m_GeneratePropertyBlock": true,
@@ -2905,6 +2927,7 @@
     "m_Id": 2,
     "m_DisplayName": "Sclera Smoothness",
     "m_SlotType": 0,
+    "m_Priority": 2147483647,
     "m_Hidden": false,
     "m_ShaderOutputName": "ScleraSmoothness",
     "m_StageCapability": 3,
@@ -2965,7 +2988,6 @@
     "synonyms": [],
     "m_Precision": 0,
     "m_PreviewExpanded": true,
-    "m_PreviewMode": 0,
     "m_CustomColors": {
         "m_SerializableColors": []
     },
@@ -3015,6 +3037,7 @@
     "m_Id": 0,
     "m_DisplayName": "Ambient Occlusion",
     "m_SlotType": 0,
+    "m_Priority": 2147483647,
     "m_Hidden": false,
     "m_ShaderOutputName": "Occlusion",
     "m_StageCapability": 2,
@@ -3032,6 +3055,7 @@
     "m_Id": 1,
     "m_DisplayName": "B",
     "m_SlotType": 0,
+    "m_Priority": 2147483647,
     "m_Hidden": false,
     "m_ShaderOutputName": "B",
     "m_StageCapability": 3,
@@ -3080,6 +3104,7 @@
     "m_Id": 5,
     "m_DisplayName": "Refracted Position OS",
     "m_SlotType": 1,
+    "m_Priority": 2147483647,
     "m_Hidden": false,
     "m_ShaderOutputName": "RefractedPositionOS",
     "m_StageCapability": 3,
@@ -3103,6 +3128,7 @@
     "m_Id": 10,
     "m_DisplayName": "Eye Color",
     "m_SlotType": 1,
+    "m_Priority": 2147483647,
     "m_Hidden": false,
     "m_ShaderOutputName": "EyeColor",
     "m_StageCapability": 3,
@@ -3130,6 +3156,7 @@
     "m_Id": 6,
     "m_DisplayName": "B",
     "m_SlotType": 1,
+    "m_Priority": 2147483647,
     "m_Hidden": false,
     "m_ShaderOutputName": "B",
     "m_StageCapability": 2,
@@ -3147,6 +3174,7 @@
     "m_Id": 0,
     "m_DisplayName": "ScleraNormalStrength",
     "m_SlotType": 1,
+    "m_Priority": 2147483647,
     "m_Hidden": false,
     "m_ShaderOutputName": "Out",
     "m_StageCapability": 3,
@@ -3198,7 +3226,6 @@
     "synonyms": [],
     "m_Precision": 0,
     "m_PreviewExpanded": true,
-    "m_PreviewMode": 0,
     "m_CustomColors": {
         "m_SerializableColors": []
     }
@@ -3211,6 +3238,7 @@
     "m_Id": 6,
     "m_DisplayName": "B",
     "m_SlotType": 1,
+    "m_Priority": 2147483647,
     "m_Hidden": false,
     "m_ShaderOutputName": "B",
     "m_StageCapability": 2,
@@ -3228,6 +3256,7 @@
     "m_Id": 0,
     "m_DisplayName": "Position OS",
     "m_SlotType": 0,
+    "m_Priority": 2147483647,
     "m_Hidden": false,
     "m_ShaderOutputName": "PositionOS",
     "m_StageCapability": 3,
@@ -3255,6 +3284,7 @@
     "m_Id": 0,
     "m_DisplayName": "ScleraSmoothness",
     "m_SlotType": 1,
+    "m_Priority": 2147483647,
     "m_Hidden": false,
     "m_ShaderOutputName": "Out",
     "m_StageCapability": 3,
@@ -3273,8 +3303,6 @@
         "m_GuidSerialized": "3c690643-530b-4860-af79-7c53df5328cf"
     },
     "m_Name": "LimbalRingSizeSclera",
-    "m_DefaultRefNameVersion": 0,
-    "m_RefNameGeneratedByDisplayName": "",
     "m_DefaultReferenceName": "Vector1_94E1614A",
     "m_OverrideReferenceName": "",
     "m_GeneratePropertyBlock": true,
@@ -3321,6 +3349,7 @@
     "m_Id": 4,
     "m_DisplayName": "R",
     "m_SlotType": 1,
+    "m_Priority": 2147483647,
     "m_Hidden": false,
     "m_ShaderOutputName": "R",
     "m_StageCapability": 2,
@@ -3360,7 +3389,6 @@
     "synonyms": [],
     "m_Precision": 0,
     "m_PreviewExpanded": true,
-    "m_PreviewMode": 0,
     "m_CustomColors": {
         "m_SerializableColors": []
     }
@@ -3373,6 +3401,7 @@
     "m_Id": 5,
     "m_DisplayName": "G",
     "m_SlotType": 1,
+    "m_Priority": 2147483647,
     "m_Hidden": false,
     "m_ShaderOutputName": "G",
     "m_StageCapability": 2,
@@ -3390,6 +3419,7 @@
     "m_Id": 0,
     "m_DisplayName": "PupilDebugMode",
     "m_SlotType": 1,
+    "m_Priority": 2147483647,
     "m_Hidden": false,
     "m_ShaderOutputName": "Out",
     "m_StageCapability": 3,
@@ -3423,7 +3453,6 @@
     "synonyms": [],
     "m_Precision": 0,
     "m_PreviewExpanded": true,
-    "m_PreviewMode": 0,
     "m_CustomColors": {
         "m_SerializableColors": []
     },
@@ -3439,10 +3468,10 @@
     "m_Id": 3,
     "m_DisplayName": "Sampler",
     "m_SlotType": 0,
+    "m_Priority": 2147483647,
     "m_Hidden": false,
     "m_ShaderOutputName": "Sampler",
-    "m_StageCapability": 3,
-    "m_BareResource": false
+    "m_StageCapability": 3
 }
 
 {
@@ -3491,7 +3520,6 @@
     "synonyms": [],
     "m_Precision": 1,
     "m_PreviewExpanded": false,
-    "m_PreviewMode": 2,
     "m_CustomColors": {
         "m_SerializableColors": []
     },
@@ -3505,6 +3533,7 @@
     "m_Id": 2,
     "m_DisplayName": "Cornea Normal OS",
     "m_SlotType": 0,
+    "m_Priority": 2147483647,
     "m_Hidden": false,
     "m_ShaderOutputName": "CorneaNormalOS",
     "m_StageCapability": 3,
@@ -3528,6 +3557,7 @@
     "m_Id": 1,
     "m_DisplayName": "X",
     "m_SlotType": 0,
+    "m_Priority": 2147483647,
     "m_Hidden": false,
     "m_ShaderOutputName": "X",
     "m_StageCapability": 3,
@@ -3545,6 +3575,7 @@
     "m_Id": 0,
     "m_DisplayName": "Emission",
     "m_SlotType": 0,
+    "m_Priority": 2147483647,
     "m_Hidden": false,
     "m_ShaderOutputName": "Emission",
     "m_StageCapability": 2,
@@ -3579,6 +3610,7 @@
     "m_Id": 0,
     "m_DisplayName": "Position OS",
     "m_SlotType": 0,
+    "m_Priority": 2147483647,
     "m_Hidden": false,
     "m_ShaderOutputName": "PositionOS",
     "m_StageCapability": 3,
@@ -3606,6 +3638,7 @@
     "m_Id": 0,
     "m_DisplayName": "Out",
     "m_SlotType": 1,
+    "m_Priority": 2147483647,
     "m_Hidden": false,
     "m_ShaderOutputName": "Out",
     "m_StageCapability": 3,
@@ -3633,10 +3666,10 @@
     "m_Id": 3,
     "m_DisplayName": "Sampler",
     "m_SlotType": 0,
+    "m_Priority": 2147483647,
     "m_Hidden": false,
     "m_ShaderOutputName": "Sampler",
-    "m_StageCapability": 3,
-    "m_BareResource": false
+    "m_StageCapability": 3
 }
 
 {
@@ -3665,7 +3698,6 @@
     "synonyms": [],
     "m_Precision": 1,
     "m_PreviewExpanded": false,
-    "m_PreviewMode": 2,
     "m_CustomColors": {
         "m_SerializableColors": []
     },
@@ -3679,6 +3711,7 @@
     "m_Id": 0,
     "m_DisplayName": "Sclera Color",
     "m_SlotType": 0,
+    "m_Priority": 2147483647,
     "m_Hidden": false,
     "m_ShaderOutputName": "ScleraColor",
     "m_StageCapability": 3,
@@ -3706,6 +3739,7 @@
     "m_Id": 4,
     "m_DisplayName": "Limbal Ring Intensity",
     "m_SlotType": 0,
+    "m_Priority": 2147483647,
     "m_Hidden": false,
     "m_ShaderOutputName": "LimbalRingIntensity",
     "m_StageCapability": 3,
@@ -3723,6 +3757,7 @@
     "m_Id": 0,
     "m_DisplayName": "Mask",
     "m_SlotType": 0,
+    "m_Priority": 2147483647,
     "m_Hidden": false,
     "m_ShaderOutputName": "Mask",
     "m_StageCapability": 2,
@@ -3766,7 +3801,6 @@
     "synonyms": [],
     "m_Precision": 0,
     "m_PreviewExpanded": false,
-    "m_PreviewMode": 0,
     "m_CustomColors": {
         "m_SerializableColors": []
     },
@@ -3846,7 +3880,6 @@
     "synonyms": [],
     "m_Precision": 0,
     "m_PreviewExpanded": true,
-    "m_PreviewMode": 0,
     "m_CustomColors": {
         "m_SerializableColors": []
     }
@@ -3878,7 +3911,6 @@
     "synonyms": [],
     "m_Precision": 0,
     "m_PreviewExpanded": false,
-    "m_PreviewMode": 0,
     "m_CustomColors": {
         "m_SerializableColors": []
     },
@@ -3894,6 +3926,7 @@
     "m_Id": 0,
     "m_DisplayName": "Subsurface Mask",
     "m_SlotType": 0,
+    "m_Priority": 2147483647,
     "m_Hidden": false,
     "m_ShaderOutputName": "SubsurfaceMask",
     "m_StageCapability": 2,
@@ -3909,6 +3942,7 @@
     "m_Id": 2,
     "m_DisplayName": "UV",
     "m_SlotType": 0,
+    "m_Priority": 2147483647,
     "m_Hidden": false,
     "m_ShaderOutputName": "UV",
     "m_StageCapability": 3,
@@ -3974,7 +4008,6 @@
     "synonyms": [],
     "m_Precision": 0,
     "m_PreviewExpanded": false,
-    "m_PreviewMode": 0,
     "m_CustomColors": {
         "m_SerializableColors": []
     },
@@ -4017,7 +4050,6 @@
     "synonyms": [],
     "m_Precision": 0,
     "m_PreviewExpanded": true,
-    "m_PreviewMode": 0,
     "m_CustomColors": {
         "m_SerializableColors": []
     },
@@ -4033,6 +4065,7 @@
     "m_Id": 5,
     "m_DisplayName": "G",
     "m_SlotType": 1,
+    "m_Priority": 2147483647,
     "m_Hidden": false,
     "m_ShaderOutputName": "G",
     "m_StageCapability": 2,
@@ -4050,10 +4083,10 @@
     "m_Id": 0,
     "m_DisplayName": "ScleraNormal",
     "m_SlotType": 1,
+    "m_Priority": 2147483647,
     "m_Hidden": false,
     "m_ShaderOutputName": "Out",
-    "m_StageCapability": 3,
-    "m_BareResource": false
+    "m_StageCapability": 3
 }
 
 {
@@ -4064,8 +4097,6 @@
         "m_GuidSerialized": "32ca927b-fedc-450d-9a6f-3ed9f328ee77"
     },
     "m_Name": "IrisOffset",
-    "m_DefaultRefNameVersion": 0,
-    "m_RefNameGeneratedByDisplayName": "",
     "m_DefaultReferenceName": "Vector1_76BF2124",
     "m_OverrideReferenceName": "",
     "m_GeneratePropertyBlock": true,
@@ -4122,7 +4153,6 @@
     "synonyms": [],
     "m_Precision": 0,
     "m_PreviewExpanded": true,
-    "m_PreviewMode": 0,
     "m_CustomColors": {
         "m_SerializableColors": []
     }
@@ -4174,7 +4204,6 @@
     "synonyms": [],
     "m_Precision": 0,
     "m_PreviewExpanded": true,
-    "m_PreviewMode": 0,
     "m_CustomColors": {
         "m_SerializableColors": []
     },
@@ -4188,6 +4217,7 @@
     "m_Id": 0,
     "m_DisplayName": "Position",
     "m_SlotType": 0,
+    "m_Priority": 2147483647,
     "m_Hidden": false,
     "m_ShaderOutputName": "Position",
     "m_StageCapability": 1,
@@ -4235,7 +4265,6 @@
     "synonyms": [],
     "m_Precision": 0,
     "m_PreviewExpanded": true,
-    "m_PreviewMode": 0,
     "m_CustomColors": {
         "m_SerializableColors": []
     },
@@ -4252,8 +4281,6 @@
         "m_GuidSerialized": "50189b63-f398-4395-bfa7-67fb002963a8"
     },
     "m_Name": "MinimalPupilAperture",
-    "m_DefaultRefNameVersion": 0,
-    "m_RefNameGeneratedByDisplayName": "",
     "m_DefaultReferenceName": "Vector1_2D21A623",
     "m_OverrideReferenceName": "",
     "m_GeneratePropertyBlock": true,
@@ -4277,8 +4304,6 @@
         "m_GuidSerialized": "fb074b99-476d-4c2e-8fc8-8fb0f671c188"
     },
     "m_Name": "LimbalRingSizeIris",
-    "m_DefaultRefNameVersion": 0,
-    "m_RefNameGeneratedByDisplayName": "",
     "m_DefaultReferenceName": "Vector1_C4ED1456",
     "m_OverrideReferenceName": "",
     "m_GeneratePropertyBlock": true,
@@ -4301,6 +4326,7 @@
     "m_Id": 0,
     "m_DisplayName": "IrisOffset",
     "m_SlotType": 1,
+    "m_Priority": 2147483647,
     "m_Hidden": false,
     "m_ShaderOutputName": "Out",
     "m_StageCapability": 3,
@@ -4355,7 +4381,6 @@
     "synonyms": [],
     "m_Precision": 0,
     "m_PreviewExpanded": true,
-    "m_PreviewMode": 0,
     "m_CustomColors": {
         "m_SerializableColors": []
     }
@@ -4369,8 +4394,6 @@
         "m_GuidSerialized": "99d5e0e9-d718-4435-b820-41515fde398f"
     },
     "m_Name": "IrisTexture",
-    "m_DefaultRefNameVersion": 0,
-    "m_RefNameGeneratedByDisplayName": "",
     "m_DefaultReferenceName": "Texture2D_D8BF6575",
     "m_OverrideReferenceName": "",
     "m_GeneratePropertyBlock": true,
@@ -4394,8 +4417,6 @@
         "m_GuidSerialized": "296e2e11-fc1b-4b6e-8415-f1d88705b497"
     },
     "m_Name": "IrisNormalStrength",
-    "m_DefaultRefNameVersion": 0,
-    "m_RefNameGeneratedByDisplayName": "",
     "m_DefaultReferenceName": "Vector1_FC0895C8",
     "m_OverrideReferenceName": "",
     "m_GeneratePropertyBlock": true,
@@ -4458,7 +4479,6 @@
     "synonyms": [],
     "m_Precision": 0,
     "m_PreviewExpanded": false,
-    "m_PreviewMode": 0,
     "m_CustomColors": {
         "m_SerializableColors": []
     },
@@ -4474,8 +4494,6 @@
         "m_GuidSerialized": "550d8e4c-b159-40ab-af02-bb1cdcad7bb8"
     },
     "m_Name": "PupilAperture",
-    "m_DefaultRefNameVersion": 0,
-    "m_RefNameGeneratedByDisplayName": "",
     "m_DefaultReferenceName": "Vector1_FEA38ABB",
     "m_OverrideReferenceName": "",
     "m_GeneratePropertyBlock": true,
@@ -4498,10 +4516,10 @@
     "m_Id": 3,
     "m_DisplayName": "Sampler",
     "m_SlotType": 0,
+    "m_Priority": 2147483647,
     "m_Hidden": false,
     "m_ShaderOutputName": "Sampler",
-    "m_StageCapability": 3,
-    "m_BareResource": false
+    "m_StageCapability": 3
 }
 
 {
@@ -4511,6 +4529,7 @@
     "m_Id": 2,
     "m_DisplayName": "Out",
     "m_SlotType": 1,
+    "m_Priority": 2147483647,
     "m_Hidden": false,
     "m_ShaderOutputName": "Out",
     "m_StageCapability": 3,
@@ -4559,6 +4578,7 @@
     "m_Id": 0,
     "m_DisplayName": "Out",
     "m_SlotType": 1,
+    "m_Priority": 2147483647,
     "m_Hidden": false,
     "m_ShaderOutputName": "Out",
     "m_StageCapability": 3,
@@ -4576,6 +4596,7 @@
     "m_Id": 0,
     "m_DisplayName": "RGBA",
     "m_SlotType": 1,
+    "m_Priority": 2147483647,
     "m_Hidden": false,
     "m_ShaderOutputName": "RGBA",
     "m_StageCapability": 2,
@@ -4601,6 +4622,7 @@
     "m_Id": 2,
     "m_DisplayName": "Out",
     "m_SlotType": 1,
+    "m_Priority": 2147483647,
     "m_Hidden": false,
     "m_ShaderOutputName": "Out",
     "m_StageCapability": 3,
@@ -4649,6 +4671,7 @@
     "m_Id": 4,
     "m_DisplayName": "R",
     "m_SlotType": 1,
+    "m_Priority": 2147483647,
     "m_Hidden": false,
     "m_ShaderOutputName": "R",
     "m_StageCapability": 2,
@@ -4666,6 +4689,7 @@
     "m_Id": 2,
     "m_DisplayName": "Clamp Color",
     "m_SlotType": 0,
+    "m_Priority": 2147483647,
     "m_Hidden": false,
     "m_ShaderOutputName": "ClampColor",
     "m_StageCapability": 3,
@@ -4693,6 +4717,7 @@
     "m_Id": 0,
     "m_DisplayName": "PupilRadius",
     "m_SlotType": 1,
+    "m_Priority": 2147483647,
     "m_Hidden": false,
     "m_ShaderOutputName": "Out",
     "m_StageCapability": 3,
@@ -4729,7 +4754,6 @@
     "synonyms": [],
     "m_Precision": 0,
     "m_PreviewExpanded": true,
-    "m_PreviewMode": 0,
     "m_CustomColors": {
         "m_SerializableColors": []
     },
@@ -4745,6 +4769,7 @@
     "m_Id": 0,
     "m_DisplayName": "RGBA",
     "m_SlotType": 1,
+    "m_Priority": 2147483647,
     "m_Hidden": false,
     "m_ShaderOutputName": "RGBA",
     "m_StageCapability": 2,
@@ -4789,7 +4814,6 @@
     "synonyms": [],
     "m_Precision": 1,
     "m_PreviewExpanded": false,
-    "m_PreviewMode": 2,
     "m_CustomColors": {
         "m_SerializableColors": []
     },
@@ -4822,7 +4846,6 @@
     "synonyms": [],
     "m_Precision": 0,
     "m_PreviewExpanded": false,
-    "m_PreviewMode": 0,
     "m_CustomColors": {
         "m_SerializableColors": []
     },
@@ -4838,6 +4861,7 @@
     "m_Id": 0,
     "m_DisplayName": "LimbalRingIntensity",
     "m_SlotType": 1,
+    "m_Priority": 2147483647,
     "m_Hidden": false,
     "m_ShaderOutputName": "Out",
     "m_StageCapability": 3,
@@ -4855,6 +4879,7 @@
     "m_Id": 0,
     "m_DisplayName": "LimbalRingFade",
     "m_SlotType": 1,
+    "m_Priority": 2147483647,
     "m_Hidden": false,
     "m_ShaderOutputName": "Out",
     "m_StageCapability": 3,
@@ -4896,7 +4921,6 @@
     ],
     "m_Precision": 0,
     "m_PreviewExpanded": true,
-    "m_PreviewMode": 0,
     "m_CustomColors": {
         "m_SerializableColors": []
     },
@@ -4944,7 +4968,6 @@
     "synonyms": [],
     "m_Precision": 0,
     "m_PreviewExpanded": true,
-    "m_PreviewMode": 0,
     "m_CustomColors": {
         "m_SerializableColors": []
     }
@@ -4957,6 +4980,7 @@
     "m_Id": 3,
     "m_DisplayName": "Minimal Pupil Aperture",
     "m_SlotType": 0,
+    "m_Priority": 2147483647,
     "m_Hidden": false,
     "m_ShaderOutputName": "MinimalPupilAperture",
     "m_StageCapability": 3,
@@ -4974,6 +4998,7 @@
     "m_Id": 0,
     "m_DisplayName": "IrisDiffusionProfile",
     "m_SlotType": 1,
+    "m_Priority": 2147483647,
     "m_Hidden": false,
     "m_ShaderOutputName": "Out",
     "m_StageCapability": 3,
@@ -4989,6 +5014,7 @@
     "m_Id": 0,
     "m_DisplayName": "Normal",
     "m_SlotType": 0,
+    "m_Priority": 2147483647,
     "m_Hidden": false,
     "m_ShaderOutputName": "Normal",
     "m_StageCapability": 1,
@@ -5017,6 +5043,7 @@
     "m_Id": 9,
     "m_DisplayName": "Diffusion Profile Iris",
     "m_SlotType": 0,
+    "m_Priority": 2147483647,
     "m_Hidden": false,
     "m_ShaderOutputName": "DiffusionProfileIris",
     "m_StageCapability": 3,
@@ -5034,6 +5061,7 @@
     "m_Id": 1,
     "m_DisplayName": "X",
     "m_SlotType": 0,
+    "m_Priority": 2147483647,
     "m_Hidden": false,
     "m_ShaderOutputName": "X",
     "m_StageCapability": 3,
@@ -5075,7 +5103,6 @@
     ],
     "m_Precision": 0,
     "m_PreviewExpanded": true,
-    "m_PreviewMode": 0,
     "m_CustomColors": {
         "m_SerializableColors": []
     },
@@ -5089,10 +5116,10 @@
     "m_Id": 1,
     "m_DisplayName": "Texture",
     "m_SlotType": 0,
+    "m_Priority": 2147483647,
     "m_Hidden": false,
     "m_ShaderOutputName": "Texture",
     "m_StageCapability": 3,
-    "m_BareResource": false,
     "m_Texture": {
         "m_SerializedTexture": "{\"texture\":{\"instanceID\":0}}",
         "m_Guid": ""
@@ -5107,6 +5134,7 @@
     "m_Id": 2,
     "m_DisplayName": "Iris UV",
     "m_SlotType": 1,
+    "m_Priority": 2147483647,
     "m_Hidden": false,
     "m_ShaderOutputName": "IrisUV",
     "m_StageCapability": 3,
@@ -5132,8 +5160,6 @@
         "m_GuidSerialized": "b1008dd9-bee9-45cc-ab1f-3330fa868732"
     },
     "m_Name": "PupilDebugMode",
-    "m_DefaultRefNameVersion": 0,
-    "m_RefNameGeneratedByDisplayName": "",
     "m_DefaultReferenceName": "Boolean_8D34052F",
     "m_OverrideReferenceName": "",
     "m_GeneratePropertyBlock": true,
@@ -5145,15 +5171,13 @@
 }
 
 {
-    "m_SGVersion": 3,
+    "m_SGVersion": 2,
     "m_Type": "UnityEditor.ShaderGraph.Internal.ColorShaderProperty",
     "m_ObjectId": "98eb7ede3dd544aa9d2b1b139d483b96",
     "m_Guid": {
         "m_GuidSerialized": "d528889a-712b-4dcd-a1bc-2aac2142f258"
     },
     "m_Name": "IrisClampColor",
-    "m_DefaultRefNameVersion": 0,
-    "m_RefNameGeneratedByDisplayName": "",
     "m_DefaultReferenceName": "Color_83777D09",
     "m_OverrideReferenceName": "",
     "m_GeneratePropertyBlock": true,
@@ -5196,7 +5220,6 @@
     "synonyms": [],
     "m_Precision": 0,
     "m_PreviewExpanded": false,
-    "m_PreviewMode": 2,
     "m_CustomColors": {
         "m_SerializableColors": []
     },
@@ -5210,6 +5233,7 @@
     "m_Id": 0,
     "m_DisplayName": "Base Color",
     "m_SlotType": 0,
+    "m_Priority": 2147483647,
     "m_Hidden": false,
     "m_ShaderOutputName": "BaseColor",
     "m_StageCapability": 2,
@@ -5245,8 +5269,6 @@
         "m_GuidSerialized": "2a196c17-a7a7-48b1-9520-057b513cbed4"
     },
     "m_Name": "PupilRadius",
-    "m_DefaultRefNameVersion": 0,
-    "m_RefNameGeneratedByDisplayName": "",
     "m_DefaultReferenceName": "Vector1_DFF948F3",
     "m_OverrideReferenceName": "",
     "m_GeneratePropertyBlock": true,
@@ -5270,8 +5292,6 @@
         "m_GuidSerialized": "e3f9a16c-bc56-4a1e-8a15-ccf48612996e"
     },
     "m_Name": "IrisNormal",
-    "m_DefaultRefNameVersion": 0,
-    "m_RefNameGeneratedByDisplayName": "",
     "m_DefaultReferenceName": "Texture2D_4DB28C10",
     "m_OverrideReferenceName": "",
     "m_GeneratePropertyBlock": true,
@@ -5294,6 +5314,7 @@
     "m_Id": 0,
     "m_DisplayName": "LimbalRingIntensity",
     "m_SlotType": 1,
+    "m_Priority": 2147483647,
     "m_Hidden": false,
     "m_ShaderOutputName": "Out",
     "m_StageCapability": 3,
@@ -5311,6 +5332,7 @@
     "m_Id": 2,
     "m_DisplayName": "Iris Radius",
     "m_SlotType": 0,
+    "m_Priority": 2147483647,
     "m_Hidden": false,
     "m_ShaderOutputName": "IrisRadius",
     "m_StageCapability": 3,
@@ -5347,7 +5369,6 @@
     "synonyms": [],
     "m_Precision": 0,
     "m_PreviewExpanded": false,
-    "m_PreviewMode": 0,
     "m_CustomColors": {
         "m_SerializableColors": []
     },
@@ -5363,6 +5384,7 @@
     "m_Id": 0,
     "m_DisplayName": "ScleraDiffusionProfile",
     "m_SlotType": 1,
+    "m_Priority": 2147483647,
     "m_Hidden": false,
     "m_ShaderOutputName": "Out",
     "m_StageCapability": 3,
@@ -5378,6 +5400,7 @@
     "m_Id": 4,
     "m_DisplayName": "Is Active",
     "m_SlotType": 0,
+    "m_Priority": 2147483647,
     "m_Hidden": false,
     "m_ShaderOutputName": "IsActive",
     "m_StageCapability": 3,
@@ -5417,7 +5440,6 @@
     "synonyms": [],
     "m_Precision": 0,
     "m_PreviewExpanded": true,
-    "m_PreviewMode": 0,
     "m_CustomColors": {
         "m_SerializableColors": []
     }
@@ -5430,6 +5452,7 @@
     "m_Id": 0,
     "m_DisplayName": "LimbalRingSizeSclera",
     "m_SlotType": 1,
+    "m_Priority": 2147483647,
     "m_Hidden": false,
     "m_ShaderOutputName": "Out",
     "m_StageCapability": 3,
@@ -5447,6 +5470,7 @@
     "m_Id": 0,
     "m_DisplayName": "IrisNormalStrength",
     "m_SlotType": 1,
+    "m_Priority": 2147483647,
     "m_Hidden": false,
     "m_ShaderOutputName": "Out",
     "m_StageCapability": 3,
@@ -5464,6 +5488,7 @@
     "m_Id": 6,
     "m_DisplayName": "B",
     "m_SlotType": 1,
+    "m_Priority": 2147483647,
     "m_Hidden": false,
     "m_ShaderOutputName": "B",
     "m_StageCapability": 2,
@@ -5475,7 +5500,7 @@
 }
 
 {
-    "m_SGVersion": 1,
+    "m_SGVersion": 0,
     "m_Type": "UnityEditor.ShaderGraph.ViewDirectionNode",
     "m_ObjectId": "a349c765c85b455cb1b09e76fc571d6a",
     "m_Group": {
@@ -5486,10 +5511,10 @@
         "m_Expanded": true,
         "m_Position": {
             "serializedVersion": "2",
-            "x": -849.9999389648438,
-            "y": -766.9999389648438,
-            "width": 208.0,
-            "height": 316.0
+            "x": -840.0,
+            "y": -748.9999389648438,
+            "width": 206.0,
+            "height": 132.0
         }
     },
     "m_Slots": [
@@ -5500,7 +5525,6 @@
     "synonyms": [],
     "m_Precision": 0,
     "m_PreviewExpanded": false,
-    "m_PreviewMode": 2,
     "m_CustomColors": {
         "m_SerializableColors": []
     },
@@ -5514,6 +5538,7 @@
     "m_Id": 4,
     "m_DisplayName": "Limbal Ring Fade",
     "m_SlotType": 0,
+    "m_Priority": 2147483647,
     "m_Hidden": false,
     "m_ShaderOutputName": "LimbalRingFade",
     "m_StageCapability": 3,
@@ -5531,6 +5556,7 @@
     "m_Id": 0,
     "m_DisplayName": "CorneaSmoothness",
     "m_SlotType": 1,
+    "m_Priority": 2147483647,
     "m_Hidden": false,
     "m_ShaderOutputName": "Out",
     "m_StageCapability": 3,
@@ -5588,6 +5614,7 @@
     "m_Id": 1,
     "m_DisplayName": "X",
     "m_SlotType": 0,
+    "m_Priority": 2147483647,
     "m_Hidden": false,
     "m_ShaderOutputName": "X",
     "m_StageCapability": 3,
@@ -5605,6 +5632,7 @@
     "m_Id": 4,
     "m_DisplayName": "R",
     "m_SlotType": 1,
+    "m_Priority": 2147483647,
     "m_Hidden": false,
     "m_ShaderOutputName": "R",
     "m_StageCapability": 2,
@@ -5622,6 +5650,7 @@
     "m_Id": 7,
     "m_DisplayName": "A",
     "m_SlotType": 1,
+    "m_Priority": 2147483647,
     "m_Hidden": false,
     "m_ShaderOutputName": "A",
     "m_StageCapability": 2,
@@ -5640,8 +5669,6 @@
         "m_GuidSerialized": "4b020807-13bc-490b-bea7-32706d36688d"
     },
     "m_Name": "ScleraSmoothness",
-    "m_DefaultRefNameVersion": 0,
-    "m_RefNameGeneratedByDisplayName": "",
     "m_DefaultReferenceName": "Vector1_F084AE9E",
     "m_OverrideReferenceName": "",
     "m_GeneratePropertyBlock": true,
@@ -5664,6 +5691,7 @@
     "m_Id": 2,
     "m_DisplayName": "Iris Radius",
     "m_SlotType": 0,
+    "m_Priority": 2147483647,
     "m_Hidden": false,
     "m_ShaderOutputName": "IrisRadius",
     "m_StageCapability": 3,
@@ -5681,10 +5709,10 @@
     "m_Id": 1,
     "m_DisplayName": "Texture",
     "m_SlotType": 0,
+    "m_Priority": 2147483647,
     "m_Hidden": false,
     "m_ShaderOutputName": "Texture",
     "m_StageCapability": 3,
-    "m_BareResource": false,
     "m_Texture": {
         "m_SerializedTexture": "{\"texture\":{\"instanceID\":0}}",
         "m_Guid": ""
@@ -5699,6 +5727,7 @@
     "m_Id": 0,
     "m_DisplayName": "Out",
     "m_SlotType": 1,
+    "m_Priority": 2147483647,
     "m_Hidden": false,
     "m_ShaderOutputName": "Out",
     "m_StageCapability": 3,
@@ -5745,7 +5774,6 @@
     "synonyms": [],
     "m_Precision": 0,
     "m_PreviewExpanded": true,
-    "m_PreviewMode": 0,
     "m_CustomColors": {
         "m_SerializableColors": []
     },
@@ -5759,6 +5787,7 @@
     "m_Id": 2,
     "m_DisplayName": "UV",
     "m_SlotType": 0,
+    "m_Priority": 2147483647,
     "m_Hidden": false,
     "m_ShaderOutputName": "UV",
     "m_StageCapability": 3,
@@ -5803,7 +5832,6 @@
     "synonyms": [],
     "m_Precision": 0,
     "m_PreviewExpanded": true,
-    "m_PreviewMode": 0,
     "m_CustomColors": {
         "m_SerializableColors": []
     },
@@ -5817,6 +5845,7 @@
     "m_Id": 1,
     "m_DisplayName": "B",
     "m_SlotType": 0,
+    "m_Priority": 2147483647,
     "m_Hidden": false,
     "m_ShaderOutputName": "B",
     "m_StageCapability": 3,
@@ -5865,6 +5894,7 @@
     "m_Id": 0,
     "m_DisplayName": "Out",
     "m_SlotType": 1,
+    "m_Priority": 2147483647,
     "m_Hidden": false,
     "m_ShaderOutputName": "Out",
     "m_StageCapability": 3,
@@ -5883,7 +5913,7 @@
 }
 
 {
-    "m_SGVersion": 1,
+    "m_SGVersion": 0,
     "m_Type": "UnityEditor.ShaderGraph.ViewDirectionNode",
     "m_ObjectId": "afd0d67e65f74cc986be2d91061feea9",
     "m_Group": {
@@ -5908,7 +5938,6 @@
     "synonyms": [],
     "m_Precision": 0,
     "m_PreviewExpanded": false,
-    "m_PreviewMode": 2,
     "m_CustomColors": {
         "m_SerializableColors": []
     },
@@ -5941,7 +5970,6 @@
     "synonyms": [],
     "m_Precision": 0,
     "m_PreviewExpanded": true,
-    "m_PreviewMode": 0,
     "m_CustomColors": {
         "m_SerializableColors": []
     },
@@ -5977,6 +6005,7 @@
     "m_Id": 0,
     "m_DisplayName": "Out",
     "m_SlotType": 1,
+    "m_Priority": 2147483647,
     "m_Hidden": false,
     "m_ShaderOutputName": "Out",
     "m_StageCapability": 3,
@@ -6004,6 +6033,7 @@
     "m_Id": 7,
     "m_DisplayName": "A",
     "m_SlotType": 1,
+    "m_Priority": 2147483647,
     "m_Hidden": false,
     "m_ShaderOutputName": "A",
     "m_StageCapability": 2,
@@ -6022,8 +6052,6 @@
         "m_GuidSerialized": "5025e116-d2b9-4c55-beb9-59d28f9a7355"
     },
     "m_Name": "LimbalRingIntensity",
-    "m_DefaultRefNameVersion": 0,
-    "m_RefNameGeneratedByDisplayName": "",
     "m_DefaultReferenceName": "Vector1_A6DA845F",
     "m_OverrideReferenceName": "",
     "m_GeneratePropertyBlock": true,
@@ -6065,7 +6093,6 @@
     "synonyms": [],
     "m_Precision": 0,
     "m_PreviewExpanded": true,
-    "m_PreviewMode": 0,
     "m_CustomColors": {
         "m_SerializableColors": []
     },
@@ -6100,7 +6127,6 @@
     "synonyms": [],
     "m_Precision": 0,
     "m_PreviewExpanded": true,
-    "m_PreviewMode": 0,
     "m_CustomColors": {
         "m_SerializableColors": []
     },
@@ -6116,6 +6142,7 @@
     "m_Id": 0,
     "m_DisplayName": "Tangent",
     "m_SlotType": 0,
+    "m_Priority": 2147483647,
     "m_Hidden": false,
     "m_ShaderOutputName": "Tangent",
     "m_StageCapability": 1,
@@ -6144,6 +6171,7 @@
     "m_Id": 2,
     "m_DisplayName": "UV",
     "m_SlotType": 0,
+    "m_Priority": 2147483647,
     "m_Hidden": false,
     "m_ShaderOutputName": "UV",
     "m_StageCapability": 3,
@@ -6169,6 +6197,7 @@
     "m_Id": 0,
     "m_DisplayName": "Out",
     "m_SlotType": 1,
+    "m_Priority": 2147483647,
     "m_Hidden": false,
     "m_ShaderOutputName": "Out",
     "m_StageCapability": 3,
@@ -6206,10 +6235,10 @@
     "m_Id": 0,
     "m_DisplayName": "IrisTexture",
     "m_SlotType": 1,
+    "m_Priority": 2147483647,
     "m_Hidden": false,
     "m_ShaderOutputName": "Out",
-    "m_StageCapability": 3,
-    "m_BareResource": false
+    "m_StageCapability": 3
 }
 
 {
@@ -6219,6 +6248,7 @@
     "m_Id": 7,
     "m_DisplayName": "A",
     "m_SlotType": 1,
+    "m_Priority": 2147483647,
     "m_Hidden": false,
     "m_ShaderOutputName": "A",
     "m_StageCapability": 2,
@@ -6255,7 +6285,6 @@
     "synonyms": [],
     "m_Precision": 0,
     "m_PreviewExpanded": true,
-    "m_PreviewMode": 0,
     "m_CustomColors": {
         "m_SerializableColors": []
     },
@@ -6288,7 +6317,6 @@
     "synonyms": [],
     "m_Precision": 1,
     "m_PreviewExpanded": false,
-    "m_PreviewMode": 2,
     "m_CustomColors": {
         "m_SerializableColors": []
     },
@@ -6302,6 +6330,7 @@
     "m_Id": 3,
     "m_DisplayName": "Limbal Ring Size",
     "m_SlotType": 0,
+    "m_Priority": 2147483647,
     "m_Hidden": false,
     "m_ShaderOutputName": "LimbalRingSize",
     "m_StageCapability": 3,
@@ -6319,6 +6348,7 @@
     "m_Id": 5,
     "m_DisplayName": "G",
     "m_SlotType": 1,
+    "m_Priority": 2147483647,
     "m_Hidden": false,
     "m_ShaderOutputName": "G",
     "m_StageCapability": 2,
@@ -6355,7 +6385,6 @@
     "synonyms": [],
     "m_Precision": 0,
     "m_PreviewExpanded": false,
-    "m_PreviewMode": 0,
     "m_CustomColors": {
         "m_SerializableColors": []
     },
@@ -6371,6 +6400,7 @@
     "m_Id": 5,
     "m_DisplayName": "Limbal Ring Intensity",
     "m_SlotType": 0,
+    "m_Priority": 2147483647,
     "m_Hidden": false,
     "m_ShaderOutputName": "LimbalRingIntensity",
     "m_StageCapability": 3,
@@ -6388,6 +6418,7 @@
     "m_Id": 2,
     "m_DisplayName": "Out",
     "m_SlotType": 1,
+    "m_Priority": 2147483647,
     "m_Hidden": false,
     "m_ShaderOutputName": "Out",
     "m_StageCapability": 3,
@@ -6434,7 +6465,6 @@
     "synonyms": [],
     "m_Precision": 0,
     "m_PreviewExpanded": true,
-    "m_PreviewMode": 0,
     "m_CustomColors": {
         "m_SerializableColors": []
     },
@@ -6451,8 +6481,6 @@
         "m_GuidSerialized": "9444b3d5-aa8b-46b7-8b27-9b6ed8fcb3e9"
     },
     "m_Name": "IrisDiffusionProfile",
-    "m_DefaultRefNameVersion": 0,
-    "m_RefNameGeneratedByDisplayName": "",
     "m_DefaultReferenceName": "DiffusionProfile_bfbe0deb8ec4428a9cfcdb968651903c",
     "m_OverrideReferenceName": "",
     "m_GeneratePropertyBlock": true,
@@ -6472,6 +6500,7 @@
     "m_Id": 0,
     "m_DisplayName": "Out",
     "m_SlotType": 1,
+    "m_Priority": 2147483647,
     "m_Hidden": false,
     "m_ShaderOutputName": "Out",
     "m_StageCapability": 3,
@@ -6499,6 +6528,7 @@
     "m_Id": 0,
     "m_DisplayName": "PupilAperture",
     "m_SlotType": 1,
+    "m_Priority": 2147483647,
     "m_Hidden": false,
     "m_ShaderOutputName": "Out",
     "m_StageCapability": 3,
@@ -6516,6 +6546,7 @@
     "m_Id": 0,
     "m_DisplayName": "A",
     "m_SlotType": 0,
+    "m_Priority": 2147483647,
     "m_Hidden": false,
     "m_ShaderOutputName": "A",
     "m_StageCapability": 3,
@@ -6583,7 +6614,6 @@
     "synonyms": [],
     "m_Precision": 0,
     "m_PreviewExpanded": true,
-    "m_PreviewMode": 0,
     "m_CustomColors": {
         "m_SerializableColors": []
     },
@@ -6599,10 +6629,10 @@
     "m_Id": 3,
     "m_DisplayName": "Sampler",
     "m_SlotType": 0,
+    "m_Priority": 2147483647,
     "m_Hidden": false,
     "m_ShaderOutputName": "Sampler",
-    "m_StageCapability": 3,
-    "m_BareResource": false
+    "m_StageCapability": 3
 }
 
 {
@@ -6612,6 +6642,7 @@
     "m_Id": 0,
     "m_DisplayName": "Out",
     "m_SlotType": 1,
+    "m_Priority": 2147483647,
     "m_Hidden": false,
     "m_ShaderOutputName": "Out",
     "m_StageCapability": 3,
@@ -6678,7 +6709,6 @@
     "synonyms": [],
     "m_Precision": 0,
     "m_PreviewExpanded": true,
-    "m_PreviewMode": 0,
     "m_CustomColors": {
         "m_SerializableColors": []
     },
@@ -6694,10 +6724,10 @@
     "m_Id": 1,
     "m_DisplayName": "Texture",
     "m_SlotType": 0,
+    "m_Priority": 2147483647,
     "m_Hidden": false,
     "m_ShaderOutputName": "Texture",
     "m_StageCapability": 3,
-    "m_BareResource": false,
     "m_Texture": {
         "m_SerializedTexture": "{\"texture\":{\"instanceID\":0}}",
         "m_Guid": ""
@@ -6713,8 +6743,6 @@
         "m_GuidSerialized": "dff2bf97-4646-4e48-966f-aa8e61c00f31"
     },
     "m_Name": "ScleraNormalStrength",
-    "m_DefaultRefNameVersion": 0,
-    "m_RefNameGeneratedByDisplayName": "",
     "m_DefaultReferenceName": "Vector1_70564D59",
     "m_OverrideReferenceName": "",
     "m_GeneratePropertyBlock": true,
@@ -6737,6 +6765,7 @@
     "m_Id": 0,
     "m_DisplayName": "In",
     "m_SlotType": 0,
+    "m_Priority": 2147483647,
     "m_Hidden": false,
     "m_ShaderOutputName": "In",
     "m_StageCapability": 3,
@@ -6764,6 +6793,7 @@
     "m_Id": 1,
     "m_DisplayName": "X",
     "m_SlotType": 0,
+    "m_Priority": 2147483647,
     "m_Hidden": false,
     "m_ShaderOutputName": "X",
     "m_StageCapability": 3,
@@ -6781,6 +6811,7 @@
     "m_Id": 1,
     "m_DisplayName": "X",
     "m_SlotType": 0,
+    "m_Priority": 2147483647,
     "m_Hidden": false,
     "m_ShaderOutputName": "X",
     "m_StageCapability": 3,
@@ -6798,6 +6829,7 @@
     "m_Id": 0,
     "m_DisplayName": "Iris UV",
     "m_SlotType": 0,
+    "m_Priority": 2147483647,
     "m_Hidden": false,
     "m_ShaderOutputName": "IrisUV",
     "m_StageCapability": 3,
@@ -6822,6 +6854,7 @@
     "m_Id": 0,
     "m_DisplayName": "Bent Normal",
     "m_SlotType": 0,
+    "m_Priority": 2147483647,
     "m_Hidden": false,
     "m_ShaderOutputName": "BentNormal",
     "m_StageCapability": 2,
@@ -6850,6 +6883,7 @@
     "m_Id": 1,
     "m_DisplayName": "Iris Color",
     "m_SlotType": 0,
+    "m_Priority": 2147483647,
     "m_Hidden": false,
     "m_ShaderOutputName": "IrisColor",
     "m_StageCapability": 3,
@@ -6901,7 +6935,6 @@
     ],
     "m_Precision": 0,
     "m_PreviewExpanded": true,
-    "m_PreviewMode": 0,
     "m_CustomColors": {
         "m_SerializableColors": []
     },
@@ -6915,6 +6948,7 @@
     "m_Id": 5,
     "m_DisplayName": "Animated Iris UV",
     "m_SlotType": 1,
+    "m_Priority": 2147483647,
     "m_Hidden": false,
     "m_ShaderOutputName": "AnimatedIrisUV",
     "m_StageCapability": 3,
@@ -6939,6 +6973,7 @@
     "m_Id": 6,
     "m_DisplayName": "Iris Radius",
     "m_SlotType": 0,
+    "m_Priority": 2147483647,
     "m_Hidden": false,
     "m_ShaderOutputName": "IrisRadius",
     "m_StageCapability": 3,
@@ -6975,7 +7010,6 @@
     "synonyms": [],
     "m_Precision": 0,
     "m_PreviewExpanded": true,
-    "m_PreviewMode": 0,
     "m_CustomColors": {
         "m_SerializableColors": []
     },
@@ -6989,6 +7023,7 @@
     "m_Id": 4,
     "m_DisplayName": "Maximal Pupil Aperture",
     "m_SlotType": 0,
+    "m_Priority": 2147483647,
     "m_Hidden": false,
     "m_ShaderOutputName": "MaximalPupilAperture",
     "m_StageCapability": 3,
@@ -7026,6 +7061,7 @@
     "m_Id": 3,
     "m_DisplayName": "Output Color",
     "m_SlotType": 1,
+    "m_Priority": 2147483647,
     "m_Hidden": false,
     "m_ShaderOutputName": "OutputColor",
     "m_StageCapability": 3,
@@ -7078,7 +7114,6 @@
     "synonyms": [],
     "m_Precision": 0,
     "m_PreviewExpanded": true,
-    "m_PreviewMode": 0,
     "m_CustomColors": {
         "m_SerializableColors": []
     },
@@ -7095,6 +7130,7 @@
     "m_Id": 0,
     "m_DisplayName": "Out",
     "m_SlotType": 1,
+    "m_Priority": 2147483647,
     "m_Hidden": false,
     "m_ShaderOutputName": "Out",
     "m_StageCapability": 3,
@@ -7112,10 +7148,10 @@
     "m_Id": 1,
     "m_DisplayName": "Texture",
     "m_SlotType": 0,
+    "m_Priority": 2147483647,
     "m_Hidden": false,
     "m_ShaderOutputName": "Texture",
     "m_StageCapability": 3,
-    "m_BareResource": false,
     "m_Texture": {
         "m_SerializedTexture": "{\"texture\":{\"instanceID\":0}}",
         "m_Guid": ""
@@ -7130,6 +7166,7 @@
     "m_Id": 13,
     "m_DisplayName": "Specular Normal",
     "m_SlotType": 1,
+    "m_Priority": 2147483647,
     "m_Hidden": false,
     "m_ShaderOutputName": "SpecularNormal",
     "m_StageCapability": 3,
@@ -7177,6 +7214,7 @@
     "m_Id": 2,
     "m_DisplayName": "UV",
     "m_SlotType": 0,
+    "m_Priority": 2147483647,
     "m_Hidden": false,
     "m_ShaderOutputName": "UV",
     "m_StageCapability": 3,
@@ -7221,7 +7259,6 @@
     "synonyms": [],
     "m_Precision": 0,
     "m_PreviewExpanded": true,
-    "m_PreviewMode": 0,
     "m_CustomColors": {
         "m_SerializableColors": []
     },
@@ -7254,7 +7291,6 @@
     "synonyms": [],
     "m_Precision": 0,
     "m_PreviewExpanded": true,
-    "m_PreviewMode": 0,
     "m_CustomColors": {
         "m_SerializableColors": []
     },
@@ -7270,6 +7306,7 @@
     "m_Id": 14,
     "m_DisplayName": "Eye Smoothness",
     "m_SlotType": 1,
+    "m_Priority": 2147483647,
     "m_Hidden": false,
     "m_ShaderOutputName": "EyeSmoothness",
     "m_StageCapability": 3,
@@ -7312,7 +7349,6 @@
     "synonyms": [],
     "m_Precision": 0,
     "m_PreviewExpanded": true,
-    "m_PreviewMode": 0,
     "m_CustomColors": {
         "m_SerializableColors": []
     }
@@ -7325,6 +7361,7 @@
     "m_Id": 11,
     "m_DisplayName": "Surface Mask",
     "m_SlotType": 1,
+    "m_Priority": 2147483647,
     "m_Hidden": false,
     "m_ShaderOutputName": "SurfaceMask",
     "m_StageCapability": 3,
@@ -7361,7 +7398,6 @@
     "synonyms": [],
     "m_Precision": 0,
     "m_PreviewExpanded": true,
-    "m_PreviewMode": 0,
     "m_CustomColors": {
         "m_SerializableColors": []
     },
@@ -7399,7 +7435,6 @@
     ],
     "m_Precision": 0,
     "m_PreviewExpanded": true,
-    "m_PreviewMode": 0,
     "m_CustomColors": {
         "m_SerializableColors": []
     },
@@ -7413,6 +7448,7 @@
     "m_Id": 0,
     "m_DisplayName": "Iris UV",
     "m_SlotType": 0,
+    "m_Priority": 2147483647,
     "m_Hidden": false,
     "m_ShaderOutputName": "IrisUV",
     "m_StageCapability": 3,
@@ -7437,6 +7473,7 @@
     "m_Id": 0,
     "m_DisplayName": "Out",
     "m_SlotType": 1,
+    "m_Priority": 2147483647,
     "m_Hidden": false,
     "m_ShaderOutputName": "Out",
     "m_StageCapability": 3,
@@ -7483,7 +7520,6 @@
     "synonyms": [],
     "m_Precision": 0,
     "m_PreviewExpanded": true,
-    "m_PreviewMode": 0,
     "m_CustomColors": {
         "m_SerializableColors": []
     },
@@ -7497,6 +7533,7 @@
     "m_Id": 0,
     "m_DisplayName": "Position OS",
     "m_SlotType": 0,
+    "m_Priority": 2147483647,
     "m_Hidden": false,
     "m_ShaderOutputName": "PositionOS",
     "m_StageCapability": 3,
@@ -7524,6 +7561,7 @@
     "m_Id": 0,
     "m_DisplayName": "IOR",
     "m_SlotType": 0,
+    "m_Priority": 2147483647,
     "m_Hidden": false,
     "m_ShaderOutputName": "IOR",
     "m_StageCapability": 2,
@@ -7539,10 +7577,11 @@
     "m_Type": "UnityEditor.ShaderGraph.Vector3MaterialSlot",
     "m_ObjectId": "debf1f40819e401382e10b3d292f280a",
     "m_Id": 1,
-    "m_DisplayName": "View Direction OS",
+    "m_DisplayName": "View WS",
     "m_SlotType": 0,
+    "m_Priority": 2147483647,
     "m_Hidden": false,
-    "m_ShaderOutputName": "ViewDirectionOS",
+    "m_ShaderOutputName": "ViewWS",
     "m_StageCapability": 3,
     "m_Value": {
         "x": 0.0,
@@ -7568,6 +7607,7 @@
     "m_Id": 0,
     "m_DisplayName": "Out",
     "m_SlotType": 1,
+    "m_Priority": 2147483647,
     "m_Hidden": false,
     "m_ShaderOutputName": "Out",
     "m_StageCapability": 3,
@@ -7583,10 +7623,11 @@
     "m_Type": "UnityEditor.ShaderGraph.Vector3MaterialSlot",
     "m_ObjectId": "e129c049f19b4f179a62017745517030",
     "m_Id": 0,
-    "m_DisplayName": "Position OS",
+    "m_DisplayName": "Sclera UV",
     "m_SlotType": 0,
+    "m_Priority": 2147483647,
     "m_Hidden": false,
-    "m_ShaderOutputName": "PositionOS",
+    "m_ShaderOutputName": "ScleraUV",
     "m_StageCapability": 3,
     "m_Value": {
         "x": 0.0,
@@ -7612,6 +7653,7 @@
     "m_Id": 1,
     "m_DisplayName": "Iris Offset",
     "m_SlotType": 0,
+    "m_Priority": 2147483647,
     "m_Hidden": false,
     "m_ShaderOutputName": "IrisOffset",
     "m_StageCapability": 3,
@@ -7657,8 +7699,6 @@
         "m_GuidSerialized": "6db4e7d9-6746-4a1f-aaea-f1ded256be02"
     },
     "m_Name": "CorneaSmoothness",
-    "m_DefaultRefNameVersion": 0,
-    "m_RefNameGeneratedByDisplayName": "",
     "m_DefaultReferenceName": "Vector1_8F0D1174",
     "m_OverrideReferenceName": "",
     "m_GeneratePropertyBlock": true,
@@ -7679,10 +7719,11 @@
     "m_Type": "UnityEditor.ShaderGraph.Vector3MaterialSlot",
     "m_ObjectId": "e5431f3a0a3d4f0db25bfa31fcc0a2c8",
     "m_Id": 1,
-    "m_DisplayName": "View Direction OS",
+    "m_DisplayName": "View WS",
     "m_SlotType": 0,
+    "m_Priority": 2147483647,
     "m_Hidden": false,
-    "m_ShaderOutputName": "ViewDirectionOS",
+    "m_ShaderOutputName": "ViewWS",
     "m_StageCapability": 3,
     "m_Value": {
         "x": 0.0,
@@ -7727,7 +7768,6 @@
     "synonyms": [],
     "m_Precision": 0,
     "m_PreviewExpanded": true,
-    "m_PreviewMode": 0,
     "m_CustomColors": {
         "m_SerializableColors": []
     },
@@ -7741,6 +7781,7 @@
     "m_Id": 2,
     "m_DisplayName": "Sclera UV",
     "m_SlotType": 1,
+    "m_Priority": 2147483647,
     "m_Hidden": false,
     "m_ShaderOutputName": "ScleraUV",
     "m_StageCapability": 3,
@@ -7765,6 +7806,7 @@
     "m_Id": 0,
     "m_DisplayName": "Position OS",
     "m_SlotType": 0,
+    "m_Priority": 2147483647,
     "m_Hidden": false,
     "m_ShaderOutputName": "PositionOS",
     "m_StageCapability": 3,
@@ -7811,7 +7853,6 @@
     "synonyms": [],
     "m_Precision": 0,
     "m_PreviewExpanded": true,
-    "m_PreviewMode": 0,
     "m_CustomColors": {
         "m_SerializableColors": []
     },
@@ -7867,7 +7908,6 @@
     "synonyms": [],
     "m_Precision": 0,
     "m_PreviewExpanded": false,
-    "m_PreviewMode": 0,
     "m_CustomColors": {
         "m_SerializableColors": []
     },
@@ -7882,6 +7922,7 @@
     "m_Id": 1,
     "m_DisplayName": "Strength",
     "m_SlotType": 0,
+    "m_Priority": 2147483647,
     "m_Hidden": false,
     "m_ShaderOutputName": "Strength",
     "m_StageCapability": 3,
@@ -7899,6 +7940,7 @@
     "m_Id": 3,
     "m_DisplayName": "Pupil Radius",
     "m_SlotType": 0,
+    "m_Priority": 2147483647,
     "m_Hidden": false,
     "m_ShaderOutputName": "PupilRadius",
     "m_StageCapability": 3,
@@ -7935,7 +7977,6 @@
     "synonyms": [],
     "m_Precision": 0,
     "m_PreviewExpanded": true,
-    "m_PreviewMode": 0,
     "m_CustomColors": {
         "m_SerializableColors": []
     },
@@ -7950,8 +7991,6 @@
         "m_GuidSerialized": "0d4d34f4-8f8f-4afa-89fc-bc008c7fb200"
     },
     "m_Name": "ScleraTexture",
-    "m_DefaultRefNameVersion": 0,
-    "m_RefNameGeneratedByDisplayName": "",
     "m_DefaultReferenceName": "Texture2D_5F873FC1",
     "m_OverrideReferenceName": "",
     "m_GeneratePropertyBlock": true,
@@ -7993,7 +8032,6 @@
     "synonyms": [],
     "m_Precision": 0,
     "m_PreviewExpanded": false,
-    "m_PreviewMode": 0,
     "m_CustomColors": {
         "m_SerializableColors": []
     },
@@ -8037,7 +8075,6 @@
     "synonyms": [],
     "m_Precision": 0,
     "m_PreviewExpanded": true,
-    "m_PreviewMode": 0,
     "m_CustomColors": {
         "m_SerializableColors": []
     }
@@ -8069,7 +8106,6 @@
     "synonyms": [],
     "m_Precision": 0,
     "m_PreviewExpanded": false,
-    "m_PreviewMode": 0,
     "m_CustomColors": {
         "m_SerializableColors": []
     },
@@ -8129,7 +8165,6 @@
     "synonyms": [],
     "m_Precision": 0,
     "m_PreviewExpanded": true,
-    "m_PreviewMode": 0,
     "m_CustomColors": {
         "m_SerializableColors": []
     }
@@ -8142,6 +8177,7 @@
     "m_Id": 0,
     "m_DisplayName": "Iris Normal (Tangent Space)",
     "m_SlotType": 0,
+    "m_Priority": 2147483647,
     "m_Hidden": false,
     "m_ShaderOutputName": "IrisNormalTS",
     "m_StageCapability": 2,
@@ -8170,6 +8206,7 @@
     "m_Id": 2,
     "m_DisplayName": "Limbal Ring Size",
     "m_SlotType": 0,
+    "m_Priority": 2147483647,
     "m_Hidden": false,
     "m_ShaderOutputName": "LimbalRingSize",
     "m_StageCapability": 3,
@@ -8187,6 +8224,7 @@
     "m_Id": 0,
     "m_DisplayName": "In",
     "m_SlotType": 0,
+    "m_Priority": 2147483647,
     "m_Hidden": false,
     "m_ShaderOutputName": "In",
     "m_StageCapability": 3,
@@ -8233,7 +8271,6 @@
     "synonyms": [],
     "m_Precision": 0,
     "m_PreviewExpanded": true,
-    "m_PreviewMode": 0,
     "m_CustomColors": {
         "m_SerializableColors": []
     },
@@ -8249,6 +8286,7 @@
     "m_Id": 1,
     "m_DisplayName": "X",
     "m_SlotType": 0,
+    "m_Priority": 2147483647,
     "m_Hidden": false,
     "m_ShaderOutputName": "X",
     "m_StageCapability": 3,
@@ -8266,6 +8304,7 @@
     "m_Id": 0,
     "m_DisplayName": "Alpha",
     "m_SlotType": 0,
+    "m_Priority": 2147483647,
     "m_Hidden": false,
     "m_ShaderOutputName": "Alpha",
     "m_StageCapability": 2,
@@ -8302,7 +8341,6 @@
     "synonyms": [],
     "m_Precision": 0,
     "m_PreviewExpanded": true,
-    "m_PreviewMode": 0,
     "m_CustomColors": {
         "m_SerializableColors": []
     },
@@ -8355,7 +8393,6 @@
     "synonyms": [],
     "m_Precision": 0,
     "m_PreviewExpanded": true,
-    "m_PreviewMode": 0,
     "m_CustomColors": {
         "m_SerializableColors": []
     },
@@ -8369,6 +8406,7 @@
     "m_Id": 0,
     "m_DisplayName": "Normal (Tangent Space)",
     "m_SlotType": 0,
+    "m_Priority": 2147483647,
     "m_Hidden": false,
     "m_ShaderOutputName": "NormalTS",
     "m_StageCapability": 2,
@@ -8421,7 +8459,6 @@
     ],
     "m_Precision": 0,
     "m_PreviewExpanded": true,
-    "m_PreviewMode": 0,
     "m_CustomColors": {
         "m_SerializableColors": []
     },
@@ -8435,6 +8472,7 @@
     "m_Id": 0,
     "m_DisplayName": "LimbalRingSizeIris",
     "m_SlotType": 1,
+    "m_Priority": 2147483647,
     "m_Hidden": false,
     "m_ShaderOutputName": "Out",
     "m_StageCapability": 3,
@@ -8505,7 +8543,6 @@
     "synonyms": [],
     "m_Precision": 1,
     "m_PreviewExpanded": false,
-    "m_PreviewMode": 2,
     "m_CustomColors": {
         "m_SerializableColors": []
     },
@@ -8519,6 +8556,7 @@
     "m_Id": 1,
     "m_DisplayName": "Eye Color",
     "m_SlotType": 0,
+    "m_Priority": 2147483647,
     "m_Hidden": false,
     "m_ShaderOutputName": "EyeColor",
     "m_StageCapability": 3,
@@ -8547,8 +8585,6 @@
         "m_GuidSerialized": "516bed75-9b12-4aff-bace-a3aa2a3a2a41"
     },
     "m_Name": "ScleraNormal",
-    "m_DefaultRefNameVersion": 0,
-    "m_RefNameGeneratedByDisplayName": "",
     "m_DefaultReferenceName": "Texture2D_B9F5688C",
     "m_OverrideReferenceName": "",
     "m_GeneratePropertyBlock": true,
@@ -8571,6 +8607,7 @@
     "m_Id": 0,
     "m_DisplayName": "Out",
     "m_SlotType": 1,
+    "m_Priority": 2147483647,
     "m_Hidden": false,
     "m_ShaderOutputName": "Out",
     "m_StageCapability": 3,
@@ -8598,6 +8635,7 @@
     "m_Id": 3,
     "m_DisplayName": "Cornea IOR",
     "m_SlotType": 0,
+    "m_Priority": 2147483647,
     "m_Hidden": false,
     "m_ShaderOutputName": "CorneaIOR",
     "m_StageCapability": 3,

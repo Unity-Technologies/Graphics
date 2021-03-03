@@ -85,14 +85,18 @@ VaryingsParticle ParticlesLitGBufferVertex(AttributesParticle input)
 
     VertexPositionInputs vertexInput = GetVertexPositionInputs(input.vertex.xyz);
     VertexNormalInputs normalInput = GetVertexNormalInputs(input.normal, input.tangent);
-    half3 viewDirWS = GetWorldSpaceNormalizeViewDir(vertexInput.positionWS);
+
+    half3 viewDirWS = GetWorldSpaceViewDir(vertexInput.positionWS);
+#if !SHADER_HINT_NICE_QUALITY
+    viewDirWS = SafeNormalize(viewDirWS);
+#endif
 
 #ifdef _NORMALMAP
     output.normalWS = half4(normalInput.normalWS, viewDirWS.x);
     output.tangentWS = half4(normalInput.tangentWS, viewDirWS.y);
     output.bitangentWS = half4(normalInput.bitangentWS, viewDirWS.z);
 #else
-    output.normalWS = half3(normalInput.normalWS);
+    output.normalWS = normalInput.normalWS;
     output.viewDirWS = viewDirWS;
 #endif
 

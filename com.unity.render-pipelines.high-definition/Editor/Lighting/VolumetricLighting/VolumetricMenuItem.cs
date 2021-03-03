@@ -6,7 +6,7 @@ namespace UnityEditor.Rendering.HighDefinition
 {
     class VolumetricMenuItems
     {
-        [MenuItem("GameObject/Volume/Density Volume", priority = CoreUtils.Sections.section2 + CoreUtils.Priorities.gameObjectMenuPriority + 2)]
+        [MenuItem("GameObject/Rendering/Density Volume", priority = CoreUtils.gameObjectMenuPriority)]
         static void CreateDensityVolumeGameObject(MenuCommand menuCommand)
         {
             var parent = menuCommand.context as GameObject;
@@ -15,7 +15,7 @@ namespace UnityEditor.Rendering.HighDefinition
             densityVolume.AddComponent<DensityVolume>();
         }
 
-        [MenuItem("GameObject/Light/Experimental/Probe Volume", priority = CoreUtils.Sections.section8)]
+        [MenuItem("GameObject/Light/Experimental/Probe Volume", priority = CoreUtils.gameObjectMenuPriority)]
         static void CreateProbeVolumeGameObject(MenuCommand menuCommand)
         {
             var parent = menuCommand.context as GameObject;

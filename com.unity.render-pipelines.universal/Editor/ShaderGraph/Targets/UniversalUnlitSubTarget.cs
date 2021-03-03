@@ -191,9 +191,6 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
                 pragmas = CorePragmas.Forward,
                 keywords = UnlitKeywords.Unlit,
                 includes = UnlitIncludes.Unlit,
-
-                // Custom Interpolator Support
-                customInterpolators = CoreCustomInterpDescriptors.Common
             };
         }
         #endregion

@@ -35,9 +35,6 @@ namespace UnityEditor.Rendering.HighDefinition
             bool transparentWritesMotionVec = (surfaceType == SurfaceType.Transparent) && material.HasProperty(kTransparentWritingMotionVec) && material.GetInt(kTransparentWritingMotionVec) > 0;
             CoreUtils.SetKeyword(material, "_TRANSPARENT_WRITES_MOTION_VEC", transparentWritesMotionVec);
 
-            if (material.HasProperty(kAddPrecomputedVelocity))
-                CoreUtils.SetKeyword(material, "_ADD_PRECOMPUTED_VELOCITY", material.GetInt(kAddPrecomputedVelocity) != 0);
-
             HDRenderQueue.RenderQueueType renderQueueType = HDRenderQueue.GetTypeByRenderQueueValue(material.renderQueue);
             bool needOffScreenBlendFactor = renderQueueType == HDRenderQueue.RenderQueueType.AfterPostprocessTransparent || renderQueueType == HDRenderQueue.RenderQueueType.LowTransparent;
 
@@ -204,12 +201,6 @@ namespace UnityEditor.Rendering.HighDefinition
             bool isBackFaceEnable = material.HasProperty(kTransparentBackfaceEnable) && material.GetFloat(kTransparentBackfaceEnable) > 0.0f && surfaceType == SurfaceType.Transparent;
             bool doubleSidedEnable = material.HasProperty(kDoubleSidedEnable) && material.GetFloat(kDoubleSidedEnable) > 0.0f;
 
-            DoubleSidedGIMode doubleSidedGIMode = DoubleSidedGIMode.Auto;
-            if (material.HasProperty(kDoubleSidedGIMode))
-            {
-                doubleSidedGIMode = (DoubleSidedGIMode)material.GetFloat(kDoubleSidedGIMode);
-            }
-
             // Disable culling if double sided
             material.SetInt("_CullMode", doubleSidedEnable ? (int)UnityEngine.Rendering.CullMode.Off : (int)doubleSidedOffMode);
 
@@ -249,12 +240,8 @@ namespace UnityEditor.Rendering.HighDefinition
 
             // DoubleSidedGI has to be synced with our double sided toggle
             var serializedObject = new SerializedObject(material);
-            if (doubleSidedGIMode == DoubleSidedGIMode.Auto)
-                material.doubleSidedGI = doubleSidedEnable;
-            else if (doubleSidedGIMode == DoubleSidedGIMode.On)
-                material.doubleSidedGI = true;
-            else if (doubleSidedGIMode == DoubleSidedGIMode.Off)
-                material.doubleSidedGI = false;
+            var doubleSidedGIppt = serializedObject.FindProperty("m_DoubleSidedGI");
+            doubleSidedGIppt.boolValue = doubleSidedEnable;
             serializedObject.ApplyModifiedProperties();
         }
 

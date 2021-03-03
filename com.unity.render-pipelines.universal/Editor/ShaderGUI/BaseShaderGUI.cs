@@ -1,23 +1,13 @@
 using System;
-using System.Collections.Generic;
-using UnityEditor.Rendering;
 using UnityEngine;
 using UnityEngine.Rendering;
+using UnityEditor.Rendering.Universal;
 
 namespace UnityEditor
 {
     public abstract class BaseShaderGUI : ShaderGUI
     {
         #region EnumsAndClasses
-
-        [Flags]
-        protected enum Expandable
-        {
-            SurfaceOptions = 1 << 0,
-            SurfaceInputs = 1 << 1,
-            Advanced = 1 << 2,
-            Details = 1 << 3,
-        }
 
         public enum SurfaceType
         {
@@ -50,48 +40,48 @@ namespace UnityEditor
         {
             // Catergories
             public static readonly GUIContent SurfaceOptions =
-                EditorGUIUtility.TrTextContent("Surface Options", "Controls how Universal RP renders the Material on a screen.");
+                new GUIContent("Surface Options", "Controls how Universal RP renders the Material on a screen.");
 
-            public static readonly GUIContent SurfaceInputs = EditorGUIUtility.TrTextContent("Surface Inputs",
+            public static readonly GUIContent SurfaceInputs = new GUIContent("Surface Inputs",
                 "These settings describe the look and feel of the surface itself.");
 
-            public static readonly GUIContent AdvancedLabel = EditorGUIUtility.TrTextContent("Advanced Options",
+            public static readonly GUIContent AdvancedLabel = new GUIContent("Advanced",
                 "These settings affect behind-the-scenes rendering and underlying calculations.");
 
-            public static readonly GUIContent surfaceType = EditorGUIUtility.TrTextContent("Surface Type",
+            public static readonly GUIContent surfaceType = new GUIContent("Surface Type",
                 "Select a surface type for your texture. Choose between Opaque or Transparent.");
 
-            public static readonly GUIContent blendingMode = EditorGUIUtility.TrTextContent("Blending Mode",
+            public static readonly GUIContent blendingMode = new GUIContent("Blending Mode",
                 "Controls how the color of the Transparent surface blends with the Material color in the background.");
 
-            public static readonly GUIContent cullingText = EditorGUIUtility.TrTextContent("Render Face",
+            public static readonly GUIContent cullingText = new GUIContent("Render Face",
                 "Specifies which faces to cull from your geometry. Front culls front faces. Back culls backfaces. None means that both sides are rendered.");
 
-            public static readonly GUIContent alphaClipText = EditorGUIUtility.TrTextContent("Alpha Clipping",
+            public static readonly GUIContent alphaClipText = new GUIContent("Alpha Clipping",
                 "Makes your Material act like a Cutout shader. Use this to create a transparent effect with hard edges between opaque and transparent areas.");
 
-            public static readonly GUIContent alphaClipThresholdText = EditorGUIUtility.TrTextContent("Threshold",
+            public static readonly GUIContent alphaClipThresholdText = new GUIContent("Threshold",
                 "Sets where the Alpha Clipping starts. The higher the value is, the brighter the  effect is when clipping starts.");
 
-            public static readonly GUIContent receiveShadowText = EditorGUIUtility.TrTextContent("Receive Shadows",
+            public static readonly GUIContent receiveShadowText = new GUIContent("Receive Shadows",
                 "When enabled, other GameObjects can cast shadows onto this GameObject.");
 
-            public static readonly GUIContent baseMap = EditorGUIUtility.TrTextContent("Base Map",
+            public static readonly GUIContent baseMap = new GUIContent("Base Map",
                 "Specifies the base Material and/or Color of the surface. If you’ve selected Transparent or Alpha Clipping under Surface Options, your Material uses the Texture’s alpha channel or color.");
 
-            public static readonly GUIContent emissionMap = EditorGUIUtility.TrTextContent("Emission Map",
+            public static readonly GUIContent emissionMap = new GUIContent("Emission Map",
                 "Sets a Texture map to use for emission. You can also select a color with the color picker. Colors are multiplied over the Texture.");
 
             public static readonly GUIContent normalMapText =
-                EditorGUIUtility.TrTextContent("Normal Map", "Assigns a tangent-space normal map.");
+                new GUIContent("Normal Map", "Assigns a tangent-space normal map.");
 
             public static readonly GUIContent bumpScaleNotSupported =
-                EditorGUIUtility.TrTextContent("Bump scale is not supported on mobile platforms");
+                new GUIContent("Bump scale is not supported on mobile platforms");
 
-            public static readonly GUIContent fixNormalNow = EditorGUIUtility.TrTextContent("Fix now",
+            public static readonly GUIContent fixNormalNow = new GUIContent("Fix now",
                 "Converts the assigned texture to be a normal map format.");
 
-            public static readonly GUIContent queueSlider = EditorGUIUtility.TrTextContent("Priority",
+            public static readonly GUIContent queueSlider = new GUIContent("Priority",
                 "Determines the chronological rendering order for a Material. High values are rendered first.");
         }
 
@@ -127,8 +117,19 @@ namespace UnityEditor
 
         public bool m_FirstTimeApply = true;
 
-        // By default, everything is expanded, except advanced
-        readonly MaterialHeaderScopeList m_MaterialScopeList = new MaterialHeaderScopeList(uint.MaxValue & ~(uint)Expandable.Advanced);
+        private const string k_KeyPrefix = "UniversalRP:Material:UI_State:";
+
+        private string m_HeaderStateKey = null;
+
+        protected string headerStateKey { get { return m_HeaderStateKey; } }
+
+        // Header foldout states
+
+        SavedBool m_SurfaceOptionsFoldout;
+
+        SavedBool m_SurfaceInputsFoldout;
+
+        SavedBool m_AdvancedFoldout;
 
         #endregion
 
@@ -175,32 +176,55 @@ namespace UnityEditor
             ShaderPropertiesGUI(material);
         }
 
-        void UpdateMaterials(MaterialEditor materialEditor)
-        {
-            foreach (var obj in materialEditor.targets)
-                MaterialChanged((Material)obj);
-        }
-
         public virtual void OnOpenGUI(Material material, MaterialEditor materialEditor)
         {
-            // Generate the foldouts
-            m_MaterialScopeList.RegisterHeaderScope(Styles.SurfaceOptions, (uint)Expandable.SurfaceOptions, DrawSurfaceOptions);
-            m_MaterialScopeList.RegisterHeaderScope(Styles.SurfaceInputs, (uint)Expandable.SurfaceInputs, DrawSurfaceInputs);
+            // Foldout states
+            m_HeaderStateKey = k_KeyPrefix + material.shader.name; // Create key string for editor prefs
+            m_SurfaceOptionsFoldout = new SavedBool($"{m_HeaderStateKey}.SurfaceOptionsFoldout", true);
+            m_SurfaceInputsFoldout = new SavedBool($"{m_HeaderStateKey}.SurfaceInputsFoldout", true);
+            m_AdvancedFoldout = new SavedBool($"{m_HeaderStateKey}.AdvancedFoldout", false);
 
-            FillAdditionalFoldouts(m_MaterialScopeList);
-
-            m_MaterialScopeList.RegisterHeaderScope(Styles.AdvancedLabel, (uint)Expandable.Advanced, DrawAdvancedOptions);
-
-            UpdateMaterials(materialEditor);
+            foreach (var obj in  materialEditor.targets)
+                MaterialChanged((Material)obj);
         }
 
         public void ShaderPropertiesGUI(Material material)
         {
+            if (material == null)
+                throw new ArgumentNullException("material");
+
             EditorGUI.BeginChangeCheck();
+
+            m_SurfaceOptionsFoldout.value = EditorGUILayout.BeginFoldoutHeaderGroup(m_SurfaceOptionsFoldout.value, Styles.SurfaceOptions);
+            if (m_SurfaceOptionsFoldout.value)
             {
-                m_MaterialScopeList.DrawHeaders(materialEditor, material);
-                if (EditorGUI.EndChangeCheck())
-                    UpdateMaterials(materialEditor);
+                DrawSurfaceOptions(material);
+                EditorGUILayout.Space();
+            }
+            EditorGUILayout.EndFoldoutHeaderGroup();
+
+            m_SurfaceInputsFoldout.value = EditorGUILayout.BeginFoldoutHeaderGroup(m_SurfaceInputsFoldout.value, Styles.SurfaceInputs);
+            if (m_SurfaceInputsFoldout.value)
+            {
+                DrawSurfaceInputs(material);
+                EditorGUILayout.Space();
+            }
+            EditorGUILayout.EndFoldoutHeaderGroup();
+
+            DrawAdditionalFoldouts(material);
+
+            m_AdvancedFoldout.value = EditorGUILayout.BeginFoldoutHeaderGroup(m_AdvancedFoldout.value, Styles.AdvancedLabel);
+            if (m_AdvancedFoldout.value)
+            {
+                DrawAdvancedOptions(material);
+                EditorGUILayout.Space();
+            }
+            EditorGUILayout.EndFoldoutHeaderGroup();
+
+            if (EditorGUI.EndChangeCheck())
+            {
+                foreach (var obj in  materialEditor.targets)
+                    MaterialChanged((Material)obj);
             }
         }
 
@@ -275,7 +299,7 @@ namespace UnityEditor
             }
         }
 
-        public virtual void FillAdditionalFoldouts(MaterialHeaderScopeList materialScopesList) {}
+        public virtual void DrawAdditionalFoldouts(Material material) {}
 
         public virtual void DrawBaseProperties(Material material)
         {

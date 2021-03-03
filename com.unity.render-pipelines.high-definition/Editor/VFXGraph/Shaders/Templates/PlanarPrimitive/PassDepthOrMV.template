@@ -11,11 +11,7 @@ struct ps_input
 	#if USE_FLIPBOOK_INTERPOLATION
 	float4 uv : TEXCOORD0;
 	#else
-		#if USE_FLIPBOOK_ARRAY_LAYOUT
-		float3 uv : TEXCOORD0;
-		#else
-		float2 uv : TEXCOORD0;	
-		#endif
+	float2 uv : TEXCOORD0;	
 	#endif
 	#if USE_ALPHA_TEST || USE_FLIPBOOK_INTERPOLATION || VFX_USE_ALPHA_CURRENT
 	// x: alpha threshold

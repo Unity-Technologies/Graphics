@@ -26,29 +26,22 @@ namespace UnityEngine.Rendering.HighDefinition
                 cct = Mathf.CorrelatedColorTemperatureToRGB(light.colorTemperature);
 #endif
 
-#if UNITY_EDITOR
-            LightMode lightMode = LightmapperUtils.Extract(light.lightmapBakeType);
-#else
-            LightMode lightMode = LightmapperUtils.Extract(light.bakingOutput.lightmapBakeType);
-#endif
-
-            float lightDimmer = 1;
-
-            if (lightMode == LightMode.Realtime && add.affectDiffuse)
-                lightDimmer = add.lightDimmer;
-
+            // TODO: Only take into account the light dimmer when we have real time GI.
             lightDataGI.instanceID = light.GetInstanceID();
             LinearColor directColor, indirectColor;
             directColor = add.affectDiffuse ? LinearColor.Convert(light.color, light.intensity) : LinearColor.Black();
             directColor.red *= cct.r;
             directColor.green *= cct.g;
             directColor.blue *= cct.b;
-            directColor.intensity *= lightDimmer;
             indirectColor = add.affectDiffuse ? LightmapperUtils.ExtractIndirect(light) : LinearColor.Black();
             indirectColor.red *= cct.r;
             indirectColor.green *= cct.g;
             indirectColor.blue *= cct.b;
-            indirectColor.intensity *= lightDimmer;
+#if UNITY_EDITOR
+            LightMode lightMode = LightmapperUtils.Extract(light.lightmapBakeType);
+#else
+            LightMode lightMode = LightmapperUtils.Extract(light.bakingOutput.lightmapBakeType);
+#endif
 
             lightDataGI.color = directColor;
             lightDataGI.indirectColor = indirectColor;
@@ -209,9 +202,13 @@ namespace UnityEngine.Rendering.HighDefinition
                             lightDataGI.range = light.range;
                             lightDataGI.coneAngle = 0.0f;
                             lightDataGI.innerConeAngle = 0.0f;
-                            lightDataGI.shape0 = add.shapeWidth;
-                            lightDataGI.shape1 = add.shapeHeight;
-
+#if UNITY_EDITOR
+                            lightDataGI.shape0 = light.areaSize.x;
+                            lightDataGI.shape1 = light.areaSize.y;
+#else
+                            lightDataGI.shape0 = 0.0f;
+                            lightDataGI.shape1 = 0.0f;
+#endif
                             // TEMP: for now, if we bake a rectangle type this will disable the light for runtime, need to speak with GI team about it!
                             lightDataGI.type = UnityEngine.Experimental.GlobalIllumination.LightType.Rectangle;
                             lightDataGI.falloff = add.applyRangeAttenuation ? FalloffType.InverseSquared : FalloffType.InverseSquaredNoRangeAttenuation;

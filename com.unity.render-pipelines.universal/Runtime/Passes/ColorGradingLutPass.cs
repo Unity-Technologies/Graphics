@@ -50,7 +50,6 @@ namespace UnityEngine.Rendering.Universal.Internal
                 m_HdrLutFormat = GraphicsFormat.R8G8B8A8_UNorm;
 
             m_LdrLutFormat = GraphicsFormat.R8G8B8A8_UNorm;
-            base.useNativeRenderPass = false;
         }
 
         public void Setup(in RenderTargetHandle internalLut)

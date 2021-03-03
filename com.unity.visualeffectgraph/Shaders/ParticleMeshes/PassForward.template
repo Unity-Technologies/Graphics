@@ -15,11 +15,7 @@ Pass
 		#if USE_FLIPBOOK_INTERPOLATION
 		float4 uv : TEXCOORD0;
 		#else
-			#if USE_FLIPBOOK_ARRAY_LAYOUT
-			float3 uv : TEXCOORD0;
-			#else
-			float2 uv : TEXCOORD0;
-			#endif	
+		float2 uv : TEXCOORD0;	
 		#endif
 		#if VFX_SHADERGRAPH_HAS_UV1
 		float4 uv1 : TEXCOORD1;
@@ -36,7 +32,7 @@ Pass
 		#if VFX_NEEDS_COLOR_INTERPOLATOR
 		nointerpolation float4 color : COLOR0;
 		#endif
-		#if USE_SOFT_PARTICLE || USE_ALPHA_TEST || USE_FLIPBOOK_INTERPOLATION || USE_EXPOSURE_WEIGHT || VFX_FEATURE_MOTION_VECTORS_FORWARD
+		#if USE_SOFT_PARTICLE || USE_ALPHA_TEST || USE_FLIPBOOK_INTERPOLATION || USE_EXPOSURE_WEIGHT || WRITE_MOTION_VECTOR_IN_FORWARD
 		// x: inverse soft particles fade distance
 		// y: alpha threshold
 		// z: frame blending factor
@@ -52,9 +48,9 @@ Pass
 		float3 posWS : TEXCOORD6;
 		#endif
 		
-		#if VFX_FEATURE_MOTION_VECTORS_FORWARD
-		VFX_FEATURE_MOTION_VECTORS_INTERPOLATION float4 cPosPrevious : TEXCOORD7;
-		VFX_FEATURE_MOTION_VECTORS_INTERPOLATION float4 cPosNonJiterred : TEXCOORD8;
+		#if WRITE_MOTION_VECTOR_IN_FORWARD
+		float4 cPosPrevious : TEXCOORD7;
+		float4 cPosNonJiterred : TEXCOORD8;
 		#endif
 		
 		#if SHADERGRAPH_NEEDS_NORMAL_FORWARD
@@ -72,7 +68,7 @@ Pass
 	struct ps_output
 	{
 		float4 color : SV_Target0;
-#if VFX_FEATURE_MOTION_VECTORS_FORWARD
+#if WRITE_MOTION_VECTOR_IN_FORWARD
 		float4 outMotionVector : SV_Target1;
 #endif
 	};
@@ -92,7 +88,7 @@ Pass
 #if USE_EXPOSURE_WEIGHT
 #define VFX_VARYING_EXPOSUREWEIGHT builtInInterpolants.w
 #endif
-#if VFX_FEATURE_MOTION_VECTORS_FORWARD
+#if WRITE_MOTION_VECTOR_IN_FORWARD
 #define VFX_VARYING_VELOCITY_CPOS cPosNonJiterred
 #define VFX_VARYING_VELOCITY_CPOS_PREVIOUS cPosPrevious
 #endif
@@ -147,7 +143,7 @@ ${VFXPassForwardDefine}
 		o.color.a = saturate(o.color.a);
 		o.color = VFXTransformFinalColor(o.color);
 		
-#if VFX_FEATURE_MOTION_VECTORS_FORWARD
+#if WRITE_MOTION_VECTOR_IN_FORWARD
 		${VFXComputeOutputMotionVector}
 		o.outMotionVector = encodedMotionVector;
 		o.outMotionVector.a = o.color.a < i.VFX_VARYING_ALPHATHRESHOLD ? 0.0f : 1.0f; //Independant clipping for motion vector pass

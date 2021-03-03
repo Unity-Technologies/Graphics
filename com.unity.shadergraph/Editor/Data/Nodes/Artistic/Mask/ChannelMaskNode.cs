@@ -43,8 +43,7 @@ namespace UnityEditor.ShaderGraph
                 bool alpha = (channelMask & 8) != 0;
                 channelSum = string.Format("{0}{1}{2}{3}", red ? "Red" : "", green ? "Green" : "", blue ? "Blue" : "", alpha ? "Alpha" : "");
             }
-            // NOTE: it's important we use the $precision generic form of the slot type in the name here
-            return $"Unity_ChannelMask_{channelSum}_{FindInputSlot<DynamicVectorMaterialSlot>(InputSlotId).concreteValueType.ToShaderString()}";
+            return $"Unity_ChannelMask_{channelSum}_{FindSlot<MaterialSlot>(OutputSlotId).concreteValueType.ToShaderString(concretePrecision)}";
         }
 
         public sealed override void UpdateNodeAfterDeserialization()

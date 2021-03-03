@@ -6,11 +6,7 @@ struct ps_input
 	#if USE_FLIPBOOK_INTERPOLATION
 	float4 uv : TEXCOORD0;
 	#else
-		#if USE_FLIPBOOK_ARRAY_LAYOUT
-		float3 uv : TEXCOORD0;
-		#else
-		float2 uv : TEXCOORD0;	
-		#endif	
+	float2 uv : TEXCOORD0;	
 	#endif
 	#if USE_ALPHA_TEST || USE_FLIPBOOK_INTERPOLATION || VFX_USE_ALPHA_CURRENT
 	// x: alpha threshold
@@ -26,8 +22,8 @@ struct ps_input
 	#endif
 	
 	#if VFX_PASSDEPTH == VFX_PASSDEPTH_MOTION_VECTOR
-	VFX_FEATURE_MOTION_VECTORS_INTERPOLATION float4 cPosPrevious : TEXCOORD3;
-	VFX_FEATURE_MOTION_VECTORS_INTERPOLATION float4 cPosNonJiterred : TEXCOORD4;
+	float4 cPosPrevious : TEXCOORD3;
+	float4 cPosNonJiterred : TEXCOORD4;
 	#endif
     
     #if VFX_NEEDS_POSWS_INTERPOLATOR

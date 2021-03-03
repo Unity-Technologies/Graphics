@@ -44,7 +44,6 @@ namespace UnityEngine.Rendering.HighDefinition
         };
 
         public static readonly string[] s_MaterialDecalPassNames = Enum.GetNames(typeof(MaterialDecalPass));
-        public static readonly string s_AtlasSizeWarningMessage = "Decal texture atlas out of space, decals on transparent geometry might not render correctly, atlas size can be changed in HDRenderPipelineAsset";
 
         public class CullResult : IDisposable
         {
@@ -1108,7 +1107,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
                 if (!m_AllocationSuccess && m_PrevAllocationSuccess) // still failed to allocate, decal atlas size needs to increase, debounce so that we don't spam the console with warnings
                 {
-                    Debug.LogWarning(s_AtlasSizeWarningMessage);
+                    Debug.LogWarning("Decal texture atlas out of space, decals on transparent geometry might not render correctly, atlas size can be changed in HDRenderPipelineAsset");
                 }
             }
             m_PrevAllocationSuccess = m_AllocationSuccess;
@@ -1180,11 +1179,6 @@ namespace UnityEngine.Rendering.HighDefinition
                     decalSet.SetCullResult(cullResult.requests[enumerator.Current.Key]);
                 }
             }
-        }
-
-        public bool IsAtlasAllocatedSuccessfully()
-        {
-            return m_AllocationSuccess;
         }
     }
 }

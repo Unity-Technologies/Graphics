@@ -1,8 +1,10 @@
 using UnityEngine;
+using UnityEngine.Rendering;
 using UnityEngine.Rendering.HighDefinition;
+using UnityEngine.Rendering.HighDefinition.Attributes;
 using UnityEngine.Rendering.HighDefinition.Compositor;
-using UnityEngine.Experimental.Rendering;
 
+using UnityEditor;
 using UnityEditorInternal;
 
 namespace UnityEditor.Rendering.HighDefinition.Compositor
@@ -68,9 +70,9 @@ namespace UnityEditor.Rendering.HighDefinition.Compositor
                 rect.width -= previewRect.width + CompositorStyle.k_ThumbnailSpacing;
 
                 if (isAlphaEnbaled
-                    && (thumbnail.graphicsFormat == GraphicsFormat.R16G16B16A16_SFloat
-                        || thumbnail.graphicsFormat == GraphicsFormat.R32G32B32A32_SFloat
-                        || thumbnail.graphicsFormat == GraphicsFormat.R16G16B16A16_UNorm))
+                    && (thumbnail.format == RenderTextureFormat.ARGBHalf
+                        || thumbnail.format == RenderTextureFormat.ARGBFloat
+                        || thumbnail.format == RenderTextureFormat.ARGB64))
                 {
                     EditorGUI.DrawTextureAlpha(previewRect, thumbnail);
                     rect.x += previewRect.width + CompositorStyle.k_ThumbnailSpacing;

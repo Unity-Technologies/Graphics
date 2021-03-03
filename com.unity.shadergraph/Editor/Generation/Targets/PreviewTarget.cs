@@ -17,7 +17,6 @@ namespace UnityEditor.ShaderGraph
         }
 
         public override bool IsActive() => false;
-        internal override bool ignoreCustomInterpolators => false;
 
         public override void Setup(ref TargetSetupContext context)
         {

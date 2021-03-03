@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
 using UnityEngine.Rendering.HighDefinition.Attributes;
-using UnityEngine.Experimental.Rendering.RenderGraphModule;
 
 namespace UnityEngine.Rendering.HighDefinition
 {
@@ -83,11 +82,6 @@ namespace UnityEngine.Rendering.HighDefinition
         RecursiveRayTracing,
         /// <summary>Display ray-traced sub-surface scattering.</summary>
         RayTracedSubSurface,
-
-        // Volumetric Clouds
-        VolumetricClouds,
-        VolumetricCloudsShadow,
-
         /// <summary>Maximum Full Screen Lighting debug mode value (used internally).</summary>
         MaxLightingFullScreenDebug,
 
@@ -126,10 +120,7 @@ namespace UnityEngine.Rendering.HighDefinition
         /// <summary>Display Screen Space Reflections buffer of the previous frame accumulated.</summary>
         ScreenSpaceReflectionsPrev,
         /// <summary>Display Screen Space Reflections buffer of the current frame hit.</summary>
-        ScreenSpaceReflectionsAccum,
-
-        /// <summary>Display the world space position.</summary>
-        WorldSpacePosition,
+        ScreenSpaceReflectionsAccum
     }
 
     /// <summary>
@@ -718,10 +709,6 @@ namespace UnityEngine.Rendering.HighDefinition
             m_RecordedSamplers.Add(ProfilingSampler.Get(HDProfileId.PrepareLightsForGPU));
             m_RecordedSamplers.Add(ProfilingSampler.Get(HDProfileId.VolumeVoxelization));
             m_RecordedSamplers.Add(ProfilingSampler.Get(HDProfileId.VolumetricLighting));
-            m_RecordedSamplers.Add(ProfilingSampler.Get(HDProfileId.VolumetricClouds));
-            m_RecordedSamplers.Add(ProfilingSampler.Get(HDProfileId.VolumetricCloudsTrace));
-            m_RecordedSamplers.Add(ProfilingSampler.Get(HDProfileId.VolumetricCloudsReproject));
-            m_RecordedSamplers.Add(ProfilingSampler.Get(HDProfileId.VolumetricCloudsUpscaleAndCombine));
             m_RecordedSamplers.Add(ProfilingSampler.Get(HDProfileId.RenderDeferredLightingCompute));
             m_RecordedSamplers.Add(ProfilingSampler.Get(HDProfileId.ForwardOpaque));
             m_RecordedSamplers.Add(ProfilingSampler.Get(HDProfileId.ForwardTransparent));
@@ -1807,19 +1794,6 @@ namespace UnityEngine.Rendering.HighDefinition
             m_DebugRenderingItems = widgetList.ToArray();
             var panel = DebugManager.instance.GetPanel(k_PanelRendering, true);
             panel.children.Add(m_DebugRenderingItems);
-
-            var renderGraphs = RenderGraph.GetRegisteredRenderGraphs();
-            foreach (var graph in renderGraphs)
-                graph.RegisterDebug(panel);
-        }
-
-        void UnregisterRenderingDebug()
-        {
-            UnregisterDebugItems(k_PanelRendering, m_DebugRenderingItems);
-
-            var renderGraphs = RenderGraph.GetRegisteredRenderGraphs();
-            foreach (var graph in renderGraphs)
-                graph.UnRegisterDebug();
         }
 
         void RegisterDecalsDebug()
@@ -1862,7 +1836,7 @@ namespace UnityEngine.Rendering.HighDefinition
             UnregisterDebugItems(k_PanelMaterials, m_DebugMaterialItems);
             UnregisterDebugItems(k_PanelLighting, m_DebugLightingItems);
             UnregisterDebugItems(k_PanelVolume, m_DebugVolumeItems);
-            UnregisterRenderingDebug();
+            UnregisterDebugItems(k_PanelRendering, m_DebugRenderingItems);
             DebugManager.instance.UnregisterData(this);
         }
 
@@ -1962,7 +1936,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 s_CameraNamesStrings = s_CameraNames.ToArray();
                 s_CameraNamesValues = Enumerable.Range(0, s_CameraNames.Count()).ToArray();
 
-                UnregisterRenderingDebug();
+                UnregisterDebugItems(k_PanelRendering, m_DebugRenderingItems);
                 RegisterRenderingDebug();
                 needsRefreshingCameraFreezeList = false;
             }

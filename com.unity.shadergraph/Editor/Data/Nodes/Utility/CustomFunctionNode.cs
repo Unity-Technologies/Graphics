@@ -94,12 +94,6 @@ namespace UnityEditor.ShaderGraph
             }
         }
 
-        public string hlslFunctionName
-        {
-            get => m_FunctionName + "_$precision";
-        }
-
-
         public static string defaultFunctionName => k_DefaultFunctionName;
 
         [SerializeField]
@@ -161,8 +155,8 @@ namespace UnityEditor.ShaderGraph
 
                 // call function
                 sb.AppendIndentation();
-                sb.Append(hlslFunctionName);
-                sb.Append("(");
+                sb.Append(functionName);
+                sb.Append("_$precision(");
                 bool first = true;
 
                 foreach (var input in inputSlots)
@@ -247,16 +241,19 @@ namespace UnityEditor.ShaderGraph
             switch (sourceType)
             {
                 case HlslSourceType.File:
-                    string path = AssetDatabase.GUIDToAssetPath(functionSource);
+                    registry.ProvideFunction(functionSource, builder =>
+                    {
+                        string path = AssetDatabase.GUIDToAssetPath(functionSource);
 
-                    // This is required for upgrading without console errors
-                    if (string.IsNullOrEmpty(path))
-                        path = functionSource;
+                        // This is required for upgrading without console errors
+                        if (string.IsNullOrEmpty(path))
+                            path = functionSource;
 
-                    registry.RequiresIncludePath(path);
+                        registry.RequiresIncludePath(path);
+                    });
                     break;
                 case HlslSourceType.String:
-                    registry.ProvideFunction(hlslFunctionName, builder =>
+                    registry.ProvideFunction(functionName, builder =>
                     {
                         GetFunctionHeader(builder);
                         using (builder.BlockScope())
@@ -279,8 +276,8 @@ namespace UnityEditor.ShaderGraph
                 GetOutputSlots(outputSlots);
 
                 sb.Append("void ");
-                sb.Append(hlslFunctionName);
-                sb.Append("(");
+                sb.Append(functionName);
+                sb.Append("_$precision(");
 
                 var first = true;
 

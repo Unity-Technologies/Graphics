@@ -386,9 +386,6 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
                 pragmas  = CorePragmas.Forward,     // NOTE: SM 2.0 only GL
                 keywords = LitKeywords.Forward,
                 includes = LitIncludes.Forward,
-
-                // Custom Interpolator Support
-                customInterpolators = CoreCustomInterpDescriptors.Common
             };
 
             public static PassDescriptor ForwardOnly = new PassDescriptor
@@ -417,9 +414,6 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
                 pragmas  = CorePragmas.Forward,    // NOTE: SM 2.0 only GL
                 keywords = LitKeywords.Forward,
                 includes = LitIncludes.Forward,
-
-                // Custom Interpolator Support
-                customInterpolators = CoreCustomInterpDescriptors.Common
             };
 
             // Deferred only in SM4.5, MRT not supported in GLES2
@@ -448,9 +442,6 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
                 pragmas = CorePragmas.DOTSGBuffer,
                 keywords = LitKeywords.GBuffer,
                 includes = LitIncludes.GBuffer,
-
-                // Custom Interpolator Support
-                customInterpolators = CoreCustomInterpDescriptors.Common
             };
 
             public static PassDescriptor Meta = new PassDescriptor()
@@ -478,9 +469,6 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
                 pragmas = CorePragmas.Default,
                 keywords = LitKeywords.Meta,
                 includes = LitIncludes.Meta,
-
-                // Custom Interpolator Support
-                customInterpolators = CoreCustomInterpDescriptors.Common
             };
 
             public static readonly PassDescriptor _2D = new PassDescriptor()
@@ -505,9 +493,6 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
                 renderStates = CoreRenderStates.Default,
                 pragmas = CorePragmas.Instanced,
                 includes = LitIncludes._2D,
-
-                // Custom Interpolator Support
-                customInterpolators = CoreCustomInterpDescriptors.Common
             };
 
             public static readonly PassDescriptor DepthNormalOnly = new PassDescriptor()
@@ -535,9 +520,6 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
                 renderStates = CoreRenderStates.DepthNormalsOnly,
                 pragmas = CorePragmas.Instanced,
                 includes = CoreIncludes.DepthNormalsOnly,
-
-                // Custom Interpolator Support
-                customInterpolators = CoreCustomInterpDescriptors.Common
             };
         }
         #endregion

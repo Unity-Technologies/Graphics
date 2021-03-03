@@ -49,9 +49,6 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
 
     class RenderGraphDebugParams
     {
-        DebugUI.Widget[] m_DebugItems;
-        DebugUI.Panel m_DebugPanel;
-
         public bool clearRenderTargetsAtCreation;
         public bool clearRenderTargetsAtRelease;
         public bool disablePassCulling;
@@ -59,55 +56,44 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
         public bool logFrameInformation;
         public bool logResources;
 
-        public void RegisterDebug(string name, DebugUI.Panel debugPanel = null)
+        public void RegisterDebug(string name)
         {
             var list = new List<DebugUI.Widget>();
-            list.Add(new DebugUI.Container
+            list.Add(new DebugUI.BoolField { displayName = "Clear Render Targets at creation", getter = () => clearRenderTargetsAtCreation, setter = value => clearRenderTargetsAtCreation = value });
+            // We cannot expose this option as it will change the active render target and the debug menu won't know where to render itself anymore.
+            //    list.Add(new DebugUI.BoolField { displayName = "Clear Render Targets at release", getter = () => clearRenderTargetsAtRelease, setter = value => clearRenderTargetsAtRelease = value });
+            list.Add(new DebugUI.BoolField { displayName = "Disable Pass Culling", getter = () => disablePassCulling, setter = value => disablePassCulling = value });
+            list.Add(new DebugUI.BoolField { displayName = "Immediate Mode", getter = () => immediateMode, setter = value => immediateMode = value });
+            list.Add(new DebugUI.Button
             {
-                displayName = $"{name} Render Graph",
-                children =
+                displayName = "Log Frame Information",
+                action = () =>
                 {
-                    new DebugUI.BoolField { displayName = "Clear Render Targets at creation", getter = () => clearRenderTargetsAtCreation, setter = value => clearRenderTargetsAtCreation = value },
-                    // We cannot expose this option as it will change the active render target and the debug menu won't know where to render itself anymore.
-                    //    list.Add(new DebugUI.BoolField { displayName = "Clear Render Targets at release", getter = () => clearRenderTargetsAtRelease, setter = value => clearRenderTargetsAtRelease = value });
-                    new DebugUI.BoolField { displayName = "Disable Pass Culling", getter = () => disablePassCulling, setter = value => disablePassCulling = value },
-                    new DebugUI.BoolField { displayName = "Immediate Mode", getter = () => immediateMode, setter = value => immediateMode = value },
-                    new DebugUI.Button
-                    {
-                        displayName = "Log Frame Information",
-                        action = () =>
-                        {
-                            logFrameInformation = true;
-            #if UNITY_EDITOR
-                            UnityEditor.SceneView.RepaintAll();
-            #endif
-                        }
-                    },
-                    new DebugUI.Button
-                    {
-                        displayName = "Log Resources",
-                        action = () =>
-                        {
-                            logResources = true;
-            #if UNITY_EDITOR
-                            UnityEditor.SceneView.RepaintAll();
-            #endif
-                        }
-                    }
+                    logFrameInformation = true;
+                #if UNITY_EDITOR
+                    UnityEditor.SceneView.RepaintAll();
+                #endif
+                }
+            });
+            list.Add(new DebugUI.Button
+            {
+                displayName = "Log Resources",
+                action = () =>
+                {
+                    logResources = true;
+                #if UNITY_EDITOR
+                    UnityEditor.SceneView.RepaintAll();
+                #endif
                 }
             });
 
-            m_DebugItems = list.ToArray();
-            m_DebugPanel = debugPanel != null ? debugPanel : DebugManager.instance.GetPanel(name.Length == 0 ? "Render Graph" : name, true);
-            m_DebugPanel.children.Add(m_DebugItems);
+            var panel = DebugManager.instance.GetPanel(name.Length == 0 ? "Render Graph" : name, true);
+            panel.children.Add(list.ToArray());
         }
 
         public void UnRegisterDebug(string name)
         {
-            //DebugManager.instance.RemovePanel(name.Length == 0 ? "Render Graph" : name);
-            m_DebugPanel.children.Remove(m_DebugItems);
-            m_DebugPanel = null;
-            m_DebugItems = null;
+            DebugManager.instance.RemovePanel(name.Length == 0 ? "Render Graph" : name);
         }
     }
 
@@ -320,6 +306,8 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
                 m_CompiledResourcesInfos[i] = new DynamicArray<CompiledResourceInfo>();
             }
 
+            m_DebugParameters.RegisterDebug(this.name);
+
             s_RegisteredGraphs.Add(this);
             onGraphRegistered?.Invoke(this);
         }
@@ -329,37 +317,12 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
         /// </summary>
         public void Cleanup()
         {
+            m_DebugParameters.UnRegisterDebug(this.name);
             m_Resources.Cleanup();
             m_DefaultResources.Cleanup();
 
             s_RegisteredGraphs.Remove(this);
             onGraphUnregistered?.Invoke(this);
-        }
-
-        /// <summary>
-        /// Register the render graph to the debug window.
-        /// </summary>
-        /// <param name="panel"></param>
-        public void RegisterDebug(DebugUI.Panel panel = null)
-        {
-            m_DebugParameters.RegisterDebug(name, panel);
-        }
-
-        /// <summary>
-        /// Unregister render graph from the debug window.
-        /// </summary>
-        public void UnRegisterDebug()
-        {
-            m_DebugParameters.UnRegisterDebug(this.name);
-        }
-
-        /// <summary>
-        /// Get the list of all registered render graphs.
-        /// </summary>
-        /// <returns>The list of all registered render graphs.</returns>
-        public static List<RenderGraph> GetRegisteredRenderGraphs()
-        {
-            return s_RegisteredGraphs;
         }
 
         /// <summary>
@@ -694,6 +657,11 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
         #endregion
 
         #region Internal Interface
+        internal static List<RenderGraph>  GetRegisteredRenderGraphs()
+        {
+            return s_RegisteredGraphs;
+        }
+
         // Internal for testing purpose only
         internal DynamicArray<CompiledPassInfo> GetCompiledPassInfos() { return m_CompiledPassInfos; }
 

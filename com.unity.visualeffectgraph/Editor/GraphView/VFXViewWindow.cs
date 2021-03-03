@@ -288,7 +288,8 @@ namespace UnityEditor.VFX.UI
             if (graphView?.controller?.model?.visualEffectObject != null)
             {
                 graphView.checkoutButton.visible = true;
-                if (!graphView.IsAssetEditable() && Provider.isActive && Provider.enabled)
+                if (!AssetDatabase.IsOpenForEdit(graphView.controller.model.visualEffectObject,
+                    StatusQueryOptions.UseCachedIfPossible) && Provider.isActive && Provider.enabled)
                 {
                     graphView.checkoutButton.SetEnabled(true);
                 }

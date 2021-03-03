@@ -1,5 +1,3 @@
-using UnityEngine.Experimental.Rendering;
-
 namespace UnityEngine.Rendering.HighDefinition
 {
     partial class SPTDistribution
@@ -49,12 +47,12 @@ namespace UnityEngine.Rendering.HighDefinition
 
             if (m_refCounting == 0)
             {
-                m_PivotData = new Texture2D(k_PivotLUTResolution, k_PivotLUTResolution, GraphicsFormat.R16G16_SFloat, TextureCreationFlags.None)
+                m_PivotData = new Texture2D(k_PivotLUTResolution, k_PivotLUTResolution, TextureFormat.RGHalf, false /*mipmap*/, true /* linear */)
                 {
                     hideFlags = HideFlags.HideAndDontSave,
                     wrapMode = TextureWrapMode.Clamp,
                     filterMode = FilterMode.Bilinear,
-                    name = CoreUtils.GetTextureAutoName(k_PivotLUTResolution, k_PivotLUTResolution, GraphicsFormat.R16G16_SFloat, depth: 0, dim: TextureDimension.Tex2D, name: "PIVOT_LUT")
+                    name = CoreUtils.GetTextureAutoName(k_PivotLUTResolution, k_PivotLUTResolution, TextureFormat.RGHalf, depth: 0, dim: TextureDimension.Tex2D, name: "PIVOT_LUT")
                 };
 
                 LoadLUT(m_PivotData, s_PivotLUTData);

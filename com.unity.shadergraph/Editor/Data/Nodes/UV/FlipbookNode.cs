@@ -44,7 +44,7 @@ namespace UnityEditor.ShaderGraph
             else if (m_InvertY)
                 invertText = "InvertY_";
 
-            return $"Unity_Flipbook_{invertText}$precision";
+            return $"Unity_Flipbook_{invertText}{concretePrecision.ToShaderString()}";
         }
 
         public sealed override void UpdateNodeAfterDeserialization()
@@ -143,7 +143,17 @@ namespace UnityEditor.ShaderGraph
                     FindOutputSlot<MaterialSlot>(OutputSlotId).concreteValueType.ToShaderString());
                 using (s.BlockScope())
                 {
-                    s.AppendLine("Tile = floor(fmod(Tile + $precision(0.00001), Width*Height));");
+                    string offset;
+                    if (concretePrecision == ConcretePrecision.Half)
+                    {
+                        offset = "0.00001h";
+                    }
+                    else
+                    {
+                        offset = "0.000001";
+                    }
+
+                    s.AppendLine("Tile = floor(fmod(Tile + " + offset + ", Width*Height));");
                     s.AppendLine("$precision2 tileCount = $precision2(1.0, 1.0) / $precision2(Width, Height);");
 
                     AppendInvertSpecificLines(s);

@@ -1,7 +1,6 @@
 using System.Linq;
 using System.Collections.Generic;
 using UnityEngine;
-using UnityEditor;
 
 namespace UnityEditor.Experimental.VFX.Utility
 {
@@ -44,8 +43,8 @@ namespace UnityEditor.Experimental.VFX.Utility
             {
                 if (GUILayout.Button("Save to pCache file..."))
                 {
-                    var fileName = EditorUtility.SaveFilePanelInProject("pCacheFile", m_Texture.name, "pcache", "Save PCache");
-                    if (!string.IsNullOrEmpty(fileName))
+                    string fileName = EditorUtility.SaveFilePanelInProject("pCacheFile", m_Texture.name, "pcache", "Save PCache");
+                    if (fileName != null)
                     {
                         PCache file = new PCache();
                         file.AddVector3Property("position");
@@ -69,12 +68,9 @@ namespace UnityEditor.Experimental.VFX.Utility
                 {
                     EditorGUILayout.LabelField("Texture Statistics", EditorStyles.boldLabel);
                     EditorGUI.indentLevel++;
-                    var saveEnabled = GUI.enabled;
-                    GUI.enabled = false;
                     EditorGUILayout.IntField("Width", m_Texture.width);
                     EditorGUILayout.IntField("Height", m_Texture.height);
                     EditorGUILayout.IntField("Pixels count", m_Texture.width * m_Texture.height);
-                    GUI.enabled = saveEnabled;
                     EditorGUI.indentLevel--;
                 }
             }
@@ -89,25 +85,7 @@ namespace UnityEditor.Experimental.VFX.Utility
 
         void ComputeTextureData(List<Vector3> positions, List<Vector4> colors)
         {
-            Color[] pixels = null;
-            if (!m_Texture.isReadable)
-            {
-                var path = AssetDatabase.GetAssetPath(m_Texture);
-                var importer = (TextureImporter)TextureImporter.GetAtPath(path);
-                var backupReadable = importer.isReadable;
-                importer.isReadable = true;
-                importer.SaveAndReimport();
-
-                pixels = m_Texture.GetPixels();
-
-                importer.isReadable = backupReadable;
-                importer.SaveAndReimport();
-            }
-            else
-            {
-                pixels = m_Texture.GetPixels();
-            }
-
+            Color[] pixels = m_Texture.GetPixels();
             int width = m_Texture.width;
             int height = m_Texture.height;
             for (int i = 0; i < pixels.Length; ++i)

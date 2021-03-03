@@ -80,12 +80,9 @@ namespace UnityEditor.Experimental.VFX.Utility
                 {
                     EditorGUILayout.LabelField("Mesh Statistics", EditorStyles.boldLabel);
                     EditorGUI.indentLevel++;
-                    var saveEnabled = GUI.enabled;
-                    GUI.enabled = false;
                     EditorGUILayout.IntField("Vertices", m_Mesh.vertexCount);
                     EditorGUILayout.IntField("Triangles", m_Mesh.triangles.Length);
                     EditorGUILayout.IntField("Sub Meshes", m_Mesh.subMeshCount);
-                    GUI.enabled = saveEnabled;
                     EditorGUI.indentLevel--;
                 }
             }

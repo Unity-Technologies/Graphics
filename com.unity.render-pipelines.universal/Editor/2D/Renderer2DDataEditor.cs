@@ -6,7 +6,7 @@ using UnityEngine.Experimental.Rendering.Universal;
 namespace UnityEditor.Experimental.Rendering.Universal
 {
     [CustomEditor(typeof(Renderer2DData), true)]
-    internal class Renderer2DDataEditor : ScriptableRendererDataEditor
+    internal class Renderer2DDataEditor : Editor
     {
         class Styles
         {
@@ -151,9 +151,6 @@ namespace UnityEditor.Experimental.Rendering.Universal
 
             m_WasModified |= serializedObject.hasModifiedProperties;
             serializedObject.ApplyModifiedProperties();
-
-            EditorGUILayout.Space();
-            base.OnInspectorGUI(); // Draw the base UI, contains ScriptableRenderFeatures list
         }
 
         public void DrawCameraSortingLayerTexture()

@@ -82,15 +82,6 @@ float3 VFXTransformPositionWorldToView(float3 posWS)
     return TransformWorldToView(posWS);
 }
 
-float3 VFXTransformPositionWorldToCameraRelative(float3 posWS)
-{
-#if VFX_WORLD_SPACE
-    return GetCameraRelativePositionWS(posWS);
-#else
-    return posWS;
-#endif
-}
-
 float4x4 VFXGetObjectToWorldMatrix()
 {
     return GetObjectToWorldMatrix();
@@ -184,8 +175,3 @@ float4 VFXApplyPreExposure(float4 color, VFX_VARYING_PS_INPUTS input)
 #endif
 }
 #endif
-
-float3 VFXGetCameraWorldDirection()
-{
-    return -_CameraViewMatrix._m20_m21_m22;
-}

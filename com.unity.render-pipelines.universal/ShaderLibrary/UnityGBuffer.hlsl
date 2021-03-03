@@ -57,20 +57,20 @@ half3 PackNormal(half3 n)
 {
     float2 octNormalWS = PackNormalOctQuadEncode(n);                  // values between [-1, +1], must use fp32 on some platforms.
     float2 remappedOctNormalWS = saturate(octNormalWS * 0.5 + 0.5);   // values between [ 0, +1]
-    return half3(PackFloat2To888(remappedOctNormalWS));               // values between [ 0, +1]
+    return PackFloat2To888(remappedOctNormalWS);                      // values between [ 0, +1]
 }
 
 half3 UnpackNormal(half3 pn)
 {
-    half2 remappedOctNormalWS = half2(Unpack888ToFloat2(pn));          // values between [ 0, +1]
-    half2 octNormalWS = remappedOctNormalWS.xy * half(2.0) - half(1.0);// values between [-1, +1]
-    return half3(UnpackNormalOctQuadEncode(octNormalWS));              // values between [-1, +1]
+    half2 remappedOctNormalWS = Unpack888ToFloat2(pn);                // values between [ 0, +1]
+    half2 octNormalWS = remappedOctNormalWS.xy * 2.0h - 1.0h;         // values between [-1, +1]
+    return UnpackNormalOctQuadEncode(octNormalWS);                    // values between [-1, +1]
 }
 
 half PackSmoothness(half s, int lightingMode)
 {
     if (lightingMode == kLightingSimpleLit)                           // See SimpleLitInput.hlsl, SampleSpecularSmoothness().
-        return half(0.1) * log2(s) - half(0.1);                                 // values between [ 0, +1]
+        return 0.1h * log2(s) - 0.1h;                                 // values between [ 0, +1]
     else
         return s;                                                     // values between [ 0, +1]
 }
@@ -78,7 +78,7 @@ half PackSmoothness(half s, int lightingMode)
 half UnpackSmoothness(half ps, int lightingMode)
 {
     if (lightingMode == kLightingSimpleLit)                           // See SimpleLitInput.hlsl, SampleSpecularSmoothness().
-        return exp2(half(10.0) * ps + half(1.0));
+        return exp2(10.0h * ps + 1.0h);
     else
         return ps;                                                    // values between [ 0, +1]
 }
@@ -93,7 +93,7 @@ half3 UnpackNormal(half3 pn)
 half PackSmoothness(half s, int lightingMode)
 {
     if (lightingMode == kLightingSimpleLit)                           // See SimpleLitInput.hlsl, SampleSpecularSmoothness().
-        return half(0.1) * log2(s) - half(0.1);                                 // Normally values between [-1, +1] but need [0; +1] to make terrain blending works
+        return 0.1h * log2(s) - 0.1h;                                 // Normally values between [-1, +1] but need [0; +1] to make terrain blending works
     else
         return s;                                                     // Normally values between [-1, +1] but need [0; +1] to make terrain blending works
 }
@@ -101,7 +101,7 @@ half PackSmoothness(half s, int lightingMode)
 half UnpackSmoothness(half ps, int lightingMode)
 {
     if (lightingMode == kLightingSimpleLit)                           // See SimpleLitInput.hlsl, SampleSpecularSmoothness().
-        return exp2(half(10.0) * ps + half(1.0));                               // values between [ 0, +1]
+        return exp2(10.0h * ps + 1.0h);                               // values between [ 0, +1]
     else
         return ps;                                                    // values between [ 0, +1]
 }
@@ -214,7 +214,7 @@ BRDFData BRDFDataFromGbuffer(half4 gbuffer0, half4 gbuffer1, half4 gbuffer2)
     half smoothness = UnpackSmoothness(gbuffer2.a, kLightingLit);
 
     BRDFData brdfData = (BRDFData)0;
-    half alpha = half(1.0); // NOTE: alpha can get modfied, forward writes it out (_ALPHAPREMULTIPLY_ON).
+    half alpha = 1.0; // NOTE: alpha can get modfied, forward writes it out (_ALPHAPREMULTIPLY_ON).
 
     half3 brdfDiffuse;
     half3 brdfSpecular;
@@ -225,7 +225,7 @@ BRDFData BRDFDataFromGbuffer(half4 gbuffer0, half4 gbuffer1, half4 gbuffer2)
     {
         // Specular setup
         reflectivity = ReflectivitySpecular(specular);
-        oneMinusReflectivity = half(1.0) - reflectivity;
+        oneMinusReflectivity = 1.0h - reflectivity;
         brdfDiffuse = albedo * (half3(1.0h, 1.0h, 1.0h) - specular);
         brdfSpecular = specular;
     }
@@ -250,7 +250,7 @@ InputData InputDataFromGbufferAndWorldPosition(half4 gbuffer2, float3 wsPos)
     inputData.positionWS = wsPos;
     inputData.normalWS = normalize(UnpackNormal(gbuffer2.xyz)); // normalize() is required because terrain shaders use additive blending for normals (not unit-length anymore)
 
-    inputData.viewDirectionWS = GetWorldSpaceNormalizeViewDir(wsPos.xyz);
+    inputData.viewDirectionWS = SafeNormalize(GetWorldSpaceViewDir(wsPos.xyz));
 
     // TODO: pass this info?
     inputData.shadowCoord     = (float4)0;

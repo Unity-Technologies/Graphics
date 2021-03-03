@@ -47,8 +47,6 @@ class VFXManagerEditor : Editor
 
         serializedObject.Update();
 
-        GUI.enabled = AssetDatabase.IsOpenForEdit(target, StatusQueryOptions.UseCachedIfPossible);
-
         EditorGUILayout.LabelField("Current Scriptable Render Pipeline: " + VFXLibrary.currentSRPBinder.SRPAssetTypeStr);
 
         foreach (var property in m_TimeProperties)
@@ -87,9 +85,6 @@ class VFXManagerEditor : Editor
         UnityObject vfxmanager = AssetDatabase.LoadAllAssetsAtPath("ProjectSettings/VFXManager.asset").FirstOrDefault();
 
         if (vfxmanager == null)
-            return;
-
-        if (!AssetDatabase.IsOpenForEdit(vfxmanager, StatusQueryOptions.UseCachedIfPossible))
             return;
 
         SerializedObject obj = new SerializedObject(vfxmanager);

@@ -36,7 +36,7 @@ namespace UnityEditor.ShaderGraph
             action(new HLSLProperty(HLSLType._SamplerState, referenceName, HLSLDeclaration.Global));
         }
 
-        internal override string GetPropertyAsArgumentString(string precisionString)
+        internal override string GetPropertyAsArgumentString()
         {
             return $"UnitySamplerState {referenceName}";
         }

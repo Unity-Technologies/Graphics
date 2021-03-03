@@ -28,7 +28,7 @@ namespace UnityEditor.ShaderGraph
 
         string GetFunctionName()
         {
-            return "Unity_ChannelMixer_$precision";
+            return $"Unity_ChannelMixer_{concretePrecision.ToShaderString()}";
         }
 
         public sealed override void UpdateNodeAfterDeserialization()

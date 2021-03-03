@@ -76,8 +76,6 @@ namespace UnityEngine.Rendering.HighDefinition
         /// <summary>
         /// If toggled on camera rotation can be clamped differently.
         /// </summary>
-
-        [Header("Camera Velocity")]
         [AdditionalProperty]
         [Tooltip("If toggled off, the motion caused by the camera is not considered when doing motion blur.")]
         public BoolParameter cameraMotionBlur = new BoolParameter(true);

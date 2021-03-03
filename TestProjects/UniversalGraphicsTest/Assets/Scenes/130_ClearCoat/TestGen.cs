@@ -11,16 +11,17 @@ public class TestGen : MonoBehaviour
     // Start is called before the first frame update
     void Start()
     {
+
         gos = new GameObject[xCount * yCount];
 
         float mask       = 1;
         float smoothness = 1;
-        for (var y = 0; y < yCount; y++)
+        for(var y = 0; y < yCount; y++)
         {
-            for (var x = 0; x < xCount; x++)
+            for(var x = 0; x < xCount; x++)
             {
                 int i = y * yCount + x;
-                if (y == 0)
+                if(y == 0)
                 {
                     mask = x / (float)(xCount - 1);
                     smoothness = 1;
@@ -51,5 +52,6 @@ public class TestGen : MonoBehaviour
     // Update is called once per frame
     void Update()
     {
+
     }
 }

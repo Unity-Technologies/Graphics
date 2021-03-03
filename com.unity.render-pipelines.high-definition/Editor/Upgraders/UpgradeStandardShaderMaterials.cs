@@ -24,19 +24,19 @@ namespace UnityEditor.Rendering.HighDefinition
             return upgraders;
         }
 
-        [MenuItem("Edit/Rendering/Materials/Convert All Built-in Materials to HDRP", priority = CoreUtils.Priorities.editMenuPriority + 1)]
+        [MenuItem("Edit/Render Pipeline/HD Render Pipeline/Upgrade from Builtin pipeline/Upgrade Project Materials to High Definition Materials")]
         internal static void UpgradeMaterialsProject()
         {
-            MaterialUpgrader.UpgradeProjectFolder(GetHDUpgraders(), "Upgrade to HDRP Material");
+            MaterialUpgrader.UpgradeProjectFolder(GetHDUpgraders(), "Upgrade to HD Material");
         }
 
-        [MenuItem("Edit/Rendering/Materials/Convert Selected Built-in Materials to HDRP", priority = CoreUtils.Priorities.editMenuPriority + 2)]
+        [MenuItem("Edit/Render Pipeline/HD Render Pipeline/Upgrade from Builtin pipeline/Upgrade Selected Materials to High Definition Materials")]
         internal static void UpgradeMaterialsSelection()
         {
-            MaterialUpgrader.UpgradeSelection(GetHDUpgraders(), "Upgrade to HDRP Material");
+            MaterialUpgrader.UpgradeSelection(GetHDUpgraders(), "Upgrade to HD Material");
         }
 
-        [MenuItem("Edit/Rendering/Materials/Convert Scene Terrains to HDRP Terrains", priority = CoreUtils.Priorities.editMenuPriority + 2)]
+        [MenuItem("Edit/Render Pipeline/HD Render Pipeline/Upgrade from Builtin pipeline/Upgrade Scene Terrains to High Definition Terrains")]
         static void UpgradeSceneTerrainsToHighDefinitionTerrains(MenuCommand menuCommand)
         {
             var LegacyDefaultTerrainMat = AssetDatabase.GetBuiltinExtraResource<Material>("Default-Terrain-Standard.mat");

@@ -259,11 +259,8 @@ namespace UnityEditor.ShaderGraph
 
         public bool IsCompatibleStageWith(MaterialSlot otherSlot)
         {
-            var startStage = otherSlot.stageCapability;
-            if (startStage == ShaderStageCapability.All)
-                startStage = NodeUtils.GetEffectiveShaderStageCapability(otherSlot, true)
-                    & NodeUtils.GetEffectiveShaderStageCapability(otherSlot, false);
-            return startStage == ShaderStageCapability.All || stageCapability == ShaderStageCapability.All || stageCapability == startStage;
+            var candidateStage = otherSlot.stageCapability;
+            return stageCapability == ShaderStageCapability.All || candidateStage == stageCapability;
         }
 
         public string GetDefaultValue(GenerationMode generationMode, ConcretePrecision concretePrecision)

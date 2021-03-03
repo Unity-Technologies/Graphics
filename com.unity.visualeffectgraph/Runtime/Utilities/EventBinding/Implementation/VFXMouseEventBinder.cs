@@ -95,10 +95,8 @@ namespace UnityEngine.VFX.Utility
                 trigger();
         }
 
-        protected override void OnEnable()
+        void OnEnable()
         {
-            base.OnEnable();
-
             mouseDown.Enable();
             mouseUp.Enable();
             mouseDragStart.Enable();

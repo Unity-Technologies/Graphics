@@ -34,14 +34,9 @@ namespace UnityEditor.ShaderGraph.Internal
             action(new HLSLProperty(HLSLType._SamplerState, "sampler" + referenceName, HLSLDeclaration.Global));
         }
 
-        internal override string GetPropertyAsArgumentString(string precisionString)
+        internal override string GetPropertyAsArgumentString()
         {
             return "UnityTexture2DArray " + referenceName;
-        }
-
-        internal override string GetPropertyAsArgumentStringForVFX(string precisionString)
-        {
-            return "TEXTURE2D_ARRAY(" + referenceName + ")";
         }
 
         internal override string GetHLSLVariableName(bool isSubgraphProperty)

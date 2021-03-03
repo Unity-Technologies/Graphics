@@ -631,7 +631,7 @@ namespace UnityEditor.Rendering.Universal
 
             var rendererData = selectedRendererOption == -1 ? rpAsset.m_RendererData : rpAsset.m_RendererDataList[selectedRendererOption];
 
-            var fowardRendererData = rendererData as UniversalRendererData;
+            var fowardRendererData = rendererData as ForwardRendererData;
             if (fowardRendererData != null && fowardRendererData.postProcessData == null)
                 return true;
 
@@ -684,7 +684,7 @@ namespace UnityEditor.Rendering.Universal
         {
             int selectedRenderer = m_AdditionalCameraDataRendererProp.intValue;
             ScriptableRenderer scriptableRenderer = UniversalRenderPipeline.asset.GetRenderer(selectedRenderer);
-            UniversalRenderer renderer = scriptableRenderer as UniversalRenderer;
+            ForwardRenderer renderer = scriptableRenderer as ForwardRenderer;
             bool isDeferred = renderer != null ? renderer.renderingMode == RenderingMode.Deferred : false;
 
             EditorGUI.BeginChangeCheck();

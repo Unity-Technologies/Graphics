@@ -39,6 +39,7 @@ namespace UnityEngine.Rendering.HighDefinition
         SSGIUpscale,
         SSGIConvert,
 
+        ForwardEmissive,
         ForwardOpaque,
         ForwardOpaqueDebug,
         ForwardTransparent,
@@ -54,7 +55,7 @@ namespace UnityEngine.Rendering.HighDefinition
         ColorPyramid,
         DepthPyramid,
         PostProcessing,
-        AfterPostProcessingObjects,
+        AfterPostProcessing,
         RenderFullScreenDebug,
         ClearBuffers,
         ClearStencil,
@@ -90,14 +91,6 @@ namespace UnityEngine.Rendering.HighDefinition
         VolumetricLightingFiltering,
         PrepareVisibleDensityVolumeList,
         UpdateDensityVolumeAtlas,
-
-        VolumetricClouds,
-        VolumetricCloudsPrepare,
-        VolumetricCloudsTrace,
-        VolumetricCloudsReproject,
-        VolumetricCloudsUpscaleAndCombine,
-        VolumetricCloudsShadow,
-        VolumetricCloudMapGeneration,
 
         // RT Cluster
         RaytracingBuildCluster,

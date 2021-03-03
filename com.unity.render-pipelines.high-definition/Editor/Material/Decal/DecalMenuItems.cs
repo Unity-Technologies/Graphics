@@ -1,12 +1,12 @@
 using UnityEngine;
-using UnityEngine.Rendering;
 using UnityEngine.Rendering.HighDefinition;
+using UnityEngine.Rendering;
 
 namespace UnityEditor.Rendering.HighDefinition
 {
     class DecalMenuItems
     {
-        [MenuItem("GameObject/Decal Projector", priority = CoreUtils.Priorities.gameObjectMenuPriority + 1)]
+        [MenuItem("GameObject/Rendering/Decal Projector", priority = CoreUtils.gameObjectMenuPriority)]
         static void CreateDecal(MenuCommand menuCommand)
         {
             var parent = menuCommand.context as GameObject;

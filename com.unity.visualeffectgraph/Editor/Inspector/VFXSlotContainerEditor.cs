@@ -228,9 +228,6 @@ class VFXSlotContainerEditor : Editor
     public override void OnInspectorGUI()
     {
         serializedObject.Update();
-        var referenceModel = serializedObject.targetObject as VFXModel;
-        GUI.enabled = referenceModel.GetResource().IsAssetEditable();
-
         SerializedProperty modifiedProperty = DoInspectorGUI();
 
         if (modifiedProperty != null && modifiedProperty.serializedObject.ApplyModifiedProperties())
@@ -319,7 +316,6 @@ class VFXSlotContainerEditor : Editor
             { VFXValueType.Texture3D, new Color32(250, 137, 137, 255) },
             { VFXValueType.TextureCube, new Color32(250, 137, 137, 255) },
             { VFXValueType.TextureCubeArray, new Color32(250, 137, 137, 255) },
-            { VFXValueType.CameraBuffer, new Color32(250, 137, 137, 255) },
             { VFXValueType.Uint32, new Color32(125, 110, 191, 255) },
         };
 

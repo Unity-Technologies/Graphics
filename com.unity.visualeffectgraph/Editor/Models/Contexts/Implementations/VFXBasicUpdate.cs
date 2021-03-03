@@ -68,9 +68,6 @@ namespace UnityEditor.VFX
         {
             serializedObject.Update();
 
-            var referenceContext = serializedObject.targetObject as VFXContext;
-            GUI.enabled = referenceContext.GetResource().IsAssetEditable();
-
             DisplaySpace();
             DisplayName();
 
@@ -178,7 +175,7 @@ namespace UnityEditor.VFX
 
                 var data = GetData();
                 var lifeTime = data.IsCurrentAttributeWritten(VFXAttribute.Lifetime);
-                var age = data.IsCurrentAttributeUsed(VFXAttribute.Age);
+                var age = data.IsCurrentAttributeRead(VFXAttribute.Age);
                 var positionVelocity = data.IsCurrentAttributeWritten(VFXAttribute.Velocity);
                 var angularVelocity =   data.IsCurrentAttributeWritten(VFXAttribute.AngularVelocityX) ||
                     data.IsCurrentAttributeWritten(VFXAttribute.AngularVelocityY) ||
@@ -228,7 +225,7 @@ namespace UnityEditor.VFX
                     yield return VFXBlock.CreateImplicitBlock<AngularEulerIntegration>(data);
 
                 var lifeTime = GetData().IsCurrentAttributeWritten(VFXAttribute.Lifetime);
-                var age = GetData().IsCurrentAttributeUsed(VFXAttribute.Age);
+                var age = GetData().IsCurrentAttributeRead(VFXAttribute.Age);
 
                 if (age || lifeTime)
                 {

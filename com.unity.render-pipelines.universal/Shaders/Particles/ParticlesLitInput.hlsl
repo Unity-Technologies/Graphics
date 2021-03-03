@@ -47,7 +47,7 @@ half4 SampleAlbedo(float2 uv, float3 blendUv, half4 color, float4 particleColor,
     colorAddSubDiff = _BaseColorAddSubDiff;
 #endif
     // No distortion Support
-    albedo = MixParticleColor(albedo, half4(particleColor), colorAddSubDiff);
+    albedo = MixParticleColor(albedo, particleColor, colorAddSubDiff);
 
     AlphaDiscard(albedo.a, _Cutoff);
 
@@ -71,7 +71,7 @@ half4 SampleAlbedo(TEXTURE2D_PARAM(albedoMap, sampler_albedoMap), ParticleParams
     colorAddSubDiff = _BaseColorAddSubDiff;
 #endif
     // No distortion Support
-    albedo = MixParticleColor(albedo, half4(params.vertexColor), colorAddSubDiff);
+    albedo = MixParticleColor(albedo, params.vertexColor, colorAddSubDiff);
 
     AlphaDiscard(albedo.a, _Cutoff);
 
@@ -120,8 +120,8 @@ inline void InitializeParticleLitSurfaceData(float2 uv, float3 blendUv, float4 p
     outSurfaceData.albedo = AlphaModulate(outSurfaceData.albedo, albedo.a);
     outSurfaceData.alpha = albedo.a;
 
-    outSurfaceData.clearCoatMask       = half(0.0);
-    outSurfaceData.clearCoatSmoothness = half(1.0);
+    outSurfaceData.clearCoatMask       = 0.0h;
+    outSurfaceData.clearCoatSmoothness = 1.0h;
 }
 
 inline void InitializeParticleLitSurfaceData(ParticleParams params, out SurfaceData outSurfaceData)
@@ -158,8 +158,8 @@ inline void InitializeParticleLitSurfaceData(ParticleParams params, out SurfaceD
     outSurfaceData.albedo = AlphaModulate(outSurfaceData.albedo, albedo.a);
     outSurfaceData.alpha = albedo.a;
 
-    outSurfaceData.clearCoatMask       = half(0.0);
-    outSurfaceData.clearCoatSmoothness = half(1.0);
+    outSurfaceData.clearCoatMask       = 0.0h;
+    outSurfaceData.clearCoatSmoothness = 1.0h;
 }
 
 #endif // UNIVERSAL_PARTICLES_LIT_INPUT_INCLUDED

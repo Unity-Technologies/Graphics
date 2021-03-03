@@ -1,5 +1,4 @@
 using System;
-using UnityEngine.Experimental.Rendering;
 
 namespace UnityEngine.Rendering.PostProcessing
 {
@@ -190,9 +189,9 @@ namespace UnityEngine.Rendering.PostProcessing
 
                 state &= SystemInfo.supportsComputeShaders
                     && !RuntimeUtilities.isAndroidOpenGL
-                    && SystemInfo.IsFormatSupported(GraphicsFormat.R32_SFloat, FormatUsage.Render | FormatUsage.LoadStore)
-                    && SystemInfo.IsFormatSupported(GraphicsFormat.R16_SFloat, FormatUsage.Render | FormatUsage.LoadStore)
-                    && SystemInfo.IsFormatSupported(GraphicsFormat.R8_UNorm, FormatUsage.Render | FormatUsage.LoadStore);
+                    && RenderTextureFormat.RFloat.IsSupported()
+                    && RenderTextureFormat.RHalf.IsSupported()
+                    && RenderTextureFormat.R8.IsSupported();
             }
 
             return state;

@@ -15,12 +15,6 @@ NOTE: This [Node](Node.md) can only be used in the **Fragment** [Shader Stage](S
 | Height      | Input | Float    | None | Rectangle height |
 | Out | Output      |    Float    | None | Output value |
 
-## Controls
-
-| Name        | Type           | Options  | Description |
-|:------------ |:-------------|:-----|:---|
-|      | Dropdown | Fastest, Nicest | Robustness of computation |
-
 ## Generated Code Example
 
 The following example code represents one possible outcome of this node.

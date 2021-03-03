@@ -538,8 +538,9 @@ namespace UnityEngine.Rendering.HighDefinition
             // Prepare the parameters and the resources
             HDReflectionDenoiser reflectionDenoiser = GetReflectionDenoiser();
             float historyValidity = EvaluateRayTracedReflectionHistoryValidity(hdCamera, fullResolution, true);
+            ReflectionDenoiserParameters reflDenoiserParameters = reflectionDenoiser.PrepareReflectionDenoiserParameters(hdCamera, historyValidity, denoiserRadius, fullResolution, singleReflectionBounce, affectSmoothSurfaces);
             RTHandle historySignal = RequestRayTracedReflectionsHistoryTexture(hdCamera);
-            var rtrResult = reflectionDenoiser.DenoiseRTR(renderGraph, hdCamera, historyValidity, denoiserRadius, fullResolution, singleReflectionBounce, affectSmoothSurfaces, depthPyramid, normalBuffer, motionVectors, clearCoatTexture, input, historySignal);
+            var rtrResult = reflectionDenoiser.DenoiseRTR(renderGraph, in reflDenoiserParameters, hdCamera, depthPyramid, normalBuffer, motionVectors, clearCoatTexture, input, historySignal);
             PropagateRayTracedReflectionsHistoryValidity(hdCamera, fullResolution, true);
 
             return rtrResult;

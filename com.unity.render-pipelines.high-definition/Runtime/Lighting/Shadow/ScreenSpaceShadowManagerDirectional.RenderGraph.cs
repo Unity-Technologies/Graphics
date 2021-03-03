@@ -24,7 +24,8 @@ namespace UnityEngine.Rendering.HighDefinition
             GetShadowChannelMask(dirShadowIndex, ScreenSpaceShadowType.GrayScale, ref m_ShadowChannelMask1);
 
             // Apply the temporal denoiser
-            HDTemporalFilter.TemporalDenoiserArrayOutputData temporalFilterResult = GetTemporalFilter().DenoiseBuffer(renderGraph, hdCamera,
+            HDTemporalFilter temporalFilter = GetTemporalFilter();
+            HDTemporalFilter.TemporalDenoiserArrayOutputData temporalFilterResult = temporalFilter.DenoiseBuffer(renderGraph, hdCamera,
                 depthBuffer, normalBuffer, motionVetorsBuffer, historyValidityBuffer,
                 noisyBuffer, shadowHistoryArray,
                 distanceBuffer, shadowHistoryDistanceArray,

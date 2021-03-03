@@ -26,11 +26,10 @@ namespace UnityEditor.Rendering.HighDefinition
         {
             attributes = new Dictionary<FrameSettingsField, FrameSettingsFieldAttribute>();
             attributesGroup = new Dictionary<int, IOrderedEnumerable<KeyValuePair<FrameSettingsField, FrameSettingsFieldAttribute>>>();
-            Dictionary<FrameSettingsField, string> frameSettingsEnumNameMap = FrameSettingsFieldAttribute.GetEnumNameMap();
             Type type = typeof(FrameSettingsField);
-            foreach (FrameSettingsField enumVal in frameSettingsEnumNameMap.Keys)
+            foreach (FrameSettingsField value in Enum.GetValues(type))
             {
-                attributes[enumVal] = type.GetField(frameSettingsEnumNameMap[enumVal]).GetCustomAttribute<FrameSettingsFieldAttribute>();
+                attributes[value] = type.GetField(Enum.GetName(type, value)).GetCustomAttribute<FrameSettingsFieldAttribute>();
             }
 
             frameSettingsKeywords = attributes
@@ -42,7 +41,7 @@ namespace UnityEditor.Rendering.HighDefinition
         {
             public FrameSettingsField field;
             public Func<bool> overrideable;
-            public bool ignoreDependencies;
+            public Func<bool> customOverrideable;
             public Func<object> customGetter;
             public Action<object> customSetter;
             public object overridedDefaultValue;
@@ -60,7 +59,7 @@ namespace UnityEditor.Rendering.HighDefinition
                 FrameSettingsFieldAttribute attribute = attributes[field];
                 bool locallyOverrideable = overrideable == null || overrideable();
                 FrameSettingsField[] dependencies = attribute.dependencies;
-                if (dependencies == null || ignoreDependencies || !locallyOverrideable)
+                if (dependencies == null || !locallyOverrideable)
                     return locallyOverrideable;
 
                 bool dependenciesOverrideable = true;
@@ -96,7 +95,7 @@ namespace UnityEditor.Rendering.HighDefinition
             return area;
         }
 
-        public void AmmendInfo(FrameSettingsField field, Func<bool> overrideable = null, bool ignoreDependencies = false, Func<object> customGetter = null, Action<object> customSetter = null, object overridedDefaultValue = null, string labelOverride = null, bool hasMixedValues = false)
+        public void AmmendInfo(FrameSettingsField field, Func<bool> overrideable = null, Func<object> customGetter = null, Action<object> customSetter = null, object overridedDefaultValue = null, Func<bool> customOverrideable = null, string labelOverride = null, bool hasMixedValues = false)
         {
             var matchIndex = fields.FindIndex(f => f.field == field);
 
@@ -106,7 +105,8 @@ namespace UnityEditor.Rendering.HighDefinition
             var match = fields[matchIndex];
             if (overrideable != null)
                 match.overrideable = overrideable;
-            match.ignoreDependencies = ignoreDependencies;
+            if (customOverrideable != null)
+                match.customOverrideable = customOverrideable;
             if (customGetter != null)
                 match.customGetter = customGetter;
             if (customSetter != null)
@@ -122,6 +122,9 @@ namespace UnityEditor.Rendering.HighDefinition
         static bool EvaluateBoolWithOverride(FrameSettingsField field, Field forField, FrameSettings defaultFrameSettings, SerializedFrameSettings serializedFrameSettings, bool negative)
         {
             bool value;
+            if (forField.customOverrideable != null)
+                return forField.customOverrideable() ^ negative;
+
             if (serializedFrameSettings.GetOverrides(field))
                 value = serializedFrameSettings.IsEnabled(field) ?? false;
             else

@@ -34,6 +34,8 @@ namespace UnityEditor.Rendering.Universal
 
         public override void OnInspectorGUI()
         {
+            EditorGUILayout.LabelField("Bloom", EditorStyles.miniLabel);
+
             PropertyField(m_Threshold);
             PropertyField(m_Intensity);
             PropertyField(m_Scatter);
@@ -45,6 +47,8 @@ namespace UnityEditor.Rendering.Universal
                 EditorGUILayout.HelpBox("High Quality Bloom isn't supported on GLES2 platforms.", MessageType.Warning);
 
             PropertyField(m_SkipIterations);
+
+            EditorGUILayout.LabelField("Lens Dirt", EditorStyles.miniLabel);
 
             PropertyField(m_DirtTexture);
             PropertyField(m_DirtIntensity);

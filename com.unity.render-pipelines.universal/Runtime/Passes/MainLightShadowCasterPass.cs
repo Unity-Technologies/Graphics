@@ -1,5 +1,4 @@
 using System;
-using UnityEngine.Experimental.Rendering;
 
 namespace UnityEngine.Rendering.Universal.Internal
 {
@@ -11,7 +10,6 @@ namespace UnityEngine.Rendering.Universal.Internal
         private static class MainLightShadowConstantBuffer
         {
             public static int _WorldToShadow;
-            public static int _ShadowParams;
             public static int _CascadeShadowSplitSpheres0;
             public static int _CascadeShadowSplitSpheres1;
             public static int _CascadeShadowSplitSpheres2;
@@ -26,8 +24,7 @@ namespace UnityEngine.Rendering.Universal.Internal
 
         const int k_MaxCascades = 4;
         const int k_ShadowmapBufferBits = 16;
-        float m_CascadeBorder;
-        float m_MaxShadowDistanceSq;
+        Vector4 m_MainLightShadowParams;
         int m_ShadowmapWidth;
         int m_ShadowmapHeight;
         int m_ShadowCasterCascadesCount;
@@ -52,7 +49,6 @@ namespace UnityEngine.Rendering.Universal.Internal
             m_CascadeSplitDistances = new Vector4[k_MaxCascades];
 
             MainLightShadowConstantBuffer._WorldToShadow = Shader.PropertyToID("_MainLightWorldToShadow");
-            MainLightShadowConstantBuffer._ShadowParams = Shader.PropertyToID("_MainLightShadowParams");
             MainLightShadowConstantBuffer._CascadeShadowSplitSpheres0 = Shader.PropertyToID("_CascadeShadowSplitSpheres0");
             MainLightShadowConstantBuffer._CascadeShadowSplitSpheres1 = Shader.PropertyToID("_CascadeShadowSplitSpheres1");
             MainLightShadowConstantBuffer._CascadeShadowSplitSpheres2 = Shader.PropertyToID("_CascadeShadowSplitSpheres2");
@@ -113,8 +109,7 @@ namespace UnityEngine.Rendering.Universal.Internal
                     return false;
             }
 
-            m_MaxShadowDistanceSq = renderingData.cameraData.maxShadowDistance * renderingData.cameraData.maxShadowDistance;
-            m_CascadeBorder = renderingData.shadowData.mainLightShadowCascadeBorder;
+            m_MainLightShadowParams = ShadowUtils.GetMainLightShadowParams(ref renderingData);
 
             return true;
         }
@@ -123,7 +118,7 @@ namespace UnityEngine.Rendering.Universal.Internal
         {
             m_MainLightShadowmapTexture = ShadowUtils.GetTemporaryShadowTexture(m_ShadowmapWidth,
                 m_ShadowmapHeight, k_ShadowmapBufferBits);
-            ConfigureTarget(new RenderTargetIdentifier(m_MainLightShadowmapTexture), GraphicsFormat.ShadowAuto, m_ShadowmapWidth, m_ShadowmapHeight, 1, true);
+            ConfigureTarget(new RenderTargetIdentifier(m_MainLightShadowmapTexture));
             ConfigureClear(ClearFlag.All, Color.black);
         }
 
@@ -177,7 +172,10 @@ namespace UnityEngine.Rendering.Universal.Internal
 
                 for (int cascadeIndex = 0; cascadeIndex < m_ShadowCasterCascadesCount; ++cascadeIndex)
                 {
-                    settings.splitData = m_CascadeSlices[cascadeIndex].splitData;
+                    //settings.splitData = m_CascadeSlices[cascadeIndex].splitData; // NOTE: currently DrawShadows culls more casters if no ShadowSplitData.cullingPlanes are set (version cds 8652678b), so it is currently better to not pass the m_CascadeSlices[cascadeIndex].splitData object returned by CullingResults.ComputeDirectionalShadowMatricesAndCullingPrimitives (change introduced in 8bf71cf). Culling is only based on the ShadowSplitData.cullingSphere distances.
+                    var splitData = settings.splitData;
+                    splitData.cullingSphere = m_CascadeSplitDistances[cascadeIndex];
+                    settings.splitData = splitData;
 
                     Vector4 shadowBias = ShadowUtils.GetShadowBias(ref shadowLight, shadowLightIndex, ref shadowData, m_CascadeSlices[cascadeIndex].projectionMatrix, m_CascadeSlices[cascadeIndex].resolution);
                     ShadowUtils.SetupShadowCasterConstantBuffer(cmd, ref shadowLight, shadowBias);
@@ -200,9 +198,6 @@ namespace UnityEngine.Rendering.Universal.Internal
 
         void SetupMainLightShadowReceiverConstants(CommandBuffer cmd, VisibleLight shadowLight, bool supportsSoftShadows)
         {
-            Light light = shadowLight.light;
-            bool softShadows = shadowLight.light.shadows == LightShadows.Soft && supportsSoftShadows;
-
             int cascadeCount = m_ShadowCasterCascadesCount;
             for (int i = 0; i < cascadeCount; ++i)
                 m_MainLightShadowMatrices[i] = m_CascadeSlices[i].shadowTransform;
@@ -219,14 +214,10 @@ namespace UnityEngine.Rendering.Universal.Internal
             float invShadowAtlasHeight = 1.0f / m_ShadowmapHeight;
             float invHalfShadowAtlasWidth = 0.5f * invShadowAtlasWidth;
             float invHalfShadowAtlasHeight = 0.5f * invShadowAtlasHeight;
-            float softShadowsProp = softShadows ? 1.0f : 0.0f;
-
-            ShadowUtils.GetScaleAndBiasForLinearDistanceFade(m_MaxShadowDistanceSq, m_CascadeBorder, out float shadowFadeScale, out float shadowFadeBias);
 
             cmd.SetGlobalTexture(m_MainLightShadowmap.id, m_MainLightShadowmapTexture);
             cmd.SetGlobalMatrixArray(MainLightShadowConstantBuffer._WorldToShadow, m_MainLightShadowMatrices);
-            cmd.SetGlobalVector(MainLightShadowConstantBuffer._ShadowParams,
-                new Vector4(light.shadowStrength, softShadowsProp, shadowFadeScale, shadowFadeBias));
+            ShadowUtils.SetupShadowReceiverConstantBuffer(cmd, m_MainLightShadowParams);
 
             if (m_ShadowCasterCascadesCount > 1)
             {

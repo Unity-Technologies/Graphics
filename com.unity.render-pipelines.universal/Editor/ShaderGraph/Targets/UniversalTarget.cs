@@ -78,9 +78,6 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
         [SerializeField]
         string m_CustomEditorGUI;
 
-        internal override bool ignoreCustomInterpolators => false;
-        internal override int padCustomInterpolatorLimit => 4;
-
         public UniversalTarget()
         {
             displayName = "Universal";
@@ -360,9 +357,6 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
             renderStates = CoreRenderStates.DepthOnly,
             pragmas = CorePragmas.Instanced,
             includes = CoreIncludes.DepthOnly,
-
-            // Custom Interpolator Support
-            customInterpolators = CoreCustomInterpDescriptors.Common
         };
 
         public static readonly PassDescriptor ShadowCaster = new PassDescriptor()
@@ -390,9 +384,6 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
             pragmas = CorePragmas.Instanced,
             keywords = CoreKeywords.ShadowCaster,
             includes = CoreIncludes.ShadowCaster,
-
-            // Custom Interpolator Support
-            customInterpolators = CoreCustomInterpDescriptors.Common
         };
     }
     #endregion
@@ -870,22 +861,6 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
     static class CoreFields
     {
         public static readonly FieldDescriptor UseLegacySpriteBlocks = new FieldDescriptor("Universal", "UseLegacySpriteBlocks", "UNIVERSAL_USELEGACYSPRITEBLOCKS");
-    }
-    #endregion
-
-    #region CustomInterpolators
-    static class CoreCustomInterpDescriptors
-    {
-        public static readonly CustomInterpSubGen.Collection Common = new CustomInterpSubGen.Collection
-        {
-            // Custom interpolators are not explicitly defined in the SurfaceDescriptionInputs template.
-            // This entry point will let us generate a block of pass-through assignments for each field.
-            CustomInterpSubGen.Descriptor.MakeBlock(CustomInterpSubGen.Splice.k_spliceCopyToSDI, "output", "input"),
-
-            // sgci_PassThroughFunc is called from BuildVaryings in Varyings.hlsl to copy custom interpolators from vertex descriptions.
-            // this entry point allows for the function to be defined before it is used.
-            CustomInterpSubGen.Descriptor.MakeFunc(CustomInterpSubGen.Splice.k_splicePreSurface, "CustomInterpolatorPassThroughFunc", "Varyings", "VertexDescription", "CUSTOMINTERPOLATOR_VARYPASSTHROUGH_FUNC")
-        };
     }
     #endregion
 }

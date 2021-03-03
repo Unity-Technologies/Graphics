@@ -44,30 +44,21 @@ class VFXParameterEditor : VFXSlotContainerEditor
 
     public override SerializedProperty DoInspectorGUI()
     {
-        var saveEnabled = GUI.enabled;
-
-        var referenceModel = serializedObject.targetObject as VFXModel;
-        if (!referenceModel.GetResource().IsAssetEditable())
-        {
-            GUI.enabled = false;
-            saveEnabled = false;
-        }
-
         if (serializedObject.isEditingMultipleObjects)
         {
             GUI.enabled = false; // no sense to change the name in multiple selection because the name must be unique
             EditorGUI.showMixedValue = true;
             EditorGUILayout.TextField("Exposed Name", "-");
             EditorGUI.showMixedValue = false;
-            GUI.enabled = saveEnabled;
+            GUI.enabled = true;
         }
         else
         {
             VFXParameter parameter = (VFXParameter)target;
 
-            GUI.enabled = controller != null && saveEnabled;
+            GUI.enabled = controller != null;
             string newName = EditorGUILayout.DelayedTextField("Exposed Name", parameter.exposedName);
-            GUI.enabled = saveEnabled;
+            GUI.enabled = true;
             if (GUI.changed)
             {
                 VFXParameterController parameterController = controller.GetParameterController(parameter);

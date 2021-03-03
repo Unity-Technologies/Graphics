@@ -68,8 +68,7 @@ class TestSceneAssetEditor : Editor
             rect.height = EditorGUIUtility.singleLineHeight;
 
             // Scene field
-            var sceneGUID = AssetDatabase.FindAssets($"t:Scene {sceneName.stringValue}", new [] {"Assets", "Packages"})
-                .FirstOrDefault(guid => Path.GetFileNameWithoutExtension(AssetDatabase.GUIDToAssetPath(guid)) == sceneName.stringValue);
+            var sceneGUID = AssetDatabase.FindAssets($"t:Scene {sceneName.stringValue}", new [] {"Assets", "Packages"}).FirstOrDefault();
             SceneAsset sceneAsset = null;
             if (!String.IsNullOrEmpty(sceneGUID))
             {
