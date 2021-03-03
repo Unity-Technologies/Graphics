@@ -17,7 +17,7 @@ struct Attributes
 struct Varyings
 {
     float2 uv                       : TEXCOORD0;
-    
+
     float3 posWS                    : TEXCOORD1;    // xyz: posWS
 
     #ifdef _NORMALMAP
@@ -37,9 +37,9 @@ struct Varyings
     #if defined(REQUIRES_VERTEX_SHADOW_COORD_INTERPOLATOR)
         float4 shadowCoord             : TEXCOORD6;
     #endif
-	
-	DECLARE_LIGHTMAP_OR_SH(lightmapUV, vertexSH, 7);
-	
+
+    DECLARE_LIGHTMAP_OR_SH(staticLightmapUV, vertexSH, 7);
+
 #ifdef DYNAMICLIGHTMAP_ON
     float2  dynamicLightmapUV : TEXCOORD8; // Dynamic lightmap UVs
 #endif
