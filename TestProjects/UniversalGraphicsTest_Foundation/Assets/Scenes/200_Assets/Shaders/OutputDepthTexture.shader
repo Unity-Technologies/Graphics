@@ -42,34 +42,10 @@ Shader "Hidden/Test/OutputDepthTexture"
                 return output;
             }
 
-
-            float LinearDepthToEyeDepthFloat(float rawDepth)
-            {
-                #if UNITY_REVERSED_Z
-                    return _ProjectionParams.z - (_ProjectionParams.z - _ProjectionParams.y) * rawDepth;
-                #else
-                    return _ProjectionParams.y + (_ProjectionParams.z - _ProjectionParams.y) * rawDepth;
-                #endif
-
-                return LinearEyeDepth(rawDepth, _ZBufferParams);
-                float linearDepth = 0.0;
-                if (unity_OrthoParams.w == 1)
-                {
-                    #if UNITY_REVERSED_Z
-                    linearDepth = ((_ProjectionParams.z - _ProjectionParams.y) * (1.0 - rawDepth) + _ProjectionParams.y);
-                    #else
-                    linearDepth = ((_ProjectionParams.z - _ProjectionParams.y) * (rawDepth) + _ProjectionParams.y);
-                    #endif
-                }
-                else
-                {
-                    linearDepth = LinearEyeDepth(rawDepth, _ZBufferParams);
-                }
-                return 1.0 - linearDepth;
-            }
-
             half4 Fragment(Varyings input) : SV_Target
             {
+                UNITY_SETUP_STEREO_EYE_INDEX_POST_VERTEX(input);
+
                 float2 uv = input.positionCS.xy;
                 float2 normalizedScreenSpaceUV = GetNormalizedScreenSpaceUV(uv);
 
