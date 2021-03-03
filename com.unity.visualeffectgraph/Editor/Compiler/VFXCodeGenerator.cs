@@ -9,7 +9,6 @@ using UnityEngine.VFX;
 using UnityEditor.ShaderGraph;
 using UnityEditor.Graphing.Util;
 using UnityEditor.ShaderGraph.Serialization;
-using UnityEditor.Rendering.HighDefinition;
 
 using Object = UnityEngine.Object;
 using System.Text.RegularExpressions;
