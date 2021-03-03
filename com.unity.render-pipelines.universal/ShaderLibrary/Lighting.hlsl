@@ -647,7 +647,6 @@ half3 BoxProjectedCubemapDirection(half3 reflectVector, half3 positionWS, real4 
 
 float getWeight(half3 positionWS, real4 boxMin, real4 boxMax)
 {
-    //return boxMin.w;
     float blendDist = 1.0f;
     float3 weightDir = min(positionWS - boxMin.xyz, boxMax.xyz - positionWS) / blendDist;
     return saturate(min(weightDir.x, min(weightDir.y, weightDir.z)));
@@ -655,7 +654,7 @@ float getWeight(half3 positionWS, real4 boxMin, real4 boxMax)
 
 float getReflectionProbeDiagSizeSquared(real4 boxMin, real4 boxMax)
 {
-    float3 diff = boxMax - boxMin;
+    float3 diff = boxMax.xyz - boxMin.xyz;
     return dot(diff, diff);
 }
 
@@ -664,13 +663,9 @@ half3 getIrradianceFromReflectionProbes(half3 reflectVector, half3 positionWS, h
     //This is not like for the builtin but the reverse order:
     //Get a sorted list form largest reflection probe to the smallest and the smallest being rendered on top if they all have the same importance.
     //To fade reach out by 1 on each direction (The same for the deferred builtin implementation).
-
     //Such the the highest priority and smallest reflection probes is first.
+
     half3 irradiance = half3(0, 0, 0);
-
-    // #note use GetReflectionProbesCount() to determine how many reflection probes we should loop over
-    //    use 0 to GetReflectionProbesCount() in GetReflectionProbe(i) to get the probes
-
     half3 originalReflectVector = reflectVector;
 
     float specCube0_diagSquaredMag = getReflectionProbeDiagSizeSquared(unity_SpecCube0_BoxMin, unity_SpecCube0_BoxMax);
@@ -685,35 +680,41 @@ half3 getIrradianceFromReflectionProbes(half3 reflectVector, half3 positionWS, h
     specCube0_weight_final = isEq ? specCube0_weight / totalWeight : specCube0_weight_final;
     specCube1_weight_final = isEq ? specCube1_weight / totalWeight : specCube1_weight_final;
 
+    half mip = PerceptualRoughnessToMipmapLevel(perceptualRoughness);
 
     // Spec 0
+    //if(unity_SpecCube0_BoxMin.w > 0)
     {
-        reflectVector = (1 - unity_SpecCube0_ProbePosition.w) * originalReflectVector
-            + unity_SpecCube0_ProbePosition.w * BoxProjectedCubemapDirection(originalReflectVector, positionWS, unity_SpecCube0_ProbePosition, unity_SpecCube0_BoxMin, unity_SpecCube0_BoxMax);
-        half mip = PerceptualRoughnessToMipmapLevel(perceptualRoughness);
-        // #note to do Sample TextureCubeArray
-        //half4 encodedIrradiance = SAMPLE_TEXTURECUBE_ARRAY_LOD_ABSTRACT(_ReflectionProbeTextures, s_trilinear_clamp_sampler, reflectVector, probeIndex, mip);
-        half4 encodedIrradiance = SAMPLE_TEXTURECUBE_LOD(unity_SpecCube0, samplerunity_SpecCube0, reflectVector, mip);
-#if !defined(UNITY_USE_NATIVE_HDR)
-        irradiance += specCube0_weight_final * DecodeHDREnvironment(encodedIrradiance, unity_SpecCube0_HDR);
+#ifdef UNITY_SPECCUBE_BOX_PROJECTION
+        reflectVector = BoxProjectedCubemapDirection(originalReflectVector, positionWS, unity_SpecCube0_ProbePosition, unity_SpecCube0_BoxMin, unity_SpecCube0_BoxMax);
 #else
+        reflectVector = originalReflectVector;
+#endif
+
+        half4 encodedIrradiance = SAMPLE_TEXTURECUBE_LOD(unity_SpecCube0, samplerunity_SpecCube0, reflectVector, mip);
+
+#if defined(UNITY_USE_NATIVE_HDR) || defined(UNITY_DOTS_INSTANCING_ENABLED)
         irradiance += specCube0_weight_final * encodedIrradiance.rbg;
+
+#else
+        irradiance += specCube0_weight_final * DecodeHDREnvironment(encodedIrradiance, unity_SpecCube0_HDR);
 #endif
     }
 
     // Spec 1
+    if(specCube1_weight_final > 0)// && unity_SpecCube1_BoxMin.w > 0)
     {
-        reflectVector = (1 - unity_SpecCube1_ProbePosition.w) * originalReflectVector
-            + unity_SpecCube1_ProbePosition.w * BoxProjectedCubemapDirection(originalReflectVector, positionWS, unity_SpecCube1_ProbePosition, unity_SpecCube1_BoxMin, unity_SpecCube1_BoxMax);
-        half mip = PerceptualRoughnessToMipmapLevel(perceptualRoughness);
-        // #note to do Sample TextureCubeArray
-        //half4 encodedIrradiance = SAMPLE_TEXTURECUBE_ARRAY_LOD_ABSTRACT(_ReflectionProbeTextures, s_trilinear_clamp_sampler, reflectVector, probeIndex, mip);
-        half4 encodedIrradiance = SAMPLE_TEXTURECUBE_LOD(unity_SpecCube1, samplerunity_SpecCube1, reflectVector, mip);
-        half useSpecCube1 = 1.0;//unity_SpecCube0_BoxMin.w != 1.0 ? 1.0 : 0.0;
-#if !defined(UNITY_USE_NATIVE_HDR)
-        irradiance += useSpecCube1*specCube1_weight_final * DecodeHDREnvironment(encodedIrradiance, unity_SpecCube1_HDR);
+#ifdef UNITY_SPECCUBE_BOX_PROJECTION
+        reflectVector = BoxProjectedCubemapDirection(originalReflectVector, positionWS, unity_SpecCube1_ProbePosition, unity_SpecCube1_BoxMin, unity_SpecCube1_BoxMax);
 #else
-        irradiance += useSpecCube1*specCube1_weight_final * encodedIrradiance.rbg;
+        reflectVector = originalReflectVector;
+#endif
+        half4 encodedIrradiance = SAMPLE_TEXTURECUBE_LOD(unity_SpecCube1, samplerunity_SpecCube1, reflectVector, mip);
+
+#if defined(UNITY_USE_NATIVE_HDR) || defined(UNITY_DOTS_INSTANCING_ENABLED)
+        irradiance += specCube1_weight_final * encodedIrradiance.rbg;
+#else
+        irradiance += specCube1_weight_final * DecodeHDREnvironment(encodedIrradiance, unity_SpecCube1_HDR);
 #endif
     }
 
@@ -722,22 +723,24 @@ half3 getIrradianceFromReflectionProbes(half3 reflectVector, half3 positionWS, h
 
 half3 GlossyEnvironmentReflection(half3 reflectVector, half3 positionWS, half perceptualRoughness, half occlusion)
 {
-#if !defined(_ENVIRONMENTREFLECTIONS_OFF)
-    half mip = PerceptualRoughnessToMipmapLevel(perceptualRoughness);
+#if !defined(_ENVIRONMENTREFLECTIONS_OFF) //|| _GLOSSYREFLECTIONS_OFF
+    half3 irradiance = half3(0, 0, 0);
+
 #if defined(UNITY_SPECCUBE_BLENDING)
-    half3 encodedIrradiance = getIrradianceFromReflectionProbes(reflectVector, positionWS, perceptualRoughness); //SAMPLE_TEXTURECUBE_LOD(unity_SpecCube0, samplerunity_SpecCube0, reflectVector, mip);
+    irradiance = getIrradianceFromReflectionProbes(reflectVector, positionWS, perceptualRoughness);
 #else
     half4 encodedIrradiance = half4(SAMPLE_TEXTURECUBE_LOD(unity_SpecCube0, samplerunity_SpecCube0, reflectVector, mip));
-#endif
 
-//TODO:DOTS - we need to port probes to live in c# so we can manage this manually.
-//#if defined(UNITY_USE_NATIVE_HDR) || defined(UNITY_DOTS_INSTANCING_ENABLED)
-    half3 irradiance = encodedIrradiance.rgb;
-//#else
-//    half3 irradiance = DecodeHDREnvironment(encodedIrradiance, unity_SpecCube0_HDR);
-//#endif
+    //TODO:DOTS - we need to port probes to live in c# so we can manage this manually.
+#if defined(UNITY_USE_NATIVE_HDR) || defined(UNITY_DOTS_INSTANCING_ENABLED)
+    irradiance = encodedIrradiance.rgb;
+#else
+    irradiance = DecodeHDREnvironment(encodedIrradiance, unity_SpecCube0_HDR);
+#endif
+#endif // UNITY_SPECCUBE_BLENDING
+
     return irradiance * occlusion;
-#endif // GLOSSY_REFLECTIONS
+#endif // _ENVIRONMENTREFLECTIONS_OFF
 
     return _GlossyEnvironmentColor.rgb * occlusion;
 }
