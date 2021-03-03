@@ -26,10 +26,11 @@ HDRP uses the [Volume](Volumes.md) framework to calculate SSR, so to enable and 
 
 [!include[](snippets/Volume-Override-Enable-Properties.md)]
 
-The properties visible in the Inspector change depending on whether or not you enable ray tracing for this effect:
+The properties visible in the Inspector change depending on the option you select from the **Tracing** drop-down:
 
-* To not use ray tracing and instead use the screen-space reflection solution, disable **Ray Tracing** in the Inspector and see [Screen-space](#screen-space) for the list of properties.
-* To use ray tracing, enable **Ray Tracing** in the Inspector and see [Ray-traced](#ray-traced) for the list of properties.
+* To use a screen-space, ray-marched reflection solution, select **Ray Marching** and see [Screen-space](#screen-space) for the list of properties.
+* To use ray tracing, select **Ray Tracing** and see [Ray-traced](#ray-traced) for the list of properties.
+* To use a combination of ray tracing and ray marching to increase performance, select **Hybrid** and see [Ray-traced](#ray-traced) for the list of properties. This option uses ray tracing to render reflections for off-screen GameObjects, but also uses ray marching to render reflections for decals, opaque particles, and vertex animations. This option only works in [Performance mode](Ray-Tracing-Getting-Started.md#ray-tracint-mode)
 
 ### Screen-space
 
@@ -51,6 +52,8 @@ The properties visible in the Inspector change depending on whether or not you e
 
 ### Ray-traced
 
+![](Images/Override-ScreenSpaceReflection2.png)
+
 | Property                      | Description                                                  |
 | ----------------------------- | ------------------------------------------------------------ |
 | **Reflect Sky**               | Enable this feature to specify to HDRP that it should use the sky as a fall-back for ray-traced reflections when a ray doesn't find an intersection. |
@@ -65,6 +68,7 @@ The properties visible in the Inspector change depending on whether or not you e
 | **Full Resolution**           | Enable this feature to increase the ray budget to one ray per pixel, per frame. Disable this feature to decrease the ray budget to one ray per four pixels, per frame.<br/>This property only appears if you set **Mode** to **Performance**. |
 | **Sample Count**              | Controls the number of rays per pixel per frame. Increasing this value increases execution time linearly.<br/>This property only appears if you set **Mode** to **Quality**. |
 | **Bounce Count**              | Controls the number of bounces that reflection rays can do. Increasing this value increases execution time exponentially.<br/>This property only appears if you set **Mode** to **Quality**. |
+| **Max Ray Iterations**        | Sets the maximum number of iterations that the algorithm can execute before it stops trying to find an intersection with a Mesh. For example, if you set the number of iterations to 1000 and the algorithm only needs 10 to find an intersection, the algorithm terminates after 10 iterations. If you set this value too low, the algorithm may terminate too early and abruptly stop reflections. This property only appears if you set **Tracing** to **Hybrid**. |
 | **Denoise**                   | Enables the spatio-temporal filter that HDRP uses to remove noise from the reflections. |
 | - **Denoiser Radius**         | Controls the radius of the spatio-temporal filter. Increasing this value results in a more blurry result and a higher execution time. |
 | - **Affects Smooth Surfaces** | Indicates whether the denoiser affects perfectly smooth surfaces (surfaces with a **Smoothness** of 1.0) or not. |

@@ -27,11 +27,11 @@ HDRP uses the [Volume](Volumes.md) framework to calculate SSGI, so to enable and
 
 [!include[](Snippets/Volume-Override-Enable-Properties.md)]
 
-The properties visible in the Inspector change depending on whether or not you enable ray tracing for this effect:
+The properties visible in the Inspector change depending on the option you select from the **Tracing** drop-down:
 
-- To not use ray tracing and instead use the screen-space global illumination solution, disable **Ray Tracing** in the Inspector and see [Screen-space](#screen-space) for the list of properties.
-
-- To use ray tracing, enable **Ray Tracing** in the Inspector and see [Ray-traced](#ray-traced) for the list of properties.
+- To use a screen-space, ray-marched global illumination solution, select **Ray Marching** and see [Screen-space](#screen-space) for the list of properties.
+- To use ray tracing, select **Ray Tracing** and see [Ray-traced](#ray-traced) for the list of properties.
+- To use a combination of ray tracing and ray marching to increase performance, select **Hybrid** and see [Ray-traced](#ray-traced) for the list of properties. This option uses ray tracing to include off-screen GameObjects in the global illumination. It also uses ray marching to include opaque particles and vertex animations in the global illumination. This option only works in [Performance mode](Ray-Tracing-Getting-Started.md#ray-tracint-mode)
 
 ### Screen-space
 
@@ -49,6 +49,8 @@ The properties visible in the Inspector change depending on whether or not you e
 
 ### Ray-traced
 
+![](Images/Override-ScreenSpaceGlobalIllumination2.png)
+
 | Property                       | Description                                                  |
 | ------------------------------ | ------------------------------------------------------------ |
 | **Ray Tracing**                | Enable this to make HDRP use ray tracing to evaluate indirect diffuse lighting. This makes extra properties available that you can use to adjust the quality of Ray-Traced Global Illumination. |
@@ -62,6 +64,7 @@ The properties visible in the Inspector change depending on whether or not you e
 | **Upscale Radius**             | Controls the radius of the up-scaler that HDRP uses to build the GI. The larger the radius, the more neighbors HDRP uses to build the GI, the better the quality.<br/>This property only appears if you set **Mode** to **Performance**. |
 | **Sample Count**               | Controls the number of rays per pixel per frame. Increasing this value increases execution time linearly.<br/>This property only appears if you set **Mode** to **Quality**. |
 | **Bounce Count**               | Controls the number of bounces that global illumination rays can do. Increasing this value increases execution time exponentially.<br/>This property only appears if you set **Mode** to **Quality**. |
+| **Max Ray Iterations**         | Sets the maximum number of iterations that the algorithm can execute before it stops trying to find an intersection with a Mesh. For example, if you set the number of iterations to 1000 and the algorithm only needs 10 to find an intersection, the algorithm terminates after 10 iterations. If you set this value too low, the algorithm may terminate too early and abruptly stop reflections. This property only appears if you set **Tracing** to **Hybrid**. |
 | **Denoise**                    | Enable this to enable the spatio-temporal filter that HDRP uses to remove noise from the Ray-Traced global illumination. |
 | - **Half Resolution Denoiser** | Enable this feature to evaluate the spatio-temporal filter in half resolution. This decreases the resource intensity of denoising but reduces quality. |
 | - **Denoiser Radius**          | Set the radius of the spatio-temporal filter.                |
