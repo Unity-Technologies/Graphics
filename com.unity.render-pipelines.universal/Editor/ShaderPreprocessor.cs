@@ -89,8 +89,13 @@ namespace UnityEditor.Rendering.Universal
 
         bool StripUnusedPass(ShaderFeatures features, ShaderSnippetData snippetData)
         {
+            // Meta pass is needed in the player for Enlighten Precomputed Realtime GI albedo and emission.
             if (snippetData.passType == PassType.Meta)
-                return true;
+            {
+                if (SupportedRenderingFeatures.active.enlighten == false ||
+                    ((int)SupportedRenderingFeatures.active.lightmapBakeTypes | (int)LightmapBakeType.Realtime) == 0)
+                    return true;
+            }
 
             if (snippetData.passType == PassType.ShadowCaster)
                 if (!IsFeatureEnabled(features, ShaderFeatures.MainLightShadows) && !IsFeatureEnabled(features, ShaderFeatures.AdditionalLightShadows))
