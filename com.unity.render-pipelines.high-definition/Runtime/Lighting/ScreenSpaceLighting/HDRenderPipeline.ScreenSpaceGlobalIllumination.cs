@@ -44,7 +44,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 if (settings.enable.value)
                 {
                     // RTGI is only valid if raytracing is enabled
-                    bool raytracing = hdCamera.frameSettings.IsEnabled(FrameSettingsField.RayTracing) && settings.rayTracing.value;
+                    bool raytracing = hdCamera.frameSettings.IsEnabled(FrameSettingsField.RayTracing) && settings.tracing.value != RayCastingMode.RayMarching;
                     mode = raytracing ? IndirectDiffuseMode.Raytrace : IndirectDiffuseMode.ScreenSpace;
                 }
             }
@@ -222,9 +222,10 @@ namespace UnityEngine.Rendering.HighDefinition
                         float f = data.farClipPlane;
                         float thicknessScale = 1.0f / (1.0f + data.thickness);
                         float thicknessBias = -n / (f - n) * (data.thickness * thicknessScale);
-                        ctx.cmd.SetComputeFloatParam(data.ssGICS, HDShaderIDs._IndirectDiffuseThicknessScale, thicknessScale);
-                        ctx.cmd.SetComputeFloatParam(data.ssGICS, HDShaderIDs._IndirectDiffuseThicknessBias, thicknessBias);
-                        ctx.cmd.SetComputeIntParam(data.ssGICS, HDShaderIDs._IndirectDiffuseSteps, data.raySteps);
+                        ctx.cmd.SetComputeFloatParam(data.ssGICS, HDShaderIDs._RayMarchingThicknessScale, thicknessScale);
+                        ctx.cmd.SetComputeFloatParam(data.ssGICS, HDShaderIDs._RayMarchingThicknessBias, thicknessBias);
+                        ctx.cmd.SetComputeIntParam(data.ssGICS, HDShaderIDs._RayMarchingSteps, data.raySteps);
+                        ctx.cmd.SetComputeIntParam(data.ssGICS, HDShaderIDs._RayMarchingReflectSky, 1);
                         ctx.cmd.SetComputeIntParam(data.ssGICS, HDShaderIDs._IndirectDiffuseFrameIndex, data.frameIndex);
                         // Inject half screen size if required
                         if (!data.fullResolutionSS)
@@ -476,7 +477,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
                 case IndirectDiffuseMode.Raytrace:
                     result = RenderRayTracedIndirectDiffuse(m_RenderGraph, hdCamera,
-                        prepassOutput.depthBuffer, prepassOutput.stencilBuffer, prepassOutput.normalBuffer, prepassOutput.resolvedMotionVectorsBuffer, historyValidationTexture, m_SkyManager.GetSkyReflection(hdCamera), rayCountTexture,
+                        prepassOutput, historyValidationTexture, m_SkyManager.GetSkyReflection(hdCamera), rayCountTexture,
                         m_ShaderVariablesRayTracingCB);
                     break;
                 default:

@@ -86,6 +86,10 @@ namespace UnityEngine.Rendering.HighDefinition
             RTGIUpScaleRadius[(int)ScalableSettingLevelParameter.Level.Medium] = 4;
             RTGIUpScaleRadius[(int)ScalableSettingLevelParameter.Level.High] = 4;
 
+            RTGIRaySteps[(int)ScalableSettingLevelParameter.Level.Low] = 32;
+            RTGIRaySteps[(int)ScalableSettingLevelParameter.Level.Medium] = 48;
+            RTGIRaySteps[(int)ScalableSettingLevelParameter.Level.High] = 64;
+
             RTGIDenoise[(int)ScalableSettingLevelParameter.Level.Low] = true;
             RTGIDenoise[(int)ScalableSettingLevelParameter.Level.Medium] = true;
             RTGIDenoise[(int)ScalableSettingLevelParameter.Level.High] = true;
@@ -196,6 +200,8 @@ namespace UnityEngine.Rendering.HighDefinition
         public float[] RTGIClampValue = new float[s_QualitySettingCount];
         /// <summary>Radius for the up-sample pass.</summary>
         public int[] RTGIUpScaleRadius = new int[s_QualitySettingCount];
+        /// <summary>Controls the number of ray steps for hybrid tracing.</summary>
+        public int[] RTGIRaySteps = new int[s_QualitySettingCount];
         /// <summary>Flag that enables the first denoising pass.</summary>
         public bool[] RTGIDenoise = new bool[s_QualitySettingCount];
         /// <summary>Flag that defines if the denoiser should be evaluated at half resolution.</summary>
@@ -216,6 +222,8 @@ namespace UnityEngine.Rendering.HighDefinition
         public float[] RTRClampValue = new float[s_QualitySettingCount];
         /// <summary>Controls if the effect should be computed at full resolution.</summary>
         public bool[] RTRFullResolution = new bool[s_QualitySettingCount];
+        /// <summary>Controls if the effect should be computed at full resolution.</summary>
+        public int[] RTRRaySteps = new int[s_QualitySettingCount];
         /// <summary>Flag that enables the first denoising pass.</summary>
         public bool[] RTRDenoise = new bool[s_QualitySettingCount];
         /// <summary>Flag that defines the radius of the first denoiser.</summary>

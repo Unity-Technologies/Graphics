@@ -16,12 +16,20 @@ namespace UnityEngine.Rendering.HighDefinition
             return !mode.overrideState || mode == RayTracingMode.Quality;
         }
 
+        #region General
         /// <summary>
         /// Enable screen space global illumination.
         /// </summary>
         [Tooltip("Enable screen space global illumination.")]
         public BoolParameter enable = new BoolParameter(false);
 
+        /// <summary>
+        /// </summary>
+        [Tooltip("Controls the casting technique used to evaluate the effect.")]
+        public RayCastingModeParameter tracing = new RayCastingModeParameter(RayCastingMode.RayMarching);
+        #endregion
+
+        #region RayMarching
         /// <summary>
         /// The thickness of the depth buffer value used for the ray marching step
         /// </summary>
@@ -68,13 +76,9 @@ namespace UnityEngine.Rendering.HighDefinition
         [Tooltip("Filter Radius")]
         [SerializeField]
         private ClampedIntParameter m_FilterRadius = new ClampedIntParameter(2, 2, 16);
+        #endregion
 
-        /// <summary>
-        /// Toggles ray traced global illumination.
-        /// </summary>
-        [Tooltip("Toggles ray traced global illumination.")]
-        public BoolParameter rayTracing = new BoolParameter(false);
-
+        #region RayTracing
         /// <summary>
         /// Defines the layers that GI should include.
         /// </summary>
@@ -101,6 +105,8 @@ namespace UnityEngine.Rendering.HighDefinition
             }
             set { m_RayLength.value = value; }
         }
+        [SerializeField, FormerlySerializedAs("rayLength")]
+        private MinFloatParameter m_RayLength = new MinFloatParameter(50.0f, 0.01f);
 
         /// <summary>
         /// Controls the clamp of intensity.
@@ -116,6 +122,9 @@ namespace UnityEngine.Rendering.HighDefinition
             }
             set { m_ClampValue.value = value; }
         }
+        [SerializeField, FormerlySerializedAs("clampValue")]
+        [Tooltip("Controls the clamp of intensity.")]
+        private ClampedFloatParameter m_ClampValue = new ClampedFloatParameter(1.0f, 0.001f, 10.0f);
 
         /// <summary>
         /// Controls which version of the effect should be used.
@@ -138,6 +147,9 @@ namespace UnityEngine.Rendering.HighDefinition
             }
             set { m_FullResolution.value = value; }
         }
+        [SerializeField, FormerlySerializedAs("fullResolution")]
+        [Tooltip("Full Resolution")]
+        private BoolParameter m_FullResolution = new BoolParameter(false);
 
         /// <summary>
         /// Defines what radius value should be used to pre-filter the signal.
@@ -153,6 +165,9 @@ namespace UnityEngine.Rendering.HighDefinition
             }
             set { m_UpscaleRadius.value = value; }
         }
+        [SerializeField, FormerlySerializedAs("upscaleRadius")]
+        [Tooltip("Upscale Radius")]
+        private ClampedIntParameter m_UpscaleRadius = new ClampedIntParameter(2, 2, 4);
 
         // Quality
         /// <summary>
@@ -182,6 +197,9 @@ namespace UnityEngine.Rendering.HighDefinition
             }
             set { m_Denoise.value = value; }
         }
+        [SerializeField, FormerlySerializedAs("denoise")]
+        [Tooltip("Denoise the ray-traced GI.")]
+        private BoolParameter m_Denoise = new BoolParameter(true);
 
         /// <summary>
         /// Defines if the denoiser should be evaluated at half resolution.
@@ -197,6 +215,9 @@ namespace UnityEngine.Rendering.HighDefinition
             }
             set { m_HalfResolutionDenoiser.value = value; }
         }
+        [SerializeField, FormerlySerializedAs("halfResolutionDenoiser")]
+        [Tooltip("Use a half resolution denoiser.")]
+        private BoolParameter m_HalfResolutionDenoiser = new BoolParameter(false);
 
         /// <summary>
         /// Controls the radius of the global illumination denoiser (First Pass).
@@ -212,6 +233,9 @@ namespace UnityEngine.Rendering.HighDefinition
             }
             set { m_DenoiserRadius.value = value; }
         }
+        [SerializeField, FormerlySerializedAs("denoiserRadius")]
+        [Tooltip("Controls the radius of the GI denoiser (First Pass).")]
+        private ClampedFloatParameter m_DenoiserRadius = new ClampedFloatParameter(0.6f, 0.001f, 1.0f);
 
         /// <summary>
         /// Defines if the second denoising pass should be enabled.
@@ -227,38 +251,31 @@ namespace UnityEngine.Rendering.HighDefinition
             }
             set { m_SecondDenoiserPass.value = value; }
         }
-
-
-        // RTGI
-        [SerializeField, FormerlySerializedAs("rayLength")]
-        private MinFloatParameter m_RayLength = new MinFloatParameter(50.0f, 0.01f);
-
-        [SerializeField, FormerlySerializedAs("clampValue")]
-        [Tooltip("Controls the clamp of intensity.")]
-        private ClampedFloatParameter m_ClampValue = new ClampedFloatParameter(1.0f, 0.001f, 10.0f);
-
-        [SerializeField, FormerlySerializedAs("fullResolution")]
-        [Tooltip("Full Resolution")]
-        private BoolParameter m_FullResolution = new BoolParameter(false);
-
-        [SerializeField, FormerlySerializedAs("upscaleRadius")]
-        [Tooltip("Upscale Radius")]
-        private ClampedIntParameter m_UpscaleRadius = new ClampedIntParameter(2, 2, 4);
-
-        [SerializeField, FormerlySerializedAs("denoise")]
-        [Tooltip("Denoise the ray-traced GI.")]
-        private BoolParameter m_Denoise = new BoolParameter(true);
-
-        [SerializeField, FormerlySerializedAs("halfResolutionDenoiser")]
-        [Tooltip("Use a half resolution denoiser.")]
-        private BoolParameter m_HalfResolutionDenoiser = new BoolParameter(false);
-
-        [SerializeField, FormerlySerializedAs("denoiserRadius")]
-        [Tooltip("Controls the radius of the GI denoiser (First Pass).")]
-        private ClampedFloatParameter m_DenoiserRadius = new ClampedFloatParameter(0.6f, 0.001f, 1.0f);
-
         [SerializeField, FormerlySerializedAs("secondDenoiserPass")]
         [Tooltip("Enable second denoising pass.")]
         private BoolParameter m_SecondDenoiserPass = new BoolParameter(true);
+
+        /// <summary>
+        /// Controls the number of steps used for the hybrid tracing
+        /// </summary>
+        public int rayStepsRT
+        {
+            get
+            {
+                if (!UsesQualitySettings() || UsesQualityMode())
+                    return m_RayStepsRT.value;
+                else
+                    return GetLightingQualitySettings().RTGIRaySteps[(int)quality.value];
+            }
+            set { m_RayStepsRT.value = value; }
+        }
+        [SerializeField]
+        private ClampedIntParameter m_RayStepsRT = new ClampedIntParameter(32, 16, 128);
+        #endregion
+
+        internal static bool RayTracingActive(GlobalIllumination volume)
+        {
+            return volume.tracing.value != RayCastingMode.RayMarching;
+        }
     }
 }

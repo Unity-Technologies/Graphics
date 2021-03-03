@@ -53,9 +53,8 @@ MonoBehaviour:
     type: 3}
   pathTracing: {fileID: 4807578003741378534, guid: c4f4525a058009a409fea974f9ad8d03,
     type: 3}
+  rayMarchingCS: {fileID: 7200000, guid: 78d9a89700295a4418d0921bf27e1857, type: 3}
   rayBinningCS: {fileID: 7200000, guid: cddcb515ffe9a914893d6d8fc1d85454, type: 3}
   countTracedRays: {fileID: 7200000, guid: e1f3fa867f1dfbd4ab7dd4d39d2b96d8, type: 3}
   reflectionFilterMapping: {fileID: 2800000, guid: 82eec49626a00b047ba86244607816c8,
     type: 3}
-  shadowFilterMapping: {fileID: 11700000, guid: 98a5a16e4aad05b4b8e1c1af5f8e9fba,
-    type: 2}

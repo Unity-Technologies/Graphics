@@ -13,18 +13,30 @@ MonoBehaviour:
   m_Name: ScreenSpaceReflection
   m_EditorClassIdentifier: 
   active: 1
-  m_AdvancedMode: 0
   quality:
     m_OverrideState: 0
     m_Value: 1
   enabled:
     m_OverrideState: 1
     m_Value: 1
-  rayTracing:
+  tracing:
     m_OverrideState: 1
-    m_Value: 1
+    m_Value: 2
+  m_MinSmoothness:
+    m_OverrideState: 1
+    m_Value: 0
+    min: 0
+    max: 1
+  m_SmoothnessFadeStart:
+    m_OverrideState: 1
+    m_Value: 0
+    min: 0
+    max: 1
   reflectSky:
     m_OverrideState: 1
+    m_Value: 0
+  usedAlgorithm:
+    m_OverrideState: 0
     m_Value: 0
   depthBufferThickness:
     m_OverrideState: 0
@@ -36,14 +48,46 @@ MonoBehaviour:
     m_Value: 0.1
     min: 0
     max: 1
+  accumulationFactor:
+    m_OverrideState: 0
+    m_Value: 0.75
+    min: 0
+    max: 1
+  m_RayMaxIterations:
+    m_OverrideState: 0
+    m_Value: 32
+    min: 0
   layerMask:
     m_OverrideState: 1
     m_Value:
       serializedVersion: 2
       m_Bits: 4294967295
+  m_RayLength:
+    m_OverrideState: 1
+    m_Value: 50
+    min: 0
+  m_ClampValue:
+    m_OverrideState: 1
+    m_Value: 10
+    min: 0.001
+    max: 10
+  m_Denoise:
+    m_OverrideState: 1
+    m_Value: 1
+  m_DenoiserRadius:
+    m_OverrideState: 1
+    m_Value: 1
+    min: 1
+    max: 32
+  m_AffectSmoothSurfaces:
+    m_OverrideState: 0
+    m_Value: 0
   mode:
     m_OverrideState: 1
     m_Value: 2
+  m_FullResolution:
+    m_OverrideState: 0
+    m_Value: 0
   sampleCount:
     m_OverrideState: 1
     m_Value: 16
@@ -54,45 +98,10 @@ MonoBehaviour:
     m_Value: 4
     min: 1
     max: 31
-  m_MinSmoothness:
-    m_OverrideState: 1
-    m_Value: 0
-    min: 0
-    max: 1
-  m_SmoothnessFadeStart:
-    m_OverrideState: 1
-    m_Value: 0
-    min: 0
-    max: 1
-  m_RayMaxIterations:
+  m_RayMaxIterationsRT:
     m_OverrideState: 0
     m_Value: 32
-  m_RayLength:
-    m_OverrideState: 1
-    m_Value: 50
     min: 0
-    max: 50
-  m_ClampValue:
-    m_OverrideState: 1
-    m_Value: 10
-    min: 0.001
-    max: 10
-  m_UpscaleRadius:
-    m_OverrideState: 0
-    m_Value: 2
-    min: 2
-    max: 6
-  m_FullResolution:
-    m_OverrideState: 0
-    m_Value: 0
-  m_Denoise:
-    m_OverrideState: 1
-    m_Value: 1
-  m_DenoiserRadius:
-    m_OverrideState: 1
-    m_Value: 1
-    min: 1
-    max: 32
 --- !u!114 &-5965176281060342084
 MonoBehaviour:
   m_ObjectHideFlags: 3
@@ -106,12 +115,10 @@ MonoBehaviour:
   m_Name: LightCluster
   m_EditorClassIdentifier: 
   active: 1
-  m_AdvancedMode: 0
   cameraClusterRange:
     m_OverrideState: 1
     m_Value: 50
     min: 0.001
-    max: 50
 --- !u!114 &11400000
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -141,7 +148,6 @@ MonoBehaviour:
   m_Name: RayTracingSettings
   m_EditorClassIdentifier: 
   active: 1
-  m_AdvancedMode: 0
   rayBias:
     m_OverrideState: 1
     m_Value: 0.001
@@ -153,3 +159,12 @@ MonoBehaviour:
   extendCameraCulling:
     m_OverrideState: 1
     m_Value: 1
+  directionalShadowRayLength:
+    m_OverrideState: 0
+    m_Value: 1000
+    min: 0.01
+  directionalShadowFallbackIntensity:
+    m_OverrideState: 0
+    m_Value: 1
+    min: 0
+    max: 1
