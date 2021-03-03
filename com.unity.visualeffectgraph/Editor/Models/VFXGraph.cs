@@ -78,11 +78,11 @@ namespace UnityEditor.VFX
                     Debug.LogError("OnSetupMaterial error - Passed object is not a VFXModel");
                     return;
                 }
-                if (resource.graph != ((VFXModel)model).GetGraph())
-                {
-                    Debug.LogError("OnSetupMaterial error - VisualEffectResource and VFXModel graph do not match");
-                    return;
-                }
+                //if (resource.graph != ((VFXModel)model).GetGraph())
+                //{
+                //    Debug.LogError("OnSetupMaterial error - VisualEffectResource and VFXModel graph do not match");
+                //    return;
+                //}
 
                 // Actual call
                 if (model is IVFXSubRenderer)
