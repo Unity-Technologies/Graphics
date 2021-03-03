@@ -631,6 +631,20 @@ namespace UnityEngine.Rendering.Universal
             return ClearFlag.All;
         }
 
+        // TODO
+        internal void OnCullRenderPasses(in CameraData cameraData)
+        {
+            // Add render passes from custom renderer features
+            for (int i = 0; i < rendererFeatures.Count; ++i)
+            {
+                if (!rendererFeatures[i].isActive)
+                {
+                    continue;
+                }
+                rendererFeatures[i].OnCull(in cameraData);
+            }
+        }
+
         /// <summary>
         /// Calls <c>AddRenderPasses</c> for each feature added to this renderer.
         /// <seealso cref="ScriptableRendererFeature.AddRenderPasses(ScriptableRenderer, ref RenderingData)"/>
