@@ -116,6 +116,14 @@ namespace UnityEditor.Rendering.HighDefinition
             s_NeedsSavingAssets = false;
         }
 
+        void OnPostprocessMaterial(Material material)
+        {
+            if (!HDShaderUtils.IsHDRPShader(material.shader, upgradable: true))
+                return;
+
+            HDShaderUtils.ResetMaterialKeywords(material);
+        }
+
         static void OnPostprocessAllAssets(string[] importedAssets, string[] deletedAssets, string[] movedAssets, string[] movedFromAssetPaths)
         {
             foreach (var asset in importedAssets)

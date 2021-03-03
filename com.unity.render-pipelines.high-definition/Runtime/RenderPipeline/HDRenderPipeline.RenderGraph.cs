@@ -30,7 +30,7 @@ namespace UnityEngine.Rendering.HighDefinition
             {
                 scriptableRenderContext = renderContext,
                 commandBuffer = commandBuffer,
-                currentFrameIndex = GetFrameCount()
+                currentFrameIndex = m_FrameCount
             };
 
             m_RenderGraph.Begin(renderGraphParams);
@@ -104,7 +104,7 @@ namespace UnityEngine.Rendering.HighDefinition
             {
                 gpuLightListOutput = BuildGPULightList(m_RenderGraph, hdCamera, m_TileAndClusterData, m_TotalLightCount, ref m_ShaderVariablesLightListCB, prepassOutput.depthBuffer, prepassOutput.stencilBuffer, prepassOutput.gbuffer);
 
-                lightingBuffers.ambientOcclusionBuffer = m_AmbientOcclusionSystem.Render(m_RenderGraph, hdCamera, prepassOutput.depthPyramidTexture, prepassOutput.resolvedNormalBuffer, prepassOutput.resolvedMotionVectorsBuffer, m_FrameCount, m_DepthBufferMipChainInfo, m_ShaderVariablesRayTracingCB, rayCountTexture);
+                lightingBuffers.ambientOcclusionBuffer = m_AmbientOcclusionSystem.Render(m_RenderGraph, hdCamera, prepassOutput.depthPyramidTexture, prepassOutput.resolvedNormalBuffer, prepassOutput.resolvedMotionVectorsBuffer, m_DepthBufferMipChainInfo, m_ShaderVariablesRayTracingCB, rayCountTexture);
                 // Should probably be inside the AO render function but since it's a separate class it's currently not super clean to do.
                 PushFullScreenDebugTexture(m_RenderGraph, lightingBuffers.ambientOcclusionBuffer, FullScreenDebugMode.ScreenSpaceAmbientOcclusion);
 
@@ -135,7 +135,7 @@ namespace UnityEngine.Rendering.HighDefinition
                     case IndirectDiffuseMode.Raytrace:
                         lightingBuffers.ssgiLightingBuffer = RenderRayTracedIndirectDiffuse(m_RenderGraph, hdCamera,
                             prepassOutput.depthBuffer, prepassOutput.stencilBuffer, prepassOutput.normalBuffer, prepassOutput.resolvedMotionVectorsBuffer, m_SkyManager.GetSkyReflection(hdCamera), rayCountTexture,
-                            m_FrameCount, m_ShaderVariablesRayTracingCB);
+                            m_ShaderVariablesRayTracingCB);
                         break;
                     default:
                         lightingBuffers.ssgiLightingBuffer = m_RenderGraph.defaultResources.blackTextureXR;
@@ -1121,7 +1121,6 @@ namespace UnityEngine.Rendering.HighDefinition
             public TextureHandle normalBuffer;
             public DebugDisplaySettings debugDisplaySettings;
             public SkyManager skyManager;
-            public int frameCount;
         }
 
         void PreRenderSky(RenderGraph renderGraph, HDCamera hdCamera, TextureHandle colorBuffer, TextureHandle depthStencilBuffer, TextureHandle normalbuffer)
@@ -1141,12 +1140,11 @@ namespace UnityEngine.Rendering.HighDefinition
                 passData.normalBuffer = builder.WriteTexture(normalbuffer);
                 passData.debugDisplaySettings = m_CurrentDebugDisplaySettings;
                 passData.skyManager = m_SkyManager;
-                passData.frameCount = m_FrameCount;
 
                 builder.SetRenderFunc(
                     (PreRenderSkyPassData data, RenderGraphContext context) =>
                     {
-                        data.skyManager.PreRenderSky(data.hdCamera, data.sunLight, data.colorBuffer, data.normalBuffer, data.depthStencilBuffer, data.debugDisplaySettings, data.frameCount, context.cmd);
+                        data.skyManager.PreRenderSky(data.hdCamera, data.sunLight, data.colorBuffer, data.normalBuffer, data.depthStencilBuffer, data.debugDisplaySettings, context.cmd);
                     });
             }
         }
@@ -1163,7 +1161,6 @@ namespace UnityEngine.Rendering.HighDefinition
             public TextureHandle        intermediateBuffer;
             public DebugDisplaySettings debugDisplaySettings;
             public SkyManager           skyManager;
-            public int                  frameCount;
         }
 
         void RenderSky(RenderGraph renderGraph, HDCamera hdCamera, TextureHandle colorBuffer, TextureHandle volumetricLighting, TextureHandle depthStencilBuffer, TextureHandle depthTexture)
@@ -1185,7 +1182,6 @@ namespace UnityEngine.Rendering.HighDefinition
                 passData.intermediateBuffer = builder.CreateTransientTexture(colorBuffer);
                 passData.debugDisplaySettings = m_CurrentDebugDisplaySettings;
                 passData.skyManager = m_SkyManager;
-                passData.frameCount = m_FrameCount;
 
                 builder.SetRenderFunc(
                     (RenderSkyPassData data, RenderGraphContext context) =>
@@ -1193,7 +1189,7 @@ namespace UnityEngine.Rendering.HighDefinition
                         // Necessary to perform dual-source (polychromatic alpha) blending which is not supported by Unity.
                         // We load from the color buffer, perform blending manually, and store to the atmospheric scattering buffer.
                         // Then we perform a copy from the atmospheric scattering buffer back to the color buffer.
-                        data.skyManager.RenderSky(data.hdCamera, data.sunLight, data.colorBuffer, data.depthStencilBuffer, data.debugDisplaySettings, data.frameCount, context.cmd);
+                        data.skyManager.RenderSky(data.hdCamera, data.sunLight, data.colorBuffer, data.depthStencilBuffer, data.debugDisplaySettings, context.cmd);
 
                         if (Fog.IsFogEnabled(data.hdCamera) || Fog.IsPBRFogEnabled(data.hdCamera))
                         {
