@@ -235,6 +235,12 @@ namespace UnityEditor.ShaderGraph
                         case Texture2DShaderProperty.DefaultType.Bump:
                             mat.SetTexture(name, Texture2D.normalTexture);
                             break;
+                        case Texture2DShaderProperty.DefaultType.LinearGrey:
+                            mat.SetTexture(name, Texture2D.linearGrayTexture);
+                            break;
+                        case Texture2DShaderProperty.DefaultType.Red:
+                            mat.SetTexture(name, Texture2D.redTexture);
+                            break;
                     }
                 }
                 else
