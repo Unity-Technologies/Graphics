@@ -473,7 +473,9 @@ namespace UnityEditor.VFX
         {
             m_saved = false;
 
-            if (cause == VFXModel.InvalidationCause.kStructureChanged || cause == VFXModel.InvalidationCause.kSettingChanged)
+            if (cause == VFXModel.InvalidationCause.kStructureChanged
+                || cause == VFXModel.InvalidationCause.kSettingChanged
+                || cause == VFXModel.InvalidationCause.kConnectionChanged)
                 m_SystemNames.Sync(this);
 
             base.OnInvalidate(model, cause);
