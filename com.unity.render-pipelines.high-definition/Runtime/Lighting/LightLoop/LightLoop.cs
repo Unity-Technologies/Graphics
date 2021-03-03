@@ -1419,6 +1419,19 @@ namespace UnityEngine.Rendering.HighDefinition
 
             lightData.lightType = gpuLightType;
 
+            // custom-begin:
+            {
+                HDLightCustomFlags.LightCustomData customData = new HDLightCustomFlags.LightCustomData { customFeatureFlags = 0u };
+                if (light.light.TryGetComponent(out HDLightCustomFlags customComponent))
+                {
+                    customData = customComponent.GetLightCustomData();
+                }
+                lightData.customFeatureFlags = customData.customFeatureFlags;
+                lightData.customRadiusScale = customData.customRadiusScale;
+                lightData.customRadiusBias = customData.customRadiusBias;
+            }
+            // custom-end
+
             lightData.positionRWS = visibleLightAxisAndPosition.Position;
 
             lightData.range = light.range;

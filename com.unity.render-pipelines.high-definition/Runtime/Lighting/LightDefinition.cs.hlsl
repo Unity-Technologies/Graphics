@@ -99,6 +99,10 @@ struct LightData
     float3 forward;
     float iesCut;
     int lightType;
+    uint customFeatureFlags;
+    float customRadiusScale;
+    float customRadiusBias;
+    float customPadding;
     float3 right;
     float penumbraTint;
     real range;

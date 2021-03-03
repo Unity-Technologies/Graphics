@@ -132,6 +132,14 @@ namespace UnityEngine.Rendering.HighDefinition
         public float   iesCut;                  // Spot light
 
         public GPULightType lightType;          // TODO: move this up?
+
+        // custom-begin
+        public uint customFeatureFlags;
+        public float customRadiusScale;
+        public float customRadiusBias;
+        public float customPadding;
+        // custom-end
+
         public Vector3 right;                   // If spot: rescaled by cot(outerHalfAngle); if projector: rescaled by (2 / shapeWidth)
 
         public float   penumbraTint;
