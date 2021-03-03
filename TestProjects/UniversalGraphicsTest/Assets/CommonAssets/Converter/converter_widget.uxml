@@ -12,5 +12,15 @@
             <ui:VisualElement style="flex-grow: 1;" />
             <ui:Label text="30 Seconds" name="converterTime" style="-unity-text-align: middle-left;" />
         </ui:VisualElement>
+        <ui:Foldout style="height: 70px;">
+            <ui:VisualElement style="flex-direction: row;">
+                <ui:Label text="test&#10;" />
+                <ui:Label style="flex-grow: 0; width: 51px;" />
+                <ui:Label text="Pending" />
+                <ui:Label text="Risk" />
+                <ui:Label text="Error" />
+                <ui:Label text="Success" style="flex-grow: 1;" />
+            </ui:VisualElement>
+        </ui:Foldout>
     </ui:VisualElement>
 </ui:UXML>
