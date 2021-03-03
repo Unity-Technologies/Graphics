@@ -9,11 +9,11 @@ Material:
   m_PrefabAsset: {fileID: 0}
   m_Name: 2. Unlit - Soft Particles - Fade
   m_Shader: {fileID: 4800000, guid: 0406db5a14f94604a8c57ccfbc9f3b46, type: 3}
-  m_ShaderKeywords: _EMISSION _FADING_ON _RECEIVE_SHADOWS_OFF _SOFTPARTICLES_ON
+  m_ShaderKeywords: _EMISSION _FADING_ON _SOFTPARTICLES_ON
   m_LightmapFlags: 2
   m_EnableInstancingVariants: 0
   m_DoubleSidedGI: 0
-  m_CustomRenderQueue: 3050
+  m_CustomRenderQueue: 3000
   stringTagMap:
     RenderType: Transparent
   disabledShaderPasses:
@@ -43,7 +43,7 @@ Material:
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
     - _EmissionMap:
-        m_Texture: {fileID: 2800000, guid: dcb5c05501a1eda4cb76c4474b5eac2e, type: 3}
+        m_Texture: {fileID: 2800000, guid: 2de13844720151c4b9ca5f9b20aadd25, type: 3}
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
     - _MainTex:
@@ -108,7 +108,7 @@ Material:
     - _CameraFadeParams: {r: 0, g: Infinity, b: 0, a: 0}
     - _Color: {r: 1, g: 1, b: 1, a: 1}
     - _ColorAddSubDiff: {r: 0, g: 0, b: 0, a: 0}
-    - _EmissionColor: {r: 4.594794, g: 4.594794, b: 4.594794, a: 1}
+    - _EmissionColor: {r: 2, g: 0, b: 0, a: 1}
     - _SoftParticleFadeParams: {r: 0, g: 1, b: 0, a: 0}
   m_BuildTextureStacks: []
 --- !u!114 &6816448251434543432
