@@ -795,32 +795,6 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
             }
         }
 
-        void CullOutputlessPasses()
-        {
-            // Gather passes that don't produce anything and cull them.
-            m_CullingStack.Clear();
-            for (int pass = 0; pass < m_CompiledPassInfos.size; ++pass)
-            {
-                ref CompiledPassInfo passInfo = ref m_CompiledPassInfos[pass];
-
-                if (passInfo.refCount == 0 && !passInfo.hasSideEffect && passInfo.allowPassCulling)
-                {
-                    // Producer is not necessary as it produces zero resources
-                    // Cull it and decrement refCount of all the resources it reads.
-                    // We don't need to go recursively here because we decrement ref count of read resources
-                    // so the subsequent passes of culling will detect those and remove the related passes.
-                    passInfo.culled = true;
-                    for (int type = 0; type < (int)RenderGraphResourceType.Count; ++type)
-                    {
-                        foreach (var index in passInfo.pass.resourceReadLists[type])
-                        {
-                            m_CompiledResourcesInfos[type][index].refCount--;
-                        }
-                    }
-                }
-            }
-        }
-
         void CullUnusedPasses()
         {
             if (m_DebugParameters.disablePassCulling)
@@ -831,11 +805,6 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
                 }
                 return;
             }
-
-            // TODO RENDERGRAPH: temporarily remove culling of passes without product.
-            // Many passes are used just to set global variables so we don't want to force users to disallow culling on those explicitly every time.
-            // This will cull passes with no outputs.
-            //CullOutputlessPasses();
 
             // This will cull all passes that produce resource that are never read.
             for (int type = 0; type < (int)RenderGraphResourceType.Count; ++type)
