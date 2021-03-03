@@ -15,6 +15,10 @@ namespace UnityEngine.Rendering.Universal
         ProfilingSampler m_ProfilingSampler;
         List<ShaderTagId> m_ShaderTagIdList = new List<ShaderTagId>();
 
+        public DecalDrawIntoDBufferSystem m_DecalDrawIntoDBufferSystem;
+
+        ProfilingSampler renderIntoDBuffer;
+
         public void SetDetphState(bool writeEnabled, CompareFunction function = CompareFunction.Less)
         {
             m_RenderStateBlock.mask |= RenderStateMask.Depth;
@@ -57,6 +61,8 @@ namespace UnityEngine.Rendering.Universal
 
             m_RenderStateBlock = new RenderStateBlock(RenderStateMask.Everything);
             m_RenderStateBlock.depthState = new DepthState(true, CompareFunction.Always);
+
+            renderIntoDBuffer = new ProfilingSampler("V1.DecalSystem.RenderIntoDBuffer");
         }
 
         static string[] s_DBufferNames = { "_DBufferTexture0", "_DBufferTexture1", "_DBufferTexture2", "_DBufferTexture3" };
@@ -123,11 +129,22 @@ namespace UnityEngine.Rendering.Universal
                 context.ExecuteCommandBuffer(cmd);
                 cmd.Clear();
 
+                cmd.EnableShaderKeyword("_DECAL");
+
                 float width = renderingData.cameraData.pixelWidth;
                 float height = renderingData.cameraData.pixelHeight;
                 cmd.SetGlobalVector("_ScreenSize", new Vector4(width, height, 1f / width, 1f / height));
 
-                DecalSystem.instance.RenderIntoDBuffer(cmd);
+                if (m_DecalDrawIntoDBufferSystem == null)
+                {
+                    using (new ProfilingScope(cmd, renderIntoDBuffer))
+                    {
+                        DecalSystem.instance.RenderIntoDBuffer(cmd);
+                    }
+                }
+
+                if (m_DecalDrawIntoDBufferSystem != null)
+                    m_DecalDrawIntoDBufferSystem.Execute(cmd);
 
                 context.DrawRenderers(renderingData.cullResults, ref drawingSettings, ref m_FilteringSettings, ref m_RenderStateBlock);
             }

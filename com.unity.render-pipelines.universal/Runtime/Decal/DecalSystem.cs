@@ -36,6 +36,8 @@ namespace UnityEngine.Rendering.Universal
 
     class DecalSystem
     {
+        private ProfilingSampler m_AddDecalSampler;
+
         struct MaterialProperties
         {
             internal const string kDecalLayerMaskFromDecal = "_DecalLayerMaskFromDecal";
@@ -536,8 +538,13 @@ namespace UnityEngine.Rendering.Universal
                 }
             }
 
+            private ProfilingSampler m_AddDecalSampler;
+            private ProfilingSampler m_ResizeChunks;
+
             public DecalSet(Material material)
             {
+                m_AddDecalSampler = new ProfilingSampler("V1.DecalSystem.CreateDecalEntity");
+                m_ResizeChunks = new ProfilingSampler("V1.DecalSystem.ResizeChunks");
                 m_Material = material;
                 InitializeMaterialValues();
             }
@@ -609,55 +616,61 @@ namespace UnityEngine.Rendering.Universal
             // Update memory allocation and assign decal handle, then update cached data
             public DecalHandle AddDecal(int materialID, in DecalProjector.CachedDecalData data)
             {
-                // increase array size if no space left
-                if (m_DecalsCount == m_Handles.Length)
+                using (new ProfilingScope(null, m_AddDecalSampler))
                 {
-                    DecalHandle[] newHandles = new DecalHandle[m_DecalsCount + kDecalBlockSize];
-                    BoundingSphere[] newSpheres = new BoundingSphere[m_DecalsCount + kDecalBlockSize];
-                    Matrix4x4[] newCachedTransforms = new Matrix4x4[m_DecalsCount + kDecalBlockSize];
-                    Matrix4x4[] newCachedNormalToWorld = new Matrix4x4[m_DecalsCount + kDecalBlockSize];
-                    Vector2[] newCachedDrawDistances = new Vector2[m_DecalsCount + kDecalBlockSize];
-                    Vector2[] newCachedAngleFade = new Vector2[m_DecalsCount + kDecalBlockSize];
-                    Vector4[] newCachedUVScaleBias = new Vector4[m_DecalsCount + kDecalBlockSize];
-                    bool[] newCachedAffectsTransparency = new bool[m_DecalsCount + kDecalBlockSize];
-                    int[] newCachedLayerMask = new int[m_DecalsCount + kDecalBlockSize];
-                    ulong[] newCachedSceneLayerMask = new ulong[m_DecalsCount + kDecalBlockSize];
-                    var cachedDecalLayerMask = new DecalLayerEnum[m_DecalsCount + kDecalBlockSize];
-                    float[] newCachedFadeFactor = new float[m_DecalsCount + kDecalBlockSize];
-                    m_ResultIndices = new int[m_DecalsCount + kDecalBlockSize];
+                    // increase array size if no space left
+                    if (m_DecalsCount == m_Handles.Length)
+                    {
+                        using (new ProfilingScope(null, m_ResizeChunks))
+                        {
+                            DecalHandle[] newHandles = new DecalHandle[m_DecalsCount + kDecalBlockSize];
+                            BoundingSphere[] newSpheres = new BoundingSphere[m_DecalsCount + kDecalBlockSize];
+                            Matrix4x4[] newCachedTransforms = new Matrix4x4[m_DecalsCount + kDecalBlockSize];
+                            Matrix4x4[] newCachedNormalToWorld = new Matrix4x4[m_DecalsCount + kDecalBlockSize];
+                            Vector2[] newCachedDrawDistances = new Vector2[m_DecalsCount + kDecalBlockSize];
+                            Vector2[] newCachedAngleFade = new Vector2[m_DecalsCount + kDecalBlockSize];
+                            Vector4[] newCachedUVScaleBias = new Vector4[m_DecalsCount + kDecalBlockSize];
+                            bool[] newCachedAffectsTransparency = new bool[m_DecalsCount + kDecalBlockSize];
+                            int[] newCachedLayerMask = new int[m_DecalsCount + kDecalBlockSize];
+                            ulong[] newCachedSceneLayerMask = new ulong[m_DecalsCount + kDecalBlockSize];
+                            var cachedDecalLayerMask = new DecalLayerEnum[m_DecalsCount + kDecalBlockSize];
+                            float[] newCachedFadeFactor = new float[m_DecalsCount + kDecalBlockSize];
+                            m_ResultIndices = new int[m_DecalsCount + kDecalBlockSize];
 
-                    m_Handles.CopyTo(newHandles, 0);
-                    m_BoundingSpheres.CopyTo(newSpheres, 0);
-                    m_CachedDecalToWorld.CopyTo(newCachedTransforms, 0);
-                    m_CachedNormalToWorld.CopyTo(newCachedNormalToWorld, 0);
-                    m_CachedDrawDistances.CopyTo(newCachedDrawDistances, 0);
-                    m_CachedAngleFade.CopyTo(newCachedAngleFade, 0);
-                    m_CachedUVScaleBias.CopyTo(newCachedUVScaleBias, 0);
-                    m_CachedAffectsTransparency.CopyTo(newCachedAffectsTransparency, 0);
-                    m_CachedLayerMask.CopyTo(newCachedLayerMask, 0);
-                    m_CachedSceneLayerMask.CopyTo(newCachedSceneLayerMask, 0);
-                    m_CachedDecalLayerMask.CopyTo(cachedDecalLayerMask, 0);
-                    m_CachedFadeFactor.CopyTo(newCachedFadeFactor, 0);
+                            m_Handles.CopyTo(newHandles, 0);
+                            m_BoundingSpheres.CopyTo(newSpheres, 0);
+                            m_CachedDecalToWorld.CopyTo(newCachedTransforms, 0);
+                            m_CachedNormalToWorld.CopyTo(newCachedNormalToWorld, 0);
+                            m_CachedDrawDistances.CopyTo(newCachedDrawDistances, 0);
+                            m_CachedAngleFade.CopyTo(newCachedAngleFade, 0);
+                            m_CachedUVScaleBias.CopyTo(newCachedUVScaleBias, 0);
+                            m_CachedAffectsTransparency.CopyTo(newCachedAffectsTransparency, 0);
+                            m_CachedLayerMask.CopyTo(newCachedLayerMask, 0);
+                            m_CachedSceneLayerMask.CopyTo(newCachedSceneLayerMask, 0);
+                            m_CachedDecalLayerMask.CopyTo(cachedDecalLayerMask, 0);
+                            m_CachedFadeFactor.CopyTo(newCachedFadeFactor, 0);
 
-                    m_Handles = newHandles;
-                    m_BoundingSpheres = newSpheres;
-                    m_CachedDecalToWorld = newCachedTransforms;
-                    m_CachedNormalToWorld = newCachedNormalToWorld;
-                    m_CachedDrawDistances = newCachedDrawDistances;
-                    m_CachedAngleFade = newCachedAngleFade;
-                    m_CachedUVScaleBias = newCachedUVScaleBias;
-                    m_CachedAffectsTransparency = newCachedAffectsTransparency;
-                    m_CachedLayerMask = newCachedLayerMask;
-                    m_CachedSceneLayerMask = newCachedSceneLayerMask;
-                    m_CachedDecalLayerMask = cachedDecalLayerMask;
-                    m_CachedFadeFactor = newCachedFadeFactor;
+                            m_Handles = newHandles;
+                            m_BoundingSpheres = newSpheres;
+                            m_CachedDecalToWorld = newCachedTransforms;
+                            m_CachedNormalToWorld = newCachedNormalToWorld;
+                            m_CachedDrawDistances = newCachedDrawDistances;
+                            m_CachedAngleFade = newCachedAngleFade;
+                            m_CachedUVScaleBias = newCachedUVScaleBias;
+                            m_CachedAffectsTransparency = newCachedAffectsTransparency;
+                            m_CachedLayerMask = newCachedLayerMask;
+                            m_CachedSceneLayerMask = newCachedSceneLayerMask;
+                            m_CachedDecalLayerMask = cachedDecalLayerMask;
+                            m_CachedFadeFactor = newCachedFadeFactor;
+                        }
+                    }
+
+                    DecalHandle decalHandle = new DecalHandle(m_DecalsCount, materialID);
+                    m_Handles[m_DecalsCount] = decalHandle;
+                    UpdateCachedData(decalHandle, data);
+                    m_DecalsCount++;
+                    return decalHandle;
                 }
-
-                DecalHandle decalHandle = new DecalHandle(m_DecalsCount, materialID);
-                m_Handles[m_DecalsCount] = decalHandle;
-                UpdateCachedData(decalHandle, data);
-                m_DecalsCount++;
-                return decalHandle;
             }
 
             public void RemoveDecal(DecalHandle handle)

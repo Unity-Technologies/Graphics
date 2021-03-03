@@ -61,6 +61,7 @@ void Frag(  PackedVaryings packedInput,
     outColor = _SelectionID;
 #else
     UNITY_SETUP_STEREO_EYE_INDEX_POST_VERTEX(packedInput);
+    UNITY_SETUP_INSTANCE_ID(packedInput)
     FragInputs input = UnpackVaryingsToFragInputs(packedInput);
     DecalSurfaceData surfaceData;
     float clipValue = 1.0;

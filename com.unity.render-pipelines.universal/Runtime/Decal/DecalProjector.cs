@@ -315,10 +315,19 @@ namespace UnityEngine.Rendering.Universal
             }
         }
 
+        public delegate void DecalProjectorAction(DecalProjector decalProjector);
+
+        public static event DecalProjectorAction onDecalAdd;
+        public static event DecalProjectorAction onDecalRemove;
+
+        public DecalEntity decalEntity { get; set; }
+
         void Reset() => InitMaterial();
 
         void OnEnable()
         {
+            onDecalAdd?.Invoke(this);
+
             InitMaterial();
 
             if (m_Handle != null)
@@ -361,6 +370,8 @@ namespace UnityEngine.Rendering.Universal
 
         void OnDisable()
         {
+            onDecalRemove?.Invoke(this);
+
             if (m_Handle != null)
             {
                 DecalSystem.instance.RemoveDecal(m_Handle);
@@ -415,7 +426,7 @@ namespace UnityEngine.Rendering.Universal
             }
         }
 
-#if UNITY_EDITOR
+/*#if UNITY_EDITOR
         void Update() // only run in editor
         {
             if (m_Layer != gameObject.layer)
@@ -437,7 +448,7 @@ namespace UnityEngine.Rendering.Universal
                     transform.hasChanged = false;
                 }
             }
-        }
+        }*/
 
         /// <summary>
         /// Check if the material is set and if it is different than the default one
