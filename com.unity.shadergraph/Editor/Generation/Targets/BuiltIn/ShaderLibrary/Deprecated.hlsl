@@ -1,5 +1,5 @@
-#ifndef UNIVERSAL_DEPRECATED_INCLUDED
-#define UNIVERSAL_DEPRECATED_INCLUDED
+#ifndef BUILTIN_DEPRECATED_INCLUDED
+#define BUILTIN_DEPRECATED_INCLUDED
 
 // Stereo-related bits
 #define SCREENSPACE_TEXTURE         TEXTURE2D_X
@@ -38,4 +38,4 @@ struct ShadowData
     float4 shadowParams;          // per-casting-light
 };
 
-#endif // UNIVERSAL_DEPRECATED_INCLUDED
+#endif // BUILTIN_DEPRECATED_INCLUDED

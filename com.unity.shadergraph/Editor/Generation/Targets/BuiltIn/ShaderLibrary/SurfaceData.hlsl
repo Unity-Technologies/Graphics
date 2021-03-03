@@ -1,7 +1,7 @@
-#ifndef UNIVERSAL_SURFACE_DATA_INCLUDED
-#define UNIVERSAL_SURFACE_DATA_INCLUDED
+#ifndef BUILTIN_SURFACE_DATA_INCLUDED
+#define BUILTIN_SURFACE_DATA_INCLUDED
 
-// Must match Universal ShaderGraph master node
+// Must match BuiltIn ShaderGraph master node
 struct SurfaceData
 {
     half3 albedo;

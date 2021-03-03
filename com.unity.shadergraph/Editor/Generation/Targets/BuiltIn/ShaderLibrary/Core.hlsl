@@ -1,5 +1,5 @@
-#ifndef UNIVERSAL_PIPELINE_CORE_INCLUDED
-#define UNIVERSAL_PIPELINE_CORE_INCLUDED
+#ifndef BUILTIN_PIPELINE_CORE_INCLUDED
+#define BUILTIN_PIPELINE_CORE_INCLUDED
 
 // VT is not supported in URP (for now) this ensures any shaders using the VT
 // node work by falling to regular texture sampling.
@@ -18,7 +18,7 @@
     #endif
 #endif
 
-// Shader Quality Tiers in Universal.
+// Shader Quality Tiers in BuiltIn.
 // SRP doesn't use Graphics Settings Quality Tiers.
 // We should expose shader quality tiers in the pipeline asset.
 // Meanwhile, it's forced to be:

@@ -88,7 +88,7 @@ half4 frag(PackedVaryings packedInput) : SV_TARGET
         surface.clearCoatSmoothness = saturate(surfaceDescription.CoatSmoothness);
     #endif
 
-    half4 color = UniversalFragmentPBR(inputData, surface);
+    half4 color = BuiltInFragmentPBR(inputData, surface);
 
     color.rgb = MixFog(color.rgb, inputData.fogCoord);
     return color;

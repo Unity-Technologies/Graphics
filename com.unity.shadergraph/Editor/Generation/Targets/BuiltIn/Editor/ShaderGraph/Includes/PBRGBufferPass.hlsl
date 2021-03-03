@@ -70,7 +70,7 @@ FragmentOutput frag(PackedVaryings packedInput)
         float metallic = surfaceDescription.Metallic;
     #endif
 
-    // in LitForwardPass GlobalIllumination (and temporarily LightingPhysicallyBased) are called inside UniversalFragmentPBR
+    // in LitForwardPass GlobalIllumination (and temporarily LightingPhysicallyBased) are called inside BuiltInFragmentPBR
     // in Deferred rendering we store the sum of these values (and of emission as well) in the GBuffer
     BRDFData brdfData;
     InitializeBRDFData(surfaceDescription.BaseColor, metallic, specular, surfaceDescription.Smoothness, alpha, brdfData);

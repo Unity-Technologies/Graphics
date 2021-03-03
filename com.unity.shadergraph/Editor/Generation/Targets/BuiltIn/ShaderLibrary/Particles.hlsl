@@ -1,5 +1,5 @@
-#ifndef UNIVERSAL_PARTICLES_INCLUDED
-#define UNIVERSAL_PARTICLES_INCLUDED
+#ifndef BUILTIN_PARTICLES_INCLUDED
+#define BUILTIN_PARTICLES_INCLUDED
 
 #include "Packages/com.unity.shadergraph/Editor/Generation/Targets/BuiltIn/ShaderLibrary/Core.hlsl"
 #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Color.hlsl"
@@ -226,4 +226,4 @@ void GetParticleTexcoords(out float2 outputTexcoord, in float2 inputTexcoord)
     GetParticleTexcoords(outputTexcoord, dummyTexcoord2AndBlend, inputTexcoord.xyxy, 0.0);
 }
 
-#endif // UNIVERSAL_PARTICLES_INCLUDED
+#endif // BUILTIN_PARTICLES_INCLUDED

@@ -1,5 +1,5 @@
-#ifndef UNIVERSAL_LIGHTING_INCLUDED
-#define UNIVERSAL_LIGHTING_INCLUDED
+#ifndef BUILTIN_LIGHTING_INCLUDED
+#define BUILTIN_LIGHTING_INCLUDED
 
 #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Common.hlsl"
 #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/CommonMaterial.hlsl"
@@ -603,7 +603,7 @@ half3 SampleLightmap(float2 lightmapUV, half3 normalWS)
     half4 decodeInstructions = half4(LIGHTMAP_HDR_MULTIPLIER, LIGHTMAP_HDR_EXPONENT, 0.0h, 0.0h);
 
     // The shader library sample lightmap functions transform the lightmap uv coords to apply bias and scale.
-    // However, universal pipeline already transformed those coords in vertex. We pass half4(1, 1, 0, 0) and
+    // However, builtin pipeline already transformed those coords in vertex. We pass half4(1, 1, 0, 0) and
     // the compiler will optimize the transform away.
     half4 transformCoords = half4(1, 1, 0, 0);
 
@@ -838,7 +838,7 @@ half3 VertexLighting(float3 positionWS, half3 normalWS)
 //                      Fragment Functions                                   //
 //       Used by ShaderGraph and others builtin renderers                    //
 ///////////////////////////////////////////////////////////////////////////////
-half4 UniversalFragmentPBR(InputData inputData, SurfaceData surfaceData)
+half4 BuiltInFragmentPBR(InputData inputData, SurfaceData surfaceData)
 {
 #ifdef _SPECULARHIGHLIGHTS_OFF
     bool specularHighlightsOff = true;
@@ -906,7 +906,7 @@ half4 UniversalFragmentPBR(InputData inputData, SurfaceData surfaceData)
     return half4(color, surfaceData.alpha);
 }
 
-half4 UniversalFragmentPBR(InputData inputData, half3 albedo, half metallic, half3 specular,
+half4 BuiltInFragmentPBR(InputData inputData, half3 albedo, half metallic, half3 specular,
     half smoothness, half occlusion, half3 emission, half alpha)
 {
     SurfaceData s;
@@ -919,10 +919,10 @@ half4 UniversalFragmentPBR(InputData inputData, half3 albedo, half metallic, hal
     s.alpha               = alpha;
     s.clearCoatMask       = 0.0;
     s.clearCoatSmoothness = 1.0;
-    return UniversalFragmentPBR(inputData, s);
+    return BuiltInFragmentPBR(inputData, s);
 }
 
-half4 UniversalFragmentBlinnPhong(InputData inputData, half3 diffuse, half4 specularGloss, half smoothness, half3 emission, half alpha)
+half4 BuiltInFragmentBlinnPhong(InputData inputData, half3 diffuse, half4 specularGloss, half smoothness, half3 emission, half alpha)
 {
     // To ensure backward compatibility we have to avoid using shadowMask input, as it is not present in older shaders
 #if defined(SHADOWS_SHADOWMASK) && defined(LIGHTMAP_ON)
@@ -973,15 +973,15 @@ half4 UniversalFragmentBlinnPhong(InputData inputData, half3 diffuse, half4 spec
     return half4(finalColor, alpha);
 }
 
-//LWRP -> Universal Backwards Compatibility
+//LWRP -> BuiltIn Backwards Compatibility
 half4 LightweightFragmentPBR(InputData inputData, half3 albedo, half metallic, half3 specular,
     half smoothness, half occlusion, half3 emission, half alpha)
 {
-    return UniversalFragmentPBR(inputData, albedo, metallic, specular, smoothness, occlusion, emission, alpha);
+    return BuiltInFragmentPBR(inputData, albedo, metallic, specular, smoothness, occlusion, emission, alpha);
 }
 
 half4 LightweightFragmentBlinnPhong(InputData inputData, half3 diffuse, half4 specularGloss, half smoothness, half3 emission, half alpha)
 {
-    return UniversalFragmentBlinnPhong(inputData, diffuse, specularGloss, smoothness, emission, alpha);
+    return BuiltInFragmentBlinnPhong(inputData, diffuse, specularGloss, smoothness, emission, alpha);
 }
 #endif

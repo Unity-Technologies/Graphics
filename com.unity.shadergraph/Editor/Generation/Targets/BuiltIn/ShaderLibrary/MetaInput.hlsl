@@ -1,5 +1,5 @@
-#ifndef UNIVERSAL_META_PASS_INCLUDED
-#define UNIVERSAL_META_PASS_INCLUDED
+#ifndef BUILTIN_META_PASS_INCLUDED
+#define BUILTIN_META_PASS_INCLUDED
 
 #include "Packages/com.unity.shadergraph/Editor/Generation/Targets/BuiltIn/ShaderLibrary/Lighting.hlsl"
 #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Color.hlsl"

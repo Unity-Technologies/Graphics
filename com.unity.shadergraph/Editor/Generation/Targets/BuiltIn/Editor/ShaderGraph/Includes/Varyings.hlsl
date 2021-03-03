@@ -33,7 +33,7 @@ Varyings BuildVaryings(Attributes input)
     #endif //FEATURES GRAPH TANGENT
 #endif //FEATURES_GRAPH_VERTEX
 
-    // TODO: Avoid path via VertexPositionInputs (Universal)
+    // TODO: Avoid path via VertexPositionInputs (BuiltIn)
     VertexPositionInputs vertexInput = GetVertexPositionInputs(input.positionOS.xyz);
 
     // Returns the camera relative position (if enabled)
@@ -69,7 +69,7 @@ Varyings BuildVaryings(Attributes input)
 #endif
 
 #if (SHADERPASS == SHADERPASS_SHADOWCASTER)
-    // Define shadow pass specific clip position for Universal
+    // Define shadow pass specific clip position for BuiltIn
     #if _CASTING_PUNCTUAL_LIGHT_SHADOW
         float3 lightDirectionWS = normalize(_LightPosition - positionWS);
     #else

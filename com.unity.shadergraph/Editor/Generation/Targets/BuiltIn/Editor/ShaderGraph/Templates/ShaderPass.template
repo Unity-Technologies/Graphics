@@ -59,7 +59,7 @@ $Varyings.screenPosition: #define VARYINGS_NEED_SCREENPOSITION
 $Varyings.fogFactorAndVertexLight: #define VARYINGS_NEED_FOG_AND_VERTEX_LIGHT
 $Varyings.cullFace: #define VARYINGS_NEED_CULLFACE
 $features.graphVertex: #define FEATURES_GRAPH_VERTEX
-$Universal.UseLegacySpriteBlocks: #define UNIVERSAL_USELEGACYSPRITEBLOCKS
+$BuiltIn.UseLegacySpriteBlocks: #define BUILTIN_USELEGACYSPRITEBLOCKS
 $splice(PassInstancing)
 $splice(GraphDefines)
 $splice(DotsInstancingVars)
