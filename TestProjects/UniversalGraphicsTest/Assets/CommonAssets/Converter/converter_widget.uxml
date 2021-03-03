@@ -1,0 +1,11 @@
+<ui:UXML xmlns:ui="UnityEngine.UIElements" xmlns:uie="UnityEditor.UIElements" editor-extension-mode="False">
+    <ui:VisualElement style="flex-grow: 1; height: 82px;">
+        <ui:VisualElement style="height: 32px; width: 495px; flex-direction: row;">
+            <ui:Toggle />
+            <ui:Label name="converterName" text="Name Of The Converter" style="width: 143px; -unity-text-align: middle-center;" />
+            <ui:VisualElement name="converterProgressBar" style="height: 32px; width: 294px;" />
+            <ui:VisualElement style="width: 219px; flex-direction: row-reverse; flex-grow: 1;" />
+            <ui:Label name="converterInfo" text="100 Items" style="flex-grow: 1; -unity-text-align: middle-right;" />
+        </ui:VisualElement>
+    </ui:VisualElement>
+</ui:UXML>
