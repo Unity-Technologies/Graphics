@@ -17,6 +17,7 @@ namespace UnityEditor.Rendering.Universal
         public static readonly string DstBlend = "_DstBlend";
         public static readonly string ZWrite = "_ZWrite";
         public static readonly string Cull = "_Cull";
+        public static readonly string CastShadows = "_CastShadows";
         public static readonly string ReceiveShadows = "_ReceiveShadows";
         public static readonly string QueueOffset = "_QueueOffset";
 

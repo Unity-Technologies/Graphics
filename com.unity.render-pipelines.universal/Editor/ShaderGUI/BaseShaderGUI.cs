@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using UnityEditor.Rendering;
 using UnityEngine;
 using UnityEngine.Rendering;
+using UnityEditor.Rendering.Universal;
 
 namespace UnityEditor
 {
@@ -73,6 +74,9 @@ namespace UnityEditor
             public static readonly GUIContent alphaClipThresholdText = EditorGUIUtility.TrTextContent("Threshold",
                 "Sets where the Alpha Clipping starts. The higher the value is, the brighter the  effect is when clipping starts.");
 
+            public static readonly GUIContent castShadowText = EditorGUIUtility.TrTextContent("Cast Shadows",
+                "When enabled, this GameObject will cast shadows onto any geometry that can receive them.");
+
             public static readonly GUIContent receiveShadowText = EditorGUIUtility.TrTextContent("Receive Shadows",
                 "When enabled, other GameObjects can cast shadows onto this GameObject.");
 
@@ -111,6 +115,8 @@ namespace UnityEditor
 
         protected MaterialProperty alphaCutoffProp { get; set; }
 
+        protected MaterialProperty castShadowsProp { get; set; }
+
         protected MaterialProperty receiveShadowsProp { get; set; }
 
         // Common Surface Input properties
@@ -142,17 +148,18 @@ namespace UnityEditor
 
         public virtual void FindProperties(MaterialProperty[] properties)
         {
-            surfaceTypeProp = FindProperty("_Surface", properties);
-            blendModeProp = FindProperty("_Blend", properties);
-            cullingProp = FindProperty("_Cull", properties);
-            alphaClipProp = FindProperty("_AlphaClip", properties);
+            surfaceTypeProp = FindProperty(Property.Surface, properties);
+            blendModeProp = FindProperty(Property.Blend, properties);
+            cullingProp = FindProperty(Property.Cull, properties);
+            alphaClipProp = FindProperty(Property.AlphaClip, properties);
             alphaCutoffProp = FindProperty("_Cutoff", properties, false);   // Not mandatory for shadergraphs
-            receiveShadowsProp = FindProperty("_ReceiveShadows", properties, false);
+            castShadowsProp = FindProperty(Property.CastShadows, properties, false);
+            receiveShadowsProp = FindProperty(Property.ReceiveShadows, properties, false);
             baseMapProp = FindProperty("_BaseMap", properties, false);
             baseColorProp = FindProperty("_BaseColor", properties, false);
             emissionMapProp = FindProperty("_EmissionMap", properties, false);
             emissionColorProp = FindProperty("_EmissionColor", properties, false);
-            queueOffsetProp = FindProperty("_QueueOffset", properties, false);
+            queueOffsetProp = FindProperty(Property.QueueOffset, properties, false);
         }
 
         protected MaterialProperty[] properties;
@@ -231,6 +238,19 @@ namespace UnityEditor
             }
         }
 
+        public static void DrawFloatToggleProperty(GUIContent styles, MaterialProperty prop)
+        {
+            if (prop == null)
+                return;
+
+            EditorGUI.BeginChangeCheck();
+            EditorGUI.showMixedValue = prop.hasMixedValue;
+            bool newValue = EditorGUILayout.Toggle(styles, prop.floatValue == 1);
+            if (EditorGUI.EndChangeCheck())
+                prop.floatValue = newValue ? 1.0f : 0.0f;
+            EditorGUI.showMixedValue = false;
+        }
+
         public virtual void DrawSurfaceOptions(Material material)
         {
             DoPopup(Styles.surfaceType, surfaceTypeProp, Enum.GetNames(typeof(SurfaceType)));
@@ -250,26 +270,13 @@ namespace UnityEditor
 
             EditorGUI.showMixedValue = false;
 
-            EditorGUI.BeginChangeCheck();
-            EditorGUI.showMixedValue = alphaClipProp.hasMixedValue;
-            var alphaClipEnabled = EditorGUILayout.Toggle(Styles.alphaClipText, alphaClipProp.floatValue == 1);
-            if (EditorGUI.EndChangeCheck())
-                alphaClipProp.floatValue = alphaClipEnabled ? 1 : 0;
-            EditorGUI.showMixedValue = false;
+            DrawFloatToggleProperty(Styles.alphaClipText, alphaClipProp);
 
             if ((alphaClipProp.floatValue == 1) && (alphaCutoffProp != null))
                 materialEditor.ShaderProperty(alphaCutoffProp, Styles.alphaClipThresholdText, 1);
 
-            if (receiveShadowsProp != null)
-            {
-                EditorGUI.BeginChangeCheck();
-                EditorGUI.showMixedValue = receiveShadowsProp.hasMixedValue;
-                var receiveShadows =
-                    EditorGUILayout.Toggle(Styles.receiveShadowText, receiveShadowsProp.floatValue == 1.0f);
-                if (EditorGUI.EndChangeCheck())
-                    receiveShadowsProp.floatValue = receiveShadows ? 1.0f : 0.0f;
-                EditorGUI.showMixedValue = false;
-            }
+            DrawFloatToggleProperty(Styles.castShadowText, castShadowsProp);
+            DrawFloatToggleProperty(Styles.receiveShadowText, receiveShadowsProp);
         }
 
         public virtual void DrawSurfaceInputs(Material material)
@@ -395,9 +402,17 @@ namespace UnityEditor
             // Setup blending - consistent across all Universal RP shaders
             SetupMaterialBlendMode(material);
 
+            // Cast Shadows
+            bool castShadows = true;
+            if (material.HasProperty(Property.CastShadows))
+            {
+                castShadows = (material.GetFloat(Property.CastShadows) != 0.0f);
+            }
+            material.SetShaderPassEnabled("ShadowCaster", castShadows);
+
             // Receive Shadows
-            if (material.HasProperty("_ReceiveShadows"))
-                CoreUtils.SetKeyword(material, "_RECEIVE_SHADOWS_OFF", material.GetFloat("_ReceiveShadows") == 0.0f);
+            if (material.HasProperty(Property.ReceiveShadows))
+                CoreUtils.SetKeyword(material, "_RECEIVE_SHADOWS_OFF", material.GetFloat(Property.ReceiveShadows) == 0.0f);
 
             // Emission
             if (material.HasProperty("_EmissionColor"))

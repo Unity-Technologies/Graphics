@@ -121,6 +121,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
             if (workflowMode == WorkflowMode.MaterialChoice)
                 collector.AddShaderProperty(Property.WorkflowModeProperty(workflowMode));
 
+            collector.AddFloatProperty(Property.CastShadows, 1.0f);      // TODO set up default
             collector.AddFloatProperty(Property.ReceiveShadows, 1.0f);      // TODO set up default
 
             // setup properties using the defaults
