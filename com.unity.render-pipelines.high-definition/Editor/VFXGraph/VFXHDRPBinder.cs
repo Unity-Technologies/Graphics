@@ -60,10 +60,12 @@ namespace UnityEditor.VFX.HDRP
             {}
         }
 
-        public override VFXAbstractRenderedOutput.BlendMode GetBlendModeFromMaterial(Material mat)
+        public override VFXAbstractRenderedOutput.BlendMode GetBlendModeFromMaterial(VFXMaterialSerializedSettings materialSettings)
         {
             var blendMode = VFXAbstractRenderedOutput.BlendMode.Opaque;
 
+            /*
+            TODO: Extract blend mode from serialized settings
             if (!mat.HasProperty(HDMaterialProperties.kSurfaceType) ||
                 !mat.HasProperty(HDMaterialProperties.kBlendMode))
             {
@@ -86,6 +88,7 @@ namespace UnityEditor.VFX.HDRP
                         break;
                 }
             }
+            */
 
             return blendMode;
         }
