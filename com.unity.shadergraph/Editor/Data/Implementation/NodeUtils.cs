@@ -102,7 +102,7 @@ namespace UnityEditor.Graphing
         }
 
         public static void DepthFirstCollectNodesFromNode(List<AbstractMaterialNode> nodeList, AbstractMaterialNode node,
-            IncludeSelf includeSelf = IncludeSelf.Include, List<KeyValuePair<ShaderKeyword, int>> keywordPermutation = null)
+            IncludeSelf includeSelf = IncludeSelf.Include, List<KeyValuePair<ShaderKeyword, int>> keywordPermutation = null, bool ignoreActiveState = false)
         {
             // no where to start
             if (node == null)
@@ -132,11 +132,11 @@ namespace UnityEditor.Graphing
                 {
                     var outputNode = edge.outputSlot.node;
                     if (outputNode != null)
-                        DepthFirstCollectNodesFromNode(nodeList, outputNode, keywordPermutation: keywordPermutation);
+                        DepthFirstCollectNodesFromNode(nodeList, outputNode, keywordPermutation: keywordPermutation, ignoreActiveState: ignoreActiveState);
                 }
             }
 
-            if (includeSelf == IncludeSelf.Include && node.isActive)
+            if (includeSelf == IncludeSelf.Include && (node.isActive || ignoreActiveState))
                 nodeList.Add(node);
         }
 
@@ -581,6 +581,120 @@ namespace UnityEditor.Graphing
             "4x1", "4x2", "4x3", "4x4"
         };
 
+        static HashSet<string> m_ShaderLabKeywords = new HashSet<string>()
+        {
+            // these should all be lowercase, as shaderlab keywords are case insensitive
+            "properties",
+            "range",
+            "bind",
+            "bindchannels",
+            "tags",
+            "lod",
+            "shader",
+            "subshader",
+            "category",
+            "fallback",
+            "dependency",
+            "customeditor",
+            "rect",
+            "any",
+            "float",
+            "color",
+            "int",
+            "integer",
+            "vector",
+            "matrix",
+            "2d",
+            "cube",
+            "3d",
+            "2darray",
+            "cubearray",
+            "name",
+            "settexture",
+            "true",
+            "false",
+            "on",
+            "off",
+            "separatespecular",
+            "offset",
+            "zwrite",
+            "zclip",
+            "conservative",
+            "ztest",
+            "alphatest",
+            "fog",
+            "stencil",
+            "colormask",
+            "alphatomask",
+            "cull",
+            "front",
+            "material",
+            "ambient",
+            "diffuse",
+            "specular",
+            "emission",
+            "shininess",
+            "blend",
+            "blendop",
+            "colormaterial",
+            "lighting",
+            "pass",
+            "grabpass",
+            "usepass",
+            "gpuprogramid",
+            "add",
+            "sub",
+            "revsub",
+            "min",
+            "max",
+            "logicalclear",
+            "logicalset",
+            "logicalcopy",
+            "logicalcopyinverted",
+            "logicalnoop",
+            "logicalinvert",
+            "logicaland",
+            "logicalnand",
+            "logicalor",
+            "logicalnor",
+            "logicalxor",
+            "logicalequiv",
+            "logicalandreverse",
+            "logicalandinverted",
+            "logicalorreverse",
+            "logicalorinverted",
+            "multiply",
+            "screen",
+            "overlay",
+            "darken",
+            "lighten",
+            "colordodge",
+            "colorburn",
+            "hardlight",
+            "softlight",
+            "difference",
+            "exclusion",
+            "hslhue",
+            "hslsaturation",
+            "hslcolor",
+            "hslluminosity",
+            "zero",
+            "one",
+            "dstcolor",
+            "srccolor",
+            "oneminusdstcolor",
+            "srcalpha",
+            "oneminussrccolor",
+            "dstalpha",
+            "oneminusdstalpha",
+            "srcalphasaturate",
+            "oneminussrcalpha",
+            "constantcolor",
+            "oneminusconstantcolor",
+            "constantalpha",
+            "oneminusconstantalpha",
+        };
+
         static HashSet<string> m_HLSLKeywords = new HashSet<string>()
         {
             "AppendStructuredBuffer",
@@ -748,9 +862,18 @@ namespace UnityEditor.Graphing
             return isHLSLKeyword;
         }
 
-        public static string ConvertToValidHLSLIdentifier(string originalId)
+        public static bool IsShaderLabKeyWord(string id)
+        {
+            bool isShaderLabKeyword = m_ShaderLabKeywords.Contains(id.ToLower());
+            return isShaderLabKeyword;
+        }
+
+        public static string ConvertToValidHLSLIdentifier(string originalId, Func<string, bool> isDisallowedIdentifier = null)
         {
             // Converts "  1   var  * q-30 ( 0 ) (1)   " to "_1_var_q_30_0_1"
+            if (originalId == null)
+                originalId = "";
+
             StringBuilder hlslId = new StringBuilder(originalId.Length);
             bool lastInvalid = false;
             for (int i = 0; i < originalId.Length; i++)
@@ -795,6 +918,10 @@ namespace UnityEditor.Graphing
 
             while (IsHLSLKeyword(result))
                 result = "_" + result;
+
+            if (isDisallowedIdentifier != null)
+                while (isDisallowedIdentifier(result))
+                    result = "_" + result;
 
             return result;
         }

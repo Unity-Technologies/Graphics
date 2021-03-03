@@ -62,6 +62,7 @@ namespace UnityEditor.Rendering.HighDefinition
             public static readonly GUIContent dofPhysicallyBased = EditorGUIUtility.TrTextContent("Physically Based");
             public static readonly GUIContent maxSamplesQuality = EditorGUIUtility.TrTextContent("Max Samples");
 
+            // SSAO
             public static readonly GUIContent SSAOQualitySettingSubTitle = EditorGUIUtility.TrTextContent("Screen Space Ambient Occlusion");
             public static readonly GUIContent AOStepCount = EditorGUIUtility.TrTextContent("Step Count");
             public static readonly GUIContent AOFullRes = EditorGUIUtility.TrTextContent("Full Resolution");
@@ -69,12 +70,42 @@ namespace UnityEditor.Rendering.HighDefinition
             public static readonly GUIContent AODirectionCount = EditorGUIUtility.TrTextContent("Direction Count");
             public static readonly GUIContent AOBilateralUpsample = EditorGUIUtility.TrTextContent("Bilateral Upsample");
 
+            // RTAO
+            public static readonly GUIContent RTAOQualitySettingSubTitle = EditorGUIUtility.TrTextContent("Ray Traced Ambient Occlusion");
+            public static readonly GUIContent RTAORayLength = EditorGUIUtility.TrTextContent("Max Ray Length");
+            public static readonly GUIContent RTAOSampleCount = EditorGUIUtility.TrTextContent("Sample Count");
+            public static readonly GUIContent RTAODenoise = EditorGUIUtility.TrTextContent("Denoise");
+            public static readonly GUIContent RTAODenoiserRadius = EditorGUIUtility.TrTextContent("Denoiser Radius");
+
             public static readonly GUIContent contactShadowsSettingsSubTitle = EditorGUIUtility.TrTextContent("Contact Shadows");
             public static readonly GUIContent contactShadowsSampleCount = EditorGUIUtility.TrTextContent("Sample Count");
 
             public static readonly GUIContent SSRSettingsSubTitle = EditorGUIUtility.TrTextContent("Screen Space Reflection");
             public static readonly GUIContent SSRMaxRaySteps = EditorGUIUtility.TrTextContent("Max Ray Steps");
 
+            // RTR
+            public static readonly GUIContent RTRSettingsSubTitle = EditorGUIUtility.TrTextContent("Ray Traced Reflections (Performance)");
+            public static readonly GUIContent RTRMinSmoothness = EditorGUIUtility.TrTextContent("Minimum Smoothness");
+            public static readonly GUIContent RTRSmoothnessFadeStart = EditorGUIUtility.TrTextContent("Smoothness Fade Start");
+            public static readonly GUIContent RTRRayLength = EditorGUIUtility.TrTextContent("Max Ray Length");
+            public static readonly GUIContent RTRClampValue = EditorGUIUtility.TrTextContent("Clamp Value");
+            public static readonly GUIContent RTRFullResolution = EditorGUIUtility.TrTextContent("Full Resolution");
+            public static readonly GUIContent RTRDenoise = EditorGUIUtility.TrTextContent("Denoise");
+            public static readonly GUIContent RTRDenoiserRadius = EditorGUIUtility.TrTextContent("Denoiser Radius");
+            public static readonly GUIContent RTRSmoothDenoising = EditorGUIUtility.TrTextContent("Affect Smooth Surfaces");
+
+            // RTGI
+            public static readonly GUIContent RTGISettingsSubTitle = EditorGUIUtility.TrTextContent("Ray Traced Global Illumination (Performance)");
+            public static readonly GUIContent RTGIRayLength = EditorGUIUtility.TrTextContent("Max Ray Length");
+            public static readonly GUIContent RTGIClampValue = EditorGUIUtility.TrTextContent("Clamp Value");
+            public static readonly GUIContent RTGIFullResolution = EditorGUIUtility.TrTextContent("Full Resolution");
+            public static readonly GUIContent RTGIUpScaleRadius = EditorGUIUtility.TrTextContent("Upscale Radius");
+            public static readonly GUIContent RTGIDenoise = EditorGUIUtility.TrTextContent("Denoise");
+            public static readonly GUIContent RTGIHalfResDenoise = EditorGUIUtility.TrTextContent("Half Resolution Denoiser");
+            public static readonly GUIContent RTGIDenoiserRadius = EditorGUIUtility.TrTextContent("Denoiser Radius");
+            public static readonly GUIContent RTGISecondDenoise = EditorGUIUtility.TrTextContent("Second Denoiser Pass");
+
+            // Fog
             public static readonly GUIContent FogSettingsSubTitle = EditorGUIUtility.TrTextContent("Volumetric Fog");
             public static readonly GUIContent FogSettingsBudget = EditorGUIUtility.TrTextContent("Volumetric Fog Budget");
             public static readonly GUIContent FogSettingsRatio = EditorGUIUtility.TrTextContent("Volumetric Fog Ratio");
@@ -131,6 +162,7 @@ namespace UnityEditor.Rendering.HighDefinition
             public static readonly GUIContent supportRaytracing = EditorGUIUtility.TrTextContent("Realtime Raytracing (Preview)");
             public static readonly GUIContent supportedRayTracingMode = EditorGUIUtility.TrTextContent("Supported Ray Tracing Mode (Preview)");
             public static readonly GUIContent rayTracingUnsupportedWarning = EditorGUIUtility.TrTextContent("Ray tracing is not supported on your device. Please refer to the documentation.");
+            public static readonly GUIContent rayTracingDX12OnlyWarning = EditorGUIUtility.TrTextContent("Ray tracing is currently only supported on DX12.");
             public static readonly GUIContent maximumLODLevel = EditorGUIUtility.TrTextContent("Maximum LOD Level");
             public static readonly GUIContent LODBias = EditorGUIUtility.TrTextContent("LOD Bias");
             internal static readonly GUIContent supportProbeVolumeContent = EditorGUIUtility.TrTextContent("Probe Volume", "When enabled, HDRP allocates Shader variants and memory for probe volume based GI. This allows you to use probe volumes in your Unity Project.");

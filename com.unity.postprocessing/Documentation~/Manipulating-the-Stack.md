@@ -8,7 +8,7 @@ Use the `QuickVolume` method to quickly spawn new volumes in the scene, to creat
 
 ```csharp
 [
-public PostProcessVolume QuickVolume(int layer, float priority, params PostProcessEffectSettings[] settings) 
+public PostProcessVolume QuickVolume(int layer, float priority, params PostProcessEffectSettings[] settings)
 ]
 The following example demonstrates how to use a script to create a pulsating vignette effect:
 [
@@ -88,7 +88,7 @@ The above examples demonstrate how to create new effects and Volumes at runtime,
   - Resets when you exit play mode
   - You must manually destroy the profile when you don't need it anymore
 
-The `PostProcessProfile` class contains the following utility methods to help you manage assigned effects: 
+The `PostProcessProfile` class contains the following utility methods to help you manage assigned effects:
 | Utility method                                               | **Description**                                              |
 | ------------------------------------------------------------ | ------------------------------------------------------------ |
 | `T AddSettings()`                                            | Creates, adds and returns a new effect of type `T` to the profile. It throws an exception if it already exist |

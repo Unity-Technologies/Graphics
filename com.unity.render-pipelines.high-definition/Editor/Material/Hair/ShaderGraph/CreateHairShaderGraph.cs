@@ -30,6 +30,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 HDBlockFields.SurfaceDescription.SecondarySpecularTint,
                 HDBlockFields.SurfaceDescription.SecondarySmoothness,
                 HDBlockFields.SurfaceDescription.SecondarySpecularShift,
+                BlockFields.SurfaceDescription.Emission,
             };
 
             GraphUtil.CreateNewGraphWithOutputs(new[] {target}, blockDescriptors);

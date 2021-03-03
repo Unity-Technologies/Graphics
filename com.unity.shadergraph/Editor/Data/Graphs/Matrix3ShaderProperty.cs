@@ -46,9 +46,7 @@ namespace UnityEditor.ShaderGraph
             return new Matrix3ShaderProperty()
             {
                 displayName = displayName,
-                hidden = hidden,
                 value = value,
-                precision = precision,
             };
         }
 

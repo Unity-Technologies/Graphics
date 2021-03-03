@@ -10,7 +10,7 @@ Samples a Cubemap and returns a Vector 4 color value for use in the shader. Requ
 |:------------ |:-------------|:-----|:---|:---|
 | Cube | Input      |    Cubemap | None | Cubemap to sample |
 | Dir | Input | Vector 3 | Normal (world space) | Direction or Mesh's normal vector |
-| Sampler | Input |	Sampler State | Default sampler state | Sampler for the Cubemap |
+| Sampler | Input | Sampler State | Default sampler state | Sampler for the Cubemap |
 | LOD | Input      |    Float    | None | Level of detail for sampling |
 | Out | Output      | Vector 4 | None | Output value |
 

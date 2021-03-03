@@ -10,7 +10,7 @@
 PR_Universal_Stereo_2021.1:
     name: Universal_Stereo PR Job - 2021.1
     dependencies:
-      -  path: .yamato/universal_stereo-win.yml#Universal_Stereo_Win_Standalone_mono_Linear_2021.1
+      -  path: .yamato/universal_stereo-win.yml#Universal_Stereo_Win_Standalone_cache_mono_Linear_2021.1
          rerun: on-new-revision
       -  path: .yamato/universal_stereo-win.yml#Universal_Stereo_Win_editmode_mono_Linear_2021.1
          rerun: on-new-revision
@@ -22,10 +22,13 @@ Nightly_Universal_Stereo_2021.1:
     dependencies:
       -  path: .yamato/all-universal_stereo.yml#PR_Universal_Stereo_2021.1
          rerun: on-new-revision
+    variables:
+        UTR_VERSION: "current"
+        TEST_FILTER: .*
 PR_Universal_Stereo_CUSTOM-REVISION:
     name: Universal_Stereo PR Job - CUSTOM-REVISION
     dependencies:
-      -  path: .yamato/universal_stereo-win.yml#Universal_Stereo_Win_Standalone_mono_Linear_CUSTOM-REVISION
+      -  path: .yamato/universal_stereo-win.yml#Universal_Stereo_Win_Standalone_cache_mono_Linear_CUSTOM-REVISION
          rerun: always
       -  path: .yamato/universal_stereo-win.yml#Universal_Stereo_Win_editmode_mono_Linear_CUSTOM-REVISION
          rerun: always
@@ -40,3 +43,5 @@ Nightly_Universal_Stereo_CUSTOM-REVISION:
          rerun: always
     variables:
         CUSTOM_REVISION: custom_revision_not_set
+        UTR_VERSION: "current"
+        TEST_FILTER: .*

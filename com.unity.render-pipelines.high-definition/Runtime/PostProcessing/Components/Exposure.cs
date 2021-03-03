@@ -124,6 +124,7 @@ namespace UnityEngine.Rendering.HighDefinition
         /// Sets the desired Mid gray level used by the auto exposure (i.e. to what grey value the auto exposure system maps the average scene luminance).
         /// Note that the lens model used in HDRP is not of a perfect lens, hence it will not map precisely to the selected value.
         /// </summary>
+        [AdditionalProperty]
         [Tooltip("Sets the desired Mid gray level used by the auto exposure (i.e. to what grey value the auto exposure system maps the average scene luminance).")]
         public TargetMidGrayParameter targetMidGray = new TargetMidGrayParameter(TargetMidGray.Grey125);
 
@@ -144,11 +145,13 @@ namespace UnityEngine.Rendering.HighDefinition
         /// <summary>
         /// All pixels below this threshold (in EV100 units) will be assigned a weight of 0 in the metering mask.
         /// </summary>
+        [AdditionalProperty]
         [Tooltip("All pixels below this threshold (in EV100 units) will be assigned a weight of 0 in the metering mask.")]
         public FloatParameter maskMinIntensity = new FloatParameter(-30.0f);
         /// <summary>
         /// All pixels above this threshold (in EV100 units) will be assigned a weight of 0 in the metering mask.
         /// </summary>
+        [AdditionalProperty]
         [Tooltip("All pixels above this threshold (in EV100 units) will be assigned a weight of 0 in the metering mask.")]
         public FloatParameter maskMaxIntensity = new FloatParameter(30.0f);
 

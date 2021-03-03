@@ -11,6 +11,8 @@ The **Shadows** override comes as default when you create a **Scene Settings** G
 1. In the Scene or Hierarchy view, select a GameObject that contains a Volume component to view it in the Inspector.
 2. In the Inspector, navigate to **Add Override > Shadowing** and click on **Shadows**. You can now use the **Shadows** override to alter shadow settings for this Volume.
 
+[!include[](snippets/volume-override-api.md)]
+
 ## Properties
 
 ![](Images/Override-Shadows1.png)
@@ -46,7 +48,7 @@ In the Scene view and the Game view, the cascade visualization feature allows yo
 
 ![](Images/Override-Shadows3.png)
 
-In the Scene view and the Game view, you can use the cascade visualization feature to see the boundaries and borders of each cascade in your Scene. Each color represents a separate cascade, and the colors match those in the **Cascade Splits** bar. To enable the cascade visualization feature, click the **Show Cascades** button at the top of the list of **Shadows** properties. You can now see the shadow maps in the Scene view and the Game view. 
+In the Scene view and the Game view, you can use the cascade visualization feature to see the boundaries and borders of each cascade in your Scene. Each color represents a separate cascade, and the colors match those in the **Cascade Splits** bar. To enable the cascade visualization feature, click the **Show Cascades** button at the top of the list of **Shadows** properties. You can now see the shadow maps in the Scene view and the Game view.
 
 - You can use the Scene view Camera to move around your Scene and quickly visualize the shadow maps of different areas.
 - You can use the Game view Camera to visualize the shadow maps from the point of view of the end user. You can use the **Show Cascades** feature while in Play Mode, which is useful if you have some method of controlling the Camera’s position and rotation and want to see the shadow maps from different points of view in your Project.

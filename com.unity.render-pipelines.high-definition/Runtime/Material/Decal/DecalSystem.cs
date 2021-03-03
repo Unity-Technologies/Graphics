@@ -859,9 +859,9 @@ namespace UnityEngine.Rendering.HighDefinition
             {
                 get
                 {
-                    if (m_IsHDRenderPipelineDecal)
+                    if (this.m_Material.HasProperty(HDShaderIDs._DrawOrder))
                     {
-                        return this.m_Material.GetInt("_DrawOrder");
+                        return this.m_Material.GetInt(HDShaderIDs._DrawOrder);
                     }
                     else
                     {

@@ -1,8 +1,8 @@
 # Atan2
 
-Menu Path : **Operator > Math > Trigonometry > Atan2**  
+Menu Path : **Operator > Math > Trigonometry > Atan2**
 
-The **Atan2** Operator calculates the value of the angle between the x-axis and a vector that starts at zero and terminates at (**X**, **Y**). The result is in radians. 
+The **Atan2** Operator calculates the value of the angle between the x-axis and a vector that starts at zero and terminates at (**X**, **Y**). The result is in radians.
 
 This Operator accepts input values of various types. For the list of types this Operator can use, see [Available Types](#available-types).
 

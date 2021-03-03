@@ -1,4 +1,4 @@
-# Screen Space Reflections 
+# Screen Space Reflections
 
 The **Screen Space Reflection** effect creates subtle reflections that simulate wet floor surfaces or puddles. It reflects both static and dynamic GameObjects to create realistic reflections.
 

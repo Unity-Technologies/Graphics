@@ -1,17 +1,17 @@
-# Baked Lit Shader 
+# Baked Lit Shader
 
-In the Universal Render Pipeline (URP), use this Shader for stylised games or apps that only require [baked lighting](https://docs.unity3d.com/Manual/LightMode-Baked.html)via [lightmaps](https://docs.unity3d.com/Manual/Lightmapping.html) and [Light Probes](https://docs.unity3d.com/Manual/LightProbes.html). This shader does not use [Physically Based Shading](shading-model.md#physically-based-shading) and has no real-time lighting, so all real-time relevant shader keywords and variants are [stripped](shader-stripping.md) from the Shader code, which makes it faster to calculate. 
+In the Universal Render Pipeline (URP), use this Shader for stylised games or apps that only require [baked lighting](https://docs.unity3d.com/Manual/LightMode-Baked.html)via [lightmaps](https://docs.unity3d.com/Manual/Lightmapping.html) and [Light Probes](https://docs.unity3d.com/Manual/LightProbes.html). This shader does not use [Physically Based Shading](shading-model.md#physically-based-shading) and has no real-time lighting, so all real-time relevant shader keywords and variants are [stripped](shader-stripping.md) from the Shader code, which makes it faster to calculate.
 
 ## Using the Baked Lit Shader in the Editor
 
 To select and use this Shader:
 
-1. In your Project, create or find the Material you want to use the Shader on.  Select the __Material__. A Material Inspector window opens. 
+1. In your Project, create or find the Material you want to use the Shader on.  Select the __Material__. A Material Inspector window opens.
 2. Click __Shader__, and select __Universal Render Pipeline__ > __Baked Lit__.
 
-## UI overview 
+## UI overview
 
-The Inspector window for this Shader contains these elements: 
+The Inspector window for this Shader contains these elements:
 
 - __[Surface Options](#surface-options)__
 - __[Surface Inputs](#surface-inputs)__
@@ -19,7 +19,7 @@ The Inspector window for this Shader contains these elements:
 
 ![Inspector for the Baked Lit Shader](Images/Inspectors/Shaders/BakedLit.png)
 
-### Surface Options 
+### Surface Options
 
 The __Surface Options__ control how the Material is rendered on a screen.
 
@@ -33,7 +33,7 @@ The __Surface Options__ control how the Material is rendered on a screen.
 
 ### Surface Inputs
 
-The __Surface Inputs__ describe the surface itself. For example, you can use these properties to make your surface look wet, dry, rough, or smooth. 
+The __Surface Inputs__ describe the surface itself. For example, you can use these properties to make your surface look wet, dry, rough, or smooth.
 
 | Property       | Description                                                  |
 | -------------- | ------------------------------------------------------------ |

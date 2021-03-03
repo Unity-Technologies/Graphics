@@ -1,6 +1,6 @@
 # Rectangular to Spherical
 
-Menu Path : **Operator > Math > Coordinates** 
+Menu Path : **Operator > Math > Coordinates**
 
 The **Rectangular to Spherical** Operator performs a 3D coordinate conversion between a rectangular XYZ space to a spherical (theta/phi/distance) space.
 

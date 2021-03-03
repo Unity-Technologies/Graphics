@@ -1,3 +1,6 @@
+// Required for the correct use of cross platform abstractions.
+#include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Common.hlsl"
+
 //Helper to disable bounding box compute code
 #define USE_DYNAMIC_AABB 1
 
@@ -267,7 +270,7 @@ uint VFXMul24(uint a, uint b)
 #ifndef SHADER_API_PSSL
     return (a & 0xffffff) * (b & 0xffffff); // Tmp to ensure correct inputs
 #else
-    return mul24(a, b);
+    return Mul24(a, b);
 #endif
 }
 
@@ -311,7 +314,7 @@ uint Lcg(uint seed)
     const uint multiplier = 0x0019660d;
     const uint increment = 0x3c6ef35f;
 #if RAND_24BITS && defined(SHADER_API_PSSL)
-    return mad24(multiplier, seed, increment);
+    return Mad24(multiplier, seed, increment);
 #else
     return multiplier * seed + increment;
 #endif
@@ -321,7 +324,7 @@ float ToFloat01(uint u)
 {
 #if !RAND_24BITS
     return asfloat((u >> 9) | 0x3f800000) - 1.0f;
-#else //Using mad24 keeping consitency between platform
+#else //Using Mad24 keeping consitency between platform
     return asfloat((u & 0x007fffff) | 0x3f800000) - 1.0f;
 #endif
 }
@@ -341,72 +344,7 @@ float FixedRand(uint seed)
 // Mesh sampling //
 ///////////////////
 
-float   FetchBuffer(ByteAddressBuffer buffer, int offset) { return asfloat(buffer.Load(offset << 2)); }
-float2  FetchBuffer2(ByteAddressBuffer buffer, int offset) { return asfloat(buffer.Load2(offset << 2)); }
-float3  FetchBuffer3(ByteAddressBuffer buffer, int offset) { return asfloat(buffer.Load3(offset << 2)); }
-float4  FetchBuffer4(ByteAddressBuffer buffer, int offset) { return asfloat(buffer.Load4(offset << 2)); }
-
-float4 SampleMeshFloat4(ByteAddressBuffer vertices, uint vertexIndex, uint channelOffset, uint vertexStride)
-{
-    float4 r = float4(0.0f, 0.0f, 0.0f, 0.0f);
-    [branch]
-    if (channelOffset != -1)
-    {
-        uint offset = vertexIndex * vertexStride + channelOffset;
-        r = FetchBuffer4(vertices, offset);
-    }
-    return r;
-}
-
-float3 SampleMeshFloat3(ByteAddressBuffer vertices, uint vertexIndex, uint channelOffset, uint vertexStride)
-{
-    float3 r = float3(0.0f, 0.0f, 0.0f);
-    [branch]
-    if (channelOffset != -1)
-    {
-        uint offset = vertexIndex * vertexStride + channelOffset;
-        r = FetchBuffer3(vertices, offset);
-    }
-    return r;
-}
-
-float2 SampleMeshFloat2(ByteAddressBuffer vertices, uint vertexIndex, uint channelOffset, uint vertexStride)
-{
-    float2 r = float2(0.0f, 0.0f);
-    [branch]
-    if (channelOffset != -1)
-    {
-        uint offset = vertexIndex * vertexStride + channelOffset;
-        r = FetchBuffer2(vertices, offset);
-    }
-    return r;
-}
-
-float SampleMeshFloat(ByteAddressBuffer vertices, uint vertexIndex, uint channelOffset, uint vertexStride)
-{
-    float r = 0.0f;
-    [branch]
-    if (channelOffset != -1)
-    {
-        uint offset = vertexIndex * vertexStride + channelOffset;
-        r = FetchBuffer(vertices, offset);
-    }
-    return r;
-}
-
-float4 SampleMeshColor(ByteAddressBuffer vertices, uint vertexIndex, uint channelOffset, uint vertexStride)
-{
-    float4 r = float4(0.0f, 0.0f, 0.0f, 0.0f);
-    [branch]
-    if (channelOffset != -1)
-    {
-        uint offset = vertexIndex * vertexStride + channelOffset;
-        uint colorByte = asuint(FetchBuffer(vertices, offset));
-        float4 colorSRGB = float4(uint4(colorByte, colorByte >> 8, colorByte >> 16, colorByte >> 24) & 255) / 255.0f;
-        r = float4(pow(abs(colorSRGB.rgb), 2.2f), colorSRGB.a); //Approximative SRGBToLinear
-    }
-    return r;
-}
+#include "VFXMeshSampling.hlsl"
 
 ///////////////////////////
 // Color transformations //

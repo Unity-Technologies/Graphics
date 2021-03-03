@@ -16,7 +16,7 @@ The High Definition Render Pipeline (HDRP) includes the [Render Pipeline Debug w
 | **Screen Space Ambient Occlusion** | When [Ray-Traced Ambient Occlusion](Ray-Traced-Ambient-Occlusion.md) is active, this displays the screen space buffer that holds the ambient occlusion. |
 | **Screen Space Reflection** | When [Ray-Traced Reflections](Ray-Traced-Reflections.md) are active, this displays the ray-traced reflections. |
 | **Transparent Screen Space Reflection** | When [Ray-Traced Reflections](Ray-Traced-Reflections.md) are active, this displays the ray-traced reflections on transparent objects. |
-| **Contact Shadows** 		  | When [Ray-Traced Contact Shadows](Ray-Traced-Contact-Shadows.md) are active, this displays the ray-traced contact shadows. |
+| **Contact Shadows**         | When [Ray-Traced Contact Shadows](Ray-Traced-Contact-Shadows.md) are active, this displays the ray-traced contact shadows. |
 | **Screen Space Shadows**    | When screen space shadows are active, this displays the set of screen space shadows. If you select this option, Unity exposes the **Screen Space Shadow Index** slider that allows you to change the currently active shadows. Area lights shadows take two channels. |
 | **Screen Space Global Illumination**  | When [Ray-Traced Global Illumination](Ray-Traced-Global-Illumination.md) is active, this displays a screen space buffer that holds the indirect diffuse lighting. |
 | **Recursive Ray-Tracing**             | When [Recursive Ray Tracing](Ray-Tracing-Recursive-Rendering.md) is active, this displays the pixels that have been evaluated using the effect. |

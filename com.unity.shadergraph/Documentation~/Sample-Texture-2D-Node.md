@@ -12,14 +12,14 @@ NOTE: This [Node](Node.md) can only be used in the **Fragment** [Shader Stage](S
 
 | Name        | Direction           | Type  | Binding | Description |
 |:------------ |:-------------|:-----|:---|:---|
-| Texture |	Input |	Texture 2D  | None | Texture 2D to sample |
-| UV      | Input |	Vector 2    | 	UV	| UV coordinates |
-| Sampler | Input |	Sampler State | Default sampler state | Sampler for the texture |
-| RGBA	| Output	| Vector 4	| None	| Output value as RGBA |
-| R	    | Output	| Float   	| None	| red (x) component of RGBA output |
-| G	    | Output	| Float   	| None	| green (y) component of RGBA output |
-| B	    | Output	| Float   	| None	| blue (z) component of RGBA output |
-| A     |	Output	| Float   	| None | alpha (w) component of RGBA output |
+| Texture | Input | Texture 2D  | None | Texture 2D to sample |
+| UV      | Input | Vector 2    |   UV  | UV coordinates |
+| Sampler | Input | Sampler State | Default sampler state | Sampler for the texture |
+| RGBA  | Output    | Vector 4  | None  | Output value as RGBA |
+| R     | Output    | Float     | None  | red (x) component of RGBA output |
+| G     | Output    | Float     | None  | green (y) component of RGBA output |
+| B     | Output    | Float     | None  | blue (z) component of RGBA output |
+| A     |   Output  | Float     | None | alpha (w) component of RGBA output |
 
 ## Controls
 

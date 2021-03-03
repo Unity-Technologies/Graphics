@@ -22,6 +22,9 @@ Nightly_HDRP_Hybrid_2021.1:
          rerun: on-new-revision
       -  path: .yamato/all-hdrp_hybrid.yml#PR_HDRP_Hybrid_2021.1
          rerun: on-new-revision
+    variables:
+        UTR_VERSION: "current"
+        TEST_FILTER: .*
 PR_HDRP_Hybrid_CUSTOM-REVISION:
     name: HDRP_Hybrid PR Job - CUSTOM-REVISION
     dependencies:
@@ -40,3 +43,5 @@ Nightly_HDRP_Hybrid_CUSTOM-REVISION:
          rerun: always
     variables:
         CUSTOM_REVISION: custom_revision_not_set
+        UTR_VERSION: "current"
+        TEST_FILTER: .*

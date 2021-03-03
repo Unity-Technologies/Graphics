@@ -152,16 +152,12 @@ namespace UnityEditor.ShaderGraph.Internal
             return new Vector1ShaderProperty()
             {
                 displayName = displayName,
-                hidden = hidden,
                 value = value,
                 floatType = floatType,
                 rangeValues = rangeValues,
                 enumType = enumType,
                 enumNames = enumNames,
                 enumValues = enumValues,
-                precision = precision,
-                overrideHLSLDeclaration = overrideHLSLDeclaration,
-                hlslDeclarationOverride = hlslDeclarationOverride
             };
         }
 

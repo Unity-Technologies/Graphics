@@ -2,7 +2,7 @@
 
 ## Description
 
-Returns the value of input **In** rounded to the nearest integer, or whole number. 
+Returns the value of input **In** rounded to the nearest integer, or whole number.
 
 ## Ports
 

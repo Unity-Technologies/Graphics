@@ -64,26 +64,26 @@ wait_for_nightly:
     dependencies:
       -  .yamato/_abv.yml#all_project_ci_nightly_2021.1
       -  .yamato/_packages.yml#pack_core
-      -  .yamato/_packages.yml#test_core_windows_2021.1
-      -  .yamato/_packages.yml#test_core_macos_2021.1
+      -  .yamato/_packages.yml#test_core_Win_2021.1
+      -  .yamato/_packages.yml#test_core_OSX_2021.1
       -  .yamato/_packages.yml#pack_universal
-      -  .yamato/_packages.yml#test_universal_windows_2021.1
-      -  .yamato/_packages.yml#test_universal_macos_2021.1
+      -  .yamato/_packages.yml#test_universal_Win_2021.1
+      -  .yamato/_packages.yml#test_universal_OSX_2021.1
       -  .yamato/_packages.yml#pack_hdrp
-      -  .yamato/_packages.yml#test_hdrp_windows_2021.1
-      -  .yamato/_packages.yml#test_hdrp_macos_2021.1
+      -  .yamato/_packages.yml#test_hdrp_Win_2021.1
+      -  .yamato/_packages.yml#test_hdrp_OSX_2021.1
       -  .yamato/_packages.yml#pack_shadergraph
-      -  .yamato/_packages.yml#test_shadergraph_windows_2021.1
-      -  .yamato/_packages.yml#test_shadergraph_macos_2021.1
+      -  .yamato/_packages.yml#test_shadergraph_Win_2021.1
+      -  .yamato/_packages.yml#test_shadergraph_OSX_2021.1
       -  .yamato/_packages.yml#pack_vfx
-      -  .yamato/_packages.yml#test_vfx_windows_2021.1
-      -  .yamato/_packages.yml#test_vfx_macos_2021.1
+      -  .yamato/_packages.yml#test_vfx_Win_2021.1
+      -  .yamato/_packages.yml#test_vfx_OSX_2021.1
       -  .yamato/_packages.yml#pack_config
-      -  .yamato/_packages.yml#test_config_windows_2021.1
-      -  .yamato/_packages.yml#test_config_macos_2021.1
+      -  .yamato/_packages.yml#test_config_Win_2021.1
+      -  .yamato/_packages.yml#test_config_OSX_2021.1
       -  .yamato/_packages.yml#pack_lwrp
-      -  .yamato/_packages.yml#test_lwrp_windows_2021.1
-      -  .yamato/_packages.yml#test_lwrp_macos_2021.1
+      -  .yamato/_packages.yml#test_lwrp_Win_2021.1
+      -  .yamato/_packages.yml#test_lwrp_OSX_2021.1
 promote_core:
     name: '[core] Preview - Production Promote'
     agent:
@@ -95,8 +95,8 @@ promote_core:
     dependencies:
       -  .yamato/_packages.yml#pack_core
       -  .yamato/_packages.yml#publish_core
-      -  .yamato/_packages.yml#test_core_windows_2021.1
-      -  .yamato/_packages.yml#test_core_macos_2021.1
+      -  .yamato/_packages.yml#test_core_Win_2021.1
+      -  .yamato/_packages.yml#test_core_OSX_2021.1
     commands:
       -  copy packages_temp\core\upm-ci~\packages\packages.json upm-ci~\packages
       -  npm install upm-ci-utils@stable -g --registry https://artifactory.prd.cds.internal.unity3d.com/artifactory/api/npm/upm-npm
@@ -116,8 +116,8 @@ promote_core_project:
     dependencies:
       -  .yamato/_projectcontext.yml#pack_all_project
       -  .yamato/_projectcontext.yml#publish_core_project
-      -  .yamato/_projectcontext.yml#test_all_project_windows_2021.1
-      -  .yamato/_projectcontext.yml#test_all_project_macos_2021.1
+      -  .yamato/_projectcontext.yml#test_all_project_Win_2021.1
+      -  .yamato/_projectcontext.yml#test_all_project_OSX_2021.1
     commands:
       -  npm install upm-ci-utils@stable -g --registry https://artifactory.prd.cds.internal.unity3d.com/artifactory/api/npm/upm-npm
       -  upm-ci package promote --package-path com.unity.render-pipelines.core
@@ -136,8 +136,8 @@ promote_core_project_dry:
     dependencies:
       -  .yamato/_projectcontext.yml#pack_all_project
       -  .yamato/_projectcontext.yml#publish_core_project_dry
-      -  .yamato/_projectcontext.yml#test_all_project_windows_2021.1
-      -  .yamato/_projectcontext.yml#test_all_project_macos_2021.1
+      -  .yamato/_projectcontext.yml#test_all_project_Win_2021.1
+      -  .yamato/_projectcontext.yml#test_all_project_OSX_2021.1
     commands:
       -  npm install upm-ci-utils@stable -g --registry https://artifactory.prd.cds.internal.unity3d.com/artifactory/api/npm/upm-npm
       -  upm-ci package promote --package-path com.unity.render-pipelines.core --dry-run
@@ -156,8 +156,8 @@ promote_core_dry:
     dependencies:
       -  .yamato/_packages.yml#pack_core
       -  .yamato/_packages.yml#publish_core_dry
-      -  .yamato/_packages.yml#test_core_windows_2021.1
-      -  .yamato/_packages.yml#test_core_macos_2021.1
+      -  .yamato/_packages.yml#test_core_Win_2021.1
+      -  .yamato/_packages.yml#test_core_OSX_2021.1
     commands:
       -  copy packages_temp\core\upm-ci~\packages\packages.json upm-ci~\packages
       -  npm install upm-ci-utils@stable -g --registry https://artifactory.prd.cds.internal.unity3d.com/artifactory/api/npm/upm-npm
@@ -177,8 +177,8 @@ promote_universal:
     dependencies:
       -  .yamato/_packages.yml#pack_universal
       -  .yamato/_packages.yml#publish_universal
-      -  .yamato/_packages.yml#test_universal_windows_2021.1
-      -  .yamato/_packages.yml#test_universal_macos_2021.1
+      -  .yamato/_packages.yml#test_universal_Win_2021.1
+      -  .yamato/_packages.yml#test_universal_OSX_2021.1
     commands:
       -  copy packages_temp\universal\upm-ci~\packages\packages.json upm-ci~\packages
       -  npm install upm-ci-utils@stable -g --registry https://artifactory.prd.cds.internal.unity3d.com/artifactory/api/npm/upm-npm
@@ -198,8 +198,8 @@ promote_universal_project:
     dependencies:
       -  .yamato/_projectcontext.yml#pack_all_project
       -  .yamato/_projectcontext.yml#publish_universal_project
-      -  .yamato/_projectcontext.yml#test_all_project_windows_2021.1
-      -  .yamato/_projectcontext.yml#test_all_project_macos_2021.1
+      -  .yamato/_projectcontext.yml#test_all_project_Win_2021.1
+      -  .yamato/_projectcontext.yml#test_all_project_OSX_2021.1
     commands:
       -  npm install upm-ci-utils@stable -g --registry https://artifactory.prd.cds.internal.unity3d.com/artifactory/api/npm/upm-npm
       -  upm-ci package promote --package-path com.unity.render-pipelines.universal
@@ -218,8 +218,8 @@ promote_universal_project_dry:
     dependencies:
       -  .yamato/_projectcontext.yml#pack_all_project
       -  .yamato/_projectcontext.yml#publish_universal_project_dry
-      -  .yamato/_projectcontext.yml#test_all_project_windows_2021.1
-      -  .yamato/_projectcontext.yml#test_all_project_macos_2021.1
+      -  .yamato/_projectcontext.yml#test_all_project_Win_2021.1
+      -  .yamato/_projectcontext.yml#test_all_project_OSX_2021.1
     commands:
       -  npm install upm-ci-utils@stable -g --registry https://artifactory.prd.cds.internal.unity3d.com/artifactory/api/npm/upm-npm
       -  upm-ci package promote --package-path com.unity.render-pipelines.universal --dry-run
@@ -238,8 +238,8 @@ promote_universal_dry:
     dependencies:
       -  .yamato/_packages.yml#pack_universal
       -  .yamato/_packages.yml#publish_universal_dry
-      -  .yamato/_packages.yml#test_universal_windows_2021.1
-      -  .yamato/_packages.yml#test_universal_macos_2021.1
+      -  .yamato/_packages.yml#test_universal_Win_2021.1
+      -  .yamato/_packages.yml#test_universal_OSX_2021.1
     commands:
       -  copy packages_temp\universal\upm-ci~\packages\packages.json upm-ci~\packages
       -  npm install upm-ci-utils@stable -g --registry https://artifactory.prd.cds.internal.unity3d.com/artifactory/api/npm/upm-npm
@@ -259,8 +259,8 @@ promote_hdrp:
     dependencies:
       -  .yamato/_packages.yml#pack_hdrp
       -  .yamato/_packages.yml#publish_hdrp
-      -  .yamato/_packages.yml#test_hdrp_windows_2021.1
-      -  .yamato/_packages.yml#test_hdrp_macos_2021.1
+      -  .yamato/_packages.yml#test_hdrp_Win_2021.1
+      -  .yamato/_packages.yml#test_hdrp_OSX_2021.1
     commands:
       -  copy packages_temp\hdrp\upm-ci~\packages\packages.json upm-ci~\packages
       -  npm install upm-ci-utils@stable -g --registry https://artifactory.prd.cds.internal.unity3d.com/artifactory/api/npm/upm-npm
@@ -280,8 +280,8 @@ promote_hdrp_project:
     dependencies:
       -  .yamato/_projectcontext.yml#pack_all_project
       -  .yamato/_projectcontext.yml#publish_hdrp_project
-      -  .yamato/_projectcontext.yml#test_all_project_windows_2021.1
-      -  .yamato/_projectcontext.yml#test_all_project_macos_2021.1
+      -  .yamato/_projectcontext.yml#test_all_project_Win_2021.1
+      -  .yamato/_projectcontext.yml#test_all_project_OSX_2021.1
     commands:
       -  npm install upm-ci-utils@stable -g --registry https://artifactory.prd.cds.internal.unity3d.com/artifactory/api/npm/upm-npm
       -  upm-ci package promote --package-path com.unity.render-pipelines.high-definition
@@ -300,8 +300,8 @@ promote_hdrp_project_dry:
     dependencies:
       -  .yamato/_projectcontext.yml#pack_all_project
       -  .yamato/_projectcontext.yml#publish_hdrp_project_dry
-      -  .yamato/_projectcontext.yml#test_all_project_windows_2021.1
-      -  .yamato/_projectcontext.yml#test_all_project_macos_2021.1
+      -  .yamato/_projectcontext.yml#test_all_project_Win_2021.1
+      -  .yamato/_projectcontext.yml#test_all_project_OSX_2021.1
     commands:
       -  npm install upm-ci-utils@stable -g --registry https://artifactory.prd.cds.internal.unity3d.com/artifactory/api/npm/upm-npm
       -  upm-ci package promote --package-path com.unity.render-pipelines.high-definition --dry-run
@@ -320,8 +320,8 @@ promote_hdrp_dry:
     dependencies:
       -  .yamato/_packages.yml#pack_hdrp
       -  .yamato/_packages.yml#publish_hdrp_dry
-      -  .yamato/_packages.yml#test_hdrp_windows_2021.1
-      -  .yamato/_packages.yml#test_hdrp_macos_2021.1
+      -  .yamato/_packages.yml#test_hdrp_Win_2021.1
+      -  .yamato/_packages.yml#test_hdrp_OSX_2021.1
     commands:
       -  copy packages_temp\hdrp\upm-ci~\packages\packages.json upm-ci~\packages
       -  npm install upm-ci-utils@stable -g --registry https://artifactory.prd.cds.internal.unity3d.com/artifactory/api/npm/upm-npm
@@ -341,8 +341,8 @@ promote_shadergraph:
     dependencies:
       -  .yamato/_packages.yml#pack_shadergraph
       -  .yamato/_packages.yml#publish_shadergraph
-      -  .yamato/_packages.yml#test_shadergraph_windows_2021.1
-      -  .yamato/_packages.yml#test_shadergraph_macos_2021.1
+      -  .yamato/_packages.yml#test_shadergraph_Win_2021.1
+      -  .yamato/_packages.yml#test_shadergraph_OSX_2021.1
     commands:
       -  copy packages_temp\shadergraph\upm-ci~\packages\packages.json upm-ci~\packages
       -  npm install upm-ci-utils@stable -g --registry https://artifactory.prd.cds.internal.unity3d.com/artifactory/api/npm/upm-npm
@@ -362,8 +362,8 @@ promote_shadergraph_project:
     dependencies:
       -  .yamato/_projectcontext.yml#pack_all_project
       -  .yamato/_projectcontext.yml#publish_shadergraph_project
-      -  .yamato/_projectcontext.yml#test_all_project_windows_2021.1
-      -  .yamato/_projectcontext.yml#test_all_project_macos_2021.1
+      -  .yamato/_projectcontext.yml#test_all_project_Win_2021.1
+      -  .yamato/_projectcontext.yml#test_all_project_OSX_2021.1
     commands:
       -  npm install upm-ci-utils@stable -g --registry https://artifactory.prd.cds.internal.unity3d.com/artifactory/api/npm/upm-npm
       -  upm-ci package promote --package-path com.unity.shadergraph
@@ -382,8 +382,8 @@ promote_shadergraph_project_dry:
     dependencies:
       -  .yamato/_projectcontext.yml#pack_all_project
       -  .yamato/_projectcontext.yml#publish_shadergraph_project_dry
-      -  .yamato/_projectcontext.yml#test_all_project_windows_2021.1
-      -  .yamato/_projectcontext.yml#test_all_project_macos_2021.1
+      -  .yamato/_projectcontext.yml#test_all_project_Win_2021.1
+      -  .yamato/_projectcontext.yml#test_all_project_OSX_2021.1
     commands:
       -  npm install upm-ci-utils@stable -g --registry https://artifactory.prd.cds.internal.unity3d.com/artifactory/api/npm/upm-npm
       -  upm-ci package promote --package-path com.unity.shadergraph --dry-run
@@ -402,8 +402,8 @@ promote_shadergraph_dry:
     dependencies:
       -  .yamato/_packages.yml#pack_shadergraph
       -  .yamato/_packages.yml#publish_shadergraph_dry
-      -  .yamato/_packages.yml#test_shadergraph_windows_2021.1
-      -  .yamato/_packages.yml#test_shadergraph_macos_2021.1
+      -  .yamato/_packages.yml#test_shadergraph_Win_2021.1
+      -  .yamato/_packages.yml#test_shadergraph_OSX_2021.1
     commands:
       -  copy packages_temp\shadergraph\upm-ci~\packages\packages.json upm-ci~\packages
       -  npm install upm-ci-utils@stable -g --registry https://artifactory.prd.cds.internal.unity3d.com/artifactory/api/npm/upm-npm
@@ -423,8 +423,8 @@ promote_vfx:
     dependencies:
       -  .yamato/_packages.yml#pack_vfx
       -  .yamato/_packages.yml#publish_vfx
-      -  .yamato/_packages.yml#test_vfx_windows_2021.1
-      -  .yamato/_packages.yml#test_vfx_macos_2021.1
+      -  .yamato/_packages.yml#test_vfx_Win_2021.1
+      -  .yamato/_packages.yml#test_vfx_OSX_2021.1
     commands:
       -  copy packages_temp\vfx\upm-ci~\packages\packages.json upm-ci~\packages
       -  npm install upm-ci-utils@stable -g --registry https://artifactory.prd.cds.internal.unity3d.com/artifactory/api/npm/upm-npm
@@ -444,8 +444,8 @@ promote_vfx_project:
     dependencies:
       -  .yamato/_projectcontext.yml#pack_all_project
       -  .yamato/_projectcontext.yml#publish_vfx_project
-      -  .yamato/_projectcontext.yml#test_all_project_windows_2021.1
-      -  .yamato/_projectcontext.yml#test_all_project_macos_2021.1
+      -  .yamato/_projectcontext.yml#test_all_project_Win_2021.1
+      -  .yamato/_projectcontext.yml#test_all_project_OSX_2021.1
     commands:
       -  npm install upm-ci-utils@stable -g --registry https://artifactory.prd.cds.internal.unity3d.com/artifactory/api/npm/upm-npm
       -  upm-ci package promote --package-path com.unity.visualeffectgraph
@@ -464,8 +464,8 @@ promote_vfx_project_dry:
     dependencies:
       -  .yamato/_projectcontext.yml#pack_all_project
       -  .yamato/_projectcontext.yml#publish_vfx_project_dry
-      -  .yamato/_projectcontext.yml#test_all_project_windows_2021.1
-      -  .yamato/_projectcontext.yml#test_all_project_macos_2021.1
+      -  .yamato/_projectcontext.yml#test_all_project_Win_2021.1
+      -  .yamato/_projectcontext.yml#test_all_project_OSX_2021.1
     commands:
       -  npm install upm-ci-utils@stable -g --registry https://artifactory.prd.cds.internal.unity3d.com/artifactory/api/npm/upm-npm
       -  upm-ci package promote --package-path com.unity.visualeffectgraph --dry-run
@@ -484,8 +484,8 @@ promote_vfx_dry:
     dependencies:
       -  .yamato/_packages.yml#pack_vfx
       -  .yamato/_packages.yml#publish_vfx_dry
-      -  .yamato/_packages.yml#test_vfx_windows_2021.1
-      -  .yamato/_packages.yml#test_vfx_macos_2021.1
+      -  .yamato/_packages.yml#test_vfx_Win_2021.1
+      -  .yamato/_packages.yml#test_vfx_OSX_2021.1
     commands:
       -  copy packages_temp\vfx\upm-ci~\packages\packages.json upm-ci~\packages
       -  npm install upm-ci-utils@stable -g --registry https://artifactory.prd.cds.internal.unity3d.com/artifactory/api/npm/upm-npm
@@ -505,8 +505,8 @@ promote_config:
     dependencies:
       -  .yamato/_packages.yml#pack_config
       -  .yamato/_packages.yml#publish_config
-      -  .yamato/_packages.yml#test_config_windows_2021.1
-      -  .yamato/_packages.yml#test_config_macos_2021.1
+      -  .yamato/_packages.yml#test_config_Win_2021.1
+      -  .yamato/_packages.yml#test_config_OSX_2021.1
     commands:
       -  copy packages_temp\config\upm-ci~\packages\packages.json upm-ci~\packages
       -  npm install upm-ci-utils@stable -g --registry https://artifactory.prd.cds.internal.unity3d.com/artifactory/api/npm/upm-npm
@@ -526,8 +526,8 @@ promote_config_project:
     dependencies:
       -  .yamato/_projectcontext.yml#pack_all_project
       -  .yamato/_projectcontext.yml#publish_config_project
-      -  .yamato/_projectcontext.yml#test_all_project_windows_2021.1
-      -  .yamato/_projectcontext.yml#test_all_project_macos_2021.1
+      -  .yamato/_projectcontext.yml#test_all_project_Win_2021.1
+      -  .yamato/_projectcontext.yml#test_all_project_OSX_2021.1
     commands:
       -  npm install upm-ci-utils@stable -g --registry https://artifactory.prd.cds.internal.unity3d.com/artifactory/api/npm/upm-npm
       -  upm-ci package promote --package-path com.unity.render-pipelines.high-definition-config
@@ -546,8 +546,8 @@ promote_config_project_dry:
     dependencies:
       -  .yamato/_projectcontext.yml#pack_all_project
       -  .yamato/_projectcontext.yml#publish_config_project_dry
-      -  .yamato/_projectcontext.yml#test_all_project_windows_2021.1
-      -  .yamato/_projectcontext.yml#test_all_project_macos_2021.1
+      -  .yamato/_projectcontext.yml#test_all_project_Win_2021.1
+      -  .yamato/_projectcontext.yml#test_all_project_OSX_2021.1
     commands:
       -  npm install upm-ci-utils@stable -g --registry https://artifactory.prd.cds.internal.unity3d.com/artifactory/api/npm/upm-npm
       -  upm-ci package promote --package-path com.unity.render-pipelines.high-definition-config --dry-run
@@ -566,8 +566,8 @@ promote_config_dry:
     dependencies:
       -  .yamato/_packages.yml#pack_config
       -  .yamato/_packages.yml#publish_config_dry
-      -  .yamato/_packages.yml#test_config_windows_2021.1
-      -  .yamato/_packages.yml#test_config_macos_2021.1
+      -  .yamato/_packages.yml#test_config_Win_2021.1
+      -  .yamato/_packages.yml#test_config_OSX_2021.1
     commands:
       -  copy packages_temp\config\upm-ci~\packages\packages.json upm-ci~\packages
       -  npm install upm-ci-utils@stable -g --registry https://artifactory.prd.cds.internal.unity3d.com/artifactory/api/npm/upm-npm
@@ -587,8 +587,8 @@ promote_lwrp:
     dependencies:
       -  .yamato/_packages.yml#pack_lwrp
       -  .yamato/_packages.yml#publish_lwrp
-      -  .yamato/_packages.yml#test_lwrp_windows_2021.1
-      -  .yamato/_packages.yml#test_lwrp_macos_2021.1
+      -  .yamato/_packages.yml#test_lwrp_Win_2021.1
+      -  .yamato/_packages.yml#test_lwrp_OSX_2021.1
     commands:
       -  copy packages_temp\lwrp\upm-ci~\packages\packages.json upm-ci~\packages
       -  npm install upm-ci-utils@stable -g --registry https://artifactory.prd.cds.internal.unity3d.com/artifactory/api/npm/upm-npm
@@ -608,8 +608,8 @@ promote_lwrp_project:
     dependencies:
       -  .yamato/_projectcontext.yml#pack_all_project
       -  .yamato/_projectcontext.yml#publish_lwrp_project
-      -  .yamato/_projectcontext.yml#test_all_project_windows_2021.1
-      -  .yamato/_projectcontext.yml#test_all_project_macos_2021.1
+      -  .yamato/_projectcontext.yml#test_all_project_Win_2021.1
+      -  .yamato/_projectcontext.yml#test_all_project_OSX_2021.1
     commands:
       -  npm install upm-ci-utils@stable -g --registry https://artifactory.prd.cds.internal.unity3d.com/artifactory/api/npm/upm-npm
       -  upm-ci package promote --package-path com.unity.render-pipelines.lightweight
@@ -628,8 +628,8 @@ promote_lwrp_project_dry:
     dependencies:
       -  .yamato/_projectcontext.yml#pack_all_project
       -  .yamato/_projectcontext.yml#publish_lwrp_project_dry
-      -  .yamato/_projectcontext.yml#test_all_project_windows_2021.1
-      -  .yamato/_projectcontext.yml#test_all_project_macos_2021.1
+      -  .yamato/_projectcontext.yml#test_all_project_Win_2021.1
+      -  .yamato/_projectcontext.yml#test_all_project_OSX_2021.1
     commands:
       -  npm install upm-ci-utils@stable -g --registry https://artifactory.prd.cds.internal.unity3d.com/artifactory/api/npm/upm-npm
       -  upm-ci package promote --package-path com.unity.render-pipelines.lightweight --dry-run
@@ -648,8 +648,8 @@ promote_lwrp_dry:
     dependencies:
       -  .yamato/_packages.yml#pack_lwrp
       -  .yamato/_packages.yml#publish_lwrp_dry
-      -  .yamato/_packages.yml#test_lwrp_windows_2021.1
-      -  .yamato/_packages.yml#test_lwrp_macos_2021.1
+      -  .yamato/_packages.yml#test_lwrp_Win_2021.1
+      -  .yamato/_packages.yml#test_lwrp_OSX_2021.1
     commands:
       -  copy packages_temp\lwrp\upm-ci~\packages\packages.json upm-ci~\packages
       -  npm install upm-ci-utils@stable -g --registry https://artifactory.prd.cds.internal.unity3d.com/artifactory/api/npm/upm-npm

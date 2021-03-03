@@ -24,6 +24,9 @@ Nightly_URPUpdate_2021.1:
     dependencies:
       -  path: .yamato/all-urpupdate.yml#PR_URPUpdate_2021.1
          rerun: on-new-revision
+    variables:
+        UTR_VERSION: "current"
+        TEST_FILTER: .*
 PR_URPUpdate_CUSTOM-REVISION:
     name: URPUpdate PR Job - CUSTOM-REVISION
     dependencies:
@@ -44,3 +47,5 @@ Nightly_URPUpdate_CUSTOM-REVISION:
          rerun: always
     variables:
         CUSTOM_REVISION: custom_revision_not_set
+        UTR_VERSION: "current"
+        TEST_FILTER: .*

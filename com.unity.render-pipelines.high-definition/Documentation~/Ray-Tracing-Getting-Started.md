@@ -54,7 +54,7 @@ You can use the [Render Pipeline Wizard](Render-Pipeline-Wizard.md) to set up ra
 1. To open the Render Pipeline Wizard, go to Window > Render Pipeline and select HD Render Pipeline Wizard.
 2. Select the HDRP + DXR tab.
 3. Click the Fix All button.
-4. (Optional) Enable the HDRP asset features that are required for the ray tracing effects. 
+4. (Optional) Enable the HDRP asset features that are required for the ray tracing effects.
 
 Your HDRP Project now supports ray tracing. For information on how to set up ray tracing for your Scene, see [final setup](#FinalSetup).
 
@@ -78,9 +78,11 @@ To set up ray tracing manually, you need to:
 2. Select the Other Settings fold-out, and in the Rendering section, disable Auto Graphics API for Windows. This exposes the Graphics APIs for Windows section.
 3. In the Graphics APIs for Windows section, click the plus (+) button and select Direct3d12.
 4. Unity uses Direct3d11 by default. To make Unity use Direct3d12, move Direct3d12 (Experimental) to the top of the list.
-5. Apply your changes.
+5. To apply the changes, you may need to restart the Unity Editor. If a window prompt appears telling you to restart the Editor, click **Restart Editor** in the window.
 
-The Unity Editor window should now include the <DX12> tag in the title bar like so:
+The Unity Editor window should now include the &lt;DX12&gt; tag in the title bar like so:
+
+![](Images/RayTracingGettingStarted1.png)
 
 <a name="ManualSetup-DisablingStaticBatching"></a>
 
@@ -191,7 +193,7 @@ Depending on which ray tracing mode you select, HDRP may expose difference prope
 You can change which ray tracing mode HDRP uses on either a Project level or effect level. To change it for your entire Project:
 
 1. Click on your HDRP Asset in the Project window to view it in the Inspector.
-2. In the Rendering section, select a ray tracing mode from the **Supported Ray Tracing Mode** drop-down. 
+2. In the Rendering section, select a ray tracing mode from the **Supported Ray Tracing Mode** drop-down.
 
 If you select **Both**, you can change the ray tracing mode for each ray-traced effect. To do this:
 

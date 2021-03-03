@@ -91,7 +91,7 @@ Shader "Hidden/Light2d-Point-Volumetric"
                 output.positionWS = worldSpacePos;
 #endif
 
-                output.screenUV = ComputeNormalizedDeviceCoordinates(output.positionCS);
+                output.screenUV = ComputeNormalizedDeviceCoordinates(output.positionCS.xyz);
 
                 TRANSFER_SHADOWS(output)
 

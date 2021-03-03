@@ -20,7 +20,7 @@ After you create an Environment Library, you can add environments to it which yo
 - Go to the Look Dev window (menu: **Window > Render Pipeline > Look Dev**) and drag your Environment Library from your Project window into the sidebar.
 - In your Project window, click on your Environment Library Asset. Then, in the Inspector, click the **Open in LookDev window** button.
 
-If you already have environments in the Environment Library, you can see a list of them in the sidebar. When you click on any of the HDRI previews for an environment, a box appears at the bottom of the Environment Library list. This contains the selected environment's properties for you to edit. 
+If you already have environments in the Environment Library, you can see a list of them in the sidebar. When you click on any of the HDRI previews for an environment, a box appears at the bottom of the Environment Library list. This contains the selected environment's properties for you to edit.
 
 To add, remove, or duplicate environments, use the toolbar at the bottom of the Environment Library list, which contains the following buttons.
 
