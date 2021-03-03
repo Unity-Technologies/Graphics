@@ -27,7 +27,7 @@ namespace UnityEngine.Rendering
         private SerializedProperty m_DrawCells;
         private SerializedProperty m_ProbeShading;
         private SerializedProperty m_CullingDistance;
-        private SerializedProperty m_Exposure;
+        private SerializedProperty m_ExposureCompensation;
         private SerializedProperty m_Dilate;
         private SerializedProperty m_MaxDilationSamples;
         private SerializedProperty m_MaxDilationSampleDistance;
@@ -68,7 +68,7 @@ namespace UnityEngine.Rendering
             m_DrawCells = serializedObject.FindProperty("m_DrawCells");
             m_ProbeShading = serializedObject.FindProperty("m_ProbeShading");
             m_CullingDistance = serializedObject.FindProperty("m_CullingDistance");
-            m_Exposure = serializedObject.FindProperty("m_Exposure");
+            m_ExposureCompensation = serializedObject.FindProperty("m_Exposure");
             m_Dilate = serializedObject.FindProperty("m_Dilate");
             m_MaxDilationSamples = serializedObject.FindProperty("m_MaxDilationSamples");
             m_MaxDilationSampleDistance = serializedObject.FindProperty("m_MaxDilationSampleDistance");
@@ -158,7 +158,7 @@ namespace UnityEngine.Rendering
                     EditorGUI.BeginDisabledGroup(!m_DrawProbes.boolValue);
                     m_ProbeShading.enumValueIndex = EditorGUILayout.Popup("Probe Shading Mode", m_ProbeShading.enumValueIndex, ProbeShadingModes);
                     EditorGUI.BeginDisabledGroup(m_ProbeShading.enumValueIndex != 1);
-                    m_Exposure.floatValue = EditorGUILayout.FloatField("Probe Exposure Offset", m_Exposure.floatValue);
+                    m_ExposureCompensation.floatValue = EditorGUILayout.FloatField("Probe Exposure Compensation", m_ExposureCompensation.floatValue);
                     EditorGUI.EndDisabledGroup();
                     EditorGUI.EndDisabledGroup();
                     m_CullingDistance.floatValue = EditorGUILayout.FloatField("Culling Distance", m_CullingDistance.floatValue);
@@ -219,8 +219,8 @@ namespace UnityEngine.Rendering
 
         public void OnSceneGUI()
         {
-            // if (Event.current.type == EventType.Repaint)
-            DrawProbeGizmos();
+            if (Event.current.type == EventType.Layout)
+                DrawProbeGizmos();
         }
 
         void DrawProbeGizmos()
@@ -245,7 +245,7 @@ namespace UnityEngine.Rendering
                         var probeBuffer = debug.probeBuffers[i];
                         var props = debug.props[i];
                         props.SetInt("_ShadingMode", m_ProbeShading.intValue);
-                        props.SetFloat("_Exposure", -m_Exposure.floatValue);
+                        props.SetFloat("_ExposureCompensation", -m_ExposureCompensation.floatValue);
                         props.SetFloat("_ProbeSize", Gizmos.probeSize * 100);
 
                         var debugCam = SceneView.lastActiveSceneView.camera;

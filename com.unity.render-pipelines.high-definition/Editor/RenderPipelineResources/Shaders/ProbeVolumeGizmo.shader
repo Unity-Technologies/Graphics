@@ -19,7 +19,7 @@ Shader "Hidden/HDRP/ProbeVolumeGizmo"
         #include "Packages/com.unity.render-pipelines.high-definition/Runtime/ShaderLibrary/EditorShaderVariables.hlsl"
 
         uniform int _ShadingMode;
-        uniform float _Exposure;
+        uniform float _ExposureCompensation;
         uniform float _ProbeSize;
         uniform float4 _Color;
 
@@ -85,7 +85,7 @@ Shader "Hidden/HDRP/ProbeVolumeGizmo"
                 float4 g = UNITY_ACCESS_INSTANCED_PROP(Props, _G);
                 float4 b = UNITY_ACCESS_INSTANCED_PROP(Props, _B);
 
-                return float4(evalSH(normalize(i.normal), r, g, b) * exp2(_Exposure) * GetCurrentExposureMultiplier(), 1);
+                return float4(evalSH(normalize(i.normal), r, g, b) * exp2(_ExposureCompensation) * GetCurrentExposureMultiplier(), 1);
             }
             else if (_ShadingMode == 2)
             {

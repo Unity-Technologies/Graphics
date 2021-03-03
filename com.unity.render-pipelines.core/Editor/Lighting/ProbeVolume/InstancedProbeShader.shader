@@ -17,7 +17,7 @@ Shader "Hidden/InstancedProbeShader"
             #include "UnityCG.cginc"
 
             uniform int _ShadingMode;
-            uniform float _Exposure;
+            uniform float _ExposureCompensation;
             uniform float _ProbeSize;
             uniform float4 _Color;
 
@@ -83,7 +83,7 @@ Shader "Hidden/InstancedProbeShader"
                     float4 g = UNITY_ACCESS_INSTANCED_PROP(Props, _G);
                     float4 b = UNITY_ACCESS_INSTANCED_PROP(Props, _B);
 
-                    return float4(evalSH(normalize(i.normal), r, g, b) * exp2(_Exposure), 1);
+                    return float4(evalSH(normalize(i.normal), r, g, b) * exp2(_ExposureCompensation), 1);
                 }
                 else if (_ShadingMode == 2)
                 {
