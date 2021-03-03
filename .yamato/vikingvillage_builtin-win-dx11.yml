@@ -71,7 +71,7 @@ Build_VikingVillage_BuiltIn_Win_DX11_performance_playmode_runtime_mono_Linear_tr
       -  cd TestProjects/Viking-Village-Perf && unity-config project add dependency "com.unity.shadergraph@file:../../../com.unity.shadergraph" --project-path .
       -  cd TestProjects/Viking-Village-Perf && unity-config project add dependency com.unity.addressables@1.16.7 --project-path .
       -  cd TestProjects/Viking-Village-Perf && unity-config project add dependency com.unity.scriptablebuildpipeline@1.11.2 --project-path .
-      -  cd TestProjects/Viking-Village-Perf && unity-config project add dependency com.unity.test-framework@1.1.18 --project-path .
+      -  cd TestProjects/Viking-Village-Perf && unity-config project add dependency com.unity.test-framework@1.1.23 --project-path .
       -  cd TestProjects/Viking-Village-Perf && unity-config project add dependency com.unity.test-framework.performance@2.4.0 --project-path .
       -  cd TestProjects/Viking-Village-Perf && unity-config project add dependency com.unity.test-framework.utp-reporter@1.0.2-preview --project-path .
       -  cd TestProjects/Viking-Village-Perf && unity-config project add dependency com.unity.test-framework.build@0.0.1-preview.12 --project-path .
@@ -137,7 +137,7 @@ VikingVillage_BuiltIn_Win_DX11_performance_playmode_editor_mono_Linear_trunk:
       -  cd TestProjects/Viking-Village-Perf && unity-config project add dependency "com.unity.shadergraph@file:../../../com.unity.shadergraph" --project-path .
       -  cd TestProjects/Viking-Village-Perf && unity-config project add dependency com.unity.addressables@1.16.7 --project-path .
       -  cd TestProjects/Viking-Village-Perf && unity-config project add dependency com.unity.scriptablebuildpipeline@1.11.2 --project-path .
-      -  cd TestProjects/Viking-Village-Perf && unity-config project add dependency com.unity.test-framework@1.1.18 --project-path .
+      -  cd TestProjects/Viking-Village-Perf && unity-config project add dependency com.unity.test-framework@1.1.23 --project-path .
       -  cd TestProjects/Viking-Village-Perf && unity-config project add dependency com.unity.test-framework.performance@2.4.0 --project-path .
       -  cd TestProjects/Viking-Village-Perf && unity-config project add dependency com.unity.test-framework.utp-reporter@1.0.2-preview --project-path .
       -  cd TestProjects/Viking-Village-Perf && unity-config project add dependency com.unity.test-framework.build@0.0.1-preview.12 --project-path .
@@ -200,7 +200,7 @@ VikingVillage_BuiltIn_Win_DX11_performance_build_editmode_mono_Linear_trunk:
       -  cd TestProjects/Viking-Village-Perf && unity-config project add dependency "com.unity.shadergraph@file:../../../com.unity.shadergraph" --project-path .
       -  cd TestProjects/Viking-Village-Perf && unity-config project add dependency com.unity.addressables@1.16.7 --project-path .
       -  cd TestProjects/Viking-Village-Perf && unity-config project add dependency com.unity.scriptablebuildpipeline@1.11.2 --project-path .
-      -  cd TestProjects/Viking-Village-Perf && unity-config project add dependency com.unity.test-framework@1.1.18 --project-path .
+      -  cd TestProjects/Viking-Village-Perf && unity-config project add dependency com.unity.test-framework@1.1.23 --project-path .
       -  cd TestProjects/Viking-Village-Perf && unity-config project add dependency com.unity.test-framework.performance@2.4.0 --project-path .
       -  cd TestProjects/Viking-Village-Perf && unity-config project add dependency com.unity.test-framework.utp-reporter@1.0.2-preview --project-path .
       -  cd TestProjects/Viking-Village-Perf && unity-config project add dependency com.unity.test-framework.build@0.0.1-preview.12 --project-path .
@@ -308,7 +308,7 @@ Build_VikingVillage_BuiltIn_Win_DX11_performance_playmode_runtime_mono_Linear_CU
       -  cd TestProjects/Viking-Village-Perf && unity-config project add dependency "com.unity.shadergraph@file:../../../com.unity.shadergraph" --project-path .
       -  cd TestProjects/Viking-Village-Perf && unity-config project add dependency com.unity.addressables@1.16.7 --project-path .
       -  cd TestProjects/Viking-Village-Perf && unity-config project add dependency com.unity.scriptablebuildpipeline@1.11.2 --project-path .
-      -  cd TestProjects/Viking-Village-Perf && unity-config project add dependency com.unity.test-framework@1.1.18 --project-path .
+      -  cd TestProjects/Viking-Village-Perf && unity-config project add dependency com.unity.test-framework@1.1.23 --project-path .
       -  cd TestProjects/Viking-Village-Perf && unity-config project add dependency com.unity.test-framework.performance@2.4.0 --project-path .
       -  cd TestProjects/Viking-Village-Perf && unity-config project add dependency com.unity.test-framework.utp-reporter@1.0.2-preview --project-path .
       -  cd TestProjects/Viking-Village-Perf && unity-config project add dependency com.unity.test-framework.build@0.0.1-preview.12 --project-path .
@@ -378,7 +378,7 @@ VikingVillage_BuiltIn_Win_DX11_performance_playmode_editor_mono_Linear_CUSTOM-RE
       -  cd TestProjects/Viking-Village-Perf && unity-config project add dependency "com.unity.shadergraph@file:../../../com.unity.shadergraph" --project-path .
       -  cd TestProjects/Viking-Village-Perf && unity-config project add dependency com.unity.addressables@1.16.7 --project-path .
       -  cd TestProjects/Viking-Village-Perf && unity-config project add dependency com.unity.scriptablebuildpipeline@1.11.2 --project-path .
-      -  cd TestProjects/Viking-Village-Perf && unity-config project add dependency com.unity.test-framework@1.1.18 --project-path .
+      -  cd TestProjects/Viking-Village-Perf && unity-config project add dependency com.unity.test-framework@1.1.23 --project-path .
       -  cd TestProjects/Viking-Village-Perf && unity-config project add dependency com.unity.test-framework.performance@2.4.0 --project-path .
       -  cd TestProjects/Viking-Village-Perf && unity-config project add dependency com.unity.test-framework.utp-reporter@1.0.2-preview --project-path .
       -  cd TestProjects/Viking-Village-Perf && unity-config project add dependency com.unity.test-framework.build@0.0.1-preview.12 --project-path .
@@ -445,7 +445,7 @@ VikingVillage_BuiltIn_Win_DX11_performance_build_editmode_mono_Linear_CUSTOM-REV
       -  cd TestProjects/Viking-Village-Perf && unity-config project add dependency "com.unity.shadergraph@file:../../../com.unity.shadergraph" --project-path .
       -  cd TestProjects/Viking-Village-Perf && unity-config project add dependency com.unity.addressables@1.16.7 --project-path .
       -  cd TestProjects/Viking-Village-Perf && unity-config project add dependency com.unity.scriptablebuildpipeline@1.11.2 --project-path .
-      -  cd TestProjects/Viking-Village-Perf && unity-config project add dependency com.unity.test-framework@1.1.18 --project-path .
+      -  cd TestProjects/Viking-Village-Perf && unity-config project add dependency com.unity.test-framework@1.1.23 --project-path .
       -  cd TestProjects/Viking-Village-Perf && unity-config project add dependency com.unity.test-framework.performance@2.4.0 --project-path .
       -  cd TestProjects/Viking-Village-Perf && unity-config project add dependency com.unity.test-framework.utp-reporter@1.0.2-preview --project-path .
       -  cd TestProjects/Viking-Village-Perf && unity-config project add dependency com.unity.test-framework.build@0.0.1-preview.12 --project-path .
