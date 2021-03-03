@@ -1034,12 +1034,27 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
                     if (firstWriteIndex != -1)
                         m_CompiledPassInfos[firstWriteIndex].resourceCreateList[type].Add(i);
 
-                    // Texture release
+                    var latestValidReadIndex = GetLatestValidReadIndex(resourceInfo);
+                    var latestValidWriteIndex = GetLatestValidWriteIndex(resourceInfo);
+
                     // Sometimes, a texture can be written by a pass after the last pass that reads it.
                     // In this case, we need to extend its lifetime to this pass otherwise the pass would get an invalid texture.
-                    // TODO RENDERGRAPH: See if we can make this an error instead. It seems that it should be.
-                    int lastReadPassIndex = Math.Max(GetLatestValidReadIndex(resourceInfo), GetLatestValidWriteIndex(resourceInfo));
+                    // This is exhibited in cases where a pass might produce more than one output and one of them isn't used.
+                    // Ex: Transparent pass in HDRP that writes to the color buffer and motion vectors.
+                    // If TAA/MotionBlur aren't used, the movecs are never read after the transparent pass and it would raise this error.
+                    // Because of that, it's hard to make this an actual error.
+                    // Commented out code to check such cases if needed.
+                    //if (latestValidReadIndex != -1 && (latestValidWriteIndex > latestValidReadIndex))
+                    //{
+                    //    var name = m_Resources.GetRenderGraphResourceName((RenderGraphResourceType)type, i);
+                    //    var lastPassReadName = m_CompiledPassInfos[latestValidReadIndex].pass.name;
+                    //    var lastPassWriteName = m_CompiledPassInfos[latestValidWriteIndex].pass.name;
+                    //    Debug.LogError($"Resource {name} is written again after the last pass that reads it.\nLast pass read: {lastPassReadName}\nLast pass write: {lastPassWriteName}");
+                    //}
 
+                    int lastReadPassIndex = Math.Max(latestValidWriteIndex, latestValidReadIndex);
+
+                    // Texture release
                     if (lastReadPassIndex != -1)
                     {
                         // In case of async passes, we need to extend lifetime of resource to the first pass on the graphics pipeline that wait for async passes to be over.
