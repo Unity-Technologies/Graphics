@@ -108,10 +108,10 @@ real4 unity_WorldTransformParams; // w is usually 1.0, or -1.0 for odd-negative 
 
 // Light Indices block feature
 // These are set internally by the engine upon request by RendererConfiguration.
-real4 unity_LightData;
-real4 unity_LightIndices[2];
+half4 unity_LightData;
+half4 unity_LightIndices[2];
 
-float4 unity_ProbesOcclusion;
+half4 unity_ProbesOcclusion;
 
 // Reflection Probe 0 block feature
 // HDR environment map decode instructions
