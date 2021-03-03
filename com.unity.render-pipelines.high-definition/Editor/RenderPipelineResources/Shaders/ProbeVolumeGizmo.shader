@@ -17,6 +17,7 @@ Shader "Hidden/HDRP/ProbeVolumeGizmo"
         #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Common.hlsl"
         #include "Packages/com.unity.render-pipelines.high-definition/Runtime/ShaderLibrary/ShaderVariables.hlsl"
         #include "Packages/com.unity.render-pipelines.high-definition/Runtime/ShaderLibrary/EditorShaderVariables.hlsl"
+        #include "Packages/com.unity.render-pipelines.core/Runtime/Lighting/ProbeVolume/DecodeSH.hlsl"
 
         uniform int _ShadingMode;
         uniform float _ExposureCompensation;
@@ -63,10 +64,9 @@ Shader "Hidden/HDRP/ProbeVolumeGizmo"
 
             float3 x;
 
-            // Remove bound by L0 again
-            SHAr.xyz = (SHAr.xyz - 0.5f) * (SHAr.w * 4.0f);
-            SHAg.xyz = (SHAg.xyz - 0.5f) * (SHAg.w * 4.0f);
-            SHAb.xyz = (SHAb.xyz - 0.5f) * (SHAb.w * 4.0f);
+            SHAr.xyz = DecodeSH(SHAr.w, SHAr.xyz);
+            SHAg.xyz = DecodeSH(SHAg.w, SHAg.xyz);
+            SHAb.xyz = DecodeSH(SHAb.w, SHAb.xyz);
 
             // Linear (L1) + constant (L0) polynomial terms
             x.r = dot(SHAr, normalPadded);
