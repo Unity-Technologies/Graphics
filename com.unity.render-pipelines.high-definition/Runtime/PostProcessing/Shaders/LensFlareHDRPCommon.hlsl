@@ -1,4 +1,3 @@
-//C:\Code\pkgs\GraphicsHTTPS\com.unity.render-pipelines.core\ShaderLibrary\Random.hlsl
 #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Common.hlsl"
 #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Random.hlsl"
 #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Sampling/Sampling.hlsl"
@@ -19,57 +18,28 @@ struct Varyings
 
 sampler2D _FlareTex;
 TEXTURE2D_X(_FlareOcclusionBufferTex);
-//sampler2D _FlareOcclusionBufferTex;
+
 float4 _FlareColor;
-float4 _FlareData0; // x: RayPos, y: AngleRotation (< 0 == Auto), zw: Size (Width, Height) in Screen Height Ratio
-float4 _FlareData1; // xy: ScreenPos, z: Depth, w: Occlusion radius
-float4 _FlareData2; // x: Sample Count, y: angular Offset, z: _FlareOffscreen, w: _LensFlareIndex
-float4 _FlareData3; // xy: TranslationScale
+float4 _FlareData0; // x: localCos0, y: localSin0, zw: PositionOffsetXY
+float4 _FlareData1; // x: OcclusionRadius, y: OcclusionSampleCount, z: ScreenPosZ
+float4 _FlareData2; // xy: ScreenPos, zw: FlareSize
+float4 _FlareData3; // xy: RayOffset
 
-#define _RayPos _FlareData0.x
-#define _Angle _FlareData0.y
-#define _Size _FlareData0.zw
+#define _LocalCos0      _FlareData0.x
+#define _LocalSin0      _FlareData0.y
+#define _PositionOffset _FlareData0.zw
 
-#define _FlareScreenPos _FlareData1.xy
-#define _FlareDepth _FlareData1.z
-#define _FlareOcclusionRadius _FlareData1.w
+#define _ScreenPosZ     _FlareData1.z
 
-#define _FlareOcclusionSamplesCount _FlareData2.x
-#define _FlareAngularOffset _FlareData2.y
-#define _FlareOffscreen _FlareData2.z
-#define _FlareIndex _FlareData2.w
+#define _ScreenPos      _FlareData2.xy
+#define _FlareSize      _FlareData2.zw
 
-#define _FlareTranslationScale _FlareData3.xy
-#define _FlarePositionOffset _FlareData3.zw
+#define _FlareRayOffset _FlareData3.xy
 
-float GetOcclusion(float2 screenPos, float flareDepth, float ratio)
+float2 Rotate(float2 v, float cos0, float sin0)
 {
-    if (_FlareOcclusionSamplesCount == 0.0f)
-        return 1.0f;
-
-    float contrib = 0.0f;
-    float sample_Contrib = 1.0f / _FlareOcclusionSamplesCount;
-    float2 ratioScale = float2(1.0f / ratio, 1.0);
-
-    for (uint i = 0; i < (uint)_FlareOcclusionSamplesCount; i++)
-    {
-        float2 dir = _FlareOcclusionRadius * SampleDiskUniform(Hash(2 * i + 0 + 1), Hash(2 * i + 1 + 1));
-        float2 pos = screenPos + dir;
-        pos.xy = pos * 0.5f + 0.5f;
-        pos.y = 1.0f - pos.y;
-        if (all(pos >= 0) && all(pos <= 1))
-        {
-            float depth0 = LinearEyeDepth(SampleCameraDepth(pos), _ZBufferParams);
-            if (flareDepth < depth0)
-                contrib += sample_Contrib;
-        }
-        else if (_FlareOffscreen > 0.0f)
-        {
-            contrib += sample_Contrib;
-        }
-    }
-
-    return contrib;
+    return float2(v.x * cos0 - v.y * sin0,
+                  v.x * sin0 + v.y * cos0);
 }
 
 Varyings vert(Attributes input)
@@ -78,52 +48,20 @@ Varyings vert(Attributes input)
     UNITY_SETUP_INSTANCE_ID(input);
     UNITY_INITIALIZE_VERTEX_OUTPUT_STEREO(output);
 
-    float screenRatio = _ScreenSize.x / _ScreenSize.y;
-    float2 flareSize = _Size;
+    float screenRatio = _ScreenSize.y / _ScreenSize.x;
 
     float4 posPreScale = float4(2.0f, 2.0f, 1.0f, 1.0f) * GetQuadVertexPosition(input.vertexID) - float4(1.0f, 1.0f, 0.0f, 0.0);
     output.texcoord = GetQuadTexCoord(input.vertexID);
-    float2 screenPos = _FlareScreenPos;
 
-    float cosOffset0 = cos(_FlareAngularOffset);
-    float sinOffset0 = sin(_FlareAngularOffset);
+    posPreScale.xy *= _FlareSize;
+    float2 local = Rotate(posPreScale.xy, _LocalCos0, _LocalSin0);
 
-    // position and rotate
-    float angle = _Angle;
-    // negative stands for: also rotate to face the light
-    if (angle >= 0)
-    {
-        angle = -angle;
-        float2 dir = normalize(screenPos * float2(screenRatio, 1.0f)) * _FlareTranslationScale;
-        angle += atan2(dir.y, dir.x) + 1.57079632675f; // arbitrary, we need V to face the source, not U;
-    }
+    local.x *= screenRatio;
 
-    float cos0 = cos(angle);
-    float sin0 = sin(angle);
+    output.positionCS.xy = local + _ScreenPos + _FlareRayOffset + _PositionOffset;
+    output.positionCS.zw = posPreScale.zw;
 
-    posPreScale.xy *= flareSize;
-    float2 local = float2((posPreScale.x * cos0 - posPreScale.y * sin0),
-                          (posPreScale.x * sin0 + posPreScale.y * cos0));
-
-    local.x *= 1.0f / screenRatio;
-
-    float4 centerPos = float4(local.x + _FlarePositionOffset.x,
-                              local.y - _FlarePositionOffset.y,
-                              posPreScale.z,
-                              posPreScale.w);
-
-    float2 rayOffset = -screenPos * (_RayPos.xx * _FlareTranslationScale - 1.0f);
-
-    output.positionCS = centerPos;
-    output.positionCS.xy += rayOffset;
-
-    float occlusion = GetOcclusion(_FlareScreenPos.xy, _FlareDepth, screenRatio);
-
-    if (_FlareOffscreen < 0.0f && // No lens flare off screen
-        (any(_FlareScreenPos.xy < -1) || any(_FlareScreenPos.xy >= 1)))
-        occlusion *= 0.0f;
-
-    output.occlusion = occlusion;
+    output.occlusion = 1.0f;
 
     return output;
 }
