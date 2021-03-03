@@ -1,5 +1,7 @@
 using System;
 using System.Text;
+using System.Collections.Generic;
+using System.Reflection;
 
 namespace UnityEngine.Rendering.HighDefinition
 {
@@ -42,6 +44,31 @@ namespace UnityEngine.Rendering.HighDefinition
 
         static int autoOrder = 0;
 
+        private static Dictionary<FrameSettingsField, string> s_FrameSettingsEnumNameMap = null;
+
+        public static Dictionary<FrameSettingsField, string> GetEnumNameMap()
+        {
+            if (s_FrameSettingsEnumNameMap == null)
+            {
+                s_FrameSettingsEnumNameMap = new Dictionary<FrameSettingsField, string>();
+                Type type = typeof(FrameSettingsField);
+                foreach (string enumName in Enum.GetNames(type))
+                {
+                    if (type.GetField(enumName).GetCustomAttribute<ObsoleteAttribute>() != null)
+                        continue;
+
+                    s_FrameSettingsEnumNameMap.Add((FrameSettingsField)Enum.Parse(type, enumName), enumName);
+                }
+            }
+
+            return s_FrameSettingsEnumNameMap;
+        }
+
+        static FrameSettingsFieldAttribute()
+        {
+            GetEnumNameMap();//build the enum name map.
+        }
+
         /// <summary>Attribute contenaing generation info for inspector and DebugMenu</summary>
         /// <param name="group">Group index contening this element.</param>
         /// <param name="autoName">[Optional] Helper to name the label as the enum entry given. Alternatively, use displayedName.</param>
@@ -65,7 +92,13 @@ namespace UnityEngine.Rendering.HighDefinition
             int customOrderInGroup = -1)
         {
             if (string.IsNullOrEmpty(displayedName))
-                displayedName = autoName.ToString().CamelToPascalCaseWithSpace();
+            {
+                if (!s_FrameSettingsEnumNameMap.TryGetValue(autoName, out displayedName))
+                {
+                    displayedName = autoName.ToString();
+                }
+                displayedName = displayedName.CamelToPascalCaseWithSpace();
+            }
 
             // Editor and Runtime debug menu
             this.group = group;
