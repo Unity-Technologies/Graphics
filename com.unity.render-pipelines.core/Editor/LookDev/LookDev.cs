@@ -237,7 +237,12 @@ namespace UnityEditor.Rendering.LookDev
 
         static void LinkEnvironmentDisplayer()
         {
-            s_EnvironmentDisplayer.OnChangingEnvironmentLibrary += currentContext.UpdateEnvironmentLibrary;
+            s_EnvironmentDisplayer.OnChangingEnvironmentLibrary += UpdateEnvironmentLibrary;
+        }
+
+        static void UpdateEnvironmentLibrary(EnvironmentLibrary library)
+        {
+            LookDev.currentContext.UpdateEnvironmentLibrary(library);
         }
 
         static void ReloadStage(bool reloadWithTemporaryID)
