@@ -44,7 +44,7 @@ namespace UnityEditor.VFX
             foreach (var p in matProperties)
             {
                 if (p.type != MaterialProperty.PropType.Float || // Only float properties
-                    (p.flags & (MaterialProperty.PropFlags.HideInInspector | MaterialProperty.PropFlags.PerRendererData)) != MaterialProperty.PropFlags.HideInInspector) // Only properties hidden in inspector that are not per renderer 
+                    (p.flags & (MaterialProperty.PropFlags.HideInInspector | MaterialProperty.PropFlags.PerRendererData)) != MaterialProperty.PropFlags.HideInInspector) // Only properties hidden in inspector that are not per renderer
                     continue;
 
                 properties.Add(new FloatProperty()

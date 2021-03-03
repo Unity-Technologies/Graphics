@@ -123,7 +123,7 @@ namespace UnityEditor.VFX
 
         private bool hasExposure { get { return needsExposureWeight && subOutput.supportsExposure; } }
 
-        public virtual void SetupMaterial(Material material) { }
+        public virtual void SetupMaterial(Material material) {}
 
         public bool HasIndirectDraw()   { return (indirectDraw || HasSorting() || VFXOutputUpdate.HasFeature(outputUpdateFeatures, VFXOutputUpdate.Features.IndirectDraw)) && !HasStrips(true); }
         public bool HasSorting()        { return (sort == SortMode.On || (sort == SortMode.Auto && (blendMode == BlendMode.Alpha || blendMode == BlendMode.AlphaPremultiplied))) && !HasStrips(true); }

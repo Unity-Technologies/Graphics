@@ -104,10 +104,10 @@ namespace UnityEditor.VFX.Test
             Assert.IsNotNull((graph[1])[0]);
             Assert.IsNotNull((graph[2])[0]);
 
-            Assert.AreEqual(VFXContextType.Init, ((VFXContext)(graph[0])).contextType);
+            Assert.AreEqual(VFXContextType.Init,   ((VFXContext)(graph[0])).contextType);
             Assert.AreEqual(VFXContextType.Update, ((VFXContext)(graph[1])).contextType);
             Assert.AreEqual(VFXContextType.Output, ((VFXContext)(graph[2])).contextType);
-            Assert.AreEqual(VFXContextType.Init, ((VFXContext)(graph[3])).contextType);
+            Assert.AreEqual(VFXContextType.Init,   ((VFXContext)(graph[3])).contextType);
             Assert.AreEqual(VFXContextType.Output, ((VFXContext)(graph[4])).contextType);
 
             Assert.IsNotNull(graph[5] as Operator.Add);
@@ -254,7 +254,7 @@ namespace UnityEditor.VFX.Test
         public void SerializeOperatorMaskWithState()
         {
             var expectedValue = "xyxy";
-            Action<VisualEffectAsset> write = delegate (VisualEffectAsset asset)
+            Action<VisualEffectAsset> write = delegate(VisualEffectAsset asset)
             {
                 var mask = ScriptableObject.CreateInstance<Operator.Swizzle>();
                 mask.SetSettingValue("mask", expectedValue);
@@ -262,7 +262,7 @@ namespace UnityEditor.VFX.Test
                 Assert.AreEqual(expectedValue, mask.mask);
             };
 
-            Action<VisualEffectAsset> read = delegate (VisualEffectAsset asset)
+            Action<VisualEffectAsset> read = delegate(VisualEffectAsset asset)
             {
                 var graph = asset.GetResource().GetOrCreateGraph();
                 Assert.AreEqual(1, graph.GetNbChildren());
@@ -279,7 +279,7 @@ namespace UnityEditor.VFX.Test
         public void SerializeParameter()
         {
             var name = "unity";
-            Action<VisualEffectAsset> write = delegate (VisualEffectAsset asset)
+            Action<VisualEffectAsset> write = delegate(VisualEffectAsset asset)
             {
                 var parameter = VFXLibrary.GetParameters().First(o => o.name == "Vector2").CreateInstance();
                 parameter.SetSettingValue("m_Exposed", true);
@@ -288,7 +288,7 @@ namespace UnityEditor.VFX.Test
                 Assert.AreEqual(VFXValueType.Float2, parameter.outputSlots[0].GetExpression().valueType);
             };
 
-            Action<VisualEffectAsset> read = delegate (VisualEffectAsset asset)
+            Action<VisualEffectAsset> read = delegate(VisualEffectAsset asset)
             {
                 var parameter = asset.GetResource().GetOrCreateGraph()[0] as VFXParameter;
                 Assert.AreNotEqual(null, parameter);
@@ -303,7 +303,7 @@ namespace UnityEditor.VFX.Test
         [Test]
         public void SerializeOperatorAndParameter()
         {
-            Action<VisualEffectAsset> write = delegate (VisualEffectAsset asset)
+            Action<VisualEffectAsset> write = delegate(VisualEffectAsset asset)
             {
                 var graph = asset.GetResource().GetOrCreateGraph();
                 var add = ScriptableObject.CreateInstance<Operator.Add>();
@@ -316,7 +316,7 @@ namespace UnityEditor.VFX.Test
                 Assert.AreEqual(VFXValueType.Float2, add.outputSlots[0].GetExpression().valueType);
             };
 
-            Action<VisualEffectAsset> read = delegate (VisualEffectAsset asset)
+            Action<VisualEffectAsset> read = delegate(VisualEffectAsset asset)
             {
                 var graph = asset.GetResource().GetOrCreateGraph();
                 var add = graph[0] as Operator.Add;
@@ -331,14 +331,14 @@ namespace UnityEditor.VFX.Test
         [Test]
         public void SerializeBuiltInParameter()
         {
-            Action<VisualEffectAsset> write = delegate (VisualEffectAsset asset)
+            Action<VisualEffectAsset> write = delegate(VisualEffectAsset asset)
             {
                 var builtIn = VFXLibrary.GetOperators().First(o => o.name.StartsWith("Total Time (VFX)")).CreateInstance();
                 asset.GetResource().GetOrCreateGraph().AddChild(builtIn);
                 Assert.AreEqual(VFXExpressionOperation.TotalTime, builtIn.outputSlots[0].GetExpression().operation);
             };
 
-            Action<VisualEffectAsset> read = delegate (VisualEffectAsset asset)
+            Action<VisualEffectAsset> read = delegate(VisualEffectAsset asset)
             {
                 var builtIn = asset.GetResource().GetOrCreateGraph()[0] as VFXDynamicBuiltInParameter;
                 Assert.AreNotEqual(null, builtIn);
@@ -350,7 +350,7 @@ namespace UnityEditor.VFX.Test
         [Test]
         public void SerializeOperatorAndBuiltInParameter()
         {
-            Action<VisualEffectAsset> write = delegate (VisualEffectAsset asset)
+            Action<VisualEffectAsset> write = delegate(VisualEffectAsset asset)
             {
                 var graph = asset.GetResource().GetOrCreateGraph();
                 var add = ScriptableObject.CreateInstance<Operator.Add>();
@@ -363,7 +363,7 @@ namespace UnityEditor.VFX.Test
                 Assert.IsTrue(add.inputSlots[0].HasLink());
             };
 
-            Action<VisualEffectAsset> read = delegate (VisualEffectAsset asset)
+            Action<VisualEffectAsset> read = delegate(VisualEffectAsset asset)
             {
                 var graph = asset.GetResource().GetOrCreateGraph();
                 var builtIn = graph[0] as VFXDynamicBuiltInParameter;
@@ -381,7 +381,7 @@ namespace UnityEditor.VFX.Test
         public void SerializeAttributeParameter()
         {
             var testAttribute = "lifetime";
-            Action<VFXAttributeParameter, VFXAttributeLocation> test = delegate (VFXAttributeParameter parameter, VFXAttributeLocation location)
+            Action<VFXAttributeParameter, VFXAttributeLocation> test = delegate(VFXAttributeParameter parameter, VFXAttributeLocation location)
             {
                 Assert.AreEqual(VFXExpressionOperation.None, parameter.outputSlots[0].GetExpression().operation);
                 Assert.AreEqual(VFXValueType.Float, parameter.outputSlots[0].GetExpression().valueType);
@@ -390,7 +390,7 @@ namespace UnityEditor.VFX.Test
                 Assert.AreEqual(testAttribute, (parameter.outputSlots[0].GetExpression() as VFXAttributeExpression).attributeName);
             };
 
-            Action<VisualEffectAsset> write = delegate (VisualEffectAsset asset)
+            Action<VisualEffectAsset> write = delegate(VisualEffectAsset asset)
             {
                 var sizeCurrent = VFXLibrary.GetOperators().First(o => o.name.Contains(testAttribute) && o.modelType == typeof(VFXAttributeParameter)).CreateInstance();
                 var sizeSource = VFXLibrary.GetOperators().First(o => o.name.Contains(testAttribute) && o.modelType == typeof(VFXAttributeParameter)).CreateInstance();
@@ -401,7 +401,7 @@ namespace UnityEditor.VFX.Test
                 test(sizeSource as VFXAttributeParameter, VFXAttributeLocation.Source);
             };
 
-            Action<VisualEffectAsset> read = delegate (VisualEffectAsset asset)
+            Action<VisualEffectAsset> read = delegate(VisualEffectAsset asset)
             {
                 var sizeCurrent = asset.GetResource().GetOrCreateGraph()[0] as VFXAttributeParameter;
                 var sizeSource = asset.GetResource().GetOrCreateGraph()[1] as VFXAttributeParameter;
@@ -416,7 +416,7 @@ namespace UnityEditor.VFX.Test
         [Test]
         public void SerializeMaterialSettings()
         {
-            Action<VisualEffectAsset> write = delegate (VisualEffectAsset asset)
+            Action<VisualEffectAsset> write = delegate(VisualEffectAsset asset)
             {
                 var model = ScriptableObject.CreateInstance<DummyMaterialSettingsContainerModel>();
                 var material = new Material(Shader.Find("Hidden/MaterialPropertiesTest"));
@@ -445,7 +445,7 @@ namespace UnityEditor.VFX.Test
                 asset.GetResource().GetOrCreateGraph().AddChild(model);
             };
 
-            Action<VisualEffectAsset> read = delegate (VisualEffectAsset asset)
+            Action<VisualEffectAsset> read = delegate(VisualEffectAsset asset)
             {
                 var model = asset.GetResource().GetOrCreateGraph()[0] as DummyMaterialSettingsContainerModel;
                 var material = new Material(Shader.Find("Hidden/MaterialPropertiesTest"));
