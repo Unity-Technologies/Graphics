@@ -47,19 +47,13 @@ namespace UnityEditor.ShaderGraph.Drawing
 
         BlackboardSectionViewModel m_ViewModel;
 
-        BlackboardSectionViewModel ViewModel
-        {
-            get => m_ViewModel;
-            set => m_ViewModel = value;
-        }
-
         VisualElement m_DragIndicator;
         VisualElement m_MainContainer;
         VisualElement m_Header;
         Label m_TitleLabel;
         VisualElement m_RowsContainer;
         int m_InsertIndex;
-        SGBlackboard Blackboard => ViewModel.parentView as SGBlackboard;
+        SGBlackboard Blackboard => m_ViewModel.parentView as SGBlackboard;
 
         public delegate bool CanAcceptDropDelegate(ISelectable selected);
 
@@ -111,7 +105,7 @@ namespace UnityEditor.ShaderGraph.Drawing
 
         internal SGBlackboardSection(BlackboardSectionViewModel sectionViewModel)
         {
-            ViewModel = sectionViewModel;
+            m_ViewModel = sectionViewModel;
 
             // Setup VisualElement from Stylesheet and UXML file
             var tpl = Resources.Load("UXML/GraphView/BlackboardSection") as VisualTreeAsset;
@@ -142,7 +136,7 @@ namespace UnityEditor.ShaderGraph.Drawing
             m_InsertIndex = -1;
 
             // Update section title from view model
-            m_TitleLabel.text = ViewModel.name;
+            m_TitleLabel.text = m_ViewModel.name;
         }
 
         public override VisualElement contentContainer { get { return m_RowsContainer; } }
@@ -312,7 +306,7 @@ namespace UnityEditor.ShaderGraph.Drawing
                         {
                             moveShaderInputAction.shaderInputReference = shaderInput;
                             moveShaderInputAction.newIndexValue = m_InsertIndex;
-                            ViewModel.requestModelChangeAction(moveShaderInputAction);
+                            m_ViewModel.requestModelChangeAction(moveShaderInputAction);
 
                             if (insertIndex == contentContainer.childCount)
                             {
