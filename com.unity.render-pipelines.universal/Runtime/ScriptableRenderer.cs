@@ -142,7 +142,7 @@ namespace UnityEngine.Rendering.Universal
         /// <param name="cameraData">CameraData containing camera matrices information.</param>
         void SetPerCameraShaderVariables(CommandBuffer cmd, ref CameraData cameraData)
         {
-            using var profScope = new ProfilingScope(cmd, Profiling.setPerCameraShaderVariables);
+            using var profScope = new ProfilingScope(null, Profiling.setPerCameraShaderVariables);
 
             Camera camera = cameraData.camera;
 
@@ -531,7 +531,7 @@ namespace UnityEngine.Rendering.Universal
                 SetShaderTimeValues(cmd, time, deltaTime, smoothDeltaTime);
                 context.ExecuteCommandBuffer(cmd);
                 cmd.Clear();
-                using (new ProfilingScope(cmd, Profiling.sortRenderPasses))
+                using (new ProfilingScope(null, Profiling.sortRenderPasses))
                 {
                     // Sort the render pass queue
                     SortStable(m_ActiveRenderPassQueue);
@@ -541,20 +541,24 @@ namespace UnityEngine.Rendering.Universal
 
                 using var renderBlocks = new RenderBlocks(m_ActiveRenderPassQueue);
 
-                using (new ProfilingScope(cmd, Profiling.setupLights))
+                using (new ProfilingScope(null, Profiling.setupLights))
                 {
                     SetupLights(context, ref renderingData);
                 }
 
-                using (new ProfilingScope(cmd, Profiling.RenderBlock.beforeRendering))
+                // Before Render Block. This render blocks always execute in mono rendering.
+                // Camera is not setup.
+                // Used to render input textures like shadowmaps.
+                if (renderBlocks.GetLength(RenderPassBlock.BeforeRendering) > 0)
                 {
-                    // Before Render Block. This render blocks always execute in mono rendering.
-                    // Camera is not setup. Lights are not setup.
-                    // Used to render input textures like shadowmaps.
+                    // TODO: Separate command buffers per pass break the profiling scope order/hierarchy.
+                    // If a single buffer is used and passed as a param to passes,
+                    // put all of the "block" scopes back into the command buffer. (null -> cmd)
+                    using var profScope = new ProfilingScope(null, Profiling.RenderBlock.beforeRendering);
                     ExecuteBlock(RenderPassBlock.BeforeRendering, in renderBlocks, context, ref renderingData);
                 }
 
-                using (new ProfilingScope(cmd, Profiling.setupCamera))
+                using (new ProfilingScope(null, Profiling.setupCamera))
                 {
                     // This is still required because of the following reasons:
                     // - Camera billboard properties.
@@ -586,14 +590,17 @@ namespace UnityEngine.Rendering.Universal
                 // Opaque blocks...
                 if (renderBlocks.GetLength(RenderPassBlock.MainRenderingOpaque) > 0)
                 {
-                    using var profScope = new ProfilingScope(cmd, Profiling.RenderBlock.mainRenderingOpaque);
+                    // TODO: Separate command buffers per pass break the profiling scope order/hierarchy.
+                    // If a single buffer is used (passed as a param) for passes,
+                    // put all of the "block" scopes back into the command buffer. (i.e. null -> cmd)
+                    using var profScope = new ProfilingScope(null, Profiling.RenderBlock.mainRenderingOpaque);
                     ExecuteBlock(RenderPassBlock.MainRenderingOpaque, in renderBlocks, context, ref renderingData);
                 }
 
                 // Transparent blocks...
                 if (renderBlocks.GetLength(RenderPassBlock.MainRenderingTransparent) > 0)
                 {
-                    using var profScope = new ProfilingScope(cmd, Profiling.RenderBlock.mainRenderingTransparent);
+                    using var profScope = new ProfilingScope(null, Profiling.RenderBlock.mainRenderingTransparent);
                     ExecuteBlock(RenderPassBlock.MainRenderingTransparent, in renderBlocks, context, ref renderingData);
                 }
 
@@ -603,7 +610,7 @@ namespace UnityEngine.Rendering.Universal
                 // In this block after rendering drawing happens, e.g, post processing, video player capture.
                 if (renderBlocks.GetLength(RenderPassBlock.AfterRendering) > 0)
                 {
-                    using var profScope = new ProfilingScope(cmd, Profiling.RenderBlock.afterRendering);
+                    using var profScope = new ProfilingScope(null, Profiling.RenderBlock.afterRendering);
                     ExecuteBlock(RenderPassBlock.AfterRendering, in renderBlocks, context, ref renderingData);
                 }
 
@@ -702,7 +709,7 @@ namespace UnityEngine.Rendering.Universal
 
         void ClearRenderingState(CommandBuffer cmd)
         {
-            using var profScope = new ProfilingScope(cmd, Profiling.clearRenderingState);
+            using var profScope = new ProfilingScope(null, Profiling.clearRenderingState);
 
             // Reset per-camera shader keywords. They are enabled depending on which render passes are executed.
             cmd.DisableShaderKeyword(ShaderKeywordStrings.MainLightShadows);
@@ -754,6 +761,8 @@ namespace UnityEngine.Rendering.Universal
         void ExecuteRenderPass(ScriptableRenderContext context, ScriptableRenderPass renderPass,
             ref RenderingData renderingData)
         {
+            // TODO: Separate command buffers per pass break the profiling scope order/hierarchy.
+            // If a single buffer is used (passed as a param) and passed to renderPass.Execute, put the scope into command buffer (i.e. null -> cmd)
             using var profScope = new ProfilingScope(null, renderPass.profilingSampler);
 
             ref CameraData cameraData = ref renderingData.cameraData;
@@ -761,7 +770,7 @@ namespace UnityEngine.Rendering.Universal
             CommandBuffer cmd = CommandBufferPool.Get();
 
             // Track CPU only as GPU markers for this scope were "too noisy".
-            using (new ProfilingScope(cmd, Profiling.RenderPass.configure))
+            using (new ProfilingScope(null, Profiling.RenderPass.configure))
             {
                 renderPass.Configure(cmd, cameraData.cameraTargetDescriptor);
                 SetRenderPassAttachments(cmd, renderPass, ref cameraData);
@@ -1213,7 +1222,7 @@ namespace UnityEngine.Rendering.Universal
         void InternalStartRendering(ScriptableRenderContext context, ref RenderingData renderingData)
         {
             CommandBuffer cmd = CommandBufferPool.Get();
-            using (new ProfilingScope(cmd, Profiling.internalStartRendering))
+            using (new ProfilingScope(null, Profiling.internalStartRendering))
             {
                 for (int i = 0; i < m_ActiveRenderPassQueue.Count; ++i)
                 {
@@ -1228,7 +1237,7 @@ namespace UnityEngine.Rendering.Universal
         void InternalFinishRendering(ScriptableRenderContext context, bool resolveFinalTarget)
         {
             CommandBuffer cmd = CommandBufferPool.Get();
-            using (new ProfilingScope(cmd, Profiling.internalFinishRendering))
+            using (new ProfilingScope(null, Profiling.internalFinishRendering))
             {
                 for (int i = 0; i < m_ActiveRenderPassQueue.Count; ++i)
                     m_ActiveRenderPassQueue[i].FrameCleanup(cmd);

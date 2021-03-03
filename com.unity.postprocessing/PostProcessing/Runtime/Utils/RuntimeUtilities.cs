@@ -933,8 +933,10 @@ namespace UnityEngine.Rendering.PostProcessing
             return camera.actualRenderingPath == RenderingPath.DeferredShading &&
                 (gtype == GraphicsDeviceType.Direct3D11
                     || gtype == GraphicsDeviceType.Direct3D12
+#if UNITY_GAMECORE
                     || gtype == GraphicsDeviceType.GameCoreXboxSeries
                     || gtype == GraphicsDeviceType.GameCoreXboxOne
+#endif
                     || gtype == GraphicsDeviceType.XboxOne
                     || gtype == GraphicsDeviceType.XboxOneD3D12
                 );
