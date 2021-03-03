@@ -16,6 +16,8 @@ PR_Smoke_Test_trunk:
          rerun: on-new-revision
       -  path: .yamato/smoke_test-win-dx11.yml#Smoke_Test_Win_DX11_Standalone_mono_Linear_trunk
          rerun: on-new-revision
+    triggers:
+        expression: pull_request.target eq "master" AND NOT pull_request.draft AND pull_request.changes.any match ["TestProjects/SRP_SmokeTest/**/*"] AND NOT pull_request.push.changes.all match ["*.md", "**/*.md", "doc/**/*", "**/Documentation*/**/*"]
     variables:
         UTR_VERSION: "current"
         TEST_FILTER: .*
