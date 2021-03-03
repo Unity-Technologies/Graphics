@@ -175,8 +175,8 @@ namespace UnityEditor.Rendering.BuiltIn.ShaderGraph
                 useInPreview = true,
 
                 // Template
-                passTemplatePath = GenerationUtils.GetDefaultTemplatePath("PassMesh.template"),
-                sharedTemplateDirectories = GenerationUtils.GetDefaultSharedTemplateDirectories(),
+                passTemplatePath = BuiltInTarget.kTemplatePath,
+                sharedTemplateDirectories = BuiltInTarget.kSharedTemplateDirectories,
 
                 // Port Mask
                 validVertexBlocks = CoreBlockMasks.Vertex,
@@ -210,7 +210,7 @@ namespace UnityEditor.Rendering.BuiltIn.ShaderGraph
         #region Includes
         static class UnlitIncludes
         {
-            const string kUnlitPass = "Packages/com.unity.render-pipelines.universal/Editor/ShaderGraph/Includes/UnlitPass.hlsl";
+            const string kUnlitPass = "Packages/com.unity.shadergraph/Editor/Generation/Targets/BuiltIn/Editor/ShaderGraph/Includes/UnlitPass.hlsl";
 
             public static IncludeCollection Unlit = new IncludeCollection
             {
