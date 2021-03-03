@@ -631,15 +631,6 @@ MonoBehaviour:
     Reason: https://fogbugz.unity3d.com/f/cases/1300373
   - FilteredScene: {fileID: 0}
     FilteredScenes:
-    - {fileID: 102900000, guid: c207f769f3e194ebc8cbd51e788ac65d, type: 3}
-    ColorSpace: -1
-    BuildPlatform: 31
-    GraphicsDevice: 13
-    XrSdk: 
-    StereoModes: 0
-    Reason: https://fogbugz.unity3d.com/f/cases/1305922/
-  - FilteredScene: {fileID: 0}
-    FilteredScenes:
     - {fileID: 102900000, guid: 44c3bddf1a7da4af28d764901f2e9507, type: 3}
     ColorSpace: -1
     BuildPlatform: 13
@@ -647,24 +638,6 @@ MonoBehaviour:
     XrSdk: None
     StereoModes: 0
     Reason: Android Vulkan 143 regressed test scene
-  - FilteredScene: {fileID: 0}
-    FilteredScenes:
-    - {fileID: 102900000, guid: 44c3bddf1a7da4af28d764901f2e9507, type: 3}
-    ColorSpace: -1
-    BuildPlatform: 31
-    GraphicsDevice: 13
-    XrSdk: 
-    StereoModes: 0
-    Reason: https://fogbugz.unity3d.com/f/cases/1305922/
-  - FilteredScene: {fileID: 0}
-    FilteredScenes:
-    - {fileID: 102900000, guid: b23d8daad85b546c883dbbdc58ab8fef, type: 3}
-    ColorSpace: -1
-    BuildPlatform: 31
-    GraphicsDevice: 13
-    XrSdk: 
-    StereoModes: 0
-    Reason: https://fogbugz.unity3d.com/f/cases/1305922/
   - FilteredScene: {fileID: 0}
     FilteredScenes:
     - {fileID: 102900000, guid: aee9f891d65e44daf811d30053402efd, type: 3}
