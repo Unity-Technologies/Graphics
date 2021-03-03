@@ -51,19 +51,13 @@ namespace UnityEngine.Rendering.Universal.Internal
             m_RenderStateBlocks[3] = m_RenderStateBlocks[0];
         }
 
-        // TEMP FIX SO MY TESTS DO NOT FAIL BECAUSE OF ALLOC ISSUES. WILL DELETE.
-        internal GraphicsFormat[] gbufferFormats { get; set; }
         public override void Configure(CommandBuffer cmd, RenderTextureDescriptor cameraTextureDescriptor)
         {
             RenderTargetHandle[] gbufferAttachments = m_DeferredLights.GbufferAttachments;
 
-            if (gbufferFormats == null || gbufferFormats.Length != gbufferAttachments.Length)
-                gbufferFormats = new GraphicsFormat[gbufferAttachments.Length];
-
             // Create and declare the render targets used in the pass
             for (int i = 0; i < gbufferAttachments.Length; ++i)
             {
-                gbufferFormats[i] = m_DeferredLights.GetGBufferFormat(i);
                 // Lighting buffer has already been declared with line ConfigureCameraTarget(m_ActiveCameraColorAttachment.Identifier(), ...) in DeferredRenderer.Setup
                 if (i == m_DeferredLights.GBufferLightingIndex)
                     continue;
@@ -74,11 +68,11 @@ namespace UnityEngine.Rendering.Universal.Internal
                 RenderTextureDescriptor gbufferSlice = cameraTextureDescriptor;
                 gbufferSlice.depthBufferBits = 0; // make sure no depth surface is actually created
                 gbufferSlice.stencilFormat = GraphicsFormat.None;
-                gbufferSlice.graphicsFormat = gbufferFormats[i];
+                gbufferSlice.graphicsFormat = m_DeferredLights.GetGBufferFormat(i);
                 cmd.GetTemporaryRT(m_DeferredLights.GbufferAttachments[i].id, gbufferSlice);
             }
 
-            ConfigureTarget(m_DeferredLights.GbufferAttachmentIdentifiers, m_DeferredLights.DepthAttachmentIdentifier, gbufferFormats);
+            ConfigureTarget(m_DeferredLights.GbufferAttachmentIdentifiers, m_DeferredLights.DepthAttachmentIdentifier, m_DeferredLights.GbufferFormats);
             // We must explicitely specify we don't want any clear to avoid unwanted side-effects.
             // ScriptableRenderer may still implicitely force a clear the first time the camera color/depth targets are bound.
             ConfigureClear(ClearFlag.None, Color.black);
