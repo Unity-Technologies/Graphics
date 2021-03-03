@@ -54,10 +54,8 @@ class Renderer2DTests
         if (UnityEngine.Rendering.XRGraphicsAutomatedTests.enabled)
             return;
 
-        Assert.IsFalse(baseRenderer.createColorTexture);
+        Assert.IsFalse(baseRenderer.useIntermediateTextures);
         Assert.AreEqual(BuiltinRenderTextureType.CameraTarget, baseRenderer.cameraColorTarget);
-
-        Assert.IsFalse(baseRenderer.createDepthTexture);
         Assert.AreEqual(BuiltinRenderTextureType.CameraTarget, baseRenderer.cameraDepthTarget);
     }
 
@@ -70,10 +68,8 @@ class Renderer2DTests
 
         Renderer2D baseRenderer = m_BaseCameraData.scriptableRenderer as Renderer2D;
 
-        Assert.IsTrue(baseRenderer.createColorTexture);
+        Assert.IsFalse(baseRenderer.useIntermediateTextures);
         Assert.AreNotEqual(BuiltinRenderTextureType.CameraTarget, baseRenderer.cameraColorTarget);
-
-        Assert.IsTrue(baseRenderer.createDepthTexture);
         Assert.AreNotEqual(BuiltinRenderTextureType.CameraTarget, baseRenderer.cameraDepthTarget);
     }
 
@@ -86,10 +82,8 @@ class Renderer2DTests
 
         Renderer2D baseRenderer = m_BaseCameraData.scriptableRenderer as Renderer2D;
 
-        Assert.IsTrue(baseRenderer.createColorTexture);
+        Assert.IsFalse(baseRenderer.useIntermediateTextures);
         Assert.AreNotEqual(BuiltinRenderTextureType.CameraTarget, baseRenderer.cameraColorTarget);
-
-        Assert.IsFalse(baseRenderer.createDepthTexture);
         Assert.AreEqual(baseRenderer.cameraColorTarget, baseRenderer.cameraDepthTarget);
     }
 
@@ -116,7 +110,6 @@ class Renderer2DTests
 
         Renderer2D overlayRenderer = m_OverlayCameraData.scriptableRenderer as Renderer2D;
 
-        Assert.IsTrue(overlayRenderer.createColorTexture);
-        Assert.IsTrue(overlayRenderer.createDepthTexture);
+        Assert.IsFalse(overlayRenderer.useIntermediateTextures);
     }
 }
