@@ -65,7 +65,7 @@ Ray-traced shadows allow for transparent and transmissive GameObjects, lit by Di
 | --------------------- | ------------------------------------------------------------ |
 | **Sun Angle**         | Sets the size of the Sun in the sky, in degrees. For example, the value for the Sun on Earth is 0.53°. |
 | **Sample Count**      | Controls the number of rays that HDRP uses per pixel, per frame. Higher values produce more accurate shadows. Increasing this value increases execution time linearly. |
-| **Color Shadow**      | Allows transparent and transmissive GameObjects to cast colored shadows. |
+| **Color Shadow**      | Allows transparent and transmissive GameObjects to cast colored shadows. A Material can only cast colored shadows when its [**Refraction Model**](Surface-Type.md#transparency-inputs) is set to **Thin**, **Box** or **Sphere**. |
 | **Denoise**           | Enables the spatio-temporal filter that HDRP uses to remove noise from the ray-traced shadows; making them smoother. |
 | - **Denoiser Radius** | Controls the radius of the spatio-temporal filter.           |
 

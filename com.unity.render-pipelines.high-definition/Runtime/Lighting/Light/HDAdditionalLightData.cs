@@ -1663,7 +1663,8 @@ namespace UnityEngine.Rendering.HighDefinition
         // Data for cached shadow maps
         [System.NonSerialized]
         internal int lightIdxForCachedShadows = -1;
-        Vector3 m_CachedViewPos = new Vector3(0, 0, 0);
+
+        Vector3[] m_CachedViewPositions;
 
 
         [System.NonSerialized]
@@ -1985,11 +1986,12 @@ namespace UnityEngine.Rendering.HighDefinition
                 return;
 
             // Create shadow requests array using the light type
-            if (shadowRequests == null || m_ShadowRequestIndices == null)
+            if (shadowRequests == null || m_ShadowRequestIndices == null || m_CachedViewPositions == null)
             {
                 const int maxLightShadowRequestsCount = 6;
                 shadowRequests = new HDShadowRequest[maxLightShadowRequestsCount];
                 m_ShadowRequestIndices = new int[maxLightShadowRequestsCount];
+                m_CachedViewPositions = new Vector3[maxLightShadowRequestsCount];
 
                 for (int i = 0; i < maxLightShadowRequestsCount; i++)
                 {
@@ -2210,9 +2212,12 @@ namespace UnityEngine.Rendering.HighDefinition
                 if (shadowRequestIndex == -1)
                     continue;
 
+                shadowRequest.dynamicAtlasViewport = resolutionRequest.dynamicAtlasViewport;
+                shadowRequest.cachedAtlasViewport = resolutionRequest.cachedAtlasViewport;
+
                 if (needToUpdateCachedContent)
                 {
-                    m_CachedViewPos = cameraPos;
+                    m_CachedViewPositions[index] = cameraPos;
                     shadowRequest.cachedShadowData.cacheTranslationDelta = new Vector3(0.0f, 0.0f, 0.0f);
 
                     // Write per light type matrices, splitDatas and culling parameters
@@ -2224,7 +2229,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 }
                 else if (hasCachedComponent)
                 {
-                    shadowRequest.cachedShadowData.cacheTranslationDelta = cameraPos - m_CachedViewPos;
+                    shadowRequest.cachedShadowData.cacheTranslationDelta = cameraPos - m_CachedViewPositions[index];
                     shadowRequest.shouldUseCachedShadowData = true;
                     shadowRequest.shouldRenderCachedComponent = false;
                     // If directional we still need to calculate the split data.
@@ -2241,8 +2246,6 @@ namespace UnityEngine.Rendering.HighDefinition
                     UpdateShadowRequestData(hdCamera, manager, shadowSettings, visibleLight, cullResults, lightIndex, lightingDebugSettings, filteringQuality, viewportSize, lightType, index, ref shadowRequest);
                 }
 
-                shadowRequest.dynamicAtlasViewport = resolutionRequest.dynamicAtlasViewport;
-                shadowRequest.cachedAtlasViewport = resolutionRequest.cachedAtlasViewport;
                 manager.UpdateShadowRequest(shadowRequestIndex, shadowRequest, updateType);
 
                 if (needToUpdateCachedContent)

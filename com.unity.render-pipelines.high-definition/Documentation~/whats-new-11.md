@@ -1,10 +1,10 @@
-# What's new in version 11
+# What's new in HDRP version 11 / Unity 2021.1
 
-This page contains an overview of new features, improvements, and issues resolved in version 11 of the High Definition Render Pipeline (HDRP).
+This page contains an overview of new features, improvements, and issues resolved in version 11 of the High Definition Render Pipeline (HDRP), embedded in Unity 2021.1.
 
 ## Features
 
-The following is a list of features Unity added to version 11 of the High Definition Render Pipeline. Each entry includes a summary of the feature and a link to any relevant documentation.
+The following is a list of features Unity added to version 11 of the High Definition Render Pipeline, embedded in Unity 2021.1. Each entry includes a summary of the feature and a link to any relevant documentation.
 
 ### Mixed cached shadow maps
 
