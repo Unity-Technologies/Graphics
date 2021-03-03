@@ -29,7 +29,6 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Added an additional check in the "check scene for ray tracing" (case 1314963).
 - API to allow OnDemand shadows to not render upon placement in the Cached Shadow Atlas.
 - Exposed update upon light movement for directional light shadows in UI.
-- Avoid unnecessary RenderGraphBuilder.ReadTexture in the "Set Final Target" pass
 
 ### Fixed
 - Fixed probe volumes debug views.
@@ -151,6 +150,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Unifying the history validation pass so that it is only done once for the whole frame and not per effect.
 - Tidy up of platform abstraction code for shader optimization.
 - Changed Path Tracing's maximum intensity from clamped (0 to 100) to positive value (case 1310514).
+- Avoid unnecessary RenderGraphBuilder.ReadTexture in the "Set Final Target" pass
 
 ## [10.3.0] - 2020-12-01
 
