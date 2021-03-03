@@ -4,7 +4,7 @@
 
 #ifndef SHADERTYPES_CS_HLSL
 #define SHADERTYPES_CS_HLSL
-// Generated from UnityEngine.Rendering.Universal.ShaderInput+LightData
+// Generated from UnityEngine.Rendering.BuiltIn.ShaderInput+LightData
 // PackingRules = Exact
 struct LightData
 {

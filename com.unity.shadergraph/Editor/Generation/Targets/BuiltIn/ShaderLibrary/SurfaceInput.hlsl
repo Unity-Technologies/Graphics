@@ -1,5 +1,5 @@
-#ifndef UNIVERSAL_INPUT_SURFACE_INCLUDED
-#define UNIVERSAL_INPUT_SURFACE_INCLUDED
+#ifndef BUILTIN_INPUT_SURFACE_INCLUDED
+#define BUILTIN_INPUT_SURFACE_INCLUDED
 
 #include "Packages/com.unity.shadergraph/Editor/Generation/Targets/BuiltIn/ShaderLibrary/Core.hlsl"
 #include "Packages/com.unity.shadergraph/Editor/Generation/Targets/BuiltIn/ShaderLibrary/SurfaceData.hlsl"

@@ -1,5 +1,5 @@
-#ifndef UNIVERSAL_GBUFFERUTIL_INCLUDED
-#define UNIVERSAL_GBUFFERUTIL_INCLUDED
+#ifndef BUILTIN_GBUFFERUTIL_INCLUDED
+#define BUILTIN_GBUFFERUTIL_INCLUDED
 
 #include "Packages/com.unity.shadergraph/Editor/Generation/Targets/BuiltIn/ShaderLibrary/SurfaceData.hlsl"
 #include "Packages/com.unity.shadergraph/Editor/Generation/Targets/BuiltIn/ShaderLibrary/Lighting.hlsl"
@@ -262,4 +262,4 @@ InputData InputDataFromGbufferAndWorldPosition(half4 gbuffer2, float3 wsPos)
     return inputData;
 }
 
-#endif // UNIVERSAL_GBUFFERUTIL_INCLUDED
+#endif // BUILTIN_GBUFFERUTIL_INCLUDED

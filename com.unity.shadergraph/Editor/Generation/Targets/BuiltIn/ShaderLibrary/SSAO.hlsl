@@ -1,5 +1,5 @@
-#ifndef UNIVERSAL_SSAO_INCLUDED
-#define UNIVERSAL_SSAO_INCLUDED
+#ifndef BUILTIN_SSAO_INCLUDED
+#define BUILTIN_SSAO_INCLUDED
 
 // Includes
 #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Common.hlsl"
@@ -411,4 +411,4 @@ half4 FinalBlur(Varyings input) : SV_Target
     return 1.0 - BlurSmall(uv, delta );
 }
 
-#endif //UNIVERSAL_SSAO_INCLUDED
+#endif //BUILTIN_SSAO_INCLUDED

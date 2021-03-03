@@ -33,7 +33,7 @@ half4 frag(PackedVaryings packedInput) : SV_TARGET
     SurfaceDescriptionInputs surfaceDescriptionInputs = BuildSurfaceDescriptionInputs(unpacked);
     SurfaceDescription surfaceDescription = SurfaceDescriptionFunction(surfaceDescriptionInputs);
 
-#ifdef UNIVERSAL_USELEGACYSPRITEBLOCKS
+#ifdef BUILTIN_USELEGACYSPRITEBLOCKS
     half4 color = surfaceDescription.SpriteColor;
 #else
     half4 color = half4(surfaceDescription.BaseColor, surfaceDescription.Alpha);

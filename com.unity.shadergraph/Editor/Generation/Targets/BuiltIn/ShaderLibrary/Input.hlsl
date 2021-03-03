@@ -1,5 +1,5 @@
-#ifndef UNIVERSAL_INPUT_INCLUDED
-#define UNIVERSAL_INPUT_INCLUDED
+#ifndef BUILTIN_INPUT_INCLUDED
+#define BUILTIN_INPUT_INCLUDED
 
 #define MAX_VISIBLE_LIGHTS_UBO  32
 #define MAX_VISIBLE_LIGHTS_SSBO 256
@@ -85,10 +85,10 @@ CBUFFER_END
 // Note: #include order is important here.
 // UnityInput.hlsl must be included before UnityInstancing.hlsl, so constant buffer
 // declarations don't fail because of instancing macros.
-// UniversalDOTSInstancing.hlsl must be included after UnityInstancing.hlsl
+// BuiltInDOTSInstancing.hlsl must be included after UnityInstancing.hlsl
 #include "Packages/com.unity.shadergraph/Editor/Generation/Targets/BuiltIn/ShaderLibrary/UnityInput.hlsl"
 #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/UnityInstancing.hlsl"
-#include "Packages/com.unity.shadergraph/Editor/Generation/Targets/BuiltIn/ShaderLibrary/UniversalDOTSInstancing.hlsl"
+#include "Packages/com.unity.shadergraph/Editor/Generation/Targets/BuiltIn/ShaderLibrary/BuiltInDOTSInstancing.hlsl"
 #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/SpaceTransforms.hlsl"
 
 #endif
