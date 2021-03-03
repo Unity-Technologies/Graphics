@@ -39,21 +39,6 @@ namespace UnityEditor.VFX.Test
             }
         }
 
-        /*
-        [Test]
-        public void SerializeModel()
-        {
-            VisualEffectAsset assetSrc = new VisualEffectAsset();
-            VisualEffectAsset assetDst = new VisualEffectAsset();
-
-            InitAsset(assetSrc);
-            EditorUtility.CopySerialized(assetSrc, assetDst);
-            CheckAsset(assetDst);
-
-            Object.DestroyImmediate(assetSrc);
-            Object.DestroyImmediate(assetDst);
-        }*/
-
         [Test]
         public void LoadAssetFromPath()
         {
@@ -426,6 +411,60 @@ namespace UnityEditor.VFX.Test
                 test(sizeSource, VFXAttributeLocation.Source);
             };
             InnerSaveAndReloadTest("AttributeParameter", write, read);
+        }
+
+        [Test]
+        public void SerializeMaterialSettings()
+        {
+            Action<VisualEffectAsset> write = delegate(VisualEffectAsset asset)
+            {
+                var model = ScriptableObject.CreateInstance<DummyMaterialSettingsContainerModel>();
+                var material = new Material(Shader.Find("Hidden/MaterialPropertiesTest"));
+
+                var properties = ShaderUtil.GetMaterialProperties(new UnityEngine.Object[] { material });
+                Assert.AreEqual(5, properties.Length);
+
+                // Integrity check
+                Assert.AreEqual(1.0f, material.GetFloat("floatProperty1"));
+                Assert.AreEqual(2.0f, material.GetFloat("floatProperty2"));
+                Assert.AreEqual(3.0f, material.GetFloat("floatProperty3_Visible"));
+                Assert.AreEqual(4.0f, material.GetFloat("floatProperty4_PerRenderer"));
+                Assert.AreEqual(new Vector4(5.1f,5.2f,5.3f,5.4f), material.GetVector("vectorProperty"));
+
+                // Just negate properties
+                foreach (MaterialProperty p in properties)
+                {
+                    if (p.type == MaterialProperty.PropType.Float)
+                        material.SetFloat(p.name, -p.floatValue);
+                    if (p.type == MaterialProperty.PropType.Vector)
+                        material.SetVector(p.name, -p.vectorValue);
+                }
+
+                model.materialSettings = VFXMaterialSerializedSettings.CreateFromMaterial(material);
+
+                asset.GetResource().GetOrCreateGraph().AddChild(model);
+            };
+
+            Action<VisualEffectAsset> read = delegate(VisualEffectAsset asset)
+            {
+                var model = asset.GetResource().GetOrCreateGraph()[0] as DummyMaterialSettingsContainerModel;
+                var material = new Material(Shader.Find("Hidden/MaterialPropertiesTest"));
+
+                var properties = ShaderUtil.GetMaterialProperties(new UnityEngine.Object[]{ material });
+                Assert.AreEqual(5, properties.Length);
+
+                model.materialSettings.ApplyToMaterial(material);
+
+                // Expected to be modified (negated)
+                Assert.AreEqual(-1.0f, material.GetFloat("floatProperty1"));
+                Assert.AreEqual(-2.0f, material.GetFloat("floatProperty2"));
+                // Expected to be untouched
+                Assert.AreEqual(3.0f, material.GetFloat("floatProperty3_Visible"));
+                Assert.AreEqual(4.0f, material.GetFloat("floatProperty4_PerRenderer"));
+                Assert.AreEqual(new Vector4(5.1f, 5.2f, 5.3f, 5.4f), material.GetVector("vectorProperty"));
+            };
+
+            InnerSaveAndReloadTest("MaterialSettings", write, read);
         }
     }
 }

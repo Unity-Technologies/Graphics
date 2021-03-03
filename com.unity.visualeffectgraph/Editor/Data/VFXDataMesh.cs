@@ -130,45 +130,12 @@ namespace UnityEditor.VFX
                     mappings.Add(new VFXMapping(name, exprIndex));
             }
 
-            var paramList = new List<VFXMapping>(contextData.parameters);
-
-            // TODO Remove once material are serialized
-            {
-                var mat = GetOrCreateMaterial();
-                var keywordsStr = new StringBuilder();
-
-                foreach (var k in mat.shaderKeywords)
-                {
-                    keywordsStr.Append(k);
-                    keywordsStr.Append(' ');
-                }
-
-                const int kKeywordID = 0x5a93713b;
-                paramList.Add(new VFXMapping(keywordsStr.ToString(), kKeywordID));
-
-                // Add material properties mappings
-                for (int i = 0; i < ShaderUtil.GetPropertyCount(shader); ++i)
-                {
-                    if (ShaderUtil.IsShaderPropertyHidden(shader, i))
-                    {
-                        var name = ShaderUtil.GetPropertyName(shader, i);
-                        var propExp = contextData.cpuMapper.FromNameAndId(name, -1);
-                        if (propExp != null)
-                        {
-                            int propIndex = expressionGraph.GetFlattenedIndex(propExp);
-                            if (propIndex != -1)
-                                paramList.Add(new VFXMapping(name, propIndex));
-                        }
-                    }
-                }
-            }
-
             var task = new VFXEditorTaskDesc()
             {
                 externalProcessor = shader,
                 values = mappings.ToArray(),
-                parameters = paramList.ToArray(),
-                type = (UnityEngine.VFX.VFXTaskType)VFXTaskType.Output
+                type = (UnityEngine.VFX.VFXTaskType)VFXTaskType.Output,
+                model = context
             };
 
             mappings.Clear();
