@@ -314,7 +314,7 @@ namespace UnityEditor.ShaderGraph.Drawing
                     var propertyView = blackboardRow.Q<BlackboardPropertyView>();
                     graphView?.AddToSelectionNoUndoRecord(propertyView);
 
-                    if(addBlackboardItemAction.addInputActionType == AddShaderInputAction.AddActionSource.AddMenu)
+                    if (addBlackboardItemAction.addInputActionType == AddShaderInputAction.AddActionSource.AddMenu)
                         propertyView.OpenTextEditor();
                 }
             }
@@ -487,7 +487,7 @@ namespace UnityEditor.ShaderGraph.Drawing
                 if (item is BlackboardPropertyView blackboardPropertyView)
                 {
                     var referenceName = blackboardPropertyView.shaderInput.referenceName;
-                    if(oldSelectionPersistenceData.TryGetValue(referenceName, out var viewDataKey) == false)
+                    if (oldSelectionPersistenceData.TryGetValue(referenceName, out var viewDataKey) == false)
                         oldSelectionPersistenceData.Add(referenceName, blackboardPropertyView.viewDataKey);
                 }
             }

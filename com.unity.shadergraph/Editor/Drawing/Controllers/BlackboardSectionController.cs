@@ -92,7 +92,7 @@ namespace UnityEditor.ShaderGraph.Drawing
                     // blackboardRow.expanded = true;
 
                     var propertyView = blackboardRow.Q<BlackboardPropertyView>();
-                    if(addBlackboardItemAction.addInputActionType == AddShaderInputAction.AddActionSource.AddMenu)
+                    if (addBlackboardItemAction.addInputActionType == AddShaderInputAction.AddActionSource.AddMenu)
                         propertyView.OpenTextEditor();
                 }
             }
@@ -169,7 +169,6 @@ namespace UnityEditor.ShaderGraph.Drawing
                 parentView = BlackboardSectionView,
                 updateSelectionStateAction = ViewModel.updateSelectionStateAction,
                 persistViewDataKeyAction = ViewModel.persistViewDataKeyAction
-
             };
             var blackboardItemController = new BlackboardItemController(shaderInput, shaderInputViewModel, DataStore);
             m_BlackboardItemControllers.Insert(insertionIndex, blackboardItemController);
