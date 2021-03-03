@@ -43,8 +43,8 @@ namespace UnityEditor.VFX
 
             foreach (var p in matProperties)
             {
-                // TODO we probably want to also filter out potential properties coming from compilation? (No compilation output data should be serialized)
-                if (p.type != MaterialProperty.PropType.Float)
+                if (p.type != MaterialProperty.PropType.Float || // Only float properties
+                    (p.flags & (MaterialProperty.PropFlags.HideInInspector | MaterialProperty.PropFlags.PerRendererData)) != MaterialProperty.PropFlags.HideInInspector) // Only properties hidden in inspector that are not per renderer 
                     continue;
 
                 properties.Add(new FloatProperty()
