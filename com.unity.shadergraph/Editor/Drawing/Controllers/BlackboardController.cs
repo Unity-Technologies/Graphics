@@ -282,10 +282,8 @@ namespace UnityEditor.ShaderGraph.Drawing
                 graphView.OnSelectionChange += StoreSelection;
             }
 
-            blackboard.PropertySection = m_PropertySectionController.BlackboardSectionView;
-            blackboard.KeywordSection = m_KeywordSectionController.BlackboardSectionView;
-            blackboard.contentContainer.Add(blackboard.PropertySection);
-            blackboard.contentContainer.Add(blackboard.KeywordSection);
+            blackboard.contentContainer.Add(m_PropertySectionController.BlackboardSectionView);
+            blackboard.contentContainer.Add(m_KeywordSectionController.BlackboardSectionView);
         }
 
         protected override void RequestModelChange(IGraphDataAction changeAction)

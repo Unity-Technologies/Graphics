@@ -80,10 +80,6 @@ namespace UnityEditor.ShaderGraph.Drawing
             set => m_ViewModel = value;
         }
 
-        // sections are created by BlackboardSectionControllers, then assigned to this Blackboard by the BlackboardController
-        internal SGBlackboardSection PropertySection { get; set; }
-        internal SGBlackboardSection KeywordSection { get; set; }
-
         // List of user-made blackboard sections
         IList<SGBlackboardSection> m_BlackboardSections = new List<SGBlackboardSection>();
 
@@ -100,8 +96,9 @@ namespace UnityEditor.ShaderGraph.Drawing
         public override string UxmlName => "GraphView/Blackboard";
         public override string layoutKey => "UnityEditor.ShaderGraph.Blackboard";
 
-        public Action addItemRequested { get; set; }
-        public Action<int, VisualElement> moveItemRequested { get; set; }
+        Action addItemRequested { get; set; }
+
+        internal Action hideDragIndicatorAction { get; set; }
 
         GenericMenu m_AddPropertyMenu;
 
@@ -122,19 +119,6 @@ namespace UnityEditor.ShaderGraph.Drawing
                 };
 
             ParentView.RegisterCallback<FocusOutEvent>(evt => HideScrollBoundaryRegions());
-
-            // These make sure that the drag indicators are disabled whenever a drag action is cancelled without completing a drop
-            this.RegisterCallback<MouseUpEvent>(evt =>
-            {
-                PropertySection.OnDragActionCanceled();
-                KeywordSection.OnDragActionCanceled();
-            });
-
-            this.RegisterCallback<DragExitedEvent>(evt =>
-            {
-                PropertySection.OnDragActionCanceled();
-                KeywordSection.OnDragActionCanceled();
-            });
 
             m_TitleLabel.text = ViewModel.title;
 

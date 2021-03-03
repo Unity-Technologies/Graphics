@@ -61,6 +61,13 @@ namespace UnityEditor.ShaderGraph.Drawing
             m_BlackboardSectionView = new SGBlackboardSection(sectionViewModel);
 
             blackboard = sectionViewModel.parentView as SGBlackboard;
+            // These make sure that the drag indicators are disabled whenever a drag action is cancelled without completing a drop
+            blackboard?.RegisterCallback<MouseUpEvent>(evt =>
+            {
+                m_BlackboardSectionView.OnDragActionCanceled();
+            });
+            blackboard.hideDragIndicatorAction += m_BlackboardSectionView.OnDragActionCanceled;
+
 
             foreach (var shaderInput in DataStore.State.properties)
             {
