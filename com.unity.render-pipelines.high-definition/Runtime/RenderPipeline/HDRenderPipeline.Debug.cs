@@ -812,7 +812,13 @@ namespace UnityEngine.Rendering.HighDefinition
 
         class DebugImageHistogramData
         {
-            public PostProcessSystem.DebugImageHistogramParameters parameters;
+            public ComputeShader debugImageHistogramCS;
+            public ComputeBuffer imageHistogram;
+
+            public int debugImageHistogramKernel;
+            public int cameraWidth;
+            public int cameraHeight;
+
             public TextureHandle source;
         }
 
@@ -823,12 +829,28 @@ namespace UnityEngine.Rendering.HighDefinition
 
             using (var builder = renderGraph.AddRenderPass<DebugImageHistogramData>("Generate Debug Image Histogram", out var passData, ProfilingSampler.Get(HDProfileId.FinalImageHistogram)))
             {
+                ValidateComputeBuffer(ref m_DebugImageHistogramBuffer, k_DebugImageHistogramBins * 4, sizeof(uint));
+                m_DebugImageHistogramBuffer.SetData(m_EmptyDebugImageHistogram);    // Clear the histogram
+
+                passData.debugImageHistogramCS = defaultResources.shaders.debugImageHistogramCS;
+                passData.debugImageHistogramKernel = passData.debugImageHistogramCS.FindKernel("KHistogramGen");
+                passData.imageHistogram = m_DebugImageHistogramBuffer;
+                passData.cameraWidth = hdCamera.actualWidth;
+                passData.cameraHeight = hdCamera.actualHeight;
                 passData.source = builder.ReadTexture(source);
-                passData.parameters = m_PostProcessSystem.PrepareDebugImageHistogramParameters(hdCamera);
+
                 builder.SetRenderFunc(
                     (DebugImageHistogramData data, RenderGraphContext ctx) =>
                     {
-                        PostProcessSystem.GenerateDebugImageHistogram(data.parameters, ctx.cmd, data.source);
+                        ctx.cmd.SetComputeTextureParam(data.debugImageHistogramCS, data.debugImageHistogramKernel, HDShaderIDs._SourceTexture, data.source);
+                        ctx.cmd.SetComputeBufferParam(data.debugImageHistogramCS, data.debugImageHistogramKernel, HDShaderIDs._HistogramBuffer, data.imageHistogram);
+
+                        int threadGroupSizeX = 16;
+                        int threadGroupSizeY = 16;
+                        int dispatchSizeX = HDUtils.DivRoundUp(data.cameraWidth / 2, threadGroupSizeX);
+                        int dispatchSizeY = HDUtils.DivRoundUp(data.cameraHeight / 2, threadGroupSizeY);
+                        int totalPixels = data.cameraWidth * data.cameraHeight;
+                        ctx.cmd.DispatchCompute(data.debugImageHistogramCS, data.debugImageHistogramKernel, dispatchSizeX, dispatchSizeY, 1);
                     });
             }
         }
@@ -856,7 +878,7 @@ namespace UnityEngine.Rendering.HighDefinition
         {
             using (var builder = renderGraph.AddRenderPass<DebugExposureData>("Debug Exposure", out var passData))
             {
-                m_PostProcessSystem.ComputeProceduralMeteringParams(hdCamera, out passData.proceduralMeteringParams1, out passData.proceduralMeteringParams2);
+                ComputeProceduralMeteringParams(hdCamera, out passData.proceduralMeteringParams1, out passData.proceduralMeteringParams2);
 
                 passData.lightingDebugSettings = m_CurrentDebugDisplaySettings.data.lightingDebugSettings;
                 passData.hdCamera = hdCamera;
@@ -865,12 +887,12 @@ namespace UnityEngine.Rendering.HighDefinition
                 passData.debugFullScreenTexture = builder.ReadTexture(m_DebugFullScreenTexture);
                 passData.output = builder.WriteTexture(renderGraph.CreateTexture(new TextureDesc(Vector2.one, true, true)
                     { colorFormat = GraphicsFormat.R16G16B16A16_SFloat, name = "ExposureDebug" }));
-                passData.currentExposure = builder.ReadTexture(renderGraph.ImportTexture(m_PostProcessSystem.GetExposureTexture(hdCamera)));
-                passData.previousExposure = builder.ReadTexture(renderGraph.ImportTexture(m_PostProcessSystem.GetPreviousExposureTexture(hdCamera)));
-                passData.debugExposureData = builder.ReadTexture(renderGraph.ImportTexture(m_PostProcessSystem.GetExposureDebugData()));
-                passData.customToneMapCurve = m_PostProcessSystem.GetCustomToneMapCurve();
-                passData.lutSize = m_PostProcessSystem.GetLutSize();
-                passData.histogramBuffer = passData.lightingDebugSettings.exposureDebugMode == ExposureDebugMode.FinalImageHistogramView ? m_PostProcessSystem.GetDebugImageHistogramBuffer() : m_PostProcessSystem.GetHistogramBuffer();
+                passData.currentExposure = builder.ReadTexture(renderGraph.ImportTexture(GetExposureTexture(hdCamera)));
+                passData.previousExposure = builder.ReadTexture(renderGraph.ImportTexture(GetPreviousExposureTexture(hdCamera)));
+                passData.debugExposureData = builder.ReadTexture(renderGraph.ImportTexture(GetExposureDebugData()));
+                passData.customToneMapCurve = GetCustomToneMapCurve();
+                passData.lutSize = GetLutSize();
+                passData.histogramBuffer = passData.lightingDebugSettings.exposureDebugMode == ExposureDebugMode.FinalImageHistogramView ? GetDebugImageHistogramBuffer() : GetHistogramBuffer();
 
                 builder.SetRenderFunc(
                     (DebugExposureData data, RenderGraphContext ctx) =>
