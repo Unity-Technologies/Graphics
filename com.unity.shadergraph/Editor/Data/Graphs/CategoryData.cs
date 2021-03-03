@@ -7,7 +7,7 @@ using UnityEngine.Serialization;
 namespace UnityEditor.ShaderGraph
 {
     [Serializable]
-    public class CategoryData : JsonObject
+    class CategoryData : JsonObject
     {
         [SerializeField]
         string m_Name;
@@ -34,15 +34,6 @@ namespace UnityEditor.ShaderGraph
         {
             get => m_ChildItemIDList;
             set => m_ChildItemIDList = value;
-        }
-
-        [SerializeField]
-        bool m_IsExpanded;
-
-        public bool isExpanded
-        {
-            get => m_IsExpanded;
-            set => m_IsExpanded = value;
         }
 
         public CategoryData(string inName,  List<Guid> inChildItemIDList = null, Guid inCategoryGuid = new Guid())

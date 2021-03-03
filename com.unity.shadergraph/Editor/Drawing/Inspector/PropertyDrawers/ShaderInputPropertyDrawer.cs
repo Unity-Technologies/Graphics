@@ -127,8 +127,8 @@ namespace UnityEditor.ShaderGraph.Drawing.Inspector.PropertyDrawers
             this._referenceNameChangedCallback = newValue =>
             {
                 var changeReferenceNameAction = new ChangeReferenceNameAction();
-                changeReferenceNameAction.ShaderInputReference = shaderInput;
-                changeReferenceNameAction.NewReferenceNameValue = newValue;
+                changeReferenceNameAction.shaderInputReference = shaderInput;
+                changeReferenceNameAction.newReferenceNameValue = newValue;
                 ViewModel.requestModelChangeAction(changeReferenceNameAction);
             };
 

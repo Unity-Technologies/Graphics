@@ -1272,20 +1272,20 @@ namespace UnityEditor.ShaderGraph.Drawing
                 {
                     case AbstractShaderProperty property:
                         copyShaderInputAction.dependentNodeList = copyGraph.GetNodes<PropertyNode>().Where(x => x.property == input);
-                        copyShaderInputAction.insertIndex = insertionIndices[blackboardController.k_PropertySectionIndex];
+                        copyShaderInputAction.insertIndex = insertionIndices[blackboardController.propertySectionIndex];
 
                         // Increment for next within the same section
-                        if (insertionIndices[blackboardController.k_PropertySectionIndex] >= 0)
-                            insertionIndices[blackboardController.k_PropertySectionIndex]++;
+                        if (insertionIndices[blackboardController.propertySectionIndex] >= 0)
+                            insertionIndices[blackboardController.propertySectionIndex]++;
                         break;
 
                     case ShaderKeyword shaderKeyword:
                         copyShaderInputAction.dependentNodeList = copyGraph.GetNodes<KeywordNode>().Where(x => x.keyword == input);
-                        copyShaderInputAction.insertIndex = insertionIndices[blackboardController.k_KeywordSectionIndex];
+                        copyShaderInputAction.insertIndex = insertionIndices[blackboardController.keywordSectionIndex];
 
                         // Increment for next within the same section
-                        if (insertionIndices[blackboardController.k_KeywordSectionIndex] >= 0)
-                            insertionIndices[blackboardController.k_KeywordSectionIndex]++;
+                        if (insertionIndices[blackboardController.keywordSectionIndex] >= 0)
+                            insertionIndices[blackboardController.keywordSectionIndex]++;
 
                         // Pasting a new Keyword so need to test against variant limit
                         keywordsDirty = true;

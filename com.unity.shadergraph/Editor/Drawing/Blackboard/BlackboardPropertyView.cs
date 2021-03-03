@@ -156,7 +156,7 @@ namespace UnityEditor.ShaderGraph.Drawing
                     e =>
                     {
                         var resetReferenceNameAction = new ResetReferenceNameAction();
-                        resetReferenceNameAction.ShaderInputReference = shaderInput;
+                        resetReferenceNameAction.shaderInputReference = shaderInput;
                         ViewModel.requestModelChangeAction(resetReferenceNameAction);
                         m_ResetReferenceNameTrigger();
                     },

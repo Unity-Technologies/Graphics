@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
+using System.Runtime.InteropServices;
 using System.Text;
 using UnityEditor;
 using UnityEditor.ShaderGraph.UnitTests;
@@ -102,10 +103,10 @@ namespace UnityEditor.ShaderGraph.UnitTests
             }
         }
 
-        public static void MouseDownEvent(
+        public static void SendMouseEvent(
             EditorWindow parentWindow,
             VisualElement elementToNotify,
-            EventType eventType,
+            EventType eventType = EventType.MouseDown,
             MouseButton mouseButton = MouseButton.LeftMouse,
             int clickCount = 1,
             EventModifiers eventModifiers = EventModifiers.None)
@@ -121,7 +122,7 @@ namespace UnityEditor.ShaderGraph.UnitTests
             // EditorWindow.position is the top-left position of the window in desktop-space
             screenPosition = (screenPosition + parentWindow.position.position);
             // To account for 4k screens with virtual coordinates, need to be multiply by EditorGUI.pixelsPerPoint to get actual desktop pixels.
-            //actualScreenPosition *= EditorGUIUtility.pixelsPerPoint;
+            //screenPosition *= EditorGUIUtility.pixelsPerPoint;
             return screenPosition;
         }
 

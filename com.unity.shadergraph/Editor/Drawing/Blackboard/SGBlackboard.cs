@@ -328,9 +328,9 @@ namespace UnityEditor.ShaderGraph.Drawing
                 newPath = BlackboardUtils.SanitizePath(newPath);
             }
 
+            // Request graph path change action
             var pathChangeAction = new ChangeGraphPathAction();
             pathChangeAction.NewGraphPath = newPath;
-            // Request graph path change action
             ViewModel.requestModelChangeAction(pathChangeAction);
 
             m_SubTitleLabel.text =  BlackboardUtils.FormatPath(newPath);

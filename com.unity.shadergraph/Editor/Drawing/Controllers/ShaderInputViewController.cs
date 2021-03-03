@@ -14,8 +14,10 @@ namespace UnityEditor.ShaderGraph.Drawing
     {
         void ChangeExposedFlag(GraphData graphData)
         {
+#if SG_ASSERTIONS
             Assert.IsNotNull(graphData, "GraphData is null while carrying out ChangeExposedFlagAction");
             Assert.IsNotNull(shaderInputReference, "ShaderInputReference is null while carrying out ChangeExposedFlagAction");
+#endif
             // The Undos are currently handled in ShaderInputPropertyDrawer but we want to move that out from there and handle here
             //graphData.owner.RegisterCompleteObjectUndo("Change Exposed Toggle");
             shaderInputReference.generatePropertyBlock = newIsExposedValue;
@@ -35,8 +37,10 @@ namespace UnityEditor.ShaderGraph.Drawing
     {
         void ChangePropertyValue(GraphData graphData)
         {
+#if SG_ASSERTIONS
             Assert.IsNotNull(graphData, "GraphData is null while carrying out ChangePropertyValueAction");
             Assert.IsNotNull(shaderInputReference, "ShaderPropertyReference is null while carrying out ChangePropertyValueAction");
+#endif
             // The Undos are currently handled in ShaderInputPropertyDrawer but we want to move that out from there and handle here
             //graphData.owner.RegisterCompleteObjectUndo("Change Property Value");
             switch (shaderInputReference)
@@ -105,8 +109,10 @@ namespace UnityEditor.ShaderGraph.Drawing
     {
         void ChangeDisplayName(GraphData graphData)
         {
+#if SG_ASSERTIONS
             Assert.IsNotNull(graphData, "GraphData is null while carrying out ChangeDisplayNameAction");
             Assert.IsNotNull(shaderInputReference, "ShaderInputReference is null while carrying out ChangeDisplayNameAction");
+#endif
             graphData.owner.RegisterCompleteObjectUndo("Change Display Name");
             if (newDisplayNameValue != shaderInputReference.displayName)
             {
@@ -126,47 +132,52 @@ namespace UnityEditor.ShaderGraph.Drawing
     {
         void ChangeReferenceName(GraphData graphData)
         {
+#if SG_ASSERTIONS
             Assert.IsNotNull(graphData, "GraphData is null while carrying out ChangeReferenceNameAction");
             Assert.IsNotNull(ShaderInputReference, "ShaderInputReference is null while carrying out ChangeReferenceNameAction");
+#endif
             // The Undos are currently handled in ShaderInputPropertyDrawer but we want to move that out from there and handle here
             //graphData.owner.RegisterCompleteObjectUndo("Change Reference Name");
-            if (NewReferenceNameValue != ShaderInputReference.overrideReferenceName)
+            if (newReferenceNameValue != shaderInputReference.overrideReferenceName)
             {
-                graphData.SanitizeGraphInputReferenceName(ShaderInputReference, NewReferenceNameValue);
+                graphData.SanitizeGraphInputReferenceName(shaderInputReference, newReferenceNameValue);
             }
         }
 
         public Action<GraphData> modifyGraphDataAction =>  ChangeReferenceName;
 
         // Reference to the shader input being modified
-        internal ShaderInput ShaderInputReference { get; set; }
+        internal ShaderInput shaderInputReference { get; set; }
 
-        internal string NewReferenceNameValue { get; set; }
+        internal string newReferenceNameValue { get; set; }
     }
 
     class ResetReferenceNameAction : IGraphDataAction
     {
         void ResetReferenceName(GraphData graphData)
         {
+#if SG_ASSERTIONS
             Assert.IsNotNull(graphData, "GraphData is null while carrying out ResetReferenceNameAction");
             Assert.IsNotNull(ShaderInputReference, "ShaderInputReference is null while carrying out ResetReferenceNameAction");
+#endif
             graphData.owner.RegisterCompleteObjectUndo("Reset Reference Name");
-            ShaderInputReference.overrideReferenceName = null;
+            shaderInputReference.overrideReferenceName = null;
         }
 
         public Action<GraphData> modifyGraphDataAction =>  ResetReferenceName;
 
         // Reference to the shader input being modified
-        internal ShaderInput ShaderInputReference { get; set; }
+        internal ShaderInput shaderInputReference { get; set; }
     }
 
     class DeleteShaderInputAction : IGraphDataAction
     {
         void DeleteShaderInput(GraphData graphData)
         {
+#if SG_ASSERTIONS
             Assert.IsNotNull(graphData, "GraphData is null while carrying out DeleteShaderInputAction");
             Assert.IsNotNull(shaderInputsToDelete, "ShaderInputReference is null while carrying out DeleteShaderInputAction");
-
+#endif
             // This is called by MaterialGraphView currently, no need to repeat it here, though ideally it would live here
             //graphData.owner.RegisterCompleteObjectUndo("Delete Graph Input(s)");
 
@@ -195,6 +206,7 @@ namespace UnityEditor.ShaderGraph.Drawing
             m_BlackboardPropertyView = new BlackboardPropertyView(ViewModel);
             m_BlackboardPropertyView.controller = this;
             m_BlackboardPropertyView.RegisterCallback<AttachToPanelEvent>((evt) => ViewModel.updateSelectionStateAction(evt));
+            m_BlackboardPropertyView.RegisterCallback<DetachFromPanelEvent>((evt) => ViewModel.persistViewDataKeyAction(evt));
 
             m_BlackboardRowView = new SGBlackboardRow(m_BlackboardPropertyView, null);
             m_BlackboardRowView.expanded = SessionState.GetBool($"Unity.ShaderGraph.Input.{shaderInput.objectId}.isExpanded", false);

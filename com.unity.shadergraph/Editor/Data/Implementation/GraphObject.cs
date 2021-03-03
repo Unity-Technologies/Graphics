@@ -8,14 +8,18 @@ namespace UnityEditor.Graphing
 {
     class HandleUndoRedoAction : IGraphDataAction
     {
-        void HandleGraphUndoRedo(GraphData m_GraphData)
+        void HandleGraphUndoRedo(GraphData graphData)
         {
-            m_GraphData?.ReplaceWith(NewGraphData);
+#if SG_ASSERTIONS
+            Assert.IsNotNull(graphData, "GraphData is null while carrying out HandleUndoRedoAction");
+            Assert.IsNotNull(NewGraphData, "NewGraphData is null while carrying out HandleUndoRedoAction");
+#endif
+            graphData?.ReplaceWith(newGraphData);
         }
 
         public Action<GraphData> modifyGraphDataAction => HandleGraphUndoRedo;
 
-        public GraphData NewGraphData { get; set; }
+        public GraphData newGraphData { get; set; }
     }
 
     class GraphObject : ScriptableObject, ISerializationCallbackReceiver
@@ -106,7 +110,7 @@ namespace UnityEditor.Graphing
             var deserializedGraph = DeserializeGraph();
 
             var handleUndoRedoAction = new HandleUndoRedoAction();
-            handleUndoRedoAction.NewGraphData = deserializedGraph;
+            handleUndoRedoAction.newGraphData = deserializedGraph;
             graphDataStore.Dispatch(handleUndoRedoAction);
         }
 

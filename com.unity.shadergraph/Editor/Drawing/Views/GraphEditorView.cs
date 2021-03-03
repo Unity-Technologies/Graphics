@@ -54,7 +54,15 @@ namespace UnityEditor.ShaderGraph.Drawing
 
         BlackboardController m_BlackboardController;
 
-        internal BlackboardController blackboardController => m_BlackboardController;
+        internal BlackboardController blackboardController
+        {
+            get => m_BlackboardController;
+            set
+            {
+                if (value != null)
+                    m_BlackboardController = value;
+            }
+        }
 
         ColorManager m_ColorManager;
         EditorWindow m_EditorWindow;
@@ -396,8 +404,10 @@ namespace UnityEditor.ShaderGraph.Drawing
             m_InspectorView = new InspectorView(inspectorViewModel);
             graphView.OnSelectionChange += m_InspectorView.TriggerInspectorUpdate;
             // Undo/redo actions that only affect selection don't trigger the above callback for some reason, so we also have to do this
-            Undo.undoRedoPerformed += (() => m_InspectorView.TriggerInspectorUpdate(graphView.selection));
-
+            Undo.undoRedoPerformed += (() =>
+            {
+                m_InspectorView?.TriggerInspectorUpdate(graphView?.selection);
+            });
         }
 
         void OnKeyDown(KeyDownEvent evt)
@@ -658,7 +668,7 @@ namespace UnityEditor.ShaderGraph.Drawing
             }
 
             previewManager.RenderPreviews();
-            m_BlackboardController.HandleGraphChanges(wasUndoRedoPerformed);
+
             if (wasUndoRedoPerformed || m_InspectorView.doesInspectorNeedUpdate)
                 m_InspectorView.Update();
             m_GroupHashSet.Clear();

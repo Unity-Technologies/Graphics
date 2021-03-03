@@ -310,8 +310,8 @@ namespace UnityEditor.ShaderGraph.Drawing
                         var moveShaderInputAction = new MoveShaderInputAction();
                         if (draggedElement.Item2.userData is ShaderInput shaderInput)
                         {
-                            moveShaderInputAction.ShaderInputReference = shaderInput;
-                            moveShaderInputAction.NewIndexValue = m_InsertIndex;
+                            moveShaderInputAction.shaderInputReference = shaderInput;
+                            moveShaderInputAction.newIndexValue = m_InsertIndex;
                             ViewModel.requestModelChangeAction(moveShaderInputAction);
 
                             if (insertIndex == contentContainer.childCount)

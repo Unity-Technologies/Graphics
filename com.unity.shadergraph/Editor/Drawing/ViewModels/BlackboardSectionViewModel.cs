@@ -26,5 +26,7 @@ namespace UnityEditor.ShaderGraph.Drawing
         internal Action<IGraphDataAction> requestModelChangeAction { get; set; }
 
         internal Action<AttachToPanelEvent> updateSelectionStateAction { get; set; }
+
+        internal Action<DetachFromPanelEvent> persistViewDataKeyAction { get; set; }
     }
 }

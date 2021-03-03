@@ -17,16 +17,18 @@ namespace UnityEditor.ShaderGraph.Drawing
     {
         void MoveShaderInput(GraphData graphData)
         {
+#if SG_ASSERTIONS
             Assert.IsNotNull(graphData, "GraphData is null while carrying out MoveShaderInputAction");
             Assert.IsNotNull(ShaderInputReference, "ShaderInputReference is null while carrying out MoveShaderInputAction");
+#endif
             graphData.owner.RegisterCompleteObjectUndo("Move Graph Input");
-            switch (ShaderInputReference)
+            switch (shaderInputReference)
             {
                 case AbstractShaderProperty property:
-                    graphData.MoveProperty(property, NewIndexValue);
+                    graphData.MoveProperty(property, newIndexValue);
                     break;
                 case ShaderKeyword keyword:
-                    graphData.MoveKeyword(keyword, NewIndexValue);
+                    graphData.MoveKeyword(keyword, newIndexValue);
                     break;
                 default:
                     throw new ArgumentOutOfRangeException();
@@ -36,9 +38,9 @@ namespace UnityEditor.ShaderGraph.Drawing
         public Action<GraphData> modifyGraphDataAction =>  MoveShaderInput;
 
         // Reference to the shader input being modified
-        internal ShaderInput ShaderInputReference { get; set; }
+        internal ShaderInput shaderInputReference { get; set; }
 
-        internal int NewIndexValue { get; set; }
+        internal int newIndexValue { get; set; }
     }
 
     class BlackboardSectionController : SGViewController<GraphData, BlackboardSectionViewModel>
@@ -141,7 +143,8 @@ namespace UnityEditor.ShaderGraph.Drawing
             {
                 Model = shaderInput,
                 parentView = BlackboardSectionView,
-                updateSelectionStateAction = ViewModel.updateSelectionStateAction
+                updateSelectionStateAction = ViewModel.updateSelectionStateAction,
+                persistViewDataKeyAction = ViewModel.persistViewDataKeyAction
             };
 
             var blackboardItemController = new BlackboardItemController(shaderInput, shaderInputViewModel, DataStore);
@@ -164,7 +167,9 @@ namespace UnityEditor.ShaderGraph.Drawing
             {
                 Model = shaderInput,
                 parentView = BlackboardSectionView,
-                updateSelectionStateAction = ViewModel.updateSelectionStateAction
+                updateSelectionStateAction = ViewModel.updateSelectionStateAction,
+                persistViewDataKeyAction = ViewModel.persistViewDataKeyAction
+
             };
             var blackboardItemController = new BlackboardItemController(shaderInput, shaderInputViewModel, DataStore);
             m_BlackboardItemControllers.Insert(insertionIndex, blackboardItemController);

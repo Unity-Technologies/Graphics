@@ -5,6 +5,7 @@ using NUnit.Framework;
 using UnityEngine;
 using UnityEditor.ShaderGraph.Drawing;
 using UnityEditor.ShaderGraph.Internal;
+using UnityEditor.ShaderGraph.UnitTests.Controllers;
 using UnityEngine.TestTools;
 using UnityEngine.UIElements;
 
@@ -22,6 +23,8 @@ namespace UnityEditor.ShaderGraph.UnitTests
         MaterialGraphEditWindow m_Window;
 
         Dictionary<string, PreviewNode> m_TestNodes = new Dictionary<string, PreviewNode>();
+
+        //BlackboardTestController m_BlackboardTestController;
 
         [OneTimeSetUp]
         public void LoadGraph()
@@ -43,7 +46,6 @@ namespace UnityEditor.ShaderGraph.UnitTests
             }
 
             m_Window = EditorWindow.GetWindow<MaterialGraphEditWindow>();
-
             if (m_Window == null)
             {
                 Assert.Fail("Could not open window");
@@ -56,6 +58,15 @@ namespace UnityEditor.ShaderGraph.UnitTests
             }
 
             m_GraphEditorView = m_Window.graphEditorView;
+
+            // Create the blackboard test controller
+            //var blackboardViewModel = new BlackboardViewModel() { parentView = m_Window.graphEditorView.graphView, model = m_Graph, title = m_Window.assetName };
+            //m_BlackboardTestController = new BlackboardTestController(m_Window, m_Graph, blackboardViewModel, m_Window.graphObject.graphDataStore);
+
+            // Remove the normal blackboard
+            //m_GraphEditorView.blackboardController.blackboard.RemoveFromHierarchy();
+            //// And override reference to the blackboard controller to point at the test controller
+            //m_GraphEditorView.blackboardController = m_BlackboardTestController;
         }
 
         [OneTimeTearDown]
@@ -95,14 +106,15 @@ namespace UnityEditor.ShaderGraph.UnitTests
                 shaderInput.SetReferenceNameAndSanitizeForGraph(m_Graph, modifiedReferenceName);
 
                 Assert.IsTrue(shaderInput.referenceName != originalReferenceName);
+                ShaderGraphUITestHelpers.SendMouseEvent(m_Window, blackboardPropertyView, EventType.MouseDown);
 
                 // Needed so that the inspector gets triggered and the callbacks and triggers are initialized
-                ShaderGraphUITestHelpers.MouseDownEvent(m_Window, blackboardPropertyView, EventType.MouseDown);
+                ShaderGraphUITestHelpers.SendMouseEvent(m_Window, blackboardPropertyView, EventType.MouseDown);
 
                 // Wait a frame for the inspector updates to trigger
                 yield return null;
 
-                ShaderGraphUITestHelpers.MouseDownEvent(m_Window, blackboardPropertyView, EventType.MouseUp);
+                ShaderGraphUITestHelpers.SendMouseEvent(m_Window, blackboardPropertyView, EventType.MouseUp);
 
                 // Wait a frame for the inspector updates to trigger
                 yield return null;
@@ -117,11 +129,20 @@ namespace UnityEditor.ShaderGraph.UnitTests
             }
         }
 
-        [Test]
-        public void AddPropertyTests()
+        /*[UnityTest]
+        public IEnumerator AddInputTests()
         {
+            var button = m_BlackboardTestController.m_AddButton as Button;
+            // todo: this works, just need to calculate button position better somehow, as that is off
+            ShaderGraphUITestHelpers.SendMouseEvent(m_Window, button, EventType.MouseMove);
+            yield return null;
 
-        }
+            ShaderGraphUITestHelpers.SendMouseEvent(m_Window, button, EventType.MouseDown);
+            yield return null;
+
+            ShaderGraphUITestHelpers.SendMouseEvent(m_Window, button, EventType.MouseUp);
+            yield return null;
+        }*/
 
         [Test]
         public void DefaultNamePropertyTest()
