@@ -94,7 +94,6 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed sub-shadow rendering for cached shadow maps.
 - Fixed PCSS filtering issues with cached shadow maps.
 - Fix screen being over-exposed when changing very different skies.
-- Fixed multiple any hit occuring on transparent objects (case 1294927).
 
 ### Changed
 - Removed the material pass probe volumes evaluation mode.
