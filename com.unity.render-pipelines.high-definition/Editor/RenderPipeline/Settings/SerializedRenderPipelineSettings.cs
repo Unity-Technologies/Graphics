@@ -27,6 +27,7 @@ namespace UnityEditor.Rendering.HighDefinition
         public SerializedScalableSetting sssSampleBudget;
         [FormerlySerializedAs("supportVolumetric")]
         public SerializedProperty supportVolumetrics;
+        public SerializedProperty supportVolumetricClouds;
         public SerializedProperty supportLightLayers;
         public SerializedProperty lightLayerName0;
         public SerializedProperty lightLayerName1;
@@ -102,6 +103,7 @@ namespace UnityEditor.Rendering.HighDefinition
             supportSubsurfaceScattering     = root.Find((RenderPipelineSettings s) => s.supportSubsurfaceScattering);
             sssSampleBudget                 = new SerializedScalableSetting(root.Find((RenderPipelineSettings s) => s.sssSampleBudget));
             supportVolumetrics              = root.Find((RenderPipelineSettings s) => s.supportVolumetrics);
+            supportVolumetricClouds         = root.Find((RenderPipelineSettings s) => s.supportVolumetricClouds);
             supportLightLayers              = root.Find((RenderPipelineSettings s) => s.supportLightLayers);
             lightLayerName0                 = root.Find((RenderPipelineSettings s) => s.lightLayerName0);
             lightLayerName1                 = root.Find((RenderPipelineSettings s) => s.lightLayerName1);

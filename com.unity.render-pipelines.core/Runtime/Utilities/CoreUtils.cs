@@ -74,6 +74,8 @@ namespace UnityEngine.Rendering
             public const int assetsCreateRenderingMenuPriority = 308;
             /// <summary>Edit Menu base priority</summary>
             public const int editMenuPriority = 320;
+            /// <summary>Game Object Menu priority</summary>
+            public const int gameObjectMenuPriority = 10;
         }
 
         // TODO delete when finish top level menu reorder
@@ -105,7 +107,7 @@ namespace UnityEngine.Rendering
             {
                 if (m_BlackCubeTexture == null)
                 {
-                    m_BlackCubeTexture = new Cubemap(1, TextureFormat.ARGB32, false);
+                    m_BlackCubeTexture = new Cubemap(1, GraphicsFormat.R8G8B8A8_SRGB, TextureCreationFlags.None);
                     for (int i = 0; i < 6; ++i)
                         m_BlackCubeTexture.SetPixel((CubemapFace)i, 0, 0, Color.black);
                     m_BlackCubeTexture.Apply();
@@ -125,7 +127,7 @@ namespace UnityEngine.Rendering
             {
                 if (m_MagentaCubeTexture == null)
                 {
-                    m_MagentaCubeTexture = new Cubemap(1, TextureFormat.ARGB32, false);
+                    m_MagentaCubeTexture = new Cubemap(1, GraphicsFormat.R8G8B8A8_SRGB, TextureCreationFlags.None);
                     for (int i = 0; i < 6; ++i)
                         m_MagentaCubeTexture.SetPixel((CubemapFace)i, 0, 0, Color.magenta);
                     m_MagentaCubeTexture.Apply();
@@ -145,7 +147,7 @@ namespace UnityEngine.Rendering
             {
                 if (m_MagentaCubeTextureArray == null)
                 {
-                    m_MagentaCubeTextureArray = new CubemapArray(1, 1, TextureFormat.RGBAFloat, false);
+                    m_MagentaCubeTextureArray = new CubemapArray(1, 1, GraphicsFormat.R32G32B32A32_SFloat, TextureCreationFlags.None);
                     for (int i = 0; i < 6; ++i)
                     {
                         Color[] colors = { Color.magenta };
@@ -168,7 +170,7 @@ namespace UnityEngine.Rendering
             {
                 if (m_WhiteCubeTexture == null)
                 {
-                    m_WhiteCubeTexture = new Cubemap(1, TextureFormat.ARGB32, false);
+                    m_WhiteCubeTexture = new Cubemap(1, GraphicsFormat.R8G8B8A8_SRGB, TextureCreationFlags.None);
                     for (int i = 0; i < 6; ++i)
                         m_WhiteCubeTexture.SetPixel((CubemapFace)i, 0, 0, Color.white);
                     m_WhiteCubeTexture.Apply();
@@ -208,7 +210,7 @@ namespace UnityEngine.Rendering
                 if (m_BlackVolumeTexture == null)
                 {
                     Color[] colors = { Color.black };
-                    m_BlackVolumeTexture = new Texture3D(1, 1, 1, TextureFormat.ARGB32, false);
+                    m_BlackVolumeTexture = new Texture3D(1, 1, 1, GraphicsFormat.R8G8B8A8_SRGB, TextureCreationFlags.None);
                     m_BlackVolumeTexture.SetPixels(colors, 0);
                     m_BlackVolumeTexture.Apply();
                 }
@@ -617,7 +619,7 @@ namespace UnityEngine.Rendering
         /// <param name="msaaSamples">Number of MSAA samples.</param>
         /// <returns>Generated names bassed on the provided parameters.</returns>
         public static string GetRenderTargetAutoName(int width, int height, int depth, RenderTextureFormat format, string name, bool mips = false, bool enableMSAA = false, MSAASamples msaaSamples = MSAASamples.None)
-            => GetRenderTargetAutoName(width, height, depth, format.ToString(), name, mips, enableMSAA, msaaSamples);
+            => GetRenderTargetAutoName(width, height, depth, format.ToString(), TextureDimension.None, name, mips, enableMSAA, msaaSamples, dynamicRes: false);
 
         /// <summary>
         /// Generate a name based on render texture parameters.
@@ -632,9 +634,26 @@ namespace UnityEngine.Rendering
         /// <param name="msaaSamples">Number of MSAA samples.</param>
         /// <returns>Generated names bassed on the provided parameters.</returns>
         public static string GetRenderTargetAutoName(int width, int height, int depth, GraphicsFormat format, string name, bool mips = false, bool enableMSAA = false, MSAASamples msaaSamples = MSAASamples.None)
-            => GetRenderTargetAutoName(width, height, depth, format.ToString(), name, mips, enableMSAA, msaaSamples);
+            => GetRenderTargetAutoName(width, height, depth, format.ToString(), TextureDimension.None, name, mips, enableMSAA, msaaSamples, dynamicRes: false);
 
-        static string GetRenderTargetAutoName(int width, int height, int depth, string format, string name, bool mips = false, bool enableMSAA = false, MSAASamples msaaSamples = MSAASamples.None)
+        /// <summary>
+        /// Generate a name based on render texture parameters.
+        /// </summary>
+        /// <param name="width">With of the texture.</param>
+        /// <param name="height">Height of the texture.</param>
+        /// <param name="depth">Depth of the texture.</param>
+        /// <param name="format">Graphics format of the render texture.</param>
+        /// <param name="dim">Dimension of the texture.</param>
+        /// <param name="name">Base name of the texture.</param>
+        /// <param name="mips">True if the texture has mip maps.</param>
+        /// <param name="enableMSAA">True if the texture is multisampled.</param>
+        /// <param name="msaaSamples">Number of MSAA samples.</param>
+        /// <param name="dynamicRes">True if the texture uses dynamic resolution.</param>
+        /// <returns>Generated names bassed on the provided parameters.</returns>
+        public static string GetRenderTargetAutoName(int width, int height, int depth, GraphicsFormat format, TextureDimension dim, string name, bool mips = false, bool enableMSAA = false, MSAASamples msaaSamples = MSAASamples.None, bool dynamicRes = false)
+            => GetRenderTargetAutoName(width, height, depth, format.ToString(), dim, name, mips, enableMSAA, msaaSamples, dynamicRes);
+
+        static string GetRenderTargetAutoName(int width, int height, int depth, string format, TextureDimension dim, string name, bool mips, bool enableMSAA, MSAASamples msaaSamples, bool dynamicRes)
         {
             string result = string.Format("{0}_{1}x{2}", name, width, height);
 
@@ -646,8 +665,14 @@ namespace UnityEngine.Rendering
 
             result = string.Format("{0}_{1}", result, format);
 
+            if (dim != TextureDimension.None)
+                result = string.Format("{0}_{1}", result, dim);
+
             if (enableMSAA)
                 result = string.Format("{0}_{1}", result, msaaSamples.ToString());
+
+            if (dynamicRes)
+                result = string.Format("{0}_{1}", result, "dynamic");
 
             return result;
         }

@@ -170,6 +170,21 @@ namespace UnityEngine.Rendering.HighDefinition
         }
 
         /// <summary>
+        /// Determines if the SkySettings is significantly divergent from another. This is going to be used to determine whether
+        /// to reset completely the ambient probe instead of using previous one when waiting for current data upon changes.
+        /// In addition to the checks done with the base function, this HDRISky override checks whether the cubemap parameter
+        /// has changed if both settings are HDRISky.
+        /// </summary>
+        /// <param name="otherSettings">The settings to compare with.</param>
+        /// <returns>Whether the settings are deemed very different.</returns>
+        public override bool SignificantlyDivergesFrom(SkySettings otherSettings)
+        {
+            HDRISky otherHdriSkySettings = otherSettings as HDRISky;
+
+            return base.SignificantlyDivergesFrom(otherSettings) || hdriSky.value != otherHdriSkySettings.hdriSky.value;
+        }
+
+        /// <summary>
         /// Returns HDRISkyRenderer type.
         /// </summary>
         /// <returns>HDRISkyRenderer type.</returns>
