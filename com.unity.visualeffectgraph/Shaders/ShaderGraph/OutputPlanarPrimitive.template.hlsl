@@ -6,38 +6,6 @@
 
 #define VFX_NON_UNIFORM_SCALE VFX_LOCAL_SPACE
 
-#if HAS_STRIPS
-#define PARTICLE_IN_EDGE (id & 1)
-float3 GetParticlePosition(uint index)
-{
-    struct Attributes attributes = (Attributes)0;
-
-    // Here we have to explicitly splice in the position (ShaderGraph splice system lacks regex support etc. :(, unlike VFX's).
-    $splice(VFXLoadPositionAttribute)
-
-    return attributes.position;
-}
-
-float3 GetStripTangent(float3 currentPos, uint relativeIndex, const StripData stripData)
-{
-    float3 prevTangent = (float3)0.0f;
-    if (relativeIndex > 0)
-    {
-        uint prevIndex = GetParticleIndex(relativeIndex - 1,stripData);
-        prevTangent = normalize(currentPos - GetParticlePosition(prevIndex));
-    }
-
-    float3 nextTangent = (float3)0.0f;
-    if (relativeIndex < stripData.nextIndex - 1)
-    {
-        uint nextIndex = GetParticleIndex(relativeIndex + 1,stripData);
-        nextTangent = normalize(GetParticlePosition(nextIndex) - currentPos);
-    }
-
-    return normalize(prevTangent + nextTangent);
-}
-#endif
-
 bool GetMeshAndElementIndex(inout AttributesMesh input, inout AttributesElement element)
 {
     uint id = input.vertexID;

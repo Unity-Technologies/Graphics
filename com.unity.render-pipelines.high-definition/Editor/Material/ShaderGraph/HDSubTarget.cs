@@ -133,7 +133,12 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             {
                 var passDescriptor = passes[i].descriptor;
                 passDescriptor.passTemplatePath = templatePath;
-                passDescriptor.sharedTemplateDirectories = templateMaterialDirectories;
+
+                // Concatenate the material directories in case VFX has post processed this sub target
+                var templateDirectories = new List<string>()
+                    .Concat(passDescriptor.sharedTemplateDirectories)
+                    .Concat(templateMaterialDirectories);
+                passDescriptor.sharedTemplateDirectories = templateDirectories.ToArray();
 
                 // Add the subShader to enable fields that depends on it
                 var originalRequireFields = passDescriptor.requiredFields;

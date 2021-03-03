@@ -66,7 +66,7 @@ VertexDescriptionInputs AttributesMeshToVertexDescriptionInputs(AttributesMesh i
     ZERO_INITIALIZE(GraphProperties, properties);
 
     // Fetch the vertex graph properties for the particle instance.
-    GetElementVertexProperties(element, properties);
+    ConfigureElementVertexProperties(element, properties);
 
     VertexDescription vertexDescription = VertexDescriptionFunction(vertexDescriptionInputs, properties);
 #else

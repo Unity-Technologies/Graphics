@@ -185,9 +185,12 @@ Pass
     $splice(GraphPixel)
 
     // --------------------------------------------------
+    // Build VFX Element
+	$features.graphVFX:     $include("VertexElement.template.hlsl")
+
+    // --------------------------------------------------
     // Build Graph Inputs
 
-	$features.graphVFX:     $include("VFX/Config.template.hlsl")
     $features.graphVertex:  $include("VertexAnimation.template.hlsl")
     $features.graphPixel:   $include("SharedCode.template.hlsl")
 
@@ -224,7 +227,7 @@ Pass
         GraphProperties properties;
         ZERO_INITIALIZE(GraphProperties, properties);
 
-        GetElementPixelProperties(fragInputs, properties);
+        ConfigureElementPixelProperties(fragInputs, properties);
 
         SurfaceDescription surfaceDescription = SurfaceDescriptionFunction(surfaceDescriptionInputs, properties);
         #else

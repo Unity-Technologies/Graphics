@@ -108,21 +108,13 @@ PackedVaryingsType MotionVectorVS(inout VaryingsType varyingsType, AttributesMes
         bool hasDeformation = unity_MotionVectorsParams.x > 0.0; // Skin or morph target
 
 #if defined(HAVE_VFX_MODIFICATION)
-        // Re-construct the VFX mesh (i.e. in case of procedural output like planar primitives).
-        // And fetch element index to sample the previous element matrix.
-        AttributesElement element;
-        ZERO_INITIALIZE(AttributesElement, element);
-
-        GetMeshAndElementIndex(inputMesh, element);
-
-        // NOTE: We have to re-evaluate the attributes here, not good.
-        // TODO: organize things so that VFX mesh and attributes get computed once.
-        GetElementData(element);
-
-        inputMesh = TransformMeshToPreviousElement(inputMesh, element);
+        // TODO: It is unnecessary for us to do this twice. We must re-use the element that gets configured in VertMesh by sharing it.
+        AttributesElement inputElement = VertElement(inputMesh);
+        float3 effectivePositionOS = inputElement.previousPosition;
+#else
+        float3 effectivePositionOS = (hasDeformation ? inputPass.previousPositionOS : inputMesh.positionOS);
 #endif
 
-        float3 effectivePositionOS = (hasDeformation ? inputPass.previousPositionOS : inputMesh.positionOS);
 #if defined(_ADD_PRECOMPUTED_VELOCITY)
         effectivePositionOS -= inputPass.precomputedVelocity;
 #endif
@@ -138,7 +130,7 @@ PackedVaryingsType MotionVectorVS(inout VaryingsType varyingsType, AttributesMes
             , varyingsType.vmesh
     #endif
     #if defined(HAVE_VFX_MODIFICATION)
-            , element
+            , inputElement
     #endif
             );
 

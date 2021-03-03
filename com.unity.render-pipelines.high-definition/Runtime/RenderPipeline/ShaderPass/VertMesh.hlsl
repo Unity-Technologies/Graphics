@@ -137,20 +137,12 @@ VaryingsMeshType VertMesh(AttributesMesh input, float3 worldSpaceOffset)
     UNITY_TRANSFER_INSTANCE_ID(input, output);
 
 #if defined(HAVE_VFX_MODIFICATION)
-    AttributesElement element;
-    ZERO_INITIALIZE(AttributesElement, element);
+    AttributesElement element = VertElement(input);
 
-    // Vertex might be culled early, thus we ensure the varyings are initialized to zero.
-    ZERO_INITIALIZE(VaryingsMeshType, output);
+    // if (element.cull)
+    //     return output;
 
-    if(!GetMeshAndElementIndex(input, element))
-        return output; // Culled index.
-
-    if(!GetInterpolatorAndElementData(output, element))
-        return output; // Dead particle.
-
-    // In VFX, "Element Space" is treated as Object Space.
-    input = TransformMeshToElement(input, element);
+    ConfigureElementVaryings(element, output);
 #endif
 
 #if defined(HAVE_MESH_MODIFICATION)

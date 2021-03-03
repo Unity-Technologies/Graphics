@@ -6,6 +6,7 @@ using UnityEngine;
 using UnityEditor.ShaderGraph;
 using UnityEditor.ShaderGraph.Internal;
 using UnityEditor.VFX;
+using UnityEngine.Rendering.HighDefinition;
 
 namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
 {
@@ -13,6 +14,14 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
     static class VFXHDRPSubTarget
     {
         internal const string Inspector = "Rendering.HighDefinition.VFXShaderGraphGUI";
+
+        internal static string GetVFXPath()
+            => "Packages/com.unity.visualeffectgraph/";
+
+        static string[] passTemplateVFXDirectories = new string[]
+        {
+            $"{GetVFXPath()}Shaders/ShaderGraph/",
+        };
 
         static VFXHDRPSubTarget()
         {
@@ -50,6 +59,8 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             for (int i = 0; i < passes.Length; i++)
             {
                 var passDescriptor = passes[i].descriptor;
+
+                passDescriptor.sharedTemplateDirectories = passTemplateVFXDirectories;
 
                 // Warning: Touching the structs field may require to manually append the default structs here.
                 passDescriptor.structs = new StructCollection
