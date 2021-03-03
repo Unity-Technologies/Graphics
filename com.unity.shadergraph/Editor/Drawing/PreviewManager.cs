@@ -304,7 +304,7 @@ namespace UnityEditor.ShaderGraph.Drawing
                 }
             }
             // ... Just as custom Interpolator Nodes have implied connections to their custom interpolator blocks
-            if (dir == PropagationDirection.Upstream && node is CustomInterpolatorNode ciNode)
+            if (dir == PropagationDirection.Upstream && node is CustomInterpolatorNode ciNode && ciNode.e_targetBlockNode != null)
             {
                 action(ciNode.e_targetBlockNode);
             }
