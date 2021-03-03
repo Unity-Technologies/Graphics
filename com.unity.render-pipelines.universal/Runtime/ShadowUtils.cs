@@ -1,4 +1,5 @@
 using System;
+using UnityEngine.Experimental.Rendering;
 using UnityEngine.Scripting.APIUpdating;
 
 namespace UnityEngine.Rendering.Universal
@@ -270,6 +271,19 @@ namespace UnityEngine.Rendering.Universal
             shadowTexture.wrapMode = TextureWrapMode.Clamp;
 
             return shadowTexture;
+        }
+
+        public static RTHandle AllocShadowRTHandle(int width, int height, DepthBits bits, string name)
+        {
+            return RTHandles.Alloc(width, height,
+                depthBufferBits: bits,
+                isShadowMap: true,
+                colorFormat: m_ShadowmapFormat == RenderTextureFormat.Shadowmap
+                    ? GraphicsFormat.ShadowAuto
+                    : GraphicsFormat.DepthAuto,
+                filterMode: m_ForceShadowPointSampling ? FilterMode.Point : FilterMode.Bilinear,
+                wrapMode: TextureWrapMode.Clamp,
+                name: name);
         }
 
         static Matrix4x4 GetShadowTransform(Matrix4x4 proj, Matrix4x4 view)
