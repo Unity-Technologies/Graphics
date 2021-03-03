@@ -135,7 +135,8 @@ namespace UnityEditor.Rendering.HighDefinition
 
         static FrameSettings GetDefaultFrameSettingsFor(Editor owner)
         {
-            HDRenderPipelineAsset hdrpAsset = GetHDRPAssetFor(owner);
+            HDRenderPipelineAsset hdrpAsset = HDRenderPipeline.defaultAsset;
+
             return owner is IDefaultFrameSettingsType getType
                 ? hdrpAsset.GetDefaultFrameSettings(getType.GetFrameSettingsType())
                 : hdrpAsset.GetDefaultFrameSettings(FrameSettingsRenderType.Camera);
@@ -177,64 +178,32 @@ namespace UnityEditor.Rendering.HighDefinition
             bool frameSettingsOverrideToForward = serialized.GetOverrides(FrameSettingsField.LitShaderMode) && serialized.litShaderMode == LitShaderMode.Forward;
             bool frameSettingsOverrideToDeferred = serialized.GetOverrides(FrameSettingsField.LitShaderMode) && serialized.litShaderMode == LitShaderMode.Deferred;
             bool defaultForwardUsed = !serialized.GetOverrides(FrameSettingsField.LitShaderMode) && defaultShaderLitMode == LitShaderMode.Forward;
+            bool defaultDeferredUsed = !serialized.GetOverrides(FrameSettingsField.LitShaderMode) && defaultShaderLitMode == LitShaderMode.Deferred;
+
             // Due to various reasons, MSAA and ray tracing are not compatible, if ray tracing is enabled on the asset. MSAA can not be enabled on the frame settings.
             bool msaaEnablable = hdrpSettings.supportMSAA && ((hdrpAssetSupportForward && (frameSettingsOverrideToForward || defaultForwardUsed)) || hdrpAssetIsForward) && !hdrpSettings.supportRayTracing;
             area.AmmendInfo(FrameSettingsField.MSAA,
                 overrideable: () => msaaEnablable,
-                overridedDefaultValue: msaaEnablable && defaultFrameSettings.IsEnabled(FrameSettingsField.MSAA),
-                customOverrideable: () =>
-                {
-                    switch (hdrpSettings.supportedLitShaderMode)
-                    {
-                        case RenderPipelineSettings.SupportedLitShaderMode.ForwardOnly:
-                            return false; //negative dependency
-                        case RenderPipelineSettings.SupportedLitShaderMode.DeferredOnly:
-                            return true; //negative dependency
-                        case RenderPipelineSettings.SupportedLitShaderMode.Both:
-                            return !(frameSettingsOverrideToForward || defaultForwardUsed); //negative dependency
-                        default:
-                            throw new System.ArgumentOutOfRangeException("Unknown ShaderLitMode");
-                    }
-                });
+                ignoreDependencies: true,
+                overridedDefaultValue: msaaEnablable && defaultFrameSettings.IsEnabled(FrameSettingsField.MSAA));
 
-            bool defaultDeferredUsed = !serialized.GetOverrides(FrameSettingsField.LitShaderMode) && defaultShaderLitMode == LitShaderMode.Deferred;
+            bool msaaIsOff = (msaaEnablable && serialized.GetOverrides(FrameSettingsField.MSAA)) ? !(serialized.IsEnabled(FrameSettingsField.MSAA) ?? false) : !defaultFrameSettings.IsEnabled(FrameSettingsField.MSAA);
+            area.AmmendInfo(FrameSettingsField.AlphaToMask,
+                overrideable: () => msaaEnablable && !msaaIsOff,
+                ignoreDependencies: true,
+                overridedDefaultValue: msaaEnablable && defaultFrameSettings.IsEnabled(FrameSettingsField.AlphaToMask) && !msaaIsOff);
+
             bool depthPrepassEnablable = (hdrpAssetSupportDeferred && (defaultDeferredUsed || frameSettingsOverrideToDeferred)) || (hdrpAssetIsDeferred);
             area.AmmendInfo(FrameSettingsField.DepthPrepassWithDeferredRendering,
                 overrideable: () => depthPrepassEnablable,
-                overridedDefaultValue: depthPrepassEnablable && defaultFrameSettings.IsEnabled(FrameSettingsField.DepthPrepassWithDeferredRendering),
-                customOverrideable: () =>
-                {
-                    switch (hdrpSettings.supportedLitShaderMode)
-                    {
-                        case RenderPipelineSettings.SupportedLitShaderMode.ForwardOnly:
-                            return false;
-                        case RenderPipelineSettings.SupportedLitShaderMode.DeferredOnly:
-                            return true;
-                        case RenderPipelineSettings.SupportedLitShaderMode.Both:
-                            return frameSettingsOverrideToDeferred || defaultDeferredUsed;
-                        default:
-                            throw new System.ArgumentOutOfRangeException("Unknown ShaderLitMode");
-                    }
-                });
+                ignoreDependencies: true,
+                overridedDefaultValue: depthPrepassEnablable && defaultFrameSettings.IsEnabled(FrameSettingsField.DepthPrepassWithDeferredRendering));
 
             bool clearGBufferEnablable = (hdrpAssetSupportDeferred && (defaultDeferredUsed || frameSettingsOverrideToDeferred)) || (hdrpAssetIsDeferred);
             area.AmmendInfo(FrameSettingsField.ClearGBuffers,
                 overrideable: () => clearGBufferEnablable,
-                overridedDefaultValue: clearGBufferEnablable && defaultFrameSettings.IsEnabled(FrameSettingsField.ClearGBuffers),
-                customOverrideable: () =>
-                {
-                    switch (hdrpSettings.supportedLitShaderMode)
-                    {
-                        case RenderPipelineSettings.SupportedLitShaderMode.ForwardOnly:
-                            return false;
-                        case RenderPipelineSettings.SupportedLitShaderMode.DeferredOnly:
-                            return true;
-                        case RenderPipelineSettings.SupportedLitShaderMode.Both:
-                            return frameSettingsOverrideToDeferred || defaultDeferredUsed;
-                        default:
-                            throw new System.ArgumentOutOfRangeException("Unknown ShaderLitMode");
-                    }
-                });
+                ignoreDependencies: true,
+                overridedDefaultValue: clearGBufferEnablable && defaultFrameSettings.IsEnabled(FrameSettingsField.ClearGBuffers));
 
             area.AmmendInfo(FrameSettingsField.RayTracing, overrideable: () => hdrpSettings.supportRayTracing);
 #if !ENABLE_VIRTUALTEXTURES
@@ -246,6 +215,7 @@ namespace UnityEditor.Rendering.HighDefinition
             area.AmmendInfo(FrameSettingsField.Decals, overrideable: () => hdrpSettings.supportDecals);
             area.AmmendInfo(FrameSettingsField.DecalLayers, overrideable: () => hdrpSettings.supportDecalLayers);
             area.AmmendInfo(FrameSettingsField.Distortion, overrideable: () => hdrpSettings.supportDistortion);
+            area.AmmendInfo(FrameSettingsField.RoughDistortion, overrideable: () => hdrpSettings.supportDistortion);
 
             area.AmmendInfo(FrameSettingsField.Postprocess, overrideable: () => (frameSettingType != FrameSettingsRenderType.CustomOrBakedReflection &&
                 frameSettingType != FrameSettingsRenderType.RealtimeReflection));
@@ -261,14 +231,16 @@ namespace UnityEditor.Rendering.HighDefinition
                 overridedDefaultValue: ScalableLevel3ForFrameSettingsUIOnly.Low,
                 customGetter: () => (ScalableLevel3ForFrameSettingsUIOnly)serialized.lodBiasQualityLevel.intValue,
                 customSetter: v => serialized.lodBiasQualityLevel.intValue = (int)v,
-                customOverrideable: () => serialized.lodBiasMode.GetEnumValue<LODBiasMode>() != LODBiasMode.OverrideQualitySettings,
+                overrideable: () => serialized.lodBiasMode.GetEnumValue<LODBiasMode>() != LODBiasMode.OverrideQualitySettings,
+                ignoreDependencies: true,
                 hasMixedValues: serialized.lodBiasQualityLevel.hasMultipleDifferentValues);
 
             area.AmmendInfo(FrameSettingsField.LODBias,
                 overridedDefaultValue: hdrpSettings.lodBias[serialized.lodBiasQualityLevel.intValue],
                 customGetter: () => serialized.lodBias.floatValue,
                 customSetter: v => serialized.lodBias.floatValue = (float)v,
-                customOverrideable: () => serialized.lodBiasMode.GetEnumValue<LODBiasMode>() != LODBiasMode.FromQualitySettings,
+                overrideable: () => serialized.lodBiasMode.GetEnumValue<LODBiasMode>() != LODBiasMode.FromQualitySettings,
+                ignoreDependencies: true,
                 labelOverride: serialized.lodBiasMode.GetEnumValue<LODBiasMode>() == LODBiasMode.ScaleQualitySettings ? "Scale Factor" : "LOD Bias",
                 hasMixedValues: serialized.lodBias.hasMultipleDifferentValues);
 
@@ -283,14 +255,16 @@ namespace UnityEditor.Rendering.HighDefinition
                 overridedDefaultValue: ScalableLevel3ForFrameSettingsUIOnly.Low,
                 customGetter: () => (ScalableLevel3ForFrameSettingsUIOnly)serialized.maximumLODLevelQualityLevel.intValue,
                 customSetter: v => serialized.maximumLODLevelQualityLevel.intValue = (int)v,
-                customOverrideable: () => serialized.maximumLODLevelMode.GetEnumValue<MaximumLODLevelMode>() != MaximumLODLevelMode.OverrideQualitySettings,
+                overrideable: () => serialized.maximumLODLevelMode.GetEnumValue<MaximumLODLevelMode>() != MaximumLODLevelMode.OverrideQualitySettings,
+                ignoreDependencies: true,
                 hasMixedValues: serialized.maximumLODLevelQualityLevel.hasMultipleDifferentValues);
 
             area.AmmendInfo(FrameSettingsField.MaximumLODLevel,
                 overridedDefaultValue: hdrpSettings.maximumLODLevel[serialized.maximumLODLevelQualityLevel.intValue],
                 customGetter: () => serialized.maximumLODLevel.intValue,
                 customSetter: v => serialized.maximumLODLevel.intValue = (int)v,
-                customOverrideable: () => serialized.maximumLODLevelMode.GetEnumValue<MaximumLODLevelMode>() != MaximumLODLevelMode.FromQualitySettings,
+                overrideable: () => serialized.maximumLODLevelMode.GetEnumValue<MaximumLODLevelMode>() != MaximumLODLevelMode.FromQualitySettings,
+                ignoreDependencies: true,
                 labelOverride: serialized.maximumLODLevelMode.GetEnumValue<MaximumLODLevelMode>() == MaximumLODLevelMode.OffsetQualitySettings ? "Offset Factor" : "Maximum LOD Level",
                 hasMixedValues: serialized.maximumLODLevel.hasMultipleDifferentValues);
 
@@ -322,6 +296,8 @@ namespace UnityEditor.Rendering.HighDefinition
             area.AmmendInfo(FrameSettingsField.SSR, overrideable: () => hdrpSettings.supportSSR);
             area.AmmendInfo(FrameSettingsField.TransparentSSR, overrideable: () => (hdrpSettings.supportSSR && hdrpSettings.supportSSRTransparent));
             area.AmmendInfo(FrameSettingsField.SSAO, overrideable: () => hdrpSettings.supportSSAO);
+            area.AmmendInfo(FrameSettingsField.SSGI, overrideable: () => hdrpSettings.supportSSGI);
+            area.AmmendInfo(FrameSettingsField.VolumetricClouds, overrideable: () => hdrpSettings.supportVolumetricClouds);
 
             // SSS
             area.AmmendInfo(
@@ -334,26 +310,29 @@ namespace UnityEditor.Rendering.HighDefinition
                 overridedDefaultValue: SssQualityMode.FromQualitySettings,
                 customGetter: () => serialized.sssQualityMode.GetEnumValue<SssQualityMode>(),
                 customSetter: v  => serialized.sssQualityMode.SetEnumValue((SssQualityMode)v),
-                customOverrideable: () => hdrpSettings.supportSubsurfaceScattering
+                overrideable: () => hdrpSettings.supportSubsurfaceScattering
                 && (serialized.IsEnabled(FrameSettingsField.SubsurfaceScattering) ?? false),
+                ignoreDependencies: true,
                 hasMixedValues: serialized.sssQualityMode.hasMultipleDifferentValues
             );
             area.AmmendInfo(FrameSettingsField.SssQualityLevel,
                 overridedDefaultValue: ScalableLevel3ForFrameSettingsUIOnly.Low,
                 customGetter:       () => (ScalableLevel3ForFrameSettingsUIOnly)serialized.sssQualityLevel.intValue, // 3 levels
                 customSetter:       v  => serialized.sssQualityLevel.intValue = Math.Max(0, Math.Min((int)v, 2)),    // Levels 0-2
-                customOverrideable: () => hdrpSettings.supportSubsurfaceScattering
+                overrideable: () => hdrpSettings.supportSubsurfaceScattering
                 && (serialized.IsEnabled(FrameSettingsField.SubsurfaceScattering) ?? false)
                 && (serialized.sssQualityMode.GetEnumValue<SssQualityMode>() == SssQualityMode.FromQualitySettings),
+                ignoreDependencies: true,
                 hasMixedValues: serialized.sssQualityLevel.hasMultipleDifferentValues
             );
             area.AmmendInfo(FrameSettingsField.SssCustomSampleBudget,
                 overridedDefaultValue: (int)DefaultSssSampleBudgetForQualityLevel.Low,
                 customGetter:       () => serialized.sssCustomSampleBudget.intValue,
                 customSetter:       v  => serialized.sssCustomSampleBudget.intValue = Math.Max(1, Math.Min((int)v, (int)DefaultSssSampleBudgetForQualityLevel.Max)),
-                customOverrideable: () => hdrpSettings.supportSubsurfaceScattering
+                overrideable: () => hdrpSettings.supportSubsurfaceScattering
                 && (serialized.IsEnabled(FrameSettingsField.SubsurfaceScattering) ?? false)
                 && (serialized.sssQualityMode.GetEnumValue<SssQualityMode>() != SssQualityMode.FromQualitySettings),
+                ignoreDependencies: true,
                 hasMixedValues: serialized.sssCustomSampleBudget.hasMultipleDifferentValues
             );
 

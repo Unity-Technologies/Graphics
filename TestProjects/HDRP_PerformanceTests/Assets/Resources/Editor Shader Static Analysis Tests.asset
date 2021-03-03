@@ -23,12 +23,25 @@ MonoBehaviour:
     testName: Default
     asset: {fileID: 2100000, guid: d21ceb45c06d0f840bbac5ce3ba6076b, type: 2}
     filter:
-      filterType: 2
-      referenceName: GBuffer
+      filterType: 0
+      referenceName: 
       definition:
         name: 
         category: 
         keywordFilter: 
         passNameFilter: 
+    includeInTargets: 1f000000
+  - assetAlias: Deferred
+    assetCategory: Default
+    testName: Default
+    asset: {fileID: 7200000, guid: 0b64f79746d2daf4198eaf6eab9af259, type: 3}
+    filter:
+      filterType: 1
+      referenceName: 
+      definition:
+        name: Deferred
+        category: Lit
+        keywordFilter: SHADOWS_SHADOWMASK&SCREEN_SPACE_SHADOWS_ON&SHADOW_LOW
+        passNameFilter: Deferred_Indirect_Fptl_Variant0
     includeInTargets: 1f000000
   m_StaticAnalysisTimeout: 3600

@@ -29,6 +29,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
         {
             name = "VaryingsMeshToPS",
             packFields = true,
+            populateWithCustomInterpolators = true,
             fields = new FieldDescriptor[]
             {
                 HDStructFields.VaryingsMeshToPS.positionCS,

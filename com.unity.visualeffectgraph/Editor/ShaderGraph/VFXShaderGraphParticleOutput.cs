@@ -15,16 +15,18 @@ namespace UnityEditor.VFX
 {
     class VFXShaderGraphParticleOutput : VFXAbstractParticleOutput
     {
+        //"protected" is only to be listed by VFXModel.GetSettings, we should always use GetOrRefreshShaderGraphObject
         [SerializeField, VFXSetting]
-        public ShaderGraphVfxAsset shaderGraph;
+        protected ShaderGraphVfxAsset shaderGraph;
 
         public override void OnEnable()
         {
             base.OnEnable();
         }
 
-        void RefreshShaderGraphObject()
+        public ShaderGraphVfxAsset GetOrRefreshShaderGraphObject()
         {
+            //This is the only place where shaderGraph property is updated or read
             if (shaderGraph == null && !object.ReferenceEquals(shaderGraph, null))
             {
                 string assetPath = AssetDatabase.GetAssetPath(shaderGraph.GetInstanceID());
@@ -35,6 +37,7 @@ namespace UnityEditor.VFX
                     shaderGraph = newShaderGraph;
                 }
             }
+            return shaderGraph;
         }
 
         public override void GetImportDependentAssets(HashSet<int> dependencies)
@@ -110,7 +113,7 @@ namespace UnityEditor.VFX
             {
                 foreach (var setting in base.filteredOutSettings)
                     yield return setting;
-                if (shaderGraph != null)
+                if (GetOrRefreshShaderGraphObject() != null)
                 {
                     yield return "colorMapping";
                     yield return "useAlphaClipping";
@@ -120,12 +123,12 @@ namespace UnityEditor.VFX
             }
         }
 
-        public override bool supportsUV => base.supportsUV && shaderGraph == null;
+        public override bool supportsUV => base.supportsUV && GetOrRefreshShaderGraphObject() == null;
         public override bool exposeAlphaThreshold
         {
             get
             {
-                RefreshShaderGraphObject();
+                var shaderGraph = GetOrRefreshShaderGraphObject();
                 if (shaderGraph == null)
                 {
                     if (base.exposeAlphaThreshold)
@@ -143,12 +146,12 @@ namespace UnityEditor.VFX
                 return false;
             }
         }
-        public override bool supportSoftParticles => base.supportSoftParticles && shaderGraph == null;
+        public override bool supportSoftParticles => base.supportSoftParticles && GetOrRefreshShaderGraphObject() == null;
         public override bool hasAlphaClipping
         {
             get
             {
-                RefreshShaderGraphObject();
+                var shaderGraph = GetOrRefreshShaderGraphObject();
                 bool noShaderGraphAlphaThreshold = shaderGraph == null && useAlphaClipping;
                 bool ShaderGraphAlphaThreshold = shaderGraph != null && shaderGraph.alphaClipping;
                 return noShaderGraphAlphaThreshold || ShaderGraphAlphaThreshold;
@@ -168,7 +171,7 @@ namespace UnityEditor.VFX
             get
             {
                 IEnumerable<VFXPropertyWithValue> properties = base.inputProperties;
-                RefreshShaderGraphObject();
+                var shaderGraph = GetOrRefreshShaderGraphObject();
                 if (shaderGraph != null)
                 {
                     var shaderGraphProperties = new List<VFXPropertyWithValue>();
@@ -255,7 +258,7 @@ namespace UnityEditor.VFX
             foreach (var exp in base.CollectGPUExpressions(slotExpressions))
                 yield return exp;
 
-            RefreshShaderGraphObject();
+            var shaderGraph = GetOrRefreshShaderGraphObject();
             if (shaderGraph != null)
             {
                 foreach (var sgProperty in shaderGraph.properties)
@@ -273,9 +276,7 @@ namespace UnityEditor.VFX
                 foreach (var def in base.additionalDefines)
                     yield return def;
 
-
-                RefreshShaderGraphObject();
-
+                var shaderGraph = GetOrRefreshShaderGraphObject();
                 if (shaderGraph != null)
                 {
                     yield return "VFX_SHADERGRAPH";
@@ -337,28 +338,28 @@ namespace UnityEditor.VFX
                 case VFXDeviceTarget.CPU:
                     break;
                 case VFXDeviceTarget.GPU:
-
-                    RefreshShaderGraphObject();
+                    var shaderGraph = GetOrRefreshShaderGraphObject();
                     if (shaderGraph != null)
                     {
-                        foreach (var tex in shaderGraph.textureInfos.Where(t => t.texture != null).OrderBy(t => t.name))
+                        foreach (var tex in shaderGraph.textureInfos)
                         {
-                            switch (tex.texture.dimension)
+                            switch (tex.dimension)
                             {
+                                default:
                                 case TextureDimension.Tex2D:
-                                    mapper.AddExpression(new VFXTexture2DValue(tex.texture.GetInstanceID(), VFXValue.Mode.Variable), tex.name, -1);
+                                    mapper.AddExpression(new VFXTexture2DValue(tex.instanceID, VFXValue.Mode.Variable), tex.name, -1);
                                     break;
                                 case TextureDimension.Tex3D:
-                                    mapper.AddExpression(new VFXTexture3DValue(tex.texture.GetInstanceID(), VFXValue.Mode.Variable), tex.name, -1);
+                                    mapper.AddExpression(new VFXTexture3DValue(tex.instanceID, VFXValue.Mode.Variable), tex.name, -1);
                                     break;
                                 case TextureDimension.Cube:
-                                    mapper.AddExpression(new VFXTextureCubeValue(tex.texture.GetInstanceID(), VFXValue.Mode.Variable), tex.name, -1);
+                                    mapper.AddExpression(new VFXTextureCubeValue(tex.instanceID, VFXValue.Mode.Variable), tex.name, -1);
                                     break;
                                 case TextureDimension.Tex2DArray:
-                                    mapper.AddExpression(new VFXTexture2DArrayValue(tex.texture.GetInstanceID(), VFXValue.Mode.Variable), tex.name, -1);
+                                    mapper.AddExpression(new VFXTexture2DArrayValue(tex.instanceID, VFXValue.Mode.Variable), tex.name, -1);
                                     break;
                                 case TextureDimension.CubeArray:
-                                    mapper.AddExpression(new VFXTextureCubeArrayValue(tex.texture.GetInstanceID(), VFXValue.Mode.Variable), tex.name, -1);
+                                    mapper.AddExpression(new VFXTextureCubeArrayValue(tex.instanceID, VFXValue.Mode.Variable), tex.name, -1);
                                     break;
                             }
                         }
@@ -387,7 +388,7 @@ namespace UnityEditor.VFX
         {
             get
             {
-                RefreshShaderGraphObject();
+                var shaderGraph = GetOrRefreshShaderGraphObject();
                 if (shaderGraph != null)
                     foreach (var param in shaderGraph.properties)
                         if (!IsTexture(param.propertyType)) // Remove exposed textures from list of interpolants
@@ -402,7 +403,7 @@ namespace UnityEditor.VFX
         public override bool SetupCompilation()
         {
             if (!base.SetupCompilation()) return false;
-            RefreshShaderGraphObject();
+            var shaderGraph = GetOrRefreshShaderGraphObject();
             if (shaderGraph != null)
             {
                 if (!isLitShader && shaderGraph.lit)
@@ -435,8 +436,7 @@ namespace UnityEditor.VFX
                 foreach (var rep in base.additionalReplacements)
                     yield return rep;
 
-                RefreshShaderGraphObject();
-
+                var shaderGraph = GetOrRefreshShaderGraphObject();
                 if (shaderGraph != null)
                 {
                     RPInfo info = currentRP;
@@ -566,7 +566,7 @@ namespace UnityEditor.VFX
                         callSG.builder.Append($"\n{shaderGraph.outputStructName} OUTSG = {shaderGraph.evaluationFunctionName}(INSG");
 
                         if (graphCode.properties.Any())
-                            callSG.builder.Append("," + graphCode.properties.Select(t => t.GetHLSLVariableName(false)).Aggregate((s, t) => s + ", " + t));
+                            callSG.builder.Append("," + graphCode.properties.Select(t => t.GetHLSLVariableName(true)).Aggregate((s, t) => s + ", " + t));
 
                         callSG.builder.AppendLine(");");
 
@@ -574,7 +574,7 @@ namespace UnityEditor.VFX
                         if (pixelPorts.Any(t => t == ShaderGraphVfxAsset.AlphaThresholdSlotId) && shaderGraph.alphaClipping)
                         {
                             callSG.builder.AppendLine(
-@"#if (USE_ALPHA_TEST || WRITE_MOTION_VECTOR_IN_FORWARD) && defined(VFX_VARYING_ALPHATHRESHOLD)
+@"#if (USE_ALPHA_TEST || VFX_FEATURE_MOTION_VECTORS_FORWARD) && defined(VFX_VARYING_ALPHATHRESHOLD)
 i.VFX_VARYING_ALPHATHRESHOLD = OUTSG.AlphaClipThreshold_7;
 #endif");
                         }

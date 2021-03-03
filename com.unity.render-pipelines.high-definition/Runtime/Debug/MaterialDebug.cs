@@ -102,7 +102,7 @@ namespace UnityEngine.Rendering.HighDefinition
             AmbientOcclusion,
             /// <summary>Display metal (N/A for AxF).</summary>
             Metal,
-            /// <summary>Display specular.</summary>
+            /// <summary>Display the specular color (fresnel0). For materials using the metallic property, the corresponding fresnel0 term is displayed. (N/A for Unlit).</summary>
             Specular,
             /// <summary>Display alpha.</summary>
             Alpha,

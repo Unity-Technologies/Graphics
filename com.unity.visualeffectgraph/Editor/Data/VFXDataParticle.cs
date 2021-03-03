@@ -718,8 +718,16 @@ namespace UnityEditor.VFX
             {
                 if (context.HasFeature(VFXOutputUpdate.Features.MotionVector))
                 {
+                    uint sizePerElement = 12U * 4U;
+                    if (context.output.SupportsMotionVectorPerVertex(out uint vertsCount))
+                    {
+                        // 2 floats per vertex
+                        sizePerElement = vertsCount * 2U * 4U;
+                    }
+                    // add previous frame index
+                    sizePerElement += 4U;
                     int currentElementToVFXBufferMotionVector = outTemporaryBufferDescs.Count;
-                    outTemporaryBufferDescs.Add(new VFXTemporaryGPUBufferDesc() { frameCount = 2u, desc = new VFXGPUBufferDesc { type = ComputeBufferType.Raw, size = capacity * 64, stride = 4 } });
+                    outTemporaryBufferDescs.Add(new VFXTemporaryGPUBufferDesc() { frameCount = 2u, desc = new VFXGPUBufferDesc { type = ComputeBufferType.Raw, size = capacity * sizePerElement, stride = 4 } });
                     elementToVFXBufferMotionVector.Add(context.output, currentElementToVFXBufferMotionVector);
                 }
             }

@@ -30,6 +30,8 @@ TEXTURE2D(_SpecGlossMap);       SAMPLER(sampler_SpecGlossMap);
 #define CAMERA_NEAR_FADE _CameraFadeParams.x
 #define CAMERA_INV_FADE_DISTANCE _CameraFadeParams.y
 
+#define _BumpScale 1.0
+
 half4 SampleAlbedo(float2 uv, float3 blendUv, half4 color, float4 particleColor, float4 projectedPosition, TEXTURE2D_PARAM(albedoMap, sampler_albedoMap))
 {
     half4 albedo = BlendTexture(TEXTURE2D_ARGS(albedoMap, sampler_albedoMap), uv, blendUv) * color;
@@ -38,7 +40,7 @@ half4 SampleAlbedo(float2 uv, float3 blendUv, half4 color, float4 particleColor,
 #if defined (_COLORADDSUBDIFF_ON)
     colorAddSubDiff = _BaseColorAddSubDiff;
 #endif
-    albedo = MixParticleColor(albedo, particleColor, colorAddSubDiff);
+    albedo = MixParticleColor(albedo, half4(particleColor), colorAddSubDiff);
 
     AlphaDiscard(albedo.a, _Cutoff);
 
@@ -61,7 +63,7 @@ half4 SampleAlbedo(TEXTURE2D_PARAM(albedoMap, sampler_albedoMap), ParticleParams
     #if defined (_COLORADDSUBDIFF_ON)
         colorAddSubDiff = _BaseColorAddSubDiff;
     #endif
-    albedo = MixParticleColor(albedo, params.vertexColor, colorAddSubDiff);
+    albedo = MixParticleColor(albedo, half4(params.vertexColor), colorAddSubDiff);
 
     AlphaDiscard(albedo.a, _Cutoff);
 
