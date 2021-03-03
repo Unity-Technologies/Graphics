@@ -30,10 +30,10 @@ half Alpha(half albedoAlpha, half4 color, half cutoff)
 
 half4 SampleAlbedoAlpha(float2 uv, TEXTURE2D_PARAM(albedoAlphaMap, sampler_albedoAlphaMap))
 {
-    return SAMPLE_TEXTURE2D(albedoAlphaMap, sampler_albedoAlphaMap, uv);
+    return half4(SAMPLE_TEXTURE2D(albedoAlphaMap, sampler_albedoAlphaMap, uv));
 }
 
-half3 SampleNormal(float2 uv, TEXTURE2D_PARAM(bumpMap, sampler_bumpMap), half scale = 1.0h)
+half3 SampleNormal(float2 uv, TEXTURE2D_PARAM(bumpMap, sampler_bumpMap), half scale = half(1.0))
 {
 #ifdef _NORMALMAP
     half4 n = SAMPLE_TEXTURE2D(bumpMap, sampler_bumpMap, uv);
