@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
 using UnityEngine.Rendering.HighDefinition.Attributes;
+using UnityEngine.Experimental.Rendering.RenderGraphModule;
 
 namespace UnityEngine.Rendering.HighDefinition
 {
@@ -1806,6 +1807,19 @@ namespace UnityEngine.Rendering.HighDefinition
             m_DebugRenderingItems = widgetList.ToArray();
             var panel = DebugManager.instance.GetPanel(k_PanelRendering, true);
             panel.children.Add(m_DebugRenderingItems);
+
+            var renderGraphs = RenderGraph.GetRegisteredRenderGraphs();
+            foreach (var graph in renderGraphs)
+                graph.RegisterDebug(panel);
+        }
+
+        void UnregisterRenderingDebug()
+        {
+            UnregisterDebugItems(k_PanelRendering, m_DebugRenderingItems);
+
+            var renderGraphs = RenderGraph.GetRegisteredRenderGraphs();
+            foreach (var graph in renderGraphs)
+                graph.UnRegisterDebug();
         }
 
         void RegisterDecalsDebug()
@@ -1848,7 +1862,7 @@ namespace UnityEngine.Rendering.HighDefinition
             UnregisterDebugItems(k_PanelMaterials, m_DebugMaterialItems);
             UnregisterDebugItems(k_PanelLighting, m_DebugLightingItems);
             UnregisterDebugItems(k_PanelVolume, m_DebugVolumeItems);
-            UnregisterDebugItems(k_PanelRendering, m_DebugRenderingItems);
+            UnregisterRenderingDebug();
             DebugManager.instance.UnregisterData(this);
         }
 
@@ -1948,7 +1962,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 s_CameraNamesStrings = s_CameraNames.ToArray();
                 s_CameraNamesValues = Enumerable.Range(0, s_CameraNames.Count()).ToArray();
 
-                UnregisterDebugItems(k_PanelRendering, m_DebugRenderingItems);
+                UnregisterRenderingDebug();
                 RegisterRenderingDebug();
                 needsRefreshingCameraFreezeList = false;
             }
