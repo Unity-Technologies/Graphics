@@ -39,6 +39,11 @@ namespace UnityEditor.Graphing
         [SerializeField]
         string m_AssetGuid;
 
+        internal string AssetGuid
+        {
+            get => m_AssetGuid;
+        }
+
         [NonSerialized]
         GraphData m_Graph;
 
