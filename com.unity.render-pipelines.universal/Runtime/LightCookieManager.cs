@@ -1,10 +1,11 @@
-using UnityEditor;
+using System;
 using UnityEngine.Experimental.Rendering;
-using UnityEngine.Rendering.Universal.Internal;
+using Unity.Collections;
+using Unity.Collections.LowLevel.Unsafe;
 
 namespace UnityEngine.Rendering.Universal
 {
-    public class LightCookieManager
+    public class LightCookieManager : IDisposable
     {
         static class ShaderProperty
         {
@@ -13,7 +14,7 @@ namespace UnityEngine.Rendering.Universal
             public static readonly int _MainLightCookieUVScale    = Shader.PropertyToID("_MainLightCookieUVScale");
             public static readonly int _MainLightCookieFormat     = Shader.PropertyToID("_MainLightCookieFormat");
         }
-        public struct LightCookieSettings
+        public struct Settings
         {
             public struct AtlasSettings
             {
@@ -25,19 +26,41 @@ namespace UnityEngine.Rendering.Universal
 
             public AtlasSettings atlas;
 
-            public static LightCookieSettings GetDefault()
+            public static Settings GetDefault()
             {
-                LightCookieSettings s;
+                Settings s;
                 s.atlas.resolution = new Vector2Int(1024, 1024);
                 s.atlas.format     = GraphicsFormat.R8G8B8A8_SRGB; // TODO: optimize
                 return s;
             }
         }
 
-        Texture2DAtlas m_AdditionalCookieLightAtlas;
-        LightCookieSettings m_Settings;
+        private struct LightPriority : System.IComparable<LightPriority>
+        {
+            public int visibleLightIndex;
+            public int priority;
+            public int score;
 
-        public LightCookieManager(in LightCookieSettings settings)
+            public int CompareTo(LightPriority other)
+            {
+                if (priority > other.priority)
+                    return -1;
+                if (priority == other.priority)
+                {
+                    if (score > other.score)
+                        return -1;
+                    if (score == other.score)
+                        return 0;
+                }
+
+                return 1;
+            }
+        }
+
+        Texture2DAtlas m_AdditionalCookieLightAtlas;
+        Settings m_Settings;
+
+        public LightCookieManager(in Settings settings)
         {
             // TODO: correct atlas type?
             m_AdditionalCookieLightAtlas = new Texture2DAtlas(
@@ -47,9 +70,14 @@ namespace UnityEngine.Rendering.Universal
                 FilterMode.Bilinear,    // TODO: option?
                 settings.atlas.isPow2,    // TODO: necessary?
                 "Universal Light Cookie Atlas",
-                false); // TODO: support mips
+                false); // TODO: support mips, use Pow2Atlas
 
             m_Settings = settings;
+        }
+
+        public void Dispose()
+        {
+            m_AdditionalCookieLightAtlas.Release();
         }
 
         public void Setup(ScriptableRenderContext ctx, CommandBuffer cmd, in LightData lightData)
@@ -97,9 +125,77 @@ namespace UnityEngine.Rendering.Universal
 
         void SetupAdditionalLights(CommandBuffer cmd, in LightData lightData)
         {
-            //SortByPriority();
-            //UpdateAtlas();
+            // TODO: how fast is temp alloc???
+            var sortedLights = new NativeArray<LightPriority>(lightData.additionalLightsCount , Allocator.Temp);
+            SortVisibleLightsByPriority(lightData, ref sortedLights);
+
+            var textureAtlasUVRects = new NativeArray<Rect>(lightData.additionalLightsCount , Allocator.Temp);
+            UpdateAtlas(cmd, lightData, sortedLights, ref textureAtlasUVRects);
+
             //Bind();
+
+            textureAtlasUVRects.Dispose();
+            sortedLights.Dispose();
+        }
+
+        void SortVisibleLightsByPriority(in LightData lightData, ref NativeArray<LightPriority> sortedLights)
+        {
+            var skipIndex = lightData.mainLightIndex;
+            int lightIndex = 0;
+            for (int i = 0; i < sortedLights.Length; i++)
+            {
+                // Skip main light
+                if (i == skipIndex)
+                    continue;
+
+                LightPriority lp;
+                lp.visibleLightIndex = i;    // Index into light data after sorting
+                lp.priority = 0;
+                lp.score = 0;
+
+                // Get user priority
+                var additionalLightData = lightData.visibleLights[i].light.GetComponent<UniversalAdditionalLightData>();
+                if (additionalLightData != null)
+                    lp.priority = additionalLightData.priority;
+
+                // Compute importance score
+                // Factors:
+                // 1. Light screen area
+                // 2. Light intensity
+                // 3. Cookies only for pixel lights
+                // 4. TODO: better criteria?? spot > point?
+                Rect  lightScreenRect = lightData.visibleLights[i].screenRect;
+                float lightScreenArea = lightScreenRect.width * lightScreenRect.height;
+                float lightIntensity  = lightData.visibleLights[i].light.intensity;
+                float pixelLight      = lightData.visibleLights[i].light.renderMode == LightRenderMode.ForceVertex ? 0 : 1;
+                lp.score = (int)(lightScreenArea * lightIntensity * pixelLight + 0.5f);
+
+                sortedLights[lightIndex++] = lp;
+            }
+
+            unsafe
+            {
+                CoreUnsafeUtils.QuickSort<LightPriority>(sortedLights.Length, sortedLights.GetUnsafePtr());
+            }
+        }
+
+        void UpdateAtlas(CommandBuffer cmd, in LightData lightData, in NativeArray<LightPriority> sortedLights, ref NativeArray<Rect> textureAtlasUVRects)
+        {
+            // Test if a texture is in atlas
+            // If yes
+            //  --> add UV rect
+            // If no
+            //    --> add into atlas
+            //      If no space
+            //          --> clear atlas
+            //          --> re-insert in priority order
+            //          --> TODO: add partial eviction mechanism??
+            //          If no space
+            //              --> warn
+            //          If space
+            //              --> add UV rect
+            //      If space
+            //          --> add UV rect
         }
     }
 }

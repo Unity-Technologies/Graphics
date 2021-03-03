@@ -70,7 +70,7 @@ namespace UnityEngine.Rendering.Universal.Internal
                 m_AdditionalLightOcclusionProbeChannels = new Vector4[maxLights];
             }
 
-            m_LightCookieManager = new LightCookieManager(LightCookieManager.LightCookieSettings.GetDefault());
+            m_LightCookieManager = new LightCookieManager(LightCookieManager.Settings.GetDefault());
         }
 
         public void Setup(ScriptableRenderContext context, ref RenderingData renderingData)
