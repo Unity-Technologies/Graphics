@@ -8,8 +8,6 @@ namespace UnityEngine.Rendering.HighDefinition
     {
         struct LightingBuffers
         {
-            // TODO RENDERGRAPH: Those two buffers aren't really lighting buffers but only used for SSS
-            // We should probably move them out of here.
             public TextureHandle    sssBuffer;
             public TextureHandle    diffuseLightingBuffer;
 
@@ -359,10 +357,8 @@ namespace UnityEngine.Rendering.HighDefinition
                         resources.tileListBuffer = data.tileListBuffer;
                         resources.dispatchIndirectBuffer = data.dispatchIndirectBuffer;
 
-                        // TODO RENDERGRAPH: try to find a better way to bind this.
-                        // Issue is that some GBuffers have several names (for example normal buffer is both NormalBuffer and GBuffer1)
-                        // So it's not possible to use auto binding via dependency to shaderTagID
-                        // Should probably get rid of auto binding and go explicit all the way (might need to wait for us to remove non rendergraph code path).
+                        // TODO RENDERGRAPH: Remove these SetGlobal and properly send these textures to the deferred passes and bind them directly to compute shaders.
+                        // This can wait that we remove the old code path.
                         for (int i = 0; i < data.gbufferCount; ++i)
                             context.cmd.SetGlobalTexture(HDShaderIDs._GBufferTexture[i], data.gbuffer[i]);
 
@@ -376,8 +372,6 @@ namespace UnityEngine.Rendering.HighDefinition
                         else
                             context.cmd.SetGlobalTexture(HDShaderIDs._ShadowMaskTexture, TextureXR.GetWhiteTexture());
 
-                        // TODO RENDERGRAPH: Remove these SetGlobal and properly send these textures to the deferred passes and bind them directly to compute shaders.
-                        // This can wait that we remove the old code path.
                         BindGlobalLightingBuffers(data.lightingBuffers, context.cmd);
 
                         if (data.parameters.enableTile)
@@ -891,9 +885,6 @@ namespace UnityEngine.Rendering.HighDefinition
 
                 using (var builder = renderGraph.AddRenderPass<VolumetricLightingPassData>("Volumetric Lighting", out var passData))
                 {
-                    // TODO RENDERGRAPH
-                    //builder.EnableAsyncCompute(hdCamera.frameSettings.VolumetricLightingRunsAsync());
-
                     passData.parameters = parameters;
                     if (passData.parameters.tiledLighting)
                         passData.bigTileLightListBuffer = builder.ReadComputeBuffer(bigTileLightListBuffer);
