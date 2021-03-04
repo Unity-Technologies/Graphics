@@ -150,7 +150,7 @@
       "url": "https://packages.unity.com"
     },
     "com.unity.testframework.graphics": {
-      "version": "7.8.2-preview",
+      "version": "7.8.5-preview",
       "depth": 0,
       "source": "registry",
       "dependencies": {

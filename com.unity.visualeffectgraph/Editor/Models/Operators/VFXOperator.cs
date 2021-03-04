@@ -41,7 +41,7 @@ namespace UnityEditor.VFX
                 try
                 {
                     changed = base.ResyncSlots(notify);
-                    if (notify)
+                    if (changed && notify)
                         foreach (var slot in outputSlots) // invalidate expressions on output slots
                             slot.InvalidateExpressionTree();
                 }
