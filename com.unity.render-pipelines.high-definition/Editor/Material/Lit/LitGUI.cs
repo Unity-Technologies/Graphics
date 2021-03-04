@@ -29,11 +29,7 @@ namespace UnityEditor.Rendering.HighDefinition
 
         protected override void OnMaterialGUI(MaterialEditor materialEditor, MaterialProperty[] props)
         {
-            using (var changed = new EditorGUI.ChangeCheckScope())
-            {
-                uiBlocks.OnGUI(materialEditor, props);
-                ApplyKeywordsAndPassesIfNeeded(changed.changed, uiBlocks.materials);
-            }
+            uiBlocks.OnGUI(materialEditor, props);
         }
 
         // Properties for material keyword setup
@@ -65,11 +61,9 @@ namespace UnityEditor.Rendering.HighDefinition
         protected const string kCoatMask = "_CoatMask";
         protected const string kCoatMaskMap = "_CoatMaskMap";
 
-        protected MaterialProperty emissiveColorMap = null;
         protected const string kEmissiveColorMap = "_EmissiveColorMap";
-
-        protected MaterialProperty UVEmissive = null;
         protected const string kUVEmissive = "_UVEmissive";
+        protected const string kUseEmissiveIntensity = "_UseEmissiveIntensity";
 
         protected const string kSpecularOcclusionMode = "_SpecularOcclusionMode";
 
@@ -77,7 +71,7 @@ namespace UnityEditor.Rendering.HighDefinition
         protected const string kTransmittanceColorMap = "_TransmittanceColorMap";
         protected const string kRefractionModel = "_RefractionModel";
 
-        protected override void SetupMaterialKeywordsAndPass(Material material) => SetupLitKeywordsAndPass(material);
+        public override void ValidateMaterial(Material material) => SetupLitKeywordsAndPass(material);
 
         // All Setup Keyword functions must be static. It allow to create script to automatically update the shaders with a script if code change
         static public void SetupLitKeywordsAndPass(Material material)
@@ -124,6 +118,8 @@ namespace UnityEditor.Rendering.HighDefinition
                 CoreUtils.SetKeyword(material, "_EMISSIVE_MAPPING_BASE", ((UVEmissiveMapping)material.GetFloat(kUVEmissive)) == UVEmissiveMapping.SameAsBase && material.GetTexture(kEmissiveColorMap));
                 CoreUtils.SetKeyword(material, "_EMISSIVE_COLOR_MAP", material.GetTexture(kEmissiveColorMap));
             }
+            if (material.HasProperty(kUseEmissiveIntensity) && material.GetFloat(kUseEmissiveIntensity) != 0)
+                material.UpdateEmissiveColorFromIntensityAndEmissiveColorLDR();
 
             if (material.HasProperty(kSpecularOcclusionMode))
             {

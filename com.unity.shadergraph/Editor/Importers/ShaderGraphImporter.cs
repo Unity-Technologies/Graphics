@@ -24,9 +24,9 @@ namespace UnityEditor.ShaderGraph
     // sure that all shader graphs get re-imported. Re-importing is required,
     // because the shader graph codegen is different for V2.
     // This ifdef can be removed once V2 is the only option.
-    [ScriptedImporter(115, Extension, -902)]
+    [ScriptedImporter(115, Extension, -2001)] // Import before Materials
 #else
-    [ScriptedImporter(48, Extension, -902)]
+    [ScriptedImporter(48, Extension, -2001)] // Import before Materials
 #endif
 
     class ShaderGraphImporter : ScriptedImporter

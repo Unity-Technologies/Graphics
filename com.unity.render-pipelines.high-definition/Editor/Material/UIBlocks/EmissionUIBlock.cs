@@ -106,27 +106,19 @@ namespace UnityEditor.Rendering.HighDefinition
             UVMappingMaskEmissive = FindProperty(kUVMappingMaskEmissive);
         }
 
-        internal static void UpdateEmissiveColorFromIntensityAndEmissiveColorLDR(MaterialEditor materialEditor, Material[] materials)
+        internal static void UpdateEmissiveColorFromIntensityAndEmissiveColorLDR(Material[] materials)
         {
-            materialEditor.serializedObject.ApplyModifiedProperties();
             foreach (Material target in materials)
-            {
                 target.UpdateEmissiveColorFromIntensityAndEmissiveColorLDR();
-            }
-            materialEditor.serializedObject.Update();
         }
 
         internal static void UpdateEmissiveColorFromIntensityAndEmissiveColorLDR(MaterialProperty emissiveColorLDR, MaterialProperty emissiveIntensity, MaterialProperty emissiveColor)
             => emissiveColor.colorValue = emissiveColorLDR.colorValue.linear * emissiveIntensity.floatValue;
 
-        internal static void UpdateEmissiveColorLDRFromIntensityAndEmissiveColor(MaterialEditor materialEditor, Material[] materials)
+        internal static void UpdateEmissiveColorLDRFromIntensityAndEmissiveColor(Material[] materials)
         {
-            materialEditor.serializedObject.ApplyModifiedProperties();
             foreach (Material target in materials)
-            {
                 target.UpdateEmissiveColorLDRFromIntensityAndEmissiveColor();
-            }
-            materialEditor.serializedObject.Update();
         }
 
         internal static void UpdateEmissiveColorLDRFromIntensityAndEmissiveColor(MaterialProperty emissiveColorLDR, MaterialProperty emissiveIntensity, MaterialProperty emissiveColor)

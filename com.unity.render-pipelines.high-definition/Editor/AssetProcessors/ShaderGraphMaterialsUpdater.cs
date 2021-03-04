@@ -51,10 +51,8 @@ namespace UnityEditor.Rendering.HighDefinition
                     Material material = AssetDatabase.LoadAssetAtPath<Material>(materialPath);
 
                     // Reset keywords
-                    if (material.shader.name == shader.name)
+                    if (material != null && material.shader.name == shader.name)
                         HDShaderUtils.ResetMaterialKeywords(material);
-
-                    material = null;
 
                     // Free the materials every 200 iterations, on big project loading all materials in memory can lead to a crash
                     if ((i % 200 == 0) && i != 0)
