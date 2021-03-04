@@ -116,7 +116,6 @@ Varyings LitPassVertexSimple(Attributes input)
     output.posWS.xyz = vertexInput.positionWS;
     output.positionCS = vertexInput.positionCS;
 
-<<<<<<< HEAD
 #if defined(_BACKFACE_VISIBLE) || defined(_NORMALMAP)
     half3 viewDirWS = GetWorldSpaceNormalizeViewDir(vertexInput.positionWS);
 #endif
@@ -137,16 +136,6 @@ Varyings LitPassVertexSimple(Attributes input)
     output.normal = NormalizeNormalPerVertex(normalInput.normalWS);
 #endif
 #endif
-=======
-    #ifdef _NORMALMAP
-        half3 viewDirWS = GetWorldSpaceNormalizeViewDir(vertexInput.positionWS);
-        output.normal = half4(normalInput.normalWS, viewDirWS.x);
-        output.tangent = half4(normalInput.tangentWS, viewDirWS.y);
-        output.bitangent = half4(normalInput.bitangentWS, viewDirWS.z);
-    #else
-        output.normal = NormalizeNormalPerVertex(normalInput.normalWS);
-    #endif
->>>>>>> master
 
     OUTPUT_LIGHTMAP_UV(input.lightmapUV, unity_LightmapST, output.lightmapUV);
 
@@ -176,7 +165,7 @@ FragmentOutput LitPassFragmentSimple(Varyings input)
     InitializeSimpleLitSurfaceData(input.uv, surfaceData);
 
     InputData inputData;
-    InitializeInputData(input, surfaceData.normalTS, _DoubleSidedConstants, inputData);
+    InitializeInputData(input, surfaceData.normalTS, _DoubleSidedConstants.xyz, inputData);
 
     Light mainLight = GetMainLight(inputData.shadowCoord, inputData.positionWS, inputData.shadowMask);
     MixRealtimeAndBakedGI(mainLight, inputData.normalWS, inputData.bakedGI, inputData.shadowMask);

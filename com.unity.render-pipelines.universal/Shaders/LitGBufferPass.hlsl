@@ -69,7 +69,6 @@ void InitializeInputData(Varyings input, half3 normalTS, half3 doubleSidedConsta
         inputData.positionWS = input.positionWS;
     #endif
 
-    half3 viewDirWS = SafeNormalize(input.viewDirWS);
     #if defined(_NORMALMAP) || defined(_DETAIL)
         float sgn = input.tangentWS.w;      // should be either +1 or -1
         float3 bitangent = sgn * cross(input.normalWS.xyz, input.tangentWS.xyz);
@@ -93,7 +92,6 @@ void InitializeInputData(Varyings input, half3 normalTS, half3 doubleSidedConsta
     #endif
 
     inputData.normalWS = NormalizeNormalPerPixel(inputData.normalWS);
-    inputData.viewDirectionWS = viewDirWS;
 
     #if defined(REQUIRES_VERTEX_SHADOW_COORD_INTERPOLATOR)
         inputData.shadowCoord = input.shadowCoord;
@@ -203,7 +201,7 @@ FragmentOutput LitGBufferPassFragment(Varyings input)
     InitializeStandardLitSurfaceData(input.uv, surfaceData);
 
     InputData inputData;
-    InitializeInputData(input, surfaceData.normalTS, _DoubleSidedConstants, inputData);
+    InitializeInputData(input, surfaceData.normalTS, _DoubleSidedConstants.xyz, inputData);
 
     // Stripped down version of UniversalFragmentPBR().
 

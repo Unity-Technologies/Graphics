@@ -76,15 +76,11 @@ VaryingsParticle ParticlesLitVertex(AttributesParticle input)
     output.tangentWS = half4(normalInput.tangentWS, viewDirWS.y);
     output.bitangentWS = half4(normalInput.bitangentWS, viewDirWS.z);
 #else
-<<<<<<< HEAD
 #if defined(_BACKFACE_VISIBLE)
     output.normalWS = output.isFrontFace ? half3(normalInput.normalWS) : half3(-normalInput.normalWS);
 #else
     output.normalWS = half3(normalInput.normalWS);
 #endif
-=======
-    output.normalWS = half3(normalInput.normalWS);
->>>>>>> master
     output.viewDirWS = viewDirWS;
 #endif
 

@@ -117,11 +117,10 @@ Varyings LitPassVertexSimple(Attributes input)
     output.posWS.xyz = vertexInput.positionWS;
     output.positionCS = vertexInput.positionCS;
 
-<<<<<<< HEAD
     #if defined(_BACKFACE_VISIBLE) || defined(_NORMALMAP)
         half3 viewDirWS = GetWorldSpaceNormalizeViewDir(vertexInput.positionWS);
     #endif
-    
+
     #if defined(_BACKFACE_VISIBLE)
         output.isFrontFace = dot(viewDirWS, normalInput.normalWS) > 0;
     #endif
@@ -138,16 +137,6 @@ Varyings LitPassVertexSimple(Attributes input)
             output.normal = NormalizeNormalPerVertex(normalInput.normalWS);
         #endif
     #endif
-=======
-    #ifdef _NORMALMAP
-        half3 viewDirWS = GetWorldSpaceNormalizeViewDir(vertexInput.positionWS);
-        output.normal = half4(normalInput.normalWS, viewDirWS.x);
-        output.tangent = half4(normalInput.tangentWS, viewDirWS.y);
-        output.bitangent = half4(normalInput.bitangentWS, viewDirWS.z);
-    #else
-        output.normal = NormalizeNormalPerVertex(normalInput.normalWS);
-    #endif
->>>>>>> master
 
     OUTPUT_LIGHTMAP_UV(input.lightmapUV, unity_LightmapST, output.lightmapUV);
     OUTPUT_SH(output.normal.xyz, output.vertexSH);
@@ -189,7 +178,7 @@ half4 LitPassFragmentSimple(Varyings input) : SV_Target
     half smoothness = specular.a;
 
     InputData inputData;
-    InitializeInputData(input, normalTS, _DoubleSidedConstants, inputData);
+    InitializeInputData(input, normalTS, _DoubleSidedConstants.xyz, inputData);
 
     half4 color = UniversalFragmentBlinnPhong(inputData, diffuse, specular, smoothness, emission, alpha);
     color.rgb = MixFog(color.rgb, inputData.fogCoord);

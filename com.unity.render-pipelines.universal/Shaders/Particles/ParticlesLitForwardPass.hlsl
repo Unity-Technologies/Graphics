@@ -89,7 +89,7 @@ VaryingsParticle ParticlesLitVertex(AttributesParticle input)
 #endif
 
 #if defined(_BACKFACE_VISIBLE)
-    OUTPUT_SH(output.isFrontFace ? output.normalWS : -output.normalWS, output.vertexSH);
+    OUTPUT_SH(output.isFrontFace ? output.normalWS.xyz : -output.normalWS.xyz, output.vertexSH);
 #else
     OUTPUT_SH(output.normalWS, output.vertexSH);
 #endif
