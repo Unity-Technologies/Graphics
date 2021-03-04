@@ -105,7 +105,7 @@ VisualEffectResource:
             return AssetDatabase.LoadAssetAtPath<T>(path);
         }
 
-        [MenuItem("Assets/Create/VFX/VFX Graph", false, 306)]
+        [MenuItem("Assets/Create/Visual Effects/Visual Effect Graph", false, 306)]
         public static void CreateVisualEffectAsset()
         {
             string templateString = "";
@@ -124,7 +124,7 @@ VisualEffectResource:
             ProjectWindowUtil.StartNameEditingIfProjectWindowExists(0, action, "New VFX.vfx", texture, null);
         }
 
-        [MenuItem("Assets/Create/VFX/VFX Defaults", false, 307)]
+        [MenuItem("Assets/Create/Visual Effects/Visual Effect Defaults", false, 307)]
         public static void CreateVisualEffectDefaults()
         {
             var obj = VFXResources.CreateInstance<VFXResources>();
@@ -133,7 +133,7 @@ VisualEffectResource:
             Selection.activeObject = obj;
         }
 
-        [MenuItem("Assets/Create/VFX/VFX Defaults", true)]
+        [MenuItem("Assets/Create/Visual Effects/Visual Effect Defaults", true)]
         public static bool IsCreateVisualEffectDefaultsActive()
         {
             var resources = Resources.FindObjectsOfTypeAll<VFXResources>();
@@ -183,7 +183,7 @@ VisualEffectResource:
             }
         }
 
-        [MenuItem("Assets/Create/VFX/VFX Subgraph Operator", false, 308)]
+        [MenuItem("Assets/Create/Visual Effects/Visual Effect Subgraph Operator", false, 308)]
         public static void CreateVisualEffectSubgraphOperator()
         {
             string fileName = "New VFX Subgraph Operator.vfxoperator";
@@ -191,7 +191,7 @@ VisualEffectResource:
             CreateVisualEffectSubgraph<VisualEffectSubgraphOperator, DoCreateNewSubgraphOperator>(fileName, templateOperatorSubgraphAssetName);
         }
 
-        [MenuItem("Assets/Create/VFX/VFX Subgraph Block", false, 309)]
+        [MenuItem("Assets/Create/Visual Effects/Visual Effect Subgraph Block", false, 309)]
         public static void CreateVisualEffectSubgraphBlock()
         {
             string fileName = "New VFX Subgraph Block.vfxblock";
