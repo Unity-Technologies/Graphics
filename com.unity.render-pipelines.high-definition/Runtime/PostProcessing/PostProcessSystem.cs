@@ -2392,7 +2392,11 @@ namespace UnityEngine.Rendering.HighDefinition
                     Vector2 screenPos = new Vector2(2.0f * viewportPos.x - 1.0f, 1.0f - 2.0f * viewportPos.y);
                     Vector2 translationScale = new Vector2(element.translationScale.x, element.translationScale.y);
                     Texture texture = element.lensFlareTexture;
-                    float usedAspectRatio = element.preserveAspectRatio ? (((float)texture.width) / ((float)texture.height)) : element.aspectRatio;
+                    float usedAspectRatio;
+                    if (element.flareType == SRPLensFlareType.Image)
+                        usedAspectRatio = element.preserveAspectRatio ? (((float)texture.width) / ((float)texture.height)) : element.aspectRatio;
+                    else
+                        usedAspectRatio = element.preserveAspectRatio ? 1.0f : element.aspectRatio;
 
                     float rotation = element.rotation;
                     Vector4 tint = Vector4.Scale(element.tint, curColor);
@@ -2444,7 +2448,8 @@ namespace UnityEngine.Rendering.HighDefinition
                     else if (element.flareType == SRPLensFlareType.Glow)
                         cmd.EnableShaderKeyword("FLARE_GLOW");
 
-                    cmd.SetGlobalTexture(HDShaderIDs._FlareTex, element.lensFlareTexture);
+                    if (element.lensFlareTexture != null)
+                        cmd.SetGlobalTexture(HDShaderIDs._FlareTex, element.lensFlareTexture);
 
                     cmd.SetGlobalVector(HDShaderIDs._FlareData1, new Vector4(comp.occlusionRadius, comp.sampleCount, screenPosZ.z, element.glowFallOff));
                     if (element.count == 1)
