@@ -89,6 +89,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed GC allocations from XR occlusion mesh when using multipass.
 - Fixed wrong shader / properties assignement to materials created from 3DsMax 2021 Physical Material. (case 1293576)
 - Fixed shadow cascade blend culling factor.
+- Fixed an issue where bokeh dof is applied incorrectly when there is an overlay camera in the camera stack. [case 1303572](https://issuetracker.unity3d.com/issues/urp-bokeh-depth-of-field-is-applied-incorrectly-when-the-main-camera-has-an-overlay-camera-in-the-camera-stack)
 
 ## [10.2.0] - 2020-10-19
 
