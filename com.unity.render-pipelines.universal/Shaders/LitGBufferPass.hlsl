@@ -98,7 +98,7 @@ void InitializeInputData(Varyings input, half3 normalTS, out InputData inputData
     #else
         inputData.vertexLighting = half3(0, 0, 0);
     #endif
-    
+
 #if defined(DYNAMICLIGHTMAP_ON)
     inputData.bakedGI = SAMPLE_GI(input.staticLightmapUV, input.dynamicLightmapUV, input.vertexSH, inputData.normalWS);
 #else
