@@ -20,6 +20,9 @@ namespace UnityEditor.Rendering.HighDefinition
 
         public static void OnGUI(MaterialEditor materialEditor, MaterialProperty diffusionProfileAsset, MaterialProperty diffusionProfileHash, int profileIndex, string displayName = "Diffusion Profile")
         {
+            materialEditor.BeginProperty(diffusionProfileAsset);
+            materialEditor.BeginProperty(diffusionProfileHash);
+
             // We can't cache these fields because of several edge cases like undo/redo or pressing escape in the object picker
             string guid = HDUtils.ConvertVector4ToGUID(diffusionProfileAsset.vectorValue);
             DiffusionProfileSettings diffusionProfile = AssetDatabase.LoadAssetAtPath<DiffusionProfileSettings>(AssetDatabase.GUIDToAssetPath(guid));
@@ -50,6 +53,9 @@ namespace UnityEditor.Rendering.HighDefinition
                     matExternalRefs.SetDiffusionProfileReference(profileIndex, diffusionProfile);
                 }
             }
+
+            materialEditor.EndProperty();
+            materialEditor.EndProperty();
 
             DrawDiffusionProfileWarning(diffusionProfile);
         }

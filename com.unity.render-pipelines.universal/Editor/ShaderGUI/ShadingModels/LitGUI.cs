@@ -221,6 +221,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGUI
 
                 EditorGUI.indentLevel++;
                 EditorGUI.showMixedValue = smoothnessMapChannel.hasMixedValue;
+                materialEditor.BeginProperty(smoothnessMapChannel);
                 if (opaque)
                 {
                     EditorGUI.BeginChangeCheck();
@@ -235,6 +236,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGUI
                     EditorGUILayout.Popup(Styles.smoothnessMapChannelText, 0, smoothnessChannelNames);
                     EditorGUI.EndDisabledGroup();
                 }
+                materialEditor.EndProperty();
                 EditorGUI.showMixedValue = false;
                 EditorGUI.indentLevel--;
             }

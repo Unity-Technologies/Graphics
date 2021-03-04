@@ -42,11 +42,7 @@ namespace UnityEditor.Rendering.HighDefinition
             SerializedProperty instancing = materialEditor.serializedObject.FindProperty("m_EnableInstancingVariants");
             instancing.boolValue = true;
 
-            using (var changed = new EditorGUI.ChangeCheckScope())
-            {
-                uiBlocks.OnGUI(materialEditor, props);
-                ApplyKeywordsAndPassesIfNeeded(changed.changed, uiBlocks.materials);
-            }
+            uiBlocks.OnGUI(materialEditor, props);
 
             // We should always do this call at the end
             materialEditor.serializedObject.ApplyModifiedProperties();
@@ -63,6 +59,6 @@ namespace UnityEditor.Rendering.HighDefinition
         /// Sets up the keywords and passes for the current selected material.
         /// </summary>
         /// <param name="material">The selected material.</param>
-        protected override void SetupMaterialKeywordsAndPass(Material material) => SetupDecalKeywordsAndPass(material);
+        public override void ValidateMaterial(Material material) => SetupDecalKeywordsAndPass(material);
     }
 }

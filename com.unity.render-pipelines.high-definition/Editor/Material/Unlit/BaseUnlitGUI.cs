@@ -247,16 +247,12 @@ namespace UnityEditor.Rendering.HighDefinition
 
             // DoubleSidedGI has to be synced with our double sided toggle
             var serializedObject = new SerializedObject(material);
-            bool doubleSidedGI = false;
             if (doubleSidedGIMode == DoubleSidedGIMode.Auto)
-                doubleSidedGI = doubleSidedEnable;
+                material.doubleSidedGI = doubleSidedEnable;
             else if (doubleSidedGIMode == DoubleSidedGIMode.On)
-                doubleSidedGI = true;
+                material.doubleSidedGI = true;
             else if (doubleSidedGIMode == DoubleSidedGIMode.Off)
-                doubleSidedGI = false;
-            // material always call setdirty, so set only if new value is different
-            if (doubleSidedGI != material.doubleSidedGI)
-                material.doubleSidedGI = doubleSidedGI;
+                material.doubleSidedGI = false;
             serializedObject.ApplyModifiedProperties();
         }
 
