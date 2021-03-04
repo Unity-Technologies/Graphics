@@ -23,6 +23,7 @@ Shader "Hidden/HDRP/LensFlare (HDRP Additive)"
             #pragma fragment frag
 
             #pragma multi_compile_fragment _ FLARE_GLOW FLARE_IRIS
+            #pragma multi_compile_fragment _ FLARE_INVERSE_SDF
 
             #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Common.hlsl"
             #include "Packages/com.unity.render-pipelines.high-definition-config/Runtime/ShaderConfig.cs.hlsl"
@@ -33,7 +34,7 @@ Shader "Hidden/HDRP/LensFlare (HDRP Additive)"
             {
                 UNITY_SETUP_STEREO_EYE_INDEX_POST_VERTEX(i);
 
-                float4 col = GetFlareColor(i.texcoord);
+                float4 col = GetFlareShape(i.texcoord);
                 return col * _FlareColor * i.occlusion;
             }
 

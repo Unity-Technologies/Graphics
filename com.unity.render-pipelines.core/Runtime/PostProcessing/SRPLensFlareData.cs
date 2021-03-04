@@ -120,7 +120,10 @@ namespace UnityEngine
 
             // Parameters for Procedural
             fallOff = 1.0f;
+            edgeOffset = 0.0f;
+            sdfRoundness = 0.0f;
             sideCount = 6;
+            inverseSDF = false;
         }
 
         /// <summary>
@@ -207,6 +210,7 @@ namespace UnityEngine
         // For Random
         public int seed;
         public Gradient colorGradient;
+        [Range(0.0f, 1.0f)]
         public float intensityVariation;
         public Vector2 positionVariation;
         public float scaleVariation;
@@ -218,7 +222,12 @@ namespace UnityEngine
 
         // Parameters for Glow
         public float fallOff;
+        [Range(0.0f, 1.0f)]
+        public float edgeOffset;
         public int sideCount;
+        [Range(0.0f, 1.0f)]
+        public float sdfRoundness;
+        public bool inverseSDF;
     }
 
     /// <summary>

@@ -227,18 +227,33 @@ namespace UnityEditor.Rendering
                     else if (newType == SRPLensFlareType.Glow || newType == SRPLensFlareType.Iris)
                     {
                         SerializedProperty fallOffProp = property.FindPropertyRelative("fallOff");
+                        SerializedProperty edgeOffsetProp = property.FindPropertyRelative("edgeOffset");
+                        SerializedProperty sdfRoundnessProp = property.FindPropertyRelative("sdfRoundness");
                         SerializedProperty sideCountProp = property.FindPropertyRelative("sideCount");
+                        SerializedProperty inverseSDFProp = property.FindPropertyRelative("inverseSDF");
 
                         rect = GetNextRect();
                         if ((tmp = EditorGUI.FloatField(rect, Styles.fallOff, fallOffProp.floatValue)) != fallOffProp.floatValue)
-                            fallOffProp.floatValue = Mathf.Max(tmp, 1e-4f);
+                            fallOffProp.floatValue = Mathf.Max(tmp, 0.0f);
+
+                        rect = GetNextRect();
+                        if ((tmp = EditorGUI.FloatField(rect, Styles.edgeOffset, edgeOffsetProp.floatValue)) != edgeOffsetProp.floatValue)
+                            edgeOffsetProp.floatValue = Mathf.Clamp01(tmp);
 
                         if (newType == SRPLensFlareType.Iris)
                         {
                             rect = GetNextRect();
                             if ((tmp = EditorGUI.IntField(rect, Styles.sideCount, sideCountProp.intValue)) != sideCountProp.intValue)
                                 sideCountProp.intValue = (int)Mathf.Max(tmp, 3);
+
+                            rect = GetNextRect();
+                            if ((tmp = EditorGUI.FloatField(rect, Styles.sdfRoundness, sdfRoundnessProp.floatValue)) != sdfRoundnessProp.floatValue)
+                                sdfRoundnessProp.floatValue = Mathf.Clamp01(tmp);
                         }
+
+                        rect = GetNextRect();
+                        if ((tmpBool = EditorGUI.Toggle(rect, Styles.inverseSDF, inverseSDFProp.boolValue)) != inverseSDFProp.boolValue)
+                            inverseSDFProp.boolValue = tmpBool;
                     }
                 }
                 --EditorGUI.indentLevel;
@@ -362,9 +377,12 @@ namespace UnityEditor.Rendering
                 else
                     coef = 25.0f;
 
-                if (flareType == SRPLensFlareType.Glow)
+                if (flareType == SRPLensFlareType.Iris || flareType == SRPLensFlareType.Glow)
                 {
-                    coef -= 1.0f;
+                    coef += 1.0f;
+
+                    if (flareType == SRPLensFlareType.Iris)
+                        coef += 2.0f;
                 }
 
                 if (countProp.intValue > 1)
@@ -432,7 +450,10 @@ namespace UnityEditor.Rendering
 
             // For Procedural
             static public readonly GUIContent fallOff = EditorGUIUtility.TrTextContent("Falloff", "REPLACE ME.");
+            static public readonly GUIContent edgeOffset = EditorGUIUtility.TrTextContent("Local Radius", "REPLACE ME.");
+            static public readonly GUIContent sdfRoundness = EditorGUIUtility.TrTextContent("Roundness", "REPLACE ME.");
             static public readonly GUIContent sideCount = EditorGUIUtility.TrTextContent("Side Count", "REPLACE ME.");
+            static public readonly GUIContent inverseSDF = EditorGUIUtility.TrTextContent("Inverse", "REPLACE ME.");
         }
     }
 }

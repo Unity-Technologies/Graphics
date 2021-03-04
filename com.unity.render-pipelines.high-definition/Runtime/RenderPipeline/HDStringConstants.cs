@@ -793,6 +793,7 @@ namespace UnityEngine.Rendering.HighDefinition
         public static readonly int _FlareData1                     = Shader.PropertyToID("_FlareData1");
         public static readonly int _FlareData2                     = Shader.PropertyToID("_FlareData2");
         public static readonly int _FlareData3                     = Shader.PropertyToID("_FlareData3");
+        public static readonly int _FlareData4                     = Shader.PropertyToID("_FlareData4");
 
         public static readonly int _BloomParams                    = Shader.PropertyToID("_BloomParams");
         public static readonly int _BloomTint                      = Shader.PropertyToID("_BloomTint");

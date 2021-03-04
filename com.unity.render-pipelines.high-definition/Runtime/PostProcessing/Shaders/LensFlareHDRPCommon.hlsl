@@ -23,7 +23,8 @@ float4 _FlareColor;
 float4 _FlareData0; // x: localCos0, y: localSin0, zw: PositionOffsetXY
 float4 _FlareData1; // x: OcclusionRadius, y: OcclusionSampleCount, z: ScreenPosZ, w: Falloff
 float4 _FlareData2; // xy: ScreenPos, zw: FlareSize
-float4 _FlareData3; // xy: RayOffset
+float4 _FlareData3; // xy: RayOffset, z: invSideCount, w: Edge Offset
+float4 _FlareData4; // x: SDF Roundness
 
 #define _LocalCos0          _FlareData0.x
 #define _LocalSin0          _FlareData0.y
@@ -37,6 +38,9 @@ float4 _FlareData3; // xy: RayOffset
 
 #define _FlareRayOffset     _FlareData3.xy
 #define _FlareShapeInvSide  _FlareData3.z
+#define _FlareEdgeOffset    _FlareData3.w
+
+#define _FlareSDFRoundness  _FlareData4.x
 
 float2 Rotate(float2 v, float cos0, float sin0)
 {
@@ -72,23 +76,57 @@ float4 ComputeGlow(float2 uv)
 {
     float2 v = (uv - 0.5f) * 2.0f;
 
-    float sdf = saturate(-(length(v) - 1.0f));
+#if FLARE_INVERSE_SDF
+    float sdf = saturate(-length(v) + _FlareEdgeOffset);
+    // Cannot be simplify as 1 - sdf
+    sdf = sdf * (1.0f - sdf) / (sdf + 1e-6f);
+#else
+    float sdf = saturate(-length(v) + 1.0f + _FlareEdgeOffset);
+#endif
 
     return pow(sdf, _FlareFalloff);
 }
 
-float4 ComputeIris(float2 uv_)
+float cl01(float x)
 {
-    float2 uv = (uv_ - 0.5f) * 2.0f;
-
-    float a = atan2(uv.x, uv.y) + 3.1415926535897932384626433832795f;
-    float rx = (2.0f * 3.1415926535897932384626433832795f) * _FlareShapeInvSide;
-    float d = 2.0f * cos(floor(0.5f + a / rx) * rx - a) * length(uv);
-
-    return pow(saturate(1.0f - d), _FlareFalloff);
+    //return clamp(x, -1.0f, 1.0f);
+    //return clamp(x, 0, 1.0f);
+    //return x;
+    return saturate(x);
 }
 
-float4 GetFlareColor(float2 uv)
+float4 ComputeIris(float2 uv_)
+{
+    const float r = _FlareEdgeOffset - _FlareSDFRoundness;
+
+    // these 2 lines can be precomputed
+    float an = 6.2831853f * _FlareShapeInvSide;
+    float he = r * tan(0.5f * an);
+
+    float2 p = (uv_ - 0.5f) * 2.0f;
+
+    p = -p.yx;
+    float bn = an * floor((atan2(p.y, p.x) + 0.5f * an) / an);
+    float cos0 = cos(bn);
+    float sin0 = sin(bn);
+    p = float2( cos0 * p.x + sin0 * p.y,
+               -sin0 * p.x + cos0 * p.y);
+
+    // side of polygon
+    float sdf = length(p - float2(r, clamp(p.y, -he, he))) * sign(p.x - r) - _FlareSDFRoundness;
+
+#if FLARE_INVERSE_SDF
+    sdf = saturate(-sdf);
+    sdf = sdf * (1.0f - sdf) / (sdf + 1e-6f);
+#else
+    sdf = sdf * (1.0f - sdf) / (sdf + 1e-6f);
+    sdf = saturate(sdf);
+#endif
+
+    return saturate(pow(sdf, _FlareFalloff));
+}
+
+float4 GetFlareShape(float2 uv)
 {
 #if FLARE_GLOW
     return ComputeGlow(uv);
@@ -98,3 +136,4 @@ float4 GetFlareColor(float2 uv)
     return tex2D(_FlareTex, uv);
 #endif
 }
+

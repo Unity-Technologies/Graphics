@@ -34,7 +34,7 @@ Shader "Hidden/HDRP/LensFlare (HDRP Premultiplied)"
             {
                 UNITY_SETUP_STEREO_EYE_INDEX_POST_VERTEX(i);
 
-                float4 col = GetFlareColor(i.texcoord);
+                float4 col = GetFlareShape(i.texcoord);
                 return col * _FlareColor * i.occlusion;
             }
 
