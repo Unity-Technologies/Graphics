@@ -127,6 +127,10 @@ namespace UnityEngine.Rendering.HighDefinition
             RTRFullResolution[(int)ScalableSettingLevelParameter.Level.Medium] = false;
             RTRFullResolution[(int)ScalableSettingLevelParameter.Level.High] = true;
 
+            RTRRaySteps[(int)ScalableSettingLevelParameter.Level.Low] = 32;
+            RTRRaySteps[(int)ScalableSettingLevelParameter.Level.Medium] = 48;
+            RTRRaySteps[(int)ScalableSettingLevelParameter.Level.High] = 64;
+
             RTRDenoise[(int)ScalableSettingLevelParameter.Level.Low] = true;
             RTRDenoise[(int)ScalableSettingLevelParameter.Level.Medium] = true;
             RTRDenoise[(int)ScalableSettingLevelParameter.Level.High] = true;
