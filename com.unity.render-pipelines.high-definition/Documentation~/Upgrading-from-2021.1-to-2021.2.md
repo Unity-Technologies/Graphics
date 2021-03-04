@@ -13,4 +13,4 @@ to:
 
 ## HDRP Global Settings
 
-From 2021.2, the GraphicsSettings's assigned HDRP Asset no longer acts as the defaultAsset for HDRP. A new Asset called HDRP Global Settings has been added to save settings unrelated to which HDRP Asset is active.
+From 2021.2, the HDRP Asset assigned in the Graphics Settings no longer acts as the default Asset for HDRP. A new HDRP Global Settings Asset now exists to save settings unrelated to which HDRP Asset is active.

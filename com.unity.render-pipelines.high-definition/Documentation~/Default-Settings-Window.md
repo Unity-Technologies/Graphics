@@ -9,27 +9,20 @@ The High Definition Render Pipeline (HDRP) adds the HDRP Settings tab to Unity's
 
 The HDRP Settings tab is part of the Graphics Settings window. To get to this tab, select **Edit > Project Settings > Graphics** and then, in the sidebar, click **HDRP Settings**.
 
-<a name="Resources"></a>
 ## Resources
 
 Resources assets list the Shaders, Materials, Textures, and other Assets needed to operate the High Definition Render Pipeline.
 
 | **Property**              | **Description**                                              |
-| --------------------------| ------------------------------------------------------------ |
-| **Player Resources**      | Stores references to Shaders and Materials that HDRP uses.  When you build your Unity Project, HDRP embeds all of the resources that this Asset references. It allows you to set up multiple render pipelines in a Unity Project and, when you build the Project, Unity only embeds Shaders and Materials relevant for that pipeline. This is the Scriptable Render Pipeline equivalent of Unity’s Resources folder mechanism. When you create a new HDRP Global Settings Asset, Unity also creates one of these and references it in the new HDRP Global Settings Asset automatically.|
-| **Ray Tracing Resources** | Stores references to Shaders and Materials that HDRP uses for Ray Tracing. Having these resources in a seperate asset file then the main pipeline resources allows HDRP to use less memory for applciations that don't support ray tracing. |
+| ------------------------- | ------------------------------------------------------------ |
+| **Player Resources**      | Stores references to Shaders and Materials that HDRP uses. When you build your Unity Project, HDRP embeds all of the resources that this Asset references. It allows you to set up multiple render pipelines in a Unity Project and, when you build the Project, Unity only embeds Shaders and Materials relevant for that pipeline. This is the Scriptable Render Pipeline equivalent of Unity’s Resources folder mechanism. When you create a new HDRP Global Settings Asset, Unity also creates one of these and references it in the new HDRP Global Settings Asset automatically. |
+| **Ray Tracing Resources** | Stores references to Shaders and Materials that HDRP uses for ray tracing. HDRP stores these resources in a separate Asset file then the main pipeline resources so it can use less memory for applications that don't support ray tracing. |
 | **Editor Resources**      | Stores reference resources for the Editor only. Unity does not include these when you build your Unity Project.  When you create an HDRP Asset, Unity creates an HDRP Resources Asset, and the new HDRP Asset references it automatically. |
 
-| Property                              | Description                                                  |
-| ------------------------------------- | ------------------------------------------------------------ ||
 
-
-<a name="FrameSettings"></a>
 ## Frame Settings
 
 [Frame Settings](Frame-Settings.md) control the rendering passes that Cameras make at runtime. This section allows you to set default Frame Settings that all Cameras use if you do not enable their Custom Frame Settings checkbox. For information about what each property does, see [Frame Settings](Frame-Settings.md).
-
-<a name="VolumeProfiles"></a>
 
 ### Volume Profiles
 
@@ -39,20 +32,14 @@ The Default Volume Profile Asset references a Volume Profile in the HDRP Package
 
 The LookDev Volume Profile Asset references the Volume Profile that will be used in the [LookDev window](Look-Dev.md). It works the same way than the Default Volume profile except that in this asset you can't put a [Visual Environment Component](Override-Visual-Environment.md) or skies component because they are overwritten by the LookDev.
 
-<a name="CustomPostProcesses"></a>
-
 ### Custom Post Processes Order
 
 Use this section to select which custom post processing effect will be used in the project and in which order they will be executed.
 You have one list per post processing injection point: `After Opaque And Sky`, `Before Post Process` and `After Post Process`. See the [Custom Post Process](Custom-Post-Process.md) documentation for more details.
 
-<a name="DiffusionProfileList"></a>
-
 ### Diffusion Profile List
 
-Use this section to select which custom Diffusion Profiles in view at the same time. To use more than 15 custom Diffusion Profiles in a Scene, you can use the Diffusion Profile Override inside a Volume. This allows you to specify which Diffusion Profiles to use in a certain area (or in the Scene if the Volume is global).
-
-<a name="Misc"></a>
+Use this section to select which custom [Diffusion Profiles](Diffusion-Profile.md) can be in view at the same time. To use more than 15 custom Diffusion Profiles in a Scene, use the [Diffusion Profile Override](Override-Diffusion-Profile.md) inside a Volume. This allows you to specify which Diffusion Profiles to use in a certain area (or in the Scene if the Volume is global).
 
 ### Miscellaneous
 
@@ -61,4 +48,4 @@ Use this section to select which custom Diffusion Profiles in view at the same t
 | Shader Variant Log Level              | Use the drop-down to select what information HDRP logs about Shader variants when you build your Unity Project. • Disabled: HDRP doesn’t log any Shader variant information.• Only HDRP Shaders: Only log Shader variant information for HDRP Shaders.• All Shaders: Log Shader variant information for every Shader type. |
 | Lens Attenuation Mode                 | Set the attenuation mode of the lens that is used to compute exposure. With imperfect lens some energy is lost when converting from EV100 to the exposure multiplier, while a perfect lens has no attenuation and no energy is lost. |
 | Light Layer Names                     | The name displayed on Lights and Meshes when using [Light Layers](Light-Layers.md). |
-| Decal Layer Names                     | The name displayed on decals and Meshes when using [Decal Layers](Decal.md).
+| Decal Layer Names                     | The name displayed on decals and Meshes when using [Decal Layers](Decal.md). |
