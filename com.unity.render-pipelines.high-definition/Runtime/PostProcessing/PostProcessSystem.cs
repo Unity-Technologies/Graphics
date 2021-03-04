@@ -2383,7 +2383,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 foreach (SRPLensFlareDataElement element in data.elements)
                 {
                     if (element == null ||
-                        element.lensFlareTexture == null ||
+                        (element.lensFlareTexture == null && element.flareType == SRPLensFlareType.Image) ||
                         element.localIntensity <= 0.0f ||
                         element.count <= 0)
                         continue;
