@@ -3055,10 +3055,8 @@ namespace UnityEngine.Rendering.HighDefinition
 
                     for (int viewIndex = 0; viewIndex < xrViewCount; viewIndex++)
                     {
-                        float w   = ComputeLinearDepth(ComputeWorldSpaceCentroidOfBoundedEntity(processedData.hdProbe), hdCamera, viewIndex);
-                        int   d   = ComputeFixedPointLinearDepth(w, hdCamera.camera.farClipPlane, BoundedEntitySortingKeyLayout.k_EntitySpatialKeyBitCount); // Assume XR uses the same far plane for all views
+                        int   d   = (int)CalculateProbeLogVolume(probe.bounds);
                         ulong key = GenerateBoundedEntitySortingKey(planarProbeIndex, BoundedEntityCategory.ReflectionProbe, d, (int)GPULightType.PlanarReflection);
-
                         m_BoundedEntityCollection.AddEntitySortKey(viewIndex, BoundedEntityCategory.ReflectionProbe, key);
                     }
                     m_BoundedEntityCollection.IncrementEntityCount(BoundedEntityCategory.ReflectionProbe);
