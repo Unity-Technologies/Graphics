@@ -64,18 +64,16 @@ namespace UnityEditor.VFX.HDRP
         {
             var blendMode = VFXAbstractRenderedOutput.BlendMode.Opaque;
 
-            /*
-            TODO: Extract blend mode from serialized settings
-            if (!mat.HasProperty(HDMaterialProperties.kSurfaceType) ||
-                !mat.HasProperty(HDMaterialProperties.kBlendMode))
+            if (!materialSettings.HasProperty(HDMaterialProperties.kSurfaceType) ||
+                !materialSettings.HasProperty(HDMaterialProperties.kBlendMode))
             {
                 return blendMode;
             }
 
-            var surfaceType = mat.GetFloat(HDMaterialProperties.kSurfaceType);
+            var surfaceType = materialSettings.GetFloat(HDMaterialProperties.kSurfaceType);
             if (surfaceType == (int)SurfaceType.Transparent)
             {
-                switch (mat.GetFloat(HDMaterialProperties.kBlendMode))
+                switch (materialSettings.GetFloat(HDMaterialProperties.kBlendMode))
                 {
                     case (int)BlendMode.Additive:
                         blendMode = VFXAbstractRenderedOutput.BlendMode.Additive;
@@ -88,7 +86,6 @@ namespace UnityEditor.VFX.HDRP
                         break;
                 }
             }
-            */
 
             return blendMode;
         }

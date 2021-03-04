@@ -73,7 +73,7 @@ namespace UnityEditor.VFX
 
             if (m_MaterialEditor != null)
             {
-                if ((m_MaterialEditor.target as Material)?.shader == VFXResources.defaultResources.shader)
+                if ((m_MaterialEditor.target as Material)?.shader == null)
                 {
                     EditorGUILayout.HelpBox("Failed to create the render state material.", MessageType.Warning);
                 }
@@ -149,7 +149,11 @@ namespace UnityEditor.VFX
             {
                 materialSettings.ApplyToMaterial(material);
                 VFXLibrary.currentSRPBinder.SetupMaterial(material, shaderGraph);
+
                 transientMaterial = material;
+
+                if (OnMaterialChange != null)
+                    OnMaterialChange();
             }
         }
 
