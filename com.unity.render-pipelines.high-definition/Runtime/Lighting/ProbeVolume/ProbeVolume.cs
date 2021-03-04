@@ -7,6 +7,7 @@ using System.Collections.Generic;
 using System.Runtime.CompilerServices;
 
 [assembly: InternalsVisibleTo("Unity.Rendering.Hybrid")]
+[assembly: InternalsVisibleTo("Unity.Entities.Hybrid.HybridComponents")]
 
 namespace UnityEngine.Rendering.HighDefinition
 {
