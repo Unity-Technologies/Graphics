@@ -775,6 +775,9 @@ namespace UnityEngine.Rendering.HighDefinition
 
             CleanupLightLoop();
 
+            ReleaseVolumetricClouds();
+            CleanupSubsurfaceScattering();
+
             // For debugging
             MousePositionDebug.instance.Cleanup();
 
