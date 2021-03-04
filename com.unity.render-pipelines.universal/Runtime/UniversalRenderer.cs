@@ -303,6 +303,7 @@ namespace UnityEngine.Rendering.Universal
         {
             m_PostProcessPasses.Dispose();
             m_MainLightShadowCasterPass.Dispose();
+            m_AdditionalLightsShadowCasterPass?.Dispose();
 
             CoreUtils.Destroy(m_BlitMaterial);
             CoreUtils.Destroy(m_CopyDepthMaterial);
