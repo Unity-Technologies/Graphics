@@ -95,6 +95,8 @@ namespace UnityEditor.Rendering
             SerializedProperty targetSizeDistortionProp = property.FindPropertyRelative("targetSizeDistortion");
             SerializedProperty distortionCurveProp = property.FindPropertyRelative("distortionCurve");
 
+            //sideCount
+
             if (lensFlareProp.objectReferenceValue != null)
             {
                 Texture texture = lensFlareProp.objectReferenceValue as Texture;
@@ -222,13 +224,21 @@ namespace UnityEditor.Rendering
                         if ((tmpBool = EditorGUI.Toggle(rect, Styles.preserveAspectRatio, preserveAspectRatioProp.boolValue)) != preserveAspectRatioProp.boolValue)
                             preserveAspectRatioProp.boolValue = tmpBool;
                     }
-                    else if (newType == SRPLensFlareType.Glow)
+                    else if (newType == SRPLensFlareType.Glow || newType == SRPLensFlareType.Iris)
                     {
-                        SerializedProperty glowFallOffProp = property.FindPropertyRelative("glowFallOff");
+                        SerializedProperty fallOffProp = property.FindPropertyRelative("fallOff");
+                        SerializedProperty sideCountProp = property.FindPropertyRelative("sideCount");
 
                         rect = GetNextRect();
-                        if ((tmp = EditorGUI.FloatField(rect, Styles.glowFallOff, glowFallOffProp.floatValue)) != glowFallOffProp.floatValue)
-                            glowFallOffProp.floatValue = Mathf.Max(tmp, 1e-4f);
+                        if ((tmp = EditorGUI.FloatField(rect, Styles.fallOff, fallOffProp.floatValue)) != fallOffProp.floatValue)
+                            fallOffProp.floatValue = Mathf.Max(tmp, 1e-4f);
+
+                        if (newType == SRPLensFlareType.Iris)
+                        {
+                            rect = GetNextRect();
+                            if ((tmp = EditorGUI.IntField(rect, Styles.sideCount, sideCountProp.intValue)) != sideCountProp.intValue)
+                                sideCountProp.intValue = (int)Mathf.Max(tmp, 3);
+                        }
                     }
                 }
                 --EditorGUI.indentLevel;
@@ -420,8 +430,9 @@ namespace UnityEditor.Rendering
             static public readonly GUIContent targetSizeDistortion = EditorGUIUtility.TrTextContent("Radial Edge Size", "REPLACE ME.");
             static public readonly GUIContent distortionCurve = EditorGUIUtility.TrTextContent("Radial Edge Curve", "REPLACE ME.");
 
-            // For Glow
-            static public readonly GUIContent glowFallOff = EditorGUIUtility.TrTextContent("Falloff", "REPLACE ME.");
+            // For Procedural
+            static public readonly GUIContent fallOff = EditorGUIUtility.TrTextContent("Falloff", "REPLACE ME.");
+            static public readonly GUIContent sideCount = EditorGUIUtility.TrTextContent("Side Count", "REPLACE ME.");
         }
     }
 }

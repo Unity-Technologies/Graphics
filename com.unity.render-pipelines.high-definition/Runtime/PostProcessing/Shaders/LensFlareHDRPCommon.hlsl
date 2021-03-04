@@ -21,21 +21,22 @@ TEXTURE2D_X(_FlareOcclusionBufferTex);
 
 float4 _FlareColor;
 float4 _FlareData0; // x: localCos0, y: localSin0, zw: PositionOffsetXY
-float4 _FlareData1; // x: OcclusionRadius, y: OcclusionSampleCount, z: ScreenPosZ
+float4 _FlareData1; // x: OcclusionRadius, y: OcclusionSampleCount, z: ScreenPosZ, w: Falloff
 float4 _FlareData2; // xy: ScreenPos, zw: FlareSize
-float4 _FlareData3; // xy: RayOffset, z: GlowFalloff
+float4 _FlareData3; // xy: RayOffset
 
 #define _LocalCos0          _FlareData0.x
 #define _LocalSin0          _FlareData0.y
 #define _PositionOffset     _FlareData0.zw
 
 #define _ScreenPosZ         _FlareData1.z
-#define _FlareGlowFalloff   _FlareData1.w
+#define _FlareFalloff       _FlareData1.w
 
 #define _ScreenPos          _FlareData2.xy
 #define _FlareSize          _FlareData2.zw
 
 #define _FlareRayOffset     _FlareData3.xy
+#define _FlareShapeInvSide  _FlareData3.z
 
 float2 Rotate(float2 v, float cos0, float sin0)
 {
@@ -73,5 +74,28 @@ float4 ComputeGlow(float2 uv)
 
     float sdf = saturate(-(length(v) - 1.0f));
 
-    return pow(sdf, _FlareGlowFalloff);
+    return pow(sdf, _FlareFalloff);
+}
+
+float4 ComputeIris(float2 uv_)
+{
+    float2 uv = (uv_ - 0.5f) * 2.0f;
+
+    float a = atan2(uv.x, uv.y) + 3.1415926535897932384626433832795f;
+    float rx = (2.0f * 3.1415926535897932384626433832795f) * _FlareShapeInvSide;
+    float d = 2.0f * cos(floor(0.5f + a / rx) * rx - a) * length(uv);
+
+    //return pow(saturate(1.0f - d), _FlareFalloff);
+    return saturate(1.0f - d) * pow(saturate(1.0f - d), _FlareFalloff);
+}
+
+float4 GetFlareColor(float2 uv)
+{
+#if FLARE_GLOW
+    return ComputeGlow(uv);
+#elif FLARE_IRIS
+    return ComputeIris(uv);
+#else
+    return tex2D(_FlareTex, uv);
+#endif
 }

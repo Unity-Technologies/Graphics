@@ -63,7 +63,11 @@ namespace UnityEngine
         /// <summary>
         /// Procedural Glow
         /// </summary>
-        Glow
+        Glow,
+        /// <summary>
+        /// Iris
+        /// </summary>
+        Iris
     }
 
     /// <summary>
@@ -114,8 +118,9 @@ namespace UnityEngine
             targetSizeDistortion = Vector2.one;
             distortionCurve = new AnimationCurve(new Keyframe(0.0f, 1.0f), new Keyframe(1.0f, 1.0f));
 
-            // Parameters for Glow
-            glowFallOff = 1.0f;
+            // Parameters for Procedural
+            fallOff = 1.0f;
+            sideCount = 6;
         }
 
         /// <summary>
@@ -212,7 +217,8 @@ namespace UnityEngine
         public AnimationCurve distortionCurve;
 
         // Parameters for Glow
-        public float glowFallOff;
+        public float fallOff;
+        public int sideCount;
     }
 
     /// <summary>
