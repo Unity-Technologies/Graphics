@@ -892,19 +892,6 @@ namespace UnityEditor.VFX
 
         public static VFXCompileErrorReporter compileReporter = null;
 
-        public void ResyncComponentsMaterials()
-        {
-            var asset = visualEffectResource?.asset;
-
-            if (asset != null)
-                foreach (var component in UnityEngine.VFX.VFXManager.GetComponents())
-                    if (component.visualEffectAsset == asset)
-                    {
-                        Debug.Log("Resync materials for " + component);
-                        component.ResyncMaterials();
-                    }
-        }
-
         public void RecompileIfNeeded(bool preventRecompilation = false, bool preventDependencyRecompilation = false)
         {
             SanitizeGraph();
@@ -923,8 +910,8 @@ namespace UnityEditor.VFX
                 {
                     if (m_ExpressionValuesDirty && !m_ExpressionGraphDirty)
                         compiledData.UpdateValues();
-                    if (m_MaterialsDirty)
-                        ResyncComponentsMaterials();
+                    if (m_MaterialsDirty && GetResource().asset != null)
+                        UnityEngine.VFX.VFXManager.ResyncMaterials(GetResource().asset);
                 }
 
                 if (considerGraphDirty)
