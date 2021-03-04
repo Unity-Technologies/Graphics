@@ -3,12 +3,12 @@
 # Introduce any changes under .yamato/config/*.metafile files (for most cases) or under .yamato/ruamel/* within Python (more elaborate cases), and rerun build.py to regenerate all .yml files. 
 # Read more under .yamato/docs/readme.md 
 
-{% metadata_file .yamato/_latest_editor_versions_2020.2.metafile -%}
+{% metadata_file .yamato/_latest_editor_versions_2020.3.metafile -%}
 
 ---
 
-Universal_Stereo_Win_Standalone_mono_Linear_2020.2:
-    name: Universal_Stereo on Win__Standalone_mono_Linear on version 2020.2
+Universal_Stereo_Win_Standalone_mono_Linear_2020.3:
+    name: Universal_Stereo on Win__Standalone_mono_Linear on version 2020.3
     agent:
         type: Unity::VM::GPU
         image: sdet/gamecode_win10:stable
@@ -31,10 +31,10 @@ Universal_Stereo_Win_Standalone_mono_Linear_2020.2:
               -  "**/test-results/**"
               -  "TestProjects/UniversalGfxTestStereo/Logs/*.log"
     dependencies:
-      -  path: .yamato/universal_stereo-win.yml#Build_Universal_Stereo_Win_Standalone_mono_Linear_2020.2
+      -  path: .yamato/universal_stereo-win.yml#Build_Universal_Stereo_Win_Standalone_mono_Linear_2020.3
          rerun: on-new-revision
-Build_Universal_Stereo_Win_Standalone_mono_Linear_2020.2:
-    name: Build Universal_Stereo on Win__mono_Linear_Standalone_build_Player on version 2020.2
+Build_Universal_Stereo_Win_Standalone_mono_Linear_2020.3:
+    name: Build Universal_Stereo on Win__mono_Linear_Standalone_build_Player on version 2020.3
     agent:
         type: Unity::VM
         image: sdet/gamecode_win10:stable
@@ -46,7 +46,7 @@ Build_Universal_Stereo_Win_Standalone_mono_Linear_2020.2:
     commands:
       -  curl -s https://artifactory.prd.it.unity3d.com/artifactory/unity-tools-local/utr-standalone/utr.bat --output utr.bat
       -  choco install unity-downloader-cli -y -s https://artifactory.prd.it.unity3d.com/artifactory/api/nuget/unity-choco-local
-      -  unity-downloader-cli -u {{editor_versions.2020_2_staging.Win.revision}} -c editor -c il2cpp  --wait --published-only
+      -  unity-downloader-cli -u {{editor_versions.2020_3_staging.Win.revision}} -c editor -c il2cpp  --wait --published-only
       -  |5-
               git rev-parse HEAD | git show -s --format=%%cI > revdate.tmp
               set /p GIT_REVISIONDATE=<revdate.tmp
@@ -61,8 +61,8 @@ Build_Universal_Stereo_Win_Standalone_mono_Linear_2020.2:
         players:
             paths:
               -  "players*/**"
-Universal_Stereo_Win_editmode_mono_Linear_2020.2:
-    name: Universal_Stereo on Win__editmode_mono_Linear on version 2020.2
+Universal_Stereo_Win_editmode_mono_Linear_2020.3:
+    name: Universal_Stereo on Win__editmode_mono_Linear on version 2020.3
     agent:
         type: Unity::VM
         image: sdet/gamecode_win10:stable
@@ -74,7 +74,7 @@ Universal_Stereo_Win_editmode_mono_Linear_2020.2:
     commands:
       -  curl -s https://artifactory.prd.it.unity3d.com/artifactory/unity-tools-local/utr-standalone/utr.bat --output utr.bat
       -  choco install unity-downloader-cli -y -s https://artifactory.prd.it.unity3d.com/artifactory/api/nuget/unity-choco-local
-      -  unity-downloader-cli -u {{editor_versions.2020_2_staging.Win.revision}} -c editor -c il2cpp  --wait --published-only
+      -  unity-downloader-cli -u {{editor_versions.2020_3_staging.Win.revision}} -c editor -c il2cpp  --wait --published-only
       -  |5-
               git rev-parse HEAD | git show -s --format=%%cI > revdate.tmp
               set /p GIT_REVISIONDATE=<revdate.tmp
@@ -86,8 +86,8 @@ Universal_Stereo_Win_editmode_mono_Linear_2020.2:
             paths:
               -  "**/test-results/**"
               -  "TestProjects/UniversalGfxTestStereo/Logs/*.log"
-Universal_Stereo_Win_Standalone_cache_mono_Linear_2020.2:
-    name: Universal_Stereo on Win__Standalone_cache_mono_Linear on version 2020.2
+Universal_Stereo_Win_Standalone_cache_mono_Linear_2020.3:
+    name: Universal_Stereo on Win__Standalone_cache_mono_Linear on version 2020.3
     agent:
         type: Unity::VM::GPU
         image: sdet/gamecode_win10:stable
@@ -110,10 +110,10 @@ Universal_Stereo_Win_Standalone_cache_mono_Linear_2020.2:
               -  "**/test-results/**"
               -  "TestProjects/UniversalGfxTestStereo/Logs/*.log"
     dependencies:
-      -  path: .yamato/universal_stereo-win.yml#Build_Universal_Stereo_Win_Standalone_cache_mono_Linear_2020.2
+      -  path: .yamato/universal_stereo-win.yml#Build_Universal_Stereo_Win_Standalone_cache_mono_Linear_2020.3
          rerun: on-new-revision
-Build_Universal_Stereo_Win_Standalone_cache_mono_Linear_2020.2:
-    name: Build Universal_Stereo on Win__mono_Linear_Standalone_cache_build_Player on version 2020.2
+Build_Universal_Stereo_Win_Standalone_cache_mono_Linear_2020.3:
+    name: Build Universal_Stereo on Win__mono_Linear_Standalone_cache_build_Player on version 2020.3
     agent:
         type: Unity::VM
         image: sdet/gamecode_win10:stable
@@ -125,7 +125,7 @@ Build_Universal_Stereo_Win_Standalone_cache_mono_Linear_2020.2:
     commands:
       -  curl -s https://artifactory.prd.it.unity3d.com/artifactory/unity-tools-local/utr-standalone/utr.bat --output utr.bat
       -  choco install unity-downloader-cli -y -s https://artifactory.prd.it.unity3d.com/artifactory/api/nuget/unity-choco-local
-      -  unity-downloader-cli -u {{editor_versions.2020_2_staging.Win.revision}} -c editor -c il2cpp  --wait --published-only
+      -  unity-downloader-cli -u {{editor_versions.2020_3_staging.Win.revision}} -c editor -c il2cpp  --wait --published-only
       -  |5-
               git rev-parse HEAD | git show -s --format=%%cI > revdate.tmp
               set /p GIT_REVISIONDATE=<revdate.tmp

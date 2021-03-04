@@ -1,14 +1,14 @@
 target_branch: 10.x.x/release # specifies the branch on which recurrent or pr triggers are created, etc
 target_branch_editor_ci: 10.x.x/ci/editor-pinning # specifies the branch on which editor pinning is done
-target_editor: 2020.2 # specifies the target editor used for some package/preview publish jobs
+target_editor: 2020.3 # specifies the target editor used for some package/preview publish jobs
 conditional_jobs: # some jobs are relevent only depending on the branch
   preview_publish: True
   formatting: False
   packages.package_publish_all: True
   packages.project_publish_all: True
 editors: # applied for all yml files
-  - track: 2020.2
-    name: 2020.2
+  - track: 2020.3
+    name: 2020.3
     rerun_strategy: on-new-revision
     editor_pinning:
       enabled: True
