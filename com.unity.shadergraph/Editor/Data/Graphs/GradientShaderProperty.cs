@@ -81,7 +81,7 @@ namespace UnityEditor.ShaderGraph
                 });
         }
 
-        internal override string GetPropertyAsArgumentString()
+        internal override string GetPropertyAsArgumentString(string precisionString)
         {
             return "Gradient " + referenceName;
         }

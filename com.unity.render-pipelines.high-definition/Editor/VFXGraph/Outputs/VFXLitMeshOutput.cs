@@ -11,7 +11,7 @@ namespace UnityEditor.VFX
         public override string name { get { return "Output Particle Lit Mesh"; } }
         public override string codeGeneratorTemplate { get { return RenderPipeTemplate("VFXParticleLitMesh"); } }
         public override VFXTaskType taskType { get { return VFXTaskType.ParticleMeshOutput; } }
-        public override bool supportsUV { get { return shaderGraph == null; } }
+        public override bool supportsUV { get { return GetOrRefreshShaderGraphObject() == null; } }
         public override bool implementsMotionVector { get { return true; } }
 
         public override CullMode defaultCullMode { get { return CullMode.Back; } }

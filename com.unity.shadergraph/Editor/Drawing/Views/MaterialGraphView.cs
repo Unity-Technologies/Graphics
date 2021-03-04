@@ -75,7 +75,7 @@ namespace UnityEditor.ShaderGraph.Drawing
             m_InspectorUpdateDelegate = inspectorUpdateDelegate;
             if (propertyDrawer is GraphDataPropertyDrawer graphDataPropertyDrawer)
             {
-                graphDataPropertyDrawer.GetPropertyData(this.ChangeTargetSettings, ChangeConcretePrecision);
+                graphDataPropertyDrawer.GetPropertyData(this.ChangeTargetSettings, ChangePrecision);
             }
         }
 
@@ -92,17 +92,19 @@ namespace UnityEditor.ShaderGraph.Drawing
             this.m_InspectorUpdateDelegate();
         }
 
-        void ChangeConcretePrecision(ConcretePrecision newValue)
+        void ChangePrecision(GraphPrecision newGraphDefaultPrecision)
         {
+            if (graph.graphDefaultPrecision == newGraphDefaultPrecision)
+                return;
+
+            graph.owner.RegisterCompleteObjectUndo("Change Graph Default Precision");
+
+            graph.SetGraphDefaultPrecision(newGraphDefaultPrecision);
+
             var graphEditorView = this.GetFirstAncestorOfType<GraphEditorView>();
             if (graphEditorView == null)
                 return;
 
-            graph.owner.RegisterCompleteObjectUndo("Change Precision");
-            if (graph.concretePrecision == newValue)
-                return;
-
-            graph.concretePrecision = newValue;
             var nodeList = this.Query<MaterialNodeView>().ToList();
             graphEditorView.colorManager.SetNodesDirty(nodeList);
 
@@ -183,6 +185,8 @@ namespace UnityEditor.ShaderGraph.Drawing
                 // solution is to call its DragLeave until its interface can be improved.
                 context.DragLeave(null, null, null, null);
             }
+            if (selectedBlocknodes.Length > 0)
+                graph.ValidateCustomBlockLimit();
             return selectedBlocknodes.Length > 0;
         }
 
