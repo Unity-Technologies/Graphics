@@ -91,6 +91,11 @@ namespace UnityEngine
             positionVariation = new Vector2(0.0f, 0.0f);
             scaleVariation = 0.0f;
             rotationVariation = 0.0f;
+
+            // Distortion
+            enableRadialDistortion = false;
+            targetSizeDistortion = Vector2.one;
+            distortionCurve = new AnimationCurve(new Keyframe(0.0f, 1.0f), new Keyframe(1.0f, 1.0f));
         }
 
         /// <summary>
@@ -177,6 +182,10 @@ namespace UnityEngine
         public Vector2 positionVariation;
         public float scaleVariation;
         public float rotationVariation;
+        // Distortion
+        public bool enableRadialDistortion;
+        public Vector2 targetSizeDistortion;
+        public AnimationCurve distortionCurve;
     }
 
     /// <summary>

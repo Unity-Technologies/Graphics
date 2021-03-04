@@ -89,6 +89,11 @@ namespace UnityEditor.Rendering
             SerializedProperty sizeVariationProp = property.FindPropertyRelative("sizeVariation");
             SerializedProperty rotationVariationProp = property.FindPropertyRelative("rotationVariation");
 
+            // Distortion
+            SerializedProperty enableDistortionProp = property.FindPropertyRelative("enableRadialDistortion");
+            SerializedProperty targetSizeDistortionProp = property.FindPropertyRelative("targetSizeDistortion");
+            SerializedProperty distortionCurveProp = property.FindPropertyRelative("distortionCurve");
+
             if (lensFlareProp.objectReferenceValue != null)
             {
                 Texture texture = lensFlareProp.objectReferenceValue as Texture;
@@ -157,6 +162,7 @@ namespace UnityEditor.Rendering
                         autoRotateProp.boolValue = tmpBool;
                 }
                 --EditorGUI.indentLevel;
+
                 rect = GetNextRect();
                 EditorGUI.TextArea(rect, "Axis Transforms", EditorStyles.boldLabel);
                 ++EditorGUI.indentLevel;
@@ -175,6 +181,22 @@ namespace UnityEditor.Rendering
                         translationScaleProp.vector2Value = tmpVec2;
                 }
                 --EditorGUI.indentLevel;
+
+                rect = GetNextRect();
+                EditorGUI.TextArea(rect, "Distortion", EditorStyles.boldLabel);
+                ++EditorGUI.indentLevel;
+                {
+                    rect = GetNextRect();
+                    if ((tmpBool = EditorGUI.Toggle(rect, Styles.enableDistortion, enableDistortionProp.boolValue)) != enableDistortionProp.boolValue)
+                        enableDistortionProp.boolValue = tmpBool;
+                    rect = GetNextRect();
+                    if ((tmpVec2 = EditorGUI.Vector2Field(rect, Styles.targetSizeDistortion, targetSizeDistortionProp.vector2Value)) != targetSizeDistortionProp.vector2Value)
+                        targetSizeDistortionProp.vector2Value = tmpVec2;
+                    rect = GetNextRect();
+                    EditorGUI.PropertyField(rect, distortionCurveProp, Styles.distortionCurve);
+                }
+                --EditorGUI.indentLevel;
+
                 rect = GetNextRect();
                 EditorGUI.TextArea(rect, "Type", EditorStyles.boldLabel);
                 ++EditorGUI.indentLevel;
@@ -191,6 +213,7 @@ namespace UnityEditor.Rendering
                         preserveAspectRatioProp.boolValue = tmpBool;
                 }
                 --EditorGUI.indentLevel;
+
                 rect = GetNextRect();
                 EditorGUI.TextArea(rect, "Multiple Elements", EditorStyles.boldLabel);
                 ++EditorGUI.indentLevel;
@@ -303,9 +326,9 @@ namespace UnityEditor.Rendering
             if (isFoldOpened.boolValue)
             {
                 if (preserveAspectRatio.boolValue)
-                    coef = 19.0f;
+                    coef = 19.0f + 4.0f;
                 else
-                    coef = 20.0f;
+                    coef = 20.0f + 4.0f;
 
                 if (countProp.intValue > 1)
                 {
@@ -363,6 +386,11 @@ namespace UnityEditor.Rendering
             static public readonly GUIContent colors = EditorGUIUtility.TrTextContent("Colors", "REPLACE ME.");
             static public readonly GUIContent positionCurve = EditorGUIUtility.TrTextContent("Position Spacing", "REPLACE ME.");
             static public readonly GUIContent scaleCurve = EditorGUIUtility.TrTextContent("Scale Variation", "REPLACE ME.");
+
+            // For Distortion
+            static public readonly GUIContent enableDistortion = EditorGUIUtility.TrTextContent("Radial Distortion", "REPLACE ME.");
+            static public readonly GUIContent targetSizeDistortion = EditorGUIUtility.TrTextContent("Radial Edge Size", "REPLACE ME.");
+            static public readonly GUIContent distortionCurve = EditorGUIUtility.TrTextContent("Radial Edge Curve", "REPLACE ME.");
         }
     }
 }
