@@ -85,8 +85,7 @@ float4 ComputeIris(float2 uv_)
     float rx = (2.0f * 3.1415926535897932384626433832795f) * _FlareShapeInvSide;
     float d = 2.0f * cos(floor(0.5f + a / rx) * rx - a) * length(uv);
 
-    //return pow(saturate(1.0f - d), _FlareFalloff);
-    return saturate(1.0f - d) * pow(saturate(1.0f - d), _FlareFalloff);
+    return pow(saturate(1.0f - d), _FlareFalloff);
 }
 
 float4 GetFlareColor(float2 uv)
