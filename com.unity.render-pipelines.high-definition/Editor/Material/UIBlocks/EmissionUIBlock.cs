@@ -221,15 +221,7 @@ namespace UnityEditor.Rendering.HighDefinition
 
         internal static void DoEmissiveTextureProperty(MaterialEditor materialEditor, MaterialProperty texture, MaterialProperty color)
         {
-            bool hadTexture = texture.textureValue != null;
             materialEditor.TexturePropertySingleLine(Styles.emissiveMap, texture, color);
-            if (!hadTexture && texture.textureValue != null && !texture.hasMixedValue && !color.hasMixedValue)
-            {
-                // If a texture is assigned and color is black, set color to white
-                var brightness = color.colorValue.maxColorComponent;
-                if (brightness <= 0f)
-                    color.colorValue = Color.white;
-            }
         }
 
         void DoEmissiveTextureProperty(MaterialProperty color)
