@@ -57,7 +57,7 @@ void ShadowLoopMin(HDShadowContext shadowContext, PositionInputs posInput, float
 #elif defined(SHADOW_LOOP_AVERAGE)
                 shadow += lerp(light.shadowTint, float3(1, 1, 1), shadowD);
 #else
-                shadow = min(shadow, shadowD.xxx);
+                shadow = min(shadow, shadowD.SHADOW_TYPE_SWIZZLE);
 #endif
                 shadowCount += 1.0f;
                 weight      += 1.0f - shadowD;
