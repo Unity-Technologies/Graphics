@@ -77,26 +77,59 @@ namespace UnityEditor.ShaderGraph
             }
         }
 
-        public static bool NeedsMultiStageDefinition(this KeywordDescriptor keyword, ref List<KeywordShaderStage> dstStages)
+        static void GenerateKeywordPragmaStrings(
+            string keywordReferenceName,
+            KeywordDefinition keywordDefinition,
+            KeywordScope keywordScope,
+            KeywordShaderStage keywordStages,
+            string keywordVariantsString,
+            Action<string> PragmaStringAction)
         {
-            dstStages.Clear();
+            string definitionString = keywordDefinition.ToDeclarationString();
+            string scopeString = keywordScope.ToDeclarationSuffix();
 
-            // All doesn't need special treatment.
-            if (keyword.stages == KeywordShaderStage.All)
-                return false;
+            // check the active shader stages
+            if (keywordStages == KeywordShaderStage.All)
+            {
+                PragmaStringAction($"#pragma {definitionString}{scopeString} {keywordVariantsString}");
+            }
+            else
+            {
+                // have to process each stage separately
+                for (int shaderStage = (int)KeywordShaderStage.Vertex; shaderStage <= (int)keywordStages; shaderStage = shaderStage * 2)
+                {
+                    if (((int)keywordStages & shaderStage) != 0)
+                    {
+                        var keywordStage = (KeywordShaderStage)shaderStage;
+                        var stageString = keywordStage.ToKeywordStagesString();
+                        PragmaStringAction($"#pragma {definitionString}{scopeString}{stageString} {keywordVariantsString}");
+                    }
+                }
+            }
+        }
 
-            if ((keyword.stages & KeywordShaderStage.Vertex) == KeywordShaderStage.Vertex)
-                dstStages.Add(KeywordShaderStage.Vertex);
-            if ((keyword.stages & KeywordShaderStage.Hull) == KeywordShaderStage.Hull)
-                dstStages.Add(KeywordShaderStage.Hull);
-            if ((keyword.stages & KeywordShaderStage.Domain) == KeywordShaderStage.Domain)
-                dstStages.Add(KeywordShaderStage.Domain);
-            if ((keyword.stages & KeywordShaderStage.Geometry) == KeywordShaderStage.Geometry)
-                dstStages.Add(KeywordShaderStage.Geometry);
-            if ((keyword.stages & KeywordShaderStage.RayTracing) == KeywordShaderStage.RayTracing)
-                dstStages.Add(KeywordShaderStage.RayTracing);
+        public static void GenerateEnumKeywordPragmaStrings(
+            string keywordReferenceName,
+            KeywordDefinition keywordDefinition,
+            KeywordScope keywordScope,
+            KeywordShaderStage keywordStages,
+            IEnumerable<KeywordEntry> keywordEntries,
+            Action<string> pragmaStringAction)
+        {
+            var entryStrings = keywordEntries.Select(x => $"{keywordReferenceName}_{x.referenceName}");
+            string variantsString = string.Join(" ", entryStrings);
+            GenerateKeywordPragmaStrings(keywordReferenceName, keywordDefinition, keywordScope, keywordStages, variantsString, pragmaStringAction);
+        }
 
-            return dstStages.Count > 1;
+        public static void GenerateBooleanKeywordPragmaStrings(
+            string keywordReferenceName,
+            KeywordDefinition keywordDefinition,
+            KeywordScope keywordScope,
+            KeywordShaderStage keywordStages,
+            Action<string> pragmaStringAction)
+        {
+            string variantsString = $"_ {keywordReferenceName}";
+            GenerateKeywordPragmaStrings(keywordReferenceName, keywordDefinition, keywordScope, keywordStages, variantsString, pragmaStringAction);
         }
 
         public static string ToKeywordStagesString(this KeywordShaderStage stages)
@@ -119,25 +152,6 @@ namespace UnityEditor.ShaderGraph
                 outString += "_raytracing";
 
             return outString;
-        }
-
-        public static string ToDeclarationString(this KeywordDescriptor keyword)
-        {
-            // Get definition type using scope
-            string scopeString = keyword.scope.ToDeclarationSuffix();
-            string definitionString = $"{keyword.definition.ToDeclarationString()}{scopeString}{keyword.stages.ToKeywordStagesString()}";
-
-            switch (keyword.type)
-            {
-                case KeywordType.Boolean:
-                    return $"#pragma {definitionString} _ {keyword.referenceName}";
-                case KeywordType.Enum:
-                    var enumEntryDefinitions = keyword.entries.Select(x => $"{keyword.referenceName}_{x.referenceName}");
-                    string enumEntriesString = string.Join(" ", enumEntryDefinitions);
-                    return $"#pragma {definitionString} {enumEntriesString}";
-                default:
-                    throw new ArgumentOutOfRangeException();
-            }
         }
 
         public static string ToDefineString(this KeywordDescriptor keyword, int value)

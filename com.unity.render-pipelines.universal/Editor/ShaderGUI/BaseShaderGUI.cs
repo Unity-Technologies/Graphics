@@ -396,8 +396,8 @@ namespace UnityEditor
 
         public static void SetMaterialKeywords(Material material, Action<Material> shadingModelFunc = null, Action<Material> shaderFunc = null)
         {
-            // Clear all keywords for fresh start
-            material.shaderKeywords = null;
+            // Clear all keywords for fresh start -- DO NOT DO THIS -- IT NUKES USER DEFINED KEYWORDS (i.e. those coming from user keywords in ShaderGraph)
+            // material.shaderKeywords = null;
 
             // Setup blending - consistent across all Universal RP shaders
             SetupMaterialBlendMode(material);
