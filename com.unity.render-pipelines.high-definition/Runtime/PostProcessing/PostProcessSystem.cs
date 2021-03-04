@@ -2470,12 +2470,12 @@ namespace UnityEngine.Rendering.HighDefinition
                         {
                             for (int elemIdx = 0; elemIdx < element.count; ++elemIdx)
                             {
-                                Vector2 rayOff0 = GetLensFlareRayOffset(screenPos, 0.0f, globalCos0, globalSin0);
                                 Vector2 rayOff = GetLensFlareRayOffset(screenPos, position, globalCos0, globalSin0);
 
                                 Vector2 localSize = size;
                                 if (element.enableRadialDistortion)
                                 {
+                                    Vector2 rayOff0 = GetLensFlareRayOffset(screenPos, 0.0f, globalCos0, globalSin0);
                                     Vector2 localRadPos = (rayOff - rayOff0) * 0.5f;
                                     float localRadius = Mathf.Clamp01(Mathf.Max(Mathf.Abs(localRadPos.x), Mathf.Abs(localRadPos.y))); // l1 norm (instead of l2 norm)
                                     float localLerpValue = element.distortionCurve.Evaluate(localRadius);
@@ -2521,8 +2521,9 @@ namespace UnityEngine.Rendering.HighDefinition
                                 Vector2 localSize = size + ((new Vector2(usedAspectRatio, 1.0f)) * element.scaleVariation * Random.Range(-1.0f, 1.0f));
                                 if (element.enableRadialDistortion)
                                 {
-                                    Vector2 localRadPos = new Vector2(Mathf.Abs(rayOff.x), Mathf.Abs(rayOff.y));
-                                    float localRadius = Mathf.Clamp01(Mathf.Max(localRadPos.x, localRadPos.y)); // l1 norm (instead of l2 norm)
+                                    Vector2 rayOff0 = GetLensFlareRayOffset(screenPos, 0.0f, globalCos0, globalSin0);
+                                    Vector2 localRadPos = (rayOff - rayOff0) * 0.5f;
+                                    float localRadius = Mathf.Clamp01(Mathf.Max(Mathf.Abs(localRadPos.x), Mathf.Abs(localRadPos.y))); // l1 norm (instead of l2 norm)
                                     float localLerpValue = element.distortionCurve.Evaluate(localRadius);
                                     localSize = new Vector2(Mathf.Lerp(localSize.x, element.targetSizeDistortion.x * scaleSize, localLerpValue),
                                                             Mathf.Lerp(localSize.y, element.targetSizeDistortion.y * scaleSize, localLerpValue));
@@ -2562,8 +2563,9 @@ namespace UnityEngine.Rendering.HighDefinition
                                 Vector2 localSize = size * sizeCurveValue;
                                 if (element.enableRadialDistortion)
                                 {
-                                    Vector2 localRadPos = new Vector2(Mathf.Abs(rayOff.x), Mathf.Abs(rayOff.y));
-                                    float localRadius = Mathf.Clamp01(Mathf.Max(localRadPos.x, localRadPos.y)); // l1 norm (instead of l2 norm)
+                                    Vector2 rayOff0 = GetLensFlareRayOffset(screenPos, 0.0f, globalCos0, globalSin0);
+                                    Vector2 localRadPos = (rayOff - rayOff0) * 0.5f;
+                                    float localRadius = Mathf.Clamp01(Mathf.Max(Mathf.Abs(localRadPos.x), Mathf.Abs(localRadPos.y))); // l1 norm (instead of l2 norm)
                                     float localLerpValue = element.distortionCurve.Evaluate(localRadius);
                                     localSize = new Vector2(Mathf.Lerp(localSize.x, element.targetSizeDistortion.x * scaleSize, localLerpValue),
                                                             Mathf.Lerp(localSize.y, element.targetSizeDistortion.y * scaleSize, localLerpValue));
