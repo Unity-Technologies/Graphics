@@ -231,7 +231,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 {
                     densityMultiplier = 1.0f;
                     shapeFactor = 0.3f;
-                    shapeScale = 1.0f;
+                    shapeScale = 0.7f;
                     erosionFactor = 0.3f;
                     erosionScale = 1.0f;
                     return;
