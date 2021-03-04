@@ -208,6 +208,8 @@ namespace UnityEngine.Rendering.Universal
             // C#8 feature, only in >= 2020.2
             using var profScope = new ProfilingScope(null, ProfilingSampler.Get(URPProfileId.UniversalRenderTotal));
 
+            Shader.SetGlobalTexture("_skybox", ReflectionProbe.defaultTexture);
+
 #if UNITY_2021_1_OR_NEWER
             using (new ProfilingScope(null, Profiling.Pipeline.beginContextRendering))
             {

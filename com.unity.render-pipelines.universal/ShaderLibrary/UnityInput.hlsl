@@ -119,11 +119,11 @@ real4 unity_SpecCube0_HDR;
 real4 unity_SpecCube1_HDR;
 
 float4 unity_SpecCube0_BoxMax;
-float4 unity_SpecCube0_BoxMin;
-float4 unity_SpecCube0_ProbePosition;
+float4 unity_SpecCube0_BoxMin;          // w contains the lerp value
+float4 unity_SpecCube0_ProbePosition;   // w is set to 1 for box projection
 float4 unity_SpecCube1_BoxMax;
 float4 unity_SpecCube1_BoxMin;
-float4 unity_SpecCube1_ProbePosition;
+float4 unity_SpecCube1_ProbePosition;   // w is set to 1 for box projection
 
 // Lightmap block feature
 float4 unity_LightmapST;
