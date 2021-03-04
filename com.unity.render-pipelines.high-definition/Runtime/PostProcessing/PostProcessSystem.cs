@@ -2518,23 +2518,12 @@ namespace UnityEngine.Rendering.HighDefinition
                         }
                         else if (element.distribution == SRPLensFlareDistribution.Random)
                         {
-                            Vector2 side;
-                            {
-                                Vector3 rayOffset = new Vector3(translationScale.x * (positionScreen.x * 2.0f - (float)cam.pixelWidth) / (float)cam.pixelWidth,
-                                                                translationScale.y * (positionScreen.y * 2.0f - (float)cam.pixelHeight) / (float)cam.pixelHeight, 0.0f);
-                                {
-                                    side = Vector3.Cross(rayOffset.normalized, new Vector3(0f, 0f, 1f));
-                                    side.Normalize();
-                                    side.Scale(vScreenRatioY);
-                                }
-                            }
+                            Vector2 side = new Vector2(Mathf.Sin(-element.angularOffset * Mathf.Deg2Rad), Mathf.Cos(-element.angularOffset * Mathf.Deg2Rad));
+                            side *= element.positionVariation.y;
                             Random.InitState(element.seed);
                             for (int elemIdx = 0; elemIdx < element.count; ++elemIdx)
                             {
                                 float localIntensity = Random.Range(-1.0f, 1.0f) * element.intensityVariation + 1.0f;
-
-                                if (localIntensity <= 0.0f)
-                                    continue;
 
                                 Vector2 rayOff = GetLensFlareRayOffset(screenPos, position, globalCos0, globalSin0);
                                 Vector2 localSize = size + ((new Vector2(usedAspectRatio, 1.0f)) * element.scaleVariation * Random.Range(-1.0f, 1.0f));
@@ -2550,19 +2539,20 @@ namespace UnityEngine.Rendering.HighDefinition
 
                                 Color randCol = element.colorGradient.Evaluate(Random.Range(0.0f, 1.0f));
 
-                                Vector2 localPositionOffset = element.positionOffset + (element.positionVariation.y * Random.Range(-1.0f, 1.0f)) *
-                                    (new Vector2(Mathf.Sin(-element.angularOffset * Mathf.Deg2Rad), Mathf.Cos(-element.angularOffset * Mathf.Deg2Rad)));
-                                    //(new Vector2(side.x, side.y));
+                                Vector2 localPositionOffset = element.positionOffset + Random.Range(-1.0f, 1.0f) * side;
 
                                 float localRotation = element.rotation + Random.Range(-Mathf.PI, Mathf.PI) * element.rotationVariation;
 
-                                Vector4 flareData0 = GetFlareData0(screenPos, element.translationScale, vScreenRatio, localRotation, position, element.angularOffset, localPositionOffset, element.autoRotate);
-                                cmd.SetGlobalVector(HDShaderIDs._FlareData0, flareData0);
-                                cmd.SetGlobalVector(HDShaderIDs._FlareData2, new Vector4(screenPos.x, screenPos.y, localSize.x, localSize.y));
-                                cmd.SetGlobalVector(HDShaderIDs._FlareData3, new Vector4(rayOff.x * element.translationScale.x, rayOff.y * element.translationScale.y, 1.0f / (float)element.sideCount, 0.0f));
-                                cmd.SetGlobalVector(HDShaderIDs._FlareColor, curColor * randCol * localIntensity);
+                                if (localIntensity > 0.0f)
+                                {
+                                    Vector4 flareData0 = GetFlareData0(screenPos, element.translationScale, vScreenRatio, localRotation, position, element.angularOffset, localPositionOffset, element.autoRotate);
+                                    cmd.SetGlobalVector(HDShaderIDs._FlareData0, flareData0);
+                                    cmd.SetGlobalVector(HDShaderIDs._FlareData2, new Vector4(screenPos.x, screenPos.y, localSize.x, localSize.y));
+                                    cmd.SetGlobalVector(HDShaderIDs._FlareData3, new Vector4(rayOff.x * element.translationScale.x, rayOff.y * element.translationScale.y, 1.0f / (float)element.sideCount, 0.0f));
+                                    cmd.SetGlobalVector(HDShaderIDs._FlareColor, curColor * randCol * localIntensity);
 
-                                cmd.DrawProcedural(Matrix4x4.identity, usedMaterial, 0, MeshTopology.Quads, 6, 1, null);
+                                    cmd.DrawProcedural(Matrix4x4.identity, usedMaterial, 0, MeshTopology.Quads, 6, 1, null);
+                                }
 
                                 position += dLength;
                                 position += 0.5f * dLength * Random.Range(-1.0f, 1.0f) * element.positionVariation.x;

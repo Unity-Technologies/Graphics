@@ -276,7 +276,7 @@ namespace UnityEditor.Rendering
 
                             rect = GetNextRect();
                             if ((tmp = EditorGUI.FloatField(rect, Styles.intensityVariation, intensityVariationProp.floatValue)) != intensityVariationProp.floatValue)
-                                intensityVariationProp.floatValue = Mathf.Max(tmp, 0.0f);
+                                intensityVariationProp.floatValue = Mathf.Clamp01(tmp);
 
                             rect = GetNextRect();
                             EditorGUI.PropertyField(rect, colorGradientProp, Styles.colors);
