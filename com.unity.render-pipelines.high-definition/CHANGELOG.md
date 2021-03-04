@@ -42,6 +42,13 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed issue with automatic exposure settings not updating scene view.
 - Fixed issue with velocity rejection in post-DoF TAA. Fixing this reduces ghosting (case 1304381).
 - Fixed missing option to use POM on emissive for tessellated shaders.
+- Fixed resize IES when already baked in the Atlas 1299233
+- Fixed an issue in the planar reflection probe convolution.
+- Fixed Rough Distortion frame setting not greyed out when Distortion is disabled in HDRP Asset
+- Fixed ability to override AlphaToMask FrameSetting while camera in deferred lit shader mode
+- Fixed issue with physically-based DoF computation and transparent materials with depth-writes ON.
+- Fixed issue of accessing default frame setting stored in current HDRPAsset instead fo the default HDRPAsset
+- Fixed SSGI frame setting not greyed out while SSGI is disabled in HDRP Asset
 
 ### Changed
 - Updated the tooltip for the Decal Angle Fade property (requires to enable Decal Layers in both HDRP asset and Frame settings) (case 1308048).
