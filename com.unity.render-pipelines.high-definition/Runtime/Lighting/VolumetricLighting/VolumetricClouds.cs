@@ -47,7 +47,7 @@ namespace UnityEngine.Rendering.HighDefinition
             /// <summary>A light layer of cloud that covers the entire sky. Some areas are less dense and let more light through, whereas other areas are more dense and appear darker.</summary>
             Overcast,
             /// <summary>Large dark clouds that cover most of the sky.</summary>
-            StormClouds,
+            Stormy,
             /// <summary>Exposes properties that control the shape of the clouds.</summary>
             Custom
         }
@@ -359,15 +359,10 @@ namespace UnityEngine.Rendering.HighDefinition
         [Tooltip("Specifies the resolution of the volumetric clouds shadow map.")]
         public CloudShadowResolutionParameter shadowResolution = new CloudShadowResolutionParameter(CloudShadowResolution.Medium256);
 
-<<<<<<< HEAD
         /// <summary>
-        /// Controls the vertical offset applied to compute the volumetric clouds shadow. To have accurate results, enter the average height at which the volumetric clouds shadow is received.
+        /// Controls the vertical offset applied to compute the volumetric clouds shadow in meters. To have accurate results, enter the average height at which the volumetric clouds shadow is received.
         /// </summary>
-        [Tooltip("Controls the vertical offset applied to compute the volumetric clouds shadow. To have accurate results, enter the average height at which the volumetric clouds shadow is received.")]
-=======
         [Tooltip("Controls the vertical offset applied to compute the volumetric clouds shadow in meters. To have accurate results, enter the average height at which the volumetric clouds shadow is received.")]
->>>>>>> tuned default presets, updated erosion base frequency noise, updated cloud LUT
-        [AdditionalProperty]
         public FloatParameter shadowPlaneHeightOffset = new FloatParameter(0.0f);
 
         /// <summary>
