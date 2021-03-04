@@ -31,14 +31,13 @@ namespace UnityEngine.Rendering.HighDefinition
             bool msaa = hdCamera.frameSettings.IsEnabled(FrameSettingsField.MSAA);
             var target = renderRequest.target;
 
-            var renderGraphParams = new RenderGraphParameters()
+            m_RenderGraph.Begin(new RenderGraphParameters()
             {
+                executionName = camera.name,
                 scriptableRenderContext = renderContext,
                 commandBuffer = commandBuffer,
                 currentFrameIndex = m_FrameCount
-            };
-
-            m_RenderGraph.Begin(renderGraphParams);
+            });
 
             // We need to initalize the MipChainInfo here, so it will be available to any render graph pass that wants to use it during setup
             // Be careful, ComputePackedMipChainInfo needs the render texture size and not the viewport size. Otherwise it would compute the wrong size.

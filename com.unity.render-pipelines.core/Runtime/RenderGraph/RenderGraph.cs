@@ -39,6 +39,8 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
     /// </summary>
     public struct RenderGraphParameters
     {
+        ///<summary>Identifier for this render graph execution.</summary>
+        public string executionName;
         ///<summary>Index of the current frame being rendered.</summary>
         public int currentFrameIndex;
         ///<summary>Scriptable Render Context used by the render pipeline.</summary>
@@ -56,6 +58,7 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
         public bool clearRenderTargetsAtRelease;
         public bool disablePassCulling;
         public bool immediateMode;
+        public bool enableLogging;
         public bool logFrameInformation;
         public bool logResources;
 
@@ -72,6 +75,7 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
                     //    list.Add(new DebugUI.BoolField { displayName = "Clear Render Targets at release", getter = () => clearRenderTargetsAtRelease, setter = value => clearRenderTargetsAtRelease = value });
                     new DebugUI.BoolField { displayName = "Disable Pass Culling", getter = () => disablePassCulling, setter = value => disablePassCulling = value },
                     new DebugUI.BoolField { displayName = "Immediate Mode", getter = () => immediateMode, setter = value => immediateMode = value },
+                    new DebugUI.BoolField { displayName = "Enable Logging", getter = () => enableLogging, setter = value => enableLogging = value },
                     new DebugUI.Button
                     {
                         displayName = "Log Frame Information",
@@ -267,7 +271,7 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
         List<RenderGraphPass>                   m_RenderPasses = new List<RenderGraphPass>(64);
         List<RendererListHandle>                m_RendererLists = new List<RendererListHandle>(32);
         RenderGraphDebugParams                  m_DebugParameters = new RenderGraphDebugParams();
-        RenderGraphLogger                       m_Logger = new RenderGraphLogger();
+        RenderGraphLogger                       m_FrameInformationLogger = new RenderGraphLogger();
         RenderGraphDefaultResources             m_DefaultResources = new RenderGraphDefaultResources();
         Dictionary<int, ProfilingSampler>       m_DefaultProfilingSamplers = new Dictionary<int, ProfilingSampler>();
         bool                                    m_ExecutionExceptionWasRaised;
@@ -284,6 +288,7 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
         int                                     m_ExecutionCount;
         int                                     m_CurrentFrameIndex;
         bool                                    m_HasRenderGraphBegun;
+        string                                  m_CurrentExecutionName;
         RenderGraphDebugData                    m_RenderGraphDebugData = new RenderGraphDebugData();
 
         // Global list of living render graphs
@@ -313,7 +318,7 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
         public RenderGraph(string name = "RenderGraph")
         {
             this.name = name;
-            m_Resources = new RenderGraphResourceRegistry(m_DebugParameters, m_Logger);
+            m_Resources = new RenderGraphResourceRegistry(m_DebugParameters, m_FrameInformationLogger);
 
             for (int i = 0; i < (int)RenderGraphResourceType.Count; ++i)
             {
@@ -378,8 +383,17 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
         public void EndFrame()
         {
             m_Resources.PurgeUnusedGraphicsResources();
-            m_DebugParameters.logFrameInformation = false;
-            m_DebugParameters.logResources = false;
+
+            if (m_DebugParameters.logFrameInformation)
+            {
+                Debug.Log(m_FrameInformationLogger.GetAllLogs());
+                m_DebugParameters.logFrameInformation = false;
+            }
+            if (m_DebugParameters.logResources)
+            {
+                m_Resources.FlushLogs();
+                m_DebugParameters.logResources = false;
+            }
         }
 
         /// <summary>
@@ -563,11 +577,15 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
         public void Begin(in RenderGraphParameters parameters)
         {
             m_CurrentFrameIndex = parameters.currentFrameIndex;
+            m_CurrentExecutionName = parameters.executionName;
             m_HasRenderGraphBegun = true;
 
             m_Resources.BeginRenderGraph(m_ExecutionCount++);
 
-            m_Logger.Initialize();
+            if (m_DebugParameters.enableLogging)
+            {
+                m_FrameInformationLogger.Initialize(m_CurrentExecutionName);
+            }
 
             m_DefaultResources.InitializeForRendering(this);
 
@@ -638,9 +656,6 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
                     ReleaseImmediateModeResources();
 
                 ClearCompiledGraph();
-
-                if (m_DebugParameters.logFrameInformation || m_DebugParameters.logResources)
-                    Debug.Log(m_Logger.GetLog());
 
                 m_Resources.EndExecute();
 
@@ -799,9 +814,9 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
         {
             if (m_DebugParameters.disablePassCulling)
             {
-                if (m_DebugParameters.logFrameInformation)
+                if (m_DebugParameters.enableLogging)
                 {
-                    m_Logger.LogLine("- Pass Culling Disabled -\n");
+                    m_FrameInformationLogger.LogLine("- Pass Culling Disabled -\n");
                 }
                 return;
             }
@@ -1164,7 +1179,7 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
                 using (new ProfilingScope(m_RenderGraphContext.cmd, passInfo.pass.customSampler))
                 {
                     LogRenderPassBegin(passInfo);
-                    using (new RenderGraphLogIndent(m_Logger))
+                    using (new RenderGraphLogIndent(m_FrameInformationLogger))
                     {
                         PreRenderPassExecute(passInfo, m_RenderGraphContext);
                         passInfo.pass.Execute(m_RenderGraphContext);
@@ -1314,54 +1329,54 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
 
         void LogFrameInformation()
         {
-            if (m_DebugParameters.logFrameInformation)
+            if (m_DebugParameters.enableLogging)
             {
-                m_Logger.LogLine("==== Staring render graph frame ====");
+                m_FrameInformationLogger.LogLine($"==== Staring render graph frame for: {m_CurrentExecutionName} ====");
 
                 if (!m_DebugParameters.immediateMode)
-                    m_Logger.LogLine("Number of passes declared: {0}\n", m_RenderPasses.Count);
+                    m_FrameInformationLogger.LogLine("Number of passes declared: {0}\n", m_RenderPasses.Count);
             }
         }
 
         void LogRendererListsCreation()
         {
-            if (m_DebugParameters.logFrameInformation)
+            if (m_DebugParameters.enableLogging)
             {
-                m_Logger.LogLine("Number of renderer lists created: {0}\n", m_RendererLists.Count);
+                m_FrameInformationLogger.LogLine("Number of renderer lists created: {0}\n", m_RendererLists.Count);
             }
         }
 
         void LogRenderPassBegin(in CompiledPassInfo passInfo)
         {
-            if (m_DebugParameters.logFrameInformation)
+            if (m_DebugParameters.enableLogging)
             {
                 RenderGraphPass pass = passInfo.pass;
 
-                m_Logger.LogLine("[{0}][{1}] \"{2}\"", pass.index, pass.enableAsyncCompute ? "Compute" : "Graphics", pass.name);
-                using (new RenderGraphLogIndent(m_Logger))
+                m_FrameInformationLogger.LogLine("[{0}][{1}] \"{2}\"", pass.index, pass.enableAsyncCompute ? "Compute" : "Graphics", pass.name);
+                using (new RenderGraphLogIndent(m_FrameInformationLogger))
                 {
                     if (passInfo.syncToPassIndex != -1)
-                        m_Logger.LogLine("Synchronize with [{0}]", passInfo.syncToPassIndex);
+                        m_FrameInformationLogger.LogLine("Synchronize with [{0}]", passInfo.syncToPassIndex);
                 }
             }
         }
 
         void LogCulledPasses()
         {
-            if (m_DebugParameters.logFrameInformation)
+            if (m_DebugParameters.enableLogging)
             {
-                m_Logger.LogLine("Pass Culling Report:");
-                using (new RenderGraphLogIndent(m_Logger))
+                m_FrameInformationLogger.LogLine("Pass Culling Report:");
+                using (new RenderGraphLogIndent(m_FrameInformationLogger))
                 {
                     for (int i = 0; i < m_CompiledPassInfos.size; ++i)
                     {
                         if (m_CompiledPassInfos[i].culled)
                         {
                             var pass = m_RenderPasses[i];
-                            m_Logger.LogLine("[{0}] {1}", pass.index, pass.name);
+                            m_FrameInformationLogger.LogLine("[{0}] {1}", pass.index, pass.name);
                         }
                     }
-                    m_Logger.LogLine("\n");
+                    m_FrameInformationLogger.LogLine("\n");
                 }
             }
         }
