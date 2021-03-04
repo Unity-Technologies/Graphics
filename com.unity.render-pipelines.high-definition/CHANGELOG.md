@@ -83,6 +83,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed ability to override AlphaToMask FrameSetting while camera in deferred lit shader mode
 - Fixed Missing lighting quality settings for SSGI (case 1312067).
 - Fixed HDRP material being constantly dirty.
+- Fixed wizard checking FrameSettings not in HDRP Default Settings
 
 ### Changed
 - Changed Window/Render Pipeline/HD Render Pipeline Wizard to Window/Rendering/HDRP Wizard
