@@ -1,13 +1,8 @@
-using System;
 using System.Linq;
-using System.Runtime.CompilerServices;
 using UnityEngine;
-using UnityEngine.Rendering.HighDefinition;
 
 namespace UnityEditor.Rendering.HighDefinition
 {
-    using CED = CoreEditorDrawer<SerializedHDCamera>;
-
     static partial class HDCameraUI
     {
         partial class PhysicalCamera
