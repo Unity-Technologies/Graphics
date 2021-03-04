@@ -14,6 +14,8 @@ Rendering Buffer Format | Post-processing Buffer Format | Alpha Output
 **R16G16B16A16** | **R11G11B10** | Alpha channel without post-processing (AlphaCopy)
 **R16G16B16A16** | **R16G16B16A16** | Alpha channel with post-processing
 
+Note that alpha output is also supported in [Path Tracing](Ray-Tracing-Path-Tracing.md).
+
 ## DoF and Alpha Output
 Another case which might require post-processing of the alpha channel is for scenes that use Depth Of Field. In this case, if the alpha is not processed, compositing will result in a sharp cut-off of an object that should appear blurred. This is better is illustrated in the images below:
 

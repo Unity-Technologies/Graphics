@@ -1498,6 +1498,12 @@ namespace UnityEngine.Rendering.HighDefinition
             return parameters;
         }
 
+        static void GetDoFResolutionScale(in DepthOfFieldParameters dofParameters, out float scale, out float resolutionScale)
+        {
+            scale = 1f / (float)dofParameters.resolution;
+            resolutionScale = (dofParameters.camera.actualHeight / 1080f) * (scale * 2f);
+        }
+
         //
         // Reference used:
         //   "A Lens and Aperture Camera Model for Synthetic Image Generation" [Potmesil81]
@@ -1551,14 +1557,13 @@ namespace UnityEngine.Rendering.HighDefinition
             float anamorphism = dofParameters.physicalCameraAnamorphism / 4f;
             float barrelClipping = dofParameters.physicalCameraBarrelClipping / 3f;
 
-            float scale = 1f / (float)dofParameters.resolution;
+            GetDoFResolutionScale(dofParameters, out float scale, out float resolutionScale);
             var screenScale = new Vector2(scale, scale);
             int targetWidth = Mathf.RoundToInt(dofParameters.camera.actualWidth * scale);
             int targetHeight = Mathf.RoundToInt(dofParameters.camera.actualHeight * scale);
 
             cmd.SetGlobalVector(HDShaderIDs._TargetScale, new Vector4((float)dofParameters.resolution, scale, 0f, 0f));
 
-            float resolutionScale = (dofParameters.camera.actualHeight / 1080f) * (scale * 2f);
             int farSamples = dofParameters.farSampleCount;
             int nearSamples = dofParameters.nearSampleCount;
 
@@ -1566,9 +1571,9 @@ namespace UnityEngine.Rendering.HighDefinition
             float nearMaxBlur = dofParameters.nearMaxBlur * resolutionScale;
 
             // If TAA is enabled we use the camera history system to grab CoC history textures, but
-            // because these don't use the same RTHandle system as the global one we'll have a
-            // different scale than _RTHandleScale so we need to handle our own
-            var cocHistoryScale = RTHandles.rtHandleProperties.rtHandleScale;
+            // because these don't use the same RTHandleScale as the global one, we need to use
+            // the RTHandleScale of the history RTHandles
+            var cocHistoryScale = taaEnabled ? dofParameters.camera.historyRTHandleProperties.rtHandleScale : RTHandles.rtHandleProperties.rtHandleScale;
 
             ComputeShader cs;
             int kernel;
@@ -3416,7 +3421,7 @@ namespace UnityEngine.Rendering.HighDefinition
                     #if HDRP_DEBUG_STATIC_POSTFX
                     int textureId = 0;
                     #else
-                    int textureId = Time.frameCount % blueNoiseTexture.depth;
+                    int textureId = (int)hdCamera.GetCameraFrameCount() % blueNoiseTexture.depth;
                     #endif
 
                     finalPassMaterial.EnableKeyword("DITHER");

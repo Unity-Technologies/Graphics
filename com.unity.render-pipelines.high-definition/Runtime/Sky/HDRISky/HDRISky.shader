@@ -6,7 +6,7 @@ Shader "Hidden/HDRP/Sky/HDRISky"
 
     #pragma editor_sync_compilation
     #pragma target 4.5
-    #pragma only_renderers d3d11 playstation xboxone vulkan metal switch
+    #pragma only_renderers d3d11 playstation xboxone xboxseries vulkan metal switch
 
     #define LIGHTLOOP_DISABLE_TILE_AND_CLUSTER
 
@@ -310,11 +310,6 @@ Shader "Hidden/HDRP/Sky/HDRISky"
         return results;
     }
 
-    float4 FragBakingBackplate(Varyings input) : SV_Target
-    {
-        return RenderBackplate(input, 1.0);
-    }
-
     float4 FragRenderBackplate(Varyings input) : SV_Target
     {
         UNITY_SETUP_STEREO_EYE_INDEX_POST_VERTEX(input);
@@ -336,12 +331,6 @@ Shader "Hidden/HDRP/Sky/HDRISky"
         }
 
         return depth;
-    }
-
-    float FragBakingBackplateDepth(Varyings input) : SV_Depth
-    {
-        UNITY_SETUP_STEREO_EYE_INDEX_POST_VERTEX(input);
-        return GetDepthWithBackplate(input);
     }
 
     float4 FragRenderBackplateDepth(Varyings input, out float depth : SV_Depth) : SV_Target0
@@ -392,20 +381,6 @@ Shader "Hidden/HDRP/Sky/HDRISky"
             ENDHLSL
         }
 
-        // HDRI Sky with Backplate
-        // For cubemap with Backplate
-        Pass
-        {
-            ZWrite Off
-            ZTest Always
-            Blend Off
-            Cull Off
-
-            HLSLPROGRAM
-                #pragma fragment FragBakingBackplate
-            ENDHLSL
-        }
-
         // For fullscreen Sky with Backplate
         Pass
         {
@@ -416,20 +391,6 @@ Shader "Hidden/HDRP/Sky/HDRISky"
 
             HLSLPROGRAM
                 #pragma fragment FragRenderBackplate
-            ENDHLSL
-        }
-
-        // HDRI Sky with Backplate for PreRenderSky (Depth Only Pass)
-        // DepthOnly For cubemap with Backplate
-        Pass
-        {
-            ZWrite On
-            ZTest LEqual
-            Blend Off
-            Cull Off
-
-            HLSLPROGRAM
-                #pragma fragment FragBakingBackplateDepth
             ENDHLSL
         }
 
