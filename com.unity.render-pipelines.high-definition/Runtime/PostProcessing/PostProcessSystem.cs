@@ -2395,14 +2395,15 @@ namespace UnityEngine.Rendering.HighDefinition
                     Texture texture = element.lensFlareTexture;
                     float usedAspectRatio = element.preserveAspectRatio ? (((float)texture.width) / ((float)texture.height)) : element.aspectRatio;
 
-                    Vector2 size = new Vector2(scaleByDistance * element.size * usedAspectRatio, scaleByDistance * element.size);
-                    size *= 0.1f; // Arbitrary values
-
                     float rotation = element.rotation;
                     Vector4 tint = Vector4.Scale(element.tint, curColor);
                     Vector2 radPos = new Vector2(Mathf.Abs(screenPos.x), Mathf.Abs(screenPos.y));
                     float radius = Mathf.Max(radPos.x, radPos.y); // l1 norm (instead of l2 norm)
                     float radialsScaleRadius = comp.radialScreenAttenuationCurve.length > 0 ? comp.radialScreenAttenuationCurve.Evaluate(radius) : 1.0f;
+
+                    float scaleSize = 0.1f;
+                    Vector2 size = new Vector2(scaleByDistance * element.size * usedAspectRatio, scaleByDistance * element.size);
+                    size *= scaleSize; // Arbitrary values
 
                     Vector4 gradientModulation = new Vector4(1.0f, 1.0f, 1.0f, 1.0f);
 
@@ -2446,8 +2447,15 @@ namespace UnityEngine.Rendering.HighDefinition
                     {
                         Vector4 flareData0 = GetFlareData0(screenPos, element.translationScale, vScreenRatio, element.rotation, position, element.angularOffset, element.positionOffset, element.autoRotate);
 
+                        Vector2 localSize = size;
+                        if (element.enableRadialDistortion)
+                        {
+                            localSize = new Vector2(Mathf.Lerp(localSize.x, element.targetSizeDistortion.x * scaleSize, radius),
+                                                    Mathf.Lerp(localSize.y, element.targetSizeDistortion.y * scaleSize, radius));
+                        }
+
                         cmd.SetGlobalVector(HDShaderIDs._FlareData0, flareData0);
-                        cmd.SetGlobalVector(HDShaderIDs._FlareData2, new Vector4(screenPos.x, screenPos.y, size.x, size.y));
+                        cmd.SetGlobalVector(HDShaderIDs._FlareData2, new Vector4(screenPos.x, screenPos.y, localSize.x, localSize.y));
                         Vector2 rayOff = GetLensFlareRayOffset(screenPos, position, globalCos0, globalSin0);
                         cmd.SetGlobalVector(HDShaderIDs._FlareData3, new Vector4(rayOff.x, rayOff.y, 0.0f, 0.0f));
                         cmd.SetGlobalVector(HDShaderIDs._FlareColor, curColor);
@@ -2462,14 +2470,26 @@ namespace UnityEngine.Rendering.HighDefinition
                         {
                             for (int elemIdx = 0; elemIdx < element.count; ++elemIdx)
                             {
+                                Vector2 rayOff0 = GetLensFlareRayOffset(screenPos, 0.0f, globalCos0, globalSin0);
+                                Vector2 rayOff = GetLensFlareRayOffset(screenPos, position, globalCos0, globalSin0);
+
+                                Vector2 localSize = size;
+                                if (element.enableRadialDistortion)
+                                {
+                                    Vector2 localRadPos = (rayOff - rayOff0) * 0.5f;
+                                    float localRadius = Mathf.Clamp01(Mathf.Max(Mathf.Abs(localRadPos.x), Mathf.Abs(localRadPos.y))); // l1 norm (instead of l2 norm)
+                                    float localLerpValue = element.distortionCurve.Evaluate(localRadius);
+                                    localSize = new Vector2(Mathf.Lerp(localSize.x, element.targetSizeDistortion.x * scaleSize, localLerpValue),
+                                                            Mathf.Lerp(localSize.y, element.targetSizeDistortion.y * scaleSize, localLerpValue));
+                                }
+
                                 float timeScale = element.count >= 2 ? ((float)elemIdx) / ((float)(element.count - 1)) : 0.5f;
 
                                 Color col = element.colorGradient.Evaluate(timeScale);
 
                                 Vector4 flareData0 = GetFlareData0(screenPos, element.translationScale, vScreenRatio, element.rotation, position, element.angularOffset, element.positionOffset, element.autoRotate);
                                 cmd.SetGlobalVector(HDShaderIDs._FlareData0, flareData0);
-                                cmd.SetGlobalVector(HDShaderIDs._FlareData2, new Vector4(screenPos.x, screenPos.y, size.x, size.y));
-                                Vector2 rayOff = GetLensFlareRayOffset(screenPos, position, globalCos0, globalSin0);
+                                cmd.SetGlobalVector(HDShaderIDs._FlareData2, new Vector4(screenPos.x, screenPos.y, localSize.x, localSize.y));
                                 cmd.SetGlobalVector(HDShaderIDs._FlareData3, new Vector4(rayOff.x * element.translationScale.x, rayOff.y * element.translationScale.y, 0.0f, 0.0f));
                                 cmd.SetGlobalVector(HDShaderIDs._FlareColor, curColor * col);
 
@@ -2497,11 +2517,19 @@ namespace UnityEngine.Rendering.HighDefinition
                                 if (localIntensity <= 0.0f)
                                     continue;
 
+                                Vector2 rayOff = GetLensFlareRayOffset(screenPos, position, globalCos0, globalSin0);
                                 Vector2 localSize = size + ((new Vector2(usedAspectRatio, 1.0f)) * element.scaleVariation * Random.Range(-1.0f, 1.0f));
+                                if (element.enableRadialDistortion)
+                                {
+                                    Vector2 localRadPos = new Vector2(Mathf.Abs(rayOff.x), Mathf.Abs(rayOff.y));
+                                    float localRadius = Mathf.Clamp01(Mathf.Max(localRadPos.x, localRadPos.y)); // l1 norm (instead of l2 norm)
+                                    float localLerpValue = element.distortionCurve.Evaluate(localRadius);
+                                    localSize = new Vector2(Mathf.Lerp(localSize.x, element.targetSizeDistortion.x * scaleSize, localLerpValue),
+                                                            Mathf.Lerp(localSize.y, element.targetSizeDistortion.y * scaleSize, localLerpValue));
+                                }
 
                                 Color randCol = element.colorGradient.Evaluate(Random.Range(0.0f, 1.0f));
 
-                                Vector2 rayOff = GetLensFlareRayOffset(screenPos, position, globalCos0, globalSin0);
                                 Vector2 localPositionOffset = element.positionOffset + (element.positionVariation.y * Random.Range(-1.0f, 1.0f)) * (new Vector2(side.x, side.y));
 
                                 float localRotation = element.rotation + Random.Range(-Mathf.PI, Mathf.PI) * element.rotationVariation;
@@ -2528,15 +2556,22 @@ namespace UnityEngine.Rendering.HighDefinition
 
                                 float positionSpacing = element.positionCurve.length > 0 ? element.positionCurve.Evaluate(timeScale) : 1.0f;
 
+                                float localPos = position + 2.0f * element.lengthSpread * positionSpacing;
+                                Vector2 rayOff = GetLensFlareRayOffset(screenPos, localPos, globalCos0, globalSin0);
                                 float sizeCurveValue = element.scaleCurve.length > 0 ? element.scaleCurve.Evaluate(timeScale) : 1.0f;
                                 Vector2 localSize = size * sizeCurveValue;
-
-                                float localPos = position + 2.0f * element.lengthSpread * positionSpacing;
+                                if (element.enableRadialDistortion)
+                                {
+                                    Vector2 localRadPos = new Vector2(Mathf.Abs(rayOff.x), Mathf.Abs(rayOff.y));
+                                    float localRadius = Mathf.Clamp01(Mathf.Max(localRadPos.x, localRadPos.y)); // l1 norm (instead of l2 norm)
+                                    float localLerpValue = element.distortionCurve.Evaluate(localRadius);
+                                    localSize = new Vector2(Mathf.Lerp(localSize.x, element.targetSizeDistortion.x * scaleSize, localLerpValue),
+                                                            Mathf.Lerp(localSize.y, element.targetSizeDistortion.y * scaleSize, localLerpValue));
+                                }
 
                                 Vector4 flareData0 = GetFlareData0(screenPos, element.translationScale, vScreenRatio, element.rotation, localPos, element.angularOffset, element.positionOffset, element.autoRotate);
                                 cmd.SetGlobalVector(HDShaderIDs._FlareData0, flareData0);
                                 cmd.SetGlobalVector(HDShaderIDs._FlareData2, new Vector4(screenPos.x, screenPos.y, localSize.x, localSize.y));
-                                Vector2 rayOff = GetLensFlareRayOffset(screenPos, localPos, globalCos0, globalSin0);
                                 cmd.SetGlobalVector(HDShaderIDs._FlareData3, new Vector4(rayOff.x * element.translationScale.x, rayOff.y * element.translationScale.y, 0.0f, 0.0f));
                                 cmd.SetGlobalVector(HDShaderIDs._FlareColor, curColor * col);
 
