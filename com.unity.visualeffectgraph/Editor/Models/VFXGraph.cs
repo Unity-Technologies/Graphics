@@ -600,6 +600,11 @@ namespace UnityEditor.VFX
                 m_ExpressionValuesDirty = true;
                 m_DependentDirty = true;
             }
+
+            if (cause == VFXModel.InvalidationCause.kMaterialChanged)
+            {
+                m_MaterialsDirty = true;
+            }
         }
 
         public uint FindReducedExpressionIndexFromSlotCPU(VFXSlot slot)
@@ -887,6 +892,19 @@ namespace UnityEditor.VFX
 
         public static VFXCompileErrorReporter compileReporter = null;
 
+        public void ResyncComponentsMaterials()
+        {
+            var asset = visualEffectResource?.asset;
+
+            if (asset != null)
+                foreach (var component in UnityEngine.VFX.VFXManager.GetComponents())
+                    if (component.visualEffectAsset == asset)
+                    {
+                        Debug.Log("Resync materials for " + component);
+                        component.ResyncMaterials();
+                    }
+        }
+
         public void RecompileIfNeeded(bool preventRecompilation = false, bool preventDependencyRecompilation = false)
         {
             SanitizeGraph();
@@ -901,14 +919,19 @@ namespace UnityEditor.VFX
 
                     compiledData.Compile(m_CompilationMode, m_ForceShaderValidation);
                 }
-                else if (m_ExpressionValuesDirty && !m_ExpressionGraphDirty)
+                else 
                 {
-                    compiledData.UpdateValues();
+                    if (m_ExpressionValuesDirty && !m_ExpressionGraphDirty)
+                        compiledData.UpdateValues();
+                    if (m_MaterialsDirty)
+                        ResyncComponentsMaterials();
                 }
 
                 if (considerGraphDirty)
                     m_ExpressionGraphDirty = false;
+
                 m_ExpressionValuesDirty = false;
+                m_MaterialsDirty = false;
             }
             else if (m_ExpressionGraphDirty && !preventRecompilation)
             {
@@ -952,6 +975,8 @@ namespace UnityEditor.VFX
         private bool m_ExpressionValuesDirty = true;
         [NonSerialized]
         private bool m_DependentDirty = true;
+        [NonSerialized]
+        private bool m_MaterialsDirty = false;
 
         [NonSerialized]
         private VFXGraphCompiledData m_CompiledData;
