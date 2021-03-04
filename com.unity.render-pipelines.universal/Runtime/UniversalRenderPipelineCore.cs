@@ -704,6 +704,8 @@ namespace UnityEngine.Rendering.Universal
         // RenderObjectsPass
         //RenderObjects,
 
+        LightCookies,
+
         MainLightShadow,
         ResolveShadows,
         SSAO,
