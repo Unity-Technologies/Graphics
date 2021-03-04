@@ -254,7 +254,6 @@ namespace UnityEngine.Rendering.Universal
             Matrix4x4 cameraToWorldMatrix = worldToCameraMatrix;
             cameraToWorldMatrix = cameraToWorldMatrix.transpose;
 
-            // TODO
             Vector3 cameraToWorldMatrixAxisX = new Vector3(cameraToWorldMatrix.m00, cameraToWorldMatrix.m10, cameraToWorldMatrix.m20);
             Vector3 cameraToWorldMatrixAxisY = new Vector3(cameraToWorldMatrix.m01, cameraToWorldMatrix.m11, cameraToWorldMatrix.m21);
             Vector3 cameraToWorldMatrixAxisZ = new Vector3(cameraToWorldMatrix.m02, cameraToWorldMatrix.m12, cameraToWorldMatrix.m22);
@@ -291,20 +290,14 @@ namespace UnityEngine.Rendering.Universal
             Matrix4x4 viewMatrix = cameraData.GetViewMatrix();
 
             Matrix4x4 viewProj = CoreMatrixUtils.MultiplyProjectionMatrix(projectionMatrix, viewMatrix, cameraData.camera.orthographic);
-            Plane[] planes = new Plane[6];
+            Plane[] planes = s_Planes;
             GeometryUtility.CalculateFrustumPlanes(viewProj, planes);
 
-            static Vector4 PlaneToVector(Plane plane)
-            {
-                return new Vector4(plane.normal.x, plane.normal.y, plane.normal.z, plane.distance);
-            }
+            Vector4[] cameraWorldClipPlanes = s_VectorPlanes;
+            for (int i = 0; i < planes.Length; ++i)
+                cameraWorldClipPlanes[i] = new Vector4(planes[i].normal.x, planes[i].normal.y, planes[i].normal.z, planes[i].distance);
 
-            cmd.SetGlobalVector(ShaderPropertyId.cameraWorldClipPlanes0, PlaneToVector(planes[0]));
-            cmd.SetGlobalVector(ShaderPropertyId.cameraWorldClipPlanes1, PlaneToVector(planes[1]));
-            cmd.SetGlobalVector(ShaderPropertyId.cameraWorldClipPlanes2, PlaneToVector(planes[2]));
-            cmd.SetGlobalVector(ShaderPropertyId.cameraWorldClipPlanes3, PlaneToVector(planes[3]));
-            cmd.SetGlobalVector(ShaderPropertyId.cameraWorldClipPlanes4, PlaneToVector(planes[4]));
-            cmd.SetGlobalVector(ShaderPropertyId.cameraWorldClipPlanes5, PlaneToVector(planes[5]));
+            cmd.SetGlobalVectorArray(ShaderPropertyId.cameraWorldClipPlanes, cameraWorldClipPlanes);
         }
 
         /// <summary>
@@ -454,6 +447,9 @@ namespace UnityEngine.Rendering.Universal
             new RenderTargetIdentifier[] {0, 0, 0, 0, 0, 0, 0},      // m_TrimmedColorAttachmentCopies[7] is an array of 7 RenderTargetIdentifiers
             new RenderTargetIdentifier[] {0, 0, 0, 0, 0, 0, 0, 0 },  // m_TrimmedColorAttachmentCopies[8] is an array of 8 RenderTargetIdentifiers
         };
+
+        private static Plane[] s_Planes = new Plane[6];
+        private static Vector4[] s_VectorPlanes = new Vector4[6];
 
         internal static void ConfigureActiveTarget(RenderTargetIdentifier colorAttachment,
             RenderTargetIdentifier depthAttachment)
@@ -641,36 +637,8 @@ namespace UnityEngine.Rendering.Universal
                         SetPerCameraClippingPlaneProperties(cmd, in cameraData); // TODO: Move this is to SetCameraMatrices, once we get rid of context.SetupCameraProperties
                         SetPerCameraBillboardProperties(cmd, ref cameraData);
 
-                        // TODO: Find out if this is needed
-                        /*#if GFX_SUPPORTS_SINGLE_PASS_STEREO
-                            // Set stereo matrices to make shaders with UNITY_SINGLE_PASS_STEREO enabled work in mono
-                            // View and projection are handled by the device
-                            device.SetStereoMatrix(kMonoOrStereoscopicEyeMono, kShaderMatCameraInvProjection, invProjMatrix);
-                            device.SetStereoMatrix(kMonoOrStereoscopicEyeMono, kShaderMatWorldToCamera, worldToCamera);
-                            device.SetStereoMatrix(kMonoOrStereoscopicEyeMono, kShaderMatCameraToWorld, cameraToWorld);
-                         #endif*/
-                        // TODO STEREO_CUBEMAP_RENDER_ON is not used
-                        // I think we do not need it
-                        /*if (passContext.keywords.IsEnabled(keywords::kStereoCubemapRenderOn))
-                        {
-                            float halfStereoSeparation = 0.5f * params.stereoSeparation;
-                            GfxDevice & device = GetGfxDevice();
-                            float eyeIndex = device.GetBuiltinParamValues().GetWritableVectorParam(kShaderVecStereoEyeIndex).x;
-
-                            if (eyeIndex == 0)
-                            {
-                                //left eye gets negative separation value
-                                halfStereoSeparation *= -1.0f;
-                            }
-                            v = Vector4f(halfStereoSeparation, 0, 0, 0);
-                            shaderParams.SetVectorParam(kShaderVecHalfStereoSeparation, v);
-                        }*/
-
                         // TODO: Remove after the testing
                         TestCameraProperties.SampleCameraPropertiesNew(cmd);
-
-                        // TODO: Remove after the testing
-                        //TestCameraProperties.LogDifference();
                     }
 
 

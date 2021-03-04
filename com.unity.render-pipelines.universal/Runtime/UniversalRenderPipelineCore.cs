@@ -289,12 +289,7 @@ namespace UnityEngine.Rendering.Universal
         public static readonly int worldToCameraMatrix = Shader.PropertyToID("unity_WorldToCamera");
         public static readonly int cameraToWorldMatrix = Shader.PropertyToID("unity_CameraToWorld");
 
-        public static readonly int cameraWorldClipPlanes0 = Shader.PropertyToID("unity_CameraWorldClipPlanes0");
-        public static readonly int cameraWorldClipPlanes1 = Shader.PropertyToID("unity_CameraWorldClipPlanes1");
-        public static readonly int cameraWorldClipPlanes2 = Shader.PropertyToID("unity_CameraWorldClipPlanes2");
-        public static readonly int cameraWorldClipPlanes3 = Shader.PropertyToID("unity_CameraWorldClipPlanes3");
-        public static readonly int cameraWorldClipPlanes4 = Shader.PropertyToID("unity_CameraWorldClipPlanes4");
-        public static readonly int cameraWorldClipPlanes5 = Shader.PropertyToID("unity_CameraWorldClipPlanes5");
+        public static readonly int cameraWorldClipPlanes = Shader.PropertyToID("unity_CameraWorldClipPlanes");
 
         public static readonly int billboardNormal = Shader.PropertyToID("unity_BillboardNormal");
         public static readonly int billboardTangent = Shader.PropertyToID("unity_BillboardTangent");
