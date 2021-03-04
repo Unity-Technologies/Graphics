@@ -197,7 +197,6 @@ namespace UnityEngine.Rendering
             if (Vector3.Distance(SceneView.lastActiveSceneView.camera.transform.position, cellCenterWS) > m_CullingDistance)
                 return true;
 
-            Debug.DrawLine(cellCenterWS, cellCenterWS + Vector3.up * m_Profile.cellSize, Color.red, 0.1f);
             var frustumPlanes = GeometryUtility.CalculateFrustumPlanes(SceneView.lastActiveSceneView.camera);
             var volumeAABB = new Bounds(cellCenterWS, m_Profile.cellSize * Vector3.one);
 
