@@ -649,6 +649,7 @@ namespace UnityEngine.Rendering.HighDefinition
 #if UNITY_EDITOR
             && (UnityEditor.EditorUserBuildSettings.activeBuildTarget == UnityEditor.BuildTarget.StandaloneWindows64
                 || UnityEditor.EditorUserBuildSettings.activeBuildTarget == UnityEditor.BuildTarget.StandaloneWindows)
+            || UnityEditor.EditorUserBuildSettings.activeBuildTarget == UnityEditor.BuildTarget.PS5
 #endif
         ;
 

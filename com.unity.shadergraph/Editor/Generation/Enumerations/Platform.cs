@@ -17,6 +17,7 @@ namespace UnityEditor.ShaderGraph
         GameCoreXboxSeries,
         Playstation,
         Switch,
+        PS5,
     }
 
     [GenerationAPI]
@@ -50,6 +51,8 @@ namespace UnityEditor.ShaderGraph
                     return "playstation";
                 case Platform.Switch:
                     return "switch";
+                case Platform.PS5:
+                    return "ps5";
                 default:
                     throw new ArgumentOutOfRangeException();
             }
