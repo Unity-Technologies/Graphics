@@ -49,6 +49,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed issue with physically-based DoF computation and transparent materials with depth-writes ON.
 - Fixed issue of accessing default frame setting stored in current HDRPAsset instead fo the default HDRPAsset
 - Fixed SSGI frame setting not greyed out while SSGI is disabled in HDRP Asset
+- Fixed HDRP material being constantly dirty.
 
 ### Changed
 - Updated the tooltip for the Decal Angle Fade property (requires to enable Decal Layers in both HDRP asset and Frame settings) (case 1308048).
