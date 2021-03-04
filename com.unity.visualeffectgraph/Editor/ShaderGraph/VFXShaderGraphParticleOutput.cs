@@ -3,11 +3,9 @@ using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
 using System.Reflection;
-using UnityEditor.ShaderGraph;
 using UnityEditor.ShaderGraph.Internal;
 using UnityEngine;
 using UnityEngine.Rendering;
-
 using UnityObject = UnityEngine.Object;
 
 
@@ -71,6 +69,8 @@ namespace UnityEditor.VFX
 
             var materialChanged = false;
 
+            var previousBlendMode = ((VFXShaderGraphParticleOutput)target).GetMaterialBlendMode();
+
             if (m_MaterialEditor != null)
             {
                 if ((m_MaterialEditor.target as Material)?.shader == null)
@@ -96,12 +96,25 @@ namespace UnityEditor.VFX
 
             base.OnInspectorGUI();
 
-            if (serializedObject.ApplyModifiedProperties() || materialChanged)
+            if (serializedObject.ApplyModifiedProperties())
+            {
+                foreach (var context in targets.OfType<VFXShaderGraphParticleOutput>())
+                    context.Invalidate(VFXModel.InvalidationCause.kSettingChanged);
+            }
+
+            if (materialChanged)
             {
                 foreach (var context in targets.OfType<VFXShaderGraphParticleOutput>())
                 {
                     context.UpdateMaterialSettings();
-                    context.Invalidate(VFXModel.InvalidationCause.kSettingChanged);
+
+                    var currentBlendMode = ((VFXShaderGraphParticleOutput)target).GetMaterialBlendMode();
+
+                    // If the blend mode is changed to one that may require sorting (Auto), we require a full recompilation.
+                    if (previousBlendMode != currentBlendMode)
+                        context.Invalidate(VFXModel.InvalidationCause.kSettingChanged);
+                    else
+                        context.Invalidate(VFXModel.InvalidationCause.kMaterialChanged);
                 }
             }
         }
@@ -120,11 +133,6 @@ namespace UnityEditor.VFX
 
         internal Material transientMaterial;
 
-        public override void OnEnable()
-        {
-            base.OnEnable();
-        }
-
         public ShaderGraphVfxAsset GetOrRefreshShaderGraphObject()
         {
             //This is the only place where shaderGraph property is updated or read
@@ -141,6 +149,22 @@ namespace UnityEditor.VFX
             return shaderGraph;
         }
 
+        public BlendMode GetMaterialBlendMode()
+        {
+            var blendMode = BlendMode.Opaque;
+
+            var shaderGraph = GetOrRefreshShaderGraphObject();
+            if (shaderGraph != null && shaderGraph.generatesWithShaderGraph)
+            {
+                // VFX Blend Mode state configures important systems like sorting and indirect buffer.
+                // In the case of SG Generation path, we need to know the blend mode state of the SRP
+                // Material to configure the VFX blend mode.
+                blendMode = VFXLibrary.currentSRPBinder.GetBlendModeFromMaterial(materialSettings);
+            }
+
+            return blendMode;
+        }
+
         public override void SetupMaterial(Material material)
         {
             var shaderGraph = GetOrRefreshShaderGraphObject();
@@ -151,9 +175,7 @@ namespace UnityEditor.VFX
                 VFXLibrary.currentSRPBinder.SetupMaterial(material, shaderGraph);
 
                 transientMaterial = material;
-
-                if (OnMaterialChange != null)
-                    OnMaterialChange();
+                OnMaterialChange?.Invoke();
             }
         }
 
@@ -234,17 +256,7 @@ namespace UnityEditor.VFX
 
         public override bool HasSorting()
         {
-            var materialBlendMode = BlendMode.Opaque;
-
-            var shaderGraph = GetOrRefreshShaderGraphObject();
-            if (shaderGraph != null && shaderGraph.generatesWithShaderGraph)
-            {
-                // VFX Blend Mode state configures important systems like sorting and indirect buffer.
-                // In the case of SG Generation path, we need to know the blend mode state of the SRP
-                // Material to configure the VFX blend mode.
-                materialBlendMode = VFXLibrary.currentSRPBinder.GetBlendModeFromMaterial(materialSettings);
-            }
-
+            var materialBlendMode = GetMaterialBlendMode();
             return base.HasSorting() || (sort == SortMode.Auto && (materialBlendMode == BlendMode.Alpha || materialBlendMode == BlendMode.AlphaPremultiplied));
         }
 
