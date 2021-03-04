@@ -23,6 +23,8 @@ Shader "Hidden/HDRP/LensFlare (HDRP Screen)"
             #pragma vertex vert
             #pragma fragment frag
 
+            #pragma multi_compile_fragment _ FLARE_GLOW
+
             #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Common.hlsl"
             #include "Packages/com.unity.render-pipelines.high-definition-config/Runtime/ShaderConfig.cs.hlsl"
             #include "Packages/com.unity.render-pipelines.high-definition/Runtime/ShaderLibrary/ShaderVariables.hlsl"
@@ -32,7 +34,11 @@ Shader "Hidden/HDRP/LensFlare (HDRP Screen)"
             {
                 UNITY_SETUP_STEREO_EYE_INDEX_POST_VERTEX(i);
 
+#if FLARE_GLOW
+                float4 col = ComputeGlow(i.texcoord);
+#else
                 float4 col = tex2D(_FlareTex, i.texcoord);
+#endif
                 return col * _FlareColor * i.occlusion;
             }
 

@@ -51,6 +51,22 @@ namespace UnityEngine
     }
 
     /// <summary>
+    /// SRPLensFlareType which can be an image of a procedural shape
+    /// </summary>
+    [System.Serializable]
+    public enum SRPLensFlareType
+    {
+        /// <summary>
+        /// Image from a file or a RenderTexture
+        /// </summary>
+        Image,
+        /// <summary>
+        /// Procedural Glow
+        /// </summary>
+        Glow
+    }
+
+    /// <summary>
     /// SRPLensFlareDataElement defines a single texture used in a SRPLensFlareData
     /// </summary>
     [System.Serializable]
@@ -75,6 +91,7 @@ namespace UnityEngine
             blendMode = SRPLensFlareBlendMode.Additive;
             autoRotate = false;
             isFoldOpened = true;
+            flareType = SRPLensFlareType.Image;
 
             distribution = SRPLensFlareDistribution.Uniform;
 
@@ -96,6 +113,9 @@ namespace UnityEngine
             enableRadialDistortion = false;
             targetSizeDistortion = Vector2.one;
             distortionCurve = new AnimationCurve(new Keyframe(0.0f, 1.0f), new Keyframe(1.0f, 1.0f));
+
+            // Parameters for Glow
+            glowFallOff = 1.0f;
         }
 
         /// <summary>
@@ -161,6 +181,10 @@ namespace UnityEngine
         /// </summary>
         public bool autoRotate;
         /// <summary>
+        /// FlareType used
+        /// </summary>
+        public SRPLensFlareType flareType;
+        /// <summary>
         /// Modulate by light color if the asset is used in a 'SRP Lens Flare Source Override'
         /// </summary>
         public bool modulateByLightColor;
@@ -186,6 +210,9 @@ namespace UnityEngine
         public bool enableRadialDistortion;
         public Vector2 targetSizeDistortion;
         public AnimationCurve distortionCurve;
+
+        // Parameters for Glow
+        public float glowFallOff;
     }
 
     /// <summary>

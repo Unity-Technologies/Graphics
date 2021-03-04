@@ -23,18 +23,19 @@ float4 _FlareColor;
 float4 _FlareData0; // x: localCos0, y: localSin0, zw: PositionOffsetXY
 float4 _FlareData1; // x: OcclusionRadius, y: OcclusionSampleCount, z: ScreenPosZ
 float4 _FlareData2; // xy: ScreenPos, zw: FlareSize
-float4 _FlareData3; // xy: RayOffset
+float4 _FlareData3; // xy: RayOffset, z: GlowFalloff
 
-#define _LocalCos0      _FlareData0.x
-#define _LocalSin0      _FlareData0.y
-#define _PositionOffset _FlareData0.zw
+#define _LocalCos0          _FlareData0.x
+#define _LocalSin0          _FlareData0.y
+#define _PositionOffset     _FlareData0.zw
 
-#define _ScreenPosZ     _FlareData1.z
+#define _ScreenPosZ         _FlareData1.z
+#define _FlareGlowFalloff   _FlareData1.w
 
-#define _ScreenPos      _FlareData2.xy
-#define _FlareSize      _FlareData2.zw
+#define _ScreenPos          _FlareData2.xy
+#define _FlareSize          _FlareData2.zw
 
-#define _FlareRayOffset _FlareData3.xy
+#define _FlareRayOffset     _FlareData3.xy
 
 float2 Rotate(float2 v, float cos0, float sin0)
 {
@@ -64,4 +65,13 @@ Varyings vert(Attributes input)
     output.occlusion = 1.0f;
 
     return output;
+}
+
+float4 ComputeGlow(float2 uv)
+{
+    float2 v = (uv - 0.5f) * 2.0f;
+
+    float sdf = saturate(-(length(v) - 1.0f));
+
+    return pow(sdf, _FlareGlowFalloff);
 }

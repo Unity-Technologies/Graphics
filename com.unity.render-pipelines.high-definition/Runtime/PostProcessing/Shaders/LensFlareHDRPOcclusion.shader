@@ -33,13 +33,14 @@ Shader "Hidden/HDRP/LensFlare Occlusion (HDRP)"
                 UNITY_INITIALIZE_VERTEX_OUTPUT_STEREO(output);
 
                 float screenRatio = _ScreenSize.x / _ScreenSize.y;
-                float2 flareSize = _Size;
+                float2 flareSize = _FlareSize;
 
                 float4 posPreScale = float4(2.0f, 2.0f, 1.0f, 1.0f) * GetQuadVertexPosition(input.vertexID) - float4(1.0f, 1.0f, 0.0f, 0.0);
                 output.texcoord = GetQuadTexCoord(input.vertexID);
-                float2 screenPos = _FlareScreenPos;
+                float2 screenPos = _ScreenPos;
 
-                float occlusion = GetOcclusion(_FlareScreenPos.xy, _FlareDepth, screenRatio);
+                float occlusion = 1.0f;
+                    //GetOcclusion(_ScreenPos.xy, _ScreenPosZ, screenRatio);
 
                 //float4 centerPos = float4(local.x,
                 //                          local.y,
@@ -47,9 +48,9 @@ Shader "Hidden/HDRP/LensFlare Occlusion (HDRP)"
                 //                          posPreScale.w);
                 output.positionCS = posPreScale;
 
-                if (_FlareOffscreen < 0.0f && // No lens flare off screen
-                    (any(_FlareScreenPos.xy < -1) || any(_FlareScreenPos.xy >= 1)))
-                    occlusion *= 0.0f;
+                //if (_FlareOffscreen < 0.0f && // No lens flare off screen
+                //    (any(_ScreenPos.xy < -1) || any(_ScreenPos.xy >= 1)))
+                //    occlusion *= 0.0f;
 
                 output.occlusion = occlusion;
 

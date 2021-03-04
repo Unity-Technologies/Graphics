@@ -71,7 +71,8 @@ namespace UnityEditor.Rendering
             SerializedProperty autoRotateProp = property.FindPropertyRelative("autoRotate");
             SerializedProperty preserveAspectRatioProp = property.FindPropertyRelative("preserveAspectRatio");
             SerializedProperty modulateByLightColor = property.FindPropertyRelative("modulateByLightColor");
-            SerializedProperty isFoldOpened = property.FindPropertyRelative("isFoldOpened");
+            SerializedProperty isFoldOpenedProp = property.FindPropertyRelative("isFoldOpened");
+            SerializedProperty flareTypeProp = property.FindPropertyRelative("flareType");
 
             //
             SerializedProperty distributionProp = property.FindPropertyRelative("distribution");
@@ -99,7 +100,7 @@ namespace UnityEditor.Rendering
                 Texture texture = lensFlareProp.objectReferenceValue as Texture;
                 float imgWidth = 1.5f * 35.0f;
                 float usedAspectRatio = preserveAspectRatioProp.boolValue ? (((float)texture.width) / ((float)texture.height)) : aspectRatioProp.floatValue;
-                if (isFoldOpened.boolValue)
+                if (isFoldOpenedProp.boolValue)
                 {
                     Rect imgRect = new Rect(m_CurrentRect.x + 0.5f * (position.width - imgWidth), m_CurrentRect.y + GUIStyle.none.lineHeight + 5.0f, imgWidth, imgWidth);
                     EditorGUI.DrawTextureTransparent(imgRect, lensFlareProp.objectReferenceValue as Texture, ScaleMode.ScaleToFit, usedAspectRatio);
@@ -112,7 +113,7 @@ namespace UnityEditor.Rendering
                 }
             }
             Rect rect = m_CurrentRect;
-            if (isFoldOpened.boolValue)
+            if (isFoldOpenedProp.boolValue)
             {
                 m_CurrentRect.y += 1.5f * 35.0f;
             }
@@ -125,7 +126,7 @@ namespace UnityEditor.Rendering
             float tmp;
             int iTmp;
             Vector2 tmpVec2;
-            if (EditorGUI.BeginFoldoutHeaderGroup(new Rect(position.x, position.y, position.width, GUIStyle.none.lineHeight), isFoldOpened.boolValue, EditorGUIUtility.TrTextContent("Lens Flare Element")))
+            if (EditorGUI.BeginFoldoutHeaderGroup(new Rect(position.x, position.y, position.width, GUIStyle.none.lineHeight), isFoldOpenedProp.boolValue, EditorGUIUtility.TrTextContent("Lens Flare Element")))
             {
                 rect = GetNextRect();
                 EditorGUI.TextArea(rect, "Common", EditorStyles.boldLabel);
@@ -201,16 +202,34 @@ namespace UnityEditor.Rendering
                 EditorGUI.TextArea(rect, "Type", EditorStyles.boldLabel);
                 ++EditorGUI.indentLevel;
                 {
-                    Texture tmpTex;
                     rect = GetNextRect();
-                    if ((tmpTex = (EditorGUI.ObjectField(rect, Styles.flareTexture, lensFlareProp.objectReferenceValue, typeof(Texture), false) as Texture)) != (lensFlareProp.objectReferenceValue as Texture))
+                    SRPLensFlareType newType;
+                    SRPLensFlareType typeValue = (UnityEngine.SRPLensFlareType)flareTypeProp.enumValueIndex;
+                    if ((newType = ((SRPLensFlareType)(EditorGUI.EnumPopup(rect, Styles.flareType, typeValue)))) != typeValue)
+                        flareTypeProp.enumValueIndex = (int)newType;
+
+                    if (newType == SRPLensFlareType.Image)
                     {
-                        lensFlareProp.objectReferenceValue = tmpTex;
-                        aspectRatioProp.serializedObject.ApplyModifiedProperties();
+                        Texture tmpTex;
+                        rect = GetNextRect();
+                        if ((tmpTex = (EditorGUI.ObjectField(rect, Styles.flareTexture, lensFlareProp.objectReferenceValue, typeof(Texture), false) as Texture)) != (lensFlareProp.objectReferenceValue as Texture))
+                        {
+                            lensFlareProp.objectReferenceValue = tmpTex;
+                            aspectRatioProp.serializedObject.ApplyModifiedProperties();
+                        }
+
+                        rect = GetNextRect();
+                        if ((tmpBool = EditorGUI.Toggle(rect, Styles.preserveAspectRatio, preserveAspectRatioProp.boolValue)) != preserveAspectRatioProp.boolValue)
+                            preserveAspectRatioProp.boolValue = tmpBool;
                     }
-                    rect = GetNextRect();
-                    if ((tmpBool = EditorGUI.Toggle(rect, Styles.preserveAspectRatio, preserveAspectRatioProp.boolValue)) != preserveAspectRatioProp.boolValue)
-                        preserveAspectRatioProp.boolValue = tmpBool;
+                    else if (newType == SRPLensFlareType.Glow)
+                    {
+                        SerializedProperty glowFallOffProp = property.FindPropertyRelative("glowFallOff");
+
+                        rect = GetNextRect();
+                        if ((tmp = EditorGUI.FloatField(rect, Styles.glowFallOff, glowFallOffProp.floatValue)) != glowFallOffProp.floatValue)
+                            glowFallOffProp.floatValue = Mathf.Max(tmp, 1e-4f);
+                    }
                 }
                 --EditorGUI.indentLevel;
 
@@ -277,7 +296,7 @@ namespace UnityEditor.Rendering
                 }
                 --EditorGUI.indentLevel;
 
-                isFoldOpened.boolValue = true;
+                isFoldOpenedProp.boolValue = true;
             }
             else
             {
@@ -302,7 +321,7 @@ namespace UnityEditor.Rendering
                     aspectRatioProp.serializedObject.ApplyModifiedProperties();
                 }
 
-                isFoldOpened.boolValue = false;
+                isFoldOpenedProp.boolValue = false;
             }
             EditorGUI.EndFoldoutHeaderGroup();
             EditorGUI.EndProperty();
@@ -320,15 +339,23 @@ namespace UnityEditor.Rendering
             SerializedProperty preserveAspectRatio = property.FindPropertyRelative("preserveAspectRatio");
             SerializedProperty distributionProp = property.FindPropertyRelative("distribution");
             SerializedProperty countProp = property.FindPropertyRelative("count");
+            SerializedProperty flareTypeProp = property.FindPropertyRelative("flareType");
+
+            SRPLensFlareType flareType = (SRPLensFlareType)flareTypeProp.enumValueIndex;
 
             float coef;
             float offset = 0.0f;
             if (isFoldOpened.boolValue)
             {
                 if (preserveAspectRatio.boolValue)
-                    coef = 19.0f + 4.0f;
+                    coef = 24.0f;
                 else
-                    coef = 20.0f + 4.0f;
+                    coef = 25.0f;
+
+                if (flareType == SRPLensFlareType.Glow)
+                {
+                    coef -= 1.0f;
+                }
 
                 if (countProp.intValue > 1)
                 {
@@ -374,6 +401,7 @@ namespace UnityEditor.Rendering
             static public readonly GUIContent rotation = EditorGUIUtility.TrTextContent("Rotation", "Local rotation of the texture.");
             static public readonly GUIContent autoRotate = EditorGUIUtility.TrTextContent("Auto Rotate", "Rotate the texture relative to the angle on the screen (the rotation will be added to the parameter 'rotation').");
             static public readonly GUIContent modulateByLightColor = EditorGUIUtility.TrTextContent("Modulate By Light Color", "Modulate by light color if the asset is used on the same object as a light component..");
+            static public readonly GUIContent flareType = EditorGUIUtility.TrTextContent("Type", "REPLACE ME.");
 
             static public readonly GUIContent distribution = EditorGUIUtility.TrTextContent("Distribution", "REPLACE ME.");
             static public readonly GUIContent lengthSpread = EditorGUIUtility.TrTextContent("Length Spread", "REPLACE ME.");
@@ -391,6 +419,9 @@ namespace UnityEditor.Rendering
             static public readonly GUIContent enableDistortion = EditorGUIUtility.TrTextContent("Radial Distortion", "REPLACE ME.");
             static public readonly GUIContent targetSizeDistortion = EditorGUIUtility.TrTextContent("Radial Edge Size", "REPLACE ME.");
             static public readonly GUIContent distortionCurve = EditorGUIUtility.TrTextContent("Radial Edge Curve", "REPLACE ME.");
+
+            // For Glow
+            static public readonly GUIContent glowFallOff = EditorGUIUtility.TrTextContent("Falloff", "REPLACE ME.");
         }
     }
 }

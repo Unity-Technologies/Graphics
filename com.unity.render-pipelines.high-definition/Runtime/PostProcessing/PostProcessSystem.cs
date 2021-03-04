@@ -2439,9 +2439,14 @@ namespace UnityEngine.Rendering.HighDefinition
                     else
                         usedMaterial = parameters.lensFlareAdditive;
 
+                    if (element.flareType == SRPLensFlareType.Image)
+                        cmd.DisableShaderKeyword("FLARE_GLOW");
+                    else if (element.flareType == SRPLensFlareType.Glow)
+                        cmd.EnableShaderKeyword("FLARE_GLOW");
+
                     cmd.SetGlobalTexture(HDShaderIDs._FlareTex, element.lensFlareTexture);
 
-                    cmd.SetGlobalVector(HDShaderIDs._FlareData1, new Vector4(comp.occlusionRadius, comp.sampleCount, screenPosZ.z, 0.0f));
+                    cmd.SetGlobalVector(HDShaderIDs._FlareData1, new Vector4(comp.occlusionRadius, comp.sampleCount, screenPosZ.z, element.glowFallOff));
                     if (element.count == 1)
                     {
                         Vector4 flareData0 = GetFlareData0(screenPos, element.translationScale, vScreenRatio, element.rotation, position, element.angularOffset, element.positionOffset, element.autoRotate);
