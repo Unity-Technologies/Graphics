@@ -65,7 +65,6 @@ namespace UnityEditor.Rendering.HighDefinition
         internal static class Styles
         {
             public const string optionText = "Surface Options";
-            public const string surfaceTypeText = "Surface Type";
             public const string renderingPassText = "Rendering Pass";
             public const string blendModeText = "Blending Mode";
             public const string notSupportedInMultiEdition = "Multiple Different Values";
@@ -74,6 +73,7 @@ namespace UnityEditor.Rendering.HighDefinition
             public static readonly string[] blendModeNames = Enum.GetNames(typeof(BlendMode));
             public static readonly int[] blendModeValues = Enum.GetValues(typeof(BlendMode)) as int[];
 
+            public static GUIContent surfaceTypeText = new GUIContent("Surface Type", "Controls whether the Material supports transparency or not");
             public static GUIContent transparentPrepassText = new GUIContent("Appear in Refraction", "When enabled, HDRP handles objects with this Material before the refraction pass.");
 
             public static GUIContent doubleSidedEnableText = new GUIContent("Double-Sided", "When enabled, HDRP renders both faces of the polygons that make up meshes using this Material. Disables backface culling.");
@@ -591,14 +591,7 @@ namespace UnityEditor.Rendering.HighDefinition
                 }
 
                 if (transparentSortPriority != null)
-                {
-                    EditorGUI.BeginChangeCheck();
-                    materialEditor.ShaderProperty(transparentSortPriority, Styles.transparentSortPriorityText);
-                    if (EditorGUI.EndChangeCheck())
-                    {
-                        transparentSortPriority.floatValue = HDRenderQueue.ClampsTransparentRangePriority((int)transparentSortPriority.floatValue);
-                    }
-                }
+                    IntegerShaderProperty(transparentSortPriority, Styles.transparentSortPriorityText, HDRenderQueue.ClampsTransparentRangePriority);
 
                 if (enableFogOnTransparent != null)
                     materialEditor.ShaderProperty(enableFogOnTransparent, Styles.enableTransparentFogText);
@@ -676,14 +669,7 @@ namespace UnityEditor.Rendering.HighDefinition
             // with default render-states.
             bool renderQueueTypeMismatchRenderQueue = HDRenderQueue.GetTypeByRenderQueueValue(material.renderQueue) != renderQueueType;
 
-            EditorGUI.showMixedValue = surfaceType.hasMixedValue;
-            var newMode = (SurfaceType)EditorGUILayout.Popup(Styles.surfaceTypeText, (int)mode, Styles.surfaceTypeNames);
-            if (newMode != mode) //EditorGUI.EndChangeCheck is called even if value remain the same after the popup. Prefer not to use it here
-            {
-                materialEditor.RegisterPropertyChangeUndo(Styles.surfaceTypeText);
-                surfaceType.floatValue = (float)newMode;
-            }
-            EditorGUI.showMixedValue = false;
+            var newMode = (SurfaceType)PopupShaderProperty(surfaceType, Styles.surfaceTypeText, Styles.surfaceTypeNames);
 
             bool isMixedRenderQueue = surfaceType.hasMixedValue || renderQueueHasMultipleDifferentValue;
             bool showAfterPostProcessPass = (m_Features & Features.ShowAfterPostProcessPass) != 0;
@@ -735,18 +721,7 @@ namespace UnityEditor.Rendering.HighDefinition
 
         void BlendModePopup()
         {
-            EditorGUI.showMixedValue = blendMode.hasMixedValue;
-            var mode = (BlendMode)blendMode.floatValue;
-
-            EditorGUI.BeginChangeCheck();
-            mode = (BlendMode)EditorGUILayout.IntPopup(Styles.blendModeText, (int)mode, Styles.blendModeNames, Styles.blendModeValues);
-            if (EditorGUI.EndChangeCheck())
-            {
-                materialEditor.RegisterPropertyChangeUndo("Blend Mode");
-                blendMode.floatValue = (float)mode;
-            }
-
-            EditorGUI.showMixedValue = false;
+            IntPopupShaderProperty(blendMode, Styles.blendModeText, Styles.blendModeNames, Styles.blendModeValues);
         }
 
         int DoOpaqueRenderingPassPopup(string text, int inputValue, bool afterPost)
@@ -880,15 +855,18 @@ namespace UnityEditor.Rendering.HighDefinition
                 {
                     EditorGUILayout.Space();
                     EditorGUI.indentLevel++;
-                    materialEditor.ShaderProperty(ppdMinSamples, Styles.ppdMinSamplesText);
-                    materialEditor.ShaderProperty(ppdMaxSamples, Styles.ppdMaxSamplesText);
+
+                    IntSliderShaderProperty(ppdMinSamples, Styles.ppdMinSamplesText);
+                    ppdMaxSamples.floatValue = Mathf.Max(ppdMinSamples.floatValue, ppdMaxSamples.floatValue);
+                    IntSliderShaderProperty(ppdMaxSamples, Styles.ppdMaxSamplesText);
                     ppdMinSamples.floatValue = Mathf.Min(ppdMinSamples.floatValue, ppdMaxSamples.floatValue);
+
                     materialEditor.ShaderProperty(ppdLodThreshold, Styles.ppdLodThresholdText);
-                    materialEditor.ShaderProperty(ppdPrimitiveLength, Styles.ppdPrimitiveLength);
-                    ppdPrimitiveLength.floatValue = Mathf.Max(0.01f, ppdPrimitiveLength.floatValue);
-                    materialEditor.ShaderProperty(ppdPrimitiveWidth, Styles.ppdPrimitiveWidth);
-                    ppdPrimitiveWidth.floatValue = Mathf.Max(0.01f, ppdPrimitiveWidth.floatValue);
+
+                    MinFloatShaderProperty(ppdPrimitiveLength, Styles.ppdPrimitiveLength, 0.01f);
+                    MinFloatShaderProperty(ppdPrimitiveWidth, Styles.ppdPrimitiveWidth, 0.01f);
                     invPrimScale.vectorValue = new Vector4(1.0f / ppdPrimitiveLength.floatValue, 1.0f / ppdPrimitiveWidth.floatValue); // Precompute
+
                     materialEditor.ShaderProperty(depthOffsetEnable, Styles.depthOffsetEnableText);
                     EditorGUI.indentLevel--;
                 }

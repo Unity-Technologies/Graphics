@@ -12,10 +12,6 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Placement option (Vertex, Edge, Surface) in Sample Mesh & Skinned Mesh, allows triangle sampling.
 
 ### Changed
-- Move Assets/Create/Visual Effects/Visual Effect Graph to Assets/Create/VFX/VFX Graph
-- Move Assets/Create/Visual Effects/Visual Effect Defaults to Assets/Create/VFX/VFX Defaults
-- Move Assets/Create/Visual Effects/Visual Effect Subgraph Operator to Assets/Create/VFX/VFX Subgraph Operator
-- Move Assets/Create/Visual Effects/Visual Effect Subgraph Block to Assets/Create/VFX/VFX Subgraph Block
 - Allow remaking an existing link.
 
 ### Fixed
@@ -34,17 +30,16 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Handle correctly locked VisualEffectAsset with version control system [Case 1261051](https://issuetracker.unity3d.com/product/unity/issues/guid/1261051/)
 - Artefact in VFXView using efficient debug mode in component target board [Case 1243947](https://issuetracker.unity3d.com/product/unity/issues/guid/1243947/)
 - Sample Mesh Color when value is stored as float.
+- Tidy up of platform abstraction code for random number generation, requires a dependency on com.unity.render-pipelines.core for those abstractions.
+- Fixed shader compilation errors with textures in shader graph [Case 1309219](https://issuetracker.unity3d.com/product/unity/issues/guid/1309219/)
 
 ## [11.0.0] - 2020-10-21
-
 ### Added
 - Added new setting to output nodes to exclude from TAA
 - New Sample Point cache & Sample Attribute map operators
 
 ### Changed
 - Changed the "Edit" button so it becomes "New" when no asset is set on a Visual Effect component, in order to save a new visual effect graph asset.
-- Changed Window/Visual Effects/Visual Effect Graph to Window/VFX/VFX Graph
-- Changed Window/Visual Effects/Utilities/Point Cache Bake Tool to Window/VFX/Utilities/Point Cache Bake Tool
 
 ### Fixed
 - Forbid incorrect link between incompatible context [Case 1269756](https://issuetracker.unity3d.com/product/unity/issues/guid/1269756/)

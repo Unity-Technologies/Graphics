@@ -121,8 +121,15 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
 
             allocationList.Sort((a, b) => a.size < b.size ? 1 : -1);
             int index = 0;
+            float total = 0;
             foreach (var element in allocationList)
-                logger.LogLine("[{0}]\t[{1:#.##} MB]\t{2}", index++, element.size / 1024.0f, element.name);
+            {
+                float size = element.size / (1024.0f * 1024.0f);
+                total += size;
+                logger.LogLine($"[{index++:D2}]\t[{size:0.00} MB]\t{element.name}");
+            }
+
+            logger.LogLine($"\nTotal Size [{total:0.00}]");
         }
 
         static protected bool ShouldReleaseResource(int lastUsedFrameIndex, int currentFrameIndex)
