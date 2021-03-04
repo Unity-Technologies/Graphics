@@ -2,7 +2,7 @@
 #pragma kernel BlendSubSurfaceData
 #pragma kernel BlendSubSurfaceDataWithGI
 
-#pragma only_renderers d3d11
+#pragma only_renderers d3d11 ps5
 
 // Given that this pass does not use the shadow algorithm multi-compile, we need to define SHADOW_LOW to quite the shadow algorithm error
 #define SHADOW_LOW

@@ -1,7 +1,7 @@
 #pragma kernel RayBinning           RAY_BINNING=RayBinning
 #pragma kernel RayBinningHalf       RAY_BINNING=RayBinningHalf HALF_RESOLUTION
 
-#pragma only_renderers d3d11
+#pragma only_renderers d3d11 ps5
 
 #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Common.hlsl"
 #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Color.hlsl"
