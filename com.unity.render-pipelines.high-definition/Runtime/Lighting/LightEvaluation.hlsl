@@ -90,7 +90,7 @@ float3 SampleAreaLightCookie(float4 cookieScaleOffset, float4x3 L, float3 F, flo
 
 float3 SampleAreaLightCookie(float4 cookieScaleOffset, float4x3 L, float3 F)
 {
-    return SampleAreaLightCookie(cookieScaleOffset, L, F, 0.0f);
+    return SampleAreaLightCookie(cookieScaleOffset, L, F, 1.0f);
 }
 
 // This function transforms a rectangular area light according the the barn door inputs defined by the user.
