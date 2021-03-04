@@ -108,7 +108,6 @@ namespace UnityEngine.Rendering.HighDefinition
 #if ENABLE_VIRTUALTEXTURES
         readonly VTBufferManager m_VtBufferManager;
 #endif
-        readonly PostProcessSystem m_PostProcessSystem;
         readonly XRSystem m_XRSystem;
 
         // Keep track of previous Graphic and QualitySettings value to reset when switching to another pipeline
@@ -386,7 +385,7 @@ namespace UnityEngine.Rendering.HighDefinition
             m_VtBufferManager = new VTBufferManager(asset);
 #endif
 
-            m_PostProcessSystem = new PostProcessSystem(asset, defaultResources);
+            InitializePostProcess();
 
             // Initialize various compute shader resources
             m_SsrTracingKernel = m_ScreenSpaceReflectionsCS.FindKernel("ScreenSpaceReflectionsTracing");
@@ -430,6 +429,11 @@ namespace UnityEngine.Rendering.HighDefinition
             }
 
             InitializeLightLoop(m_IBLFilterArray);
+
+            if (m_Asset.currentPlatformRenderPipelineSettings.supportProbeVolume)
+            {
+                ProbeReferenceVolume.instance.InitProbeReferenceVolume(ProbeReferenceVolume.s_ProbeIndexPoolAllocationSize, m_Asset.currentPlatformRenderPipelineSettings.probeVolumeMemoryBudget, ProbeReferenceVolumeProfile.s_DefaultIndexDimensions);
+            }
 
             m_SkyManager.Build(asset, defaultResources, m_IBLFilterArray);
 
@@ -771,6 +775,9 @@ namespace UnityEngine.Rendering.HighDefinition
 
             CleanupLightLoop();
 
+            ReleaseVolumetricClouds();
+            CleanupSubsurfaceScattering();
+
             // For debugging
             MousePositionDebug.instance.Cleanup();
 
@@ -806,7 +813,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 m_IBLFilterArray[bsdfIdx].Cleanup();
             }
 
-            m_PostProcessSystem.Cleanup();
+            CleanupPostProcess();
             m_BlueNoise.Cleanup();
 
             HDCamera.ClearAll();
@@ -1951,7 +1958,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 cmd.DisableScissorRect();
 
                 Resize(hdCamera);
-                m_PostProcessSystem.BeginFrame(cmd, hdCamera, this);
+                BeginPostProcessFrame(cmd, hdCamera, this);
 
                 ApplyDebugDisplaySettings(hdCamera, cmd);
 
@@ -2027,9 +2034,6 @@ namespace UnityEngine.Rendering.HighDefinition
 
             m_CurrentHDCamera = null;
         }
-
-        internal RTHandle GetExposureTexture(HDCamera hdCamera) =>
-            m_PostProcessSystem.GetExposureTexture(hdCamera);
 
         void SetupCameraProperties(HDCamera hdCamera, ScriptableRenderContext renderContext, CommandBuffer cmd)
         {
