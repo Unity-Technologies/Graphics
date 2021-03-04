@@ -124,6 +124,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed issue of accessing default frame setting stored in current HDRPAsset instead fo the default HDRPAsset
 - Fixed SSGI frame setting not greyed out while SSGI is disabled in HDRP Asset
 - Fixed wizard checking FrameSettings not in HDRP Default Settings
+- Fixed error when opening the default composition graph in the Graphics Compositor (case 1318933).
 
 ### Changed
 - Removed the material pass probe volumes evaluation mode.
