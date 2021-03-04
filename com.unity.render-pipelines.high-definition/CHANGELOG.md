@@ -144,6 +144,7 @@ The version number for this package has increased due to a version update of a r
 - Fixed XR depth copy (case 1286908).
 - Fixed Warnings about "SceneIdMap" missing script in eye material sample scene
 - Fixed wizard checking FrameSettings not in HDRP Default Settings
+- Fixed error when opening the default composition graph in the Graphics Compositor (case 1318933).
 
 ### Changed
 - Now reflection probes cannot have SSAO, SSGI, SSR, ray tracing effects or volumetric reprojection.
