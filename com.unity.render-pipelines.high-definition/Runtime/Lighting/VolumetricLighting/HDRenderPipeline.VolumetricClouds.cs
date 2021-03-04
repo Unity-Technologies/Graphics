@@ -516,7 +516,7 @@ namespace UnityEngine.Rendering.HighDefinition
             {
                 if (parameters.planarReflection)
                 {
-                    // In order to be able to work with planar 
+                    // In order to be able to work with planar
                     cmd.SetComputeTextureParam(parameters.volumetricCloudsCS, parameters.convertObliqueDepthKernel, HDShaderIDs._DepthTexture, depthPyramid);
                     cmd.SetComputeTextureParam(parameters.volumetricCloudsCS, parameters.convertObliqueDepthKernel, HDShaderIDs._DepthBufferRW, intermediateDepthBuffer2);
                     cmd.DispatchCompute(parameters.volumetricCloudsCS, parameters.convertObliqueDepthKernel, finalTX, finalTY, parameters.viewCount);
@@ -730,7 +730,7 @@ namespace UnityEngine.Rendering.HighDefinition
             VolumetricClouds settings = hdCamera.volumeStack.GetComponent<VolumetricClouds>();
 
             // If the clouds are enabled on this camera
-            if (HasVolumetricClouds(hdCamera, in settings))
+            if (!HasVolumetricClouds(hdCamera, in settings))
                 return;
 
             // Render the shadows
