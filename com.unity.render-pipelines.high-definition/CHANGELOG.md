@@ -123,6 +123,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed issue with physically-based DoF computation and transparent materials with depth-writes ON.
 - Fixed issue of accessing default frame setting stored in current HDRPAsset instead fo the default HDRPAsset
 - Fixed SSGI frame setting not greyed out while SSGI is disabled in HDRP Asset
+- Fixed wizard checking FrameSettings not in HDRP Default Settings
 
 ### Changed
 - Removed the material pass probe volumes evaluation mode.
