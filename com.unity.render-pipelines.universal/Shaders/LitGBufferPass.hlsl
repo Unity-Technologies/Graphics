@@ -37,20 +37,20 @@ struct Varyings
     float3 positionWS               : TEXCOORD2;
 #endif
 
-    float3 normalWS                 : TEXCOORD3;
+    half3 normalWS                  : TEXCOORD3;
 #if defined(REQUIRES_WORLD_SPACE_TANGENT_INTERPOLATOR)
-    float4 tangentWS                : TEXCOORD4;    // xyz: tangent, w: sign
+    half4 tangentWS                 : TEXCOORD4;    // xyz: tangent, w: sign
 #endif
-    float3 viewDirWS                : TEXCOORD5;
-
-    half3 vertexLighting            : TEXCOORD6;    // xyz: vertex lighting
+#ifdef _ADDITIONAL_LIGHTS_VERTEX
+    half3 vertexLighting            : TEXCOORD5;    // xyz: vertex lighting
+#endif
 
 #if defined(REQUIRES_VERTEX_SHADOW_COORD_INTERPOLATOR)
-    float4 shadowCoord              : TEXCOORD7;
+    float4 shadowCoord              : TEXCOORD6;
 #endif
 
 #if defined(REQUIRES_TANGENT_SPACE_VIEW_DIR_INTERPOLATOR)
-    float3 viewDirTS                : TEXCOORD8;
+    half3 viewDirTS                 : TEXCOORD7;
 #endif
 #if defined(_BACKFACE_VISIBLE)
     bool isFrontFace                : TEXCOORD9;
@@ -65,46 +65,50 @@ void InitializeInputData(Varyings input, half3 normalTS, half3 doubleSidedConsta
 {
     inputData = (InputData)0;
 
-#if defined(REQUIRES_WORLD_SPACE_POS_INTERPOLATOR)
-    inputData.positionWS = input.positionWS;
-#endif
+    #if defined(REQUIRES_WORLD_SPACE_POS_INTERPOLATOR)
+        inputData.positionWS = input.positionWS;
+    #endif
 
     half3 viewDirWS = SafeNormalize(input.viewDirWS);
-#if defined(_NORMALMAP) || defined(_DETAIL)
-    float sgn = input.tangentWS.w;      // should be either +1 or -1
-    float3 bitangent = sgn * cross(input.normalWS.xyz, input.tangentWS.xyz);
-    half3x3 tangentToWorld = half3x3(input.tangentWS.xyz, bitangent.xyz, input.normalWS.xyz);
+    #if defined(_NORMALMAP) || defined(_DETAIL)
+        float sgn = input.tangentWS.w;      // should be either +1 or -1
+        float3 bitangent = sgn * cross(input.normalWS.xyz, input.tangentWS.xyz);
+        half3x3 tangentToWorld = half3x3(input.tangentWS.xyz, bitangent.xyz, input.normalWS.xyz);
 
-#if defined(_BACKFACE_VISIBLE)
-    float flipSign = input.isFrontFace ? 1.0 : doubleSidedConstants.z;
-    tangentToWorld[2] = flipSign * tangentToWorld[2];
+        #if defined(_BACKFACE_VISIBLE)
+            float flipSign = input.isFrontFace ? 1.0 : doubleSidedConstants.z;
+            tangentToWorld[2] = flipSign * tangentToWorld[2];
 
-    flipSign = input.isFrontFace ? 1.0 : doubleSidedConstants.x;
-    normalTS.xy *= flipSign;
-#endif
+            flipSign = input.isFrontFace ? 1.0 : doubleSidedConstants.x;
+            normalTS.xy *= flipSign;
+        #endif
 
-    inputData.normalWS = TransformTangentToWorld(normalTS, tangentToWorld);
-#else
-#if defined(_BACKFACE_VISIBLE)
-    inputData.normalWS = input.isFrontFace ? input.normalWS : -input.normalWS;
-#else
-    inputData.normalWS = input.normalWS;
-#endif
-#endif
+        inputData.normalWS = TransformTangentToWorld(normalTS, tangentToWorld);
+    #else
+        #if defined(_BACKFACE_VISIBLE)
+            inputData.normalWS = input.isFrontFace ? input.normalWS : -input.normalWS;
+        #else
+            inputData.normalWS = input.normalWS;
+        #endif
+    #endif
 
     inputData.normalWS = NormalizeNormalPerPixel(inputData.normalWS);
     inputData.viewDirectionWS = viewDirWS;
 
-#if defined(REQUIRES_VERTEX_SHADOW_COORD_INTERPOLATOR)
-    inputData.shadowCoord = input.shadowCoord;
-#elif defined(MAIN_LIGHT_CALCULATE_SHADOWS)
-    inputData.shadowCoord = TransformWorldToShadowCoord(inputData.positionWS);
-#else
-    inputData.shadowCoord = float4(0, 0, 0, 0);
-#endif
+    #if defined(REQUIRES_VERTEX_SHADOW_COORD_INTERPOLATOR)
+        inputData.shadowCoord = input.shadowCoord;
+    #elif defined(MAIN_LIGHT_CALCULATE_SHADOWS)
+        inputData.shadowCoord = TransformWorldToShadowCoord(inputData.positionWS);
+    #else
+        inputData.shadowCoord = float4(0, 0, 0, 0);
+    #endif
 
     inputData.fogCoord = 0.0; // we don't apply fog in the guffer pass
-    inputData.vertexLighting = input.vertexLighting.xyz;
+    #ifdef _ADDITIONAL_LIGHTS_VERTEX
+        inputData.vertexLighting = input.vertexLighting.xyz;
+    #else
+        inputData.vertexLighting = half3(0, 0, 0);
+    #endif
     inputData.bakedGI = SAMPLE_GI(input.lightmapUV, input.vertexSH, inputData.normalWS);
     inputData.normalizedScreenSpaceUV = GetNormalizedScreenSpaceUV(input.positionCS);
     inputData.shadowMask = SAMPLE_SHADOWMASK(input.lightmapUV);
@@ -130,9 +134,6 @@ Varyings LitGBufferPassVertex(Attributes input)
     // also required for per-vertex lighting and SH evaluation
     VertexNormalInputs normalInput = GetVertexNormalInputs(input.normalOS, input.tangentOS);
 
-    half3 viewDirWS = GetWorldSpaceViewDir(vertexInput.positionWS);
-    half3 vertexLight = VertexLighting(vertexInput.positionWS, normalInput.normalWS);
-
     output.uv = TRANSFORM_TEX(input.texcoord, _BaseMap);
 
 #if defined(_BACKFACE_VISIBLE)
@@ -141,19 +142,21 @@ Varyings LitGBufferPassVertex(Attributes input)
 
     // already normalized from normal transform to WS.
     output.normalWS = normalInput.normalWS;
-    output.viewDirWS = viewDirWS;
-#if defined(REQUIRES_WORLD_SPACE_TANGENT_INTERPOLATOR) || defined(REQUIRES_TANGENT_SPACE_VIEW_DIR_INTERPOLATOR)
-    real sign = input.tangentOS.w * GetOddNegativeScale();
-    half4 tangentWS = half4(normalInput.tangentWS.xyz, sign);
-#endif
-#if defined(REQUIRES_WORLD_SPACE_TANGENT_INTERPOLATOR)
-    output.tangentWS = tangentWS;
-#endif
 
-#if defined(REQUIRES_TANGENT_SPACE_VIEW_DIR_INTERPOLATOR)
-    half3 viewDirTS = GetViewDirectionTangentSpace(tangentWS, output.normalWS, viewDirWS);
-    output.viewDirTS = viewDirTS;
-#endif
+    #if defined(REQUIRES_WORLD_SPACE_TANGENT_INTERPOLATOR) || defined(REQUIRES_TANGENT_SPACE_VIEW_DIR_INTERPOLATOR)
+        real sign = input.tangentOS.w * GetOddNegativeScale();
+        half4 tangentWS = half4(normalInput.tangentWS.xyz, sign);
+    #endif
+
+    #if defined(REQUIRES_WORLD_SPACE_TANGENT_INTERPOLATOR)
+        output.tangentWS = tangentWS;
+    #endif
+
+    #if defined(REQUIRES_TANGENT_SPACE_VIEW_DIR_INTERPOLATOR)
+        half3 viewDirWS = GetWorldSpaceNormalizeViewDir(vertexInput.positionWS);
+        half3 viewDirTS = GetViewDirectionTangentSpace(tangentWS, output.normalWS, viewDirWS);
+        output.viewDirTS = viewDirTS;
+    #endif
 
     OUTPUT_LIGHTMAP_UV(input.lightmapUV, unity_LightmapST, output.lightmapUV);
 
@@ -163,15 +166,18 @@ Varyings LitGBufferPassVertex(Attributes input)
     OUTPUT_SH(output.normalWS, output.vertexSH);
 #endif
 
-    output.vertexLighting = vertexLight;
+    #ifdef _ADDITIONAL_LIGHTS_VERTEX
+        half3 vertexLight = VertexLighting(vertexInput.positionWS, normalInput.normalWS);
+        output.vertexLighting = vertexLight;
+    #endif
 
-#if defined(REQUIRES_WORLD_SPACE_POS_INTERPOLATOR)
-    output.positionWS = vertexInput.positionWS;
-#endif
+    #if defined(REQUIRES_WORLD_SPACE_POS_INTERPOLATOR)
+        output.positionWS = vertexInput.positionWS;
+    #endif
 
-#if defined(REQUIRES_VERTEX_SHADOW_COORD_INTERPOLATOR)
-    output.shadowCoord = GetShadowCoord(vertexInput);
-#endif
+    #if defined(REQUIRES_VERTEX_SHADOW_COORD_INTERPOLATOR)
+        output.shadowCoord = GetShadowCoord(vertexInput);
+    #endif
 
     output.positionCS = vertexInput.positionCS;
 
