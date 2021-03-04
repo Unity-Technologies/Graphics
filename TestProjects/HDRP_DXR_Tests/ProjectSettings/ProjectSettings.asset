@@ -600,6 +600,7 @@ PlayerSettings:
   webGLDecompressionFallback: 0
   scriptingDefineSymbols:
     1: UNITY_HDRP_DXR_TESTS_DEFINE;ENABLE_RAYTRACING
+	33: UNITY_HDRP_DXR_TESTS_DEFINE;ENABLE_RAYTRACING
   additionalCompilerArguments: {}
   platformArchitecture: {}
   scriptingBackend: {}
