@@ -26,45 +26,22 @@ CBUFFER_END
 // Input textures
 TEXTURE2D_X(_InputTexture);
 TEXTURE2D_X(_InputCoCTexture);
+TEXTURE2D_X(_TileList);
 
 // Outpute texture
 RW_TEXTURE2D_X(CTYPE, _OutputTexture);
+
+#define TILE_RES  8u
 
 // A set of Defines to fine-tune the algorithm
 #define NUM_BUCKETS 3
 #define ADAPTIVE_RADIUS
 #define STRATIFY
-#define PHYSICAL_WEIGHTS
+//#define PHYSICAL_WEIGHTS
+//#define FORCE_POINT_SAMPLING
 
 #define GROUP_RES  8u
 #define GROUP_SIZE (GROUP_RES * GROUP_RES)
-
-float GetBucketWeight(float sampleCoC, float centerCoC, float noise, int bucket)
-{
-    // Note: we could potentially get higher quality by allowing artists to fine-tune the bucket/cascade transitions,
-    // but DoF is not as sensitive as shadows, so for now it's better to not expose many settings.
-    const float bucketLimit[NUM_BUCKETS - 1] = { 5.0f, 0.0f };
-    const float bucketTransition[NUM_BUCKETS - 1] = { 7.0f, 1.0f };
-
-    float w0 = saturate((sampleCoC - bucketLimit[0] - bucketTransition[0] * noise) / bucketTransition[0]);
-    float w1 = saturate((bucketTransition[1] * noise - sampleCoC) / bucketTransition[1]);
-    bool depthTest = (sampleCoC <= 2 * centerCoC);
-    w0 = depthTest ? w0 : 0.0;
-    float w2 = depthTest ? 1.0 - w0 - w1 : 0.0;
-
-    if (bucket == 0)
-    {
-        return w0;
-    }
-    else if (bucket == 2)
-    {
-        return w1;
-    }
-    else
-    {
-        return w2;
-    }
-}
 
 float GetCoCRadius(int2 positionSS)
 {
@@ -72,12 +49,21 @@ float GetCoCRadius(int2 positionSS)
     return CoCRadius;
 }
 
+CTYPE GetColorSample(float2 sampleTC, float lod)
+{
+#ifndef FORCE_POINT_SAMPLING
+    return SAMPLE_TEXTURE2D_X_LOD(_InputTexture, s_trilinear_clamp_sampler, ClampAndScaleUVForBilinear(sampleTC * _ScreenSize.zw), lod).CTYPE_SWIZZLE;
+#else
+    return LOAD_TEXTURE2D_X(_InputTexture, sampleTC).CTYPE_SWIZZLE;
+#endif
+}
+
 float GetSampleWeight(float cocRadius)
 {
 #ifdef PHYSICAL_WEIGHTS
     float pixelRadius = 0.7071f;
     float radius = max(pixelRadius, cocRadius);
-    return rcp(PI * radius * radius);
+    return PI * pixelRadius * pixelRadius *  rcp(PI * radius * radius);
 #else
     return 1.0f;
 #endif
@@ -88,41 +74,28 @@ float2 PointInCircle(float angle)
     return float2(cos(angle), sin(angle)) * float2 (1 - Anamorphism, 1 + Anamorphism);
 }
 
-[numthreads(GROUP_RES, GROUP_RES, 1)]
-void KMain(uint3 dispatchThreadId : SV_DispatchThreadID)
+void AccumulateSample(CTYPE sampleColor, float sampleCoC, float centerCoC, float2 limit, inout float4 colorAccum, inout float alphaAccum)
 {
-    PositionInputs posInputs = GetPositionInput(float2(dispatchThreadId.xy), _ScreenSize.zw, uint2(GROUP_RES, GROUP_RES));
-
-    // Bucket 0 : far focus region
-    // Bucket 1 : in focus region
-    // Bucket 2 : near focus region
-    float4 totalColor[NUM_BUCKETS];
-    float prevRingWeight[NUM_BUCKETS];
-    float totalHits[NUM_BUCKETS];
-#ifdef ENABLE_ALPHA
-    float totalAlpha[NUM_BUCKETS];
-#endif
-
-    // Initialize color/weights and everything else to zero (for all buckets)
-    for (int i = 0; i < NUM_BUCKETS; ++i)
+    float dw = 1;
+    if (sampleCoC >= 0 && abs(centerCoC) < limit.y)
     {
-        totalColor[i] = 0.0f;
-        prevRingWeight[i] = 0.0f;
-#ifdef ENABLE_ALPHA
-        totalAlpha[i] = 0.0f;
-#endif
+        // occlusion test: if the central CoC occludes the sample that we gather, then the sample weight should be zero
+        dw = (sampleCoC <= limit.x * centerCoC) ? 1.0 : 0.0;
     }
 
-    CTYPE originalColor = LOAD_TEXTURE2D_X(_InputTexture, posInputs.positionSS).CTYPE_SWIZZLE;
+    float weight = dw * GetSampleWeight(abs(sampleCoC));
+    colorAccum += float4(sampleColor.xyz * weight, weight);
+#ifdef ENABLE_ALPHA
+    alphaAccum += sampleColor.w * weight;
+#endif
+}
 
-    // Note: for the far-field, we don't need to search further than than the central CoC.
-    // If there is a larger CoC that overlaps the central pixel then it will have greater depth
-    float centerCoC = GetCoCRadius(posInputs.positionSS);
-    float maxRadius = abs(centerCoC);
-
+void DoFGatherPair(PositionInputs posInputs, float maxRadius, CTYPE originalColor, float centerCoC, inout float4 colorAccum, inout float alphaAccum)
+{
     float dR = rcp(NumRings);
     int blueNoiseOffset = _TaaFrameInfo.w != 0.0 ? _TaaFrameInfo.z : 0;
     int numSamples = maxRadius > 0 ? NumRings : 0;
+    float dAng = PI * rcp(numSamples);
 
     // Select the appropriate mip to sample based on the amount of samples. Lower sample counts will be faster at the cost of "leaking"
     float lod = min(MaxColorMip, log2(2 * PI * maxRadius * rcp(numSamples)));
@@ -130,64 +103,94 @@ void KMain(uint3 dispatchThreadId : SV_DispatchThreadID)
     // Gather the DoF samples
     for (int ring = 0; ring < numSamples; ring += 1)
     {
-        float dAng = 2.0f * PI * rcp(numSamples);
         for (int i = 0; i < numSamples; i += 1)
         {
+            CTYPE sampleColor[2];
+            float sampleCoC[2];
+            float _sign[2] = { -1, 1 };
+
             float r1 = GetBNDSequenceSample(posInputs.positionSS.xy, ring * numSamples + i + blueNoiseOffset, 1);
             float r2 = GetBNDSequenceSample(posInputs.positionSS.xy, ring * numSamples + i + blueNoiseOffset, 0);
+
 #ifdef STRATIFY
             float sampleRadius = sqrt((ring + r2) * dR) * maxRadius;
-            float2 sampleTC = posInputs.positionSS + sampleRadius * PointInCircle((i + r1) * dAng);
 #else
             float sampleRadius = sqrt(r2) * maxRadius;
-            float2 sampleTC = posInputs.positionSS + sampleRadius * PointInCircle(r1 * 2.0f * PI);
 #endif
-            CTYPE sampleColor = SAMPLE_TEXTURE2D_X_LOD(_InputTexture, s_trilinear_clamp_sampler, ClampAndScaleUVForBilinear(sampleTC * _ScreenSize.zw), lod).CTYPE_SWIZZLE;
-            float sampleCoC = GetCoCRadius(sampleTC);
-
-            if (abs(sampleCoC) >= sampleRadius)
+            UNITY_UNROLL
+            for (int j = 0; j < 2; j++)
             {
-                for (int j = 0; j < NUM_BUCKETS; ++j)
-                {
-                    float weight = GetSampleWeight(abs(sampleCoC));
-                    weight *= GetBucketWeight(sampleCoC, centerCoC, r2, j);
-                    totalColor[j] += float4(sampleColor.xyz * weight, weight);
-#ifdef ENABLE_ALPHA
-                    totalAlpha[j] += sampleColor.w * weight;
+#ifdef STRATIFY
+                float2 sampleTC = posInputs.positionSS + sampleRadius * PointInCircle(_sign[j] * (i + r1) * dAng);
+#else
+                float2 sampleTC = posInputs.positionSS + sampleRadius * PointInCircle(_sign[j] * r1 * PI);
 #endif
+                sampleColor[j] = GetColorSample(sampleTC, lod);
+                sampleCoC[j] = GetCoCRadius(sampleTC);
+            }
+
+            float bias = 1.0 + r1;
+            float2 limit = float2(bias, 9 * bias);
+
+            UNITY_UNROLL
+            for (int k = 0; k < 2; k++)
+            {
+                if (abs(sampleCoC[k]) >= sampleRadius)
+                {
+                    AccumulateSample(sampleColor[k], sampleCoC[k], centerCoC, limit, colorAccum, alphaAccum);
+                }
+                else
+                {
+                    int pairIndex = (k == 0)? 1 : 0;
+                    if (abs(sampleCoC[pairIndex]) >= sampleRadius)
+                    {
+                        AccumulateSample(sampleColor[pairIndex], sampleCoC[pairIndex], centerCoC, limit, colorAccum, alphaAccum);
+                    }
+                    else
+                    {
+                        float3 backgroundEstimator = colorAccum.w > 0 ? colorAccum.xyz * rcp(colorAccum.w) : originalColor.xyz;
+#ifdef ENABLE_ALPHA
+                        float alphaEstimator = colorAccum.w > 0 ? alphaAccum * rcp(colorAccum.w) : originalColor.w;
+                        alphaAccum += alphaEstimator;
+#endif
+                        colorAccum += float4(backgroundEstimator, 1.0);
+                    }
                 }
             }
         }
     }
+}
+
+[numthreads(GROUP_RES, GROUP_RES, 1)]
+void KMain(uint3 dispatchThreadId : SV_DispatchThreadID)
+{
+    PositionInputs posInputs = GetPositionInput(float2(dispatchThreadId.xy), _ScreenSize.zw, uint2(GROUP_RES, GROUP_RES));
 
     float4 outColor = 0;
-#ifdef ENABLE_ALPHA
     float outAlpha = 0;
-#endif
 
-    // back to front alpha blending of the near, far and in-focus buckets
-    for (int j = 0; j < NUM_BUCKETS; ++j)
-    {
-        // Note: earlier we were also using a normalization term for the alpha from the CoD slides, but it created some artifcats.
-        // Perhaps this requires more investigation.
-        float alpha = saturate(totalColor[j].w);
-        outColor = (1.0 - alpha) * outColor + totalColor[j];
-#ifdef ENABLE_ALPHA
-        outAlpha = (1.0 - alpha) * outAlpha + totalAlpha[j];
-#endif
-    }
+    CTYPE originalColor = LOAD_TEXTURE2D_X(_InputTexture, posInputs.positionSS).CTYPE_SWIZZLE;
+    float4 cocRanges = LOAD_TEXTURE2D_X(_TileList, posInputs.positionSS / TILE_RES);
+
+    // Note: for the far-field, we don't need to search further than than the central CoC.
+    // If there is a larger CoC that overlaps the central pixel then it will have greater depth
+    float centerCoC = GetCoCRadius(posInputs.positionSS);
+    float maxRadius = max(2 * abs(centerCoC), -cocRanges.w);
+    //float maxRadius = Max3(cocRanges.y, 2 * abs(centerCoC), -cocRanges.w);
+    //AccumulateDoF_classic(posInputs, maxRadius, originalColor.xyz, outColor, outAlpha);
+    DoFGatherPair(posInputs, maxRadius, originalColor, centerCoC, outColor, outAlpha);
 
     // In case we did not gather any samples, return the original color
     outColor.xyz = outColor.w > 0 ? outColor.xyz * rcp(outColor.w) : originalColor.xyz;
 
 #ifdef ENABLE_ALPHA
+    outAlpha = outColor.w > 0 ? outAlpha * rcp(outColor.w) : originalColor.w;
     // Preserve the original value of the pixels with zero alpha.
     // The second line with the lerp+smoothstep combination avoids a hard transition in edge cases
     //outColor.xyz = outAlpha > 0 ? outColor.xyz : originalColor.xyz;
     outColor.xyz = lerp(originalColor.xyz, outColor.xyz, smoothstep(0, 0.01, outAlpha));
-    _OutputTexture[COORD_TEXTURE2D_X(posInputs.positionSS)] = float4(outColor.xyz, outAlpha * rcp(outColor.w));
-#else
-    _OutputTexture[COORD_TEXTURE2D_X(posInputs.positionSS)] = outColor.xyz;
+    outColor.w = outAlpha;
 #endif
 
+    _OutputTexture[COORD_TEXTURE2D_X(posInputs.positionSS)] = outColor;
 }
