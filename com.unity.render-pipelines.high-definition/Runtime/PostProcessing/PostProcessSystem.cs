@@ -2300,7 +2300,6 @@ namespace UnityEngine.Rendering.HighDefinition
                 Vector2 pos = (rayOff.normalized * vScreenRatio) * translationScale;
                 rotation -= Mathf.Rad2Deg * (Mathf.Atan2(pos.y, pos.x) + Mathf.PI * 0.5f);
             }
-            rotation += angularOffset;
             rotation *= Mathf.Deg2Rad;
             float localCos0 = Mathf.Cos(-rotation);
             float localSin0 = Mathf.Sin(-rotation);
