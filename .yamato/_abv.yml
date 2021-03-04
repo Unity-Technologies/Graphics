@@ -41,8 +41,6 @@ all_project_ci_nightly_2020.2:
          rerun: on-new-revision
       -  path: .yamato/all-urp_performance_lostcrypt.yml#PR_URP_Performance_LostCrypt_2020.2
          rerun: on-new-revision
-      -  path: .yamato/all-urpupdate.yml#PR_URPUpdate_2020.2
-         rerun: on-new-revision
       -  path: .yamato/_projectcontext.yml#all_package_ci_project_2020.2
          rerun: on-new-revision
     triggers:
@@ -106,8 +104,6 @@ all_project_ci_nightly_CUSTOM-REVISION:
       -  path: .yamato/all-urp_performance_boatattack.yml#PR_URP_Performance_BoatAttack_CUSTOM-REVISION
          rerun: always
       -  path: .yamato/all-urp_performance_lostcrypt.yml#PR_URP_Performance_LostCrypt_CUSTOM-REVISION
-         rerun: always
-      -  path: .yamato/all-urpupdate.yml#PR_URPUpdate_CUSTOM-REVISION
          rerun: always
       -  path: .yamato/_projectcontext.yml#all_package_ci_project_CUSTOM-REVISION
          rerun: always
