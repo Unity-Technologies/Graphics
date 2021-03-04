@@ -51,6 +51,7 @@ namespace UnityEditor.VFX
             kExpressionGraphChanged,// Expression graph must be recomputed
             kUIChanged,             // UI stuff has changed
             kUIChangedTransient,    // UI stuff has been changed be does not require serialization
+            kMaterialChanged,       // Some asset material properties has changed
         }
 
         public new virtual string name  { get { return string.Empty; } }
