@@ -1,0 +1,14 @@
+#ifndef GLSL_STEREO_EXTENSIONS_INCLUDED
+#define GLSL_STEREO_EXTENSIONS_INCLUDED
+
+#ifdef STEREO_MULTIVIEW_ON
+    #extension GL_OVR_multiview2 : require
+#endif
+
+#ifdef STEREO_INSTANCING_ON
+    #extension GL_NV_viewport_array2 : enable
+    #extension GL_AMD_vertex_shader_layer : enable
+    #extension GL_ARB_fragment_layer_viewport : enable
+#endif
+
+#endif // GLSL_STEREO_EXTENSIONS_INCLUDED

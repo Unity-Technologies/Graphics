@@ -1,0 +1,58 @@
+#ifndef GLSL_SUPPORT_INCLUDED
+#define GLSL_SUPPORT_INCLUDED
+
+// Automatically included in raw GLSL (GLSLPROGRAM) shader snippets, to map from some of the legacy OpenGL
+// variable names to uniform names used by Unity.
+
+#ifdef GL_FRAGMENT_PRECISION_HIGH
+    precision highp float;
+#else
+    precision mediump float;
+#endif
+
+uniform mat4 unity_ObjectToWorld;
+uniform mat4 unity_WorldToObject;
+uniform mat4 unity_MatrixVP;
+uniform mat4 unity_MatrixV;
+uniform mat4 unity_MatrixInvV;
+uniform mat4 glstate_matrix_projection;
+
+#define gl_ModelViewProjectionMatrix        (unity_MatrixVP * unity_ObjectToWorld)
+#define gl_ModelViewMatrix                  (unity_MatrixV * unity_ObjectToWorld)
+#define gl_ModelViewMatrixTranspose         (transpose(unity_MatrixV * unity_ObjectToWorld))
+#define gl_ModelViewMatrixInverseTranspose  (transpose(unity_WorldToObject * unity_MatrixInvV))
+#define gl_NormalMatrix                     (transpose(mat3(unity_WorldToObject * unity_MatrixInvV)))
+#define gl_ProjectionMatrix                 glstate_matrix_projection
+
+#if __VERSION__ < 120
+#ifndef UNITY_GLSL_STRIP_TRANSPOSE
+mat3 transpose(mat3 mtx)
+{
+    vec3 c0 = mtx[0];
+    vec3 c1 = mtx[1];
+    vec3 c2 = mtx[2];
+
+    return mat3(
+        vec3(c0.x, c1.x, c2.x),
+        vec3(c0.y, c1.y, c2.y),
+        vec3(c0.z, c1.z, c2.z)
+    );
+}
+mat4 transpose(mat4 mtx)
+{
+    vec4 c0 = mtx[0];
+    vec4 c1 = mtx[1];
+    vec4 c2 = mtx[2];
+    vec4 c3 = mtx[3];
+
+    return mat4(
+        vec4(c0.x, c1.x, c2.x, c3.x),
+        vec4(c0.y, c1.y, c2.y, c3.y),
+        vec4(c0.z, c1.z, c2.z, c3.z),
+        vec4(c0.w, c1.w, c2.w, c3.w)
+    );
+}
+#endif
+#endif // __VERSION__ < 120
+
+#endif // GLSL_SUPPORT_INCLUDED

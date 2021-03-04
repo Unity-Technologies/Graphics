@@ -1,0 +1,52 @@
+#ifndef GLSL_STEREO_SETUP_INCLUDED
+#define GLSL_STEREO_SETUP_INCLUDED
+
+#if defined(STEREO_MULTIVIEW_ON) || defined(STEREO_INSTANCING_ON)
+    layout(std140) uniform UnityStereoGlobals {
+        mat4 unity_StereoMatrixP[2];
+        mat4 unity_StereoMatrixV[2];
+        mat4 unity_StereoMatrixInvV[2];
+        mat4 unity_StereoMatrixVP[2];
+        mat4 unity_StereoCameraProjection[2];
+        mat4 unity_StereoCameraInvProjection[2];
+        mat4 unity_StereoWorldToCamera[2];
+        mat4 unity_StereoCameraToWorld[2];
+        vec3 unity_StereoWorldSpaceCameraPos[2];
+        vec4 unity_StereoScaleOffset[2];
+    };
+#endif
+
+#ifdef VERTEX
+    #ifdef STEREO_MULTIVIEW_ON
+        layout(num_views = 2) in;
+    #endif
+
+    uniform int unity_StereoEyeIndex;
+
+    int SetupStereoEyeIndex()
+    {
+        int eyeIndex = unity_StereoEyeIndex;
+
+        #if defined(STEREO_MULTIVIEW_ON)
+            eyeIndex = int(gl_ViewID_OVR);
+        #elif defined(STEREO_INSTANCING_ON)
+            eyeIndex = int(gl_InstanceID & 1);
+            gl_Layer = eyeIndex;
+        #endif
+
+        return eyeIndex;
+    }
+
+    mat4 GetStereoMatrixVP(int eyeIndex)
+    {
+        mat4 stereoVP = unity_MatrixVP;
+
+        #if defined(STEREO_MULTIVIEW_ON) || defined(STEREO_INSTANCING_ON)
+            stereoVP = unity_StereoMatrixVP[eyeIndex];
+        #endif
+
+        return stereoVP;
+    }
+#endif
+
+#endif // GLSL_STEREO_SETUP_INCLUDED
