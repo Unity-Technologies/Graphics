@@ -283,7 +283,7 @@ namespace UnityEditor.Rendering.HighDefinition
 
             EditorGUI.BeginChangeCheck();
             var maskBlendSrcValue = (int)maskBlendSrc.floatValue;
-            maskBlendSrcValue = EditorGUILayout.Popup(Styles.normalOpacityChannelText, maskBlendSrcValue, allMaskMap ? blendSourceNames : blendSourceNamesNoMap);
+            maskBlendSrcValue = EditorGUILayout.Popup(Styles.maskOpacityChannelText, maskBlendSrcValue, allMaskMap ? blendSourceNames : blendSourceNamesNoMap);
             if (EditorGUI.EndChangeCheck())
                 maskBlendSrc.floatValue = maskBlendSrcValue;
 

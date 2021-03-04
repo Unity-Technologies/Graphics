@@ -17,6 +17,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Added an option to use faster, but less accurate approximation functions when converting between the sRGB and Linear color spaces.
 - Added screen space shadow as renderer feature
 - Added [DisallowMultipleRendererFeature] attribute for Renderer Features.
+- Added support for the PlayStation 5 platform.
 
 ### Changed
 - Optimized 2D Renderer performance on mobile GPUs by reducing the number of render target switches.
@@ -84,6 +85,10 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Removed Custom.meta which was causing warnings. [case 1314288](https://issuetracker.unity3d.com/issues/urp-warnings-about-missing-metadata-appear-after-installing)
 - Fixed an issue such that it is now posible to enqueue render passes at runtime.
 - Fixed a regression where the precision was changed. [case 1313942](https://issuetracker.unity3d.com/issues/urp-shader-precision-is-reduced-to-half-when-scriptablerenderfeature-class-is-in-the-project)
+- Fixed the default background color for previews to use the original color.
+- Fixed GC allocations from XR occlusion mesh when using multipass.
+- Fixed wrong shader / properties assignement to materials created from 3DsMax 2021 Physical Material. (case 1293576)
+- Fixed shadow cascade blend culling factor.
 
 ## [10.2.0] - 2020-10-19
 

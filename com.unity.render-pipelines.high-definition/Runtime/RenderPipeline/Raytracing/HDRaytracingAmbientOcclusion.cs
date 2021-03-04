@@ -28,6 +28,12 @@ namespace UnityEngine.Rendering.HighDefinition
             m_RTAOApplyIntensityKernel = m_PipelineRayTracingResources.aoRaytracingCS.FindKernel("RTAOApplyIntensity");
         }
 
+        public float EvaluateRTSpecularOcclusionFlag(HDCamera hdCamera, AmbientOcclusion ssoSettings)
+        {
+            float remappedRayLength = (Mathf.Clamp(ssoSettings.rayLength, 1.25f, 1.5f) - 1.25f) / 0.25f;
+            return Mathf.Lerp(0.0f, 1.0f, 1.0f - remappedRayLength);
+        }
+
         static RTHandle AmbientOcclusionHistoryBufferAllocatorFunction(string viewName, int frameIndex, RTHandleSystem rtHandleSystem)
         {
             return rtHandleSystem.Alloc(Vector2.one, TextureXR.slices, colorFormat: GraphicsFormat.R16G16_SFloat, dimension: TextureXR.dimension,
@@ -66,6 +72,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
             // Output Buffer
             public RTHandle outputTexture;
+            public RTHandle velocityBuffer;
         }
 
         AmbientOcclusionTraceParameters PrepareAmbientOcclusionTraceParameters(HDCamera hdCamera, ShaderVariablesRaytracing raytracingCB)
@@ -147,6 +154,7 @@ namespace UnityEngine.Rendering.HighDefinition
             // Set the output textures
             cmd.SetRayTracingTextureParam(aoTraceParameters.aoShaderRT, HDShaderIDs._RayCountTexture, aoTraceResources.rayCountTexture);
             cmd.SetRayTracingTextureParam(aoTraceParameters.aoShaderRT, HDShaderIDs._AmbientOcclusionTextureRW, aoTraceResources.outputTexture);
+            cmd.SetRayTracingTextureParam(aoTraceParameters.aoShaderRT, HDShaderIDs._VelocityBuffer, aoTraceResources.velocityBuffer);
 
             // Run the computation
             cmd.DispatchRays(aoTraceParameters.aoShaderRT, m_RayGenShaderName, (uint)aoTraceParameters.actualWidth, (uint)aoTraceParameters.actualHeight, (uint)aoTraceParameters.viewCount);

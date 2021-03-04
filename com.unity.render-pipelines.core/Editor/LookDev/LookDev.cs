@@ -28,7 +28,18 @@ namespace UnityEditor.Rendering.LookDev
         internal static Context currentContext
         {
             //Lazy init: load it when needed instead in static even if you do not support lookdev
-            get => s_CurrentContext ?? (s_CurrentContext = LoadConfigInternal() ?? defaultContext);
+            get
+            {
+                if (s_CurrentContext == null || s_CurrentContext.Equals(null))
+                {
+                    s_CurrentContext = LoadConfigInternal();
+                    if (s_CurrentContext == null)
+                        s_CurrentContext = defaultContext;
+
+                    ReloadStage(false);
+                }
+                return s_CurrentContext;
+            }
             private set => s_CurrentContext = value;
         }
 
@@ -118,7 +129,10 @@ namespace UnityEditor.Rendering.LookDev
             s_ViewDisplayer = window;
             s_EnvironmentDisplayer = window;
             open = true;
-            ConfigureLookDev(reloadWithTemporaryID: false);
+
+            // Lookdev Initialize can be called when the window is re-created by the editor layout system.
+            // In that case, the current context won't be null and there might be objects to reload from the temp ID
+            ConfigureLookDev(reloadWithTemporaryID: s_CurrentContext != null);
         }
 
         [Callbacks.DidReloadScripts]
@@ -161,9 +175,9 @@ namespace UnityEditor.Rendering.LookDev
         static void ConfigureRenderer(bool reloadWithTemporaryID)
         {
             s_Stages?.Dispose(); //clean previous occurrence on reloading
-            s_Stages = new StageCache(dataProvider, currentContext);
+            s_Stages = new StageCache(dataProvider);
             s_Compositor?.Dispose(); //clean previous occurrence on reloading
-            s_Compositor = new Compositer(s_ViewDisplayer, currentContext, dataProvider, s_Stages);
+            s_Compositor = new Compositer(s_ViewDisplayer, dataProvider, s_Stages);
         }
 
         static void LinkViewDisplayer()
@@ -176,10 +190,6 @@ namespace UnityEditor.Rendering.LookDev
                 s_Stages = null;
                 s_ViewDisplayer = null;
                 //currentContext = null;
-
-                //release editorInstanceIDs
-                currentContext.GetViewContent(ViewIndex.First).CleanTemporaryObjectIndexes();
-                currentContext.GetViewContent(ViewIndex.Second).CleanTemporaryObjectIndexes();
 
                 SaveConfig();
 
@@ -227,7 +237,12 @@ namespace UnityEditor.Rendering.LookDev
 
         static void LinkEnvironmentDisplayer()
         {
-            s_EnvironmentDisplayer.OnChangingEnvironmentLibrary += currentContext.UpdateEnvironmentLibrary;
+            s_EnvironmentDisplayer.OnChangingEnvironmentLibrary += UpdateEnvironmentLibrary;
+        }
+
+        static void UpdateEnvironmentLibrary(EnvironmentLibrary library)
+        {
+            LookDev.currentContext.UpdateEnvironmentLibrary(library);
         }
 
         static void ReloadStage(bool reloadWithTemporaryID)

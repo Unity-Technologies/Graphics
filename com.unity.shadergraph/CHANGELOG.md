@@ -29,6 +29,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed an issue where generated `BuildVertexDescriptionInputs()` produced an HLSL warning, "implicit truncation of vector type" [1299179](https://issuetracker.unity3d.com/product/unity/issues/guid/1299179/)
 - Fixed issue with SRP Batcher compatibility [1310624]
 - Fixed issue with Hybrid renderer compatibility [1296776]
+- Fixed the Custom Editor GUI field in the Graph settings that was ignored.
+- Fixed an issue where SampleRawCubemapNode were requiring the Normal in Object space instead of World space [1307962]
 
 ## [10.3.0] - 2020-11-03
 

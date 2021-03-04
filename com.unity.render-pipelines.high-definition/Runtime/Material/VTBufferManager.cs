@@ -19,7 +19,7 @@ namespace  UnityEngine.Rendering.HighDefinition
             return renderGraph.CreateTexture(
                 new TextureDesc(Vector2.one, true, true)
                 {
-                    colorFormat = GetFeedbackBufferFormat(), enableRandomWrite = !msaa, bindTextureMS = msaa, enableMSAA = msaa, clearBuffer = true, clearColor = Color.white, name = msaa ? "VTFeedbackMSAA" : "VTFeedback"
+                    colorFormat = GetFeedbackBufferFormat(), enableRandomWrite = !msaa, bindTextureMS = msaa, enableMSAA = msaa, clearBuffer = true, clearColor = Color.white, name = msaa ? "VTFeedbackMSAA" : "VTFeedback", fallBackToBlackTexture = true
 #if UNITY_2020_2_OR_NEWER
                     ,
                     fastMemoryDesc = colorFastMemDesc

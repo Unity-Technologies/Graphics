@@ -228,6 +228,7 @@ void LoadDirectionalShadowDatas(inout HDShadowData sd, HDShadowContext shadowCon
     sd.shadowFilterParams0.x = shadowContext.shadowDatas[index].shadowFilterParams0.x;
     sd.zBufferParam = shadowContext.shadowDatas[index].zBufferParam;
 #endif
+    sd.cacheTranslationDelta = shadowContext.shadowDatas[index].cacheTranslationDelta;
 }
 
 float EvalShadow_CascadedDepth_Blend_SplitIndex(HDShadowContext shadowContext, Texture2D tex, SamplerComparisonState samp, float2 positionSS, float3 positionWS, float3 normalWS, int index, float3 L, out int shadowSplitIndex)
@@ -237,11 +238,13 @@ float EvalShadow_CascadedDepth_Blend_SplitIndex(HDShadowContext shadowContext, T
     float   shadow = 1.0;
     shadowSplitIndex = EvalShadow_GetSplitIndex(shadowContext, index, positionWS, alpha, cascadeCount);
 
+    float3 basePositionWS = positionWS;
+
     if (shadowSplitIndex >= 0.0)
     {
         HDShadowData sd = shadowContext.shadowDatas[index];
         LoadDirectionalShadowDatas(sd, shadowContext, index + shadowSplitIndex);
-        positionWS = positionWS + sd.cacheTranslationDelta.xyz;
+        positionWS = basePositionWS + sd.cacheTranslationDelta.xyz;
 
         /* normal based bias */
         float3 orig_pos = positionWS;
@@ -262,8 +265,9 @@ float EvalShadow_CascadedDepth_Blend_SplitIndex(HDShadowContext shadowContext, T
             if (alpha > 0.0)
             {
                 LoadDirectionalShadowDatas(sd, shadowContext, index + shadowSplitIndex);
+                float3 evaluationPosWS = basePositionWS + sd.cacheTranslationDelta.xyz + normalBias;
                 float3 posNDC;
-                posTC = EvalShadow_GetTexcoordsAtlas(sd, _CascadeShadowAtlasSize.zw, positionWS, posNDC, false);
+                posTC = EvalShadow_GetTexcoordsAtlas(sd, _CascadeShadowAtlasSize.zw, evaluationPosWS, posNDC, false);
                 /* sample the texture */
                 UNITY_BRANCH
                 if (all(abs(posNDC.xy) <= (1.0 - sd.shadowMapSize.zw * 0.5)))
@@ -289,11 +293,13 @@ float EvalShadow_CascadedDepth_Dither_SplitIndex(HDShadowContext shadowContext, 
     float   shadow = 1.0;
     shadowSplitIndex = EvalShadow_GetSplitIndex(shadowContext, index, positionWS, alpha, cascadeCount);
 
+    float3 basePositionWS = positionWS;
+
     if (shadowSplitIndex >= 0.0)
     {
         HDShadowData sd = shadowContext.shadowDatas[index];
         LoadDirectionalShadowDatas(sd, shadowContext, index + shadowSplitIndex);
-        positionWS = positionWS + sd.cacheTranslationDelta.xyz;
+        positionWS = basePositionWS + sd.cacheTranslationDelta.xyz;
 
         /* normal based bias */
         float worldTexelSize = sd.worldTexelSize;
@@ -306,6 +312,7 @@ float EvalShadow_CascadedDepth_Dither_SplitIndex(HDShadowContext shadowContext, 
         if (evalNextCascade)
         {
             LoadDirectionalShadowDatas(sd, shadowContext, index + nextSplit);
+            positionWS = basePositionWS + sd.cacheTranslationDelta.xyz;
             float biasModifier = (sd.worldTexelSize / worldTexelSize);
             normalBias *= biasModifier;
         }

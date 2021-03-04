@@ -43,7 +43,7 @@ void ProcessBSDFData(PathIntersection pathIntersection, BuiltinData builtinData,
 #endif
 }
 
-bool CreateMaterialData(PathIntersection pathIntersection, BuiltinData builtinData, BSDFData bsdfData, inout float3 shadingPosition, inout float sample, out MaterialData mtlData)
+bool CreateMaterialData(PathIntersection pathIntersection, BuiltinData builtinData, BSDFData bsdfData, inout float3 shadingPosition, inout float theSample, out MaterialData mtlData)
 {
     // Alter values in the material's bsdfData struct, to better suit path tracing
     mtlData.bsdfData = bsdfData;
@@ -95,7 +95,7 @@ bool CreateMaterialData(PathIntersection pathIntersection, BuiltinData builtinDa
 #ifdef _MATERIAL_FEATURE_SUBSURFACE_SCATTERING
     float subsurfaceWeight = mtlData.bsdfWeight[0] * mtlData.bsdfData.subsurfaceMask * (1.0 - pathIntersection.maxRoughness);
 
-    mtlData.isSubsurface = sample < subsurfaceWeight;
+    mtlData.isSubsurface = theSample < subsurfaceWeight;
     if (mtlData.isSubsurface)
     {
         // We do a full, ray-traced subsurface scattering computation here:
@@ -121,11 +121,11 @@ bool CreateMaterialData(PathIntersection pathIntersection, BuiltinData builtinDa
         mtlData.bsdfWeight[0] = max(mtlData.bsdfWeight[0] - subsurfaceWeight, BSDF_WEIGHT_EPSILON);
         mtlData.bsdfWeight /= mtlData.subsurfaceWeightFactor;
 
-        sample -= subsurfaceWeight;
+        theSample -= subsurfaceWeight;
     }
 
     // Rescale the sample we used for the SSS selection test
-    sample /= mtlData.subsurfaceWeightFactor;
+    theSample /= mtlData.subsurfaceWeightFactor;
 #endif
 
     return true;

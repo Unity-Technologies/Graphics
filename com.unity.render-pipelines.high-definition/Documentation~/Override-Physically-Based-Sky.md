@@ -27,7 +27,11 @@ Next, set the Volume to use **Physically Based Sky**. The [Visual Environment](O
 
 To change how much the atmosphere attenuates light, you can change the density of both air and aerosol molecules (participating media) in the atmosphere. You can also use aerosols to simulate real-world pollution or fog.
 
+**Note:** When Unity initializes a Physically Based Sky, it performs a resource-intensive operation which can cause the frame rate of your project to drop for a few frames. Once Unity has completed this operation, it stores the data in a cache to access the next time Unity initializes this volume. However, you may experience this frame rate drop if you have two Physically Based Sky volumes with different properties and switch between them.
+
 ![](Images/Override-PhysicallyBasedSky4.png)
+
+[!include[](snippets/volume-override-api.md)]
 
 ## Properties
 

@@ -10,7 +10,8 @@ namespace UnityEngine.Rendering.HighDefinition
             return renderGraph.CreateTexture(new TextureDesc(Vector2.one, true, true) { enableRandomWrite = true, colorFormat = GraphicsFormat.R8_UNorm, name = "Ambient Occlusion" });
         }
 
-        public TextureHandle Render(RenderGraph renderGraph, HDCamera hdCamera, TextureHandle depthPyramid, TextureHandle normalBuffer, TextureHandle motionVectors, int frameCount, in HDUtils.PackedMipChainInfo depthMipInfo, ShaderVariablesRaytracing shaderVariablesRaytracing, TextureHandle rayCountTexture)
+        public TextureHandle Render(RenderGraph renderGraph, HDCamera hdCamera, TextureHandle depthBuffer, TextureHandle normalBuffer, TextureHandle motionVectors, TextureHandle historyValidityBuffer,
+            in HDUtils.PackedMipChainInfo depthMipInfo, ShaderVariablesRaytracing shaderVariablesRaytracing, TextureHandle rayCountTexture)
         {
             var settings = hdCamera.volumeStack.GetComponent<AmbientOcclusion>();
 
@@ -31,7 +32,8 @@ namespace UnityEngine.Rendering.HighDefinition
                     hdCamera.AllocateAmbientOcclusionHistoryBuffer(scaleFactor);
 
                     if (hdCamera.frameSettings.IsEnabled(FrameSettingsField.RayTracing) && settings.rayTracing.value)
-                        return m_RaytracingAmbientOcclusion.RenderRTAO(renderGraph, hdCamera, depthPyramid, normalBuffer, motionVectors, rayCountTexture, frameCount, shaderVariablesRaytracing);
+                        return m_RaytracingAmbientOcclusion.RenderRTAO(renderGraph, hdCamera, depthBuffer, normalBuffer, motionVectors, historyValidityBuffer,
+                            rayCountTexture, shaderVariablesRaytracing);
                     else
                     {
                         var historyRT = hdCamera.GetCurrentFrameRT((int)HDCameraFrameHistoryType.AmbientOcclusion);
@@ -42,10 +44,11 @@ namespace UnityEngine.Rendering.HighDefinition
                             historyRT.referenceSize.y * historyRT.scaleFactor.y);
                         var rtScaleForHistory = hdCamera.historyRTHandleProperties.rtHandleScale;
 
-                        var aoParameters = PrepareRenderAOParameters(hdCamera, historySize * rtScaleForHistory, frameCount, depthMipInfo);
+                        var aoParameters = PrepareRenderAOParameters(hdCamera, historySize * rtScaleForHistory, depthMipInfo);
 
-                        var packedData = RenderAO(renderGraph, aoParameters, depthPyramid, normalBuffer);
-                        result = DenoiseAO(renderGraph, aoParameters, depthPyramid, motionVectors, packedData, currentHistory, outputHistory);
+                        var packedData = RenderAO(renderGraph, aoParameters, depthBuffer, normalBuffer);
+                        result = DenoiseAO(renderGraph, aoParameters, depthBuffer, motionVectors, packedData, currentHistory, outputHistory);
+                        result = UpsampleAO(renderGraph, aoParameters, result, depthBuffer);
                     }
                 }
             }
@@ -107,6 +110,9 @@ namespace UnityEngine.Rendering.HighDefinition
             TextureHandle           currentHistory,
             TextureHandle           outputHistory)
         {
+            if (!parameters.temporalAccumulation && !parameters.fullResolution)
+                return aoPackedData;
+
             TextureHandle denoiseOutput;
 
             using (var builder = renderGraph.AddRenderPass<DenoiseAOPassData>("Denoise GTAO", out var passData))
@@ -147,11 +153,8 @@ namespace UnityEngine.Rendering.HighDefinition
                             ctx.cmd);
                     });
 
-                if (parameters.fullResolution)
-                    return passData.denoiseOutput;
+                return passData.denoiseOutput;
             }
-
-            return UpsampleAO(renderGraph, parameters, denoiseOutput, depthTexture);
         }
 
         class UpsampleAOPassData
@@ -164,6 +167,9 @@ namespace UnityEngine.Rendering.HighDefinition
 
         TextureHandle UpsampleAO(RenderGraph renderGraph, in RenderAOParameters parameters, TextureHandle input, TextureHandle depthTexture)
         {
+            if (parameters.fullResolution)
+                return input;
+
             using (var builder = renderGraph.AddRenderPass<UpsampleAOPassData>("Upsample GTAO", out var passData, ProfilingSampler.Get(HDProfileId.UpSampleSSAO)))
             {
                 builder.EnableAsyncCompute(parameters.runAsync);
