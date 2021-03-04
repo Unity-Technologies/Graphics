@@ -1,6 +1,8 @@
 using System;
+using System.Collections;
 using System.Diagnostics;
 using System.Collections.Generic;
+using System.Linq;
 using Unity.Collections;
 using UnityEngine.Experimental.Rendering;
 using UnityEngine.Profiling;
@@ -482,6 +484,11 @@ namespace UnityEngine.Rendering.Universal
         {
         }
 
+        Dictionary<Hash128, List<int>> mergeableRenderPassesMap = new Dictionary<Hash128, List<int>>();
+        private List<Hash128> sceneIndexToPassHash = new List<Hash128>();
+
+        private bool TEST_RENDERPASS_MERGING = false;
+
         private void SetLastPassFlag()
         {
             // Go through all the passes and mark the final one as last pass
@@ -490,9 +497,45 @@ namespace UnityEngine.Rendering.Universal
 
             // Make sure the list is already sorted!
 
+            mergeableRenderPassesMap.Clear();
+            sceneIndexToPassHash.Clear();
+
+            uint currentHashIndex = 0;
             // reset all the passes last pass flag
             for (int i = 0; i < m_ActiveRenderPassQueue.Count - 1; ++i)
+            {
                 m_ActiveRenderPassQueue[i].isLastPass = false;
+
+                m_ActiveRenderPassQueue[i].sceneIndex = i;
+
+                Hash128 hash = new Hash128((uint)m_ActiveRenderPassQueue[i].renderTargetWidth, (uint)m_ActiveRenderPassQueue[i].renderTargetHeight, (uint)m_ActiveRenderPassQueue[i].renderTargetSampleCount, currentHashIndex);
+
+                sceneIndexToPassHash.Add(hash);
+
+                if (!m_ActiveRenderPassQueue[i].useNativeRenderPass)
+                    continue;
+
+                if (!mergeableRenderPassesMap.ContainsKey(hash))
+                {
+                    List<int> passesList = new List<int>();
+                    mergeableRenderPassesMap.Add(hash, passesList);
+                }
+                else if (mergeableRenderPassesMap[hash][mergeableRenderPassesMap[hash].Count - 1] != (i - 1))
+                {
+                    // if the passes are not sequential we want to split the current mergeable passes list. So we increment the hashIndex and update the hash
+
+                    currentHashIndex++;
+                    hash = new Hash128((uint)m_ActiveRenderPassQueue[i].renderTargetWidth, (uint)m_ActiveRenderPassQueue[i].renderTargetHeight, (uint)m_ActiveRenderPassQueue[i].renderTargetSampleCount, currentHashIndex);
+
+                    sceneIndexToPassHash[i] = hash;
+
+                    // if the last index in the compatible passes list is not the previous pass
+                    List<int> passesList = new List<int>();
+                    mergeableRenderPassesMap.Add(hash, passesList);
+                }
+
+                mergeableRenderPassesMap[hash].Add(i);
+            }
 
             m_ActiveRenderPassQueue[lastPassIndex].isLastPass = true;
         }
@@ -797,22 +840,37 @@ namespace UnityEngine.Rendering.Universal
                     ? renderPass.renderTargetSampleCount
                     : sampleCount;
 
-                context.BeginRenderPass(width, height, Math.Max(sampleCount, 1), attachments,
-                    useDepth ? (!renderPass.depthOnly ? validColorBuffersCount : 0) : -1);
-                attachments.Dispose();
-                var attachmentIndices = new NativeArray<int>(!renderPass.depthOnly ? validColorBuffersCount : 0, Allocator.Temp);
-                if (!renderPass.depthOnly)
+                int currentSceneIndex = renderPass.sceneIndex;
+                Hash128 currentPassHash = sceneIndexToPassHash[currentSceneIndex];
+                List<int> currentMergeablePasses = mergeableRenderPassesMap[currentPassHash];
+
+                bool isFirstMergeablePass = currentMergeablePasses.First() == currentSceneIndex;
+                bool isLastMergeablePass = currentMergeablePasses.Last() == currentSceneIndex;
+
+                if (!TEST_RENDERPASS_MERGING || (currentMergeablePasses.Count == 1 || isFirstMergeablePass))
                 {
-                    for (int i = 0; i < validColorBuffersCount; ++i)
+                    context.BeginRenderPass(width, height, Math.Max(sampleCount, 1), attachments,
+                        useDepth ? (!renderPass.depthOnly ? validColorBuffersCount : 0) : -1);
+                    attachments.Dispose();
+                    var attachmentIndices = new NativeArray<int>(!renderPass.depthOnly ? validColorBuffersCount : 0, Allocator.Temp);
+                    if (!renderPass.depthOnly)
                     {
-                        attachmentIndices[i] = i;
+                        for (int i = 0; i < validColorBuffersCount; ++i)
+                        {
+                            attachmentIndices[i] = i;
+                        }
                     }
+                    context.BeginSubPass(attachmentIndices);
+                    attachmentIndices.Dispose();
                 }
-                context.BeginSubPass(attachmentIndices);
-                attachmentIndices.Dispose();
+
                 renderPass.Execute(context, ref renderingData);
-                context.EndSubPass();
-                context.EndRenderPass();
+
+                if (!TEST_RENDERPASS_MERGING || (currentMergeablePasses.Count == 1 || isLastMergeablePass))
+                {
+                    context.EndSubPass();
+                    context.EndRenderPass();
+                }
 
                 for (int i = 0; i < m_ActiveColorAttachmentDescriptors.Length; ++i)
                 {

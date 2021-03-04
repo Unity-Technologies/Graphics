@@ -184,6 +184,7 @@ namespace UnityEngine.Rendering.Universal
         // this flag is updated each frame to keep track of which pass is the last for the current camera
         internal bool isLastPass { get; set; }
 
+        internal int sceneIndex { get; set; }
 
         internal GraphicsFormat[] renderTargetFormat { get; set; }
         RenderTargetIdentifier[] m_ColorAttachments = new RenderTargetIdentifier[] {BuiltinRenderTextureType.CameraTarget};
