@@ -127,9 +127,9 @@ namespace UnityEngine.Rendering.HighDefinition
             RTRFullResolution[(int)ScalableSettingLevelParameter.Level.Medium] = false;
             RTRFullResolution[(int)ScalableSettingLevelParameter.Level.High] = true;
 
-            RTRRaySteps[(int)ScalableSettingLevelParameter.Level.Low] = 32;
-            RTRRaySteps[(int)ScalableSettingLevelParameter.Level.Medium] = 48;
-            RTRRaySteps[(int)ScalableSettingLevelParameter.Level.High] = 64;
+            RTRRayMaxIterations[(int)ScalableSettingLevelParameter.Level.Low] = 32;
+            RTRRayMaxIterations[(int)ScalableSettingLevelParameter.Level.Medium] = 48;
+            RTRRayMaxIterations[(int)ScalableSettingLevelParameter.Level.High] = 64;
 
             RTRDenoise[(int)ScalableSettingLevelParameter.Level.Low] = true;
             RTRDenoise[(int)ScalableSettingLevelParameter.Level.Medium] = true;
@@ -227,7 +227,7 @@ namespace UnityEngine.Rendering.HighDefinition
         /// <summary>Controls if the effect should be computed at full resolution.</summary>
         public bool[] RTRFullResolution = new bool[s_QualitySettingCount];
         /// <summary>Controls if the effect should be computed at full resolution.</summary>
-        public int[] RTRRaySteps = new int[s_QualitySettingCount];
+        public int[] RTRRayMaxIterations = new int[s_QualitySettingCount];
         /// <summary>Flag that enables the first denoising pass.</summary>
         public bool[] RTRDenoise = new bool[s_QualitySettingCount];
         /// <summary>Flag that defines the radius of the first denoiser.</summary>

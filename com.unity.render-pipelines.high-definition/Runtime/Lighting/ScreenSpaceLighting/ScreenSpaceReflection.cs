@@ -283,7 +283,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 if (!UsesQualitySettings())
                     return m_RayMaxIterationsRT.value;
                 else
-                    return GetLightingQualitySettings().RTRRaySteps[(int)quality.value];
+                    return GetLightingQualitySettings().RTRRayMaxIterations[(int)quality.value];
             }
             set { m_RayMaxIterationsRT.value = value; }
         }
