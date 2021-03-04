@@ -366,6 +366,7 @@ namespace UnityEngine.Rendering.Universal.Internal
         internal RenderTargetHandle TileDepthInfoTexture { get; set; }
 
         internal RenderTargetIdentifier[] GbufferAttachmentIdentifiers { get; set; }
+        internal GraphicsFormat[] GbufferFormats { get; set; }
         internal RenderTargetIdentifier DepthAttachmentIdentifier { get; set; }
         internal RenderTargetIdentifier DepthCopyTextureIdentifier { get; set; }
         internal RenderTargetIdentifier DepthInfoTextureIdentifier { get; set; }
@@ -771,9 +772,15 @@ namespace UnityEngine.Rendering.Universal.Internal
             this.DepthInfoTextureIdentifier = this.DepthInfoTexture.Identifier();
             this.TileDepthInfoTextureIdentifier = this.TileDepthInfoTexture.Identifier();
             if (this.GbufferAttachmentIdentifiers == null || this.GbufferAttachmentIdentifiers.Length != this.GbufferAttachments.Length)
+            {
                 this.GbufferAttachmentIdentifiers = new RenderTargetIdentifier[this.GbufferAttachments.Length];
+                this.GbufferFormats = new GraphicsFormat[this.GbufferAttachments.Length];
+            }
             for (int i = 0; i < this.GbufferAttachments.Length; ++i)
+            {
                 this.GbufferAttachmentIdentifiers[i] = this.GbufferAttachments[i].Identifier();
+                this.GbufferFormats[i] = this.GetGBufferFormat(i);
+            }
             this.DepthAttachmentIdentifier = depthAttachment.Identifier();
 
 #if ENABLE_VR && ENABLE_XR_MODULE
