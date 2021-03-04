@@ -87,14 +87,7 @@ float4 ComputeGlow(float2 uv)
     return pow(sdf, _FlareFalloff);
 }
 
-float cl01(float x)
-{
-    //return clamp(x, -1.0f, 1.0f);
-    //return clamp(x, 0, 1.0f);
-    //return x;
-    return saturate(x);
-}
-
+// Ref: https://www.shadertoy.com/view/MtKcWW
 float4 ComputeIris(float2 uv_)
 {
     const float r = _FlareEdgeOffset - _FlareSDFRoundness;
