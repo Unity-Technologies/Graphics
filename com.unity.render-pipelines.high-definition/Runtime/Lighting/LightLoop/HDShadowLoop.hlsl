@@ -51,7 +51,7 @@ void ShadowLoopMin(HDShadowContext shadowContext, PositionInputs posInput, float
                                                             posInput.positionSS, posInput.positionWS, normalWS,
                                                             light.shadowIndex, wi);
                 }
-                
+
 #ifdef SHADOW_LOOP_MULTIPLY
                 shadow *= lerp(light.shadowTint, float3(1, 1, 1), shadowD);
 #elif defined(SHADOW_LOOP_AVERAGE)
