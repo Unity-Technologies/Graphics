@@ -237,7 +237,7 @@ namespace UnityEngine.Rendering
 
                 foreach (var debug in cellDebugData)
                 {
-                    if (actualTarget.ShouldCull(debug.cellPosition))
+                    if (actualTarget.ShouldCull(debug.cellPosition, Vector3.zero))
                         continue;
 
                     for (int i = 0; i < debug.probeBuffers.Count; ++i)

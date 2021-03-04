@@ -189,13 +189,17 @@ namespace UnityEngine.Rendering
             QueueAssetRemoval();
         }
 
-        internal bool ShouldCull(Vector3 cellPosition)
+        internal bool ShouldCull(Vector3 cellPosition, Vector3 originWS = default(Vector3))
         {
-            if (Vector3.Distance(SceneView.lastActiveSceneView.camera.transform.position, cellPosition) > m_CullingDistance)
+            Vector3 cellCenterWS = cellPosition * m_Profile.cellSize + originWS + Vector3.one * (m_Profile.cellSize / 2.0f);
+            // TODO: position is not at the center of the cells
+            // cellPosition *= m_Profile.cellSize;
+            if (Vector3.Distance(SceneView.lastActiveSceneView.camera.transform.position, cellCenterWS) > m_CullingDistance)
                 return true;
 
+            Debug.DrawLine(cellCenterWS, cellCenterWS + Vector3.up * m_Profile.cellSize, Color.red, 0.1f);
             var frustumPlanes = GeometryUtility.CalculateFrustumPlanes(SceneView.lastActiveSceneView.camera);
-            var volumeAABB = new Bounds(cellPosition, m_Profile.cellSize * Vector3.one);
+            var volumeAABB = new Bounds(cellCenterWS, m_Profile.cellSize * Vector3.one);
 
             return !GeometryUtility.TestPlanesAABB(frustumPlanes, volumeAABB);
         }
@@ -211,11 +215,11 @@ namespace UnityEngine.Rendering
             {
                 // Fetching this from components instead of from the reference volume allows the user to
                 // preview how cells will look before they commit to a bake.
-                using (new Handles.DrawingScope(Color.green, Matrix4x4.TRS(transform.position, transform.rotation, Vector3.one)))
+                using (new Handles.DrawingScope(Color.green, ProbeReferenceVolume.instance.GetRefSpaceToWS()))
                 {
                     foreach (var cell in ProbeReferenceVolume.instance.cells.Values)
                     {
-                        if (ShouldCull(cell.position))
+                        if (ShouldCull(cell.position, transform.position))
                             continue;
 
                         var positionF = new Vector3(cell.position.x, cell.position.y, cell.position.z);
@@ -232,7 +236,7 @@ namespace UnityEngine.Rendering
                     // Read refvol transform
                     foreach (var cell in ProbeReferenceVolume.instance.cells.Values)
                     {
-                        if (ShouldCull(cell.position))
+                        if (ShouldCull(cell.position, ProbeReferenceVolume.instance.GetTransform().posWS))
                             continue;
 
                         if (cell.bricks == null)
