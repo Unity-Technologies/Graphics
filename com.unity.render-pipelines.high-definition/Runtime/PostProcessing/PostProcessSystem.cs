@@ -2551,8 +2551,8 @@ namespace UnityEngine.Rendering.HighDefinition
                                 Color randCol = element.colorGradient.Evaluate(Random.Range(0.0f, 1.0f));
 
                                 Vector2 localPositionOffset = element.positionOffset + (element.positionVariation.y * Random.Range(-1.0f, 1.0f)) *
-                                    //(new Vector2(Mathf.Sin(-element.angularOffset * Mathf.Deg2Rad), Mathf.Cos(-element.angularOffset * Mathf.Deg2Rad)));
-                                    (new Vector2(side.x, side.y));
+                                    (new Vector2(Mathf.Sin(-element.angularOffset * Mathf.Deg2Rad), Mathf.Cos(-element.angularOffset * Mathf.Deg2Rad)));
+                                    //(new Vector2(side.x, side.y));
 
                                 float localRotation = element.rotation + Random.Range(-Mathf.PI, Mathf.PI) * element.rotationVariation;
 
