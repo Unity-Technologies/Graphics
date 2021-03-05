@@ -7,5 +7,5 @@
         <ui:DropdownField index="-1" style="height: 27px; width: 208px;" />
         <ui:VisualElement style="flex-grow: 1;" />
     </ui:VisualElement>
-    <ui:ScrollView scroll-deceleration-rate="0,135" elasticity="0,1" name="convertersScrollView" style="height: 611px; width: 1044px;" />
+    <ui:ListView focusable="true" name="convertersListView" style="flex-grow: 1; height: 114px;" />
 </ui:UXML>

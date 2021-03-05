@@ -1,25 +1,24 @@
 <ui:UXML xmlns:ui="UnityEngine.UIElements" xmlns:uie="UnityEditor.UIElements" editor-extension-mode="False">
     <ui:VisualElement style="flex-grow: 1; height: 114px;">
-        <ui:VisualElement style="height: 32px; width: 495px; flex-direction: row;">
+        <ui:VisualElement style="height: 28px; width: 613px; flex-direction: row; flex-grow: 0; margin-left: 0; margin-right: 0; margin-top: 0; margin-bottom: 0; flex-shrink: 0;">
             <ui:Toggle name="converterEnabled" />
             <ui:Label name="converterName" text="Name Of The Converter" style="width: 143px; -unity-text-align: middle-center;" />
-            <ui:VisualElement name="converterProgressBar" style="height: 32px; width: 294px;" />
             <ui:VisualElement style="width: 219px; flex-direction: row-reverse; flex-grow: 1;" />
-            <ui:Label name="converterStats" text="100 Items" style="flex-grow: 1; -unity-text-align: middle-right;" />
+            <ui:Label name="converterStats" text="100 Items" style="flex-grow: 1; -unity-text-align: middle-right; -unity-font-style: bold;" />
         </ui:VisualElement>
-        <ui:VisualElement style="height: 27px; width: 499px; flex-direction: row;">
+        <ui:VisualElement style="height: 29px; width: 613px; flex-direction: row; flex-grow: 0; flex-shrink: 0;">
             <ui:Label text="In progress..." name="converterInfo" style="-unity-text-align: middle-left;" />
             <ui:VisualElement style="flex-grow: 1;" />
-            <ui:Label text="30 Seconds" name="converterTime" style="-unity-text-align: middle-left;" />
+            <ui:Label text="30 Seconds" name="converterTime" style="-unity-text-align: middle-left; -unity-font-style: bold;" />
         </ui:VisualElement>
-        <ui:Foldout style="height: 70px;">
+        <ui:Foldout style="height: 70px; flex-shrink: 0;">
             <ui:VisualElement style="flex-direction: row;">
                 <ui:Label text="test&#10;" />
-                <ui:Label style="flex-grow: 0; width: 51px;" />
+                <ui:Label style="flex-grow: 1; width: 51px;" />
                 <ui:Label text="Pending" />
                 <ui:Label text="Risk" />
                 <ui:Label text="Error" />
-                <ui:Label text="Success" style="flex-grow: 1;" />
+                <ui:Label text="Success" style="flex-grow: 0; width: 53px; height: 31px;" />
             </ui:VisualElement>
         </ui:Foldout>
     </ui:VisualElement>
