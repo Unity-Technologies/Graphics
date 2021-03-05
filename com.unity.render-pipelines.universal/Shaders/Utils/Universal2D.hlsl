@@ -26,8 +26,7 @@ Varyings vert(Attributes input)
 
 half4 frag(Varyings input) : SV_Target
 {
-    half2 uv = input.uv;
-    half4 texColor = SAMPLE_TEXTURE2D(_BaseMap, sampler_BaseMap, uv);
+    half4 texColor = SAMPLE_TEXTURE2D(_BaseMap, sampler_BaseMap, input.uv);
     half3 color = texColor.rgb * _BaseColor.rgb;
     half alpha = texColor.a * _BaseColor.a;
     AlphaDiscard(alpha, _Cutoff);
