@@ -63,14 +63,6 @@ test_platforms:
       - [Win_DX11, Win_DX12, Win_Vulkan, Android_OpenGLES3, Android_Vulkan]: <shared.platform.commands.turn_off_firewall>
       - [all]: <shared.platform.commands.setup_utr>
       - [OSX_Metal]: <shared.platform.commands.unity_downloader_cli>
-      - [iPhone_Metal, Android_Vulkan, Android_OpenGLES3, OSX_Metal, Linux_Vulkan]: <shared.platform.commands.call_utr>
-        flags:
-          - [all]: --report-performance-data
-          - [all]: --performance-project-id=VikingVillage_URP
-          - [iPhone_Metal]: --timeout=2400
-          - [iPhone_Metal, Android_Vulkan, Android_OpenGLES3, Linux_Vulkan]: --player-load-path=playersLow
-          - [OSX_Metal]: --testfilter=Low
-          - [OSX_Metal]: <reuse_blocks.perf_utr_flags>
       - [iPhone_Metal, Android_Vulkan, Android_OpenGLES3, Win_DX11, Win_DX12, Win_Vulkan, OSX_Metal, Linux_Vulkan]: <shared.platform.commands.call_utr>
         flags:
           - [all]: --report-performance-data
@@ -79,15 +71,7 @@ test_platforms:
           - [iPhone_Metal, Android_Vulkan, Android_OpenGLES3, Win_DX11, Win_DX12, Win_Vulkan, Linux_Vulkan]: --player-load-path=playersMedium
           - [OSX_Metal]: --testfilter=Medium
           - [OSX_Metal]: <reuse_blocks.perf_utr_flags>
-      - [OSX_Metal, Linux_Vulkan]: <shared.platform.commands.call_utr>
-        flags:
-          - [all]: --report-performance-data
-          - [all]: --performance-project-id=VikingVillage_URP
-          - [Linux_Vulkan]: --player-load-path=playersHigh
-          - [OSX_Metal]: --testfilter=High
-          - [OSX_Metal]: <reuse_blocks.perf_utr_flags>
       - [Android_OpenGLES3, Android_Vulkan]: <shared.platform.commands.kill_server>
-
     commands_build:
       - <reuse_blocks.unity_config>
       - [iPhone_Metal]: pip install unity-downloader-cli --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
@@ -95,21 +79,11 @@ test_platforms:
       - [Win_DX11, Win_DX12, Win_Vulkan, Android_OpenGLES3, Android_Vulkan]: <shared.platform.commands.turn_off_firewall>
       - [all]: <shared.platform.commands.setup_utr>
       - [Android_Vulkan, Android_OpenGLES3, Win_DX11, Win_DX12, Win_Vulkan, OSX_Metal, Linux_Vulkan]: <shared.platform.commands.unity_downloader_cli>
-      - [iPhone_Metal, Android_Vulkan, Android_OpenGLES3, OSX_Metal, Linux_Vulkan]: <shared.platform.commands.call_utr>
-        flags:
-          - <reuse_blocks.perf_utr_flags>
-          - [all]: --testfilter=Low
-          - [all]: --player-save-path=playersLow
       - [iPhone_Metal, Android_Vulkan, Android_OpenGLES3, Win_DX11, Win_DX12, Win_Vulkan, OSX_Metal, Linux_Vulkan]: <shared.platform.commands.call_utr>
         flags:
           - <reuse_blocks.perf_utr_flags>
           - [all]: --testfilter=Medium
           - [all]: --player-save-path=playersMedium
-      - [OSX_Metal, Linux_Vulkan]: <shared.platform.commands.call_utr>
-        flags:
-          - <reuse_blocks.perf_utr_flags>
-          - [all]: --testfilter=High
-          - [all]: --player-save-path=playersHigh
 
   - type: playmode
     name: performance_playmode_editor
@@ -123,19 +97,7 @@ test_platforms:
           - [all]: --report-performance-data
           - [all]: --performance-project-id=VikingVillage_URP
           - <reuse_blocks.perf_utr_flags>
-          - [all]: --testfilter=Low
-      - [all]: <shared.platform.commands.call_utr>
-        flags:
-          - [all]: --report-performance-data
-          - [all]: --performance-project-id=VikingVillage_URP
-          - <reuse_blocks.perf_utr_flags>
           - [all]: --testfilter=Medium
-      - [Win_DX11, Win_DX12, Win_Vulkan]: <shared.platform.commands.call_utr>
-        flags:
-          - [all]: --report-performance-data
-          - [all]: --performance-project-id=VikingVillage_URP
-          - <reuse_blocks.perf_utr_flags>
-          - [all]: --testfilter=High
   - type: editmode
     name: performance_build_editmode
     commands:
@@ -149,21 +111,7 @@ test_platforms:
           - [all]: --report-performance-data
           - [all]: --performance-project-id=VikingVillage_URP
           - <reuse_blocks.perf_utr_flags>
-          - [all]: --testfilter=Low
-      - [all]: <shared.platform.commands.call_utr>
-        flags:
-          - [all]: --testfilter=Build
-          - [all]: --report-performance-data
-          - [all]: --performance-project-id=VikingVillage_URP
-          - <reuse_blocks.perf_utr_flags>
           - [all]: --testfilter=Medium
-      - [Win_DX11, Win_DX12, Win_Vulkan]: <shared.platform.commands.call_utr>
-        flags:
-          - [all]: --testfilter=Build
-          - [all]: --report-performance-data
-          - [all]: --performance-project-id=VikingVillage_URP
-          - <reuse_blocks.perf_utr_flags>
-          - [all]: --testfilter=High
 expression_trigger:
   expression: ""
 platforms:

@@ -28,19 +28,7 @@ VikingVillage_BuiltIn_Win_Vulkan_performance_playmode_runtime_mono_Linear_trunk:
               set /p GIT_REVISIONDATE=<revdate.tmp
               echo %GIT_REVISIONDATE%
               del revdate.tmp
-              utr --artifacts_path=TestProjects/Viking-Village-Perf/test-results --performance-project-id=VikingVillage_BuiltIn --platform=StandaloneWindows64 --player-connection-ip=auto --player-load-path=playersLow --report-performance-data --suite=playmode --timeout=1200 --zero-tests-are-ok=1
-      -  |5-
-              git rev-parse HEAD | git show -s --format=%%cI > revdate.tmp
-              set /p GIT_REVISIONDATE=<revdate.tmp
-              echo %GIT_REVISIONDATE%
-              del revdate.tmp
               utr --artifacts_path=TestProjects/Viking-Village-Perf/test-results --performance-project-id=VikingVillage_BuiltIn --platform=StandaloneWindows64 --player-connection-ip=auto --player-load-path=playersMedium --report-performance-data --suite=playmode --timeout=1200 --zero-tests-are-ok=1
-      -  |5-
-              git rev-parse HEAD | git show -s --format=%%cI > revdate.tmp
-              set /p GIT_REVISIONDATE=<revdate.tmp
-              echo %GIT_REVISIONDATE%
-              del revdate.tmp
-              utr --artifacts_path=TestProjects/Viking-Village-Perf/test-results --performance-project-id=VikingVillage_BuiltIn --platform=StandaloneWindows64 --player-connection-ip=auto --player-load-path=playersHigh --report-performance-data --suite=playmode --timeout=1200 --zero-tests-are-ok=1
     artifacts:
         logs:
             paths:
@@ -93,19 +81,7 @@ Build_VikingVillage_BuiltIn_Win_Vulkan_performance_playmode_runtime_mono_Linear_
               set /p GIT_REVISIONDATE=<revdate.tmp
               echo %GIT_REVISIONDATE%
               del revdate.tmp
-              utr --artifacts_path=TestProjects/Viking-Village-Perf/test-results --build-only --category=URP --editor-location=.Editor --extra-editor-arg="-addscenetobuild=Assets/Scenes/The_Viking_Village.unity" --extra-editor-arg="-allowdebugging-" --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-executemethod" --extra-editor-arg="Editor.Setup" --extra-editor-arg="-managedstrippinglevel=Low" --extra-editor-arg="-packageundertestbranch=%GIT_BRANCH%" --extra-editor-arg="-packageundertestname=com.unity.render-pipelines.universal" --extra-editor-arg="-packageundertestrev=%GIT_REVISION%" --extra-editor-arg="-packageundertestrevdate=%GIT_REVISIONDATE%" --extra-editor-arg="-playergraphicsapi=Vulkan" --extra-editor-arg="-scriptingbackend=Mono2x" --extra-editor-arg="-stripenginecode-" --platform=StandaloneWindows64 --player-save-path=playersLow --scripting-backend=Mono2x --suite=playmode --testfilter=Low --testproject=./TestProjects/Viking-Village-Perf --timeout=1200
-      -  |5-
-              git rev-parse HEAD | git show -s --format=%%cI > revdate.tmp
-              set /p GIT_REVISIONDATE=<revdate.tmp
-              echo %GIT_REVISIONDATE%
-              del revdate.tmp
-              utr --artifacts_path=TestProjects/Viking-Village-Perf/test-results --build-only --category=URP --editor-location=.Editor --extra-editor-arg="-addscenetobuild=Assets/Scenes/The_Viking_Village.unity" --extra-editor-arg="-allowdebugging-" --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-executemethod" --extra-editor-arg="Editor.Setup" --extra-editor-arg="-managedstrippinglevel=Low" --extra-editor-arg="-packageundertestbranch=%GIT_BRANCH%" --extra-editor-arg="-packageundertestname=com.unity.render-pipelines.universal" --extra-editor-arg="-packageundertestrev=%GIT_REVISION%" --extra-editor-arg="-packageundertestrevdate=%GIT_REVISIONDATE%" --extra-editor-arg="-playergraphicsapi=Vulkan" --extra-editor-arg="-scriptingbackend=Mono2x" --extra-editor-arg="-stripenginecode-" --platform=StandaloneWindows64 --player-save-path=playersMedium --scripting-backend=Mono2x --suite=playmode --testfilter=Medium --testproject=./TestProjects/Viking-Village-Perf --timeout=1200
-      -  |5-
-              git rev-parse HEAD | git show -s --format=%%cI > revdate.tmp
-              set /p GIT_REVISIONDATE=<revdate.tmp
-              echo %GIT_REVISIONDATE%
-              del revdate.tmp
-              utr --artifacts_path=TestProjects/Viking-Village-Perf/test-results --build-only --category=URP --editor-location=.Editor --extra-editor-arg="-addscenetobuild=Assets/Scenes/The_Viking_Village.unity" --extra-editor-arg="-allowdebugging-" --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-executemethod" --extra-editor-arg="Editor.Setup" --extra-editor-arg="-managedstrippinglevel=Low" --extra-editor-arg="-packageundertestbranch=%GIT_BRANCH%" --extra-editor-arg="-packageundertestname=com.unity.render-pipelines.universal" --extra-editor-arg="-packageundertestrev=%GIT_REVISION%" --extra-editor-arg="-packageundertestrevdate=%GIT_REVISIONDATE%" --extra-editor-arg="-playergraphicsapi=Vulkan" --extra-editor-arg="-scriptingbackend=Mono2x" --extra-editor-arg="-stripenginecode-" --platform=StandaloneWindows64 --player-save-path=playersHigh --scripting-backend=Mono2x --suite=playmode --testfilter=High --testproject=./TestProjects/Viking-Village-Perf --timeout=1200
+              utr --artifacts_path=TestProjects/Viking-Village-Perf/test-results --build-only --category=URP --editor-location=.Editor --extra-editor-arg="-addscenetobuild=Assets/Scenes/The_Viking_Village.unity" --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-executemethod" --extra-editor-arg="Editor.Setup" --extra-editor-arg="-packageundertestbranch=%GIT_BRANCH%" --extra-editor-arg="-packageundertestname=com.unity.render-pipelines.universal" --extra-editor-arg="-packageundertestrev=%GIT_REVISION%" --extra-editor-arg="-packageundertestrevdate=%GIT_REVISIONDATE%" --extra-editor-arg="-playergraphicsapi=Vulkan" --extra-editor-arg="-scriptingbackend=Mono2x" --platform=StandaloneWindows64 --player-save-path=playersMedium --scripting-backend=Mono2x --suite=playmode --testfilter=Medium --testproject=./TestProjects/Viking-Village-Perf --timeout=1200
     artifacts:
         logs:
             paths:
@@ -159,19 +135,7 @@ VikingVillage_BuiltIn_Win_Vulkan_performance_build_editmode_mono_Linear_trunk:
               set /p GIT_REVISIONDATE=<revdate.tmp
               echo %GIT_REVISIONDATE%
               del revdate.tmp
-              utr --artifacts_path=TestProjects/Viking-Village-Perf/test-results --category=URP --editor-location=.Editor --extra-editor-arg="-addscenetobuild=Assets/Scenes/The_Viking_Village.unity" --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-executemethod" --extra-editor-arg="Editor.Setup" --extra-editor-arg="-force-vulkan" --extra-editor-arg="-packageundertestbranch=%GIT_BRANCH%" --extra-editor-arg="-packageundertestname=com.unity.render-pipelines.universal" --extra-editor-arg="-packageundertestrev=%GIT_REVISION%" --extra-editor-arg="-packageundertestrevdate=%GIT_REVISIONDATE%" --extra-editor-arg="-playergraphicsapi=Vulkan" --extra-editor-arg="-scriptingbackend=Mono2x" --performance-project-id=VikingVillage_BuiltIn --platform=editmode --report-performance-data --scripting-backend=Mono2x --suite=editor --testfilter=Low --testproject=./TestProjects/Viking-Village-Perf --zero-tests-are-ok=1
-      -  |5-
-              git rev-parse HEAD | git show -s --format=%%cI > revdate.tmp
-              set /p GIT_REVISIONDATE=<revdate.tmp
-              echo %GIT_REVISIONDATE%
-              del revdate.tmp
               utr --artifacts_path=TestProjects/Viking-Village-Perf/test-results --category=URP --editor-location=.Editor --extra-editor-arg="-addscenetobuild=Assets/Scenes/The_Viking_Village.unity" --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-executemethod" --extra-editor-arg="Editor.Setup" --extra-editor-arg="-force-vulkan" --extra-editor-arg="-packageundertestbranch=%GIT_BRANCH%" --extra-editor-arg="-packageundertestname=com.unity.render-pipelines.universal" --extra-editor-arg="-packageundertestrev=%GIT_REVISION%" --extra-editor-arg="-packageundertestrevdate=%GIT_REVISIONDATE%" --extra-editor-arg="-playergraphicsapi=Vulkan" --extra-editor-arg="-scriptingbackend=Mono2x" --performance-project-id=VikingVillage_BuiltIn --platform=editmode --report-performance-data --scripting-backend=Mono2x --suite=editor --testfilter=Medium --testproject=./TestProjects/Viking-Village-Perf --zero-tests-are-ok=1
-      -  |5-
-              git rev-parse HEAD | git show -s --format=%%cI > revdate.tmp
-              set /p GIT_REVISIONDATE=<revdate.tmp
-              echo %GIT_REVISIONDATE%
-              del revdate.tmp
-              utr --artifacts_path=TestProjects/Viking-Village-Perf/test-results --category=URP --editor-location=.Editor --extra-editor-arg="-addscenetobuild=Assets/Scenes/The_Viking_Village.unity" --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-executemethod" --extra-editor-arg="Editor.Setup" --extra-editor-arg="-force-vulkan" --extra-editor-arg="-packageundertestbranch=%GIT_BRANCH%" --extra-editor-arg="-packageundertestname=com.unity.render-pipelines.universal" --extra-editor-arg="-packageundertestrev=%GIT_REVISION%" --extra-editor-arg="-packageundertestrevdate=%GIT_REVISIONDATE%" --extra-editor-arg="-playergraphicsapi=Vulkan" --extra-editor-arg="-scriptingbackend=Mono2x" --performance-project-id=VikingVillage_BuiltIn --platform=editmode --report-performance-data --scripting-backend=Mono2x --suite=editor --testfilter=High --testproject=./TestProjects/Viking-Village-Perf --zero-tests-are-ok=1
     artifacts:
         logs:
             paths:
@@ -199,19 +163,7 @@ VikingVillage_BuiltIn_Win_Vulkan_performance_playmode_runtime_mono_Linear_CUSTOM
               set /p GIT_REVISIONDATE=<revdate.tmp
               echo %GIT_REVISIONDATE%
               del revdate.tmp
-              utr --artifacts_path=TestProjects/Viking-Village-Perf/test-results --performance-project-id=VikingVillage_BuiltIn --platform=StandaloneWindows64 --player-connection-ip=auto --player-load-path=playersLow --report-performance-data --suite=playmode --timeout=1200 --zero-tests-are-ok=1
-      -  |5-
-              git rev-parse HEAD | git show -s --format=%%cI > revdate.tmp
-              set /p GIT_REVISIONDATE=<revdate.tmp
-              echo %GIT_REVISIONDATE%
-              del revdate.tmp
               utr --artifacts_path=TestProjects/Viking-Village-Perf/test-results --performance-project-id=VikingVillage_BuiltIn --platform=StandaloneWindows64 --player-connection-ip=auto --player-load-path=playersMedium --report-performance-data --suite=playmode --timeout=1200 --zero-tests-are-ok=1
-      -  |5-
-              git rev-parse HEAD | git show -s --format=%%cI > revdate.tmp
-              set /p GIT_REVISIONDATE=<revdate.tmp
-              echo %GIT_REVISIONDATE%
-              del revdate.tmp
-              utr --artifacts_path=TestProjects/Viking-Village-Perf/test-results --performance-project-id=VikingVillage_BuiltIn --platform=StandaloneWindows64 --player-connection-ip=auto --player-load-path=playersHigh --report-performance-data --suite=playmode --timeout=1200 --zero-tests-are-ok=1
     artifacts:
         logs:
             paths:
@@ -267,19 +219,7 @@ Build_VikingVillage_BuiltIn_Win_Vulkan_performance_playmode_runtime_mono_Linear_
               set /p GIT_REVISIONDATE=<revdate.tmp
               echo %GIT_REVISIONDATE%
               del revdate.tmp
-              utr --artifacts_path=TestProjects/Viking-Village-Perf/test-results --build-only --category=URP --editor-location=.Editor --extra-editor-arg="-addscenetobuild=Assets/Scenes/The_Viking_Village.unity" --extra-editor-arg="-allowdebugging-" --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-executemethod" --extra-editor-arg="Editor.Setup" --extra-editor-arg="-managedstrippinglevel=Low" --extra-editor-arg="-packageundertestbranch=%GIT_BRANCH%" --extra-editor-arg="-packageundertestname=com.unity.render-pipelines.universal" --extra-editor-arg="-packageundertestrev=%GIT_REVISION%" --extra-editor-arg="-packageundertestrevdate=%GIT_REVISIONDATE%" --extra-editor-arg="-playergraphicsapi=Vulkan" --extra-editor-arg="-scriptingbackend=Mono2x" --extra-editor-arg="-stripenginecode-" --platform=StandaloneWindows64 --player-save-path=playersLow --scripting-backend=Mono2x --suite=playmode --testfilter=Low --testproject=./TestProjects/Viking-Village-Perf --timeout=1200
-      -  |5-
-              git rev-parse HEAD | git show -s --format=%%cI > revdate.tmp
-              set /p GIT_REVISIONDATE=<revdate.tmp
-              echo %GIT_REVISIONDATE%
-              del revdate.tmp
-              utr --artifacts_path=TestProjects/Viking-Village-Perf/test-results --build-only --category=URP --editor-location=.Editor --extra-editor-arg="-addscenetobuild=Assets/Scenes/The_Viking_Village.unity" --extra-editor-arg="-allowdebugging-" --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-executemethod" --extra-editor-arg="Editor.Setup" --extra-editor-arg="-managedstrippinglevel=Low" --extra-editor-arg="-packageundertestbranch=%GIT_BRANCH%" --extra-editor-arg="-packageundertestname=com.unity.render-pipelines.universal" --extra-editor-arg="-packageundertestrev=%GIT_REVISION%" --extra-editor-arg="-packageundertestrevdate=%GIT_REVISIONDATE%" --extra-editor-arg="-playergraphicsapi=Vulkan" --extra-editor-arg="-scriptingbackend=Mono2x" --extra-editor-arg="-stripenginecode-" --platform=StandaloneWindows64 --player-save-path=playersMedium --scripting-backend=Mono2x --suite=playmode --testfilter=Medium --testproject=./TestProjects/Viking-Village-Perf --timeout=1200
-      -  |5-
-              git rev-parse HEAD | git show -s --format=%%cI > revdate.tmp
-              set /p GIT_REVISIONDATE=<revdate.tmp
-              echo %GIT_REVISIONDATE%
-              del revdate.tmp
-              utr --artifacts_path=TestProjects/Viking-Village-Perf/test-results --build-only --category=URP --editor-location=.Editor --extra-editor-arg="-addscenetobuild=Assets/Scenes/The_Viking_Village.unity" --extra-editor-arg="-allowdebugging-" --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-executemethod" --extra-editor-arg="Editor.Setup" --extra-editor-arg="-managedstrippinglevel=Low" --extra-editor-arg="-packageundertestbranch=%GIT_BRANCH%" --extra-editor-arg="-packageundertestname=com.unity.render-pipelines.universal" --extra-editor-arg="-packageundertestrev=%GIT_REVISION%" --extra-editor-arg="-packageundertestrevdate=%GIT_REVISIONDATE%" --extra-editor-arg="-playergraphicsapi=Vulkan" --extra-editor-arg="-scriptingbackend=Mono2x" --extra-editor-arg="-stripenginecode-" --platform=StandaloneWindows64 --player-save-path=playersHigh --scripting-backend=Mono2x --suite=playmode --testfilter=High --testproject=./TestProjects/Viking-Village-Perf --timeout=1200
+              utr --artifacts_path=TestProjects/Viking-Village-Perf/test-results --build-only --category=URP --editor-location=.Editor --extra-editor-arg="-addscenetobuild=Assets/Scenes/The_Viking_Village.unity" --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-executemethod" --extra-editor-arg="Editor.Setup" --extra-editor-arg="-packageundertestbranch=%GIT_BRANCH%" --extra-editor-arg="-packageundertestname=com.unity.render-pipelines.universal" --extra-editor-arg="-packageundertestrev=%GIT_REVISION%" --extra-editor-arg="-packageundertestrevdate=%GIT_REVISIONDATE%" --extra-editor-arg="-playergraphicsapi=Vulkan" --extra-editor-arg="-scriptingbackend=Mono2x" --platform=StandaloneWindows64 --player-save-path=playersMedium --scripting-backend=Mono2x --suite=playmode --testfilter=Medium --testproject=./TestProjects/Viking-Village-Perf --timeout=1200
     artifacts:
         logs:
             paths:
@@ -337,19 +277,7 @@ VikingVillage_BuiltIn_Win_Vulkan_performance_build_editmode_mono_Linear_CUSTOM-R
               set /p GIT_REVISIONDATE=<revdate.tmp
               echo %GIT_REVISIONDATE%
               del revdate.tmp
-              utr --artifacts_path=TestProjects/Viking-Village-Perf/test-results --category=URP --editor-location=.Editor --extra-editor-arg="-addscenetobuild=Assets/Scenes/The_Viking_Village.unity" --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-executemethod" --extra-editor-arg="Editor.Setup" --extra-editor-arg="-force-vulkan" --extra-editor-arg="-packageundertestbranch=%GIT_BRANCH%" --extra-editor-arg="-packageundertestname=com.unity.render-pipelines.universal" --extra-editor-arg="-packageundertestrev=%GIT_REVISION%" --extra-editor-arg="-packageundertestrevdate=%GIT_REVISIONDATE%" --extra-editor-arg="-playergraphicsapi=Vulkan" --extra-editor-arg="-scriptingbackend=Mono2x" --performance-project-id=VikingVillage_BuiltIn --platform=editmode --report-performance-data --scripting-backend=Mono2x --suite=editor --testfilter=Low --testproject=./TestProjects/Viking-Village-Perf --zero-tests-are-ok=1
-      -  |5-
-              git rev-parse HEAD | git show -s --format=%%cI > revdate.tmp
-              set /p GIT_REVISIONDATE=<revdate.tmp
-              echo %GIT_REVISIONDATE%
-              del revdate.tmp
               utr --artifacts_path=TestProjects/Viking-Village-Perf/test-results --category=URP --editor-location=.Editor --extra-editor-arg="-addscenetobuild=Assets/Scenes/The_Viking_Village.unity" --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-executemethod" --extra-editor-arg="Editor.Setup" --extra-editor-arg="-force-vulkan" --extra-editor-arg="-packageundertestbranch=%GIT_BRANCH%" --extra-editor-arg="-packageundertestname=com.unity.render-pipelines.universal" --extra-editor-arg="-packageundertestrev=%GIT_REVISION%" --extra-editor-arg="-packageundertestrevdate=%GIT_REVISIONDATE%" --extra-editor-arg="-playergraphicsapi=Vulkan" --extra-editor-arg="-scriptingbackend=Mono2x" --performance-project-id=VikingVillage_BuiltIn --platform=editmode --report-performance-data --scripting-backend=Mono2x --suite=editor --testfilter=Medium --testproject=./TestProjects/Viking-Village-Perf --zero-tests-are-ok=1
-      -  |5-
-              git rev-parse HEAD | git show -s --format=%%cI > revdate.tmp
-              set /p GIT_REVISIONDATE=<revdate.tmp
-              echo %GIT_REVISIONDATE%
-              del revdate.tmp
-              utr --artifacts_path=TestProjects/Viking-Village-Perf/test-results --category=URP --editor-location=.Editor --extra-editor-arg="-addscenetobuild=Assets/Scenes/The_Viking_Village.unity" --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-executemethod" --extra-editor-arg="Editor.Setup" --extra-editor-arg="-force-vulkan" --extra-editor-arg="-packageundertestbranch=%GIT_BRANCH%" --extra-editor-arg="-packageundertestname=com.unity.render-pipelines.universal" --extra-editor-arg="-packageundertestrev=%GIT_REVISION%" --extra-editor-arg="-packageundertestrevdate=%GIT_REVISIONDATE%" --extra-editor-arg="-playergraphicsapi=Vulkan" --extra-editor-arg="-scriptingbackend=Mono2x" --performance-project-id=VikingVillage_BuiltIn --platform=editmode --report-performance-data --scripting-backend=Mono2x --suite=editor --testfilter=High --testproject=./TestProjects/Viking-Village-Perf --zero-tests-are-ok=1
     artifacts:
         logs:
             paths:

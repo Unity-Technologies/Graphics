@@ -30,13 +30,6 @@ VikingVillage_URP_Android_OpenGLES3_performance_playmode_runtime_il2cpp_Linear_t
               set /p GIT_REVISIONDATE=<revdate.tmp
               echo %GIT_REVISIONDATE%
               del revdate.tmp
-              utr --architecture=ARM64 --artifacts_path=TestProjects/Viking-Village-Perf/test-results --performance-project-id=VikingVillage_URP --platform=Android --player-load-path=playersLow --report-performance-data --suite=playmode --timeout=1200 --zero-tests-are-ok=1
-      -  |5-
-              set ANDROID_DEVICE_CONNECTION=%BOKKEN_DEVICE_IP%
-              git rev-parse HEAD | git show -s --format=%%cI > revdate.tmp
-              set /p GIT_REVISIONDATE=<revdate.tmp
-              echo %GIT_REVISIONDATE%
-              del revdate.tmp
               utr --architecture=ARM64 --artifacts_path=TestProjects/Viking-Village-Perf/test-results --performance-project-id=VikingVillage_URP --platform=Android --player-load-path=playersMedium --report-performance-data --suite=playmode --timeout=1200 --zero-tests-are-ok=1
       -  start %ANDROID_SDK_ROOT%\platform-tools\adb.exe kill-server
     artifacts:
@@ -84,13 +77,6 @@ Build_VikingVillage_URP_Android_OpenGLES3_performance_playmode_runtime_il2cpp_Li
       -  curl -s https://artifactory.prd.it.unity3d.com/artifactory/unity-tools-local/utr-standalone/utr.bat --output utr.bat
       -  pip install unity-downloader-cli --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
       -  unity-downloader-cli -u {{editor_versions.trunk_latest_internal.Android.revision}} -p WindowsEditor -c editor -c il2cpp -c android  --wait --published-only
-      -  |5-
-              set ANDROID_DEVICE_CONNECTION=%BOKKEN_DEVICE_IP%
-              git rev-parse HEAD | git show -s --format=%%cI > revdate.tmp
-              set /p GIT_REVISIONDATE=<revdate.tmp
-              echo %GIT_REVISIONDATE%
-              del revdate.tmp
-              utr --architecture=ARM64 --artifacts_path=TestProjects/Viking-Village-Perf/test-results --build-only --category=URP --editor-location=./WindowsEditor --extra-editor-arg="-addscenetobuild=Assets/Scenes/The_Viking_Village.unity" --extra-editor-arg="-buildtarget" --extra-editor-arg="Android" --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-executemethod" --extra-editor-arg="Editor.Setup" --extra-editor-arg="-packageundertestbranch=%GIT_BRANCH%" --extra-editor-arg="-packageundertestname=com.unity.render-pipelines.universal" --extra-editor-arg="-packageundertestrev=%GIT_REVISION%" --extra-editor-arg="-packageundertestrevdate=%GIT_REVISIONDATE%" --extra-editor-arg="-playergraphicsapi=OpenGLES3" --extra-editor-arg="-scriptingbackend=IL2CPP" --platform=Android --player-save-path=playersLow --scripting-backend=IL2CPP --suite=playmode --testfilter=Low --testproject=./TestProjects/Viking-Village-Perf --timeout=2700
       -  |5-
               set ANDROID_DEVICE_CONNECTION=%BOKKEN_DEVICE_IP%
               git rev-parse HEAD | git show -s --format=%%cI > revdate.tmp
@@ -149,13 +135,6 @@ VikingVillage_URP_Android_OpenGLES3_performance_build_editmode_il2cpp_Linear_tru
               set /p GIT_REVISIONDATE=<revdate.tmp
               echo %GIT_REVISIONDATE%
               del revdate.tmp
-              utr --artifacts_path=TestProjects/Viking-Village-Perf/test-results --category=URP --editor-location=./WindowsEditor --extra-editor-arg="-addscenetobuild=Assets/Scenes/The_Viking_Village.unity" --extra-editor-arg="-buildtarget" --extra-editor-arg="Android" --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-executemethod" --extra-editor-arg="Editor.Setup" --extra-editor-arg="-packageundertestbranch=%GIT_BRANCH%" --extra-editor-arg="-packageundertestname=com.unity.render-pipelines.universal" --extra-editor-arg="-packageundertestrev=%GIT_REVISION%" --extra-editor-arg="-packageundertestrevdate=%GIT_REVISIONDATE%" --extra-editor-arg="-playergraphicsapi=OpenGLES3" --extra-editor-arg="-scriptingbackend=IL2CPP" --performance-project-id=VikingVillage_URP --platform=Android --report-performance-data --scripting-backend=IL2CPP --suite=editor --testfilter=Low --testproject=./TestProjects/Viking-Village-Perf --zero-tests-are-ok=1
-      -  |5-
-              set ANDROID_DEVICE_CONNECTION=%BOKKEN_DEVICE_IP%
-              git rev-parse HEAD | git show -s --format=%%cI > revdate.tmp
-              set /p GIT_REVISIONDATE=<revdate.tmp
-              echo %GIT_REVISIONDATE%
-              del revdate.tmp
               utr --artifacts_path=TestProjects/Viking-Village-Perf/test-results --category=URP --editor-location=./WindowsEditor --extra-editor-arg="-addscenetobuild=Assets/Scenes/The_Viking_Village.unity" --extra-editor-arg="-buildtarget" --extra-editor-arg="Android" --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-executemethod" --extra-editor-arg="Editor.Setup" --extra-editor-arg="-packageundertestbranch=%GIT_BRANCH%" --extra-editor-arg="-packageundertestname=com.unity.render-pipelines.universal" --extra-editor-arg="-packageundertestrev=%GIT_REVISION%" --extra-editor-arg="-packageundertestrevdate=%GIT_REVISIONDATE%" --extra-editor-arg="-playergraphicsapi=OpenGLES3" --extra-editor-arg="-scriptingbackend=IL2CPP" --performance-project-id=VikingVillage_URP --platform=Android --report-performance-data --scripting-backend=IL2CPP --suite=editor --testfilter=Medium --testproject=./TestProjects/Viking-Village-Perf --zero-tests-are-ok=1
     artifacts:
         logs:
@@ -180,13 +159,6 @@ VikingVillage_URP_Android_OpenGLES3_performance_playmode_runtime_il2cpp_Linear_C
       -  powershell %ANDROID_SDK_ROOT%\platform-tools\adb.exe devices
       -  NetSh Advfirewall set allprofiles state off
       -  curl -s https://artifactory.prd.it.unity3d.com/artifactory/unity-tools-local/utr-standalone/utr.bat --output utr.bat
-      -  |5-
-              set ANDROID_DEVICE_CONNECTION=%BOKKEN_DEVICE_IP%
-              git rev-parse HEAD | git show -s --format=%%cI > revdate.tmp
-              set /p GIT_REVISIONDATE=<revdate.tmp
-              echo %GIT_REVISIONDATE%
-              del revdate.tmp
-              utr --architecture=ARM64 --artifacts_path=TestProjects/Viking-Village-Perf/test-results --performance-project-id=VikingVillage_URP --platform=Android --player-load-path=playersLow --report-performance-data --suite=playmode --timeout=1200 --zero-tests-are-ok=1
       -  |5-
               set ANDROID_DEVICE_CONNECTION=%BOKKEN_DEVICE_IP%
               git rev-parse HEAD | git show -s --format=%%cI > revdate.tmp
@@ -249,13 +221,6 @@ Build_VikingVillage_URP_Android_OpenGLES3_performance_playmode_runtime_il2cpp_Li
               set /p GIT_REVISIONDATE=<revdate.tmp
               echo %GIT_REVISIONDATE%
               del revdate.tmp
-              utr --architecture=ARM64 --artifacts_path=TestProjects/Viking-Village-Perf/test-results --build-only --category=URP --editor-location=./WindowsEditor --extra-editor-arg="-addscenetobuild=Assets/Scenes/The_Viking_Village.unity" --extra-editor-arg="-buildtarget" --extra-editor-arg="Android" --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-executemethod" --extra-editor-arg="Editor.Setup" --extra-editor-arg="-packageundertestbranch=%GIT_BRANCH%" --extra-editor-arg="-packageundertestname=com.unity.render-pipelines.universal" --extra-editor-arg="-packageundertestrev=%GIT_REVISION%" --extra-editor-arg="-packageundertestrevdate=%GIT_REVISIONDATE%" --extra-editor-arg="-playergraphicsapi=OpenGLES3" --extra-editor-arg="-scriptingbackend=IL2CPP" --platform=Android --player-save-path=playersLow --scripting-backend=IL2CPP --suite=playmode --testfilter=Low --testproject=./TestProjects/Viking-Village-Perf --timeout=2700
-      -  |5-
-              set ANDROID_DEVICE_CONNECTION=%BOKKEN_DEVICE_IP%
-              git rev-parse HEAD | git show -s --format=%%cI > revdate.tmp
-              set /p GIT_REVISIONDATE=<revdate.tmp
-              echo %GIT_REVISIONDATE%
-              del revdate.tmp
               utr --architecture=ARM64 --artifacts_path=TestProjects/Viking-Village-Perf/test-results --build-only --category=URP --editor-location=./WindowsEditor --extra-editor-arg="-addscenetobuild=Assets/Scenes/The_Viking_Village.unity" --extra-editor-arg="-buildtarget" --extra-editor-arg="Android" --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-executemethod" --extra-editor-arg="Editor.Setup" --extra-editor-arg="-packageundertestbranch=%GIT_BRANCH%" --extra-editor-arg="-packageundertestname=com.unity.render-pipelines.universal" --extra-editor-arg="-packageundertestrev=%GIT_REVISION%" --extra-editor-arg="-packageundertestrevdate=%GIT_REVISIONDATE%" --extra-editor-arg="-playergraphicsapi=OpenGLES3" --extra-editor-arg="-scriptingbackend=IL2CPP" --platform=Android --player-save-path=playersMedium --scripting-backend=IL2CPP --suite=playmode --testfilter=Medium --testproject=./TestProjects/Viking-Village-Perf --timeout=2700
     artifacts:
         logs:
@@ -306,13 +271,6 @@ VikingVillage_URP_Android_OpenGLES3_performance_build_editmode_il2cpp_Linear_CUS
       -  curl -s https://artifactory.prd.it.unity3d.com/artifactory/unity-tools-local/utr-standalone/utr.bat --output utr.bat
       -  pip install unity-downloader-cli --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
       -  unity-downloader-cli --source-file unity_revision.txt -p WindowsEditor -c editor -c il2cpp -c android  --wait --published-only
-      -  |5-
-              set ANDROID_DEVICE_CONNECTION=%BOKKEN_DEVICE_IP%
-              git rev-parse HEAD | git show -s --format=%%cI > revdate.tmp
-              set /p GIT_REVISIONDATE=<revdate.tmp
-              echo %GIT_REVISIONDATE%
-              del revdate.tmp
-              utr --artifacts_path=TestProjects/Viking-Village-Perf/test-results --category=URP --editor-location=./WindowsEditor --extra-editor-arg="-addscenetobuild=Assets/Scenes/The_Viking_Village.unity" --extra-editor-arg="-buildtarget" --extra-editor-arg="Android" --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-executemethod" --extra-editor-arg="Editor.Setup" --extra-editor-arg="-packageundertestbranch=%GIT_BRANCH%" --extra-editor-arg="-packageundertestname=com.unity.render-pipelines.universal" --extra-editor-arg="-packageundertestrev=%GIT_REVISION%" --extra-editor-arg="-packageundertestrevdate=%GIT_REVISIONDATE%" --extra-editor-arg="-playergraphicsapi=OpenGLES3" --extra-editor-arg="-scriptingbackend=IL2CPP" --performance-project-id=VikingVillage_URP --platform=Android --report-performance-data --scripting-backend=IL2CPP --suite=editor --testfilter=Low --testproject=./TestProjects/Viking-Village-Perf --zero-tests-are-ok=1
       -  |5-
               set ANDROID_DEVICE_CONNECTION=%BOKKEN_DEVICE_IP%
               git rev-parse HEAD | git show -s --format=%%cI > revdate.tmp

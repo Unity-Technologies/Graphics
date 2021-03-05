@@ -70,23 +70,8 @@ test_platforms:
           - [all]: --report-performance-data
           - [all]: --performance-project-id=VikingVillage_BuiltIn
           - [iPhone_Metal]: --timeout=2400
-          - [iPhone_Metal, Android_Vulkan, Android_OpenGLES3, Win_DX11, Win_DX12, Win_Vulkan, Linux_Vulkan]: --player-load-path=playersLow
-          - [OSX_Metal]: --testfilter=Low
-          - [OSX_Metal]: <reuse_blocks.perf_utr_flags>
-      - [iPhone_Metal, Android_Vulkan, Android_OpenGLES3, Win_DX11, Win_DX12, Win_Vulkan, OSX_Metal, Linux_Vulkan]: <shared.platform.commands.call_utr>
-        flags:
-          - [all]: --report-performance-data
-          - [all]: --performance-project-id=VikingVillage_BuiltIn
-          - [iPhone_Metal]: --timeout=2400
           - [iPhone_Metal, Android_Vulkan, Android_OpenGLES3, Win_DX11, Win_DX12, Win_Vulkan, Linux_Vulkan]: --player-load-path=playersMedium
           - [OSX_Metal]: --testfilter=Medium
-          - [OSX_Metal]: <reuse_blocks.perf_utr_flags>
-      - [Win_DX11, Win_DX12, Win_Vulkan, OSX_Metal, Linux_Vulkan]: <shared.platform.commands.call_utr>
-        flags:
-          - [all]: --report-performance-data
-          - [all]: --performance-project-id=VikingVillage_BuiltIn
-          - [Win_DX11, Win_DX12, Win_Vulkan, Linux_Vulkan]: --player-load-path=playersHigh
-          - [OSX_Metal]: --testfilter=High
           - [OSX_Metal]: <reuse_blocks.perf_utr_flags>
       - [Android_OpenGLES3, Android_Vulkan]: <shared.platform.commands.kill_server>
 
@@ -100,27 +85,8 @@ test_platforms:
       - [iPhone_Metal, Android_Vulkan, Android_OpenGLES3, Win_DX11, Win_DX12, Win_Vulkan, OSX_Metal, Linux_Vulkan]: <shared.platform.commands.call_utr>
         flags:
           - <reuse_blocks.perf_utr_flags>
-          - [Win_DX11, Win_DX12, Win_Vulkan]: --extra-editor-arg="-stripenginecode-"
-          - [Win_DX11, Win_DX12, Win_Vulkan]: --extra-editor-arg="-managedstrippinglevel=Low"
-          - [Win_DX11, Win_DX12, Win_Vulkan]: --extra-editor-arg="-allowdebugging-"
-          - [all]: --testfilter=Low
-          - [all]: --player-save-path=playersLow
-      - [iPhone_Metal, Android_Vulkan, Android_OpenGLES3, Win_DX11, Win_DX12, Win_Vulkan, OSX_Metal, Linux_Vulkan]: <shared.platform.commands.call_utr>
-        flags:
-          - <reuse_blocks.perf_utr_flags>
-          - [Win_DX11, Win_DX12, Win_Vulkan]: --extra-editor-arg="-stripenginecode-"
-          - [Win_DX11, Win_DX12, Win_Vulkan]: --extra-editor-arg="-managedstrippinglevel=Low"
-          - [Win_DX11, Win_DX12, Win_Vulkan]: --extra-editor-arg="-allowdebugging-"
           - [all]: --testfilter=Medium
           - [all]: --player-save-path=playersMedium
-      - [Win_DX11, Win_DX12, Win_Vulkan, OSX_Metal, Linux_Vulkan]: <shared.platform.commands.call_utr>
-        flags:
-          - <reuse_blocks.perf_utr_flags>
-          - [Win_DX11, Win_DX12, Win_Vulkan]: --extra-editor-arg="-stripenginecode-"
-          - [Win_DX11, Win_DX12, Win_Vulkan]: --extra-editor-arg="-managedstrippinglevel=Low"
-          - [Win_DX11, Win_DX12, Win_Vulkan]: --extra-editor-arg="-allowdebugging-"
-          - [all]: --testfilter=High
-          - [all]: --player-save-path=playersHigh
 
   - type: playmode
     name: performance_playmode_editor
@@ -160,21 +126,7 @@ test_platforms:
           - [all]: --report-performance-data
           - [all]: --performance-project-id=VikingVillage_BuiltIn
           - <reuse_blocks.perf_utr_flags>
-          - [all]: --testfilter=Low
-      - [all]: <shared.platform.commands.call_utr>
-        flags:
-          - [all]: --testfilter=Build
-          - [all]: --report-performance-data
-          - [all]: --performance-project-id=VikingVillage_BuiltIn
-          - <reuse_blocks.perf_utr_flags>
           - [all]: --testfilter=Medium
-      - [Win_DX11, Win_DX12, Win_Vulkan]: <shared.platform.commands.call_utr>
-        flags:
-          - [all]: --testfilter=Build
-          - [all]: --report-performance-data
-          - [all]: --performance-project-id=VikingVillage_BuiltIn
-          - <reuse_blocks.perf_utr_flags>
-          - [all]: --testfilter=High
 expression_trigger:
   expression: ""
 platforms:
