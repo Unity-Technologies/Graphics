@@ -2,7 +2,7 @@
 
 This section contains information about new features, improvements, and issues fixed in URP 10.
 
-* [URP 10.3](#urp-10-4)
+* [URP 10.4](#urp-10-4)
 * [URP 10.3](#urp-10-3)
 * [URP 10.2](#urp-10-2)
 * [URP 10.0–10.1](#urp-10-1)
