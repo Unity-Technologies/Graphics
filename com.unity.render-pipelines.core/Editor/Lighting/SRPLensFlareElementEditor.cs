@@ -231,6 +231,7 @@ namespace UnityEditor.Rendering
                         SerializedProperty sdfRoundnessProp = property.FindPropertyRelative("sdfRoundness");
                         SerializedProperty sideCountProp = property.FindPropertyRelative("sideCount");
                         SerializedProperty inverseSDFProp = property.FindPropertyRelative("inverseSDF");
+                        SerializedProperty frequencyProp = property.FindPropertyRelative("frequency");
 
                         rect = GetNextRect();
                         if ((tmp = EditorGUI.FloatField(rect, Styles.fallOff, fallOffProp.floatValue)) != fallOffProp.floatValue)
@@ -249,6 +250,13 @@ namespace UnityEditor.Rendering
                             rect = GetNextRect();
                             if ((tmp = EditorGUI.FloatField(rect, Styles.sdfRoundness, sdfRoundnessProp.floatValue)) != sdfRoundnessProp.floatValue)
                                 sdfRoundnessProp.floatValue = Mathf.Clamp01(tmp);
+                        }
+
+                        if (newType == SRPLensFlareType.Shimmer)
+                        {
+                            rect = GetNextRect();
+                            if ((iTmp = EditorGUI.IntField(rect, Styles.frequency, frequencyProp.intValue)) != frequencyProp.intValue)
+                                frequencyProp.intValue = Mathf.Max(iTmp, 0);
                         }
 
                         rect = GetNextRect();
@@ -377,12 +385,14 @@ namespace UnityEditor.Rendering
                 else
                     coef = 25.0f;
 
-                if (flareType == SRPLensFlareType.Iris || flareType == SRPLensFlareType.Glow)
+                if (flareType == SRPLensFlareType.Iris || flareType == SRPLensFlareType.Glow || flareType == SRPLensFlareType.Shimmer)
                 {
                     coef += 1.0f;
 
                     if (flareType == SRPLensFlareType.Iris)
                         coef += 2.0f;
+                    if (flareType == SRPLensFlareType.Shimmer)
+                        coef += 1.0f;
                 }
 
                 if (countProp.intValue > 1)
@@ -454,6 +464,7 @@ namespace UnityEditor.Rendering
             static public readonly GUIContent sdfRoundness = EditorGUIUtility.TrTextContent("Roundness", "REPLACE ME.");
             static public readonly GUIContent sideCount = EditorGUIUtility.TrTextContent("Side Count", "REPLACE ME.");
             static public readonly GUIContent inverseSDF = EditorGUIUtility.TrTextContent("Inverse", "REPLACE ME.");
+            static public readonly GUIContent frequency = EditorGUIUtility.TrTextContent("Frequency", "REPLACE ME.");
         }
     }
 }

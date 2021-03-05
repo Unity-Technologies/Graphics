@@ -24,7 +24,7 @@ float4 _FlareData0; // x: localCos0, y: localSin0, zw: PositionOffsetXY
 float4 _FlareData1; // x: OcclusionRadius, y: OcclusionSampleCount, z: ScreenPosZ, w: Falloff
 float4 _FlareData2; // xy: ScreenPos, zw: FlareSize
 float4 _FlareData3; // xy: RayOffset, z: invSideCount, w: Edge Offset
-float4 _FlareData4; // x: SDF Roundness
+float4 _FlareData4; // x: SDF Roundness, y: SDF Frequency
 
 #define _LocalCos0          _FlareData0.x
 #define _LocalSin0          _FlareData0.y
@@ -41,6 +41,7 @@ float4 _FlareData4; // x: SDF Roundness
 #define _FlareEdgeOffset    _FlareData3.w
 
 #define _FlareSDFRoundness  _FlareData4.x
+#define _FlareSDFFrequency  _FlareData4.y
 
 float2 Rotate(float2 v, float cos0, float sin0)
 {
@@ -137,7 +138,6 @@ float3 lensflare(float2 uv, float2 pos)
     float ang = atan2(main.x, main.y) * 10.5f;
     float dist = length(main); dist = pow(dist, .1);
     float n = noise(float2(ang * 16.0, dist * 32.0));
-    //float n = noise(float2(ang, dist*2.0f));
 
     float f0 = 1.0 / (length(uv - pos) * 16.0 + 1.0);
 
@@ -200,6 +200,66 @@ float sdStar(float2 p, in float r, in int n, in float m)
     return length(p) * sign(p.x);
 }
 
+float4 Interpolation_C2_InterpAndDeriv(float2 x) { return x.xyxy * x.xyxy * (x.xyxy * (x.xyxy * (x.xyxy * float2(6.0f, 0.0f).xxyy + float2(-15.0f, 30.0f).xxyy) + float2(10.0f, -60.0f).xxyy) + float2(0.0f, 30.0f).xxyy); }
+float2 Interpolation_C2_InterpAndDeriv(float x) { return x * x * (x * (x * (x * float2(6.0f, 0.0f) + float2(-15.0f, 30.0f)) + float2(10.0f, -60.0f)) + float2(0.0f, 30.0f)); }
+
+void NoiseHash2D(float2 gridcell, out float4 hash_0, out float4 hash_1)
+{
+    float2 kOffset = float2(26.0f, 161.0f);
+    float kDomain = 71.0f;
+    float2 kLargeFloats = 1.0f / float2(951.135664f, 642.949883f);
+
+    float4 P = float4(gridcell.xy, gridcell.xy + 1.0f);
+    P = P - floor(P * (1.0f / kDomain)) * kDomain;
+    P += kOffset.xyxy;
+    P *= P;
+    P = P.xzxz * P.yyww;
+    hash_0 = frac(P * kLargeFloats.x);
+    hash_1 = frac(P * kLargeFloats.y);
+}
+
+float2 GeneratePerlinNoise1D(float coordinate)
+{
+    // establish our grid cell and unit position
+    float2 i = floor(float2(coordinate, 0.0f));
+    float4 f_fmin1 = float2(coordinate, 0.0f).xyxy - float4(i, i + 1.0f);
+
+    // calculate the hash
+    float4 hash_x, hash_y;
+    NoiseHash2D(i, hash_x, hash_y);
+
+    // calculate the gradient results
+    float4 grad_x = hash_x - 0.49999f;
+    float4 grad_y = hash_y - 0.49999f;
+    float4 norm = rsqrt(grad_x * grad_x + grad_y * grad_y);
+    grad_x *= norm;
+    grad_y *= norm;
+    float4 dotval = (grad_x * f_fmin1.xzxz + grad_y * f_fmin1.yyww);
+
+    // convert our data to a more parallel format
+    float2 dotval0_grad0 = float2(dotval.x, grad_x.x);
+    float2 dotval1_grad1 = float2(dotval.y, grad_x.y);
+    float2 dotval2_grad2 = float2(dotval.z, grad_x.z);
+    float2 dotval3_grad3 = float2(dotval.w, grad_x.w);
+
+    // evaluate common constants
+    float2 k0_gk0 = dotval1_grad1 - dotval0_grad0;
+    float2 k1_gk1 = dotval2_grad2 - dotval0_grad0;
+    float2 k2_gk2 = dotval3_grad3 - dotval2_grad2 - k0_gk0;
+
+    // C2 Interpolation
+    float4 blend = Interpolation_C2_InterpAndDeriv(f_fmin1.xy);
+
+    // calculate final noise + deriv
+    float2 results = dotval0_grad0
+        + blend.x * k0_gk0
+        + blend.y * (k1_gk1 + blend.x * k2_gk2);
+
+    results.y += blend.z * (k0_gk0.x + blend.y * k2_gk2.x);
+
+    return results * 2.0f;  // scale to -1.0 -> 1.0 range  *= 1.0/sqrt(0.25)
+}
+
 float4 ComputeShimmer(float2 uv)
 {
     float2 v = (uv - 0.5f) * 2.0f;
@@ -208,9 +268,32 @@ float4 ComputeShimmer(float2 uv)
     //float sdf = saturate(lensflare(v, 0.0f));
     //float sdf = saturate(-lensflare(v, 0.0f));
 
-    float sdf = saturate(sdStar(v, _FlareEdgeOffset, 10.0f, 5.0f));
+    //float sdf = saturate(sdStar(v, _FlareEdgeOffset, 10.0f, 5.0f));
 
     //sdf = sdf * (1.0f - sdf) / (sdf + 1e-6f);
+
+    //float sdf = lensflare(v, 0).x;
+
+    float ang  = atan2(v.x, v.y);
+    float cos0 = cos(ang);
+    float sin0 = sin(ang);
+    //float t = saturate((ang + 3.141593) / (2.0f * 3.141593));
+    float t = saturate((ang + 3.141593) / (2.0f * 3.141593));
+
+    //float noise = GeneratePerlinNoise1D(_FlareSDFFrequency * t * InitRandom(_CosTime * 0.5f + 0.5f)) * 0.5f + 0*0.5f;
+    float noise = GeneratePerlinNoise1D(_FlareSDFFrequency * t) * 0.5f + 0.5f;
+    float coef = saturate(noise + _FlareEdgeOffset);
+    //float coef = _FlareEdgeOffset * (sin(21.125f * (2.0f * 3.141593 * t))*0.5f);
+
+    //float sdf = length(v - float2(cos0, sin0) * coef) - _FlareEdgeOffset * coef;
+    float sdf = length(v * coef) - _FlareEdgeOffset;
+
+#if FLARE_INVERSE_SDF
+    sdf = saturate(-sdf);
+    sdf = sdf * (1.0f - sdf) / (sdf + 1e-6f);
+#else
+    sdf = saturate(-sdf);
+#endif
 
     return pow(sdf, _FlareFalloff);
 }

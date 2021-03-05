@@ -128,6 +128,7 @@ namespace UnityEngine
             sdfRoundness = 0.0f;
             sideCount = 6;
             inverseSDF = false;
+            frequency = 8;
         }
 
         /// <summary>
@@ -231,6 +232,7 @@ namespace UnityEngine
         public int sideCount;
         [Range(0.0f, 1.0f)]
         public float sdfRoundness;
+        public int frequency;
         public bool inverseSDF;
     }
 
