@@ -56,7 +56,9 @@ bool GetMeshAndElementIndex(inout AttributesMesh input, inout AttributesElement 
         #elif VFX_STRIPS_UV_PER_SEGMENT
             uv.x = PARTICLE_IN_EDGE;
         #else
-            ${VFXLoadParameter:{texCoord}}
+            GetElementData(element);
+            const Attributes attributes = element.attributes;
+            $splice(VFXLoadTexcoordParameter)
             uv.x = texCoord;
         #endif
 
