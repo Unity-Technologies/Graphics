@@ -169,6 +169,9 @@ namespace UnityEngine.Rendering.HighDefinition
             bool materialIsOnlyTransparent = true;
             bool hasTransparentSubMaterial = false;
 
+            // We disregard the ray traced shadows option when in Path Tracing
+            rayTracedShadow &= !pathTracingEnabled;
+
             // Deactivate Path Tracing if the object does not belong to the path traced layer(s)
             pathTracingEnabled &= (bool)((ptLayerValue & objectLayerValue) != 0);
 
