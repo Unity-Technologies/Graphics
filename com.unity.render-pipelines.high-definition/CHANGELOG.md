@@ -87,6 +87,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed HDRP material being constantly dirty.
 - Fixed wizard checking FrameSettings not in HDRP Default Settings
 - Fixed error when opening the default composition graph in the Graphics Compositor (case 1318933).
+- Fixed gizmo rendering when wireframe mode is selected.
 
 ### Changed
 - Changed Window/Render Pipeline/HD Render Pipeline Wizard to Window/Rendering/HDRP Wizard
