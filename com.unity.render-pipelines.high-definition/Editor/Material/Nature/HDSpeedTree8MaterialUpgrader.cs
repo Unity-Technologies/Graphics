@@ -3,49 +3,87 @@ using UnityEngine.Rendering.HighDefinition;
 
 namespace UnityEditor.Rendering.HighDefinition
 {
+    /// <summary>
+    /// SpeedTree8 material upgrader for HDRP.
+    /// </summary>
 	class HDSpeedTree8MaterialUpgrader : SpeedTree8MaterialUpgrader
-	{
-		public HDSpeedTree8MaterialUpgrader(string sourceShaderName, string destShaderName)
+    {
+        private struct HDSpeedTree8PropertiesToRestore
+        {
+            public int windQuality;
+            public bool isBillboard;
+            public float cullMode;
+        }
+        private static HDSpeedTree8PropertiesToRestore propsToRestore;
+        /// <summary>
+        /// Creates a SpeedTree8 material upgrader for HDRP.
+        /// </summary>
+        /// <param name="sourceShaderName">Original shader name.</param>
+        /// <param name="destShaderName">Upgrade shader name.</param>
+        public HDSpeedTree8MaterialUpgrader(string sourceShaderName, string destShaderName)
 			: base(sourceShaderName, destShaderName, HDSpeedTree8MaterialFinalizer)
 		{
         }
-        public override void Convert(Material srcMaterial, Material dstMaterial)
+
+        private static void HDSpeedTree8MaterialFinalizer(Material mat)
         {
-            int oldwq = (int)dstMaterial.GetFloat("_WindQuality");
-            int oldisbillboard = (int)dstMaterial.GetFloat("_BillboardKwToggle");
-            int oldalphacutoff = (int)dstMaterial.GetFloat("_Cutoff");
-            int oldcullmode = (int)dstMaterial.GetFloat("_TwoSided");
-            base.Convert(srcMaterial, dstMaterial);
-            int wq = (int)dstMaterial.GetFloat("_WINDQUALITY");
-            int isbillboard = (int)dstMaterial.GetFloat("EFFECT_BILLBOARD");
-            int alphacutoff = (int)dstMaterial.GetFloat("_AlphaClipThreshold");
-            int cullmode = (int)dstMaterial.GetFloat("_CullMode");
-            oldwq = (int)dstMaterial.GetFloat("_WindQuality");
-            oldisbillboard = (int)dstMaterial.GetFloat("_BillboardKwToggle");
-            oldalphacutoff = (int)dstMaterial.GetFloat("_Cutoff");
-            oldcullmode = (int)dstMaterial.GetFloat("_TwoSided");
-            EditorUtility.SetDirty(dstMaterial);
+            HDShaderUtils.ResetMaterialKeywords(mat);
+        }
+        /// <summary>
+        /// Checks if a given material is an HD SpeedTree8 material.
+        /// </summary>
+        /// <param name="mat">Material to check.</param>
+        /// <returns></returns>
+        public static bool IsHDSpeedTree8Material(Material mat)
+        {
+            return (mat.shader.name == "HDRP/Nature/SpeedTree8");
+        }
+        /// <summary>
+        /// Saves SpeedTree8-specific material properties and keywords that were set during import and should not be reset.
+        /// </summary>
+        /// <param name="mat">SpeedTree8 material.</param>
+        public static void SaveHDSpeedTree8Setup(Material mat)
+        {
+            propsToRestore.windQuality = (int)mat.GetFloat("_WINDQUALITY");
+            propsToRestore.isBillboard = mat.IsKeywordEnabled("EFFECT_BILLBOARD");
+            propsToRestore.cullMode = mat.GetFloat("_CullMode");
+        }
+        /// <summary>
+        /// Restores SpeedTree8-specific material properties and keywords that were set during import and should not be reset.
+        /// </summary>
+        /// <param name="mat">SpeedTree8 material.</param>
+        public static void RestoreHDSpeedTree8Setup(Material mat)
+        {
+            int wq = propsToRestore.windQuality;
+            mat.SetFloat("_WINDQUALITY", wq);
+            mat.EnableKeyword(WindQualityString[wq]);
+
+            if (propsToRestore.isBillboard)
+            {
+                mat.EnableKeyword("EFFECT_BILLBOARD");
+                if (mat.HasProperty("EFFECT_BILLBOARD"))
+                    mat.SetFloat("EFFECT_BILLBOARD", 1.0f);
+            }
+
+            mat.SetFloat("_CullMode", propsToRestore.cullMode);
+
+            SetHDSpeedTree8Defaults(mat);
         }
 
-        public static void HDSpeedTree8MaterialFinalizer(Material mat)
+        private static void SetHDSpeedTree8Defaults(Material mat)
         {
-            int wq = (int)mat.GetFloat("_WINDQUALITY");
-            int isbillboard = (int)mat.GetFloat("EFFECT_BILLBOARD");
-            int alphacutoff = (int)mat.GetFloat("_AlphaClipThreshold");
-            int cullmode = (int)mat.GetFloat("_CullMode");
-
-            int oldwq = (int)mat.GetFloat("_WindQuality");
-            int oldisbillboard = (int)mat.GetFloat("_BillboardKwToggle");
-            int oldalphacutoff = (int)mat.GetFloat("_Cutoff");
-            int oldcullmode = (int)mat.GetFloat("_TwoSided");
-            HDShaderUtils.ResetMaterialKeywords(mat);
-            wq = (int)mat.GetFloat("_WINDQUALITY");
-            isbillboard = (int)mat.GetFloat("EFFECT_BILLBOARD");
-            alphacutoff = (int)mat.GetFloat("_AlphaClipThreshold");
-            cullmode = (int)mat.GetFloat("_CullMode");
-            mat.EnableKeyword(WindQualityString[wq]);
-            if (isbillboard > 0)
-                mat.EnableKeyword("EFFECT_BILLBOARD");
+            SetSpeedTree8MaterialDefaults(mat);
+            if (mat.IsKeywordEnabled("EFFECT_BILLBOARD"))
+            {
+                mat.SetFloat("_DoubleSidedEnable", 0.0f);
+                mat.SetFloat("_DoubleSidedNormalMode", (int)DoubleSidedNormalMode.None);
+            }
+            else
+            {
+                mat.SetFloat("_DoubleSidedEnable", 1.0f);
+                mat.SetFloat("_DoubleSidedNormalMode", (int)DoubleSidedNormalMode.Flip);
+            }
+            BaseLitGUI.SetupBaseLitKeywords(mat); 
         }
 	}
 }
