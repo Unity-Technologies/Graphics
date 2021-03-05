@@ -84,7 +84,7 @@ float3 DecodeSH(float l0, float3 l1)
     // const float l1scale = 1.7320508f; // 3/(2*sqrt(3)) * 2
 
     // return (l1 - 0.5f) * 2.0f * l1scale * l0;
-    return (l1 - 0.5f) * 2.0f * l0;
+    return l1;
 }
 
 void DecodeSH_L2(float3 l0, inout float4 l2_R, inout float4 l2_G, inout float4 l2_B, inout float4 l2_C)
