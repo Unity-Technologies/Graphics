@@ -127,7 +127,7 @@ class VisualEffectAssetEditor : Editor
             VFXViewWindow.GetWindow<VFXViewWindow>().LoadResource(resource, null);
             return true;
         }
-        else if (obj is Shader || obj is ComputeShader)
+        else if (obj is Material || obj is ComputeShader)
         {
             string path = AssetDatabase.GetAssetPath(instanceID);
 
@@ -661,20 +661,27 @@ class VisualEffectAssetEditor : Editor
             UnityObject[] objects = AssetDatabase.LoadAllAssetsAtPath(assetPath);
             string directory = Path.GetDirectoryName(assetPath) + "/" + VFXExternalShaderProcessor.k_ShaderDirectory + "/" + asset.name + "/";
 
-            foreach (var shader in objects)
+            foreach (var obj in objects)
             {
-                if (shader is Shader || shader is ComputeShader)
+                if (obj is Material || obj is ComputeShader)
                 {
                     GUILayout.BeginHorizontal();
                     Rect r = GUILayoutUtility.GetRect(0, 18, GUILayout.ExpandWidth(true));
 
                     int buttonsWidth = VFXExternalShaderProcessor.allowExternalization ? 240 : 160;
 
+                    int index = resource.GetShaderIndex(obj);
+
+                    var shader = obj;
+                    if (obj is Material) // Retrieve the shader from the material
+                        shader = ((Material)(obj)).shader;
+                    if (shader == null)
+                        continue;
 
                     Rect labelR = r;
                     labelR.width -= buttonsWidth;
                     GUI.Label(labelR, shader.name);
-                    int index = resource.GetShaderIndex(shader);
+
                     if (index >= 0)
                     {
                         if (VFXExternalShaderProcessor.allowExternalization && index < resource.GetShaderSourceCount())
