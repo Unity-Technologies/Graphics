@@ -178,7 +178,7 @@ namespace UnityEngine.Rendering.Universal
         [Conditional("DEVELOPMENT_BUILD"), Conditional("UNITY_EDITOR")]
         public void UpdateShaderGlobalPropertiesFinalBlitPass(CommandBuffer cmd, ref CameraData cameraData)
         {
-            DebugDisplaySettingsValidation validationSettings = DebugDisplaySettings.Instance.ValidationSettings;
+            DebugDisplaySettingsValidation validationSettings = m_DebugDisplaySettings.ValidationSettings;
 
             if(IsActiveForCamera(ref cameraData))
             {
