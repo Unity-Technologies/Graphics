@@ -3,12 +3,12 @@
 # Introduce any changes under .yamato/config/*.metafile files (for most cases) or under .yamato/ruamel/* within Python (more elaborate cases), and rerun build.py to regenerate all .yml files. 
 # Read more under .yamato/docs/readme.md 
 
-{% metadata_file .yamato/_latest_editor_versions_2020.2.metafile -%}
+{% metadata_file .yamato/_latest_editor_versions_2020.3.metafile -%}
 
 ---
 
-URPUpdate_BoatAttack_Win_Vulkan_playmode_mono_Linear_2020.2:
-    name: URPUpdate_BoatAttack on Win_Vulkan_playmode_mono_Linear on version 2020.2
+URPUpdate_BoatAttack_Win_Vulkan_playmode_mono_Linear_2020.3:
+    name: URPUpdate_BoatAttack on Win_Vulkan_playmode_mono_Linear on version 2020.3
     agent:
         type: Unity::VM::GPU
         image: sdet/gamecode_win10:stable
@@ -28,7 +28,7 @@ URPUpdate_BoatAttack_Win_Vulkan_playmode_mono_Linear_2020.2:
       -  NetSh Advfirewall set allprofiles state off
       -  curl -s https://artifactory.prd.it.unity3d.com/artifactory/unity-tools-local/utr-standalone/utr.bat --output utr.bat
       -  choco install unity-downloader-cli -y -s https://artifactory.prd.it.unity3d.com/artifactory/api/nuget/unity-choco-local
-      -  unity-downloader-cli -u {{editor_versions.2020_2_staging.Win.revision}} -c editor -c il2cpp  --wait --published-only
+      -  unity-downloader-cli -u {{editor_versions.2020_3_staging.Win.revision}} -c editor -c il2cpp  --wait --published-only
       -  |5-
               git rev-parse HEAD | git show -s --format=%%cI > revdate.tmp
               set /p GIT_REVISIONDATE=<revdate.tmp
@@ -40,8 +40,8 @@ URPUpdate_BoatAttack_Win_Vulkan_playmode_mono_Linear_2020.2:
             paths:
               -  "**/test-results/**"
               -  "TestProjects/URP-Update-Testing/BoatAttack-19-4/Logs/*.log"
-URPUpdate_BoatAttack_Win_Vulkan_editmode_mono_Linear_2020.2:
-    name: URPUpdate_BoatAttack on Win_Vulkan_editmode_mono_Linear on version 2020.2
+URPUpdate_BoatAttack_Win_Vulkan_editmode_mono_Linear_2020.3:
+    name: URPUpdate_BoatAttack on Win_Vulkan_editmode_mono_Linear on version 2020.3
     agent:
         type: Unity::VM
         image: sdet/gamecode_win10:stable
@@ -61,7 +61,7 @@ URPUpdate_BoatAttack_Win_Vulkan_editmode_mono_Linear_2020.2:
       -  NetSh Advfirewall set allprofiles state off
       -  curl -s https://artifactory.prd.it.unity3d.com/artifactory/unity-tools-local/utr-standalone/utr.bat --output utr.bat
       -  choco install unity-downloader-cli -y -s https://artifactory.prd.it.unity3d.com/artifactory/api/nuget/unity-choco-local
-      -  unity-downloader-cli -u {{editor_versions.2020_2_staging.Win.revision}} -c editor -c il2cpp  --wait --published-only
+      -  unity-downloader-cli -u {{editor_versions.2020_3_staging.Win.revision}} -c editor -c il2cpp  --wait --published-only
       -  |5-
               git rev-parse HEAD | git show -s --format=%%cI > revdate.tmp
               set /p GIT_REVISIONDATE=<revdate.tmp
