@@ -27,19 +27,26 @@ namespace UnityEditor.ShaderGraph
             set => m_CategoryGuid = value;
         }
 
+        // We store Guids as a list out to the graph asset
         [SerializeField]
         List<Guid> m_ChildItemIDList;
 
-        public List<Guid> childItemIDList
+        HashSet<Guid> m_ChildItemIDSet;
+        // We expose Guids as a HashSet for faster existence checks
+        public HashSet<Guid> childItemIDSet
         {
-            get => m_ChildItemIDList;
-            set => m_ChildItemIDList = value;
+            get => m_ChildItemIDSet;
+            set => m_ChildItemIDSet = value;
         }
 
         public CategoryData(string inName,  List<Guid> inChildItemIDList = null, Guid inCategoryGuid = new Guid())
         {
             name = inName;
-            childItemIDList = inChildItemIDList;
+            m_ChildItemIDList = inChildItemIDList;
+            if(m_ChildItemIDList != null)
+                m_ChildItemIDSet = new HashSet<Guid>(m_ChildItemIDList);
+            else
+                Debug.LogError("ERROR: Category data provided invalid data for construction.");
             categoryGuid = inCategoryGuid;
         }
     }

@@ -777,7 +777,8 @@ namespace UnityEditor.ShaderGraph.Drawing
 
         void ConvertToProperty(DropdownMenuAction action)
         {
-            graph.owner.RegisterCompleteObjectUndo("Convert to Property");
+            var convertToPropertyAction = new ConvertToPropertyAction();
+
             var selectedNodeViews = selection.OfType<IShaderNodeView>().Select(x => x.node).ToList();
             foreach (var node in selectedNodeViews)
             {
@@ -785,23 +786,10 @@ namespace UnityEditor.ShaderGraph.Drawing
                     continue;
 
                 var converter = node as IPropertyFromNode;
-                var prop = converter.AsShaderProperty();
-                graph.AddGraphInput(prop);
-
-                var propNode = new PropertyNode();
-                propNode.drawState = node.drawState;
-                propNode.group = node.group;
-                graph.AddNode(propNode);
-                propNode.property = prop;
-
-                var oldSlot = node.FindSlot<MaterialSlot>(converter.outputSlotId);
-                var newSlot = propNode.FindSlot<MaterialSlot>(PropertyNode.OutputSlotId);
-
-                foreach (var edge in graph.GetEdges(oldSlot.slotReference))
-                    graph.Connect(newSlot.slotReference, edge.inputSlot);
-
-                graph.RemoveNode(node);
+                convertToPropertyAction.inlinePropertiesToConvert.Add(converter);
             }
+
+            graph.owner.graphDataStore.Dispatch(convertToPropertyAction);
         }
 
         DropdownMenuAction.Status ConvertToInlineNodeStatus(DropdownMenuAction action)
@@ -817,13 +805,13 @@ namespace UnityEditor.ShaderGraph.Drawing
 
         void ConvertToInlineNode(DropdownMenuAction action)
         {
-            graph.owner.RegisterCompleteObjectUndo("Convert to Inline Node");
             var selectedNodeViews = selection.OfType<IShaderNodeView>()
                 .Select(x => x.node)
                 .OfType<PropertyNode>();
 
-            foreach (var propNode in selectedNodeViews)
-                ((GraphData)propNode.owner).ReplacePropertyNodeWithConcreteNode(propNode);
+            var convertToInlineAction = new ConvertToInlineAction();
+            convertToInlineAction.propertyNodesToConvert = selectedNodeViews;
+            graph.owner.graphDataStore.Dispatch(convertToInlineAction);
         }
 
         void DuplicateSelection()
@@ -985,6 +973,7 @@ namespace UnityEditor.ShaderGraph.Drawing
             }
 
             selection.Clear();
+            m_InspectorUpdateDelegate?.Invoke();
         }
 
         #region Drag and drop
@@ -1165,60 +1154,10 @@ namespace UnityEditor.ShaderGraph.Drawing
             }
 
             var blackboardPropertyView = obj as BlackboardPropertyView;
-            if (blackboardPropertyView != null)
+            if (blackboardPropertyView?.userData is ShaderInput inputBeingDraggedIn)
             {
-                graph.owner.RegisterCompleteObjectUndo("Drag Graph Input");
-
-                switch (blackboardPropertyView.userData)
-                {
-                    case AbstractShaderProperty property:
-                    {
-                        if (property is MultiJsonInternal.UnknownShaderPropertyType)
-                            break;
-
-                        // This could be from another graph, in which case we add a copy of the ShaderInput to this graph.
-                        if (graph.properties.FirstOrDefault(p => p == property) == null)
-                        {
-                            var copyShaderInputAction = new CopyShaderInputAction();
-                            copyShaderInputAction.shaderInputToCopy = property;
-                            graph.owner.graphDataStore.Dispatch(copyShaderInputAction);
-                            property = (AbstractShaderProperty)copyShaderInputAction.copiedShaderInput;
-                        }
-
-                        var node = new PropertyNode();
-                        var drawState = node.drawState;
-                        drawState.position =  new Rect(nodePosition, drawState.position.size);
-                        node.drawState = drawState;
-                        graph.AddNode(node);
-
-                        // Setting the guid requires the graph to be set first.
-                        node.property = property;
-                        break;
-                    }
-                    case ShaderKeyword keyword:
-                    {
-                        // This could be from another graph, in which case we add a copy of the ShaderInput to this graph.
-                        if (graph.keywords.FirstOrDefault(k => k == keyword) == null)
-                        {
-                            var copyShaderInputAction = new CopyShaderInputAction();
-                            copyShaderInputAction.shaderInputToCopy = keyword;
-                            graph.owner.graphDataStore.Dispatch(copyShaderInputAction);
-                            keyword = (ShaderKeyword)copyShaderInputAction.copiedShaderInput;
-                        }
-
-                        var node = new KeywordNode();
-                        var drawState = node.drawState;
-                        drawState.position =  new Rect(nodePosition, drawState.position.size);
-                        node.drawState = drawState;
-                        graph.AddNode(node);
-
-                        // Setting the guid requires the graph to be set first.
-                        node.keyword = keyword;
-                        break;
-                    }
-                    default:
-                        throw new ArgumentOutOfRangeException();
-                }
+                var dragGraphInputAction = new DragGraphInputAction { nodePosition = nodePosition, graphInputBeingDraggedIn = inputBeingDraggedIn };
+                graph.owner.graphDataStore.Dispatch(dragGraphInputAction);
             }
         }
 

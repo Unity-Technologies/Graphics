@@ -238,30 +238,9 @@ namespace UnityEditor.ShaderGraph.Drawing
                         if (triggerInspectorUpdate)
                             inspectorUpdateDelegate();
                     }));
-                RegisterCallback<DetachFromPanelEvent>(evt => inspectorUpdateDelegate());
 
                 m_ResetReferenceNameTrigger = shaderInputPropertyDrawer.ResetReferenceName;
                 m_InspectorUpdateDelegate = inspectorUpdateDelegate;
-            }
-        }
-
-        void OnEditTextFinished()
-        {
-            m_ContentItem.visible = true;
-            m_TextField.style.display = DisplayStyle.None;
-
-            if (text != m_TextField.text && m_TextField.text != String.Empty)
-            {
-                var changeDisplayNameAction = new ChangeDisplayNameAction();
-                changeDisplayNameAction.shaderInputReference = shaderInput;
-                changeDisplayNameAction.newDisplayNameValue = m_TextField.text;
-                ViewModel.requestModelChangeAction(changeDisplayNameAction);
-                m_InspectorUpdateDelegate?.Invoke();
-            }
-            else
-            {
-                // Reset text field to original name
-                m_TextField.value = text;
             }
         }
 
@@ -346,6 +325,25 @@ namespace UnityEditor.ShaderGraph.Drawing
             m_TextField.SelectAll();
         }
 
+        void OnEditTextFinished()
+        {
+            m_ContentItem.visible = true;
+            m_TextField.style.display = DisplayStyle.None;
+
+            if (text != m_TextField.text && String.IsNullOrWhiteSpace(m_TextField.text) == false && String.IsNullOrEmpty(m_TextField.text) == false)
+            {
+                var changeDisplayNameAction = new ChangeDisplayNameAction();
+                changeDisplayNameAction.shaderInputReference = shaderInput;
+                changeDisplayNameAction.newDisplayNameValue = m_TextField.text;
+                ViewModel.requestModelChangeAction(changeDisplayNameAction);
+                m_InspectorUpdateDelegate?.Invoke();
+            }
+            else
+            {
+                // Reset text field to original name
+                m_TextField.value = text;
+            }
+        }
         protected virtual void BuildFieldContextualMenu(ContextualMenuPopulateEvent evt)
         {
             evt.menu.AppendAction("Rename", (a) => OpenTextEditor(), DropdownMenuAction.AlwaysEnabled);

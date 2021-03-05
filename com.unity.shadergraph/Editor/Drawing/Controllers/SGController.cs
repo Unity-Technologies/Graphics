@@ -165,8 +165,15 @@ namespace UnityEditor.ShaderGraph
         protected SGViewController(ModelType model, ViewModelType viewModel, GraphDataStore graphDataStore) : base(model, graphDataStore)
         {
             m_ViewModel = viewModel;
-            // Need ViewModel to be initialized before we call ModelChanged() [as view model might need to update]
-            ModelChanged(DataStore.State, DummyChange);
+            try
+            {
+                // Need ViewModel to be initialized before we call ModelChanged() [as view model might need to update]
+                ModelChanged(DataStore.State, DummyChange);
+            }
+            catch (Exception e)
+            {
+                Debug.Log("Failed to initialize View Controller of type: " + this.GetType() + " due to exception: " + e);
+            }
         }
 
         // Holds data specific to the views this controller is responsible for

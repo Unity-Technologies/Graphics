@@ -49,11 +49,13 @@ namespace UnityEditor.ShaderGraph.Drawing
 
         SGBlackboardSection m_BlackboardSectionView;
 
-        IList<BlackboardItemController> m_BlackboardItemControllers = new List<BlackboardItemController>();
+        // Reference to the category data this controller is responsible for representing
+        CategoryData m_CategoryDataReference = null;
 
-        internal bool controlsDefaultSection { get; set; }
+        Dictionary<Guid, BlackboardItemController> m_BlackboardItemControllers = new Dictionary<Guid, ShaderInputViewController>();
 
         SGBlackboard blackboard { get; set; }
+
 
         internal BlackboardSectionController(GraphData graphData, BlackboardSectionViewModel sectionViewModel, GraphDataStore dataStore)
             : base(graphData, sectionViewModel, dataStore)
@@ -68,14 +70,25 @@ namespace UnityEditor.ShaderGraph.Drawing
             });
             blackboard.hideDragIndicatorAction += m_BlackboardSectionView.OnDragActionCanceled;
 
+            // Go through categories in Data Store
+            foreach (var categoryData in graphData.categories)
+            {
+                // If category can be found with matching guid for this section
+                // And that category contains this input
+                if (categoryData.categoryGuid == ViewModel.associatedCategoryGuid)
+                {
+                    m_CategoryDataReference = categoryData;
+                    break;
+                }
+            }
 
-            foreach (var shaderInput in DataStore.State.properties)
+            foreach (var shaderInput in graphData.properties)
             {
                 if (IsInputInSection(shaderInput))
                     AddBlackboardRow(shaderInput);
             }
 
-            foreach (var shaderInput in DataStore.State.keywords)
+            foreach (var shaderInput in graphData.keywords)
             {
                 if (IsInputInSection(shaderInput))
                     AddBlackboardRow(shaderInput);
@@ -130,17 +143,13 @@ namespace UnityEditor.ShaderGraph.Drawing
 
         internal bool IsInputInSection(ShaderInput shaderInput)
         {
-            // Go through categories in Data Store
-            foreach (var categoryData in DataStore.State.categories)
-            {
-                // If category can be found with matching guid for this section
-                // And that category contains this input
-                if (categoryData.categoryGuid == ViewModel.associatedCategoryGuid
-                    && categoryData.childItemIDList.Contains(shaderInput.guid))
-                    return true;
-            }
+            return m_CategoryDataReference != null && m_CategoryDataReference.childItemIDSet.Contains(shaderInput.guid);
+        }
 
-            return false;
+        internal SGBlackboardRow FindBlackboardRow(ShaderInput shaderInput)
+        {
+            m_BlackboardItemControllers.TryGetValue(shaderInput.guid, out var associatedController);
+            return associatedController?.BlackboardItemView;
         }
 
         // Creates controller, view and view model for a blackboard item and adds the view to the end of the section
@@ -155,7 +164,7 @@ namespace UnityEditor.ShaderGraph.Drawing
             };
 
             var blackboardItemController = new BlackboardItemController(shaderInput, shaderInputViewModel, DataStore);
-            m_BlackboardItemControllers.Add(blackboardItemController);
+            m_BlackboardItemControllers.Add(shaderInput.guid, blackboardItemController);
 
             BlackboardSectionView.Add(blackboardItemController.BlackboardItemView);
 
@@ -178,7 +187,7 @@ namespace UnityEditor.ShaderGraph.Drawing
                 persistViewDataKeyAction = ViewModel.persistViewDataKeyAction
             };
             var blackboardItemController = new BlackboardItemController(shaderInput, shaderInputViewModel, DataStore);
-            m_BlackboardItemControllers.Insert(insertionIndex, blackboardItemController);
+            m_BlackboardItemControllers.Add(shaderInput.guid, blackboardItemController);
 
             BlackboardSectionView.Insert(insertionIndex, blackboardItemController.BlackboardItemView);
 
@@ -188,25 +197,17 @@ namespace UnityEditor.ShaderGraph.Drawing
         internal void RemoveBlackboardRow(BlackboardItem shaderInput)
         {
             BlackboardItemController associatedBlackboardItemController = null;
-            foreach (var blackboardItemController in m_BlackboardItemControllers)
-            {
-                if (blackboardItemController.Model == shaderInput)
-                    associatedBlackboardItemController = blackboardItemController;
-            }
+            m_BlackboardItemControllers.TryGetValue(shaderInput.guid, out associatedBlackboardItemController);
 
-            try
+            if(associatedBlackboardItemController != null)
             {
-                Assert.IsNotNull(associatedBlackboardItemController);
+                associatedBlackboardItemController.BlackboardItemView.RemoveFromHierarchy();
+                m_BlackboardItemControllers.Remove(shaderInput.guid);
             }
-            catch (NullReferenceException e)
+            else
             {
-                Debug.Log("ERROR: Failed to find associated blackboard item controller for shader input that was just deleted. Cannot clean up view associated with input. " + e);
-                return;
+                Debug.Log("ERROR: Failed to find associated blackboard item controller for shader input that was just deleted. Cannot clean up view associated with input.");
             }
-
-            BlackboardSectionView.Remove(associatedBlackboardItemController.BlackboardItemView);
-
-            m_BlackboardItemControllers.Remove(associatedBlackboardItemController);
         }
     }
 }

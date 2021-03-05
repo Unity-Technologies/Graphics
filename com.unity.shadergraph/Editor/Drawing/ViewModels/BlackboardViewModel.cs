@@ -4,6 +4,7 @@ using System.Linq;
 using UnityEngine;
 using UnityEngine.UIElements;
 using UnityEditor;
+using UnityEditor.Experimental.GraphView;
 
 namespace UnityEditor.ShaderGraph.Drawing
 {

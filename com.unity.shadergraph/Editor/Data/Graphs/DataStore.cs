@@ -26,12 +26,20 @@ namespace UnityEditor.ShaderGraph
             }
             catch (Exception exception)
             {
-                Debug.Log("Ran into exception of type:" + exception + " while dispatching action of type: " + action + "to DataStore.");
+                Debug.Log("Ran into exception of type: " + exception + " while dispatching action of type: " + action + "to DataStore.");
+                return;
             }
 
             // Note: This would only work with reference types, as value types would require creating a new copy, this works given that we use GraphData which is a heap object
             // Notifies any listeners about change in state
-            Subscribe?.Invoke(State, action);
+            try
+            {
+                Subscribe?.Invoke(State, action);
+            }
+            catch (Exception exception)
+            {
+                Debug.Log("Ran into exception of type: " + exception + " while notifying graph objects about action of type: " + action);
+            }
         }
     }
 }

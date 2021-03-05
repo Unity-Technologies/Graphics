@@ -229,9 +229,9 @@ namespace UnityEditor.ShaderGraph.Drawing
                     m_FloatingWindowsLayout = JsonUtility.FromJson<FloatingWindowsLayout>(serializedWindowLayout);
                 }
 
-                CreateBlackboard();
                 CreateMasterPreview();
                 CreateInspector();
+                CreateBlackboard();
 
                 UpdateSubWindowsVisibility();
 
@@ -408,10 +408,7 @@ namespace UnityEditor.ShaderGraph.Drawing
             m_InspectorView = new InspectorView(inspectorViewModel);
             graphView.OnSelectionChange += m_InspectorView.TriggerInspectorUpdate;
             // Undo/redo actions that only affect selection don't trigger the above callback for some reason, so we also have to do this
-            Undo.undoRedoPerformed += (() =>
-            {
-                m_InspectorView?.TriggerInspectorUpdate(graphView?.selection);
-            });
+            Undo.undoRedoPerformed += (() => { m_InspectorView?.TriggerInspectorUpdate(graphView?.selection); });
         }
 
         void OnKeyDown(KeyDownEvent evt)
@@ -663,6 +660,7 @@ namespace UnityEditor.ShaderGraph.Drawing
             UnregisterGraphViewCallbacks();
 
             previewManager.HandleGraphChanges();
+            m_InspectorView.HandleGraphChanges();
 
             if (m_Graph.addedEdges.Any() || m_Graph.removedEdges.Any())
             {

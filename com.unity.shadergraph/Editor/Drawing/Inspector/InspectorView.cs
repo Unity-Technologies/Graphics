@@ -12,6 +12,9 @@ namespace UnityEditor.ShaderGraph.Drawing.Inspector
 {
     class InspectorView : GraphSubWindow
     {
+        const float inspectorUpdateInterval = 0.25f;
+        int currentlyInspectedElementsCount = 0;
+
         readonly List<Type> m_PropertyDrawerList = new List<Type>();
 
         // There's persistent data that is stored in the graph settings property drawer that we need to hold onto between interactions
@@ -93,6 +96,10 @@ namespace UnityEditor.ShaderGraph.Drawing.Inspector
 
         public void TriggerInspectorUpdate(IEnumerable<ISelectable> selectionList)
         {
+            // An optimization that prevents inspector updates from getting triggered every time a selection event is issued in the event of large selections
+            // Instead, relies on the periodic update checks in HandleGraphChanges() to pick up selection changes past a certain size
+            if (selectionList.Count() > 10)
+                return;
             doesInspectorNeedUpdate = true;
         }
 
@@ -101,6 +108,7 @@ namespace UnityEditor.ShaderGraph.Drawing.Inspector
             ShowGraphSettings_Internal(m_GraphSettingsContainer);
 
             m_NodeSettingsContainer.Clear();
+            currentlyInspectedElementsCount = 0;
 
             try
             {
@@ -110,6 +118,7 @@ namespace UnityEditor.ShaderGraph.Drawing.Inspector
                     if (selectable is IInspectable inspectable)
                     {
                         DrawInspectable(m_NodeSettingsContainer, inspectable);
+                        currentlyInspectedElementsCount++;
                         anySelectables = true;
                     }
                 }
@@ -137,6 +146,13 @@ namespace UnityEditor.ShaderGraph.Drawing.Inspector
             IPropertyDrawer propertyDrawerToUse = null)
         {
             InspectorUtils.GatherInspectorContent(m_PropertyDrawerList, outputVisualElement, inspectable, TriggerInspectorUpdate, propertyDrawerToUse);
+        }
+
+        internal void HandleGraphChanges()
+        {
+            float timePassed = (float)(EditorApplication.timeSinceStartup % inspectorUpdateInterval);
+            if(timePassed < 0.01f && selection.Count != currentlyInspectedElementsCount)
+               Update();
         }
 
         void TriggerInspectorUpdate()

@@ -296,15 +296,11 @@ namespace UnityEditor.ShaderGraph
             }
         }
 
-        // TODO: Replace this with something better instead of just replicating it as its pretty bad
-
-        BlackboardRow GetAssociatedBlackboardRow()
+        SGBlackboardRow GetAssociatedBlackboardRow()
         {
             var graphView = GetFirstAncestorOfType<GraphEditorView>();
-            if (graphView == null)
-                return null;
 
-            var blackboardController = graphView.blackboardController;
+            var blackboardController = graphView?.blackboardController;
             if (blackboardController == null)
                 return null;
 
@@ -312,8 +308,6 @@ namespace UnityEditor.ShaderGraph
             return blackboardController.GetBlackboardRow(propNode.property);
         }
 
-        // What the function above is needed for is essentially messaging other parties for hover highlighting behavior
-        // If we could replace that with events from a controller that wrapped this NodeView to a controller that wrapped a BlackboardRow...
         void OnMouseHover(EventBase evt)
         {
             var propRow = GetAssociatedBlackboardRow();

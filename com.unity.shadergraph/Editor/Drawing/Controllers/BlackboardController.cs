@@ -77,6 +77,8 @@ namespace UnityEditor.ShaderGraph.Drawing
             Assert.IsNotNull(graphData, "GraphData is null while carrying out CopyShaderInputAction");
             Assert.IsNotNull(shaderInputToCopy, "ShaderInputToCopy is null while carrying out CopyShaderInputAction");
 #endif
+            // Don't handle undo here as there are different contexts in which this action is used, that define the undo action namea
+            // TODO: Perhaps a sign that each of those need to be made their own actions instead of conflating intent into a single action
             switch (shaderInputToCopy)
             {
                 case AbstractShaderProperty property:
@@ -311,7 +313,6 @@ namespace UnityEditor.ShaderGraph.Drawing
                     var blackboardRow = AddInputToDefaultSection(shaderInput);
                     // This selects the newly created property value without over-riding the undo stack in case user wants to undo
                     var graphView = ViewModel.parentView as MaterialGraphView;
-                    graphView?.ClearSelectionNoUndoRecord();
                     var propertyView = blackboardRow.Q<BlackboardPropertyView>();
                     graphView?.AddToSelectionNoUndoRecord(propertyView);
 
@@ -321,11 +322,9 @@ namespace UnityEditor.ShaderGraph.Drawing
             }
             else if (changeAction is DeleteShaderInputAction deleteShaderInputAction)
             {
-                foreach (var shaderInput in deleteShaderInputAction.shaderInputsToDelete)
-                {
-                    if (IsInputInDefaultCategory(shaderInput))
-                        RemoveInputFromDefaultSection(shaderInput);
-                }
+                //foreach (var shaderInput in deleteShaderInputAction.shaderInputsToDelete)
+                //    if (IsInputInDefaultCategory(shaderInput))
+                //        RemoveInputFromDefaultSection(shaderInput);
             }
             else if (changeAction is HandleUndoRedoAction handleUndoRedoAction)
             {
@@ -350,13 +349,19 @@ namespace UnityEditor.ShaderGraph.Drawing
                     graphView?.AddToSelectionNoUndoRecord(propertyView);
                 }
             }
+            else if (changeAction is ConvertToPropertyAction convertToPropertyAction)
+            {
+                foreach (var convertedProperty in convertToPropertyAction.convertedPropertyReferences)
+                    if (IsInputInDefaultCategory(convertedProperty))
+                        AddInputToDefaultSection(convertedProperty);
+            }
 
             // Lets all event handlers this controller owns/manages know that the model has changed
             // Usually this is to update views and make them reconstruct themself from updated view-model
-            NotifyChange(changeAction);
+            //NotifyChange(changeAction);
 
             // Let child controllers know about changes to this controller so they may update themselves in turn
-            ApplyChanges();
+            //ApplyChanges();
         }
 
         SGBlackboardRow AddInputToDefaultSection(ShaderInput shaderInput)
@@ -400,22 +405,28 @@ namespace UnityEditor.ShaderGraph.Drawing
 
         bool IsInputInDefaultCategory(ShaderInput shaderInput)
         {
-            bool addToDefaultSection = true;
             foreach (var sectionController in m_BlackboardSectionControllers)
             {
                 if (sectionController.IsInputInSection(shaderInput))
-                    addToDefaultSection = false;
+                    return false;
             }
 
-            return addToDefaultSection;
+            return true;
         }
 
-        public BlackboardRow GetBlackboardRow(ShaderInput blackboardItem)
+        public SGBlackboardRow GetBlackboardRow(ShaderInput blackboardItem)
         {
-            return new BlackboardRow(new VisualElement(), null);
+            foreach (var sectionController in m_BlackboardSectionControllers)
+            {
+                var blackboardRow = sectionController.FindBlackboardRow(blackboardItem);
+                if (blackboardRow != null)
+                    return blackboardRow;
+            }
+
+            return null;
         }
 
-        internal int numberOfSections => m_BlackboardSectionControllers.Count;
+        int numberOfSections => m_BlackboardSectionControllers.Count;
 
         // Gets the index after the currently selected shader input per row.
         internal List<int> GetIndicesOfSelectedItems()
@@ -481,6 +492,10 @@ namespace UnityEditor.ShaderGraph.Drawing
                 oldSelectionPersistenceData.Clear();
                 return;
             }
+
+            // Clear out data once it gets past a certain size to prevent clogging of stale data
+            if(oldSelectionPersistenceData.Count > 22)
+                oldSelectionPersistenceData.Clear();
 
             // This tries to maintain the selection the user had before the undo/redo was performed
             foreach (var item in newSelection)
