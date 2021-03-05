@@ -42,16 +42,6 @@ namespace UnityEditor.Rendering
             RenameFloat("_WindQuality", "_WINDQUALITY");
             RenameFloat("_TwoSided", "_CullMode"); // Currently only used in HD. Update this once URP per-material cullmode is enabled via shadergraph. 
         }
-        /// <summary>
-        /// Set default property values for SpeedTree8 properties in common between HD and Universal and not initialized by the Lit subtarget.
-        /// </summary>
-        /// <param name="mat">SpeedTree8 material.</param>
-        public static void SetSpeedTree8MaterialDefaults(Material mat)
-        {
-            if (mat == null)
-                return;
-            mat.SetFloat("_AlphaClipThreshold", 0.33f); // ST8 assets don't have a cutoff set by default, but the ST7 default cutoff is 0.33f.
-        }
 
         private static int GetWindQuality(Material material, int windQuality = -1)
         {

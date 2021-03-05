@@ -27,6 +27,7 @@ namespace UnityEditor.Rendering.HighDefinition
 
         private static void HDSpeedTree8MaterialFinalizer(Material mat)
         {
+            SetHDSpeedTree8Defaults(mat);
             HDShaderUtils.ResetMaterialKeywords(mat);
         }
         /// <summary>
@@ -66,13 +67,10 @@ namespace UnityEditor.Rendering.HighDefinition
             }
 
             mat.SetFloat("_CullMode", propsToRestore.cullMode);
-
-            SetHDSpeedTree8Defaults(mat);
         }
 
         private static void SetHDSpeedTree8Defaults(Material mat)
         {
-            SetSpeedTree8MaterialDefaults(mat);
             if (mat.IsKeywordEnabled("EFFECT_BILLBOARD"))
             {
                 mat.SetFloat("_DoubleSidedEnable", 0.0f);
@@ -83,7 +81,6 @@ namespace UnityEditor.Rendering.HighDefinition
                 mat.SetFloat("_DoubleSidedEnable", 1.0f);
                 mat.SetFloat("_DoubleSidedNormalMode", (int)DoubleSidedNormalMode.Flip);
             }
-            BaseLitGUI.SetupBaseLitKeywords(mat); 
         }
 	}
 }
