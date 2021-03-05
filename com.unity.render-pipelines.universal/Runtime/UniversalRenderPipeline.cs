@@ -84,7 +84,7 @@ namespace UnityEngine.Rendering.Universal
 
                 public static class Context
                 {
-                    const string k_Name = nameof(Context);
+                    const string k_Name = nameof(ScriptableRenderContext);
                     public static readonly ProfilingSampler submit = new ProfilingSampler($"{k_Name}.{nameof(ScriptableRenderContext.Submit)}");
                 };
             };
@@ -335,7 +335,7 @@ namespace UnityEngine.Rendering.Universal
             {
                 renderer.Clear(cameraData.renderType);
 
-                using (new ProfilingScope(cmd, Profiling.Pipeline.Renderer.setupCullingParameters))
+                using (new ProfilingScope(null, Profiling.Pipeline.Renderer.setupCullingParameters))
                 {
                     renderer.SetupCullingParameters(ref cullingParameters, ref cameraData);
                 }
@@ -359,7 +359,7 @@ namespace UnityEngine.Rendering.Universal
                     ApplyAdaptivePerformance(ref renderingData);
 #endif
 
-                using (new ProfilingScope(cmd, Profiling.Pipeline.Renderer.setup))
+                using (new ProfilingScope(null, Profiling.Pipeline.Renderer.setup))
                 {
                     renderer.Setup(context, ref renderingData);
                 }
@@ -371,7 +371,7 @@ namespace UnityEngine.Rendering.Universal
             context.ExecuteCommandBuffer(cmd); // Sends to ScriptableRenderContext all the commands enqueued since cmd.Clear, i.e the "EndSample" command
             CommandBufferPool.Release(cmd);
 
-            using (new ProfilingScope(cmd, Profiling.Pipeline.Context.submit))
+            using (new ProfilingScope(null, Profiling.Pipeline.Context.submit))
             {
                 context.Submit(); // Actually execute the commands that we previously sent to the ScriptableRenderContext context
             }

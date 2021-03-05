@@ -750,7 +750,7 @@ namespace UnityEngine.Rendering.Universal
         void CreateCameraRenderTarget(ScriptableRenderContext context, ref RenderTextureDescriptor descriptor, bool createColor, bool createDepth)
         {
             CommandBuffer cmd = CommandBufferPool.Get();
-            using (new ProfilingScope(cmd, Profiling.createCameraRenderTarget))
+            using (new ProfilingScope(null, Profiling.createCameraRenderTarget))
             {
                 if (createColor)
                 {

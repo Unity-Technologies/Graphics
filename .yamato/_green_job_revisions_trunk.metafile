@@ -45,7 +45,7 @@ shadergraph_pr_job_-_trunk:
       updated_at: '2021-03-01 00:01:50.574477'
       version: ''
 vfx_urp_pr_job_-_trunk:
-  updated_at: '2021-03-02 07:55:16.025976'
+  updated_at: '2021-03-03 07:35:32.930093'
   last_green_revisions:
     Android:
       revision: 5fd8f1e9bac72618ae932aa3d82d5de5efbdd56d
@@ -68,7 +68,7 @@ vfx_urp_pr_job_-_trunk:
       updated_at: '2021-03-01 00:01:50.574477'
       version: ''
 vfx_hdrp_pr_job_-_trunk:
-  updated_at: '2021-03-02 07:55:16.025976'
+  updated_at: '2021-03-03 07:35:32.930093'
   last_green_revisions:
     Android:
       revision: 5fd8f1e9bac72618ae932aa3d82d5de5efbdd56d
