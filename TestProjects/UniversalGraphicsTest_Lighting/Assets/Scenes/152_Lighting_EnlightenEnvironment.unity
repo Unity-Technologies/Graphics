@@ -333,7 +333,7 @@ MonoBehaviour:
     ImageResolution: 0
     ActiveImageTests: 1
     ActivePixelTests: 7
-  WaitFrames: 30
+  WaitFrames: 60
   XRCompatible: 1
 --- !u!81 &971756571
 AudioListener:
