@@ -233,7 +233,6 @@ namespace UnityEngine.Experimental.Rendering.Universal
             return output;
         }
 
-
         static void TransferToMesh(NativeArray<LightMeshVertex> vertices, int vertexCount, NativeArray<ushort> indices,
             int indexCount, Light2D light)
         {
@@ -245,9 +244,9 @@ namespace UnityEngine.Experimental.Rendering.Universal
             light.vertices = new LightMeshVertex[vertexCount];
             NativeArray<LightMeshVertex>.Copy(vertices, light.vertices, vertexCount);
             light.indices = new ushort[indexCount];
-            NativeArray<ushort>.Copy(indices, light.indices, indexCount);   
+            NativeArray<ushort>.Copy(indices, light.indices, indexCount);
         }
-            
+
         public static Bounds GenerateShapeMesh(Light2D light, Vector3[] shapePath, float falloffDistance)
         {
             var ix = 0;
@@ -307,7 +306,7 @@ namespace UnityEngine.Experimental.Rendering.Universal
                 var bVertices = new NativeArray<LightMeshVertex>(vcount + outPath.Count + inputPointCount, Allocator.Temp);
                 for (int i = 0; i < vcount; ++i)
                     bVertices[i] = vertices[i];
-                                
+
                 var innerIndices = new ushort[inputPointCount];
 
                 // Inner Vertices. (These may or may not be part of the created path. Beware!!)
@@ -360,7 +359,7 @@ namespace UnityEngine.Experimental.Rendering.Universal
                     bIndices[icount++] = containsStart ? saveIndex : innerIndices[minPath];
                     bIndices[icount++] = containsStart ? innerIndices[lastPointIndex] : innerIndices[minPath - 1];
                 }
-                
+
                 TransferToMesh(bVertices, vcount, bIndices, icount, light);
             }
             else
