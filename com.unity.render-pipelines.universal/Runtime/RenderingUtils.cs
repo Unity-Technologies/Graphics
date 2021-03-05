@@ -345,6 +345,40 @@ namespace UnityEngine.Rendering.Universal
             return nonNullColorBuffers;
         }
 
+        internal static uint GetSubPassAttachmentIndicesCount(ScriptableRenderPass pass)
+        {
+            uint numValidAttachments = 0;
+
+            foreach (var attIdx in pass.attachmentIndices)
+            {
+                if (attIdx >= 0)
+                    ++numValidAttachments;
+            }
+
+            return numValidAttachments;
+        }
+
+        internal static bool AreAttachmentIndicesCompatible(ScriptableRenderPass lastSubPass, ScriptableRenderPass currentSubPass)
+        {
+            uint lastSubPassAttCount = GetSubPassAttachmentIndicesCount(lastSubPass);
+            uint currentSubPassAttCount = GetSubPassAttachmentIndicesCount(currentSubPass);
+
+            if (currentSubPassAttCount > lastSubPassAttCount)
+                return false;
+
+            uint numEqualAttachments = 0;
+            for (int currPassIdx = 0; currPassIdx < currentSubPassAttCount; ++currPassIdx)
+            {
+                for (int lastPassIdx = 0; lastPassIdx < lastSubPassAttCount; ++lastPassIdx)
+                {
+                    if (currentSubPass.attachmentIndices[currPassIdx] == lastSubPass.attachmentIndices[lastPassIdx])
+                        numEqualAttachments++;
+                }
+            }
+
+            return (numEqualAttachments == currentSubPassAttCount);
+        }
+
         internal static uint GetValidColorAttachmentCount(AttachmentDescriptor[] colorAttachments)
         {
             uint nonNullColorBuffers = 0;

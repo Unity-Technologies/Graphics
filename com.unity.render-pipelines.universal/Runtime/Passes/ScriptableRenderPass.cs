@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.ComponentModel;
+using Unity.Collections;
 using UnityEngine.Scripting.APIUpdating;
 using UnityEngine.Experimental.Rendering;
 
@@ -185,6 +186,8 @@ namespace UnityEngine.Rendering.Universal
         internal bool isLastPass { get; set; }
 
         internal int sceneIndex { get; set; }
+
+        internal NativeArray<int> attachmentIndices = new NativeArray<int>(8, Allocator.Persistent);
 
         internal GraphicsFormat[] renderTargetFormat { get; set; }
         RenderTargetIdentifier[] m_ColorAttachments = new RenderTargetIdentifier[] {BuiltinRenderTextureType.CameraTarget};
