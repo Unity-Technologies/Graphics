@@ -391,7 +391,7 @@ namespace UnityEngine.Rendering.HighDefinition
             }
         }
 
-        // TODO RENDERGRAPH: When we remove the old pass, we need to remove/refactor this class
+        // TODO RENDERGRAPH: When we remove the old path, we need to remove/refactor this class
         // With render graph it's only useful for 3 buffers and a boolean value.
         class TileAndClusterData
         {
@@ -865,10 +865,6 @@ namespace UnityEngine.Rendering.HighDefinition
                 Shader.EnableKeyword("SCREEN_SPACE_SHADOWS_OFF");
             }
 
-            if (m_Asset.currentPlatformRenderPipelineSettings.supportProbeVolume)
-            {
-                ProbeReferenceVolume.instance.InitProbeReferenceVolume(ProbeReferenceVolume.s_ProbeIndexPoolAllocationSize, m_Asset.currentPlatformRenderPipelineSettings.probeVolumeMemoryBudget, ProbeReferenceVolumeProfile.s_DefaultIndexDimensions);
-            }
             InitShadowSystem(asset, defaultResources);
 
             s_lightVolumes = new DebugLightVolumes();
