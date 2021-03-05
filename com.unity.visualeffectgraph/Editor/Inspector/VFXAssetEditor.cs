@@ -680,7 +680,7 @@ class VisualEffectAssetEditor : Editor
 
                     Rect labelR = r;
                     labelR.width -= buttonsWidth;
-                    GUI.Label(labelR, shader.name);                  
+                    GUI.Label(labelR, shader.name);
 
                     if (index >= 0)
                     {

@@ -906,7 +906,7 @@ namespace UnityEditor.VFX
 
                     compiledData.Compile(m_CompilationMode, m_ForceShaderValidation);
                 }
-                else 
+                else
                 {
                     if (m_ExpressionValuesDirty && !m_ExpressionGraphDirty)
                         compiledData.UpdateValues();
