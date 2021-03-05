@@ -179,9 +179,6 @@ namespace UnityEngine.Rendering.HighDefinition
 
         void OnEnable()
         {
-#if UNITY_EDITOR
-            HDRenderPipelineGlobalSettings.Ensure();
-#endif
             k_Migration.Migrate(this);
         }
 

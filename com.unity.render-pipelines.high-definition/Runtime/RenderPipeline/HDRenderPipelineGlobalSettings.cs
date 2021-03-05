@@ -116,10 +116,6 @@ namespace UnityEngine.Rendering.HighDefinition
             UpdateRenderingLayerNames();
 
             shaderVariantLogLevel = ShaderVariantLogLevel.Disabled;
-
-#if UNITY_EDITOR
-            EnsureEditorResources(forceReload: false);
-#endif
         }
 
 #if UNITY_EDITOR
@@ -228,6 +224,9 @@ namespace UnityEngine.Rendering.HighDefinition
 
             if (assetCreated)
             {
+#if UNITY_EDITOR
+                assetCreated.EnsureEditorResources(forceReload: true);
+#endif
                 if (src != null)
                 {
                     assetCreated.renderPipelineResources = src.renderPipelineResources;
@@ -438,17 +437,29 @@ namespace UnityEngine.Rendering.HighDefinition
 
         internal RenderPipelineResources renderPipelineResources
         {
-            get => m_RenderPipelineResources;
+            get
+            {
+#if UNITY_EDITOR
+                EnsureRuntimeResources(forceReload: false);
+#endif
+                return m_RenderPipelineResources;
+            }
             set { m_RenderPipelineResources = value; }
         }
 
 #if UNITY_EDITOR
         internal void EnsureRuntimeResources(bool forceReload)
         {
-            if (AreResourcesCreated())
-                return;
-
             var runtimeResourcesPath = HDUtils.GetHDRenderPipelinePath() + "Runtime/RenderPipelineResources/HDRenderPipelineResources.asset";
+            if (AreResourcesCreated())
+            {
+                if (!EditorUtility.IsPersistent(m_RenderPipelineResources))
+                {
+                    m_RenderPipelineResources = AssetDatabase.LoadAssetAtPath<RenderPipelineResources>(runtimeResourcesPath);
+                }
+                return;
+            }
+
             var objs = InternalEditorUtility.LoadSerializedFileAndForget(runtimeResourcesPath);
             m_RenderPipelineResources = objs != null && objs.Length > 0 ? objs.First() as RenderPipelineResources : null;
 
@@ -461,10 +472,6 @@ namespace UnityEngine.Rendering.HighDefinition
                         runtimeResourcesPath,
                         true);
                 }
-            }
-            else if (!EditorUtility.IsPersistent(m_RenderPipelineResources))
-            {
-                m_RenderPipelineResources = AssetDatabase.LoadAssetAtPath<RenderPipelineResources>(runtimeResourcesPath);
             }
         }
 
@@ -520,10 +527,22 @@ namespace UnityEngine.Rendering.HighDefinition
 
         internal void EnsureEditorResources(bool forceReload)
         {
-            if (AreEditorResourcesCreated())
-                return;
-
             var editorResourcesPath = HDUtils.GetHDRenderPipelinePath() + "Editor/RenderPipelineResources/HDRenderPipelineEditorResources.asset";
+            if (AreEditorResourcesCreated())
+            {
+                if (!EditorUtility.IsPersistent(m_RenderPipelineEditorResources))
+                {
+                    // try to load from AssetDatabase if it is ready
+                    var resources = AssetDatabase.LoadAssetAtPath<HDRenderPipelineEditorResources>(editorResourcesPath);
+                    if (resources && !resources.Equals(null))
+                    {
+                        m_RenderPipelineEditorResources = resources;
+                    }
+                    Debug.Assert(AreEditorResourcesCreated(), "Could not load Editor Resources.");
+                }
+                return;
+            }
+
             var objs = InternalEditorUtility.LoadSerializedFileAndForget(editorResourcesPath);
             m_RenderPipelineEditorResources = (objs != null && objs.Length > 0) ? objs[0] as HDRenderPipelineEditorResources : null;
             if (forceReload)
@@ -536,10 +555,7 @@ namespace UnityEngine.Rendering.HighDefinition
                         true);
                 }
             }
-            else if (!EditorUtility.IsPersistent(m_RenderPipelineEditorResources))
-            {
-                m_RenderPipelineEditorResources = AssetDatabase.LoadAssetAtPath<HDRenderPipelineEditorResources>(editorResourcesPath);
-            }
+            Debug.Assert(AreEditorResourcesCreated(), "Could not load Editor Resources.");
         }
 
         internal bool AreEditorResourcesCreated()
