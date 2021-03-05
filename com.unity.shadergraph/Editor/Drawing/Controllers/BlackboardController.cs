@@ -255,8 +255,6 @@ namespace UnityEditor.ShaderGraph.Drawing
                 var blackboardSectionViewModel = new BlackboardSectionViewModel();
                 blackboardSectionViewModel.parentView = blackboard;
                 blackboardSectionViewModel.requestModelChangeAction = ViewModel.requestModelChangeAction;
-                blackboardSectionViewModel.updateSelectionStateAction = UpdateSelectionAfterUndoRedo;
-                blackboardSectionViewModel.persistViewDataKeyAction = PersistViewDataKeys;
                 blackboardSectionViewModel.name = categoryInfo.name;
                 blackboardSectionViewModel.associatedCategoryGuid = categoryInfo.categoryGuid;
                 var blackboardSectionController = new BlackboardSectionController(model, blackboardSectionViewModel, graphDataStore);
@@ -275,18 +273,6 @@ namespace UnityEditor.ShaderGraph.Drawing
                 if (IsInputInDefaultCategory(shaderKeyword))
                     AddInputToDefaultSection(shaderKeyword);
 
-            if (ViewModel.parentView is MaterialGraphView graphView)
-            {
-                graphView.blackboardItemRemovedDelegate += (removedInput) =>
-                {
-                    if (IsInputInDefaultCategory(removedInput))
-                        RemoveInputFromDefaultSection(removedInput);
-                };
-
-                // Selection persistence for when a property is deleted and added back between undo/redo-s
-                graphView.OnSelectionChange += StoreSelection;
-            }
-
             blackboard.contentContainer.Add(m_PropertySectionController.BlackboardSectionView);
             blackboard.contentContainer.Add(m_KeywordSectionController.BlackboardSectionView);
         }
@@ -300,7 +286,6 @@ namespace UnityEditor.ShaderGraph.Drawing
         protected override void ModelChanged(GraphData graphData, IGraphDataAction changeAction)
         {
             // Reconstruct view-model first
-            // TODO: (would be cool to have some scoping here to see if the action was one that changed OUR UI or not, could avoid reconstructing the ViewModel based on that)
             InitializeViewModel();
 
             // If newly added input doesn't belong to any of the sections, add it to the appropriate default section
@@ -311,24 +296,19 @@ namespace UnityEditor.ShaderGraph.Drawing
                 if (IsInputInDefaultCategory(shaderInput))
                 {
                     var blackboardRow = AddInputToDefaultSection(shaderInput);
-                    // This selects the newly created property value without over-riding the undo stack in case user wants to undo
-                    var graphView = ViewModel.parentView as MaterialGraphView;
                     var propertyView = blackboardRow.Q<BlackboardPropertyView>();
-                    graphView?.AddToSelectionNoUndoRecord(propertyView);
-
                     if (addBlackboardItemAction.addInputActionType == AddShaderInputAction.AddActionSource.AddMenu)
                         propertyView.OpenTextEditor();
                 }
             }
             else if (changeAction is DeleteShaderInputAction deleteShaderInputAction)
             {
-                //foreach (var shaderInput in deleteShaderInputAction.shaderInputsToDelete)
-                //    if (IsInputInDefaultCategory(shaderInput))
-                //        RemoveInputFromDefaultSection(shaderInput);
+                foreach (var shaderInput in deleteShaderInputAction.shaderInputsToDelete)
+                    if (IsInputInDefaultCategory(shaderInput))
+                        RemoveInputFromDefaultSection(shaderInput);
             }
             else if (changeAction is HandleUndoRedoAction handleUndoRedoAction)
             {
-                // HandleUndo/Redo action is inherently unwieldy, should decompose to make it a series of add/remove operations
                 foreach (var shaderInput in graphData.removedInputs)
                     if (IsInputInDefaultCategory(shaderInput))
                         RemoveInputFromDefaultSection(shaderInput);
@@ -462,67 +442,6 @@ namespace UnityEditor.ShaderGraph.Drawing
             }
 
             return indexPerSection;
-        }
-
-        // Used to re-select an input that was selected, removed and then added back by an undo operation
-        Dictionary<string, string> oldSelectionPersistenceData { get; set; } = new Dictionary<string, string>();
-
-        void UpdateSelectionAfterUndoRedo(AttachToPanelEvent evt)
-        {
-            var propertyView = evt.target as BlackboardPropertyView;
-            var referenceName = propertyView?.shaderInput?.referenceName;
-
-            // If this field view represents a value that was previously selected
-            if (referenceName != null && oldSelectionPersistenceData.TryGetValue(referenceName, out var oldSelectionViewDataKey))
-            {
-                // This re-selects the property view if it existed, was deleted, and then an undo action added it back
-                var graphView = ViewModel.parentView as MaterialGraphView;
-                graphView?.AddToSelectionNoUndoRecord(propertyView);
-            }
-
-            // This persists view data keys so that BlackboardPropertyViews that represent the same underlying element get treated consistently by GraphView
-            if (referenceName != null && persistedViewDataKeys.TryGetValue(referenceName, out var oldViewDataKey))
-                propertyView.viewDataKey = oldViewDataKey;
-        }
-
-        void StoreSelection(IList<ISelectable> newSelection)
-        {
-            if (newSelection.Count == 0)
-            {
-                oldSelectionPersistenceData.Clear();
-                return;
-            }
-
-            // Clear out data once it gets past a certain size to prevent clogging of stale data
-            if(oldSelectionPersistenceData.Count > 22)
-                oldSelectionPersistenceData.Clear();
-
-            // This tries to maintain the selection the user had before the undo/redo was performed
-            foreach (var item in newSelection)
-            {
-                if (item is BlackboardPropertyView blackboardPropertyView)
-                {
-                    var referenceName = blackboardPropertyView.shaderInput.referenceName;
-                    if (oldSelectionPersistenceData.TryGetValue(referenceName, out var viewDataKey) == false)
-                        oldSelectionPersistenceData.Add(referenceName, blackboardPropertyView.viewDataKey);
-                }
-            }
-        }
-
-        // This data is used to preserve the undo/redo stack around selection persistence for all inputs in the blackboard between undo/redo operations
-        Dictionary<string, string> persistedViewDataKeys { get; set; } = new Dictionary<string, string>();
-
-        // When a property view is removed, we store the reference name of the underlying property for lookup, and the viewDataKey of the property view
-        // When a property view is added by an undo/redo operation that represents the same underlying property, we override its viewDataKey with the stored version
-        // GraphView selection undo/redo stack handling is based on the viewDataKeys being persistent
-        void PersistViewDataKeys(DetachFromPanelEvent evt)
-        {
-            var propertyView = evt.target as BlackboardPropertyView;
-            var referenceName = propertyView?.shaderInput?.referenceName;
-            if (referenceName != null && persistedViewDataKeys.TryGetValue(referenceName, out var oldViewDataKey) == false)
-            {
-                persistedViewDataKeys.Add(referenceName, propertyView.viewDataKey);
-            }
         }
     }
 }

@@ -89,6 +89,7 @@ namespace UnityEditor.ShaderGraph.Drawing
         bool m_IsFieldBeingDragged = false;
 
         const int k_DraggedPropertyScrollSpeed = 6;
+        const float k_OriginalScrollerPadding = 12;
 
         public override string windowTitle => "Blackboard";
         public override string elementName => "SGBlackboard";
@@ -171,6 +172,9 @@ namespace UnityEditor.ShaderGraph.Drawing
                 contentElement.Insert(scrollViewIndex, m_ScrollBoundaryTop);
                 scrollViewIndex = contentElement.IndexOf(m_ScrollView);
                 contentElement.Insert(scrollViewIndex + 1, m_ScrollBoundaryBottom);
+
+                this.m_ScrollView.verticalScroller.style.right = 0;
+                this.m_ScrollView.horizontalScroller.style.bottom = 0;
             }
         }
 
@@ -180,6 +184,9 @@ namespace UnityEditor.ShaderGraph.Drawing
             m_IsFieldBeingDragged = false;
             m_ScrollBoundaryTop.RemoveFromHierarchy();
             m_ScrollBoundaryBottom.RemoveFromHierarchy();
+
+            this.m_ScrollView.verticalScroller.style.right = k_OriginalScrollerPadding;
+            this.m_ScrollView.horizontalScroller.style.bottom = k_OriginalScrollerPadding;
         }
 
         int scrollViewIndex { get; set; }

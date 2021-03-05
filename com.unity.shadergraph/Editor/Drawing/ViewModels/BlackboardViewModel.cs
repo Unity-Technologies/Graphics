@@ -41,6 +41,7 @@ namespace UnityEditor.ShaderGraph.Drawing
             builtInKeywordNameToAddActionMap.Clear();
             categoryInfoList.Clear();
             disabledKeywordNameList.Clear();
+            requestModelChangeAction = null;
         }
     }
 }

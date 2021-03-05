@@ -63,8 +63,12 @@ namespace UnityEditor.ShaderGraph.Drawing
             m_BlackboardSectionView = new SGBlackboardSection(sectionViewModel);
 
             blackboard = sectionViewModel.parentView as SGBlackboard;
+            if(blackboard == null)
+                return;
+
+            blackboard.Add(m_BlackboardSectionView);
             // These make sure that the drag indicators are disabled whenever a drag action is cancelled without completing a drop
-            blackboard?.RegisterCallback<MouseUpEvent>(evt =>
+            blackboard.RegisterCallback<MouseUpEvent>(evt =>
             {
                 m_BlackboardSectionView.OnDragActionCanceled();
             });
@@ -159,8 +163,6 @@ namespace UnityEditor.ShaderGraph.Drawing
             {
                 Model = shaderInput,
                 parentView = BlackboardSectionView,
-                updateSelectionStateAction = ViewModel.updateSelectionStateAction,
-                persistViewDataKeyAction = ViewModel.persistViewDataKeyAction
             };
 
             var blackboardItemController = new BlackboardItemController(shaderInput, shaderInputViewModel, DataStore);
@@ -183,8 +185,6 @@ namespace UnityEditor.ShaderGraph.Drawing
             {
                 Model = shaderInput,
                 parentView = BlackboardSectionView,
-                updateSelectionStateAction = ViewModel.updateSelectionStateAction,
-                persistViewDataKeyAction = ViewModel.persistViewDataKeyAction
             };
             var blackboardItemController = new BlackboardItemController(shaderInput, shaderInputViewModel, DataStore);
             m_BlackboardItemControllers.Add(shaderInput.guid, blackboardItemController);

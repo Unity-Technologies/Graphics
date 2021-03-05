@@ -158,6 +158,12 @@ namespace UnityEditor.ShaderGraph
 
         T m_Model;
         public T Model => m_Model;
+
+        // Cleanup delegate association before destruction
+        ~SGController()
+        {
+            DataStore.Subscribe -= ModelChanged;
+        }
     }
 
     abstract class SGViewController<ModelType, ViewModelType> : SGController<ModelType>

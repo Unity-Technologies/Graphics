@@ -67,6 +67,8 @@ namespace UnityEditor.ShaderGraph.Drawing
             ViewModel = viewModel;
             // Store ShaderInput in userData object
             userData = ViewModel.Model;
+            // Store the Model guid as viewDataKey as that is persistent
+            viewDataKey = ViewModel.Model.guid.ToString();
 
             var visualTreeAsset = Resources.Load<VisualTreeAsset>(k_UxmlTemplatePath);
             Assert.IsNotNull(visualTreeAsset);
@@ -89,7 +91,7 @@ namespace UnityEditor.ShaderGraph.Drawing
             // we handle this in controller if we change it through BlackboardPropertyView, but its possible to change through PropertyNodeView as well
             shaderInput.displayNameUpdateTrigger += newDisplayName => text = newDisplayName;
 
-            // HACK: Handles the upgrade fix for the old color property deprecation
+            // Handles the upgrade fix for the old color property deprecation
             if (shaderInput is AbstractShaderProperty property)
             {
                 property.onAfterVersionChange += () =>

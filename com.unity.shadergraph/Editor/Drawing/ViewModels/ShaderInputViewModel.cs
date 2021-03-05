@@ -20,10 +20,6 @@ namespace UnityEditor.ShaderGraph.Drawing
 
         internal Action<IGraphDataAction> requestModelChangeAction { get; set; }
 
-        internal Action<AttachToPanelEvent> updateSelectionStateAction { get; set; }
-
-        internal Action<DetachFromPanelEvent> persistViewDataKeyAction { get; set; }
-
         public void Reset()
         {
             IsSubGraph = false;
@@ -31,8 +27,6 @@ namespace UnityEditor.ShaderGraph.Drawing
             InputName = String.Empty;
             InputTypeName = String.Empty;
             requestModelChangeAction = null;
-            updateSelectionStateAction = null;
-            persistViewDataKeyAction = null;
         }
     }
 }

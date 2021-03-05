@@ -205,8 +205,6 @@ namespace UnityEditor.ShaderGraph.Drawing
 
             m_BlackboardPropertyView = new BlackboardPropertyView(ViewModel);
             m_BlackboardPropertyView.controller = this;
-            m_BlackboardPropertyView.RegisterCallback<AttachToPanelEvent>((evt) => ViewModel.updateSelectionStateAction(evt));
-            m_BlackboardPropertyView.RegisterCallback<DetachFromPanelEvent>((evt) => ViewModel.persistViewDataKeyAction(evt));
 
             m_BlackboardRowView = new SGBlackboardRow(m_BlackboardPropertyView, null);
             m_BlackboardRowView.expanded = SessionState.GetBool($"Unity.ShaderGraph.Input.{shaderInput.objectId}.isExpanded", false);
@@ -222,7 +220,7 @@ namespace UnityEditor.ShaderGraph.Drawing
             {
                 case AbstractShaderProperty shaderProperty:
                     ViewModel.InputTypeName = shaderProperty.GetPropertyTypeString();
-                    // HACK: Handles upgrade fix for deprecated old Color property
+                    // Handles upgrade fix for deprecated old Color property
                     shaderProperty.onBeforeVersionChange += (_) => graphData.owner.RegisterCompleteObjectUndo($"Change {shaderProperty.displayName} Version");
                     break;
                 case ShaderKeyword shaderKeyword:

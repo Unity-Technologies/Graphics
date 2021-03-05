@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Reflection;
 using UnityEditor.Graphing.Util;
 using UnityEngine;
 using UnityEditor.Graphing;
@@ -19,6 +20,8 @@ namespace UnityEditor.ShaderGraph.Drawing
 {
     sealed class MaterialGraphView : GraphView, IInspectable, ISelectionProvider
     {
+        readonly MethodInfo m_UndoRedoPerformedMethodInfo;
+
         public MaterialGraphView()
         {
             styleSheets.Add(Resources.Load<StyleSheet>("Styles/MaterialGraphView"));
@@ -30,6 +33,25 @@ namespace UnityEditor.ShaderGraph.Drawing
             RegisterCallback<DragUpdatedEvent>(OnDragUpdatedEvent);
             RegisterCallback<DragPerformEvent>(OnDragPerformEvent);
             RegisterCallback<MouseMoveEvent>(OnMouseMoveEvent);
+
+            // Get reference to GraphView assembly
+            Assembly graphViewAssembly = null;
+            foreach (var assembly in AppDomain.CurrentDomain.GetAssemblies())
+            {
+                var assemblyName = assembly.GetName().ToString();
+                if (assemblyName.Contains("GraphView"))
+                {
+                    graphViewAssembly = assembly;
+                }
+            }
+
+            Type graphViewType = graphViewAssembly?.GetType("UnityEditor.Experimental.GraphView.GraphView");
+            // Cache the method info for this function to be used through application lifetime
+            m_UndoRedoPerformedMethodInfo = graphViewType?.GetMethod("UndoRedoPerformed",
+                BindingFlags.FlattenHierarchy | BindingFlags.Instance | BindingFlags.NonPublic,
+                null,
+                new Type[] {},
+                null);
         }
 
         protected override bool canCutSelection
@@ -51,22 +73,14 @@ namespace UnityEditor.ShaderGraph.Drawing
         [Inspectable("GraphData", null)]
         public GraphData graph { get; private set; }
 
+        Action m_BlackboardFieldDropDelegate;
         internal Action blackboardFieldDropDelegate
         {
             get => m_BlackboardFieldDropDelegate;
             set => m_BlackboardFieldDropDelegate = value;
         }
 
-        internal Action<ShaderInput> blackboardItemRemovedDelegate
-        {
-            get => m_BlackboardItemRemovedDelegate;
-            set => m_BlackboardItemRemovedDelegate = value;
-        }
-
         public List<ISelectable> GetSelection => selection;
-
-        Action<ShaderInput> m_BlackboardItemRemovedDelegate;
-        Action m_BlackboardFieldDropDelegate;
 
         Action m_InspectorUpdateDelegate;
         Action m_PreviewManagerUpdateDelegate;
@@ -974,6 +988,12 @@ namespace UnityEditor.ShaderGraph.Drawing
 
             selection.Clear();
             m_InspectorUpdateDelegate?.Invoke();
+        }
+
+        // Updates selected graph elements after undo/redo
+        internal void RestorePersistentSelectionAfterUndoRedo()
+        {
+            m_UndoRedoPerformedMethodInfo?.Invoke(this, new object[] {});
         }
 
         #region Drag and drop

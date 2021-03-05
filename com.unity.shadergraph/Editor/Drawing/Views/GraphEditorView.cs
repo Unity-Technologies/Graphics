@@ -673,6 +673,10 @@ namespace UnityEditor.ShaderGraph.Drawing
 
             if (wasUndoRedoPerformed || m_InspectorView.doesInspectorNeedUpdate)
                 m_InspectorView.Update();
+
+            if (wasUndoRedoPerformed)
+                m_GraphView.RestorePersistentSelectionAfterUndoRedo();
+
             m_GroupHashSet.Clear();
 
             foreach (var node in m_Graph.removedNodes)

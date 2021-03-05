@@ -12,7 +12,9 @@ namespace UnityEditor.ShaderGraph.Drawing.Inspector
 {
     class InspectorView : GraphSubWindow
     {
-        const float inspectorUpdateInterval = 0.25f;
+        const float k_InspectorUpdateInterval = 0.25f;
+        const int k_InspectorElementLimit = 20;
+
         int currentlyInspectedElementsCount = 0;
 
         readonly List<Type> m_PropertyDrawerList = new List<Type>();
@@ -97,8 +99,8 @@ namespace UnityEditor.ShaderGraph.Drawing.Inspector
         public void TriggerInspectorUpdate(IEnumerable<ISelectable> selectionList)
         {
             // An optimization that prevents inspector updates from getting triggered every time a selection event is issued in the event of large selections
-            // Instead, relies on the periodic update checks in HandleGraphChanges() to pick up selection changes past a certain size
-            if (selectionList.Count() > 10)
+            // As beyond a certain number of selections
+            if (selectionList?.Count() > k_InspectorElementLimit)
                 return;
             doesInspectorNeedUpdate = true;
         }
@@ -150,8 +152,10 @@ namespace UnityEditor.ShaderGraph.Drawing.Inspector
 
         internal void HandleGraphChanges()
         {
-            float timePassed = (float)(EditorApplication.timeSinceStartup % inspectorUpdateInterval);
-            if(timePassed < 0.01f && selection.Count != currentlyInspectedElementsCount)
+            float timePassed = (float)(EditorApplication.timeSinceStartup % k_InspectorUpdateInterval);
+            // Don't update for selections beyond a certain amount as they are no longer visible in the inspector past a certain point and only cost performance as the user performs operations
+            // TODO: Have some user feedback in inspector when crossing this amount
+            if(timePassed < 0.01f && selection.Count < k_InspectorElementLimit && selection.Count != currentlyInspectedElementsCount)
                Update();
         }
 
