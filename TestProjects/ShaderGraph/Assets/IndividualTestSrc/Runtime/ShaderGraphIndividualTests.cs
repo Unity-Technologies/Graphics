@@ -6,6 +6,7 @@ using UnityEngine.TestTools;
 using UnityEngine.TestTools.Graphics;
 using UnityEngine.SceneManagement;
 using UnityEditor;
+using UnityEngine.Networking.PlayerConnection;
 
 public class ShaderGraphIndividualTests
 {
@@ -49,7 +50,17 @@ public class ShaderGraphIndividualTests
         if (mat != null)
             sphereRenderer.material = mat;
         Debug.Log(mat.name + " " + isPerspective + " " + settings.ToString());
-        ImageAssert.AreEqual(refImage, camera, settings);
+        try {
+            ImageAssert.AreEqual(refImage, camera, settings);
+        } catch(AssertionException) {
+            UpdatedTestAssetMessage updatedMessage = new UpdatedTestAssetMessage(/* TODO: Populate */);
+#if UNITY_EDITOR
+            // TODO: Write to file
+            Debug.Log("Writing to a file.....");
+#else
+            PlayerConnection.instance.Send(UpdatedTestAssetMessage.MessageId, updatedMessage.Serialize());
+#endif
+        }
 
     }
 

@@ -1,11 +1,11 @@
 {
   "dependencies": {
     "com.unity.addressables": {
-      "version": "1.16.15",
+      "version": "1.16.16",
       "depth": 1,
       "source": "registry",
       "dependencies": {
-        "com.unity.scriptablebuildpipeline": "1.15.1",
+        "com.unity.scriptablebuildpipeline": "1.15.2",
         "com.unity.modules.assetbundle": "1.0.0",
         "com.unity.modules.unitywebrequest": "1.0.0",
         "com.unity.modules.unitywebrequestassetbundle": "1.0.0"
@@ -76,7 +76,7 @@
       }
     },
     "com.unity.scriptablebuildpipeline": {
-      "version": "1.15.1",
+      "version": "1.16.1",
       "depth": 2,
       "source": "registry",
       "dependencies": {},
@@ -138,9 +138,9 @@
       "url": "https://packages.unity.com"
     },
     "com.unity.testframework.graphics": {
-      "version": "7.8.2-preview",
+      "version": "ssh://git@github.cds.internal.unity3d.com/unity/com.unity.testframework.graphics.git#ShaderGraph-changes",
       "depth": 0,
-      "source": "registry",
+      "source": "git",
       "dependencies": {
         "com.unity.xr.management": "3.2.15",
         "com.unity.external.test-protocol": "1.0.0-preview",
@@ -152,7 +152,7 @@
         "com.unity.addressables": "1.16.15",
         "com.unity.modules.imageconversion": "1.0.0"
       },
-      "url": "https://packages.unity.com"
+      "hash": "83f51b281e5537360fbbdec3a74b5ee004b14858"
     },
     "com.unity.testing.xr": {
       "version": "file:../../../com.unity.testing.xr",
