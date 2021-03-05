@@ -259,7 +259,8 @@ float4x4 InvertProjectionMatrix(float4x4 proj)
     det -= proj[0][0] * proj[2][1] * proj[1][2];
 
     float4x4 invProj = 0;
-    if (det * det < FLT_EPS)
+
+    if (det < FLT_EPS)
         return invProj;
 
     det = 1.0F / det;
