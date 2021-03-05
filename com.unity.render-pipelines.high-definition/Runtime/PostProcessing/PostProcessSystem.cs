@@ -2510,7 +2510,7 @@ namespace UnityEngine.Rendering.HighDefinition
                         cmd.SetGlobalVector(HDShaderIDs._FlareData0, flareData0);
                         cmd.SetGlobalVector(HDShaderIDs._FlareData2, new Vector4(screenPos.x, screenPos.y, localSize.x, localSize.y));
                         Vector2 rayOff = GetLensFlareRayOffset(screenPos, position, globalCos0, globalSin0);
-                        cmd.SetGlobalVector(HDShaderIDs._FlareData3, new Vector4(rayOff.x, rayOff.y, 1.0f / (float)element.sideCount, element.edgeOffset));
+                        cmd.SetGlobalVector(HDShaderIDs._FlareData3, new Vector4(rayOff.x * element.translationScale.x, rayOff.y * element.translationScale.y, 1.0f / (float)element.sideCount, element.edgeOffset));
                         cmd.SetGlobalVector(HDShaderIDs._FlareColor, curColor);
 
                         cmd.DrawProcedural(Matrix4x4.identity, usedMaterial, 0, MeshTopology.Quads, 6, 1, null);
