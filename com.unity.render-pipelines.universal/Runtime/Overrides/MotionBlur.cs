@@ -30,7 +30,7 @@ namespace UnityEngine.Rendering.Universal
         [Tooltip("Sets the maximum length, as a fraction of the screen's full resolution, that the velocity resulting from Camera rotation can have. Lower values will improve performance.")]
         public ClampedFloatParameter clamp = new ClampedFloatParameter(0.05f, 0f, 0.2f);
 
-        public bool IsActive() => intensity.value > 0f && mode == MotionBlurMode.CameraOnly;
+        public bool IsActive() => intensity.value > 0f && mode.value == MotionBlurMode.CameraOnly;
 
         public bool IsTileCompatible() => false;
     }
