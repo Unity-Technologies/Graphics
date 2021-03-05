@@ -10,9 +10,9 @@ The following is a list of features Unity added to version 10 of the High Defini
 
 This version of HDRP includes support for the Playstation 5 platform. For more information, see [building for consoles](Building-For-Consoles.md).
 
-### Added support for the Game Core Xbox Series platform and Game Core Xbox One 
+### Added support for the Game Core Xbox Series platform and Game Core Xbox One
 
-This version of HDRP includes support for the Game Core Xbox Series platform as well the support of Game Core for  Xbox One. For more information, see [building for consoles](Building-For-Consoles.md).
+This version of HDRP includes support for the Game Core Xbox Series platform as well as support for Game Core for Xbox One. For more information, see [building for consoles](Building-For-Consoles.md).
 
 ### IES Profiles and light cookies
 
