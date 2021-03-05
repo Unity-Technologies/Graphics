@@ -2364,20 +2364,16 @@ namespace UnityEngine.Rendering.HighDefinition
                 float distanceAttenuation = comp.distanceAttenuationCurve.length > 0 ? comp.distanceAttenuationCurve.Evaluate(coefDistSample) : 1.0f;
                 float scaleByDistance = comp.scaleByDistanceCurve.length >= 1 ? comp.scaleByDistanceCurve.Evaluate(coefScaleSample) : 1.0f;
 
-                Color colorModulation = Color.white;
+                Color globalColorModulation = Color.white;
 
                 Light light = comp.GetComponent<Light>();
-                if (light != null && comp.attenuationByLightShape)
+                if (light != null)
                 {
-                    if (light.useColorTemperature)
-                        colorModulation = light.color * Mathf.CorrelatedColorTemperatureToRGB(light.colorTemperature);
-                    else
-                        colorModulation = light.color;
-
-                    colorModulation *= GetLensFlareLightAttenuation(light, cam, -diffToObject.normalized);
+                    if (comp.attenuationByLightShape)
+                        globalColorModulation *= GetLensFlareLightAttenuation(light, cam, -diffToObject.normalized);
                 }
 
-                colorModulation *= distanceAttenuation;
+                globalColorModulation *= distanceAttenuation;
 
                 foreach (SRPLensFlareDataElement element in data.elements)
                 {
@@ -2386,6 +2382,15 @@ namespace UnityEngine.Rendering.HighDefinition
                         element.localIntensity <= 0.0f ||
                         element.count <= 0)
                         continue;
+
+                    Color colorModulation = globalColorModulation;
+                    if (light != null && element.modulateByLightColor)
+                    {
+                        if (light.useColorTemperature)
+                            colorModulation *= light.color * Mathf.CorrelatedColorTemperatureToRGB(light.colorTemperature);
+                        else
+                            colorModulation *= light.color;
+                    }
 
                     Color curColor = colorModulation;
                     Vector2 screenPos = new Vector2(2.0f * viewportPos.x - 1.0f, 1.0f - 2.0f * viewportPos.y);
@@ -2446,20 +2451,30 @@ namespace UnityEngine.Rendering.HighDefinition
                     {
                         cmd.DisableShaderKeyword("FLARE_GLOW");
                         cmd.DisableShaderKeyword("FLARE_IRIS");
+                        cmd.DisableShaderKeyword("FLARE_SHIMMER");
                     }
                     else if (element.flareType == SRPLensFlareType.Glow)
                     {
                         cmd.EnableShaderKeyword("FLARE_GLOW");
                         cmd.DisableShaderKeyword("FLARE_IRIS");
+                        cmd.DisableShaderKeyword("FLARE_SHIMMER");
                     }
                     else if (element.flareType == SRPLensFlareType.Iris)
                     {
                         cmd.DisableShaderKeyword("FLARE_GLOW");
                         cmd.EnableShaderKeyword("FLARE_IRIS");
+                        cmd.DisableShaderKeyword("FLARE_SHIMMER");
+                    }
+                    else if (element.flareType == SRPLensFlareType.Shimmer)
+                    {
+                        cmd.DisableShaderKeyword("FLARE_GLOW");
+                        cmd.DisableShaderKeyword("FLARE_IRIS");
+                        cmd.EnableShaderKeyword("FLARE_SHIMMER");
                     }
 
                     if (element.flareType == SRPLensFlareType.Glow ||
-                        element.flareType == SRPLensFlareType.Iris)
+                        element.flareType == SRPLensFlareType.Iris ||
+                        element.flareType == SRPLensFlareType.Shimmer)
                     {
                         if (element.inverseSDF)
                         {

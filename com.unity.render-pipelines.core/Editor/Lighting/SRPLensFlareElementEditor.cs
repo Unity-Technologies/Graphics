@@ -224,7 +224,7 @@ namespace UnityEditor.Rendering
                         if ((tmpBool = EditorGUI.Toggle(rect, Styles.preserveAspectRatio, preserveAspectRatioProp.boolValue)) != preserveAspectRatioProp.boolValue)
                             preserveAspectRatioProp.boolValue = tmpBool;
                     }
-                    else if (newType == SRPLensFlareType.Glow || newType == SRPLensFlareType.Iris)
+                    else if (newType == SRPLensFlareType.Glow || newType == SRPLensFlareType.Iris || newType == SRPLensFlareType.Shimmer)
                     {
                         SerializedProperty fallOffProp = property.FindPropertyRelative("fallOff");
                         SerializedProperty edgeOffsetProp = property.FindPropertyRelative("edgeOffset");

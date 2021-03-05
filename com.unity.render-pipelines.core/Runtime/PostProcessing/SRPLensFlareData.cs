@@ -67,7 +67,11 @@ namespace UnityEngine
         /// <summary>
         /// Iris
         /// </summary>
-        Iris
+        Iris,
+        /// <summary>
+        /// Shimmer
+        /// </summary>
+        Shimmer
     }
 
     /// <summary>
