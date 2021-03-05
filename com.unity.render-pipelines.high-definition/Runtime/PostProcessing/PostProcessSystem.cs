@@ -2494,7 +2494,7 @@ namespace UnityEngine.Rendering.HighDefinition
                         cmd.SetGlobalTexture(HDShaderIDs._FlareTex, element.lensFlareTexture);
 
                     float usedSDFRoundness = element.edgeOffset*element.sdfRoundness;
-                    cmd.SetGlobalVector(HDShaderIDs._FlareData1, new Vector4(comp.occlusionRadius, comp.sampleCount, screenPosZ.z, element.fallOff));
+                    cmd.SetGlobalVector(HDShaderIDs._FlareData1, new Vector4(comp.occlusionRadius, comp.sampleCount, screenPosZ.z, Mathf.Exp(element.fallOff)));
                     cmd.SetGlobalVector(HDShaderIDs._FlareData4, new Vector4(usedSDFRoundness, (float)element.frequency, 0.0f, 0.0f));
                     if (element.count == 1)
                     {
