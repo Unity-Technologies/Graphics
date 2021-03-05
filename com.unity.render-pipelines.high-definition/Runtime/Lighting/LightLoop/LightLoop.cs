@@ -842,6 +842,7 @@ namespace UnityEngine.Rendering.HighDefinition
         DynamicArray<ProcessedLightData> m_ProcessedLightData = new DynamicArray<ProcessedLightData>();
         DynamicArray<ProcessedProbeData> m_ProcessedReflectionProbeData = new DynamicArray<ProcessedProbeData>();
         DynamicArray<ProcessedProbeData> m_ProcessedPlanarProbeData = new DynamicArray<ProcessedProbeData>();
+        DynamicArray<bool> m_ProcessedShadowLightList = new DynamicArray<bool>();
 
         static readonly Matrix4x4 s_FlipMatrixLHSRHS = Matrix4x4.Scale(new Vector3(1, 1, -1));
 
@@ -2667,6 +2668,7 @@ namespace UnityEngine.Rendering.HighDefinition
             // Lights are processed in order, so we don't discards light based on their importance but based on their ordering in visible lights list.
 
             m_ProcessedLightData.Resize(cullResults.visibleLights.Length);
+            m_ProcessedShadowLightList.Resize(cullResults.visibleLights.Length);
 
             int maxLightCount      = m_MaxDirectionalLightsOnScreen + m_MaxPunctualLightsOnScreen + m_MaxAreaLightsOnScreen;
             int includedLightCount = 0;
@@ -2681,6 +2683,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
                 // Then we compute all light data that will be reused for the rest of the light loop.
                 ref ProcessedLightData processedData = ref m_ProcessedLightData[lightIndex];
+                m_ProcessedShadowLightList[lightIndex] = false;
                 PreprocessLightData(ref processedData, light, hdCamera);
 
                 // Then we can reject lights based on processed data.
@@ -2873,8 +2876,9 @@ namespace UnityEngine.Rendering.HighDefinition
                     int shadowIndex = -1;
 
                     // Manage shadow requests
-                    if (additionalLightData.WillRenderShadowMap())
+                    if (additionalLightData.WillRenderShadowMap() && !m_ProcessedShadowLightList[lightIndex])
                     {
+                        m_ProcessedShadowLightList[lightIndex] = true;
                         int shadowRequestCount;
                         shadowIndex = additionalLightData.UpdateShadowRequest(hdCamera, m_ShadowManager, hdShadowSettings, light, cullResults, lightIndex, m_CurrentDebugDisplaySettings.data.lightingDebugSettings, shadowFilteringQuality, out shadowRequestCount);
 
