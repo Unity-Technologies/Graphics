@@ -156,6 +156,13 @@ namespace UnityEngine.Rendering.HighDefinition
             public ComputeShader bakeCloudTextureCS;
             [Reload("Runtime/Sky/CloudSystem/CloudLayer/BakeCloudShadows.compute")]
             public ComputeShader bakeCloudShadowsCS;
+
+            // Volumetric Clouds
+            [Reload("Runtime/Lighting/VolumetricLighting/VolumetricClouds.compute")]
+            public ComputeShader volumetricCloudsCS;
+            [Reload("Editor/Lighting/VolumetricLighting/CloudMapGenerator.compute")]
+            public ComputeShader volumetricCloudMapGeneratorCS;
+
             // Material
             [Reload("Runtime/Material/PreIntegratedFGD/PreIntegratedFGD_GGXDisneyDiffuse.shader")]
             public Shader preIntegratedFGD_GGXDisneyDiffusePS;
@@ -383,6 +390,14 @@ namespace UnityEngine.Rendering.HighDefinition
             public Texture2D rankingTile256SPP;
             [Reload("Runtime/RenderPipelineResources/Texture/CoherentNoise/ScramblingTile256SPP.png")]
             public Texture2D scramblingTile256SPP;
+
+            // Clouds textures
+            [Reload("Runtime/RenderPipelineResources/Texture/VolumetricClouds/CloudLutRainAO.png")]
+            public Texture2D cloudLutRainAO;
+            [Reload("Runtime/RenderPipelineResources/Texture/VolumetricClouds/WorleyNoise128RGBA.png")]
+            public Texture3D worleyNoise128RGBA;
+            [Reload("Runtime/RenderPipelineResources/Texture/VolumetricClouds/WorleyNoise32RGB.png")]
+            public Texture3D worleyNoise32RGB;
 
             // Post-processing
             [Reload(new[]

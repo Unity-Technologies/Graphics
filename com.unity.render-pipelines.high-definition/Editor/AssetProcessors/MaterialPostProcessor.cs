@@ -237,6 +237,7 @@ namespace UnityEditor.Rendering.HighDefinition
             FixIncorrectEmissiveColorSpace,
             ExposeRefraction,
             MetallicRemapping,
+            ForceForwardEmissiveForDeferred,
         };
 
         #region Migrations
@@ -674,6 +675,16 @@ namespace UnityEditor.Rendering.HighDefinition
                 serializedMaterial.ApplyModifiedProperties();
 
                 material.SetFloat(kMetallicRemapMax, metallicScale);
+            }
+        }
+
+        static void ForceForwardEmissiveForDeferred(Material material, HDShaderUtils.ShaderID id)
+        {
+            // Force Forward emissive for deferred pass is only setup for Lit shader
+            if (id == HDShaderUtils.ShaderID.SG_Lit || id == HDShaderUtils.ShaderID.Lit || id == HDShaderUtils.ShaderID.LitTesselation
+                || id == HDShaderUtils.ShaderID.LayeredLit || id == HDShaderUtils.ShaderID.LayeredLitTesselation)
+            {
+                HDShaderUtils.ResetMaterialKeywords(material);
             }
         }
 

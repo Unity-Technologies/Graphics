@@ -305,9 +305,6 @@ namespace UnityEngine.Rendering.HighDefinition
         int m_MaxEnvLightsOnScreen;
         int m_MaxPlanarReflectionOnScreen;
 
-        Texture2DArray  m_DefaultTexture2DArray;
-        Cubemap         m_DefaultTextureCube;
-
         internal class LightLoopTextureCaches
         {
             // Structure for cookies used by directional and spotlights
@@ -394,7 +391,7 @@ namespace UnityEngine.Rendering.HighDefinition
             }
         }
 
-        // TODO RENDERGRAPH: When we remove the old pass, we need to remove/refactor this class
+        // TODO RENDERGRAPH: When we remove the old path, we need to remove/refactor this class
         // With render graph it's only useful for 3 buffers and a boolean value.
         class TileAndClusterData
         {
@@ -628,6 +625,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
         // Directional light
         Light m_CurrentSunLight;
+        int m_CurrentSunLightIndex;
         int m_CurrentShadowSortedSunLightIndex = -1;
         HDAdditionalLightData m_CurrentSunLightAdditionalLightData;
         DirectionalLightData m_CurrentSunLightDirectionalLightData;
@@ -843,15 +841,6 @@ namespace UnityEngine.Rendering.HighDefinition
             for (int i = 0; i < LightDefinitions.s_NumFeatureVariants; ++i)
                 s_variantNames[i] = "VARIANT" + i;
 
-            m_DefaultTexture2DArray = new Texture2DArray(1, 1, 1, TextureFormat.ARGB32, false);
-            m_DefaultTexture2DArray.hideFlags = HideFlags.HideAndDontSave;
-            m_DefaultTexture2DArray.name = CoreUtils.GetTextureAutoName(1, 1, TextureFormat.ARGB32, depth: 1, dim: TextureDimension.Tex2DArray, name: "LightLoopDefault");
-            m_DefaultTexture2DArray.SetPixels32(new Color32[1] { new Color32(128, 128, 128, 128) }, 0);
-            m_DefaultTexture2DArray.Apply();
-
-            m_DefaultTextureCube = new Cubemap(16, TextureFormat.ARGB32, false);
-            m_DefaultTextureCube.Apply();
-
             // Setup shadow algorithms
             var shadowParams = asset.currentPlatformRenderPipelineSettings.hdShadowInitParams;
             var shadowKeywords = new[] {"SHADOW_LOW", "SHADOW_MEDIUM", "SHADOW_HIGH"};
@@ -876,10 +865,6 @@ namespace UnityEngine.Rendering.HighDefinition
                 Shader.EnableKeyword("SCREEN_SPACE_SHADOWS_OFF");
             }
 
-            if (m_Asset.currentPlatformRenderPipelineSettings.supportProbeVolume)
-            {
-                ProbeReferenceVolume.instance.InitProbeReferenceVolume(ProbeReferenceVolume.s_ProbeIndexPoolAllocationSize, m_Asset.currentPlatformRenderPipelineSettings.probeVolumeMemoryBudget, ProbeReferenceVolumeProfile.s_DefaultIndexDimensions);
-            }
             InitShadowSystem(asset, defaultResources);
 
             s_lightVolumes = new DebugLightVolumes();
@@ -895,9 +880,6 @@ namespace UnityEngine.Rendering.HighDefinition
             s_lightVolumes.ReleaseData();
 
             DeinitShadowSystem();
-
-            CoreUtils.Destroy(m_DefaultTexture2DArray);
-            CoreUtils.Destroy(m_DefaultTextureCube);
 
             m_TextureCaches.Cleanup();
             m_LightLoopLightData.Cleanup();
@@ -1195,6 +1177,7 @@ namespace UnityEngine.Rendering.HighDefinition
                     m_ScreenSpaceShadowsUnion.Add(additionalLightData);
                 }
                 m_CurrentSunLight = lightComponent;
+                m_CurrentSunLightIndex = m_lightList.directionalLights.Count;
                 m_CurrentSunLightAdditionalLightData = additionalLightData;
                 m_CurrentSunLightDirectionalLightData = lightData;
                 m_CurrentShadowSortedSunLightIndex = sortedIndex;
@@ -1245,7 +1228,11 @@ namespace UnityEngine.Rendering.HighDefinition
             lightData.surfaceTint     = (Vector3)(Vector4)additionalLightData.surfaceTint;
 
             // Fallback to the first non shadow casting directional light.
-            m_CurrentSunLight = m_CurrentSunLight == null ? lightComponent : m_CurrentSunLight;
+            if (m_CurrentSunLight == null)
+            {
+                m_CurrentSunLight = lightComponent;
+                m_CurrentSunLightIndex = m_lightList.directionalLights.Count;
+            }
 
             m_lightList.directionalLights.Add(lightData);
         }
@@ -2592,6 +2579,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
                 // We need to properly reset this here otherwise if we go from 1 light to no visible light we would keep the old reference active.
                 m_CurrentSunLight = null;
+                m_CurrentSunLightIndex = 0;
                 m_CurrentSunLightAdditionalLightData = null;
                 m_CurrentShadowSortedSunLightIndex = -1;
                 m_DebugSelectedLightShadowIndex = -1;
@@ -2691,6 +2679,11 @@ namespace UnityEngine.Rendering.HighDefinition
 
                     Debug.Assert(m_lightList.lightsPerView[viewIndex].lightVolumes.Count == m_TotalLightCount);
                     m_lightList.lightsPerView[0].lightVolumes.AddRange(m_lightList.lightsPerView[viewIndex].lightVolumes);
+                }
+
+                if (HasVolumetricCloudsShadows(hdCamera))
+                {
+                    m_lightList.directionalLights[m_CurrentSunLightIndex] = OverrideDirectionalLightDataForVolumetricCloudsShadows(hdCamera, m_lightList.directionalLights[m_CurrentSunLightIndex]);
                 }
 
                 PushLightDataGlobalParams(cmd);

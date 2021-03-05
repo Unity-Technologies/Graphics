@@ -81,6 +81,9 @@ namespace UnityEditor.VFX
         {
             serializedObject.Update();
 
+            var referenceContext = serializedObject.targetObject as VFXContext;
+            GUI.enabled = referenceContext.GetResource().IsAssetEditable();
+
             EditorGUI.BeginChangeCheck();
             EditorGUILayout.PropertyField(m_LoopDurationProperty);
             EditorGUILayout.PropertyField(m_LoopCountProperty);
