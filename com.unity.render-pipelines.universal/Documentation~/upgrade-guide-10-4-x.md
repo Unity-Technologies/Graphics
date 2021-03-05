@@ -1,10 +1,10 @@
-# Upgrading to version 10.3.x of the Universal Render Pipeline
+# Upgrading to version 10.4.x of the Universal Render Pipeline
 
-This page describes how to upgrade from an older version of the Universal Render Pipeline (URP) to version 10.3.x.
+This page describes how to upgrade from an older version of the Universal Render Pipeline (URP) to version 10.4.x.
 
 ## Upgrading from URP 10.0.x–10.1.x
 
-1. URP 10.3.x does not have breaking changes compared with URP 10.0.x–10.1.x. To upgrade URP to version 10.3.x, install the new version of the package.
+1. URP 10.4.x does not have breaking changes compared with URP 10.0.x–10.1.x. To upgrade URP to version 10.4.x, install the new version of the package.
 
 ## Upgrading from URP 7.2.x and later releases
 
