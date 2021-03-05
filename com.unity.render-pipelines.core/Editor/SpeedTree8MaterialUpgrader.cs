@@ -5,7 +5,7 @@ using System;
 namespace UnityEditor.Rendering
 {
 	/// <summary>
-	/// Base material Upgrader for SpeedTree8. Overload in render pipelines as needed.
+	/// Material upgrader and relevant utilities for SpeedTree8.
 	/// </summary>
 	public class SpeedTree8MaterialUpgrader : MaterialUpgrader
     {
@@ -30,32 +30,30 @@ namespace UnityEditor.Rendering
             "_WINDQUALITY_BEST",
             "_WINDQUALITY_PALM"
         };
-
+        /// <summary>
+        /// Creates a material upgrader with only the renames in common between HD and Universal.
+        /// </summary>
+        /// <param name="sourceShaderName">Original ST8 shader name.</param>
+        /// <param name="destShaderName">New ST8 shader name.</param>
+        /// <param name="finalizer">A delegate that postprocesses the material as needed by the render pipeline.</param>
         public SpeedTree8MaterialUpgrader(string sourceShaderName, string destShaderName, MaterialFinalizer finalizer = null)
         {
             RenameShader(sourceShaderName, destShaderName, finalizer);
-            RenameFloat("_BillboardKwToggle", "EFFECT_BILLBOARD");
             RenameFloat("_WindQuality", "_WINDQUALITY");
-            RenameFloat("_Cutoff", "_AlphaClipThreshold");
-            // Currently not implemented in SG RenameFloat("_SubsurfaceKwToggle", "EFFECT_SUBSURFACE");
             RenameFloat("_TwoSided", "_CullMode"); // Currently only used in HD. Update this once URP per-material cullmode is enabled via shadergraph. 
         }
-
-        public virtual void SetupKeywordsAndProperties(Material material, int windQuality = -1)
+        /// <summary>
+        /// Set default property values for SpeedTree8 properties in common between HD and Universal and not initialized by the Lit subtarget.
+        /// </summary>
+        /// <param name="mat">SpeedTree8 material.</param>
+        public static void SetSpeedTree8MaterialDefaults(Material mat)
         {
-            if (material != null)
-            {
-                if (material.shader.name.Equals(targetShaderName) || targetShaderName.Equals("*"))
-                {
-                    windQuality = GetWindQuality(material, windQuality);
-                    SetWindQuality(material, windQuality);
-                    if (material.name.Contains("Billboard"))
-                        SetBillboard(material);
-                }
-            }
+            if (mat == null)
+                return;
+            mat.SetFloat("_AlphaClipThreshold", 0.33f); // ST8 assets don't have a cutoff set by default, but the ST7 default cutoff is 0.33f.
         }
 
-        public static int GetWindQuality(Material material, int windQuality = -1)
+        private static int GetWindQuality(Material material, int windQuality = -1)
         {
             // Conservative wind quality priority:
             // input WindQuality > enabled keyword > _WindQuality float value
@@ -75,15 +73,24 @@ namespace UnityEditor.Rendering
 
         private static void ClearWindKeywords(Material material)
         {
+            if (material == null)
+                return;
             for (int i = 0; i < (int)WindQuality.Count; i++)
             {
                 material.DisableKeyword(WindQualityString[i]);
             }
         }
-
+        /// <summary>
+        /// Overwrite wind quality, including associated properties and keywords, on a SpeedTree8 material.
+        /// </summary>
+        /// <param name="material">SpeedTree8 material to update.</param>
+        /// <param name="windQuality">Wind quality to set.</param>
         public static void SetWindQuality(Material material, int windQuality)
         {
             Debug.Assert(WindIntValid(windQuality), "Attempting to set invalid wind quality on material " + material.name);
+
+            if (material == null)
+                return;
 
             if (windQuality != GetWindQualityFromKeywords(material.shaderKeywords))
             {
@@ -95,28 +102,7 @@ namespace UnityEditor.Rendering
             material.SetFloat("_WINDQUALITY", windQuality); // The actual name of the keyword enum for the shadergraph
         }
 
-        public static bool SetBillboard(Material material)
-        {
-            // Billboard priority:
-            // enabled keyword > EFFECT_BILLBOARD float value
-            bool billboardEnabled = material.IsKeywordEnabled("EFFECT_BILLBOARD")
-                || material.GetFloat("EFFECT_BILLBOARD") != 0;
-
-            if (billboardEnabled)
-            {
-                material.EnableKeyword("EFFECT_BILLBOARD");
-                material.SetFloat("EFFECT_BILLBOARD", 1);
-            }
-            else
-            {
-                material.DisableKeyword("EFFECT_BILLBOARD");
-                material.SetFloat("EFFECT_BILLBOARD", 0);
-            }
-
-            return billboardEnabled;
-        }
-
-        internal static int GetWindQualityFromKeywords(string[] matKws)
+        private static int GetWindQualityFromKeywords(string[] matKws)
         {
             foreach (string kw in matKws)
             {
