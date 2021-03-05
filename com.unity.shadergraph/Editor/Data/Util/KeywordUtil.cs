@@ -89,7 +89,7 @@ namespace UnityEditor.ShaderGraph
             string scopeString = keywordScope.ToDeclarationSuffix();
 
             // check the active shader stages
-            if (keywordStages == KeywordShaderStage.All)
+            if ((keywordStages == KeywordShaderStage.All) || (keywordStages == 0))  // 0 is a default, so assume that means ALL
             {
                 PragmaStringAction($"#pragma {definitionString}{scopeString} {keywordVariantsString}");
             }

@@ -13,9 +13,12 @@ namespace UnityEditor.Rendering.Universal
         public static readonly string Surface = "_Surface";
         public static readonly string Blend = "_Blend";
         public static readonly string AlphaClip = "_AlphaClip";
+        public static readonly string SrcBlendSG = "_SrcBlendURP";  // for ShaderGraph
         public static readonly string SrcBlend = "_SrcBlend";
+        public static readonly string DstBlendSG = "_DstBlendURP";  // for ShaderGraph
         public static readonly string DstBlend = "_DstBlend";
         public static readonly string ZWrite = "_ZWrite";
+        public static readonly string ZWriteSG = "_ZWriteURP";      // for ShaderGraph
         public static readonly string Cull = "_Cull";
         public static readonly string CastShadows = "_CastShadows";
         public static readonly string ReceiveShadows = "_ReceiveShadows";

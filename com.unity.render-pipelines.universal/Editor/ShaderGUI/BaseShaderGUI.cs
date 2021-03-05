@@ -435,6 +435,31 @@ namespace UnityEditor
             shaderFunc?.Invoke(material);
         }
 
+        public static void SetMaterialSrcDstBlendProperties(Material material, UnityEngine.Rendering.BlendMode srcBlend, UnityEngine.Rendering.BlendMode dstBlend)
+        {
+            // we check for the SG property first
+            // if it is present, we do not set the non-SG version (as it would collide with HDRP's properties)
+            if (material.HasProperty(Property.SrcBlendSG))
+                material.SetFloat(Property.SrcBlendSG, (float)srcBlend);
+            else if (material.HasProperty(Property.SrcBlend))
+                material.SetFloat(Property.SrcBlend, (float)srcBlend);
+
+            if (material.HasProperty(Property.DstBlendSG))
+                material.SetFloat(Property.DstBlendSG, (float)dstBlend);
+            else if (material.HasProperty(Property.DstBlend))
+                material.SetFloat(Property.DstBlend, (float)dstBlend);
+        }
+
+        public static void SetMaterialZWriteProperty(Material material, bool zwriteEnabled)
+        {
+            // we check for the SG property first
+            // if it is present, we do not set the non-SG version (as it would collide with HDRP's properties)
+            if (material.HasProperty(Property.ZWriteSG))
+                material.SetFloat(Property.ZWriteSG, zwriteEnabled ? 1.0f : 0.0f);
+            else if (material.HasProperty(Property.ZWrite))
+                material.SetFloat(Property.ZWrite, zwriteEnabled ? 1.0f : 0.0f);
+        }
+
         public static void SetupMaterialBlendMode(Material material)
         {
             if (material == null)
@@ -463,9 +488,8 @@ namespace UnityEditor
                     }
 
                     material.renderQueue += material.HasProperty("_QueueOffset") ? (int)material.GetFloat("_QueueOffset") : 0;
-                    material.SetFloat("_SrcBlend", (float)UnityEngine.Rendering.BlendMode.One);
-                    material.SetFloat("_DstBlend", (float)UnityEngine.Rendering.BlendMode.Zero);
-                    material.SetFloat("_ZWrite", 1.0f);
+                    SetMaterialSrcDstBlendProperties(material, UnityEngine.Rendering.BlendMode.One, UnityEngine.Rendering.BlendMode.Zero);
+                    SetMaterialZWriteProperty(material, true);
                     material.DisableKeyword("_ALPHAPREMULTIPLY_ON");
                     material.SetShaderPassEnabled("ShadowCaster", true);
                 }
@@ -477,23 +501,27 @@ namespace UnityEditor
                     switch (blendMode)
                     {
                         case BlendMode.Alpha:
-                            material.SetFloat("_SrcBlend", (float)UnityEngine.Rendering.BlendMode.SrcAlpha);
-                            material.SetFloat("_DstBlend", (float)UnityEngine.Rendering.BlendMode.OneMinusSrcAlpha);
+                            SetMaterialSrcDstBlendProperties(material,
+                                UnityEngine.Rendering.BlendMode.SrcAlpha,
+                                UnityEngine.Rendering.BlendMode.OneMinusSrcAlpha);
                             material.DisableKeyword("_ALPHAPREMULTIPLY_ON");
                             break;
                         case BlendMode.Premultiply:
-                            material.SetFloat("_SrcBlend", (float)UnityEngine.Rendering.BlendMode.One);
-                            material.SetFloat("_DstBlend", (float)UnityEngine.Rendering.BlendMode.OneMinusSrcAlpha);
+                            SetMaterialSrcDstBlendProperties(material,
+                                UnityEngine.Rendering.BlendMode.One,
+                                UnityEngine.Rendering.BlendMode.OneMinusSrcAlpha);
                             material.EnableKeyword("_ALPHAPREMULTIPLY_ON");
                             break;
                         case BlendMode.Additive:
-                            material.SetFloat("_SrcBlend", (float)UnityEngine.Rendering.BlendMode.SrcAlpha);
-                            material.SetFloat("_DstBlend", (float)UnityEngine.Rendering.BlendMode.One);
+                            SetMaterialSrcDstBlendProperties(material,
+                                UnityEngine.Rendering.BlendMode.SrcAlpha,
+                                UnityEngine.Rendering.BlendMode.One);
                             material.DisableKeyword("_ALPHAPREMULTIPLY_ON");
                             break;
                         case BlendMode.Multiply:
-                            material.SetFloat("_SrcBlend", (float)UnityEngine.Rendering.BlendMode.DstColor);
-                            material.SetFloat("_DstBlend", (float)UnityEngine.Rendering.BlendMode.Zero);
+                            SetMaterialSrcDstBlendProperties(material,
+                                UnityEngine.Rendering.BlendMode.DstColor,
+                                UnityEngine.Rendering.BlendMode.Zero);
                             material.DisableKeyword("_ALPHAPREMULTIPLY_ON");
                             material.EnableKeyword("_ALPHAMODULATE_ON");
                             break;
@@ -501,7 +529,7 @@ namespace UnityEditor
 
                     // General Transparent Material Settings
                     material.SetOverrideTag("RenderType", "Transparent");
-                    material.SetFloat("_ZWrite", 0.0f);
+                    SetMaterialZWriteProperty(material, false);
                     material.renderQueue = (int)RenderQueue.Transparent;
                     material.renderQueue += material.HasProperty("_QueueOffset") ? (int)material.GetFloat("_QueueOffset") : 0;
                     material.SetShaderPassEnabled("ShadowCaster", false);

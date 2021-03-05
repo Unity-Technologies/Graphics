@@ -131,9 +131,9 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
             collector.AddFloatProperty(Property.Surface, (float)target.surfaceType);
             collector.AddFloatProperty(Property.Blend, (float)target.alphaMode);
             collector.AddFloatProperty(Property.AlphaClip, target.alphaClip ? 1.0f : 0.0f);
-            collector.AddFloatProperty(Property.SrcBlend, 1.0f);    // always set by material inspector (TODO : get src/dst blend and set here?)
-            collector.AddFloatProperty(Property.DstBlend, 0.0f);    // always set by material inspector
-            collector.AddFloatProperty(Property.ZWrite, (target.surfaceType == SurfaceType.Opaque) ? 1.0f : 0.0f);
+            collector.AddFloatProperty(Property.SrcBlendSG, 1.0f);    // always set by material inspector (TODO : get src/dst blend and set here?)
+            collector.AddFloatProperty(Property.DstBlendSG, 0.0f);    // always set by material inspector
+            collector.AddFloatProperty(Property.ZWriteSG, (target.surfaceType == SurfaceType.Opaque) ? 1.0f : 0.0f);
             collector.AddFloatProperty(Property.Cull, (float)(target.twoSided ? CullMode.Off : CullMode.Back));
             collector.AddFloatProperty(Property.QueueOffset, 0.0f);
         }

@@ -467,29 +467,29 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
         public static class Uniforms
         {
             // TODO: this is a pure copy of HDRP uniforms, renamed -- some might not be needed in URP
-            public static readonly string srcBlend = "[_SrcBlend]";
-            public static readonly string dstBlend = "[_DstBlend]";
+            public static readonly string srcBlend = "[" + Property.SrcBlendSG + "]";
+            public static readonly string dstBlend = "[" + Property.DstBlendSG + "]";
             //public static readonly string alphaSrcBlend = "[_AlphaSrcBlend]";
             //public static readonly string alphaDstBlend = "[_AlphaDstBlend]";
             //public static readonly string alphaToMask = "[_AlphaToMask]";
-            public static readonly string cullMode = "[_Cull]";
+            public static readonly string cullMode = "[" + Property.Cull + "]";
             //public static readonly string cullModeForward = "[_CullModeForward]";
-            public static readonly string zTest = "[_ZTest]";
+            //public static readonly string zTest = "[_ZTest]";
             //public static readonly string zTestDepthEqualForOpaque = "[_ZTestDepthEqualForOpaque]";
             //public static readonly string zTestTransparent = "[_ZTestTransparent]";
             //public static readonly string zTestGBuffer = "[_ZTestGBuffer]";
-            public static readonly string zWrite = "[_ZWrite]";
-            public static readonly string zClip = "[_ZClip]";
+            public static readonly string zWrite = "[" + Property.ZWriteSG + "]";
+            //public static readonly string zClip = "[_ZClip]";
             //public static readonly string stencilWriteMaskDepth = "[_StencilWriteMaskDepth]";
-            public static readonly string stencilRefDepth = "[_StencilRefDepth]";
-            public static readonly string stencilWriteMaskMV = "[_StencilWriteMaskMV]";
-            public static readonly string stencilRefMV = "[_StencilRefMV]";
-            public static readonly string stencilWriteMask = "[_StencilWriteMask]";
-            public static readonly string stencilRef = "[_StencilRef]";
-            public static readonly string stencilWriteMaskGBuffer = "[_StencilWriteMaskGBuffer]";
-            public static readonly string stencilRefGBuffer = "[_StencilRefGBuffer]";
-            public static readonly string stencilRefDistortionVec = "[_StencilRefDistortionVec]";
-            public static readonly string stencilWriteMaskDistortionVec = "[_StencilWriteMaskDistortionVec]";
+            //public static readonly string stencilRefDepth = "[_StencilRefDepth]";
+            //public static readonly string stencilWriteMaskMV = "[_StencilWriteMaskMV]";
+            //public static readonly string stencilRefMV = "[_StencilRefMV]";
+            //public static readonly string stencilWriteMask = "[_StencilWriteMask]";
+            //public static readonly string stencilRef = "[_StencilRef]";
+            //public static readonly string stencilWriteMaskGBuffer = "[_StencilWriteMaskGBuffer]";
+            //public static readonly string stencilRefGBuffer = "[_StencilRefGBuffer]";
+            //public static readonly string stencilRefDistortionVec = "[_StencilRefDistortionVec]";
+            //public static readonly string stencilWriteMaskDistortionVec = "[_StencilWriteMaskDistortionVec]";
         }
 
         public static readonly RenderStateCollection Default = new RenderStateCollection
