@@ -441,6 +441,11 @@ namespace UnityEditor.VFX.UI
             compileButton.text = "Compile";
             m_Toolbar.Add(compileButton);
 
+            var resyncMatButton = new ToolbarButton(OnResyncMaterial);
+            resyncMatButton.style.unityTextAlign = TextAnchor.MiddleLeft;
+            resyncMatButton.text = "Resync Material";
+            m_Toolbar.Add(resyncMatButton);
+
             m_SaveButton = new ToolbarButton(OnSave);
             m_SaveButton.style.unityTextAlign = TextAnchor.MiddleLeft;
             m_SaveButton.text = "Save";
@@ -1398,6 +1403,11 @@ namespace UnityEditor.VFX.UI
         void OnToggleCompile(ChangeEvent<bool> e)
         {
             VFXViewWindow.currentWindow.autoCompile = !VFXViewWindow.currentWindow.autoCompile;
+        }
+
+        void OnResyncMaterial()
+        {
+            controller.graph.Invalidate(VFXModel.InvalidationCause.kMaterialChanged);
         }
 
         void OnCompile()

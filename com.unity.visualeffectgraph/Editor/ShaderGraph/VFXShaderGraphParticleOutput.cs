@@ -3,11 +3,9 @@ using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
 using System.Reflection;
-using UnityEditor.ShaderGraph;
 using UnityEditor.ShaderGraph.Internal;
 using UnityEngine;
 using UnityEngine.Rendering;
-
 using UnityObject = UnityEngine.Object;
 
 
@@ -18,7 +16,6 @@ namespace UnityEditor.VFX
     class VFXShaderGraphParticleOutputEditor : VFXContextEditor
     {
         private MaterialEditor m_MaterialEditor = null;
-        private VFXDataParticle m_Data = null;
 
         private bool m_RequireUpdateMaterialEditor = false;
 
@@ -26,24 +23,31 @@ namespace UnityEditor.VFX
 
         protected new void OnEnable()
         {
-            m_Data = (target as VFXContext)?.GetData() as VFXDataParticle;
-
             UpdateMaterialEditor();
+            foreach (VFXShaderGraphParticleOutput output in targets)
+            {
+                if (output != null)
+                    output.OnMaterialChange += RequireUpdateMaterialEditor;
+            }
 
             base.OnEnable();
         }
 
         protected new void OnDisable()
         {
+            foreach (VFXShaderGraphParticleOutput output in targets)
+            {
+                if (output != null)
+                    output.OnMaterialChange -= RequireUpdateMaterialEditor;
+            }
+
             DestroyImmediate(m_MaterialEditor);
             base.OnDisable();
         }
 
         void UpdateMaterialEditor()
         {
-            // See: [NOTE-VFX-MATERIALS]
-            // TODO: When the material is serialized fully in C++, we will need to grab it in a different way.
-            var material = m_Data.GetOrCreateMaterial((VFXContext)target);
+            var material = ((VFXShaderGraphParticleOutput)target).transientMaterial;
             m_MaterialEditor = (MaterialEditor)CreateEditor(material);
         }
 
@@ -57,7 +61,7 @@ namespace UnityEditor.VFX
 
             serializedObject.Update();
 
-            if (m_RequireUpdateMaterialEditor || m_MaterialEditor == null)
+            if (m_RequireUpdateMaterialEditor)
             {
                 UpdateMaterialEditor();
                 m_RequireUpdateMaterialEditor = false;
@@ -65,9 +69,11 @@ namespace UnityEditor.VFX
 
             var materialChanged = false;
 
+            var previousBlendMode = ((VFXShaderGraphParticleOutput)target).GetMaterialBlendMode();
+
             if (m_MaterialEditor != null)
             {
-                if ((m_MaterialEditor.target as Material)?.shader == VFXResources.defaultResources.shader)
+                if ((m_MaterialEditor.target as Material)?.shader == null)
                 {
                     EditorGUILayout.HelpBox("Failed to create the render state material.", MessageType.Warning);
                 }
@@ -90,11 +96,25 @@ namespace UnityEditor.VFX
 
             base.OnInspectorGUI();
 
-            if (serializedObject.ApplyModifiedProperties() || materialChanged)
+            if (serializedObject.ApplyModifiedProperties())
+            {
+                foreach (var context in targets.OfType<VFXShaderGraphParticleOutput>())
+                    context.Invalidate(VFXModel.InvalidationCause.kSettingChanged);
+            }
+
+            if (materialChanged)
             {
                 foreach (var context in targets.OfType<VFXShaderGraphParticleOutput>())
                 {
-                    context.Invalidate(VFXModel.InvalidationCause.kSettingChanged);
+                    context.UpdateMaterialSettings();
+
+                    var currentBlendMode = ((VFXShaderGraphParticleOutput)target).GetMaterialBlendMode();
+
+                    // If the blend mode is changed to one that may require sorting (Auto), we require a full recompilation.
+                    if (previousBlendMode != currentBlendMode)
+                        context.Invalidate(VFXModel.InvalidationCause.kSettingChanged);
+                    else
+                        context.Invalidate(VFXModel.InvalidationCause.kMaterialChanged);
                 }
             }
         }
@@ -106,10 +126,12 @@ namespace UnityEditor.VFX
         [SerializeField, VFXSetting]
         internal ShaderGraphVfxAsset shaderGraph;
 
-        public override void OnEnable()
-        {
-            base.OnEnable();
-        }
+        [SerializeField]
+        internal VFXMaterialSerializedSettings materialSettings = new VFXMaterialSerializedSettings();
+
+        public event Action OnMaterialChange;
+
+        internal Material transientMaterial;
 
         public ShaderGraphVfxAsset GetOrRefreshShaderGraphObject()
         {
@@ -125,6 +147,44 @@ namespace UnityEditor.VFX
                 }
             }
             return shaderGraph;
+        }
+
+        public BlendMode GetMaterialBlendMode()
+        {
+            var blendMode = BlendMode.Opaque;
+
+            var shaderGraph = GetOrRefreshShaderGraphObject();
+            if (shaderGraph != null && shaderGraph.generatesWithShaderGraph)
+            {
+                // VFX Blend Mode state configures important systems like sorting and indirect buffer.
+                // In the case of SG Generation path, we need to know the blend mode state of the SRP
+                // Material to configure the VFX blend mode.
+                blendMode = VFXLibrary.currentSRPBinder.GetBlendModeFromMaterial(materialSettings);
+            }
+
+            return blendMode;
+        }
+
+        public override void SetupMaterial(Material material)
+        {
+            var shaderGraph = GetOrRefreshShaderGraphObject();
+
+            if (shaderGraph != null && shaderGraph.generatesWithShaderGraph)
+            {
+                materialSettings.ApplyToMaterial(material);
+                VFXLibrary.currentSRPBinder.SetupMaterial(material, shaderGraph);
+
+                transientMaterial = material;
+                OnMaterialChange?.Invoke();
+            }
+        }
+
+        public void UpdateMaterialSettings()
+        {
+            if (transientMaterial != null)
+            {
+                materialSettings.SyncFromMaterial(transientMaterial);
+            }
         }
 
         public override void GetImportDependentAssets(HashSet<int> dependencies)
@@ -196,19 +256,7 @@ namespace UnityEditor.VFX
 
         public override bool HasSorting()
         {
-            var materialBlendMode = BlendMode.Opaque;
-
-            var shaderGraph = GetOrRefreshShaderGraphObject();
-            if (shaderGraph != null && shaderGraph.generatesWithShaderGraph)
-            {
-                // VFX Blend Mode state configures important systems like sorting and indirect buffer.
-                // In the case of SG Generation path, we need to know the blend mode state of the SRP
-                // Material to configure the VFX blend mode.
-                var particleData = (VFXDataParticle)GetData();
-                var material = particleData.GetOrCreateMaterial(this);
-                materialBlendMode = VFXLibrary.currentSRPBinder.GetBlendModeFromMaterial(material);
-            }
-
+            var materialBlendMode = GetMaterialBlendMode();
             return base.HasSorting() || (sort == SortMode.Auto && (materialBlendMode == BlendMode.Alpha || materialBlendMode == BlendMode.AlphaPremultiplied));
         }
 
@@ -454,81 +502,15 @@ namespace UnityEditor.VFX
             get { return hdrpInfo; }
         }
 
-        void InjectMaterialState(Material material, VFXExpressionMapper mapper)
-        {
-            if (material == null)
-                return;
-
-            // Enforce the disabling of motion vectors on the material level.
-            material.SetShaderPassEnabled("MotionVectors", hasMotionVector);
-
-            var shader = material.shader;
-
-            // Map the material state values
-            if (shader != null)
-            {
-                VFXLibrary.currentSRPBinder.SetupMaterial(material);
-
-                // Properties
-                for (int i = 0; i < ShaderUtil.GetPropertyCount(shader); ++i)
-                {
-                    if (ShaderUtil.IsShaderPropertyHidden(shader, i))
-                    {
-                        var name = ShaderUtil.GetPropertyName(shader, i);
-                        var nameId = Shader.PropertyToID(name);
-                        if (!material.HasProperty(nameId))
-                            continue;
-
-                        VFXExpression expr = null;
-
-                        switch (ShaderUtil.GetPropertyType(shader, i))
-                        {
-                            case ShaderUtil.ShaderPropertyType.Float:
-                                expr = VFXValue.Constant<float>(material.GetFloat(nameId));
-                                break;
-                            default:
-                                break;
-                        }
-
-                        if (expr != null)
-                        {
-                            mapper.AddExpression(expr, name, -1);
-                        }
-                    }
-                }
-
-                // Pass
-                for (int i = 0; i < material.passCount; i++)
-                {
-                    var passName = material.GetPassName(i);
-                    if (passName == string.Empty)
-                        continue;
-
-                    var expr = VFXValue.Constant<bool>(material.GetShaderPassEnabled(passName));
-                    mapper.AddExpression(expr, passName, -1);
-                }
-
-                // Render Queue
-                var renderQueueExpression = VFXValue.Constant<int>(material.renderQueue);
-                mapper.AddExpression(renderQueueExpression, "RenderQueue", -1);
-            }
-        }
-
         public override VFXExpressionMapper GetExpressionMapper(VFXDeviceTarget target)
         {
             var mapper = base.GetExpressionMapper(target);
-            var particleData = (VFXDataParticle)GetData();
             var shaderGraph = GetOrRefreshShaderGraphObject();
 
             switch (target)
             {
                 case VFXDeviceTarget.CPU:
                 {
-                    if (shaderGraph != null && shaderGraph.generatesWithShaderGraph)
-                    {
-                        var material = particleData.GetOrCreateMaterial(this);
-                        InjectMaterialState(material, mapper);
-                    }
                 }
                 break;
                 case VFXDeviceTarget.GPU:

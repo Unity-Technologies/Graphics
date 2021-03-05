@@ -41,30 +41,32 @@ struct Attributes
 struct Varyings
 {
     float4 uvMainAndLM              : TEXCOORD0; // xy: control, zw: lightmap
-#ifndef TERRAIN_SPLAT_BASEPASS
-    float4 uvSplat01                : TEXCOORD1; // xy: splat0, zw: splat1
-    float4 uvSplat23                : TEXCOORD2; // xy: splat2, zw: splat3
-#endif
+    #ifndef TERRAIN_SPLAT_BASEPASS
+        float4 uvSplat01                : TEXCOORD1; // xy: splat0, zw: splat1
+        float4 uvSplat23                : TEXCOORD2; // xy: splat2, zw: splat3
+    #endif
 
-#if defined(_NORMALMAP) && !defined(ENABLE_TERRAIN_PERPIXEL_NORMAL)
-    half4 normal                    : TEXCOORD3;    // xyz: normal, w: viewDir.x
-    half4 tangent                   : TEXCOORD4;    // xyz: tangent, w: viewDir.y
-    half4 bitangent                 : TEXCOORD5;    // xyz: bitangent, w: viewDir.z
-#else
-    half3 normal                    : TEXCOORD3;
-    half3 viewDir                   : TEXCOORD4;
-    half3 vertexSH                  : TEXCOORD5; // SH
-#endif
+    #if defined(_NORMALMAP) && !defined(ENABLE_TERRAIN_PERPIXEL_NORMAL)
+        half4 normal                    : TEXCOORD3;    // xyz: normal, w: viewDir.x
+        half4 tangent                   : TEXCOORD4;    // xyz: tangent, w: viewDir.y
+        half4 bitangent                 : TEXCOORD5;    // xyz: bitangent, w: viewDir.z
+    #else
+        half3 normal                    : TEXCOORD3;
+        half3 vertexSH                  : TEXCOORD4; // SH
+    #endif
 
-#ifdef _ADDITIONAL_LIGHTS_VERTEX
-    half4 fogFactorAndVertexLight   : TEXCOORD6; // x: fogFactor, yzw: vertex light
-#else
-    half  fogFactor                 : TEXCOORD6;
-#endif
+    #ifdef _ADDITIONAL_LIGHTS_VERTEX
+        half4 fogFactorAndVertexLight   : TEXCOORD6; // x: fogFactor, yzw: vertex light
+    #else
+        half  fogFactor                 : TEXCOORD6;
+    #endif
+
     float3 positionWS               : TEXCOORD7;
-#if defined(REQUIRES_VERTEX_SHADOW_COORD_INTERPOLATOR)
-    float4 shadowCoord              : TEXCOORD8;
-#endif
+
+    #if defined(REQUIRES_VERTEX_SHADOW_COORD_INTERPOLATOR)
+        float4 shadowCoord              : TEXCOORD8;
+    #endif
+
     float4 clipPos                  : SV_POSITION;
     UNITY_VERTEX_OUTPUT_STEREO
 };
@@ -72,49 +74,42 @@ struct Varyings
 void InitializeInputData(Varyings IN, half3 normalTS, out InputData input)
 {
     input = (InputData)0;
-
     input.positionWS = IN.positionWS;
-    half3 SH = half3(0, 0, 0);
 
-#if defined(_NORMALMAP) && !defined(ENABLE_TERRAIN_PERPIXEL_NORMAL)
-    half3 viewDirWS = half3(IN.normal.w, IN.tangent.w, IN.bitangent.w);
-    input.normalWS = TransformTangentToWorld(normalTS, half3x3(-IN.tangent.xyz, IN.bitangent.xyz, IN.normal.xyz));
-    SH = SampleSH(input.normalWS.xyz);
-#elif defined(ENABLE_TERRAIN_PERPIXEL_NORMAL)
-    half3 viewDirWS = IN.viewDir;
-    float2 sampleCoords = (IN.uvMainAndLM.xy / _TerrainHeightmapRecipSize.zw + 0.5f) * _TerrainHeightmapRecipSize.xy;
-    half3 normalWS = TransformObjectToWorldNormal(normalize(SAMPLE_TEXTURE2D(_TerrainNormalmapTexture, sampler_TerrainNormalmapTexture, sampleCoords).rgb * 2 - 1));
-    half3 tangentWS = cross(GetObjectToWorldMatrix()._13_23_33, normalWS);
-    input.normalWS = TransformTangentToWorld(normalTS, half3x3(-tangentWS, cross(normalWS, tangentWS), normalWS));
-    SH = SampleSH(input.normalWS.xyz);
-#else
-    half3 viewDirWS = IN.viewDir;
-    input.normalWS = IN.normal;
-    SH = IN.vertexSH;
-#endif
-
-#if SHADER_HINT_NICE_QUALITY
-    viewDirWS = SafeNormalize(viewDirWS);
-#endif
+    #if defined(_NORMALMAP) && !defined(ENABLE_TERRAIN_PERPIXEL_NORMAL)
+        half3 viewDirWS = half3(IN.normal.w, IN.tangent.w, IN.bitangent.w);
+        input.normalWS = TransformTangentToWorld(normalTS, half3x3(-IN.tangent.xyz, IN.bitangent.xyz, IN.normal.xyz));
+        half3 SH = SampleSH(input.normalWS.xyz);
+    #elif defined(ENABLE_TERRAIN_PERPIXEL_NORMAL)
+        half3 viewDirWS = GetWorldSpaceNormalizeViewDir(IN.positionWS);
+        float2 sampleCoords = (IN.uvMainAndLM.xy / _TerrainHeightmapRecipSize.zw + 0.5f) * _TerrainHeightmapRecipSize.xy;
+        half3 normalWS = TransformObjectToWorldNormal(normalize(SAMPLE_TEXTURE2D(_TerrainNormalmapTexture, sampler_TerrainNormalmapTexture, sampleCoords).rgb * 2 - 1));
+        half3 tangentWS = cross(GetObjectToWorldMatrix()._13_23_33, normalWS);
+        input.normalWS = TransformTangentToWorld(normalTS, half3x3(-tangentWS, cross(normalWS, tangentWS), normalWS));
+        half3 SH = SampleSH(input.normalWS.xyz);
+    #else
+        half3 viewDirWS = GetWorldSpaceNormalizeViewDir(IN.positionWS);
+        input.normalWS = IN.normal;
+        half3 SH = IN.vertexSH;
+    #endif
 
     input.normalWS = NormalizeNormalPerPixel(input.normalWS);
-
     input.viewDirectionWS = viewDirWS;
 
-#if defined(REQUIRES_VERTEX_SHADOW_COORD_INTERPOLATOR)
-    input.shadowCoord = IN.shadowCoord;
-#elif defined(MAIN_LIGHT_CALCULATE_SHADOWS)
-    input.shadowCoord = TransformWorldToShadowCoord(input.positionWS);
-#else
-    input.shadowCoord = float4(0, 0, 0, 0);
-#endif
+    #if defined(REQUIRES_VERTEX_SHADOW_COORD_INTERPOLATOR)
+        input.shadowCoord = IN.shadowCoord;
+    #elif defined(MAIN_LIGHT_CALCULATE_SHADOWS)
+        input.shadowCoord = TransformWorldToShadowCoord(input.positionWS);
+    #else
+        input.shadowCoord = float4(0, 0, 0, 0);
+    #endif
 
-#ifdef _ADDITIONAL_LIGHTS_VERTEX
-    input.fogCoord = IN.fogFactorAndVertexLight.x;
-    input.vertexLighting = IN.fogFactorAndVertexLight.yzw;
-#else
-    input.fogCoord = IN.fogFactor;
-#endif
+    #ifdef _ADDITIONAL_LIGHTS_VERTEX
+        input.fogCoord = IN.fogFactorAndVertexLight.x;
+        input.vertexLighting = IN.fogFactorAndVertexLight.yzw;
+    #else
+        input.fogCoord = IN.fogFactor;
+    #endif
 
     input.bakedGI = SAMPLE_GI(IN.uvMainAndLM.zw, SH, input.normalWS);
     input.normalizedScreenSpaceUV = GetNormalizedScreenSpaceUV(IN.clipPos);
@@ -271,42 +266,39 @@ Varyings SplatmapVert(Attributes v)
 
     o.uvMainAndLM.xy = v.texcoord;
     o.uvMainAndLM.zw = v.texcoord * unity_LightmapST.xy + unity_LightmapST.zw;
-#ifndef TERRAIN_SPLAT_BASEPASS
-    o.uvSplat01.xy = TRANSFORM_TEX(v.texcoord, _Splat0);
-    o.uvSplat01.zw = TRANSFORM_TEX(v.texcoord, _Splat1);
-    o.uvSplat23.xy = TRANSFORM_TEX(v.texcoord, _Splat2);
-    o.uvSplat23.zw = TRANSFORM_TEX(v.texcoord, _Splat3);
-#endif
+    #ifndef TERRAIN_SPLAT_BASEPASS
+        o.uvSplat01.xy = TRANSFORM_TEX(v.texcoord, _Splat0);
+        o.uvSplat01.zw = TRANSFORM_TEX(v.texcoord, _Splat1);
+        o.uvSplat23.xy = TRANSFORM_TEX(v.texcoord, _Splat2);
+        o.uvSplat23.zw = TRANSFORM_TEX(v.texcoord, _Splat3);
+    #endif
 
-    half3 viewDirWS = GetWorldSpaceViewDir(Attributes.positionWS);
-#if !SHADER_HINT_NICE_QUALITY
-    viewDirWS = SafeNormalize(viewDirWS);
-#endif
+    #if defined(_NORMALMAP) && !defined(ENABLE_TERRAIN_PERPIXEL_NORMAL)
+        half3 viewDirWS = GetWorldSpaceNormalizeViewDir(Attributes.positionWS);
+        float4 vertexTangent = float4(cross(float3(0, 0, 1), v.normalOS), 1.0);
+        VertexNormalInputs normalInput = GetVertexNormalInputs(v.normalOS, vertexTangent);
 
-#if defined(_NORMALMAP) && !defined(ENABLE_TERRAIN_PERPIXEL_NORMAL)
-    float4 vertexTangent = float4(cross(float3(0, 0, 1), v.normalOS), 1.0);
-    VertexNormalInputs normalInput = GetVertexNormalInputs(v.normalOS, vertexTangent);
+        o.normal = half4(normalInput.normalWS, viewDirWS.x);
+        o.tangent = half4(normalInput.tangentWS, viewDirWS.y);
+        o.bitangent = half4(normalInput.bitangentWS, viewDirWS.z);
+    #else
+        o.normal = TransformObjectToWorldNormal(v.normalOS);
+        o.vertexSH = SampleSH(o.normal);
+    #endif
 
-    o.normal = half4(normalInput.normalWS, viewDirWS.x);
-    o.tangent = half4(normalInput.tangentWS, viewDirWS.y);
-    o.bitangent = half4(normalInput.bitangentWS, viewDirWS.z);
-#else
-    o.normal = TransformObjectToWorldNormal(v.normalOS);
-    o.viewDir = viewDirWS;
-    o.vertexSH = SampleSH(o.normal);
-#endif
-#ifdef _ADDITIONAL_LIGHTS_VERTEX
-    o.fogFactorAndVertexLight.x = ComputeFogFactor(Attributes.positionCS.z);
-    o.fogFactorAndVertexLight.yzw = VertexLighting(Attributes.positionWS, o.normal.xyz);
-#else
-    o.fogFactor = ComputeFogFactor(Attributes.positionCS.z);
-#endif
+    #ifdef _ADDITIONAL_LIGHTS_VERTEX
+        o.fogFactorAndVertexLight.x = ComputeFogFactor(Attributes.positionCS.z);
+        o.fogFactorAndVertexLight.yzw = VertexLighting(Attributes.positionWS, o.normal.xyz);
+    #else
+        o.fogFactor = ComputeFogFactor(Attributes.positionCS.z);
+    #endif
+
     o.positionWS = Attributes.positionWS;
     o.clipPos = Attributes.positionCS;
 
-#if defined(REQUIRES_VERTEX_SHADOW_COORD_INTERPOLATOR)
-    o.shadowCoord = GetShadowCoord(Attributes);
-#endif
+    #if defined(REQUIRES_VERTEX_SHADOW_COORD_INTERPOLATOR)
+        o.shadowCoord = GetShadowCoord(Attributes);
+    #endif
 
     return o;
 }
@@ -575,10 +567,7 @@ VaryingsDepthNormal DepthNormalOnlyVertex(AttributesDepthNormal v)
     #endif
 
     #if defined(_NORMALMAP) && !defined(ENABLE_TERRAIN_PERPIXEL_NORMAL)
-        half3 viewDirWS = GetWorldSpaceViewDir(Attributes.positionWS);
-        #if !SHADER_HINT_NICE_QUALITY
-            viewDirWS = SafeNormalize(viewDirWS);
-        #endif
+        half3 viewDirWS = GetWorldSpaceNormalizeViewDir(Attributes.positionWS);
         float4 vertexTangent = float4(cross(float3(0, 0, 1), v.normalOS), 1.0);
         VertexNormalInputs normalInput = GetVertexNormalInputs(v.normalOS, vertexTangent);
 

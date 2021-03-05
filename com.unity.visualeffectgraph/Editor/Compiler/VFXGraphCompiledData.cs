@@ -39,7 +39,8 @@ namespace UnityEditor.VFX
 
     class VFXGraphCompiledData
     {
-        public const uint compiledVersion = 2;
+        // 3: Serialize material
+        public const uint compiledVersion = 3;
 
         public VFXGraphCompiledData(VFXGraph graph)
         {
@@ -845,25 +846,6 @@ namespace UnityEditor.VFX
                     descs[i].source = generated.content.ToString();
                     descs[i].name = fileName;
                     descs[i].compute = generated.computeShader;
-
-                    if (generated.computeShader)
-                        continue;
-
-                    if (!(generated.context is VFXShaderGraphParticleOutput shaderGraphOutputContext))
-                        continue;
-
-                    var data = (VFXDataParticle)shaderGraphOutputContext.GetData();
-                    var material = data.GetOrCreateMaterial(shaderGraphOutputContext);
-
-                    var requiresSync = material.shader == VFXResources.defaultResources.shader;
-
-                    // This is a non-serialized transient shader (the real one is made in C++). We create it here to produce
-                    // the appropriate material inspector to control render state. See: [NOTE-VFX-MATERIALS]
-                    material.shader = ShaderUtil.CreateShaderAsset(descs[i].source);
-
-                    // In the case of the default shader, force sync the render state.
-                    if (requiresSync)
-                        data.SyncContextMaterial(shaderGraphOutputContext);
                 }
 
                 for (int i = 0; i < generatedCodeData.Count; ++i)

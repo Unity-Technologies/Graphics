@@ -163,7 +163,7 @@ namespace UnityEditor.VFX
 
         public virtual void SetupMaterial(Material mat, ShaderGraphVfxAsset shaderGraph = null) {}
 
-        public virtual VFXAbstractRenderedOutput.BlendMode GetBlendModeFromMaterial(Material mat)
+        public virtual VFXAbstractRenderedOutput.BlendMode GetBlendModeFromMaterial(VFXMaterialSerializedSettings materialSettings)
         {
             return VFXAbstractRenderedOutput.BlendMode.Opaque;
         }
