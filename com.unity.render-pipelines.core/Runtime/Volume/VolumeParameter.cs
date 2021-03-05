@@ -1185,6 +1185,7 @@ namespace UnityEngine.Rendering
         /// <summary>
         /// Is this color HDR?
         /// </summary>
+        [NonSerialized]
         public bool hdr = false;
 
         /// <summary>
