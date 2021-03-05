@@ -264,6 +264,10 @@ Light GetAdditionalLight(uint i, float3 positionWS, half4 shadowMask)
     half4 occlusionProbeChannels = _AdditionalLightsOcclusionProbes[perObjectLightIndex];
 #endif
     light.shadowAttenuation = AdditionalLightShadow(perObjectLightIndex, positionWS, light.direction, shadowMask, occlusionProbeChannels);
+#ifdef _ADDITIONAL_LIGHT_COOKIES
+    half3 cookieColor = LightCookie_SampleAdditionalLightCookie(perObjectLightIndex, positionWS /*, TODO: light type*/);
+    light.color *= cookieColor;
+#endif
 
     return light;
 }
