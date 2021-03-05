@@ -2493,8 +2493,10 @@ namespace UnityEngine.Rendering.HighDefinition
                     if (element.lensFlareTexture != null)
                         cmd.SetGlobalTexture(HDShaderIDs._FlareTex, element.lensFlareTexture);
 
-                    float usedSDFRoundness = element.edgeOffset*element.sdfRoundness;
+                    float usedGradientPosition = Mathf.Clamp01(element.edgeOffset - 1e-6f);
+                    float usedSDFRoundness = element.edgeOffset * element.sdfRoundness;
                     cmd.SetGlobalVector(HDShaderIDs._FlareData1, new Vector4(comp.occlusionRadius, comp.sampleCount, screenPosZ.z, Mathf.Exp(element.fallOff)));
+                    //cmd.SetGlobalVector(HDShaderIDs._FlareData1, new Vector4(comp.occlusionRadius, comp.sampleCount, screenPosZ.z, element.fallOff));
                     cmd.SetGlobalVector(HDShaderIDs._FlareData4, new Vector4(usedSDFRoundness, (float)element.frequency, 0.0f, 0.0f));
                     if (element.count == 1)
                     {
@@ -2510,7 +2512,7 @@ namespace UnityEngine.Rendering.HighDefinition
                         cmd.SetGlobalVector(HDShaderIDs._FlareData0, flareData0);
                         cmd.SetGlobalVector(HDShaderIDs._FlareData2, new Vector4(screenPos.x, screenPos.y, localSize.x, localSize.y));
                         Vector2 rayOff = GetLensFlareRayOffset(screenPos, position, globalCos0, globalSin0);
-                        cmd.SetGlobalVector(HDShaderIDs._FlareData3, new Vector4(rayOff.x * element.translationScale.x, rayOff.y * element.translationScale.y, 1.0f / (float)element.sideCount, element.edgeOffset));
+                        cmd.SetGlobalVector(HDShaderIDs._FlareData3, new Vector4(rayOff.x * element.translationScale.x, rayOff.y * element.translationScale.y, 1.0f / (float)element.sideCount, usedGradientPosition));
                         cmd.SetGlobalVector(HDShaderIDs._FlareColor, curColor);
 
                         cmd.DrawProcedural(Matrix4x4.identity, usedMaterial, 0, MeshTopology.Quads, 6, 1, null);
@@ -2543,7 +2545,7 @@ namespace UnityEngine.Rendering.HighDefinition
                                 Vector4 flareData0 = GetFlareData0(screenPos, element.translationScale, vScreenRatio, element.rotation, position, element.angularOffset, element.positionOffset, element.autoRotate);
                                 cmd.SetGlobalVector(HDShaderIDs._FlareData0, flareData0);
                                 cmd.SetGlobalVector(HDShaderIDs._FlareData2, new Vector4(screenPos.x, screenPos.y, localSize.x, localSize.y));
-                                cmd.SetGlobalVector(HDShaderIDs._FlareData3, new Vector4(rayOff.x * element.translationScale.x, rayOff.y * element.translationScale.y, 1.0f / (float)element.sideCount, element.edgeOffset));
+                                cmd.SetGlobalVector(HDShaderIDs._FlareData3, new Vector4(rayOff.x * element.translationScale.x, rayOff.y * element.translationScale.y, 1.0f / (float)element.sideCount, usedGradientPosition));
                                 cmd.SetGlobalVector(HDShaderIDs._FlareColor, curColor * col);
 
                                 cmd.DrawProcedural(Matrix4x4.identity, usedMaterial, 0, MeshTopology.Quads, 6, 1, null);
@@ -2582,7 +2584,7 @@ namespace UnityEngine.Rendering.HighDefinition
                                     Vector4 flareData0 = GetFlareData0(screenPos, element.translationScale, vScreenRatio, localRotation, position, element.angularOffset, localPositionOffset, element.autoRotate);
                                     cmd.SetGlobalVector(HDShaderIDs._FlareData0, flareData0);
                                     cmd.SetGlobalVector(HDShaderIDs._FlareData2, new Vector4(screenPos.x, screenPos.y, localSize.x, localSize.y));
-                                    cmd.SetGlobalVector(HDShaderIDs._FlareData3, new Vector4(rayOff.x * element.translationScale.x, rayOff.y * element.translationScale.y, 1.0f / (float)element.sideCount, element.edgeOffset));
+                                    cmd.SetGlobalVector(HDShaderIDs._FlareData3, new Vector4(rayOff.x * element.translationScale.x, rayOff.y * element.translationScale.y, 1.0f / (float)element.sideCount, usedGradientPosition));
                                     cmd.SetGlobalVector(HDShaderIDs._FlareColor, curColor * randCol * localIntensity);
 
                                     cmd.DrawProcedural(Matrix4x4.identity, usedMaterial, 0, MeshTopology.Quads, 6, 1, null);
@@ -2619,7 +2621,7 @@ namespace UnityEngine.Rendering.HighDefinition
                                 Vector4 flareData0 = GetFlareData0(screenPos, element.translationScale, vScreenRatio, element.rotation, localPos, element.angularOffset, element.positionOffset, element.autoRotate);
                                 cmd.SetGlobalVector(HDShaderIDs._FlareData0, flareData0);
                                 cmd.SetGlobalVector(HDShaderIDs._FlareData2, new Vector4(screenPos.x, screenPos.y, localSize.x, localSize.y));
-                                cmd.SetGlobalVector(HDShaderIDs._FlareData3, new Vector4(rayOff.x * element.translationScale.x, rayOff.y * element.translationScale.y, 1.0f / (float)element.sideCount, element.edgeOffset));
+                                cmd.SetGlobalVector(HDShaderIDs._FlareData3, new Vector4(rayOff.x * element.translationScale.x, rayOff.y * element.translationScale.y, 1.0f / (float)element.sideCount, usedGradientPosition));
                                 cmd.SetGlobalVector(HDShaderIDs._FlareColor, curColor * col);
 
                                 cmd.DrawProcedural(Matrix4x4.identity, usedMaterial, 0, MeshTopology.Quads, 6, 1, null);

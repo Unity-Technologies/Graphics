@@ -77,12 +77,16 @@ float4 ComputeGlow(float2 uv)
 {
     float2 v = (uv - 0.5f) * 2.0f;
 
+    float x = length(v);
+
+    float sdf = saturate((x - 1.0f) / (_FlareEdgeOffset - 1.0f));
+
 #if FLARE_INVERSE_SDF
-    float sdf = saturate(-length(v) + _FlareEdgeOffset);
+    //float sdf = saturate(-length(v) + _FlareEdgeOffset);
     // Cannot be simplify as 1 - sdf
     sdf = sdf * (1.0f - sdf) / (sdf + 1e-6f);
 #else
-    float sdf = saturate(-length(v) + 1.0f + _FlareEdgeOffset);
+    //float sdf = saturate(-length(v) + 1.0f + _FlareEdgeOffset);
 #endif
 
     return pow(sdf, _FlareFalloff);
@@ -322,13 +326,21 @@ float4 ComputeShimmer(float2 uv)
     //float t = saturate((ang + 3.141593) / (2.0f * 3.141593));
     float t = saturate((ang + 3.141593) / (2.0f * 3.141593));
 
-    //float noise = GeneratePerlinNoise1D(_FlareSDFFrequency * t * InitRandom(_CosTime * 0.5f + 0.5f)) * 0.5f + 0*0.5f;
-    float noise = GeneratePerlinNoise2D(_FlareSDFFrequency * t).x * 0.5f + 0.5f;
-    float coef = saturate(noise + _FlareEdgeOffset);
+    //float perl2 = InitRandom(_ScreenPos.x * 0.5f + 0.5f);
+    //float perl2 = 4.0f * _FlareSDFFrequency //* (GeneratePerlinNoise1D(_ScreenPos.x * 4.0f).x * 0.5f + 0.5f);
+    //float perl2 = (100.0f + abs(GeneratePerlinNoise1D(_ScreenPos.x * 100.0f).x * 0.5f + 0.5f)) / _FlareSDFFrequency;
+    //float noise = GeneratePerlinNoise1D(_FlareSDFFrequency * t + perl2).x * 0.5f + 0.5f;
+    //float noise2 = (GeneratePerlinNoise2D(2.0f*abs(_Time)).x * 0.5f + 0.5f);
+    //float noise = saturate(lerp(noise2, GeneratePerlinNoise1D(_FlareSDFFrequency * t).x * 0.5f + 0.5f, 0.25f));
+    float noise0 = 0.5f * GeneratePerlinNoise1D(_FlareSDFFrequency * t).x;// *0.5f + 0 * 0.5f;
+    float noise1 = GeneratePerlinNoise1D(0.05f * _FlareSDFFrequency * t).x * 0.5f + 0.5f;
+    //float noise = GeneratePerlinNoise2D(_FlareSDFFrequency * t).x * 0.5f + 0.5f;
+    float coef = noise0 +_FlareEdgeOffset;
     //float coef = _FlareEdgeOffset * (sin(21.125f * (2.0f * 3.141593 * t))*0.5f);
 
     //float sdf = length(v - float2(cos0, sin0) * coef) - _FlareEdgeOffset * coef;
-    float sdf = length(v * coef) - _FlareEdgeOffset;
+    //float sdf = length(v * coef) - _FlareEdgeOffset;
+    float sdf = clamp(length(v * coef) - _FlareEdgeOffset, -1.0, 1.0f);
 
 #if FLARE_INVERSE_SDF
     sdf = saturate(-sdf);
