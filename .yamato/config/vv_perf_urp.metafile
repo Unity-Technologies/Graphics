@@ -2,8 +2,8 @@ project:
   name: VikingVillage_URP
   folder: Viking-Village-Perf
   variables:
-    VV_URP_BRANCH: urp-test
-    VV_URP_REVISION: 449ee29a8d7e3aaf9ef690dda0ee0edeeee7dd0d
+    VV_URP_BRANCH: master
+    VV_URP_REVISION: eb763cb92d2bb22a1843c67351b90ab927508ec7
 
 reuse_blocks:
   unity_config:
@@ -103,9 +103,6 @@ test_platforms:
       - [iPhone_Metal, Android_Vulkan, Android_OpenGLES3, Win_DX11, Win_DX12, Win_Vulkan, OSX_Metal, Linux_Vulkan]: <shared.platform.commands.call_utr>
         flags:
           - <reuse_blocks.perf_utr_flags>
-          - [Win_DX11, Win_DX12, Win_Vulkan]: --extra-editor-arg="-stripenginecode-"
-          - [Win_DX11, Win_DX12, Win_Vulkan]: --extra-editor-arg="-managedstrippinglevel=Low"
-          - [Win_DX11, Win_DX12, Win_Vulkan]: --extra-editor-arg="-allowdebugging-"
           - [all]: --testfilter=Medium
           - [all]: --player-save-path=playersMedium
       - [OSX_Metal, Linux_Vulkan]: <shared.platform.commands.call_utr>
@@ -186,6 +183,7 @@ platforms:
         type: Unity::VM::GPU
         image: sdet/gamecode_win10:stable
         flavor: b1.large
+        model: rtx2080
       standalone_build:
         type: Unity::VM
         image: sdet/gamecode_win10:stable
@@ -194,6 +192,7 @@ platforms:
         type: Unity::VM
         image: sdet/gamecode_win10:stable
         flavor: b1.large
+        model: rtx2080
   - name: Android
     apis:
       - name: Vulkan
