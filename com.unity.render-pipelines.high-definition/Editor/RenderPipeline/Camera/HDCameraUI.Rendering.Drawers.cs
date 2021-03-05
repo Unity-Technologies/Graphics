@@ -18,20 +18,12 @@ namespace UnityEditor.Rendering.HighDefinition
                 CED.Group(
                     Drawer_Rendering_Antialiasing
                 ),
-                CED.Conditional(
-                    (serialized, owner) => serialized.antialiasing.intValue == (int)HDAdditionalCameraData.AntialiasingMode.SubpixelMorphologicalAntiAliasing,
-                    CED.Group(
-                        GroupOption.Indent,
-                        Drawer_Rendering_Antialiasing_SMAA
-                    )
-                ),
-                CED.Conditional(
-                    (serialized, owner) => serialized.antialiasing.intValue == (int)HDAdditionalCameraData.AntialiasingMode.TemporalAntialiasing,
-                    CED.Group(
-                        GroupOption.Indent,
-                        Drawer_Rendering_Antialiasing_TAA
-                    )
-                ),
+                AntialiasingModeDrawer(
+                    HDAdditionalCameraData.AntialiasingMode.SubpixelMorphologicalAntiAliasing,
+                    Drawer_Rendering_Antialiasing_SMAA),
+                AntialiasingModeDrawer(
+                    HDAdditionalCameraData.AntialiasingMode.TemporalAntialiasing,
+                    Drawer_Rendering_Antialiasing_TAA),
                 CED.Group(
                     Drawer_Rendering_StopNaNs,
                     Drawer_Rendering_Dithering,
@@ -54,6 +46,17 @@ namespace UnityEditor.Rendering.HighDefinition
                         p.antialiasing.intValue = selectedValue;
                 }
                 EditorGUI.EndProperty();
+            }
+
+            static CED.IDrawer AntialiasingModeDrawer(HDAdditionalCameraData.AntialiasingMode antialiasingMode, CED.ActionDrawer antialiasingDrawer)
+            {
+                return CED.Conditional(
+                    (serialized, owner) => serialized.antialiasing.intValue == (int)antialiasingMode,
+                    CED.Group(
+                        GroupOption.Indent,
+                        antialiasingDrawer
+                    )
+                );
             }
 
             static void Drawer_Rendering_Antialiasing_SMAA(SerializedHDCamera p, Editor owner)
