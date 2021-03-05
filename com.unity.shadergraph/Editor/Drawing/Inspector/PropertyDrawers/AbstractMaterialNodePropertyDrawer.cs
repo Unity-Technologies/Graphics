@@ -18,9 +18,9 @@ namespace  UnityEditor.ShaderGraph.Drawing.Inspector.PropertyDrawers
     }
 
     [SGPropertyDrawer(typeof(AbstractMaterialNode))]
-    public class AbstractMaterialNodePropertyDrawer : IPropertyDrawer, IGetNodePropertyDrawerPropertyData
+    class AbstractMaterialNodePropertyDrawer : IPropertyDrawer, IGetNodePropertyDrawerPropertyData
     {
-        public Action inspectorUpdateDelegate { get; set; }
+        public Action<InspectorUpdateSource> inspectorUpdateDelegate { get; set; }
 
         Action m_setNodesAsDirtyCallback;
         Action m_updateNodeViewsCallback;
@@ -52,7 +52,7 @@ namespace  UnityEditor.ShaderGraph.Drawing.Inspector.PropertyDrawers
                     m_setNodesAsDirtyCallback?.Invoke();
                     node.owner.owner.RegisterCompleteObjectUndo($"Update {node.name} Node");
                     node.ChangeVersion(node.latestVersion);
-                    inspectorUpdateDelegate?.Invoke();
+                    inspectorUpdateDelegate?.Invoke(InspectorUpdateSource.PropertyInspection);
                     m_updateNodeViewsCallback?.Invoke();
                     node.Dirty(ModificationScope.Graph);
                 }, deprecationText, buttonText, labelText, messageType);

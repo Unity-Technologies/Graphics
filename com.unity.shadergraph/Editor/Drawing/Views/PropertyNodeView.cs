@@ -5,6 +5,7 @@ using UnityEditor.Graphing;
 using UnityEditor.Rendering;
 using UnityEditor.ShaderGraph.Drawing;
 using UnityEditor.ShaderGraph.Drawing.Controls;
+using UnityEditor.ShaderGraph.Drawing.Inspector;
 using UnityEditor.ShaderGraph.Internal;
 using UnityEngine;
 using UnityEngine.UIElements;
@@ -21,7 +22,7 @@ namespace UnityEditor.ShaderGraph
         internal delegate void ChangeDisplayNameCallback(string newDisplayName);
 
         // When the properties are changed, this delegate is used to trigger an update in the view that represents those properties
-        Action m_propertyViewUpdateTrigger;
+        Action<InspectorUpdateSource> m_propertyViewUpdateTrigger;
 
         Action m_ResetReferenceNameAction;
 
@@ -73,7 +74,7 @@ namespace UnityEditor.ShaderGraph
             return property;
         }
 
-        public void SupplyDataToPropertyDrawer(IPropertyDrawer propertyDrawer, Action inspectorUpdateDelegate)
+        public void SupplyDataToPropertyDrawer(IPropertyDrawer propertyDrawer, Action<InspectorUpdateSource> inspectorUpdateDelegate)
         {
             if (propertyDrawer is ShaderInputPropertyDrawer shaderInputPropertyDrawer)
             {
@@ -128,7 +129,7 @@ namespace UnityEditor.ShaderGraph
         {
             DirtyNodes(modificationScope);
             if (triggerPropertyViewUpdate)
-                this.m_propertyViewUpdateTrigger();
+                this.m_propertyViewUpdateTrigger(InspectorUpdateSource.PropertyInspection);
         }
 
         void ChangePropertyValue(object newValue)

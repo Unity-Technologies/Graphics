@@ -10,7 +10,7 @@ using UnityEngine;
 namespace  UnityEditor.ShaderGraph.Drawing.Inspector.PropertyDrawers
 {
     [SGPropertyDrawer(typeof(CustomFunctionNode))]
-    public class CustomFunctionNodePropertyDrawer : IPropertyDrawer, IGetNodePropertyDrawerPropertyData
+    class CustomFunctionNodePropertyDrawer : IPropertyDrawer, IGetNodePropertyDrawerPropertyData
     {
         Action m_setNodesAsDirtyCallback;
         Action m_updateNodeViewsCallback;
@@ -29,15 +29,15 @@ namespace  UnityEditor.ShaderGraph.Drawing.Inspector.PropertyDrawers
             PropertyDrawerUtils.AddDefaultNodeProperties(propertySheet, node, m_setNodesAsDirtyCallback, m_updateNodeViewsCallback);
 
             var inputListView = new ReorderableSlotListView(node, SlotType.Input, true);
-            inputListView.OnAddCallback += list => inspectorUpdateDelegate();
-            inputListView.OnRemoveCallback += list => inspectorUpdateDelegate();
-            inputListView.OnListRecreatedCallback += () => inspectorUpdateDelegate();
+            inputListView.OnAddCallback += list => inspectorUpdateDelegate(InspectorUpdateSource.PropertyInspection);
+            inputListView.OnRemoveCallback += list => inspectorUpdateDelegate(InspectorUpdateSource.PropertyInspection);
+            inputListView.OnListRecreatedCallback += () => inspectorUpdateDelegate(InspectorUpdateSource.PropertyInspection);
             propertySheet.Add(inputListView);
 
             var outputListView = new ReorderableSlotListView(node, SlotType.Output, true);
-            outputListView.OnAddCallback += list => inspectorUpdateDelegate();
-            outputListView.OnRemoveCallback += list => inspectorUpdateDelegate();
-            outputListView.OnListRecreatedCallback += () => inspectorUpdateDelegate();
+            outputListView.OnAddCallback += list => inspectorUpdateDelegate(InspectorUpdateSource.PropertyInspection);
+            outputListView.OnRemoveCallback += list => inspectorUpdateDelegate(InspectorUpdateSource.PropertyInspection);
+            outputListView.OnListRecreatedCallback += () => inspectorUpdateDelegate(InspectorUpdateSource.PropertyInspection);
             propertySheet.Add(outputListView);
 
             propertySheet.Add(new HlslFunctionView(node));
@@ -45,7 +45,7 @@ namespace  UnityEditor.ShaderGraph.Drawing.Inspector.PropertyDrawers
             return propertySheet;
         }
 
-        public Action inspectorUpdateDelegate { get; set; }
+        public Action<InspectorUpdateSource> inspectorUpdateDelegate { get; set; }
 
         public VisualElement DrawProperty(PropertyInfo propertyInfo, object actualObject,
             InspectableAttribute attribute)

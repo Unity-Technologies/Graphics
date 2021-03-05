@@ -10,6 +10,13 @@ using UnityEngine.UIElements;
 
 namespace UnityEditor.ShaderGraph.Drawing.Inspector
 {
+    enum InspectorUpdateSource
+    {
+        PropertyInspection,
+        GraphChanges,
+        GraphSettingsChange
+    }
+
     class InspectorView : GraphSubWindow
     {
         readonly List<Type> m_PropertyDrawerList = new List<Type>();
@@ -28,7 +35,6 @@ namespace UnityEditor.ShaderGraph.Drawing.Inspector
         TabbedView m_NodeSettingsTab;
         protected VisualElement m_GraphSettingsContainer;
         protected VisualElement m_NodeSettingsContainer;
-
 
         void RegisterPropertyDrawer(Type newPropertyDrawerType)
         {
@@ -100,8 +106,7 @@ namespace UnityEditor.ShaderGraph.Drawing.Inspector
             var needUpdate = !m_CachedSelectionList.SequenceEqual(selection);
             return needUpdate;
         }
-
-        public void Update()
+        public void Update(InspectorUpdateSource inspectorUpdateSource)
         {
             ShowGraphSettings_Internal(m_GraphSettingsContainer);
 
@@ -118,7 +123,7 @@ namespace UnityEditor.ShaderGraph.Drawing.Inspector
                         anySelectables = true;
                     }
                 }
-                if (anySelectables)
+                if (anySelectables && inspectorUpdateSource != InspectorUpdateSource.GraphSettingsChange)
                 {
                     // Anything selectable in the graph (GraphSettings not included) is only ever interacted with through the
                     // Node Settings tab so we can make the assumption they want to see that tab
@@ -144,22 +149,22 @@ namespace UnityEditor.ShaderGraph.Drawing.Inspector
             InspectorUtils.GatherInspectorContent(m_PropertyDrawerList, outputVisualElement, inspectable, TriggerInspectorUpdate, propertyDrawerToUse);
         }
 
-        void TriggerInspectorUpdate()
+        void TriggerInspectorUpdate(InspectorUpdateSource inspectorUpdateSource = InspectorUpdateSource.PropertyInspection)
         {
-            Update();
+            Update(inspectorUpdateSource);
         }
 
         // This should be implemented by any inspector class that wants to define its own GraphSettings
         // which for SG, is a representation of the settings in GraphData
-        protected virtual void ShowGraphSettings_Internal(VisualElement contentContainer)
+        protected virtual void ShowGraphSettings_Internal(VisualElement inContentContainer)
         {
             var graphEditorView = m_GraphView.GetFirstAncestorOfType<GraphEditorView>();
             if (graphEditorView == null)
                 return;
 
-            contentContainer.Clear();
-            DrawInspectable(contentContainer, (IInspectable)graphView, m_graphSettingsPropertyDrawer);
-            contentContainer.MarkDirtyRepaint();
+            inContentContainer.Clear();
+            DrawInspectable(inContentContainer, (IInspectable)graphView, m_graphSettingsPropertyDrawer);
+            inContentContainer.MarkDirtyRepaint();
         }
     }
 
@@ -169,7 +174,7 @@ namespace UnityEditor.ShaderGraph.Drawing.Inspector
             List<Type> propertyDrawerList,
             VisualElement outputVisualElement,
             IInspectable inspectable,
-            Action propertyChangeCallback,
+            Action<InspectorUpdateSource> propertyChangeCallback,
             IPropertyDrawer propertyDrawerToUse = null)
         {
             var dataObject = inspectable.GetObjectToInspect();

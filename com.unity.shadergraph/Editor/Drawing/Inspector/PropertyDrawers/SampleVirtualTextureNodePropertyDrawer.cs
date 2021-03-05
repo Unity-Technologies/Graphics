@@ -15,7 +15,7 @@ using UnityEngine.UIElements;
 namespace  UnityEditor.ShaderGraph.Drawing.Inspector.PropertyDrawers
 {
     [SGPropertyDrawer(typeof(SampleVirtualTextureNode))]
-    public class SampleVirtualTextureNodePropertyDrawer : IPropertyDrawer
+    class SampleVirtualTextureNodePropertyDrawer : IPropertyDrawer
     {
         VisualElement CreateGUI(SampleVirtualTextureNode node, InspectableAttribute attribute,
             out VisualElement propertyVisualElement)
@@ -111,7 +111,7 @@ namespace  UnityEditor.ShaderGraph.Drawing.Inspector.PropertyDrawers
             return propertySheet;
         }
 
-        public Action inspectorUpdateDelegate { get; set; }
+        public Action<InspectorUpdateSource> inspectorUpdateDelegate { get; set; }
 
         public VisualElement DrawProperty(PropertyInfo propertyInfo, object actualObject,
             InspectableAttribute attribute)

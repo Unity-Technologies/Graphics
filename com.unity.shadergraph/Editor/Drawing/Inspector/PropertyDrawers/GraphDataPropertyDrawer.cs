@@ -14,7 +14,7 @@ using UnityEditor.ShaderGraph.Serialization;
 namespace UnityEditor.ShaderGraph.Drawing.Inspector.PropertyDrawers
 {
     [SGPropertyDrawer(typeof(GraphData))]
-    public class GraphDataPropertyDrawer : IPropertyDrawer
+    class GraphDataPropertyDrawer : IPropertyDrawer
     {
         public delegate void ChangeGraphDefaultPrecisionCallback(GraphPrecision newDefaultGraphPrecision);
         public delegate void PostTargetSettingsChangedCallback();
@@ -176,7 +176,7 @@ namespace UnityEditor.ShaderGraph.Drawing.Inspector.PropertyDrawers
             return propertySheet;
         }
 
-        public Action inspectorUpdateDelegate { get; set; }
+        public Action<InspectorUpdateSource> inspectorUpdateDelegate { get; set; }
 
         public VisualElement DrawProperty(PropertyInfo propertyInfo, object actualObject, InspectableAttribute attribute)
         {

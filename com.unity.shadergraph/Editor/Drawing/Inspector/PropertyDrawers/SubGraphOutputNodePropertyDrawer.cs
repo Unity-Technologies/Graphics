@@ -10,7 +10,7 @@ using UnityEngine;
 namespace  UnityEditor.ShaderGraph.Drawing.Inspector.PropertyDrawers
 {
     [SGPropertyDrawer(typeof(SubGraphOutputNode))]
-    public class SubGraphOutputNodePropertyDrawer : IPropertyDrawer, IGetNodePropertyDrawerPropertyData
+    class SubGraphOutputNodePropertyDrawer : IPropertyDrawer, IGetNodePropertyDrawerPropertyData
     {
         Action m_setNodesAsDirtyCallback;
         Action m_updateNodeViewsCallback;
@@ -29,16 +29,16 @@ namespace  UnityEditor.ShaderGraph.Drawing.Inspector.PropertyDrawers
             PropertyDrawerUtils.AddDefaultNodeProperties(propertySheet, node, m_setNodesAsDirtyCallback, m_updateNodeViewsCallback);
 
             var inputListView = new ReorderableSlotListView(node, SlotType.Input, false);
-            inputListView.OnAddCallback += list => inspectorUpdateDelegate();
-            inputListView.OnRemoveCallback += list => inspectorUpdateDelegate();
-            inputListView.OnListRecreatedCallback += () => inspectorUpdateDelegate();
+            inputListView.OnAddCallback += list => inspectorUpdateDelegate(InspectorUpdateSource.PropertyInspection);
+            inputListView.OnRemoveCallback += list => inspectorUpdateDelegate(InspectorUpdateSource.PropertyInspection);
+            inputListView.OnListRecreatedCallback += () => inspectorUpdateDelegate(InspectorUpdateSource.PropertyInspection);
             inputListView.AllowedTypeCallback = SlotValueHelper.AllowedAsSubgraphOutput;
             propertySheet.Add(inputListView);
             propertyVisualElement = propertySheet;
             return propertySheet;
         }
 
-        public Action inspectorUpdateDelegate { get; set; }
+        public Action<InspectorUpdateSource> inspectorUpdateDelegate { get; set; }
 
         public VisualElement DrawProperty(PropertyInfo propertyInfo, object actualObject,
             InspectableAttribute attribute)

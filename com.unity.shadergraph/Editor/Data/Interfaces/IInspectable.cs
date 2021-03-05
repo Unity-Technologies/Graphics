@@ -1,5 +1,6 @@
 using System;
 using System.Reflection;
+using UnityEditor.ShaderGraph.Drawing.Inspector;
 using UnityEngine.UIElements;
 
 namespace UnityEditor.ShaderGraph.Drawing
@@ -16,6 +17,6 @@ namespace UnityEditor.ShaderGraph.Drawing
 
         // Used to provide any data needed by the property drawer from the inspectable
         // The inspectorUpdateDelegate is used to trigger an inspector update
-        void SupplyDataToPropertyDrawer(IPropertyDrawer propertyDrawer, Action inspectorUpdateDelegate);
+        void SupplyDataToPropertyDrawer(IPropertyDrawer propertyDrawer, Action<InspectorUpdateSource> inspectorUpdateDelegate);
     }
 }

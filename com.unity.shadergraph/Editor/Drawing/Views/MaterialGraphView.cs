@@ -6,6 +6,7 @@ using UnityEngine;
 using UnityEditor.Graphing;
 using Object = UnityEngine.Object;
 using UnityEditor.Experimental.GraphView;
+using UnityEditor.ShaderGraph.Drawing.Inspector;
 using UnityEditor.ShaderGraph.Drawing.Inspector.PropertyDrawers;
 using UnityEditor.ShaderGraph.Drawing.Views.Blackboard;
 using UnityEditor.ShaderGraph.Internal;
@@ -60,7 +61,7 @@ namespace UnityEditor.ShaderGraph.Drawing
 
         Action m_BlackboardFieldDropDelegate;
 
-        Action m_InspectorUpdateDelegate;
+        Action<InspectorUpdateSource> m_InspectorUpdateDelegate;
         Action m_PreviewManagerUpdateDelegate;
 
         public string inspectorTitle => this.graph.path;
@@ -70,7 +71,7 @@ namespace UnityEditor.ShaderGraph.Drawing
             return graph;
         }
 
-        public void SupplyDataToPropertyDrawer(IPropertyDrawer propertyDrawer, Action inspectorUpdateDelegate)
+        public void SupplyDataToPropertyDrawer(IPropertyDrawer propertyDrawer, Action<InspectorUpdateSource> inspectorUpdateDelegate)
         {
             m_InspectorUpdateDelegate = inspectorUpdateDelegate;
             if (propertyDrawer is GraphDataPropertyDrawer graphDataPropertyDrawer)
@@ -89,7 +90,7 @@ namespace UnityEditor.ShaderGraph.Drawing
 
             graph.UpdateActiveBlocks(activeBlocks);
             this.m_PreviewManagerUpdateDelegate();
-            this.m_InspectorUpdateDelegate();
+            this.m_InspectorUpdateDelegate(InspectorUpdateSource.GraphSettingsChange);
         }
 
         void ChangePrecision(GraphPrecision newGraphDefaultPrecision)
