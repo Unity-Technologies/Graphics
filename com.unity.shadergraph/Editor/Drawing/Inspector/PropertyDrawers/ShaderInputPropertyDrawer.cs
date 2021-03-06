@@ -100,7 +100,7 @@ namespace UnityEditor.ShaderGraph.Drawing.Inspector.PropertyDrawers
             this._postChangeValueCallback = postChangeValueCallback;
         }
 
-        public Action inspectorUpdateDelegate { get; set; }
+        public Action<InspectorUpdateSource> inspectorUpdateDelegate { get; set; }
 
         public VisualElement DrawProperty(
             PropertyInfo propertyInfo,
@@ -978,7 +978,7 @@ namespace UnityEditor.ShaderGraph.Drawing.Inspector.PropertyDrawers
                     state.filter = (TextureSamplerState.FilterMode) newValue;
                     samplerStateShaderProperty.value = state;
                     this._postChangeValueCallback(false, ModificationScope.Graph);
-                    this.inspectorUpdateDelegate();
+                    this.inspectorUpdateDelegate(InspectorUpdateSource.PropertyInspection);
                 },
                 samplerStateShaderProperty.value.filter,
                 "Filter",
@@ -993,7 +993,7 @@ namespace UnityEditor.ShaderGraph.Drawing.Inspector.PropertyDrawers
                     state.wrap = (TextureSamplerState.WrapMode) newValue;
                     samplerStateShaderProperty.value = state;
                     this._postChangeValueCallback(false, ModificationScope.Graph);
-                    this.inspectorUpdateDelegate();
+                    this.inspectorUpdateDelegate(InspectorUpdateSource.PropertyInspection);
                 },
                 samplerStateShaderProperty.value.wrap,
                 "Wrap",

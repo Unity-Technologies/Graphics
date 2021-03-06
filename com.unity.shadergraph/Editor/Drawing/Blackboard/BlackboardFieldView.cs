@@ -5,6 +5,7 @@ using UnityEngine.UIElements;
 using UnityEditor.Graphing;
 using UnityEditor.Experimental.GraphView;
 using UnityEditor.ShaderGraph.Drawing.Controls;
+using UnityEditor.ShaderGraph.Drawing.Inspector;
 using UnityEditor.ShaderGraph.Drawing.Inspector.PropertyDrawers;
 using UnityEditor.ShaderGraph.Internal;
 
@@ -62,7 +63,7 @@ namespace UnityEditor.ShaderGraph.Drawing.Views.Blackboard
         }
 
         // When the properties are changed, these delegates are used to trigger an update in the other views that also represent those properties
-        private Action m_inspectorUpdateTrigger;
+        private Action<InspectorUpdateSource> m_inspectorUpdateTrigger;
         private ShaderInputPropertyDrawer.ChangeReferenceNameCallback m_resetReferenceNameTrigger;
         Label m_NameLabelField;
 
@@ -85,7 +86,7 @@ namespace UnityEditor.ShaderGraph.Drawing.Views.Blackboard
         public void InspectorUpdateTrigger()
         {
             if (m_inspectorUpdateTrigger != null)
-                m_inspectorUpdateTrigger();
+                m_inspectorUpdateTrigger(InspectorUpdateSource.PropertyInspection);
         }
 
         private void UpdateTypeText()
@@ -168,7 +169,7 @@ namespace UnityEditor.ShaderGraph.Drawing.Views.Blackboard
         }
 
         #region PropertyDrawers
-        public void SupplyDataToPropertyDrawer(IPropertyDrawer propertyDrawer, Action inspectorUpdateDelegate)
+        public void SupplyDataToPropertyDrawer(IPropertyDrawer propertyDrawer, Action<InspectorUpdateSource> inspectorUpdateDelegate)
         {
             if(propertyDrawer is ShaderInputPropertyDrawer shaderInputPropertyDrawer)
             {
@@ -187,7 +188,7 @@ namespace UnityEditor.ShaderGraph.Drawing.Views.Blackboard
                 m_inspectorUpdateTrigger = inspectorUpdateDelegate;
                 m_resetReferenceNameTrigger = shaderInputPropertyDrawer._resetReferenceNameCallback;
 
-                this.RegisterCallback<DetachFromPanelEvent>(evt => m_inspectorUpdateTrigger());
+                this.RegisterCallback<DetachFromPanelEvent>(evt => m_inspectorUpdateTrigger(InspectorUpdateSource.PropertyInspection));
             }
 
             UpdateRightClickMenu();
@@ -228,8 +229,8 @@ namespace UnityEditor.ShaderGraph.Drawing.Views.Blackboard
         void MarkNodesAsDirty(bool triggerPropertyViewUpdate = false, ModificationScope modificationScope = ModificationScope.Node)
         {
             DirtyNodes(modificationScope);
-            if(triggerPropertyViewUpdate)
-                m_inspectorUpdateTrigger();
+            if (triggerPropertyViewUpdate)
+                m_inspectorUpdateTrigger(InspectorUpdateSource.PropertyInspection);
         }
 
         void ChangePropertyValue(object newValue)
