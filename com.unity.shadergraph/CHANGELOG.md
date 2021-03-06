@@ -10,11 +10,15 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Support for the XboxSeries platform has been added.
 
 ### Fixed
+- Fixed an issue where the "Node Settings" tab get switched to, overriding the "Graph Settings" tab, when user tries to modify a graph setting [1318844] (https://issuetracker.unity3d.com/issues/shader-graph-graph-settings-window-loses-focus-on-expanding-universal-dropdown-in-graph-inspector)
 - Fixed an issue where the exposed checkbox was removed from keyword inspectors [1312779] (https://issuetracker.unity3d.com/issues/shader-graph-exposed-parameter-for-keywords-removed-by-accident)
 - Fixed issue with SRP Batcher compatibility [1310624]
 - Fixed issue with Hybrid renderer compatibility [1296776]
 - Fixed an issue where the shader variant limit exceeded message was not getting passed [1304168] (https://issuetracker.unity3d.com/product/unity/issues/guid/1304168)
 - Fixed an issue where generated `BuildVertexDescriptionInputs()` produced an HLSL warning, "implicit truncation of vector type" [1299179](https://issuetracker.unity3d.com/product/unity/issues/guid/1299179/)
+
+### Changed
+- Added padding to the shader graph blackboard window to prevent scrollbars from being overlapped by the resize region at the boundaries of the window
 
 ## [10.3.1] - 2021-01-26
 

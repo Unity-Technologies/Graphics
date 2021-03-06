@@ -108,7 +108,7 @@
     padding-left: 0;
     padding-top: 0;
     padding-right: 0;
-    padding-bottom: 6px;
+    padding-bottom: 15px;
     flex-direction: column;
     align-items: stretch;
 }
@@ -170,6 +170,20 @@
 #SGBlackboard > .mainContainer > #content > #header > #labelContainer > #subTitleLabel {
     font-size: 11px;
     color: #606060;
+}
+
+#SGBlackboard.scrollable > .mainContainer > #content > .unity-scroll-view > {
+    padding-bottom: 12;
+}
+
+#SGBlackboard.scrollable > .mainContainer > #content > .unity-scroll-view > .unity-scroller--horizontal {
+    background-color: #393939;
+    bottom: 12;
+}
+
+#SGBlackboard.scrollable > .mainContainer > #content > .unity-scroll-view > .unity-scroller--vertical {
+    background-color: #393939;
+    right: 12;
 }
 
 .blackboardSection {
