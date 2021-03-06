@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using UnityEngine.Experimental.Rendering;
+using Unity.Collections;
 
 namespace UnityEngine.Rendering.HighDefinition
 {
@@ -2142,7 +2143,7 @@ namespace UnityEngine.Rendering.HighDefinition
         // This will go through the list of all visible light and do two main things:
         // - Precompute data that will be reused through the light loop
         // - Discard all lights considered unnecessary (too far away, explicitly discarded by type, ...)
-        int PreprocessVisibleLights(HDCamera hdCamera, CullingResults cullResults, DebugDisplaySettings debugDisplaySettings, in AOVRequestData aovRequest)
+        int PreprocessVisibleLights(HDCamera hdCamera, NativeArray<VisibleLight> lights, bool[] hasShadowCasters, DebugDisplaySettings debugDisplaySettings, in AOVRequestData aovRequest)
         {
             var hdShadowSettings = hdCamera.volumeStack.GetComponent<HDShadowSettings>();
 
@@ -2156,14 +2157,14 @@ namespace UnityEngine.Rendering.HighDefinition
             int punctualLightcount = 0;
             int areaLightCount = 0;
 
-            m_ProcessedLightData.Resize(cullResults.visibleLights.Length);
+            m_ProcessedLightData.Resize(lights.Length);
 
-            int lightCount = Math.Min(cullResults.visibleLights.Length, m_MaxLightsOnScreen);
+            int lightCount = Math.Min(lights.Length, m_MaxLightsOnScreen);
             UpdateSortKeysArray(lightCount);
             int sortCount = 0;
-            for (int lightIndex = 0, numLights = cullResults.visibleLights.Length; (lightIndex < numLights) && (sortCount < lightCount); ++lightIndex)
+            for (int lightIndex = 0, numLights = lights.Length; (lightIndex < numLights) && (sortCount < lightCount); ++lightIndex)
             {
-                var light = cullResults.visibleLights[lightIndex];
+                var light = lights[lightIndex];
 
                 // First we do all the trivial rejects.
                 if (TrivialRejectLight(light, hdCamera, aovRequest))
@@ -2212,7 +2213,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 }
 
                 // First we should evaluate the shadow information for this frame
-                additionalData.EvaluateShadowState(hdCamera, processedData, cullResults, hdCamera.frameSettings, lightIndex);
+                additionalData.EvaluateShadowState(hdCamera, processedData, hasShadowCasters[lightIndex], hdCamera.frameSettings, lightIndex);
 
                 // Reserve shadow map resolutions and check if light needs to render shadows
                 if (additionalData.WillRenderShadowMap())
@@ -2560,8 +2561,16 @@ namespace UnityEngine.Rendering.HighDefinition
         }
 
         // Return true if BakedShadowMask are enabled
-        bool PrepareLightsForGPU(CommandBuffer cmd, HDCamera hdCamera, CullingResults cullResults,
-            HDProbeCullingResults hdProbeCullingResults, DensityVolumeList densityVolumes, DebugDisplaySettings debugDisplaySettings, AOVRequestData aovRequest)
+        bool PrepareLightsForGPU(LightList outputLightList,
+            CommandBuffer cmd, HDCamera hdCamera,
+            NativeArray<VisibleLight> inputLights,
+            NativeArray<VisibleReflectionProbe> inputReflectionProbes,
+            bool[] hasShadowCasters,
+            //CullingResults cullResults,
+            HDProbeCullingResults hdProbeCullingResults,
+            DensityVolumeList densityVolumes,
+            DebugDisplaySettings debugDisplaySettings,
+            AOVRequestData aovRequest)
         {
             var debugLightFilter = debugDisplaySettings.GetDebugLightFilterMode();
             var hasDebugLightFilter = debugLightFilter != DebugLightFilterMode.None;
@@ -2605,9 +2614,9 @@ namespace UnityEngine.Rendering.HighDefinition
                 }
 
                 // Note: Light with null intensity/Color are culled by the C++, no need to test it here
-                if (cullResults.visibleLights.Length != 0)
+                if (inputLights.Length != 0)
                 {
-                    int processedLightCount = PreprocessVisibleLights(hdCamera, cullResults, debugDisplaySettings, aovRequest);
+                    int processedLightCount = PreprocessVisibleLights(hdCamera, inputLights, hasShadowCasters, debugDisplaySettings, aovRequest);
 
                     // In case ray tracing supported and a light cluster is built, we need to make sure to reserve all the cookie slots we need
                     if (m_RayTracingSupported)

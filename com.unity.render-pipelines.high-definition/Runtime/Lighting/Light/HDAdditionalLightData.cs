@@ -1930,13 +1930,11 @@ namespace UnityEngine.Rendering.HighDefinition
             return ShadowMapUpdateType.Cached;
         }
 
-        internal void EvaluateShadowState(HDCamera hdCamera, in ProcessedLightData processedLight, CullingResults cullResults, FrameSettings frameSettings, int lightIndex)
+        internal void EvaluateShadowState(HDCamera hdCamera, in ProcessedLightData processedLight, bool hasShadowCasters, FrameSettings frameSettings, int lightIndex)
         {
-            Bounds bounds;
-
             m_WillRenderShadowMap = legacyLight.shadows != LightShadows.None && frameSettings.IsEnabled(FrameSettingsField.ShadowMaps);
 
-            m_WillRenderShadowMap &= cullResults.GetShadowCasterBounds(lightIndex, out bounds);
+            m_WillRenderShadowMap &= hasShadowCasters;
             // When creating a new light, at the first frame, there is no AdditionalShadowData so we can't really render shadows
             m_WillRenderShadowMap &= shadowDimmer > 0;
             // If the shadow is too far away, we don't render it
