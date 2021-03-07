@@ -238,17 +238,20 @@ namespace UnityEditor.Rendering
                             fallOffProp.floatValue = Mathf.Max(tmp, 0.0f);
 
                         rect = GetNextRect();
-                        if ((tmp = EditorGUI.FloatField(rect, Styles.edgeOffset, edgeOffsetProp.floatValue)) != edgeOffsetProp.floatValue)
+                        if ((tmp = EditorGUI.Slider(rect, Styles.edgeOffset, edgeOffsetProp.floatValue, 0.0f, 1.0f)) != edgeOffsetProp.floatValue)
                             edgeOffsetProp.floatValue = Mathf.Clamp01(tmp);
 
                         if (newType == SRPLensFlareType.Iris)
                         {
                             rect = GetNextRect();
-                            if ((tmp = EditorGUI.IntField(rect, Styles.sideCount, sideCountProp.intValue)) != sideCountProp.intValue)
-                                sideCountProp.intValue = (int)Mathf.Max(tmp, 3);
+                            //if ((tmp = EditorGUI.IntField(rect, Styles.sideCount, sideCountProp.intValue)) != sideCountProp.intValue)
+                            //    sideCountProp.intValue = (int)Mathf.Max(tmp, 3);
+                            if ((tmp = EditorGUI.IntSlider(rect, Styles.sideCount, sideCountProp.intValue, 3, 32)) != sideCountProp.intValue)
+                                sideCountProp.intValue = (int)Mathf.Max(tmp, 0);
+                            //sideCountProp.intValue = (int)Mathf.Max(tmp, 3);
 
                             rect = GetNextRect();
-                            if ((tmp = EditorGUI.FloatField(rect, Styles.sdfRoundness, sdfRoundnessProp.floatValue)) != sdfRoundnessProp.floatValue)
+                            if ((tmp = EditorGUI.Slider(rect, Styles.sdfRoundness, sdfRoundnessProp.floatValue, 0.0f, 1.0f)) != sdfRoundnessProp.floatValue)
                                 sdfRoundnessProp.floatValue = Mathf.Clamp01(tmp);
                         }
 
