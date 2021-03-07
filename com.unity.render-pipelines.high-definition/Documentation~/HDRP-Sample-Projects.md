@@ -2,7 +2,7 @@
 
 To explore more complex usages of the High Definition Render Pipeline (HDRP), you have access to several fully interactive Unity Projects.
 
-These projects are hosted on Unity Technology's GitHub. 
+These projects are hosted on Unity Technology's GitHub.
 
 When you clone the Project's repository, make sure to use git or a git client. This is because if you use the Green button on the GitHub website, it does not download all the Assets.
 
@@ -47,7 +47,7 @@ Graphics features used :
 * Screen Space reflections
 * GPU Lightmapper
 
-Relevant links : 
+Relevant links :
 * [Now Available: The Spaceship Demo Project using VFX Graph and High-Definition Render Pipeline](https://blogs.unity3d.com/2019/08/19/now-available-the-spaceship-demo-project-using-vfx-graph-and-high-definition-render-pipeline/)
 * [VFX Graph: building visual effects in the Spaceship Demo | Unite Now 2020](https://www.youtube.com/watch?v=Od16mcOzl2M)
 * [Visual Effect Graph Samples](https://blogs.unity3d.com/2019/03/06/visual-effect-graph-samples/)
@@ -70,6 +70,3 @@ Graphics features used :
 * Custom Pass
 * Object Motion Blur
 * Decals
-
-
-

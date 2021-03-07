@@ -23,7 +23,7 @@ NOTE: If you overwrite the **Reference Name** parameter be aware of the followin
 - If your **Reference Name** contains any characters which are unsupported in HLSL they will be removed.
 - You can revert to the default **Reference Name** by right clicking on it and selecting **Reset Reference**.
 
-## Float   
+## Float
 
 Defines a **Float** value.
 
@@ -181,7 +181,7 @@ Defines a [Texture Stack](https://docs.unity3d.com/2020.1/Documentation/Manual/s
 
 ## Boolean
 
-Defines a **Boolean** value. Displays a **ToggleUI** field in the material inspector. Note that internally to the shader this value is a **Float**. The **Boolean** type in [Shader Graph](Shader-Graph.md) is merely for usability. 
+Defines a **Boolean** value. Displays a **ToggleUI** field in the material inspector. Note that internally to the shader this value is a **Float**. The **Boolean** type in [Shader Graph](Shader-Graph.md) is merely for usability.
 
 | Data Type    | Modes |
 |:-------------|:------|

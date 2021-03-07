@@ -105,12 +105,12 @@ namespace UnityEngine.Rendering.HighDefinition
 
         public bool ContainsVolume(DensityVolume volume) => m_Volumes.Contains(volume);
 
-        public List<DensityVolume> PrepareDensityVolumeData(CommandBuffer cmd, HDCamera currentCam, float time)
+        public List<DensityVolume> PrepareDensityVolumeData(CommandBuffer cmd, HDCamera currentCam)
         {
             //Update volumes
-            bool animate = currentCam.animateMaterials;
+            float time = currentCam.time;
             foreach (DensityVolume volume in m_Volumes)
-                volume.PrepareParameters(animate, time);
+                volume.PrepareParameters(time);
 
             using (new ProfilingScope(cmd, ProfilingSampler.Get(HDProfileId.UpdateDensityVolumeAtlas)))
             {
@@ -124,8 +124,11 @@ namespace UnityEngine.Rendering.HighDefinition
         internal void ReleaseAtlas()
         {
             // Release the atlas so next time the manager is used, it is reallocated with new HDRP settings.
-            volumeAtlas.Release();
-            m_VolumeAtlas = null;
+            if (m_VolumeAtlas != null)
+            {
+                volumeAtlas.Release();
+                m_VolumeAtlas = null;
+            }
         }
     }
 }

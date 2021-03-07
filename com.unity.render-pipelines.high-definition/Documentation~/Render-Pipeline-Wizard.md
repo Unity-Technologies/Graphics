@@ -1,8 +1,8 @@
 # High Definition Render Pipeline Wizard
 
-The High Definition Render Pipeline (HDRP) includes the **HD Render Pipeline Wizard** to help you configure your Unity Project so that it is compatible with HDRP. 
+The High Definition Render Pipeline (HDRP) includes the **HDRP Wizard** to help you configure your Unity Project so that it is compatible with HDRP.
 
-To open the **Render Pipeline Wizard**, go to **Window > Render Pipeline** and select **HD Render Pipeline Wizard**.
+To open the **Render Pipeline Wizard**, go to **Window > Render Pipeline** and select **HDRP Wizard**.
 
 ![](Images/RenderPipelineWizard1.png)
 
@@ -35,7 +35,7 @@ Your Unity Project must adhere to all the configuration tests in this section fo
 There are three tabs that you can use to set up your HDRP Project for different use cases.
 * [HDRP](#HDRPTab): Use this tab to set up a default HDRP Project.
 * [HDRP + VR](#VRTab): Use this tab to set up your HDRP Project and enable support for virtual reality.
-* [HDRP + DXR](#DXRTab): Use this tab to set up your HDRP Project and enable support for ray tracing. 
+* [HDRP + DXR](#DXRTab): Use this tab to set up your HDRP Project and enable support for ray tracing.
 
 <a name="HDRPTab"></a>
 
@@ -93,10 +93,10 @@ Note that every **Fix** will be deactivated if your Hardware or OS do not suppor
 
 ## Project Migration Quick-links
 
-When upgrading a project from the built-in render pipeline to HDRP, you need to do upgrade your Materials. Use the following utility functions to help with the upgrade process:
+When upgrading a project from the built-in render pipeline to HDRP, you need to do convert your Materials. Use the following utility functions to help with the upgrade process:
 
-- **Upgrade Project Materials to High Definition Materials**: Upgrades every Material in your Unity Project to HDRP Materials.
-- **Upgrade Selected Materials to High Definition Materials**: Upgrades every Material currently selected to HDRP Materials.
+- **Convert All Built-in Materials to HDRP**: Upgrades every Material in your Unity Project to HDRP Materials.
+- **Convert Selected Built-in Materials to HDRP**: Upgrades every Material currently selected to HDRP Materials.
 - **Upgrade HDRP Materials to Latest Version:** Upgrades every Material in your Unity Project to the latest version.
 
 The lighting will not match as HDRP use a different attenuation function than built-in and use correct math to handle lighting model. There is no function that can convert the look. Thus the lighting will require to be redone.

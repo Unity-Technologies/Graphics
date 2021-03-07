@@ -83,6 +83,8 @@ namespace UnityEngine.Rendering.HighDefinition
         /// <summary>Volumetric history buffer state.</summary>
         public bool                 volumetricHistoryIsValid = false;
 
+        internal int                volumetricValidFrames = 0;
+
         /// <summary>Width actually used for rendering after dynamic resolution and XR is applied.</summary>
         public int                  actualWidth { get; private set; }
         /// <summary>Height actually used for rendering after dynamic resolution and XR is applied.</summary>
@@ -129,7 +131,12 @@ namespace UnityEngine.Rendering.HighDefinition
             cameraFrameCount = 0;
             resetPostProcessingHistory = true;
             volumetricHistoryIsValid = false;
+            volumetricValidFrames = 0;
             colorPyramidHistoryIsValid = false;
+
+            // Reset the volumetric cloud offset animation data
+            volumetricCloudsAnimationData.lastTime = -1.0f;
+            volumetricCloudsAnimationData.cloudOffset = new Vector2(0.0f, 0.0f);
         }
 
         /// <summary>
@@ -183,6 +190,7 @@ namespace UnityEngine.Rendering.HighDefinition
             GlobalIllumination0,
             GlobalIllumination1,
             RayTracedReflections,
+            VolumetricClouds,
             Count
         }
 
@@ -194,6 +202,15 @@ namespace UnityEngine.Rendering.HighDefinition
             public int frameCount;
             public bool fullResolution;
             public bool rayTraced;
+        }
+
+        /// <summary>
+        // Struct that lists the data required to perform the volumetric clouds animation
+        /// </summary>
+        internal struct VolumetricCloudsAnimationData
+        {
+            public float lastTime;
+            public Vector2 cloudOffset;
         }
 
         internal Vector4[]              frustumPlaneEquations;
@@ -226,6 +243,9 @@ namespace UnityEngine.Rendering.HighDefinition
         // This property allows us to track for the various history accumulation based effects, the last registered validity frame ubdex of each effect as well as the resolution at which it was built.
         internal HistoryEffectValidity[] historyEffectUsage = null;
 
+        // This property allows us to track the volumetric cloud animation data
+        internal VolumetricCloudsAnimationData volumetricCloudsAnimationData;
+
         internal SkyUpdateContext       m_LightingOverrideSky = new SkyUpdateContext();
 
         /// <summary>Mark the HDCamera as persistant so it won't be destroyed if the camera is disabled</summary>
@@ -246,6 +266,8 @@ namespace UnityEngine.Rendering.HighDefinition
         // XR multipass and instanced views are supported (see XRSystem)
         internal XRPass xr { get; private set; }
 
+        internal float deltaTime => time - lastTime;
+
         // Non oblique projection matrix (RHS)
         // TODO: this code is never used and not compatible with XR
         internal Matrix4x4 nonObliqueProjMatrix
@@ -263,6 +285,9 @@ namespace UnityEngine.Rendering.HighDefinition
         internal bool isFirstFrame { get; private set; }
 
         internal bool isMainGameView { get { return camera.cameraType == CameraType.Game && camera.targetTexture == null; } }
+
+        internal bool canDoDynamicResolution { get { return camera.cameraType == CameraType.Game; } }
+
 
         // Helper property to inform how many views are rendered simultaneously
         internal int viewCount { get => Math.Max(1, xr.viewCount); }
@@ -343,6 +368,8 @@ namespace UnityEngine.Rendering.HighDefinition
 
         internal bool stopNaNs => m_AdditionalCameraData != null && m_AdditionalCameraData.stopNaNs;
 
+        internal bool allowDynamicResolution => m_AdditionalCameraData != null && m_AdditionalCameraData.allowDynamicResolution;
+
         internal HDPhysicalCamera physicalParameters { get; private set; }
 
         internal IEnumerable<AOVRequestData> aovRequests =>
@@ -391,6 +418,28 @@ namespace UnityEngine.Rendering.HighDefinition
         internal uint GetCameraFrameCount()
         {
             return cameraFrameCount;
+        }
+
+        internal struct DynamicResolutionRequest
+        {
+            public bool enabled;
+            public bool cameraRequested;
+            public bool hardwareEnabled;
+            public DynamicResUpscaleFilter filter;
+        }
+
+        internal DynamicResolutionRequest DynResRequest { set; get; }
+
+        internal void RequestDynamicResolution(bool cameraRequestedDynamicRes, DynamicResolutionHandler dynResHandler)
+        {
+            //cache the state of the drs handler in the camera, it will be used by post processes later.
+            DynResRequest = new DynamicResolutionRequest()
+            {
+                enabled = dynResHandler.DynamicResolutionEnabled(),
+                cameraRequested = cameraRequestedDynamicRes,
+                hardwareEnabled = dynResHandler.HardwareDynamicResIsEnabled(),
+                filter = dynResHandler.filter
+            };
         }
 
         internal ProfilingSampler profilingSampler => m_AdditionalCameraData?.profilingSampler ?? ProfilingSampler.Get(HDProfileId.HDRenderPipelineRenderCamera);
@@ -451,9 +500,24 @@ namespace UnityEngine.Rendering.HighDefinition
 
             // Different views/tabs may have different values of the "Animated Materials" setting.
             animateMaterials = CoreUtils.AreAnimatedMaterialsEnabled(aniCam);
-
-            time = animateMaterials ? hdrp.GetTime() : 0;
-            lastTime = animateMaterials ? hdrp.GetLastTime() : 0;
+            if (animateMaterials)
+            {
+                float newTime, deltaTime;
+#if UNITY_EDITOR
+                newTime = Application.isPlaying ? Time.time : Time.realtimeSinceStartup;
+                deltaTime = Application.isPlaying ? Time.deltaTime : 0.033f;
+#else
+                newTime = Time.time;
+                deltaTime = Time.deltaTime;
+#endif
+                time = newTime;
+                lastTime = newTime - deltaTime;
+            }
+            else
+            {
+                time = 0;
+                lastTime = 0;
+            }
 
             // Make sure that the shadow history identification array is allocated and is at the right size
             if (shadowHistoryUsage == null || shadowHistoryUsage.Length != hdrp.currentPlatformRenderPipelineSettings.hdShadowInitParams.maxScreenSpaceShadowSlots)
@@ -500,35 +564,35 @@ namespace UnityEngine.Rendering.HighDefinition
                 if (isHistoryColorPyramidRequired) // Superset of case above
                     numColorPyramidBuffersRequired = 2;
 
-                int numVolumetricBuffersRequired = isVolumetricHistoryRequired ? 2 : 0; // History + feedback
-
-                if ((m_NumColorPyramidBuffersAllocated != numColorPyramidBuffersRequired) ||
-                    (m_NumVolumetricBuffersAllocated != numVolumetricBuffersRequired))
+                // Handle the color buffers
+                if (m_NumColorPyramidBuffersAllocated != numColorPyramidBuffersRequired)
                 {
                     // Reinit the system.
                     colorPyramidHistoryIsValid = false;
                     // Since we nuke all history we must inform the post process system too.
                     resetPostProcessingHistory = true;
 
-                    HDRenderPipeline.DestroyVolumetricHistoryBuffers(this);
-
                     // The history system only supports the "nuke all" option.
+                    // TODO: Fix this, only the color buffers should be discarded.
                     m_HistoryRTSystem.Dispose();
                     m_HistoryRTSystem = new BufferedRTHandleSystem();
 
                     if (numColorPyramidBuffersRequired != 0)
-                    {
                         AllocHistoryFrameRT((int)HDCameraFrameHistoryType.ColorBufferMipChain, HistoryBufferAllocatorFunction, numColorPyramidBuffersRequired);
-                    }
-
-                    if (numVolumetricBuffersRequired != 0)
-                    {
-                        HDRenderPipeline.CreateVolumetricHistoryBuffers(this, numVolumetricBuffersRequired);
-                    }
 
                     // Mark as init.
                     m_NumColorPyramidBuffersAllocated = numColorPyramidBuffersRequired;
-                    m_NumVolumetricBuffersAllocated   = numVolumetricBuffersRequired;
+                }
+
+                // Handle the volumetric fog buffers
+                int numVolumetricBuffersRequired = isVolumetricHistoryRequired ? 2 : 0; // History + feedback
+                if (m_NumVolumetricBuffersAllocated != numVolumetricBuffersRequired)
+                {
+                    HDRenderPipeline.DestroyVolumetricHistoryBuffers(this);
+                    if (numVolumetricBuffersRequired != 0)
+                        HDRenderPipeline.CreateVolumetricHistoryBuffers(this, numVolumetricBuffersRequired);
+                    // Mark as init.
+                    m_NumVolumetricBuffersAllocated = numVolumetricBuffersRequired;
                 }
             }
 
@@ -550,7 +614,7 @@ namespace UnityEngine.Rendering.HighDefinition
             DynamicResolutionHandler.instance.finalViewport = new Vector2Int((int)finalViewport.width, (int)finalViewport.height);
 
             Vector2Int nonScaledViewport = new Vector2Int(actualWidth, actualHeight);
-            if (isMainGameView)
+            if (canDoDynamicResolution)
             {
                 Vector2Int scaledSize = DynamicResolutionHandler.instance.GetScaledSize(new Vector2Int(actualWidth, actualHeight));
                 actualWidth = scaledSize.x;
@@ -672,6 +736,9 @@ namespace UnityEngine.Rendering.HighDefinition
             }
         }
 
+        unsafe internal void UpdateShaderVariablesGlobalCB(ref ShaderVariablesGlobal cb)
+            => UpdateShaderVariablesGlobalCB(ref cb, (int)cameraFrameCount);
+
         unsafe internal void UpdateShaderVariablesGlobalCB(ref ShaderVariablesGlobal cb, int frameCount)
         {
             bool taaEnabled = frameSettings.IsEnabled(FrameSettingsField.Postprocess)
@@ -679,6 +746,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 && camera.cameraType == CameraType.Game;
 
             cb._ViewMatrix = mainViewConstants.viewMatrix;
+            cb._CameraViewMatrix = mainViewConstants.viewMatrix;
             cb._InvViewMatrix = mainViewConstants.invViewMatrix;
             cb._ProjMatrix = mainViewConstants.projMatrix;
             cb._InvProjMatrix = mainViewConstants.invProjMatrix;
@@ -706,8 +774,13 @@ namespace UnityEngine.Rendering.HighDefinition
 
             float ct = time;
             float pt = lastTime;
+#if UNITY_EDITOR
+            float dt = time - lastTime;
+            float sdt = dt;
+#else
             float dt = Time.deltaTime;
             float sdt = Time.smoothDeltaTime;
+#endif
 
             cb._Time = new Vector4(ct * 0.05f, ct, ct * 2.0f, ct * 3.0f);
             cb._SinTime = new Vector4(Mathf.Sin(ct * 0.125f), Mathf.Sin(ct * 0.25f), Mathf.Sin(ct * 0.5f), Mathf.Sin(ct));
@@ -753,7 +826,7 @@ namespace UnityEngine.Rendering.HighDefinition
             }
         }
 
-        internal void AllocateAmbientOcclusionHistoryBuffer(float scaleFactor)
+        internal bool AllocateAmbientOcclusionHistoryBuffer(float scaleFactor)
         {
             if (scaleFactor != m_AmbientOcclusionResolutionScale || GetCurrentFrameRT((int)HDCameraFrameHistoryType.AmbientOcclusion) == null)
             {
@@ -763,7 +836,10 @@ namespace UnityEngine.Rendering.HighDefinition
                 AllocHistoryFrameRT((int)HDCameraFrameHistoryType.AmbientOcclusion, aoAlloc.Allocator, 2);
 
                 m_AmbientOcclusionResolutionScale = scaleFactor;
+                return true;
             }
+
+            return false;
         }
 
         internal void AllocateScreenSpaceAccumulationHistoryBuffer(float scaleFactor)
@@ -1358,11 +1434,13 @@ namespace UnityEngine.Rendering.HighDefinition
             }
             Vector2 lensShift = camera.GetGateFittedLensShift();
 
-            return HDUtils.ComputePixelCoordToWorldSpaceViewDirectionMatrix(verticalFoV, lensShift, resolution, viewConstants.viewMatrix, false, aspect);
+            return HDUtils.ComputePixelCoordToWorldSpaceViewDirectionMatrix(verticalFoV, lensShift, resolution, viewConstants.viewMatrix, false, aspect, camera.orthographic);
         }
 
         void Dispose()
         {
+            HDRenderPipeline.DestroyVolumetricHistoryBuffers(this);
+
             VolumeManager.instance.DestroyStack(volumeStack);
 
             if (m_HistoryRTSystem != null)

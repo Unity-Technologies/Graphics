@@ -1,5 +1,6 @@
 #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Common.hlsl"
 #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/CommonMaterial.hlsl"
+#include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Texture.hlsl"
 #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Core.hlsl"
 #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Shadows.hlsl"
 #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/DeclareDepthTexture.hlsl"
@@ -77,6 +78,15 @@ float3 VFXTransformPositionWorldToView(float3 posWS)
     return TransformWorldToView(posWS);
 }
 
+float3 VFXTransformPositionWorldToCameraRelative(float3 posWS)
+{
+#if (VFX_WORLD_SPACE || SHADEROPTIONS_CAMERA_RELATIVE_RENDERING == 0)
+    return posWS - _WorldSpaceCameraPos.xyz;
+#else
+    return posWS;
+#endif
+}
+
 float4x4 VFXGetObjectToWorldMatrix()
 {
     return GetObjectToWorldMatrix();
@@ -140,4 +150,9 @@ float4 VFXApplyFog(float4 color,float4 posCS,float3 posWS)
    color.rgb = lerp(fog.rgb * color.a, color.rgb, fog.a);
 #endif
    return color;
+}
+
+float3 VFXGetCameraWorldDirection()
+{
+    return unity_CameraToWorld._m02_m12_m22;
 }
