@@ -130,20 +130,6 @@ namespace UnityEngine.Rendering.HighDefinition
     }
 
     /// <summary>
-    /// Possible values for the probe volume memory budget (determines the size of the textures used).
-    /// </summary>
-    [Serializable]
-    public enum ProbeVolumeTextureMemoryBudget
-    {
-        /// <summary>Low Budget</summary>
-        MemoryBudgetLow = 512,
-        /// <summary>Medium Budget</summary>
-        MemoryBudgetMedium = 1024,
-        /// <summary>High Budget</summary>
-        MemoryBudgetHigh = 2048,
-    }
-
-    /// <summary>
     /// Global Light Loop Settings.
     /// </summary>
     [Serializable]

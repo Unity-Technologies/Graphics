@@ -21,6 +21,6 @@ Defines a constant **Texture 2D Array Asset** for use in the shader. To sample t
 The following example code represents one possible outcome of this node.
 
 ```
-TEXTURE2D_ARRAY(_Texture2DArrayAsset); 
+TEXTURE2D_ARRAY(_Texture2DArrayAsset);
 SAMPLER(sampler_Texture2DArrayAsset);
 ```

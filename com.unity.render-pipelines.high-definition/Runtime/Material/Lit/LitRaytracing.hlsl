@@ -1,4 +1,4 @@
-float3 SampleSpecularBRDF(BSDFData bsdfData, float2 sample, float3 viewWS)
+float3 SampleSpecularBRDF(BSDFData bsdfData, float2 theSample, float3 viewWS)
 {
     float roughness = PerceptualRoughnessToRoughness(bsdfData.perceptualRoughness);
     float3x3 localToWorld;
@@ -12,7 +12,7 @@ float3 SampleSpecularBRDF(BSDFData bsdfData, float2 sample, float3 viewWS)
     }
     float NdotL, NdotH, VdotH;
     float3 sampleDir;
-    SampleGGXDir(sample, viewWS, localToWorld, roughness, sampleDir, NdotL, NdotH, VdotH);
+    SampleGGXDir(theSample, viewWS, localToWorld, roughness, sampleDir, NdotL, NdotH, VdotH);
     return sampleDir;
 }
 

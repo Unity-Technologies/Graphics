@@ -52,14 +52,14 @@ GGXSample GenerateGGXSampleDirection(uint2 currentCoord, float3 normalWS, float3
 
     // Generate the new sample (follwing values of the sequence)
     int initialFrameIndex = frameIndex;
-    float2 sample;
-    sample.x = GetBNDSequenceSample(currentCoord, initialFrameIndex, 0);
-    sample.y = GetBNDSequenceSample(currentCoord, initialFrameIndex, 1);
+    float2 theSample;
+    theSample.x = GetBNDSequenceSample(currentCoord, initialFrameIndex, 0);
+    theSample.y = GetBNDSequenceSample(currentCoord, initialFrameIndex, 1);
 
     // Importance sample the direction
     float3 sampleDir = float3(0.0, 0.0, 0.0);
     float NdotL, NdotH, VdotH;
-    SampleGGXDir(sample, viewWS, localToWorld, roughness, sampleDir, NdotL, NdotH, VdotH);
+    SampleGGXDir(theSample, viewWS, localToWorld, roughness, sampleDir, NdotL, NdotH, VdotH);
 
     // If this direction is under the surface, let's generate a new one that won't be.
     // We allow ourselves 8 as the total of number of tries.
@@ -70,9 +70,9 @@ GGXSample GenerateGGXSampleDirection(uint2 currentCoord, float3 normalWS, float3
         if (dot(sampleDir, normalWS) >= 0.00f)
             break;
 
-        sample.x = GetBNDSequenceSample(currentCoord, initialFrameIndex + i, 0);
-        sample.y = GetBNDSequenceSample(currentCoord, initialFrameIndex + i, 1);
-        SampleGGXDir(sample, viewWS, localToWorld, roughness, sampleDir, NdotL, NdotH, VdotH);
+        theSample.x = GetBNDSequenceSample(currentCoord, initialFrameIndex + i, 0);
+        theSample.y = GetBNDSequenceSample(currentCoord, initialFrameIndex + i, 1);
+        SampleGGXDir(theSample, viewWS, localToWorld, roughness, sampleDir, NdotL, NdotH, VdotH);
     }
 
     // Build the sample and return it

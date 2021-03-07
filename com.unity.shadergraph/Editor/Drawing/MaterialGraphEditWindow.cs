@@ -40,7 +40,7 @@ namespace UnityEditor.ShaderGraph.Drawing
         string m_LastSerializedFileContents;
 
         [NonSerialized]
-        HashSet<string> m_ChangedFileDependencies = new HashSet<string>();
+        HashSet<string> m_ChangedFileDependencyGUIDs = new HashSet<string>();
 
         ColorSpace m_ColorSpace;
         RenderPipelineAsset m_RenderPipelineAsset;
@@ -282,13 +282,13 @@ namespace UnityEditor.ShaderGraph.Drawing
                     updateTitle = true;
                 }
 
-                if (m_ChangedFileDependencies.Count > 0 && graphObject != null && graphObject.graph != null)
+                if (m_ChangedFileDependencyGUIDs.Count > 0 && graphObject != null && graphObject.graph != null)
                 {
                     bool reloadedSomething = false;
                     var subGraphNodes = graphObject.graph.GetNodes<SubGraphNode>();
                     foreach (var subGraphNode in subGraphNodes)
                     {
-                        var reloaded = subGraphNode.Reload(m_ChangedFileDependencies);
+                        var reloaded = subGraphNode.Reload(m_ChangedFileDependencyGUIDs);
                         reloadedSomething |= reloaded;
                     }
                     if (subGraphNodes.Count() > 0)
@@ -300,15 +300,20 @@ namespace UnityEditor.ShaderGraph.Drawing
                     }
                     foreach (var customFunctionNode in graphObject.graph.GetNodes<CustomFunctionNode>())
                     {
-                        var reloaded = customFunctionNode.Reload(m_ChangedFileDependencies);
+                        var reloaded = customFunctionNode.Reload(m_ChangedFileDependencyGUIDs);
                         reloadedSomething |= reloaded;
                     }
 
-                    // reloading files may change serilization
+                    // reloading files may change serialization
                     if (reloadedSomething)
+                    {
                         updateTitle = true;
 
-                    m_ChangedFileDependencies.Clear();
+                        // may also need to re-run validation/concretization
+                        graphObject.Validate();
+                    }
+
+                    m_ChangedFileDependencyGUIDs.Clear();
                 }
 
                 var wasUndoRedoPerformed = graphObject.wasUndoRedoPerformed;
@@ -343,11 +348,11 @@ namespace UnityEditor.ShaderGraph.Drawing
             }
         }
 
-        public void ReloadSubGraphsOnNextUpdate(List<string> changedFiles)
+        public void ReloadSubGraphsOnNextUpdate(List<string> changedFileGUIDs)
         {
-            foreach (var changedFile in changedFiles)
+            foreach (var changedFileGUID in changedFileGUIDs)
             {
-                m_ChangedFileDependencies.Add(changedFile);
+                m_ChangedFileDependencyGUIDs.Add(changedFileGUID);
             }
         }
 
@@ -716,10 +721,7 @@ namespace UnityEditor.ShaderGraph.Drawing
             // Always copy deserialized keyword inputs
             foreach (ShaderKeyword keyword in deserialized.metaKeywords)
             {
-                var copiedInput = (ShaderKeyword)keyword.Copy();
-                subGraph.SanitizeGraphInputName(copiedInput);
-                subGraph.SanitizeGraphInputReferenceName(copiedInput, keyword.overrideReferenceName);
-                subGraph.AddGraphInput(copiedInput);
+                var copiedInput = (ShaderKeyword)subGraph.AddCopyOfShaderInput(keyword);
 
                 // Update the keyword nodes that depends on the copied keyword
                 var dependentKeywordNodes = deserialized.GetNodes<KeywordNode>().Where(x => x.keyword == keyword);
@@ -883,11 +885,11 @@ namespace UnityEditor.ShaderGraph.Drawing
                             throw new ArgumentOutOfRangeException();
                     }
 
-                    prop.displayName = fromProperty != null
+                    var propName = fromProperty != null
                         ? fromProperty.displayName
                         : fromSlot.concreteValueType.ToString();
-                    prop.displayName = GraphUtil.SanitizeName(subGraph.addedInputs.Select(p => p.displayName), "{0} ({1})",
-                        prop.displayName);
+                    prop.SetDisplayNameAndSanitizeForGraph(subGraph, propName);
+
                     subGraph.AddGraphInput(prop);
                     if (fromProperty != null)
                     {

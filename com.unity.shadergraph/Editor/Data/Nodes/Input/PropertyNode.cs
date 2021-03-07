@@ -49,12 +49,23 @@ namespace UnityEditor.ShaderGraph
                     return;
 
                 m_Property = value;
+                // Set callback association for display name updates
+                m_Property.value.displayNameUpdateTrigger += UpdateNodeDisplayName;
                 AddOutputSlot();
                 Dirty(ModificationScope.Topological);
             }
         }
 
+        // this node's precision is always controlled by the property precision
         public override bool canSetPrecision => false;
+
+        public void UpdateNodeDisplayName(string newDisplayName)
+        {
+            MaterialSlot foundSlot = FindSlot<MaterialSlot>(OutputSlotId);
+
+            if (foundSlot != null)
+                foundSlot.displayName = newDisplayName;
+        }
 
         public void OnEnable()
         {
@@ -239,7 +250,7 @@ namespace UnityEditor.ShaderGraph
             }
         }
 
-        public override void EvaluateConcretePrecision(List<MaterialSlot> inputSlots)
+        public override void UpdatePrecision(List<MaterialSlot> inputSlots)
         {
             // Get precision from Property
             if (property == null)
@@ -248,12 +259,12 @@ namespace UnityEditor.ShaderGraph
                 hasError = true;
                 return;
             }
-            // If Property has a precision override use that
+
+            // this node's precision is always controlled by the property precision
             precision = property.precision;
-            if (precision != Precision.Inherit)
-                concretePrecision = precision.ToConcrete();
-            else
-                concretePrecision = owner.concretePrecision;
+
+            graphPrecision = precision.ToGraphPrecision(GraphPrecision.Graph);
+            concretePrecision = graphPrecision.ToConcrete(owner.graphDefaultConcretePrecision);
         }
     }
 }

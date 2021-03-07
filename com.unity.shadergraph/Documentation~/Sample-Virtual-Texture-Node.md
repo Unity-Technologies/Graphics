@@ -4,7 +4,7 @@
 
 Samples a [Virtual Texture](Property-Types.md#virtual-texture) and returns up to four Vector 4 color values for use in the shader. You can use the UV input to override the UV coordinate. The Sample Virtual Texture node takes one UV coordinate as the input, and uses that UV coordinate to sample all of the textures in the Virtual Texture.
 
-If you want to use the Sample Virtual Texture node to sample normal maps, navigate to each layer that you want to sample as a normal map, open the **Layer Type** drop-down menu, and select **Normal**. 
+If you want to use the Sample Virtual Texture node to sample normal maps, navigate to each layer that you want to sample as a normal map, open the **Layer Type** drop-down menu, and select **Normal**.
 
 By default, you can only use this node in the fragment shader stage. For more information about how to use this node, or how to configure it for use in the vertex shader stage, see [Using Streaming Virtual Texturing in Shader Graph](https://docs.unity3d.com/2020.1/Documentation/Manual/svt-use-in-shader-graph.html).
 
@@ -12,18 +12,18 @@ If you disable Virtual Texturing in your project, this node works the same way a
 
 You must connect a Sample Virtual Texture node to a Virtual Texture property for the Shader Graph Asset to compile. If you don't connect the node to a property, an error appears, indicating that the node requires a connection.
 
-For information about Streaming Virtual Texturing, see [Streaming Virtual Texturing](https://docs.unity3d.com/2020.1/Documentation/Manual/svt-streaming-virtual-texturing.html). 
+For information about Streaming Virtual Texturing, see [Streaming Virtual Texturing](https://docs.unity3d.com/2020.1/Documentation/Manual/svt-streaming-virtual-texturing.html).
 
 ## Ports
 
 | Name        | Direction           | Type  | Binding | Description |
 |:------------ |:-------------|:-----|:---|:---|
-| UV      | Input |	Vector 2    | 	UV	| The UV coordinate. |
-| VT | Input |	Virtual Texture | None | The Virtual Texture to sample. Must be connected to a Virtual Texture property. |
-| Out	| Output	| Vector 4	| None	| The output value of layer 1 as RGBA. |
-| Out2	| Output	| Vector 4	| None	| The output of layer 2 as RGBA. |
-| Out3	| Output	| Vector 4	| None	| The output of layer 3 as RGBA. |
-| Out4	| Output	| Vector 4	| None	| The output of layer 4 as RGBA. |
+| UV      | Input | Vector 2    |   UV  | The UV coordinate. |
+| VT | Input |  Virtual Texture | None | The Virtual Texture to sample. Must be connected to a Virtual Texture property. |
+| Out   | Output    | Vector 4  | None  | The output value of layer 1 as RGBA. |
+| Out2  | Output    | Vector 4  | None  | The output of layer 2 as RGBA. |
+| Out3  | Output    | Vector 4  | None  | The output of layer 3 as RGBA. |
+| Out4  | Output    | Vector 4  | None  | The output of layer 4 as RGBA. |
 
 ## Settings
 

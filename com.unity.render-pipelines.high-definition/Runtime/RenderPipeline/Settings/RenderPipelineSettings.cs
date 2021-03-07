@@ -136,6 +136,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 lightLayerName7 = "Light Layer 7",
                 supportProbeVolume = false,
                 probeVolumeMemoryBudget = ProbeVolumeTextureMemoryBudget.MemoryBudgetMedium,
+                probeVolumeSHBands = ProbeVolumeSHBands.SphericalHarmonicsL1,
             };
             return settings;
         }
@@ -190,6 +191,8 @@ namespace UnityEngine.Rendering.HighDefinition
         public IntScalableSetting sssSampleBudget;
         /// <summary>Support volumetric lighting.</summary>
         public bool supportVolumetrics;
+        /// <summary>Support volumetric clouds.</summary>
+        public bool supportVolumetricClouds;
         /// <summary>Support light layers.</summary>
         public bool supportLightLayers;
         /// <summary>Name for light layer 0.</summary>
@@ -267,9 +270,11 @@ namespace UnityEngine.Rendering.HighDefinition
         /// <summary>Support terrain holes.</summary>
         public bool supportTerrainHole;
         /// <summary>Support Probe Volumes.</summary>
-        [SerializeField] internal bool supportProbeVolume;
+        public bool supportProbeVolume;
         /// <summary>Support Probe Volumes.</summary>
-        [SerializeField] internal ProbeVolumeTextureMemoryBudget probeVolumeMemoryBudget;
+        public ProbeVolumeTextureMemoryBudget probeVolumeMemoryBudget;
+        /// <summary>Probe Volumes SH Bands.</summary>
+        public ProbeVolumeSHBands probeVolumeSHBands;
 
         /// <summary>Support ray tracing.</summary>
         public bool supportRayTracing;

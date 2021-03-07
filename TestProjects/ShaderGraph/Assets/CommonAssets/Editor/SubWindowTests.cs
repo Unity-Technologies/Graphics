@@ -1,12 +1,12 @@
 using System.Collections;
 using NUnit.Framework;
-using UnityEditor.Experimental.GraphView;
 using UnityEditor.ShaderGraph.Drawing;
 using UnityEditor.ShaderGraph.Drawing.Inspector;
-using System.Reflection;
+using UnityEditor.ShaderGraph.Drawing.Views.Blackboard;
 using UnityEngine;
-using UnityEngine.TestTools;
 using UnityEngine.UIElements;
+using UnityEngine.TestTools;
+using Assert = NUnit.Framework.Assert;
 
 /* Changes:
  * Made ShaderGraphImporterEditor.ShowGraphEditWindow public
@@ -74,7 +74,7 @@ namespace UnityEditor.ShaderGraph.UnitTests
 
             yield return null;
 
-            Assert.That(m_GraphEditorView.Q<Blackboard>().enabledInHierarchy, Is.True, "Blackboard is not visible when it should be. (1st pass)");
+            Assert.That(m_GraphEditorView.Q<SGBlackboard>().enabledInHierarchy, Is.True, "Blackboard is not visible when it should be. (1st pass)");
             Assert.That(m_GraphEditorView.Q<MasterPreviewView>().visible, Is.True, "MasterPreviewView is not visible when it should be. (1st pass)");
 
             yield return null;
@@ -84,7 +84,7 @@ namespace UnityEditor.ShaderGraph.UnitTests
 
             yield return null;
 
-            Assert.That(m_GraphEditorView.Q<Blackboard>(), Is.Null, "Blackboard remained visible when it should not be. (2nd pass)");
+            Assert.That(m_GraphEditorView.Q<SGBlackboard>(), Is.Null, "Blackboard remained visible when it should not be. (2nd pass)");
             Assert.That(m_GraphEditorView.Q<MasterPreviewView>().visible, Is.False, "MasterPreviewView remained visible when it should not be. (2nd pass)");
 
             yield return null;
@@ -94,7 +94,7 @@ namespace UnityEditor.ShaderGraph.UnitTests
 
             yield return null;
 
-            Assert.That(m_GraphEditorView.Q<Blackboard>().enabledInHierarchy, Is.True, "Blackboard is not visible when it should be. (3rd pass)");
+            Assert.That(m_GraphEditorView.Q<SGBlackboard>().enabledInHierarchy, Is.True, "Blackboard is not visible when it should be. (3rd pass)");
             Assert.That(m_GraphEditorView.Q<MasterPreviewView>().visible, Is.False, "MasterPreviewView remained visible when it should not be. (3rd pass)");
 
             // Preview Only
@@ -102,7 +102,7 @@ namespace UnityEditor.ShaderGraph.UnitTests
 
             yield return null;
 
-            Assert.That(m_GraphEditorView.Q<Blackboard>(), Is.Null, "Blackboard remained visible when it should not be. (4th pass)");
+            Assert.That(m_GraphEditorView.Q<SGBlackboard>(), Is.Null, "Blackboard remained visible when it should not be. (4th pass)");
             Assert.That(m_GraphEditorView.Q<MasterPreviewView>().visible, Is.True, "MasterPreviewView is not visible when it should be. (4th pass)");
 
             yield return null;
@@ -127,42 +127,42 @@ namespace UnityEditor.ShaderGraph.UnitTests
         {
             yield return ToggleSubWindowsThenCloseThenReopen(true, true);
 
-            Assert.That(m_GraphEditorView.Q<Blackboard>().enabledInHierarchy, Is.True, "Blackboard is NOT visible when it should be. (1st pass)");
+            Assert.That(m_GraphEditorView.Q<SGBlackboard>().enabledInHierarchy, Is.True, "Blackboard is NOT visible when it should be. (1st pass)");
             Assert.That(m_GraphEditorView.Q<MasterPreviewView>().visible, Is.True, "MasterPreviewView is NOT visible when it should be. (1st pass)");
 
             yield return ToggleSubWindowsThenCloseThenReopen(true, true);
 
-            Assert.That(m_GraphEditorView.Q<Blackboard>().enabledInHierarchy, Is.True, "Blackboard is NOT visible when it should be. (2nd pass)");
+            Assert.That(m_GraphEditorView.Q<SGBlackboard>().enabledInHierarchy, Is.True, "Blackboard is NOT visible when it should be. (2nd pass)");
             Assert.That(m_GraphEditorView.Q<MasterPreviewView>().visible, Is.True, "MasterPreviewView is NOT visible when it should be. (2nd pass)");
 
             yield return ToggleSubWindowsThenCloseThenReopen(true, false);
 
-            Assert.That(m_GraphEditorView.Q<Blackboard>().enabledInHierarchy, Is.True, "Blackboard is NOT visible when it should be. (3rd pass)");
+            Assert.That(m_GraphEditorView.Q<SGBlackboard>().enabledInHierarchy, Is.True, "Blackboard is NOT visible when it should be. (3rd pass)");
             Assert.That(m_GraphEditorView.Q<MasterPreviewView>().visible, Is.False, "MasterPreviewView IS visible when it should not be. (3rd pass)");
 
             yield return ToggleSubWindowsThenCloseThenReopen(true, false);
 
-            Assert.That(m_GraphEditorView.Q<Blackboard>().enabledInHierarchy, Is.True, "Blackboard is NOT visible when it should be. (4th pass)");
+            Assert.That(m_GraphEditorView.Q<SGBlackboard>().enabledInHierarchy, Is.True, "Blackboard is NOT visible when it should be. (4th pass)");
             Assert.That(m_GraphEditorView.Q<MasterPreviewView>().visible, Is.False, "MasterPreviewView IS visible when it should not be. (4th pass)");
 
             yield return ToggleSubWindowsThenCloseThenReopen(false, true);
 
-            Assert.That(m_GraphEditorView.Q<Blackboard>(), Is.Null, "Blackboard IS visible when it should not be. (5th pass)");
+            Assert.That(m_GraphEditorView.Q<SGBlackboard>(), Is.Null, "Blackboard IS visible when it should not be. (5th pass)");
             Assert.That(m_GraphEditorView.Q<MasterPreviewView>().visible, Is.True, "MasterPreviewView is NOT visible when it should not  (5th pass)be.");
 
             yield return ToggleSubWindowsThenCloseThenReopen(false, true);
 
-            Assert.That(m_GraphEditorView.Q<Blackboard>(), Is.Null, "Blackboard IS visible when it should not be. (6th pass)");
+            Assert.That(m_GraphEditorView.Q<SGBlackboard>(), Is.Null, "Blackboard IS visible when it should not be. (6th pass)");
             Assert.That(m_GraphEditorView.Q<MasterPreviewView>().visible, Is.True, "MasterPreviewView is NOT visible when it should not  (6th pass)be.");
 
             yield return ToggleSubWindowsThenCloseThenReopen(false, false);
 
-            Assert.That(m_GraphEditorView.Q<Blackboard>(), Is.Null, "Blackboard IS visible when it should not be. (7th pass)");
+            Assert.That(m_GraphEditorView.Q<SGBlackboard>(), Is.Null, "Blackboard IS visible when it should not be. (7th pass)");
             Assert.That(m_GraphEditorView.Q<MasterPreviewView>().visible, Is.False, "MasterPreviewView IS visible when it should not be. (7th pass)");
 
             yield return ToggleSubWindowsThenCloseThenReopen(false, false);
 
-            Assert.That(m_GraphEditorView.Q<Blackboard>(), Is.Null, "Blackboard IS visible when it should not be. (8th pass)");
+            Assert.That(m_GraphEditorView.Q<SGBlackboard>(), Is.Null, "Blackboard IS visible when it should not be. (8th pass)");
             Assert.That(m_GraphEditorView.Q<MasterPreviewView>().visible, Is.False, "MasterPreviewView IS visible when it should not be. (8th pass)");
         }
 
@@ -175,14 +175,14 @@ namespace UnityEditor.ShaderGraph.UnitTests
         //     yield return TestBlackboardLocation(new Rect(80050.0f, 90050.0f, 220.0f, 240.0f));
         //     yield return TestBlackboardLocation(new Rect(50.0f, -50.0f, 230.0f, 230.0f));
         // }
-        // Test does not pass when run in batchmode on yamato, needs more investigation to re-enable 
+        // Test does not pass when run in batchmode on yamato, needs more investigation to re-enable
 
         // Only works for Blackboard... for now. (Plan is to make Internal Inspector, Blackboard 2.0, and MasterPreview use the same SubWindow class someday)
         private IEnumerator TestBlackboardLocation(Rect blackboardRect)
         {
             ToggleSubWindows(true, true);
 
-            Blackboard blackboard = m_GraphEditorView.blackboardProvider.blackboard;
+            SGBlackboard blackboard = m_GraphEditorView.blackboardProvider.blackboard;
             MasterPreviewView masterPreviewView = m_GraphEditorView.Q<MasterPreviewView>();
 
             blackboard.SetPosition(blackboardRect);

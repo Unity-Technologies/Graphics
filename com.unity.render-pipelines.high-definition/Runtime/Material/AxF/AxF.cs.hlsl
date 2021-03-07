@@ -1,5 +1,5 @@
 //
-// This file was automatically generated. Please don't edit by hand. Execute Editor command [ Edit / Render Pipeline / Generate Shader Includes ] instead
+// This file was automatically generated. Please don't edit by hand. Execute Editor command [ Edit > Rendering > Generate Shader Includes ] instead
 //
 
 #ifndef AXF_CS_HLSL
@@ -14,6 +14,7 @@
 #define FEATUREFLAGS_AXF_BRDFCOLOR_DIAGONAL_CLAMP (16)
 #define FEATUREFLAGS_AXF_HONOR_MIN_ROUGHNESS (256)
 #define FEATUREFLAGS_AXF_HONOR_MIN_ROUGHNESS_COAT (512)
+#define FEATUREFLAGS_AXF_DEBUG_TEST (8388608)
 
 //
 // UnityEngine.Rendering.HighDefinition.AxF+SurfaceData:  static fields

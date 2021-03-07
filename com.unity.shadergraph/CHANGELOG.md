@@ -1,8 +1,38 @@
-﻿# Changelog
+# Changelog
 All notable changes to this package are documented in this file.
 
 The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.html).
+
+## [12.0.0] - 2021-01-11
+
+### Added
+  - Added ability to define custom vertex-to-fragment interpolators.
+  - Stereo Eye Index, Instance ID, and Vertex ID nodes added to the shadergraph library.
+  - Added View Vector Node doc
+
+### Changed
+- Updated/corrected View Direction doc
+- Change Asset/Create/Shader/Blank Shader Graph to Asset/Create/Shader Graph/Blank Shader Graph
+- Change Asset/Create/Shader/Sub Graph to Asset/Create/Shader Graph/Sub Graph
+- Change Asset/Create/Shader/VFX Shader Graph to Asset/Create/Shader Graph/VFX Shader Graph
+
+### Added
+- Support for the XboxSeries platform has been added.
+
+### Fixed
+- Fixed the Custom Editor GUI field in the Graph settings that was ignored.
+- Node included HLSL files are now tracked more robustly, so they work after file moves and renames [1301915] (https://issuetracker.unity3d.com/product/unity/issues/guid/1301915/)
+- Prevent users from setting enum keywords with duplicate reference names and invalid characters [1287335]
+- Fixed a bug where old preview property values would be used for node previews after an undo operation.
+- Clean up console error reporting from node shader compilation so errors are reported in the graph rather than the Editor console [1296291] (https://issuetracker.unity3d.com/product/unity/issues/guid/1296291/)
+- Fixed treatment of node precision in subgraphs, now allows subgraphs to switch precisions based on the subgraph node [1304050] (https://issuetracker.unity3d.com/issues/precision-errors-when-theres-a-precision-discrepancy-between-subgraphs-and-parent-graphs)
+- Fixed an issue where the Rectangle Node could lose detail at a distance.  New control offers additional method that preserves detail better [1156801]
+- Fixed virtual texture layer reference names allowing invalid characters [1304146]
+- Fixed issue with SRP Batcher compatibility [1310624]
+- Fixed issue with Hybrid renderer compatibility [1296776]
+- Fixed an issue where the shader variant limit exceeded message was not getting passed [1304168] (https://issuetracker.unity3d.com/product/unity/issues/guid/1304168)
+
 
 ## [11.0.0] - 2020-10-21
 
@@ -13,12 +43,28 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 ### Fixed
 - Fixed an issue where nodes with ports on one side would appear incorrectly on creation [1262050]
 - Fixed a broken link in the TOC to Main Preview
-- Fixed an issue with the Gradient color picker displaying different values than the selected color. 
+- Fixed an issue with the Gradient color picker displaying different values than the selected color.
+- Fixed an issue where blackboard properties when dragged wouldn't scroll the list of properties to show the user more of the property list [1293632]
+- Fixed an issue where, when blackboard properties were dragged and then the user hit the "Escape" key, the drag indicator would still be visible
+- Fixed an issue where renaming blackboard properties through the Blackboard wouldn't actually change the underlying property name
+- Fixed an issue where blackboard wasn't resizable from all directions like the Inspector and Main Preview
+- Fixed an issue where deleting a property node while your mouse is over it leaves the property highlighted in the blackboard [1238635]
+- Fixed an issue where Float/Vector1 properties did not have the ability to be edited using a slider in the Inspector like the other Vector types
 - Fixed an issue with inactive node deletion throwing a superfluous exception.
 - Fixed an issue where interpolators with preprocessors were being packed incorrectly.
-- Fixed rounded rectangle shape not rendering correctly on Nintendo Switch.
+- Fixed rounded rectangle shape not rendering correctly on some platforms.
 - Fixed an issue where generated `BuildVertexDescriptionInputs()` produced an HLSL warning, "implicit truncation of vector type" [1299179](https://issuetracker.unity3d.com/product/unity/issues/guid/1299179/)
 - Fixed an issue on upgrading graphs with inactive Master Nodes causing null ref errors. [1298867](https://issuetracker.unity3d.com/product/unity/issues/guid/1298867/)
+- Fixed an issue with duplicating a node with the blackboard closed [1294430](https://issuetracker.unity3d.com/product/unity/issues/guid/1294430/)
+- Fixed an issue where ShaderGraph stopped responding after selecting a node after opening the graph with the inspector window hidden [1304501](https://issuetracker.unity3d.com/issues/shadergraph-graph-is-unusable-if-opened-with-graph-inspector-disabled-throws-errors)
+- Fixed the InputNodes tests that were never correct. These were incorrect tests, no nodes needed tochange.
+- Fixed the ViewDirection Node in Tangent space's calculation to match how the transform node works [1296788]
+- Fixed an issue where SampleRawCubemapNode were requiring the Normal in Object space instead of World space [1307962]
+- Boolean keywords now have no longer require their reference name to end in _ON to show up in the Material inspector [1306820] (https://issuetracker.unity3d.com/product/unity/issues/guid/1306820/)
+- Newly created properties and keywords will no longer use obfuscated GUID-based reference names in the shader code [1300484]
+- Fixed ParallaxMapping node compile issue on GLES2
+- Fixed a selection bug with block nodes after changing tabs [1312222]
+- Fixed some shader graph compiler errors not being logged [1304162].
 
 ## [10.3.0] - 2020-11-03
 
@@ -26,7 +72,10 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Users can now manually control the preview mode of nodes in the graph, and subgraphs
 
 ### Changed
+- Adjusted and expanded Swizzle Node article as reviewed by docs editorial.(DOC-2695)
+- Adjusted docs for SampleTexture2D, SampleTexture2DLOD, SampleTexture2DArray, SampleTexture3D, SampleCubemap, SampleReflectedCubemap, TexelSize, NormalFromTexture, ParallaxMapping, ParallaxOcclusionMapping, Triplanar, Sub Graphs, and Custom Function Nodes to reflect changes to texture wire data structures. (DOC-2568)
 - Texture and SamplerState types are now HLSL structures (defined in com.unity.render-pipelines.core/ShaderLibrary/Texture.hlsl).  CustomFunctionNode use of the old plain types is supported, but the user should upgrade to structures to avoid bugs.
+- The shader graph inspector window will now switch to the "Node Settings" tab whenever a property/node/other selectable item in the graph is clicked on to save the user a click
 
 ### Fixed
 - Fixed an issue where shaders could be generated with CR/LF ("\r\n") instead of just LF ("\n") line endings [1286430]
@@ -34,6 +83,9 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Addressed C# warning 0649 generated by unassigned structure members
 - Fixed using TexelSize or reading sampler states from Textures output from a Subgraph or Custom Function Node [1284036]
 - Shaders using SamplerState types now compile with GLES2 (SamplerStates are ignored, falls back to Texture-associated sampler state) [1292031]
+- Fixed an issue where the horizontal scrollbar at the bottom of the shader graph inspector window could not be used due to the resizing widget always taking priority over it
+- Fixed an issue where the shader graph inspector window could be resized past the edges of the shader graph view
+- Fixed an issue where resizing the shader graph inspector window sometimes had unexpected results
 - Fixed Graph Inspector scaling that was allocating too much space to the labels [1268134]
 - Fixed some issues with our Convert To Subgraph contextual menu to allow passthrough and fix inputs/outputs getting lost.
 - Fixed issue where a NullReferenceException would be thrown on resetting reference name for a Shader Graph property

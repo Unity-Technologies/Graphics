@@ -1,0 +1,27 @@
+fileFormatVersion: 2
+guid: 8cf0e1ebc7a39d34f84ad45b2fa20a3c
+ScriptedImporter:
+  internalIDToNameTable: []
+  externalObjects: {}
+  serializedVersion: 2
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
+  script: {fileID: 11500000, guid: 9801397f829a1ed42984340315cbf362, type: 3}
+  iesMetaData:
+    FileFormatVersion: LM-63-1991
+    IESPhotometricType: Type C
+    IESMaximumIntensity: 900
+    IESMaximumIntensityUnit: Lumens
+    Manufacturer: Halo,Recessed
+    LuminaireCatalogNumber: H7t-301
+    LuminaireDescription: Open Trim (75W R-30 Flood)
+    LampCatalogNumber: 
+    LampDescription: 
+    PrefabLightType: 0
+    SpotAngle: 120
+    iesSize: 128
+    ApplyLightAttenuation: 1
+    UseIESMaximumIntensity: 1
+    CookieCompression: 2
+    LightAimAxisRotation: -90

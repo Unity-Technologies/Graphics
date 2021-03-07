@@ -10,7 +10,7 @@
 PR_HDRP_DXR_trunk:
     name: HDRP_DXR PR Job - trunk
     dependencies:
-      -  path: .yamato/hdrp_dxr-win-dx12.yml#HDRP_DXR_Win_DX12_playmode_mono_Linear_trunk
+      -  path: .yamato/hdrp_dxr-win-dx12.yml#HDRP_DXR_Win_DX12_playmode_cache_mono_Linear_trunk
          rerun: on-new-revision
     variables:
         UTR_VERSION: "current"
@@ -20,7 +20,7 @@ Nightly_HDRP_DXR_trunk:
     dependencies:
       -  path: .yamato/all-hdrp_dxr.yml#PR_HDRP_DXR_trunk
          rerun: on-new-revision
-      -  path: .yamato/hdrp_dxr-win-dx12.yml#HDRP_DXR_Win_DX12_playmode_XR_mono_Linear_trunk
+      -  path: .yamato/hdrp_dxr-win-dx12.yml#HDRP_DXR_Win_DX12_playmode_XR_cache_mono_Linear_trunk
          rerun: on-new-revision
     variables:
         UTR_VERSION: "current"
@@ -28,7 +28,7 @@ Nightly_HDRP_DXR_trunk:
 PR_HDRP_DXR_CUSTOM-REVISION:
     name: HDRP_DXR PR Job - CUSTOM-REVISION
     dependencies:
-      -  path: .yamato/hdrp_dxr-win-dx12.yml#HDRP_DXR_Win_DX12_playmode_mono_Linear_CUSTOM-REVISION
+      -  path: .yamato/hdrp_dxr-win-dx12.yml#HDRP_DXR_Win_DX12_playmode_cache_mono_Linear_CUSTOM-REVISION
          rerun: always
     variables:
         CUSTOM_REVISION: custom_revision_not_set
@@ -39,7 +39,7 @@ Nightly_HDRP_DXR_CUSTOM-REVISION:
     dependencies:
       -  path: .yamato/all-hdrp_dxr.yml#PR_HDRP_DXR_CUSTOM-REVISION
          rerun: always
-      -  path: .yamato/hdrp_dxr-win-dx12.yml#HDRP_DXR_Win_DX12_playmode_XR_mono_Linear_CUSTOM-REVISION
+      -  path: .yamato/hdrp_dxr-win-dx12.yml#HDRP_DXR_Win_DX12_playmode_XR_cache_mono_Linear_CUSTOM-REVISION
          rerun: always
     variables:
         CUSTOM_REVISION: custom_revision_not_set

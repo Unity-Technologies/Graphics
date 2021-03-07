@@ -58,6 +58,19 @@ float4x4 glstate_matrix_projection;
 #define TransformTangentToObject TransformTangentToObject_Picking
 #define TransformObjectToTangent TransformObjectToTangent_Picking
 
+float4x4 ScenePickingGetCameraViewProjMatrix()
+{
+    float4x4 translationMatrix = {
+            { 1.0 ,0.0 , 0.0, -_WorldSpaceCameraPos.x },
+            { 0.0 ,1.0 , 0.0, -_WorldSpaceCameraPos.y },
+            { 0.0 ,0.0 , 1.0, -_WorldSpaceCameraPos.z },
+            { 0.0 ,0.0 , 0.0, 1.0} };
+
+    return mul(_CameraViewProjMatrix, translationMatrix);
+}
+
+#define _CameraViewProjMatrix ScenePickingGetCameraViewProjMatrix()
+
 
 // Redefine the functions using the new macros
 #undef UNITY_SPACE_TRANSFORMS_INCLUDED

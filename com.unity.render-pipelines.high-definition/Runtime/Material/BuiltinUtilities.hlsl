@@ -95,7 +95,7 @@ void ModifyBakedDiffuseLighting(float3 V, PositionInputs posInput, SurfaceData s
 void PostInitBuiltinData(   float3 V, PositionInputs posInput, SurfaceData surfaceData,
                             inout BuiltinData builtinData)
 {
-#if SHADEROPTIONS_ENABLE_PROBE_VOLUMES == 1
+#if defined(PROBE_VOLUMES_L1) || defined(PROBE_VOLUMES_L2)
     if (IsUninitializedGI(builtinData.bakeDiffuseLighting))
     {
 #ifdef HAS_PAYLOAD_WITH_UNINIT_GI

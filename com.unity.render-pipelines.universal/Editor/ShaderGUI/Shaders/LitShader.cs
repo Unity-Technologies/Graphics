@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using UnityEngine;
 
 namespace UnityEditor.Rendering.Universal.ShaderGUI
@@ -7,23 +8,10 @@ namespace UnityEditor.Rendering.Universal.ShaderGUI
     {
         private LitGUI.LitProperties litProperties;
         private LitDetailGUI.LitProperties litDetailProperties;
-        private SavedBool m_DetailInputsFoldout;
 
-        public override void OnOpenGUI(Material material, MaterialEditor materialEditor)
+        public override void FillAdditionalFoldouts(MaterialHeaderScopeList materialScopesList)
         {
-            base.OnOpenGUI(material, materialEditor);
-            m_DetailInputsFoldout = new SavedBool($"{headerStateKey}.DetailInputsFoldout", true);
-        }
-
-        public override void DrawAdditionalFoldouts(Material material)
-        {
-            m_DetailInputsFoldout.value = EditorGUILayout.BeginFoldoutHeaderGroup(m_DetailInputsFoldout.value, LitDetailGUI.Styles.detailInputs);
-            if (m_DetailInputsFoldout.value)
-            {
-                LitDetailGUI.DoDetailArea(litDetailProperties, materialEditor);
-                EditorGUILayout.Space();
-            }
-            EditorGUILayout.EndFoldoutHeaderGroup();
+            materialScopesList.RegisterHeaderScope(LitDetailGUI.Styles.detailInputs, (uint)Expandable.Details, _ => LitDetailGUI.DoDetailArea(litDetailProperties, materialEditor));
         }
 
         // collect properties from the material properties
