@@ -694,6 +694,28 @@ void ScreenSpaceReflectionsAccumulate(uint3 dispatchThreadId : SV_DispatchThread
     float4 original = _SSRAccumTexture[COORD_TEXTURE2D_X(positionSS)];
     float4 previous = _SsrAccumPrev[COORD_TEXTURE2D_X(positionSS * _RTHandleScaleHistory.zw / _RTHandleScaleHistory.xy)];
 
+//#define TEST_SSR_USAGE
+#define TEST_SSR_SPEED_REJECTION
+
+#ifdef
+	// CUSTOM CODE BEGIN
+    // TODO remove other sample if this should work out
+	float2 motionVector;
+	float2 texcoordNDC = positionSS * _ScreenSize.zw + (0.5 * _ScreenSize.zw);  // tranpose to  normalized screen pos as input
+	DecodeMotionVector(SAMPLE_TEXTURE2D_X_LOD(_CameraMotionVectorsTexture, s_linear_clamp_sampler, min(texcoordNDC, 1.0f - 0.5f * _ScreenSize.zw) * _RTHandleScale.xy, 0), motionVector);
+
+	float2 motionVectorSS = motionVector / _ScreenSize.zw;
+	float2 prevSS = float2(positionSS.x, positionSS.y);
+	// sometimes small motion occurs out of nowhere. could be floating point errors. it gives smears and blurry artifatcs. thats why i clamp it here
+	if (length(motionVectorSS) < 0.33) {
+		motionVectorSS = float2(0, 0);
+	}
+	prevSS = prevSS - motionVectorSS; // offset motion vector  
+
+	previous = _SsrAccumPrev[COORD_TEXTURE2D_X(prevSS * _RTHandleScaleHistory.zw / _RTHandleScaleHistory.xy)];
+	// CUSTOM CODE END
+#endif
+
     float2 motionVectorNDC;
     DecodeMotionVector(SAMPLE_TEXTURE2D_X_LOD(_CameraMotionVectorsTexture, s_linear_clamp_sampler, min(hitPositionNDC.xy, 1.0f - 0.5f * _ScreenSize.zw) * _RTHandleScale.xy, 0), motionVectorNDC);
     float speedDst = length(motionVectorNDC);
@@ -703,14 +725,22 @@ void ScreenSpaceReflectionsAccumulate(uint3 dispatchThreadId : SV_DispatchThread
     DecodeMotionVector(SAMPLE_TEXTURE2D_X_LOD(_CameraMotionVectorsTexture, s_linear_clamp_sampler, min(positionNDC, 1.0f - 0.5f * _ScreenSize.zw) * _RTHandleScale.xy, 0), motionVectorCenterNDC);
     float speedSrc = length(motionVectorCenterNDC);
 
-	#if 0
+	#if 1
+#ifdef TEST_SSR_SPEED_REJECTION
+		float speed = saturate((speedDst + speedDst) * 1.5f);
+#else
 		float speed = saturate((speedDst + speedDst) * 128.0f); // 128 is arbitrary
+#endif
 		float localAccum = pow(2, lerp(0.0f, -7.0f, _SsrAccumulationAmount));
 		float coefExpAvg = lerp(localAccum, 1.0f, speed);
 		float4 result = lerp(previous, original, coefExpAvg);
 	#else
 		float speed = saturate((speedDst + speedDst));
+#ifdef TEST_SSR_SPEED_REJECTION
+		float mu = _SsrAccumulationAmount * 1.5f * (1.0f - speed) + 1.0f;
+#else
 		float mu = _SsrAccumulationAmount * 8192.0f * (1.0f - speed) + 1.0f;
+#endif
 		//float mu = _SsrAccumulationAmount * 1.0f * (1.0f - speed) + 1.0f;
 		float k = _SsrFrameIndex;
 		float4 result = previous * (k / (k + mu)) + original * (mu / (k + mu));
