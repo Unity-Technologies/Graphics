@@ -45,7 +45,8 @@ namespace UnityEditor.VFX.UI
         {
             if (cause != VFXModel.InvalidationCause.kStructureChanged &&
                 cause != VFXModel.InvalidationCause.kExpressionInvalidated &&
-                cause != VFXModel.InvalidationCause.kParamChanged)
+                cause != VFXModel.InvalidationCause.kParamChanged &&
+                cause != VFXModel.InvalidationCause.kEnableChanged)
             {
                 ExpressionGraphDirtyParamOnly = false;
                 return;

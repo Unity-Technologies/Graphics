@@ -74,26 +74,36 @@ namespace UnityEngine.Rendering
             public const int assetsCreateRenderingMenuPriority = 308;
             /// <summary>Edit Menu base priority</summary>
             public const int editMenuPriority = 320;
+            /// <summary>Game Object Menu priority</summary>
+            public const int gameObjectMenuPriority = 10;
         }
 
-        // TODO delete when finish top level menu reorder
+        const string obsoletePriorityMessage = "Use CoreUtils.Priorities instead";
+
         /// <summary>Edit Menu priority 1</summary>
+        [Obsolete(obsoletePriorityMessage, false)]
         public const int editMenuPriority1 = 320;
         /// <summary>Edit Menu priority 2</summary>
+        [Obsolete(obsoletePriorityMessage, false)]
         public const int editMenuPriority2 = 331;
         /// <summary>Edit Menu priority 3</summary>
+        [Obsolete(obsoletePriorityMessage, false)]
         public const int editMenuPriority3 = 342;
         /// <summary>Edit Menu priority 4</summary>
+        [Obsolete(obsoletePriorityMessage, false)]
         public const int editMenuPriority4 = 353;
         /// <summary>Asset Create Menu priority 1</summary>
+        [Obsolete(obsoletePriorityMessage, false)]
         public const int assetCreateMenuPriority1 = 230;
         /// <summary>Asset Create Menu priority 2</summary>
+        [Obsolete(obsoletePriorityMessage, false)]
         public const int assetCreateMenuPriority2 = 241;
         /// <summary>Asset Create Menu priority 3</summary>
+        [Obsolete(obsoletePriorityMessage, false)]
         public const int assetCreateMenuPriority3 = 300;
         /// <summary>Game Object Menu priority</summary>
+        [Obsolete(obsoletePriorityMessage, false)]
         public const int gameObjectMenuPriority = 10;
-        // END TODO delete when finish top level menu reorder
 
         static Cubemap m_BlackCubeTexture;
         /// <summary>
@@ -617,7 +627,7 @@ namespace UnityEngine.Rendering
         /// <param name="msaaSamples">Number of MSAA samples.</param>
         /// <returns>Generated names bassed on the provided parameters.</returns>
         public static string GetRenderTargetAutoName(int width, int height, int depth, RenderTextureFormat format, string name, bool mips = false, bool enableMSAA = false, MSAASamples msaaSamples = MSAASamples.None)
-            => GetRenderTargetAutoName(width, height, depth, format.ToString(), name, mips, enableMSAA, msaaSamples);
+            => GetRenderTargetAutoName(width, height, depth, format.ToString(), TextureDimension.None, name, mips, enableMSAA, msaaSamples, dynamicRes: false);
 
         /// <summary>
         /// Generate a name based on render texture parameters.
@@ -632,9 +642,26 @@ namespace UnityEngine.Rendering
         /// <param name="msaaSamples">Number of MSAA samples.</param>
         /// <returns>Generated names bassed on the provided parameters.</returns>
         public static string GetRenderTargetAutoName(int width, int height, int depth, GraphicsFormat format, string name, bool mips = false, bool enableMSAA = false, MSAASamples msaaSamples = MSAASamples.None)
-            => GetRenderTargetAutoName(width, height, depth, format.ToString(), name, mips, enableMSAA, msaaSamples);
+            => GetRenderTargetAutoName(width, height, depth, format.ToString(), TextureDimension.None, name, mips, enableMSAA, msaaSamples, dynamicRes: false);
 
-        static string GetRenderTargetAutoName(int width, int height, int depth, string format, string name, bool mips = false, bool enableMSAA = false, MSAASamples msaaSamples = MSAASamples.None)
+        /// <summary>
+        /// Generate a name based on render texture parameters.
+        /// </summary>
+        /// <param name="width">With of the texture.</param>
+        /// <param name="height">Height of the texture.</param>
+        /// <param name="depth">Depth of the texture.</param>
+        /// <param name="format">Graphics format of the render texture.</param>
+        /// <param name="dim">Dimension of the texture.</param>
+        /// <param name="name">Base name of the texture.</param>
+        /// <param name="mips">True if the texture has mip maps.</param>
+        /// <param name="enableMSAA">True if the texture is multisampled.</param>
+        /// <param name="msaaSamples">Number of MSAA samples.</param>
+        /// <param name="dynamicRes">True if the texture uses dynamic resolution.</param>
+        /// <returns>Generated names bassed on the provided parameters.</returns>
+        public static string GetRenderTargetAutoName(int width, int height, int depth, GraphicsFormat format, TextureDimension dim, string name, bool mips = false, bool enableMSAA = false, MSAASamples msaaSamples = MSAASamples.None, bool dynamicRes = false)
+            => GetRenderTargetAutoName(width, height, depth, format.ToString(), dim, name, mips, enableMSAA, msaaSamples, dynamicRes);
+
+        static string GetRenderTargetAutoName(int width, int height, int depth, string format, TextureDimension dim, string name, bool mips, bool enableMSAA, MSAASamples msaaSamples, bool dynamicRes)
         {
             string result = string.Format("{0}_{1}x{2}", name, width, height);
 
@@ -646,8 +673,14 @@ namespace UnityEngine.Rendering
 
             result = string.Format("{0}_{1}", result, format);
 
+            if (dim != TextureDimension.None)
+                result = string.Format("{0}_{1}", result, dim);
+
             if (enableMSAA)
                 result = string.Format("{0}_{1}", result, msaaSamples.ToString());
+
+            if (dynamicRes)
+                result = string.Format("{0}_{1}", result, "dynamic");
 
             return result;
         }
