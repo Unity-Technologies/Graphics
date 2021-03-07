@@ -13,9 +13,6 @@ namespace UnityEngine.Experimental.Rendering.Universal
     [AddComponentMenu("Rendering/2D/Shadow Caster 2D (Experimental)")]
     public class ShadowCaster2D : ShadowCasterGroup2D
     {
-        const int k_CurrentVersion = 1;
-        [SerializeField] int m_Version = 0;
-
         [SerializeField] bool m_HasRenderer = false;
         [SerializeField] bool m_UseRendererSilhouette = true;
         [SerializeField] bool m_CastsShadows = true;
@@ -25,7 +22,6 @@ namespace UnityEngine.Experimental.Rendering.Universal
         [SerializeField] int m_ShapePathHash = 0;
         [SerializeField] Mesh m_Mesh;
         [SerializeField] int m_InstanceId;
-        
 
         internal ShadowCasterGroup2D m_ShadowCasterGroup = null;
         internal ShadowCasterGroup2D m_PreviousShadowCasterGroup = null;
@@ -141,12 +137,11 @@ namespace UnityEngine.Experimental.Rendering.Universal
 
         protected void OnEnable()
         {
-            if (m_Mesh == null || m_InstanceId != GetInstanceID() || m_Version != k_CurrentVersion)
+            if (m_Mesh == null || m_InstanceId != GetInstanceID())
             {
                 m_Mesh = new Mesh();
                 m_ProjectedBoundingSphere = ShadowUtility.GenerateShadowMesh(m_Mesh, m_ShapePath);
                 m_InstanceId = GetInstanceID();
-                m_Version = k_CurrentVersion;
             }
 
             m_ShadowCasterGroup = null;
