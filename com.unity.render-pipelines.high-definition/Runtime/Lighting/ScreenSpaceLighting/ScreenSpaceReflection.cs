@@ -119,6 +119,11 @@ namespace UnityEngine.Rendering.HighDefinition
         public ClampedFloatParameter biasFactor = new ClampedFloatParameter(0.5f, 0.0f, 1.0f);
 
         /// <summary>
+        /// For PBR: the internal speed rejection parameter
+        /// </summary>
+        public FloatParameter speedRejectionParam = new FloatParameter(1.5f);
+
+        /// <summary>
         /// Layer mask used to include the objects for screen space reflection.
         /// </summary>
         public LayerMaskParameter layerMask = new LayerMaskParameter(-1);

@@ -23,6 +23,7 @@ namespace UnityEditor.Rendering.HighDefinition
         SerializedDataParameter m_DepthBufferThickness;
         SerializedDataParameter m_AccumulationFactor;
         SerializedDataParameter m_BiasFactor;
+        SerializedDataParameter m_SpeedRejectionFactor;
 
         // Ray Tracing
         SerializedDataParameter m_LayerMask;
@@ -58,6 +59,7 @@ namespace UnityEditor.Rendering.HighDefinition
             m_ScreenFadeDistance            = Unpack(o.Find(x => x.screenFadeDistance));
             m_AccumulationFactor            = Unpack(o.Find(x => x.accumulationFactor));
             m_BiasFactor                    = Unpack(o.Find(x => x.biasFactor));
+            m_SpeedRejectionFactor          = Unpack(o.Find(x => x.speedRejectionParam));
 
             // Generic ray tracing
             m_LayerMask                     = Unpack(o.Find(x => x.layerMask));
@@ -86,7 +88,8 @@ namespace UnityEditor.Rendering.HighDefinition
         static public readonly GUIContent k_SmoothnessFadeStartText = EditorGUIUtility.TrTextContent("Smoothness Fade Start", "Controls the smoothness value at which the smoothness-controlled fade out starts. The fade is in the range [Min Smoothness, Smoothness Fade Start].");
         static public readonly GUIContent k_ScreenFaceDistanceText = EditorGUIUtility.TrTextContent("Screen Edge Fade Distance", "Controls the distance at which HDRP fades out SSR near the edge of the screen.");
         static public readonly GUIContent k_AccumulationFactorText = EditorGUIUtility.TrTextContent("Accumulation Factor", "Controls Controls the amount of accumulation (0 no accumulation, 1 just accumulate).");
-        static public readonly GUIContent k_BiasFactorText = EditorGUIUtility.TrTextContent("Bias Factor", "Controls Controls the amount of bias (0 no bias, 1 biased ssr).");
+        static public readonly GUIContent k_BiasFactorText = EditorGUIUtility.TrTextContent("Roughness Bias Factor", "Controls Controls the amount of bias (0 no bias, 1 biased ssr).");
+        static public readonly GUIContent k_SpeedRejectionFactorText = EditorGUIUtility.TrTextContent("Speed Rejection Factor", "REPLACE ME.");
         static public readonly GUIContent k_DepthBufferThicknessText = EditorGUIUtility.TrTextContent("Object Thickness", "Controls the typical thickness of objects the reflection rays may pass behind.");
         static public readonly GUIContent k_RayMaxIterationsText = EditorGUIUtility.TrTextContent("Max Ray Steps", "Sets the maximum number of steps HDRP uses for raytracing. Affects both correctness and performance.");
         static public readonly GUIContent k_RayLengthText = EditorGUIUtility.TrTextContent("Max Ray Length", "Controls the maximal length of reflection rays. The higher this value is, the more expensive ray traced reflections are.");
@@ -228,6 +231,7 @@ namespace UnityEditor.Rendering.HighDefinition
                 {
                     PropertyField(m_AccumulationFactor, k_AccumulationFactorText);
                     PropertyField(m_BiasFactor, k_BiasFactorText);
+                    PropertyField(m_SpeedRejectionFactor, k_SpeedRejectionFactorText);
                 }
             }
         }

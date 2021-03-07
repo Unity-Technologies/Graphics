@@ -3317,6 +3317,7 @@ namespace UnityEngine.Rendering.HighDefinition
                     cmd.SetComputeTextureParam(cs, parameters.accumulateKernel, HDShaderIDs._SsrClearCoatMaskTexture, clearCoatMask);
                     cmd.SetComputeTextureParam(cs, parameters.accumulateKernel, HDShaderIDs._CameraMotionVectorsTexture, motionVectorsBuffer);
                     cmd.SetComputeFloatParam(cs, HDShaderIDs._SsrFrameIndex, (float)parameters.frameIdx);
+                    cmd.SetComputeFloatParam(cs, HDShaderIDs._SsrPBRSpeedRejection, ssrSettings.speedRejectionParam.value);
 
                     ConstantBuffer.Push(cmd, parameters.cb, cs, HDShaderIDs._ShaderVariablesScreenSpaceReflection);
 

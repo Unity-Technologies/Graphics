@@ -84,6 +84,7 @@ TEXTURE2D_X(_DepthTexture);
     RW_TEXTURE2D_X(float4, _SsrAccumPrev);
     RW_TEXTURE2D_X(float4, _SsrLightingTextureRW);
     RW_TEXTURE2D_X(float4, _SSRAccumTexture);
+	float _SsrPBRSpeedRejection;
 #endif
 
     TEXTURE2D_X(            _SsrClearCoatMaskTexture);
@@ -166,7 +167,9 @@ void GetHitInfos(uint2 positionSS, out float2 hitPositionNDC, out float srcPerce
     float3x3 localToWorld = GetLocalFrame(normalData.normalWS);
 
     //Xi.x = lerp(Xi.x, 0.0f, roughness * 1.0f); // 0.7 is an arbitrary bias to reduce noise for high roughness
-    Xi.x = lerp(Xi.x, 0.0f, roughness * (1.0f - _SsrPBRBias)); // 0.7 is an arbitrary bias to reduce noise for high roughness
+    //Xi.x = lerp(Xi.x, 0.0f, roughness * (1.0f - _SsrPBRBias)); // 0.7 is an arbitrary bias to reduce noise for high roughness
+	float coefBias = _SsrPBRBias / roughness;
+	Xi.x = lerp(Xi.x, 0.0f, roughness * coefBias);
 
 #ifdef DEPTH_SOURCE_NOT_FROM_MIP_CHAIN
     float  deviceDepth = LOAD_TEXTURE2D_X(_DepthTexture, positionSS).r;
@@ -695,9 +698,9 @@ void ScreenSpaceReflectionsAccumulate(uint3 dispatchThreadId : SV_DispatchThread
     float4 previous = _SsrAccumPrev[COORD_TEXTURE2D_X(positionSS * _RTHandleScaleHistory.zw / _RTHandleScaleHistory.xy)];
 
 //#define TEST_SSR_USAGE
-#define TEST_SSR_SPEED_REJECTION
+//#define TEST_SSR_SPEED_REJECTION
 
-#ifdef
+#ifdef TEST_SSR_USAGE
 	// CUSTOM CODE BEGIN
     // TODO remove other sample if this should work out
 	float2 motionVector;
