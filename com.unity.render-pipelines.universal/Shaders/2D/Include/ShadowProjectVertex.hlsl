@@ -22,7 +22,7 @@ Varyings ProjectShadow(Attributes v)
 {
     Varyings o;
 
-    // Scale really messes things up. _ShadowModelScale are used to bake the local scale into our local position. _ShadowModelMatrix, _ShadowModelInvMatrix are model matrices without local scale
+    // Scale really messes things up. _ShadowModelScale is used to bake the local scale into our local position. _ShadowModelMatrix, _ShadowModelInvMatrix are model matrices without lossy scale.
 
     // We should change 0 to a z value to shorten shadows. This will also require additional work for per-pixel distance as we have to overproject.
     float3 vertexOS0 =  float3(v.vertex.x * _ShadowModelScale.x, v.vertex.y * _ShadowModelScale.y, 0);
