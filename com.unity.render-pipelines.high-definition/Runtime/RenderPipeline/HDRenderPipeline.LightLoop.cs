@@ -454,7 +454,8 @@ namespace UnityEngine.Rendering.HighDefinition
             }
             else
             {
-                cb._SsrAccumulationAmount = Mathf.Pow(2, Mathf.Lerp(0.0f, -7.0f, settings.accumulationFactor.value));
+                cb._SsrAccumulationAmount = settings.accumulationFactor.value;
+                    //Mathf.Pow(2, Mathf.Lerp(0.0f, -7.0f, settings.accumulationFactor.value));
             }
         }
 
