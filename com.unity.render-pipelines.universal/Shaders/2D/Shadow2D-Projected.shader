@@ -30,6 +30,7 @@ Shader "Hidden/ShadowProjected2D"
             ColorMask [_ShadowColorMask]
 
             HLSLPROGRAM
+            #pragma enable_d3d11_debug_symbols
             #pragma vertex vert
             #pragma fragment frag
 
@@ -62,6 +63,7 @@ Shader "Hidden/ShadowProjected2D"
             ColorMask 0
 
             HLSLPROGRAM
+            #pragma enable_d3d11_debug_symbols
             #pragma vertex vert
             #pragma fragment frag
 
