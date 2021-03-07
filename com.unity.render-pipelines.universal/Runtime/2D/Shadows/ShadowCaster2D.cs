@@ -85,11 +85,7 @@ namespace UnityEngine.Experimental.Rendering.Universal
             Vector3 deltaPos = light.transform.position - m_ProjectedBoundingSphere.position;
             float distanceSq = Vector3.SqrMagnitude(deltaPos);
 
-            return distanceSq <= (light.boundingSphere.radius + m_ProjectedBoundingSphere.radius);
-           
-            Debug.DrawLine(light.transform.position, light.transform.position + new Vector3(distanceSq, 0), Color.magenta, 10);
-            Debug.DrawLine(m_ProjectedBoundingSphere.position, m_ProjectedBoundingSphere.position + new Vector3(m_ProjectedBoundingSphere.radius, 0), Color.magenta, 10);
-
+            //return distanceSq <= (light.boundingSphere.radius + m_ProjectedBoundingSphere.radius);
             return true;
         }
 

@@ -177,8 +177,6 @@ namespace UnityEngine.Experimental.Rendering.Universal
                 var shadowCasterGroups = ShadowCasterGroup2DManager.shadowCasterGroups;
                 if (shadowCasterGroups != null && shadowCasterGroups.Count > 0)
                 {
-                    var previousShadowGroupIndex = -1;
-                    var incrementingGroupIndex = 0;
                     for (var group = 0; group < shadowCasterGroups.Count; group++)
                     {
                         var shadowCasterGroup = shadowCasterGroups[group];
