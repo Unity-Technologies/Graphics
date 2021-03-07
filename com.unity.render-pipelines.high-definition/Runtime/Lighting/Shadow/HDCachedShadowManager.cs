@@ -19,8 +19,12 @@ namespace UnityEngine.Rendering.HighDefinition
         // Data for cached directional light shadows.
         private const int m_MaxShadowCascades = 4;
         private bool[] m_DirectionalShadowPendingUpdate = new bool[m_MaxShadowCascades];
+        private bool[] m_DirectionalShadowHasRendered = new bool[m_MaxShadowCascades];
         private Vector3 m_CachedDirectionalForward;
         private Vector3 m_CachedDirectionalAngles;
+
+        // Helper array used to check what has been tmp filled.
+        private (int, int)[] m_TempFilled = new(int, int)[6];
 
         // Cached atlas
         internal HDCachedShadowAtlas punctualShadowAtlas;
@@ -76,13 +80,34 @@ namespace UnityEngine.Rendering.HighDefinition
         public bool WouldFitInAtlas(int shadowResolution, HDLightType lightType)
         {
             bool fits = true;
-            int x, y;
+            int x = 0;
+            int y = 0;
 
             if (lightType == HDLightType.Point)
             {
+                int fitted = 0;
                 for (int i = 0; i < 6; ++i)
                 {
-                    fits = fits && HDShadowManager.cachedShadowManager.punctualShadowAtlas.FindSlotInAtlas(shadowResolution, out x, out y);
+                    fits = fits && HDShadowManager.cachedShadowManager.punctualShadowAtlas.FindSlotInAtlas(shadowResolution, true, out x, out y);
+                    if (fits)
+                    {
+                        m_TempFilled[fitted++] = (x, y);
+                    }
+                    else
+                    {
+                        // Free the temp filled ones.
+                        for (int filled = 0; filled < fitted; ++filled)
+                        {
+                            HDShadowManager.cachedShadowManager.punctualShadowAtlas.FreeTempFilled(m_TempFilled[filled].Item1, m_TempFilled[filled].Item2, shadowResolution);
+                        }
+                        return false;
+                    }
+                }
+
+                // Free the temp filled ones.
+                for (int filled = 0; filled < fitted; ++filled)
+                {
+                    HDShadowManager.cachedShadowManager.punctualShadowAtlas.FreeTempFilled(m_TempFilled[filled].Item1, m_TempFilled[filled].Item2, shadowResolution);
                 }
             }
 
@@ -93,6 +118,22 @@ namespace UnityEngine.Rendering.HighDefinition
                 fits = fits && HDShadowManager.cachedShadowManager.areaShadowAtlas.FindSlotInAtlas(shadowResolution, out x, out y);
 
             return fits;
+        }
+
+        /// <summary>
+        /// This function verifies if the shadow map for the passed light would fit in the atlas when inserted.
+        /// </summary>
+        /// <param name="lightData">The light that we try to fit in the atlas.</param>
+        /// <returns>True if the shadow map would fit in the atlas, false otherwise. If lightData does not cast shadows, false is returned.</returns>
+        public bool WouldFitInAtlas(HDAdditionalLightData lightData)
+        {
+            if (lightData.legacyLight.shadows != LightShadows.None)
+            {
+                var lightType = lightData.type;
+                var resolution = lightData.GetResolutionFromSettings(lightData.GetShadowMapType(lightType), m_InitParams);
+                return WouldFitInAtlas(resolution, lightType);
+            }
+            return false;
         }
 
         /// <summary>
@@ -133,6 +174,88 @@ namespace UnityEngine.Rendering.HighDefinition
             RegisterLight(lightData);
         }
 
+        /// <summary>
+        /// This function verifies if the light has its shadow maps placed in the cached shadow atlas.
+        /// </summary>
+        /// <param name="lightData">The light that we want to check the placement of.</param>
+        /// <returns>True if the shadow map is already placed in the atlas, false otherwise.</returns>
+        public bool LightHasBeenPlacedInAtlas(HDAdditionalLightData lightData)
+        {
+            var lightType = lightData.type;
+            if (lightType == HDLightType.Area)
+                return instance.areaShadowAtlas.LightIsPlaced(lightData);
+            if (lightType == HDLightType.Point || lightType == HDLightType.Spot)
+                return instance.punctualShadowAtlas.LightIsPlaced(lightData);
+            if (lightType == HDLightType.Directional)
+                return !lightData.ShadowIsUpdatedEveryFrame();
+
+            return false;
+        }
+
+        /// <summary>
+        /// This function verifies if the light has its shadow maps placed in the cached shadow atlas and if it was rendered at least once.
+        /// </summary>
+        /// <param name="lightData">The light that we want to check.</param>
+        /// <param name="numberOfCascades">Optional parameter required only when querying data about a directional light. It needs to match the number of cascades used by the directional light.</param>
+        /// <returns>True if the shadow map is already placed in the atlas and rendered at least once, false otherwise.</returns>
+        public bool LightHasBeenPlaceAndRenderedAtLeastOnce(HDAdditionalLightData lightData, int numberOfCascades = 0)
+        {
+            var lightType = lightData.type;
+            if (lightType == HDLightType.Area)
+            {
+                return instance.areaShadowAtlas.LightIsPlaced(lightData) && instance.areaShadowAtlas.FullLightShadowHasRenderedAtLeastOnce(lightData);
+            }
+            if (lightType == HDLightType.Point || lightType == HDLightType.Spot)
+            {
+                return instance.punctualShadowAtlas.LightIsPlaced(lightData) && instance.punctualShadowAtlas.FullLightShadowHasRenderedAtLeastOnce(lightData);
+            }
+            if (lightType == HDLightType.Directional)
+            {
+                Debug.Assert(numberOfCascades <= m_MaxShadowCascades, "numberOfCascades is bigger than the maximum cascades allowed");
+                bool hasRendered = true;
+                for (int i = 0; i < numberOfCascades; ++i)
+                {
+                    hasRendered = hasRendered && m_DirectionalShadowHasRendered[i];
+                }
+                return !lightData.ShadowIsUpdatedEveryFrame() && hasRendered;
+            }
+
+            return false;
+        }
+
+        /// <summary>
+        /// This function verifies if the light if a specific sub-shadow maps is placed in the cached shadow atlas and if it was rendered at least once.
+        /// </summary>
+        /// <param name="lightData">The light that we want to check.</param>
+        /// <param name="shadowIndex">The sub-shadow index (e.g. cascade index or point light face). It is ignored when irrelevant to the light type.</param>
+        /// <returns>True if the shadow map is already placed in the atlas and rendered at least once, false otherwise.</returns>
+        public bool ShadowHasBeenPlaceAndRenderedAtLeastOnce(HDAdditionalLightData lightData, int shadowIndex)
+        {
+            var lightType = lightData.type;
+            if (lightType == HDLightType.Area)
+            {
+                return instance.areaShadowAtlas.LightIsPlaced(lightData) && instance.areaShadowAtlas.ShadowHasRenderedAtLeastOnce(lightData.lightIdxForCachedShadows);
+            }
+            if (lightType == HDLightType.Spot)
+            {
+                return instance.punctualShadowAtlas.LightIsPlaced(lightData) && instance.punctualShadowAtlas.ShadowHasRenderedAtLeastOnce(lightData.lightIdxForCachedShadows);
+            }
+            if (lightType == HDLightType.Point || lightType == HDLightType.Spot)
+            {
+                if (lightType == HDLightType.Point)
+                    Debug.Assert(shadowIndex < 6, "Shadow Index is bigger than the available sub-shadows");
+
+                return instance.punctualShadowAtlas.LightIsPlaced(lightData) && instance.punctualShadowAtlas.ShadowHasRenderedAtLeastOnce(lightData.lightIdxForCachedShadows + shadowIndex);
+            }
+            if (lightType == HDLightType.Directional)
+            {
+                Debug.Assert(shadowIndex < m_MaxShadowCascades, "Shadow Index is bigger than the maximum cascades allowed");
+                return !lightData.ShadowIsUpdatedEveryFrame() && m_DirectionalShadowHasRendered[shadowIndex];
+            }
+
+            return false;
+        }
+
         // ------------------------------------------------------------------------------------------------------------------
 
         private void MarkAllDirectionalShadowsForUpdate()
@@ -140,6 +263,7 @@ namespace UnityEngine.Rendering.HighDefinition
             for (int i = 0; i < m_MaxShadowCascades; ++i)
             {
                 m_DirectionalShadowPendingUpdate[i] = true;
+                m_DirectionalShadowHasRendered[i] = false;
             }
         }
 
@@ -243,7 +367,12 @@ namespace UnityEngine.Rendering.HighDefinition
                 {
                     float angleDiffThreshold = lightData.cachedShadowAngleUpdateThreshold;
                     Vector3 angleDiff = m_CachedDirectionalAngles - lightData.transform.eulerAngles;
-                    return (Mathf.Abs(angleDiff.x) > angleDiffThreshold || Mathf.Abs(angleDiff.y) > angleDiffThreshold || Mathf.Abs(angleDiff.z) > angleDiffThreshold);
+                    bool needsUpdate = (Mathf.Abs(angleDiff.x) > angleDiffThreshold || Mathf.Abs(angleDiff.y) > angleDiffThreshold || Mathf.Abs(angleDiff.z) > angleDiffThreshold);
+                    if (needsUpdate)
+                    {
+                        m_CachedDirectionalAngles = lightData.transform.eulerAngles;
+                    }
+                    return needsUpdate;
                 }
                 else if (lightType == HDLightType.Area)
                 {
@@ -277,7 +406,10 @@ namespace UnityEngine.Rendering.HighDefinition
             if (shadowMapType == ShadowMapType.AreaLightAtlas)
                 areaShadowAtlas.MarkAsRendered(shadowIdx);
             if (shadowMapType == ShadowMapType.CascadedDirectional)
+            {
                 m_DirectionalShadowPendingUpdate[shadowIdx] = false;
+                m_DirectionalShadowHasRendered[shadowIdx] = true;
+            }
         }
 
         internal void UpdateResolutionRequest(ref HDShadowResolutionRequest request, int shadowIdx, ShadowMapType shadowMapType)

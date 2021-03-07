@@ -93,22 +93,6 @@ Shader "HDRP/LitTessellation"
         _EmissiveIntensity("Emissive Intensity", Float) = 1
         _EmissiveExposureWeight("Emissive Pre Exposure", Range(0.0, 1.0)) = 1.0
 
-        _DistortionVectorMap("DistortionVectorMap", 2D) = "black" {}
-        [ToggleUI] _DistortionEnable("Enable Distortion", Float) = 0.0
-        [ToggleUI] _DistortionDepthTest("Distortion Depth Test Enable", Float) = 1.0
-        [Enum(Add, 0, Multiply, 1, Replace, 2)] _DistortionBlendMode("Distortion Blend Mode", Int) = 0
-        [HideInInspector] _DistortionSrcBlend("Distortion Blend Src", Int) = 0
-        [HideInInspector] _DistortionDstBlend("Distortion Blend Dst", Int) = 0
-        [HideInInspector] _DistortionBlurSrcBlend("Distortion Blur Blend Src", Int) = 0
-        [HideInInspector] _DistortionBlurDstBlend("Distortion Blur Blend Dst", Int) = 0
-        [HideInInspector] _DistortionBlurBlendMode("Distortion Blur Blend Mode", Int) = 0
-        _DistortionScale("Distortion Scale", Float) = 1
-        _DistortionVectorScale("Distortion Vector Scale", Float) = 2
-        _DistortionVectorBias("Distortion Vector Bias", Float) = -1
-        _DistortionBlurScale("Distortion Blur Scale", Float) = 1
-        _DistortionBlurRemapMin("DistortionBlurRemapMin", Float) = 0.0
-        _DistortionBlurRemapMax("DistortionBlurRemapMax", Float) = 1.0
-
         [ToggleUI]  _UseShadowThreshold("_UseShadowThreshold", Float) = 0.0
         [ToggleUI]  _AlphaCutoffEnable("Alpha Cutoff Enable", Float) = 0.0
         _AlphaCutoff("Alpha Cutoff", Range(0.0, 1.0)) = 0.5
@@ -142,9 +126,6 @@ Shader "HDRP/LitTessellation"
         // Motion vector pass
         [HideInInspector] _StencilRefMV("_StencilRefMV", Int) = 32 // StencilUsage.ObjectMotionVector
         [HideInInspector] _StencilWriteMaskMV("_StencilWriteMaskMV", Int) = 32 // StencilUsage.ObjectMotionVector
-        // Distortion vector pass
-        [HideInInspector] _StencilRefDistortionVec("_StencilRefDistortionVec", Int) = 2 // StencilUsage.DistortionVectors
-        [HideInInspector] _StencilWriteMaskDistortionVec("_StencilWriteMaskDistortionVec", Int) = 2 // StencilUsage.DistortionVectors
 
         // Blending state
         [HideInInspector] _SurfaceType("__surfacetype", Float) = 0.0
@@ -162,7 +143,6 @@ Shader "HDRP/LitTessellation"
         [Enum(UnityEditor.Rendering.HighDefinition.TransparentCullMode)] _TransparentCullMode("_TransparentCullMode", Int) = 2 // Back culling by default
         [Enum(UnityEditor.Rendering.HighDefinition.OpaqueCullMode)] _OpaqueCullMode("_OpaqueCullMode", Int) = 2 // Back culling by default
         [HideInInspector] _ZTestDepthEqualForOpaque("_ZTestDepthEqualForOpaque", Int) = 4 // Less equal
-        [HideInInspector] _ZTestModeDistortion("_ZTestModeDistortion", Int) = 8
         [HideInInspector] _ZTestGBuffer("_ZTestGBuffer", Int) = 4
         [Enum(UnityEngine.Rendering.CompareFunction)] _ZTestTransparent("Transparent ZTest", Int) = 4 // Less equal
 
@@ -207,7 +187,7 @@ Shader "HDRP/LitTessellation"
         [ToggleUI] _LinkDetailsWithBase("LinkDetailsWithBase", Float) = 1.0
 
         [Enum(Use Emissive Color, 0, Use Emissive Mask, 1)] _EmissiveColorMode("Emissive color mode", Float) = 1
-        [Enum(UV0, 0, UV1, 1, UV2, 2, UV3, 3, Planar, 4, Triplanar, 5)] _UVEmissive("UV Set for emissive", Float) = 0
+        [Enum(UV0, 0, UV1, 1, UV2, 2, UV3, 3, Planar, 4, Triplanar, 5, Same as Base, 6)] _UVEmissive("UV Set for emissive", Float) = 0
         _TexWorldScaleEmissive("Scale to apply on world coordinate", Float) = 1.0
         [HideInInspector] _UVMappingMaskEmissive("_UVMappingMaskEmissive", Color) = (1, 0, 0, 0)
 
@@ -235,6 +215,7 @@ Shader "HDRP/LitTessellation"
         [ToggleUI] _SupportDecals("Support Decals", Float) = 1.0
         [ToggleUI] _ReceivesSSR("Receives SSR", Float) = 1.0
         [ToggleUI] _AddPrecomputedVelocity("AddPrecomputedVelocity", Float) = 0.0
+        [ToggleUI] _ForceForwardEmissive("ForceForwardEmissive", Float) = 0.0
 
 
         [HideInInspector][NoScaleOffset]unity_Lightmaps("unity_Lightmaps", 2DArray) = "" {}
@@ -246,7 +227,7 @@ Shader "HDRP/LitTessellation"
     HLSLINCLUDE
 
     #pragma target 5.0
-    #pragma only_renderers d3d11 playstation xboxone vulkan metal switch
+    #pragma only_renderers d3d11 playstation xboxone xboxseries vulkan metal switch
 
     //-------------------------------------------------------------------------------------
     // Variant
@@ -317,6 +298,10 @@ Shader "HDRP/LitTessellation"
     #pragma shader_feature_local_raytracing _DISABLE_SSR
     // Bit of a mystery why this is not possible to have frequency specific.
     #pragma shader_feature_local _DISABLE_SSR_TRANSPARENT
+
+   // not local as it is use in shader stripper to discard the pass if not needed
+    // not _fragment as it prevent the stripper to work
+    #pragma shader_feature _FORCE_FORWARD_EMISSIVE
 
     #pragma shader_feature_local_fragment _ENABLE_GEOMETRIC_SPECULAR_AA
 
@@ -669,42 +654,6 @@ Shader "HDRP/LitTessellation"
 
         Pass
         {
-            Name "DistortionVectors"
-            Tags { "LightMode" = "DistortionVectors" } // This will be only for transparent object based on the RenderQueue index
-
-            Stencil
-            {
-                WriteMask [_StencilRefDistortionVec]
-                Ref [_StencilRefDistortionVec]
-                Comp Always
-                Pass Replace
-            }
-
-            Blend [_DistortionSrcBlend] [_DistortionDstBlend], [_DistortionBlurSrcBlend] [_DistortionBlurDstBlend]
-            BlendOp Add, [_DistortionBlurBlendOp]
-            ZTest [_ZTestModeDistortion]
-            ZWrite off
-            Cull [_CullMode]
-
-            HLSLPROGRAM
-
-            #define SHADERPASS SHADERPASS_DISTORTION
-            #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Material.hlsl"
-            #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Lit/Lit.hlsl"
-            #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Lit/ShaderPass/LitDistortionPass.hlsl"
-            #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Lit/LitData.hlsl"
-            #include "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/ShaderPass/ShaderPassDistortion.hlsl"
-
-            #pragma vertex Vert
-            #pragma fragment Frag
-            #pragma hull Hull
-            #pragma domain Domain
-
-            ENDHLSL
-        }
-
-        Pass
-        {
             Name "TransparentDepthPrepass"
             Tags{ "LightMode" = "TransparentDepthPrepass" }
 
@@ -863,6 +812,46 @@ Shader "HDRP/LitTessellation"
             #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Lit/ShaderPass/LitSharePass.hlsl"
             #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Lit/LitData.hlsl"
             #include "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/ShaderPass/ShaderPassForward.hlsl"
+
+            #pragma vertex Vert
+            #pragma fragment Frag
+            #pragma hull Hull
+            #pragma domain Domain
+
+            ENDHLSL
+        }
+
+        Pass
+        {
+            Name "ForwardEmissiveForDeferred"
+            Tags{ "LightMode" = "ForwardEmissiveForDeferred" } // This pass is solely used with deferred opaque Material that have emissive
+
+            Blend One One
+            // In case of forward we want to have depth equal for opaque mesh
+            ZTest [_ZTestDepthEqualForOpaque]
+            ZWrite [_ZWrite]
+            Cull [_CullModeForward]
+
+            HLSLPROGRAM
+
+            #pragma multi_compile _ DEBUG_DISPLAY // This pass is only for opaque
+
+            #define SHADERPASS SHADERPASS_FORWARD_EMISSIVE_FOR_DEFERRED
+            // In case of opaque we don't want to perform the alpha test, it is done in depth prepass and we use depth equal for ztest (setup from UI)
+            // Don't do it with debug display mode as it is possible there is no depth prepass in this case
+            #if !defined(_SURFACE_TYPE_TRANSPARENT) && !defined(DEBUG_DISPLAY)
+                #define SHADERPASS_FORWARD_BYPASS_ALPHA_TEST
+            #endif
+            #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Material.hlsl"
+
+            #ifdef DEBUG_DISPLAY
+            #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Debug/DebugDisplay.hlsl"
+            #endif
+
+            #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Lit/Lit.hlsl"
+            #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Lit/ShaderPass/LitSharePass.hlsl"
+            #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Lit/LitData.hlsl"
+            #include "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/ShaderPass/ShaderPassForwardEmissiveForDeferred.hlsl"
 
             #pragma vertex Vert
             #pragma fragment Frag
