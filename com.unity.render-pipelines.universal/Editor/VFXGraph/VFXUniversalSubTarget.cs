@@ -7,6 +7,7 @@ using UnityEngine;
 using UnityEditor.ShaderGraph;
 using UnityEditor.ShaderGraph.Internal;
 using UnityEditor.VFX;
+using UnityEditor.Rendering.Universal.ShaderGraph;
 
 namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
 {
@@ -18,9 +19,6 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
         {
             VFXSubTarget.OnPostProcessSubShader += PostProcessSubShader;
         }
-
-        /*
-         * WIP : TODOPAUL
 
         // Configures an HDRP Subshader with a VFX context.
         private static SubShaderDescriptor PostProcessSubShader(SubShaderDescriptor subShaderDescriptor, VFXContext context, VFXContextCompiledData data)
@@ -59,7 +57,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 passDescriptor.structs = new StructCollection
                 {
                     AttributesMeshVFX, // TODO: Could probably re-use the original HD Attributes Mesh and just ensure Instancing enabled.
-                    AppendVFXInterpolator(HDStructs.VaryingsMeshToPS, context, data),
+                    AppendVFXInterpolator(UniversalStructs.Varyings, context, data),
                     GenerateFragInputs(context, data),
                     Structs.SurfaceDescriptionInputs,
                     Structs.VertexDescriptionInputs,
@@ -110,23 +108,23 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             packFields = false,
             fields = new FieldDescriptor[]
             {
-                HDStructFields.AttributesMesh.positionOS,
-                HDStructFields.AttributesMesh.normalOS,
-                HDStructFields.AttributesMesh.tangentOS,
-                HDStructFields.AttributesMesh.uv0,
-                HDStructFields.AttributesMesh.uv1,
-                HDStructFields.AttributesMesh.uv2,
-                HDStructFields.AttributesMesh.uv3,
-                HDStructFields.AttributesMesh.color,
+                StructFields.Attributes.positionOS,
+                StructFields.Attributes.normalOS,
+                StructFields.Attributes.tangentOS,
+                StructFields.Attributes.uv0,
+                StructFields.Attributes.uv1,
+                StructFields.Attributes.uv2,
+                StructFields.Attributes.uv3,
+                StructFields.Attributes.color,
 
                 // InstanceID without the Preprocessor.
-                new FieldDescriptor(HDStructFields.AttributesMesh.name, "instanceID", "", ShaderValueType.Uint, "INSTANCEID_SEMANTIC"),
+                new FieldDescriptor(StructFields.Attributes.name, "instanceID", "", ShaderValueType.Uint, "INSTANCEID_SEMANTIC"),
 
-                HDStructFields.AttributesMesh.weights,
-                HDStructFields.AttributesMesh.indices,
+                StructFields.Attributes.weights,
+                StructFields.Attributes.indices,
 
                 // VertexID without the Preprocessor.
-                new FieldDescriptor(HDStructFields.AttributesMesh.name, "vertexID", "ATTRIBUTES_NEED_VERTEXID", ShaderValueType.Uint, "SV_VertexID")
+                new FieldDescriptor(StructFields.Attributes.name, "vertexID", "ATTRIBUTES_NEED_VERTEXID", ShaderValueType.Uint, "SV_VertexID")
             }
         };
 
@@ -137,16 +135,16 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             // Default
             // Note: These are all already defined in HDStructFields, but marked as "Optional".
             //       For now just be explicit here that we NEED everything to define the struct.
-            fields.Add(new FieldDescriptor(HDStructFields.FragInputs.name, "positionSS", "", ShaderValueType.Float4));
-            fields.Add(new FieldDescriptor(HDStructFields.FragInputs.name, "positionRWS", "", ShaderValueType.Float3));
-            fields.Add(new FieldDescriptor(HDStructFields.FragInputs.name, "tangentToWorld", "", ShaderValueType.Matrix3));
-            fields.Add(new FieldDescriptor(HDStructFields.FragInputs.name, "texCoord0", "", ShaderValueType.Float4));
-            fields.Add(new FieldDescriptor(HDStructFields.FragInputs.name, "texCoord1", "", ShaderValueType.Float4));
-            fields.Add(new FieldDescriptor(HDStructFields.FragInputs.name, "texCoord2", "", ShaderValueType.Float4));
-            fields.Add(new FieldDescriptor(HDStructFields.FragInputs.name, "texCoord3", "", ShaderValueType.Float4));
-            fields.Add(new FieldDescriptor(HDStructFields.FragInputs.name, "color", "", ShaderValueType.Float4));
-            fields.Add(new FieldDescriptor(HDStructFields.FragInputs.name, "primitiveID", "", ShaderValueType.Uint));
-            fields.Add(new FieldDescriptor(HDStructFields.FragInputs.name, "isFrontFace", "", ShaderValueType.Boolean));
+            fields.Add(new FieldDescriptor(StructFields.Attributes.name, "positionSS", "", ShaderValueType.Float4));
+            fields.Add(new FieldDescriptor(StructFields.Attributes.name, "positionRWS", "", ShaderValueType.Float3));
+            fields.Add(new FieldDescriptor(StructFields.Attributes.name, "tangentToWorld", "", ShaderValueType.Matrix3));
+            fields.Add(new FieldDescriptor(StructFields.Attributes.name, "texCoord0", "", ShaderValueType.Float4));
+            fields.Add(new FieldDescriptor(StructFields.Attributes.name, "texCoord1", "", ShaderValueType.Float4));
+            fields.Add(new FieldDescriptor(StructFields.Attributes.name, "texCoord2", "", ShaderValueType.Float4));
+            fields.Add(new FieldDescriptor(StructFields.Attributes.name, "texCoord3", "", ShaderValueType.Float4));
+            fields.Add(new FieldDescriptor(StructFields.Attributes.name, "color", "", ShaderValueType.Float4));
+            fields.Add(new FieldDescriptor(StructFields.Attributes.name, "primitiveID", "", ShaderValueType.Uint));
+            fields.Add(new FieldDescriptor(StructFields.Attributes.name, "isFrontFace", "", ShaderValueType.Boolean));
 
             // VFX Material Properties
             // TODO: This can be merged with AppendVFXInterpolater. Lots of duplicated code just to query simple info.
@@ -166,13 +164,13 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                     if (!kVFXShaderValueTypeyMap.TryGetValue(type, out var shaderValueType))
                         continue;
 
-                    fields.Add(new FieldDescriptor(HDStructFields.FragInputs.name, filteredNamedExpression.name, "", shaderValueType));
+                    fields.Add(new FieldDescriptor(StructFields.SurfaceDescriptionInputs.name, filteredNamedExpression.name, "", shaderValueType));
                 }
             }
 
             var fragInputs = new StructDescriptor
             {
-                name = HDStructFields.FragInputs.name,
+                name = StructFields.SurfaceDescriptionInputs.name,
                 fields = fields.ToArray()
             };
 
@@ -211,7 +209,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                     var interpolationModifier = InterpolationModifier.NoInterpolation;
 
 
-                    //fields.Add(new FieldDescriptor(HDStructFields.VaryingsMeshToPS.name, filteredNamedExpression.name, "", shaderValueType, $"NORMAL{normalSemanticIndex++}", "", StructFieldOptions.Static, interpolationModifier));
+                    fields.Add(new FieldDescriptor(UniversalStructs.Varyings.name, filteredNamedExpression.name, "", shaderValueType, $"NORMAL{normalSemanticIndex++}", "", StructFieldOptions.Static, interpolationModifier));
                 }
             }
 
@@ -387,7 +385,6 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
 
             return new FieldDescriptor("Attributes", attribute.name, "", shaderValueType);
         }
-        */
     }
 }
 #endif
