@@ -591,6 +591,11 @@ namespace UnityEngine.Rendering.HighDefinition
             InitializeProbeVolumes();
             CustomPassUtils.Initialize();
 
+            // We allocate shadow manager non rendergraph resources regardless of whether RG is enabled or not
+            // because as there is no shared texture, we need to import textures from the atlasses all the time to avoid
+            // having issues with "persisting" textures stomping on each other if they have the same descriptor.
+            m_ShadowManager.InitializeNonRenderGraphResources();
+
             EnableRenderGraph(defaultAsset.useRenderGraph && !enableNonRenderGraphTests);
         }
 
@@ -1019,7 +1024,6 @@ namespace UnityEngine.Rendering.HighDefinition
         void InitializeNonRenderGraphResources()
         {
             InitializeRenderTextures();
-            m_ShadowManager.InitializeNonRenderGraphResources();
             m_AmbientOcclusionSystem.InitializeNonRenderGraphResources();
             m_PostProcessSystem.InitializeNonRenderGraphResources(asset);
             s_lightVolumes.InitializeNonRenderGraphResources();
@@ -1032,7 +1036,6 @@ namespace UnityEngine.Rendering.HighDefinition
         void CleanupNonRenderGraphResources()
         {
             DestroyRenderTextures();
-            m_ShadowManager.CleanupNonRenderGraphResources();
             m_AmbientOcclusionSystem.CleanupNonRenderGraphResources();
             m_PostProcessSystem.CleanupNonRenderGraphResources();
             s_lightVolumes.CleanupNonRenderGraphResources();
@@ -1121,6 +1124,9 @@ namespace UnityEngine.Rendering.HighDefinition
             ReleaseRayTracingManager();
             m_DebugDisplaySettings.UnregisterDebug();
 
+            // We allocated shadow manager non rendergraph resources regardless of whether RG is enabled or not
+            // because as there is no shared texture, we need to import textures from the atlasses all the time.
+            m_ShadowManager.CleanupNonRenderGraphResources();
             CleanupLightLoop();
 
             // For debugging
