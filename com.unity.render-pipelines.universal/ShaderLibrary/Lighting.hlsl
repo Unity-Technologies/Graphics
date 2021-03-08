@@ -716,7 +716,7 @@ half3 CalculateIrradianceFromReflectionProbes(half3 reflectVector, half3 positio
 #endif // UNITY_USE_NATIVE_HDR || UNITY_DOTS_INSTANCING_ENABLED
     }
 
-    if (specCube1_weight + specCube0_weight < .99)
+    if (specCube1_weight + specCube0_weight < 0)
     {
         reflectVector = originalReflectVector;
         half4 encodedIrradiance = SAMPLE_TEXTURECUBE_LOD(_skybox, sampler_skybox, reflectVector, mip);
@@ -739,6 +739,9 @@ half3 GlossyEnvironmentReflection(half3 reflectVector, half3 positionWS, half pe
 #if defined(UNITY_SPECCUBE_BLENDING)
     irradiance = CalculateIrradianceFromReflectionProbes(reflectVector, positionWS, perceptualRoughness);
 #else
+#ifdef UNITY_SPECCUBE_BOX_PROJECTION
+    reflectVector = BoxProjectedCubemapDirection(originalReflectVector, positionWS, unity_SpecCube1_ProbePosition, unity_SpecCube1_BoxMin, unity_SpecCube1_BoxMax);
+#endif // UNITY_SPECCUBE_BOX_PROJECTION
     half4 encodedIrradiance = half4(SAMPLE_TEXTURECUBE_LOD(unity_SpecCube0, samplerunity_SpecCube0, reflectVector, mip));
 
     //TODO:DOTS - we need to port probes to live in c# so we can manage this manually.
