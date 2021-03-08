@@ -225,7 +225,7 @@ From 10.x, a new pass ScenePickingPass have been added to all the shader and mas
 From 10.x, a decal function in shader code has been added. To handle normal flipping for double sided materials, calls to `GetDecalSurfaceData()` should be updated from this function:
 `DecalSurfaceData GetDecalSurfaceData(PositionInputs posInput, float3 vtxNormal, inout float alpha)`
 to:
-`DecalSurfaceData GetDecalSurfaceData(PositionInputs posInput, FragInputs input, inout float alpha)
+`DecalSurfaceData GetDecalSurfaceData(PositionInputs posInput, FragInputs input, inout float alpha)`
 
 ## Raytracing
 

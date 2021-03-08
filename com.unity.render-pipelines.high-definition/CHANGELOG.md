@@ -49,6 +49,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed issue with physically-based DoF computation and transparent materials with depth-writes ON.
 - Fixed issue of accessing default frame setting stored in current HDRPAsset instead fo the default HDRPAsset
 - Fixed SSGI frame setting not greyed out while SSGI is disabled in HDRP Asset
+- Fixed HDRP material being constantly dirty.
+- Fixed issue in path tracing, where objects would cast shadows even if not present in the path traced layers (case 1318857).
 - Fixed issue with different shadow atlas stomping on each other when they have same resolution.
 
 ### Changed
@@ -144,6 +146,8 @@ The version number for this package has increased due to a version update of a r
 - Fixed Quality Level set to the last one of the list after a Build (case 1307450)
 - Fixed XR depth copy (case 1286908).
 - Fixed Warnings about "SceneIdMap" missing script in eye material sample scene
+- Fixed wizard checking FrameSettings not in HDRP Default Settings
+- Fixed error when opening the default composition graph in the Graphics Compositor (case 1318933).
 
 ### Changed
 - Now reflection probes cannot have SSAO, SSGI, SSR, ray tracing effects or volumetric reprojection.
