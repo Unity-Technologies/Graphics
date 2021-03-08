@@ -30,7 +30,7 @@ Varyings VertQuad(Attributes input)
     output.positionCS.xy = output.positionCS.xy * float2(2.0f, -2.0f) + float2(-1.0f, 1.0f); //convert to -1..1
 
     //Using temporary as writing to global _ScaleBias.w is prohibited when compiling with DXC
-    float scaleBiasW = _ScaleBias.w; 
+    float scaleBiasW = _ScaleBias.w;
 #if UNITY_UV_STARTS_AT_TOP
     // Unity viewport convention is bottom left as origin. Adjust Scalebias to read the correct region.
     scaleBiasW = 1 - _ScaleBias.w - _ScaleBias.y;
