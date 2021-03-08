@@ -2562,7 +2562,7 @@ namespace UnityEngine.Rendering.HighDefinition
                                 float localIntensity = Random.Range(-1.0f, 1.0f) * element.intensityVariation + 1.0f;
 
                                 Vector2 rayOff = GetLensFlareRayOffset(screenPos, position, globalCos0, globalSin0);
-                                Vector2 localSize = size + ((new Vector2(usedAspectRatio, 1.0f)) * element.scaleVariation * Random.Range(-1.0f, 1.0f));
+                                Vector2 localSize = size + (size * ((new Vector2(usedAspectRatio, 1.0f)) * element.scaleVariation * Random.Range(-1.0f, 1.0f)));
                                 if (element.enableRadialDistortion)
                                 {
                                     Vector2 rayOff0 = GetLensFlareRayOffset(screenPos, 0.0f, globalCos0, globalSin0);
