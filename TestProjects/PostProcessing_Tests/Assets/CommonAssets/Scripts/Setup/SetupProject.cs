@@ -30,6 +30,6 @@ public static class SetupProject
     static void SetGraphicsAPI(GraphicsDeviceType api)
     {
         var currentTarget = EditorUserBuildSettings.activeBuildTarget;
-        PlayerSettings.SetGraphicsAPIs(currentTarget, new [] { api } );
+        PlayerSettings.SetGraphicsAPIs(currentTarget, new[] { api });
     }
 }

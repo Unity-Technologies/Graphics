@@ -33,5 +33,6 @@ public class PostProcessingGraphicsTests
     {
         UnityEditor.TestTools.Graphics.ResultsUtility.ExtractImagesFromTestProperties(TestContext.CurrentContext.Test);
     }
+
 #endif
 }
