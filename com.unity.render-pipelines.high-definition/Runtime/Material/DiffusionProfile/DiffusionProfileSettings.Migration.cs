@@ -43,7 +43,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 var importer = AssetImporter.GetAtPath(assetPath);
                 if (importer == null)
                     return;
-                
+
                 var currentHDAsset = HDRenderPipeline.currentAsset;
                 if (currentHDAsset == null)
                     throw new Exception("Can't upgrade diffusion profile without an active HD Render Pipeline asset (see Quality Settings).");
@@ -106,7 +106,7 @@ namespace UnityEngine.Rendering.HighDefinition
 #pragma warning restore 618
             })
         );
-        
+
 #if UNITY_EDITOR
         public static void UpgradeMaterial(Material mat, DiffusionProfileSettings mainProfile)
         {
