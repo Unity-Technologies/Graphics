@@ -140,9 +140,6 @@ VaryingsMeshType VertMesh(AttributesMesh input, float3 worldSpaceOffset)
     AttributesElement element;
     ZERO_INITIALIZE(AttributesElement, element);
 
-    // Vertex might be culled early, thus we ensure the varyings are initialized to zero.
-    ZERO_INITIALIZE(VaryingsMeshType, output);
-
     if(!GetMeshAndElementIndex(input, element))
         return output; // Culled index.
 
