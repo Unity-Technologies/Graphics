@@ -345,16 +345,16 @@ namespace UnityEditor.Rendering
                 if ((tmpCol = EditorGUI.ColorField(rect, Styles.tint, tintProp.colorValue)) != tintProp.colorValue)
                     tintProp.colorValue = tmpCol;
 
-                rect = GetNextRect();
-                if ((tmp = EditorGUI.FloatField(rect, Styles.position, positionProp.floatValue)) != positionProp.floatValue)
-                    positionProp.floatValue = tmp;
-
                 Texture tmpTex;
                 rect = GetNextRect();
                 SRPLensFlareType newType;
                 SRPLensFlareType typeValue = (UnityEngine.SRPLensFlareType)flareTypeProp.enumValueIndex;
                 if ((newType = ((SRPLensFlareType)(EditorGUI.EnumPopup(rect, Styles.flareType, typeValue)))) != typeValue)
                     flareTypeProp.enumValueIndex = (int)newType;
+
+                rect = GetNextRect();
+                if ((iTmp = EditorGUI.IntField(rect, Styles.count, countProp.intValue)) != countProp.intValue)
+                    countProp.intValue = Mathf.Max(iTmp, 1);
 
                 isFoldOpenedProp.boolValue = false;
             }
