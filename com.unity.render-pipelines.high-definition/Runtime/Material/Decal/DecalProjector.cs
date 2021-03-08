@@ -16,6 +16,7 @@ namespace UnityEngine.Rendering.HighDefinition
     public partial class DecalProjector : MonoBehaviour
     {
         internal static readonly Quaternion k_MinusYtoZRotation = Quaternion.Euler(-90, 0, 0);
+        static readonly Quaternion k_YtoZRotation = Quaternion.Euler(90, 0, 0);
 
         [SerializeField]
         private Material m_Material = null;
@@ -249,16 +250,62 @@ namespace UnityEngine.Rendering.HighDefinition
         private DecalSystem.DecalHandle m_Handle = null;
 
 
-        /// <summary>current rotation in a way the DecalSystem will be able to use it</summary>
-        internal Quaternion rotation => transform.rotation * k_MinusYtoZRotation;
         /// <summary>current position in a way the DecalSystem will be able to use it</summary>
         internal Vector3 position => transform.position;
-        /// <summary>current size in a way the DecalSystem will be able to use it</summary>
-        internal Vector3 decalSize => new Vector3(m_Size.x, m_Size.z, m_Size.y);
-        /// <summary>current size in a way the DecalSystem will be able to use it</summary>
-        internal Vector3 decalOffset => new Vector3(m_Offset.x, -m_Offset.z, m_Offset.y);
         /// <summary>current uv parameters in a way the DecalSystem will be able to use it</summary>
         internal Vector4 uvScaleBias => new Vector4(m_UVScale.x, m_UVScale.y, m_UVBias.x, m_UVBias.y);
+
+        /// <summary>current rotation in a way the DecalSystem will be able to use it</summary>
+        internal Quaternion rotation
+        {
+            get
+            {
+                // If Z-scale is negative we rotate decal differently to have correct forward direction for Angle Fade.
+                return transform.rotation * (transform.lossyScale.z >= 0f ? k_MinusYtoZRotation : k_YtoZRotation);
+            }
+        }
+
+        /// <summary>current size in a way the DecalSystem will be able to use it</summary>
+        internal Vector3 decalSize
+        {
+            get
+            {
+                Vector3 scale = transform.lossyScale;
+
+                // If Z-scale is negative the forward direction for rendering will be fixed by rotation,
+                // so we need to flip the scale of the affected axes back.
+                // The final sign of Z will depend on the other two axes, so we actually need to fix only Y here.
+                if (scale.z < 0f)
+                    scale.y *= -1f;
+
+                // Flipped projector (with 1 or 3 negative components of scale) would be invisible.
+                // In this case we additionally flip Z.
+                bool flipped = scale.x < 0f ^ scale.y < 0f ^ scale.z < 0f;
+                if (flipped)
+                    scale.z *= -1f;
+
+                return new Vector3(m_Size.x * scale.x, m_Size.z * scale.z, m_Size.y * scale.y);
+            }
+        }
+
+        /// <summary>current offset in a way the DecalSystem will be able to use it</summary>
+        internal Vector3 decalOffset
+        {
+            get
+            {
+                Vector3 scale = transform.lossyScale;
+
+                // If Z-scale is negative the forward direction for rendering will be fixed by rotation,
+                // so we need to flip the scale of the affected axes back.
+                if (scale.z < 0f)
+                {
+                    scale.y *= -1f;
+                    scale.z *= -1f;
+                }
+
+                return new Vector3(m_Offset.x * scale.x, -m_Offset.z * scale.z, m_Offset.y * scale.y);
+            }
+        }
 
         internal DecalSystem.DecalHandle Handle
         {
