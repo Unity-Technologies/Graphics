@@ -1,4 +1,5 @@
 using System;
+using System.Linq;
 using UnityEngine.Experimental.Rendering;
 using Unity.Collections;
 using Unity.Collections.LowLevel.Unsafe;
@@ -46,7 +47,7 @@ namespace UnityEngine.Rendering.Universal
                 Settings s;
                 s.atlas.resolution    = new Vector2Int(1024, 1024);
                 s.atlas.format        = GraphicsFormat.R8G8B8A8_SRGB; // TODO: optimize
-                s.useStructuredBuffer = false;
+                s.useStructuredBuffer = RenderingUtils.useStructuredBuffer;
                 return s;
             }
         }
@@ -146,6 +147,7 @@ namespace UnityEngine.Rendering.Universal
                 {
                     cmd.SetGlobalMatrixArray(ShaderProperty._AdditionalLightsWorldToLights, m_WorldToLightCpuData);
                     cmd.SetGlobalVectorArray(ShaderProperty._AdditionalLightsCookieAtlasUVRects, m_AtlasUVRectCpuData);
+                    cmd.SetGlobalFloatArray(ShaderProperty._AdditionalLightsLightTypes, m_LightTypeCpuData);
                 }
             }
         }
@@ -205,6 +207,8 @@ namespace UnityEngine.Rendering.Universal
                 cmd.SetGlobalMatrix(ShaderProperty._MainLightWorldToLight,  cookieMatrix);
                 cmd.SetGlobalVector(ShaderProperty._MainLightCookieUVScale, cookieUVScale);
                 cmd.SetGlobalFloat(ShaderProperty._MainLightCookieFormat,  cookieFormat);
+
+                //DrawDebugFrustum(visibleMainLight.localToWorldMatrix);
             }
 
             CoreUtils.SetKeyword(cmd, ShaderKeywordStrings.MainLightCookie, isMainLightCookieEnabled);
@@ -254,7 +258,7 @@ namespace UnityEngine.Rendering.Universal
         {
             int skipIndex = lightData.mainLightIndex;
             int validLightCount = 0;
-            for (int i = 0; i < sortedLights.Length; i++)
+            for (int i = 0; i < lightData.visibleLights.Length; i++)
             {
                 // Skip main light
                 if (i == skipIndex)
@@ -269,6 +273,8 @@ namespace UnityEngine.Rendering.Universal
                 // TODO: support vertex lights?
                 if (light.renderMode == LightRenderMode.ForceVertex)
                     continue;
+
+                //DrawDebugFrustum(lightData.visibleLights[i].localToWorldMatrix);
 
                 LightCookieData lp;
                 lp.visibleLightIndex = i;    // Index into light data after sorting
@@ -286,10 +292,11 @@ namespace UnityEngine.Rendering.Universal
                 // 1. Light screen area
                 // 2. Light intensity
                 // 4. TODO: better criteria?? spot > point?
-                Rect  lightScreenRect = lightData.visibleLights[i].screenRect;
-                float lightScreenArea = lightScreenRect.width * lightScreenRect.height;
-                float lightIntensity  = Mathf.Min(light.intensity * 10.0f, 0.1f);
-                lp.score = (int)(lightScreenArea * lightIntensity + 0.5f);
+                // TODO: Is screen rect accurate? If not then just use size
+                Rect  lightScreenUVRect = lightData.visibleLights[i].screenRect;
+                float lightScreenAreaUV = 1000.0f * lightScreenUVRect.width * lightScreenUVRect.height;
+                float lightIntensity    = 100.0f * light.intensity;
+                lp.score = (int)(lightScreenAreaUV * lightIntensity + 0.5f);
 
                 sortedLights[validLightCount++] = lp;
             }
@@ -323,17 +330,27 @@ namespace UnityEngine.Rendering.Universal
             int uvRectCount = 0;
             for (int i = 0; i < sortedLights.Length; i++)
             {
-                var l = sortedLights[i];
-                Light light = lightData.visibleLights[l.visibleLightIndex].light;
+                var lcd = sortedLights[i];
+                Light light = lightData.visibleLights[lcd.visibleLightIndex].light;
+                Texture cookie = light.cookie;
 
+                if (cookie.dimension != TextureDimension.Tex2D)
+                {
+                    // TODO: useful error messages
+                    //Debug.LogError($"Universal Light Cookie Manager: warning { cookie.name } is not a 2D Texture.");
+                    continue;
+                }
+
+                // TODO: blit point light into octahedraQuad or 2d slices.
+                // TODO: blit format convert into A8 or into sRGB
                 Vector4 uvScaleOffset = Vector4.zero;
-                bool isCached = m_AdditionalLightsCookieAtlas.AddTexture(cmd, ref uvScaleOffset, light.cookie);
+                bool isCached = m_AdditionalLightsCookieAtlas.AddTexture(cmd, ref uvScaleOffset, cookie);
                 if (!isCached)
                 {
                     if (atlasResetBefore)
                     {
                         // TODO: better messages
-                        Debug.LogError("Universal Light Cookie Manager: Atlas full!");
+                        //Debug.LogError("Universal Light Cookie Manager: Atlas full!");
                         return uvRectCount;
                     }
 
@@ -353,25 +370,96 @@ namespace UnityEngine.Rendering.Universal
             return uvRectCount;
         }
 
+        void DrawDebugFrustum(Matrix4x4 m, float near = 1, float far = -1)
+        {
+            var src = new Vector4[]
+            {
+                new Vector4(-1, -1, near, 1),
+                new Vector4(1, -1, near , 1),
+                new Vector4(1, 1, near  , 1),
+                new Vector4(-1, 1, near , 1),
+
+                new Vector4(-1, -1, far , 1),
+                new Vector4(1, -1, far  , 1),
+                new Vector4(1, 1, far   , 1),
+                new Vector4(-1, 1, far  , 1),
+            };
+            var res = new Vector4[8];
+            for (int i = 0; i < src.Length; i++)
+                res[i] = m * src[i];
+
+            for (int i = 0; i < src.Length; i++)
+                res[i] = res[i].w > 0 ? res[i] / res[i].w : res[i];
+
+            Debug.DrawLine(res[0], res[1], Color.black);
+            Debug.DrawLine(res[1], res[2], Color.black);
+            Debug.DrawLine(res[2], res[3], Color.black);
+            Debug.DrawLine(res[3], res[0], Color.black);
+
+            Debug.DrawLine(res[4 + 0], res[4 + 1], Color.white);
+            Debug.DrawLine(res[4 + 1], res[4 + 2], Color.white);
+            Debug.DrawLine(res[4 + 2], res[4 + 3], Color.white);
+            Debug.DrawLine(res[4 + 3], res[4 + 0], Color.white);
+
+            Debug.DrawLine(res[0], res[4 + 0], Color.yellow);
+            Debug.DrawLine(res[1], res[4 + 1], Color.yellow);
+            Debug.DrawLine(res[2], res[4 + 2], Color.yellow);
+            Debug.DrawLine(res[3], res[4 + 3], Color.yellow);
+
+            var o = m * new Vector4(0, 0, 0, 1);
+            var x = m * new Vector4(1, 0, 0, 1);
+            var y = m * new Vector4(0, 1, 0, 1);
+            var z = m * new Vector4(0, 0, 1, 1);
+            o = o.w > 0 ? o / o.w : o;
+            x = x.w > 0 ? x / x.w : x;
+            y = y.w > 0 ? y / y.w : y;
+            z = z.w > 0 ? z / z.w : z;
+            Debug.DrawLine(o, x, Color.red);
+            Debug.DrawLine(o, y, Color.green);
+            Debug.DrawLine(o, z, Color.blue);
+        }
+
         void SetAdditionalLights(CommandBuffer cmd, in LightData lightData, in NativeArray<LightCookieData> validSortedLights, in NativeArray<Vector4> validUvRects)
         {
             Debug.Assert(m_AdditionalLightsCookieAtlas != null);
             Debug.Assert(m_AdditionalLightsCookieShaderData != null);
 
+            float cookieAtlasFormat = (GraphicsFormatUtility.GetTextureFormat(m_AdditionalLightsCookieAtlas.AtlasTexture.rt.graphicsFormat) == TextureFormat.Alpha8) ? 1.0f : 0.0f;
             cmd.SetGlobalTexture(ShaderProperty._AdditionalLightsCookieAtlasTexture, m_AdditionalLightsCookieAtlas.AtlasTexture);
-            m_AdditionalLightsCookieShaderData.Resize(lightData.additionalLightsCount);
+            cmd.SetGlobalFloat(ShaderProperty._AdditionalLightsCookieAtlasFormat, cookieAtlasFormat);
+
+            // TODO: resize for uniform buffer
+            m_AdditionalLightsCookieShaderData.Resize(lightData.visibleLights.Length);
 
             var worldToLights = m_AdditionalLightsCookieShaderData.worldToLights;
             var atlasUVRects = m_AdditionalLightsCookieShaderData.atlasUVRects;
             var lightTypes = m_AdditionalLightsCookieShaderData.lightTypes;
 
+            // Set all rects to Invalid (Vector4.zero).
+            Array.Clear(atlasUVRects, 0, atlasUVRects.Length);
+
             for (int i = 0; i < validUvRects.Length; i++)
             {
                 int vIndex            = validSortedLights[i].visibleLightIndex;
-                lightTypes[vIndex] = (int)lightData.visibleLights[vIndex].lightType;
+                lightTypes[vIndex]    = (int)lightData.visibleLights[vIndex].lightType;
                 worldToLights[vIndex] = lightData.visibleLights[vIndex].localToWorldMatrix.inverse;
                 atlasUVRects[vIndex]  = validUvRects[i];
+
+                // TODO: need spot projection here, or spot outer angle in shader
+                // TODO: look at HDRP how it extracts spot matrix
+                // TODO: this is garbage, projection should be in light data
+                //if (lightData.visibleLights[vIndex].lightType == LightType.Spot)
+                //    worldToLights[vIndex] = (lightData.visibleLights[vIndex].localToWorldMatrix).inverse;
+                //
+                //DrawDebugFrustum(worldToLights[vIndex]);
             }
+
+            //Vector4 o = Vector4.zero;
+            //Vector4 r = new Vector4(1, 0, 0) * 10;
+            //Debug.DrawLine(o, r, Color.red);
+            //
+            //Vector4 r1 = Matrix4x4.Rotate(Quaternion.AngleAxis(90, Vector3.up)) * r;
+            //Debug.DrawLine(o, r1, Color.green);
 
             m_AdditionalLightsCookieShaderData.Apply(cmd);
         }
