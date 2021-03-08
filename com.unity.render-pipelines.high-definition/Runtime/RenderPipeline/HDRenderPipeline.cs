@@ -1157,6 +1157,7 @@ namespace UnityEngine.Rendering.HighDefinition
             m_SkyManager.Cleanup();
             CleanupVolumetricLighting();
             CleanupProbeVolumes();
+            CleanupSubsurfaceScattering();
 
             for(int bsdfIdx = 0; bsdfIdx < m_IBLFilterArray.Length; ++bsdfIdx)
             {
