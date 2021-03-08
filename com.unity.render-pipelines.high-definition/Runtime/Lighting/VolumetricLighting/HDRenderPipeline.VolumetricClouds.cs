@@ -141,10 +141,10 @@ namespace UnityEngine.Rendering.HighDefinition
         {
 #if UNITY_EDITOR
             UnityEditor.BuildTarget activeBuildTarget = UnityEditor.EditorUserBuildSettings.activeBuildTarget;
-            if (activeBuildTarget == UnityEditor.BuildTarget.XboxOne || activeBuildTarget == UnityEditor.BuildTarget.StandaloneOSX)
+            if (activeBuildTarget == UnityEditor.BuildTarget.StandaloneOSX)
                 return false;
 #else
-            if (SystemInfo.graphicsDeviceType == GraphicsDeviceType.XboxOne || SystemInfo.graphicsDeviceType == GraphicsDeviceType.Metal)
+            if (SystemInfo.graphicsDeviceType == GraphicsDeviceType.Metal)
                 return false;
 #endif
             // If the current volume does not enable the feature, quit right away.
