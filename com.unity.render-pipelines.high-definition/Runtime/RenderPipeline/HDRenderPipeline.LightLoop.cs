@@ -423,6 +423,9 @@ namespace UnityEngine.Rendering.HighDefinition
             public ComputeBufferHandle coarseStencilBuffer;
             public BlueNoise blueNoise;
             public HDCamera hdCamera;
+            public RTHandle marginal;
+            public RTHandle conditionalMarginal;
+            public RTHandle integral;
         }
 
         void UpdateSSRConstantBuffer(HDCamera hdCamera, ScreenSpaceReflection settings, ref ShaderVariablesScreenSpaceReflection cb)
@@ -520,6 +523,19 @@ namespace UnityEngine.Rendering.HighDefinition
                     passData.normalBuffer = builder.ReadTexture(prepassOutput.resolvedNormalBuffer);
                     passData.motionVectorsBuffer = builder.ReadTexture(prepassOutput.resolvedMotionVectorsBuffer);
 
+                    var skySetting = hdCamera.volumeStack.GetComponent<HDRISky>();
+                    if (skySetting != null && skySetting.hdriSky != null)
+                    {
+                        int marginalID = ImportanceSamplers.GetIdentifier(skySetting.hdriSky.value);
+                        ImportanceSamplersSystem.MarginalTextures marginals = ImportanceSamplers.GetMarginals(marginalID);
+                        if (marginals != null)
+                        {
+                            passData.marginal = marginals.marginal;
+                            passData.conditionalMarginal = marginals.conditionalMarginal;
+                            passData.integral = marginals.integral;
+                        }
+                    }
+
                     // In practice, these textures are sparse (mostly black). Therefore, clearing them is fast (due to CMASK),
                     // and much faster than fully overwriting them from within SSR shaders.
                     passData.hitPointsTexture = builder.CreateTransientTexture(new TextureDesc(Vector2.one, true, true)
@@ -560,7 +576,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
                             using (new ProfilingScope(ctx.cmd, ProfilingSampler.Get(HDProfileId.SsrTracing)))
                             {
-                                // cmd.SetComputeTextureParam(cs, kernel, "_SsrDebugTexture",    m_SsrDebugTexture);
+                                //cmd.SetComputeTextureParam(cs, kernel, "_SsrDebugTexture",    m_SsrDebugTexture);
                                 // Bind the non mip chain if we are rendering the transparent version
                                 ctx.cmd.SetComputeTextureParam(cs, data.tracingKernel, HDShaderIDs._DepthTexture, data.depthBuffer);
                                 ctx.cmd.SetComputeTextureParam(cs, data.tracingKernel, HDShaderIDs._CameraDepthTexture, data.depthPyramid);
