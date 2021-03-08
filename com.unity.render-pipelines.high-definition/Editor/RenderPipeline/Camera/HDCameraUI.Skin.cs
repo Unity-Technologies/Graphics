@@ -9,12 +9,9 @@ namespace UnityEditor.Rendering.HighDefinition
             public static GUIContent projectionSettingsHeaderContent { get; } = EditorGUIUtility.TrTextContent("Projection");
             public static GUIContent renderingSettingsHeaderContent { get; } = EditorGUIUtility.TrTextContent("Rendering");
             public static GUIContent environmentSettingsHeaderContent { get; } = EditorGUIUtility.TrTextContent("Environment");
-            public static GUIContent outputSettingsHeaderContent { get; } = EditorGUIUtility.TrTextContent("Output");
 
             public static GUIContent clippingPlaneMultiFieldTitle = EditorGUIUtility.TrTextContent("Clipping Planes");
-
-            public const string msaaWarningMessage = "Manual MSAA target set with deferred rendering. This will lead to undefined behavior.";
-
+            
             public static readonly GUIContent clearModeContent = EditorGUIUtility.TrTextContent("Background Type", "Specifies the type of background the Camera applies when it clears the screen before rendering a frame. Be aware that when setting this to None, the background is never cleared and since HDRP shares render texture between cameras, you may end up with garbage from previous rendering.");
             public static readonly GUIContent backgroundColorContent = EditorGUIUtility.TrTextContent("Background Color", "The Background Color used to clear the screen when selecting Background Color before rendering.");
             public static readonly GUIContent cullingMaskContent = EditorGUIUtility.TrTextContent("Culling Mask");
@@ -48,16 +45,6 @@ namespace UnityEditor.Rendering.HighDefinition
 
             public static readonly GUIContent ditheringContent = EditorGUIUtility.TrTextContent("Dithering", "Should we apply 8-bit dithering to the final render?");
             public static readonly GUIContent stopNaNsContent = EditorGUIUtility.TrTextContent("Stop NaNs", "Automatically replaces NaN/Inf in shaders by a black pixel to avoid breaking some effects. This will slightly affect performances and should only be used if you experience NaN issues that you can't fix.");
-
-            public static readonly GUIContent allowDynResContent = EditorGUIUtility.TrTextContent("Allow Dynamic Resolution", "Whether to support dynamic resolution.");
-
-            public static readonly GUIContent viewportContent = EditorGUIUtility.TrTextContent("Viewport Rect", "Four values that indicate where on the screen HDRP draws this Camera view. Measured in Viewport Coordinates (values in the range of [0, 1]).");
-            public static readonly GUIContent depthContent = EditorGUIUtility.TrTextContent("Depth");
-            public static readonly GUIContent xrRenderingContent = EditorGUIUtility.TrTextContent("XR Rendering");
-
-#if ENABLE_MULTIPLE_DISPLAYS
-            public static readonly GUIContent targetDisplayContent = EditorGUIUtility.TrTextContent("Target Display");
-#endif
 
             public static readonly GUIContent[] antialiasingModeNames =
             {
