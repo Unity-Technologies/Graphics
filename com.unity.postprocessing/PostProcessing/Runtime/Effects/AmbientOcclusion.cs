@@ -190,9 +190,9 @@ namespace UnityEngine.Rendering.PostProcessing
 
                 state &= SystemInfo.supportsComputeShaders
                     && !RuntimeUtilities.isAndroidOpenGL
-                    && SystemInfo.IsFormatSupported(GraphicsFormat.R32_SFloat, FormatUsage.Render | FormatUsage.LoadStore)
-                    && SystemInfo.IsFormatSupported(GraphicsFormat.R16_SFloat, FormatUsage.Render | FormatUsage.LoadStore)
-                    && SystemInfo.IsFormatSupported(GraphicsFormat.R8_UNorm, FormatUsage.Render | FormatUsage.LoadStore);
+                    && SystemInfo.IsFormatSupported(GraphicsFormat.R32_SFloat, FormatUsage.Render)
+                    && SystemInfo.IsFormatSupported(GraphicsFormat.R16_SFloat, FormatUsage.Render)
+                    && SystemInfo.IsFormatSupported(GraphicsFormat.R8_UNorm, FormatUsage.Render);
             }
 
             return state;
