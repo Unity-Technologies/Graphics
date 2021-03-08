@@ -218,6 +218,14 @@ namespace UnityEditor.ShaderGraph
             // --------------------------------------------------
             // Setup
 
+            // Custom Interpolator Global flags (see definition for details).
+            CustomInterpolatorUtils.generatorNodeOnly = m_OutputNode != null;
+            CustomInterpolatorUtils.generatorSkipFlag = m_Targets[targetIndex].ignoreCustomInterpolators ||
+                !CustomInterpolatorUtils.generatorNodeOnly && (pass.customInterpolators == null || pass.customInterpolators.Count() == 0);
+
+            // Initialize custom interpolator sub generator
+            CustomInterpSubGen customInterpSubGen = new CustomInterpSubGen(m_OutputNode != null);
+
             // Initiailize Collectors
             var propertyCollector = new PropertyCollector();
             var keywordCollector = new KeywordCollector();
@@ -309,6 +317,9 @@ namespace UnityEditor.ShaderGraph
                 vertexSlots = new List<MaterialSlot>();
             }
 
+            // Inject custom interpolator antecedents where appropriate
+            customInterpSubGen.ProcessExistingStackData(vertexNodes, vertexSlots, pixelNodes, activeFields.baseInstance);
+
             // Track permutation indices for all nodes
             List<int>[] vertexNodePermutations = new List<int>[vertexNodes.Count];
             List<int>[] pixelNodePermutations = new List<int>[pixelNodes.Count];
@@ -318,7 +329,15 @@ namespace UnityEditor.ShaderGraph
             GenerationUtils.GetActiveFieldsAndPermutationsForNodes(pass, keywordCollector, vertexNodes, pixelNodes,
                 vertexNodePermutations, pixelNodePermutations, activeFields, out graphRequirements);
 
+            // Moved this up so that we can reuse the information to figure out which struct Descriptors
+            // should be populated by custom interpolators.
+            var passStructs = new List<StructDescriptor>();
+            passStructs.AddRange(pass.structs.Select(x => x.descriptor));
+
             // GET CUSTOM ACTIVE FIELDS HERE!
+
+            // inject custom interpolator fields into the pass structs
+            passStructs = customInterpSubGen.CopyModifyExistingPassStructs(passStructs, activeFields.baseInstance);
 
             // Get active fields from ShaderPass
             GenerationUtils.AddRequiredFields(pass.requiredFields, activeFields.baseInstance);
@@ -332,6 +351,11 @@ namespace UnityEditor.ShaderGraph
             // Key: splice token
             // Value: string to splice
             Dictionary<string, string> spliceCommands = new Dictionary<string, string>();
+
+            // populate splice commands from the pass's customInterpolator descriptors.
+            if (pass.customInterpolators != null)
+                customInterpSubGen.ProcessDescriptors(pass.customInterpolators.Select(item => item.descriptor));
+            customInterpSubGen.AppendToSpliceCommands(spliceCommands);
 
             // --------------------------------------------------
             // Dependencies
@@ -449,15 +473,13 @@ namespace UnityEditor.ShaderGraph
             // -----------------------------
             // Generated structs and Packing code
             var interpolatorBuilder = new ShaderStringBuilder();
-            var passStructs = new List<StructDescriptor>();
 
-            if (pass.structs != null)
+            if (passStructs != null)
             {
-                passStructs.AddRange(pass.structs.Select(x => x.descriptor));
-
-                foreach (StructCollection.Item shaderStruct in pass.structs)
+                var packedStructs = new List<StructDescriptor>();
+                foreach (var shaderStruct in passStructs)
                 {
-                    if (shaderStruct.descriptor.packFields == false)
+                    if (shaderStruct.packFields == false)
                         continue; //skip structs that do not need interpolator packs
 
                     List<int> packedCounts = new List<int>();
@@ -470,7 +492,7 @@ namespace UnityEditor.ShaderGraph
                         foreach (var instance in activeFields.allPermutations.instances)
                         {
                             var instanceGenerator = new ShaderStringBuilder();
-                            GenerationUtils.GenerateInterpolatorFunctions(shaderStruct.descriptor, instance, out instanceGenerator);
+                            GenerationUtils.GenerateInterpolatorFunctions(shaderStruct, instance, out instanceGenerator);
                             var key = instanceGenerator.ToCodeBlock();
                             if (generatedPackedTypes.TryGetValue(key, out var value))
                                 value.Item2.Add(instance.permutationIndex);
@@ -497,12 +519,13 @@ namespace UnityEditor.ShaderGraph
                     }
                     else
                     {
-                        GenerationUtils.GenerateInterpolatorFunctions(shaderStruct.descriptor, activeFields.baseInstance, out interpolatorBuilder);
+                        GenerationUtils.GenerateInterpolatorFunctions(shaderStruct, activeFields.baseInstance, out interpolatorBuilder);
                     }
                     //using interp index from functions, generate packed struct descriptor
-                    GenerationUtils.GeneratePackedStruct(shaderStruct.descriptor, activeFields, out packStruct);
-                    passStructs.Add(packStruct);
+                    GenerationUtils.GeneratePackedStruct(shaderStruct, activeFields, out packStruct);
+                    packedStructs.Add(packStruct);
                 }
+                passStructs.AddRange(packedStructs);
             }
             if (interpolatorBuilder.length != 0) //hard code interpolators to float, TODO: proper handle precision
                 interpolatorBuilder.ReplaceInCurrentMapping(PrecisionUtil.Token, ConcretePrecision.Single.ToShaderString());
@@ -676,7 +699,7 @@ namespace UnityEditor.ShaderGraph
                 #if !ENABLE_HYBRID_RENDERER_V2
                 if (hasDotsProperties)
                 {
-                    dotsInstancingOptionsBuilder.AppendLine("#if SHADER_TARGET >= 35 && (defined(SHADER_API_D3D11) || defined(SHADER_API_GLES3) || defined(SHADER_API_GLCORE) || defined(SHADER_API_XBOXONE) || defined(SHADER_API_PSSL) || defined(SHADER_API_VULKAN) || defined(SHADER_API_METAL))");
+                    dotsInstancingOptionsBuilder.AppendLine("#if SHADER_TARGET >= 35 && (defined(SHADER_API_D3D11) || defined(SHADER_API_GLES3) || defined(SHADER_API_GLCORE) || defined(SHADER_API_XBOXONE)  || defined(SHADER_API_GAMECORE) || defined(SHADER_API_PSSL) || defined(SHADER_API_VULKAN) || defined(SHADER_API_METAL))");
                     dotsInstancingOptionsBuilder.AppendLine("    #define UNITY_SUPPORT_INSTANCING");
                     dotsInstancingOptionsBuilder.AppendLine("#endif");
                     dotsInstancingOptionsBuilder.AppendLine("#if defined(UNITY_SUPPORT_INSTANCING) && defined(INSTANCING_ON)");
@@ -820,6 +843,10 @@ namespace UnityEditor.ShaderGraph
                 isDebug, sharedTemplateDirectories, m_assetCollection);
             templatePreprocessor.ProcessTemplateFile(passTemplatePath);
             m_Builder.Concat(templatePreprocessor.GetShaderCode());
+
+            // Turn off the skip flag so other passes behave correctly correctly.
+            CustomInterpolatorUtils.generatorSkipFlag = false;
+            CustomInterpolatorUtils.generatorNodeOnly = false;
         }
     }
 }
