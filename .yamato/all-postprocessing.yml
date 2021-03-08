@@ -10,13 +10,13 @@
 PR_PostProcessing_trunk:
     name: PostProcessing PR Job - trunk
     dependencies:
-      -  path: .yamato/postprocessing-win-dx11.yml#PostProcessing_Win_DX11_Standalone_cache_mono_Linear_trunk
+      -  path: .yamato/postprocessing-win-dx11.yml#PostProcessing_Win_DX11_Standalone_mono_Linear_trunk
          rerun: on-new-revision
-      -  path: .yamato/postprocessing-win-dx11.yml#PostProcessing_Win_DX11_playmode_cache_mono_Linear_trunk
+      -  path: .yamato/postprocessing-win-dx11.yml#PostProcessing_Win_DX11_playmode_mono_Linear_trunk
          rerun: on-new-revision
       -  path: .yamato/postprocessing-win-dx11.yml#PostProcessing_Win_DX11_editmode_mono_Linear_trunk
          rerun: on-new-revision
-      -  path: .yamato/postprocessing-win-dx12.yml#PostProcessing_Win_DX12_playmode_cache_mono_Linear_trunk
+      -  path: .yamato/postprocessing-win-dx12.yml#PostProcessing_Win_DX12_playmode_mono_Linear_trunk
          rerun: on-new-revision
       -  path: .yamato/postprocessing-win-vulkan.yml#PostProcessing_Win_Vulkan_playmode_cache_mono_Linear_trunk
          rerun: on-new-revision
@@ -48,13 +48,13 @@ Nightly_PostProcessing_trunk:
 PR_PostProcessing_CUSTOM-REVISION:
     name: PostProcessing PR Job - CUSTOM-REVISION
     dependencies:
-      -  path: .yamato/postprocessing-win-dx11.yml#PostProcessing_Win_DX11_Standalone_cache_mono_Linear_CUSTOM-REVISION
+      -  path: .yamato/postprocessing-win-dx11.yml#PostProcessing_Win_DX11_Standalone_mono_Linear_CUSTOM-REVISION
          rerun: always
-      -  path: .yamato/postprocessing-win-dx11.yml#PostProcessing_Win_DX11_playmode_cache_mono_Linear_CUSTOM-REVISION
+      -  path: .yamato/postprocessing-win-dx11.yml#PostProcessing_Win_DX11_playmode_mono_Linear_CUSTOM-REVISION
          rerun: always
       -  path: .yamato/postprocessing-win-dx11.yml#PostProcessing_Win_DX11_editmode_mono_Linear_CUSTOM-REVISION
          rerun: always
-      -  path: .yamato/postprocessing-win-dx12.yml#PostProcessing_Win_DX12_playmode_cache_mono_Linear_CUSTOM-REVISION
+      -  path: .yamato/postprocessing-win-dx12.yml#PostProcessing_Win_DX12_playmode_mono_Linear_CUSTOM-REVISION
          rerun: always
       -  path: .yamato/postprocessing-win-vulkan.yml#PostProcessing_Win_Vulkan_playmode_cache_mono_Linear_CUSTOM-REVISION
          rerun: always

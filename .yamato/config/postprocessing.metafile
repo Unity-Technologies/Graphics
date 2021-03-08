@@ -87,15 +87,15 @@ pr:
       build_config: mono
       color_space: Linear
       test_platforms:
-        - Standalone_cache
-        - playmode_cache
+        - Standalone
+        - playmode
         - editmode
     - platform: Win
       api: DX12
       build_config: mono
       color_space: Linear
       test_platforms:
-        - playmode_cache
+        - playmode
     - platform: Win
       api: Vulkan
       build_config: mono
