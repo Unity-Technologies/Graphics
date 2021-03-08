@@ -125,6 +125,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed SSGI frame setting not greyed out while SSGI is disabled in HDRP Asset
 - Fixed wizard checking FrameSettings not in HDRP Default Settings
 - Fixed error when opening the default composition graph in the Graphics Compositor (case 1318933).
+- Fixed HDRP material being constantly dirty.
 
 ### Changed
 - Removed the material pass probe volumes evaluation mode.
