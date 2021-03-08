@@ -699,6 +699,7 @@ void ScreenSpaceReflectionsAccumulate(uint3 dispatchThreadId : SV_DispatchThread
 
 //#define TEST_SSR_USAGE
 #define TEST_SSR_SPEED_REJECTION
+//#define TEST_SSR_INDEX_CURRENT
 
 #ifdef TEST_SSR_USAGE
 	// CUSTOM CODE BEGIN
@@ -729,7 +730,7 @@ void ScreenSpaceReflectionsAccumulate(uint3 dispatchThreadId : SV_DispatchThread
     DecodeMotionVector(SAMPLE_TEXTURE2D_X_LOD(_CameraMotionVectorsTexture, s_linear_clamp_sampler, min(positionNDC, 1.0f - 0.5f * _ScreenSize.zw) * _RTHandleScale.xy, 0), motionVectorCenterNDC);
     float speedSrc = length(motionVectorCenterNDC);
 
-#if 1
+#ifdef TEST_SSR_INDEX_CURRENT
 	#ifdef TEST_SSR_SPEED_REJECTION
 		float speed = saturate((speedDst + speedDst) * _SsrPBRSpeedRejection);
 	#else
