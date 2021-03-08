@@ -31,6 +31,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed issue with Hybrid renderer compatibility [1296776]
 - Fixed the Custom Editor GUI field in the Graph settings that was ignored.
 - Fixed an issue where SampleRawCubemapNode were requiring the Normal in Object space instead of World space [1307962]
+- Fixed a bug in master node preview generation that failed compilation when a block was deleted [1319066] (https://issuetracker.unity3d.com/issues/shadergraph-deleting-stack-blocks-of-universal-rp-targeted-shadergraph-causes-the-main-preview-to-fail-to-compile)
 
 ## [10.3.0] - 2020-11-03
 
