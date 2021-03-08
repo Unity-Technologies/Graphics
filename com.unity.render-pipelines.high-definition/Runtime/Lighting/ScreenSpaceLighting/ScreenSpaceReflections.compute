@@ -166,11 +166,7 @@ bool ImportanceSampleSky(float3x3 localToWorld, float3 V, float2 inputSample, ou
 {
     float2 latLongUV;
 
-    //float2 infos = ImportanceSamplingHemiLatLongArray(latLongUV, outgoingDir, inputSample, _SkyTextureSizeInfos.xyz, _SkyTextureMarginals, s_linear_clamp_sampler, _SkyTextureConditionalMarginals, s_linear_clamp_sampler);
     float2 infos = ImportanceSamplingLatLongArray(latLongUV, outgoingDir, inputSample, _SkyTextureSizeInfos.xyz, _SkyTextureMarginals, s_linear_clamp_sampler, _SkyTextureConditionalMarginals, s_linear_clamp_sampler);
-
-    //float3 localL = 2.0 * VdotH * localH - localV;
-    //outgoingDir = mul(outgoingDir, localToWorld);
 
     float integral = SAMPLE_TEXTURE2D_ARRAY_LOD(_SkyTextureIntegrals, s_linear_clamp_sampler, float2(0.0f, 0.0f), 0, 0).x;
 
@@ -181,12 +177,6 @@ bool ImportanceSampleSky(float3x3 localToWorld, float3 V, float2 inputSample, ou
 		weight = 0.0f;
 	else
 		weight = integral * sin0;// / infos.x;
-    //weight = 1.0f;
-
-    //if (outgoingDir.z < 0.001)
-    //{
-    //    return false;
-    //}
 
     return true;
 }
