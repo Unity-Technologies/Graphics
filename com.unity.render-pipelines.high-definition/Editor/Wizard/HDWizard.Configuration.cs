@@ -614,7 +614,8 @@ namespace UnityEditor.Rendering.HighDefinition
             if (!IsHdrpAssetUsedCorrect())
                 FixHdrpAssetUsed(fromAsync: false);
 
-            HDRenderPipelineGlobalSettings.instance.EnsureRayTracingResources(forceReload: true);
+            if (SystemInfo.supportsRayTracing)
+                HDRenderPipelineGlobalSettings.instance.EnsureRayTracingResources(forceReload: true);
 
             // IMPORTANT: We display the error only if we are D3D12 as the supportsRayTracing always return false in any other device even if OS/HW supports DXR.
             // The D3D12 is a separate check in the wizard, so it is fine not to display an error in case we are not D3D12.
