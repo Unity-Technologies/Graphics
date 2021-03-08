@@ -9,6 +9,7 @@ using UnityEditor.ShaderGraph.Drawing.Controls;
 using UnityEngine.Rendering;
 using UnityEditor.Experimental.GraphView;
 using UnityEditor.Rendering;
+using UnityEditor.ShaderGraph.Drawing.Inspector;
 using UnityEditor.ShaderGraph.Drawing.Inspector.PropertyDrawers;
 using UnityEditor.ShaderGraph.Internal;
 using UnityEngine.UIElements;
@@ -365,7 +366,7 @@ namespace UnityEditor.ShaderGraph.Drawing
             return node;
         }
 
-        public void SupplyDataToPropertyDrawer(IPropertyDrawer propertyDrawer, Action inspectorUpdateDelegate)
+        public void SupplyDataToPropertyDrawer(IPropertyDrawer propertyDrawer, Action inspectorUpdateDelegate, Action<InspectorUpdateSource> scopedInspectorUpdateDelegate = null)
         {
             if (propertyDrawer is IGetNodePropertyDrawerPropertyData nodePropertyDrawer)
             {

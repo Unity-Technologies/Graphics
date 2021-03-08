@@ -16,20 +16,17 @@ namespace UnityEditor.ShaderGraph.Drawing.Inspector.PropertyDrawers
     [SGPropertyDrawer(typeof(GraphData))]
     public class GraphDataPropertyDrawer : IPropertyDrawer
     {
-        public delegate void ChangeConcretePrecisionCallback(ConcretePrecision newValue);
-        public delegate void PostTargetSettingsChangedCallback();
-
-        PostTargetSettingsChangedCallback m_postChangeTargetSettingsCallback;
-        ChangeConcretePrecisionCallback m_postChangeConcretePrecisionCallback;
+        Action<ConcretePrecision> m_PostChangeConcretePrecisionCallback;
+        Action<InspectorUpdateSource> m_PostChangeTargetSettingsCallback;
 
         Dictionary<Target, bool> m_TargetFoldouts = new Dictionary<Target, bool>();
 
         public void GetPropertyData(
-            PostTargetSettingsChangedCallback postChangeValueCallback,
-            ChangeConcretePrecisionCallback changeConcretePrecisionCallback)
+            Action<InspectorUpdateSource> postChangeValueCallback,
+            Action<ConcretePrecision> changeConcretePrecisionCallback)
         {
-            m_postChangeTargetSettingsCallback = postChangeValueCallback;
-            m_postChangeConcretePrecisionCallback = changeConcretePrecisionCallback;
+            m_PostChangeTargetSettingsCallback = postChangeValueCallback;
+            m_PostChangeConcretePrecisionCallback = changeConcretePrecisionCallback;
         }
 
         VisualElement GetSettings(GraphData graphData, Action onChange)
@@ -62,7 +59,7 @@ namespace UnityEditor.ShaderGraph.Drawing.Inspector.PropertyDrawers
                 {
                     RegisterActionToUndo("Add Target");
                     graphData.SetTargetActive(addMenuOptionIndex);
-                    m_postChangeTargetSettingsCallback();
+                    m_PostChangeTargetSettingsCallback(InspectorUpdateSource.GraphChanges);
                 };
 
             targetList.RemoveItemCallback +=
@@ -70,7 +67,7 @@ namespace UnityEditor.ShaderGraph.Drawing.Inspector.PropertyDrawers
                 {
                     RegisterActionToUndo("Remove Target");
                     graphData.SetTargetInactive(list[itemIndex].value);
-                    m_postChangeTargetSettingsCallback();
+                    m_PostChangeTargetSettingsCallback(InspectorUpdateSource.GraphChanges);
                 };
 
             element.Add(targetList);
@@ -123,7 +120,7 @@ namespace UnityEditor.ShaderGraph.Drawing.Inspector.PropertyDrawers
             {
                 var enumPropertyDrawer = new EnumPropertyDrawer();
                 propertySheet.Add(enumPropertyDrawer.CreateGUI(
-                    newValue => { m_postChangeConcretePrecisionCallback((ConcretePrecision)newValue); },
+                    newValue => { m_PostChangeConcretePrecisionCallback((ConcretePrecision)newValue); },
                     graphData.concretePrecision,
                     "Precision",
                     ConcretePrecision.Single,
@@ -145,7 +142,7 @@ namespace UnityEditor.ShaderGraph.Drawing.Inspector.PropertyDrawers
                     out var propertyVisualElement));
             }
 
-            propertySheet.Add(GetSettings(graphData, () => this.m_postChangeTargetSettingsCallback()));
+            propertySheet.Add(GetSettings(graphData, () => this.m_PostChangeTargetSettingsCallback(InspectorUpdateSource.GraphChanges)));
 
             return propertySheet;
         }

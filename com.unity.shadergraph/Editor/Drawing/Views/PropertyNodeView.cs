@@ -5,6 +5,7 @@ using UnityEditor.Graphing;
 using UnityEditor.Rendering;
 using UnityEditor.ShaderGraph.Drawing;
 using UnityEditor.ShaderGraph.Drawing.Controls;
+using UnityEditor.ShaderGraph.Drawing.Inspector;
 using UnityEditor.ShaderGraph.Internal;
 using UnityEngine;
 using UnityEngine.UIElements;
@@ -58,7 +59,7 @@ namespace UnityEditor.ShaderGraph
             RegisterCallback<MouseLeaveEvent>(OnMouseHover);
 
             UpdateReferenceNameResetMenu();
-            
+
             // Set callback association for display name updates
             m_displayNameUpdateTrigger += node.UpdateNodeDisplayName;
         }
@@ -77,7 +78,7 @@ namespace UnityEditor.ShaderGraph
             return property;
         }
 
-        public void SupplyDataToPropertyDrawer(IPropertyDrawer propertyDrawer, Action inspectorUpdateDelegate)
+        public void SupplyDataToPropertyDrawer(IPropertyDrawer propertyDrawer, Action inspectorUpdateDelegate, Action<InspectorUpdateSource> scopedInspectorUpdateDelegate = null)
         {
             if(propertyDrawer is ShaderInputPropertyDrawer shaderInputPropertyDrawer)
             {
