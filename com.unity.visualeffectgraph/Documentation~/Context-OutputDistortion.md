@@ -20,7 +20,7 @@ Below is a list of settings and properties specific to the Distortion Context. F
 
 | **Input**               | **Type** | **Description**                                              |
 | ----------------------- | -------- | ------------------------------------------------------------ |
-| **Scale By Distance**   | Bool     | Indicates whether this Context should scale the distortion effect by the distance to the camera to maintain a consistent visual look. |
+| **Scale By Distance**   | Bool     | Indicates whether this Context scales the distortion effect by the distance to the camera to maintain a consistent visual look. |
 | **Distortion Blur Map** | Texture  | The map to use for the distortion. The **R** and **G** channels (centered on 0.5) map to the distortion’s X and Y offset, and the **B** channel is a mask for the distortion blur.<br/>Note, for this Texture to work correctly, you must disable **sRGB** in the textures Import Settings.<br/>This property only appears if you set **Distortion Mode** to **Screen Space**. |
 | **Normal Map**          | Texture  | The normal map to use for the distortion.<br/>This property only appears if you set **Distortion Mode** to **Normal Based**. |
 | **Smoothness Map**      | Texture  | The texture that controls the blur of the distortion. The mask uses this Texture’s alpha channel.<br/>This property only appears if you set **Distortion Mode** to **Normal Based**. |
