@@ -24,6 +24,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Added shader graph unit test for IsFrontFace node
 - API to allow OnDemand shadows to not render upon placement in the Cached Shadow Atlas.
 - Exposed update upon light movement for directional light shadows in UI.
+- Added a setting in the HDRP asset to change the Density Volume mask resolution of being locked at 32x32x32 (HDRP Asset > Lighting > Volumetrics > Max Density Volume Size).
+- Added a Falloff Mode (Linear or Exponential) in the Density Volume for volume blending with Blend Distance.
 
 ### Fixed
 - Fixed Intensity Multiplier not affecting realtime global illumination.
@@ -49,6 +51,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed an issue with the mipmap generation internal format after rendering format change.
 - Fixed multiple any hit occuring on transparent objects (case 1294927).
 - Cleanup Shader UI.
+- Spacing on LayerListMaterialUIBlock
+- Generating a GUIContent with an Icon instead of making MaterialHeaderScopes drawing a Rect every time
 - Fixed sub-shadow rendering for cached shadow maps.
 - Fixed PCSS filtering issues with cached shadow maps.
 - Fixed performance issue with ShaderGraph and Alpha Test
@@ -82,6 +86,10 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed SSGI frame setting not greyed out while SSGI is disabled in HDRP Asset
 - Fixed ability to override AlphaToMask FrameSetting while camera in deferred lit shader mode
 - Fixed Missing lighting quality settings for SSGI (case 1312067).
+- Fixed HDRP material being constantly dirty.
+- Fixed wizard checking FrameSettings not in HDRP Default Settings
+- Fixed error when opening the default composition graph in the Graphics Compositor (case 1318933).
+- Fixed gizmo rendering when wireframe mode is selected.
 
 ### Changed
 - Changed Window/Render Pipeline/HD Render Pipeline Wizard to Window/Rendering/HDRP Wizard
@@ -125,6 +133,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Moved the HDRP render graph debug panel content to the Rendering debug panel.
 - Changed Path Tracing's maximum intensity from clamped (0 to 100) to positive value (case 1310514).
 - Avoid unnecessary RenderGraphBuilder.ReadTexture in the "Set Final Target" pass
+- Density Volumes can now take a 3D RenderTexture as mask, the mask can use RGBA format for RGB fog.
+- Decreased the minimal Fog Distance value in the Density Volume to 0.05.
 
 ## [11.0.0] - 2020-10-21
 
@@ -137,8 +147,6 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Added support for raytracing for AxF material
 - Added rasterized area light shadows for AxF material
 - Added a cloud system and the CloudLayer volume override.
-- Added a setting in the HDRP asset to change the Density Volume mask resolution of being locked at 32x32x32 (HDRP Asset > Lighting > Volumetrics > Max Density Volume Size).
-- Added a Falloff Mode (Linear or Exponential) in the Density Volume for volume blending with Blend Distance.
 - Added per-stage shader keywords.
 
 ### Fixed
@@ -161,8 +169,6 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - The DrawRenderers function of CustomPassUtils class now takes a sortingCriteria in parameter.
 - When in half res, RTR denoising is executed at half resolution and the upscale happens at the end.
 - Removed the upscale radius from the RTR.
-- Density Volumes can now take a 3D RenderTexture as mask, the mask can use RGBA format for RGB fog.
-- Decreased the minimal Fog Distance value in the Density Volume to 0.05.
 
 ## [10.3.0] - 2020-12-01
 

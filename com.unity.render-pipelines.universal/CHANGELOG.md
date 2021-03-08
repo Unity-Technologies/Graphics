@@ -54,6 +54,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed undo issues for the additional light property on the UniversalRenderPipeline Asset. [case 1300367]
 - Fixed an issue where SSAO would sometimes not render with a recently imported renderer.
 - Fixed a regression where the precision was changed. [case 1313942](https://issuetracker.unity3d.com/issues/urp-shader-precision-is-reduced-to-half-when-scriptablerenderfeature-class-is-in-the-project)
+- Fixed an issue where motion blur would allocate memory each frame. [case 1314613](https://issuetracker.unity3d.com/issues/urp-gc-alloc-increases-when-motion-blur-override-is-enabled-with-intensity-set-above-0)
 
 ### Changed
 - Change Asset/Create/Shader/Universal Render Pipeline/Lit Shader Graph to Asset/Create/Shader Graph/URP/Lit Shader Graph
