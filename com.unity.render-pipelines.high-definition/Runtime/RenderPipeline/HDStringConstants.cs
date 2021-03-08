@@ -1054,14 +1054,6 @@ namespace UnityEngine.Rendering.HighDefinition
 
         internal const string kUseSplitLighting = "_RequireSplitLighting";
 
-        internal static readonly Color[] kLayerColors =
-        {
-            Color.white,
-            Color.red,
-            Color.green,
-            Color.blue
-        };
-
         internal const string kDecalColorMask0 = "_DecalColorMask0";
         internal const string kDecalColorMask1 = "_DecalColorMask1";
         internal const string kDecalColorMask2 = "_DecalColorMask2";

@@ -34,10 +34,9 @@ namespace UnityEditor.Rendering
         /// <param name="bitExpanded">Bit index which specifies the state of the header (whether it is open or collapsed) inside Editor Prefs.</param>
         /// <param name="materialEditor">The current material editor.</param>
         /// <param name="spaceAtEnd">Set this to true to make the block include space at the bottom of its UI. Set to false to not include any space.</param>
-        /// <param name="colorDot">Specify a color to display a dot, like in the layered UI.</param>
         /// <param name="subHeader">Set to true to make this into a sub-header. This affects the style of the header. Set to false to make this use the standard style.</param>
         /// <param name="defaultExpandedState">The default state if the header is not present</param>
-        internal MaterialHeaderScope(GUIContent title, uint bitExpanded, MaterialEditor materialEditor, bool spaceAtEnd = true, Color colorDot = default, bool subHeader = false, uint defaultExpandedState = uint.MaxValue)
+        public MaterialHeaderScope(GUIContent title, uint bitExpanded, MaterialEditor materialEditor, bool spaceAtEnd = true, bool subHeader = false, uint defaultExpandedState = uint.MaxValue)
         {
             bool beforeExpanded = materialEditor.IsAreaExpanded(bitExpanded, defaultExpandedState);
 
@@ -53,20 +52,9 @@ namespace UnityEditor.Rendering
 
             bool saveChangeState = GUI.changed;
             string text = title.text;
-            if (colorDot != default)
-                text = "   " + text;
             expanded = subHeader
                 ? CoreEditorUtils.DrawSubHeaderFoldout(text, beforeExpanded, isBoxed: false)
                 : CoreEditorUtils.DrawHeaderFoldout(text, beforeExpanded);
-            if (colorDot != default)
-            {
-                Rect dotRect = GUILayoutUtility.GetLastRect();
-                dotRect.width = 5;
-                dotRect.height = 5;
-                dotRect.y += 7;
-                dotRect.x += 17;
-                EditorGUI.DrawRect(dotRect, colorDot);
-            }
             if (expanded ^ beforeExpanded)
             {
                 materialEditor.SetIsAreaExpanded((uint)bitExpanded, expanded);
@@ -85,11 +73,10 @@ namespace UnityEditor.Rendering
         /// <param name="bitExpanded">Bit index which specifies the state of the header (whether it is open or collapsed) inside Editor Prefs.</param>
         /// <param name="materialEditor">The current material editor.</param>
         /// <param name="spaceAtEnd">Set this to true to make the block include space at the bottom of its UI. Set to false to not include any space.</param>
-        /// <param name="colorDot">Specify a color to display a dot, like in the layered UI.</param>
         /// <param name="subHeader">Set to true to make this into a sub-header. This affects the style of the header. Set to false to make this use the standard style.</param>
         /// <param name="keyPrefix">The key prefix for the preferences</param>
-        public MaterialHeaderScope(string title, uint bitExpanded, MaterialEditor materialEditor, bool spaceAtEnd = true, Color colorDot = default, bool subHeader = false)
-            : this(EditorGUIUtility.TrTextContent(title, string.Empty), bitExpanded, materialEditor, spaceAtEnd, colorDot, subHeader)
+        public MaterialHeaderScope(string title, uint bitExpanded, MaterialEditor materialEditor, bool spaceAtEnd = true, bool subHeader = false)
+            : this(EditorGUIUtility.TrTextContent(title, string.Empty), bitExpanded, materialEditor, spaceAtEnd, subHeader)
         {
         }
 
