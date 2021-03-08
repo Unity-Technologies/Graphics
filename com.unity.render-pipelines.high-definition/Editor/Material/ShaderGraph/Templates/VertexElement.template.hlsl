@@ -14,12 +14,12 @@ AttributesElementInputs AttributesMeshToAttributesElementInputs(AttributesMesh i
     return output;
 }
 
-AttributesElement VertElement(inout AttributesMesh input)
+bool VertElement(inout AttributesElement element, inout AttributesMesh input)
 {
     AttributesElementInputs attributesElementInputs = AttributesMeshToAttributesElementInputs(input);
 
     // Invokes SRP agnostic VFX element evaluation.
-    AttributesElement element = ElementDescriptionFunction(attributesElementInputs);
+    element = ElementDescriptionFunction(attributesElementInputs);
 
     // Copy element output to the input mesh.
     input.positionOS = element.position;
