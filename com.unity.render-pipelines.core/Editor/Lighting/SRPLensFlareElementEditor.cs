@@ -234,12 +234,13 @@ namespace UnityEditor.Rendering
                         SerializedProperty frequencyProp = property.FindPropertyRelative("frequency");
 
                         rect = GetNextRect();
+                        if ((tmp = EditorGUI.Slider(rect, Styles.edgeOffset, edgeOffsetProp.floatValue, 0.0f, 1.0f)) != edgeOffsetProp.floatValue)
+                            edgeOffsetProp.floatValue = Mathf.Clamp01(tmp);
+
+                        rect = GetNextRect();
                         if ((tmp = EditorGUI.FloatField(rect, Styles.fallOff, fallOffProp.floatValue)) != fallOffProp.floatValue)
                             fallOffProp.floatValue = Mathf.Max(tmp, 0.0f);
 
-                        rect = GetNextRect();
-                        if ((tmp = EditorGUI.Slider(rect, Styles.edgeOffset, edgeOffsetProp.floatValue, 0.0f, 1.0f)) != edgeOffsetProp.floatValue)
-                            edgeOffsetProp.floatValue = Mathf.Clamp01(tmp);
 
                         if (newType == SRPLensFlareType.Iris)
                         {
@@ -350,12 +351,10 @@ namespace UnityEditor.Rendering
 
                 Texture tmpTex;
                 rect = GetNextRect();
-                if ((tmpTex = (EditorGUI.ObjectField(rect, Styles.flareTexture, lensFlareProp.objectReferenceValue, typeof(Texture), false) as Texture)) != (lensFlareProp.objectReferenceValue as Texture))
-                {
-                    lensFlareProp.objectReferenceValue = tmpTex;
-                    aspectRatioProp.floatValue = ((float)tmpTex.width) / ((float)tmpTex.height);
-                    aspectRatioProp.serializedObject.ApplyModifiedProperties();
-                }
+                SRPLensFlareType newType;
+                SRPLensFlareType typeValue = (UnityEngine.SRPLensFlareType)flareTypeProp.enumValueIndex;
+                if ((newType = ((SRPLensFlareType)(EditorGUI.EnumPopup(rect, Styles.flareType, typeValue)))) != typeValue)
+                    flareTypeProp.enumValueIndex = (int)newType;
 
                 isFoldOpenedProp.boolValue = false;
             }
@@ -463,7 +462,7 @@ namespace UnityEditor.Rendering
 
             // For Procedural
             static public readonly GUIContent fallOff = EditorGUIUtility.TrTextContent("Falloff", "REPLACE ME.");
-            static public readonly GUIContent edgeOffset = EditorGUIUtility.TrTextContent("Gradient Start", "REPLACE ME.");
+            static public readonly GUIContent edgeOffset = EditorGUIUtility.TrTextContent("Gradient", "REPLACE ME.");
             static public readonly GUIContent sdfRoundness = EditorGUIUtility.TrTextContent("Roundness", "REPLACE ME.");
             static public readonly GUIContent sideCount = EditorGUIUtility.TrTextContent("Side Count", "REPLACE ME.");
             static public readonly GUIContent inverseSDF = EditorGUIUtility.TrTextContent("Inverse", "REPLACE ME.");
