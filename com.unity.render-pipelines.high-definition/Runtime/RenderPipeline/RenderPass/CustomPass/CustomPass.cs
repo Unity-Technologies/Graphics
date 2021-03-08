@@ -66,8 +66,6 @@ namespace UnityEngine.Rendering.HighDefinition
         CustomPassVolume    owner;
         HDCamera            currentHDCamera;
 
-        MaterialPropertyBlock userMaterialPropertyBlock;
-
         // TODO RENDERGRAPH: Remove this when we move things to render graph completely.
         MaterialPropertyBlock m_MSAAResolveMPB = null;
         void Awake()
@@ -240,9 +238,6 @@ namespace UnityEngine.Rendering.HighDefinition
                         {
                             customPass.Setup(ctx.renderContext, ctx.cmd);
                             customPass.isSetup = true;
-                            // TODO RENDERGRAPH: We still need to allocate this otherwise it would be null when switching off render graph (because isSetup stays true).
-                            // We can remove the member altogether when we remove the non render graph code path.
-                            customPass.userMaterialPropertyBlock = new MaterialPropertyBlock();
                         }
 
                         customPass.SetCustomPassTarget(ctx.cmd);
