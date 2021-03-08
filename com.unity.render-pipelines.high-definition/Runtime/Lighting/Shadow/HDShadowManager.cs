@@ -632,7 +632,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 m_AreaLightShadowAtlas.Layout();
         }
 
-        unsafe public void PrepareGPUShadowDatas(CullingResults cullResults, HDCamera camera)
+        unsafe public void PrepareGPUShadowDatas(HDCamera camera)
         {
             if (m_MaxShadowRequests == 0)
                 return;

@@ -2096,14 +2096,22 @@ namespace UnityEngine.Rendering.HighDefinition
             return -offset;
         }
 
-        private void UpdateDirectionalShadowRequest(HDShadowManager manager, HDShadowSettings shadowSettings, VisibleLight visibleLight, CullingResults cullResults, Vector2 viewportSize, int requestIndex, int lightIndex, Vector3 cameraPos, HDShadowRequest shadowRequest, out Matrix4x4 invViewProjection)
+        private void UpdateDirectionalShadowRequest(HDShadowManager manager, HDShadowSettings shadowSettings, VisibleLight visibleLight, HDRenderPipeline.LightListContext lightListContext, Vector2 viewportSize, int requestIndex, int lightIndex, Vector3 cameraPos, HDShadowRequest shadowRequest, out Matrix4x4 invViewProjection)
         {
             Vector4 cullingSphere;
             float nearPlaneOffset = QualitySettings.shadowNearPlaneOffset;
 
+            CullingResults cullingResults = lightListContext.cullingResults;
+            if(cullingResults == null)
+            {
+                Debug.Assert(cullingResults != null, "UpdateDirectionalShadowRequest culling results can not be null");
+                invViewProjection = Matrix4x4.identity;
+                return;
+            }
+
             HDShadowUtils.ExtractDirectionalLightData(
                 visibleLight, viewportSize, (uint)requestIndex, shadowSettings.cascadeShadowSplitCount.value,
-                shadowSettings.cascadeShadowSplits, nearPlaneOffset, cullResults, lightIndex,
+                shadowSettings.cascadeShadowSplits, nearPlaneOffset, cullingResults, lightIndex,
                 out shadowRequest.view, out invViewProjection, out shadowRequest.projection,
                 out shadowRequest.deviceProjection, out shadowRequest.deviceProjectionYFlip, out shadowRequest.splitData
             );
@@ -2121,8 +2129,8 @@ namespace UnityEngine.Rendering.HighDefinition
             manager.UpdateCascade(requestIndex, cullingSphere, shadowSettings.cascadeShadowBorders[requestIndex]);
         }
 
-        internal void UpdateShadowRequestData(HDCamera hdCamera, HDShadowManager manager, HDShadowSettings shadowSettings, VisibleLight visibleLight,
-            CullingResults cullResults, int lightIndex, LightingDebugSettings lightingDebugSettings, HDShadowFilteringQuality filteringQuality,
+        void UpdateShadowRequestData(HDCamera hdCamera, HDShadowManager manager, HDShadowSettings shadowSettings, VisibleLight visibleLight,
+            HDRenderPipeline.LightListContext lightListContext, int lightIndex, LightingDebugSettings lightingDebugSettings, HDShadowFilteringQuality filteringQuality,
             Vector2 viewportSize, HDLightType lightType, int shadowIndex, ref HDShadowRequest shadowRequest)
         {
             Matrix4x4 invViewProjection = Matrix4x4.identity;
@@ -2149,7 +2157,7 @@ namespace UnityEngine.Rendering.HighDefinition
                     );
                     break;
                 case HDLightType.Directional:
-                    UpdateDirectionalShadowRequest(manager, shadowSettings, visibleLight, cullResults, viewportSize, shadowIndex, lightIndex, cameraPos, shadowRequest, out invViewProjection);
+                    UpdateDirectionalShadowRequest(manager, shadowSettings, visibleLight, lightListContext, viewportSize, shadowIndex, lightIndex, cameraPos, shadowRequest, out invViewProjection);
                     break;
                 case HDLightType.Area:
                     switch (areaLightShape)
@@ -2174,7 +2182,7 @@ namespace UnityEngine.Rendering.HighDefinition
         }
 
         internal int UpdateShadowRequest(HDCamera hdCamera, HDShadowManager manager, HDShadowSettings shadowSettings, VisibleLight visibleLight,
-            CullingResults cullResults, int lightIndex, LightingDebugSettings lightingDebugSettings, HDShadowFilteringQuality filteringQuality, out int shadowRequestCount)
+            HDRenderPipeline.LightListContext lightListContext, int lightIndex, LightingDebugSettings lightingDebugSettings, HDShadowFilteringQuality filteringQuality, out int shadowRequestCount)
         {
             int firstShadowRequestIndex = -1;
             Vector3 cameraPos = hdCamera.mainViewConstants.worldSpaceCameraPos;
@@ -2238,7 +2246,7 @@ namespace UnityEngine.Rendering.HighDefinition
                     shadowRequest.cachedShadowData.cacheTranslationDelta = new Vector3(0.0f, 0.0f, 0.0f);
 
                     // Write per light type matrices, splitDatas and culling parameters
-                    UpdateShadowRequestData(hdCamera, manager, shadowSettings, visibleLight, cullResults, lightIndex, lightingDebugSettings, filteringQuality, viewportSize, lightType, index, ref shadowRequest);
+                    UpdateShadowRequestData(hdCamera, manager, shadowSettings, visibleLight, lightListContext, lightIndex, lightingDebugSettings, filteringQuality, viewportSize, lightType, index, ref shadowRequest);
 
                     hasUpdatedRequestData = true;
                     shadowRequest.shouldUseCachedShadowData = false;
@@ -2251,7 +2259,7 @@ namespace UnityEngine.Rendering.HighDefinition
                     shadowRequest.shouldRenderCachedComponent = false;
                     // If directional we still need to calculate the split data.
                     if (lightType == HDLightType.Directional)
-                        UpdateDirectionalShadowRequest(manager, shadowSettings, visibleLight, cullResults, viewportSize, index, lightIndex, cameraPos, shadowRequest, out invViewProjection);
+                        UpdateDirectionalShadowRequest(manager, shadowSettings, visibleLight, lightListContext, viewportSize, index, lightIndex, cameraPos, shadowRequest, out invViewProjection);
                 }
 
                 if (needToUpdateDynamicContent && !hasUpdatedRequestData)
@@ -2260,7 +2268,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
                     shadowRequest.cachedShadowData.cacheTranslationDelta = new Vector3(0.0f, 0.0f, 0.0f);
                     // Write per light type matrices, splitDatas and culling parameters
-                    UpdateShadowRequestData(hdCamera, manager, shadowSettings, visibleLight, cullResults, lightIndex, lightingDebugSettings, filteringQuality, viewportSize, lightType, index, ref shadowRequest);
+                    UpdateShadowRequestData(hdCamera, manager, shadowSettings, visibleLight, lightListContext, lightIndex, lightingDebugSettings, filteringQuality, viewportSize, lightType, index, ref shadowRequest);
                 }
 
                 manager.UpdateShadowRequest(shadowRequestIndex, shadowRequest, updateType);

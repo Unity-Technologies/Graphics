@@ -43,7 +43,7 @@ namespace UnityEngine.Rendering.HighDefinition
             public BlueNoise.DitheredTextureSet ditheredTextureSet;
         }
 
-        RTSAreaRayTraceParameters PrepareRTSAreaRayTraceParameters(HDCamera hdCamera, HDAdditionalLightData additionalLightData, LightData lightData, int lightIndex)
+        RTSAreaRayTraceParameters PrepareRTSAreaRayTraceParameters(HDCamera hdCamera, HDAdditionalLightData additionalLightData, LightData lightData, int lightIndex, LightListContext lightListContext)
         {
             RTSAreaRayTraceParameters rtsartParams = new RTSAreaRayTraceParameters();
 
@@ -70,7 +70,7 @@ namespace UnityEngine.Rendering.HighDefinition
             rtsartParams.worldToLocalMatrix = m_WorldToLocalArea.inverse;
             rtsartParams.historyValidity = EvaluateHistoryValidity(hdCamera);
             rtsartParams.filterTracedShadow = additionalLightData.filterTracedShadow;
-            rtsartParams.areaShadowSlot = m_lightList.lights[lightIndex].screenSpaceShadowIndex;
+            rtsartParams.areaShadowSlot = lightListContext.lights[lightIndex].screenSpaceShadowIndex;
             rtsartParams.filterSize = additionalLightData.filterSizeTraced;
 
             // Kernels
@@ -330,7 +330,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
         void RenderAreaScreenSpaceShadow(RenderGraph renderGraph, HDCamera hdCamera
             , in LightData lightData, HDAdditionalLightData additionalLightData, int lightIndex,
-            PrepassOutput prepassOutput, TextureHandle depthBuffer, TextureHandle normalBuffer, TextureHandle motionVectorsBuffer, TextureHandle rayCountTexture, TextureHandle screenSpaceShadowArray)
+            PrepassOutput prepassOutput, TextureHandle depthBuffer, TextureHandle normalBuffer, TextureHandle motionVectorsBuffer, TextureHandle rayCountTexture, TextureHandle screenSpaceShadowArray, LightListContext lightListContext)
         {
             // Grab the history buffers for shadows
             RTHandle shadowHistoryArray = RequestShadowHistoryBuffer(hdCamera);
@@ -339,7 +339,7 @@ namespace UnityEngine.Rendering.HighDefinition
             TextureHandle areaShadow;
             using (var builder = renderGraph.AddRenderPass<RTShadowAreaPassData>("Screen Space Shadows Debug", out var passData, ProfilingSampler.Get(HDProfileId.RaytracingAreaLightShadow)))
             {
-                passData.parameters = PrepareRTSAreaRayTraceParameters(hdCamera, additionalLightData, lightData, lightIndex);
+                passData.parameters = PrepareRTSAreaRayTraceParameters(hdCamera, additionalLightData, lightData, lightIndex, lightListContext);
                 // Input Buffers
                 passData.depthStencilBuffer = builder.UseDepthBuffer(depthBuffer, DepthAccess.Read);
                 passData.normalBuffer = builder.ReadTexture(normalBuffer);
@@ -405,7 +405,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 areaShadow = passData.outputShadowTexture;
             }
 
-            int areaShadowSlot = m_lightList.lights[lightIndex].screenSpaceShadowIndex;
+            int areaShadowSlot = lightListContext.lights[lightIndex].screenSpaceShadowIndex;
             WriteScreenSpaceShadow(renderGraph, hdCamera, areaShadow, screenSpaceShadowArray, areaShadowSlot, ScreenSpaceShadowType.Area);
 
             if (additionalLightData.filterTracedShadow)

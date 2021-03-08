@@ -462,7 +462,7 @@ namespace UnityEngine.Rendering.HighDefinition
             }
         }
 
-        void BuildLightData(CommandBuffer cmd, HDCamera hdCamera, HDRayTracingLights rayTracingLights, DebugDisplaySettings debugDisplaySettings)
+        void BuildLightData(CommandBuffer cmd, HDCamera hdCamera, HDRayTracingLights rayTracingLights, DebugDisplaySettings debugDisplaySettings, HDRenderPipeline.LightListContext lightListContext)
         {
             // If no lights, exit
             if (rayTracingLights.lightCount == 0)
@@ -542,7 +542,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
                 // Use the shared code to build the light data
                 m_RenderPipeline.GetLightData(cmd, hdCamera, hdShadowSettings, visibleLight, lightComponent, in processedData,
-                    shadowIndex, contactShadowScalableSetting, isRasterization: false, ref lightDimensions, ref screenSpaceShadowIndex, ref screenSpaceChannelSlot, ref lightData);
+                    shadowIndex, contactShadowScalableSetting, isRasterization: false, ref lightDimensions, ref screenSpaceShadowIndex, ref screenSpaceChannelSlot, ref lightData, lightListContext);
 
                 // We make the light position camera-relative as late as possible in order
                 // to allow the preceding code to work with the absolute world space coordinates.
@@ -784,10 +784,10 @@ namespace UnityEngine.Rendering.HighDefinition
             }
         }
 
-        public void BuildRayTracingLightData(CommandBuffer cmd, HDCamera hdCamera, HDRayTracingLights rayTracingLights, DebugDisplaySettings debugDisplaySettings)
+        public void BuildRayTracingLightData(CommandBuffer cmd, HDCamera hdCamera, HDRayTracingLights rayTracingLights, DebugDisplaySettings debugDisplaySettings, HDRenderPipeline.LightListContext lightListContext)
         {
             // Build the light data
-            BuildLightData(cmd, hdCamera, rayTracingLights, debugDisplaySettings);
+            BuildLightData(cmd, hdCamera, rayTracingLights, debugDisplaySettings, lightListContext);
 
             // Build the light data
             BuildEnvLightData(cmd, hdCamera, rayTracingLights);

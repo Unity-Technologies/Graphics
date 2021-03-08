@@ -116,7 +116,7 @@ namespace UnityEngine.Rendering.HighDefinition
             return m_VolumetricCloudsShadowTexture[shadowResIndex];
         }
 
-        void PreRenderVolumetricCloudsShadows(RenderGraph renderGraph, HDCamera hdCamera, HDUtils.PackedMipChainInfo info, in VolumetricClouds settings)
+        void PreRenderVolumetricCloudsShadows(RenderGraph renderGraph, HDCamera hdCamera, HDUtils.PackedMipChainInfo info, in VolumetricClouds settings, LightListContext lightListContext)
         {
             // Make sure we need to compute the shadow
             if (!HasVolumetricCloudsShadows(hdCamera, settings))
@@ -146,7 +146,7 @@ namespace UnityEngine.Rendering.HighDefinition
             {
                 builder.EnableAsyncCompute(false);
 
-                passData.parameters = PrepareVolumetricCloudsParameters(hdCamera, settings, info, true, false);
+                passData.parameters = PrepareVolumetricCloudsParameters(hdCamera, settings, info, true, false, lightListContext);
                 int shadowResolution = (int)settings.shadowResolution.value;
                 passData.shadowTexture = builder.WriteTexture(renderGraph.ImportTexture(currentHandle));
 
