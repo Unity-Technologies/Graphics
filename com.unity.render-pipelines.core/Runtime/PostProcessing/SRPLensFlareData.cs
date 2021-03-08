@@ -99,7 +99,7 @@ namespace UnityEngine
             blendMode = SRPLensFlareBlendMode.Additive;
             autoRotate = false;
             isFoldOpened = true;
-            flareType = SRPLensFlareType.Image;
+            flareType = SRPLensFlareType.Glow;
 
             distribution = SRPLensFlareDistribution.Uniform;
 
@@ -124,7 +124,7 @@ namespace UnityEngine
 
             // Parameters for Procedural
             fallOff = 1.0f;
-            edgeOffset = 0.0f;
+            edgeOffset = 0.9f;
             sdfRoundness = 0.0f;
             sideCount = 6;
             inverseSDF = false;
