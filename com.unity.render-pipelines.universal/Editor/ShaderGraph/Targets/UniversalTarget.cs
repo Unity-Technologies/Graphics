@@ -10,6 +10,9 @@ using UnityEditor.ShaderGraph.Internal;
 using UnityEditor.UIElements;
 using UnityEditor.ShaderGraph.Serialization;
 using UnityEditor.ShaderGraph.Legacy;
+#if USE_VFX
+using UnityEditor.VFX;
+#endif
 
 namespace UnityEditor.Rendering.Universal.ShaderGraph
 {
@@ -59,6 +62,9 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
         // View
         PopupField<string> m_SubTargetField;
         TextField m_CustomGUIField;
+#if USE_VFX
+        Toggle m_SupportVFXToggle;
+#endif
 
         [SerializeField]
         JsonData<SubTarget> m_ActiveSubTarget;
@@ -77,6 +83,9 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
 
         [SerializeField]
         string m_CustomEditorGUI;
+
+        [SerializeField]
+        bool m_SupportVFX;
 
         internal override bool ignoreCustomInterpolators => false;
         internal override int padCustomInterpolatorLimit => 4;
@@ -249,6 +258,23 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
                 onChange();
             });
             context.AddProperty("Custom Editor GUI", m_CustomGUIField, (evt) => {});
+
+#if USE_VFX
+            if (VFXViewPreference.generateOutputContextWithShaderGraph)
+            {
+                // VFX Support
+                /*if (m_IncompatibleVFXSubTargets.Contains(m_ActiveSubTarget.value.GetType()))
+                    context.AddHelpBox(MessageType.Info, $"The {m_ActiveSubTarget.value.displayName} target does not support VFX Graph.");
+                else*/
+                {
+                    m_SupportVFXToggle = new Toggle("") { value = m_SupportVFX };
+                    context.AddProperty("Support VFX Graph", m_SupportVFXToggle, (evt) =>
+                    {
+                        m_SupportVFX = m_SupportVFXToggle.value;
+                    });
+                }
+            }
+#endif
         }
 
         public bool TrySetActiveSubTarget(Type subTargetType)
@@ -330,6 +356,23 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
         public override bool WorksWithSRP(RenderPipelineAsset scriptableRenderPipeline)
         {
             return scriptableRenderPipeline?.GetType() == typeof(UniversalRenderPipelineAsset);
+        }
+
+        public override bool WorksWithVFX()
+        {
+#if USE_VFX
+            /* TODOPAUL : See if it's relevant
+             *
+             * if (m_ActiveSubTarget.value == null)
+                return false;
+
+            if (m_IncompatibleVFXSubTargets.Contains(m_ActiveSubTarget.value.GetType()))
+                return false;*/
+
+            return m_SupportVFX;
+#else
+            return false;
+#endif
         }
     }
 
