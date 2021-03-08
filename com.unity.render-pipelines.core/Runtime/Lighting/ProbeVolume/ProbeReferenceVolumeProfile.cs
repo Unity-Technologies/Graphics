@@ -85,6 +85,7 @@ namespace UnityEngine.Rendering
         public override void OnInspectorGUI()
         {
             EditorGUI.BeginChangeCheck();
+            serializedObject.Update();
 
             EditorGUILayout.PropertyField(m_CellSize, s_Styles.cellSizeStyle);
             EditorGUILayout.PropertyField(m_BrickSize, s_Styles.brickSizeStyle);
