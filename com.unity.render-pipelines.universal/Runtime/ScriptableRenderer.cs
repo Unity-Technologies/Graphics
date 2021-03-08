@@ -983,6 +983,23 @@ namespace UnityEngine.Rendering.Universal
 
                 if (IsRenderPassEnabled(renderPass) && cameraData.cameraType == CameraType.Game)
                 {
+                    int currentSceneIndex = renderPass.sceneIndex;
+                    Hash128 currentPassHash = sceneIndexToPassHash[currentSceneIndex];
+                    List<int> currentMergeablePasses = mergeableRenderPassesMap[currentPassHash];
+                    bool isFirstMergeablePass = currentMergeablePasses.First() == currentSceneIndex;
+
+                    if (!isFirstMergeablePass)
+                        return;
+
+                    //pass.attachmentIndices[0] = currentAttachmentIdx;
+                    //m_ActiveColorAttachmentDescriptors[currentAttachmentIdx] = currentAttachmentDescriptor;
+                    //currentAttachmentIdx++;
+
+                    renderPassesAttachmentCount[currentPassHash] = 0;
+
+                    for (int i = 0; i < renderPass.attachmentIndices.Length; ++i)
+                        renderPass.attachmentIndices[i] = -1;
+
                     bool isLastPass = renderPass.isLastPass;
                     bool isLastPassToBB = false;
 
@@ -996,6 +1013,9 @@ namespace UnityEngine.Rendering.Universal
                         m_ActiveColorAttachmentDescriptors[i].ConfigureTarget(renderPass.colorAttachments[i], false, true);
                         if (needCustomCameraColorClear)
                             m_ActiveColorAttachmentDescriptors[i].ConfigureClear(Color.black, 1.0f, 0);
+
+                        renderPass.attachmentIndices[i] = i;
+                        renderPassesAttachmentCount[currentPassHash]++;
                     }
 
                     m_ActiveDepthAttachmentDescriptor = new AttachmentDescriptor(GraphicsFormat.DepthAuto);
