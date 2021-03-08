@@ -21,6 +21,16 @@ namespace UnityEngine.Rendering.Universal
             new ShaderTagId("VertexLM"),
         };
 
+        static AttachmentDescriptor s_EmptyAttachment = new AttachmentDescriptor(GraphicsFormat.None);
+        internal static AttachmentDescriptor emptyAttachment
+        {
+            get
+            {
+                return s_EmptyAttachment;
+            }
+        }
+
+
         static Mesh s_FullscreenMesh = null;
 
         /// <summary>
@@ -329,6 +339,20 @@ namespace UnityEngine.Rendering.Universal
                 foreach (var identifier in colorBuffers)
                 {
                     if (identifier != 0)
+                        ++nonNullColorBuffers;
+                }
+            }
+            return nonNullColorBuffers;
+        }
+
+        internal static uint GetValidColorAttachmentCount(AttachmentDescriptor[] colorAttachments)
+        {
+            uint nonNullColorBuffers = 0;
+            if (colorAttachments != null)
+            {
+                foreach (var attachment in colorAttachments)
+                {
+                    if (attachment != RenderingUtils.emptyAttachment)
                         ++nonNullColorBuffers;
                 }
             }
