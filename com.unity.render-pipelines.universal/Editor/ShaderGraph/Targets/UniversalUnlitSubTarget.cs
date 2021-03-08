@@ -33,6 +33,11 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
                 subShaders[i].renderType = target.renderType;
                 subShaders[i].renderQueue = target.renderQueue;
 
+#if USE_VFX
+                if (VFX.VFXSubTarget.IsConfigured())
+                    subShaders[i] = VFX.VFXSubTarget.PostProcessSubShader(subShaders[i]);
+#endif
+
                 // Add
                 context.AddSubShader(subShaders[i]);
             }
@@ -48,6 +53,10 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
             context.AddField(Fields.BlendAlpha,                   target.surfaceType != SurfaceType.Opaque && target.alphaMode == AlphaMode.Alpha);
             context.AddField(UniversalFields.BlendMultiply,       target.surfaceType != SurfaceType.Opaque && target.alphaMode == AlphaMode.Multiply);
             context.AddField(UniversalFields.BlendPremultiply,    target.surfaceType != SurfaceType.Opaque && target.alphaMode == AlphaMode.Premultiply);
+
+#if USE_VFX
+            VFX.VFXSubTarget.GetFields(ref context);
+#endif
         }
 
         public override void GetActiveBlocks(ref TargetActiveBlockContext context)
