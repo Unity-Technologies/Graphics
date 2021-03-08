@@ -17,6 +17,7 @@ namespace UnityEngine.Rendering.Universal.Internal
         internal RenderTextureDescriptor descriptor { get; set; }
         internal bool allocateDepth { get; set; } = true;
         internal ShaderTagId shaderTagId { get; set; } = k_ShaderTagId;
+        internal bool useDepthPriming { get; set; } = false;
 
         FilteringSettings m_FilteringSettings;
 
@@ -38,7 +39,8 @@ namespace UnityEngine.Rendering.Universal.Internal
         /// </summary>
         public void Setup(
             RenderTextureDescriptor baseDescriptor,
-            RenderTargetHandle depthAttachmentHandle)
+            RenderTargetHandle depthAttachmentHandle,
+            bool useDepthPriming)
         {
             this.depthAttachmentHandle = depthAttachmentHandle;
             baseDescriptor.colorFormat = RenderTextureFormat.Depth;
@@ -50,6 +52,7 @@ namespace UnityEngine.Rendering.Universal.Internal
 
             this.allocateDepth = true;
             this.shaderTagId = k_ShaderTagId;
+            this.useDepthPriming = useDepthPriming;
         }
 
         public override void OnCameraSetup(CommandBuffer cmd, ref RenderingData renderingData)
@@ -57,7 +60,8 @@ namespace UnityEngine.Rendering.Universal.Internal
             if (this.allocateDepth)
                 cmd.GetTemporaryRT(depthAttachmentHandle.id, descriptor, FilterMode.Point);
             var desc = renderingData.cameraData.cameraTargetDescriptor;
-            ConfigureTarget(new RenderTargetIdentifier(depthAttachmentHandle.Identifier(), 0, CubemapFace.Unknown, -1), GraphicsFormat.DepthAuto, desc.width, desc.height, 1, true);
+            if (!useDepthPriming)
+                ConfigureTarget(new RenderTargetIdentifier(depthAttachmentHandle.Identifier(), 0, CubemapFace.Unknown, -1), GraphicsFormat.DepthAuto, desc.width, desc.height, 1, true);
             ConfigureClear(ClearFlag.All, Color.black);
         }
 

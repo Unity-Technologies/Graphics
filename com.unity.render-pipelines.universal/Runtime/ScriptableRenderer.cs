@@ -976,7 +976,7 @@ namespace UnityEngine.Rendering.Universal
                 {
                     // Default render pass attachment for passes before main rendering is current active
                     // early return so we don't change current render target setup.
-                    if (renderPass.renderPassEvent < RenderPassEvent.BeforeRenderingOpaques)
+                    if (renderPass.renderPassEvent < RenderPassEvent.BeforeRenderingPrePasses)
                         return;
 
                     // Otherwise default is the pipeline camera target.
