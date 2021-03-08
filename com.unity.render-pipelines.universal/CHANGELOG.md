@@ -86,10 +86,14 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed material upgrader to run in batch mode [case 1305402]
 - Removed Custom.meta which was causing warnings. [case 1314288](https://issuetracker.unity3d.com/issues/urp-warnings-about-missing-metadata-appear-after-installing)
 - Fixed an issue such that it is now posible to enqueue render passes at runtime.
+- Fixed a regression where the precision was changed. [case 1313942](https://issuetracker.unity3d.com/issues/urp-shader-precision-is-reduced-to-half-when-scriptablerenderfeature-class-is-in-the-project)
 - Fixed the default background color for previews to use the original color.
 - Fixed GC allocations from XR occlusion mesh when using multipass.
 - Fixed wrong shader / properties assignement to materials created from 3DsMax 2021 Physical Material. (case 1293576)
 - Fixed shadow cascade blend culling factor.
+- Fixed an issue where having "Opaque Texture" and MSAA enabled would cause the opaque texture to be rendered black on old Apple GPUs [case 1247423](https://issuetracker.unity3d.com/issues/urp-metal-opaque-objects-are-rendered-black-when-msaa-is-enabled)
+- Fixed an issue where bokeh dof is applied incorrectly when there is an overlay camera in the camera stack. [case 1303572](https://issuetracker.unity3d.com/issues/urp-bokeh-depth-of-field-is-applied-incorrectly-when-the-main-camera-has-an-overlay-camera-in-the-camera-stack)
+- Fixed issue causing missing shaders on DirectX 11 feature level 10 GPUs. [case 1278390](https://issuetracker.unity3d.com/product/unity/issues/guid/1278390/)
 
 ## [10.2.0] - 2020-10-19
 
