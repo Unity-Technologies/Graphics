@@ -64,7 +64,6 @@ namespace UnityEditor.Rendering.HighDefinition
         Features    m_Features;
         int         m_LayerIndex;
         int         m_LayerCount;
-        Color       m_DotColor;
 
         bool        isLayeredLit => m_LayerCount > 1;
 
@@ -76,13 +75,12 @@ namespace UnityEditor.Rendering.HighDefinition
         /// <param name="layerIndex">Current layer index to display. 0 if it's not a layered shader</param>
         /// <param name="features">Features of the block.</param>
         /// <param name="dotColor">Subheader dot color. See Layered Lit UI subheader for more info.</param>
-        public DetailInputsUIBlock(ExpandableBit expandableBit, int layerCount = 1, int layerIndex = 0, Features features = Features.All, Color dotColor = default(Color))
+        public DetailInputsUIBlock(ExpandableBit expandableBit, int layerCount = 1, int layerIndex = 0, Features features = Features.All)
         {
             m_ExpandableBit = expandableBit;
             m_Features = features;
             m_LayerIndex = layerIndex;
             m_LayerCount = layerCount;
-            m_DotColor = dotColor;
         }
 
         /// <summary>
@@ -108,7 +106,7 @@ namespace UnityEditor.Rendering.HighDefinition
         {
             bool subHeader = (m_Features & Features.SubHeader) != 0;
 
-            using (var header = new MaterialHeaderScope(Styles.header, (uint)m_ExpandableBit, materialEditor, subHeader: subHeader, colorDot: m_DotColor))
+            using (var header = new MaterialHeaderScope(Styles.header, (uint)m_ExpandableBit, materialEditor, subHeader: subHeader))
             {
                 if (header.expanded)
                     DrawDetailsGUI();

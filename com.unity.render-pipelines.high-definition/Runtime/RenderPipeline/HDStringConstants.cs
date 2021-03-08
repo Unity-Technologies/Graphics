@@ -32,6 +32,8 @@ namespace UnityEngine.Rendering.HighDefinition
         public static readonly string s_TransparentDepthPostpassStr = "TransparentDepthPostpass";
         /// <summary>RayTracing Prepass pass name.</summary>
         public static readonly string s_RayTracingPrepassStr = "RayTracingPrepass";
+        /// <summary>Forward emissive pass name.</summary>
+        public static readonly string s_ForwardEmissiveForDeferredStr = "ForwardEmissiveForDeferred";
         /// <summary>Visibility DXR pass name.</summary>
         public static readonly string s_RayTracingVisibilityStr = "VisibilityDXR";
         /// <summary>PathTracing DXR pass name.</summary>
@@ -62,6 +64,8 @@ namespace UnityEngine.Rendering.HighDefinition
         public static readonly ShaderTagId s_DepthForwardOnlyName = new ShaderTagId(s_DepthForwardOnlyStr);
         /// <summary>Forward Only shader tag id.</summary>
         public static readonly ShaderTagId s_ForwardOnlyName = new ShaderTagId(s_ForwardOnlyStr);
+        /// <summary>Forward Emissive shader tag id.</summary>
+        public static readonly ShaderTagId s_ForwardEmissiveForDeferredName = new ShaderTagId(s_ForwardEmissiveForDeferredStr);
         /// <summary>GBuffer shader tag id.</summary>
         public static readonly ShaderTagId s_GBufferName = new ShaderTagId(s_GBufferStr);
         /// <summary>GBufferWithPrepass shader tag id.</summary>
@@ -717,12 +721,13 @@ namespace UnityEngine.Rendering.HighDefinition
         public static readonly int _SubSurfaceLightingBuffer        = Shader.PropertyToID("_SubSurfaceLightingBuffer");
         public static readonly int _IndirectDiffuseLightingBuffer   = Shader.PropertyToID("_IndirectDiffuseLightingBuffer");
 
-        // Accumulation
+        // Accumulation and path tracing
         public static readonly int _AccumulationFrameIndex          = Shader.PropertyToID("_AccumulationFrameIndex");
         public static readonly int _AccumulationNumSamples          = Shader.PropertyToID("_AccumulationNumSamples");
         public static readonly int _AccumulationWeights             = Shader.PropertyToID("_AccumulationWeights");
         public static readonly int _AccumulationNeedsExposure       = Shader.PropertyToID("_AccumulationNeedsExposure");
-        public static readonly int _RadianceTexture                 = Shader.PropertyToID("_RadianceTexture");
+        public static readonly int _FrameTexture                    = Shader.PropertyToID("_FrameTexture");
+        public static readonly int _SkyCameraTexture                = Shader.PropertyToID("_SkyCameraTexture");
 
         // Preintegrated texture name
         public static readonly int _PreIntegratedFGD_GGXDisneyDiffuse = Shader.PropertyToID("_PreIntegratedFGD_GGXDisneyDiffuse");
@@ -1049,14 +1054,6 @@ namespace UnityEngine.Rendering.HighDefinition
 
         internal const string kUseSplitLighting = "_RequireSplitLighting";
 
-        internal static readonly Color[] kLayerColors =
-        {
-            Color.white,
-            Color.red,
-            Color.green,
-            Color.blue
-        };
-
         internal const string kDecalColorMask0 = "_DecalColorMask0";
         internal const string kDecalColorMask1 = "_DecalColorMask1";
         internal const string kDecalColorMask2 = "_DecalColorMask2";
@@ -1075,7 +1072,6 @@ namespace UnityEngine.Rendering.HighDefinition
 
         internal const string kDisplacementMode = "_DisplacementMode";
         internal const string kMaterialID = "_MaterialID";
-        internal const string kEmissiveColorMap = "_EmissiveColorMap";
         internal const string kTransmissionEnable = "_TransmissionEnable";
         internal const string kZTestGBuffer = "_ZTestGBuffer";
         internal const string kZTestDepthEqualForOpaque = "_ZTestDepthEqualForOpaque";
@@ -1085,5 +1081,9 @@ namespace UnityEngine.Rendering.HighDefinition
         internal const string kAddPrecomputedVelocity = "_AddPrecomputedVelocity";
         internal const string kShadowMatteFilter = "_ShadowMatteFilter";
         internal const string kRefractionModel = "_RefractionModel";
+
+        // Emission
+        internal const string kForceForwardEmissive = "_ForceForwardEmissive";
+        internal const string kEmissiveColorMap = "_EmissiveColorMap";
     }
 }
