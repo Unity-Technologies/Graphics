@@ -463,7 +463,7 @@ namespace UnityEditor.Rendering
 
             // For Procedural
             static public readonly GUIContent fallOff = EditorGUIUtility.TrTextContent("Falloff", "REPLACE ME.");
-            static public readonly GUIContent edgeOffset = EditorGUIUtility.TrTextContent("Local Radius", "REPLACE ME.");
+            static public readonly GUIContent edgeOffset = EditorGUIUtility.TrTextContent("Gradient Start", "REPLACE ME.");
             static public readonly GUIContent sdfRoundness = EditorGUIUtility.TrTextContent("Roundness", "REPLACE ME.");
             static public readonly GUIContent sideCount = EditorGUIUtility.TrTextContent("Side Count", "REPLACE ME.");
             static public readonly GUIContent inverseSDF = EditorGUIUtility.TrTextContent("Inverse", "REPLACE ME.");
