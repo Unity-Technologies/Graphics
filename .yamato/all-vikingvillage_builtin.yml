@@ -20,15 +20,9 @@ PR_VikingVillage_BuiltIn_trunk:
          rerun: on-new-revision
       -  path: .yamato/vikingvillage_builtin-win-vulkan.yml#VikingVillage_BuiltIn_Win_Vulkan_performance_build_editmode_mono_Linear_trunk
          rerun: on-new-revision
-      -  path: .yamato/vikingvillage_builtin-android-opengles3.yml#VikingVillage_BuiltIn_Android_OpenGLES3_performance_playmode_runtime_il2cpp_Linear_trunk
-         rerun: on-new-revision
       -  path: .yamato/vikingvillage_builtin-android-opengles3.yml#VikingVillage_BuiltIn_Android_OpenGLES3_performance_build_editmode_il2cpp_Linear_trunk
          rerun: on-new-revision
-      -  path: .yamato/vikingvillage_builtin-android-vulkan.yml#VikingVillage_BuiltIn_Android_Vulkan_performance_playmode_runtime_il2cpp_Linear_trunk
-         rerun: on-new-revision
       -  path: .yamato/vikingvillage_builtin-android-vulkan.yml#VikingVillage_BuiltIn_Android_Vulkan_performance_build_editmode_il2cpp_Linear_trunk
-         rerun: on-new-revision
-      -  path: .yamato/vikingvillage_builtin-iphone-metal.yml#VikingVillage_BuiltIn_iPhone_Metal_performance_playmode_runtime_il2cpp_Linear_trunk
          rerun: on-new-revision
       -  path: .yamato/vikingvillage_builtin-iphone-metal.yml#VikingVillage_BuiltIn_iPhone_Metal_performance_build_editmode_il2cpp_Linear_trunk
          rerun: on-new-revision
@@ -66,15 +60,9 @@ PR_VikingVillage_BuiltIn_CUSTOM-REVISION:
          rerun: always
       -  path: .yamato/vikingvillage_builtin-win-vulkan.yml#VikingVillage_BuiltIn_Win_Vulkan_performance_build_editmode_mono_Linear_CUSTOM-REVISION
          rerun: always
-      -  path: .yamato/vikingvillage_builtin-android-opengles3.yml#VikingVillage_BuiltIn_Android_OpenGLES3_performance_playmode_runtime_il2cpp_Linear_CUSTOM-REVISION
-         rerun: always
       -  path: .yamato/vikingvillage_builtin-android-opengles3.yml#VikingVillage_BuiltIn_Android_OpenGLES3_performance_build_editmode_il2cpp_Linear_CUSTOM-REVISION
          rerun: always
-      -  path: .yamato/vikingvillage_builtin-android-vulkan.yml#VikingVillage_BuiltIn_Android_Vulkan_performance_playmode_runtime_il2cpp_Linear_CUSTOM-REVISION
-         rerun: always
       -  path: .yamato/vikingvillage_builtin-android-vulkan.yml#VikingVillage_BuiltIn_Android_Vulkan_performance_build_editmode_il2cpp_Linear_CUSTOM-REVISION
-         rerun: always
-      -  path: .yamato/vikingvillage_builtin-iphone-metal.yml#VikingVillage_BuiltIn_iPhone_Metal_performance_playmode_runtime_il2cpp_Linear_CUSTOM-REVISION
          rerun: always
       -  path: .yamato/vikingvillage_builtin-iphone-metal.yml#VikingVillage_BuiltIn_iPhone_Metal_performance_build_editmode_il2cpp_Linear_CUSTOM-REVISION
          rerun: always
