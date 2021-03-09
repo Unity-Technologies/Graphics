@@ -16,7 +16,7 @@ namespace _2D.ShaderGraph
     }
 
     [Title("Input", "2D", "Light Texture")]
-    class LightTextureNode :  AbstractMaterialNode
+    class LightTextureNode : AbstractMaterialNode
     {
         private const int OutputSlotId = 0;
         private const string kOutputSlotName = "Out";
@@ -42,6 +42,7 @@ namespace _2D.ShaderGraph
             name = "2D Light Texture";
             UpdateNodeAfterDeserialization();
         }
+
         public sealed override void UpdateNodeAfterDeserialization()
         {
             AddSlot(new Texture2DMaterialSlot(OutputSlotId, kOutputSlotName, kOutputSlotName, SlotType.Output));

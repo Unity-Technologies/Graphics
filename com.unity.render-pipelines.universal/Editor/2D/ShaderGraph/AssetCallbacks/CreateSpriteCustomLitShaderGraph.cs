@@ -27,4 +27,3 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
         }
     }
 }
-

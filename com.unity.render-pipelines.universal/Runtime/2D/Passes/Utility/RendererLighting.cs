@@ -158,7 +158,7 @@ namespace UnityEngine.Experimental.Rendering.Universal
 
         public static void DisableAllKeywords(this IRenderPass2D pass, CommandBuffer cmd)
         {
-            foreach(var keyword in k_UseBlendStyleKeywords)
+            foreach (var keyword in k_UseBlendStyleKeywords)
             {
                 cmd.DisableShaderKeyword(keyword);
             }

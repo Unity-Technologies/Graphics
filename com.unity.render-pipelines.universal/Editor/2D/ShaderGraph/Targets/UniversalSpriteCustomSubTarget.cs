@@ -6,8 +6,6 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
 {
     sealed class UniversalSpriteCustomSubTarget : SubTarget<UniversalTarget>
     {
-
-
         static readonly GUID kSourceCodeGuid = new GUID("69e608b3e7e0405bbc2f259ad9cfa196"); // UniversalUnlitSubTarget.cs
 
         public UniversalSpriteCustomSubTarget()
