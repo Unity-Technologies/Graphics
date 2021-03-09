@@ -63,8 +63,8 @@ namespace UnityEditor.Rendering
             SerializedProperty lensFlareProp = property.FindPropertyRelative("lensFlareTexture");
             SerializedProperty tintProp = property.FindPropertyRelative("tint");
             SerializedProperty blendModeProp = property.FindPropertyRelative("blendMode");
-            SerializedProperty sizeProp = property.FindPropertyRelative("size");
-            SerializedProperty aspectRatioProp = property.FindPropertyRelative("aspectRatio");
+            //SerializedProperty sizeProp = property.FindPropertyRelative("size");
+            //SerializedProperty aspectRatioProp = property.FindPropertyRelative("aspectRatio");
             SerializedProperty countProp = property.FindPropertyRelative("count");
             SerializedProperty rotationProp = property.FindPropertyRelative("rotation");
             SerializedProperty speedProp = property.FindPropertyRelative("speed");
@@ -73,6 +73,9 @@ namespace UnityEditor.Rendering
             SerializedProperty modulateByLightColor = property.FindPropertyRelative("modulateByLightColor");
             SerializedProperty isFoldOpenedProp = property.FindPropertyRelative("isFoldOpened");
             SerializedProperty flareTypeProp = property.FindPropertyRelative("flareType");
+
+            SerializedProperty uniformScaleProp = property.FindPropertyRelative("uniformScale");
+            SerializedProperty sizeXYProp = property.FindPropertyRelative("sizeXY");
 
             //
             SerializedProperty distributionProp = property.FindPropertyRelative("distribution");
@@ -100,8 +103,9 @@ namespace UnityEditor.Rendering
             if (lensFlareProp.objectReferenceValue != null)
             {
                 Texture texture = lensFlareProp.objectReferenceValue as Texture;
+                float localAspectRatio = sizeXYProp.vector2Value.x / Mathf.Max(sizeXYProp.vector2Value.y, 1e-6f);
                 float imgWidth = 1.5f * 35.0f;
-                float usedAspectRatio = preserveAspectRatioProp.boolValue ? (((float)texture.width) / ((float)texture.height)) : aspectRatioProp.floatValue;
+                float usedAspectRatio = preserveAspectRatioProp.boolValue ? (((float)texture.width) / ((float)texture.height)) : localAspectRatio;
                 if (isFoldOpenedProp.boolValue)
                 {
                     Rect imgRect = new Rect(m_CurrentRect.x + 0.5f * (position.width - imgWidth), m_CurrentRect.y + GUIStyle.none.lineHeight + 5.0f, imgWidth, imgWidth);
@@ -152,14 +156,24 @@ namespace UnityEditor.Rendering
                     if ((tmp = EditorGUI.FloatField(rect, Styles.rotation, rotationProp.floatValue)) != rotationProp.floatValue)
                         rotationProp.floatValue = tmp;
                     rect = GetNextRect();
-                    if ((tmp = EditorGUI.FloatField(rect, Styles.size, sizeProp.floatValue)) != sizeProp.floatValue)
-                        sizeProp.floatValue = Mathf.Max(tmp, 1e-5f);
+                    //if ((tmp = EditorGUI.FloatField(rect, Styles.size, sizeProp.floatValue)) != sizeProp.floatValue)
+                    //    sizeProp.floatValue = Mathf.Max(tmp, 1e-5f);
+                    //if (!preserveAspectRatioProp.boolValue)
+                    //{
+                    //    rect = GetNextRect();
+                    //    if ((tmp = EditorGUI.FloatField(rect, Styles.aspectRatio, aspectRatioProp.floatValue)) != aspectRatioProp.floatValue)
+                    //        aspectRatioProp.floatValue = Mathf.Max(tmp, 1e-5f);
+                    //}
+
+                    if ((tmp = EditorGUI.FloatField(rect, Styles.uniformScale, uniformScaleProp.floatValue)) != uniformScaleProp.floatValue)
+                        uniformScaleProp.floatValue = Mathf.Max(tmp, 0.0f);
                     if (!preserveAspectRatioProp.boolValue)
                     {
                         rect = GetNextRect();
-                        if ((tmp = EditorGUI.FloatField(rect, Styles.aspectRatio, aspectRatioProp.floatValue)) != aspectRatioProp.floatValue)
-                            aspectRatioProp.floatValue = Mathf.Max(tmp, 1e-5f);
+                        if ((tmpVec2 = EditorGUI.Vector2Field(rect, Styles.sizeXY, sizeXYProp.vector2Value)) != sizeXYProp.vector2Value)
+                            sizeXYProp.vector2Value = new Vector2(Mathf.Max(tmpVec2.x, 1e-6f), Mathf.Max(tmpVec2.y, 1e-6f));
                     }
+
                     rect = GetNextRect();
                     if ((tmpBool = EditorGUI.Toggle(rect, Styles.autoRotate, autoRotateProp.boolValue)) != autoRotateProp.boolValue)
                         autoRotateProp.boolValue = tmpBool;
@@ -217,7 +231,8 @@ namespace UnityEditor.Rendering
                         if ((tmpTex = (EditorGUI.ObjectField(rect, Styles.flareTexture, lensFlareProp.objectReferenceValue, typeof(Texture), false) as Texture)) != (lensFlareProp.objectReferenceValue as Texture))
                         {
                             lensFlareProp.objectReferenceValue = tmpTex;
-                            aspectRatioProp.serializedObject.ApplyModifiedProperties();
+                            //aspectRatioProp.serializedObject.ApplyModifiedProperties();
+                            lensFlareProp.serializedObject.ApplyModifiedProperties();
                         }
 
                         rect = GetNextRect();
@@ -421,9 +436,13 @@ namespace UnityEditor.Rendering
             static public readonly GUIContent flareTexture = EditorGUIUtility.TrTextContent("Flare Texture", "Texture used to for this Lens Flare Element.");
             static public readonly GUIContent tint = EditorGUIUtility.TrTextContent("Tint", "Tint of the texture can be modulated by the light it is attached to if Modulate By Light Color is enabled..");
             static public readonly GUIContent blendMode = EditorGUIUtility.TrTextContent("Blend Mode", "Blend mode used.");
-            static public readonly GUIContent size = EditorGUIUtility.TrTextContent("Size", "Scale applied to the element.");
-            static public readonly GUIContent aspectRatio = EditorGUIUtility.TrTextContent("Aspect Ratio", "Aspect ratio (width / height).");
+            //static public readonly GUIContent size = EditorGUIUtility.TrTextContent("Size", "Scale applied to the element.");
+            //static public readonly GUIContent aspectRatio = EditorGUIUtility.TrTextContent("Aspect Ratio", "Aspect ratio (width / height).");
             static public readonly GUIContent preserveAspectRatio = EditorGUIUtility.TrTextContent("Preserve Aspect Ratio", "Preserve Aspect ratio (width / height).");
+
+            static public readonly GUIContent uniformScale = EditorGUIUtility.TrTextContent("Scale", "REPLACE ME");
+            static public readonly GUIContent sizeXY = EditorGUIUtility.TrTextContent("Size", "REPLACE ME");
+
             static public readonly GUIContent count = EditorGUIUtility.TrTextContent("Count", "REPLACE ME.");
             static public readonly GUIContent rotation = EditorGUIUtility.TrTextContent("Rotation", "Local rotation of the texture.");
             static public readonly GUIContent autoRotate = EditorGUIUtility.TrTextContent("Auto Rotate", "Rotate the texture relative to the angle on the screen (the rotation will be added to the parameter 'rotation').");

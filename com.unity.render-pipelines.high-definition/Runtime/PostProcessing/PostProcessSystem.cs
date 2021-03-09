@@ -2396,11 +2396,12 @@ namespace UnityEngine.Rendering.HighDefinition
                     Vector2 screenPos = new Vector2(2.0f * viewportPos.x - 1.0f, 1.0f - 2.0f * viewportPos.y);
                     Vector2 translationScale = new Vector2(element.translationScale.x, element.translationScale.y);
                     Texture texture = element.lensFlareTexture;
+                    float elemAspectRatio = element.sizeXY.x / element.sizeXY.y;
                     float usedAspectRatio;
                     if (element.flareType == SRPLensFlareType.Image)
-                        usedAspectRatio = element.preserveAspectRatio ? (((float)texture.width) / ((float)texture.height)) : element.aspectRatio;
+                        usedAspectRatio = element.preserveAspectRatio ? (((float)texture.width) / ((float)texture.height)) : 1.0f;
                     else
-                        usedAspectRatio = element.preserveAspectRatio ? 1.0f : element.aspectRatio;
+                        usedAspectRatio = 1.0f;//element.preserveAspectRatio ? 1.0f : elemAspectRatio;
 
                     float rotation = element.rotation;
                     Vector4 tint = Vector4.Scale(element.tint, curColor);
@@ -2408,9 +2409,14 @@ namespace UnityEngine.Rendering.HighDefinition
                     float radius = Mathf.Max(radPos.x, radPos.y); // l1 norm (instead of l2 norm)
                     float radialsScaleRadius = comp.radialScreenAttenuationCurve.length > 0 ? comp.radialScreenAttenuationCurve.Evaluate(radius) : 1.0f;
 
+                    Vector2 elemSizeXY;
+                    if (element.preserveAspectRatio)
+                        elemSizeXY = new Vector2(element.sizeXY.y / usedAspectRatio, element.sizeXY.y);
+                    else
+                        elemSizeXY = new Vector2(element.sizeXY.x, element.sizeXY.y);
                     float scaleSize = 0.1f;
-                    Vector2 size = new Vector2(scaleByDistance * element.size * usedAspectRatio, scaleByDistance * element.size);
-                    size *= scaleSize; // Arbitrary values
+                    Vector2 size = new Vector2(scaleByDistance * elemSizeXY.x, scaleByDistance * elemSizeXY.y);
+                    size *= scaleSize * element.uniformScale; // Arbitrary values
 
                     Vector4 gradientModulation = new Vector4(1.0f, 1.0f, 1.0f, 1.0f);
 
