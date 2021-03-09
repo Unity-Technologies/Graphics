@@ -435,38 +435,38 @@ namespace UnityEditor.Rendering
             static public readonly GUIContent blendMode = EditorGUIUtility.TrTextContent("Blend Mode", "Blend mode used.");
             static public readonly GUIContent preserveAspectRatio = EditorGUIUtility.TrTextContent("Preserve Aspect Ratio", "Preserve Aspect ratio (width / height).");
 
-            static public readonly GUIContent uniformScale = EditorGUIUtility.TrTextContent("Scale", "REPLACE ME");
-            static public readonly GUIContent sizeXY = EditorGUIUtility.TrTextContent("Size", "REPLACE ME");
+            static public readonly GUIContent uniformScale = EditorGUIUtility.TrTextContent("Scale", "Uniform scale used to size the flare on width and height.");
+            static public readonly GUIContent sizeXY = EditorGUIUtility.TrTextContent("Size", "Size for each dimension. Can be used with Radial Distortion.");
 
-            static public readonly GUIContent count = EditorGUIUtility.TrTextContent("Count", "REPLACE ME.");
+            static public readonly GUIContent count = EditorGUIUtility.TrTextContent("Count", "Element Count.");
             static public readonly GUIContent rotation = EditorGUIUtility.TrTextContent("Rotation", "Local rotation of the texture.");
             static public readonly GUIContent autoRotate = EditorGUIUtility.TrTextContent("Auto Rotate", "Rotate the texture relative to the angle on the screen (the rotation will be added to the parameter 'rotation').");
             static public readonly GUIContent modulateByLightColor = EditorGUIUtility.TrTextContent("Modulate By Light Color", "Modulate by light color if the asset is used on the same object as a light component..");
-            static public readonly GUIContent flareType = EditorGUIUtility.TrTextContent("Type", "REPLACE ME.");
+            static public readonly GUIContent flareType = EditorGUIUtility.TrTextContent("Type", "Type of Flare Image or Procedural version (Circle, Polygon).");
 
-            static public readonly GUIContent distribution = EditorGUIUtility.TrTextContent("Distribution", "REPLACE ME.");
-            static public readonly GUIContent lengthSpread = EditorGUIUtility.TrTextContent("Length Spread", "REPLACE ME.");
-            static public readonly GUIContent seed = EditorGUIUtility.TrTextContent("Seed", "REPLACE ME.");
+            static public readonly GUIContent distribution = EditorGUIUtility.TrTextContent("Distribution", "Describes how to spread the flares.");
+            static public readonly GUIContent lengthSpread = EditorGUIUtility.TrTextContent("Length Spread", "Length to spread the distribution of flares, spread start at 'starting position'.");
+            static public readonly GUIContent seed = EditorGUIUtility.TrTextContent("Seed", "Seed used to seed randomness.");
 
-            static public readonly GUIContent intensityVariation = EditorGUIUtility.TrTextContent("Intensity Variation", "REPLACE ME.");
-            static public readonly GUIContent positionVariation = EditorGUIUtility.TrTextContent("Position Variation", "REPLACE ME.");
-            static public readonly GUIContent scaleVariation = EditorGUIUtility.TrTextContent("Scale Variation", "REPLACE ME.");
-            static public readonly GUIContent rotationVariation = EditorGUIUtility.TrTextContent("Rotation Variation", "REPLACE ME.");
-            static public readonly GUIContent colors = EditorGUIUtility.TrTextContent("Colors", "REPLACE ME.");
-            static public readonly GUIContent positionCurve = EditorGUIUtility.TrTextContent("Position Spacing", "REPLACE ME.");
-            static public readonly GUIContent scaleCurve = EditorGUIUtility.TrTextContent("Scale Variation", "REPLACE ME.");
+            static public readonly GUIContent intensityVariation = EditorGUIUtility.TrTextContent("Intensity Variation", "Scale factor applied on the variation of the intensities.");
+            static public readonly GUIContent positionVariation = EditorGUIUtility.TrTextContent("Position Variation", "Scale factor applied on the variation of the positions.");
+            static public readonly GUIContent scaleVariation = EditorGUIUtility.TrTextContent("Scale Variation", "Coefficient applied on the variation of the scale (relative to the current scale).");
+            static public readonly GUIContent rotationVariation = EditorGUIUtility.TrTextContent("Rotation Variation", "Scale factor applied on the variation of the rotation (relative to the current rotation or auto-rotate).");
+            static public readonly GUIContent colors = EditorGUIUtility.TrTextContent("Colors", "Colors used uniformly for Uniform or Curve Distribution and Random when the distribution is 'Random'.");
+            static public readonly GUIContent positionCurve = EditorGUIUtility.TrTextContent("Position Spacing", "Curve describing how to place flares distribution.");
+            static public readonly GUIContent scaleCurve = EditorGUIUtility.TrTextContent("Scale Variation", "Curve describing how to scale flares distribution.");
 
             // For Distortion
-            static public readonly GUIContent enableDistortion = EditorGUIUtility.TrTextContent("Radial Distortion", "REPLACE ME.");
-            static public readonly GUIContent targetSizeDistortion = EditorGUIUtility.TrTextContent("Radial Edge Size", "REPLACE ME.");
-            static public readonly GUIContent distortionCurve = EditorGUIUtility.TrTextContent("Radial Edge Curve", "REPLACE ME.");
+            static public readonly GUIContent enableDistortion = EditorGUIUtility.TrTextContent("Radial Distortion", "True to use or not the radial distortion.");
+            static public readonly GUIContent targetSizeDistortion = EditorGUIUtility.TrTextContent("Radial Edge Size", "Target size used on the edge of the screen.");
+            static public readonly GUIContent distortionCurve = EditorGUIUtility.TrTextContent("Radial Edge Curve", "Curve blending from screen center to the edges of the screen.");
 
             // For Procedural
-            static public readonly GUIContent fallOff = EditorGUIUtility.TrTextContent("Falloff", "REPLACE ME.");
-            static public readonly GUIContent edgeOffset = EditorGUIUtility.TrTextContent("Gradient", "REPLACE ME.");
-            static public readonly GUIContent sdfRoundness = EditorGUIUtility.TrTextContent("Roundness", "REPLACE ME.");
-            static public readonly GUIContent sideCount = EditorGUIUtility.TrTextContent("Side Count", "REPLACE ME.");
-            static public readonly GUIContent inverseSDF = EditorGUIUtility.TrTextContent("Inverse", "REPLACE ME.");
+            static public readonly GUIContent fallOff = EditorGUIUtility.TrTextContent("Falloff", "Fall of the gradient used for the Procedural Flare.");
+            static public readonly GUIContent edgeOffset = EditorGUIUtility.TrTextContent("Gradient", "Gradient Offset used for the Procedural Flare.");
+            static public readonly GUIContent sdfRoundness = EditorGUIUtility.TrTextContent("Roundness", "Roundness of the polygon flare (0: Sharp Polygon, 1: Circle).");
+            static public readonly GUIContent sideCount = EditorGUIUtility.TrTextContent("Side Count", "Side count of the regular polygon generated.");
+            static public readonly GUIContent inverseSDF = EditorGUIUtility.TrTextContent("Inverse", "Inverse the gradient direction.");
         }
     }
 }
