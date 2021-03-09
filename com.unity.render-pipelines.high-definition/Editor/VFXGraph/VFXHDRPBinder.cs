@@ -43,7 +43,7 @@ namespace UnityEditor.VFX.HDRP
             return obj.shaderID;
         }
 
-        public override void SetupMaterial(Material mat, ShaderGraphVfxAsset shaderGraph = null)
+        public override void SetupMaterial(Material mat, bool hasMotionVector = false, bool hasShadowCasting = false, ShaderGraphVfxAsset shaderGraph = null)
         {
             try
             {
@@ -52,6 +52,10 @@ namespace UnityEditor.VFX.HDRP
                     // Recover the HDRP Shader Enum from the VFX Shader Graph.
                     var shaderID = GetShaderEnumFromShaderGraph(shaderGraph);
                     HDShaderUtils.ResetMaterialKeywords(mat, shaderID);
+
+                    // Configure HDRP Shadow + MV
+                    mat.SetShaderPassEnabled(HDShaderPassNames.s_MotionVectorsStr, hasMotionVector);
+                    mat.SetShaderPassEnabled(HDShaderPassNames.s_ShadowCasterStr, hasShadowCasting);
                 }
                 else
                     HDShaderUtils.ResetMaterialKeywords(mat);

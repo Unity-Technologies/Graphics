@@ -161,7 +161,7 @@ namespace UnityEditor.VFX
         abstract public string SRPAssetTypeStr { get; }
         abstract public Type SRPOutputDataType { get; }
 
-        public virtual void SetupMaterial(Material mat, ShaderGraphVfxAsset shaderGraph = null) {}
+        public virtual void SetupMaterial(Material mat, bool hasMotionVector = false, bool hasShadowCasting = false, ShaderGraphVfxAsset shaderGraph = null) {}
 
         public virtual VFXAbstractRenderedOutput.BlendMode GetBlendModeFromMaterial(VFXMaterialSerializedSettings materialSettings)
         {

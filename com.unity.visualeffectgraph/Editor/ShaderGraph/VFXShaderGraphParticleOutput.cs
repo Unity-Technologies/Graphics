@@ -172,7 +172,7 @@ namespace UnityEditor.VFX
             if (shaderGraph != null && shaderGraph.generatesWithShaderGraph)
             {
                 materialSettings.ApplyToMaterial(material);
-                VFXLibrary.currentSRPBinder.SetupMaterial(material, shaderGraph);
+                VFXLibrary.currentSRPBinder.SetupMaterial(material, hasMotionVector, hasShadowCasting, shaderGraph);
 
                 transientMaterial = material;
                 OnMaterialChange?.Invoke();
