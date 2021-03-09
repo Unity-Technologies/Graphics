@@ -224,7 +224,7 @@ void TileLightListGen(uint3 dispatchThreadId : SV_DispatchThreadID, uint threadI
     {
 #endif
         // Skip Local Volumetric Fog (lights are sorted by category). TODO: improve data locality
-        if (_LightVolumeData[l].lightCategory == LIGHTCATEGORY_DENSITY_VOLUME) { break; }
+        if (_LightVolumeData[l].lightCategory == LIGHTCATEGORY_LOCAL_VOLUMETRIC_FOG) { break; }
 
         const ScreenSpaceBoundsIndices boundsIndices = GenerateScreenSpaceBoundsIndices(l, g_iNrVisibLights, unity_StereoEyeIndex);
         const float3 vMi = g_vBoundsBuffer[boundsIndices.min].xyz;

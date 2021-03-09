@@ -66,7 +66,7 @@ namespace UnityEngine.Rendering.HighDefinition
         Area,
         Env,
         Decal,
-        DensityVolume, // WARNING: Currently lightlistbuild.compute assumes dLocal Volumetric Fog is the last element in the LightCategory enum. Do not append new LightCategory types after DensityVolume. TODO: Fix .compute code.
+        DensityVolume, // WARNING: Currently lightlistbuild.compute assumes Local Volumetric Fog is the last element in the LightCategory enum. Do not append new LightCategory types after DensityVolume. TODO: Fix .compute code.
         Count
     }
 
