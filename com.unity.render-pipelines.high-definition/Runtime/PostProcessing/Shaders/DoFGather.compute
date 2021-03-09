@@ -90,7 +90,7 @@ void AccumulateSample(CTYPE sampleColor, float sampleCoC, float centerCoC, float
 #endif
 }
 
-void DoFGatherPair(PositionInputs posInputs, float maxRadius, CTYPE originalColor, float centerCoC, inout float4 colorAccum, inout float alphaAccum)
+void DoFGatherPairs(PositionInputs posInputs, float maxRadius, CTYPE originalColor, float centerCoC, inout float4 colorAccum, inout float alphaAccum)
 {
     float dR = rcp(NumRings);
     int blueNoiseOffset = _TaaFrameInfo.w != 0.0 ? _TaaFrameInfo.z : 0;
@@ -161,6 +161,7 @@ void DoFGatherPair(PositionInputs posInputs, float maxRadius, CTYPE originalColo
     }
 }
 
+
 [numthreads(GROUP_RES, GROUP_RES, 1)]
 void KMain(uint3 dispatchThreadId : SV_DispatchThreadID)
 {
@@ -178,7 +179,7 @@ void KMain(uint3 dispatchThreadId : SV_DispatchThreadID)
     float maxRadius = max(2 * abs(centerCoC), -cocRanges.w);
     //float maxRadius = Max3(cocRanges.y, 2 * abs(centerCoC), -cocRanges.w);
     //AccumulateDoF_classic(posInputs, maxRadius, originalColor.xyz, outColor, outAlpha);
-    DoFGatherPair(posInputs, maxRadius, originalColor, centerCoC, outColor, outAlpha);
+    DoFGatherPairs(posInputs, maxRadius, originalColor, centerCoC, outColor, outAlpha);
 
     // In case we did not gather any samples, return the original color
     outColor.xyz = outColor.w > 0 ? outColor.xyz * rcp(outColor.w) : originalColor.xyz;
