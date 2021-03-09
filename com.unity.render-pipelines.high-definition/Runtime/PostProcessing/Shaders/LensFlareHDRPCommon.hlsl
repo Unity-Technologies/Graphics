@@ -25,30 +25,65 @@ float4 _FlareData1; // x: OcclusionRadius, y: OcclusionSampleCount, z: ScreenPos
 float4 _FlareData2; // xy: ScreenPos, zw: FlareSize
 float4 _FlareData3; // xy: RayOffset, z: invSideCount, w: Edge Offset
 float4 _FlareData4; // x: SDF Roundness, y: SDF Frequency
+float4 _FlareData5; // x: Allow Offscreen
 
-#define _LocalCos0          _FlareData0.x
-#define _LocalSin0          _FlareData0.y
-#define _PositionOffset     _FlareData0.zw
+#define _LocalCos0              _FlareData0.x
+#define _LocalSin0              _FlareData0.y
+#define _PositionOffset         _FlareData0.zw
 
-#define _ScreenPosZ         _FlareData1.z
-#define _FlareFalloff       _FlareData1.w
+#define _OcclusionRadius        _FlareData1.x
+#define _OcclusionSampleCount   _FlareData1.y
+#define _ScreenPosZ             _FlareData1.z
+#define _FlareFalloff           _FlareData1.w
 
-#define _ScreenPos          _FlareData2.xy
-#define _FlareSize          _FlareData2.zw
+#define _ScreenPos              _FlareData2.xy
+#define _FlareSize              _FlareData2.zw
 
-#define _FlareRayOffset     _FlareData3.xy
-#define _FlareShapeInvSide  _FlareData3.z
-#define _FlareEdgeOffset    _FlareData3.w
+#define _FlareRayOffset         _FlareData3.xy
+#define _FlareShapeInvSide      _FlareData3.z
+#define _FlareEdgeOffset        _FlareData3.w
 
-#define _FlareSDFRoundness  _FlareData4.x
-#define _FlareSDFPolyRadius _FlareData4.y
-#define _FlareSDFPolyParam0 _FlareData4.z
-#define _FlareSDFPolyParam1 _FlareData4.w
+#define _FlareSDFRoundness      _FlareData4.x
+#define _FlareSDFPolyRadius     _FlareData4.y
+#define _FlareSDFPolyParam0     _FlareData4.z
+#define _FlareSDFPolyParam1     _FlareData4.w
+
+#define _OcclusionOffscreen     _FlareData5.x
 
 float2 Rotate(float2 v, float cos0, float sin0)
 {
     return float2(v.x * cos0 - v.y * sin0,
                   v.x * sin0 + v.y * cos0);
+}
+
+float GetOcclusion(float2 screenPos, float flareDepth, float ratio)
+{
+    if (_OcclusionSampleCount == 0.0f)
+        return 1.0f;
+
+    float contrib = 0.0f;
+    float sample_Contrib = 1.0f / _OcclusionSampleCount;
+    float2 ratioScale = float2(1.0f / ratio, 1.0);
+
+    for (uint i = 0; i < (uint)_OcclusionSampleCount; i++)
+    {
+        float2 dir = _OcclusionRadius * SampleDiskUniform(Hash(2 * i + 0 + 1), Hash(2 * i + 1 + 1));
+        float2 pos = screenPos + dir;
+        pos.xy = pos * 0.5f + 0.5f;
+        pos.y = 1.0f - pos.y;
+        if (all(pos >= 0) && all(pos <= 1))
+        {
+            float depth0 = LinearEyeDepth(SampleCameraDepth(pos), _ZBufferParams);
+            if (flareDepth < depth0)
+                contrib += sample_Contrib;
+        }
+        else if (_OcclusionOffscreen > 0.0f)
+        {
+            contrib += sample_Contrib;
+        }
+    }
+
+    return contrib;
 }
 
 Varyings vert(Attributes input)
@@ -70,7 +105,13 @@ Varyings vert(Attributes input)
     output.positionCS.xy = local + _ScreenPos + _FlareRayOffset + _PositionOffset;
     output.positionCS.zw = posPreScale.zw;
 
-    output.occlusion = 1.0f;
+    float occlusion = GetOcclusion(_ScreenPos.xy, _ScreenPosZ, screenRatio);
+
+    if (_OcclusionOffscreen < 0.0f && // No lens flare off screen
+        (any(_ScreenPos.xy < -1) || any(_ScreenPos.xy >= 1)))
+        occlusion *= 0.0f;
+
+    output.occlusion = occlusion;
 
     return output;
 }

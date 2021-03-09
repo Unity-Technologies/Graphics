@@ -2489,6 +2489,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
                     float usedSDFRoundness = element.sdfRoundness;
                     cmd.SetGlobalVector(HDShaderIDs._FlareData1, new Vector4(comp.occlusionRadius, comp.sampleCount, screenPosZ.z, Mathf.Exp(element.fallOff)));
+                    cmd.SetGlobalVector(HDShaderIDs._FlareData5, new Vector4(comp.allowOffScreen ? 1.0f : -1.0f, 0.0f, 0.0f, 0.0f));
                     if (element.flareType == SRPLensFlareType.Iris)
                     {
                         float invSide = 1.0f / (float)element.sideCount;
