@@ -130,8 +130,8 @@ namespace UnityEditor.Rendering.BuiltIn.ShaderGraph
                 passes = new PassCollection
                 {
                     { UnlitPasses.Unlit },
-                    // { CorePasses.ShadowCaster },
-                    // { CorePasses.DepthOnly },
+                    { CorePasses.ShadowCaster },
+                    { CorePasses.DepthOnly },
                 },
             };
 
@@ -155,8 +155,8 @@ namespace UnityEditor.Rendering.BuiltIn.ShaderGraph
                         passes = new PassCollection
                         {
                             { unlit },
-                            // { shadowCaster },
-                            // { depthOnly },
+                            { shadowCaster },
+                            { depthOnly },
                         },
                     };
                 }
@@ -172,6 +172,7 @@ namespace UnityEditor.Rendering.BuiltIn.ShaderGraph
                 // Definition
                 displayName = "Pass",
                 referenceName = "SHADERPASS_UNLIT",
+                lightMode = "ForwardBase",
                 useInPreview = true,
 
                 // Template
