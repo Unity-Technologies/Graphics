@@ -38,10 +38,15 @@ RW_TEXTURE2D_X(CTYPE, _OutputTexture);
 #define ADAPTIVE_RADIUS
 #define STRATIFY
 //#define PHYSICAL_WEIGHTS
-//#define FORCE_POINT_SAMPLING
+#define FORCE_POINT_SAMPLING
 
 #define GROUP_RES  8u
 #define GROUP_SIZE (GROUP_RES * GROUP_RES)
+
+float SafeRCP(float X)
+{
+    return rcp(max(REAL_MIN, X));
+}
 
 float GetCoCRadius(int2 positionSS)
 {
@@ -148,9 +153,9 @@ void DoFGatherPairs(PositionInputs posInputs, float maxRadius, CTYPE originalCol
                     }
                     else
                     {
-                        float3 backgroundEstimator = colorAccum.w > 0 ? colorAccum.xyz * rcp(colorAccum.w) : originalColor.xyz;
+                        float3 backgroundEstimator = colorAccum.w > 0 ? colorAccum.xyz * SafeRCP(colorAccum.w) : originalColor.xyz;
 #ifdef ENABLE_ALPHA
-                        float alphaEstimator = colorAccum.w > 0 ? alphaAccum * rcp(colorAccum.w) : originalColor.w;
+                        float alphaEstimator = colorAccum.w > 0 ? alphaAccum * SafeRCP(colorAccum.w) : originalColor.w;
                         alphaAccum += alphaEstimator;
 #endif
                         colorAccum += float4(backgroundEstimator, 1.0);
