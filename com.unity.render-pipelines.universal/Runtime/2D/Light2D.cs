@@ -52,12 +52,12 @@ namespace UnityEngine.Experimental.Rendering.Universal
 
         public enum ComponentVersions
         {
-            Uninitialized = 0,
+            Version_Unserialized = 0,
             Version_1 = 1
         }
 
         const ComponentVersions k_CurrentComponentVersion = ComponentVersions.Version_1;
-        [SerializeField] ComponentVersions m_ComponentVersion = ComponentVersions.Uninitialized;
+        [SerializeField] ComponentVersions m_ComponentVersion = ComponentVersions.Version_Unserialized;
         
 
 #if USING_ANIMATION_MODULE
@@ -340,7 +340,7 @@ namespace UnityEngine.Experimental.Rendering.Universal
         public void OnAfterDeserialize()
         {
             // Upgrade from no serialized version
-            if (m_ComponentVersion == ComponentVersions.Uninitialized)
+            if (m_ComponentVersion == ComponentVersions.Version_Unserialized)
             {
                 m_ShadowVolumeIntensityEnabled = m_ShadowVolumeIntensity > 0;
                 m_ShadowIntensityEnabled = m_ShadowIntensity > 0;
