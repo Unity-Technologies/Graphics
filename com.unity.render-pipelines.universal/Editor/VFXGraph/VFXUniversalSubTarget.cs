@@ -104,7 +104,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
 
         static StructDescriptor AttributesMeshVFX = new StructDescriptor()
         {
-            name = "AttributesMesh",
+            name = StructFields.Attributes.name,
             packFields = false,
             fields = new FieldDescriptor[]
             {
@@ -234,8 +234,8 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
 
         static string[] kVFXAttributeStructNames =
         {
-            "Attributes",
-            "SourceAttributes"
+            "VFXAttributes",
+            "VFXSourceAttributes"
         };
 
         static void GenerateVFXAdditionalCommands(VFXContext context, VFXContextCompiledData contextData,

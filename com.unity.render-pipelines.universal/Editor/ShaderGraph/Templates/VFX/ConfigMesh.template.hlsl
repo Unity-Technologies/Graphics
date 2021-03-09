@@ -1,6 +1,6 @@
 // Output Type: Mesh
 
-bool GetMeshAndElementIndex(inout AttributesMesh input, inout AttributesElement element)
+bool GetMeshAndElementIndex(inout Attributes input, inout AttributesElement element)
 {
     uint index = input.instanceID;
 

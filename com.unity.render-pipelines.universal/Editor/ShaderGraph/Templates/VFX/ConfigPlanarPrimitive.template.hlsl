@@ -6,7 +6,7 @@
 
 #define VFX_NON_UNIFORM_SCALE VFX_LOCAL_SPACE
 
-bool GetMeshAndElementIndex(inout AttributesMesh input, inout AttributesElement element)
+bool GetMeshAndElementIndex(inout Attributes input, inout AttributesElement element)
 {
     uint id = input.vertexID;
 

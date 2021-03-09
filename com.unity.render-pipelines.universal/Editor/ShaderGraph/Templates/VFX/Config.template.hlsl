@@ -54,7 +54,7 @@ $splice(VFXGeneratedBlockFunction)
 struct AttributesElement
 {
     uint index;
-    Attributes attributes;
+    VFXAttributes attributes;
 #if HAS_STRIPS
     uint relativeIndexInStrip;
     StripData stripData;
@@ -70,7 +70,7 @@ bool ShouldCull(uint index)
     return (index >= asuint(nbMax) - deadCount);
 }
 
-float3 GetSize(Attributes attributes)
+float3 GetSize(VFXAttributes attributes)
 {
     float3 size3 = float3(attributes.size,attributes.size,attributes.size);
 
@@ -97,7 +97,7 @@ float3 GetSize(Attributes attributes)
 #define PARTICLE_IN_EDGE (id & 1)
 float3 GetParticlePosition(uint index)
 {
-    struct Attributes attributes = (Attributes)0;
+    struct VFXAttributes attributes = (VFXAttributes)0;
 
     // Here we have to explicitly splice in the position (ShaderGraph splice system lacks regex support etc. :(, unlike VFX's).
     $splice(VFXLoadPositionAttribute)
@@ -129,7 +129,7 @@ void GetElementData(inout AttributesElement element)
 {
     uint index = element.index;
 
-    Attributes attributes;
+    VFXAttributes attributes;
     $splice(VFXLoadAttribute)
 
     #if HAS_STRIPS
@@ -153,7 +153,7 @@ $OutputType.PlanarPrimitive: $include("VFX/ConfigPlanarPrimitive.template.hlsl")
 bool GetInterpolatorAndElementData(inout VaryingsMeshType output, inout AttributesElement element)
 {
     GetElementData(element);
-    const Attributes attributes = element.attributes;
+    const VFXAttributes attributes = element.attributes;
 
     #if !HAS_STRIPS
     if (!attributes.alive)
@@ -168,7 +168,7 @@ bool GetInterpolatorAndElementData(inout VaryingsMeshType output, inout Attribut
 // Transform utility for going from object space into particle space.
 // For the current frame, this is done by constructing the particle (element) space matrix.
 // For the previous frame, the element matrices are cached and read back by the mesh element index.
-AttributesMesh TransformMeshToElement(AttributesMesh input, AttributesElement element)
+Attributes TransformMeshToElement(Attributes input, AttributesElement element)
 {
     float3 size = GetSize(element.attributes);
 
@@ -197,7 +197,7 @@ AttributesMesh TransformMeshToElement(AttributesMesh input, AttributesElement el
     return input;
 }
 
-AttributesMesh TransformMeshToPreviousElement(AttributesMesh input, AttributesElement element)
+Attributes TransformMeshToPreviousElement(Attributes input, AttributesElement element)
 {
     uint elementToVFXBaseIndex = element.index * 13;
     uint previousFrameIndex = elementToVFXBufferPrevious.Load(elementToVFXBaseIndex++ << 2);
@@ -249,7 +249,7 @@ float3 TransformPreviousObjectToWorldVFX(float3 positionOS)
 // Vertex + Pixel Graph Properties Generation
 void GetElementVertexProperties(AttributesElement element, inout GraphProperties properties)
 {
-    const Attributes attributes = element.attributes;
+    const VFXAttributes attributes = element.attributes;
     $splice(VFXVertexPropertiesGeneration)
     $splice(VFXVertexPropertiesAssign)
 }
