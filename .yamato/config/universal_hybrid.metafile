@@ -1,7 +1,7 @@
 project:
   name: Universal_Hybrid
   folder: UniversalHybridTest
-  
+
 test_platforms:
   - type: Standalone
     name: Standalone_DOTS
@@ -30,7 +30,7 @@ test_platforms:
           - [Win_Vulkan, Linux_Vulkan, Android_Vulkan]:  --extra-editor-arg="-playmodePlayerBuilder" --extra-editor-arg="BuildConfiguration" --extra-editor-arg="-executemethod" --extra-editor-arg="SetupProject.ApplySettings" --extra-editor-arg="vulkan" --extra-editor-arg="<COLORSPACE>"
           - [Android_OpenGLES3]:  --extra-editor-arg="-playmodePlayerBuilder" --extra-editor-arg="BuildConfiguration" ---extra-editor-arg="-executemethod" --extra-editor-arg="SetupProject.ApplySettings" --extra-editor-arg="gles3" --extra-editor-arg="<COLORSPACE>"
           - [iPhone_Metal]:  --extra-editor-arg="-playmodePlayerBuilder" --extra-editor-arg="BuildConfiguration" --extra-editor-arg="-executemethod" --extra-editor-arg="SetupProject.ApplySettings" --extra-editor-arg="metal" --extra-editor-arg="<COLORSPACE>"
-  
+
   - type: Standalone
     name: Standalone_DOTS_cache
     commands:
@@ -136,7 +136,7 @@ pr:
       color_space: Linear
       test_platforms:
         - playmode
-        # - playmode_cache
+        - Standalone_DOTS
 nightly:
   dependencies:
     - project: Universal_Hybrid

@@ -12,6 +12,8 @@ PR_Universal_Hybrid_2020.2:
     dependencies:
       -  path: .yamato/universal_hybrid-win-dx11.yml#Universal_Hybrid_Win_DX11_playmode_mono_Linear_2020.2
          rerun: on-new-revision
+      -  path: .yamato/universal_hybrid-win-dx11.yml#Universal_Hybrid_Win_DX11_Standalone_DOTS_mono_Linear_2020.2
+         rerun: on-new-revision
     variables:
         UTR_VERSION: "current"
         TEST_FILTER: .*
@@ -27,6 +29,8 @@ PR_Universal_Hybrid_CUSTOM-REVISION:
     name: Universal_Hybrid PR Job - CUSTOM-REVISION
     dependencies:
       -  path: .yamato/universal_hybrid-win-dx11.yml#Universal_Hybrid_Win_DX11_playmode_mono_Linear_CUSTOM-REVISION
+         rerun: always
+      -  path: .yamato/universal_hybrid-win-dx11.yml#Universal_Hybrid_Win_DX11_Standalone_DOTS_mono_Linear_CUSTOM-REVISION
          rerun: always
     variables:
         CUSTOM_REVISION: custom_revision_not_set
