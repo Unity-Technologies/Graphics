@@ -32,8 +32,8 @@ namespace UnityEngine.Rendering
         [Range(0.0f, 1.0f), Delayed]
         public float normalBias = 0.2f;
 
-        public int maxSubdivision => Mathf.CeilToInt(Mathf.Log(cellSize / minDistanceBetweenProbes, 2));
-        public int brickSize => (int)(minDistanceBetweenProbes * 4.0f);
+        public int maxSubdivision => Mathf.CeilToInt(Mathf.Log(cellSize / brickSize, 2));
+        public int brickSize => (int)(minDistanceBetweenProbes * 3.0f);
 
         /// <summary>
         /// Determines if the Probe Reference Volume Profile is equivalent to another one.
