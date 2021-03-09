@@ -156,6 +156,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Tidy up of platform abstraction code for shader optimization.
 - Changed Path Tracing's maximum intensity from clamped (0 to 100) to positive value (case 1310514).
 - Avoid unnecessary RenderGraphBuilder.ReadTexture in the "Set Final Target" pass
+- Cached the base types of Volume Manager to improve memory and cpu usage.
 
 ## [10.3.0] - 2020-12-01
 
