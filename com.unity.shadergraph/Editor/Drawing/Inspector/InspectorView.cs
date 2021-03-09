@@ -32,6 +32,8 @@ namespace UnityEditor.ShaderGraph.Drawing.Inspector
         protected VisualElement m_GraphSettingsContainer;
         protected VisualElement m_NodeSettingsContainer;
 
+        Label m_MaxItemsMessageLabel;
+
         void RegisterPropertyDrawer(Type newPropertyDrawerType)
         {
             if (typeof(IPropertyDrawer).IsAssignableFrom(newPropertyDrawerType) == false)
@@ -73,6 +75,7 @@ namespace UnityEditor.ShaderGraph.Drawing.Inspector
             m_GraphInspectorView = m_MainContainer.Q<TabbedView>("GraphInspectorView");
             m_GraphSettingsContainer = m_GraphInspectorView.Q<VisualElement>("GraphSettingsContainer");
             m_NodeSettingsContainer = m_GraphInspectorView.Q<VisualElement>("NodeSettingsContainer");
+            m_MaxItemsMessageLabel = m_GraphInspectorView.Q<Label>("maxItemsMessageLabel");
             m_ContentContainer.Add(m_GraphInspectorView);
 
             isWindowScrollable = true;
@@ -123,6 +126,8 @@ namespace UnityEditor.ShaderGraph.Drawing.Inspector
                         currentlyInspectedElementsCount++;
                         anySelectables = true;
                     }
+                    if(currentlyInspectedElementsCount == k_InspectorElementLimit)
+                        m_NodeSettingsContainer.Add(m_MaxItemsMessageLabel);
                 }
                 if (anySelectables)
                 {

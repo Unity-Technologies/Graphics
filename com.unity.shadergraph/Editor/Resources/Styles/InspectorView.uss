@@ -31,7 +31,6 @@
     flex-grow: 1;
     align-items: stretch;
     padding-bottom: 15px;
-
 }
 
 .InspectorView > .mainContainer > #content > #header {
@@ -57,6 +56,14 @@
     right: 12;
 }
 
+#maxItemsMessageLabel
+{
+    padding: 8px 4px 4px 4px;
+    color: rgb(180, 180, 180);
+    align-self: center;
+    border-color: #1F1F1F;
+}
+
 #labelContainer {
     flex: 1 0 0;
     flex-direction: column;
@@ -77,6 +84,7 @@
 
 .InspectorView #NodeSettingsContainer
 {
+    padding-left: 3px;
     width: 0;
     min-width: 100%;
 }

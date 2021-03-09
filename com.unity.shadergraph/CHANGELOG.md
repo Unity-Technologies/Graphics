@@ -16,11 +16,14 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Change Asset/Create/Shader/Blank Shader Graph to Asset/Create/Shader Graph/Blank Shader Graph
 - Change Asset/Create/Shader/Sub Graph to Asset/Create/Shader Graph/Sub Graph
 - Change Asset/Create/Shader/VFX Shader Graph to Asset/Create/Shader Graph/VFX Shader Graph
+- Limited max number of inspectable items in the Inspector View to 20 items
 
 ### Added
 - Support for the XboxSeries platform has been added.
 
 ### Fixed
+- Added padding to the blackboard window to prevent overlapping of resize region and scrollbars interfering with user interaction
+- Blackboard now properly handles selection persistence of items between undo and redos
 - Fixed the Custom Editor GUI field in the Graph settings that was ignored.
 - Node included HLSL files are now tracked more robustly, so they work after file moves and renames [1301915] (https://issuetracker.unity3d.com/product/unity/issues/guid/1301915/)
 - Prevent users from setting enum keywords with duplicate reference names and invalid characters [1287335]
