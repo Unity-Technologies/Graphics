@@ -2485,7 +2485,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
                     float usedGradientPosition = Mathf.Clamp01(element.edgeOffset - 1e-6f);
                     if (element.flareType == SRPLensFlareType.Iris)
-                        usedGradientPosition = Mathf.Lerp(1.0f, 64.0f, usedGradientPosition);
+                        usedGradientPosition = Mathf.Pow(usedGradientPosition + 1.0f, 5);
 
                     float usedSDFRoundness = element.sdfRoundness;
                     cmd.SetGlobalVector(HDShaderIDs._FlareData1, new Vector4(comp.occlusionRadius, comp.sampleCount, screenPosZ.z, Mathf.Exp(element.fallOff)));
