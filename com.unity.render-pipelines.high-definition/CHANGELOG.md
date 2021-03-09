@@ -26,6 +26,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Exposed update upon light movement for directional light shadows in UI.
 - Added a setting in the HDRP asset to change the Density Volume mask resolution of being locked at 32x32x32 (HDRP Asset > Lighting > Volumetrics > Max Density Volume Size).
 - Added a Falloff Mode (Linear or Exponential) in the Density Volume for volume blending with Blend Distance.
+- Added support for screen space shadows (directional and point, no area) for shadow matte unlit shader graph.
 
 ### Fixed
 - Fixed Intensity Multiplier not affecting realtime global illumination.
