@@ -2420,10 +2420,6 @@ namespace UnityEngine.Rendering.HighDefinition
 
                     Vector4 gradientModulation = new Vector4(1.0f, 1.0f, 1.0f, 1.0f);
 
-                    Vector2 occlusionRadiusEdgeScreenPos0 = (Vector2)cam.WorldToViewportPoint(positionWS);
-                    Vector2 occlusionRadiusEdgeScreenPos1 = (Vector2)cam.WorldToViewportPoint(positionWS + cam.transform.up * comp.occlusionRadius);
-                    float occlusionRadius = (occlusionRadiusEdgeScreenPos1 - occlusionRadiusEdgeScreenPos0).magnitude;
-
                     float currentIntensity = comp.intensity * element.localIntensity * radialsScaleRadius * distanceAttenuation;
 
                     if (currentIntensity <= 0.0f)
@@ -2494,7 +2490,10 @@ namespace UnityEngine.Rendering.HighDefinition
                         usedGradientPosition = Mathf.Pow(usedGradientPosition + 1.0f, 5);
 
                     float usedSDFRoundness = element.sdfRoundness;
-                    cmd.SetGlobalVector(HDShaderIDs._FlareData1, new Vector4(comp.occlusionRadius, comp.sampleCount, screenPosZ.z, Mathf.Exp(element.fallOff)));
+                    Vector2 occlusionRadiusEdgeScreenPos0 = (Vector2)cam.WorldToViewportPoint(positionWS);
+                    Vector2 occlusionRadiusEdgeScreenPos1 = (Vector2)cam.WorldToViewportPoint(positionWS + cam.transform.up * comp.occlusionRadius);
+                    float occlusionRadius = (occlusionRadiusEdgeScreenPos1 - occlusionRadiusEdgeScreenPos0).magnitude;
+                    cmd.SetGlobalVector(HDShaderIDs._FlareData1, new Vector4(occlusionRadius, comp.sampleCount, screenPosZ.z, Mathf.Exp(element.fallOff)));
                     cmd.SetGlobalVector(HDShaderIDs._FlareData5, new Vector4(comp.allowOffScreen ? 1.0f : -1.0f, 0.0f, 0.0f, 0.0f));
                     if (element.flareType == SRPLensFlareType.Polygon)
                     {
