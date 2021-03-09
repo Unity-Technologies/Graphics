@@ -142,6 +142,16 @@ Depending on the [Graph Settings](#graph-settings) you use, Shader Graph can add
 [!include[](snippets/shader-properties/advanced-options/use-light-facing-normal.md)]
 </table>
 
+### Other top level settings
+
+<table>
+<tr>
+<th>Property</th>
+<th>Description</th>
+</tr>
+[!include[](snippets/shader-properties/support-vfx-graph.md)]
+</table>
+
 ## Limitations
 
 [!include[](snippets/area-light-material-support-disclaimer.md)]

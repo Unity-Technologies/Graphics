@@ -1,6 +1,10 @@
 # Shared Output Settings and Properties
 
-All outputs share these settings and property ports.
+All outputs share these settings and property ports. The only exception is the Shader Graph setting which most outputs support, but not all of them.
+
+| **Setting**      | **Description**                                              |
+| ---------------- | ------------------------------------------------------------ |
+| **Shader Graph** | Specifies the [Shader Graph](https://docs.unity3d.com/Packages/com.unity.shadergraph@latest) Unity uses to render particles this output produces. If you assign a Shader Graph to this property, the Inspector hides some settings and properties that are duplicates of those in the Shader Graph. Also, the Inspector exposes all the Surface Options from the Shader Graph which allows you to edit the Shader Graph properties inside the Inspector for the context. For information on the Surface Options this adds to the Inspector, see the documentation for the type of Shader Graph you assigned. For example, if you assigned an HDRP Lit Shader Graph, see the documentation for the [Lit Shader Graph](https://docs.unity3d.com/Packages/com.unity.render-pipelines.high-definition@latest?subfolder=/manual/master-stack-lit.html). |
 
 ## Render State Settings
 
