@@ -9,6 +9,8 @@ MonoImporter:
       type: 3}
   - converterListAsset: {fileID: 9197481963319205126, guid: d6a5cb06d87ecb140a89f07fba9fc093,
       type: 3}
+  - converterItem: {fileID: 9197481963319205126, guid: 6a04145a10dad234ba4115bcd5e44ee1,
+      type: 3}
   executionOrder: 0
   icon: {instanceID: 0}
   userData: 
