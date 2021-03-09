@@ -188,7 +188,8 @@ namespace UnityEngine.Rendering.HighDefinition
                 passData.shadowDrawSettings = new ShadowDrawingSettings(cullResults, 0);
                 passData.shadowDrawSettings.useRenderingLayerMaskTest = frameSettings.IsEnabled(FrameSettingsField.LightLayers);
                 passData.isRenderingOnACache = m_IsACacheForShadows;
-                renderGraph.CreateTextureIfInvalid(GetTextureDesc(passData.parameters.debugClearAtlas), ref result);
+
+                result = renderGraph.ImportTexture(m_Atlas);
 
                 passData.atlasTexture = builder.WriteTexture(result);
 

@@ -591,6 +591,11 @@ namespace UnityEngine.Rendering.HighDefinition
             InitializeProbeVolumes();
             CustomPassUtils.Initialize();
 
+            // We allocate shadow manager non rendergraph resources regardless of whether RG is enabled or not
+            // because as there is no shared texture, we need to import textures from the atlasses all the time to avoid
+            // having issues with "persisting" textures stomping on each other if they have the same descriptor.
+            m_ShadowManager.InitializeNonRenderGraphResources();
+
             EnableRenderGraph(defaultAsset.useRenderGraph && !enableNonRenderGraphTests);
         }
 
@@ -1019,7 +1024,6 @@ namespace UnityEngine.Rendering.HighDefinition
         void InitializeNonRenderGraphResources()
         {
             InitializeRenderTextures();
-            m_ShadowManager.InitializeNonRenderGraphResources();
             m_AmbientOcclusionSystem.InitializeNonRenderGraphResources();
             m_PostProcessSystem.InitializeNonRenderGraphResources(asset);
             s_lightVolumes.InitializeNonRenderGraphResources();
@@ -1032,7 +1036,6 @@ namespace UnityEngine.Rendering.HighDefinition
         void CleanupNonRenderGraphResources()
         {
             DestroyRenderTextures();
-            m_ShadowManager.CleanupNonRenderGraphResources();
             m_AmbientOcclusionSystem.CleanupNonRenderGraphResources();
             m_PostProcessSystem.CleanupNonRenderGraphResources();
             s_lightVolumes.CleanupNonRenderGraphResources();
@@ -1121,6 +1124,9 @@ namespace UnityEngine.Rendering.HighDefinition
             ReleaseRayTracingManager();
             m_DebugDisplaySettings.UnregisterDebug();
 
+            // We allocated shadow manager non rendergraph resources regardless of whether RG is enabled or not
+            // because as there is no shared texture, we need to import textures from the atlasses all the time.
+            m_ShadowManager.CleanupNonRenderGraphResources();
             CleanupLightLoop();
 
             // For debugging
@@ -1157,6 +1163,7 @@ namespace UnityEngine.Rendering.HighDefinition
             m_SkyManager.Cleanup();
             CleanupVolumetricLighting();
             CleanupProbeVolumes();
+            CleanupSubsurfaceScattering();
 
             for(int bsdfIdx = 0; bsdfIdx < m_IBLFilterArray.Length; ++bsdfIdx)
             {
@@ -4791,15 +4798,22 @@ namespace UnityEngine.Rendering.HighDefinition
                 if (ssrSettings.usedAlgorithm.value == ScreenSpaceReflectionAlgorithm.PBRAccumulation)
                 {
                     CoreUtils.SetRenderTarget(cmd, ssrAccum, ClearFlag.Color, Color.clear);
-                    if (ssrNeedReset || hdCamera.isFirstFrame)
+                    if (ssrNeedReset || hdCamera.isFirstFrame || hdCamera.resetPostProcessingHistory)
                     {
                         CoreUtils.SetRenderTarget(cmd, ssrAccumPrev, ClearFlag.Color, Color.clear);
                     }
                 }
             }
 
-            CoreUtils.SetKeyword(cs, "SSR_APPROX", !parameters.usePBRAlgo);
-            CoreUtils.SetKeyword(cs, "DEPTH_SOURCE_NOT_FROM_MIP_CHAIN", parameters.transparentSSR);
+            if (!parameters.usePBRAlgo)
+                cmd.EnableShaderKeyword("SSR_APPROX");
+            else
+                cmd.DisableShaderKeyword("SSR_APPROX");
+
+            if (parameters.transparentSSR)
+                cmd.EnableShaderKeyword("DEPTH_SOURCE_NOT_FROM_MIP_CHAIN");
+            else
+                cmd.DisableShaderKeyword("DEPTH_SOURCE_NOT_FROM_MIP_CHAIN");
 
             using (new ProfilingScope(cmd, ProfilingSampler.Get(HDProfileId.SsrTracing)))
             {

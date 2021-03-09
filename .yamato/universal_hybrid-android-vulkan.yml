@@ -3,12 +3,12 @@
 # Introduce any changes under .yamato/config/*.metafile files (for most cases) or under .yamato/ruamel/* within Python (more elaborate cases), and rerun build.py to regenerate all .yml files. 
 # Read more under .yamato/docs/readme.md 
 
-{% metadata_file .yamato/_latest_editor_versions_2020.2.metafile -%}
+{% metadata_file .yamato/_latest_editor_versions_2020.3.metafile -%}
 
 ---
 
-Universal_Hybrid_Android_Vulkan_Standalone_DOTS_mono_Linear_2020.2:
-    name: Universal_Hybrid on Android_Vulkan_Standalone_DOTS_mono_Linear on version 2020.2
+Universal_Hybrid_Android_Vulkan_Standalone_DOTS_mono_Linear_2020.3:
+    name: Universal_Hybrid on Android_Vulkan_Standalone_DOTS_mono_Linear on version 2020.3
     agent:
         type: Unity::mobile::android
         image: mobile/android-execution-r19:stable
@@ -35,10 +35,10 @@ Universal_Hybrid_Android_Vulkan_Standalone_DOTS_mono_Linear_2020.2:
               -  "**/test-results/**"
               -  "TestProjects/UniversalHybridTest/Logs/*.log"
     dependencies:
-      -  path: .yamato/universal_hybrid-android-vulkan.yml#Build_Universal_Hybrid_Android_Vulkan_Standalone_DOTS_mono_Linear_2020.2
+      -  path: .yamato/universal_hybrid-android-vulkan.yml#Build_Universal_Hybrid_Android_Vulkan_Standalone_DOTS_mono_Linear_2020.3
          rerun: on-new-revision
-Build_Universal_Hybrid_Android_Vulkan_Standalone_DOTS_mono_Linear_2020.2:
-    name: Build Universal_Hybrid on Android_Vulkan_mono_Linear_Standalone_DOTS_build_Player on version 2020.2
+Build_Universal_Hybrid_Android_Vulkan_Standalone_DOTS_mono_Linear_2020.3:
+    name: Build Universal_Hybrid on Android_Vulkan_mono_Linear_Standalone_DOTS_build_Player on version 2020.3
     agent:
         type: Unity::VM
         image: mobile/android-execution-r19:stable
@@ -51,7 +51,7 @@ Build_Universal_Hybrid_Android_Vulkan_Standalone_DOTS_mono_Linear_2020.2:
       -  NetSh Advfirewall set allprofiles state off
       -  curl -s https://artifactory.prd.it.unity3d.com/artifactory/unity-tools-local/utr-standalone/utr.bat --output utr.bat
       -  pip install unity-downloader-cli --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
-      -  unity-downloader-cli -u {{editor_versions.2020_2_staging.Android.revision}} -p WindowsEditor -c editor -c il2cpp -c android  --wait --published-only
+      -  unity-downloader-cli -u {{editor_versions.2020_3_staging.Android.revision}} -p WindowsEditor -c editor -c il2cpp -c android  --wait --published-only
       -  |5-
               set ANDROID_DEVICE_CONNECTION=%BOKKEN_DEVICE_IP%
               git rev-parse HEAD | git show -s --format=%%cI > revdate.tmp
@@ -67,8 +67,8 @@ Build_Universal_Hybrid_Android_Vulkan_Standalone_DOTS_mono_Linear_2020.2:
         players:
             paths:
               -  "players*/**"
-Universal_Hybrid_Android_Vulkan_Standalone_DOTS_cache_mono_Linear_2020.2:
-    name: Universal_Hybrid on Android_Vulkan_Standalone_DOTS_cache_mono_Linear on version 2020.2
+Universal_Hybrid_Android_Vulkan_Standalone_DOTS_cache_mono_Linear_2020.3:
+    name: Universal_Hybrid on Android_Vulkan_Standalone_DOTS_cache_mono_Linear on version 2020.3
     agent:
         type: Unity::mobile::android
         image: mobile/android-execution-r19:stable
@@ -95,10 +95,10 @@ Universal_Hybrid_Android_Vulkan_Standalone_DOTS_cache_mono_Linear_2020.2:
               -  "**/test-results/**"
               -  "TestProjects/UniversalHybridTest/Logs/*.log"
     dependencies:
-      -  path: .yamato/universal_hybrid-android-vulkan.yml#Build_Universal_Hybrid_Android_Vulkan_Standalone_DOTS_cache_mono_Linear_2020.2
+      -  path: .yamato/universal_hybrid-android-vulkan.yml#Build_Universal_Hybrid_Android_Vulkan_Standalone_DOTS_cache_mono_Linear_2020.3
          rerun: on-new-revision
-Build_Universal_Hybrid_Android_Vulkan_Standalone_DOTS_cache_mono_Linear_2020.2:
-    name: Build Universal_Hybrid on Android_Vulkan_mono_Linear_Standalone_DOTS_cache_build_Player on version 2020.2
+Build_Universal_Hybrid_Android_Vulkan_Standalone_DOTS_cache_mono_Linear_2020.3:
+    name: Build Universal_Hybrid on Android_Vulkan_mono_Linear_Standalone_DOTS_cache_build_Player on version 2020.3
     agent:
         type: Unity::VM
         image: mobile/android-execution-r19:stable
@@ -111,7 +111,7 @@ Build_Universal_Hybrid_Android_Vulkan_Standalone_DOTS_cache_mono_Linear_2020.2:
       -  NetSh Advfirewall set allprofiles state off
       -  curl -s https://artifactory.prd.it.unity3d.com/artifactory/unity-tools-local/utr-standalone/utr.bat --output utr.bat
       -  pip install unity-downloader-cli --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
-      -  unity-downloader-cli -u {{editor_versions.2020_2_staging.Android.revision}} -p WindowsEditor -c editor -c il2cpp -c android  --wait --published-only
+      -  unity-downloader-cli -u {{editor_versions.2020_3_staging.Android.revision}} -p WindowsEditor -c editor -c il2cpp -c android  --wait --published-only
       -  |5-
               set ANDROID_DEVICE_CONNECTION=%BOKKEN_DEVICE_IP%
               git rev-parse HEAD | git show -s --format=%%cI > revdate.tmp
