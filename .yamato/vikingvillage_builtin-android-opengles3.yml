@@ -30,7 +30,7 @@ VikingVillage_BuiltIn_Android_OpenGLES3_performance_playmode_runtime_il2cpp_Line
               set /p GIT_REVISIONDATE=<revdate.tmp
               echo %GIT_REVISIONDATE%
               del revdate.tmp
-              utr --architecture=ARM64 --artifacts_path=TestProjects/Viking-Village-Perf/test-results --performance-project-id=VikingVillage_BuiltIn --platform=Android --player-load-path=playersMedium --report-performance-data --suite=playmode --timeout=1200 --zero-tests-are-ok=1
+              utr --architecture=ARM64 --artifacts_path=TestProjects/Viking-Village-Perf/test-results --performance-project-id=VikingVillage_BuiltIn --platform=Android --player-load-path=players --report-performance-data --suite=playmode --timeout=1200 --zero-tests-are-ok=1
       -  start %ANDROID_SDK_ROOT%\platform-tools\adb.exe kill-server
     artifacts:
         logs:
@@ -83,7 +83,7 @@ Build_VikingVillage_BuiltIn_Android_OpenGLES3_performance_playmode_runtime_il2cp
               set /p GIT_REVISIONDATE=<revdate.tmp
               echo %GIT_REVISIONDATE%
               del revdate.tmp
-              utr --architecture=ARM64 --artifacts_path=TestProjects/Viking-Village-Perf/test-results --build-only --category=URP --editor-location=./WindowsEditor --extra-editor-arg="-addscenetobuild=Assets/Scenes/The_Viking_Village.unity" --extra-editor-arg="-buildtarget" --extra-editor-arg="Android" --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-executemethod" --extra-editor-arg="Editor.Setup" --extra-editor-arg="-packageundertestbranch=%GIT_BRANCH%" --extra-editor-arg="-packageundertestname=com.unity.render-pipelines.universal" --extra-editor-arg="-packageundertestrev=%GIT_REVISION%" --extra-editor-arg="-packageundertestrevdate=%GIT_REVISIONDATE%" --extra-editor-arg="-playergraphicsapi=OpenGLES3" --extra-editor-arg="-scriptingbackend=IL2CPP" --platform=Android --player-save-path=playersMedium --scripting-backend=IL2CPP --suite=playmode --testfilter=Medium --testproject=./TestProjects/Viking-Village-Perf --timeout=2700
+              utr --architecture=ARM64 --artifacts_path=TestProjects/Viking-Village-Perf/test-results --build-only --category=URP --editor-location=./WindowsEditor --extra-editor-arg="-addscenetobuild=Assets/Scenes/The_Viking_Village.unity" --extra-editor-arg="-buildtarget" --extra-editor-arg="Android" --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-executemethod" --extra-editor-arg="Editor.Setup" --extra-editor-arg="-packageundertestbranch=%GIT_BRANCH%" --extra-editor-arg="-packageundertestname=com.unity.render-pipelines.universal" --extra-editor-arg="-packageundertestrev=%GIT_REVISION%" --extra-editor-arg="-packageundertestrevdate=%GIT_REVISIONDATE%" --extra-editor-arg="-playergraphicsapi=OpenGLES3" --extra-editor-arg="-scriptingbackend=IL2CPP" --platform=Android --player-save-path=players --scripting-backend=IL2CPP --suite=playmode --testfilter=%TEST_FILTER% --testproject=./TestProjects/Viking-Village-Perf --timeout=2700
     artifacts:
         logs:
             paths:
@@ -165,7 +165,7 @@ VikingVillage_BuiltIn_Android_OpenGLES3_performance_playmode_runtime_il2cpp_Line
               set /p GIT_REVISIONDATE=<revdate.tmp
               echo %GIT_REVISIONDATE%
               del revdate.tmp
-              utr --architecture=ARM64 --artifacts_path=TestProjects/Viking-Village-Perf/test-results --performance-project-id=VikingVillage_BuiltIn --platform=Android --player-load-path=playersMedium --report-performance-data --suite=playmode --timeout=1200 --zero-tests-are-ok=1
+              utr --architecture=ARM64 --artifacts_path=TestProjects/Viking-Village-Perf/test-results --performance-project-id=VikingVillage_BuiltIn --platform=Android --player-load-path=players --report-performance-data --suite=playmode --timeout=1200 --zero-tests-are-ok=1
       -  start %ANDROID_SDK_ROOT%\platform-tools\adb.exe kill-server
     artifacts:
         logs:
@@ -221,7 +221,7 @@ Build_VikingVillage_BuiltIn_Android_OpenGLES3_performance_playmode_runtime_il2cp
               set /p GIT_REVISIONDATE=<revdate.tmp
               echo %GIT_REVISIONDATE%
               del revdate.tmp
-              utr --architecture=ARM64 --artifacts_path=TestProjects/Viking-Village-Perf/test-results --build-only --category=URP --editor-location=./WindowsEditor --extra-editor-arg="-addscenetobuild=Assets/Scenes/The_Viking_Village.unity" --extra-editor-arg="-buildtarget" --extra-editor-arg="Android" --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-executemethod" --extra-editor-arg="Editor.Setup" --extra-editor-arg="-packageundertestbranch=%GIT_BRANCH%" --extra-editor-arg="-packageundertestname=com.unity.render-pipelines.universal" --extra-editor-arg="-packageundertestrev=%GIT_REVISION%" --extra-editor-arg="-packageundertestrevdate=%GIT_REVISIONDATE%" --extra-editor-arg="-playergraphicsapi=OpenGLES3" --extra-editor-arg="-scriptingbackend=IL2CPP" --platform=Android --player-save-path=playersMedium --scripting-backend=IL2CPP --suite=playmode --testfilter=Medium --testproject=./TestProjects/Viking-Village-Perf --timeout=2700
+              utr --architecture=ARM64 --artifacts_path=TestProjects/Viking-Village-Perf/test-results --build-only --category=URP --editor-location=./WindowsEditor --extra-editor-arg="-addscenetobuild=Assets/Scenes/The_Viking_Village.unity" --extra-editor-arg="-buildtarget" --extra-editor-arg="Android" --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-executemethod" --extra-editor-arg="Editor.Setup" --extra-editor-arg="-packageundertestbranch=%GIT_BRANCH%" --extra-editor-arg="-packageundertestname=com.unity.render-pipelines.universal" --extra-editor-arg="-packageundertestrev=%GIT_REVISION%" --extra-editor-arg="-packageundertestrevdate=%GIT_REVISIONDATE%" --extra-editor-arg="-playergraphicsapi=OpenGLES3" --extra-editor-arg="-scriptingbackend=IL2CPP" --platform=Android --player-save-path=players --scripting-backend=IL2CPP --suite=playmode --testfilter=%TEST_FILTER% --testproject=./TestProjects/Viking-Village-Perf --timeout=2700
     artifacts:
         logs:
             paths:
