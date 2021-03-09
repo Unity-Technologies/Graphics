@@ -177,9 +177,6 @@ namespace UnityEngine.Rendering
 
             if (m_Profile != null)
             {
-                var refVol = ProbeReferenceVolume.instance;
-                refVol.AddPendingIndexDimensionChange(volumeAsset.maxCellIndex);
-
                 m_PrevProfile = m_Profile;
                 QueueAssetLoading();
             }

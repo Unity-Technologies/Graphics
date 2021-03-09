@@ -231,6 +231,13 @@ namespace UnityEngine.Rendering
 
         internal float normalBiasFromProfile;
 
+        ProbeVolumeTextureMemoryBudget m_MemoryBudget;
+
+        /// <summary>
+        /// Get the memory budget for the Probe Volume system.
+        /// </summary>
+        public ProbeVolumeTextureMemoryBudget memoryBudget => m_MemoryBudget;
+
         static private ProbeReferenceVolume _instance = new ProbeReferenceVolume();
 
         /// <summary>
@@ -244,12 +251,11 @@ namespace UnityEngine.Rendering
             }
         }
 
-        internal void AddPendingIndexDimensionChange(Vector3Int indexDimensions)
-        {
-            m_PendingIndexDimChange = indexDimensions;
-            m_NeedsIndexDimChange = true;
-            m_NeedLoadAsset = true;
-        }
+        /// <summary>
+        /// Set the memory budget for the Probe Volume System.
+        /// </summary>
+        /// <param name="budget"></param>
+        public void SetMemoryBudget(ProbeVolumeTextureMemoryBudget budget) => m_MemoryBudget = budget;
 
         internal void AddPendingAssetLoading(ProbeVolumeAsset asset)
         {
@@ -260,6 +266,16 @@ namespace UnityEngine.Rendering
             }
             m_PendingAssetsToBeLoaded.Add(asset.GetSerializedFullPath(), asset);
             m_NeedLoadAsset = true;
+
+            // Compute the max index dimension from all the loaded assets + assets we need to load
+            Vector3Int indexDimension = Vector3Int.zero;
+            foreach (var a in m_PendingAssetsToBeLoaded.Values)
+                indexDimension = Vector3Int.Max(indexDimension, a.maxCellIndex);
+            foreach (var a in m_ActiveAssets.Values)
+                indexDimension = Vector3Int.Max(indexDimension, a.maxCellIndex);
+
+            m_PendingIndexDimChange = indexDimension;
+            m_NeedsIndexDimChange = true;
         }
 
         internal void AddPendingAssetRemoval(ProbeVolumeAsset asset)
@@ -304,7 +320,7 @@ namespace UnityEngine.Rendering
             if (m_NeedsIndexDimChange)
             {
                 Cleanup();
-                InitProbeReferenceVolume(s_ProbeIndexPoolAllocationSize, m_Pool.GetMemoryBudget(), m_PendingIndexDimChange);
+                InitProbeReferenceVolume(s_ProbeIndexPoolAllocationSize, m_MemoryBudget, m_PendingIndexDimChange);
                 m_NeedsIndexDimChange = false;
             }
         }
@@ -390,9 +406,9 @@ namespace UnityEngine.Rendering
         public void PerformPendingOperations()
         {
             PerformPendingDeletion();
-            PerformPendingNormalBiasChange();
-            PerformPendingIndexDimensionChange();
             PerformPendingLoading();
+            PerformPendingIndexDimensionChange();
+            PerformPendingNormalBiasChange();
         }
 
         /// <summary>

@@ -242,7 +242,6 @@ namespace UnityEngine.Rendering
             }
 
             // Put cells into the respective assets
-            Vector3Int maxCellIndex = Vector3Int.zero;
             foreach (var cell in ProbeReferenceVolume.instance.cells.Values)
             {
                 foreach (var scene in cellIndex2SceneReferences[cell.index])
@@ -262,13 +261,10 @@ namespace UnityEngine.Rendering
                             asset.maxCellIndex.x = Mathf.Max(asset.maxCellIndex.x, (int)(x * 2));
                             asset.maxCellIndex.y = Mathf.Max(asset.maxCellIndex.y, (int)(y * 2));
                             asset.maxCellIndex.z = Mathf.Max(asset.maxCellIndex.z, (int)(z * 2));
-                            maxCellIndex = Vector3Int.Max(maxCellIndex, asset.maxCellIndex);
                         }
                     }
                 }
             }
-
-            ProbeReferenceVolume.instance.AddPendingIndexDimensionChange(maxCellIndex);
 
             // Connect the assets to their components
             foreach (var pair in refVol2Asset)
