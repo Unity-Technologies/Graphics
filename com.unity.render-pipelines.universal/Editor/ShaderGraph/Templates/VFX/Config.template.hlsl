@@ -148,7 +148,8 @@ $OutputType.Mesh:            $include("VFX/ConfigMesh.template.hlsl")
 $OutputType.PlanarPrimitive: $include("VFX/ConfigPlanarPrimitive.template.hlsl")
 
 // Loads the element-specific attribute data, as well as fills any interpolator.
-#define VaryingsMeshType VaryingsMeshToPS
+//TODOPAUL : this define is specific to URP
+#define VaryingsMeshType Varyings
 bool GetInterpolatorAndElementData(inout VaryingsMeshType output, inout AttributesElement element)
 {
     GetElementData(element);
@@ -253,7 +254,8 @@ void GetElementVertexProperties(AttributesElement element, inout GraphProperties
     $splice(VFXVertexPropertiesAssign)
 }
 
-void GetElementPixelProperties(FragInputs fragInputs, inout GraphProperties properties)
+//FragInputs == SurfaceDescriptionInputs for URP (only !) TODOPAUL
+void GetElementPixelProperties(SurfaceDescriptionInputs fragInputs, inout GraphProperties properties)
 {
     $splice(VFXPixelPropertiesAssign)
 }
