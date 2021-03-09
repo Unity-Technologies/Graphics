@@ -140,6 +140,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Density Volumes can now take a 3D RenderTexture as mask, the mask can use RGBA format for RGB fog.
 - Decreased the minimal Fog Distance value in the Density Volume to 0.05.
 - Virtual Texturing Resolver now performs RTHandle resize logic in HDRP instead of in core Unity
+- Cached the base types of Volume Manager to improve memory and cpu usage.
 
 ## [11.0.0] - 2020-10-21
 
