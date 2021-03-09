@@ -16,8 +16,8 @@ VikingVillage_URP_Win_DX12_performance_playmode_runtime_mono_Linear_trunk:
         model: rtx2080
     variables:
         UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
-        VV_URP_BRANCH: urp-test
-        VV_URP_REVISION: 449ee29a8d7e3aaf9ef690dda0ee0edeeee7dd0d
+        VV_URP_BRANCH: master
+        VV_URP_REVISION: eb763cb92d2bb22a1843c67351b90ab927508ec7
         UTR_VERSION: "current"
         TEST_FILTER: .*
     commands:
@@ -45,8 +45,8 @@ Build_VikingVillage_URP_Win_DX12_performance_playmode_runtime_mono_Linear_trunk:
         flavor: b1.xlarge
     variables:
         UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
-        VV_URP_BRANCH: urp-test
-        VV_URP_REVISION: 449ee29a8d7e3aaf9ef690dda0ee0edeeee7dd0d
+        VV_URP_BRANCH: master
+        VV_URP_REVISION: eb763cb92d2bb22a1843c67351b90ab927508ec7
         UTR_VERSION: "current"
         TEST_FILTER: .*
     commands:
@@ -97,8 +97,8 @@ VikingVillage_URP_Win_DX12_performance_playmode_editor_mono_Linear_trunk:
         model: rtx2080
     variables:
         UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
-        VV_URP_BRANCH: urp-test
-        VV_URP_REVISION: 449ee29a8d7e3aaf9ef690dda0ee0edeeee7dd0d
+        VV_URP_BRANCH: master
+        VV_URP_REVISION: eb763cb92d2bb22a1843c67351b90ab927508ec7
         UTR_VERSION: "current"
         TEST_FILTER: .*
     commands:
@@ -146,8 +146,8 @@ VikingVillage_URP_Win_DX12_performance_build_editmode_mono_Linear_trunk:
         model: rtx2080
     variables:
         UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
-        VV_URP_BRANCH: urp-test
-        VV_URP_REVISION: 449ee29a8d7e3aaf9ef690dda0ee0edeeee7dd0d
+        VV_URP_BRANCH: master
+        VV_URP_REVISION: eb763cb92d2bb22a1843c67351b90ab927508ec7
         UTR_VERSION: "current"
         TEST_FILTER: .*
     commands:
@@ -196,8 +196,8 @@ VikingVillage_URP_Win_DX12_performance_playmode_runtime_mono_Linear_CUSTOM-REVIS
     variables:
         UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
         CUSTOM_REVISION: custom_revision_not_set
-        VV_URP_BRANCH: urp-test
-        VV_URP_REVISION: 449ee29a8d7e3aaf9ef690dda0ee0edeeee7dd0d
+        VV_URP_BRANCH: master
+        VV_URP_REVISION: eb763cb92d2bb22a1843c67351b90ab927508ec7
         UTR_VERSION: "current"
         TEST_FILTER: .*
     commands:
@@ -228,8 +228,8 @@ Build_VikingVillage_URP_Win_DX12_performance_playmode_runtime_mono_Linear_CUSTOM
     variables:
         UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
         CUSTOM_REVISION: custom_revision_not_set
-        VV_URP_BRANCH: urp-test
-        VV_URP_REVISION: 449ee29a8d7e3aaf9ef690dda0ee0edeeee7dd0d
+        VV_URP_BRANCH: master
+        VV_URP_REVISION: eb763cb92d2bb22a1843c67351b90ab927508ec7
         UTR_VERSION: "current"
         TEST_FILTER: .*
     commands:
@@ -284,8 +284,8 @@ VikingVillage_URP_Win_DX12_performance_playmode_editor_mono_Linear_CUSTOM-REVISI
     variables:
         UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
         CUSTOM_REVISION: custom_revision_not_set
-        VV_URP_BRANCH: urp-test
-        VV_URP_REVISION: 449ee29a8d7e3aaf9ef690dda0ee0edeeee7dd0d
+        VV_URP_BRANCH: master
+        VV_URP_REVISION: eb763cb92d2bb22a1843c67351b90ab927508ec7
         UTR_VERSION: "current"
         TEST_FILTER: .*
     commands:
@@ -337,8 +337,8 @@ VikingVillage_URP_Win_DX12_performance_build_editmode_mono_Linear_CUSTOM-REVISIO
     variables:
         UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
         CUSTOM_REVISION: custom_revision_not_set
-        VV_URP_BRANCH: urp-test
-        VV_URP_REVISION: 449ee29a8d7e3aaf9ef690dda0ee0edeeee7dd0d
+        VV_URP_BRANCH: master
+        VV_URP_REVISION: eb763cb92d2bb22a1843c67351b90ab927508ec7
         UTR_VERSION: "current"
         TEST_FILTER: .*
     commands:

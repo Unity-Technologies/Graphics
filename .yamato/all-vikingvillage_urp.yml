@@ -35,8 +35,8 @@ PR_VikingVillage_URP_trunk:
     variables:
         UTR_VERSION: "current"
         TEST_FILTER: .*
-        VV_URP_BRANCH: urp-test
-        VV_URP_REVISION: 449ee29a8d7e3aaf9ef690dda0ee0edeeee7dd0d
+        VV_URP_BRANCH: master
+        VV_URP_REVISION: eb763cb92d2bb22a1843c67351b90ab927508ec7
 Nightly_VikingVillage_URP_trunk:
     name: Nightly VikingVillage_URP - trunk
     dependencies:
@@ -45,8 +45,8 @@ Nightly_VikingVillage_URP_trunk:
     variables:
         UTR_VERSION: "current"
         TEST_FILTER: .*
-        VV_URP_BRANCH: urp-test
-        VV_URP_REVISION: 449ee29a8d7e3aaf9ef690dda0ee0edeeee7dd0d
+        VV_URP_BRANCH: master
+        VV_URP_REVISION: eb763cb92d2bb22a1843c67351b90ab927508ec7
 PR_VikingVillage_URP_CUSTOM-REVISION:
     name: VikingVillage_URP PR Job - CUSTOM-REVISION
     dependencies:
@@ -76,8 +76,8 @@ PR_VikingVillage_URP_CUSTOM-REVISION:
         CUSTOM_REVISION: custom_revision_not_set
         UTR_VERSION: "current"
         TEST_FILTER: .*
-        VV_URP_BRANCH: urp-test
-        VV_URP_REVISION: 449ee29a8d7e3aaf9ef690dda0ee0edeeee7dd0d
+        VV_URP_BRANCH: master
+        VV_URP_REVISION: eb763cb92d2bb22a1843c67351b90ab927508ec7
 Nightly_VikingVillage_URP_CUSTOM-REVISION:
     name: Nightly VikingVillage_URP - CUSTOM-REVISION
     dependencies:
@@ -87,5 +87,5 @@ Nightly_VikingVillage_URP_CUSTOM-REVISION:
         CUSTOM_REVISION: custom_revision_not_set
         UTR_VERSION: "current"
         TEST_FILTER: .*
-        VV_URP_BRANCH: urp-test
-        VV_URP_REVISION: 449ee29a8d7e3aaf9ef690dda0ee0edeeee7dd0d
+        VV_URP_BRANCH: master
+        VV_URP_REVISION: eb763cb92d2bb22a1843c67351b90ab927508ec7
