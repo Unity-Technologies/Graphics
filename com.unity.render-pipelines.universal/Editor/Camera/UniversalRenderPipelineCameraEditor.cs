@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Text;
 using UnityEditor.AnimatedValues;
 using UnityEditor.SceneManagement;
 using UnityEditorInternal;
@@ -102,6 +103,8 @@ namespace UnityEditor.Rendering.Universal
                 new GUIContent("Subpixel Morphological Anti-aliasing (SMAA)"),
             };
             public static int[] antialiasingValues = { 0, 1, 2 };
+
+            public static string inspectorOverlayCameraText = L10n.Tr("Inspector Overlay Camera");
         }
 
         ReorderableList m_LayerList;
@@ -110,8 +113,6 @@ namespace UnityEditor.Rendering.Universal
         static List<Camera> k_Cameras;
 
         List<Camera> validCameras = new List<Camera>();
-        // This is the valid list of types, so if we need to add more types we just add it here.
-        List<CameraRenderType> validCameraTypes = new List<CameraRenderType> { CameraRenderType.Overlay };
         List<Camera> m_TypeErrorCameras = new List<Camera>();
         List<Camera> m_OutputWarningCameras = new List<Camera>();
         Texture2D m_ErrorIcon;
@@ -253,7 +254,7 @@ namespace UnityEditor.Rendering.Universal
             {
                 bool typeError = false;
                 var type = cam.gameObject.GetComponent<UniversalAdditionalCameraData>().renderType;
-                if (!validCameraTypes.Contains(type))
+                if (type != CameraRenderType.Overlay)
                 {
                     typeError = true;
                     if (!m_TypeErrorCameras.Contains(cam))
@@ -294,10 +295,10 @@ namespace UnityEditor.Rendering.Universal
                 var labelWidth = EditorGUIUtility.labelWidth;
                 EditorGUIUtility.labelWidth -= 20f;
 
-                Vector2 cachedIconSize = EditorGUIUtility.GetIconSize();
-                EditorGUIUtility.SetIconSize(new Vector2(rect.height, rect.height)); // To prevent icon shrinking
-                EditorGUI.LabelField(rect, nameContent, typeContent);
-                EditorGUIUtility.SetIconSize(cachedIconSize);
+                using (var iconSizeScope = new EditorGUIUtility.IconSizeScope(new Vector2(rect.height, rect.height)))
+                {
+                    EditorGUI.LabelField(rect, nameContent, typeContent);
+                }
 
                 // Printing if Post Processing is on or not.
                 var isPostActive = cam.gameObject.GetComponent<UniversalAdditionalCameraData>().renderPostProcessing;
@@ -375,7 +376,7 @@ namespace UnityEditor.Rendering.Universal
                 var component = camera.gameObject.GetComponent<UniversalAdditionalCameraData>();
                 if (component != null)
                 {
-                    if (validCameraTypes.Contains(component.renderType))
+                    if (component.renderType == CameraRenderType.Overlay)
                     {
                         validCameras.Add(camera);
                     }
@@ -503,7 +504,7 @@ namespace UnityEditor.Rendering.Universal
                 if (additionalCameraData == null)
                     continue;
 
-                Undo.RecordObject(camera, "Inspector Overlay Camera");
+                Undo.RecordObject(camera, Styles.inspectorOverlayCameraText);
                 if (additionalCameraData.renderType == CameraRenderType.Base)
                 {
                     additionalCameraData.renderType = CameraRenderType.Overlay;
@@ -526,7 +527,7 @@ namespace UnityEditor.Rendering.Universal
 
         private void UpdateStackCameraOutput(Camera camera)
         {
-            Undo.RecordObject(camera, "Inspector Overlay Camera");
+            Undo.RecordObject(camera, Styles.inspectorOverlayCameraText);
 
             bool isChanged = false;
 
@@ -669,34 +670,34 @@ namespace UnityEditor.Rendering.Universal
                 EditorGUI.indentLevel--;
                 if (m_TypeErrorCameras.Any())
                 {
-                    string message = "";
+                    var message = new StringBuilder();
                     foreach (var camera in m_TypeErrorCameras)
                     {
-                        message += camera.name;
+                        message.Append(camera.name);
                         if (camera != m_TypeErrorCameras.Last())
-                            message += ", ";
+                            message.Append(", ");
                         else
-                            message += " ";
+                            message.Append(" ");
                     }
-                    message += "needs to be Overlay render type.";
+                    message.Append("needs to be Overlay render type.");
 
-                    CoreEditorUtils.DrawFixMeBox(message, MessageType.Error, () => UpdateStackCemerasToOverlay());
+                    CoreEditorUtils.DrawFixMeBox(message.ToString(), MessageType.Error, () => UpdateStackCemerasToOverlay());
                 }
 
                 if (m_OutputWarningCameras.Any())
                 {
-                    string message = "";
+                    var message = new StringBuilder();
                     foreach (var camera in m_OutputWarningCameras)
                     {
-                        message += camera.name;
+                        message.Append(camera.name);
                         if (camera != m_OutputWarningCameras.Last())
-                            message += ", ";
+                            message.Append(", ");
                         else
-                            message += " ";
+                            message.Append(" ");
                     }
-                    message += "output properties do not match base cameras.";
+                    message.Append("output properties do not match base cameras.");
 
-                    CoreEditorUtils.DrawFixMeBox(message, MessageType.Warning, () => UpdateStackCamerasOutput());
+                    CoreEditorUtils.DrawFixMeBox(message.ToString(), MessageType.Warning, () => UpdateStackCamerasOutput());
                 }
                 EditorGUI.indentLevel++;
 
