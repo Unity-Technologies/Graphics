@@ -81,6 +81,8 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
                         displayName = "Log Frame Information",
                         action = () =>
                         {
+                            if (!enableLogging)
+                                Debug.Log("You must first enable logging before this logging frame information.");
                             logFrameInformation = true;
             #if UNITY_EDITOR
                             UnityEditor.SceneView.RepaintAll();
@@ -92,6 +94,8 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
                         displayName = "Log Resources",
                         action = () =>
                         {
+                            if (!enableLogging)
+                                Debug.Log("You must first enable logging before this logging resources.");
                             logResources = true;
             #if UNITY_EDITOR
                             UnityEditor.SceneView.RepaintAll();

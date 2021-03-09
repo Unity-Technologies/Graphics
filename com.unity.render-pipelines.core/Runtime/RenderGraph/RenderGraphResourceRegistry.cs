@@ -588,7 +588,7 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
 
         void LogResources()
         {
-            if (m_RenderGraphDebug.logResources)
+            if (m_RenderGraphDebug.enableLogging)
             {
                 m_ResourceLogger.LogLine("==== Allocated Resources ====\n");
 
