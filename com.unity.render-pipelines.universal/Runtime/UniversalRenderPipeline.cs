@@ -474,7 +474,10 @@ namespace UnityEngine.Rendering.Universal
             anyPostProcessingEnabled &= SystemInfo.graphicsDeviceType != GraphicsDeviceType.OpenGLES2;
 
             bool isStackedRendering = lastActiveOverlayCameraIndex != -1;
-
+            using (new ProfilingScope(null, Profiling.Pipeline.beginCameraRendering))
+            {
+                BeginCameraRendering(context, baseCamera);
+            }
             // Update volumeframework before initializing additional camera data
             UpdateVolumeFramework(baseCamera, baseCameraAdditionalData);
             InitializeCameraData(baseCamera, baseCameraAdditionalData, !isStackedRendering, out var baseCameraData);
@@ -499,10 +502,7 @@ namespace UnityEngine.Rendering.Universal
                     m_XRSystem.UpdateCameraData(ref baseCameraData, baseCameraData.xr);
                 }
 #endif
-            using (new ProfilingScope(null, Profiling.Pipeline.beginCameraRendering))
-            {
-                BeginCameraRendering(context, baseCamera);
-            }
+
 #if VISUAL_EFFECT_GRAPH_0_0_1_OR_NEWER
             //It should be called before culling to prepare material. When there isn't any VisualEffect component, this method has no effect.
             VFX.VFXManager.PrepareCamera(baseCamera);
@@ -512,10 +512,6 @@ namespace UnityEngine.Rendering.Universal
                 ApplyAdaptivePerformance(ref baseCameraData);
 #endif
             RenderSingleCamera(context, baseCameraData, anyPostProcessingEnabled);
-            using (new ProfilingScope(null, Profiling.Pipeline.endCameraRendering))
-            {
-                EndCameraRendering(context, baseCamera);
-            }
 
             if (isStackedRendering)
             {
@@ -557,6 +553,10 @@ namespace UnityEngine.Rendering.Universal
                 }
             }
 
+            using (new ProfilingScope(null, Profiling.Pipeline.endCameraRendering))
+            {
+                EndCameraRendering(context, baseCamera);
+            }
 #if ENABLE_VR && ENABLE_XR_MODULE
             if (baseCameraData.xr.enabled)
                 baseCameraData.cameraTargetDescriptor = originalTargetDesc;
