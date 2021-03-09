@@ -67,6 +67,8 @@ namespace UnityEngine.Rendering.HighDefinition
             public Shader autodeskInteractiveMasked;
             [Reload("Runtime/RenderPipelineResources/ShaderGraph/AutodeskInteractiveTransparent.ShaderGraph")]
             public Shader autodeskInteractiveTransparent;
+            [Reload("Runtime/Material/Nature/SpeedTree8.shadergraph")]
+            public Shader defaultSpeedTree8Shader;
         }
 
         [Serializable, ReloadGroup]
