@@ -672,7 +672,10 @@ public class RenderGraphViewer : EditorWindow
         RenderGraph.onGraphUnregistered += OnGraphUnregistered;
         RenderGraph.onExecutionRegistered += OnExecutionRegistered;
         RenderGraph.onExecutionUnregistered += OnExecutionUnregistered;
+    }
 
+    private void CreateGUI()
+    {
         RebuildUI();
     }
 
