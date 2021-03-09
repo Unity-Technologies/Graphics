@@ -733,15 +733,15 @@ void ScreenSpaceReflectionsAccumulate(uint3 dispatchThreadId : SV_DispatchThread
 
 #ifdef TEST_SSR_INDEX_CURRENT
 	#ifdef TEST_SSR_SPEED_REJECTION
-		float speed = saturate((speedDst + speedDst) * _SsrPBRSpeedRejection);
+		float speed = saturate((speedDst + speedSrc) * _SsrPBRSpeedRejection);
 	#else
-		float speed = saturate((speedDst + speedDst) * 128.0f); // 128 is arbitrary
+		float speed = saturate((speedDst + speedSrc) * 128.0f); // 128 is arbitrary
 	#endif
 		float localAccum = pow(2, lerp(0.0f, -7.0f, _SsrAccumulationAmount));
 		float coefExpAvg = lerp(localAccum, 1.0f, speed);
 		float4 result = lerp(previous, original, coefExpAvg);
 #else
-		float speed = saturate((speedDst + speedDst));
+		float speed = saturate((speedDst + speedSrc));
 	#ifdef TEST_SSR_SPEED_REJECTION
 		float mu = _SsrAccumulationAmount * _SsrPBRSpeedRejection * (1.0f - speed) + 1.0f;
 	#else
