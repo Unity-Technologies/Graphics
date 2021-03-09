@@ -428,7 +428,7 @@ non_project_agents:
     flavor: b1.small
   package_ci_ubuntu_small_v124:
     type: Unity::VM
-    image: package-ci/ubuntu:v1.2.4-701378
+    image: package-ci/ubuntu:v1.2.4-701242
     flavor: b1.small
   package_ci_win_large:
     type: Unity::VM
