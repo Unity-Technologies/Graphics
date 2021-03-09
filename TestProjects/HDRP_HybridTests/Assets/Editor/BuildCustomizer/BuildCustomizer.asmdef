@@ -1,0 +1,17 @@
+{
+    "name": "BuildCustomizer",
+    "references": [
+        "GUID:3348cdac4e8a3c94baf775a68592a2a0"
+    ],
+    "includePlatforms": [
+        "Editor"
+    ],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": false,
+    "precompiledReferences": [],
+    "autoReferenced": true,
+    "defineConstraints": [],
+    "versionDefines": [],
+    "noEngineReferences": false
+}
