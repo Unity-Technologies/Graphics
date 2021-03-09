@@ -166,21 +166,31 @@ namespace UnityEngine.Rendering.HighDefinition
             assetCreated.lightLayerName6 = System.String.Copy(oldAsset.currentPlatformRenderPipelineSettings.m_ObsoleteLightLayerName6);
             assetCreated.lightLayerName7 = System.String.Copy(oldAsset.currentPlatformRenderPipelineSettings.m_ObsoleteLightLayerName7);
 
-            assetCreated.decalLayerName0 = System.String.Copy(oldAsset.currentPlatformRenderPipelineSettings.m_ObsoleteDecalLayerName0);
-            assetCreated.decalLayerName1 = System.String.Copy(oldAsset.currentPlatformRenderPipelineSettings.m_ObsoleteDecalLayerName1);
-            assetCreated.decalLayerName2 = System.String.Copy(oldAsset.currentPlatformRenderPipelineSettings.m_ObsoleteDecalLayerName2);
-            assetCreated.decalLayerName3 = System.String.Copy(oldAsset.currentPlatformRenderPipelineSettings.m_ObsoleteDecalLayerName3);
-            assetCreated.decalLayerName4 = System.String.Copy(oldAsset.currentPlatformRenderPipelineSettings.m_ObsoleteDecalLayerName4);
-            assetCreated.decalLayerName5 = System.String.Copy(oldAsset.currentPlatformRenderPipelineSettings.m_ObsoleteDecalLayerName5);
-            assetCreated.decalLayerName6 = System.String.Copy(oldAsset.currentPlatformRenderPipelineSettings.m_ObsoleteDecalLayerName6);
-            assetCreated.decalLayerName7 = System.String.Copy(oldAsset.currentPlatformRenderPipelineSettings.m_ObsoleteDecalLayerName7);
+            // Decal layer names were added in 2021 cycle
+            if (oldAsset.currentPlatformRenderPipelineSettings.m_ObsoleteDecalLayerName0 != null)
+            {
+                assetCreated.decalLayerName0 = System.String.Copy(oldAsset.currentPlatformRenderPipelineSettings.m_ObsoleteDecalLayerName0);
+                assetCreated.decalLayerName1 = System.String.Copy(oldAsset.currentPlatformRenderPipelineSettings.m_ObsoleteDecalLayerName1);
+                assetCreated.decalLayerName2 = System.String.Copy(oldAsset.currentPlatformRenderPipelineSettings.m_ObsoleteDecalLayerName2);
+                assetCreated.decalLayerName3 = System.String.Copy(oldAsset.currentPlatformRenderPipelineSettings.m_ObsoleteDecalLayerName3);
+                assetCreated.decalLayerName4 = System.String.Copy(oldAsset.currentPlatformRenderPipelineSettings.m_ObsoleteDecalLayerName4);
+                assetCreated.decalLayerName5 = System.String.Copy(oldAsset.currentPlatformRenderPipelineSettings.m_ObsoleteDecalLayerName5);
+                assetCreated.decalLayerName6 = System.String.Copy(oldAsset.currentPlatformRenderPipelineSettings.m_ObsoleteDecalLayerName6);
+                assetCreated.decalLayerName7 = System.String.Copy(oldAsset.currentPlatformRenderPipelineSettings.m_ObsoleteDecalLayerName7);
+            }
 
             assetCreated.shaderVariantLogLevel = oldAsset.m_ObsoleteShaderVariantLogLevel;
             assetCreated.lensAttenuationMode = oldAsset.m_ObsoleteLensAttenuation;
+
             // we need to make sure the old diffusion profile had time to upgrade before moving it away
             if (oldAsset.diffusionProfileSettings != null)
+            {
                 oldAsset.diffusionProfileSettings.TryToUpgrade();
-            assetCreated.diffusionProfileSettingsList = oldAsset.m_ObsoleteDiffusionProfileSettingsList;
+            }
+
+            System.Array.Resize(ref assetCreated.diffusionProfileSettingsList, oldAsset.m_ObsoleteDiffusionProfileSettingsList.Length);
+            for (int i = 0; i < oldAsset.m_ObsoleteDiffusionProfileSettingsList.Length; ++i)
+                assetCreated.diffusionProfileSettingsList[i] = oldAsset.m_ObsoleteDiffusionProfileSettingsList[i];
 
             //3. Clear obsolete fields
             if (bClearObsoleteFields)
