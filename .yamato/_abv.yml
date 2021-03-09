@@ -49,9 +49,6 @@ all_project_ci_nightly_2021.1:
         recurring:
           -  branch: 2021.1/staging
              frequency: 1 * * ?
-all_project_ci_weekly_2021.1:
-    name: _Weekly ABV against 2021.1
-    dependencies: []
 trunk_verification_2021.1:
     name: Trunk verification - 2021.1
     dependencies:
@@ -127,11 +124,6 @@ all_project_ci_nightly_CUSTOM-REVISION:
          rerun: always
       -  path: .yamato/_projectcontext.yml#all_package_ci_project_CUSTOM-REVISION
          rerun: always
-    variables:
-        CUSTOM_REVISION: custom_revision_not_set
-all_project_ci_weekly_CUSTOM-REVISION:
-    name: _Weekly ABV against CUSTOM-REVISION
-    dependencies: []
     variables:
         CUSTOM_REVISION: custom_revision_not_set
 trunk_verification_CUSTOM-REVISION:

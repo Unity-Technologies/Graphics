@@ -11,7 +11,7 @@ editor-pinning-target-to-ci:
     name: Merge 2021.1/staging to 2021.1/ci/editor-pinning
     agent:
         type: Unity::VM
-        image: package-ci/ubuntu:stable
+        image: package-ci/ubuntu:v1.2.4-701242
         flavor: b1.small
     variables:
         CI: true
@@ -28,13 +28,14 @@ editor-pinning-target-to-ci:
       -  git checkout 2021.1/ci/editor-pinning
       -  git config --global user.name "noreply@unity3d.com"
       -  git config --global user.email "noreply@unity3d.com"
+      -  git config core.whitespace cr-at-eol
       -  git merge 2021.1/staging --no-ff -X theirs
       -  git push
 editor-pinning-update:
     name: Update pinned editor versions
     agent:
         type: Unity::VM
-        image: package-ci/ubuntu:stable
+        image: package-ci/ubuntu:v1.2.4-701242
         flavor: b1.small
     variables:
         CI: true
@@ -53,6 +54,7 @@ editor-pinning-update:
                      fi
       -  git config --global user.name "noreply@unity3d.com"
       -  git config --global user.email "noreply@unity3d.com"
+      -  git config core.whitespace cr-at-eol
       -  pipenv run python3 .yamato/script/editor_scripts/update_revisions.py --target-branch 2021.1/ci/editor-pinning
     dependencies:
       -  .yamato/_editor_pinning.yml#editor-pinning-target-to-ci
@@ -64,7 +66,7 @@ editor-pinning-merge-revisions-2021.1:
     name: Merge [2021.1] revisions to 2021.1/staging [no ABV]
     agent:
         type: Unity::VM
-        image: package-ci/ubuntu:stable
+        image: package-ci/ubuntu:v1.2.4-701242
         flavor: b1.small
     variables:
         CI: true
@@ -83,6 +85,7 @@ editor-pinning-merge-revisions-2021.1:
                      fi
       -  git config --global user.name "noreply@unity3d.com"
       -  git config --global user.email "noreply@unity3d.com"
+      -  git config core.whitespace cr-at-eol
       -  pipenv run python3 .yamato/script/editor_scripts/merge_revisions.py --revision $GIT_REVISION --target-branch 2021.1/staging --track 2021.1
 editor-pinning-merge-revisions-2021.1-abv:
     name: Merge [2021.1] revisions to 2021.1/staging [ABV]
@@ -91,7 +94,7 @@ editor-pinning-merge-revisions-2021.1-abv:
       -  .yamato/_abv.yml#all_project_ci_2021.1
     agent:
         type: Unity::VM
-        image: package-ci/ubuntu:stable
+        image: package-ci/ubuntu:v1.2.4-701242
         flavor: b1.small
     variables:
         CI: true
@@ -110,6 +113,7 @@ editor-pinning-merge-revisions-2021.1-abv:
                      fi
       -  git config --global user.name "noreply@unity3d.com"
       -  git config --global user.email "noreply@unity3d.com"
+      -  git config core.whitespace cr-at-eol
       -  pipenv run python3 .yamato/script/editor_scripts/merge_revisions.py --revision $GIT_REVISION --target-branch 2021.1/staging --track 2021.1
 editor-pinning-merge-all:
     name: Merge all [no CI][2021.1 no ABV]
@@ -129,13 +133,14 @@ editor-pinning-store-green:
     name: Store green job revisions
     agent:
         type: Unity::VM
-        image: package-ci/ubuntu:stable
+        image: package-ci/ubuntu:v1.2.4-701242
         flavor: b1.small
     commands:
       -  sudo pip3 install pipenv --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple
       -  python3 -m pipenv install --dev
       -  git config --global user.name "noreply@unity3d.com"
       -  git config --global user.email "noreply@unity3d.com"
+      -  git config core.whitespace cr-at-eol
       -  pipenv run python3 .yamato/script/editor_scripts/store_green_revisions.py --target-branch $GIT_BRANCH --track 2021.1 --apikey $YAMATO_KEY
     triggers:
         recurring:
