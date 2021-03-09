@@ -59,7 +59,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                     AttributesMeshVFX, // TODO: Could probably re-use the original HD Attributes Mesh and just ensure Instancing enabled.
                     AppendVFXInterpolator(UniversalStructs.Varyings, context, data),
                     GenerateFragInputs(context, data),
-                    Structs.SurfaceDescriptionInputs,
+                    //Structs.SurfaceDescriptionInputs, //TODOPAUL : URP specific FragInput == SurfaceDescriptionInputs
                     Structs.VertexDescriptionInputs,
                     attributesStruct,
                     sourceAttributesStruct
@@ -168,9 +168,18 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 }
             }
 
+            //TODOPAUL - URP specific FragInput == SurfaceDescriptionInputs
+            //Gather & merge from StructFields.SurfaceDescriptionInputs
+            foreach (var field in Structs.SurfaceDescriptionInputs.fields)
+            {
+                if (fields.Where(o => o.name == field.name).Any())
+                    continue;
+                fields.Add(field);
+            }
+
             var fragInputs = new StructDescriptor
             {
-                name = StructFields.SurfaceDescriptionInputs.name,
+                name = StructFields.SurfaceDescriptionInputs.name, // == SurfaceDescriptionInputs on URP !
                 fields = fields.ToArray()
             };
 
