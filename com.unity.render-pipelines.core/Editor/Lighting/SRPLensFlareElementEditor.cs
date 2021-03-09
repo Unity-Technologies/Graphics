@@ -52,7 +52,6 @@ namespace UnityEditor.Rendering
         {
             float originX = position.x;
             float offsetHeight = 1.75f * (EditorGUIUtility.singleLineHeight + EditorGUIUtility.standardVerticalSpacing);
-            //Rect rect = new Rect(position.x + m_Indent, position.y, position.width - m_Indent, GUIStyle.none.lineHeight);
             InitFirstRect(position);
 
             SerializedProperty intensityProp = property.FindPropertyRelative("localIntensity");
@@ -63,8 +62,6 @@ namespace UnityEditor.Rendering
             SerializedProperty lensFlareProp = property.FindPropertyRelative("lensFlareTexture");
             SerializedProperty tintProp = property.FindPropertyRelative("tint");
             SerializedProperty blendModeProp = property.FindPropertyRelative("blendMode");
-            //SerializedProperty sizeProp = property.FindPropertyRelative("size");
-            //SerializedProperty aspectRatioProp = property.FindPropertyRelative("aspectRatio");
             SerializedProperty countProp = property.FindPropertyRelative("count");
             SerializedProperty rotationProp = property.FindPropertyRelative("rotation");
             SerializedProperty speedProp = property.FindPropertyRelative("speed");
@@ -156,14 +153,6 @@ namespace UnityEditor.Rendering
                     if ((tmp = EditorGUI.FloatField(rect, Styles.rotation, rotationProp.floatValue)) != rotationProp.floatValue)
                         rotationProp.floatValue = tmp;
                     rect = GetNextRect();
-                    //if ((tmp = EditorGUI.FloatField(rect, Styles.size, sizeProp.floatValue)) != sizeProp.floatValue)
-                    //    sizeProp.floatValue = Mathf.Max(tmp, 1e-5f);
-                    //if (!preserveAspectRatioProp.boolValue)
-                    //{
-                    //    rect = GetNextRect();
-                    //    if ((tmp = EditorGUI.FloatField(rect, Styles.aspectRatio, aspectRatioProp.floatValue)) != aspectRatioProp.floatValue)
-                    //        aspectRatioProp.floatValue = Mathf.Max(tmp, 1e-5f);
-                    //}
 
                     if ((tmp = EditorGUI.FloatField(rect, Styles.uniformScale, uniformScaleProp.floatValue)) != uniformScaleProp.floatValue)
                         uniformScaleProp.floatValue = Mathf.Max(tmp, 0.0f);
@@ -231,7 +220,6 @@ namespace UnityEditor.Rendering
                         if ((tmpTex = (EditorGUI.ObjectField(rect, Styles.flareTexture, lensFlareProp.objectReferenceValue, typeof(Texture), false) as Texture)) != (lensFlareProp.objectReferenceValue as Texture))
                         {
                             lensFlareProp.objectReferenceValue = tmpTex;
-                            //aspectRatioProp.serializedObject.ApplyModifiedProperties();
                             lensFlareProp.serializedObject.ApplyModifiedProperties();
                         }
 
@@ -436,8 +424,6 @@ namespace UnityEditor.Rendering
             static public readonly GUIContent flareTexture = EditorGUIUtility.TrTextContent("Flare Texture", "Texture used to for this Lens Flare Element.");
             static public readonly GUIContent tint = EditorGUIUtility.TrTextContent("Tint", "Tint of the texture can be modulated by the light it is attached to if Modulate By Light Color is enabled..");
             static public readonly GUIContent blendMode = EditorGUIUtility.TrTextContent("Blend Mode", "Blend mode used.");
-            //static public readonly GUIContent size = EditorGUIUtility.TrTextContent("Size", "Scale applied to the element.");
-            //static public readonly GUIContent aspectRatio = EditorGUIUtility.TrTextContent("Aspect Ratio", "Aspect ratio (width / height).");
             static public readonly GUIContent preserveAspectRatio = EditorGUIUtility.TrTextContent("Preserve Aspect Ratio", "Preserve Aspect ratio (width / height).");
 
             static public readonly GUIContent uniformScale = EditorGUIUtility.TrTextContent("Scale", "REPLACE ME");

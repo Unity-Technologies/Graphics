@@ -2401,7 +2401,7 @@ namespace UnityEngine.Rendering.HighDefinition
                     if (element.flareType == SRPLensFlareType.Image)
                         usedAspectRatio = element.preserveAspectRatio ? (((float)texture.width) / ((float)texture.height)) : 1.0f;
                     else
-                        usedAspectRatio = 1.0f;//element.preserveAspectRatio ? 1.0f : elemAspectRatio;
+                        usedAspectRatio = 1.0f;
 
                     float rotation = element.rotation;
                     Vector4 tint = Vector4.Scale(element.tint, curColor);

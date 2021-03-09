@@ -87,8 +87,6 @@ namespace UnityEngine
             angularOffset = 0.0f;
             translationScale = new Vector2(1.0f, 1.0f);
             lensFlareTexture = null;
-            //size = 1.0f;
-            //aspectRatio = 1.0f;
             uniformScale = 1.0f;
             sizeXY = Vector2.one;
             count = 1;
@@ -154,17 +152,13 @@ namespace UnityEngine
         /// Texture used to for this Lens Flare Element
         /// </summary>
         public Texture lensFlareTexture;
-        ///// <summary>
-        ///// Scale applied on the width of the texture
-        ///// </summary>
-        //[Min(0.0f)]
-        //public float size;
-        ///// <summary>
-        ///// Aspect ratio (height / width)
-        ///// </summary>
-        //[Min(0.0f)]
-        //public float aspectRatio;
+        /// <summary>
+        /// Uniform scale applied
+        /// </summary>
         public float uniformScale;
+        /// <summary>
+        /// Scale size on each dimension
+        /// </summary>
         public Vector2 sizeXY;
         /// <summary>
         /// Element can be repeated 'count' times
