@@ -10,13 +10,14 @@ namespace UnityEngine
     public enum SRPLensFlareBlendMode
     {
         /// <summary>
-        /// Lerp: Blend SrcAlpha OneMinusSrcAlpha
-        /// </summary>
-        Lerp,
-        /// <summary>
         /// Additive: Blend One One
         /// </summary>
         Additive,
+        /// <summary>
+        /// Screen:
+        ///     Blend One OneMinusSrcColor
+        /// </summary>
+        Screen,
         /// <summary>
         /// Premultiply:
         ///     Blend One OneMinusSrcAlpha
@@ -24,10 +25,9 @@ namespace UnityEngine
         /// </summary>
         Premultiply,
         /// <summary>
-        /// Screen:
-        ///     Blend One OneMinusSrcColor
+        /// Lerp: Blend SrcAlpha OneMinusSrcAlpha
         /// </summary>
-        Screen
+        Lerp
     }
 
     /// <summary>
@@ -37,17 +37,17 @@ namespace UnityEngine
     public enum SRPLensFlareDistribution
     {
         /// <summary>
-        /// Random distribution
-        /// </summary>
-        Random,
-        /// <summary>
         /// Uniformly spread
         /// </summary>
         Uniform,
         /// <summary>
         /// Controlled with curved
         /// </summary>
-        Curve
+        Curve,
+        /// <summary>
+        /// Random distribution
+        /// </summary>
+        Random
     }
 
     /// <summary>
