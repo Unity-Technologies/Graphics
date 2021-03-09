@@ -501,6 +501,7 @@ namespace UnityEngine.Rendering.Universal
 #endif
             using (new ProfilingScope(null, Profiling.Pipeline.beginCameraRendering))
             {
+                UpdateLegacyStereoMatrices(baseCameraData);
                 BeginCameraRendering(context, baseCamera);
             }
 #if VISUAL_EFFECT_GRAPH_0_0_1_OR_NEWER
@@ -535,6 +536,7 @@ namespace UnityEngine.Rendering.Universal
 
                         using (new ProfilingScope(null, Profiling.Pipeline.beginCameraRendering))
                         {
+                            UpdateLegacyStereoMatrices(baseCameraData);
                             BeginCameraRendering(context, currCamera);
                         }
 #if VISUAL_EFFECT_GRAPH_0_0_1_OR_NEWER
@@ -1016,6 +1018,20 @@ namespace UnityEngine.Rendering.Universal
             lightData.shadeAdditionalLightsPerVertex = settings.additionalLightsRenderingMode == LightRenderingMode.PerVertex;
             lightData.visibleLights = visibleLights;
             lightData.supportsMixedLighting = settings.supportsMixedLighting;
+        }
+
+        static void UpdateLegacyStereoMatrices(CameraData cameraData)
+        {
+#if ENABLE_VR && ENABLE_XR_MODULE
+            if (cameraData.xr.enabled)
+            {
+                for (int i = 0; i < Mathf.Min(2, cameraData.xr.viewCount); i++)
+                {
+                    cameraData.camera.SetStereoProjectionMatrix((Camera.StereoscopicEye)i, cameraData.GetProjectionMatrix(i));
+                    cameraData.camera.SetStereoViewMatrix((Camera.StereoscopicEye)i, cameraData.GetViewMatrix(i));
+                }
+            }
+#endif
         }
 
         static PerObjectData GetPerObjectLightFlags(int additionalLightsCount)
