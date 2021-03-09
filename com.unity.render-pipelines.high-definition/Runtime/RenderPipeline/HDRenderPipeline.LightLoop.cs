@@ -426,6 +426,7 @@ namespace UnityEngine.Rendering.HighDefinition
             public float frameIndex;
             public float roughnessBiasFactor;
             public float speedRejectionFactor;
+            public float motionVectorThreshold;
         }
 
         void UpdateSSRConstantBuffer(HDCamera hdCamera, ScreenSpaceReflection settings, ref ShaderVariablesScreenSpaceReflection cb)
@@ -636,6 +637,7 @@ namespace UnityEngine.Rendering.HighDefinition
                                     ctx.cmd.SetComputeTextureParam(cs, data.accumulateKernel, HDShaderIDs._CameraMotionVectorsTexture, data.motionVectorsBuffer);
                                     ctx.cmd.SetComputeFloatParam(cs, HDShaderIDs._SsrFrameIndex, data.frameIndex);
                                     ctx.cmd.SetComputeFloatParam(cs, HDShaderIDs._SsrPBRSpeedRejection, data.speedRejectionFactor);
+                                    ctx.cmd.SetComputeFloatParam(cs, HDShaderIDs._SsrPBRMotionVectorThreshold, data.motionVectorThreshold);
 
                                     ConstantBuffer.Push(ctx.cmd, data.cb, cs, HDShaderIDs._ShaderVariablesScreenSpaceReflection);
 

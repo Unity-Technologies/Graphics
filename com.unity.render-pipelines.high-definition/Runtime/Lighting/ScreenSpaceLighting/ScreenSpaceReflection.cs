@@ -121,7 +121,12 @@ namespace UnityEngine.Rendering.HighDefinition
         /// <summary>
         /// For PBR: the internal speed rejection parameter
         /// </summary>
-        public FloatParameter speedRejectionParam = new FloatParameter(1.5f);
+        public FloatParameter speedRejectionParam = new ClampedFloatParameter(64f, 0.0f, 256.0f);
+		
+		/// <summary>
+        /// For PBR: Motion vector threshold parameter
+        /// </summary>
+        public FloatParameter motionVectorThreshold = new ClampedFloatParameter(0.33f, 0.0f, 2.0f);
 
         /// <summary>
         /// Layer mask used to include the objects for screen space reflection.

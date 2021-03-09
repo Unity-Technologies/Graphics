@@ -24,6 +24,7 @@ namespace UnityEditor.Rendering.HighDefinition
         SerializedDataParameter m_AccumulationFactor;
         SerializedDataParameter m_BiasFactor;
         SerializedDataParameter m_SpeedRejectionFactor;
+        SerializedDataParameter m_MotionVectorThreshold;
 
         // Ray Tracing
         SerializedDataParameter m_LayerMask;
@@ -60,6 +61,7 @@ namespace UnityEditor.Rendering.HighDefinition
             m_AccumulationFactor            = Unpack(o.Find(x => x.accumulationFactor));
             m_BiasFactor                    = Unpack(o.Find(x => x.biasFactor));
             m_SpeedRejectionFactor          = Unpack(o.Find(x => x.speedRejectionParam));
+            m_MotionVectorThreshold         = Unpack(o.Find(x => x.motionVectorThreshold));
 
             // Generic ray tracing
             m_LayerMask                     = Unpack(o.Find(x => x.layerMask));
@@ -90,6 +92,7 @@ namespace UnityEditor.Rendering.HighDefinition
         static public readonly GUIContent k_AccumulationFactorText = EditorGUIUtility.TrTextContent("Accumulation Factor", "Controls Controls the amount of accumulation (0 no accumulation, 1 just accumulate).");
         static public readonly GUIContent k_BiasFactorText = EditorGUIUtility.TrTextContent("Roughness Bias Factor", "Controls Controls the amount of bias (0 no bias, 1 biased ssr).");
         static public readonly GUIContent k_SpeedRejectionFactorText = EditorGUIUtility.TrTextContent("Speed Rejection Factor", "REPLACE ME.");
+        static public readonly GUIContent k_MotionVectorThresholdText = EditorGUIUtility.TrTextContent("Motion Vector Threshold", "REPLACE ME.");
         static public readonly GUIContent k_DepthBufferThicknessText = EditorGUIUtility.TrTextContent("Object Thickness", "Controls the typical thickness of objects the reflection rays may pass behind.");
         static public readonly GUIContent k_RayMaxIterationsText = EditorGUIUtility.TrTextContent("Max Ray Steps", "Sets the maximum number of steps HDRP uses for raytracing. Affects both correctness and performance.");
         static public readonly GUIContent k_RayLengthText = EditorGUIUtility.TrTextContent("Max Ray Length", "Controls the maximal length of reflection rays. The higher this value is, the more expensive ray traced reflections are.");
@@ -232,6 +235,7 @@ namespace UnityEditor.Rendering.HighDefinition
                     PropertyField(m_AccumulationFactor, k_AccumulationFactorText);
                     PropertyField(m_BiasFactor, k_BiasFactorText);
                     PropertyField(m_SpeedRejectionFactor, k_SpeedRejectionFactorText);
+                    PropertyField(m_MotionVectorThreshold, k_MotionVectorThresholdText);
                 }
             }
         }

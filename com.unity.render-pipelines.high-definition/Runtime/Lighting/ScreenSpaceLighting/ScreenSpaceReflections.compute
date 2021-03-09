@@ -85,6 +85,7 @@ TEXTURE2D_X(_DepthTexture);
     RW_TEXTURE2D_X(float4, _SsrLightingTextureRW);
     RW_TEXTURE2D_X(float4, _SSRAccumTexture);
 	float _SsrPBRSpeedRejection;
+	float _SsrPBRMotionVectorThreshold;
 #endif
 
     TEXTURE2D_X(            _SsrClearCoatMaskTexture);
@@ -697,9 +698,9 @@ void ScreenSpaceReflectionsAccumulate(uint3 dispatchThreadId : SV_DispatchThread
     float4 original = _SSRAccumTexture[COORD_TEXTURE2D_X(positionSS)];
     float4 previous = _SsrAccumPrev[COORD_TEXTURE2D_X(positionSS * _RTHandleScaleHistory.zw / _RTHandleScaleHistory.xy)];
 
-//#define TEST_SSR_USAGE
+#define TEST_SSR_USAGE
 #define TEST_SSR_SPEED_REJECTION
-//#define TEST_SSR_INDEX_CURRENT
+#define TEST_SSR_INDEX_CURRENT
 
 #ifdef TEST_SSR_USAGE
 	// CUSTOM CODE BEGIN
@@ -711,7 +712,7 @@ void ScreenSpaceReflectionsAccumulate(uint3 dispatchThreadId : SV_DispatchThread
 	float2 motionVectorSS = motionVector / _ScreenSize.zw;
 	float2 prevSS = float2(positionSS.x, positionSS.y);
 	// sometimes small motion occurs out of nowhere. could be floating point errors. it gives smears and blurry artifatcs. thats why i clamp it here
-	if (length(motionVectorSS) < 0.33)
+	if (length(motionVectorSS) < _SsrPBRMotionVectorThreshold)
 	{
 		motionVectorSS = float2(0, 0);
 	}
