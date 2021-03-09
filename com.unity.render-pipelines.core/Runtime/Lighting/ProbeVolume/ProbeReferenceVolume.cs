@@ -229,6 +229,8 @@ namespace UnityEngine.Rendering
         private Vector3Int m_PendingIndexDimChange;
         private bool m_NeedsIndexDimChange = false;
 
+        internal float normalBiasFromProfile;
+
         static private ProbeReferenceVolume _instance = new ProbeReferenceVolume();
 
         /// <summary>
@@ -307,6 +309,15 @@ namespace UnityEngine.Rendering
             }
         }
 
+        private void PerformPendingNormalBiasChange()
+        {
+            if (m_NormalBias != normalBiasFromProfile)
+            {
+                m_NormalBias = normalBiasFromProfile;
+                m_Index.WriteConstants(ref m_Transform, m_Pool.GetPoolDimensions(), m_NormalBias);
+            }
+        }
+
         private void LoadAsset(ProbeVolumeAsset asset)
         {
             var path = asset.GetSerializedFullPath();
@@ -326,6 +337,8 @@ namespace UnityEngine.Rendering
 
                 cells[cell.index] = cell;
                 m_AssetPathToBricks[path].Add(regId);
+
+                dataLocation.Cleanup();
             }
         }
 
@@ -362,8 +375,6 @@ namespace UnityEngine.Rendering
             if (m_PendingAssetsToBeUnloaded.Count == 0 || !m_ProbeReferenceVolumeInit)
                 return;
 
-            m_Pool.EnsureTextureValidity();
-
             var dictionaryValues = m_PendingAssetsToBeUnloaded.Values;
             foreach (var asset in dictionaryValues)
             {
@@ -379,6 +390,7 @@ namespace UnityEngine.Rendering
         public void PerformPendingOperations()
         {
             PerformPendingDeletion();
+            PerformPendingNormalBiasChange();
             PerformPendingIndexDimensionChange();
             PerformPendingLoading();
         }
@@ -391,23 +403,26 @@ namespace UnityEngine.Rendering
         /// <param name ="indexDimensions">Dimensions of the index data structure.</param>
         public void InitProbeReferenceVolume(int allocationSize, ProbeVolumeTextureMemoryBudget memoryBudget, Vector3Int indexDimensions)
         {
-            Profiler.BeginSample("Initialize Reference Volume");
-            m_Pool = new ProbeBrickPool(allocationSize, memoryBudget);
-            m_Index = new ProbeBrickIndex(indexDimensions);
+            if (!m_ProbeReferenceVolumeInit)
+            {
+                Profiler.BeginSample("Initialize Reference Volume");
+                m_Pool = new ProbeBrickPool(allocationSize, memoryBudget);
+                m_Index = new ProbeBrickIndex(indexDimensions);
 
-            m_TmpBricks[0] = new List<Brick>();
-            m_TmpBricks[1] = new List<Brick>();
-            m_TmpBricks[0].Capacity = m_TmpBricks[1].Capacity = 1024;
+                m_TmpBricks[0] = new List<Brick>();
+                m_TmpBricks[1] = new List<Brick>();
+                m_TmpBricks[0].Capacity = m_TmpBricks[1].Capacity = 1024;
 
-            // initialize offsets
-            m_PositionOffsets[0] = 0.0f;
-            float probeDelta = 1.0f / ProbeBrickPool.kBrickCellCount;
-            for (int i = 1; i < ProbeBrickPool.kBrickProbeCountPerDim - 1; i++)
-                m_PositionOffsets[i] = i * probeDelta;
-            m_PositionOffsets[m_PositionOffsets.Length - 1] = 1.0f;
-            Profiler.EndSample();
+                // initialize offsets
+                m_PositionOffsets[0] = 0.0f;
+                float probeDelta = 1.0f / ProbeBrickPool.kBrickCellCount;
+                for (int i = 1; i < ProbeBrickPool.kBrickProbeCountPerDim - 1; i++)
+                    m_PositionOffsets[i] = i * probeDelta;
+                m_PositionOffsets[m_PositionOffsets.Length - 1] = 1.0f;
+                Profiler.EndSample();
 
-            m_ProbeReferenceVolumeInit = true;
+                m_ProbeReferenceVolumeInit = true;
+            }
             m_NeedLoadAsset = true;
         }
 
@@ -755,10 +770,11 @@ namespace UnityEngine.Rendering
 
             if (m_ProbeReferenceVolumeInit)
             {
-                m_ProbeReferenceVolumeInit = false;
                 m_Index.Cleanup();
                 m_Pool.Cleanup();
             }
+
+            m_ProbeReferenceVolumeInit = false;
         }
     }
 }
