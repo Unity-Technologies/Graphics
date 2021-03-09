@@ -72,9 +72,25 @@ namespace UnityEditor.Rendering
         }
 
         // UI Helpers
+
+        /// <summary>Creates a 1x1 <see cref="Texture2D"/> with a plain <see cref="Color"/></summary>
+        /// <param name="color">The color to fill the texture</param>
+        /// <returns>a <see cref="Texture2D"/></returns>
+        public static Texture2D CreateColoredTexture2D(Color color, string textureName)
+        {
+            Texture2D tex2 = new Texture2D(1, 1)
+            {
+                hideFlags = HideFlags.HideAndDontSave,
+                name = textureName
+            };
+            tex2.SetPixel(1, 1, color);
+            tex2.Apply();
+            return tex2;
+        }
+
         /// <summary>Draw a Fix button</summary>
         /// <param name="text">Displayed message</param>
-        /// <param name="action">Action performed when fix buttom is clicked</param>
+        /// <param name="action">Action performed when fix button is clicked</param>
         public static void DrawFixMeBox(string text, Action action)
         {
             EditorGUILayout.HelpBox(text, MessageType.Warning);
@@ -795,6 +811,27 @@ namespace UnityEditor.Rendering
             }
 
             return data;
+        }
+
+        /// <summary>Add the appropriate AdditionalData to the given GameObject and its children containing the original component</summary>
+        /// <typeparam name="T">The type of the original component</typeparam>
+        /// <typeparam name="AdditionalT">The type of the AdditionalData component</typeparam>
+        /// <param name="go">The root object to update</param>
+        /// <param name="initDefault">[Optional] The default value to use if there is no AdditionalData</param>
+        public static void AddAdditionalData<T, AdditionalT>(GameObject go, Action<AdditionalT> initDefault = null)
+            where T : Component
+            where AdditionalT : Component
+        {
+            var components = go.GetComponentsInChildren(typeof(T), true);
+            foreach (var c in components)
+            {
+                if (!c.TryGetComponent<AdditionalT>(out _))
+                {
+                    var hd = c.gameObject.AddComponent<AdditionalT>();
+                    if (initDefault != null)
+                        initDefault(hd);
+                }
+            }
         }
 
         /// <summary>Create a game object</summary>

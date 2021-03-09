@@ -11,7 +11,7 @@ The Motion Blur effect uses velocities from HDRP's velocity buffer. This means t
 1. In the Scene or Hierarchy view, select a GameObject that contains a Volume component to view it in the Inspector.
 2. In the Inspector, navigate to **Add Override > Post-processing** and click on **Motion Blur**. HDRP now applies **Motion Blur** to any Camera this Volume affects.
 
-Motion Blur includes [more options](More-Options.md) that you must manually expose.
+Motion Blur includes [additional properties](More-Options.md) that you must manually expose.
 
 [!include[](snippets/volume-override-api.md)]
 

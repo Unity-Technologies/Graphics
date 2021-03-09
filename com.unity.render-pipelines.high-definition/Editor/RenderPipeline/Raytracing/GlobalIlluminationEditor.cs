@@ -13,7 +13,6 @@ namespace UnityEditor.Rendering.HighDefinition
         SerializedDataParameter m_Enable;
 
         // Screen space global illumination parameters
-        SerializedDataParameter m_FullResolutionSS;
         SerializedDataParameter m_DepthBufferThickness;
         SerializedDataParameter m_RaySteps;
         SerializedDataParameter m_FilterRadius;
@@ -46,7 +45,6 @@ namespace UnityEditor.Rendering.HighDefinition
             m_Enable = Unpack(o.Find(x => x.enable));
 
             // SSGI Parameters
-            m_FullResolutionSS = Unpack(o.Find(x => x.fullResolutionSS));
             m_DepthBufferThickness = Unpack(o.Find(x => x.depthBufferThickness));
             m_RaySteps = Unpack(o.Find(x => x.raySteps));
             m_FilterRadius = Unpack(o.Find(x => x.filterRadius));
@@ -196,11 +194,9 @@ namespace UnityEditor.Rendering.HighDefinition
                     using (new HDEditorUtils.IndentScope())
                     using (new QualityScope(this))
                     {
-                        PropertyField(m_FullResolutionSS, EditorGUIUtility.TrTextContent("Full Resolution", "Enables full resolution mode."));
                         PropertyField(m_RaySteps);
                         PropertyField(m_FilterRadius);
                     }
-
                     PropertyField(m_DepthBufferThickness, k_DepthBufferThicknessText);
                 }
             }
@@ -222,7 +218,6 @@ namespace UnityEditor.Rendering.HighDefinition
             settings.Save<bool>(m_SecondDenoiserPass);
 
             // SSGI
-            settings.Save<bool>(m_FullResolutionSS);
             settings.Save<int>(m_RaySteps);
             settings.Save<int>(m_FilterRadius);
 
@@ -242,7 +237,6 @@ namespace UnityEditor.Rendering.HighDefinition
             settings.TryLoad<bool>(ref m_SecondDenoiserPass);
 
             // SSGI
-            settings.TryLoad<bool>(ref m_FullResolutionSS);
             settings.TryLoad<int>(ref m_RaySteps);
             settings.TryLoad<int>(ref m_FilterRadius);
         }
@@ -260,7 +254,6 @@ namespace UnityEditor.Rendering.HighDefinition
             CopySetting(ref m_SecondDenoiserPass, settings.lightingQualitySettings.RTGISecondDenoise[level]);
 
             // SSGI
-            CopySetting(ref m_FullResolutionSS, settings.lightingQualitySettings.SSGIFullResolution[level]);
             CopySetting(ref m_RaySteps, settings.lightingQualitySettings.SSGIRaySteps[level]);
             CopySetting(ref m_FilterRadius, settings.lightingQualitySettings.SSGIFilterRadius[level]);
         }

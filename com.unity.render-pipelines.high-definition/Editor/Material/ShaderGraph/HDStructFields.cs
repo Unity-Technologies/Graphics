@@ -29,7 +29,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             public static FieldDescriptor instanceID = new FieldDescriptor(AttributesMesh.name, "instanceID", "", ShaderValueType.Uint,
                 "INSTANCEID_SEMANTIC", "UNITY_ANY_INSTANCING_ENABLED");
             public static FieldDescriptor vertexID = new FieldDescriptor(AttributesMesh.name, "vertexID", "ATTRIBUTES_NEED_VERTEXID", ShaderValueType.Uint,
-                "SV_VertexID", subscriptOptions: StructFieldOptions.Optional);
+                "VERTEXID_SEMANTIC", subscriptOptions: StructFieldOptions.Optional);
         }
 
         public struct VaryingsMeshToPS

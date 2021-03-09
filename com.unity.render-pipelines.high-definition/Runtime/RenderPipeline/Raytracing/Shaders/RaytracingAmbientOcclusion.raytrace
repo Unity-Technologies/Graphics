@@ -21,6 +21,7 @@ TEXTURE2D_X(_DepthTexture);
 
 // Output structure of the reflection raytrace shader
 RW_TEXTURE2D_X(float, _AmbientOcclusionTextureRW);
+RW_TEXTURE2D_X(float, _VelocityBuffer);
 
 [shader("miss")]
 void MissShaderAmbientOcclusion(inout RayIntersection rayIntersection : SV_RayPayload)
@@ -66,7 +67,7 @@ void RayGenAmbientOcclusion()
 
 	// Variable that accumulate the radiance
 	float finalColor = 0.0;
-
+	float velocity = 0.0f;
 	// Let's loop through th e samples
 	for (int i = 0; i < numSamples; ++i)
 	{
@@ -98,8 +99,9 @@ void RayGenAmbientOcclusion()
 
 		// Evaluate the ray intersection
 		TraceRay(_RaytracingAccelerationStructure, RAY_FLAG_CULL_BACK_FACING_TRIANGLES, RAYTRACINGRENDERERFLAG_AMBIENT_OCCLUSION, 0, 1, 0, rayDescriptor, rayIntersection);
-		
+			
 		// Accumulate this value
+		velocity = max(velocity, rayIntersection.velocity);
 		finalColor += rayIntersection.color.x;
 	}
 
@@ -108,6 +110,7 @@ void RayGenAmbientOcclusion()
 
 	// Alright we are done
     _AmbientOcclusionTextureRW[COORD_TEXTURE2D_X(currentPixelCoord)] = finalColor;
+    _VelocityBuffer[COORD_TEXTURE2D_X(currentPixelCoord)] = velocity;
 }
 
 // Fallback default any hit shader for this raytrace shader

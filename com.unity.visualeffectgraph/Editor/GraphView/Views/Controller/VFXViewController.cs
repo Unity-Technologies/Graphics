@@ -621,6 +621,12 @@ namespace UnityEditor.VFX.UI
                 VFXParameterNodeController fromController = output.sourceNode as VFXParameterNodeController;
                 if (fromController != null)
                 {
+                    foreach (var anyNode in fromController.parentController.nodes)
+                    {
+                        if (anyNode.infos.linkedSlots != null)
+                            anyNode.infos.linkedSlots.RemoveAll(t => t.inputSlot == resulting.inputSlot && t.outputSlot == resulting.outputSlot);
+                    }
+
                     if (fromController.infos.linkedSlots == null)
                         fromController.infos.linkedSlots = new List<VFXParameter.NodeLinkedSlot>();
                     fromController.infos.linkedSlots.Add(resulting);
@@ -629,6 +635,12 @@ namespace UnityEditor.VFX.UI
                 VFXParameterNodeController toController = input.sourceNode as VFXParameterNodeController;
                 if (toController != null)
                 {
+                    foreach (var anyNode in toController.parentController.nodes)
+                    {
+                        if (anyNode.infos.linkedSlots != null)
+                            anyNode.infos.linkedSlots.RemoveAll(t => t.inputSlot == resulting.inputSlot && t.outputSlot == resulting.outputSlot);
+                    }
+
                     var infos = toController.infos;
                     if (infos.linkedSlots == null)
                         infos.linkedSlots = new List<VFXParameter.NodeLinkedSlot>();
