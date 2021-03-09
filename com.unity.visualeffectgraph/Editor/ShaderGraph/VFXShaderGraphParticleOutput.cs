@@ -73,9 +73,9 @@ namespace UnityEditor.VFX
 
             if (m_MaterialEditor != null)
             {
-                if ((m_MaterialEditor.target as Material)?.shader == null)
+                if (m_MaterialEditor.target == null || (m_MaterialEditor.target as Material)?.shader == null)
                 {
-                    EditorGUILayout.HelpBox("Failed to create the render state material.", MessageType.Warning);
+                    EditorGUILayout.HelpBox("Material Destroyed.", MessageType.Warning);
                 }
                 else
                 {
