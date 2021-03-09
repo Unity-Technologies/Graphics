@@ -29,6 +29,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Sample Mesh Color when value is stored as float.
 - Prevent infinite compilation loop [Case 1298466](https://issuetracker.unity3d.com/product/unity/issues/guid/1298466/)
 - Remove some useless compilation triggers (modifying not connected or disabled nodes for instance)
+- Fixed issue with VFX using incorrect buffer type for strip data
 
 ## [10.2.0] - 2020-10-19
 ### Added
