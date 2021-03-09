@@ -8,7 +8,7 @@
 ---
 
 editor-pinning-target-to-ci:
-    name: Merge yamato/old-package-ci-image to yamato/old-package-ci-image-ci
+    name: Merge master to ci/editor-pinning
     agent:
         type: Unity::VM
         image: package-ci/ubuntu:v1.2.4-701242
@@ -19,16 +19,16 @@ editor-pinning-target-to-ci:
       -  echo $GIT_BRANCH
       -  |5-
 
-                     if [[ "$GIT_BRANCH" != "yamato/old-package-ci-image" ]]; then
-                         echo "Should run on 'yamato/old-package-ci-image' but is running on '$GIT_BRANCH'"
+                     if [[ "$GIT_BRANCH" != "master" ]]; then
+                         echo "Should run on 'master' but is running on '$GIT_BRANCH'"
                          exit 1
                      fi
       -  git fetch
-      -  git checkout yamato/old-package-ci-image
-      -  git checkout yamato/old-package-ci-image-ci
+      -  git checkout master
+      -  git checkout ci/editor-pinning
       -  git config --global user.name "noreply@unity3d.com"
       -  git config --global user.email "noreply@unity3d.com"
-      -  git merge yamato/old-package-ci-image --no-ff -X theirs
+      -  git merge master --no-ff -X theirs
       -  git push
 editor-pinning-update:
     name: Update pinned editor versions
@@ -47,21 +47,21 @@ editor-pinning-update:
       -  sudo apt-get install yamato-parser -y
       -  |5-
 
-                     if [[ "$GIT_BRANCH" != "yamato/old-package-ci-image" ]]; then
-                         echo "Should run on 'yamato/old-package-ci-image' but is running on '$GIT_BRANCH'"
+                     if [[ "$GIT_BRANCH" != "master" ]]; then
+                         echo "Should run on 'master' but is running on '$GIT_BRANCH'"
                          exit 1
                      fi
       -  git config --global user.name "noreply@unity3d.com"
       -  git config --global user.email "noreply@unity3d.com"
-      -  pipenv run python3 .yamato/script/editor_scripts/update_revisions.py --target-branch yamato/old-package-ci-image-ci
+      -  pipenv run python3 .yamato/script/editor_scripts/update_revisions.py --target-branch ci/editor-pinning
     dependencies:
       -  .yamato/_editor_pinning.yml#editor-pinning-target-to-ci
     triggers:
         recurring:
-          -  branch: yamato/old-package-ci-image
+          -  branch: master
              frequency: 23 * * ?
 editor-pinning-merge-revisions-trunk:
-    name: Merge [trunk] revisions to yamato/old-package-ci-image [no ABV]
+    name: Merge [trunk] revisions to master [no ABV]
     agent:
         type: Unity::VM
         image: package-ci/ubuntu:v1.2.4-701242
@@ -77,15 +77,15 @@ editor-pinning-merge-revisions-trunk:
       -  sudo apt-get install yamato-parser -y
       -  |5-
 
-                     if [[ "$GIT_BRANCH" != "yamato/old-package-ci-image-ci" ]]; then
-                         echo "Should run on 'yamato/old-package-ci-image-ci' but is running on '$GIT_BRANCH'"
+                     if [[ "$GIT_BRANCH" != "ci/editor-pinning" ]]; then
+                         echo "Should run on 'ci/editor-pinning' but is running on '$GIT_BRANCH'"
                          exit 1
                      fi
       -  git config --global user.name "noreply@unity3d.com"
       -  git config --global user.email "noreply@unity3d.com"
-      -  pipenv run python3 .yamato/script/editor_scripts/merge_revisions.py --revision $GIT_REVISION --target-branch yamato/old-package-ci-image --track trunk
+      -  pipenv run python3 .yamato/script/editor_scripts/merge_revisions.py --revision $GIT_REVISION --target-branch master --track trunk
 editor-pinning-merge-revisions-trunk-abv:
-    name: Merge [trunk] revisions to yamato/old-package-ci-image [ABV]
+    name: Merge [trunk] revisions to master [ABV]
     allow_failure: true
     dependencies:
       -  .yamato/_abv.yml#all_project_ci_trunk
@@ -104,13 +104,13 @@ editor-pinning-merge-revisions-trunk-abv:
       -  sudo apt-get install yamato-parser -y
       -  |5-
 
-                     if [[ "$GIT_BRANCH" != "yamato/old-package-ci-image-ci" ]]; then
-                         echo "Should run on 'yamato/old-package-ci-image-ci' but is running on '$GIT_BRANCH'"
+                     if [[ "$GIT_BRANCH" != "ci/editor-pinning" ]]; then
+                         echo "Should run on 'ci/editor-pinning' but is running on '$GIT_BRANCH'"
                          exit 1
                      fi
       -  git config --global user.name "noreply@unity3d.com"
       -  git config --global user.email "noreply@unity3d.com"
-      -  pipenv run python3 .yamato/script/editor_scripts/merge_revisions.py --revision $GIT_REVISION --target-branch yamato/old-package-ci-image --track trunk
+      -  pipenv run python3 .yamato/script/editor_scripts/merge_revisions.py --revision $GIT_REVISION --target-branch master --track trunk
 editor-pinning-merge-all:
     name: Merge all [no CI][trunk no ABV]
     variables:
@@ -120,7 +120,7 @@ editor-pinning-merge-all:
 editor-pinning-merge-all-ci:
     name: Merge all [CI][trunk no ABV]
     triggers:
-        expression: push.branch eq "yamato/old-package-ci-image-ci" AND push.changes.any match "**/_latest_editor_versions*.metafile"
+        expression: push.branch eq "ci/editor-pinning" AND push.changes.any match "**/_latest_editor_versions*.metafile"
     variables:
         CI: true
     dependencies:
@@ -139,5 +139,5 @@ editor-pinning-store-green:
       -  pipenv run python3 .yamato/script/editor_scripts/store_green_revisions.py --target-branch $GIT_BRANCH --track trunk --apikey $YAMATO_KEY
     triggers:
         recurring:
-          -  branch: yamato/old-package-ci-image
+          -  branch: master
              frequency: 7 * * ?
