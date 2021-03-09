@@ -201,6 +201,9 @@ namespace UnityEngine.Rendering
 
         private bool ShouldCull(Vector3 cellPosition)
         {
+            if (m_Profile == null)
+                return true;
+
             var refVolTranslation = this.transform.position;
             var refVolRotation = this.transform.rotation;
 

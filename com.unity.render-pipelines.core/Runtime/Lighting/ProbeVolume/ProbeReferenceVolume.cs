@@ -315,7 +315,7 @@ namespace UnityEngine.Rendering
             }
         }
 
-        private void PerformPendingIndexDimensionChange()
+        private void PerformPendingIndexDimensionChangeAndInit()
         {
             if (m_NeedsIndexDimChange)
             {
@@ -360,7 +360,7 @@ namespace UnityEngine.Rendering
 
         private void PerformPendingLoading()
         {
-            if ((m_PendingAssetsToBeLoaded.Count == 0 && m_ActiveAssets.Count == 0) || !m_NeedLoadAsset || !m_ProbeReferenceVolumeInit)
+            if ((m_PendingAssetsToBeLoaded.Count == 0 && m_ActiveAssets.Count == 0) || !m_NeedLoadAsset)
                 return;
 
             m_Pool.EnsureTextureValidity();
@@ -405,10 +405,14 @@ namespace UnityEngine.Rendering
         /// </summary>
         public void PerformPendingOperations()
         {
-            PerformPendingDeletion();
-            PerformPendingLoading();
-            PerformPendingIndexDimensionChange();
-            PerformPendingNormalBiasChange();
+            PerformPendingIndexDimensionChangeAndInit();
+
+            if (m_ProbeReferenceVolumeInit)
+            {
+                PerformPendingLoading();
+                PerformPendingNormalBiasChange();
+                PerformPendingDeletion();
+            }
         }
 
         /// <summary>
@@ -458,6 +462,9 @@ namespace UnityEngine.Rendering
         /// <returns>The resources to bind to runtime shaders.</returns>
         public RuntimeResources GetRuntimeResources()
         {
+            if (!m_ProbeReferenceVolumeInit)
+                return default(RuntimeResources);
+
             RuntimeResources rr = new RuntimeResources();
             m_Index.GetRuntimeResources(ref rr);
             m_Pool.GetRuntimeResources(ref rr);
