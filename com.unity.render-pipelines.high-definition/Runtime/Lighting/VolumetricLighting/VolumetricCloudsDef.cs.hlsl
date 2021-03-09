@@ -1,5 +1,5 @@
 //
-// This file was automatically generated. Please don't edit by hand. Execute Editor command [ Edit / Render Pipeline / Generate Shader Includes ] instead
+// This file was automatically generated. Please don't edit by hand. Execute Editor command [ Edit > Rendering > Generate Shader Includes ] instead
 //
 
 #ifndef VOLUMETRICCLOUDSDEF_CS_HLSL
@@ -54,6 +54,9 @@ CBUFFER_START(ShaderVariablesClouds)
     float2 _ShadowRegionSize;
     float _Padding0;
     float _Padding1;
+    float4x4 _CameraViewProjection_NO;
+    float4x4 _CameraInverseViewProjection_NO;
+    float4x4 _CameraPrevViewProjection_NO;
 CBUFFER_END
 
 
