@@ -124,14 +124,12 @@ test_platforms:
           - [all]: --report-performance-data
           - [all]: --performance-project-id=VikingVillage_BuiltIn
           - <reuse_blocks.perf_utr_flags>
-          - [all]: --testfilter=Medium
       - [all]: <shared.platform.commands.call_utr>
         flags:
           - [all]: --testfilter=Build
           - [all]: --report-performance-data
           - [all]: --performance-project-id=VikingVillage_BuiltIn
           - <reuse_blocks.perf_utr_flags>
-          - [all]: --testfilter=Medium
 expression_trigger:
   expression: ""
 platforms:
