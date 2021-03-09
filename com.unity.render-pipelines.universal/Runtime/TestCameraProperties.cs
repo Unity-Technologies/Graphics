@@ -14,6 +14,8 @@ internal static class TestCameraProperties
     private static CameraPropertiesData DataNew;
     private const float CompareBias = 0.00001f;
 
+    public static bool isActive { get; set; }
+
     public struct CameraPropertiesData
     {
         public float4 _WorldSpaceCameraPos;
@@ -36,6 +38,9 @@ internal static class TestCameraProperties
 
     public static void SampleCameraPropertiesOld(CommandBuffer cmd)
     {
+        if (!isActive)
+            return;
+
         if (SomeMesh == null)
             SomeMesh = CoreUtils.CreateCubeMesh(-Vector3.one, Vector3.one);
 
@@ -57,6 +62,9 @@ internal static class TestCameraProperties
 
     public static void SampleCameraPropertiesNew(CommandBuffer cmd)
     {
+        if (!isActive)
+            return;
+
         if (SomeMesh == null)
             SomeMesh = CoreUtils.CreateCubeMesh(-Vector3.one, Vector3.one);
 

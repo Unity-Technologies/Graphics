@@ -9,6 +9,7 @@ public class ShowCameraProperties : MonoBehaviour
 
     private void OnGUI()
     {
+        TestCameraProperties.isActive = true;
         isExpended = TestCameraProperties.GUIDifference(isExpended);
     }
 }

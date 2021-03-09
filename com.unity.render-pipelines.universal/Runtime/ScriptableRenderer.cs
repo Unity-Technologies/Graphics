@@ -669,12 +669,15 @@ namespace UnityEngine.Rendering.Universal
                     }
                     else
                     {
-                        // TODO: Remove after the testing
-                        context.SetupCameraProperties(camera);
-                        SetCameraMatrices(cmd, ref cameraData, true);
+                        if (TestCameraProperties.isActive)
+                        {
+                            // TODO: Remove after the testing
+                            context.SetupCameraProperties(camera);
+                            SetCameraMatrices(cmd, ref cameraData, true);
 
-                        // TODO: Remove after the testing
-                        TestCameraProperties.SampleCameraPropertiesOld(cmd);
+                            // TODO: Remove after the testing
+                            TestCameraProperties.SampleCameraPropertiesOld(cmd);
+                        }
 
                         // Set new properties
                         SetPerCameraShaderVariables(cmd, ref cameraData); // TODO: Remove after the testing
@@ -682,8 +685,11 @@ namespace UnityEngine.Rendering.Universal
                         SetPerCameraClippingPlaneProperties(cmd, in cameraData); // TODO: Move this is to SetCameraMatrices, once we get rid of context.SetupCameraProperties
                         SetPerCameraBillboardProperties(cmd, ref cameraData);
 
-                        // TODO: Remove after the testing
-                        TestCameraProperties.SampleCameraPropertiesNew(cmd);
+                        if (TestCameraProperties.isActive)
+                        {
+                            // TODO: Remove after the testing
+                            TestCameraProperties.SampleCameraPropertiesNew(cmd);
+                        }
                     }
 
 
