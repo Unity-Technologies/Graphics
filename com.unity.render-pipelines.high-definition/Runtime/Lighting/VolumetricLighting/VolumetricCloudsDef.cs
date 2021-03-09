@@ -116,5 +116,10 @@ namespace UnityEngine.Rendering.HighDefinition
         // Padding
         public float _Padding0;
         public float _Padding1;
+
+        // View projection matrix (non oblique) for the planar reflection matrices
+        public Matrix4x4 _CameraViewProjection_NO;
+        public Matrix4x4 _CameraInverseViewProjection_NO;
+        public Matrix4x4 _CameraPrevViewProjection_NO;
     }
 }
