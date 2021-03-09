@@ -3,12 +3,9 @@ using UnityEngine;
 using UnityEngine.Rendering.Universal;
 using UnityEngine.Experimental.Rendering.Universal;
 using UnityEngine.Rendering;
-using UnityEngine.SceneManagement;
 
 namespace UnityEditor.Experimental.Rendering.Universal
 {
-
-    [InitializeOnLoad]
     internal static class Renderer2DUpgrader
     {
         delegate void Upgrader<T>(T toUpgrade) where T : Object;
@@ -214,33 +211,6 @@ namespace UnityEditor.Experimental.Rendering.Universal
         public static void UpgradeParametricLightsInScene()
         {
             UpgradeParametricLightsInScene(true);
-        }
-
-
-        static Renderer2DUpgrader()
-        {
-            Renderer2D.isLoadingScene = true;
-            EditorApplication.update += OnProjectLoaded; // Wait until the ScenemManager has been initialized
-        }
-
-        static void OnProjectLoaded()
-        {
-            Renderer2D.isLoadingScene = false;
-            EditorApplication.update -= OnProjectLoaded;
-
-            SceneManager.sceneLoaded += OnSceneLoaded;
-            SceneManager.sceneUnloaded += OnSceneUnloaded;
-        }
-
-        static void OnSceneLoaded(Scene current, LoadSceneMode mode)
-        {
-            Renderer2D.isLoadingScene = false;
-            
-        }
-
-        static void OnSceneUnloaded(Scene current)
-        {
-            Renderer2D.isLoadingScene = true;
         }
     }
 }

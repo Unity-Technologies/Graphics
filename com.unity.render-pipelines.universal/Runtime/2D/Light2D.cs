@@ -16,7 +16,7 @@ namespace UnityEngine.Experimental.Rendering.Universal
     [ExecuteAlways, DisallowMultipleComponent]
     [AddComponentMenu("Rendering/2D/Light 2D")]
     [HelpURL("https://docs.unity3d.com/Packages/com.unity.render-pipelines.universal@latest/index.html?subfolder=/manual/2DLightProperties.html")]
-    public sealed partial class Light2D : MonoBehaviour
+    public sealed partial class Light2D : MonoBehaviour, ISerializeCallbackReceiver
     {
         public enum DeprecatedLightType
         {
@@ -170,11 +170,7 @@ namespace UnityEngine.Experimental.Rendering.Universal
         /// <summary>
         /// Specifies that the shadows are enabled
         /// </summary>
-        public bool shadowsEnabled
-        {
-            get => m_ShadowIntensityEnabled || (m_ComponentVersion < ComponentVersions.Version_1 && m_ShadowIntensity > 0);
-            set => m_ShadowIntensityEnabled = value;
-        }
+        public bool shadowsEnabled { get => m_ShadowIntensityEnabled; set => m_ShadowIntensityEnabled = value; }
 
         /// <summary>
         /// Specifies the darkness of the shadow
@@ -184,11 +180,7 @@ namespace UnityEngine.Experimental.Rendering.Universal
         /// <summary>
         /// Specifies that the volumetric shadows are enabled
         /// </summary>
-        public bool volumetricShadowsEnabled
-        {
-            get =>  m_ShadowVolumeIntensityEnabled || (m_ComponentVersion < ComponentVersions.Version_1 && m_ShadowVolumeIntensity > 0);
-            set =>  m_ShadowVolumeIntensityEnabled = value;
-        }
+        public bool volumetricShadowsEnabled { get => m_ShadowVolumeIntensityEnabled; set => m_ShadowVolumeIntensityEnabled = value; }
 
         /// <summary>
         /// The lights current color
@@ -208,12 +200,7 @@ namespace UnityEngine.Experimental.Rendering.Universal
         public float volumeOpacity => m_LightVolumeIntensity;
         public float volumeIntensity => m_LightVolumeIntensity;
 
-        public bool volumeIntensityEnabled
-        {
-            get => m_LightVolumeIntensityEnabled || (m_ComponentVersion < ComponentVersions.Version_1 && m_LightVolumeIntensity > 0);
-            set => m_LightVolumeIntensityEnabled = value;
-        }
-
+        public bool volumeIntensityEnabled { get => m_LightVolumeIntensityEnabled; set => m_LightVolumeIntensityEnabled = value; }
         public Sprite lightCookieSprite { get { return m_LightType != LightType.Point ? m_LightCookieSprite : m_DeprecatedPointLightCookieSprite; } }
         public float falloffIntensity => m_FalloffIntensity;
 
@@ -225,20 +212,6 @@ namespace UnityEngine.Experimental.Rendering.Universal
 
         public float normalMapDistance => m_NormalMapDistance;
         public NormalMapQuality normalMapQuality => m_NormalMapQuality;
-
-
-        void UpgradeToCurrentVersion()
-        {
-            // Check to see if we need to upgrade to version 1
-            if(m_ComponentVersion == ComponentVersions.Uninitialized)
-            {
-                m_ShadowVolumeIntensityEnabled = m_ShadowVolumeIntensity > 0;
-                m_ShadowIntensityEnabled = m_ShadowIntensity > 0;
-                m_LightVolumeIntensityEnabled = m_LightVolumeIntensity > 0;
-
-                m_ComponentVersion = ComponentVersions.Version_1;
-            }
-        }
 
         internal int GetTopMostLitLayer()
         {
@@ -360,14 +333,20 @@ namespace UnityEngine.Experimental.Rendering.Universal
 #if UNITY_EDITOR
         private void OnValidate()
         {
-            if (Renderer2D.isLoadingScene)
+            m_ComponentVersion = k_CurrentComponentVersion;
+        }
+
+        private void OnAfterSerialization
+        {
+            // Upgrade from no version
+            if (m_ComponentVersion == ComponentVersions.Uninitialized)
             {
-                if (m_ComponentVersion != k_CurrentComponentVersion)
-                    UpgradeToCurrentVersion();
+                m_ShadowVolumeIntensityEnabled = m_ShadowVolumeIntensity > 0;
+                m_ShadowIntensityEnabled = m_ShadowIntensity > 0;
+                m_LightVolumeIntensityEnabled = m_LightVolumeIntensity > 0;
+
+                m_ComponentVersion = ComponentVersions.Version_1;
             }
-            // This is necesary because we can add a component from the add component menu
-            else
-                m_ComponentVersion = k_CurrentComponentVersion;
         }
 #endif 
     }
