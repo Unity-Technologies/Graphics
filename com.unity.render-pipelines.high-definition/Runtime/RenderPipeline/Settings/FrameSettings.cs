@@ -103,7 +103,7 @@ namespace UnityEngine.Rendering.HighDefinition
         [FrameSettingsField(0, displayedName: "MSAA within Forward", negativeDependencies: new[] { LitShaderMode }, customOrderInGroup: 3, tooltip: "When enabled, Cameras using these Frame Settings calculate MSAA when they render the Scene. Set Lit Shader Mode to Forward to access this option.")]
         MSAA = 31,
         /// <summary>When enabled, Cameras using these Frame Settings use Alpha To Mask. Activate MSAA to access this option.</summary>
-        [FrameSettingsField(0, displayedName: "Alpha To Mask", positiveDependencies: new[] { MSAA }, customOrderInGroup: 3, tooltip: "When enabled, Cameras using these Frame Settings use Alpha To Mask. Activate MSAA to access this option.")]
+        [FrameSettingsField(0, displayedName: "Alpha To Mask", negativeDependencies: new[] { LitShaderMode }, positiveDependencies: new[] { MSAA }, customOrderInGroup: 3, tooltip: "When enabled, Cameras using these Frame Settings use Alpha To Mask. Activate MSAA to access this option.")]
         AlphaToMask = 56,
         /// <summary>When enabled, Cameras using these Frame Settings render opaque GameObjects.</summary>
         [FrameSettingsField(0, autoName: OpaqueObjects, customOrderInGroup: 4, tooltip: "When enabled, Cameras using these Frame Settings render opaque GameObjects.")]
@@ -694,7 +694,7 @@ namespace UnityEngine.Rendering.HighDefinition
         internal bool BuildLightListRunsAsync() => SystemInfo.supportsAsyncCompute && bitDatas[(int)FrameSettingsField.AsyncCompute] && bitDatas[(int)FrameSettingsField.LightListAsync];
         internal bool SSRRunsAsync() => SystemInfo.supportsAsyncCompute && bitDatas[(int)FrameSettingsField.AsyncCompute] && bitDatas[(int)FrameSettingsField.SSRAsync];
         internal bool SSAORunsAsync() => SystemInfo.supportsAsyncCompute && bitDatas[(int)FrameSettingsField.AsyncCompute] && bitDatas[(int)FrameSettingsField.SSAOAsync];
-        internal bool ContactShadowsRunAsync() => SystemInfo.supportsAsyncCompute && bitDatas[(int)FrameSettingsField.AsyncCompute] && bitDatas[(int)FrameSettingsField.ContactShadowsAsync];
+        internal bool ContactShadowsRunsAsync() => SystemInfo.supportsAsyncCompute && bitDatas[(int)FrameSettingsField.AsyncCompute] && bitDatas[(int)FrameSettingsField.ContactShadowsAsync];
         internal bool VolumeVoxelizationRunsAsync() => SystemInfo.supportsAsyncCompute && bitDatas[(int)FrameSettingsField.AsyncCompute] && bitDatas[(int)FrameSettingsField.VolumeVoxelizationsAsync];
 
         /// <summary>Override a frameSettings according to a mask.</summary>
@@ -992,14 +992,16 @@ namespace UnityEngine.Rendering.HighDefinition
                     var attributes = new Dictionary<FrameSettingsField, FrameSettingsFieldAttribute>();
                     var groups = new List<DebuggerGroup>();
 
+                    Dictionary<FrameSettingsField, string> frameSettingsEnumNameMap = FrameSettingsFieldAttribute.GetEnumNameMap();
                     Type type = typeof(FrameSettingsField);
                     var noAttribute = new List<FrameSettingsField>();
-                    foreach (FrameSettingsField value in Enum.GetValues(type))
+                    foreach (FrameSettingsField enumVal in frameSettingsEnumNameMap.Keys)
                     {
-                        attributes[value] = type.GetField(Enum.GetName(type, value)).GetCustomAttribute<FrameSettingsFieldAttribute>();
-                        if (attributes[value] == null)
-                            noAttribute.Add(value);
+                        attributes[enumVal] = type.GetField(frameSettingsEnumNameMap[enumVal]).GetCustomAttribute<FrameSettingsFieldAttribute>();
+                        if (attributes[enumVal] == null)
+                            noAttribute.Add(enumVal);
                     }
+
                     var groupIndexes = attributes.Values.Where(a => a != null).Select(a => a.group).Distinct();
                     foreach (int groupIndex in groupIndexes)
                         groups.Add(new DebuggerGroup(FrameSettingsHistory.foldoutNames[groupIndex], attributes?.Where(pair => pair.Value?.group == groupIndex)?.OrderBy(pair => pair.Value.orderInGroup).Select(kvp => new DebuggerEntry(Enum.GetName(typeof(FrameSettingsField), kvp.Key), m_FrameSettings.bitDatas[(uint)kvp.Key])).ToArray()));
