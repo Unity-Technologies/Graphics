@@ -172,7 +172,6 @@ namespace UnityEditor.Rendering
                         if ((tmp = EditorGUI.FloatField(rect, Styles.fallOff, fallOffProp.floatValue)) != fallOffProp.floatValue)
                             fallOffProp.floatValue = Mathf.Max(tmp, 0.0f);
 
-
                         if (newType == SRPLensFlareType.Polygon)
                         {
                             rect = GetNextRect();
@@ -255,11 +254,15 @@ namespace UnityEditor.Rendering
                     rect = GetNextRect();
                     if ((tmpBool = EditorGUI.Toggle(rect, Styles.enableDistortion, enableDistortionProp.boolValue)) != enableDistortionProp.boolValue)
                         enableDistortionProp.boolValue = tmpBool;
-                    rect = GetNextRect();
-                    if ((tmpVec2 = EditorGUI.Vector2Field(rect, Styles.targetSizeDistortion, targetSizeDistortionProp.vector2Value)) != targetSizeDistortionProp.vector2Value)
-                        targetSizeDistortionProp.vector2Value = tmpVec2;
-                    rect = GetNextRect();
-                    EditorGUI.PropertyField(rect, distortionCurveProp, Styles.distortionCurve);
+                    if (enableDistortionProp.boolValue == true)
+                    {
+                        rect = GetNextRect();
+                        if ((tmpVec2 = EditorGUI.Vector2Field(rect, Styles.targetSizeDistortion, targetSizeDistortionProp.vector2Value)) != targetSizeDistortionProp.vector2Value)
+                            targetSizeDistortionProp.vector2Value = tmpVec2;
+                        rect = GetNextRect();
+                        EditorGUI.PropertyField(rect, distortionCurveProp, Styles.distortionCurve);
+                    }
+
                 }
                 --EditorGUI.indentLevel;
 
@@ -367,6 +370,7 @@ namespace UnityEditor.Rendering
             SerializedProperty distributionProp = property.FindPropertyRelative("distribution");
             SerializedProperty countProp = property.FindPropertyRelative("count");
             SerializedProperty flareTypeProp = property.FindPropertyRelative("flareType");
+            SerializedProperty enableDistortionProp = property.FindPropertyRelative("enableRadialDistortion");
 
             SRPLensFlareType flareType = (SRPLensFlareType)flareTypeProp.enumValueIndex;
 
@@ -385,6 +389,11 @@ namespace UnityEditor.Rendering
 
                     if (flareType == SRPLensFlareType.Polygon)
                         coef += 2.0f;
+                }
+
+                if (enableDistortionProp.boolValue == false)
+                {
+                    coef -= 2.0f;
                 }
 
                 if (countProp.intValue > 1)
