@@ -1,7 +1,14 @@
 PackedVaryings vert(Attributes input)
 {
     Varyings output = (Varyings)0;
+
+#if defined(HAVE_VFX_MODIFICATION)
+    AttributesElement element;
+    //TODOPAUL : fill AttributesElement magically !!!!!!!
+    output = BuildVaryings(input, element);
+#else
     output = BuildVaryings(input);
+#endif
     PackedVaryings packedOutput = PackVaryings(output);
     return packedOutput;
 }
@@ -13,7 +20,14 @@ half4 frag(PackedVaryings packedInput) : SV_TARGET
     UNITY_SETUP_STEREO_EYE_INDEX_POST_VERTEX(unpacked);
 
     SurfaceDescriptionInputs surfaceDescriptionInputs = BuildSurfaceDescriptionInputs(unpacked);
+#if defined(HAVE_VFX_MODIFICATION)
+    GraphProperties properties;
+    ZERO_INITIALIZE(GraphProperties, properties);
+    GetElementPixelProperties(surfaceDescriptionInputs, properties);
+    SurfaceDescription surfaceDescription = SurfaceDescriptionFunction(surfaceDescriptionInputs, properties);
+#else
     SurfaceDescription surfaceDescription = SurfaceDescriptionFunction(surfaceDescriptionInputs);
+#endif
 
     #if _AlphaClip
         half alpha = surfaceDescription.Alpha;
