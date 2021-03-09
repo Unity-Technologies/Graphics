@@ -564,9 +564,6 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
 
         internal void PurgeUnusedGraphicsResources()
         {
-            // TODO RENDERGRAPH: Might not be ideal to purge stale resources every frame.
-            // In case users enable/disable features along a level it might provoke performance spikes when things are reallocated...
-            // Will be much better when we have actual resource aliasing and we can manage memory more efficiently.
             for (int i = 0; i < (int)RenderGraphResourceType.Count; ++i)
                 m_RenderGraphResources[i].PurgeUnusedGraphicsResources(m_CurrentFrameIndex);
         }
