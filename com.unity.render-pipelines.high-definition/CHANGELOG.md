@@ -96,7 +96,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 ### Changed
 - Changed Window/Render Pipeline/HD Render Pipeline Wizard to Window/Rendering/HDRP Wizard
 - Removed the material pass probe volumes evaluation mode.
-- Changed GameObject/Rendering/Density Volume to GameObject/Volume/Density Volume
+- Changed GameObject/Rendering/Density Volume to GameObject/Local Volumetric Fog
 - Changed GameObject/Rendering/Decal Projector to GameObject/Decal Projector
 - Changed GameObject/Volume/Sky and Fog Volume to GameObject/Volume/Sky and Fog Global Volume
 - Move the Decal Gizmo Color initialization to preferences
