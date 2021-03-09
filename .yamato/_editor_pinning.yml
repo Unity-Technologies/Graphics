@@ -28,6 +28,7 @@ editor-pinning-target-to-ci:
       -  git checkout 10.x.x/ci/editor-pinning
       -  git config --global user.name "noreply@unity3d.com"
       -  git config --global user.email "noreply@unity3d.com"
+      -  git config core.whitespace cr-at-eol
       -  git merge 10.x.x/release --no-ff -X theirs
       -  git push
 editor-pinning-update:
@@ -139,6 +140,7 @@ editor-pinning-store-green:
       -  python3 -m pipenv install --dev
       -  git config --global user.name "noreply@unity3d.com"
       -  git config --global user.email "noreply@unity3d.com"
+      -  git config core.whitespace cr-at-eol
       -  pipenv run python3 .yamato/script/editor_scripts/store_green_revisions.py --target-branch $GIT_BRANCH --track 2020.3 --apikey $YAMATO_KEY
     triggers:
         recurring:
