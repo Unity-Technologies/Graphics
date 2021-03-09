@@ -11,7 +11,7 @@ editor-pinning-target-to-ci:
     name: Merge 10.x.x/release to 10.x.x/ci/editor-pinning
     agent:
         type: Unity::VM
-        image: package-ci/ubuntu:stable
+        image: package-ci/ubuntu:v1.2.4-701242
         flavor: b1.small
     variables:
         CI: true
@@ -34,7 +34,7 @@ editor-pinning-update:
     name: Update pinned editor versions
     agent:
         type: Unity::VM
-        image: package-ci/ubuntu:stable
+        image: package-ci/ubuntu:v1.2.4-701242
         flavor: b1.small
     variables:
         CI: true
@@ -64,7 +64,7 @@ editor-pinning-merge-revisions-2020.3:
     name: Merge [2020.3] revisions to 10.x.x/release [no ABV]
     agent:
         type: Unity::VM
-        image: package-ci/ubuntu:stable
+        image: package-ci/ubuntu:v1.2.4-701242
         flavor: b1.small
     variables:
         CI: true
@@ -91,7 +91,7 @@ editor-pinning-merge-revisions-2020.3-abv:
       -  .yamato/_abv.yml#all_project_ci_2020.3
     agent:
         type: Unity::VM
-        image: package-ci/ubuntu:stable
+        image: package-ci/ubuntu:v1.2.4-701242
         flavor: b1.small
     variables:
         CI: true
@@ -129,7 +129,7 @@ editor-pinning-store-green:
     name: Store green job revisions
     agent:
         type: Unity::VM
-        image: package-ci/ubuntu:stable
+        image: package-ci/ubuntu:v1.2.4-701242
         flavor: b1.small
     commands:
       -  sudo pip3 install pipenv --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple
