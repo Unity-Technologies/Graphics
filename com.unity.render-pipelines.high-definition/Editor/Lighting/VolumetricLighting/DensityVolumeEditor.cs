@@ -127,7 +127,7 @@ namespace UnityEditor.Rendering.HighDefinition
                         s_BlendBox.DrawHandle();
                         if (EditorGUI.EndChangeCheck())
                         {
-                            Undo.RecordObject(densityVolume, "Change Density Volume Blend");
+                            Undo.RecordObject(densityVolume, L10n.Tr("Change Local Volumetric Fog Blend"));
 
                             if (densityVolume.parameters.m_EditorAdvancedFade)
                             {
@@ -172,7 +172,7 @@ namespace UnityEditor.Rendering.HighDefinition
                         s_ShapeBox.DrawHandle();
                         if (EditorGUI.EndChangeCheck())
                         {
-                            Undo.RecordObjects(new Object[] { densityVolume, densityVolume.transform }, "ChangeDensity Volume Bounding Box");
+                            Undo.RecordObjects(new Object[] { densityVolume, densityVolume.transform }, L10n.Tr("Change Local Volumetric Fog Bounding Box"));
 
                             Vector3 newSize = s_ShapeBox.size;
                             densityVolume.parameters.size = newSize;

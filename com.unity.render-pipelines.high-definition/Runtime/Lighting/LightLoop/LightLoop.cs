@@ -66,7 +66,7 @@ namespace UnityEngine.Rendering.HighDefinition
         Area,
         Env,
         Decal,
-        DensityVolume, // WARNING: Currently lightlistbuild.compute assumes density volume is the last element in the LightCategory enum. Do not append new LightCategory types after DensityVolume. TODO: Fix .compute code.
+        DensityVolume, // WARNING: Currently lightlistbuild.compute assumes dLocal Volumetric Fog is the last element in the LightCategory enum. Do not append new LightCategory types after DensityVolume. TODO: Fix .compute code.
         Count
     }
 
@@ -216,7 +216,7 @@ namespace UnityEngine.Rendering.HighDefinition
         ProbeVolumes = 8,
         /// <summary>Decals.</summary>
         Decal = 16,
-        /// <summary>Density Volumes.</summary>
+        /// <summary>Local Volumetric Fog.</summary>
         DensityVolumes = 32
     };
 
@@ -2643,7 +2643,7 @@ namespace UnityEngine.Rendering.HighDefinition
                     }
                 }
 
-                // Inject density volumes into the clustered data structure for efficient look up.
+                // Inject Local Volumetric Fog into the clustered data structure for efficient look up.
                 m_DensityVolumeCount = densityVolumes.bounds != null ? densityVolumes.bounds.Count : 0;
 
                 for (int viewIndex = 0; viewIndex < hdCamera.viewCount; ++viewIndex)
@@ -2658,7 +2658,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
                     for (int i = 0, n = m_DensityVolumeCount; i < n; i++)
                     {
-                        // Density volumes are not lights and therefore should not affect light classification.
+                        // Local Volumetric Fog are not lights and therefore should not affect light classification.
                         LightFeatureFlags featureFlags = 0;
                         CreateBoxVolumeDataAndBound(densityVolumes.bounds[i], LightCategory.DensityVolume, featureFlags, worldToViewCR, 0.0f, out LightVolumeData volumeData, out SFiniteLightBound bound);
                         m_lightList.lightsPerView[viewIndex].lightVolumes.Add(volumeData);
@@ -2784,7 +2784,7 @@ namespace UnityEngine.Rendering.HighDefinition
         struct BuildGPULightListParameters
         {
             // Common
-            public int totalLightCount; // Regular + Env + Decal + Density Volumes
+            public int totalLightCount; // Regular + Env + Decal + Local Volumetric Fog
             public int viewCount;
             public bool runLightList;
             public bool clearLightLists;

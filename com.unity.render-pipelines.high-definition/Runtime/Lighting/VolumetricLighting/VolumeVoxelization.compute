@@ -140,7 +140,7 @@ void FillVolumetricDensityBuffer(PositionInputs posInput, uint tileIndex, Jitter
 
             if (objectIndex >= _DensityVolumeIndexShift)
             {
-                // We have found the first density volume.
+                // We have found the first Local Volumetric Fog.
                 break;
             }
         }

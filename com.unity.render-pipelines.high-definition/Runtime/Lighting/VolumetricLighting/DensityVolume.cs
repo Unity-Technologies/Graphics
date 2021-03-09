@@ -3,7 +3,7 @@ using UnityEngine.Serialization;
 
 namespace UnityEngine.Rendering.HighDefinition
 {
-    /// <summary>Artist-friendly density volume parametrization.</summary>
+    /// <summary>Artist-friendly Local Volumetric Fog parametrization.</summary>
     [Serializable]
     public partial struct DensityVolumeArtistParameters
     {
@@ -13,7 +13,7 @@ namespace UnityEngine.Rendering.HighDefinition
         public float     meanFreePath; // Should be chromatic - this is an optimization!
         /// <summary>Anisotropy of the phase function: [-1, 1]. Positive values result in forward scattering, and negative values - in backward scattering.</summary>
         [FormerlySerializedAs("asymmetry")]
-        public float     anisotropy;   // . Not currently available for density volumes
+        public float     anisotropy;   // . Not currently available for Local Volumetric Fog
 
         /// <summary>Texture containing density values.</summary>
         public Texture   volumeMask;
@@ -160,13 +160,13 @@ namespace UnityEngine.Rendering.HighDefinition
         }
     } // class DensityVolumeParameters
 
-    /// <summary>Density volume class.</summary>
+    /// <summary>Local Volumetric Fog class.</summary>
     [HelpURL(Documentation.baseURL + Documentation.version + Documentation.subURL + "Density-Volume" + Documentation.endURL)]
     [ExecuteAlways]
-    [AddComponentMenu("Rendering/Density Volume")]
+    [AddComponentMenu("Rendering/Local Volumetric Fog")]
     public partial class DensityVolume : MonoBehaviour
     {
-        /// <summary>Density volume parameters.</summary>
+        /// <summary>Local Volumetric Fog parameters.</summary>
         public DensityVolumeArtistParameters parameters = new DensityVolumeArtistParameters(Color.white, 10.0f, 0.0f);
 
         private Texture previousVolumeMask = null;

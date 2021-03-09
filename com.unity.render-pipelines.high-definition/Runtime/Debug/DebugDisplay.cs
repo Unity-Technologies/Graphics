@@ -1416,7 +1416,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 });
             }
 
-            list.Add(new DebugUI.BoolField { displayName = "Display Density Volume Atlas", getter = () => data.lightingDebugSettings.displayDensityVolumeAtlas, setter = value => data.lightingDebugSettings.displayDensityVolumeAtlas = value, onValueChanged = RefreshLightingDebug});
+            list.Add(new DebugUI.BoolField { displayName = "Display Local Volumetric Fog Atlas", getter = () => data.lightingDebugSettings.displayDensityVolumeAtlas, setter = value => data.lightingDebugSettings.displayDensityVolumeAtlas = value, onValueChanged = RefreshLightingDebug});
             if (data.lightingDebugSettings.displayDensityVolumeAtlas)
             {
                 list.Add(new DebugUI.Container

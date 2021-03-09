@@ -188,7 +188,7 @@ namespace UnityEditor.Rendering.HighDefinition
                 {
                     if (!(newTexture is RenderTexture rt && rt.dimension == UnityEngine.Rendering.TextureDimension.Tex3D || newTexture is Texture3D))
                     {
-                        Debug.LogError($"Can't assign texture '{newTexture}' to the Density Volume because the dimension doesn't match the expected Texture3D dimension.");
+                        Debug.LogError($"Can't assign texture '{newTexture}' to the Local Volumetric Fog because the dimension doesn't match the expected Texture3D dimension.");
                         serialized.volumeTexture.objectReferenceValue = null;
                     }
                 }

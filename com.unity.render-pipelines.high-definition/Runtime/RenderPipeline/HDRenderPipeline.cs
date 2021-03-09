@@ -1975,7 +1975,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 foreach (var material in m_MaterialList)
                     material.Bind(cmd);
 
-                // Frustum cull density volumes on the CPU. Can be performed as soon as the camera is set up.
+                // Frustum cull Local Volumetric Fog on the CPU. Can be performed as soon as the camera is set up.
                 DensityVolumeList densityVolumes = PrepareVisibleDensityVolumeList(hdCamera, cmd);
 
                 // do AdaptiveProbeVolume stuff

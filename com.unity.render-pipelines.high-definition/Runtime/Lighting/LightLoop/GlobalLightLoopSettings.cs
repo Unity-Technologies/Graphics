@@ -114,7 +114,7 @@ namespace UnityEngine.Rendering.HighDefinition
     }
 
     /// <summary>
-    /// Possible values for one element of the density volume atlas.
+    /// Possible values for one element of the Local Volumetric Fog atlas.
     /// </summary>
     [Serializable]
     public enum DensityVolumeResolution
@@ -218,9 +218,9 @@ namespace UnityEngine.Rendering.HighDefinition
         /// <summary>Maximum number of lights per ray tracing light cluster cell.</summary>
         public int maxLightsPerClusterCell;
 
-        /// <summary>Maximum size of one density volume texture.</summary>
+        /// <summary>Maximum size of one Local Volumetric Fog texture.</summary>
         public DensityVolumeResolution maxDensityVolumeSize;
-        /// <summary>Maximum number of density volumes at the same time on screen.</summary>
+        /// <summary>Maximum number of Local Volumetric Fog at the same time on screen.</summary>
         public int maxDensityVolumesOnScreen;
     }
 }

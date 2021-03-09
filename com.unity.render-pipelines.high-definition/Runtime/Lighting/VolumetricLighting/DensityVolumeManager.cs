@@ -40,7 +40,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
                     m_VolumeAtlas = new Texture3DAtlas(densityVolumeAtlasFormat, (int)settings.maxDensityVolumeSize, elementCount);
 
-                    // When HDRP is initialized and this atlas created, some density volume may have been initialized before so we add them here.
+                    // When HDRP is initialized and this atlas created, some Local Volumetric Fog may have been initialized before so we add them here.
                     foreach (var volume in m_Volumes)
                     {
                         if (volume.parameters.volumeMask != null)
@@ -63,7 +63,7 @@ namespace UnityEngine.Rendering.HighDefinition
         {
             m_Volumes.Add(volume);
 
-            // In case the density volume format is not support (which is impossible because all HDRP target supports R8G8B8A8_UNorm)
+            // In case the Local Volumetric Fog format is not support (which is impossible because all HDRP target supports R8G8B8A8_UNorm)
             // we avoid doing operations on the atlas.
             // This happens in the CI on linux when an editor using OpenGL is building a player for Vulkan.
             if (!SystemInfo.IsFormatSupported(densityVolumeAtlasFormat, FormatUsage.LoadStore))
@@ -81,7 +81,7 @@ namespace UnityEngine.Rendering.HighDefinition
         internal void AddTextureIntoAtlas(Texture volumeTexture)
         {
             if (!volumeAtlas.AddTexture(volumeTexture))
-                Debug.LogError($"No more space in the density volume atlas, consider increasing the max density volume on screen in the HDRP asset.");
+                Debug.LogError($"No more space in the Local Volumetric Fog atlas, consider increasing the max Local Volumetric Fog on screen in the HDRP asset.");
         }
 
         public void DeRegisterVolume(DensityVolume volume)
@@ -89,7 +89,7 @@ namespace UnityEngine.Rendering.HighDefinition
             if (m_Volumes.Contains(volume))
                 m_Volumes.Remove(volume);
 
-            // In case the density volume format is not support (which is impossible because all HDRP target supports R8G8B8A8_UNorm)
+            // In case the Local Volumetric Fog format is not support (which is impossible because all HDRP target supports R8G8B8A8_UNorm)
             // we avoid doing operations on the atlas.
             // This happens in the CI on linux when an editor using OpenGL is building a player for Vulkan.
             if (!SystemInfo.IsFormatSupported(densityVolumeAtlasFormat, FormatUsage.LoadStore))
@@ -120,7 +120,7 @@ namespace UnityEngine.Rendering.HighDefinition
             return m_Volumes;
         }
 
-        // Note that this function will not release the manager itself as it have to live outside of HDRP to handle density volume components
+        // Note that this function will not release the manager itself as it have to live outside of HDRP to handle Local Volumetric Fog components
         internal void ReleaseAtlas()
         {
             // Release the atlas so next time the manager is used, it is reallocated with new HDRP settings.
