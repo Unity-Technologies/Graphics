@@ -28,6 +28,7 @@ $splice(PassKeywords)
 $splice(GraphKeywords)
 
 // Defines
+$features.graphVFX: #define HAVE_VFX_MODIFICATION
 $SurfaceType.Transparent:           #define _SURFACE_TYPE_TRANSPARENT 1
 $AlphaClip: #define _AlphaClip 1
 $Normal: #define _NORMALMAP 1
@@ -78,7 +79,10 @@ $splice(PreGraphIncludes)
 // custom interpolators pre packing
 $splice(CustomInterpolatorPrePacking)
 
+//TODOPAUL : in URP PassStructs also contains PackVayring ? Not sure to follow this generation path.
+//#ifndef HAVE_VFX_MODIFICATION
 $splice(PassStructs)
+//#endif
 
 $splice(InterpolatorPack)
 
@@ -106,6 +110,7 @@ $splice(GraphPixel)
 // --------------------------------------------------
 // Build Graph Inputs
 
+$features.graphVFX: $include("VFX/Config.template.hlsl")
 $features.graphVertex:  $include("BuildVertexDescriptionInputs.template.hlsl")
 $features.graphPixel: $include("SharedCode.template.hlsl")
 
