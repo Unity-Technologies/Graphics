@@ -2451,30 +2451,20 @@ namespace UnityEngine.Rendering.HighDefinition
                     {
                         cmd.DisableShaderKeyword("FLARE_GLOW");
                         cmd.DisableShaderKeyword("FLARE_IRIS");
-                        cmd.DisableShaderKeyword("FLARE_SHIMMER");
                     }
                     else if (element.flareType == SRPLensFlareType.Glow)
                     {
                         cmd.EnableShaderKeyword("FLARE_GLOW");
                         cmd.DisableShaderKeyword("FLARE_IRIS");
-                        cmd.DisableShaderKeyword("FLARE_SHIMMER");
                     }
                     else if (element.flareType == SRPLensFlareType.Iris)
                     {
                         cmd.DisableShaderKeyword("FLARE_GLOW");
                         cmd.EnableShaderKeyword("FLARE_IRIS");
-                        cmd.DisableShaderKeyword("FLARE_SHIMMER");
-                    }
-                    else if (element.flareType == SRPLensFlareType.Shimmer)
-                    {
-                        cmd.DisableShaderKeyword("FLARE_GLOW");
-                        cmd.DisableShaderKeyword("FLARE_IRIS");
-                        cmd.EnableShaderKeyword("FLARE_SHIMMER");
                     }
 
                     if (element.flareType == SRPLensFlareType.Glow ||
-                        element.flareType == SRPLensFlareType.Iris ||
-                        element.flareType == SRPLensFlareType.Shimmer)
+                        element.flareType == SRPLensFlareType.Iris)
                     {
                         if (element.inverseSDF)
                         {
@@ -2494,10 +2484,26 @@ namespace UnityEngine.Rendering.HighDefinition
                         cmd.SetGlobalTexture(HDShaderIDs._FlareTex, element.lensFlareTexture);
 
                     float usedGradientPosition = Mathf.Clamp01(element.edgeOffset - 1e-6f);
-                    float usedSDFRoundness = element.edgeOffset * element.sdfRoundness;
+                    if (element.flareType == SRPLensFlareType.Iris)
+                        usedGradientPosition = Mathf.Lerp(1.0f, 64.0f, usedGradientPosition);
+
+                    float usedSDFRoundness = element.sdfRoundness;
                     cmd.SetGlobalVector(HDShaderIDs._FlareData1, new Vector4(comp.occlusionRadius, comp.sampleCount, screenPosZ.z, Mathf.Exp(element.fallOff)));
-                    //cmd.SetGlobalVector(HDShaderIDs._FlareData1, new Vector4(comp.occlusionRadius, comp.sampleCount, screenPosZ.z, element.fallOff));
-                    cmd.SetGlobalVector(HDShaderIDs._FlareData4, new Vector4(usedSDFRoundness, (float)element.frequency, 0.0f, 0.0f));
+                    if (element.flareType == SRPLensFlareType.Iris)
+                    {
+                        float invSide = 1.0f / (float)element.sideCount;
+                        float rCos = Mathf.Cos(Mathf.PI * invSide);
+                        float roundValue = rCos * usedSDFRoundness;
+                        float r = rCos - roundValue;
+                        float an = 2.0f * Mathf.PI * invSide;
+                        float he = r * Mathf.Tan(0.5f * an);
+                        cmd.SetGlobalVector(HDShaderIDs._FlareData4, new Vector4(usedSDFRoundness, r, an, he));
+                    }
+                    else
+                    {
+                        cmd.SetGlobalVector(HDShaderIDs._FlareData4, new Vector4(usedSDFRoundness, 0.0f, 0.0f, 0.0f));
+                    }
+
                     if (element.count == 1)
                     {
                         Vector4 flareData0 = GetFlareData0(screenPos, element.translationScale, vScreenRatio, element.rotation, position, element.angularOffset, element.positionOffset, element.autoRotate);

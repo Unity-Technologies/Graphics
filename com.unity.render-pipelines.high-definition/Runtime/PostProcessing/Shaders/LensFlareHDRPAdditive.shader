@@ -22,7 +22,7 @@ Shader "Hidden/HDRP/LensFlare (HDRP Additive)"
             #pragma vertex vert
             #pragma fragment frag
 
-            #pragma multi_compile_fragment _ FLARE_GLOW FLARE_IRIS FLARE_SHIMMER
+            #pragma multi_compile_fragment _ FLARE_GLOW FLARE_IRIS
             #pragma multi_compile_fragment _ FLARE_INVERSE_SDF
 
             #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Common.hlsl"

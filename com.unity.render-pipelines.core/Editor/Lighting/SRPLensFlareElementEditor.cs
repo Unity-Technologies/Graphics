@@ -224,7 +224,7 @@ namespace UnityEditor.Rendering
                         if ((tmpBool = EditorGUI.Toggle(rect, Styles.preserveAspectRatio, preserveAspectRatioProp.boolValue)) != preserveAspectRatioProp.boolValue)
                             preserveAspectRatioProp.boolValue = tmpBool;
                     }
-                    else if (newType == SRPLensFlareType.Glow || newType == SRPLensFlareType.Iris || newType == SRPLensFlareType.Shimmer)
+                    else if (newType == SRPLensFlareType.Glow || newType == SRPLensFlareType.Iris)
                     {
                         SerializedProperty fallOffProp = property.FindPropertyRelative("fallOff");
                         SerializedProperty edgeOffsetProp = property.FindPropertyRelative("edgeOffset");
@@ -245,22 +245,12 @@ namespace UnityEditor.Rendering
                         if (newType == SRPLensFlareType.Iris)
                         {
                             rect = GetNextRect();
-                            //if ((tmp = EditorGUI.IntField(rect, Styles.sideCount, sideCountProp.intValue)) != sideCountProp.intValue)
-                            //    sideCountProp.intValue = (int)Mathf.Max(tmp, 3);
                             if ((tmp = EditorGUI.IntSlider(rect, Styles.sideCount, sideCountProp.intValue, 3, 32)) != sideCountProp.intValue)
                                 sideCountProp.intValue = (int)Mathf.Max(tmp, 0);
-                            //sideCountProp.intValue = (int)Mathf.Max(tmp, 3);
 
                             rect = GetNextRect();
                             if ((tmp = EditorGUI.Slider(rect, Styles.sdfRoundness, sdfRoundnessProp.floatValue, 0.0f, 1.0f)) != sdfRoundnessProp.floatValue)
                                 sdfRoundnessProp.floatValue = Mathf.Clamp01(tmp);
-                        }
-
-                        if (newType == SRPLensFlareType.Shimmer)
-                        {
-                            rect = GetNextRect();
-                            if ((iTmp = EditorGUI.IntField(rect, Styles.frequency, frequencyProp.intValue)) != frequencyProp.intValue)
-                                frequencyProp.intValue = Mathf.Max(iTmp, 0);
                         }
 
                         rect = GetNextRect();
@@ -345,7 +335,6 @@ namespace UnityEditor.Rendering
                 if ((tmpCol = EditorGUI.ColorField(rect, Styles.tint, tintProp.colorValue)) != tintProp.colorValue)
                     tintProp.colorValue = tmpCol;
 
-                Texture tmpTex;
                 rect = GetNextRect();
                 SRPLensFlareType newType;
                 SRPLensFlareType typeValue = (UnityEngine.SRPLensFlareType)flareTypeProp.enumValueIndex;
@@ -387,14 +376,12 @@ namespace UnityEditor.Rendering
                 else
                     coef = 25.0f;
 
-                if (flareType == SRPLensFlareType.Iris || flareType == SRPLensFlareType.Glow || flareType == SRPLensFlareType.Shimmer)
+                if (flareType == SRPLensFlareType.Iris || flareType == SRPLensFlareType.Glow)
                 {
                     coef += 1.0f;
 
                     if (flareType == SRPLensFlareType.Iris)
                         coef += 2.0f;
-                    if (flareType == SRPLensFlareType.Shimmer)
-                        coef += 1.0f;
                 }
 
                 if (countProp.intValue > 1)
@@ -466,7 +453,6 @@ namespace UnityEditor.Rendering
             static public readonly GUIContent sdfRoundness = EditorGUIUtility.TrTextContent("Roundness", "REPLACE ME.");
             static public readonly GUIContent sideCount = EditorGUIUtility.TrTextContent("Side Count", "REPLACE ME.");
             static public readonly GUIContent inverseSDF = EditorGUIUtility.TrTextContent("Inverse", "REPLACE ME.");
-            static public readonly GUIContent frequency = EditorGUIUtility.TrTextContent("Frequency", "REPLACE ME.");
         }
     }
 }
