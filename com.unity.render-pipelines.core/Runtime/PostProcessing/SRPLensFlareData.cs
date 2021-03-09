@@ -202,29 +202,77 @@ namespace UnityEngine
         /// SRPLensFlareDistribution defined how we spread the flare element when count > 1
         /// </summary>
         public SRPLensFlareDistribution distribution;
+        /// <summary>
+        /// Length to spread the distribution of flares, spread start at 'starting position'
+        /// </summary>
         public float lengthSpread;
+        /// <summary>
+        /// Curve describing how to place flares distribution (Used only for Uniform and Curve 'distribution')
+        /// </summary>
         public AnimationCurve positionCurve;
+        /// <summary>
+        /// Curve describing how to scale flares distribution (Used only for Uniform and Curve 'distribution')
+        /// </summary>
         public AnimationCurve scaleCurve;
-        // For Random
+        /// <summary>
+        /// Seed used to seed randomness
+        /// </summary>
         public int seed;
+        /// <summary>
+        /// Colors used uniformly for Uniform or Curve Distribution and Random when the distribution is 'Random'.
+        /// </summary>
         public Gradient colorGradient;
+        /// <summary>
+        /// Scale factor applied on the variation of the intensities.
+        /// </summary>
         [Range(0.0f, 1.0f)]
         public float intensityVariation;
+        /// <summary>
+        /// Scale factor applied on the variation of the positions.
+        /// </summary>
         public Vector2 positionVariation;
+        /// <summary>
+        /// Coefficient applied on the variation of the scale (relative to the current scale).
+        /// </summary>
         public float scaleVariation;
+        /// <summary>
+        /// Scale factor applied on the variation of the rotation (relative to the current rotation or auto-rotate).
+        /// </summary>
         public float rotationVariation;
-        // Distortion
+        /// <summary>
+        /// True to use or not the radial distortion.
+        /// </summary>
         public bool enableRadialDistortion;
+        /// <summary>
+        /// Target size used on the edge of the screen.
+        /// </summary>
         public Vector2 targetSizeDistortion;
+        /// <summary>
+        /// Curve blending from screen center to the edges of the screen.
+        /// </summary>
         public AnimationCurve distortionCurve;
 
-        // Parameters for Glow
+        /// <summary>
+        /// Fall of the gradient used for the Procedural Flare.
+        /// </summary>
         public float fallOff;
+        /// <summary>
+        /// Gradient Offset used for the Procedural Flare.
+        /// </summary>
         [Range(0.0f, 1.0f)]
         public float edgeOffset;
+        /// <summary>
+        /// Side count of the regular polygon generated.
+        /// </summary>
         public int sideCount;
+        /// <summary>
+        /// Roundness of the polygon flare (0: Sharp Polygon, 1: Circle).
+        /// </summary>
         [Range(0.0f, 1.0f)]
         public float sdfRoundness;
+        /// <summary>
+        /// Inverse the gradient direction.
+        /// </summary>
         public bool inverseSDF;
     }
 
