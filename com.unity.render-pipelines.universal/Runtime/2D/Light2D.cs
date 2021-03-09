@@ -58,7 +58,7 @@ namespace UnityEngine.Experimental.Rendering.Universal
 
         const ComponentVersions k_CurrentComponentVersion = ComponentVersions.Version_1;
         [SerializeField] ComponentVersions m_ComponentVersion = ComponentVersions.Version_Unserialized;
-        
+
 
 #if USING_ANIMATION_MODULE
         [UnityEngine.Animations.NotKeyable]
@@ -349,7 +349,7 @@ namespace UnityEngine.Experimental.Rendering.Universal
                 m_ComponentVersion = ComponentVersions.Version_1;
             }
         }
-#endif 
-    }
 
+#endif
+    }
 }
