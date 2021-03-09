@@ -121,9 +121,9 @@ namespace UnityEngine.Rendering.HighDefinition
         /// <summary>
         /// For PBR: the internal speed rejection parameter
         /// </summary>
-        public FloatParameter speedRejectionParam = new ClampedFloatParameter(64f, 0.0f, 256.0f);
-		
-		/// <summary>
+        public FloatParameter speedRejectionParam = new ClampedFloatParameter(2f/256f, 0.0f, 1.0f);
+
+        /// <summary>
         /// For PBR: Motion vector threshold parameter
         /// </summary>
         public FloatParameter motionVectorThreshold = new ClampedFloatParameter(0.33f, 0.0f, 2.0f);

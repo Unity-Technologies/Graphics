@@ -75,7 +75,7 @@ TEXTURE2D_X(_DepthTexture);
 #ifdef SSR_TRACE
     TEXTURE2D_X_UINT2(         _StencilTexture);
     RW_TEXTURE2D_X(float2, _SsrHitPointTexture);
-    float _SsrPBRBias;
+    //float _SsrPBRBias;
 #elif defined(SSR_REPROJECT)
        TEXTURE2D_X(        _SsrHitPointTexture);
     RW_TEXTURE2D_X(float4, _SSRAccumTexture);
@@ -84,8 +84,7 @@ TEXTURE2D_X(_DepthTexture);
     RW_TEXTURE2D_X(float4, _SsrAccumPrev);
     RW_TEXTURE2D_X(float4, _SsrLightingTextureRW);
     RW_TEXTURE2D_X(float4, _SSRAccumTexture);
-	float _SsrPBRSpeedRejection;
-	float _SsrPBRMotionVectorThreshold;
+    //float _SsrPBRSpeedRejection;
 #endif
 
     TEXTURE2D_X(            _SsrClearCoatMaskTexture);
@@ -167,10 +166,8 @@ void GetHitInfos(uint2 positionSS, out float2 hitPositionNDC, out float srcPerce
     float roughness = PerceptualRoughnessToRoughness(normalData.perceptualRoughness);
     float3x3 localToWorld = GetLocalFrame(normalData.normalWS);
 
-    //Xi.x = lerp(Xi.x, 0.0f, roughness * 1.0f); // 0.7 is an arbitrary bias to reduce noise for high roughness
-    //Xi.x = lerp(Xi.x, 0.0f, roughness * (1.0f - _SsrPBRBias)); // 0.7 is an arbitrary bias to reduce noise for high roughness
-	float coefBias = _SsrPBRBias / roughness;
-	Xi.x = lerp(Xi.x, 0.0f, roughness * coefBias);
+    float coefBias = _SsrPBRBias / roughness;
+    Xi.x = lerp(Xi.x, 0.0f, roughness * coefBias);
 
 #ifdef DEPTH_SOURCE_NOT_FROM_MIP_CHAIN
     float  deviceDepth = LOAD_TEXTURE2D_X(_DepthTexture, positionSS).r;
@@ -698,30 +695,6 @@ void ScreenSpaceReflectionsAccumulate(uint3 dispatchThreadId : SV_DispatchThread
     float4 original = _SSRAccumTexture[COORD_TEXTURE2D_X(positionSS)];
     float4 previous = _SsrAccumPrev[COORD_TEXTURE2D_X(positionSS * _RTHandleScaleHistory.zw / _RTHandleScaleHistory.xy)];
 
-#define TEST_SSR_USAGE
-#define TEST_SSR_SPEED_REJECTION
-#define TEST_SSR_INDEX_CURRENT
-
-#ifdef TEST_SSR_USAGE
-	// CUSTOM CODE BEGIN
-    // TODO remove other sample if this should work out
-	float2 motionVector;
-	float2 texcoordNDC = positionSS * _ScreenSize.zw + (0.5 * _ScreenSize.zw);  // tranpose to  normalized screen pos as input
-	DecodeMotionVector(SAMPLE_TEXTURE2D_X_LOD(_CameraMotionVectorsTexture, s_linear_clamp_sampler, min(texcoordNDC, 1.0f - 0.5f * _ScreenSize.zw) * _RTHandleScale.xy, 0), motionVector);
-
-	float2 motionVectorSS = motionVector / _ScreenSize.zw;
-	float2 prevSS = float2(positionSS.x, positionSS.y);
-	// sometimes small motion occurs out of nowhere. could be floating point errors. it gives smears and blurry artifatcs. thats why i clamp it here
-	if (length(motionVectorSS) < _SsrPBRMotionVectorThreshold)
-	{
-		motionVectorSS = float2(0, 0);
-	}
-	prevSS = prevSS - motionVectorSS; // offset motion vector  
-
-	previous = _SsrAccumPrev[COORD_TEXTURE2D_X(prevSS * _RTHandleScaleHistory.zw / _RTHandleScaleHistory.xy)];
-	// CUSTOM CODE END
-#endif
-
     float2 motionVectorNDC;
     DecodeMotionVector(SAMPLE_TEXTURE2D_X_LOD(_CameraMotionVectorsTexture, s_linear_clamp_sampler, min(hitPositionNDC.xy, 1.0f - 0.5f * _ScreenSize.zw) * _RTHandleScale.xy, 0), motionVectorNDC);
     float speedDst = length(motionVectorNDC);
@@ -731,26 +704,9 @@ void ScreenSpaceReflectionsAccumulate(uint3 dispatchThreadId : SV_DispatchThread
     DecodeMotionVector(SAMPLE_TEXTURE2D_X_LOD(_CameraMotionVectorsTexture, s_linear_clamp_sampler, min(positionNDC, 1.0f - 0.5f * _ScreenSize.zw) * _RTHandleScale.xy, 0), motionVectorCenterNDC);
     float speedSrc = length(motionVectorCenterNDC);
 
-#ifdef TEST_SSR_INDEX_CURRENT
-	#ifdef TEST_SSR_SPEED_REJECTION
-		float speed = saturate((speedDst + speedSrc) * _SsrPBRSpeedRejection);
-	#else
-		float speed = saturate((speedDst + speedSrc) * 128.0f); // 128 is arbitrary
-	#endif
-		float localAccum = pow(2, lerp(0.0f, -7.0f, _SsrAccumulationAmount));
-		float coefExpAvg = lerp(localAccum, 1.0f, speed);
-		float4 result = lerp(previous, original, coefExpAvg);
-#else
-		float speed = saturate((speedDst + speedSrc));
-	#ifdef TEST_SSR_SPEED_REJECTION
-		float mu = _SsrAccumulationAmount * _SsrPBRSpeedRejection * (1.0f - speed) + 1.0f;
-	#else
-		float mu = _SsrAccumulationAmount * 8192.0f * (1.0f - speed) + 1.0f;
-	#endif
-		//float mu = _SsrAccumulationAmount * 1.0f * (1.0f - speed) + 1.0f;
-		float k = _SsrFrameIndex;
-		float4 result = previous * (k / (k + mu)) + original * (mu / (k + mu));
-#endif
+    float speed = saturate((speedDst + speedSrc) * _SsrPBRSpeedRejection);
+    float coefExpAvg = lerp(_SsrAccumulationAmount, 1.0f, speed);
+    float4 result = lerp(previous, original, coefExpAvg);
 
     uint3 intCol = asuint(result.rgb);
     bool  isPosFin = Max3(intCol.r, intCol.g, intCol.b) < 0x7F800000;

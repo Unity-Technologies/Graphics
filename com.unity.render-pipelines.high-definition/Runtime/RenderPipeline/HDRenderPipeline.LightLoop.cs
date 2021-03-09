@@ -455,9 +455,11 @@ namespace UnityEngine.Rendering.HighDefinition
             }
             else
             {
-                cb._SsrAccumulationAmount = settings.accumulationFactor.value;
-                    //Mathf.Pow(2, Mathf.Lerp(0.0f, -7.0f, settings.accumulationFactor.value));
+                cb._SsrAccumulationAmount = Mathf.Pow(2, Mathf.Lerp(0.0f, -7.0f, settings.accumulationFactor.value));
             }
+            cb._SsrPBRSpeedRejection = Mathf.Pow(2.0f, Mathf.Lerp(0f, 7f, settings.speedRejectionParam.value));
+            //Mathf.Lerp(1e-5f, 32f, settings.speedRejectionParam.value);
+            cb._SsrPBRBias = settings.biasFactor.value;
         }
 
         TextureHandle RenderSSR(RenderGraph         renderGraph,
@@ -637,7 +639,6 @@ namespace UnityEngine.Rendering.HighDefinition
                                     ctx.cmd.SetComputeTextureParam(cs, data.accumulateKernel, HDShaderIDs._CameraMotionVectorsTexture, data.motionVectorsBuffer);
                                     ctx.cmd.SetComputeFloatParam(cs, HDShaderIDs._SsrFrameIndex, data.frameIndex);
                                     ctx.cmd.SetComputeFloatParam(cs, HDShaderIDs._SsrPBRSpeedRejection, data.speedRejectionFactor);
-                                    ctx.cmd.SetComputeFloatParam(cs, HDShaderIDs._SsrPBRMotionVectorThreshold, data.motionVectorThreshold);
 
                                     ConstantBuffer.Push(ctx.cmd, data.cb, cs, HDShaderIDs._ShaderVariablesScreenSpaceReflection);
 
