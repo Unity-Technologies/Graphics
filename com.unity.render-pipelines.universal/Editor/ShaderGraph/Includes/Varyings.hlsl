@@ -6,7 +6,11 @@
     float3 _LightPosition;
 #endif
 
-Varyings BuildVaryings(Attributes input)
+Varyings BuildVaryings(Attributes input
+#if defined(HAVE_VFX_MODIFICATION)
+    , AttributesElement element
+#endif
+)
 {
     Varyings output = (Varyings)0;
 
@@ -17,7 +21,16 @@ Varyings BuildVaryings(Attributes input)
 #if defined(FEATURES_GRAPH_VERTEX)
     // Evaluate Vertex Graph
     VertexDescriptionInputs vertexDescriptionInputs = BuildVertexDescriptionInputs(input);
+
+#if defined(HAVE_VFX_MODIFICATION)
+    GraphProperties properties;
+    ZERO_INITIALIZE(GraphProperties, properties);
+    // Fetch the vertex graph properties for the particle instance.
+    GetElementVertexProperties(element, properties);
+    VertexDescription vertexDescription = VertexDescriptionFunction(vertexDescriptionInputs, properties);
+#else
     VertexDescription vertexDescription = VertexDescriptionFunction(vertexDescriptionInputs);
+#endif
 
     #if defined(CUSTOMINTERPOLATOR_VARYPASSTHROUGH_FUNC)
         CustomInterpolatorPassThroughFunc(output, vertexDescription);
