@@ -397,6 +397,9 @@ Shader "HDRP/LayeredLitTessellation"
 
     HLSLINCLUDE
 
+    //Our DXC backend currently does not support Metal tessellation
+    #pragma never_use_dxc metal
+
     #pragma target 5.0
     #pragma only_renderers d3d11 playstation xboxone xboxseries vulkan metal switch
 
