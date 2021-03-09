@@ -78,24 +78,32 @@ namespace UnityEngine.Rendering
             public const int gameObjectMenuPriority = 10;
         }
 
-        // TODO delete when finish top level menu reorder
+        const string obsoletePriorityMessage = "Use CoreUtils.Priorities instead";
+
         /// <summary>Edit Menu priority 1</summary>
+        [Obsolete(obsoletePriorityMessage, false)]
         public const int editMenuPriority1 = 320;
         /// <summary>Edit Menu priority 2</summary>
+        [Obsolete(obsoletePriorityMessage, false)]
         public const int editMenuPriority2 = 331;
         /// <summary>Edit Menu priority 3</summary>
+        [Obsolete(obsoletePriorityMessage, false)]
         public const int editMenuPriority3 = 342;
         /// <summary>Edit Menu priority 4</summary>
+        [Obsolete(obsoletePriorityMessage, false)]
         public const int editMenuPriority4 = 353;
         /// <summary>Asset Create Menu priority 1</summary>
+        [Obsolete(obsoletePriorityMessage, false)]
         public const int assetCreateMenuPriority1 = 230;
         /// <summary>Asset Create Menu priority 2</summary>
+        [Obsolete(obsoletePriorityMessage, false)]
         public const int assetCreateMenuPriority2 = 241;
         /// <summary>Asset Create Menu priority 3</summary>
+        [Obsolete(obsoletePriorityMessage, false)]
         public const int assetCreateMenuPriority3 = 300;
         /// <summary>Game Object Menu priority</summary>
+        [Obsolete(obsoletePriorityMessage, false)]
         public const int gameObjectMenuPriority = 10;
-        // END TODO delete when finish top level menu reorder
 
         static Cubemap m_BlackCubeTexture;
         /// <summary>
