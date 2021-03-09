@@ -85,7 +85,11 @@ void MotionVectorPositionZBias(VaryingsToPS input)
 #endif
 }
 
+#ifdef HAVE_VFX_MODIFICATION
+PackedVaryingsType MotionVectorVS(inout VaryingsType varyingsType, AttributesMesh inputMesh, AttributesPass inputPass, AttributesElement inputElement)
+#else
 PackedVaryingsType MotionVectorVS(inout VaryingsType varyingsType, AttributesMesh inputMesh, AttributesPass inputPass)
+#endif
 {
 
 #if !defined(TESSELLATION_ON)
@@ -108,18 +112,8 @@ PackedVaryingsType MotionVectorVS(inout VaryingsType varyingsType, AttributesMes
         bool hasDeformation = unity_MotionVectorsParams.x > 0.0; // Skin or morph target
 
 #if defined(HAVE_VFX_MODIFICATION)
-        // Re-construct the VFX mesh (i.e. in case of procedural output like planar primitives).
-        // And fetch element index to sample the previous element matrix.
-        AttributesElement element;
-        ZERO_INITIALIZE(AttributesElement, element);
-
-        GetMeshAndElementIndex(inputMesh, element);
-
-        // NOTE: We have to re-evaluate the attributes here, not good.
-        // TODO: organize things so that VFX mesh and attributes get computed once.
-        GetElementData(element);
-
-        inputMesh = TransformMeshToPreviousElement(inputMesh, element);
+        GetMeshAndElementIndex(inputMesh, inputElement);
+        inputMesh = TransformMeshToPreviousElement(inputMesh, inputElement);
 #endif
 
         float3 effectivePositionOS = (hasDeformation ? inputPass.previousPositionOS : inputMesh.positionOS);
@@ -138,7 +132,7 @@ PackedVaryingsType MotionVectorVS(inout VaryingsType varyingsType, AttributesMes
             , varyingsType.vmesh
     #endif
     #if defined(HAVE_VFX_MODIFICATION)
-            , element
+            , inputElement
     #endif
             );
 

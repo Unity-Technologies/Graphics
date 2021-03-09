@@ -127,8 +127,11 @@ VaryingsToDS InterpolateWithBaryCoordsToDS(VaryingsToDS input0, VaryingsToDS inp
 #endif
 
 // TODO: Here we will also have all the vertex deformation (GPU skinning, vertex animation, morph target...) or we will need to generate a compute shaders instead (better! but require work to deal with unpacking like fp16)
-// Make it inout so that MotionVectorPass can get the modified input values later.
+#ifdef HAVE_VFX_MODIFICATION
+VaryingsMeshType VertMesh(AttributesMesh input, float3 worldSpaceOffset, out AttributesElement element)
+#else
 VaryingsMeshType VertMesh(AttributesMesh input, float3 worldSpaceOffset)
+#endif
 {
     VaryingsMeshType output;
     ZERO_INITIALIZE(VaryingsMeshType, output);
@@ -137,7 +140,6 @@ VaryingsMeshType VertMesh(AttributesMesh input, float3 worldSpaceOffset)
     UNITY_TRANSFER_INSTANCE_ID(input, output);
 
 #if defined(HAVE_VFX_MODIFICATION)
-    AttributesElement element;
     ZERO_INITIALIZE(AttributesElement, element);
 
     if(!GetMeshAndElementIndex(input, element))
@@ -222,8 +224,20 @@ VaryingsMeshType VertMesh(AttributesMesh input, float3 worldSpaceOffset)
 
 VaryingsMeshType VertMesh(AttributesMesh input)
 {
+#ifdef HAVE_VFX_MODIFICATION
+    AttributesElement element;
+    return VertMesh(input, 0.0f, element);
+#else
     return VertMesh(input, 0.0f);
+#endif
 }
+
+#ifdef HAVE_VFX_MODIFICATION
+VaryingsMeshType VertMesh(AttributesMesh input, out AttributesElement element)
+{
+    return VertMesh(input, 0.0f, element);
+}
+#endif
 
 #ifdef TESSELLATION_ON
 
