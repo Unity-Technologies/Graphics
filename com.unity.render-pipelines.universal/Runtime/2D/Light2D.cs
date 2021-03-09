@@ -55,7 +55,6 @@ namespace UnityEngine.Experimental.Rendering.Universal
             Version_1 = 1
         }
 
-        internal static bool s_IsLoadingVersion = false;
         const ComponentVersions k_CurrentComponentVersion = ComponentVersions.Version_1;
         [SerializeField] ComponentVersions m_ComponentVersion = ComponentVersions.Uninitialized;
         
