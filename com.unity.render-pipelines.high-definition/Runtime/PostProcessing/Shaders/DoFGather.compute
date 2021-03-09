@@ -192,5 +192,5 @@ void KMain(uint3 dispatchThreadId : SV_DispatchThreadID)
     outColor.w = outAlpha;
 #endif
 
-    _OutputTexture[COORD_TEXTURE2D_X(posInputs.positionSS)] = outColor;
+    _OutputTexture[COORD_TEXTURE2D_X(posInputs.positionSS)] = (CTYPE) outColor;
 }
