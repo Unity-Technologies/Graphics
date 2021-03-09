@@ -3,68 +3,70 @@
 # Introduce any changes under .yamato/config/*.metafile files (for most cases) or under .yamato/ruamel/* within Python (more elaborate cases), and rerun build.py to regenerate all .yml files. 
 # Read more under .yamato/docs/readme.md 
 
-{% metadata_file .yamato/_latest_editor_versions_2020.2.metafile -%}
+{% metadata_file .yamato/_latest_editor_versions_2020.3.metafile -%}
 
 ---
 
-PR_Universal_2020.2:
-    name: Universal PR Job - 2020.2
+PR_Universal_2020.3:
+    name: Universal PR Job - 2020.3
     dependencies:
-      -  path: .yamato/universal-win-dx11.yml#Universal_Win_DX11_Standalone_cache_mono_Linear_2020.2
+      -  path: .yamato/universal-win-dx11.yml#Universal_Win_DX11_Standalone_cache_mono_Linear_2020.3
          rerun: on-new-revision
-      -  path: .yamato/universal-win-dx11.yml#Universal_Win_DX11_playmode_XR_cache_mono_Linear_2020.2
+      -  path: .yamato/universal-win-dx11.yml#Universal_Win_DX11_playmode_XR_cache_mono_Linear_2020.3
          rerun: on-new-revision
-      -  path: .yamato/universal-win-dx11.yml#Universal_Win_DX11_editmode_mono_Linear_2020.2
+      -  path: .yamato/universal-win-dx11.yml#Universal_Win_DX11_editmode_mono_Linear_2020.3
          rerun: on-new-revision
-      -  path: .yamato/universal-win-dx12.yml#Universal_Win_DX12_Standalone_cache_mono_Linear_2020.2
+      -  path: .yamato/universal-win-dx12.yml#Universal_Win_DX12_Standalone_cache_mono_Linear_2020.3
          rerun: on-new-revision
-      -  path: .yamato/universal-android-opengles3.yml#Universal_Android_OpenGLES3_Standalone_cache_il2cpp_Linear_2020.2
+      -  path: .yamato/universal-android-opengles3.yml#Universal_Android_OpenGLES3_Standalone_cache_il2cpp_Linear_2020.3
          rerun: on-new-revision
-      -  path: .yamato/universal-android-vulkan.yml#Universal_Android_Vulkan_Standalone_cache_il2cpp_Linear_2020.2
+      -  path: .yamato/universal-android-vulkan.yml#Universal_Android_Vulkan_Standalone_cache_il2cpp_Linear_2020.3
          rerun: on-new-revision
-      -  path: .yamato/universal-iphone-metal.yml#Universal_iPhone_Metal_Standalone_cache_il2cpp_Linear_2020.2
+      -  path: .yamato/universal-iphone-metal.yml#Universal_iPhone_Metal_Standalone_cache_il2cpp_Linear_2020.3
          rerun: on-new-revision
-      -  path: .yamato/universal-osx-metal.yml#Universal_OSX_Metal_playmode_cache_mono_Linear_2020.2
+      -  path: .yamato/universal-osx-metal.yml#Universal_OSX_Metal_playmode_cache_mono_Linear_2020.3
          rerun: on-new-revision
-      -  path: .yamato/universal-osx-openglcore.yml#Universal_OSX_OpenGLCore_editmode_mono_Linear_2020.2
+      -  path: .yamato/universal-osx-openglcore.yml#Universal_OSX_OpenGLCore_editmode_mono_Linear_2020.3
          rerun: on-new-revision
-      -  path: .yamato/universal-android-opengles3.yml#Universal_Android_OpenGLES3_Standalone_cache_il2cpp_Linear_2020.2
+      -  path: .yamato/universal-android-opengles3.yml#Universal_Android_OpenGLES3_Standalone_cache_il2cpp_Linear_2020.3
          rerun: on-new-revision
-      -  path: .yamato/universal-android-vulkan.yml#Universal_Android_Vulkan_Standalone_cache_il2cpp_Linear_2020.2
+      -  path: .yamato/universal-android-vulkan.yml#Universal_Android_Vulkan_Standalone_cache_il2cpp_Linear_2020.3
          rerun: on-new-revision
-      -  path: .yamato/universal-iphone-metal.yml#Universal_iPhone_Metal_Standalone_cache_il2cpp_Linear_2020.2
+      -  path: .yamato/universal-iphone-metal.yml#Universal_iPhone_Metal_Standalone_cache_il2cpp_Linear_2020.3
          rerun: on-new-revision
-      -  path: .yamato/all-universal_stereo.yml#PR_Universal_Stereo_2020.2
+      -  path: .yamato/all-universal_stereo.yml#PR_Universal_Stereo_2020.3
          rerun: on-new-revision
-      -  path: .yamato/all-universal_hybrid.yml#PR_Universal_Hybrid_2020.2
+      -  path: .yamato/all-universal_hybrid.yml#PR_Universal_Hybrid_2020.3
          rerun: on-new-revision
-      -  path: .yamato/all-vfx_urp.yml#PR_VFX_URP_2020.2
+      -  path: .yamato/all-vfx_urp.yml#PR_VFX_URP_2020.3
          rerun: on-new-revision
-      -  path: .yamato/all-shadergraph.yml#PR_ShaderGraph_2020.2
+      -  path: .yamato/all-shadergraph.yml#PR_ShaderGraph_2020.3
+         rerun: on-new-revision
+      -  path: .yamato/all-urpupdate.yml#PR_URPUpdate_2020.3
          rerun: on-new-revision
     triggers:
         expression: pull_request.target eq "10.x.x/release" AND NOT pull_request.draft AND pull_request.changes.any match ["com.unity.render-pipelines.universal/**/*", "TestProjects/UniversalGraphicsTest/**/*"] AND NOT pull_request.push.changes.all match ["*.md", "**/*.md", "doc/**/*", "**/Documentation*/**/*"]
     variables:
         UTR_VERSION: "current"
         TEST_FILTER: .*
-Nightly_Universal_2020.2:
-    name: Nightly Universal - 2020.2
+Nightly_Universal_2020.3:
+    name: Nightly Universal - 2020.3
     dependencies:
-      -  path: .yamato/all-universal.yml#PR_Universal_2020.2
+      -  path: .yamato/all-universal.yml#PR_Universal_2020.3
          rerun: on-new-revision
-      -  path: .yamato/all-universal_stereo.yml#Nightly_Universal_Stereo_2020.2
+      -  path: .yamato/all-universal_stereo.yml#Nightly_Universal_Stereo_2020.3
          rerun: on-new-revision
-      -  path: .yamato/all-universal_hybrid.yml#Nightly_Universal_Hybrid_2020.2
+      -  path: .yamato/all-universal_hybrid.yml#Nightly_Universal_Hybrid_2020.3
          rerun: on-new-revision
-      -  path: .yamato/all-vfx_urp.yml#Nightly_VFX_URP_2020.2
+      -  path: .yamato/all-vfx_urp.yml#Nightly_VFX_URP_2020.3
          rerun: on-new-revision
-      -  path: .yamato/all-shadergraph.yml#Nightly_ShaderGraph_2020.2
+      -  path: .yamato/all-shadergraph.yml#Nightly_ShaderGraph_2020.3
          rerun: on-new-revision
-      -  path: .yamato/all-smoke_test.yml#Nightly_Smoke_Test_2020.2
+      -  path: .yamato/all-smoke_test.yml#Nightly_Smoke_Test_2020.3
          rerun: on-new-revision
-      -  path: .yamato/universal-win-dx11.yml#Universal_Win_DX11_playmode_cache_mono_Linear_2020.2
+      -  path: .yamato/universal-win-dx11.yml#Universal_Win_DX11_playmode_cache_mono_Linear_2020.3
          rerun: on-new-revision
-      -  path: .yamato/universal-win-dx12.yml#Universal_Win_DX12_playmode_cache_mono_Linear_2020.2
+      -  path: .yamato/universal-win-dx12.yml#Universal_Win_DX12_playmode_cache_mono_Linear_2020.3
          rerun: on-new-revision
     variables:
         UTR_VERSION: "current"
@@ -103,6 +105,8 @@ PR_Universal_CUSTOM-REVISION:
       -  path: .yamato/all-vfx_urp.yml#PR_VFX_URP_CUSTOM-REVISION
          rerun: always
       -  path: .yamato/all-shadergraph.yml#PR_ShaderGraph_CUSTOM-REVISION
+         rerun: always
+      -  path: .yamato/all-urpupdate.yml#PR_URPUpdate_CUSTOM-REVISION
          rerun: always
     variables:
         CUSTOM_REVISION: custom_revision_not_set

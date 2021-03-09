@@ -1,5 +1,6 @@
 using System;
 using System.Reflection;
+using UnityEditor.ShaderGraph.Drawing.Inspector;
 using UnityEngine.UIElements;
 
 namespace UnityEditor.ShaderGraph.Drawing
@@ -15,7 +16,9 @@ namespace UnityEditor.ShaderGraph.Drawing
         object GetObjectToInspect();
 
         // Used to provide any data needed by the property drawer from the inspectable
-        // The inspectorUpdateDelegate is used to trigger an inspector update
-        void SupplyDataToPropertyDrawer(IPropertyDrawer propertyDrawer, Action inspectorUpdateDelegate);
+        // The inspectorUpdateDelegate is used to trigger a general inspector update
+        // The scopedInspectorUpdateDelegate is used to trigger inspector updates with more context as to source of the update
+        // They are both maintained here side by side with the scoped update delegate defaulting to null to reduce halo effect and number of files changed in bugfix 1318844, for LTS
+        void SupplyDataToPropertyDrawer(IPropertyDrawer propertyDrawer, Action inspectorUpdateDelegate, Action<InspectorUpdateSource> scopedInspectorUpdateDelegate = null);
     }
 }

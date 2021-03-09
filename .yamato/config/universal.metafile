@@ -39,32 +39,32 @@ test_platforms:
       - [all]: <shared.platform.commands.call_utr>
         flags:
           - [all]: --timeout=3000
-  
+
   - type: playmode
     commands:
       - <reuse_blocks.setup_with_utr>
   - type: playmode
     name: playmode_cache
-    commands: 
+    commands:
       - <reuse_blocks.setup_without_utr>
       - [all]: <shared.platform.commands.call_utr>
         flags:
           - <reuse_blocks.cache_server>
-  
+
   - type: editmode
     commands:
       - <reuse_blocks.setup_with_utr>
-  
+
   - type: playmode
     name: playmode_XR
-    commands: 
+    commands:
       - <reuse_blocks.setup_without_utr>
       - [all]: <shared.platform.commands.call_utr>
         flags:
           - [all]: --extra-editor-arg="-xr-tests"
   - type: playmode
     name: playmode_XR_cache
-    commands: 
+    commands:
       - <reuse_blocks.setup_without_utr>
       - [all]: <shared.platform.commands.call_utr>
         flags:
@@ -80,8 +80,6 @@ test_platforms:
       - [all]: <shared.platform.commands.setup_utr>
       - [OSX_Metal]: <shared.platform.commands.unity_downloader_cli>
       - [all]: <shared.platform.commands.call_utr>
-        flags:
-          - <reuse_blocks.cache_server>
       - [Android_OpenGLES3, Android_Vulkan]: <shared.platform.commands.kill_server>
     commands_build:
       - <reuse_blocks.setup_without_utr>
@@ -259,6 +257,8 @@ pr:
     - project: VFX_URP
       pr: true
     - project: ShaderGraph
+      pr: true
+    - project: URPUpdate
       pr: true
 nightly:
   dependencies:

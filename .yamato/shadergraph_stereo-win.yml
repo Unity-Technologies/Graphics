@@ -3,12 +3,12 @@
 # Introduce any changes under .yamato/config/*.metafile files (for most cases) or under .yamato/ruamel/* within Python (more elaborate cases), and rerun build.py to regenerate all .yml files. 
 # Read more under .yamato/docs/readme.md 
 
-{% metadata_file .yamato/_latest_editor_versions_2020.2.metafile -%}
+{% metadata_file .yamato/_latest_editor_versions_2020.3.metafile -%}
 
 ---
 
-ShaderGraph_Stereo_Win_Standalone_mono_Linear_2020.2:
-    name: ShaderGraph_Stereo on Win__Standalone_mono_Linear on version 2020.2
+ShaderGraph_Stereo_Win_Standalone_mono_Linear_2020.3:
+    name: ShaderGraph_Stereo on Win__Standalone_mono_Linear on version 2020.3
     agent:
         type: Unity::VM::GPU
         image: sdet/gamecode_win10:stable
@@ -31,10 +31,10 @@ ShaderGraph_Stereo_Win_Standalone_mono_Linear_2020.2:
               -  "**/test-results/**"
               -  "TestProjects/ShaderGraphUniversalStereo/Logs/*.log"
     dependencies:
-      -  path: .yamato/shadergraph_stereo-win.yml#Build_ShaderGraph_Stereo_Win_Standalone_mono_Linear_2020.2
+      -  path: .yamato/shadergraph_stereo-win.yml#Build_ShaderGraph_Stereo_Win_Standalone_mono_Linear_2020.3
          rerun: on-new-revision
-Build_ShaderGraph_Stereo_Win_Standalone_mono_Linear_2020.2:
-    name: Build ShaderGraph_Stereo on Win__mono_Linear_Standalone_build_Player on version 2020.2
+Build_ShaderGraph_Stereo_Win_Standalone_mono_Linear_2020.3:
+    name: Build ShaderGraph_Stereo on Win__mono_Linear_Standalone_build_Player on version 2020.3
     agent:
         type: Unity::VM
         image: sdet/gamecode_win10:stable
@@ -46,7 +46,7 @@ Build_ShaderGraph_Stereo_Win_Standalone_mono_Linear_2020.2:
     commands:
       -  curl -s https://artifactory.prd.it.unity3d.com/artifactory/unity-tools-local/utr-standalone/utr.bat --output utr.bat
       -  choco install unity-downloader-cli -y -s https://artifactory.prd.it.unity3d.com/artifactory/api/nuget/unity-choco-local
-      -  unity-downloader-cli -u {{editor_versions.2020_2_staging.Win.revision}} -c editor -c il2cpp  --wait --published-only
+      -  unity-downloader-cli -u {{editor_versions.2020_3_staging.Win.revision}} -c editor -c il2cpp  --wait --published-only
       -  |5-
               git rev-parse HEAD | git show -s --format=%%cI > revdate.tmp
               set /p GIT_REVISIONDATE=<revdate.tmp
@@ -61,8 +61,8 @@ Build_ShaderGraph_Stereo_Win_Standalone_mono_Linear_2020.2:
         players:
             paths:
               -  "players*/**"
-ShaderGraph_Stereo_Win_editmode_mono_Linear_2020.2:
-    name: ShaderGraph_Stereo on Win__editmode_mono_Linear on version 2020.2
+ShaderGraph_Stereo_Win_editmode_mono_Linear_2020.3:
+    name: ShaderGraph_Stereo on Win__editmode_mono_Linear on version 2020.3
     agent:
         type: Unity::VM
         image: sdet/gamecode_win10:stable
@@ -74,7 +74,7 @@ ShaderGraph_Stereo_Win_editmode_mono_Linear_2020.2:
     commands:
       -  curl -s https://artifactory.prd.it.unity3d.com/artifactory/unity-tools-local/utr-standalone/utr.bat --output utr.bat
       -  choco install unity-downloader-cli -y -s https://artifactory.prd.it.unity3d.com/artifactory/api/nuget/unity-choco-local
-      -  unity-downloader-cli -u {{editor_versions.2020_2_staging.Win.revision}} -c editor -c il2cpp  --wait --published-only
+      -  unity-downloader-cli -u {{editor_versions.2020_3_staging.Win.revision}} -c editor -c il2cpp  --wait --published-only
       -  |5-
               git rev-parse HEAD | git show -s --format=%%cI > revdate.tmp
               set /p GIT_REVISIONDATE=<revdate.tmp
@@ -86,8 +86,8 @@ ShaderGraph_Stereo_Win_editmode_mono_Linear_2020.2:
             paths:
               -  "**/test-results/**"
               -  "TestProjects/ShaderGraphUniversalStereo/Logs/*.log"
-ShaderGraph_Stereo_Win_Standalone_cache_mono_Linear_2020.2:
-    name: ShaderGraph_Stereo on Win__Standalone_cache_mono_Linear on version 2020.2
+ShaderGraph_Stereo_Win_Standalone_cache_mono_Linear_2020.3:
+    name: ShaderGraph_Stereo on Win__Standalone_cache_mono_Linear on version 2020.3
     agent:
         type: Unity::VM::GPU
         image: sdet/gamecode_win10:stable
@@ -103,17 +103,17 @@ ShaderGraph_Stereo_Win_Standalone_cache_mono_Linear_2020.2:
               set /p GIT_REVISIONDATE=<revdate.tmp
               echo %GIT_REVISIONDATE%
               del revdate.tmp
-              utr --artifacts_path=TestProjects/ShaderGraphUniversalStereo/test-results --extra-editor-arg="-adb2" --extra-editor-arg="-cacheServerEnableDownload" --extra-editor-arg="true" --extra-editor-arg="-cacheServerEnableUpload" --extra-editor-arg="true" --extra-editor-arg="-cacheServerEndpoint" --extra-editor-arg="cacheserver-slo.hq.unity3d.com" --extra-editor-arg="-cacheServerNamespacePrefix" --extra-editor-arg="SRP" --extra-editor-arg="-enableCacheServer" --platform=StandaloneWindows64 --player-connection-ip=auto --player-load-path=players --suite=playmode --timeout=1200 --zero-tests-are-ok=1
+              utr --artifacts_path=TestProjects/ShaderGraphUniversalStereo/test-results --platform=StandaloneWindows64 --player-connection-ip=auto --player-load-path=players --suite=playmode --timeout=1200 --zero-tests-are-ok=1
     artifacts:
         logs:
             paths:
               -  "**/test-results/**"
               -  "TestProjects/ShaderGraphUniversalStereo/Logs/*.log"
     dependencies:
-      -  path: .yamato/shadergraph_stereo-win.yml#Build_ShaderGraph_Stereo_Win_Standalone_cache_mono_Linear_2020.2
+      -  path: .yamato/shadergraph_stereo-win.yml#Build_ShaderGraph_Stereo_Win_Standalone_cache_mono_Linear_2020.3
          rerun: on-new-revision
-Build_ShaderGraph_Stereo_Win_Standalone_cache_mono_Linear_2020.2:
-    name: Build ShaderGraph_Stereo on Win__mono_Linear_Standalone_cache_build_Player on version 2020.2
+Build_ShaderGraph_Stereo_Win_Standalone_cache_mono_Linear_2020.3:
+    name: Build ShaderGraph_Stereo on Win__mono_Linear_Standalone_cache_build_Player on version 2020.3
     agent:
         type: Unity::VM
         image: sdet/gamecode_win10:stable
@@ -125,7 +125,7 @@ Build_ShaderGraph_Stereo_Win_Standalone_cache_mono_Linear_2020.2:
     commands:
       -  curl -s https://artifactory.prd.it.unity3d.com/artifactory/unity-tools-local/utr-standalone/utr.bat --output utr.bat
       -  choco install unity-downloader-cli -y -s https://artifactory.prd.it.unity3d.com/artifactory/api/nuget/unity-choco-local
-      -  unity-downloader-cli -u {{editor_versions.2020_2_staging.Win.revision}} -c editor -c il2cpp  --wait --published-only
+      -  unity-downloader-cli -u {{editor_versions.2020_3_staging.Win.revision}} -c editor -c il2cpp  --wait --published-only
       -  |5-
               git rev-parse HEAD | git show -s --format=%%cI > revdate.tmp
               set /p GIT_REVISIONDATE=<revdate.tmp
@@ -248,7 +248,7 @@ ShaderGraph_Stereo_Win_Standalone_cache_mono_Linear_CUSTOM-REVISION:
               set /p GIT_REVISIONDATE=<revdate.tmp
               echo %GIT_REVISIONDATE%
               del revdate.tmp
-              utr --artifacts_path=TestProjects/ShaderGraphUniversalStereo/test-results --extra-editor-arg="-adb2" --extra-editor-arg="-cacheServerEnableDownload" --extra-editor-arg="true" --extra-editor-arg="-cacheServerEnableUpload" --extra-editor-arg="true" --extra-editor-arg="-cacheServerEndpoint" --extra-editor-arg="cacheserver-slo.hq.unity3d.com" --extra-editor-arg="-cacheServerNamespacePrefix" --extra-editor-arg="SRP" --extra-editor-arg="-enableCacheServer" --platform=StandaloneWindows64 --player-connection-ip=auto --player-load-path=players --suite=playmode --timeout=1200 --zero-tests-are-ok=1
+              utr --artifacts_path=TestProjects/ShaderGraphUniversalStereo/test-results --platform=StandaloneWindows64 --player-connection-ip=auto --player-load-path=players --suite=playmode --timeout=1200 --zero-tests-are-ok=1
     artifacts:
         logs:
             paths:

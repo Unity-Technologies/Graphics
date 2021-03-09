@@ -3,7 +3,7 @@
 # Introduce any changes under .yamato/config/*.metafile files (for most cases) or under .yamato/ruamel/* within Python (more elaborate cases), and rerun build.py to regenerate all .yml files. 
 # Read more under .yamato/docs/readme.md 
 
-{% metadata_file .yamato/_latest_editor_versions_2020.2.metafile -%}
+{% metadata_file .yamato/_latest_editor_versions_2020.3.metafile -%}
 
 ---
 
@@ -29,8 +29,8 @@ publish_core:
         flavor: b1.large
     dependencies:
       -  .yamato/_packages.yml#pack_core
-      -  .yamato/_packages.yml#test_core_Win_2020.2
-      -  .yamato/_packages.yml#test_core_OSX_2020.2
+      -  .yamato/_packages.yml#test_core_Win_2020.3
+      -  .yamato/_packages.yml#test_core_OSX_2020.3
     commands:
       -  mkdir upm-ci~\packages
       -  copy packages_temp\core\upm-ci~\packages\* upm-ci~\packages
@@ -48,8 +48,8 @@ publish_core_dry:
         flavor: b1.large
     dependencies:
       -  .yamato/_packages.yml#pack_core
-      -  .yamato/_packages.yml#test_core_Win_2020.2
-      -  .yamato/_packages.yml#test_core_OSX_2020.2
+      -  .yamato/_packages.yml#test_core_Win_2020.3
+      -  .yamato/_packages.yml#test_core_OSX_2020.3
     commands:
       -  mkdir upm-ci~\packages
       -  copy packages_temp\core\upm-ci~\packages\* upm-ci~\packages
@@ -81,8 +81,8 @@ publish_lwrp:
         flavor: b1.large
     dependencies:
       -  .yamato/_packages.yml#pack_lwrp
-      -  .yamato/_packages.yml#test_lwrp_Win_2020.2
-      -  .yamato/_packages.yml#test_lwrp_OSX_2020.2
+      -  .yamato/_packages.yml#test_lwrp_Win_2020.3
+      -  .yamato/_packages.yml#test_lwrp_OSX_2020.3
     commands:
       -  mkdir upm-ci~\packages
       -  copy packages_temp\lwrp\upm-ci~\packages\* upm-ci~\packages
@@ -100,8 +100,8 @@ publish_lwrp_dry:
         flavor: b1.large
     dependencies:
       -  .yamato/_packages.yml#pack_lwrp
-      -  .yamato/_packages.yml#test_lwrp_Win_2020.2
-      -  .yamato/_packages.yml#test_lwrp_OSX_2020.2
+      -  .yamato/_packages.yml#test_lwrp_Win_2020.3
+      -  .yamato/_packages.yml#test_lwrp_OSX_2020.3
     commands:
       -  mkdir upm-ci~\packages
       -  copy packages_temp\lwrp\upm-ci~\packages\* upm-ci~\packages
@@ -133,8 +133,8 @@ publish_shadergraph:
         flavor: b1.large
     dependencies:
       -  .yamato/_packages.yml#pack_shadergraph
-      -  .yamato/_packages.yml#test_shadergraph_Win_2020.2
-      -  .yamato/_packages.yml#test_shadergraph_OSX_2020.2
+      -  .yamato/_packages.yml#test_shadergraph_Win_2020.3
+      -  .yamato/_packages.yml#test_shadergraph_OSX_2020.3
     commands:
       -  mkdir upm-ci~\packages
       -  copy packages_temp\shadergraph\upm-ci~\packages\* upm-ci~\packages
@@ -152,8 +152,8 @@ publish_shadergraph_dry:
         flavor: b1.large
     dependencies:
       -  .yamato/_packages.yml#pack_shadergraph
-      -  .yamato/_packages.yml#test_shadergraph_Win_2020.2
-      -  .yamato/_packages.yml#test_shadergraph_OSX_2020.2
+      -  .yamato/_packages.yml#test_shadergraph_Win_2020.3
+      -  .yamato/_packages.yml#test_shadergraph_OSX_2020.3
     commands:
       -  mkdir upm-ci~\packages
       -  copy packages_temp\shadergraph\upm-ci~\packages\* upm-ci~\packages
@@ -185,8 +185,8 @@ publish_hdrp:
         flavor: b1.large
     dependencies:
       -  .yamato/_packages.yml#pack_hdrp
-      -  .yamato/_packages.yml#test_hdrp_Win_2020.2
-      -  .yamato/_packages.yml#test_hdrp_OSX_2020.2
+      -  .yamato/_packages.yml#test_hdrp_Win_2020.3
+      -  .yamato/_packages.yml#test_hdrp_OSX_2020.3
     commands:
       -  mkdir upm-ci~\packages
       -  copy packages_temp\hdrp\upm-ci~\packages\* upm-ci~\packages
@@ -204,8 +204,8 @@ publish_hdrp_dry:
         flavor: b1.large
     dependencies:
       -  .yamato/_packages.yml#pack_hdrp
-      -  .yamato/_packages.yml#test_hdrp_Win_2020.2
-      -  .yamato/_packages.yml#test_hdrp_OSX_2020.2
+      -  .yamato/_packages.yml#test_hdrp_Win_2020.3
+      -  .yamato/_packages.yml#test_hdrp_OSX_2020.3
     commands:
       -  mkdir upm-ci~\packages
       -  copy packages_temp\hdrp\upm-ci~\packages\* upm-ci~\packages
@@ -237,8 +237,8 @@ publish_universal:
         flavor: b1.large
     dependencies:
       -  .yamato/_packages.yml#pack_universal
-      -  .yamato/_packages.yml#test_universal_Win_2020.2
-      -  .yamato/_packages.yml#test_universal_OSX_2020.2
+      -  .yamato/_packages.yml#test_universal_Win_2020.3
+      -  .yamato/_packages.yml#test_universal_OSX_2020.3
     commands:
       -  mkdir upm-ci~\packages
       -  copy packages_temp\universal\upm-ci~\packages\* upm-ci~\packages
@@ -256,8 +256,8 @@ publish_universal_dry:
         flavor: b1.large
     dependencies:
       -  .yamato/_packages.yml#pack_universal
-      -  .yamato/_packages.yml#test_universal_Win_2020.2
-      -  .yamato/_packages.yml#test_universal_OSX_2020.2
+      -  .yamato/_packages.yml#test_universal_Win_2020.3
+      -  .yamato/_packages.yml#test_universal_OSX_2020.3
     commands:
       -  mkdir upm-ci~\packages
       -  copy packages_temp\universal\upm-ci~\packages\* upm-ci~\packages
@@ -289,8 +289,8 @@ publish_vfx:
         flavor: b1.large
     dependencies:
       -  .yamato/_packages.yml#pack_vfx
-      -  .yamato/_packages.yml#test_vfx_Win_2020.2
-      -  .yamato/_packages.yml#test_vfx_OSX_2020.2
+      -  .yamato/_packages.yml#test_vfx_Win_2020.3
+      -  .yamato/_packages.yml#test_vfx_OSX_2020.3
     commands:
       -  mkdir upm-ci~\packages
       -  copy packages_temp\vfx\upm-ci~\packages\* upm-ci~\packages
@@ -308,8 +308,8 @@ publish_vfx_dry:
         flavor: b1.large
     dependencies:
       -  .yamato/_packages.yml#pack_vfx
-      -  .yamato/_packages.yml#test_vfx_Win_2020.2
-      -  .yamato/_packages.yml#test_vfx_OSX_2020.2
+      -  .yamato/_packages.yml#test_vfx_Win_2020.3
+      -  .yamato/_packages.yml#test_vfx_OSX_2020.3
     commands:
       -  mkdir upm-ci~\packages
       -  copy packages_temp\vfx\upm-ci~\packages\* upm-ci~\packages
@@ -341,8 +341,8 @@ publish_config:
         flavor: b1.large
     dependencies:
       -  .yamato/_packages.yml#pack_config
-      -  .yamato/_packages.yml#test_config_Win_2020.2
-      -  .yamato/_packages.yml#test_config_OSX_2020.2
+      -  .yamato/_packages.yml#test_config_Win_2020.3
+      -  .yamato/_packages.yml#test_config_OSX_2020.3
     commands:
       -  mkdir upm-ci~\packages
       -  copy packages_temp\config\upm-ci~\packages\* upm-ci~\packages
@@ -360,8 +360,8 @@ publish_config_dry:
         flavor: b1.large
     dependencies:
       -  .yamato/_packages.yml#pack_config
-      -  .yamato/_packages.yml#test_config_Win_2020.2
-      -  .yamato/_packages.yml#test_config_OSX_2020.2
+      -  .yamato/_packages.yml#test_config_Win_2020.3
+      -  .yamato/_packages.yml#test_config_OSX_2020.3
     commands:
       -  mkdir upm-ci~\packages
       -  copy packages_temp\config\upm-ci~\packages\* upm-ci~\packages
@@ -371,8 +371,8 @@ publish_config_dry:
         packages:
             paths:
               -  "upm-ci~/packages/**/*"
-test_core_Win_2020.2:
-    name: Test Core Win 2020.2
+test_core_Win_2020.3:
+    name: Test Core Win 2020.3
     agent:
         type: Unity::VM
         image: package-ci/win10:stable
@@ -382,7 +382,7 @@ test_core_Win_2020.2:
     commands:
       -  npm install upm-ci-utils@stable -g --registry https://artifactory.prd.cds.internal.unity3d.com/artifactory/api/npm/upm-npm
       -  pip install unity-downloader-cli --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
-      -  unity-downloader-cli -u {{editor_versions.2020_2_staging.Win.revision}} -c editor --wait --published-only
+      -  unity-downloader-cli -u {{editor_versions.2020_3_staging.Win.revision}} -c editor --wait --published-only
       -  mkdir upm-ci~\packages
       -  copy packages_temp\core\upm-ci~\packages\packages.json upm-ci~\packages
       -  for /r packages_temp %%x in (*.tgz) do copy %%x upm-ci~\packages
@@ -391,26 +391,26 @@ test_core_Win_2020.2:
         logs:
             paths:
               -  "**/test-results/**"
-test_core_Win_2020.2_dependencies:
-    name: Test Core Win 2020.2 - dependencies
+test_core_Win_2020.3_dependencies:
+    name: Test Core Win 2020.3 - dependencies
     agent:
         type: Unity::VM
         image: package-ci/win10:stable
         flavor: b1.large
     dependencies:
-      -  .yamato/_packages.yml#test_core_Win_2020.2
+      -  .yamato/_packages.yml#test_core_Win_2020.3
       -  .yamato/_packages.yml#pack_core
     commands:
       -  npm install upm-ci-utils@stable -g --registry https://artifactory.prd.cds.internal.unity3d.com/artifactory/api/npm/upm-npm
       -  pip install unity-downloader-cli --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
-      -  unity-downloader-cli -u {{editor_versions.2020_2_staging.Win.revision}} -c editor --wait --published-only
+      -  unity-downloader-cli -u {{editor_versions.2020_3_staging.Win.revision}} -c editor --wait --published-only
       -  upm-ci package test -u .\.Editor --type updated-dependencies-tests --package-path com.unity.render-pipelines.core
     artifacts:
         logs:
             paths:
               -  "**/test-results/**"
-test_lwrp_Win_2020.2:
-    name: Test Lightweight Win 2020.2
+test_lwrp_Win_2020.3:
+    name: Test Lightweight Win 2020.3
     agent:
         type: Unity::VM
         image: package-ci/win10:stable
@@ -423,7 +423,7 @@ test_lwrp_Win_2020.2:
     commands:
       -  npm install upm-ci-utils@stable -g --registry https://artifactory.prd.cds.internal.unity3d.com/artifactory/api/npm/upm-npm
       -  pip install unity-downloader-cli --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
-      -  unity-downloader-cli -u {{editor_versions.2020_2_staging.Win.revision}} -c editor --wait --published-only
+      -  unity-downloader-cli -u {{editor_versions.2020_3_staging.Win.revision}} -c editor --wait --published-only
       -  mkdir upm-ci~\packages
       -  copy packages_temp\lwrp\upm-ci~\packages\packages.json upm-ci~\packages
       -  for /r packages_temp %%x in (*.tgz) do copy %%x upm-ci~\packages
@@ -433,14 +433,14 @@ test_lwrp_Win_2020.2:
         logs:
             paths:
               -  "**/test-results/**"
-test_lwrp_Win_2020.2_dependencies:
-    name: Test Lightweight Win 2020.2 - dependencies
+test_lwrp_Win_2020.3_dependencies:
+    name: Test Lightweight Win 2020.3 - dependencies
     agent:
         type: Unity::VM
         image: package-ci/win10:stable
         flavor: b1.large
     dependencies:
-      -  .yamato/_packages.yml#test_lwrp_Win_2020.2
+      -  .yamato/_packages.yml#test_lwrp_Win_2020.3
       -  .yamato/_packages.yml#pack_core
       -  .yamato/_packages.yml#pack_shadergraph
       -  .yamato/_packages.yml#pack_universal
@@ -448,7 +448,7 @@ test_lwrp_Win_2020.2_dependencies:
     commands:
       -  npm install upm-ci-utils@stable -g --registry https://artifactory.prd.cds.internal.unity3d.com/artifactory/api/npm/upm-npm
       -  pip install unity-downloader-cli --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
-      -  unity-downloader-cli -u {{editor_versions.2020_2_staging.Win.revision}} -c editor --wait --published-only
+      -  unity-downloader-cli -u {{editor_versions.2020_3_staging.Win.revision}} -c editor --wait --published-only
       -  mkdir upm-ci~\packages
       -  copy packages_temp\lwrp\upm-ci~\packages\packages.json upm-ci~\packages
       -  for /r packages_temp %%x in (*.tgz) do copy %%x upm-ci~\packages
@@ -458,8 +458,8 @@ test_lwrp_Win_2020.2_dependencies:
         logs:
             paths:
               -  "**/test-results/**"
-test_shadergraph_Win_2020.2:
-    name: Test ShaderGraph Win 2020.2
+test_shadergraph_Win_2020.3:
+    name: Test ShaderGraph Win 2020.3
     agent:
         type: Unity::VM
         image: package-ci/win10:stable
@@ -470,7 +470,7 @@ test_shadergraph_Win_2020.2:
     commands:
       -  npm install upm-ci-utils@stable -g --registry https://artifactory.prd.cds.internal.unity3d.com/artifactory/api/npm/upm-npm
       -  pip install unity-downloader-cli --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
-      -  unity-downloader-cli -u {{editor_versions.2020_2_staging.Win.revision}} -c editor --wait --published-only
+      -  unity-downloader-cli -u {{editor_versions.2020_3_staging.Win.revision}} -c editor --wait --published-only
       -  mkdir upm-ci~\packages
       -  copy packages_temp\shadergraph\upm-ci~\packages\packages.json upm-ci~\packages
       -  for /r packages_temp %%x in (*.tgz) do copy %%x upm-ci~\packages
@@ -480,20 +480,20 @@ test_shadergraph_Win_2020.2:
         logs:
             paths:
               -  "**/test-results/**"
-test_shadergraph_Win_2020.2_dependencies:
-    name: Test ShaderGraph Win 2020.2 - dependencies
+test_shadergraph_Win_2020.3_dependencies:
+    name: Test ShaderGraph Win 2020.3 - dependencies
     agent:
         type: Unity::VM
         image: package-ci/win10:stable
         flavor: b1.large
     dependencies:
-      -  .yamato/_packages.yml#test_shadergraph_Win_2020.2
+      -  .yamato/_packages.yml#test_shadergraph_Win_2020.3
       -  .yamato/_packages.yml#pack_core
       -  .yamato/_packages.yml#pack_shadergraph
     commands:
       -  npm install upm-ci-utils@stable -g --registry https://artifactory.prd.cds.internal.unity3d.com/artifactory/api/npm/upm-npm
       -  pip install unity-downloader-cli --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
-      -  unity-downloader-cli -u {{editor_versions.2020_2_staging.Win.revision}} -c editor --wait --published-only
+      -  unity-downloader-cli -u {{editor_versions.2020_3_staging.Win.revision}} -c editor --wait --published-only
       -  mkdir upm-ci~\packages
       -  copy packages_temp\shadergraph\upm-ci~\packages\packages.json upm-ci~\packages
       -  for /r packages_temp %%x in (*.tgz) do copy %%x upm-ci~\packages
@@ -503,8 +503,8 @@ test_shadergraph_Win_2020.2_dependencies:
         logs:
             paths:
               -  "**/test-results/**"
-test_hdrp_Win_2020.2:
-    name: Test HDRP Win 2020.2
+test_hdrp_Win_2020.3:
+    name: Test HDRP Win 2020.3
     agent:
         type: Unity::VM
         image: package-ci/win10:stable
@@ -518,7 +518,7 @@ test_hdrp_Win_2020.2:
     commands:
       -  npm install upm-ci-utils@stable -g --registry https://artifactory.prd.cds.internal.unity3d.com/artifactory/api/npm/upm-npm
       -  pip install unity-downloader-cli --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
-      -  unity-downloader-cli -u {{editor_versions.2020_2_staging.Win.revision}} -c editor --wait --published-only
+      -  unity-downloader-cli -u {{editor_versions.2020_3_staging.Win.revision}} -c editor --wait --published-only
       -  mkdir upm-ci~\packages
       -  copy packages_temp\hdrp\upm-ci~\packages\packages.json upm-ci~\packages
       -  for /r packages_temp %%x in (*.tgz) do copy %%x upm-ci~\packages
@@ -528,14 +528,14 @@ test_hdrp_Win_2020.2:
         logs:
             paths:
               -  "**/test-results/**"
-test_hdrp_Win_2020.2_dependencies:
-    name: Test HDRP Win 2020.2 - dependencies
+test_hdrp_Win_2020.3_dependencies:
+    name: Test HDRP Win 2020.3 - dependencies
     agent:
         type: Unity::VM
         image: package-ci/win10:stable
         flavor: b1.large
     dependencies:
-      -  .yamato/_packages.yml#test_hdrp_Win_2020.2
+      -  .yamato/_packages.yml#test_hdrp_Win_2020.3
       -  .yamato/_packages.yml#pack_core
       -  .yamato/_packages.yml#pack_shadergraph
       -  .yamato/_packages.yml#pack_vfx
@@ -544,7 +544,7 @@ test_hdrp_Win_2020.2_dependencies:
     commands:
       -  npm install upm-ci-utils@stable -g --registry https://artifactory.prd.cds.internal.unity3d.com/artifactory/api/npm/upm-npm
       -  pip install unity-downloader-cli --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
-      -  unity-downloader-cli -u {{editor_versions.2020_2_staging.Win.revision}} -c editor --wait --published-only
+      -  unity-downloader-cli -u {{editor_versions.2020_3_staging.Win.revision}} -c editor --wait --published-only
       -  mkdir upm-ci~\packages
       -  copy packages_temp\hdrp\upm-ci~\packages\packages.json upm-ci~\packages
       -  for /r packages_temp %%x in (*.tgz) do copy %%x upm-ci~\packages
@@ -554,8 +554,8 @@ test_hdrp_Win_2020.2_dependencies:
         logs:
             paths:
               -  "**/test-results/**"
-test_universal_Win_2020.2:
-    name: Test Universal Win 2020.2
+test_universal_Win_2020.3:
+    name: Test Universal Win 2020.3
     agent:
         type: Unity::VM
         image: package-ci/win10:stable
@@ -567,7 +567,7 @@ test_universal_Win_2020.2:
     commands:
       -  npm install upm-ci-utils@stable -g --registry https://artifactory.prd.cds.internal.unity3d.com/artifactory/api/npm/upm-npm
       -  pip install unity-downloader-cli --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
-      -  unity-downloader-cli -u {{editor_versions.2020_2_staging.Win.revision}} -c editor --wait --published-only
+      -  unity-downloader-cli -u {{editor_versions.2020_3_staging.Win.revision}} -c editor --wait --published-only
       -  mkdir upm-ci~\packages
       -  copy packages_temp\universal\upm-ci~\packages\packages.json upm-ci~\packages
       -  for /r packages_temp %%x in (*.tgz) do copy %%x upm-ci~\packages
@@ -577,21 +577,21 @@ test_universal_Win_2020.2:
         logs:
             paths:
               -  "**/test-results/**"
-test_universal_Win_2020.2_dependencies:
-    name: Test Universal Win 2020.2 - dependencies
+test_universal_Win_2020.3_dependencies:
+    name: Test Universal Win 2020.3 - dependencies
     agent:
         type: Unity::VM
         image: package-ci/win10:stable
         flavor: b1.large
     dependencies:
-      -  .yamato/_packages.yml#test_universal_Win_2020.2
+      -  .yamato/_packages.yml#test_universal_Win_2020.3
       -  .yamato/_packages.yml#pack_core
       -  .yamato/_packages.yml#pack_shadergraph
       -  .yamato/_packages.yml#pack_universal
     commands:
       -  npm install upm-ci-utils@stable -g --registry https://artifactory.prd.cds.internal.unity3d.com/artifactory/api/npm/upm-npm
       -  pip install unity-downloader-cli --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
-      -  unity-downloader-cli -u {{editor_versions.2020_2_staging.Win.revision}} -c editor --wait --published-only
+      -  unity-downloader-cli -u {{editor_versions.2020_3_staging.Win.revision}} -c editor --wait --published-only
       -  mkdir upm-ci~\packages
       -  copy packages_temp\universal\upm-ci~\packages\packages.json upm-ci~\packages
       -  for /r packages_temp %%x in (*.tgz) do copy %%x upm-ci~\packages
@@ -601,8 +601,8 @@ test_universal_Win_2020.2_dependencies:
         logs:
             paths:
               -  "**/test-results/**"
-test_vfx_Win_2020.2:
-    name: Test VFX Win 2020.2
+test_vfx_Win_2020.3:
+    name: Test VFX Win 2020.3
     agent:
         type: Unity::VM
         image: package-ci/win10:stable
@@ -614,7 +614,7 @@ test_vfx_Win_2020.2:
     commands:
       -  npm install upm-ci-utils@stable -g --registry https://artifactory.prd.cds.internal.unity3d.com/artifactory/api/npm/upm-npm
       -  pip install unity-downloader-cli --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
-      -  unity-downloader-cli -u {{editor_versions.2020_2_staging.Win.revision}} -c editor --wait --published-only
+      -  unity-downloader-cli -u {{editor_versions.2020_3_staging.Win.revision}} -c editor --wait --published-only
       -  mkdir upm-ci~\packages
       -  copy packages_temp\vfx\upm-ci~\packages\packages.json upm-ci~\packages
       -  for /r packages_temp %%x in (*.tgz) do copy %%x upm-ci~\packages
@@ -624,21 +624,21 @@ test_vfx_Win_2020.2:
         logs:
             paths:
               -  "**/test-results/**"
-test_vfx_Win_2020.2_dependencies:
-    name: Test VFX Win 2020.2 - dependencies
+test_vfx_Win_2020.3_dependencies:
+    name: Test VFX Win 2020.3 - dependencies
     agent:
         type: Unity::VM
         image: package-ci/win10:stable
         flavor: b1.large
     dependencies:
-      -  .yamato/_packages.yml#test_vfx_Win_2020.2
+      -  .yamato/_packages.yml#test_vfx_Win_2020.3
       -  .yamato/_packages.yml#pack_core
       -  .yamato/_packages.yml#pack_shadergraph
       -  .yamato/_packages.yml#pack_vfx
     commands:
       -  npm install upm-ci-utils@stable -g --registry https://artifactory.prd.cds.internal.unity3d.com/artifactory/api/npm/upm-npm
       -  pip install unity-downloader-cli --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
-      -  unity-downloader-cli -u {{editor_versions.2020_2_staging.Win.revision}} -c editor --wait --published-only
+      -  unity-downloader-cli -u {{editor_versions.2020_3_staging.Win.revision}} -c editor --wait --published-only
       -  mkdir upm-ci~\packages
       -  copy packages_temp\vfx\upm-ci~\packages\packages.json upm-ci~\packages
       -  for /r packages_temp %%x in (*.tgz) do copy %%x upm-ci~\packages
@@ -648,8 +648,8 @@ test_vfx_Win_2020.2_dependencies:
         logs:
             paths:
               -  "**/test-results/**"
-test_config_Win_2020.2:
-    name: Test Config Win 2020.2
+test_config_Win_2020.3:
+    name: Test Config Win 2020.3
     agent:
         type: Unity::VM
         image: package-ci/win10:stable
@@ -660,7 +660,7 @@ test_config_Win_2020.2:
     commands:
       -  npm install upm-ci-utils@stable -g --registry https://artifactory.prd.cds.internal.unity3d.com/artifactory/api/npm/upm-npm
       -  pip install unity-downloader-cli --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
-      -  unity-downloader-cli -u {{editor_versions.2020_2_staging.Win.revision}} -c editor --wait --published-only
+      -  unity-downloader-cli -u {{editor_versions.2020_3_staging.Win.revision}} -c editor --wait --published-only
       -  mkdir upm-ci~\packages
       -  copy packages_temp\config\upm-ci~\packages\packages.json upm-ci~\packages
       -  for /r packages_temp %%x in (*.tgz) do copy %%x upm-ci~\packages
@@ -670,20 +670,20 @@ test_config_Win_2020.2:
         logs:
             paths:
               -  "**/test-results/**"
-test_config_Win_2020.2_dependencies:
-    name: Test Config Win 2020.2 - dependencies
+test_config_Win_2020.3_dependencies:
+    name: Test Config Win 2020.3 - dependencies
     agent:
         type: Unity::VM
         image: package-ci/win10:stable
         flavor: b1.large
     dependencies:
-      -  .yamato/_packages.yml#test_config_Win_2020.2
+      -  .yamato/_packages.yml#test_config_Win_2020.3
       -  .yamato/_packages.yml#pack_core
       -  .yamato/_packages.yml#pack_config
     commands:
       -  npm install upm-ci-utils@stable -g --registry https://artifactory.prd.cds.internal.unity3d.com/artifactory/api/npm/upm-npm
       -  pip install unity-downloader-cli --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
-      -  unity-downloader-cli -u {{editor_versions.2020_2_staging.Win.revision}} -c editor --wait --published-only
+      -  unity-downloader-cli -u {{editor_versions.2020_3_staging.Win.revision}} -c editor --wait --published-only
       -  mkdir upm-ci~\packages
       -  copy packages_temp\config\upm-ci~\packages\packages.json upm-ci~\packages
       -  for /r packages_temp %%x in (*.tgz) do copy %%x upm-ci~\packages
@@ -693,8 +693,8 @@ test_config_Win_2020.2_dependencies:
         logs:
             paths:
               -  "**/test-results/**"
-test_core_OSX_2020.2:
-    name: Test Core OSX 2020.2
+test_core_OSX_2020.3:
+    name: Test Core OSX 2020.3
     agent:
         type: Unity::VM::osx
         image: package-ci/mac:stable
@@ -704,7 +704,7 @@ test_core_OSX_2020.2:
     commands:
       -  npm install upm-ci-utils@stable -g --registry https://artifactory.prd.cds.internal.unity3d.com/artifactory/api/npm/upm-npm
       -  pip install unity-downloader-cli --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
-      -  unity-downloader-cli -u {{editor_versions.2020_2_staging.OSX.revision}} -c editor --wait --published-only
+      -  unity-downloader-cli -u {{editor_versions.2020_3_staging.OSX.revision}} -c editor --wait --published-only
       -  mkdir upm-ci~ && mkdir upm-ci~/packages
       -  cp packages_temp/core/upm-ci~/packages/packages.json upm-ci~/packages
       -  cp packages_temp/**/upm-ci~/packages/*.tgz upm-ci~/packages
@@ -713,26 +713,26 @@ test_core_OSX_2020.2:
         logs:
             paths:
               -  "**/test-results/**"
-test_core_OSX_2020.2_dependencies:
-    name: Test Core OSX 2020.2 - dependencies
+test_core_OSX_2020.3_dependencies:
+    name: Test Core OSX 2020.3 - dependencies
     agent:
         type: Unity::VM::osx
         image: package-ci/mac:stable
         flavor: m1.mac
     dependencies:
-      -  .yamato/_packages.yml#test_core_OSX_2020.2
+      -  .yamato/_packages.yml#test_core_OSX_2020.3
       -  .yamato/_packages.yml#pack_core
     commands:
       -  npm install upm-ci-utils@stable -g --registry https://artifactory.prd.cds.internal.unity3d.com/artifactory/api/npm/upm-npm
       -  pip install unity-downloader-cli --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
-      -  unity-downloader-cli -u {{editor_versions.2020_2_staging.OSX.revision}} -c editor --wait --published-only
+      -  unity-downloader-cli -u {{editor_versions.2020_3_staging.OSX.revision}} -c editor --wait --published-only
       -  upm-ci package test -u $(pwd)/.Editor/Unity.app/Contents/MacOS/Unity --type updated-dependencies-tests --package-path com.unity.render-pipelines.core
     artifacts:
         logs:
             paths:
               -  "**/test-results/**"
-test_lwrp_OSX_2020.2:
-    name: Test Lightweight OSX 2020.2
+test_lwrp_OSX_2020.3:
+    name: Test Lightweight OSX 2020.3
     agent:
         type: Unity::VM::osx
         image: package-ci/mac:stable
@@ -745,7 +745,7 @@ test_lwrp_OSX_2020.2:
     commands:
       -  npm install upm-ci-utils@stable -g --registry https://artifactory.prd.cds.internal.unity3d.com/artifactory/api/npm/upm-npm
       -  pip install unity-downloader-cli --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
-      -  unity-downloader-cli -u {{editor_versions.2020_2_staging.OSX.revision}} -c editor --wait --published-only
+      -  unity-downloader-cli -u {{editor_versions.2020_3_staging.OSX.revision}} -c editor --wait --published-only
       -  mkdir upm-ci~ && mkdir upm-ci~/packages
       -  cp packages_temp/lwrp/upm-ci~/packages/packages.json upm-ci~/packages
       -  cp packages_temp/**/upm-ci~/packages/*.tgz upm-ci~/packages
@@ -755,14 +755,14 @@ test_lwrp_OSX_2020.2:
         logs:
             paths:
               -  "**/test-results/**"
-test_lwrp_OSX_2020.2_dependencies:
-    name: Test Lightweight OSX 2020.2 - dependencies
+test_lwrp_OSX_2020.3_dependencies:
+    name: Test Lightweight OSX 2020.3 - dependencies
     agent:
         type: Unity::VM::osx
         image: package-ci/mac:stable
         flavor: m1.mac
     dependencies:
-      -  .yamato/_packages.yml#test_lwrp_OSX_2020.2
+      -  .yamato/_packages.yml#test_lwrp_OSX_2020.3
       -  .yamato/_packages.yml#pack_core
       -  .yamato/_packages.yml#pack_shadergraph
       -  .yamato/_packages.yml#pack_universal
@@ -770,7 +770,7 @@ test_lwrp_OSX_2020.2_dependencies:
     commands:
       -  npm install upm-ci-utils@stable -g --registry https://artifactory.prd.cds.internal.unity3d.com/artifactory/api/npm/upm-npm
       -  pip install unity-downloader-cli --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
-      -  unity-downloader-cli -u {{editor_versions.2020_2_staging.OSX.revision}} -c editor --wait --published-only
+      -  unity-downloader-cli -u {{editor_versions.2020_3_staging.OSX.revision}} -c editor --wait --published-only
       -  mkdir upm-ci~ && mkdir upm-ci~/packages
       -  cp packages_temp/lwrp/upm-ci~/packages/packages.json upm-ci~/packages
       -  cp packages_temp/**/upm-ci~/packages/*.tgz upm-ci~/packages
@@ -780,8 +780,8 @@ test_lwrp_OSX_2020.2_dependencies:
         logs:
             paths:
               -  "**/test-results/**"
-test_shadergraph_OSX_2020.2:
-    name: Test ShaderGraph OSX 2020.2
+test_shadergraph_OSX_2020.3:
+    name: Test ShaderGraph OSX 2020.3
     agent:
         type: Unity::VM::osx
         image: package-ci/mac:stable
@@ -792,7 +792,7 @@ test_shadergraph_OSX_2020.2:
     commands:
       -  npm install upm-ci-utils@stable -g --registry https://artifactory.prd.cds.internal.unity3d.com/artifactory/api/npm/upm-npm
       -  pip install unity-downloader-cli --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
-      -  unity-downloader-cli -u {{editor_versions.2020_2_staging.OSX.revision}} -c editor --wait --published-only
+      -  unity-downloader-cli -u {{editor_versions.2020_3_staging.OSX.revision}} -c editor --wait --published-only
       -  mkdir upm-ci~ && mkdir upm-ci~/packages
       -  cp packages_temp/shadergraph/upm-ci~/packages/packages.json upm-ci~/packages
       -  cp packages_temp/**/upm-ci~/packages/*.tgz upm-ci~/packages
@@ -802,20 +802,20 @@ test_shadergraph_OSX_2020.2:
         logs:
             paths:
               -  "**/test-results/**"
-test_shadergraph_OSX_2020.2_dependencies:
-    name: Test ShaderGraph OSX 2020.2 - dependencies
+test_shadergraph_OSX_2020.3_dependencies:
+    name: Test ShaderGraph OSX 2020.3 - dependencies
     agent:
         type: Unity::VM::osx
         image: package-ci/mac:stable
         flavor: m1.mac
     dependencies:
-      -  .yamato/_packages.yml#test_shadergraph_OSX_2020.2
+      -  .yamato/_packages.yml#test_shadergraph_OSX_2020.3
       -  .yamato/_packages.yml#pack_core
       -  .yamato/_packages.yml#pack_shadergraph
     commands:
       -  npm install upm-ci-utils@stable -g --registry https://artifactory.prd.cds.internal.unity3d.com/artifactory/api/npm/upm-npm
       -  pip install unity-downloader-cli --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
-      -  unity-downloader-cli -u {{editor_versions.2020_2_staging.OSX.revision}} -c editor --wait --published-only
+      -  unity-downloader-cli -u {{editor_versions.2020_3_staging.OSX.revision}} -c editor --wait --published-only
       -  mkdir upm-ci~ && mkdir upm-ci~/packages
       -  cp packages_temp/shadergraph/upm-ci~/packages/packages.json upm-ci~/packages
       -  cp packages_temp/**/upm-ci~/packages/*.tgz upm-ci~/packages
@@ -825,8 +825,8 @@ test_shadergraph_OSX_2020.2_dependencies:
         logs:
             paths:
               -  "**/test-results/**"
-test_hdrp_OSX_2020.2:
-    name: Test HDRP OSX 2020.2
+test_hdrp_OSX_2020.3:
+    name: Test HDRP OSX 2020.3
     agent:
         type: Unity::VM::osx
         image: package-ci/mac:stable
@@ -840,7 +840,7 @@ test_hdrp_OSX_2020.2:
     commands:
       -  npm install upm-ci-utils@stable -g --registry https://artifactory.prd.cds.internal.unity3d.com/artifactory/api/npm/upm-npm
       -  pip install unity-downloader-cli --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
-      -  unity-downloader-cli -u {{editor_versions.2020_2_staging.OSX.revision}} -c editor --wait --published-only
+      -  unity-downloader-cli -u {{editor_versions.2020_3_staging.OSX.revision}} -c editor --wait --published-only
       -  mkdir upm-ci~ && mkdir upm-ci~/packages
       -  cp packages_temp/hdrp/upm-ci~/packages/packages.json upm-ci~/packages
       -  cp packages_temp/**/upm-ci~/packages/*.tgz upm-ci~/packages
@@ -850,14 +850,14 @@ test_hdrp_OSX_2020.2:
         logs:
             paths:
               -  "**/test-results/**"
-test_hdrp_OSX_2020.2_dependencies:
-    name: Test HDRP OSX 2020.2 - dependencies
+test_hdrp_OSX_2020.3_dependencies:
+    name: Test HDRP OSX 2020.3 - dependencies
     agent:
         type: Unity::VM::osx
         image: package-ci/mac:stable
         flavor: m1.mac
     dependencies:
-      -  .yamato/_packages.yml#test_hdrp_OSX_2020.2
+      -  .yamato/_packages.yml#test_hdrp_OSX_2020.3
       -  .yamato/_packages.yml#pack_core
       -  .yamato/_packages.yml#pack_shadergraph
       -  .yamato/_packages.yml#pack_vfx
@@ -866,7 +866,7 @@ test_hdrp_OSX_2020.2_dependencies:
     commands:
       -  npm install upm-ci-utils@stable -g --registry https://artifactory.prd.cds.internal.unity3d.com/artifactory/api/npm/upm-npm
       -  pip install unity-downloader-cli --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
-      -  unity-downloader-cli -u {{editor_versions.2020_2_staging.OSX.revision}} -c editor --wait --published-only
+      -  unity-downloader-cli -u {{editor_versions.2020_3_staging.OSX.revision}} -c editor --wait --published-only
       -  mkdir upm-ci~ && mkdir upm-ci~/packages
       -  cp packages_temp/hdrp/upm-ci~/packages/packages.json upm-ci~/packages
       -  cp packages_temp/**/upm-ci~/packages/*.tgz upm-ci~/packages
@@ -876,8 +876,8 @@ test_hdrp_OSX_2020.2_dependencies:
         logs:
             paths:
               -  "**/test-results/**"
-test_universal_OSX_2020.2:
-    name: Test Universal OSX 2020.2
+test_universal_OSX_2020.3:
+    name: Test Universal OSX 2020.3
     agent:
         type: Unity::VM::osx
         image: package-ci/mac:stable
@@ -889,7 +889,7 @@ test_universal_OSX_2020.2:
     commands:
       -  npm install upm-ci-utils@stable -g --registry https://artifactory.prd.cds.internal.unity3d.com/artifactory/api/npm/upm-npm
       -  pip install unity-downloader-cli --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
-      -  unity-downloader-cli -u {{editor_versions.2020_2_staging.OSX.revision}} -c editor --wait --published-only
+      -  unity-downloader-cli -u {{editor_versions.2020_3_staging.OSX.revision}} -c editor --wait --published-only
       -  mkdir upm-ci~ && mkdir upm-ci~/packages
       -  cp packages_temp/universal/upm-ci~/packages/packages.json upm-ci~/packages
       -  cp packages_temp/**/upm-ci~/packages/*.tgz upm-ci~/packages
@@ -899,21 +899,21 @@ test_universal_OSX_2020.2:
         logs:
             paths:
               -  "**/test-results/**"
-test_universal_OSX_2020.2_dependencies:
-    name: Test Universal OSX 2020.2 - dependencies
+test_universal_OSX_2020.3_dependencies:
+    name: Test Universal OSX 2020.3 - dependencies
     agent:
         type: Unity::VM::osx
         image: package-ci/mac:stable
         flavor: m1.mac
     dependencies:
-      -  .yamato/_packages.yml#test_universal_OSX_2020.2
+      -  .yamato/_packages.yml#test_universal_OSX_2020.3
       -  .yamato/_packages.yml#pack_core
       -  .yamato/_packages.yml#pack_shadergraph
       -  .yamato/_packages.yml#pack_universal
     commands:
       -  npm install upm-ci-utils@stable -g --registry https://artifactory.prd.cds.internal.unity3d.com/artifactory/api/npm/upm-npm
       -  pip install unity-downloader-cli --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
-      -  unity-downloader-cli -u {{editor_versions.2020_2_staging.OSX.revision}} -c editor --wait --published-only
+      -  unity-downloader-cli -u {{editor_versions.2020_3_staging.OSX.revision}} -c editor --wait --published-only
       -  mkdir upm-ci~ && mkdir upm-ci~/packages
       -  cp packages_temp/universal/upm-ci~/packages/packages.json upm-ci~/packages
       -  cp packages_temp/**/upm-ci~/packages/*.tgz upm-ci~/packages
@@ -923,8 +923,8 @@ test_universal_OSX_2020.2_dependencies:
         logs:
             paths:
               -  "**/test-results/**"
-test_vfx_OSX_2020.2:
-    name: Test VFX OSX 2020.2
+test_vfx_OSX_2020.3:
+    name: Test VFX OSX 2020.3
     agent:
         type: Unity::VM::osx
         image: package-ci/mac:stable
@@ -936,7 +936,7 @@ test_vfx_OSX_2020.2:
     commands:
       -  npm install upm-ci-utils@stable -g --registry https://artifactory.prd.cds.internal.unity3d.com/artifactory/api/npm/upm-npm
       -  pip install unity-downloader-cli --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
-      -  unity-downloader-cli -u {{editor_versions.2020_2_staging.OSX.revision}} -c editor --wait --published-only
+      -  unity-downloader-cli -u {{editor_versions.2020_3_staging.OSX.revision}} -c editor --wait --published-only
       -  mkdir upm-ci~ && mkdir upm-ci~/packages
       -  cp packages_temp/vfx/upm-ci~/packages/packages.json upm-ci~/packages
       -  cp packages_temp/**/upm-ci~/packages/*.tgz upm-ci~/packages
@@ -946,21 +946,21 @@ test_vfx_OSX_2020.2:
         logs:
             paths:
               -  "**/test-results/**"
-test_vfx_OSX_2020.2_dependencies:
-    name: Test VFX OSX 2020.2 - dependencies
+test_vfx_OSX_2020.3_dependencies:
+    name: Test VFX OSX 2020.3 - dependencies
     agent:
         type: Unity::VM::osx
         image: package-ci/mac:stable
         flavor: m1.mac
     dependencies:
-      -  .yamato/_packages.yml#test_vfx_OSX_2020.2
+      -  .yamato/_packages.yml#test_vfx_OSX_2020.3
       -  .yamato/_packages.yml#pack_core
       -  .yamato/_packages.yml#pack_shadergraph
       -  .yamato/_packages.yml#pack_vfx
     commands:
       -  npm install upm-ci-utils@stable -g --registry https://artifactory.prd.cds.internal.unity3d.com/artifactory/api/npm/upm-npm
       -  pip install unity-downloader-cli --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
-      -  unity-downloader-cli -u {{editor_versions.2020_2_staging.OSX.revision}} -c editor --wait --published-only
+      -  unity-downloader-cli -u {{editor_versions.2020_3_staging.OSX.revision}} -c editor --wait --published-only
       -  mkdir upm-ci~ && mkdir upm-ci~/packages
       -  cp packages_temp/vfx/upm-ci~/packages/packages.json upm-ci~/packages
       -  cp packages_temp/**/upm-ci~/packages/*.tgz upm-ci~/packages
@@ -970,8 +970,8 @@ test_vfx_OSX_2020.2_dependencies:
         logs:
             paths:
               -  "**/test-results/**"
-test_config_OSX_2020.2:
-    name: Test Config OSX 2020.2
+test_config_OSX_2020.3:
+    name: Test Config OSX 2020.3
     agent:
         type: Unity::VM::osx
         image: package-ci/mac:stable
@@ -982,7 +982,7 @@ test_config_OSX_2020.2:
     commands:
       -  npm install upm-ci-utils@stable -g --registry https://artifactory.prd.cds.internal.unity3d.com/artifactory/api/npm/upm-npm
       -  pip install unity-downloader-cli --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
-      -  unity-downloader-cli -u {{editor_versions.2020_2_staging.OSX.revision}} -c editor --wait --published-only
+      -  unity-downloader-cli -u {{editor_versions.2020_3_staging.OSX.revision}} -c editor --wait --published-only
       -  mkdir upm-ci~ && mkdir upm-ci~/packages
       -  cp packages_temp/config/upm-ci~/packages/packages.json upm-ci~/packages
       -  cp packages_temp/**/upm-ci~/packages/*.tgz upm-ci~/packages
@@ -992,20 +992,20 @@ test_config_OSX_2020.2:
         logs:
             paths:
               -  "**/test-results/**"
-test_config_OSX_2020.2_dependencies:
-    name: Test Config OSX 2020.2 - dependencies
+test_config_OSX_2020.3_dependencies:
+    name: Test Config OSX 2020.3 - dependencies
     agent:
         type: Unity::VM::osx
         image: package-ci/mac:stable
         flavor: m1.mac
     dependencies:
-      -  .yamato/_packages.yml#test_config_OSX_2020.2
+      -  .yamato/_packages.yml#test_config_OSX_2020.3
       -  .yamato/_packages.yml#pack_core
       -  .yamato/_packages.yml#pack_config
     commands:
       -  npm install upm-ci-utils@stable -g --registry https://artifactory.prd.cds.internal.unity3d.com/artifactory/api/npm/upm-npm
       -  pip install unity-downloader-cli --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
-      -  unity-downloader-cli -u {{editor_versions.2020_2_staging.OSX.revision}} -c editor --wait --published-only
+      -  unity-downloader-cli -u {{editor_versions.2020_3_staging.OSX.revision}} -c editor --wait --published-only
       -  mkdir upm-ci~ && mkdir upm-ci~/packages
       -  cp packages_temp/config/upm-ci~/packages/packages.json upm-ci~/packages
       -  cp packages_temp/**/upm-ci~/packages/*.tgz upm-ci~/packages
@@ -1715,27 +1715,27 @@ test_config_OSX_CUSTOM-REVISION_dependencies:
         logs:
             paths:
               -  "**/test-results/**"
-all_package_ci_2020.2:
-    name: Pack and test all packages - 2020.2 [package context]
+all_package_ci_2020.3:
+    name: Pack and test all packages - 2020.3 [package context]
     agent:
         type: Unity::VM
         image: package-ci/win10:stable
         flavor: b1.large
     dependencies:
-      -  .yamato/_packages.yml#test_core_Win_2020.2
-      -  .yamato/_packages.yml#test_lwrp_Win_2020.2
-      -  .yamato/_packages.yml#test_shadergraph_Win_2020.2
-      -  .yamato/_packages.yml#test_hdrp_Win_2020.2
-      -  .yamato/_packages.yml#test_universal_Win_2020.2
-      -  .yamato/_packages.yml#test_vfx_Win_2020.2
-      -  .yamato/_packages.yml#test_config_Win_2020.2
-      -  .yamato/_packages.yml#test_core_OSX_2020.2
-      -  .yamato/_packages.yml#test_lwrp_OSX_2020.2
-      -  .yamato/_packages.yml#test_shadergraph_OSX_2020.2
-      -  .yamato/_packages.yml#test_hdrp_OSX_2020.2
-      -  .yamato/_packages.yml#test_universal_OSX_2020.2
-      -  .yamato/_packages.yml#test_vfx_OSX_2020.2
-      -  .yamato/_packages.yml#test_config_OSX_2020.2
+      -  .yamato/_packages.yml#test_core_Win_2020.3
+      -  .yamato/_packages.yml#test_lwrp_Win_2020.3
+      -  .yamato/_packages.yml#test_shadergraph_Win_2020.3
+      -  .yamato/_packages.yml#test_hdrp_Win_2020.3
+      -  .yamato/_packages.yml#test_universal_Win_2020.3
+      -  .yamato/_packages.yml#test_vfx_Win_2020.3
+      -  .yamato/_packages.yml#test_config_Win_2020.3
+      -  .yamato/_packages.yml#test_core_OSX_2020.3
+      -  .yamato/_packages.yml#test_lwrp_OSX_2020.3
+      -  .yamato/_packages.yml#test_shadergraph_OSX_2020.3
+      -  .yamato/_packages.yml#test_hdrp_OSX_2020.3
+      -  .yamato/_packages.yml#test_universal_OSX_2020.3
+      -  .yamato/_packages.yml#test_vfx_OSX_2020.3
+      -  .yamato/_packages.yml#test_config_OSX_2020.3
     commands:
       -  npm install upm-ci-utils@stable -g --registry https://artifactory.prd.cds.internal.unity3d.com/artifactory/api/npm/upm-npm
       -  upm-ci package izon -t
