@@ -219,7 +219,7 @@ VFX_URP_Win_DX11_editmode_mono_Linear_trunk:
               set /p GIT_REVISIONDATE=<revdate.tmp
               echo %GIT_REVISIONDATE%
               del revdate.tmp
-              utr --artifacts_path=TestProjects/VisualEffectGraph_URP/test-results --editor-location=.Editor --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-force-d3d11" --extra-editor-arg="-playergraphicsapi=Direct3D11" --platform=editmode --scripting-backend=Mono2x --suite=editor --testfilter="VFX.Test" --testproject=./TestProjects/VisualEffectGraph_URP
+              utr --artifacts_path=TestProjects/VisualEffectGraph_URP/test-results --editor-location=.Editor --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-force-d3d11" --extra-editor-arg="-playergraphicsapi=Direct3D11" --platform=editmode --scripting-backend=Mono2x --suite=editor --testfilter="VFX.Test" --testproject=./TestProjects/VisualEffectGraph_URP --zero-tests-are-ok=1
     artifacts:
         logs:
             paths:
@@ -245,7 +245,7 @@ VFX_URP_Win_DX11_editmode_PerformanceTests_mono_Linear_trunk:
               set /p GIT_REVISIONDATE=<revdate.tmp
               echo %GIT_REVISIONDATE%
               del revdate.tmp
-              utr --artifacts_path=TestProjects/VisualEffectGraph_URP/test-results --editor-location=.Editor --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-force-d3d11" --extra-editor-arg="-playergraphicsapi=Direct3D11" --performance-project-version=. --report-performance-data --performance-project-id=VFX --platform=editmode --scripting-backend=Mono2x --suite=editor --testfilter="VFX.PerformanceTest" --testproject=./TestProjects/VisualEffectGraph_URP
+              utr --artifacts_path=TestProjects/VisualEffectGraph_URP/test-results --editor-location=.Editor --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-force-d3d11" --extra-editor-arg="-playergraphicsapi=Direct3D11" --performance-project-version=. --report-performance-data --performance-project-id=VFX --platform=editmode --scripting-backend=Mono2x --suite=editor --testfilter="VFX.PerformanceTest" --testproject=./TestProjects/VisualEffectGraph_URP --zero-tests-are-ok=1
     artifacts:
         logs:
             paths:
@@ -546,7 +546,7 @@ VFX_URP_Win_DX11_editmode_mono_Linear_CUSTOM-REVISION:
               set /p GIT_REVISIONDATE=<revdate.tmp
               echo %GIT_REVISIONDATE%
               del revdate.tmp
-              utr --artifacts_path=TestProjects/VisualEffectGraph_URP/test-results --editor-location=.Editor --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-force-d3d11" --extra-editor-arg="-playergraphicsapi=Direct3D11" --platform=editmode --scripting-backend=Mono2x --suite=editor --testfilter="VFX.Test" --testproject=./TestProjects/VisualEffectGraph_URP
+              utr --artifacts_path=TestProjects/VisualEffectGraph_URP/test-results --editor-location=.Editor --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-force-d3d11" --extra-editor-arg="-playergraphicsapi=Direct3D11" --platform=editmode --scripting-backend=Mono2x --suite=editor --testfilter="VFX.Test" --testproject=./TestProjects/VisualEffectGraph_URP --zero-tests-are-ok=1
     artifacts:
         logs:
             paths:
@@ -576,7 +576,7 @@ VFX_URP_Win_DX11_editmode_PerformanceTests_mono_Linear_CUSTOM-REVISION:
               set /p GIT_REVISIONDATE=<revdate.tmp
               echo %GIT_REVISIONDATE%
               del revdate.tmp
-              utr --artifacts_path=TestProjects/VisualEffectGraph_URP/test-results --editor-location=.Editor --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-force-d3d11" --extra-editor-arg="-playergraphicsapi=Direct3D11" --performance-project-version=. --report-performance-data --performance-project-id=VFX --platform=editmode --scripting-backend=Mono2x --suite=editor --testfilter="VFX.PerformanceTest" --testproject=./TestProjects/VisualEffectGraph_URP
+              utr --artifacts_path=TestProjects/VisualEffectGraph_URP/test-results --editor-location=.Editor --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-force-d3d11" --extra-editor-arg="-playergraphicsapi=Direct3D11" --performance-project-version=. --report-performance-data --performance-project-id=VFX --platform=editmode --scripting-backend=Mono2x --suite=editor --testfilter="VFX.PerformanceTest" --testproject=./TestProjects/VisualEffectGraph_URP --zero-tests-are-ok=1
     artifacts:
         logs:
             paths:

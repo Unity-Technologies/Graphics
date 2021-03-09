@@ -80,7 +80,7 @@ ShaderGraph_Stereo_Win_editmode_mono_Linear_trunk:
               set /p GIT_REVISIONDATE=<revdate.tmp
               echo %GIT_REVISIONDATE%
               del revdate.tmp
-              utr --artifacts_path=TestProjects/ShaderGraphUniversalStereo/test-results --editor-location=.Editor --extra-editor-arg="-colorspace=Linear" --platform=editmode --scripting-backend=Mono2x --suite=editor --testfilter=%TEST_FILTER% --testproject=./TestProjects/ShaderGraphUniversalStereo
+              utr --artifacts_path=TestProjects/ShaderGraphUniversalStereo/test-results --editor-location=.Editor --extra-editor-arg="-colorspace=Linear" --platform=editmode --scripting-backend=Mono2x --suite=editor --testfilter=%TEST_FILTER% --testproject=./TestProjects/ShaderGraphUniversalStereo --zero-tests-are-ok=1
     artifacts:
         logs:
             paths:
@@ -221,7 +221,7 @@ ShaderGraph_Stereo_Win_editmode_mono_Linear_CUSTOM-REVISION:
               set /p GIT_REVISIONDATE=<revdate.tmp
               echo %GIT_REVISIONDATE%
               del revdate.tmp
-              utr --artifacts_path=TestProjects/ShaderGraphUniversalStereo/test-results --editor-location=.Editor --extra-editor-arg="-colorspace=Linear" --platform=editmode --scripting-backend=Mono2x --suite=editor --testfilter=%TEST_FILTER% --testproject=./TestProjects/ShaderGraphUniversalStereo
+              utr --artifacts_path=TestProjects/ShaderGraphUniversalStereo/test-results --editor-location=.Editor --extra-editor-arg="-colorspace=Linear" --platform=editmode --scripting-backend=Mono2x --suite=editor --testfilter=%TEST_FILTER% --testproject=./TestProjects/ShaderGraphUniversalStereo --zero-tests-are-ok=1
     artifacts:
         logs:
             paths:

@@ -146,7 +146,7 @@ VFX_URP_Linux_OpenGLCore_editmode_mono_Linear_trunk:
       -  sudo apt update
       -  sudo apt install unity-downloader-cli
       -  sudo unity-downloader-cli -u {{editor_versions.trunk_latest_internal.Linux.revision}} -c editor -c il2cpp  --wait --published-only
-      -  DISPLAY=:0.0 ./utr --artifacts_path=TestProjects/VisualEffectGraph_URP/test-results --editor-location=.Editor --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-force-glcore" --platform=editmode --scripting-backend=Mono2x --suite=editor --testfilter="VFX.Test" --testproject=./TestProjects/VisualEffectGraph_URP
+      -  DISPLAY=:0.0 ./utr --artifacts_path=TestProjects/VisualEffectGraph_URP/test-results --editor-location=.Editor --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-force-glcore" --platform=editmode --scripting-backend=Mono2x --suite=editor --testfilter="VFX.Test" --testproject=./TestProjects/VisualEffectGraph_URP --zero-tests-are-ok=1
     artifacts:
         logs:
             paths:
@@ -170,7 +170,7 @@ VFX_URP_Linux_OpenGLCore_editmode_PerformanceTests_mono_Linear_trunk:
       -  sudo apt update
       -  sudo apt install unity-downloader-cli
       -  sudo unity-downloader-cli -u {{editor_versions.trunk_latest_internal.Linux.revision}} -c editor -c il2cpp  --wait --published-only
-      -  DISPLAY=:0.0 ./utr --artifacts_path=TestProjects/VisualEffectGraph_URP/test-results --editor-location=.Editor --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-force-glcore" --performance-project-version=. --report-performance-data --performance-project-id=VFX --platform=editmode --scripting-backend=Mono2x --suite=editor --testfilter="VFX.PerformanceTest" --testproject=./TestProjects/VisualEffectGraph_URP
+      -  DISPLAY=:0.0 ./utr --artifacts_path=TestProjects/VisualEffectGraph_URP/test-results --editor-location=.Editor --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-force-glcore" --performance-project-version=. --report-performance-data --performance-project-id=VFX --platform=editmode --scripting-backend=Mono2x --suite=editor --testfilter="VFX.PerformanceTest" --testproject=./TestProjects/VisualEffectGraph_URP --zero-tests-are-ok=1
     artifacts:
         logs:
             paths:
@@ -335,7 +335,7 @@ VFX_URP_Linux_OpenGLCore_editmode_mono_Linear_CUSTOM-REVISION:
       -  sudo apt update
       -  sudo apt install unity-downloader-cli
       -  sudo unity-downloader-cli --source-file unity_revision.txt -c editor -c il2cpp  --wait --published-only
-      -  DISPLAY=:0.0 ./utr --artifacts_path=TestProjects/VisualEffectGraph_URP/test-results --editor-location=.Editor --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-force-glcore" --platform=editmode --scripting-backend=Mono2x --suite=editor --testfilter="VFX.Test" --testproject=./TestProjects/VisualEffectGraph_URP
+      -  DISPLAY=:0.0 ./utr --artifacts_path=TestProjects/VisualEffectGraph_URP/test-results --editor-location=.Editor --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-force-glcore" --platform=editmode --scripting-backend=Mono2x --suite=editor --testfilter="VFX.Test" --testproject=./TestProjects/VisualEffectGraph_URP --zero-tests-are-ok=1
     artifacts:
         logs:
             paths:
@@ -363,7 +363,7 @@ VFX_URP_Linux_OpenGLCore_editmode_PerformanceTests_mono_Linear_CUSTOM-REVISION:
       -  sudo apt update
       -  sudo apt install unity-downloader-cli
       -  sudo unity-downloader-cli --source-file unity_revision.txt -c editor -c il2cpp  --wait --published-only
-      -  DISPLAY=:0.0 ./utr --artifacts_path=TestProjects/VisualEffectGraph_URP/test-results --editor-location=.Editor --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-force-glcore" --performance-project-version=. --report-performance-data --performance-project-id=VFX --platform=editmode --scripting-backend=Mono2x --suite=editor --testfilter="VFX.PerformanceTest" --testproject=./TestProjects/VisualEffectGraph_URP
+      -  DISPLAY=:0.0 ./utr --artifacts_path=TestProjects/VisualEffectGraph_URP/test-results --editor-location=.Editor --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-force-glcore" --performance-project-version=. --report-performance-data --performance-project-id=VFX --platform=editmode --scripting-backend=Mono2x --suite=editor --testfilter="VFX.PerformanceTest" --testproject=./TestProjects/VisualEffectGraph_URP --zero-tests-are-ok=1
     artifacts:
         logs:
             paths:

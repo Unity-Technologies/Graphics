@@ -135,7 +135,7 @@ HDRP_Win_DX12_editmode_mono_Linear_trunk:
               set /p GIT_REVISIONDATE=<revdate.tmp
               echo %GIT_REVISIONDATE%
               del revdate.tmp
-              utr --artifacts_path=TestProjects/HDRP_Tests/test-results --editor-location=.Editor --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-force-d3d12" --extra-editor-arg="-playergraphicsapi=Direct3D12" --platform=editmode --scripting-backend=Mono2x --suite=editor --testfilter=%TEST_FILTER% --testproject=./TestProjects/HDRP_Tests
+              utr --artifacts_path=TestProjects/HDRP_Tests/test-results --editor-location=.Editor --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-force-d3d12" --extra-editor-arg="-playergraphicsapi=Direct3D12" --platform=editmode --scripting-backend=Mono2x --suite=editor --testfilter=%TEST_FILTER% --testproject=./TestProjects/HDRP_Tests --zero-tests-are-ok=1
     artifacts:
         logs:
             paths:
@@ -400,7 +400,7 @@ HDRP_Win_DX12_editmode_mono_Linear_CUSTOM-REVISION:
               set /p GIT_REVISIONDATE=<revdate.tmp
               echo %GIT_REVISIONDATE%
               del revdate.tmp
-              utr --artifacts_path=TestProjects/HDRP_Tests/test-results --editor-location=.Editor --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-force-d3d12" --extra-editor-arg="-playergraphicsapi=Direct3D12" --platform=editmode --scripting-backend=Mono2x --suite=editor --testfilter=%TEST_FILTER% --testproject=./TestProjects/HDRP_Tests
+              utr --artifacts_path=TestProjects/HDRP_Tests/test-results --editor-location=.Editor --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-force-d3d12" --extra-editor-arg="-playergraphicsapi=Direct3D12" --platform=editmode --scripting-backend=Mono2x --suite=editor --testfilter=%TEST_FILTER% --testproject=./TestProjects/HDRP_Tests --zero-tests-are-ok=1
     artifacts:
         logs:
             paths:
