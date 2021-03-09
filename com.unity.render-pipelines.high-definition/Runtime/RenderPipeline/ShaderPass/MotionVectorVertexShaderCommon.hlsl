@@ -85,11 +85,11 @@ void MotionVectorPositionZBias(VaryingsToPS input)
 #endif
 }
 
+PackedVaryingsType MotionVectorVS(inout VaryingsType varyingsType, AttributesMesh inputMesh, AttributesPass inputPass
 #ifdef HAVE_VFX_MODIFICATION
-PackedVaryingsType MotionVectorVS(inout VaryingsType varyingsType, AttributesMesh inputMesh, AttributesPass inputPass, AttributesElement inputElement)
-#else
-PackedVaryingsType MotionVectorVS(inout VaryingsType varyingsType, AttributesMesh inputMesh, AttributesPass inputPass)
+    , AttributesElement inputElement
 #endif
+)
 {
 
 #if !defined(TESSELLATION_ON)
