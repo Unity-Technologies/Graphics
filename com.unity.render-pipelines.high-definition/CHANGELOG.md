@@ -26,6 +26,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Exposed update upon light movement for directional light shadows in UI.
 - Added a setting in the HDRP asset to change the Density Volume mask resolution of being locked at 32x32x32 (HDRP Asset > Lighting > Volumetrics > Max Density Volume Size).
 - Added a Falloff Mode (Linear or Exponential) in the Density Volume for volume blending with Blend Distance.
+- Added support for screen space shadows (directional and point, no area) for shadow matte unlit shader graph.
 - Added support for volumetric clouds in planar reflections.
 
 ### Fixed
@@ -92,6 +93,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed error when opening the default composition graph in the Graphics Compositor (case 1318933).
 - Fixed gizmo rendering when wireframe mode is selected.
 - Fixed issue in path tracing, where objects would cast shadows even if not present in the path traced layers (case 1318857).
+- Fixed SRP batcher not compatible with Decal (case 1311586)
 
 ### Changed
 - Changed Window/Render Pipeline/HD Render Pipeline Wizard to Window/Rendering/HDRP Wizard
@@ -137,6 +139,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Avoid unnecessary RenderGraphBuilder.ReadTexture in the "Set Final Target" pass
 - Density Volumes can now take a 3D RenderTexture as mask, the mask can use RGBA format for RGB fog.
 - Decreased the minimal Fog Distance value in the Density Volume to 0.05.
+- Virtual Texturing Resolver now performs RTHandle resize logic in HDRP instead of in core Unity
 
 ## [11.0.0] - 2020-10-21
 
