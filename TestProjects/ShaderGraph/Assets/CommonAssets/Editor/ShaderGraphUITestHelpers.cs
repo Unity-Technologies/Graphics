@@ -120,7 +120,7 @@ namespace UnityEditor.ShaderGraph.UnitTests
             // WorldBound is the "global" xposition of this element, relative to the top-left corner of this editor window
             var screenPosition = visualElement.worldBound.position;
             // EditorWindow.position is the top-left position of the window in desktop-space
-            screenPosition = (screenPosition + parentWindow.position.position);
+            //screenPosition = (screenPosition + parentWindow.position.position);
             // To account for 4k screens with virtual coordinates, need to be multiply by EditorGUI.pixelsPerPoint to get actual desktop pixels.
             //screenPosition *= EditorGUIUtility.pixelsPerPoint;
             return screenPosition;

@@ -15,7 +15,7 @@ namespace UnityEditor.ShaderGraph.Drawing.Inspector
         const float k_InspectorUpdateInterval = 0.25f;
         const int k_InspectorElementLimit = 20;
 
-        int currentlyInspectedElementsCount = 0;
+        int m_CurrentlyInspectedElementsCount = 0;
 
         readonly List<Type> m_PropertyDrawerList = new List<Type>();
 
@@ -113,7 +113,7 @@ namespace UnityEditor.ShaderGraph.Drawing.Inspector
             ShowGraphSettings_Internal(m_GraphSettingsContainer);
 
             m_NodeSettingsContainer.Clear();
-            currentlyInspectedElementsCount = 0;
+            m_CurrentlyInspectedElementsCount = 0;
 
             try
             {
@@ -123,10 +123,10 @@ namespace UnityEditor.ShaderGraph.Drawing.Inspector
                     if (selectable is IInspectable inspectable)
                     {
                         DrawInspectable(m_NodeSettingsContainer, inspectable);
-                        currentlyInspectedElementsCount++;
+                        m_CurrentlyInspectedElementsCount++;
                         anySelectables = true;
                     }
-                    if(currentlyInspectedElementsCount == k_InspectorElementLimit)
+                    if(m_CurrentlyInspectedElementsCount == k_InspectorElementLimit)
                         m_NodeSettingsContainer.Add(m_MaxItemsMessageLabel);
                 }
                 if (anySelectables)
@@ -160,7 +160,7 @@ namespace UnityEditor.ShaderGraph.Drawing.Inspector
             float timePassed = (float)(EditorApplication.timeSinceStartup % k_InspectorUpdateInterval);
             // Don't update for selections beyond a certain amount as they are no longer visible in the inspector past a certain point and only cost performance as the user performs operations
             // TODO: Have some user feedback in inspector when crossing this amount
-            if(timePassed < 0.01f && selection.Count < k_InspectorElementLimit && selection.Count != currentlyInspectedElementsCount)
+            if(timePassed < 0.01f && selection.Count < k_InspectorElementLimit && selection.Count != m_CurrentlyInspectedElementsCount)
                Update();
         }
 

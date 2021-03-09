@@ -6,6 +6,8 @@ namespace UnityEditor.ShaderGraph.UnitTests
     public static class TestAssemblyExtensions
     {
         private const BindingFlags privateBindingFlags = BindingFlags.NonPublic | BindingFlags.Instance | BindingFlags.FlattenHierarchy;
+
+        private const BindingFlags publicBindingFlags = BindingFlags.Public | BindingFlags.Instance | BindingFlags.FlattenHierarchy;
         public static void InvokePrivateAction(this object obj, string methodName, object[] parameters = null) => GetMethod(obj, methodName).Invoke(obj, parameters);
         private static MethodInfo GetMethod(object obj, string methodName)
         {
@@ -50,6 +52,13 @@ namespace UnityEditor.ShaderGraph.UnitTests
             object value = GetField(obj, fieldName, privateBindingFlags).GetValue(obj);
             return TryConvertValueToType<T>(value, fieldName);
         }
+
+        public static T GetPublicField<T>(this object obj, string fieldName)
+        {
+            object value = GetField(obj, fieldName, publicBindingFlags).GetValue(obj);
+            return TryConvertValueToType<T>(value, fieldName);
+        }
+
         private static FieldInfo GetField(object obj, string fieldName, BindingFlags bindingFlags)
         {
             FieldInfo field = obj.GetType().GetField(fieldName, bindingFlags);

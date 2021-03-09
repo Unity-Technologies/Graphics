@@ -11,6 +11,10 @@ namespace UnityEditor.ShaderGraph.UnitTests.Controllers
         EditorWindow m_EditorWindow;
         internal VisualElement m_AddButton;
 
+        GenericMenu m_AddBlackboardItemsMenu;
+
+        internal GenericMenu addBlackboardItemsMenu => m_AddBlackboardItemsMenu;
+
         internal BlackboardTestController(
             EditorWindow associatedEditorWindow,
             GraphData model,
@@ -20,6 +24,9 @@ namespace UnityEditor.ShaderGraph.UnitTests.Controllers
         {
             m_AddButton = blackboard.Q<Button>("addButton");
             Assert.IsNotNull(m_AddButton);
+
+            m_AddBlackboardItemsMenu = blackboard.addBlackboardItemMenu;
+            Assert.IsNotNull(m_AddBlackboardItemsMenu);
 
             m_EditorWindow = associatedEditorWindow;
         }

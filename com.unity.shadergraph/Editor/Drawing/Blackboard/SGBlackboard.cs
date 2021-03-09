@@ -101,7 +101,8 @@ namespace UnityEditor.ShaderGraph.Drawing
 
         internal Action hideDragIndicatorAction { get; set; }
 
-        GenericMenu m_AddPropertyMenu;
+        GenericMenu m_AddBlackboardItemMenu;
+        internal GenericMenu addBlackboardItemMenu => m_AddBlackboardItemMenu;
 
         public SGBlackboard(BlackboardViewModel viewModel) : base(viewModel)
         {
@@ -231,7 +232,7 @@ namespace UnityEditor.ShaderGraph.Drawing
 
         void InitializeAddPropertyMenu()
         {
-            m_AddPropertyMenu = new GenericMenu();
+            m_AddBlackboardItemMenu = new GenericMenu();
 
             if (ViewModel == null)
             {
@@ -243,34 +244,34 @@ namespace UnityEditor.ShaderGraph.Drawing
             {
                 string propertyName = nameToAddActionTuple.Key;
                 IGraphDataAction addAction = nameToAddActionTuple.Value;
-                m_AddPropertyMenu.AddItem(new GUIContent(propertyName), false, () => ViewModel.requestModelChangeAction(addAction));
+                m_AddBlackboardItemMenu.AddItem(new GUIContent(propertyName), false, () => ViewModel.requestModelChangeAction(addAction));
             }
-            m_AddPropertyMenu.AddSeparator($"/");
+            m_AddBlackboardItemMenu.AddSeparator($"/");
 
             foreach (var nameToAddActionTuple in ViewModel.defaultKeywordNameToAddActionMap)
             {
                 string defaultKeywordName = nameToAddActionTuple.Key;
                 IGraphDataAction addAction = nameToAddActionTuple.Value;
-                m_AddPropertyMenu.AddItem(new GUIContent($"Keyword/{defaultKeywordName}"), false, () => ViewModel.requestModelChangeAction(addAction));
+                m_AddBlackboardItemMenu.AddItem(new GUIContent($"Keyword/{defaultKeywordName}"), false, () => ViewModel.requestModelChangeAction(addAction));
             }
-            m_AddPropertyMenu.AddSeparator($"Keyword/");
+            m_AddBlackboardItemMenu.AddSeparator($"Keyword/");
 
             foreach (var nameToAddActionTuple in ViewModel.builtInKeywordNameToAddActionMap)
             {
                 string builtInKeywordName = nameToAddActionTuple.Key;
                 IGraphDataAction addAction = nameToAddActionTuple.Value;
-                m_AddPropertyMenu.AddItem(new GUIContent($"Keyword/{builtInKeywordName}"), false, () => ViewModel.requestModelChangeAction(addAction));
+                m_AddBlackboardItemMenu.AddItem(new GUIContent($"Keyword/{builtInKeywordName}"), false, () => ViewModel.requestModelChangeAction(addAction));
             }
 
             foreach (string disabledKeywordName in ViewModel.disabledKeywordNameList)
             {
-                m_AddPropertyMenu.AddDisabledItem(new GUIContent(disabledKeywordName));
+                m_AddBlackboardItemMenu.AddDisabledItem(new GUIContent(disabledKeywordName));
             }
         }
 
         void ShowAddPropertyMenu()
         {
-            m_AddPropertyMenu.ShowAsContext();
+            m_AddBlackboardItemMenu.ShowAsContext();
         }
 
         void OnMouseDownEvent(MouseDownEvent evt)

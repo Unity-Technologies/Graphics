@@ -42,22 +42,17 @@
     border-top-right-radius: 6px;
 }
 
-.InspectorView.scrollable > .mainContainer > #content > .unity-scroll-view > {
-    padding-bottom: 12;
-}
-
 .InspectorView.scrollable > .mainContainer > #content > .unity-scroll-view > .unity-scroller--horizontal {
     background-color: #393939;
-    bottom: 12;
 }
 
 .InspectorView.scrollable > .mainContainer > #content > .unity-scroll-view > .unity-scroller--vertical {
     background-color: #393939;
-    right: 12;
 }
 
 #maxItemsMessageLabel
 {
+    visibility: hidden;
     padding: 8px 4px 4px 4px;
     color: rgb(180, 180, 180);
     align-self: center;

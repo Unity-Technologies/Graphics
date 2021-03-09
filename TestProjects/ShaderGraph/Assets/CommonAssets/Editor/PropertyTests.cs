@@ -1,6 +1,7 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Linq;
 using NUnit.Framework;
 using UnityEngine;
 using UnityEditor.ShaderGraph.Drawing;
@@ -24,7 +25,7 @@ namespace UnityEditor.ShaderGraph.UnitTests
 
         Dictionary<string, PreviewNode> m_TestNodes = new Dictionary<string, PreviewNode>();
 
-        //BlackboardTestController m_BlackboardTestController;
+        BlackboardTestController m_BlackboardTestController;
 
         [OneTimeSetUp]
         public void LoadGraph()
@@ -60,21 +61,21 @@ namespace UnityEditor.ShaderGraph.UnitTests
             m_GraphEditorView = m_Window.graphEditorView;
 
             // Create the blackboard test controller
-            //var blackboardViewModel = new BlackboardViewModel() { parentView = m_Window.graphEditorView.graphView, model = m_Graph, title = m_Window.assetName };
-            //m_BlackboardTestController = new BlackboardTestController(m_Window, m_Graph, blackboardViewModel, m_Window.graphObject.graphDataStore);
+            var blackboardViewModel = new BlackboardViewModel() { parentView = m_Window.graphEditorView.graphView, model = m_Graph, title = m_Window.assetName };
+            m_BlackboardTestController = new BlackboardTestController(m_Window, m_Graph, blackboardViewModel, m_Window.graphObject.graphDataStore);
 
             // Remove the normal blackboard
-            //m_GraphEditorView.blackboardController.blackboard.RemoveFromHierarchy();
-            //// And override reference to the blackboard controller to point at the test controller
-            //m_GraphEditorView.blackboardController = m_BlackboardTestController;
+            m_GraphEditorView.blackboardController.blackboard.RemoveFromHierarchy();
+            // And override reference to the blackboard controller to point at the test controller
+            m_GraphEditorView.blackboardController = m_BlackboardTestController;
         }
 
         [OneTimeTearDown]
         public void Cleanup()
         {
             // Don't spawn ask-to-save dialog
-            m_Window.graphObject = null;
-            m_Window.Close();
+            //m_Window.graphObject = null;
+            //m_Window.Close();
         }
 
         [Test]
@@ -129,20 +130,53 @@ namespace UnityEditor.ShaderGraph.UnitTests
             }
         }
 
-        /*[UnityTest]
+        [UnityTest]
         public IEnumerator AddInputTests()
         {
-            var button = m_BlackboardTestController.m_AddButton as Button;
-            // todo: this works, just need to calculate button position better somehow, as that is off
-            ShaderGraphUITestHelpers.SendMouseEvent(m_Window, button, EventType.MouseMove);
-            yield return null;
+            if(m_BlackboardTestController.addBlackboardItemsMenu == null)
+                Assert.Fail("Blackboard Add Items menu reference owned by BlackboardTestController is null.");
 
-            ShaderGraphUITestHelpers.SendMouseEvent(m_Window, button, EventType.MouseDown);
-            yield return null;
+            var menuItems = m_BlackboardTestController.addBlackboardItemsMenu.GetPrivateField<ArrayList>("menuItems");
+            if (menuItems == null)
+                Assert.Fail("Could not retrieve reference to the menu items of the Blackboard Add Items menu");
 
-            ShaderGraphUITestHelpers.SendMouseEvent(m_Window, button, EventType.MouseUp);
+            foreach (var item in menuItems)
+            {
+                var menuFunction = item.GetPublicField<GenericMenu.MenuFunction>("func");
+                menuFunction?.Invoke();
+                yield return null;
+            }
+        }
+
+        [UnityTest]
+        public IEnumerator RemoveInputTests()
+        {
+            if(m_BlackboardTestController.addBlackboardItemsMenu == null)
+                Assert.Fail("Blackboard Add Items menu reference owned by BlackboardTestController is null.");
+
+            var menuItems = m_BlackboardTestController.addBlackboardItemsMenu.GetPrivateField<ArrayList>("menuItems");
+            if (menuItems == null)
+                Assert.Fail("Could not retrieve reference to the menu items of the Blackboard Add Items menu");
+
+            foreach (var item in menuItems)
+            {
+                var menuFunction = item.GetPublicField<GenericMenu.MenuFunction>("func");
+                menuFunction?.Invoke();
+                yield return null;
+            }
+
+            var removeBlackboardInputsAction = new DeleteShaderInputAction();
+
+            foreach (var property in m_Window.graphObject.graph.properties)
+                removeBlackboardInputsAction.shaderInputsToDelete.Add(property);
+
+            foreach (var keyword in m_Window.graphObject.graph.keywords)
+                removeBlackboardInputsAction.shaderInputsToDelete.Add(keyword);
+
+            m_Window.graphObject.graphDataStore.Dispatch(removeBlackboardInputsAction);
+
             yield return null;
-        }*/
+        }
 
         [Test]
         public void DefaultNamePropertyTest()
