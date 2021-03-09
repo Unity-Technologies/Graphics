@@ -162,7 +162,7 @@ test_platforms:
   - type: editmode
     utr_flags:
       - [all]: --testfilter=%TEST_FILTER%
-      - [all]: --zero-tests-are-ok=1
+      #- [all]: --zero-tests-are-ok=1
       - [all]: --suite=editor
       # - [all]: --reruncount=2
       - [all]: --scripting-backend=<SCRIPTING_BACKEND>
