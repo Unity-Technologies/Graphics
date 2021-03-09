@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using UnityEngine;
 using UnityEngine.Serialization;
 using UnityEngine.Rendering;
 using UnityEngine.Rendering.Universal;
@@ -16,7 +17,7 @@ namespace UnityEngine.Experimental.Rendering.Universal
     [ExecuteAlways, DisallowMultipleComponent]
     [AddComponentMenu("Rendering/2D/Light 2D")]
     [HelpURL("https://docs.unity3d.com/Packages/com.unity.render-pipelines.universal@latest/index.html?subfolder=/manual/2DLightProperties.html")]
-    public sealed partial class Light2D : MonoBehaviour, ISerializeCallbackReceiver
+    public sealed partial class Light2D : MonoBehaviour, ISerializationCallbackReceiver
     {
         public enum DeprecatedLightType
         {
@@ -212,6 +213,7 @@ namespace UnityEngine.Experimental.Rendering.Universal
         public float normalMapDistance => m_NormalMapDistance;
         public NormalMapQuality normalMapQuality => m_NormalMapQuality;
 
+
         internal int GetTopMostLitLayer()
         {
             var largestIndex = Int32.MinValue;
@@ -330,14 +332,14 @@ namespace UnityEngine.Experimental.Rendering.Universal
         }
 
 #if UNITY_EDITOR
-        private void OnValidate()
+        public void OnBeforeSerialize()
         {
             m_ComponentVersion = k_CurrentComponentVersion;
         }
 
-        private void OnAfterSerialization
+        public void OnAfterDeserialize()
         {
-            // Upgrade from no version
+            // Upgrade from no serialized version
             if (m_ComponentVersion == ComponentVersions.Uninitialized)
             {
                 m_ShadowVolumeIntensityEnabled = m_ShadowVolumeIntensity > 0;
