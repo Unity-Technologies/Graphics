@@ -26,7 +26,7 @@ void BuildSurfaceData(FragInputs fragInputs, inout SurfaceDescription surfaceDes
         float3 upWS = normalize(fragInputs.tangentToWorld[1]);
         uint renderingLayers = GetMeshRenderingLightLayer();
         ShadowLoopMin(shadowContext, posInput, upWS, asuint(_ShadowMatteFilter), renderingLayers, shadow3);
-        float4 shadow = float4(shadow3, 1.0);
+        float4 shadow = float4(shadow3, dot(shadow3, float3(1.0/3.0, 1.0/3.0, 1.0/3.0)));
 
         float4 shadowColor = (1.0 - shadow) * surfaceDescription.ShadowTint.rgba;
         float  localAlpha  = saturate(shadowColor.a + surfaceDescription.Alpha);
