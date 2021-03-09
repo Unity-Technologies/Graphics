@@ -331,7 +331,6 @@ namespace UnityEngine.Experimental.Rendering.Universal
             UpdateBoundingSphere();
         }
 
-#if UNITY_EDITOR
         public void OnBeforeSerialize()
         {
             m_ComponentVersion = k_CurrentComponentVersion;
@@ -349,7 +348,5 @@ namespace UnityEngine.Experimental.Rendering.Universal
                 m_ComponentVersion = ComponentVersions.Version_1;
             }
         }
-
-#endif
     }
 }
