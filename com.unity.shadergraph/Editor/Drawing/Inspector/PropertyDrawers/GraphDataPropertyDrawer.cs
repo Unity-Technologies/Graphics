@@ -16,17 +16,27 @@ namespace UnityEditor.ShaderGraph.Drawing.Inspector.PropertyDrawers
     [SGPropertyDrawer(typeof(GraphData))]
     public class GraphDataPropertyDrawer : IPropertyDrawer
     {
-        Action<ConcretePrecision> m_PostChangeConcretePrecisionCallback;
+        public delegate void ChangeConcretePrecisionCallback(ConcretePrecision newValue);
+        public delegate void PostTargetSettingsChangedCallback();
+
+        ChangeConcretePrecisionCallback m_postChangeConcretePrecisionCallback;
         Action<InspectorUpdateSource> m_PostChangeTargetSettingsCallback;
 
         Dictionary<Target, bool> m_TargetFoldouts = new Dictionary<Target, bool>();
 
         public void GetPropertyData(
+            PostTargetSettingsChangedCallback postChangeValueCallback,
+            ChangeConcretePrecisionCallback changeConcretePrecisionCallback)
+        {
+            GetPropertyDataInternal(new Action<InspectorUpdateSource>((inspectorUpdateSource) => postChangeValueCallback()), changeConcretePrecisionCallback);
+        }
+
+        internal void GetPropertyDataInternal(
             Action<InspectorUpdateSource> postChangeValueCallback,
-            Action<ConcretePrecision> changeConcretePrecisionCallback)
+            ChangeConcretePrecisionCallback changeConcretePrecisionCallback)
         {
             m_PostChangeTargetSettingsCallback = postChangeValueCallback;
-            m_PostChangeConcretePrecisionCallback = changeConcretePrecisionCallback;
+            m_postChangeConcretePrecisionCallback = changeConcretePrecisionCallback;
         }
 
         VisualElement GetSettings(GraphData graphData, Action onChange)
@@ -120,7 +130,7 @@ namespace UnityEditor.ShaderGraph.Drawing.Inspector.PropertyDrawers
             {
                 var enumPropertyDrawer = new EnumPropertyDrawer();
                 propertySheet.Add(enumPropertyDrawer.CreateGUI(
-                    newValue => { m_PostChangeConcretePrecisionCallback((ConcretePrecision)newValue); },
+                    newValue => { m_postChangeConcretePrecisionCallback((ConcretePrecision)newValue); },
                     graphData.concretePrecision,
                     "Precision",
                     ConcretePrecision.Single,

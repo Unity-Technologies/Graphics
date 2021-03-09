@@ -10,7 +10,7 @@ using UnityEngine.UIElements;
 
 namespace UnityEditor.ShaderGraph.Drawing.Inspector
 {
-    public enum InspectorUpdateSource
+    enum InspectorUpdateSource
     {
         PropertyInspection,
         GraphChanges,
