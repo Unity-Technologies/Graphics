@@ -441,17 +441,24 @@ namespace UnityEngine.Rendering.Universal
             for (int i = 0; i < validUvRects.Length; i++)
             {
                 int vIndex            = validSortedLights[i].visibleLightIndex;
+
                 lightTypes[vIndex]    = (int)lightData.visibleLights[vIndex].lightType;
                 worldToLights[vIndex] = lightData.visibleLights[vIndex].localToWorldMatrix.inverse;
                 atlasUVRects[vIndex]  = validUvRects[i];
 
                 // TODO: need spot projection here, or spot outer angle in shader
-                // TODO: look at HDRP how it extracts spot matrix
-                // TODO: this is garbage, projection should be in light data
-                //if (lightData.visibleLights[vIndex].lightType == LightType.Spot)
-                //    worldToLights[vIndex] = (lightData.visibleLights[vIndex].localToWorldMatrix).inverse;
-                //
-                //DrawDebugFrustum(worldToLights[vIndex]);
+                // TODO: projection should be in light data
+                if (lightData.visibleLights[vIndex].lightType == LightType.Spot)
+                {
+                    // VisibleLight.localToWorldMatrix only contains position & rotation.
+                    // Multiply projection for spot light.
+                    var perp = Matrix4x4.Perspective(lightData.visibleLights[vIndex].spotAngle, 1, 0.001f, lightData.visibleLights[vIndex].range);
+                    // Cancel embedded camera view axis flip (https://docs.unity3d.com/2021.1/Documentation/ScriptReference/Matrix4x4.Perspective.html)
+                    perp.SetColumn(2, perp.GetColumn(2) * -1);
+
+                    // world -> light local -> light perspective
+                    worldToLights[vIndex] = perp * lightData.visibleLights[vIndex].localToWorldMatrix.inverse;
+                }
             }
 
             //Vector4 o = Vector4.zero;
