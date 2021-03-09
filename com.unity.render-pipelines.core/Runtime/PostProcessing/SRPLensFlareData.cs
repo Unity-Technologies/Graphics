@@ -61,13 +61,13 @@ namespace UnityEngine
         /// </summary>
         Image,
         /// <summary>
-        /// Procedural Glow
+        /// Procedural Circle
         /// </summary>
-        Glow,
+        Circle,
         /// <summary>
-        /// Iris
+        /// Polygon
         /// </summary>
-        Iris
+        Polygon
     }
 
     /// <summary>
@@ -95,7 +95,7 @@ namespace UnityEngine
             blendMode = SRPLensFlareBlendMode.Additive;
             autoRotate = false;
             isFoldOpened = true;
-            flareType = SRPLensFlareType.Glow;
+            flareType = SRPLensFlareType.Circle;
 
             distribution = SRPLensFlareDistribution.Uniform;
 

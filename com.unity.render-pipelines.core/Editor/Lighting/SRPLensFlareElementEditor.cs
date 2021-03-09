@@ -224,7 +224,7 @@ namespace UnityEditor.Rendering
                         if ((tmpBool = EditorGUI.Toggle(rect, Styles.preserveAspectRatio, preserveAspectRatioProp.boolValue)) != preserveAspectRatioProp.boolValue)
                             preserveAspectRatioProp.boolValue = tmpBool;
                     }
-                    else if (newType == SRPLensFlareType.Glow || newType == SRPLensFlareType.Iris)
+                    else if (newType == SRPLensFlareType.Circle || newType == SRPLensFlareType.Polygon)
                     {
                         SerializedProperty fallOffProp = property.FindPropertyRelative("fallOff");
                         SerializedProperty edgeOffsetProp = property.FindPropertyRelative("edgeOffset");
@@ -242,7 +242,7 @@ namespace UnityEditor.Rendering
                             fallOffProp.floatValue = Mathf.Max(tmp, 0.0f);
 
 
-                        if (newType == SRPLensFlareType.Iris)
+                        if (newType == SRPLensFlareType.Polygon)
                         {
                             rect = GetNextRect();
                             if ((tmp = EditorGUI.IntSlider(rect, Styles.sideCount, sideCountProp.intValue, 3, 32)) != sideCountProp.intValue)
@@ -376,11 +376,11 @@ namespace UnityEditor.Rendering
                 else
                     coef = 25.0f;
 
-                if (flareType == SRPLensFlareType.Iris || flareType == SRPLensFlareType.Glow)
+                if (flareType == SRPLensFlareType.Polygon || flareType == SRPLensFlareType.Circle)
                 {
                     coef += 1.0f;
 
-                    if (flareType == SRPLensFlareType.Iris)
+                    if (flareType == SRPLensFlareType.Polygon)
                         coef += 2.0f;
                 }
 

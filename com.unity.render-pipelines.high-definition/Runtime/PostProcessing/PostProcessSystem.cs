@@ -2449,22 +2449,22 @@ namespace UnityEngine.Rendering.HighDefinition
 
                     if (element.flareType == SRPLensFlareType.Image)
                     {
-                        cmd.DisableShaderKeyword("FLARE_GLOW");
-                        cmd.DisableShaderKeyword("FLARE_IRIS");
+                        cmd.DisableShaderKeyword("FLARE_CIRCLE");
+                        cmd.DisableShaderKeyword("FLARE_POLYGON");
                     }
-                    else if (element.flareType == SRPLensFlareType.Glow)
+                    else if (element.flareType == SRPLensFlareType.Circle)
                     {
-                        cmd.EnableShaderKeyword("FLARE_GLOW");
-                        cmd.DisableShaderKeyword("FLARE_IRIS");
+                        cmd.EnableShaderKeyword("FLARE_CIRCLE");
+                        cmd.DisableShaderKeyword("FLARE_POLYGON");
                     }
-                    else if (element.flareType == SRPLensFlareType.Iris)
+                    else if (element.flareType == SRPLensFlareType.Polygon)
                     {
-                        cmd.DisableShaderKeyword("FLARE_GLOW");
-                        cmd.EnableShaderKeyword("FLARE_IRIS");
+                        cmd.DisableShaderKeyword("FLARE_CIRCLE");
+                        cmd.EnableShaderKeyword("FLARE_POLYGON");
                     }
 
-                    if (element.flareType == SRPLensFlareType.Glow ||
-                        element.flareType == SRPLensFlareType.Iris)
+                    if (element.flareType == SRPLensFlareType.Circle ||
+                        element.flareType == SRPLensFlareType.Polygon)
                     {
                         if (element.inverseSDF)
                         {
@@ -2484,13 +2484,13 @@ namespace UnityEngine.Rendering.HighDefinition
                         cmd.SetGlobalTexture(HDShaderIDs._FlareTex, element.lensFlareTexture);
 
                     float usedGradientPosition = Mathf.Clamp01(element.edgeOffset - 1e-6f);
-                    if (element.flareType == SRPLensFlareType.Iris)
+                    if (element.flareType == SRPLensFlareType.Polygon)
                         usedGradientPosition = Mathf.Pow(usedGradientPosition + 1.0f, 5);
 
                     float usedSDFRoundness = element.sdfRoundness;
                     cmd.SetGlobalVector(HDShaderIDs._FlareData1, new Vector4(comp.occlusionRadius, comp.sampleCount, screenPosZ.z, Mathf.Exp(element.fallOff)));
                     cmd.SetGlobalVector(HDShaderIDs._FlareData5, new Vector4(comp.allowOffScreen ? 1.0f : -1.0f, 0.0f, 0.0f, 0.0f));
-                    if (element.flareType == SRPLensFlareType.Iris)
+                    if (element.flareType == SRPLensFlareType.Polygon)
                     {
                         float invSide = 1.0f / (float)element.sideCount;
                         float rCos = Mathf.Cos(Mathf.PI * invSide);

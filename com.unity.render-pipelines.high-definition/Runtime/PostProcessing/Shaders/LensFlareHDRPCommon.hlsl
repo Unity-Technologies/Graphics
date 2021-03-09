@@ -121,7 +121,7 @@ float InverseGradient(float x)
     return x * (1.0f - x) / (x + 1e-6f);
 }
 
-float4 ComputeGlow(float2 uv)
+float4 ComputeCircle(float2 uv)
 {
     float2 v = (uv - 0.5f) * 2.0f;
 
@@ -138,7 +138,7 @@ float4 ComputeGlow(float2 uv)
 
 // Modfied from ref: https://www.shadertoy.com/view/MtKcWW
 // https://www.shadertoy.com/view/3tGBDt
-float4 ComputeIris(float2 uv_)
+float4 ComputePolygon(float2 uv_)
 {
     float2 p = uv_ * 2.0f - 1.0f;
 
@@ -170,10 +170,10 @@ float4 ComputeIris(float2 uv_)
 
 float4 GetFlareShape(float2 uv)
 {
-#if FLARE_GLOW
-    return ComputeGlow(uv);
-#elif FLARE_IRIS
-    return ComputeIris(uv);
+#if FLARE_CIRCLE
+    return ComputeCircle(uv);
+#elif FLARE_POLYGON
+    return ComputePolygon(uv);
 #elif FLARE_SHIMMER
     return ComputeShimmer(uv);
 #else
