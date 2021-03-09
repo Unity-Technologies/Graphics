@@ -132,6 +132,66 @@ namespace UnityEditor.Rendering
             if (EditorGUI.BeginFoldoutHeaderGroup(new Rect(position.x, position.y, position.width, GUIStyle.none.lineHeight), isFoldOpenedProp.boolValue, EditorGUIUtility.TrTextContent("Lens Flare Element")))
             {
                 rect = GetNextRect();
+                EditorGUI.TextArea(rect, "Type", EditorStyles.boldLabel);
+                ++EditorGUI.indentLevel;
+                {
+                    rect = GetNextRect();
+                    SRPLensFlareType newType;
+                    SRPLensFlareType typeValue = (UnityEngine.SRPLensFlareType)flareTypeProp.enumValueIndex;
+                    if ((newType = ((SRPLensFlareType)(EditorGUI.EnumPopup(rect, Styles.flareType, typeValue)))) != typeValue)
+                        flareTypeProp.enumValueIndex = (int)newType;
+
+                    if (newType == SRPLensFlareType.Image)
+                    {
+                        Texture tmpTex;
+                        rect = GetNextRect();
+                        if ((tmpTex = (EditorGUI.ObjectField(rect, Styles.flareTexture, lensFlareProp.objectReferenceValue, typeof(Texture), false) as Texture)) != (lensFlareProp.objectReferenceValue as Texture))
+                        {
+                            lensFlareProp.objectReferenceValue = tmpTex;
+                            lensFlareProp.serializedObject.ApplyModifiedProperties();
+                        }
+
+                        rect = GetNextRect();
+                        if ((tmpBool = EditorGUI.Toggle(rect, Styles.preserveAspectRatio, preserveAspectRatioProp.boolValue)) != preserveAspectRatioProp.boolValue)
+                            preserveAspectRatioProp.boolValue = tmpBool;
+                    }
+                    else if (newType == SRPLensFlareType.Circle || newType == SRPLensFlareType.Polygon)
+                    {
+                        SerializedProperty fallOffProp = property.FindPropertyRelative("fallOff");
+                        SerializedProperty edgeOffsetProp = property.FindPropertyRelative("edgeOffset");
+                        SerializedProperty sdfRoundnessProp = property.FindPropertyRelative("sdfRoundness");
+                        SerializedProperty sideCountProp = property.FindPropertyRelative("sideCount");
+                        SerializedProperty inverseSDFProp = property.FindPropertyRelative("inverseSDF");
+                        SerializedProperty frequencyProp = property.FindPropertyRelative("frequency");
+
+                        rect = GetNextRect();
+                        if ((tmp = EditorGUI.Slider(rect, Styles.edgeOffset, edgeOffsetProp.floatValue, 0.0f, 1.0f)) != edgeOffsetProp.floatValue)
+                            edgeOffsetProp.floatValue = Mathf.Clamp01(tmp);
+
+                        rect = GetNextRect();
+                        if ((tmp = EditorGUI.FloatField(rect, Styles.fallOff, fallOffProp.floatValue)) != fallOffProp.floatValue)
+                            fallOffProp.floatValue = Mathf.Max(tmp, 0.0f);
+
+
+                        if (newType == SRPLensFlareType.Polygon)
+                        {
+                            rect = GetNextRect();
+                            if ((tmp = EditorGUI.IntSlider(rect, Styles.sideCount, sideCountProp.intValue, 3, 32)) != sideCountProp.intValue)
+                                sideCountProp.intValue = (int)Mathf.Max(tmp, 0);
+
+                            rect = GetNextRect();
+                            if ((tmp = EditorGUI.Slider(rect, Styles.sdfRoundness, sdfRoundnessProp.floatValue, 0.0f, 1.0f)) != sdfRoundnessProp.floatValue)
+                                sdfRoundnessProp.floatValue = Mathf.Clamp01(tmp);
+                        }
+
+                        rect = GetNextRect();
+                        if ((tmpBool = EditorGUI.Toggle(rect, Styles.inverseSDF, inverseSDFProp.boolValue)) != inverseSDFProp.boolValue)
+                            inverseSDFProp.boolValue = tmpBool;
+                    }
+                }
+                --EditorGUI.indentLevel;
+
+                rect = GetNextRect();
                 EditorGUI.TextArea(rect, "Common", EditorStyles.boldLabel);
                 ++EditorGUI.indentLevel;
                 {
@@ -204,66 +264,6 @@ namespace UnityEditor.Rendering
                 --EditorGUI.indentLevel;
 
                 rect = GetNextRect();
-                EditorGUI.TextArea(rect, "Type", EditorStyles.boldLabel);
-                ++EditorGUI.indentLevel;
-                {
-                    rect = GetNextRect();
-                    SRPLensFlareType newType;
-                    SRPLensFlareType typeValue = (UnityEngine.SRPLensFlareType)flareTypeProp.enumValueIndex;
-                    if ((newType = ((SRPLensFlareType)(EditorGUI.EnumPopup(rect, Styles.flareType, typeValue)))) != typeValue)
-                        flareTypeProp.enumValueIndex = (int)newType;
-
-                    if (newType == SRPLensFlareType.Image)
-                    {
-                        Texture tmpTex;
-                        rect = GetNextRect();
-                        if ((tmpTex = (EditorGUI.ObjectField(rect, Styles.flareTexture, lensFlareProp.objectReferenceValue, typeof(Texture), false) as Texture)) != (lensFlareProp.objectReferenceValue as Texture))
-                        {
-                            lensFlareProp.objectReferenceValue = tmpTex;
-                            lensFlareProp.serializedObject.ApplyModifiedProperties();
-                        }
-
-                        rect = GetNextRect();
-                        if ((tmpBool = EditorGUI.Toggle(rect, Styles.preserveAspectRatio, preserveAspectRatioProp.boolValue)) != preserveAspectRatioProp.boolValue)
-                            preserveAspectRatioProp.boolValue = tmpBool;
-                    }
-                    else if (newType == SRPLensFlareType.Circle || newType == SRPLensFlareType.Polygon)
-                    {
-                        SerializedProperty fallOffProp = property.FindPropertyRelative("fallOff");
-                        SerializedProperty edgeOffsetProp = property.FindPropertyRelative("edgeOffset");
-                        SerializedProperty sdfRoundnessProp = property.FindPropertyRelative("sdfRoundness");
-                        SerializedProperty sideCountProp = property.FindPropertyRelative("sideCount");
-                        SerializedProperty inverseSDFProp = property.FindPropertyRelative("inverseSDF");
-                        SerializedProperty frequencyProp = property.FindPropertyRelative("frequency");
-
-                        rect = GetNextRect();
-                        if ((tmp = EditorGUI.Slider(rect, Styles.edgeOffset, edgeOffsetProp.floatValue, 0.0f, 1.0f)) != edgeOffsetProp.floatValue)
-                            edgeOffsetProp.floatValue = Mathf.Clamp01(tmp);
-
-                        rect = GetNextRect();
-                        if ((tmp = EditorGUI.FloatField(rect, Styles.fallOff, fallOffProp.floatValue)) != fallOffProp.floatValue)
-                            fallOffProp.floatValue = Mathf.Max(tmp, 0.0f);
-
-
-                        if (newType == SRPLensFlareType.Polygon)
-                        {
-                            rect = GetNextRect();
-                            if ((tmp = EditorGUI.IntSlider(rect, Styles.sideCount, sideCountProp.intValue, 3, 32)) != sideCountProp.intValue)
-                                sideCountProp.intValue = (int)Mathf.Max(tmp, 0);
-
-                            rect = GetNextRect();
-                            if ((tmp = EditorGUI.Slider(rect, Styles.sdfRoundness, sdfRoundnessProp.floatValue, 0.0f, 1.0f)) != sdfRoundnessProp.floatValue)
-                                sdfRoundnessProp.floatValue = Mathf.Clamp01(tmp);
-                        }
-
-                        rect = GetNextRect();
-                        if ((tmpBool = EditorGUI.Toggle(rect, Styles.inverseSDF, inverseSDFProp.boolValue)) != inverseSDFProp.boolValue)
-                            inverseSDFProp.boolValue = tmpBool;
-                    }
-                }
-                --EditorGUI.indentLevel;
-
-                rect = GetNextRect();
                 EditorGUI.TextArea(rect, "Multiple Elements", EditorStyles.boldLabel);
                 ++EditorGUI.indentLevel;
                 {
@@ -331,18 +331,18 @@ namespace UnityEditor.Rendering
             else
             {
                 rect = GetNextRect(35.0f);
+                SRPLensFlareType newType;
+                SRPLensFlareType typeValue = (UnityEngine.SRPLensFlareType)flareTypeProp.enumValueIndex;
+                if ((newType = ((SRPLensFlareType)(EditorGUI.EnumPopup(rect, Styles.flareType, typeValue)))) != typeValue)
+                    flareTypeProp.enumValueIndex = (int)newType;
+
+                rect = GetNextRect();
                 if ((tmp = EditorGUI.FloatField(rect, Styles.intensity, intensityProp.floatValue)) != intensityProp.floatValue)
                     intensityProp.floatValue = Mathf.Max(tmp, 0.0f);
 
                 rect = GetNextRect();
                 if ((tmpCol = EditorGUI.ColorField(rect, Styles.tint, tintProp.colorValue)) != tintProp.colorValue)
                     tintProp.colorValue = tmpCol;
-
-                rect = GetNextRect();
-                SRPLensFlareType newType;
-                SRPLensFlareType typeValue = (UnityEngine.SRPLensFlareType)flareTypeProp.enumValueIndex;
-                if ((newType = ((SRPLensFlareType)(EditorGUI.EnumPopup(rect, Styles.flareType, typeValue)))) != typeValue)
-                    flareTypeProp.enumValueIndex = (int)newType;
 
                 rect = GetNextRect();
                 if ((iTmp = EditorGUI.IntField(rect, Styles.count, countProp.intValue)) != countProp.intValue)
