@@ -291,12 +291,13 @@ namespace UnityEditor.Rendering.BuiltIn.ShaderGraph
                 passes = new PassCollection
                 {
                     { PassVariant(LitPasses.Forward,         CorePragmas.DOTSForward) },
-                    { LitPasses.GBuffer },
+                    { PassVariant(LitPasses.ForwardAdd,      CorePragmas.DOTSForwardAdd) },
+                    //{ LitPasses.GBuffer },
                     { PassVariant(CorePasses.ShadowCaster,   CorePragmas.DOTSInstanced) },
-                    { PassVariant(CorePasses.DepthOnly,      CorePragmas.DOTSInstanced) },
-                    { PassVariant(LitPasses.DepthNormalOnly, CorePragmas.DOTSInstanced) },
+                    //{ PassVariant(CorePasses.DepthOnly,      CorePragmas.DOTSInstanced) },
+                    //{ PassVariant(LitPasses.DepthNormalOnly, CorePragmas.DOTSInstanced) },
                     { PassVariant(LitPasses.Meta,            CorePragmas.DOTSDefault) },
-                    { PassVariant(LitPasses._2D,             CorePragmas.DOTSDefault) },
+                    //{ PassVariant(LitPasses._2D,             CorePragmas.DOTSDefault) },
                 },
             };
 
@@ -385,6 +386,34 @@ namespace UnityEditor.Rendering.BuiltIn.ShaderGraph
                 pragmas  = CorePragmas.Forward,     // NOTE: SM 2.0 only GL
                 keywords = LitKeywords.Forward,
                 includes = LitIncludes.Forward,
+            };
+
+            public static PassDescriptor ForwardAdd = new PassDescriptor
+            {
+                // Definition
+                displayName = "BuiltIn ForwardAdd",
+                referenceName = "SHADERPASS_FORWARD_ADD",
+                lightMode = "ForwardAdd",
+                useInPreview = true,
+
+                // Template
+                passTemplatePath = BuiltInTarget.kTemplatePath,
+                sharedTemplateDirectories = BuiltInTarget.kSharedTemplateDirectories,
+
+                // Port Mask
+                validVertexBlocks = CoreBlockMasks.Vertex,
+                validPixelBlocks = LitBlockMasks.FragmentLit,
+
+                // Fields
+                structs = CoreStructCollections.Default,
+                requiredFields = LitRequiredFields.Forward,
+                fieldDependencies = CoreFieldDependencies.Default,
+
+                // Conditional State
+                renderStates = CoreRenderStates.ForwardAdd,
+                pragmas  = CorePragmas.Forward,     // NOTE: SM 2.0 only GL
+                keywords = LitKeywords.ForwardAdd,
+                includes = LitIncludes.ForwardAdd,
             };
 
             public static PassDescriptor ForwardOnly = new PassDescriptor
@@ -674,6 +703,19 @@ namespace UnityEditor.Rendering.BuiltIn.ShaderGraph
                 { CoreKeywordDescriptors.ShadowsShadowmask },
             };
 
+            public static readonly KeywordCollection ForwardAdd = new KeywordCollection
+            {
+                { ScreenSpaceAmbientOcclusion },
+                { CoreKeywordDescriptors.Lightmap },
+                { CoreKeywordDescriptors.DirectionalLightmapCombined },
+                { CoreKeywordDescriptors.MainLightShadows },
+                { CoreKeywordDescriptors.AdditionalLights },
+                { CoreKeywordDescriptors.AdditionalLightShadows },
+                { CoreKeywordDescriptors.ShadowsSoft },
+                { CoreKeywordDescriptors.LightmapShadowMixing },
+                { CoreKeywordDescriptors.ShadowsShadowmask },
+            };
+
             public static readonly KeywordCollection GBuffer = new KeywordCollection
             {
                 { CoreKeywordDescriptors.Lightmap },
@@ -698,6 +740,7 @@ namespace UnityEditor.Rendering.BuiltIn.ShaderGraph
             const string kShadows = "Packages/com.unity.shadergraph/Editor/Generation/Targets/BuiltIn/ShaderLibrary/Shadows.hlsl";
             const string kMetaInput = "Packages/com.unity.shadergraph/Editor/Generation/Targets/BuiltIn/ShaderLibrary/MetaInput.hlsl";
             const string kForwardPass = "Packages/com.unity.shadergraph/Editor/Generation/Targets/BuiltIn/Editor/ShaderGraph/Includes/PBRForwardPass.hlsl";
+            const string kForwardAddPass = "Packages/com.unity.shadergraph/Editor/Generation/Targets/BuiltIn/Editor/ShaderGraph/Includes/PBRForwardAddPass.hlsl";
             const string kGBuffer = "Packages/com.unity.shadergraph/Editor/Generation/Targets/BuiltIn/ShaderLibrary/UnityGBuffer.hlsl";
             const string kPBRGBufferPass = "Packages/com.unity.shadergraph/Editor/Generation/Targets/BuiltIn/Editor/ShaderGraph/Includes/PBRGBufferPass.hlsl";
             const string kLightingMetaPass = "Packages/com.unity.shadergraph/Editor/Generation/Targets/BuiltIn/Editor/ShaderGraph/Includes/LightingMetaPass.hlsl";
@@ -707,12 +750,23 @@ namespace UnityEditor.Rendering.BuiltIn.ShaderGraph
             {
                 // Pre-graph
                 { CoreIncludes.CorePregraph },
-                { kShadows, IncludeLocation.Pregraph },
+                //{ kShadows, IncludeLocation.Pregraph },
                 { CoreIncludes.ShaderGraphPregraph },
 
                 // Post-graph
                 { CoreIncludes.CorePostgraph },
                 { kForwardPass, IncludeLocation.Postgraph },
+            };
+
+            public static readonly IncludeCollection ForwardAdd = new IncludeCollection
+            {
+                // Pre-graph
+                { CoreIncludes.CorePregraph },
+                { CoreIncludes.ShaderGraphPregraph },
+
+                // Post-graph
+                { CoreIncludes.CorePostgraph },
+                { kForwardAddPass, IncludeLocation.Postgraph },
             };
 
             public static readonly IncludeCollection GBuffer = new IncludeCollection

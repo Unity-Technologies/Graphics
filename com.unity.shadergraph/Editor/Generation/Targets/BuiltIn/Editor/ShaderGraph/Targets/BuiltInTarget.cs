@@ -469,6 +469,12 @@ namespace UnityEditor.Rendering.BuiltIn.ShaderGraph
             { RenderState.Blend(Blend.DstColor, Blend.Zero), new FieldCondition(BuiltInFields.BlendMultiply, true) },
         };
 
+        public static readonly RenderStateCollection ForwardAdd = new RenderStateCollection
+        {
+            { RenderState.ZWrite(ZWrite.Off) },
+            { RenderState.Blend(Blend.SrcAlpha, Blend.One, Blend.One, Blend.One) },
+        };
+
         public static readonly RenderStateCollection Meta = new RenderStateCollection
         {
             { RenderState.Cull(Cull.Off) },
@@ -546,6 +552,7 @@ namespace UnityEditor.Rendering.BuiltIn.ShaderGraph
             //{ Pragma.OnlyRenderers(new[] { Platform.GLES, Platform.GLES3, Platform.GLCore }) },
             { Pragma.MultiCompileInstancing },
             { Pragma.MultiCompileFog },
+            { Pragma.MultiCompileForwardBase },
             { Pragma.Vertex("vert") },
             { Pragma.Fragment("frag") },
         };
@@ -582,6 +589,19 @@ namespace UnityEditor.Rendering.BuiltIn.ShaderGraph
             { Pragma.ExcludeRenderers(new[] { Platform.GLES, Platform.GLES3, Platform.GLCore }) },
             { Pragma.MultiCompileInstancing },
             { Pragma.MultiCompileFog },
+            { Pragma.MultiCompileForwardBase },
+            { Pragma.DOTSInstancing },
+            { Pragma.Vertex("vert") },
+            { Pragma.Fragment("frag") },
+        };
+
+        public static readonly PragmaCollection DOTSForwardAdd = new PragmaCollection
+        {
+            { Pragma.Target(ShaderModel.Target45) },
+            { Pragma.ExcludeRenderers(new[] { Platform.GLES, Platform.GLES3, Platform.GLCore }) },
+            { Pragma.MultiCompileInstancing },
+            { Pragma.MultiCompileFog },
+            { Pragma.MultiCompileForwardAddFullShadowsBase },
             { Pragma.DOTSInstancing },
             { Pragma.Vertex("vert") },
             { Pragma.Fragment("frag") },
@@ -615,13 +635,16 @@ namespace UnityEditor.Rendering.BuiltIn.ShaderGraph
         const string kShadowCasterPass = "Packages/com.unity.shadergraph/Editor/Generation/Targets/BuiltIn/Editor/ShaderGraph/Includes/ShadowCasterPass.hlsl";
         const string kTextureStack = "Packages/com.unity.render-pipelines.core/ShaderLibrary/TextureStack.hlsl";
 
+        const string kShims = "Packages/com.unity.shadergraph/Editor/Generation/Targets/BuiltIn/ShaderLibrary/Shim/Shims.hlsl";
+
         public static readonly IncludeCollection CorePregraph = new IncludeCollection
         {
             { kColor, IncludeLocation.Pregraph },
-            { kTexture, IncludeLocation.Pregraph },
+            { kShims, IncludeLocation.Pregraph },
             { kCore, IncludeLocation.Pregraph },
+            { kTexture, IncludeLocation.Pregraph },
             { kLighting, IncludeLocation.Pregraph },
-            { kTextureStack, IncludeLocation.Pregraph },        // TODO: put this on a conditional
+            //{ kTextureStack, IncludeLocation.Pregraph },        // TODO: put this on a conditional
         };
 
         public static readonly IncludeCollection ShaderGraphPregraph = new IncludeCollection

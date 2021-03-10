@@ -57,3 +57,95 @@ SurfaceDescriptionInputs BuildSurfaceDescriptionInputs(Varyings input)
 
         return output;
 }
+
+struct v2f_surf {
+  float4 pos;//UNITY_POSITION(pos);
+  float3 worldNormal;// : TEXCOORD1;
+  float3 worldPos;// : TEXCOORD2;
+  float4 lmap;// : TEXCOORD3;
+  #if UNITY_SHOULD_SAMPLE_SH
+  half3 sh;// : TEXCOORD3; // SH
+  #endif
+  float1 fogCoord; //UNITY_FOG_COORDS(4)
+  DECLARE_LIGHT_COORDS(4)//unityShadowCoord4 _LightCoord;
+  UNITY_SHADOW_COORDS(5)//unityShadowCoord4 _ShadowCoord;
+  
+  //#ifdef DIRLIGHTMAP_COMBINED
+  float3 tSpace0 : TEXCOORD6;
+  float3 tSpace1 : TEXCOORD7;
+  float3 tSpace2 : TEXCOORD8;
+  //#endif
+  UNITY_VERTEX_INPUT_INSTANCE_ID
+  UNITY_VERTEX_OUTPUT_STEREO
+};
+
+void BuildAppDataFull(Attributes attributes, VertexDescription vertexDescription, inout appdata_full result)
+{
+    $Attributes.positionOS:      result.vertex    = float4(attributes.positionOS, 1);
+    $Attributes.tangentOS:       result.tangent   = attributes.tangentOS;
+    $Attributes.normalOS:        result.normal    = attributes.normalOS;
+    $Attributes.uv0:             result.texcoord  = attributes.uv0;
+    $Attributes.uv1:             result.texcoord1 = attributes.uv1;
+    $Attributes.uv2:             result.texcoord2 = attributes.uv2;
+    $Attributes.uv3:             result.texcoord3 = attributes.uv3;
+    $Attributes.color:           result.color     = attributes.color;
+    $Attributes.instanceID:      #if UNITY_ANY_INSTANCING_ENABLED
+    $Attributes.instanceID:      result.instanceID = attributes.instanceID;
+    $Attributes.instanceID:      #endif
+    $VertexDescription.Position: result.vertex    = float4(vertexDescription.Position, 1);
+    $VertexDescription.Normal:   result.normal    = vertexDescription.Normal;
+    $VertexDescription.Tangent:  result.tangent   = float4(vertexDescription.Tangent, 0);
+}
+
+void VaryingsToSurfaceVertex(Varyings varyings, inout v2f_surf result)
+{
+    result.pos = varyings.positionCS;
+    $Varyings.positionWS:  result.worldPos = varyings.positionWS;
+    $Varyings.normalWS:    result.worldNormal = varyings.normalWS;
+    // World Tangent isn't an available input on v2f_surf
+    $Varyings.shadowCoord: result._ShadowCoord = varyings.shadowCoord;
+    $Varyings.sh:          #if UNITY_SHOULD_SAMPLE_SH
+    $Varyings.sh:          result.sh = varyings.sh;
+    $Varyings.sh:          #endif
+    $Varyings.instanceID:  #if UNITY_ANY_INSTANCING_ENABLED
+    $Varyings.instanceID:  UNITY_TRANSFER_INSTANCE_ID(varyings, result);
+    $Varyings.instanceID:  #endif
+    $Varyings.lightmapUV:  #if defined(LIGHTMAP_ON)
+    $Varyings.lightmapUV:  result.lmap.xy = varyings.lightmapUV;
+    $Varyings.lightmapUV:  #endif
+    $Varyings.shadowCoord: result._ShadowCoord = varyings.shadowCoord;
+
+    #ifdef VARYINGS_NEED_FOG_AND_VERTEX_LIGHT
+    result.fogCoord = varyings.fogFactorAndVertexLight.x;
+    COPY_TO_LIGHT_COORDS(result, varyings.fogFactorAndVertexLight.yzw);
+    #endif
+
+    DEFAULT_UNITY_TRANSFER_VERTEX_OUTPUT_STEREO(varyings, result);
+}
+
+void SurfaceVertexToVaryings(v2f_surf surfVertex, inout Varyings result)
+{
+    result.positionCS = surfVertex.pos;
+    $Varyings.positionWS:  result.positionWS = surfVertex.worldPos;
+    $Varyings.normalWS:    result.normalWS = surfVertex.worldNormal;
+    // World Tangent isn't an available input on v2f_surf
+    $Varyings.sh:          result.shadowCoord = surfVertex._ShadowCoord;
+    $Varyings.sh:          #if UNITY_SHOULD_SAMPLE_SH
+    $Varyings.sh:          result.sh = surfVertex.sh;
+    $Varyings.sh:          #endif
+    $Varyings.instanceID:  #if UNITY_ANY_INSTANCING_ENABLED
+    $Varyings.instanceID:  UNITY_TRANSFER_INSTANCE_ID(surfVertex, result);
+    $Varyings.instanceID:  #endif
+    $Varyings.lightmapUV:  #if defined(LIGHTMAP_ON)
+    $Varyings.lightmapUV:  result.lightmapUV = surfVertex.lmap.xy;
+    $Varyings.lightmapUV:  #endif
+    $Varyings.shadowCoord: result.shadowCoord = surfVertex._ShadowCoord;
+    
+    #ifdef VARYINGS_NEED_FOG_AND_VERTEX_LIGHT
+    result.fogFactorAndVertexLight.x = surfVertex.fogCoord;
+    COPY_FROM_LIGHT_COORDS(result.fogFactorAndVertexLight.yzw, surfVertex);
+    #endif
+
+    DEFAULT_UNITY_TRANSFER_VERTEX_OUTPUT_STEREO(surfVertex, result);
+}
+
