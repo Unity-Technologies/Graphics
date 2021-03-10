@@ -1,4 +1,4 @@
-﻿# Upgrading HDRP from 2021.1 to 2021.2
+# Upgrading HDRP from 2021.1 to 2021.2
 
 ## Shader code
 
@@ -9,4 +9,3 @@ HDRP 2021.2 includes the "ForwardEmissiveForDeferred" shader pass and the associ
 ## ClearFlag
 
 ClearFlag.Depth does not implicitely clear stencil anymore. ClearFlag.Stencil added.
-
