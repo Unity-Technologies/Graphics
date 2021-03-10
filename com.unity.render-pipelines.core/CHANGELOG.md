@@ -19,6 +19,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed ACES tonemaping for Nintendo Switch by forcing some shader color conversion functions to full float precision.
 - Fixed missing warning UI about Projector component being unsupported (case 1300327).
 - Fixed the display name of a Volume Parameter when is defined the attribute InspectorName
+- Fixed ACES tonemaping on mobile platforms by forcing some shader color conversion functions to full float precision.
 - Fix crash on VolumeComponentWithQualityEditor when the current Pipeline is not HDRP
 
 ## [10.2.0] - 2020-10-19
