@@ -475,8 +475,8 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
         /// Create a new Render Graph Texture if the passed handle is invalid and use said handle as output.
         /// If the passed handle is valid, no texture is created.
         /// </summary>
+        /// <param name="desc">Desc used to create the texture.</param>
         /// <param name="texture">Texture from which the descriptor should be used.</param>
-        /// <returns>A new TextureHandle.</returns>
         public void CreateTextureIfInvalid(in TextureDesc desc, ref TextureHandle texture)
         {
             if (!texture.IsValid())
