@@ -28,13 +28,15 @@ PR_VikingVillage_BuiltIn_trunk:
          rerun: on-new-revision
       -  path: .yamato/vikingvillage_builtin-linux-vulkan.yml#VikingVillage_BuiltIn_Linux_Vulkan_performance_playmode_runtime_mono_Linear_trunk
          rerun: on-new-revision
+      -  path: .yamato/vikingvillage_builtin-linux-vulkan.yml#VikingVillage_BuiltIn_Linux_Vulkan_performance_playmode_editor_mono_Linear_trunk
+         rerun: on-new-revision
       -  path: .yamato/vikingvillage_builtin-linux-vulkan.yml#VikingVillage_BuiltIn_Linux_Vulkan_performance_build_editmode_mono_Linear_trunk
          rerun: on-new-revision
     variables:
         UTR_VERSION: "current"
         TEST_FILTER: .*
         VV_BUILTIN_BRANCH: built-in
-        VV_BUILTIN_REVISION: 7962d13a1a8c105a1880b86f8c0d197e652547c4
+        VV_BUILTIN_REVISION: 8ebff1e06ea5a129af10c95d54401d554799f869
 Nightly_VikingVillage_BuiltIn_trunk:
     name: Nightly VikingVillage_BuiltIn - trunk
     dependencies:
@@ -44,7 +46,7 @@ Nightly_VikingVillage_BuiltIn_trunk:
         UTR_VERSION: "current"
         TEST_FILTER: .*
         VV_BUILTIN_BRANCH: built-in
-        VV_BUILTIN_REVISION: 7962d13a1a8c105a1880b86f8c0d197e652547c4
+        VV_BUILTIN_REVISION: 8ebff1e06ea5a129af10c95d54401d554799f869
 PR_VikingVillage_BuiltIn_CUSTOM-REVISION:
     name: VikingVillage_BuiltIn PR Job - CUSTOM-REVISION
     dependencies:
@@ -66,6 +68,8 @@ PR_VikingVillage_BuiltIn_CUSTOM-REVISION:
          rerun: always
       -  path: .yamato/vikingvillage_builtin-linux-vulkan.yml#VikingVillage_BuiltIn_Linux_Vulkan_performance_playmode_runtime_mono_Linear_CUSTOM-REVISION
          rerun: always
+      -  path: .yamato/vikingvillage_builtin-linux-vulkan.yml#VikingVillage_BuiltIn_Linux_Vulkan_performance_playmode_editor_mono_Linear_CUSTOM-REVISION
+         rerun: always
       -  path: .yamato/vikingvillage_builtin-linux-vulkan.yml#VikingVillage_BuiltIn_Linux_Vulkan_performance_build_editmode_mono_Linear_CUSTOM-REVISION
          rerun: always
     variables:
@@ -73,7 +77,7 @@ PR_VikingVillage_BuiltIn_CUSTOM-REVISION:
         UTR_VERSION: "current"
         TEST_FILTER: .*
         VV_BUILTIN_BRANCH: built-in
-        VV_BUILTIN_REVISION: 7962d13a1a8c105a1880b86f8c0d197e652547c4
+        VV_BUILTIN_REVISION: 8ebff1e06ea5a129af10c95d54401d554799f869
 Nightly_VikingVillage_BuiltIn_CUSTOM-REVISION:
     name: Nightly VikingVillage_BuiltIn - CUSTOM-REVISION
     dependencies:
@@ -84,4 +88,4 @@ Nightly_VikingVillage_BuiltIn_CUSTOM-REVISION:
         UTR_VERSION: "current"
         TEST_FILTER: .*
         VV_BUILTIN_BRANCH: built-in
-        VV_BUILTIN_REVISION: 7962d13a1a8c105a1880b86f8c0d197e652547c4
+        VV_BUILTIN_REVISION: 8ebff1e06ea5a129af10c95d54401d554799f869
