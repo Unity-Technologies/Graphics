@@ -2,9 +2,16 @@
 
 ## Description
 
-Provides access to the mesh vertex or fragment's **View Direction** vector. This is the vector from the vertex or fragment to the camera. The coordinate space of the output value can be selected with the **Space** dropdown parameter.
+Provides access to the mesh vertex or fragment's **View Direction** vector. This is the vector from the vertex or fragment to the camera. Select a **Space** to modify the coordinate space of the output value.
+In versions prior to version 11.0, the **View Direction Node** works differently in HDRP than in URP. In URP, it only stored Object space vectors normalized. HDRP stores all vectors normalized.
 
-NOTE: In versions prior to 11.0, the **View Direction** vector was not normalized in the **Universal Render Pipeline**. Version 11.0 changed this behavior, and this vector is now normalized in both the **High-Definition Render Pipeline** and the **Universal Render Pipeline**. To mimic old behavior, you can use the [Position Node](Position-Node.md) in **World** space and subtract the **Position** output of the [Camera Node](Camera-Node.md).
+From 11.0 onwards, this node stores all vectors normalized in both the **High-Definition Render Pipeline** and the **Universal Render Pipeline**.
+
+If you want to keep using the old behavior in URP outside of object space, replace this node with a **View Vector Node**.
+
+
+
+
 
 ## Ports
 

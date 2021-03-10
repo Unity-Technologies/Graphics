@@ -31,10 +31,10 @@ VertexNormalInputs GetVertexNormalInputs(float3 normalOS, float4 tangentOS)
     VertexNormalInputs tbn;
 
     // mikkts space compliant. only normalize when extracting normal at frag.
-    real sign = tangentOS.w * GetOddNegativeScale();
+    real sign = real(tangentOS.w) * GetOddNegativeScale();
     tbn.normalWS = TransformObjectToWorldNormal(normalOS);
-    tbn.tangentWS = TransformObjectToWorldDir(tangentOS.xyz);
-    tbn.bitangentWS = cross(tbn.normalWS, tbn.tangentWS) * sign;
+    tbn.tangentWS = real3(TransformObjectToWorldDir(tangentOS.xyz));
+    tbn.bitangentWS = real3(cross(tbn.normalWS, float3(tbn.tangentWS))) * sign;
     return tbn;
 }
 
@@ -105,18 +105,18 @@ float3 GetWorldSpaceViewDir(float3 positionWS)
     }
 }
 
-float3 GetWorldSpaceNormalizeViewDir(float3 positionWS)
+half3 GetWorldSpaceNormalizeViewDir(float3 positionWS)
 {
     if (IsPerspectiveProjection())
     {
         // Perspective
         float3 V = GetCurrentViewPosition() - positionWS;
-        return normalize(V);
+        return half3(normalize(V));
     }
     else
     {
         // Orthographic
-        return -GetViewForwardDir();
+        return half3(-GetViewForwardDir());
     }
 }
 
@@ -132,16 +132,16 @@ void GetLeftHandedViewSpaceMatrices(out float4x4 viewMatrix, out float4x4 projMa
     projMatrix._13_23_33_43 = -projMatrix._13_23_33_43;
 }
 
-void AlphaDiscard(real alpha, real cutoff, real offset = 0.0h)
+void AlphaDiscard(real alpha, real cutoff, real offset = real(0.0))
 {
     #ifdef _ALPHATEST_ON
         clip(alpha - cutoff + offset);
     #endif
 }
 
-half OutputAlpha(half outputAlpha, half surfaceType = 0.0)
+half OutputAlpha(half outputAlpha, half surfaceType = half(0.0))
 {
-    return surfaceType == 1 ? outputAlpha : 1.0;
+    return surfaceType == 1 ? outputAlpha : half(1.0);
 }
 
 // A word on normalization of normals:
@@ -158,7 +158,7 @@ half OutputAlpha(half outputAlpha, half surfaceType = 0.0)
 //
 // Always normalize per-pixel.
 // Too many bug like lighting quality issues otherwise.
-real3 NormalizeNormalPerVertex(real3 normalWS)
+half3 NormalizeNormalPerVertex(half3 normalWS)
 {
     #if defined(SHADER_QUALITY_LOW) && defined(_NORMALMAP)
         return normalWS;
@@ -167,7 +167,21 @@ real3 NormalizeNormalPerVertex(real3 normalWS)
     #endif
 }
 
-real3 NormalizeNormalPerPixel(real3 normalWS)
+float3 NormalizeNormalPerVertex(float3 normalWS)
+{
+    #if defined(SHADER_QUALITY_LOW) && defined(_NORMALMAP)
+        return normalWS;
+    #else
+        return normalize(normalWS);
+    #endif
+}
+
+half3 NormalizeNormalPerPixel(half3 normalWS)
+{
+    return normalize(normalWS);
+}
+
+float3 NormalizeNormalPerPixel(float3 normalWS)
 {
     return normalize(normalWS);
 }
@@ -187,13 +201,13 @@ real ComputeFogFactor(float z)
         // -density * z computed at vertex
         return real(unity_FogParams.x * clipZ_01);
     #else
-        return 0.0h;
+        return real(0.0);
     #endif
 }
 
-real ComputeFogIntensity(real fogFactor)
+half ComputeFogIntensity(half fogFactor)
 {
-    real fogIntensity = 0.0h;
+    half fogIntensity = half(0.0);
     #if defined(FOG_LINEAR) || defined(FOG_EXP) || defined(FOG_EXP2)
         #if defined(FOG_EXP)
             // factor = exp(-density*z)
@@ -210,27 +224,69 @@ real ComputeFogIntensity(real fogFactor)
     return fogIntensity;
 }
 
-half3 MixFogColor(real3 fragColor, real3 fogColor, real fogFactor)
+float ComputeFogIntensity(float fogFactor)
+{
+    float fogIntensity = 0.0;
+    #if defined(FOG_LINEAR) || defined(FOG_EXP) || defined(FOG_EXP2)
+        #if defined(FOG_EXP)
+            // factor = exp(-density*z)
+            // fogFactor = density*z compute at vertex
+            fogIntensity = saturate(exp2(-fogFactor));
+        #elif defined(FOG_EXP2)
+            // factor = exp(-(density*z)^2)
+            // fogFactor = density*z compute at vertex
+            fogIntensity = saturate(exp2(-fogFactor * fogFactor));
+        #elif defined(FOG_LINEAR)
+            fogIntensity = fogFactor;
+        #endif
+    #endif
+    return fogIntensity;
+}
+
+half3 MixFogColor(half3 fragColor, half3 fogColor, half fogFactor)
 {
     #if defined(FOG_LINEAR) || defined(FOG_EXP) || defined(FOG_EXP2)
-        real fogIntensity = ComputeFogIntensity(fogFactor);
+        half fogIntensity = ComputeFogIntensity(fogFactor);
         fragColor = lerp(fogColor, fragColor, fogIntensity);
     #endif
     return fragColor;
 }
 
-half3 MixFog(real3 fragColor, real fogFactor)
+float3 MixFogColor(float3 fragColor, float3 fogColor, float fogFactor)
+{
+    #if defined(FOG_LINEAR) || defined(FOG_EXP) || defined(FOG_EXP2)
+        float fogIntensity = ComputeFogIntensity(fogFactor);
+        fragColor = lerp(fogColor, fragColor, fogIntensity);
+    #endif
+    return fragColor;
+}
+
+half3 MixFog(half3 fragColor, half fogFactor)
+{
+    return MixFogColor(fragColor, unity_FogColor.rgb, fogFactor);
+}
+
+float3 MixFog(float3 fragColor, float fogFactor)
 {
     return MixFogColor(fragColor, unity_FogColor.rgb, fogFactor);
 }
 
 // Linear depth buffer value between [0, 1] or [1, 0] to eye depth value between [near, far]
-real LinearDepthToEyeDepth(real rawDepth)
+half LinearDepthToEyeDepth(half rawDepth)
 {
     #if UNITY_REVERSED_Z
-    return _ProjectionParams.z - (_ProjectionParams.z - _ProjectionParams.y) * rawDepth;
+        return half(_ProjectionParams.z - (_ProjectionParams.z - _ProjectionParams.y) * rawDepth);
     #else
-    return _ProjectionParams.y + (_ProjectionParams.z - _ProjectionParams.y) * rawDepth;
+        return half(_ProjectionParams.y + (_ProjectionParams.z - _ProjectionParams.y) * rawDepth);
+    #endif
+}
+
+float LinearDepthToEyeDepth(float rawDepth)
+{
+    #if UNITY_REVERSED_Z
+        return _ProjectionParams.z - (_ProjectionParams.z - _ProjectionParams.y) * rawDepth;
+    #else
+        return _ProjectionParams.y + (_ProjectionParams.z - _ProjectionParams.y) * rawDepth;
     #endif
 }
 

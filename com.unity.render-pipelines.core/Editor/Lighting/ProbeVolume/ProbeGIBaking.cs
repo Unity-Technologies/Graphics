@@ -85,9 +85,8 @@ namespace UnityEngine.Rendering
             bakingCells.Clear();
         }
 
-        private static ProbeReferenceVolumeAuthoring GetCardinalAuthoringComponent()
+        private static ProbeReferenceVolumeAuthoring GetCardinalAuthoringComponent(ProbeReferenceVolumeAuthoring[] refVolAuthList)
         {
-            var refVolAuthList = GameObject.FindObjectsOfType<ProbeReferenceVolumeAuthoring>();
             List<ProbeReferenceVolumeAuthoring> enabledVolumes = new List<ProbeReferenceVolumeAuthoring>();
 
             foreach (var refVolAuthoring in refVolAuthList)
@@ -125,7 +124,11 @@ namespace UnityEngine.Rendering
 
         private static void OnBakeStarted()
         {
-            bakingReferenceVolumeAuthoring = GetCardinalAuthoringComponent();
+            var refVolAuthList = GameObject.FindObjectsOfType<ProbeReferenceVolumeAuthoring>();
+            if (refVolAuthList.Length == 0)
+                return;
+
+            bakingReferenceVolumeAuthoring = GetCardinalAuthoringComponent(refVolAuthList);
 
             if (bakingReferenceVolumeAuthoring == null)
             {
