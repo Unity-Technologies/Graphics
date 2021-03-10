@@ -20,7 +20,7 @@ namespace UnityEngine.Experimental.Rendering.Universal
         private static readonly int k_ShadowModelMatrixID = Shader.PropertyToID("_ShadowModelMatrix");
         private static readonly int k_ShadowModelInvMatrixID = Shader.PropertyToID("_ShadowModelInvMatrix");
         private static readonly int k_ShadowModelScaleID = Shader.PropertyToID("_ShadowModelScale");
-
+        
         private static readonly ProfilingSampler m_ProfilingSamplerShadows = new ProfilingSampler("Draw 2D Shadow Texture");
 
         private static RenderTargetHandle[] m_RenderTargets = null;
@@ -95,6 +95,7 @@ namespace UnityEngine.Experimental.Rendering.Universal
             return rendererData.spriteUnshadowMaterial;
         }
 
+
         public static void CreateShadowRenderTexture(IRenderPass2D pass, RenderingData renderingData, CommandBuffer cmdBuffer, int shadowIndex)
         {
             CreateShadowRenderTexture(pass, m_RenderTargets[shadowIndex], renderingData, cmdBuffer);
@@ -102,13 +103,24 @@ namespace UnityEngine.Experimental.Rendering.Universal
 
         public static void PrerenderShadows(IRenderPass2D pass, RenderingData renderingData, CommandBuffer cmdBuffer, int layerToRender, Light2D light, int shadowIndex, float shadowIntensity)
         {
+            var colorChannel = shadowIndex % 4;
+            var textureIndex = shadowIndex / 4;
+            var needNewTexture = shadowIndex == 0;
+
+            if (needNewTexture)
+                ShadowRendering.CreateShadowRenderTexture(pass, renderingData, cmdBuffer, textureIndex);
+
             // Render the shadows for this light
-            RenderShadows(pass, renderingData, cmdBuffer, layerToRender, light, shadowIntensity, m_RenderTargets[shadowIndex].Identifier());
+            RenderShadows(pass, renderingData, cmdBuffer, layerToRender, light, shadowIntensity, m_RenderTargets[textureIndex].Identifier(), colorChannel);
         }
 
         public static void SetGlobalShadowTexture(CommandBuffer cmdBuffer, Light2D light, int shadowIndex)
         {
-            cmdBuffer.SetGlobalTexture("_ShadowTex", m_RenderTargets[shadowIndex].Identifier());
+            var colorChannel = shadowIndex % 4;
+            var textureIndex = shadowIndex / 4;
+
+            cmdBuffer.SetGlobalTexture("_ShadowTex", m_RenderTargets[textureIndex].Identifier());
+            cmdBuffer.SetGlobalColor(k_ShadowColorMaskID, k_ColorLookup[colorChannel]);
             cmdBuffer.SetGlobalFloat(k_ShadowIntensityID, 1 - light.shadowIntensity);
             cmdBuffer.SetGlobalFloat(k_ShadowVolumeIntensityID, 1 - light.shadowVolumeIntensity);
         }
@@ -138,7 +150,11 @@ namespace UnityEngine.Experimental.Rendering.Universal
 
         public static void ReleaseShadowRenderTexture(CommandBuffer cmdBuffer, int shadowIndex)
         {
-            cmdBuffer.ReleaseTemporaryRT(m_RenderTargets[shadowIndex].id);
+            var colorChannel = shadowIndex % 4;
+            var textureIndex = shadowIndex / 4;
+
+            if(colorChannel == 0)
+                cmdBuffer.ReleaseTemporaryRT(m_RenderTargets[textureIndex].id);
         }
 
         public static void SetShadowProjectionGlobals(CommandBuffer cmdBuffer, ShadowCaster2D shadowCaster)
@@ -151,7 +167,7 @@ namespace UnityEngine.Experimental.Rendering.Universal
             cmdBuffer.SetGlobalMatrix(k_ShadowModelInvMatrixID, shadowMatrix.inverse);
         }
 
-        public static void RenderShadows(IRenderPass2D pass, RenderingData renderingData, CommandBuffer cmdBuffer, int layerToRender, Light2D light, float shadowIntensity, RenderTargetIdentifier renderTexture)
+        public static void RenderShadows(IRenderPass2D pass, RenderingData renderingData, CommandBuffer cmdBuffer, int layerToRender, Light2D light, float shadowIntensity, RenderTargetIdentifier renderTexture, int colorBit)
         {
             using (new ProfilingScope(cmdBuffer, m_ProfilingSamplerShadows))
             {
@@ -183,18 +199,16 @@ namespace UnityEngine.Experimental.Rendering.Universal
                     if (hasShadow)
                     {
                         cmdBuffer.SetRenderTarget(renderTexture, RenderBufferLoadAction.DontCare, RenderBufferStoreAction.Store, RenderBufferLoadAction.DontCare, RenderBufferStoreAction.DontCare);
-                        cmdBuffer.ClearRenderTarget(true, true, Color.clear);  // clear stencil
+
+                        if(colorBit == 0)
+                            cmdBuffer.ClearRenderTarget(true, true, Color.clear);  // clear stencil
 
                         var shadowRadius = light.boundingSphere.radius;
 
                         cmdBuffer.SetGlobalVector(k_LightPosID, light.transform.position);
                         cmdBuffer.SetGlobalFloat(k_ShadowRadiusID, shadowRadius);
 
-                        // TODO: We should have colorBit passed in to this function
-                        // Bit 0 - Alpha, 1 - Blue, 2 - Green, 3 - Red
-                        int colorBit = 0;
                         int colorMask = 1 << colorBit;
-
                         cmdBuffer.SetGlobalColor(k_ShadowColorMaskID, k_ColorLookup[colorBit]);
                         var projectedShadowsMaterial = pass.rendererData.GetProjectedShadowMaterial(colorMask);
                         var selfShadowMaterial = pass.rendererData.GetSpriteSelfShadowMaterial(colorMask);
