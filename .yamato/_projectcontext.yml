@@ -418,7 +418,7 @@ all_package_ci_project_2019.4:
       -  upm-ci package izon -t
       -  upm-ci package izon -d
     triggers:
-        expression: pull_request.target eq "7.x.x/release" AND NOT pull_request.draft AND NOT pull_request.push.changes.all match ["**/*.md", "doc/**/*", "**/Documentation*/**/*", ".github/**/*", "Tools/**/*"]
+        expression: pull_request.target eq "7.x.x/release" AND NOT pull_request.draft
 all_package_ci_project_fast-2019.4:
     name: Pack and test all packages - fast-2019.4 [project context]
     agent:

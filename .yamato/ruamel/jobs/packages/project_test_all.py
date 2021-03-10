@@ -31,6 +31,6 @@ class Project_AllPackageCiJob():
                 f'upm-ci package izon -t',
                 f'upm-ci package izon -d'])
         if editor["name"] == 2019.4:
-            job.set_trigger_on_expression(f'pull_request.target eq "{target_branch}" AND NOT pull_request.draft AND NOT pull_request.push.changes.all match ["**/*.md", "doc/**/*", "**/Documentation*/**/*", ".github/**/*", "Tools/**/*"]')
+            job.set_trigger_on_expression(f'pull_request.target eq "{target_branch}" AND NOT pull_request.draft')
         return job
 
