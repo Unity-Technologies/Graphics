@@ -206,13 +206,17 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
 
             foreach (var kvp in m_ResourcePool)
             {
+                // WARNING: No foreach here. Sorted list GetEnumerator generates garbage...
                 var list = kvp.Value;
-                foreach (var elem in list)
+                var keys = list.Keys;
+                var values = list.Values;
+                for (int i = 0; i < list.Count; ++i)
                 {
-                    if (ShouldReleaseResource(elem.Value.frameIndex, s_CurrentFrameIndex))
+                    var value = values[i];
+                    if (ShouldReleaseResource(value.frameIndex, s_CurrentFrameIndex))
                     {
-                        elem.Value.resource.Release();
-                        m_RemoveList.Add(elem.Key);
+                        value.resource.Release();
+                        m_RemoveList.Add(keys[i]);
                     }
                 }
 

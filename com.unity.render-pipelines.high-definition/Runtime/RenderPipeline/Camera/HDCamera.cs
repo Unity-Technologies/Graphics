@@ -65,6 +65,8 @@ namespace UnityEngine.Rendering.HighDefinition
             internal float pad2;
         };
 
+        /// <summary>Camera name.</summary>
+        public string               name { get; private set; } // Needs to be cached because camera.name generates GCAllocs
         /// <summary>
         /// Screen resolution information.
         /// Width, height, inverse width, inverse height.
@@ -447,6 +449,8 @@ namespace UnityEngine.Rendering.HighDefinition
         internal HDCamera(Camera cam)
         {
             camera = cam;
+
+            name = cam.name;
 
             frustum = new Frustum();
             frustum.planes = new Plane[6];

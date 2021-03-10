@@ -31,7 +31,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
             m_RenderGraph.Begin(new RenderGraphParameters()
             {
-                executionName = camera.name,
+                executionName = hdCamera.name,
                 scriptableRenderContext = renderContext,
                 commandBuffer = commandBuffer,
                 currentFrameIndex = m_FrameCount
