@@ -182,12 +182,12 @@ def versions_file_is_unchanged(file_path, root):
 
 def write_versions_file(file_path, header, versions):
     with open(file_path, 'w') as output_file:
-        output_file.write(header + os.linesep)
+        # output_file.write(header + os.linesep)
 
         # Write editor_version_names list:
         editor_version_names = {'editor_version_names': list(versions.keys())}
         yaml.dump(editor_version_names, output_file, indent=2)
-        output_file.write(os.linesep)
+        # output_file.write(os.linesep)
 
         # Write editor_versions dict:
         # output_file.write(dict_comment + os.linesep)
