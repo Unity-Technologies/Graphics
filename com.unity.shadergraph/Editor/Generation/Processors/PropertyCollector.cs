@@ -1,9 +1,9 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
 using UnityEditor.ShaderGraph.Internal;
 using UnityEngine;
+using TextureDimension = UnityEngine.Rendering.TextureDimension;
 
 namespace UnityEditor.ShaderGraph
 {
@@ -13,6 +13,7 @@ namespace UnityEditor.ShaderGraph
         {
             public string name;
             public int textureId;
+            public TextureDimension dimension;
             public bool modifiable;
         }
 
@@ -316,11 +317,11 @@ namespace UnityEditor.ShaderGraph
 #endif
         }
 
-        public List<TextureInfo> GetConfiguredTexutres()
+        public List<TextureInfo> GetConfiguredTextures()
         {
             var result = new List<TextureInfo>();
 
-            // TODO: this should be interface based instead of looking for hard codeded tyhpes
+            // TODO: this should be interface based instead of looking for hard coded types
 
             foreach (var prop in properties.OfType<Texture2DShaderProperty>())
             {
@@ -330,6 +331,7 @@ namespace UnityEditor.ShaderGraph
                     {
                         name = prop.referenceName,
                         textureId = prop.value.texture != null ? prop.value.texture.GetInstanceID() : 0,
+                        dimension = TextureDimension.Tex2D,
                         modifiable = prop.modifiable
                     };
                     result.Add(textureInfo);
@@ -344,6 +346,7 @@ namespace UnityEditor.ShaderGraph
                     {
                         name = prop.referenceName,
                         textureId = prop.value.textureArray != null ? prop.value.textureArray.GetInstanceID() : 0,
+                        dimension = TextureDimension.Tex2DArray,
                         modifiable = prop.modifiable
                     };
                     result.Add(textureInfo);
@@ -358,6 +361,7 @@ namespace UnityEditor.ShaderGraph
                     {
                         name = prop.referenceName,
                         textureId = prop.value.texture != null ? prop.value.texture.GetInstanceID() : 0,
+                        dimension = TextureDimension.Tex3D,
                         modifiable = prop.modifiable
                     };
                     result.Add(textureInfo);
@@ -372,6 +376,7 @@ namespace UnityEditor.ShaderGraph
                     {
                         name = prop.referenceName,
                         textureId = prop.value.cubemap != null ? prop.value.cubemap.GetInstanceID() : 0,
+                        dimension = TextureDimension.Cube,
                         modifiable = prop.modifiable
                     };
                     result.Add(textureInfo);
