@@ -1,7 +1,7 @@
-﻿namespace Editor.Util
+﻿namespace UnityEditor.ShaderGraph
 {
     public class AssertHelpers
     {
-        
+
     }
 }
