@@ -109,5 +109,14 @@ namespace UnityEditor.VFX.HDRP
 
             return false;
         }
+
+        public override string GetShaderName(ShaderGraphVfxAsset shaderGraph)
+        {
+            // Recover the HDRP Shader Enum from the VFX Shader Graph.
+            var shaderID = GetShaderEnumFromShaderGraph(shaderGraph);
+
+            // Remove the HDRP Enum Prefix of "SG_".
+            return shaderID.ToString().Remove(0, 3);
+        }
     }
 }

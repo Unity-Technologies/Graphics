@@ -19,7 +19,7 @@ namespace UnityEditor.VFX
         private bool UseCustomZAxis = false;
 
         protected VFXQuadStripOutput() : base(true) {}
-        public override string name { get { return "Output ParticleStrip Quad"; } }
+        public override string name { get { return $"Output ParticleStrip {shaderName} Quad"; } }
         public override string codeGeneratorTemplate { get { return RenderPipeTemplate("VFXParticlePlanarPrimitive"); } }
         public override VFXTaskType taskType { get { return VFXTaskType.ParticleQuadOutput; } }
 

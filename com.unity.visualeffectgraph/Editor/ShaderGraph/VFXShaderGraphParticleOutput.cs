@@ -269,6 +269,19 @@ namespace UnityEditor.VFX
             return base.HasSorting() || (sort == SortMode.Auto && (materialBlendMode == BlendMode.Alpha || materialBlendMode == BlendMode.AlphaPremultiplied));
         }
 
+        protected string shaderName
+        {
+            get
+            {
+                var shaderGraph = GetOrRefreshShaderGraphObject();
+
+                if (shaderGraph == null || !shaderGraph.generatesWithShaderGraph)
+                    return string.Empty;
+
+                return VFXLibrary.currentSRPBinder.GetShaderName(shaderGraph);
+            }
+        }
+
         // Here we maintain a list of settings that we do not need if we are using the ShaderGraph generation path (it will be in the material inspector).
         static IEnumerable<string> FilterOutBuiltinSettings()
         {

@@ -169,6 +169,8 @@ namespace UnityEditor.VFX
         }
 
         public virtual bool TransparentMotionVectorEnabled(Material mat) => true;
+
+        public virtual string GetShaderName(ShaderGraphVfxAsset shaderGraph) => string.Empty;
     }
 
     // Not in Universal package because we dont want to add a dependency on VFXGraph
