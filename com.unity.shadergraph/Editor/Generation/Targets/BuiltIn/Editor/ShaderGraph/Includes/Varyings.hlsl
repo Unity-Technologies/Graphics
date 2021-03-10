@@ -1,9 +1,11 @@
+#ifndef BUILTIN_TARGET_API
 #if (SHADERPASS == SHADERPASS_SHADOWCASTER)
     // Shadow Casting Light geometric parameters. These variables are used when applying the shadow Normal Bias and are set by UnityEngine.Rendering.Universal.ShadowUtils.SetupShadowCasterConstantBuffer in com.unity.render-pipelines.universal/Runtime/ShadowUtils.cs
     // For Directional lights, _LightDirection is used when applying shadow Normal Bias.
     // For Spot lights and Point lights, _LightPosition is used to compute the actual light direction because it is different at each shadow caster geometry vertex.
     float3 _LightDirection;
     float3 _LightPosition;
+#endif
 #endif
 
 Varyings BuildVaryings(Attributes input)
@@ -68,6 +70,8 @@ Varyings BuildVaryings(Attributes input)
     output.tangentWS = tangentWS;       // normalized in TransformObjectToWorldDir()
 #endif
 
+// Handled by the legacy pipeline
+#ifndef BUILTIN_TARGET_API
 #if (SHADERPASS == SHADERPASS_SHADOWCASTER)
     // Define shadow pass specific clip position for BuiltIn
     #if _CASTING_PUNCTUAL_LIGHT_SHADOW
@@ -83,6 +87,9 @@ Varyings BuildVaryings(Attributes input)
     #endif
 #elif (SHADERPASS == SHADERPASS_META)
     output.positionCS = MetaVertexPosition(float4(input.positionOS, 0), input.uv1, input.uv2, unity_LightmapST, unity_DynamicLightmapST);
+#else
+    output.positionCS = TransformWorldToHClip(positionWS);    
+#endif
 #else
     output.positionCS = TransformWorldToHClip(positionWS);
 #endif
@@ -112,15 +119,17 @@ Varyings BuildVaryings(Attributes input)
     output.screenPosition = vertexInput.positionNDC;
 #endif
 
+// Handled by the legacy pipeline
+#ifndef BUILTIN_TARGET_API
 #if (SHADERPASS == SHADERPASS_FORWARD) || (SHADERPASS == SHADERPASS_GBUFFER)
     OUTPUT_LIGHTMAP_UV(input.uv1, unity_LightmapST, output.lightmapUV);
     OUTPUT_SH(normalWS, output.sh);
 #endif
-
 #ifdef VARYINGS_NEED_FOG_AND_VERTEX_LIGHT
     half3 vertexLight = VertexLighting(positionWS, normalWS);
     half fogFactor = ComputeFogFactor(output.positionCS.z);
     output.fogFactorAndVertexLight = half4(fogFactor, vertexLight);
+#endif
 #endif
 
 #if defined(REQUIRES_VERTEX_SHADOW_COORD_INTERPOLATOR)

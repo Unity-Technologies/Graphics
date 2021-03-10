@@ -19,10 +19,13 @@
 // Helper functions for roughness
 //-----------------------------------------------------------------------------
 
+
+#ifndef BUILTIN_TARGET_API
 real PerceptualRoughnessToRoughness(real perceptualRoughness)
 {
     return perceptualRoughness * perceptualRoughness;
 }
+#endif
 
 real RoughnessToPerceptualRoughness(real roughness)
 {
