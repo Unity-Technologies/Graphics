@@ -436,8 +436,11 @@ half3 ShadeSH12Order (half4 normal)
     return res;
 }
 
+// Duplicate defined symbols in core shader library
+#ifndef BUILTIN_TARGET_API
 // Transforms 2D UV by scale/bias property
 #define TRANSFORM_TEX(tex,name) (tex.xy * name##_ST.xy + name##_ST.zw)
+#endif
 
 // Deprecated. Used to transform 4D UV by a fixed function texture matrix. Now just returns the passed UV.
 #define TRANSFORM_UV(idx) v.texcoord.xy
@@ -1204,6 +1207,8 @@ UNITY_DECLARE_SHADOWMAP(_ShadowMapTexture);
 
 #define API_HAS_GUARANTEED_R16_SUPPORT !(SHADER_API_VULKAN || SHADER_API_GLES || SHADER_API_GLES3)
 
+// Duplicate defined symbols in core shader library
+#ifndef BUILTIN_TARGET_API
 float4 PackHeightmap(float height)
 {
     #if (API_HAS_GUARANTEED_R16_SUPPORT)
@@ -1222,5 +1227,6 @@ float UnpackHeightmap(float4 height)
         return (height.r + height.g * 256.0f) / 257.0f; // (255.0f * height.r + 255.0f * 256.0f * height.g) / 65535.0f
     #endif
 }
+#endif
 
 #endif // UNITY_CG_INCLUDED

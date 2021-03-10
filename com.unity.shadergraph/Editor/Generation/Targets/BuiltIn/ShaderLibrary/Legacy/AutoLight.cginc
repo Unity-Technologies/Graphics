@@ -162,12 +162,12 @@ half UnityComputeForwardShadows(float2 lightmapUV, float3 worldPos, float4 scree
 #endif
 
 #ifdef POINT
-sampler2D_float _LightTexture0;
+UNITY_DECLARE_TEX2D_FLOAT(_LightTexture0);
 unityShadowCoord4x4 unity_WorldToLight;
 #   define UNITY_LIGHT_ATTENUATION(destName, input, worldPos) \
         unityShadowCoord3 lightCoord = mul(unity_WorldToLight, unityShadowCoord4(worldPos, 1)).xyz; \
         fixed shadow = UNITY_SHADOW_ATTENUATION(input, worldPos); \
-        fixed destName = tex2D(_LightTexture0, dot(lightCoord, lightCoord).rr).r * shadow;
+        fixed destName = UNITY_SAMPLE_TEX2D(_LightTexture0, dot(lightCoord, lightCoord).rr).r * shadow;
 #endif
 
 #ifdef SPOT

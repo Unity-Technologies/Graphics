@@ -1,5 +1,7 @@
-#ifndef UNITY_IMAGE_BASED_LIGHTING_INCLUDED
-#define UNITY_IMAGE_BASED_LIGHTING_INCLUDED
+//UNITY_IMAGE_BASED_LIGHTING_INCLUDED conflicts with something in the core library but
+// both files are needed. This guard was renamed because of that.
+#ifndef UNITY_LEGACY_IMAGE_BASED_LIGHTING_INCLUDED
+#define UNITY_LEGACY_IMAGE_BASED_LIGHTING_INCLUDED
 
 #include "UnityCG.cginc"
 #include "UnityStandardConfig.cginc"
@@ -552,4 +554,4 @@ half3 Unity_GlossyEnvironment (UNITY_ARGS_TEXCUBE(tex), half4 hdr, Unity_GlossyE
 
 // ----------------------------------------------------------------------------
 
-#endif // UNITY_IMAGE_BASED_LIGHTING_INCLUDED
+#endif // UNITY_LEGACY_IMAGE_BASED_LIGHTING_INCLUDED

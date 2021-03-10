@@ -46,10 +46,10 @@ inline fixed UnitySampleShadowmap (float4 shadowCoord)
         #if !defined (SHADOWS_NATIVE)
             float3 coord = shadowCoord.xyz / shadowCoord.w;
             float4 shadowVals;
-            shadowVals.x = SAMPLE_DEPTH_TEXTURE(_ShadowMapTexture, coord + _ShadowOffsets[0].xy);
-            shadowVals.y = SAMPLE_DEPTH_TEXTURE(_ShadowMapTexture, coord + _ShadowOffsets[1].xy);
-            shadowVals.z = SAMPLE_DEPTH_TEXTURE(_ShadowMapTexture, coord + _ShadowOffsets[2].xy);
-            shadowVals.w = SAMPLE_DEPTH_TEXTURE(_ShadowMapTexture, coord + _ShadowOffsets[3].xy);
+            shadowVals.x = UNITY_SAMPLE_DEPTH_TEXTURE(_ShadowMapTexture, coord + _ShadowOffsets[0].xy);
+            shadowVals.y = UNITY_SAMPLE_DEPTH_TEXTURE(_ShadowMapTexture, coord + _ShadowOffsets[1].xy);
+            shadowVals.z = UNITY_SAMPLE_DEPTH_TEXTURE(_ShadowMapTexture, coord + _ShadowOffsets[2].xy);
+            shadowVals.w = UNITY_SAMPLE_DEPTH_TEXTURE(_ShadowMapTexture, coord + _ShadowOffsets[3].xy);
             half4 shadows = (shadowVals < coord.zzzz) ? _LightShadowData.rrrr : 1.0f;
             shadow = dot(shadows, 0.25f);
         #else
