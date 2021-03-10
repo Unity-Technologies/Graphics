@@ -812,7 +812,29 @@ namespace UnityEngine.Rendering.Universal
             // Track CPU only as GPU markers for this scope were "too noisy".
             using (new ProfilingScope(cmd, Profiling.RenderPass.configure))
             {
-                renderPass.Configure(cmd, cameraData.cameraTargetDescriptor);
+                if (IsRenderPassEnabled(renderPass))
+                {
+                    int currentSceneIndex = renderPass.sceneIndex;
+                    Hash128 currentPassHash = sceneIndexToPassHash[currentSceneIndex];
+                    List<int> currentMergeablePasses = mergeableRenderPassesMap[currentPassHash];
+                    bool isFirstMergeablePass = currentMergeablePasses.First() == currentSceneIndex;
+
+                    if (isFirstMergeablePass)
+                    {
+                        foreach (var passIdx in currentMergeablePasses)
+                        {
+                            ScriptableRenderPass pass = m_ActiveRenderPassQueue[passIdx];
+
+                            pass.Configure(cmd, cameraData.cameraTargetDescriptor);
+                        }
+                    }
+                }
+                else
+                {
+                    renderPass.Configure(cmd, cameraData.cameraTargetDescriptor);
+                }
+
+
                 SetRenderPassAttachments(cmd, renderPass, ref cameraData);
             }
 

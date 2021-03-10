@@ -210,6 +210,7 @@ namespace UnityEngine.Rendering.Universal
             renderTargetWidth = -1;
             renderTargetHeight = -1;
             renderTargetSampleCount = -1;
+            sceneIndex = -1;
             renderTargetFormat = new GraphicsFormat[]
             {
                 GraphicsFormat.None, GraphicsFormat.None, GraphicsFormat.None,
