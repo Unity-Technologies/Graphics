@@ -43,6 +43,39 @@ namespace UnityEditor.Rendering
             RenameFloat("_TwoSided", "_CullMode"); // Currently only used in HD. Update this once URP per-material cullmode is enabled via shadergraph. 
         }
 
+        private static void ImportNewSpeedTree8Material(Material mat, int windQuality, bool isBillboard)
+        {
+            mat.SetFloat("_WINDQUALITY", windQuality);
+            if (isBillboard)
+                mat.EnableKeyword("EFFECT_BILLBOARD");
+        }
+
+        /// <summary>
+        /// Postprocess materials when importing a SpeedTree8 asset. Call from OnPostprocessSpeedTree in a MaterialPostprocessor.
+        /// </summary>
+        /// <param name="speedtree">Game object for the SpeedTree asset being imported.</param>
+        /// <param name="stImporter">The assetimporter used to import the SpeedTree asset.</param>
+        /// <param name="finalizer">Render pipeline-specific material finalizer.</param>
+        public static void PostprocessMaterials(GameObject speedtree, SpeedTreeImporter stImporter, MaterialFinalizer finalizer = null)
+        {
+            LODGroup lg = speedtree.GetComponent<LODGroup>();
+            LOD[] lods = lg.GetLODs();
+            for (int l = 0; l < lods.Length; l++)
+            {
+                LOD lod = lods[l];
+                bool isBillboard = stImporter.hasBillboard && (l == lods.Length - 1);
+                int wq = Mathf.Min(stImporter.windQualities[l], stImporter.bestWindQuality);
+                foreach (Renderer r in lod.renderers)
+                {
+                    foreach (Material m in r.sharedMaterials)
+                    {
+                        ImportNewSpeedTree8Material(m, wq, isBillboard);
+                        finalizer(m);
+                    }
+                }
+            }
+        }
+
         private static int GetWindQuality(Material material, int windQuality = -1)
         {
             // Conservative wind quality priority:
