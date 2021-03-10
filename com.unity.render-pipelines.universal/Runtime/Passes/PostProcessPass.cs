@@ -127,6 +127,7 @@ namespace UnityEngine.Rendering.Universal.Internal
 
             m_MRT2 = new RenderTargetIdentifier[2];
             m_ResetHistory = true;
+            base.useNativeRenderPass = false;
         }
 
         public void Cleanup() => m_Materials.Cleanup();
@@ -577,7 +578,7 @@ namespace UnityEngine.Rendering.Universal.Internal
             cmd.SetRenderTarget(new RenderTargetIdentifier(ShaderConstants._EdgeTexture, 0, CubemapFace.Unknown, -1),
                 RenderBufferLoadAction.DontCare, RenderBufferStoreAction.Store, stencil,
                 RenderBufferLoadAction.DontCare, RenderBufferStoreAction.Store);
-            cmd.ClearRenderTarget(true, true, Color.clear);
+            cmd.ClearRenderTarget(RTClearFlags.ColorStencil, Color.clear, 1.0f, 0);
             cmd.SetGlobalTexture(ShaderConstants._ColorTexture, source);
             DrawFullscreenMesh(cmd, material, 0);
 

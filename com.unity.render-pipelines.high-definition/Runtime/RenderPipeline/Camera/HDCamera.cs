@@ -41,6 +41,8 @@ namespace UnityEngine.Rendering.HighDefinition
             public Matrix4x4 invViewProjMatrix;
             /// <summary>Non-jittered View Projection matrix.</summary>
             public Matrix4x4 nonJitteredViewProjMatrix;
+            /// <summary>Previous view matrix from previous frame.</summary>
+            public Matrix4x4 prevViewMatrix;
             /// <summary>Non-jittered View Projection matrix from previous frame.</summary>
             public Matrix4x4 prevViewProjMatrix;
             /// <summary>Non-jittered Inverse View Projection matrix from previous frame.</summary>
@@ -286,6 +288,9 @@ namespace UnityEngine.Rendering.HighDefinition
 
         internal bool isMainGameView { get { return camera.cameraType == CameraType.Game && camera.targetTexture == null; } }
 
+        internal bool canDoDynamicResolution { get { return camera.cameraType == CameraType.Game; } }
+
+
         // Helper property to inform how many views are rendered simultaneously
         internal int viewCount { get => Math.Max(1, xr.viewCount); }
 
@@ -417,6 +422,28 @@ namespace UnityEngine.Rendering.HighDefinition
             return cameraFrameCount;
         }
 
+        internal struct DynamicResolutionRequest
+        {
+            public bool enabled;
+            public bool cameraRequested;
+            public bool hardwareEnabled;
+            public DynamicResUpscaleFilter filter;
+        }
+
+        internal DynamicResolutionRequest DynResRequest { set; get; }
+
+        internal void RequestDynamicResolution(bool cameraRequestedDynamicRes, DynamicResolutionHandler dynResHandler)
+        {
+            //cache the state of the drs handler in the camera, it will be used by post processes later.
+            DynResRequest = new DynamicResolutionRequest()
+            {
+                enabled = dynResHandler.DynamicResolutionEnabled(),
+                cameraRequested = cameraRequestedDynamicRes,
+                hardwareEnabled = dynResHandler.HardwareDynamicResIsEnabled(),
+                filter = dynResHandler.filter
+            };
+        }
+
         internal ProfilingSampler profilingSampler => m_AdditionalCameraData?.profilingSampler ?? ProfilingSampler.Get(HDProfileId.HDRenderPipelineRenderCamera);
 
         internal HDCamera(Camera cam)
@@ -539,35 +566,35 @@ namespace UnityEngine.Rendering.HighDefinition
                 if (isHistoryColorPyramidRequired) // Superset of case above
                     numColorPyramidBuffersRequired = 2;
 
-                int numVolumetricBuffersRequired = isVolumetricHistoryRequired ? 2 : 0; // History + feedback
-
-                if ((m_NumColorPyramidBuffersAllocated != numColorPyramidBuffersRequired) ||
-                    (m_NumVolumetricBuffersAllocated != numVolumetricBuffersRequired))
+                // Handle the color buffers
+                if (m_NumColorPyramidBuffersAllocated != numColorPyramidBuffersRequired)
                 {
                     // Reinit the system.
                     colorPyramidHistoryIsValid = false;
                     // Since we nuke all history we must inform the post process system too.
                     resetPostProcessingHistory = true;
 
-                    HDRenderPipeline.DestroyVolumetricHistoryBuffers(this);
-
                     // The history system only supports the "nuke all" option.
+                    // TODO: Fix this, only the color buffers should be discarded.
                     m_HistoryRTSystem.Dispose();
                     m_HistoryRTSystem = new BufferedRTHandleSystem();
 
                     if (numColorPyramidBuffersRequired != 0)
-                    {
                         AllocHistoryFrameRT((int)HDCameraFrameHistoryType.ColorBufferMipChain, HistoryBufferAllocatorFunction, numColorPyramidBuffersRequired);
-                    }
-
-                    if (numVolumetricBuffersRequired != 0)
-                    {
-                        HDRenderPipeline.CreateVolumetricHistoryBuffers(this, numVolumetricBuffersRequired);
-                    }
 
                     // Mark as init.
                     m_NumColorPyramidBuffersAllocated = numColorPyramidBuffersRequired;
-                    m_NumVolumetricBuffersAllocated   = numVolumetricBuffersRequired;
+                }
+
+                // Handle the volumetric fog buffers
+                int numVolumetricBuffersRequired = isVolumetricHistoryRequired ? 2 : 0; // History + feedback
+                if (m_NumVolumetricBuffersAllocated != numVolumetricBuffersRequired)
+                {
+                    HDRenderPipeline.DestroyVolumetricHistoryBuffers(this);
+                    if (numVolumetricBuffersRequired != 0)
+                        HDRenderPipeline.CreateVolumetricHistoryBuffers(this, numVolumetricBuffersRequired);
+                    // Mark as init.
+                    m_NumVolumetricBuffersAllocated = numVolumetricBuffersRequired;
                 }
             }
 
@@ -589,7 +616,7 @@ namespace UnityEngine.Rendering.HighDefinition
             DynamicResolutionHandler.instance.finalViewport = new Vector2Int((int)finalViewport.width, (int)finalViewport.height);
 
             Vector2Int nonScaledViewport = new Vector2Int(actualWidth, actualHeight);
-            if (isMainGameView)
+            if (canDoDynamicResolution)
             {
                 Vector2Int scaledSize = DynamicResolutionHandler.instance.GetScaledSize(new Vector2Int(actualWidth, actualHeight));
                 actualWidth = scaledSize.x;
@@ -1146,6 +1173,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 if (isFirstFrame)
                 {
                     viewConstants.prevWorldSpaceCameraPos = cameraPosition;
+                    viewConstants.prevViewMatrix = gpuView;
                     viewConstants.prevViewProjMatrix = gpuVP;
                     viewConstants.prevInvViewProjMatrix = viewConstants.prevViewProjMatrix.inverse;
                     viewConstants.prevViewProjMatrixNoCameraTrans = gpuVPNoTrans;
@@ -1153,6 +1181,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 else
                 {
                     viewConstants.prevWorldSpaceCameraPos = viewConstants.worldSpaceCameraPos;
+                    viewConstants.prevViewMatrix = viewConstants.viewMatrix;
                     viewConstants.prevViewProjMatrix = viewConstants.nonJitteredViewProjMatrix;
                     viewConstants.prevViewProjMatrixNoCameraTrans = viewConstants.viewProjectionNoCameraTrans;
                 }

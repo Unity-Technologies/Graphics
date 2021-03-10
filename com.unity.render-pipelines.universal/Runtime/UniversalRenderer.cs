@@ -36,6 +36,7 @@ namespace UnityEngine.Rendering.Universal
         // Actual rendering mode, which may be different (ex: wireframe rendering, harware not capable of deferred rendering).
         internal RenderingMode actualRenderingMode { get { return GL.wireframe || m_DeferredLights == null || !m_DeferredLights.IsRuntimeSupportedThisFrame() || m_DeferredLights.IsOverlay ? RenderingMode.Forward : this.renderingMode; } }
         internal bool accurateGbufferNormals { get { return m_DeferredLights != null ? m_DeferredLights.AccurateGbufferNormals : false; } }
+        internal bool usesRenderPass;
         DepthOnlyPass m_DepthPrepass;
         DepthNormalOnlyPass m_DepthNormalPrepass;
         MainLightShadowCasterPass m_MainLightShadowCasterPass;
@@ -119,6 +120,7 @@ namespace UnityEngine.Rendering.Universal
             m_ForwardLights = new ForwardLights();
             //m_DeferredLights.LightCulling = data.lightCulling;
             this.m_RenderingMode = data.renderingMode;
+            this.usesRenderPass = data.useNativeRenderPass;
 
             // Note: Since all custom render passes inject first and we have stable sort,
             // we inject the builtin passes in the before events.
@@ -225,6 +227,10 @@ namespace UnityEngine.Rendering.Universal
                     GraphicsDeviceType.OpenGLES3
                 };
             }
+
+            // MSAA is temporary disabled when using the RenderPass API. TODO: enable it back once the handling of resolving to implicit resolve textures and Vulkan backbuffer is fixed in trunk!
+            if (useRenderPassEnabled)
+                this.supportedRenderingFeatures.msaa = false;
         }
 
         /// <inheritdoc />
@@ -367,6 +373,12 @@ namespace UnityEngine.Rendering.Universal
                 createColorTexture |= createDepthTexture;
             }
 #endif
+
+            if (usesRenderPass)
+            {
+                createDepthTexture |= createColorTexture;
+                createColorTexture = createDepthTexture;
+            }
 
             // Configure all settings require to start a new camera stack (base camera only)
             if (cameraData.renderType == CameraRenderType.Base)
@@ -738,7 +750,7 @@ namespace UnityEngine.Rendering.Universal
         void CreateCameraRenderTarget(ScriptableRenderContext context, ref RenderTextureDescriptor descriptor, bool createColor, bool createDepth)
         {
             CommandBuffer cmd = CommandBufferPool.Get();
-            using (new ProfilingScope(cmd, Profiling.createCameraRenderTarget))
+            using (new ProfilingScope(null, Profiling.createCameraRenderTarget))
             {
                 if (createColor)
                 {
