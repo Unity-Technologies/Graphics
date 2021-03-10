@@ -2315,7 +2315,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
         static void DoLensFlareDataDriven(in LensFlareParameters parameters, HDCamera hdCam, CommandBuffer cmd, RTHandle source, RTHandle target)
         {
-            if (parameters.lensFlares.Data.Count == 0)
+            if (parameters.lensFlares.IsEmpty())
                 return;
 
             Camera cam = hdCam.camera;
@@ -2326,7 +2326,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
             cmd.CopyTexture(source, target);
             CoreUtils.SetRenderTarget(cmd, target);
-            foreach (SRPLensFlareOverride comp in parameters.lensFlares.Data)
+            foreach (SRPLensFlareOverride comp in parameters.lensFlares.GetData())
             {
                 if (comp == null)
                     continue;

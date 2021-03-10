@@ -651,8 +651,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
         TextureHandle LensFlareDataDrivenPass(RenderGraph renderGraph, HDCamera hdCamera, TextureHandle source)
         {
-            //if (m_LensFlareFS)
-            if (SRPLensFlareCommon.Instance.Data.Count > 0)
+            if (!SRPLensFlareCommon.Instance.IsEmpty())
             {
                 using (var builder = renderGraph.AddRenderPass<LensFlareData>("Lens Flare", out var passData, ProfilingSampler.Get(HDProfileId.LensFlare)))
                 {

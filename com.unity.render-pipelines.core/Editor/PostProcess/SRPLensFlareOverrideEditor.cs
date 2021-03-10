@@ -4,6 +4,9 @@ using UnityEngine;
 
 namespace UnityEditor.Rendering
 {
+    /// <summary>
+    /// Editor for SRPLensFlareOverride: Lens Flare Data-Driven which can but added on any GameObject
+    /// </summary>
     [CustomEditor(typeof(SRPLensFlareOverride))]
     public class SRPLensFlareOverrideEditor : Editor
     {

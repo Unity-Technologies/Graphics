@@ -1,5 +1,8 @@
 namespace UnityEngine
 {
+    /// <summary>
+    /// Common code for all Data-Driven Lens Flare used
+    /// </summary>
     public sealed class SRPLensFlareCommon
     {
         private static SRPLensFlareCommon m_Instance = null;
@@ -11,6 +14,9 @@ namespace UnityEngine
             m_Data = new System.Collections.Generic.List<SRPLensFlareOverride>();
         }
 
+        /// <summary>
+        /// Current unique instance
+        /// </summary>
         public static SRPLensFlareCommon Instance
         {
             get
@@ -29,15 +35,30 @@ namespace UnityEngine
             }
         }
 
-        public System.Collections.Generic.List<SRPLensFlareOverride> Data { get { return m_Data; } }
+        private System.Collections.Generic.List<SRPLensFlareOverride> Data { get { return m_Data; } }
 
-        public void StartFrame()
+        /// <summary>
+        /// Return the pool of Lens Flare added
+        /// </summary>
+        /// <returns>The Lens Flare Pool</returns>
+        public System.Collections.Generic.List<SRPLensFlareOverride> GetData()
         {
-            Debug.Assert(Instance == this, "SRPLensFlareCommon can have only one instance");
-
-            m_Data.Clear();
+            return Data;
         }
 
+        /// <summary>
+        /// Check if we have at least one Lens Flare added on the pool
+        /// </summary>
+        /// <returns>true if no Lens Flare were added</returns>
+        public bool IsEmpty()
+        {
+            return Data.Count == 0;
+        }
+
+        /// <summary>
+        /// Add a new lens flare component on the pool.
+        /// </summary>
+        /// <param name="newData">The new data added</param>
         public void AddData(SRPLensFlareOverride newData)
         {
             Debug.Assert(Instance == this, "SRPLensFlareCommon can have only one instance");
@@ -48,6 +69,10 @@ namespace UnityEngine
             }
         }
 
+        /// <summary>
+        /// Remove a lens flare data which exist in the pool.
+        /// </summary>
+        /// <param name="data">The data which exist in the pool</param>
         public void RemoveData(SRPLensFlareOverride data)
         {
             Debug.Assert(Instance == this, "SRPLensFlareCommon can have only one instance");
