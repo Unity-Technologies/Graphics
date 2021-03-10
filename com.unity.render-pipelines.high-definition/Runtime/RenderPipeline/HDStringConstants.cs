@@ -374,7 +374,7 @@ namespace UnityEngine.Rendering.HighDefinition
         public static readonly int _RaytracePrepassBufferTexture = Shader.PropertyToID("_RaytracePrepassBufferTexture");
 
         public static readonly int _ShaderVariablesScreenSpaceReflection    = Shader.PropertyToID("ShaderVariablesScreenSpaceReflection");
-        public static readonly int _SsrFrameIndex                       	= Shader.PropertyToID("_SsrFrameIndex");
+        public static readonly int _SsrFrameIndex                           = Shader.PropertyToID("_SsrFrameIndex");
         public static readonly int _SsrLightingTexture                      = Shader.PropertyToID("_SsrLightingTexture");
         public static readonly int _SsrAccumPrev                            = Shader.PropertyToID("_SsrAccumPrev");
         public static readonly int _SsrLightingTextureRW                    = Shader.PropertyToID("_SsrLightingTextureRW");
