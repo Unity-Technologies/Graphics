@@ -50,7 +50,7 @@ namespace UnityEngine.Rendering.Universal.Internal
             CommandBuffer cmd = CommandBufferPool.Get();
             using (new ProfilingScope(cmd, ProfilingSampler.Get(URPProfileId.FinalBlit)))
             {
-                DebugHandler?.SetupShaderPropertiesFinalBlitPass(cmd);
+                DebugHandler?.UpdateShaderGlobalPropertiesFinalBlitPass(cmd, ref cameraData);
 
                 CoreUtils.SetKeyword(cmd, ShaderKeywordStrings.LinearToSRGBConversion,
                     cameraData.requireSrgbConversion);

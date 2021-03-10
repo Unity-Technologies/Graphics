@@ -320,6 +320,7 @@ namespace UnityEngine.Experimental.Rendering.Universal
             else
             {
                 var unlitDrawSettings = CreateDrawingSettings(k_ShaderTags, ref renderingData, SortingCriteria.CommonTransparent);
+                bool debugRender = (DebugHandler != null) && DebugHandler.IsActiveForCamera(ref renderingData.cameraData);
 
                 var cmd = CommandBufferPool.Get();
                 using (new ProfilingScope(cmd, m_ProfilingSamplerUnlit))
@@ -342,7 +343,7 @@ namespace UnityEngine.Experimental.Rendering.Universal
                 CommandBufferPool.Release(cmd);
 
                 Profiler.BeginSample("Render Sprites Unlit");
-                context.DrawRenderers(renderingData.cullResults, ref unlitDrawSettings, ref filterSettings);
+                Render(context, cmd, ref renderingData, ref filterSettings, unlitDrawSettings, debugRender);
                 Profiler.EndSample();
             }
 

@@ -300,7 +300,7 @@ namespace UnityEngine.Rendering.Universal.Internal
 
         void Render(CommandBuffer cmd, ref RenderingData renderingData)
         {
-            ref var cameraData = ref renderingData.cameraData;
+            ref CameraData cameraData = ref renderingData.cameraData;
 
             // Don't use these directly unless you have a good reason to, use GetSource() and
             // GetDestination() instead
@@ -428,6 +428,8 @@ namespace UnityEngine.Rendering.Universal.Internal
                 {
                     m_Materials.uber.EnableKeyword(ShaderKeywordStrings.UseFastSRGBLinearConversion);
                 }
+
+                DebugHandler?.UpdateShaderGlobalPropertiesFinalBlitPass(cmd, ref cameraData);
 
                 // Done with Uber, blit it
                 cmd.SetGlobalTexture(ShaderPropertyId.sourceTex, GetSource());
@@ -1205,12 +1207,9 @@ namespace UnityEngine.Rendering.Universal.Internal
             if (RequireSRGBConversionBlitToBackBuffer(cameraData))
                 material.EnableKeyword(ShaderKeywordStrings.LinearToSRGBConversion);
 
-            cmd.SetGlobalTexture(ShaderPropertyId.sourceTex, m_Source.Identifier());
+            DebugHandler?.UpdateShaderGlobalPropertiesFinalBlitPass(cmd, ref cameraData);
 
-            if((DebugHandler != null) && DebugHandler.IsPostProcessingAllowed)
-            {
-                DebugHandler.SetupShaderPropertiesFinalBlitPass(cmd);
-            }
+            cmd.SetGlobalTexture(ShaderPropertyId.sourceTex, m_Source.Identifier());
 
             var colorLoadAction = cameraData.isDefaultViewport ? RenderBufferLoadAction.DontCare : RenderBufferLoadAction.Load;
 

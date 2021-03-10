@@ -184,31 +184,35 @@ namespace UnityEngine.Rendering.Universal
 
             m_CapturePass = new CapturePass(RenderPassEvent.AfterRendering);
             m_FinalBlitPass = new FinalBlitPass(RenderPassEvent.AfterRendering + 1, m_BlitMaterial);
-            m_DebugPass =  DebugHandler.CreatePass(RenderPassEvent.AfterRendering + 2);
 
 #if UNITY_EDITOR
             m_FinalDepthCopyPass = new CopyDepthPass(RenderPassEvent.AfterRendering + 9, m_CopyDepthMaterial);
 #endif
 
-            // Hook in the debug-render where appropriate...
-            m_RenderOpaqueForwardPass.DebugHandler = DebugHandler;
-            m_FinalBlitPass.DebugHandler = DebugHandler;
+            if(DebugHandler != null)
+            {
+                m_DebugPass =  DebugHandler.CreatePass(RenderPassEvent.AfterRendering + 2);
 
-            if(m_RenderOpaqueForwardOnlyPass != null)
-            {
-                m_RenderOpaqueForwardOnlyPass.DebugHandler = DebugHandler;
-            }
-            if(m_RenderTransparentForwardPass != null)
-            {
-                m_RenderTransparentForwardPass.DebugHandler = DebugHandler;
-            }
-            if(m_DrawSkyboxPass != null)
-            {
-                m_DrawSkyboxPass.DebugHandler = DebugHandler;
-            }
-            if(m_PostProcessPasses.finalPostProcessPass != null)
-            {
-                m_PostProcessPasses.finalPostProcessPass.DebugHandler = DebugHandler;
+                // Hook in the debug-render where appropriate...
+                m_RenderOpaqueForwardPass.DebugHandler = DebugHandler;
+                m_FinalBlitPass.DebugHandler = DebugHandler;
+
+                if(m_RenderOpaqueForwardOnlyPass != null)
+                {
+                    m_RenderOpaqueForwardOnlyPass.DebugHandler = DebugHandler;
+                }
+                if(m_RenderTransparentForwardPass != null)
+                {
+                    m_RenderTransparentForwardPass.DebugHandler = DebugHandler;
+                }
+                if(m_DrawSkyboxPass != null)
+                {
+                    m_DrawSkyboxPass.DebugHandler = DebugHandler;
+                }
+                if(m_PostProcessPasses.finalPostProcessPass != null)
+                {
+                    m_PostProcessPasses.finalPostProcessPass.DebugHandler = DebugHandler;
+                }
             }
 
             // RenderTexture format depends on camera and pipeline (HDR, non HDR, etc)
@@ -275,7 +279,7 @@ namespace UnityEngine.Rendering.Universal
             Camera camera = cameraData.camera;
             RenderTextureDescriptor cameraTargetDescriptor = cameraData.cameraTargetDescriptor;
 
-            if(DebugHandler.IsActiveForCamera(ref cameraData))
+            if((DebugHandler != null) && DebugHandler.IsActiveForCamera(ref cameraData))
             {
                 DebugHandler.Setup(context);
             }
@@ -432,7 +436,7 @@ namespace UnityEngine.Rendering.Universal
                                          && createDepthTexture;
             bool copyColorPass = renderingData.cameraData.requiresOpaqueTexture || renderPassInputs.requiresColorTexture;
 
-            if(DebugHandler.IsActiveForCamera(ref cameraData) && !DebugHandler.IsLightingActive)
+            if((DebugHandler != null) && DebugHandler.IsActiveForCamera(ref cameraData) && !DebugHandler.IsLightingActive)
             {
                 mainLightShadows = false;
                 additionalLightShadows = false;
@@ -645,8 +649,9 @@ namespace UnityEngine.Rendering.Universal
                 EnqueuePass(postProcessPass);
             }
 
-            if(DebugHandler.IsActiveForCamera(ref cameraData) &&
-               DebugHandler.TryGetFullscreenDebugMode(out DebugFullScreenMode fullScreenDebugMode))
+            if((DebugHandler != null) &&
+                DebugHandler.IsActiveForCamera(ref cameraData) &&
+                DebugHandler.TryGetFullscreenDebugMode(out DebugFullScreenMode fullScreenDebugMode))
             {
                 RenderTargetIdentifier debugBuffer;
                 float screenWidth = camera.pixelWidth;

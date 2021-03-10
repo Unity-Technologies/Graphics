@@ -57,6 +57,11 @@ namespace UnityEngine.Experimental.Rendering.Universal
                 m_PostProcessPasses.finalPostProcessPass.DebugHandler = DebugHandler;
             }
 
+            if(m_PostProcessPasses.postProcessPass != null)
+            {
+                m_PostProcessPasses.postProcessPass.DebugHandler = DebugHandler;
+            }
+
             // We probably should declare these names in the base class,
             // as they must be the same across all ScriptableRenderer types for camera stacking to work.
             k_ColorTextureHandle.Init("_CameraColorTexture");
@@ -150,9 +155,17 @@ namespace UnityEngine.Experimental.Rendering.Universal
             bool ppcUsesOffscreenRT = false;
             bool ppcUpscaleRT = false;
 
-            if(DebugHandler.IsActiveForCamera(ref cameraData))
+            if(DebugHandler != null)
             {
-                DebugHandler.Setup(context);
+                if(DebugHandler.AreAnySettingsActive)
+                {
+                    stackHasPostProcess = stackHasPostProcess && DebugHandler.IsPostProcessingAllowed;
+                }
+
+                if(DebugHandler.IsActiveForCamera(ref cameraData))
+                {
+                    DebugHandler.Setup(context);
+                }
             }
 
 #if UNITY_EDITOR

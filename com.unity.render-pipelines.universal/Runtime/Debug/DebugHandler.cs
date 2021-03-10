@@ -176,17 +176,17 @@ namespace UnityEngine.Rendering.Universal
         }
 
         [Conditional("DEVELOPMENT_BUILD"), Conditional("UNITY_EDITOR")]
-        public void SetupShaderPropertiesFinalBlitPass(CommandBuffer cmd)
+        public void UpdateShaderGlobalPropertiesFinalBlitPass(CommandBuffer cmd, ref CameraData cameraData)
         {
-            DebugDisplaySettingsValidation validationSettings = DebugDisplaySettings.Instance.ValidationSettings;
+            DebugDisplaySettingsValidation validationSettings = m_DebugDisplaySettings.ValidationSettings;
 
-            if(validationSettings.validationMode == DebugValidationMode.None)
+            if(IsActiveForCamera(ref cameraData))
             {
-                cmd.DisableShaderKeyword("_DEBUG_SHADER");
+                cmd.EnableShaderKeyword("_DEBUG_SHADER");
             }
             else
             {
-                cmd.EnableShaderKeyword("_DEBUG_SHADER");
+                cmd.DisableShaderKeyword("_DEBUG_SHADER");
             }
 
             if (validationSettings.validationMode == DebugValidationMode.HighlightOutsideOfRange)
