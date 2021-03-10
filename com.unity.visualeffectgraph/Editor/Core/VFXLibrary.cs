@@ -5,6 +5,7 @@ using System.Linq;
 using UnityEngine;
 using UnityEngine.Rendering;
 using Object = System.Object;
+using System.Reflection;
 
 namespace UnityEditor.VFX
 {
@@ -489,6 +490,30 @@ namespace UnityEditor.VFX
 
                 return binder;
             }
+        }
+
+        [InitializeOnLoadMethod]
+        private static void RegisterSRPChangeCallback()
+        {
+            EventInfo onRPChanged = typeof(RenderPipelineManager).GetEvent("activeRenderPipelineTypeChanged", BindingFlags.NonPublic | BindingFlags.Static);
+            if (onRPChanged != null)
+            {
+                MethodInfo addHandler = onRPChanged.GetAddMethod(nonPublic: true);
+                Debug.Log("Register SRP Changed callback BEGIN");
+                addHandler.Invoke(null, new Action[] { OnSRPChanged });
+                Debug.Log("Register SRP Changed callback END");
+            }
+
+            // Once activeRenderPipelineTypeChanged is public don't use reflection anymore
+            //RenderPipelineManager.activeRenderPipelineTypeChanged += OnSRPChanged;
+        }
+
+        /*public delegate void InvalidateEvent(VFXModel model, InvalidationCause cause);
+
+        public static event InvalidateEvent onSRPChanged;*/
+        private static void OnSRPChanged()
+        {
+            Debug.Log("!!! SRP Changed "+currentSRPBinder);
         }
 
         private static LibrarySentinel m_Sentinel = null;
