@@ -95,38 +95,6 @@ namespace UnityEngine.Rendering.Universal.Internal
                 CoreUtils.SetKeyword(cmd, ShaderKeywordStrings.MixedLightingSubtractive, isSubtractive); // Backward compatibility
 
                 m_LightCookieManager.Setup(context, cmd, in renderingData.lightData);
-                // TODO: move to light cookie manager
-                if (renderingData.lightData.mainLightIndex >= 0)
-                {
-                    var visibleMainLight   = renderingData.lightData.visibleLights[renderingData.lightData.mainLightIndex];
-                    var mainLight          = visibleMainLight.light;
-                    var cookieTexture      = mainLight.cookie;
-                    bool isMainLightCookie = cookieTexture != null;
-
-                    if (isMainLightCookie)
-                    {
-                        int _MainLightTexture          = Shader.PropertyToID("_MainLightCookieTexture");
-                        int _MainLightWorldToLight     = Shader.PropertyToID("_MainLightWorldToLight");
-                        int _MainLightCookieUVScale    = Shader.PropertyToID("_MainLightCookieUVScale");
-                        int _MainLightCookieFormat     = Shader.PropertyToID("_MainLightCookieFormat");
-
-                        Matrix4x4 cookieMatrix = visibleMainLight.localToWorldMatrix.inverse;
-                        Vector2 cookieUVScale  = Vector2.one;
-                        float cookieFormat     = ((cookieTexture as Texture2D)?.format == TextureFormat.Alpha8) ? 1.0f : 0.0f;
-
-                        // TODO: verify against HDRP if scale should actually be invScale
-                        var additionalLightData = mainLight.GetComponent<UniversalAdditionalLightData>();
-                        if (additionalLightData != null)
-                            cookieUVScale = additionalLightData.lightCookieSize;
-
-                        cmd.SetGlobalTexture(_MainLightTexture, cookieTexture);
-                        cmd.SetGlobalMatrix(_MainLightWorldToLight, cookieMatrix);
-                        cmd.SetGlobalVector(_MainLightCookieUVScale, cookieUVScale);
-                        cmd.SetGlobalFloat(_MainLightCookieFormat, cookieFormat);
-                    }
-
-                    CoreUtils.SetKeyword(cmd, ShaderKeywordStrings.MainLightCookie, isMainLightCookie);
-                }
             }
             context.ExecuteCommandBuffer(cmd);
             CommandBufferPool.Release(cmd);

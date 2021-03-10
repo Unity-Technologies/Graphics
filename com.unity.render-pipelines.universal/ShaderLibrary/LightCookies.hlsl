@@ -34,7 +34,7 @@ CBUFFER_START(MainLightCookie)
 CBUFFER_END
 #endif
 
-// TODO: enable structured buffers, remove force UBO
+// TODO: pack data
 #if USE_STRUCTURED_BUFFER_FOR_LIGHT_DATA
     StructuredBuffer<float4x4> _AdditionalLightsWorldToLightBuffer; // TODO: should really be property of the light! Move to Input.hlsl
     StructuredBuffer<half4>    _AdditionalLightsCookieAtlasUVRectBuffer; // UV rect into light cookie atlas (xy: uv offset, zw: uv size)
@@ -82,7 +82,9 @@ CBUFFER_END
 
 // Functions
 
-// TODO: to namespace, or not to namespace (probably should names buffers too)
+// TODO: to namespace, or not to namespace (probably should namespace buffers too)
+// TODO: Could do Universal_Feature_Method or URP_Feature_Method for public API too
+// TODO: URP_Feature_Internal_Method or URP_Feature_Private_Method for internal API (by convention)
 half2 LightCookie_ComputeUVDirectional(float4x4 worldToLight, float3 samplePositionWS, float2 uvScale, float2 uvWrap, half4 atlasUVRect)
 {
     // Translate and rotate 'positionWS' into the light space.
@@ -112,11 +114,11 @@ half2 LightCookie_ComputeUVDirectional(float4x4 worldToLight, float3 samplePosit
 
 half2 LightCookie_ComputeUVSpot(float4x4 worldToLightPerspective, float3 samplePositionWS, half4 atlasUVRect)
 {
-    // Translate, rotate and project 'positionWS' into the light space.
+    // Translate, rotate and project 'positionWS' into the light clip space.
     float4 positionCS   = mul(worldToLightPerspective, float4(samplePositionWS, 1));
     float2 positionNDC  = positionCS.xy / positionCS.w;
 
-    // Remap CS to the texture coordinates, from NDC [-1, 1]^2 to [0, 1]^2.
+    // Remap NDC to the texture coordinates, from NDC [-1, 1]^2 to [0, 1]^2.
     float2 positionUV = saturate(positionNDC * 0.5 + 0.5);
 
     // Remap into rect in the atlas texture
@@ -158,6 +160,8 @@ half3 LightCookie_SampleMainLightCookie(float3 samplePositionWS)
 half3 LightCookie_SampleAdditionalLightCookie(int perObjectLightIndex, float3 samplePositionWS)
 {
     float4 uvRect = _AdditionalLightsCookieAtlasUVRects[perObjectLightIndex];
+
+    // TODO: cookie enable bit, uint[8] for 256 lights
     // TODO: read less
     if(all(uvRect == 0))
         return half3(1,1,1);
