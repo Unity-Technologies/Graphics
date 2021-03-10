@@ -80,6 +80,16 @@ struct VFXSamplerCubeArray
     SamplerState s;
 };
 
+#if VFX_HYBRID_V2_SKINNED_MESH_SAMPLING
+struct DeformedVertexData
+{
+    float3 Position;
+    float3 Normal;
+    float3 Tangent;
+};
+uniform StructuredBuffer<DeformedVertexData> _DeformedMeshData : register(t1);
+#endif
+
 #if !VFX_WORLD_SPACE && !VFX_LOCAL_SPACE
 #error VFXCommon.hlsl should be included after space defines
 #endif

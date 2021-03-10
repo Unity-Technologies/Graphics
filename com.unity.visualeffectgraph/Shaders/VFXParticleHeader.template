@@ -1,8 +1,8 @@
 ${VFXShaderTags}
 
 ${VFXInclude("Shaders/VFXParticleCommon.template")}
-${VFXOutputRenderState}	
-	
+${VFXOutputRenderState}
+
 HLSLINCLUDE
 
 ${VFXGlobalInclude}
@@ -10,16 +10,16 @@ ${VFXGlobalDeclaration}
 
 #define VFX_NEEDS_COLOR_INTERPOLATOR (VFX_USE_COLOR_CURRENT || VFX_USE_ALPHA_CURRENT)
 #if HAS_STRIPS
-#define VFX_OPTIONAL_INTERPOLATION 
+#define VFX_OPTIONAL_INTERPOLATION
 #else
 #define VFX_OPTIONAL_INTERPOLATION nointerpolation
 #endif
 
-ByteAddressBuffer attributeBuffer;	
+ByteAddressBuffer attributeBuffer;
 
 #if VFX_HAS_INDIRECT_DRAW
-StructuredBuffer<uint> indirectBuffer;	
-#endif	
+StructuredBuffer<uint> indirectBuffer;
+#endif
 
 #if USE_DEAD_LIST_COUNT
 ByteAddressBuffer deadListCount;

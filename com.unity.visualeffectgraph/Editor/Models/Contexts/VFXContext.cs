@@ -141,8 +141,7 @@ namespace UnityEditor.VFX
         public virtual IEnumerable<KeyValuePair<string, VFXShaderWriter>> additionalReplacements { get { return Enumerable.Empty<KeyValuePair<string, VFXShaderWriter>>(); } }
         public virtual IEnumerable<string> fragmentParameters           { get { return Enumerable.Empty<string>(); } }
 
-        protected bool requiresHybridRendererV2 => GetExpressionsFromSlots(this).Any(
-            exp => exp.exp.GetType() == typeof(SampleDeformedMesh));
+        protected bool requiresHybridRendererV2 => GetGraph().children.Any(exp => exp.GetType() == typeof(SampleDeformedMesh));
 
         public virtual bool CanBeCompiled()
         {

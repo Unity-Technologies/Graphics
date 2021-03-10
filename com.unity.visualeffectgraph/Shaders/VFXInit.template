@@ -33,16 +33,6 @@ ByteAddressBuffer inputAdditional;
 RWBuffer<uint> stripDataBuffer;
 #endif
 
-#if VFX_HYBRID_V2_SKINNED_MESH_SAMPLING
-struct DeformedVertexData
-{
-    float3 Position;
-    float3 Normal;
-    float3 Tangent;
-};
-uniform StructuredBuffer<DeformedVertexData> _DeformedMeshData : register(t1);
-#endif
-
 ${VFXPerPassInclude}
 
 ${VFXGeneratedBlockFunction}

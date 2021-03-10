@@ -3,6 +3,7 @@ using UnityEngine;
 
 namespace UnityEditor.VFX.Operator
 {
+    //TODO: Move this to sample mesh
     [VFXInfo(category = "Sampling")]
     class SampleDeformedMesh : VFXOperator
     {
@@ -21,11 +22,22 @@ namespace UnityEditor.VFX.Operator
         {
             [Tooltip("Outputs the sampled mesh position.")]
             public Vector3 p = Vector3.zero;
+
+            [Tooltip("Outputs the sampled mesh normal.")]
+            public Vector3 n = Vector3.zero;
+
+            [Tooltip("Outputs the sampled mesh tangent.")]
+            public Vector3 t = Vector3.zero;
         }
 
         protected override sealed VFXExpression[] BuildExpression(VFXExpression[] inputExpression)
         {
-            return new[] { new VFXExpressionSampleDeformedMeshData(inputExpression[0], inputExpression[1]) };
+            return new VFXExpression[]
+            {
+                new VFXExpressionSampleDeformedMeshPosition(inputExpression[0], inputExpression[1]),
+                new VFXExpressionSampleDeformedMeshNormal(inputExpression[0], inputExpression[1]),
+                new VFXExpressionSampleDeformedMeshTangent(inputExpression[0], inputExpression[1]),
+            };
         }
     }
 }

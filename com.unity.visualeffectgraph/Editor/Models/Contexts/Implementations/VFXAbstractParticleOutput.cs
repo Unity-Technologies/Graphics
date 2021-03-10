@@ -380,6 +380,9 @@ namespace UnityEditor.VFX
 
                 if (HasStrips(false))
                     yield return "HAS_STRIPS";
+
+                if (requiresHybridRendererV2)
+                    yield return "VFX_HYBRID_V2_SKINNED_MESH_SAMPLING";
             }
         }
 
