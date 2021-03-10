@@ -55,7 +55,14 @@ namespace UnityEditor.ShaderGraph.Drawing.Inspector.PropertyDrawers
                 false,      // disallow reordering (active list is sorted)
                 target => target.value.displayName);
 
+            #if true // <--- TODO: VFX Package Symbol Guard
+            // Enforce the new ShaderGraph VFX generation path by hiding the option of Visual Effect target.
+            // However, we still support Visual Effect targets if they already exist.
+            const string vfxTargetName = "Visual Effect";
+            targetList.GetAddMenuOptions = () => graphData.GetPotentialTargetDisplayNames().Where(t => t != vfxTargetName).ToList();
+            #else
             targetList.GetAddMenuOptions = () => graphData.GetPotentialTargetDisplayNames();
+            #endif
 
             targetList.OnAddMenuItemCallback +=
                 (list, addMenuOptionIndex, addMenuOption) =>
