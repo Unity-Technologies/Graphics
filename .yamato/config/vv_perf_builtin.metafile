@@ -93,7 +93,7 @@ test_platforms:
         flags:
           - [all]: --report-performance-data
           - [all]: --performance-project-id=VikingVillage_BuiltIn
-          - [all]: --testfilter="RuntimeProfilerMetrics"
+          - [all]: --testfilter="MemoryAllocation;RuntimeProfilerMetrics"
           - <reuse_blocks.perf_utr_flags>
   - type: editmode
     name: performance_build_editmode
