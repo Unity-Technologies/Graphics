@@ -577,6 +577,7 @@ Shader "HDRP/LayeredLitTessellation"
     #if defined(_HEIGHTMAP0) || defined(_HEIGHTMAP1) || defined(_HEIGHTMAP2) || defined(_HEIGHTMAP3)
     #define _CONSERVATIVE_DEPTH_OFFSET
     #endif
+
     //-------------------------------------------------------------------------------------
     // Include
     //-------------------------------------------------------------------------------------
