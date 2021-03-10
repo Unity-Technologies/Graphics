@@ -167,15 +167,12 @@ namespace UnityEngine.Rendering.HighDefinition
                 float historyValidity = EvaluateHistoryValidity(hdCamera);
 
                 // Run the temporal denoiser
-                HDTemporalFilter temporalFilter = GetTemporalFilter();
-                TemporalFilterParameters tfParameters = temporalFilter.PrepareTemporalFilterParameters(hdCamera, true, historyValidity);
                 TextureHandle historyBuffer = renderGraph.ImportTexture(RequestAmbientOcclusionHistoryTexture(hdCamera));
-                TextureHandle denoisedRTAO = temporalFilter.Denoise(renderGraph, hdCamera, tfParameters, traceAOResult.signalBuffer, traceAOResult.velocityBuffer, historyBuffer, depthBuffer, normalBuffer, motionVectorBuffer, historyValidationBuffer);
+                TextureHandle denoisedRTAO = GetTemporalFilter().Denoise(renderGraph, hdCamera, singleChannel: true, historyValidity, traceAOResult.signalBuffer, traceAOResult.velocityBuffer, historyBuffer, depthBuffer, normalBuffer, motionVectorBuffer, historyValidationBuffer);
 
                 // Apply the diffuse denoiser
                 HDDiffuseDenoiser diffuseDenoiser = GetDiffuseDenoiser();
-                DiffuseDenoiserParameters ddParams = diffuseDenoiser.PrepareDiffuseDenoiserParameters(hdCamera, true, aoSettings.denoiserRadius, false, false);
-                return diffuseDenoiser.Denoise(renderGraph, hdCamera, ddParams, denoisedRTAO, depthBuffer, normalBuffer, traceAOResult.signalBuffer);
+                return diffuseDenoiser.Denoise(renderGraph, hdCamera, singleChannel: true, kernelSize: aoSettings.denoiserRadius, halfResolutionFilter: false, jitterFilter: false, denoisedRTAO, depthBuffer, normalBuffer, traceAOResult.signalBuffer);
             }
             else
                 return traceAOResult.signalBuffer;

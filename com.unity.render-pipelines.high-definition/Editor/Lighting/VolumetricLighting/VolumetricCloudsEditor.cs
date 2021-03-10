@@ -138,9 +138,9 @@ namespace UnityEditor.Rendering.HighDefinition
         {
 #if UNITY_EDITOR
             UnityEditor.BuildTarget activeBuildTarget = UnityEditor.EditorUserBuildSettings.activeBuildTarget;
-            if (activeBuildTarget == UnityEditor.BuildTarget.XboxOne || activeBuildTarget == UnityEditor.BuildTarget.StandaloneOSX)
+            if (activeBuildTarget == UnityEditor.BuildTarget.StandaloneOSX)
 #else
-            if (SystemInfo.graphicsDeviceType == GraphicsDeviceType.XboxOne || SystemInfo.graphicsDeviceType == GraphicsDeviceType.Metal)
+            if (SystemInfo.graphicsDeviceType == GraphicsDeviceType.Metal)
 #endif
             {
                 EditorGUILayout.Space();
@@ -213,31 +213,24 @@ namespace UnityEditor.Rendering.HighDefinition
             PropertyField(m_LowestCloudAltitude);
             PropertyField(m_CloudThickness);
 
-            EditorGUILayout.Space();
-            EditorGUILayout.LabelField("Wind", EditorStyles.miniLabel);
+            DrawHeader("Wind");
             PropertyField(m_GlobalWindSpeed);
-            if (BeginAdditionalPropertiesScope())
+            using (new HDEditorUtils.IndentScope())
             {
-                using (new HDEditorUtils.IndentScope())
-                {
-                    PropertyField(m_Orientation);
-                    PropertyField(m_CloudMapSpeedMultiplier);
-                    PropertyField(m_ShapeSpeedMultiplier);
-                    PropertyField(m_ErosionSpeedMultiplier);
-                }
+                PropertyField(m_Orientation);
+                PropertyField(m_CloudMapSpeedMultiplier);
+                PropertyField(m_ShapeSpeedMultiplier);
+                PropertyField(m_ErosionSpeedMultiplier);
             }
-            EndAdditionalPropertiesScope();
 
-            EditorGUILayout.Space();
-            EditorGUILayout.LabelField("Quality", EditorStyles.miniLabel);
+            DrawHeader("Quality");
             {
                 PropertyField(m_TemporalAccumulationFactor);
                 PropertyField(m_NumPrimarySteps);
                 PropertyField(m_NumLightSteps);
             }
 
-            EditorGUILayout.Space();
-            EditorGUILayout.LabelField("Lighting", EditorStyles.miniLabel);
+            DrawHeader("Lighting");
             {
                 PropertyField(m_AmbientLightProbeDimmer);
                 PropertyField(m_ScatteringDirection);
@@ -246,21 +239,16 @@ namespace UnityEditor.Rendering.HighDefinition
                 PropertyField(m_MultiScattering);
             }
 
-            EditorGUILayout.Space();
-            EditorGUILayout.LabelField("Shadows", EditorStyles.miniLabel);
+            DrawHeader("Shadows");
             {
                 PropertyField(m_Shadows);
                 using (new HDEditorUtils.IndentScope())
                 {
                     PropertyField(m_ShadowResolution);
-                    if (BeginAdditionalPropertiesScope())
-                    {
-                        PropertyField(m_ShadowOpacity);
-                        PropertyField(m_ShadowDistance);
-                        PropertyField(m_ShadowPlaneHeightOffset);
-                        PropertyField(m_ShadowOpacityFallback);
-                    }
-                    EndAdditionalPropertiesScope();
+                    PropertyField(m_ShadowOpacity);
+                    PropertyField(m_ShadowDistance);
+                    PropertyField(m_ShadowPlaneHeightOffset);
+                    PropertyField(m_ShadowOpacityFallback);
                 }
             }
         }

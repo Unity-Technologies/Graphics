@@ -1586,6 +1586,27 @@ namespace UnityEngine.Rendering.HighDefinition
             }
         }
 
+        [SerializeField]
+        bool m_OnDemandShadowRenderOnPlacement = true;
+        /// <summary>
+        /// If the shadow update mode is set to OnDemand, this parameter controls whether the shadows are rendered the first time without needing an explicit render request. If this properties is false,
+        /// the OnDemand shadows will never be rendered unless a render request is performed explicitly.
+        /// </summary>
+        public bool onDomandShadowRenderOnPlacement
+        {
+            get => m_OnDemandShadowRenderOnPlacement;
+            set
+            {
+                if (m_OnDemandShadowRenderOnPlacement == value)
+                    return;
+
+                m_OnDemandShadowRenderOnPlacement = value;
+            }
+        }
+
+        // This is a bit confusing, but it is an override to ignore the onDomandShadowRenderOnPlacement field when a light is registered for the first time as a consequence of a request for shadow update.
+        internal bool forceRenderOnPlacement = false;
+
         /// <summary>
         /// True if the light affects volumetric fog, false otherwise
         /// </summary>
@@ -1661,7 +1682,8 @@ namespace UnityEngine.Rendering.HighDefinition
         // Data for cached shadow maps
         [System.NonSerialized]
         internal int lightIdxForCachedShadows = -1;
-        Vector3 m_CachedViewPos = new Vector3(0, 0, 0);
+
+        Vector3[] m_CachedViewPositions;
 
 
         [System.NonSerialized]
@@ -1983,11 +2005,12 @@ namespace UnityEngine.Rendering.HighDefinition
                 return;
 
             // Create shadow requests array using the light type
-            if (shadowRequests == null || m_ShadowRequestIndices == null)
+            if (shadowRequests == null || m_ShadowRequestIndices == null || m_CachedViewPositions == null)
             {
                 const int maxLightShadowRequestsCount = 6;
                 shadowRequests = new HDShadowRequest[maxLightShadowRequestsCount];
                 m_ShadowRequestIndices = new int[maxLightShadowRequestsCount];
+                m_CachedViewPositions = new Vector3[maxLightShadowRequestsCount];
 
                 for (int i = 0; i < maxLightShadowRequestsCount; i++)
                 {
@@ -2208,9 +2231,12 @@ namespace UnityEngine.Rendering.HighDefinition
                 if (shadowRequestIndex == -1)
                     continue;
 
+                shadowRequest.dynamicAtlasViewport = resolutionRequest.dynamicAtlasViewport;
+                shadowRequest.cachedAtlasViewport = resolutionRequest.cachedAtlasViewport;
+
                 if (needToUpdateCachedContent)
                 {
-                    m_CachedViewPos = cameraPos;
+                    m_CachedViewPositions[index] = cameraPos;
                     shadowRequest.cachedShadowData.cacheTranslationDelta = new Vector3(0.0f, 0.0f, 0.0f);
 
                     // Write per light type matrices, splitDatas and culling parameters
@@ -2222,7 +2248,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 }
                 else if (hasCachedComponent)
                 {
-                    shadowRequest.cachedShadowData.cacheTranslationDelta = cameraPos - m_CachedViewPos;
+                    shadowRequest.cachedShadowData.cacheTranslationDelta = cameraPos - m_CachedViewPositions[index];
                     shadowRequest.shouldUseCachedShadowData = true;
                     shadowRequest.shouldRenderCachedComponent = false;
                     // If directional we still need to calculate the split data.
@@ -2239,8 +2265,6 @@ namespace UnityEngine.Rendering.HighDefinition
                     UpdateShadowRequestData(hdCamera, manager, shadowSettings, visibleLight, cullResults, lightIndex, lightingDebugSettings, filteringQuality, viewportSize, lightType, index, ref shadowRequest);
                 }
 
-                shadowRequest.dynamicAtlasViewport = resolutionRequest.dynamicAtlasViewport;
-                shadowRequest.cachedAtlasViewport = resolutionRequest.cachedAtlasViewport;
                 manager.UpdateShadowRequest(shadowRequestIndex, shadowRequest, updateType);
 
                 if (needToUpdateCachedContent)
