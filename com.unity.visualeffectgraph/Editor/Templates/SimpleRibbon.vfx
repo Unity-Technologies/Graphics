@@ -114,10 +114,10 @@ MonoBehaviour:
   categories: []
   uiBounds:
     serializedVersion: 2
-    x: -2399
+    x: 279
     y: -234
-    width: 3532
-    height: 2065
+    width: 854
+    height: 1968
 --- !u!114 &114350483966674976
 MonoBehaviour:
   m_ObjectHideFlags: 1
@@ -128,7 +128,7 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 7d4c867f6b72b714dbb5fd1780afe208, type: 3}
-  m_Name: Simple Ribbon
+  m_Name: SimpleRibbon
   m_EditorClassIdentifier: 
   m_UIIgnoredErrors: []
   m_Parent: {fileID: 0}
@@ -138,14 +138,6 @@ MonoBehaviour:
   - {fileID: 114780028408030698}
   - {fileID: 8926484042661614562}
   - {fileID: 8926484042661614652}
-  - {fileID: 8926484042661614659}
-  - {fileID: 8926484042661614672}
-  - {fileID: 8926484042661614677}
-  - {fileID: 8926484042661614679}
-  - {fileID: 8926484042661614686}
-  - {fileID: 8926484042661614697}
-  - {fileID: 8926484042661614712}
-  - {fileID: 8926484042661614727}
   m_UIPosition: {x: 0, y: 0}
   m_UICollapsed: 1
   m_UISuperCollapsed: 0
@@ -587,7 +579,7 @@ VisualEffectResource:
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  m_Name: Simple Ribbon
+  m_Name: SimpleRibbon
   m_Graph: {fileID: 114350483966674976}
   m_Infos:
     m_RendererSettings:
@@ -652,7 +644,6 @@ MonoBehaviour:
   m_Children:
   - {fileID: 8926484042661614566}
   - {fileID: 8926484042661614567}
-  - {fileID: 8926484042661614681}
   - {fileID: 8926484042661614649}
   m_UIPosition: {x: 708, y: 1102}
   m_UICollapsed: 0
@@ -687,6 +678,7 @@ MonoBehaviour:
   frustumCulling: 0
   castShadows: 0
   useExposureWeight: 0
+  flipbookLayout: 0
   shaderGraph: {fileID: 0}
   tilingMode: 0
   swapUV: 0
@@ -2289,7 +2281,7 @@ MonoBehaviour:
   m_UIIgnoredErrors: []
   m_Parent: {fileID: 114350483966674976}
   m_Children: []
-  m_UIPosition: {x: 559, y: 834}
+  m_UIPosition: {x: 548, y: 829}
   m_UICollapsed: 0
   m_UISuperCollapsed: 1
   m_InputSlots: []

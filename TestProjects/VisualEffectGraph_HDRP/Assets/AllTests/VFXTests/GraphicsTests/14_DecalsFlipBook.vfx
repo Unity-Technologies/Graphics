@@ -2851,8 +2851,8 @@ MonoBehaviour:
   m_UICollapsed: 0
   m_UISuperCollapsed: 0
   m_InputSlots:
-  - {fileID: 8926484042661614662}
   - {fileID: 8926484042661614663}
+  - {fileID: 8926484042661614662}
   m_OutputSlots: []
   m_Label: 
   m_Data: {fileID: 114986566243396028}
@@ -2881,6 +2881,7 @@ MonoBehaviour:
   frustumCulling: 0
   castShadows: 0
   useExposureWeight: 0
+  flipbookLayout: 0
 --- !u!114 &8926484042661614662
 MonoBehaviour:
   m_ObjectHideFlags: 0
