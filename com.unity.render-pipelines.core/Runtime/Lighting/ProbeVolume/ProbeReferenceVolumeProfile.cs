@@ -63,7 +63,7 @@ namespace UnityEngine.Rendering
         {
             // TODO: Better tooltip are needed here.
             public readonly GUIContent cellSizeStyle = new GUIContent("Cell Size", "Determine the size of the cells.");
-            public readonly GUIContent minDistanceBetweenProbes = new GUIContent("Min Distance Between Probes", "The minimal distance between two probes in meter.");
+            public readonly GUIContent minDistanceBetweenProbes = new GUIContent("Min Distance Between Probes", "The minimal distance between two probes in meters.");
             public readonly GUIContent normalBias = new GUIContent("Normal Bias", "The normal bias used when sampling the volume. It can reduce leaking.");
             public readonly GUIContent indexDimensions = new GUIContent("Index Dimensions", "The dimensions of the index buffer.");
         }
