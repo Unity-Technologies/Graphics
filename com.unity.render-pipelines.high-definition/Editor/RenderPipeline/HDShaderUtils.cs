@@ -105,14 +105,10 @@ namespace UnityEditor.Rendering.HighDefinition
 
             if (resetter != null)
             {
-                if (HDSpeedTree8MaterialUpgrader.IsHDSpeedTree8Material(material))
-                    HDSpeedTree8MaterialUpgrader.SaveHDSpeedTree8Setup(material);
                 CoreEditorUtils.RemoveMaterialKeywords(material);
                 // We need to reapply ToggleOff/Toggle keyword after reset via ApplyMaterialPropertyDrawers
                 MaterialEditor.ApplyMaterialPropertyDrawers(material);
                 resetter(material);
-                if (HDSpeedTree8MaterialUpgrader.IsHDSpeedTree8Material(material))
-                    HDSpeedTree8MaterialUpgrader.RestoreHDSpeedTree8Setup(material);
                 EditorUtility.SetDirty(material);
                 return true;
             }

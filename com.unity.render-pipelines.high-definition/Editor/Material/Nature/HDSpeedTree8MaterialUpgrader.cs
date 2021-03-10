@@ -8,13 +8,6 @@ namespace UnityEditor.Rendering.HighDefinition
     /// </summary>
 	class HDSpeedTree8MaterialUpgrader : SpeedTree8MaterialUpgrader
     {
-        private struct HDSpeedTree8PropertiesToRestore
-        {
-            public int windQuality;
-            public bool isBillboard;
-            public float cullMode;
-        }
-        private static HDSpeedTree8PropertiesToRestore propsToRestore;
         /// <summary>
         /// Creates a SpeedTree8 material upgrader for HDRP.
         /// </summary>
@@ -39,34 +32,20 @@ namespace UnityEditor.Rendering.HighDefinition
         {
             return (mat.shader.name == "HDRP/Nature/SpeedTree8");
         }
-        /// <summary>
-        /// Saves SpeedTree8-specific material properties and keywords that were set during import and should not be reset.
-        /// </summary>
-        /// <param name="mat">SpeedTree8 material.</param>
-        public static void SaveHDSpeedTree8Setup(Material mat)
-        {
-            propsToRestore.windQuality = (int)mat.GetFloat("_WINDQUALITY");
-            propsToRestore.isBillboard = mat.IsKeywordEnabled("EFFECT_BILLBOARD");
-            propsToRestore.cullMode = mat.GetFloat("_CullMode");
-        }
+
         /// <summary>
         /// Restores SpeedTree8-specific material properties and keywords that were set during import and should not be reset.
         /// </summary>
         /// <param name="mat">SpeedTree8 material.</param>
-        public static void RestoreHDSpeedTree8Setup(Material mat)
+        public static void RestoreHDSpeedTree8Keywords(Material mat)
         {
-            int wq = propsToRestore.windQuality;
-            mat.SetFloat("_WINDQUALITY", wq);
+            int wq = (int)mat.GetFloat("_WINDQUALITY");
             mat.EnableKeyword(WindQualityString[wq]);
 
-            if (propsToRestore.isBillboard)
+            if (mat.name.Contains("Billboard")) // Hacky but it'll hold until newer versions of shadergraph with keyword toggle support
             {
                 mat.EnableKeyword("EFFECT_BILLBOARD");
-                if (mat.HasProperty("EFFECT_BILLBOARD"))
-                    mat.SetFloat("EFFECT_BILLBOARD", 1.0f);
             }
-
-            mat.SetFloat("_CullMode", propsToRestore.cullMode);
         }
 
         private static void SetHDSpeedTree8Defaults(Material mat)
