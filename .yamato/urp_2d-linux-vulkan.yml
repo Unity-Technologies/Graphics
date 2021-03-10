@@ -3,12 +3,12 @@
 # Introduce any changes under .yamato/config/*.metafile files (for most cases) or under .yamato/ruamel/* within Python (more elaborate cases), and rerun build.py to regenerate all .yml files. 
 # Read more under .yamato/docs/readme.md 
 
-{% metadata_file .yamato/_latest_editor_versions_2020.2.metafile -%}
+{% metadata_file .yamato/_latest_editor_versions_2020.3.metafile -%}
 
 ---
 
-URP_2D_Linux_Vulkan_Standalone_mono_Linear_2020.2:
-    name: URP_2D on Linux_Vulkan_Standalone_mono_Linear on version 2020.2
+URP_2D_Linux_Vulkan_Standalone_mono_Linear_2020.3:
+    name: URP_2D on Linux_Vulkan_Standalone_mono_Linear on version 2020.3
     agent:
         type: Unity::VM::GPU
         image: package-ci/ubuntu:stable
@@ -27,10 +27,10 @@ URP_2D_Linux_Vulkan_Standalone_mono_Linear_2020.2:
               -  "**/test-results/**"
               -  "TestProjects/UniversalGraphicsTest_2D/Logs/*.log"
     dependencies:
-      -  path: .yamato/urp_2d-linux-vulkan.yml#Build_URP_2D_Linux_Vulkan_Standalone_mono_Linear_2020.2
+      -  path: .yamato/urp_2d-linux-vulkan.yml#Build_URP_2D_Linux_Vulkan_Standalone_mono_Linear_2020.3
          rerun: on-new-revision
-Build_URP_2D_Linux_Vulkan_Standalone_mono_Linear_2020.2:
-    name: Build URP_2D on Linux_Vulkan_mono_Linear_Standalone_build_Player on version 2020.2
+Build_URP_2D_Linux_Vulkan_Standalone_mono_Linear_2020.3:
+    name: Build URP_2D on Linux_Vulkan_mono_Linear_Standalone_build_Player on version 2020.3
     agent:
         type: Unity::VM
         image: package-ci/ubuntu:stable
@@ -46,7 +46,7 @@ Build_URP_2D_Linux_Vulkan_Standalone_mono_Linear_2020.2:
       -  sudo sh -c "echo 'deb https://artifactory.prd.it.unity3d.com/artifactory/unity-apt-local bionic main' > /etc/apt/sources.list.d/unity.list"
       -  sudo apt update
       -  sudo apt install unity-downloader-cli
-      -  sudo unity-downloader-cli -u {{editor_versions.2020_2_staging.Linux.revision}} -c editor -c il2cpp  --wait --published-only
+      -  sudo unity-downloader-cli -u {{editor_versions.2020_3_staging.Linux.revision}} -c editor -c il2cpp  --wait --published-only
       -  DISPLAY=:0.0 ./utr --artifacts_path=TestProjects/UniversalGraphicsTest_2D/test-results --build-only --editor-location=.Editor --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-executemethod" --extra-editor-arg="SetupProject.ApplySettings" --extra-editor-arg="vulkan" --extra-editor-arg="Linear" --extra-editor-arg="-playergraphicsapi=Vulkan" --platform=StandaloneLinux64 --player-save-path=players --scripting-backend=Mono2x --suite=playmode --testfilter=$TEST_FILTER --testproject=./TestProjects/UniversalGraphicsTest_2D --timeout=3000
     artifacts:
         logs:
@@ -56,8 +56,8 @@ Build_URP_2D_Linux_Vulkan_Standalone_mono_Linear_2020.2:
         players:
             paths:
               -  "players*/**"
-URP_2D_Linux_Vulkan_playmode_mono_Linear_2020.2:
-    name: URP_2D on Linux_Vulkan_playmode_mono_Linear on version 2020.2
+URP_2D_Linux_Vulkan_playmode_mono_Linear_2020.3:
+    name: URP_2D on Linux_Vulkan_playmode_mono_Linear on version 2020.3
     agent:
         type: Unity::VM::GPU
         image: package-ci/ubuntu:stable
@@ -73,15 +73,15 @@ URP_2D_Linux_Vulkan_playmode_mono_Linear_2020.2:
       -  sudo sh -c "echo 'deb https://artifactory.prd.it.unity3d.com/artifactory/unity-apt-local bionic main' > /etc/apt/sources.list.d/unity.list"
       -  sudo apt update
       -  sudo apt install unity-downloader-cli
-      -  sudo unity-downloader-cli -u {{editor_versions.2020_2_staging.Linux.revision}} -c editor -c il2cpp  --wait --published-only
+      -  sudo unity-downloader-cli -u {{editor_versions.2020_3_staging.Linux.revision}} -c editor -c il2cpp  --wait --published-only
       -  DISPLAY=:0.0 ./utr --artifacts_path=TestProjects/UniversalGraphicsTest_2D/test-results --editor-location=.Editor --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-force-vulkan" --scripting-backend=Mono2x --suite=playmode --testfilter=$TEST_FILTER --testproject=./TestProjects/UniversalGraphicsTest_2D --zero-tests-are-ok=1
     artifacts:
         logs:
             paths:
               -  "**/test-results/**"
               -  "TestProjects/UniversalGraphicsTest_2D/Logs/*.log"
-URP_2D_Linux_Vulkan_playmode_cache_mono_Linear_2020.2:
-    name: URP_2D on Linux_Vulkan_playmode_cache_mono_Linear on version 2020.2
+URP_2D_Linux_Vulkan_playmode_cache_mono_Linear_2020.3:
+    name: URP_2D on Linux_Vulkan_playmode_cache_mono_Linear on version 2020.3
     agent:
         type: Unity::VM::GPU
         image: package-ci/ubuntu:stable
@@ -97,15 +97,15 @@ URP_2D_Linux_Vulkan_playmode_cache_mono_Linear_2020.2:
       -  sudo sh -c "echo 'deb https://artifactory.prd.it.unity3d.com/artifactory/unity-apt-local bionic main' > /etc/apt/sources.list.d/unity.list"
       -  sudo apt update
       -  sudo apt install unity-downloader-cli
-      -  sudo unity-downloader-cli -u {{editor_versions.2020_2_staging.Linux.revision}} -c editor -c il2cpp  --wait --published-only
+      -  sudo unity-downloader-cli -u {{editor_versions.2020_3_staging.Linux.revision}} -c editor -c il2cpp  --wait --published-only
       -  DISPLAY=:0.0 ./utr --artifacts_path=TestProjects/UniversalGraphicsTest_2D/test-results --editor-location=.Editor --extra-editor-arg="-adb2" --extra-editor-arg="-cacheServerEnableDownload" --extra-editor-arg="true" --extra-editor-arg="-cacheServerEnableUpload" --extra-editor-arg="true" --extra-editor-arg="-cacheServerEndpoint" --extra-editor-arg="cacheserver-slo.hq.unity3d.com" --extra-editor-arg="-cacheServerNamespacePrefix" --extra-editor-arg="SRP" --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-enableCacheServer" --extra-editor-arg="-force-vulkan" --scripting-backend=Mono2x --suite=playmode --testfilter=$TEST_FILTER --testproject=./TestProjects/UniversalGraphicsTest_2D --zero-tests-are-ok=1
     artifacts:
         logs:
             paths:
               -  "**/test-results/**"
               -  "TestProjects/UniversalGraphicsTest_2D/Logs/*.log"
-URP_2D_Linux_Vulkan_editmode_mono_Linear_2020.2:
-    name: URP_2D on Linux_Vulkan_editmode_mono_Linear on version 2020.2
+URP_2D_Linux_Vulkan_editmode_mono_Linear_2020.3:
+    name: URP_2D on Linux_Vulkan_editmode_mono_Linear on version 2020.3
     agent:
         type: Unity::VM
         image: package-ci/ubuntu:stable
@@ -121,15 +121,15 @@ URP_2D_Linux_Vulkan_editmode_mono_Linear_2020.2:
       -  sudo sh -c "echo 'deb https://artifactory.prd.it.unity3d.com/artifactory/unity-apt-local bionic main' > /etc/apt/sources.list.d/unity.list"
       -  sudo apt update
       -  sudo apt install unity-downloader-cli
-      -  sudo unity-downloader-cli -u {{editor_versions.2020_2_staging.Linux.revision}} -c editor -c il2cpp  --wait --published-only
+      -  sudo unity-downloader-cli -u {{editor_versions.2020_3_staging.Linux.revision}} -c editor -c il2cpp  --wait --published-only
       -  DISPLAY=:0.0 ./utr --artifacts_path=TestProjects/UniversalGraphicsTest_2D/test-results --editor-location=.Editor --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-force-vulkan" --extra-editor-arg="-playergraphicsapi=Vulkan" --platform=editmode --scripting-backend=Mono2x --suite=editor --testfilter=$TEST_FILTER --testproject=./TestProjects/UniversalGraphicsTest_2D --zero-tests-are-ok=1
     artifacts:
         logs:
             paths:
               -  "**/test-results/**"
               -  "TestProjects/UniversalGraphicsTest_2D/Logs/*.log"
-URP_2D_Linux_Vulkan_Standalone_cache_mono_Linear_2020.2:
-    name: URP_2D on Linux_Vulkan_Standalone_cache_mono_Linear on version 2020.2
+URP_2D_Linux_Vulkan_Standalone_cache_mono_Linear_2020.3:
+    name: URP_2D on Linux_Vulkan_Standalone_cache_mono_Linear on version 2020.3
     agent:
         type: Unity::VM::GPU
         image: package-ci/ubuntu:stable
@@ -148,10 +148,10 @@ URP_2D_Linux_Vulkan_Standalone_cache_mono_Linear_2020.2:
               -  "**/test-results/**"
               -  "TestProjects/UniversalGraphicsTest_2D/Logs/*.log"
     dependencies:
-      -  path: .yamato/urp_2d-linux-vulkan.yml#Build_URP_2D_Linux_Vulkan_Standalone_cache_mono_Linear_2020.2
+      -  path: .yamato/urp_2d-linux-vulkan.yml#Build_URP_2D_Linux_Vulkan_Standalone_cache_mono_Linear_2020.3
          rerun: on-new-revision
-Build_URP_2D_Linux_Vulkan_Standalone_cache_mono_Linear_2020.2:
-    name: Build URP_2D on Linux_Vulkan_mono_Linear_Standalone_cache_build_Player on version 2020.2
+Build_URP_2D_Linux_Vulkan_Standalone_cache_mono_Linear_2020.3:
+    name: Build URP_2D on Linux_Vulkan_mono_Linear_Standalone_cache_build_Player on version 2020.3
     agent:
         type: Unity::VM
         image: package-ci/ubuntu:stable
@@ -167,7 +167,7 @@ Build_URP_2D_Linux_Vulkan_Standalone_cache_mono_Linear_2020.2:
       -  sudo sh -c "echo 'deb https://artifactory.prd.it.unity3d.com/artifactory/unity-apt-local bionic main' > /etc/apt/sources.list.d/unity.list"
       -  sudo apt update
       -  sudo apt install unity-downloader-cli
-      -  sudo unity-downloader-cli -u {{editor_versions.2020_2_staging.Linux.revision}} -c editor -c il2cpp  --wait --published-only
+      -  sudo unity-downloader-cli -u {{editor_versions.2020_3_staging.Linux.revision}} -c editor -c il2cpp  --wait --published-only
       -  DISPLAY=:0.0 ./utr --artifacts_path=TestProjects/UniversalGraphicsTest_2D/test-results --build-only --editor-location=.Editor --extra-editor-arg="-adb2" --extra-editor-arg="-cacheServerEnableDownload" --extra-editor-arg="true" --extra-editor-arg="-cacheServerEnableUpload" --extra-editor-arg="true" --extra-editor-arg="-cacheServerEndpoint" --extra-editor-arg="cacheserver-slo.hq.unity3d.com" --extra-editor-arg="-cacheServerNamespacePrefix" --extra-editor-arg="SRP" --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-enableCacheServer" --extra-editor-arg="-executemethod" --extra-editor-arg="SetupProject.ApplySettings" --extra-editor-arg="vulkan" --extra-editor-arg="Linear" --extra-editor-arg="-playergraphicsapi=Vulkan" --platform=StandaloneLinux64 --player-save-path=players --scripting-backend=Mono2x --suite=playmode --testfilter=$TEST_FILTER --testproject=./TestProjects/UniversalGraphicsTest_2D --timeout=3000
     artifacts:
         logs:
