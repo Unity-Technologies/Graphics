@@ -167,6 +167,8 @@ namespace UnityEditor.VFX
         {
             return VFXAbstractRenderedOutput.BlendMode.Opaque;
         }
+
+        public virtual bool TransparentMotionVectorEnabled(Material mat) => true;
     }
 
     // Not in Universal package because we dont want to add a dependency on VFXGraph

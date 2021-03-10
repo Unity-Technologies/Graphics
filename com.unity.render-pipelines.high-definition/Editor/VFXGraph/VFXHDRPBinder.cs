@@ -93,5 +93,21 @@ namespace UnityEditor.VFX.HDRP
 
             return blendMode;
         }
+
+        public override bool TransparentMotionVectorEnabled(Material material)
+        {
+            if (!material.HasProperty(HDMaterialProperties.kSurfaceType) ||
+                !material.HasProperty(HDMaterialProperties.kTransparentWritingMotionVec))
+            {
+                return false;
+            }
+
+            var surfaceType = material.GetFloat(HDMaterialProperties.kSurfaceType);
+
+            if (surfaceType == (int)SurfaceType.Transparent)
+                return material.GetFloat(HDMaterialProperties.kTransparentWritingMotionVec) == 1f;
+
+            return false;
+        }
     }
 }
