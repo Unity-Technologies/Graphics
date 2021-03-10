@@ -258,12 +258,8 @@ namespace UnityEngine.Rendering
         public void SetMemoryBudget(ProbeVolumeTextureMemoryBudget budget)
         {
             m_MemoryBudget = budget;
-
-            if (m_ProbeReferenceVolumeInit)
-            {
-                Cleanup();
-                InitProbeReferenceVolume(s_ProbeIndexPoolAllocationSize, m_MemoryBudget, m_PendingIndexDimChange);
-            }
+            Cleanup();
+            InitProbeReferenceVolume(s_ProbeIndexPoolAllocationSize, m_MemoryBudget, m_PendingIndexDimChange);
         }
 
         internal void AddPendingAssetLoading(ProbeVolumeAsset asset)
@@ -414,14 +410,10 @@ namespace UnityEngine.Rendering
         /// </summary>
         public void PerformPendingOperations()
         {
-            PerformPendingLoading();
+            PerformPendingDeletion();
+            PerformPendingNormalBiasChange();
             PerformPendingIndexDimensionChangeAndInit();
-
-            if (m_ProbeReferenceVolumeInit)
-            {
-                PerformPendingNormalBiasChange();
-                PerformPendingDeletion();
-            }
+            PerformPendingLoading();
         }
 
         /// <summary>
