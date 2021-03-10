@@ -1,5 +1,5 @@
 {
-    "name": "Unity.RenderPipelines.HighDefinition-PerformanceTests.StaticAnalysis.PS5.Editor",
+    "name": "HDRP.StaticAnalysis.Xbox.Editor",
     "rootNamespace": "",
     "references": [
         "GUID:91836b14885b8a34196f4aa8303d7793",
@@ -19,26 +19,13 @@
     ],
     "autoReferenced": false,
     "defineConstraints": [
-        "UNITY_INCLUDE_TESTS",
-        "SHADERANALYSIS_SUPPORT_PS4",
-        "SRP_SUPPORT_PS5",
-        "SHADERANALYSIS_SUPPORT"
+        "UNITY_INCLUDE_TESTS"
     ],
     "versionDefines": [
         {
             "name": "com.unity.shaderanalysis",
             "expression": "0.0",
             "define": "SHADERANALYSIS_SUPPORT"
-        },
-        {
-            "name": "com.unity.shaderanalysis.ps4.nda",
-            "expression": "0.0",
-            "define": "SHADERANALYSIS_SUPPORT_PS4"
-        },
-        {
-            "name": "com.unity.render-pipelines.ps5",
-            "expression": "0.0",
-            "define": "SRP_SUPPORT_PS5"
         }
     ],
     "noEngineReferences": false
