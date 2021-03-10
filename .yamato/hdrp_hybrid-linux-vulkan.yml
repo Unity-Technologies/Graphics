@@ -55,8 +55,8 @@ HDRP_Hybrid_Linux_Vulkan_playmode_cache_mono_Linear_2020.3:
             paths:
               -  "**/test-results/**"
               -  "TestProjects/HDRP_HybridTests/Logs/*.log"
-HDRP_Hybrid_Linux_Vulkan_Standalone_mono_Linear_2020.3:
-    name: HDRP_Hybrid on Linux_Vulkan_Standalone_mono_Linear on version 2020.3
+HDRP_Hybrid_Linux_Vulkan_Standalone_DOTS_mono_Linear_2020.3:
+    name: HDRP_Hybrid on Linux_Vulkan_Standalone_DOTS_mono_Linear on version 2020.3
     agent:
         type: Unity::VM::GPU
         image: package-ci/ubuntu:stable
@@ -75,10 +75,10 @@ HDRP_Hybrid_Linux_Vulkan_Standalone_mono_Linear_2020.3:
               -  "**/test-results/**"
               -  "TestProjects/HDRP_HybridTests/Logs/*.log"
     dependencies:
-      -  path: .yamato/hdrp_hybrid-linux-vulkan.yml#Build_HDRP_Hybrid_Linux_Vulkan_Standalone_mono_Linear_2020.3
+      -  path: .yamato/hdrp_hybrid-linux-vulkan.yml#Build_HDRP_Hybrid_Linux_Vulkan_Standalone_DOTS_mono_Linear_2020.3
          rerun: on-new-revision
-Build_HDRP_Hybrid_Linux_Vulkan_Standalone_mono_Linear_2020.3:
-    name: Build HDRP_Hybrid on Linux_Vulkan_mono_Linear_Standalone_build_Player on version 2020.3
+Build_HDRP_Hybrid_Linux_Vulkan_Standalone_DOTS_mono_Linear_2020.3:
+    name: Build HDRP_Hybrid on Linux_Vulkan_mono_Linear_Standalone_DOTS_build_Player on version 2020.3
     agent:
         type: Unity::VM
         image: package-ci/ubuntu:stable
@@ -95,7 +95,7 @@ Build_HDRP_Hybrid_Linux_Vulkan_Standalone_mono_Linear_2020.3:
       -  sudo apt update
       -  sudo apt install unity-downloader-cli
       -  sudo unity-downloader-cli -u {{editor_versions.2020_3_staging.Linux.revision}} -c editor -c il2cpp  --wait --published-only
-      -  DISPLAY=:0.0 ./utr --artifacts_path=TestProjects/HDRP_HybridTests/test-results --build-only --compilation-errors-as-warnings --editor-location=.Editor --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-executemethod" --extra-editor-arg="SetupProject.ApplySettings" --extra-editor-arg="vulkan" --extra-editor-arg="Linear" --extra-editor-arg="-playergraphicsapi=Vulkan" --platform=StandaloneLinux64 --player-save-path=players --scripting-backend=Mono2x --suite=playmode --testfilter=$TEST_FILTER --testproject=./TestProjects/HDRP_HybridTests --timeout=1200
+      -  DISPLAY=:0.0 ./utr --artifacts_path=TestProjects/HDRP_HybridTests/test-results --build-only --compilation-errors-as-warnings --editor-location=.Editor --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-executemethod" --extra-editor-arg="SetupProject.ApplySettings" --extra-editor-arg="vulkan" --extra-editor-arg="Linear" --extra-editor-arg="-playergraphicsapi=Vulkan" --extra-editor-arg="-playmodePlayerBuilder" --extra-editor-arg="BuildConfiguration" --extra-editor-arg="-executemethod" --extra-editor-arg="SetupProject.ApplySettings" --extra-editor-arg="vulkan" --extra-editor-arg="Linear" --platform=StandaloneLinux64 --player-save-path=players --scripting-backend=Mono2x --suite=playmode --testfilter=$TEST_FILTER --testproject=./TestProjects/HDRP_HybridTests --timeout=1200
     artifacts:
         logs:
             paths:
@@ -104,8 +104,8 @@ Build_HDRP_Hybrid_Linux_Vulkan_Standalone_mono_Linear_2020.3:
         players:
             paths:
               -  "players*/**"
-HDRP_Hybrid_Linux_Vulkan_Standalone_cache_mono_Linear_2020.3:
-    name: HDRP_Hybrid on Linux_Vulkan_Standalone_cache_mono_Linear on version 2020.3
+HDRP_Hybrid_Linux_Vulkan_Standalone_DOTS_cache_mono_Linear_2020.3:
+    name: HDRP_Hybrid on Linux_Vulkan_Standalone_DOTS_cache_mono_Linear on version 2020.3
     agent:
         type: Unity::VM::GPU
         image: package-ci/ubuntu:stable
@@ -117,17 +117,17 @@ HDRP_Hybrid_Linux_Vulkan_Standalone_cache_mono_Linear_2020.3:
     commands:
       -  curl -s https://artifactory.prd.it.unity3d.com/artifactory/unity-tools-local/utr-standalone/utr --output utr
       -  chmod +x utr
-      -  DISPLAY=:0.0 ./utr --artifacts_path=TestProjects/HDRP_HybridTests/test-results --platform=StandaloneLinux64 --player-connection-ip=auto --player-load-path=players --suite=playmode --timeout=1200 --zero-tests-are-ok=1 compilation-errors-as-warnings
+      -  DISPLAY=:0.0 ./utr --artifacts_path=TestProjects/HDRP_HybridTests/test-results --compilation-errors-as-warnings --platform=StandaloneLinux64 --player-connection-ip=auto --player-load-path=players --suite=playmode --timeout=1200 --zero-tests-are-ok=1
     artifacts:
         logs:
             paths:
               -  "**/test-results/**"
               -  "TestProjects/HDRP_HybridTests/Logs/*.log"
     dependencies:
-      -  path: .yamato/hdrp_hybrid-linux-vulkan.yml#Build_HDRP_Hybrid_Linux_Vulkan_Standalone_cache_mono_Linear_2020.3
+      -  path: .yamato/hdrp_hybrid-linux-vulkan.yml#Build_HDRP_Hybrid_Linux_Vulkan_Standalone_DOTS_cache_mono_Linear_2020.3
          rerun: on-new-revision
-Build_HDRP_Hybrid_Linux_Vulkan_Standalone_cache_mono_Linear_2020.3:
-    name: Build HDRP_Hybrid on Linux_Vulkan_mono_Linear_Standalone_cache_build_Player on version 2020.3
+Build_HDRP_Hybrid_Linux_Vulkan_Standalone_DOTS_cache_mono_Linear_2020.3:
+    name: Build HDRP_Hybrid on Linux_Vulkan_mono_Linear_Standalone_DOTS_cache_build_Player on version 2020.3
     agent:
         type: Unity::VM
         image: package-ci/ubuntu:stable
@@ -144,7 +144,7 @@ Build_HDRP_Hybrid_Linux_Vulkan_Standalone_cache_mono_Linear_2020.3:
       -  sudo apt update
       -  sudo apt install unity-downloader-cli
       -  sudo unity-downloader-cli -u {{editor_versions.2020_3_staging.Linux.revision}} -c editor -c il2cpp  --wait --published-only
-      -  DISPLAY=:0.0 ./utr --artifacts_path=TestProjects/HDRP_HybridTests/test-results --build-only --compilation-errors-as-warnings --editor-location=.Editor --extra-editor-arg="-adb2" --extra-editor-arg="-cacheServerEnableDownload" --extra-editor-arg="true" --extra-editor-arg="-cacheServerEnableUpload" --extra-editor-arg="true" --extra-editor-arg="-cacheServerEndpoint" --extra-editor-arg="cacheserver-slo.hq.unity3d.com" --extra-editor-arg="-cacheServerNamespacePrefix" --extra-editor-arg="SRP" --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-enableCacheServer" --extra-editor-arg="-executemethod" --extra-editor-arg="SetupProject.ApplySettings" --extra-editor-arg="vulkan" --extra-editor-arg="Linear" --extra-editor-arg="-playergraphicsapi=Vulkan" --platform=StandaloneLinux64 --player-save-path=players --scripting-backend=Mono2x --suite=playmode --testfilter=$TEST_FILTER --testproject=./TestProjects/HDRP_HybridTests --timeout=3000
+      -  DISPLAY=:0.0 ./utr --artifacts_path=TestProjects/HDRP_HybridTests/test-results --build-only --compilation-errors-as-warnings --editor-location=.Editor --extra-editor-arg="-adb2" --extra-editor-arg="-cacheServerEnableDownload" --extra-editor-arg="true" --extra-editor-arg="-cacheServerEnableUpload" --extra-editor-arg="true" --extra-editor-arg="-cacheServerEndpoint" --extra-editor-arg="cacheserver-slo.hq.unity3d.com" --extra-editor-arg="-cacheServerNamespacePrefix" --extra-editor-arg="SRP" --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-enableCacheServer" --extra-editor-arg="-executemethod" --extra-editor-arg="SetupProject.ApplySettings" --extra-editor-arg="vulkan" --extra-editor-arg="Linear" --extra-editor-arg="-playergraphicsapi=Vulkan" --extra-editor-arg="-playmodePlayerBuilder" --extra-editor-arg="BuildConfiguration" --extra-editor-arg="-executemethod" --extra-editor-arg="SetupProject.ApplySettings" --extra-editor-arg="vulkan" --extra-editor-arg="Linear" --platform=StandaloneLinux64 --player-save-path=players --scripting-backend=Mono2x --suite=playmode --testfilter=$TEST_FILTER --testproject=./TestProjects/HDRP_HybridTests --timeout=3000
     artifacts:
         logs:
             paths:
@@ -209,8 +209,8 @@ HDRP_Hybrid_Linux_Vulkan_playmode_cache_mono_Linear_CUSTOM-REVISION:
     dependencies:
       -  path: .yamato/_editor_priming.yml#editor:priming:CUSTOM-REVISION:Linux
          rerun: always
-HDRP_Hybrid_Linux_Vulkan_Standalone_mono_Linear_CUSTOM-REVISION:
-    name: HDRP_Hybrid on Linux_Vulkan_Standalone_mono_Linear on version CUSTOM-REVISION
+HDRP_Hybrid_Linux_Vulkan_Standalone_DOTS_mono_Linear_CUSTOM-REVISION:
+    name: HDRP_Hybrid on Linux_Vulkan_Standalone_DOTS_mono_Linear on version CUSTOM-REVISION
     agent:
         type: Unity::VM::GPU
         image: package-ci/ubuntu:stable
@@ -232,10 +232,10 @@ HDRP_Hybrid_Linux_Vulkan_Standalone_mono_Linear_CUSTOM-REVISION:
     dependencies:
       -  path: .yamato/_editor_priming.yml#editor:priming:CUSTOM-REVISION:Linux
          rerun: always
-      -  path: .yamato/hdrp_hybrid-linux-vulkan.yml#Build_HDRP_Hybrid_Linux_Vulkan_Standalone_mono_Linear_CUSTOM-REVISION
+      -  path: .yamato/hdrp_hybrid-linux-vulkan.yml#Build_HDRP_Hybrid_Linux_Vulkan_Standalone_DOTS_mono_Linear_CUSTOM-REVISION
          rerun: always
-Build_HDRP_Hybrid_Linux_Vulkan_Standalone_mono_Linear_CUSTOM-REVISION:
-    name: Build HDRP_Hybrid on Linux_Vulkan_mono_Linear_Standalone_build_Player on version CUSTOM-REVISION
+Build_HDRP_Hybrid_Linux_Vulkan_Standalone_DOTS_mono_Linear_CUSTOM-REVISION:
+    name: Build HDRP_Hybrid on Linux_Vulkan_mono_Linear_Standalone_DOTS_build_Player on version CUSTOM-REVISION
     agent:
         type: Unity::VM
         image: package-ci/ubuntu:stable
@@ -253,7 +253,7 @@ Build_HDRP_Hybrid_Linux_Vulkan_Standalone_mono_Linear_CUSTOM-REVISION:
       -  sudo apt update
       -  sudo apt install unity-downloader-cli
       -  sudo unity-downloader-cli --source-file unity_revision.txt -c editor -c il2cpp  --wait --published-only
-      -  DISPLAY=:0.0 ./utr --artifacts_path=TestProjects/HDRP_HybridTests/test-results --build-only --compilation-errors-as-warnings --editor-location=.Editor --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-executemethod" --extra-editor-arg="SetupProject.ApplySettings" --extra-editor-arg="vulkan" --extra-editor-arg="Linear" --extra-editor-arg="-playergraphicsapi=Vulkan" --platform=StandaloneLinux64 --player-save-path=players --scripting-backend=Mono2x --suite=playmode --testfilter=$TEST_FILTER --testproject=./TestProjects/HDRP_HybridTests --timeout=1200
+      -  DISPLAY=:0.0 ./utr --artifacts_path=TestProjects/HDRP_HybridTests/test-results --build-only --compilation-errors-as-warnings --editor-location=.Editor --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-executemethod" --extra-editor-arg="SetupProject.ApplySettings" --extra-editor-arg="vulkan" --extra-editor-arg="Linear" --extra-editor-arg="-playergraphicsapi=Vulkan" --extra-editor-arg="-playmodePlayerBuilder" --extra-editor-arg="BuildConfiguration" --extra-editor-arg="-executemethod" --extra-editor-arg="SetupProject.ApplySettings" --extra-editor-arg="vulkan" --extra-editor-arg="Linear" --platform=StandaloneLinux64 --player-save-path=players --scripting-backend=Mono2x --suite=playmode --testfilter=$TEST_FILTER --testproject=./TestProjects/HDRP_HybridTests --timeout=1200
     artifacts:
         logs:
             paths:
@@ -265,8 +265,8 @@ Build_HDRP_Hybrid_Linux_Vulkan_Standalone_mono_Linear_CUSTOM-REVISION:
     dependencies:
       -  path: .yamato/_editor_priming.yml#editor:priming:CUSTOM-REVISION:Linux
          rerun: always
-HDRP_Hybrid_Linux_Vulkan_Standalone_cache_mono_Linear_CUSTOM-REVISION:
-    name: HDRP_Hybrid on Linux_Vulkan_Standalone_cache_mono_Linear on version CUSTOM-REVISION
+HDRP_Hybrid_Linux_Vulkan_Standalone_DOTS_cache_mono_Linear_CUSTOM-REVISION:
+    name: HDRP_Hybrid on Linux_Vulkan_Standalone_DOTS_cache_mono_Linear on version CUSTOM-REVISION
     agent:
         type: Unity::VM::GPU
         image: package-ci/ubuntu:stable
@@ -279,7 +279,7 @@ HDRP_Hybrid_Linux_Vulkan_Standalone_cache_mono_Linear_CUSTOM-REVISION:
     commands:
       -  curl -s https://artifactory.prd.it.unity3d.com/artifactory/unity-tools-local/utr-standalone/utr --output utr
       -  chmod +x utr
-      -  DISPLAY=:0.0 ./utr --artifacts_path=TestProjects/HDRP_HybridTests/test-results --platform=StandaloneLinux64 --player-connection-ip=auto --player-load-path=players --suite=playmode --timeout=1200 --zero-tests-are-ok=1 compilation-errors-as-warnings
+      -  DISPLAY=:0.0 ./utr --artifacts_path=TestProjects/HDRP_HybridTests/test-results --compilation-errors-as-warnings --platform=StandaloneLinux64 --player-connection-ip=auto --player-load-path=players --suite=playmode --timeout=1200 --zero-tests-are-ok=1
     artifacts:
         logs:
             paths:
@@ -288,10 +288,10 @@ HDRP_Hybrid_Linux_Vulkan_Standalone_cache_mono_Linear_CUSTOM-REVISION:
     dependencies:
       -  path: .yamato/_editor_priming.yml#editor:priming:CUSTOM-REVISION:Linux
          rerun: always
-      -  path: .yamato/hdrp_hybrid-linux-vulkan.yml#Build_HDRP_Hybrid_Linux_Vulkan_Standalone_cache_mono_Linear_CUSTOM-REVISION
+      -  path: .yamato/hdrp_hybrid-linux-vulkan.yml#Build_HDRP_Hybrid_Linux_Vulkan_Standalone_DOTS_cache_mono_Linear_CUSTOM-REVISION
          rerun: always
-Build_HDRP_Hybrid_Linux_Vulkan_Standalone_cache_mono_Linear_CUSTOM-REVISION:
-    name: Build HDRP_Hybrid on Linux_Vulkan_mono_Linear_Standalone_cache_build_Player on version CUSTOM-REVISION
+Build_HDRP_Hybrid_Linux_Vulkan_Standalone_DOTS_cache_mono_Linear_CUSTOM-REVISION:
+    name: Build HDRP_Hybrid on Linux_Vulkan_mono_Linear_Standalone_DOTS_cache_build_Player on version CUSTOM-REVISION
     agent:
         type: Unity::VM
         image: package-ci/ubuntu:stable
@@ -309,7 +309,7 @@ Build_HDRP_Hybrid_Linux_Vulkan_Standalone_cache_mono_Linear_CUSTOM-REVISION:
       -  sudo apt update
       -  sudo apt install unity-downloader-cli
       -  sudo unity-downloader-cli --source-file unity_revision.txt -c editor -c il2cpp  --wait --published-only
-      -  DISPLAY=:0.0 ./utr --artifacts_path=TestProjects/HDRP_HybridTests/test-results --build-only --compilation-errors-as-warnings --editor-location=.Editor --extra-editor-arg="-adb2" --extra-editor-arg="-cacheServerEnableDownload" --extra-editor-arg="true" --extra-editor-arg="-cacheServerEnableUpload" --extra-editor-arg="true" --extra-editor-arg="-cacheServerEndpoint" --extra-editor-arg="cacheserver-slo.hq.unity3d.com" --extra-editor-arg="-cacheServerNamespacePrefix" --extra-editor-arg="SRP" --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-enableCacheServer" --extra-editor-arg="-executemethod" --extra-editor-arg="SetupProject.ApplySettings" --extra-editor-arg="vulkan" --extra-editor-arg="Linear" --extra-editor-arg="-playergraphicsapi=Vulkan" --platform=StandaloneLinux64 --player-save-path=players --scripting-backend=Mono2x --suite=playmode --testfilter=$TEST_FILTER --testproject=./TestProjects/HDRP_HybridTests --timeout=3000
+      -  DISPLAY=:0.0 ./utr --artifacts_path=TestProjects/HDRP_HybridTests/test-results --build-only --compilation-errors-as-warnings --editor-location=.Editor --extra-editor-arg="-adb2" --extra-editor-arg="-cacheServerEnableDownload" --extra-editor-arg="true" --extra-editor-arg="-cacheServerEnableUpload" --extra-editor-arg="true" --extra-editor-arg="-cacheServerEndpoint" --extra-editor-arg="cacheserver-slo.hq.unity3d.com" --extra-editor-arg="-cacheServerNamespacePrefix" --extra-editor-arg="SRP" --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-enableCacheServer" --extra-editor-arg="-executemethod" --extra-editor-arg="SetupProject.ApplySettings" --extra-editor-arg="vulkan" --extra-editor-arg="Linear" --extra-editor-arg="-playergraphicsapi=Vulkan" --extra-editor-arg="-playmodePlayerBuilder" --extra-editor-arg="BuildConfiguration" --extra-editor-arg="-executemethod" --extra-editor-arg="SetupProject.ApplySettings" --extra-editor-arg="vulkan" --extra-editor-arg="Linear" --platform=StandaloneLinux64 --player-save-path=players --scripting-backend=Mono2x --suite=playmode --testfilter=$TEST_FILTER --testproject=./TestProjects/HDRP_HybridTests --timeout=3000
     artifacts:
         logs:
             paths:
