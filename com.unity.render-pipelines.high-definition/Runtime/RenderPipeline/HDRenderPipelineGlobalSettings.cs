@@ -60,22 +60,31 @@ namespace UnityEngine.Rendering.HighDefinition
 
             HDRenderPipelineGlobalSettings assetCreated = null;
             string path = "Assets/HDRPDefaultResources/HDRenderPipelineGlobalSettings.asset";
-            assetCreated = AssetDatabase.LoadAssetAtPath<HDRenderPipelineGlobalSettings>(path);
-            if (assetCreated == null)
+            if (assetToBeMigrated != null && !assetToBeMigrated.Equals(null))
             {
-                var guidHDGlobalAssets = AssetDatabase.FindAssets("t:HDRenderPipelineGlobalSettings");
-                //If we could not find the asset at the default path, find the first one
-                if (guidHDGlobalAssets.Length > 0)
+                assetCreated = MigrateFromHDRPAsset(assetToBeMigrated, path, bClearObsoleteFields: false);
+                if (assetCreated != null && !assetCreated.Equals(null))
+                    assetToBeMigrated = null;
+            }
+            else
+            {
+                assetCreated = AssetDatabase.LoadAssetAtPath<HDRenderPipelineGlobalSettings>(path);
+                if (assetCreated == null)
                 {
-                    var curGUID = guidHDGlobalAssets[0];
-                    path = AssetDatabase.GUIDToAssetPath(curGUID);
-                    assetCreated = AssetDatabase.LoadAssetAtPath<HDRenderPipelineGlobalSettings>(path);
-                }
-                else // or create one altogether
-                {
-                    if (!AssetDatabase.IsValidFolder("Assets/HDRPDefaultResources/"))
-                        AssetDatabase.CreateFolder("Assets", "HDRPDefaultResources");
-                    assetCreated = Create(path);
+                    var guidHDGlobalAssets = AssetDatabase.FindAssets("t:HDRenderPipelineGlobalSettings");
+                    //If we could not find the asset at the default path, find the first one
+                    if (guidHDGlobalAssets.Length > 0)
+                    {
+                        var curGUID = guidHDGlobalAssets[0];
+                        path = AssetDatabase.GUIDToAssetPath(curGUID);
+                        assetCreated = AssetDatabase.LoadAssetAtPath<HDRenderPipelineGlobalSettings>(path);
+                    }
+                    else // or create one altogether
+                    {
+                        if (!AssetDatabase.IsValidFolder("Assets/HDRPDefaultResources/"))
+                            AssetDatabase.CreateFolder("Assets", "HDRPDefaultResources");
+                        assetCreated = Create(path);
+                    }
                 }
             }
             Debug.Assert(assetCreated, "Could not create HDRP's Global Settings - HDRP may not work correctly - Open the Graphics Window for additional help.");
@@ -119,10 +128,11 @@ namespace UnityEngine.Rendering.HighDefinition
         }
 
 #if UNITY_EDITOR
-        internal static HDRenderPipelineGlobalSettings MigrateFromHDRPAsset(HDRenderPipelineAsset oldAsset, bool bClearObsoleteFields = true)
+
+        static HDRenderPipelineAsset assetToBeMigrated = null;
+        internal static void MigrateFromHDRPAsset(HDRenderPipelineAsset oldAsset)
         {
-            string path = "Assets/HDRPDefaultResources/HDRenderPipelineGlobalSettings.asset";
-            return MigrateFromHDRPAsset(oldAsset, path, bClearObsoleteFields);
+            assetToBeMigrated = oldAsset;
         }
 
         internal static HDRenderPipelineGlobalSettings MigrateFromHDRPAsset(HDRenderPipelineAsset oldAsset, string path, bool bClearObsoleteFields = true)

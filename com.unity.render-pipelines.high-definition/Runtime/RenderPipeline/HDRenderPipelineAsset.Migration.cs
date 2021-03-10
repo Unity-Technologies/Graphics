@@ -28,6 +28,7 @@ namespace UnityEngine.Rendering.HighDefinition
             RoughDistortion,
             VirtualTexturing,
             AddedHDRenderPipelineGlobalSettings
+            // If you add more steps here, do not clear settings that are used for the migration to the HDRP Global Settings asset
         }
 
         static readonly MigrationDescription<Version, HDRenderPipelineAsset> k_Migration = MigrationDescription.New(
@@ -160,14 +161,9 @@ namespace UnityEngine.Rendering.HighDefinition
             MigrationStep.New(Version.AddedHDRenderPipelineGlobalSettings, (HDRenderPipelineAsset data) =>
             {
 #if UNITY_EDITOR
-                // 2/ it acted as the definition of the Default Settings - now migrated to its own asset
-#pragma warning disable 618 // Type or member is obsolete
                 if (data == GraphicsSettings.defaultRenderPipeline)
-#pragma warning restore 618
                 {
-                    HDRenderPipelineGlobalSettings globalSettings = HDRenderPipelineGlobalSettings.MigrateFromHDRPAsset(data, true);
-                    HDRenderPipelineGlobalSettings.UpdateGraphicsSettings(globalSettings);
-                    EditorUtility.SetDirty(globalSettings);
+                    HDRenderPipelineGlobalSettings.MigrateFromHDRPAsset(data);
                 }
 #endif
             })
@@ -177,10 +173,7 @@ namespace UnityEngine.Rendering.HighDefinition
         Version m_Version = MigrationDescription.LastVersion<Version>();
         Version IVersionable<Version>.version { get => m_Version; set => m_Version = value; }
 
-        void OnEnable()
-        {
-            k_Migration.Migrate(this);
-        }
+        void OnEnable() => k_Migration.Migrate(this);
 
 #pragma warning disable 618 // Type or member is obsolete
         [SerializeField]
