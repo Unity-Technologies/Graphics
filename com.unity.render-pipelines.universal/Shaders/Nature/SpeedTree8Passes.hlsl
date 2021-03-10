@@ -79,7 +79,7 @@ struct SpeedTreeDepthNormalFragmentInput
 {
     SpeedTreeVertexDepthNormalOutput interpolated;
 #ifdef EFFECT_BACKSIDE_NORMALS
-    half facing : VFACE;
+    FRONT_FACE_TYPE facing : FRONT_FACE_SEMANTIC;
 #endif
 };
 
@@ -87,7 +87,7 @@ struct SpeedTreeFragmentInput
 {
     SpeedTreeVertexOutput interpolated;
 #ifdef EFFECT_BACKSIDE_NORMALS
-    half facing : VFACE;
+    FRONT_FACE_TYPE facing : FRONT_FACE_SEMANTIC;
 #endif
 };
 
@@ -397,10 +397,7 @@ half4 SpeedTree8Frag(SpeedTreeFragmentInput input) : SV_Target
 
     // flip normal on backsides
     #ifdef EFFECT_BACKSIDE_NORMALS
-        if (input.facing < 0.5)
-        {
-            normalTs.z = -normalTs.z;
-        }
+        normalTs.z = IS_FRONT_VFACE(input.facing, normalTs.z, -normalTs.z);
     #endif
 
     // adjust billboard normals to improve GI and matching

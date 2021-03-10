@@ -54,6 +54,9 @@ CBUFFER_START(ShaderVariablesClouds)
     float2 _ShadowRegionSize;
     float _Padding0;
     float _Padding1;
+    float4x4 _CameraViewProjection_NO;
+    float4x4 _CameraInverseViewProjection_NO;
+    float4x4 _CameraPrevViewProjection_NO;
 CBUFFER_END
 
 
