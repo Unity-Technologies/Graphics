@@ -9,6 +9,9 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 ### Fixed
 - Fixed an issue such that it is now posible to enqueue render passes at runtime.
 
+### Added
+- Added SpeedTree8 shadergraph. Since behavior does not match previous SpeedTree8 behavior, it is not yet the default.
+
 ## [7.5.3] - 2021-01-11
 
 ### Fixed
