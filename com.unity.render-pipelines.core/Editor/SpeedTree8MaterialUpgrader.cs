@@ -45,9 +45,15 @@ namespace UnityEditor.Rendering
 
         private static void ImportNewSpeedTree8Material(Material mat, int windQuality, bool isBillboard)
         {
+            int cullmode = 0;
             mat.SetFloat("_WINDQUALITY", windQuality);
             if (isBillboard)
+            {
                 mat.EnableKeyword("EFFECT_BILLBOARD");
+                cullmode = 2;
+            }
+            if (mat.HasProperty("_CullMode"))
+                mat.SetFloat("_CullMode", cullmode);
         }
 
         /// <summary>
