@@ -2568,13 +2568,19 @@ namespace UnityEngine.Rendering.HighDefinition
                         {
                             Vector2 side = new Vector2(Mathf.Sin(-element.angularOffset * Mathf.Deg2Rad), Mathf.Cos(-element.angularOffset * Mathf.Deg2Rad));
                             side *= element.positionVariation.y;
-                            Random.InitState(element.seed);
+                            float RandomRange(System.Random rnd, float min, float max)
+                            {
+                                float x = (float)rnd.NextDouble();
+                                return x * (max - min) + min;
+                            }
+
+                            System.Random rnd = new System.Random(element.seed);
                             for (int elemIdx = 0; elemIdx < element.count; ++elemIdx)
                             {
-                                float localIntensity = Random.Range(-1.0f, 1.0f) * element.intensityVariation + 1.0f;
+                                float localIntensity = RandomRange(rnd, -1.0f, 1.0f) * element.intensityVariation + 1.0f;
 
                                 Vector2 rayOff = GetLensFlareRayOffset(screenPos, position, globalCos0, globalSin0);
-                                Vector2 localSize = size + (size * ((new Vector2(usedAspectRatio, 1.0f)) * element.scaleVariation * Random.Range(-1.0f, 1.0f)));
+                                Vector2 localSize = size + (size * ((new Vector2(usedAspectRatio, 1.0f)) * element.scaleVariation * RandomRange(rnd, -1.0f, 1.0f)));
                                 if (element.enableRadialDistortion)
                                 {
                                     Vector2 rayOff0 = GetLensFlareRayOffset(screenPos, 0.0f, globalCos0, globalSin0);
@@ -2585,11 +2591,11 @@ namespace UnityEngine.Rendering.HighDefinition
                                                             Mathf.Lerp(localSize.y, element.targetSizeDistortion.y * scaleSize, localLerpValue));
                                 }
 
-                                Color randCol = element.colorGradient.Evaluate(Random.Range(0.0f, 1.0f));
+                                Color randCol = element.colorGradient.Evaluate(RandomRange(rnd, 0.0f, 1.0f));
 
-                                Vector2 localPositionOffset = element.positionOffset + Random.Range(-1.0f, 1.0f) * side;
+                                Vector2 localPositionOffset = element.positionOffset + RandomRange(rnd, -1.0f, 1.0f) * side;
 
-                                float localRotation = element.rotation + Random.Range(-Mathf.PI, Mathf.PI) * element.rotationVariation;
+                                float localRotation = element.rotation + RandomRange(rnd, -Mathf.PI, Mathf.PI) * element.rotationVariation;
 
                                 if (localIntensity > 0.0f)
                                 {
@@ -2603,7 +2609,7 @@ namespace UnityEngine.Rendering.HighDefinition
                                 }
 
                                 position += dLength;
-                                position += 0.5f * dLength * Random.Range(-1.0f, 1.0f) * element.positionVariation.x;
+                                position += 0.5f * dLength * RandomRange(rnd, -1.0f, 1.0f) * element.positionVariation.x;
                             }
                         }
                         else if (element.distribution == SRPLensFlareDistribution.Curve)
