@@ -62,22 +62,15 @@ public class UseTestAssetTestCaseAttribute : UnityEngine.TestTools.UnityTestAttr
                     {
                         continue;
                     }
-                    var hashPath = $"{k_fileLocation}/{testAsset.name}/{testAsset.name}_{individualTest.material.name}_{SetupTestAssetTestCases.k_resultHashSuffix}";
-                    if(!File.Exists(hashPath))
+                    var directory = $"{k_fileLocation}/{testAsset.name}/";
+                    if(!TestAssetTestData.TryGetTestData(directory, testAsset.name, individualTest.material, out TestAssetTestData data))
                     {
                         continue;
                     }
 
-                    TestAssetTestData data = new TestAssetTestData();
-                    data.FromJson(File.ReadAllText(hashPath));
-                    data.expectedResult = AssetDatabase.LoadAssetAtPath<Texture2D>($"{k_fileLocation}/{testAsset.name}/{testAsset.name}_{individualTest.material.name}_{SetupTestAssetTestCases.k_resultImageSuffix}");
+                    data.referenceImage = AssetDatabase.LoadAssetAtPath<Texture2D>(data.GetReferenceImagePath());
                     data.testMaterial = individualTest.material;
-                    data.TestMaterialPath = individualTest.material.name;
                     data.customMesh = testAsset.customMesh;
-                    if(data.testMaterial == null)
-                    {
-                        continue;
-                    }
                     output.Add(data);
                 }
             }
@@ -120,20 +113,20 @@ public class UseTestAssetTestCaseAttribute : UnityEngine.TestTools.UnityTestAttr
                     TestAssetTestData data = new TestAssetTestData();
                     data.FromJson(individualTestData.text);
                     Debug.Log("data:" + data.testName);
-                    if (data.TestMaterialPath == null || data.TestMaterialPath.Length == 0)
+                    if (data.TestMaterialLookup == null || data.TestMaterialLookup.Length == 0)
                     {
                         continue;
                     }
-                    Debug.Log("data.TestMaterialPath:" + data.TestMaterialPath);
-                    data.testMaterial = referenceImagesBundle.LoadAsset<Material>(data.TestMaterialPath);
+                    Debug.Log("data.TestMaterialPath:" + data.TestMaterialLookup);
+                    data.testMaterial = referenceImagesBundle.LoadAsset<Material>(data.TestMaterialLookup);
                     Debug.Log("material loaded " + (data.testMaterial != null).ToString());
-                    if(data.CustomMeshPath != null && data.CustomMeshPath.Length > 0)
+                    if(data.CustomMeshLookup != null && data.CustomMeshLookup.Length > 0)
                     {
-                        data.customMesh = referenceImagesBundle.LoadAsset<Mesh>(data.CustomMeshPath);
+                        data.customMesh = referenceImagesBundle.LoadAsset<Mesh>(data.CustomMeshLookup);
                     }
-                    if(data.ExpectedResultPath != null && data.ExpectedResultPath.Length > 0)
+                    if(data.ReferenceImageLookup != null && data.ReferenceImageLookup.Length > 0)
                     {
-                        data.expectedResult = referenceImagesBundle.LoadAsset<Texture2D>(data.ExpectedResultPath);
+                        data.referenceImage = referenceImagesBundle.LoadAsset<Texture2D>(data.ReferenceImageLookup);
                     }
                     Debug.Log("returning data");
                     yield return data;
@@ -196,7 +189,7 @@ public class UseTestAssetTestCaseAttribute : UnityEngine.TestTools.UnityTestAttr
                 continue;
             }
 
-            TestCaseData data = new TestCaseData(new object[] {materialTest.testMaterial, materialTest.isCameraPersective, materialTest.expectedResult, materialTest.imageComparisonSettings, materialTest.customMesh });
+            TestCaseData data = new TestCaseData(new object[] { materialTest });
             data.SetName(materialTest.testMaterial.name);
             data.ExpectedResult = new UnityEngine.Object();
             data.HasExpectedResult = true;
@@ -206,7 +199,8 @@ public class UseTestAssetTestCaseAttribute : UnityEngine.TestTools.UnityTestAttr
             if (test.parms != null)
                 test.parms.HasExpectedResult = false;
 
-            test.Name = $"{materialTest.testName} {materialTest.testMaterial.name}";
+            string testName = $"{materialTest.testName}-{materialTest.testMaterial.name}";
+            test.Name = testName;
             results.Add(test);
         }
 
