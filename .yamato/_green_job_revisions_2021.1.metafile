@@ -137,7 +137,7 @@ nightly_vfx_hdrp_-_2021_1:
       updated_at: '2020-12-16 00:05:36.049181'
       version: ''
 nightly_vfx_hdrp_-_2021.1:
-  updated_at: '2021-03-09 16:37:17.603447'
+  updated_at: '2021-03-10 07:28:14.211964'
   last_green_revisions:
     Android:
       revision: a32fa812e225be740bd539128e680892c28f2f86
@@ -160,7 +160,7 @@ nightly_vfx_hdrp_-_2021.1:
       updated_at: '2021-03-08 09:56:15.933265'
       version: ''
 vfx_hdrp_pr_job_-_2021.1:
-  updated_at: '2021-03-09 16:37:17.603447'
+  updated_at: '2021-03-10 07:28:14.211964'
   last_green_revisions:
     Android:
       revision: a32fa812e225be740bd539128e680892c28f2f86
@@ -183,7 +183,7 @@ vfx_hdrp_pr_job_-_2021.1:
       updated_at: '2021-03-08 09:56:15.933265'
       version: ''
 nightly_vfx_urp_-_2021.1:
-  updated_at: '2021-03-09 16:37:17.603447'
+  updated_at: '2021-03-10 07:28:14.211964'
   last_green_revisions:
     Android:
       revision: a32fa812e225be740bd539128e680892c28f2f86
@@ -206,7 +206,7 @@ nightly_vfx_urp_-_2021.1:
       updated_at: '2021-03-08 09:56:15.933265'
       version: ''
 vfx_urp_pr_job_-_2021.1:
-  updated_at: '2021-03-09 16:37:17.603447'
+  updated_at: '2021-03-10 07:28:14.211964'
   last_green_revisions:
     Android:
       revision: a32fa812e225be740bd539128e680892c28f2f86
@@ -229,7 +229,7 @@ vfx_urp_pr_job_-_2021.1:
       updated_at: '2021-03-08 09:56:15.933265'
       version: ''
 shadergraph_pr_job_-_2021.1:
-  updated_at: '2021-03-09 16:37:17.603447'
+  updated_at: '2021-03-10 07:28:14.211964'
   last_green_revisions:
     Android:
       revision: a32fa812e225be740bd539128e680892c28f2f86
@@ -252,7 +252,7 @@ shadergraph_pr_job_-_2021.1:
       updated_at: '2021-03-08 09:56:15.933265'
       version: ''
 nightly_shadergraph_-_2021.1:
-  updated_at: '2021-03-09 16:37:17.603447'
+  updated_at: '2021-03-10 07:28:14.211964'
   last_green_revisions:
     Android:
       revision: a32fa812e225be740bd539128e680892c28f2f86
@@ -319,4 +319,27 @@ universal_pr_job_-_2021.1:
     iPhone:
       revision: 5ed91de3f8a90cc3e8464d37429d73d98dc968c9
       updated_at: '2021-02-26 00:03:57.005494'
+      version: ''
+hdrp_pr_job_-_2021.1:
+  updated_at: '2021-03-10 07:28:14.211964'
+  last_green_revisions:
+    Android:
+      revision: a32fa812e225be740bd539128e680892c28f2f86
+      updated_at: '2021-03-08 09:56:15.933265'
+      version: ''
+    Linux:
+      revision: ddf8e7a924bd0f012133ee2a94c6bd186fbe8c9e
+      updated_at: '2021-03-02 23:28:27.925068'
+      version: ''
+    OSX:
+      revision: 6ee7891efa959fbd1bbfc3dd4525e47531b04f16
+      updated_at: '2021-03-08 09:56:15.933265'
+      version: ''
+    Win:
+      revision: 69b253db1ea3ded3fdd031c9719decc85beeed23
+      updated_at: '2021-03-08 09:56:15.933265'
+      version: ''
+    iPhone:
+      revision: 6ee7891efa959fbd1bbfc3dd4525e47531b04f16
+      updated_at: '2021-03-08 09:56:15.933265'
       version: ''
