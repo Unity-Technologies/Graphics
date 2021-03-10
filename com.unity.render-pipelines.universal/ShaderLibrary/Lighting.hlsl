@@ -630,8 +630,7 @@ half3 SampleLightmap(float2 lightmapUV, half3 normalWS)
 half3 BoxProjectedCubemapDirection(half3 reflectVector, half3 positionWS, float4 cubemapCenter, float4 boxMin, float4 boxMax)
 {
     // Do we have a valid reflection probe?
-    UNITY_BRANCH
-    if (cubemapCenter.w > 0.0)
+    [branch] if (cubemapCenter.w > 0.0)
     {
         float3 boxMinMax = (reflectVector > 0.0f) ? boxMax.xyz : boxMin.xyz;
         float3 rbMinMax = (boxMinMax - positionWS) / reflectVector;
@@ -647,7 +646,7 @@ half3 BoxProjectedCubemapDirection(half3 reflectVector, half3 positionWS, float4
 
 float CalculateProbeWeight(half3 positionWS, float4 probeBoxMin, float4 probeBoxMax)
 {
-    float blendDistance = 1;
+    float blendDistance = probeBoxMax.w;
     float3 weightDir = min(positionWS - probeBoxMin.xyz, probeBoxMax.xyz - positionWS) / blendDistance;
     return saturate(min(weightDir.x, min(weightDir.y, weightDir.z)));
 }
@@ -660,29 +659,37 @@ float CalculateProbeVolume(float4 probeBoxMin, float4 probeBoxMax)
 
 half3 CalculateIrradianceFromReflectionProbes(half3 reflectVector, half3 positionWS, half perceptualRoughness)
 {
+    float probe0Volume = CalculateProbeVolume(unity_SpecCube0_BoxMin, unity_SpecCube0_BoxMax);
+    float probe1Volume = CalculateProbeVolume(unity_SpecCube1_BoxMin, unity_SpecCube1_BoxMax);
+
+    float volumeSign = sign(probe0Volume - probe1Volume);
+    float importanceSign = unity_SpecCube1_BoxMin.w;
+
+    // A probe is dominant if its importance is higher
+    // Or have equal importance but smaller volume
+    bool probe0Dominant = importanceSign > 0 || (importanceSign == 0 && volumeSign < 0);
+    bool probe1Dominant = importanceSign < 0 || (importanceSign == 0 && volumeSign > 0);
+
+    float desiredWeightProbe0 = CalculateProbeWeight(positionWS, unity_SpecCube0_BoxMin, unity_SpecCube0_BoxMax);
+    float desiredWeightProbe1 = CalculateProbeWeight(positionWS, unity_SpecCube1_BoxMin, unity_SpecCube1_BoxMax);
+
+    // Subject the probes weight if the other probe is dominant
+    float weightProbe0 = probe1Dominant ? min(desiredWeightProbe0, 1 - desiredWeightProbe1) : desiredWeightProbe0;
+    float weightProbe1 = probe0Dominant ? min(desiredWeightProbe1, 1 - desiredWeightProbe0) : desiredWeightProbe1;
+
+    float totalWeight = weightProbe0 + weightProbe1;
+
+    // If either probe 0 or probe 1 is dominant the sum of weights is guaranteed to be 1.
+    // If neither is dominant this is not guaranteed - only normalize weights if totalweight exceeds 1.
+    weightProbe0 /= max(totalWeight, 1);
+    weightProbe1 /= max(totalWeight, 1);
+
     half3 irradiance = half3(0, 0, 0);
     half3 originalReflectVector = reflectVector;
-
-    float specCube0Volume = CalculateProbeVolume(unity_SpecCube0_BoxMin, unity_SpecCube0_BoxMax);
-    float specCube1Volume = CalculateProbeVolume(unity_SpecCube1_BoxMin, unity_SpecCube1_BoxMax);
-    bool isSmaller = specCube0Volume < specCube1Volume;
-    bool isEq = specCube0Volume == specCube1Volume;
-
-    float specCube0_weight = CalculateProbeWeight(positionWS, unity_SpecCube0_BoxMin, unity_SpecCube0_BoxMax);
-    float specCube1_weight = CalculateProbeWeight(positionWS, unity_SpecCube1_BoxMin, unity_SpecCube1_BoxMax);
-
-    float specCube0_weight_final = isSmaller ? specCube0_weight : min(specCube0_weight, 1 - specCube1_weight);
-    float specCube1_weight_final = isSmaller ? min(specCube1_weight, 1 - specCube0_weight) : specCube1_weight;
-
-    float totalWeight = max(specCube0_weight + specCube1_weight, 1.0f);
-
-    specCube0_weight_final = isEq ? specCube0_weight / totalWeight : specCube0_weight_final;
-    specCube1_weight_final = isEq ? specCube1_weight / totalWeight : specCube1_weight_final;
-
     half mip = PerceptualRoughnessToMipmapLevel(perceptualRoughness);
 
-    // Spec 0
-    if(specCube0_weight_final > 0)
+    // Sample probe 0
+    if (weightProbe0 > 0.01f)
     {
 #ifdef UNITY_SPECCUBE_BOX_PROJECTION
         reflectVector = BoxProjectedCubemapDirection(originalReflectVector, positionWS, unity_SpecCube0_ProbePosition, unity_SpecCube0_BoxMin, unity_SpecCube0_BoxMax);
@@ -693,14 +700,14 @@ half3 CalculateIrradianceFromReflectionProbes(half3 reflectVector, half3 positio
         half4 encodedIrradiance = SAMPLE_TEXTURECUBE_LOD(unity_SpecCube0, samplerunity_SpecCube0, reflectVector, mip);
 
 #if defined(UNITY_USE_NATIVE_HDR) || defined(UNITY_DOTS_INSTANCING_ENABLED)
-        irradiance += specCube0_weight_final * encodedIrradiance.rbg;
+        irradiance += weightProbe0 * encodedIrradiance.rbg;
 #else
-        irradiance += specCube0_weight_final * DecodeHDREnvironment(encodedIrradiance, unity_SpecCube0_HDR);
+        irradiance += weightProbe0 * DecodeHDREnvironment(encodedIrradiance, unity_SpecCube0_HDR);
 #endif // UNITY_USE_NATIVE_HDR || UNITY_DOTS_INSTANCING_ENABLED
     }
 
-    // Spec 1
-    if(specCube1_weight_final > 0)
+    // Sample probe 1 
+    if (weightProbe1 > 0.01f)
     {
 #ifdef UNITY_SPECCUBE_BOX_PROJECTION
         reflectVector = BoxProjectedCubemapDirection(originalReflectVector, positionWS, unity_SpecCube1_ProbePosition, unity_SpecCube1_BoxMin, unity_SpecCube1_BoxMax);
@@ -710,22 +717,22 @@ half3 CalculateIrradianceFromReflectionProbes(half3 reflectVector, half3 positio
         half4 encodedIrradiance = SAMPLE_TEXTURECUBE_LOD(unity_SpecCube1, samplerunity_SpecCube1, reflectVector, mip);
 
 #if defined(UNITY_USE_NATIVE_HDR) || defined(UNITY_DOTS_INSTANCING_ENABLED)
-        irradiance += specCube1_weight_final * encodedIrradiance.rbg;
+        irradiance += weightProbe1 * encodedIrradiance.rbg;
 #else
-        irradiance += specCube1_weight_final * DecodeHDREnvironment(encodedIrradiance, unity_SpecCube1_HDR);
+        irradiance += weightProbe1 * DecodeHDREnvironment(encodedIrradiance, unity_SpecCube1_HDR);
 #endif // UNITY_USE_NATIVE_HDR || UNITY_DOTS_INSTANCING_ENABLED
     }
 
-    // Use any remaining weight for the skybox
-    if (specCube1_weight + specCube0_weight < 0.99)
+    // Use any remaining weight to blend to skybox
+    if (totalWeight < 0.99)
     {
         reflectVector = originalReflectVector;
         half4 encodedIrradiance = SAMPLE_TEXTURECUBE_LOD(_skybox, sampler_skybox, reflectVector, mip);
 
 #if defined(UNITY_USE_NATIVE_HDR) || defined(UNITY_DOTS_INSTANCING_ENABLED)
-        irradiance += (1 - specCube0_weight_final - specCube1_weight_final) * encodedIrradiance.rbg;
+        irradiance += (1 - totalWeight) * encodedIrradiance.rbg;
 #else
-        irradiance += (1 - specCube0_weight_final - specCube1_weight_final) * DecodeHDREnvironment(encodedIrradiance, unity_SpecCube1_HDR);
+        irradiance += (1 - totalWeight) * DecodeHDREnvironment(encodedIrradiance, unity_SpecCube1_HDR);
 #endif // UNITY_USE_NATIVE_HDR || UNITY_DOTS_INSTANCING_ENABLED
     }
 

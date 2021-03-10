@@ -643,6 +643,7 @@ namespace UnityEngine.Rendering.Universal
                 motionVectors = false,
                 receiveShadows = false,
                 reflectionProbes = true,
+                reflectionProbesBlendDistance = true,
                 particleSystemInstancing = true
             };
             SceneViewDrawMode.SetupDrawMode();

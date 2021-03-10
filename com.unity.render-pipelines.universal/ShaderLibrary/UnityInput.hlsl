@@ -118,11 +118,11 @@ float4 unity_ProbesOcclusion;
 real4 unity_SpecCube0_HDR;
 real4 unity_SpecCube1_HDR;
 
-float4 unity_SpecCube0_BoxMax;
+float4 unity_SpecCube0_BoxMax;          // w contains the blend distance
 float4 unity_SpecCube0_BoxMin;          // w contains the lerp value
 float4 unity_SpecCube0_ProbePosition;   // w is set to 1 for box projection
-float4 unity_SpecCube1_BoxMax;
-float4 unity_SpecCube1_BoxMin;
+float4 unity_SpecCube1_BoxMax;          // w contains the blend distance
+float4 unity_SpecCube1_BoxMin;          // w contains the sign of (SpecCube0.importance - SpecCube1.importance)
 float4 unity_SpecCube1_ProbePosition;   // w is set to 1 for box projection
 
 // Lightmap block feature
