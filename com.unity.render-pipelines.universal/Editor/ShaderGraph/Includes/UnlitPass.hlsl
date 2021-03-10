@@ -4,7 +4,15 @@ PackedVaryings vert(Attributes input)
 
 #if defined(HAVE_VFX_MODIFICATION)
     AttributesElement element;
-    //TODOPAUL : fill AttributesElement magically !!!!!!!
+    ZERO_INITIALIZE(AttributesElement, element);
+
+    if (!GetMeshAndElementIndex(input, element))
+        return output; // Culled index.
+
+    if (!GetInterpolatorAndElementData(output, element))
+        return output; // Dead particle.
+
+    input = TransformMeshToElement(input, element);
     output = BuildVaryings(input, element);
 #else
     output = BuildVaryings(input);
