@@ -247,7 +247,7 @@ pr:
       color_space: Linear
       test_platforms:
         - performance_playmode_runtime
-        - performance_playmode_editor
+        #- performance_playmode_editor
         - performance_build_editmode
 nightly:
   dependencies:
