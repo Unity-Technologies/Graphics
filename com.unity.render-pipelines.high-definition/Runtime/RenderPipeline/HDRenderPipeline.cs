@@ -830,7 +830,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
             CustomPassVolume.Cleanup();
 
-            DensityVolumeManager.manager.ReleaseAtlas();
+            LocalVolumetricFogManager.manager.ReleaseAtlas();
 
             CleanupPrepass();
             CoreUtils.Destroy(m_ColorResolveMaterial);
@@ -1976,7 +1976,7 @@ namespace UnityEngine.Rendering.HighDefinition
                     material.Bind(cmd);
 
                 // Frustum cull Local Volumetric Fog on the CPU. Can be performed as soon as the camera is set up.
-                DensityVolumeList densityVolumes = PrepareVisibleDensityVolumeList(hdCamera, cmd);
+                LocalVolumetricFogList densityVolumes = PrepareVisibleLocalVolumetricFogList(hdCamera, cmd);
 
                 // do AdaptiveProbeVolume stuff
                 BindAPVRuntimeResources(cmd, hdCamera);

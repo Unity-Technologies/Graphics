@@ -111,7 +111,7 @@ CBUFFER_START(ShaderVariablesLightList)
     int g_iNumSamplesMSAA;
     uint _EnvLightIndexShift;
     uint _DecalIndexShift;
-    uint _DensityVolumeIndexShift;
+    uint _LocalVolumetricFogIndexShift;
     uint _Pad0_SVLL;
     uint _Pad1_SVLL;
     uint _Pad2_SVLL;

@@ -1,4 +1,5 @@
 using System;
+using System.ComponentModel;
 using UnityEngine.Serialization;
 using UnityEngine.Experimental.Rendering;
 
@@ -117,6 +118,7 @@ namespace UnityEngine.Rendering.HighDefinition
     /// Possible values for one element of the Local Volumetric Fog atlas.
     /// </summary>
     [Serializable]
+    [Obsolete("DensityVolumeResolution has been deprecated (UnityUpgradable) -> LocalVolumetricFogResolution", false)]
     public enum DensityVolumeResolution
     {
         /// <summary>3D volume of 32x32x32 voxels.</summary>
@@ -126,6 +128,26 @@ namespace UnityEngine.Rendering.HighDefinition
         /// <summary>3D volume of 128x128x128 voxels.</summary>
         Resolution128 = 128,
         /// <summary>3D volume of 256x256x256 voxels.</summary>
+        Resolution256 = 256,
+    }
+
+    /// <summary>
+    /// Possible values for one element of the Local Volumetric Fog atlas.
+    /// </summary>
+    [Serializable]
+    public enum LocalVolumetricFogResolution
+    {
+        /// <summary>3D volume of 32x32x32 voxels.</summary>
+        [Description("32x32x32")]
+        Resolution32 = 32,
+        /// <summary>3D volume of 64x64x64 voxels.</summary>
+        [Description("64x64x64")]
+        Resolution64 = 64,
+        /// <summary>3D volume of 128x128x128 voxels.</summary>
+        [Description("128x128x128")]
+        Resolution128 = 128,
+        /// <summary>3D volume of 256x256x256 voxels.</summary>
+        [Description("256x256x256")]
         Resolution256 = 256,
     }
 
@@ -164,8 +186,8 @@ namespace UnityEngine.Rendering.HighDefinition
             maxDecalsOnScreen = 512,
             maxPlanarReflectionOnScreen = 16,
             maxLightsPerClusterCell = 8,
-            maxDensityVolumeSize = DensityVolumeResolution.Resolution32,
-            maxDensityVolumesOnScreen = 64, // 8MB texture atlas allocated by default
+            maxLocalVolumetricFogSize = LocalVolumetricFogResolution.Resolution32,
+            maxLocalVolumetricFogsOnScreen = 64, // 8MB texture atlas allocated by default
         };
 
         /// <summary>Cookie atlas resolution.</summary>
@@ -219,8 +241,26 @@ namespace UnityEngine.Rendering.HighDefinition
         public int maxLightsPerClusterCell;
 
         /// <summary>Maximum size of one Local Volumetric Fog texture.</summary>
-        public DensityVolumeResolution maxDensityVolumeSize;
+        [Obsolete("Use maxLocalVolumetricFogSize instead", false)]
+        public DensityVolumeResolution maxDensityVolumeSize
+        {
+            get => (DensityVolumeResolution) maxLocalVolumetricFogSize;
+            set => maxLocalVolumetricFogSize = (LocalVolumetricFogResolution) value;
+        }
+
         /// <summary>Maximum number of Local Volumetric Fog at the same time on screen.</summary>
-        public int maxDensityVolumesOnScreen;
+        [Obsolete("Use maxLocalVolumetricFogsOnScreen instead", false)]
+        public int maxDensityVolumesOnScreen
+        {
+            get => maxLocalVolumetricFogsOnScreen;
+            set => maxLocalVolumetricFogsOnScreen = value;
+        }
+
+        /// <summary>Maximum size of one Local Volumetric Fog texture.</summary>
+        public LocalVolumetricFogResolution maxLocalVolumetricFogSize;
+
+        /// <summary>Maximum number of Local Volumetric Fog at the same time on screen.</summary>
+        [Range(1, 512)]
+        public int maxLocalVolumetricFogsOnScreen;
     }
 }

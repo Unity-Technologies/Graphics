@@ -2,7 +2,7 @@ using UnityEngine;
 
 namespace UnityEditor.Rendering.HighDefinition
 {
-    static partial class DensityVolumeUI
+    static partial class LocalVolumetricFogUI
     {
         internal static class Styles
         {

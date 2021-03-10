@@ -12,7 +12,7 @@ To create a Local Volumetric Fog, right click in the Hierarchy and select __Volu
 
 # Properties
 
-![](Images/DensityVolume1.png)
+![](Images/LocalVolumetricFog1.png)
 
 
 

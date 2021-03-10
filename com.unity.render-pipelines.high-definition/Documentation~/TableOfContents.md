@@ -133,7 +133,7 @@
   * [Environment Lighting](Environment-Lighting.md)
   * [Clouds in HDRP](clouds-in-hdrp.md)
   * [Atmospheric Scattering](Atmospheric-Scattering.md)
-  * [Local Volumetric Fog](Density-Volume.md)
+  * [Local Volumetric Fog](Local-Volumetric-Fog.md)
   * [Light Layers](Light-Layers.md)
   * [Shadows](Shadows-in-HDRP.md)
   * [Shadowmasks](Lighting-Mode-Shadowmask.md)

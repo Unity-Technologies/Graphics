@@ -3,17 +3,17 @@ using UnityEngine.Experimental.Rendering;
 
 namespace UnityEngine.Rendering.HighDefinition
 {
-    class DensityVolumeManager
+    class LocalVolumetricFogManager
     {
         public static readonly GraphicsFormat densityVolumeAtlasFormat = GraphicsFormat.R8G8B8A8_UNorm;
 
-        static DensityVolumeManager m_Manager;
-        public static DensityVolumeManager manager
+        static LocalVolumetricFogManager m_Manager;
+        public static LocalVolumetricFogManager manager
         {
             get
             {
                 if (m_Manager == null)
-                    m_Manager = new DensityVolumeManager();
+                    m_Manager = new LocalVolumetricFogManager();
                 return m_Manager;
             }
         }
@@ -30,15 +30,15 @@ namespace UnityEngine.Rendering.HighDefinition
                     // Prevent allocating too big textures:
                     int elementCount = Texture3DAtlas.GetMaxElementCountForWeightInByte(
                         HDRenderPipeline.k_MaxCacheSize,
-                        (int)settings.maxDensityVolumeSize,
-                        settings.maxDensityVolumesOnScreen,
+                        (int)settings.maxLocalVolumetricFogSize,
+                        settings.maxLocalVolumetricFogsOnScreen,
                         densityVolumeAtlasFormat,
                         true
                     );
 
-                    elementCount = Mathf.Clamp(elementCount, 1, settings.maxDensityVolumesOnScreen);
+                    elementCount = Mathf.Clamp(elementCount, 1, settings.maxLocalVolumetricFogsOnScreen);
 
-                    m_VolumeAtlas = new Texture3DAtlas(densityVolumeAtlasFormat, (int)settings.maxDensityVolumeSize, elementCount);
+                    m_VolumeAtlas = new Texture3DAtlas(densityVolumeAtlasFormat, (int)settings.maxLocalVolumetricFogSize, elementCount);
 
                     // When HDRP is initialized and this atlas created, some Local Volumetric Fog may have been initialized before so we add them here.
                     foreach (var volume in m_Volumes)
@@ -52,14 +52,14 @@ namespace UnityEngine.Rendering.HighDefinition
             }
         }
 
-        List<DensityVolume> m_Volumes = null;
+        List<LocalVolumetricFog> m_Volumes = null;
 
-        DensityVolumeManager()
+        LocalVolumetricFogManager()
         {
-            m_Volumes = new List<DensityVolume>();
+            m_Volumes = new List<LocalVolumetricFog>();
         }
 
-        public void RegisterVolume(DensityVolume volume)
+        public void RegisterVolume(LocalVolumetricFog volume)
         {
             m_Volumes.Add(volume);
 
@@ -84,7 +84,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 Debug.LogError($"No more space in the Local Volumetric Fog atlas, consider increasing the max Local Volumetric Fog on screen in the HDRP asset.");
         }
 
-        public void DeRegisterVolume(DensityVolume volume)
+        public void DeRegisterVolume(LocalVolumetricFog volume)
         {
             if (m_Volumes.Contains(volume))
                 m_Volumes.Remove(volume);
@@ -103,16 +103,16 @@ namespace UnityEngine.Rendering.HighDefinition
             }
         }
 
-        public bool ContainsVolume(DensityVolume volume) => m_Volumes.Contains(volume);
+        public bool ContainsVolume(LocalVolumetricFog volume) => m_Volumes.Contains(volume);
 
-        public List<DensityVolume> PrepareDensityVolumeData(CommandBuffer cmd, HDCamera currentCam)
+        public List<LocalVolumetricFog> PrepareLocalVolumetricFogData(CommandBuffer cmd, HDCamera currentCam)
         {
             //Update volumes
             float time = currentCam.time;
-            foreach (DensityVolume volume in m_Volumes)
+            foreach (LocalVolumetricFog volume in m_Volumes)
                 volume.PrepareParameters(time);
 
-            using (new ProfilingScope(cmd, ProfilingSampler.Get(HDProfileId.UpdateDensityVolumeAtlas)))
+            using (new ProfilingScope(cmd, ProfilingSampler.Get(HDProfileId.UpdateLocalVolumetricFogAtlas)))
             {
                 volumeAtlas.Update(cmd);
             }

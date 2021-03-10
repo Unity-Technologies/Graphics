@@ -1,4 +1,5 @@
 using System;
+using UnityEngine.Serialization;
 
 namespace UnityEngine.Rendering.HighDefinition
 {
@@ -353,7 +354,15 @@ namespace UnityEngine.Rendering.HighDefinition
         public bool                 showReflectionProbe = true;
 
         /// <summary>Display the Local Volumetric Fog atlas.</summary>
-        public bool                 displayDensityVolumeAtlas = false;
+        [Obsolete("Use displayLocalVolumetricFogAtlas instead", false)]
+        public bool displayDensityVolumeAtlas
+        {
+            get => displayLocalVolumetricFogAtlas;
+            set => displayLocalVolumetricFogAtlas = value;
+        }
+
+        /// <summary>Display the Local Volumetric Fog atlas.</summary>
+        public bool                 displayLocalVolumetricFogAtlas = false;
         /// <summary>Local Volumetric Fog atlas slice.</summary>
         public uint                 densityVolumeAtlasSlice = 0;
         /// <summary>True if Local Volumetric Fog Atlas debug mode should be displayed for the currently selected Local Volumetric Fog.</summary>

@@ -6,13 +6,13 @@ namespace UnityEditor.Rendering.HighDefinition
 {
     class VolumetricMenuItems
     {
-        [MenuItem("GameObject/Local Volumetric Fog", priority = CoreUtils.Sections.section2 + CoreUtils.Priorities.gameObjectMenuPriority + 2)]
-        static void CreateDensityVolumeGameObject(MenuCommand menuCommand)
+        [MenuItem("GameObject/Local Volumetric Fog", priority = CoreUtils.Priorities.gameObjectMenuPriority + 2)]
+        static void CreateLocalVolumetricFogGameObject(MenuCommand menuCommand)
         {
             var parent = menuCommand.context as GameObject;
             var densityVolume = CoreEditorUtils.CreateGameObject("Local Volumetric Fog", parent);
 
-            densityVolume.AddComponent<DensityVolume>();
+            densityVolume.AddComponent<LocalVolumetricFog>();
         }
 
         [MenuItem("GameObject/Light/Experimental/Probe Volume", priority = CoreUtils.Sections.section8)]

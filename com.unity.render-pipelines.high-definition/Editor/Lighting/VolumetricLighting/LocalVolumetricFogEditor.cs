@@ -6,8 +6,8 @@ using UnityEditor.Rendering;
 namespace UnityEditor.Rendering.HighDefinition
 {
     [CanEditMultipleObjects]
-    [CustomEditor(typeof(DensityVolume))]
-    class DensityVolumeEditor : Editor
+    [CustomEditor(typeof(LocalVolumetricFog))]
+    class LocalVolumetricFogEditor : Editor
     {
         internal const EditMode.SceneViewEditMode k_EditShape = EditMode.SceneViewEditMode.ReflectionProbeBox;
         internal const EditMode.SceneViewEditMode k_EditBlend = EditMode.SceneViewEditMode.GridBox;
@@ -15,20 +15,20 @@ namespace UnityEditor.Rendering.HighDefinition
         static HierarchicalBox s_ShapeBox;
         internal static HierarchicalBox s_BlendBox;
 
-        SerializedDensityVolume m_SerializedDensityVolume;
+        SerializedLocalVolumetricFog m_SerializedLocalVolumetricFog;
 
         void OnEnable()
         {
-            m_SerializedDensityVolume = new SerializedDensityVolume(serializedObject);
+            m_SerializedLocalVolumetricFog = new SerializedLocalVolumetricFog(serializedObject);
 
             if (s_ShapeBox == null || s_ShapeBox.Equals(null))
             {
-                s_ShapeBox = new HierarchicalBox(DensityVolumeUI.Styles.k_GizmoColorBase, DensityVolumeUI.Styles.k_BaseHandlesColor);
+                s_ShapeBox = new HierarchicalBox(LocalVolumetricFogUI.Styles.k_GizmoColorBase, LocalVolumetricFogUI.Styles.k_BaseHandlesColor);
                 s_ShapeBox.monoHandle = false;
             }
             if (s_BlendBox == null || s_BlendBox.Equals(null))
             {
-                s_BlendBox = new HierarchicalBox(DensityVolumeUI.Styles.k_GizmoColorBase, InfluenceVolumeUI.k_HandlesColor, parent: s_ShapeBox);
+                s_BlendBox = new HierarchicalBox(LocalVolumetricFogUI.Styles.k_GizmoColorBase, InfluenceVolumeUI.k_HandlesColor, parent: s_ShapeBox);
             }
         }
 
@@ -36,12 +36,12 @@ namespace UnityEditor.Rendering.HighDefinition
         {
             serializedObject.Update();
 
-            DensityVolumeUI.Inspector.Draw(m_SerializedDensityVolume, this);
+            LocalVolumetricFogUI.Inspector.Draw(m_SerializedLocalVolumetricFog, this);
 
-            m_SerializedDensityVolume.Apply();
+            m_SerializedLocalVolumetricFog.Apply();
         }
 
-        static Vector3 CenterBlendLocalPosition(DensityVolume densityVolume)
+        static Vector3 CenterBlendLocalPosition(LocalVolumetricFog densityVolume)
         {
             if (densityVolume.parameters.m_EditorAdvancedFade)
             {
@@ -61,7 +61,7 @@ namespace UnityEditor.Rendering.HighDefinition
                 return Vector3.zero;
         }
 
-        static Vector3 BlendSize(DensityVolume densityVolume)
+        static Vector3 BlendSize(LocalVolumetricFog densityVolume)
         {
             Vector3 size = densityVolume.parameters.size;
             if (densityVolume.parameters.m_EditorAdvancedFade)
@@ -77,7 +77,7 @@ namespace UnityEditor.Rendering.HighDefinition
         }
 
         [DrawGizmo(GizmoType.Selected | GizmoType.Active)]
-        static void DrawGizmosSelected(DensityVolume densityVolume, GizmoType gizmoType)
+        static void DrawGizmosSelected(LocalVolumetricFog densityVolume, GizmoType gizmoType)
         {
             if (s_BlendBox == null || s_BlendBox.Equals(null)
                 || s_ShapeBox == null || s_ShapeBox.Equals(null))
@@ -102,11 +102,11 @@ namespace UnityEditor.Rendering.HighDefinition
 
         void OnSceneGUI()
         {
-            //Note: for each handle to be independent when multi-selecting DensityVolume,
-            //We cannot rely  hereon SerializedDensityVolume which is the collection of
-            //selected DensityVolume. Thus code is almost the same of the UI.
+            //Note: for each handle to be independent when multi-selecting LocalVolumetricFog,
+            //We cannot rely  hereon SerializedLocalVolumetricFog which is the collection of
+            //selected LocalVolumetricFog. Thus code is almost the same of the UI.
 
-            DensityVolume densityVolume = target as DensityVolume;
+            LocalVolumetricFog densityVolume = target as LocalVolumetricFog;
 
             switch (EditMode.editMode)
             {

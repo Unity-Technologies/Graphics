@@ -1416,26 +1416,26 @@ namespace UnityEngine.Rendering.HighDefinition
                 });
             }
 
-            list.Add(new DebugUI.BoolField { displayName = "Display Local Volumetric Fog Atlas", getter = () => data.lightingDebugSettings.displayDensityVolumeAtlas, setter = value => data.lightingDebugSettings.displayDensityVolumeAtlas = value, onValueChanged = RefreshLightingDebug});
-            if (data.lightingDebugSettings.displayDensityVolumeAtlas)
+            list.Add(new DebugUI.BoolField { displayName = "Display Local Volumetric Fog Atlas", getter = () => data.lightingDebugSettings.displayLocalVolumetricFogAtlas, setter = value => data.lightingDebugSettings.displayLocalVolumetricFogAtlas = value, onValueChanged = RefreshLightingDebug});
+            if (data.lightingDebugSettings.displayLocalVolumetricFogAtlas)
             {
                 list.Add(new DebugUI.Container
                 {
                     children =
                     {
-                        new DebugUI.UIntField { displayName = "Slice", getter = () => data.lightingDebugSettings.densityVolumeAtlasSlice, setter = value => data.lightingDebugSettings.densityVolumeAtlasSlice = value, min = () => 0, max = () => GetDensityVolumeSliceCount()},
+                        new DebugUI.UIntField { displayName = "Slice", getter = () => data.lightingDebugSettings.densityVolumeAtlasSlice, setter = value => data.lightingDebugSettings.densityVolumeAtlasSlice = value, min = () => 0, max = () => GetLocalVolumetricFogSliceCount()},
                         new DebugUI.BoolField { displayName = "Use Selection", getter = () => data.lightingDebugSettings.densityVolumeUseSelection, setter = value => data.lightingDebugSettings.densityVolumeUseSelection = value, flags = DebugUI.Flags.EditorOnly, onValueChanged = RefreshLightingDebug},
                     }
                 });
             }
 
-            uint GetDensityVolumeSliceCount()
+            uint GetLocalVolumetricFogSliceCount()
             {
 #if UNITY_EDITOR
                 if (data.lightingDebugSettings.densityVolumeUseSelection)
                 {
                     var selectedGO = UnityEditor.Selection.activeGameObject;
-                    if (selectedGO != null && selectedGO.TryGetComponent<DensityVolume>(out var densityVolume))
+                    if (selectedGO != null && selectedGO.TryGetComponent<LocalVolumetricFog>(out var densityVolume))
                     {
                         var texture = densityVolume.parameters.volumeMask;
 
@@ -1446,7 +1446,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 }
                 else
 #endif
-                return (uint)DensityVolumeManager.manager.volumeAtlas.GetAtlas().volumeDepth - 1;
+                return (uint)LocalVolumetricFogManager.manager.volumeAtlas.GetAtlas().volumeDepth - 1;
             }
 
             list.Add(new DebugUI.FloatField { displayName = "Debug Overlay Screen Ratio", getter = () => data.debugOverlayRatio, setter = v => data.debugOverlayRatio = v, min = () => 0.1f, max = () => 1f});
@@ -1891,16 +1891,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
         void FillTileClusterDebugEnum()
         {
-            string[] names = Enum.GetNames(typeof(TileClusterCategoryDebug));
-            for (int i = 0; i < names.Length; ++i)
-            {
-                var n = names[i];
-                names[i] = n.Replace("Environment", "ReflectionProbes");
-            }
-
-            s_TileAndClusterDebugStrings = names
-                .Select(t => new GUIContent(t))
-                .ToArray();
+            s_TileAndClusterDebugStrings = CoreUtils.GetEnumFriendlyNames<TileClusterCategoryDebug>();
             s_TileAndClusterDebugValues = (int[])Enum.GetValues(typeof(TileClusterCategoryDebug));
         }
 
