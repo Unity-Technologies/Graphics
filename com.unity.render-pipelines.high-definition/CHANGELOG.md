@@ -110,6 +110,24 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed: SSR with transparent (case 1311088)
 - Fixed decals in material debug display.
 - Fixed update upon light movement for directional light rotation.
+- Fixed an issue in the planar reflection probe convolution.
+- Fixed loss of persistency of ratio between pivot position and size when sliding by 0 in DecalProjector inspector (case 1308338)
+- Fixed nullref when adding a volume component in a Volume profile asset (case 1317156).
+- Fixed decal normal for double sided materials (case 1312065).
+- Fixed multiple HDRP Frame Settings panel issues: missing "Refraction" Frame Setting. Fixing ordering of Rough Distortion, it should now be under the Distortion setting.
+- Fixed issue with automatic exposure settings not updating scene view.
+- Fixed issue with velocity rejection in post-DoF TAA. Fixing this reduces ghosting (case 1304381).
+- Fixed missing option to use POM on emissive for tessellated shaders.
+- Fixed Rough Distortion frame setting not greyed out when Distortion is disabled in HDRP Asset
+- Fixed ability to override AlphaToMask FrameSetting while camera in deferred lit shader mode
+- Fixed issue with physically-based DoF computation and transparent materials with depth-writes ON.
+- Fixed issue of accessing default frame setting stored in current HDRPAsset instead fo the default HDRPAsset
+- Fixed SSGI frame setting not greyed out while SSGI is disabled in HDRP Asset
+- Fixed wizard checking FrameSettings not in HDRP Default Settings
+- Fixed error when opening the default composition graph in the Graphics Compositor (case 1318933).
+- Fixed HDRP material being constantly dirty.
+- Fixed issue in path tracing, where objects would cast shadows even if not present in the path traced layers (case 1318857).
+- Fixed SRP batcher not compatible with Decal (case 1311586)
 
 ### Changed
 - Removed the material pass probe volumes evaluation mode.
@@ -137,6 +155,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Unifying the history validation pass so that it is only done once for the whole frame and not per effect.
 - Tidy up of platform abstraction code for shader optimization.
 - Changed Path Tracing's maximum intensity from clamped (0 to 100) to positive value (case 1310514).
+- Avoid unnecessary RenderGraphBuilder.ReadTexture in the "Set Final Target" pass
+- Cached the base types of Volume Manager to improve memory and cpu usage.
 
 ## [10.3.0] - 2020-12-01
 
