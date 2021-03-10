@@ -31,8 +31,8 @@ VikingVillage_URP_OSX_Metal_performance_playmode_runtime_mono_Linear_trunk:
       -  cd TestProjects/Viking-Village-Perf && unity-config project add dependency com.unity.test-framework.performance@2.4.0 --project-path .
       -  cd TestProjects/Viking-Village-Perf && unity-config project add dependency com.unity.test-framework.utp-reporter@1.0.2-preview --project-path .
       -  cd TestProjects/Viking-Village-Perf && unity-config project add dependency com.unity.test-framework.build@0.0.1-preview.12 --project-path .
-      -  cd TestProjects/Viking-Village-Perf && unity-config project add dependency "com.unity.testing.graphics-performance@ssh://git@github.cds.internal.unity3d.com/unity/com.unity.testing.graphics-performance.git#built-in-support"  --project-path .
-      -  cd TestProjects/Viking-Village-Perf && unity-config project add dependency "unity.graphictests.performance.universal@ssh://git@github.cds.internal.unity3d.com/unity/unity.graphictests.performance.universal.git#built-in-support" --project-path .
+      -  cd TestProjects/Viking-Village-Perf && unity-config project add dependency "com.unity.testing.graphics-performance@ssh://git@github.cds.internal.unity3d.com/unity/com.unity.testing.graphics-performance.git"  --project-path .
+      -  cd TestProjects/Viking-Village-Perf && unity-config project add dependency "unity.graphictests.performance.universal@ssh://git@github.cds.internal.unity3d.com/unity/unity.graphictests.performance.universal.git" --project-path .
       -  cd TestProjects/Viking-Village-Perf && unity-config project add testable com.unity.cli-project-setup  --project-path .
       -  cd TestProjects/Viking-Village-Perf && unity-config project add testable com.unity.test.performance.runtimesettings  --project-path .
       -  cd TestProjects/Viking-Village-Perf && unity-config project add testable com.unity.test.metadata-manager  --project-path .
@@ -81,8 +81,8 @@ VikingVillage_URP_OSX_Metal_performance_playmode_editor_mono_Linear_trunk:
       -  cd TestProjects/Viking-Village-Perf && unity-config project add dependency com.unity.test-framework.performance@2.4.0 --project-path .
       -  cd TestProjects/Viking-Village-Perf && unity-config project add dependency com.unity.test-framework.utp-reporter@1.0.2-preview --project-path .
       -  cd TestProjects/Viking-Village-Perf && unity-config project add dependency com.unity.test-framework.build@0.0.1-preview.12 --project-path .
-      -  cd TestProjects/Viking-Village-Perf && unity-config project add dependency "com.unity.testing.graphics-performance@ssh://git@github.cds.internal.unity3d.com/unity/com.unity.testing.graphics-performance.git#built-in-support"  --project-path .
-      -  cd TestProjects/Viking-Village-Perf && unity-config project add dependency "unity.graphictests.performance.universal@ssh://git@github.cds.internal.unity3d.com/unity/unity.graphictests.performance.universal.git#built-in-support" --project-path .
+      -  cd TestProjects/Viking-Village-Perf && unity-config project add dependency "com.unity.testing.graphics-performance@ssh://git@github.cds.internal.unity3d.com/unity/com.unity.testing.graphics-performance.git"  --project-path .
+      -  cd TestProjects/Viking-Village-Perf && unity-config project add dependency "unity.graphictests.performance.universal@ssh://git@github.cds.internal.unity3d.com/unity/unity.graphictests.performance.universal.git" --project-path .
       -  cd TestProjects/Viking-Village-Perf && unity-config project add testable com.unity.cli-project-setup  --project-path .
       -  cd TestProjects/Viking-Village-Perf && unity-config project add testable com.unity.test.performance.runtimesettings  --project-path .
       -  cd TestProjects/Viking-Village-Perf && unity-config project add testable com.unity.test.metadata-manager  --project-path .
@@ -131,8 +131,8 @@ VikingVillage_URP_OSX_Metal_performance_build_editmode_mono_Linear_trunk:
       -  cd TestProjects/Viking-Village-Perf && unity-config project add dependency com.unity.test-framework.performance@2.4.0 --project-path .
       -  cd TestProjects/Viking-Village-Perf && unity-config project add dependency com.unity.test-framework.utp-reporter@1.0.2-preview --project-path .
       -  cd TestProjects/Viking-Village-Perf && unity-config project add dependency com.unity.test-framework.build@0.0.1-preview.12 --project-path .
-      -  cd TestProjects/Viking-Village-Perf && unity-config project add dependency "com.unity.testing.graphics-performance@ssh://git@github.cds.internal.unity3d.com/unity/com.unity.testing.graphics-performance.git#built-in-support"  --project-path .
-      -  cd TestProjects/Viking-Village-Perf && unity-config project add dependency "unity.graphictests.performance.universal@ssh://git@github.cds.internal.unity3d.com/unity/unity.graphictests.performance.universal.git#built-in-support" --project-path .
+      -  cd TestProjects/Viking-Village-Perf && unity-config project add dependency "com.unity.testing.graphics-performance@ssh://git@github.cds.internal.unity3d.com/unity/com.unity.testing.graphics-performance.git"  --project-path .
+      -  cd TestProjects/Viking-Village-Perf && unity-config project add dependency "unity.graphictests.performance.universal@ssh://git@github.cds.internal.unity3d.com/unity/unity.graphictests.performance.universal.git" --project-path .
       -  cd TestProjects/Viking-Village-Perf && unity-config project add testable com.unity.cli-project-setup  --project-path .
       -  cd TestProjects/Viking-Village-Perf && unity-config project add testable com.unity.test.performance.runtimesettings  --project-path .
       -  cd TestProjects/Viking-Village-Perf && unity-config project add testable com.unity.test.metadata-manager  --project-path .
@@ -182,8 +182,8 @@ VikingVillage_URP_OSX_Metal_performance_playmode_runtime_mono_Linear_CUSTOM-REVI
       -  cd TestProjects/Viking-Village-Perf && unity-config project add dependency com.unity.test-framework.performance@2.4.0 --project-path .
       -  cd TestProjects/Viking-Village-Perf && unity-config project add dependency com.unity.test-framework.utp-reporter@1.0.2-preview --project-path .
       -  cd TestProjects/Viking-Village-Perf && unity-config project add dependency com.unity.test-framework.build@0.0.1-preview.12 --project-path .
-      -  cd TestProjects/Viking-Village-Perf && unity-config project add dependency "com.unity.testing.graphics-performance@ssh://git@github.cds.internal.unity3d.com/unity/com.unity.testing.graphics-performance.git#built-in-support"  --project-path .
-      -  cd TestProjects/Viking-Village-Perf && unity-config project add dependency "unity.graphictests.performance.universal@ssh://git@github.cds.internal.unity3d.com/unity/unity.graphictests.performance.universal.git#built-in-support" --project-path .
+      -  cd TestProjects/Viking-Village-Perf && unity-config project add dependency "com.unity.testing.graphics-performance@ssh://git@github.cds.internal.unity3d.com/unity/com.unity.testing.graphics-performance.git"  --project-path .
+      -  cd TestProjects/Viking-Village-Perf && unity-config project add dependency "unity.graphictests.performance.universal@ssh://git@github.cds.internal.unity3d.com/unity/unity.graphictests.performance.universal.git" --project-path .
       -  cd TestProjects/Viking-Village-Perf && unity-config project add testable com.unity.cli-project-setup  --project-path .
       -  cd TestProjects/Viking-Village-Perf && unity-config project add testable com.unity.test.performance.runtimesettings  --project-path .
       -  cd TestProjects/Viking-Village-Perf && unity-config project add testable com.unity.test.metadata-manager  --project-path .
@@ -236,8 +236,8 @@ VikingVillage_URP_OSX_Metal_performance_playmode_editor_mono_Linear_CUSTOM-REVIS
       -  cd TestProjects/Viking-Village-Perf && unity-config project add dependency com.unity.test-framework.performance@2.4.0 --project-path .
       -  cd TestProjects/Viking-Village-Perf && unity-config project add dependency com.unity.test-framework.utp-reporter@1.0.2-preview --project-path .
       -  cd TestProjects/Viking-Village-Perf && unity-config project add dependency com.unity.test-framework.build@0.0.1-preview.12 --project-path .
-      -  cd TestProjects/Viking-Village-Perf && unity-config project add dependency "com.unity.testing.graphics-performance@ssh://git@github.cds.internal.unity3d.com/unity/com.unity.testing.graphics-performance.git#built-in-support"  --project-path .
-      -  cd TestProjects/Viking-Village-Perf && unity-config project add dependency "unity.graphictests.performance.universal@ssh://git@github.cds.internal.unity3d.com/unity/unity.graphictests.performance.universal.git#built-in-support" --project-path .
+      -  cd TestProjects/Viking-Village-Perf && unity-config project add dependency "com.unity.testing.graphics-performance@ssh://git@github.cds.internal.unity3d.com/unity/com.unity.testing.graphics-performance.git"  --project-path .
+      -  cd TestProjects/Viking-Village-Perf && unity-config project add dependency "unity.graphictests.performance.universal@ssh://git@github.cds.internal.unity3d.com/unity/unity.graphictests.performance.universal.git" --project-path .
       -  cd TestProjects/Viking-Village-Perf && unity-config project add testable com.unity.cli-project-setup  --project-path .
       -  cd TestProjects/Viking-Village-Perf && unity-config project add testable com.unity.test.performance.runtimesettings  --project-path .
       -  cd TestProjects/Viking-Village-Perf && unity-config project add testable com.unity.test.metadata-manager  --project-path .
@@ -290,8 +290,8 @@ VikingVillage_URP_OSX_Metal_performance_build_editmode_mono_Linear_CUSTOM-REVISI
       -  cd TestProjects/Viking-Village-Perf && unity-config project add dependency com.unity.test-framework.performance@2.4.0 --project-path .
       -  cd TestProjects/Viking-Village-Perf && unity-config project add dependency com.unity.test-framework.utp-reporter@1.0.2-preview --project-path .
       -  cd TestProjects/Viking-Village-Perf && unity-config project add dependency com.unity.test-framework.build@0.0.1-preview.12 --project-path .
-      -  cd TestProjects/Viking-Village-Perf && unity-config project add dependency "com.unity.testing.graphics-performance@ssh://git@github.cds.internal.unity3d.com/unity/com.unity.testing.graphics-performance.git#built-in-support"  --project-path .
-      -  cd TestProjects/Viking-Village-Perf && unity-config project add dependency "unity.graphictests.performance.universal@ssh://git@github.cds.internal.unity3d.com/unity/unity.graphictests.performance.universal.git#built-in-support" --project-path .
+      -  cd TestProjects/Viking-Village-Perf && unity-config project add dependency "com.unity.testing.graphics-performance@ssh://git@github.cds.internal.unity3d.com/unity/com.unity.testing.graphics-performance.git"  --project-path .
+      -  cd TestProjects/Viking-Village-Perf && unity-config project add dependency "unity.graphictests.performance.universal@ssh://git@github.cds.internal.unity3d.com/unity/unity.graphictests.performance.universal.git" --project-path .
       -  cd TestProjects/Viking-Village-Perf && unity-config project add testable com.unity.cli-project-setup  --project-path .
       -  cd TestProjects/Viking-Village-Perf && unity-config project add testable com.unity.test.performance.runtimesettings  --project-path .
       -  cd TestProjects/Viking-Village-Perf && unity-config project add testable com.unity.test.metadata-manager  --project-path .
