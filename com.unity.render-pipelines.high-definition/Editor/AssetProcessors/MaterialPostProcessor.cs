@@ -183,21 +183,8 @@ namespace UnityEditor.Rendering.HighDefinition
 
         public void OnPostprocessSpeedTree(GameObject speedtree)
         {
-            HDSpeedTree8MaterialUpgrader hdst8Upgrader = new HDSpeedTree8MaterialUpgrader("Nature/SpeedTree8", "HDRP/Nature/SpeedTree8");
-
-            LODGroup lg = speedtree.GetComponent<LODGroup>();
-            LOD[] lods = lg.GetLODs();
-            for (int l = 0; l < lods.Length; l++)
-            {
-                LOD lod = lods[l];
-                foreach (Renderer r in lod.renderers)
-                {
-                    foreach (Material m in r.sharedMaterials)
-                    {
-                        MaterialUpgrader.Upgrade(m, hdst8Upgrader, MaterialUpgrader.UpgradeFlags.LogErrorOnNonExistingProperty);
-                    }
-                }
-            }
+            SpeedTreeImporter stImporter = assetImporter as SpeedTreeImporter;            
+            SpeedTree8MaterialUpgrader.PostprocessMaterials(speedtree, stImporter, HDSpeedTree8MaterialUpgrader.HDSpeedTree8MaterialFinalizer);
         }
 
         // Note: It is not possible to separate migration step by kind of shader

@@ -25,7 +25,7 @@ namespace UnityEditor.Rendering.HighDefinition
 		{
         }
 
-        private static void HDSpeedTree8MaterialFinalizer(Material mat)
+        public static void HDSpeedTree8MaterialFinalizer(Material mat)
         {
             SetHDSpeedTree8Defaults(mat);
             HDShaderUtils.ResetMaterialKeywords(mat);
