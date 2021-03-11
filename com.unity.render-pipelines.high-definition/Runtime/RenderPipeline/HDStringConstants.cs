@@ -931,12 +931,34 @@ namespace UnityEngine.Rendering.HighDefinition
         public static readonly int _APVResL0_L1Rx                  = Shader.PropertyToID("_APVResL0_L1Rx");
         public static readonly int _APVResL1G_L1Ry                 = Shader.PropertyToID("_APVResL1G_L1Ry");
         public static readonly int _APVResL1B_L1Rz                 = Shader.PropertyToID("_APVResL1B_L1Rz");
+        public static readonly int _RWAPVResL0_L1Rx                = Shader.PropertyToID("_RWAPVResL0_L1Rx");
+        public static readonly int _RWAPVResL1G_L1Ry               = Shader.PropertyToID("_RWAPVResL1G_L1Ry");
+        public static readonly int _RWAPVResL1B_L1Rz               = Shader.PropertyToID("_RWAPVResL1B_L1Rz");
+
+        public static readonly int _PrevAPVResL0_L1Rx              = Shader.PropertyToID("_PrevAPVResL0_L1Rx");
+        public static readonly int _PrevAPVResL1G_L1Ry             = Shader.PropertyToID("_PrevAPVResL1G_L1Ry");
+        public static readonly int _PrevAPVResL1B_L1Rz             = Shader.PropertyToID("_PrevAPVResL1B_L1Rz");
+
+        public static readonly int _DynamicGIParams0               = Shader.PropertyToID("_DynamicGIParams0");
+        public static readonly int _DynamicGIParams1               = Shader.PropertyToID("_DynamicGIParams1");
+        public static readonly int _DynamicGIParams2               = Shader.PropertyToID("_DynamicGIParams2");
+        public static readonly int _DynamicGIParams3 = Shader.PropertyToID("_DynamicGIParams3");
+        public static readonly int _IrradianceCache = Shader.PropertyToID("_IrradianceCache");
+        public static readonly int _PrevIrradianceCache = Shader.PropertyToID("_PrevIrradianceCache");
+        public static readonly int _RayAxis                        = Shader.PropertyToID("_RayAxis");
+        public static readonly int _ChunkIndices                   = Shader.PropertyToID("_ChunkIndices");
+        public static readonly int _PVCombineParameters            = Shader.PropertyToID("_PVCombineParameters");
 
 
         public static readonly int _APVResL2_0                     = Shader.PropertyToID("_APVResL2_0");
         public static readonly int _APVResL2_1                     = Shader.PropertyToID("_APVResL2_1");
         public static readonly int _APVResL2_2                     = Shader.PropertyToID("_APVResL2_2");
         public static readonly int _APVResL2_3                     = Shader.PropertyToID("_APVResL2_3");
+
+        public static readonly int _PackedProbeExtraData           = Shader.PropertyToID("_PackedProbeExtraData");
+        public static readonly int _ProbeWorldLocations            = Shader.PropertyToID("_ProbeWorldLocations");
+        public static readonly int _ProbeValidity                  = Shader.PropertyToID("_ProbeValidity");
+        public static readonly int _CellOrigin                     = Shader.PropertyToID("_CellOrigin");
 
         // Custom Pass Utils API
         public static readonly int _SourceScaleBias                = Shader.PropertyToID("_SourceScaleBias");

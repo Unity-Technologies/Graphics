@@ -81,7 +81,7 @@ float3 DecodeSH(float l0, float3 l1)
 {
     // TODO: We're working on irradiance instead of radiance coefficients
     //       Add safety margin 2 to avoid out-of-bounds values
-    const float l1scale = 1.7320508f; // 3/(2*sqrt(3)) * 2
+    const float l1scale = 2; // 3/(2*sqrt(3)) * 2
 
     return (l1 - 0.5f) * 2.0f * l1scale * l0;
 }
@@ -108,6 +108,9 @@ void DecodeSH_L2(float3 l0, inout float4 l2_R, inout float4 l2_G, inout float4 l
 float3 EvaluateAPVL0(APVResources apvRes, float3 uvw, out float L1Rx)
 {
     float4 L0_L1Rx = SAMPLE_TEXTURE3D_LOD(apvRes.L0_L1Rx, s_linear_clamp_sampler, uvw, 0).rgba;
+    L0_L1Rx = max(L0_L1Rx, 0);
+
+
     L1Rx = L0_L1Rx.w;
 
     return L0_L1Rx.xyz;
@@ -127,6 +130,11 @@ void EvaluateAPVL1(APVResources apvRes, float3 L0, float L1Rx, float3 N, float3 
     l1_G = DecodeSH(L0.g, l1_G);
     l1_B = DecodeSH(L0.b, l1_B);
 
+    l1_R = max(0, l1_R);
+    l1_G = max(0, l1_G);
+    l1_B = max(0, l1_B);
+
+
     diffuseLighting     = SHEvalLinearL1(N, l1_R, l1_G, l1_B);
     backDiffuseLighting = SHEvalLinearL1(backN, l1_R, l1_G, l1_B);
 }
@@ -143,20 +151,20 @@ void EvaluateAPVL1L2(APVResources apvRes, float3 L0, float L1Rx, float3 N, float
 
     DecodeSH_L2(L0, l2_R, l2_G, l2_B, l2_C);
 
+
     diffuseLighting += SHEvalLinearL2(N, l2_R, l2_G, l2_B, l2_C);
     backDiffuseLighting += SHEvalLinearL2(backN, l2_R, l2_G, l2_B, l2_C);
 }
 #endif
 
-bool TryToGetPoolUVW(APVResources apvRes, float3 posWS, float3 normalWS, out float3 uvw)
+bool TryToGetPoolIndex(StructuredBuffer<int> indexBuffer, float3 posWS, float3 normalWS, out float3 posRS, out uint3 pool_idx, out float cellSize)
 {
-    uvw = 0;
     // Note: we could instead early return when we know we'll have invalid UVs, but some bade code gen on Vulkan generates shader warnings if we do.
-    bool hasValidUVW = true;
+    bool hasValidIndex = true;
 
-    APVConstants apvConst = LoadAPVConstants(apvRes.index);
+    APVConstants apvConst = LoadAPVConstants(indexBuffer);
     // transform into APV space
-    float3 posRS = mul(apvConst.WStoRS, float4(posWS + normalWS * apvConst.normalBias, 1.0));
+    posRS = mul(apvConst.WStoRS, float4(posWS + normalWS * apvConst.normalBias, 1.0));
     posRS -= apvConst.centerRS;
 
     // check bounds
@@ -166,19 +174,19 @@ bool TryToGetPoolUVW(APVResources apvRes, float3 posWS, float3 normalWS, out flo
     if (any(abs(posRS) > float3(apvConst.indexDim / 2)))
 #endif
     {
-        hasValidUVW = false;
+        hasValidIndex = false;
     }
 
     // convert to index
     int3 index = apvConst.centerIS + floor(posRS);
-    index = index % apvConst.indexDim;
+    index = (uint3)index % apvConst.indexDim;
 
 #ifdef APV_USE_BASE_OFFSET
     // get the y-offset
-    int  yoffset = apvRes.index[kAPVConstantsSize + index.z * apvConst.indexDim.x + index.x];
+    int  yoffset = indexBuffer[kAPVConstantsSize + index.z * apvConst.indexDim.x + index.x];
     if (yoffset == -1 || posRS.y < yoffset || posRS.y >= float(apvConst.indexDim.y))
     {
-        hasValidUVW = false;
+        hasValidIndex = false;
     }
 
     index.y = posRS.y - yoffset;
@@ -187,24 +195,35 @@ bool TryToGetPoolUVW(APVResources apvRes, float3 posWS, float3 normalWS, out flo
     // resolve the index
     int  base_offset = kAPVConstantsSize + apvConst.indexDim.x * apvConst.indexDim.z;
     int  flattened_index = index.z * (apvConst.indexDim.x * apvConst.indexDim.y) + index.x * apvConst.indexDim.y + index.y;
-    uint packed_pool_idx = apvRes.index[base_offset + flattened_index];
+    uint packed_pool_idx = indexBuffer[base_offset + flattened_index];
 
     // no valid brick loaded for this index, fallback to ambient probe
     if (packed_pool_idx == 0xffffffff)
     {
-        hasValidUVW = false;
+        hasValidIndex = false;
     }
 
     // unpack pool idx
     // size is encoded in the upper 4 bits
     uint   subdiv = (packed_pool_idx >> 28) & 15;
-    float  cellSize = pow(3.0, subdiv);
+    cellSize = pow(3.0, subdiv);
     uint   flattened_pool_idx = packed_pool_idx & ((1 << 28) - 1);
-    uint3  pool_idx;
     pool_idx.z = flattened_pool_idx / (apvConst.poolDim.x * apvConst.poolDim.y);
     flattened_pool_idx -= pool_idx.z * (apvConst.poolDim.x * apvConst.poolDim.y);
     pool_idx.y = flattened_pool_idx / apvConst.poolDim.x;
     pool_idx.x = flattened_pool_idx - (pool_idx.y * apvConst.poolDim.x);
+
+    return hasValidIndex;
+}
+
+bool TryToGetPoolUVW(APVResources apvRes, float3 posWS, float3 normalWS, out float3 uvw)
+{
+    uvw = 0;
+    float cellSize = 0;
+    uint3 pool_idx = 0;
+    float3 posRS = 0;
+    bool hasValidUVW = TryToGetPoolIndex(apvRes.index, posWS, normalWS, posRS, pool_idx, cellSize);
+    APVConstants apvConst = LoadAPVConstants(apvRes.index);
     uvw = ((float3) pool_idx + 0.5) / (float3) apvConst.poolDim;
 
     // calculate uv offset and scale
@@ -228,11 +247,11 @@ void EvaluateAdaptiveProbeVolume(in float3 posWS, in float3 normalWS, in float3 
         float L1Rx;
         float3 L0 = EvaluateAPVL0(apvRes, pool_uvw, L1Rx);
 
-#ifdef PROBE_VOLUMES_L1
+//#ifdef PROBE_VOLUMES_L1
         EvaluateAPVL1(apvRes, L0, L1Rx, normalWS, backNormalWS, pool_uvw, bakeDiffuseLighting, backBakeDiffuseLighting);
-#elif PROBE_VOLUMES_L2
-        EvaluateAPVL1L2(apvRes, L0, L1Rx, normalWS, backNormalWS, pool_uvw, bakeDiffuseLighting, backBakeDiffuseLighting);
-#endif
+//#elif PROBE_VOLUMES_L2
+//        //EvaluateAPVL1L2(apvRes, L0, L1Rx, normalWS, backNormalWS, pool_uvw, bakeDiffuseLighting, backBakeDiffuseLighting);
+//#endif
 
         bakeDiffuseLighting += L0;
         backBakeDiffuseLighting += L0;

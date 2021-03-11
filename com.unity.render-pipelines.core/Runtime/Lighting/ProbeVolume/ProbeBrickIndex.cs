@@ -54,6 +54,7 @@ namespace UnityEngine.Rendering
 
         private ComputeBuffer m_IndexBuffer;
         private Vector3Int    m_IndexDim;
+        internal Vector3Int   indexDimension { get { return m_IndexDim; } }
         private Vector3Int    m_CenterRS;   // the anchor in ref space, around which the index is defined
         private Vector3Int    m_CenterIS;   // the position in index space that the anchor maps to
         private HeightRange[] m_HeightRanges;

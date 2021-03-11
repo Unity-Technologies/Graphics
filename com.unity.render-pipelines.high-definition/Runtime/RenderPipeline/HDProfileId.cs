@@ -99,6 +99,10 @@ namespace UnityEngine.Rendering.HighDefinition
         VolumetricCloudsShadow,
         VolumetricCloudMapGeneration,
 
+        // Adaptive Probe Volume
+        InjectInDynamicAPV,
+        CombineDynamicGI,
+
         // RT Cluster
         RaytracingBuildCluster,
         RaytracingCullLights,

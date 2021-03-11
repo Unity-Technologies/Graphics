@@ -35,7 +35,7 @@ namespace UnityEngine.Rendering
     }
 
     [InitializeOnLoad]
-    internal class ProbeGIBaking
+    internal partial class ProbeGIBaking
     {
         private static bool init = false;
         private static Dictionary<int, List<Scene>> cellIndex2SceneReferences = new Dictionary<int, List<Scene>>();
@@ -145,6 +145,8 @@ namespace UnityEngine.Rendering
 
             var numCells = bakingCells.Count;
 
+            AddOccluders(bakingReferenceVolumeAuthoring.transform.position, bakingReferenceVolumeAuthoring.transform.localScale);
+
             // Fetch results of all cells
             for (int c = 0; c < numCells; ++c)
             {
@@ -166,6 +168,8 @@ namespace UnityEngine.Rendering
 
                 cell.sh = new SphericalHarmonicsL2[numProbes];
                 cell.validity = new float[numProbes];
+
+                cell.extraData = new ProbeExtraData[numProbes];
 
                 for (int i = 0; i < numProbes; ++i)
                 {
@@ -210,6 +214,9 @@ namespace UnityEngine.Rendering
                     SphericalHarmonicsL2Utils.SetL1B(ref cell.sh[i], new Vector3(shv[2, 3], shv[2, 1], shv[2, 2]));
 
                     cell.validity[i] = validity[j];
+
+                    // Generate extra datas.
+                    GenerateExtraData(cell.probePositions[i], ref cell.extraData[i], cell.validity[i]);
                 }
 
                 for (int i = 0; i < numProbes; ++i)
@@ -222,6 +229,8 @@ namespace UnityEngine.Rendering
                     SphericalHarmonicsL2Utils.SetCoefficient(ref cell.sh[i], 7, new Vector3(sh[j][0, 7], sh[j][1, 7], sh[j][2, 7]));
                     SphericalHarmonicsL2Utils.SetCoefficient(ref cell.sh[i], 8, new Vector3(sh[j][0, 8], sh[j][1, 8], sh[j][2, 8]));
                 }
+
+                cell.ProcessExtraDataBuffer();
 
                 // Reset index
                 UnityEditor.Experimental.Lightmapping.SetAdditionalBakedProbes(cell.index, null);
@@ -292,6 +301,8 @@ namespace UnityEngine.Rendering
                 if (refVol.enabled && refVol.gameObject.activeSelf)
                     refVol.QueueAssetLoading();
             }
+
+            CleanupRenderers();
         }
 
         private static void OnLightingDataCleared()

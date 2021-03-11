@@ -241,6 +241,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
         readonly SkyManager m_SkyManager = new SkyManager();
         internal SkyManager skyManager { get { return m_SkyManager; } }
+        readonly ProbeDynamicGISystem m_DynamicGI;
 
         bool                            m_ValidAPI; // False by default mean we render normally, true mean we don't render anything
         bool                            m_IsDepthBufferCopyValid;
@@ -386,7 +387,8 @@ namespace UnityEngine.Rendering.HighDefinition
 #endif
 
             InitializePostProcess();
-
+            // TODO_FCC: Do only if needed
+            m_DynamicGI = new ProbeDynamicGISystem(asset, defaultResources);
             // Initialize various compute shader resources
             m_SsrTracingKernel = m_ScreenSpaceReflectionsCS.FindKernel("ScreenSpaceReflectionsTracing");
             m_SsrReprojectionKernel = m_ScreenSpaceReflectionsCS.FindKernel("ScreenSpaceReflectionsReprojection");
@@ -772,6 +774,7 @@ namespace UnityEngine.Rendering.HighDefinition
             ReleaseRayTracingManager();
             m_DebugDisplaySettings.UnregisterDebug();
 
+            m_DynamicGI.CleanupDynamicGIResources();
             CleanupLightLoop();
 
             ReleaseVolumetricClouds();

@@ -356,6 +356,8 @@ namespace UnityEngine.Rendering.HighDefinition
         /// <summary>When enabled, HDRP uses probe volumes for baked lighting.</summary>
         [FrameSettingsField(1, autoName: ProbeVolume)]
         ProbeVolume = 127,
+        [FrameSettingsField(1, autoName: DynamicProbeVolumeGI)]
+        DynamicProbeVolumeGI = 126,
 
         //only 128 booleans saved. For more, change the BitArray used
     }

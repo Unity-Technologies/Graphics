@@ -1,0 +1,417 @@
+
+#define SHADOW_MINIMAL
+#define LIGHT_EVALUATION_NO_HEIGHT_FOG
+
+#define DEBUGGING 0
+
+#pragma kernel GatherFirstBounceHit HIT
+#pragma kernel GatherFirstBounceMiss MISS
+
+#pragma kernel Clear        CLEAR
+
+#include "Packages/com.unity.render-pipelines.high-definition/Runtime/Lighting/ProbeVolume/Propagation/APVDynamicGICommon.hlsl"
+#include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/BuiltinGIUtilities.hlsl"
+#include "Packages/com.unity.render-pipelines.core/Runtime/Lighting/ProbeVolume/ProbeVolume.hlsl"
+
+#include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Material.hlsl"
+#include "Packages/com.unity.render-pipelines.high-definition/Runtime/Lighting/Lighting.hlsl"
+#include "Packages/com.unity.render-pipelines.high-definition/Runtime/Lighting/LightLoop/LightLoopDef.hlsl"
+#include "Packages/com.unity.render-pipelines.high-definition/Runtime/Lighting/LightEvaluation.hlsl"
+
+#pragma enable_d3d11_debug_symbols
+
+#define GROUP_SIZE 64
+
+// AXIS_COUNT uint3 per probe. Must then be accessed as probeIndex * AXIS_COUNT + [0...AXIS_COUNT-1]
+StructuredBuffer<uint3>  _PackedProbeExtraData;
+// Can be made relative to cell origin and probe distance and stored in a more compact fashion.
+StructuredBuffer<float3> _ProbeWorldLocations;
+
+
+RWStructuredBuffer<float3> _IrradianceCache;
+StructuredBuffer<float3> _PrevIrradianceCache;
+
+TEXTURE3D(_PrevAPVResL0_L1Rx);
+TEXTURE3D(_PrevAPVResL1G_L1Ry);
+TEXTURE3D(_PrevAPVResL1B_L1Rz);
+
+float4 _DynamicGIParams2;
+#define _PrimaryDecay  _DynamicGIParams2.x
+#define _LeakMultiplier  _DynamicGIParams2.y
+#define _ArtificialBoost _DynamicGIParams2.z
+#define _DeringingFactor _DynamicGIParams2.w
+
+float4 _DynamicGIParams3;
+#define _HitCount  _DynamicGIParams3.x
+#define _MissCount _DynamicGIParams3.y
+#define _DistanceBetweenProbes _DynamicGIParams3.z
+
+#define _PropagationDecay _DynamicGIParams3.w
+
+
+float3 GetPreviousIrradianceCacheValue(uint probeIndex, int axis)
+{
+    uint index = probeIndex * AXIS_COUNT + axis;
+    return _PrevIrradianceCache[index];
+}
+
+
+struct HitData
+{
+    float3 albedo;
+    float3 position;
+    float3 normal;
+};
+
+// -------------------------------------------------------------
+// Deringing stuff
+// -------------------------------------------------------------
+
+#define HANNING 0
+#define LANCZOS 1
+#define GAUSSIAN 2
+#define FILTER LANCZOS
+
+
+// -------------------------------------------------------------
+// Get information from neighbours or hits
+// -------------------------------------------------------------
+
+
+// Returns true if a hit was found, if it has, then
+HitData UnpackInfoAlongAxis(uint2 extraData, float3 probePosition, float3 axisDirection)
+{
+    HitData hit;
+    float4 albedoAndDist = UnpackAlbedoAndDistance(extraData.x);
+    float  distToHit = albedoAndDist.w;
+    hit.normal = UnpackNormal(extraData.y);
+
+    float3 position = probePosition;
+    position += axisDirection * distToHit;
+    position += hit.normal * _RayBias;
+    hit.position = position;
+
+    hit.albedo = albedoAndDist.rgb;
+
+    return hit;
+}
+
+// -------------------------------------------------------------
+// Lighting Utils
+// -------------------------------------------------------------
+
+// Ideally we want the list pre-computed. This is easier for prototyping
+bool GetNextValidLightData(inout int currentIndex, out LightData lightData)
+{
+   //currentIndex = ScalarizeElementIndex(currentIndex, false);
+    for (; currentIndex < (int)_PunctualLightCount; ++currentIndex)
+    {
+        lightData = _LightDatas[currentIndex];
+        if (lightData.affectDynamicGI > 0)
+        {
+            currentIndex++;
+            return true;
+        }
+    }
+
+    return false;
+}
+
+float3 GetShadowPunctual(LightData light, float3 positionRWS, float4 distances, float3 L)
+{
+    LightLoopContext context;
+    context.shadowContext = InitShadowContext();
+    context.shadowValue = 1.0;
+    context.sampleReflection = false;
+    context.contactShadow = 0;
+    context.contactShadowFade = 0;
+
+    PositionInputs posInput;
+    posInput.positionWS = positionRWS;
+
+    BuiltinData unused;
+    ZERO_INITIALIZE(BuiltinData, unused);
+
+    SHADOW_TYPE shadow = EvaluateShadow_Punctual(context, posInput, light, unused, 0, L, distances);
+    return ComputeShadowColor(shadow, light.shadowTint, light.penumbraTint);
+
+}
+
+float3 GetShadowDirectional(DirectionalLightData light, float3 positionRWS)
+{
+    LightLoopContext context;
+    context.shadowContext = InitShadowContext();
+    context.shadowValue = 1.0;
+    context.sampleReflection = false;
+    context.contactShadow = 0;
+    context.contactShadowFade = 0;
+
+    PositionInputs posInput;
+    posInput.positionWS = positionRWS;
+
+    light.contactShadowMask = 0;
+    float3 L = -light.forward;
+    context.shadowValue = GetDirectionalShadowAttenuation(context.shadowContext,
+        0, posInput.positionWS, 0,
+        light.shadowIndex, L);
+
+    BuiltinData unused;
+    ZERO_INITIALIZE(BuiltinData, unused);
+
+    SHADOW_TYPE shadow = EvaluateShadow_Directional(context, posInput, light, unused, 0);
+    return ComputeShadowColor(shadow, light.shadowTint, light.penumbraTint);
+
+}
+
+float3 EvaluatePunctualLight(LightData light, float3 positionWS, out float3 vec)
+{
+    float3 L;
+    float4 distances; // {d, d^2, 1/d, d_proj}
+    float3 positionRWS = GetCameraRelativePositionWS(positionWS);
+
+    GetPunctualLightVectors(positionRWS, light, L, distances);
+    L = normalize(L);
+    // Maybe makes sense to init better (TODO)
+    LightLoopContext context;
+    context.shadowContext = InitShadowContext();
+    context.shadowValue = 1.0;
+    context.sampleReflection = false;
+    context.contactShadow = 0;
+    context.contactShadowFade = 0;
+
+    PositionInputs posInput;
+    posInput.positionWS = positionRWS;
+
+    float4 lightColor = EvaluateLight_Punctual(context, posInput, light, L, distances);
+    lightColor.rgb *= lightColor.a;
+
+    float3 shadows = GetShadowPunctual(light, positionRWS, distances, L);
+
+    vec = normalize(positionWS - GetAbsolutePositionWS(light.positionRWS));
+    return shadows * lightColor.rgb;
+}
+
+float3 EvaluateDirectionalLight(DirectionalLightData light, float3 positionWS, out float3 vec)
+{
+    float3 positionRWS = GetCameraRelativePositionWS(positionWS);
+
+    LightLoopContext context;
+    context.shadowContext = InitShadowContext();
+    context.shadowValue = 0.0f;
+    context.sampleReflection = false;
+    context.contactShadow = 0;
+    context.contactShadowFade = 0;
+
+    PositionInputs posInput;
+    posInput.positionWS = positionRWS;
+
+    float4 lightColor = EvaluateLight_Directional(context, posInput, light);
+    lightColor.rgb *= lightColor.a;
+
+    float3 shadows = GetShadowDirectional(light, positionRWS);
+
+    vec = light.forward;
+    // TODO: WHY? But it matches more...
+    float scale =  2.0f / PI;
+    return shadows * lightColor.rgb * scale;
+}
+
+float3 GetLightingForAxisPunctual(LightData light, uint probeIndex, float3 probeWorldPosition, HitData hit)
+{
+    float3 outputLighting = 0;
+
+    float3 L;
+    outputLighting = EvaluatePunctualLight(light, hit.position, L);
+    outputLighting *= hit.albedo;
+    float NdotL = saturate(dot(hit.normal, -L));
+
+    float scalarMultiplier = NdotL * INV_PI * _ArtificialBoost;
+    outputLighting *= scalarMultiplier;
+
+    return outputLighting;
+}
+
+
+float3 GetLightingForAxisArea(LightData light, uint probeIndex, uint axis, float3 probeWorldPosition, HitData hit)
+{
+    float3 outputLighting = 0;
+
+    float3 L;
+    outputLighting = EvaluatePunctualLight(light, hit.position, L);
+    outputLighting *= hit.albedo;
+    float NdotL = saturate(dot(hit.normal, -L));
+
+    float scalarMultiplier = NdotL * INV_PI * _ArtificialBoost;
+    outputLighting *= scalarMultiplier;
+
+    return outputLighting;
+}
+
+float3 GetLightingForAxisDirectional(DirectionalLightData light, uint probeIndex, float3 probeWorldPosition, HitData hit)
+{
+    float3 outputLighting = 0;
+
+    float3 L;
+    outputLighting = EvaluateDirectionalLight(light, hit.position, L);
+    outputLighting *= hit.albedo;
+    float NdotL = saturate(dot(hit.normal, -L));
+
+    float scalarMultiplier = NdotL * INV_PI * _ArtificialBoost;
+    outputLighting *= scalarMultiplier;
+
+    return outputLighting;
+}
+
+// -------------------------------------------------------------
+// Actual Light Loop
+// -------------------------------------------------------------
+
+// Returns true if light has been computed for this
+bool AccumulateLighting(float3 probeWorldPosition, uint probeIndex, uint2 extraData, float4 axisDirection, inout float4 lighting)
+{
+    int lightIndex = 0;
+    LightData light;
+
+    HitData hit = UnpackInfoAlongAxis(extraData, probeWorldPosition, axisDirection.xyz);
+
+    {
+        // Punctual
+        while (GetNextValidLightData(lightIndex, light))
+        {
+            lighting.xyz += GetLightingForAxisPunctual(light, probeIndex, probeWorldPosition, hit);
+            lighting.w = _PrimaryDecay + 1.0f;
+        }
+
+        // Directional
+        for (uint dirLightIdx = 0; dirLightIdx < _DirectionalLightCount; ++dirLightIdx)
+        {
+            DirectionalLightData dirData = _DirectionalLightDatas[dirLightIdx];
+            // Only support the shadow casting one otherwise result is completely off.
+            if (dirData.affectsDynamicGI > 0.0f && _DirectionalShadowIndex == (int)dirLightIdx)
+            {
+                lighting.xyz += GetLightingForAxisDirectional(dirData, probeIndex, probeWorldPosition, hit);
+                lighting.w = _PrimaryDecay + 1.0f;
+            }
+        }
+
+        return true;
+    }
+
+    return false;
+}
+
+
+// -------------------------------------------------------------
+// Gather previous result.
+// -------------------------------------------------------------
+
+OutputRepresentation SampleAdaptiveProbeVolumeSH(in float3 posWS, in float3 normalWS)
+{
+    OutputRepresentation output;
+    ZERO_INITIALIZE(OutputRepresentation, output);
+
+    float3 pool_uvw;
+    APVResources apvRes = FillAPVResources();
+    if (TryToGetPoolUVW(apvRes, posWS, 0, pool_uvw))
+    {
+        float4 L0_L1Rx = SAMPLE_TEXTURE3D_LOD(_PrevAPVResL0_L1Rx, s_linear_clamp_sampler, pool_uvw, 0).rgba;
+        float4 L1G_L1Ry = SAMPLE_TEXTURE3D_LOD(_PrevAPVResL1G_L1Ry, s_linear_clamp_sampler, pool_uvw, 0).rgba;
+        float4 L1B_L1Rz = SAMPLE_TEXTURE3D_LOD(_PrevAPVResL1B_L1Rz, s_linear_clamp_sampler, pool_uvw, 0).rgba;
+
+        SamplesToRepresentation(output, L0_L1Rx, L1G_L1Ry, L1B_L1Rz, true);
+    }
+
+    return output;
+}
+
+void AccumulateSecondBounce(float3 centralProbeLocation, int probeIndex, float4 axisDirection, inout float4 lighting)
+{
+    float3 direction = axisDirection.xyz;
+
+    OutputRepresentation value;
+    ZERO_INITIALIZE(OutputRepresentation, value);
+
+    float3 irradiance = 0;
+    // sample APV around neighbours.
+    float3 dist = direction * _DistanceBetweenProbes * axisDirection.w;
+    float3 neighbourPos = centralProbeLocation + dist;
+
+    value = SampleAdaptiveProbeVolumeSH(neighbourPos, direction);
+    irradiance = value.Evaluate(direction);
+
+    float3 neighbContribution = irradiance * INV_PI;
+    lighting.xyz += any(neighbContribution < 0) ? 0 : neighbContribution;
+
+    lighting.w += _PropagationDecay;
+}
+
+// -------------------------------------------------------------
+// Actual Light Loop
+// -------------------------------------------------------------
+
+#ifdef CLEAR
+
+[numthreads(GROUP_SIZE, 1, 1)]
+void Clear(uint3 id : SV_DispatchThreadID)
+{
+    uint probeIndex = id.x;
+    if (probeIndex < _ProbeCount)
+    {
+        uint3 dstLoc = ProbeIndexToTexLocation(probeIndex);
+        _RWAPVResL0_L1Rx[dstLoc] = 0;
+        _RWAPVResL1G_L1Ry[dstLoc] = 0;
+        _RWAPVResL1B_L1Rz[dstLoc] = 0;
+    }
+}
+
+#else
+
+#ifdef HIT
+[numthreads(GROUP_SIZE, 1, 1)]
+void GatherFirstBounceHit(uint3 id : SV_DispatchThreadID)
+#else
+[numthreads(GROUP_SIZE, 1, 1)]
+void GatherFirstBounceMiss(uint3 id : SV_DispatchThreadID)
+#endif
+{
+
+    uint elementIndex = id.x;
+#ifdef HIT
+    if (elementIndex < _HitCount)
+    {
+        uint dataIndex = elementIndex;
+#else // MISS
+    if (elementIndex < _MissCount)
+    {
+        uint dataIndex = elementIndex + _HitCount;
+#endif
+
+        uint3 data = _PackedProbeExtraData[dataIndex];
+        uint probeIndex, axisIndex;
+        float probeValidity;
+        UnpackIndicesAndValidity(data.z, probeIndex, axisIndex, probeValidity);
+
+        float3 probeWorldPosition = _ProbeWorldLocations[probeIndex];
+
+        float4 axisDirection = UnpackAxis(data.y);
+
+        float4 lightingAndWeight = 0;
+        float3 prevValue = GetPreviousIrradianceCacheValue(probeIndex, axisIndex);
+        lightingAndWeight = float4(prevValue, _PrimaryDecay);
+
+#ifdef HIT
+        AccumulateLighting(probeWorldPosition, probeIndex, data.xy, axisDirection, lightingAndWeight);
+#else
+        AccumulateSecondBounce(probeWorldPosition, probeIndex, axisDirection, lightingAndWeight);
+#endif
+
+        float invalidScale = (1.0f - lerp(0.0f, _LeakMultiplier, probeValidity));
+        lightingAndWeight.xyz *= invalidScale;
+        lightingAndWeight.xyz /= lightingAndWeight.w;
+
+        _IrradianceCache[probeIndex * AXIS_COUNT + axisIndex] = lightingAndWeight.xyz;
+    }
+}
+
+
+#endif

@@ -36,7 +36,7 @@ namespace UnityEngine.Rendering
     /// <summary>
     /// The reference volume for the Probe Volume system. This defines the structure in which volume assets are loaded into. There must be only one, hence why it follow a singleton pattern.
     /// </summary>
-    public class ProbeReferenceVolume
+    public partial class ProbeReferenceVolume
     {
         /// <summary>
         /// The size of each chunk of allocation in the data pool.
@@ -44,7 +44,7 @@ namespace UnityEngine.Rendering
         public static int s_ProbeIndexPoolAllocationSize = 128;
 
         [System.Serializable]
-        internal struct Cell
+        internal class Cell
         {
             public int index;
             public Vector3Int position;
@@ -52,6 +52,36 @@ namespace UnityEngine.Rendering
             public Vector3[] probePositions;
             public SphericalHarmonicsL2[] sh;
             public float[] validity;
+
+            // Shall we store elsewhere?
+            public ProbeExtraData[] extraData;
+            internal ProbeExtraDataBuffers probeExtraDataBuffers;
+            public int[] chunkIndices;
+
+            public void ProcessExtraDataBuffer()
+            {
+                if (extraData == null) return;
+
+                if (probeExtraDataBuffers.finalExtraDataBuffer != null)
+                    probeExtraDataBuffers.Dispose();
+
+                probeExtraDataBuffers = new ProbeExtraDataBuffers(this);
+
+                var len = extraData.Length;
+                for (int i = 0; i < len; ++i)
+                {
+                    probeExtraDataBuffers.AddProbeExtraData(extraData[i], probePositions[i]);
+                }
+
+                probeExtraDataBuffers.ProduceShaderConsumableExtraData();
+                probeExtraDataBuffers.PopulateComputeBuffer();
+                probeExtraDataBuffers.ClearIrradianceCaches();
+            }
+
+            public void Dispose()
+            {
+                probeExtraDataBuffers.Dispose();
+            }
         }
 
         internal struct Volume
@@ -211,6 +241,56 @@ namespace UnityEngine.Rendering
         private Dictionary<RegId, List<Chunk>> m_Registry = new Dictionary<RegId, List<Chunk>>();
 
         internal Dictionary<int, Cell> cells = new Dictionary<int, Cell>();
+
+        /// <summary>
+        ///  todo
+        /// </summary>
+        /// <returns></returns>
+        public List<ProbeExtraDataBuffers> GetExtraDataBuffers()
+        {
+            List<ProbeExtraDataBuffers> extraDataBuffers = new List<ProbeExtraDataBuffers>(cells.Count);
+            foreach (var cell in cells.Values)
+            {
+                extraDataBuffers.Add(cell.probeExtraDataBuffers);
+            }
+
+            return extraDataBuffers;
+        }
+
+        public void SwapIrradianceCaches()
+        {
+            foreach (var cell in cells.Values)
+            {
+                cell.probeExtraDataBuffers.SwapIrradianceCache();
+            }
+        }
+
+        /// <summary>
+        ///  todo
+        /// </summary>
+        /// <returns></returns>
+        public List<int[]> GetChunkIndices()
+        {
+            List<int[]> indicesList = new List<int[]>(cells.Count);
+            foreach (var cell in cells.Values)
+            {
+                indicesList.Add(cell.chunkIndices);
+            }
+
+            return indicesList;
+        }
+
+        public void InitExtraDataBuffers()
+        {
+            foreach (var cell in cells.Values)
+            {
+                if (cell.probeExtraDataBuffers.finalExtraDataBuffer == null)
+                {
+                    cell.ProcessExtraDataBuffer();
+                }
+            }
+        }
+
         private Dictionary<string, List<RegId>> m_AssetPathToBricks = new Dictionary<string, List<RegId>>();
 
         private bool m_BricksLoaded = false;
@@ -237,6 +317,15 @@ namespace UnityEngine.Rendering
         /// Get the memory budget for the Probe Volume system.
         /// </summary>
         public ProbeVolumeTextureMemoryBudget memoryBudget => m_MemoryBudget;
+
+        /// <summary>
+        /// TODO
+        /// </summary>
+        public Vector3Int poolDimension { get { return m_Pool.GetPoolDimensions(); } }
+        /// <summary>
+        /// TODO
+        /// </summary>
+        public int chunkSizeInProbes {  get { return m_Pool.GetChunkSizeInProbeCount(); } }
 
         static private ProbeReferenceVolume _instance = new ProbeReferenceVolume();
 
@@ -310,6 +399,9 @@ namespace UnityEngine.Rendering
             {
                 if (cells.ContainsKey(cell.index))
                     cells.Remove(cell.index);
+
+                if (cell.probeExtraDataBuffers.finalExtraDataBuffer != null)
+                    cell.probeExtraDataBuffers.Dispose();
             }
 
             // Unload brick data
@@ -357,9 +449,18 @@ namespace UnityEngine.Rendering
                 // TODO register ID of brick list
                 List<ProbeBrickIndex.Brick> brickList = new List<ProbeBrickIndex.Brick>();
                 brickList.AddRange(cell.bricks);
-                var regId = AddBricks(brickList, dataLocation);
+                List<Chunk> dstChunks;
+                var regId = AddBricks(brickList, dataLocation, out dstChunks);
+
+                cell.chunkIndices = new int[dstChunks.Count];
+                for (int i = 0; i < dstChunks.Count; ++i)
+                {
+                    cell.chunkIndices[i] = dstChunks[i].flattenIndex(m_Pool.GetPoolWidth(), m_Pool.GetPoolHeight());
+                }
 
                 cells[cell.index] = cell;
+                cells[cell.index].ProcessExtraDataBuffer();
+
                 m_AssetPathToBricks[path].Add(regId);
 
                 dataLocation.Cleanup();
@@ -489,6 +590,12 @@ namespace UnityEngine.Rendering
         internal static int CellSize(int subdivisionLevel) { return (int)Mathf.Pow(ProbeBrickPool.kBrickCellCount, subdivisionLevel); }
         internal float BrickSize(int subdivisionLevel) { return m_Transform.scale * CellSize(subdivisionLevel); }
         internal float MinBrickSize() { return m_Transform.scale; }
+
+        public float DistanceBetweenProbes()
+        {
+            return MinBrickSize() / (ProbeBrickPool.kBrickProbeCountPerDim - 1);
+        }
+
         internal float MaxBrickSize() { return BrickSize(m_MaxSubdivision); }
         internal Matrix4x4 GetRefSpaceToWS() { return m_Transform.refSpaceToWS; }
         internal RefVolTransform GetTransform() { return m_Transform; }
@@ -508,6 +615,11 @@ namespace UnityEngine.Rendering
                 m_Pool.Clear();
                 m_Index.Clear();
                 cells.Clear();
+
+                foreach (var cell in cells.Values)
+                {
+                    cell.probeExtraDataBuffers.Dispose();
+                }
             }
         }
 
@@ -669,7 +781,7 @@ namespace UnityEngine.Rendering
         }
 
         // Runtime API starts here
-        internal RegId AddBricks(List<Brick> bricks, ProbeBrickPool.DataLocation dataloc)
+        internal RegId AddBricks(List<Brick> bricks, ProbeBrickPool.DataLocation dataloc, out List<Chunk> outChunkAlloc)
         {
             Profiler.BeginSample("AddBricks");
 
@@ -720,6 +832,7 @@ namespace UnityEngine.Rendering
 
             Profiler.EndSample();
 
+            outChunkAlloc = ch_list;
             return id;
         }
 
@@ -802,6 +915,10 @@ namespace UnityEngine.Rendering
             }
 
             m_ProbeReferenceVolumeInit = false;
+            foreach (var cell in cells)
+            {
+                cell.Value.Dispose();
+            }
         }
     }
 }

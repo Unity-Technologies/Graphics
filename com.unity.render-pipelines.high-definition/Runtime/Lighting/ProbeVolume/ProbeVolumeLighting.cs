@@ -19,9 +19,19 @@ namespace UnityEngine.Rendering.HighDefinition
                 {
                     cmdBuffer.SetGlobalBuffer(HDShaderIDs._APVResIndex, rr.index);
 
-                    cmdBuffer.SetGlobalTexture(HDShaderIDs._APVResL0_L1Rx, rr.L0_L1rx);
-                    cmdBuffer.SetGlobalTexture(HDShaderIDs._APVResL1G_L1Ry, rr.L1_G_ry);
-                    cmdBuffer.SetGlobalTexture(HDShaderIDs._APVResL1B_L1Rz, rr.L1_B_rz);
+                    if (hdCamera.frameSettings.IsEnabled(FrameSettingsField.DynamicProbeVolumeGI))
+                    {
+                        var dynamicRR = m_DynamicGI.GetRuntimeResources();
+                        cmdBuffer.SetGlobalTexture(HDShaderIDs._APVResL0_L1Rx, dynamicRR.L0_L1Rx);
+                        cmdBuffer.SetGlobalTexture(HDShaderIDs._APVResL1G_L1Ry, dynamicRR.L1_G_ry);
+                        cmdBuffer.SetGlobalTexture(HDShaderIDs._APVResL1B_L1Rz, dynamicRR.L1_B_rz);
+                    }
+                    else
+                    {
+                        cmdBuffer.SetGlobalTexture(HDShaderIDs._APVResL0_L1Rx, rr.L0_L1rx);
+                        cmdBuffer.SetGlobalTexture(HDShaderIDs._APVResL1G_L1Ry, rr.L1_G_ry);
+                        cmdBuffer.SetGlobalTexture(HDShaderIDs._APVResL1B_L1Rz, rr.L1_B_rz);
+                    }
 
                     if (m_Asset.currentPlatformRenderPipelineSettings.probeVolumeSHBands == ProbeVolumeSHBands.SphericalHarmonicsL2)
                     {

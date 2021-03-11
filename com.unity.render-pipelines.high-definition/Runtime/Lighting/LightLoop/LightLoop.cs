@@ -939,6 +939,7 @@ namespace UnityEngine.Rendering.HighDefinition
             if (m_Asset.currentPlatformRenderPipelineSettings.supportProbeVolume)
             {
                 ProbeReferenceVolume.instance.PerformPendingOperations();
+                m_DynamicGI.AllocateDynamicGIResources(ProbeReferenceVolume.instance.poolDimension);
             }
         }
 
@@ -1227,6 +1228,8 @@ namespace UnityEngine.Rendering.HighDefinition
             lightData.flareTint       = (Vector3)(Vector4)additionalLightData.flareTint;
             lightData.surfaceTint     = (Vector3)(Vector4)additionalLightData.surfaceTint;
 
+            lightData.affectsDynamicGI = additionalLightData.affectDynamicGI ? 1.0f : 0.0f;
+
             // Fallback to the first non shadow casting directional light.
             if (m_CurrentSunLight == null)
             {
@@ -1399,6 +1402,8 @@ namespace UnityEngine.Rendering.HighDefinition
             lightData.shadowIndex = -1;
             lightData.screenSpaceShadowIndex = (int)LightDefinitions.s_InvalidScreenSpaceShadow;
             lightData.isRayTracedContactShadow = 0.0f;
+
+            lightData.affectDynamicGI = additionalLightData.affectDynamicGI ? 1 : 0;
 
             if (lightComponent != null && additionalLightData != null &&
                 (

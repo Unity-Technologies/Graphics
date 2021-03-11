@@ -1,0 +1,694 @@
+
+#define SHADOW_ULTRA_LOW
+#define LIGHT_EVALUATION_NO_HEIGHT_FOG
+
+#define DEBUGGING 0
+
+//#pragma enable_d3d11_debug_symbols
+
+#pragma kernel GatherFirstBounce
+#pragma kernel Clear CLEAR
+
+#include "Packages/com.unity.render-pipelines.high-definition/Runtime/Lighting/ProbeVolume/Propagation/APVDynamicGICommon.hlsl"
+#include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/BuiltinGIUtilities.hlsl"
+#include "Packages/com.unity.render-pipelines.core/Runtime/Lighting/ProbeVolume/ProbeVolume.hlsl"
+
+#include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Material.hlsl"
+#include "Packages/com.unity.render-pipelines.high-definition/Runtime/Lighting/Lighting.hlsl"
+#include "Packages/com.unity.render-pipelines.high-definition/Runtime/Lighting/LightLoop/LightLoopDef.hlsl"
+#include "Packages/com.unity.render-pipelines.high-definition/Runtime/Lighting/LightEvaluation.hlsl"
+
+#define GROUP_SIZE 64
+
+// AXIS_COUNT uint2 per probe. Must then be accessed as probeIndex * AXIS_COUNT + [0...AXIS_COUNT-1]
+StructuredBuffer<uint2>  _PackedProbeExtraData;
+// Can be made relative to cell origin and probe distance and stored in a more compact fashion.
+StructuredBuffer<float3> _ProbeWorldLocations;
+
+
+RWStructuredBuffer<float3> _IrradianceCache;
+StructuredBuffer<float3> _PrevIrradianceCache;
+
+StructuredBuffer<float> _ProbeValidity;
+
+TEXTURE3D(_PrevAPVResL0_L1Rx);
+TEXTURE3D(_PrevAPVResL1G_L1Ry);
+TEXTURE3D(_PrevAPVResL1B_L1Rz);
+TEXTURE3D(_PrevDebug);
+
+float4 _DynamicGIParams2;
+#define _PrimaryDecay  _DynamicGIParams2.x
+#define _LeakMultiplier  _DynamicGIParams2.y
+#define _ArtificialBoost _DynamicGIParams2.z
+#define _DeringingFactor _DynamicGIParams2.w
+
+float4 _CellOrigin;
+#define _DistanceBetweenProbes _CellOrigin.w
+
+
+float3 GetPreviousIrradianceCacheValue(uint probeIndex, int axis)
+{
+    uint index = probeIndex * AXIS_COUNT + axis;
+    return _PrevIrradianceCache[index];
+}
+
+
+struct HitData
+{
+    float3 albedo;
+    float3 position;
+    float3 normal;
+};
+
+// -------------------------------------------------------------
+// Deringing stuff
+// -------------------------------------------------------------
+
+#define HANNING 0
+#define LANCZOS 1
+#define GAUSSIAN 2
+#define FILTER LANCZOS
+
+void ConvolveWithWindowing(inout OutputRepresentation result, float w)
+{
+#if FILTER == HANNING
+    float factor = (1.0f + cos(PI * rcp(w))) * 0.5f;
+#elif FILTER == LANCZOS
+    float factor = sin(PI * rcp(w)) / (PI * rcp(w));
+
+#elif FILTER == GAUSSIAN
+    float factor = exp(-pow(PI * rcp(w), 2.0) / 2.0);
+#endif
+
+    result.L1_0 *= factor;
+    result.L1_1 *= factor;
+    result.L1_2 *= factor;
+}
+
+// -------------------------------------------------------------
+// Testing projecting at the very last minute
+// -------------------------------------------------------------
+
+// TODO: REALLY  IMPORTANT, NOMENCLATURE ABOUT THESE VALUES ARE A BIT OFF.
+
+// Can be largely optimized (can be 16bit per channel so 2 arrays of uint)
+groupshared float irradianceR[GROUP_SIZE * AXIS_COUNT];
+groupshared float irradianceG[GROUP_SIZE * AXIS_COUNT];
+groupshared float irradianceB[GROUP_SIZE * AXIS_COUNT];
+groupshared float weights[GROUP_SIZE * AXIS_COUNT];
+
+
+void GetIrradianceAndWeight(uint probeIndex, int axis, out float3 irradiance, out float weight)
+{
+    // TODO: Can avoid this module and pass from gid
+    uint localProbeIndex = probeIndex % GROUP_SIZE;
+
+
+    uint ldsIndex = localProbeIndex * AXIS_COUNT + axis;
+    irradiance.r = irradianceR[ldsIndex];
+    irradiance.g = irradianceG[ldsIndex];
+    irradiance.b = irradianceB[ldsIndex];
+    weight = weights[ldsIndex];
+}
+
+void AccumulateIrradiance(uint probeIndex, int axis, float3 irradiance, float weight)
+{
+    // TODO: Can avoid this module and pass from gid
+    uint localProbeIndex = probeIndex % GROUP_SIZE;
+
+    uint ldsIndex = localProbeIndex * AXIS_COUNT + axis;
+
+    // Explicit for debug purposes.
+    float3 prev;
+    float w;
+    GetIrradianceAndWeight(probeIndex, axis, prev, w);
+
+    float3 iR = prev + irradiance;
+    float W = w + weight;
+
+    irradianceR[ldsIndex] = iR.r;
+    irradianceG[ldsIndex] = iR.g;
+    irradianceB[ldsIndex] = iR.b;
+    weights[ldsIndex] = W;
+}
+
+void SetLDSVal(uint probeIndex, int axis, float3 irradiance, float weight)
+{
+    uint localProbeIndex = probeIndex % GROUP_SIZE;
+    uint ldsIndex = localProbeIndex * AXIS_COUNT + axis;
+
+    irradianceR[ldsIndex] = irradiance.r;
+    irradianceG[ldsIndex] = irradiance.g;
+    irradianceB[ldsIndex] = irradiance.b;
+    weights[ldsIndex] = weight;
+}
+
+void StoreWeight(uint probeIndex, int axis, float weight)
+{
+    // TODO: Can avoid this module and pass from gid
+    uint localProbeIndex = probeIndex % GROUP_SIZE;
+
+    uint ldsIndex = localProbeIndex * AXIS_COUNT + axis;
+    weights[ldsIndex] = weight;
+}
+
+void ClearWeights(uint probeIndex, float weight)
+{
+    // TODO: Can avoid this module and pass from gid
+    uint localProbeIndex = probeIndex % GROUP_SIZE;
+
+    for (int axis = 0; axis < AXIS_COUNT; ++axis)
+    {
+        uint ldsIndex = localProbeIndex * AXIS_COUNT + axis;
+        weights[ldsIndex] = weight;
+    }
+}
+
+void PrimeLDS(uint probeIndex, float3 posWS,  float weight)
+{
+    for (int axis = 0; axis < AXIS_COUNT; ++axis)
+    {
+        float3 value = GetPreviousIrradianceCacheValue(probeIndex, axis);
+        SetLDSVal(probeIndex, axis, value, weight);
+    }
+}
+
+void NormalizeLDS(uint probeIndex)
+{
+    // TODO: Can avoid this module and pass from gid
+    uint localProbeIndex = probeIndex % GROUP_SIZE;
+
+    for (int axis = 0; axis < AXIS_COUNT; ++axis)
+    {
+        uint ldsIndex = localProbeIndex * AXIS_COUNT + axis;
+
+        float3 i;
+        float w;
+        GetIrradianceAndWeight(probeIndex, axis, i, w);
+        if (w > 0)
+        {
+            irradianceR[ldsIndex] = i.x / w;
+            irradianceG[ldsIndex] = i.y / w;
+            irradianceB[ldsIndex] = i.z / w;
+        }
+    }
+}
+
+RW_TEXTURE3D(float4, _OutputTexture);
+
+OutputRepresentation ProjectToOutput(uint probeIndex)
+{
+    OutputRepresentation output;
+    ZERO_INITIALIZE(OutputRepresentation, output);
+    for (int axis = 0; axis < AXIS_COUNT; ++axis)
+    {
+        float3 l;
+        float w;
+        GetIrradianceAndWeight(probeIndex, axis, l, w);
+        float3 dir = normalize(_RayAxis[axis].xyz);
+        AddToOutputRepresentation(l, dir, output);
+    }
+
+    return output;
+
+}
+
+// -------------------------------------------------------------
+// Irradiance Cache approach
+// -------------------------------------------------------------
+
+void StoreInIrradianceCacheFromLDS(uint probeIndex)
+{
+    for (int axis = 0; axis < AXIS_COUNT; ++axis)
+    {
+        uint index = probeIndex * AXIS_COUNT + axis;
+
+        float3 irradiance;
+        float weight;
+        GetIrradianceAndWeight(probeIndex, axis, irradiance, weight);
+        _IrradianceCache[index] = irradiance;
+    }
+}
+
+// -------------------------------------------------------------
+// Get information from neighbours or hits
+// -------------------------------------------------------------
+
+// Returns true if a hit was found, if it has, then
+bool GetInfoAlongAxis(uint probeIndex, float3 probePosition, uint axisIndex, out HitData hit)
+{
+    uint extraDataIndex = probeIndex * AXIS_COUNT + axisIndex;
+    uint2 extraData = _PackedProbeExtraData[extraDataIndex];
+
+    float4 albedoAndDist = UnpackAlbedoAndDistance(extraData.x);
+    float  distToHit = albedoAndDist.w;
+    if (distToHit > _MinValidNeighbourDist)
+    {
+        hit.normal = UnpackNormal(extraData.y);
+        float3 position = probePosition;
+        // TODO: Normalize here should not be needed.
+        position += normalize(_RayAxis[axisIndex].xyz) * distToHit;
+        position += hit.normal * _RayBias;
+
+        hit.position = position;
+
+        hit.albedo = albedoAndDist.rgb;
+
+        return true;
+    }
+    else
+    {
+        hit.albedo = 0;
+        hit.normal = 0;
+        hit.position = 0;
+        return false;
+    }
+}
+
+// -------------------------------------------------------------
+// Debug function
+// -------------------------------------------------------------
+
+float4 AvgStoredValAndWeight(uint probeIndex)
+{
+    float4 outVal = 0;
+    uint localProbeIndex = probeIndex % GROUP_SIZE;
+
+    for (int axis = 0; axis < AXIS_COUNT; ++axis)
+    {
+        uint ldsIndex = localProbeIndex * AXIS_COUNT + axis;
+        float weight = weights[ldsIndex];
+        outVal += float4(irradianceR[ldsIndex], irradianceG[ldsIndex], irradianceG[ldsIndex], weights[ldsIndex]);
+    }
+
+    outVal /= AXIS_COUNT;
+    outVal.w = probeIndex;
+    return outVal;
+}
+
+void WriteDebug(uint probeIndex)
+{
+    float4 outVal = 0;
+    uint3 dstLoc = ProbeIndexToTexLocation(probeIndex);
+
+    float4 v = AvgStoredValAndWeight(probeIndex);
+
+    float3 i;
+    float w;
+
+    GetIrradianceAndWeight(probeIndex, 4, i, w);
+    v.xyz = i;
+
+    float3 probeWorldPosition = _ProbeWorldLocations[probeIndex];
+
+    int hits = 0;
+    for (int ax = 0; ax < AXIS_COUNT; ax++)
+    {
+        HitData hit;
+        if (GetInfoAlongAxis(probeIndex, probeWorldPosition, ax, hit))
+            hits++;
+    }
+
+    v.y = _ProbeValidity[probeIndex];
+
+    v.xyz = probeWorldPosition;
+
+    v.w = probeIndex;
+
+    _OutputTexture[dstLoc] = v;
+}
+
+// -------------------------------------------------------------
+// Lighting Utils
+// -------------------------------------------------------------
+
+// Ideally we want the list pre-computed. This is easier for prototyping
+bool GetNextValidLightData(inout int currentIndex, out LightData lightData)
+{
+    currentIndex = ScalarizeElementIndex(currentIndex, false);
+    for (; currentIndex < (int)_PunctualLightCount; ++currentIndex)
+    {
+        lightData = _LightDatas[currentIndex];
+        if (lightData.affectDynamicGI > 0)
+        {
+            currentIndex++;
+            return true;
+        }
+    }
+
+    return false;
+}
+
+float3 GetShadowPunctual(LightData light, float3 positionRWS, float4 distances, float3 L)
+{
+    LightLoopContext context;
+    context.shadowContext = InitShadowContext();
+    context.shadowValue = 1.0;
+    context.sampleReflection = false;
+    context.contactShadow = 0;
+    context.contactShadowFade = 0;
+
+    PositionInputs posInput;
+    posInput.positionWS = positionRWS;
+
+    BuiltinData unused;
+    ZERO_INITIALIZE(BuiltinData, unused);
+
+    SHADOW_TYPE shadow = EvaluateShadow_Punctual(context, posInput, light, unused, 0, L, distances);
+    return ComputeShadowColor(shadow, light.shadowTint, light.penumbraTint);
+
+}
+
+float3 GetShadowDirectional(DirectionalLightData light, float3 positionRWS)
+{
+    LightLoopContext context;
+    context.shadowContext = InitShadowContext();
+    context.shadowValue = 1.0;
+    context.sampleReflection = false;
+    context.contactShadow = 0;
+    context.contactShadowFade = 0;
+
+    PositionInputs posInput;
+    posInput.positionWS = positionRWS;
+
+    if (_DirectionalShadowIndex >= 0)
+    {
+        DirectionalLightData light = _DirectionalLightDatas[_DirectionalShadowIndex];
+        light.contactShadowMask = 0;
+        float3 L = -light.forward;
+        context.shadowValue = GetDirectionalShadowAttenuation(context.shadowContext,
+            0, posInput.positionWS, 0,
+            light.shadowIndex, L);
+
+    }
+    else
+    {
+        return 1;
+    }
+
+
+    BuiltinData unused;
+    ZERO_INITIALIZE(BuiltinData, unused);
+
+    SHADOW_TYPE shadow = EvaluateShadow_Directional(context, posInput, light, unused, 0);
+    return ComputeShadowColor(shadow, light.shadowTint, light.penumbraTint);
+
+}
+
+float3 EvaluatePunctualLight(LightData light, float3 positionWS, out float3 vec)
+{
+    float3 L;
+    float4 distances; // {d, d^2, 1/d, d_proj}
+    float3 positionRWS = GetCameraRelativePositionWS(positionWS);
+
+    GetPunctualLightVectors(positionRWS, light, L, distances);
+    L = normalize(L);
+    // Maybe makes sense to init better (TODO)
+    LightLoopContext context;
+    context.shadowContext = InitShadowContext();
+    context.shadowValue = 1.0;
+    context.sampleReflection = false;
+    context.contactShadow = 0;
+    context.contactShadowFade = 0;
+
+    PositionInputs posInput;
+    posInput.positionWS = positionRWS;
+
+    float4 lightColor = EvaluateLight_Punctual(context, posInput, light, L, distances);
+    lightColor.rgb *= lightColor.a;
+
+    float3 shadows = GetShadowPunctual(light, positionRWS, distances, L);
+
+    vec = normalize(positionWS - GetAbsolutePositionWS(light.positionRWS));
+    return shadows * lightColor.rgb;
+}
+
+float3 EvaluateDirectionalLight(DirectionalLightData light, float3 positionWS, out float3 vec)
+{
+    float3 positionRWS = GetCameraRelativePositionWS(positionWS);
+
+    // Maybe makes sense to init better (TODO)
+    LightLoopContext context;
+    context.shadowContext = InitShadowContext();
+    context.shadowValue = 0.0f;
+    context.sampleReflection = false;
+    context.contactShadow = 0;
+    context.contactShadowFade = 0;
+
+    PositionInputs posInput;
+    posInput.positionWS = positionRWS;
+
+    float4 lightColor = EvaluateLight_Directional(context, posInput, light);
+    lightColor.rgb *= lightColor.a;
+
+    float3 shadows = GetShadowDirectional(light, positionRWS);
+
+    vec = light.forward;
+    // TODO: WHY? But it matches more...
+    float scale =  2.0f / PI;
+    return shadows * lightColor.rgb * scale;
+}
+
+float3 GetLightingForAxisPunctual(LightData light, uint probeIndex, uint axis, float3 probeWorldPosition, HitData hit)
+{
+    float3 outputLighting = 0;
+
+    float3 L;
+    outputLighting = EvaluatePunctualLight(light, hit.position, L);
+    outputLighting *= hit.albedo;
+    float NdotL = saturate(dot(hit.normal, -L));
+
+    float scalarMultiplier = NdotL * INV_PI * _ArtificialBoost;
+    outputLighting *= scalarMultiplier;
+
+    return outputLighting;
+}
+
+
+float3 GetLightingForAxisArea(LightData light, uint probeIndex, uint axis, float3 probeWorldPosition, HitData hit)
+{
+    float3 outputLighting = 0;
+
+    float3 L;
+    outputLighting = EvaluatePunctualLight(light, hit.position, L);
+    outputLighting *= hit.albedo;
+    float NdotL = saturate(dot(hit.normal, -L));
+
+    float scalarMultiplier = NdotL * INV_PI * _ArtificialBoost;
+    outputLighting *= scalarMultiplier;
+
+    return outputLighting;
+}
+
+float3 GetLightingForAxisDirectional(DirectionalLightData light, uint probeIndex, uint axis, float3 probeWorldPosition, HitData hit)
+{
+    float3 outputLighting = 0;
+
+    float3 L;
+    outputLighting = EvaluateDirectionalLight(light, hit.position, L);
+    outputLighting *= hit.albedo;
+    float NdotL = saturate(dot(hit.normal, -L));
+
+    float scalarMultiplier = NdotL * INV_PI * _ArtificialBoost;
+    outputLighting *= scalarMultiplier;
+
+    return outputLighting;
+}
+
+// -------------------------------------------------------------
+// Actual Light Loop
+// -------------------------------------------------------------
+
+void AccumulateDirectional(float3 probeWorldPosition, uint probeIndex)
+{
+    BuiltinData unused;
+    ZERO_INITIALIZE(BuiltinData, unused);
+    for (uint dirLightIdx = 0; dirLightIdx < _DirectionalLightCount; ++dirLightIdx)
+    {
+        DirectionalLightData dirData = _DirectionalLightDatas[dirLightIdx];
+        // Only support the shadow casting one otherwise result is completely off.
+        if (dirData.affectsDynamicGI > 0.0f && _DirectionalShadowIndex == (int)dirLightIdx)
+        {
+            for (uint i = 0; i < AXIS_COUNT; ++i)
+            {
+                HitData hit;
+                if (GetInfoAlongAxis(probeIndex, probeWorldPosition, i, hit))
+                {
+                    float3 lightingAlongAxis = GetLightingForAxisDirectional(dirData, probeIndex, i, probeWorldPosition, hit);
+                    AccumulateIrradiance(probeIndex, i, lightingAlongAxis, 0);
+                    StoreWeight(probeIndex, i, _PrimaryDecay + 1.0f);
+                }
+            }
+        }
+    }
+}
+
+void AccumulateLighting(float3 probeWorldPosition, uint probeIndex)
+{
+    int lightIndex = 0;
+    LightData light;
+
+    AccumulateDirectional(probeWorldPosition, probeIndex);
+
+    while (GetNextValidLightData(lightIndex, light))
+    {
+        for (int i = 0; i < AXIS_COUNT; ++i)
+        {
+            HitData hit;
+            if (GetInfoAlongAxis(probeIndex, probeWorldPosition, i, hit))
+            {
+                float3 lightingAlongAxis = GetLightingForAxisPunctual(light, probeIndex, i, probeWorldPosition, hit);
+                AccumulateIrradiance(probeIndex, i, lightingAlongAxis, 0);
+                StoreWeight(probeIndex, i, _PrimaryDecay + 1.0f);
+            }
+        }
+    }
+}
+
+
+// -------------------------------------------------------------
+// Gather previous result.
+// -------------------------------------------------------------
+
+OutputRepresentation SampleAdaptiveProbeVolumeSH(in float3 posWS, in float3 normalWS, out float validity)
+{
+    OutputRepresentation output;
+    ZERO_INITIALIZE(OutputRepresentation, output);
+    validity = 1.0f;
+
+    APVResources apvRes = FillAPVResources();
+    float3 pool_uvw;
+    if (TryToGetPoolUVW(apvRes, posWS, 0, pool_uvw))
+    {
+        float4 L0_L1Rx = SAMPLE_TEXTURE3D_LOD(_PrevAPVResL0_L1Rx, s_linear_clamp_sampler, pool_uvw, 0).rgba;
+        float4 L1G_L1Ry = SAMPLE_TEXTURE3D_LOD(_PrevAPVResL1G_L1Ry, s_linear_clamp_sampler, pool_uvw, 0).rgba;
+        float4 L1B_L1Rz = SAMPLE_TEXTURE3D_LOD(_PrevAPVResL1B_L1Rz, s_linear_clamp_sampler, pool_uvw, 0).rgba;
+
+        validity = SAMPLE_TEXTURE3D_LOD(_PrevDebug, s_linear_clamp_sampler, pool_uvw, 0).a;
+
+        SamplesToRepresentation(output, L0_L1Rx, L1G_L1Ry, L1B_L1Rz, true);
+    }
+
+    return output;
+}
+
+
+// Sample actual probe if there, otherwise sample APV and let interpolation do the rest
+void AccumulateNeighbourContribution(float3 centralWorldPos, int probeIndex, int axis)
+{
+
+    float3 direction = _RayAxis[axis].xyz;
+    int3 neighbourOffset = int3(direction * _RayAxis[axis].w);
+
+    OutputRepresentation value;
+    ZERO_INITIALIZE(OutputRepresentation, value);
+
+    float3 irradiance = 0;
+    // sample APV around neighbours.
+    float3 dist = direction * _DistanceBetweenProbes * _RayAxis[axis].w;
+    float3 neighbourPos = centralWorldPos + dist;
+    float validity;
+    value = SampleAdaptiveProbeVolumeSH(neighbourPos, direction, validity);
+    irradiance = value.Evaluate(direction);
+
+    // Sample neighbour
+    float3 neighbContribution = irradiance * INV_PI;
+    AccumulateIrradiance(probeIndex, axis, neighbContribution, 1.0f);
+}
+
+bool HasIntersectionAlongAxis(int probeIndex, int axis)
+{
+    uint extraDataIndex = probeIndex * AXIS_COUNT + axis;
+    uint2 extraData = _PackedProbeExtraData[extraDataIndex];
+
+    float4 albedoAndDist = UnpackAlbedoAndDistance(extraData.x);
+    float  distToHit = albedoAndDist.w;
+
+    return (distToHit > _MinValidNeighbourDist);
+}
+
+
+void AccumulateSecondBounce(float3 centralProbeLocation, int probeIndex)
+{
+    for (int i = 0; i < AXIS_COUNT; ++i)
+    {
+        if (!HasIntersectionAlongAxis(probeIndex, i))
+        {
+            AccumulateNeighbourContribution(centralProbeLocation, probeIndex, i);
+        }
+    }
+}
+
+// -------------------------------------------------------------
+// Actual Light Loop
+// -------------------------------------------------------------
+
+#if CLEAR
+
+[numthreads(GROUP_SIZE, 1, 1)]
+void Clear(uint3 id : SV_DispatchThreadID)
+{
+    uint probeIndex = id.x;
+    if (probeIndex < _ProbeCount)
+    {
+        uint3 dstLoc = ProbeIndexToTexLocation(probeIndex);
+        _RWAPVResL0_L1Rx[dstLoc] = 0;
+        _RWAPVResL1G_L1Ry[dstLoc] = 0;
+        _RWAPVResL1B_L1Rz[dstLoc] = 0;
+    }
+}
+#else
+
+
+void ScaleInvalid(uint probeIndex)
+{
+    //// Idea is to have a slider.
+    float invalidScale = (1.0f - lerp(0.0f, _LeakMultiplier, _ProbeValidity[probeIndex]));
+    // TODO: Can avoid this module and pass from gid
+    uint localProbeIndex = probeIndex % GROUP_SIZE;
+
+    for (int axis = 0; axis < AXIS_COUNT; ++axis)
+    {
+        uint ldsIndex = localProbeIndex * AXIS_COUNT + axis;
+        irradianceR[ldsIndex] *= invalidScale;
+        irradianceG[ldsIndex] *= invalidScale;
+        irradianceB[ldsIndex] *= invalidScale;
+    }
+}
+
+[numthreads(GROUP_SIZE, 1, 1)]
+void GatherFirstBounce(uint3 id : SV_DispatchThreadID)
+{
+    uint probeIndex = id.x;
+    if (probeIndex < _ProbeCount)
+    {
+        float3 probeWorldPosition = _ProbeWorldLocations[probeIndex];
+
+        int3 texLoc = ProbeIndexToTexLocation(probeIndex);
+
+        PrimeLDS(probeIndex, probeWorldPosition, _PrimaryDecay);
+
+        AccumulateLighting(probeWorldPosition, probeIndex);
+
+        AccumulateSecondBounce(probeWorldPosition, probeIndex);
+
+        // No need to sync as we don't communicate intra-thread and use LDS only as scratch memory for now.
+        NormalizeLDS(probeIndex);
+        ScaleInvalid(probeIndex);
+
+        OutputRepresentation output = ProjectToOutput(probeIndex);
+        if (_DeringingFactor > 0.0f)
+        {
+            ConvolveWithWindowing(output, _DeringingFactor);
+        }
+        WriteToOutput(output, probeIndex, true);
+        StoreInIrradianceCacheFromLDS(probeIndex);
+
+
+#if DEBUGGING
+        WriteDebug(probeIndex);
+#endif
+    }
+}
+
+#endif

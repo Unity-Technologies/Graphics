@@ -98,6 +98,8 @@ namespace UnityEngine.Rendering
         }
 
         internal int GetChunkSize() { return m_AllocationSize; }
+        internal int GetChunkSizeInProbeCount() { return m_AllocationSize * kBrickProbeCountTotal; }
+
         internal int GetPoolWidth() { return m_Pool.width; }
         internal int GetPoolHeight() { return m_Pool.height; }
         internal Vector3Int GetPoolDimensions() { return new Vector3Int(m_Pool.width, m_Pool.height, m_Pool.depth); }

@@ -1,0 +1,152 @@
+#include "Packages/com.unity.render-pipelines.high-definition/Runtime/Lighting/ProbeVolume/Propagation/APVDynamicGICommon.hlsl"
+
+
+#pragma kernel CombineProbeVolumes SIMPLE_COMBINE
+#pragma kernel CombineIrradianceCacheAndPV  COMBINE_FROM_CACHE
+
+#define GROUP_SIZE 64
+
+
+TEXTURE3D(_APVResL0_L1Rx);
+TEXTURE3D(_APVResL1G_L1Ry);
+TEXTURE3D(_APVResL1B_L1Rz);
+
+float4 _PVCombineParameters;
+
+#define _FirstBlendFactor  _PVCombineParameters.x
+#define _SecondBlendFactor _PVCombineParameters.y
+#define _ProbeCount (uint)_PVCombineParameters.z
+
+#define _DeringingFactor _PVCombineParameters.w
+
+#define ONLY_FIRST 1
+#define ONLY_SECOND 2
+#define DEBUG ONLY_SECOND
+
+//#pragma enable_d3d11_debug_symbols
+
+OutputRepresentation CombineSH(OutputRepresentation first, OutputRepresentation second)
+{
+    OutputRepresentation output;
+    output.L0 = first.L0 * _FirstBlendFactor + second.L0 * _SecondBlendFactor;
+    output.L1_0 = first.L1_0 * _FirstBlendFactor + second.L1_0 * _SecondBlendFactor;
+    output.L1_1 = first.L1_1 * _FirstBlendFactor + second.L1_1 * _SecondBlendFactor;
+    output.L1_2 = first.L1_2 * _FirstBlendFactor + second.L1_2 * _SecondBlendFactor;
+
+    return output;
+}
+
+#ifdef SIMPLE_COMBINE
+
+[numthreads(GROUP_SIZE, 1, 1)]
+void CombineProbeVolumes(uint3 id : SV_DispatchThreadID)
+{
+    uint probeIndex = id.x;
+    if (probeIndex < _ProbeCount)
+    {
+        uint3 dstLoc = ProbeIndexToTexLocation(probeIndex);
+
+        OutputRepresentation firstPV;
+        SamplesToRepresentation(firstPV, _APVResL0_L1Rx[dstLoc], _APVResL1G_L1Ry[dstLoc], _APVResL1B_L1Rz[dstLoc]);
+
+#if DEBUG == ONLY_SECOND
+        ZERO_INITIALIZE(OutputRepresentation, firstPV);
+#endif
+
+        OutputRepresentation secondPV;
+        SamplesToRepresentation(secondPV, _RWAPVResL0_L1Rx[dstLoc], _RWAPVResL1G_L1Ry[dstLoc], _RWAPVResL1B_L1Rz[dstLoc]);
+
+#if DEBUG == ONLY_FIRST
+        ZERO_INITIALIZE(OutputRepresentation, secondPV);
+#endif
+        OutputRepresentation finalPV = CombineSH(firstPV, secondPV);
+
+        WriteToOutput(finalPV, probeIndex);
+    }
+}
+
+#elif defined(COMBINE_FROM_CACHE)
+
+StructuredBuffer<float3> _IrradianceCache;
+
+
+
+// -------------------------------------------------------------
+// Deringing stuff
+// -------------------------------------------------------------
+
+#define HANNING 0
+#define LANCZOS 1
+#define GAUSSIAN 2
+#define FILTER LANCZOS
+
+void ConvolveWithWindowing(inout OutputRepresentation result, float w)
+{
+#if FILTER == HANNING
+    float factor = (1.0f + cos(PI * rcp(w))) * 0.5f;
+#elif FILTER == LANCZOS
+    float factor = sin(PI * rcp(w)) / (PI * rcp(w));
+
+#elif FILTER == GAUSSIAN
+    float factor = exp(-pow(PI * rcp(w), 2.0) / 2.0);
+#endif
+
+    result.L1_0 *= factor;
+    result.L1_1 *= factor;
+    result.L1_2 *= factor;
+}
+
+// -------------------------------------------------------------
+// Project to final space
+// -------------------------------------------------------------
+
+OutputRepresentation ProjectToOutput(uint probeIndex)
+{
+    OutputRepresentation output;
+    ZERO_INITIALIZE(OutputRepresentation, output);
+
+    uint localIndex = probeIndex * AXIS_COUNT;
+    for (int axis = 0; axis < AXIS_COUNT; ++axis)
+    {
+        float3 irradiance = _IrradianceCache[localIndex].xyz;
+        float3 dir = _RayAxis[axis].xyz;
+        AddToOutputRepresentation(irradiance, dir, output);
+        localIndex++;
+    }
+
+    return output;
+}
+
+
+
+[numthreads(GROUP_SIZE, 1, 1)]
+void CombineIrradianceCacheAndPV(uint3 id : SV_DispatchThreadID)
+{
+    uint probeIndex = id.x;
+    if (probeIndex < _ProbeCount)
+    {
+        uint3 dstLoc = ProbeIndexToTexLocation(probeIndex);
+
+        OutputRepresentation dynamicPV = ProjectToOutput(probeIndex);
+        if (_DeringingFactor > 0.0f)
+        {
+            ConvolveWithWindowing(dynamicPV, _DeringingFactor);
+        }
+
+#if DEBUG == ONLY_FIRST
+        ZERO_INITIALIZE(OutputRepresentation, dynamicPV);
+#endif
+
+        OutputRepresentation staticPV;
+        SamplesToRepresentation(staticPV, _APVResL0_L1Rx[dstLoc], _APVResL1G_L1Ry[dstLoc], _APVResL1B_L1Rz[dstLoc]);
+#if DEBUG == ONLY_SECOND
+        ZERO_INITIALIZE(OutputRepresentation, staticPV);
+#endif
+
+        OutputRepresentation finalPV = CombineSH(staticPV, dynamicPV);
+
+        WriteToOutput(finalPV, probeIndex);
+    }
+}
+
+#endif

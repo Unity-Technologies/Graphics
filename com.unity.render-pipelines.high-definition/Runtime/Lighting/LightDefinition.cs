@@ -103,7 +103,7 @@ namespace UnityEngine.Rendering.HighDefinition
         public float   distanceFromCamera;      // -1 -> no sky interaction
         public float   angularDiameter;         // Units: radians
         public float   flareFalloff;
-        public float   __unused__;
+        public float   affectsDynamicGI;
 
         public Vector3 flareTint;
         public float   flareSize;               // Units: radians
@@ -167,7 +167,7 @@ namespace UnityEngine.Rendering.HighDefinition
         public int     contactShadowMask;       // negative if unused (TODO: 16 bit)
         public float   diffuseDimmer;
         public float   specularDimmer;
-        public float   __unused__;
+        public int     affectDynamicGI;
 
         public Vector2 padding;
         public float   isRayTracedContactShadow;

@@ -12,9 +12,6 @@
 
 #pragma only_renderers d3d11 playstation xboxone xboxseries vulkan metal switch
 
-#ifdef SHADER_API_PSSL
-#include SHADER_COMPILER_GLOBAL_OPTIMIZE_REGISTER_USAGE
-#endif
 
 // #pragma enable_d3d11_debug_symbols
 

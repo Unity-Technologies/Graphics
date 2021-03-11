@@ -79,7 +79,7 @@ struct DirectionalLightData
     float distanceFromCamera;
     float angularDiameter;
     float flareFalloff;
-    float __unused__;
+    float affectsDynamicGI;
     float3 flareTint;
     float flareSize;
     float3 surfaceTint;
@@ -120,7 +120,7 @@ struct LightData
     int contactShadowMask;
     float diffuseDimmer;
     float specularDimmer;
-    float __unused__;
+    int affectDynamicGI;
     float2 padding;
     float isRayTracedContactShadow;
     float boxLightSafeExtent;

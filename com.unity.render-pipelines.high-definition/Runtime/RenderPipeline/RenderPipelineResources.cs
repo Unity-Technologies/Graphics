@@ -337,6 +337,17 @@ namespace UnityEngine.Rendering.HighDefinition
             [Reload("Runtime/Lighting/ScreenSpaceLighting/BilateralUpsample.compute")]
             public ComputeShader bilateralUpsampleCS;
 
+
+            // Dynamic GI from Probe Volumes
+            [Reload("Runtime/Lighting/ProbeVolume/DynamicPropagation/CombineProbeVolumes.compute")]
+            public ComputeShader combineProbeVolumesCS;
+            [Reload("Runtime/Lighting/ProbeVolume/DynamicPropagation/FirstBounceGeneration.compute")]
+            public ComputeShader probeGIInjectionCS;
+            [Reload("Runtime/Lighting/ProbeVolume/DynamicPropagation/FirstBounceGenerationV2.compute")]
+            public ComputeShader probeGIInjectionV2CS;
+            [Reload("Runtime/Lighting/ProbeVolume/DynamicPropagation/FirstBounceGenerationV3.compute")]
+            public ComputeShader probeGIInjectionV3CS;
+
             // Iterator to retrieve all compute shaders in reflection so we don't have to keep a list of
             // used compute shaders up to date (prefer editor-only usage)
             public IEnumerable<ComputeShader> GetAllComputeShaders()

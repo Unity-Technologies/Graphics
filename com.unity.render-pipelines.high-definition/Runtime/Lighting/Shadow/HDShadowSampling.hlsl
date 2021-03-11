@@ -11,6 +11,16 @@
 //  PCF Filtering methods
 // ------------------------------------------------------------------
 
+real SampleShadow_Single_PCF(float4 shadowAtlasSize, float3 coord, Texture2D tex, SamplerComparisonState compSamp, float depthBias)
+{
+#if SHADOW_USE_DEPTH_BIAS == 1
+    // add the depth bias
+    coord.z += depthBias;
+#endif
+
+    return SAMPLE_TEXTURE2D_SHADOW(tex, compSamp, coord);
+}
+
 real SampleShadow_Gather_PCF(float4 shadowAtlasSize, float3 coord, Texture2D tex, SamplerComparisonState compSamp, float depthBias)
 {
 #if SHADOW_USE_DEPTH_BIAS == 1
