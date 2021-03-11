@@ -74,8 +74,8 @@ namespace UnityEditor.ShaderGraph.UnitTests
         public void Cleanup()
         {
             // Don't spawn ask-to-save dialog
-            m_Window.graphObject = null;
-            m_Window.Close();
+            //m_Window.graphObject = null;
+            //m_Window.Close();
         }
 
         [Test]
@@ -195,58 +195,6 @@ namespace UnityEditor.ShaderGraph.UnitTests
 
 
             yield return null;
-        }
-
-        [UnityTest]
-        public IEnumerator DoubleClickPillRenameTest()
-        {
-            var blackboardPropertyView = m_BlackboardTestController.blackboard.Q<BlackboardPropertyView>();
-            Assert.IsNotNull(blackboardPropertyView, "No blackboard properties in the blackboard.");
-
-            var textInputField = blackboardPropertyView.Q<VisualElement>("unity-text-input");
-            Assert.IsNotNull(textInputField, "No text input field found in the property view.");
-
-            var propertyViewOffset = new Vector2(blackboardPropertyView.layout.width * 0.25f, blackboardPropertyView.layout.height * 0.25f);
-            ShaderGraphUITestHelpers.SendMouseEvent(m_Window, blackboardPropertyView, EventType.MouseDown, MouseButton.LeftMouse, 2, EventModifiers.None, propertyViewOffset);
-            yield return null;
-            ShaderGraphUITestHelpers.SendMouseEvent(m_Window, blackboardPropertyView, EventType.MouseUp, MouseButton.LeftMouse, 1, EventModifiers.None, propertyViewOffset);
-            yield return null;
-            ShaderGraphUITestHelpers.SendKeyEvent(m_Window, textInputField, EventType.KeyDown, 'T');
-            yield return null;
-            ShaderGraphUITestHelpers.SendKeyEvent(m_Window, textInputField, EventType.KeyDown, 'e');
-            yield return null;
-            ShaderGraphUITestHelpers.SendKeyEvent(m_Window, textInputField, EventType.KeyDown, 's');
-            yield return null;
-            ShaderGraphUITestHelpers.SendKeyEvent(m_Window, textInputField, EventType.KeyDown, 't');
-            yield return null;
-            ShaderGraphUITestHelpers.SendKeyEvent(m_Window, textInputField, EventType.KeyDown, 'P');
-            yield return null;
-            ShaderGraphUITestHelpers.SendKeyEvent(m_Window, textInputField, EventType.KeyDown, 'r');
-            yield return null;
-            ShaderGraphUITestHelpers.SendKeyEvent(m_Window, textInputField, EventType.KeyDown, 'o');
-            yield return null;
-            ShaderGraphUITestHelpers.SendKeyEvent(m_Window, textInputField, EventType.KeyDown, 'p');
-            yield return null;
-            ShaderGraphUITestHelpers.SendKeyEvent(m_Window, textInputField, EventType.KeyDown, 'e');
-            yield return null;
-            ShaderGraphUITestHelpers.SendKeyEvent(m_Window, textInputField, EventType.KeyDown, 'r');
-            yield return null;
-            ShaderGraphUITestHelpers.SendKeyEvent(m_Window, textInputField, EventType.KeyDown, 't');
-            yield return null;
-            ShaderGraphUITestHelpers.SendKeyEvent(m_Window, textInputField, EventType.KeyDown, 'y');
-            yield return null;
-            ShaderGraphUITestHelpers.SendKeyEvent(m_Window, textInputField, EventType.KeyDown, 'N');
-            yield return null;
-            ShaderGraphUITestHelpers.SendKeyEvent(m_Window, textInputField, EventType.KeyDown, 'a');
-            yield return null;
-            ShaderGraphUITestHelpers.SendKeyEvent(m_Window, textInputField, EventType.KeyDown, 'm');
-            yield return null;
-            ShaderGraphUITestHelpers.SendKeyEvent(m_Window, textInputField, EventType.KeyDown, 'e');
-            yield return null;
-            ShaderGraphUITestHelpers.SendMouseEvent(m_Window, m_GraphEditorView.graphView);
-
-            Assert.IsTrue(blackboardPropertyView.text == "TestPropertyName", "Rename operation did not conclude with blackboard item having expected value");
-
         }
 
         [Test]
