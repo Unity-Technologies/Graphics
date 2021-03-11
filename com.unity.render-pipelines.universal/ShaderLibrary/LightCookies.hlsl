@@ -127,21 +127,16 @@ half2 LightCookie_ComputeUVSpot(float4x4 worldToLightPerspective, float3 sampleP
     // We let the sampler handle clamping to border.
     return positionAtlasUV;
 }
-/*
+
 half2 LightCookie_ComputeUVPoint(float4x4 worldToLight, float3 samplePositionWS, half4 atlasUVRect)
 {
     // Translate and rotate 'positionWS' into the light space.
-    float3 positionLS   = mul(worldToLight, float4(samplePositionWS, 1)).xyz; // TODO: is multiply in correct order?
+    float4 positionLS  = mul(worldToLight, float4(samplePositionWS, 1));
 
+    float3 sampleDirLS = normalize(positionLS.xyz / positionLS.w);
 
-    float3 directionLS  = normalize(positionLS);
-
-    // TODO:
-    // SampleCube or OctRead
-    float2 positionCS = PackNormalOctQuadEncode(directionLS);
-
-    // Remap ortho CS to the texture coordinates, from [-1, 1]^2 to [0, 1]^2.
-    float2 positionUV = saturate(positionCS * 0.5 + 0.5);
+    // Project direction to Octahderal quad UV.
+    float2 positionUV = saturate(PackNormalOctQuadEncode(sampleDirLS) * 0.5 + 0.5);
 
     // Remap to atlas texture
     half2 positionAtlasUV = atlasUVRect.xy + half2(positionUV) * atlasUVRect.zw;
@@ -149,7 +144,6 @@ half2 LightCookie_ComputeUVPoint(float4x4 worldToLight, float3 samplePositionWS,
     // We let the sampler handle clamping to border.
     return positionAtlasUV;
 }
-*/
 
 half3 LightCookie_SampleMainLightCookie(float3 samplePositionWS)
 {
@@ -166,26 +160,18 @@ half3 LightCookie_SampleAdditionalLightCookie(int perObjectLightIndex, float3 sa
     if(all(uvRect == 0))
         return half3(1,1,1);
 
-#if 1
     float    lightType    = _AdditionalLightsLightTypes[perObjectLightIndex];
     float4x4 worldToLight = _AdditionalLightsWorldToLights[perObjectLightIndex];
 
     int isSpot = lightType == LIGHT_COOKIE_LIGHT_TYPE_SPOT;
 
     half2 uv;
-    //if(isSpot)
+    if(isSpot)
         uv = LightCookie_ComputeUVSpot(worldToLight, samplePositionWS, uvRect);
-    //else
-        //uv = LightCookie_ComputeUVPoint(_MainLightWorldToLight, samplePositionWS, uvRect);
+    else
+        uv = LightCookie_ComputeUVPoint(worldToLight, samplePositionWS, uvRect);
 
-    // Translate and rotate 'positionWS' into the light space.
-    //float3 positionLS = mul(worldToLight, float4(samplePositionWS, 1)).xyz; // TODO: is multiply in correct order?
-    //return frac(positionLS);
-    //return half3(uv, 0);
     return ADDITIONAL_LIGHTS_COOKIE_FORMAT_IS_ALPHA ? SAMPLE_ADDITONAL_LIGHT_COOKIE_TEXTURE(uv).aaa : SAMPLE_ADDITONAL_LIGHT_COOKIE_TEXTURE(uv).rgb;
-#else
-    return half3(1,1,1);
-#endif
 }
 
 #endif //UNIVERSAL_LIGHT_COOKIE_INCLUDED

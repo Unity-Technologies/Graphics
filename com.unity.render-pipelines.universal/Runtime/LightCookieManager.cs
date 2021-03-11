@@ -254,7 +254,7 @@ namespace UnityEngine.Rendering.Universal
             }
 
             // Lazy init GPU resources
-            if (validLightCount > 0 && m_AdditionalLightsCookieAtlas == null)
+            if (validLightCount > 0 && !isInitialized())
                 InitAdditionalLights(validLightCount);
 
             // Update Atlas
