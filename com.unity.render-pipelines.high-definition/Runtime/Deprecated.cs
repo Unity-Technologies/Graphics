@@ -160,8 +160,8 @@ namespace UnityEngine.Rendering.HighDefinition
         /// <summary>When Blend Distance is above 0, controls which kind of falloff is applied to the transition area.</summary>
         public DensityVolumeFalloffMode falloffMode
         {
-            get => (DensityVolumeFalloffMode) m_Parameters.falloffMode;
-            set => m_Parameters.falloffMode = (LocalVolumetricFogFalloffMode) value;
+            get => (DensityVolumeFalloffMode)m_Parameters.falloffMode;
+            set => m_Parameters.falloffMode = (LocalVolumetricFogFalloffMode)value;
         }
 
         /// <summary>Constructor.</summary>

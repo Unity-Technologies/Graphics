@@ -349,7 +349,7 @@ namespace UnityEngine.Rendering.HighDefinition
         public bool                 showAreaLight = true;
         /// <summary>True if reflection probes lights should be displayed in the scene.</summary>
         public bool                 showReflectionProbe = true;
-        
+
         /// <summary>Display the Local Volumetric Fog atlas.</summary>
         public bool displayLocalVolumetricFogAtlas = false;
 
