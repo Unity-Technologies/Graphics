@@ -116,7 +116,7 @@ namespace UnityEngine
             // Distortion
             enableRadialDistortion = false;
             targetSizeDistortion = Vector2.one;
-            distortionCurve = new AnimationCurve(new Keyframe(0.0f, 1.0f), new Keyframe(1.0f, 1.0f));
+            distortionCurve = new AnimationCurve(new Keyframe(0.0f, 0.0f, 1.0f, 1.0f), new Keyframe(1.0f, 1.0f, 1.0f, -1.0f));
 
             // Parameters for Procedural
             fallOff = 1.0f;
