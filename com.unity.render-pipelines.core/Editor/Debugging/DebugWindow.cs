@@ -371,8 +371,6 @@ namespace UnityEditor.Rendering
                 // Side bar
                 using (var scrollScope = new EditorGUILayout.ScrollViewScope(m_PanelScroll, s_Styles.sectionScrollView, GUILayout.Width(splitterPos)))
                 {
-                    GUILayout.Space(40f);
-
                     if (m_Settings.selectedPanel >= panels.Count)
                         m_Settings.selectedPanel = 0;
 
@@ -423,17 +421,15 @@ namespace UnityEditor.Rendering
                 Rect splitterRect = new Rect(splitterPos - 3, 0, 6, Screen.height);
                 GUI.Box(splitterRect, "", s_SplitterLeft);
 
-                GUILayout.Space(10f);
+                GUILayout.Space(4f);
 
                 // Main section - traverse current container
                 using (var changedScope = new EditorGUI.ChangeCheckScope())
                 {
                     using (new EditorGUILayout.VerticalScope())
                     {
+                        GUILayout.Space(8f);
                         var selectedPanel = panels[m_Settings.selectedPanel];
-
-                        GUILayout.Label(selectedPanel.displayName, s_Styles.sectionHeader);
-                        GUILayout.Space(10f);
 
                         using (var scrollScope = new EditorGUILayout.ScrollViewScope(m_ContentScroll))
                         {
@@ -533,6 +529,12 @@ namespace UnityEditor.Rendering
 
             public static GUIContent resetButtonContent { get; } = EditorGUIUtility.TrTextContent("Reset");
 
+            public static GUIStyle foldoutHeaderStyle { get; } = new GUIStyle(EditorStyles.foldoutHeader)
+            {
+                fixedHeight = 20,
+                fontStyle = FontStyle.Bold,
+                margin = new RectOffset(0, 0, 0, 0)
+            };
 
             public readonly GUIStyle sectionScrollView = "PreferencesSectionBox";
             public readonly GUIStyle sectionElement = new GUIStyle("PreferencesSection");
@@ -542,6 +544,11 @@ namespace UnityEditor.Rendering
 
             public Styles()
             {
+                Color textColorDarkSkin = new Color32(210, 210, 210, 255);
+                Color textColorLightSkin = new Color32(102, 102, 102, 255);
+                Color backgroundColorDarkSkin = new Color32(38, 38, 38, 128);
+                Color backgroundColorLightSkin = new Color32(128, 128, 128, 96);
+
                 sectionScrollView = new GUIStyle(sectionScrollView);
                 sectionScrollView.overflow.bottom += 1;
 
@@ -551,20 +558,8 @@ namespace UnityEditor.Rendering
                 sectionHeader.fontSize = 18;
                 sectionHeader.margin.top = 10;
                 sectionHeader.margin.left += 1;
-                sectionHeader.normal.textColor = !EditorGUIUtility.isProSkin
-                    ? new Color(0.4f, 0.4f, 0.4f, 1.0f)
-                    : new Color(0.7f, 0.7f, 0.7f, 1.0f);
-
-                if (EditorGUIUtility.isProSkin)
-                {
-                    sectionHeader.normal.textColor = new Color(0.7f, 0.7f, 0.7f, 1.0f);
-                    skinBackgroundColor = Color.gray * new Color(0.3f, 0.3f, 0.3f, 0.5f);
-                }
-                else
-                {
-                    sectionHeader.normal.textColor = new Color(0.4f, 0.4f, 0.4f, 1.0f);
-                    skinBackgroundColor = Color.gray * new Color(1f, 1f, 1f, 0.32f);
-                }
+                sectionHeader.normal.textColor = EditorGUIUtility.isProSkin ? textColorDarkSkin : textColorLightSkin;
+                skinBackgroundColor = EditorGUIUtility.isProSkin ? backgroundColorDarkSkin : backgroundColorLightSkin;
             }
         }
     }

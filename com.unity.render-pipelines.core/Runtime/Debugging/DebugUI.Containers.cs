@@ -126,6 +126,11 @@ namespace UnityEngine.Rendering
             public bool opened;
 
             /// <summary>
+            /// Draw the foldout in full width using a header style.
+            /// </summary>
+            public bool isHeader;
+
+            /// <summary>
             /// List of columns labels.
             /// </summary>
             public string[] columnLabels { get; set; } = null;

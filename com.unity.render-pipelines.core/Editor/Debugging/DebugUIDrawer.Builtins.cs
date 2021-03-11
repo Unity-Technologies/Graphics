@@ -402,9 +402,10 @@ namespace UnityEditor.Rendering
 
             EditorGUI.BeginChangeCheck();
 
-            Rect rect = PrepareControlRect();
-            bool value = EditorGUI.Foldout(rect, w.GetValue(), EditorGUIUtility.TrTextContent(w.displayName), true);
+            GUIStyle style = w.isHeader ? DebugWindow.Styles.foldoutHeaderStyle : EditorStyles.foldout;
+            Rect rect = PrepareControlRect(w.isHeader ? style.fixedHeight : -1, w.isHeader);
 
+            bool value = EditorGUI.Foldout(rect, w.GetValue(), EditorGUIUtility.TrTextContent(w.displayName), true, style);
             Rect drawRect = GUILayoutUtility.GetLastRect();
             if (w.columnLabels != null && value)
             {
