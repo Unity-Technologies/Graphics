@@ -5,7 +5,6 @@ using UnityEngine;
 using UnityEngine.Rendering.HighDefinition;
 using UnityEditor.ShaderGraph;
 using UnityEditor.ShaderGraph.Internal;
-using UnityEditor.VFX;
 
 namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
 {
@@ -281,22 +280,32 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
 
             FieldCollection GenerateRequiredFields()
             {
-                return new FieldCollection()
+                if (supportLighting)
                 {
-                    HDStructFields.AttributesMesh.normalOS,
-                    HDStructFields.AttributesMesh.tangentOS,
-                    HDStructFields.AttributesMesh.uv0,
-                    HDStructFields.AttributesMesh.uv1,
-                    HDStructFields.AttributesMesh.color,
-                    HDStructFields.AttributesMesh.uv2,
-                    HDStructFields.AttributesMesh.uv3,
-                    HDStructFields.FragInputs.tangentToWorld,
-                    HDStructFields.FragInputs.positionRWS,
-                    HDStructFields.FragInputs.texCoord1,
-                    HDStructFields.FragInputs.texCoord2,
-                    HDStructFields.FragInputs.texCoord3,
-                    HDStructFields.FragInputs.color,
-                };
+                    return new FieldCollection()
+                    {
+                        HDStructFields.AttributesMesh.normalOS,
+                        HDStructFields.AttributesMesh.tangentOS,
+                        HDStructFields.AttributesMesh.uv0,
+                        HDStructFields.AttributesMesh.uv1,
+                        HDStructFields.AttributesMesh.color,
+                        HDStructFields.AttributesMesh.uv2,
+                        HDStructFields.AttributesMesh.uv3,
+                        HDStructFields.FragInputs.tangentToWorld,
+                        HDStructFields.FragInputs.positionRWS,
+                        HDStructFields.FragInputs.texCoord1,
+                        HDStructFields.FragInputs.texCoord2,
+                        HDStructFields.FragInputs.texCoord3,
+                        HDStructFields.FragInputs.color,
+                    };
+                }
+                else
+                {
+                    return new FieldCollection()
+                    {
+                        HDStructFields.FragInputs.positionRWS,
+                    };
+                }
             }
 
             IncludeCollection GenerateIncludes()
@@ -418,21 +427,11 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                     return CoreRequiredFields.LitFull;
                 else
                 {
-                    if (VFXSubTarget.IsConfigured())
-                        return new FieldCollection
-                        {
-                            HDStructFields.FragInputs.positionRWS,
-
-                            // For VFX, we must include the TBN for Unlit.
-                            // TODO: Figure out exactly why this is necessary.
-                            HDStructFields.FragInputs.tangentToWorld,
-                        };
-                    else
-                        return new FieldCollection
-                        {
-                            // TODO: add preprocessor protection for this interpolator: _TRANSPARENT_WRITES_MOTION_VEC
-                            HDStructFields.FragInputs.positionRWS,
-                        };
+                    return new FieldCollection
+                    {
+                        // TODO: add preprocessor protection for this interpolator: _TRANSPARENT_WRITES_MOTION_VEC
+                        HDStructFields.FragInputs.positionRWS,
+                    };
                 }
             }
 
