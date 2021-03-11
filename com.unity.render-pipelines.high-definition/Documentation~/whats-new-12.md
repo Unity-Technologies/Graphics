@@ -17,7 +17,7 @@ Group of Materials / GameObject can be setup to use Force Emissive forward with 
 
 ### Density Volume (Local Volumetric Fog) Improvements
 
-Density Volumes are now known as **Local Volumetric Fog**. This will help users know that is not a Volume (from the Volumes Framework ) and that is related to fog.
+Density Volumes are now known as **Local Volumetric Fog**. This is a more accurate, descriptive name that removes confusion with [Volumes](Volumes.md) and makes the relation to fog clearer.
 
 Local Volumetric Fog masks now support using 3D RenderTextures as masks. 3D mask textures now also use all four RGBA channel which allows volumetric fog to have different colors and density based on the 3D Texture.
 
