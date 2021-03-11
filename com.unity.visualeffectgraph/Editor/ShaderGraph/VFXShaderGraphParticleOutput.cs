@@ -303,6 +303,7 @@ namespace UnityEditor.VFX
             {
                 foreach (var setting in base.filteredOutSettings)
                     yield return setting;
+
                 if (GetOrRefreshShaderGraphObject() != null)
                 {
                     yield return "colorMapping";
@@ -332,6 +333,9 @@ namespace UnityEditor.VFX
                 }
                 else
                 {
+                    if (shaderGraph.generatesWithShaderGraph)
+                        return false;
+
                     if (!shaderGraph.alphaClipping)
                     {
                         //alpha clipping isn't enabled in shaderGraph, we implicitly still allows clipping for shadow & motion vector passes.
