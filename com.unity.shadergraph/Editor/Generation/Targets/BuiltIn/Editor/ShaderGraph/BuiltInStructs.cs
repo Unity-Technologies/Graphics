@@ -8,6 +8,7 @@ namespace UnityEditor.Rendering.BuiltIn.ShaderGraph
         {
             name = "Varyings",
             packFields = true,
+            populateWithCustomInterpolators = true,
             fields = new FieldDescriptor[]
             {
                 StructFields.Varyings.positionCS,
