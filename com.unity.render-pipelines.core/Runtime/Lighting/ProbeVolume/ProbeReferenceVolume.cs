@@ -424,7 +424,6 @@ namespace UnityEngine.Rendering
                 m_NeedsIndexDimChange = false;
             }
         }
-
         private void PerformPendingNormalBiasChange()
         {
             if (m_NormalBias != normalBiasFromProfile)
@@ -547,6 +546,11 @@ namespace UnityEngine.Rendering
                 Profiler.EndSample();
 
                 m_ProbeReferenceVolumeInit = true;
+
+                // Write constants on init to start with right data.
+                m_Index.WriteConstants(ref m_Transform, m_Pool.GetPoolDimensions(), m_NormalBias);
+                // Set the normalBiasFromProfile to avoid re-update of the constants up until the next change in profile editor 
+                normalBiasFromProfile = m_NormalBias;
             }
             m_NeedLoadAsset = true;
         }
