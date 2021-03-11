@@ -1627,7 +1627,7 @@ namespace UnityEngine.Rendering.HighDefinition
                         var camera = m_ProbeCameraCache.GetOrCreate((viewerTransform, visibleProbe, j), m_FrameCount, CameraType.Reflection);
 
                         foreach (var terrain in activeTerrains)
-                            terrain.SetFreeUnusedRenderingResources(camera.GetInstanceID(), false);
+                            terrain.SetKeepUnusedRenderingResources(camera.GetInstanceID(), true);
 
                         if (!camera.TryGetComponent<HDAdditionalCameraData>(out var additionalCameraData))
                         {
