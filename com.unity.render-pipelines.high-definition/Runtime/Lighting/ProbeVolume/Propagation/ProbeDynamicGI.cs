@@ -166,11 +166,11 @@ namespace UnityEngine.Rendering.HighDefinition
 
             parameters.clear = giSettings.clear.value || (hdCamera.cameraFrameCount == 0);
 
-            float probeDistance = ProbeReferenceVolume.instance.DistanceBetweenProbes();
+            float probeDistance = ProbeReferenceVolume.instance.MinDistanceBetweenProbes();
             parameters.injectionParameters = new Vector4(probeDistance, giSettings.minDist.value, giSettings.bias.value, parameters.probeCount);
             parameters.injectionParameters2 = new Vector4(ProbeReferenceVolume.instance.poolDimension.x, ProbeReferenceVolume.instance.poolDimension.y, ProbeReferenceVolume.instance.poolDimension.z, ProbeReferenceVolume.instance.chunkSizeInProbes);
             parameters.injectionParameters3 = new Vector4(giSettings.primaryDecay.value, giSettings.leakMultiplier.value, giSettings.artificialBoost.value, giSettings.antiRingingFactor.value);
-            parameters.injectionParameters4 = new Vector4(buffers.hitProbesAxisCount, buffers.missProbesAxisCount, ProbeReferenceVolume.instance.DistanceBetweenProbes(), giSettings.propagationDecay.value);
+            parameters.injectionParameters4 = new Vector4(buffers.hitProbesAxisCount, buffers.missProbesAxisCount, ProbeReferenceVolume.instance.MinDistanceBetweenProbes(), giSettings.propagationDecay.value);
 
 
             parameters.chunkIndices = chunkIndices;

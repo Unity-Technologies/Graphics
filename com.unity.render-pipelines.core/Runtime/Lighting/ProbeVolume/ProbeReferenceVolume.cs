@@ -591,7 +591,11 @@ namespace UnityEngine.Rendering
         internal float BrickSize(int subdivisionLevel) { return m_Transform.scale * CellSize(subdivisionLevel); }
         internal float MinBrickSize() { return m_Transform.scale; }
 
-        public float DistanceBetweenProbes()
+        /// <summary>
+        /// Get minimum distance between two probes.
+        /// </summary>
+        /// <returns>The resources to bind to runtime shaders.</returns>
+        public float MinDistanceBetweenProbes()
         {
             return MinBrickSize() / (ProbeBrickPool.kBrickProbeCountPerDim - 1);
         }

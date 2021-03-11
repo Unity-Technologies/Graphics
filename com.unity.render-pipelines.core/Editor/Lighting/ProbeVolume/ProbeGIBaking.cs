@@ -145,6 +145,7 @@ namespace UnityEngine.Rendering
 
             var numCells = bakingCells.Count;
 
+            // TODO_FCC: Only do when dynamic propagation.
             AddOccluders(bakingReferenceVolumeAuthoring.transform.position, bakingReferenceVolumeAuthoring.transform.localScale);
 
             // Fetch results of all cells
@@ -188,7 +189,7 @@ namespace UnityEngine.Rendering
 
                         // TODO: We're working on irradiance instead of radiance coefficients
                         //       Add safety margin 2 to avoid out-of-bounds values
-                        float l1scale = 1.7320508f; // 3/(2*sqrt(3)) * 2
+                        float l1scale = 2; //TODO_FCC :REINSTATE 1.7320508f; // 3/(2*sqrt(3)) * 2
                         float l2scale = 3.5777088f; // 4/sqrt(5) * 2
 
                         // L_1^m
@@ -215,7 +216,7 @@ namespace UnityEngine.Rendering
 
                     cell.validity[i] = validity[j];
 
-                    // Generate extra datas.
+                    // TODO_FCC: Only do when dynamic propagation.
                     GenerateExtraData(cell.probePositions[i], ref cell.extraData[i], cell.validity[i]);
                 }
 
@@ -230,6 +231,7 @@ namespace UnityEngine.Rendering
                     SphericalHarmonicsL2Utils.SetCoefficient(ref cell.sh[i], 8, new Vector3(sh[j][0, 8], sh[j][1, 8], sh[j][2, 8]));
                 }
 
+                // TODO_FCC: Only do when dynamic propagation.
                 cell.ProcessExtraDataBuffer();
 
                 // Reset index
@@ -302,6 +304,7 @@ namespace UnityEngine.Rendering
                     refVol.QueueAssetLoading();
             }
 
+            // TODO_FCC: Only do when dynamic propagation.
             CleanupRenderers();
         }
 

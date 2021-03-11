@@ -146,7 +146,7 @@ namespace UnityEngine.Rendering
             float albedoG = Mathf.Clamp01(color.y);
             float albedoB = Mathf.Clamp01(color.z);
 
-            float normalizedDistance = Mathf.Clamp01(distance / ProbeReferenceVolume.instance.DistanceBetweenProbes());
+            float normalizedDistance = Mathf.Clamp01(distance / ProbeReferenceVolume.instance.MinDistanceBetweenProbes());
 
             uint packedOutput = 0;
 
@@ -221,7 +221,7 @@ namespace UnityEngine.Rendering
 
             for (int i = 0; i < ProbeExtraData.s_AxisCount; ++i)
             {
-                bool miss = probeExtraData.NeighbourDistance[i] >= ProbeReferenceVolume.instance.DistanceBetweenProbes() || probeExtraData.NeighbourDistance[i] < 0.005f;
+                bool miss = probeExtraData.NeighbourDistance[i] >= ProbeReferenceVolume.instance.MinDistanceBetweenProbes() || probeExtraData.NeighbourDistance[i] < 0.005f;
 
                 packedData.packedAlbedo[i] = PackAlbedo(probeExtraData.NeighbourColour[i], miss ? 0.0f : probeExtraData.NeighbourDistance[i]);
                 packedData.packedNormal[i] = PackNormalAndAxis(probeExtraData.NeighbourNormal[i], i);
@@ -259,7 +259,7 @@ namespace UnityEngine.Rendering
 
             for (int i = 0; i < ProbeExtraData.s_AxisCount; ++i)
             {
-                bool miss = probeExtraData.NeighbourDistance[i] >= (ProbeReferenceVolume.instance.DistanceBetweenProbes()) || probeExtraData.NeighbourDistance[i] == 0.0f;
+                bool miss = probeExtraData.NeighbourDistance[i] >= (ProbeReferenceVolume.instance.MinDistanceBetweenProbes()) || probeExtraData.NeighbourDistance[i] == 0.0f;
 
                 FinalDataPacked index;
                 index.packedIndices = PackIndexAndValidity((uint)probeIndex, (uint)i, probeExtraData.validity);
