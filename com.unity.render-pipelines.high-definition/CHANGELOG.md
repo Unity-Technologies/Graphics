@@ -125,6 +125,9 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed SSGI frame setting not greyed out while SSGI is disabled in HDRP Asset
 - Fixed wizard checking FrameSettings not in HDRP Default Settings
 - Fixed error when opening the default composition graph in the Graphics Compositor (case 1318933).
+- Fixed HDRP material being constantly dirty.
+- Fixed issue in path tracing, where objects would cast shadows even if not present in the path traced layers (case 1318857).
+- Fixed SRP batcher not compatible with Decal (case 1311586)
 
 ### Changed
 - Removed the material pass probe volumes evaluation mode.
@@ -153,6 +156,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Tidy up of platform abstraction code for shader optimization.
 - Changed Path Tracing's maximum intensity from clamped (0 to 100) to positive value (case 1310514).
 - Avoid unnecessary RenderGraphBuilder.ReadTexture in the "Set Final Target" pass
+- Cached the base types of Volume Manager to improve memory and cpu usage.
 
 ## [10.3.0] - 2020-12-01
 

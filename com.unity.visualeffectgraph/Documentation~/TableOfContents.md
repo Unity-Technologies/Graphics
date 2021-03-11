@@ -1,5 +1,7 @@
 * [Visual Effect Graph](index.md)
 * [Requirements](System-Requirements.md)
+* [What's new](whats-new.md)
+  * [10](whats-new-10.md)
 * [Getting Started](GettingStarted.md)
   * [Visual Effect Graph Assets](VisualEffectGraphAsset.md)
   * [Visual Effect Graph Window](VisualEffectGraphWindow.md)
@@ -28,7 +30,81 @@
   * [Point Caches](PointCaches.md)
   * [Point Cache Bake Tool](PointCacheBakeTool.md)
   * [Spawner Callbacks](SpawnerCallbacks.md)
-* Node Library
+* [Node Library](node-library.md)
+  * Block
+    * Attribute
+      * [Curve](Block-SetAttributeFromCurve.md)
+      * Derived
+        * [Calculate Mass from Volume](Block-CalculateMassFromVolume.md)
+      * [Map](Block-SetAttributeFromMap.md)
+      * [Set](Block-SetAttribute.md)
+    * Collision
+      * [Collide with AABox](Block-CollideWithAABox.md)
+      * [Collide with Cylinder](Block-CollideWithCylinder.md)
+      * [Collide with Depth Buffer](Block-CollideWithDepthBuffer.md)
+      * [Collide with Plane](Block-CollideWithPlane.md)
+      * [Collide with Signed Distance Field](Block-CollideWithSignedDistanceField.md)
+      * [Collide with Sphere](Block-CollideWithSphere.md)
+    * Flipbook
+      * [Flipbook Player](Block-FlipbookPlayer.md)
+    * Force
+      * [Conform to Signed Distance Field](Block-ConformToSignedDistanceField.md)
+      * [Conform to Sphere](Block-ConformToSphere.md)
+      * [Force](Block-Force.md)
+      * [Gravity](Block-Gravity.md)
+      * [Linear Drag](Block-LinearDrag.md)
+      * [Turbulence](Block-Turbulence.md)
+      * [Vector Force Field](Block-VectorForceField.md)
+    * GPU Event
+      * [Trigger Event Always](Block-TriggerEventAlways.md)
+      * [Trigger Event On Die](Block-TriggerEventOnDie.md)
+      * [Trigger Event Rate](Block-TriggerEventRate.md)
+    * Implicit
+      * [Integration : Update Position](Block-UpdatePosition.md)
+      * [Integration : Update Rotation](Block-UpdateRotation.md)
+    * Kill
+      * [Kill (AABox)](Block-Kill(AABox).md)
+      * [Kill (Sphere)](Block-Kill(Sphere).md)
+    * Orientation
+      * [Connect Target](Block-ConnectTarget.md)
+      * [Orient](Block-Orient.md)
+    * Output
+      * [Camera Fade](Block-CameraFade.md)
+      * [Subpixel Anti-Aliasing](Block-SubpixelAntiAliasing.md)
+    * Position
+      * [Set Position (Depth)](Block-SetPosition(Depth).md)
+        * [Position (Mesh)](Block-SetPosition(Mesh).md)
+        * [Position (Signed Distance Field)](Block-SetPosition(SignedDistanceField).md)
+        * [Position (Skinned Mesh)](Block-SetPosition(Mesh).md)
+        * [Set Position (Sequential : Circle)](Block-SetPosition(Sequential).md)
+        * [Set Position (Sequential : Line)](Block-SetPosition(Sequential).md)
+        * [Set Position (Sequential : ThreeDimensional)](Block-SetPosition(Sequential).md)
+      * [Set Position (Shape : AABox)](Block-SetPosition(AABox).md)
+      * [Set Position (Shape : Circle)](Block-SetPosition(Circle).md)
+      * [Set Position (Shape : Cone)](Block-SetPosition(Cone).md)
+      * [Set Position (Shape : Line)](Block-SetPosition(Line).md)
+      * [Set Position (Shape : Sphere)](Block-SetPosition(Sphere).md)
+      * [Set Position (Sequential)](Block-SetPosition(Sequential).md)
+      * [Tile/Warp Positions](Block-TileWarpPositions.md)
+    * Size
+      * [Screen Space Size](Block-ScreenSpaceSize.md)
+    * Spawn
+      * [Constant Spawn Rate](Block-ConstantRate.md)
+      * [Periodic Burst](Block-Burst.md)
+      * [Single  Burst](Block-Burst.md)
+      * [Variable Spawn Rate](Block-VariableRate.md)
+      * Attribute
+        * [Set Spawn Event \<attribute>](Block-SetSpawnEvent.md)
+      * Custom
+        * [Increment Strip Index On Start](Block-IncrementStripIndexOnStart.md)
+        * [Set Spawn Time](Block-SetSpawnTime.md)
+        * [Spawn Over Distance](Block-SpawnOverDistance.md)
+    * Velocity
+      * [Velocity from Direction & Speed (Change Speed)](Block-VelocityFromDirectionAndSpeed(ChangeSpeed).md)
+      * [Velocity from Direction & Speed (New Direction)](Block-VelocityFromDirectionAndSpeed(NewDirection).md)
+      * [Velocity from Direction & Speed (Random Direction)](Block-VelocityFromDirectionAndSpeed(RandomDirection).md)
+      * [Velocity from Direction & Speed (Spherical)](Block-VelocityFromDirectionAndSpeed(Spherical).md)
+      * [Velocity from Direction & Speed (Tangent)](Block-VelocityFromDirectionAndSpeed(Tangent).md)
   * Context
     * [Event](Context-Event.md)
     * [GPU Event](Context-GPUEvent.md)
@@ -45,80 +121,6 @@
       * [Lit Output Settings](Context-OutputLitSettings.md)
     * [Spawn](Context-Spawn.md)
     * [Update Particle](Context-Update.md)
-    * Block
-      * Attribute
-        * [Curve](Block-SetAttributeFromCurve.md)
-        * Derived
-          * [Calculate Mass from Volume](Block-CalculateMassFromVolume.md)
-        * [Map](Block-SetAttributeFromMap.md)
-        * [Set](Block-SetAttribute.md)
-      * Collision
-        * [Collide with AABox](Block-CollideWithAABox.md)
-        * [Collide with Cylinder](Block-CollideWithCylinder.md)
-        * [Collide with Depth Buffer](Block-CollideWithDepthBuffer.md)
-        * [Collide with Plane](Block-CollideWithPlane.md)
-        * [Collide with Signed Distance Field](Block-CollideWithSignedDistanceField.md)
-        * [Collide with Sphere](Block-CollideWithSphere.md)
-      * Flipbook
-        * [Flipbook Player](Block-FlipbookPlayer.md)
-      * Force
-        * [Conform to Signed Distance Field](Block-ConformToSignedDistanceField.md)
-        * [Conform to Sphere](Block-ConformToSphere.md)
-        * [Force](Block-Force.md)
-        * [Gravity](Block-Gravity.md)
-        * [Linear Drag](Block-LinearDrag.md)
-        * [Turbulence](Block-Turbulence.md)
-        * [Vector Force Field](Block-VectorForceField.md)
-      * GPU Event
-        * [Trigger Event Always](Block-TriggerEventAlways.md)
-        * [Trigger Event On Die](Block-TriggerEventOnDie.md)
-        * [Trigger Event Rate](Block-TriggerEventRate.md)
-      * Implicit
-        * [Integration : Update Position](Block-UpdatePosition.md)
-        * [Integration : Update Rotation](Block-UpdateRotation.md)
-      * Kill
-        * [Kill (AABox)](Block-Kill(AABox).md)
-        * [Kill (Sphere)](Block-Kill(Sphere).md)
-      * Orientation
-        * [Connect Target](Block-ConnectTarget.md)
-        * [Orient](Block-Orient.md)
-      * Output
-        * [Camera Fade](Block-CameraFade.md)
-        * [Subpixel Anti-Aliasing](Block-SubpixelAntiAliasing.md)
-      * Position
-        * [Set Position (Depth)](Block-SetPosition(Depth).md)
-        * [Position (Mesh)](Block-SetPosition(Mesh).md)
-        * [Position (Signed Distance Field)](Block-SetPosition(SignedDistanceField).md)
-        * [Position (Skinned Mesh)](Block-SetPosition(Mesh).md)
-        * [Set Position (Sequential : Circle)](Block-SetPosition(Sequential).md)
-        * [Set Position (Sequential : Line)](Block-SetPosition(Sequential).md)
-        * [Set Position (Sequential : ThreeDimensional)](Block-SetPosition(Sequential).md)
-        * [Set Position (Shape : AABox)](Block-SetPosition(AABox).md)
-        * [Set Position (Shape : Circle)](Block-SetPosition(Circle).md)
-        * [Set Position (Shape : Cone)](Block-SetPosition(Cone).md)
-        * [Set Position (Shape : Line)](Block-SetPosition(Line).md)
-        * [Set Position (Shape : Sphere)](Block-SetPosition(Sphere).md)
-        * [Set Position (Sequential)](Block-SetPosition(Sequential).md)
-        * [Tile/Warp Positions](Block-TileWarpPositions.md)
-      * Size
-        * [Screen Space Size](Block-ScreenSpaceSize.md)
-      * Spawn
-        * [Constant Spawn Rate](Block-ConstantRate.md)
-        * [Periodic Burst](Block-Burst.md)
-        * [Single  Burst](Block-Burst.md)
-        * [Variable Spawn Rate](Block-VariableRate.md)
-        * Attribute
-          * [Set Spawn Event \<attribute>](Block-SetSpawnEvent.md)
-        * Custom
-          * [Increment Strip Index On Start](Block-IncrementStripIndexOnStart.md)
-          * [Set Spawn Time](Block-SetSpawnTime.md)
-          * [Spawn Over Distance](Block-SpawnOverDistance.md)
-      * Velocity
-        * [Velocity from Direction & Speed (Change Speed)](Block-VelocityFromDirectionAndSpeed(ChangeSpeed).md)
-        * [Velocity from Direction & Speed (New Direction)](Block-VelocityFromDirectionAndSpeed(NewDirection).md)
-        * [Velocity from Direction & Speed (Random Direction)](Block-VelocityFromDirectionAndSpeed(RandomDirection).md)
-        * [Velocity from Direction & Speed (Spherical)](Block-VelocityFromDirectionAndSpeed(Spherical).md)
-        * [Velocity from Direction & Speed (Tangent)](Block-VelocityFromDirectionAndSpeed(Tangent).md)
   * Operator
     * Attribute
       * [Age Over Lifetime](Operator-AgeOverLifetime.md)
@@ -342,6 +344,8 @@
       * [Sample TextureCubeArray](Operator-SampleTextureCubeArray.md)
       * [Skinned Mesh Index Count](Operator-MeshIndexCount.md)
       * [Skinned Mesh Vertex Count](Operator-MeshVertexCount.md)
+    * Spawn
+      * [Spawn State](Operator-SpawnState.md)
     * Utility
       * [Point Cache](Operator-PointCache.md)
 * Reference
