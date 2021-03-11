@@ -9,8 +9,10 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 ### Added
   - Added ability to define custom vertex-to-fragment interpolators.
   - Stereo Eye Index, Instance ID, and Vertex ID nodes added to the shadergraph library.
+  - Added View Vector Node doc
 
 ### Changed
+- Updated/corrected View Direction doc
 - Change Asset/Create/Shader/Blank Shader Graph to Asset/Create/Shader Graph/Blank Shader Graph
 - Change Asset/Create/Shader/Sub Graph to Asset/Create/Shader Graph/Sub Graph
 - Change Asset/Create/Shader/VFX Shader Graph to Asset/Create/Shader Graph/VFX Shader Graph
@@ -21,6 +23,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 ### Fixed
 - Fixed the Custom Editor GUI field in the Graph settings that was ignored.
 - Node included HLSL files are now tracked more robustly, so they work after file moves and renames [1301915] (https://issuetracker.unity3d.com/product/unity/issues/guid/1301915/)
+- Prevent users from setting enum keywords with duplicate reference names and invalid characters [1287335]
 - Fixed a bug where old preview property values would be used for node previews after an undo operation.
 - Clean up console error reporting from node shader compilation so errors are reported in the graph rather than the Editor console [1296291] (https://issuetracker.unity3d.com/product/unity/issues/guid/1296291/)
 - Fixed treatment of node precision in subgraphs, now allows subgraphs to switch precisions based on the subgraph node [1304050] (https://issuetracker.unity3d.com/issues/precision-errors-when-theres-a-precision-discrepancy-between-subgraphs-and-parent-graphs)
@@ -28,6 +31,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed virtual texture layer reference names allowing invalid characters [1304146]
 - Fixed issue with SRP Batcher compatibility [1310624]
 - Fixed issue with Hybrid renderer compatibility [1296776]
+- Fixed an issue where the shader variant limit exceeded message was not getting passed [1304168] (https://issuetracker.unity3d.com/product/unity/issues/guid/1304168)
 
 
 ## [11.0.0] - 2020-10-21

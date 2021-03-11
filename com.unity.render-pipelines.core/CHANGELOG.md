@@ -10,14 +10,21 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed missing warning UI about Projector component being unsupported (case 1300327).
 - Fixed the display name of a Volume Parameter when is defined the attribute InspectorName
 - Calculating correct rtHandleScale by considering the possible pixel rounding when DRS is on
+- Problem on domain reload of Volume Parameter Ranges and UI values
+- Fixed Right Align of additional properties on Volume Components Editors
 
 ### Added
+- Support for the PlayStation 5 platform has been added.
+- Support for additional properties for Volume Components without custom editor
+- Calculating correct rtHandleScale by considering the possible pixel rounding when DRS is on
 - Support for the PlayStation 5 platform has been added.
 - Support for the XboxSeries platform has been added.
 - Added Editor window that allow showing an icon to browse the documentation
 - New method DrawHeaders for VolumeComponentsEditors
 - Unification of Material Editor Headers Scopes
 - New API functions with no side effects in DynamicResolutionHandler, to retrieve resolved drs scale and to apply DRS on a size.
+- Method to generate a Texture2D of 1x1 with a plain color
+- Red, Green, Blue Texture2D on CoreEditorStyles
 
 ### Changed
 - Changed Window/Render Pipeline/Render Pipeline Debug to Window/Rendering/Render Pipeline Debugger
@@ -25,6 +32,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Changed Window/Render Pipeline/Render Graph Viewer to Window/Analysis/Render Graph Viewer
 - Changed Window/Render Pipeline/Graphics Compositor to Window/Rendering/Graphics Compositor
 - Volume Gizmo Color setting is now under Colors->Scene->Volume Gizmo
+- Volume Gizmo alpha changed from 0.5 to 0.125
 - Moved Edit/Render Pipeline/Generate Shader Includes to Edit/Rendering/Generate Shader Includes
 - Moved Assets/Create/LookDev/Environment Library to Assets/Create/Rendering/Environment Library (Look Dev)
 

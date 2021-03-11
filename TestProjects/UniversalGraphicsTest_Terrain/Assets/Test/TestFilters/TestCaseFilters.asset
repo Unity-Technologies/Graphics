@@ -35,15 +35,6 @@ MonoBehaviour:
     FilteredScenes:
     - {fileID: 102900000, guid: 770b86964e87d47e4bdbafa425ccd238, type: 3}
     ColorSpace: -1
-    BuildPlatform: 9
-    GraphicsDevice: 16
-    XrSdk: None
-    StereoModes: 0
-    Reason: 'Filtered out due to OoM issue (FB: 1304672)'
-  - FilteredScene: {fileID: 0}
-    FilteredScenes:
-    - {fileID: 102900000, guid: 770b86964e87d47e4bdbafa425ccd238, type: 3}
-    ColorSpace: -1
     BuildPlatform: 38
     GraphicsDevice: 22
     XrSdk: 
@@ -139,15 +130,6 @@ MonoBehaviour:
     XrSdk: 
     StereoModes: 0
     Reason: https://fogbugz.unity3d.com/f/cases/1304675
-  - FilteredScene: {fileID: 0}
-    FilteredScenes:
-    - {fileID: 102900000, guid: 5578c9d8b0329024d8020e3094f70302, type: 3}
-    ColorSpace: -1
-    BuildPlatform: 9
-    GraphicsDevice: 16
-    XrSdk: None
-    StereoModes: 0
-    Reason: 'Filtered out due to OoM issue (FB: 1304672)'
   - FilteredScene: {fileID: 0}
     FilteredScenes:
     - {fileID: 102900000, guid: 5578c9d8b0329024d8020e3094f70302, type: 3}

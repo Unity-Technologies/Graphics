@@ -309,6 +309,11 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 114995348509370400, guid: c07ace9ab142ca9469fa377877c2f1e7,
         type: 3}
+      propertyPath: xrCompatible
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 114995348509370400, guid: c07ace9ab142ca9469fa377877c2f1e7,
+        type: 3}
       propertyPath: renderPipelineAsset
       value: 
       objectReference: {fileID: 11400000, guid: 83f775664f2713e4c9d056aaae2b4650,
