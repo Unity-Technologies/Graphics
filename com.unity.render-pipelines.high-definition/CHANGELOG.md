@@ -129,6 +129,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Change the handling of additional properties to base class
 - Improved shadow cascade GUI drawing with pixel perfect, hover and focus functionalities.
 - Improving the screen space global illumination.
+- ClearFlag.Depth does not implicitely clear stencil anymore. ClearFlag.Stencil added.
 - Improved the Camera Inspector, new sections and better grouping of fields
 - Moving MaterialHeaderScopes to Core
 - Changed resolution (to match the render buffer) of the sky used for camera misses in Path Tracing. (case 1304114).

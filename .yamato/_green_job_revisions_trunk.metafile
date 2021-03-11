@@ -1,5 +1,5 @@
 nightly_shadergraph_-_trunk:
-  updated_at: '2021-03-09 10:09:14.904060'
+  updated_at: '2021-03-10 07:27:57.356396'
   last_green_revisions:
     Android:
       revision: 6eefccf90b891497c251240d3fda66487307c043
@@ -22,7 +22,7 @@ nightly_shadergraph_-_trunk:
       updated_at: '2021-03-08 08:54:10.323102'
       version: ''
 shadergraph_pr_job_-_trunk:
-  updated_at: '2021-03-09 10:09:14.904060'
+  updated_at: '2021-03-10 07:27:57.356396'
   last_green_revisions:
     Android:
       revision: 6eefccf90b891497c251240d3fda66487307c043
@@ -45,7 +45,7 @@ shadergraph_pr_job_-_trunk:
       updated_at: '2021-03-08 08:54:10.323102'
       version: ''
 vfx_urp_pr_job_-_trunk:
-  updated_at: '2021-03-09 10:09:14.904060'
+  updated_at: '2021-03-10 07:27:57.356396'
   last_green_revisions:
     Android:
       revision: 6eefccf90b891497c251240d3fda66487307c043
@@ -68,7 +68,7 @@ vfx_urp_pr_job_-_trunk:
       updated_at: '2021-03-08 08:54:10.323102'
       version: ''
 vfx_hdrp_pr_job_-_trunk:
-  updated_at: '2021-03-09 10:09:14.904060'
+  updated_at: '2021-03-10 07:27:57.356396'
   last_green_revisions:
     Android:
       revision: 6eefccf90b891497c251240d3fda66487307c043
@@ -114,7 +114,7 @@ nightly_vfx_urp_-_trunk:
       updated_at: '2021-03-08 08:54:10.323102'
       version: ''
 nightly_vfx_hdrp_-_trunk:
-  updated_at: '2021-03-09 10:09:14.904060'
+  updated_at: '2021-03-10 07:27:57.356396'
   last_green_revisions:
     Android:
       revision: 6eefccf90b891497c251240d3fda66487307c043
@@ -137,7 +137,7 @@ nightly_vfx_hdrp_-_trunk:
       updated_at: '2021-03-08 08:54:10.323102'
       version: ''
 nightly_urp_2d_-_trunk:
-  updated_at: '2021-03-09 10:09:14.904060'
+  updated_at: '2021-03-10 07:27:57.356396'
   last_green_revisions:
     Android:
       revision: 6eefccf90b891497c251240d3fda66487307c043
@@ -160,7 +160,7 @@ nightly_urp_2d_-_trunk:
       updated_at: '2021-03-08 08:54:10.323102'
       version: ''
 urp_2d_pr_job_-_trunk:
-  updated_at: '2021-03-09 10:09:14.904060'
+  updated_at: '2021-03-10 07:27:57.356396'
   last_green_revisions:
     Android:
       revision: 6eefccf90b891497c251240d3fda66487307c043
@@ -183,7 +183,7 @@ urp_2d_pr_job_-_trunk:
       updated_at: '2021-03-08 08:54:10.323102'
       version: ''
 nightly_urp_postpro_-_trunk:
-  updated_at: '2021-03-09 10:09:14.904060'
+  updated_at: '2021-03-10 07:27:57.356396'
   last_green_revisions:
     Android:
       revision: 6eefccf90b891497c251240d3fda66487307c043
@@ -206,7 +206,7 @@ nightly_urp_postpro_-_trunk:
       updated_at: '2021-03-08 08:54:10.323102'
       version: ''
 urp_postpro_pr_job_-_trunk:
-  updated_at: '2021-03-09 10:09:14.904060'
+  updated_at: '2021-03-10 07:27:57.356396'
   last_green_revisions:
     Android:
       revision: 6eefccf90b891497c251240d3fda66487307c043
@@ -275,7 +275,7 @@ urp_terrain_pr_job_-_trunk:
       updated_at: '2021-03-08 08:54:10.323102'
       version: ''
 nightly_urp_foundation_-_trunk:
-  updated_at: '2021-03-09 10:09:14.904060'
+  updated_at: '2021-03-10 07:27:57.356396'
   last_green_revisions:
     Android:
       revision: 6eefccf90b891497c251240d3fda66487307c043
@@ -298,7 +298,7 @@ nightly_urp_foundation_-_trunk:
       updated_at: '2021-03-08 08:54:10.323102'
       version: ''
 urp_foundation_pr_job_-_trunk:
-  updated_at: '2021-03-09 10:09:14.904060'
+  updated_at: '2021-03-10 07:27:57.356396'
   last_green_revisions:
     Android:
       revision: 6eefccf90b891497c251240d3fda66487307c043
@@ -321,48 +321,48 @@ urp_foundation_pr_job_-_trunk:
       updated_at: '2021-03-08 08:54:10.323102'
       version: ''
 nightly_urp_lighting_-_trunk:
-  updated_at: '2021-02-27 07:18:37.069450'
+  updated_at: '2021-03-10 07:27:57.356396'
   last_green_revisions:
     Android:
-      revision: 6eb9565961329b068eaac1d2ea036d871367c138
-      updated_at: '2021-02-25 23:25:38.901687'
+      revision: 6eefccf90b891497c251240d3fda66487307c043
+      updated_at: '2021-03-08 08:54:10.323102'
       version: ''
     Linux:
-      revision: 6eb9565961329b068eaac1d2ea036d871367c138
-      updated_at: '2021-02-26 23:24:15.084051'
+      revision: 6eefccf90b891497c251240d3fda66487307c043
+      updated_at: '2021-03-08 08:54:10.323102'
       version: ''
     OSX:
-      revision: 6eb9565961329b068eaac1d2ea036d871367c138
-      updated_at: '2021-02-26 23:24:15.084051'
+      revision: 6eefccf90b891497c251240d3fda66487307c043
+      updated_at: '2021-03-08 08:54:10.323102'
       version: ''
     Win:
-      revision: 6eb9565961329b068eaac1d2ea036d871367c138
-      updated_at: '2021-02-25 23:25:38.901687'
+      revision: 6eefccf90b891497c251240d3fda66487307c043
+      updated_at: '2021-03-08 08:54:10.323102'
       version: ''
     iPhone:
-      revision: 6eb9565961329b068eaac1d2ea036d871367c138
-      updated_at: '2021-02-26 23:24:15.084051'
+      revision: 6eefccf90b891497c251240d3fda66487307c043
+      updated_at: '2021-03-08 08:54:10.323102'
       version: ''
 urp_lighting_pr_job_-_trunk:
-  updated_at: '2021-02-27 07:18:37.069450'
+  updated_at: '2021-03-10 07:27:57.356396'
   last_green_revisions:
     Android:
-      revision: 6eb9565961329b068eaac1d2ea036d871367c138
-      updated_at: '2021-02-25 23:25:38.901687'
+      revision: 6eefccf90b891497c251240d3fda66487307c043
+      updated_at: '2021-03-08 08:54:10.323102'
       version: ''
     Linux:
-      revision: 6eb9565961329b068eaac1d2ea036d871367c138
-      updated_at: '2021-02-26 23:24:15.084051'
+      revision: 6eefccf90b891497c251240d3fda66487307c043
+      updated_at: '2021-03-08 08:54:10.323102'
       version: ''
     OSX:
-      revision: 6eb9565961329b068eaac1d2ea036d871367c138
-      updated_at: '2021-02-26 23:24:15.084051'
+      revision: 6eefccf90b891497c251240d3fda66487307c043
+      updated_at: '2021-03-08 08:54:10.323102'
       version: ''
     Win:
-      revision: 6eb9565961329b068eaac1d2ea036d871367c138
-      updated_at: '2021-02-25 23:25:38.901687'
+      revision: 6eefccf90b891497c251240d3fda66487307c043
+      updated_at: '2021-03-08 08:54:10.323102'
       version: ''
     iPhone:
-      revision: 6eb9565961329b068eaac1d2ea036d871367c138
-      updated_at: '2021-02-26 23:24:15.084051'
+      revision: 6eefccf90b891497c251240d3fda66487307c043
+      updated_at: '2021-03-08 08:54:10.323102'
       version: ''
