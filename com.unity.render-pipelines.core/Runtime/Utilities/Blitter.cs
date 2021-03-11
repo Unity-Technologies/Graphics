@@ -24,6 +24,7 @@ namespace UnityEngine.Rendering
         static class BlitShaderIDs
         {
             public static readonly int _BlitTexture     = Shader.PropertyToID("_BlitTexture");
+            public static readonly int _BlitCubeTexture = Shader.PropertyToID("_BlitCubeTexture");
             public static readonly int _BlitScaleBias   = Shader.PropertyToID("_BlitScaleBias");
             public static readonly int _BlitScaleBiasRt = Shader.PropertyToID("_BlitScaleBiasRt");
             public static readonly int _BlitMipLevel    = Shader.PropertyToID("_BlitMipLevel");
@@ -334,6 +335,22 @@ namespace UnityEngine.Rendering
             s_PropertyBlock.SetVector(BlitShaderIDs._BlitTextureSize, textureSize);
             s_PropertyBlock.SetInt(BlitShaderIDs._BlitPaddingSize, paddingInPixels);
             cmd.DrawProcedural(Matrix4x4.identity, GetBlitMaterial(source.dimension), 13, MeshTopology.Quads, 4, 1, s_PropertyBlock);
+        }
+
+        /// <summary>
+        /// Blit a cube texture into 2d texture as octahedral quad. (projection)
+        /// </summary>
+        /// <param name="cmd">Command buffer used for rendering.</param>
+        /// <param name="source">Source cube texture.</param>
+        /// <param name="mipLevelTex">Mip level to sample.</param>
+        /// /// <param name="scaleBiasRT">Scale and bias for the output texture.</param>
+        public static void BlitCubeToOctahedral2DQuad(CommandBuffer cmd, Texture source, Vector4 scaleBiasRT, int mipLevelTex)
+        {
+            s_PropertyBlock.SetTexture(BlitShaderIDs._BlitCubeTexture, source);
+            s_PropertyBlock.SetFloat(BlitShaderIDs._BlitMipLevel, mipLevelTex);
+            s_PropertyBlock.SetVector(BlitShaderIDs._BlitScaleBias, new Vector4(1, 1, 0, 0));
+            s_PropertyBlock.SetVector(BlitShaderIDs._BlitScaleBiasRt, scaleBiasRT);
+            cmd.DrawProcedural(Matrix4x4.identity, GetBlitMaterial(source.dimension), 14, MeshTopology.Quads, 4, 1, s_PropertyBlock);
         }
     }
 }
