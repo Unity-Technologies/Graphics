@@ -362,7 +362,8 @@ namespace UnityEditor.VFX
             ResyncSlots(true);
 
             // Ensure that the output context name is in sync with the shader graph shader enum name.
-            if (GetOrRefreshShaderGraphObject().generatesWithShaderGraph)
+            if (GetOrRefreshShaderGraphObject() != null &&
+                GetOrRefreshShaderGraphObject().generatesWithShaderGraph)
                 Invalidate(InvalidationCause.kStructureChanged);
         }
 
