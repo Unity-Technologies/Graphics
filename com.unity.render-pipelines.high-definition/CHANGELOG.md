@@ -28,6 +28,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Added a Falloff Mode (Linear or Exponential) in the Density Volume for volume blending with Blend Distance.
 - Added support for screen space shadows (directional and point, no area) for shadow matte unlit shader graph.
 - Added support for volumetric clouds in planar reflections.
+- Added deferred shading debug visualization
 
 ### Fixed
 - Fixed Intensity Multiplier not affecting realtime global illumination.
