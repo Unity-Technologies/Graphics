@@ -766,6 +766,24 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
             scope = KeywordScope.Global,
         };
 
+        public static readonly KeywordDescriptor ReflectionProbeBlending = new KeywordDescriptor()
+        {
+            displayName = "Reflection Probe Blending",
+            referenceName = "REFLECTION_PROBE_BLENDING",
+            type = KeywordType.Boolean,
+            definition = KeywordDefinition.MultiCompile,
+            scope = KeywordScope.Global,
+        };
+
+        public static readonly KeywordDescriptor ReflectionProbeBoxProjection = new KeywordDescriptor()
+        {
+            displayName = "Reflection Probe Box Projection",
+            referenceName = "REFLECTION_PROBE_BOX_PROJECTION",
+            type = KeywordType.Boolean,
+            definition = KeywordDefinition.MultiCompile,
+            scope = KeywordScope.Global,
+        };
+
         public static readonly KeywordDescriptor ShadowsSoft = new KeywordDescriptor()
         {
             displayName = "Shadows Soft",

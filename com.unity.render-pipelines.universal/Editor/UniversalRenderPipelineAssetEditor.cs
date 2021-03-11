@@ -55,6 +55,11 @@ namespace UnityEditor.Rendering.Universal
                 new GUIContent("High")
             };
 
+            // Reflection Probes
+            public static GUIContent reflectionProbes = EditorGUIUtility.TrTextContent("Reflection Probes");
+            public static GUIContent reflectionProbeBlendingText = EditorGUIUtility.TrTextContent("Probe Blending", "If enabled reflection probes will be blended.");
+            public static GUIContent reflectionProbeBoxProjectionText = EditorGUIUtility.TrTextContent("Box Projection", "If enabled reflection probes can use box projection.");
+
             // Shadow settings
             public static GUIContent shadowDistanceText = EditorGUIUtility.TrTextContent("Max Distance", "Maximum shadow rendering distance.");
             public static GUIContent shadowCascadesText = EditorGUIUtility.TrTextContent("Cascade Count", "Number of cascade splits used for directional shadows.");
@@ -130,6 +135,9 @@ namespace UnityEditor.Rendering.Universal
         SerializedProperty m_AdditionalLightsShadowResolutionTierLowProp;
         SerializedProperty m_AdditionalLightsShadowResolutionTierMediumProp;
         SerializedProperty m_AdditionalLightsShadowResolutionTierHighProp;
+
+        SerializedProperty m_ReflectionProbeBlendingProp;
+        SerializedProperty m_ReflectionProbeBoxProjectionProp;
 
         SerializedProperty m_ShadowDistanceProp;
         SerializedProperty m_ShadowCascadeCountProp;
@@ -210,6 +218,9 @@ namespace UnityEditor.Rendering.Universal
             m_AdditionalLightsShadowResolutionTierLowProp = serializedObject.FindProperty("m_AdditionalLightsShadowResolutionTierLow");
             m_AdditionalLightsShadowResolutionTierMediumProp = serializedObject.FindProperty("m_AdditionalLightsShadowResolutionTierMedium");
             m_AdditionalLightsShadowResolutionTierHighProp = serializedObject.FindProperty("m_AdditionalLightsShadowResolutionTierHigh");
+
+            m_ReflectionProbeBlendingProp = serializedObject.FindProperty("m_ReflectionProbeBlending");
+            m_ReflectionProbeBoxProjectionProp = serializedObject.FindProperty("m_ReflectionProbeBoxProjection");
 
             m_ShadowDistanceProp = serializedObject.FindProperty("m_ShadowDistance");
 
@@ -341,6 +352,16 @@ namespace UnityEditor.Rendering.Universal
                 EditorGUILayout.PropertyField(m_AdditionalLightShadowmapResolutionProp, Styles.additionalLightsShadowmapResolution);
                 DrawShadowResolutionTierSettings();
                 EditorGUI.EndDisabledGroup();
+
+                EditorGUI.indentLevel--;
+                EditorGUILayout.Space();
+
+                // Reflection Probes
+                EditorGUILayout.PrefixLabel(Styles.reflectionProbes);
+                EditorGUI.indentLevel++;
+                EditorGUILayout.PropertyField(m_ReflectionProbeBlendingProp, Styles.reflectionProbeBlendingText);
+                EditorGUILayout.PropertyField(m_ReflectionProbeBoxProjectionProp, Styles.reflectionProbeBoxProjectionText);
+                EditorGUI.indentLevel++;
 
                 EditorGUI.indentLevel--;
                 EditorGUI.indentLevel--;
