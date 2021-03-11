@@ -244,7 +244,9 @@ public class SetupTestAssetTestCases : IPrebuildSetup
                                                          individualMaterialTest.hash,
                                                          testAsset.isCameraPerspective,
                                                          testAsset.settings,
-                                                         testAsset.customMesh);
+                                                         testAsset.customMesh,
+                                                         out string filePath);
+                        AssetDatabase.ImportAsset(filePath);
 
                     }
                 }
