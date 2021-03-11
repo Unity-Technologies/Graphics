@@ -260,6 +260,7 @@ void AccumulateSampleData(SampleData sampleData[2], SampleData centerSample, flo
             if (ringData.isForeground && visibility == 0 && radius < mirrorLimit)
             {
                 int pairIndex = k == 0 ? 1 : 0;
+                // The mirroring weight was tweaked to "look nice", there is no mathematical explanation for the formula
                 float mirrorWeight =  saturate(0.25 * rcp(radius));
                 AccumulateSample(sampleData[pairIndex], mirrorWeight * sampleWeight, ringData.colorAccum, ringData.CoC, ringData.alphaAccum);
             }
@@ -357,10 +358,6 @@ void DoFGatherRings(PositionInputs posInputs, int numSamples, float maxRadius, S
         AccumulateRingData(numSamples, fgRingData, fgAccumData);
     }
 
-    // Resolve the bg and fg layer color
-    ResolveColorAndAlpha(bgAccumData.color, bgAccumData.alpha, centerSample.color);
-    ResolveColorAndAlpha(fgAccumData.color, fgAccumData.alpha, centerSample.color);
-
     // Compute the fg alpha. Needs to be normalized based on search radius.
     float maxCoC = fgAccumData.maxCoC;
     float scaleFactor = (maxCoC * maxCoC) / (maxRadius * maxRadius) ;
@@ -368,8 +365,11 @@ void DoFGatherRings(PositionInputs posInputs, int numSamples, float maxRadius, S
 
     // Now blend the bg and fg layes
     float fgAlpha = saturate(fgAccumData.opacity / correctSamples);
-    color = bgAccumData.color * (1.0 - fgAlpha) + fgAlpha * fgAccumData.color;
-    alpha = bgAccumData.alpha * (1.0 - fgAlpha) + fgAlpha * fgAccumData.alpha;
+    color = bgAccumData.color * (1.0 - fgAlpha) + fgAccumData.color;
+    alpha = bgAccumData.alpha * (1.0 - fgAlpha) + fgAccumData.alpha;
+
+    // Resolve the output color and alpha
+    ResolveColorAndAlpha(color, alpha, centerSample.color);
 }
 #endif
 
