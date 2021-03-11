@@ -120,6 +120,14 @@ float2 PointInCircle(float angle)
     return float2(cos(angle), sin(angle)) * float2 (1 - Anamorphism, 1 + Anamorphism);
 }
 
+void ResolveColorAndAlpha(inout float4 outColor, inout float outAlpha, CTYPE defaultValue)
+{
+    outColor.xyz = outColor.w > 0 ? outColor.xyz / outColor.w : defaultValue.xyz;
+#ifdef ENABLE_ALPHA
+    outAlpha = outColor.w > 0 ? outAlpha / outColor.w : defaultValue.w;
+#endif
+}
+
 #ifdef FAST_APPROXIMAION
 
 void AccumulateSample(SampleData sampleData, float centerCoC, float2 limit, inout float4 colorAccum, inout float alphaAccum)
@@ -214,11 +222,9 @@ void DoFGatherFast(PositionInputs posInputs, float maxRadius, SampleData centerS
     outColor = accumData.color;
     outAlpha = accumData.alpha;
 
-    outColor.xyz = outColor.w > 0 ? outColor.xyz * rcp(outColor.w) : centerSample.color.xyz;
-#ifdef ENABLE_ALPHA
-    outAlpha = outColor.w > 0.0 ? outAlpha * rcp(outColor.w) : centerSample.color.w;
-#endif
+    ResolveColorAndAlpha(outColor, outAlpha, centerSample.color);
 }
+
 #else
 
 void AccumulateSample(SampleData sampleData, float weight, inout float4 colorAccum, inout float cocAccum, inout float alphaAccum)
@@ -297,6 +303,7 @@ void AccumulateRingData(RingData data, inout AccumData accumData)
 
 }
 
+
 void DoFGatherRings(PositionInputs posInputs, float maxRadius, SampleData centerSample, out float4 color, out float alpha)
 {
     AccumData bgAccumData, fgAccumData;
@@ -352,14 +359,8 @@ void DoFGatherRings(PositionInputs posInputs, float maxRadius, SampleData center
     }
 
     // Resolve the bg and fg layer color
-    bgAccumData.color.xyz = bgAccumData.color.w > 0 ? bgAccumData.color.xyz / bgAccumData.color.w : centerSample.color.xyz;
-    fgAccumData.color.xyz = fgAccumData.color.w > 0 ? fgAccumData.color.xyz / fgAccumData.color.w : centerSample.color.xyz;
-
-    // Resolve the bg and fg layer alpha
-#ifdef ENABLE_ALPHA
-    bgAccumData.alpha = bgAccumData.color.w > 0 ? bgAccumData.alpha / bgAccumData.color.w : centerSample.color.w;
-    fgAccumData.alpha = fgAccumData.color.w > 0 ? fgAccumData.alpha / fgAccumData.color.w : centerSample.color.w;
-#endif
+    ResolveColorAndAlpha(bgAccumData.color, bgAccumData.alpha, centerSample.color);
+    ResolveColorAndAlpha(fgAccumData.color, fgAccumData.alpha, centerSample.color);
 
     // Compute the fg alpha. Needs to be normalized based on search radius.
     float maxCoC = fgAccumData.maxCoC;
