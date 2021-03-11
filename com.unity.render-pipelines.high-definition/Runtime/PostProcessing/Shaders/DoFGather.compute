@@ -72,15 +72,6 @@ struct AccumData
     float maxCoC;
 };
 
-void InitAccumData(out AccumData data)
-{
-    data.color = 0;
-    data.alpha = 0;
-    data.opacity = 0;
-    data.CoC = 0;
-    data.maxCoC = 0;
-}
-
 struct SampleData
 {
     CTYPE color;
@@ -147,7 +138,7 @@ void AccumulateSample(SampleData sampleData, float centerCoC, float2 limit, inou
 void DoFGatherFast(PositionInputs posInputs, int numSamples, float maxRadius, SampleData centerSample, out float4 outColor, out float outAlpha)
 {
     AccumData accumData;
-    InitAccumData(accumData);
+    ZERO_INITIALIZE(AccumData, accumData);
 
     float dR = rcp(numSamples);
     int blueNoiseOffset = _TaaFrameInfo.w != 0.0 ? _TaaFrameInfo.z : 0;
@@ -185,8 +176,9 @@ void DoFGatherFast(PositionInputs posInputs, int numSamples, float maxRadius, Sa
                 sampleData[j].CoC = GetCoCRadius(sampleTC);
             }
 
+            const float occlusionTestRange = 9;
             float bias = 1.0 + r1;
-            float2 limit = float2(bias, 9 * bias);
+            float2 limit = float2(bias, occlusionTestRange * bias);
 
             UNITY_UNROLL
             for (int k = 0; k < 2; k++)
@@ -305,8 +297,8 @@ void AccumulateRingData(float numSamples, RingData data, inout AccumData accumDa
 void DoFGatherRings(PositionInputs posInputs, int numSamples, float maxRadius, SampleData centerSample, out float4 color, out float alpha)
 {
     AccumData bgAccumData, fgAccumData;
-    InitAccumData(bgAccumData);
-    InitAccumData(fgAccumData);
+    ZERO_INITIALIZE(AccumData, bgAccumData);
+    ZERO_INITIALIZE(AccumData, fgAccumData);
 
     float dR = rcp(numSamples);
     int blueNoiseOffset = _TaaFrameInfo.w != 0.0 ? _TaaFrameInfo.z : 0;
