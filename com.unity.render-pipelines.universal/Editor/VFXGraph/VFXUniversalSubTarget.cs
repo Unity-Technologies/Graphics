@@ -47,7 +47,19 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 out var vertexPropertiesAssignDescriptor
             );
 
-            var passes = subShaderDescriptor.passes.ToArray();
+            //TODOPAUL Check this naming
+            // Omit MV or Shadow Pass if disabled on the context.
+            var filteredPasses = subShaderDescriptor.passes.AsEnumerable();
+
+            var outputContext = (VFXAbstractParticleOutput)context;
+            if (!outputContext.hasMotionVector)
+                filteredPasses = filteredPasses.Where(o => o.descriptor.lightMode != "MotionVectors");
+
+            if (!outputContext.hasShadowCasting)
+                filteredPasses = filteredPasses.Where(o => o.descriptor.lightMode != "ShadowCaster");
+
+            var passes = filteredPasses.ToArray();
+
             PassCollection vfxPasses = new PassCollection();
             for (int i = 0; i < passes.Length; i++)
             {

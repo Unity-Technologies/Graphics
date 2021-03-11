@@ -15,7 +15,7 @@ namespace UnityEditor.VFX.HDRP
         public override string SRPAssetTypeStr { get { return "UniversalRenderPipelineAsset"; } }
         public override Type SRPOutputDataType { get { return typeof(VFXUniversalSubOutput); } }
 
-        public override void SetupMaterial(Material mat, ShaderGraphVfxAsset shaderGraph = null)
+        public override void SetupMaterial(Material mat, bool hasMotionVector = false, bool hasShadowCasting = false, ShaderGraphVfxAsset shaderGraph = null)
         {
             //TODOPAUL (N.B. conflict on this function definition incoming ^)
             try
