@@ -116,6 +116,42 @@ namespace UnityEngine.Rendering.HighDefinition
         }
 
         // ---------------------------------------------------------------------
+        // --------------------------- Force Nuke ------------------------------
+        // ---------------------------------------------------------------------
+        class ClearTexturesData
+        {
+            public TextureHandle apvL0L1rx;
+            public TextureHandle apvL1Gry;
+            public TextureHandle apvL1Brz;
+        }
+
+        void ClearTextureContent(RenderGraph renderGraph, DynamicGIAPV apvToClear)
+        {
+            var apvL0L1rxHandle = renderGraph.ImportTexture(apvToClear.L0_L1Rx);
+            var apvL1GryHandle = renderGraph.ImportTexture(apvToClear.L1_G_ry);
+            var apvL1BrzHandle = renderGraph.ImportTexture(apvToClear.L1_B_rz);
+
+            var dbg = renderGraph.ImportTexture(apvToClear.DEBUG);
+
+            using (var builder = renderGraph.AddRenderPass<ClearTexturesData>("Clear APVs", out var passData, ProfilingSampler.Get(HDProfileId.ClearBuffers)))
+            {
+                passData.apvL0L1rx = apvL0L1rxHandle;
+                passData.apvL1Gry = apvL1GryHandle;
+                passData.apvL1Brz = apvL1BrzHandle;
+
+                builder.SetRenderFunc(
+                    (ClearTexturesData data, RenderGraphContext ctx) =>
+                    {
+                        ctx.cmd.SetRenderTarget(data.apvL0L1rx, 0, CubemapFace.Unknown, depthSlice: -1);
+                        ctx.cmd.ClearRenderTarget(false, true, Color.clear);
+                        ctx.cmd.SetRenderTarget(data.apvL1Gry, 0, CubemapFace.Unknown, depthSlice: -1);
+                        ctx.cmd.ClearRenderTarget(false, true, Color.clear);
+                        ctx.cmd.SetRenderTarget(data.apvL1Brz, 0, CubemapFace.Unknown, depthSlice: -1);
+                        ctx.cmd.ClearRenderTarget(false, true, Color.clear);
+                    });
+            }
+        }
+        // ---------------------------------------------------------------------
         // --------------------------- Injection -------------------------------
         // ---------------------------------------------------------------------
 
@@ -290,8 +326,14 @@ namespace UnityEngine.Rendering.HighDefinition
         }
 
 
-        internal void InjectDirectLighting(RenderGraph renderGraph, HDCamera hdCamera)
+        internal void InjectDirectLighting(RenderGraph renderGraph, HDCamera hdCamera, bool forceClear)
         {
+            if (forceClear)
+            {
+                ClearTextureContent(renderGraph, m_DynamicGIAPV);
+                ClearTextureContent(renderGraph, m_PrevDynamicGI);
+            }
+
             var buffersToProcess = ProbeReferenceVolume.instance.GetExtraDataBuffers();
             var chunkIndices = ProbeReferenceVolume.instance.GetChunkIndices();
             for (int i = 0; i < buffersToProcess.Count; ++i)

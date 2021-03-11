@@ -311,6 +311,8 @@ namespace UnityEngine.Rendering
 
         internal float normalBiasFromProfile;
 
+        private bool assetHasBeenUnloadedThisFrame = false;
+
         ProbeVolumeTextureMemoryBudget m_MemoryBudget;
 
         /// <summary>
@@ -498,7 +500,10 @@ namespace UnityEngine.Rendering
         private void PerformPendingDeletion()
         {
             if (m_PendingAssetsToBeUnloaded.Count == 0 || !m_ProbeReferenceVolumeInit)
+            {
+                assetHasBeenUnloadedThisFrame = false;
                 return;
+            }
 
             var dictionaryValues = m_PendingAssetsToBeUnloaded.Values;
             foreach (var asset in dictionaryValues)
@@ -507,6 +512,17 @@ namespace UnityEngine.Rendering
             }
 
             m_PendingAssetsToBeUnloaded.Clear();
+            assetHasBeenUnloadedThisFrame = true;
+        }
+
+
+        /// <summary>
+        /// Verify if there is any asset that is has been unloaded this frame.
+        /// </summary>
+        /// <returns>True if an asset is has been unloaded</returns>
+        public bool AnAssetHasBeenUnloadedThisFrame()
+        {
+            return assetHasBeenUnloadedThisFrame;
         }
 
         /// <summary>
