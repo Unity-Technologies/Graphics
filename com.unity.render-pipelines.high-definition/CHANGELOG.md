@@ -29,6 +29,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Added support for screen space shadows (directional and point, no area) for shadow matte unlit shader graph.
 - Added support for volumetric clouds in planar reflections.
 - Added deferred shading debug visualization
+- Added a new control slider on RTR and RTGI to force the LOD Bias on both effects.
 
 ### Fixed
 - Fixed Intensity Multiplier not affecting realtime global illumination.
