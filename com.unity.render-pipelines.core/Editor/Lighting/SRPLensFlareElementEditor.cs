@@ -211,16 +211,17 @@ namespace UnityEditor.Rendering
                     rect = GetNextRect();
                     if ((tmp = EditorGUI.FloatField(rect, Styles.rotation, rotationProp.floatValue)) != rotationProp.floatValue)
                         rotationProp.floatValue = tmp;
-                    rect = GetNextRect();
 
-                    if ((tmp = EditorGUI.FloatField(rect, Styles.uniformScale, uniformScaleProp.floatValue)) != uniformScaleProp.floatValue)
-                        uniformScaleProp.floatValue = Mathf.Max(tmp, 0.0f);
                     if (!preserveAspectRatioProp.boolValue)
                     {
                         rect = GetNextRect();
                         if ((tmpVec2 = EditorGUI.Vector2Field(rect, Styles.sizeXY, sizeXYProp.vector2Value)) != sizeXYProp.vector2Value)
                             sizeXYProp.vector2Value = new Vector2(Mathf.Max(tmpVec2.x, 1e-6f), Mathf.Max(tmpVec2.y, 1e-6f));
                     }
+
+                    rect = GetNextRect();
+                    if ((tmp = EditorGUI.FloatField(rect, Styles.uniformScale, uniformScaleProp.floatValue)) != uniformScaleProp.floatValue)
+                        uniformScaleProp.floatValue = Mathf.Max(tmp, 0.0f);
 
                     rect = GetNextRect();
                     if ((tmpBool = EditorGUI.Toggle(rect, Styles.autoRotate, autoRotateProp.boolValue)) != autoRotateProp.boolValue)
