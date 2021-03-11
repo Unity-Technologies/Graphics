@@ -4,7 +4,6 @@ using Unity.Mathematics;
 
 namespace UnityEngine.Experimental.Rendering.Universal
 {
-
     // TODO: Culling of shadow casters, rotate color channels for shadow casting, check get material functions.
 
 
@@ -20,7 +19,7 @@ namespace UnityEngine.Experimental.Rendering.Universal
         private static readonly int k_ShadowModelMatrixID = Shader.PropertyToID("_ShadowModelMatrix");
         private static readonly int k_ShadowModelInvMatrixID = Shader.PropertyToID("_ShadowModelInvMatrix");
         private static readonly int k_ShadowModelScaleID = Shader.PropertyToID("_ShadowModelScale");
-        
+
         private static readonly ProfilingSampler m_ProfilingSamplerShadows = new ProfilingSampler("Draw 2D Shadow Texture");
 
         private static RenderTargetHandle[] m_RenderTargets = null;
@@ -95,7 +94,6 @@ namespace UnityEngine.Experimental.Rendering.Universal
             return rendererData.spriteUnshadowMaterial;
         }
 
-
         public static void CreateShadowRenderTexture(IRenderPass2D pass, RenderingData renderingData, CommandBuffer cmdBuffer, int shadowIndex)
         {
             CreateShadowRenderTexture(pass, m_RenderTargets[shadowIndex], renderingData, cmdBuffer);
@@ -152,7 +150,7 @@ namespace UnityEngine.Experimental.Rendering.Universal
             var colorChannel = shadowIndex % 4;
             var textureIndex = shadowIndex / 4;
 
-            if(colorChannel == 0)
+            if (colorChannel == 0)
                 cmdBuffer.ReleaseTemporaryRT(m_RenderTargets[textureIndex].id);
         }
 
@@ -199,7 +197,7 @@ namespace UnityEngine.Experimental.Rendering.Universal
                     {
                         cmdBuffer.SetRenderTarget(renderTexture, RenderBufferLoadAction.DontCare, RenderBufferStoreAction.Store, RenderBufferLoadAction.DontCare, RenderBufferStoreAction.DontCare);
 
-                        if(colorBit == 0)
+                        if (colorBit == 0)
                             cmdBuffer.ClearRenderTarget(true, true, Color.clear);  // clear stencil
 
                         var shadowRadius = light.boundingSphere.radius;
@@ -281,7 +279,6 @@ namespace UnityEngine.Experimental.Rendering.Universal
 
                                     if (shadowCaster.IsLit(light))
                                     {
-
                                         if (shadowCaster != null && projectedShadowsMaterial != null && shadowCaster.IsShadowedLayer(layerToRender))
                                         {
                                             if (shadowCaster.castsShadows)

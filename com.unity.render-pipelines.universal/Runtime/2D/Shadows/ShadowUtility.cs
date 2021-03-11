@@ -46,7 +46,7 @@ namespace UnityEngine.Experimental.Rendering.Universal
 
             // Add extrusion vertices, normals, and triangles
             int vertexCount = pathLength;
-            for (int i=0;i<pathLength;i++)
+            for (int i = 0; i < pathLength; i++)
             {
                 int startIndex = i;
                 int endIndex = (i + 1) % pathLength;
@@ -63,9 +63,9 @@ namespace UnityEngine.Experimental.Rendering.Universal
                 // Triangle 1
                 triangles.Add(startIndex);
                 triangles.Add(vertexCount);
-                triangles.Add(vertexCount+1);
+                triangles.Add(vertexCount + 1);
                 // Triangle 2
-                triangles.Add(vertexCount+1);
+                triangles.Add(vertexCount + 1);
                 triangles.Add(endIndex);
                 triangles.Add(startIndex);
 
