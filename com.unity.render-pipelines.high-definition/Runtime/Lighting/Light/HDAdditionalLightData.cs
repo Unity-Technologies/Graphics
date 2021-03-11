@@ -2101,13 +2101,13 @@ namespace UnityEngine.Rendering.HighDefinition
             Vector4 cullingSphere;
             float nearPlaneOffset = QualitySettings.shadowNearPlaneOffset;
 
-            CullingResults cullingResults = lightListContext.cullingResults;
-            if(cullingResults == null)
+            if(!lightListContext.validCullingResults)
             {
-                Debug.Assert(cullingResults != null, "UpdateDirectionalShadowRequest culling results can not be null");
                 invViewProjection = Matrix4x4.identity;
                 return;
             }
+
+            CullingResults cullingResults = lightListContext.cullingResults;
 
             HDShadowUtils.ExtractDirectionalLightData(
                 visibleLight, viewportSize, (uint)requestIndex, shadowSettings.cascadeShadowSplitCount.value,
