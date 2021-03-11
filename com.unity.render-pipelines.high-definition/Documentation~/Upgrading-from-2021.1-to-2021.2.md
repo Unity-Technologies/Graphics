@@ -8,7 +8,7 @@ HDRP 2021.2 includes the "ForwardEmissiveForDeferred" shader pass and the associ
 
 ## Density Volumes
 
-As **Density Volume** has been renamed to **Local Volumetric Fog**, you won't need to worry about the game objects using the old component, as the serialization is taking into account the GUID and not the component name. Whereas, if you are referencing **Density Volume** class through your scripts, you will notice a warning (**DensityVolume has been deprecated (UnityUpgradable) -> Local Volumetric Fog**) so change your code and target the new component. This might stop compiling your project in future versions.
+Density Volumes are now known as **Local Volumetric Fog**. If a Scene uses Density Volumes, HDRP automatically migrates the GameObjects to use the new component name, with all the same properties set for the Density Volume. However, if you reference a **Density Volume** through a C# script, a warning appears (**DensityVolume has been deprecated (UnityUpgradable) -> Local Volumetric Fog**) in the Console window. To resolve this, change your code to target the new component. This warning may stop your Project from compiling in future versions of HDRP.
 
 ## ClearFlag
 
