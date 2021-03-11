@@ -339,13 +339,13 @@ namespace UnityEngine.Rendering.HighDefinition
 
 
             // Dynamic GI from Probe Volumes
-            [Reload("Runtime/Lighting/ProbeVolume/DynamicPropagation/CombineProbeVolumes.compute")]
+            [Reload("Runtime/Lighting/ProbeVolume/Propagation/CombineProbeVolumes.compute")]
             public ComputeShader combineProbeVolumesCS;
-            [Reload("Runtime/Lighting/ProbeVolume/DynamicPropagation/FirstBounceGeneration.compute")]
+            [Reload("Runtime/Lighting/ProbeVolume/Propagation/FirstBounceGeneration.compute")]
             public ComputeShader probeGIInjectionCS;
-            [Reload("Runtime/Lighting/ProbeVolume/DynamicPropagation/FirstBounceGenerationV2.compute")]
+            [Reload("Runtime/Lighting/ProbeVolume/Propagation/FirstBounceGenerationV2.compute")]
             public ComputeShader probeGIInjectionV2CS;
-            [Reload("Runtime/Lighting/ProbeVolume/DynamicPropagation/FirstBounceGenerationV3.compute")]
+            [Reload("Runtime/Lighting/ProbeVolume/Propagation/FirstBounceGenerationV3.compute")]
             public ComputeShader probeGIInjectionV3CS;
 
             // Iterator to retrieve all compute shaders in reflection so we don't have to keep a list of
