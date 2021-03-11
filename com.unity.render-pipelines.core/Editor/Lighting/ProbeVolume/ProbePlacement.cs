@@ -57,19 +57,35 @@ namespace UnityEngine.Rendering
             return num;
         }
 
-        static protected int NavPathsToVolumes(ref ProbeReferenceVolume.Volume cellVolume, ref List<ProbeReferenceVolume.Volume> volumes, ref Dictionary<Scene, int> sceneRef)
+        static protected int NavPathsToVolumes(ref ProbeReferenceVolume.Volume cellVolume, ref List<ProbeReferenceVolume.Volume> volumes, ref Dictionary<Scene, int> sceneRefs)
         {
             // TODO
             return 0;
         }
 
-        static protected int ImportanceVolumesToVolumes(ref ProbeReferenceVolume.Volume cellVolume, ref List<ProbeReferenceVolume.Volume> volumes, ref Dictionary<Scene, int> sceneRef)
+        static protected int ImportanceVolumesToVolumes(ProbeHintVolume[] hintVolumes, ref ProbeReferenceVolume.Volume cellVolume, ref List<ProbeReferenceVolume.Volume> volumes, ref Dictionary<Scene, int> sceneRefs)
         {
-            // TODO
-            return 0;
+            int num = 0;
+
+            foreach (var hintVolume in hintVolumes)
+            {
+                if (!hintVolume.isActiveAndEnabled)
+                    continue;
+
+                ProbeReferenceVolume.Volume indicatorVolume = new ProbeReferenceVolume.Volume(hintVolume.GetTransform());
+
+                if (ProbeVolumePositioning.OBBIntersect(ref cellVolume, ref indicatorVolume))
+                {
+                    volumes.Add(indicatorVolume);
+                    TrackSceneRefs(hintVolume.gameObject.scene, ref sceneRefs);
+                    num++;
+                }
+            }
+
+            return num;
         }
 
-        static protected int LightsToVolumes(ref ProbeReferenceVolume.Volume cellVolume, ref List<ProbeReferenceVolume.Volume> volumes, ref Dictionary<Scene, int> sceneRef)
+        static protected int LightsToVolumes(ref ProbeReferenceVolume.Volume cellVolume, ref List<ProbeReferenceVolume.Volume> volumes, ref Dictionary<Scene, int> sceneRefs)
         {
             // TODO
             return 0;
@@ -81,7 +97,7 @@ namespace UnityEngine.Rendering
 
             foreach (ProbeVolume pv in probeVolumes)
             {
-                if (!pv.enabled || !pv.gameObject.activeSelf)
+                if (!pv.isActiveAndEnabled)
                     continue;
 
                 ProbeReferenceVolume.Volume indicatorVolume = new ProbeReferenceVolume.Volume(Matrix4x4.TRS(pv.transform.position, pv.transform.rotation, pv.GetExtents()));
@@ -117,7 +133,7 @@ namespace UnityEngine.Rendering
         }
 
         static public void CreateInfluenceVolumes(Vector3Int cellPos,
-            Renderer[] renderers, ProbeVolume[] probeVolumes,
+            Renderer[] renderers, ProbeVolume[] probeVolumes, ProbeHintVolume[] probeHintVolumes,
             ProbeReferenceVolumeAuthoring settings, Matrix4x4 cellTrans, out List<ProbeReferenceVolume.Volume> culledVolumes, out Dictionary<Scene, int> sceneRefs)
         {
             ProbeReferenceVolume.Volume cellVolume = new ProbeReferenceVolume.Volume();
@@ -134,7 +150,7 @@ namespace UnityEngine.Rendering
             List<ProbeReferenceVolume.Volume> influenceVolumes = new List<ProbeReferenceVolume.Volume>();
             RenderersToVolumes(ref renderers, ref cellVolume, ref influenceVolumes, ref sceneRefs);
             NavPathsToVolumes(ref cellVolume, ref influenceVolumes, ref sceneRefs);
-            ImportanceVolumesToVolumes(ref cellVolume, ref influenceVolumes, ref sceneRefs);
+            ImportanceVolumesToVolumes(probeHintVolumes, ref cellVolume, ref influenceVolumes, ref sceneRefs);
             LightsToVolumes(ref cellVolume, ref influenceVolumes, ref sceneRefs);
 
             // Extract all ProbeVolumes inside the cell
