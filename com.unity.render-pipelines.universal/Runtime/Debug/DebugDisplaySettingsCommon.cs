@@ -1,9 +1,6 @@
-using UnityEditor.Rendering;
 using UnityEngine;
-using UnityEngine.Rendering;
-using UnityEngine.Rendering.Universal;
 
-namespace UnityEngine.Rendering
+namespace UnityEngine.Rendering.Universal
 {
     public class DebugDisplaySettingsCommon : IDebugDisplaySettingsData
     {
@@ -14,7 +11,7 @@ namespace UnityEngine.Rendering
             public SettingsPanel()
             {
                 var materialSettingsData = DebugDisplaySettings.Instance.MaterialSettings;
-                AddWidget(DebugMaterialSettings.WidgetFactory.CreateMaterialOverride(materialSettingsData));
+                AddWidget(DebugDisplaySettingsMaterial.WidgetFactory.CreateMaterialOverride(materialSettingsData));
 
                 var lightingSettingsData = DebugDisplaySettings.Instance.LightingSettings;
                 AddWidget(DebugDisplaySettingsLighting.WidgetFactory.CreateLightingMode(lightingSettingsData));

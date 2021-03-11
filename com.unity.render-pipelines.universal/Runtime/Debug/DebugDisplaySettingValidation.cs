@@ -1,9 +1,6 @@
-
 using UnityEngine;
-using UnityEngine.Rendering;
-using UnityEngine.Rendering.Universal;
 
-namespace UnityEditor.Rendering
+namespace UnityEngine.Rendering.Universal
 {
     public class DebugDisplaySettingsValidation : IDebugDisplaySettingsData
     {
@@ -163,7 +160,7 @@ namespace UnityEditor.Rendering
         float _albedoHueTolerance = 0.104f;
         public float AlbedoHueTolerance
         {
-            get => _albedoDebugValidationPreset==AlbedoDebugValidationPreset.DefaultLuminance ? 1.0f : _albedoHueTolerance;
+            get => _albedoDebugValidationPreset == AlbedoDebugValidationPreset.DefaultLuminance ? 1.0f : _albedoHueTolerance;
             set => _albedoHueTolerance = value;
         }
 
@@ -174,7 +171,7 @@ namespace UnityEditor.Rendering
             set => _albedoSaturationTolerance = value;
         }
 
-        public Color AlbedoCompareColor = new Color(127f/255f, 127f/255f, 127f/255f, 255f/255f);
+        public Color AlbedoCompareColor = new Color(127f / 255f, 127f / 255f, 127f / 255f, 255f / 255f);
         #endregion
 
         #region Metallic
@@ -208,12 +205,12 @@ namespace UnityEditor.Rendering
         public bool AreAnySettingsActive => (validationMode != DebugValidationMode.None);
 
         public bool IsPostProcessingAllowed => (validationMode == DebugValidationMode.None) ||
-                                               (validationMode == DebugValidationMode.HighlightNanInfNegative) ||
-                                               (validationMode == DebugValidationMode.HighlightOutsideOfRange);
+        (validationMode == DebugValidationMode.HighlightNanInfNegative) ||
+        (validationMode == DebugValidationMode.HighlightOutsideOfRange);
 
         public bool IsLightingActive => (validationMode == DebugValidationMode.None) ||
-                                        (validationMode == DebugValidationMode.HighlightNanInfNegative) ||
-                                        (validationMode == DebugValidationMode.HighlightOutsideOfRange);
+        (validationMode == DebugValidationMode.HighlightNanInfNegative) ||
+        (validationMode == DebugValidationMode.HighlightOutsideOfRange);
 
         public bool TryGetScreenClearColor(ref Color color)
         {
@@ -224,6 +221,7 @@ namespace UnityEditor.Rendering
         {
             return new SettingsPanel(this);
         }
+
         #endregion
     }
 }

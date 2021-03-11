@@ -1,17 +1,15 @@
 using UnityEngine;
-using UnityEngine.Rendering;
-using UnityEngine.Rendering.Universal;
 
-namespace UnityEditor.Rendering
+namespace UnityEngine.Rendering.Universal
 {
-    public class DebugMaterialSettings : IDebugDisplaySettingsData
+    public class DebugDisplaySettingsMaterial : IDebugDisplaySettingsData
     {
         public DebugMaterialMode DebugMaterialModeData;
         public DebugVertexAttributeMode DebugVertexAttributeIndexData;
 
         internal static class WidgetFactory
         {
-            internal static DebugUI.Widget CreateMaterialOverride(DebugMaterialSettings data) => new DebugUI.EnumField
+            internal static DebugUI.Widget CreateMaterialOverride(DebugDisplaySettingsMaterial data) => new DebugUI.EnumField
             {
                 displayName = "Material Override",
                 autoEnum = typeof(DebugMaterialMode),
@@ -21,7 +19,7 @@ namespace UnityEditor.Rendering
                 setIndex = (value) => data.DebugMaterialModeData = (DebugMaterialMode)value
             };
 
-            internal static DebugUI.Widget CreateVertexAttribute(DebugMaterialSettings data) => new DebugUI.EnumField
+            internal static DebugUI.Widget CreateVertexAttribute(DebugDisplaySettingsMaterial data) => new DebugUI.EnumField
             {
                 displayName = "Vertex Attribute",
                 autoEnum = typeof(DebugVertexAttributeMode),
@@ -35,7 +33,7 @@ namespace UnityEditor.Rendering
         private class SettingsPanel : DebugDisplaySettingsPanel
         {
             public override string PanelName => "Material";
-            public SettingsPanel(DebugMaterialSettings data)
+            public SettingsPanel(DebugDisplaySettingsMaterial data)
             {
                 AddWidget(WidgetFactory.CreateMaterialOverride(data));
                 AddWidget(WidgetFactory.CreateVertexAttribute(data));

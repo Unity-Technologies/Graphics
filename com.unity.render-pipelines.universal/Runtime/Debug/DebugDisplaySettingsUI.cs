@@ -1,9 +1,7 @@
-
 using System;
 using System.Collections.Generic;
-using UnityEngine.Rendering;
 
-namespace UnityEditor.Rendering
+namespace UnityEngine.Rendering.Universal
 {
     public class DebugDisplaySettingsUI : IDebugData
     {
@@ -12,7 +10,7 @@ namespace UnityEditor.Rendering
 
         private void Reset()
         {
-            if(m_Settings != null)
+            if (m_Settings != null)
             {
                 m_Settings.Reset();
 
@@ -51,7 +49,7 @@ namespace UnityEditor.Rendering
         {
             DebugManager debugManager = DebugManager.instance;
 
-            foreach(IDebugDisplaySettingsPanelDisposable disposableSettingsPanel in m_DisposablePanels)
+            foreach (IDebugDisplaySettingsPanelDisposable disposableSettingsPanel in m_DisposablePanels)
             {
                 DebugUI.Widget[] panelWidgets = disposableSettingsPanel.Widgets;
                 string panelId = disposableSettingsPanel.PanelName;
@@ -72,6 +70,7 @@ namespace UnityEditor.Rendering
         {
             return Reset;
         }
+
         #endregion
     }
 }

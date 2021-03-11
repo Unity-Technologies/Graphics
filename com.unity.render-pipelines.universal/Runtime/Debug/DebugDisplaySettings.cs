@@ -1,10 +1,8 @@
 using System;
 using System.Collections.Generic;
 using UnityEngine;
-using UnityEngine.Rendering;
-using UnityEngine.Rendering.Universal;
 
-namespace UnityEditor.Rendering
+namespace UnityEngine.Rendering.Universal
 {
     public class DebugDisplaySettings : IDebugDisplaySettingsQuery
     {
@@ -14,7 +12,7 @@ namespace UnityEditor.Rendering
         public static DebugDisplaySettings Instance => s_Instance.Value;
 
         public DebugDisplaySettingsCommon CommonSettings { get; private set; }
-        public DebugMaterialSettings MaterialSettings { get; private set; }
+        public DebugDisplaySettingsMaterial MaterialSettings { get; private set; }
         public DebugDisplaySettingsRendering RenderingSettings { get; private set; }
         public DebugDisplaySettingsLighting LightingSettings { get; private set; }
         public DebugDisplaySettingsValidation ValidationSettings { get; private set; }
@@ -69,7 +67,7 @@ namespace UnityEditor.Rendering
                     {
                         throw new ArgumentOutOfRangeException(nameof(debugPostProcessingMode), $"Invalid post-processing state {debugPostProcessingMode}");
                     }
-                } // End of switch.
+                }
             }
         }
         #endregion
@@ -90,7 +88,7 @@ namespace UnityEditor.Rendering
             m_Settings.Clear();
 
             CommonSettings = Add(new DebugDisplaySettingsCommon());
-            MaterialSettings = Add(new DebugMaterialSettings());
+            MaterialSettings = Add(new DebugDisplaySettingsMaterial());
             RenderingSettings = Add(new DebugDisplaySettingsRendering());
             LightingSettings = Add(new DebugDisplaySettingsLighting());
             ValidationSettings = Add(new DebugDisplaySettingsValidation());

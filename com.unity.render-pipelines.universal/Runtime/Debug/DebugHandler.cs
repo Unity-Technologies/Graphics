@@ -1,8 +1,6 @@
-
 using System.Collections;
 using System.Collections.Generic;
 using System.Diagnostics;
-using UnityEditor.Rendering;
 using UnityEngine.Rendering.Universal.Internal;
 
 namespace UnityEngine.Rendering.Universal
@@ -54,7 +52,7 @@ namespace UnityEngine.Rendering.Universal
         private readonly DebugDisplaySettings m_DebugDisplaySettings;
 
         private DebugDisplaySettingsLighting LightingSettings => m_DebugDisplaySettings.LightingSettings;
-        private DebugMaterialSettings MaterialSettings => m_DebugDisplaySettings.MaterialSettings;
+        private DebugDisplaySettingsMaterial MaterialSettings => m_DebugDisplaySettings.MaterialSettings;
         private DebugDisplaySettingsRendering RenderingSettings => m_DebugDisplaySettings.RenderingSettings;
         private DebugDisplaySettingsValidation ValidationSettings => m_DebugDisplaySettings.ValidationSettings;
 
@@ -67,6 +65,7 @@ namespace UnityEngine.Rendering.Universal
         {
             return m_DebugDisplaySettings.TryGetScreenClearColor(ref color);
         }
+
         #endregion
 
         public Material ReplacementMaterial => m_ReplacementMaterial;
@@ -114,7 +113,7 @@ namespace UnityEngine.Rendering.Universal
         [Conditional("DEVELOPMENT_BUILD"), Conditional("UNITY_EDITOR")]
         public void SetupShaderProperties(CommandBuffer cmd, int passIndex = 0)
         {
-            if(LightingSettings.DebugLightingMode == DebugLightingMode.ShadowCascades)
+            if (LightingSettings.DebugLightingMode == DebugLightingMode.ShadowCascades)
             {
                 // we disable cubemap reflections, too distracting (in TemplateLWRP for ex.)
                 cmd.EnableShaderKeyword("_DEBUG_ENVIRONMENTREFLECTIONS_OFF");
@@ -124,7 +123,7 @@ namespace UnityEngine.Rendering.Universal
                 cmd.DisableShaderKeyword("_DEBUG_ENVIRONMENTREFLECTIONS_OFF");
             }
 
-            switch(RenderingSettings.debugSceneOverrideMode)
+            switch (RenderingSettings.debugSceneOverrideMode)
             {
                 case DebugSceneOverrideMode.Overdraw:
                 {
@@ -146,7 +145,7 @@ namespace UnityEngine.Rendering.Universal
 
                 case DebugSceneOverrideMode.ShadedWireframe:
                 {
-                    if(passIndex == 1)
+                    if (passIndex == 1)
                     {
                         cmd.SetGlobalColor(kDebugColorPropertyId, Color.black);
                     }
@@ -154,7 +153,7 @@ namespace UnityEngine.Rendering.Universal
                 }
             }       // End of switch.
 
-            switch(@ValidationSettings.validationMode)
+            switch (@ValidationSettings.validationMode)
             {
                 case DebugValidationMode.ValidateAlbedo:
                 {
@@ -180,7 +179,7 @@ namespace UnityEngine.Rendering.Universal
         {
             DebugDisplaySettingsValidation validationSettings = m_DebugDisplaySettings.ValidationSettings;
 
-            if(IsActiveForCamera(ref cameraData))
+            if (IsActiveForCamera(ref cameraData))
             {
                 cmd.EnableShaderKeyword("_DEBUG_SHADER");
             }
@@ -260,7 +259,7 @@ namespace UnityEngine.Rendering.Universal
                 {
                     Current?.Dispose();
 
-                    if(++m_Index >= m_NumIterations)
+                    if (++m_Index >= m_NumIterations)
                     {
                         return false;
                     }
@@ -273,7 +272,7 @@ namespace UnityEngine.Rendering.Universal
 
                 public void Reset()
                 {
-                    if(Current != null)
+                    if (Current != null)
                     {
                         Current.Dispose();
                         Current = null;
@@ -285,6 +284,7 @@ namespace UnityEngine.Rendering.Universal
                 {
                     Current?.Dispose();
                 }
+
                 #endregion
             }
 
@@ -309,14 +309,16 @@ namespace UnityEngine.Rendering.Universal
             {
                 return GetEnumerator();
             }
+
             #endregion
         }
 
         public IEnumerable<DebugRenderSetup> CreateDebugRenderSetupEnumerable(ScriptableRenderContext context,
-                                                                              CommandBuffer commandBuffer)
+            CommandBuffer commandBuffer)
         {
             return new DebugRenderPassEnumerable(this, context, commandBuffer);
         }
+
         #endregion
     }
 }
