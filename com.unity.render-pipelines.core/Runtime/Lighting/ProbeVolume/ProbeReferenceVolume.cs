@@ -257,9 +257,12 @@ namespace UnityEngine.Rendering
         /// <param name="budget"></param>
         public void SetMemoryBudget(ProbeVolumeTextureMemoryBudget budget)
         {
-            m_MemoryBudget = budget;
-            Cleanup();
-            InitProbeReferenceVolume(s_ProbeIndexPoolAllocationSize, m_MemoryBudget, m_PendingIndexDimChange);
+            if (m_MemoryBudget != budget)
+            {
+                m_MemoryBudget = budget;
+                Cleanup();
+                InitProbeReferenceVolume(s_ProbeIndexPoolAllocationSize, m_MemoryBudget, m_PendingIndexDimChange);
+            }
         }
 
         internal void AddPendingAssetLoading(ProbeVolumeAsset asset)
