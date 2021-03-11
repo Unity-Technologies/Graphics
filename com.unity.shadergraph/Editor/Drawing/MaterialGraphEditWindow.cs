@@ -422,7 +422,7 @@ namespace UnityEditor.ShaderGraph.Drawing
             string shaderName = Path.GetFileNameWithoutExtension(assetPath);
 
             // update blackboard title (before we add suffixes)
-            if(graphEditorView != null)
+            if (graphEditorView != null)
                 graphEditorView.assetName = shaderName;
 
             // build the window title (with suffixes)

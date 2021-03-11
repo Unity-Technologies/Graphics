@@ -1,4 +1,4 @@
-﻿using NUnit.Framework;
+using NUnit.Framework;
 
 namespace UnityEditor.ShaderGraph
 {
@@ -17,6 +17,5 @@ namespace UnityEditor.ShaderGraph
             Assert.Fail(message, args);
 #endif
         }
-
     }
 }

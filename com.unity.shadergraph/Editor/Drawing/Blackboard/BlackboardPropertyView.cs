@@ -347,6 +347,7 @@ namespace UnityEditor.ShaderGraph.Drawing
                 m_TextField.value = text;
             }
         }
+
         protected virtual void BuildFieldContextualMenu(ContextualMenuPopulateEvent evt)
         {
             evt.menu.AppendAction("Rename", (a) => OpenTextEditor(), DropdownMenuAction.AlwaysEnabled);

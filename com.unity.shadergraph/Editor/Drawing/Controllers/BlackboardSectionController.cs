@@ -61,7 +61,7 @@ namespace UnityEditor.ShaderGraph.Drawing
             m_BlackboardSectionView = new SGBlackboardSection(sectionViewModel);
 
             blackboard = sectionViewModel.parentView as SGBlackboard;
-            if(blackboard == null)
+            if (blackboard == null)
                 return;
 
             blackboard.Add(m_BlackboardSectionView);
@@ -181,7 +181,7 @@ namespace UnityEditor.ShaderGraph.Drawing
             BlackboardItemController associatedBlackboardItemController = null;
             m_BlackboardItemControllers.TryGetValue(shaderInput.guid, out associatedBlackboardItemController);
 
-            if(associatedBlackboardItemController != null)
+            if (associatedBlackboardItemController != null)
             {
                 associatedBlackboardItemController.BlackboardItemView.RemoveFromHierarchy();
                 m_BlackboardItemControllers.Remove(shaderInput.guid);

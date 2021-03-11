@@ -274,7 +274,6 @@ namespace UnityEditor.ShaderGraph.Drawing
             blackboard.title = ViewModel.title;
         }
 
-
         protected override void RequestModelChange(IGraphDataAction changeAction)
         {
             DataStore.Dispatch(changeAction);

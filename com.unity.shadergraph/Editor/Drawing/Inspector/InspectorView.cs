@@ -129,7 +129,7 @@ namespace UnityEditor.ShaderGraph.Drawing.Inspector
                         m_CurrentlyInspectedElementsCount++;
                         anySelectables = true;
                     }
-                    if(m_CurrentlyInspectedElementsCount == k_InspectorElementLimit)
+                    if (m_CurrentlyInspectedElementsCount == k_InspectorElementLimit)
                         m_NodeSettingsContainer.Add(m_MaxItemsMessageLabel);
                 }
                 if (anySelectables)
@@ -162,8 +162,8 @@ namespace UnityEditor.ShaderGraph.Drawing.Inspector
         {
             float timePassed = (float)(EditorApplication.timeSinceStartup % k_InspectorUpdateInterval);
             // Don't update for selections beyond a certain amount as they are no longer visible in the inspector past a certain point and only cost performance as the user performs operations
-            if(timePassed < 0.01f && selection.Count < k_InspectorElementLimit && selection.Count != m_CurrentlyInspectedElementsCount)
-               Update();
+            if (timePassed < 0.01f && selection.Count < k_InspectorElementLimit && selection.Count != m_CurrentlyInspectedElementsCount)
+                Update();
         }
 
         void TriggerInspectorUpdate()
