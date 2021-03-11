@@ -11,10 +11,16 @@ namespace UnityEngine.Experimental.Rendering.Universal
     [ExecuteInEditMode]
     [DisallowMultipleComponent]
     [AddComponentMenu("Rendering/2D/Shadow Caster 2D (Experimental)")]
-    public class ShadowCaster2D : ShadowCasterGroup2D
+    public class ShadowCaster2D : ShadowCasterGroup2D, ISerializationCallbackReceiver
     {
-        const int k_CurrentVersion = 1;
-        [SerializeField] int m_Version = 0;
+        public enum ComponentVersions
+        {
+            Version_Unserialized = 0,
+            Version_1 = 1
+        }
+        const ComponentVersions k_CurrentComponentVersion = ComponentVersions.Version_1;
+        [SerializeField] ComponentVersions m_ComponentVersion = ComponentVersions.Version_Unserialized;
+
 
         [SerializeField] bool m_HasRenderer = false;
         [SerializeField] bool m_UseRendererSilhouette = true;
@@ -30,6 +36,7 @@ namespace UnityEngine.Experimental.Rendering.Universal
         internal ShadowCasterGroup2D m_ShadowCasterGroup = null;
         internal ShadowCasterGroup2D m_PreviousShadowCasterGroup = null;
 
+        [SerializeField]
         internal BoundingSphere m_ProjectedBoundingSphere;
 
         public Mesh mesh => m_Mesh;
@@ -139,12 +146,11 @@ namespace UnityEngine.Experimental.Rendering.Universal
 
         protected void OnEnable()
         {
-            if (m_Mesh == null || m_InstanceId != GetInstanceID() || m_Version != k_CurrentVersion)
+            if (m_Mesh == null || m_InstanceId != GetInstanceID())
             {
                 m_Mesh = new Mesh();
                 m_ProjectedBoundingSphere = ShadowUtility.GenerateShadowMesh(m_Mesh, m_ShapePath);
                 m_InstanceId = GetInstanceID();
-                m_Version = k_CurrentVersion;
             }
 
             m_ShadowCasterGroup = null;
@@ -190,6 +196,23 @@ namespace UnityEngine.Experimental.Rendering.Universal
                     ShadowCasterGroup2DManager.AddGroup(this);
                 else
                     ShadowCasterGroup2DManager.RemoveGroup(this);
+            }
+        }
+
+        public void OnBeforeSerialize()
+        {
+            m_ComponentVersion = k_CurrentComponentVersion;
+        }
+
+        public void OnAfterDeserialize()
+        {
+            // Upgrade from no serialized version
+            if (m_ComponentVersion == ComponentVersions.Version_Unserialized)
+            {
+                // Regenerate the shadow mesh
+                m_Mesh = new Mesh();
+                m_ProjectedBoundingSphere = ShadowUtility.GenerateShadowMesh(m_Mesh, m_ShapePath);
+                m_ComponentVersion = ComponentVersions.Version_1;
             }
         }
 
