@@ -24,7 +24,7 @@ namespace UnityEngine.Rendering
         /// <summary>
         /// The size of a Brick.
         /// </summary>
-        [Min(0.25f)]
+        [Min(0.3333f)]
         public float minDistanceBetweenProbes = 1.0f;
         /// <summary>
         /// The normal bias to apply during shading.
@@ -33,7 +33,7 @@ namespace UnityEngine.Rendering
         public float normalBias = 0.2f;
 
         public int maxSubdivision => Mathf.CeilToInt(Mathf.Log(cellSize / brickSize, 2));
-        public int brickSize => (int)(minDistanceBetweenProbes * 3.0f);
+        public int brickSize => Mathf.Max(1, Mathf.RoundToInt(minDistanceBetweenProbes * 3.0f));
 
         /// <summary>
         /// Determines if the Probe Reference Volume Profile is equivalent to another one.
