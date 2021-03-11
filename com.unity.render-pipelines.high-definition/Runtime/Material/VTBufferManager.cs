@@ -7,8 +7,9 @@ namespace  UnityEngine.Rendering.HighDefinition
 {
     class VTBufferManager
     {
-        public static TextureHandle CreateVTFeedbackBuffer(RenderGraph renderGraph, bool msaa)
+        public static TextureHandle CreateVTFeedbackBuffer(RenderGraph renderGraph, MSAASamples msaaSamples)
         {
+            bool msaa = msaaSamples != MSAASamples.None;
 #if UNITY_2020_2_OR_NEWER
             FastMemoryDesc colorFastMemDesc;
             colorFastMemDesc.inFastMemory = true;
@@ -19,7 +20,7 @@ namespace  UnityEngine.Rendering.HighDefinition
             return renderGraph.CreateTexture(
                 new TextureDesc(Vector2.one, true, true)
                 {
-                    colorFormat = GetFeedbackBufferFormat(), enableRandomWrite = !msaa, bindTextureMS = msaa, enableMSAA = msaa, clearBuffer = true, clearColor = Color.white, name = msaa ? "VTFeedbackMSAA" : "VTFeedback", fallBackToBlackTexture = true
+                    colorFormat = GetFeedbackBufferFormat(), enableRandomWrite = !msaa, bindTextureMS = msaa, msaaSamples = msaa ? msaaSamples : MSAASamples.None, clearBuffer = true, clearColor = Color.white, name = msaa ? "VTFeedbackMSAA" : "VTFeedback", fallBackToBlackTexture = true
 #if UNITY_2020_2_OR_NEWER
                     ,
                     fastMemoryDesc = colorFastMemDesc
