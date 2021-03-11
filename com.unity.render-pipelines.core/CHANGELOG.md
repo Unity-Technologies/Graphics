@@ -18,6 +18,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - New method DrawHeaders for VolumeComponentsEditors
 - Unification of Material Editor Headers Scopes
 - New API functions with no side effects in DynamicResolutionHandler, to retrieve resolved drs scale and to apply DRS on a size.
+- Added a blitter for the SRPs.
+- Added 2D texture atlases.
 
 ### Changed
 - Changed Window/Render Pipeline/Render Pipeline Debug to Window/Rendering/Render Pipeline Debugger
