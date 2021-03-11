@@ -248,7 +248,7 @@ namespace UnityEditor.Rendering.HighDefinition
                 EditorGUI.indentLevel++;
                 var lightSettings = serialized.renderPipelineSettings.lightLoopSettings;
 
-                CoreEditorUtils.DrawFriendlyNamesEnumPopup<LocalVolumetricFogResolution>(Styles.maxLocalVolumetricFogSizeStyle, lightSettings.maxLocalVolumetricFogSize);
+                lightSettings.maxLocalVolumetricFogSize.intValue = (int)(LocalVolumetricFogResolution)EditorGUILayout.EnumPopup(Styles.maxLocalVolumetricFogSizeStyle, (LocalVolumetricFogResolution)lightSettings.maxLocalVolumetricFogSize.intValue);
 
                 EditorGUILayout.PropertyField(lightSettings.maxLocalVolumetricFogsOnScreen, Styles.maxLocalVolumetricFogsOnScreenStyle);
                 lightSettings.maxLocalVolumetricFogsOnScreen.intValue = Mathf.Clamp(lightSettings.maxLocalVolumetricFogsOnScreen.intValue, 1, HDRenderPipeline.k_MaxVisibleLocalVolumetricFogCount);
@@ -260,7 +260,7 @@ namespace UnityEditor.Rendering.HighDefinition
                     long currentCache = Texture3DAtlas.GetApproxCacheSizeInByte(
                         lightSettings.maxLocalVolumetricFogSize.intValue,
                         lightSettings.maxLocalVolumetricFogsOnScreen.intValue,
-                        LocalVolumetricFogManager.densityVolumeAtlasFormat,
+                        LocalVolumetricFogManager.localVolumetricFogAtlasFormat,
                         true
                     );
 
@@ -270,7 +270,7 @@ namespace UnityEditor.Rendering.HighDefinition
                             HDRenderPipeline.k_MaxCacheSize,
                             lightSettings.maxLocalVolumetricFogSize.intValue,
                             lightSettings.maxLocalVolumetricFogsOnScreen.intValue,
-                            LocalVolumetricFogManager.densityVolumeAtlasFormat,
+                            LocalVolumetricFogManager.localVolumetricFogAtlasFormat,
                             true
                         );
                         string message = string.Format(Styles.cacheErrorFormat, HDEditorUtils.HumanizeWeight(currentCache), count);

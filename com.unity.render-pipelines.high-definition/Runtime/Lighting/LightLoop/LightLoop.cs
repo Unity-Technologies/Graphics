@@ -204,32 +204,31 @@ namespace UnityEngine.Rendering.HighDefinition
         /// <summary>Area lights.</summary>
         Area = 2,
         /// <summary>Area and punctual lights.</summary>
-        [Description("Area and Punctual")]
+        [InspectorName("Area and Punctual")]
         AreaAndPunctual = 3,
         /// <summary>Environment lights.</summary>
-        [Description("Reflection Probes")]
+        [InspectorName("Reflection Probes")]
         Environment = 4,
         /// <summary>Environment and punctual lights.</summary>
-        [Description("Reflection Probes and Punctual")]
+        [InspectorName("Reflection Probes and Punctual")]
         EnvironmentAndPunctual = 5,
         /// <summary>Environment and area lights.</summary>
-        [Description("Reflection Probes and Area")]
+        [InspectorName("Reflection Probes and Area")]
         EnvironmentAndArea = 6,
         /// <summary>All lights.</summary>
-        [Description("Reflection Probes, Area and Punctual")]
+        [InspectorName("Reflection Probes, Area and Punctual")]
         EnvironmentAndAreaAndPunctual = 7,
         /// <summary>Probe Volumes.</summary>
-        [Description("Probe Volumes")]
+        [InspectorName("Probe Volumes")]
         ProbeVolumes = 8,
         /// <summary>Decals.</summary>
         Decal = 16,
         /// <summary>Local Volumetric Fog.</summary>
+        LocalVolumetricFogs = 32,
+        /// <summary>Local Volumetric Fog.</summary>
         [Obsolete("Use LocalVolumetricFogs", false)]
-        [Description("Local Volumetric Fogs")]
-        DensityVolumes = 32,
-
-        [Description("Local Volumetric Fogs")]
-        LocalVolumetricFogs = 32
+        [InspectorName("Local Volumetric Fogs")]
+        DensityVolumes = 32
     };
 
     [GenerateHLSL(needAccessors = false, generateCBuffer = true)]
@@ -2572,8 +2571,14 @@ namespace UnityEngine.Rendering.HighDefinition
         }
 
         // Return true if BakedShadowMask are enabled
-        bool PrepareLightsForGPU(CommandBuffer cmd, HDCamera hdCamera, CullingResults cullResults,
-            HDProbeCullingResults hdProbeCullingResults, LocalVolumetricFogList densityVolumes, DebugDisplaySettings debugDisplaySettings, AOVRequestData aovRequest)
+        bool PrepareLightsForGPU(
+            CommandBuffer cmd,
+            HDCamera hdCamera,
+            CullingResults cullResults,
+            HDProbeCullingResults hdProbeCullingResults,
+            LocalVolumetricFogList localVolumetricFogList,
+            DebugDisplaySettings debugDisplaySettings,
+            AOVRequestData aovRequest)
         {
             var debugLightFilter = debugDisplaySettings.GetDebugLightFilterMode();
             var hasDebugLightFilter = debugLightFilter != DebugLightFilterMode.None;
@@ -2656,7 +2661,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 }
 
                 // Inject Local Volumetric Fog into the clustered data structure for efficient look up.
-                m_LocalVolumetricFogCount = densityVolumes.bounds != null ? densityVolumes.bounds.Count : 0;
+                m_LocalVolumetricFogCount = localVolumetricFogList.bounds != null ? localVolumetricFogList.bounds.Count : 0;
 
                 for (int viewIndex = 0; viewIndex < hdCamera.viewCount; ++viewIndex)
                 {
@@ -2672,7 +2677,7 @@ namespace UnityEngine.Rendering.HighDefinition
                     {
                         // Local Volumetric Fog are not lights and therefore should not affect light classification.
                         LightFeatureFlags featureFlags = 0;
-                        CreateBoxVolumeDataAndBound(densityVolumes.bounds[i], LightCategory.LocalVolumetricFog, featureFlags, worldToViewCR, 0.0f, out LightVolumeData volumeData, out SFiniteLightBound bound);
+                        CreateBoxVolumeDataAndBound(localVolumetricFogList.bounds[i], LightCategory.LocalVolumetricFog, featureFlags, worldToViewCR, 0.0f, out LightVolumeData volumeData, out SFiniteLightBound bound);
                         m_lightList.lightsPerView[viewIndex].lightVolumes.Add(volumeData);
                         m_lightList.lightsPerView[viewIndex].bounds.Add(bound);
                     }

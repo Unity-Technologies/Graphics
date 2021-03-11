@@ -4,10 +4,6 @@ namespace UnityEngine.Rendering.HighDefinition
 {
     public partial struct LocalVolumetricFogArtistParameters
     {
-        /// <summary>Obsolete, do not use.</summary>
-        [Obsolete("Never worked correctly due to having engine working in percent. Will be removed soon.")]
-        public bool advancedFade => true;
-
         internal void MigrateToFixUniformBlendDistanceToBeMetric()
         {
             //Note: At this revision, advanceMode boolean is obsolete and unusable anymore

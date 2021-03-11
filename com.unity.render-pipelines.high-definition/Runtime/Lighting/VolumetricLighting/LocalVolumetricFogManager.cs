@@ -5,7 +5,7 @@ namespace UnityEngine.Rendering.HighDefinition
 {
     class LocalVolumetricFogManager
     {
-        public static readonly GraphicsFormat densityVolumeAtlasFormat = GraphicsFormat.R8G8B8A8_UNorm;
+        public static readonly GraphicsFormat localVolumetricFogAtlasFormat = GraphicsFormat.R8G8B8A8_UNorm;
 
         static LocalVolumetricFogManager m_Manager;
         public static LocalVolumetricFogManager manager
@@ -32,13 +32,13 @@ namespace UnityEngine.Rendering.HighDefinition
                         HDRenderPipeline.k_MaxCacheSize,
                         (int)settings.maxLocalVolumetricFogSize,
                         settings.maxLocalVolumetricFogsOnScreen,
-                        densityVolumeAtlasFormat,
+                        localVolumetricFogAtlasFormat,
                         true
                     );
 
                     elementCount = Mathf.Clamp(elementCount, 1, settings.maxLocalVolumetricFogsOnScreen);
 
-                    m_VolumeAtlas = new Texture3DAtlas(densityVolumeAtlasFormat, (int)settings.maxLocalVolumetricFogSize, elementCount);
+                    m_VolumeAtlas = new Texture3DAtlas(localVolumetricFogAtlasFormat, (int)settings.maxLocalVolumetricFogSize, elementCount);
 
                     // When HDRP is initialized and this atlas created, some Local Volumetric Fog may have been initialized before so we add them here.
                     foreach (var volume in m_Volumes)
@@ -66,7 +66,7 @@ namespace UnityEngine.Rendering.HighDefinition
             // In case the Local Volumetric Fog format is not support (which is impossible because all HDRP target supports R8G8B8A8_UNorm)
             // we avoid doing operations on the atlas.
             // This happens in the CI on linux when an editor using OpenGL is building a player for Vulkan.
-            if (!SystemInfo.IsFormatSupported(densityVolumeAtlasFormat, FormatUsage.LoadStore))
+            if (!SystemInfo.IsFormatSupported(localVolumetricFogAtlasFormat, FormatUsage.LoadStore))
                 return;
 
             if (volume.parameters.volumeMask != null)
@@ -92,7 +92,7 @@ namespace UnityEngine.Rendering.HighDefinition
             // In case the Local Volumetric Fog format is not support (which is impossible because all HDRP target supports R8G8B8A8_UNorm)
             // we avoid doing operations on the atlas.
             // This happens in the CI on linux when an editor using OpenGL is building a player for Vulkan.
-            if (!SystemInfo.IsFormatSupported(densityVolumeAtlasFormat, FormatUsage.LoadStore))
+            if (!SystemInfo.IsFormatSupported(localVolumetricFogAtlasFormat, FormatUsage.LoadStore))
                 return;
 
             if (volume.parameters.volumeMask != null)

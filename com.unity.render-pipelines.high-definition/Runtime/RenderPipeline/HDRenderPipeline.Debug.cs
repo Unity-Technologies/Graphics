@@ -517,9 +517,9 @@ namespace UnityEngine.Rendering.HighDefinition
                 passData.colorBuffer = builder.UseColorBuffer(colorBuffer, 0);
                 passData.depthBuffer = builder.UseDepthBuffer(depthBuffer, DepthAccess.ReadWrite);
                 passData.debugLocalVolumetricFogMaterial = m_DebugLocalVolumetricFogMaterial;
-                passData.slice = (float)m_CurrentDebugDisplaySettings.data.lightingDebugSettings.densityVolumeAtlasSlice;
+                passData.slice = (float)m_CurrentDebugDisplaySettings.data.lightingDebugSettings.localVolumetricFogAtlasSlice;
                 passData.atlas = LocalVolumetricFogManager.manager.volumeAtlas;
-                passData.useSelection = m_CurrentDebugDisplaySettings.data.lightingDebugSettings.densityVolumeUseSelection;
+                passData.useSelection = m_CurrentDebugDisplaySettings.data.lightingDebugSettings.localVolumetricFogUseSelection;
 
                 builder.SetRenderFunc(
                     (RenderLocalVolumetricFogAtlasDebugOverlayPassData data, RenderGraphContext ctx) =>
@@ -536,9 +536,9 @@ namespace UnityEngine.Rendering.HighDefinition
                         {
                             var obj = UnityEditor.Selection.activeGameObject;
 
-                            if (obj != null && obj.TryGetComponent<LocalVolumetricFog>(out var densityVolume))
+                            if (obj != null && obj.TryGetComponent<LocalVolumetricFog>(out var localVolumetricFog))
                             {
-                                var texture = densityVolume.parameters.volumeMask;
+                                var texture = localVolumetricFog.parameters.volumeMask;
 
                                 if (texture != null)
                                 {

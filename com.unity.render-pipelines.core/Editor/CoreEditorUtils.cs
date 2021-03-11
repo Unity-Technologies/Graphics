@@ -782,38 +782,6 @@ namespace UnityEditor.Rendering
             EditorGUI.showMixedValue = false;
         }
 
-        static Dictionary<Type, GUIContent[]> s_TrEnumDescriptionCache = new Dictionary<Type, GUIContent[]>();
-
-        /// <summary>Obtains the names of an enum taking into account the <see cref="DescriptionAttribute"/></summary>
-        public static GUIContent[] TrEnumFriendlyNames<T>()
-        {
-            var enumType = typeof(T);
-            if (!s_TrEnumDescriptionCache.TryGetValue(enumType, out var enumFriendlyValues))
-            {
-                enumFriendlyValues = CoreUtils.GetEnumFriendlyNames<T>()
-                    .Select(guiContent => EditorGUIUtility.TrTextContent(ObjectNames.NicifyVariableName(guiContent.text), guiContent.tooltip))
-                    .ToArray();
-
-                // Update the enums cache
-                s_TrEnumDescriptionCache[enumType] = enumFriendlyValues;
-            }
-
-            return enumFriendlyValues;
-        }
-
-        /// <summary>Draw a popup for an enum with values decorated with <see cref="DescriptionAttribute"/></summary>
-        /// <param name="label">the label</param>
-        /// <param name="property">The data displayed</param>
-        public static void DrawFriendlyNamesEnumPopup<T>(GUIContent label, SerializedProperty property)
-        {
-            using (var checkScope = new EditorGUI.ChangeCheckScope())
-            {
-                int newValue = EditorGUILayout.Popup(label, property.enumValueIndex, TrEnumFriendlyNames<T>());
-                if (checkScope.changed)
-                    property.enumValueIndex = newValue;
-            }
-        }
-
         /// <summary>Remove the keywords on the given materials</summary>
         /// <param name="material">The material to edit</param>
         public static void RemoveMaterialKeywords(Material material)

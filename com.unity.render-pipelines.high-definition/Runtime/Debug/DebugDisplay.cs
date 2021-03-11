@@ -159,8 +159,6 @@ namespace UnityEngine.Rendering.HighDefinition
         static int[] s_MaterialFullScreenDebugValues = null;
         static GUIContent[] s_MsaaSamplesDebugStrings = null;
         static int[] s_MsaaSamplesDebugValues = null;
-        static GUIContent[] s_TileAndClusterDebugStrings = null;
-        static int[] s_TileAndClusterDebugValues = null;
 
         static List<GUIContent> s_CameraNames = new List<GUIContent>();
         static GUIContent[] s_CameraNamesStrings = null;
@@ -319,8 +317,6 @@ namespace UnityEngine.Rendering.HighDefinition
                 s_RenderingFullScreenDebugStrings = s_RenderingFullScreenDebugStrings.Where((val, idx) => (idx + FullScreenDebugMode.MinRenderingFullScreenDebug) != FullScreenDebugMode.QuadOverdraw).ToArray();
                 s_RenderingFullScreenDebugValues = s_RenderingFullScreenDebugValues.Where((val, idx) => (idx + FullScreenDebugMode.MinRenderingFullScreenDebug) != FullScreenDebugMode.QuadOverdraw).ToArray();
             }
-
-            FillTileClusterDebugEnum();
 
             s_MaterialFullScreenDebugStrings[(int)FullScreenDebugMode.ValidateDiffuseColor - ((int)FullScreenDebugMode.MinMaterialFullScreenDebug)] = new GUIContent("Diffuse Color");
             s_MaterialFullScreenDebugStrings[(int)FullScreenDebugMode.ValidateSpecularColor - ((int)FullScreenDebugMode.MinMaterialFullScreenDebug)] = new GUIContent("Metal or SpecularColor");
@@ -1348,7 +1344,7 @@ namespace UnityEngine.Rendering.HighDefinition
             {
                 var clusterDebugContainer = new DebugUI.Container();
 
-                clusterDebugContainer.children.Add(new DebugUI.EnumField { displayName = "Tile/Cluster Debug By Category", getter = () => (int)data.lightingDebugSettings.tileClusterDebugByCategory, setter = value => data.lightingDebugSettings.tileClusterDebugByCategory = (TileClusterCategoryDebug)value, enumNames = s_TileAndClusterDebugStrings, enumValues = s_TileAndClusterDebugValues, getIndex = () => data.tileClusterDebugByCategoryEnumIndex, setIndex = value => data.tileClusterDebugByCategoryEnumIndex = value });
+                clusterDebugContainer.children.Add(new DebugUI.EnumField { displayName = "Tile/Cluster Debug By Category", getter = () => (int)data.lightingDebugSettings.tileClusterDebugByCategory, setter = value => data.lightingDebugSettings.tileClusterDebugByCategory = (TileClusterCategoryDebug)value, autoEnum = typeof(TileClusterCategoryDebug), getIndex = () => data.tileClusterDebugByCategoryEnumIndex, setIndex = value => data.tileClusterDebugByCategoryEnumIndex = value });
                 if (data.lightingDebugSettings.tileClusterDebug == TileClusterDebug.Cluster)
                 {
                     clusterDebugContainer.children.Add(new DebugUI.EnumField { displayName = "Cluster Debug Mode", getter = () => (int)data.lightingDebugSettings.clusterDebugMode, setter = value => data.lightingDebugSettings.clusterDebugMode = (ClusterDebugMode)value, autoEnum = typeof(ClusterDebugMode), onValueChanged = RefreshLightingDebug, getIndex = () => data.clusterDebugModeEnumIndex, setIndex = value => data.clusterDebugModeEnumIndex = value });
@@ -1423,8 +1419,8 @@ namespace UnityEngine.Rendering.HighDefinition
                 {
                     children =
                     {
-                        new DebugUI.UIntField { displayName = "Slice", getter = () => data.lightingDebugSettings.densityVolumeAtlasSlice, setter = value => data.lightingDebugSettings.densityVolumeAtlasSlice = value, min = () => 0, max = () => GetLocalVolumetricFogSliceCount()},
-                        new DebugUI.BoolField { displayName = "Use Selection", getter = () => data.lightingDebugSettings.densityVolumeUseSelection, setter = value => data.lightingDebugSettings.densityVolumeUseSelection = value, flags = DebugUI.Flags.EditorOnly, onValueChanged = RefreshLightingDebug},
+                        new DebugUI.UIntField { displayName = "Slice", getter = () => data.lightingDebugSettings.localVolumetricFogAtlasSlice, setter = value => data.lightingDebugSettings.localVolumetricFogAtlasSlice = value, min = () => 0, max = () => GetLocalVolumetricFogSliceCount()},
+                        new DebugUI.BoolField { displayName = "Use Selection", getter = () => data.lightingDebugSettings.localVolumetricFogUseSelection, setter = value => data.lightingDebugSettings.localVolumetricFogUseSelection = value, flags = DebugUI.Flags.EditorOnly, onValueChanged = RefreshLightingDebug},
                     }
                 });
             }
@@ -1432,12 +1428,12 @@ namespace UnityEngine.Rendering.HighDefinition
             uint GetLocalVolumetricFogSliceCount()
             {
 #if UNITY_EDITOR
-                if (data.lightingDebugSettings.densityVolumeUseSelection)
+                if (data.lightingDebugSettings.localVolumetricFogUseSelection)
                 {
                     var selectedGO = UnityEditor.Selection.activeGameObject;
-                    if (selectedGO != null && selectedGO.TryGetComponent<LocalVolumetricFog>(out var densityVolume))
+                    if (selectedGO != null && selectedGO.TryGetComponent<LocalVolumetricFog>(out var localVolumetricFog))
                     {
-                        var texture = densityVolume.parameters.volumeMask;
+                        var texture = localVolumetricFog.parameters.volumeMask;
 
                         if (texture != null)
                             return (uint)(texture is RenderTexture rt ? rt.volumeDepth : texture is Texture3D t3D ? t3D.depth : 1) - 1;
@@ -1887,12 +1883,6 @@ namespace UnityEngine.Rendering.HighDefinition
                 values[index] = i;
                 index++;
             }
-        }
-
-        void FillTileClusterDebugEnum()
-        {
-            s_TileAndClusterDebugStrings = CoreUtils.GetEnumFriendlyNames<TileClusterCategoryDebug>();
-            s_TileAndClusterDebugValues = (int[])Enum.GetValues(typeof(TileClusterCategoryDebug));
         }
 
         static string FormatVector(Vector3 v)

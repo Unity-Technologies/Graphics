@@ -226,7 +226,7 @@ namespace UnityEngine.Rendering.HighDefinition
     /// Lighting Debug Settings.
     /// </summary>
     [Serializable]
-    public class LightingDebugSettings
+    public partial class LightingDebugSettings
     {
         /// <summary>
         /// Returns true if any lighting debug mode is enabled.
@@ -314,9 +314,6 @@ namespace UnityEngine.Rendering.HighDefinition
         public ExposureDebugMode    exposureDebugMode = ExposureDebugMode.None;
         /// <summary>Exposure compensation to apply on current scene exposure.</summary>
         public float                debugExposure = 0.0f;
-        /// <summary>Obsolete, please use  the lens attenuation mode in HDRP Default Settings.</summary>
-        [Obsolete("Please use the lens attenuation mode in HDRP Default Settings", true)]
-        public float                debugLensAttenuation = 0.65f;
         /// <summary>Whether to show tonemap curve in the histogram debug view or not.</summary>
         public bool                 showTonemapCurveAlongHistogramView = true;
         /// <summary>Whether to center the histogram debug view around the middle-grey point or not.</summary>
@@ -352,21 +349,15 @@ namespace UnityEngine.Rendering.HighDefinition
         public bool                 showAreaLight = true;
         /// <summary>True if reflection probes lights should be displayed in the scene.</summary>
         public bool                 showReflectionProbe = true;
-
+        
         /// <summary>Display the Local Volumetric Fog atlas.</summary>
-        [Obsolete("Use displayLocalVolumetricFogAtlas instead", false)]
-        public bool displayDensityVolumeAtlas
-        {
-            get => displayLocalVolumetricFogAtlas;
-            set => displayLocalVolumetricFogAtlas = value;
-        }
+        public bool displayLocalVolumetricFogAtlas = false;
 
-        /// <summary>Display the Local Volumetric Fog atlas.</summary>
-        public bool                 displayLocalVolumetricFogAtlas = false;
         /// <summary>Local Volumetric Fog atlas slice.</summary>
-        public uint                 densityVolumeAtlasSlice = 0;
+        public uint localVolumetricFogAtlasSlice = 0;
+
         /// <summary>True if Local Volumetric Fog Atlas debug mode should be displayed for the currently selected Local Volumetric Fog.</summary>
-        public bool                 densityVolumeUseSelection = false;
+        public bool localVolumetricFogUseSelection = false;
 
         /// <summary>Tile and Cluster debug mode.</summary>
         public TileClusterDebug tileClusterDebug = TileClusterDebug.None;

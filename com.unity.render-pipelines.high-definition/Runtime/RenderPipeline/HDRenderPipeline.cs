@@ -1976,7 +1976,7 @@ namespace UnityEngine.Rendering.HighDefinition
                     material.Bind(cmd);
 
                 // Frustum cull Local Volumetric Fog on the CPU. Can be performed as soon as the camera is set up.
-                LocalVolumetricFogList densityVolumes = PrepareVisibleLocalVolumetricFogList(hdCamera, cmd);
+                LocalVolumetricFogList localVolumetricFog = PrepareVisibleLocalVolumetricFogList(hdCamera, cmd);
 
                 // do AdaptiveProbeVolume stuff
                 BindAPVRuntimeResources(cmd, hdCamera);
@@ -1987,7 +1987,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 // Currently to know if you need shadow mask you need to go through all visible lights (of CullResult), check the LightBakingOutput struct and look at lightmapBakeType/mixedLightingMode. If one light have shadow mask bake mode, then you need shadow mask features (i.e extra Gbuffer).
                 // It mean that when we build a standalone player, if we detect a light with bake shadow mask, we generate all shader variant (with and without shadow mask) and at runtime, when a bake shadow mask light is visible, we dynamically allocate an extra GBuffer and switch the shader.
                 // So the first thing to do is to go through all the light: PrepareLightsForGPU
-                bool enableBakeShadowMask = PrepareLightsForGPU(cmd, hdCamera, cullingResults, hdProbeCullingResults, densityVolumes, m_CurrentDebugDisplaySettings, aovRequest);
+                bool enableBakeShadowMask = PrepareLightsForGPU(cmd, hdCamera, cullingResults, hdProbeCullingResults, localVolumetricFog, m_CurrentDebugDisplaySettings, aovRequest);
 
                 UpdateGlobalConstantBuffers(hdCamera, cmd);
 

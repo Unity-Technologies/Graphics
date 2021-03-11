@@ -118,36 +118,19 @@ namespace UnityEngine.Rendering.HighDefinition
     /// Possible values for one element of the Local Volumetric Fog atlas.
     /// </summary>
     [Serializable]
-    [Obsolete("DensityVolumeResolution has been deprecated (UnityUpgradable) -> LocalVolumetricFogResolution", false)]
-    public enum DensityVolumeResolution
-    {
-        /// <summary>3D volume of 32x32x32 voxels.</summary>
-        Resolution32 = 32,
-        /// <summary>3D volume of 64x64x64 voxels.</summary>
-        Resolution64 = 64,
-        /// <summary>3D volume of 128x128x128 voxels.</summary>
-        Resolution128 = 128,
-        /// <summary>3D volume of 256x256x256 voxels.</summary>
-        Resolution256 = 256,
-    }
-
-    /// <summary>
-    /// Possible values for one element of the Local Volumetric Fog atlas.
-    /// </summary>
-    [Serializable]
     public enum LocalVolumetricFogResolution
     {
         /// <summary>3D volume of 32x32x32 voxels.</summary>
-        [Description("32x32x32")]
+        [InspectorName("32x32x32")]
         Resolution32 = 32,
         /// <summary>3D volume of 64x64x64 voxels.</summary>
-        [Description("64x64x64")]
+        [InspectorName("64x64x64")]
         Resolution64 = 64,
         /// <summary>3D volume of 128x128x128 voxels.</summary>
-        [Description("128x128x128")]
+        [InspectorName("128x128x128")]
         Resolution128 = 128,
         /// <summary>3D volume of 256x256x256 voxels.</summary>
-        [Description("256x256x256")]
+        [InspectorName("256x256x256")]
         Resolution256 = 256,
     }
 
@@ -155,7 +138,7 @@ namespace UnityEngine.Rendering.HighDefinition
     /// Global Light Loop Settings.
     /// </summary>
     [Serializable]
-    public struct GlobalLightLoopSettings
+    public partial struct GlobalLightLoopSettings
     {
         internal static readonly GlobalLightLoopSettings @default = default;
         /// <summary>Default GlobalDecalSettings</summary>
@@ -202,9 +185,6 @@ namespace UnityEngine.Rendering.HighDefinition
 #endif
         /// <summary>Last valid mip for cookie atlas.</summary>
         public int cookieAtlasLastValidMip;
-        // We keep this property for the migration code (we need to know how many cookies we could have before).
-        [SerializeField, Obsolete("There is no more texture array for cookies, use cookie atlases properties instead.")]
-        internal int cookieTexArraySize;
 
         /// <summary>Planar reflections atlas resolution.</summary>
         [FormerlySerializedAs("planarReflectionTextureSize")]
@@ -239,22 +219,6 @@ namespace UnityEngine.Rendering.HighDefinition
         public int maxPlanarReflectionOnScreen;
         /// <summary>Maximum number of lights per ray tracing light cluster cell.</summary>
         public int maxLightsPerClusterCell;
-
-        /// <summary>Maximum size of one Local Volumetric Fog texture.</summary>
-        [Obsolete("Use maxLocalVolumetricFogSize instead", false)]
-        public DensityVolumeResolution maxDensityVolumeSize
-        {
-            get => (DensityVolumeResolution) maxLocalVolumetricFogSize;
-            set => maxLocalVolumetricFogSize = (LocalVolumetricFogResolution) value;
-        }
-
-        /// <summary>Maximum number of Local Volumetric Fog at the same time on screen.</summary>
-        [Obsolete("Use maxLocalVolumetricFogsOnScreen instead", false)]
-        public int maxDensityVolumesOnScreen
-        {
-            get => maxLocalVolumetricFogsOnScreen;
-            set => maxLocalVolumetricFogsOnScreen = value;
-        }
 
         /// <summary>Maximum size of one Local Volumetric Fog texture.</summary>
         public LocalVolumetricFogResolution maxLocalVolumetricFogSize;

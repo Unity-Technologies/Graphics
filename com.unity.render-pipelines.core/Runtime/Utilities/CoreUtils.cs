@@ -2,6 +2,8 @@ using System;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Linq;
+using System.Reflection;
+using UnityEditor;
 using UnityEngine.Experimental.Rendering;
 
 namespace UnityEngine.Rendering
@@ -1289,29 +1291,6 @@ namespace UnityEngine.Rendering
                 var renderStateBlock = rendererList.stateBlock.Value;
                 renderContext.DrawRenderers(rendererList.cullingResult, ref rendererList.drawSettings, ref rendererList.filteringSettings, ref renderStateBlock);
             }
-        }
-
-        static Dictionary<Type, GUIContent[]> s_EnumDescriptionCache = new Dictionary<Type, GUIContent[]>();
-
-        /// <summary>Obtains the names of an enum taking into account the <see cref="DescriptionAttribute"/></summary>
-        public static GUIContent[] GetEnumFriendlyNames<T>()
-        {
-            var enumType = typeof(T);
-            if (!s_EnumDescriptionCache.TryGetValue(enumType, out var enumFriendlyValues))
-            {
-                enumFriendlyValues = ((from object value in Enum.GetValues(enumType)
-                        let attribute = enumType.GetMember(value.ToString())[0]
-                            .GetCustomAttributes(typeof(DescriptionAttribute), false)
-                            .FirstOrDefault() as DescriptionAttribute
-                        select new GUIContent(attribute != null ? attribute.Description : value.ToString())))
-                    .Distinct()
-                    .ToArray();
-
-                // Update the enums cache
-                s_EnumDescriptionCache[enumType] = enumFriendlyValues;
-            }
-
-            return enumFriendlyValues;
         }
     }
 }

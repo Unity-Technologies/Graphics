@@ -82,17 +82,6 @@ namespace UnityEngine.Rendering.HighDefinition
 
     /// <summary></summary>
     [GenerateHLSL]
-    [Obsolete("DensityVolumeFalloffMode has been deprecated (UnityUpgradable) -> LocalVolumetricFogFalloffMode", false)]
-    public enum DensityVolumeFalloffMode
-    {
-        /// <summary></summary>
-        Linear,
-        /// <summary></summary>
-        Exponential,
-    }
-
-    /// <summary></summary>
-    [GenerateHLSL]
     public enum LocalVolumetricFogFalloffMode
     {
         /// <summary></summary>
@@ -691,10 +680,10 @@ namespace UnityEngine.Rendering.HighDefinition
 
         LocalVolumetricFogList PrepareVisibleLocalVolumetricFogList(HDCamera hdCamera, CommandBuffer cmd)
         {
-            LocalVolumetricFogList densityVolumes = new LocalVolumetricFogList();
+            LocalVolumetricFogList localVolumetricFog = new LocalVolumetricFogList();
 
             if (!Fog.IsVolumetricFogEnabled(hdCamera))
-                return densityVolumes;
+                return localVolumetricFog;
 
             using (new ProfilingScope(cmd, ProfilingSampler.Get(HDProfileId.PrepareVisibleLocalVolumetricFogList)))
             {
@@ -739,10 +728,10 @@ namespace UnityEngine.Rendering.HighDefinition
                 m_VisibleVolumeDataBuffer.SetData(m_VisibleVolumeData);
 
                 // Fill the struct with pointers in order to share the data with the light loop.
-                densityVolumes.bounds  = m_VisibleVolumeBounds;
-                densityVolumes.density = m_VisibleVolumeData;
+                localVolumetricFog.bounds  = m_VisibleVolumeBounds;
+                localVolumetricFog.density = m_VisibleVolumeData;
 
-                return densityVolumes;
+                return localVolumetricFog;
             }
         }
 
