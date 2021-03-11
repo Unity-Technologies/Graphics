@@ -13,11 +13,11 @@ You can only use the Rounded Polygon Node in the **Fragment** [Shader Stage](Sha
 | Name        | Direction           | Type  | Binding | Description |
 |:------------ |:-------------|:-----|:---|:---|
 | UV      | Input | Vector 2 | UV | Input UV value |
-| Width      | Input | Vector 1 | None | Rounded Polygon width |
-| Height      | Input | Vector 1 | None | Rounded Polygon height |
-| Sides      | Input | Vector 1 | None | Number of sides of the polygon |
-| Roundness      | Input | Vector 1 | None | Roundness of corners |
-| Out | Output      |    Vector 1 | None | Output value |
+| Width      | Input | Float    | None | Rounded Polygon width |
+| Height      | Input | Float    | None | Rounded Polygon height |
+| Sides      | Input | Float    | None | Number of sides of the polygon |
+| Roundness      | Input | Float    | None | Roundness of corners |
+| Out | Output      |    Float    | None | Output value |
 
 ## Generated Code Example
 

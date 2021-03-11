@@ -28,7 +28,7 @@ namespace UnityEditor.ShaderGraph.Serialization
                 {
                     if (MultiJsonInternal.valueMap.TryGetValue(m_Id, out var value))
                     {
-                        m_Value = (T) value;
+                        m_Value = value.CastTo<T>();
                         m_Id = m_Value.objectId;
                     }
                     else
@@ -74,32 +74,32 @@ namespace UnityEditor.ShaderGraph.Serialization
             return EqualityComparer<T>.Default.GetHashCode(m_Value);
         }
 
-        public static bool operator ==(JsonRef<T> left, JsonRef<T> right)
+        public static bool operator==(JsonRef<T> left, JsonRef<T> right)
         {
             return left.value == right.value;
         }
 
-        public static bool operator !=(JsonRef<T> left, JsonRef<T> right)
+        public static bool operator!=(JsonRef<T> left, JsonRef<T> right)
         {
             return left.value != right.value;
         }
 
-        public static bool operator ==(JsonRef<T> left, T right)
+        public static bool operator==(JsonRef<T> left, T right)
         {
             return left.value == right;
         }
 
-        public static bool operator !=(JsonRef<T> left, T right)
+        public static bool operator!=(JsonRef<T> left, T right)
         {
             return left.value != right;
         }
 
-        public static bool operator ==(T left, JsonRef<T> right)
+        public static bool operator==(T left, JsonRef<T> right)
         {
             return left == right.value;
         }
 
-        public static bool operator !=(T left, JsonRef<T> right)
+        public static bool operator!=(T left, JsonRef<T> right)
         {
             return left != right.value;
         }

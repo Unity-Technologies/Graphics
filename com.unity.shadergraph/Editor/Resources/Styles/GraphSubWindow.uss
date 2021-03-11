@@ -1,4 +1,4 @@
-﻿.unity-label {
+.unity-label {
     padding: 5px 2px 2px;
     margin: 2px 4px;
 }
@@ -15,8 +15,8 @@
     border-color: #191919;
     min-width: 100px;
     min-height: 100px;
-    width: 300px;
-    height: 300px;
+    width: 200px;
+    height: 200px;
 }
 
 .GraphSubWindow.windowed {
@@ -92,4 +92,3 @@
     padding-top: 4px;
     padding-bottom: 2px;
 }
-

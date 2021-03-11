@@ -13,7 +13,7 @@ namespace UnityEditor.Rendering.Universal
         {
         }
 
-        [MenuItem("Edit/Render Pipeline/Universal Render Pipeline/Upgrade Project Materials to UniversalRP Materials", priority = CoreUtils.editMenuPriority2)]
+        [MenuItem("Edit/Rendering/Materials/Convert All Built-in Materials to URP", priority = CoreUtils.Sections.section1 + CoreUtils.Priorities.editMenuPriority)]
         private static void UpgradeProjectMaterials()
         {
             List<MaterialUpgrader> upgraders = new List<MaterialUpgrader>();
@@ -22,10 +22,10 @@ namespace UnityEditor.Rendering.Universal
             HashSet<string> shaderNamesToIgnore = new HashSet<string>();
             GetShaderNamesToIgnore(ref shaderNamesToIgnore);
 
-            MaterialUpgrader.UpgradeProjectFolder(upgraders, shaderNamesToIgnore, "Upgrade to UniversalRP Materials", MaterialUpgrader.UpgradeFlags.LogMessageWhenNoUpgraderFound);
+            MaterialUpgrader.UpgradeProjectFolder(upgraders, shaderNamesToIgnore, "Upgrade to URP Materials", MaterialUpgrader.UpgradeFlags.LogMessageWhenNoUpgraderFound);
         }
 
-        [MenuItem("Edit/Render Pipeline/Universal Render Pipeline/Upgrade Selected Materials to UniversalRP Materials", priority = CoreUtils.editMenuPriority2)]
+        [MenuItem("Edit/Rendering/Materials/Convert Selected Built-in Materials to URP", priority = CoreUtils.Sections.section1 + CoreUtils.Priorities.editMenuPriority + 1)]
         private static void UpgradeSelectedMaterials()
         {
             List<MaterialUpgrader> upgraders = new List<MaterialUpgrader>();
@@ -34,7 +34,7 @@ namespace UnityEditor.Rendering.Universal
             HashSet<string> shaderNamesToIgnore = new HashSet<string>();
             GetShaderNamesToIgnore(ref shaderNamesToIgnore);
 
-            MaterialUpgrader.UpgradeSelection(upgraders, shaderNamesToIgnore, "Upgrade to UniversalRP Materials", MaterialUpgrader.UpgradeFlags.LogMessageWhenNoUpgraderFound);
+            MaterialUpgrader.UpgradeSelection(upgraders, shaderNamesToIgnore, "Upgrade to URP Materials", MaterialUpgrader.UpgradeFlags.LogMessageWhenNoUpgraderFound);
         }
 
         private static void GetShaderNamesToIgnore(ref HashSet<string> shadersToIgnore)
@@ -146,6 +146,9 @@ namespace UnityEditor.Rendering.Universal
             // Terrain Upgraders              //
             ////////////////////////////////////
             upgraders.Add(new TerrainUpgrader("Nature/Terrain/Standard"));
+            upgraders.Add(new SpeedTreeUpgrader("Nature/SpeedTree"));
+            upgraders.Add(new SpeedTreeBillboardUpgrader("Nature/SpeedTree Billboard"));
+            upgraders.Add(new SpeedTree8Upgrader("Nature/SpeedTree8"));
 
             ////////////////////////////////////
             // Particle Upgraders             //
@@ -269,10 +272,15 @@ namespace UnityEditor.Rendering.Universal
             if (material == null)
                 throw new ArgumentNullException("material");
 
-            if(material.GetTexture("_MetallicGlossMap"))
+            if (material.GetTexture("_MetallicGlossMap"))
                 material.SetFloat("_Smoothness", material.GetFloat("_GlossMapScale"));
             else
                 material.SetFloat("_Smoothness", material.GetFloat("_Glossiness"));
+
+            if (material.IsKeywordEnabled("_ALPHATEST_ON"))
+            {
+                material.SetFloat("_AlphaClip", 1.0f);
+            }
 
             material.SetFloat("_WorkflowMode", 1.0f);
             CoreUtils.SetKeyword(material, "_OCCLUSIONMAP", material.GetTexture("_OcclusionMap"));
@@ -286,7 +294,7 @@ namespace UnityEditor.Rendering.Universal
             if (material == null)
                 throw new ArgumentNullException("material");
 
-            if(material.GetTexture("_SpecGlossMap"))
+            if (material.GetTexture("_SpecGlossMap"))
                 material.SetFloat("_Smoothness", material.GetFloat("_GlossMapScale"));
             else
                 material.SetFloat("_Smoothness", material.GetFloat("_Glossiness"));
@@ -306,17 +314,17 @@ namespace UnityEditor.Rendering.Universal
             var legacyRenderingMode = (LegacyRenderingMode)material.GetFloat("_Surface");
             if (legacyRenderingMode == LegacyRenderingMode.Transparent)
             {
-                material.SetInt("_Surface", (int)BaseShaderGUI.SurfaceType.Transparent);
-                material.SetInt("_Blend", (int)BaseShaderGUI.BlendMode.Premultiply);
+                material.SetFloat("_Surface", (float)BaseShaderGUI.SurfaceType.Transparent);
+                material.SetFloat("_Blend", (float)BaseShaderGUI.BlendMode.Premultiply);
             }
             else if (legacyRenderingMode == LegacyRenderingMode.Fade)
             {
-                material.SetInt("_Surface", (int)BaseShaderGUI.SurfaceType.Transparent);
-                material.SetInt("_Blend", (int)BaseShaderGUI.BlendMode.Alpha);
+                material.SetFloat("_Surface", (float)BaseShaderGUI.SurfaceType.Transparent);
+                material.SetFloat("_Blend", (float)BaseShaderGUI.BlendMode.Alpha);
             }
             else
             {
-                material.SetInt("_Surface", (int)BaseShaderGUI.SurfaceType.Opaque);
+                material.SetFloat("_Surface", (float)BaseShaderGUI.SurfaceType.Opaque);
             }
         }
 
@@ -413,6 +421,28 @@ namespace UnityEditor.Rendering.Universal
         public TerrainUpgrader(string oldShaderName)
         {
             RenameShader(oldShaderName, ShaderUtils.GetShaderPath(ShaderPathID.TerrainLit));
+        }
+    }
+
+    internal class SpeedTreeUpgrader : MaterialUpgrader
+    {
+        internal SpeedTreeUpgrader(string oldShaderName)
+        {
+            RenameShader(oldShaderName, ShaderUtils.GetShaderPath(ShaderPathID.SpeedTree7));
+        }
+    }
+    internal class SpeedTreeBillboardUpgrader : MaterialUpgrader
+    {
+        internal SpeedTreeBillboardUpgrader(string oldShaderName)
+        {
+            RenameShader(oldShaderName, ShaderUtils.GetShaderPath(ShaderPathID.SpeedTree7Billboard));
+        }
+    }
+    internal class SpeedTree8Upgrader : MaterialUpgrader
+    {
+        internal SpeedTree8Upgrader(string oldShaderName)
+        {
+            RenameShader(oldShaderName, ShaderUtils.GetShaderPath(ShaderPathID.SpeedTree8));
         }
     }
 

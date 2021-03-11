@@ -6,7 +6,11 @@ struct ps_input
 	#if USE_FLIPBOOK_INTERPOLATION
 	float4 uv : TEXCOORD0;
 	#else
+	#if USE_FLIPBOOK_ARRAY_LAYOUT
+	float3 uv : TEXCOORD0;
+	#else
 	float2 uv : TEXCOORD0;	
+	#endif
 	#endif
     #if VFX_SHADERGRAPH_HAS_UV1
     float4 uv1 : TEXCOORD1;
@@ -34,12 +38,12 @@ struct ps_input
 	#endif
     
     #if VFX_NEEDS_POSWS_INTERPOLATOR
-	float3 posWS : TEXCOORD8;
+	float3 posWS : TEXCOORD6;
     #endif
 	
 	#if VFX_PASSDEPTH == VFX_PASSDEPTH_MOTION_VECTOR
-	float4 cPosPrevious : TEXCOORD6;
-	float4 cPosNonJiterred : TEXCOORD7;
+	VFX_FEATURE_MOTION_VECTORS_INTERPOLATION float4 cPosPrevious : TEXCOORD7;
+	VFX_FEATURE_MOTION_VECTORS_INTERPOLATION float4 cPosNonJiterred : TEXCOORD8;
 	#endif
     ${VFXAdditionalInterpolantsDeclaration}
 	
@@ -63,44 +67,15 @@ struct ps_input
 #define VFX_VARYING_VELOCITY_CPOS_PREVIOUS cPosPrevious
 #endif
 
-#if IS_MOTION_VECTORS_PASS
+#if VFX_PASSDEPTH == VFX_PASSDEPTH_MOTION_VECTOR
 ${VFXPassVelocityDefine}
-#else
+#elif VFX_PASSDEPTH == VFX_PASSDEPTH_ACTUAL || VFX_PASSDEPTH == VFX_PASSDEPTH_SELECTION
 ${VFXPassDepthDefine}
-#endif
-${VFXInclude("Shaders/ParticleMeshes/Pass.template")}	
-
-${SHADERGRAPH_PIXEL_CODE_DEPTHONLY}
-
-#if VFX_PASSDEPTH == VFX_PASSDEPTH_SELECTION
-int _ObjectId;
-int _PassValue;
+#elif VFX_PASSDEPTH == VFX_PASSDEPTH_SHADOW
+${VFXPassShadowDefine}
 #endif
 
-#pragma fragment frag
-float4 frag(ps_input i) : SV_TARGET
-{
-	UNITY_SETUP_STEREO_EYE_INDEX_POST_VERTEX(i);
-	VFXTransformPSInputs(i);
-    #ifdef VFX_SHADERGRAPH
-        ${VFXAdditionalInterpolantsPreparation}
-        ${SHADERGRAPH_PIXEL_CALL_DEPTHONLY}
-        
-        float alpha = OUTSG.${SHADERGRAPH_PARAM_ALPHA};
-    #else
-        float alpha = VFXGetFragmentColor(i).a;
-        alpha *= VFXGetTextureColor(VFX_SAMPLER(mainTexture),i).a;		
-    #endif
-	VFXClipFragmentColor(alpha,i);
-	
-	#if VFX_PASSDEPTH == VFX_PASSDEPTH_MOTION_VECTOR
-		${VFXComputeOutputMotionVector}
-		return encodedMotionVector;
-	#elif VFX_PASSDEPTH == VFX_PASSDEPTH_SELECTION
-		return float4(_ObjectId, _PassValue, 1.0, 1.0);
-	#elif  VFX_PASSDEPTH == VFX_PASSDEPTH_ACTUAL
-		return (float4)0;
-	#else
-		#error VFX_PASSDEPTH undefined
-	#endif
-}
+${VFXInclude("Shaders/ParticleMeshes/Pass.template")}
+#define VFX_SUPPORT_MAIN_TEXTURE_SAMPLING_IN_FRAGMENT_DEPTH 1
+${VFXPassDepthCommonFragmentUnlit}
+

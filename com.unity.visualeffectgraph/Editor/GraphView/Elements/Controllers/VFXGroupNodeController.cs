@@ -124,7 +124,7 @@ namespace UnityEditor.VFX.UI
 
         protected void Modified()
         {
-            m_UI.Modified();
+            m_UI.Modified(true);
             m_ViewController.IncremenentGraphUndoRedoState(null, VFXModel.InvalidationCause.kUIChanged);
         }
 

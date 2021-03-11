@@ -3,12 +3,12 @@ using System;
 namespace UnityEngine.Rendering
 {
     /// <summary>
-    /// The format of the delegate used to perofrm dynamic resolution. 
+    /// The format of the delegate used to perofrm dynamic resolution.
     /// </summary>
     public delegate float PerformDynamicRes();
 
     /// <summary>
-    /// The type of dynamic resolution scaler. It essentially defines what the output of the scaler is expected to be. 
+    /// The type of dynamic resolution scaler. It essentially defines what the output of the scaler is expected to be.
     /// </summary>
     public enum DynamicResScalePolicyType
     {
@@ -19,14 +19,14 @@ namespace UnityEngine.Rendering
         ReturnsPercentage,
         /// <summary>
         /// If is the option, DynamicResolutionHandler expects the scaler to return a factor t in the [0..1] such that the final resolution percentage
-        /// is determined by lerp(minimumPercentage, maximumPercentage, t), where the minimum and maximum percentages are the one set in the GlobalDynamicResolutionSettings.  
+        /// is determined by lerp(minimumPercentage, maximumPercentage, t), where the minimum and maximum percentages are the one set in the GlobalDynamicResolutionSettings.
         /// </summary>
         ReturnsMinMaxLerpFactor
     }
 
 
     /// <summary>
-    /// The class responsible to handle dynamic resolution. 
+    /// The class responsible to handle dynamic resolution.
     /// </summary>
     public class DynamicResolutionHandler
     {
@@ -49,9 +49,15 @@ namespace UnityEngine.Rendering
         private Vector2Int cachedOriginalSize;
 
         /// <summary>
-        /// The filter that is used to upscale the rendering result to the native resolution. 
+        /// The filter that is used to upscale the rendering result to the native resolution.
         /// </summary>
         public DynamicResUpscaleFilter filter { get; set; }
+
+        /// <summary>
+        /// The viewport of the final buffer. This is likely the resolution the dynamic resolution starts from before any scaling. Note this is NOT the target resolution the rendering will happen in
+        /// but the resolution the scaled rendered result will be upscaled to.
+        /// </summary>
+        public Vector2Int finalViewport { get; set; }
 
 
         private DynamicResolutionType type;
@@ -60,7 +66,7 @@ namespace UnityEngine.Rendering
         private static DynamicResolutionHandler s_Instance = new DynamicResolutionHandler();
 
         /// <summary>
-        /// Get the instance of the global dynamic resolution handler. 
+        /// Get the instance of the global dynamic resolution handler.
         /// </summary>
         public static DynamicResolutionHandler instance { get { return s_Instance; } }
 
@@ -69,7 +75,6 @@ namespace UnityEngine.Rendering
         {
             m_DynamicResMethod = DefaultDynamicResMethod;
             filter = DynamicResUpscaleFilter.Bilinear;
-
         }
 
         // TODO: Eventually we will need to provide a good default implementation for this.
@@ -80,7 +85,7 @@ namespace UnityEngine.Rendering
 
         private void ProcessSettings(GlobalDynamicResolutionSettings settings)
         {
-            m_Enabled = settings.enabled;
+            m_Enabled = settings.enabled && (Application.isPlaying || settings.forceResolution);
             if (!m_Enabled)
             {
                 m_CurrentFraction = 1.0f;
@@ -102,6 +107,24 @@ namespace UnityEngine.Rendering
                     m_CurrentFraction = fraction;
                 }
             }
+        }
+
+        public Vector2 GetResolvedScale()
+        {
+            if (!m_Enabled || !m_CurrentCameraRequest)
+            {
+                return new Vector2(1.0f, 1.0f);
+            }
+
+            float scaleFractionX = m_CurrentFraction;
+            float scaleFractionY = m_CurrentFraction;
+            if (!m_ForceSoftwareFallback && type == DynamicResolutionType.Hardware)
+            {
+                scaleFractionX = ScalableBufferManager.widthScaleFactor;
+                scaleFractionY = ScalableBufferManager.heightScaleFactor;
+            }
+
+            return new Vector2(scaleFractionX, scaleFractionY);
         }
 
         /// <summary>
@@ -137,13 +160,13 @@ namespace UnityEngine.Rendering
 
             if (!m_ForcingRes)
             {
-                if(m_ScalerType == DynamicResScalePolicyType.ReturnsMinMaxLerpFactor)
+                if (m_ScalerType == DynamicResScalePolicyType.ReturnsMinMaxLerpFactor)
                 {
                     float currLerp = m_DynamicResMethod();
                     float lerpFactor = Mathf.Clamp(currLerp, 0.0f, 1.0f);
                     m_CurrentFraction = Mathf.Lerp(m_MinScreenFraction, m_MaxScreenFraction, lerpFactor);
                 }
-                else if(m_ScalerType == DynamicResScalePolicyType.ReturnsPercentage)
+                else if (m_ScalerType == DynamicResScalePolicyType.ReturnsPercentage)
                 {
                     float percentageRequested = Mathf.Max(m_DynamicResMethod(), 5.0f);
                     m_CurrentFraction = Mathf.Clamp(percentageRequested / 100.0f, m_MinScreenFraction, m_MaxScreenFraction);
@@ -159,17 +182,19 @@ namespace UnityEngine.Rendering
                     ScalableBufferManager.ResizeBuffers(m_CurrentFraction, m_CurrentFraction);
                 }
 
-                OnResolutionChange();
+                if (OnResolutionChange != null)
+                    OnResolutionChange();
             }
             else
             {
                 // Unity can change the scale factor by itself so we need to trigger the Action if that happens as well.
                 if (!m_ForceSoftwareFallback && type == DynamicResolutionType.Hardware)
                 {
-                    if(ScalableBufferManager.widthScaleFactor != m_PrevHWScaleWidth  ||
+                    if (ScalableBufferManager.widthScaleFactor != m_PrevHWScaleWidth  ||
                         ScalableBufferManager.heightScaleFactor != m_PrevHWScaleHeight)
                     {
-                        OnResolutionChange();
+                        if (OnResolutionChange != null)
+                            OnResolutionChange();
                     }
                 }
             }
@@ -227,6 +252,7 @@ namespace UnityEngine.Rendering
 
         /// <summary>
         /// Applies to the passed size the scale imposed by the dynamic resolution system.
+        /// Note: this function has the side effect of caching the last scale size.
         /// </summary>
         /// <param name="size">The starting size of the render target that will be scaled by dynamic resolution.</param>
         /// <returns>The parameter size scaled by the dynamic resolution system.</returns>
@@ -239,21 +265,26 @@ namespace UnityEngine.Rendering
                 return size;
             }
 
-            float scaleFractionX = m_CurrentFraction;
-            float scaleFractionY = m_CurrentFraction;
-            if (!m_ForceSoftwareFallback && type == DynamicResolutionType.Hardware)
-            {
-                scaleFractionX = ScalableBufferManager.widthScaleFactor;
-                scaleFractionY = ScalableBufferManager.heightScaleFactor;
-            }
+            Vector2Int scaledSize = ApplyScalesOnSize(size);
+            m_LastScaledSize = scaledSize;
+            return scaledSize;
+        }
 
-            Vector2Int scaledSize = new Vector2Int(Mathf.CeilToInt(size.x * scaleFractionX), Mathf.CeilToInt(size.y * scaleFractionY));
+        /// <summary>
+        /// Applies to the passed size the scale imposed by the dynamic resolution system.
+        /// Note: this function is pure (has no side effects), this function does not cache the pre-scale size
+        /// </summary>
+        /// <param name="size">The size to apply the scaling</param>
+        /// <returns>The parameter size scaled by the dynamic resolution system.</returns>
+        public Vector2Int ApplyScalesOnSize(Vector2Int size)
+        {
+            Vector2 resolvedScales = GetResolvedScale();
+            Vector2Int scaledSize = new Vector2Int(Mathf.CeilToInt(size.x * resolvedScales.x), Mathf.CeilToInt(size.y * resolvedScales.y));
             if (m_ForceSoftwareFallback || type != DynamicResolutionType.Hardware)
             {
                 scaledSize.x += (1 & scaledSize.x);
                 scaledSize.y += (1 & scaledSize.y);
             }
-            m_LastScaledSize = scaledSize;
 
             return scaledSize;
         }

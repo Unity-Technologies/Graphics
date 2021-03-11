@@ -32,7 +32,7 @@ namespace UnityEditor.ShaderGraph
         {
             Out = Vector3.one;
             return
-                @"
+@"
 {
     Out = SHADERGRAPH_SAMPLE_SCENE_COLOR(UV.xy);
 }

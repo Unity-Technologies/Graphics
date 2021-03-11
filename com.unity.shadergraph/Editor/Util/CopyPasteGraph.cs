@@ -47,7 +47,8 @@ namespace UnityEditor.ShaderGraph
         public CopyPasteGraph() {}
 
         public CopyPasteGraph(IEnumerable<GroupData> groups, IEnumerable<AbstractMaterialNode> nodes, IEnumerable<Edge> edges,
-            IEnumerable<ShaderInput> inputs, IEnumerable<AbstractShaderProperty> metaProperties, IEnumerable<ShaderKeyword> metaKeywords, IEnumerable<StickyNoteData> notes, bool keepOutputEdges = false)
+                              IEnumerable<ShaderInput> inputs, IEnumerable<AbstractShaderProperty> metaProperties, IEnumerable<ShaderKeyword> metaKeywords, IEnumerable<StickyNoteData> notes,
+                              bool keepOutputEdges = false, bool removeOrphanEdges = true)
         {
             if (groups != null)
             {
@@ -103,10 +104,12 @@ namespace UnityEditor.ShaderGraph
                     AddMetaKeyword(metaKeyword);
             }
 
-            m_Edges = m_Edges
-                .Distinct()
-                .Where(edge => nodeSet.Contains(edge.inputSlot.node) || (keepOutputEdges && nodeSet.Contains(edge.outputSlot.node)))
-                .ToList();
+            var distinct = m_Edges.Distinct();
+            if (removeOrphanEdges)
+            {
+                distinct = distinct.Where(edge => nodeSet.Contains(edge.inputSlot.node) || (keepOutputEdges && nodeSet.Contains(edge.outputSlot.node)));
+            }
+            m_Edges = distinct.ToList();
         }
 
         void AddGroup(GroupData group)
@@ -178,6 +181,18 @@ namespace UnityEditor.ShaderGraph
         public IEnumerable<string> metaPropertyIds => m_MetaPropertyIds;
 
         public IEnumerable<string> metaKeywordIds => m_MetaKeywordIds;
+
+        public override void OnAfterMultiDeserialize(string json)
+        {
+            // should we add support for versioning old CopyPasteGraphs from old versions of Unity?
+            // so you can copy from old paste to new
+
+            foreach (var node in m_Nodes.SelectValue())
+            {
+                node.UpdateNodeAfterDeserialization();
+                node.SetupSlots();
+            }
+        }
 
         internal static CopyPasteGraph FromJson(string copyBuffer, GraphData targetGraph)
         {

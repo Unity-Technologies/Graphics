@@ -43,7 +43,7 @@ void ProcessBSDFData(PathIntersection pathIntersection, BuiltinData builtinData,
 #endif
 }
 
-bool CreateMaterialData(PathIntersection pathIntersection, BuiltinData builtinData, BSDFData bsdfData, inout float3 shadingPosition, inout float sample, out MaterialData mtlData)
+bool CreateMaterialData(PathIntersection pathIntersection, BuiltinData builtinData, BSDFData bsdfData, inout float3 shadingPosition, inout float theSample, out MaterialData mtlData)
 {
     // Alter values in the material's bsdfData struct, to better suit path tracing
     mtlData.bsdfData = bsdfData;
@@ -95,7 +95,7 @@ bool CreateMaterialData(PathIntersection pathIntersection, BuiltinData builtinDa
 #ifdef _MATERIAL_FEATURE_SUBSURFACE_SCATTERING
     float subsurfaceWeight = mtlData.bsdfWeight[0] * mtlData.bsdfData.subsurfaceMask * (1.0 - pathIntersection.maxRoughness);
 
-    mtlData.isSubsurface = sample < subsurfaceWeight;
+    mtlData.isSubsurface = theSample < subsurfaceWeight;
     if (mtlData.isSubsurface)
     {
         // We do a full, ray-traced subsurface scattering computation here:
@@ -118,14 +118,14 @@ bool CreateMaterialData(PathIntersection pathIntersection, BuiltinData builtinDa
         // Otherwise, we just compute BSDFs as usual
         mtlData.subsurfaceWeightFactor = 1.0 - subsurfaceWeight;
 
-        mtlData.bsdfWeight[0] -= subsurfaceWeight;
+        mtlData.bsdfWeight[0] = max(mtlData.bsdfWeight[0] - subsurfaceWeight, BSDF_WEIGHT_EPSILON);
         mtlData.bsdfWeight /= mtlData.subsurfaceWeightFactor;
 
-        sample -= subsurfaceWeight;
+        theSample -= subsurfaceWeight;
     }
 
     // Rescale the sample we used for the SSS selection test
-    sample /= mtlData.subsurfaceWeightFactor;
+    theSample /= mtlData.subsurfaceWeightFactor;
 #endif
 
     return true;
@@ -147,8 +147,7 @@ bool SampleMaterial(MaterialData mtlData, float3 inputSample, out float3 sampleD
         if (!BRDF::SampleLambert(mtlData, inputSample, sampleDir, result.diffValue, result.diffPdf))
             return false;
 
-        result.diffValue *= mtlData.bsdfData.ambientOcclusion * mtlData.bsdfData.subsurfaceMask * (1.0 - mtlData.bsdfData.transmittanceMask);
-        result.diffPdf *= mtlData.subsurfaceWeightFactor;
+        result.diffValue *= mtlData.bsdfData.ambientOcclusion * (1.0 - mtlData.bsdfData.transmittanceMask);
 
         return true;
     }
@@ -175,7 +174,7 @@ bool SampleMaterial(MaterialData mtlData, float3 inputSample, out float3 sampleD
                 result.specPdf += mtlData.bsdfWeight[1] * pdf;
             }
 
-            result.diffValue *= mtlData.bsdfData.ambientOcclusion * (1.0 - mtlData.bsdfData.subsurfaceMask) * (1.0 - mtlData.bsdfData.transmittanceMask) * (1.0 - fresnelClearCoat);
+            result.diffValue *= mtlData.bsdfData.ambientOcclusion * (1.0 - mtlData.bsdfData.transmittanceMask) * (1.0 - fresnelClearCoat);
 
             if (mtlData.bsdfWeight[2] > BSDF_WEIGHT_EPSILON)
             {
@@ -196,7 +195,7 @@ bool SampleMaterial(MaterialData mtlData, float3 inputSample, out float3 sampleD
             if (mtlData.bsdfWeight[0] > BSDF_WEIGHT_EPSILON)
             {
                 BRDF::EvaluateDiffuse(mtlData, sampleDir, result.diffValue, result.diffPdf);
-                result.diffValue *= mtlData.bsdfData.ambientOcclusion * (1.0 - mtlData.bsdfData.subsurfaceMask) * (1.0 - mtlData.bsdfData.transmittanceMask) * (1.0 - fresnelClearCoat);
+                result.diffValue *= mtlData.bsdfData.ambientOcclusion * (1.0 - mtlData.bsdfData.transmittanceMask) * (1.0 - fresnelClearCoat);
                 result.diffPdf *= mtlData.bsdfWeight[0];
             }
 
@@ -226,7 +225,7 @@ bool SampleMaterial(MaterialData mtlData, float3 inputSample, out float3 sampleD
             if (mtlData.bsdfWeight[0] > BSDF_WEIGHT_EPSILON)
             {
                 BRDF::EvaluateDiffuse(mtlData, sampleDir, result.diffValue, result.diffPdf);
-                result.diffValue *= mtlData.bsdfData.ambientOcclusion * (1.0 - mtlData.bsdfData.subsurfaceMask) * (1.0 - mtlData.bsdfData.transmittanceMask) * (1.0 - fresnelClearCoat);
+                result.diffValue *= mtlData.bsdfData.ambientOcclusion * (1.0 - mtlData.bsdfData.transmittanceMask) * (1.0 - fresnelClearCoat);
                 result.diffPdf *= mtlData.bsdfWeight[0];
             }
         }
@@ -248,8 +247,8 @@ bool SampleMaterial(MaterialData mtlData, float3 inputSample, out float3 sampleD
 #endif
 
 #ifdef _MATERIAL_FEATURE_SUBSURFACE_SCATTERING
-        result.diffPdf *= mtlData.subsurfaceWeightFactor;
-        result.specPdf *= mtlData.subsurfaceWeightFactor;
+        // We compensate for the fact that there is no spec when computing SSS
+        result.specValue /= mtlData.subsurfaceWeightFactor;
 #endif
     }
     else // Below
@@ -295,8 +294,7 @@ void EvaluateMaterial(MaterialData mtlData, float3 sampleDir, out MaterialResult
     if (mtlData.isSubsurface)
     {
         BRDF::EvaluateLambert(mtlData, sampleDir, result.diffValue, result.diffPdf);
-        result.diffValue *= mtlData.bsdfData.subsurfaceMask * (1.0 - mtlData.bsdfData.transmittanceMask); // AO purposedly ignored here
-        result.diffPdf *= mtlData.subsurfaceWeightFactor;
+        result.diffValue *= 1.0 - mtlData.bsdfData.transmittanceMask; // AO purposedly ignored here
 
         return;
     }
@@ -319,7 +317,7 @@ void EvaluateMaterial(MaterialData mtlData, float3 sampleDir, out MaterialResult
         if (mtlData.bsdfWeight[0] > BSDF_WEIGHT_EPSILON)
         {
             BRDF::EvaluateDiffuse(mtlData, sampleDir, result.diffValue, result.diffPdf);
-            result.diffValue *= (1.0 - mtlData.bsdfData.transmittanceMask) * (1.0 - mtlData.bsdfData.subsurfaceMask) * (1.0 - fresnelClearCoat); // AO purposedly ignored here
+            result.diffValue *= (1.0 - mtlData.bsdfData.transmittanceMask) * (1.0 - fresnelClearCoat); // AO purposedly ignored here
             result.diffPdf *= mtlData.bsdfWeight[0];
         }
 
@@ -331,8 +329,39 @@ void EvaluateMaterial(MaterialData mtlData, float3 sampleDir, out MaterialResult
         }
 
 #ifdef _MATERIAL_FEATURE_SUBSURFACE_SCATTERING
-        result.diffPdf *= mtlData.subsurfaceWeightFactor;
-        result.specPdf *= mtlData.subsurfaceWeightFactor;
+        // We compensate for the fact that there is no spec when computing SSS
+        result.specValue /= mtlData.subsurfaceWeightFactor;
 #endif
     }
+}
+
+float AdjustPathRoughness(MaterialData mtlData, MaterialResult mtlResult, bool isSampleBelow, float pathRoughness)
+{
+    // Adjust the max roughness, based on the estimated diff/spec ratio
+    float adjustedPathRoughness = (mtlResult.specPdf * max(mtlData.bsdfData.roughnessT, mtlData.bsdfData.roughnessB) + mtlResult.diffPdf) / (mtlResult.diffPdf + mtlResult.specPdf);
+
+#ifdef _SURFACE_TYPE_TRANSPARENT
+    // When transmitting with an IOR close to 1.0, roughness is barely noticeable -> take that into account for path roughness adjustment
+    if (IsBelow(mtlData) != isSampleBelow)
+        adjustedPathRoughness = lerp(pathRoughness, adjustedPathRoughness, smoothstep(1.0, 1.3, mtlData.bsdfData.ior));
+#endif
+
+    return adjustedPathRoughness;
+}
+
+float3 ApplyAbsorption(MaterialData mtlData, float dist, bool isSampleBelow, float3 value)
+{
+#if defined(_SURFACE_TYPE_TRANSPARENT) && HAS_REFRACTION
+    // Apply absorption on rays below the interface, using Beer-Lambert's law
+    if (isSampleBelow)
+    {
+    #ifdef _REFRACTION_THIN
+        value *= exp(-mtlData.bsdfData.absorptionCoefficient * REFRACTION_THIN_DISTANCE);
+    #else
+        value *= exp(-mtlData.bsdfData.absorptionCoefficient * dist);
+    #endif
+    }
+#endif
+
+    return value;
 }

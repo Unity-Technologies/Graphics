@@ -1,28 +1,87 @@
-﻿using System;
+using System;
 using System.Linq;
 using System.Collections.Generic;
 using UnityEditor.ShaderGraph;
 using UnityEngine.Rendering;
 using UnityEditor.Experimental.Rendering.Universal;
+using UnityEditor.ShaderGraph.Legacy;
 
 namespace UnityEditor.Rendering.Universal.ShaderGraph
 {
-    sealed class UniversalSpriteLitSubTarget : SubTarget<UniversalTarget>
+    sealed class UniversalSpriteLitSubTarget : SubTarget<UniversalTarget>, ILegacyTarget
     {
-        const string kAssetGuid = "ea1514729d7120344b27dcd67fbf34de";
+        static readonly GUID kSourceCodeGuid = new GUID("ea1514729d7120344b27dcd67fbf34de"); // UniversalSpriteLitSubTarget.cs
+
+        public UniversalSpriteLitSubTarget()
+        {
+            displayName = "Sprite Lit";
+        }
+
+        public override bool IsActive() => true;
 
         public override void Setup(ref TargetSetupContext context)
         {
-            context.AddAssetDependencyPath(AssetDatabase.GUIDToAssetPath(kAssetGuid));
+            context.AddAssetDependency(kSourceCodeGuid, AssetCollection.Flags.SourceDependency);
             context.AddSubShader(SubShaders.SpriteLit);
         }
 
-#region SubShader
+        public override void GetFields(ref TargetFieldContext context)
+        {
+            // Only support SpriteColor legacy block if BaseColor/Alpha are not active
+            var descs = context.blocks.Select(x => x.descriptor);
+            bool useLegacyBlocks = !descs.Contains(BlockFields.SurfaceDescription.BaseColor) && !descs.Contains(BlockFields.SurfaceDescription.Alpha);
+            context.AddField(CoreFields.UseLegacySpriteBlocks, useLegacyBlocks);
+
+            // Surface Type & Blend Mode
+            context.AddField(UniversalFields.SurfaceTransparent);
+            context.AddField(Fields.BlendAlpha);
+            context.AddField(Fields.DoubleSided);
+        }
+
+        public override void GetActiveBlocks(ref TargetActiveBlockContext context)
+        {
+            // Only support SpriteColor legacy block if BaseColor/Alpha are not active
+            bool useLegacyBlocks = !context.currentBlocks.Contains(BlockFields.SurfaceDescription.BaseColor) && !context.currentBlocks.Contains(BlockFields.SurfaceDescription.Alpha);
+            context.AddBlock(BlockFields.SurfaceDescriptionLegacy.SpriteColor, useLegacyBlocks);
+
+            context.AddBlock(UniversalBlockFields.SurfaceDescription.SpriteMask);
+            context.AddBlock(BlockFields.SurfaceDescription.NormalTS);
+            context.AddBlock(BlockFields.SurfaceDescription.Alpha);
+        }
+
+        public override void GetPropertiesGUI(ref TargetPropertyGUIContext context, Action onChange, Action<String> registerUndo)
+        {
+        }
+
+        public bool TryUpgradeFromMasterNode(IMasterNode1 masterNode, out Dictionary<BlockFieldDescriptor, int> blockMap)
+        {
+            blockMap = null;
+            if (!(masterNode is SpriteLitMasterNode1 spriteLitMasterNode))
+                return false;
+
+            // Set blockmap
+            blockMap = new Dictionary<BlockFieldDescriptor, int>()
+            {
+                { BlockFields.VertexDescription.Position, 9 },
+                { BlockFields.VertexDescription.Normal, 10 },
+                { BlockFields.VertexDescription.Tangent, 11 },
+                { BlockFields.SurfaceDescriptionLegacy.SpriteColor, 0 },
+                { UniversalBlockFields.SurfaceDescription.SpriteMask, 1 },
+                { BlockFields.SurfaceDescription.NormalTS, 2 },
+            };
+
+            return true;
+        }
+
+        #region SubShader
         static class SubShaders
         {
             public static SubShaderDescriptor SpriteLit = new SubShaderDescriptor()
             {
                 pipelineTag = UniversalTarget.kPipelineTag,
+                customTags = UniversalTarget.kLitMaterialTypeTag,
+                renderType = $"{RenderType.Transparent}",
+                renderQueue = $"{UnityEditor.ShaderGraph.RenderQueue.Transparent}",
                 generatesPreview = true,
                 passes = new PassCollection
                 {
@@ -32,9 +91,9 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
                 },
             };
         }
-#endregion
+        #endregion
 
-#region Passes
+        #region Passes
         static class SpriteLitPasses
         {
             public static PassDescriptor Lit = new PassDescriptor
@@ -47,11 +106,11 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
 
                 // Template
                 passTemplatePath = GenerationUtils.GetDefaultTemplatePath("PassMesh.template"),
-                sharedTemplateDirectory = GenerationUtils.GetDefaultSharedTemplateDirectory(),
+                sharedTemplateDirectories = GenerationUtils.GetDefaultSharedTemplateDirectories(),
 
                 // Port Mask
-                vertexPorts = SpriteLitPortMasks.Vertex,
-                pixelPorts = SpriteLitPortMasks.FragmentLit,
+                validVertexBlocks = CoreBlockMasks.Vertex,
+                validPixelBlocks = SpriteLitBlockMasks.FragmentLit,
 
                 // Fields
                 structs = CoreStructCollections.Default,
@@ -63,6 +122,9 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
                 pragmas = CorePragmas._2DDefault,
                 keywords = SpriteLitKeywords.Lit,
                 includes = SpriteLitIncludes.Lit,
+
+                // Custom Interpolator Support
+                customInterpolators = CoreCustomInterpDescriptors.Common
             };
 
             public static PassDescriptor Normal = new PassDescriptor
@@ -75,11 +137,11 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
 
                 // Template
                 passTemplatePath = GenerationUtils.GetDefaultTemplatePath("PassMesh.template"),
-                sharedTemplateDirectory = GenerationUtils.GetDefaultSharedTemplateDirectory(),
+                sharedTemplateDirectories = GenerationUtils.GetDefaultSharedTemplateDirectories(),
 
                 // Port Mask
-                vertexPorts = SpriteLitPortMasks.Vertex,
-                pixelPorts = SpriteLitPortMasks.FragmentForwardNormal,
+                validVertexBlocks = CoreBlockMasks.Vertex,
+                validPixelBlocks = SpriteLitBlockMasks.FragmentForwardNormal,
 
                 // Fields
                 structs = CoreStructCollections.Default,
@@ -90,6 +152,9 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
                 renderStates = CoreRenderStates.Default,
                 pragmas = CorePragmas._2DDefault,
                 includes = SpriteLitIncludes.Normal,
+
+                // Custom Interpolator Support
+                customInterpolators = CoreCustomInterpDescriptors.Common
             };
 
             public static PassDescriptor Forward = new PassDescriptor
@@ -102,11 +167,11 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
 
                 // Template
                 passTemplatePath = GenerationUtils.GetDefaultTemplatePath("PassMesh.template"),
-                sharedTemplateDirectory = GenerationUtils.GetDefaultSharedTemplateDirectory(),
+                sharedTemplateDirectories = GenerationUtils.GetDefaultSharedTemplateDirectories(),
 
                 // Port Mask
-                vertexPorts = SpriteLitPortMasks.Vertex,
-                pixelPorts = SpriteLitPortMasks.FragmentForwardNormal,
+                validVertexBlocks = CoreBlockMasks.Vertex,
+                validPixelBlocks = SpriteLitBlockMasks.FragmentForwardNormal,
 
                 // Fields
                 structs = CoreStructCollections.Default,
@@ -116,37 +181,36 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
                 // Conditional State
                 renderStates = CoreRenderStates.Default,
                 pragmas = CorePragmas._2DDefault,
-                keywords = SpriteLitKeywords.ETCExternalAlpha,
                 includes = SpriteLitIncludes.Forward,
+
+                // Custom Interpolator Support
+                customInterpolators = CoreCustomInterpDescriptors.Common
             };
         }
-#endregion
+        #endregion
 
-#region PortMasks
-        static class SpriteLitPortMasks
+        #region PortMasks
+        static class SpriteLitBlockMasks
         {
-            public static int[] Vertex = new int[]
+            public static BlockFieldDescriptor[] FragmentLit = new BlockFieldDescriptor[]
             {
-                SpriteLitMasterNode.PositionSlotId,
-                SpriteLitMasterNode.VertNormalSlotId,
-                SpriteLitMasterNode.VertTangentSlotId,
+                BlockFields.SurfaceDescription.BaseColor,
+                BlockFields.SurfaceDescriptionLegacy.SpriteColor,
+                BlockFields.SurfaceDescription.Alpha,
+                UniversalBlockFields.SurfaceDescription.SpriteMask,
             };
 
-            public static int[] FragmentLit = new int[]
+            public static BlockFieldDescriptor[] FragmentForwardNormal = new BlockFieldDescriptor[]
             {
-                SpriteLitMasterNode.ColorSlotId,
-                SpriteLitMasterNode.MaskSlotId,
-            };
-
-            public static int[] FragmentForwardNormal = new int[]
-            {
-                SpriteLitMasterNode.ColorSlotId,
-                SpriteLitMasterNode.NormalSlotId,
+                BlockFields.SurfaceDescription.BaseColor,
+                BlockFields.SurfaceDescriptionLegacy.SpriteColor,
+                BlockFields.SurfaceDescription.Alpha,
+                BlockFields.SurfaceDescription.NormalTS,
             };
         }
-#endregion
+        #endregion
 
-#region RequiredFields
+        #region RequiredFields
         static class SpriteLitRequiredFields
         {
             public static FieldCollection Lit = new FieldCollection()
@@ -168,28 +232,22 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
                 StructFields.Varyings.texCoord0,
             };
         }
-#endregion
+        #endregion
 
-#region Keywords
+        #region Keywords
         static class SpriteLitKeywords
         {
             public static KeywordCollection Lit = new KeywordCollection
             {
-                { CoreKeywordDescriptors.ETCExternalAlpha },
                 { CoreKeywordDescriptors.ShapeLightType0 },
                 { CoreKeywordDescriptors.ShapeLightType1 },
                 { CoreKeywordDescriptors.ShapeLightType2 },
                 { CoreKeywordDescriptors.ShapeLightType3 },
             };
-
-            public static KeywordCollection ETCExternalAlpha = new KeywordCollection
-            {
-                { CoreKeywordDescriptors.ETCExternalAlpha },
-            };
         }
-#endregion
+        #endregion
 
-#region Includes
+        #region Includes
         static class SpriteLitIncludes
         {
             const string k2DLightingUtil = "Packages/com.unity.render-pipelines.universal/Shaders/2D/Include/LightingUtility.hlsl";
@@ -233,6 +291,6 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
                 { kSpriteForwardPass, IncludeLocation.Postgraph },
             };
         }
-#endregion
+        #endregion
     }
 }

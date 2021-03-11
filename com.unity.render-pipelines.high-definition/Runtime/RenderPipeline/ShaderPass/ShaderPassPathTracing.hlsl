@@ -1,15 +1,13 @@
 // Ray tracing includes
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/Raytracing/Shaders/RaytracingFragInputs.hlsl"
-#include "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/Raytracing/Shaders/Shadows/SphericalQuad.hlsl"
+#include "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/Raytracing/Shaders/Common/AtmosphericScatteringRayTracing.hlsl"
 
 // Path tracing includes
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/PathTracing/Shaders/PathTracingIntersection.hlsl"
-#include "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/RayTracing/Shaders/Common/AtmosphericScatteringRayTracing.hlsl"
-
+#include "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/PathTracing/Shaders/PathTracingVolume.hlsl"
 #ifdef HAS_LIGHTLOOP
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/PathTracing/Shaders/PathTracingLight.hlsl"
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/PathTracing/Shaders/PathTracingSampling.hlsl"
-#include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Lit/LitPathTracing.hlsl"
 #endif
 
 float PowerHeuristic(float f, float b)
@@ -22,20 +20,9 @@ float3 GetPositionBias(float3 geomNormal, float bias, bool below)
     return geomNormal * (below ? -bias : bias);
 }
 
-// Generic function that handles the reflection code
-[shader("closesthit")]
-void ClosestHit(inout PathIntersection pathIntersection : SV_RayPayload, AttributeData attributeData : SV_IntersectionAttributes)
+// Function responsible for surface scattering
+void ComputeSurfaceScattering(inout PathIntersection pathIntersection : SV_RayPayload, AttributeData attributeData : SV_IntersectionAttributes, float4 inputSample)
 {
-    // Always set the new t value
-    pathIntersection.t = RayTCurrent();
-
-    // If the max depth has been reached, bail out
-    if (!pathIntersection.remainingDepth)
-    {
-        pathIntersection.value = 0.0;
-        return;
-    }
-
     // The first thing that we should do is grab the intersection vertex
     IntersectionVertex currentVertex;
     GetCurrentIntersectionVertex(attributeData, currentVertex);
@@ -57,7 +44,7 @@ void ClosestHit(inout PathIntersection pathIntersection : SV_RayPayload, Attribu
     // Make sure to add the additional travel distance
     pathIntersection.cone.width += pathIntersection.t * abs(pathIntersection.cone.spreadAngle);
 
-#ifndef HAS_LIGHTLOOP
+#ifdef SHADER_UNLIT
     // This is quick and dirty way to avoid double contribution from light meshes
     if (currentDepth)
         pathIntersection.cone.spreadAngle = -1.0;
@@ -66,6 +53,11 @@ void ClosestHit(inout PathIntersection pathIntersection : SV_RayPayload, Attribu
     PositionInputs posInput;
     posInput.positionWS = fragInput.positionRWS;
     posInput.positionSS = pathIntersection.pixelCoord;
+
+    // For path tracing, we want the front-facing test to be performed on the actual geometric normal
+    float3 geomNormal;
+    GetCurrentIntersectionGeometricNormal(attributeData, geomNormal);
+    fragInput.isFrontFace = dot(WorldRayDirection(), geomNormal) < 0.0;
 
     // Build the surfacedata and builtindata
     SurfaceData surfaceData;
@@ -86,16 +78,14 @@ void ClosestHit(inout PathIntersection pathIntersection : SV_RayPayload, Attribu
     // Compute the bsdf data
     BSDFData bsdfData = ConvertSurfaceDataToBSDFData(posInput.positionSS, surfaceData);
 
-#ifdef HAS_LIGHTLOOP
+#ifndef SHADER_UNLIT
 
-    // Let's compute the world space position (the non-camera relative one if camera relative rendering is enabled)
-    float3 shadingPosition = GetAbsolutePositionWS(fragInput.positionRWS);
+    // Override the geometric normal (otherwise, it is merely the non-mapped smooth normal)
+    // Also make sure that it is in the same hemisphere as the shading normal (which may have been flipped)
+    bsdfData.geomNormalWS = dot(bsdfData.normalWS, geomNormal) > 0.0 ? geomNormal : -geomNormal;
 
-    // Generate the new sample (following values of the sequence)
-    float3 inputSample = 0.0;
-    inputSample.x = GetSample(pathIntersection.pixelCoord, _RaytracingSampleIndex, 4 * currentDepth);
-    inputSample.y = GetSample(pathIntersection.pixelCoord, _RaytracingSampleIndex, 4 * currentDepth + 1);
-    inputSample.z = GetSample(pathIntersection.pixelCoord, _RaytracingSampleIndex, 4 * currentDepth + 2);
+    // Compute the world space position (the non-camera relative one if camera relative rendering is enabled)
+    float3 shadingPosition = fragInput.positionRWS;
 
     // Get current path throughput
     float3 pathThroughput = pathIntersection.value;
@@ -108,7 +98,12 @@ void ClosestHit(inout PathIntersection pathIntersection : SV_RayPayload, Attribu
     if (CreateMaterialData(pathIntersection, builtinData, bsdfData, shadingPosition, inputSample.z, mtlData))
     {
         // Create the list of active lights
-        LightList lightList = CreateLightList(shadingPosition, mtlData.bsdfData.geomNormalWS, builtinData.renderingLayers);
+    #ifdef _SURFACE_TYPE_TRANSPARENT
+        float3 lightNormal = 0.0;
+    #else
+        float3 lightNormal = mtlData.bsdfData.geomNormalWS;
+    #endif
+        LightList lightList = CreateLightList(shadingPosition, lightNormal, builtinData.renderingLayers);
 
         // Bunch of variables common to material and light sampling
         float pdf;
@@ -124,7 +119,7 @@ void ClosestHit(inout PathIntersection pathIntersection : SV_RayPayload, Attribu
         // Light sampling
         if (computeDirect)
         {
-            if (SampleLights(lightList, inputSample, rayDescriptor.Origin, mtlData.bsdfData.normalWS, rayDescriptor.Direction, value, pdf, rayDescriptor.TMax))
+            if (SampleLights(lightList, inputSample.xyz, rayDescriptor.Origin, mtlData.bsdfData.normalWS, rayDescriptor.Direction, value, pdf, rayDescriptor.TMax))
             {
                 EvaluateMaterial(mtlData, rayDescriptor.Direction, mtlResult);
 
@@ -147,7 +142,7 @@ void ClosestHit(inout PathIntersection pathIntersection : SV_RayPayload, Attribu
         }
 
         // Material sampling
-        if (SampleMaterial(mtlData, inputSample, rayDescriptor.Direction, mtlResult))
+        if (SampleMaterial(mtlData, inputSample.xyz, rayDescriptor.Direction, mtlResult))
         {
             // Compute overall material value and pdf
             pdf = mtlResult.diffPdf + mtlResult.specPdf;
@@ -158,9 +153,8 @@ void ClosestHit(inout PathIntersection pathIntersection : SV_RayPayload, Attribu
             // Apply Russian roulette to our path
             const float rrThreshold = 0.2 + 0.1 * _RaytracingMaxRecursion;
             float rrFactor, rrValue = Luminance(pathThroughput);
-            float rrSample = GetSample(pathIntersection.pixelCoord, _RaytracingSampleIndex, 4 * currentDepth + 3);
 
-            if (RussianRouletteTest(rrThreshold, rrValue, rrSample, rrFactor, !currentDepth))
+            if (RussianRouletteTest(rrThreshold, rrValue, inputSample.w, rrFactor, !currentDepth))
             {
                 bool isSampleBelow = IsBelow(mtlData, rayDescriptor.Direction);
 
@@ -176,17 +170,11 @@ void ClosestHit(inout PathIntersection pathIntersection : SV_RayPayload, Attribu
                 nextPathIntersection.remainingDepth = pathIntersection.remainingDepth - 1;
                 nextPathIntersection.t = rayDescriptor.TMax;
 
-                // Adjust the max roughness, based on the estimated diff/spec ratio
-                nextPathIntersection.maxRoughness = (mtlResult.specPdf * max(mtlData.bsdfData.roughnessT, mtlData.bsdfData.roughnessB) + mtlResult.diffPdf) / pdf;
+                // Adjust the path max roughness (used for roughness clamping, to reduce fireflies)
+                nextPathIntersection.maxRoughness = AdjustPathRoughness(mtlData, mtlResult, isSampleBelow, pathIntersection.maxRoughness);
 
                 // In order to achieve filtering for the textures, we need to compute the spread angle of the pixel
                 nextPathIntersection.cone.spreadAngle = pathIntersection.cone.spreadAngle + roughnessToSpreadAngle(nextPathIntersection.maxRoughness);
-
-#ifdef _SURFACE_TYPE_TRANSPARENT
-                // When transmitting with an IOR close to 1.0, roughness is barely noticeable -> take that into account for roughness clamping
-                if (IsBelow(mtlData) != isSampleBelow)
-                    nextPathIntersection.maxRoughness = lerp(pathIntersection.maxRoughness, nextPathIntersection.maxRoughness, smoothstep(1.0, 1.3, mtlData.bsdfData.ior));
-#endif
 
                 // Shoot ray for indirect lighting
                 TraceRay(_RaytracingAccelerationStructure, RAY_FLAG_CULL_BACK_FACING_TRIANGLES, RAYTRACINGRENDERERFLAG_PATH_TRACING, 0, 1, 2, rayDescriptor, nextPathIntersection);
@@ -203,29 +191,93 @@ void ClosestHit(inout PathIntersection pathIntersection : SV_RayPayload, Attribu
                     nextPathIntersection.value += lightValue * misWeight;
                 }
 
-#if defined(_SURFACE_TYPE_TRANSPARENT) && HAS_REFRACTION
-                // Apply absorption on rays below the interface, using Beer-Lambert's law
-                if (isSampleBelow)
-                {
-    #ifdef _REFRACTION_THIN
-                    nextPathIntersection.value *= exp(-mtlData.bsdfData.absorptionCoefficient * REFRACTION_THIN_DISTANCE);
-    #else
-                    // FIXME: maxDist might need some more tweaking
-                    float maxDist = surfaceData.atDistance * 10.0;
-                    nextPathIntersection.value *= exp(-mtlData.bsdfData.absorptionCoefficient * min(nextPathIntersection.t, maxDist));
-    #endif
-                }
-#endif
+                // Apply material absorption
+                float dist = min(nextPathIntersection.t, surfaceData.atDistance * 10.0);
+                nextPathIntersection.value = ApplyAbsorption(mtlData, dist, isSampleBelow, nextPathIntersection.value);
 
                 pathIntersection.value += value * rrFactor * nextPathIntersection.value;
             }
         }
     }
 
-#else // HAS_LIGHTLOOP
+#else // SHADER_UNLIT
+
     pathIntersection.value = (!currentDepth || computeDirect) ? bsdfData.color * GetInverseCurrentExposureMultiplier() + builtinData.emissiveColor : 0.0;
+
+// Simulate opacity blending by simply continuing along the current ray
+#ifdef _SURFACE_TYPE_TRANSPARENT
+    if (builtinData.opacity < 1.0)
+    {
+        RayDesc rayDescriptor;
+        rayDescriptor.Origin = GetAbsolutePositionWS(fragInput.positionRWS) - fragInput.tangentToWorld[2] * _RaytracingRayBias;
+        rayDescriptor.Direction = WorldRayDirection();
+        rayDescriptor.TMin = 0.0;
+        rayDescriptor.TMax = FLT_INF;
+
+        PathIntersection nextPathIntersection = pathIntersection;
+        nextPathIntersection.remainingDepth--;
+
+        TraceRay(_RaytracingAccelerationStructure, RAY_FLAG_CULL_BACK_FACING_TRIANGLES, RAYTRACINGRENDERERFLAG_PATH_TRACING, 0, 1, 2, rayDescriptor, nextPathIntersection);
+
+        pathIntersection.value = lerp(nextPathIntersection.value, pathIntersection.value, builtinData.opacity);
+    }
 #endif
 
+#endif // SHADER_UNLIT
+}
+
+// Generic function that handles one scattering event (a vertex along the full path), can be either:
+// - Surface scattering
+// - Volume scattering
+[shader("closesthit")]
+void ClosestHit(inout PathIntersection pathIntersection : SV_RayPayload, AttributeData attributeData : SV_IntersectionAttributes)
+{
+    // Always set the new t value
+    pathIntersection.t = RayTCurrent();
+
+    // If the max depth has been reached, bail out
+    if (!pathIntersection.remainingDepth)
+    {
+        pathIntersection.value = 0.0;
+        return;
+    }
+
+    // Grab depth information
+    int currentDepth = _RaytracingMaxRecursion - pathIntersection.remainingDepth;
+
+    float4 inputSample = 0.0;
+
+#ifdef HAS_LIGHTLOOP
+
+    float pdf = 1.0;
+    bool sampleLocalLights, sampleVolume = false;
+
+    if (currentDepth >= 0)
+    {
+        // Generate a 4D unit-square sample for this depth, from our QMC sequence
+        inputSample = GetSample4D(pathIntersection.pixelCoord, _RaytracingSampleIndex, 4 * currentDepth);
+
+        // For the time being, we test for volumetric scattering only on camera rays
+        if (!currentDepth)
+            sampleVolume = SampleVolumeScatteringPosition(inputSample.w, pathIntersection.t, pdf, sampleLocalLights);
+    }
+
+    if (sampleVolume)
+        ComputeVolumeScattering(pathIntersection, inputSample.xyz, sampleLocalLights);
+    else
+        ComputeSurfaceScattering(pathIntersection, attributeData, inputSample);
+
+    // Apply the volume/surface pdf
+    pathIntersection.value /= pdf;
+
+#else // HAS_LIGHTLOOP
+
+    ComputeSurfaceScattering(pathIntersection, attributeData, inputSample);
+
+#endif // HAS_LIGHTLOOP
+
+    // Apply volumetric attenuation
+    bool computeDirect = currentDepth >= _RaytracingMinRecursion - 1;
     ApplyFogAttenuation(WorldRayOrigin(), WorldRayDirection(), pathIntersection.t, pathIntersection.value, computeDirect);
 
     if (currentDepth)

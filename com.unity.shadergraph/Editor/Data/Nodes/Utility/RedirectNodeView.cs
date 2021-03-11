@@ -129,6 +129,12 @@ namespace UnityEditor.ShaderGraph
             }
         }
 
+        public bool FindPort(SlotReference slot, out ShaderPort port)
+        {
+            port = contentContainer.Q("top")?.Query<ShaderPort>().Where(p => p.slot.slotReference.Equals(slot)).First();
+            return port != null;
+        }
+
         public void AttachMessage(string errString, ShaderCompilerMessageSeverity severity)
         {
             ClearMessage();
@@ -142,7 +148,7 @@ namespace UnityEditor.ShaderGraph
         public void ClearMessage()
         {
             var badge = this.Q<IconBadge>();
-            if(badge != null)
+            if (badge != null)
             {
                 badge.Detach();
                 badge.RemoveFromHierarchy();
@@ -151,13 +157,12 @@ namespace UnityEditor.ShaderGraph
 
         public void SetColor(Color newColor)
         {
-
         }
 
         public void ResetColor()
         {
-
         }
+
         #endregion
     }
 }

@@ -57,6 +57,8 @@ namespace UnityEditor.Experimental.VFX.Utility
 
         public override void OnInspectorGUI()
         {
+            serializedObject.Update();
+
             EditorGUI.BeginChangeCheck();
             EditorGUILayout.Space();
             EditorGUILayout.PropertyField(m_ExecuteInEditor);
@@ -65,8 +67,10 @@ namespace UnityEditor.Experimental.VFX.Utility
             EditorGUILayout.Space();
             if (EditorGUI.EndChangeCheck())
                 serializedObject.ApplyModifiedProperties();
-            if (m_ElementEditor != null)
+            if (m_ElementEditor != null && m_ElementEditor.target != null && m_ElementEditor.serializedObject.targetObject != null)
             {
+                m_ElementEditor.serializedObject.Update();
+
                 EditorGUI.BeginChangeCheck();
 
                 var fieldAttribute = BindingFlags.Public | BindingFlags.Instance | BindingFlags.NonPublic;
@@ -126,8 +130,21 @@ namespace UnityEditor.Experimental.VFX.Utility
 
         public void CheckTypeMenu(SerializedProperty property, VFXPropertyBindingAttribute attribute, VisualEffectAsset asset)
         {
-            GenericMenu menu = new GenericMenu();
-            var parameters = (asset.GetResource().graph as UnityEditor.VFX.VFXGraph).children.OfType<UnityEditor.VFX.VFXParameter>();
+            VFXGraph graph = null;
+            if (asset != null)
+            {
+                var resource = asset.GetResource();
+                if (resource != null) //If VisualEffectGraph is store in asset bundle, we can't use this following code
+                {
+                    graph = resource.graph as VFXGraph;
+                }
+            }
+
+            if (graph == null)
+                return;
+
+            var menu = new GenericMenu();
+            var parameters = graph.children.OfType<UnityEditor.VFX.VFXParameter>();
             foreach (var param in parameters)
             {
                 string typeName = param.type.ToString();

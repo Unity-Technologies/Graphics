@@ -14,7 +14,7 @@ namespace UnityEditor.Rendering.HighDefinition
                 return false;
 
             var o = parameter.GetObjectRef<ScalableSettingLevelParameter>();
-            var (level, useOverride) = o.levelAndOverride;
+            var(level, useOverride) = o.levelAndOverride;
 
             var rect = GUILayoutUtility.GetRect(0, float.Epsilon, 0, EditorGUIUtility.singleLineHeight);
             // Magic number for padding
@@ -22,13 +22,14 @@ namespace UnityEditor.Rendering.HighDefinition
             rect.y += 2;
             rect.width -= 3;
 
-            o.levelAndOverride = SerializedScalableSettingValueUI.LevelFieldGUI(
+            var levelAndOverride = SerializedScalableSettingValueUI.LevelFieldGUI(
                 rect,
                 title,
                 ScalableSettingSchema.GetSchemaOrNull(ScalableSettingSchemaId.With3Levels),
                 level,
                 useOverride
             );
+            value.intValue = ScalableSettingLevelParameter.GetScalableSettingLevelParameterValue(levelAndOverride.level, levelAndOverride.useOverride);
             return true;
         }
     }

@@ -117,6 +117,15 @@ public class AovOutput : MonoBehaviour
         ).Build();
     }
 
+    void OnDisable()
+    {
+        RTHandles.Release(_rt.output);
+        RTHandles.Release(_rt.color);
+        RTHandles.Release(_rt.depth);
+        RTHandles.Release(_rt.normal);
+        RTHandles.Release(_rt.motionvector);
+    }
+
     void Start()
     {
         GetComponent<HDAdditionalCameraData>().SetAOVRequests(BuildAovRequest());

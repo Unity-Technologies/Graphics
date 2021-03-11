@@ -26,7 +26,7 @@ namespace UnityEditor.Rendering.HighDefinition
             if (!(saveContext is HDSaveContext hdSaveContext))
                 return;
 
-            HDRenderPipeline.currentPipeline.ResetPathTracing();
+            HDRenderPipeline.currentPipeline?.ResetPathTracing();
 
             if (!hdSaveContext.updateMaterials)
                 return;
@@ -46,11 +46,11 @@ namespace UnityEditor.Rendering.HighDefinition
                             i / (float)(length - 1));
                     }
 
-                     // Get Material object
+                    // Get Material object
                     string materialPath = AssetDatabase.GUIDToAssetPath(materialGuids[i]);
                     Material material = AssetDatabase.LoadAssetAtPath<Material>(materialPath);
 
-                     // Reset keywords
+                    // Reset keywords
                     if (material.shader.name == shader.name)
                         HDShaderUtils.ResetMaterialKeywords(material);
 

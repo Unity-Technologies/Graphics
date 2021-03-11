@@ -57,7 +57,7 @@ namespace UnityEngine.Rendering.HighDefinition
             }
         }
 
-        [StructLayout(LayoutKind.Explicit, Size=32)]
+        [StructLayout(LayoutKind.Explicit, Size = 32)]
         private struct AtlasNode
         {
             private enum AtlasNodeFlags : uint
@@ -99,7 +99,7 @@ namespace UnityEngine.Rendering.HighDefinition
             public void ClearIsOccupied()
             {
                 UInt16 isOccupiedMask = (UInt16)AtlasNodeFlags.IsOccupied;
-                m_Flags &= (UInt16)~isOccupiedMask;
+                m_Flags &= (UInt16) ~isOccupiedMask;
             }
 
             public bool IsLeafNode()

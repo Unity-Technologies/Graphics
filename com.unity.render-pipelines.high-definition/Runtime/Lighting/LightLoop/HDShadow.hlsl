@@ -3,8 +3,12 @@
 
 #define SHADOW_OPTIMIZE_REGISTER_USAGE 1
 
-#ifndef SHADOW_USE_DEPTH_BIAS
-#define SHADOW_USE_DEPTH_BIAS                   1   // Enable clip space z biasing
+#ifndef SHADOW_AUTO_FLIP_NORMAL   // If (NdotL < 0), we flip the normal to correctly bias lit back-faces (used for transmission)
+#define SHADOW_AUTO_FLIP_NORMAL 1 // Externally define as 0 to disable
+#endif
+
+#ifndef SHADOW_USE_DEPTH_BIAS     // Enable clip space z biasing
+#define SHADOW_USE_DEPTH_BIAS   1 // Externally define as 0 to disable
 #endif
 
 #if SHADOW_OPTIMIZE_REGISTER_USAGE == 1
@@ -16,9 +20,10 @@
 // normalWS is the vertex normal if available or shading normal use to bias the shadow position
 float GetDirectionalShadowAttenuation(HDShadowContext shadowContext, float2 positionSS, float3 positionWS, float3 normalWS, int shadowDataIndex, float3 L)
 {
-    // If NdotL < 0, we flip the normal in case it is used for the transmission to correctly bias shadow position
+#if SHADOW_AUTO_FLIP_NORMAL
     normalWS *= FastSign(dot(normalWS, L));
-#if defined(SHADOW_LOW) || defined(SHADOW_MEDIUM)
+#endif
+#if defined(SHADOW_ULTRA_LOW) || defined(SHADOW_LOW) || defined(SHADOW_MEDIUM)
     return EvalShadow_CascadedDepth_Dither(shadowContext, _ShadowmapCascadeAtlas, s_linear_clamp_compare_sampler, positionSS, positionWS, normalWS, shadowDataIndex, L);
 #else
     return EvalShadow_CascadedDepth_Blend(shadowContext, _ShadowmapCascadeAtlas, s_linear_clamp_compare_sampler, positionSS, positionWS, normalWS, shadowDataIndex, L);
@@ -27,12 +32,13 @@ float GetDirectionalShadowAttenuation(HDShadowContext shadowContext, float2 posi
 
 float GetPunctualShadowAttenuation(HDShadowContext shadowContext, float2 positionSS, float3 positionWS, float3 normalWS, int shadowDataIndex, float3 L, float L_dist, bool pointLight, bool perspecive)
 {
-#if (defined(PLATFORM_SUPPORTS_WAVE_INTRINSICS) && !defined(LIGHTLOOP_DISABLE_TILE_AND_CLUSTER))
+#if !defined(SHADER_API_XBOXONE) && !defined(SHADER_API_GAMECORE) && (defined(PLATFORM_SUPPORTS_WAVE_INTRINSICS) && !defined(LIGHTLOOP_DISABLE_TILE_AND_CLUSTER))
     shadowDataIndex = WaveReadLaneFirst(shadowDataIndex);
 #endif
 
-    // If NdotL < 0, we flip the normal in case it is used for the transmission to correctly bias shadow position
+#if SHADOW_AUTO_FLIP_NORMAL
     normalWS *= FastSign(dot(normalWS, L));
+#endif
 
     // Note: Here we assume that all the shadow map cube faces have been added contiguously in the buffer to retreive the shadow information
     HDShadowData sd = shadowContext.shadowDatas[shadowDataIndex];
@@ -45,19 +51,26 @@ float GetPunctualShadowAttenuation(HDShadowContext shadowContext, float2 positio
         sd.atlasOffset = shadowContext.shadowDatas[shadowDataIndex + CubeMapFaceID(-L)].atlasOffset;
     }
 
-    return EvalShadow_PunctualDepth(sd, _ShadowmapAtlas, s_linear_clamp_compare_sampler, positionSS, positionWS, normalWS, L, L_dist, perspecive);
+    if (sd.isInCachedAtlas > 0) // This is a scalar branch.
+    {
+        return EvalShadow_PunctualDepth(sd, _CachedShadowmapAtlas, s_linear_clamp_compare_sampler, positionSS, positionWS, normalWS, L, L_dist, perspecive);
+    }
+    else
+    {
+        return EvalShadow_PunctualDepth(sd, _ShadowmapAtlas, s_linear_clamp_compare_sampler, positionSS, positionWS, normalWS, L, L_dist, perspecive);
+    }
 }
 
 float GetPunctualShadowClosestDistance(HDShadowContext shadowContext, SamplerState sampl, real3 positionWS, int shadowDataIndex, float3 L, float3 lightPositionWS, bool pointLight)
 {
-#if (defined(PLATFORM_SUPPORTS_WAVE_INTRINSICS) && !defined(LIGHTLOOP_DISABLE_TILE_AND_CLUSTER))
+#if !defined(SHADER_API_XBOXONE) && !defined(SHADER_API_GAMECORE) && (defined(PLATFORM_SUPPORTS_WAVE_INTRINSICS) && !defined(LIGHTLOOP_DISABLE_TILE_AND_CLUSTER))
     shadowDataIndex = WaveReadLaneFirst(shadowDataIndex);
 #endif
 
     // Note: Here we assume that all the shadow map cube faces have been added contiguously in the buffer to retreive the shadow information
     // TODO: if on the light type to retrieve the good shadow data
     HDShadowData sd = shadowContext.shadowDatas[shadowDataIndex];
-    
+
     if (pointLight)
     {
         sd.shadowToWorld = shadowContext.shadowDatas[shadowDataIndex + CubeMapFaceID(-L)].shadowToWorld;
@@ -66,14 +79,34 @@ float GetPunctualShadowClosestDistance(HDShadowContext shadowContext, SamplerSta
         sd.rot1 = shadowContext.shadowDatas[shadowDataIndex + CubeMapFaceID(-L)].rot1;
         sd.rot2 = shadowContext.shadowDatas[shadowDataIndex + CubeMapFaceID(-L)].rot2;
     }
-    
-    return EvalShadow_SampleClosestDistance_Punctual(sd, _ShadowmapAtlas, sampl, positionWS, L, lightPositionWS);
+
+    if (sd.isInCachedAtlas > 0) // This is a scalar branch.
+    {
+        return EvalShadow_SampleClosestDistance_Punctual(sd, _CachedShadowmapAtlas, sampl, positionWS, L, lightPositionWS);
+    }
+    else
+    {
+        return EvalShadow_SampleClosestDistance_Punctual(sd, _ShadowmapAtlas, sampl, positionWS, L, lightPositionWS);
+    }
 }
 
-float GetAreaLightAttenuation(HDShadowContext shadowContext, float2 positionSS, float3 positionWS, float3 normalWS, int shadowDataIndex, float3 L, float L_dist)
+float GetRectAreaShadowAttenuation(HDShadowContext shadowContext, float2 positionSS, float3 positionWS, float3 normalWS, int shadowDataIndex, float3 L, float L_dist)
 {
+    // We need to disable the scalarization here on xbox due to bad code generated by FXC for the eye shader.
+    // This shouldn't have an enormous impact since with Area lights we are already exploded in VGPR by this point.
+#if !defined(SHADER_API_XBOXONE) && !defined(SHADER_API_GAMECORE) && (defined(PLATFORM_SUPPORTS_WAVE_INTRINSICS) && !defined(LIGHTLOOP_DISABLE_TILE_AND_CLUSTER))
+    shadowDataIndex = WaveReadLaneFirst(shadowDataIndex);
+#endif
     HDShadowData sd = shadowContext.shadowDatas[shadowDataIndex];
-    return EvalShadow_AreaDepth(sd, _AreaShadowmapMomentAtlas, positionSS, positionWS, normalWS, L, L_dist, true);
+
+    if (sd.isInCachedAtlas > 0) // This is a scalar branch.
+    {
+        return EvalShadow_AreaDepth(sd, _CachedAreaLightShadowmapAtlas, positionSS, positionWS, normalWS, L, L_dist, true);
+    }
+    else
+    {
+        return EvalShadow_AreaDepth(sd, _ShadowmapAreaAtlas, positionSS, positionWS, normalWS, L, L_dist, true);
+    }
 }
 
 

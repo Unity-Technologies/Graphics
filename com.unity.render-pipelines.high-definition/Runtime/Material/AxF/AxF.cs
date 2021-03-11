@@ -1,5 +1,6 @@
 using System;
 using UnityEngine.Rendering.HighDefinition.Attributes;
+using UnityEngine.Experimental.Rendering;
 
 //-----------------------------------------------------------------------------
 // structure definition
@@ -30,6 +31,7 @@ namespace UnityEngine.Rendering.HighDefinition
             //Some TODO:
             AxfHonorMinRoughness    = 1 << 8,
             AxfHonorMinRoughnessCoat = 1 << 9,  // the X-Rite viewer never shows a specular highlight on coat for dirac lights
+            AxfDebugTest             = 1 << 23,
             //Experimental:
             //
             // Warning: don't go over 23, or need to use float and bitcast on the UI side, and in the shader,
@@ -44,6 +46,10 @@ namespace UnityEngine.Rendering.HighDefinition
         [GenerateHLSL(PackingRules.Exact, false, false, true, 1200)]
         public struct SurfaceData
         {
+            [MaterialSharedPropertyMapping(MaterialSharedProperty.Smoothness)]
+            [SurfaceDataAttributes("Smoothness", precision = FieldPrecision.Real)]
+            public float perceptualSmoothness; // approximated for raytracing stage
+
             [MaterialSharedPropertyMapping(MaterialSharedProperty.AmbientOcclusion)]
             [SurfaceDataAttributes("Ambient Occlusion")]
             public float ambientOcclusion;
@@ -52,7 +58,7 @@ namespace UnityEngine.Rendering.HighDefinition
             public float specularOcclusion;
 
             [MaterialSharedPropertyMapping(MaterialSharedProperty.Normal)]
-            [SurfaceDataAttributes(new string[] {"Normal", "Normal View Space"}, true)]
+            [SurfaceDataAttributes(new string[] {"Normal", "Normal View Space"}, true, checkIsNormalized = true)]
             public Vector3  normalWS;
 
             [SurfaceDataAttributes("Tangent", true)]
@@ -80,12 +86,35 @@ namespace UnityEngine.Rendering.HighDefinition
             public float    anisotropyAngle;
 
             // Car Paint Variables
-            [SurfaceDataAttributes("Flakes UV")]
-            public Vector2  flakesUV;
+            [SurfaceDataAttributes("Flakes UV (or PlanarZY)")]
+            public Vector2  flakesUVZY;
+            [SurfaceDataAttributes("Flakes PlanarXZ")]
+            public Vector2  flakesUVXZ;
+            [SurfaceDataAttributes("Flakes PlanarXY")]
+            public Vector2  flakesUVXY;
 
-            [SurfaceDataAttributes("Flakes Mip")]
-            public float    flakesMipLevel;
+            [SurfaceDataAttributes("Flakes Mip (and for PlanarZY)")]
+            public float    flakesMipLevelZY;
+            [SurfaceDataAttributes("Flakes Mip for PlanarXZ")]
+            public float    flakesMipLevelXZ;
+            [SurfaceDataAttributes("Flakes Mip for PlanarXY")]
+            public float    flakesMipLevelXY;
+            [SurfaceDataAttributes("Flakes Triplanar Weights")]
+            public Vector3  flakesTriplanarWeights;
 
+            // if non null, we will prefer gradients (to be used statically only!)
+            [SurfaceDataAttributes("Flakes ddx (and for PlanarZY)")]
+            public Vector2  flakesDdxZY;
+            [SurfaceDataAttributes("Flakes ddy (and for PlanarZY)")]
+            public Vector2  flakesDdyZY;
+            [SurfaceDataAttributes("Flakes ddx for PlanarXZ")]
+            public Vector2  flakesDdxXZ;
+            [SurfaceDataAttributes("Flakes ddy for PlanarXZ")]
+            public Vector2  flakesDdyXZ;
+            [SurfaceDataAttributes("Flakes ddx for PlanarXY")]
+            public Vector2  flakesDdxXY;
+            [SurfaceDataAttributes("Flakes ddy for PlanarXY")]
+            public Vector2  flakesDdyXY;
             // BTF Variables
 
             // Clearcoat
@@ -98,8 +127,14 @@ namespace UnityEngine.Rendering.HighDefinition
             [SurfaceDataAttributes("Clearcoat IOR")]
             public float    clearcoatIOR;
 
-            [SurfaceDataAttributes(new string[] {"Geometric Normal", "Geometric Normal View Space" }, true)]
+            [SurfaceDataAttributes(new string[] {"Geometric Normal", "Geometric Normal View Space" }, true, checkIsNormalized = true)]
             public Vector3  geomNormalWS;
+
+            // Needed for raytracing.
+            // TODO: should just modify FitToStandardLit in ShaderPassRaytracingGBuffer.hlsl and callee
+            // to have "V" (from -incidentDir)
+            [SurfaceDataAttributes("View Direction", true)]
+            public Vector3  viewWS;
         };
 
         //-----------------------------------------------------------------------------
@@ -112,7 +147,7 @@ namespace UnityEngine.Rendering.HighDefinition
             public float ambientOcclusion;
             public float specularOcclusion;
 
-            [SurfaceDataAttributes(new string[] { "Normal WS", "Normal View Space" }, true)]
+            [SurfaceDataAttributes(new string[] { "Normal WS", "Normal View Space" }, true, checkIsNormalized = true)]
             public Vector3  normalWS;
             [SurfaceDataAttributes("", true)]
             public Vector3  tangentWS;
@@ -123,15 +158,24 @@ namespace UnityEngine.Rendering.HighDefinition
             public Vector3  diffuseColor;
             public Vector3  specularColor;
             public Vector3  fresnelF0;
+            public float perceptualRoughness; // approximated for SSAO
             public Vector3  roughness; // .xy for SVBRDF, .xyz for CARPAINT2, for _CarPaint2_CTSpreads per lobe roughnesses
             public float    height_mm;
 
             // Car Paint Variables
-            [SurfaceDataAttributes("")]
-            public Vector2  flakesUV;
-
-            [SurfaceDataAttributes("Flakes Mip")]
-            public float    flakesMipLevel;
+            public Vector2  flakesUVZY;
+            public Vector2  flakesUVXZ;
+            public Vector2  flakesUVXY;
+            public float    flakesMipLevelZY;
+            public float    flakesMipLevelXZ;
+            public float    flakesMipLevelXY;
+            public Vector3  flakesTriplanarWeights;
+            public Vector2  flakesDdxZY; // if non null, we will prefer gradients (to be used statically only!)
+            public Vector2  flakesDdyZY;
+            public Vector2  flakesDdxXZ;
+            public Vector2  flakesDdyXZ;
+            public Vector2  flakesDdxXY;
+            public Vector2  flakesDdyXY;
 
             // BTF Variables
 
@@ -141,7 +185,7 @@ namespace UnityEngine.Rendering.HighDefinition
             public Vector3  clearcoatNormalWS;
             public float    clearcoatIOR;
 
-            [SurfaceDataAttributes(new string[] { "Geometric Normal", "Geometric Normal View Space" }, true)]
+            [SurfaceDataAttributes(new string[] { "Geometric Normal", "Geometric Normal View Space" }, true, checkIsNormalized = true)]
             public Vector3 geomNormalWS;
         };
 
@@ -177,34 +221,34 @@ namespace UnityEngine.Rendering.HighDefinition
                 throw new Exception("Failed to create material for Cook-Torrance BRDF pre-integration!");
 
             // Create render textures where we will render the FGD tables
-            m_preIntegratedFGD_Ward = new RenderTexture(128, 128, 0, RenderTextureFormat.ARGB2101010, RenderTextureReadWrite.Linear);
+            m_preIntegratedFGD_Ward = new RenderTexture(128, 128, 0, GraphicsFormat.A2B10G10R10_UNormPack32);
             m_preIntegratedFGD_Ward.hideFlags = HideFlags.HideAndDontSave;
             m_preIntegratedFGD_Ward.filterMode = FilterMode.Bilinear;
             m_preIntegratedFGD_Ward.wrapMode = TextureWrapMode.Clamp;
             m_preIntegratedFGD_Ward.hideFlags = HideFlags.DontSave;
-            m_preIntegratedFGD_Ward.name = CoreUtils.GetRenderTargetAutoName(128, 128, 1, RenderTextureFormat.ARGB2101010, "PreIntegratedFGD_Ward");
+            m_preIntegratedFGD_Ward.name = CoreUtils.GetRenderTargetAutoName(128, 128, 1, GraphicsFormat.A2B10G10R10_UNormPack32, "PreIntegratedFGD_Ward");
             m_preIntegratedFGD_Ward.Create();
 
-            m_preIntegratedFGD_CookTorrance = new RenderTexture(128, 128, 0, RenderTextureFormat.ARGB2101010, RenderTextureReadWrite.Linear);
+            m_preIntegratedFGD_CookTorrance = new RenderTexture(128, 128, 0, GraphicsFormat.A2B10G10R10_UNormPack32);
             m_preIntegratedFGD_CookTorrance.hideFlags = HideFlags.HideAndDontSave;
             m_preIntegratedFGD_CookTorrance.filterMode = FilterMode.Bilinear;
             m_preIntegratedFGD_CookTorrance.wrapMode = TextureWrapMode.Clamp;
             m_preIntegratedFGD_CookTorrance.hideFlags = HideFlags.DontSave;
-            m_preIntegratedFGD_CookTorrance.name = CoreUtils.GetRenderTargetAutoName(128, 128, 1, RenderTextureFormat.ARGB2101010, "PreIntegratedFGD_CookTorrance");
+            m_preIntegratedFGD_CookTorrance.name = CoreUtils.GetRenderTargetAutoName(128, 128, 1, GraphicsFormat.A2B10G10R10_UNormPack32, "PreIntegratedFGD_CookTorrance");
             m_preIntegratedFGD_CookTorrance.Create();
 
             // LTC data
 
-            m_LtcData = new Texture2DArray(LTCAreaLight.k_LtcLUTResolution, LTCAreaLight.k_LtcLUTResolution, 3, TextureFormat.RGBAHalf, false /*mipmap*/, true /* linear */)
+            m_LtcData = new Texture2DArray(LTCAreaLight.k_LtcLUTResolution, LTCAreaLight.k_LtcLUTResolution, 3, GraphicsFormat.R16G16B16A16_SFloat, TextureCreationFlags.None)
             {
                 hideFlags = HideFlags.HideAndDontSave,
                 wrapMode = TextureWrapMode.Clamp,
                 filterMode = FilterMode.Bilinear,
-                name = CoreUtils.GetTextureAutoName(LTCAreaLight.k_LtcLUTResolution, LTCAreaLight.k_LtcLUTResolution, TextureFormat.RGBAHalf, depth: 2, dim: TextureDimension.Tex2DArray, name: "LTC_LUT")
+                name = CoreUtils.GetTextureAutoName(LTCAreaLight.k_LtcLUTResolution, LTCAreaLight.k_LtcLUTResolution, GraphicsFormat.R16G16B16A16_SFloat, depth: 2, dim: TextureDimension.Tex2DArray, name: "LTC_LUT")
             };
 
             // Caution: This need to match order define in AxFLTCAreaLight
-            LTCAreaLight.LoadLUT(m_LtcData, 0, TextureFormat.RGBAHalf, LTCAreaLight.s_LtcMatrixData_GGX);
+            LTCAreaLight.LoadLUT(m_LtcData, 0, GraphicsFormat.R16G16B16A16_SFloat, LTCAreaLight.s_LtcMatrixData_GGX);
             // Warning: check /Material/AxF/AxFLTCAreaLight/LtcData.GGX2.cs: 5 columns are needed, the entries are NOT normalized!
             // For now, we patch for this in LoadLUT, which should affect the loading of s_LtcGGXMatrixData for the rest of the materials
             // (Lit, etc.)

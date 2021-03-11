@@ -30,24 +30,6 @@ namespace UnityEngine.Rendering.HighDefinition
         }
     }
 
-    [Serializable]
-    [GenerateHLSL]
-    internal struct SphericalHarmonicsL1
-    {
-        public Vector4 shAr;
-        public Vector4 shAg;
-        public Vector4 shAb;
-
-        public static SphericalHarmonicsL1 GetNeutralValues()
-        {
-            SphericalHarmonicsL1 sh;
-            sh.shAr = Vector4.zero;
-            sh.shAg = Vector4.zero;
-            sh.shAb = Vector4.zero;
-            return sh;
-        }
-    }
-
     class SphericalHarmonicMath
     {
         // Ref: "Stupid Spherical Harmonics Tricks", p. 6.
@@ -88,7 +70,6 @@ namespace UnityEngine.Rendering.HighDefinition
         // to obtain the canonical values of SH.
         public static SphericalHarmonicsL2 UndoCosineRescaling(SphericalHarmonicsL2 sh)
         {
-
             for (int c = 0; c < 3; c++)
             {
                 for (int i = 0; i < 9; i++)
@@ -99,7 +80,6 @@ namespace UnityEngine.Rendering.HighDefinition
 
             return sh;
         }
-
 
         const float k0 = 0.28209479177387814347f; // {0, 0} : 1/2 * sqrt(1/Pi)
         const float k1 = 0.48860251190291992159f; // {1, 0} : 1/2 * sqrt(3/Pi)
@@ -116,7 +96,6 @@ namespace UnityEngine.Rendering.HighDefinition
         // (c_0 - c_6) + c_1 y + c_2 z + c_3 x + c_4 x y + c_5 y z + c_6 (3 z^2) + c_7 x z + c_8 (x^2 - y^2)
         public static SphericalHarmonicsL2 PremultiplyCoefficients(SphericalHarmonicsL2 sh)
         {
-
             for (int c = 0; c < 3; c++)
             {
                 for (int i = 0; i < 9; i++)
@@ -146,7 +125,6 @@ namespace UnityEngine.Rendering.HighDefinition
         // See SetSHEMapConstants() in "Stupid Spherical Harmonics Tricks".
         public static void PackCoefficients(Vector4[] packedCoeffs, SphericalHarmonicsL2 sh)
         {
-
             // Constant + linear
             for (int c = 0; c < 3; c++)
             {

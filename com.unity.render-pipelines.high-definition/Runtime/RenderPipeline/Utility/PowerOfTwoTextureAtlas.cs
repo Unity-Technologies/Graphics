@@ -38,7 +38,7 @@ namespace UnityEngine.Rendering.HighDefinition
             size |= (size >> 16);
             return size - (size >> 1);
         }
-        
+
         void Blit2DTexturePadding(CommandBuffer cmd, Vector4 scaleOffset, Texture texture, Vector4 sourceScaleOffset, bool blitMips = true)
         {
             int mipCount = GetTextureMipmapCount(texture.width, texture.height);
@@ -59,12 +59,102 @@ namespace UnityEngine.Rendering.HighDefinition
             }
         }
 
+        void Blit2DTexturePaddingMultiply(CommandBuffer cmd, Vector4 scaleOffset, Texture texture, Vector4 sourceScaleOffset, bool blitMips = true)
+        {
+            int mipCount = GetTextureMipmapCount(texture.width, texture.height);
+            int pixelPadding = GetTexturePadding();
+            Vector2 textureSize = GetPowerOfTwoTextureSize(texture);
+            bool bilinear = texture.filterMode != FilterMode.Point;
+
+            if (!blitMips)
+                mipCount = 1;
+
+            using (new ProfilingScope(cmd, ProfilingSampler.Get(HDProfileId.BlitTextureInPotAtlas)))
+            {
+                for (int mipLevel = 0; mipLevel < mipCount; mipLevel++)
+                {
+                    cmd.SetRenderTarget(m_AtlasTexture, mipLevel);
+                    HDUtils.BlitQuadWithPaddingMultiply(cmd, texture, textureSize, sourceScaleOffset, scaleOffset, mipLevel, bilinear, pixelPadding);
+                }
+            }
+        }
+
+        void BlitOctahedralTexturePadding(CommandBuffer cmd, Vector4 scaleOffset, Texture texture, Vector4 sourceScaleOffset, bool blitMips = true)
+        {
+            int mipCount = GetTextureMipmapCount(texture.width, texture.height);
+            int pixelPadding = GetTexturePadding();
+            Vector2 textureSize = GetPowerOfTwoTextureSize(texture);
+            bool bilinear = texture.filterMode != FilterMode.Point;
+
+            if (!blitMips)
+                mipCount = 1;
+
+            using (new ProfilingScope(cmd, ProfilingSampler.Get(HDProfileId.BlitTextureInPotAtlas)))
+            {
+                for (int mipLevel = 0; mipLevel < mipCount; mipLevel++)
+                {
+                    cmd.SetRenderTarget(m_AtlasTexture, mipLevel);
+                    HDUtils.BlitOctahedralWithPadding(cmd, texture, textureSize, sourceScaleOffset, scaleOffset, mipLevel, bilinear, pixelPadding);
+                }
+            }
+        }
+
+        void BlitOctahedralTexturePaddingMultiply(CommandBuffer cmd, Vector4 scaleOffset, Texture texture, Vector4 sourceScaleOffset, bool blitMips = true)
+        {
+            int mipCount = GetTextureMipmapCount(texture.width, texture.height);
+            int pixelPadding = GetTexturePadding();
+            Vector2 textureSize = GetPowerOfTwoTextureSize(texture);
+            bool bilinear = texture.filterMode != FilterMode.Point;
+
+            if (!blitMips)
+                mipCount = 1;
+
+            using (new ProfilingScope(cmd, ProfilingSampler.Get(HDProfileId.BlitTextureInPotAtlas)))
+            {
+                for (int mipLevel = 0; mipLevel < mipCount; mipLevel++)
+                {
+                    cmd.SetRenderTarget(m_AtlasTexture, mipLevel);
+                    HDUtils.BlitOctahedralWithPaddingMultiply(cmd, texture, textureSize, sourceScaleOffset, scaleOffset, mipLevel, bilinear, pixelPadding);
+                }
+            }
+        }
+
         public override void BlitTexture(CommandBuffer cmd, Vector4 scaleOffset, Texture texture, Vector4 sourceScaleOffset, bool blitMips = true, int overrideInstanceID = -1)
         {
             // We handle ourself the 2D blit because cookies needs mipPadding for trilinear filtering
             if (Is2D(texture))
             {
                 Blit2DTexturePadding(cmd, scaleOffset, texture, sourceScaleOffset, blitMips);
+                MarkGPUTextureValid(overrideInstanceID != -1 ? overrideInstanceID : texture.GetInstanceID(), blitMips);
+            }
+        }
+
+        public void BlitTextureMultiply(CommandBuffer cmd, Vector4 scaleOffset, Texture texture, Vector4 sourceScaleOffset, bool blitMips = true, int overrideInstanceID = -1)
+        {
+            // We handle ourself the 2D blit because cookies needs mipPadding for trilinear filtering
+            if (Is2D(texture))
+            {
+                Blit2DTexturePaddingMultiply(cmd, scaleOffset, texture, sourceScaleOffset, blitMips);
+                MarkGPUTextureValid(overrideInstanceID != -1 ? overrideInstanceID : texture.GetInstanceID(), blitMips);
+            }
+        }
+
+        public override void BlitOctahedralTexture(CommandBuffer cmd, Vector4 scaleOffset, Texture texture, Vector4 sourceScaleOffset, bool blitMips = true, int overrideInstanceID = -1)
+        {
+            // We handle ourself the 2D blit because cookies needs mipPadding for trilinear filtering
+            if (Is2D(texture))
+            {
+                BlitOctahedralTexturePadding(cmd, scaleOffset, texture, sourceScaleOffset, blitMips);
+                MarkGPUTextureValid(overrideInstanceID != -1 ? overrideInstanceID : texture.GetInstanceID(), blitMips);
+            }
+        }
+
+        public void BlitOctahedralTextureMultiply(CommandBuffer cmd, Vector4 scaleOffset, Texture texture, Vector4 sourceScaleOffset, bool blitMips = true, int overrideInstanceID = -1)
+        {
+            // We handle ourself the 2D blit because cookies needs mipPadding for trilinear filtering
+            if (Is2D(texture))
+            {
+                BlitOctahedralTexturePaddingMultiply(cmd, scaleOffset, texture, sourceScaleOffset, blitMips);
                 MarkGPUTextureValid(overrideInstanceID != -1 ? overrideInstanceID : texture.GetInstanceID(), blitMips);
             }
         }
@@ -79,7 +169,7 @@ namespace UnityEngine.Rendering.HighDefinition
         Vector2 GetPowerOfTwoTextureSize(Texture texture)
         {
             int width = texture.width, height = texture.height;
-            
+
             TextureSizeToPowerOfTwo(texture, ref width, ref height);
             return new Vector2(width, height);
         }
@@ -98,18 +188,30 @@ namespace UnityEngine.Rendering.HighDefinition
 
             return base.AllocateTexture(cmd, ref scaleOffset, texture, width, height);
         }
-        
-        public void ResetRequestedTexture() => m_RequestedTextures.Clear();
-        
-        public bool ReserveSpace(Texture texture)
-        {
-            m_RequestedTextures[texture.GetInstanceID()] = new Vector2Int(texture.width, texture.height);
 
-            // new texture
-            if (!IsCached(out _, texture))
+        public void ResetRequestedTexture() => m_RequestedTextures.Clear();
+
+        public bool ReserveSpace(Texture texture) => ReserveSpace(texture, texture.width, texture.height);
+
+        public bool ReserveSpace(Texture texture, int width, int height)
+            => ReserveSpace(GetTextureID(texture), width, height);
+
+        // pass width and height for CubeMap (use 2*width) & Texture2D (use width)
+        public bool ReserveSpace(Texture textureA, Texture textureB, int width, int height)
+            => ReserveSpace(GetTextureID(textureA, textureB), width, height);
+
+        bool ReserveSpace(int id, int width, int height)
+        {
+            m_RequestedTextures[id] = new Vector2Int(width, height);
+
+            // Cookie texture resolution changing between frame is a special case, so we handle it here.
+            // The texture will be re-allocated and may cause holes in the atlas texture, which is fine
+            // because when it doesn't have any more space, it will re-layout the texture correctly.
+            var cachedSize = GetCachedTextureSize(id);
+            if (!IsCached(out _, id) || cachedSize.x != width || cachedSize.y != height)
             {
                 Vector4 scaleBias = Vector4.zero;
-                if (!AllocateTextureWithoutBlit(texture, texture.width, texture.height, ref scaleBias))
+                if (!AllocateTextureWithoutBlit(id, width, height, ref scaleBias))
                     return false;
             }
             return true;

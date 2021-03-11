@@ -22,7 +22,7 @@
     margin-bottom: 4;
     margin-left: 16;
     margin-right: 4;
-} 
+}
 
 .unity-object-field-display__icon {
     margin-top: 0;

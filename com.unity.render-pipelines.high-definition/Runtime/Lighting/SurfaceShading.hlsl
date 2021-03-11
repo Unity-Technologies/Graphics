@@ -92,7 +92,7 @@ DirectLighting ShadeSurface_Directional(LightLoopContext lightLoopContext,
         else
 #endif
         {
-            DirectionalShadowType shadow = EvaluateShadow_Directional(lightLoopContext, posInput, light, builtinData, GetNormalForShadowBias(bsdfData));
+            SHADOW_TYPE shadow = EvaluateShadow_Directional(lightLoopContext, posInput, light, builtinData, GetNormalForShadowBias(bsdfData));
             float NdotL  = dot(bsdfData.normalWS, L); // No microshadowing when facing away from light (use for thin transmission as well)
             shadow *= NdotL >= 0.0 ? ComputeMicroShadowing(GetAmbientOcclusionForMicroShadowing(bsdfData), NdotL, _MicroShadowOpacity) : 1.0;
             lightColor.rgb *= ComputeShadowColor(shadow, light.shadowTint, light.penumbraTint);
@@ -176,7 +176,7 @@ DirectLighting ShadeSurface_Punctual(LightLoopContext lightLoopContext,
 #endif
         {
             // This code works for both surface reflection and thin object transmission.
-            float shadow = EvaluateShadow_Punctual(lightLoopContext, posInput, light, builtinData, GetNormalForShadowBias(bsdfData), L, distances);
+            SHADOW_TYPE shadow = EvaluateShadow_Punctual(lightLoopContext, posInput, light, builtinData, GetNormalForShadowBias(bsdfData), L, distances);
             lightColor.rgb *= ComputeShadowColor(shadow, light.shadowTint, light.penumbraTint);
 
 #ifdef DEBUG_DISPLAY
@@ -199,5 +199,3 @@ DirectLighting ShadeSurface_Punctual(LightLoopContext lightLoopContext,
 
     return lighting;
 }
-
-

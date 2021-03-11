@@ -1,9 +1,15 @@
 //
-// This file was automatically generated. Please don't edit by hand.
+// This file was automatically generated. Please don't edit by hand. Execute Editor command [ Edit > Rendering > Generate Shader Includes ] instead
 //
 
 #ifndef VOLUMETRICLIGHTING_CS_HLSL
 #define VOLUMETRICLIGHTING_CS_HLSL
+//
+// UnityEngine.Rendering.HighDefinition.DensityVolumeFalloffMode:  static fields
+//
+#define DENSITYVOLUMEFALLOFFMODE_LINEAR (0)
+#define DENSITYVOLUMEFALLOFFMODE_EXPONENTIAL (1)
+
 // Generated from UnityEngine.Rendering.HighDefinition.DensityVolumeEngineData
 // PackingRules = Exact
 struct DensityVolumeEngineData
@@ -11,13 +17,16 @@ struct DensityVolumeEngineData
     float3 scattering;
     float extinction;
     float3 textureTiling;
-    int textureIndex;
-    float3 textureScroll;
     int invertFade;
-    float3 rcpPosFaceFade;
+    float3 textureScroll;
     float rcpDistFadeLen;
-    float3 rcpNegFaceFade;
+    float3 rcpPosFaceFade;
     float endTimesRcpDistFadeLen;
+    float3 rcpNegFaceFade;
+    int useVolumeMask;
+    float3 atlasOffset;
+    int falloffMode;
+    float4 maskSize;
 };
 
 // Generated from UnityEngine.Rendering.HighDefinition.ShaderVariablesVolumetric
@@ -61,33 +70,45 @@ float3 GetTextureTiling(DensityVolumeEngineData value)
 {
     return value.textureTiling;
 }
-int GetTextureIndex(DensityVolumeEngineData value)
+int GetInvertFade(DensityVolumeEngineData value)
 {
-    return value.textureIndex;
+    return value.invertFade;
 }
 float3 GetTextureScroll(DensityVolumeEngineData value)
 {
     return value.textureScroll;
 }
-int GetInvertFade(DensityVolumeEngineData value)
+float GetRcpDistFadeLen(DensityVolumeEngineData value)
 {
-    return value.invertFade;
+    return value.rcpDistFadeLen;
 }
 float3 GetRcpPosFaceFade(DensityVolumeEngineData value)
 {
     return value.rcpPosFaceFade;
 }
-float GetRcpDistFadeLen(DensityVolumeEngineData value)
+float GetEndTimesRcpDistFadeLen(DensityVolumeEngineData value)
 {
-    return value.rcpDistFadeLen;
+    return value.endTimesRcpDistFadeLen;
 }
 float3 GetRcpNegFaceFade(DensityVolumeEngineData value)
 {
     return value.rcpNegFaceFade;
 }
-float GetEndTimesRcpDistFadeLen(DensityVolumeEngineData value)
+int GetUseVolumeMask(DensityVolumeEngineData value)
 {
-    return value.endTimesRcpDistFadeLen;
+    return value.useVolumeMask;
+}
+float3 GetAtlasOffset(DensityVolumeEngineData value)
+{
+    return value.atlasOffset;
+}
+int GetFalloffMode(DensityVolumeEngineData value)
+{
+    return value.falloffMode;
+}
+float4 GetMaskSize(DensityVolumeEngineData value)
+{
+    return value.maskSize;
 }
 
 #endif

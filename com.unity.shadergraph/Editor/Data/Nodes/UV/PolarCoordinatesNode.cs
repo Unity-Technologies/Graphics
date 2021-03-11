@@ -11,7 +11,6 @@ namespace UnityEditor.ShaderGraph
             name = "Polar Coordinates";
         }
 
-
         protected override MethodInfo GetFunctionToConvert()
         {
             return GetType().GetMethod("Unity_PolarCoordinates", BindingFlags.Static | BindingFlags.NonPublic);
@@ -26,7 +25,7 @@ namespace UnityEditor.ShaderGraph
         {
             Out = Vector2.zero;
             return
-                @"
+@"
 {
     $precision2 delta = UV - Center;
     $precision radius = length(delta) * 2 * RadialScale;

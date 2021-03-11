@@ -5,7 +5,9 @@ using System;
 
 namespace UnityEngine.Rendering.HighDefinition.Compositor
 {
-    [Serializable]
+    // Injects an external alpha texture into the alpha channel. Used for controlling which pixels will be affected by post processing.
+    // Use VolumeComponentDeprecated to hide the component from the volume menu (it's for internal compositor use only)
+    [Serializable, VolumeComponentDeprecated]
     internal sealed class AlphaInjection : CustomPostProcessVolumeComponent, IPostProcessComponent
     {
         internal class ShaderIDs
@@ -31,8 +33,8 @@ namespace UnityEngine.Rendering.HighDefinition.Compositor
         {
             Debug.Assert(m_Material != null);
 
-            //TODO: can we detect this before we get here?
-            AdditionalCompositorData layerData = camera.camera.gameObject.GetComponent<AdditionalCompositorData>();
+            AdditionalCompositorData layerData = null;
+            camera.camera.gameObject.TryGetComponent<AdditionalCompositorData>(out layerData);
             if (layerData == null || layerData.layerFilters == null)
             {
                 HDUtils.BlitCameraTexture(cmd, source, destination);
@@ -58,5 +60,4 @@ namespace UnityEngine.Rendering.HighDefinition.Compositor
             CoreUtils.Destroy(m_Material);
         }
     }
-
 }

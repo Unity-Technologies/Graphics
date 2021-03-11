@@ -4,10 +4,10 @@ Between different High Definition Render Pipeline (HDRP) versions materials migh
 
 ## Automatic Material Upgrade
 
-To determine whether a material upgrade is needed or not, HDRP checks if the value *m_LastMaterialVersion* in the file ProjectSettings/HDRPProjectSettings.asset is the latest required. 
-If it is not,  all materials in the project will be reimported and saved to disk if they needed change. Note that if a version control system is used, then the materials will also be checked out before saving their content to disk.  
+To determine whether a material upgrade is needed or not, HDRP checks if the value *m_LastMaterialVersion* in the file ProjectSettings/HDRPProjectSettings.asset is the latest required.
+If it is not,  all materials in the project will be reimported and saved to disk if they needed change. Note that if a version control system is used, then the materials will also be checked out before saving their content to disk.
 
-When the upgrade is done and the materials are written to disk, the value of *m_LastMaterialVersion* is updated and written to HDRPProjectSettings.asset.  
+When the upgrade is done and the materials are written to disk, the value of *m_LastMaterialVersion* is updated and written to HDRPProjectSettings.asset.
 
 When a material saved with an older version of HDRP is imported, then this will also be upgraded automatically and written to disk when done.
 
@@ -15,7 +15,7 @@ Please note that if a version control system that requires check out operations 
 
 ## Manual Material Upgrade
 
-In case the above process fails and a material is not working as expected when upgrading HDRP version, it is suggested to run the upgrade process manually. To do so, you can either: 
+In case the above process fails and a material is not working as expected when upgrading HDRP version, it is suggested to run the upgrade process manually. To do so, you can either:
 
-- Open the [Render Pipeline Wizard](Render-Pipeline-Wizard.html) and under the **Project Migration Quick-links** click on the Upgrade HDRP Materials to Latest Version button. Or:
-- Select **Edit > Render Pipelines > Upgrade HDRP Materials to Latest Version**
+- Open the [Render Pipeline Wizard](Render-Pipeline-Wizard.md) and under the **Project Migration Quick-links** click on the Upgrade HDRP Materials to Latest Version button. Or:
+- Select **Edit > Render Pipelines > HD Render Pipeline > Upgrade from Previous Version > Upgrade HDRP Materials to Latest Version**

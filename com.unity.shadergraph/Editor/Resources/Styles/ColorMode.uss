@@ -28,10 +28,14 @@ MaterialNodeView.UV #title {
 }
 
 /* Precision Colors */
-MaterialNodeView.Float #title {
+MaterialNodeView.Single #title {
     border-color:#4B92F3;
 }
 
 MaterialNodeView.Half #title {
     border-color:#CB3022;
+}
+
+MaterialNodeView.Graph #title {
+    border-color:#30CB22;
 }

@@ -5,8 +5,10 @@
 
 // SRP & HDRP includes
 #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Common.hlsl"
-#include "Packages/com.unity.render-pipelines.high-definition\Runtime\ShaderLibrary\ShaderVariables.hlsl"
-#include "Packages/com.unity.render-pipelines.high-definition\Runtime\RenderPipeline\Raytracing/HDRaytracingLightCluster.cs.hlsl"
+#include "Packages/com.unity.render-pipelines.high-definition/Runtime/ShaderLibrary/ShaderVariables.hlsl"
+#include "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/Raytracing/HDRaytracingLightCluster.cs.hlsl"
+#include "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/Raytracing/Shaders/ShaderVariablesRaytracingLightLoop.hlsl"
+#include "Packages/com.unity.render-pipelines.core/ShaderLibrary/GeometricTools.hlsl"
 
 #define CLUSTER_GROUP_SIZE 8
 
@@ -15,11 +17,8 @@ StructuredBuffer<LightVolume>           _LightVolumes;
 uint                                    _LightVolumeCount;
 
 // The target data that this computer shader must fill
-RWStructuredBuffer<uint>                _RaytracingLightCluster;
-float3                                  _MinClusterPos;
-float3                                  _MaxClusterPos;
+RWStructuredBuffer<uint>                _RaytracingLightClusterRW;
 float3                                  _ClusterCellSize;
-uint                                    _LightPerCellCount;
 
 static const float3 CornerSubDirections[8] = {
     float3(-0.5f, -0.5f, -0.5f),
@@ -80,27 +79,8 @@ void RaytracingLightCluster(uint3 threadID : SV_GroupThreadID, uint3 groupId : S
 
         if (currentLight.shape == 0)
         {
-            // When the shape we are processing is a sphere, the radius is stored in the three channels
-            float squareRange = currentLight.range.x * currentLight.range.x;
-            
-            // So basically we need to flag this cell if one of the corners of the cell happens to be in the sphere
-            for(uint cIdx = 0; cIdx < 8; ++cIdx)
-            {
-                // Check if this corner is inside the shphere
-                float3 dir = currentLight.position - (cellCenterPosition + CornerSubDirections[cIdx] * _ClusterCellSize);
-                if(dot(dir, dir) <= squareRange)
-                {
-                    intersects = true;
-                    break;
-                }
-            }
-
-            // One additional case that we need to check is: Is the light inside the cell?
-            if (!intersects) 
-            {    
-                float3 distanceToCenter = abs(cellCenterPosition - currentLight.position) * 2.0;
-                intersects = (distanceToCenter.x < _ClusterCellSize.x) && (distanceToCenter.y < _ClusterCellSize.y) && (distanceToCenter.z < _ClusterCellSize.z);
-            }
+            // Do a box sphere intersection
+            intersects = IntersectSphereAABB(currentLight.position, currentLight.range.x, cellCenterPosition + CornerSubDirections[0] * _ClusterCellSize, cellCenterPosition + CornerSubDirections[7] * _ClusterCellSize);
         }
         else
         {
@@ -123,7 +103,7 @@ void RaytracingLightCluster(uint3 threadID : SV_GroupThreadID, uint3 groupId : S
         if(intersects)
         {
             // Flag this light in this cell and increase the light count
-            _RaytracingLightCluster[cellIndex * cellDataSize + 4 + currentLightCount] = currentLight.lightIndex;
+            _RaytracingLightClusterRW[cellIndex * cellDataSize + 4 + currentLightCount] = currentLight.lightIndex;
             currentLightCount++;
 
             // Also increase the matching light count
@@ -143,10 +123,10 @@ void RaytracingLightCluster(uint3 threadID : SV_GroupThreadID, uint3 groupId : S
     }
 
     // Set the light count for the cell
-    _RaytracingLightCluster[cellIndex * cellDataSize] = currentLightCount;
-    _RaytracingLightCluster[cellIndex * cellDataSize + 1] = punctualLightCount;
-    _RaytracingLightCluster[cellIndex * cellDataSize + 2] = punctualLightCount + areaLightCount;
-    _RaytracingLightCluster[cellIndex * cellDataSize + 3] = areaLightCount + punctualLightCount + envLightCount;
+    _RaytracingLightClusterRW[cellIndex * cellDataSize] = currentLightCount;
+    _RaytracingLightClusterRW[cellIndex * cellDataSize + 1] = punctualLightCount;
+    _RaytracingLightClusterRW[cellIndex * cellDataSize + 2] = punctualLightCount + areaLightCount;
+    _RaytracingLightClusterRW[cellIndex * cellDataSize + 3] = areaLightCount + punctualLightCount + envLightCount;
 }
 
 

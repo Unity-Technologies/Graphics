@@ -60,7 +60,7 @@ Shader "Hidden/ShadowGroup2D"
                 lightDir.z = 0;
 
                 // Start of code to see if this point should be extruded
-                float3 lightDirection = normalize(lightDir);  
+                float3 lightDirection = normalize(lightDir);
 
                 float3 endpoint = vertexWS + (_ShadowRadius * -lightDirection);
 
@@ -147,7 +147,7 @@ Shader "Hidden/ShadowGroup2D"
                 o.vertex = TransformObjectToHClip(v.vertex);
 
                 // RGB - R is shadow value (to support soft shadows), G is Self Shadow Mask, B is No Shadow Mask
-                o.color = 1; 
+                o.color = 1;
                 o.color.g = 0.5;
                 o.color.b = 1;
 

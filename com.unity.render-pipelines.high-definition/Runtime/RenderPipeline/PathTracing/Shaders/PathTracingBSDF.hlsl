@@ -1,47 +1,12 @@
 #ifndef UNITY_PATH_TRACING_BSDF_INCLUDED
 #define UNITY_PATH_TRACING_BSDF_INCLUDED
 
+#include "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/PathTracing/Shaders/PathTracingSampling.hlsl"
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/Raytracing/Shaders/SubSurface.hlsl"
 
 #define DELTA_PDF 1000000.0
-#define MIN_GGX_ROUGHNESS 0.001
-#define MAX_GGX_ROUGHNESS 0.999
-
-// Adapted from: "Sampling the GGX Distribution of Visible Normals", by E. Heitz
-// http://jcgt.org/published/0007/04/01/paper.pdf
-void SampleAnisoGGXVisibleNormal(float2 u,
-                                 float3 V,
-                                 float3x3 localToWorld,
-                                 float roughnessX,
-                                 float roughnessY,
-                             out float3 localV,
-                             out float3 localH,
-                             out float  VdotH)
-{
-    localV = mul(V, transpose(localToWorld));
-
-    // Construct an orthonormal basis around the stretched view direction
-    float3x3 viewToLocal;
-    viewToLocal[2] = normalize(float3(roughnessX * localV.x, roughnessY * localV.y, localV.z));
-    viewToLocal[0] = (viewToLocal[2].z < 0.9999) ? normalize(cross(float3(0, 0, 1), viewToLocal[2])) : float3(1, 0, 0);
-    viewToLocal[1] = cross(viewToLocal[2], viewToLocal[0]);
-
-    // Compute a sample point with polar coordinates (r, phi)
-    float r   = sqrt(u.x);
-    float phi = 2.0 * PI * u.y;
-    float t1  = r * cos(phi);
-    float t2  = r * sin(phi);
-    float s  = 0.5 * (1.0 + viewToLocal[2].z);
-    t2 = (1.0 - s) * sqrt(1.0 - t1 * t1) + s * t2;
-
-    // Reproject onto hemisphere
-    localH = t1 * viewToLocal[0] + t2 * viewToLocal[1] + sqrt(max(0.0, 1.0 - t1 * t1 - t2 * t2)) * viewToLocal[2];
-
-    // Transform the normal back to the ellipsoid configuration
-    localH = normalize(float3(roughnessX * localH.x, roughnessY * localH.y, max(0.0, localH.z)));
-
-    VdotH = saturate(dot(localV, localH));
-}
+#define MIN_GGX_ROUGHNESS 0.00001
+#define MAX_GGX_ROUGHNESS 0.99999
 
 float Lambda_AnisoGGX(float roughnessX,
                       float roughnessY,
@@ -145,7 +110,7 @@ bool SampleAnisoGGX(MaterialData mtlData,
     float VdotH;
     float3 localV, localH;
     float3x3 localToWorld = GetTangentFrame(mtlData);
-    SampleAnisoGGXVisibleNormal(inputSample, mtlData.V, localToWorld, roughnessX, roughnessY, localV, localH, VdotH);
+    SampleAnisoGGXVisibleNormal(inputSample.xy, mtlData.V, localToWorld, roughnessX, roughnessY, localV, localH, VdotH);
 
     // Compute the reflection direction
     float3 localL = 2.0 * VdotH * localH - localV;
@@ -371,7 +336,7 @@ bool SampleAnisoGGX(MaterialData mtlData,
     float VdotH;
     float3 localV, localH;
     float3x3 localToWorld = GetTangentFrame(mtlData);
-    SampleAnisoGGXVisibleNormal(inputSample, mtlData.V, localToWorld, roughnessX, roughnessY, localV, localH, VdotH);
+    SampleAnisoGGXVisibleNormal(inputSample.xy, mtlData.V, localToWorld, roughnessX, roughnessY, localV, localH, VdotH);
 
     // Compute refraction direction instead of reflection
     float3 localL = refract(-localV, localH, 1.0 / mtlData.bsdfData.ior);
@@ -478,7 +443,7 @@ bool RandomWalk(float3 position, float3 normal, float3 diffuseColor, float3 mean
         // Evaluate the length of our steps
         rayDesc.TMax = -log(1.0 - distSample) / sigmaT[channelIdx];
 
-        // Sample our next sepath segment direction
+        // Sample our next path segment direction
         rayDesc.Direction = walkIdx ?
             SampleSphereUniform(dirSample0, dirSample1) : SampleHemisphereCosine(dirSample0, dirSample1, -normal);
 
@@ -489,7 +454,7 @@ bool RandomWalk(float3 position, float3 normal, float3 diffuseColor, float3 mean
         TraceRay(_RaytracingAccelerationStructure, RAY_FLAG_FORCE_OPAQUE | RAY_FLAG_CULL_FRONT_FACING_TRIANGLES,
                  RAYTRACINGRENDERERFLAG_PATH_TRACING, 0, 1, 1, rayDesc, intersection);
 
-        // Define if we did a hit
+        // Check if we hit something
         hit = intersection.t > 0.0;
 
         // How much did the ray travel?
@@ -513,10 +478,24 @@ bool RandomWalk(float3 position, float3 normal, float3 diffuseColor, float3 mean
     while (!hit && walkIdx < MAX_WALK_STEPS);
 
     // Set the exit intersection position and normal
-    result.exitPosition = rayDesc.Origin;
-    result.exitNormal = intersection.value;
+    if (!hit)
+    {
+        result.exitPosition = position;
+        result.exitNormal = normal;
+        result.throughput = diffuseColor;
 
-    return hit;
+        // By not returning false here, we default to a diffuse BRDF when an intersection is not found;
+        // this is physically wrong, but may prove more convenient for a user, as results will look
+        // like diffuse instead of getting slightly darker when the mean free path becomes shorter.
+        //return false;
+    }
+    else
+    {
+        result.exitPosition = rayDesc.Origin;
+        result.exitNormal = intersection.value;
+    }
+
+    return true;
 }
 
 } // namespace SSS

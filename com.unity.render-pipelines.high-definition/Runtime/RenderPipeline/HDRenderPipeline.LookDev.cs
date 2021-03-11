@@ -12,7 +12,71 @@ namespace UnityEngine.Rendering.HighDefinition
             public VisualEnvironment visualEnvironment;
             public HDRISky sky;
             public Volume volume;
+#if UNITY_EDITOR
+            public int currentVolumeProfileHash;
+#endif
         }
+
+#if UNITY_EDITOR
+        bool UpdateVolumeProfile(Volume volume, out VisualEnvironment visualEnvironment, out HDRISky sky, ref int volumeProfileHash)
+        {
+            HDRenderPipelineAsset hdrpAsset = GraphicsSettings.renderPipelineAsset as HDRenderPipelineAsset;
+            if (hdrpAsset.defaultLookDevProfile == null)
+                hdrpAsset.defaultLookDevProfile = hdrpAsset.renderPipelineEditorResources.lookDev.defaultLookDevVolumeProfile;
+
+            int newHashCode = hdrpAsset.defaultLookDevProfile.GetHashCode();
+            if (newHashCode != volumeProfileHash)
+            {
+                VolumeProfile oldProfile = volume.sharedProfile;
+
+                volumeProfileHash = newHashCode;
+
+                VolumeProfile profile = ScriptableObject.Instantiate(hdrpAsset.defaultLookDevProfile);
+                profile.hideFlags = HideFlags.HideAndDontSave;
+                volume.sharedProfile = profile;
+
+                // Remove potentially existing components in the user profile.
+                if (profile.TryGet(out visualEnvironment))
+                    profile.Remove<VisualEnvironment>();
+
+                if (profile.TryGet(out sky))
+                    profile.Remove<HDRISky>();
+
+                // If there was a profile before we needed to re-instantiate the new profile, we need to copy the data over for sky settings.
+                if (oldProfile != null)
+                {
+                    if (oldProfile.TryGet(out HDRISky oldSky))
+                    {
+                        sky = Object.Instantiate(oldSky);
+                        profile.components.Add(sky);
+                    }
+                    if (oldProfile.TryGet(out VisualEnvironment oldVisualEnv))
+                    {
+                        visualEnvironment = Object.Instantiate(oldVisualEnv);
+                        profile.components.Add(visualEnvironment);
+                    }
+
+                    CoreUtils.Destroy(oldProfile);
+                }
+                else
+                {
+                    visualEnvironment = profile.Add<VisualEnvironment>();
+                    visualEnvironment.skyType.Override((int)SkyType.HDRI);
+                    visualEnvironment.skyAmbientMode.Override(SkyAmbientMode.Dynamic);
+                    sky = profile.Add<HDRISky>();
+                }
+
+                return true;
+            }
+            else
+            {
+                visualEnvironment = null;
+                sky = null;
+                return false;
+            }
+        }
+
+#endif
 
         /// <summary>
         /// This hook allows HDRP to init the scene when creating the view
@@ -51,24 +115,11 @@ namespace UnityEngine.Rendering.HighDefinition
             volume.priority = float.MaxValue;
             volume.enabled = false;
 
+
 #if UNITY_EDITOR
-            HDRenderPipelineAsset hdrpAsset = GraphicsSettings.renderPipelineAsset as HDRenderPipelineAsset;
-            if (hdrpAsset.defaultLookDevProfile == null)
-                hdrpAsset.defaultLookDevProfile = hdrpAsset.renderPipelineEditorResources.lookDev.defaultLookDevVolumeProfile;
-            VolumeProfile profile = ScriptableObject.Instantiate(hdrpAsset.defaultLookDevProfile);
-            volume.sharedProfile = profile;
-
-            VisualEnvironment visualEnvironment;
-            if (profile.TryGet(out visualEnvironment))
-                profile.Remove<VisualEnvironment>();
-            visualEnvironment = profile.Add<VisualEnvironment>();
-            visualEnvironment.skyType.Override((int)SkyType.HDRI);
-            visualEnvironment.skyAmbientMode.Override(SkyAmbientMode.Dynamic);
-
-            HDRISky sky;
-            if (profile.TryGet(out sky))
-                profile.Remove<HDRISky>();
-            sky = profile.Add<HDRISky>();
+            // Make sure we invalidate the current volume when first loading a scene.
+            int volumeProfileHash = -1;
+            UpdateVolumeProfile(volume, out var visualEnvironment, out var sky, ref volumeProfileHash);
 
             SRI.SRPData = new LookDevDataForHDRP()
             {
@@ -76,10 +127,11 @@ namespace UnityEngine.Rendering.HighDefinition
                 additionalLightData = additionalLightData,
                 visualEnvironment = visualEnvironment,
                 sky = sky,
-                volume = volume
+                volume = volume,
+                currentVolumeProfileHash = volumeProfileHash
             };
 #else
-            //remove unasigned warnings when building
+            //remove unassigned warnings when building
             SRI.SRPData = new LookDevDataForHDRP()
             {
                 additionalCameraData = null,
@@ -122,6 +174,17 @@ namespace UnityEngine.Rendering.HighDefinition
         void IDataProvider.OnBeginRendering(StageRuntimeInterface SRI)
         {
             LookDevDataForHDRP data = (LookDevDataForHDRP)SRI.SRPData;
+#if UNITY_EDITOR
+            int currentHash = data.currentVolumeProfileHash;
+            // The default volume can change in the HDRP asset so if it does we need to re-instantiate it.
+            if (UpdateVolumeProfile(data.volume, out var visualEnv, out var sky, ref currentHash))
+            {
+                data.sky = sky;
+                data.visualEnvironment = visualEnv;
+                data.currentVolumeProfileHash = currentHash;
+                SRI.SRPData = data;
+            }
+#endif
             data.volume.enabled = true;
         }
 
@@ -141,15 +204,15 @@ namespace UnityEngine.Rendering.HighDefinition
         /// </summary>
         IEnumerable<string> IDataProvider.supportedDebugModes
             => new[]
-            {
-                "Albedo",
-                "Normal",
-                "Smoothness",
-                "AmbientOcclusion",
-                "Metal",
-                "Specular",
-                "Alpha"
-            };
+        {
+            "Albedo",
+            "Normal",
+            "Smoothness",
+            "AmbientOcclusion",
+            "Metal",
+            "Specular",
+            "Alpha"
+        };
 
         /// <summary>
         /// This hook allows HDRP to update the debug mode used while requested in the LookDev.
@@ -178,6 +241,16 @@ namespace UnityEngine.Rendering.HighDefinition
             data.additionalLightData.intensity = 0f;
             data.additionalCameraData.backgroundColorHDR = oldBackgroundColor;
             data.additionalCameraData.clearColorMode = oldClearMode;
+        }
+
+        /// <summary>
+        /// The HDRP implementation for the callback that the look dev raises to process any necessary cleanup.
+        /// </summary>
+        /// <param name="SRI">Access element of the LookDev's scene</param>
+        void IDataProvider.Cleanup(StageRuntimeInterface SRI)
+        {
+            LookDevDataForHDRP data = (LookDevDataForHDRP)SRI.SRPData;
+            CoreUtils.Destroy(data.volume.sharedProfile);
         }
     }
 }

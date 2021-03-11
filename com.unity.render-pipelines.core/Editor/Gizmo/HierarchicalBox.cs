@@ -91,7 +91,7 @@ namespace UnityEditor.Rendering
                 if (m_Material == null || m_Material.Equals(null))
                     m_Material = new Material(k_Material);
                 //material can be lost when exiting play mode so gather the color again when reconstructing it
-                m_Material.color = m_MonochromeFillColor;   
+                m_Material.color = m_MonochromeFillColor;
                 return m_Material;
             }
         }
@@ -115,41 +115,48 @@ namespace UnityEditor.Rendering
             set
             {
                 value.a = 8f / 255;
-                m_MonochromeFillColor = value;
-                material.color = m_MonochromeFillColor;
-                value.a = 1f;
-                m_MonochromeHandleColor = value;
-                value.a = 0.7f;
-                m_WireframeColor = value;
-                value.a = 0.2f;
-                m_WireframeColorBehind = value;
+                SetBaseColor(value);
             }
+        }
+
+        /// <summary>
+        /// Set the baseColor used to fill hull. All other colors are deduced from it except specific handle colors.
+        /// Instead of <see cref="baseColor">baseColor</see> set, this will not force the opacity and keep what is provided for the filled faces.
+        /// </summary>
+        /// <param name="color">The color to use</param>
+        public void SetBaseColor(Color color)
+        {
+            m_MonochromeFillColor = color;
+            material.color = m_MonochromeFillColor;
+            m_MonochromeHandleColor = GizmoUtility.GetHandleColor(color);
+            m_WireframeColor = GizmoUtility.GetWireframeColor(color);
+            m_WireframeColorBehind = GizmoUtility.GetWireframeColorBehindObjects(color);
         }
 
         //Note: Handles.Slider not allow to use a specific ControlID.
         //Thus Slider1D is used (with reflection)
         static Type k_Slider1D = Type.GetType("UnityEditorInternal.Slider1D, UnityEditor");
         static MethodInfo k_Slider1D_Do = k_Slider1D
-                .GetMethod(
-                    "Do",
-                    BindingFlags.Static | BindingFlags.NonPublic | BindingFlags.Public,
-                    null,
-                    CallingConventions.Any,
-                    new[] { typeof(int), typeof(Vector3), typeof(Vector3), typeof(float), typeof(Handles.CapFunction), typeof(float) },
-                    null);
+            .GetMethod(
+            "Do",
+            BindingFlags.Static | BindingFlags.NonPublic | BindingFlags.Public,
+            null,
+            CallingConventions.Any,
+            new[] { typeof(int), typeof(Vector3), typeof(Vector3), typeof(float), typeof(Handles.CapFunction), typeof(float) },
+            null);
         static void Slider1D(int controlID, ref Vector3 handlePosition, Vector3 handleOrientation, float snapScale, Color color)
         {
             using (new Handles.DrawingScope(color))
             {
                 handlePosition = (Vector3)k_Slider1D_Do.Invoke(null, new object[]
-                    {
-                        controlID,
-                        handlePosition,
-                        handleOrientation,
-                        HandleUtility.GetHandleSize(handlePosition) * k_HandleSizeCoef,
-                        new Handles.CapFunction(Handles.DotHandleCap),
-                        snapScale
-                    });
+                {
+                    controlID,
+                    handlePosition,
+                    handleOrientation,
+                    HandleUtility.GetHandleSize(handlePosition) * k_HandleSizeCoef,
+                    new Handles.CapFunction(Handles.DotHandleCap),
+                    snapScale
+                });
             }
         }
 
@@ -245,8 +252,6 @@ namespace UnityEditor.Rendering
             for (int i = 0, count = m_ControlIDs.Length; i < count; ++i)
                 m_ControlIDs[i] = GUIUtility.GetControlID("HierarchicalBox".GetHashCode() + i, FocusType.Passive);
 
-            EditorGUI.BeginChangeCheck();
-
             var leftPosition = center + size.x * .5f * Vector3.left;
             var rightPosition = center + size.x * .5f * Vector3.right;
             var topPosition = center + size.y * .5f * Vector3.up;
@@ -255,6 +260,8 @@ namespace UnityEditor.Rendering
             var backPosition = center + size.z * .5f * Vector3.back;
 
             var theChangedFace = NamedFace.None;
+
+            EditorGUI.BeginChangeCheck();
 
             EditorGUI.BeginChangeCheck();
             Slider1D(m_ControlIDs[(int)NamedFace.Left], ref leftPosition, Vector3.left, EditorSnapSettings.scale, GetHandleColor(NamedFace.Left));
@@ -338,6 +345,26 @@ namespace UnityEditor.Rendering
                             case NamedFace.Front: backPosition.z += delta; break;
                             case NamedFace.Back: frontPosition.z -= delta; break;
                         }
+
+                        //ensure that the box face are still facing outside
+                        switch (theChangedFace)
+                        {
+                            case NamedFace.Left:
+                            case NamedFace.Right:
+                                if (rightPosition.x < leftPosition.x)
+                                    rightPosition.x = leftPosition.x = center.x;
+                                break;
+                            case NamedFace.Top:
+                            case NamedFace.Bottom:
+                                if (topPosition.y < bottomPosition.y)
+                                    topPosition.y = bottomPosition.y = center.y;
+                                break;
+                            case NamedFace.Front:
+                            case NamedFace.Back:
+                                if (frontPosition.z < backPosition.z)
+                                    frontPosition.z = backPosition.z = center.z;
+                                break;
+                        }
                     }
 
                     if (useHomothety)
@@ -367,21 +394,77 @@ namespace UnityEditor.Rendering
                                 topPosition.y -= halfDelta;
                                 break;
                         }
+
+                        //ensure that the box face are still facing outside
+                        switch (theChangedFace)
+                        {
+                            case NamedFace.Left:
+                                if (rightPosition.x < leftPosition.x)
+                                    leftPosition.x = rightPosition.x;
+                                if (topPosition.y < bottomPosition.y)
+                                    topPosition.y = bottomPosition.y = center.y;
+                                if (frontPosition.z < backPosition.z)
+                                    frontPosition.z = backPosition.z = center.z;
+                                break;
+                            case NamedFace.Right:
+                                if (rightPosition.x < leftPosition.x)
+                                    rightPosition.x = leftPosition.x;
+                                if (topPosition.y < bottomPosition.y)
+                                    topPosition.y = bottomPosition.y = center.y;
+                                if (frontPosition.z < backPosition.z)
+                                    frontPosition.z = backPosition.z = center.z;
+                                break;
+                            case NamedFace.Top:
+                                if (topPosition.y < bottomPosition.y)
+                                    topPosition.y = bottomPosition.y;
+                                if (rightPosition.x < leftPosition.x)
+                                    rightPosition.x = leftPosition.x = center.x;
+                                if (frontPosition.z < backPosition.z)
+                                    frontPosition.z = backPosition.z = center.z;
+                                break;
+                            case NamedFace.Bottom:
+                                if (topPosition.y < bottomPosition.y)
+                                    bottomPosition.y = topPosition.y;
+                                if (rightPosition.x < leftPosition.x)
+                                    rightPosition.x = leftPosition.x = center.x;
+                                if (frontPosition.z < backPosition.z)
+                                    frontPosition.z = backPosition.z = center.z;
+                                break;
+                            case NamedFace.Front:
+                                if (frontPosition.z < backPosition.z)
+                                    frontPosition.z = backPosition.z;
+                                if (rightPosition.x < leftPosition.x)
+                                    rightPosition.x = leftPosition.x = center.x;
+                                if (topPosition.y < bottomPosition.y)
+                                    topPosition.y = bottomPosition.y = center.y;
+                                break;
+                            case NamedFace.Back:
+                                if (frontPosition.z < backPosition.z)
+                                    backPosition.z = frontPosition.z;
+                                if (rightPosition.x < leftPosition.x)
+                                    rightPosition.x = leftPosition.x = center.x;
+                                if (topPosition.y < bottomPosition.y)
+                                    topPosition.y = bottomPosition.y = center.y;
+                                break;
+                        }
                     }
 
                     var max = new Vector3(rightPosition.x, topPosition.y, frontPosition.z);
                     var min = new Vector3(leftPosition.x, bottomPosition.y, backPosition.z);
 
-                    //ensure that the box face are still facing outside
-                    for (int axis = 0; axis < 3; ++axis)
+                    if (!useSymetry && !useHomothety)
                     {
-                        if (min[axis] > max[axis])
+                        //ensure that the box face are still facing outside
+                        for (int axis = 0; axis < 3; ++axis)
                         {
-                            // Control IDs in m_ControlIDs[0-3[ are for positive axes
-                            if (GUIUtility.hotControl == m_ControlIDs[axis])
-                                max[axis] = min[axis];
-                            else
-                                min[axis] = max[axis];
+                            if (min[axis] > max[axis])
+                            {
+                                // Control IDs in m_ControlIDs[0-3[ are for positive axes
+                                if (GUIUtility.hotControl == m_ControlIDs[axis])
+                                    max[axis] = min[axis];
+                                else
+                                    min[axis] = max[axis];
+                            }
                         }
                     }
 

@@ -104,23 +104,22 @@ namespace UnityEngine.Rendering.HighDefinition
                 int panoHeightTop = 2 * width;
 
                 // create panorama 2D array. Hardcoding the render target for now. No convenient way atm to
-                // map from TextureFormat to RenderTextureFormat and don't want to deal with sRGB issues for now.
-                m_CacheNoCubeArray = new Texture2DArray(panoWidthTop, panoHeightTop, numCubeMaps, TextureFormat.RGBAHalf, isMipMapped)
+                m_CacheNoCubeArray = new Texture2DArray(panoWidthTop, panoHeightTop, numCubeMaps, format, isMipMapped ? TextureCreationFlags.MipChain : TextureCreationFlags.None)
                 {
                     hideFlags = HideFlags.HideAndDontSave,
                     wrapMode = TextureWrapMode.Repeat,
                     wrapModeV = TextureWrapMode.Clamp,
                     filterMode = FilterMode.Trilinear,
                     anisoLevel = 0,
-                    name = CoreUtils.GetTextureAutoName(panoWidthTop, panoHeightTop, TextureFormat.RGBAHalf, TextureDimension.Tex2DArray, depth: numCubeMaps, name: m_CacheName)
+                    name = CoreUtils.GetTextureAutoName(panoWidthTop, panoHeightTop, format, TextureDimension.Tex2DArray, depth: numCubeMaps, name: m_CacheName)
                 };
 
                 m_NumPanoMipLevels = isMipMapped ? GetNumMips(panoWidthTop, panoHeightTop) : 1;
                 m_StagingRTs = new RenderTexture[m_NumPanoMipLevels];
                 for (int m = 0; m < m_NumPanoMipLevels; m++)
                 {
-                    m_StagingRTs[m] = new RenderTexture(Mathf.Max(1, panoWidthTop >> m), Mathf.Max(1, panoHeightTop >> m), 0, RenderTextureFormat.ARGBHalf) { hideFlags = HideFlags.HideAndDontSave };
-                    m_StagingRTs[m].name = CoreUtils.GetRenderTargetAutoName(Mathf.Max(1, panoWidthTop >> m), Mathf.Max(1, panoHeightTop >> m), 1, RenderTextureFormat.ARGBHalf, String.Format("PanaCache{0}", m));
+                    m_StagingRTs[m] = new RenderTexture(Mathf.Max(1, panoWidthTop >> m), Mathf.Max(1, panoHeightTop >> m), 0, format) { hideFlags = HideFlags.HideAndDontSave };
+                    m_StagingRTs[m].name = CoreUtils.GetRenderTargetAutoName(Mathf.Max(1, panoWidthTop >> m), Mathf.Max(1, panoHeightTop >> m), 1, format, String.Format("PanaCache{0}", m));
                 }
 
                 if (m_CubeBlitMaterial)
@@ -167,7 +166,7 @@ namespace UnityEngine.Rendering.HighDefinition
             {
                 for (int mipIdx = 0; mipIdx < mipCount; ++mipIdx)
                 {
-                    for(int faceIdx = 0; faceIdx < 6; ++faceIdx)
+                    for (int faceIdx = 0; faceIdx < 6; ++faceIdx)
                     {
                         Graphics.SetRenderTarget(m_Cache, mipIdx, (CubemapFace)faceIdx, depthSlice);
                         GL.Clear(false, true, Color.clear);
@@ -196,7 +195,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
         private bool TransferToPanoCache(CommandBuffer cmd, int sliceIndex, Texture[] textureArray)
         {
-            for(int texIdx = 0; texIdx < textureArray.Length; ++texIdx)
+            for (int texIdx = 0; texIdx < textureArray.Length; ++texIdx)
             {
                 m_CubeBlitMaterial.SetTexture(m_cubeSrcTexPropName, textureArray[texIdx]);
                 for (int m = 0; m < m_NumPanoMipLevels; m++)

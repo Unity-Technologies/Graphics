@@ -14,6 +14,12 @@ To differentiate between exposed properties and constants, the Blackboard displa
 
 To open the Blackboard, click the **Blackboard** button in the Visual Effect Graph window [Toolbar](VisualEffectGraphWindow.md#Toolbar). To resize the Blackboard, click on any edge or corner and drag. To reposition the Blackboard, click on the header and drag.
 
+### Menu Category
+
+In order to set the Menu path of the currently edited Subgraph, you can double-click the sub-title of the blackboard and enter the desired Category Name, then validate using the Return Key
+
+![Blackboard-Category](Images/Blackboard-Category.gif)
+
 ### Creating properties
 
 To create a property, click the plus (**+**) button in the top-right of the Blackboard then select a property type from the menu.
@@ -34,6 +40,13 @@ To edit a property in the Blackboard, click the folding arrow to the left of the
 | **Exposed** | Specifies whether the property is exposed or not. When enabled, you can see and edit the property on the [Visual Effect Component](VisualEffectComponent.md) as well as via the C# API. |
 | **Value**   | Specifies the default value of the property. The Visual Effect Graph uses this value if you do not expose the property or if you expose the property, but do not override it. |
 | **Tooltip** | Specifies text that appears when you hover over the property in the Inspector for the Visual Effect. |
+
+
+### Filtering properties
+Float, Int and Uint properties have some filter mode :
+* default. does nothing special. You will edit the property value in a textfield.
+* Range. You will specify a minimum and a maximum value in the blackboard and you will edit the property with a slider instead of just a textfield
+* Enum. Exclusive to uint, You will specify a list of names in the blackboard and you will edit the property with a popup menu.
 
 ### Arranging properties
 

@@ -1,11 +1,8 @@
+#ifndef UNITY_LIGHT_LOOP_DEF_INCLUDED
+#define UNITY_LIGHT_LOOP_DEF_INCLUDED
+
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Lighting/LightLoop/LightLoop.cs.hlsl"
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Lighting/LightLoop/CookieSampling.hlsl"
-
-// SCREEN_SPACE_SHADOWS needs to be defined in all cases in which they need to run. IMPORTANT: If this is activated, the light loop function WillRenderScreenSpaceShadows on C# MUST return true.
-#if RAYTRACING_ENABLED && (SHADERPASS != SHADERPASS_RAYTRACING_INDIRECT)
-// TODO: This will need to be a multi_compile when we'll have them on compute shaders.
-#define SCREEN_SPACE_SHADOWS 1
-#endif
 
 #define DWORD_PER_TILE 16 // See dwordsPerTile in LightLoop.cs, we have roomm for 31 lights and a number of light value all store on 16 bit (ushort)
 
@@ -24,8 +21,16 @@ struct LightLoopContext
     HDShadowContext shadowContext;
 
     uint contactShadow;         // a bit mask of 24 bits that tell if the pixel is in a contact shadow or not
-    real contactShadowFade;    // combined fade factor of all contact shadows
-    DirectionalShadowType shadowValue;         // Stores the value of the cascade shadow map
+    real contactShadowFade;     // combined fade factor of all contact shadows
+    SHADOW_TYPE shadowValue;    // Stores the value of the cascade shadow map
+};
+
+// LightLoopOutput is the output of the LightLoop fuction call.
+// It allow to retrieve the data output by the LightLoop
+struct LightLoopOutput
+{
+    float3 diffuseLighting;
+    float3 specularLighting;
 };
 
 //-----------------------------------------------------------------------------
@@ -56,6 +61,8 @@ EnvLightData InitSkyEnvLightData(int envIndex)
 
     output.weight = 1.0;
     output.multiplier = _EnableSkyReflection.x != 0 ? 1.0 : 0.0;
+    output.roughReflections = 1.0;
+    output.distanceBasedRoughness = 0.0;
 
     // proxy
     output.proxyForward = float3(0.0, 0.0, 1.0);
@@ -84,7 +91,7 @@ float2 RemapUVForPlanarAtlas(float2 coord, float2 size, float lod)
 // EnvIndex can also be use to fetch in another array of struct (to  atlas information etc...).
 // Cubemap      : texCoord = direction vector
 // Texture2D    : texCoord = projectedPositionWS - lightData.capturePosition
-float4 SampleEnv(LightLoopContext lightLoopContext, int index, float3 texCoord, float lod, float rangeCompressionFactorCompensation, int sliceIdx = 0)
+float4 SampleEnv(LightLoopContext lightLoopContext, int index, float3 texCoord, float lod, float rangeCompressionFactorCompensation, float2 positionNDC, int sliceIdx = 0)
 {
     // 31 bit index, 1 bit cache type
     uint cacheType = IsEnvIndexCubemap(index) ? ENVCACHETYPE_CUBEMAP : ENVCACHETYPE_TEXTURE2D;
@@ -119,6 +126,26 @@ float4 SampleEnv(LightLoopContext lightLoopContext, int index, float3 texCoord, 
             float3 capturedForwardWS = _Env2DCaptureForward[index].xyz;
             if (dot(capturedForwardWS, texCoord) < 0.0)
                 color.a = 0.0;
+            else
+            {
+                // Controls the blending on the edges of the screen
+                const float amplitude = 100.0;
+
+                float2 rcoords = abs(saturate(ndc.xy) * 2.0 - 1.0);
+
+                // When the object normal is not aligned with the reflection plane, the reflected ray might deviate too much and go out
+                // of the reflection frustum. So we apply blending when the reflection sample coords are on the edges of the texture
+                // These "edges" depend on the screen space coordinates of the pixel, because it is expected that a pixel on the
+                // edge of the screen will sample on the edge of the texture
+
+                // Blending factors taking the above into account
+                bool2 blend = (positionNDC < ndc.xy) ^ (ndc.xy < 0.5);
+                float2 alphas = saturate(amplitude * abs(ndc.xy - positionNDC));
+                alphas = float2(Smoothstep01(alphas.x), Smoothstep01(alphas.y));
+
+                float2 weights = lerp(1.0, saturate(2.0 - 2.0 * rcoords), blend * alphas);
+                color.a *= weights.x * weights.y;
+            }
         }
         else if (cacheType == ENVCACHETYPE_CUBEMAP)
         {
@@ -245,11 +272,24 @@ uint FetchIndex(uint lightStart, uint lightOffset)
 }
 
 #else
-// Fallback case (mainly for raytracing right now)
+// Fallback case (mainly for raytracing right or for shader stages that don't define the keywords)
 uint FetchIndex(uint lightStart, uint lightOffset)
 {
     return 0;
 }
+
+uint GetTileSize()
+{
+    return 1;
+}
+
+void GetCountAndStart(PositionInputs posInput, uint lightCategory, out uint start, out uint lightCount)
+{
+    start = 0;
+    lightCount = 0;
+    return;
+}
+
 #endif // USE_FPTL_LIGHTLIST
 
 #else
@@ -265,43 +305,6 @@ uint FetchIndex(uint lightStart, uint lightOffset)
 }
 
 #endif // LIGHTLOOP_DISABLE_TILE_AND_CLUSTER
-
-bool IsFastPath(uint lightStart, out uint lightStartLane0)
-{
-#if SCALARIZE_LIGHT_LOOP
-    // Fast path is when we all pixels in a wave are accessing same tile or cluster.
-    lightStartLane0 = WaveReadLaneFirst(lightStart);
-    return WaveActiveAllTrue(lightStart == lightStartLane0);
-#else
-    lightStartLane0 = lightStart;
-    return false;
-#endif
-}
-
-// This function scalarize an index accross all lanes. To be effecient it must be used in the context
-// of the scalarization of a loop. It is to use with IsFastPath so it can optimize the number of
-// element to load, which is optimal when all the lanes are contained into a tile.
-uint ScalarizeElementIndex(uint v_elementIdx, bool fastPath)
-{
-    uint s_elementIdx = v_elementIdx;
-#if SCALARIZE_LIGHT_LOOP
-    if (!fastPath)
-    {
-        // If we are not in fast path, v_elementIdx is not scalar, so we need to query the Min value across the wave.
-        s_elementIdx = WaveActiveMin(v_elementIdx);
-        // If WaveActiveMin returns 0xffffffff it means that all lanes are actually dead, so we can safely ignore the loop and move forward.
-        // This could happen as an helper lane could reach this point, hence having a valid v_elementIdx, but their values will be ignored by the WaveActiveMin
-        if (s_elementIdx == -1)
-        {
-            return -1;
-        }
-    }
-    // Note that the WaveReadLaneFirst should not be needed, but the compiler might insist in putting the result in VGPR.
-    // However, we are certain at this point that the index is scalar.
-    s_elementIdx = WaveReadLaneFirst(s_elementIdx);
-#endif
-    return s_elementIdx;
-}
 
 uint FetchIndexWithBoundsCheck(uint start, uint count, uint i)
 {
@@ -384,8 +387,17 @@ float GetScreenSpaceShadow(PositionInputs posInput, uint shadowIndex)
     return LOAD_TEXTURE2D_ARRAY(_ScreenSpaceShadowsTexture, posInput.positionSS, INDEX_TEXTURE2D_ARRAY_X(slot))[channel];
 }
 
+float2 GetScreenSpaceShadowArea(PositionInputs posInput, uint shadowIndex)
+{
+    uint slot = shadowIndex / 4;
+    uint channel = shadowIndex & 0x3;
+    return float2(LOAD_TEXTURE2D_ARRAY(_ScreenSpaceShadowsTexture, posInput.positionSS, INDEX_TEXTURE2D_ARRAY_X(slot))[channel], LOAD_TEXTURE2D_ARRAY(_ScreenSpaceShadowsTexture, posInput.positionSS, INDEX_TEXTURE2D_ARRAY_X(slot))[channel + 1]);
+}
+
 float3 GetScreenSpaceColorShadow(PositionInputs posInput, int shadowIndex)
 {
     float4 res = LOAD_TEXTURE2D_ARRAY(_ScreenSpaceShadowsTexture, posInput.positionSS, INDEX_TEXTURE2D_ARRAY_X(shadowIndex & SCREEN_SPACE_SHADOW_INDEX_MASK));
     return (SCREEN_SPACE_COLOR_SHADOW_FLAG & shadowIndex) ? res.xyz : res.xxx;
 }
+
+#endif // UNITY_LIGHT_LOOP_DEF_INCLUDED

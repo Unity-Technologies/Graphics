@@ -75,6 +75,10 @@ namespace UnityEngine.Rendering
                 throw new InvalidOperationException("Component already exists in the volume");
 
             var component = (VolumeComponent)CreateInstance(type);
+#if UNITY_EDITOR
+            component.hideFlags = HideFlags.HideInInspector | HideFlags.HideInHierarchy;
+            component.name = type.Name;
+#endif
             component.SetAllOverridesTo(overrides);
             components.Add(component);
             isDirty = true;
@@ -280,7 +284,6 @@ namespace UnityEngine.Rendering
             return count != result.Count;
         }
 
-
         /// <summary>
         /// A custom hashing function that Unity uses to compare the state of parameters.
         /// </summary>
@@ -293,6 +296,19 @@ namespace UnityEngine.Rendering
 
                 for (int i = 0; i < components.Count; i++)
                     hash = hash * 23 + components[i].GetHashCode();
+
+                return hash;
+            }
+        }
+
+        internal int GetComponentListHashCode()
+        {
+            unchecked
+            {
+                int hash = 17;
+
+                for (int i = 0; i < components.Count; i++)
+                    hash = hash * 23 + components[i].GetType().GetHashCode();
 
                 return hash;
             }

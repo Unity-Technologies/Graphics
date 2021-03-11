@@ -22,6 +22,11 @@ namespace UnityEditor.Graphing
         [SerializeField]
         string m_AssetGuid;
 
+        internal string AssetGuid
+        {
+            get => m_AssetGuid;
+        }
+
         [NonSerialized]
         GraphData m_Graph;
 
@@ -41,6 +46,8 @@ namespace UnityEditor.Graphing
             }
         }
 
+        // this value stores whether an undo operation has been registered (which indicates a change has been made to the graph)
+        // and is used to trigger the MaterialGraphEditWindow to update it's title
         public bool isDirty
         {
             get { return m_IsDirty; }

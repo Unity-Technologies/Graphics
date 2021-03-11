@@ -1,42 +1,55 @@
-﻿using UnityEngine.Rendering;
+using System;
+using System.Collections.Generic;
+using UnityEngine;
+using UnityEngine.Rendering;
+using UnityEngine.UIElements;
 
 namespace UnityEditor.ShaderGraph
 {
     sealed class PreviewTarget : Target
     {
+        static readonly GUID kSourceCodeGuid = new GUID("7464b9fcde08e5645a16b9b8ae1e573c"); // PreviewTarget.cs
+
         public PreviewTarget()
         {
             displayName = "Preview";
             isHidden = true;
         }
 
+        public override bool IsActive() => false;
+        internal override bool ignoreCustomInterpolators => false;
+
         public override void Setup(ref TargetSetupContext context)
         {
-            context.AddAssetDependencyPath(AssetDatabase.GUIDToAssetPath("7464b9fcde08e5645a16b9b8ae1e573c")); // PreviewTarget
+            context.AddAssetDependency(kSourceCodeGuid, AssetCollection.Flags.SourceDependency);
             context.AddSubShader(SubShaders.Preview);
         }
 
-        public override bool IsValid(IMasterNode masterNode)
+        public override void GetFields(ref TargetFieldContext context)
         {
-            return false;
         }
 
-        public override bool IsPipelineCompatible(RenderPipelineAsset currentPipeline)
+        public override void GetActiveBlocks(ref TargetActiveBlockContext context)
         {
-            return currentPipeline != null;
         }
-        
+
+        public override void GetPropertiesGUI(ref TargetPropertyGUIContext context, Action onChange, Action<String> registerUndo)
+        {
+        }
+
+        public override bool WorksWithSRP(RenderPipelineAsset scriptableRenderPipeline) => true;
+
         static class SubShaders
         {
             public static SubShaderDescriptor Preview = new SubShaderDescriptor()
             {
-                renderQueueOverride = "Geometry",
-                renderTypeOverride = "Opaque",
+                renderQueue = "Geometry",
+                renderType = "Opaque",
                 generatesPreview = true,
                 passes = new PassCollection { Passes.Preview },
             };
         }
-        
+
         static class Passes
         {
             public static PassDescriptor Preview = new PassDescriptor()
@@ -47,7 +60,7 @@ namespace UnityEditor.ShaderGraph
 
                 // Templates
                 passTemplatePath = GenerationUtils.GetDefaultTemplatePath("PassMesh.template"),
-                sharedTemplateDirectory = GenerationUtils.GetDefaultSharedTemplateDirectory(),
+                sharedTemplateDirectories = GenerationUtils.GetDefaultSharedTemplateDirectories(),
 
                 // Collections
                 structs = new StructCollection
@@ -72,8 +85,10 @@ namespace UnityEditor.ShaderGraph
                     // Pre-graph
                     { "Packages/com.unity.render-pipelines.core/ShaderLibrary/Common.hlsl", IncludeLocation.Pregraph },
                     { "Packages/com.unity.render-pipelines.core/ShaderLibrary/Packing.hlsl", IncludeLocation.Pregraph },
+                    { "Packages/com.unity.render-pipelines.core/ShaderLibrary/TextureStack.hlsl", IncludeLocation.Pregraph },       // TODO: put this on a conditional
                     { "Packages/com.unity.render-pipelines.core/ShaderLibrary/NormalSurfaceGradient.hlsl", IncludeLocation.Pregraph },
                     { "Packages/com.unity.render-pipelines.core/ShaderLibrary/Color.hlsl", IncludeLocation.Pregraph },
+                    { "Packages/com.unity.render-pipelines.core/ShaderLibrary/Texture.hlsl", IncludeLocation.Pregraph },
                     { "Packages/com.unity.render-pipelines.core/ShaderLibrary/UnityInstancing.hlsl", IncludeLocation.Pregraph },
                     { "Packages/com.unity.render-pipelines.core/ShaderLibrary/EntityLighting.hlsl", IncludeLocation.Pregraph },
                     { "Packages/com.unity.shadergraph/ShaderGraphLibrary/ShaderVariables.hlsl", IncludeLocation.Pregraph },
@@ -107,6 +122,7 @@ namespace UnityEditor.ShaderGraph
                     StructFields.Varyings.viewDirectionWS,
                     StructFields.Varyings.screenPosition,
                     StructFields.Varyings.instanceID,
+                    StructFields.Varyings.vertexID,
                     StructFields.Varyings.cullFace,
                 }
             };
@@ -121,6 +137,7 @@ namespace UnityEditor.ShaderGraph
                 type = KeywordType.Boolean,
                 definition = KeywordDefinition.MultiCompile,
                 scope = KeywordScope.Global,
+                stages = KeywordShaderStage.All,
             };
         }
     }

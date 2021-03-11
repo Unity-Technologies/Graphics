@@ -1,12 +1,14 @@
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/Raytracing/Shaders/RaytracingFragInputs.hlsl"
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/Raytracing/Shaders/RaytracingSampling.hlsl"
-#include "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/RayTracing/Shaders/Common/AtmosphericScatteringRayTracing.hlsl"
+#include "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/Raytracing/Shaders/Common/AtmosphericScatteringRayTracing.hlsl"
 
 // Generic function that handles the reflection code
 [shader("closesthit")]
 void ClosestHitMain(inout RayIntersection rayIntersection : SV_RayPayload, AttributeData attributeData : SV_IntersectionAttributes)
 {
-	// The first thing that we should do is grab the intersection vertice
+    UNITY_XR_ASSIGN_VIEW_INDEX(DispatchRaysIndex().z);
+
+    // The first thing that we should do is grab the intersection vertice
     IntersectionVertex currentVertex;
     GetCurrentIntersectionVertex(attributeData, currentVertex);
 
@@ -16,16 +18,14 @@ void ClosestHitMain(inout RayIntersection rayIntersection : SV_RayPayload, Attri
 
     // Compute the view vector
     float3 viewWS = -rayIntersection.incidentDirection;
-    float3 pointWSPos = GetAbsolutePositionWS(fragInput.positionRWS);
+    float3 pointWSPos = fragInput.positionRWS;
 
     // Make sure to add the additional travel distance
-    float travelDistance = length(GetAbsolutePositionWS(fragInput.positionRWS) - rayIntersection.origin);
+    float travelDistance = length(fragInput.positionRWS - rayIntersection.origin);
     rayIntersection.t = travelDistance;
     rayIntersection.cone.width += travelDistance * rayIntersection.cone.spreadAngle;
 
-    PositionInputs posInput;
-    posInput.positionWS = fragInput.positionRWS;
-    posInput.positionSS = rayIntersection.pixelCoord;
+    PositionInputs posInput = GetPositionInput(rayIntersection.pixelCoord, _ScreenSize.zw, fragInput.positionRWS);
 
     // Build the surfacedata and builtindata
     SurfaceData surfaceData;
@@ -35,6 +35,8 @@ void ClosestHitMain(inout RayIntersection rayIntersection : SV_RayPayload, Attri
 
     // Compute the bsdf data
     BSDFData bsdfData = ConvertSurfaceDataToBSDFData(posInput.positionSS, surfaceData);
+
+    // No need for SurfaceData after this line
 
 #ifdef HAS_LIGHTLOOP
     // We do not want to use the diffuse when we compute the indirect diffuse
@@ -54,25 +56,23 @@ void ClosestHitMain(inout RayIntersection rayIntersection : SV_RayPayload, Attri
     if (rayIntersection.remainingDepth < _RaytracingMaxRecursion)
     {
         // Generate the new sample (follwing values of the sequence)
-        float2 sample = float2(0.0, 0.0);
-        sample.x = GetBNDSequenceSample(rayIntersection.pixelCoord, rayIntersection.sampleIndex, rayIntersection.remainingDepth * 2);
-        sample.y = GetBNDSequenceSample(rayIntersection.pixelCoord, rayIntersection.sampleIndex, rayIntersection.remainingDepth * 2 + 1);
+        float2 theSample = float2(0.0, 0.0);
+        theSample.x = GetBNDSequenceSample(rayIntersection.pixelCoord, rayIntersection.sampleIndex, rayIntersection.remainingDepth * 2);
+        theSample.y = GetBNDSequenceSample(rayIntersection.pixelCoord, rayIntersection.sampleIndex, rayIntersection.remainingDepth * 2 + 1);
 
         float3 sampleDir;
         if (_RayTracingDiffuseLightingOnly)
         {
-            sampleDir = SampleHemisphereCosine(sample.x, sample.y, surfaceData.normalWS);
+            sampleDir = SampleHemisphereCosine(theSample.x, theSample.y, bsdfData.normalWS);
         }
         else
         {
-            float roughness = PerceptualSmoothnessToRoughness(surfaceData.perceptualSmoothness);
-            float NdotL, NdotH, VdotH;
-            SampleGGXDir(sample, viewWS, fragInput.tangentToWorld, roughness, sampleDir, NdotL, NdotH, VdotH);
+            sampleDir = SampleSpecularBRDF(bsdfData, theSample, viewWS);
         }
 
         // Create the ray descriptor for this pixel
         RayDesc rayDescriptor;
-        rayDescriptor.Origin = pointWSPos + surfaceData.normalWS * _RaytracingRayBias;
+        rayDescriptor.Origin = pointWSPos + bsdfData.normalWS * _RaytracingRayBias;
         rayDescriptor.Direction = sampleDir;
         rayDescriptor.TMin = 0.0f;
         rayDescriptor.TMax = _RaytracingRayMaxLength;
@@ -86,14 +86,14 @@ void ClosestHitMain(inout RayIntersection rayIntersection : SV_RayPayload, Attri
         reflectedIntersection.remainingDepth = rayIntersection.remainingDepth + 1;
         reflectedIntersection.pixelCoord = rayIntersection.pixelCoord;
         reflectedIntersection.sampleIndex = rayIntersection.sampleIndex;
-        
+
         // In order to achieve filtering for the textures, we need to compute the spread angle of the pixel
         reflectedIntersection.cone.spreadAngle = rayIntersection.cone.spreadAngle;
         reflectedIntersection.cone.width = rayIntersection.cone.width;
 
         bool launchRay = true;
         if (!_RayTracingDiffuseLightingOnly)
-            launchRay = dot(sampleDir, surfaceData.normalWS) > 0.0;
+            launchRay = dot(sampleDir, bsdfData.normalWS) > 0.0;
 
         // Evaluate the ray intersection
         if (launchRay)
@@ -113,11 +113,14 @@ void ClosestHitMain(inout RayIntersection rayIntersection : SV_RayPayload, Attri
         }
     }
     #endif
-    
+
     // Run the lightloop
-    float3 diffuseLighting;
-    float3 specularLighting;
-    LightLoop(viewWS, posInput, preLightData, bsdfData, builtinData, reflectedWeight, 0.0, reflected,  float3(0.0, 0.0, 0.0), diffuseLighting, specularLighting);
+    LightLoopOutput lightLoopOutput;
+    LightLoop(viewWS, posInput, preLightData, bsdfData, builtinData, reflectedWeight, 0.0, reflected,  float3(0.0, 0.0, 0.0), lightLoopOutput);
+
+    // Alias
+    float3 diffuseLighting = lightLoopOutput.diffuseLighting;
+    float3 specularLighting = lightLoopOutput.specularLighting;
 
     // Color display for the moment
     rayIntersection.color = diffuseLighting + specularLighting;
@@ -138,6 +141,9 @@ void AnyHitMain(inout RayIntersection rayIntersection : SV_RayPayload, Attribute
 #ifdef _SURFACE_TYPE_TRANSPARENT
     IgnoreHit();
 #else
+
+    UNITY_XR_ASSIGN_VIEW_INDEX(DispatchRaysIndex().z);
+
     // The first thing that we should do is grab the intersection vertice
     IntersectionVertex currentVertex;
     GetCurrentIntersectionVertex(attributeData, currentVertex);
@@ -150,7 +156,7 @@ void AnyHitMain(inout RayIntersection rayIntersection : SV_RayPayload, Attribute
     float3 viewWS = -rayIntersection.incidentDirection;
 
     // Compute the distance of the ray
-    float travelDistance = length(GetAbsolutePositionWS(fragInput.positionRWS) - rayIntersection.origin);
+    float travelDistance = length(fragInput.positionRWS - rayIntersection.origin);
     rayIntersection.t = travelDistance;
 
     PositionInputs posInput;
@@ -162,7 +168,7 @@ void AnyHitMain(inout RayIntersection rayIntersection : SV_RayPayload, Attribute
     BuiltinData builtinData;
     bool isVisible;
     GetSurfaceAndBuiltinData(fragInput, viewWS, posInput, surfaceData, builtinData, currentVertex, rayIntersection.cone, isVisible);
-    
+
     // If this fella should be culled, then we cull it
     if(!isVisible)
     {

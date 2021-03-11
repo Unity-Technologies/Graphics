@@ -44,6 +44,11 @@ namespace UnityEditor.VFX
             return new VFXTextureCubeArrayValue(value.GetInstanceID(), Mode.Constant);
         }
 
+        static public VFXValue<int> Constant(CameraBuffer value)
+        {
+            return new VFXCameraBufferValue(value, Mode.Constant);
+        }
+
         static public VFXValue<T> Constant<T>(T value = default(T))
         {
             return new VFXValue<T>(value, Mode.Constant);
@@ -142,15 +147,17 @@ namespace UnityEditor.VFX
 
     class VFXValue<T> : VFXValue
     {
-        private static Flags GetFlagsFromType(VFXValueType valueType)
+        protected static Flags GetFlagsFromType(VFXValueType valueType)
         {
             var flags = Flags.None;
             if (!IsTypeValidOnGPU(valueType))
                 flags |= VFXExpression.Flags.InvalidOnGPU;
+            if (!IsTypeConstantFoldable(valueType))
+                flags |= VFXExpression.Flags.InvalidConstant;
             return flags;
         }
 
-        public VFXValue(T content, Mode mode = Mode.FoldableVariable) : base(mode, GetFlagsFromType(ToValueType()))
+        public VFXValue(T content, Mode mode = Mode.FoldableVariable, Flags flag = Flags.None) : base(mode, flag | GetFlagsFromType(ToValueType()))
         {
             m_Content = content;
         }
@@ -235,16 +242,24 @@ namespace UnityEditor.VFX
         }
     }
 
-
     class VFXObjectValue : VFXValue<int>
     {
-        public VFXObjectValue(int instanceID = 0, Mode mode = Mode.FoldableVariable) : base(instanceID, mode)
+        public VFXObjectValue(int instanceID, Mode mode, VFXValueType contentType) : base(instanceID, mode, GetFlagsFromType(contentType))
         {
+            m_ContentType = contentType;
+        }
+
+        sealed protected override int[] additionnalOperands
+        {
+            get
+            {
+                return new int[] { (int)m_ContentType };
+            }
         }
 
         public override VFXValue CopyExpression(Mode mode)
         {
-            var copy = new VFXObjectValue((int)m_Content, mode);
+            var copy = new VFXObjectValue((int)m_Content, mode, m_ContentType);
             return copy;
         }
 
@@ -265,7 +280,7 @@ namespace UnityEditor.VFX
         {
             if (value == null)
             {
-                value = (int)0;
+                m_Content = (int)0;
                 return;
             }
             if (value is UnityObject obj)
@@ -276,6 +291,8 @@ namespace UnityEditor.VFX
 
             m_Content = (int)value;
         }
+
+        VFXValueType m_ContentType;
     }
 
 #pragma warning restore 0659

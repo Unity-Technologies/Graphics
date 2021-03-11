@@ -8,8 +8,8 @@ Creates a normal map from a height value defined by input **Input** with a stren
 
 | Name        | Direction           | Type  | Description |
 |:------------ |:-------------|:-----|:---|
-| In      | Input | Vector 1 | Input height value |
-| Strength | Input | Vector 1 | The strength of the output normal. Considered in real-world units, recommended range is 0 - 0.1 . |
+| In      | Input | Float    | Input height value |
+| Strength | Input | Float    | The strength of the output normal. Considered in real-world units, recommended range is 0 - 0.1 . |
 | Out | Output      |    Vector 3 | Output value |
 
 ## Controls

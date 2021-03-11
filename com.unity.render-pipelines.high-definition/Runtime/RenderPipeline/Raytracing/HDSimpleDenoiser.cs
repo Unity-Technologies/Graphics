@@ -1,135 +1,129 @@
 using UnityEngine.Experimental.Rendering;
+using UnityEngine.Experimental.Rendering.RenderGraphModule;
 
 namespace UnityEngine.Rendering.HighDefinition
 {
     class HDSimpleDenoiser
     {
         ComputeShader m_SimpleDenoiserCS;
-        SharedRTManager m_SharedRTManager;
-        HDRenderPipeline m_RenderPipeline;
+
+        int m_BilateralFilterHSingleKernel;
+        int m_BilateralFilterVSingleKernel;
+        int m_BilateralFilterHColorKernel;
+        int m_BilateralFilterVColorKernel;
 
         public HDSimpleDenoiser()
         {
         }
 
-        public void Init(HDRenderPipelineRayTracingResources rpRTResources, SharedRTManager sharedRTManager, HDRenderPipeline renderPipeline)
+        public void Init(HDRenderPipelineRayTracingResources rpRTResources)
         {
             m_SimpleDenoiserCS = rpRTResources.simpleDenoiserCS;
-            m_SharedRTManager = sharedRTManager;
-            m_RenderPipeline = renderPipeline;
+
+            m_BilateralFilterHSingleKernel = m_SimpleDenoiserCS.FindKernel("BilateralFilterHSingle");
+            m_BilateralFilterVSingleKernel = m_SimpleDenoiserCS.FindKernel("BilateralFilterVSingle");
+            m_BilateralFilterHColorKernel = m_SimpleDenoiserCS.FindKernel("BilateralFilterHColor");
+            m_BilateralFilterVColorKernel = m_SimpleDenoiserCS.FindKernel("BilateralFilterVColor");
         }
 
         public void Release()
         {
         }
 
-        public void DenoiseBuffer(CommandBuffer cmd, HDCamera hdCamera, RTHandle noisySignal, RTHandle historySignal, RTHandle outputSignal, int kernelSize, bool singleChannel = true, int slotIndex = -1)
+        class SimpleDenoiserPassData
         {
-            // Texture dimensions
-            int texWidth = hdCamera.actualWidth;
-            int texHeight = hdCamera.actualHeight;
+            // Camera parameters
+            public int texWidth;
+            public int texHeight;
+            public int viewCount;
 
-            // Evaluate the dispatch parameters
-            int areaTileSize = 8;
-            int numTilesX = (texWidth + (areaTileSize - 1)) / areaTileSize;
-            int numTilesY = (texHeight + (areaTileSize - 1)) / areaTileSize;
+            // Evaluation parameters
+            public int kernelSize;
 
-            int m_KernelFilter = 0;
+            // Kernels
+            public int bilateralHKernel;
+            public int bilateralVKernel;
 
-            if (singleChannel)
-            {
-               if (slotIndex < 0)
-                {
-                    m_KernelFilter = m_SimpleDenoiserCS.FindKernel("TemporalAccumulationSingle");
-                }
-                else
-                {
-                    m_KernelFilter = m_SimpleDenoiserCS.FindKernel("TemporalAccumulationSingleArray");
-                }
-            }
-            else
-            {
-                m_KernelFilter = m_SimpleDenoiserCS.FindKernel("TemporalAccumulationColor");
-            }
+            // Other parameters
+            public ComputeShader simpleDenoiserCS;
 
-            // Request the intermediate buffers that we need
-            RTHandle intermediateBuffer0 = m_RenderPipeline.GetRayTracingBuffer(InternalRayTracingBuffers.RGBA0);
-            RTHandle intermediateBuffer1 = m_RenderPipeline.GetRayTracingBuffer(InternalRayTracingBuffers.RGBA1);
+            // Input buffers
+            public TextureHandle noisyBuffer;
+            public TextureHandle depthStencilBuffer;
+            public TextureHandle normalBuffer;
 
-            // Apply a vectorized temporal filtering pass and store it back in the denoisebuffer0 with the analytic value in the third channel
-            cmd.SetComputeTextureParam(m_SimpleDenoiserCS, m_KernelFilter, HDShaderIDs._DenoiseInputTexture, noisySignal);
-            cmd.SetComputeTextureParam(m_SimpleDenoiserCS, m_KernelFilter, HDShaderIDs._HistoryBuffer, historySignal);
-            cmd.SetComputeTextureParam(m_SimpleDenoiserCS, m_KernelFilter, HDShaderIDs._DepthTexture, m_SharedRTManager.GetDepthStencilBuffer());
-            cmd.SetComputeTextureParam(m_SimpleDenoiserCS, m_KernelFilter, HDShaderIDs._DenoiseOutputTextureRW, intermediateBuffer0);
-            cmd.SetComputeIntParam(m_SimpleDenoiserCS, HDShaderIDs._DenoisingHistorySlot, slotIndex);
-            cmd.DispatchCompute(m_SimpleDenoiserCS, m_KernelFilter, numTilesX, numTilesY, hdCamera.viewCount);
+            // Temporary buffers
+            public TextureHandle intermediateBuffer;
 
-            // Output the new history
-            if (slotIndex < 0)
-            {
-                m_KernelFilter = m_SimpleDenoiserCS.FindKernel(singleChannel ? "CopyHistorySingle" : "CopyHistoryColor");
-            }
-            else
-            {
-                m_KernelFilter = m_SimpleDenoiserCS.FindKernel(singleChannel ? "CopyHistorySingleArray" : "CopyHistoryColorArray");
-            }
-            cmd.SetComputeTextureParam(m_SimpleDenoiserCS, m_KernelFilter, HDShaderIDs._DenoiseInputTexture, intermediateBuffer0);
-            cmd.SetComputeTextureParam(m_SimpleDenoiserCS, m_KernelFilter, HDShaderIDs._DenoiseOutputTextureRW, historySignal);
-            cmd.SetComputeIntParam(m_SimpleDenoiserCS, HDShaderIDs._DenoisingHistorySlot, slotIndex);
-            cmd.DispatchCompute(m_SimpleDenoiserCS, m_KernelFilter, numTilesX, numTilesY, hdCamera.viewCount);
-
-            m_KernelFilter = m_SimpleDenoiserCS.FindKernel(singleChannel ? "BilateralFilterHSingle" : "BilateralFilterHColor");
-
-            // Horizontal pass of the bilateral filter
-            cmd.SetComputeIntParam(m_SimpleDenoiserCS, HDShaderIDs._DenoiserFilterRadius, kernelSize);
-            cmd.SetComputeTextureParam(m_SimpleDenoiserCS, m_KernelFilter, HDShaderIDs._DenoiseInputTexture, intermediateBuffer0);
-            cmd.SetComputeTextureParam(m_SimpleDenoiserCS, m_KernelFilter, HDShaderIDs._DepthTexture, m_SharedRTManager.GetDepthStencilBuffer());
-            cmd.SetComputeTextureParam(m_SimpleDenoiserCS, m_KernelFilter, HDShaderIDs._NormalBufferTexture, m_SharedRTManager.GetNormalBuffer());
-            cmd.SetComputeTextureParam(m_SimpleDenoiserCS, m_KernelFilter, HDShaderIDs._DenoiseOutputTextureRW, intermediateBuffer1);
-            cmd.DispatchCompute(m_SimpleDenoiserCS, m_KernelFilter, numTilesX, numTilesY, hdCamera.viewCount);
-
-            m_KernelFilter = m_SimpleDenoiserCS.FindKernel(singleChannel ? "BilateralFilterVSingle" : "BilateralFilterVColor");
-
-            // Horizontal pass of the bilateral filter
-            cmd.SetComputeIntParam(m_SimpleDenoiserCS, HDShaderIDs._DenoiserFilterRadius, kernelSize);
-            cmd.SetComputeTextureParam(m_SimpleDenoiserCS, m_KernelFilter, HDShaderIDs._DenoiseInputTexture, intermediateBuffer1);
-            cmd.SetComputeTextureParam(m_SimpleDenoiserCS, m_KernelFilter, HDShaderIDs._DepthTexture, m_SharedRTManager.GetDepthStencilBuffer());
-            cmd.SetComputeTextureParam(m_SimpleDenoiserCS, m_KernelFilter, HDShaderIDs._NormalBufferTexture, m_SharedRTManager.GetNormalBuffer());
-            cmd.SetComputeTextureParam(m_SimpleDenoiserCS, m_KernelFilter, HDShaderIDs._DenoiseOutputTextureRW, outputSignal);
-            cmd.DispatchCompute(m_SimpleDenoiserCS, m_KernelFilter, numTilesX, numTilesY, hdCamera.viewCount);
+            // Output buffers
+            public TextureHandle outputBuffer;
         }
 
-        public void DenoiseBufferNoHistory(CommandBuffer cmd, HDCamera hdCamera, RTHandle noisySignal, RTHandle outputSignal, int kernelSize, bool singleChannel = true)
+        public TextureHandle DenoiseBufferNoHistory(RenderGraph renderGraph, HDCamera hdCamera,
+            TextureHandle depthBuffer, TextureHandle normalBuffer,
+            TextureHandle noisyBuffer,
+            int kernelSize, bool singleChannel)
         {
-            // Texture dimensions
-            int texWidth = hdCamera.actualWidth;
-            int texHeight = hdCamera.actualHeight;
+            using (var builder = renderGraph.AddRenderPass<SimpleDenoiserPassData>("DiffuseDenoiser", out var passData, ProfilingSampler.Get(HDProfileId.DiffuseFilter)))
+            {
+                // Cannot run in async
+                builder.EnableAsyncCompute(false);
 
-            // Evaluate the dispatch parameters
-            int areaTileSize = 8;
-            int numTilesX = (texWidth + (areaTileSize - 1)) / areaTileSize;
-            int numTilesY = (texHeight + (areaTileSize - 1)) / areaTileSize;
+                // Camera parameters
+                passData.texWidth = hdCamera.actualWidth;
+                passData.texHeight = hdCamera.actualHeight;
+                passData.viewCount = hdCamera.viewCount;
 
-            // Request the intermediate buffers that we need
-            RTHandle intermediateBuffer0 = m_RenderPipeline.GetRayTracingBuffer(InternalRayTracingBuffers.RGBA0);
+                // Evaluation parameters
+                passData.kernelSize = kernelSize;
 
-            // Horizontal pass of the bilateral filter
-            int m_KernelFilter = m_SimpleDenoiserCS.FindKernel(singleChannel ? "BilateralFilterHSingle" : "BilateralFilterHColor");
-            cmd.SetComputeIntParam(m_SimpleDenoiserCS, HDShaderIDs._DenoiserFilterRadius, kernelSize);
-            cmd.SetComputeTextureParam(m_SimpleDenoiserCS, m_KernelFilter, HDShaderIDs._DenoiseInputTexture, noisySignal);
-            cmd.SetComputeTextureParam(m_SimpleDenoiserCS, m_KernelFilter, HDShaderIDs._DepthTexture, m_SharedRTManager.GetDepthStencilBuffer());
-            cmd.SetComputeTextureParam(m_SimpleDenoiserCS, m_KernelFilter, HDShaderIDs._NormalBufferTexture, m_SharedRTManager.GetNormalBuffer());
-            cmd.SetComputeTextureParam(m_SimpleDenoiserCS, m_KernelFilter, HDShaderIDs._DenoiseOutputTextureRW, intermediateBuffer0);
-            cmd.DispatchCompute(m_SimpleDenoiserCS, m_KernelFilter, numTilesX, numTilesY, hdCamera.viewCount);
+                // Kernels
+                passData.bilateralHKernel = singleChannel ? m_BilateralFilterHSingleKernel : m_BilateralFilterHColorKernel;
+                passData.bilateralVKernel = singleChannel ? m_BilateralFilterVSingleKernel : m_BilateralFilterVColorKernel;
 
-            // Horizontal pass of the bilateral filter
-            m_KernelFilter = m_SimpleDenoiserCS.FindKernel(singleChannel ? "BilateralFilterVSingle" : "BilateralFilterVColor");
-            cmd.SetComputeIntParam(m_SimpleDenoiserCS, HDShaderIDs._DenoiserFilterRadius, kernelSize);
-            cmd.SetComputeTextureParam(m_SimpleDenoiserCS, m_KernelFilter, HDShaderIDs._DenoiseInputTexture, intermediateBuffer0);
-            cmd.SetComputeTextureParam(m_SimpleDenoiserCS, m_KernelFilter, HDShaderIDs._DepthTexture, m_SharedRTManager.GetDepthStencilBuffer());
-            cmd.SetComputeTextureParam(m_SimpleDenoiserCS, m_KernelFilter, HDShaderIDs._NormalBufferTexture, m_SharedRTManager.GetNormalBuffer());
-            cmd.SetComputeTextureParam(m_SimpleDenoiserCS, m_KernelFilter, HDShaderIDs._DenoiseOutputTextureRW, outputSignal);
-            cmd.DispatchCompute(m_SimpleDenoiserCS, m_KernelFilter, numTilesX, numTilesY, hdCamera.viewCount);
+                // Other parameters
+                passData.simpleDenoiserCS = m_SimpleDenoiserCS;
+
+                // Input buffers
+                passData.depthStencilBuffer = builder.UseDepthBuffer(depthBuffer, DepthAccess.Read);
+                passData.normalBuffer = builder.ReadTexture(normalBuffer);
+                passData.noisyBuffer = builder.ReadTexture(noisyBuffer);
+
+                // Temporary buffers
+                passData.intermediateBuffer = builder.CreateTransientTexture(new TextureDesc(Vector2.one, true, true)
+                    { colorFormat = GraphicsFormat.R16G16B16A16_SFloat, enableRandomWrite = true, name = "Intermediate buffer" });
+
+                // Output buffer
+                passData.outputBuffer = builder.ReadWriteTexture(renderGraph.CreateTexture(new TextureDesc(Vector2.one, true, true)
+                    { colorFormat = GraphicsFormat.R16G16B16A16_SFloat, enableRandomWrite = true, name = "Denoised Buffer" }));
+
+
+                builder.SetRenderFunc(
+                    (SimpleDenoiserPassData data, RenderGraphContext ctx) =>
+                    {
+                        // Evaluate the dispatch parameters
+                        int sdTileSize = 8;
+                        int numTilesX = (data.texWidth + (sdTileSize - 1)) / sdTileSize;
+                        int numTilesY = (data.texHeight + (sdTileSize - 1)) / sdTileSize;
+
+                        // Horizontal pass of the bilateral filter
+                        ctx.cmd.SetComputeIntParam(data.simpleDenoiserCS, HDShaderIDs._DenoiserFilterRadius, data.kernelSize);
+                        ctx.cmd.SetComputeTextureParam(data.simpleDenoiserCS, data.bilateralHKernel, HDShaderIDs._DenoiseInputTexture, data.noisyBuffer);
+                        ctx.cmd.SetComputeTextureParam(data.simpleDenoiserCS, data.bilateralHKernel, HDShaderIDs._DepthTexture, data.depthStencilBuffer);
+                        ctx.cmd.SetComputeTextureParam(data.simpleDenoiserCS, data.bilateralHKernel, HDShaderIDs._NormalBufferTexture, data.normalBuffer);
+                        ctx.cmd.SetComputeTextureParam(data.simpleDenoiserCS, data.bilateralHKernel, HDShaderIDs._DenoiseOutputTextureRW, data.intermediateBuffer);
+                        ctx.cmd.DispatchCompute(data.simpleDenoiserCS, data.bilateralHKernel, numTilesX, numTilesY, data.viewCount);
+
+                        // Horizontal pass of the bilateral filter
+                        ctx.cmd.SetComputeIntParam(data.simpleDenoiserCS, HDShaderIDs._DenoiserFilterRadius, data.kernelSize);
+                        ctx.cmd.SetComputeTextureParam(data.simpleDenoiserCS, data.bilateralVKernel, HDShaderIDs._DenoiseInputTexture, data.intermediateBuffer);
+                        ctx.cmd.SetComputeTextureParam(data.simpleDenoiserCS, data.bilateralVKernel, HDShaderIDs._DepthTexture, data.depthStencilBuffer);
+                        ctx.cmd.SetComputeTextureParam(data.simpleDenoiserCS, data.bilateralVKernel, HDShaderIDs._NormalBufferTexture, data.normalBuffer);
+                        ctx.cmd.SetComputeTextureParam(data.simpleDenoiserCS, data.bilateralVKernel, HDShaderIDs._DenoiseOutputTextureRW, data.outputBuffer);
+                        ctx.cmd.DispatchCompute(data.simpleDenoiserCS, data.bilateralVKernel, numTilesX, numTilesY, data.viewCount);
+                    });
+                return passData.outputBuffer;
+            }
         }
     }
 }

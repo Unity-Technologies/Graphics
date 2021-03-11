@@ -216,8 +216,7 @@ namespace UnityEditor.VFX
         public override void OnUnknownChange()
         {
             base.OnUnknownChange();
-            SyncSlots(VFXSlot.Direction.kInput, false);
-            SyncSlots(VFXSlot.Direction.kOutput, false);
+            ResyncSlots(false);
         }
 
         public override void CollectDependencies(HashSet<ScriptableObject> objs, bool ownedOnly = true)
@@ -282,6 +281,23 @@ namespace UnityEditor.VFX
             }
         }
 
+        public VFXSlot GetSlotByPath(bool input, string path)
+        {
+            string[] elements = path.Split('_');
+
+            IEnumerable<VFXSlot> slots = input ? m_InputSlots : m_OutputSlots;
+
+            VFXSlot slot = null;
+            for (int i = 0; i < elements.Length; ++i)
+            {
+                slot = slots.FirstOrDefault(t => t.name == elements[i]);
+                if (slot == null) break;
+                slots = slot.children;
+            }
+
+            return slot;
+        }
+
         protected bool SyncSlots(VFXSlot.Direction direction, bool notify)
         {
             bool isInput = direction == VFXSlot.Direction.kInput;
@@ -334,7 +350,7 @@ namespace UnityEditor.VFX
                     var slot = existingSlots.Find(s => p.property.Equals(s.property));
                     if (slot != null)
                     {
-                        slot.UpdateAttributes(p.property.attributes);
+                        slot.UpdateAttributes(p.property.attributes, notify);
                         existingSlots.Remove(slot);
                     }
                     else
@@ -384,10 +400,7 @@ namespace UnityEditor.VFX
             {
                 // Update properties
                 for (int i = 0; i < nbSlots; ++i)
-                {
-                    VFXProperty prop = currentSlots[i].property;
-                    currentSlots[i].UpdateAttributes(expectedProperties[i].property.attributes);
-                }
+                    currentSlots[i].UpdateAttributes(expectedProperties[i].property.attributes, notify);
             }
 
             return recreate;

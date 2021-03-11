@@ -14,6 +14,9 @@ namespace UnityEditor.ShaderGraph
         [SerializeField]
         ColorMode m_ColorMode = ColorMode.Default;
 
+        [SerializeField]
+        private Color m_DefaultColor = Color.grey;
+
         public ColorRGBMaterialSlot() {}
 
         public ColorRGBMaterialSlot(
@@ -28,6 +31,7 @@ namespace UnityEditor.ShaderGraph
             : base(slotId, displayName, shaderOutputName, slotType, (Vector4)value, stageCapability, hidden: hidden)
         {
             m_ColorMode = colorMode;
+            m_DefaultColor = value;
         }
 
         public ColorMode colorMode
@@ -35,6 +39,10 @@ namespace UnityEditor.ShaderGraph
             get { return m_ColorMode; }
             set { m_ColorMode = value; }
         }
+
+        public Color defaultColor => m_DefaultColor;
+
+        public override bool isDefaultValue => value.Equals((Vector4)defaultColor);
 
         public override VisualElement InstantiateControl()
         {

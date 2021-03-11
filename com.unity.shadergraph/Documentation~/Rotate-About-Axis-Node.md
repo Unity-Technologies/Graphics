@@ -10,7 +10,7 @@ Rotates the input vector **In** around the axis **Axis** by the value of **Rotat
 |:------------ |:-------------|:-----|:---|:---|
 | In      | Input | Vector 3 | None | Input value |
 | Axis      | Input | Vector 3 | None | Axis to rotate around |
-| Rotation      | Input | Vector 1 | None | Amount of rotation to apply |
+| Rotation      | Input | Float    | None | Amount of rotation to apply |
 | Out | Output      |    Vector 3 | None | Output value |
 
 ## Controls
@@ -33,7 +33,7 @@ void Unity_RotateAboutAxis_Radians_float(float3 In, float3 Axis, float Rotation,
     float one_minus_c = 1.0 - c;
 
     Axis = normalize(Axis);
-    float3x3 rot_mat = 
+    float3x3 rot_mat =
     {   one_minus_c * Axis.x * Axis.x + c, one_minus_c * Axis.x * Axis.y - Axis.z * s, one_minus_c * Axis.z * Axis.x + Axis.y * s,
         one_minus_c * Axis.x * Axis.y + Axis.z * s, one_minus_c * Axis.y * Axis.y + c, one_minus_c * Axis.y * Axis.z - Axis.x * s,
         one_minus_c * Axis.z * Axis.x - Axis.y * s, one_minus_c * Axis.y * Axis.z + Axis.x * s, one_minus_c * Axis.z * Axis.z + c
@@ -53,7 +53,7 @@ void Unity_RotateAboutAxis_Degrees_float(float3 In, float3 Axis, float Rotation,
     float one_minus_c = 1.0 - c;
 
     Axis = normalize(Axis);
-    float3x3 rot_mat = 
+    float3x3 rot_mat =
     {   one_minus_c * Axis.x * Axis.x + c, one_minus_c * Axis.x * Axis.y - Axis.z * s, one_minus_c * Axis.z * Axis.x + Axis.y * s,
         one_minus_c * Axis.x * Axis.y + Axis.z * s, one_minus_c * Axis.y * Axis.y + c, one_minus_c * Axis.y * Axis.z - Axis.x * s,
         one_minus_c * Axis.z * Axis.x - Axis.y * s, one_minus_c * Axis.y * Axis.z + Axis.x * s, one_minus_c * Axis.z * Axis.z + c

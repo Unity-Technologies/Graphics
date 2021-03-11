@@ -98,7 +98,7 @@ namespace UnityEngine.Rendering
         /// <summary>
         /// Boolean field.
         /// </summary>
-        public class BoolField : Field<bool> { }
+        public class BoolField : Field<bool> {}
         /// <summary>
         /// Boolean field with history.
         /// </summary>
@@ -320,6 +320,9 @@ namespace UnityEngine.Rendering
 
             internal void InitIndexes()
             {
+                if (enumNames == null)
+                    enumNames = new GUIContent[0];
+
                 indexes = new int[enumNames.Length];
                 for (int i = 0; i < enumNames.Length; i++)
                 {

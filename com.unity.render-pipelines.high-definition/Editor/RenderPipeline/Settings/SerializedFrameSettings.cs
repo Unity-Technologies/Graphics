@@ -32,8 +32,8 @@ namespace UnityEditor.Rendering.HighDefinition
                 return val == null
                     ? (LitShaderMode?)null
                     : val.Value == true
-                        ? LitShaderMode.Deferred
-                        : LitShaderMode.Forward;
+                    ? LitShaderMode.Deferred
+                    : LitShaderMode.Forward;
             }
             set => SetEnabled(FrameSettingsField.LitShaderMode, value == LitShaderMode.Deferred);
         }

@@ -32,8 +32,8 @@
 // Raytracing includes
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/Raytracing/Shaders/Deferred/RaytracingIntersectonGBuffer.hlsl"
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/Raytracing/Shaders/RaytracingSampling.hlsl"
-#include "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/Raytracing/Shaders/RaytracingCommon.hlsl"
-#include "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/RayTracing/Shaders/Common/AtmosphericScatteringRayTracing.hlsl"
+#include "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/Raytracing/Shaders/RayTracingCommon.hlsl"
+#include "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/Raytracing/Shaders/Common/AtmosphericScatteringRayTracing.hlsl"
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Debug/RayCountManager.cs.hlsl"
 
 // The target acceleration structure that we will evaluate the reflexion in
@@ -48,8 +48,6 @@ RW_TEXTURE2D_X(float4, _GBufferTexture0RW);
 RW_TEXTURE2D_X(float4, _GBufferTexture1RW);
 RW_TEXTURE2D_X(float4, _GBufferTexture2RW);
 RW_TEXTURE2D_X(float4, _GBufferTexture3RW); // Bake lighting and/or emissive
-RW_TEXTURE2D_X(float4, _GBufferTexture4RW); // Light layer or shadow mask
-RW_TEXTURE2D_X(float4, _GBufferTexture5RW); // shadow mask
 
 int _RaytracingHalfResolution;
 uint _RayTracingLayerMask;
@@ -60,10 +58,85 @@ void MissShaderGBuffer(inout RayIntersectionGBuffer rayIntersection : SV_RayPayl
 {
     if (_RaytracingIncludeSky != 0)
     {
-        rayIntersection.gBufferData.gbuffer3 = SAMPLE_TEXTURECUBE_ARRAY_LOD(_SkyTexture, s_trilinear_clamp_sampler, rayIntersection.incidentDirection, 0.0f, 0);
-        ApplyFogAttenuation(WorldRayOrigin(), WorldRayDirection(), rayIntersection.gBufferData.gbuffer3.xyz);
+        rayIntersection.gbuffer3 = SAMPLE_TEXTURECUBE_ARRAY_LOD(_SkyTexture, s_trilinear_clamp_sampler, WorldRayDirection(), 0.0f, 0);
+        ApplyFogAttenuation(WorldRayOrigin(), WorldRayDirection(), rayIntersection.gbuffer3.xyz);
     }
     rayIntersection.t = -1.0;
+}
+
+struct PixelCoordinates
+{
+    // Cordinates that the shader will write to
+    uint2 outputCoords;
+    // Coordinates from where the ray direction is read
+    uint2 directionCoords;
+    // Coordinates from which the depth and normal is read
+    uint2 geometryCoords;
+};
+
+void TraceGBuffer(PixelCoordinates coords)
+{
+    _RaytracingDistanceBuffer[COORD_TEXTURE2D_X(coords.outputCoords)] = _RaytracingRayMaxLength;
+    _GBufferTexture0RW[COORD_TEXTURE2D_X(coords.outputCoords)] = float4(1.0, 0.0, 0.5, 1.0);
+    _GBufferTexture1RW[COORD_TEXTURE2D_X(coords.outputCoords)] = float4(0.0, 0.0, 0.0, 0.0);
+    _GBufferTexture2RW[COORD_TEXTURE2D_X(coords.outputCoords)] = float4(0.0, 0.0, 0.0, 0.0);
+    _GBufferTexture3RW[COORD_TEXTURE2D_X(coords.outputCoords)] = float4(0.0, 0.0, 0.0, 0.0);
+
+    // Read the depth value
+    float depthValue  = LOAD_TEXTURE2D_X(_DepthTexture, coords.geometryCoords);
+
+    // Read the direction
+    float4 direction = LOAD_TEXTURE2D_X(_RaytracingDirectionBuffer, coords.directionCoords);
+
+    // If this is the background, or UnL is null or this pixel has been flagged as invalid, no
+    if (depthValue == UNITY_RAW_FAR_CLIP_VALUE || direction.w < 0.0)
+    {
+        _RaytracingDistanceBuffer[COORD_TEXTURE2D_X(coords.outputCoords)] = _RaytracingRayMaxLength;
+        _GBufferTexture0RW[COORD_TEXTURE2D_X(coords.outputCoords)] = float4(0.0, 0.0, 0.0, 0.0);
+        _GBufferTexture1RW[COORD_TEXTURE2D_X(coords.outputCoords)] = float4(0.0, 0.0, 0.0, 0.0);
+        _GBufferTexture2RW[COORD_TEXTURE2D_X(coords.outputCoords)] = float4(0.0, 0.0, 0.0, 0.0);
+        _GBufferTexture3RW[COORD_TEXTURE2D_X(coords.outputCoords)] = float4(0.0, 0.0, 0.0, 0.0);
+        return;
+    }
+
+    // Compute the position input structure
+    PositionInputs posInput = GetPositionInput(coords.geometryCoords, _ScreenSize.zw, depthValue, UNITY_MATRIX_I_VP, GetWorldToViewMatrix(), 0);
+
+    // Decode the world space normal
+    NormalData normalData;
+    DecodeFromNormalBuffer(coords.geometryCoords, normalData);
+
+    // Keep track of the new ray in the counters
+    if (_RayCountEnabled > 0)
+    {
+        uint3 counterIdx = uint3(coords.outputCoords, INDEX_TEXTURE2D_ARRAY_X(_RayCountType));
+        _RayCountTexture[counterIdx] = _RayCountTexture[counterIdx] + 1;
+    }
+
+    // Create the ray descriptor for this pixel
+    RayDesc rayDescriptor;
+    rayDescriptor.Origin = posInput.positionWS + normalData.normalWS * _RaytracingRayBias;;
+    rayDescriptor.Direction = direction.xyz;
+    rayDescriptor.TMin = 0.0;
+    rayDescriptor.TMax = _RaytracingRayMaxLength;
+
+    // Create and init the RayIntersection structure for this
+    RayIntersectionGBuffer rayIntersection;
+    rayIntersection.t = -1.0;
+    rayIntersection.gbuffer0 = float4(0.0, 0.0, 0.0, 0.0);
+    rayIntersection.gbuffer1 = float4(0.0, 0.0, 0.0, 0.0);
+    rayIntersection.gbuffer2 = float4(0.0, 0.0, 0.0, 0.0);
+    rayIntersection.gbuffer3 = float4(0.0, 0.0, 0.0, 0.0);
+
+    // Evaluate the ray visibility term and PDF
+    TraceRay(_RaytracingAccelerationStructure, RAY_FLAG_CULL_BACK_FACING_TRIANGLES, _RayTracingLayerMask, 0, 1, 0, rayDescriptor, rayIntersection);
+
+    // Output the gbuffer
+    _GBufferTexture0RW[COORD_TEXTURE2D_X(coords.outputCoords)] = float4(LinearToSRGB(rayIntersection.gbuffer0.xyz), rayIntersection.gbuffer0.w);
+    _GBufferTexture1RW[COORD_TEXTURE2D_X(coords.outputCoords)] = float4(rayIntersection.gbuffer1);
+    _GBufferTexture2RW[COORD_TEXTURE2D_X(coords.outputCoords)] = float4(rayIntersection.gbuffer2);
+    _GBufferTexture3RW[COORD_TEXTURE2D_X(coords.outputCoords)] = float4(rayIntersection.gbuffer3);
+    _RaytracingDistanceBuffer[COORD_TEXTURE2D_X(coords.outputCoords)] = rayIntersection.t;
 }
 
 [shader("raygeneration")]
@@ -78,83 +151,28 @@ void RayGenGBuffer()
     // Pixel coordinate of the current pixel
     uint2 currentPixelCoord = uint2(LaunchIndex.x, LaunchIndex.y);
 
-    // Pick the right pixel if in half res
+    // For the full res ray tracing, everything is read from the same pixel coordinates
+    PixelCoordinates coords;
+    coords.outputCoords = currentPixelCoord;
+    coords.directionCoords = currentPixelCoord;
+    coords.geometryCoords = currentPixelCoord;
+
+    // For the half res coordinates, we need to adjust the positions
     if (_RaytracingHalfResolution)
     {
-        currentPixelCoord *=2;
+        coords.geometryCoords = ComputeSourceCoordinates(coords.outputCoords, _RaytracingFrameIndex);
+        coords.outputCoords *= 2;
+        coords.directionCoords *= 2;
     }
 
-    // Read the depth value
-    float depthValue  = _DepthTexture[COORD_TEXTURE2D_X(currentPixelCoord)].x;
-
-    // If this is the background, or UnL is null or this pixel has been flagged as invalid, no 
-    if (depthValue == UNITY_RAW_FAR_CLIP_VALUE || _RaytracingDirectionBuffer[COORD_TEXTURE2D_X(currentPixelCoord)].w < 0.0)
-    {
-        _RaytracingDistanceBuffer[COORD_TEXTURE2D_X(currentPixelCoord)] = _RaytracingRayMaxLength;
-        _GBufferTexture0RW[COORD_TEXTURE2D_X(currentPixelCoord)] = float4(0.0, 0.0, 0.0, 0.0);
-        _GBufferTexture1RW[COORD_TEXTURE2D_X(currentPixelCoord)] = float4(0.0, 0.0, 0.0, 0.0);
-        _GBufferTexture2RW[COORD_TEXTURE2D_X(currentPixelCoord)] = float4(0.0, 0.0, 0.0, 0.0);
-        _GBufferTexture3RW[COORD_TEXTURE2D_X(currentPixelCoord)] = float4(0.0, 0.0, 0.0, 0.0);
-        return;
-    }
-
-    // Compute the position input structure
-    PositionInputs posInput = GetPositionInput(currentPixelCoord, _ScreenSize.zw, depthValue, UNITY_MATRIX_I_VP, GetWorldToViewMatrix(), 0);
-    float3 positionWS = GetAbsolutePositionWS(posInput.positionWS);
-    // Decode the world space normal
-    NormalData normalData;
-    DecodeFromNormalBuffer(currentPixelCoord, normalData);
-
-    // Keep track of the new ray in the counters
-    if (_RayCountEnabled > 0)
-    {
-        uint3 counterIdx = uint3(currentPixelCoord, INDEX_TEXTURE2D_ARRAY_X(_RayCountType));
-        _RayCountTexture[counterIdx] = _RayCountTexture[counterIdx] + 1;
-    }
-
-    // Read the ray distance
-    float3 rayDirection = _RaytracingDirectionBuffer[COORD_TEXTURE2D_X(currentPixelCoord)].xyz;
-
-    float3 rayOrigin = positionWS + normalData.normalWS * _RaytracingRayBias;
-
-    // Create the ray descriptor for this pixel
-    RayDesc rayDescriptor;
-    rayDescriptor.Origin = rayOrigin;
-    rayDescriptor.Direction = rayDirection;
-    rayDescriptor.TMin = 0.0;
-    rayDescriptor.TMax = _RaytracingRayMaxLength;
-
-    // Create and init the RayIntersection structure for this
-    RayIntersectionGBuffer rayIntersection;
-    rayIntersection.origin = rayOrigin;
-    rayIntersection.t = -1.0;
-    rayIntersection.incidentDirection = rayDescriptor.Direction;
-    rayIntersection.gBufferData.gbuffer0 = float4(0.0, 0.0, 0.0, 0.0);
-    rayIntersection.gBufferData.gbuffer1 = float4(0.0, 0.0, 0.0, 0.0);
-    rayIntersection.gBufferData.gbuffer2 = float4(0.0, 0.0, 0.0, 0.0);
-    rayIntersection.gBufferData.gbuffer3 = float4(0.0, 0.0, 0.0, 0.0);
-
-    // In order to achieve filtering for the textures, we need to compute the spread angle of the pixel
-    float roughness = PerceptualRoughnessToRoughness(normalData.perceptualRoughness);
-    rayIntersection.cone.spreadAngle = _RaytracingPixelSpreadAngle + roughnessToSpreadAngle(_RaytracingDiffuseRay ? 1.0 : roughness);
-    float distanceToCamera = length(posInput.positionWS);
-    rayIntersection.cone.width = distanceToCamera * _RaytracingPixelSpreadAngle;
-
-    // Evaluate the ray visibility term and PDF
-    TraceRay(_RaytracingAccelerationStructure, RAY_FLAG_CULL_BACK_FACING_TRIANGLES, _RayTracingLayerMask, 0, 1, 0, rayDescriptor, rayIntersection);
-
-    // Output the gbuffer 
-    _GBufferTexture0RW[COORD_TEXTURE2D_X(currentPixelCoord)] = float4(LinearToSRGB(rayIntersection.gBufferData.gbuffer0.xyz), rayIntersection.gBufferData.gbuffer0.w);
-    _GBufferTexture1RW[COORD_TEXTURE2D_X(currentPixelCoord)] = float4(rayIntersection.gBufferData.gbuffer1);
-    _GBufferTexture2RW[COORD_TEXTURE2D_X(currentPixelCoord)] = float4(rayIntersection.gBufferData.gbuffer2);
-    _GBufferTexture3RW[COORD_TEXTURE2D_X(currentPixelCoord)] = float4(rayIntersection.gBufferData.gbuffer3);
-    _RaytracingDistanceBuffer[COORD_TEXTURE2D_X(currentPixelCoord)] = rayIntersection.t;
+    // Trace and output the gbuffer
+    TraceGBuffer(coords);
 }
 
 StructuredBuffer<uint>      _RayBinResult;
 StructuredBuffer<uint>      _RayBinSizeResult;
 uint                        _RayBinTileCountX;
-
+uint                        _BufferSizeX;
 #define RAY_BINNING_TILE_SIZE 16
 
 [shader("raygeneration")]
@@ -162,10 +180,9 @@ void RayGenGBufferBinned()
 {
     // Grab the dimensions of the current raytrace shader
     uint3 LaunchIndex = DispatchRaysIndex();
-    uint3 LaunchDim = DispatchRaysDimensions();
 
     // Pixel coordinate of the current pixel
-    uint2 currentBinIndex = uint2(LaunchIndex.x, LaunchIndex.y);
+    uint2 currentBinIndex = uint2(LaunchIndex.x % _BufferSizeX, LaunchIndex.x / _BufferSizeX);
 
     // Compute the various local/tile coordinates
     uint2 localTileCoordinate = uint2(currentBinIndex.x % RAY_BINNING_TILE_SIZE, currentBinIndex.y % RAY_BINNING_TILE_SIZE);
@@ -182,83 +199,18 @@ void RayGenGBufferBinned()
     if (localTileIndex > _RayBinSizeResult[tileIndex])
         return;
 
-    _RaytracingDistanceBuffer[COORD_TEXTURE2D_X(currentPixelCoord)] = _RaytracingRayMaxLength;
-    _GBufferTexture0RW[COORD_TEXTURE2D_X(currentPixelCoord)] = float4(1.0, 0.0, 0.5, 1.0);
-    _GBufferTexture1RW[COORD_TEXTURE2D_X(currentPixelCoord)] = float4(0.0, 0.0, 0.0, 0.0);
-    _GBufferTexture2RW[COORD_TEXTURE2D_X(currentPixelCoord)] = float4(0.0, 0.0, 0.0, 0.0);
-    _GBufferTexture3RW[COORD_TEXTURE2D_X(currentPixelCoord)] = float4(0.0, 0.0, 0.0, 0.0);
-
-
-    // Read the depth value
-    float depthValue  = _DepthTexture[COORD_TEXTURE2D_X(currentPixelCoord)].x;
-
-    // If this is the background, or UnL is null or this pixel has been flagged as invalid, no 
-    if (depthValue == UNITY_RAW_FAR_CLIP_VALUE || _RaytracingDirectionBuffer[COORD_TEXTURE2D_X(currentPixelCoord)].w < 0.0)
+    // For the full res ray tracing, everything is read from the same pixel coordinates
+    PixelCoordinates coords;
+    coords.outputCoords = currentPixelCoord;
+    coords.directionCoords = currentPixelCoord;
+    coords.geometryCoords = currentPixelCoord;
+    // For the half res coordinates, we need to adjust the positions
+    if (_RaytracingHalfResolution)
     {
-        _RaytracingDistanceBuffer[COORD_TEXTURE2D_X(currentPixelCoord)] = _RaytracingRayMaxLength;
-        _GBufferTexture0RW[COORD_TEXTURE2D_X(currentPixelCoord)] = float4(0.0, 0.0, 0.0, 0.0);
-        _GBufferTexture1RW[COORD_TEXTURE2D_X(currentPixelCoord)] = float4(0.0, 0.0, 0.0, 0.0);
-        _GBufferTexture2RW[COORD_TEXTURE2D_X(currentPixelCoord)] = float4(0.0, 0.0, 0.0, 0.0);
-        _GBufferTexture3RW[COORD_TEXTURE2D_X(currentPixelCoord)] = float4(0.0, 0.0, 0.0, 0.0);
-        return;
+        coords.geometryCoords = ComputeSourceCoordinates(coords.outputCoords * 0.5, _RaytracingFrameIndex);
+        // For the output and direction coords, the ray binning should make sure we are pointing at the right position
     }
 
-    // Compute the position input structure
-    PositionInputs posInput = GetPositionInput(currentPixelCoord, _ScreenSize.zw, depthValue, UNITY_MATRIX_I_VP, GetWorldToViewMatrix(), 0);
-    float distanceToCamera = length(posInput.positionWS);
-    float3 positionWS = GetAbsolutePositionWS(posInput.positionWS);
-    // Decode the world space normal
-    NormalData normalData;
-    DecodeFromNormalBuffer(currentPixelCoord, normalData);
-
-    // Keep track of the new ray in the counters
-    if (_RayCountEnabled > 0)
-    {
-        uint3 counterIdx = uint3(currentPixelCoord, INDEX_TEXTURE2D_ARRAY_X(_RayCountType));
-        _RayCountTexture[counterIdx] = _RayCountTexture[counterIdx] + 1;
-    }
-    
-    // Read the ray distance
-    float3 rayDirection = _RaytracingDirectionBuffer[COORD_TEXTURE2D_X(currentPixelCoord)].xyz;
-
-    float3 rayOrigin = positionWS + normalData.normalWS * _RaytracingRayBias;
-
-    // Create the ray descriptor for this pixel
-    RayDesc rayDescriptor;
-    rayDescriptor.Origin = rayOrigin;
-    rayDescriptor.Direction = rayDirection;
-    rayDescriptor.TMin = 0.0;
-    rayDescriptor.TMax = _RaytracingRayMaxLength;
-
-    // Create and init the RayIntersection structure for this
-    RayIntersectionGBuffer rayIntersection;
-    rayIntersection.origin = rayOrigin;
-    rayIntersection.t = -1.0;
-    rayIntersection.incidentDirection = rayDescriptor.Direction;
-    rayIntersection.gBufferData.gbuffer0 = float4(0.0, 0.0, 0.0, 0.0);
-    rayIntersection.gBufferData.gbuffer1 = float4(0.0, 0.0, 0.0, 0.0);
-    rayIntersection.gBufferData.gbuffer2 = float4(0.0, 0.0, 0.0, 0.0);
-    rayIntersection.gBufferData.gbuffer3 = float4(0.0, 0.0, 0.0, 0.0);
-
-    // In order to achieve filtering for the textures, we need to compute the spread angle of the pixel
-    float roughness = PerceptualRoughnessToRoughness(normalData.perceptualRoughness);
-    rayIntersection.cone.spreadAngle = _RaytracingPixelSpreadAngle + roughnessToSpreadAngle(_RaytracingDiffuseRay ? 1.0 : roughness);
-    rayIntersection.cone.width = distanceToCamera * _RaytracingPixelSpreadAngle;
-
-    // Evaluate the ray visibility term and PDF
-    TraceRay(_RaytracingAccelerationStructure, RAY_FLAG_CULL_BACK_FACING_TRIANGLES, _RayTracingLayerMask, 0, 1, 0, rayDescriptor, rayIntersection);
-
-    // Output the gbuffer 
-    _GBufferTexture0RW[COORD_TEXTURE2D_X(currentPixelCoord)] = float4(LinearToSRGB(rayIntersection.gBufferData.gbuffer0.xyz), rayIntersection.gBufferData.gbuffer0.w);
-    _GBufferTexture1RW[COORD_TEXTURE2D_X(currentPixelCoord)] = float4(rayIntersection.gBufferData.gbuffer1);
-    _GBufferTexture2RW[COORD_TEXTURE2D_X(currentPixelCoord)] = float4(rayIntersection.gBufferData.gbuffer2);
-    _GBufferTexture3RW[COORD_TEXTURE2D_X(currentPixelCoord)] = float4(rayIntersection.gBufferData.gbuffer3);
-    _RaytracingDistanceBuffer[COORD_TEXTURE2D_X(currentPixelCoord)] = rayIntersection.t;
-}
-
-[shader("closesthit")]
-void ClosestHitMain(inout RayIntersectionGBuffer rayIntersection : SV_RayPayload, AttributeData attributeData : SV_IntersectionAttributes)
-{
-    rayIntersection.gBufferData.gbuffer3 = float4(0.0, 0.0, 0.0, 1.0);
-    rayIntersection.t = -1.0;
+    // Trace and output the gbuffer
+    TraceGBuffer(coords);
 }

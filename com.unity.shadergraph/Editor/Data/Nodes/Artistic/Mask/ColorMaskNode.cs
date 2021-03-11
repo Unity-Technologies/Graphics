@@ -24,7 +24,7 @@ namespace UnityEditor.ShaderGraph
             [Slot(3, Binding.None)] out Vector1 Out)
         {
             return
-                @"
+@"
 {
     $precision Distance = distance(MaskColor, In);
     Out = saturate(1 - (Distance - Range) / max(Fuzziness, 1e-5));

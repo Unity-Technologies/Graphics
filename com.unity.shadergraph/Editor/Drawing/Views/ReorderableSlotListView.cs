@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
@@ -9,40 +10,69 @@ namespace UnityEditor.ShaderGraph.Drawing
 {
     internal class ReorderableSlotListView : VisualElement
     {
-        private AbstractMaterialNode m_Node;
-        private SlotType m_SlotType;
-        private ReorderableList m_ReorderableList;
-        private IMGUIContainer m_Container;
-        private GUIStyle m_LabelStyle;
-        private int m_SelectedIndex = -1;
-        private string label => string.Format("{0}s", m_SlotType.ToString());
+        int m_SelectedIndex = -1;
+        SlotType m_SlotType;
+        GUIStyle m_LabelStyle;
+        IMGUIContainer m_Container;
+        AbstractMaterialNode m_Node;
+        ReorderableList m_ReorderableList;
+        bool m_AllowBareResources;
 
-        internal ReorderableSlotListView(AbstractMaterialNode node, SlotType slotType)
+        internal delegate void ListRecreatedDelegate();
+        ListRecreatedDelegate m_OnListRecreatedCallback = new ListRecreatedDelegate(() => {});
+
+        string label => string.Format("{0}s", m_SlotType.ToString());
+
+        public ReorderableList.AddCallbackDelegate OnAddCallback
         {
+            get => m_ReorderableList?.onAddCallback;
+            set => m_ReorderableList.onAddCallback = value;
+        }
+
+        public ReorderableList.RemoveCallbackDelegate OnRemoveCallback
+        {
+            get => m_ReorderableList.onRemoveCallback;
+            set => m_ReorderableList.onRemoveCallback = value;
+        }
+
+        public ListRecreatedDelegate OnListRecreatedCallback
+        {
+            get => m_OnListRecreatedCallback;
+            set => m_OnListRecreatedCallback = value;
+        }
+
+        public Func<ConcreteSlotValueTypePopupName, bool> AllowedTypeCallback;
+
+        internal ReorderableSlotListView(AbstractMaterialNode node, SlotType slotType, bool allowBareResources)
+        {
+            m_AllowBareResources = allowBareResources;
             styleSheets.Add(Resources.Load<StyleSheet>("Styles/ReorderableSlotListView"));
             m_Node = node;
             m_SlotType = slotType;
-            m_Container = new IMGUIContainer(() => OnGUIHandler ()) { name = "ListContainer" };
+            m_Container = new IMGUIContainer(() => OnGUIHandler()) { name = "ListContainer" };
             Add(m_Container);
+            RecreateList();
+            AddCallbacks();
         }
 
         internal void RecreateList()
         {
             // Get slots based on type
             List<MaterialSlot> slots = new List<MaterialSlot>();
-            if(m_SlotType == SlotType.Input)
+            if (m_SlotType == SlotType.Input)
                 m_Node.GetInputSlots(slots);
             else
                 m_Node.GetOutputSlots(slots);
-            
+
             // Create reorderable list from IDs
             List<int> slotIDs = slots.Select(s => s.id).ToList();
             m_ReorderableList = new ReorderableList(slotIDs, typeof(int), true, true, true, true);
+            m_OnListRecreatedCallback();
         }
 
         private void OnGUIHandler()
         {
-            if(m_ReorderableList == null)
+            if (m_ReorderableList == null)
             {
                 RecreateList();
                 AddCallbacks();
@@ -58,70 +88,93 @@ namespace UnityEditor.ShaderGraph.Drawing
             }
         }
 
-        private void AddCallbacks() 
-        {      
-            m_ReorderableList.drawHeaderCallback = (Rect rect) => 
-            {  
-                var labelRect = new Rect(rect.x, rect.y, rect.width-10, rect.height);
+        private void AddCallbacks()
+        {
+            m_ReorderableList.drawHeaderCallback = (Rect rect) =>
+            {
+                var labelRect = new Rect(rect.x, rect.y, rect.width - 10, rect.height);
                 EditorGUI.LabelField(labelRect, label);
             };
 
             // Draw Element
-            m_ReorderableList.drawElementCallback = (Rect rect, int index, bool isActive, bool isFocused) => 
+            m_ReorderableList.drawElementCallback = (Rect rect, int index, bool isActive, bool isFocused) =>
             {
                 // Slot is guaranteed to exist in this UI state
                 MaterialSlot oldSlot = m_Node.FindSlot<MaterialSlot>((int)m_ReorderableList.list[index]);
 
                 EditorGUI.BeginChangeCheck();
-                
-                var displayName = EditorGUI.DelayedTextField( new Rect(rect.x, rect.y, rect.width / 2, EditorGUIUtility.singleLineHeight), oldSlot.RawDisplayName(), EditorStyles.label); 
-                var shaderOutputName = NodeUtils.GetHLSLSafeName(displayName);
-                var concreteValueType = (ConcreteSlotValueType)EditorGUI.EnumPopup( new Rect(rect.x + rect.width / 2, rect.y, rect.width - rect.width / 2, EditorGUIUtility.singleLineHeight), oldSlot.concreteValueType);
 
-                if(displayName != oldSlot.RawDisplayName())
-                    displayName = NodeUtils.GetDuplicateSafeNameForSlot(m_Node, oldSlot.id, displayName);
-                
-                if(EditorGUI.EndChangeCheck())
-                {
-                    // Cant modify existing slots so need to create new and copy values
-                    var newSlot = MaterialSlot.CreateMaterialSlot(concreteValueType.ToSlotValueType(), oldSlot.id, displayName, shaderOutputName, m_SlotType, Vector4.zero);
-                    newSlot.CopyValuesFrom(oldSlot);
-                    m_Node.AddSlot(newSlot);
+                var displayName = EditorGUI.DelayedTextField(new Rect(rect.x, rect.y, rect.width / 2, EditorGUIUtility.singleLineHeight), oldSlot.RawDisplayName(), EditorStyles.label);
 
-                    // Need to get all current slots as everything after the edited slot in the list must be added again
-                    List<MaterialSlot> slots = new List<MaterialSlot>();
-                    if(m_SlotType == SlotType.Input)
-                        m_Node.GetInputSlots<MaterialSlot>(slots);
-                    else
-                        m_Node.GetOutputSlots<MaterialSlot>(slots);
+                ConcreteSlotValueTypePopupName concreteValueTypePopupOrig =
+                    oldSlot.concreteValueType.ToConcreteSlotValueTypePopupName(oldSlot.bareResource);
 
-                    // Iterate all the slots
-                    foreach (MaterialSlot slot in slots)
+                ConcreteSlotValueTypePopupName concreteValueTypePopupNew = (ConcreteSlotValueTypePopupName)EditorGUI.EnumPopup(
+                    new Rect(rect.x + rect.width / 2, rect.y, rect.width - rect.width / 2, EditorGUIUtility.singleLineHeight),
+                    GUIContent.none,
+                    concreteValueTypePopupOrig,
+                    e =>
                     {
-                        // Because the list doesnt match the slot IDs (reordering)
-                        // Need to get the index in the list of every slot
-                        int listIndex = 0;
-                        for(int i = 0; i < m_ReorderableList.list.Count; i++)
-                        {
-                            if((int)m_ReorderableList.list[i] == slot.id)
-                                listIndex = i;
-                        }
-
-                        // Then for everything after the edited slot
-                        if(listIndex <= index)
-                            continue;
-
-                        // Remove and re-add
-                        m_Node.AddSlot(slot);
+                        ConcreteSlotValueTypePopupName csvtpn = (ConcreteSlotValueTypePopupName)e;
+                        csvtpn.ToConcreteSlotValueType(out bool isBareResource);
+                        if (isBareResource && !m_AllowBareResources)
+                            return false;
+                        return AllowedTypeCallback?.Invoke(csvtpn) ?? true;
                     }
+                );
+
+                if (EditorGUI.EndChangeCheck())
+                {
+                    m_Node.owner.owner.RegisterCompleteObjectUndo("Modify Port");
+
+                    displayName = NodeUtils.ConvertToValidHLSLIdentifier(displayName);
+
+                    if (displayName != oldSlot.RawDisplayName())
+                    {
+                        using (var tempSlots = PooledList<MaterialSlot>.Get())
+                        {
+                            m_Node.GetSlots(tempSlots);
+
+                            // deduplicate against other slot shaderOutputNames
+                            displayName = GraphUtil.DeduplicateName(tempSlots.Where(p => p.id != oldSlot.id).Select(p => p.shaderOutputName), "{0}_{1}", displayName);
+                        }
+                    }
+
+                    ConcreteSlotValueType concreteValueType = concreteValueTypePopupNew.ToConcreteSlotValueType(out bool isBareResource);
+
+                    // Because the type may have changed, we can't (always) just modify the existing slot.  So create a new one and replace it.
+                    var newSlot = MaterialSlot.CreateMaterialSlot(concreteValueType.ToSlotValueType(), oldSlot.id, displayName, displayName, m_SlotType, Vector4.zero);
+                    newSlot.CopyValuesFrom(oldSlot);
+                    m_Node.AddSlot(newSlot, false);
+                    newSlot.bareResource = isBareResource;
+
+                    List<int> orderedSlotIds = new List<int>();
+                    if (m_SlotType == SlotType.Input)
+                    {
+                        orderedSlotIds.AddRange(m_ReorderableList.list.OfType<int>());
+
+                        List<MaterialSlot> slots = new List<MaterialSlot>();
+                        m_Node.GetOutputSlots(slots);
+                        orderedSlotIds.AddRange(slots.Select(s => s.id));
+                    }
+                    else
+                    {
+                        List<MaterialSlot> slots = new List<MaterialSlot>();
+                        m_Node.GetInputSlots(slots);
+                        orderedSlotIds.AddRange(slots.Select(s => s.id));
+
+                        orderedSlotIds.AddRange(m_ReorderableList.list.OfType<int>());
+                    }
+
+                    m_Node.SetSlotOrder(orderedSlotIds);
 
                     RecreateList();
                     m_Node.ValidateNode();
-                }   
+                }
             };
 
             // Element height
-            m_ReorderableList.elementHeightCallback = (int indexer) => 
+            m_ReorderableList.elementHeightCallback = (int indexer) =>
             {
                 return m_ReorderableList.elementHeight;
             };
@@ -141,13 +194,12 @@ namespace UnityEditor.ShaderGraph.Drawing
         private void AddEntry(ReorderableList list)
         {
             m_Node.owner.owner.RegisterCompleteObjectUndo("Add Port");
-
             // Need to get all current slots to get the next valid ID
             List<MaterialSlot> slots = new List<MaterialSlot>();
             m_Node.GetSlots(slots);
             int[] slotIDs = slots.Select(s => s.id).OrderByDescending(s => s).ToArray();
             int newSlotID = slotIDs.Length > 0 ? slotIDs[0] + 1 : 0;
-            
+
             string name = NodeUtils.GetDuplicateSafeNameForSlot(m_Node, newSlotID, "New");
 
             // Create a new slot and add it
@@ -178,10 +230,10 @@ namespace UnityEditor.ShaderGraph.Drawing
         private void ReorderEntries(ReorderableList list)
         {
             m_Node.owner.owner.RegisterCompleteObjectUndo("Reorder Ports");
-            
+
             // Get all the current slots
             List<MaterialSlot> slots = new List<MaterialSlot>();
-            if(m_SlotType == SlotType.Input)
+            if (m_SlotType == SlotType.Input)
                 m_Node.GetInputSlots<MaterialSlot>(slots);
             else
                 m_Node.GetOutputSlots<MaterialSlot>(slots);
@@ -197,7 +249,7 @@ namespace UnityEditor.ShaderGraph.Drawing
 
             // Order them by their slot ID
             slots = slots.OrderBy(s => s.id).ToList();
-            
+
             // Now add the slots back based on the list order
             // For each list entry get the slot with that ID
             for (int i = 0; i < list.list.Count; i++)

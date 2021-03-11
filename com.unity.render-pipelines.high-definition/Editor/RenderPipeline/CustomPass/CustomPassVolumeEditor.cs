@@ -71,7 +71,7 @@ namespace UnityEditor.Rendering.HighDefinition
         }
 
         List<Material> GatherCustomPassesMaterials()
-            => m_Volume.customPasses.SelectMany(p => p.RegisterMaterialForInspector()).Where(m => m != null).ToList();
+            => m_Volume.customPasses.Where(p => p != null).SelectMany(p => p.RegisterMaterialForInspector()).Where(m => m != null).ToList();
 
         void UpdateMaterialEditors()
         {
@@ -103,15 +103,18 @@ namespace UnityEditor.Rendering.HighDefinition
             m_CustomPassMaterialsHash = materialsHash;
         }
 
-        Dictionary<SerializedProperty, CustomPassDrawer> customPassDrawers = new Dictionary<SerializedProperty, CustomPassDrawer>();
-        CustomPassDrawer GetCustomPassDrawer(SerializedProperty pass, int listIndex)
+        Dictionary<CustomPass, CustomPassDrawer> customPassDrawers = new Dictionary<CustomPass, CustomPassDrawer>();
+        CustomPassDrawer GetCustomPassDrawer(SerializedProperty pass, CustomPass reference, int listIndex)
         {
             CustomPassDrawer drawer;
 
-            if (customPassDrawers.TryGetValue(pass, out drawer))
+            if (customPassDrawers.TryGetValue(reference, out drawer))
                 return drawer;
 
             var customPass = m_Volume.customPasses[listIndex];
+
+            if (customPass == null)
+                return null;
 
             foreach (var drawerType in TypeCache.GetTypesWithAttribute(typeof(CustomPassDrawerAttribute)))
             {
@@ -129,7 +132,7 @@ namespace UnityEditor.Rendering.HighDefinition
                 }
             }
 
-            customPassDrawers[pass] = drawer;
+            customPassDrawers[reference] = drawer;
 
             return drawer;
         }
@@ -137,10 +140,15 @@ namespace UnityEditor.Rendering.HighDefinition
         void DrawSettingsGUI()
         {
             serializedObject.Update();
-            
+
             EditorGUI.BeginChangeCheck();
             {
-                m_SerializedPassVolume.isGlobal.boolValue = EditorGUILayout.Popup(Styles.isGlobal, m_SerializedPassVolume.isGlobal.boolValue ? 0 : 1, Styles.modes) == 0;
+                Rect isGlobalRect = EditorGUILayout.GetControlRect();
+                EditorGUI.BeginProperty(isGlobalRect, Styles.isGlobal, m_SerializedPassVolume.isGlobal);
+                {
+                    m_SerializedPassVolume.isGlobal.boolValue = EditorGUI.Popup(isGlobalRect, Styles.isGlobal, m_SerializedPassVolume.isGlobal.boolValue ? 0 : 1, Styles.modes) == 0;
+                }
+                EditorGUI.EndProperty();
                 EditorGUILayout.PropertyField(m_SerializedPassVolume.injectionPoint, Styles.injectionPoint);
                 EditorGUILayout.PropertyField(m_SerializedPassVolume.priority, Styles.priority);
                 if (!m_SerializedPassVolume.isGlobal.boolValue)
@@ -163,9 +171,15 @@ namespace UnityEditor.Rendering.HighDefinition
                 }
             }
 
-            EditorGUILayout.BeginVertical();
-            m_CustomPassList.DoLayoutList();
-            EditorGUILayout.EndVertical();
+            float customPassListHeight =  m_CustomPassList.GetHeight();
+            var customPassRect = EditorGUILayout.GetControlRect(false, customPassListHeight);
+            EditorGUI.BeginProperty(customPassRect, GUIContent.none, m_SerializedPassVolume.customPasses);
+            {
+                EditorGUILayout.BeginVertical();
+                m_CustomPassList.DoList(customPassRect);
+                EditorGUILayout.EndVertical();
+            }
+            EditorGUI.EndProperty();
         }
 
         void CreateReorderableList(SerializedProperty passList)
@@ -178,9 +192,10 @@ namespace UnityEditor.Rendering.HighDefinition
 
             m_CustomPassList.drawElementCallback = (rect, index, active, focused) => {
                 EditorGUI.BeginChangeCheck();
-                
+
+                passList.serializedObject.ApplyModifiedProperties();
                 var customPass = passList.GetArrayElementAtIndex(index);
-                var drawer = GetCustomPassDrawer(customPass, index);
+                var drawer = GetCustomPassDrawer(customPass, m_Volume.customPasses[index], index);
                 if (drawer != null)
                     drawer.OnGUI(rect, customPass, null);
                 else
@@ -191,8 +206,9 @@ namespace UnityEditor.Rendering.HighDefinition
 
             m_CustomPassList.elementHeightCallback = (index) =>
             {
+                passList.serializedObject.ApplyModifiedProperties();
                 var customPass = passList.GetArrayElementAtIndex(index);
-                var drawer = GetCustomPassDrawer(customPass, index);
+                var drawer = GetCustomPassDrawer(customPass, m_Volume.customPasses[index], index);
                 if (drawer != null)
                     return drawer.GetPropertyHeight(customPass, null);
                 else
@@ -200,29 +216,40 @@ namespace UnityEditor.Rendering.HighDefinition
             };
 
             m_CustomPassList.onAddCallback += (list) => {
-                Undo.RegisterCompleteObjectUndo(target, "Remove custom pass");
+                Undo.RegisterCompleteObjectUndo(target, "Add custom pass");
 
                 var menu = new GenericMenu();
                 foreach (var customPassType in TypeCache.GetTypesDerivedFrom<CustomPass>())
                 {
                     if (customPassType.IsAbstract)
                         continue;
-                    
+
                     menu.AddItem(new GUIContent(customPassType.Name), false, () => {
+                        passList.serializedObject.ApplyModifiedProperties();
                         m_Volume.AddPassOfType(customPassType);
-                        passList.serializedObject.Update();
                         UpdateMaterialEditors();
+                        passList.serializedObject.Update();
+                        // Notify the prefab that something have changed:
+                        PrefabUtility.RecordPrefabInstancePropertyModifications(target);
                     });
                 }
                 menu.ShowAsContext();
-			};
-
-            m_CustomPassList.onRemoveCallback = (list) => {
-                Undo.RegisterCompleteObjectUndo(target, "Remove custom pass");
-                m_Volume.customPasses.RemoveAt(list.index);
-                passList.serializedObject.Update();
-                UpdateMaterialEditors();
             };
+
+            m_CustomPassList.onReorderCallback = (index) => ClearCustomPassCache();
+
+            m_CustomPassList.onRemoveCallback = (list) =>
+            {
+                ReorderableList.defaultBehaviours.DoRemoveButton(list);
+                ClearCustomPassCache();
+            };
+        }
+
+        void ClearCustomPassCache()
+        {
+            // When custom passes are re-ordered, a topological change happens in the SerializedProperties
+            // So we have to rebuild all the drawers that were storing SerializedProperties.
+            customPassDrawers.Clear();
         }
 
         float GetCustomPassEditorHeight(SerializedProperty pass) => EditorGUIUtility.singleLineHeight;

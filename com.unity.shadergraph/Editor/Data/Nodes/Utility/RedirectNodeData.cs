@@ -41,7 +41,7 @@ namespace UnityEditor.ShaderGraph
         void AddSlots(SlotValueType edgeType)
         {
             // Valuetype gets the type should be the type for input and output
-            switch(edgeType)
+            switch (edgeType)
             {
                 case SlotValueType.Boolean:
                     AddSlot(new BooleanMaterialSlot(kInputSlotID, "", "", SlotType.Input, false));
@@ -111,12 +111,16 @@ namespace UnityEditor.ShaderGraph
                     AddSlot(new DynamicVectorMaterialSlot(kInputSlotID, "", "", SlotType.Input, Vector4.zero));
                     AddSlot(new DynamicVectorMaterialSlot(kOutputSlotID, "", "", SlotType.Output, Vector4.zero));
                     break;
+                case SlotValueType.VirtualTexture:
+                    AddSlot(new VirtualTextureMaterialSlot(kInputSlotID, "", "", SlotType.Input));
+                    AddSlot(new VirtualTextureMaterialSlot(kOutputSlotID, "", "", SlotType.Output));
+                    break;
                 default:
                     throw new ArgumentOutOfRangeException();
             }
         }
 
-        protected override string GetOutputForSlot(SlotReference fromSocketRef, ConcreteSlotValueType valueType, GenerationMode generationMode)
+        protected internal override string GetOutputForSlot(SlotReference fromSocketRef, ConcreteSlotValueType valueType, GenerationMode generationMode)
         {
             var slotRef = NodeUtils.DepthFirstCollectRedirectNodeFromNode(this);
             var fromLeftNode = slotRef.node;
@@ -175,7 +179,7 @@ namespace UnityEditor.ShaderGraph
                 noOutputs = !edges.Any();
             }
 
-            if(noInputs && !noOutputs)
+            if (noInputs && !noOutputs)
             {
                 owner.AddValidationError(objectId, "Node has no inputs and default value will be 0.", ShaderCompilerMessageSeverity.Warning);
             }

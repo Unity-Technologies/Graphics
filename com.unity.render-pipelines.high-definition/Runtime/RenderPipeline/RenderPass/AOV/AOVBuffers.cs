@@ -1,5 +1,6 @@
 namespace UnityEngine.Rendering.HighDefinition
 {
+    // Caution: keep in sync enum in HDProfileId in HDProfileId.cs
     /// <summary> Buffers available in HDRP </summary>
     public enum AOVBuffers
     {

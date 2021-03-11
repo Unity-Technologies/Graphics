@@ -4,15 +4,15 @@ Shader "Hidden/HDRP/FinalPass"
 
         #pragma target 4.5
         #pragma editor_sync_compilation
-        #pragma only_renderers d3d11 playstation xboxone vulkan metal switch
+        #pragma only_renderers d3d11 playstation xboxone xboxseries vulkan metal switch
 
-        #pragma multi_compile_local _ FXAA
-        #pragma multi_compile_local _ GRAIN
-        #pragma multi_compile_local _ DITHER
-        #pragma multi_compile_local _ ENABLE_ALPHA
-        #pragma multi_compile_local _ APPLY_AFTER_POST
+        #pragma multi_compile_local_fragment _ FXAA
+        #pragma multi_compile_local_fragment _ GRAIN
+        #pragma multi_compile_local_fragment _ DITHER
+        #pragma multi_compile_local_fragment _ ENABLE_ALPHA
+        #pragma multi_compile_local_fragment _ APPLY_AFTER_POST
 
-        #pragma multi_compile_local _ BILINEAR CATMULL_ROM_4 LANCZOS CONTRASTADAPTIVESHARPEN
+        #pragma multi_compile_local_fragment _ BILINEAR CATMULL_ROM_4 LANCZOS CONTRASTADAPTIVESHARPEN
         #define DEBUG_UPSCALE_POINT 0
 
         #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Common.hlsl"
@@ -32,9 +32,10 @@ Shader "Hidden/HDRP/FinalPass"
         SAMPLER(sampler_LinearRepeat);
 
         float2 _GrainParams;            // x: intensity, y: response
-        float4 _GrainTextureParams;     // x: width, y: height, zw: random offset
-        float3 _DitherParams;           // x: width, y: height, z: texture_id
+        float4 _GrainTextureParams;     // xy: _ScreenSize.xy / GrainTextureSize.xy, zw: (random offset in UVs) *  _GrainTextureParams.xy
+        float3 _DitherParams;           // xy: _ScreenSize.xy / DitherTextureSize.xy, z: texture_id
         float4 _UVTransform;
+        float4 _ViewPortSize;
         float  _KeepAlpha;
 
         struct Attributes
@@ -70,7 +71,7 @@ Shader "Hidden/HDRP/FinalPass"
             #elif CATMULL_ROM_4
                 return CatmullRomFourSamples(_InputTexture, UV);
             #elif LANCZOS
-                return Lanczos(_InputTexture, UV);
+                return Lanczos(_InputTexture, UV, _ViewPortSize);
             #else
                 return Nearest(_InputTexture, UV);
             #endif
@@ -92,15 +93,15 @@ Shader "Hidden/HDRP/FinalPass"
             #if defined(BILINEAR) || defined(CATMULL_ROM_4) || defined(LANCZOS)
             CTYPE outColor = UpscaledResult(positionNDC.xy);
             #elif defined(CONTRASTADAPTIVESHARPEN)
-            CTYPE outColor = LOAD_TEXTURE2D_X(_InputTexture, positionSS / _RTHandleScale.xy).CTYPE_SWIZZLE;
+            CTYPE outColor = LOAD_TEXTURE2D_X(_InputTexture, round(input.texcoord * _ViewPortSize.xy)).CTYPE_SWIZZLE;
             #else
             CTYPE outColor = LOAD_TEXTURE2D_X(_InputTexture, positionSS).CTYPE_SWIZZLE;
             #endif
 
-			#if !defined(ENABLE_ALPHA)
+            #if !defined(ENABLE_ALPHA)
             float outAlpha = (_KeepAlpha == 1.0) ? LOAD_TEXTURE2D_X(_AlphaTexture, positionSS).x : 1.0;
-			#endif
-			
+            #endif
+
             #if FXAA
             RunFXAA(_InputTexture, sampler_LinearClamp, outColor.rgb, positionSS, positionNDC);
             #endif
@@ -114,8 +115,7 @@ Shader "Hidden/HDRP/FinalPass"
             #if GRAIN
             {
                 // Grain in range [0;1] with neutral at 0.5
-                uint2 icoords = fmod(positionSS + _GrainTextureParams.zw, _GrainTextureParams.xy);
-                float grain = LOAD_TEXTURE2D(_GrainTexture, icoords).w;
+                float grain = SAMPLE_TEXTURE2D(_GrainTexture, s_linear_repeat_sampler, (positionNDC * _GrainTextureParams.xy) + _GrainTextureParams.zw).w;
 
                 // Remap [-1;1]
                 grain = (grain - 0.5) * 2.0;
@@ -132,14 +132,14 @@ Shader "Hidden/HDRP/FinalPass"
             // sRGB 8-bit dithering
             {
                 float3 ditherParams = _DitherParams;
-                uint2 icoords = fmod(positionSS, ditherParams.xy);
-
                 // Symmetric triangular distribution on [-1,1] with maximal density at 0
-                float noise = LOAD_TEXTURE2D_ARRAY(_BlueNoiseTexture, icoords, ditherParams.z).a * 2.0 - 1.0;
+                float noise = SAMPLE_TEXTURE2D_ARRAY(_BlueNoiseTexture, s_linear_repeat_sampler, positionNDC * ditherParams.xy, ditherParams.z).a;
+                float3 sRGBColor = LinearToSRGB(outColor.xyz);
+                noise = noise * 2.0 - 1.0;
                 noise = FastSign(noise) * (1.0 - sqrt(1.0 - abs(noise)));
 
                 //outColor += noise / 255.0;
-                outColor.xyz = SRGBToLinear(LinearToSRGB(outColor.xyz) + noise / 255.0);
+                outColor.xyz = SRGBToLinear(sRGBColor + noise / 255.0);
             }
             #endif
 

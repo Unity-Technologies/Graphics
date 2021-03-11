@@ -6,7 +6,7 @@
 #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/VolumeRendering.hlsl"
 #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Sampling/Sampling.hlsl"
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/ShaderLibrary/ShaderVariablesGlobal.hlsl"
-#include "Packages/com.unity.render-pipelines.high-definition/Runtime/Sky/PhysicallyBasedSky/PhysicallyBasedSkyRenderer.cs.hlsl"
+#include "Packages/com.unity.render-pipelines.high-definition/Runtime/Sky/PhysicallyBasedSky/ShaderVariablesPhysicallyBasedSky.cs.hlsl"
 
 TEXTURE2D(_GroundIrradianceTexture);
 
@@ -27,7 +27,7 @@ float DifferenceOfSquares(float a, float b)
 
 float3 AirScatter(float height)
 {
-    return _AirSeaLevelScattering * exp(-height * _AirDensityFalloff);
+    return _AirSeaLevelScattering.rgb * exp(-height * _AirDensityFalloff);
 }
 
 float AirPhase(float LdotV)
@@ -37,7 +37,7 @@ float AirPhase(float LdotV)
 
 float3 AerosolScatter(float height)
 {
-    return _AerosolSeaLevelScattering * exp(-height * _AerosolDensityFalloff);
+    return _AerosolSeaLevelScattering.rgb * exp(-height * _AerosolDensityFalloff);
 }
 
 float AerosolPhase(float LdotV)
@@ -252,26 +252,26 @@ float3 ComputeAtmosphericOpticalDepth(float r, float cosTheta, bool aboveHorizon
     float2 z = n * r;
     float2 Z = n * R;
 
-	float sinTheta = sqrt(saturate(1 - cosTheta * cosTheta));
+    float sinTheta = sqrt(saturate(1 - cosTheta * cosTheta));
 
     float2 ch;
     ch.x = ChapmanUpperApprox(z.x, abs(cosTheta)) * exp(Z.x - z.x); // Rescaling adds 'exp'
     ch.y = ChapmanUpperApprox(z.y, abs(cosTheta)) * exp(Z.y - z.y); // Rescaling adds 'exp'
 
     if (!aboveHorizon) // Below horizon, intersect sphere
-	{
-		float sinGamma = (r / R) * sinTheta;
-		float cosGamma = sqrt(saturate(1 - sinGamma * sinGamma));
+    {
+        float sinGamma = (r / R) * sinTheta;
+        float cosGamma = sqrt(saturate(1 - sinGamma * sinGamma));
 
-		float2 ch_2;
+        float2 ch_2;
         ch_2.x = ChapmanUpperApprox(Z.x, cosGamma); // No need to rescale
         ch_2.y = ChapmanUpperApprox(Z.y, cosGamma); // No need to rescale
 
-		ch = ch_2 - ch;
+        ch = ch_2 - ch;
     }
     else if (cosTheta < 0)   // Above horizon, lower hemisphere
     {
-    	// z_0 = n * r_0 = (n * r) * sin(theta) = z * sin(theta).
+        // z_0 = n * r_0 = (n * r) * sin(theta) = z * sin(theta).
         // Ch(z, theta) = 2 * exp(z - z_0) * Ch(z_0, Pi/2) - Ch(z, Pi - theta).
         float2 z_0  = z * sinTheta;
         float2 b    = exp(Z - z_0); // Rescaling cancels out 'z' and adds 'Z'
@@ -285,7 +285,7 @@ float3 ComputeAtmosphericOpticalDepth(float r, float cosTheta, bool aboveHorizon
 
     float2 optDepth = ch * H;
 
-    return optDepth.x * _AirSeaLevelExtinction + optDepth.y * _AerosolSeaLevelExtinction;
+    return optDepth.x * _AirSeaLevelExtinction.xyz + optDepth.y * _AerosolSeaLevelExtinction;
 }
 
 float3 ComputeAtmosphericOpticalDepth1(float r, float cosTheta)

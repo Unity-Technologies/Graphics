@@ -1,3 +1,8 @@
+#ifndef RAY_TRACING_COMMON_HLSL
+#define RAY_TRACING_COMMON_HLSL
+
+#include "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/Raytracing/Shaders/RaytracingSampling.hlsl"
+
 // This array converts an index to the local coordinate shift of the half resolution texture
 static const uint2 HalfResIndexToCoordinateShift[4] = { uint2(0,0), uint2(1, 0), uint2(0, 1), uint2(1, 1) };
 
@@ -8,7 +13,7 @@ float roughnessToSpreadAngle(float roughness)
     return roughness * PI/8;
 }
 
-#define USE_RAY_CONE_LOD
+// #define USE_RAY_CONE_LOD
 
 float computeBaseTextureLOD(float3 viewWS,
                             float3 normalWS,
@@ -31,3 +36,25 @@ float computeTargetTextureLOD(Texture2D targetTexture, float baseLambda)
 
     return max(0.0, baseLambda + 0.5 * log2(texWidth * texHeight));
 }
+
+// The standard lit data used for paking intersection data for deferred lighting (for ray tracing)
+struct StandardBSDFData
+{
+    float3 baseColor;
+    float specularOcclusion;
+    float3 normalWS;
+    float perceptualRoughness;
+    float3 fresnel0;
+    float coatMask;
+    float3 emissiveAndBaked;
+    uint renderingLayers;
+    float4 shadowMasks;
+    uint isUnlit;
+};
+
+// This function defines what is the source pixel from where we should read the depth and normal for rendering in half resolution
+uint2 ComputeSourceCoordinates(uint2 halfResCoord, int frameIndex)
+{
+    return halfResCoord * 2;
+}
+#endif // RAY_TRACING_COMMON_HLSL

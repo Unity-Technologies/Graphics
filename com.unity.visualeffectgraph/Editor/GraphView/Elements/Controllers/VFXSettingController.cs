@@ -18,11 +18,14 @@ namespace UnityEditor.VFX.UI
 
         public System.Type portType { get { return m_SettingType; } }
 
-        public void Init(IVFXSlotContainer owner, string name, System.Type type)
+        public VFXViewController viewController { private set; get; }
+
+        public void Init(VFXViewController viewController, IVFXSlotContainer owner, string name, System.Type type)
         {
             m_Owner = owner;
             m_Name = name;
             m_SettingType = type;
+            this.viewController = viewController;
         }
 
         public string name
@@ -72,6 +75,9 @@ namespace UnityEditor.VFX.UI
         }
         bool IPropertyRMProvider.expandableIfShowsEverything { get { return false; } }
 
+
+        IEnumerable<int> IPropertyRMProvider.filteredOutEnumerators { get { return (m_Owner as VFXModel).GetFilteredOutEnumerators(name); } }
+
         public virtual string iconName
         {
             get { return portType.Name; }
@@ -82,11 +88,11 @@ namespace UnityEditor.VFX.UI
             get { return true; }
         }
 
-        public VFXPropertyAttribute[] attributes
+        public VFXPropertyAttributes attributes
         {
             get
             {
-                return VFXPropertyAttribute.Create(customAttributes);
+                return new VFXPropertyAttributes(customAttributes);
             }
         }
 
@@ -130,5 +136,8 @@ namespace UnityEditor.VFX.UI
         public override void ApplyChanges()
         {
         }
+
+        void IPropertyRMProvider.StartLiveModification() { viewController.errorRefresh = false; }
+        void IPropertyRMProvider.EndLiveModification() { viewController.errorRefresh = true; }
     }
 }

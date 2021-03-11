@@ -1,4 +1,5 @@
 using System;
+using UnityEngine.Rendering;
 
 namespace UnityEngine.Rendering.HighDefinition
 {
@@ -161,7 +162,10 @@ namespace UnityEngine.Rendering.HighDefinition
         /// <param name="ev"></param>
         /// <returns></returns>
         public static float ConvertEvToLuminance(float ev)
-            => Mathf.Pow(2, ev - 3);
+        {
+            float k = ColorUtils.s_LightMeterCalibrationConstant;
+            return (k / 100.0f) * Mathf.Pow(2, ev);
+        }
 
         /// <summary>
         /// Convert EV100 to Candela
@@ -169,7 +173,7 @@ namespace UnityEngine.Rendering.HighDefinition
         /// <param name="ev"></param>
         /// <returns></returns>
         public static float ConvertEvToCandela(float ev)
-            // From punctual point of view candela and luminance is the same
+        // From punctual point of view candela and luminance is the same
             => ConvertEvToLuminance(ev);
 
         /// <summary>
@@ -179,7 +183,7 @@ namespace UnityEngine.Rendering.HighDefinition
         /// <param name="distance"></param>
         /// <returns></returns>
         public static float ConvertEvToLux(float ev, float distance)
-            // From punctual point of view candela and luminance is the same
+        // From punctual point of view candela and luminance is the same
             => ConvertCandelaToLux(ConvertEvToLuminance(ev), distance);
 
         /// <summary>
@@ -189,7 +193,7 @@ namespace UnityEngine.Rendering.HighDefinition
         /// <returns></returns>
         public static float ConvertLuminanceToEv(float luminance)
         {
-            const float k = 12.5f;
+            float k = ColorUtils.s_LightMeterCalibrationConstant;
             return (float)Math.Log((luminance * 100f) / k, 2);
         }
 
@@ -199,7 +203,7 @@ namespace UnityEngine.Rendering.HighDefinition
         /// <param name="candela"></param>
         /// <returns></returns>
         public static float ConvertCandelaToEv(float candela)
-            // From punctual point of view candela and luminance is the same
+        // From punctual point of view candela and luminance is the same
             => ConvertLuminanceToEv(candela);
 
         /// <summary>
@@ -209,7 +213,7 @@ namespace UnityEngine.Rendering.HighDefinition
         /// <param name="distance"></param>
         /// <returns></returns>
         public static float ConvertLuxToEv(float lux, float distance)
-            // From punctual point of view candela and luminance is the same
+        // From punctual point of view candela and luminance is the same
             => ConvertLuminanceToEv(ConvertLuxToCandela(lux, distance));
 
         // Helper for punctual and area light unit conversion
@@ -487,7 +491,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 // Lux ->
                 else if (oldLightUnit == LightUnit.Lux && newLightUnit == LightUnit.Lumen)
                     intensity = LightUtils.ConvertPunctualLightLuxToLumen(lightType, hdLight.spotLightShape, intensity, hdLight.enableSpotReflector,
-                                                                          light.spotAngle, hdLight.aspectRatio, hdLight.luxAtDistance);
+                        light.spotAngle, hdLight.aspectRatio, hdLight.luxAtDistance);
                 else if (oldLightUnit == LightUnit.Lux && newLightUnit == LightUnit.Candela)
                     intensity = LightUtils.ConvertLuxToCandela(intensity, hdLight.luxAtDistance);
                 else if (oldLightUnit == LightUnit.Lux && newLightUnit == LightUnit.Ev100)
@@ -495,7 +499,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 // EV100 ->
                 else if (oldLightUnit == LightUnit.Ev100 && newLightUnit == LightUnit.Lumen)
                     intensity = LightUtils.ConvertPunctualLightEvToLumen(lightType, hdLight.spotLightShape, intensity, hdLight.enableSpotReflector,
-                                                                         light.spotAngle, hdLight.aspectRatio);
+                        light.spotAngle, hdLight.aspectRatio);
                 else if (oldLightUnit == LightUnit.Ev100 && newLightUnit == LightUnit.Candela)
                     intensity = LightUtils.ConvertEvToCandela(intensity);
                 else if (oldLightUnit == LightUnit.Ev100 && newLightUnit == LightUnit.Lux)

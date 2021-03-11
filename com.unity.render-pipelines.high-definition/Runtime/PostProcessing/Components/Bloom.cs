@@ -25,11 +25,13 @@ namespace UnityEngine.Rendering.HighDefinition
     /// A volume component that holds settings for the Bloom effect.
     /// </summary>
     [Serializable, VolumeComponentMenu("Post-processing/Bloom")]
+    [HelpURL(Documentation.baseURL + Documentation.version + Documentation.subURL + "Post-Processing-Bloom" + Documentation.endURL)]
     public sealed class Bloom : VolumeComponentWithQuality, IPostProcessComponent
     {
         /// <summary>
         /// Set the level of brightness to filter out pixels under this level. This value is expressed in gamma-space. A value above 0 will disregard energy conservation rules.
         /// </summary>
+        [Header("Bloom")]
         [Tooltip("Set the level of brightness to filter out pixels under this level. This value is expressed in gamma-space. A value above 0 will disregard energy conservation rules.")]
         public MinFloatParameter threshold = new MinFloatParameter(0f, 0f);
 
@@ -54,6 +56,7 @@ namespace UnityEngine.Rendering.HighDefinition
         /// <summary>
         /// Specifies a Texture to add smudges or dust to the bloom effect.
         /// </summary>
+        [Header("Lens Dirt")]
         [Tooltip("Specifies a Texture to add smudges or dust to the bloom effect.")]
         public TextureParameter dirtTexture = new TextureParameter(null);
 
@@ -67,6 +70,7 @@ namespace UnityEngine.Rendering.HighDefinition
         /// When enabled, bloom stretches horizontally depending on the current physical Camera's Anamorphism property value.
         /// </summary>
         [Tooltip("When enabled, bloom stretches horizontally depending on the current physical Camera's Anamorphism property value.")]
+        [AdditionalProperty]
         public BoolParameter anamorphic = new BoolParameter(true);
 
         /// <summary>
@@ -91,6 +95,26 @@ namespace UnityEngine.Rendering.HighDefinition
         }
 
         /// <summary>
+        /// When enabled, bloom uses multiple bilinear samples for the prefiltering pass.
+        /// </summary>
+        public bool highQualityPrefiltering
+        {
+            get
+            {
+                if (!UsesQualitySettings())
+                {
+                    return m_HighQualityPrefiltering.value;
+                }
+                else
+                {
+                    int qualityLevel = (int)quality.levelAndOverride.level;
+                    return GetPostProcessingQualitySettings().BloomHighQualityPrefiltering[qualityLevel];
+                }
+            }
+            set { m_HighQualityPrefiltering.value = value; }
+        }
+
+        /// <summary>
         /// When enabled, bloom uses bicubic sampling instead of bilinear sampling for the upsampling passes.
         /// </summary>
         public bool highQualityFiltering
@@ -110,10 +134,18 @@ namespace UnityEngine.Rendering.HighDefinition
             set { m_HighQualityFiltering.value = value; }
         }
 
+        [Header("Advanced Tweaks")]
+        [AdditionalProperty]
         [Tooltip("Specifies the resolution at which HDRP processes the effect. Quarter resolution is less resource intensive but can result in aliasing artifacts.")]
         [SerializeField, FormerlySerializedAs("resolution")]
         private BloomResolutionParameter m_Resolution = new BloomResolutionParameter(BloomResolution.Half);
 
+        [AdditionalProperty]
+        [Tooltip("When enabled, bloom uses multiple bilinear samples for the prefiltering pass.")]
+        [SerializeField]
+        private BoolParameter m_HighQualityPrefiltering = new BoolParameter(false);
+
+        [AdditionalProperty]
         [Tooltip("When enabled, bloom uses bicubic sampling instead of bilinear sampling for the upsampling passes.")]
         [SerializeField, FormerlySerializedAs("highQualityFiltering")]
         private BoolParameter m_HighQualityFiltering = new BoolParameter(true);
@@ -139,6 +171,6 @@ namespace UnityEngine.Rendering.HighDefinition
         /// </summary>
         /// <param name="value">The initial value to store in the parameter.</param>
         /// <param name="overrideState">The initial override state for the parameter.</param>
-        public BloomResolutionParameter(BloomResolution value, bool overrideState = false) : base(value, overrideState) { }
+        public BloomResolutionParameter(BloomResolution value, bool overrideState = false) : base(value, overrideState) {}
     }
 }

@@ -65,7 +65,7 @@ namespace UnityEngine.Rendering
             bool useDynamicScale = false,
             RenderTextureMemoryless memoryless = RenderTextureMemoryless.None,
             string name = ""
-            )
+        )
         {
             return s_DefaultInstance.Alloc(
                 width,
@@ -87,7 +87,7 @@ namespace UnityEngine.Rendering
                 useDynamicScale,
                 memoryless,
                 name
-                );
+            );
         }
 
         /// <summary>
@@ -131,7 +131,7 @@ namespace UnityEngine.Rendering
             bool useDynamicScale = false,
             RenderTextureMemoryless memoryless = RenderTextureMemoryless.None,
             string name = ""
-            )
+        )
         {
             return s_DefaultInstance.Alloc(
                 scaleFactor,
@@ -152,7 +152,7 @@ namespace UnityEngine.Rendering
                 useDynamicScale,
                 memoryless,
                 name
-                );
+            );
         }
 
         /// <summary>
@@ -196,7 +196,7 @@ namespace UnityEngine.Rendering
             bool useDynamicScale = false,
             RenderTextureMemoryless memoryless = RenderTextureMemoryless.None,
             string name = ""
-            )
+        )
         {
             return s_DefaultInstance.Alloc(
                 scaleFunc,
@@ -217,7 +217,7 @@ namespace UnityEngine.Rendering
                 useDynamicScale,
                 memoryless,
                 name
-                );
+            );
         }
 
         /// <summary>
@@ -231,6 +231,16 @@ namespace UnityEngine.Rendering
         }
 
         /// <summary>
+        /// Allocate a RTHandle from a regular RenderTexture for the default RTHandle system.
+        /// </summary>
+        /// <param name="tex">Input texture</param>
+        /// <returns>A new RTHandle referencing the input texture.</returns>
+        public static RTHandle Alloc(RenderTexture tex)
+        {
+            return s_DefaultInstance.Alloc(tex);
+        }
+
+        /// <summary>
         /// Allocate a RTHandle from a regular render target identifier for the default RTHandle system.
         /// </summary>
         /// <param name="tex">Input render target identifier.</param>
@@ -238,6 +248,17 @@ namespace UnityEngine.Rendering
         public static RTHandle Alloc(RenderTargetIdentifier tex)
         {
             return s_DefaultInstance.Alloc(tex);
+        }
+
+        /// <summary>
+        /// Allocate a RTHandle from a regular render target identifier for the default RTHandle system.
+        /// </summary>
+        /// <param name="tex">Input render target identifier.</param>
+        /// <param name="name">Name of the render target.</param>
+        /// <returns>A new RTHandle referencing the input render target identifier.</returns>
+        public static RTHandle Alloc(RenderTargetIdentifier tex, string name)
+        {
+            return s_DefaultInstance.Alloc(tex, name);
         }
 
         private static RTHandle Alloc(RTHandle tex)
@@ -258,14 +279,14 @@ namespace UnityEngine.Rendering
             int height,
             bool scaledRTsupportsMSAA,
             MSAASamples scaledRTMSAASamples
-            )
+        )
         {
             s_DefaultInstance.Initialize(
                 width,
                 height,
                 scaledRTsupportsMSAA,
                 scaledRTMSAASamples
-                );
+            );
         }
 
         /// <summary>
@@ -296,13 +317,23 @@ namespace UnityEngine.Rendering
             int width,
             int height,
             MSAASamples msaaSamples
-            )
+        )
         {
             s_DefaultInstance.SetReferenceSize(
                 width,
                 height,
                 msaaSamples
-                );
+            );
+        }
+
+        /// <summary>
+        /// Reset the reference size of the system and reallocate all textures.
+        /// </summary>
+        /// <param name="width">New width.</param>
+        /// <param name="height">New height.</param>
+        public static void ResetReferenceSize(int width, int height)
+        {
+            s_DefaultInstance.ResetReferenceSize(width, height);
         }
     }
 }

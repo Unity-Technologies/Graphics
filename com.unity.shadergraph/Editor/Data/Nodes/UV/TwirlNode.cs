@@ -11,7 +11,6 @@ namespace UnityEditor.ShaderGraph
             name = "Twirl";
         }
 
-
         protected override MethodInfo GetFunctionToConvert()
         {
             return GetType().GetMethod("Unity_Twirl", BindingFlags.Static | BindingFlags.NonPublic);
@@ -27,7 +26,7 @@ namespace UnityEditor.ShaderGraph
             Out = Vector2.zero;
 
             return
-                @"
+@"
 {
     $precision2 delta = UV - Center;
     $precision angle = Strength * length(delta);

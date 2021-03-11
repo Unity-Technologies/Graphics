@@ -46,6 +46,8 @@ namespace UnityEditor.ShaderGraph
             set { m_Value = value; }
         }
 
+        public override bool isDefaultValue => value.Equals(defaultValue);
+
         protected override string ConcreteSlotValueAsVariable()
         {
             return "$precision2x2 (1,0,0,1)";
@@ -97,6 +99,5 @@ namespace UnityEditor.ShaderGraph
                 m_DefaultValue = ms.defaultValue;
             }
         }
-
     }
 }

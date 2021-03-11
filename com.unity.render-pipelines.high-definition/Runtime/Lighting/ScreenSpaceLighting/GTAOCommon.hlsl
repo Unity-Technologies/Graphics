@@ -26,6 +26,7 @@
 #define _StepSize _AOParams3.w
 #define _AOTemporalUpperNudgeLimit _AOParams4.y
 #define _AOTemporalLowerNudgeLimit _AOParams4.z
+#define _AOSpatialBilateralAggressiveness _AOParams4.w
 
 
 // If this is set to 0 best quality is achieved when full res, but performance is significantly lower.

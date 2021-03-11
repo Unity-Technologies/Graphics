@@ -4,6 +4,7 @@ using UnityEditor.Graphing;
 using UnityEditor.ShaderGraph.Drawing.Controls;
 using UnityEditor.ShaderGraph.Internal;
 using UnityEngine;
+using Random = UnityEngine.Random;
 
 namespace UnityEditor.ShaderGraph
 {
@@ -15,7 +16,6 @@ namespace UnityEditor.ShaderGraph
             name = "Flipbook";
             UpdateNodeAfterDeserialization();
         }
-
 
         const int UVSlotId = 0;
         const int WidthSlotId = 1;
@@ -35,7 +35,16 @@ namespace UnityEditor.ShaderGraph
 
         string GetFunctionName()
         {
-            return $"Unity_Flipbook_{concretePrecision.ToShaderString()}";
+            string invertText = string.Empty;
+
+            if (m_InvertX && m_InvertY)
+                invertText = "InvertXY_";
+            else if (m_InvertX)
+                invertText = "InvertX_";
+            else if (m_InvertY)
+                invertText = "InvertY_";
+
+            return $"Unity_Flipbook_{invertText}$precision";
         }
 
         public sealed override void UpdateNodeAfterDeserialization()
@@ -60,7 +69,7 @@ namespace UnityEditor.ShaderGraph
                 if (m_InvertX == value.isOn)
                     return;
                 m_InvertX = value.isOn;
-                Dirty(ModificationScope.Node);
+                Dirty(ModificationScope.Graph);
             }
         }
 
@@ -76,7 +85,7 @@ namespace UnityEditor.ShaderGraph
                 if (m_InvertY == value.isOn)
                     return;
                 m_InvertY = value.isOn;
-                Dirty(ModificationScope.Node);
+                Dirty(ModificationScope.Graph);
             }
         }
 
@@ -124,23 +133,45 @@ namespace UnityEditor.ShaderGraph
         public void GenerateNodeFunction(FunctionRegistry registry, GenerationMode generationMode)
         {
             registry.ProvideFunction(GetFunctionName(), s =>
+            {
+                s.AppendLine("void {0} ({1} UV, {2} Width, {3} Height, {4} Tile, $precision2 Invert, out {5} Out)",
+                    GetFunctionName(),
+                    FindInputSlot<MaterialSlot>(UVSlotId).concreteValueType.ToShaderString(),
+                    FindInputSlot<MaterialSlot>(WidthSlotId).concreteValueType.ToShaderString(),
+                    FindInputSlot<MaterialSlot>(HeightSlotId).concreteValueType.ToShaderString(),
+                    FindInputSlot<MaterialSlot>(TileSlotId).concreteValueType.ToShaderString(),
+                    FindOutputSlot<MaterialSlot>(OutputSlotId).concreteValueType.ToShaderString());
+                using (s.BlockScope())
                 {
-                    s.AppendLine("void {0} ({1} UV, {2} Width, {3} Height, {4} Tile, $precision2 Invert, out {5} Out)",
-                        GetFunctionName(),
-                        FindInputSlot<MaterialSlot>(UVSlotId).concreteValueType.ToShaderString(),
-                        FindInputSlot<MaterialSlot>(WidthSlotId).concreteValueType.ToShaderString(),
-                        FindInputSlot<MaterialSlot>(HeightSlotId).concreteValueType.ToShaderString(),
-                        FindInputSlot<MaterialSlot>(TileSlotId).concreteValueType.ToShaderString(),
-                        FindOutputSlot<MaterialSlot>(OutputSlotId).concreteValueType.ToShaderString());
-                    using (s.BlockScope())
-                    {
-                        s.AppendLine("Tile = fmod(Tile, Width*Height);");
-                        s.AppendLine("$precision2 tileCount = $precision2(1.0, 1.0) / $precision2(Width, Height);");
-                        s.AppendLine("$precision tileY = abs(Invert.y * Height - (floor(Tile * tileCount.x) + Invert.y * 1));");
-                        s.AppendLine("$precision tileX = abs(Invert.x * Width - ((Tile - Width * floor(Tile * tileCount.x)) + Invert.x * 1));");
-                        s.AppendLine("Out = (UV + $precision2(tileX, tileY)) * tileCount;");
-                    }
-                });
+                    s.AppendLine("Tile = floor(fmod(Tile + $precision(0.00001), Width*Height));");
+                    s.AppendLine("$precision2 tileCount = $precision2(1.0, 1.0) / $precision2(Width, Height);");
+
+                    AppendInvertSpecificLines(s);
+
+                    s.AppendLine("Out = (UV + $precision2(tileX, tileY)) * tileCount;");
+                }
+            });
+        }
+
+        private void AppendInvertSpecificLines(ShaderStringBuilder stringBuilder)
+        {
+            if (m_InvertX)
+            {
+                stringBuilder.AppendLine("$precision tileX = (Invert.x * Width - ((Tile - Width * floor(Tile * tileCount.x)) + Invert.x * 1));");
+            }
+            else
+            {
+                stringBuilder.AppendLine("$precision tileX = (Tile - Width * floor(Tile * tileCount.x));");
+            }
+
+            if (m_InvertY)
+            {
+                stringBuilder.AppendLine("$precision tileY = (Invert.y * Height - (floor(Tile * tileCount.x) + Invert.y * 1));");
+            }
+            else
+            {
+                stringBuilder.AppendLine("$precision tileY = (floor(Tile * tileCount.x));");
+            }
         }
 
         public bool RequiresMeshUV(UVChannel channel, ShaderStageCapability stageCapability)

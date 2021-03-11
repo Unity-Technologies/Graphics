@@ -11,7 +11,6 @@ namespace UnityEditor.ShaderGraph
             name = "Branch";
         }
 
-
         protected override MethodInfo GetFunctionToConvert()
         {
             return GetType().GetMethod("Unity_Branch", BindingFlags.Static | BindingFlags.NonPublic);
@@ -24,7 +23,7 @@ namespace UnityEditor.ShaderGraph
             [Slot(3, Binding.None)] out DynamicDimensionVector Out)
         {
             return
-                @"
+@"
 {
     Out = Predicate ? True : False;
 }

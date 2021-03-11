@@ -16,7 +16,7 @@ namespace UnityEditor.Rendering.HighDefinition
         bool showChromeGizmo { get; set; }
     }
 
-    abstract class HDProbeEditor<TProvider, TSerialized> : Editor, IHDProbeEditor
+    abstract class HDProbeEditor<TProvider, TSerialized> : Editor, IHDProbeEditor, IDefaultFrameSettingsType
         where TProvider : struct, HDProbeUI.IProbeUISettingsProvider, InfluenceVolumeUI.IInfluenceUISettingsProvider
         where TSerialized : SerializedHDProbe
     {
@@ -71,6 +71,8 @@ namespace UnityEditor.Rendering.HighDefinition
 
             foreach (var target in serializedObject.targetObjects)
                 s_Editors[(Component)target] = this;
+
+            HDProbeUI.RegisterEditor(this);
         }
 
         protected virtual void OnDisable()
@@ -80,6 +82,8 @@ namespace UnityEditor.Rendering.HighDefinition
                 if (target != null && !target.Equals(null))
                     s_Editors.Remove((Component)target);
             }
+
+            HDProbeUI.UnregisterEditor(this);
         }
 
         protected virtual void Draw(TSerialized serialized, Editor owner)
@@ -95,24 +99,22 @@ namespace UnityEditor.Rendering.HighDefinition
                 CoreEditorDrawer<TSerialized>.FoldoutGroup(HDProbeUI.k_InfluenceVolumeHeader, HDProbeUI.Expandable.Influence, HDProbeUI.k_ExpandedState,
                     HDProbeUI.Drawer<TProvider>.DrawInfluenceSettings,
                     HDProbeUI.Drawer_DifferentShapeError
-                ),
-                CoreEditorDrawer<TSerialized>.AdvancedFoldoutGroup(HDProbeUI.k_CaptureSettingsHeader, HDProbeUI.Expandable.Capture, HDProbeUI.k_ExpandedState,
-                    (s, o) => s.GetEditorOnlyData(SerializedHDProbe.EditorOnlyData.CaptureSettingsIsAdvanced),
-                    (s, o) => s.ToggleEditorOnlyData(SerializedHDProbe.EditorOnlyData.CaptureSettingsIsAdvanced),
+                    ),
+                CoreEditorDrawer<TSerialized>.AdditionalPropertiesFoldoutGroup(HDProbeUI.k_CaptureSettingsHeader, HDProbeUI.Expandable.Capture, HDProbeUI.k_ExpandedState, HDProbeUI.AdditionalProperties.Capture, HDProbeUI.k_AdditionalPropertiesState,
                     CoreEditorDrawer<TSerialized>.Group(
                         DrawAdditionalCaptureSettings,
                         HDProbeUI.Drawer<TProvider>.DrawCaptureSettings
+                        ),
+                    HDProbeUI.Drawer<TProvider>.DrawCaptureSettingsAdditionalProperties
                     ),
-                    HDProbeUI.Drawer<TProvider>.DrawAdvancedCaptureSettings
-                ),
                 CoreEditorDrawer<TSerialized>.FoldoutGroup(HDProbeUI.k_CustomSettingsHeader, HDProbeUI.Expandable.Custom, HDProbeUI.k_ExpandedState,
                     HDProbeUI.Drawer<TProvider>.DrawCustomSettings),
                 CoreEditorDrawer<TSerialized>.Group(HDProbeUI.Drawer<TProvider>.DrawBakeButton)
             ).Draw(serialized, owner);
         }
 
-        protected virtual void DrawHandles(TSerialized serialized, Editor owner) { }
-        protected virtual void DrawAdditionalCaptureSettings(TSerialized serialiezed, Editor owner) { }
+        protected virtual void DrawHandles(TSerialized serialized, Editor owner) {}
+        protected virtual void DrawAdditionalCaptureSettings(TSerialized serialiezed, Editor owner) {}
 
         protected void OnSceneGUI()
         {
@@ -140,7 +142,13 @@ namespace UnityEditor.Rendering.HighDefinition
             );
             return lambda.Compile();
         }
+
         internal static float capturePointPreviewSize
         { get { return s_CapturePointPreviewSizeGetter(); } }
+
+        public FrameSettingsRenderType GetFrameSettingsType()
+            => GetTarget(target).mode == ProbeSettings.Mode.Realtime
+            ? FrameSettingsRenderType.RealtimeReflection
+            : FrameSettingsRenderType.CustomOrBakedReflection;
     }
 }

@@ -7,7 +7,8 @@ namespace UnityEngine.Rendering.HighDefinition.Compositor
 {
     // Custom post-processing pass that performs chroma keying
     // Shader adapted from: https://github.com/keijiro/ProcAmp
-    [Serializable]
+    // Use VolumeComponentDeprecated to hide the component from the volume menu (it's for internal use only)
+    [Serializable, VolumeComponentDeprecated]
     internal sealed class ChromaKeying : CustomPostProcessVolumeComponent, IPostProcessComponent
     {
         internal class ShaderIDs
@@ -35,7 +36,8 @@ namespace UnityEngine.Rendering.HighDefinition.Compositor
         {
             Debug.Assert(m_Material != null);
 
-            AdditionalCompositorData layerData = camera.camera.gameObject.GetComponent<AdditionalCompositorData>();
+            AdditionalCompositorData layerData = null;
+            camera.camera.gameObject.TryGetComponent<AdditionalCompositorData>(out layerData);
 
             if (activate.value == false || layerData == null || layerData.layerFilters == null)
             {

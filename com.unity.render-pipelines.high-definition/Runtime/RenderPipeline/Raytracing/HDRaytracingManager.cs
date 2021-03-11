@@ -1,6 +1,6 @@
 using System.Collections.Generic;
 using UnityEngine.Experimental.Rendering;
-using UnityEngine.Experimental.Rendering.HighDefinition;
+using UnityEngine.Experimental.Rendering.RenderGraphModule;
 
 namespace UnityEngine.Rendering.HighDefinition
 {
@@ -28,20 +28,6 @@ namespace UnityEngine.Rendering.HighDefinition
         MissingMesh = 0x10
     }
 
-    internal enum InternalRayTracingBuffers
-    {
-        Distance,
-        Direction,
-        R0,
-        R1,
-        RG0,
-        RG1,
-        RGBA0,
-        RGBA1,
-        RGBA2,
-        RGBA3
-    }
-
     class HDRayTracingLights
     {
         // The list of non-directional lights in the sub-scene
@@ -64,128 +50,82 @@ namespace UnityEngine.Rendering.HighDefinition
     {
         // Data used for runtime evaluation
         RayTracingAccelerationStructure m_CurrentRAS = new RayTracingAccelerationStructure();
-        HDRaytracingLightCluster m_RayTracingLightCluster = new HDRaytracingLightCluster();
+        HDRaytracingLightCluster m_RayTracingLightCluster;
         HDRayTracingLights m_RayTracingLights = new HDRayTracingLights();
         bool m_ValidRayTracingState = false;
         bool m_ValidRayTracingCluster = false;
         bool m_ValidRayTracingClusterCulling = false;
+        bool m_RayTracedShadowsRequired = false;
+        bool m_RayTracedContactShadowsRequired = false;
 
         // Denoisers
-        HDTemporalFilter m_TemporalFilter = new HDTemporalFilter();
-        HDSimpleDenoiser m_SimpleDenoiser = new HDSimpleDenoiser();
-        HDDiffuseDenoiser m_DiffuseDenoiser = new HDDiffuseDenoiser();
-        HDReflectionDenoiser m_ReflectionDenoiser = new HDReflectionDenoiser();
-        HDDiffuseShadowDenoiser m_DiffuseShadowDenoiser = new HDDiffuseShadowDenoiser();
+        HDTemporalFilter m_TemporalFilter;
+        HDSimpleDenoiser m_SimpleDenoiser;
+        HDDiffuseDenoiser m_DiffuseDenoiser;
+        HDReflectionDenoiser m_ReflectionDenoiser;
+        HDDiffuseShadowDenoiser m_DiffuseShadowDenoiser;
+        SSGIDenoiser m_SSGIDenoiser;
 
         // Ray-count manager data
-        RayCountManager m_RayCountManager = new RayCountManager();
+        RayCountManager m_RayCountManager;
 
         const int maxNumSubMeshes = 32;
         Dictionary<int, int> m_RayTracingRendererReference = new Dictionary<int, int>();
-        bool[] subMeshFlagArray = new bool[maxNumSubMeshes];
-        bool[] subMeshCutoffArray = new bool[maxNumSubMeshes];
-        bool[] subMeshTransparentArray = new bool[maxNumSubMeshes];
+        RayTracingSubMeshFlags[] subMeshFlagArray = new RayTracingSubMeshFlags[maxNumSubMeshes];
         ReflectionProbe reflectionProbe = new ReflectionProbe();
         List<Material> materialArray = new List<Material>(maxNumSubMeshes);
 
-        // Used to detect material changes for Path Tracing
+        // Used to detect material and transform changes for Path Tracing
         Dictionary<int, int> m_MaterialCRCs = new Dictionary<int, int>();
         bool m_MaterialsDirty = false;
+        bool m_TransformDirty = false;
 
-        // Ray Direction/Distance buffers
-        RTHandle m_RayTracingDirectionBuffer;
-        RTHandle m_RayTracingDistanceBuffer;
-
-        // Set of intermediate textures that will be used by ray tracing effects
-        RTHandle m_RayTracingIntermediateBufferR0;
-        RTHandle m_RayTracingIntermediateBufferR1;
-        RTHandle m_RayTracingIntermediateBufferRG0;
-        RTHandle m_RayTracingIntermediateBufferRG1;
-        RTHandle m_RayTracingIntermediateBufferRGBA0;
-        RTHandle m_RayTracingIntermediateBufferRGBA1;
-        RTHandle m_RayTracingIntermediateBufferRGBA2;
-        RTHandle m_RayTracingIntermediateBufferRGBA3;
-
-        internal RTHandle GetRayTracingBuffer(InternalRayTracingBuffers bufferID)
-        {
-            switch (bufferID)
-            {
-                case InternalRayTracingBuffers.Distance:
-                    return m_RayTracingDistanceBuffer;
-                case InternalRayTracingBuffers.Direction:
-                    return m_RayTracingDirectionBuffer;
-                case InternalRayTracingBuffers.R0:
-                    return m_RayTracingIntermediateBufferR0;
-                case InternalRayTracingBuffers.R1:
-                    return m_RayTracingIntermediateBufferR1;
-                case InternalRayTracingBuffers.RG0:
-                    return m_RayTracingIntermediateBufferRG0;
-                case InternalRayTracingBuffers.RG1:
-                    return m_RayTracingIntermediateBufferRG1;
-                case InternalRayTracingBuffers.RGBA0:
-                    return m_RayTracingIntermediateBufferRGBA0;
-                case InternalRayTracingBuffers.RGBA1:
-                    return m_RayTracingIntermediateBufferRGBA1;
-                case InternalRayTracingBuffers.RGBA2:
-                    return m_RayTracingIntermediateBufferRGBA2;
-                case InternalRayTracingBuffers.RGBA3:
-                    return m_RayTracingIntermediateBufferRGBA3;
-                default:
-                    return null;
-            }
-        }
+        ShaderVariablesRaytracingLightLoop m_ShaderVariablesRaytracingLightLoopCB = new ShaderVariablesRaytracingLightLoop();
 
         internal void InitRayTracingManager()
         {
-            // Init the denoisers
-            m_TemporalFilter.Init(m_Asset.renderPipelineRayTracingResources, m_SharedRTManager, this);
-            m_SimpleDenoiser.Init(m_Asset.renderPipelineRayTracingResources, m_SharedRTManager, this);
-            m_DiffuseDenoiser.Init(m_Asset.renderPipelineResources, m_Asset.renderPipelineRayTracingResources, m_SharedRTManager, this);
-            m_ReflectionDenoiser.Init(m_Asset.renderPipelineRayTracingResources, m_SharedRTManager, this);
-            m_DiffuseShadowDenoiser.Init(m_Asset.renderPipelineRayTracingResources, m_SharedRTManager, this);
-
             // Init the ray count manager
+            m_RayCountManager = new RayCountManager();
             m_RayCountManager.Init(m_Asset.renderPipelineRayTracingResources);
 
             // Build the light cluster
+            m_RayTracingLightCluster = new HDRaytracingLightCluster();
             m_RayTracingLightCluster.Initialize(this);
-
-            // Allocate the direction and instance buffers
-            m_RayTracingDirectionBuffer = RTHandles.Alloc(Vector2.one, TextureXR.slices, colorFormat: GraphicsFormat.R16G16B16A16_SFloat, dimension: TextureXR.dimension, enableRandomWrite: true, useDynamicScale: true,useMipMap: false, name: "RaytracingDirectionBuffer");
-            m_RayTracingDistanceBuffer = RTHandles.Alloc(Vector2.one, TextureXR.slices, colorFormat: GraphicsFormat.R32_SFloat, dimension: TextureXR.dimension, enableRandomWrite: true, useDynamicScale: true, useMipMap: false, name: "RaytracingDistanceBuffer");
-
-            // Allocate the intermediate buffers
-            m_RayTracingIntermediateBufferR0 = RTHandles.Alloc(Vector2.one, TextureXR.slices, colorFormat: GraphicsFormat.R8_SNorm, dimension: TextureXR.dimension, enableRandomWrite: true, useDynamicScale: true, useMipMap: false, name: "RayTracingIntermediateBufferR0");
-            m_RayTracingIntermediateBufferR1 = RTHandles.Alloc(Vector2.one, TextureXR.slices, colorFormat: GraphicsFormat.R8_SNorm, dimension: TextureXR.dimension, enableRandomWrite: true, useDynamicScale: true, useMipMap: false, name: "RayTracingIntermediateBufferR1");
-            m_RayTracingIntermediateBufferRG0 = RTHandles.Alloc(Vector2.one, TextureXR.slices, colorFormat: GraphicsFormat.R16G16_SFloat, dimension: TextureXR.dimension, enableRandomWrite: true, useDynamicScale: true, useMipMap: false, name: "RayTracingIntermediateBufferRG0");
-            m_RayTracingIntermediateBufferRG1 = RTHandles.Alloc(Vector2.one, TextureXR.slices, colorFormat: GraphicsFormat.R16G16_SFloat, dimension: TextureXR.dimension, enableRandomWrite: true, useDynamicScale: true, useMipMap: false, name: "RayTracingIntermediateBufferRG1");
-            m_RayTracingIntermediateBufferRGBA0 = RTHandles.Alloc(Vector2.one, TextureXR.slices, colorFormat: GraphicsFormat.R16G16B16A16_SFloat, dimension: TextureXR.dimension, enableRandomWrite: true, useDynamicScale: true, useMipMap: false, name: "RayTracingIntermediateBufferRGBA0");
-            m_RayTracingIntermediateBufferRGBA1 = RTHandles.Alloc(Vector2.one, TextureXR.slices, colorFormat: GraphicsFormat.R16G16B16A16_SFloat, dimension: TextureXR.dimension, enableRandomWrite: true, useDynamicScale: true, useMipMap: false, name: "RayTracingIntermediateBufferRGBA1");
-            m_RayTracingIntermediateBufferRGBA2 = RTHandles.Alloc(Vector2.one, TextureXR.slices, colorFormat: GraphicsFormat.R16G16B16A16_SFloat, dimension: TextureXR.dimension, enableRandomWrite: true, useDynamicScale: true, useMipMap: false, name: "RayTracingIntermediateBufferRGBA2");
-            m_RayTracingIntermediateBufferRGBA3 = RTHandles.Alloc(Vector2.one, TextureXR.slices, colorFormat: GraphicsFormat.R16G16B16A16_SFloat, dimension: TextureXR.dimension, enableRandomWrite: true, useDynamicScale: true, useMipMap: false, name: "RayTracingIntermediateBufferRGBA3");
         }
 
         internal void ReleaseRayTracingManager()
         {
-            RTHandles.Release(m_RayTracingDistanceBuffer);
-            RTHandles.Release(m_RayTracingDirectionBuffer);
+            if (m_RayTracingLightCluster != null)
+                m_RayTracingLightCluster.ReleaseResources();
+            if (m_RayCountManager != null)
+                m_RayCountManager.Release();
 
-            RTHandles.Release(m_RayTracingIntermediateBufferR1);
-            RTHandles.Release(m_RayTracingIntermediateBufferR0);
-            RTHandles.Release(m_RayTracingIntermediateBufferRG1);
-            RTHandles.Release(m_RayTracingIntermediateBufferRG0);
-            RTHandles.Release(m_RayTracingIntermediateBufferRGBA0);
-            RTHandles.Release(m_RayTracingIntermediateBufferRGBA1);
-            RTHandles.Release(m_RayTracingIntermediateBufferRGBA2);
-            RTHandles.Release(m_RayTracingIntermediateBufferRGBA3);
+            if (m_ReflectionDenoiser != null)
+                m_ReflectionDenoiser.Release();
+            if (m_TemporalFilter != null)
+                m_TemporalFilter.Release();
+            if (m_SimpleDenoiser != null)
+                m_SimpleDenoiser.Release();
+            if (m_SSGIDenoiser != null)
+                m_SSGIDenoiser.Release();
+            if (m_DiffuseShadowDenoiser != null)
+                m_DiffuseShadowDenoiser.Release();
+            if (m_DiffuseDenoiser != null)
+                m_DiffuseDenoiser.Release();
+        }
 
-            m_RayTracingLightCluster.ReleaseResources();
-            m_ReflectionDenoiser.Release();
-            m_TemporalFilter.Release();
-            m_SimpleDenoiser.Release();
-            m_DiffuseDenoiser.Release();
-            m_RayCountManager.Release();
-            m_DiffuseShadowDenoiser.Release();
+        static bool IsTransparentMaterial(Material currentMaterial)
+        {
+            return currentMaterial.IsKeywordEnabled("_SURFACE_TYPE_TRANSPARENT")
+                || (HDRenderQueue.k_RenderQueue_Transparent.lowerBound <= currentMaterial.renderQueue
+                    && HDRenderQueue.k_RenderQueue_Transparent.upperBound >= currentMaterial.renderQueue);
+        }
+
+        static bool IsAlphaTestedMaterial(Material currentMaterial)
+        {
+            return currentMaterial.IsKeywordEnabled("_ALPHATEST_ON")
+                || (HDRenderQueue.k_RenderQueue_OpaqueAlphaTest.lowerBound <= currentMaterial.renderQueue
+                    && HDRenderQueue.k_RenderQueue_OpaqueAlphaTest.upperBound >= currentMaterial.renderQueue);
         }
 
         AccelerationStructureStatus AddInstanceToRAS(Renderer currentRenderer,
@@ -216,6 +156,9 @@ namespace UnityEngine.Rendering.HighDefinition
                 numSubMeshes = skinnedMesh.sharedMesh.subMeshCount;
             }
 
+            // Let's clamp the number of sub-meshes to avoid throwing an unwated error
+            numSubMeshes = Mathf.Min(numSubMeshes, maxNumSubMeshes);
+
             // Get the layer of this object
             int objectLayerValue = 1 << currentRenderer.gameObject.layer;
 
@@ -226,35 +169,43 @@ namespace UnityEngine.Rendering.HighDefinition
             bool materialIsOnlyTransparent = true;
             bool hasTransparentSubMaterial = false;
 
+            // We disregard the ray traced shadows option when in Path Tracing
+            rayTracedShadow &= !pathTracingEnabled;
+
+            // Deactivate Path Tracing if the object does not belong to the path traced layer(s)
+            pathTracingEnabled &= (bool)((ptLayerValue & objectLayerValue) != 0);
+
             for (int meshIdx = 0; meshIdx < numSubMeshes; ++meshIdx)
             {
-                // Intially we consider the potential mesh as invalid
+                // Initially we consider the potential mesh as invalid
                 bool validMesh = false;
                 if (materialArray.Count > meshIdx)
                 {
                     // Grab the material for the current sub-mesh
                     Material currentMaterial = materialArray[meshIdx];
 
-                    // The material is transparent if either it has the requested keyword or is in the transparent queue range
-                    if (currentMaterial != null)
+                    // Make sure that the material is both non-null and non-decal
+                    if (currentMaterial != null && !DecalSystem.IsDecalMaterial(currentMaterial))
                     {
                         // Mesh is valid given that all requirements are ok
                         validMesh = true;
-                        subMeshFlagArray[meshIdx] = true;
 
-                        // Is the sub material transparent?
-                        subMeshTransparentArray[meshIdx] = currentMaterial.IsKeywordEnabled("_SURFACE_TYPE_TRANSPARENT")
-                        || (HDRenderQueue.k_RenderQueue_Transparent.lowerBound <= currentMaterial.renderQueue
-                        && HDRenderQueue.k_RenderQueue_Transparent.upperBound >= currentMaterial.renderQueue);
+                        // First mark the thing as valid
+                        subMeshFlagArray[meshIdx] = RayTracingSubMeshFlags.Enabled;
 
-                        // aggregate the transparency info
-                        materialIsOnlyTransparent &= subMeshTransparentArray[meshIdx];
-                        hasTransparentSubMaterial |= subMeshTransparentArray[meshIdx];
+                        // Evaluate what kind of materials we are dealing with
+                        bool alphaTested = IsAlphaTestedMaterial(currentMaterial);
+                        bool transparentMaterial = IsTransparentMaterial(currentMaterial);
 
-                        // Is the material alpha tested?
-                        subMeshCutoffArray[meshIdx] = currentMaterial.IsKeywordEnabled("_ALPHATEST_ON")
-                        || (HDRenderQueue.k_RenderQueue_OpaqueAlphaTest.lowerBound <= currentMaterial.renderQueue
-                        && HDRenderQueue.k_RenderQueue_OpaqueAlphaTest.upperBound >= currentMaterial.renderQueue);
+                        // Aggregate the transparency info
+                        materialIsOnlyTransparent &= transparentMaterial;
+                        hasTransparentSubMaterial |= transparentMaterial;
+
+                        // Append the additional flags depending on what kind of sub mesh this is
+                        if (!transparentMaterial && !alphaTested)
+                            subMeshFlagArray[meshIdx] |= RayTracingSubMeshFlags.ClosestHitOnly;
+                        else if (transparentMaterial)
+                            subMeshFlagArray[meshIdx] |= RayTracingSubMeshFlags.UniqueAnyHitCalls;
 
                         // Force it to be non single sided if it has the keyword if there is a reason
                         bool doubleSided = currentMaterial.doubleSidedGI || currentMaterial.IsKeywordEnabled("_DOUBLESIDED_ON");
@@ -281,23 +232,20 @@ namespace UnityEngine.Rendering.HighDefinition
                 // If the mesh was not valid, exclude it
                 if (!validMesh)
                 {
-                    subMeshFlagArray[meshIdx] = false;
-                    subMeshCutoffArray[meshIdx] = false;
+                    subMeshFlagArray[meshIdx] = RayTracingSubMeshFlags.Disabled;
                     singleSided = true;
                 }
             }
 
-            // If the material is considered opaque, but has some transparent sub-materials
+            // If the material is considered opaque, every sub-mesh has to be enabled and with unique any hit calls
             if (!materialIsOnlyTransparent && hasTransparentSubMaterial)
-            {
                 for (int meshIdx = 0; meshIdx < numSubMeshes; ++meshIdx)
-                {
-                    subMeshCutoffArray[meshIdx] = subMeshTransparentArray[meshIdx] ? true : subMeshCutoffArray[meshIdx];
-                }
-            }
+                    subMeshFlagArray[meshIdx] = RayTracingSubMeshFlags.Enabled | RayTracingSubMeshFlags.UniqueAnyHitCalls;
 
-            // Propagate the opacity mask only if all submaterials are opaque
-            if (!hasTransparentSubMaterial)
+
+            // Propagate the opacity mask only if all sub materials are opaque
+            bool isOpaque = !hasTransparentSubMaterial;
+            if (isOpaque)
             {
                 instanceFlag |= (uint)(RayTracingRendererFlag.Opaque);
             }
@@ -327,33 +275,37 @@ namespace UnityEngine.Rendering.HighDefinition
 
             if (reflEnabled && !materialIsOnlyTransparent && meshIsVisible)
             {
-                // Raise the Screen Space Reflection if needed
+                // Raise the Screen Space Reflection flag if needed
                 instanceFlag |= ((reflLayerValue & objectLayerValue) != 0) ? (uint)(RayTracingRendererFlag.Reflection) : 0x00;
             }
 
             if (giEnabled && !materialIsOnlyTransparent && meshIsVisible)
             {
-                // Raise the Global Illumination if needed
+                // Raise the Global Illumination flag if needed
                 instanceFlag |= ((giLayerValue & objectLayerValue) != 0) ? (uint)(RayTracingRendererFlag.GlobalIllumination) : 0x00;
             }
 
             if (recursiveEnabled && meshIsVisible)
             {
-                // Raise the Global Illumination if needed
+                // Raise the Recursive Rendering flag if needed
                 instanceFlag |= ((rrLayerValue & objectLayerValue) != 0) ? (uint)(RayTracingRendererFlag.RecursiveRendering) : 0x00;
             }
 
             if (pathTracingEnabled && meshIsVisible)
             {
-                // Raise the Global Illumination if needed
-                instanceFlag |= ((ptLayerValue & objectLayerValue) != 0) ? (uint)(RayTracingRendererFlag.PathTracing) : 0x00;
+                // Raise the Path Tracing flag if needed
+                instanceFlag |= (uint)(RayTracingRendererFlag.PathTracing);
             }
 
             // If the object was not referenced
             if (instanceFlag == 0) return AccelerationStructureStatus.Added;
 
             // Add it to the acceleration structure
-            m_CurrentRAS.AddInstance(currentRenderer, subMeshMask: subMeshFlagArray, subMeshTransparencyFlags: subMeshCutoffArray, enableTriangleCulling: singleSided, mask: instanceFlag);
+            m_CurrentRAS.AddInstance(currentRenderer, subMeshFlags: subMeshFlagArray, enableTriangleCulling: singleSided, mask: instanceFlag);
+
+            // Indicates that a transform has changed in our scene (mesh or light)
+            m_TransformDirty |= currentRenderer.transform.hasChanged;
+            currentRenderer.transform.hasChanged = false;
 
             // return the status
             return (!materialIsOnlyTransparent && hasTransparentSubMaterial) ? AccelerationStructureStatus.TransparencyIssue : AccelerationStructureStatus.Added;
@@ -375,7 +327,15 @@ namespace UnityEngine.Rendering.HighDefinition
             m_ValidRayTracingState = false;
             m_ValidRayTracingCluster = false;
             m_ValidRayTracingClusterCulling = false;
-            bool rayTracedShadow = false;
+            m_RayTracedShadowsRequired = false;
+            m_RayTracedContactShadowsRequired = false;
+
+            // If the camera does not have a ray tracing frame setting or it is a preview camera (due to the fact that the sphere does not exist as a game object we can't create the RTAS) we do not want to build a RTAS
+            if (!hdCamera.frameSettings.IsEnabled(FrameSettingsField.RayTracing))
+                return;
+
+            // We only support ray traced shadows if the camera supports ray traced shadows
+            bool screenSpaceShadowsSupported = hdCamera.frameSettings.IsEnabled(FrameSettingsField.ScreenSpaceShadows);
 
             // fetch all the lights in the scene
             HDAdditionalLightData[] hdLightArray = UnityEngine.GameObject.FindObjectsOfType<HDAdditionalLightData>();
@@ -386,7 +346,12 @@ namespace UnityEngine.Rendering.HighDefinition
                 if (hdLight.enabled)
                 {
                     // Check if there is a ray traced shadow in the scene
-                    rayTracedShadow |= (hdLight.useRayTracedShadows || (hdLight.useContactShadow.@override && hdLight.rayTraceContactShadow));
+                    m_RayTracedShadowsRequired |= (hdLight.useRayTracedShadows && screenSpaceShadowsSupported);
+                    m_RayTracedContactShadowsRequired |= (hdLight.useContactShadow.@override && hdLight.rayTraceContactShadow);
+
+                    // Indicates that a transform has changed in our scene (mesh or light)
+                    m_TransformDirty |= hdLight.transform.hasChanged;
+                    hdLight.transform.hasChanged = false;
 
                     switch (hdLight.type)
                     {
@@ -406,12 +371,15 @@ namespace UnityEngine.Rendering.HighDefinition
                                 case AreaLightShape.Tube:
                                     m_RayTracingLights.hdLineLightArray.Add(hdLight);
                                     break;
-                                //TODO: case AreaLightShape.Disc:
+                                    //TODO: case AreaLightShape.Disc:
                             }
                             break;
                     }
                 }
             }
+
+            // Aggregate the shadow requirement
+            bool rayTracedShadows = m_RayTracedShadowsRequired || m_RayTracedContactShadowsRequired;
 
             m_RayTracingLights.hdLightArray.AddRange(m_RayTracingLights.hdPointLightArray);
             m_RayTracingLights.hdLightArray.AddRange(m_RayTracingLights.hdLineLightArray);
@@ -429,15 +397,27 @@ namespace UnityEngine.Rendering.HighDefinition
             }
 
             m_RayTracingLights.lightCount = m_RayTracingLights.hdPointLightArray.Count
-                                            + m_RayTracingLights.hdLineLightArray.Count
-                                            + m_RayTracingLights.hdRectLightArray.Count
-                                            + m_RayTracingLights.reflectionProbeArray.Count;
+                + m_RayTracingLights.hdLineLightArray.Count
+                + m_RayTracingLights.hdRectLightArray.Count
+                + m_RayTracingLights.reflectionProbeArray.Count;
 
             AmbientOcclusion aoSettings = hdCamera.volumeStack.GetComponent<AmbientOcclusion>();
+            bool rtAOEnabled = aoSettings.rayTracing.value && hdCamera.frameSettings.IsEnabled(FrameSettingsField.SSAO);
             ScreenSpaceReflection reflSettings = hdCamera.volumeStack.GetComponent<ScreenSpaceReflection>();
+            bool rtREnabled = reflSettings.enabled.value && reflSettings.rayTracing.value && hdCamera.frameSettings.IsEnabled(FrameSettingsField.SSR);
             GlobalIllumination giSettings = hdCamera.volumeStack.GetComponent<GlobalIllumination>();
+            bool rtGIEnabled = giSettings.enable.value && giSettings.rayTracing.value && hdCamera.frameSettings.IsEnabled(FrameSettingsField.SSGI);
             RecursiveRendering recursiveSettings = hdCamera.volumeStack.GetComponent<RecursiveRendering>();
+            bool rrEnabled = recursiveSettings.enable.value;
+            SubSurfaceScattering sssSettings = hdCamera.volumeStack.GetComponent<SubSurfaceScattering>();
+            bool rtSSSEnabled = sssSettings.rayTracing.value && hdCamera.frameSettings.IsEnabled(FrameSettingsField.SubsurfaceScattering);
             PathTracing pathTracingSettings = hdCamera.volumeStack.GetComponent<PathTracing>();
+            bool ptEnabled = pathTracingSettings.enable.value;
+
+            // We need to check if we should be building the ray tracing acceleration structure (if required by any effect)
+            bool rayTracingRequired = rtAOEnabled || rtREnabled || rtGIEnabled || rrEnabled || rtSSSEnabled || ptEnabled || rayTracedShadows;
+            if (!rayTracingRequired)
+                return;
 
             // We need to process the emissive meshes of the rectangular area lights
             for (var i = 0; i < m_RayTracingLights.hdRectLightArray.Count; i++)
@@ -450,12 +430,12 @@ namespace UnityEngine.Rendering.HighDefinition
 
                 // This objects should be included into the RAS
                 AddInstanceToRAS(currentRenderer,
-                                rayTracedShadow,
-                                aoSettings.rayTracing.value, aoSettings.layerMask.value,
-                                reflSettings.rayTracing.value, reflSettings.layerMask.value,
-                                giSettings.rayTracing.value, giSettings.layerMask.value,
-                                recursiveSettings.enable.value, recursiveSettings.layerMask.value,
-                                pathTracingSettings.enable.value, pathTracingSettings.layerMask.value);
+                    rayTracedShadows,
+                    rtAOEnabled, aoSettings.layerMask.value,
+                    rtREnabled, reflSettings.layerMask.value,
+                    rtGIEnabled, giSettings.layerMask.value,
+                    rrEnabled, recursiveSettings.layerMask.value,
+                    ptEnabled, pathTracingSettings.layerMask.value);
             }
 
             int matCount = m_MaterialCRCs.Count;
@@ -481,7 +461,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
                             // This objects should but included into the RAS
                             AddInstanceToRAS(currentRenderer,
-                                rayTracedShadow,
+                                rayTracedShadows,
                                 aoSettings.rayTracing.value, aoSettings.layerMask.value,
                                 reflSettings.rayTracing.value, reflSettings.layerMask.value,
                                 giSettings.rayTracing.value, giSettings.layerMask.value,
@@ -527,25 +507,27 @@ namespace UnityEngine.Rendering.HighDefinition
 
                 // This objects should be included into the RAS
                 AddInstanceToRAS(currentRenderer,
-                                rayTracedShadow,
-                                aoSettings.rayTracing.value, aoSettings.layerMask.value,
-                                reflSettings.rayTracing.value, reflSettings.layerMask.value,
-                                giSettings.rayTracing.value, giSettings.layerMask.value,
-                                recursiveSettings.enable.value, recursiveSettings.layerMask.value,
-                                pathTracingSettings.enable.value, pathTracingSettings.layerMask.value);
+                    rayTracedShadows,
+                    aoSettings.rayTracing.value, aoSettings.layerMask.value,
+                    reflSettings.rayTracing.value, reflSettings.layerMask.value,
+                    giSettings.rayTracing.value, giSettings.layerMask.value,
+                    recursiveSettings.enable.value, recursiveSettings.layerMask.value,
+                    pathTracingSettings.enable.value, pathTracingSettings.layerMask.value);
             }
 
             // Check if the amount of materials being tracked has changed
             m_MaterialsDirty |= (matCount != m_MaterialCRCs.Count);
 
-            // build the acceleration structure
-            m_CurrentRAS.Build();
+            if (ShaderConfig.s_CameraRelativeRendering != 0)
+                m_CurrentRAS.Build(hdCamera.camera.transform.position);
+            else
+                m_CurrentRAS.Build();
 
             // tag the structures as valid
             m_ValidRayTracingState = true;
         }
 
-        internal bool ValidRayTracingHistory(HDCamera hdCamera)
+        static internal bool ValidRayTracingHistory(HDCamera hdCamera)
         {
             return hdCamera.historyRTHandleProperties.previousViewportSize.x == hdCamera.actualWidth
                 && hdCamera.historyRTHandleProperties.previousViewportSize.y == hdCamera.actualHeight;
@@ -558,9 +540,19 @@ namespace UnityEngine.Rendering.HighDefinition
                 return 0;
             else
         #endif
-            return hdCamera.IsTAAEnabled() ? hdCamera.taaFrameIndex : (int)m_FrameCount % 8;
+            return (int)hdCamera.GetCameraFrameCount() % 8;
         }
-        
+
+        internal int RayTracingFrameIndex(HDCamera hdCamera, int targetFrameCount = 8)
+        {
+            #if UNITY_HDRP_DXR_TESTS_DEFINE
+            if (Application.isPlaying)
+                return 0;
+            else
+            #endif
+            return (int)hdCamera.GetCameraFrameCount() % targetFrameCount;
+        }
+
         internal bool RayTracingLightClusterRequired(HDCamera hdCamera)
         {
             ScreenSpaceReflection reflSettings = hdCamera.volumeStack.GetComponent<ScreenSpaceReflection>();
@@ -569,18 +561,18 @@ namespace UnityEngine.Rendering.HighDefinition
             PathTracing pathTracingSettings = hdCamera.volumeStack.GetComponent<PathTracing>();
             SubSurfaceScattering subSurface = hdCamera.volumeStack.GetComponent<SubSurfaceScattering>();
 
-            return (m_ValidRayTracingState && (reflSettings.rayTracing.value 
-                                                || giSettings.rayTracing.value 
-                                                || recursiveSettings.enable.value 
-                                                || pathTracingSettings.enable.value 
-                                                || subSurface.rayTracing.value));
+            return (m_ValidRayTracingState && (reflSettings.rayTracing.value
+                || giSettings.rayTracing.value
+                || recursiveSettings.enable.value
+                || pathTracingSettings.enable.value
+                || subSurface.rayTracing.value));
         }
 
         internal void CullForRayTracing(CommandBuffer cmd, HDCamera hdCamera)
         {
             if (m_ValidRayTracingState && RayTracingLightClusterRequired(hdCamera))
             {
-                m_RayTracingLightCluster.CullForRayTracing(cmd, hdCamera, m_RayTracingLights);
+                m_RayTracingLightCluster.CullForRayTracing(hdCamera, m_RayTracingLights);
                 m_ValidRayTracingClusterCulling = true;
             }
         }
@@ -599,7 +591,41 @@ namespace UnityEngine.Rendering.HighDefinition
             {
                 m_RayTracingLightCluster.BuildRayTracingLightData(cmd, hdCamera, m_RayTracingLights, debugDisplaySettings);
                 m_ValidRayTracingCluster = true;
+
+                UpdateShaderVariablesRaytracingLightLoopCB(hdCamera, cmd);
+
+                m_RayTracingLightCluster.BuildLightClusterBuffer(cmd, hdCamera, m_RayTracingLights);
             }
+        }
+
+        static internal float EvaluateHistoryValidity(HDCamera hdCamera)
+        {
+            float historyValidity = 1.0f;
+#if UNITY_HDRP_DXR_TESTS_DEFINE
+            if (Application.isPlaying)
+                historyValidity = 0.0f;
+            else
+#endif
+            // We need to check if something invalidated the history buffers
+            historyValidity *= ValidRayTracingHistory(hdCamera) ? 1.0f : 0.0f;
+            return historyValidity;
+        }
+
+        void UpdateShaderVariablesRaytracingLightLoopCB(HDCamera hdCamera, CommandBuffer cmd)
+        {
+            m_ShaderVariablesRaytracingLightLoopCB._MinClusterPos = m_RayTracingLightCluster.GetMinClusterPos();
+            m_ShaderVariablesRaytracingLightLoopCB._LightPerCellCount = (uint)m_RayTracingLightCluster.GetLightPerCellCount();
+            m_ShaderVariablesRaytracingLightLoopCB._MaxClusterPos = m_RayTracingLightCluster.GetMaxClusterPos();
+            m_ShaderVariablesRaytracingLightLoopCB._PunctualLightCountRT = (uint)m_RayTracingLightCluster.GetPunctualLightCount();
+            m_ShaderVariablesRaytracingLightLoopCB._AreaLightCountRT = (uint)m_RayTracingLightCluster.GetAreaLightCount();
+            m_ShaderVariablesRaytracingLightLoopCB._EnvLightCountRT = (uint)m_RayTracingLightCluster.GetEnvLightCount();
+
+            ConstantBuffer.PushGlobal(cmd, m_ShaderVariablesRaytracingLightLoopCB, HDShaderIDs._ShaderVariablesRaytracingLightLoop);
+        }
+
+        internal bool RayTracedContactShadowsRequired()
+        {
+            return m_RayTracedContactShadowsRequired;
         }
 
         internal RayTracingAccelerationStructure RequestAccelerationStructure()
@@ -627,43 +653,73 @@ namespace UnityEngine.Rendering.HighDefinition
         static internal bool rayTracingSupportedBySystem
             => UnityEngine.SystemInfo.supportsRayTracing
 #if UNITY_EDITOR
-                && (UnityEditor.EditorUserBuildSettings.activeBuildTarget == UnityEditor.BuildTarget.StandaloneWindows64
-                    || UnityEditor.EditorUserBuildSettings.activeBuildTarget == UnityEditor.BuildTarget.StandaloneWindows)
+            && (UnityEditor.EditorUserBuildSettings.activeBuildTarget == UnityEditor.BuildTarget.StandaloneWindows64
+                || UnityEditor.EditorUserBuildSettings.activeBuildTarget == UnityEditor.BuildTarget.StandaloneWindows)
 #endif
-            ;
+        ;
 
         internal BlueNoise GetBlueNoiseManager()
         {
             return m_BlueNoise;
         }
 
-        internal RayCountManager GetRayCountManager()
-        {
-            return m_RayCountManager;
-        }
-
         internal HDTemporalFilter GetTemporalFilter()
         {
+            if (m_TemporalFilter == null && m_RayTracingSupported)
+            {
+                m_TemporalFilter = new HDTemporalFilter();
+                m_TemporalFilter.Init(m_Asset.renderPipelineRayTracingResources);
+            }
             return m_TemporalFilter;
         }
 
         internal HDSimpleDenoiser GetSimpleDenoiser()
         {
+            if (m_SimpleDenoiser == null)
+            {
+                m_SimpleDenoiser = new HDSimpleDenoiser();
+                m_SimpleDenoiser.Init(m_Asset.renderPipelineRayTracingResources);
+            }
             return m_SimpleDenoiser;
+        }
+
+        internal SSGIDenoiser GetSSGIDenoiser()
+        {
+            if (m_SSGIDenoiser == null)
+            {
+                m_SSGIDenoiser = new SSGIDenoiser();
+                m_SSGIDenoiser.Init(m_Asset.renderPipelineResources);
+            }
+            return m_SSGIDenoiser;
         }
 
         internal HDDiffuseDenoiser GetDiffuseDenoiser()
         {
+            if (m_DiffuseDenoiser == null)
+            {
+                m_DiffuseDenoiser = new HDDiffuseDenoiser();
+                m_DiffuseDenoiser.Init(m_Asset.renderPipelineResources, m_Asset.renderPipelineRayTracingResources, this);
+            }
             return m_DiffuseDenoiser;
         }
 
         internal HDReflectionDenoiser GetReflectionDenoiser()
         {
+            if (m_ReflectionDenoiser == null)
+            {
+                m_ReflectionDenoiser = new HDReflectionDenoiser();
+                m_ReflectionDenoiser.Init(m_Asset.renderPipelineRayTracingResources);
+            }
             return m_ReflectionDenoiser;
         }
 
         internal HDDiffuseShadowDenoiser GetDiffuseShadowDenoiser()
         {
+            if (m_DiffuseShadowDenoiser == null)
+            {
+                m_DiffuseShadowDenoiser = new HDDiffuseShadowDenoiser();
+                m_DiffuseShadowDenoiser.Init(m_Asset.renderPipelineRayTracingResources);
+            }
             return m_DiffuseShadowDenoiser;
         }
 
@@ -685,6 +741,21 @@ namespace UnityEngine.Rendering.HighDefinition
         static internal float GetPixelSpreadAngle(float fov, int width, int height)
         {
             return Mathf.Atan(GetPixelSpreadTangent(fov, width, height));
+        }
+
+        internal TextureHandle EvaluateHistoryValidationBuffer(RenderGraph renderGraph, HDCamera hdCamera, TextureHandle depthBuffer, TextureHandle normalBuffer, TextureHandle motionVectorsBuffer)
+        {
+            // Grab the temporal filter
+            HDTemporalFilter temporalFilter = GetTemporalFilter();
+
+            // If the temporal filter is valid use it, otherwise return a white texture
+            if (temporalFilter != null)
+            {
+                float historyValidity = EvaluateHistoryValidity(hdCamera);
+                return temporalFilter.HistoryValidity(renderGraph, hdCamera, historyValidity, depthBuffer, normalBuffer, motionVectorsBuffer);
+            }
+            else
+                return renderGraph.defaultResources.whiteTexture;
         }
     }
 }

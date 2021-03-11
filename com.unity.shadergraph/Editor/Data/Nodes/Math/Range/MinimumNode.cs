@@ -10,7 +10,6 @@ namespace UnityEditor.ShaderGraph
             name = "Minimum";
         }
 
-
         protected override MethodInfo GetFunctionToConvert()
         {
             return GetType().GetMethod("Unity_Minimum", BindingFlags.Static | BindingFlags.NonPublic);
@@ -22,7 +21,7 @@ namespace UnityEditor.ShaderGraph
             [Slot(2, Binding.None)] out DynamicDimensionVector Out)
         {
             return
-                @"
+@"
 {
     Out = min(A, B);
 };";

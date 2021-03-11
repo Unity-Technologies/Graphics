@@ -39,13 +39,6 @@ namespace UnityEngine.Rendering.HighDefinition
         MaterialPropertyBlock mirrorViewMaterialProperty = new MaterialPropertyBlock();
 #endif
 
-        // Set by test framework
-        internal static bool automatedTestRunning = false;
-
-        // Used by test framework and to enable debug features
-        static bool testModeEnabledInitialization { get => Array.Exists(Environment.GetCommandLineArgs(), arg => arg == "-xr-tests"); }
-        internal static bool testModeEnabled = testModeEnabledInitialization;
-
 #if DEVELOPMENT_BUILD || UNITY_EDITOR
         internal static bool dumpDebugInfo = false;
         internal static List<string> passDebugInfos = new List<string>(8);
@@ -73,7 +66,7 @@ namespace UnityEngine.Rendering.HighDefinition
         [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.BeforeSplashScreen)]
         internal static void XRSystemInit()
         {
-        	if (GraphicsSettings.currentRenderPipeline == null)
+            if (GraphicsSettings.currentRenderPipeline == null)
                 return;
 
         #if UNITY_2020_2_OR_NEWER
@@ -86,8 +79,10 @@ namespace UnityEngine.Rendering.HighDefinition
             {
                 displayList[i].disableLegacyRenderer = true;
                 displayList[i].sRGB = true;
+                displayList[i].textureLayout = XRDisplaySubsystem.TextureLayout.Texture2DArray;
             }
         }
+
 #endif
 
         // Compute the maximum number of views (slices) to allocate for texture arrays
@@ -103,13 +98,17 @@ namespace UnityEngine.Rendering.HighDefinition
             }
 #endif
 
-            if (testModeEnabled)
+            if (XRGraphicsAutomatedTests.enabled)
                 maxViews = Math.Max(maxViews, 2);
 
             return maxViews;
         }
 
+#if UNITY_2021_1_OR_NEWER
+        internal List<(Camera, XRPass)> SetupFrame(List<Camera> cameras, bool singlePassAllowed, bool singlePassTestModeActive)
+#else
         internal List<(Camera, XRPass)> SetupFrame(Camera[] cameras, bool singlePassAllowed, bool singlePassTestModeActive)
+#endif
         {
             bool xrActive = RefreshXrSdk();
 
@@ -119,10 +118,9 @@ namespace UnityEngine.Rendering.HighDefinition
                 ReleaseFrame();
             }
 
-            if ((singlePassTestModeActive || automatedTestRunning) && testModeEnabled)
-                SetCustomLayout(LayoutSinglePassTestMode);
-            else
-                SetCustomLayout(null);
+#if DEVELOPMENT_BUILD || UNITY_EDITOR
+            bool singlePassTestMode = (singlePassTestModeActive || XRGraphicsAutomatedTests.running) && XRGraphicsAutomatedTests.enabled;
+#endif
 
             foreach (var camera in cameras)
             {
@@ -136,13 +134,26 @@ namespace UnityEngine.Rendering.HighDefinition
                 {
                     // custom layout in used
                 }
+#if ENABLE_VR && ENABLE_XR_MODULE
                 else if (xrActive && xrSupported)
                 {
                     // Disable vsync on the main display when rendering to a XR device
                     QualitySettings.vSyncCount = 0;
 
+                    if (display != null)
+                    {
+                        display.zNear = camera.nearClipPlane;
+                        display.zFar = camera.farClipPlane;
+                    }
+
                     CreateLayoutFromXrSdk(camera, singlePassAllowed);
+
+#if DEVELOPMENT_BUILD || UNITY_EDITOR
+                    if (singlePassTestMode)
+                        OverrideForAutomatedTests(camera);
+#endif
                 }
+#endif
                 else
                 {
                     AddPassToFrame(camera, emptyPass);
@@ -266,6 +277,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
         internal void AddPassToFrame(Camera camera, XRPass xrPass)
         {
+            xrPass.UpdateOcclusionMesh();
             framePasses.Add((camera, xrPass));
         }
 
@@ -342,55 +354,50 @@ namespace UnityEngine.Rendering.HighDefinition
 #endif
         }
 
-        bool LayoutSinglePassTestMode(XRLayout frameLayout)
+#if DEVELOPMENT_BUILD || UNITY_EDITOR
+        private void OverrideForAutomatedTests(Camera camera)
         {
-            Camera camera = frameLayout.camera;
+            var camProjMatrix = camera.projectionMatrix;
+            var camViewMatrix = camera.worldToCameraMatrix;
 
-            if (camera != null && camera.cameraType == CameraType.Game && camera.TryGetCullingParameters(false, out var cullingParams))
+            if (camera.TryGetCullingParameters(false, out var cullingParams))
             {
-                cullingParams.stereoProjectionMatrix = camera.projectionMatrix;
-                cullingParams.stereoViewMatrix = camera.worldToCameraMatrix;
+                cullingParams.stereoProjectionMatrix = camProjMatrix;
+                cullingParams.stereoViewMatrix = camViewMatrix;
+                cullingParams.stereoSeparationDistance = 0.0f;
+                cullingParams.cullingOptions &= ~CullingOptions.Stereo;
 
-                var passInfo = new XRPassCreateInfo
+                for (int passId = 0; passId < framePasses.Count; passId++)
                 {
-                    multipassId = 0,
-                    cullingPassId = 0,
-                    cullingParameters = cullingParams,
-                    renderTarget = camera.targetTexture,
-                    customMirrorView = null
-                };
+                    var xrPass = framePasses[passId].Item2;
+                    xrPass.UpdateCullingParams(xrPass.cullingPassId, cullingParams);
 
-                var viewInfo2 = new XRViewCreateInfo
-                {
-                    projMatrix = camera.projectionMatrix,
-                    viewMatrix = camera.worldToCameraMatrix,
-                    viewport = new Rect(camera.pixelRect.x, camera.pixelRect.y, camera.pixelWidth, camera.pixelHeight),
-                    textureArraySlice = -1
-                };
+                    for (int viewId = 0; viewId < framePasses[passId].Item2.viewCount; viewId++)
+                    {
+                        var projMatrix = camProjMatrix;
+                        var viewMatrix = camViewMatrix;
 
-                // Change the first view so that it's a different viewpoint and projection to detect more issues
-                var viewInfo1 = viewInfo2;
-                var planes = viewInfo1.projMatrix.decomposeProjection;
-                planes.left *= 0.44f;
-                planes.right *= 0.88f;
-                planes.top *= 0.11f;
-                planes.bottom *= 0.33f;
-                viewInfo1.projMatrix = Matrix4x4.Frustum(planes);
-                viewInfo1.viewMatrix *= Matrix4x4.Translate(new Vector3(.34f, 0.25f, -0.08f));
+                        // Alter the first view in order to detect more issues
+                        bool isFirstViewMultiPass = framePasses.Count == 2 && passId == 0;
+                        bool isFirstViewSinglePass = framePasses.Count == 1 && viewId == 0;
 
-                // single-pass 2x rendering
-                {
-                    XRPass pass = frameLayout.CreatePass(passInfo);
+                        if (isFirstViewMultiPass || isFirstViewSinglePass)
+                        {
+                            var planes = projMatrix.decomposeProjection;
+                            planes.left *= 0.44f;
+                            planes.right *= 0.88f;
+                            planes.top *= 0.11f;
+                            planes.bottom *= 0.33f;
+                            projMatrix = Matrix4x4.Frustum(planes);
+                            viewMatrix *= Matrix4x4.Translate(new Vector3(.34f, 0.25f, -0.08f));
+                        }
 
-                    frameLayout.AddViewToPass(viewInfo1, pass);
-                    frameLayout.AddViewToPass(viewInfo2, pass);
+                        xrPass.UpdateView(viewId, projMatrix, viewMatrix, xrPass.GetViewport(viewId), viewId);
+                    }
                 }
-
-                // valid layout
-                return true;
             }
-
-            return false;
         }
+
+#endif
     }
 }

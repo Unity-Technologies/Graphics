@@ -11,7 +11,7 @@ using UnityEngine.UIElements;
 
 namespace UnityEditor.ShaderGraph
 {
-    class SubGraphOutputNode : AbstractMaterialNode, IHasSettings
+    class SubGraphOutputNode : AbstractMaterialNode
     {
         static string s_MissingOutputSlot = "A Sub Graph must have at least one output slot";
         static List<ConcreteSlotValueType> s_ValidSlotTypes = new List<ConcreteSlotValueType>()
@@ -36,25 +36,25 @@ namespace UnityEditor.ShaderGraph
         public override string documentationURL => Documentation.GetPageLink("Sub-graph");
 
         void ValidateShaderStage()
-            {
-                List<MaterialSlot> slots = new List<MaterialSlot>();
-                GetInputSlots(slots);
+        {
+            List<MaterialSlot> slots = new List<MaterialSlot>();
+            GetInputSlots(slots);
 
-                foreach(MaterialSlot slot in slots)
+            foreach (MaterialSlot slot in slots)
                 slot.stageCapability = ShaderStageCapability.All;
 
             var effectiveStage = ShaderStageCapability.All;
             foreach (var slot in slots)
-                {
+            {
                 var stage = NodeUtils.GetEffectiveShaderStageCapability(slot, true);
                 if (stage != ShaderStageCapability.All)
                 {
                     effectiveStage = stage;
                     break;
+                }
             }
-        }
 
-            foreach(MaterialSlot slot in slots)
+            foreach (MaterialSlot slot in slots)
                 slot.stageCapability = effectiveStage;
         }
 
@@ -108,17 +108,10 @@ namespace UnityEditor.ShaderGraph
         public int AddSlot(ConcreteSlotValueType concreteValueType)
         {
             var index = this.GetInputSlots<MaterialSlot>().Count() + 1;
-            name = NodeUtils.GetDuplicateSafeNameForSlot(this, index, "Out_" + concreteValueType.ToString());
+            var name = NodeUtils.GetDuplicateSafeNameForSlot(this, index, "Out_" + concreteValueType.ToString());
             AddSlot(MaterialSlot.CreateMaterialSlot(concreteValueType.ToSlotValueType(), index, name,
                 NodeUtils.GetHLSLSafeName(name), SlotType.Input, Vector4.zero));
             return index;
-        }
-
-        public VisualElement CreateSettingsElement()
-        {
-            PropertySheet ps = new PropertySheet();
-            ps.Add(new ReorderableSlotListView(this, SlotType.Input));
-            return ps;
         }
 
         public override bool canDeleteNode => false;

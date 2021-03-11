@@ -32,8 +32,10 @@ namespace UnityEditor.ShaderGraph.Serialization
                 {
                     if (MultiJsonInternal.valueMap.TryGetValue(m_Id, out var value))
                     {
-                        m_Value = (T)value;
-                        m_Id = m_Value.objectId;
+                        m_Value = value.CastTo<T>();
+
+                        // cast may fail for unknown types, but we can still grab the id from the original UnknownType
+                        m_Id = value.objectId;
                     }
                     else
                     {
@@ -78,52 +80,52 @@ namespace UnityEditor.ShaderGraph.Serialization
             return EqualityComparer<T>.Default.GetHashCode(m_Value);
         }
 
-        public static bool operator ==(JsonData<T> left, JsonData<T> right)
+        public static bool operator==(JsonData<T> left, JsonData<T> right)
         {
             return left.value == right.value;
         }
 
-        public static bool operator !=(JsonData<T> left, JsonData<T> right)
+        public static bool operator!=(JsonData<T> left, JsonData<T> right)
         {
             return left.value != right.value;
         }
 
-        public static bool operator ==(JsonData<T> left, T right)
+        public static bool operator==(JsonData<T> left, T right)
         {
             return left.value == right;
         }
 
-        public static bool operator !=(JsonData<T> left, T right)
+        public static bool operator!=(JsonData<T> left, T right)
         {
             return left.value != right;
         }
 
-        public static bool operator ==(T left, JsonData<T> right)
+        public static bool operator==(T left, JsonData<T> right)
         {
             return left == right.value;
         }
 
-        public static bool operator !=(T left, JsonData<T> right)
+        public static bool operator!=(T left, JsonData<T> right)
         {
             return left != right.value;
         }
 
-        public static bool operator ==(JsonData<T> left, JsonRef<T> right)
+        public static bool operator==(JsonData<T> left, JsonRef<T> right)
         {
             return left.value == right.value;
         }
 
-        public static bool operator !=(JsonData<T> left, JsonRef<T> right)
+        public static bool operator!=(JsonData<T> left, JsonRef<T> right)
         {
             return left.value != right.value;
         }
 
-        public static bool operator ==(JsonRef<T> left, JsonData<T> right)
+        public static bool operator==(JsonRef<T> left, JsonData<T> right)
         {
             return left.value == right.value;
         }
 
-        public static bool operator !=(JsonRef<T> left, JsonData<T> right)
+        public static bool operator!=(JsonRef<T> left, JsonData<T> right)
         {
             return left.value != right.value;
         }

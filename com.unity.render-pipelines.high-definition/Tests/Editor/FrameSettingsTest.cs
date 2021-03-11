@@ -20,7 +20,7 @@ namespace UnityEngine.Rendering.HighDefinition.Tests
                     CoreUtils.Destroy(m_ToClean);
                 FrameSettingsHistory.containers?.Clear();
             }
-            catch { }
+            catch {}
         }
 
         [Test]
@@ -63,7 +63,7 @@ namespace UnityEngine.Rendering.HighDefinition.Tests
             StringBuilder availables = new StringBuilder();
             for (int i = 0; i < fsm.mask.capacity; ++i)
             {
-                if(!singleValues.Contains(i))
+                if (!singleValues.Contains(i))
                     availables.AppendFormat("{0} ", i);
             }
             Debug.Log($"Available bit in FrameSettings: {availables}");
@@ -494,7 +494,7 @@ namespace UnityEngine.Rendering.HighDefinition.Tests
         }
 
         string GeneratePrefabYAML(LegacyFrameSettings legacyFrameSettings)
-                => $@"%YAML 1.1
+            => $@"%YAML 1.1
 %TAG !u! tag:unity3d.com,2011:
 --- !u!1 &3102262843427888416
 GameObject:
@@ -682,7 +682,5 @@ MonoBehaviour:
   m_ObsoleteBoxSideFadePositive: {{x: 1, y: 1, z: 1}}
   m_ObsoleteBoxSideFadeNegative: {{x: 1, y: 1, z: 1}}
 ";
-
-
     }
 }

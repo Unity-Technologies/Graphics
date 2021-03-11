@@ -32,12 +32,12 @@ namespace UnityEngine.Rendering.Universal
             {
                 case Texture2D t:
                     valid |= t.width == lutSize * lutSize
-                          && !GraphicsFormatUtility.IsSRGBFormat(t.graphicsFormat);
+                        && !GraphicsFormatUtility.IsSRGBFormat(t.graphicsFormat);
                     break;
                 case RenderTexture rt:
                     valid |= rt.dimension == TextureDimension.Tex2D
-                          && rt.width == lutSize * lutSize
-                          && !rt.sRGB;
+                        && rt.width == lutSize * lutSize
+                        && !rt.sRGB;
                     break;
             }
 

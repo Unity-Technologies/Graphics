@@ -4,17 +4,22 @@ using System.Diagnostics.CodeAnalysis;
 using System.IO;
 using System.Linq;
 using System.Text;
+#if UNITY_2020_2_OR_NEWER
+using UnityEditor.AssetImporters;
+#else
 using UnityEditor.Experimental.AssetImporters;
+#endif
 using UnityEngine;
 using UnityEditor.Graphing;
 using UnityEditor.Graphing.Util;
 using UnityEditor.ShaderGraph.Internal;
 using UnityEditor.ShaderGraph.Serialization;
+using UnityEngine.Pool;
 
 namespace UnityEditor.ShaderGraph
 {
     [ExcludeFromPreset]
-    [ScriptedImporter(12, Extension)]
+    [ScriptedImporter(23, Extension, -905)]
     class ShaderSubGraphImporter : ScriptedImporter
     {
         public const string Extension = "shadersubgraph";
@@ -24,7 +29,25 @@ namespace UnityEditor.ShaderGraph
         {
             try
             {
-                return MinimalGraphData.GetDependencyPaths(assetPath);
+                AssetCollection assetCollection = new AssetCollection();
+                MinimalGraphData.GatherMinimalDependenciesFromFile(assetPath, assetCollection);
+
+                List<string> dependencyPaths = new List<string>();
+                foreach (var asset in assetCollection.assets)
+                {
+                    // only artifact dependencies need to be declared in GatherDependenciesFromSourceFile
+                    // to force their imports to run before ours
+                    if (asset.Value.HasFlag(AssetCollection.Flags.ArtifactDependency))
+                    {
+                        var dependencyPath = AssetDatabase.GUIDToAssetPath(asset.Key);
+
+                        // it is unfortunate that we can't declare these dependencies unless they have a path...
+                        // I asked AssetDatabase team for GatherDependenciesFromSourceFileByGUID()
+                        if (!string.IsNullOrEmpty(dependencyPath))
+                            dependencyPaths.Add(dependencyPath);
+                    }
+                }
+                return dependencyPaths.ToArray();
             }
             catch (Exception e)
             {
@@ -73,15 +96,66 @@ namespace UnityEditor.ShaderGraph
                 messageManager.ClearAll();
             }
 
-            Texture2D texture = Resources.Load<Texture2D>("Icons/sg_subgraph_icon@64");
+            Texture2D texture = Resources.Load<Texture2D>("Icons/sg_subgraph_icon");
             ctx.AddObjectToAsset("MainAsset", graphAsset, texture);
             ctx.SetMainObject(graphAsset);
+
+            var metadata = ScriptableObject.CreateInstance<ShaderSubGraphMetadata>();
+            metadata.hideFlags = HideFlags.HideInHierarchy;
+            metadata.assetDependencies = new List<UnityEngine.Object>();
+
+            AssetCollection assetCollection = new AssetCollection();
+            MinimalGraphData.GatherMinimalDependenciesFromFile(assetPath, assetCollection);
+
+            foreach (var asset in assetCollection.assets)
+            {
+                if (asset.Value.HasFlag(AssetCollection.Flags.IncludeInExportPackage))
+                {
+                    // this sucks that we have to fully load these assets just to set the reference,
+                    // which then gets serialized as the GUID that we already have here.  :P
+
+                    var dependencyPath = AssetDatabase.GUIDToAssetPath(asset.Key);
+                    if (!string.IsNullOrEmpty(dependencyPath))
+                    {
+                        metadata.assetDependencies.Add(
+                            AssetDatabase.LoadAssetAtPath(dependencyPath, typeof(UnityEngine.Object)));
+                    }
+                }
+            }
+            ctx.AddObjectToAsset("Metadata", metadata);
+
+            // declare dependencies
+            foreach (var asset in assetCollection.assets)
+            {
+                if (asset.Value.HasFlag(AssetCollection.Flags.SourceDependency))
+                {
+                    ctx.DependsOnSourceAsset(asset.Key);
+
+                    // I'm not sure if this warning below is actually used or not, keeping it to be safe
+                    var assetPath = AssetDatabase.GUIDToAssetPath(asset.Key);
+
+                    // Ensure that dependency path is relative to project
+                    if (!string.IsNullOrEmpty(assetPath) && !assetPath.StartsWith("Packages/") && !assetPath.StartsWith("Assets/"))
+                    {
+                        Debug.LogWarning($"Invalid dependency path: {assetPath}", graphAsset);
+                    }
+                }
+
+                // NOTE: dependencies declared by GatherDependenciesFromSourceFile are automatically registered as artifact dependencies
+                // HOWEVER: that path ONLY grabs dependencies via MinimalGraphData, and will fail to register dependencies
+                // on GUIDs that don't exist in the project.  For both of those reasons, we re-declare the dependencies here.
+                if (asset.Value.HasFlag(AssetCollection.Flags.ArtifactDependency))
+                {
+                    ctx.DependsOnArtifact(asset.Key);
+                }
+            }
         }
 
         static void ProcessSubGraph(SubGraphAsset asset, GraphData graph)
         {
-            var registry = new FunctionRegistry(new ShaderStringBuilder(), true);
-            registry.names.Clear();
+            var graphIncludes = new IncludeCollection();
+            var registry = new FunctionRegistry(new ShaderStringBuilder(), graphIncludes, true);
+
             asset.functions.Clear();
             asset.isValid = true;
 
@@ -91,11 +165,11 @@ namespace UnityEditor.ShaderGraph
 
             var assetPath = AssetDatabase.GUIDToAssetPath(asset.assetGuid);
             asset.hlslName = NodeUtils.GetHLSLSafeName(Path.GetFileNameWithoutExtension(assetPath));
-            asset.inputStructName = $"Bindings_{asset.hlslName}_{asset.assetGuid}";
-            asset.functionName = $"SG_{asset.hlslName}_{asset.assetGuid}";
+            asset.inputStructName = $"Bindings_{asset.hlslName}_{asset.assetGuid}_$precision";
+            asset.functionName = $"SG_{asset.hlslName}_{asset.assetGuid}_$precision";
             asset.path = graph.path;
 
-            var outputNode = (SubGraphOutputNode)graph.outputNode;
+            var outputNode = graph.outputNode;
 
             var outputSlots = PooledList<MaterialSlot>.Get();
             outputNode.GetInputSlots(outputSlots);
@@ -114,12 +188,22 @@ namespace UnityEditor.ShaderGraph
                 }
             }
 
+            asset.vtFeedbackVariables = VirtualTexturingFeedbackUtils.GetFeedbackVariables(outputNode as SubGraphOutputNode);
             asset.requirements = ShaderGraphRequirements.FromNodes(nodes, asset.effectiveShaderStage, false);
-            asset.graphPrecision = graph.concretePrecision;
-            asset.outputPrecision = outputNode.concretePrecision;
 
-            GatherFromGraph(assetPath, out var containsCircularDependency, out var descendents);
-            asset.descendents.AddRange(descendents);
+            // output precision is whatever the output node has as a graph precision, falling back to the graph default
+            asset.outputGraphPrecision = outputNode.graphPrecision.GraphFallback(graph.graphDefaultPrecision);
+
+            // this saves the graph precision, which indicates whether this subgraph is switchable or not
+            asset.subGraphGraphPrecision = graph.graphDefaultPrecision;
+
+            asset.previewMode = graph.previewMode;
+
+            asset.includes = graphIncludes;
+
+            GatherDescendentsFromGraph(new GUID(asset.assetGuid), out var containsCircularDependency, out var descendents);
+            asset.descendents.AddRange(descendents.Select(g => g.ToString()));
+            asset.descendents.Sort();   // ensure deterministic order
 
             var childrenSet = new HashSet<string>();
             var anyErrors = false;
@@ -128,16 +212,15 @@ namespace UnityEditor.ShaderGraph
                 if (node is SubGraphNode subGraphNode)
                 {
                     var subGraphGuid = subGraphNode.subGraphGuid;
-                    if (childrenSet.Add(subGraphGuid))
-                    {
-                        asset.children.Add(subGraphGuid);
-                    }
+                    childrenSet.Add(subGraphGuid);
                 }
 
                 if (node.hasError)
                 {
                     anyErrors = true;
                 }
+                asset.children = childrenSet.ToList();
+                asset.children.Sort(); // ensure deterministic order
             }
 
             if (!anyErrors && containsCircularDependency)
@@ -149,7 +232,7 @@ namespace UnityEditor.ShaderGraph
             if (anyErrors)
             {
                 asset.isValid = false;
-                registry.ProvideFunction(asset.functionName, sb => { });
+                registry.ProvideFunction(asset.functionName, sb => {});
                 return;
             }
 
@@ -159,29 +242,37 @@ namespace UnityEditor.ShaderGraph
                 {
                     registry.builder.currentNode = node;
                     generatesFunction.GenerateNodeFunction(registry, GenerationMode.ForReals);
-                    registry.builder.ReplaceInCurrentMapping(PrecisionUtil.Token, node.concretePrecision.ToShaderString());
                 }
             }
 
-            registry.ProvideFunction(asset.functionName, sb =>
+            // provide top level subgraph function
+            // NOTE: actual concrete precision here shouldn't matter, it's irrelevant when building the subgraph asset
+            registry.ProvideFunction(asset.functionName, asset.subGraphGraphPrecision, ConcretePrecision.Single, sb =>
             {
                 GenerationUtils.GenerateSurfaceInputStruct(sb, asset.requirements, asset.inputStructName);
                 sb.AppendNewLine();
 
-                // Generate arguments... first INPUTS
+                // Generate the arguments... first INPUTS
                 var arguments = new List<string>();
                 foreach (var prop in graph.properties)
                 {
-                    prop.ValidateConcretePrecision(asset.graphPrecision);
-                    arguments.Add(string.Format("{0}", prop.GetPropertyAsArgumentString()));
+                    // apply fallback to the graph default precision (but don't convert to concrete)
+                    // this means "graph switchable" properties will use the precision token
+                    GraphPrecision propGraphPrecision = prop.precision.ToGraphPrecision(graph.graphDefaultPrecision);
+                    string precisionString = propGraphPrecision.ToGenericString();
+                    arguments.Add(prop.GetPropertyAsArgumentString(precisionString));
                 }
 
                 // now pass surface inputs
                 arguments.Add(string.Format("{0} IN", asset.inputStructName));
 
-                // Now generate outputs
-                foreach (var output in outputSlots)
-                    arguments.Add($"out {output.concreteValueType.ToShaderString(asset.outputPrecision)} {output.shaderOutputName}_{output.id}");
+                // Now generate output arguments
+                foreach (MaterialSlot output in outputSlots)
+                    arguments.Add($"out {output.concreteValueType.ToShaderString(asset.outputGraphPrecision.ToGenericString())} {output.shaderOutputName}_{output.id}");
+
+                // Vt Feedback output arguments (always full float4)
+                foreach (var output in asset.vtFeedbackVariables)
+                    arguments.Add($"out {ConcreteSlotValueType.Vector4.ToShaderString(ConcretePrecision.Single)} {output}_out");
 
                 // Create the function prototype from the arguments
                 sb.AppendLine("void {0}({1})"
@@ -198,80 +289,122 @@ namespace UnityEditor.ShaderGraph
                         {
                             sb.currentNode = node;
                             generatesBodyCode.GenerateNodeCode(sb, GenerationMode.ForReals);
-                            sb.ReplaceInCurrentMapping(PrecisionUtil.Token, node.concretePrecision.ToShaderString());
+
+                            if (node.graphPrecision == GraphPrecision.Graph)
+                            {
+                                // code generated by nodes that use graph precision stays in generic form with embedded tokens
+                                // those tokens are replaced when this subgraph function is pulled into a graph that defines the precision
+                            }
+                            else
+                            {
+                                sb.ReplaceInCurrentMapping(PrecisionUtil.Token, node.concretePrecision.ToShaderString());
+                            }
                         }
                     }
 
                     foreach (var slot in outputSlots)
                     {
-                        sb.AppendLine($"{slot.shaderOutputName}_{slot.id} = {outputNode.GetSlotValue(slot.id, GenerationMode.ForReals, asset.outputPrecision)};");
+                        sb.AppendLine($"{slot.shaderOutputName}_{slot.id} = {outputNode.GetSlotValue(slot.id, GenerationMode.ForReals)};");
+                    }
+
+                    foreach (var slot in asset.vtFeedbackVariables)
+                    {
+                        sb.AppendLine($"{slot}_out = {slot};");
                     }
                 }
             });
 
-            asset.functions.AddRange(registry.names.Select(x => new FunctionPair(x, registry.sources[x].code)));
+            // save all of the node-declared functions to the subgraph asset
+            foreach (var name in registry.names)
+            {
+                var source = registry.sources[name];
+                var func = new FunctionPair(name, source.code, source.graphPrecisionFlags);
+                asset.functions.Add(func);
+            }
 
             var collector = new PropertyCollector();
             foreach (var node in nodes)
             {
+                int previousPropertyCount = Math.Max(0, collector.propertyCount - 1);
+
                 node.CollectShaderProperties(collector, GenerationMode.ForReals);
+
+                // This is a stop-gap to prevent the autogenerated values from JsonObject and ShaderInput from
+                // resulting in non-deterministic import data. While we should move to local ids in the future,
+                // this will prevent cascading shader recompilations.
+                for (int i = previousPropertyCount; i < collector.propertyCount; ++i)
+                {
+                    var prop = collector.GetProperty(i);
+                    var namespaceId = node.objectId;
+                    var nameId = prop.referenceName;
+
+                    prop.OverrideObjectId(namespaceId, nameId + "_ObjectId_" + i);
+                    prop.OverrideGuid(namespaceId, nameId + "_Guid_" + i);
+                }
             }
-            asset.WriteData(graph.properties, graph.keywords, collector.properties, outputSlots);
+            asset.WriteData(graph.properties, graph.keywords, collector.properties, outputSlots, graph.unsupportedTargets);
             outputSlots.Dispose();
         }
 
-        static void GatherFromGraph(string assetPath, out bool containsCircularDependency, out HashSet<string> descendentGuids)
+        static void GatherDescendentsFromGraph(GUID rootAssetGuid, out bool containsCircularDependency, out HashSet<GUID> descendentGuids)
         {
-            var dependencyMap = new Dictionary<string, string[]>();
-            using (var tempList = ListPool<string>.GetDisposable())
+            var dependencyMap = new Dictionary<GUID, GUID[]>();
+            AssetCollection tempAssetCollection = new AssetCollection();
+            using (ListPool<GUID>.Get(out var tempList))
             {
-                GatherDependencies(assetPath, dependencyMap, tempList.value);
-                containsCircularDependency = ContainsCircularDependency(assetPath, dependencyMap, tempList.value);
+                GatherDependencyMap(rootAssetGuid, dependencyMap, tempAssetCollection);
+                containsCircularDependency = ContainsCircularDependency(rootAssetGuid, dependencyMap, tempList);
             }
 
-            descendentGuids = new HashSet<string>();
-            GatherDescendents(assetPath, descendentGuids, dependencyMap);
+            descendentGuids = new HashSet<GUID>();
+            GatherDescendentsUsingDependencyMap(rootAssetGuid, descendentGuids, dependencyMap);
         }
 
-        static void GatherDependencies(string assetPath, Dictionary<string, string[]> dependencyMap, List<string> dependencies)
+        static void GatherDependencyMap(GUID rootAssetGUID, Dictionary<GUID, GUID[]> dependencyMap, AssetCollection tempAssetCollection)
         {
-            if (!dependencyMap.ContainsKey(assetPath))
+            if (!dependencyMap.ContainsKey(rootAssetGUID))
             {
-                if(assetPath.EndsWith(Extension))
-                    MinimalGraphData.GetDependencyPaths(assetPath, dependencies);
-
-                var dependencyPaths = dependencyMap[assetPath] = dependencies.ToArray();
-                dependencies.Clear();
-                foreach (var dependencyPath in dependencyPaths)
+                // if it is a subgraph, try to recurse into it
+                var assetPath = AssetDatabase.GUIDToAssetPath(rootAssetGUID);
+                if (!string.IsNullOrEmpty(assetPath) && assetPath.EndsWith(Extension, true, null))
                 {
-                    GatherDependencies(dependencyPath, dependencyMap, dependencies);
+                    tempAssetCollection.Clear();
+                    MinimalGraphData.GatherMinimalDependenciesFromFile(assetPath, tempAssetCollection);
+
+                    var subgraphGUIDs = tempAssetCollection.assets.Where(asset => asset.Value.HasFlag(AssetCollection.Flags.IsSubGraph)).Select(asset => asset.Key).ToArray();
+                    dependencyMap[rootAssetGUID] = subgraphGUIDs;
+
+                    foreach (var guid in subgraphGUIDs)
+                    {
+                        GatherDependencyMap(guid, dependencyMap, tempAssetCollection);
+                    }
                 }
             }
         }
 
-        static void GatherDescendents(string assetPath, HashSet<string> descendentGuids, Dictionary<string, string[]> dependencyMap)
+        static void GatherDescendentsUsingDependencyMap(GUID rootAssetGUID, HashSet<GUID> descendentGuids, Dictionary<GUID, GUID[]> dependencyMap)
         {
-            var dependencies = dependencyMap[assetPath];
-            foreach (var dependency in dependencies)
+            var dependencies = dependencyMap[rootAssetGUID];
+            foreach (GUID dependency in dependencies)
             {
-                if (descendentGuids.Add(AssetDatabase.AssetPathToGUID(dependency)))
+                if (descendentGuids.Add(dependency))
                 {
-                    GatherDescendents(dependency, descendentGuids, dependencyMap);
+                    GatherDescendentsUsingDependencyMap(dependency, descendentGuids, dependencyMap);
                 }
             }
         }
 
-        static bool ContainsCircularDependency(string assetPath, Dictionary<string, string[]> dependencyMap, List<string> ancestors)
+        static bool ContainsCircularDependency(GUID assetGUID, Dictionary<GUID, GUID[]> dependencyMap, List<GUID> ancestors)
         {
-            if (ancestors.Contains(assetPath))
+            if (ancestors.Contains(assetGUID))
             {
                 return true;
             }
 
-            ancestors.Add(assetPath);
-            foreach (var dependencyPath in dependencyMap[assetPath])
+            ancestors.Add(assetGUID);
+            foreach (var dependencyGUID in dependencyMap[assetGUID])
             {
-                if (ContainsCircularDependency(dependencyPath, dependencyMap, ancestors))
+                if (ContainsCircularDependency(dependencyGUID, dependencyMap, ancestors))
                 {
                     return true;
                 }

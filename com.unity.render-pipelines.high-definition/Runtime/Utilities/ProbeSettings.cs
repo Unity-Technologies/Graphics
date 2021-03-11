@@ -44,6 +44,8 @@ namespace UnityEngine.Rendering.HighDefinition
         lightingFadeDistance = 1 << 15,
         /// <summary>resolution.</summary>
         resolution = 1 << 16,
+        /// <summary>Rough reflections.</summary>
+        roughReflections = 1 << 17,
     }
 
     /// <summary>
@@ -129,7 +131,7 @@ namespace UnityEngine.Rendering.HighDefinition
             /// <summary>A multiplier applied to the radiance of the Probe.</summary>
             public float multiplier;
             /// <summary>A weight applied to the influence of the Probe.</summary>
-            [Range(0,1)]
+            [Range(0, 1)]
             public float weight;
             /// <summary>An enum flag to select which Light Layers this Probe interacts with.</summary>
             public LightLayerEnum lightLayer;
@@ -225,19 +227,27 @@ namespace UnityEngine.Rendering.HighDefinition
         public static ProbeSettings @default = default;
         /// <summary>Default value.</summary>
         /// <returns>The default value.</returns>
-        public static ProbeSettings NewDefault() => new ProbeSettings
+        public static ProbeSettings NewDefault()
         {
-            type = ProbeType.ReflectionProbe,
-            realtimeMode = RealtimeMode.EveryFrame,
-            mode = Mode.Baked,
-            cameraSettings = CameraSettings.NewDefault(),
-            influence = null,
-            lighting = Lighting.NewDefault(),
-            proxy = null,
-            proxySettings = ProxySettings.NewDefault(),
-            frustum = Frustum.NewDefault(),
-            resolution = PlanarReflectionAtlasResolution.PlanarReflectionResolution512,
-        };
+            ProbeSettings probeSettings = new ProbeSettings
+            {
+                type = ProbeType.ReflectionProbe,
+                realtimeMode = RealtimeMode.EveryFrame,
+                mode = Mode.Baked,
+                cameraSettings = CameraSettings.NewDefault(),
+                influence = null,
+                lighting = Lighting.NewDefault(),
+                proxy = null,
+                proxySettings = ProxySettings.NewDefault(),
+                frustum = Frustum.NewDefault(),
+                resolutionScalable = new PlanarReflectionAtlasResolutionScalableSettingValue(),
+                roughReflections = true,
+                distanceBasedRoughness = false,
+            };
+            probeSettings.resolutionScalable.@override = PlanarReflectionAtlasResolution.Resolution512;
+
+            return probeSettings;
+        }
 
         /// <summary>The way the frustum is handled by the probe.</summary>
         public Frustum frustum;
@@ -255,12 +265,22 @@ namespace UnityEngine.Rendering.HighDefinition
         public ProxyVolume proxy;
         /// <summary>The proxy settings of the probe for the current volume.</summary>
         public ProxySettings proxySettings;
+        /// <summary> An int scalable setting value</summary>
+        [Serializable] public class PlanarReflectionAtlasResolutionScalableSettingValue : ScalableSettingValue<PlanarReflectionAtlasResolution> {}
         /// <summary>Camera settings to use when capturing data.</summary>
         /// <summary>The resolution of the probe.</summary>
-        public PlanarReflectionAtlasResolution resolution;
+        public PlanarReflectionAtlasResolutionScalableSettingValue resolutionScalable;
+        [SerializeField]
+        internal PlanarReflectionAtlasResolution resolution;
         /// <summary>Probe camera settings.</summary>
         [Serialization.FormerlySerializedAs("camera")]
         public CameraSettings cameraSettings;
+
+        /// <summary>Indicates whether the ReflectionProbe supports rough reflections.</summary>
+        public bool roughReflections;
+
+        /// <summary>Indicates whether the ReflectionProbe supports distance-based roughness.</summary>
+        public bool distanceBasedRoughness;
 
         /// <summary>
         /// Compute a hash of the settings.

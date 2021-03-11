@@ -45,11 +45,11 @@ The above list is a guideline for major versions of SRP, but there are often mul
 
 After you decide which version of SRP to use:
 
-1. Go to the [Unity Grpahics repository](https://github.com/Unity-Technologies/Graphics).
+1. Go to the [Unity Graphics repository](https://github.com/Unity-Technologies/Graphics).
 2. Click the **Branch** drop-down then click the **Tags** tab.
 3. Find the tag that corresponds to the version of SRP you want to use. When you clone the repository, you use this tag to check out the correct branch.
 
-To clone the repository, you can use a visual client, like [GitHub Desktop](#GitHubDesktop), or use [console commands](#ConsoleCommands). When you clone the repository, make sure to clone it outside of your Unity Project's Asset folder. 
+To clone the repository, you can use a visual client, like [GitHub Desktop](#GitHubDesktop), or use [console commands](#ConsoleCommands). When you clone the repository, make sure to clone it outside of your Unity Project's Asset folder.
 
 After you clone the repository, you can install the package into your Unity Project. To do this, see [Installing a local package](https://docs.unity3d.com/Manual/upm-ui-local.html).
 

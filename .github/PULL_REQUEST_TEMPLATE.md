@@ -1,21 +1,21 @@
-**Guide** : https://github.com/Unity-Technologies/Graphics/blob/pr-template-correction/.github/pr-read.png.md
+# **Please read the [Contributing guide](CONTRIBUTING.md) before making a PR.**
 
-**Display Addon** : https://userstyles.org/styles/182991/unity-graphics-pr-readme
+* Read the [Graphics repository & Yamato FAQ](http://go/graphics-yamato-faq).
 
-# Purpose of this PR
+### Checklist for PR maker
+- [ ] Have you added a backport label (if needed)? For example, the `need-backport-*` label. After you backport the PR, the label changes to `backported-*`.
+- [ ] Have you updated the changelog? Each package has a `CHANGELOG.md` file.
+- [ ] Have you updated or added the documentation for your PR? When you add a new feature, change a property name, or change the behavior of a feature, it's best practice to include related documentation changes in the same PR. If you do add documentation, make sure to add the relevant Graphics Docs team member as a reviewer of the PR. If you are not sure which person to add, see the [Docs team contacts sheet](https://docs.google.com/spreadsheets/d/1rgUWWgwLFEHIQ3Rz-LnK6PAKmbM49DZZ9al4hvnztOo/edit#gid=1058860420).
+- [ ] Have you added a graphic test for your PR (if needed)? When you add a new feature, or discover a bug that tests don't cover, please add a graphic test.
 
-> Why is this PR needed, what hard problem is it solving/fixing?
+---
+### Purpose of this PR
+Why is this PR needed, what hard problem is it solving/fixing?
 
-# Testing status
-## Manual Tests
-> What have you tested?
+---
+### Testing status
+Describe what manual/automated tests were performed for this PR
 
-## Automated Tests
-> What did you setup? (Add a screenshot or the reference image of the test please)
-
-## Links
-**Yamato**: (Select your branch) https://yamato.prd.cds.internal.unity3d.com/jobs/902-Graphics
-> Any test projects or documents to go with this to help reviewers?
-
-# Comments to reviewers
-> Notes for the reviewers you have assigned.
+---
+### Comments to reviewers
+Notes for the reviewers you have assigned.

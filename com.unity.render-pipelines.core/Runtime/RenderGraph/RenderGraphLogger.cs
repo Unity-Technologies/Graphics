@@ -25,10 +25,12 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
 
         void Dispose(bool disposing)
         {
+            Debug.Assert(m_Logger != null, "RenderGraphLogIndent: logger parameter should not be null.");
+
             if (m_Disposed)
                 return;
 
-            if (disposing)
+            if (disposing && m_Logger != null)
             {
                 m_Logger.DecrementIndentation(m_Indentation);
             }

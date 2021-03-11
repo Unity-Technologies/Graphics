@@ -4,6 +4,8 @@
 [shader("closesthit")]
 void ClosestSubSurface(inout RayIntersectionSubSurface rayIntersection : SV_RayPayload, AttributeData attributeData : SV_IntersectionAttributes)
 {
+    UNITY_XR_ASSIGN_VIEW_INDEX(DispatchRaysIndex().z);
+
     // Always set the new t value
     rayIntersection.t = RayTCurrent();
 
@@ -17,7 +19,7 @@ void ClosestSubSurface(inout RayIntersectionSubSurface rayIntersection : SV_RayP
     // Build the Frag inputs from the intersection vertex
     FragInputs fragInput;
     BuildFragInputsFromIntersection(currentVertex, incidentDirection, fragInput);
-    
+
     PositionInputs posInput;
     posInput.positionWS = fragInput.positionRWS;
     posInput.positionSS = rayIntersection.pixelCoord;

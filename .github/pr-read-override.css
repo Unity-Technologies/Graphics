@@ -1,6 +1,6 @@
 .pull-discussion-timeline>div:first-child>div:first-child .js-previewable-comment-form::before, .new-pr-form .js-previewable-comment-form::before
 {
     display:block;
-    content: url("https://github.com/Unity-Technologies/Graphics/blob/pr-template-correction/.github/pr-read.png?raw=true");
+    content: url("https://github.com/Unity-Technologies/Graphics/blob/master/.github/pr-read.png?raw=true");
     height: auto;
 }

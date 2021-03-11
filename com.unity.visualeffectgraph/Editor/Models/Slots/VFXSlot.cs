@@ -21,11 +21,7 @@ namespace UnityEditor.VFX
         public VFXProperty property     { get { return m_Property; } }
         public override string name     { get { return m_Property.name; } }
 
-
-        FieldInfo m_FieldInfoCache;
-
-        [System.NonSerialized]
-        object m_CachedValue;
+        private FieldInfo m_FieldInfoCache;
 
         public object value
         {
@@ -33,9 +29,10 @@ namespace UnityEditor.VFX
             {
                 try
                 {
+                    object slotValue = null;
                     if (IsMasterSlot())
                     {
-                        m_CachedValue = GetMasterData().m_Value.Get();
+                        slotValue = GetMasterData().m_Value.Get();
                     }
                     else
                     {
@@ -47,21 +44,21 @@ namespace UnityEditor.VFX
                             m_FieldInfoCache = type.GetField(name);
                         }
 
-                        m_CachedValue = m_FieldInfoCache.GetValue(parentValue);
+                        slotValue = m_FieldInfoCache.GetValue(parentValue);
                     }
 
-                    if (m_CachedValue == null && !typeof(UnityEngine.Object).IsAssignableFrom(property.type))
+                    if (slotValue == null && !typeof(UnityEngine.Object).IsAssignableFrom(property.type))
                     {
                         Debug.Log("null value in slot of type" + property.type.UserFriendlyName());
                     }
+                    return slotValue;
                 }
                 catch (Exception e)
                 {
                     Debug.LogErrorFormat("Exception while getting value for slot {0} of type {1}: {2}\n{3}", name, GetType(), e, e.StackTrace);
                     // TODO Initialize to default value (try to call static default static method defaultValue from type)
-                    m_CachedValue = null;
+                    return null;
                 }
-                return m_CachedValue;
             }
             set
             {
@@ -364,10 +361,7 @@ namespace UnityEditor.VFX
                 m_Value = new VFXSerializableObject(property.type, value),
             };
 
-            slot.PropagateToChildren(s => {
-                s.m_MasterSlot = slot;
-                s.m_MasterData = null;
-            });
+            slot.PropagateToChildren(s => s.SetMasterSlotAndData(slot, null));
 
             slot.m_MasterData = masterData;
             slot.UpdateDefaultExpressionValue();
@@ -565,44 +559,48 @@ namespace UnityEditor.VFX
             if (!hierarchySane)
             {
                 Debug.LogWarningFormat("Slot {0} holding {1} didnt match the type layout. It is recreated and all links are lost.", property.name, property.type);
-
-                // Try to retrieve the value
-                object previousValue = null;
-                try
-                {
-                    previousValue = this.value;
-                }
-                catch (Exception e)
-                {
-                    Debug.LogWarningFormat("Exception while trying to retrieve value: {0}: {1}", e, e.StackTrace);
-                }
-
-                // Recreate the slot
-                var newSlot = Create(property, direction, previousValue);
-                if (IsMasterSlot())
-                {
-                    var owner = this.owner;
-                    if (owner != null)
-                    {
-                        int index = owner.GetSlotIndex(this);
-                        owner.RemoveSlot(this);
-                        owner.AddSlot(newSlot, index);
-                    }
-                }
-                else
-                {
-                    var parent = GetParent();
-                    var index = parent.GetIndex(this);
-                    parent.RemoveChild(this, false);
-                    parent.AddChild(newSlot, index);
-                }
-
-                CopyLinks(newSlot, this, true);
-                CopySpace(newSlot, this, true);
-                UnlinkAll(true);
-                return newSlot;
+                return Recreate();
             }
             return this;
+        }
+
+        public VFXSlot Recreate()
+        {
+            // Try to retrieve the value
+            object previousValue = null;
+            try
+            {
+                previousValue = this.value;
+            }
+            catch (Exception e)
+            {
+                Debug.LogWarningFormat("Exception while trying to retrieve value: {0}: {1}", e, e.StackTrace);
+            }
+
+            // Recreate the slot
+            var newSlot = Create(property, direction, previousValue);
+            if (IsMasterSlot())
+            {
+                var owner = this.owner;
+                if (owner != null)
+                {
+                    int index = owner.GetSlotIndex(this);
+                    owner.RemoveSlot(this);
+                    owner.AddSlot(newSlot, index);
+                }
+            }
+            else
+            {
+                var parent = GetParent();
+                var index = parent.GetIndex(this);
+                parent.RemoveChild(this, false);
+                parent.AddChild(newSlot, index);
+            }
+
+            CopyLinks(newSlot, this, true);
+            CopySpace(newSlot, this, true);
+            UnlinkAll(true);
+            return newSlot;
         }
 
         private void SetDefaultExpressionValue()
@@ -709,10 +707,18 @@ namespace UnityEditor.VFX
                 owner.Invalidate(this, cause);
         }
 
-        public void UpdateAttributes(VFXPropertyAttribute[] attributes)
+        public void UpdateAttributes(VFXPropertyAttributes attributes, bool notify)
         {
-            m_FieldInfoCache = null; // this is call by syncslot. at this point the type of our master slot might have changed.
-            m_Property.attributes = attributes;
+            if (notify)
+            {
+                if (!m_Property.attributes.IsEqual(attributes))
+                {
+                    m_Property.attributes = attributes;
+                    Invalidate(InvalidationCause.kUIChangedTransient); // TODO This will trigger a setDirty while it shouldn't as property attributes are not serialized
+                }
+            }
+            else // fast path without comparison
+                m_Property.attributes = attributes;
         }
 
         protected override void OnAdded()
@@ -720,11 +726,7 @@ namespace UnityEditor.VFX
             base.OnAdded();
 
             var parent = GetParent();
-            PropagateToChildren(s =>
-            {
-                s.m_MasterData = null;
-                s.m_MasterSlot = parent.m_MasterSlot;
-            });
+            PropagateToChildren(s => s.SetMasterSlotAndData(parent.m_MasterSlot, null));
         }
 
         protected override void OnRemoved()
@@ -738,10 +740,7 @@ namespace UnityEditor.VFX
                 m_Space = (VFXCoordinateSpace)int.MaxValue,
             };
 
-            PropagateToChildren(s => {
-                s.m_MasterData = null;
-                s.m_MasterSlot = this;
-            });
+            PropagateToChildren(s => s.SetMasterSlotAndData(this, null));
             m_MasterData = masterData;
         }
 
@@ -773,7 +772,7 @@ namespace UnityEditor.VFX
 
         public bool CanLink(VFXSlot other)
         {
-            return direction != other.direction && !m_LinkedSlots.Contains(other) &&
+            return direction != other.direction &&
                 ((direction == Direction.kInput && CanConvertFrom(other.property.type)) || (other.CanConvertFrom(property.type)));
         }
 
@@ -993,7 +992,7 @@ namespace UnityEditor.VFX
 
         public void SetOutExpression(VFXExpression exp, HashSet<VFXSlot> toInvalidate, VFXCoordinateSpace convertToSpace = (VFXCoordinateSpace)int.MaxValue)
         {
-            exp = VFXPropertyAttribute.ApplyToExpressionGraph(m_Property.attributes, exp);
+            exp = m_Property.attributes.ApplyToExpressionGraph(exp);
             if (convertToSpace != (VFXCoordinateSpace)int.MaxValue)
             {
                 exp = ConvertSpace(exp, this, convertToSpace);
@@ -1163,6 +1162,13 @@ namespace UnityEditor.VFX
             public VFXModel m_Owner;
             public VFXSerializableObject m_Value;
             public VFXCoordinateSpace m_Space; //can be undefined
+        }
+
+        private void SetMasterSlotAndData(VFXSlot masterSlot, MasterData masterData)
+        {
+            m_MasterSlot = masterSlot;
+            m_MasterData = masterData;
+            m_FieldInfoCache = null; // Invalidate cache as it's based on hierarchy
         }
 
         [SerializeField]

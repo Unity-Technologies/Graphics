@@ -1,5 +1,5 @@
 //
-// This file was automatically generated. Please don't edit by hand.
+// This file was automatically generated. Please don't edit by hand. Execute Editor command [ Edit > Rendering > Generate Shader Includes ] instead
 //
 
 #ifndef LIGHTDEFINITION_CS_HLSL
@@ -97,18 +97,18 @@ struct LightData
     real angleScale;
     real angleOffset;
     float3 forward;
+    float iesCut;
     int lightType;
     float3 right;
+    float penumbraTint;
     real range;
+    int cookieMode;
+    int shadowIndex;
     float3 up;
     float rangeAttenuationScale;
     float3 color;
     float rangeAttenuationBias;
-    int cookieMode;
-    int cookieIndex;
-    int shadowIndex;
     float4 cookieScaleOffset;
-    int contactShadowMask;
     float3 shadowTint;
     float shadowDimmer;
     float volumetricShadowDimmer;
@@ -117,11 +117,12 @@ struct LightData
     int screenSpaceShadowIndex;
     real4 shadowMaskSelector;
     real4 size;
+    int contactShadowMask;
     float diffuseDimmer;
     float specularDimmer;
+    float __unused__;
+    float2 padding;
     float isRayTracedContactShadow;
-    float penumbraTint;
-    float3 padding;
     float boxLightSafeExtent;
 };
 
@@ -143,7 +144,6 @@ struct EnvLightData
     float3 influenceUp;
     float3 influenceRight;
     float3 influenceExtents;
-    float unused00;
     float3 blendDistancePositive;
     float3 blendDistanceNegative;
     float3 blendNormalDistancePositive;
@@ -153,6 +153,8 @@ struct EnvLightData
     float weight;
     float multiplier;
     float rangeCompressionFactorCompensation;
+    float roughReflections;
+    float distanceBasedRoughness;
     int envIndex;
 };
 

@@ -104,21 +104,21 @@ namespace UnityEngine.Rendering
         /// </summary>
         /// <param name="a">Bit array with which to do the operation.</param>
         /// <returns>The resulting bit array.</returns>
-        public static BitArray8 operator ~(BitArray8 a) => new BitArray8((byte)~a.data);
+        public static BitArray8 operator~(BitArray8 a) => new BitArray8((byte)~a.data);
         /// <summary>
         /// Bit-wise Or operator
         /// </summary>
         /// <param name="a">First bit array.</param>
         /// <param name="b">Second bit array.</param>
         /// <returns>The resulting bit array.</returns>
-        public static BitArray8 operator |(BitArray8 a, BitArray8 b) => new BitArray8((byte)(a.data | b.data));
+        public static BitArray8 operator|(BitArray8 a, BitArray8 b) => new BitArray8((byte)(a.data | b.data));
         /// <summary>
         /// Bit-wise And operator
         /// </summary>
         /// <param name="a">First bit array.</param>
         /// <param name="b">Second bit array.</param>
         /// <returns>The resulting bit array.</returns>
-        public static BitArray8 operator &(BitArray8 a, BitArray8 b) => new BitArray8((byte)(a.data & b.data));
+        public static BitArray8 operator&(BitArray8 a, BitArray8 b) => new BitArray8((byte)(a.data & b.data));
 
         /// <summary>
         /// Bit-wise And
@@ -144,14 +144,14 @@ namespace UnityEngine.Rendering
         /// <param name="a">First bit array.</param>
         /// <param name="b">Second bit array.</param>
         /// <returns>True if both bit arrays are equals.</returns>
-        public static bool operator ==(BitArray8 a, BitArray8 b) => a.data == b.data;
+        public static bool operator==(BitArray8 a, BitArray8 b) => a.data == b.data;
         /// <summary>
         /// Inequality operator.
         /// </summary>
         /// <param name="a">First bit array.</param>
         /// <param name="b">Second bit array.</param>
         /// <returns>True if the bit arrays are not equals.</returns>
-        public static bool operator !=(BitArray8 a, BitArray8 b) => a.data != b.data;
+        public static bool operator!=(BitArray8 a, BitArray8 b) => a.data != b.data;
         /// <summary>
         /// Equality operator.
         /// </summary>
@@ -223,21 +223,21 @@ namespace UnityEngine.Rendering
         /// </summary>
         /// <param name="a">Bit array with which to do the operation.</param>
         /// <returns>The resulting bit array.</returns>
-        public static BitArray16 operator ~(BitArray16 a) => new BitArray16((ushort)~a.data);
+        public static BitArray16 operator~(BitArray16 a) => new BitArray16((ushort)~a.data);
         /// <summary>
         /// Bit-wise Or operator
         /// </summary>
         /// <param name="a">First bit array.</param>
         /// <param name="b">Second bit array.</param>
         /// <returns>The resulting bit array.</returns>
-        public static BitArray16 operator |(BitArray16 a, BitArray16 b) => new BitArray16((ushort)(a.data | b.data));
+        public static BitArray16 operator|(BitArray16 a, BitArray16 b) => new BitArray16((ushort)(a.data | b.data));
         /// <summary>
         /// Bit-wise And operator
         /// </summary>
         /// <param name="a">First bit array.</param>
         /// <param name="b">Second bit array.</param>
         /// <returns>The resulting bit array.</returns>
-        public static BitArray16 operator &(BitArray16 a, BitArray16 b) => new BitArray16((ushort)(a.data & b.data));
+        public static BitArray16 operator&(BitArray16 a, BitArray16 b) => new BitArray16((ushort)(a.data & b.data));
 
         /// <summary>
         /// Bit-wise And
@@ -263,14 +263,14 @@ namespace UnityEngine.Rendering
         /// <param name="a">First bit array.</param>
         /// <param name="b">Second bit array.</param>
         /// <returns>True if both bit arrays are equals.</returns>
-        public static bool operator ==(BitArray16 a, BitArray16 b) => a.data == b.data;
+        public static bool operator==(BitArray16 a, BitArray16 b) => a.data == b.data;
         /// <summary>
         /// Inequality operator.
         /// </summary>
         /// <param name="a">First bit array.</param>
         /// <param name="b">Second bit array.</param>
         /// <returns>True if the bit arrays are not equals.</returns>
-        public static bool operator !=(BitArray16 a, BitArray16 b) => a.data != b.data;
+        public static bool operator!=(BitArray16 a, BitArray16 b) => a.data != b.data;
         /// <summary>
         /// Equality operator.
         /// </summary>
@@ -361,21 +361,21 @@ namespace UnityEngine.Rendering
         /// </summary>
         /// <param name="a">Bit array with which to do the operation.</param>
         /// <returns>The resulting bit array.</returns>
-        public static BitArray32 operator ~(BitArray32 a) => new BitArray32(~a.data);
+        public static BitArray32 operator~(BitArray32 a) => new BitArray32(~a.data);
         /// <summary>
         /// Bit-wise Or operator
         /// </summary>
         /// <param name="a">First bit array.</param>
         /// <param name="b">Second bit array.</param>
         /// <returns>The resulting bit array.</returns>
-        public static BitArray32 operator |(BitArray32 a, BitArray32 b) => new BitArray32(a.data | b.data);
+        public static BitArray32 operator|(BitArray32 a, BitArray32 b) => new BitArray32(a.data | b.data);
         /// <summary>
         /// Bit-wise And operator
         /// </summary>
         /// <param name="a">First bit array.</param>
         /// <param name="b">Second bit array.</param>
         /// <returns>The resulting bit array.</returns>
-        public static BitArray32 operator &(BitArray32 a, BitArray32 b) => new BitArray32(a.data & b.data);
+        public static BitArray32 operator&(BitArray32 a, BitArray32 b) => new BitArray32(a.data & b.data);
 
         /// <summary>
         /// Equality operator.
@@ -383,14 +383,14 @@ namespace UnityEngine.Rendering
         /// <param name="a">First bit array.</param>
         /// <param name="b">Second bit array.</param>
         /// <returns>True if both bit arrays are equals.</returns>
-        public static bool operator ==(BitArray32 a, BitArray32 b) => a.data == b.data;
+        public static bool operator==(BitArray32 a, BitArray32 b) => a.data == b.data;
         /// <summary>
         /// Inequality operator.
         /// </summary>
         /// <param name="a">First bit array.</param>
         /// <param name="b">Second bit array.</param>
         /// <returns>True if the bit arrays are not equals.</returns>
-        public static bool operator !=(BitArray32 a, BitArray32 b) => a.data != b.data;
+        public static bool operator!=(BitArray32 a, BitArray32 b) => a.data != b.data;
         /// <summary>
         /// Equality operator.
         /// </summary>
@@ -462,21 +462,21 @@ namespace UnityEngine.Rendering
         /// </summary>
         /// <param name="a">Bit array with which to do the operation.</param>
         /// <returns>The resulting bit array.</returns>
-        public static BitArray64 operator ~(BitArray64 a) => new BitArray64(~a.data);
+        public static BitArray64 operator~(BitArray64 a) => new BitArray64(~a.data);
         /// <summary>
         /// Bit-wise Or operator
         /// </summary>
         /// <param name="a">First bit array.</param>
         /// <param name="b">Second bit array.</param>
         /// <returns>The resulting bit array.</returns>
-        public static BitArray64 operator |(BitArray64 a, BitArray64 b) => new BitArray64(a.data | b.data);
+        public static BitArray64 operator|(BitArray64 a, BitArray64 b) => new BitArray64(a.data | b.data);
         /// <summary>
         /// Bit-wise And operator
         /// </summary>
         /// <param name="a">First bit array.</param>
         /// <param name="b">Second bit array.</param>
         /// <returns>The resulting bit array.</returns>
-        public static BitArray64 operator &(BitArray64 a, BitArray64 b) => new BitArray64(a.data & b.data);
+        public static BitArray64 operator&(BitArray64 a, BitArray64 b) => new BitArray64(a.data & b.data);
 
         /// <summary>
         /// Bit-wise And
@@ -502,14 +502,14 @@ namespace UnityEngine.Rendering
         /// <param name="a">First bit array.</param>
         /// <param name="b">Second bit array.</param>
         /// <returns>True if both bit arrays are equals.</returns>
-        public static bool operator ==(BitArray64 a, BitArray64 b) => a.data == b.data;
+        public static bool operator==(BitArray64 a, BitArray64 b) => a.data == b.data;
         /// <summary>
         /// Inequality operator.
         /// </summary>
         /// <param name="a">First bit array.</param>
         /// <param name="b">Second bit array.</param>
         /// <returns>True if the bit arrays are not equals.</returns>
-        public static bool operator !=(BitArray64 a, BitArray64 b) => a.data != b.data;
+        public static bool operator!=(BitArray64 a, BitArray64 b) => a.data != b.data;
         /// <summary>
         /// Equality operator.
         /// </summary>
@@ -567,6 +567,7 @@ namespace UnityEngine.Rendering
             data1 = initValue1;
             data2 = initValue2;
         }
+
         /// <summary>
         /// Constructor.
         /// </summary>
@@ -592,21 +593,21 @@ namespace UnityEngine.Rendering
         /// </summary>
         /// <param name="a">First bit array.</param>
         /// <returns>The resulting bit array.</returns>
-        public static BitArray128 operator ~(BitArray128 a) => new BitArray128(~a.data1, ~a.data2);
+        public static BitArray128 operator~(BitArray128 a) => new BitArray128(~a.data1, ~a.data2);
         /// <summary>
         /// Bit-wise Or operator
         /// </summary>
         /// <param name="a">First bit array.</param>
         /// <param name="b">Second bit array.</param>
         /// <returns>The resulting bit array.</returns>
-        public static BitArray128 operator |(BitArray128 a, BitArray128 b) => new BitArray128(a.data1 | b.data1, a.data2 | b.data2);
+        public static BitArray128 operator|(BitArray128 a, BitArray128 b) => new BitArray128(a.data1 | b.data1, a.data2 | b.data2);
         /// <summary>
         /// Bit-wise And operator
         /// </summary>
         /// <param name="a">First bit array.</param>
         /// <param name="b">Second bit array.</param>
         /// <returns>The resulting bit array.</returns>
-        public static BitArray128 operator &(BitArray128 a, BitArray128 b) => new BitArray128(a.data1 & b.data1, a.data2 & b.data2);
+        public static BitArray128 operator&(BitArray128 a, BitArray128 b) => new BitArray128(a.data1 & b.data1, a.data2 & b.data2);
 
         /// <summary>
         /// Bit-wise And
@@ -632,14 +633,14 @@ namespace UnityEngine.Rendering
         /// <param name="a">First bit array.</param>
         /// <param name="b">Second bit array.</param>
         /// <returns>True if both bit arrays are equals.</returns>
-        public static bool operator ==(BitArray128 a, BitArray128 b) => a.data1 == b.data1 && a.data2 == b.data2;
+        public static bool operator==(BitArray128 a, BitArray128 b) => a.data1 == b.data1 && a.data2 == b.data2;
         /// <summary>
         /// Inequality operator.
         /// </summary>
         /// <param name="a">First bit array.</param>
         /// <param name="b">Second bit array.</param>
         /// <returns>True if the bit arrays are not equals.</returns>
-        public static bool operator !=(BitArray128 a, BitArray128 b) => a.data1 != b.data1 || a.data2 != b.data2;
+        public static bool operator!=(BitArray128 a, BitArray128 b) => a.data1 != b.data1 || a.data2 != b.data2;
         /// <summary>
         /// Equality operator.
         /// </summary>
@@ -685,8 +686,8 @@ namespace UnityEngine.Rendering
         public string humanizedData =>
             System.Text.RegularExpressions.Regex.Replace(String.Format("{0, " + 64u + "}", Convert.ToString((long)data4, 2)).Replace(' ', '0'), ".{8}", "$0.")
             + System.Text.RegularExpressions.Regex.Replace(String.Format("{0, " + 64u + "}", Convert.ToString((long)data3, 2)).Replace(' ', '0'), ".{8}", "$0.")
-            + System.Text.RegularExpressions.Regex.Replace(String.Format("{0, " + 64u + "}", Convert.ToString((long) data2, 2)).Replace(' ', '0'), ".{8}", "$0.")
-            + System.Text.RegularExpressions.Regex.Replace(String.Format("{0, " + 64u + "}", Convert.ToString((long) data1, 2)).Replace(' ', '0'), ".{8}", "$0.").TrimEnd('.');
+            + System.Text.RegularExpressions.Regex.Replace(String.Format("{0, " + 64u + "}", Convert.ToString((long)data2, 2)).Replace(' ', '0'), ".{8}", "$0.")
+            + System.Text.RegularExpressions.Regex.Replace(String.Format("{0, " + 64u + "}", Convert.ToString((long)data1, 2)).Replace(' ', '0'), ".{8}", "$0.").TrimEnd('.');
 
         /// <summary>
         /// Returns the state of the bit at a specific index.
@@ -713,6 +714,7 @@ namespace UnityEngine.Rendering
             data3 = initValue3;
             data4 = initValue4;
         }
+
         /// <summary>
         /// Constructor.
         /// </summary>
@@ -741,21 +743,21 @@ namespace UnityEngine.Rendering
         /// </summary>
         /// <param name="a">Bit array with which to do the operation.</param>
         /// <returns>The resulting bit array.</returns>
-        public static BitArray256 operator ~(BitArray256 a) => new BitArray256(~a.data1, ~a.data2, ~a.data3, ~a.data4);
+        public static BitArray256 operator~(BitArray256 a) => new BitArray256(~a.data1, ~a.data2, ~a.data3, ~a.data4);
         /// <summary>
         /// Bit-wise Or operator
         /// </summary>
         /// <param name="a">First bit array.</param>
         /// <param name="b">Second bit array.</param>
         /// <returns>The resulting bit array.</returns>
-        public static BitArray256 operator |(BitArray256 a, BitArray256 b) => new BitArray256(a.data1 | b.data1, a.data2 | b.data2, a.data3 | b.data3, a.data4 | b.data4);
+        public static BitArray256 operator|(BitArray256 a, BitArray256 b) => new BitArray256(a.data1 | b.data1, a.data2 | b.data2, a.data3 | b.data3, a.data4 | b.data4);
         /// <summary>
         /// Bit-wise And operator
         /// </summary>
         /// <param name="a">First bit array.</param>
         /// <param name="b">Second bit array.</param>
         /// <returns>The resulting bit array.</returns>
-        public static BitArray256 operator &(BitArray256 a, BitArray256 b) => new BitArray256(a.data1 & b.data1, a.data2 & b.data2, a.data3 & b.data3, a.data4 & b.data4);
+        public static BitArray256 operator&(BitArray256 a, BitArray256 b) => new BitArray256(a.data1 & b.data1, a.data2 & b.data2, a.data3 & b.data3, a.data4 & b.data4);
 
         /// <summary>
         /// Bit-wise And
@@ -781,14 +783,14 @@ namespace UnityEngine.Rendering
         /// <param name="a">First bit array.</param>
         /// <param name="b">Second bit array.</param>
         /// <returns>True if both bit arrays are equals.</returns>
-        public static bool operator ==(BitArray256 a, BitArray256 b) => a.data1 == b.data1 && a.data2 == b.data2 && a.data3 == b.data3 && a.data4 == b.data4;
+        public static bool operator==(BitArray256 a, BitArray256 b) => a.data1 == b.data1 && a.data2 == b.data2 && a.data3 == b.data3 && a.data4 == b.data4;
         /// <summary>
         /// Inequality operator.
         /// </summary>
         /// <param name="a">First bit array.</param>
         /// <param name="b">Second bit array.</param>
         /// <returns>True if the bit arrays are not equals.</returns>
-        public static bool operator !=(BitArray256 a, BitArray256 b) => a.data1 != b.data1 || a.data2 != b.data2 || a.data3 != b.data3 || a.data4 != b.data4;
+        public static bool operator!=(BitArray256 a, BitArray256 b) => a.data1 != b.data1 || a.data2 != b.data2 || a.data3 != b.data3 || a.data4 != b.data4;
         /// <summary>
         /// Equality operator.
         /// </summary>
@@ -873,11 +875,11 @@ namespace UnityEngine.Rendering
         public static bool Get256(uint index, ulong data1, ulong data2, ulong data3, ulong data4)
             => index < 128u
             ? index < 64u
-                ? (data1 & (1uL << (int)index)) != 0uL
-                : (data2 & (1uL << (int)(index - 64u))) != 0uL
+            ? (data1 & (1uL << (int)index)) != 0uL
+            : (data2 & (1uL << (int)(index - 64u))) != 0uL
             : index < 192u
-                ? (data3 & (1uL << (int)(index - 128u))) != 0uL
-                : (data4 & (1uL << (int)(index - 192u))) != 0uL;
+            ? (data3 & (1uL << (int)(index - 128u))) != 0uL
+            : (data4 & (1uL << (int)(index - 192u))) != 0uL;
 
         /// <summary>
         /// Set a bit at a specific index.
@@ -915,13 +917,13 @@ namespace UnityEngine.Rendering
         /// <param name="data2">Bit array data 2.</param>
         /// <param name="value">Value to set the bit to.</param>
         public static void Set128(uint index, ref ulong data1, ref ulong data2, bool value)
-
         {
             if (index < 64u)
                 data1 = (value ? (data1 | (1uL << (int)index)) : (data1 & ~(1uL << (int)index)));
             else
                 data2 = (value ? (data2 | (1uL << (int)(index - 64u))) : (data2 & ~(1uL << (int)(index - 64u))));
         }
+
         /// <summary>
         /// Set a bit at a specific index.
         /// </summary>

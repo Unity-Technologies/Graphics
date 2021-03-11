@@ -90,4 +90,3 @@ bool ScreenSpaceProxyRaycastRefraction(ScreenSpaceProxyRaycastInput input, out S
 }
 
 #endif
-

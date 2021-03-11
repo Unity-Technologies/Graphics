@@ -1,13 +1,10 @@
 Shader "Hidden/Universal Render Pipeline/GaussianDepthOfField"
 {
-    Properties
-    {
-        _MainTex("Source", 2D) = "white" {}
-    }
-
     HLSLINCLUDE
 
         #pragma target 3.5
+        #pragma exclude_renderers gles
+        #pragma multi_compile _ _USE_DRAW_PROCEDURAL
 
         #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Common.hlsl"
         #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Color.hlsl"
@@ -16,13 +13,13 @@ Shader "Hidden/Universal Render Pipeline/GaussianDepthOfField"
         #include "Packages/com.unity.render-pipelines.universal/Shaders/PostProcessing/Common.hlsl"
         #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/DeclareDepthTexture.hlsl"
 
-        TEXTURE2D_X(_MainTex);
+        TEXTURE2D_X(_SourceTex);
         TEXTURE2D_X(_ColorTexture);
         TEXTURE2D_X(_FullCoCTexture);
         TEXTURE2D_X(_HalfCoCTexture);
 
-        float4 _MainTex_TexelSize;
-        float4 _ColorTexture_TexelSize;
+        float4 _SourceSize;
+        float4 _DownSampleScaleFactor;
 
         float3 _CoCParams;
 
@@ -73,7 +70,7 @@ Shader "Hidden/Universal Render Pipeline/GaussianDepthOfField"
             UNITY_SETUP_STEREO_EYE_INDEX_POST_VERTEX(input);
             float2 uv = UnityStereoTransformScreenSpaceTex(input.uv);
 
-            float depth = LOAD_TEXTURE2D_X(_CameraDepthTexture, _MainTex_TexelSize.zw * uv).x;
+            float depth = LOAD_TEXTURE2D_X(_CameraDepthTexture, _SourceSize.xy * uv).x;
             depth = LinearEyeDepth(depth, _ZBufferParams);
             half coc = (depth - FarStart) / (FarEnd - FarStart);
             return saturate(coc);
@@ -109,7 +106,7 @@ Shader "Hidden/Universal Render Pipeline/GaussianDepthOfField"
             UNITY_UNROLL
             for (int i = 0; i < kCount; i++)
             {
-                float2 tapCoord = _ColorTexture_TexelSize.xy * kTaps[i] + uv;
+                float2 tapCoord = _SourceSize.zw * kTaps[i] + uv;
                 half3 tapColor = SAMPLE_TEXTURE2D_X(_ColorTexture, sampler_LinearClamp, tapCoord).xyz;
                 half coc = SAMPLE_TEXTURE2D_X(_FullCoCTexture, sampler_LinearClamp, tapCoord).x;
 
@@ -145,10 +142,10 @@ Shader "Hidden/Universal Render Pipeline/GaussianDepthOfField"
             float2 uv = UnityStereoTransformScreenSpaceTex(input.uv);
 
             // Use the center CoC as radius
-            int2 positionSS = int2(_MainTex_TexelSize.zw * uv);
+            int2 positionSS = int2(_SourceSize.xy * _DownSampleScaleFactor.xy * uv);
             half samp0CoC = LOAD_TEXTURE2D_X(_HalfCoCTexture, positionSS).x;
 
-            float2 offset = _MainTex_TexelSize.xy * dir * samp0CoC * MaxRadius;
+            float2 offset = _SourceSize.zw * _DownSampleScaleFactor.zw * dir * samp0CoC * MaxRadius;
             half4 acc = 0.0;
 
             UNITY_UNROLL
@@ -156,7 +153,7 @@ Shader "Hidden/Universal Render Pipeline/GaussianDepthOfField"
             {
                 float2 sampCoord = uv + kOffsets[i] * offset;
                 half sampCoC = SAMPLE_TEXTURE2D_X(_HalfCoCTexture, sampler_LinearClamp, sampCoord).x;
-                half3 sampColor = SAMPLE_TEXTURE2D_X(_MainTex, sampler_LinearClamp, sampCoord).xyz;
+                half3 sampColor = SAMPLE_TEXTURE2D_X(_SourceTex, sampler_LinearClamp, sampCoord).xyz;
 
                 // Weight & pre-multiply to limit bleeding on the focused area
                 half weight = saturate(1.0 - (samp0CoC - sampCoC));
@@ -182,11 +179,11 @@ Shader "Hidden/Universal Render Pipeline/GaussianDepthOfField"
             UNITY_SETUP_STEREO_EYE_INDEX_POST_VERTEX(input);
             float2 uv = UnityStereoTransformScreenSpaceTex(input.uv);
 
-            half3 baseColor = LOAD_TEXTURE2D_X(_MainTex, _MainTex_TexelSize.zw * uv).xyz;
-            half coc = LOAD_TEXTURE2D_X(_FullCoCTexture, _MainTex_TexelSize.zw * uv).x;
+            half3 baseColor = LOAD_TEXTURE2D_X(_SourceTex, _SourceSize.xy * uv).xyz;
+            half coc = LOAD_TEXTURE2D_X(_FullCoCTexture, _SourceSize.xy * uv).x;
 
         #if _HIGH_QUALITY_SAMPLING && !defined(SHADER_API_GLES)
-            half3 farColor = SampleTexture2DBicubic(TEXTURE2D_X_ARGS(_ColorTexture, sampler_LinearClamp), uv, _ColorTexture_TexelSize.zwxy, 1.0, unity_StereoEyeIndex).xyz;
+            half3 farColor = SampleTexture2DBicubic(TEXTURE2D_X_ARGS(_ColorTexture, sampler_LinearClamp), uv, _SourceSize * _DownSampleScaleFactor, 1.0, unity_StereoEyeIndex).xyz;
         #else
             half3 farColor = SAMPLE_TEXTURE2D_X(_ColorTexture, sampler_LinearClamp, uv).xyz;
         #endif
@@ -220,7 +217,7 @@ Shader "Hidden/Universal Render Pipeline/GaussianDepthOfField"
             Name "Gaussian Depth Of Field CoC"
 
             HLSLPROGRAM
-                #pragma vertex Vert
+                #pragma vertex FullscreenVert
                 #pragma fragment FragCoC
             ENDHLSL
         }
@@ -241,7 +238,7 @@ Shader "Hidden/Universal Render Pipeline/GaussianDepthOfField"
             Name "Gaussian Depth Of Field Blur Horizontal"
 
             HLSLPROGRAM
-                #pragma vertex Vert
+                #pragma vertex FullscreenVert
                 #pragma fragment FragBlurH
             ENDHLSL
         }
@@ -251,7 +248,7 @@ Shader "Hidden/Universal Render Pipeline/GaussianDepthOfField"
             Name "Gaussian Depth Of Field Blur Vertical"
 
             HLSLPROGRAM
-                #pragma vertex Vert
+                #pragma vertex FullscreenVert
                 #pragma fragment FragBlurV
             ENDHLSL
         }
@@ -261,7 +258,7 @@ Shader "Hidden/Universal Render Pipeline/GaussianDepthOfField"
             Name "Gaussian Depth Of Field Composite"
 
             HLSLPROGRAM
-                #pragma vertex Vert
+                #pragma vertex FullscreenVert
                 #pragma fragment FragComposite
                 #pragma multi_compile_local _ _HIGH_QUALITY_SAMPLING
             ENDHLSL

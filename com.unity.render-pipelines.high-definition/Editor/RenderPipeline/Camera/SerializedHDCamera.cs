@@ -10,7 +10,7 @@ namespace UnityEditor.Rendering.HighDefinition
         public SerializedObject serializedAdditionalDataObject;
 
         //public SerializedProperty backgroundColor;
-        
+
         public SerializedProperty iso;
         public SerializedProperty shutterSpeed;
         public SerializedProperty aperture;
@@ -18,6 +18,7 @@ namespace UnityEditor.Rendering.HighDefinition
         public SerializedProperty curvature;
         public SerializedProperty barrelClipping;
         public SerializedProperty anamorphism;
+        public SerializedProperty exposureTarget;
 
         public SerializedProperty antialiasing;
         public SerializedProperty SMAAQuality;
@@ -71,6 +72,8 @@ namespace UnityEditor.Rendering.HighDefinition
             barrelClipping = serializedAdditionalDataObject.FindProperty("physicalParameters.m_BarrelClipping");
             anamorphism = serializedAdditionalDataObject.FindProperty("physicalParameters.m_Anamorphism");
 
+            exposureTarget = serializedAdditionalDataObject.Find((HDAdditionalCameraData d) => d.exposureTarget);
+
             antialiasing = serializedAdditionalDataObject.Find((HDAdditionalCameraData d) => d.antialiasing);
             SMAAQuality = serializedAdditionalDataObject.Find((HDAdditionalCameraData d) => d.SMAAQuality);
             taaSharpenStrength = serializedAdditionalDataObject.Find((HDAdditionalCameraData d) => d.taaSharpenStrength);
@@ -94,7 +97,7 @@ namespace UnityEditor.Rendering.HighDefinition
             frameSettings = new SerializedFrameSettings(
                 serializedAdditionalDataObject.FindProperty("m_RenderingPathCustomFrameSettings"),
                 serializedAdditionalDataObject.Find((HDAdditionalCameraData d) => d.renderingPathCustomFrameSettingsOverrideMask)
-                );
+            );
 
             probeLayerMask = serializedAdditionalDataObject.Find((HDAdditionalCameraData d) => d.probeLayerMask);
             allowDynamicResolution = serializedAdditionalDataObject.Find((HDAdditionalCameraData d) => d.allowDynamicResolution);

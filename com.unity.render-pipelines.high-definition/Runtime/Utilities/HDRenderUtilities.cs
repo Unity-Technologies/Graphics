@@ -98,60 +98,60 @@ namespace UnityEngine.Rendering.HighDefinition
                 switch (target.dimension)
                 {
                     case TextureDimension.Tex2D:
-                        {
+                    {
 #if DEBUG
-                            Debug.LogWarning(
-                                "A static flags bitmask was provided but this is ignored when rendering into a Tex2D"
+                        Debug.LogWarning(
+                            "A static flags bitmask was provided but this is ignored when rendering into a Tex2D"
+                        );
+#endif
+                        Assert.IsNotNull(rtTarget);
+                        camera.targetTexture = rtTarget;
+                        camera.Render();
+                        camera.targetTexture = null;
+                        target.IncrementUpdateCount();
+                        break;
+                    }
+                    case TextureDimension.Cube:
+                    {
+                        Assert.IsTrue(rtTarget != null || cubeTarget != null);
+
+                        var canHandleStaticFlags = false;
+#if UNITY_EDITOR
+                        canHandleStaticFlags = true;
+#endif
+                        // ReSharper disable ConditionIsAlwaysTrueOrFalse
+                        if (canHandleStaticFlags && staticFlags != 0)
+                        // ReSharper restore ConditionIsAlwaysTrueOrFalse
+                        {
+#if UNITY_EDITOR
+                            UnityEditor.Rendering.EditorCameraUtils.RenderToCubemap(
+                                camera,
+                                rtTarget,
+                                -1,
+                                (UnityEditor.StaticEditorFlags)staticFlags
                             );
 #endif
-                            Assert.IsNotNull(rtTarget);
-                            camera.targetTexture = rtTarget;
-                            camera.Render();
-                            camera.targetTexture = null;
-                            target.IncrementUpdateCount();
-                            break;
                         }
-                    case TextureDimension.Cube:
+                        else
                         {
-                            Assert.IsTrue(rtTarget != null || cubeTarget != null);
-
-                            var canHandleStaticFlags = false;
-#if UNITY_EDITOR
-                            canHandleStaticFlags = true;
-#endif
                             // ReSharper disable ConditionIsAlwaysTrueOrFalse
-                            if (canHandleStaticFlags && staticFlags != 0)
-                                // ReSharper restore ConditionIsAlwaysTrueOrFalse
+                            if (!canHandleStaticFlags && staticFlags != 0)
+                            // ReSharper restore ConditionIsAlwaysTrueOrFalse
                             {
-#if UNITY_EDITOR
-                                UnityEditor.Rendering.EditorCameraUtils.RenderToCubemap(
-                                    camera,
-                                    rtTarget,
-                                    -1,
-                                    (UnityEditor.StaticEditorFlags)staticFlags
+                                Debug.LogWarning(
+                                    "A static flags bitmask was provided but this is ignored in player builds"
                                 );
-#endif
-                            }
-                            else
-                            {
-                                // ReSharper disable ConditionIsAlwaysTrueOrFalse
-                                if (!canHandleStaticFlags && staticFlags != 0)
-                                    // ReSharper restore ConditionIsAlwaysTrueOrFalse
-                                {
-                                    Debug.LogWarning(
-                                        "A static flags bitmask was provided but this is ignored in player builds"
-                                    );
-                                }
-
-                                if (rtTarget != null)
-                                    camera.RenderToCubemap(rtTarget);
-                                if (cubeTarget != null)
-                                    camera.RenderToCubemap(cubeTarget);
                             }
 
-                            target.IncrementUpdateCount();
-                            break;
+                            if (rtTarget != null)
+                                camera.RenderToCubemap(rtTarget);
+                            if (cubeTarget != null)
+                                camera.RenderToCubemap(cubeTarget);
                         }
+
+                        target.IncrementUpdateCount();
+                        break;
+                    }
                 }
             }
             finally
@@ -235,24 +235,24 @@ namespace UnityEngine.Rendering.HighDefinition
             switch (settings.type)
             {
                 case ProbeSettings.ProbeType.PlanarProbe:
-                    {
-                        cameras.Add(cameraSettings);
-                        cameraPositions.Add(cameraPositionSettings);
-                        break;
-                    }
+                {
+                    cameras.Add(cameraSettings);
+                    cameraPositions.Add(cameraPositionSettings);
+                    break;
+                }
                 case ProbeSettings.ProbeType.ReflectionProbe:
+                {
+                    for (int i = 0; i < 6; ++i)
                     {
-                        for (int i = 0; i < 6; ++i)
-                        {
-                            var cameraPositionCopy = cameraPositionSettings;
-                            cameraPositionCopy.rotation = cameraPositionCopy.rotation * Quaternion.Euler(
-                                s_GenerateRenderingSettingsFor_Rotations[i]
-                            );
-                            cameras.Add(cameraSettings);
-                            cameraPositions.Add(cameraPositionCopy);
-                        }
-                        break;
+                        var cameraPositionCopy = cameraPositionSettings;
+                        cameraPositionCopy.rotation = cameraPositionCopy.rotation * Quaternion.Euler(
+                            s_GenerateRenderingSettingsFor_Rotations[i]
+                        );
+                        cameras.Add(cameraSettings);
+                        cameraPositions.Add(cameraPositionCopy);
                     }
+                    break;
+                }
             }
         }
 
@@ -338,31 +338,74 @@ namespace UnityEngine.Rendering.HighDefinition
         /// </summary>
         /// <param name="cubemapSize">The cubemap size.</param>
         /// <returns>The texture to use as reflection probe target.</returns>
+        [Obsolete("Use CreateReflectionProbeRenderTarget with explicit format instead", true)]
         public static RenderTexture CreateReflectionProbeRenderTarget(int cubemapSize)
         {
-            return new RenderTexture(cubemapSize, cubemapSize, 1, GraphicsFormat.R16G16B16A16_SFloat)
+            RenderTexture rt = new RenderTexture(cubemapSize, cubemapSize, 1, GraphicsFormat.R16G16B16A16_SFloat)
             {
                 dimension = TextureDimension.Cube,
                 enableRandomWrite = true,
                 useMipMap = true,
                 autoGenerateMips = false
             };
+            rt.Create();
+            return rt;
+        }
+
+        /// <summary>
+        /// Create the texture used as target for a realtime reflection probe.
+        /// </summary>
+        /// <param name="cubemapSize">The cubemap size.</param>
+        /// <param name="format">The cubemap format. It must match the format set in the asset.</param>
+        /// <returns>The texture to use as reflection probe target.</returns>
+        public static RenderTexture CreateReflectionProbeRenderTarget(int cubemapSize, GraphicsFormat format)
+        {
+            RenderTexture rt = new RenderTexture(cubemapSize, cubemapSize, 1, format)
+            {
+                dimension = TextureDimension.Cube,
+                enableRandomWrite = true,
+                useMipMap = true,
+                autoGenerateMips = false
+            };
+            rt.Create();
+            return rt;
         }
 
         /// <summary>
         /// Create the texture used as target for a realtime planar reflection probe.
         /// </summary>
         /// <param name="planarSize">The size of the texture</param>
+        /// <param name="format">The planar probe format. It must match the format set in the asset.</param>
         /// <returns>The texture used as planar reflection probe target</returns>
-        public static RenderTexture CreatePlanarProbeRenderTarget(int planarSize)
+        public static RenderTexture CreatePlanarProbeRenderTarget(int planarSize, GraphicsFormat format)
         {
-            return new RenderTexture(planarSize, planarSize, 1, GraphicsFormat.R16G16B16A16_SFloat)
+            RenderTexture rt = new RenderTexture(planarSize, planarSize, 1, format)
             {
                 dimension = TextureDimension.Tex2D,
                 enableRandomWrite = true,
                 useMipMap = true,
                 autoGenerateMips = false
             };
+            rt.Create();
+            return rt;
+        }
+
+        /// <summary>
+        /// Create the depth texture used as target for a realtime planar reflection probe.
+        /// </summary>
+        /// <param name="planarSize">The size of the texture</param>
+        /// <returns>The texture used as planar reflection probe target</returns>
+        public static RenderTexture CreatePlanarProbeDepthRenderTarget(int planarSize)
+        {
+            RenderTexture rt = new RenderTexture(planarSize, planarSize, 1, GraphicsFormat.R32_SFloat)
+            {
+                dimension = TextureDimension.Tex2D,
+                enableRandomWrite = true,
+                useMipMap = true,
+                autoGenerateMips = false
+            };
+            rt.Create();
+            return rt;
         }
 
         /// <summary>

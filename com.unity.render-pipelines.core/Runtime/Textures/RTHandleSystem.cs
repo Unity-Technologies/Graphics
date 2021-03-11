@@ -67,6 +67,10 @@ namespace UnityEngine.Rendering
 
         int m_MaxWidths = 0;
         int m_MaxHeights = 0;
+#if UNITY_EDITOR
+        // In editor every now and then we must reset the size of the rthandle system if it was set very high and then switched back to a much smaller scale.
+        int m_FramesSinceLastReset = 0;
+#endif
 
         /// <summary>
         /// RTHandleSystem constructor.
@@ -96,7 +100,15 @@ namespace UnityEngine.Rendering
         /// <param name="scaledRTMSAASamples">Number of MSAA samples for automatically scaled RTHandles.</param>
         public void Initialize(int width, int height, bool scaledRTsupportsMSAA, MSAASamples scaledRTMSAASamples)
         {
-            Debug.Assert(m_AutoSizedRTs.Count == 0, "RTHandle.Initialize should only be called once before allocating any Render Texture. This may be caused by an unreleased RTHandle resource.");
+            if (m_AutoSizedRTs.Count != 0)
+            {
+                string leakingResources = "Unreleased RTHandles:";
+                foreach (var rt in m_AutoSizedRTs)
+                {
+                    leakingResources = string.Format("{0}\n    {1}", leakingResources, rt.name);
+                }
+                Debug.LogError(string.Format("RTHandle.Initialize should only be called once before allocating any Render Texture. This may be caused by an unreleased RTHandle resource.\n{0}\n", leakingResources));
+            }
 
             m_MaxWidths = width;
             m_MaxHeights = height;
@@ -126,12 +138,36 @@ namespace UnityEngine.Rendering
         }
 
         /// <summary>
+        /// Reset the reference size of the system and reallocate all textures.
+        /// </summary>
+        /// <param name="width">New width.</param>
+        /// <param name="height">New height.</param>
+        public void ResetReferenceSize(int width, int height)
+        {
+            m_MaxWidths = width;
+            m_MaxHeights = height;
+            SetReferenceSize(width, height, m_ScaledRTCurrentMSAASamples, reset: true);
+        }
+
+        /// <summary>
         /// Sets the reference rendering size for subsequent rendering for the RTHandle System
         /// </summary>
         /// <param name="width">Reference rendering width for subsequent rendering.</param>
         /// <param name="height">Reference rendering height for subsequent rendering.</param>
         /// <param name="msaaSamples">Number of MSAA samples for multisampled textures for subsequent rendering.</param>
         public void SetReferenceSize(int width, int height, MSAASamples msaaSamples)
+        {
+            SetReferenceSize(width, height, msaaSamples, false);
+        }
+
+        /// <summary>
+        /// Sets the reference rendering size for subsequent rendering for the RTHandle System
+        /// </summary>
+        /// <param name="width">Reference rendering width for subsequent rendering.</param>
+        /// <param name="height">Reference rendering height for subsequent rendering.</param>
+        /// <param name="msaaSamples">Number of MSAA samples for multisampled textures for subsequent rendering.</param>
+        /// <param name="reset">If set to true, the new width and height will override the old values even if they are not bigger.</param>
+        public void SetReferenceSize(int width, int height, MSAASamples msaaSamples, bool reset)
         {
             m_RTHandleProperties.previousViewportSize = m_RTHandleProperties.currentViewportSize;
             m_RTHandleProperties.previousRenderTargetSize = m_RTHandleProperties.currentRenderTargetSize;
@@ -140,7 +176,27 @@ namespace UnityEngine.Rendering
             width = Mathf.Max(width, 1);
             height = Mathf.Max(height, 1);
 
-            bool sizeChanged = width > GetMaxWidth() || height > GetMaxHeight();
+#if UNITY_EDITOR
+            // If the reference size is significantly higher than the current actualWidth/Height and it is larger than 1440p dimensions, we reset the reference size every several frames
+            // in editor to avoid issues if a large resolution was temporarily set.
+            const int resetInterval = 100;
+            if (((m_MaxWidths / (float)width) > 2.0f && m_MaxWidths > 2560) ||
+                ((m_MaxHeights / (float)height) > 2.0f && m_MaxHeights > 1440))
+            {
+                if (m_FramesSinceLastReset > resetInterval)
+                {
+                    m_FramesSinceLastReset = 0;
+                    ResetReferenceSize(width, height);
+                }
+                m_FramesSinceLastReset++;
+            }
+
+            // If some cameras is requesting the same res as the max res, we don't want to reset
+            if (m_MaxWidths == width && m_MaxHeights == height)
+                m_FramesSinceLastReset = 0;
+#endif
+
+            bool sizeChanged = width > GetMaxWidth() || height > GetMaxHeight() || reset;
             bool msaaSamplesChanged = (msaaSamples != m_ScaledRTCurrentMSAASamples);
 
             if (sizeChanged || msaaSamplesChanged)
@@ -161,9 +217,15 @@ namespace UnityEngine.Rendering
                 lastFrameMaxSize = new Vector2(GetMaxWidth(), GetMaxHeight());
             }
 
-            if (DynamicResolutionHandler.instance.HardwareDynamicResIsEnabled())
+            if (DynamicResolutionHandler.instance.HardwareDynamicResIsEnabled() && m_HardwareDynamicResRequested)
             {
-                m_RTHandleProperties.rtHandleScale = new Vector4(1.0f, 1.0f, 1.0f, 1.0f);
+                Vector2Int maxSize = new Vector2Int(GetMaxWidth(), GetMaxHeight());
+                // Making the final scale in 'drs' space, since the final scale must account for rounding pixel values.
+                var scaledFinalViewport = DynamicResolutionHandler.instance.ApplyScalesOnSize(DynamicResolutionHandler.instance.finalViewport);
+                var scaledMaxSize = DynamicResolutionHandler.instance.ApplyScalesOnSize(maxSize);
+                float xScale = (float)scaledFinalViewport.x / (float)scaledMaxSize.x;
+                float yScale = (float)scaledFinalViewport.y / (float)scaledMaxSize.y;
+                m_RTHandleProperties.rtHandleScale = new Vector4(xScale, yScale, m_RTHandleProperties.rtHandleScale.x, m_RTHandleProperties.rtHandleScale.y);
             }
             else
             {
@@ -180,17 +242,19 @@ namespace UnityEngine.Rendering
         /// <param name="enableHWDynamicRes">State of hardware dynamic resolution.</param>
         public void SetHardwareDynamicResolutionState(bool enableHWDynamicRes)
         {
-            if(enableHWDynamicRes != m_HardwareDynamicResRequested && m_AutoSizedRTsArray != null)
+            if (enableHWDynamicRes != m_HardwareDynamicResRequested)
             {
                 m_HardwareDynamicResRequested = enableHWDynamicRes;
 
+                Array.Resize(ref m_AutoSizedRTsArray, m_AutoSizedRTs.Count);
+                m_AutoSizedRTs.CopyTo(m_AutoSizedRTsArray);
                 for (int i = 0, c = m_AutoSizedRTsArray.Length; i < c; ++i)
                 {
                     var rth = m_AutoSizedRTsArray[i];
 
                     // Grab the render texture
                     var renderTexture = rth.m_RT;
-                    if(renderTexture)
+                    if (renderTexture)
                     {
                         // Free the previous version
                         renderTexture.Release();
@@ -200,7 +264,6 @@ namespace UnityEngine.Rendering
                         // Create the render texture
                         renderTexture.Create();
                     }
-
                 }
             }
         }
@@ -258,15 +321,17 @@ namespace UnityEngine.Rendering
 
                 // Generate a new name
                 rt.name = CoreUtils.GetRenderTargetAutoName(
-                        rt.width,
-                        rt.height,
-                        rt.volumeDepth,
-                        rt.format,
-                        rth.m_Name,
-                        mips: rt.useMipMap,
-                        enableMSAA: rth.m_EnableMSAA,
-                        msaaSamples: m_ScaledRTCurrentMSAASamples
-                        );
+                    rt.width,
+                    rt.height,
+                    rt.volumeDepth,
+                    rt.graphicsFormat,
+                    rt.dimension,
+                    rth.m_Name,
+                    mips: rt.useMipMap,
+                    enableMSAA: rth.m_EnableMSAA,
+                    msaaSamples: m_ScaledRTCurrentMSAASamples,
+                    dynamicRes: rt.useDynamicScale
+                );
 
                 // Create the new texture
                 rt.Create();
@@ -353,7 +418,7 @@ namespace UnityEngine.Rendering
                 }
 
                 // Regenerate the name
-                renderTexture.name = CoreUtils.GetRenderTargetAutoName(renderTexture.width, renderTexture.height, renderTexture.volumeDepth, renderTexture.format, rth.m_Name, mips: renderTexture.useMipMap, enableMSAA: rth.m_EnableMSAA, msaaSamples: m_ScaledRTCurrentMSAASamples);
+                renderTexture.name = CoreUtils.GetRenderTargetAutoName(renderTexture.width, renderTexture.height, renderTexture.volumeDepth, renderTexture.graphicsFormat, renderTexture.dimension, rth.m_Name, mips: renderTexture.useMipMap, enableMSAA: rth.m_EnableMSAA, msaaSamples: m_ScaledRTCurrentMSAASamples, dynamicRes: renderTexture.useDynamicScale);
 
                 // Create the render texture
                 renderTexture.Create();
@@ -403,7 +468,7 @@ namespace UnityEngine.Rendering
             bool useDynamicScale = false,
             RenderTextureMemoryless memoryless = RenderTextureMemoryless.None,
             string name = ""
-            )
+        )
         {
             bool enableMSAA = msaaSamples != MSAASamples.None;
             if (!enableMSAA && bindTextureMS == true)
@@ -435,11 +500,9 @@ namespace UnityEngine.Rendering
                     memorylessMode = memoryless,
                     name = CoreUtils.GetRenderTargetAutoName(width, height, slices, format, name, mips: useMipMap, enableMSAA: enableMSAA, msaaSamples: msaaSamples)
                 };
-
             }
             else
             {
-
                 rt = new RenderTexture(width, height, (int)depthBufferBits, colorFormat)
                 {
                     hideFlags = HideFlags.HideAndDontSave,
@@ -456,7 +519,7 @@ namespace UnityEngine.Rendering
                     bindTextureMS = bindTextureMS,
                     useDynamicScale = m_HardwareDynamicResRequested && useDynamicScale,
                     memorylessMode = memoryless,
-                    name = CoreUtils.GetRenderTargetAutoName(width, height, slices, GraphicsFormatUtility.GetRenderTextureFormat(colorFormat), name, mips: useMipMap, enableMSAA: enableMSAA, msaaSamples: msaaSamples)
+                    name = CoreUtils.GetRenderTargetAutoName(width, height, slices, colorFormat, dimension, name, mips: useMipMap, enableMSAA: enableMSAA, msaaSamples: msaaSamples, dynamicRes: useDynamicScale)
                 };
             }
 
@@ -521,7 +584,7 @@ namespace UnityEngine.Rendering
             bool useDynamicScale = false,
             RenderTextureMemoryless memoryless = RenderTextureMemoryless.None,
             string name = ""
-            )
+        )
         {
             // If an MSAA target is requested, make sure the support was on
             if (enableMSAA)
@@ -531,25 +594,25 @@ namespace UnityEngine.Rendering
             int height = Mathf.Max(Mathf.RoundToInt(scaleFactor.y * GetMaxHeight()), 1);
 
             var rth = AllocAutoSizedRenderTexture(width,
-                    height,
-                    slices,
-                    depthBufferBits,
-                    colorFormat,
-                    filterMode,
-                    wrapMode,
-                    dimension,
-                    enableRandomWrite,
-                    useMipMap,
-                    autoGenerateMips,
-                    isShadowMap,
-                    anisoLevel,
-                    mipMapBias,
-                    enableMSAA,
-                    bindTextureMS,
-                    useDynamicScale,
-                    memoryless,
-                    name
-                    );
+                height,
+                slices,
+                depthBufferBits,
+                colorFormat,
+                filterMode,
+                wrapMode,
+                dimension,
+                enableRandomWrite,
+                useMipMap,
+                autoGenerateMips,
+                isShadowMap,
+                anisoLevel,
+                mipMapBias,
+                enableMSAA,
+                bindTextureMS,
+                useDynamicScale,
+                memoryless,
+                name
+            );
 
             rth.referenceSize = new Vector2Int(width, height);
 
@@ -609,32 +672,32 @@ namespace UnityEngine.Rendering
             bool useDynamicScale = false,
             RenderTextureMemoryless memoryless = RenderTextureMemoryless.None,
             string name = ""
-            )
+        )
         {
             var scaleFactor = scaleFunc(new Vector2Int(GetMaxWidth(), GetMaxHeight()));
             int width = Mathf.Max(scaleFactor.x, 1);
             int height = Mathf.Max(scaleFactor.y, 1);
 
             var rth = AllocAutoSizedRenderTexture(width,
-                    height,
-                    slices,
-                    depthBufferBits,
-                    colorFormat,
-                    filterMode,
-                    wrapMode,
-                    dimension,
-                    enableRandomWrite,
-                    useMipMap,
-                    autoGenerateMips,
-                    isShadowMap,
-                    anisoLevel,
-                    mipMapBias,
-                    enableMSAA,
-                    bindTextureMS,
-                    useDynamicScale,
-                    memoryless,
-                    name
-                    );
+                height,
+                slices,
+                depthBufferBits,
+                colorFormat,
+                filterMode,
+                wrapMode,
+                dimension,
+                enableRandomWrite,
+                useMipMap,
+                autoGenerateMips,
+                isShadowMap,
+                anisoLevel,
+                mipMapBias,
+                enableMSAA,
+                bindTextureMS,
+                useDynamicScale,
+                memoryless,
+                name
+            );
 
             rth.referenceSize = new Vector2Int(width, height);
 
@@ -663,7 +726,7 @@ namespace UnityEngine.Rendering
             bool useDynamicScale,
             RenderTextureMemoryless memoryless,
             string name
-            )
+        )
         {
             // Here user made a mistake in setting up msaa/bindMS, hence the warning
             if (!enableMSAA && bindTextureMS == true)
@@ -712,7 +775,7 @@ namespace UnityEngine.Rendering
                     useDynamicScale = m_HardwareDynamicResRequested && useDynamicScale,
                     memorylessMode = memoryless,
                     stencilFormat = stencilFormat,
-                    name = CoreUtils.GetRenderTargetAutoName(width, height, slices, GraphicsFormatUtility.GetRenderTextureFormat(colorFormat), name, mips: useMipMap, enableMSAA: allocForMSAA, msaaSamples: m_ScaledRTCurrentMSAASamples)
+                    name = CoreUtils.GetRenderTargetAutoName(width, height, slices, colorFormat, dimension, name, mips: useMipMap, enableMSAA: allocForMSAA, msaaSamples: m_ScaledRTCurrentMSAASamples, dynamicRes: useDynamicScale)
                 };
             }
             else
@@ -733,7 +796,7 @@ namespace UnityEngine.Rendering
                     bindTextureMS = bindTextureMS,
                     useDynamicScale = m_HardwareDynamicResRequested && useDynamicScale,
                     memorylessMode = memoryless,
-                    name = CoreUtils.GetRenderTargetAutoName(width, height, slices, GraphicsFormatUtility.GetRenderTextureFormat(colorFormat), name, mips: useMipMap, enableMSAA: allocForMSAA, msaaSamples: m_ScaledRTCurrentMSAASamples)
+                    name = CoreUtils.GetRenderTargetAutoName(width, height, slices, colorFormat, dimension, name, mips: useMipMap, enableMSAA: allocForMSAA, msaaSamples: m_ScaledRTCurrentMSAASamples, dynamicRes: useDynamicScale)
                 };
             }
 
@@ -751,6 +814,23 @@ namespace UnityEngine.Rendering
         }
 
         /// <summary>
+        /// Allocate a RTHandle from a regular RenderTexture.
+        /// </summary>
+        /// <param name="texture">Input texture</param>
+        /// <returns>A new RTHandle referencing the input texture.</returns>
+        public RTHandle Alloc(RenderTexture texture)
+        {
+            var rth = new RTHandle(this);
+            rth.SetRenderTexture(texture);
+            rth.m_EnableMSAA = false;
+            rth.m_EnableRandomWrite = false;
+            rth.useScaling = false;
+            rth.m_EnableHWDynamicScale = false;
+            rth.m_Name = texture.name;
+            return rth;
+        }
+
+        /// <summary>
         /// Allocate a RTHandle from a regular Texture.
         /// </summary>
         /// <param name="texture">Input texture</param>
@@ -763,7 +843,7 @@ namespace UnityEngine.Rendering
             rth.m_EnableRandomWrite = false;
             rth.useScaling = false;
             rth.m_EnableHWDynamicScale = false;
-            rth.m_Name = "";
+            rth.m_Name = texture.name;
             return rth;
         }
 
@@ -774,13 +854,24 @@ namespace UnityEngine.Rendering
         /// <returns>A new RTHandle referencing the input render target identifier.</returns>
         public RTHandle Alloc(RenderTargetIdentifier texture)
         {
+            return Alloc(texture, "");
+        }
+
+        /// <summary>
+        /// Allocate a RTHandle from a regular render target identifier.
+        /// </summary>
+        /// <param name="texture">Input render target identifier.</param>
+        /// <param name="name">Name of the texture.</param>
+        /// <returns>A new RTHandle referencing the input render target identifier.</returns>
+        public RTHandle Alloc(RenderTargetIdentifier texture, string name)
+        {
             var rth = new RTHandle(this);
             rth.SetTexture(texture);
             rth.m_EnableMSAA = false;
             rth.m_EnableRandomWrite = false;
             rth.useScaling = false;
             rth.m_EnableHWDynamicScale = false;
-            rth.m_Name = "";
+            rth.m_Name = name;
             return rth;
         }
 
@@ -789,7 +880,6 @@ namespace UnityEngine.Rendering
             Debug.LogError("Allocation a RTHandle from another one is forbidden.");
             return null;
         }
-
 
         internal string DumpRTInfo()
         {

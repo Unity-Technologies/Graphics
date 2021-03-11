@@ -1,0 +1,87 @@
+#pragma kernel BilateralUpSampleSingle              BILATERAL_UPSAMPLE=BilateralUpSampleSingle SINGLE_CHANNEL
+#pragma kernel BilateralUpSampleColor               BILATERAL_UPSAMPLE=BilateralUpSampleColor
+
+//#pragma enable_d3d11_debug_symbols
+
+#define BILATERAL_UPSAMPLE_TILE_SIZE 8
+
+#include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Common.hlsl"
+#include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Color.hlsl"
+#include "Packages/com.unity.render-pipelines.high-definition/Runtime/ShaderLibrary/ShaderVariables.hlsl"
+#include "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/Raytracing/Shaders/RayTracingCommon.hlsl"
+#include "Packages/com.unity.render-pipelines.high-definition/Runtime/Lighting/ScreenSpaceLighting/BilateralUpsample.hlsl"
+
+// Mip chain depth buffer
+TEXTURE2D_X(_DepthTexture);
+// The half resolution texture that needs to be upscaled
+TEXTURE2D_X(_LowResolutionTexture);
+
+// Constant buffer where all variables should land
+CBUFFER_START(UnityScreenSpaceGlobalIllumination)
+    float4 _HalfScreenSize;
+    float2 _DepthPyramidFirstMipLevelOffset;
+CBUFFER_END
+
+// The output of our upscaling pass
+RW_TEXTURE2D_X(float4, _OutputUpscaledTexture);
+
+[numthreads(BILATERAL_UPSAMPLE_TILE_SIZE, BILATERAL_UPSAMPLE_TILE_SIZE, 1)]
+void BILATERAL_UPSAMPLE(uint3 dispatchThreadId : SV_DispatchThreadID, uint2 groupThreadId : SV_GroupThreadID, uint2 groupId : SV_GroupID)
+{
+    UNITY_XR_ASSIGN_VIEW_INDEX(dispatchThreadId.z);
+
+    // If out of bounds, discard
+    if (any(dispatchThreadId.xy > uint2(_ScreenSize.xy)))
+        return;
+
+    // The pixel position to process
+    const uint2 outputCoord = dispatchThreadId.xy;
+
+    // Read the depth value as early as possible and use it as late as possible
+    float hiResDepth = LOAD_TEXTURE2D_X(_DepthTexture, outputCoord).x;
+
+    // Define what is the half resolution of this pixel
+    int2 halfResolution = (int2)(outputCoord / 2);
+
+    // Define what is the half resolution of this pixel
+    int2 coordRepresenatative = halfResolution * 2;
+
+    // Compute the shift within the half res
+    int2 halfResShift = outputCoord - coordRepresenatative;
+
+    // Compute the shift of the pixel in the group
+    int shiftIndex = halfResShift.y * 2 + halfResShift.x;
+
+    // Compute the shift in the upscale table
+    int offsetInCoordTable = shiftIndex * 4;
+
+    // Compute the half resolution coordinates we should tap from
+    int2 halfResTap0 = clamp(0, halfResolution + UpscaleBilateralPixels[offsetInCoordTable], _HalfScreenSize.xy - 1);
+    int2 halfResTap1 = clamp(0, halfResolution + UpscaleBilateralPixels[offsetInCoordTable + 1], _HalfScreenSize.xy - 1);
+    int2 halfResTap2 = clamp(0, halfResolution + UpscaleBilateralPixels[offsetInCoordTable + 2], _HalfScreenSize.xy - 1);
+    int2 halfResTap3 = clamp(0, halfResolution + UpscaleBilateralPixels[offsetInCoordTable + 3], _HalfScreenSize.xy - 1);
+
+    // Grab the depth of all the half resolution pixels
+    float4 lowDepths = float4(LOAD_TEXTURE2D_X(_DepthTexture, asuint(_DepthPyramidFirstMipLevelOffset) + halfResTap0).x
+                            , LOAD_TEXTURE2D_X(_DepthTexture, asuint(_DepthPyramidFirstMipLevelOffset) + halfResTap1).x
+                            , LOAD_TEXTURE2D_X(_DepthTexture, asuint(_DepthPyramidFirstMipLevelOffset) + halfResTap2).x
+                            , LOAD_TEXTURE2D_X(_DepthTexture, asuint(_DepthPyramidFirstMipLevelOffset) + halfResTap3).x);
+
+#if SINGLE_CHANNEL
+    // Grab all the scalar values required for upscale
+    float4 lowRes = float4(_LowResolutionTexture[COORD_TEXTURE2D_X(halfResTap0)].x
+                            , _LowResolutionTexture[COORD_TEXTURE2D_X(halfResTap1)].x
+                            , _LowResolutionTexture[COORD_TEXTURE2D_X(halfResTap2)].x
+                            , _LowResolutionTexture[COORD_TEXTURE2D_X(halfResTap3)].x);
+    // Upscale and output
+    _OutputUpscaledTexture[COORD_TEXTURE2D_X(outputCoord)] = BilUpSingle(hiResDepth, lowDepths, lowRes);
+#else
+    // Grab all the color values required for upscale
+    float4 lowResCol0 = max(0, _LowResolutionTexture[COORD_TEXTURE2D_X(halfResTap0)]);
+    float4 lowResCol1 = max(0, _LowResolutionTexture[COORD_TEXTURE2D_X(halfResTap1)]);
+    float4 lowResCol2 = max(0, _LowResolutionTexture[COORD_TEXTURE2D_X(halfResTap2)]);
+    float4 lowResCol3 = max(0, _LowResolutionTexture[COORD_TEXTURE2D_X(halfResTap3)]);
+
+    _OutputUpscaledTexture[COORD_TEXTURE2D_X(outputCoord)] = BilUpColor(hiResDepth, lowDepths, lowResCol0, lowResCol1, lowResCol2, lowResCol3);
+#endif
+}

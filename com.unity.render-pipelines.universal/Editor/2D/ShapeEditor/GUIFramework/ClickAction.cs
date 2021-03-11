@@ -24,7 +24,7 @@ namespace UnityEditor.Experimental.Rendering.Universal.Path2D.GUIFramework
         protected override void OnTrigger(IGUIState guiState)
         {
             base.OnTrigger(guiState);
-            
+
             if (onClick != null)
                 onClick(guiState, hoveredControl);
 

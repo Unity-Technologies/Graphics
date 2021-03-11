@@ -66,12 +66,12 @@ namespace UnityEngine.Rendering.HighDefinition
     // Unity's serialization API.
 
     /// <summary> An int scalable setting value</summary>
-    [Serializable] public class IntScalableSettingValue: ScalableSettingValue<int> {}
+    [Serializable] public class IntScalableSettingValue : ScalableSettingValue<int> {}
     /// <summary> An uint scalable setting value</summary>
-    [Serializable] public class UintScalableSettingValue: ScalableSettingValue<uint> {}
+    [Serializable] public class UintScalableSettingValue : ScalableSettingValue<uint> {}
     /// <summary> An float scalable setting value</summary>
-    [Serializable] public class FloatScalableSettingValue: ScalableSettingValue<float> {}
+    [Serializable] public class FloatScalableSettingValue : ScalableSettingValue<float> {}
     /// <summary> An bool scalable setting value</summary>
-    [Serializable] public class BoolScalableSettingValue: ScalableSettingValue<bool> {}
+    [Serializable] public class BoolScalableSettingValue : ScalableSettingValue<bool> {}
     #endregion
 }

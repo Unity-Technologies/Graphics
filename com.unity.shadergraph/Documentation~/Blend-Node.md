@@ -10,7 +10,7 @@ Blends the value of input **Blend** onto input **Base** using the blending mode 
 |:------------ |:-------------|:-----|:---|:---|
 | Base      | Input | Dynamic Vector | None | Base layer value |
 | Blend      | Input | Dynamic Vector | None | Blend layer value |
-| Opacity      | Input | Vector 1 | None | Strength of blend |
+| Opacity      | Input | Float    | None | Strength of blend |
 | Out | Output      |    Dynamic Vector | None | Output value |
 
 ## Controls

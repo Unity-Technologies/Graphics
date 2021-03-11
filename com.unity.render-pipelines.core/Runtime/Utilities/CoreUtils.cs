@@ -40,21 +40,69 @@ namespace UnityEngine.Rendering
             new Vector3(0.0f, 1.0f, 0.0f),
         };
 
+        /// <summary>
+        /// Class to store the menu sections
+        /// </summary>
+        public static class Sections
+        {
+            /// <summary>Menu section 1</summary>
+            public const int section1 = 10000;
+            /// <summary>Menu section 2</summary>
+            public const int section2 = 20000;
+            /// <summary>Menu section 3</summary>
+            public const int section3 = 30000;
+            /// <summary>Menu section 4</summary>
+            public const int section4 = 40000;
+            /// <summary>Menu section 5</summary>
+            public const int section5 = 50000;
+            /// <summary>Menu section 6</summary>
+            public const int section6 = 60000;
+            /// <summary>Menu section 7</summary>
+            public const int section7 = 70000;
+            /// <summary>Menu section 8</summary>
+            public const int section8 = 80000;
+        }
+
+        /// <summary>
+        /// Class to store the menu priorities on each top level menu
+        /// </summary>
+        public static class Priorities
+        {
+            /// <summary>Assets > Create > Shader priority</summary>
+            public const int assetsCreateShaderMenuPriority = 83;
+            /// <summary>Assets > Create > Rendering priority</summary>
+            public const int assetsCreateRenderingMenuPriority = 308;
+            /// <summary>Edit Menu base priority</summary>
+            public const int editMenuPriority = 320;
+            /// <summary>Game Object Menu priority</summary>
+            public const int gameObjectMenuPriority = 10;
+        }
+
+        const string obsoletePriorityMessage = "Use CoreUtils.Priorities instead";
+
         /// <summary>Edit Menu priority 1</summary>
+        [Obsolete(obsoletePriorityMessage, false)]
         public const int editMenuPriority1 = 320;
         /// <summary>Edit Menu priority 2</summary>
+        [Obsolete(obsoletePriorityMessage, false)]
         public const int editMenuPriority2 = 331;
         /// <summary>Edit Menu priority 3</summary>
+        [Obsolete(obsoletePriorityMessage, false)]
         public const int editMenuPriority3 = 342;
         /// <summary>Edit Menu priority 4</summary>
+        [Obsolete(obsoletePriorityMessage, false)]
         public const int editMenuPriority4 = 353;
         /// <summary>Asset Create Menu priority 1</summary>
+        [Obsolete(obsoletePriorityMessage, false)]
         public const int assetCreateMenuPriority1 = 230;
         /// <summary>Asset Create Menu priority 2</summary>
+        [Obsolete(obsoletePriorityMessage, false)]
         public const int assetCreateMenuPriority2 = 241;
         /// <summary>Asset Create Menu priority 3</summary>
+        [Obsolete(obsoletePriorityMessage, false)]
         public const int assetCreateMenuPriority3 = 300;
         /// <summary>Game Object Menu priority</summary>
+        [Obsolete(obsoletePriorityMessage, false)]
         public const int gameObjectMenuPriority = 10;
 
         static Cubemap m_BlackCubeTexture;
@@ -67,7 +115,7 @@ namespace UnityEngine.Rendering
             {
                 if (m_BlackCubeTexture == null)
                 {
-                    m_BlackCubeTexture = new Cubemap(1, TextureFormat.ARGB32, false);
+                    m_BlackCubeTexture = new Cubemap(1, GraphicsFormat.R8G8B8A8_SRGB, TextureCreationFlags.None);
                     for (int i = 0; i < 6; ++i)
                         m_BlackCubeTexture.SetPixel((CubemapFace)i, 0, 0, Color.black);
                     m_BlackCubeTexture.Apply();
@@ -87,7 +135,7 @@ namespace UnityEngine.Rendering
             {
                 if (m_MagentaCubeTexture == null)
                 {
-                    m_MagentaCubeTexture = new Cubemap(1, TextureFormat.ARGB32, false);
+                    m_MagentaCubeTexture = new Cubemap(1, GraphicsFormat.R8G8B8A8_SRGB, TextureCreationFlags.None);
                     for (int i = 0; i < 6; ++i)
                         m_MagentaCubeTexture.SetPixel((CubemapFace)i, 0, 0, Color.magenta);
                     m_MagentaCubeTexture.Apply();
@@ -107,7 +155,7 @@ namespace UnityEngine.Rendering
             {
                 if (m_MagentaCubeTextureArray == null)
                 {
-                    m_MagentaCubeTextureArray = new CubemapArray(1, 1, TextureFormat.RGBAFloat, false);
+                    m_MagentaCubeTextureArray = new CubemapArray(1, 1, GraphicsFormat.R32G32B32A32_SFloat, TextureCreationFlags.None);
                     for (int i = 0; i < 6; ++i)
                     {
                         Color[] colors = { Color.magenta };
@@ -130,7 +178,7 @@ namespace UnityEngine.Rendering
             {
                 if (m_WhiteCubeTexture == null)
                 {
-                    m_WhiteCubeTexture = new Cubemap(1, TextureFormat.ARGB32, false);
+                    m_WhiteCubeTexture = new Cubemap(1, GraphicsFormat.R8G8B8A8_SRGB, TextureCreationFlags.None);
                     for (int i = 0; i < 6; ++i)
                         m_WhiteCubeTexture.SetPixel((CubemapFace)i, 0, 0, Color.white);
                     m_WhiteCubeTexture.Apply();
@@ -170,7 +218,7 @@ namespace UnityEngine.Rendering
                 if (m_BlackVolumeTexture == null)
                 {
                     Color[] colors = { Color.black };
-                    m_BlackVolumeTexture = new Texture3D(1, 1, 1, TextureFormat.ARGB32, false);
+                    m_BlackVolumeTexture = new Texture3D(1, 1, 1, GraphicsFormat.R8G8B8A8_SRGB, TextureCreationFlags.None);
                     m_BlackVolumeTexture.SetPixels(colors, 0);
                     m_BlackVolumeTexture.Apply();
                 }
@@ -188,7 +236,7 @@ namespace UnityEngine.Rendering
         public static void ClearRenderTarget(CommandBuffer cmd, ClearFlag clearFlag, Color clearColor)
         {
             if (clearFlag != ClearFlag.None)
-                cmd.ClearRenderTarget((clearFlag & ClearFlag.Depth) != 0, (clearFlag & ClearFlag.Color) != 0, clearColor);
+                cmd.ClearRenderTarget((RTClearFlags)clearFlag, clearColor, 1.0f, 0x00);
         }
 
         // We use -1 as a default value because when doing SPI for XR, it will bind the full texture array by default (and has no effect on 2D textures)
@@ -225,6 +273,7 @@ namespace UnityEngine.Rendering
             cmd.SetRenderTarget(buffer, miplevel, cubemapFace, depthSlice);
             ClearRenderTarget(cmd, clearFlag, clearColor);
         }
+
         /// <summary>
         /// Set the current render texture.
         /// </summary>
@@ -578,8 +627,8 @@ namespace UnityEngine.Rendering
         /// <param name="msaaSamples">Number of MSAA samples.</param>
         /// <returns>Generated names bassed on the provided parameters.</returns>
         public static string GetRenderTargetAutoName(int width, int height, int depth, RenderTextureFormat format, string name, bool mips = false, bool enableMSAA = false, MSAASamples msaaSamples = MSAASamples.None)
-            => GetRenderTargetAutoName(width, height, depth, format.ToString(), name, mips, enableMSAA, msaaSamples);
-            
+            => GetRenderTargetAutoName(width, height, depth, format.ToString(), TextureDimension.None, name, mips, enableMSAA, msaaSamples, dynamicRes: false);
+
         /// <summary>
         /// Generate a name based on render texture parameters.
         /// </summary>
@@ -593,9 +642,26 @@ namespace UnityEngine.Rendering
         /// <param name="msaaSamples">Number of MSAA samples.</param>
         /// <returns>Generated names bassed on the provided parameters.</returns>
         public static string GetRenderTargetAutoName(int width, int height, int depth, GraphicsFormat format, string name, bool mips = false, bool enableMSAA = false, MSAASamples msaaSamples = MSAASamples.None)
-            => GetRenderTargetAutoName(width, height, depth, format.ToString(), name, mips, enableMSAA, msaaSamples);
+            => GetRenderTargetAutoName(width, height, depth, format.ToString(), TextureDimension.None, name, mips, enableMSAA, msaaSamples, dynamicRes: false);
 
-        static string GetRenderTargetAutoName(int width, int height, int depth, string format, string name, bool mips = false, bool enableMSAA = false, MSAASamples msaaSamples = MSAASamples.None)
+        /// <summary>
+        /// Generate a name based on render texture parameters.
+        /// </summary>
+        /// <param name="width">With of the texture.</param>
+        /// <param name="height">Height of the texture.</param>
+        /// <param name="depth">Depth of the texture.</param>
+        /// <param name="format">Graphics format of the render texture.</param>
+        /// <param name="dim">Dimension of the texture.</param>
+        /// <param name="name">Base name of the texture.</param>
+        /// <param name="mips">True if the texture has mip maps.</param>
+        /// <param name="enableMSAA">True if the texture is multisampled.</param>
+        /// <param name="msaaSamples">Number of MSAA samples.</param>
+        /// <param name="dynamicRes">True if the texture uses dynamic resolution.</param>
+        /// <returns>Generated names bassed on the provided parameters.</returns>
+        public static string GetRenderTargetAutoName(int width, int height, int depth, GraphicsFormat format, TextureDimension dim, string name, bool mips = false, bool enableMSAA = false, MSAASamples msaaSamples = MSAASamples.None, bool dynamicRes = false)
+            => GetRenderTargetAutoName(width, height, depth, format.ToString(), dim, name, mips, enableMSAA, msaaSamples, dynamicRes);
+
+        static string GetRenderTargetAutoName(int width, int height, int depth, string format, TextureDimension dim, string name, bool mips, bool enableMSAA, MSAASamples msaaSamples, bool dynamicRes)
         {
             string result = string.Format("{0}_{1}x{2}", name, width, height);
 
@@ -607,8 +673,14 @@ namespace UnityEngine.Rendering
 
             result = string.Format("{0}_{1}", result, format);
 
+            if (dim != TextureDimension.None)
+                result = string.Format("{0}_{1}", result, dim);
+
             if (enableMSAA)
                 result = string.Format("{0}_{1}", result, msaaSamples.ToString());
+
+            if (dynamicRes)
+                result = string.Format("{0}_{1}", result, "dynamic");
 
             return result;
         }
@@ -882,7 +954,7 @@ namespace UnityEngine.Rendering
         /// <summary>
         /// Set a keyword to a compute shader
         /// </summary>
-        /// <param name="cmd">ComputeShader on which to set the keyword.</param>
+        /// <param name="cs">Compute Shader on which to set the keyword.</param>
         /// <param name="keyword">Keyword to be set.</param>
         /// <param name="state">Value of the keyword to be set.</param>
         public static void SetKeyword(ComputeShader cs, string keyword, bool state)
@@ -1062,7 +1134,7 @@ namespace UnityEngine.Rendering
             #if UNITY_2020_2_OR_NEWER
                     if (sv.camera == camera && sv.sceneViewState.alwaysRefreshEnabled)
             #else
-                    if (sv.camera == camera && sv.sceneViewState.materialUpdateEnabled)                    
+                    if (sv.camera == camera && sv.sceneViewState.materialUpdateEnabled)
             #endif
                     {
                         animateMaterials = true;
@@ -1124,6 +1196,32 @@ namespace UnityEngine.Rendering
             return disabled;
         }
 
+        /// <summary>
+        /// Returns true if the "Light Overlap" scene view draw mode is enabled.
+        /// </summary>
+        /// <param name="camera">Input camera.</param>
+        /// <returns>True if "Light Overlap" is enabled in the scene view associated with the input camera.</returns>
+        public static bool IsLightOverlapDebugEnabled(Camera camera)
+        {
+            bool enabled = false;
+#if UNITY_EDITOR
+            if (camera.cameraType == CameraType.SceneView)
+            {
+                // Determine whether the "LightOverlap" mode is enabled for the current view.
+                for (int i = 0; i < UnityEditor.SceneView.sceneViews.Count; i++)
+                {
+                    var sv = UnityEditor.SceneView.sceneViews[i] as UnityEditor.SceneView;
+                    if (sv.camera == camera && sv.cameraMode.drawMode == UnityEditor.DrawCameraMode.LightOverlap)
+                    {
+                        enabled = true;
+                        break;
+                    }
+                }
+            }
+#endif
+            return enabled;
+        }
+
 #if UNITY_EDITOR
         static Func<List<UnityEditor.MaterialEditor>> materialEditors;
 
@@ -1135,6 +1233,7 @@ namespace UnityEngine.Rendering
             var lambda = System.Linq.Expressions.Expression.Lambda<Func<List<UnityEditor.MaterialEditor>>>(fieldExpression);
             materialEditors = lambda.Compile();
         }
+
 #endif
 
         /// <summary>
@@ -1165,6 +1264,30 @@ namespace UnityEngine.Rendering
 #endif
 
             return fogEnable;
+        }
+
+        /// <summary>
+        /// Draw a renderer list.
+        /// </summary>
+        /// <param name="renderContext">Current Scriptable Render Context.</param>
+        /// <param name="cmd">Command Buffer used for rendering.</param>
+        /// <param name="rendererList">Renderer List to render.</param>
+        public static void DrawRendererList(ScriptableRenderContext renderContext, CommandBuffer cmd, RendererList rendererList)
+        {
+            if (!rendererList.isValid)
+                throw new ArgumentException("Invalid renderer list provided to DrawRendererList");
+
+            // This is done here because DrawRenderers API lives outside command buffers so we need to make call this before doing any DrawRenders or things will be executed out of order
+            renderContext.ExecuteCommandBuffer(cmd);
+            cmd.Clear();
+
+            if (rendererList.stateBlock == null)
+                renderContext.DrawRenderers(rendererList.cullingResult, ref rendererList.drawSettings, ref rendererList.filteringSettings);
+            else
+            {
+                var renderStateBlock = rendererList.stateBlock.Value;
+                renderContext.DrawRenderers(rendererList.cullingResult, ref rendererList.drawSettings, ref rendererList.filteringSettings, ref renderStateBlock);
+            }
         }
     }
 }

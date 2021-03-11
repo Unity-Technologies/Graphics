@@ -29,7 +29,7 @@ namespace UnityEditor.VFX
             {
                 if (sourceSlot.GetType() == typeof(VFXSlotDirection))
                     return expression; //avoid multiple normalization
-                if (sourceSlot.property.attributes != null && sourceSlot.property.attributes.OfType<NormalizeAttribute>().Any())
+                if (sourceSlot.property.attributes.Is(VFXPropertyAttributes.Type.Normalized))
                     return expression; //avoid multiple normalization from Normalize attribute (rarely used for output slot)
             }
 

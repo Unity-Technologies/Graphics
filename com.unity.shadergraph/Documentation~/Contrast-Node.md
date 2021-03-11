@@ -9,7 +9,7 @@ Adjusts the contrast of input **In** by the amount of input **Contrast**. A **Co
 | Name        | Direction           | Type  | Binding | Description |
 |:------------ |:-------------|:-----|:---|:---|
 | In      | Input | Vector 3 | None | Input value |
-| Contrast      | Input | Vector 1 | None | Contrast value |
+| Contrast      | Input | Float    | None | Contrast value |
 | Out | Output      |    Vector 3 | None | Output value |
 
 ## Generated Code Example

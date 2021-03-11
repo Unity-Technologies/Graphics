@@ -15,7 +15,7 @@ RWStructuredBuffer<uint> indirectBuffer;
 #endif
 
 #if HAS_STRIPS
-RWBuffer<uint> stripDataBuffer;
+RWStructuredBuffer<uint> stripDataBuffer;
 #endif
 
 #if VFX_USE_STRIPALIVE_CURRENT
@@ -49,16 +49,18 @@ void CSMain(uint3 groupId          : SV_GroupID,
 		{
 			${VFXLoadAttributes:{(?!(alive|stripAlive))(\b\w)}}
 
-// Initialize built-in needed attributes
-#if VFX_USE_OLDPOSITION_CURRENT
-			attributes.oldPosition = attributes.position;
-#endif
 #if HAS_STRIPS
             const StripData stripData = GetStripDataFromParticleIndex(index, PARTICLE_PER_STRIP_COUNT);
             InitStripAttributes(index, attributes, stripData);
 #endif
-			
-			${VFXProcessBlocks}
+
+#if VFX_UPDATE_SKIP_ZERO_DELTA_TIME
+			${VFXLoadParameter:{deltaTime}}
+			if (deltaTime != 0.0f)
+#endif
+			{
+				${VFXProcessBlocks}
+			}
 
 			if (attributes.alive)
 			{
@@ -97,16 +99,18 @@ void CSMain(uint3 groupId          : SV_GroupID,
 #endif
 #else
 		${VFXLoadAttributes}
-		
-#if VFX_USE_OLDPOSITION_CURRENT
-		attributes.oldPosition = attributes.position;
-#endif
 #if HAS_STRIPS
         const StripData stripData = GetStripDataFromParticleIndex(index, PARTICLE_PER_STRIP_COUNT);
         InitStripAttributes(index, attributes, stripData);
 #endif
-		
-		${VFXProcessBlocks}
+
+#if VFX_UPDATE_SKIP_ZERO_DELTA_TIME
+		${VFXLoadParameter:{deltaTime}}
+		if (deltaTime != 0.0f)
+#endif
+		{
+			${VFXProcessBlocks}
+		}
 		${VFXStoreAttributes}
 #if VFX_HAS_INDIRECT_DRAW
         uint indirectIndex = indirectBuffer.IncrementCounter();

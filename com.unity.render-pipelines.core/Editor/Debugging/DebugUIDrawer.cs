@@ -36,10 +36,12 @@ namespace UnityEditor.Rendering
             where T : class
         {
             var casted = o as T;
-            string typeName = o == null ? "null" : o.GetType().ToString();
 
             if (casted == null)
+            {
+                string typeName = o == null ? "null" : o.GetType().ToString();
                 throw new InvalidOperationException("Can't cast " + typeName + " to " + typeof(T));
+            }
 
             return casted;
         }

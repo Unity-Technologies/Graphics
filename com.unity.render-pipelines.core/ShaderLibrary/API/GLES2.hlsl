@@ -2,8 +2,6 @@
 #error GLES.hlsl should not be included if SHADER_API_GLES is not defined
 #endif
 
-#define UNITY_UV_STARTS_AT_TOP 0
-#define UNITY_REVERSED_Z 0
 #define UNITY_NEAR_CLIP_VALUE (-1.0)
 
 // This value will not go through any matrix projection convertion
@@ -90,6 +88,7 @@
 
 #define SAMPLER(samplerName)
 #define SAMPLER_CMP(samplerName)
+#define ASSIGN_SAMPLER(samplerName, samplerValue)
 
 #define TEXTURE2D_PARAM(textureName, samplerName)                sampler2D textureName
 #define TEXTURE2D_ARRAY_PARAM(textureName, samplerName)          samplerCUBE textureName

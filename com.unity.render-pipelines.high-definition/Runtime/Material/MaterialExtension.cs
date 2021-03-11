@@ -17,15 +17,6 @@ namespace UnityEditor.Rendering.HighDefinition
         Transparent
     }
 
-    // Enum values are hardcoded for retro-compatibility. Don't change them.
-    enum BlendMode
-    {
-        // Note: value is due to code change, don't change the value
-        Alpha = 0,
-        Premultiply = 4,
-        Additive = 1
-    }
-
     enum DisplacementMode
     {
         None,
@@ -39,6 +30,13 @@ namespace UnityEditor.Rendering.HighDefinition
         Flip,
         Mirror,
         None
+    }
+
+    enum DoubleSidedGIMode
+    {
+        Auto,
+        On,
+        Off
     }
 
     enum TessellationMode
@@ -118,6 +116,13 @@ namespace UnityEditor.Rendering.HighDefinition
         Front = CullMode.Front,
     }
 
+    internal enum OpaqueCullMode
+    {
+        // Off is double sided and a different setting so we don't have it here
+        Back = CullMode.Back,
+        Front = CullMode.Front,
+    }
+
     internal static class MaterialExtension
     {
         public static SurfaceType   GetSurfaceType(this Material material)
@@ -141,7 +146,62 @@ namespace UnityEditor.Rendering.HighDefinition
         public static CullMode      GetTransparentCullMode(this Material material)
             => material.HasProperty(kTransparentCullMode) ? (CullMode)material.GetInt(kTransparentCullMode) : CullMode.Back;
 
+        public static CullMode      GetOpaqueCullMode(this Material material)
+            => material.HasProperty(kOpaqueCullMode) ? (CullMode)material.GetInt(kOpaqueCullMode) : CullMode.Back;
+
         public static CompareFunction   GetTransparentZTest(this Material material)
             => material.HasProperty(kZTestTransparent) ? (CompareFunction)material.GetInt(kZTestTransparent) : CompareFunction.LessEqual;
+
+        public static void ResetMaterialCustomRenderQueue(this Material material)
+        {
+            // using GetOpaqueEquivalent / GetTransparentEquivalent allow to handle the case when we switch surfaceType
+            HDRenderQueue.RenderQueueType targetQueueType;
+            switch (material.GetSurfaceType())
+            {
+                case SurfaceType.Opaque:
+                    targetQueueType = HDRenderQueue.GetOpaqueEquivalent(HDRenderQueue.GetTypeByRenderQueueValue(material.renderQueue));
+                    break;
+                case SurfaceType.Transparent:
+                    targetQueueType = HDRenderQueue.GetTransparentEquivalent(HDRenderQueue.GetTypeByRenderQueueValue(material.renderQueue));
+                    break;
+                default:
+                    throw new ArgumentException("Unknown SurfaceType");
+            }
+
+            float sortingPriority = material.HasProperty(kTransparentSortPriority) ? material.GetFloat(kTransparentSortPriority) : 0.0f;
+            bool alphaTest = material.HasProperty(kAlphaCutoffEnabled) && material.GetFloat(kAlphaCutoffEnabled) > 0.0f;
+            bool decalEnable = material.HasProperty(kEnableDecals) && material.GetFloat(kEnableDecals) > 0.0f;
+            material.renderQueue = HDRenderQueue.ChangeType(targetQueueType, (int)sortingPriority, alphaTest, decalEnable);
+        }
+
+        public static void UpdateEmissiveColorFromIntensityAndEmissiveColorLDR(this Material material)
+        {
+            const string kEmissiveColorLDR = "_EmissiveColorLDR";
+            const string kEmissiveColor = "_EmissiveColor";
+            const string kEmissiveIntensity = "_EmissiveIntensity";
+
+            if (material.HasProperty(kEmissiveColorLDR) && material.HasProperty(kEmissiveIntensity) && material.HasProperty(kEmissiveColor))
+            {
+                // Important: The color picker for kEmissiveColorLDR is LDR and in sRGB color space but Unity don't perform any color space conversion in the color
+                // picker BUT only when sending the color data to the shader... So as we are doing our own calculation here in C#, we must do the conversion ourselves.
+                Color emissiveColorLDR = material.GetColor(kEmissiveColorLDR);
+                Color emissiveColorLDRLinear = new Color(Mathf.GammaToLinearSpace(emissiveColorLDR.r), Mathf.GammaToLinearSpace(emissiveColorLDR.g), Mathf.GammaToLinearSpace(emissiveColorLDR.b));
+                material.SetColor(kEmissiveColor, emissiveColorLDRLinear * material.GetFloat(kEmissiveIntensity));
+            }
+        }
+
+        public static void UpdateEmissiveColorLDRFromIntensityAndEmissiveColor(this Material material)
+        {
+            const string kEmissiveColorLDR = "_EmissiveColorLDR";
+            const string kEmissiveColor = "_EmissiveColor";
+            const string kEmissiveIntensity = "_EmissiveIntensity";
+
+            if (material.HasProperty(kEmissiveColorLDR) && material.HasProperty(kEmissiveIntensity) && material.HasProperty(kEmissiveColor))
+            {
+                Color emissiveColorLDRLinear = material.GetColor(kEmissiveColor) / material.GetFloat(kEmissiveIntensity);
+                Color emissiveColorLDR = new Color(Mathf.LinearToGammaSpace(emissiveColorLDRLinear.r), Mathf.LinearToGammaSpace(emissiveColorLDRLinear.g), Mathf.LinearToGammaSpace(emissiveColorLDRLinear.b));
+                material.SetColor(kEmissiveColorLDR, emissiveColorLDR);
+            }
+        }
     }
 }

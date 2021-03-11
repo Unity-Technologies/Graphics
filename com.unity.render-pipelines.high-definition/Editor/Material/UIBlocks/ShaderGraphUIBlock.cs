@@ -2,45 +2,64 @@ using System;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.Rendering.HighDefinition;
+using System.Linq;
 
 // Include material common properties names
 using static UnityEngine.Rendering.HighDefinition.HDMaterialProperties;
 
 namespace UnityEditor.Rendering.HighDefinition
 {
-    class ShaderGraphUIBlock : MaterialUIBlock
+    /// <summary>
+    /// The UI block that represents Shader Graph material properties.
+    /// This UI block displays every non-hidden property inside a shader. You can also use this with non-shadergraph shaders.
+    /// </summary>
+    public class ShaderGraphUIBlock : MaterialUIBlock
     {
+        /// <summary>ShaderGraph UI Block features.</summary>
         [Flags]
         public enum Features
         {
+            /// <summary>Nothing is displayed.</summary>
             None = 0,
-            MotionVector = 1 << 0,
-            EmissionGI = 1 << 1,
+            /// <summary>Display the exposed properties.</summary>
+            ExposedProperties = 1 << 1,
+            /// <summary>Display the default exposed diffusion profile from the graph.</summary>
             DiffusionProfileAsset = 1 << 2,
-            EnableInstancing = 1 << 3,
-            DoubleSidedGI = 1 << 4,
+            /// <summary>Display the shadow matte options.</summary>
             ShadowMatte = 1 << 5,
-            Unlit = MotionVector | EmissionGI | ShadowMatte,
+            /// <summary>Display all the Unlit fields.</summary>
+            Unlit = ExposedProperties | ShadowMatte,
+            /// <summary>Display all the fields.</summary>
             All = ~0,
         }
 
-        protected static class Styles
+        internal static class Styles
         {
             public const string header = "Exposed Properties";
-            public static readonly GUIContent bakedEmission = new GUIContent("Baked Emission", "");
         }
 
-        Expandable  m_ExpandableBit;
+        ExpandableBit  m_ExpandableBit;
         Features    m_Features;
 
-        public ShaderGraphUIBlock(Expandable expandableBit = Expandable.ShaderGraph, Features features = Features.All)
+        /// <summary>
+        /// Constructs a ShaderGraphUIBlock based on the parameters.
+        /// </summary>
+        /// <param name="expandableBit">Bit index used to store the foldout state.</param>
+        /// <param name="features">Features enabled in the block.</param>
+        public ShaderGraphUIBlock(ExpandableBit expandableBit = ExpandableBit.ShaderGraph, Features features = Features.All)
         {
             m_ExpandableBit = expandableBit;
             m_Features = features;
         }
 
+        /// <summary>
+        /// Loads the material properties for the block.
+        /// </summary>
         public override void LoadMaterialProperties() {}
 
+        /// <summary>
+        /// Renders the properties in the block.
+        /// </summary>
         public override void OnGUI()
         {
             using (var header = new MaterialHeaderScope(Styles.header, (uint)m_ExpandableBit, materialEditor))
@@ -95,7 +114,8 @@ namespace UnityEditor.Rendering.HighDefinition
         void DrawShaderGraphGUI()
         {
             // Filter out properties we don't want to draw:
-            PropertiesDefaultGUI(properties);
+            if ((m_Features & Features.ExposedProperties) != 0)
+                PropertiesDefaultGUI(properties);
 
             // If we change a property in a shadergraph, we trigger a material keyword reset
             if (CheckPropertyChanged(properties))
@@ -104,34 +124,18 @@ namespace UnityEditor.Rendering.HighDefinition
                     HDShaderUtils.ResetMaterialKeywords(material);
             }
 
-            if (properties.Length > 0)
-                EditorGUILayout.Space();
-
             if ((m_Features & Features.DiffusionProfileAsset) != 0)
                 DrawDiffusionProfileUI();
 
-            if ((m_Features & Features.EnableInstancing) != 0)
-                materialEditor.EnableInstancingField();
-
-            if ((m_Features & Features.DoubleSidedGI) != 0)
-            {
-                // If the shader graph have a double sided flag, then we don't display this field.
-                // The double sided GI value will be synced with the double sided property during the SetupBaseUnlitKeywords()
-                if (!materials[0].HasProperty(kDoubleSidedEnable))
-                    materialEditor.DoubleSidedGIField();
-            }
-
-            if ((m_Features & Features.EmissionGI) != 0)
-                DrawEmissionGI();
-
-            if ((m_Features & Features.MotionVector) != 0)
-                DrawMotionVectorToggle();
-
-            if ((m_Features & Features.ShadowMatte) != 0 && materials[0].HasProperty(kShadowMatteFilter))
+            if ((m_Features & Features.ShadowMatte) != 0 && materials.All(m => m.HasProperty(kShadowMatteFilter)))
                 DrawShadowMatteToggle();
         }
 
-        void PropertiesDefaultGUI(MaterialProperty[] properties)
+        /// <summary>
+        /// Draws the material properties.
+        /// </summary>
+        /// <param name="properties">List of Material Properties to draw</param>
+        protected void PropertiesDefaultGUI(MaterialProperty[] properties)
         {
             for (var i = 0; i < properties.Length; i++)
             {
@@ -145,56 +149,10 @@ namespace UnityEditor.Rendering.HighDefinition
             }
         }
 
-        void DrawEmissionGI()
-        {
-            EmissionUIBlock.BakedEmissionEnabledProperty(materialEditor);
-        }
-
-        // Track additional velocity state. See SG-ADDITIONALVELOCITY-NOTE
-        bool m_AddPrecomputedVelocity = false;
-
-        void DrawMotionVectorToggle()
-        {
-            // I absolutely don't know what this is meant to do
-            const string materialTag = "MotionVector";
-            foreach (var material in materials)
-            {
-                string tag = material.GetTag(materialTag, false, "Nothing");
-                if (tag == "Nothing")
-                {
-                    material.SetShaderPassEnabled(HDShaderPassNames.s_MotionVectorsStr, false);
-                    material.SetOverrideTag(materialTag, "User");
-                }
-            }
-
-            // If using multi-select, apply toggled material to all materials.
-            bool enabled = materials[0].GetShaderPassEnabled(HDShaderPassNames.s_MotionVectorsStr);
-            EditorGUI.BeginChangeCheck();
-            enabled = EditorGUILayout.Toggle("Motion Vector For Vertex Animation", enabled);
-
-            // SG-ADDITIONALVELOCITY-NOTE:
-            // We would like to automatically enable the motion vector pass (handled on material UI side)
-            // in case we add precomputed velocity in a graph. Due to serialization of material, changing
-            // a value in between shadergraph compilations would have no effect on a material, so we instead
-            // inform the motion vector UI via the existence of the property at all and query against that.
-            bool hasPrecomputedVelocity = materials[0].HasProperty(kAddPrecomputedVelocity);
-            if (m_AddPrecomputedVelocity != hasPrecomputedVelocity)
-            {
-                enabled |= hasPrecomputedVelocity;
-                m_AddPrecomputedVelocity = hasPrecomputedVelocity;
-                GUI.changed = true;
-            }
-
-            if (EditorGUI.EndChangeCheck())
-            {
-                foreach (var material in materials)
-                {
-                    material.SetShaderPassEnabled(HDShaderPassNames.s_MotionVectorsStr, enabled);
-                }
-            }
-        }
-
-        void DrawShadowMatteToggle()
+        /// <summary>
+        /// Draws the Shadow Matte settings. This is only available for Unlit materials.
+        /// </summary>
+        protected void DrawShadowMatteToggle()
         {
             uint exponent = 0b10000000; // 0 as exponent
             uint mantissa = 0x007FFFFF;
@@ -216,7 +174,10 @@ namespace UnityEditor.Rendering.HighDefinition
             materials[0].SetFloat(HDMaterialProperties.kShadowMatteFilter, HDShadowUtils.Asfloat(finalFlag));
         }
 
-        void DrawDiffusionProfileUI()
+        /// <summary>
+        /// Draw the built-in exposed Diffusion Profile when a material uses sub-surface scattering or transmission.
+        /// </summary>
+        protected void DrawDiffusionProfileUI()
         {
             if (DiffusionProfileMaterialUI.IsSupported(materialEditor))
                 DiffusionProfileMaterialUI.OnGUI(materialEditor, FindProperty("_DiffusionProfileAsset"), FindProperty("_DiffusionProfileHash"), 0);

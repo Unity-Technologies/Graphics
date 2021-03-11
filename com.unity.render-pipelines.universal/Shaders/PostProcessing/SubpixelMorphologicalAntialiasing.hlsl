@@ -50,7 +50,7 @@
  *
  * The shader has three passes, chained together as follows:
  *
- *                           |input|------------------ 
+ *                           |input|------------------
  *                              v                     |
  *                    [ SMAA*EdgeDetection ]          |
  *                              v                     |
@@ -60,7 +60,7 @@
  *                              v                     |
  *                          |blendTex|                |
  *                              v                     |
- *                [ SMAANeighborhoodBlending ] <------ 
+ *                [ SMAANeighborhoodBlending ] <------
  *                              v
  *                           |output|
  *
@@ -559,7 +559,7 @@
 #define SMAATexturePass2D(tex) tex
 #define SMAASampleLevelZero(tex, coord) SAMPLE_TEXTURE2D_X_LOD(tex, LinearSampler, coord, 0)
 #define SMAASampleLevelZeroNoRescale(tex, coord) tex.SampleLevel(LinearSampler, coord, 0)
-#define SMAASampleLevelZeroPoint(tex, coord) SAMPLE_TEXTURE2D_X_LOD(tex, PointSampler, coord, 0) 
+#define SMAASampleLevelZeroPoint(tex, coord) SAMPLE_TEXTURE2D_X_LOD(tex, PointSampler, coord, 0)
 #define SMAASampleLevelZeroOffset(tex, coord, offset) SAMPLE_TEXTURE2D_X_LOD(tex, LinearSampler, coord + offset * SMAA_RT_METRICS.xy, 0)
 #define SMAASample(tex, coord) SAMPLE_TEXTURE2D_X(tex, LinearSampler, coord)
 #define SMAASamplePoint(tex, coord) SAMPLE_TEXTURE2D_X(tex, PointSampler, coord)
@@ -747,7 +747,7 @@ float2 SMAALumaEdgeDetectionPS(float2 texcoord,
     float finalDelta = max(maxDelta.x, maxDelta.y);
 
     // Local contrast adaptation:
-#if !defined(SHADER_API_OPENGL)
+#if !defined(SHADER_API_GLCORE) || defined(SHADER_API_SWITCH)    // TODO: Bug workaround, switch defines GLCORE when it shouldn't
     edges.xy *= step(finalDelta, SMAA_LOCAL_CONTRAST_ADAPTATION_FACTOR * delta.xy);
 #endif
 
@@ -819,7 +819,7 @@ float2 SMAAColorEdgeDetectionPS(float2 texcoord,
     float finalDelta = max(maxDelta.x, maxDelta.y);
 
     // Local contrast adaptation:
-#if !defined(SHADER_API_OPENGL)
+#if !defined(SHADER_API_GLCORE) || defined(SHADER_API_SWITCH)    // TODO: Bug workaround, switch defines GLCORE when it shouldn't
     edges.xy *= step(finalDelta, SMAA_LOCAL_CONTRAST_ADAPTATION_FACTOR * delta.xy);
 #endif
 

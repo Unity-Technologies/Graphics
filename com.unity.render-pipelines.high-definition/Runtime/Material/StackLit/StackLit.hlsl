@@ -31,12 +31,6 @@
 // #define STACK_LIT_DISPLAY_REFERENCE_IBL
 #endif
 
-#ifndef SKIP_RASTERIZED_SHADOWS
-#define RASTERIZED_AREA_LIGHT_SHADOWS 1
-#else
-#define RASTERIZED_AREA_LIGHT_SHADOWS 0
-#endif
-
 //-----------------------------------------------------------------------------
 // Texture and constant buffer declaration
 //-----------------------------------------------------------------------------
@@ -904,11 +898,26 @@ void GetSurfaceDataDebug(uint paramId, SurfaceData surfaceData, inout float3 res
     {
         case DEBUGVIEW_STACKLIT_SURFACEDATA_NORMAL_VIEW_SPACE:
             // Convert to view space
-            result = TransformWorldToViewDir(surfaceData.normalWS) * 0.5 + 0.5;
+        {
+            float3 vsNormal = TransformWorldToViewDir(surfaceData.normalWS);
+            result = IsNormalized(vsNormal) ?  vsNormal * 0.5 + 0.5 : float3(1.0, 0.0, 0.0);
             break;
+        }
         case DEBUGVIEW_STACKLIT_SURFACEDATA_GEOMETRIC_NORMAL_VIEW_SPACE:
-            result = TransformWorldToViewDir(surfaceData.geomNormalWS) * 0.5 + 0.5;
+        {
+            float3 vsGeomNormal = TransformWorldToViewDir(surfaceData.geomNormalWS);
+            result = IsNormalized(vsGeomNormal) ?  vsGeomNormal * 0.5 + 0.5 : float3(1.0, 0.0, 0.0);
             break;
+        }
+        case DEBUGVIEW_STACKLIT_SURFACEDATA_SPECULAR_COLOR:
+        {
+            if (!HasFlag(surfaceData.materialFeatures, DEBUGVIEW_STACKLIT_SURFACEDATA_SPECULAR_COLOR))
+            {
+                // Derive the specular/fresnel0 term from the metallic parameter
+                result = ComputeFresnel0(surfaceData.baseColor, surfaceData.metallic.x, DEFAULT_SPECULAR_VALUE);
+            }
+            break;
+        }
     }
 }
 
@@ -921,11 +930,17 @@ void GetBSDFDataDebug(uint paramId, BSDFData bsdfData, inout float3 result, inou
     {
         case DEBUGVIEW_STACKLIT_BSDFDATA_NORMAL_VIEW_SPACE:
             // Convert to view space
-            result = TransformWorldToViewDir(bsdfData.normalWS) * 0.5 + 0.5;
+        {
+            float3 vsNormal = TransformWorldToViewDir(bsdfData.normalWS);
+            result = IsNormalized(vsNormal) ?  vsNormal * 0.5 + 0.5 : float3(1.0, 0.0, 0.0);
             break;
+        }
         case DEBUGVIEW_STACKLIT_BSDFDATA_GEOMETRIC_NORMAL_VIEW_SPACE:
-            result = TransformWorldToViewDir(bsdfData.geomNormalWS) * 0.5 + 0.5;
+        {
+            float3 vsGeomNormal = TransformWorldToViewDir(bsdfData.geomNormalWS);
+            result = IsNormalized(vsGeomNormal) ?  vsGeomNormal * 0.5 + 0.5 : float3(1.0, 0.0, 0.0);
             break;
+        }
     }
 }
 
@@ -3845,7 +3860,7 @@ DirectLighting EvaluateBSDF_Line(   LightLoopContext lightLoopContext,
                 {
                     localP1 = mul(P1, transpose(preLightData.orthoBasisViewNormal[COAT_NORMAL_IDX]));
                     localP2 = mul(P2, transpose(preLightData.orthoBasisViewNormal[COAT_NORMAL_IDX]));
-                    B = normalize(cross(localP1, localP2));   
+                    B = normalize(cross(localP1, localP2));
                 }
                 if (AREA_LIGHTS_ANISOTROPY_ENABLED) // statically known, so no need for if else, just overwrite the above
                 {
@@ -3878,7 +3893,7 @@ DirectLighting EvaluateBSDF_Line(   LightLoopContext lightLoopContext,
             localP2 = mul(P2, transpose(preLightData.orthoBasisViewNormal[BASE_NORMAL_IDX]));
             if (AREA_LIGHTS_ANISOTROPY_ENABLED)
             {
-                // In that case orthoBasisViewNormal[] is per lobe due to anistropic hack, 
+                // In that case orthoBasisViewNormal[] is per lobe due to anistropic hack,
                 // use orthoBasisViewNormalDiffuse:
                 localP1 = mul(P1, transpose(preLightData.orthoBasisViewNormalDiffuse));
                 localP2 = mul(P2, transpose(preLightData.orthoBasisViewNormalDiffuse));
@@ -3965,21 +3980,21 @@ DirectLighting EvaluateBSDF_Rect(   LightLoopContext lightLoopContext,
         {
             lightData.diffuseDimmer  *= intensity;
             lightData.specularDimmer *= intensity;
-    
+
             // Translate the light s.t. the shaded point is at the origin of the coordinate system.
             lightData.positionRWS -= positionWS;
-    
+
             float4x3 lightVerts;
-    
+
             // TODO: some of this could be precomputed.
             lightVerts[0] = lightData.positionRWS + lightData.right * -halfWidth + lightData.up * -halfHeight; // LL
             lightVerts[1] = lightData.positionRWS + lightData.right * -halfWidth + lightData.up *  halfHeight; // UL
             lightVerts[2] = lightData.positionRWS + lightData.right *  halfWidth + lightData.up *  halfHeight; // UR
             lightVerts[3] = lightData.positionRWS + lightData.right *  halfWidth + lightData.up * -halfHeight; // LR
-    
+
             // Rotate the endpoints into the local coordinate system.
             float4x3 localLightVerts = mul(lightVerts, transpose(preLightData.orthoBasisViewNormal[BASE_NORMAL_IDX]));
-    
+
             if (AREA_LIGHTS_ANISOTROPY_ENABLED)  // statically known, so no need for if else, just overwrite the above
             {
                 // Since we proceed with calculating diffuse and transmission irradiance, we setup
@@ -3988,11 +4003,11 @@ DirectLighting EvaluateBSDF_Rect(   LightLoopContext lightLoopContext,
                 // the proper base layer normal:
                 localLightVerts = mul(lightVerts, transpose(preLightData.orthoBasisViewNormalDiffuse));
             }
-    
+
             // Calculate the L irradiance (ltcValue) first for the diffuse part and transmission,
             // then for the specular base layer and finishing with the coat.
             float3 ltcValue;
-    
+
             // Evaluate the diffuse part
             // Polygon irradiance in the transformed configuration.
             float4x3 LD = mul(localLightVerts, preLightData.ltcTransformDiffuse);
@@ -4007,18 +4022,18 @@ DirectLighting EvaluateBSDF_Rect(   LightLoopContext lightLoopContext,
             }
             // We don't multiply by 'bsdfData.diffuseColor' here. It's done only once in PostEvaluateBSDF().
             lighting.diffuse = preLightData.diffuseFGD * preLightData.diffuseEnergy * ltcValue;
-    
+
             UNITY_BRANCH if (HasFlag(bsdfData.materialFeatures, MATERIALFEATUREFLAGS_STACK_LIT_TRANSMISSION))
             {
                 // Flip the view vector and the normal. The bitangent stays the same.
                 float3x3 flipMatrix = float3x3(-1,  0,  0,
                                                 0,  1,  0,
                                                 0,  0, -1);
-    
+
                 // Use the Lambertian approximation for performance reasons.
                 // The matrix multiplication should not generate any extra ALU on GCN.
                 float3x3 ltcTransform = mul(flipMatrix, k_identity3x3);
-    
+
                 // Polygon irradiance in the transformed configuration.
                 // TODO: double evaluation is very inefficient! This is a temporary solution.
                 float4x3 LTD = mul(localLightVerts, ltcTransform);
@@ -4034,12 +4049,12 @@ DirectLighting EvaluateBSDF_Rect(   LightLoopContext lightLoopContext,
                 // VLAYERED_DIFFUSE_ENERGY_HACKED_TERM:
                 // In Lit with Lambert, there's no diffuseFGD, it is one. In our case, we also
                 // need a diffuse energy term when vlayered.
-    
+
                 // We use diffuse lighting for accumulation since it is going to be blurred during the SSS pass.
                 // We don't multiply by 'bsdfData.diffuseColor' here. It's done only once in PostEvaluateBSDF().
                 lighting.diffuse += bsdfData.transmittance * ltcValue * preLightData.diffuseEnergy;
             }
-    
+
             // Evaluate the specular lobes for the stack
             IF_DEBUG( if ( _DebugLobeMask.y != 0.0) )
             {
@@ -4059,7 +4074,7 @@ DirectLighting EvaluateBSDF_Rect(   LightLoopContext lightLoopContext,
                     float3 formFactorAS =  PolygonFormFactor(LAS);
                     ltcValue *= SampleAreaLightCookie(lightData.cookieScaleOffset, LAS, formFactorAS);
                 }
-    
+
                 // See EvaluateBSDF_Env TODOENERGY:
                 lighting.specular += preLightData.energyCompensationFactor[BASE_LOBEA_IDX] * preLightData.specularFGD[BASE_LOBEA_IDX] * ltcValue;
             }
@@ -4080,10 +4095,10 @@ DirectLighting EvaluateBSDF_Rect(   LightLoopContext lightLoopContext,
                     float3 formFactorS =  PolygonFormFactor(LS);
                     ltcValue *= SampleAreaLightCookie(lightData.cookieScaleOffset, LS, formFactorS);
                 }
-    
+
                 lighting.specular += preLightData.energyCompensationFactor[BASE_LOBEB_IDX] * preLightData.specularFGD[BASE_LOBEB_IDX] * ltcValue;
             }
-    
+
             if (IsVLayeredEnabled(bsdfData))
             {
                 if (IsCoatNormalMapEnabled(bsdfData))
@@ -4111,8 +4126,10 @@ DirectLighting EvaluateBSDF_Rect(   LightLoopContext lightLoopContext,
                 }
             }
             lighting.specular *= lightData.specularDimmer;
-    
-    
+
+            SHADOW_TYPE shadow = EvaluateShadow_RectArea(lightLoopContext, posInput, lightData, builtinData, bsdfData.normalWS, normalize(lightData.positionRWS), length(lightData.positionRWS));
+            lightData.color.rgb *= ComputeShadowColor(shadow, lightData.shadowTint, lightData.penumbraTint);
+
             // Save ALU by applying 'lightData.color' only once.
             lighting.diffuse *= lightData.color;
             lighting.specular *= lightData.color;
@@ -4124,7 +4141,7 @@ DirectLighting EvaluateBSDF_Rect(   LightLoopContext lightLoopContext,
                 localLightVerts = mul(lightVerts, transpose(preLightData.orthoBasisViewNormal[BASE_NORMAL_IDX]));
                 if (AREA_LIGHTS_ANISOTROPY_ENABLED)
                 {
-                    // In that case orthoBasisViewNormal[] is per lobe due to anistropic hack, 
+                    // In that case orthoBasisViewNormal[] is per lobe due to anistropic hack,
                     // use orthoBasisViewNormalDiffuse:
                     localLightVerts = mul(lightVerts, transpose(preLightData.orthoBasisViewNormalDiffuse));
                 }
@@ -4139,41 +4156,6 @@ DirectLighting EvaluateBSDF_Rect(   LightLoopContext lightLoopContext,
         } // if light not too far
 
     } // if light not back-facing
-
-    float  shadow = 1.0;
-    float  shadowMask = 1.0;
-#ifdef SHADOWS_SHADOWMASK
-    // shadowMaskSelector.x is -1 if there is no shadow mask
-    // Note that we override shadow value (in case we don't have any dynamic shadow)
-    shadow = shadowMask = (lightData.shadowMaskSelector.x >= 0.0) ? dot(BUILTIN_DATA_SHADOW_MASK, lightData.shadowMaskSelector) : 1.0;
-#endif
-
-#if defined(SCREEN_SPACE_SHADOWS) && !defined(_SURFACE_TYPE_TRANSPARENT)
-    if ((lightData.screenSpaceShadowIndex & SCREEN_SPACE_SHADOW_INDEX_MASK) != INVALID_SCREEN_SPACE_SHADOW)
-    {
-        shadow = GetScreenSpaceShadow(posInput, lightData.screenSpaceShadowIndex);
-    }
-    else
-#endif // ENABLE_RAYTRACING
-    if (lightData.shadowIndex != -1)
-    {
-#if RASTERIZED_AREA_LIGHT_SHADOWS
-            // lightData.positionRWS now contains the Light vector.
-            shadow = GetAreaLightAttenuation(lightLoopContext.shadowContext, posInput.positionSS, posInput.positionWS, bsdfData.normalWS, lightData.shadowIndex, normalize(lightData.positionRWS), length(lightData.positionRWS));
-#ifdef SHADOWS_SHADOWMASK
-            // See comment for punctual light shadow mask
-            shadow = lightData.nonLightMappedOnly ? min(shadowMask, shadow) : shadow;
-#endif
-            shadow = lerp(shadowMask, shadow, lightData.shadowDimmer);
-
-#endif
-    }
-
-#if RASTERIZED_AREA_LIGHT_SHADOWS || SUPPORTS_RAYTRACED_AREA_SHADOWS
-    float3 shadowColor = ComputeShadowColor(shadow, lightData.shadowTint, lightData.penumbraTint);
-    lighting.diffuse *= shadowColor;
-    lighting.specular *= shadowColor;
-#endif
 
 #endif // STACK_LIT_DISPLAY_REFERENCE_AREA
 
@@ -4375,22 +4357,10 @@ IndirectLighting EvaluateBSDF_Env(  LightLoopContext lightLoopContext,
             R[i] = lerp(R[i], preLightData.iblR[i], saturate(smoothstep(0, 1, roughness * roughness)));
         }
 
-        EvaluateLight_EnvIntersection(positionWS, normal, lightData, influenceShapeType, R[i], tempWeight[i]);
+        float intersectionDistance = EvaluateLight_EnvIntersection(positionWS, normal, lightData, influenceShapeType, R[i], tempWeight[i]);
 
-        float iblMipLevel;
-        // TODO: We need to match the PerceptualRoughnessToMipmapLevel formula for planar, so we don't do this test (which is specific to our current lightloop)
-        // Specific case for Texture2Ds, their convolution is a gaussian one and not a GGX one - So we use another roughness mip mapping.
-        if (IsEnvIndexTexture2D(lightData.envIndex))
-        {
-            // Empirical remapping
-            iblMipLevel = PlanarPerceptualRoughnessToMipmapLevel(preLightData.iblPerceptualRoughness[i], _ColorPyramidLodCount);
-        }
-        else
-        {
-            iblMipLevel = PerceptualRoughnessToMipmapLevel(preLightData.iblPerceptualRoughness[i]);
-        }
+        float4 preLD = SampleEnvWithDistanceBaseRoughness(lightLoopContext, posInput, lightData, R[i], preLightData.iblPerceptualRoughness[i], intersectionDistance);
 
-        float4 preLD = SampleEnv(lightLoopContext, lightData.envIndex, R[i], iblMipLevel, lightData.rangeCompressionFactorCompensation);
         // Used by planar reflection to discard pixel:
         tempWeight[i] *= preLD.a;
 
@@ -4431,7 +4401,7 @@ IndirectLighting EvaluateBSDF_Env(  LightLoopContext lightLoopContext,
 void PostEvaluateBSDF(  LightLoopContext lightLoopContext,
                         float3 V, PositionInputs posInput,
                         PreLightData preLightData, BSDFData bsdfData, BuiltinData builtinData, AggregateLighting lighting,
-                        out float3 diffuseLighting, out float3 specularLighting)
+                        out LightLoopOutput lightLoopOutput)
 {
     // Specular occlusion has been pre-computed in GetPreLightData() and applied on indirect specular light
     // while screenSpaceAmbientOcclusion has also been cached in preLightData.
@@ -4459,9 +4429,9 @@ void PostEvaluateBSDF(  LightLoopContext lightLoopContext,
     // on it. Specular occlusion has been applied per lobe during specular lighting evaluations before.
     // We also add emissive since it is not merged with bakeDiffuseLighting in ModifyBakedDiffuseLighting.
     // (also cf lit deferred EncodeToGBuffer function).
-    diffuseLighting = (modifiedDiffuseColor * lighting.direct.diffuse) + (builtinData.bakeDiffuseLighting * diffuseOcclusion) + builtinData.emissiveColor;
+    lightLoopOutput.diffuseLighting = (modifiedDiffuseColor * lighting.direct.diffuse) + (builtinData.bakeDiffuseLighting * diffuseOcclusion) + builtinData.emissiveColor;
 
-    specularLighting = lighting.direct.specular + lighting.indirect.specularReflected;
+    lightLoopOutput.specularLighting = lighting.direct.specular + lighting.indirect.specularReflected;
 
 #ifdef DEBUG_DISPLAY
     // For specularOcclusion we display red to indicate there's not one value possible here.
@@ -4478,7 +4448,7 @@ void PostEvaluateBSDF(  LightLoopContext lightLoopContext,
 
     GetAmbientOcclusionFactor(diffuseOcclusion, specularOcclusion, directAmbientOcclusion /* not used for now in PostEvaluateBSDFDebugDisplay */ , aoFactor);
 
-    PostEvaluateBSDFDebugDisplay(aoFactor, builtinData, lighting, bsdfData.diffuseColor, diffuseLighting, specularLighting);
+    PostEvaluateBSDFDebugDisplay(aoFactor, builtinData, lighting, bsdfData.diffuseColor, lightLoopOutput);
 #endif
 }
 

@@ -239,6 +239,10 @@ PropertyControlView {
     padding-bottom: 4px;
 }
 
+.stack-node {
+    --separator-extent: 6;
+}
+
 /* TEMP STUFF THAT SHOULD ACTUALLY STAY IN GRAPHVIEW */
 
 .unity-Doublefield-input {

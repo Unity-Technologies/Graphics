@@ -2,8 +2,9 @@ Shader "Hidden/Universal Render Pipeline/LutBuilderHdr"
 {
     HLSLINCLUDE
 
+        #pragma exclude_renderers gles
         #pragma multi_compile_local _ _TONEMAP_ACES _TONEMAP_NEUTRAL
-        
+
         #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Core.hlsl"
         #include "Packages/com.unity.render-pipelines.universal/Shaders/PostProcessing/Common.hlsl"
         #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/ACES.hlsl"
@@ -61,7 +62,7 @@ Shader "Hidden/Universal Render Pipeline/LutBuilderHdr"
             #endif
 
             colorLog = (colorLog - ACEScc_MIDGRAY) * _HueSatCon.z + ACEScc_MIDGRAY;
-    
+
             #if _TONEMAP_ACES
             colorLinear = ACES_to_ACEScg(ACEScc_to_ACES(colorLog));
             #else
@@ -206,7 +207,7 @@ Shader "Hidden/Universal Render Pipeline/LutBuilderHdr"
             Name "LutBuilderHdr"
 
             HLSLPROGRAM
-                #pragma vertex Vert
+                #pragma vertex FullscreenVert
                 #pragma fragment Frag
             ENDHLSL
         }

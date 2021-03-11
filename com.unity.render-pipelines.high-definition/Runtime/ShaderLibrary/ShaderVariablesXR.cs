@@ -4,35 +4,37 @@ namespace UnityEngine.Rendering.HighDefinition
     [GenerateHLSL(needAccessors = false, generateCBuffer = true, constantRegister = (int)ConstantRegister.XR)]
     unsafe struct ShaderVariablesXR
     {
-        [HLSLArray((int)ShaderOptions.XrMaxViews, typeof(Matrix4x4))]
-        public fixed float _XRViewMatrix[(int)ShaderOptions.XrMaxViews * 16];
-        [HLSLArray((int)ShaderOptions.XrMaxViews, typeof(Matrix4x4))]
-        public fixed float _XRInvViewMatrix[(int)ShaderOptions.XrMaxViews * 16];
-        [HLSLArray((int)ShaderOptions.XrMaxViews, typeof(Matrix4x4))]
-        public fixed float _XRProjMatrix[(int)ShaderOptions.XrMaxViews * 16];
-        [HLSLArray((int)ShaderOptions.XrMaxViews, typeof(Matrix4x4))]
-        public fixed float _XRInvProjMatrix[(int)ShaderOptions.XrMaxViews * 16];
-        [HLSLArray((int)ShaderOptions.XrMaxViews, typeof(Matrix4x4))]
-        public fixed float _XRViewProjMatrix[(int)ShaderOptions.XrMaxViews * 16];
-        [HLSLArray((int)ShaderOptions.XrMaxViews, typeof(Matrix4x4))]
-        public fixed float _XRInvViewProjMatrix[(int)ShaderOptions.XrMaxViews * 16];
-        [HLSLArray((int)ShaderOptions.XrMaxViews, typeof(Matrix4x4))]
-        public fixed float _XRNonJitteredViewProjMatrix[(int)ShaderOptions.XrMaxViews * 16];
-        [HLSLArray((int)ShaderOptions.XrMaxViews, typeof(Matrix4x4))]
-        public fixed float _XRPrevViewProjMatrix[(int)ShaderOptions.XrMaxViews * 16];
-        [HLSLArray((int)ShaderOptions.XrMaxViews, typeof(Matrix4x4))]
-        public fixed float _XRPrevInvViewProjMatrix[(int)ShaderOptions.XrMaxViews * 16];
-        [HLSLArray((int)ShaderOptions.XrMaxViews, typeof(Matrix4x4))]
-        public fixed float _XRPrevViewProjMatrixNoCameraTrans[(int)ShaderOptions.XrMaxViews * 16];
-        [HLSLArray((int)ShaderOptions.XrMaxViews, typeof(Matrix4x4))]
-        public fixed float _XRPixelCoordToViewDirWS[(int)ShaderOptions.XrMaxViews * 16];
+        [HLSLArray(ShaderConfig.k_XRMaxViewsForCBuffer, typeof(Matrix4x4))]
+        public fixed float _XRViewMatrix[ShaderConfig.k_XRMaxViewsForCBuffer * 16];
+        [HLSLArray(ShaderConfig.k_XRMaxViewsForCBuffer, typeof(Matrix4x4))]
+        public fixed float _XRInvViewMatrix[ShaderConfig.k_XRMaxViewsForCBuffer * 16];
+        [HLSLArray(ShaderConfig.k_XRMaxViewsForCBuffer, typeof(Matrix4x4))]
+        public fixed float _XRProjMatrix[ShaderConfig.k_XRMaxViewsForCBuffer * 16];
+        [HLSLArray(ShaderConfig.k_XRMaxViewsForCBuffer, typeof(Matrix4x4))]
+        public fixed float _XRInvProjMatrix[ShaderConfig.k_XRMaxViewsForCBuffer * 16];
+        [HLSLArray(ShaderConfig.k_XRMaxViewsForCBuffer, typeof(Matrix4x4))]
+        public fixed float _XRViewProjMatrix[ShaderConfig.k_XRMaxViewsForCBuffer * 16];
+        [HLSLArray(ShaderConfig.k_XRMaxViewsForCBuffer, typeof(Matrix4x4))]
+        public fixed float _XRInvViewProjMatrix[ShaderConfig.k_XRMaxViewsForCBuffer * 16];
+        [HLSLArray(ShaderConfig.k_XRMaxViewsForCBuffer, typeof(Matrix4x4))]
+        public fixed float _XRNonJitteredViewProjMatrix[ShaderConfig.k_XRMaxViewsForCBuffer * 16];
+        [HLSLArray(ShaderConfig.k_XRMaxViewsForCBuffer, typeof(Matrix4x4))]
+        public fixed float _XRPrevViewProjMatrix[ShaderConfig.k_XRMaxViewsForCBuffer * 16];
+        [HLSLArray(ShaderConfig.k_XRMaxViewsForCBuffer, typeof(Matrix4x4))]
+        public fixed float _XRPrevInvViewProjMatrix[ShaderConfig.k_XRMaxViewsForCBuffer * 16];
+        [HLSLArray(ShaderConfig.k_XRMaxViewsForCBuffer, typeof(Matrix4x4))]
+        public fixed float _XRPrevViewProjMatrixNoCameraTrans[ShaderConfig.k_XRMaxViewsForCBuffer * 16];
+        [HLSLArray(ShaderConfig.k_XRMaxViewsForCBuffer, typeof(Matrix4x4))]
+        public fixed float _XRViewProjMatrixNoCameraTrans[ShaderConfig.k_XRMaxViewsForCBuffer * 16];
+        [HLSLArray(ShaderConfig.k_XRMaxViewsForCBuffer, typeof(Matrix4x4))]
+        public fixed float _XRPixelCoordToViewDirWS[ShaderConfig.k_XRMaxViewsForCBuffer * 16];
 
 
-        [HLSLArray((int)ShaderOptions.XrMaxViews, typeof(Vector4))]
-        public fixed float _XRWorldSpaceCameraPos[(int)ShaderOptions.XrMaxViews * 4];
-        [HLSLArray((int)ShaderOptions.XrMaxViews, typeof(Vector4))]
-        public fixed float _XRWorldSpaceCameraPosViewOffset[(int)ShaderOptions.XrMaxViews * 4];
-        [HLSLArray((int)ShaderOptions.XrMaxViews, typeof(Vector4))]
-        public fixed float _XRPrevWorldSpaceCameraPos[(int)ShaderOptions.XrMaxViews * 4];
+        [HLSLArray(ShaderConfig.k_XRMaxViewsForCBuffer, typeof(Vector4))]
+        public fixed float _XRWorldSpaceCameraPos[ShaderConfig.k_XRMaxViewsForCBuffer * 4];
+        [HLSLArray(ShaderConfig.k_XRMaxViewsForCBuffer, typeof(Vector4))]
+        public fixed float _XRWorldSpaceCameraPosViewOffset[ShaderConfig.k_XRMaxViewsForCBuffer * 4];
+        [HLSLArray(ShaderConfig.k_XRMaxViewsForCBuffer, typeof(Vector4))]
+        public fixed float _XRPrevWorldSpaceCameraPos[ShaderConfig.k_XRMaxViewsForCBuffer * 4];
     }
 }

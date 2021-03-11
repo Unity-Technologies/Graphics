@@ -44,6 +44,7 @@ namespace UnityEditor.ShaderGraph.UnitTests
 
             public override SlotValueType valueType { get; }
             public override ConcreteSlotValueType concreteValueType { get; }
+            public override bool isDefaultValue { get; }
         }
 
         [OneTimeSetUp]
@@ -58,6 +59,7 @@ namespace UnityEditor.ShaderGraph.UnitTests
             m_Graph = new GraphData();
             m_NodeA = new TestNode();
             m_Graph.AddNode(m_NodeA);
+            m_NodeA.SetOverrideActiveState(AbstractMaterialNode.ActiveState.ExplicitActive);
         }
 
         [Test]
@@ -81,17 +83,17 @@ namespace UnityEditor.ShaderGraph.UnitTests
         [Test]
         public void CanConvertConcreteSlotValueTypeToOutputChunkProperly()
         {
-            Assert.AreEqual("float", ConcreteSlotValueType.Vector1.ToShaderString(ConcretePrecision.Float));
-            Assert.AreEqual("float", ConcreteSlotValueType.Boolean.ToShaderString(ConcretePrecision.Float));
-            Assert.AreEqual("float2", ConcreteSlotValueType.Vector2.ToShaderString(ConcretePrecision.Float));
-            Assert.AreEqual("float3", ConcreteSlotValueType.Vector3.ToShaderString(ConcretePrecision.Float));
-            Assert.AreEqual("float4", ConcreteSlotValueType.Vector4.ToShaderString(ConcretePrecision.Float));
-            Assert.AreEqual("Texture2D", ConcreteSlotValueType.Texture2D.ToShaderString(ConcretePrecision.Float));
-            Assert.AreEqual("float2x2", ConcreteSlotValueType.Matrix2.ToShaderString(ConcretePrecision.Float));
-            Assert.AreEqual("float3x3", ConcreteSlotValueType.Matrix3.ToShaderString(ConcretePrecision.Float));
-            Assert.AreEqual("float4x4", ConcreteSlotValueType.Matrix4.ToShaderString(ConcretePrecision.Float));
-            Assert.AreEqual("SamplerState", ConcreteSlotValueType.SamplerState.ToShaderString(ConcretePrecision.Float));
-            Assert.AreEqual("TextureCube", ConcreteSlotValueType.Cubemap.ToShaderString(ConcretePrecision.Float));
+            Assert.AreEqual("float", ConcreteSlotValueType.Vector1.ToShaderString(ConcretePrecision.Single));
+            Assert.AreEqual("float", ConcreteSlotValueType.Boolean.ToShaderString(ConcretePrecision.Single));
+            Assert.AreEqual("float2", ConcreteSlotValueType.Vector2.ToShaderString(ConcretePrecision.Single));
+            Assert.AreEqual("float3", ConcreteSlotValueType.Vector3.ToShaderString(ConcretePrecision.Single));
+            Assert.AreEqual("float4", ConcreteSlotValueType.Vector4.ToShaderString(ConcretePrecision.Single));
+            Assert.AreEqual("UnityTexture2D", ConcreteSlotValueType.Texture2D.ToShaderString(ConcretePrecision.Single));
+            Assert.AreEqual("float2x2", ConcreteSlotValueType.Matrix2.ToShaderString(ConcretePrecision.Single));
+            Assert.AreEqual("float3x3", ConcreteSlotValueType.Matrix3.ToShaderString(ConcretePrecision.Single));
+            Assert.AreEqual("float4x4", ConcreteSlotValueType.Matrix4.ToShaderString(ConcretePrecision.Single));
+            Assert.AreEqual("UnitySamplerState", ConcreteSlotValueType.SamplerState.ToShaderString(ConcretePrecision.Single));
+            Assert.AreEqual("UnityTextureCube", ConcreteSlotValueType.Cubemap.ToShaderString(ConcretePrecision.Single));
         }
 
         [Test]
@@ -105,7 +107,7 @@ namespace UnityEditor.ShaderGraph.UnitTests
             var pp = properties.FirstOrDefault();
 
             Assert.AreEqual(m_NodeA.GetVariableNameForSlot(slot.id), pp.name);
-            Assert.AreEqual(PropertyType.Vector1, pp.propType);
+            Assert.AreEqual(PropertyType.Float, pp.propType);
             Assert.AreEqual(slot.value, pp.floatValue);
         }
 

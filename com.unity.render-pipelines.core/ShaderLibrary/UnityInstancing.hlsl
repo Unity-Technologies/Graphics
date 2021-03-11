@@ -1,7 +1,7 @@
 #ifndef UNITY_INSTANCING_INCLUDED
 #define UNITY_INSTANCING_INCLUDED
 
-#if SHADER_TARGET >= 35 && (defined(SHADER_API_D3D11) || defined(SHADER_API_GLES3) || defined(SHADER_API_GLCORE) || defined(SHADER_API_XBOXONE) || defined(SHADER_API_PSSL) || defined(SHADER_API_VULKAN) || defined(SHADER_API_METAL))
+#if SHADER_TARGET >= 35 && (defined(SHADER_API_D3D11) || defined(SHADER_API_GLES3) || defined(SHADER_API_GLCORE) || defined(SHADER_API_XBOXONE) || defined(SHADER_API_GAMECORE) || defined(SHADER_API_PSSL) || defined(SHADER_API_VULKAN) || defined(SHADER_API_METAL))
     #define UNITY_SUPPORT_INSTANCING
 #endif
 
@@ -45,6 +45,10 @@
     #define UNITY_ANY_INSTANCING_ENABLED 1
 #else
     #define UNITY_ANY_INSTANCING_ENABLED 0
+#endif
+
+#if defined(DOTS_INSTANCING_ON) && (SHADER_TARGET < 45)
+#error The DOTS_INSTANCING_ON keyword requires shader model 4.5 or greater ("#pragma target 4.5" or greater).
 #endif
 
 #if defined(SHADER_API_GLES3) || defined(SHADER_API_GLCORE) || defined(SHADER_API_METAL) || defined(SHADER_API_VULKAN)
@@ -126,8 +130,7 @@
 
 #elif defined(UNITY_STEREO_MULTIVIEW_ENABLED)
     #define DEFAULT_UNITY_VERTEX_OUTPUT_STEREO float stereoTargetEyeIndexAsBlendIdx0 : BLENDWEIGHT0;
-    // HACK: Workaround for Mali shader compiler issues with directly using GL_ViewID_OVR (GL_OVR_multiview). This array just contains the values 0 and 1.
-    #define DEFAULT_UNITY_INITIALIZE_VERTEX_OUTPUT_STEREO(output) output.stereoTargetEyeIndexAsBlendIdx0 = unity_StereoEyeIndices[unity_StereoEyeIndex].x;
+    #define DEFAULT_UNITY_INITIALIZE_VERTEX_OUTPUT_STEREO(output) output.stereoTargetEyeIndexAsBlendIdx0 = unity_StereoEyeIndex;
     #define DEFAULT_UNITY_TRANSFER_VERTEX_OUTPUT_STEREO(input, output) output.stereoTargetEyeIndexAsBlendIdx0 = input.stereoTargetEyeIndexAsBlendIdx0;
     #if defined(SHADER_STAGE_VERTEX)
         #define DEFAULT_UNITY_SETUP_STEREO_EYE_INDEX_POST_VERTEX(input)
@@ -324,6 +327,7 @@
     UNITY_INSTANCING_BUFFER_START(PerDraw2)
         #ifdef UNITY_USE_LIGHTMAPST_ARRAY
             UNITY_DEFINE_INSTANCED_PROP(float4, unity_LightmapSTArray)
+            UNITY_DEFINE_INSTANCED_PROP(float4, unity_LightmapIndexArray)
             #define unity_LightmapST UNITY_ACCESS_INSTANCED_PROP(unity_Builtins2, unity_LightmapSTArray)
         #endif
         #ifdef UNITY_USE_DYNAMICLIGHTMAPST_ARRAY
@@ -358,11 +362,11 @@
         #undef UNITY_MATRIX_M
         #undef UNITY_MATRIX_I_M
         #ifdef MODIFY_MATRIX_FOR_CAMERA_RELATIVE_RENDERING
-            #define UNITY_MATRIX_M      ApplyCameraTranslationToMatrix(UNITY_ACCESS_DOTS_INSTANCED_PROP(float4x4, unity_ObjectToWorld))
-            #define UNITY_MATRIX_I_M    ApplyCameraTranslationToInverseMatrix(UNITY_ACCESS_DOTS_INSTANCED_PROP(float4x4, unity_WorldToObject))
+            #define UNITY_MATRIX_M      ApplyCameraTranslationToMatrix(LoadDOTSInstancedData_float4x4_from_float3x4(UNITY_DOTS_INSTANCED_METADATA_NAME_FROM_MACRO(float3x4, Metadata_unity_ObjectToWorld)))
+            #define UNITY_MATRIX_I_M    ApplyCameraTranslationToInverseMatrix(LoadDOTSInstancedData_float4x4_from_float3x4(UNITY_DOTS_INSTANCED_METADATA_NAME_FROM_MACRO(float3x4, Metadata_unity_WorldToObject)))
         #else
-            #define UNITY_MATRIX_M      UNITY_ACCESS_DOTS_INSTANCED_PROP(float4x4, unity_ObjectToWorld)
-            #define UNITY_MATRIX_I_M    UNITY_ACCESS_DOTS_INSTANCED_PROP(float4x4, unity_WorldToObject)
+            #define UNITY_MATRIX_M      LoadDOTSInstancedData_float4x4_from_float3x4(UNITY_DOTS_INSTANCED_METADATA_NAME_FROM_MACRO(float3x4, Metadata_unity_ObjectToWorld))
+            #define UNITY_MATRIX_I_M    LoadDOTSInstancedData_float4x4_from_float3x4(UNITY_DOTS_INSTANCED_METADATA_NAME_FROM_MACRO(float3x4, Metadata_unity_WorldToObject))
         #endif
     #else
 

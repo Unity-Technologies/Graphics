@@ -64,6 +64,12 @@ namespace UnityEditor.VFX
                 case VFXDataType.Mesh:
                     newVFXData = ScriptableObject.CreateInstance<VFXDataMesh>();
                     break;
+                case VFXDataType.SpawnEvent:
+                    newVFXData = ScriptableObject.CreateInstance<VFXDataSpawner>();
+                    break;
+                case VFXDataType.OutputEvent:
+                    newVFXData = ScriptableObject.CreateInstance<VFXDataOutputEvent>();
+                    break;
                 default:                        return null;
             }
             newVFXData.m_Parent = graph;
@@ -122,6 +128,7 @@ namespace UnityEditor.VFX
         }
 
         public virtual void FillDescs(
+            VFXCompileErrorReporter reporter,
             List<VFXGPUBufferDesc> outBufferDescs,
             List<VFXTemporaryGPUBufferDesc> outTemporaryBufferDescs,
             List<VFXEditorSystemDesc> outSystemDescs,
@@ -254,7 +261,7 @@ namespace UnityEditor.VFX
             if (m_Contexts == null) // Context hasnt been initialized (may happen in unity tests but not during actual compilation)
                 InitImplicitContexts();
 
-            m_DependenciesIn = new HashSet<VFXData>(
+            var allDepenciesIn =
                 m_Contexts.Where(c => c.contextType == VFXContextType.Init)
                     .SelectMany(c => c.inputContexts.Where(i => i.contextType == VFXContextType.SpawnerGPU))
                     .SelectMany(c => c.allLinkedInputSlot)
@@ -274,18 +281,19 @@ namespace UnityEditor.VFX
                         return false;
                     })
                     .Select(s => ((VFXModel)s.owner).GetFirstOfType<VFXContext>())
-                    .Where(c => c.CanBeCompiled())
-                    .Select(c => c.GetData())
-            );
+                    .Select(c => c.GetData());
 
-            m_DependenciesOut = new HashSet<VFXData>(
+            m_DependenciesIn = new HashSet<VFXData>(allDepenciesIn.Where(c => c.CanBeCompiled()));
+            m_DependenciesInNotCompilable = new HashSet<VFXData>(allDepenciesIn.Where(c => !c.CanBeCompiled()));
+
+            var allDependenciesOut =
                 owners.SelectMany(o => o.allLinkedOutputSlot)
                     .Select(s => (VFXContext)s.owner)
-                    .Where(c => c.CanBeCompiled())
                     .SelectMany(c => c.outputContexts)
-                    .Where(c => c.CanBeCompiled())
-                    .Select(c => c.GetData())
-            );
+                    .Select(c => c.GetData());
+
+            m_DependenciesOut = new HashSet<VFXData>(allDependenciesOut.Where(c => c.CanBeCompiled()));
+            m_DependenciesOutNotCompilable = new HashSet<VFXData>(allDependenciesOut.Where(c => !c.CanBeCompiled()));
 
             m_ContextsToAttributes.Clear();
             m_AttributesToContexts.Clear();
@@ -378,7 +386,10 @@ namespace UnityEditor.VFX
 
         protected bool HasImplicitInit(VFXAttribute attrib)
         {
-            return (attrib.Equals(VFXAttribute.Seed) || attrib.Equals(VFXAttribute.ParticleId));
+            return attrib.Equals(VFXAttribute.Seed)
+                || attrib.Equals(VFXAttribute.ParticleId)
+                || attrib.Equals(VFXAttribute.SpawnIndex)
+                || attrib.Equals(VFXAttribute.SpawnIndexInStrip);
         }
 
         private void ProcessAttributes()
@@ -430,7 +441,7 @@ namespace UnityEditor.VFX
 
                     if (context.contextType != VFXContextType.Init)
                         onlyInit = false;
-                    if (context.contextType != VFXContextType.Output)
+                    if (context.contextType != VFXContextType.Output && context.contextType != VFXContextType.Filter)
                         onlyOutput = false;
                     if (context.contextType != VFXContextType.Update)
                     {
@@ -592,6 +603,7 @@ namespace UnityEditor.VFX
             }
         }
 
+        //Doesn't include not comilable context
         public IEnumerable<VFXData> dependenciesIn
         {
             get
@@ -605,6 +617,19 @@ namespace UnityEditor.VFX
             get
             {
                 return m_DependenciesOut;
+            }
+        }
+
+        public IEnumerable<VFXData> allDependenciesIncludingNotCompilable
+        {
+            get
+            {
+                var all = Enumerable.Empty<VFXData>();
+                all = all.Concat(m_DependenciesIn);
+                all = all.Concat(m_DependenciesOut);
+                all = all.Concat(m_DependenciesInNotCompilable);
+                all = all.Concat(m_DependenciesOutNotCompilable);
+                return all;
             }
         }
 
@@ -631,7 +656,13 @@ namespace UnityEditor.VFX
         protected HashSet<VFXData> m_DependenciesIn = new HashSet<VFXData>();
 
         [NonSerialized]
+        protected HashSet<VFXData> m_DependenciesInNotCompilable = new HashSet<VFXData>();
+
+        [NonSerialized]
         protected HashSet<VFXData> m_DependenciesOut = new HashSet<VFXData>();
+
+        [NonSerialized]
+        protected HashSet<VFXData> m_DependenciesOutNotCompilable = new HashSet<VFXData>();
 
         [NonSerialized]
         protected uint m_Layer;

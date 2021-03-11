@@ -96,7 +96,7 @@ CBUFFER_END
 
 // ----------------------------------------------------------------------------
 
-CBUFFER_START(UnityPerDraw : register(b0))
+CBUFFER_START(UnityPerDraw)
 #ifdef UNITY_USE_PREMULTIPLIED_MATRICES
     float4x4 glstate_matrix_mvp;
     float4x4 glstate_matrix_modelview0;
@@ -149,12 +149,6 @@ CBUFFER_START(UnityStereoGlobals)
 
     float3 unity_StereoWorldSpaceCameraPos[2];
     float4 unity_StereoScaleOffset[2];
-CBUFFER_END
-#endif
-
-#if defined(USING_STEREO_MATRICES) && defined(UNITY_STEREO_MULTIVIEW_ENABLED)
-CBUFFER_START(UnityStereoEyeIndices)
-    float4 unity_StereoEyeIndices[2];
 CBUFFER_END
 #endif
 
@@ -212,8 +206,12 @@ SAMPLER(sampler_MainDepthTexture);
 // Main lightmap
 TEXTURE2D(unity_Lightmap);
 SAMPLER(samplerunity_Lightmap);
+TEXTURE2D_ARRAY(unity_Lightmaps);
+SAMPLER(samplerunity_Lightmaps);
+
 // Dual or directional lightmap (always used with unity_Lightmap, so can share sampler)
 TEXTURE2D(unity_LightmapInd);
+TEXTURE2D_ARRAY(unity_LightmapsInd);
 
 // Dynamic GI lightmap
 TEXTURE2D(unity_DynamicLightmap);
@@ -227,6 +225,7 @@ SAMPLER(samplerunity_SpecCube0);
 
 // We can have shadowMask only if we have lightmap, so no sampler
 TEXTURE2D(unity_ShadowMask);
+TEXTURE2D_ARRAY(unity_ShadowMasks);
 
 // TODO: Change code here so probe volume use only one transform instead of all this parameters!
 TEXTURE3D(unity_ProbeVolumeSH);

@@ -22,4 +22,6 @@ float4 unity_BillboardSize; // x: width; y: height; z: bottom
 float4 unity_BillboardImageTexCoords[16];
 CBUFFER_END
 
+#define _Surface 0.0 // Speed Trees are always opaque
+
 #endif

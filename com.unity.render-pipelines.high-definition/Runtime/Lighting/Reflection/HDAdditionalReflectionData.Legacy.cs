@@ -11,7 +11,7 @@ namespace UnityEngine.Rendering.HighDefinition
         {
             get
             {
-                if(m_LegacyProbe == null || m_LegacyProbe.Equals(null))
+                if (m_LegacyProbe == null || m_LegacyProbe.Equals(null))
                 {
                     m_LegacyProbe = GetComponent<ReflectionProbe>();
                 }
@@ -30,6 +30,16 @@ namespace UnityEngine.Rendering.HighDefinition
             var tr = transform;
             var position = tr.position;
             var cubeProbe = reflectionProbe;
+
+            if (cubeProbe == null || cubeProbe.Equals(null))
+            {
+                // case 1244047
+                // This can happen when removing the component from the editor and then undo the remove.
+                // The order of call maybe incorrect and the code flows here before the reflection probe
+                // is restored.
+                return;
+            }
+
             switch (influence.shape)
             {
                 case InfluenceShape.Box:
@@ -51,6 +61,10 @@ namespace UnityEngine.Rendering.HighDefinition
             // Force the legacy system to not update the probe
             cubeProbe.mode = ReflectionProbeMode.Custom;
             cubeProbe.refreshMode = ReflectionProbeRefreshMode.ViaScripting;
+#if UNITY_2020_2_OR_NEWER
+            if (m_ProbeSettings.mode == ProbeSettings.Mode.Realtime)
+                cubeProbe.renderDynamicObjects = true;
+#endif
         }
     }
 }

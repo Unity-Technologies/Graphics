@@ -1,9 +1,9 @@
-﻿Shader "Hidden/Shader/AlphaInjection"
+Shader "Hidden/Shader/AlphaInjection"
 {
     HLSLINCLUDE
 
     #pragma target 4.5
-    #pragma only_renderers d3d11 ps4 xboxone vulkan metal switch
+    #pragma only_renderers d3d11 playstation xboxone xboxseries vulkan metal switch
 
     #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Common.hlsl"
     #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Color.hlsl"
@@ -36,7 +36,7 @@
 
     TEXTURE2D_X(_InputTexture);
     TEXTURE2D(_AlphaTexture);
-    
+
     float4 CustomPostProcess(Varyings input) : SV_Target
     {
         UNITY_SETUP_STEREO_EYE_INDEX_POST_VERTEX(input);

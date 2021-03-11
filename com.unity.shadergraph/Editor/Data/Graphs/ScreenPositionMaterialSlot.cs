@@ -18,6 +18,8 @@ namespace UnityEditor.ShaderGraph
             set { m_ScreenSpaceType = value; }
         }
 
+        public override bool isDefaultValue => screenSpaceType == ScreenSpaceType.Default;
+
         public ScreenPositionMaterialSlot()
         {}
 

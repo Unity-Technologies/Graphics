@@ -51,8 +51,39 @@ SAMPLER(sampler_SVBRDF_ClearcoatIORMap);
 
 CBUFFER_START(UnityPerMaterial)
 
-    float   _MaterialTilingU;              // Size of the U range, in millimeters (currently used as UV scale factor)
-    float   _MaterialTilingV;              // Size of the V range, in millimeters (currently used as UV scale factor)
+    float4  _MappingMask;
+
+    // Texel sizes to help custom LOD calculations:
+    float4  _SVBRDF_DiffuseColorMap_TexelSize;
+    float4  _SVBRDF_SpecularColorMap_TexelSize;
+    float4  _SVBRDF_NormalMap_TexelSize;
+    float4  _SVBRDF_SpecularLobeMap_TexelSize;
+    float4  _SVBRDF_AlphaMap_TexelSize;   // unused
+    float4  _SVBRDF_FresnelMap_TexelSize;
+    float4  _SVBRDF_AnisoRotationMap_TexelSize;
+    float4  _SVBRDF_HeightMap_TexelSize;
+    float4  _SVBRDF_ClearcoatColorMap_TexelSize;
+    float4  _ClearcoatNormalMap_TexelSize;
+    float4  _SVBRDF_ClearcoatIORMap_TexelSize;
+    float4  _CarPaint2_BTFFlakeMap_TexelSize;
+
+    float   _RayTracingTexFilteringScale;
+
+    // Scale/Offsets:
+    float4  _Material_SO; // Main scale, TODO: scale - but not offset - could be moved to vertex shader and applied to uv0
+
+    float4  _SVBRDF_DiffuseColorMap_SO;
+    float4  _SVBRDF_SpecularColorMap_SO;
+    float4  _SVBRDF_NormalMap_SO;
+    float4  _SVBRDF_SpecularLobeMap_SO;
+    float4  _SVBRDF_AlphaMap_SO;
+    float4  _SVBRDF_FresnelMap_SO;
+    float4  _SVBRDF_AnisoRotationMap_SO;
+    float4  _SVBRDF_HeightMap_SO;
+    float4  _SVBRDF_ClearcoatColorMap_SO;
+    float4  _ClearcoatNormalMap_SO;
+    float4  _SVBRDF_ClearcoatIORMap_SO;
+    float4  _CarPaint2_BTFFlakeMap_SO;
 
     uint    _Flags;                         // Bit 0 = Anisotropic. If true, specular lobe map contains 2 channels and the _AnisotropicRotationAngleMap needs to be read
                                             // Bit 1 = HasClearcoat. If true, the clearcoat must be applied. The _ClearcoatNormalMap must be valid and contain clearcoat normal data.
@@ -94,11 +125,22 @@ CBUFFER_START(UnityPerMaterial)
     float4  _CarPaint2_CTSpreads;           // Description of multi-lobes spread values
 
         // Flakes
-    float   _CarPaint2_FlakeTiling;         // Tiling factor for flakes
     uint    _CarPaint2_FlakeMaxThetaI;            // Maximum thetaI index
     uint    _CarPaint2_FlakeNumThetaF;            // Amount of thetaF entries (in litterature, that's called thetaH, the angle between the normal and the half vector)
     uint    _CarPaint2_FlakeNumThetaI;            // Amount of thetaI entries (in litterature, that's called thetaD, the angle between the light/view and the half vector)
 
+    float   _CarPaint2_FixedColorThetaHForIndirectLight;   // to select a hue column in the BRDF color table ie half angle, otherwise the are fixed at 0 like IBL eval in split sum and raytracing indirect light
+    float   _CarPaint2_FixedFlakesThetaHForIndirectLight;  // to control a bit the angular visibility of flakes (otherwise first angle fixed at 0) when lit by indirect split sum lights like IBL eval and raytracing indirect light
+
+    uint    _FlagsB;
+    float   _SVBRDF_BRDFType_DiffuseType;
+    float   _SVBRDF_BRDFType_SpecularType;
+    float   _SVBRDF_BRDFVariants_FresnelType;
+    float   _SVBRDF_BRDFVariants_WardType;
+    float   _SVBRDF_BRDFVariants_BlinnType;
+    float   _CarPaint2_FlakeMaxThetaIF;
+    float   _CarPaint2_FlakeNumThetaFF;
+    float   _CarPaint2_FlakeNumThetaIF;
 
     //////////////////////////////////////////////////////////////////////////////
 
@@ -106,11 +148,16 @@ float _AlphaCutoff;
 float _UseShadowThreshold;
 float _AlphaCutoffShadow;
 float4 _DoubleSidedConstants;
+float _BlendMode;
+float _EnableBlendModePreserveSpecularLighting;
 
 // Specular AA
 float _EnableGeometricSpecularAA;
 float _SpecularAAScreenSpaceVariance;
 float _SpecularAAThreshold;
+
+// Raytracing (recursive mode)
+float _RayTracing;
 
 // Caution: C# code in BaseLitUI.cs call LightmapEmissionFlagsProperty() which assume that there is an existing "_EmissionColor"
 // value that exist to identify if the GI emission need to be enabled.
@@ -118,8 +165,9 @@ float _SpecularAAThreshold;
 // TODO: Fix the code in legacy unity so we can customize the behavior for GI
 float3 _EmissionColor;
 
-// Following two variables are feeded by the C++ Editor for Scene selection
+// Following three variables are feeded by the C++ Editor for Scene selection
 int _ObjectId;
 int _PassValue;
+float4 _SelectionID;
 
 CBUFFER_END

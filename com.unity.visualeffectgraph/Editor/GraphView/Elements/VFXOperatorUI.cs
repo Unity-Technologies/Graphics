@@ -7,7 +7,6 @@ using UnityEngine;
 using UnityEngine.UIElements;
 using UnityEngine.VFX;
 using UnityEditor.VFX.UIElements;
-using Branch = UnityEditor.VFX.Operator.VFXOperatorDynamicBranch;
 
 namespace UnityEditor.VFX.UI
 {
@@ -112,10 +111,10 @@ namespace UnityEditor.VFX.UI
                 edit.controller = controller as VFXNumericUniformOperatorController;
                 return edit;
             }
-            if (controller is VFXBranchOperatorController)
+            if (controller is VFXDynamicTypeOperatorController)
             {
-                var edit = new VFXUniformOperatorEdit<VFXBranchOperatorController, Branch>();
-                edit.controller = controller as VFXBranchOperatorController;
+                var edit = new VFXUniformOperatorEdit<VFXDynamicTypeOperatorController, VFXOperatorDynamicType>();
+                edit.controller = controller as VFXDynamicTypeOperatorController;
                 return edit;
             }
             if (controller is VFXUnifiedOperatorController)
@@ -160,21 +159,16 @@ namespace UnityEditor.VFX.UI
             if (hasMiddle)
             {
                 if (m_Middle.parent == null)
-                {
                     inputContainer.parent.Insert(1, m_Middle);
-                }
             }
             else if (m_Middle.parent != null)
-            {
                 m_Middle.RemoveFromHierarchy();
-            }
 
             if (isEditable)
             {
                 if (m_EditButton.parent == null)
-                {
                     titleContainer.Insert(1, m_EditButton);
-                }
+
                 if (m_EditContainer == null)
                 {
                     m_EditContainer = GetControllerEditor();
@@ -185,15 +179,15 @@ namespace UnityEditor.VFX.UI
             else
             {
                 if (m_EditContainer != null && m_EditContainer.parent != null)
-                {
                     m_EditContainer.RemoveFromHierarchy();
-                }
+
                 m_EditContainer = null;
                 if (m_EditButton.parent != null)
-                {
                     m_EditButton.RemoveFromHierarchy();
-                }
             }
+
+            if (!base.expanded && m_EditContainer != null && m_EditContainer.parent != null)
+                m_EditContainer.RemoveFromHierarchy();
         }
 
         void OnPostLayout(GeometryChangedEvent e)

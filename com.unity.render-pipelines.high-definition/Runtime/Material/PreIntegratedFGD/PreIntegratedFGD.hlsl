@@ -53,7 +53,7 @@ void GetPreIntegratedFGDCharlieAndFabricLambert(float NdotV, float perceptualRou
     preFGD.y = preFGD.y / (1 - preFGD.y);
 
     specularFGD = preFGD.yyy * fresnel0;
-    
+
     // z = FabricLambert
     diffuseFGD = preFGD.z;
 

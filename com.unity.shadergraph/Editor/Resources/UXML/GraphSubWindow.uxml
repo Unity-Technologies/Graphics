@@ -1,4 +1,4 @@
-﻿<ui:UXML xmlns:ui="UnityEngine.UIElements" xmlns:sg="UnityEditor.ShaderGraph.Drawing">
+<ui:UXML xmlns:ui="UnityEngine.UIElements" xmlns:sg="UnityEditor.ShaderGraph.Drawing">
     <ui:VisualElement name="content" picking-mode="Ignore">
         <ui:VisualElement name="header" picking-mode="Ignore">
             <ui:VisualElement name="labelContainer" picking-mode="Ignore">

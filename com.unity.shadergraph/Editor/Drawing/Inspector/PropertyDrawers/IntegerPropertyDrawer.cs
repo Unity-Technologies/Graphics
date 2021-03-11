@@ -1,6 +1,5 @@
-﻿using System;
+using System;
 using System.Reflection;
-using Data.Interfaces;
 using UnityEditor.ShaderGraph.Drawing;
 using UnityEditor.UIElements;
 using UnityEngine;
@@ -43,7 +42,7 @@ namespace UnityEditor.ShaderGraph.Drawing.Inspector.PropertyDrawers
             return this.CreateGUI(
                 // Use the setter from the provided property as the callback
                 newValue => propertyInfo.GetSetMethod(true).Invoke(actualObject, new object[] {newValue}),
-                (int) propertyInfo.GetValue(actualObject),
+                (int)propertyInfo.GetValue(actualObject),
                 attribute.labelName,
                 out var propertyVisualElement);
         }

@@ -5,6 +5,19 @@ using UnityEngine;
 
 namespace UnityEditor.VFX.Block
 {
+    class VelocityBaseProvider : VariantProvider
+    {
+        public override IEnumerable<IEnumerable<KeyValuePair<string, object>>> ComputeVariants()
+        {
+            var compositions = new[] { AttributeCompositionMode.Overwrite, AttributeCompositionMode.Add };
+
+            foreach (var composition in compositions)
+            {
+                yield return new[] { new KeyValuePair<string, object>("composition", composition) };
+            }
+        }
+    }
+
     abstract class VelocityBase : VFXBlock
     {
         public enum SpeedMode
@@ -13,7 +26,7 @@ namespace UnityEditor.VFX.Block
             Random
         }
 
-        [VFXSetting(VFXSettingAttribute.VisibleFlags.InInspector), SerializeField]
+        [VFXSetting(VFXSettingAttribute.VisibleFlags.InInspector), SerializeField, Tooltip("Specifies what operation to perform on the velocity attribute. The input value can overwrite, add to, multiply with, or blend with the existing attribute value.")]
         protected AttributeCompositionMode composition = AttributeCompositionMode.Add;
 
         [VFXSetting, SerializeField, Tooltip("Specifies whether the applied speed is constant or random.")]

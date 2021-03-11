@@ -6,6 +6,7 @@ namespace UnityEngine.Rendering.HighDefinition
     /// A volume component that holds settings for the Lens Distortion effect.
     /// </summary>
     [Serializable, VolumeComponentMenu("Post-processing/Lens Distortion")]
+    [HelpURL(Documentation.baseURL + Documentation.version + Documentation.subURL + "Post-Processing-Lens-Distortion" + Documentation.endURL)]
     public sealed class LensDistortion : VolumeComponent, IPostProcessComponent
     {
         /// <summary>
@@ -44,7 +45,7 @@ namespace UnityEngine.Rendering.HighDefinition
         /// <returns><c>true</c> if the effect should be rendered, <c>false</c> otherwise.</returns>
         public bool IsActive()
         {
-            return !Mathf.Approximately(intensity.value, 0f)
+            return Mathf.Abs(intensity.value) > 0
                 && (xMultiplier.value > 0f || yMultiplier.value > 0f);
         }
     }

@@ -3,14 +3,7 @@ using System.Collections.Generic;
 using System.Reflection;
 using UnityEngine;
 using UnityEngine.UIElements;
-using UnityEditor.UIElements;
-using UnityEditor.VFX;
-using UnityEditor.VFX.UIElements;
-using Object = UnityEngine.Object;
-using Type = System.Type;
 using EnumField = UnityEditor.VFX.UIElements.VFXEnumField;
-using VFXVector2Field = UnityEditor.VFX.UI.VFXVector2Field;
-using VFXVector4Field = UnityEditor.VFX.UI.VFXVector4Field;
 
 namespace UnityEditor.VFX.UI
 {
@@ -40,19 +33,15 @@ namespace UnityEditor.VFX.UI
 
         public override ValueControl<int> CreateField()
         {
-            return new EnumField(m_Label, m_Provider.portType);
-        }
-    }
+            var field = new EnumField(m_Label, m_Provider.portType);
+            field.OnDisplayMenu = OnDisplayMenu;
 
-    class Vector4PropertyRM : SimpleVFXUIPropertyRM<VFXVector4Field, Vector4>
-    {
-        public Vector4PropertyRM(IPropertyRMProvider controller, float labelWidth) : base(controller, labelWidth)
-        {
+            return field;
         }
 
-        public override float GetPreferredControlWidth()
+        void OnDisplayMenu(EnumField field)
         {
-            return 224;
+            field.filteredOutValues = provider.filteredOutEnumerators;
         }
     }
 
@@ -61,23 +50,26 @@ namespace UnityEditor.VFX.UI
         public Matrix4x4PropertyRM(IPropertyRMProvider controller, float labelWidth) : base(controller, labelWidth)
         {
             m_FieldParent.style.flexDirection = FlexDirection.Row;
+
+            fieldControl.onValueDragFinished = () => ValueDragFinished();
+            fieldControl.onValueDragStarted = () => ValueDragStarted();
         }
 
         public override float GetPreferredControlWidth()
         {
             return 260;
         }
-    }
 
-    class Vector2PropertyRM : SimpleVFXUIPropertyRM<VFXVector2Field, Vector2>
-    {
-        public Vector2PropertyRM(IPropertyRMProvider controller, float labelWidth) : base(controller, labelWidth)
+        protected void ValueDragFinished()
         {
+            m_Provider.EndLiveModification();
+            hasChangeDelayed = false;
+            NotifyValueChanged();
         }
 
-        public override float GetPreferredControlWidth()
+        protected void ValueDragStarted()
         {
-            return 120;
+            m_Provider.StartLiveModification();
         }
     }
 

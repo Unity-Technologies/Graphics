@@ -7,6 +7,29 @@ using UnityEngine.Rendering.HighDefinition;
 
 namespace UnityEditor.Rendering.HighDefinition
 {
+    internal class ShadowKeywords
+    {
+        ShaderKeyword ShadowLow;
+        ShaderKeyword ShadowMedium;
+        ShaderKeyword ShadowHigh;
+
+        public Dictionary<HDShadowFilteringQuality, ShaderKeyword> ShadowVariants;
+
+        public ShadowKeywords()
+        {
+            ShadowLow = new ShaderKeyword("SHADOW_LOW");
+            ShadowMedium = new ShaderKeyword("SHADOW_MEDIUM");
+            ShadowHigh = new ShaderKeyword("SHADOW_HIGH");
+
+            ShadowVariants = new Dictionary<HDShadowFilteringQuality, ShaderKeyword>
+            {
+                {HDShadowFilteringQuality.Low, ShadowLow},
+                {HDShadowFilteringQuality.Medium, ShadowMedium},
+                {HDShadowFilteringQuality.High, ShadowHigh},
+            };
+        }
+    }
+
     abstract class BaseShaderPreprocessor
     {
         // Common keyword list
@@ -24,8 +47,15 @@ namespace UnityEditor.Rendering.HighDefinition
         protected ShaderKeyword m_ShadowMedium;
         protected ShaderKeyword m_ShadowHigh;
         protected ShaderKeyword m_WriteNormalBuffer;
+        protected ShaderKeyword m_WriteDecalBuffer;
         protected ShaderKeyword m_WriteMSAADepth;
         protected ShaderKeyword m_SubsurfaceScattering;
+        protected ShaderKeyword m_ScreenSpaceShadowOFFKeywords;
+        protected ShaderKeyword m_ScreenSpaceShadowONKeywords;
+        protected ShaderKeyword m_ProbeVolumesL1;
+        protected ShaderKeyword m_ProbeVolumesL2;
+
+        protected ShadowKeywords m_ShadowKeywords;
 
         protected Dictionary<HDShadowFilteringQuality, ShaderKeyword> m_ShadowVariants;
 
@@ -48,19 +78,15 @@ namespace UnityEditor.Rendering.HighDefinition
             m_Decals3RT = new ShaderKeyword("DECALS_3RT");
             m_Decals4RT = new ShaderKeyword("DECALS_4RT");
             m_LightLayers = new ShaderKeyword("LIGHT_LAYERS");
-            m_ShadowLow = new ShaderKeyword("SHADOW_LOW");
-            m_ShadowMedium = new ShaderKeyword("SHADOW_MEDIUM");
-            m_ShadowHigh = new ShaderKeyword("SHADOW_HIGH");
             m_WriteNormalBuffer = new ShaderKeyword("WRITE_NORMAL_BUFFER");
+            m_WriteDecalBuffer = new ShaderKeyword("WRITE_DECAL_BUFFER");
             m_WriteMSAADepth = new ShaderKeyword("WRITE_MSAA_DEPTH");
             m_SubsurfaceScattering = new ShaderKeyword("OUTPUT_SPLIT_LIGHTING");
-
-            m_ShadowVariants = new Dictionary<HDShadowFilteringQuality, ShaderKeyword>
-            {
-                {HDShadowFilteringQuality.Low, m_ShadowLow},
-                {HDShadowFilteringQuality.Medium, m_ShadowMedium},
-                {HDShadowFilteringQuality.High, m_ShadowHigh},
-            };
+            m_ScreenSpaceShadowOFFKeywords = new ShaderKeyword("SCREEN_SPACE_SHADOWS_OFF");
+            m_ScreenSpaceShadowONKeywords = new ShaderKeyword("SCREEN_SPACE_SHADOWS_ON");
+            m_ProbeVolumesL1 = new ShaderKeyword("PROBE_VOLUMES_L1");
+            m_ProbeVolumesL2 = new ShaderKeyword("PROBE_VOLUMES_L2");
+            m_ShadowKeywords = new ShadowKeywords();
         }
 
         public bool ShadersStripper(HDRenderPipelineAsset hdrpAsset, Shader shader, ShaderSnippetData snippet,

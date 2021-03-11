@@ -7,29 +7,16 @@ using UnityEngine.Scripting.APIUpdating;
 
 namespace UnityEngine.Rendering.Universal
 {
+    /// <summary>
+    /// Deprecated, kept for backward compatibility with existing ForwardRendererData asset files.
+    /// Use UniversalRendererData instead.
+    /// </summary>
+    [System.Obsolete("ForwardRendererData has been deprecated (UnityUpgradable) -> UniversalRendererData", true)]
     [Serializable, ReloadGroup, ExcludeFromPreset]
     [MovedFrom("UnityEngine.Rendering.LWRP")]
     public class ForwardRendererData : ScriptableRendererData
     {
-#if UNITY_EDITOR
-        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Performance", "CA1812")]
-        internal class CreateForwardRendererAsset : EndNameEditAction
-        {
-            public override void Action(int instanceId, string pathName, string resourceFile)
-            {
-                var instance = CreateInstance<ForwardRendererData>();
-                AssetDatabase.CreateAsset(instance, pathName);
-                ResourceReloader.ReloadAllNullIn(instance, UniversalRenderPipelineAsset.packagePath);
-                Selection.activeObject = instance;
-            }
-        }
-
-        [MenuItem("Assets/Create/Rendering/Universal Render Pipeline/Forward Renderer", priority = CoreUtils.assetCreateMenuPriority2)]
-        static void CreateForwardRendererData()
-        {
-            ProjectWindowUtil.StartNameEditingIfProjectWindowExists(0, CreateInstance<CreateForwardRendererAsset>(), "CustomForwardRendererData.asset", null, null);
-        }
-#endif
+        private const string k_ErrorMessage = "ForwardRendererData has been deprecated. Use UniversalRendererData instead";
 
         [Serializable, ReloadGroup]
         public sealed class ShaderResources
@@ -40,102 +27,70 @@ namespace UnityEngine.Rendering.Universal
             [Reload("Shaders/Utils/CopyDepth.shader")]
             public Shader copyDepthPS;
 
-            [Reload("Shaders/Utils/ScreenSpaceShadows.shader")]
+            [Obsolete("Obsolete, this feature will be supported by new 'ScreenSpaceShadows' renderer feature")]
             public Shader screenSpaceShadowPS;
 
             [Reload("Shaders/Utils/Sampling.shader")]
             public Shader samplingPS;
 
+            [Reload("Shaders/Utils/StencilDeferred.shader")]
+            public Shader stencilDeferredPS;
+
             [Reload("Shaders/Utils/FallbackError.shader")]
             public Shader fallbackErrorPS;
+
+            [Reload("Shaders/Utils/MaterialError.shader")]
+            public Shader materialErrorPS;
         }
 
-        [Reload("Runtime/Data/PostProcessData.asset")]
         public PostProcessData postProcessData = null;
+
+#if ENABLE_VR && ENABLE_XR_MODULE
+        [Reload("Runtime/Data/XRSystemData.asset")]
+        public XRSystemData xrSystemData = null;
+#endif
 
         public ShaderResources shaders = null;
 
-        [SerializeField] LayerMask m_OpaqueLayerMask = -1;
-        [SerializeField] LayerMask m_TransparentLayerMask = -1;
-        [SerializeField] StencilStateData m_DefaultStencilState = new StencilStateData();
-        [SerializeField] bool m_ShadowTransparentReceive = true;
-
         protected override ScriptableRenderer Create()
         {
-#if UNITY_EDITOR
-            if (!Application.isPlaying)
-            {
-                ResourceReloader.TryReloadAllNullIn(this, UniversalRenderPipelineAsset.packagePath);
-                ResourceReloader.TryReloadAllNullIn(postProcessData, UniversalRenderPipelineAsset.packagePath);
-            }
-#endif
-            return new ForwardRenderer(this);
+            throw new NotSupportedException(k_ErrorMessage);
         }
 
-        /// <summary>
-        /// Use this to configure how to filter opaque objects.
-        /// </summary>
         public LayerMask opaqueLayerMask
         {
-            get => m_OpaqueLayerMask;
-            set
-            {
-                SetDirty();
-                m_OpaqueLayerMask = value;
-            }
+            get { throw new NotSupportedException(k_ErrorMessage); }
+            set { throw new NotSupportedException(k_ErrorMessage); }
         }
 
-        /// <summary>
-        /// Use this to configure how to filter transparent objects.
-        /// </summary>
         public LayerMask transparentLayerMask
         {
-            get => m_TransparentLayerMask;
-            set
-            {
-                SetDirty();
-                m_TransparentLayerMask = value;
-            }
+            get { throw new NotSupportedException(k_ErrorMessage); }
+            set { throw new NotSupportedException(k_ErrorMessage); }
         }
 
         public StencilStateData defaultStencilState
         {
-            get => m_DefaultStencilState;
-            set
-            {
-                SetDirty();
-                m_DefaultStencilState = value;
-            }
+            get { throw new NotSupportedException(k_ErrorMessage); }
+            set { throw new NotSupportedException(k_ErrorMessage); }
         }
 
-        /// <summary>
-        /// True if transparent objects receive shadows.
-        /// </summary>
         public bool shadowTransparentReceive
         {
-            get => m_ShadowTransparentReceive;
-            set
-            {
-                SetDirty();
-                m_ShadowTransparentReceive = value;
-            }
+            get { throw new NotSupportedException(k_ErrorMessage); }
+            set { throw new NotSupportedException(k_ErrorMessage); }
         }
 
-        protected override void OnEnable()
+        public RenderingMode renderingMode
         {
-            base.OnEnable();
+            get { throw new NotSupportedException(k_ErrorMessage); }
+            set { throw new NotSupportedException(k_ErrorMessage); }
+        }
 
-            // Upon asset creation, OnEnable is called and `shaders` reference is not yet initialized
-            // We need to call the OnEnable for data migration when updating from old versions of UniversalRP that
-            // serialized resources in a different format. Early returning here when OnEnable is called
-            // upon asset creation is fine because we guarantee new assets get created with all resources initialized.
-            if (shaders == null)
-                return;
-
-#if UNITY_EDITOR
-            ResourceReloader.TryReloadAllNullIn(this, UniversalRenderPipelineAsset.packagePath);
-            ResourceReloader.TryReloadAllNullIn(postProcessData, UniversalRenderPipelineAsset.packagePath);
-#endif
+        public bool accurateGbufferNormals
+        {
+            get { throw new NotSupportedException(k_ErrorMessage); }
+            set { throw new NotSupportedException(k_ErrorMessage); }
         }
     }
 }

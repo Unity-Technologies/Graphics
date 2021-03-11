@@ -10,8 +10,8 @@ PackedVaryings vert(Attributes input)
     return packedOutput;
 }
 
-half4 frag(PackedVaryings packedInput) : SV_TARGET 
-{    
+half4 frag(PackedVaryings packedInput) : SV_TARGET
+{
     Varyings unpacked = UnpackVaryings(packedInput);
     UNITY_SETUP_INSTANCE_ID(unpacked);
 
@@ -23,7 +23,7 @@ half4 frag(PackedVaryings packedInput) : SV_TARGET
     #endif
 
     MetaInput metaInput = (MetaInput)0;
-    metaInput.Albedo = surfaceDescription.Albedo;
+    metaInput.Albedo = surfaceDescription.BaseColor;
     metaInput.Emission = surfaceDescription.Emission;
 
     return MetaFragment(metaInput);

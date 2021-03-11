@@ -62,6 +62,7 @@ namespace UnityEngine.Rendering.HighDefinition
             viewport.y      *= renderPass.renderTargetDesc.height;
             viewport.height *= renderPass.renderTargetDesc.height;
         }
+
 #endif
     }
 
@@ -97,6 +98,26 @@ namespace UnityEngine.Rendering.HighDefinition
 
         // Occlusion mesh rendering
         Material occlusionMeshMaterial = null;
+        Mesh occlusionMeshCombined = null;
+        int occlusionMeshCombinedHashCode = 0;
+
+        internal bool isOcclusionMeshSupported { get => enabled && xrSdkEnabled && occlusionMeshMaterial != null; }
+
+        internal bool hasValidOcclusionMesh
+        {
+            get
+            {
+                if (isOcclusionMeshSupported)
+                {
+                    if (singlePassEnabled)
+                        return occlusionMeshCombined != null;
+                    else
+                        return views[0].occlusionMesh != null;
+                }
+
+                return false;
+            }
+        }
 
         // Ability to override mirror view behavior for each pass
         internal delegate void CustomMirrorView(XRPass pass, CommandBuffer cmd, RenderTexture rt, Rect viewport);
@@ -131,6 +152,32 @@ namespace UnityEngine.Rendering.HighDefinition
             return passInfo;
         }
 
+#if ENABLE_VR && ENABLE_XR_MODULE
+
+        internal void UpdateView(int viewId, XRDisplaySubsystem.XRRenderPass xrSdkRenderPass, XRDisplaySubsystem.XRRenderParameter xrSdkRenderParameter)
+        {
+            if (viewId >= views.Count)
+                throw new NotImplementedException($"Invalid XR setup to update, trying to update non-existing xr view.");
+
+            views[viewId] = new XRView(xrSdkRenderPass, xrSdkRenderParameter);
+        }
+
+#endif
+
+        internal void UpdateView(int viewId, Matrix4x4 proj, Matrix4x4 view, Rect vp, int textureArraySlice = -1)
+        {
+            if (viewId >= views.Count)
+                throw new NotImplementedException($"Invalid XR setup to update, trying to update non-existing xr view.");
+
+            views[viewId] = new XRView(proj, view, vp, textureArraySlice);
+        }
+
+        internal void UpdateCullingParams(int cullingPassId, ScriptableCullingParameters cullingParams)
+        {
+            this.cullingPassId = cullingPassId;
+            this.cullingParams = cullingParams;
+        }
+
         internal void AddView(Matrix4x4 proj, Matrix4x4 view, Rect vp, int textureArraySlice = -1)
         {
             AddViewInternal(new XRView(proj, view, vp, textureArraySlice));
@@ -161,6 +208,7 @@ namespace UnityEngine.Rendering.HighDefinition
         {
             AddViewInternal(new XRView(xrSdkRenderPass, xrSdkRenderParameter));
         }
+
 #endif
 
         internal static void Release(XRPass xrPass)
@@ -182,9 +230,103 @@ namespace UnityEngine.Rendering.HighDefinition
                 {
                     Debug.LogWarning("If you're trying to enable XR single-pass after the first frame, you need to set TextureXR.maxViews to 2 before the render pipeline is created (typically in a script with Awake()).");
                 }
-                
+
                 throw new NotImplementedException($"Invalid XR setup for single-pass, trying to add too many views! Max supported: {maxSupportedViews}");
             }
+        }
+
+        // Must be called after all views have been added to the pass
+        internal void UpdateOcclusionMesh()
+        {
+            if (isOcclusionMeshSupported && singlePassEnabled && TryGetOcclusionMeshCombinedHashCode(out var hashCode))
+            {
+                if (occlusionMeshCombined == null || hashCode != occlusionMeshCombinedHashCode)
+                {
+                    CreateOcclusionMeshCombined();
+                    occlusionMeshCombinedHashCode = hashCode;
+                }
+            }
+            else
+            {
+                occlusionMeshCombined = null;
+                occlusionMeshCombinedHashCode = 0;
+            }
+        }
+
+        private bool TryGetOcclusionMeshCombinedHashCode(out int hashCode)
+        {
+            hashCode = 17;
+
+            for (int viewId = 0; viewId < viewCount; ++viewId)
+            {
+                if (views[viewId].occlusionMesh != null)
+                {
+                    hashCode = hashCode * 23 + views[viewId].occlusionMesh.GetHashCode();
+                }
+                else
+                {
+                    hashCode = 0;
+                    return false;
+                }
+            }
+
+            return true;
+        }
+
+        // Create a new mesh that contains the occlusion data from all views
+        private void CreateOcclusionMeshCombined()
+        {
+            occlusionMeshCombined = new Mesh();
+            occlusionMeshCombined.indexFormat = IndexFormat.UInt16;
+
+            int combinedVertexCount = 0;
+            uint combinedIndexCount = 0;
+
+            for (int viewId = 0; viewId < viewCount; ++viewId)
+            {
+                Mesh mesh = views[viewId].occlusionMesh;
+
+                Debug.Assert(mesh != null);
+                Debug.Assert(mesh.subMeshCount == 1);
+                Debug.Assert(mesh.indexFormat == IndexFormat.UInt16);
+
+                combinedVertexCount += mesh.vertexCount;
+                combinedIndexCount += mesh.GetIndexCount(0);
+            }
+
+            Vector3[] vertices = new Vector3[combinedVertexCount];
+            ushort[] indices = new ushort[combinedIndexCount];
+            int vertexStart = 0;
+            int indexStart = 0;
+
+            for (int viewId = 0; viewId < viewCount; ++viewId)
+            {
+                Mesh mesh = views[viewId].occlusionMesh;
+                var meshIndices = mesh.GetIndices(0);
+
+                // Encore the viewId into the z channel
+                {
+                    mesh.vertices.CopyTo(vertices, vertexStart);
+
+                    for (int i = 0; i < mesh.vertices.Length; i++)
+                        vertices[vertexStart + i].z = viewId;
+                }
+
+                // Combine indices into one buffer
+                for (int i = 0; i < meshIndices.Length; i++)
+                {
+                    int newIndex = vertexStart + meshIndices[i];
+                    Debug.Assert(meshIndices[i] < ushort.MaxValue);
+
+                    indices[indexStart + i] = (ushort)newIndex;
+                }
+
+                vertexStart += mesh.vertexCount;
+                indexStart += meshIndices.Length;
+            }
+
+            occlusionMeshCombined.vertices = vertices;
+            occlusionMeshCombined.SetIndices(indices, MeshTopology.Triangles, 0);
         }
 
         /// <summary>
@@ -255,23 +397,60 @@ namespace UnityEngine.Rendering.HighDefinition
             }
         }
 
-        internal void RenderOcclusionMeshes(CommandBuffer cmd, RTHandle depthBuffer)
+        internal void RenderOcclusionMeshes(CommandBuffer cmd, Color clearColor, RTHandle colorBuffer, RTHandle depthBuffer)
         {
-            if (enabled && xrSdkEnabled && occlusionMeshMaterial != null)
-            {
-                using (new ProfilingScope(cmd, ProfilingSampler.Get(HDProfileId.XROcclusionMesh)))
-                {
-                    Matrix4x4 m = Matrix4x4.Ortho(0.0f, 1.0f, 0.0f, 1.0f, -1.0f, 1.0f);
+        #if DEVELOPMENT_BUILD || UNITY_EDITOR
+            if (XRGraphicsAutomatedTests.enabled && XRGraphicsAutomatedTests.running)
+                return;
+        #endif
 
-                    for (int viewId = 0; viewId < viewCount; ++viewId)
+            if (isOcclusionMeshSupported)
+            {
+                CoreUtils.SetRenderTarget(cmd, colorBuffer, depthBuffer, ClearFlag.None, clearColor, 0, CubemapFace.Unknown, -1);
+                cmd.SetGlobalVector(HDShaderIDs._ClearColor, clearColor);
+
+                if (singlePassEnabled)
+                {
+                    if (occlusionMeshCombined != null && SystemInfo.supportsRenderTargetArrayIndexFromVertexShader)
                     {
-                        if (views[viewId].occlusionMesh != null)
-                        {
-                            CoreUtils.SetRenderTarget(cmd, depthBuffer, ClearFlag.None, 0, CubemapFace.Unknown, viewId);
-                            cmd.DrawMesh(views[viewId].occlusionMesh, m, occlusionMeshMaterial);
-                        }
+                        cmd.EnableShaderKeyword("XR_OCCLUSION_MESH_COMBINED");
+                        cmd.DrawMesh(occlusionMeshCombined, Matrix4x4.identity, occlusionMeshMaterial);
+                        cmd.DisableShaderKeyword("XR_OCCLUSION_MESH_COMBINED");
                     }
                 }
+                else if (views[0].occlusionMesh != null)
+                {
+                    cmd.DrawMesh(views[0].occlusionMesh, Matrix4x4.identity, occlusionMeshMaterial);
+                }
+            }
+        }
+
+        static readonly int _unity_StereoMatrixV = Shader.PropertyToID("unity_StereoMatrixV");
+        static readonly int _unity_StereoMatrixP = Shader.PropertyToID("unity_StereoMatrixP");
+        static readonly int _unity_StereoMatrixVP = Shader.PropertyToID("unity_StereoMatrixVP");
+        static readonly int _unity_StereoWorldSpaceCameraPos = Shader.PropertyToID("unity_StereoWorldSpaceCameraPos");
+        Matrix4x4[] builtinViewMatrix = new Matrix4x4[2];
+        Matrix4x4[] builtinProjMatrix = new Matrix4x4[2];
+        Matrix4x4[] builtinViewProjMatrix = new Matrix4x4[2];
+        Vector4[] builtinWorldSpaceCameraPos = new Vector4[2];
+
+        // Maintain compatibility with builtin renderer
+        internal void UpdateBuiltinStereoMatrices(CommandBuffer cmd, HDCamera hdCamera)
+        {
+            if (singlePassEnabled)
+            {
+                for (int viewIndex = 0; viewIndex < 2; ++viewIndex)
+                {
+                    builtinWorldSpaceCameraPos[viewIndex] = hdCamera.m_XRViewConstants[viewIndex].worldSpaceCameraPos;
+                    builtinViewMatrix[viewIndex] = GetViewMatrix(viewIndex);
+                    builtinProjMatrix[viewIndex] = GL.GetGPUProjectionMatrix(GetProjMatrix(viewIndex), true);
+                    builtinViewProjMatrix[viewIndex] = builtinProjMatrix[viewIndex] * builtinViewMatrix[viewIndex];
+                }
+
+                cmd.SetGlobalMatrixArray(_unity_StereoMatrixV, builtinViewMatrix);
+                cmd.SetGlobalMatrixArray(_unity_StereoMatrixP, builtinProjMatrix);
+                cmd.SetGlobalMatrixArray(_unity_StereoMatrixVP, builtinViewProjMatrix);
+                cmd.SetGlobalVectorArray(_unity_StereoWorldSpaceCameraPos, builtinWorldSpaceCameraPos);
             }
         }
     }

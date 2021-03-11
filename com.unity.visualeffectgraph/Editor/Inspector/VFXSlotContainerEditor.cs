@@ -33,21 +33,36 @@ class VFXSlotContainerEditor : Editor
         return serializedObject.FindProperty(setting.field.Name);
     }
 
-    public virtual void DoInspectorGUI()
+    struct NameNType
+    {
+        public string name;
+        public Type type;
+
+        public override int GetHashCode()
+        {
+            return name.GetHashCode() * 23 + type.GetHashCode();
+        }
+    }
+
+    public virtual SerializedProperty DoInspectorGUI()
     {
         var slotContainer = targets[0] as VFXModel;
-        IEnumerable<VFXSetting> settingFields = slotContainer.GetSettings(false, VFXSettingAttribute.VisibleFlags.InInspector);
+        List<VFXSetting> settingFields = slotContainer.GetSettings(false, VFXSettingAttribute.VisibleFlags.InInspector).ToList();
 
         for (int i = 1; i < targets.Length; ++i)
         {
-            IEnumerable<VFXSetting> otherSettingFields = (targets[i] as VFXModel).GetSettings(false, VFXSettingAttribute.VisibleFlags.InInspector);
+            IEnumerable<VFXSetting> otherSettingFields = (targets[i] as VFXModel).GetSettings(false, VFXSettingAttribute.VisibleFlags.InInspector).ToArray();
 
-            settingFields = settingFields.Intersect(otherSettingFields);
+            var excluded = new HashSet<NameNType>(settingFields.Select(t => new NameNType() { name = t.name, type = t.field.FieldType }).Except(otherSettingFields.Select(t => new NameNType() { name = t.name, type = t.field.FieldType })));
+            settingFields.RemoveAll(t => excluded.Any(u => u.name == t.name));
         }
 
-        foreach (var prop in settingFields.Select(t => new KeyValuePair<FieldInfo, SerializedProperty>(t.field, FindProperty(t))).Where(t => t.Value != null))
+        SerializedProperty modifiedSetting = null;
+        foreach (var prop in settingFields.Select(t => new KeyValuePair<VFXSetting, SerializedProperty>(t, FindProperty(t))).Where(t => t.Value != null))
         {
-            var attrs = prop.Key.GetCustomAttributes(typeof(StringProviderAttribute), true);
+            var fieldInfo = prop.Key.field;
+            EditorGUI.BeginChangeCheck();
+            var attrs = fieldInfo.GetCustomAttributes(typeof(StringProviderAttribute), true);
             if (attrs.Length > 0)
             {
                 var strings = StringPropertyRM.FindStringProvider(attrs)();
@@ -58,6 +73,37 @@ class VFXSlotContainerEditor : Editor
                 {
                     prop.Value.stringValue = strings[result];
                 }
+            }
+            else if (fieldInfo.FieldType.IsEnum && fieldInfo.FieldType.GetCustomAttributes(typeof(FlagsAttribute), false).Length == 0)
+            {
+                GUIContent[] enumNames = null;
+                int[] enumValues = null;
+
+                Array enums = Enum.GetValues(fieldInfo.FieldType);
+                List<int> values = new List<int>(enums.Length);
+                for (int i = 0; i < enums.Length; ++i)
+                {
+                    values.Add((int)enums.GetValue(i));
+                }
+
+                foreach (var target in targets)
+                {
+                    VFXModel targetIte = target as VFXModel;
+
+                    var filteredValues = targetIte.GetFilteredOutEnumerators(fieldInfo.Name);
+                    if (filteredValues != null)
+                        foreach (int val in filteredValues)
+                            values.Remove(val);
+                }
+                enumNames = values.Select(t => new GUIContent(Enum.GetName(fieldInfo.FieldType, t))).ToArray();
+                enumValues = values.ToArray();
+
+                HeaderAttribute attr = fieldInfo.GetCustomAttributes<HeaderAttribute>().FirstOrDefault();
+
+                if (attr != null)
+                    GUILayout.Label(attr.header, EditorStyles.boldLabel);
+
+                EditorGUILayout.IntPopup(prop.Value, enumNames, enumValues);
             }
             else
             {
@@ -71,7 +117,13 @@ class VFXSlotContainerEditor : Editor
                     }
                 }
             }
+            if (EditorGUI.EndChangeCheck())
+            {
+                modifiedSetting = prop.Value;
+            }
         }
+
+        return modifiedSetting;
     }
 
     IGizmoController m_CurrentController;
@@ -176,16 +228,21 @@ class VFXSlotContainerEditor : Editor
     public override void OnInspectorGUI()
     {
         serializedObject.Update();
-        DoInspectorGUI();
+        var referenceModel = serializedObject.targetObject as VFXModel;
+        GUI.enabled = referenceModel.GetResource().IsAssetEditable();
 
-        if (serializedObject.ApplyModifiedProperties())
+        SerializedProperty modifiedProperty = DoInspectorGUI();
+
+        if (modifiedProperty != null && modifiedProperty.serializedObject.ApplyModifiedProperties())
         {
-            foreach (VFXModel slotContainer in targets.OfType<VFXModel>())
+            foreach (VFXModel slotContainer in modifiedProperty.serializedObject.targetObjects)
             {
                 // notify that something changed.
+                slotContainer.OnSettingModified(slotContainer.GetSetting(modifiedProperty.propertyPath));
                 slotContainer.Invalidate(VFXModel.InvalidationCause.kSettingChanged);
             }
         }
+        serializedObject.ApplyModifiedProperties();
     }
 
     public class Contents
@@ -262,6 +319,7 @@ class VFXSlotContainerEditor : Editor
             { VFXValueType.Texture3D, new Color32(250, 137, 137, 255) },
             { VFXValueType.TextureCube, new Color32(250, 137, 137, 255) },
             { VFXValueType.TextureCubeArray, new Color32(250, 137, 137, 255) },
+            { VFXValueType.CameraBuffer, new Color32(250, 137, 137, 255) },
             { VFXValueType.Uint32, new Color32(125, 110, 191, 255) },
         };
 

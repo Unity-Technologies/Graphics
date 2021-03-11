@@ -6,3 +6,24 @@ PropertyNodeView.hovered #selection-border{
     border-top-width: 2px;
     border-bottom-width: 2px;
 }
+
+PropertyNodeView > #disabledOverlay {
+    position: absolute;
+    left: 4;
+    right: 4;
+    top: 4;
+    bottom: 4;
+    background-color: rgba(32, 32, 32, 0);
+}
+
+PropertyNodeView.disabled #disabledOverlay {
+    background-color: rgba(32, 32, 32, 0.5);
+}
+
+PropertyNodeView.disabled:hover #disabledOverlay {
+    background-color: rgba(32, 32, 32, 0.25);
+}
+
+PropertyNodeView.disabled:checked #disabledOverlay {
+    background-color: rgba(32, 32, 32, 0.25);
+}

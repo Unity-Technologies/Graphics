@@ -2,33 +2,7 @@
 #define UNIVERSAL_POSTPROCESSING_COMMON_INCLUDED
 
 #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Color.hlsl"
-
-// ----------------------------------------------------------------------------------
-// Common shader data used in most post-processing passes
-
-struct Attributes
-{
-    float4 positionOS   : POSITION;
-    float2 uv           : TEXCOORD0;
-    UNITY_VERTEX_INPUT_INSTANCE_ID
-};
-
-struct Varyings
-{
-    float4 positionCS    : SV_POSITION;
-    float2 uv            : TEXCOORD0;
-    UNITY_VERTEX_OUTPUT_STEREO
-};
-
-Varyings Vert(Attributes input)
-{
-    Varyings output;
-    UNITY_SETUP_INSTANCE_ID(input);
-    UNITY_INITIALIZE_VERTEX_OUTPUT_STEREO(output);
-    output.positionCS = TransformObjectToHClip(input.positionOS.xyz);
-    output.uv = input.uv;
-    return output;
-}
+#include "Packages/com.unity.render-pipelines.universal/Shaders/Utils/Fullscreen.hlsl"
 
 // ----------------------------------------------------------------------------------
 // Render fullscreen mesh by using a matrix set directly by the pipeline instead of
@@ -46,8 +20,14 @@ Varyings VertFullscreenMesh(Attributes input)
     Varyings output;
     UNITY_SETUP_INSTANCE_ID(input);
     UNITY_INITIALIZE_VERTEX_OUTPUT_STEREO(output);
+
+#if _USE_DRAW_PROCEDURAL
+    GetProceduralQuad(input.vertexID, output.positionCS, output.uv);
+#else
     output.positionCS = TransformFullscreenMesh(input.positionOS.xyz);
     output.uv = input.uv;
+#endif
+
     return output;
 }
 
@@ -68,6 +48,42 @@ half GetLuminance(half3 colorLinear)
     return AcesLuminance(colorLinear);
 #else
     return Luminance(colorLinear);
+#endif
+}
+
+real3 GetSRGBToLinear(real3 c)
+{
+#if _USE_FAST_SRGB_LINEAR_CONVERSION
+    return FastSRGBToLinear(c);
+#else
+    return SRGBToLinear(c);
+#endif
+}
+
+real4 GetSRGBToLinear(real4 c)
+{
+#if _USE_FAST_SRGB_LINEAR_CONVERSION
+    return FastSRGBToLinear(c);
+#else
+    return SRGBToLinear(c);
+#endif
+}
+
+real3 GetLinearToSRGB(real3 c)
+{
+#if _USE_FAST_SRGB_LINEAR_CONVERSION
+    return FastLinearToSRGB(c);
+#else
+    return LinearToSRGB(c);
+#endif
+}
+
+real4 GetLinearToSRGB(real4 c)
+{
+#if _USE_FAST_SRGB_LINEAR_CONVERSION
+    return FastLinearToSRGB(c);
+#else
+    return LinearToSRGB(c);
 #endif
 }
 
@@ -118,10 +134,10 @@ half3 ApplyColorGrading(half3 input, float postExposure, TEXTURE2D_PARAM(lutTex,
         if (userLutContrib > 0.0)
         {
             input = saturate(input);
-            input.rgb = LinearToSRGB(input.rgb); // In LDR do the lookup in sRGB for the user LUT
+            input.rgb = GetLinearToSRGB(input.rgb); // In LDR do the lookup in sRGB for the user LUT
             half3 outLut = ApplyLut2D(TEXTURE2D_ARGS(userLutTex, userLutSampler), input, userLutParams);
             input = lerp(input, outLut, userLutContrib);
-            input.rgb = SRGBToLinear(input.rgb);
+            input.rgb = GetSRGBToLinear(input.rgb);
         }
     }
 
@@ -136,10 +152,10 @@ half3 ApplyColorGrading(half3 input, float postExposure, TEXTURE2D_PARAM(lutTex,
         UNITY_BRANCH
         if (userLutContrib > 0.0)
         {
-            input.rgb = LinearToSRGB(input.rgb); // In LDR do the lookup in sRGB for the user LUT
+            input.rgb = GetLinearToSRGB(input.rgb); // In LDR do the lookup in sRGB for the user LUT
             half3 outLut = ApplyLut2D(TEXTURE2D_ARGS(userLutTex, userLutSampler), input, userLutParams);
             input = lerp(input, outLut, userLutContrib);
-            input.rgb = SRGBToLinear(input.rgb);
+            input.rgb = GetSRGBToLinear(input.rgb);
         }
 
         input = ApplyLut2D(TEXTURE2D_ARGS(lutTex, lutSampler), input, lutParams);
@@ -173,7 +189,7 @@ half3 ApplyDithering(half3 input, float2 uv, TEXTURE2D_PARAM(BlueNoiseTexture, B
 #if UNITY_COLORSPACE_GAMMA
     input += noise / 255.0;
 #else
-    input = SRGBToLinear(LinearToSRGB(input) + noise / 255.0);
+    input = GetSRGBToLinear(GetLinearToSRGB(input) + noise / 255.0);
 #endif
 
     return input;

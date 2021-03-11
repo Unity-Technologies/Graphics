@@ -1,0 +1,15 @@
+
+[[source]]
+name = "pypi-artifactory"
+url = "https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple"
+verify_ssl = true
+
+[packages]
+pyyaml = "*"
+datetime = "*"
+six = "*"
+unity-downloader-cli = "*"
+requests = "*"
+#lz4 = "~=2.2.1"
+future = "*"
+semver = "*"

@@ -1,8 +1,10 @@
 using System;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.Rendering;
 using UnityEngine.Rendering.HighDefinition;
 using UnityEditor.ShaderGraph;
+using UnityEditor.Rendering.HighDefinition.ShaderGraph;
 
 namespace UnityEditor.Rendering.HighDefinition
 {
@@ -12,7 +14,12 @@ namespace UnityEditor.Rendering.HighDefinition
 
         public override int Priority => 50;
 
-        public LitShaderPreprocessor() {}
+        protected UnityEngine.Rendering.ShaderKeyword m_ForceForwardEmissive;
+
+        public LitShaderPreprocessor()
+        {
+            m_ForceForwardEmissive = new UnityEngine.Rendering.ShaderKeyword("_FORCE_FORWARD_EMISSIVE");
+        }
 
         protected override bool DoShadersStripper(HDRenderPipelineAsset hdrpAsset, Shader shader, ShaderSnippetData snippet, ShaderCompilerData inputData)
         {
@@ -26,17 +33,13 @@ namespace UnityEditor.Rendering.HighDefinition
             // Cache Shader Graph lookup data so we don't continually keep reloading graphs from disk.
             // TODO: Should really be able to answer the questions "is shader graph" and "uses HDLitMasterNode" without
             //       hitting disk on every invoke.
-            if (!m_ShaderGraphMasterNodeType.TryGetValue(shader, out var shaderGraphMasterNodeType))
+            if (shader.IsShaderGraph())
             {
-                if (shader.IsShaderGraph())
+                if (shader.TryGetMetadataOfType<HDMetadata>(out var obj))
                 {
-                    string shaderPath = AssetDatabase.GetAssetPath(shader);
-                    shaderGraphMasterNodeType = GraphUtil.GetOutputNodeType(shaderPath);
+                    isBuiltInLit |= obj.shaderID == HDShaderUtils.ShaderID.SG_Lit;
                 }
-
-                m_ShaderGraphMasterNodeType[shader] = shaderGraphMasterNodeType;
             }
-            isBuiltInLit |= shaderGraphMasterNodeType == typeof(HDLitMasterNode);
 
             // Caution: Currently only HDRP/TerrainLit is using keyword _ALPHATEST_ON with multi compile, we shouldn't test any other built in shader
             if (isBuiltInTerrainLit)
@@ -70,9 +73,22 @@ namespace UnityEditor.Rendering.HighDefinition
                     return true;
             }
 
-            // Apply following set of rules only to inspector version of shader as we don't have Transparent keyword with shader graph
+
+            // Apply following set of rules only to lit shader (remember that LitPreprocessor is call for any shader)
             if (isBuiltInLit)
             {
+                // ForwardEmissiveForDeferred only make sense for deferred mode
+                bool isForwardEmissiveForDeferred = snippet.passName == "ForwardEmissiveForDeferred";
+                if (isForwardEmissiveForDeferred)
+                {
+                    if (hdrpAsset.currentPlatformRenderPipelineSettings.supportedLitShaderMode == RenderPipelineSettings.SupportedLitShaderMode.ForwardOnly)
+                        return true;
+
+                    // If the pass is not used because the keyword ForceForwardEmissive is not enabled, then discard
+                    if (!inputData.shaderKeywordSet.IsEnabled(m_ForceForwardEmissive))
+                        return true;
+                }
+
                 // Forward material don't use keyword for WriteNormalBuffer but #define so we can't test for the keyword outside of isBuiltInLit
                 // otherwise the pass will be remove for non-lit shader graph version (like StackLit)
                 bool isMotionPass = snippet.passName == "MotionVectors";
@@ -90,15 +106,6 @@ namespace UnityEditor.Rendering.HighDefinition
 
                 if (!inputData.shaderKeywordSet.IsEnabled(m_Transparent)) // Opaque
                 {
-                    // If opaque, we never need transparent specific passes (even in forward only mode)
-                    bool isTransparentPrepass = snippet.passName == "TransparentDepthPrepass";
-                    bool isTransparentPostpass = snippet.passName == "TransparentDepthPostpass";
-                    bool isTransparentBackface = snippet.passName == "TransparentBackface";
-                    bool isDistortionPass = snippet.passName == "DistortionVectors";
-                    bool isTransparentForwardPass = isTransparentPostpass || isTransparentBackface || isTransparentPrepass || isDistortionPass;
-                    if (isTransparentForwardPass)
-                        return true;
-
                     if (hdrpAsset.currentPlatformRenderPipelineSettings.supportedLitShaderMode == RenderPipelineSettings.SupportedLitShaderMode.DeferredOnly)
                     {
                         // When we are in deferred, we only support tile lighting
@@ -109,34 +116,22 @@ namespace UnityEditor.Rendering.HighDefinition
                         if (isForwardPass && !inputData.shaderKeywordSet.IsEnabled(m_DebugDisplay))
                             return true;
                     }
-
-                    // TODO: Should we remove Cluster version if we know MSAA is disabled ? This prevent to manipulate LightLoop Settings (useFPTL option)
-                    // For now comment following code
-                    // if (inputData.shaderKeywordSet.IsEnabled(m_ClusterLighting) && !hdrpAsset.currentPlatformRenderPipelineSettings.supportMSAA)
-                    //    return true;
                 }
-            }
 
-            // We strip passes for transparent passes outside of isBuiltInLit because we want Hair, Fabric
-            // and StackLit shader graphs to be taken in account.
-            if (inputData.shaderKeywordSet.IsEnabled(m_Transparent))
-            {
-                // If transparent, we never need GBuffer pass.
-                if (isGBufferPass)
-                    return true;
+                if (inputData.shaderKeywordSet.IsEnabled(m_Transparent))
+                {
+                    // If transparent, we never need GBuffer pass.
+                    if (isGBufferPass)
+                        return true;
 
-                // If transparent we don't need the depth only pass
-                if (isDepthOnlyPass)
-                    return true;
+                    // If transparent we don't need the depth only pass
+                    if (isDepthOnlyPass)
+                        return true;
 
-                // If transparent we don't need the motion vector pass
-                bool isMotionPass = snippet.passName == "MotionVectors";
-                if (isMotionPass)
-                    return true;
-
-                // If we are transparent we use cluster lighting and not tile lighting
-                if (inputData.shaderKeywordSet.IsEnabled(m_TileLighting))
-                    return true;
+                    // If transparent, we never need ForwardEmissiveForDeferred pass.
+                    if (isForwardEmissiveForDeferred)
+                        return true;
+                }
             }
 
             // TODO: Tests for later

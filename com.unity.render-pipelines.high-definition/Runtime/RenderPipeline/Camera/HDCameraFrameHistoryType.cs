@@ -19,6 +19,8 @@ namespace UnityEngine.Rendering.HighDefinition
         Normal,
         /// <summary>Depth buffer.</summary>
         Depth,
+        /// <summary>Mip one of the depth buffer .</summary>
+        Depth1,
         /// <summary>Ambient Occlusion buffer.</summary>
         AmbientOcclusion,
         /// <summary>Ray traced ambient occlusion buffer.</summary>
@@ -39,7 +41,14 @@ namespace UnityEngine.Rendering.HighDefinition
         RayTracedSubSurface,
         /// <summary>Path tracing buffer.</summary>
         PathTracing,
+        /// <summary>Temporal antialiasing history after DoF.</summary>
+        TemporalAntialiasingPostDoF,
+        VolumetricClouds0,
+        VolumetricClouds1,
         /// <summary>Number of history buffers.</summary>
-        Count
+        Count, // TODO: Obsolete
+        // TODO: Move before count for 11.0
+        /// <summary>Screen Space Reflection Accumulation.</summary>
+        ScreenSpaceReflectionAccumulation
     }
 }

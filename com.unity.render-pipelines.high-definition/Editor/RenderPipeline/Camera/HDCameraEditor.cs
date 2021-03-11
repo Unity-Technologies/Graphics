@@ -1,8 +1,10 @@
 using UnityEngine;
 using UnityEngine.Assertions;
+using UnityEngine.Rendering;
 using UnityEngine.Rendering.HighDefinition;
 using System.Collections.Generic;
 using System.Linq;
+using UnityEngine.Experimental.Rendering;
 
 namespace UnityEditor.Rendering.HighDefinition
 {
@@ -55,14 +57,14 @@ namespace UnityEditor.Rendering.HighDefinition
                 if (m_PreviewTexture != null)
                     m_PreviewTexture.Release();
 
-                m_PreviewTexture = new RenderTexture(width, height, 0, RenderTextureFormat.ARGBHalf, RenderTextureReadWrite.Linear);
+                m_PreviewTexture = new RenderTexture(width, height, 0, GraphicsFormat.R16G16B16A16_SFloat);
                 m_PreviewTexture.enableRandomWrite = true;
                 m_PreviewTexture.Create();
             }
             return m_PreviewTexture;
         }
     }
-    
+
     [ScriptableRenderPipelineExtension(typeof(HDRenderPipelineAsset))]
     class HDCameraContextualMenu : IRemoveAdditionalDataContextualMenu<Camera>
     {
@@ -77,26 +79,53 @@ namespace UnityEditor.Rendering.HighDefinition
                 return;
             }
 
-            Undo.SetCurrentGroupName("Remove HD Camera");
-            var additionalCameraData = camera.GetComponent<HDAdditionalCameraData>();
-            if (additionalCameraData)
+            var isAssetEditing = EditorUtility.IsPersistent(camera);
+            try
             {
-                Undo.DestroyObjectImmediate(additionalCameraData);
+                if (isAssetEditing)
+                {
+                    AssetDatabase.StartAssetEditing();
+                }
+
+                Undo.SetCurrentGroupName("Remove HD Camera");
+                var additionalCameraData = camera.GetComponent<HDAdditionalCameraData>();
+                if (additionalCameraData != null)
+                {
+                    Undo.DestroyObjectImmediate(additionalCameraData);
+                }
+
+                Undo.DestroyObjectImmediate(camera);
             }
-            Undo.DestroyObjectImmediate(camera);
+            finally
+            {
+                if (isAssetEditing)
+                {
+                    AssetDatabase.StopAssetEditing();
+                }
+            }
         }
-        
+
         [MenuItem("CONTEXT/Camera/Reset", false, 0)]
         static void ResetCamera(MenuCommand menuCommand)
         {
-            GameObject go = ((Camera)menuCommand.context).gameObject;
+            // Grab the current HDRP asset, we should not be executing this code if HDRP is null
+            var hdrp = (RenderPipelineManager.currentPipeline as HDRenderPipeline);
+            if (hdrp == null)
+                return;
 
+            GameObject go = ((Camera)menuCommand.context).gameObject;
             Assert.IsNotNull(go);
 
             Camera camera = go.GetComponent<Camera>();
-            HDAdditionalCameraData cameraAdditionalData = go.GetComponent<HDAdditionalCameraData>();
-
             Assert.IsNotNull(camera);
+
+            // Try to grab the HDAdditionalCameraData component, it is possible that the component is null of the camera was created without an asset assigned and the inspector
+            // was kept on while assigning the asset and then triggering the reset.
+            HDAdditionalCameraData cameraAdditionalData;
+            if ((!go.TryGetComponent<HDAdditionalCameraData>(out cameraAdditionalData)))
+            {
+                cameraAdditionalData = go.AddComponent<HDAdditionalCameraData>();
+            }
             Assert.IsNotNull(cameraAdditionalData);
 
             Undo.SetCurrentGroupName("Reset HD Camera");

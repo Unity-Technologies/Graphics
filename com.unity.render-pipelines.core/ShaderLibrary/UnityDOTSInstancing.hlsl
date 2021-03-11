@@ -133,7 +133,7 @@ ByteAddressBuffer unity_DOTSInstanceData;
 // on some platforms does not trigger.
 struct DOTSVisibleData
 {
-	uint4 VisibleData;
+    uint4 VisibleData;
 };
 
 // The name of this cbuffer has to start with "UnityInstancing" and a struct so it's
@@ -194,14 +194,32 @@ DEFINE_DOTS_LOAD_INSTANCE_VECTOR(half,  4, half4,   2)
 float4x4 LoadDOTSInstancedData_float4x4(uint metadata)
 {
     uint address = ComputeDOTSInstanceDataAddress(metadata, 4 * 16);
-    // TODO: Remove this transpose, do it on CPU side
-    return transpose(float4x4(
-        asfloat(unity_DOTSInstanceData.Load4(address + 0 * 16)),
-        asfloat(unity_DOTSInstanceData.Load4(address + 1 * 16)),
-        asfloat(unity_DOTSInstanceData.Load4(address + 2 * 16)),
-        asfloat(unity_DOTSInstanceData.Load4(address + 3 * 16))));
+    float4 p1 = asfloat(unity_DOTSInstanceData.Load4(address + 0 * 16));
+    float4 p2 = asfloat(unity_DOTSInstanceData.Load4(address + 1 * 16));
+    float4 p3 = asfloat(unity_DOTSInstanceData.Load4(address + 2 * 16));
+    float4 p4 = asfloat(unity_DOTSInstanceData.Load4(address + 3 * 16));
+    return float4x4(
+        p1.x, p2.x, p3.x, p4.x,
+        p1.y, p2.y, p3.y, p4.y,
+        p1.z, p2.z, p3.z, p4.z,
+        p1.w, p2.w, p3.w, p4.w);
 }
 float4x4 LoadDOTSInstancedData(float4x4 dummy, uint metadata) { return LoadDOTSInstancedData_float4x4(metadata); }
+
+float4x4 LoadDOTSInstancedData_float4x4_from_float3x4(uint metadata)
+{
+    uint address = ComputeDOTSInstanceDataAddress(metadata, 3 * 16);
+    float4 p1 = asfloat(unity_DOTSInstanceData.Load4(address + 0 * 16));
+    float4 p2 = asfloat(unity_DOTSInstanceData.Load4(address + 1 * 16));
+    float4 p3 = asfloat(unity_DOTSInstanceData.Load4(address + 2 * 16));
+
+    return float4x4(
+        p1.x, p1.w, p2.z, p3.y,
+        p1.y, p2.x, p2.w, p3.z,
+        p1.z, p2.y, p3.x, p3.w,
+        0.0,  0.0,  0.0,  1.0
+    );
+}
 
 float2x4 LoadDOTSInstancedData_float2x4(uint metadata)
 {
@@ -218,4 +236,3 @@ float2x4 LoadDOTSInstancedData(float2x4 dummy, uint metadata) { return LoadDOTSI
 #endif // UNITY_DOTS_INSTANCING_ENABLED
 
 #endif // UNITY_DOTS_INSTANCING_INCLUDED
-

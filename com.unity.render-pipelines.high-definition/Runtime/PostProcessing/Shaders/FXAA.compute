@@ -15,7 +15,7 @@ void FXAA(uint3 dispatchThreadId : SV_DispatchThreadID)
 {
     UNITY_XR_ASSIGN_VIEW_INDEX(dispatchThreadId.z);
     uint2 positionSS = dispatchThreadId.xy;
-    float2 positionNDC = positionSS * _ScreenSize.zw + (0.5 * _ScreenSize.zw); 
+    float2 positionNDC = positionSS * _ScreenSize.zw + (0.5 * _ScreenSize.zw);
 
     float3 outColor = Load(_InputTexture, positionSS, 0, 0);
 

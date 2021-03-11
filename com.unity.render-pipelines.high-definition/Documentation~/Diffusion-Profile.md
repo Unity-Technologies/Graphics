@@ -1,8 +1,13 @@
 # Diffusion Profile
 
-The High Definition Render Pipeline (HDRP) stores most [subsurface scattering](Subsurface-Scattering.html) settings in a __Diffusion Profile__ Asset. You can assign a __Diffusion Profile__ Asset directly to Materials that use Subsurface Scattering.
+The High Definition Render Pipeline (HDRP) stores most [subsurface scattering](Subsurface-Scattering.md) settings in a __Diffusion Profile__ Asset. You can assign a __Diffusion Profile__ Asset directly to Materials that use Subsurface Scattering.
 
-To create a Diffusion Profile, navigate to __Assets > Create > Rendering > Diffusion Profile__. To use it, open your HDRP Asset and add it to the __Diffusion Profile List__ property.
+To create a Diffusion Profile, navigate to __Assets > Create > Rendering > HDRP Diffusion Profile__.
+
+* To use it by default, open your HDRP Asset and, in the **Material** section, add it to the __Diffusion Profile List__.
+* To use it in a particular [Volume](Volumes.md), select a Volume with a [Diffusion Profile Override](Override-Diffusion-Profile.md) and add it to the **Diffusion Profile List** .
+
+## Properties
 
 | Property| Description |
 |:---|:---|
@@ -14,7 +19,7 @@ To create a Diffusion Profile, navigate to __Assets > Create > Rendering > Diffu
 
 
 
-## Subsurface Scattering only
+### Subsurface Scattering only
 
 | Property| Description |
 |:---|:---|
@@ -22,7 +27,7 @@ To create a Diffusion Profile, navigate to __Assets > Create > Rendering > Diffu
 
 
 
-## Transmission only
+### Transmission only
 
 | Property| Description |
 |:---|:---|
@@ -33,7 +38,7 @@ To create a Diffusion Profile, navigate to __Assets > Create > Rendering > Diffu
 
 
 
-## Profile Previews
+### Profile Previews
 
 | Property| Description |
 |:---|:---|

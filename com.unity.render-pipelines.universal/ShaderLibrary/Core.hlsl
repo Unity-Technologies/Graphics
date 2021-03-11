@@ -1,6 +1,10 @@
 #ifndef UNIVERSAL_PIPELINE_CORE_INCLUDED
 #define UNIVERSAL_PIPELINE_CORE_INCLUDED
 
+// VT is not supported in URP (for now) this ensures any shaders using the VT
+// node work by falling to regular texture sampling.
+#define FORCE_VIRTUAL_TEXTURING_OFF 1
+
 #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Common.hlsl"
 #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Packing.hlsl"
 #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Version.hlsl"
@@ -35,7 +39,8 @@
 
 
 #if UNITY_REVERSED_Z
-    #if SHADER_API_OPENGL || SHADER_API_GLES || SHADER_API_GLES3
+    // TODO: workaround. There's a bug where SHADER_API_GL_CORE gets erroneously defined on switch.
+    #if (defined(SHADER_API_GLCORE) && !defined(SHADER_API_SWITCH)) || defined(SHADER_API_GLES) || defined(SHADER_API_GLES3)
         //GL with reversed z => z clip range is [near, -far] -> should remap in theory but dont do it in practice to save some perf (range is close enough)
         #define UNITY_Z_0_FAR_FROM_CLIPSPACE(coord) max(-(coord), 0)
     #else

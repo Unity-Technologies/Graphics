@@ -4,7 +4,12 @@
 
 // SurfaceData is define in Lit.cs which generate Lit.cs.hlsl
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Unlit/Unlit.cs.hlsl"
-
+#if defined(WRITE_NORMAL_BUFFER)
+#include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/NormalBuffer.hlsl"
+#endif
+#if defined(_ENABLE_SHADOW_MATTE)
+#include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/MaterialEvaluation.hlsl"
+#endif
 //-----------------------------------------------------------------------------
 // conversion function for forward
 //-----------------------------------------------------------------------------
@@ -16,6 +21,17 @@ BSDFData ConvertSurfaceDataToBSDFData(uint2 positionSS, SurfaceData data)
 
     return output;
 }
+
+#if defined(WRITE_NORMAL_BUFFER)
+NormalData ConvertSurfaceDataToNormalData(SurfaceData surfaceData)
+{
+    NormalData normalData;
+    // Note: When we are in the prepass (depth forward only) and we need to export the normal. This also requires a roughness value, we export a fake one (0.0)
+    normalData.normalWS = surfaceData.normalWS;
+    normalData.perceptualRoughness = 0.0;
+    return normalData;
+}
+#endif
 
 //-----------------------------------------------------------------------------
 // Debug method (use to display values)

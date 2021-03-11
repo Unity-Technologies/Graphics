@@ -1,0 +1,185 @@
+#include "Packages/com.unity.render-pipelines.high-definition/Runtime/PostProcessing/Shaders/HistogramExposureCommon.hlsl"
+
+
+// TODO List to investigate
+//      - Worth considering multiple histograms per lane in the thread. (i.e. sharedHisto[BINS][NUMB_HIST] )
+//      - At the moment the dispatch is at half res, but the buffer sampled is full res,
+//        causing fairly bad cache behaviour. Can we use the mip chain realistically without issues? [The one we have is blurred and might be incomplete?]
+
+#pragma kernel KHistogramGen        GEN_PASS
+#pragma kernel KHistogramReduce     REDUCE_PASS
+#define GROUP_SIZE_X 16
+#define GROUP_SIZE_Y 8
+
+#pragma multi_compile _ OUTPUT_DEBUG_DATA
+
+// Because atomics are only on uint and we need a weighted value, we need to convert.
+// If we multiply the weight by 2048, we get somewhat ok precision and we support up to
+// the equivalent of 1920x1080 image in one bin. (Note, we run this at half res, so equivalent of 4k image)
+uint PackWeight(float weight)
+{
+    return uint(weight * 2048);
+}
+
+groupshared uint gs_localHistogram[HISTOGRAM_BINS];
+
+
+[numthreads(GROUP_SIZE_X, GROUP_SIZE_Y, 1)]
+void KHistogramGen(uint groupIndex : SV_GroupIndex,
+                   uint3 dispatchThreadId : SV_DispatchThreadID)
+{
+    // Groupshared memory is not guaranteed to be 0 initialized.
+    // Note that currently the branch is always true (GROUP_SIZE_X * GROUP_SIZE_Y == HISTOGRAM_BINS). Here as safeguard if changing group size or bins.
+    if (groupIndex < HISTOGRAM_BINS)
+    {
+        gs_localHistogram[groupIndex] = 0u;
+    }
+
+    GroupMemoryBarrierWithGroupSync();
+
+    // TODO: This leads to poor cache behaviour, verify if we can use lower mip of the color pyramid.
+    uint2 fullResCoords = dispatchThreadId.xy << 1u;
+
+    if (all(fullResCoords < uint2(_ScreenSize.xy)))
+    {
+        float2 uv = ClampAndScaleUVForBilinear((fullResCoords + 0.5) * _ScreenSize.zw);
+        float luminance = SampleLuminance(uv);
+        float weight = WeightSample(fullResCoords, _ScreenSize.xy, luminance);
+
+        uint  bin = GetHistogramBinLocation(luminance);
+        InterlockedAdd(gs_localHistogram[bin], PackWeight(weight));
+    }
+
+    GroupMemoryBarrierWithGroupSync();
+
+    // Note that currently the branch is always true (GROUP_SIZE_X * GROUP_SIZE_Y == HISTOGRAM_BINS). Here as safeguard if changing group size or bins.
+    if (groupIndex < HISTOGRAM_BINS)
+    {
+        InterlockedAdd(_HistogramBuffer[groupIndex], gs_localHistogram[groupIndex]);
+    }
+}
+
+#define USE_WAVE_INTRINSICS     defined(PLATFORM_LANE_COUNT) && defined(PLATFORM_SUPPORTS_WAVE_INTRINSICS)
+
+
+#if USE_WAVE_INTRINSICS
+
+#define WAVE_SIZE   PLATFORM_LANE_COUNT
+#define SUM_SCRATCH_SIZE  HISTOGRAM_BINS / WAVE_SIZE
+
+#else
+
+#define SUM_SCRATCH_SIZE  HISTOGRAM_BINS
+
+#endif
+
+groupshared float gs_partialSums[SUM_SCRATCH_SIZE];
+groupshared float gs_values[HISTOGRAM_BINS];
+
+float ComputeTotalSum(uint threadID, float threadVal)
+{
+    float sum = 0;
+
+#if USE_WAVE_INTRINSICS
+
+    uint waveCount = (HISTOGRAM_BINS / WAVE_SIZE);
+    float waveSum = WaveActiveSum(threadVal);
+
+    uint waveIDInGroup = threadID / WAVE_SIZE;
+    if (WaveIsFirstLane())
+    {
+        gs_partialSums[waveIDInGroup] = waveSum;
+    }
+
+    // We have values for all the waves, let's sync.
+    GroupMemoryBarrierWithGroupSync();
+
+    sum = gs_partialSums[0];
+    [unroll]
+    for (uint i = 1u; i < waveCount; ++i)
+    {
+        sum += gs_partialSums[i];
+    }
+
+#else // !USE_WAVE_INTRINSICS
+
+    gs_partialSums[threadID] = threadVal;
+
+    GroupMemoryBarrierWithGroupSync();
+
+    // Sum all values
+    for (uint i = HISTOGRAM_BINS >> 1u; i > 0u; i >>= 1u)
+    {
+        if (threadID < i)
+            gs_partialSums[threadID] = (gs_partialSums[threadID] + gs_partialSums[threadID + i]);
+
+        GroupMemoryBarrierWithGroupSync();
+    }
+
+    sum = gs_partialSums[0];
+
+#endif
+
+    return sum;
+}
+
+void ProcessBin(uint binIndex, inout float2 extremesSums, inout float evSum, inout float totalWeight)
+{
+    float histVal = gs_values[binIndex];
+    float binEV = BinLocationToEV(binIndex);
+
+    // Shadows
+    float off = min(extremesSums.x, histVal);
+    extremesSums -= off;
+    histVal -= off;
+    // Highlights
+    histVal = min(extremesSums.y, histVal);
+    extremesSums.y -= histVal;
+
+    evSum += histVal * binEV;
+    totalWeight += histVal;
+}
+
+[numthreads(HISTOGRAM_BINS, 1, 1)]
+void KHistogramReduce(uint3 dispatchThreadId : SV_DispatchThreadID)
+{
+    uint threadID = dispatchThreadId.x;
+    float histogramVal = UnpackWeight(_HistogramBuffer[threadID]);
+
+    gs_values[threadID] = histogramVal;
+
+    float sum = ComputeTotalSum(threadID, histogramVal);
+
+    float2 extremesSums = float2(_HistogramMinPercentile, _HistogramMaxPercentile) * sum;
+
+    // TODO: Can we be a bit more parallel here?
+    if (threadID == 0)
+    {
+        float evProcessedSum = 0;
+        float w = 0;
+
+        for (int i = 0; i < HISTOGRAM_BINS; ++i)
+        {
+            ProcessBin(i, extremesSums, evProcessedSum, w);
+        }
+
+        w = max(w, 1e-4f);
+        float avgEV = evProcessedSum * rcp(w);
+
+        float minExposure = ParamExposureLimitMin;
+        float maxExposure = ParamExposureLimitMax;
+        if (ParamEvaluateMode == 2)
+        {
+            avgEV = CurveRemap(avgEV, minExposure, maxExposure);
+        }
+
+        float exposure = AdaptExposure(avgEV - ParamExposureCompensation);
+        exposure = clamp(exposure, minExposure, maxExposure);
+        _OutputTexture[uint2(0, 0)] = float2(ConvertEV100ToExposure(exposure, LensImperfectionExposureScale), exposure);
+#ifdef OUTPUT_DEBUG_DATA
+        _ExposureDebugTexture[uint2(0, 0)] = float2(avgEV - ParamExposureCompensation, 0.0f);
+#endif
+    }
+
+
+}

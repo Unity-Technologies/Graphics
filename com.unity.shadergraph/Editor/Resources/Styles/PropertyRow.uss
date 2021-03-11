@@ -1,4 +1,6 @@
 PropertyRow EnumField,
+PropertyRow PopupField,
+PropertyRow TextField,
 PropertyRow Label,
 PropertyRow Toggle,
 PropertyRow IntegerField,
@@ -6,7 +8,7 @@ PropertyRow ColorField,
 PropertyRow DoubleField {
     margin-left: 0;
     margin-right: 0;
-	-unity-text-align : middle-left;
+    -unity-text-align : middle-left;
 }
 
 PropertyRow > #container{
@@ -17,6 +19,9 @@ PropertyRow > #container{
 }
 
 PropertyRow > #container > #label {
+    flex-grow: 2;
+    flex-basis: 0;
+    min-width: 92px;
     width: 92px;
     font-size: 12px;
     margin-right: 4px;
@@ -33,8 +38,13 @@ PropertyRow > #container > #label > Label {
     white-space: wrap;
 }
 
+PropertyRow > #container > #label > Label.modified {
+    -unity-font-style: bold;
+}
+
 PropertyRow > #container > #content{
-    flex-grow: 1;
+    flex-grow: 10;
+    flex-basis: 0;
     height: auto;
     -unity-font-style: bold;
     width: 100px;

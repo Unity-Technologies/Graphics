@@ -13,8 +13,8 @@ The High Definition Render Pipeline does **not** support this Node.
 
 | Name        | Direction           | Type  | Binding | Description |
 |:------------ |:-------------|:-----|:---|:---|
-| Width | Output      |    Vector 1 | None | Screen's width in pixels |
-| Height | Output      |    Vector 1 | None | Screen's height in pixels |
+| Width | Output      |    Float    | None | Screen's width in pixels |
+| Height | Output      |    Float    | None | Screen's height in pixels |
 
 ## Generated Code Example
 

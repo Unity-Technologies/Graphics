@@ -1,0 +1,128 @@
+project:
+  name: HDRP_Hybrid
+  folder: HDRP_HybridTests
+test_platforms:
+  - type: playmode
+    utr_flags:
+      - [all]: --compilation-errors-as-warnings
+  - type: playmode
+    name: playmode_cache
+    utr_flags:
+    - [all]: --compilation-errors-as-warnings
+    - [all]: --extra-editor-arg="-adb2"
+    - [all]: --extra-editor-arg="-enableCacheServer"
+    - [all]: --extra-editor-arg="-cacheServerEndpoint" --extra-editor-arg="cacheserver-slo.hq.unity3d.com"
+    - [all]: --extra-editor-arg="-cacheServerNamespacePrefix" --extra-editor-arg="SRP"
+    - [all]: --extra-editor-arg="-cacheServerEnableDownload" --extra-editor-arg="true"
+    - [all]: --extra-editor-arg="-cacheServerEnableUpload" --extra-editor-arg="true"
+  - type: playmode
+    name: playmode_XR
+    utr_flags:
+      - [all]: --extra-editor-arg="-xr-reuse-tests"
+      - [all]: --compilation-errors-as-warnings
+  - type: playmode
+    name: playmode_XR_cache
+    utr_flags:
+    - [all]: --extra-editor-arg="-xr-reuse-tests"
+    - [all]: --extra-editor-arg="-adb2"
+    - [all]: --extra-editor-arg="-enableCacheServer"
+    - [all]: --extra-editor-arg="-cacheServerEndpoint" --extra-editor-arg="cacheserver-slo.hq.unity3d.com"
+    - [all]: --extra-editor-arg="-cacheServerNamespacePrefix" --extra-editor-arg="SRP"
+    - [all]: --extra-editor-arg="-cacheServerEnableDownload" --extra-editor-arg="true"
+    - [all]: --extra-editor-arg="-cacheServerEnableUpload" --extra-editor-arg="true"
+  # - type: editmode
+  #  utr_flags:
+  #    - [all]: --compilation-errors-as-warnings
+  - type: Standalone
+    utr_flags:
+      - [all]: --compilation-errors-as-warnings
+      - [OSX_Metal]: --timeout=2400
+    utr_flags_build:
+      - [all]: --compilation-errors-as-warnings
+  - type: Standalone
+    name: Standalone_cache
+    utr_flags_build:
+    - [all]: --compilation-errors-as-warnings
+    - [all]: --timeout=3000
+    - [all]: --extra-editor-arg="-adb2"
+    - [all]: --extra-editor-arg="-enableCacheServer"
+    - [all]: --extra-editor-arg="-cacheServerEndpoint" --extra-editor-arg="cacheserver-slo.hq.unity3d.com"
+    - [all]: --extra-editor-arg="-cacheServerNamespacePrefix" --extra-editor-arg="SRP"
+    - [all]: --extra-editor-arg="-cacheServerEnableDownload" --extra-editor-arg="true"
+    - [all]: --extra-editor-arg="-cacheServerEnableUpload" --extra-editor-arg="true"
+expression_trigger:
+  expression: ""
+platforms:
+  - name: Win
+    apis:
+      - name: DX11
+      - name: DX12
+      - name: Vulkan
+    build_configs:
+      - name: mono
+    color_spaces:
+      - Linear
+    agents_project:
+      default:
+        type: Unity::VM::GPU
+        image: graphics-foundation/win10-dxr:stable
+        flavor: b1.xlarge
+        model: rtx2080
+      editmode:
+        type: Unity::VM
+        image: graphics-foundation/win10-dxr:stable
+        flavor: b1.xlarge
+      standalone:
+        type: Unity::VM::GPU
+        image: graphics-foundation/win10-dxr:stable
+        flavor: b1.xlarge
+        model: rtx2080
+      standalone_build:
+        type: Unity::VM
+        image: graphics-foundation/win10-dxr:stable
+        flavor: b1.xlarge
+  - name: OSX
+    apis:
+      - name: Metal
+        exclude_test_platforms:
+          - name: editmode
+    build_configs:
+      - name: mono
+    color_spaces:
+      - Linear
+  - name: Linux
+    apis:
+      - name: OpenGLCore
+        exclude_test_platforms:
+          - name: Standalone
+          - name: Standalone_cache
+          - name: playmode_XR
+          - name: playmode_XR_cache
+      - name: Vulkan
+        exclude_test_platforms:
+          - name: playmode_XR
+          - name: playmode_XR_cache
+    build_configs:
+      - name: mono
+    color_spaces:
+      - Linear
+pr:
+  dependencies:
+    - platform: Win
+      api: DX11
+      build_config: mono
+      color_space: Linear
+      test_platforms:
+        - playmode
+        #- playmode_cache
+nightly:
+  dependencies:
+    - platform: Win
+      api: DX11
+      build_config: mono
+      color_space: Linear
+      test_platforms:
+        - playmode_XR
+        #- playmode_XR_cache
+    - project: HDRP_Hybrid
+      pr: true

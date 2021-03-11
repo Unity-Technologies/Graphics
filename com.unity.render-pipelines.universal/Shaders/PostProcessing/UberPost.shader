@@ -1,14 +1,16 @@
 Shader "Hidden/Universal Render Pipeline/UberPost"
 {
     HLSLINCLUDE
-        
-        #pragma multi_compile_local _ _DISTORTION
-        #pragma multi_compile_local _ _CHROMATIC_ABERRATION
-        #pragma multi_compile_local _ _BLOOM_LQ _BLOOM_HQ _BLOOM_LQ_DIRT _BLOOM_HQ_DIRT
-        #pragma multi_compile_local _ _HDR_GRADING _TONEMAP_ACES _TONEMAP_NEUTRAL
-        #pragma multi_compile_local _ _FILM_GRAIN
-        #pragma multi_compile_local _ _DITHERING
-		#pragma multi_compile_local _ _LINEAR_TO_SRGB_CONVERSION
+        #pragma exclude_renderers gles
+        #pragma multi_compile_local_fragment _ _DISTORTION
+        #pragma multi_compile_local_fragment _ _CHROMATIC_ABERRATION
+        #pragma multi_compile_local_fragment _ _BLOOM_LQ _BLOOM_HQ _BLOOM_LQ_DIRT _BLOOM_HQ_DIRT
+        #pragma multi_compile_local_fragment _ _HDR_GRADING _TONEMAP_ACES _TONEMAP_NEUTRAL
+        #pragma multi_compile_local_fragment _ _FILM_GRAIN
+        #pragma multi_compile_local_fragment _ _DITHERING
+        #pragma multi_compile_local_fragment _ _LINEAR_TO_SRGB_CONVERSION
+        #pragma multi_compile_local_fragment _ _USE_FAST_SRGB_LINEAR_CONVERSION
+        #pragma multi_compile _ _USE_DRAW_PROCEDURAL
 
         #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Common.hlsl"
         #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Filtering.hlsl"
@@ -23,7 +25,7 @@ Shader "Hidden/Universal Render Pipeline/UberPost"
             #endif
         #endif
 
-        TEXTURE2D_X(_BlitTex);
+        TEXTURE2D_X(_SourceTex);
         TEXTURE2D_X(_Bloom_Texture);
         TEXTURE2D(_LensDirt_Texture);
         TEXTURE2D(_Grain_Texture);
@@ -126,22 +128,22 @@ Shader "Hidden/Universal Render Pipeline/UberPost"
                 float2 end = uv - coords * dot(coords, coords) * ChromaAmount;
                 float2 delta = (end - uv) / 3.0;
 
-                half r = SAMPLE_TEXTURE2D_X(_BlitTex, sampler_LinearClamp, uvDistorted                ).x;
-                half g = SAMPLE_TEXTURE2D_X(_BlitTex, sampler_LinearClamp, DistortUV(delta + uv)      ).y;
-                half b = SAMPLE_TEXTURE2D_X(_BlitTex, sampler_LinearClamp, DistortUV(delta * 2.0 + uv)).z;
+                half r = SAMPLE_TEXTURE2D_X(_SourceTex, sampler_LinearClamp, uvDistorted                ).x;
+                half g = SAMPLE_TEXTURE2D_X(_SourceTex, sampler_LinearClamp, DistortUV(delta + uv)      ).y;
+                half b = SAMPLE_TEXTURE2D_X(_SourceTex, sampler_LinearClamp, DistortUV(delta * 2.0 + uv)).z;
 
                 color = half3(r, g, b);
             }
             #else
             {
-                color = SAMPLE_TEXTURE2D_X(_BlitTex, sampler_LinearClamp, uvDistorted).xyz;
+                color = SAMPLE_TEXTURE2D_X(_SourceTex, sampler_LinearClamp, uvDistorted).xyz;
             }
             #endif
 
             // Gamma space... Just do the rest of Uber in linear and convert back to sRGB at the end
             #if UNITY_COLORSPACE_GAMMA
             {
-                color = SRGBToLinear(color);
+                color = GetSRGBToLinear(color);
             }
             #endif
 
@@ -204,13 +206,16 @@ Shader "Hidden/Universal Render Pipeline/UberPost"
             // Back to sRGB
             #if UNITY_COLORSPACE_GAMMA || _LINEAR_TO_SRGB_CONVERSION
             {
-                color = LinearToSRGB(color);
+                color = GetLinearToSRGB(color);
             }
             #endif
 
             #if _DITHERING
             {
                 color = ApplyDithering(color, uv, TEXTURE2D_ARGS(_BlueNoise_Texture, sampler_PointRepeat), DitheringScale, DitheringOffset);
+                // Assume color > 0 and prevent 0 - ditherNoise.
+                // Negative colors can cause problems if fed back to the postprocess via render to FP16 texture.
+                color = max(color, 0);
             }
             #endif
 
@@ -230,7 +235,7 @@ Shader "Hidden/Universal Render Pipeline/UberPost"
             Name "UberPost"
 
             HLSLPROGRAM
-                #pragma vertex Vert
+                #pragma vertex FullscreenVert
                 #pragma fragment Frag
             ENDHLSL
         }

@@ -1,4 +1,4 @@
-﻿namespace UnityEditor.ShaderGraph.Internal
+namespace UnityEditor.ShaderGraph.Internal
 {
     [GenerationAPI]
     public enum PropertyType
@@ -10,13 +10,14 @@
         Cubemap,
         Gradient,
         Boolean,
-        Vector1,
+        Float,
         Vector2,
         Vector3,
         Vector4,
         Matrix2,
         Matrix3,
         Matrix4,
-        SamplerState
+        SamplerState,
+        VirtualTexture
     }
 }

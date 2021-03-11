@@ -1,4 +1,4 @@
-﻿using UnityEditor.ShaderGraph;
+using UnityEditor.ShaderGraph;
 
 namespace UnityEditor.Rendering.Universal.ShaderGraph
 {
@@ -8,6 +8,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
         {
             name = "Varyings",
             packFields = true,
+            populateWithCustomInterpolators = true,
             fields = new FieldDescriptor[]
             {
                 StructFields.Varyings.positionCS,

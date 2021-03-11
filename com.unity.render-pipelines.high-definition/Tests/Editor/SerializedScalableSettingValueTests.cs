@@ -6,12 +6,12 @@ namespace UnityEngine.Rendering.HighDefinition.Tests
 {
     class SerializedScalableSettingValueTests
     {
-        class ValueUsage: ScriptableObject
+        class ValueUsage : ScriptableObject
         {
             public IntScalableSettingValue intValue = new IntScalableSettingValue();
         }
 
-        class ValueDeclaration: ScriptableObject
+        class ValueDeclaration : ScriptableObject
         {
             public IntScalableSetting intValue = new IntScalableSetting(new[] { 1, 2, 3 }, ScalableSettingSchemaId.With3Levels);
         }
@@ -83,7 +83,8 @@ namespace UnityEngine.Rendering.HighDefinition.Tests
         public void TryGetValueWorks_ForMultipleDifferentValues()
         {
             var decl = ScriptableObject.CreateInstance<ValueDeclaration>();
-            var usages = new[] {
+            var usages = new[]
+            {
                 ScriptableObject.CreateInstance<ValueUsage>(),
                 ScriptableObject.CreateInstance<ValueUsage>(),
             };
@@ -143,7 +144,8 @@ namespace UnityEngine.Rendering.HighDefinition.Tests
         public void TryGetValueWorks_ForMultipleIdenticalValues()
         {
             var decl = ScriptableObject.CreateInstance<ValueDeclaration>();
-            var usages = new[] {
+            var usages = new[]
+            {
                 ScriptableObject.CreateInstance<ValueUsage>(),
                 ScriptableObject.CreateInstance<ValueUsage>(),
             };

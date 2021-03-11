@@ -50,6 +50,11 @@ namespace UnityEngine.Rendering
         /// </summary>
         public string name { get { return m_Name; } }
 
+        /// <summary>
+        /// Returns true is MSAA is enabled, false otherwise.
+        /// </summary>
+        public bool isMSAAEnabled { get { return m_EnableMSAA; } }
+
         // Keep constructor private
         internal RTHandle(RTHandleSystem owner)
         {
@@ -63,6 +68,10 @@ namespace UnityEngine.Rendering
         /// <returns>RenderTexture representation of the RTHandle.</returns>
         public static implicit operator RenderTexture(RTHandle handle)
         {
+            // If RTHandle is null then conversion should give a null RenderTexture
+            if (handle == null)
+                return null;
+
             Debug.Assert(handle.rt != null, "RTHandle was created using a regular Texture and is used as a RenderTexture");
             return handle.rt;
         }
@@ -74,6 +83,10 @@ namespace UnityEngine.Rendering
         /// <returns>Texture representation of the RTHandle.</returns>
         public static implicit operator Texture(RTHandle handle)
         {
+            // If RTHandle is null then conversion should give a null Texture
+            if (handle == null)
+                return null;
+
             Debug.Assert(handle.m_ExternalTexture != null || handle.rt != null);
             return (handle.rt != null) ? handle.rt : handle.m_ExternalTexture;
         }
@@ -85,12 +98,12 @@ namespace UnityEngine.Rendering
         /// <returns>RenderTargetIdentifier representation of the RTHandle.</returns>
         public static implicit operator RenderTargetIdentifier(RTHandle handle)
         {
-            return handle.nameID;
+            return handle != null ? handle.nameID : default(RenderTargetIdentifier);
         }
 
         internal void SetRenderTexture(RenderTexture rt)
         {
-            m_RT=  rt;
+            m_RT =  rt;
             m_ExternalTexture = null;
             m_NameID = new RenderTargetIdentifier(rt);
         }
@@ -137,8 +150,72 @@ namespace UnityEngine.Rendering
                 return new Vector2Int(
                     x: Mathf.RoundToInt(scaleFactor.x * refSize.x),
                     y: Mathf.RoundToInt(scaleFactor.y * refSize.y)
-                    );
+                );
             }
         }
+
+        /// <summary>
+        /// Return the scaled size of the RTHandle.
+        /// </summary>
+        /// <returns>The scaled size of the RTHandle.</returns>
+        public Vector2Int GetScaledSize()
+        {
+            if (scaleFunc != null)
+            {
+                return scaleFunc(referenceSize);
+            }
+            else
+            {
+                return new Vector2Int(
+                    x: Mathf.RoundToInt(scaleFactor.x * referenceSize.x),
+                    y: Mathf.RoundToInt(scaleFactor.y * referenceSize.y)
+                );
+            }
+        }
+
+#if UNITY_2020_2_OR_NEWER
+        /// <summary>
+        /// Switch the render target to fast memory on platform that have it.
+        /// </summary>
+        /// <param name="cmd">Command buffer used for rendering.</param>
+        /// <param name="residencyFraction">How much of the render target is to be switched into fast memory (between 0 and 1).</param>
+        /// <param name="flags">Flag to determine what parts of the render target is spilled if not fully resident in fast memory.</param>
+        /// <param name="copyContents">Whether the content of render target are copied or not when switching to fast memory.</param>
+
+        public void SwitchToFastMemory(CommandBuffer cmd,
+            float residencyFraction = 1.0f,
+            FastMemoryFlags flags = FastMemoryFlags.SpillTop,
+            bool copyContents = false
+        )
+        {
+            residencyFraction = Mathf.Clamp01(residencyFraction);
+            cmd.SwitchIntoFastMemory(m_RT, flags, residencyFraction, copyContents);
+        }
+
+        /// <summary>
+        /// Switch the render target to fast memory on platform that have it and copies the content.
+        /// </summary>
+        /// <param name="cmd">Command buffer used for rendering.</param>
+        /// <param name="residencyFraction">How much of the render target is to be switched into fast memory (between 0 and 1).</param>
+        /// <param name="flags">Flag to determine what parts of the render target is spilled if not fully resident in fast memory.</param>
+        public void CopyToFastMemory(CommandBuffer cmd,
+            float residencyFraction = 1.0f,
+            FastMemoryFlags flags = FastMemoryFlags.SpillTop
+        )
+        {
+            SwitchToFastMemory(cmd, residencyFraction, flags, copyContents: true);
+        }
+
+        /// <summary>
+        /// Switch out the render target from fast memory back to main memory on platforms that have fast memory.
+        /// </summary>
+        /// <param name="cmd">Command buffer used for rendering.</param>
+        /// <param name="copyContents">Whether the content of render target are copied or not when switching out fast memory.</param>
+        public void SwitchOutFastMemory(CommandBuffer cmd, bool copyContents = true)
+        {
+            cmd.SwitchOutOfFastMemory(m_RT, copyContents);
+        }
+
+#endif
     }
 }

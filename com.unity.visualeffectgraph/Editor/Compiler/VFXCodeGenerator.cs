@@ -8,6 +8,7 @@ using UnityEngine.VFX;
 
 using Object = UnityEngine.Object;
 using System.Text.RegularExpressions;
+using System.Globalization;
 
 namespace UnityEditor.VFX
 {
@@ -140,7 +141,7 @@ namespace UnityEditor.VFX
                 for (uint i = 0; i < linkedOutCount; ++i)
                 {
                     var prefix = VFXCodeGeneratorHelper.GeneratePrefix(i);
-                    r.WriteLineFormat("for (uint i = 0; i < {1}_{0}; ++i) {2}_{0}.Append(index);", prefix, VFXAttribute.EventCount.name, eventListOutName);
+                    r.WriteLineFormat("for (uint i{0} = 0; i{0} < {1}_{0}; ++i{0}) {2}_{0}.Append(index);", prefix, VFXAttribute.EventCount.name, eventListOutName);
                 }
             }
             return r;
@@ -216,7 +217,7 @@ namespace UnityEditor.VFX
         {
             return Path.GetFullPath(path)
                 .TrimEnd(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar)
-                #if !UNITY_STANDALONE_LINUX
+                #if !UNITY_EDITOR_LINUX
                 .ToLowerInvariant()
                 #endif
                 ;
@@ -376,14 +377,16 @@ namespace UnityEditor.VFX
             var globalDeclaration = new VFXShaderWriter();
             globalDeclaration.WriteCBuffer(contextData.uniformMapper, "parameters");
             globalDeclaration.WriteLine();
+            globalDeclaration.WriteBuffer(contextData.uniformMapper);
+            globalDeclaration.WriteLine();
+            globalDeclaration.WriteTexture(contextData.uniformMapper);
             globalDeclaration.WriteAttributeStruct(allCurrentAttributes.Select(a => a.attrib), "Attributes");
             globalDeclaration.WriteLine();
             globalDeclaration.WriteAttributeStruct(allSourceAttributes.Select(a => a.attrib), "SourceAttributes");
             globalDeclaration.WriteLine();
-            globalDeclaration.WriteTexture(contextData.uniformMapper);
 
             var linkedEventOut = context.allLinkedOutputSlot.Where(s => ((VFXModel)s.owner).GetFirstOfType<VFXContext>().CanBeCompiled()).ToList();
-            globalDeclaration.WriteEventBuffer(eventListOutName, linkedEventOut.Count);
+            globalDeclaration.WriteEventBuffers(eventListOutName, linkedEventOut.Count);
 
             //< Block processor
             var blockFunction = new VFXShaderWriter();
@@ -399,35 +402,32 @@ namespace UnityEditor.VFX
             }
 
             //< Final composition
-            var renderTemplatePipePath = VFXLibrary.currentSRPBinder.templatePath;
-            var renderRuntimePipePath = VFXLibrary.currentSRPBinder.runtimePath;
-            string renderPipeCommon = context.doesIncludeCommonCompute ? "Packages/com.unity.visualeffectgraph/Shaders/Common/VFXCommonCompute.hlsl" : VFXLibrary.currentSRPBinder.runtimePath + "/VFXCommon.hlsl";
-            string renderPipePasses = null;
-            if (!context.codeGeneratorCompute && !string.IsNullOrEmpty(renderTemplatePipePath))
-            {
-                renderPipePasses = renderTemplatePipePath + "/VFXPasses.template";
-            }
-
             var globalIncludeContent = new VFXShaderWriter();
             globalIncludeContent.WriteLine("#define NB_THREADS_PER_GROUP 64");
             globalIncludeContent.WriteLine("#define HAS_ATTRIBUTES 1");
             globalIncludeContent.WriteLine("#define VFX_PASSDEPTH_ACTUAL (0)");
             globalIncludeContent.WriteLine("#define VFX_PASSDEPTH_MOTION_VECTOR (1)");
             globalIncludeContent.WriteLine("#define VFX_PASSDEPTH_SELECTION (2)");
+            globalIncludeContent.WriteLine("#define VFX_PASSDEPTH_SHADOW (3)");
 
             foreach (var attribute in allCurrentAttributes)
-                globalIncludeContent.WriteLineFormat("#define VFX_USE_{0}_{1} 1", attribute.attrib.name.ToUpper(), "CURRENT");
+                globalIncludeContent.WriteLineFormat("#define VFX_USE_{0}_{1} 1", attribute.attrib.name.ToUpper(CultureInfo.InvariantCulture), "CURRENT");
             foreach (var attribute in allSourceAttributes)
-                globalIncludeContent.WriteLineFormat("#define VFX_USE_{0}_{1} 1", attribute.attrib.name.ToUpper(), "SOURCE");
+                globalIncludeContent.WriteLineFormat("#define VFX_USE_{0}_{1} 1", attribute.attrib.name.ToUpper(CultureInfo.InvariantCulture), "SOURCE");
 
             foreach (var additionnalHeader in context.additionalDataHeaders)
                 globalIncludeContent.WriteLine(additionnalHeader);
 
             foreach (var additionnalDefine in context.additionalDefines)
-                globalIncludeContent.WriteLineFormat("#define {0} 1", additionnalDefine);
+                globalIncludeContent.WriteLineFormat("#define {0}{1}", additionnalDefine, additionnalDefine.Contains(' ') ? "" : " 1");
 
-            if (renderPipePasses != null)
+            var renderTemplatePipePath = VFXLibrary.currentSRPBinder.templatePath;
+            var renderRuntimePipePath = VFXLibrary.currentSRPBinder.runtimePath;
+            if (!context.codeGeneratorCompute && !string.IsNullOrEmpty(renderTemplatePipePath))
+            {
+                string renderPipePasses = renderTemplatePipePath + "/VFXPasses.template";
                 globalIncludeContent.Write(GetFlattenedTemplateContent(renderPipePasses, new List<string>(), context.additionalDefines, dependencies));
+            }
 
             if (context.GetData() is ISpaceable)
             {
@@ -437,8 +437,13 @@ namespace UnityEditor.VFX
             globalIncludeContent.WriteLineFormat("#include \"{0}/VFXDefines.hlsl\"", renderRuntimePipePath);
 
             var perPassIncludeContent = new VFXShaderWriter();
+            string renderPipeCommon = context.doesIncludeCommonCompute ? "Packages/com.unity.visualeffectgraph/Shaders/Common/VFXCommonCompute.hlsl" : renderRuntimePipePath + "/VFXCommon.hlsl";
             perPassIncludeContent.WriteLine("#include \"" + renderPipeCommon + "\"");
             perPassIncludeContent.WriteLine("#include \"Packages/com.unity.visualeffectgraph/Shaders/VFXCommon.hlsl\"");
+            if (!context.codeGeneratorCompute)
+            {
+                perPassIncludeContent.WriteLine("#include \"Packages/com.unity.visualeffectgraph/Shaders/VFXCommonOutput.hlsl\"");
+            }
 
             // Per-block includes
             var includes = Enumerable.Empty<string>();

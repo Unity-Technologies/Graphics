@@ -1,7 +1,7 @@
 # Keywords
 
 ## Description
-You can use Keywords to create different variants for your Shader Graph. Depending on the settings for a Keyword and settings in the Editor, the build pipeline might strip these variants. 
+You can use Keywords to create different variants for your Shader Graph. Depending on the settings for a Keyword and settings in the Editor, the build pipeline might strip these variants.
 
 Keywords are useful for many reasons, such as:
 - Creating shaders with features that you can turn on or off for each Material instance.
@@ -44,7 +44,7 @@ Enum Keywords can have two or more states, which you define in the **Entries** l
 
 When you define an Enum Keyword, Shader Graph appends a sanitized version of the **Entry Name** to the main **Reference** name to define each state. You can see the sanitized version of the **Entry Name** to the right, under **Reference Suffix**. Shader Graph uses the `{Reference}_{ReferenceSuffix}` pattern to define most entries, but be aware that it uses an `else` statement to select the last entry, which it regards as the off state.
 
-Special characters such as `( )` or `! @` are not valid in the **Entry Name** of an Enum Keyword. Shader Graph converts invalid characters to underscores ( `_` ). 
+Special characters such as `( )` or `! @` are not valid in the **Entry Name** of an Enum Keyword. Shader Graph converts invalid characters to underscores ( `_` ).
 
 ![](images/keywords_enum.png)
 
@@ -54,12 +54,12 @@ In addition to the common parameters listed above, Enum Keywords have the follow
 | **Name**    | **Type**         | **Description**                                              |
 | ----------- | ---------------- | ------------------------------------------------------------ |
 | **Default** | Enum             | Select an entry from the drop-down menu to determine which value to use for the Keyword when Shader Graph generates previews. It also defines the Keyword's default value when you use this shader to create a new Material. When you edit the Entries list, Shader Graph automatically updates the options in this dropdown menu. |
-| **Entries** | Reorderable List | This list defines all the states for the Keyword. Each state has a separate **Display Name** and **Reference Suffix**.<br/><br/>&#8226; **Display Name**: Appears in drop-down menus for the Keyword on the Blackboard and the Material Inspector. Shader Graph also uses this name for port labels on nodes that reference the Keyword.<br/>&#8226; **Reference Suffix**: Shader Graph uses this suffix to generate a Keyword state in the shader. |
+| **Entries** | Reorderable List | This list defines all the states for the Keyword. Each state has a separate **Display Name** and **Reference Suffix**.<br/><br/>&#8226; **Display Name**: Appears in drop-down menus for the Keyword on the [Internal Inspector](Internal-Inspector.md) and the Material Inspector. Shader Graph also uses this name for port labels on nodes that reference the Keyword.<br/>&#8226; **Reference Suffix**: Shader Graph uses this suffix to generate a Keyword state in the shader. |
 
 <a name="BuiltinKeywords"></a>
 ## Built-in Keywords
-Built-in Keywords are always either Boolean or Enum Keywords, but they behave slightly differently. The Unity Editor or active Render Pipeline sets their values, and you cannot edit them. 
+Built-in Keywords are always either Boolean or Enum Keywords, but they behave slightly differently. The Unity Editor or active Render Pipeline sets their values, and you cannot edit them.
 
-All Built-in Keyword fields on the Blackboard are grayed out except for the **Default** field, which you can enable or disable to show the differences in Shader Graph previews. You also cannot expose Built-in Keywords in the Material Inspector.
+All Built-in Keyword fields in the **Node Settings** tab of the [Graph Inspector](Internal-Inspector.md) are grayed out except for the **Default** field, which you can enable or disable to show the differences in Shader Graph previews. You also cannot expose Built-in Keywords in the Material Inspector.
 
 ![](images/keywords_built-in.png)

@@ -194,14 +194,14 @@ namespace UnityEngine.Rendering.HighDefinition
             var inversion = sourceProjection.inverse;
 
             var cps = new Vector4(
-                    Mathf.Sign(clipPlane.x),
-                    Mathf.Sign(clipPlane.y),
-                    1.0f,
-                    1.0f);
+                Mathf.Sign(clipPlane.x),
+                Mathf.Sign(clipPlane.y),
+                1.0f,
+                1.0f);
             var q = inversion * cps;
             Vector4 M4 = new Vector4(projection[3], projection[7], projection[11], projection[15]);
 
-            var c = clipPlane * ((2.0f*Vector4.Dot(M4, q)) / Vector4.Dot(clipPlane, q));
+            var c = clipPlane * ((2.0f * Vector4.Dot(M4, q)) / Vector4.Dot(clipPlane, q));
 
             projection[2] = c.x - M4.x;
             projection[6] = c.y - M4.y;
@@ -261,4 +261,3 @@ namespace UnityEngine.Rendering.HighDefinition
         }
     } // class GeometryUtils
 }
-

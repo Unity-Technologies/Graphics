@@ -5,7 +5,7 @@ namespace UnityEngine.Rendering.HighDefinition
     static class TypeInfo
     {
         struct EnumInfoJITCache<TEnum>
-            // closest way to constraint to an enum without 'Enum' generic constraint
+        // closest way to constraint to an enum without 'Enum' generic constraint
             where TEnum : struct, IConvertible
         {
             public static readonly TEnum[] values;

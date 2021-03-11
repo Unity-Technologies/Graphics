@@ -208,6 +208,12 @@ namespace UnityEditor.VFX.UI
             return mi.Invoke(inst, args);
         }
 
+        void OnLostFocus()
+        {
+            EditorGUI.EndEditingActiveTextField();
+            Close();
+        }
+
         void Init(Vector2 graphPosition, Vector2 screenPosition, IProvider provider)
         {
             m_Provider = provider;
@@ -289,6 +295,7 @@ namespace UnityEditor.VFX.UI
 
             if (m_Tree == null)
             {
+                EditorGUI.EndEditingActiveTextField();
                 Close();
                 return;
             }
@@ -302,7 +309,6 @@ namespace UnityEditor.VFX.UI
             if (!(activeParent.WantsFocus))
             {
                 EditorGUI.FocusTextInControl("ComponentSearch");
-                Focus();
             }
             Rect searchRect = GUILayoutUtility.GetRect(10, 20);
             searchRect.x += 8;
@@ -399,6 +405,7 @@ namespace UnityEditor.VFX.UI
                         }
                         if (evt.keyCode == KeyCode.Escape)
                         {
+                            EditorGUI.EndEditingActiveTextField();
                             Close();
                             evt.Use();
                         }
@@ -555,6 +562,7 @@ namespace UnityEditor.VFX.UI
         {
             if (m_Provider.GoToChild(e, addIfComponent))
             {
+                EditorGUI.EndEditingActiveTextField();
                 Close();
                 if (m_mainWindow != null)
                 {

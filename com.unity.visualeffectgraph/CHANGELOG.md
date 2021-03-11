@@ -4,7 +4,146 @@ All notable changes to this package will be documented in this file.
 The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.html).
 
-## [Unreleased]
+## [12.0.0] - 2021-01-11
+### Added
+- Added support for Texture2D Arrays in Flipbooks
+- Added new setting in "Preferences -> Visual Effects" to control the fallback behavior of camera buffers from MainCamera node when the main camera is not rendered.
+- Sample vertices of a transformed skinned mesh with Position (Skinned Mesh) and Sample Skinned Mesh operator.
+- Placement option (Vertex, Edge, Surface) in Sample Mesh & Skinned Mesh, allows triangle sampling.
+
+### Changed
+- Allow remaking an existing link.
+- Sphere and Cube outputs are now experimental
+
+### Fixed
+- VFXEventBinderBase throwing a null reference exception in runtime
+- Unexpected compilation warning in VFXMouseBinder [Case 1313003](https://issuetracker.unity3d.com/product/unity/issues/guid/1313003/)
+- Prevent creation of subgraph containing only partial systems [Case 1284053](https://issuetracker.unity3d.com/product/unity/issues/guid/1284053/)
+- Prevent pasting context within operator/block subgraph [Case 1235269](https://issuetracker.unity3d.com/product/unity/issues/guid/1235269/)
+- VFXEventBinderBase throwing a null reference exception in runtime
+- Fix CameraFade for shadow maps [Case 1294073](https://fogbugz.unity3d.com/f/cases/1294073/)
+- Modified Sign operator node output for float when input is 0.0f [Case 1299922](https://fogbugz.unity3d.com/f/cases/1299922/)
+- An existing link can be remade.
+- Use alphabetical order in type list in blackboard "+" button [Case 1304109](https://issuetracker.unity3d.com/product/unity/issues/guid/1304109/)
+- Consistently displays the Age Particles checkbox in Update context [Case 1221557](https://issuetracker.unity3d.com/product/unity/issues/guid/1221557/)
+- Fix compute culling compilation in URP [Case 1309174](https://fogbugz.unity3d.com/f/cases/1309174/)
+- pCache: Unexpected ditable field in Mesh Statistics, Save & Cancel pCache, error trying to access not readable texture [Case 1122417](https://issuetracker.unity3d.com/product/unity/issues/guid/1122417/)
+- Handle correctly locked VisualEffectAsset with version control system [Case 1261051](https://issuetracker.unity3d.com/product/unity/issues/guid/1261051/)
+- Artefact in VFXView using efficient debug mode in component target board [Case 1243947](https://issuetracker.unity3d.com/product/unity/issues/guid/1243947/)
+- Sample Mesh Color when value is stored as float.
+- Compilation error due to direct access to GetWorldToObjectMatrix instead of VFXGetWorldToObjectMatrix [Case 1308481](https://issuetracker.unity3d.com/product/unity/issues/guid/1308481/)
+- Prevent infinite compilation loop [Case 1298466](https://issuetracker.unity3d.com/product/unity/issues/guid/1298466/)
+- Remove some useless compilation triggers (modifying not connected or disabled nodes for instance)
+- Tidy up of platform abstraction code for random number generation, requires a dependency on com.unity.render-pipelines.core for those abstractions.
+- Fixed shader compilation errors with textures in shader graph [Case 1309219](https://issuetracker.unity3d.com/product/unity/issues/guid/1309219/)
+- Fixed issue with VFX using incorrect buffer type for strip data
+
+## [11.0.0] - 2020-10-21
+### Added
+- Added new setting to output nodes to exclude from TAA
+- New Sample Point cache & Sample Attribute map operators
+
+### Changed
+- Changed the "Edit" button so it becomes "New" when no asset is set on a Visual Effect component, in order to save a new visual effect graph asset.
+
+### Fixed
+- Forbid incorrect link between incompatible context [Case 1269756](https://issuetracker.unity3d.com/product/unity/issues/guid/1269756/)
+- Serialization issue with VFXSpawnerCallbacks
+- Unexpected exception while trying to display capacity warning [Case 1294180](https://issuetracker.unity3d.com/product/unity/issues/guid/1294180/)
+- Exclude Operator, Context, Block and Subgraph from Preset [Case 1232309](https://issuetracker.unity3d.com/product/unity/issues/guid/1232309/)
+- Fix [Case 1212002](https://fogbugz.unity3d.com/f/cases/1212002/)
+- Fix [Case 1223747](https://fogbugz.unity3d.com/f/cases/1223747/)
+- Fix [Case 1290493](https://fogbugz.unity3d.com/f/cases/1290493/#BugEvent.1072735759)
+- Incorrect path on Linux while targetting Android, IOS or WebGL [Case 1279750](https://issuetracker.unity3d.com/product/unity/issues/guid/1279750/)
+
+
+## [10.2.0] - 2020-10-19
+### Added
+- Warning using Depth Collision on unsupported scriptable render pipeline.
+- Warning in renderer inspector using Light Probe Proxy Volume when this feature isn't available.
+- New operator : Sample Signed distance field
+- New Position on Signed Distance Field block
+- Added command to delete unuser parameters.
+- Harmonized position, direction and velocity composition modes for position (shape, sequential, depth) and Velocity from Direction & Speed blocks
+- New particle strip attribute in Initialize: spawnIndexInStrip
+- Added Get Strip Index subgraph utility operator in Additional Samples
+- Added Encompass (Point) subgraph utility operator in Additional Samples
+
+### Fixed
+- "Create new VisualEffect Graph" creates a graph from the default template [Case 1279999](https://fogbugz.unity3d.com/f/cases/1279999/)
+- Fix [Case 1268977](https://issuetracker.unity3d.com/product/unity/issues/guid/1268977/)
+- Fix [Case 1114281](https://fogbugz.unity3d.com/f/cases/1114281/)
+- Forbid creation of context in VisualEffectSubgraphBlock through edge dropping. No context should be allowed.
+- Fix [Case 1199540](https://issuetracker.unity3d.com/product/unity/issues/guid/1199540/)
+- Fix [Case 1219072](https://issuetracker.unity3d.com/product/unity/issues/guid/1219072/)
+- Fix [Case 1211372](https://issuetracker.unity3d.com/product/unity/issues/guid/1211372/)
+- Fix [Case 1262961](https://issuetracker.unity3d.com/product/unity/issues/guid/1262961/)
+- Fix [Case 1268354](https://fogbugz.unity3d.com/f/cases/1268354/)
+- Fix VFX Graph window invalidating existing Undo.undoRedoPerformed delegates.
+- Fix for VisualEffect prefab override window [Case 1242693](https://issuetracker.unity3d.com/product/unity/issues/guid/1242693/)
+- Fix [Case 1281861](https://issuetracker.unity3d.com/product/unity/issues/guid/1281861/)
+- Unexpected exception while installing samples inside an URP project [Case 1280065](https://issuetracker.unity3d.com/product/unity/issues/guid/1280065/)
+- Fix edited operator being collapsed [Case 1270517](https://issuetracker.unity3d.com/product/unity/issues/guid/1270517/)
+- Filters out renderer priority on SRP which doesn't support this feature.
+- Fallback to builtIn rendering layer if srpAsset.renderingLayerMaskNames returns null.
+- Fix missing prepass in URP [Case 1169487](https://issuetracker.unity3d.com/product/unity/issues/guid/1169487/)
+- Fix SubPixelAA block while rendering directly in backbuffer.
+- Property Binder : Incorrect Destroy called from edit mode. [Case 1274790](https://issuetracker.unity3d.com/product/unity/issues/guid/1274790/)
+- Property Binder : Unexpected null reference exception while using terrain binder. [Case 1247230](https://issuetracker.unity3d.com/product/unity/issues/guid/1247230/)
+- Property Binder : HierarchyRoot null reference exception while using Hierarchy to Attribute Map. [Case 1274788](https://issuetracker.unity3d.com/product/unity/issues/guid/1274788/)
+- Property Binder : Properties window isn't always up to date. [Case 1248711](https://issuetracker.unity3d.com/product/unity/issues/guid/1248711/)
+- Property Binder : Avoid Warning while building on Mobile "Presence of such handlers might impact performance on handheld devices." when building for Android" [Case 1279471](https://issuetracker.unity3d.com/product/unity/issues/guid/1248711/)
+- Fixed [case 1283315](https://issuetracker.unity3d.com/product/unity/issues/guid/1283315/)
+- Addressing for mirror and clamp modes in sequential operators and blocks
+- Incorrect volume spawning for Sphere & Circle with thickness absolute
+- Fix View Space Position is VFX Shadergraph [Case 1285603](https://fogbugz.unity3d.com/f/cases/1285603/)
+- Fix [Case 1268354](https://fogbugz.unity3d.com/f/cases/1268354/)
+- Fixed rare bug causing the vfx compilation to do nothing silently.
+- Fixed vfx compilation when a diffusion profile property is added to a vfx shadergraph
+- SpawnOverDistance spawner block now behaves correctly
+- Quad strip outputs take into account orientation block
+- Fixed Random Vector subgraph utility operator in Additional Samples
+- Fixed Set Strip Progress Attribute utility block in Additional Samples
+- Fix [Case 1255182](https://fogbugz.unity3d.com/f/cases/1255182/)
+- Remove temporarily "Exact Fixed Time Step" option on VisualEffectAsset to avoid unexpected behavior
+- Disable implicit space transformations in sublock graphs as they led to unexpected behaviors
+
+## [10.1.0] - 2020-10-12
+### Added
+- Compare operator can take int and uint as inputs
+- New operator : Sample Signed distance field
+- New WorldToViewportPoint operator
+- New ViewportToWorldPoint operator
+- Added Output Event Handler API
+- Added Output Event Handler Samples
+- Added ExposedProperty custom Property Drawer
+- Error display within the graph.
+
+### Fixed
+- Mesh Sampling incorrect with some GPU (use ByteAddressBuffer instead of Buffer<float>)
+- Fix for node window staying when clicking elsewhere
+- Make VisualEffect created from the GameObject menu have unique names [Case 1262989](https://issuetracker.unity3d.com/product/unity/issues/guid/1262989/)
+- Missing System Seed in new dynamic built-in operator.
+- Prefab highlight missing for initial event name toggle [Case 1263012](https://issuetracker.unity3d.com/product/unity/issues/guid/1263012/)
+- Correctly frame the whole graph, when opening the Visual Effect Editor
+- Optimize display of inspector when there is a lot of exposed VFX properties.
+- fixes the user created vfx default resources that were ignored unless loaded
+- fix crash when creating a loop in subgraph operators [Case 1251523](https://issuetracker.unity3d.com/product/unity/issues/guid/1251523/)
+- fix issue with multiselection and objectfields [Case 1250378](https://issuetracker.unity3d.com/issues/vfx-removing-texture-asset-while-multiediting-working-incorrectly)
+- Normals with non uniform scales are correctly computed [Case 1246989](https://issuetracker.unity3d.com/product/unity/issues/guid/1246989/)
+- Fix exposed Texture2DArray and Cubemap types from shader graph not being taken into account in Output Mesh [Case 1265221](https://issuetracker.unity3d.com/product/unity/issues/guid/1265221/)
+- Allow world position usage in shaderGraph plugged into an alpha/opacity output [Case 1259511](https://issuetracker.unity3d.com/product/unity/issues/guid/1259511/)
+- GPU Evaluation of Construct Matrix
+- Random Per-Component on Set Attribute in Spawn Context [Case 1279294](https://issuetracker.unity3d.com/product/unity/issues/guid/1279294/)
+- Fix corrupted UI in nodes due to corrupted point cache files [Case 1232867](https://fogbugz.unity3d.com/f/cases/1232867/)
+- Fix InvalidCastException when using byte properties in point cache files [Case 1276623](https://fogbugz.unity3d.com/f/cases/1276623/)
+- Fix  https://issuetracker.unity3d.com/issues/ux-cant-drag-a-noodle-out-of-trigger-blocks
+- Fix [Case 1114281](https://issuetracker.unity3d.com/product/unity/issues/guid/1114281/)
+- Fix shadows not being rendered to some cascades with directional lights [Case 1229972](https://issuetracker.unity3d.com/issues/output-inconsistencies-with-vfx-shadow-casting-and-shadow-cascades)
+- Fix VFX Graph window invalidating existing Undo.undoRedoPerformed delegates.
+- Fix shadergraph changes not reflected in VisualEffectGraph [Case 1278469](https://fogbugz.unity3d.com/f/cases/resolve/1278469/)
+
+## [10.0.0] - 2019-06-10
 ### Added
 - Tooltips for Attributes
 - Custom Inspector for Spawn context, delay settings are more user friendly.
@@ -24,6 +163,21 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Noise evaluation now performed on CPU when possible
 - Range and Min attributes support on int and uint parameters
 - New Construct Matrix from Vector4 operator
+- Allow filtering enums in VFXModels' VFXSettings.
+- Sample vertices of a mesh with the Position (Mesh) block and the Sample Mesh operator
+- New built-in operator providing new times access
+- More efficient update modes inspector
+- Ability to read attribute in spawn context through graph
+- Added save button to save only the current visual effect graph.
+- Added Degrees / Radians conversion subgraphs in samples
+- uint parameter can be seen as an enum.
+- New TransformVector4 operator
+- New GetTextureDimensions operator
+- Output Event context for scripting API event retrieval.
+- per-particle GPU Frustum culling
+- Compute culling of particle which have their alive attribute set to false in output
+- Mesh and lit mesh outputs can now have up to 4 differents meshes that can be set per Particle (Experimental)
+- Screen space per particle LOD on mesh and lit mesh outputs (Experimental)
 
 ### Fixed
 - Moved VFX Event Tester Window visibility to Component Play Controls SceneView Window
@@ -82,6 +236,36 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Handle correctly direction, position & vector types in AppendVector operator [Case 1111867](https://issuetracker.unity3d.com/product/unity/issues/guid/1111867/)
 - Fix space issues with blocks and operators taking a camera as input
 - Generated shaderName are now consistent with displayed system names
+- Remove some shader warnings
+- Fixed Sample Flipbook Texture File Names
+- Don't lose SRP output specific data when SRP package is not present
+- Fix visual effect graph when a subgraph or shader graph dependency changes
+- Support of flag settings in model inspector
+- height of initial event name.
+- fix colorfield height.
+- fix for capacity change for locked asset.
+- fix null value not beeing assignable to slot.
+- Prevent capacity from being 0 [Case 1233044](https://issuetracker.unity3d.com/product/unity/issues/guid/1233044/)
+- Fix for dragged parameters order when there are categories
+- Avoid NullReferenceException in Previous Position Binder" component. [Case 1242351](https://issuetracker.unity3d.com/product/unity/issues/guid/1242351/)
+- Don't show the blocks window when context cant have blocks
+- Prevent from creating a context in VisualEffectSugraphOperator by draggingfrom an output slot.
+- Avoid NullReferenceException when VisualEffectAsset is null if VFXPropertyBinder [Case 1219061](https://issuetracker.unity3d.com/product/unity/issues/guid/1219061/)
+- Missing Reset function in VFXPropertyBinder [Case 1219063](https://issuetracker.unity3d.com/product/unity/issues/guid/1219063/)
+- Fix issue with strips outputs that could cause too many vertices to be renderered
+- SpawnIndex attribute returns correct value in update and outputs contexts
+- Disable Reset option in context menu for all VFXObject [Case 1251519](https://issuetracker.unity3d.com/product/unity/issues/guid/1251519/) & [Case 1251533](https://issuetracker.unity3d.com/product/unity/issues/guid/1251533/)
+- Avoid other NullReferenceException using property binders
+- Fix culture issues when generating attributes defines in shaders [Case 1222819](https://issuetracker.unity3d.com/product/unity/issues/guid/1222819/)
+- Move the VFXPropertyBinder from Update to LateUpdate [Case 1254340](https://issuetracker.unity3d.com/product/unity/issues/guid/1254340/)
+- Properties in blackboard are now exposed by default
+- Dissociated Colors for bool, uint and int
+- De-nicified attribute name (conserve case) in Set Custom Attribute title
+- Changed the default "No Asset" message when opening the visual effect graph window
+- Subgraphs are not in hardcoded categories anymore : updated default subgraph templates + Samples to add meaningful categories.
+- Fix creation of StringPropertyRM
+- Enum fields having headers show the header in the inspector as well.
+- Handle correctly disabled alphaTreshold material slot in shaderGraph.
 
 ## [7.1.1] - 2019-09-05
 ### Added

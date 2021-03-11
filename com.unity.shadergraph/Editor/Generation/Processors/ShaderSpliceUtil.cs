@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Reflection;
-using Data.Util;
 using UnityEditor.ShaderGraph.Internal;
 
 namespace UnityEditor.ShaderGraph
@@ -46,7 +45,7 @@ namespace UnityEditor.ShaderGraph
             // inputs
             ActiveFields activeFields;
             Dictionary<string, string> namedFragments;
-            string templatePath;
+            string[] templatePaths;
             bool isDebug;
 
             // intermediates
@@ -54,15 +53,15 @@ namespace UnityEditor.ShaderGraph
 
             // outputs
             ShaderStringBuilder result;
-            List<string> sourceAssetDependencyPaths;
+            AssetCollection assetCollection;
 
-            public TemplatePreprocessor(ActiveFields activeFields, Dictionary<string, string> namedFragments, bool isDebug, string templatePath, List<string> sourceAssetDependencyPaths, ShaderStringBuilder outShaderCodeResult = null)
+            public TemplatePreprocessor(ActiveFields activeFields, Dictionary<string, string> namedFragments, bool isDebug, string[] templatePaths, AssetCollection assetCollection, ShaderStringBuilder outShaderCodeResult = null)
             {
                 this.activeFields = activeFields;
                 this.namedFragments = namedFragments;
                 this.isDebug = isDebug;
-                this.templatePath = templatePath;
-                this.sourceAssetDependencyPaths = sourceAssetDependencyPaths;
+                this.templatePaths = templatePaths;
+                this.assetCollection = assetCollection;
                 this.result = outShaderCodeResult ?? new ShaderStringBuilder();
                 includedFiles = new HashSet<string>();
             }
@@ -79,8 +78,12 @@ namespace UnityEditor.ShaderGraph
                 {
                     includedFiles.Add(filePath);
 
-                    if (sourceAssetDependencyPaths != null)
-                        sourceAssetDependencyPaths.Add(filePath);
+                    if (assetCollection != null)
+                    {
+                        GUID guid = AssetDatabase.GUIDFromAssetPath(filePath);
+                        if (!guid.Empty())
+                            assetCollection.AddAssetDependency(guid, AssetCollection.Flags.SourceDependency);
+                    }
 
                     string[] templateLines = File.ReadAllLines(filePath);
                     foreach (string line in templateLines)
@@ -118,6 +121,7 @@ namespace UnityEditor.ShaderGraph
                     int len = end - start;
                     return (other.Length == len) && (0 == string.Compare(s, start, other, 0, len));
                 }
+
                 public string GetString()
                 {
                     int len = end - start;
@@ -147,10 +151,10 @@ namespace UnityEditor.ShaderGraph
                     else
                     {
                         // found $ escape sequence
-                        Token command = ParseIdentifier(line, dollar+1, end);
+                        Token command = ParseIdentifier(line, dollar + 1, end);
                         if (!command.IsValid())
                         {
-                            Error("ERROR: $ must be followed by a command string (if, splice, or include)", line, dollar+1);
+                            Error("ERROR: $ must be followed by a command string (if, splice, or include)", line, dollar + 1);
                             break;
                         }
                         else
@@ -208,18 +212,39 @@ namespace UnityEditor.ShaderGraph
                     }
                     else
                     {
-                        var includeLocation = Path.Combine(templatePath, param.GetString());
-                        if (!File.Exists(includeLocation))
+                        bool found = false;
+                        string includeLocation = null;
+
+                        // Use reverse order in the array, higher number element have higher priority in case $include exist in several directories
+                        for (int i = templatePaths.Length - 1; i >= 0; i--)
                         {
-                            Error("ERROR: $include cannot find file : " + includeLocation, includeCommand.s, param.start);
+                            string templatePath = templatePaths[i];
+                            includeLocation = Path.Combine(templatePath, param.GetString());
+                            if (File.Exists(includeLocation))
+                            {
+                                found = true;
+                                break;
+                            }
+                        }
+
+                        if (!found)
+                        {
+                            string errorStr = "ERROR: $include cannot find file : " + param.GetString() + ". Looked into:\n";
+
+                            foreach (string templatePath in templatePaths)
+                            {
+                                errorStr += "// " + templatePath + "\n";
+                            }
+
+                            Error(errorStr, includeCommand.s, param.start);
                         }
                         else
                         {
                             int endIndex = result.length;
-                            using(var temp = new ShaderStringBuilder())
+                            using (var temp = new ShaderStringBuilder())
                             {
                                 // Wrap in debug mode
-                                if(isDebug)
+                                if (isDebug)
                                 {
                                     result.AppendLine("//-------------------------------------------------------------------------------------");
                                     result.AppendLine("// TEMPLATE INCLUDE : " + param.GetString());
@@ -231,7 +256,7 @@ namespace UnityEditor.ShaderGraph
                                 ProcessTemplateFile(includeLocation);
 
                                 // Wrap in debug mode
-                                if(isDebug)
+                                if (isDebug)
                                 {
                                     result.AppendNewLine();
                                     result.AppendLine("//-------------------------------------------------------------------------------------");
@@ -270,7 +295,7 @@ namespace UnityEditor.ShaderGraph
                     else
                     {
                         // append everything before the beginning of the escape sequence
-                        AppendSubstring(spliceCommand.s, cur, true, spliceCommand.start-1, false);
+                        AppendSubstring(spliceCommand.s, cur, true, spliceCommand.start - 1, false);
 
                         // find the named fragment
                         string name = param.GetString();     // unfortunately this allocates a new string
@@ -330,7 +355,7 @@ namespace UnityEditor.ShaderGraph
                     {
                         // predicate is active
                         // append everything before the beginning of the escape sequence
-                        AppendSubstring(predicate.s, cur, true, predicate.start-1, false);
+                        AppendSubstring(predicate.s, cur, true, predicate.start - 1, false);
 
                         // continue parsing the rest of the line, starting with the first nonwhitespace character
                         cur = nonwhitespace;
@@ -342,7 +367,7 @@ namespace UnityEditor.ShaderGraph
                         if (isDebug)
                         {
                             // append everything before the beginning of the escape sequence
-                            AppendSubstring(predicate.s, cur, true, predicate.start-1, false);
+                            AppendSubstring(predicate.s, cur, true, predicate.start - 1, false);
                             // append the rest of the line, commented out
                             result.Append("// ");
                             AppendSubstring(predicate.s, nonwhitespace, true, endLine, false);
@@ -410,6 +435,7 @@ namespace UnityEditor.ShaderGraph
                 Error("Expected '" + expected + "'", line, location);
                 return false;
             }
+
             private void Error(string error, string line, int location)
             {
                 // append the line for context

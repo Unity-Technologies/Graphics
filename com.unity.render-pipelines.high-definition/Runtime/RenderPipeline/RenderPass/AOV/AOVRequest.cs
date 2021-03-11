@@ -36,7 +36,9 @@ namespace UnityEngine.Rendering.HighDefinition
         /// <summary>Screen space ambient occlusion buffer.</summary>
         ScreenSpaceAmbientOcclusion,
         /// <summary>Motion vectors buffer.</summary>
-        MotionVectors
+        MotionVectors,
+        /// <summary> The world space position of visible surfaces.</summary>
+        WorldSpacePosition
     }
 
     /// <summary>Use this request to define how to render an AOV.</summary>
@@ -52,7 +54,8 @@ namespace UnityEngine.Rendering.HighDefinition
             m_MaterialProperty = MaterialSharedProperty.None,
             m_LightingProperty = LightingProperty.None,
             m_DebugFullScreen = DebugFullScreen.None,
-            m_LightFilterProperty = DebugLightFilterMode.None
+            m_LightFilterProperty = DebugLightFilterMode.None,
+            m_OverrideRenderFormat = false
         };
 
         MaterialSharedProperty m_MaterialProperty;
@@ -60,12 +63,17 @@ namespace UnityEngine.Rendering.HighDefinition
         DebugLightFilterMode m_LightFilterProperty;
         DebugFullScreen m_DebugFullScreen;
 
+        // When this variable is true, HDRP will render internally with the graphics format of teh user provided AOV output buffer
+        // Use the SetOverrideRenderFormat member function to change the value of this parameter.
+        internal bool overrideRenderFormat => m_OverrideRenderFormat;
+        internal bool m_OverrideRenderFormat;
+
         AOVRequest* thisPtr
         {
             get
             {
-                fixed (AOVRequest* pThis = &this)
-                    return pThis;
+                fixed(AOVRequest* pThis = &this)
+                return pThis;
             }
         }
 
@@ -77,6 +85,7 @@ namespace UnityEngine.Rendering.HighDefinition
             m_LightingProperty = other.m_LightingProperty;
             m_DebugFullScreen = other.m_DebugFullScreen;
             m_LightFilterProperty = other.m_LightFilterProperty;
+            m_OverrideRenderFormat = other.m_OverrideRenderFormat;
         }
 
         /// <summary>State the property to render. In case of several SetFullscreenOutput chained call, only last will be used.</summary>
@@ -112,6 +121,15 @@ namespace UnityEngine.Rendering.HighDefinition
         public ref AOVRequest SetLightFilter(DebugLightFilterMode filter)
         {
             m_LightFilterProperty = filter;
+            return ref *thisPtr;
+        }
+
+        /// <summary>Allows AOVs to be rendered at the same format/precision as the user allocated buffers.</summary>
+        /// <param name="flag">Set to true to override the rendering buffer format</param>
+        /// <returns>A ref return to chain calls.</returns>
+        public ref AOVRequest SetOverrideRenderFormat(bool flag)
+        {
+            m_OverrideRenderFormat = flag;
             return ref *thisPtr;
         }
 
@@ -167,10 +185,13 @@ namespace UnityEngine.Rendering.HighDefinition
                     debug.SetFullScreenDebugMode(FullScreenDebugMode.DepthPyramid);
                     break;
                 case DebugFullScreen.ScreenSpaceAmbientOcclusion:
-                    debug.SetFullScreenDebugMode(FullScreenDebugMode.SSAO);
+                    debug.SetFullScreenDebugMode(FullScreenDebugMode.ScreenSpaceAmbientOcclusion);
                     break;
                 case DebugFullScreen.MotionVectors:
                     debug.SetFullScreenDebugMode(FullScreenDebugMode.MotionVectors);
+                    break;
+                case DebugFullScreen.WorldSpacePosition:
+                    debug.SetFullScreenDebugMode(FullScreenDebugMode.WorldSpacePosition);
                     break;
                 default:
                     throw new ArgumentException("Unknown DebugFullScreen");
@@ -178,4 +199,3 @@ namespace UnityEngine.Rendering.HighDefinition
         }
     }
 }
-

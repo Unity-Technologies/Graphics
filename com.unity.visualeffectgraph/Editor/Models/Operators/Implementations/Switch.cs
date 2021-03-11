@@ -18,7 +18,7 @@ namespace UnityEditor.VFX.Operator
         public class TestInputProperties
         {
             [Tooltip("Sets the integer value that determines which entry is output.")]
-            public int testValue = 0;
+            public uint testValue = 0;
         }
 
         public class ManualRandom
@@ -78,7 +78,7 @@ namespace UnityEditor.VFX.Operator
                 {
                     var prefix = i.ToString();
                     if (i != m_EntryCount && m_CustomCaseValue)
-                        yield return new VFXPropertyWithValue(new VFXProperty(typeof(int), "Case " + prefix), (int)i);
+                        yield return new VFXPropertyWithValue(new VFXProperty(typeof(uint), "Case " + prefix), i);
                     var name = (i == m_EntryCount) ? "default" : "Value " + prefix;
                     yield return new VFXPropertyWithValue(new VFXProperty((Type)GetOperandType(), name), defaultValue);
                 }
@@ -96,10 +96,10 @@ namespace UnityEditor.VFX.Operator
                 newInputExpression[0] = inputExpression[0];
                 int offsetWrite = 1;
                 int offsetRead = 1;
-                for (int i = 0; i < m_EntryCount + 1; ++i)
+                for (uint i = 0; i < m_EntryCount + 1; ++i)
                 {
                     if (i != m_EntryCount)
-                        newInputExpression[offsetWrite++] = new VFXValue<int>(i);
+                        newInputExpression[offsetWrite++] = new VFXValue<uint>(i);
                     for (int sub = 0; sub < expressionCountPerUniqueSlot; ++sub)
                     {
                         newInputExpression[offsetWrite++] = inputExpression[offsetRead++];
@@ -109,7 +109,6 @@ namespace UnityEditor.VFX.Operator
             }
 
             var referenceValue = inputExpression.First();
-            referenceValue = new VFXExpressionCastIntToFloat(referenceValue);
 
             var startCaseOffset = 1;
             var stride = expressionCountPerUniqueSlot + 1;
@@ -120,7 +119,7 @@ namespace UnityEditor.VFX.Operator
             for (uint i = 0; i < m_EntryCount; i++)
             {
                 valueStartIndex[i] = offsetCase + 1;
-                compare[i] = new VFXExpressionCondition(VFXCondition.Equal, referenceValue, new VFXExpressionCastIntToFloat(inputExpression[offsetCase]));
+                compare[i] = new VFXExpressionCondition(VFXValueType.Uint32, VFXCondition.Equal, referenceValue, inputExpression[offsetCase]);
                 offsetCase += stride;
             }
 

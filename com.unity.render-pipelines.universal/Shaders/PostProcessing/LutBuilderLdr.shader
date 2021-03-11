@@ -2,6 +2,8 @@ Shader "Hidden/Universal Render Pipeline/LutBuilderLdr"
 {
     HLSLINCLUDE
 
+        #pragma exclude_renderers gles
+
         #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Core.hlsl"
         #include "Packages/com.unity.render-pipelines.universal/Shaders/PostProcessing/Common.hlsl"
         #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Color.hlsl"
@@ -154,7 +156,7 @@ Shader "Hidden/Universal Render Pipeline/LutBuilderLdr"
             Name "LutBuilderLdr"
 
             HLSLPROGRAM
-                #pragma vertex Vert
+                #pragma vertex FullscreenVert
                 #pragma fragment Frag
             ENDHLSL
         }

@@ -18,37 +18,44 @@ namespace UnityEditor.Rendering.HighDefinition
             upgraders.Add(new UnlitsToHDUnlitUpgrader("Unlit/Texture", "HDRP/Unlit"));
             upgraders.Add(new UnlitsToHDUnlitUpgrader("Unlit/Transparent", "HDRP/Unlit"));
             upgraders.Add(new UnlitsToHDUnlitUpgrader("Unlit/Transparent Cutout", "HDRP/Unlit"));
+
+            upgraders.Add(new StandardsTerrainToHDTerrainLitUpgrader("Nature/Terrain/Standard", "HDRP/TerrainLit"));
+
             return upgraders;
         }
 
-        [MenuItem("Edit/Render Pipeline/Upgrade Project Materials to High Definition Materials", priority = CoreUtils.editMenuPriority2)]
+        [MenuItem("Edit/Rendering/Materials/Convert All Built-in Materials to HDRP", priority = CoreUtils.Priorities.editMenuPriority + 1)]
         internal static void UpgradeMaterialsProject()
         {
-            MaterialUpgrader.UpgradeProjectFolder(GetHDUpgraders(), "Upgrade to HD Material");
+            MaterialUpgrader.UpgradeProjectFolder(GetHDUpgraders(), "Upgrade to HDRP Material");
         }
 
-        [MenuItem("Edit/Render Pipeline/Upgrade Selected Materials to High Definition Materials", priority = CoreUtils.editMenuPriority2)]
+        [MenuItem("Edit/Rendering/Materials/Convert Selected Built-in Materials to HDRP", priority = CoreUtils.Priorities.editMenuPriority + 2)]
         internal static void UpgradeMaterialsSelection()
         {
-            MaterialUpgrader.UpgradeSelection(GetHDUpgraders(), "Upgrade to HD Material");
+            MaterialUpgrader.UpgradeSelection(GetHDUpgraders(), "Upgrade to HDRP Material");
         }
 
-        [MenuItem("Edit/Render Pipeline/Multiply Unity Builtin Directional Light Intensity to match High Definition", priority = CoreUtils.editMenuPriority2)]
-        internal static void UpgradeLights()
+        [MenuItem("Edit/Rendering/Materials/Convert Scene Terrains to HDRP Terrains", priority = CoreUtils.Priorities.editMenuPriority + 2)]
+        static void UpgradeSceneTerrainsToHighDefinitionTerrains(MenuCommand menuCommand)
         {
-            Light[] lights = Light.GetLights(LightType.Directional, 0);
-            foreach (var l in lights)
+            var LegacyDefaultTerrainMat = AssetDatabase.GetBuiltinExtraResource<Material>("Default-Terrain-Standard.mat");
+            var HDRPTerrainMat =  AssetDatabase.LoadAssetAtPath<Material>("Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipelineResources/Material/DefaultHDTerrainMaterial.mat");
+            var terrainArray = UnityEngine.GameObject.FindObjectsOfType<Terrain>();
+
+            if (terrainArray.Length == 0)
             {
-                Undo.RecordObject(l, "Light intensity x PI");
-                l.intensity *= Mathf.PI;
+                Debug.LogWarning("No terrains were found in the scene.");
+                return;
             }
-        }
 
-        [MenuItem("Edit/Render Pipeline/Upgrade HDRP Materials to Latest Version", priority = CoreUtils.editMenuPriority2)]
-        internal static void UpgradeMaterials()
-        {
-            // Force reimport of all materials, this will upgrade the needed one and save the assets if needed
-            MaterialReimporter.ReimportAllMaterials();
+            foreach (Terrain currentTerrain in terrainArray)
+            {
+                if (currentTerrain.materialTemplate == LegacyDefaultTerrainMat)
+                {
+                    currentTerrain.materialTemplate = HDRPTerrainMat;
+                }
+            }
         }
     }
 }

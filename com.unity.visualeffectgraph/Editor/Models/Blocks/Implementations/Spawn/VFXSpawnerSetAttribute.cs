@@ -7,7 +7,7 @@ using UnityEngine.VFX;
 
 namespace UnityEditor.VFX.Block
 {
-    [VFXInfo(category = "Spawn/Attribute", variantProvider = typeof(AttributeVariantReadWritableNoVariadic))]
+    [VFXInfo(category = "Attribute", variantProvider = typeof(AttributeVariantReadWritableNoVariadic))]
     class VFXSpawnerSetAttribute : VFXAbstractSpawner
     {
         [VFXSetting(VFXSettingAttribute.VisibleFlags.InInspector), StringProvider(typeof(AttributeProvider))]
@@ -30,27 +30,18 @@ namespace UnityEditor.VFX.Block
             {
                 var attrib = currentAttribute;
 
-                VFXPropertyAttribute[] attr = null;
+                VFXPropertyAttributes attr = new VFXPropertyAttributes();
                 if (attrib.Equals(VFXAttribute.Color))
-                    attr = VFXPropertyAttribute.Create(new ShowAsColorAttribute());
+                    attr = new VFXPropertyAttributes(new ShowAsColorAttribute());
 
                 Type slotType = VFXExpression.TypeToType(attrib.type);
 
                 if (randomMode == RandomMode.Off)
-                    yield return new VFXPropertyWithValue(new VFXProperty(slotType, currentAttribute.name)
-                    {
-                        attributes = attr
-                    }, currentAttribute.value.GetContent());
+                    yield return new VFXPropertyWithValue(new VFXProperty(slotType, currentAttribute.name, attr), currentAttribute.value.GetContent());
                 else
                 {
-                    yield return new VFXPropertyWithValue(new VFXProperty(slotType, "Min")
-                    {
-                        attributes = attr
-                    }, currentAttribute.value.GetContent());
-                    yield return new VFXPropertyWithValue(new VFXProperty(slotType, "Max")
-                    {
-                        attributes = attr
-                    }, currentAttribute.value.GetContent());
+                    yield return new VFXPropertyWithValue(new VFXProperty(slotType, "Min", attr), currentAttribute.value.GetContent());
+                    yield return new VFXPropertyWithValue(new VFXProperty(slotType, "Max", attr), currentAttribute.value.GetContent());
                 }
             }
         }
@@ -70,7 +61,7 @@ namespace UnityEditor.VFX.Block
 
                 if (size == 1)
                 {
-                    random = new VFXExpressionRandom();
+                    random = new VFXExpressionRandom(false, new RandId(this, 0));
                 }
                 else
                 {
@@ -78,10 +69,10 @@ namespace UnityEditor.VFX.Block
                     {
                         default:
                         case RandomMode.PerComponent:
-                            random = new VFXExpressionCombine(Enumerable.Repeat(0, size).Select(_ => new VFXExpressionRandom()).ToArray());
+                            random = new VFXExpressionCombine(Enumerable.Range(0, size).Select(i => new VFXExpressionRandom(false, new RandId(this, i))).ToArray());
                             break;
                         case RandomMode.Uniform:
-                            random = new VFXExpressionCombine(Enumerable.Repeat(new VFXExpressionRandom(), size).ToArray());
+                            random = new VFXExpressionCombine(Enumerable.Repeat(new VFXExpressionRandom(false, new RandId(this, 0)), size).ToArray());
                             break;
                     }
                 }

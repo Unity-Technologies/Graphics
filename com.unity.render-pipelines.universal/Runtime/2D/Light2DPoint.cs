@@ -3,22 +3,12 @@ using UnityEngine.Scripting.APIUpdating;
 
 namespace UnityEngine.Experimental.Rendering.Universal
 {
-    sealed public partial class Light2D : MonoBehaviour
+    public sealed partial class Light2D
     {
-        public enum PointLightQuality
-        {
-            Fast = 0,
-            Accurate = 1
-        }
-
         [SerializeField] float m_PointLightInnerAngle = 360.0f;
         [SerializeField] float m_PointLightOuterAngle = 360.0f;
         [SerializeField] float m_PointLightInnerRadius = 0.0f;
         [SerializeField] float m_PointLightOuterRadius = 1.0f;
-        [SerializeField] float m_PointLightDistance = 3.0f;
-
-        [UnityEngine.Animations.NotKeyable]
-        [SerializeField] PointLightQuality m_PointLightQuality = PointLightQuality.Accurate;
 
         public float pointLightInnerAngle
         {
@@ -44,17 +34,13 @@ namespace UnityEngine.Experimental.Rendering.Universal
             set => m_PointLightOuterRadius = value;
         }
 
-        public float pointLightDistance => m_PointLightDistance;
-        public PointLightQuality pointLightQuality => m_PointLightQuality;
+        [Obsolete("pointLightDistance has been changed to normalMapDistance", true)]
+        public float pointLightDistance => m_NormalMapDistance;
 
-        private BoundingSphere GetPointLightBoundingSphere()
-        {
-            BoundingSphere boundingSphere;
+        [Obsolete("pointLightQuality has been changed to normalMapQuality", true)]
+        public NormalMapQuality pointLightQuality => m_NormalMapQuality;
 
-            boundingSphere.radius = m_PointLightOuterRadius;
-            boundingSphere.position = transform.position;
 
-            return boundingSphere;
-        }
+        internal bool isPointLight => m_LightType == LightType.Point;
     }
 }

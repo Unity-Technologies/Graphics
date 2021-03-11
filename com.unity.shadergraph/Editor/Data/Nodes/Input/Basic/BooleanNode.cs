@@ -21,7 +21,6 @@ namespace UnityEditor.ShaderGraph
             UpdateNodeAfterDeserialization();
         }
 
-
         public sealed override void UpdateNodeAfterDeserialization()
         {
             AddSlot(new BooleanMaterialSlot(OutputSlotId, kOutputSlotName, kOutputSlotName, SlotType.Output, false));
@@ -58,7 +57,7 @@ namespace UnityEditor.ShaderGraph
         {
             if (generationMode.IsPreview())
                 return;
-            
+
             sb.AppendLine("$precision {0} = {1};", GetVariableNameForNode(), (m_Value ? 1 : 0));
         }
 

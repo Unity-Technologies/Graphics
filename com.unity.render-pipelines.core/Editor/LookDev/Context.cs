@@ -264,6 +264,18 @@ namespace UnityEditor.Rendering.LookDev
 
             return m_EnvironmentLibraryGUID != AssetDatabase.AssetPathToGUID(AssetDatabase.GetAssetPath(environmentLibrary));
         }
+
+        internal void FullReimportEnvironmentLibrary()
+        {
+            if (environmentLibrary == null)
+                return;
+
+            // refresh AssetDatabase in case of undo/redo creating/destructing environment subasset
+            string libraryPath = AssetDatabase.GetAssetPath(environmentLibrary);
+            AssetDatabase.ImportAsset(AssetDatabase.GetAssetPath(environmentLibrary), ImportAssetOptions.DontDownloadFromCacheServer | ImportAssetOptions.ForceSynchronousImport | ImportAssetOptions.ForceUpdate | ImportAssetOptions.ImportRecursive);
+            UpdateEnvironmentLibrary(AssetDatabase.LoadAssetAtPath<EnvironmentLibrary>(libraryPath));
+            EditorUtility.SetDirty(environmentLibrary);
+        }
     }
 
     /// <summary>

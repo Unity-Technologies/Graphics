@@ -106,12 +106,10 @@ namespace UnityEditor.Experimental.Rendering.Universal.Path2D.GUIFramework
 
         protected virtual void OnEndLayout(IGUIState guiState)
         {
-            
         }
 
         protected virtual void OnRepaint(IGUIState guiState, int index)
         {
-            
         }
 
         protected virtual int GetCount()

@@ -60,28 +60,28 @@ namespace UnityEngine.Rendering.HighDefinition
             switch (positionMode)
             {
                 case PositionMode.UseProbeTransform:
-                    {
-                        cameraPosition.mode = CameraPositionSettings.Mode.ComputeWorldToCameraMatrix;
-                        var proxyMatrix = Matrix4x4.TRS(probePosition.proxyPosition, probePosition.proxyRotation, Vector3.one);
-                        cameraPosition.position = proxyMatrix.MultiplyPoint(settings.proxySettings.capturePositionProxySpace);
-                        cameraPosition.rotation = proxyMatrix.rotation * settings.proxySettings.captureRotationProxySpace;
+                {
+                    cameraPosition.mode = CameraPositionSettings.Mode.ComputeWorldToCameraMatrix;
+                    var proxyMatrix = Matrix4x4.TRS(probePosition.proxyPosition, probePosition.proxyRotation, Vector3.one);
+                    cameraPosition.position = proxyMatrix.MultiplyPoint(settings.proxySettings.capturePositionProxySpace);
+                    cameraPosition.rotation = proxyMatrix.rotation * settings.proxySettings.captureRotationProxySpace;
 
-                        // In case of probe baking, 99% of the time, orientation of the cubemap doesn't matters
-                        //   so, we build one without any rotation, thus we don't have to change the basis
-                        //   during sampling the cubemap.
-                        if (settings.type == ProbeSettings.ProbeType.ReflectionProbe)
-                            cameraPosition.rotation = Quaternion.identity;
-                        break;
-                    }
+                    // In case of probe baking, 99% of the time, orientation of the cubemap doesn't matters
+                    //   so, we build one without any rotation, thus we don't have to change the basis
+                    //   during sampling the cubemap.
+                    if (settings.type == ProbeSettings.ProbeType.ReflectionProbe)
+                        cameraPosition.rotation = Quaternion.identity;
+                    break;
+                }
                 case PositionMode.MirrorReferenceTransformWithProbePlane:
-                    {
-                        cameraPosition.mode = CameraPositionSettings.Mode.UseWorldToCameraMatrixField;
-                        ApplyMirroredReferenceTransform(
-                            ref settings, ref probePosition,
-                            ref cameraSettings, ref cameraPosition
-                        );
-                        break;
-                    }
+                {
+                    cameraPosition.mode = CameraPositionSettings.Mode.UseWorldToCameraMatrixField;
+                    ApplyMirroredReferenceTransform(
+                        ref settings, ref probePosition,
+                        ref cameraSettings, ref cameraPosition
+                    );
+                    break;
+                }
             }
 
             // Update the clip plane
@@ -108,13 +108,6 @@ namespace UnityEngine.Rendering.HighDefinition
                     cameraSettings.defaultFrameSettings = FrameSettingsRenderType.CustomOrBakedReflection;
                     break;
             }
-
-            switch (settings.type)
-            {
-                case ProbeSettings.ProbeType.ReflectionProbe:
-                    cameraSettings.customRenderingSettings = true;
-                    break;
-            }
         }
 
         internal static void ApplyMirroredReferenceTransform(
@@ -129,6 +122,10 @@ namespace UnityEngine.Rendering.HighDefinition
             var mirrorPosition = proxyMatrix.MultiplyPoint(settings.proxySettings.mirrorPositionProxySpace);
             var mirrorForward = proxyMatrix.MultiplyVector(settings.proxySettings.mirrorRotationProxySpace * Vector3.forward);
             var reflectionMatrix = GeometryUtils.CalculateReflectionMatrix(mirrorPosition, mirrorForward);
+
+            // If the camera is on the reflection plane, we offset it by 0.1 mm to avoid a degenerate case.
+            if (Vector3.Dot(mirrorForward, probePosition.referencePosition - mirrorPosition) < 1e-4f)
+                probePosition.referencePosition += 1e-4f * mirrorForward;
 
             var worldToCameraRHS = GeometryUtils.CalculateWorldToCameraMatrixRHS(
                 probePosition.referencePosition,
@@ -186,10 +183,10 @@ namespace UnityEngine.Rendering.HighDefinition
                     //     (A lot of pixel can be discarded in the render texture). This way we can have a greater
                     //     resolution for the planar with the same cost.
                     cameraSettings.frustum.fieldOfView = Mathf.Min(
-                            settings.influence.ComputeFOVAt(
+                        settings.influence.ComputeFOVAt(
                             probePosition.referencePosition, mirrorPosition, probePosition.influenceToWorld
-                        ) * settings.frustum.automaticScale,
-                            k_MaxFieldOfView
+                            ) * settings.frustum.automaticScale,
+                        k_MaxFieldOfView
                     );
                     break;
             }

@@ -1,0 +1,168 @@
+project:
+  name: HDRP
+  folder: HDRP_Tests
+  folder_standalone: HDRP_RuntimeTests
+test_platforms:
+  - type: playmode
+  - type: playmode
+    name: playmode_cache
+    utr_flags:
+    - [all]: --extra-editor-arg="-adb2"
+    - [all]: --extra-editor-arg="-enableCacheServer"
+    - [all]: --extra-editor-arg="-cacheServerEndpoint" --extra-editor-arg="cacheserver-slo.hq.unity3d.com"
+    - [all]: --extra-editor-arg="-cacheServerNamespacePrefix" --extra-editor-arg="SRP"
+    - [all]: --extra-editor-arg="-cacheServerEnableDownload" --extra-editor-arg="true"
+    - [all]: --extra-editor-arg="-cacheServerEnableUpload" --extra-editor-arg="true"
+  - type: playmode
+    name: playmode_XR
+    utr_flags:
+      - [all]: --extra-editor-arg="-xr-reuse-tests"
+  - type: playmode
+    name: playmode_XR_cache
+    utr_flags:
+    - [all]: --extra-editor-arg="-xr-reuse-tests"
+    - [all]: --extra-editor-arg="-adb2"
+    - [all]: --extra-editor-arg="-enableCacheServer"
+    - [all]: --extra-editor-arg="-cacheServerEndpoint" --extra-editor-arg="cacheserver-slo.hq.unity3d.com"
+    - [all]: --extra-editor-arg="-cacheServerNamespacePrefix" --extra-editor-arg="SRP"
+    - [all]: --extra-editor-arg="-cacheServerEnableDownload" --extra-editor-arg="true"
+    - [all]: --extra-editor-arg="-cacheServerEnableUpload" --extra-editor-arg="true"
+  - type: editmode
+  - type: Standalone
+    utr_flags:
+      - [OSX_Metal]: --timeout=2400
+  - type: Standalone
+    name: Standalone_cache
+    utr_flags_build:
+    - [all]: --timeout=3000
+    - [all]: --extra-editor-arg="-adb2"
+    - [all]: --extra-editor-arg="-enableCacheServer"
+    - [all]: --extra-editor-arg="-cacheServerEndpoint" --extra-editor-arg="cacheserver-slo.hq.unity3d.com"
+    - [all]: --extra-editor-arg="-cacheServerNamespacePrefix" --extra-editor-arg="SRP"
+    - [all]: --extra-editor-arg="-cacheServerEnableDownload" --extra-editor-arg="true"
+    - [all]: --extra-editor-arg="-cacheServerEnableUpload" --extra-editor-arg="true"
+expression_trigger:
+  expression: 'pull_request.target eq "<TARGET_BRANCH>" AND NOT pull_request.draft AND pull_request.changes.any match ["com.unity.render-pipelines.high-definition/**/*", "com.unity.render-pipelines.high-definition-config/**/*",  "TestProjects/HDRP_Tests/**/*"] AND NOT pull_request.push.changes.all match ["*.md", "**/*.md", "doc/**/*", "**/Documentation*/**/*"]'
+platforms:
+  - name: Win
+    apis:
+      - name: DX11
+      - name: DX12
+      - name: Vulkan
+    build_configs:
+      - name: mono
+    color_spaces:
+      - Linear
+    agents_project:
+      default:
+        type: Unity::VM::GPU
+        image: graphics-foundation/win10-dxr:stable
+        flavor: b1.xlarge
+        model: rtx2080
+      editmode:
+        type: Unity::VM
+        image: graphics-foundation/win10-dxr:stable
+        flavor: b1.xlarge
+      standalone:
+        type: Unity::VM::GPU
+        image: graphics-foundation/win10-dxr:stable
+        flavor: b1.xlarge
+        model: rtx2080
+      standalone_build:
+        type: Unity::VM
+        image: graphics-foundation/win10-dxr:stable
+        flavor: b1.xlarge
+  - name: OSX
+    apis:
+      - name: Metal
+        exclude_test_platforms:
+          - name: editmode
+    build_configs:
+      - name: mono
+    color_spaces:
+      - Linear
+  - name: Linux
+    apis:
+      - name: Vulkan
+        exclude_test_platforms:
+          - name: playmode_XR
+          - name: playmode_XR_cache
+    build_configs:
+      - name: mono
+    color_spaces:
+      - Linear
+pr:
+  dependencies:
+    - platform: Win
+      api: DX11
+      build_config: mono
+      color_space: Linear
+      test_platforms:
+        - Standalone_cache
+        - playmode_cache
+        - playmode_XR_cache
+        - editmode
+    - platform: Win
+      api: DX12
+      build_config: mono
+      color_space: Linear
+      test_platforms:
+        - playmode_cache
+    - platform: Win
+      api: Vulkan
+      build_config: mono
+      color_space: Linear
+      test_platforms:
+        - playmode_cache
+    - platform: OSX
+      api: Metal
+      build_config: mono
+      color_space: Linear
+      test_platforms:
+        # - Standalone
+        - playmode_cache
+    - platform: Linux
+      api: Vulkan
+      build_config: mono
+      color_space: Linear
+      test_platforms:
+        - Standalone
+        - playmode_cache
+    - project: HDRP_DXR
+      pr: true
+    - project: HDRP_Hybrid
+      pr: true
+    - project: VFX_HDRP
+      pr: true
+nightly:
+  dependencies:
+    - project: HDRP
+      pr: true
+    - project: HDRP_DXR
+      nightly: true
+    - project: HDRP_Hybrid
+      nightly: true
+    - project: VFX_HDRP
+      nightly: true
+    - project: Smoke_Test
+      nightly: true
+    - platform: Win
+      api: DX12
+      build_config: mono
+      color_space: Linear
+      test_platforms:
+        - Standalone_cache
+        - playmode_XR_cache
+    - platform: Win
+      api: Vulkan
+      build_config: mono
+      color_space: Linear
+      test_platforms:
+        - Standalone_cache
+        - playmode_XR_cache
+    - platform: Linux
+      api: Vulkan
+      build_config: mono
+      color_space: Linear
+      test_platforms:
+        - editmode

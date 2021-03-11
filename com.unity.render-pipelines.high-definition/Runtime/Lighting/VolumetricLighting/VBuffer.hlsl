@@ -12,6 +12,8 @@
 // if (clampToBorder), samples outside of the buffer return 0 (border color).
 // Otherwise, the sampler simply clamps the texture coordinate to the edge of the texture.
 // Warning: clamping to border may not work as expected with the quadratic filter due to its extent.
+//
+// if (biasLookup), we apply a constant bias to the look-up to avoid light leaks through geometry.
 float4 SampleVBuffer(TEXTURE3D_PARAM(VBuffer, clampSampler),
                      float2 positionNDC,
                      float  linearDistance,
@@ -20,12 +22,21 @@ float4 SampleVBuffer(TEXTURE3D_PARAM(VBuffer, clampSampler),
                      float3 VBufferViewportLimit,
                      float4 VBufferDistanceEncodingParams,
                      float4 VBufferDistanceDecodingParams,
+                     bool   biasLookup,
                      bool   quadraticFilterXY,
                      bool   clampToBorder)
 {
     // These are the viewport coordinates.
     float2 uv = positionNDC;
     float  w  = EncodeLogarithmicDepthGeneralized(linearDistance, VBufferDistanceEncodingParams);
+
+    if (biasLookup)
+    {
+        // The value is higher than 0.5 (we use half of the length the diagonal of a unit cube).
+        // to account for varying angles of incidence.
+        // TODO: XR?
+        w -= (sqrt(3)/2) * _VBufferRcpSliceCount;
+    }
 
     bool coordIsInsideFrustum;
 
@@ -79,6 +90,7 @@ float4 SampleVBuffer(TEXTURE3D_PARAM(VBuffer, clampSampler),
 
             // The sampler clamps to the edge (so UVWs < 0 are OK).
             // TODO: perform per-sample (4, in this case) bilateral filtering, rather than per-pixel. This should reduce leaking.
+            // Currently we don't do it, since it is expensive and doesn't appear to be helpful/necessary in practice.
             result = (weights[0].x * weights[0].y) * SAMPLE_TEXTURE3D_LOD(VBuffer, clampSampler, min(float3(texUv0, texW), VBufferViewportLimit), 0)
                    + (weights[1].x * weights[0].y) * SAMPLE_TEXTURE3D_LOD(VBuffer, clampSampler, min(float3(texUv1, texW), VBufferViewportLimit), 0)
                    + (weights[0].x * weights[1].y) * SAMPLE_TEXTURE3D_LOD(VBuffer, clampSampler, min(float3(texUv2, texW), VBufferViewportLimit), 0)
@@ -105,6 +117,7 @@ float4 SampleVBuffer(TEXTURE3D_PARAM(VBuffer, clampSampler),
                      float3   VBufferViewportLimit,
                      float4   VBufferDistanceEncodingParams,
                      float4   VBufferDistanceDecodingParams,
+                     bool     biasLookup,
                      bool     quadraticFilterXY,
                      bool     clampToBorder)
 {
@@ -119,6 +132,7 @@ float4 SampleVBuffer(TEXTURE3D_PARAM(VBuffer, clampSampler),
                          VBufferViewportLimit,
                          VBufferDistanceEncodingParams,
                          VBufferDistanceDecodingParams,
+                         biasLookup,
                          quadraticFilterXY,
                          clampToBorder);
 }

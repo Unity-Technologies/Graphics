@@ -91,7 +91,7 @@ namespace UnityEngine.Rendering
             int bufferId,
             Func<RTHandleSystem, int, RTHandle> allocator,
             int bufferCount
-            )
+        )
         {
             var buffer = new RTHandle[bufferCount];
             m_RTHandles.Add(bufferId, buffer);
@@ -132,6 +132,16 @@ namespace UnityEngine.Rendering
         {
             Swap();
             m_RTHandleSystem.SetReferenceSize(width, height, msaaSamples);
+        }
+
+        /// <summary>
+        /// Reset the reference size of the system and reallocate all textures.
+        /// </summary>
+        /// <param name="width">New width.</param>
+        /// <param name="height">New height.</param>
+        public void ResetReferenceSize(int width, int height)
+        {
+            m_RTHandleSystem.ResetReferenceSize(width, height);
         }
 
         void Swap()

@@ -40,7 +40,6 @@ namespace UnityEditor.ShaderGraph
             m_Height = 208f;
         }
 
-
         protected override MethodInfo GetFunctionToConvert()
         {
             return GetType().GetMethod("Unity_Preview", BindingFlags.Static | BindingFlags.NonPublic);
@@ -51,7 +50,7 @@ namespace UnityEditor.ShaderGraph
             [Slot(1, Binding.None)] out DynamicDimensionVector Out)
         {
             return
-                @"
+@"
 {
     Out = In;
 }

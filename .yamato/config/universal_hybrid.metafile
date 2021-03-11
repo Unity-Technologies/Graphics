@@ -1,0 +1,104 @@
+project:
+  name: Universal_Hybrid
+  folder: UniversalHybridTest
+test_platforms:
+  - type: Standalone
+    utr_flags:
+      - [all]: --compilation-errors-as-warnings
+      - [OSX_Metal]: --timeout=2400
+    utr_flags_build:
+      - [Android_OpenGles3, Android_Vulkan]: --timeout=2700
+      - [all]: --compilation-errors-as-warnings
+  - type: playmode
+    utr_flags:
+      - [all]: --compilation-errors-as-warnings
+  - type: playmode
+    name: playmode_cache
+    utr_flags:
+    - [all]: --compilation-errors-as-warnings
+    - [all]: --extra-editor-arg="-adb2"
+    - [all]: --extra-editor-arg="-enableCacheServer"
+    - [all]: --extra-editor-arg="-cacheServerEndpoint" --extra-editor-arg="cacheserver-slo.hq.unity3d.com"
+    - [all]: --extra-editor-arg="-cacheServerNamespacePrefix" --extra-editor-arg="SRP"
+    - [all]: --extra-editor-arg="-cacheServerEnableDownload" --extra-editor-arg="true"
+    - [all]: --extra-editor-arg="-cacheServerEnableUpload" --extra-editor-arg="true"
+  - type: Standalone
+    name: Standalone_cache
+    utr_flags_build:
+    - [all]: --timeout=3000
+    - [all]: --extra-editor-arg="-adb2"
+    - [all]: --extra-editor-arg="-enableCacheServer"
+    - [all]: --extra-editor-arg="-cacheServerEndpoint" --extra-editor-arg="cacheserver-slo.hq.unity3d.com"
+    - [all]: --extra-editor-arg="-cacheServerNamespacePrefix" --extra-editor-arg="SRP"
+    - [all]: --extra-editor-arg="-cacheServerEnableDownload" --extra-editor-arg="true"
+    - [all]: --extra-editor-arg="-cacheServerEnableUpload" --extra-editor-arg="true"
+expression_trigger:
+  expression: ""
+platforms:
+  - name: Win
+    apis:
+      - name: DX11
+      - name: Vulkan
+    build_configs:
+      - name: mono
+    color_spaces:
+      - Linear
+  - name: OSX
+    apis:
+      - name: Metal
+        exclude_test_platforms:
+          - name: playmode_XR
+    build_configs:
+      - name: mono
+    color_spaces:
+      - Linear
+  - name: Linux
+    apis:
+      - name: OpenGLCore
+        exclude_test_platforms:
+          - name: Standalone
+          - name: Standalone_cache
+          - name: playmode_XR
+      - name: Vulkan
+        exclude_test_platforms:
+          - name: playmode_XR
+    build_configs:
+      - name: mono
+    color_spaces:
+      - Linear
+  - name: Android
+    apis:
+      - name: OpenGLES3
+        exclude_test_platforms:
+          - name: playmode
+          - name: playmode_XR
+          - name: playmode_cache
+      - name: Vulkan
+        exclude_test_platforms:
+          - name: playmode
+          - name: playmode_XR
+          - name: playmode_cache
+    build_configs:
+      - name: mono
+    color_spaces:
+      - Linear
+pr:
+  dependencies:
+    - platform: Win
+      api: DX11
+      build_config: mono
+      color_space: Linear
+      test_platforms:
+        - playmode
+        #- playmode_cache
+    - platform: OSX
+      api: Metal
+      build_config: mono
+      color_space: Linear
+      test_platforms:
+        #- playmode_cache
+        - playmode
+nightly:
+  dependencies:
+    - project: Universal_Hybrid
+      pr: true

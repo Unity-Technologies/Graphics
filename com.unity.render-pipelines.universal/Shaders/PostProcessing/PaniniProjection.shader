@@ -1,18 +1,16 @@
 Shader "Hidden/Universal Render Pipeline/PaniniProjection"
 {
-    Properties
-    {
-        _MainTex("Source", 2D) = "white" {}
-    }
-
     HLSLINCLUDE
 
+        #pragma exclude_renderers gles
+
         #pragma multi_compile_local _GENERIC _UNIT_DISTANCE
+        #pragma multi_compile _ _USE_DRAW_PROCEDURAL
 
         #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Core.hlsl"
         #include "Packages/com.unity.render-pipelines.universal/Shaders/PostProcessing/Common.hlsl"
 
-        TEXTURE2D_X(_MainTex);
+        TEXTURE2D_X(_SourceTex);
 
         float4 _Params;
 
@@ -75,7 +73,7 @@ Shader "Hidden/Universal Render Pipeline/PaniniProjection"
             //  d |  /
             //    | /                ,
             //    |/                .
-            //    P 
+            //    P
             //    |              ´
             //    |         , ´
             //    +-    ´
@@ -112,7 +110,7 @@ Shader "Hidden/Universal Render Pipeline/PaniniProjection"
             float2 proj_ndc = proj_pos / _Params.xy;
             float2 coords = proj_ndc * 0.5 + 0.5;
 
-            return SAMPLE_TEXTURE2D_X(_MainTex, sampler_LinearClamp, coords);
+            return SAMPLE_TEXTURE2D_X(_SourceTex, sampler_LinearClamp, coords);
         }
 
     ENDHLSL
@@ -128,7 +126,7 @@ Shader "Hidden/Universal Render Pipeline/PaniniProjection"
             Name "Panini Projection"
 
             HLSLPROGRAM
-                #pragma vertex Vert
+                #pragma vertex FullscreenVert
                 #pragma fragment Frag
             ENDHLSL
         }

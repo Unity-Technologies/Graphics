@@ -5,6 +5,7 @@ using System.Linq;
 using System.Text;
 using UnityEditor.ShaderGraph;
 using UnityEngine;
+using UnityEngine.Pool;
 using UnityEngine.Rendering.ShaderGraph;
 
 namespace UnityEditor.Graphing
@@ -92,7 +93,7 @@ namespace UnityEditor.Graphing
                 // If this is a redirect node we continue to look for the top one
                 if (inputNode is RedirectNodeData redirectNode)
                 {
-                    return DepthFirstCollectRedirectNodeFromNode( redirectNode );
+                    return DepthFirstCollectRedirectNodeFromNode(redirectNode);
                 }
                 return outputSlotRef;
             }
@@ -101,7 +102,7 @@ namespace UnityEditor.Graphing
         }
 
         public static void DepthFirstCollectNodesFromNode(List<AbstractMaterialNode> nodeList, AbstractMaterialNode node,
-            IncludeSelf includeSelf = IncludeSelf.Include, IEnumerable<int> slotIds = null, List<KeyValuePair<ShaderKeyword, int>> keywordPermutation = null)
+            IncludeSelf includeSelf = IncludeSelf.Include, List<KeyValuePair<ShaderKeyword, int>> keywordPermutation = null, bool ignoreActiveState = false)
         {
             // no where to start
             if (node == null)
@@ -115,18 +116,14 @@ namespace UnityEditor.Graphing
 
             // If this node is a keyword node and we have an active keyword permutation
             // The only valid port id is the port that corresponds to that keywords value in the active permutation
-            if(node is KeywordNode keywordNode && keywordPermutation != null)
+            if (node is KeywordNode keywordNode && keywordPermutation != null)
             {
                 var valueInPermutation = keywordPermutation.Where(x => x.Key == keywordNode.keyword).FirstOrDefault();
                 ids = new int[] { keywordNode.GetSlotIdForPermutation(valueInPermutation) };
             }
-            else if (slotIds == null)
-            {
-                ids = node.GetInputSlots<MaterialSlot>().Select(x => x.id);
-            }
             else
             {
-                ids = node.GetInputSlots<MaterialSlot>().Where(x => slotIds.Contains(x.id)).Select(x => x.id);
+                ids = node.GetInputSlots<MaterialSlot>().Select(x => x.id);
             }
 
             foreach (var slot in ids)
@@ -135,11 +132,247 @@ namespace UnityEditor.Graphing
                 {
                     var outputNode = edge.outputSlot.node;
                     if (outputNode != null)
-                        DepthFirstCollectNodesFromNode(nodeList, outputNode, keywordPermutation: keywordPermutation);
+                        DepthFirstCollectNodesFromNode(nodeList, outputNode, keywordPermutation: keywordPermutation, ignoreActiveState: ignoreActiveState);
                 }
             }
 
-            if (includeSelf == IncludeSelf.Include)
+            if (includeSelf == IncludeSelf.Include && (node.isActive || ignoreActiveState))
+                nodeList.Add(node);
+        }
+
+        internal static List<AbstractMaterialNode> GetParentNodes(AbstractMaterialNode node)
+        {
+            List<AbstractMaterialNode> nodeList = new List<AbstractMaterialNode>();
+            var ids = node.GetInputSlots<MaterialSlot>().Select(x => x.id);
+            foreach (var slot in ids)
+            {
+                if (node.owner == null)
+                    break;
+                foreach (var edge in node.owner.GetEdges(node.FindSlot<MaterialSlot>(slot).slotReference))
+                {
+                    var outputNode = ((Edge)edge).outputSlot.node;
+                    if (outputNode != null)
+                    {
+                        nodeList.Add(outputNode);
+                    }
+                }
+            }
+            return nodeList;
+        }
+
+        private static bool ActiveLeafExists(AbstractMaterialNode node)
+        {
+            //if our active state has been explicitly set to a value use it
+            switch (node.activeState)
+            {
+                case AbstractMaterialNode.ActiveState.Implicit:
+                    break;
+                case AbstractMaterialNode.ActiveState.ExplicitInactive:
+                    return false;
+                case AbstractMaterialNode.ActiveState.ExplicitActive:
+                    return true;
+            }
+
+
+            List<AbstractMaterialNode> parentNodes = GetParentNodes(node);
+            //at this point we know we are not explicitly set to a state,
+            //so there is no reason to be inactive
+            if (parentNodes.Count == 0)
+            {
+                return true;
+            }
+
+            bool output = false;
+            foreach (var parent in parentNodes)
+            {
+                output |= ActiveLeafExists(parent);
+                if (output)
+                {
+                    break;
+                }
+            }
+            return output;
+        }
+
+        private static List<AbstractMaterialNode> GetChildNodes(AbstractMaterialNode node)
+        {
+            List<AbstractMaterialNode> nodeList = new List<AbstractMaterialNode>();
+            var ids = node.GetOutputSlots<MaterialSlot>().Select(x => x.id);
+            foreach (var slot in ids)
+            {
+                foreach (var edge in node.owner.GetEdges(node.FindSlot<MaterialSlot>(slot).slotReference))
+                {
+                    var inputNode = ((Edge)edge).inputSlot.node;
+                    if (inputNode != null)
+                    {
+                        nodeList.Add(inputNode);
+                    }
+                }
+            }
+            return nodeList;
+        }
+
+        private static bool ActiveRootExists(AbstractMaterialNode node)
+        {
+            //if our active state has been explicitly set to a value use it
+            switch (node.activeState)
+            {
+                case AbstractMaterialNode.ActiveState.Implicit:
+                    break;
+                case AbstractMaterialNode.ActiveState.ExplicitInactive:
+                    return false;
+                case AbstractMaterialNode.ActiveState.ExplicitActive:
+                    return true;
+            }
+
+            List<AbstractMaterialNode> childNodes = GetChildNodes(node);
+            //at this point we know we are not explicitly set to a state,
+            //so there is no reason to be inactive
+            if (childNodes.Count == 0)
+            {
+                return true;
+            }
+
+            bool output = false;
+            foreach (var child in childNodes)
+            {
+                output |= ActiveRootExists(child);
+                if (output)
+                {
+                    break;
+                }
+            }
+            return output;
+        }
+
+        private static void ActiveTreeExists(AbstractMaterialNode node, out bool activeLeaf, out bool activeRoot, out bool activeTree)
+        {
+            activeLeaf = ActiveLeafExists(node);
+            activeRoot = ActiveRootExists(node);
+            activeTree = activeRoot && activeLeaf;
+        }
+
+        //First pass check if node is now active after a change, so just check if there is a valid "tree" : a valid upstream input path,
+        // and a valid downstream output path, or "leaf" and "root". If this changes the node's active state, then anything connected may
+        // change as well, so update the "forrest" or all connectected trees of this nodes leaves.
+        // NOTE: I cannot think if there is any case where the entirety of the connected graph would need to change, but if there are bugs
+        // on certain nodes farther away from the node not updating correctly, a possible solution may be to get the entirety of the connected
+        // graph instead of just what I have declared as the "local" connected graph
+        public static void ReevaluateActivityOfConnectedNodes(AbstractMaterialNode node, PooledHashSet<AbstractMaterialNode> changedNodes = null)
+        {
+            List<AbstractMaterialNode> forest = GetForest(node);
+            ReevaluateActivityOfNodeList(forest, changedNodes);
+        }
+
+        public static void ReevaluateActivityOfNodeList(IEnumerable<AbstractMaterialNode> nodes, PooledHashSet<AbstractMaterialNode> changedNodes = null)
+        {
+            bool getChangedNodes = changedNodes != null;
+            foreach (AbstractMaterialNode n in nodes)
+            {
+                if (n.activeState != AbstractMaterialNode.ActiveState.Implicit)
+                    continue;
+                ActiveTreeExists(n, out _, out _, out bool at);
+                if (n.isActive != at && getChangedNodes)
+                {
+                    changedNodes.Add(n);
+                }
+                n.SetActive(at, false);
+            }
+        }
+
+        //Go to the leaves of the node, then get all trees with those leaves
+        private static List<AbstractMaterialNode> GetForest(AbstractMaterialNode node)
+        {
+            List<AbstractMaterialNode> leaves = GetLeaves(node);
+            List<AbstractMaterialNode> forrest = new List<AbstractMaterialNode>();
+            foreach (var leaf in leaves)
+            {
+                if (!forrest.Contains(leaf))
+                {
+                    forrest.Add(leaf);
+                }
+                foreach (var child in GetChildNodesRecursive(leaf))
+                {
+                    if (!forrest.Contains(child))
+                    {
+                        forrest.Add(child);
+                    }
+                }
+            }
+            return forrest;
+        }
+
+        private static List<AbstractMaterialNode> GetChildNodesRecursive(AbstractMaterialNode node)
+        {
+            List<AbstractMaterialNode> output = new List<AbstractMaterialNode>() { node };
+            List<AbstractMaterialNode> children = GetChildNodes(node);
+            foreach (var child in children)
+            {
+                if (!output.Contains(child))
+                {
+                    output.Add(child);
+                }
+                foreach (var descendent in GetChildNodesRecursive(child))
+                {
+                    if (!output.Contains(descendent))
+                    {
+                        output.Add(descendent);
+                    }
+                }
+            }
+            return output;
+        }
+
+        private static List<AbstractMaterialNode> GetLeaves(AbstractMaterialNode node)
+        {
+            List<AbstractMaterialNode> parents = GetParentNodes(node);
+            List<AbstractMaterialNode> output = new List<AbstractMaterialNode>();
+            if (parents.Count == 0)
+            {
+                output.Add(node);
+            }
+            else
+            {
+                foreach (var parent in parents)
+                {
+                    foreach (var leaf in GetLeaves(parent))
+                    {
+                        if (!output.Contains(leaf))
+                        {
+                            output.Add(leaf);
+                        }
+                    }
+                }
+            }
+            return output;
+        }
+
+        public static void GetDownsteamNodesForNode(List<AbstractMaterialNode> nodeList, AbstractMaterialNode node)
+        {
+            // no where to start
+            if (node == null)
+                return;
+
+            // Recursively traverse downstream from the original node
+            // Traverse down each edge and continue on any connected downstream nodes
+            // Only nodes with no nodes further downstream are added to node list
+            bool hasDownstream = false;
+            var ids = node.GetOutputSlots<MaterialSlot>().Select(x => x.id);
+            foreach (var slot in ids)
+            {
+                foreach (var edge in node.owner.GetEdges(node.FindSlot<MaterialSlot>(slot).slotReference))
+                {
+                    var inputNode = ((Edge)edge).inputSlot.node;
+                    if (inputNode != null)
+                    {
+                        hasDownstream = true;
+                        GetDownsteamNodesForNode(nodeList, inputNode);
+                    }
+                }
+            }
+
+            // No more nodes downstream from here
+            if (!hasDownstream)
                 nodeList.Add(node);
         }
 
@@ -164,9 +397,8 @@ namespace UnityEditor.Graphing
                 return;
             }
 
-            using (var slotsHandle = ListPool<MaterialSlot>.GetDisposable())
+            using (ListPool<MaterialSlot>.Get(out var slots))
             {
-                var slots = slotsHandle.value;
                 node.GetInputSlots(slots);
                 foreach (var slot in slots)
                 {
@@ -311,6 +543,7 @@ namespace UnityEditor.Graphing
             }
         }
 
+        // NOTE: there are several bugs here.. we should use ConvertToValidHLSLIdentifier() instead
         public static string GetHLSLSafeName(string input)
         {
             char[] arr = input.ToCharArray();
@@ -321,6 +554,376 @@ namespace UnityEditor.Graphing
                 safeName = $"var{safeName}";
             }
             return safeName;
+        }
+
+        static readonly string[] k_HLSLNumericKeywords =
+        {
+            "float",
+            "half",     // not technically in HLSL spec, but prob should be
+            "real",     // Unity thing, but included here
+            "int",
+            "uint",
+            "bool",
+            "min10float",
+            "min16float",
+            "min12int",
+            "min16int",
+            "min16uint"
+        };
+
+        static readonly string[] k_HLSLNumericKeywordSuffixes =
+        {
+            "",
+            "1", "2", "3", "4",
+            "1x1", "1x2", "1x3", "1x4",
+            "2x1", "2x2", "2x3", "2x4",
+            "3x1", "3x2", "3x3", "3x4",
+            "4x1", "4x2", "4x3", "4x4"
+        };
+
+        static HashSet<string> m_ShaderLabKeywords = new HashSet<string>()
+        {
+            // these should all be lowercase, as shaderlab keywords are case insensitive
+            "properties",
+            "range",
+            "bind",
+            "bindchannels",
+            "tags",
+            "lod",
+            "shader",
+            "subshader",
+            "category",
+            "fallback",
+            "dependency",
+            "customeditor",
+            "rect",
+            "any",
+            "float",
+            "color",
+            "int",
+            "integer",
+            "vector",
+            "matrix",
+            "2d",
+            "cube",
+            "3d",
+            "2darray",
+            "cubearray",
+            "name",
+            "settexture",
+            "true",
+            "false",
+            "on",
+            "off",
+            "separatespecular",
+            "offset",
+            "zwrite",
+            "zclip",
+            "conservative",
+            "ztest",
+            "alphatest",
+            "fog",
+            "stencil",
+            "colormask",
+            "alphatomask",
+            "cull",
+            "front",
+            "material",
+            "ambient",
+            "diffuse",
+            "specular",
+            "emission",
+            "shininess",
+            "blend",
+            "blendop",
+            "colormaterial",
+            "lighting",
+            "pass",
+            "grabpass",
+            "usepass",
+            "gpuprogramid",
+            "add",
+            "sub",
+            "revsub",
+            "min",
+            "max",
+            "logicalclear",
+            "logicalset",
+            "logicalcopy",
+            "logicalcopyinverted",
+            "logicalnoop",
+            "logicalinvert",
+            "logicaland",
+            "logicalnand",
+            "logicalor",
+            "logicalnor",
+            "logicalxor",
+            "logicalequiv",
+            "logicalandreverse",
+            "logicalandinverted",
+            "logicalorreverse",
+            "logicalorinverted",
+            "multiply",
+            "screen",
+            "overlay",
+            "darken",
+            "lighten",
+            "colordodge",
+            "colorburn",
+            "hardlight",
+            "softlight",
+            "difference",
+            "exclusion",
+            "hslhue",
+            "hslsaturation",
+            "hslcolor",
+            "hslluminosity",
+            "zero",
+            "one",
+            "dstcolor",
+            "srccolor",
+            "oneminusdstcolor",
+            "srcalpha",
+            "oneminussrccolor",
+            "dstalpha",
+            "oneminusdstalpha",
+            "srcalphasaturate",
+            "oneminussrcalpha",
+            "constantcolor",
+            "oneminusconstantcolor",
+            "constantalpha",
+            "oneminusconstantalpha",
+        };
+
+        static HashSet<string> m_HLSLKeywords = new HashSet<string>()
+        {
+            "AppendStructuredBuffer",
+            "asm",
+            "asm_fragment",
+            "auto",
+            "BlendState",
+            "break",
+            "Buffer",
+            "ByteAddressBuffer",
+            "case",
+            "catch",
+            "cbuffer",
+            "centroid",
+            "char",
+            "class",
+            "column_major",
+            "compile",
+            "compile_fragment",
+            "CompileShader",
+            "const",
+            "const_cast",
+            "continue",
+            "ComputeShader",
+            "ConsumeStructuredBuffer",
+            "default",
+            "delete",
+            "DepthStencilState",
+            "DepthStencilView",
+            "discard",
+            "do",
+            "double",
+            "DomainShader",
+            "dynamic_cast",
+            "dword",
+            "else",
+            "enum",
+            "explicit",
+            "export",
+            "extern",
+            "false",
+            "for",
+            "friend",
+            "fxgroup",
+            "GeometryShader",
+            "goto",
+            "groupshared",
+            "half",
+            "Hullshader",
+            "if",
+            "in",
+            "inline",
+            "inout",
+            "InputPatch",
+            "interface",
+            "line",
+            "lineadj",
+            "linear",
+            "LineStream",
+            "long",
+            "matrix",
+            "mutable",
+            "namespace",
+            "new",
+            "nointerpolation",
+            "noperspective",
+            "NULL",
+            "operator",
+            "out",
+            "OutputPatch",
+            "packoffset",
+            "pass",
+            "pixelfragment",
+            "PixelShader",
+            "point",
+            "PointStream",
+            "precise",
+            "private",
+            "protected",
+            "public",
+            "RasterizerState",
+            "reinterpret_cast",
+            "RenderTargetView",
+            "return",
+            "register",
+            "row_major",
+            "RWBuffer",
+            "RWByteAddressBuffer",
+            "RWStructuredBuffer",
+            "RWTexture1D",
+            "RWTexture1DArray",
+            "RWTexture2D",
+            "RWTexture2DArray",
+            "RWTexture3D",
+            "sample",
+            "sampler",
+            "SamplerState",
+            "SamplerComparisonState",
+            "shared",
+            "short",
+            "signed",
+            "sizeof",
+            "snorm",
+            "stateblock",
+            "stateblock_state",
+            "static",
+            "static_cast",
+            "string",
+            "struct",
+            "switch",
+            "StructuredBuffer",
+            "tbuffer",
+            "technique",
+            "technique10",
+            "technique11",
+            "template",
+            "texture",
+            "Texture1D",
+            "Texture1DArray",
+            "Texture2D",
+            "Texture2DArray",
+            "Texture2DMS",
+            "Texture2DMSArray",
+            "Texture3D",
+            "TextureCube",
+            "TextureCubeArray",
+            "this",
+            "throw",
+            "true",
+            "try",
+            "typedef",
+            "typename",
+            "triangle",
+            "triangleadj",
+            "TriangleStream",
+            "uniform",
+            "unorm",
+            "union",
+            "unsigned",
+            "using",
+            "vector",
+            "vertexfragment",
+            "VertexShader",
+            "virtual",
+            "void",
+            "volatile",
+            "while"
+        };
+
+        static bool m_HLSLKeywordDictionaryBuilt = false;
+
+        public static bool IsHLSLKeyword(string id)
+        {
+            if (!m_HLSLKeywordDictionaryBuilt)
+            {
+                foreach (var numericKeyword in k_HLSLNumericKeywords)
+                    foreach (var suffix in k_HLSLNumericKeywordSuffixes)
+                        m_HLSLKeywords.Add(numericKeyword + suffix);
+
+                m_HLSLKeywordDictionaryBuilt = true;
+            }
+
+            bool isHLSLKeyword = m_HLSLKeywords.Contains(id);
+
+            return isHLSLKeyword;
+        }
+
+        public static bool IsShaderLabKeyWord(string id)
+        {
+            bool isShaderLabKeyword = m_ShaderLabKeywords.Contains(id.ToLower());
+            return isShaderLabKeyword;
+        }
+
+        public static string ConvertToValidHLSLIdentifier(string originalId, Func<string, bool> isDisallowedIdentifier = null)
+        {
+            // Converts "  1   var  * q-30 ( 0 ) (1)   " to "_1_var_q_30_0_1"
+            if (originalId == null)
+                originalId = "";
+
+            StringBuilder hlslId = new StringBuilder(originalId.Length);
+            bool lastInvalid = false;
+            for (int i = 0; i < originalId.Length; i++)
+            {
+                char c = originalId[i];
+
+                bool isLetter = (c >= 'A' && c <= 'Z') || (c >= 'a' && c <= 'z');
+                bool isUnderscore = (c == '_');
+                bool isDigit = (c >= '0' && c <= '9');
+
+                bool validChar = isLetter || isUnderscore || isDigit;
+
+                if (!validChar)
+                {
+                    // when we see an invalid character, we just record that we saw it and go to the next character
+                    // this way we combine multiple invalid characters, and trailing ones just get dropped
+                    lastInvalid = true;
+                }
+                else
+                {
+                    // whenever we hit a valid character
+                    // if the last character was invalid, append an underscore
+                    // unless we're at the beginning of the string
+                    if (lastInvalid && (hlslId.Length > 0))
+                        hlslId.Append("_");
+
+                    // HLSL ids can't start with a digit, prepend an underscore to prevent this
+                    if (isDigit && (hlslId.Length == 0))
+                        hlslId.Append("_");
+
+                    hlslId.Append(c);
+
+                    lastInvalid = false;
+                }
+            }
+
+            // empty strings not allowed -- append an underscore if it's empty
+            if (hlslId.Length <= 0)
+                hlslId.Append("_");
+
+            var result = hlslId.ToString();
+
+            while (IsHLSLKeyword(result))
+                result = "_" + result;
+
+            if (isDisallowedIdentifier != null)
+                while (isDisallowedIdentifier(result))
+                    result = "_" + result;
+
+            return result;
         }
 
         private static string GetDisplaySafeName(string input)
@@ -340,7 +943,7 @@ namespace UnityEditor.Graphing
         public static bool ValidateSlotName(string inName, out string errorMessage)
         {
             //check for invalid characters between display safe and hlsl safe name
-            if (GetDisplaySafeName(inName) != GetHLSLSafeName(inName))
+            if (GetDisplaySafeName(inName) != GetHLSLSafeName(inName) && GetDisplaySafeName(inName) != ConvertToValidHLSLIdentifier(inName))
             {
                 errorMessage = "Slot name(s) found invalid character(s). Valid characters: A-Z, a-z, 0-9, _ ( ) ";
                 return true;

@@ -6,7 +6,7 @@ Shader "Hidden/HDRP/Sky/GradientSky"
 
     #pragma editor_sync_compilation
     #pragma target 4.5
-    #pragma only_renderers d3d11 playstation xboxone vulkan metal switch
+    #pragma only_renderers d3d11 playstation xboxone xboxseries vulkan metal switch
 
     #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Common.hlsl"
     #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Color.hlsl"
@@ -14,7 +14,7 @@ Shader "Hidden/HDRP/Sky/GradientSky"
     #include "Packages/com.unity.render-pipelines.high-definition/Runtime/ShaderLibrary/ShaderVariables.hlsl"
     #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Sky/SkyUtils.hlsl"
 
-	float4 _GradientBottom;
+    float4 _GradientBottom;
     float4 _GradientMiddle;
     float4 _GradientTop;
     float _GradientDiffusion;
@@ -48,8 +48,8 @@ Shader "Hidden/HDRP/Sky/GradientSky"
         float topLerpFactor = saturate(-verticalGradient);
         float bottomLerpFactor = saturate(verticalGradient);
         float3 color = lerp(_GradientMiddle.xyz, _GradientBottom.xyz, bottomLerpFactor);
-        color = lerp(color, _GradientTop.xyz, topLerpFactor) * _SkyIntensity;
-        return float4(color, 1.0);
+        color = lerp(color, _GradientTop.xyz, topLerpFactor);
+        return float4(color * _SkyIntensity, 1.0);
     }
 
     float4 FragBaking(Varyings input) : SV_Target

@@ -129,11 +129,16 @@ namespace UnityEngine.Rendering.HighDefinition
         public float   angleOffset;             // Spot light
 
         public Vector3 forward;
-        public GPULightType lightType;          // TODO: move this up?
+        public float   iesCut;                  // Spot light
 
+        public GPULightType lightType;          // TODO: move this up?
         public Vector3 right;                   // If spot: rescaled by cot(outerHalfAngle); if projector: rescaled by (2 / shapeWidth)
+
+        public float   penumbraTint;
         [SurfaceDataAttributes(precision = FieldPrecision.Real)]
         public float   range;
+        public CookieMode cookieMode;
+        public int     shadowIndex;             // -1 if unused (TODO: 16 bit)
 
         public Vector3 up;                      // If spot: rescaled by cot(outerHalfAngle); if projector: rescaled by (2 / shapeHeight)
         public float   rangeAttenuationScale;
@@ -141,12 +146,7 @@ namespace UnityEngine.Rendering.HighDefinition
         public Vector3 color;
         public float   rangeAttenuationBias;
 
-        public CookieMode cookieMode;
-        public int     cookieIndex;             // Texture array index of the point and rectangle light cookies
-        public int     shadowIndex;             // -1 if unused (TODO: 16 bit)
-
         public Vector4 cookieScaleOffset;       // coordinates of the cookie texture in the atlas
-        public int     contactShadowMask;       // negative if unused (TODO: 16 bit)
 
         public Vector3 shadowTint;              // Use to tint shadow color
         public float   shadowDimmer;
@@ -164,12 +164,13 @@ namespace UnityEngine.Rendering.HighDefinition
         [SurfaceDataAttributes(precision = FieldPrecision.Real)]
         public Vector4 size;                    // Used by area (X = length or width, Y = height, Z = CosBarnDoorAngle, W = BarnDoorLength) and punctual lights (X = radius)
 
+        public int     contactShadowMask;       // negative if unused (TODO: 16 bit)
         public float   diffuseDimmer;
         public float   specularDimmer;
-        public float   isRayTracedContactShadow;
-        public float   penumbraTint;
+        public float   __unused__;
 
-        public Vector3 padding;
+        public Vector2 padding;
+        public float   isRayTracedContactShadow;
         public float   boxLightSafeExtent;
     };
 
@@ -200,31 +201,29 @@ namespace UnityEngine.Rendering.HighDefinition
     {
         // Packing order depends on chronological access to avoid cache misses
         public uint lightLayers;
-
         // Proxy properties
         public Vector3 capturePositionRWS;
-        public EnvShapeType influenceShapeType;
 
+        public EnvShapeType influenceShapeType;
         // Box: extents = box extents
         // Sphere: extents.x = sphere radius
         public Vector3 proxyExtents;
+
         // User can chose if they use This is use in case we want to force infinite projection distance (i.e no projection);
         [SurfaceDataAttributes(precision = FieldPrecision.Real)]
         public float minProjectionDistance;
-
         public Vector3 proxyPositionRWS;
+
         public Vector3 proxyForward;
         public Vector3 proxyUp;
         public Vector3 proxyRight;
-
         // Influence properties
         public Vector3 influencePositionRWS;
+
         public Vector3 influenceForward;
         public Vector3 influenceUp;
         public Vector3 influenceRight;
-
         public Vector3 influenceExtents;
-        public float unused00;
 
         public Vector3 blendDistancePositive;
         public Vector3 blendDistanceNegative;
@@ -237,8 +236,12 @@ namespace UnityEngine.Rendering.HighDefinition
         public Vector3 boxSideFadeNegative;
         public float weight;
         public float multiplier;
-        public float rangeCompressionFactorCompensation;
 
+        public float rangeCompressionFactorCompensation;
+        // Only used for planar reflections to drop all mips below mip0
+        public float roughReflections;
+        // Only used for reflection probes to avoid using the proxy for distance based roughness.
+        public float distanceBasedRoughness;
         // Sampling properties
         public int envIndex;
     };
