@@ -72,8 +72,10 @@ namespace UnityEditor.Rendering.Universal
             EditorGUILayout.PropertyField(m_Intensity, Styles.Intensity);
             EditorGUILayout.PropertyField(m_Radius, Styles.Radius);
             m_DirectLightingStrength.floatValue = EditorGUILayout.Slider(Styles.DirectLightingStrength, m_DirectLightingStrength.floatValue, 0f, 1f);
-            m_Radius.floatValue = Mathf.Clamp(m_Radius.floatValue, 0f, m_Radius.floatValue);
             m_SampleCount.intValue = EditorGUILayout.IntSlider(Styles.SampleCount, m_SampleCount.intValue, 4, 20);
+
+            m_Intensity.floatValue = Mathf.Clamp(m_Intensity.floatValue, 0f, m_Intensity.floatValue);
+            m_Radius.floatValue = Mathf.Clamp(m_Radius.floatValue, 0f, m_Radius.floatValue);
         }
 
         private bool RendererIsDeferred()

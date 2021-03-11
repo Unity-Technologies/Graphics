@@ -169,11 +169,19 @@ namespace UnityEngine.Rendering.Universal
                 m_Material = material;
                 m_Renderer = renderer;
                 m_CurrentSettings = featureSettings;
-                renderPassEvent = featureSettings.AfterOpaque ? RenderPassEvent.AfterRenderingOpaques : RenderPassEvent.AfterRenderingGbuffer;
 
-                ScreenSpaceAmbientOcclusionSettings.DepthSource source = isRendererDeferred
-                    ? ScreenSpaceAmbientOcclusionSettings.DepthSource.DepthNormals
-                    : m_CurrentSettings.Source;
+                ScreenSpaceAmbientOcclusionSettings.DepthSource source;
+                if (isRendererDeferred)
+                {
+                    renderPassEvent = featureSettings.AfterOpaque ? RenderPassEvent.AfterRenderingOpaques : RenderPassEvent.AfterRenderingGbuffer;
+                    source = ScreenSpaceAmbientOcclusionSettings.DepthSource.DepthNormals;
+                }
+                else
+                {
+                    renderPassEvent = featureSettings.AfterOpaque ? RenderPassEvent.AfterRenderingOpaques : RenderPassEvent.AfterRenderingPrePasses;
+                    source = m_CurrentSettings.Source;
+                }
+
 
                 switch (source)
                 {
