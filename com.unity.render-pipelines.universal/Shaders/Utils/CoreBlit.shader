@@ -12,6 +12,7 @@ Shader "Hidden/Universal/CoreBlit"
         #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Core.hlsl"
 
         TEXTURE2D_X(_BlitTexture);
+        TEXTURECUBE(_BlitCubeTexture);
         SamplerState sampler_PointClamp;
         SamplerState sampler_LinearClamp;
         SamplerState sampler_PointRepeat;
@@ -146,11 +147,17 @@ Shader "Hidden/Universal/CoreBlit"
             return SAMPLE_TEXTURE2D_X_LOD(_BlitTexture, sampler_LinearRepeat, uv, _BlitMipLevel);
         }
 
+        float4 FragOctahedralProject(Varyings input) : SV_Target
+        {
+            float2 UV = saturate(input.texcoord);
+            float3 dir = UnpackNormalOctQuadEncode(2.0f*UV - 1.0f);
+            return float4(SAMPLE_TEXTURECUBE_LOD(_BlitCubeTexture, sampler_LinearRepeat, dir, _BlitMipLevel).rgb, 1);
+        }
     ENDHLSL
 
     SubShader
     {
-        Tags{ "RenderPipeline" = "HDRenderPipeline" }
+        Tags{ "RenderPipeline" = "UniversalPipeline" }
 
         // 0: Nearest
         Pass
@@ -312,6 +319,16 @@ Shader "Hidden/Universal/CoreBlit"
             ENDHLSL
         }
 
+        // 14. Project Cube to Octahedral 2d quad
+        Pass
+        {
+            ZWrite Off ZTest Always Blend Off Cull Off
+
+            HLSLPROGRAM
+                #pragma vertex VertQuad
+                #pragma fragment FragOctahedralProject
+            ENDHLSL
+        }
     }
 
     Fallback Off
