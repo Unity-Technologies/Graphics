@@ -3,6 +3,9 @@ using UnityEngine.Experimental.Rendering;
 
 namespace UnityEngine.Rendering
 {
+    /// <summary>
+    /// Texture atlas with rectangular power of two size.
+    /// </summary>
     public class PowerOfTwoTextureAtlas : Texture2DAtlas
     {
         public int mipPadding;
@@ -10,6 +13,9 @@ namespace UnityEngine.Rendering
 
         private Dictionary<int, Vector2Int> m_RequestedTextures = new Dictionary<int, Vector2Int>();
 
+        /// <summary>
+        /// Create a new texture atlas, must have power of two size.
+        /// </summary>
         public PowerOfTwoTextureAtlas(int size, int mipPadding, GraphicsFormat format, FilterMode filterMode = FilterMode.Point, string name = "", bool useMipMap = true)
             : base(size, size, format, filterMode, true, name, useMipMap)
         {
@@ -21,21 +27,6 @@ namespace UnityEngine.Rendering
         }
 
         int GetTexturePadding() => (int)Mathf.Pow(2, mipPadding) * 2;
-
-        // TODO: should this be in core utils??
-        // branchless previous power of two: Hacker’s Delight, Second Edition page 66
-        static int PreviousPowerOfTwo(int size)
-        {
-            if (size <= 0)
-                return 0;
-
-            size |= (size >> 1);
-            size |= (size >> 2);
-            size |= (size >> 4);
-            size |= (size >> 8);
-            size |= (size >> 16);
-            return size - (size >> 1);
-        }
 
         void Blit2DTexturePadding(CommandBuffer cmd, Vector4 scaleOffset, Texture texture, Vector4 sourceScaleOffset, bool blitMips = true)
         {
@@ -117,6 +108,9 @@ namespace UnityEngine.Rendering
             }
         }
 
+        /// <summary>
+        /// Copy texture into the atlas.
+        /// </summary>
         public override void BlitTexture(CommandBuffer cmd, Vector4 scaleOffset, Texture texture, Vector4 sourceScaleOffset, bool blitMips = true, int overrideInstanceID = -1)
         {
             // We handle ourself the 2D blit because cookies needs mipPadding for trilinear filtering
@@ -127,6 +121,9 @@ namespace UnityEngine.Rendering
             }
         }
 
+        /// <summary>
+        /// Copy texture into the atlas with blending.
+        /// </summary>
         public void BlitTextureMultiply(CommandBuffer cmd, Vector4 scaleOffset, Texture texture, Vector4 sourceScaleOffset, bool blitMips = true, int overrideInstanceID = -1)
         {
             // We handle ourself the 2D blit because cookies needs mipPadding for trilinear filtering
@@ -137,6 +134,9 @@ namespace UnityEngine.Rendering
             }
         }
 
+        /// <summary>
+        /// Copy texture into the atlas with Octahedral projection.
+        /// </summary>
         public override void BlitOctahedralTexture(CommandBuffer cmd, Vector4 scaleOffset, Texture texture, Vector4 sourceScaleOffset, bool blitMips = true, int overrideInstanceID = -1)
         {
             // We handle ourself the 2D blit because cookies needs mipPadding for trilinear filtering
@@ -147,6 +147,9 @@ namespace UnityEngine.Rendering
             }
         }
 
+        /// <summary>
+        /// Copy texture into the atlas with Octahedral projection and blending.
+        /// </summary>
         public void BlitOctahedralTextureMultiply(CommandBuffer cmd, Vector4 scaleOffset, Texture texture, Vector4 sourceScaleOffset, bool blitMips = true, int overrideInstanceID = -1)
         {
             // We handle ourself the 2D blit because cookies needs mipPadding for trilinear filtering
@@ -173,6 +176,9 @@ namespace UnityEngine.Rendering
         }
 
         // Override the behavior when we add a texture so all non-pot textures are blitted to a pot target zone
+        /// <summary>
+        /// Allocate space from the atlas for a texture and copy texture contents into the atlas.
+        /// </summary>
         public override bool AllocateTexture(CommandBuffer cmd, ref Vector4 scaleOffset, Texture texture, int width, int height, int overrideInstanceID = -1)
         {
             // This atlas only supports square textures
@@ -187,8 +193,14 @@ namespace UnityEngine.Rendering
             return base.AllocateTexture(cmd, ref scaleOffset, texture, width, height);
         }
 
+        /// <summary>
+        /// Clear tracked requested textures.
+        /// </summary>
         public void ResetRequestedTexture() => m_RequestedTextures.Clear();
 
+        /// <summary>
+        /// Reserve space from atlas for a texture.
+        /// </summary>
         public bool ReserveSpace(Texture texture)
         {
             m_RequestedTextures[texture.GetInstanceID()] = new Vector2Int(texture.width, texture.height);
@@ -203,6 +215,9 @@ namespace UnityEngine.Rendering
             return true;
         }
 
+        /// <summary>
+        /// Reserve space from atlas.
+        /// </summary>
         public bool ReserveSpace(int id, int width, int height)
         {
             m_RequestedTextures[id] = new Vector2Int(width, height);
@@ -243,15 +258,20 @@ namespace UnityEngine.Rendering
             return success;
         }
 
+        /// <summary>
+        /// Get cache size in bytes.
+        /// </summary>
         public static long GetApproxCacheSizeInByte(int nbElement, int resolution, bool hasMipmap, GraphicsFormat format)
             => (long)(nbElement * resolution * resolution * (double)((hasMipmap ? k_MipmapFactorApprox : 1.0f) * GraphicsFormatUtility.GetBlockSize(format)));
 
+        /// <summary>
+        /// Compute the max size of a power of two atlas for a given size in byte (weight).
+        /// </summary>
         public static int GetMaxCacheSizeForWeightInByte(int weight, bool hasMipmap, GraphicsFormat format)
         {
-            // Compute the max size of a power of two atlas for a given size in byte (weight)
             float bytePerPixel = (float)GraphicsFormatUtility.GetBlockSize(format) * (hasMipmap ? k_MipmapFactorApprox : 1.0f);
             var maxAtlasSquareSize = Mathf.Sqrt((float)weight / bytePerPixel);
-            return PreviousPowerOfTwo((int)maxAtlasSquareSize);
+            return CoreUtils.PreviousPowerOfTwo((int)maxAtlasSquareSize);
         }
     }
 }

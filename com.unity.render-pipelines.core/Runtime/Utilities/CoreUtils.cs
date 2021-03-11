@@ -1281,5 +1281,22 @@ namespace UnityEngine.Rendering
 
             return hash;
         }
+
+        // Hacker’s Delight, Second Edition page 66
+        /// <summary>
+        /// Branchless prvious power of two.
+        /// </summary>
+        public static int PreviousPowerOfTwo(int size)
+        {
+            if (size <= 0)
+                return 0;
+
+            size |= (size >> 1);
+            size |= (size >> 2);
+            size |= (size >> 4);
+            size |= (size >> 8);
+            size |= (size >> 16);
+            return size - (size >> 1);
+        }
     }
 }
