@@ -102,8 +102,8 @@ namespace UnityEngine.Rendering.Universal
         ScriptableRenderer[] m_Renderers = new ScriptableRenderer[1];
 
         // Default values set when a new UniversalRenderPipeline asset is created
-        [SerializeField] int k_AssetVersion = 7;
-        [SerializeField] int k_AssetPreviousVersion = 7;
+        [SerializeField] int k_AssetVersion = 8;
+        [SerializeField] int k_AssetPreviousVersion = 8;
 
         // Deprecated settings for upgrading sakes
         [SerializeField] RendererType m_RendererType = RendererType.ForwardRenderer;
@@ -912,6 +912,16 @@ namespace UnityEngine.Rendering.Universal
             {
                 k_AssetPreviousVersion = k_AssetVersion;
                 k_AssetVersion = 7;
+            }
+
+            if (k_AssetVersion < 8)
+            {
+                m_AdditionalLightsShadowResolutionTierHigh = (int)m_AdditionalLightsShadowmapResolution;
+                m_AdditionalLightsShadowResolutionTierMedium = Mathf.Max(m_AdditionalLightsShadowResolutionTierHigh / 2, UniversalAdditionalLightData.AdditionalLightsShadowMinimumResolution);
+                m_AdditionalLightsShadowResolutionTierLow = Mathf.Max(m_AdditionalLightsShadowResolutionTierMedium / 2, UniversalAdditionalLightData.AdditionalLightsShadowMinimumResolution);
+
+                k_AssetPreviousVersion = k_AssetVersion;
+                k_AssetVersion = 8;
             }
 
 #if UNITY_EDITOR
