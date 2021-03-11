@@ -43,7 +43,7 @@ namespace UnityEditor.VFX.HDRP
             return obj.shaderID;
         }
 
-        public override void SetupMaterial(Material mat, ShaderGraphVfxAsset shaderGraph = null)
+        public override void SetupMaterial(Material mat, bool hasMotionVector = false, bool hasShadowCasting = false, ShaderGraphVfxAsset shaderGraph = null)
         {
             try
             {
@@ -52,6 +52,10 @@ namespace UnityEditor.VFX.HDRP
                     // Recover the HDRP Shader Enum from the VFX Shader Graph.
                     var shaderID = GetShaderEnumFromShaderGraph(shaderGraph);
                     HDShaderUtils.ResetMaterialKeywords(mat, shaderID);
+
+                    // Configure HDRP Shadow + MV
+                    mat.SetShaderPassEnabled(HDShaderPassNames.s_MotionVectorsStr, hasMotionVector);
+                    mat.SetShaderPassEnabled(HDShaderPassNames.s_ShadowCasterStr, hasShadowCasting);
                 }
                 else
                     HDShaderUtils.ResetMaterialKeywords(mat);
@@ -88,6 +92,31 @@ namespace UnityEditor.VFX.HDRP
             }
 
             return blendMode;
+        }
+
+        public override bool TransparentMotionVectorEnabled(Material material)
+        {
+            if (!material.HasProperty(HDMaterialProperties.kSurfaceType) ||
+                !material.HasProperty(HDMaterialProperties.kTransparentWritingMotionVec))
+            {
+                return false;
+            }
+
+            var surfaceType = material.GetFloat(HDMaterialProperties.kSurfaceType);
+
+            if (surfaceType == (int)SurfaceType.Transparent)
+                return material.GetFloat(HDMaterialProperties.kTransparentWritingMotionVec) == 1f;
+
+            return false;
+        }
+
+        public override string GetShaderName(ShaderGraphVfxAsset shaderGraph)
+        {
+            // Recover the HDRP Shader Enum from the VFX Shader Graph.
+            var shaderID = GetShaderEnumFromShaderGraph(shaderGraph);
+
+            // Remove the HDRP Enum Prefix of "SG_".
+            return shaderID.ToString().Remove(0, 3);
         }
     }
 }

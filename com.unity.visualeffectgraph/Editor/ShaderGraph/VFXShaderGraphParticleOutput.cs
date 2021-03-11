@@ -73,9 +73,9 @@ namespace UnityEditor.VFX
 
             if (m_MaterialEditor != null)
             {
-                if ((m_MaterialEditor.target as Material)?.shader == null)
+                if (m_MaterialEditor.target == null || (m_MaterialEditor.target as Material)?.shader == null)
                 {
-                    EditorGUILayout.HelpBox("Failed to create the render state material.", MessageType.Warning);
+                    EditorGUILayout.HelpBox("Material Destroyed.", MessageType.Warning);
                 }
                 else
                 {
@@ -92,6 +92,15 @@ namespace UnityEditor.VFX
 
                     materialChanged = EditorGUI.EndChangeCheck();
                 }
+            }
+
+            // Indicate caution to the user if transparent motion vectors are disabled and motion vectors are enabled.
+            if ((m_MaterialEditor.target != null) &&
+                ((VFXAbstractParticleOutput)target).hasMotionVector &&
+                ((VFXShaderGraphParticleOutput)target).GetMaterialBlendMode() != VFXAbstractRenderedOutput.BlendMode.Opaque &&
+                !VFXLibrary.currentSRPBinder.TransparentMotionVectorEnabled(m_MaterialEditor.target as Material))
+            {
+                EditorGUILayout.HelpBox("Transparent Motion Vectors pass is disabled. Consider disabling Generate Motion Vector to improve performance.", MessageType.Warning);
             }
 
             base.OnInspectorGUI();
@@ -172,7 +181,7 @@ namespace UnityEditor.VFX
             if (shaderGraph != null && shaderGraph.generatesWithShaderGraph)
             {
                 materialSettings.ApplyToMaterial(material);
-                VFXLibrary.currentSRPBinder.SetupMaterial(material, shaderGraph);
+                VFXLibrary.currentSRPBinder.SetupMaterial(material, hasMotionVector, hasShadowCasting, shaderGraph);
 
                 transientMaterial = material;
                 OnMaterialChange?.Invoke();
@@ -258,6 +267,19 @@ namespace UnityEditor.VFX
         {
             var materialBlendMode = GetMaterialBlendMode();
             return base.HasSorting() || (sort == SortMode.Auto && (materialBlendMode == BlendMode.Alpha || materialBlendMode == BlendMode.AlphaPremultiplied));
+        }
+
+        protected string shaderName
+        {
+            get
+            {
+                var shaderGraph = GetOrRefreshShaderGraphObject();
+
+                if (shaderGraph == null || !shaderGraph.generatesWithShaderGraph)
+                    return string.Empty;
+
+                return VFXLibrary.currentSRPBinder.GetShaderName(shaderGraph);
+            }
         }
 
         // Here we maintain a list of settings that we do not need if we are using the ShaderGraph generation path (it will be in the material inspector).

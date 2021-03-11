@@ -5,6 +5,7 @@ using UnityEngine;
 using UnityEngine.Rendering.HighDefinition;
 using UnityEditor.ShaderGraph;
 using UnityEditor.ShaderGraph.Internal;
+using UnityEditor.VFX;
 
 namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
 {
@@ -417,11 +418,21 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                     return CoreRequiredFields.LitFull;
                 else
                 {
-                    return new FieldCollection
-                    {
-                        // TODO: add preprocessor protection for this interpolator: _TRANSPARENT_WRITES_MOTION_VEC
-                        HDStructFields.FragInputs.positionRWS,
-                    };
+                    if (VFXSubTarget.IsConfigured())
+                        return new FieldCollection
+                        {
+                            HDStructFields.FragInputs.positionRWS,
+
+                            // For VFX, we must include the TBN for Unlit.
+                            // TODO: Figure out exactly why this is necessary.
+                            HDStructFields.FragInputs.tangentToWorld,
+                        };
+                    else
+                        return new FieldCollection
+                        {
+                            // TODO: add preprocessor protection for this interpolator: _TRANSPARENT_WRITES_MOTION_VEC
+                            HDStructFields.FragInputs.positionRWS,
+                        };
                 }
             }
 

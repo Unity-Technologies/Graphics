@@ -8,8 +8,14 @@
 PackedVaryingsType Vert(AttributesMesh inputMesh, AttributesPass inputPass)
 {
     VaryingsType varyingsType;
+#ifdef HAVE_VFX_MODIFICATION
+    AttributesElement inputElement;
+    varyingsType.vmesh = VertMesh(inputMesh, inputElement);
+    return MotionVectorVS(varyingsType, inputMesh, inputPass, inputElement);
+#else
     varyingsType.vmesh = VertMesh(inputMesh);
     return MotionVectorVS(varyingsType, inputMesh, inputPass);
+#endif
 }
 
 #ifdef TESSELLATION_ON
