@@ -109,7 +109,7 @@ namespace UnityEditor.ShaderGraph.Drawing
             {
                 m_AssetName = value;
                 // Also update blackboard title
-                m_BlackboardController.ViewModel.title = value;
+                m_BlackboardController.UpdateBlackboardTitle(m_AssetName);
             }
         }
 

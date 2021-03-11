@@ -79,7 +79,7 @@ namespace UnityEditor.ShaderGraph.Drawing.Views
                 if (ParentView is ISelectionProvider selectionProvider)
                     return selectionProvider.GetSelection;
 
-                Debug.Log("ERROR: GraphSubWindow: Was unable to find a selection provider. Please check if parent view of: " + name + " implements ISelectionProvider::GetSelection");
+                AssertHelpers.Fail("GraphSubWindow was unable to find a selection provider. Please check if parent view of: " + name + " implements ISelectionProvider::GetSelection");
                 return new List<ISelectable>();
             }
         }
@@ -242,10 +242,10 @@ namespace UnityEditor.ShaderGraph.Drawing.Views
             BuildManipulators();
 
             /* Event interception to prevent GraphView manipulators from being triggered */
-            RegisterCallback<DragUpdatedEvent>(e =>
-            {
-                e.StopPropagation();
-            });
+            //RegisterCallback<DragUpdatedEvent>(e =>
+            //{
+            //    e.StopPropagation();
+            //});
 
             // prevent Zoomer manipulator
             RegisterCallback<WheelEvent>(e =>
@@ -253,11 +253,11 @@ namespace UnityEditor.ShaderGraph.Drawing.Views
                 e.StopPropagation();
             });
 
-            RegisterCallback<MouseDownEvent>(e =>
-            {
-                // prevent ContentDragger manipulator
-                e.StopPropagation();
-            });
+            //RegisterCallback<MouseDownEvent>(e =>
+            //{
+            //    // prevent ContentDragger manipulator
+            //    e.StopPropagation();
+            //});
         }
 
         public void ShowWindow()
@@ -307,11 +307,13 @@ namespace UnityEditor.ShaderGraph.Drawing.Views
 
         public void OnResized()
         {
-            this.style.left = cachedWindowDockingStyle.left;
-            this.style.right = cachedWindowDockingStyle.right;
-            this.style.bottom = cachedWindowDockingStyle.bottom;
-            this.style.top = cachedWindowDockingStyle.top;
-
+            if (cachedWindowDockingStyle != null)
+            {
+                this.style.left = cachedWindowDockingStyle.left;
+                this.style.right = cachedWindowDockingStyle.right;
+                this.style.bottom = cachedWindowDockingStyle.bottom;
+                this.style.top = cachedWindowDockingStyle.top;
+            }
             windowDockingLayout.size = layout.size;
             SerializeLayout();
         }

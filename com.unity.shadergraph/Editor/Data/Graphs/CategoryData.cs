@@ -46,7 +46,7 @@ namespace UnityEditor.ShaderGraph
             if(m_ChildItemIDList != null)
                 m_ChildItemIDSet = new HashSet<Guid>(m_ChildItemIDList);
             else
-                Debug.LogError("ERROR: Category data provided invalid data for construction.");
+               AssertHelpers.Fail("Category data provided invalid data for construction.");
             categoryGuid = inCategoryGuid;
         }
     }

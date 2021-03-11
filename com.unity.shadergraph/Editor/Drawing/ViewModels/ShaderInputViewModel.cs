@@ -7,25 +7,25 @@ namespace UnityEditor.ShaderGraph.Drawing
 {
     class ShaderInputViewModel : ISGViewModel
     {
-        public ShaderInput Model { get; set; }
+        public ShaderInput model { get; set; }
 
         public VisualElement parentView { get; set; }
 
-        internal bool IsSubGraph { get; set; }
-        internal bool IsInputExposed { get; set; }
+        internal bool isSubGraph { get; set; }
+        internal bool isInputExposed { get; set; }
 
-        internal string InputName { get; set; }
+        internal string inputName { get; set; }
 
-        internal string InputTypeName { get; set; }
+        internal string inputTypeName { get; set; }
 
         internal Action<IGraphDataAction> requestModelChangeAction { get; set; }
 
-        public void Reset()
+        public void ResetViewModelData()
         {
-            IsSubGraph = false;
-            IsInputExposed = false;
-            InputName = String.Empty;
-            InputTypeName = String.Empty;
+            isSubGraph = false;
+            isInputExposed = false;
+            inputName = String.Empty;
+            inputTypeName = String.Empty;
             requestModelChangeAction = null;
         }
     }

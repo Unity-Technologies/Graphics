@@ -8,15 +8,12 @@ using UnityEngine;
 
 namespace UnityEditor.ShaderGraph
 {
-
     class ConvertToPropertyAction : IGraphDataAction
     {
         void ConvertToProperty(GraphData graphData)
         {
-#if SG_ASSERTIONS
-            Assert.IsNotNull(graphData, "GraphData is null while carrying out ConvertToPropertyAction");
-            Assert.IsNotNull(inlinePropertiesToConvert, "InlinePropertiesToConvert is null while carrying out ConvertToPropertyAction");
-#endif
+            AssertHelpers.IsNotNull(graphData, "GraphData is null while carrying out ConvertToPropertyAction");
+            AssertHelpers.IsNotNull(inlinePropertiesToConvert, "InlinePropertiesToConvert is null while carrying out ConvertToPropertyAction");
             graphData.owner.RegisterCompleteObjectUndo("Convert to Property");
 
             foreach (var converter in inlinePropertiesToConvert)
@@ -57,10 +54,8 @@ namespace UnityEditor.ShaderGraph
     {
         void ConvertToInline(GraphData graphData)
         {
-#if SG_ASSERTIONS
-            Assert.IsNotNull(graphData, "GraphData is null while carrying out ConvertToInlineAction");
-            Assert.IsNotNull(propertyNodesToConvert, "PropertyNodesToConvert is null while carrying out ConvertToInlineAction");
-#endif
+            AssertHelpers.IsNotNull(graphData, "GraphData is null while carrying out ConvertToInlineAction");
+            AssertHelpers.IsNotNull(propertyNodesToConvert, "PropertyNodesToConvert is null while carrying out ConvertToInlineAction");
             graphData.owner.RegisterCompleteObjectUndo("Convert to Inline Node");
 
             foreach (var propertyNode in propertyNodesToConvert)
@@ -76,10 +71,8 @@ namespace UnityEditor.ShaderGraph
     {
         void DragGraphInput(GraphData graphData)
         {
-#if SG_ASSERTIONS
-            Assert.IsNotNull(graphData, "GraphData is null while carrying out DragGraphInputAction");
-            Assert.IsNotNull(graphInputBeingDraggedIn, "GraphInputBeingDraggedIn is null while carrying out DragGraphInputAction");
-#endif
+            AssertHelpers.IsNotNull(graphData, "GraphData is null while carrying out DragGraphInputAction");
+            AssertHelpers.IsNotNull(graphInputBeingDraggedIn, "GraphInputBeingDraggedIn is null while carrying out DragGraphInputAction");
             graphData.owner.RegisterCompleteObjectUndo("Drag Graph Input");
 
             switch (graphInputBeingDraggedIn)

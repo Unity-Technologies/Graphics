@@ -80,6 +80,7 @@
 .InspectorView #NodeSettingsContainer
 {
     padding-left: 3px;
+    padding-right: 6px;
     width: 0;
     min-width: 100%;
 }

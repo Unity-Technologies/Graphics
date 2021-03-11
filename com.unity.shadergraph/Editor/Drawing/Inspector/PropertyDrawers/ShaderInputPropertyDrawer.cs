@@ -98,7 +98,7 @@ namespace UnityEditor.ShaderGraph.Drawing.Inspector.PropertyDrawers
         internal void GetViewModel(ShaderInputViewModel shaderInputViewModel, GraphData inGraphData, PostChangeValueCallback postChangeValueCallback)
         {
             m_ViewModel = shaderInputViewModel;
-            this.isSubGraph = m_ViewModel.IsSubGraph;
+            this.isSubGraph = m_ViewModel.isSubGraph;
             this.graphData = inGraphData;
             this._keywordChangedCallback = () => graphData.OnKeywordChanged();
             this._precisionChangedCallback = () =>  graphData.ValidateGraph();

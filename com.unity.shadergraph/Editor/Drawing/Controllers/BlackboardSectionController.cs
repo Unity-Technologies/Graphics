@@ -17,10 +17,8 @@ namespace UnityEditor.ShaderGraph.Drawing
     {
         void MoveShaderInput(GraphData graphData)
         {
-#if SG_ASSERTIONS
-            Assert.IsNotNull(graphData, "GraphData is null while carrying out MoveShaderInputAction");
-            Assert.IsNotNull(ShaderInputReference, "ShaderInputReference is null while carrying out MoveShaderInputAction");
-#endif
+            AssertHelpers.IsNotNull(graphData, "GraphData is null while carrying out MoveShaderInputAction");
+            AssertHelpers.IsNotNull(shaderInputReference, "ShaderInputReference is null while carrying out MoveShaderInputAction");
             graphData.owner.RegisterCompleteObjectUndo("Move Graph Input");
             switch (shaderInputReference)
             {
@@ -89,13 +87,13 @@ namespace UnityEditor.ShaderGraph.Drawing
             foreach (var shaderInput in graphData.properties)
             {
                 if (IsInputInSection(shaderInput))
-                    AddBlackboardRow(shaderInput);
+                    InsertBlackboardRow(shaderInput);
             }
 
             foreach (var shaderInput in graphData.keywords)
             {
                 if (IsInputInSection(shaderInput))
-                    AddBlackboardRow(shaderInput);
+                    InsertBlackboardRow(shaderInput);
             }
         }
 
@@ -107,41 +105,42 @@ namespace UnityEditor.ShaderGraph.Drawing
         // Called by GraphDataStore.Subscribe after the model has been changed
         protected override void ModelChanged(GraphData graphData, IGraphDataAction changeAction)
         {
-            if (changeAction is AddShaderInputAction addBlackboardItemAction)
+            switch (changeAction)
             {
-                if (IsInputInSection(addBlackboardItemAction.shaderInputReference))
-                {
-                    var blackboardRow = AddBlackboardRow(addBlackboardItemAction.shaderInputReference);
-                    // Rows should auto-expand when an input is first added
-                    // blackboardRow.expanded = true;
+                // If newly added input doesn't belong to any of the sections, add it to the appropriate default section
+                case AddShaderInputAction addBlackboardItemAction:
+                    if (IsInputInSection(addBlackboardItemAction.shaderInputReference))
+                    {
+                        var blackboardRow = InsertBlackboardRow(addBlackboardItemAction.shaderInputReference);
 
-                    var propertyView = blackboardRow.Q<BlackboardPropertyView>();
-                    if (addBlackboardItemAction.addInputActionType == AddShaderInputAction.AddActionSource.AddMenu)
-                        propertyView.OpenTextEditor();
-                }
-            }
-            else if (changeAction is DeleteShaderInputAction deleteShaderInputAction)
-            {
-                foreach (var shaderInput in deleteShaderInputAction.shaderInputsToDelete)
-                {
-                    if (IsInputInSection(shaderInput))
-                        RemoveBlackboardRow(shaderInput);
-                }
-            }
-            else if (changeAction is HandleUndoRedoAction handleUndoRedoAction)
-            {
-                foreach (var shaderInput in graphData.removedInputs)
-                    if (IsInputInSection(shaderInput))
-                        RemoveBlackboardRow(shaderInput);
+                        // Rows should auto-expand when an input is first added
+                        // blackboardRow.expanded = true;
 
-                foreach (var shaderInput in graphData.addedInputs)
-                    if (IsInputInSection(shaderInput))
-                        AddBlackboardRow(shaderInput);
-            }
-            else if (changeAction is CopyShaderInputAction copyShaderInputAction)
-            {
-                if (IsInputInSection(copyShaderInputAction.copiedShaderInput))
-                    InsertBlackboardRow(copyShaderInputAction.copiedShaderInput, copyShaderInputAction.insertIndex);
+                        var propertyView = blackboardRow.Q<BlackboardPropertyView>();
+                        if (addBlackboardItemAction.addInputActionType == AddShaderInputAction.AddActionSource.AddMenu)
+                            propertyView.OpenTextEditor();
+                    }
+                    break;
+                case DeleteShaderInputAction deleteShaderInputAction:
+                    foreach (var shaderInput in deleteShaderInputAction.shaderInputsToDelete)
+                    {
+                        if (IsInputInSection(shaderInput))
+                            RemoveBlackboardRow(shaderInput);
+                    }
+                    break;
+                case HandleUndoRedoAction handleUndoRedoAction:
+                    foreach (var shaderInput in graphData.removedInputs)
+                        if (IsInputInSection(shaderInput))
+                            RemoveBlackboardRow(shaderInput);
+
+                    foreach (var shaderInput in graphData.addedInputs)
+                        if (IsInputInSection(shaderInput))
+                            InsertBlackboardRow(shaderInput);
+                    break;
+                case CopyShaderInputAction copyShaderInputAction:
+                    if (IsInputInSection(copyShaderInputAction.copiedShaderInput))
+                        InsertBlackboardRow(copyShaderInputAction.copiedShaderInput, copyShaderInputAction.insertIndex);
+                    break;
             }
         }
 
@@ -156,34 +155,17 @@ namespace UnityEditor.ShaderGraph.Drawing
             return associatedController?.BlackboardItemView;
         }
 
-        // Creates controller, view and view model for a blackboard item and adds the view to the end of the section
-        internal SGBlackboardRow AddBlackboardRow(BlackboardItem shaderInput)
-        {
-            var shaderInputViewModel = new ShaderInputViewModel()
-            {
-                Model = shaderInput,
-                parentView = BlackboardSectionView,
-            };
-
-            var blackboardItemController = new BlackboardItemController(shaderInput, shaderInputViewModel, DataStore);
-            m_BlackboardItemControllers.Add(shaderInput.guid, blackboardItemController);
-
-            BlackboardSectionView.Add(blackboardItemController.BlackboardItemView);
-
-            return blackboardItemController.BlackboardItemView;
-        }
-
         // Creates controller, view and view model for a blackboard item and adds the view to the specified index in the section
         // By default adds it to the end of the list if no insertionIndex specified
         internal SGBlackboardRow InsertBlackboardRow(BlackboardItem shaderInput, int insertionIndex = -1)
         {
             // If no index specified, add to end of section
             if (insertionIndex == -1)
-                return AddBlackboardRow(shaderInput);
+                insertionIndex = m_BlackboardItemControllers.Count;
 
             var shaderInputViewModel = new ShaderInputViewModel()
             {
-                Model = shaderInput,
+                model = shaderInput,
                 parentView = BlackboardSectionView,
             };
             var blackboardItemController = new BlackboardItemController(shaderInput, shaderInputViewModel, DataStore);

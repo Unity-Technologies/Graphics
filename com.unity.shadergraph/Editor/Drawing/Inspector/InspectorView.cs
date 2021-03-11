@@ -37,7 +37,10 @@ namespace UnityEditor.ShaderGraph.Drawing.Inspector
         void RegisterPropertyDrawer(Type newPropertyDrawerType)
         {
             if (typeof(IPropertyDrawer).IsAssignableFrom(newPropertyDrawerType) == false)
+            {
                 Debug.Log("Attempted to register a property drawer that doesn't inherit from IPropertyDrawer!");
+                return;
+            }
 
             var newPropertyDrawerAttribute = newPropertyDrawerType.GetCustomAttribute<SGPropertyDrawerAttribute>();
 
@@ -159,7 +162,6 @@ namespace UnityEditor.ShaderGraph.Drawing.Inspector
         {
             float timePassed = (float)(EditorApplication.timeSinceStartup % k_InspectorUpdateInterval);
             // Don't update for selections beyond a certain amount as they are no longer visible in the inspector past a certain point and only cost performance as the user performs operations
-            // TODO: Have some user feedback in inspector when crossing this amount
             if(timePassed < 0.01f && selection.Count < k_InspectorElementLimit && selection.Count != m_CurrentlyInspectedElementsCount)
                Update();
         }

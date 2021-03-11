@@ -32,8 +32,9 @@ namespace UnityEditor.ShaderGraph.Drawing
 
         VisualElement m_ContentItem;
         Pill m_Pill;
-        TextField m_TextField;
         Label m_TypeLabel;
+        TextField m_TextField;
+        internal TextField textField => m_TextField;
 
         Action m_ResetReferenceNameTrigger;
         List<Node> m_SelectedNodes = new List<Node>();
@@ -66,9 +67,9 @@ namespace UnityEditor.ShaderGraph.Drawing
         {
             ViewModel = viewModel;
             // Store ShaderInput in userData object
-            userData = ViewModel.Model;
+            userData = ViewModel.model;
             // Store the Model guid as viewDataKey as that is persistent
-            viewDataKey = ViewModel.Model.guid.ToString();
+            viewDataKey = ViewModel.model.guid.ToString();
 
             var visualTreeAsset = Resources.Load<VisualTreeAsset>(k_UxmlTemplatePath);
             Assert.IsNotNull(visualTreeAsset);
@@ -125,8 +126,8 @@ namespace UnityEditor.ShaderGraph.Drawing
 
             ShaderGraphPreferences.onAllowDeprecatedChanged += UpdateTypeText;
 
-            RegisterCallback<MouseEnterEvent>(evt => OnMouseHover(evt, ViewModel.Model));
-            RegisterCallback<MouseLeaveEvent>(evt => OnMouseHover(evt, ViewModel.Model));
+            RegisterCallback<MouseEnterEvent>(evt => OnMouseHover(evt, ViewModel.model));
+            RegisterCallback<MouseLeaveEvent>(evt => OnMouseHover(evt, ViewModel.model));
             RegisterCallback<DragUpdatedEvent>(OnDragUpdatedEvent);
 
             var blackboard = ViewModel.parentView.GetFirstAncestorOfType<SGBlackboard>();
@@ -168,9 +169,9 @@ namespace UnityEditor.ShaderGraph.Drawing
 
         internal void UpdateFromViewModel()
         {
-            this.text = ViewModel.InputName;
-            this.icon = ViewModel.IsInputExposed ? k_ExposedIcon : null;
-            this.typeText = ViewModel.InputTypeName;
+            this.text = ViewModel.inputName;
+            this.icon = ViewModel.isInputExposed ? k_ExposedIcon : null;
+            this.typeText = ViewModel.inputTypeName;
         }
 
         ShaderInputViewController m_Controller;
@@ -211,9 +212,9 @@ namespace UnityEditor.ShaderGraph.Drawing
         // --- ISGControlledElement implementation
 
         [Inspectable("Shader Input", null)]
-        public ShaderInput shaderInput => ViewModel.Model;
+        public ShaderInput shaderInput => ViewModel.model;
 
-        public string inspectorTitle => ViewModel.InputName + " " + ViewModel.InputTypeName;
+        public string inspectorTitle => ViewModel.inputName + " " + ViewModel.inputTypeName;
 
         public object GetObjectToInspect()
         {
@@ -226,7 +227,7 @@ namespace UnityEditor.ShaderGraph.Drawing
         {
             if (propertyDrawer is ShaderInputPropertyDrawer shaderInputPropertyDrawer)
             {
-                // TODO: We currently need to do a halfway measure between the old way of handling stuff for property drawers (how FieldView and NodeView handle it)
+                // We currently need to do a halfway measure between the old way of handling stuff for property drawers (how FieldView and NodeView handle it)
                 // and how we want to handle it with the new style of controllers and views. Ideally we'd just hand the property drawer a view model and thats it.
                 // We've maintained all the old callbacks as they are in the PropertyDrawer to reduce possible halo changes and support PropertyNodeView functionality
                 // Instead we supply different underlying methods for the callbacks in the new BlackboardPropertyView,

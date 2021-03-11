@@ -24,16 +24,15 @@ namespace UnityEditor.ShaderGraph.Drawing
 
         void AddShaderInput(GraphData graphData)
         {
-#if SG_ASSERTIONS
-            Assert.IsNotNull(graphData, "GraphData is null while carrying out AddShaderInputAction");
-#endif
+            AssertHelpers.IsNotNull(graphData, "GraphData is null while carrying out AddShaderInputAction");
+
             // If type property is valid, create instance of that type
             if (blackboardItemType != null && blackboardItemType.IsSubclassOf(typeof(BlackboardItem)))
                 shaderInputReference = (BlackboardItem)Activator.CreateInstance(blackboardItemType, true);
             // If type is null a direct override object must have been provided or else we are in an error-state
             else if (shaderInputReference == null)
             {
-                Debug.Log("ERROR: BlackboardController: Unable to complete Add Shader Input action.");
+                AssertHelpers.Fail("BlackboardController: Unable to complete Add Shader Input action.");
                 return;
             }
 
@@ -58,9 +57,7 @@ namespace UnityEditor.ShaderGraph.Drawing
     {
         void ChangeGraphPath(GraphData graphData)
         {
-#if SG_ASSERTIONS
-            Assert.IsNotNull(graphData, "GraphData is null while carrying out ChangeGraphPathAction");
-#endif
+            AssertHelpers.IsNotNull(graphData, "GraphData is null while carrying out ChangeGraphPathAction");
             graphData.path = NewGraphPath;
         }
 
@@ -73,10 +70,8 @@ namespace UnityEditor.ShaderGraph.Drawing
     {
         void CopyShaderInput(GraphData graphData)
         {
-#if SG_ASSERTIONS
-            Assert.IsNotNull(graphData, "GraphData is null while carrying out CopyShaderInputAction");
-            Assert.IsNotNull(shaderInputToCopy, "ShaderInputToCopy is null while carrying out CopyShaderInputAction");
-#endif
+            AssertHelpers.IsNotNull(graphData, "GraphData is null while carrying out CopyShaderInputAction");
+            AssertHelpers.IsNotNull(shaderInputToCopy, "ShaderInputToCopy is null while carrying out CopyShaderInputAction");
             // Don't handle undo here as there are different contexts in which this action is used, that define the undo action namea
             // TODO: Perhaps a sign that each of those need to be made their own actions instead of conflating intent into a single action
             switch (shaderInputToCopy)
@@ -175,13 +170,9 @@ namespace UnityEditor.ShaderGraph.Drawing
         void InitializeViewModel()
         {
             // Clear the view model
-            ViewModel.Reset();
+            ViewModel.ResetViewModelData();
 
             ViewModel.subtitle = BlackboardUtils.FormatPath(Model.path);
-
-            // TODO: Could all this below data be static in the view model as well? Can't really see it ever changing at runtime
-            // All of this stuff seems static and driven by attributes so it would seem to be compile-time defined, could definitely be an option
-            // Only issue is checking for conflicts with user made keywords, could leave just that bit here and make everything else static
 
             // Property data first
             foreach (var shaderInputType in s_ShaderInputTypes)
@@ -277,6 +268,13 @@ namespace UnityEditor.ShaderGraph.Drawing
             blackboard.contentContainer.Add(m_KeywordSectionController.BlackboardSectionView);
         }
 
+        public void UpdateBlackboardTitle(string newTitle)
+        {
+            ViewModel.title = newTitle;
+            blackboard.title = ViewModel.title;
+        }
+
+
         protected override void RequestModelChange(IGraphDataAction changeAction)
         {
             DataStore.Dispatch(changeAction);
@@ -288,52 +286,54 @@ namespace UnityEditor.ShaderGraph.Drawing
             // Reconstruct view-model first
             InitializeViewModel();
 
-            // If newly added input doesn't belong to any of the sections, add it to the appropriate default section
-            if (changeAction is AddShaderInputAction addBlackboardItemAction)
+            switch (changeAction)
             {
-                var shaderInput = addBlackboardItemAction.shaderInputReference;
+                // If newly added input doesn't belong to any of the sections, add it to the appropriate default section
+                case AddShaderInputAction addBlackboardItemAction:
+                    if (IsInputInDefaultCategory(addBlackboardItemAction.shaderInputReference))
+                    {
+                        var blackboardRow = AddInputToDefaultSection(addBlackboardItemAction.shaderInputReference);
+                        var propertyView = blackboardRow.Q<BlackboardPropertyView>();
+                        if (addBlackboardItemAction.addInputActionType == AddShaderInputAction.AddActionSource.AddMenu)
+                            propertyView.OpenTextEditor();
+                    }
 
-                if (IsInputInDefaultCategory(shaderInput))
-                {
-                    var blackboardRow = AddInputToDefaultSection(shaderInput);
-                    var propertyView = blackboardRow.Q<BlackboardPropertyView>();
-                    if (addBlackboardItemAction.addInputActionType == AddShaderInputAction.AddActionSource.AddMenu)
-                        propertyView.OpenTextEditor();
-                }
-            }
-            else if (changeAction is DeleteShaderInputAction deleteShaderInputAction)
-            {
-                foreach (var shaderInput in deleteShaderInputAction.shaderInputsToDelete)
-                    if (IsInputInDefaultCategory(shaderInput))
-                        RemoveInputFromDefaultSection(shaderInput);
-            }
-            else if (changeAction is HandleUndoRedoAction handleUndoRedoAction)
-            {
-                foreach (var shaderInput in graphData.removedInputs)
-                    if (IsInputInDefaultCategory(shaderInput))
-                        RemoveInputFromDefaultSection(shaderInput);
+                    break;
 
-                foreach (var shaderInput in graphData.addedInputs)
-                    if (IsInputInDefaultCategory(shaderInput))
-                        AddInputToDefaultSection(shaderInput);
-            }
-            else if (changeAction is CopyShaderInputAction copyShaderInputAction)
-            {
-                if (IsInputInDefaultCategory(copyShaderInputAction.copiedShaderInput))
-                {
-                    var blackboardRow = InsertInputInDefaultSection(copyShaderInputAction.copiedShaderInput, copyShaderInputAction.insertIndex);
-                    // This selects the newly created property value without over-riding the undo stack in case user wants to undo
-                    var graphView = ViewModel.parentView as MaterialGraphView;
-                    graphView?.ClearSelectionNoUndoRecord();
-                    var propertyView = blackboardRow.Q<BlackboardPropertyView>();
-                    graphView?.AddToSelectionNoUndoRecord(propertyView);
-                }
-            }
-            else if (changeAction is ConvertToPropertyAction convertToPropertyAction)
-            {
-                foreach (var convertedProperty in convertToPropertyAction.convertedPropertyReferences)
-                    if (IsInputInDefaultCategory(convertedProperty))
-                        AddInputToDefaultSection(convertedProperty);
+                case DeleteShaderInputAction deleteShaderInputAction:
+                    foreach (var shaderInput in deleteShaderInputAction.shaderInputsToDelete)
+                        if (IsInputInDefaultCategory(shaderInput))
+                            RemoveInputFromDefaultSection(shaderInput);
+                    break;
+
+                case HandleUndoRedoAction handleUndoRedoAction:
+                    foreach (var shaderInput in graphData.removedInputs)
+                        if (IsInputInDefaultCategory(shaderInput))
+                            RemoveInputFromDefaultSection(shaderInput);
+
+                    foreach (var shaderInput in graphData.addedInputs)
+                        if (IsInputInDefaultCategory(shaderInput))
+                            AddInputToDefaultSection(shaderInput);
+                    break;
+
+                case CopyShaderInputAction copyShaderInputAction:
+                    if (IsInputInDefaultCategory(copyShaderInputAction.copiedShaderInput))
+                    {
+                        var blackboardRow = InsertInputInDefaultSection(copyShaderInputAction.copiedShaderInput, copyShaderInputAction.insertIndex);
+
+                        // This selects the newly created property value without over-riding the undo stack in case user wants to undo
+                        var graphView = ViewModel.parentView as MaterialGraphView;
+                        graphView?.ClearSelectionNoUndoRecord();
+                        var propertyView = blackboardRow.Q<BlackboardPropertyView>();
+                        graphView?.AddToSelectionNoUndoRecord(propertyView);
+                    }
+
+                    break;
+                case ConvertToPropertyAction convertToPropertyAction:
+                    foreach (var convertedProperty in convertToPropertyAction.convertedPropertyReferences)
+                        if (IsInputInDefaultCategory(convertedProperty))
+                            AddInputToDefaultSection(convertedProperty);
+                    break;
             }
 
             // Lets all event handlers this controller owns/manages know that the model has changed
@@ -349,9 +349,9 @@ namespace UnityEditor.ShaderGraph.Drawing
             switch (shaderInput)
             {
                 case AbstractShaderProperty property:
-                    return m_PropertySectionController.AddBlackboardRow(property);
+                    return m_PropertySectionController.InsertBlackboardRow(property);
                 case ShaderKeyword keyword:
-                    return m_KeywordSectionController.AddBlackboardRow(keyword);
+                    return m_KeywordSectionController.InsertBlackboardRow(keyword);
             }
 
             return null;

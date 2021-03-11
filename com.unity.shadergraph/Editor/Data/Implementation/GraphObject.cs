@@ -10,10 +10,8 @@ namespace UnityEditor.Graphing
     {
         void HandleGraphUndoRedo(GraphData graphData)
         {
-#if SG_ASSERTIONS
-            Assert.IsNotNull(graphData, "GraphData is null while carrying out HandleUndoRedoAction");
-            Assert.IsNotNull(NewGraphData, "NewGraphData is null while carrying out HandleUndoRedoAction");
-#endif
+            AssertHelpers.IsNotNull(graphData, "GraphData is null while carrying out HandleUndoRedoAction");
+            AssertHelpers.IsNotNull(newGraphData, "NewGraphData is null while carrying out HandleUndoRedoAction");
             graphData?.ReplaceWith(newGraphData);
         }
 

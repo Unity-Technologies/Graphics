@@ -14,10 +14,8 @@ namespace UnityEditor.ShaderGraph.Drawing
     {
         void ChangeExposedFlag(GraphData graphData)
         {
-#if SG_ASSERTIONS
-            Assert.IsNotNull(graphData, "GraphData is null while carrying out ChangeExposedFlagAction");
-            Assert.IsNotNull(shaderInputReference, "ShaderInputReference is null while carrying out ChangeExposedFlagAction");
-#endif
+            AssertHelpers.IsNotNull(graphData, "GraphData is null while carrying out ChangeExposedFlagAction");
+            AssertHelpers.IsNotNull(shaderInputReference, "ShaderInputReference is null while carrying out ChangeExposedFlagAction");
             // The Undos are currently handled in ShaderInputPropertyDrawer but we want to move that out from there and handle here
             //graphData.owner.RegisterCompleteObjectUndo("Change Exposed Toggle");
             shaderInputReference.generatePropertyBlock = newIsExposedValue;
@@ -37,10 +35,8 @@ namespace UnityEditor.ShaderGraph.Drawing
     {
         void ChangePropertyValue(GraphData graphData)
         {
-#if SG_ASSERTIONS
-            Assert.IsNotNull(graphData, "GraphData is null while carrying out ChangePropertyValueAction");
-            Assert.IsNotNull(shaderInputReference, "ShaderPropertyReference is null while carrying out ChangePropertyValueAction");
-#endif
+            AssertHelpers.IsNotNull(graphData, "GraphData is null while carrying out ChangePropertyValueAction");
+            AssertHelpers.IsNotNull(shaderInputReference, "ShaderPropertyReference is null while carrying out ChangePropertyValueAction");
             // The Undos are currently handled in ShaderInputPropertyDrawer but we want to move that out from there and handle here
             //graphData.owner.RegisterCompleteObjectUndo("Change Property Value");
             switch (shaderInputReference)
@@ -109,10 +105,8 @@ namespace UnityEditor.ShaderGraph.Drawing
     {
         void ChangeDisplayName(GraphData graphData)
         {
-#if SG_ASSERTIONS
-            Assert.IsNotNull(graphData, "GraphData is null while carrying out ChangeDisplayNameAction");
-            Assert.IsNotNull(shaderInputReference, "ShaderInputReference is null while carrying out ChangeDisplayNameAction");
-#endif
+            AssertHelpers.IsNotNull(graphData, "GraphData is null while carrying out ChangeDisplayNameAction");
+            AssertHelpers.IsNotNull(shaderInputReference, "ShaderInputReference is null while carrying out ChangeDisplayNameAction");
             graphData.owner.RegisterCompleteObjectUndo("Change Display Name");
             if (newDisplayNameValue != shaderInputReference.displayName)
             {
@@ -132,10 +126,8 @@ namespace UnityEditor.ShaderGraph.Drawing
     {
         void ChangeReferenceName(GraphData graphData)
         {
-#if SG_ASSERTIONS
-            Assert.IsNotNull(graphData, "GraphData is null while carrying out ChangeReferenceNameAction");
-            Assert.IsNotNull(ShaderInputReference, "ShaderInputReference is null while carrying out ChangeReferenceNameAction");
-#endif
+            AssertHelpers.IsNotNull(graphData, "GraphData is null while carrying out ChangeReferenceNameAction");
+            AssertHelpers.IsNotNull(shaderInputReference, "ShaderInputReference is null while carrying out ChangeReferenceNameAction");
             // The Undos are currently handled in ShaderInputPropertyDrawer but we want to move that out from there and handle here
             //graphData.owner.RegisterCompleteObjectUndo("Change Reference Name");
             if (newReferenceNameValue != shaderInputReference.overrideReferenceName)
@@ -156,10 +148,8 @@ namespace UnityEditor.ShaderGraph.Drawing
     {
         void ResetReferenceName(GraphData graphData)
         {
-#if SG_ASSERTIONS
-            Assert.IsNotNull(graphData, "GraphData is null while carrying out ResetReferenceNameAction");
-            Assert.IsNotNull(ShaderInputReference, "ShaderInputReference is null while carrying out ResetReferenceNameAction");
-#endif
+            AssertHelpers.IsNotNull(graphData, "GraphData is null while carrying out ResetReferenceNameAction");
+            AssertHelpers.IsNotNull(shaderInputReference, "ShaderInputReference is null while carrying out ResetReferenceNameAction");
             graphData.owner.RegisterCompleteObjectUndo("Reset Reference Name");
             shaderInputReference.overrideReferenceName = null;
         }
@@ -174,10 +164,8 @@ namespace UnityEditor.ShaderGraph.Drawing
     {
         void DeleteShaderInput(GraphData graphData)
         {
-#if SG_ASSERTIONS
-            Assert.IsNotNull(graphData, "GraphData is null while carrying out DeleteShaderInputAction");
-            Assert.IsNotNull(shaderInputsToDelete, "ShaderInputReference is null while carrying out DeleteShaderInputAction");
-#endif
+            AssertHelpers.IsNotNull(graphData, "GraphData is null while carrying out DeleteShaderInputAction");
+            AssertHelpers.IsNotNull(shaderInputsToDelete, "ShaderInputsToDelete is null while carrying out DeleteShaderInputAction");
             // This is called by MaterialGraphView currently, no need to repeat it here, though ideally it would live here
             //graphData.owner.RegisterCompleteObjectUndo("Delete Graph Input(s)");
 
@@ -212,20 +200,20 @@ namespace UnityEditor.ShaderGraph.Drawing
 
         void InitializeViewModel()
         {
-            ViewModel.Model = Model;
-            ViewModel.IsSubGraph = DataStore.State.isSubGraph;
-            ViewModel.IsInputExposed = (DataStore.State.isSubGraph || (Model.isExposable && Model.generatePropertyBlock));
-            ViewModel.InputName = Model.displayName;
+            ViewModel.model = Model;
+            ViewModel.isSubGraph = DataStore.State.isSubGraph;
+            ViewModel.isInputExposed = (DataStore.State.isSubGraph || (Model.isExposable && Model.generatePropertyBlock));
+            ViewModel.inputName = Model.displayName;
             switch (Model)
             {
                 case AbstractShaderProperty shaderProperty:
-                    ViewModel.InputTypeName = shaderProperty.GetPropertyTypeString();
+                    ViewModel.inputTypeName = shaderProperty.GetPropertyTypeString();
                     // Handles upgrade fix for deprecated old Color property
                     shaderProperty.onBeforeVersionChange += (_) => graphData.owner.RegisterCompleteObjectUndo($"Change {shaderProperty.displayName} Version");
                     break;
                 case ShaderKeyword shaderKeyword:
-                    ViewModel.InputTypeName = shaderKeyword.keywordType  + " Keyword";
-                    ViewModel.InputTypeName = shaderKeyword.isBuiltIn ? "Built-in " + ViewModel.InputTypeName : ViewModel.InputTypeName;
+                    ViewModel.inputTypeName = shaderKeyword.keywordType  + " Keyword";
+                    ViewModel.inputTypeName = shaderKeyword.isBuiltIn ? "Built-in " + ViewModel.inputTypeName : ViewModel.inputTypeName;
                     break;
             }
 
@@ -245,31 +233,31 @@ namespace UnityEditor.ShaderGraph.Drawing
         // Called by GraphDataStore.Subscribe after the model has been changed
         protected override void ModelChanged(GraphData graphData, IGraphDataAction changeAction)
         {
-            if (changeAction is ChangeExposedFlagAction changeExposedFlagAction)
+            switch (changeAction)
             {
-                ViewModel.IsInputExposed = Model.generatePropertyBlock;
-                DirtyNodes(ModificationScope.Graph);
-                m_BlackboardPropertyView.UpdateFromViewModel();
-            }
-            else if (changeAction is ChangePropertyValueAction changePropertyValueAction)
-            {
-                DirtyNodes(ModificationScope.Graph);
-                m_BlackboardPropertyView.MarkDirtyRepaint();
-            }
-            else if (changeAction is ResetReferenceNameAction resetReferenceNameAction)
-            {
-                DirtyNodes(ModificationScope.Graph);
-            }
-            else if (changeAction is ChangeReferenceNameAction changeReferenceNameAction)
-            {
-                // TODO: Handle reset reference name menu behavior here??
-                DirtyNodes(ModificationScope.Graph);
-            }
-            else if (changeAction is ChangeDisplayNameAction changeDisplayNameAction)
-            {
-                ViewModel.InputName = Model.displayName;
-                DirtyNodes(ModificationScope.Topological);
-                m_BlackboardPropertyView.UpdateFromViewModel();
+                case ChangeExposedFlagAction changeExposedFlagAction:
+                    ViewModel.isInputExposed = Model.generatePropertyBlock;
+                    DirtyNodes(ModificationScope.Graph);
+                    m_BlackboardPropertyView.UpdateFromViewModel();
+                    break;
+
+                case ChangePropertyValueAction changePropertyValueAction:
+                    DirtyNodes(ModificationScope.Graph);
+                    m_BlackboardPropertyView.MarkDirtyRepaint();
+                    break;
+
+                case ResetReferenceNameAction resetReferenceNameAction:
+                    DirtyNodes(ModificationScope.Graph);
+                    break;
+
+                case ChangeReferenceNameAction changeReferenceNameAction:
+                    DirtyNodes(ModificationScope.Graph);
+                    break;
+                case ChangeDisplayNameAction changeDisplayNameAction:
+                    ViewModel.inputName = Model.displayName;
+                    DirtyNodes(ModificationScope.Topological);
+                    m_BlackboardPropertyView.UpdateFromViewModel();
+                    break;
             }
         }
 

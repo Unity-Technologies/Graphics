@@ -34,8 +34,9 @@ namespace UnityEditor.ShaderGraph.Drawing
             disabledKeywordNameList = new List<string>();
         }
 
-        public void Reset()
+        public void ResetViewModelData()
         {
+            subtitle = String.Empty;
             propertyNameToAddActionMap.Clear();
             defaultKeywordNameToAddActionMap.Clear();
             builtInKeywordNameToAddActionMap.Clear();
