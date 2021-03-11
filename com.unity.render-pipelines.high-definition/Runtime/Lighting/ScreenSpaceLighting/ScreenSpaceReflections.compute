@@ -697,14 +697,17 @@ void ScreenSpaceReflectionsAccumulate(uint3 dispatchThreadId : SV_DispatchThread
 
     float2 motionVectorNDC;
     DecodeMotionVector(SAMPLE_TEXTURE2D_X_LOD(_CameraMotionVectorsTexture, s_linear_clamp_sampler, min(hitPositionNDC.xy, 1.0f - 0.5f * _ScreenSize.zw) * _RTHandleScale.xy, 0), motionVectorNDC);
-    float speedDst = length(motionVectorNDC);
+    //float speedDst = length(motionVectorNDC);
 
     float2 motionVectorCenterNDC;
     float2 positionNDC = positionSS * _ScreenSize.zw + (0.5 * _ScreenSize.zw);
     DecodeMotionVector(SAMPLE_TEXTURE2D_X_LOD(_CameraMotionVectorsTexture, s_linear_clamp_sampler, min(positionNDC, 1.0f - 0.5f * _ScreenSize.zw) * _RTHandleScale.xy, 0), motionVectorCenterNDC);
-    float speedSrc = length(motionVectorCenterNDC);
+    //float speedSrc = length(motionVectorCenterNDC);
 
-    float speed = saturate((speedDst + speedSrc) * _SsrPBRSpeedRejection);
+	float speedDiff = length(motionVectorNDC - motionVectorCenterNDC);
+
+    //float speed = saturate((speedDst + speedSrc) * _SsrPBRSpeedRejection);
+	float speed = saturate(speedDiff * _SsrPBRSpeedRejection);
     float coefExpAvg = lerp(_SsrAccumulationAmount, 1.0f, speed);
     float4 result = lerp(previous, original, coefExpAvg);
 
