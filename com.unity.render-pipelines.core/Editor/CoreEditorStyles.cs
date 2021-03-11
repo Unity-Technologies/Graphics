@@ -20,11 +20,17 @@ namespace UnityEditor.Rendering
         /// <summary>Style for a minilabel button</summary>
         public static readonly GUIStyle miniLabelButton;
 
-        static readonly Texture2D paneOptionsIconDark;
-        static readonly Texture2D paneOptionsIconLight;
+        /// <summary><see cref="Texture2D"/> 1x1 pixel with red color</summary>
+        public static readonly Texture2D redTexture;
+        /// <summary><see cref="Texture2D"/> 1x1 pixel with green color</summary>
+        public static readonly Texture2D greenTexture;
+        /// <summary><see cref="Texture2D"/> 1x1 pixel with blue color</summary>
+        public static readonly Texture2D blueTexture;
 
         /// <summary> PaneOption icon </summary>
-        public static Texture2D paneOptionsIcon { get { return EditorGUIUtility.isProSkin ? paneOptionsIconDark : paneOptionsIconLight; } }
+        static readonly Texture2D paneOptionsIconDark;
+        static readonly Texture2D paneOptionsIconLight;
+        public static Texture2D paneOptionsIcon => EditorGUIUtility.isProSkin ? paneOptionsIconDark : paneOptionsIconLight;
 
         /// <summary>Context Menu button icon</summary>
         public static readonly GUIContent contextMenuIcon;
@@ -52,16 +58,21 @@ namespace UnityEditor.Rendering
             smallTickbox = new GUIStyle("ShurikenToggle");
             smallMixedTickbox = new GUIStyle("ShurikenToggleMixed");
 
-            var transparentTexture = new Texture2D(1, 1, GraphicsFormat.R8G8B8A8_SRGB, TextureCreationFlags.None);
+            var transparentTexture = new Texture2D(1, 1, GraphicsFormat.R8G8B8A8_SRGB, TextureCreationFlags.None)
+            {
+                name = "transparent"
+            };
             transparentTexture.SetPixel(0, 0, Color.clear);
             transparentTexture.Apply();
 
-            miniLabelButton = new GUIStyle(EditorStyles.miniLabel);
-            miniLabelButton.normal = new GUIStyleState
+            miniLabelButton = new GUIStyle(EditorStyles.miniLabel)
             {
-                background = transparentTexture,
-                scaledBackgrounds = null,
-                textColor = Color.grey
+                normal = new GUIStyleState
+                {
+                    background = transparentTexture,
+                    scaledBackgrounds = null,
+                    textColor = Color.grey
+                }
             };
             var activeState = new GUIStyleState
             {
@@ -74,22 +85,39 @@ namespace UnityEditor.Rendering
             miniLabelButton.onActive = activeState;
 
             paneOptionsIconDark = CoreEditorUtils.LoadIcon("Builtin Skins/DarkSkin/Images", "pane options", ".png");
+            paneOptionsIconDark.name = "pane options dark skin";
             paneOptionsIconLight = CoreEditorUtils.LoadIcon("Builtin Skins/LightSkin/Images", "pane options", ".png");
+            paneOptionsIconLight.name = "pane options light skin";
 
             m_LightThemeBackgroundColor = new Color(0.7843138f, 0.7843138f, 0.7843138f, 1.0f);
             m_LightThemeBackgroundHighlightColor = new Color32(174, 174, 174, 255);
             m_DarkThemeBackgroundColor = new Color(0.2196079f, 0.2196079f, 0.2196079f, 1.0f);
             m_DarkThemeBackgroundHighlightColor = new Color32(77, 77, 77, 255);
 
-            additionalPropertiesHighlightStyle = new GUIStyle();
-            additionalPropertiesHighlightStyle.normal.background = Texture2D.whiteTexture;
+            additionalPropertiesHighlightStyle = new GUIStyle {normal = {background = Texture2D.whiteTexture}};
 
-            var contextTooltip = ""; // To be defined (see with UX)
+            const string contextTooltip = ""; // To be defined (see with UX)
             contextMenuIcon = new GUIContent(paneOptionsIcon, contextTooltip);
             contextMenuStyle = new GUIStyle("IconButton");
 
+            redTexture = CoreEditorUtils.CreateColoredTexture2D(Color.red, "Red 1x1");
+            greenTexture = CoreEditorUtils.CreateColoredTexture2D(Color.green, "Green 1x1");
+            blueTexture = CoreEditorUtils.CreateColoredTexture2D(Color.blue, "Blue 1x1");
+
             iconHelp = new GUIContent(EditorGUIUtility.FindTexture("_Help"));
             iconHelpStyle = GUI.skin.FindStyle("IconButton") ?? EditorGUIUtility.GetBuiltinSkin(EditorSkin.Inspector).FindStyle("IconButton");
+
+            // Make sure that textures are unloaded on domain reloads.
+            void OnBeforeAssemblyReload()
+            {
+                Object.DestroyImmediate(redTexture);
+                Object.DestroyImmediate(greenTexture);
+                Object.DestroyImmediate(blueTexture);
+                Object.DestroyImmediate(transparentTexture);
+                AssemblyReloadEvents.beforeAssemblyReload -= OnBeforeAssemblyReload;
+            }
+
+            AssemblyReloadEvents.beforeAssemblyReload += OnBeforeAssemblyReload;
         }
     }
 }
