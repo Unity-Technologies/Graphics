@@ -13,7 +13,7 @@ PackedVaryings vert(Attributes input)
         return output; // Dead particle.
 
     input = TransformMeshToElement(input, element);
-    output = BuildVaryings(input, element);
+    output = BuildVaryings(input, element, output);
 #else
     output = BuildVaryings(input);
 #endif

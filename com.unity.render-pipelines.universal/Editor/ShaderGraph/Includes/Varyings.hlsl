@@ -9,10 +9,16 @@
 Varyings BuildVaryings(Attributes input
 #if defined(HAVE_VFX_MODIFICATION)
     , AttributesElement element
+    , Varyings baseOutput
 #endif
 )
 {
+#if defined(HAVE_VFX_MODIFICATION)
+    //TODOPAUL : This output could have been partially filled by GetInterpolatorAndElementData
+    Varyings output = baseOutput;
+#else
     Varyings output = (Varyings)0;
+#endif
 
     UNITY_SETUP_INSTANCE_ID(input);
     UNITY_TRANSFER_INSTANCE_ID(input, output);
