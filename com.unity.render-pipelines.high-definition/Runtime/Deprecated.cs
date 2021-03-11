@@ -43,7 +43,7 @@ namespace UnityEngine.Rendering.HighDefinition
     }
 
     /// <summary>Deprecated DensityVolume</summary>
-    [Obsolete("LocalVolumetricFog has been deprecated (UnityUpgradable) -> Local Volumetric Fog", false)]
+    [Obsolete("DensityVolume has been deprecated (UnityUpgradable) -> Local Volumetric Fog", false)]
     public class DensityVolume : LocalVolumetricFog
     {
     }
