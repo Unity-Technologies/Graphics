@@ -7,7 +7,7 @@ using static UnityEditor.VFX.VFXAbstractRenderedOutput;
 
 namespace UnityEditor.VFX
 {
-    //TODOPAUL : comment
+    //TODOPAUL : comment why empty
     class VFXUniversalSubOutput : VFXSRPSubOutput
     {
     }
