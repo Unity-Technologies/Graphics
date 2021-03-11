@@ -51,17 +51,15 @@ struct RingData
     float alphaAccum;
     float opacity;
     float CoC;
-    int ringNum;
     bool isForeground;
 };
 
-void InitRingData(int ring, bool fg, out RingData data)
+void InitRingData(bool fg, out RingData data)
 {
     data.colorAccum = 0;
     data.alphaAccum = 0;
     data.opacity = 0;
     data.CoC = 0;
-    data.ringNum = ring;
     data.isForeground = fg;
 }
 
@@ -322,8 +320,8 @@ void DoFGatherRings(PositionInputs posInputs, int numSamples, float maxRadius, S
     for (int ring = numSamples - 1; ring >= 0; ring --)
     {
         RingData bgRingData, fgRingData;
-        InitRingData(ring, false, bgRingData);
-        InitRingData(ring, true, fgRingData);
+        InitRingData(false, bgRingData);
+        InitRingData(true, fgRingData);
 
         for (int i = 0; i < numSamples; i += 1)
         {
