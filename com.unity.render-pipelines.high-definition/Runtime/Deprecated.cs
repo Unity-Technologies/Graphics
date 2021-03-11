@@ -34,11 +34,11 @@ namespace UnityEngine.Rendering.HighDefinition
         }
 
         /// <summary>Maximum number of Local Volumetric Fog at the same time on screen.</summary>
-        [Obsolete("Use maxLocalVolumetricFogsOnScreen instead", false)]
+        [Obsolete("Use maxLocalVolumetricFogOnScreen instead", false)]
         public int maxDensityVolumesOnScreen
         {
-            get => maxLocalVolumetricFogsOnScreen;
-            set => maxLocalVolumetricFogsOnScreen = value;
+            get => maxLocalVolumetricFogOnScreen;
+            set => maxLocalVolumetricFogOnScreen = value;
         }
     }
 

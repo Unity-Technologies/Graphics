@@ -31,12 +31,12 @@ namespace UnityEngine.Rendering.HighDefinition
                     int elementCount = Texture3DAtlas.GetMaxElementCountForWeightInByte(
                         HDRenderPipeline.k_MaxCacheSize,
                         (int)settings.maxLocalVolumetricFogSize,
-                        settings.maxLocalVolumetricFogsOnScreen,
+                        settings.maxLocalVolumetricFogOnScreen,
                         localVolumetricFogAtlasFormat,
                         true
                     );
 
-                    elementCount = Mathf.Clamp(elementCount, 1, settings.maxLocalVolumetricFogsOnScreen);
+                    elementCount = Mathf.Clamp(elementCount, 1, settings.maxLocalVolumetricFogOnScreen);
 
                     m_VolumeAtlas = new Texture3DAtlas(localVolumetricFogAtlasFormat, (int)settings.maxLocalVolumetricFogSize, elementCount);
 

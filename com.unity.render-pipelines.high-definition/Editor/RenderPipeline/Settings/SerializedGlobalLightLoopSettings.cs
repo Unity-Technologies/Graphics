@@ -30,7 +30,7 @@ namespace UnityEditor.Rendering.HighDefinition
         public SerializedProperty maxPlanarReflectionOnScreen;
         public SerializedProperty maxLightsPerClusterCell;
         public SerializedProperty maxLocalVolumetricFogSize;
-        public SerializedProperty maxLocalVolumetricFogsOnScreen;
+        public SerializedProperty maxLocalVolumetricFogOnScreen;
 
         public SerializedGlobalLightLoopSettings(SerializedProperty root)
         {
@@ -64,7 +64,7 @@ namespace UnityEditor.Rendering.HighDefinition
             maxLightsPerClusterCell = root.Find((GlobalLightLoopSettings s) => s.maxLightsPerClusterCell);
 
             maxLocalVolumetricFogSize = root.Find((GlobalLightLoopSettings s) => s.maxLocalVolumetricFogSize);
-            maxLocalVolumetricFogsOnScreen = root.Find((GlobalLightLoopSettings s) => s.maxLocalVolumetricFogsOnScreen);
+            maxLocalVolumetricFogOnScreen = root.Find((GlobalLightLoopSettings s) => s.maxLocalVolumetricFogOnScreen);
         }
     }
 }

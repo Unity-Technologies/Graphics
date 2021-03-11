@@ -170,7 +170,7 @@ namespace UnityEngine.Rendering.HighDefinition
             maxPlanarReflectionOnScreen = 16,
             maxLightsPerClusterCell = 8,
             maxLocalVolumetricFogSize = LocalVolumetricFogResolution.Resolution32,
-            maxLocalVolumetricFogsOnScreen = 64, // 8MB texture atlas allocated by default
+            maxLocalVolumetricFogOnScreen = 64, // 8MB texture atlas allocated by default
         };
 
         /// <summary>Cookie atlas resolution.</summary>
@@ -225,6 +225,6 @@ namespace UnityEngine.Rendering.HighDefinition
 
         /// <summary>Maximum number of Local Volumetric Fog at the same time on screen.</summary>
         [Range(1, 512)]
-        public int maxLocalVolumetricFogsOnScreen;
+        public int maxLocalVolumetricFogOnScreen;
     }
 }

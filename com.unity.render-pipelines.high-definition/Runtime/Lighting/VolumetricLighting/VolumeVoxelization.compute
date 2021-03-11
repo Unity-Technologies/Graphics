@@ -151,7 +151,7 @@ void FillVolumetricDensityBuffer(PositionInputs posInput, uint tileIndex, Jitter
 
 #else  // USE_BIG_TILE_LIGHTLIST
 
-    volumeCount = _NumVisibleLocalVolumetricFogs;
+    volumeCount = _NumVisibleLocalVolumetricFog;
     volumeStart = 0;
 
 #endif // USE_BIG_TILE_LIGHTLIST
