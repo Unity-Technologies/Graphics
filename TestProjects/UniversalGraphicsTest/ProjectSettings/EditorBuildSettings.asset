@@ -131,7 +131,7 @@ EditorBuildSettings:
   - enabled: 1
     path: Assets/Scenes/056_2D_Lights_Shader_Graph.unity
     guid: 381306730e4f1b141bf8e0e1c35f16e9
-  - enabled: 1
+  - enabled: 0
     path: Assets/Scenes/056_2D_Lights-Shadows.unity
     guid: 4f7a50da47cfeca46b45fe14be17081d
   - enabled: 1
