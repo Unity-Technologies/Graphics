@@ -20,7 +20,10 @@ namespace UnityEngine.Rendering.Universal.Internal
         {
             base.profilingSampler = new ProfilingSampler(nameof(ColorGradingLutPass));
             renderPassEvent = evt;
-            overrideCameraTarget = true;
+
+            // Ensure both color and depth are overriden even if this pass only needs color: This ensures the depth set is equal in size to the color and prevents errors when specifying Camera.targetTexture;
+            overrideCameraColorTarget = true;
+            overrideCameraDepthTarget = true;
 
             Material Load(Shader shader)
             {

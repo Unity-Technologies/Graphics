@@ -10,7 +10,9 @@ PackedVaryings vert(Attributes input)
     return packedOutput;
 }
 
-half4 frag(PackedVaryings packedInput) : SV_TARGET
+struct DepthNormalsOutput { half4 normal : COLOR0;  float4 depth : COLOR1;};
+
+DepthNormalsOutput frag(PackedVaryings packedInput)
 {
     Varyings unpacked = UnpackVaryings(packedInput);
     UNITY_SETUP_INSTANCE_ID(unpacked);
@@ -23,16 +25,22 @@ half4 frag(PackedVaryings packedInput) : SV_TARGET
         clip(surfaceDescription.Alpha - surfaceDescription.AlphaClipThreshold);
     #endif
 
+    DepthNormalsOutput Out = (DepthNormalsOutput)0;
+
     #if defined(_GBUFFER_NORMALS_OCT)
     float3 normalWS = normalize(unpacked.normalWS);
     float2 octNormalWS = PackNormalOctQuadEncode(normalWS);           // values between [-1, +1], must use fp32 on some platforms
     float2 remappedOctNormalWS = saturate(octNormalWS * 0.5 + 0.5);   // values between [ 0,  1]
     half3 packedNormalWS = PackFloat2To888(remappedOctNormalWS);      // values between [ 0,  1]
-    return half4(packedNormalWS, 0.0);
+    Out.normal = half4(packedNormalWS, 0.0);
     #else
     float3 normalWS = NormalizeNormalPerPixel(unpacked.normalWS);
-    return half4(normalWS, 0.0);
+    Out.normal = half4(normalWS, 0.0);
     #endif
+
+    Out.depth = unpacked.positionCS.z;
+
+    return Out;
 }
 
 #endif

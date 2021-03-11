@@ -948,7 +948,20 @@ namespace UnityEngine.Rendering.Universal
                             trimmedAttachments[i] = renderPass.colorAttachments[i];
 
                         if (!IsRenderPassEnabled(renderPass) || cameraData.cameraType != CameraType.Game)
-                            SetRenderTarget(cmd, trimmedAttachments, renderPass.depthAttachment, finalClearFlag, renderPass.clearColor);
+                        {
+                            RenderTargetIdentifier depthAttachment = m_CameraDepthTarget;
+
+                            if (renderPass.overrideCameraDepthTarget)
+                            {
+                                depthAttachment = renderPass.depthAttachment;
+                            }
+                            else
+                            {
+                                m_FirstTimeCameraDepthTargetIsBound = false;
+                            }
+
+                            SetRenderTarget(cmd, trimmedAttachments, depthAttachment, finalClearFlag, renderPass.clearColor);
+                        }
 
                     #if ENABLE_VR && ENABLE_XR_MODULE
                         if (cameraData.xr.enabled)
@@ -970,18 +983,29 @@ namespace UnityEngine.Rendering.Universal
                 RenderTargetIdentifier passColorAttachment = renderPass.colorAttachment;
                 RenderTargetIdentifier passDepthAttachment = renderPass.depthAttachment;
 
-                // When render pass doesn't call ConfigureTarget we assume it's expected to render to camera target
-                // which might be backbuffer or the framebuffer render textures.
-                if (!renderPass.overrideCameraTarget)
+                const RenderPassEvent maintainCurrentRTBeforeEvent = RenderPassEvent.BeforeRenderingPrePasses;
+
+                if (!renderPass.overrideCameraColorTarget && !renderPass.overrideCameraDepthTarget)
                 {
                     // Default render pass attachment for passes before main rendering is current active
                     // early return so we don't change current render target setup.
-                    if (renderPass.renderPassEvent < RenderPassEvent.BeforeRenderingPrePasses)
+                    if (renderPass.renderPassEvent < maintainCurrentRTBeforeEvent)
                         return;
+                }
 
-                    // Otherwise default is the pipeline camera target.
-                    passColorAttachment = m_CameraColorTarget;
-                    passDepthAttachment = m_CameraDepthTarget;
+                // When render pass doesn't call ConfigureTarget for either color or depth we assume it's expected to render to camera target
+                // which might be backbuffer or the framebuffer render textures.
+
+                if (!renderPass.overrideCameraColorTarget)
+                {
+                    if (renderPass.renderPassEvent >= maintainCurrentRTBeforeEvent)
+                        passColorAttachment = m_CameraColorTarget;
+                }
+
+                if (!renderPass.overrideCameraDepthTarget)
+                {
+                    if (renderPass.renderPassEvent >= maintainCurrentRTBeforeEvent)
+                        passDepthAttachment = m_CameraDepthTarget;
                 }
 
                 ClearFlag finalClearFlag = ClearFlag.None;
@@ -1022,7 +1046,7 @@ namespace UnityEngine.Rendering.Universal
 
                 if (IsRenderPassEnabled(renderPass) && cameraData.cameraType == CameraType.Game)
                 {
-                    if (!renderPass.overrideCameraTarget)
+                    if (!renderPass.overrideCameraColorTarget)
                         m_ActiveColorAttachmentDescriptors[0] = new AttachmentDescriptor(cameraData.cameraTargetDescriptor.graphicsFormat);
                     else
                     {

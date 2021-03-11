@@ -17,6 +17,8 @@ namespace UnityEngine.Rendering.Universal.Internal
         private RenderTargetHandle normalHandle { get; set; }
         private FilteringSettings m_FilteringSettings;
 
+        private bool m_UseDepthPriming;
+
         // Constants
         private const int k_DepthBufferBits = 32;
 
@@ -33,7 +35,7 @@ namespace UnityEngine.Rendering.Universal.Internal
         /// <summary>
         /// Configure the pass
         /// </summary>
-        public void Setup(RenderTextureDescriptor baseDescriptor, RenderTargetHandle depthHandle, RenderTargetHandle normalHandle)
+        public void Setup(RenderTextureDescriptor baseDescriptor, RenderTargetHandle depthHandle, RenderTargetHandle normalHandle, bool useDepthPriming)
         {
             // Find compatible render-target format for storing normals.
             // Shader code outputs normals in signed format to be compatible with deferred gbuffer layout.
@@ -47,20 +49,31 @@ namespace UnityEngine.Rendering.Universal.Internal
                 normalsFormat = GraphicsFormat.R32G32B32A32_SFloat; // fallback
 
             this.depthHandle = depthHandle;
-            baseDescriptor.colorFormat = RenderTextureFormat.Depth;
-            baseDescriptor.depthBufferBits = k_DepthBufferBits;
-            baseDescriptor.msaaSamples = 1;// Depth-Only pass don't use MSAA
+            if (useDepthPriming)
+            {
+                baseDescriptor.graphicsFormat = GraphicsFormat.R32_SFloat;
+                baseDescriptor.depthBufferBits = 0;
+            }
+            else
+            {
+                baseDescriptor.colorFormat = RenderTextureFormat.Depth;
+                baseDescriptor.depthBufferBits = k_DepthBufferBits;
+                baseDescriptor.msaaSamples = 1;// Depth-Only pass don't use MSAA
+            }
+
             depthDescriptor = baseDescriptor;
 
             this.normalHandle = normalHandle;
             baseDescriptor.graphicsFormat = normalsFormat;
             baseDescriptor.depthBufferBits = 0;
-            baseDescriptor.msaaSamples = 1;
+            if (!useDepthPriming)
+                baseDescriptor.msaaSamples = 1;
             normalDescriptor = baseDescriptor;
 
             this.allocateDepth = true;
             this.allocateNormal = true;
             this.shaderTagId = k_ShaderTagId;
+            this.m_UseDepthPriming = useDepthPriming;
         }
 
         /// <inheritdoc/>
@@ -70,10 +83,17 @@ namespace UnityEngine.Rendering.Universal.Internal
                 cmd.GetTemporaryRT(normalHandle.id, normalDescriptor, FilterMode.Point);
             if (this.allocateDepth)
                 cmd.GetTemporaryRT(depthHandle.id, depthDescriptor, FilterMode.Point);
-            ConfigureTarget(
-                new RenderTargetIdentifier(normalHandle.Identifier(), 0, CubemapFace.Unknown, -1),
-                new RenderTargetIdentifier(depthHandle.Identifier(), 0, CubemapFace.Unknown, -1)
-            );
+            if (m_UseDepthPriming)
+            {
+                ConfigureTarget(new[] { new RenderTargetIdentifier(normalHandle.Identifier(), 0, CubemapFace.Unknown, -1), new RenderTargetIdentifier(depthHandle.Identifier(), 0, CubemapFace.Unknown, -1) });
+            }
+            else
+            {
+                ConfigureTarget(
+                    new RenderTargetIdentifier(normalHandle.Identifier(), 0, CubemapFace.Unknown, -1),
+                    new RenderTargetIdentifier(depthHandle.Identifier(), 0, CubemapFace.Unknown, -1)
+                );
+            }
             ConfigureClear(ClearFlag.All, Color.black);
         }
 

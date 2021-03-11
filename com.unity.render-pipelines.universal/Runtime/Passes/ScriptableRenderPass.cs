@@ -171,7 +171,8 @@ namespace UnityEngine.Rendering.Universal
 
         /// A ProfilingSampler for the entire pass. Used by higher level objects such as ScriptableRenderer etc.
         protected internal ProfilingSampler profilingSampler { get; set; }
-        internal bool overrideCameraTarget { get; set; }
+        internal bool overrideCameraColorTarget { get; set; }
+        internal bool overrideCameraDepthTarget { get; set; }
         internal bool isBlitRenderPass { get; set; }
 
         internal bool useNativeRenderPass { get; set; }
@@ -199,7 +200,8 @@ namespace UnityEngine.Rendering.Universal
             m_DepthAttachment = BuiltinRenderTextureType.CameraTarget;
             m_ClearFlag = ClearFlag.None;
             m_ClearColor = Color.black;
-            overrideCameraTarget = false;
+            overrideCameraColorTarget = false;
+            overrideCameraDepthTarget = false;
             isBlitRenderPass = false;
             profilingSampler = new ProfilingSampler(nameof(ScriptableRenderPass));
             useNativeRenderPass = true;
@@ -253,7 +255,8 @@ namespace UnityEngine.Rendering.Universal
         /// <seealso cref="Configure"/>
         public void ConfigureTarget(RenderTargetIdentifier[] colorAttachments, RenderTargetIdentifier depthAttachment)
         {
-            overrideCameraTarget = true;
+            overrideCameraColorTarget = true;
+            overrideCameraDepthTarget = true;
 
             uint nonNullColorBuffers = RenderingUtils.GetValidColorBufferCount(colorAttachments);
             if (nonNullColorBuffers > SystemInfo.supportedRenderTargetCount)
@@ -278,7 +281,7 @@ namespace UnityEngine.Rendering.Universal
         /// <seealso cref="Configure"/>
         public void ConfigureTarget(RenderTargetIdentifier colorAttachment)
         {
-            overrideCameraTarget = true;
+            overrideCameraColorTarget = true;
 
             m_ColorAttachments[0] = colorAttachment;
             for (int i = 1; i < m_ColorAttachments.Length; ++i)
@@ -290,6 +293,11 @@ namespace UnityEngine.Rendering.Universal
             ConfigureTarget(colorAttachment);
             for (int i = 1; i < m_ColorAttachments.Length; ++i)
                 renderTargetFormat[i] = GraphicsFormat.None;
+
+            if (depth)
+            {
+                overrideCameraDepthTarget = true;
+            }
 
             renderTargetWidth = width;
             renderTargetHeight = height;
@@ -306,7 +314,13 @@ namespace UnityEngine.Rendering.Universal
         /// <seealso cref="Configure"/>
         public void ConfigureTarget(RenderTargetIdentifier[] colorAttachments)
         {
-            ConfigureTarget(colorAttachments, BuiltinRenderTextureType.CameraTarget);
+            overrideCameraColorTarget = true;
+
+            uint nonNullColorBuffers = RenderingUtils.GetValidColorBufferCount(colorAttachments);
+            if (nonNullColorBuffers > SystemInfo.supportedRenderTargetCount)
+                Debug.LogError("Trying to set " + nonNullColorBuffers + " renderTargets, which is more than the maximum supported:" + SystemInfo.supportedRenderTargetCount);
+
+            m_ColorAttachments = colorAttachments;
         }
 
         /// <summary>

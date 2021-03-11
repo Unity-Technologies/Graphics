@@ -67,7 +67,11 @@ namespace UnityEngine.Rendering.Universal.Internal
             {
                 m_RenderStateBlock.depthState = new DepthState(false, CompareFunction.Equal);
                 m_RenderStateBlock.mask |= RenderStateMask.Depth;
-                ConfigureClear(ClearFlag.Color, Color.black);
+            }
+            else
+            {
+                m_RenderStateBlock.depthState = new DepthState(true, CompareFunction.Less);
+                m_RenderStateBlock.mask |= RenderStateMask.Depth;
             }
         }
 
