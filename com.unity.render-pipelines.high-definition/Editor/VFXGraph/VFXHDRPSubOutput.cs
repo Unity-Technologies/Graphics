@@ -47,7 +47,7 @@ namespace UnityEditor.VFX
 
                 if (owner is VFXShaderGraphParticleOutput shaderGraphOutput &&
                     shaderGraphOutput.GetOrRefreshShaderGraphObject() != null &&
-                    shaderGraphOutput.shaderGraph.generatesWithShaderGraph)
+                    shaderGraphOutput.GetOrRefreshShaderGraphObject().generatesWithShaderGraph)
                 {
                     yield return "transparentRenderQueue";
                     yield return "opaqueRenderQueue";

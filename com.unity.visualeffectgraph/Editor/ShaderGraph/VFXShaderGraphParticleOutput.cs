@@ -53,7 +53,7 @@ namespace UnityEditor.VFX
 
         public override void OnInspectorGUI()
         {
-            if (targets.OfType<VFXShaderGraphParticleOutput>().Any(context => context.shaderGraph == null))
+            if (targets.OfType<VFXShaderGraphParticleOutput>().Any(context => context.GetOrRefreshShaderGraphObject() == null))
             {
                 base.OnInspectorGUI();
                 return;
@@ -133,7 +133,7 @@ namespace UnityEditor.VFX
     {
         //"protected" is only to be listed by VFXModel.GetSettings, we should always use GetOrRefreshShaderGraphObject
         [SerializeField, VFXSetting]
-        internal ShaderGraphVfxAsset shaderGraph;
+        protected ShaderGraphVfxAsset shaderGraph;
 
         [SerializeField]
         internal VFXMaterialSerializedSettings materialSettings = new VFXMaterialSerializedSettings();
@@ -360,6 +360,10 @@ namespace UnityEditor.VFX
             // If the graph is reimported it can be because one of its depedency such as the shadergraphs, has been changed.
 
             ResyncSlots(true);
+
+            // Ensure that the output context name is in sync with the shader graph shader enum name.
+            if (GetOrRefreshShaderGraphObject().generatesWithShaderGraph)
+                Invalidate(InvalidationCause.kStructureChanged);
         }
 
         protected override IEnumerable<VFXPropertyWithValue> inputProperties

@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using UnityEditor.Rendering.HighDefinition;
 using UnityEditor.Rendering.HighDefinition.ShaderGraph;
 using UnityEditor.ShaderGraph.Internal;
@@ -15,6 +16,16 @@ namespace UnityEditor.VFX.HDRP
 
         public override string SRPAssetTypeStr  { get { return typeof(HDRenderPipelineAsset).Name; } }
         public override Type SRPOutputDataType  { get { return typeof(VFXHDRPSubOutput); } }
+
+        static Dictionary<HDShaderUtils.ShaderID, string> s_ShaderNames = new Dictionary<HDShaderUtils.ShaderID, string>()
+        {
+            { HDShaderUtils.ShaderID.SG_Lit,      "Lit"      },
+            { HDShaderUtils.ShaderID.SG_StackLit, "StackLit" },
+            { HDShaderUtils.ShaderID.SG_Hair,     "Hair"     },
+            { HDShaderUtils.ShaderID.SG_Eye,      "Eye"      },
+            { HDShaderUtils.ShaderID.SG_Fabric,   "Fabric"   },
+            { HDShaderUtils.ShaderID.SG_Unlit,    "Unlit"    },
+        };
 
         HDShaderUtils.ShaderID GetShaderEnumFromShaderGraph(ShaderGraphVfxAsset shaderGraph)
         {
@@ -115,8 +126,10 @@ namespace UnityEditor.VFX.HDRP
             // Recover the HDRP Shader Enum from the VFX Shader Graph.
             var shaderID = GetShaderEnumFromShaderGraph(shaderGraph);
 
-            // Remove the HDRP Enum Prefix of "SG_".
-            return shaderID.ToString().Remove(0, 3);
+            if (s_ShaderNames.ContainsKey(shaderID))
+                return s_ShaderNames[shaderID];
+
+            return string.Empty;
         }
     }
 }

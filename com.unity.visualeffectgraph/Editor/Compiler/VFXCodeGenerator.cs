@@ -536,8 +536,8 @@ namespace UnityEditor.VFX
                 return null;
 
             if (context is VFXShaderGraphParticleOutput shaderGraphContext &&
-                shaderGraphContext.shaderGraph != null &&
-                shaderGraphContext.shaderGraph.generatesWithShaderGraph &&
+                shaderGraphContext.GetOrRefreshShaderGraphObject() != null &&
+                shaderGraphContext.GetOrRefreshShaderGraphObject().generatesWithShaderGraph &&
                 VFXViewPreference.generateOutputContextWithShaderGraph)
             {
                 var result = TryBuildFromShaderGraph(shaderGraphContext, contextData);
@@ -745,7 +745,7 @@ namespace UnityEditor.VFX
             var stringBuilder = new StringBuilder();
 
             // Reconstruct the ShaderGraph.
-            var path = AssetDatabase.GetAssetPath(context.shaderGraph);
+            var path = AssetDatabase.GetAssetPath(context.GetOrRefreshShaderGraphObject());
 
             List<PropertyCollector.TextureInfo> configuredTextures;
             AssetCollection assetCollection = new AssetCollection();
