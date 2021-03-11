@@ -75,7 +75,6 @@ TEXTURE2D_X(_DepthTexture);
 #ifdef SSR_TRACE
     TEXTURE2D_X_UINT2(         _StencilTexture);
     RW_TEXTURE2D_X(float2, _SsrHitPointTexture);
-    //float _SsrPBRBias;
 #elif defined(SSR_REPROJECT)
        TEXTURE2D_X(        _SsrHitPointTexture);
     RW_TEXTURE2D_X(float4, _SSRAccumTexture);
@@ -84,7 +83,6 @@ TEXTURE2D_X(_DepthTexture);
     RW_TEXTURE2D_X(float4, _SsrAccumPrev);
     RW_TEXTURE2D_X(float4, _SsrLightingTextureRW);
     RW_TEXTURE2D_X(float4, _SSRAccumTexture);
-    //float _SsrPBRSpeedRejection;
 #endif
 
     TEXTURE2D_X(            _SsrClearCoatMaskTexture);
@@ -704,12 +702,17 @@ void ScreenSpaceReflectionsAccumulate(uint3 dispatchThreadId : SV_DispatchThread
     DecodeMotionVector(SAMPLE_TEXTURE2D_X_LOD(_CameraMotionVectorsTexture, s_linear_clamp_sampler, min(positionNDC, 1.0f - 0.5f * _ScreenSize.zw) * _RTHandleScale.xy, 0), motionVectorCenterNDC);
     //float speedSrc = length(motionVectorCenterNDC);
 
-	float speedDiff = length(motionVectorNDC - motionVectorCenterNDC);
+    float speedDiff = length(motionVectorNDC - motionVectorCenterNDC);
+    //float speedDiff = length(motionVectorNDC + motionVectorCenterNDC);
+    //float speedDiff = length(motionVectorNDC + motionVectorCenterNDC) > 0.0f ? 1.0f : 0.0f;
 
     //float speed = saturate((speedDst + speedSrc) * _SsrPBRSpeedRejection);
-	float speed = saturate(speedDiff * _SsrPBRSpeedRejection);
+    float speed = saturate(speedDiff * _SsrPBRSpeedRejection);
+    //float speed = speedDiff > 0.0f ? 1.0f : 0.0f;
     float coefExpAvg = lerp(_SsrAccumulationAmount, 1.0f, speed);
+    //float coefExpAvg = 1.0f;
     float4 result = lerp(previous, original, coefExpAvg);
+    //float4 result = lerp(previous, original, speed);
 
     uint3 intCol = asuint(result.rgb);
     bool  isPosFin = Max3(intCol.r, intCol.g, intCol.b) < 0x7F800000;
