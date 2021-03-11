@@ -2,15 +2,18 @@
 #ifndef UNIVERSAL_DEBUGGING3D_INCLUDED
 #define UNIVERSAL_DEBUGGING3D_INCLUDED
 
+// Ensure that we always include "DebuggingCommon.hlsl" even if we don't use it - saves extraneous includes elsewhere...
 #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Debug/DebuggingCommon.hlsl"
 
 #if defined(_DEBUG_SHADER)
 
+#include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/BRDFData.hlsl"
+#include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/GlobalIllumination.hlsl"
+#include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/RealtimeLights.hlsl"
+#include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Shadows.hlsl"
 #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/SurfaceData.hlsl"
 
 #define SETUP_DEBUG_TEXTURE_DATA(inputData, uv, texture)    SetupDebugDataTexture(inputData, uv, texture##_TexelSize, texture##_MipInfo, GetMipCount(texture))
-
-half4 GetShadowCascadeColor(float4 shadowCoord, float3 positionWS);
 
 void SetupDebugDataTexture(inout InputData inputData, float2 uv, float4 texelSize, float4 mipInfo, uint mipCount)
 {
@@ -237,6 +240,87 @@ bool CalculateColorForDebug(in InputData inputData, in SurfaceData surfaceData, 
     else
     {
         return false;
+    }
+}
+
+half3 CalculateDebugShadowCascadeColor(in InputData inputData)
+{
+    float3 positionWS = inputData.positionWS;
+    half cascadeIndex = ComputeCascadeIndex(positionWS);
+
+    return GetDebugColor(cascadeIndex).rgb;
+}
+
+half4 CalculateDebugLightingComplexityColor(in InputData inputData, in SurfaceData surfaceData)
+{
+    // Assume a main light and add 1 to the additional lights.
+    int numLights = GetAdditionalLightsCount() + 1;
+
+    return CalculateDebugColorWithNumber(inputData.positionWS, surfaceData.albedo, numLights);
+}
+
+bool CanDebugOverrideOutputColor(inout InputData inputData, inout SurfaceData surfaceData, inout BRDFData brdfData, inout half4 debugColor)
+{
+    if(_DebugMaterialMode == DEBUGMATERIALMODE_LIGHTING_COMPLEXITY)
+    {
+        debugColor = CalculateDebugLightingComplexityColor(inputData, surfaceData);
+        return true;
+    }
+    else
+    {
+        debugColor = half4(0, 0, 0, 1);
+
+        if(_DebugLightingMode == DEBUGLIGHTINGMODE_SHADOW_CASCADES)
+        {
+            surfaceData.albedo = CalculateDebugShadowCascadeColor(inputData);
+        }
+        else if ((_DebugMaterialMode == DEBUGMATERIALMODE_LOD) && CalculateColorForDebug(inputData, surfaceData, debugColor))
+        {
+            surfaceData.albedo = debugColor.rgb;
+        }
+        else
+        {
+            if(UpdateSurfaceAndInputDataForDebug(surfaceData, inputData))
+            {
+                // If we've modified any data we'll need to re-sample the GI to ensure that everything works correctly...
+                inputData.bakedGI = SAMPLE_GI(inputData.lightmapUV, inputData.vertexSH, inputData.normalWS);
+            }
+        }
+
+        // Update the BRDF data following any changes to the input/surface above...
+        brdfData = CreateBRDFData(surfaceData);
+
+        return (_DebugMaterialMode != DEBUGMATERIALMODE_LOD) && CalculateColorForDebug(inputData, surfaceData, debugColor);
+    }
+}
+
+bool CanDebugOverrideOutputColor(inout InputData inputData, inout SurfaceData surfaceData, inout half4 debugColor)
+{
+    if(_DebugMaterialMode == DEBUGMATERIALMODE_LIGHTING_COMPLEXITY)
+    {
+        debugColor = CalculateDebugLightingComplexityColor(inputData, surfaceData);
+        return true;
+    }
+    else
+    {
+        if(_DebugLightingMode == DEBUGLIGHTINGMODE_SHADOW_CASCADES)
+        {
+            surfaceData.albedo = CalculateDebugShadowCascadeColor(inputData);
+        }
+        else if ((_DebugMaterialMode == DEBUGMATERIALMODE_LOD) && CalculateColorForDebug(inputData, surfaceData, debugColor))
+        {
+            surfaceData.albedo = debugColor.rgb;
+        }
+        else
+        {
+            if(UpdateSurfaceAndInputDataForDebug(surfaceData, inputData))
+            {
+                // If we've modified any data we'll need to re-sample the GI to ensure that everything works correctly...
+                inputData.bakedGI = SAMPLE_GI(inputData.lightmapUV, inputData.vertexSH, inputData.normalWS);
+            }
+        }
+
+        return (_DebugMaterialMode != DEBUGMATERIALMODE_LOD) && CalculateColorForDebug(inputData, surfaceData, debugColor);
     }
 }
 
