@@ -49,15 +49,12 @@ namespace UnityEngine.Rendering.Universal.Internal
                 normalsFormat = GraphicsFormat.R32G32B32A32_SFloat; // fallback
 
             this.depthHandle = depthHandle;
-            if (useDepthPriming)
+
+
+            baseDescriptor.graphicsFormat = GraphicsFormat.R32_SFloat;
+            baseDescriptor.depthBufferBits = 0;
+            if (!useDepthPriming)
             {
-                baseDescriptor.graphicsFormat = GraphicsFormat.R32_SFloat;
-                baseDescriptor.depthBufferBits = 0;
-            }
-            else
-            {
-                baseDescriptor.colorFormat = RenderTextureFormat.Depth;
-                baseDescriptor.depthBufferBits = k_DepthBufferBits;
                 baseDescriptor.msaaSamples = 1;// Depth-Only pass don't use MSAA
             }
 
@@ -83,17 +80,9 @@ namespace UnityEngine.Rendering.Universal.Internal
                 cmd.GetTemporaryRT(normalHandle.id, normalDescriptor, FilterMode.Point);
             if (this.allocateDepth)
                 cmd.GetTemporaryRT(depthHandle.id, depthDescriptor, FilterMode.Point);
-            if (m_UseDepthPriming)
-            {
-                ConfigureTarget(new[] { new RenderTargetIdentifier(normalHandle.Identifier(), 0, CubemapFace.Unknown, -1), new RenderTargetIdentifier(depthHandle.Identifier(), 0, CubemapFace.Unknown, -1) });
-            }
-            else
-            {
-                ConfigureTarget(
-                    new RenderTargetIdentifier(normalHandle.Identifier(), 0, CubemapFace.Unknown, -1),
-                    new RenderTargetIdentifier(depthHandle.Identifier(), 0, CubemapFace.Unknown, -1)
-                );
-            }
+
+            ConfigureTarget(new[] { new RenderTargetIdentifier(normalHandle.Identifier(), 0, CubemapFace.Unknown, -1), new RenderTargetIdentifier(depthHandle.Identifier(), 0, CubemapFace.Unknown, -1) });
+
             ConfigureClear(ClearFlag.All, Color.black);
         }
 
