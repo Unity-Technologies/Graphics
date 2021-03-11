@@ -3012,8 +3012,8 @@ namespace UnityEngine.Rendering.HighDefinition
                         Vector2 localSize = size;
                         if (element.enableRadialDistortion)
                         {
-                            localSize = new Vector2(Mathf.Lerp(localSize.x, element.targetSizeDistortion.x * scaleSize, radius),
-                                                    Mathf.Lerp(localSize.y, element.targetSizeDistortion.y * scaleSize, radius));
+                            localSize = new Vector2(Mathf.Lerp(localSize.x, element.uniformScale * element.targetSizeDistortion.x * scaleSize, radius),
+                                                    Mathf.Lerp(localSize.y, element.uniformScale * element.targetSizeDistortion.y * scaleSize, radius));
                         }
 
                         cmd.SetGlobalVector(HDShaderIDs._FlareData0, flareData0);
@@ -3041,8 +3041,8 @@ namespace UnityEngine.Rendering.HighDefinition
                                     Vector2 localRadPos = (rayOff - rayOff0) * 0.5f;
                                     float localRadius = Mathf.Clamp01(Mathf.Max(Mathf.Abs(localRadPos.x), Mathf.Abs(localRadPos.y))); // l1 norm (instead of l2 norm)
                                     float localLerpValue = element.distortionCurve.Evaluate(localRadius);
-                                    localSize = new Vector2(Mathf.Lerp(localSize.x, element.targetSizeDistortion.x * scaleSize, localLerpValue),
-                                                            Mathf.Lerp(localSize.y, element.targetSizeDistortion.y * scaleSize, localLerpValue));
+                                    localSize = new Vector2(Mathf.Lerp(localSize.x, element.uniformScale * element.targetSizeDistortion.x * scaleSize, localLerpValue),
+                                                            Mathf.Lerp(localSize.y, element.uniformScale * element.targetSizeDistortion.y * scaleSize, localLerpValue));
                                 }
 
                                 float timeScale = element.count >= 2 ? ((float)elemIdx) / ((float)(element.count - 1)) : 0.5f;
@@ -3082,8 +3082,8 @@ namespace UnityEngine.Rendering.HighDefinition
                                     Vector2 localRadPos = (rayOff - rayOff0) * 0.5f;
                                     float localRadius = Mathf.Clamp01(Mathf.Max(Mathf.Abs(localRadPos.x), Mathf.Abs(localRadPos.y))); // l1 norm (instead of l2 norm)
                                     float localLerpValue = element.distortionCurve.Evaluate(localRadius);
-                                    localSize = new Vector2(Mathf.Lerp(localSize.x, element.targetSizeDistortion.x * scaleSize, localLerpValue),
-                                                            Mathf.Lerp(localSize.y, element.targetSizeDistortion.y * scaleSize, localLerpValue));
+                                    localSize = new Vector2(Mathf.Lerp(localSize.x, element.uniformScale * element.targetSizeDistortion.x * scaleSize, localLerpValue),
+                                                            Mathf.Lerp(localSize.y, element.uniformScale * element.targetSizeDistortion.y * scaleSize, localLerpValue));
                                 }
 
                                 Color randCol = element.colorGradient.Evaluate(RandomRange(rnd, 0.0f, 1.0f));
@@ -3127,8 +3127,8 @@ namespace UnityEngine.Rendering.HighDefinition
                                     Vector2 localRadPos = (rayOff - rayOff0) * 0.5f;
                                     float localRadius = Mathf.Clamp01(Mathf.Max(Mathf.Abs(localRadPos.x), Mathf.Abs(localRadPos.y))); // l1 norm (instead of l2 norm)
                                     float localLerpValue = element.distortionCurve.Evaluate(localRadius);
-                                    localSize = new Vector2(Mathf.Lerp(localSize.x, element.targetSizeDistortion.x * scaleSize, localLerpValue),
-                                                            Mathf.Lerp(localSize.y, element.targetSizeDistortion.y * scaleSize, localLerpValue));
+                                    localSize = new Vector2(Mathf.Lerp(localSize.x, element.uniformScale * element.targetSizeDistortion.x * scaleSize, localLerpValue),
+                                                            Mathf.Lerp(localSize.y, element.uniformScale * element.targetSizeDistortion.y * scaleSize, localLerpValue));
                                 }
 
                                 Vector4 flareData0 = GetFlareData0(screenPos, element.translationScale, vScreenRatio, element.rotation, localPos, element.angularOffset, element.positionOffset, element.autoRotate);
