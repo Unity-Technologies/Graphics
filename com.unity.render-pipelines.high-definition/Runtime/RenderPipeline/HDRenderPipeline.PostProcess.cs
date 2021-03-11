@@ -2704,63 +2704,64 @@ namespace UnityEngine.Rendering.HighDefinition
                         switch (hdLightData.areaLightShape)
                         {
                             case AreaLightShape.Tube:
+                            {
+                                // Ref: https://hal.archives-ouvertes.fr/hal-02155101/document
+                                // Listing 1.6. Analytic line-diffuse integration.
+                                float Fpo(float d, float l)
                                 {
-                                    // Ref: https://hal.archives-ouvertes.fr/hal-02155101/document
-                                    // Listing 1.6. Analytic line-diffuse integration.
-                                    float Fpo(float d, float l)
-                                    {
-                                        return l / (d * (d * d + l * l)) + Mathf.Atan(l / d) / (d * d);
-                                    }
-
-                                    float Fwt(float d, float l)
-                                    {
-                                        return l * l / (d * (d * d + l * l));
-                                    }
-
-                                    Vector3 p1Global = hdLightData.transform.position + hdLightData.transform.right * hdLightData.shapeWidth * 0.5f;
-                                    Vector3 p2Global = hdLightData.transform.position - hdLightData.transform.right * hdLightData.shapeWidth * 0.5f;
-                                    Vector3 p1Front = hdLightData.transform.position + cam.transform.right * hdLightData.shapeWidth * 0.5f;
-                                    Vector3 p2Front = hdLightData.transform.position - cam.transform.right * hdLightData.shapeWidth * 0.5f;
-
-                                    Vector3 p1World = cam.transform.InverseTransformPoint(p1Global);
-                                    Vector3 p2World = cam.transform.InverseTransformPoint(p2Global);
-                                    Vector3 p1WorldFront = cam.transform.InverseTransformPoint(p1Front);
-                                    Vector3 p2WorldFront = cam.transform.InverseTransformPoint(p2Front);
-
-                                    float DiffLineIntegral(Vector3 p1, Vector3 p2)
-                                    {
-                                        float diffIntegral;
-                                        // tangent
-                                        Vector3 wt = (p2 - p1).normalized;
-                                        // clamping
-                                        if (p1.z <= 0.0 && p2.z <= 0.0)
-                                        {
-                                            diffIntegral = 0.0f;
-                                        }
-                                        else
-                                        {
-                                            if (p1.z < 0.0)
-                                                p1 = (p1 * p2.z - p2 * p1.z) / (+p2.z - p1.z);
-                                            if (p2.z < 0.0)
-                                                p2 = (-p1 * p2.z + p2 * p1.z) / (-p2.z + p1.z);
-                                            // parameterization
-                                            float l1 = Vector3.Dot(p1, wt);
-                                            float l2 = Vector3.Dot(p2, wt);
-                                            // shading point orthonormal projection on the line
-                                            Vector3 po = p1 - l1 * wt;
-                                            // distance to line
-                                            float d = po.magnitude;
-                                            // integral
-                                            float integral = (Fpo(d, l2) - Fpo(d, l1)) * po.z + (Fwt(d, l2) - Fwt(d, l1)) * wt.z;
-                                            diffIntegral = integral / Mathf.PI;
-                                        }
-
-                                        return diffIntegral;
-                                    }
-                                    float frontModulation = DiffLineIntegral(p1WorldFront, p2WorldFront);
-                                    float worldModulation = DiffLineIntegral(p1World, p2World);
-                                    return frontModulation > 0.0f ? worldModulation / frontModulation : 1.0f;
+                                    return l / (d * (d * d + l * l)) + Mathf.Atan(l / d) / (d * d);
                                 }
+
+                                float Fwt(float d, float l)
+                                {
+                                    return l * l / (d * (d * d + l * l));
+                                }
+
+                                Vector3 p1Global = hdLightData.transform.position + hdLightData.transform.right * hdLightData.shapeWidth * 0.5f;
+                                Vector3 p2Global = hdLightData.transform.position - hdLightData.transform.right * hdLightData.shapeWidth * 0.5f;
+                                Vector3 p1Front = hdLightData.transform.position + cam.transform.right * hdLightData.shapeWidth * 0.5f;
+                                Vector3 p2Front = hdLightData.transform.position - cam.transform.right * hdLightData.shapeWidth * 0.5f;
+
+                                Vector3 p1World = cam.transform.InverseTransformPoint(p1Global);
+                                Vector3 p2World = cam.transform.InverseTransformPoint(p2Global);
+                                Vector3 p1WorldFront = cam.transform.InverseTransformPoint(p1Front);
+                                Vector3 p2WorldFront = cam.transform.InverseTransformPoint(p2Front);
+
+                                float DiffLineIntegral(Vector3 p1, Vector3 p2)
+                                {
+                                    float diffIntegral;
+                                    // tangent
+                                    Vector3 wt = (p2 - p1).normalized;
+                                    // clamping
+                                    if (p1.z <= 0.0 && p2.z <= 0.0)
+                                    {
+                                        diffIntegral = 0.0f;
+                                    }
+                                    else
+                                    {
+                                        if (p1.z < 0.0)
+                                            p1 = (p1 * p2.z - p2 * p1.z) / (+p2.z - p1.z);
+                                        if (p2.z < 0.0)
+                                            p2 = (-p1 * p2.z + p2 * p1.z) / (-p2.z + p1.z);
+                                        // parameterization
+                                        float l1 = Vector3.Dot(p1, wt);
+                                        float l2 = Vector3.Dot(p2, wt);
+                                        // shading point orthonormal projection on the line
+                                        Vector3 po = p1 - l1 * wt;
+                                        // distance to line
+                                        float d = po.magnitude;
+                                        // integral
+                                        float integral = (Fpo(d, l2) - Fpo(d, l1)) * po.z + (Fwt(d, l2) - Fwt(d, l1)) * wt.z;
+                                        diffIntegral = integral / Mathf.PI;
+                                    }
+
+                                    return diffIntegral;
+                                }
+
+                                float frontModulation = DiffLineIntegral(p1WorldFront, p2WorldFront);
+                                float worldModulation = DiffLineIntegral(p1World, p2World);
+                                return frontModulation > 0.0f ? worldModulation / frontModulation : 1.0f;
+                            }
                             case AreaLightShape.Rectangle:
                             case AreaLightShape.Disc:
                                 return Mathf.Max(Vector3.Dot(hdLightData.transform.forward, wi), 0.0f);
@@ -2780,7 +2781,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
             Vector2 rayOff = -translationScale * (screenPos + screenPos * (position - 1.0f));
             rayOff = new Vector2(globalCos0 * rayOff.x - globalSin0 * rayOff.y,
-                                 globalSin0 * rayOff.x + globalCos0 * rayOff.y);
+                globalSin0 * rayOff.x + globalCos0 * rayOff.y);
 
             float rotation = angleDeg;
 
@@ -2805,7 +2806,7 @@ namespace UnityEngine.Rendering.HighDefinition
         {
             Vector2 rayOff = -(screenPos + screenPos * (position - 1.0f));
             return new Vector2(globalCos0 * rayOff.x - globalSin0 * rayOff.y,
-                               globalSin0 * rayOff.x + globalCos0 * rayOff.y);
+                globalSin0 * rayOff.x + globalCos0 * rayOff.y);
         }
 
         static void DoLensFlareDataDriven(in LensFlareParameters parameters, HDCamera hdCam, CommandBuffer cmd, RTHandle source, RTHandle target)
@@ -3013,7 +3014,7 @@ namespace UnityEngine.Rendering.HighDefinition
                         if (element.enableRadialDistortion)
                         {
                             localSize = new Vector2(Mathf.Lerp(localSize.x, element.uniformScale * element.targetSizeDistortion.x * scaleSize, radius),
-                                                    Mathf.Lerp(localSize.y, element.uniformScale * element.targetSizeDistortion.y * scaleSize, radius));
+                                Mathf.Lerp(localSize.y, element.uniformScale * element.targetSizeDistortion.y * scaleSize, radius));
                         }
 
                         cmd.SetGlobalVector(HDShaderIDs._FlareData0, flareData0);
@@ -3042,7 +3043,7 @@ namespace UnityEngine.Rendering.HighDefinition
                                     float localRadius = Mathf.Clamp01(Mathf.Max(Mathf.Abs(localRadPos.x), Mathf.Abs(localRadPos.y))); // l1 norm (instead of l2 norm)
                                     float localLerpValue = element.distortionCurve.Evaluate(localRadius);
                                     localSize = new Vector2(Mathf.Lerp(localSize.x, element.uniformScale * element.targetSizeDistortion.x * scaleSize, localLerpValue),
-                                                            Mathf.Lerp(localSize.y, element.uniformScale * element.targetSizeDistortion.y * scaleSize, localLerpValue));
+                                        Mathf.Lerp(localSize.y, element.uniformScale * element.targetSizeDistortion.y * scaleSize, localLerpValue));
                                 }
 
                                 float timeScale = element.count >= 2 ? ((float)elemIdx) / ((float)(element.count - 1)) : 0.5f;
@@ -3083,7 +3084,7 @@ namespace UnityEngine.Rendering.HighDefinition
                                     float localRadius = Mathf.Clamp01(Mathf.Max(Mathf.Abs(localRadPos.x), Mathf.Abs(localRadPos.y))); // l1 norm (instead of l2 norm)
                                     float localLerpValue = element.distortionCurve.Evaluate(localRadius);
                                     localSize = new Vector2(Mathf.Lerp(localSize.x, element.uniformScale * element.targetSizeDistortion.x * scaleSize, localLerpValue),
-                                                            Mathf.Lerp(localSize.y, element.uniformScale * element.targetSizeDistortion.y * scaleSize, localLerpValue));
+                                        Mathf.Lerp(localSize.y, element.uniformScale * element.targetSizeDistortion.y * scaleSize, localLerpValue));
                                 }
 
                                 Color randCol = element.colorGradient.Evaluate(RandomRange(rnd, 0.0f, 1.0f));
@@ -3128,7 +3129,7 @@ namespace UnityEngine.Rendering.HighDefinition
                                     float localRadius = Mathf.Clamp01(Mathf.Max(Mathf.Abs(localRadPos.x), Mathf.Abs(localRadPos.y))); // l1 norm (instead of l2 norm)
                                     float localLerpValue = element.distortionCurve.Evaluate(localRadius);
                                     localSize = new Vector2(Mathf.Lerp(localSize.x, element.uniformScale * element.targetSizeDistortion.x * scaleSize, localLerpValue),
-                                                            Mathf.Lerp(localSize.y, element.uniformScale * element.targetSizeDistortion.y * scaleSize, localLerpValue));
+                                        Mathf.Lerp(localSize.y, element.uniformScale * element.targetSizeDistortion.y * scaleSize, localLerpValue));
                                 }
 
                                 Vector4 flareData0 = GetFlareData0(screenPos, element.translationScale, vScreenRatio, element.rotation, localPos, element.angularOffset, element.positionOffset, element.autoRotate);

@@ -263,7 +263,6 @@ namespace UnityEditor.Rendering
                         rect = GetNextRect();
                         EditorGUI.PropertyField(rect, distortionCurveProp, Styles.distortionCurve);
                     }
-
                 }
                 --EditorGUI.indentLevel;
 
