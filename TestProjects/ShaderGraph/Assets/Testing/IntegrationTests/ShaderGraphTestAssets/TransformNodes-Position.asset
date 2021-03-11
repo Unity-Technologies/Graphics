@@ -76,8 +76,8 @@ MonoBehaviour:
   customMesh: {fileID: 0}
   isCameraPerspective: 0
   settings:
-    TargetWidth: 32
-    TargetHeight: 32
+    TargetWidth: 512
+    TargetHeight: 512
     PerPixelCorrectnessThreshold: 0.00075
     PerPixelGammaThreshold: 0.003921569
     PerPixelAlphaThreshold: 0.003921569
@@ -85,6 +85,6 @@ MonoBehaviour:
     IncorrectPixelsThreshold: 0.0000038146973
     UseHDR: 0
     UseBackBuffer: 0
-    ImageResolution: 4
+    ImageResolution: 3
     ActiveImageTests: 1
     ActivePixelTests: 7
