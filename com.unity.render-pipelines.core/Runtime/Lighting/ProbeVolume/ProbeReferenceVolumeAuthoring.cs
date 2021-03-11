@@ -101,7 +101,6 @@ namespace UnityEngine.Rendering
         internal int cellSize { get { return m_Profile.cellSize; } }
         internal int maxSubdivision { get { return m_Profile.maxSubdivision; } }
         internal float normalBias { get { return m_Profile.normalBias; } }
-        internal Vector3Int indexDimensions { get { return m_Profile.indexDimensions; } }
 
 #if UNITY_EDITOR
         [SerializeField]
@@ -178,13 +177,6 @@ namespace UnityEngine.Rendering
 
             if (m_Profile != null)
             {
-                bool hasIndexDimensionChangedOnProfileSwitch = m_PrevProfile == null || (m_PrevProfile != null && m_PrevProfile.indexDimensions != m_Profile.indexDimensions);
-                if (hasIndexDimensionChangedOnProfileSwitch)
-                {
-                    var refVol = ProbeReferenceVolume.instance;
-                    refVol.AddPendingIndexDimensionChange(indexDimensions);
-                }
-
                 m_PrevProfile = m_Profile;
                 QueueAssetLoading();
             }
@@ -209,6 +201,9 @@ namespace UnityEngine.Rendering
 
         private bool ShouldCull(Vector3 cellPosition)
         {
+            if (m_Profile == null)
+                return true;
+
             var refVolTranslation = this.transform.position;
             var refVolRotation = this.transform.rotation;
 
