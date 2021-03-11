@@ -6,6 +6,8 @@
 
 #pragma only_renderers d3d11 playstation xboxone xboxseries vulkan metal switch
 
+#pragma multi_compile _ FAST_APPROXIMAION
+
 #pragma kernel KMain
 
 #pragma multi_compile _ ENABLE_ALPHA
@@ -30,14 +32,13 @@ TEXTURE2D_X(_TileList);
 RW_TEXTURE2D_X(CTYPE, _OutputTexture);
 
 #define TILE_RES  8u
-//#define FAST_PATH
 
 // A set of Defines to fine-tune the algorithm
 #define NUM_BUCKETS 3
 #define ADAPTIVE_RADIUS
 #define STRATIFY
 #define FORCE_POINT_SAMPLING
-#ifndef FAST_PATH
+#ifndef FAST_APPROXIMAION
     #define PHYSICAL_WEIGHTS
 #endif
 
@@ -51,33 +52,35 @@ struct RingData
     float opacity;
     float CoC;
     int ringNum;
-    float weight;
+    bool isForeground;
 };
 
-void InitRingData(in int ring, out RingData data)
+void InitRingData(int ring, bool fg, out RingData data)
 {
     data.colorAccum = 0;
     data.alphaAccum = 0;
     data.opacity = 0;
     data.CoC = 0;
     data.ringNum = ring;
-    data.weight = 0;
+    data.isForeground = fg;
 }
 
 struct AccumData
 {
     float4 color;
     float alpha;
+    float opacity;
     float CoC;
-    float weight;
+    float maxCoC;
 };
 
 void InitAccumData(out AccumData data)
 {
     data.color = 0;
     data.alpha = 0;
+    data.opacity = 0;
     data.CoC = 0;
-    data.weight = 0;
+    data.maxCoC = 0;
 }
 
 struct SampleData
@@ -105,7 +108,7 @@ float GetSampleWeight(float cocRadius)
 {
 #ifdef PHYSICAL_WEIGHTS
     float pixelRadius = 0.7071f;
-    float radius = max(pixelRadius, cocRadius);
+    float radius = max(pixelRadius, abs(cocRadius));
     return PI * pixelRadius * pixelRadius *  rcp(PI * radius * radius);
 #else
     return 1.0f;
@@ -116,6 +119,8 @@ float2 PointInCircle(float angle)
 {
     return float2(cos(angle), sin(angle)) * float2 (1 - Anamorphism, 1 + Anamorphism);
 }
+
+#ifdef FAST_APPROXIMAION
 
 void AccumulateSample(SampleData sampleData, float centerCoC, float2 limit, inout float4 colorAccum, inout float alphaAccum)
 {
@@ -133,16 +138,11 @@ void AccumulateSample(SampleData sampleData, float centerCoC, float2 limit, inou
 #endif
 }
 
-void AccumulateSample(SampleData sampleData, float weight, inout float4 colorAccum, inout float alphaAccum)
+void DoFGatherFast(PositionInputs posInputs, float maxRadius, SampleData centerSample, out float4 outColor, out float outAlpha)
 {
-    colorAccum += float4(sampleData.color.xyz * weight, weight);
-#ifdef ENABLE_ALPHA
-    alphaAccum += sampleData.color.w * weight;
-#endif
-}
+    AccumData accumData;
+    InitAccumData(accumData);
 
-void DoFGatherPairs(PositionInputs posInputs, float maxRadius, SampleData centerSample, inout AccumData accumData)
-{
     float dR = rcp(NumRings);
     int blueNoiseOffset = _TaaFrameInfo.w != 0.0 ? _TaaFrameInfo.z : 0;
     int numSamples = maxRadius > 0 ? NumRings : 0;
@@ -210,62 +210,99 @@ void DoFGatherPairs(PositionInputs posInputs, float maxRadius, SampleData center
             }
         }
     }
+
+    outColor = accumData.color;
+    outAlpha = accumData.alpha;
+
+    outColor.xyz = outColor.w > 0 ? outColor.xyz * rcp(outColor.w) : centerSample.color.xyz;
+#ifdef ENABLE_ALPHA
+    outAlpha = outColor.w > 0.0 ? outAlpha * rcp(outColor.w) : centerSample.color.w;
+#endif
+}
+#else
+
+void AccumulateSample(SampleData sampleData, float weight, inout float4 colorAccum, inout float cocAccum, inout float alphaAccum)
+{
+    colorAccum += float4(sampleData.color.xyz * weight, weight);
+    cocAccum += abs(sampleData.CoC) * weight;
+#ifdef ENABLE_ALPHA
+    alphaAccum += sampleData.color.w * weight;
+#endif
 }
 
-void AccumulateSampleData(SampleData sampleData[2], SampleData centerSample, float sampleRadius, float2 limit, inout RingData ringData, inout AccumData accumData)
+void AccumulateSampleData(SampleData sampleData[2], SampleData centerSample, float sampleRadius, inout RingData ringData, inout AccumData accumData)
 {
+    bool firstRing = (ringData.ringNum == NumRings - 1);
     UNITY_UNROLL
         for (int k = 0; k < 2; k++)
         {
-            float sampleWeight = GetSampleWeight(abs(sampleData[k].CoC));
-            float visibility = saturate(sampleData[k].CoC - sampleRadius);
-            float accumWeight = visibility * sampleWeight;
-            float ringWeight = visibility * (1.0 - sampleWeight);
-            AccumulateSample(sampleData[k], accumWeight, accumData.color, accumData.alpha);
-            AccumulateSample(sampleData[k], ringWeight, ringData.colorAccum, ringData.alphaAccum);
+            float CoC = ringData.isForeground ? -sampleData[k].CoC : sampleData[k].CoC;
 
-            // TODO: foreground?
+            float sampleWeight = GetSampleWeight(CoC);
+            float visibility = saturate(CoC - sampleRadius);
+            //float visibility = step(0.0, CoC - sampleRadius);
+
+            AccumulateSample(sampleData[k], visibility * sampleWeight, ringData.colorAccum, ringData.CoC, ringData.alphaAccum);
+
+            if (ringData.isForeground && visibility > 0)
+            {
+                accumData.maxCoC = max(accumData.maxCoC, CoC);
+            }
+
+            // Mirroring improves the near blur, but since the background reconstruction is not perfect, we limit the radius it is applied
+            const float mirrorLimit = 2;
+            const float radius = sampleRadius - CoC;
+            if (ringData.isForeground && visibility == 0 && radius < mirrorLimit)
+            {
+                int pairIndex = k == 0 ? 1 : 0;
+                float mirrorWeight =  saturate(0.25 * rcp(radius));
+                AccumulateSample(sampleData[pairIndex], mirrorWeight * sampleWeight, ringData.colorAccum, ringData.CoC, ringData.alphaAccum);
+            }
+
             ringData.opacity += visibility;
-
-            ringData.CoC += ringWeight * sampleData[k].CoC;
-            ringData.weight += ringWeight;
-
-            accumData.CoC += accumWeight * sampleData[k].CoC;
-            accumData.weight += accumWeight;
         }
 }
 
 void AccumulateRingData(RingData data, inout AccumData accumData)
 {
-    if (data.ringNum == NumRings - 1)
+    if (data.colorAccum.w == 0)
+    {
+        // nothing to accumulate
+        return;
+    }
+
+    // This scale factor is a tuning parameter that was verified against path traced DoF images
+    const float cocScale = 1.0 / 64;
+    float ringAvgCoC = data.colorAccum.w > 0 ? data.CoC * rcp(data.colorAccum.w) * cocScale : 0;
+    float accumAvgCoC = accumData.color.w > 0 ? accumData.CoC * rcp(accumData.color.w) * cocScale : 0;
+
+    float ringOcclusion = saturate(accumAvgCoC - ringAvgCoC);
+    float ringOpacity = data.opacity / NumRings;
+
+    if (data.isForeground)
     {
         accumData.color += data.colorAccum;
         accumData.alpha += data.alphaAccum;
-        return;
+        accumData.CoC += data.CoC;
+        accumData.opacity +=  data.opacity;
     }
-
-    if (data.weight == 0)
+    else
     {
-        return;
+        float alpha = (accumData.color.w == 0.0) ? 1.0 : ringOpacity * ringOcclusion;
+        accumData.color = accumData.color * (1.0 - alpha) + data.colorAccum;
+        accumData.alpha = accumData.alpha * (1.0 - alpha) + data.alphaAccum;
+        accumData.CoC = accumData.CoC * (1.0 - alpha) + data.CoC;
+        accumData.opacity = accumData.opacity * (1.0 - alpha) + data.opacity;
     }
 
-    const float cocScale = 1.0 / 16.0;
-    float ringAvgCoC = data.CoC * rcp(data.weight) * cocScale;
-    float accumAvgCoC = accumData.CoC * rcp(accumData.weight) * cocScale;
-
-    float ringOccl = saturate(accumAvgCoC - ringAvgCoC);
-    float numSamples = NumRings * NumRings;
-    float ringOpacity = 1 - data.opacity / numSamples;
-
-    float alpha = (accumData.color.w == 0.0) ? 1.0 : ringOpacity * ringOccl;
-    accumData.color = accumData.color * (1.0 - alpha) + data.colorAccum;
-    accumData.alpha = accumData.alpha * (1.0 - alpha) + data.alphaAccum;
-    accumData.CoC = accumData.CoC * (1.0 - alpha) + data.CoC;
-    accumData.weight = accumData.weight * (1.0 - alpha) + data.weight;
 }
 
-void DoFGatherRings(PositionInputs posInputs, float maxRadius, SampleData centerSample, inout AccumData accumData)
+void DoFGatherRings(PositionInputs posInputs, float maxRadius, SampleData centerSample, out float4 color, out float alpha)
 {
+    AccumData bgAccumData, fgAccumData;
+    InitAccumData(bgAccumData);
+    InitAccumData(fgAccumData);
+
     float dR = rcp(NumRings);
     int blueNoiseOffset = _TaaFrameInfo.w != 0.0 ? _TaaFrameInfo.z : 0;
     int numSamples = maxRadius > 0 ? NumRings : 0;
@@ -275,11 +312,11 @@ void DoFGatherRings(PositionInputs posInputs, float maxRadius, SampleData center
     float lod = min(MaxColorMip, log2(2 * PI * maxRadius * rcp(numSamples)));
 
     // Gather the DoF samples
-    //for (int ring = 0; ring < numSamples; ring += 1)
     for (int ring = numSamples - 1; ring >= 0; ring --)
     {
-        RingData ringData;
-        InitRingData(ring, ringData);
+        RingData bgRingData, fgRingData;
+        InitRingData(ring, false, bgRingData);
+        InitRingData(ring, true, fgRingData);
 
         for (int i = 0; i < numSamples; i += 1)
         {
@@ -306,50 +343,65 @@ void DoFGatherRings(PositionInputs posInputs, float maxRadius, SampleData center
                     sampleData[j].CoC = GetCoCRadius(sampleTC);
                 }
 
-            float bias = 1.0 + r1;
-            float2 limit = float2(bias, 9 * bias);
-
-            AccumulateSampleData(sampleData, centerSample, sampleRadius, limit, ringData, accumData);
+            AccumulateSampleData(sampleData, centerSample, sampleRadius, bgRingData, bgAccumData);
+            AccumulateSampleData(sampleData, centerSample, sampleRadius, fgRingData, fgAccumData);
         }
 
-        AccumulateRingData(ringData, accumData);
+        AccumulateRingData(bgRingData, bgAccumData);
+        AccumulateRingData(fgRingData, fgAccumData);
     }
+
+    // Resolve the bg and fg layer color
+    bgAccumData.color.xyz = bgAccumData.color.w > 0 ? bgAccumData.color.xyz / bgAccumData.color.w : centerSample.color.xyz;
+    fgAccumData.color.xyz = fgAccumData.color.w > 0 ? fgAccumData.color.xyz / fgAccumData.color.w : centerSample.color.xyz;
+
+    // Resolve the bg and fg layer alpha
+#ifdef ENABLE_ALPHA
+    bgAccumData.alpha = bgAccumData.color.w > 0 ? bgAccumData.alpha / bgAccumData.color.w : centerSample.color.w;
+    fgAccumData.alpha = fgAccumData.color.w > 0 ? fgAccumData.alpha / fgAccumData.color.w : centerSample.color.w;
+#endif
+
+    // Compute the fg alpha. Needs to be normalized based on search radius.
+    float maxCoC = fgAccumData.maxCoC;
+    float scaleFactor = (maxCoC * maxCoC) / (maxRadius * maxRadius) ;
+    float correctSamples = scaleFactor * (NumRings * NumRings);
+
+    // Now blend the bg and fg layes
+    float fgAlpha = saturate(fgAccumData.opacity / correctSamples);
+    color = bgAccumData.color * (1.0 - fgAlpha) + fgAlpha * fgAccumData.color;
+    alpha = bgAccumData.alpha * (1.0 - fgAlpha) + fgAlpha * fgAccumData.alpha;
 }
+#endif
 
 [numthreads(GROUP_RES, GROUP_RES, 1)]
 void KMain(uint3 dispatchThreadId : SV_DispatchThreadID)
 {
     PositionInputs posInputs = GetPositionInput(float2(dispatchThreadId.xy), _ScreenSize.zw, uint2(GROUP_RES, GROUP_RES));
 
-    float4 cocRanges = LOAD_TEXTURE2D_X(_TileList, posInputs.positionSS / TILE_RES);
-
-    AccumData accumData;
-    InitAccumData(accumData);
-
     SampleData centerSample;
     centerSample.color = GetColorSample(posInputs.positionSS, 0);
     centerSample.CoC = GetCoCRadius(posInputs.positionSS);
 
+    float4 cocRanges = LOAD_TEXTURE2D_X(_TileList, posInputs.positionSS / TILE_RES);
     // Note: for the far-field, we don't need to search further than than the central CoC.
     // If there is a larger CoC that overlaps the central pixel then it will have greater depth
     float maxRadius = max(2 * abs(centerSample.CoC), -cocRanges.w);
-    //float maxRadius = Max3(cocRanges.y, 2 * abs( centerSample.CoC), -cocRanges.w);
-#ifdef FAST_PATH
-    DoFGatherPairs(posInputs, maxRadius, centerSample, accumData);
+
+    float4 outColor;
+    float outAlpha;
+#ifdef FAST_APPROXIMAION
+    DoFGatherFast(posInputs, maxRadius, centerSample, outColor, outAlpha);
 #else
-    DoFGatherRings(posInputs, maxRadius, centerSample, accumData);
+    DoFGatherRings(posInputs, maxRadius, centerSample, outColor, outAlpha);
 #endif
-    // In case we did not gather any samples, return the original color
-    accumData.color.xyz = accumData.color.w > 0 ? accumData.color.xyz * rcp(accumData.color.w) : centerSample.color.xyz;
 
 #ifdef ENABLE_ALPHA
-    accumData.alpha = accumData.color.w > 0 ? accumData.alpha * rcp(accumData.color.w) : centerSample.color.w;
     // Preserve the original value of the pixels with zero alpha.
     // The second line with the lerp+smoothstep combination avoids a hard transition in edge cases
     //outColor.xyz = outAlpha > 0 ? outColor.xyz : originalColor.xyz;
-    accumData.color.xyz = lerp(centerSample.color.xyz, accumData.color.xyz, smoothstep(0, 0.01, accumData.alpha));
-    accumData.color.w = accumData.alpha;
+    outColor.xyz = lerp(centerSample.color.xyz, outColor.xyz, smoothstep(0, 0.01, outAlpha));
+    outColor.w = outAlpha;
 #endif
 
-    _OutputTexture[COORD_TEXTURE2D_X(posInputs.positionSS)] = (CTYPE) accumData.color;
+    _OutputTexture[COORD_TEXTURE2D_X(posInputs.positionSS)] = (CTYPE) outColor;
 }
