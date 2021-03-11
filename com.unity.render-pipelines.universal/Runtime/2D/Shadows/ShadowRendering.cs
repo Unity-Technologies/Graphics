@@ -105,9 +105,8 @@ namespace UnityEngine.Experimental.Rendering.Universal
         {
             var colorChannel = shadowIndex % 4;
             var textureIndex = shadowIndex / 4;
-            var needNewTexture = shadowIndex == 0;
 
-            if (needNewTexture)
+            if (colorChannel == 0)
                 ShadowRendering.CreateShadowRenderTexture(pass, renderingData, cmdBuffer, textureIndex);
 
             // Render the shadows for this light
