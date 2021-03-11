@@ -122,8 +122,6 @@ namespace UnityEditor.ShaderGraph
                         // sorted insertion, based on dependencies already present in pixelNodes (an issue because we're faking for the preview).
                         InsertAntecedent(pixelNodes, ant);
                     }
-                    // all antecedents of cin are vertex blocks, but we can add them to Pixel to try and get reasonable preview generation.
-                    pixelNodes.InsertRange(0, anties);
                 }
                 else // it's a full compile and cin isn't inlined, so do all the things.
                 {
