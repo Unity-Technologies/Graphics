@@ -367,9 +367,8 @@ namespace UnityEngine.Rendering.HighDefinition
 #endif
 
             // Initial state of the RTHandle system.
-            // Tells the system that we will require MSAA or not so that we can avoid wasteful render texture allocation.
             // We initialize to screen width/height to avoid multiple realloc that can lead to inflated memory usage (as releasing of memory is delayed).
-            RTHandles.Initialize(Screen.width, Screen.height, m_Asset.currentPlatformRenderPipelineSettings.supportMSAA, m_Asset.currentPlatformRenderPipelineSettings.msaaSampleCount);
+            RTHandles.Initialize(Screen.width, Screen.height);
 
             m_XRSystem = new XRSystem(asset.renderPipelineResources.shaders);
 
@@ -1737,7 +1736,7 @@ namespace UnityEngine.Rendering.HighDefinition
                             // Here we use the non scaled resolution for the RTHandleSystem ref size because we assume that at some point we will need full resolution anyway.
                             // This is necessary because we assume that after post processes, we have the full size render target for debug rendering
                             // The only point of calling this here is to grow the render targets. The call in BeginRender will setup the current RTHandle viewport size.
-                            RTHandles.SetReferenceSize(maxSize.x, maxSize.y, m_MSAASamples);
+                            RTHandles.SetReferenceSize(maxSize.x, maxSize.y);
                         }
 
 

@@ -259,7 +259,7 @@ namespace UnityEngine.Rendering.HighDefinition
             return renderGraph.CreateTexture(new TextureDesc(Vector2.one, true, true)
             {
                 colorFormat = GraphicsFormat.B10G11R11_UFloatPack32, enableRandomWrite = !msaa,
-                bindTextureMS = msaa, enableMSAA = msaa, clearBuffer = true, clearColor = Color.clear, name = msaa ? "CameraSSSDiffuseLightingMSAA" : "CameraSSSDiffuseLighting"
+                bindTextureMS = msaa, msaaSamples = msaa ? m_MSAASamples : MSAASamples.None, clearBuffer = true, clearColor = Color.clear, name = msaa ? "CameraSSSDiffuseLightingMSAA" : "CameraSSSDiffuseLighting"
             });
         }
 

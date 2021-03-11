@@ -757,7 +757,7 @@ namespace UnityEngine.Rendering.HighDefinition
                     // to avoid warnings about unbound render targets. The following rendertarget could really be anything if renderVelocitiesForTransparent
                     // Create a new target here should reuse existing already released one
                     builder.UseColorBuffer(builder.CreateTransientTexture(new TextureDesc(Vector2.one, true, true)
-                        { colorFormat = GraphicsFormat.R8G8B8A8_SRGB, bindTextureMS = msaa, enableMSAA = msaa, name = "Transparency Velocity Dummy" }), index++);
+                        { colorFormat = GraphicsFormat.R8G8B8A8_SRGB, bindTextureMS = msaa, msaaSamples = m_MSAASamples, name = "Transparency Velocity Dummy" }), index++);
                 }
                 builder.UseDepthBuffer(prepassOutput.depthBuffer, DepthAccess.ReadWrite);
 
@@ -1455,7 +1455,7 @@ namespace UnityEngine.Rendering.HighDefinition
                     colorFormat = GetColorBufferFormat(),
                     enableRandomWrite = !msaa,
                     bindTextureMS = msaa,
-                    enableMSAA = msaa,
+                    msaaSamples = msaa ? m_MSAASamples : MSAASamples.None,
                     clearBuffer = NeedClearColorBuffer(hdCamera),
                     clearColor = GetColorBufferClearColor(hdCamera),
                     name = msaa ? "CameraColorMSAA" : "CameraColor"
@@ -1476,7 +1476,7 @@ namespace UnityEngine.Rendering.HighDefinition
         TextureHandle ResolveMSAAColor(RenderGraph renderGraph, HDCamera hdCamera, TextureHandle input)
         {
             var outputDesc = renderGraph.GetTextureDesc(input);
-            outputDesc.enableMSAA = false;
+            outputDesc.msaaSamples = MSAASamples.None;
             outputDesc.enableRandomWrite = true;
             outputDesc.bindTextureMS = false;
             // Can't do that because there is NO way to concatenate strings without allocating.
@@ -1664,7 +1664,7 @@ namespace UnityEngine.Rendering.HighDefinition
                             data.shaderVariablesGlobal._ScreenSize = new Vector4(data.hdCamera.finalViewport.width, data.hdCamera.finalViewport.height, 1.0f / data.hdCamera.finalViewport.width, 1.0f / data.hdCamera.finalViewport.height);
                             data.shaderVariablesGlobal._RTHandleScale = RTHandles.rtHandleProperties.rtHandleScale;
                             ConstantBuffer.PushGlobal(ctx.cmd, data.shaderVariablesGlobal, HDShaderIDs._ShaderVariablesGlobal);
-                            RTHandles.SetReferenceSize((int)data.hdCamera.finalViewport.width, (int)data.hdCamera.finalViewport.height, data.hdCamera.msaaSamples);
+                            RTHandles.SetReferenceSize((int)data.hdCamera.finalViewport.width, (int)data.hdCamera.finalViewport.height);
                         });
                 }
             }

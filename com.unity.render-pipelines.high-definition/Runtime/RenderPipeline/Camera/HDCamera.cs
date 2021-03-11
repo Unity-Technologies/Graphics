@@ -646,8 +646,8 @@ namespace UnityEngine.Rendering.HighDefinition
         /// <summary>Set the RTHandle scale to the actual camera size (can be scaled)</summary>
         internal void SetReferenceSize()
         {
-            RTHandles.SetReferenceSize(actualWidth, actualHeight, msaaSamples);
-            m_HistoryRTSystem.SwapAndSetReferenceSize(actualWidth, actualHeight, msaaSamples);
+            RTHandles.SetReferenceSize(actualWidth, actualHeight);
+            m_HistoryRTSystem.SwapAndSetReferenceSize(actualWidth, actualHeight);
         }
 
         // Updating RTHandle needs to be done at the beginning of rendering (not during update of HDCamera which happens in batches)

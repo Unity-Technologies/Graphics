@@ -1053,7 +1053,7 @@ namespace UnityEngine.Rendering.HighDefinition
                     colorFormat = GetColorBufferFormat(),
                     enableRandomWrite = !msaa,
                     bindTextureMS = msaa,
-                    enableMSAA = msaa,
+                    msaaSamples = m_MSAASamples,
                     clearBuffer = true,
                     clearColor = Color.clear,
                     name = msaa ? "CameraColorMSAA" : "CameraColor"

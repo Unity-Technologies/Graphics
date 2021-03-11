@@ -174,7 +174,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 colorFormat = GraphicsFormat.R8G8B8A8_SRGB,
                 enableRandomWrite = !msaa,
                 bindTextureMS = msaa,
-                enableMSAA = msaa,
+                msaaSamples = msaa ? m_MSAASamples : MSAASamples.None,
                 clearBuffer = NeedClearGBuffer(),
                 clearColor = Color.clear,
                 name = msaa ? "SSSBufferMSAA" : "SSSBuffer"

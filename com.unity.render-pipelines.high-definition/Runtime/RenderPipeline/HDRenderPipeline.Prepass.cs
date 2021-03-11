@@ -109,7 +109,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
             TextureDesc depthDesc = new TextureDesc(Vector2.one, true, true)
             {
-                depthBufferBits = DepthBits.Depth32, bindTextureMS = msaa, enableMSAA = msaa, clearBuffer = clear, name = msaa ? "CameraDepthStencilMSAA" : "CameraDepthStencil"
+                depthBufferBits = DepthBits.Depth32, bindTextureMS = msaa, msaaSamples = msaa ? m_MSAASamples : MSAASamples.None, clearBuffer = clear, name = msaa ? "CameraDepthStencilMSAA" : "CameraDepthStencil"
 #if UNITY_2020_2_OR_NEWER
                 , fastMemoryDesc = fastMemDesc
 #endif
@@ -129,7 +129,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
             TextureDesc normalDesc = new TextureDesc(Vector2.one, true, true)
             {
-                colorFormat = GraphicsFormat.R8G8B8A8_UNorm, clearBuffer = NeedClearGBuffer(), clearColor = Color.black, bindTextureMS = msaa, enableMSAA = msaa, enableRandomWrite = !msaa, name = msaa ? "NormalBufferMSAA" : "NormalBuffer"
+                colorFormat = GraphicsFormat.R8G8B8A8_UNorm, clearBuffer = NeedClearGBuffer(), clearColor = Color.black, bindTextureMS = msaa, msaaSamples = msaa ? m_MSAASamples : MSAASamples.None, enableRandomWrite = !msaa, name = msaa ? "NormalBufferMSAA" : "NormalBuffer"
 #if UNITY_2020_2_OR_NEWER
                 , fastMemoryDesc = fastMemDesc
 #endif
@@ -141,20 +141,20 @@ namespace UnityEngine.Rendering.HighDefinition
         TextureHandle CreateDecalPrepassBuffer(RenderGraph renderGraph, bool msaa)
         {
             TextureDesc decalDesc = new TextureDesc(Vector2.one, true, true)
-            { colorFormat = GraphicsFormat.R8G8B8A8_UNorm, clearBuffer = true, clearColor = Color.clear, bindTextureMS = false, enableMSAA = msaa, enableRandomWrite = !msaa, name = msaa ? "DecalPrepassBufferMSAA" : "DecalPrepassBuffer" };
+            { colorFormat = GraphicsFormat.R8G8B8A8_UNorm, clearBuffer = true, clearColor = Color.clear, bindTextureMS = false, msaaSamples = msaa ? m_MSAASamples : MSAASamples.None, enableRandomWrite = !msaa, name = msaa ? "DecalPrepassBufferMSAA" : "DecalPrepassBuffer" };
             return renderGraph.CreateTexture(decalDesc);
         }
 
         TextureHandle CreateDepthAsColorBuffer(RenderGraph renderGraph)
         {
             return renderGraph.CreateTexture(new TextureDesc(Vector2.one, true, true)
-                { colorFormat = GraphicsFormat.R32_SFloat, clearBuffer = true, clearColor = Color.black, bindTextureMS = true, enableMSAA = true, name = "DepthAsColorMSAA" });
+                { colorFormat = GraphicsFormat.R32_SFloat, clearBuffer = true, clearColor = Color.black, bindTextureMS = true, msaaSamples = m_MSAASamples, name = "DepthAsColorMSAA" });
         }
 
         TextureHandle CreateMotionVectorBuffer(RenderGraph renderGraph, bool msaa, bool clear)
         {
             TextureDesc motionVectorDesc = new TextureDesc(Vector2.one, true, true)
-            { colorFormat = Builtin.GetMotionVectorFormat(), bindTextureMS = msaa, enableMSAA = msaa, clearBuffer = clear, clearColor = Color.clear, name = msaa ? "Motion Vectors MSAA" : "Motion Vectors" };
+            { colorFormat = Builtin.GetMotionVectorFormat(), bindTextureMS = msaa, msaaSamples = msaa ? m_MSAASamples : MSAASamples.None, clearBuffer = clear, clearColor = Color.clear, name = msaa ? "Motion Vectors MSAA" : "Motion Vectors" };
             return renderGraph.CreateTexture(motionVectorDesc);
         }
 
