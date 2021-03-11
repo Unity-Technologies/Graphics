@@ -18,11 +18,11 @@ RW_TEXTURE2D_X(float4, _OutputTexture);
 void DilateTile(inout float4 tileInfo, float4 tile)
 {
     // far field
-    tileInfo.x = min(tileInfo.x, tile.x);
+    tileInfo.x = tileInfo.x;
     tileInfo.y = max(tileInfo.y, tile.y);
 
     // near field
-    tileInfo.z = max(tileInfo.z, tile.z);
+    tileInfo.z = tileInfo.z;
     tileInfo.w = min(tileInfo.w, tile.w);
 }
 

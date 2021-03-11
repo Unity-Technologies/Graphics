@@ -146,14 +146,14 @@ void AccumulateSample(SampleData sampleData, float centerCoC, float2 limit, inou
 #endif
 }
 
-void DoFGatherFast(PositionInputs posInputs, float maxRadius, SampleData centerSample, out float4 outColor, out float outAlpha)
+void DoFGatherFast(PositionInputs posInputs, int numSamples, float maxRadius, SampleData centerSample, out float4 outColor, out float outAlpha)
 {
     AccumData accumData;
     InitAccumData(accumData);
 
-    float dR = rcp(NumRings);
+    float dR = rcp(numSamples);
     int blueNoiseOffset = _TaaFrameInfo.w != 0.0 ? _TaaFrameInfo.z : 0;
-    int numSamples = maxRadius > 0 ? NumRings : 0;
+    numSamples = maxRadius > 0 ? numSamples : 0;
     float dAng = PI * rcp(numSamples);
 
     // Select the appropriate mip to sample based on the amount of samples. Lower sample counts will be faster at the cost of "leaking"
@@ -238,15 +238,14 @@ void AccumulateSample(SampleData sampleData, float weight, inout float4 colorAcc
 
 void AccumulateSampleData(SampleData sampleData[2], SampleData centerSample, float sampleRadius, inout RingData ringData, inout AccumData accumData)
 {
-    bool firstRing = (ringData.ringNum == NumRings - 1);
     UNITY_UNROLL
         for (int k = 0; k < 2; k++)
         {
             float CoC = ringData.isForeground ? -sampleData[k].CoC : sampleData[k].CoC;
 
             float sampleWeight = GetSampleWeight(CoC);
-            float visibility = saturate(CoC - sampleRadius);
-            //float visibility = step(0.0, CoC - sampleRadius);
+            //float visibility = saturate(CoC - sampleRadius);
+            float visibility = step(0.0, CoC - sampleRadius);
 
             AccumulateSample(sampleData[k], visibility * sampleWeight, ringData.colorAccum, ringData.CoC, ringData.alphaAccum);
 
@@ -269,7 +268,7 @@ void AccumulateSampleData(SampleData sampleData[2], SampleData centerSample, flo
         }
 }
 
-void AccumulateRingData(RingData data, inout AccumData accumData)
+void AccumulateRingData(float numSamples, RingData data, inout AccumData accumData)
 {
     if (data.colorAccum.w == 0)
     {
@@ -283,7 +282,7 @@ void AccumulateRingData(RingData data, inout AccumData accumData)
     float accumAvgCoC = accumData.color.w > 0 ? accumData.CoC * rcp(accumData.color.w) * cocScale : 0;
 
     float ringOcclusion = saturate(accumAvgCoC - ringAvgCoC);
-    float ringOpacity = data.opacity / NumRings;
+    float ringOpacity = data.opacity / numSamples;
 
     if (data.isForeground)
     {
@@ -304,15 +303,15 @@ void AccumulateRingData(RingData data, inout AccumData accumData)
 }
 
 
-void DoFGatherRings(PositionInputs posInputs, float maxRadius, SampleData centerSample, out float4 color, out float alpha)
+void DoFGatherRings(PositionInputs posInputs, int numSamples, float maxRadius, SampleData centerSample, out float4 color, out float alpha)
 {
     AccumData bgAccumData, fgAccumData;
     InitAccumData(bgAccumData);
     InitAccumData(fgAccumData);
 
-    float dR = rcp(NumRings);
+    float dR = rcp(numSamples);
     int blueNoiseOffset = _TaaFrameInfo.w != 0.0 ? _TaaFrameInfo.z : 0;
-    int numSamples = maxRadius > 0 ? NumRings : 0;
+    numSamples = maxRadius > 0 ? numSamples : 0;
     float dAng = PI * rcp(numSamples);
 
     // Select the appropriate mip to sample based on the amount of samples. Lower sample counts will be faster at the cost of "leaking"
@@ -354,8 +353,8 @@ void DoFGatherRings(PositionInputs posInputs, float maxRadius, SampleData center
             AccumulateSampleData(sampleData, centerSample, sampleRadius, fgRingData, fgAccumData);
         }
 
-        AccumulateRingData(bgRingData, bgAccumData);
-        AccumulateRingData(fgRingData, fgAccumData);
+        AccumulateRingData(numSamples, bgRingData, bgAccumData);
+        AccumulateRingData(numSamples, fgRingData, fgAccumData);
     }
 
     // Resolve the bg and fg layer color
@@ -365,7 +364,7 @@ void DoFGatherRings(PositionInputs posInputs, float maxRadius, SampleData center
     // Compute the fg alpha. Needs to be normalized based on search radius.
     float maxCoC = fgAccumData.maxCoC;
     float scaleFactor = (maxCoC * maxCoC) / (maxRadius * maxRadius) ;
-    float correctSamples = scaleFactor * (NumRings * NumRings);
+    float correctSamples = scaleFactor * (numSamples * numSamples);
 
     // Now blend the bg and fg layes
     float fgAlpha = saturate(fgAccumData.opacity / correctSamples);
@@ -388,12 +387,17 @@ void KMain(uint3 dispatchThreadId : SV_DispatchThreadID)
     // If there is a larger CoC that overlaps the central pixel then it will have greater depth
     float maxRadius = max(2 * abs(centerSample.CoC), -cocRanges.w);
 
+    // Detect tiles than need more samples
+    int numSamples = NumRings;
+    float minRadius = min(cocRanges.x, -cocRanges.z);
+    numSamples = (minRadius / maxRadius < 0.1) ? numSamples * 4 : numSamples;
+
     float4 outColor;
     float outAlpha;
 #ifdef FAST_APPROXIMAION
-    DoFGatherFast(posInputs, maxRadius, centerSample, outColor, outAlpha);
+    DoFGatherFast(posInputs, numSamples, maxRadius, centerSample, outColor, outAlpha);
 #else
-    DoFGatherRings(posInputs, maxRadius, centerSample, outColor, outAlpha);
+    DoFGatherRings(posInputs, numSamples, maxRadius, centerSample, outColor, outAlpha);
 #endif
 
 #ifdef ENABLE_ALPHA

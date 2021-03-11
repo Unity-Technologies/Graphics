@@ -1639,7 +1639,7 @@ namespace UnityEngine.Rendering.HighDefinition
             parameters.resolution = m_DepthOfField.resolution;
 
             float scale = 1f / (float)parameters.resolution;
-            float resolutionScale = m_DepthOfField.physicallyBased ? 1 : (camera.actualHeight / 1080f) * (scale * 2f);
+            float resolutionScale = (camera.actualHeight / 1080f) * (scale * 2f);
 
             int farSamples = Mathf.CeilToInt(m_DepthOfField.farSampleCount * resolutionScale);
             int nearSamples = Mathf.CeilToInt(m_DepthOfField.nearSampleCount * resolutionScale);
@@ -1747,7 +1747,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 parameters.ditheredTextureSet = GetBlueNoiseManager().DitheredTextureSet256SPP();
 
                 // For low sample counts use a fast approximation and not the full method
-                if (Mathf.Max(parameters.nearSampleCount, parameters.farSampleCount) <= 4)
+                if (Mathf.Max(parameters.nearSampleCount, parameters.farSampleCount) <= 4 * resolutionScale)
                 {
                     parameters.pbDoFGatherCS.EnableKeyword("FAST_APPROXIMAION");
                 }
