@@ -206,9 +206,10 @@ namespace UnityEditor.ShaderGraph.UnitTests
             var textInputField = blackboardPropertyView.Q<VisualElement>("unity-text-input");
             Assert.IsNotNull(textInputField, "No text input field found in the property view.");
 
-            ShaderGraphUITestHelpers.SendMouseEvent(m_Window, blackboardPropertyView, EventType.MouseDown, MouseButton.LeftMouse, 2, EventModifiers.None, new Vector2(5, 1));
+            var propertyViewOffset = new Vector2(5, 5);
+            ShaderGraphUITestHelpers.SendMouseEvent(m_Window, blackboardPropertyView, EventType.MouseDown, MouseButton.LeftMouse, 2, EventModifiers.None, propertyViewOffset);
             yield return null;
-            ShaderGraphUITestHelpers.SendMouseEvent(m_Window, blackboardPropertyView, EventType.MouseUp, MouseButton.LeftMouse, 1, EventModifiers.None, new Vector2(5, 1));
+            ShaderGraphUITestHelpers.SendMouseEvent(m_Window, blackboardPropertyView, EventType.MouseUp, MouseButton.LeftMouse, 1, EventModifiers.None, propertyViewOffset);
             yield return null;
             ShaderGraphUITestHelpers.SendKeyEvent(m_Window, textInputField, EventType.KeyDown, 'T');
             yield return null;
