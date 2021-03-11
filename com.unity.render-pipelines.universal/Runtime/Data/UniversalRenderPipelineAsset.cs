@@ -929,6 +929,16 @@ namespace UnityEngine.Rendering.Universal
 
             if (k_AssetVersion < 8)
             {
+                m_AdditionalLightsShadowResolutionTierHigh = (int)m_AdditionalLightsShadowmapResolution;
+                m_AdditionalLightsShadowResolutionTierMedium = Mathf.Max(m_AdditionalLightsShadowResolutionTierHigh / 2, UniversalAdditionalLightData.AdditionalLightsShadowMinimumResolution);
+                m_AdditionalLightsShadowResolutionTierLow = Mathf.Max(m_AdditionalLightsShadowResolutionTierMedium / 2, UniversalAdditionalLightData.AdditionalLightsShadowMinimumResolution);
+
+                k_AssetPreviousVersion = k_AssetVersion;
+                k_AssetVersion = 8;
+            }
+
+            if (k_AssetVersion < 8)
+            {
                 k_AssetPreviousVersion = k_AssetVersion;
                 m_CascadeBorder = 0.1f; // In previous version we had this hard coded
                 k_AssetVersion = 8;
