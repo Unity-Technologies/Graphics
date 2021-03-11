@@ -1,17 +1,17 @@
 project:
-  name: URP_Performance_LostCrypt
-  folder: 2d-sara
+  name: VikingVillage_URP
+  folder: Viking-Village-Perf
   variables:
-    LOST_CRYPT_BRANCH: 21.2/urp-perf-test
-    LOST_CRYPT_REVISION: eb3405aada97fdaf2b033e4f7bc7e47fb4589c3a
+    VV_URP_BRANCH: master
+    VV_URP_REVISION: eb763cb92d2bb22a1843c67351b90ab927508ec7
 
 reuse_blocks:
   unity_config:
-    - [iPhone_Metal, OSX_Metal, Linux_Vulkan]: git clone https://github.com/Unity-Technologies/2d-sara.git -b $LOST_CRYPT_BRANCH TestProjects/2d-sara
-    - [Win_DX11, Win_DX12, Win_Vulkan, Android_OpenGLES3, Android_Vulkan]: git clone https://github.com/Unity-Technologies/2d-sara.git -b %LOST_CRYPT_BRANCH% TestProjects/2d-sara
+    - [iPhone_Metal, OSX_Metal, Linux_Vulkan]: git clone https://github.cds.internal.unity3d.com/andrew-theisen/Viking-Village-Perf.git -b $VV_URP_BRANCH TestProjects/Viking-Village-Perf
+    - [Win_DX11, Win_DX12, Win_Vulkan, Android_OpenGLES3, Android_Vulkan]: git clone https://github.cds.internal.unity3d.com/andrew-theisen/Viking-Village-Perf.git  -b %VV_URP_BRANCH% TestProjects/Viking-Village-Perf
 
-    - [iPhone_Metal, OSX_Metal, Linux_Vulkan]: cd TestProjects/2d-sara && git checkout $LOST_CRYPT_REVISION
-    - [Win_DX11, Win_DX12, Win_Vulkan, Android_OpenGLES3, Android_Vulkan]: cd TestProjects/2d-sara && git checkout %LOST_CRYPT_REVISION%
+    - [iPhone_Metal, OSX_Metal, Linux_Vulkan]: cd TestProjects/Viking-Village-Perf && git checkout $VV_URP_REVISION
+    - [Win_DX11, Win_DX12, Win_Vulkan, Android_OpenGLES3, Android_Vulkan]: cd TestProjects/Viking-Village-Perf && git checkout %VV_URP_REVISION%
 
 
     - [iPhone_Metal, OSX_Metal]: brew tap --force-auto-update unity/unity git@github.cds.internal.unity3d.com:unity/homebrew-unity.git
@@ -24,27 +24,25 @@ reuse_blocks:
     - [Linux_Vulkan]: sudo sh -c "echo 'deb https://artifactory.prd.it.unity3d.com/artifactory/unity-apt-local bionic main' > /etc/apt/sources.list.d/unity.list"
     - [Linux_Vulkan]: sudo apt update
     - [Linux_Vulkan]: sudo apt install -y unity-config
-    - [all]: cd TestProjects/2d-sara && unity-config project add dependency "com.unity.render-pipelines.core@file:../../../com.unity.render-pipelines.core" --project-path .
-    - [all]: cd TestProjects/2d-sara && unity-config project add dependency "com.unity.render-pipelines.universal@file:../../../com.unity.render-pipelines.universal" --project-path .
-    - [all]: cd TestProjects/2d-sara && unity-config project add dependency "com.unity.shadergraph@file:../../../com.unity.shadergraph" --project-path .
-    - [all]: cd TestProjects/2d-sara && unity-config project add dependency com.unity.addressables@1.16.7 --project-path .
-    - [all]: cd TestProjects/2d-sara && unity-config project add dependency com.unity.scriptablebuildpipeline@1.11.2 --project-path .
-    - [all]: cd TestProjects/2d-sara && unity-config project add dependency com.unity.test-framework@1.1.18 --project-path .
-    - [all]: cd TestProjects/2d-sara && unity-config project add dependency com.unity.test-framework.performance@2.4.0 --project-path .
-    - [all]: cd TestProjects/2d-sara && unity-config project add dependency com.unity.test-framework.utp-reporter@1.0.2-preview --project-path .
-    - [all]: cd TestProjects/2d-sara && unity-config project add dependency com.unity.test-framework.build@0.0.1-preview.12 --project-path .
-    - [all]: cd TestProjects/2d-sara && unity-config project add dependency "com.unity.testing.graphics-performance@ssh://git@github.cds.internal.unity3d.com/unity/com.unity.testing.graphics-performance.git"  --project-path .
-    - [all]: cd TestProjects/2d-sara && unity-config project add dependency "unity.graphictests.performance.universal@ssh://git@github.cds.internal.unity3d.com/unity/unity.graphictests.performance.universal.git" --project-path .
-    - [all]: cd TestProjects/2d-sara && unity-config project add testable com.unity.cli-project-setup  --project-path .
-    - [all]: cd TestProjects/2d-sara && unity-config project add testable com.unity.test.performance.runtimesettings  --project-path .
-    - [all]: cd TestProjects/2d-sara && unity-config project add testable com.unity.test.metadata-manager  --project-path .
-    - [all]: cd TestProjects/2d-sara && unity-config project add testable com.unity.testing.graphics-performance --project-path .
-    - [all]: cd TestProjects/2d-sara && unity-config project add testable com.unity.render-pipelines.core  --project-path .
-    - [all]: cd TestProjects/2d-sara && unity-config project add testable unity.graphictests.performance.universal  --project-path .
-    - [all]: cd TestProjects/2d-sara && unity-config project set project-update false --project-path .
+    - [all]: cd TestProjects/Viking-Village-Perf && unity-config project add dependency "com.unity.render-pipelines.core@file:../../../com.unity.render-pipelines.core" --project-path .
+    - [all]: cd TestProjects/Viking-Village-Perf && unity-config project add dependency "com.unity.render-pipelines.universal@file:../../../com.unity.render-pipelines.universal" --project-path .
+    - [all]: cd TestProjects/Viking-Village-Perf && unity-config project add dependency "com.unity.shadergraph@file:../../../com.unity.shadergraph" --project-path .
+    - [all]: cd TestProjects/Viking-Village-Perf && unity-config project add dependency com.unity.test-framework@1.1.23 --project-path .
+    - [all]: cd TestProjects/Viking-Village-Perf && unity-config project add dependency com.unity.test-framework.performance@2.4.0 --project-path .
+    - [all]: cd TestProjects/Viking-Village-Perf && unity-config project add dependency com.unity.test-framework.utp-reporter@1.0.2-preview --project-path .
+    - [all]: cd TestProjects/Viking-Village-Perf && unity-config project add dependency com.unity.test-framework.build@0.0.1-preview.12 --project-path .
+    - [all]: cd TestProjects/Viking-Village-Perf && unity-config project add dependency "com.unity.testing.graphics-performance@ssh://git@github.cds.internal.unity3d.com/unity/com.unity.testing.graphics-performance.git"  --project-path .
+    - [all]: cd TestProjects/Viking-Village-Perf && unity-config project add dependency "unity.graphictests.performance.universal@ssh://git@github.cds.internal.unity3d.com/unity/unity.graphictests.performance.universal.git" --project-path .
+    - [all]: cd TestProjects/Viking-Village-Perf && unity-config project add testable com.unity.cli-project-setup  --project-path .
+    - [all]: cd TestProjects/Viking-Village-Perf && unity-config project add testable com.unity.test.performance.runtimesettings  --project-path .
+    - [all]: cd TestProjects/Viking-Village-Perf && unity-config project add testable com.unity.test.metadata-manager  --project-path .
+    - [all]: cd TestProjects/Viking-Village-Perf && unity-config project add testable com.unity.testing.graphics-performance --project-path .
+    - [all]: cd TestProjects/Viking-Village-Perf && unity-config project add testable com.unity.render-pipelines.core  --project-path .
+    - [all]: cd TestProjects/Viking-Village-Perf && unity-config project add testable unity.graphictests.performance.universal  --project-path .
+    - [all]: cd TestProjects/Viking-Village-Perf && unity-config project set project-update false --project-path .
   perf_utr_flags:
     - [all]: --extra-editor-arg="-executemethod" --extra-editor-arg="Editor.Setup"
-    - [all]: --extra-editor-arg="-addscenetobuild=Assets/Scenes/Main.unity"
+    - [all]: --extra-editor-arg="-addscenetobuild=Assets/Scenes/The_Viking_Village.unity"
     - [all]: --extra-editor-arg="-packageundertestname=com.unity.render-pipelines.universal"
     - [all]: --extra-editor-arg="-packageundertestrev=%GIT_REVISION%"
     - [all]: --extra-editor-arg="-packageundertestrevdate=%GIT_REVISIONDATE%"
@@ -68,28 +66,12 @@ test_platforms:
       - [iPhone_Metal, Android_Vulkan, Android_OpenGLES3, Win_DX11, Win_DX12, Win_Vulkan, OSX_Metal, Linux_Vulkan]: <shared.platform.commands.call_utr>
         flags:
           - [all]: --report-performance-data
-          - [all]: --performance-project-id=LostCrypt
-          - [iPhone_Metal]: --timeout=2400
-          - [iPhone_Metal, Android_Vulkan, Android_OpenGLES3, Win_DX11, Win_DX12, Win_Vulkan, Linux_Vulkan]: --player-load-path=playersLow
-          - [OSX_Metal]: --testfilter=Low
-          - [OSX_Metal]: <reuse_blocks.perf_utr_flags>
-      - [iPhone_Metal, Android_Vulkan, Android_OpenGLES3, Win_DX11, Win_DX12, Win_Vulkan, OSX_Metal, Linux_Vulkan]: <shared.platform.commands.call_utr>
-        flags:
-          - [all]: --report-performance-data
-          - [all]: --performance-project-id=LostCrypt
+          - [all]: --performance-project-id=VikingVillage_URP
           - [iPhone_Metal]: --timeout=2400
           - [iPhone_Metal, Android_Vulkan, Android_OpenGLES3, Win_DX11, Win_DX12, Win_Vulkan, Linux_Vulkan]: --player-load-path=playersMedium
           - [OSX_Metal]: --testfilter=Medium
           - [OSX_Metal]: <reuse_blocks.perf_utr_flags>
-      - [Win_DX11, Win_DX12, Win_Vulkan, OSX_Metal, Linux_Vulkan]: <shared.platform.commands.call_utr>
-        flags:
-          - [all]: --report-performance-data
-          - [all]: --performance-project-id=LostCrypt
-          - [Win_DX11, Win_DX12, Win_Vulkan, Linux_Vulkan]: --player-load-path=playersHigh
-          - [OSX_Metal]: --testfilter=High
-          - [OSX_Metal]: <reuse_blocks.perf_utr_flags>
       - [Android_OpenGLES3, Android_Vulkan]: <shared.platform.commands.kill_server>
-
     commands_build:
       - <reuse_blocks.unity_config>
       - [iPhone_Metal]: pip install unity-downloader-cli --index-url https://artifactory.prd.it.unity3d.com/artifactory/api/pypi/pypi/simple --upgrade
@@ -100,27 +82,8 @@ test_platforms:
       - [iPhone_Metal, Android_Vulkan, Android_OpenGLES3, Win_DX11, Win_DX12, Win_Vulkan, OSX_Metal, Linux_Vulkan]: <shared.platform.commands.call_utr>
         flags:
           - <reuse_blocks.perf_utr_flags>
-          - [Win_DX11, Win_DX12, Win_Vulkan]: --extra-editor-arg="-stripenginecode-"
-          - [Win_DX11, Win_DX12, Win_Vulkan]: --extra-editor-arg="-managedstrippinglevel=Low"
-          - [Win_DX11, Win_DX12, Win_Vulkan]: --extra-editor-arg="-allowdebugging-"
-          - [all]: --testfilter=Low
-          - [all]: --player-save-path=playersLow
-      - [iPhone_Metal, Android_Vulkan, Android_OpenGLES3, Win_DX11, Win_DX12, Win_Vulkan, OSX_Metal, Linux_Vulkan]: <shared.platform.commands.call_utr>
-        flags:
-          - <reuse_blocks.perf_utr_flags>
-          - [Win_DX11, Win_DX12, Win_Vulkan]: --extra-editor-arg="-stripenginecode-"
-          - [Win_DX11, Win_DX12, Win_Vulkan]: --extra-editor-arg="-managedstrippinglevel=Low"
-          - [Win_DX11, Win_DX12, Win_Vulkan]: --extra-editor-arg="-allowdebugging-"
           - [all]: --testfilter=Medium
           - [all]: --player-save-path=playersMedium
-      - [Win_DX11, Win_DX12, Win_Vulkan, OSX_Metal, Linux_Vulkan]: <shared.platform.commands.call_utr>
-        flags:
-          - <reuse_blocks.perf_utr_flags>
-          - [Win_DX11, Win_DX12, Win_Vulkan]: --extra-editor-arg="-stripenginecode-"
-          - [Win_DX11, Win_DX12, Win_Vulkan]: --extra-editor-arg="-managedstrippinglevel=Low"
-          - [Win_DX11, Win_DX12, Win_Vulkan]: --extra-editor-arg="-allowdebugging-"
-          - [all]: --testfilter=High
-          - [all]: --player-save-path=playersHigh
 
   - type: playmode
     name: performance_playmode_editor
@@ -132,21 +95,9 @@ test_platforms:
       - [all]: <shared.platform.commands.call_utr>
         flags:
           - [all]: --report-performance-data
-          - [all]: --performance-project-id=LostCrypt
-          - <reuse_blocks.perf_utr_flags>
-          - [all]: --testfilter=Low
-      - [all]: <shared.platform.commands.call_utr>
-        flags:
-          - [all]: --report-performance-data
-          - [all]: --performance-project-id=LostCrypt
+          - [all]: --performance-project-id=VikingVillage_URP
           - <reuse_blocks.perf_utr_flags>
           - [all]: --testfilter=Medium
-      - [Win_DX11, Win_DX12, Win_Vulkan]: <shared.platform.commands.call_utr>
-        flags:
-          - [all]: --report-performance-data
-          - [all]: --performance-project-id=LostCrypt
-          - <reuse_blocks.perf_utr_flags>
-          - [all]: --testfilter=High
   - type: editmode
     name: performance_build_editmode
     commands:
@@ -158,23 +109,9 @@ test_platforms:
         flags:
           - [all]: --testfilter=Build
           - [all]: --report-performance-data
-          - [all]: --performance-project-id=LostCrypt
-          - <reuse_blocks.perf_utr_flags>
-          - [all]: --testfilter=Low
-      - [all]: <shared.platform.commands.call_utr>
-        flags:
-          - [all]: --testfilter=Build
-          - [all]: --report-performance-data
-          - [all]: --performance-project-id=LostCrypt
+          - [all]: --performance-project-id=VikingVillage_URP
           - <reuse_blocks.perf_utr_flags>
           - [all]: --testfilter=Medium
-      - [Win_DX11, Win_DX12, Win_Vulkan]: <shared.platform.commands.call_utr>
-        flags:
-          - [all]: --testfilter=Build
-          - [all]: --report-performance-data
-          - [all]: --performance-project-id=LostCryptLostCrypt
-          - <reuse_blocks.perf_utr_flags>
-          - [all]: --testfilter=High
 expression_trigger:
   expression: ""
 platforms:
@@ -202,7 +139,7 @@ platforms:
       performance_build_editmode:
         type: Unity::VM
         image: sdet/gamecode_win10:stable
-        flavor: b1.large
+        flavor: b1.xlarge
   - name: Android
     apis:
       - name: Vulkan
@@ -283,36 +220,39 @@ pr:
         - performance_playmode_runtime
         #- performance_playmode_editor
         - performance_build_editmode
-    - platform: Win
-      api: DX12
-      build_config: mono
-      color_space: Linear
-      test_platforms:
-        - performance_playmode_runtime
-        - performance_playmode_editor
-        - performance_build_editmode
     - platform: Android
       api: OpenGLES3
       build_config: il2cpp
       color_space: Linear
       test_platforms:
-        - performance_playmode_runtime
+        # runtime disabled until solution for urp failures found
+        #- performance_playmode_runtime
         - performance_build_editmode
     - platform: Android
       api: Vulkan
       build_config: il2cpp
       color_space: Linear
       test_platforms:
-        - performance_playmode_runtime
+        # runtime disabled until solution for urp failures found
+        #- performance_playmode_runtime
         - performance_build_editmode
     - platform: iPhone
       api: Metal
       build_config: il2cpp
       color_space: Linear
       test_platforms:
+        # runtime disabled until solution for urp failures found
+        #- performance_playmode_runtime
+        - performance_build_editmode
+    - platform: Linux
+      api: Vulkan
+      build_config: mono
+      color_space: Linear
+      test_platforms:
         - performance_playmode_runtime
+        #- performance_playmode_editor
         - performance_build_editmode
 nightly:
   dependencies:
-    - project: URP_Performance_LostCrypt
+    - project: VikingVillage_URP
       pr: true

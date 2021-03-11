@@ -554,6 +554,11 @@ Shader "HDRP/LayeredLit"
     // Explicitely said that we are a layered shader as we share code between lit and layered lit
     #define LAYERED_LIT_SHADER
 
+    // Define _DEFERRED_CAPABLE_MATERIAL for shader capable to run in deferred pass
+    #ifndef _SURFACE_TYPE_TRANSPARENT
+    #define _DEFERRED_CAPABLE_MATERIAL
+    #endif
+
     //-------------------------------------------------------------------------------------
     // Include
     //-------------------------------------------------------------------------------------
