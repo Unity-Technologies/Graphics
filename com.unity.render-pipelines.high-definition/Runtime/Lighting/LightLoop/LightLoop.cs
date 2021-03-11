@@ -52,7 +52,7 @@ namespace UnityEngine.Rendering.HighDefinition
     //-----------------------------------------------------------------------------
 
     [GenerateHLSL]
-    public enum LightVolumeType
+    enum LightVolumeType
     {
         Cone,
         Sphere,
@@ -61,7 +61,7 @@ namespace UnityEngine.Rendering.HighDefinition
     }
 
     [GenerateHLSL]
-    public enum LightCategory
+    enum LightCategory
     {
         Punctual,
         Area,
@@ -250,7 +250,7 @@ namespace UnityEngine.Rendering.HighDefinition
         public uint         _Pad2_SVLL;
     }
 
-    public struct ProcessedLightData
+    struct ProcessedLightData
     {
         public HDAdditionalLightData    additionalLightData;
         public HDLightType              lightType;
@@ -1347,7 +1347,7 @@ namespace UnityEngine.Rendering.HighDefinition
             visibleLight.lightType = light.type;
         }
 
-        public void GetLightData(CommandBuffer cmd, HDCamera hdCamera, HDShadowSettings shadowSettings, VisibleLight light, Light lightComponent,
+        internal void GetLightData(CommandBuffer cmd, HDCamera hdCamera, HDShadowSettings shadowSettings, VisibleLight light, Light lightComponent,
             in ProcessedLightData processedData, int shadowIndex, BoolScalableSetting contactShadowsScalableSetting, bool isRasterization, ref Vector3 lightDimensions, ref int screenSpaceShadowIndex, ref int screenSpaceChannelSlot, ref LightData lightData, LightListContext lightListContext)
         {
             var additionalLightData = processedData.additionalLightData;
