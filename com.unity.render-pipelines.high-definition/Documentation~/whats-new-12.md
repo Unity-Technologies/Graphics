@@ -15,7 +15,9 @@ Group of Materials / GameObject can be setup to use Force Emissive forward with 
 
 ## Improvements
 
-### Local Volumetric Fog Improvements
+### Density Volume (Local Volumetric Fog) Improvements
+
+Density Volumes are now known as **Local Volumetric Fog**. This will help users know that is not a Volume (from the Volumes Framework ) and that is related to fog.
 
 Local Volumetric Fog masks now support using 3D RenderTextures as masks. 3D mask textures now also use all four RGBA channel which allows volumetric fog to have different colors and density based on the 3D Texture.
 
@@ -69,7 +71,7 @@ From HDRP 12.0, various top level menus are now different. This is to make the t
   * **C# Custom Pass** is now at **Assets > Create > Rendering > HDRP C# Custom Pass**
   * **C# Post Process Volume** is now at **Assets > Create > Rendering > HDRP C# Post Process Volume**
 * **GameObject**
-  * **Density Volume** is now at **GameObject > Volume > Local Volumetric Fog**
+  * **Density Volume** is now at **GameObject > Local Volumetric Fog**
   * **Decal Projector** is now at **GameObject > Decal Projector**
   * **Sky and Fog Volume** is now at **GameObject > Volume > Sky and Fog Global Volume**
 
