@@ -429,7 +429,8 @@ namespace UnityEngine.Rendering
             if (m_NormalBias != normalBiasFromProfile)
             {
                 m_NormalBias = normalBiasFromProfile;
-                m_Index.WriteConstants(ref m_Transform, m_Pool.GetPoolDimensions(), m_NormalBias);
+                if (m_Index != null)
+                    m_Index.WriteConstants(ref m_Transform, m_Pool.GetPoolDimensions(), m_NormalBias);
             }
         }
 
