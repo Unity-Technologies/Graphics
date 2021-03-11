@@ -28,8 +28,6 @@ PR_VikingVillage_BuiltIn_trunk:
          rerun: on-new-revision
       -  path: .yamato/vikingvillage_builtin-linux-vulkan.yml#VikingVillage_BuiltIn_Linux_Vulkan_performance_playmode_runtime_mono_Linear_trunk
          rerun: on-new-revision
-      -  path: .yamato/vikingvillage_builtin-linux-vulkan.yml#VikingVillage_BuiltIn_Linux_Vulkan_performance_playmode_editor_mono_Linear_trunk
-         rerun: on-new-revision
       -  path: .yamato/vikingvillage_builtin-linux-vulkan.yml#VikingVillage_BuiltIn_Linux_Vulkan_performance_build_editmode_mono_Linear_trunk
          rerun: on-new-revision
     variables:
@@ -67,8 +65,6 @@ PR_VikingVillage_BuiltIn_CUSTOM-REVISION:
       -  path: .yamato/vikingvillage_builtin-iphone-metal.yml#VikingVillage_BuiltIn_iPhone_Metal_performance_build_editmode_il2cpp_Linear_CUSTOM-REVISION
          rerun: always
       -  path: .yamato/vikingvillage_builtin-linux-vulkan.yml#VikingVillage_BuiltIn_Linux_Vulkan_performance_playmode_runtime_mono_Linear_CUSTOM-REVISION
-         rerun: always
-      -  path: .yamato/vikingvillage_builtin-linux-vulkan.yml#VikingVillage_BuiltIn_Linux_Vulkan_performance_playmode_editor_mono_Linear_CUSTOM-REVISION
          rerun: always
       -  path: .yamato/vikingvillage_builtin-linux-vulkan.yml#VikingVillage_BuiltIn_Linux_Vulkan_performance_build_editmode_mono_Linear_CUSTOM-REVISION
          rerun: always
