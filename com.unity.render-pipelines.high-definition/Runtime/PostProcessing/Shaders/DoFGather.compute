@@ -34,8 +34,7 @@ RW_TEXTURE2D_X(CTYPE, _OutputTexture);
 #define TILE_RES  8u
 
 // A set of Defines to fine-tune the algorithm
-#define NUM_BUCKETS 3
-#define ADAPTIVE_RADIUS
+#define ADAPTIVE_SAMPLING
 #define STRATIFY
 #define FORCE_POINT_SAMPLING
 #ifndef FAST_APPROXIMAION
@@ -154,7 +153,7 @@ void DoFGatherFast(PositionInputs posInputs, int numSamples, float maxRadius, Sa
         for (int i = 0; i < numSamples; i += 1)
         {
             SampleData sampleData[2];
-            const float _sign[2] = { -1, 1 };
+            const float offset[2] = { 0, PI };
 
             float r1 = GetBNDSequenceSample(posInputs.positionSS.xy, ring * numSamples + i + blueNoiseOffset, 1);
             float r2 = GetBNDSequenceSample(posInputs.positionSS.xy, ring * numSamples + i + blueNoiseOffset, 0);
@@ -168,9 +167,9 @@ void DoFGatherFast(PositionInputs posInputs, int numSamples, float maxRadius, Sa
             for (int j = 0; j < 2; j++)
             {
 #ifdef STRATIFY
-                float2 sampleTC = posInputs.positionSS + sampleRadius * PointInCircle(_sign[j] * (i + r1) * dAng);
+                float2 sampleTC = posInputs.positionSS + sampleRadius * PointInCircle(offset[j] + (i + r1) * dAng);
 #else
-                float2 sampleTC = posInputs.positionSS + sampleRadius * PointInCircle(_sign[j] * r1 * PI);
+                float2 sampleTC = posInputs.positionSS + sampleRadius * PointInCircle(offset[j] + r1 * PI);
 #endif
                 sampleData[j].color = GetColorSample(sampleTC, lod);
                 sampleData[j].CoC = GetCoCRadius(sampleTC);
@@ -226,6 +225,15 @@ void AccumulateSample(SampleData sampleData, float weight, inout float4 colorAcc
 #endif
 }
 
+void AccumulateCenterSample(SampleData centerSample, inout AccumData accumData)
+{
+    float centerAlpha = GetSampleWeight(centerSample.CoC);
+    accumData.color.xyz = accumData.color.xyz * (1 - centerAlpha) + centerAlpha * centerSample.color.xyz;
+#ifdef ENABLE_ALPHA
+    accumData.alpha = accumData.alpha * (1 - centerAlpha) + centerAlpha * centerSample.color.w;
+#endif
+}
+
 void AccumulateSampleData(SampleData sampleData[2], SampleData centerSample, float sampleRadius, inout RingData ringData, inout AccumData accumData)
 {
     UNITY_UNROLL
@@ -244,6 +252,8 @@ void AccumulateSampleData(SampleData sampleData[2], SampleData centerSample, flo
                 accumData.maxCoC = max(accumData.maxCoC, CoC);
             }
 
+#if 0
+            // Disabled for now due to artifacts
             // Mirroring improves the near blur, but since the background reconstruction is not perfect, we limit the radius it is applied
             const float mirrorLimit = 2;
             const float radius = sampleRadius - CoC;
@@ -251,9 +261,11 @@ void AccumulateSampleData(SampleData sampleData[2], SampleData centerSample, flo
             {
                 int pairIndex = k == 0 ? 1 : 0;
                 // The mirroring weight was tweaked to "look nice", there is no mathematical explanation for the formula
-                float mirrorWeight =  saturate(0.25 * rcp(radius));
-                AccumulateSample(sampleData[pairIndex], mirrorWeight * sampleWeight, ringData.colorAccum, ringData.CoC, ringData.alphaAccum);
+                float mirrorWeight = 1 ;
+                float unused;
+                AccumulateSample(sampleData[pairIndex], mirrorWeight * sampleWeight, ringData.colorAccum, unused, ringData.alphaAccum);
             }
+#endif
 
             ringData.opacity += visibility;
         }
@@ -293,7 +305,6 @@ void AccumulateRingData(float numSamples, RingData data, inout AccumData accumDa
 
 }
 
-
 void DoFGatherRings(PositionInputs posInputs, int numSamples, float maxRadius, SampleData centerSample, out float4 color, out float alpha)
 {
     AccumData bgAccumData, fgAccumData;
@@ -318,7 +329,7 @@ void DoFGatherRings(PositionInputs posInputs, int numSamples, float maxRadius, S
         for (int i = 0; i < numSamples; i += 1)
         {
             SampleData sampleData[2];
-            const float _sign[2] = { -1, 1 };
+            const float offset[2] = {0, PI };
 
             float r1 = GetBNDSequenceSample(posInputs.positionSS.xy, ring * numSamples + i + blueNoiseOffset, 1);
             float r2 = GetBNDSequenceSample(posInputs.positionSS.xy, ring * numSamples + i + blueNoiseOffset, 0);
@@ -332,9 +343,9 @@ void DoFGatherRings(PositionInputs posInputs, int numSamples, float maxRadius, S
                 for (int j = 0; j < 2; j++)
                 {
 #ifdef STRATIFY
-                    float2 sampleTC = posInputs.positionSS + sampleRadius * PointInCircle(_sign[j] * (i + r1) * dAng);
+                    float2 sampleTC = posInputs.positionSS + sampleRadius * PointInCircle(offset[j] + (i + r1) * dAng);
 #else
-                    float2 sampleTC = posInputs.positionSS + sampleRadius * PointInCircle(_sign[j] * r1 * PI);
+                    float2 sampleTC = posInputs.positionSS + sampleRadius * PointInCircle(offset[j] + r1 * PI);
 #endif
                     sampleData[j].color = GetColorSample(sampleTC, lod);
                     sampleData[j].CoC = GetCoCRadius(sampleTC);
@@ -348,18 +359,21 @@ void DoFGatherRings(PositionInputs posInputs, int numSamples, float maxRadius, S
         AccumulateRingData(numSamples, fgRingData, fgAccumData);
     }
 
+    ResolveColorAndAlpha(bgAccumData.color, bgAccumData.alpha, centerSample.color);
+    ResolveColorAndAlpha(fgAccumData.color, fgAccumData.alpha, centerSample.color);
+
+    // Accumulate center sample in bg
+    AccumulateCenterSample(centerSample, bgAccumData);
+
     // Compute the fg alpha. Needs to be normalized based on search radius.
     float maxCoC = fgAccumData.maxCoC;
-    float scaleFactor = (maxCoC * maxCoC) / (maxRadius * maxRadius) ;
+    float scaleFactor = (maxCoC * maxCoC) / (maxRadius * maxRadius);
     float correctSamples = scaleFactor * (numSamples * numSamples);
 
     // Now blend the bg and fg layes
     float fgAlpha = saturate(fgAccumData.opacity / correctSamples);
-    color = bgAccumData.color * (1.0 - fgAlpha) + fgAccumData.color;
-    alpha = bgAccumData.alpha * (1.0 - fgAlpha) + fgAccumData.alpha;
-
-    // Resolve the output color and alpha
-    ResolveColorAndAlpha(color, alpha, centerSample.color);
+    color = bgAccumData.color * (1.0 - fgAlpha) + fgAlpha * fgAccumData.color;
+    alpha = bgAccumData.alpha * (1.0 - fgAlpha) + fgAlpha * fgAccumData.alpha;
 }
 #endif
 
@@ -379,8 +393,10 @@ void KMain(uint3 dispatchThreadId : SV_DispatchThreadID)
 
     // Detect tiles than need more samples
     int numSamples = NumRings;
+#ifdef ADAPTIVE_SAMPLING
     float minRadius = min(cocRanges.x, -cocRanges.z);
-    numSamples = (minRadius / maxRadius < 0.1) ? numSamples * 4 : numSamples;
+    numSamples = (minRadius / maxRadius < 0.1) ? numSamples * 2 : numSamples;
+#endif
 
     float4 outColor;
     float outAlpha;
