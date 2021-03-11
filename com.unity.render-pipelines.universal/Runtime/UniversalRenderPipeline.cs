@@ -172,6 +172,7 @@ namespace UnityEngine.Rendering.Universal
 
             RenderingUtils.ClearSystemInfoCache();
 
+            DebugManager.instance.RefreshEditor();
             m_DebugDisplaySettingsUI.RegisterDebug(DebugDisplaySettings.Instance);
         }
 
@@ -1128,11 +1129,11 @@ namespace UnityEngine.Rendering.Universal
                     cameraData.postProcessEnabled = false;
 
                 cameraData.cameraTargetDescriptor = CreateRenderTextureDescriptor(cameraData.camera,
-                                                                                  cameraData.renderScale,
-                                                                                  cameraData.isHdrEnabled,
-                                                                                  msaaSamples,
-                                                                                  true,
-                                                                                  cameraData.requiresOpaqueTexture);
+                    cameraData.renderScale,
+                    cameraData.isHdrEnabled,
+                    msaaSamples,
+                    true,
+                    cameraData.requiresOpaqueTexture);
             }
         }
 
