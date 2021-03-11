@@ -183,7 +183,6 @@ URP_Performance_LostCrypt_Win_DX11_performance_build_editmode_mono_Linear_2021.1
         type: Unity::VM
         image: sdet/gamecode_win10:stable
         flavor: b1.large
-        model: rtx2080
     variables:
         UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
         LOST_CRYPT_BRANCH: 21.2/urp-perf-test
@@ -427,7 +426,6 @@ URP_Performance_LostCrypt_Win_DX11_performance_build_editmode_mono_Linear_CUSTOM
         type: Unity::VM
         image: sdet/gamecode_win10:stable
         flavor: b1.large
-        model: rtx2080
     variables:
         UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
         CUSTOM_REVISION: custom_revision_not_set
