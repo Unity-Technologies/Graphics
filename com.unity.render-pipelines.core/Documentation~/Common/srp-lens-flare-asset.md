@@ -78,7 +78,8 @@ The SRP Lens Flare Asset is splited in two part. The common and per element.
 
 | **Property**    | **Description**                                              |
 | --------------- | ------------------------------------------------------------ |
-| Count | Number of the same element generated. |
+| Enable | Allow multiple element is false behave like single element. |
+| Count | Number of the same element generated, if **Count** is 1 will behave like a single element or **Enable** unchecked. |
 | Distribution | Describes the way we spread the elements generated can be [Uniform](#Uniform), parametrized by a [Curve](#Curve) or [Random](#Random). |
 | Length Spread | The length of the spread for the **Count** Element. |
 
