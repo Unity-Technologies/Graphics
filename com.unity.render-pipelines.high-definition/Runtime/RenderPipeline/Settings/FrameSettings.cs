@@ -135,6 +135,9 @@ namespace UnityEngine.Rendering.HighDefinition
         /// <summary>When enabled, HDRP can use virtual texturing.</summary>
         [FrameSettingsField(0, autoName: VirtualTexturing, customOrderInGroup: 105, tooltip: "When enabled, HDRP can use virtual texturing.")]
         VirtualTexturing = 68,
+        /// <summary>When enabled, HDRP uses mask volumes.</summary>
+        [FrameSettingsField(0, autoName: MaskVolume)]
+        MaskVolume = 69,
 
         /// <summary>When enabled, HDRP processes a motion vector pass for Cameras using these Frame Settings.</summary>
         [FrameSettingsField(0, autoName: MotionVectors, customOrderInGroup: 12, tooltip: "When enabled, HDRP processes a motion vector pass for Cameras using these Frame Settings (Depends on \"Motion Vectors\" in current HDRP Asset).")]
@@ -443,6 +446,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 (uint)FrameSettingsField.DirectSpecularLighting,
                 (uint)FrameSettingsField.RayTracing,
                 (uint)FrameSettingsField.AlphaToMask,
+                (uint)FrameSettingsField.MaskVolume,
                 (uint)FrameSettingsField.ProbeVolume,
                 (uint)FrameSettingsField.MSAA
             }),
@@ -500,6 +504,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 (uint)FrameSettingsField.ReflectionProbe,
                 (uint)FrameSettingsField.RayTracing,
                 // (uint)FrameSettingsField.EnableSkyReflection,
+                (uint)FrameSettingsField.MaskVolume,
                 (uint)FrameSettingsField.ProbeVolume,
                 (uint)FrameSettingsField.DirectSpecularLighting,
             }),
@@ -817,6 +822,8 @@ namespace UnityEngine.Rendering.HighDefinition
             // When MSAA is enabled we disable Fptl as it become expensive compare to cluster
             // In HD, MSAA is only supported for forward only rendering, no MSAA in deferred mode (for code complexity reasons)
             sanitizedFrameSettings.bitDatas[(int)FrameSettingsField.FPTLForForwardOpaque] &= !msaa;
+
+            sanitizedFrameSettings.bitDatas[(int)FrameSettingsField.MaskVolume] &= renderPipelineSettings.supportMaskVolume;
 
             sanitizedFrameSettings.bitDatas[(int)FrameSettingsField.ProbeVolume] &= renderPipelineSettings.supportProbeVolume && (ShaderConfig.s_ProbeVolumesEvaluationMode != ProbeVolumesEvaluationModes.Disabled);
 

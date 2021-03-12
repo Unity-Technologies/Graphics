@@ -151,6 +151,10 @@ GLOBAL_CBUFFER_START(ShaderVariablesGlobal, b0)
     float4 _ProbeVolumeAmbientProbeFallbackPackedCoeffs[7];
     int _TransparentCameraOnlyMotionVectors;
     float _GlobalTessellationFactorMultiplier;
+    uint _EnableMaskVolumes;
+    uint _MaskVolumeCount;
+    float4 _MaskVolumeAtlasResolutionAndSliceCount;
+    float4 _MaskVolumeAtlasResolutionAndSliceCountInverse;
     float _SpecularOcclusionBlend;
     int _HybridDeformedVertexStreamIndex;
 CBUFFER_END

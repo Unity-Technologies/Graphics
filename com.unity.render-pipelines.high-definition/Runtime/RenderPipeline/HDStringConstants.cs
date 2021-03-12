@@ -924,6 +924,31 @@ namespace UnityEngine.Rendering.HighDefinition
         public static readonly int _AtlasTextureOctahedralDepthScaleBias = Shader.PropertyToID("_AtlasTextureOctahedralDepthScaleBias");
         public static readonly int _ValidRange                     = Shader.PropertyToID("_ValidRange");
         public static readonly int _ProbeVolumeAtlasSliceMode      = Shader.PropertyToID("_ProbeVolumeAtlasSliceMode");
+    
+        // Mask Volumes
+        public static readonly int _MaskVolumeBounds = Shader.PropertyToID("_MaskVolumeBounds");
+        public static readonly int _MaskVolumeDatas = Shader.PropertyToID("_MaskVolumeDatas");
+        public static readonly int g_vMaskVolumesLayeredOffsetsBuffer = Shader.PropertyToID("g_vMaskVolumesLayeredOffsetsBuffer");
+        public static readonly int g_vMaskVolumesLightListGlobal = Shader.PropertyToID("g_vMaskVolumesLightListGlobal");
+        public static readonly int _MaskVolumeAtlasSH             = Shader.PropertyToID("_MaskVolumeAtlasSH");
+        public static readonly int _MaskVolumeAtlasResolutionAndSliceCount = Shader.PropertyToID("_MaskVolumeAtlasResolutionAndSliceCount");
+        public static readonly int _MaskVolumeAtlasResolutionAndSliceCountInverse = Shader.PropertyToID("_MaskVolumeAtlasResolutionAndSliceCountInverse");
+        public static readonly int _MaskVolumeResolution          = Shader.PropertyToID("_MaskVolumeResolution");
+        public static readonly int _MaskVolumeResolutionInverse   = Shader.PropertyToID("_MaskVolumeResolutionInverse");
+        public static readonly int _MaskVolumeAtlasScale          = Shader.PropertyToID("_MaskVolumeAtlasScale");
+        public static readonly int _MaskVolumeAtlasBias           = Shader.PropertyToID("_MaskVolumeAtlasBias");
+        public static readonly int _MaskVolumeAtlasReadBufferCount = Shader.PropertyToID("_MaskVolumeAtlasReadBufferCount");
+        public static readonly int _MaskVolumeAtlasReadSHL0Buffer = Shader.PropertyToID("_MaskVolumeAtlasReadSHL0Buffer");
+        public static readonly int _MaskVolumeAtlasWriteTextureSH = Shader.PropertyToID("_MaskVolumeAtlasWriteTextureSH");
+        public static readonly int _MaskFilterSampleCount              = Shader.PropertyToID("_MaskFilterSampleCount");
+        public static readonly int _MaskFilterSharpness                = Shader.PropertyToID("_MaskFilterSharpness");
+        public static readonly int _MaskAtlasTextureSH                 = Shader.PropertyToID("_MaskAtlasTextureSH");
+        public static readonly int _MaskTextureViewScale               = Shader.PropertyToID("_MaskTextureViewScale");
+        public static readonly int _MaskTextureViewBias                = Shader.PropertyToID("_MaskTextureViewBias");
+        public static readonly int _MaskTextureViewResolution          = Shader.PropertyToID("_MaskTextureViewResolution");
+        public static readonly int _MaskValidRange                     = Shader.PropertyToID("_MaskValidRange");
+        public static readonly int _MaskVolumeAtlasSliceMode      = Shader.PropertyToID("_MaskVolumeAtlasSliceMode");
+
     }
 
     // Shared material property names

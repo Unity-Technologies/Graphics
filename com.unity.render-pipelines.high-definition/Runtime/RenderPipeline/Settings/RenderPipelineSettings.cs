@@ -136,6 +136,8 @@ namespace UnityEngine.Rendering.HighDefinition
                 lightLayerName7 = "Light Layer 7",
                 supportProbeVolume = false,
                 probeVolumeSettings = GlobalProbeVolumeSettings.@default,
+                supportMaskVolume = false,
+                maskVolumeSettings = GlobalMaskVolumeSettings.@default,
             };
             return settings;
         }
@@ -269,6 +271,8 @@ namespace UnityEngine.Rendering.HighDefinition
         public bool supportTerrainHole;
         /// <summary>Support Probe Volumes.</summary>
         [SerializeField] internal bool supportProbeVolume;
+        /// <summary>Support Mask Volumes.</summary>
+        [SerializeField] internal bool supportMaskVolume;
         /// <summary>Support ray tracing.</summary>
         public bool supportRayTracing;
         /// <summary>Support ray tracing mode.</summary>
@@ -276,6 +280,8 @@ namespace UnityEngine.Rendering.HighDefinition
 
         /// <summary>Global Probe Volume settings.</summary>
         [SerializeField] internal GlobalProbeVolumeSettings probeVolumeSettings;
+        /// <summary>Global Probe Volume settings.</summary>
+        [SerializeField] internal GlobalMaskVolumeSettings maskVolumeSettings;
 		/// <summary>Global light loop settings.</summary>
         public GlobalLightLoopSettings lightLoopSettings;
         /// <summary>Global shadows settings.</summary>

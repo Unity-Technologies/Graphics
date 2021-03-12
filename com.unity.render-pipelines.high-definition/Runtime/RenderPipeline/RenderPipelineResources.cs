@@ -96,6 +96,8 @@ namespace UnityEngine.Rendering.HighDefinition
             public ComputeShader probeVolumeAtlasOctahedralDepthConvolveCS;
             [Reload("Runtime/Lighting/ProbeVolume/DebugDisplayProbeVolume.shader")]
             public Shader debugDisplayProbeVolumePS;
+            [Reload("Runtime/Material/MaskVolume/MaskVolumeAtlasBlit.compute")]
+            public ComputeShader maskVolumeAtlasBlitCS;
 
             [Reload("Runtime/Material/SubsurfaceScattering/SubsurfaceScattering.compute")]
             public ComputeShader subsurfaceScatteringCS;                // Disney SSS
