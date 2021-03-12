@@ -146,19 +146,19 @@ namespace UnityEngine.Rendering.HighDefinition
             }
 
             Debug.Assert((operation == Operation.MinMax && (channelsCount == 1 || channelsCount == 2)) ||
-                          operation == Operation.Add || operation == Operation.Total);
+                operation == Operation.Add || operation == Operation.Total);
 
             string preAddOn = "";
-            switch(operation)
+            switch (operation)
             {
-            case Operation.Add:
-            case Operation.Total:
+                case Operation.Add:
+                case Operation.Total:
                     addon += "Add";
-            break;
-            case Operation.MinMax:
-                preAddOn = "First";
-                addon += "MinMax";
-            break;
+                    break;
+                case Operation.MinMax:
+                    preAddOn = "First";
+                    addon += "MinMax";
+                    break;
             }
 
             string dirAddOn;
@@ -181,27 +181,27 @@ namespace UnityEngine.Rendering.HighDefinition
             {
                 cmd.SetComputeTextureParam(scanCS, kernel, HDShaderIDs._Input,      input);
                 cmd.SetComputeTextureParam(scanCS, kernel, HDShaderIDs._Output,     temp0);
-                cmd.SetComputeIntParam    (scanCS,         HDShaderIDs._Iteration,  0);
-                cmd.SetComputeIntParams   (scanCS,         HDShaderIDs._Sizes,
-                                           input.rt.width, input.rt.height, temp0.rt.width, temp0.rt.height);
+                cmd.SetComputeIntParam(scanCS,         HDShaderIDs._Iteration,  0);
+                cmd.SetComputeIntParams(scanCS,         HDShaderIDs._Sizes,
+                    input.rt.width, input.rt.height, temp0.rt.width, temp0.rt.height);
             }
             else
             {
                 scanCS.SetTexture(kernel, HDShaderIDs._Input,      input);
                 scanCS.SetTexture(kernel, HDShaderIDs._Output,     temp0);
-                scanCS.SetInt    (HDShaderIDs._Iteration,  0);
-                scanCS.SetInts   (HDShaderIDs._Sizes,
-                                              input.rt.width, input.rt.height, temp0.rt.width, temp0.rt.height);
+                scanCS.SetInt(HDShaderIDs._Iteration,  0);
+                scanCS.SetInts(HDShaderIDs._Sizes,
+                    input.rt.width, input.rt.height, temp0.rt.width, temp0.rt.height);
             }
             if (direction == Direction.Horizontal)
             {
-                numTilesX = (temp0.rt.width  + (m_TileSizes - 1))/m_TileSizes;
+                numTilesX = (temp0.rt.width  + (m_TileSizes - 1)) / m_TileSizes;
                 numTilesY =  temp0.rt.height;
             }
             else
             {
                 numTilesX =  temp0.rt.width;
-                numTilesY = (temp0.rt.height + (m_TileSizes - 1))/m_TileSizes;
+                numTilesY = (temp0.rt.height + (m_TileSizes - 1)) / m_TileSizes;
             }
             if (cmd != null)
                 cmd.DispatchCompute(scanCS, kernel, numTilesX, numTilesY, 1);
@@ -218,27 +218,27 @@ namespace UnityEngine.Rendering.HighDefinition
                 {
                     cmd.SetComputeTextureParam(scanCS, kernel, HDShaderIDs._Input,      ping);
                     cmd.SetComputeTextureParam(scanCS, kernel, HDShaderIDs._Output,     pong);
-                    cmd.SetComputeIntParam    (scanCS,         HDShaderIDs._Iteration,  (int)Mathf.Pow(2.0f, (float)i));
-                    cmd.SetComputeIntParams   (scanCS,         HDShaderIDs._Sizes,
-                                               ping.rt.width, input.rt.height, pong.rt.width, pong.rt.height);
+                    cmd.SetComputeIntParam(scanCS,         HDShaderIDs._Iteration,  (int)Mathf.Pow(2.0f, (float)i));
+                    cmd.SetComputeIntParams(scanCS,         HDShaderIDs._Sizes,
+                        ping.rt.width, input.rt.height, pong.rt.width, pong.rt.height);
                 }
                 else
                 {
                     scanCS.SetTexture(kernel, HDShaderIDs._Input,      ping);
                     scanCS.SetTexture(kernel, HDShaderIDs._Output,     pong);
-                    scanCS.SetInt    (HDShaderIDs._Iteration,  (int)Mathf.Pow(2.0f, (float)i));
-                    scanCS.SetInts   (HDShaderIDs._Sizes,
-                                                  ping.rt.width, input.rt.height, pong.rt.width, pong.rt.height);
+                    scanCS.SetInt(HDShaderIDs._Iteration,  (int)Mathf.Pow(2.0f, (float)i));
+                    scanCS.SetInts(HDShaderIDs._Sizes,
+                        ping.rt.width, input.rt.height, pong.rt.width, pong.rt.height);
                 }
                 if (direction == Direction.Horizontal)
                 {
-                    numTilesX = (pong.rt.width  + (m_TileSizes - 1))/m_TileSizes;
+                    numTilesX = (pong.rt.width  + (m_TileSizes - 1)) / m_TileSizes;
                     numTilesY =  pong.rt.height;
                 }
                 else
                 {
                     numTilesX =  pong.rt.width;
-                    numTilesY = (pong.rt.height + (m_TileSizes - 1))/m_TileSizes;
+                    numTilesY = (pong.rt.height + (m_TileSizes - 1)) / m_TileSizes;
                 }
                 if (cmd != null)
                 {

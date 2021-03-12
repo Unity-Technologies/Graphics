@@ -38,9 +38,9 @@ namespace UnityEngine.Rendering.HighDefinition
         /// <param name="density">Density, not normalized PDF, must be single channel</param>
         /// <param name="cmd">Command Buffer</param>
         public static void GenerateMarginals(
-                                out RTHandle marginal, out RTHandle conditionalMarginal,
-                                RTHandle density,
-                                CommandBuffer cmd)
+            out RTHandle marginal, out RTHandle conditionalMarginal,
+            RTHandle density,
+            CommandBuffer cmd)
         {
             int width   = density.rt.width;
             int height  = density.rt.height;
@@ -115,11 +115,11 @@ namespace UnityEngine.Rendering.HighDefinition
 
             cmd.SetComputeTextureParam(rescale01, kernel, HDShaderIDs._Output, tex);
             cmd.SetComputeTextureParam(rescale01, kernel, HDShaderIDs._MinMax, minMax);
-            cmd.SetComputeIntParams   (rescale01,         HDShaderIDs._Sizes,
-                                       tex.rt.width, tex.rt.height, tex.rt.width, tex.rt.height);
+            cmd.SetComputeIntParams(rescale01,         HDShaderIDs._Sizes,
+                tex.rt.width, tex.rt.height, tex.rt.width, tex.rt.height);
 
-            int numTilesX = (tex.rt.width  + (8 - 1))/8;
-            int numTilesY = (tex.rt.height + (8 - 1))/8;
+            int numTilesX = (tex.rt.width  + (8 - 1)) / 8;
+            int numTilesY = (tex.rt.height + (8 - 1)) / 8;
 
             cmd.DispatchCompute(rescale01, kernel, numTilesX, numTilesY, 1);
         }
@@ -156,7 +156,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
             int kernel = importanceSample2D.FindKernel("CSMain" + addon);
 
-            int numTilesX = (samples.rt.width + (8 - 1))/8;
+            int numTilesX = (samples.rt.width + (8 - 1)) / 8;
             if (cmd != null)
             {
                 cmd.SetComputeTextureParam(importanceSample2D, kernel, HDShaderIDs._Marginal,               marginal);
@@ -164,10 +164,10 @@ namespace UnityEngine.Rendering.HighDefinition
                 cmd.SetComputeTextureParam(importanceSample2D, kernel, HDShaderIDs._Output,                 samples);
                 if (direction == GPUScan.Direction.Horizontal)
                     cmd.SetComputeFloatParams(importanceSample2D,         HDShaderIDs._Sizes,
-                                                conditionalMarginal.rt.height, 1.0f/conditionalMarginal.rt.height, 0.5f/conditionalMarginal.rt.height, samplesCount);
+                        conditionalMarginal.rt.height, 1.0f / conditionalMarginal.rt.height, 0.5f / conditionalMarginal.rt.height, samplesCount);
                 else
                     cmd.SetComputeFloatParams(importanceSample2D, HDShaderIDs._Sizes,
-                                                conditionalMarginal.rt.width,  1.0f/conditionalMarginal.rt.width,  0.5f/conditionalMarginal.rt.width,  samplesCount);
+                        conditionalMarginal.rt.width,  1.0f / conditionalMarginal.rt.width,  0.5f / conditionalMarginal.rt.width,  samplesCount);
                 cmd.DispatchCompute(importanceSample2D, kernel, numTilesX, 1, 1);
             }
             else
@@ -177,10 +177,10 @@ namespace UnityEngine.Rendering.HighDefinition
                 importanceSample2D.SetTexture(kernel, HDShaderIDs._Output,              samples);
                 if (direction == GPUScan.Direction.Horizontal)
                     importanceSample2D.SetFloats(HDShaderIDs._Sizes,
-                                                conditionalMarginal.rt.height, 1.0f/conditionalMarginal.rt.height, 0.5f/conditionalMarginal.rt.height, samplesCount);
+                        conditionalMarginal.rt.height, 1.0f / conditionalMarginal.rt.height, 0.5f / conditionalMarginal.rt.height, samplesCount);
                 else
                     importanceSample2D.SetFloats(HDShaderIDs._Sizes,
-                                                conditionalMarginal.rt.width,  1.0f/conditionalMarginal.rt.width,  0.5f/conditionalMarginal.rt.width,  samplesCount);
+                        conditionalMarginal.rt.width,  1.0f / conditionalMarginal.rt.width,  0.5f / conditionalMarginal.rt.width,  samplesCount);
                 importanceSample2D.Dispatch(kernel, numTilesX, 1, 1);
             }
 
