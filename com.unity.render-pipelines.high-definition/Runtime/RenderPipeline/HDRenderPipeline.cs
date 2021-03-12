@@ -464,10 +464,6 @@ namespace UnityEngine.Rendering.HighDefinition
 
             InitializeRenderStateBlocks();
 
-            // Keep track of the original msaa sample value
-            // TODO : Bind this directly to the debug menu instead of having an intermediate value
-            m_MSAASamples = m_Asset ? m_Asset.currentPlatformRenderPipelineSettings.msaaSampleCount : MSAASamples.None;
-
             if (m_RayTracingSupported)
             {
                 InitRayTracingManager();
@@ -1908,6 +1904,7 @@ namespace UnityEngine.Rendering.HighDefinition
             {
                 aovRequest.AllocateTargetTexturesIfRequired(ref aovBuffers, ref aovCustomPassBuffers);
 
+                m_MSAASamples = hdCamera.frameSettings.IsEnabled(FrameSettingsField.MSAA) ? m_Asset.currentPlatformRenderPipelineSettings.msaaSampleCount : MSAASamples.None;
                 // If we render a reflection view or a preview we should not display any debug information
                 // This need to be call before ApplyDebugDisplaySettings()
                 if (camera.cameraType == CameraType.Reflection || camera.cameraType == CameraType.Preview)
@@ -1917,10 +1914,9 @@ namespace UnityEngine.Rendering.HighDefinition
                 }
                 else
                 {
-                    // Make sure we are in sync with the debug menu for the msaa count
-                    m_MSAASamples = (m_DebugDisplaySettings.data.msaaSamples != MSAASamples.None) ?
-                        m_DebugDisplaySettings.data.msaaSamples :
-                        m_Asset.currentPlatformRenderPipelineSettings.msaaSampleCount;
+                    // Override MSAA with debug value if needed.
+                    if (m_DebugDisplaySettings.data.msaaSamples != MSAASamples.None)
+                        m_MSAASamples = m_DebugDisplaySettings.data.msaaSamples;
 
                     m_DebugDisplaySettings.UpdateCameraFreezeOptions();
 

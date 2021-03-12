@@ -27,7 +27,7 @@ The code examples in the rest of this page use the default global instance.
 Before rendering with a Camera, you need to set the resolution the RTHandle system uses as a reference size. To do so, call the `SetReferenceSize` function.
 
 ```c#
-RTHandles.SetReferenceSize(width, hight);
+RTHandles.SetReferenceSize(width, height);
 ```
 
 Calling this function has two effects:
