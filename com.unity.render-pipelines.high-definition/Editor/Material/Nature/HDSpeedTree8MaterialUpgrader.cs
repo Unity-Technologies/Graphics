@@ -39,9 +39,6 @@ namespace UnityEditor.Rendering.HighDefinition
         /// <param name="mat">SpeedTree8 material.</param>
         public static void RestoreHDSpeedTree8Keywords(Material mat)
         {
-            int wq = (int)mat.GetFloat("_WINDQUALITY");
-            mat.EnableKeyword(WindQualityString[wq]);
-
             if (mat.name.Contains("Billboard")) // Hacky but it'll hold until newer versions of shadergraph with keyword toggle support
             {
                 mat.EnableKeyword("EFFECT_BILLBOARD");
