@@ -92,15 +92,15 @@ namespace UnityEditor.VFX
 
                     materialChanged = EditorGUI.EndChangeCheck();
                 }
-            }
 
-            // Indicate caution to the user if transparent motion vectors are disabled and motion vectors are enabled.
-            if ((m_MaterialEditor.target != null) &&
-                ((VFXAbstractParticleOutput)target).hasMotionVector &&
-                ((VFXShaderGraphParticleOutput)target).GetMaterialBlendMode() != VFXAbstractRenderedOutput.BlendMode.Opaque &&
-                !VFXLibrary.currentSRPBinder.TransparentMotionVectorEnabled(m_MaterialEditor.target as Material))
-            {
-                EditorGUILayout.HelpBox("Transparent Motion Vectors pass is disabled. Consider disabling Generate Motion Vector to improve performance.", MessageType.Warning);
+                // Indicate caution to the user if transparent motion vectors are disabled and motion vectors are enabled.
+                if ((m_MaterialEditor.target != null) &&
+                    ((VFXAbstractParticleOutput)target).hasMotionVector &&
+                    ((VFXShaderGraphParticleOutput)target).GetMaterialBlendMode() != VFXAbstractRenderedOutput.BlendMode.Opaque &&
+                    !VFXLibrary.currentSRPBinder.TransparentMotionVectorEnabled(m_MaterialEditor.target as Material))
+                {
+                    EditorGUILayout.HelpBox("Transparent Motion Vectors pass is disabled. Consider disabling Generate Motion Vector to improve performance.", MessageType.Warning);
+                }
             }
 
             base.OnInspectorGUI();
