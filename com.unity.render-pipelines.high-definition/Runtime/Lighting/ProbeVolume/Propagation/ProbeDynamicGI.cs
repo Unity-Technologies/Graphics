@@ -151,165 +151,28 @@ namespace UnityEngine.Rendering.HighDefinition
                     });
             }
         }
+
         // ---------------------------------------------------------------------
         // --------------------------- Injection -------------------------------
         // ---------------------------------------------------------------------
 
-        struct DirectLightInjectionParameters
+        class LightPropagationData
         {
-            public ComputeShader injectionCS;
-            public ComputeShader injection2CS;
-            public ComputeShader injection3CS;
-            public int injectionKernel;
-
-            public int injectionKernelHit;
-            public int injectionKernelMiss;
+            public ComputeShader propagationCS;
+            public int hitKernel;
+            public int missKernel;
 
             public int probeCount;
             public Vector4 injectionParameters;
             public Vector4 injectionParameters2;
             public Vector4 injectionParameters3;
             public Vector4 injectionParameters4;
-            public Vector4 cellOrigin;
-            public ComputeBuffer probeFinalExtraDataBuffer;
-            public ComputeBuffer probePositionsBuffer;
-            public ComputeBuffer irradianceCacheBuffer;
-            public ComputeBuffer prevIrradianceCacheBuffer;
 
-            public bool clear;
+            public ComputeBufferHandle probeFinalExtraDataBuffer;
+            public ComputeBufferHandle probePositionsBuffer;
+            public ComputeBufferHandle irradianceCacheBuffer;
+            public ComputeBufferHandle prevIrradianceCacheBuffer;
 
-            public int[] chunkIndices;
-        }
-
-        DirectLightInjectionParameters PrepareInjectionParameters(ProbeExtraDataBuffers buffers, int[] chunkIndices, HDCamera hdCamera)
-        {
-            DirectLightInjectionParameters parameters;
-            parameters.injectionCS = m_Resources.shaders.probeGIInjectionCS;
-            parameters.injection2CS = m_Resources.shaders.probeGIInjectionV2CS;
-            parameters.injection3CS = m_Resources.shaders.probeGIInjectionV3CS;
-            parameters.injectionKernel = parameters.injectionCS.FindKernel("GatherFirstBounce");
-
-            parameters.injectionKernelHit = parameters.injection3CS.FindKernel("GatherFirstBounceHit");
-            parameters.injectionKernelMiss = parameters.injection3CS.FindKernel("GatherFirstBounceMiss");
-
-            parameters.probeCount = buffers.probeCount;
-            parameters.probePositionsBuffer = buffers.probeLocationBuffer;
-            parameters.probeFinalExtraDataBuffer = buffers.finalExtraDataBuffer;
-            parameters.cellOrigin = new Vector4(0, 0, 0, 0);
-
-
-            var giSettings = hdCamera.volumeStack.GetComponent<ProbeDynamicGI>();
-
-            parameters.clear = giSettings.clear.value || (hdCamera.cameraFrameCount == 0);
-
-            float probeDistance = ProbeReferenceVolume.instance.MinDistanceBetweenProbes();
-            parameters.injectionParameters = new Vector4(probeDistance, giSettings.minDist.value, giSettings.bias.value, parameters.probeCount);
-            parameters.injectionParameters2 = new Vector4(ProbeReferenceVolume.instance.poolDimension.x, ProbeReferenceVolume.instance.poolDimension.y, ProbeReferenceVolume.instance.poolDimension.z, ProbeReferenceVolume.instance.chunkSizeInProbes);
-            parameters.injectionParameters3 = new Vector4(giSettings.primaryDecay.value, giSettings.leakMultiplier.value, giSettings.artificialBoost.value, giSettings.antiRingingFactor.value);
-            parameters.injectionParameters4 = new Vector4(buffers.hitProbesAxisCount, buffers.missProbesAxisCount, ProbeReferenceVolume.instance.MinDistanceBetweenProbes(), giSettings.propagationDecay.value);
-
-
-            parameters.chunkIndices = chunkIndices;
-
-            if (parameters.clear)
-            {
-                buffers.ClearIrradianceCaches();
-            }
-
-            parameters.irradianceCacheBuffer = buffers.irradianceCache;
-            parameters.prevIrradianceCacheBuffer = buffers.prevIrradianceCache;
-
-            return parameters;
-        }
-
-        static void InjectDirectLighting(in DirectLightInjectionParameters parameters,
-            RTHandle apvL0L1rx, RTHandle apvL1Gry, RTHandle apvL1Brz, RTHandle debug,
-            RTHandle prevApvL0L1rx, RTHandle prevApvL1Gry, RTHandle prevApvL1Brz, CommandBuffer cmd)
-        {
-            var cs = parameters.injection3CS;
-            var kernel = parameters.injectionKernelHit;
-
-            cmd.SetComputeTextureParam(cs, kernel, HDShaderIDs._PrevAPVResL0_L1Rx, prevApvL0L1rx);
-            cmd.SetComputeTextureParam(cs, kernel, HDShaderIDs._PrevAPVResL1G_L1Ry, prevApvL1Gry);
-            cmd.SetComputeTextureParam(cs, kernel, HDShaderIDs._PrevAPVResL1B_L1Rz, prevApvL1Brz);
-
-            cmd.SetComputeTextureParam(cs, kernel, HDShaderIDs._RWAPVResL0_L1Rx, apvL0L1rx);
-            cmd.SetComputeTextureParam(cs, kernel, HDShaderIDs._RWAPVResL1G_L1Ry, apvL1Gry);
-            cmd.SetComputeTextureParam(cs, kernel, HDShaderIDs._RWAPVResL1B_L1Rz, apvL1Brz);
-
-            cmd.SetComputeTextureParam(cs, kernel, HDShaderIDs._OutputTexture, debug);
-
-            cmd.SetComputeBufferParam(cs, kernel, HDShaderIDs._ProbeWorldLocations, parameters.probePositionsBuffer);
-            cmd.SetComputeBufferParam(cs, kernel, HDShaderIDs._PackedProbeExtraData, parameters.probeFinalExtraDataBuffer);
-
-            cmd.SetComputeBufferParam(cs, kernel, HDShaderIDs._IrradianceCache, parameters.irradianceCacheBuffer);
-            cmd.SetComputeBufferParam(cs, kernel, HDShaderIDs._PrevIrradianceCache, parameters.prevIrradianceCacheBuffer);
-
-            cmd.SetComputeVectorParam(cs, HDShaderIDs._CellOrigin, parameters.cellOrigin);
-
-            cmd.SetComputeVectorParam(cs, HDShaderIDs._DynamicGIParams0, parameters.injectionParameters);
-            cmd.SetComputeVectorParam(cs, HDShaderIDs._DynamicGIParams1, parameters.injectionParameters2);
-            cmd.SetComputeVectorParam(cs, HDShaderIDs._DynamicGIParams2, parameters.injectionParameters3);
-            cmd.SetComputeVectorParam(cs, HDShaderIDs._DynamicGIParams3, parameters.injectionParameters4);
-
-            Vector4[] indicesArray = new Vector4[8];
-
-            for (int i = 0; i < parameters.chunkIndices.Length; ++i)
-            {
-                indicesArray[i / 4][i % 4] = parameters.chunkIndices[i];
-            }
-
-            cmd.SetComputeVectorArrayParam(cs, HDShaderIDs._ChunkIndices, indicesArray);
-
-            cmd.SetComputeVectorArrayParam(cs, HDShaderIDs._RayAxis, ProbeExtraData.NeighbourAxis);
-
-            const int probesPerGroup = 64; // Must match GROUP_SIZE in FirstBounceGeneration.compute
-            int groupCount = HDUtils.DivRoundUp((int)parameters.injectionParameters4.x, probesPerGroup);
-
-            cmd.DispatchCompute(cs, kernel, groupCount, 1, 1);
-
-            kernel = parameters.injectionKernelMiss;
-
-            cmd.SetComputeTextureParam(cs, kernel, HDShaderIDs._PrevAPVResL0_L1Rx, prevApvL0L1rx);
-            cmd.SetComputeTextureParam(cs, kernel, HDShaderIDs._PrevAPVResL1G_L1Ry, prevApvL1Gry);
-            cmd.SetComputeTextureParam(cs, kernel, HDShaderIDs._PrevAPVResL1B_L1Rz, prevApvL1Brz);
-
-            cmd.SetComputeTextureParam(cs, kernel, HDShaderIDs._RWAPVResL0_L1Rx, apvL0L1rx);
-            cmd.SetComputeTextureParam(cs, kernel, HDShaderIDs._RWAPVResL1G_L1Ry, apvL1Gry);
-            cmd.SetComputeTextureParam(cs, kernel, HDShaderIDs._RWAPVResL1B_L1Rz, apvL1Brz);
-
-            cmd.SetComputeTextureParam(cs, kernel, HDShaderIDs._OutputTexture, debug);
-
-            cmd.SetComputeBufferParam(cs, kernel, HDShaderIDs._ProbeWorldLocations, parameters.probePositionsBuffer);
-            cmd.SetComputeBufferParam(cs, kernel, HDShaderIDs._PackedProbeExtraData, parameters.probeFinalExtraDataBuffer);
-
-            cmd.SetComputeBufferParam(cs, kernel, HDShaderIDs._IrradianceCache, parameters.irradianceCacheBuffer);
-            cmd.SetComputeBufferParam(cs, kernel, HDShaderIDs._PrevIrradianceCache, parameters.prevIrradianceCacheBuffer);
-
-
-            groupCount = HDUtils.DivRoundUp((int)parameters.injectionParameters4.y, probesPerGroup);
-            cmd.DispatchCompute(cs, kernel, groupCount, 1, 1);
-
-            if (parameters.clear)
-            {
-                cmd.SetRenderTarget(apvL0L1rx, 0, CubemapFace.Unknown, -1);
-                cmd.ClearRenderTarget(false, true, Color.clear);
-                cmd.SetRenderTarget(apvL1Gry, 0, CubemapFace.Unknown, -1);
-                cmd.ClearRenderTarget(false, true, Color.clear);
-                cmd.SetRenderTarget(apvL1Brz, 0, CubemapFace.Unknown, -1);
-                cmd.ClearRenderTarget(false, true, Color.clear);
-                cmd.SetRenderTarget(prevApvL0L1rx, 0, CubemapFace.Unknown, -1);
-                cmd.ClearRenderTarget(false, true, Color.clear);
-                cmd.SetRenderTarget(prevApvL1Gry, 0, CubemapFace.Unknown, -1);
-                cmd.ClearRenderTarget(false, true, Color.clear);
-                cmd.SetRenderTarget(prevApvL1Brz, 0, CubemapFace.Unknown, -1);
-                cmd.ClearRenderTarget(false, true, Color.clear);
-            }
-        }
-
-        class InjectDirectLightData
-        {
-            public DirectLightInjectionParameters parameters;
             public TextureHandle apvL0L1rx;
             public TextureHandle apvL1Gry;
             public TextureHandle apvL1Brz;
@@ -318,15 +181,137 @@ namespace UnityEngine.Rendering.HighDefinition
             public TextureHandle prevApvL1Gry;
             public TextureHandle prevApvL1Brz;
 
+            public bool clear;
 
-            public TextureHandle debug;
-
-            public ComputeBufferHandle positionBuffer;
-            public ComputeBufferHandle finalExtraDataBuffer;
+            public int[] chunkIndices;
         }
 
+        void PrepareLightPropagationData(RenderGraph renderGraph, ProbeExtraDataBuffers buffers, int[] chunkIndices, HDCamera hdCamera, ref LightPropagationData data)
+        {
+            data.propagationCS = m_Resources.shaders.probeGIInjectionV3CS;
+            data.missKernel = data.propagationCS.FindKernel("GatherFirstBounceMiss");
+            data.hitKernel = data.propagationCS.FindKernel("GatherFirstBounceHit");
 
-        internal void InjectDirectLighting(RenderGraph renderGraph, HDCamera hdCamera, bool forceClear)
+            data.probeCount = buffers.probeCount;
+            data.probePositionsBuffer = renderGraph.ImportComputeBuffer(buffers.probeLocationBuffer);
+            data.probeFinalExtraDataBuffer = renderGraph.ImportComputeBuffer(buffers.finalExtraDataBuffer);
+
+            var giSettings = hdCamera.volumeStack.GetComponent<ProbeDynamicGI>();
+
+            data.clear = giSettings.clear.value || (hdCamera.cameraFrameCount == 0);
+
+            if (data.clear)
+            {
+                buffers.ClearIrradianceCaches();
+            }
+
+            data.irradianceCacheBuffer = renderGraph.ImportComputeBuffer(buffers.irradianceCache);
+            data.prevIrradianceCacheBuffer = renderGraph.ImportComputeBuffer(buffers.prevIrradianceCache);
+
+            float probeDistance = ProbeReferenceVolume.instance.MinDistanceBetweenProbes();
+            data.injectionParameters = new Vector4(probeDistance, giSettings.minDist.value, giSettings.bias.value, data.probeCount);
+            data.injectionParameters2 = new Vector4(ProbeReferenceVolume.instance.poolDimension.x, ProbeReferenceVolume.instance.poolDimension.y, ProbeReferenceVolume.instance.poolDimension.z, ProbeReferenceVolume.instance.chunkSizeInProbes);
+            data.injectionParameters3 = new Vector4(giSettings.primaryDecay.value, giSettings.leakMultiplier.value, giSettings.artificialBoost.value, giSettings.antiRingingFactor.value);
+            data.injectionParameters4 = new Vector4(buffers.hitProbesAxisCount, buffers.missProbesAxisCount, probeDistance, giSettings.propagationDecay.value);
+
+
+            data.chunkIndices = chunkIndices;
+
+            data.apvL0L1rx = renderGraph.ImportTexture(m_DynamicGIAPV.L0_L1Rx); ;
+            data.apvL1Gry = renderGraph.ImportTexture(m_DynamicGIAPV.L1_G_ry);
+            data.apvL1Brz = renderGraph.ImportTexture(m_DynamicGIAPV.L1_B_rz);
+            data.prevApvL0L1rx = renderGraph.ImportTexture(m_PrevDynamicGI.L0_L1Rx);
+            data.prevApvL1Gry = renderGraph.ImportTexture(m_PrevDynamicGI.L1_G_ry);
+            data.prevApvL1Brz = renderGraph.ImportTexture(m_PrevDynamicGI.L1_B_rz);
+        }
+
+        void LightPropagation(RenderGraph renderGraph, ProbeExtraDataBuffers buffers, int[] chunkIndices, HDCamera hdCamera)
+        {
+            using (var builder = renderGraph.AddRenderPass<LightPropagationData>("Inject Direct Light in Dynamic GI APV", out var passData, ProfilingSampler.Get(HDProfileId.InjectInDynamicAPV)))
+            {
+                PrepareLightPropagationData(renderGraph, buffers, chunkIndices, hdCamera, ref passData);
+
+                builder.SetRenderFunc(
+                    (LightPropagationData data, RenderGraphContext ctx) =>
+                    {
+                        var cs = data.propagationCS;
+                        var kernel = data.hitKernel;
+                        var cmd = ctx.cmd;
+
+                        cmd.SetComputeTextureParam(cs, kernel, HDShaderIDs._PrevAPVResL0_L1Rx, data.prevApvL0L1rx);
+                        cmd.SetComputeTextureParam(cs, kernel, HDShaderIDs._PrevAPVResL1G_L1Ry, data.prevApvL1Gry);
+                        cmd.SetComputeTextureParam(cs, kernel, HDShaderIDs._PrevAPVResL1B_L1Rz, data.prevApvL1Brz);
+
+                        cmd.SetComputeTextureParam(cs, kernel, HDShaderIDs._RWAPVResL0_L1Rx, data.apvL0L1rx);
+                        cmd.SetComputeTextureParam(cs, kernel, HDShaderIDs._RWAPVResL1G_L1Ry, data.apvL1Gry);
+                        cmd.SetComputeTextureParam(cs, kernel, HDShaderIDs._RWAPVResL1B_L1Rz, data.apvL1Brz);
+
+                        cmd.SetComputeBufferParam(cs, kernel, HDShaderIDs._ProbeWorldLocations, data.probePositionsBuffer);
+                        cmd.SetComputeBufferParam(cs, kernel, HDShaderIDs._PackedProbeExtraData, data.probeFinalExtraDataBuffer);
+
+                        cmd.SetComputeBufferParam(cs, kernel, HDShaderIDs._IrradianceCache, data.irradianceCacheBuffer);
+                        cmd.SetComputeBufferParam(cs, kernel, HDShaderIDs._PrevIrradianceCache, data.prevIrradianceCacheBuffer);
+
+                        cmd.SetComputeVectorParam(cs, HDShaderIDs._DynamicGIParams0, data.injectionParameters);
+                        cmd.SetComputeVectorParam(cs, HDShaderIDs._DynamicGIParams1, data.injectionParameters2);
+                        cmd.SetComputeVectorParam(cs, HDShaderIDs._DynamicGIParams2, data.injectionParameters3);
+                        cmd.SetComputeVectorParam(cs, HDShaderIDs._DynamicGIParams3, data.injectionParameters4);
+
+                        Vector4[] indicesArray = new Vector4[8];
+
+                        for (int i = 0; i < data.chunkIndices.Length; ++i)
+                        {
+                            indicesArray[i / 4][i % 4] = data.chunkIndices[i];
+                        }
+
+                        cmd.SetComputeVectorArrayParam(cs, HDShaderIDs._ChunkIndices, indicesArray);
+
+                        cmd.SetComputeVectorArrayParam(cs, HDShaderIDs._RayAxis, ProbeExtraData.NeighbourAxis);
+
+                        const int probesPerGroup = 64;
+                        int groupCount = HDUtils.DivRoundUp((int)data.injectionParameters4.x, probesPerGroup);
+
+                        cmd.DispatchCompute(cs, kernel, groupCount, 1, 1);
+
+                        kernel = data.missKernel;
+
+                        cmd.SetComputeTextureParam(cs, kernel, HDShaderIDs._PrevAPVResL0_L1Rx, data.prevApvL0L1rx);
+                        cmd.SetComputeTextureParam(cs, kernel, HDShaderIDs._PrevAPVResL1G_L1Ry, data.prevApvL1Gry);
+                        cmd.SetComputeTextureParam(cs, kernel, HDShaderIDs._PrevAPVResL1B_L1Rz, data.prevApvL1Brz);
+
+                        cmd.SetComputeTextureParam(cs, kernel, HDShaderIDs._RWAPVResL0_L1Rx, data.apvL0L1rx);
+                        cmd.SetComputeTextureParam(cs, kernel, HDShaderIDs._RWAPVResL1G_L1Ry, data.apvL1Gry);
+                        cmd.SetComputeTextureParam(cs, kernel, HDShaderIDs._RWAPVResL1B_L1Rz, data.apvL1Brz);
+
+                        cmd.SetComputeBufferParam(cs, kernel, HDShaderIDs._ProbeWorldLocations, data.probePositionsBuffer);
+                        cmd.SetComputeBufferParam(cs, kernel, HDShaderIDs._PackedProbeExtraData, data.probeFinalExtraDataBuffer);
+
+                        cmd.SetComputeBufferParam(cs, kernel, HDShaderIDs._IrradianceCache, data.irradianceCacheBuffer);
+                        cmd.SetComputeBufferParam(cs, kernel, HDShaderIDs._PrevIrradianceCache, data.prevIrradianceCacheBuffer);
+
+                        groupCount = HDUtils.DivRoundUp((int)data.injectionParameters4.y, probesPerGroup);
+                        cmd.DispatchCompute(cs, kernel, groupCount, 1, 1);
+
+                        if (data.clear)
+                        {
+                            cmd.SetRenderTarget(data.apvL0L1rx, 0, CubemapFace.Unknown, -1);
+                            cmd.ClearRenderTarget(false, true, Color.clear);
+                            cmd.SetRenderTarget(data.apvL1Gry, 0, CubemapFace.Unknown, -1);
+                            cmd.ClearRenderTarget(false, true, Color.clear);
+                            cmd.SetRenderTarget(data.apvL1Brz, 0, CubemapFace.Unknown, -1);
+                            cmd.ClearRenderTarget(false, true, Color.clear);
+                            cmd.SetRenderTarget(data.prevApvL0L1rx, 0, CubemapFace.Unknown, -1);
+                            cmd.ClearRenderTarget(false, true, Color.clear);
+                            cmd.SetRenderTarget(data.prevApvL1Gry, 0, CubemapFace.Unknown, -1);
+                            cmd.ClearRenderTarget(false, true, Color.clear);
+                            cmd.SetRenderTarget(data.prevApvL1Brz, 0, CubemapFace.Unknown, -1);
+                            cmd.ClearRenderTarget(false, true, Color.clear);
+                        }
+                    });
+            }
+        }
+
+        internal void LightPropagation(RenderGraph renderGraph, HDCamera hdCamera, bool forceClear)
         {
             if (forceClear)
             {
@@ -342,54 +327,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
                 var indices = chunkIndices[i];
                 if (buffer.finalExtraDataBuffer != null)
-                    InjectDirectLighting(renderGraph, buffer, indices, hdCamera);
-            }
-        }
-
-        void InjectDirectLighting(RenderGraph renderGraph, ProbeExtraDataBuffers buffers, int[] chunkIndices, HDCamera hdCamera)
-        {
-            var apvL0L1rxHandle = renderGraph.ImportTexture(m_DynamicGIAPV.L0_L1Rx);
-            var apvL1GryHandle = renderGraph.ImportTexture(m_DynamicGIAPV.L1_G_ry);
-            var apvL1BrzHandle = renderGraph.ImportTexture(m_DynamicGIAPV.L1_B_rz);
-
-            var prevApvL0L1rxHandle = renderGraph.ImportTexture(m_PrevDynamicGI.L0_L1Rx);
-            var prevApvL1GryHandle = renderGraph.ImportTexture(m_PrevDynamicGI.L1_G_ry);
-            var prevApvL1BrzHandle = renderGraph.ImportTexture(m_PrevDynamicGI.L1_B_rz);
-            var prevDBG = renderGraph.ImportTexture(m_PrevDynamicGI.DEBUG);
-
-            var dbg = renderGraph.ImportTexture(m_DynamicGIAPV.DEBUG);
-
-            var positionBufferHandle = renderGraph.ImportComputeBuffer(buffers.probeLocationBuffer);
-
-            var parameters = PrepareInjectionParameters(buffers, chunkIndices, hdCamera);
-
-            using (var builder = renderGraph.AddRenderPass<InjectDirectLightData>("Inject Direct Light in Dynamic GI APV", out var passData, ProfilingSampler.Get(HDProfileId.InjectInDynamicAPV)))
-            {
-                passData.parameters = parameters;
-                passData.apvL0L1rx = apvL0L1rxHandle;
-                passData.apvL1Gry = apvL1GryHandle;
-                passData.apvL1Brz = apvL1BrzHandle;
-                passData.prevApvL0L1rx = prevApvL0L1rxHandle;
-                passData.prevApvL1Gry = prevApvL1GryHandle;
-                passData.prevApvL1Brz = prevApvL1BrzHandle;
-
-                passData.debug = dbg;
-                passData.positionBuffer = positionBufferHandle;
-                passData.finalExtraDataBuffer = renderGraph.ImportComputeBuffer(buffers.finalExtraDataBuffer);
-
-                builder.SetRenderFunc(
-                    (InjectDirectLightData data, RenderGraphContext ctx) =>
-                    {
-                        InjectDirectLighting(data.parameters,
-                            data.apvL0L1rx,
-                            data.apvL1Gry,
-                            data.apvL1Brz,
-                            data.debug,
-                            data.prevApvL0L1rx,
-                            data.prevApvL1Gry,
-                            data.prevApvL1Brz,
-                            ctx.cmd);
-                    });
+                    LightPropagation(renderGraph, buffer, indices, hdCamera);
             }
         }
 
@@ -397,89 +335,104 @@ namespace UnityEngine.Rendering.HighDefinition
         // ---------------------------- Combine --------------------------------
         // ---------------------------------------------------------------------
 
-        struct ProbeVolumeCombineParameters
+        class CombineProbeVolumesData
         {
             public ComputeShader combinePVCS;
             public int combineKernel;
-            public int combineKernel2;
+
             public int probeCount;
             public Vector4 combineParameters;
             public Vector4 poolDimensions;
             public int[] chunkIndices;
-            public ComputeBuffer irradianceCacheBuffer;
-        }
 
-        ProbeVolumeCombineParameters PrepareCombineParameters(ProbeExtraDataBuffers buffers, Vector2 blendFactors, int[] chunkIndices, HDCamera hdCamera)
-        {
-            ProbeVolumeCombineParameters parameters;
-            parameters.combinePVCS = m_Resources.shaders.combineProbeVolumesCS;
-            parameters.combineKernel = parameters.combinePVCS.FindKernel("CombineProbeVolumes");
-            parameters.combineKernel2 = parameters.combinePVCS.FindKernel("CombineIrradianceCacheAndPV");
-            parameters.probeCount = buffers.probeCount;
-
-            var giSettings = hdCamera.volumeStack.GetComponent<ProbeDynamicGI>();
-            if (giSettings.clear.value)
-            {
-                parameters.combineParameters = new Vector4(blendFactors.x, 0, buffers.probeCount, giSettings.antiRingingFactor.value);
-            }
-            else
-            {
-                parameters.combineParameters = new Vector4(blendFactors.x, blendFactors.y, buffers.probeCount, giSettings.antiRingingFactor.value);
-            }
-            parameters.poolDimensions = new Vector4(ProbeReferenceVolume.instance.poolDimension.x, ProbeReferenceVolume.instance.poolDimension.y, ProbeReferenceVolume.instance.poolDimension.z, ProbeReferenceVolume.instance.chunkSizeInProbes);
-            parameters.chunkIndices = chunkIndices;
-
-            parameters.irradianceCacheBuffer = buffers.irradianceCache;
-
-
-            return parameters;
-        }
-
-        static void CombineProbeVolumes(in ProbeVolumeCombineParameters parameters,
-            RTHandle firstPV0, RTHandle firstPV1, RTHandle firstPV2,
-            Texture3D secondPV0, Texture3D secondPV1, Texture3D secondPV2,
-            CommandBuffer cmd)
-        {
-            var cs = parameters.combinePVCS;
-            var kernel = parameters.combineKernel2;
-
-            cmd.SetComputeTextureParam(cs, kernel, HDShaderIDs._RWAPVResL0_L1Rx, firstPV0);
-            cmd.SetComputeTextureParam(cs, kernel, HDShaderIDs._RWAPVResL1G_L1Ry, firstPV1);
-            cmd.SetComputeTextureParam(cs, kernel, HDShaderIDs._RWAPVResL1B_L1Rz, firstPV2);
-
-            cmd.SetComputeTextureParam(cs, kernel, HDShaderIDs._APVResL0_L1Rx, secondPV0);
-            cmd.SetComputeTextureParam(cs, kernel, HDShaderIDs._APVResL1G_L1Ry, secondPV1);
-            cmd.SetComputeTextureParam(cs, kernel, HDShaderIDs._APVResL1B_L1Rz, secondPV2);
-
-            cmd.SetComputeVectorArrayParam(cs, HDShaderIDs._RayAxis, ProbeExtraData.NeighbourAxis);
-
-            Vector4[] indicesArray = new Vector4[8];
-
-            for (int i = 0; i < parameters.chunkIndices.Length; ++i)
-            {
-                indicesArray[i / 4][i % 4] = parameters.chunkIndices[i];
-            }
-
-            cmd.SetComputeBufferParam(cs, kernel, HDShaderIDs._IrradianceCache, parameters.irradianceCacheBuffer);
-
-            cmd.SetComputeVectorArrayParam(cs, HDShaderIDs._ChunkIndices, indicesArray);
-            cmd.SetComputeVectorParam(cs, HDShaderIDs._PVCombineParameters, parameters.combineParameters);
-            cmd.SetComputeVectorParam(cs, HDShaderIDs._DynamicGIParams1, parameters.poolDimensions);
-
-            const int groupSize = 64; // Must match GROUP_SIZE in CombineProbeVolumes.compute
-            int groupCount = HDUtils.DivRoundUp(parameters.probeCount, groupSize);
-            cmd.DispatchCompute(cs, kernel, groupCount, 1, 1);
-        }
-
-        class CombineProbeVolumesData
-        {
-            public ProbeVolumeCombineParameters parameters;
             public TextureHandle firstL0L1rx;
             public TextureHandle firstL1Gry;
             public TextureHandle firstL1Brz;
             public Texture3D secondL0L1rx;
             public Texture3D secondL1Gry;
             public Texture3D secondL1Brz;
+
+            public ComputeBufferHandle irradianceCacheBuffer;
+        }
+
+        void PrepareCombineProbeVolumeData(RenderGraph renderGraph, ProbeExtraDataBuffers buffers, Vector2 blendFactors, int[] chunkIndices, HDCamera hdCamera, ref CombineProbeVolumesData data)
+        {
+            data.combinePVCS = m_Resources.shaders.combineProbeVolumesCS;
+            data.combineKernel = data.combinePVCS.FindKernel("CombineIrradianceCacheAndPV");
+
+            data.probeCount = buffers.probeCount;
+
+            var giSettings = hdCamera.volumeStack.GetComponent<ProbeDynamicGI>();
+            if (giSettings.clear.value)
+            {
+                data.combineParameters = new Vector4(blendFactors.x, 0, buffers.probeCount, giSettings.antiRingingFactor.value);
+            }
+            else
+            {
+                data.combineParameters = new Vector4(blendFactors.x, blendFactors.y, buffers.probeCount, giSettings.antiRingingFactor.value);
+            }
+            data.poolDimensions = new Vector4(ProbeReferenceVolume.instance.poolDimension.x, ProbeReferenceVolume.instance.poolDimension.y, ProbeReferenceVolume.instance.poolDimension.z, ProbeReferenceVolume.instance.chunkSizeInProbes);
+            data.chunkIndices = chunkIndices;
+
+            data.irradianceCacheBuffer = renderGraph.ImportComputeBuffer(buffers.irradianceCache);
+
+
+            data.firstL0L1rx = renderGraph.ImportTexture(m_DynamicGIAPV.L0_L1Rx);
+            data.firstL1Gry = renderGraph.ImportTexture(m_DynamicGIAPV.L1_G_ry);
+            data.firstL1Brz = renderGraph.ImportTexture(m_DynamicGIAPV.L1_B_rz);
+            var rr = ProbeReferenceVolume.instance.GetRuntimeResources();
+            data.secondL0L1rx = rr.L0_L1rx;
+            data.secondL1Gry = rr.L1_G_ry;
+            data.secondL1Brz = rr.L1_B_rz;
+
+
+            //var apvL1GryHandle = renderGraph.ImportTexture(m_DynamicGIAPV.L1_G_ry);
+            //var apvL1BrzHandle = renderGraph.ImportTexture(m_DynamicGIAPV.L1_B_rz);
+
+        }
+
+        void CombineProbeVolumes(RenderGraph renderGraph, ProbeExtraDataBuffers buffers, int[] chunkIndices, HDCamera hdCamera)
+        {
+            using (var builder = renderGraph.AddRenderPass<CombineProbeVolumesData>("Combine APV and Irradiance Cache", out var passData, ProfilingSampler.Get(HDProfileId.CombineDynamicGI)))
+            {
+                PrepareCombineProbeVolumeData(renderGraph, buffers, new Vector2(1.0f, 1.0f), chunkIndices, hdCamera, ref passData);
+
+                builder.SetRenderFunc(
+                    (CombineProbeVolumesData data, RenderGraphContext ctx) =>
+                    {
+                        var cs = data.combinePVCS;
+                        var kernel = data.combineKernel;
+                        var cmd = ctx.cmd;
+
+                        cmd.SetComputeTextureParam(cs, kernel, HDShaderIDs._RWAPVResL0_L1Rx, data.firstL0L1rx);
+                        cmd.SetComputeTextureParam(cs, kernel, HDShaderIDs._RWAPVResL1G_L1Ry, data.firstL1Gry);
+                        cmd.SetComputeTextureParam(cs, kernel, HDShaderIDs._RWAPVResL1B_L1Rz, data.firstL1Brz);
+
+                        cmd.SetComputeTextureParam(cs, kernel, HDShaderIDs._APVResL0_L1Rx, data.secondL0L1rx);
+                        cmd.SetComputeTextureParam(cs, kernel, HDShaderIDs._APVResL1G_L1Ry, data.secondL1Gry);
+                        cmd.SetComputeTextureParam(cs, kernel, HDShaderIDs._APVResL1B_L1Rz, data.secondL1Brz);
+
+                        cmd.SetComputeVectorArrayParam(cs, HDShaderIDs._RayAxis, ProbeExtraData.NeighbourAxis);
+
+                        Vector4[] indicesArray = new Vector4[8];
+
+                        for (int i = 0; i < data.chunkIndices.Length; ++i)
+                        {
+                            indicesArray[i / 4][i % 4] = data.chunkIndices[i];
+                        }
+
+                        cmd.SetComputeBufferParam(cs, kernel, HDShaderIDs._IrradianceCache, data.irradianceCacheBuffer);
+
+                        cmd.SetComputeVectorArrayParam(cs, HDShaderIDs._ChunkIndices, indicesArray);
+                        cmd.SetComputeVectorParam(cs, HDShaderIDs._PVCombineParameters, data.combineParameters);
+                        cmd.SetComputeVectorParam(cs, HDShaderIDs._DynamicGIParams1, data.poolDimensions);
+
+                        const int groupSize = 64; 
+                        int groupCount = HDUtils.DivRoundUp(data.probeCount, groupSize);
+                        cmd.DispatchCompute(cs, kernel, groupCount, 1, 1);
+                    });
+
+            }
         }
 
         internal void CombineDynamicAndStaticPV(RenderGraph renderGraph, HDCamera hdCamera)
@@ -491,42 +444,7 @@ namespace UnityEngine.Rendering.HighDefinition
             {
                 var buffer = buffersToProcess[i];
                 var indices = chunkIndices[i];
-                CombineDynamicAndStaticPV(renderGraph, buffer, indices, hdCamera);
-            }
-        }
-
-        internal void CombineDynamicAndStaticPV(RenderGraph renderGraph, ProbeExtraDataBuffers buffers, int[] chunkIndices, HDCamera hdCamera)
-        {
-            var apvL0L1rxHandle = renderGraph.ImportTexture(m_DynamicGIAPV.L0_L1Rx);
-            var apvL1GryHandle = renderGraph.ImportTexture(m_DynamicGIAPV.L1_G_ry);
-            var apvL1BrzHandle = renderGraph.ImportTexture(m_DynamicGIAPV.L1_B_rz);
-
-            var rr = ProbeReferenceVolume.instance.GetRuntimeResources();
-
-            var parameters = PrepareCombineParameters(buffers, new Vector2(1.0f , 1.0f), chunkIndices, hdCamera);
-
-            using (var builder = renderGraph.AddRenderPass<CombineProbeVolumesData>("CombineDynamicGI", out var passData, ProfilingSampler.Get(HDProfileId.CombineDynamicGI)))
-            {
-                passData.parameters = parameters;
-                passData.firstL0L1rx = apvL0L1rxHandle;
-                passData.firstL1Gry = apvL1GryHandle;
-                passData.firstL1Brz = apvL1BrzHandle;
-                passData.secondL0L1rx = rr.L0_L1rx;
-                passData.secondL1Gry = rr.L1_G_ry;
-                passData.secondL1Brz = rr.L1_B_rz;
-
-                builder.SetRenderFunc(
-                    (CombineProbeVolumesData data, RenderGraphContext ctx) =>
-                    {
-                        CombineProbeVolumes(data.parameters,
-                            data.firstL0L1rx,
-                            data.firstL1Gry,
-                            data.firstL1Brz,
-                            data.secondL0L1rx,
-                            data.secondL1Gry,
-                            data.secondL1Brz,
-                            ctx.cmd);
-                    });
+                CombineProbeVolumes(renderGraph, buffer, indices, hdCamera);
             }
         }
     }
