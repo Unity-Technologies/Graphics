@@ -3,11 +3,8 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
 using System.Text.RegularExpressions;
-using UnityEditor;
 using UnityEditor.Graphing;
 using UnityEditor.Graphing.Util;
-using UnityEditor.ShaderGraph;
-using UnityEditor.ShaderGraph.Drawing;
 using UnityEditor.ShaderGraph.Drawing.Controls;
 using UnityEditor.ShaderGraph.Internal;
 using UnityEditor.UIElements;
@@ -17,14 +14,14 @@ using UnityEngine.UIElements;
 using FloatField = UnityEditor.ShaderGraph.Drawing.FloatField;
 using ContextualMenuManipulator = UnityEngine.UIElements.ContextualMenuManipulator;
 
+using GraphDataStore = UnityEditor.ShaderGraph.DataStore<UnityEditor.ShaderGraph.GraphData>;
+
 namespace UnityEditor.ShaderGraph.Drawing.Inspector.PropertyDrawers
 {
     [SGPropertyDrawer(typeof(ShaderInput))]
     class ShaderInputPropertyDrawer : IPropertyDrawer
     {
         internal delegate void ChangeExposedFieldCallback(bool newValue);
-        internal delegate void ChangeDisplayNameCallback(string newValue);
-        internal delegate void ChangeReferenceNameCallback(string newValue);
         internal delegate void ChangeValueCallback(object newValue);
         internal delegate void PreChangeValueCallback(string actionName);
         internal delegate void PostChangeValueCallback(bool bTriggerPropertyUpdate = false, ModificationScope modificationScope = ModificationScope.Node);
@@ -53,6 +50,9 @@ namespace UnityEditor.ShaderGraph.Drawing.Inspector.PropertyDrawers
 
         Toggle exposedToggle;
         VisualElement keywordScopeField;
+        // Should be provided by the Inspectable
+        ShaderInputViewModel m_ViewModel;
+        ShaderInputViewModel ViewModel => m_ViewModel;
 
         const string m_DisplayNameDisallowedPattern = "[^\\w_ ]";
         const string m_ReferenceNameDisallowedPattern = @"(?:[^A-Za-z_0-9_])";
@@ -70,6 +70,8 @@ namespace UnityEditor.ShaderGraph.Drawing.Inspector.PropertyDrawers
         ChangeExposedFieldCallback _exposedFieldChangedCallback;
         Action _precisionChangedCallback;
         Action _keywordChangedCallback;
+        Action<string> _displayNameChangedCallback;
+        Action<string> _referenceNameChangedCallback;
         ChangeValueCallback _changeValueCallback;
         PreChangeValueCallback _preChangeValueCallback;
         PostChangeValueCallback _postChangeValueCallback;
@@ -81,16 +83,71 @@ namespace UnityEditor.ShaderGraph.Drawing.Inspector.PropertyDrawers
             Action precisionChangedCallback,
             Action keywordChangedCallback,
             ChangeValueCallback changeValueCallback,
-            PreChangeValueCallback preChangeValueCallback,
             PostChangeValueCallback postChangeValueCallback)
         {
             this.isSubGraph = isSubGraph;
             this.graphData = graphData;
-            this._exposedFieldChangedCallback = exposedFieldCallback;
-            this._precisionChangedCallback = precisionChangedCallback;
-            this._changeValueCallback = changeValueCallback;
             this._keywordChangedCallback = keywordChangedCallback;
-            this._preChangeValueCallback = preChangeValueCallback;
+            this._precisionChangedCallback = precisionChangedCallback;
+            this._exposedFieldChangedCallback = exposedFieldCallback;
+            this._changeValueCallback = changeValueCallback;
+            this._preChangeValueCallback = (actionName) => this.graphData.owner.RegisterCompleteObjectUndo(actionName);
+            this._postChangeValueCallback = postChangeValueCallback;
+        }
+
+        internal void GetViewModel(ShaderInputViewModel shaderInputViewModel, GraphData inGraphData, PostChangeValueCallback postChangeValueCallback)
+        {
+            m_ViewModel = shaderInputViewModel;
+            this.isSubGraph = m_ViewModel.isSubGraph;
+            this.graphData = inGraphData;
+            this._keywordChangedCallback = () => graphData.OnKeywordChanged();
+            this._precisionChangedCallback = () =>  graphData.ValidateGraph();
+
+            this._exposedFieldChangedCallback = newValue =>
+            {
+                var changeExposedFlagAction = new ChangeExposedFlagAction();
+                changeExposedFlagAction.shaderInputReference = shaderInput;
+                changeExposedFlagAction.newIsExposedValue = newValue;
+                ViewModel.requestModelChangeAction(changeExposedFlagAction);
+            };
+
+            this._displayNameChangedCallback = newValue =>
+            {
+                var changeDisplayNameAction = new ChangeDisplayNameAction();
+                changeDisplayNameAction.shaderInputReference = shaderInput;
+                changeDisplayNameAction.newDisplayNameValue = newValue;
+                ViewModel.requestModelChangeAction(changeDisplayNameAction);
+            };
+
+            this._changeValueCallback = newValue =>
+            {
+                var changeDisplayNameAction = new ChangePropertyValueAction();
+                changeDisplayNameAction.shaderInputReference = shaderInput;
+                changeDisplayNameAction.newShaderInputValue = newValue;
+                ViewModel.requestModelChangeAction(changeDisplayNameAction);
+            };
+
+            this._referenceNameChangedCallback = newValue =>
+            {
+                var changeReferenceNameAction = new ChangeReferenceNameAction();
+                changeReferenceNameAction.shaderInputReference = shaderInput;
+                changeReferenceNameAction.newReferenceNameValue = newValue;
+                ViewModel.requestModelChangeAction(changeReferenceNameAction);
+            };
+
+            this._preChangeValueCallback = (actionName) => this.graphData.owner.RegisterCompleteObjectUndo(actionName);
+
+            if (shaderInput is AbstractShaderProperty abstractShaderProperty)
+            {
+                var changePropertyValueAction = new ChangePropertyValueAction();
+                changePropertyValueAction.shaderInputReference = abstractShaderProperty;
+                this._changeValueCallback = newValue =>
+                {
+                    changePropertyValueAction.newShaderInputValue = newValue;
+                    ViewModel.requestModelChangeAction(changePropertyValueAction);
+                };
+            }
+
             this._postChangeValueCallback = postChangeValueCallback;
         }
 
@@ -115,9 +172,9 @@ namespace UnityEditor.ShaderGraph.Drawing.Inspector.PropertyDrawers
         void BuildPropertyNameLabel(PropertySheet propertySheet)
         {
             if (shaderInput is ShaderKeyword)
-                propertySheet.Add(PropertyDrawerUtils.CreateLabel($"Keyword: {shaderInput.displayName}", 0, FontStyle.Bold));
+                propertySheet.headerContainer.Add(PropertyDrawerUtils.CreateLabel($"Keyword: {shaderInput.displayName}", 0, FontStyle.Bold));
             else
-                propertySheet.Add(PropertyDrawerUtils.CreateLabel($"Property: {shaderInput.displayName}", 0, FontStyle.Bold));
+                propertySheet.headerContainer.Add(PropertyDrawerUtils.CreateLabel($"Property: {shaderInput.displayName}", 0, FontStyle.Bold));
         }
 
         void BuildExposedField(PropertySheet propertySheet)

@@ -226,6 +226,9 @@ Shader "HDRP/LitTessellation"
 
     HLSLINCLUDE
 
+    //Our DXC backend currently does not support Metal tessellation
+    #pragma never_use_dxc metal
+
     #pragma target 5.0
     #pragma only_renderers d3d11 playstation xboxone xboxseries vulkan metal switch
 
@@ -348,6 +351,11 @@ Shader "HDRP/LitTessellation"
     // If we use subsurface scattering, enable output split lighting (for forward pass)
     #if defined(_MATERIAL_FEATURE_SUBSURFACE_SCATTERING) && !defined(_SURFACE_TYPE_TRANSPARENT)
     #define OUTPUT_SPLIT_LIGHTING
+    #endif
+
+    // Define _DEFERRED_CAPABLE_MATERIAL for shader capable to run in deferred pass
+    #ifndef _SURFACE_TYPE_TRANSPARENT
+    #define _DEFERRED_CAPABLE_MATERIAL
     #endif
 
     //-------------------------------------------------------------------------------------

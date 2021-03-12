@@ -203,7 +203,6 @@ platforms:
         type: Unity::VM
         image: sdet/gamecode_win10:stable
         flavor: b1.large
-        model: rtx2080
   - name: Android
     apis:
       - name: Vulkan
