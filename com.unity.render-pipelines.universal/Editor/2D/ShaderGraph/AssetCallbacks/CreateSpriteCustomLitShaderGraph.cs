@@ -10,7 +10,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
         public static void CreateSpriteLitGraph()
         {
             var target = (UniversalTarget)Activator.CreateInstance(typeof(UniversalTarget));
-            target.TrySetActiveSubTarget(typeof(UniversalSpriteCustomSubTarget));
+            target.TrySetActiveSubTarget(typeof(UniversalSpriteLitSubTarget));
 
             var blockDescriptors = new[]
             {
@@ -22,6 +22,9 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
                 BlockFields.SurfaceDescription.NormalTS,
                 BlockFields.SurfaceDescription.Alpha,
             };
+
+            var subTarget = target.activeSubTarget as UniversalSpriteLitSubTarget;
+            subTarget.isCustomLit = true;
 
             GraphUtil.CreateNewGraphWithOutputs(new[] {target}, blockDescriptors);
         }

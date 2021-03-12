@@ -5,6 +5,8 @@ using UnityEditor.ShaderGraph;
 using UnityEngine.Rendering;
 using UnityEditor.Experimental.Rendering.Universal;
 using UnityEditor.ShaderGraph.Legacy;
+using UnityEngine;
+using UnityEngine.UIElements;
 
 namespace UnityEditor.Rendering.Universal.ShaderGraph
 {
@@ -12,9 +14,18 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
     {
         static readonly GUID kSourceCodeGuid = new GUID("ea1514729d7120344b27dcd67fbf34de"); // UniversalSpriteLitSubTarget.cs
 
+        [SerializeField]
+        private bool m_IsCustomLit;
+
         public UniversalSpriteLitSubTarget()
         {
             displayName = "Sprite Lit";
+        }
+
+        public bool isCustomLit
+        {
+            get => m_IsCustomLit;
+            set => m_IsCustomLit = value;
         }
 
         public override bool IsActive() => true;
@@ -22,7 +33,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
         public override void Setup(ref TargetSetupContext context)
         {
             context.AddAssetDependency(kSourceCodeGuid, AssetCollection.Flags.SourceDependency);
-            context.AddSubShader(SubShaders.SpriteLit);
+            context.AddSubShader(SubShaders.GetSubShaderDescriptor(m_IsCustomLit));
         }
 
         public override void GetFields(ref TargetFieldContext context)
@@ -51,6 +62,15 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
 
         public override void GetPropertiesGUI(ref TargetPropertyGUIContext context, Action onChange, Action<String> registerUndo)
         {
+            context.AddProperty("Custom Lit", new Toggle() { value = m_IsCustomLit }, (evt) =>
+            {
+                if (Equals(m_IsCustomLit, evt.newValue))
+                    return;
+
+                registerUndo("Change Custom Lit");
+                m_IsCustomLit = evt.newValue;
+                onChange();
+            });
         }
 
         public bool TryUpgradeFromMasterNode(IMasterNode1 masterNode, out Dictionary<BlockFieldDescriptor, int> blockMap)
@@ -76,56 +96,62 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
         #region SubShader
         static class SubShaders
         {
-            public static SubShaderDescriptor SpriteLit = new SubShaderDescriptor()
+            public static SubShaderDescriptor GetSubShaderDescriptor(bool isCustomLit)
             {
-                pipelineTag = UniversalTarget.kPipelineTag,
-                customTags = UniversalTarget.kLitMaterialTypeTag,
-                renderType = $"{RenderType.Transparent}",
-                renderQueue = $"{UnityEditor.ShaderGraph.RenderQueue.Transparent}",
-                generatesPreview = true,
-                passes = new PassCollection
+                return new SubShaderDescriptor()
                 {
-                    { SpriteLitPasses.Lit },
-                    { SpriteLitPasses.Normal },
-                    { SpriteLitPasses.Forward },
-                },
-            };
+                    pipelineTag = UniversalTarget.kPipelineTag,
+                    customTags = UniversalTarget.kLitMaterialTypeTag,
+                    renderType = $"{RenderType.Transparent}",
+                    renderQueue = $"{UnityEditor.ShaderGraph.RenderQueue.Transparent}",
+                    generatesPreview = true,
+                    passes = new PassCollection
+                    {
+                        { SpriteLitPasses.GetLitPassDescriptor(isCustomLit) },
+                        { SpriteLitPasses.Normal },
+                        { SpriteLitPasses.Forward },
+                    },
+                };
+            }
         }
         #endregion
 
         #region Passes
         static class SpriteLitPasses
         {
-            public static PassDescriptor Lit = new PassDescriptor
+            public static PassDescriptor GetLitPassDescriptor(bool isCustomLit)
             {
-                // Definition
-                displayName = "Sprite Lit",
-                referenceName = "SHADERPASS_SPRITELIT",
-                lightMode = "Universal2D",
-                useInPreview = true,
+                return new PassDescriptor
+                {
+                    // Definition
+                    displayName = "Sprite Lit",
+                    referenceName = "SHADERPASS_SPRITELIT",
+                    lightMode = "Universal2D",
+                    useInPreview = true,
 
-                // Template
-                passTemplatePath = GenerationUtils.GetDefaultTemplatePath("PassMesh.template"),
-                sharedTemplateDirectories = GenerationUtils.GetDefaultSharedTemplateDirectories(),
+                    // Template
+                    passTemplatePath = GenerationUtils.GetDefaultTemplatePath("PassMesh.template"),
+                    sharedTemplateDirectories = GenerationUtils.GetDefaultSharedTemplateDirectories(),
 
-                // Port Mask
-                validVertexBlocks = CoreBlockMasks.Vertex,
-                validPixelBlocks = SpriteLitBlockMasks.FragmentLit,
+                    // Port Mask
+                    validVertexBlocks = CoreBlockMasks.Vertex,
+                    validPixelBlocks = SpriteLitBlockMasks.FragmentLit,
 
-                // Fields
-                structs = CoreStructCollections.Default,
-                requiredFields = SpriteLitRequiredFields.Lit,
-                fieldDependencies = CoreFieldDependencies.Default,
+                    // Fields
+                    structs = CoreStructCollections.Default,
+                    requiredFields = SpriteLitRequiredFields.Lit,
+                    fieldDependencies = CoreFieldDependencies.Default,
 
-                // Conditional State
-                renderStates = CoreRenderStates.Default,
-                pragmas = CorePragmas._2DDefault,
-                keywords = SpriteLitKeywords.Lit,
-                includes = SpriteLitIncludes.Lit,
+                    // Conditional State
+                    renderStates = CoreRenderStates.Default,
+                    pragmas = CorePragmas._2DDefault,
+                    keywords = isCustomLit ? null : SpriteLitKeywords.Lit,
+                    includes = SpriteLitIncludes.GetLitIncludeCollection(isCustomLit),
 
-                // Custom Interpolator Support
-                customInterpolators = CoreCustomInterpDescriptors.Common
-            };
+                    // Custom Interpolator Support
+                    customInterpolators = isCustomLit ? null : CoreCustomInterpDescriptors.Common
+                };
+            }
 
             public static PassDescriptor Normal = new PassDescriptor
             {
@@ -250,23 +276,43 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
         #region Includes
         static class SpriteLitIncludes
         {
+            const string kUnlitPass = "Packages/com.unity.render-pipelines.universal/Editor/ShaderGraph/Includes/UnlitPass.hlsl";
             const string k2DLightingUtil = "Packages/com.unity.render-pipelines.universal/Shaders/2D/Include/LightingUtility.hlsl";
             const string k2DNormal = "Packages/com.unity.render-pipelines.universal/Shaders/2D/Include/NormalsRenderingShared.hlsl";
             const string kSpriteLitPass = "Packages/com.unity.render-pipelines.universal/Editor/2D/ShaderGraph/Includes/SpriteLitPass.hlsl";
             const string kSpriteNormalPass = "Packages/com.unity.render-pipelines.universal/Editor/2D/ShaderGraph/Includes/SpriteNormalPass.hlsl";
             const string kSpriteForwardPass = "Packages/com.unity.render-pipelines.universal/Editor/2D/ShaderGraph/Includes/SpriteForwardPass.hlsl";
 
-            public static IncludeCollection Lit = new IncludeCollection
+            public static IncludeCollection GetLitIncludeCollection(bool isCustomLit)
             {
-                // Pre-graph
-                { CoreIncludes.CorePregraph },
-                { CoreIncludes.ShaderGraphPregraph },
-                { k2DLightingUtil, IncludeLocation.Pregraph },
+                if (isCustomLit)
+                {
+                    return new IncludeCollection
+                    {
+                        // Pre-graph
+                        { CoreIncludes.CorePregraph },
+                        { CoreIncludes.ShaderGraphPregraph },
 
-                // Post-graph
-                { CoreIncludes.CorePostgraph },
-                { kSpriteLitPass, IncludeLocation.Postgraph },
-            };
+                        // Post-graph
+                        { CoreIncludes.CorePostgraph },
+                        { kUnlitPass, IncludeLocation.Postgraph },
+                    };
+                }
+                else
+                {
+                    return new IncludeCollection
+                    {
+                        // Pre-graph
+                        { CoreIncludes.CorePregraph },
+                        { CoreIncludes.ShaderGraphPregraph },
+                        { k2DLightingUtil, IncludeLocation.Pregraph },
+
+                        // Post-graph
+                        { CoreIncludes.CorePostgraph },
+                        { kSpriteLitPass, IncludeLocation.Postgraph },
+                    };
+                }
+            }
 
             public static IncludeCollection Normal = new IncludeCollection
             {

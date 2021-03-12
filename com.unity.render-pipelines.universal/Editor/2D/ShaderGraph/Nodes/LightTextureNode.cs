@@ -1,11 +1,12 @@
 using System;
 using UnityEditor.Graphing;
+using UnityEditor.Rendering.Universal.ShaderGraph;
 using UnityEditor.ShaderGraph;
 using UnityEditor.ShaderGraph.Drawing.Controls;
 using UnityEditor.ShaderGraph.Internal;
 using UnityEngine;
 
-namespace _2D.ShaderGraph
+namespace UnityEngine.Experimental.Rendering.Universal
 {
     enum BlendStyle
     {
@@ -16,6 +17,7 @@ namespace _2D.ShaderGraph
     }
 
     [Title("Input", "2D", "Light Texture")]
+    [SubTargetFilterAttribute(new []{typeof(UniversalSpriteLitSubTarget)})]
     class LightTextureNode : AbstractMaterialNode
     {
         private const int OutputSlotId = 0;
