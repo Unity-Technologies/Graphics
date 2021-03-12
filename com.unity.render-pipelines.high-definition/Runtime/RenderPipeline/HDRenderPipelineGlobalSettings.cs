@@ -55,13 +55,18 @@ namespace UnityEngine.Rendering.HighDefinition
         //Making sure there is at least one HDRenderPipelineGlobalSettings instance in the project
         static internal HDRenderPipelineGlobalSettings Ensure()
         {
-            if (HDRenderPipelineGlobalSettings.instance)
+            bool needsMigration = (assetToBeMigrated != null && !assetToBeMigrated.Equals(null));
+
+            if (HDRenderPipelineGlobalSettings.instance && !needsMigration)
                 return HDRenderPipelineGlobalSettings.instance;
 
             HDRenderPipelineGlobalSettings assetCreated = null;
             string path = "Assets/HDRPDefaultResources/HDRenderPipelineGlobalSettings.asset";
-            if (assetToBeMigrated != null && !assetToBeMigrated.Equals(null))
+            if (needsMigration)
             {
+                if (HDRenderPipelineGlobalSettings.instance)
+                    path = AssetDatabase.GetAssetPath(HDRenderPipelineGlobalSettings.instance);
+
                 assetCreated = MigrateFromHDRPAsset(assetToBeMigrated, path, bClearObsoleteFields: false);
                 if (assetCreated != null && !assetCreated.Equals(null))
                     assetToBeMigrated = null;
@@ -468,9 +473,10 @@ namespace UnityEngine.Rendering.HighDefinition
         }
 
 #if UNITY_EDITOR
+        string runtimeResourcesPath => HDUtils.GetHDRenderPipelinePath() + "Runtime/RenderPipelineResources/HDRenderPipelineResources.asset";
+
         internal void EnsureRuntimeResources(bool forceReload)
         {
-            var runtimeResourcesPath = HDUtils.GetHDRenderPipelinePath() + "Runtime/RenderPipelineResources/HDRenderPipelineResources.asset";
             RenderPipelineResources resources = null;
             if (AreResourcesCreated())
             {
@@ -557,9 +563,10 @@ namespace UnityEngine.Rendering.HighDefinition
             }
         }
 
+        string editorResourcesPath => HDUtils.GetHDRenderPipelinePath() + "Editor/RenderPipelineResources/HDRenderPipelineEditorResources.asset";
+
         internal void EnsureEditorResources(bool forceReload)
         {
-            var editorResourcesPath = HDUtils.GetHDRenderPipelinePath() + "Editor/RenderPipelineResources/HDRenderPipelineEditorResources.asset";
             HDRenderPipelineEditorResources resources = null;
 
             if (AreEditorResourcesCreated())
@@ -626,9 +633,10 @@ namespace UnityEngine.Rendering.HighDefinition
         }
 
 #if UNITY_EDITOR
+        string raytracingResourcesPath => HDUtils.GetHDRenderPipelinePath() + "Runtime/RenderPipelineResources/HDRenderPipelineRayTracingResources.asset";
+
         internal void EnsureRayTracingResources(bool forceReload)
         {
-            var raytracingResourcesPath = HDUtils.GetHDRenderPipelinePath() + "Runtime/RenderPipelineResources/HDRenderPipelineRayTracingResources.asset";
             HDRenderPipelineRayTracingResources resources = null;
 
             if (AreRayTracingResourcesCreated())
