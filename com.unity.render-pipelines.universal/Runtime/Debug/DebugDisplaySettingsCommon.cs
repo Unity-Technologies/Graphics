@@ -11,17 +11,45 @@ namespace UnityEngine.Rendering.Universal
             public SettingsPanel()
             {
                 var materialSettingsData = DebugDisplaySettings.Instance.MaterialSettings;
-                AddWidget(DebugDisplaySettingsMaterial.WidgetFactory.CreateMaterialOverride(materialSettingsData));
+                AddWidget(new DebugUI.Foldout
+                {
+                    displayName = "Material Filters",
+                    isHeader = true,
+                    opened = true,
+                    children =
+                    {
+                        DebugDisplaySettingsMaterial.WidgetFactory.CreateMaterialOverride(materialSettingsData)
+                    }
+                });
 
                 var lightingSettingsData = DebugDisplaySettings.Instance.LightingSettings;
-                AddWidget(DebugDisplaySettingsLighting.WidgetFactory.CreateLightingMode(lightingSettingsData));
-                AddWidget(DebugDisplaySettingsLighting.WidgetFactory.CreateLightingFeatures(lightingSettingsData));
+                AddWidget(new DebugUI.Foldout
+                {
+                    displayName = "Lighting Debug Modes",
+                    isHeader = true,
+                    opened = true,
+                    children =
+                    {
+                        DebugDisplaySettingsLighting.WidgetFactory.CreateLightingDebugMode(lightingSettingsData),
+                        DebugDisplaySettingsLighting.WidgetFactory.CreateLightingFeatures(lightingSettingsData)
+                    }
+                });
 
                 var renderingSettingsData = DebugDisplaySettings.Instance.RenderingSettings;
-                AddWidget(DebugDisplaySettingsRendering.WidgetFactory.CreateHDR(renderingSettingsData));
-                AddWidget(DebugDisplaySettingsRendering.WidgetFactory.CreateMSAA(renderingSettingsData));
-                AddWidget(DebugDisplaySettingsRendering.WidgetFactory.CreatePostProcessing(renderingSettingsData));
-                AddWidget(DebugDisplaySettingsRendering.WidgetFactory.CreateSceneDebugModes(renderingSettingsData));
+                AddWidget(new DebugUI.Foldout
+                {
+                    displayName = "Rendering Debug",
+                    isHeader = true,
+                    opened = true,
+                    children =
+                    {
+                        DebugDisplaySettingsRendering.WidgetFactory.CreateHDR(renderingSettingsData),
+                        DebugDisplaySettingsRendering.WidgetFactory.CreateMSAA(renderingSettingsData),
+                        DebugDisplaySettingsRendering.WidgetFactory.CreatePostProcessing(renderingSettingsData),
+                        DebugDisplaySettingsRendering.WidgetFactory.CreateAdditionalWireframeShaderViews(renderingSettingsData)
+                    }
+                });
+
                 // TODO: Overdraw
             }
         }

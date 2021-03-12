@@ -89,8 +89,8 @@ namespace UnityEngine.Rendering.Universal
 
             CommonSettings = Add(new DebugDisplaySettingsCommon());
             MaterialSettings = Add(new DebugDisplaySettingsMaterial());
-            RenderingSettings = Add(new DebugDisplaySettingsRendering());
             LightingSettings = Add(new DebugDisplaySettingsLighting());
+            RenderingSettings = Add(new DebugDisplaySettingsRendering());
             ValidationSettings = Add(new DebugDisplaySettingsValidation());
         }
 

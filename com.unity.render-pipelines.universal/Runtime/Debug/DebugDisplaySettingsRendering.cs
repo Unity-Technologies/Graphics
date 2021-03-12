@@ -15,9 +15,9 @@ namespace UnityEngine.Rendering.Universal
 
         internal static class WidgetFactory
         {
-            internal static DebugUI.Widget CreateFullScreenModes(DebugDisplaySettingsRendering data) => new DebugUI.EnumField
+            internal static DebugUI.Widget CreateMapOverlays(DebugDisplaySettingsRendering data) => new DebugUI.EnumField
             {
-                displayName = "Full Screen Modes",
+                displayName = "Map Overlays",
                 autoEnum = typeof(DebugFullScreenMode),
                 getter = () => (int)data.debugFullScreenMode,
                 setter = (value) => {},
@@ -25,9 +25,9 @@ namespace UnityEngine.Rendering.Universal
                 setIndex = (value) => data.debugFullScreenMode = (DebugFullScreenMode)value
             };
 
-            internal static DebugUI.Widget CreateSceneDebugModes(DebugDisplaySettingsRendering data) => new DebugUI.EnumField
+            internal static DebugUI.Widget CreateAdditionalWireframeShaderViews(DebugDisplaySettingsRendering data) => new DebugUI.EnumField
             {
-                displayName = "Scene Debug Modes",
+                displayName = "Additional Wireframe Shader Views",
                 autoEnum = typeof(DebugSceneOverrideMode),
                 getter = () => (int)data.debugSceneOverrideMode,
                 setter = (value) => {},
@@ -76,12 +76,33 @@ namespace UnityEngine.Rendering.Universal
 
             public SettingsPanel(DebugDisplaySettingsRendering data)
             {
-                AddWidget(WidgetFactory.CreateFullScreenModes(data));
-                AddWidget(WidgetFactory.CreateSceneDebugModes(data));
-                AddWidget(WidgetFactory.CreateMipModesDebug(data));
-                AddWidget(WidgetFactory.CreatePostProcessing(data));
-                AddWidget(WidgetFactory.CreateMSAA(data));
-                AddWidget(WidgetFactory.CreateHDR(data));
+                AddWidget(new DebugUI.Foldout
+                {
+                    displayName = "Rendering Debug",
+                    isHeader = true,
+                    opened = true,
+                    children =
+                    {
+                        WidgetFactory.CreateMapOverlays(data),
+                        // TODO: Map size widget
+                        WidgetFactory.CreateHDR(data),
+                        WidgetFactory.CreateMipModesDebug(data),
+                        WidgetFactory.CreateMSAA(data),
+                        WidgetFactory.CreatePostProcessing(data),
+                        WidgetFactory.CreateAdditionalWireframeShaderViews(data)
+                    }
+                });
+
+                // AddWidget(new DebugUI.Foldout
+                // {
+                //     displayName = "Pixel Validation",
+                //     isHeader = true,
+                //     opened = true,
+                //     children =
+                //     {
+                //         // TODO: Pixel validation
+                //     }
+                // });
             }
         }
 

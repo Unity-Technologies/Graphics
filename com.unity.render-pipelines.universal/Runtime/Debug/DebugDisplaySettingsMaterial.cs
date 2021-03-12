@@ -35,8 +35,28 @@ namespace UnityEngine.Rendering.Universal
             public override string PanelName => "Material";
             public SettingsPanel(DebugDisplaySettingsMaterial data)
             {
-                AddWidget(WidgetFactory.CreateMaterialOverride(data));
-                AddWidget(WidgetFactory.CreateVertexAttribute(data));
+                AddWidget(new DebugUI.Foldout
+                {
+                    displayName = "Material Filters",
+                    isHeader = true,
+                    opened = true,
+                    children =
+                    {
+                        WidgetFactory.CreateMaterialOverride(data),
+                        WidgetFactory.CreateVertexAttribute(data)
+                    }
+                });
+
+                // AddWidget(new DebugUI.Foldout
+                // {
+                //     displayName = "Albedo",
+                //     isHeader = true,
+                //     opened = true,
+                //     children =
+                //     {
+                //         // TODO: Albedo debug modes
+                //     }
+                // });
             }
         }
 

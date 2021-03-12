@@ -390,6 +390,8 @@ namespace UnityEditor.Rendering
     [DebugUIDrawer(typeof(DebugUI.Foldout))]
     public sealed class DebugUIDrawerFoldout : DebugUIDrawer
     {
+        const int k_HeaderVerticalMargin = 2;
+
         /// <summary>
         /// Begin implementation for Foldout DebugUIDrawer.
         /// </summary>
@@ -405,7 +407,11 @@ namespace UnityEditor.Rendering
             GUIStyle style = w.isHeader ? DebugWindow.Styles.foldoutHeaderStyle : EditorStyles.foldout;
             Rect rect = PrepareControlRect(w.isHeader ? style.fixedHeight : -1, w.isHeader);
 
+            if (w.isHeader)
+                GUILayout.Space(k_HeaderVerticalMargin);
+
             bool value = EditorGUI.Foldout(rect, w.GetValue(), EditorGUIUtility.TrTextContent(w.displayName), true, style);
+
             Rect drawRect = GUILayoutUtility.GetLastRect();
             if (w.columnLabels != null && value)
             {
@@ -448,6 +454,9 @@ namespace UnityEditor.Rendering
         public override void End(DebugUI.Widget widget, DebugState state)
         {
             EditorGUI.indentLevel--;
+            var w = Cast<DebugUI.Foldout>(widget);
+            if (w.isHeader)
+                GUILayout.Space(k_HeaderVerticalMargin);
         }
     }
 

@@ -9,9 +9,10 @@ namespace UnityEngine.Rendering.Universal
 
         internal static class WidgetFactory
         {
-            internal static DebugUI.Widget CreateLightingMode(DebugDisplaySettingsLighting data) => new DebugUI.EnumField
+            internal static DebugUI.Widget CreateLightingDebugMode(DebugDisplaySettingsLighting data) => new DebugUI.EnumField
             {
-                displayName = "Lighting Mode", autoEnum = typeof(DebugLightingMode),
+                displayName = "Lighting Debug Mode",
+                autoEnum = typeof(DebugLightingMode),
                 getter = () => (int)data.DebugLightingMode,
                 setter = (value) => {},
                 getIndex = () => (int)data.DebugLightingMode,
@@ -33,8 +34,17 @@ namespace UnityEngine.Rendering.Universal
 
             public SettingsPanel(DebugDisplaySettingsLighting data)
             {
-                AddWidget(WidgetFactory.CreateLightingMode(data));
-                AddWidget(WidgetFactory.CreateLightingFeatures(data));
+                AddWidget(new DebugUI.Foldout
+                {
+                    displayName = "Lighting Debug Modes",
+                    isHeader = true,
+                    opened = true,
+                    children =
+                    {
+                        WidgetFactory.CreateLightingDebugMode(data),
+                        WidgetFactory.CreateLightingFeatures(data)
+                    }
+                });
             }
         }
 

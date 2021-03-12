@@ -421,14 +421,14 @@ namespace UnityEditor.Rendering
                 Rect splitterRect = new Rect(splitterPos - 3, 0, 6, Screen.height);
                 GUI.Box(splitterRect, "", s_SplitterLeft);
 
-                GUILayout.Space(4f);
+                GUILayout.Space(2f);
 
                 // Main section - traverse current container
                 using (var changedScope = new EditorGUI.ChangeCheckScope())
                 {
                     using (new EditorGUILayout.VerticalScope())
                     {
-                        GUILayout.Space(8f);
+                        GUILayout.Space(4f);
                         var selectedPanel = panels[m_Settings.selectedPanel];
 
                         using (var scrollScope = new EditorGUILayout.ScrollViewScope(m_ContentScroll))
@@ -484,6 +484,7 @@ namespace UnityEditor.Rendering
             // State will be null for stateless widget
             m_WidgetStates.TryGetValue(widget.queryPath, out DebugState state);
 
+            GUILayout.Space(4);
 
             if (!s_WidgetDrawerMap.TryGetValue(widget.GetType(), out DebugUIDrawer drawer))
             {

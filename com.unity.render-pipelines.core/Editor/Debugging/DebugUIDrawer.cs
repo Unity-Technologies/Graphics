@@ -101,14 +101,15 @@ namespace UnityEditor.Rendering
                 height = EditorGUIUtility.singleLineHeight;
             var rect = GUILayoutUtility.GetRect(1f, 1f, height, height);
 
+            rect.width -= 4f;
+            rect.xMin += 4f;
+
             if (fullWidth)
             {
                 EditorGUIUtility.labelWidth = rect.width;
             }
             else
             {
-                rect.width -= 4f;
-                rect.xMin += 4f;
                 EditorGUIUtility.labelWidth = rect.width / 2f;
             }
 
