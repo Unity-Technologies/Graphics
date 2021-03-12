@@ -28,6 +28,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Added a Falloff Mode (Linear or Exponential) in the Density Volume for volume blending with Blend Distance.
 - Added support for screen space shadows (directional and point, no area) for shadow matte unlit shader graph.
 - Added support for volumetric clouds in planar reflections.
+- Added deferred shading debug visualization
+- Added a new control slider on RTR and RTGI to force the LOD Bias on both effects.
 
 ### Fixed
 - Fixed Intensity Multiplier not affecting realtime global illumination.
@@ -130,6 +132,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Change the handling of additional properties to base class
 - Improved shadow cascade GUI drawing with pixel perfect, hover and focus functionalities.
 - Improving the screen space global illumination.
+- ClearFlag.Depth does not implicitely clear stencil anymore. ClearFlag.Stencil added.
 - Improved the Camera Inspector, new sections and better grouping of fields
 - Moving MaterialHeaderScopes to Core
 - Changed resolution (to match the render buffer) of the sky used for camera misses in Path Tracing. (case 1304114).

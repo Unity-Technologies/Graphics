@@ -11,7 +11,7 @@ namespace UnityEngine.Rendering.HighDefinition
     /// High Definition Render Pipeline asset.
     /// </summary>
     [HelpURL(Documentation.baseURL + Documentation.version + Documentation.subURL + "HDRP-Asset" + Documentation.endURL)]
-    public partial class HDRenderPipelineAsset : RenderPipelineAsset, IVirtualTexturingEnabledRenderPipeline
+    public partial class HDRenderPipelineAsset : RenderPipelineAsset, IVirtualTexturingEnabledRenderPipeline, IOverrideCoreEditorResources
     {
         [System.NonSerialized]
         internal bool isInOnValidateCall = false;
@@ -177,6 +177,9 @@ namespace UnityEngine.Rendering.HighDefinition
         /// <summary>HDRP default terrain material.</summary>
         public override Material defaultTerrainMaterial
             => globalSettings?.renderPipelineEditorResources?.materials.defaultTerrainMat;
+
+        /// <summary>HDRP Probe Volume shader.</summary>
+        public Shader GetProbeVolumeProbeShader() => globalSettings?.renderPipelineEditorResources.shaders.probeVolumeGizmoShader;
 
         // Array structure that allow us to manipulate the set of defines that the HD render pipeline needs
         List<string> defineArray = new List<string>();
