@@ -54,14 +54,6 @@
 #define RAY_TRACING_OPTIONAL_ALPHA_TEST_PASS
 #endif
 
-#ifdef _CONSERVATIVE_DEPTH_OFFSET
-#define SV_POSITION_QUALIFIERS linear noperspective centroid
-#define DEPTH_OFFSET_SEMANTIC SV_DepthLessEqual
-#else
-#define SV_POSITION_QUALIFIERS
-#define DEPTH_OFFSET_SEMANTIC SV_Depth
-#endif
-
 // ----------------------------------------------------------------------------
 
 CBUFFER_START(UnityPerDraw)
