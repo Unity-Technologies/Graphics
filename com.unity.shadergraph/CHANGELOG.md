@@ -20,6 +20,9 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Limited max number of inspectable items in the Inspector View to 20 items
 - Added borders to inspector items styling, to better differentiate between separate items
 
+### Added
+- Added subshadergraphs for SpeedTree8 shadergraph support: LODCrossfade, SpeedTree8Wind, SpeedTree8HueVariation, SpeedTree8Billboard.
+
 ### Fixed
 - Fixed an issue where fog node density was incorrectly calculated.
 - Fixed inspector property header styling
