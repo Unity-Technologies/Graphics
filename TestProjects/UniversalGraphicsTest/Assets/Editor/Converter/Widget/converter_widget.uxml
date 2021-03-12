@@ -1,8 +1,8 @@
 <ui:UXML xmlns:ui="UnityEngine.UIElements" xmlns:uie="UnityEditor.UIElements" editor-extension-mode="False">
-    <ui:VisualElement name="converterTopVisualElement" style="flex-grow: 0; height: 77px; width: 621px;">
+    <ui:VisualElement name="converterTopVisualElement" style="flex-grow: 1; height: 128px; width: 621px;">
         <ui:VisualElement>
             <ui:VisualElement style="height: 24px; width: 613px; flex-direction: row; flex-grow: 1; margin-left: 0; margin-right: 0; margin-top: 0; margin-bottom: 0; flex-shrink: 0;">
-                <ui:Toggle name="converterEnabled" />
+                <ui:Toggle name="converterEnabled" value="true" />
                 <ui:Label name="converterName" text="Name Of The Converter" style="width: 143px; -unity-text-align: middle-center;" />
                 <ui:VisualElement style="width: 219px; flex-direction: row-reverse; flex-grow: 1;" />
                 <ui:Label name="converterStats" text="100 Items" style="flex-grow: 1; -unity-text-align: middle-right; -unity-font-style: bold;" />
@@ -21,7 +21,6 @@
             <ui:Label text="Error" />
             <ui:Label text="Success" style="flex-grow: 0; width: 53px; height: 31px;" />
         </ui:VisualElement>
-        <ui:ListView focusable="true" name="converterItems" show-alternating-row-backgrounds="All" style="flex-grow: 1;" />
+        <ui:ListView focusable="true" name="converterItems" show-alternating-row-backgrounds="All" style="flex-grow: 1; flex-shrink: 0;" />
     </ui:VisualElement>
-    <ui:VisualElement item-height="40" name="converterItems" style="flex-grow: 1; flex-direction: column;" />
 </ui:UXML>
