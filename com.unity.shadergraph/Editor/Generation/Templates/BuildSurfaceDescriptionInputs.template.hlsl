@@ -3,6 +3,8 @@ SurfaceDescriptionInputs BuildSurfaceDescriptionInputs(Varyings input)
     SurfaceDescriptionInputs output;
     ZERO_INITIALIZE(SurfaceDescriptionInputs, output);
 
+    $splice(CustomInterpolatorCopyToSDI)
+
     $SurfaceDescriptionInputs.WorldSpaceNormal: // must use interpolated tangent, bitangent and normal before they are normalized in the pixel shader.
     $SurfaceDescriptionInputs.WorldSpaceNormal: float3 unnormalizedNormalWS = input.normalWS;
     $SurfaceDescriptionInputs.WorldSpaceNormal: const float renormFactor = 1.0 / length(unnormalizedNormalWS);

@@ -226,16 +226,10 @@ namespace UnityEngine.Rendering.HighDefinition
         ComputeBuffer                 m_VisibleVolumeBoundsBuffer     = null;
         ComputeBuffer                 m_VisibleVolumeDataBuffer       = null;
 
-        // These two buffers do not depend on the frameID and are therefore shared by all views.
-        RTHandle                      m_DensityBuffer;
-        RTHandle                      m_LightingBuffer;
-        RTHandle                      m_MaxZMask8x;
-        RTHandle                      m_MaxZMask;
-        RTHandle                      m_DilatedMaxZMask;
-
-        Vector3Int m_CurrentVolumetricBufferSize;
-
         ShaderVariablesVolumetric     m_ShaderVariablesVolumetricCB = new ShaderVariablesVolumetric();
+
+        // This size is shared between all cameras to create the volumetric 3D textures
+        static Vector3Int s_CurrentVolumetricBufferSize;
 
         // Is the feature globally disabled?
         bool m_SupportVolumetrics = false;
@@ -383,6 +377,11 @@ namespace UnityEngine.Rendering.HighDefinition
             {
                 hdCamera.vBufferParams[prevIdx] = currentParams;
             }
+
+            // Update size used to create volumetric buffers.
+            s_CurrentVolumetricBufferSize = new Vector3Int(Math.Max(s_CurrentVolumetricBufferSize.x, currentParams.viewportSize.x),
+                Math.Max(s_CurrentVolumetricBufferSize.y, currentParams.viewportSize.y),
+                Math.Max(s_CurrentVolumetricBufferSize.z, currentParams.viewportSize.z));
         }
 
         // Do not access 'rt.name', it allocates memory every time...
@@ -591,84 +590,20 @@ namespace UnityEngine.Rendering.HighDefinition
         internal void CreateVolumetricLightingBuffers()
         {
             Debug.Assert(m_VolumetricLightingCS != null);
-            Debug.Assert(m_DensityBuffer  == null);
-            Debug.Assert(m_LightingBuffer == null);
 
             m_VisibleVolumeBounds       = new List<OrientedBBox>();
             m_VisibleVolumeData         = new List<DensityVolumeEngineData>();
             m_VisibleVolumeBoundsBuffer = new ComputeBuffer(k_MaxVisibleDensityVolumeCount, Marshal.SizeOf(typeof(OrientedBBox)));
             m_VisibleVolumeDataBuffer   = new ComputeBuffer(k_MaxVisibleDensityVolumeCount, Marshal.SizeOf(typeof(DensityVolumeEngineData)));
-
-            // Allocate the smallest possible 3D texture.
-            // We will perform rescaling manually, in a custom manner, based on volume parameters.
-            const int minSize = 4;
-
-            m_DensityBuffer = RTHandles.Alloc(minSize, minSize, minSize, colorFormat: GraphicsFormat.R16G16B16A16_SFloat, // 8888_sRGB is not precise enough
-                dimension: TextureDimension.Tex3D, enableRandomWrite: true, name: "VBufferDensity");
-
-            m_LightingBuffer = RTHandles.Alloc(minSize, minSize, minSize, colorFormat: GraphicsFormat.R16G16B16A16_SFloat, // 8888_sRGB is not precise enough
-                dimension: TextureDimension.Tex3D, enableRandomWrite: true, name: "VBufferLighting");
-
-
-            m_MaxZMask8x = RTHandles.Alloc(Vector2.one * 0.125f, TextureXR.slices, dimension: TextureXR.dimension, colorFormat: GraphicsFormat.R32_SFloat,
-                enableRandomWrite: true, name: "MaxZ mask 8x");
-
-            m_MaxZMask = RTHandles.Alloc(Vector2.one / 16.0f, TextureXR.slices, dimension: TextureXR.dimension, colorFormat: GraphicsFormat.R32_SFloat,
-                enableRandomWrite: true, name: "MaxZ mask");
-
-            m_DilatedMaxZMask = RTHandles.Alloc(Vector2.one / 16.0f, TextureXR.slices, dimension: TextureXR.dimension, colorFormat: GraphicsFormat.R32_SFloat,
-                enableRandomWrite: true, name: "Dilated MaxZ mask");
         }
 
         internal void DestroyVolumetricLightingBuffers()
         {
-            RTHandles.Release(m_LightingBuffer);
-            RTHandles.Release(m_DensityBuffer);
-            RTHandles.Release(m_MaxZMask8x);
-            RTHandles.Release(m_MaxZMask);
-            RTHandles.Release(m_DilatedMaxZMask);
-
             CoreUtils.SafeRelease(m_VisibleVolumeDataBuffer);
             CoreUtils.SafeRelease(m_VisibleVolumeBoundsBuffer);
 
             m_VisibleVolumeData   = null; // free()
             m_VisibleVolumeBounds = null; // free()
-        }
-
-        // Must be called AFTER UpdateVolumetricBufferParams.
-        internal void ResizeVolumetricLightingBuffers(HDCamera hdCamera)
-        {
-            if (!Fog.IsVolumetricFogEnabled(hdCamera))
-                return;
-
-            Debug.Assert(hdCamera.vBufferParams != null);
-
-            // Render texture contents can become "lost" on certain events, like loading a new level,
-            // system going to a screensaver mode, in and out of fullscreen and so on.
-            // https://docs.unity3d.com/ScriptReference/RenderTexture.html
-            if (m_DensityBuffer == null || m_LightingBuffer == null)
-            {
-                DestroyVolumetricLightingBuffers();
-                CreateVolumetricLightingBuffers();
-            }
-
-            int frameIndex = (int)VolumetricFrameIndex(hdCamera);
-            var currIdx = (frameIndex + 0) & 1;
-            var prevIdx = (frameIndex + 1) & 1;
-
-            var currentParams = hdCamera.vBufferParams[currIdx];
-
-            ResizeVolumetricBuffer(ref m_DensityBuffer, "VBufferDensity", currentParams.viewportSize.x,
-                currentParams.viewportSize.y,
-                currentParams.viewportSize.z);
-            ResizeVolumetricBuffer(ref m_LightingBuffer, "VBufferLighting", currentParams.viewportSize.x,
-                currentParams.viewportSize.y,
-                currentParams.viewportSize.z);
-
-            // TODO RENDERGRAPH: For now those texture are not handled by render graph.
-            // When they are we won't have the m_DensityBuffer handy for getting the current size in UpdateShaderVariablesGlobalVolumetrics
-            // So we store the size here and in time we'll fill this vector differently.
-            m_CurrentVolumetricBufferSize = new Vector3Int(m_DensityBuffer.rt.width, m_DensityBuffer.rt.height, m_DensityBuffer.rt.volumeDepth);
         }
 
         void InitializeVolumetricLighting()
@@ -695,7 +630,6 @@ namespace UnityEngine.Rendering.HighDefinition
 
         void CleanupVolumetricLighting()
         {
-            // Note: No need to test for support volumetric here, we do saferelease and null assignation
             DestroyVolumetricLightingBuffers();
 
             m_VolumeVoxelizationCS = null;
@@ -736,8 +670,8 @@ namespace UnityEngine.Rendering.HighDefinition
             cb._VBufferViewportSize = new Vector4(cvp.x, cvp.y, 1.0f / cvp.x, 1.0f / cvp.y);
             cb._VBufferSliceCount = sliceCount;
             cb._VBufferRcpSliceCount = 1.0f / sliceCount;
-            cb._VBufferLightingViewportScale = currParams.ComputeViewportScale(m_CurrentVolumetricBufferSize);
-            cb._VBufferLightingViewportLimit = currParams.ComputeViewportLimit(m_CurrentVolumetricBufferSize);
+            cb._VBufferLightingViewportScale = currParams.ComputeViewportScale(s_CurrentVolumetricBufferSize);
+            cb._VBufferLightingViewportLimit = currParams.ComputeViewportLimit(s_CurrentVolumetricBufferSize);
             cb._VBufferDistanceEncodingParams = currParams.depthEncodingParams;
             cb._VBufferDistanceDecodingParams = currParams.depthDecodingParams;
             cb._VBufferLastSliceDist = currParams.ComputeLastSliceDistance(sliceCount);

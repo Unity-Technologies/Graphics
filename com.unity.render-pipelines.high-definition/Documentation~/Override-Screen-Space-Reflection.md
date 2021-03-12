@@ -55,6 +55,7 @@ The properties visible in the Inspector change depending on whether or not you e
 | ----------------------------- | ------------------------------------------------------------ |
 | **Reflect Sky**               | Enable this feature to specify to HDRP that it should use the sky as a fall-back for ray-traced reflections when a ray doesn't find an intersection. |
 | **LayerMask**                 | Defines the layers that HDRP processes this ray-traced effect for. |
+| **Texture Lod Bias** | The LOD Bias HDRP applies to textures in the reflection. A higher value increases performance and makes denoising easier, but it might reduce visual fidelity. |
 | **Mode**                      | Defines if HDRP should evaluate the effect in **Performance** or **Quality** mode.<br/>This property only appears if you select set **Supported Ray Tracing Mode** in your HDRP Asset to **Both**. |
 | **Quality**                   | Specifies the preset HDRP uses to populate the values of the following nested properties. The options are:<br/>&#8226; **Low**: A preset that emphasizes performance over quality.<br/>&#8226; **Medium**: A preset that balances performance and quality.<br/>&#8226; **High**: A preset that emphasizes quality over performance.<br/>&#8226; **Custom**: Allows you to override each property individually.<br/>This property only appears if you set **Mode** to **Performance**. |
 | **Minimum Smoothness**        | See **Minimum Smoothness** in [Screen-space](#screen-space). |

@@ -14,10 +14,6 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Support of direct link event to initialize context (which support several event within the same frame)
 
 ### Changed
-- Move Assets/Create/Visual Effects/Visual Effect Graph to Assets/Create/VFX/VFX Graph
-- Move Assets/Create/Visual Effects/Visual Effect Defaults to Assets/Create/VFX/VFX Defaults
-- Move Assets/Create/Visual Effects/Visual Effect Subgraph Operator to Assets/Create/VFX/VFX Subgraph Operator
-- Move Assets/Create/Visual Effects/Visual Effect Subgraph Block to Assets/Create/VFX/VFX Subgraph Block
 - Allow remaking an existing link.
 - Sphere and Cube outputs are now experimental
 - Property Binder : Handle Remove Component removing linked hidden scriptable objectfields
@@ -40,23 +36,26 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Artefact in VFXView using efficient debug mode in component target board [Case 1243947](https://issuetracker.unity3d.com/product/unity/issues/guid/1243947/)
 - Sample Mesh Color when value is stored as float.
 - Compilation error due to direct access to GetWorldToObjectMatrix instead of VFXGetWorldToObjectMatrix [Case 1308481](https://issuetracker.unity3d.com/product/unity/issues/guid/1308481/)
+- Prevent infinite compilation loop [Case 1298466](https://issuetracker.unity3d.com/product/unity/issues/guid/1298466/)
+- Remove some useless compilation triggers (modifying not connected or disabled nodes for instance)
+- Tidy up of platform abstraction code for random number generation, requires a dependency on com.unity.render-pipelines.core for those abstractions.
+- Fixed shader compilation errors with textures in shader graph [Case 1309219](https://issuetracker.unity3d.com/product/unity/issues/guid/1309219/)
+- Fixed issue with VFX using incorrect buffer type for strip data
 - Safe Normalization of Cross Products in Orient blocks [Case 1272724](https://issuetracker.unity3d.com/product/unity/issues/guid/1272724)
 - Property Binder : Undo after reset [Case 1293794](https://issuetracker.unity3d.com/product/unity/issues/guid/1293794/)
 - Property Binder : Allow copy/past from a game object to another
 - Deleting a context node and a block while both are selected throws a null ref exception. [Case 315578](https://issuetracker.unity3d.com/product/unity/issues/guid/1315578/)
 - Target GameObject attach button does not allow attaching a valid VFX if the last selection was invalid. [Case 1312178](https://issuetracker.unity3d.com/product/unity/issues/guid/1312178/)
+- Deleting flow edge between Init and Update throw an invalid opeation exception [Case 1315593](https://issuetracker.unity3d.com/product/unity/issues/guid/1315593/)
 - Fix unexpected Spawn context execution ordering
 
 ## [11.0.0] - 2020-10-21
-
 ### Added
 - Added new setting to output nodes to exclude from TAA
 - New Sample Point cache & Sample Attribute map operators
 
 ### Changed
 - Changed the "Edit" button so it becomes "New" when no asset is set on a Visual Effect component, in order to save a new visual effect graph asset.
-- Changed Window/Visual Effects/Visual Effect Graph to Window/VFX/VFX Graph
-- Changed Window/Visual Effects/Utilities/Point Cache Bake Tool to Window/VFX/Utilities/Point Cache Bake Tool
 
 ### Fixed
 - Forbid incorrect link between incompatible context [Case 1269756](https://issuetracker.unity3d.com/product/unity/issues/guid/1269756/)

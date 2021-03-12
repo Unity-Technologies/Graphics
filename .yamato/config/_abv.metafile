@@ -31,13 +31,47 @@ nightly:
       pr: true
     - project: URP_Performance_LostCrypt
       pr: true
-    - project: URPUpdate
-      pr: true
     - project: HDRP_PerformanceTests
+      pr: true
+    - project: VikingVillage_BuiltIn
+      pr: true
+    - project: VikingVillage_URP
       pr: true
 trunk_verification: # jobs to include in trunk verification job
   dependencies:
-    - project: Universal
+    - project: URP_2D
+      platform: Win
+      api: DX11
+      build_config: mono
+      color_space: Linear
+      test_platforms:
+        - playmode_cache
+        - editmode
+    - project: URP_Foundation
+      platform: Win
+      api: DX11
+      build_config: mono
+      color_space: Linear
+      test_platforms:
+        - playmode_cache
+        - editmode
+    - project: URP_Lighting
+      platform: Win
+      api: DX11
+      build_config: mono
+      color_space: Linear
+      test_platforms:
+        - playmode_cache
+        - editmode
+    - project: URP_PostPro
+      platform: Win
+      api: DX11
+      build_config: mono
+      color_space: Linear
+      test_platforms:
+        - playmode_cache
+        - editmode
+    - project: URP_Terrain
       platform: Win
       api: DX11
       build_config: mono

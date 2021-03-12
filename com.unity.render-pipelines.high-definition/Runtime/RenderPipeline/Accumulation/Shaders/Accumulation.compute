@@ -4,11 +4,11 @@
 
 #pragma kernel KMain
 
-#pragma multi_compile _ INPUT_FROM_RADIANCE_TEXTURE
+#pragma multi_compile _ INPUT_FROM_FRAME_TEXTURE
 
 // Inputs
-#ifdef INPUT_FROM_RADIANCE_TEXTURE
-TEXTURE2D_X(_RadianceTexture);
+#ifdef INPUT_FROM_FRAME_TEXTURE
+TEXTURE2D_X(_FrameTexture);
 #endif
 
 float4      _AccumulationWeights;
@@ -63,8 +63,8 @@ void KMain(uint3 dispatchThreadId : SV_DispatchThreadID)
     }
     else
     {
-#ifdef INPUT_FROM_RADIANCE_TEXTURE
-        float4 color = _RadianceTexture[COORD_TEXTURE2D_X(dispatchThreadId.xy)];
+#ifdef INPUT_FROM_FRAME_TEXTURE
+        float4 color = _FrameTexture[COORD_TEXTURE2D_X(dispatchThreadId.xy)];
 #else
         float4 color = _CameraColorTextureRW[COORD_TEXTURE2D_X(dispatchThreadId.xy)];
 #endif

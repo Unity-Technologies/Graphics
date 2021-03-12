@@ -35,6 +35,9 @@ namespace UnityEditor.Rendering.HighDefinition
             bool transparentWritesMotionVec = (surfaceType == SurfaceType.Transparent) && material.HasProperty(kTransparentWritingMotionVec) && material.GetInt(kTransparentWritingMotionVec) > 0;
             CoreUtils.SetKeyword(material, "_TRANSPARENT_WRITES_MOTION_VEC", transparentWritesMotionVec);
 
+            if (material.HasProperty(kAddPrecomputedVelocity))
+                CoreUtils.SetKeyword(material, "_ADD_PRECOMPUTED_VELOCITY", material.GetInt(kAddPrecomputedVelocity) != 0);
+
             HDRenderQueue.RenderQueueType renderQueueType = HDRenderQueue.GetTypeByRenderQueueValue(material.renderQueue);
             bool needOffScreenBlendFactor = renderQueueType == HDRenderQueue.RenderQueueType.AfterPostprocessTransparent || renderQueueType == HDRenderQueue.RenderQueueType.LowTransparent;
 
@@ -232,9 +235,7 @@ namespace UnityEditor.Rendering.HighDefinition
                 MaterialEditor.FixupEmissiveFlag(material);
             }
 
-            // Commented out for now because unfortunately we used the hard coded property names used by the GI system for our own parameters
-            // So we need a way to work around that before we activate this.
-            material.SetupMainTexForAlphaTestGI("_EmissiveColorMap", "_EmissiveColor");
+            material.SetupMainTexForAlphaTestGI("_UnlitColorMap", "_UnlitColor");
 
             // depth offset for ShaderGraphs (they don't have the displacement mode property)
             if (!material.HasProperty(kDisplacementMode) && material.HasProperty(kDepthOffsetEnable))
@@ -246,12 +247,16 @@ namespace UnityEditor.Rendering.HighDefinition
 
             // DoubleSidedGI has to be synced with our double sided toggle
             var serializedObject = new SerializedObject(material);
+            bool doubleSidedGI = false;
             if (doubleSidedGIMode == DoubleSidedGIMode.Auto)
-                material.doubleSidedGI = doubleSidedEnable;
+                doubleSidedGI = doubleSidedEnable;
             else if (doubleSidedGIMode == DoubleSidedGIMode.On)
-                material.doubleSidedGI = true;
+                doubleSidedGI = true;
             else if (doubleSidedGIMode == DoubleSidedGIMode.Off)
-                material.doubleSidedGI = false;
+                doubleSidedGI = false;
+            // material always call setdirty, so set only if new value is different
+            if (doubleSidedGI != material.doubleSidedGI)
+                material.doubleSidedGI = doubleSidedGI;
             serializedObject.ApplyModifiedProperties();
         }
 
@@ -280,7 +285,13 @@ namespace UnityEditor.Rendering.HighDefinition
 
         static public void SetupBaseUnlitPass(this Material material)
         {
-            if (material.HasProperty(kDistortionEnable))
+            if (material.shader.IsShaderGraph())
+            {
+                // Shader graph generate distortion pass only if required. So we can safely enable it
+                // all the time here.
+                material.SetShaderPassEnabled(HDShaderPassNames.s_DistortionVectorsStr, true);
+            }
+            else if (material.HasProperty(kDistortionEnable))
             {
                 bool distortionEnable = material.GetFloat(kDistortionEnable) > 0.0f && ((SurfaceType)material.GetFloat(kSurfaceType) == SurfaceType.Transparent);
 
@@ -308,12 +319,6 @@ namespace UnityEditor.Rendering.HighDefinition
                 material.SetShaderPassEnabled(HDShaderPassNames.s_RayTracingPrepassStr, enablePass);
                 material.SetShaderPassEnabled(HDShaderPassNames.s_MetaStr, enablePass);
                 material.SetShaderPassEnabled(HDShaderPassNames.s_ShadowCasterStr, enablePass);
-            }
-            else if (material.shader.IsShaderGraph())
-            {
-                // Shader graph generate distortion pass only if required. So we can safely enable it
-                // all the time here.
-                material.SetShaderPassEnabled(HDShaderPassNames.s_DistortionVectorsStr, true);
             }
 
             if (material.HasProperty(kTransparentDepthPrepassEnable))

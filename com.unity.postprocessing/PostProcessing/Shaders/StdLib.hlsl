@@ -11,7 +11,7 @@
 
 #if defined(SHADER_API_PSSL)
     #include "API/PSSL.hlsl"
-#elif defined(SHADER_API_XBOXONE)
+#elif defined(SHADER_API_XBOXONE) || defined (SHADER_API_GAMECORE)
     #include "API/XboxOne.hlsl"
 #elif defined(SHADER_API_D3D11)
     #include "API/D3D11.hlsl"
