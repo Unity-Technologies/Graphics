@@ -666,7 +666,7 @@ namespace UnityEngine.Rendering.Universal
             // Overlay cameras composite on top of previous ones. They don't clear color.
             // For overlay cameras we check if depth should be cleared on not.
             if (cameraData.renderType == CameraRenderType.Overlay)
-                return (cameraData.clearDepth) ? ClearFlag.Depth : ClearFlag.None;
+                return (cameraData.clearDepth) ? ClearFlag.DepthStencil : ClearFlag.None;
 
             // Always clear on first render pass in mobile as it's same perf of DontCare and avoid tile clearing issues.
             if (Application.isMobilePlatform)
@@ -674,7 +674,7 @@ namespace UnityEngine.Rendering.Universal
 
             if ((cameraClearFlags == CameraClearFlags.Skybox && RenderSettings.skybox != null) ||
                 cameraClearFlags == CameraClearFlags.Nothing)
-                return ClearFlag.Depth;
+                return ClearFlag.DepthStencil;
 
             return ClearFlag.All;
         }
@@ -882,7 +882,7 @@ namespace UnityEngine.Rendering.Universal
                 if (renderPass.depthAttachment == m_CameraDepthTarget && m_FirstTimeCameraDepthTargetIsBound)
                 {
                     m_FirstTimeCameraDepthTargetIsBound = false;
-                    needCustomCameraDepthClear = (cameraClearFlag & ClearFlag.Depth) != (renderPass.clearFlag & ClearFlag.Depth);
+                    needCustomCameraDepthClear = (cameraClearFlag & ClearFlag.DepthStencil) != (renderPass.clearFlag & ClearFlag.DepthStencil);
                 }
 
                 // Perform all clear operations needed. ----------------
@@ -942,7 +942,7 @@ namespace UnityEngine.Rendering.Universal
 
                 // Bind all attachments, clear color only if there was no custom behaviour for cameraColorTarget, clear depth as needed.
                 ClearFlag finalClearFlag = ClearFlag.None;
-                finalClearFlag |= needCustomCameraDepthClear ? (cameraClearFlag & ClearFlag.Depth) : (renderPass.clearFlag & ClearFlag.Depth);
+                finalClearFlag |= needCustomCameraDepthClear ? (cameraClearFlag & ClearFlag.DepthStencil) : (renderPass.clearFlag & ClearFlag.DepthStencil);
                 finalClearFlag |= needCustomCameraColorClear ? 0 : (renderPass.clearFlag & ClearFlag.Color);
 
                 // Only setup render target if current render pass attachments are different from the active ones.
@@ -1008,7 +1008,7 @@ namespace UnityEngine.Rendering.Universal
                         // m_CameraColorTarget can be an opaque pointer to a RenderTexture with depth-surface.
                         // We cannot infer this information here, so we must assume both camera color and depth are first-time bound here (this is the legacy behaviour).
                         m_FirstTimeCameraDepthTargetIsBound = false;
-                        finalClearFlag |= (cameraClearFlag & ClearFlag.Depth);
+                        finalClearFlag |= (cameraClearFlag & ClearFlag.DepthStencil);
                     }
                 }
                 else
@@ -1022,12 +1022,12 @@ namespace UnityEngine.Rendering.Universal
                 {
                     m_FirstTimeCameraDepthTargetIsBound = false;
 
-                    finalClearFlag |= (cameraClearFlag & ClearFlag.Depth);
+                    finalClearFlag |= (cameraClearFlag & ClearFlag.DepthStencil);
 
                     // finalClearFlag |= (cameraClearFlag & ClearFlag.Color);  // <- m_CameraDepthTarget is never a color-surface, so no need to add this here.
                 }
                 else
-                    finalClearFlag |= (renderPass.clearFlag & ClearFlag.Depth);
+                    finalClearFlag |= (renderPass.clearFlag & ClearFlag.DepthStencil);
 
                 if (IsRenderPassEnabled(renderPass) && cameraData.cameraType == CameraType.Game)
                 {
@@ -1143,7 +1143,7 @@ namespace UnityEngine.Rendering.Universal
             RenderBufferLoadAction colorLoadAction = ((uint)clearFlag & (uint)ClearFlag.Color) != 0 ?
                 RenderBufferLoadAction.DontCare : RenderBufferLoadAction.Load;
 
-            RenderBufferLoadAction depthLoadAction = ((uint)clearFlag & (uint)ClearFlag.Depth) != 0 ?
+            RenderBufferLoadAction depthLoadAction = ((uint)clearFlag & (uint)ClearFlag.Depth) != 0 || ((uint)clearFlag & (uint)ClearFlag.Stencil) != 0 ?
                 RenderBufferLoadAction.DontCare : RenderBufferLoadAction.Load;
 
             SetRenderTarget(cmd, colorAttachment, colorLoadAction, RenderBufferStoreAction.Store,
