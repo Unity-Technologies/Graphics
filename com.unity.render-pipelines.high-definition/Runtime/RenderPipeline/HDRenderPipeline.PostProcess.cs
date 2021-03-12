@@ -26,17 +26,7 @@ namespace UnityEngine.Rendering.HighDefinition
         Material m_TemporalAAMaterial;
 
         // Lens Flare Data-Driven
-        Material m_LensFlareLerp;
-        Material m_LensFlareAdditive;
-        Material m_LensFlarePreMultiply;
-        Material m_LensFlareScreen;
-        Material m_LensFlareOcclusion;
-        RTHandle m_LensFlareOcclusionTexture;
-        int m_MaxLensFlareElementsCount;
-        GraphicsBuffer m_LensFlareGfxBuffer0;
-        GraphicsBuffer m_LensFlareGfxBuffer2;
-        GraphicsBuffer m_LensFlareGfxBuffer3;
-        GraphicsBuffer m_LensFlareGfxColors;
+        Material m_LensFlareShader;
 
         // Exposure data
         const int k_ExposureCurvePrecision = 128;
@@ -148,13 +138,7 @@ namespace UnityEngine.Rendering.HighDefinition
             m_TemporalAAMaterial = CoreUtils.CreateEngineMaterial(defaultResources.shaders.temporalAntialiasingPS);
 
             // Lens Flare
-            m_LensFlareLerp = CoreUtils.CreateEngineMaterial(defaultResources.shaders.lensFlareLerpPS);
-            m_LensFlareAdditive = CoreUtils.CreateEngineMaterial(defaultResources.shaders.lensFlareAdditivePS);
-            m_LensFlarePreMultiply = CoreUtils.CreateEngineMaterial(defaultResources.shaders.lensFlarePremultipliedPS);
-            m_LensFlareScreen = CoreUtils.CreateEngineMaterial(defaultResources.shaders.lensFlareScreenPS);
-            m_LensFlareOcclusion = CoreUtils.CreateEngineMaterial(defaultResources.shaders.lensFlareOcclusionPS);
-            m_LensFlareOcclusionTexture = RTHandles.Alloc(1024, 1, colorFormat: GraphicsFormat.R16_SFloat,
-                enableRandomWrite: true, name: "Lens Flare Occlusion"); // 1024 is arbitrary
+            m_LensFlareShader = CoreUtils.CreateEngineMaterial(defaultResources.shaders.lensFlareShaderPS);
 
             // Some compute shaders fail on specific hardware or vendors so we'll have to use a
             // safer but slower code path for them
@@ -2654,17 +2638,8 @@ namespace UnityEngine.Rendering.HighDefinition
 
         struct LensFlareParameters
         {
-            public Material lensFlareLerp;
-            public Material lensFlareAdditive;
-            public Material lensFlarePremultiply;
-            public Material lensFlareScreen;
-            public Material lensFlareOcclusion;
+            public Material lensFlareShader;
             public SRPLensFlareCommon lensFlares;
-            public RTHandle occlusionTexture;
-            public GraphicsBuffer gfxBuffer0;
-            public GraphicsBuffer gfxBuffer2;
-            public GraphicsBuffer gfxBuffer3;
-            public GraphicsBuffer gfxColors;
         }
 
         LensFlareParameters PrepareLensFlareParameters(HDCamera camera)
@@ -2672,55 +2647,7 @@ namespace UnityEngine.Rendering.HighDefinition
             LensFlareParameters parameters = new LensFlareParameters();
 
             parameters.lensFlares = SRPLensFlareCommon.Instance;
-
-            parameters.lensFlareLerp = m_LensFlareLerp;
-            parameters.lensFlareAdditive = m_LensFlareAdditive;
-            parameters.lensFlarePremultiply = m_LensFlarePreMultiply;
-            parameters.lensFlareScreen = m_LensFlareScreen;
-            parameters.lensFlareOcclusion = m_LensFlareOcclusion;
-            parameters.occlusionTexture = m_LensFlareOcclusionTexture;
-
-            int maxElementCount = -1;
-            foreach (SRPLensFlareOverride comp in parameters.lensFlares.GetData())
-            {
-                if (comp == null)
-                    continue;
-
-                SRPLensFlareData data = comp.lensFlareData;
-
-                if (!comp.enabled ||
-                    !comp.gameObject.activeSelf ||
-                    !comp.gameObject.activeInHierarchy ||
-                    data == null ||
-                    data.elements == null ||
-                    data.elements.Length == 0)
-                    continue;
-
-                foreach (SRPLensFlareDataElement element in data.elements)
-                {
-                    if (element == null ||
-                        (element.lensFlareTexture == null && element.flareType == SRPLensFlareType.Image) ||
-                        element.localIntensity <= 0.0f ||
-                        element.count <= 0)
-                        continue;
-
-                    maxElementCount = Mathf.Max(maxElementCount, element.count);
-                }
-            }
-            if (maxElementCount > m_MaxLensFlareElementsCount)
-            {
-                m_LensFlareGfxBuffer0 = new GraphicsBuffer(GraphicsBuffer.Target.Structured, maxElementCount, sizeof(float) * 4);
-                m_LensFlareGfxBuffer2 = new GraphicsBuffer(GraphicsBuffer.Target.Structured, maxElementCount, sizeof(float) * 4);
-                m_LensFlareGfxBuffer3 = new GraphicsBuffer(GraphicsBuffer.Target.Structured, maxElementCount, sizeof(float) * 4);
-                m_LensFlareGfxColors = new GraphicsBuffer(GraphicsBuffer.Target.Structured, maxElementCount, sizeof(float) * 4);
-
-                m_MaxLensFlareElementsCount = maxElementCount;
-            }
-
-            parameters.gfxBuffer0 = m_LensFlareGfxBuffer0;
-            parameters.gfxBuffer2 = m_LensFlareGfxBuffer2;
-            parameters.gfxBuffer3 = m_LensFlareGfxBuffer3;
-            parameters.gfxColors = m_LensFlareGfxColors;
+            parameters.lensFlareShader = m_LensFlareShader;
 
             return parameters;
         }
@@ -2984,17 +2911,18 @@ namespace UnityEngine.Rendering.HighDefinition
                     float position = 2.0f * element.position;
 
                     SRPLensFlareBlendMode blendMode = element.blendMode;
-                    Material usedMaterial = null;
-                    if (blendMode == SRPLensFlareBlendMode.Lerp)
-                        usedMaterial = parameters.lensFlareLerp;
-                    else if (blendMode == SRPLensFlareBlendMode.Additive)
-                        usedMaterial = parameters.lensFlareAdditive;
-                    else if (blendMode == SRPLensFlareBlendMode.Premultiply)
-                        usedMaterial = parameters.lensFlarePremultiply;
+                    //Material usedMaterial = null;
+                    int materialPass;
+                    if (blendMode == SRPLensFlareBlendMode.Additive)
+                        materialPass = 0;
                     else if (blendMode == SRPLensFlareBlendMode.Screen)
-                        usedMaterial = parameters.lensFlareScreen;
+                        materialPass = 1;
+                    else if (blendMode == SRPLensFlareBlendMode.Premultiply)
+                        materialPass = 2;
+                    else if (blendMode == SRPLensFlareBlendMode.Lerp)
+                        materialPass = 2;
                     else
-                        usedMaterial = parameters.lensFlareAdditive;
+                        materialPass = 0;
 
                     if (element.flareType == SRPLensFlareType.Image)
                     {
@@ -3074,7 +3002,7 @@ namespace UnityEngine.Rendering.HighDefinition
                         cmd.SetGlobalVector(HDShaderIDs._FlareData3, new Vector4(rayOff.x * element.translationScale.x, rayOff.y * element.translationScale.y, 1.0f / (float)element.sideCount, 0.0f));
                         cmd.SetGlobalVector(HDShaderIDs._FlareColorValue, curColor);
 
-                        cmd.DrawProcedural(Matrix4x4.identity, usedMaterial, 0, MeshTopology.Quads, 6, 1, null);
+                        cmd.DrawProcedural(Matrix4x4.identity, parameters.lensFlareShader, materialPass, MeshTopology.Quads, 6, 1, null);
                     }
                     else
                     {
@@ -3111,7 +3039,7 @@ namespace UnityEngine.Rendering.HighDefinition
                                 cmd.SetGlobalVector(HDShaderIDs._FlareData3, new Vector4(rayOff.x * element.translationScale.x, rayOff.y * element.translationScale.y, 1.0f / (float)element.sideCount, 0.0f));
                                 cmd.SetGlobalVector(HDShaderIDs._FlareColorValue, curColor * col);
 
-                                cmd.DrawProcedural(Matrix4x4.identity, usedMaterial, 0, MeshTopology.Quads, 6, 1, null);
+                                cmd.DrawProcedural(Matrix4x4.identity, parameters.lensFlareShader, materialPass, MeshTopology.Quads, 6, 1, null);
                                 position += dLength;
                             }
                         }
@@ -3156,7 +3084,7 @@ namespace UnityEngine.Rendering.HighDefinition
                                     cmd.SetGlobalVector(HDShaderIDs._FlareData3, new Vector4(rayOff.x * element.translationScale.x, rayOff.y * element.translationScale.y, 1.0f / (float)element.sideCount, 0.0f));
                                     cmd.SetGlobalVector(HDShaderIDs._FlareColorValue, curColor * randCol * localIntensity);
 
-                                    cmd.DrawProcedural(Matrix4x4.identity, usedMaterial, 0, MeshTopology.Quads, 6, 1, null);
+                                    cmd.DrawProcedural(Matrix4x4.identity, parameters.lensFlareShader, materialPass, MeshTopology.Quads, 6, 1, null);
                                 }
 
                                 position += dLength;
@@ -3193,7 +3121,7 @@ namespace UnityEngine.Rendering.HighDefinition
                                 cmd.SetGlobalVector(HDShaderIDs._FlareData3, new Vector4(rayOff.x * element.translationScale.x, rayOff.y * element.translationScale.y, 1.0f / (float)element.sideCount, 0.0f));
                                 cmd.SetGlobalVector(HDShaderIDs._FlareColorValue, curColor * col);
 
-                                cmd.DrawProcedural(Matrix4x4.identity, usedMaterial, 0, MeshTopology.Quads, 6, 1, null);
+                                cmd.DrawProcedural(Matrix4x4.identity, parameters.lensFlareShader, materialPass, MeshTopology.Quads, 6, 1, null);
                             }
                         }
                     }
