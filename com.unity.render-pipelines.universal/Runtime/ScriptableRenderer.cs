@@ -132,7 +132,7 @@ namespace UnityEngine.Rendering.Universal
                 cmd.SetGlobalMatrix(ShaderPropertyId.inverseViewAndProjectionMatrix, inverseViewProjection);
             }
 
-            // TODO: missing unity_CameraWorldClipPlanes[6], currently set by context.SetupCameraProperties
+            // TODO: Add SetPerCameraClippingPlaneProperties here once we are sure it correctly behaves in overlay camera for some time
         }
 
         /// <summary>
@@ -211,18 +211,6 @@ namespace UnityEngine.Rendering.Universal
             cmd.SetGlobalVector(ShaderPropertyId.scaledScreenParams, new Vector4(scaledCameraWidth, scaledCameraHeight, 1.0f + 1.0f / scaledCameraWidth, 1.0f + 1.0f / scaledCameraHeight));
             cmd.SetGlobalVector(ShaderPropertyId.zBufferParams, zBufferParams);
             cmd.SetGlobalVector(ShaderPropertyId.orthoParams, orthoParams);
-
-            // TODO: Find out if this is needed
-            /*Matrix4x4 worldToCamera = Matrix4x4.Scale(new Vector3(1.0f, 1.0f, -1.0f)) * cameraData.GetViewMatrix();
-            // Get the matrix to use for cubemap reflections.
-            // It's camera to world matrix; rotation only, and mirrored on Y.
-            worldToCamera.m03 = 0; // clear translation x
-            worldToCamera.m13 = 0; // clear translation y
-            worldToCamera.m23 = 0; // clear translation z
-            Matrix4x4 invertY;
-            invertY = Matrix4x4.Scale(new Vector3(1, -1, 1));
-            Matrix4x4 reflMat = worldToCamera * invertY; // TODO check if correct order
-            cmd.SetGlobalMatrix("_Reflection", reflMat);*/
         }
 
         /// <summary>
@@ -285,7 +273,6 @@ namespace UnityEngine.Rendering.Universal
                 cameraXZAngle += 2 * Mathf.PI;
         }
 
-        // TODO: Move this to SetPerCameraShaderVariables once we get rid of context.SetupCameraProperties
         private void SetPerCameraClippingPlaneProperties(CommandBuffer cmd, in CameraData cameraData)
         {
             Matrix4x4 projectionMatrix = cameraData.GetGPUProjectionMatrix();
@@ -669,29 +656,11 @@ namespace UnityEngine.Rendering.Universal
                     }
                     else
                     {
-                        if (TestCameraProperties.isActive)
-                        {
-                            // TODO: Remove after the testing
-                            context.SetupCameraProperties(camera);
-                            SetCameraMatrices(cmd, ref cameraData, true);
-
-                            // TODO: Remove after the testing
-                            TestCameraProperties.SampleCameraPropertiesOld(cmd);
-                        }
-
                         // Set new properties
-                        SetPerCameraShaderVariables(cmd, ref cameraData); // TODO: Remove after the testing
                         SetCameraMatrices(cmd, ref cameraData, true);
-                        SetPerCameraClippingPlaneProperties(cmd, in cameraData); // TODO: Move this is to SetCameraMatrices, once we get rid of context.SetupCameraProperties
+                        SetPerCameraClippingPlaneProperties(cmd, in cameraData);
                         SetPerCameraBillboardProperties(cmd, ref cameraData);
-
-                        if (TestCameraProperties.isActive)
-                        {
-                            // TODO: Remove after the testing
-                            TestCameraProperties.SampleCameraPropertiesNew(cmd);
-                        }
                     }
-
 
                     // Reset shader time variables as they were overridden in SetupCameraProperties. If we don't do it we might have a mismatch between shadows and main rendering
                     SetShaderTimeValues(cmd, time, deltaTime, smoothDeltaTime);
