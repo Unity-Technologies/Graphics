@@ -226,7 +226,7 @@ namespace UnityEngine.Rendering.Universal
         }
 
         /// <summary>
-        /// Set camera billboard properties.
+        /// Set the Camera billboard properties.
         /// </summary>
         /// <param name="cmd">CommandBuffer to submit data to GPU.</param>
         /// <param name="cameraData">CameraData containing camera matrices information.</param>
