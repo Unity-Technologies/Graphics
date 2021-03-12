@@ -281,9 +281,11 @@ namespace UnityEngine.Rendering
 
         public virtual void BlitCubeTexture2D(CommandBuffer cmd, Vector4 scaleOffset, Texture texture, bool blitMips = true, int overrideInstanceID = -1)
         {
+            Debug.Assert(texture.dimension == TextureDimension.Cube);
+
             // This atlas only support 2D texture so we map Cube into set of 2D textures
             if (texture.dimension == TextureDimension.Cube)
-                BlitCubeTexture2DOctahedral(cmd, scaleOffset, texture, blitMips); // single octahedral 2D texture quad
+                BlitCubeTexture2DOctahedral(cmd, scaleOffset, texture, blitMips); // by default to single octahedral 2D texture quad
         }
 
         public virtual bool AllocateTexture(CommandBuffer cmd, ref Vector4 scaleOffset, Texture texture, int width, int height, int overrideInstanceID = -1)
@@ -292,10 +294,11 @@ namespace UnityEngine.Rendering
 
             if (allocated)
             {
-                if (texture.dimension == TextureDimension.Cube)
-                    BlitCubeTexture2D(cmd, scaleOffset, texture, true);
-                else
+                if (Is2D(texture))
                     BlitTexture(cmd, scaleOffset, texture, fullScaleOffset);
+                else
+                    BlitCubeTexture2D(cmd, scaleOffset, texture, true);
+
                 MarkGPUTextureValid(overrideInstanceID != -1 ? overrideInstanceID : GetTextureID(texture), true); // texture is up to date
             }
 
@@ -450,10 +453,6 @@ namespace UnityEngine.Rendering
             if (IsCached(out scaleOffset, texture))
                 return true;
 
-            // We only support 2D texture in this class, support for other textures are provided by child classes (ex: PowerOfTwoTextureAtlas)
-            if (!Is2D(texture))
-                return false;
-
             return AllocateTexture(cmd, ref scaleOffset, texture, texture.width, texture.height);
         }
 
@@ -464,7 +463,10 @@ namespace UnityEngine.Rendering
             {
                 if (updateIfNeeded && NeedsUpdate(newTexture))
                 {
-                    BlitTexture(cmd, scaleOffset, newTexture, sourceScaleOffset, blitMips);
+                    if (Is2D(newTexture))
+                        BlitTexture(cmd, scaleOffset, newTexture, sourceScaleOffset, blitMips);
+                    else
+                        BlitCubeTexture2D(cmd, scaleOffset, newTexture, blitMips);
                     MarkGPUTextureValid(GetTextureID(newTexture), blitMips); // texture is up to date
                 }
                 return true;
@@ -477,6 +479,7 @@ namespace UnityEngine.Rendering
 
         public virtual bool UpdateTexture(CommandBuffer cmd, Texture texture, ref Vector4 scaleOffset, bool updateIfNeeded = true, bool blitMips = true)
             => UpdateTexture(cmd, texture, texture, ref scaleOffset, fullScaleOffset, updateIfNeeded, blitMips);
+
         internal bool EnsureTextureSlot(out bool isUploadNeeded, ref Vector4 scaleBias, int key, int width, int height)
         {
             isUploadNeeded = false;
