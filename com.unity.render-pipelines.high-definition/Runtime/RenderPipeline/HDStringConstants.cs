@@ -794,7 +794,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
         public static readonly int _FlareTex                       = Shader.PropertyToID("_FlareTex");
         public static readonly int _FlareOcclusionBufferTex        = Shader.PropertyToID("_FlareOcclusionBufferTex");
-        public static readonly int _FlareColor                     = Shader.PropertyToID("_FlareColor");
+        public static readonly int _FlareColorValue                = Shader.PropertyToID("_FlareColorValue");
         public static readonly int _FlareData0                     = Shader.PropertyToID("_FlareData0");
         public static readonly int _FlareData1                     = Shader.PropertyToID("_FlareData1");
         public static readonly int _FlareData2                     = Shader.PropertyToID("_FlareData2");

@@ -5,7 +5,9 @@
 struct Attributes
 {
     uint vertexID : SV_VertexID;
-    UNITY_VERTEX_INPUT_INSTANCE_ID
+#ifdef FLARE_INSTANCED
+    uint instanceID : SV_InstanceID;
+#endif
 };
 
 struct Varyings
@@ -13,42 +15,61 @@ struct Varyings
     float4 positionCS : SV_POSITION;
     float2 texcoord : TEXCOORD0;
     float occlusion : TEXCOORD1;
+#ifdef FLARE_INSTANCED
+    uint instanceID : TEXCOORD2;
+#endif
     UNITY_VERTEX_OUTPUT_STEREO
 };
 
 sampler2D _FlareTex;
 TEXTURE2D_X(_FlareOcclusionBufferTex);
 
-float4 _FlareColor;
+#ifdef FLARE_INSTANCED
+StructuredBuffer<float4> _FlareColorValue;
+StructuredBuffer<float4> _FlareData0; // x: localCos0, y: localSin0, zw: PositionOffsetXY
+float4                   _FlareData1; // x: OcclusionRadius, y: OcclusionSampleCount, z: ScreenPosZ, w: Falloff
+StructuredBuffer<float4> _FlareData2; // xy: ScreenPos, zw: FlareSize
+StructuredBuffer<float4> _FlareData3; // xy: RayOffset, z: invSideCount, w: Edge Offset
+float4                   _FlareData4; // x: SDF Roundness, y: SDF Frequency
+float4                   _FlareData5; // x: Allow Offscreen
+
+#define MID_ELEM [input.instanceID]
+#else
+float4 _FlareColorValue;
 float4 _FlareData0; // x: localCos0, y: localSin0, zw: PositionOffsetXY
 float4 _FlareData1; // x: OcclusionRadius, y: OcclusionSampleCount, z: ScreenPosZ, w: Falloff
 float4 _FlareData2; // xy: ScreenPos, zw: FlareSize
-float4 _FlareData3; // xy: RayOffset, z: invSideCount, w: Edge Offset
+float4 _FlareData3; // xy: RayOffset, z: invSideCount
 float4 _FlareData4; // x: SDF Roundness, y: SDF Frequency
-float4 _FlareData5; // x: Allow Offscreen
+float4 _FlareData5; // x: Allow Offscreen, y: Edge Offset
 
-#define _LocalCos0              _FlareData0.x
-#define _LocalSin0              _FlareData0.y
-#define _PositionOffset         _FlareData0.zw
+#define MID_ELEM
+#endif
 
-#define _OcclusionRadius        _FlareData1.x
-#define _OcclusionSampleCount   _FlareData1.y
-#define _ScreenPosZ             _FlareData1.z
-#define _FlareFalloff           _FlareData1.w
+#define _FlareColor             ( _FlareColorValue MID_ELEM )
 
-#define _ScreenPos              _FlareData2.xy
-#define _FlareSize              _FlareData2.zw
+#define _LocalCos0              ( _FlareData0 MID_ELEM .x )
+#define _LocalSin0              ( _FlareData0 MID_ELEM .y )
+#define _PositionOffset         ( _FlareData0 MID_ELEM .zw )
 
-#define _FlareRayOffset         _FlareData3.xy
-#define _FlareShapeInvSide      _FlareData3.z
-#define _FlareEdgeOffset        _FlareData3.w
+#define _OcclusionRadius        ( _FlareData1.x )
+#define _OcclusionSampleCount   ( _FlareData1.y )
+#define _ScreenPosZ             ( _FlareData1.z )
+#define _FlareFalloff           ( _FlareData1.w )
 
-#define _FlareSDFRoundness      _FlareData4.x
-#define _FlareSDFPolyRadius     _FlareData4.y
-#define _FlareSDFPolyParam0     _FlareData4.z
-#define _FlareSDFPolyParam1     _FlareData4.w
+#define _ScreenPos              ( _FlareData2 MID_ELEM .xy )
+#define _FlareSize              ( _FlareData2 MID_ELEM .zw )
 
-#define _OcclusionOffscreen     _FlareData5.x
+#define _FlareRayOffset         ( _FlareData3 MID_ELEM .xy )
+#define _FlareShapeInvSide      ( _FlareData3 MID_ELEM .z )
+
+#define _FlareSDFRoundness      ( _FlareData4.x )
+#define _FlareSDFPolyRadius     ( _FlareData4.y )
+#define _FlareSDFPolyParam0     ( _FlareData4.z )
+#define _FlareSDFPolyParam1     ( _FlareData4.w )
+
+#define _OcclusionOffscreen     ( _FlareData5.x )
+#define _FlareEdgeOffset        ( _FlareData5.y )
 
 float2 Rotate(float2 v, float cos0, float sin0)
 {
@@ -113,11 +134,16 @@ Varyings vert(Attributes input)
 
     output.occlusion = occlusion;
 
+#ifdef FLARE_INSTANCED
+    output.instanceID = input.instanceID;
+#endif
+
     return output;
 }
 
 float InverseGradient(float x)
 {
+    // Do *not* simplify as 1.0f - x
     return x * (1.0f - x) / (x + 1e-6f);
 }
 

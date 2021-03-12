@@ -29,8 +29,8 @@ Shader "Hidden/HDRP/LensFlare Occlusion (HDRP)"
             Varyings vertOcclusion(Attributes input)
             {
                 Varyings output = (Varyings)0;
-                UNITY_SETUP_INSTANCE_ID(input);
-                UNITY_INITIALIZE_VERTEX_OUTPUT_STEREO(output);
+                //UNITY_SETUP_INSTANCE_ID(input);
+                //UNITY_INITIALIZE_VERTEX_OUTPUT_STEREO(output);
 
                 float screenRatio = _ScreenSize.x / _ScreenSize.y;
                 float2 flareSize = _FlareSize;
