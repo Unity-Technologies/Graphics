@@ -10,10 +10,10 @@ Material:
   m_Name: Broadleaf_Desktop_Field_Billboard_LOD3
   m_Shader: {fileID: -6465566751694194690, guid: 4819724840ee9444f9da841b477038ce,
     type: 3}
-  m_ShaderKeywords: EFFECT_BILLBOARD _ALPHATEST_ON _DOUBLESIDED_ON _WINDQUALITY_FASTEST
+  m_ShaderKeywords: EFFECT_BILLBOARD _ALPHATEST_ON _WINDQUALITY_FASTEST
   m_LightmapFlags: 4
   m_EnableInstancingVariants: 1
-  m_DoubleSidedGI: 1
+  m_DoubleSidedGI: 0
   m_CustomRenderQueue: -1
   stringTagMap:
     MotionVector: User
@@ -49,9 +49,9 @@ Material:
     - _AlphaSrcBlend: 1
     - _BlendMode: 0
     - _CullMode: 2
-    - _CullModeForward: 0
+    - _CullModeForward: 2
     - _DiffusionProfileHash: 0
-    - _DoubleSidedEnable: 1
+    - _DoubleSidedEnable: 0
     - _DoubleSidedNormalMode: 0
     - _DstBlend: 0
     - _EnableFogOnTransparent: 1
