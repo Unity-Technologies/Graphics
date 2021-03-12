@@ -188,7 +188,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
         void PrepareLightPropagationData(RenderGraph renderGraph, ProbeExtraDataBuffers buffers, int[] chunkIndices, HDCamera hdCamera, ref LightPropagationData data)
         {
-            data.propagationCS = m_Resources.shaders.probeGIInjectionV3CS;
+            data.propagationCS = m_Resources.shaders.probeGIInjectionCS;
             data.missKernel = data.propagationCS.FindKernel("GatherFirstBounceMiss");
             data.hitKernel = data.propagationCS.FindKernel("GatherFirstBounceHit");
 
