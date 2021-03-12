@@ -113,9 +113,8 @@ namespace UnityEngine.Rendering.HighDefinition
         // The size of the shadow region (meters)
         public Vector2 _ShadowRegionSize;
 
-        // Padding
-        public float _Padding0;
-        public float _Padding1;
+        // World Camera Position used as the constant buffer has not been injected yet when this data is required
+        public Vector2 _WorldSpaceShadowCenter;
 
         // View projection matrix (non oblique) for the planar reflection matrices
         public Matrix4x4 _CameraViewProjection_NO;
