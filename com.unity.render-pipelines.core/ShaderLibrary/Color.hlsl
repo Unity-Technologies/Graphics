@@ -673,13 +673,23 @@ float3 AcesTonemap(float3 aces)
     // Luminance fitting of *RRT.a1.0.3 + ODT.Academy.RGBmonitor_100nits_dim.a1.0.3*.
     // https://github.com/colour-science/colour-unity/blob/master/Assets/Colour/Notebooks/CIECAM02_Unity.ipynb
     // RMSE: 0.0012846272106
-    const float a = 2.785085 * 0.01; // *0.01: fixes floating point overflow on extremely large values.
+#if defined(SHADER_API_SWITCH) // Fix floating point overflow on extremely large values.
+    const float a = 2.785085 * 0.01;
     const float b = 0.107772 * 0.01;
     const float c = 2.936045 * 0.01;
     const float d = 0.887122 * 0.01;
     const float e = 0.806889 * 0.01;
     float3 x = acescg;
     float3 rgbPost = ((a * x + b)) / ((c * x + d) + e/(x + FLT_MIN));
+#else
+    const float a = 2.785085;
+    const float b = 0.107772;
+    const float c = 2.936045;
+    const float d = 0.887122;
+    const float e = 0.806889;
+    float3 x = acescg;
+    float3 rgbPost = (x * (a * x + b)) / (x * (c * x + d) + e);
+#endif
 
     // Scale luminance to linear code value
     // float3 linearCV = Y_2_linCV(rgbPost, CINEMA_WHITE, CINEMA_BLACK);
