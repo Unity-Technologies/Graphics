@@ -56,9 +56,9 @@ namespace UnityEditor.Rendering.Universal
             };
 
             // Reflection Probes
-            public static GUIContent reflectionProbes = EditorGUIUtility.TrTextContent("Reflection Probes");
-            public static GUIContent reflectionProbeBlendingText = EditorGUIUtility.TrTextContent("Probe Blending", "If enabled reflection probes will be blended.");
-            public static GUIContent reflectionProbeBoxProjectionText = EditorGUIUtility.TrTextContent("Box Projection", "If enabled reflection probes can use box projection.");
+            public static GUIContent reflectionProbesSettingsText = EditorGUIUtility.TrTextContent("Reflection Probes");
+            public static GUIContent reflectionProbeBlendingText = EditorGUIUtility.TrTextContent("Probe Blending", "If enabled reflection probes will be blended to create smooth transitions between volumes.");
+            public static GUIContent reflectionProbeBoxProjectionText = EditorGUIUtility.TrTextContent("Box Projection", "If enabled reflection probes can do box projected reflections.");
 
             // Shadow settings
             public static GUIContent shadowDistanceText = EditorGUIUtility.TrTextContent("Max Distance", "Maximum shadow rendering distance.");
@@ -357,7 +357,7 @@ namespace UnityEditor.Rendering.Universal
                 EditorGUILayout.Space();
 
                 // Reflection Probes
-                EditorGUILayout.PrefixLabel(Styles.reflectionProbes);
+                EditorGUILayout.LabelField(Styles.reflectionProbesSettingsText);
                 EditorGUI.indentLevel++;
                 EditorGUILayout.PropertyField(m_ReflectionProbeBlendingProp, Styles.reflectionProbeBlendingText);
                 EditorGUILayout.PropertyField(m_ReflectionProbeBoxProjectionProp, Styles.reflectionProbeBoxProjectionText);
