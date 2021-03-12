@@ -6,7 +6,7 @@ namespace UnityEngine.Rendering.HighDefinition
     /// Possible values for one element of the Local Volumetric Fog atlas.
     /// </summary>
     [Serializable]
-    [Obsolete("DensityVolumeResolution has been deprecated (UnityUpgradable) -> LocalVolumetricFogResolution", false)]
+    [Obsolete("DensityVolumeResolution has been deprecated. Please use LocalVolumetricFogResolution (UnityUpgradable)", false)]
     public enum DensityVolumeResolution
     {
         /// <summary>3D volume of 32x32x32 voxels.</summary>
@@ -26,7 +26,7 @@ namespace UnityEngine.Rendering.HighDefinition
         internal int cookieTexArraySize;
 
         /// <summary>Maximum size of one Local Volumetric Fog texture.</summary>
-        [Obsolete("Use maxLocalVolumetricFogSize instead", false)]
+        [Obsolete("maxDensityVolumeSize property has been deprecated. Please use maxLocalVolumetricFogSize (UnityUpgradable)", false)]
         public DensityVolumeResolution maxDensityVolumeSize
         {
             get => (DensityVolumeResolution)maxLocalVolumetricFogSize;
@@ -34,7 +34,7 @@ namespace UnityEngine.Rendering.HighDefinition
         }
 
         /// <summary>Maximum number of Local Volumetric Fog at the same time on screen.</summary>
-        [Obsolete("Use maxLocalVolumetricFogOnScreen instead", false)]
+        [Obsolete("maxDensityVolumesOnScreen property has been deprecated. Please use maxLocalVolumetricFogOnScreen (UnityUpgradable)", false)]
         public int maxDensityVolumesOnScreen
         {
             get => maxLocalVolumetricFogOnScreen;
@@ -43,14 +43,14 @@ namespace UnityEngine.Rendering.HighDefinition
     }
 
     /// <summary>Deprecated DensityVolume</summary>
-    [Obsolete("DensityVolume has been deprecated (UnityUpgradable) -> Local Volumetric Fog", false)]
+    [Obsolete("DensityVolume has been deprecated. Please use LocalVolumetricFog (UnityUpgradable)", false)]
     public class DensityVolume : LocalVolumetricFog
     {
     }
 
     /// <summary></summary>
     [GenerateHLSL]
-    [Obsolete("DensityVolumeFalloffMode has been deprecated (UnityUpgradable) -> LocalVolumetricFogFalloffMode", false)]
+    [Obsolete("DensityVolumeFalloffMode property has been deprecated. Please use LocalVolumetricFogFalloffMode (UnityUpgradable)", false)]
     public enum DensityVolumeFalloffMode
     {
         /// <summary></summary>
@@ -60,7 +60,7 @@ namespace UnityEngine.Rendering.HighDefinition
     }
 
     /// <summary>Deprecated DensityVolumeArtistParameters</summary>
-    [Obsolete("DensityVolumeArtistParameters has been deprecated (UnityUpgradable) -> LocalVolumetricFogArtistParameters", false)]
+    [Obsolete("DensityVolumeArtistParameters has been deprecated. Please use LocalVolumetricFogArtistParameters (UnityUpgradable)", false)]
     public struct DensityVolumeArtistParameters
     {
         LocalVolumetricFogArtistParameters m_Parameters;
@@ -188,7 +188,7 @@ namespace UnityEngine.Rendering.HighDefinition
         public float debugLensAttenuation = 0.65f;
 
         /// <summary>Display the Local Volumetric Fog atlas.</summary>
-        [Obsolete("Use displayLocalVolumetricFogAtlas instead", false)]
+        [Obsolete("displayDensityVolumeAtlas property has been deprecated. Please use displayLocalVolumetricFogAtlas (UnityUpgradable)", false)]
         public bool displayDensityVolumeAtlas
         {
             get => displayLocalVolumetricFogAtlas;
@@ -196,7 +196,7 @@ namespace UnityEngine.Rendering.HighDefinition
         }
 
         /// <summary>Local Volumetric Fog atlas slice.</summary>
-        [Obsolete("Use localVolumetricFogAtlasSlice instead", false)]
+        [Obsolete("densityVolumeAtlasSlice property has been deprecated. Please use localVolumetricFogAtlasSlice (UnityUpgradable)", false)]
         public uint densityVolumeAtlasSlice
         {
             get => localVolumetricFogAtlasSlice;
@@ -204,7 +204,7 @@ namespace UnityEngine.Rendering.HighDefinition
         }
 
         /// <summary>True if Local Volumetric Fog Atlas debug mode should be displayed for the currently selected Local Volumetric Fog.</summary>
-        [Obsolete("Use localVolumetricFogUseSelection instead", false)]
+        [Obsolete("densityVolumeUseSelection property has been deprecated. Please use localVolumetricFogUseSelection (UnityUpgradable)", false)]
         public bool densityVolumeUseSelection
         {
             get => localVolumetricFogUseSelection;
