@@ -141,6 +141,7 @@ namespace UnityEngine
             }
         }
 
+#if UNITY_EDITOR
         void OnDrawGizmosSelected()
         {
             Camera mainCam = Camera.current;
@@ -157,5 +158,6 @@ namespace UnityEngine
                 Handles.color = previousH;
             }
         }
+#endif
     }
 }
