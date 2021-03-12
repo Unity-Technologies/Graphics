@@ -18,7 +18,7 @@
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Lighting/LightLoop/LightLoopDef.hlsl"
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Lighting/LightEvaluation.hlsl"
 
-#pragma enable_d3d11_debug_symbols
+//#pragma enable_d3d11_debug_symbols
 
 #define GROUP_SIZE 64
 
@@ -38,7 +38,7 @@ TEXTURE3D(_PrevAPVResL1B_L1Rz);
 float4 _DynamicGIParams2;
 #define _PrimaryDecay  _DynamicGIParams2.x
 #define _LeakMultiplier  _DynamicGIParams2.y
-#define _ArtificialBoost _DynamicGIParams2.z
+#define _ArtificialScale _DynamicGIParams2.z
 #define _DeringingFactor _DynamicGIParams2.w
 
 float4 _DynamicGIParams3;
@@ -225,23 +225,7 @@ float3 GetLightingForAxisPunctual(LightData light, uint probeIndex, float3 probe
     outputLighting *= hit.albedo;
     float NdotL = saturate(dot(hit.normal, -L));
 
-    float scalarMultiplier = NdotL * INV_PI * _ArtificialBoost;
-    outputLighting *= scalarMultiplier;
-
-    return outputLighting;
-}
-
-
-float3 GetLightingForAxisArea(LightData light, uint probeIndex, uint axis, float3 probeWorldPosition, HitData hit)
-{
-    float3 outputLighting = 0;
-
-    float3 L;
-    outputLighting = EvaluatePunctualLight(light, hit.position, L);
-    outputLighting *= hit.albedo;
-    float NdotL = saturate(dot(hit.normal, -L));
-
-    float scalarMultiplier = NdotL * INV_PI * _ArtificialBoost;
+    float scalarMultiplier = NdotL * INV_PI * _ArtificialScale;
     outputLighting *= scalarMultiplier;
 
     return outputLighting;
@@ -256,7 +240,7 @@ float3 GetLightingForAxisDirectional(DirectionalLightData light, uint probeIndex
     outputLighting *= hit.albedo;
     float NdotL = saturate(dot(hit.normal, -L));
 
-    float scalarMultiplier = NdotL * INV_PI * _ArtificialBoost;
+    float scalarMultiplier = NdotL * INV_PI * _ArtificialScale;
     outputLighting *= scalarMultiplier;
 
     return outputLighting;

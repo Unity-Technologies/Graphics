@@ -60,6 +60,9 @@ namespace UnityEngine.Rendering
 
             public void ProcessExtraDataBuffer()
             {
+                if (!ProbeReferenceVolume.instance.SupportsDynamicPropagation())
+                    return;
+
                 if (extraData == null) return;
 
                 if (probeExtraDataBuffers.finalExtraDataBuffer != null)
@@ -80,7 +83,10 @@ namespace UnityEngine.Rendering
 
             public void Dispose()
             {
-                probeExtraDataBuffers.Dispose();
+                if (instance.SupportsDynamicPropagation())
+                {
+                    probeExtraDataBuffers.Dispose();
+                }
             }
         }
 
@@ -282,6 +288,9 @@ namespace UnityEngine.Rendering
 
         public void InitExtraDataBuffers()
         {
+            if (!instance.SupportsDynamicPropagation())
+                return;
+
             foreach (var cell in cells.Values)
             {
                 if (cell.probeExtraDataBuffers.finalExtraDataBuffer == null)
@@ -356,6 +365,12 @@ namespace UnityEngine.Rendering
             }
         }
 
+        internal bool SupportsDynamicPropagation()
+        {
+            var renderPipelineAsset = GraphicsSettings.renderPipelineAsset;
+            return (renderPipelineAsset != null && renderPipelineAsset.GetType().Name == "HDRenderPipelineAsset");
+        }
+
         internal void AddPendingAssetLoading(ProbeVolumeAsset asset)
         {
             var key = asset.GetSerializedFullPath();
@@ -402,7 +417,7 @@ namespace UnityEngine.Rendering
                 if (cells.ContainsKey(cell.index))
                     cells.Remove(cell.index);
 
-                if (cell.probeExtraDataBuffers.finalExtraDataBuffer != null)
+                if (SupportsDynamicPropagation() && cell.probeExtraDataBuffers.finalExtraDataBuffer != null)
                     cell.probeExtraDataBuffers.Dispose();
             }
 
@@ -461,7 +476,10 @@ namespace UnityEngine.Rendering
                 }
 
                 cells[cell.index] = cell;
-                cells[cell.index].ProcessExtraDataBuffer();
+                if (SupportsDynamicPropagation())
+                {
+                    cells[cell.index].ProcessExtraDataBuffer();
+                }
 
                 m_AssetPathToBricks[path].Add(regId);
 
@@ -641,9 +659,12 @@ namespace UnityEngine.Rendering
                 m_Index.Clear();
                 cells.Clear();
 
-                foreach (var cell in cells.Values)
+                if (SupportsDynamicPropagation())
                 {
-                    cell.probeExtraDataBuffers.Dispose();
+                    foreach (var cell in cells.Values)
+                    {
+                        cell.probeExtraDataBuffers.Dispose();
+                    }
                 }
             }
         }

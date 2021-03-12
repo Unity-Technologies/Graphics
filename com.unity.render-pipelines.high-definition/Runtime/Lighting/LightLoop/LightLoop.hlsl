@@ -515,13 +515,14 @@ void LightLoop( float3 V, PositionInputs posInput, PreLightData preLightData, BS
             SetAsUninitializedGI(apvBuiltinData.bakeDiffuseLighting);
             SetAsUninitializedGI(apvBuiltinData.backBakeDiffuseLighting);
 
-
-
+            float3 noise = 0;
+#if 1 // TODO: Add only if dynamic GI.
             float3 T = Orthonormalize(float3(0, 1, 0), bsdfData.normalWS);
             float3 B = normalize(cross(T, bsdfData.normalWS));
             float noise1D_0 = (InterleavedGradientNoise(posInput.positionSS, 0) * 2.0f - 1.0f) * 0.2f;
             float noise1D_1 = (InterleavedGradientNoise(posInput.positionSS, 1) * 2.0f - 1.0f) * 0.2f;
-            float3 noise = T * noise1D_1 + noise1D_0 * B;
+            noise = T * noise1D_1 + noise1D_0 * B;
+#endif
 
             EvaluateAdaptiveProbeVolume(GetAbsolutePositionWS(posInput.positionWS + noise),
                                         bsdfData.normalWS,

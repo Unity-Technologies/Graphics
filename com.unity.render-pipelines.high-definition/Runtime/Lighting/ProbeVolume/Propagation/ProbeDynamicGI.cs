@@ -14,7 +14,7 @@ namespace UnityEngine.Rendering.HighDefinition
         public ClampedFloatParameter primaryDecay = new ClampedFloatParameter(1.015f, 1.01f, 1.4f);
         public ClampedFloatParameter propagationDecay = new ClampedFloatParameter(1.015f, 1.01f, 1.4f);
         public ClampedFloatParameter leakMultiplier = new ClampedFloatParameter(0.0f, 0.0f, 1.0f);
-        public ClampedFloatParameter artificialBoost = new ClampedFloatParameter(1.0f, 0.0f, 3.0f);
+        public ClampedFloatParameter intensityScale = new ClampedFloatParameter(1.0f, 0.0f, 5.0f);
         public ClampedFloatParameter antiRingingFactor = new ClampedFloatParameter(0.0f, 0.0f, 3.14f);
         public BoolParameter clear = new BoolParameter(false);
     }
@@ -37,15 +37,12 @@ namespace UnityEngine.Rendering.HighDefinition
             public RTHandle L0_L1Rx;
             public RTHandle L1_G_ry;
             public RTHandle L1_B_rz;
-            public RTHandle DEBUG;
 
             public void Allocate(Vector3Int dimension)
             {
                 L0_L1Rx = RTHandles.Alloc(dimension.x, dimension.y, dimension.z, colorFormat: GraphicsFormat.R16G16B16A16_SFloat, dimension: TextureDimension.Tex3D, enableRandomWrite: true, name: "L0 and L1R.x dynamic GI APV");
                 L1_G_ry = RTHandles.Alloc(dimension.x, dimension.y, dimension.z, colorFormat: GraphicsFormat.R8G8B8A8_UNorm, dimension: TextureDimension.Tex3D, enableRandomWrite: true, name: "L1 G and L1R.y dynamic GI APV");
                 L1_B_rz = RTHandles.Alloc(dimension.x, dimension.y, dimension.z, colorFormat: GraphicsFormat.R8G8B8A8_UNorm, dimension: TextureDimension.Tex3D, enableRandomWrite: true, name: "L1 B and L1R.z dynamic GI APV");
-
-                DEBUG = RTHandles.Alloc(dimension.x, dimension.y, dimension.z, colorFormat: GraphicsFormat.R32G32B32A32_SFloat, dimension: TextureDimension.Tex3D, enableRandomWrite: true, name: "DEBUG2");
 
                 Graphics.SetRenderTarget(L0_L1Rx, 0, CubemapFace.Unknown, depthSlice: -1);
                 GL.Clear(false, true, Color.clear);
@@ -62,7 +59,6 @@ namespace UnityEngine.Rendering.HighDefinition
                 RTHandles.Release(L0_L1Rx);
                 RTHandles.Release(L1_G_ry);
                 RTHandles.Release(L1_B_rz);
-                RTHandles.Release(DEBUG);
             }
         }
 
@@ -130,8 +126,6 @@ namespace UnityEngine.Rendering.HighDefinition
             var apvL0L1rxHandle = renderGraph.ImportTexture(apvToClear.L0_L1Rx);
             var apvL1GryHandle = renderGraph.ImportTexture(apvToClear.L1_G_ry);
             var apvL1BrzHandle = renderGraph.ImportTexture(apvToClear.L1_B_rz);
-
-            var dbg = renderGraph.ImportTexture(apvToClear.DEBUG);
 
             using (var builder = renderGraph.AddRenderPass<ClearTexturesData>("Clear APVs", out var passData, ProfilingSampler.Get(HDProfileId.ClearBuffers)))
             {
@@ -211,7 +205,7 @@ namespace UnityEngine.Rendering.HighDefinition
             float probeDistance = ProbeReferenceVolume.instance.MinDistanceBetweenProbes();
             data.injectionParameters = new Vector4(probeDistance, giSettings.minDist.value, giSettings.bias.value, data.probeCount);
             data.injectionParameters2 = new Vector4(ProbeReferenceVolume.instance.poolDimension.x, ProbeReferenceVolume.instance.poolDimension.y, ProbeReferenceVolume.instance.poolDimension.z, ProbeReferenceVolume.instance.chunkSizeInProbes);
-            data.injectionParameters3 = new Vector4(giSettings.primaryDecay.value, giSettings.leakMultiplier.value, giSettings.artificialBoost.value, giSettings.antiRingingFactor.value);
+            data.injectionParameters3 = new Vector4(giSettings.primaryDecay.value, giSettings.leakMultiplier.value, giSettings.intensityScale.value, giSettings.antiRingingFactor.value);
             data.injectionParameters4 = new Vector4(buffers.hitProbesAxisCount, buffers.missProbesAxisCount, probeDistance, giSettings.propagationDecay.value);
 
 

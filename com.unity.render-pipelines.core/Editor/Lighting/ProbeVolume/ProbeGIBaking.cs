@@ -145,8 +145,13 @@ namespace UnityEngine.Rendering
 
             var numCells = bakingCells.Count;
 
-            // TODO_FCC: Only do when dynamic propagation.
-            AddOccluders(bakingReferenceVolumeAuthoring.transform.position, bakingReferenceVolumeAuthoring.transform.localScale);
+            var referenceVol = ProbeReferenceVolume.instance;
+            bool supportsDynamicPropagation = referenceVol.SupportsDynamicPropagation();
+
+            if (supportsDynamicPropagation)
+            {
+                AddOccluders(bakingReferenceVolumeAuthoring.transform.position, bakingReferenceVolumeAuthoring.transform.localScale);
+            }
 
             // Fetch results of all cells
             for (int c = 0; c < numCells; ++c)
@@ -169,8 +174,10 @@ namespace UnityEngine.Rendering
 
                 cell.sh = new SphericalHarmonicsL2[numProbes];
                 cell.validity = new float[numProbes];
-
-                cell.extraData = new ProbeExtraData[numProbes];
+                if (supportsDynamicPropagation)
+                {
+                    cell.extraData = new ProbeExtraData[numProbes];
+                }
 
                 for (int i = 0; i < numProbes; ++i)
                 {
@@ -216,8 +223,10 @@ namespace UnityEngine.Rendering
 
                     cell.validity[i] = validity[j];
 
-                    // TODO_FCC: Only do when dynamic propagation.
-                    GenerateExtraData(cell.probePositions[i], ref cell.extraData[i], cell.validity[i]);
+                    if (supportsDynamicPropagation)
+                    {
+                        GenerateExtraData(cell.probePositions[i], ref cell.extraData[i], cell.validity[i]);
+                    }
                 }
 
                 for (int i = 0; i < numProbes; ++i)
@@ -231,15 +240,17 @@ namespace UnityEngine.Rendering
                     SphericalHarmonicsL2Utils.SetCoefficient(ref cell.sh[i], 8, new Vector3(sh[j][0, 8], sh[j][1, 8], sh[j][2, 8]));
                 }
 
-                // TODO_FCC: Only do when dynamic propagation.
-                cell.ProcessExtraDataBuffer();
+                if (supportsDynamicPropagation)
+                {
+                    cell.ProcessExtraDataBuffer();
+                }
 
                 // Reset index
                 UnityEditor.Experimental.Lightmapping.SetAdditionalBakedProbes(cell.index, null);
 
                 DilateInvalidProbes(cell.probePositions, cell.bricks, cell.sh, cell.validity, bakingReferenceVolumeAuthoring.GetDilationSettings());
 
-                ProbeReferenceVolume.instance.cells[cell.index] = cell;
+                referenceVol.cells[cell.index] = cell;
             }
 
             // Map from each scene to an existing reference volume
@@ -304,8 +315,10 @@ namespace UnityEngine.Rendering
                     refVol.QueueAssetLoading();
             }
 
-            // TODO_FCC: Only do when dynamic propagation.
-            CleanupRenderers();
+            if (supportsDynamicPropagation)
+            {
+                CleanupRenderers();
+            }
         }
 
         private static void OnLightingDataCleared()
