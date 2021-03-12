@@ -179,6 +179,14 @@
     padding-top: 0;
 }
 
+#SGBlackboard.scrollable > .mainContainer > #content > .unity-scroll-view > .unity-scroller--horizontal {
+    background-color: #393939;
+}
+
+#SGBlackboard.scrollable > .mainContainer > #content > .unity-scroll-view > .unity-scroller--vertical {
+    background-color: #393939;
+}
+
 .blackboardSection  > .mainContainer > #sectionHeader {
     flex-direction: row;
     align-items: stretch;
