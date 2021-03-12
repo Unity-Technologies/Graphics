@@ -244,6 +244,20 @@ namespace UnityEngine.Rendering
             }
         }
 
+        protected void BlitCubeTexture2DOctahedral(CommandBuffer cmd, Vector4 scaleOffset, Texture texture, bool blitMips = true)
+        {
+            int mipCount = GetTextureMipmapCount(texture.width, texture.height);
+
+            if (!blitMips)
+                mipCount = 1;
+
+            for (int mipLevel = 0; mipLevel < mipCount; mipLevel++)
+            {
+                cmd.SetRenderTarget(m_AtlasTexture, mipLevel);
+                Blitter.BlitCubeToOctahedral2DQuad(cmd, texture, scaleOffset, mipLevel);
+            }
+        }
+
         protected void MarkGPUTextureValid(int instanceId, bool mipAreValid = false)
         {
             m_IsGPUTextureUpToDate[instanceId] = (mipAreValid) ? 2 : 1;
@@ -265,13 +279,23 @@ namespace UnityEngine.Rendering
                 BlitOctahedralTexture(cmd, scaleOffset, texture, sourceScaleOffset, blitMips);
         }
 
+        public virtual void BlitCubeTexture2D(CommandBuffer cmd, Vector4 scaleOffset, Texture texture, bool blitMips = true, int overrideInstanceID = -1)
+        {
+            // This atlas only support 2D texture so we map Cube into set of 2D textures
+            if (texture.dimension == TextureDimension.Cube)
+                BlitCubeTexture2DOctahedral(cmd, scaleOffset, texture, blitMips); // single octahedral 2D texture quad
+        }
+
         public virtual bool AllocateTexture(CommandBuffer cmd, ref Vector4 scaleOffset, Texture texture, int width, int height, int overrideInstanceID = -1)
         {
             bool allocated = AllocateTextureWithoutBlit(texture, width, height, ref scaleOffset);
 
             if (allocated)
             {
-                BlitTexture(cmd, scaleOffset, texture, fullScaleOffset);
+                if (texture.dimension == TextureDimension.Cube)
+                    BlitCubeTexture2D(cmd, scaleOffset, texture, true);
+                else
+                    BlitTexture(cmd, scaleOffset, texture, fullScaleOffset);
                 MarkGPUTextureValid(overrideInstanceID != -1 ? overrideInstanceID : GetTextureID(texture), true); // texture is up to date
             }
 
