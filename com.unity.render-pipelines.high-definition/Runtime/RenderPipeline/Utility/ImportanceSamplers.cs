@@ -86,12 +86,12 @@ namespace UnityEngine.Rendering.HighDefinition
             if (texture == null)
                 return -1;
 
-            int hash = 23*texture.GetHashCode();
-            hash = 23*hash + texture.updateCount.GetHashCode();
+            int hash = 23 * texture.GetHashCode();
+            hash = 23 * hash + texture.updateCount.GetHashCode();
 
             if (texture.dimension == TextureDimension.Cube ||
                 texture.dimension == TextureDimension.CubeArray)
-                hash = 23*hash + buildHemisphere.GetHashCode();
+                hash = 23 * hash + buildHemisphere.GetHashCode();
 
             return hash;
         }

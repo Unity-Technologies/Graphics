@@ -921,9 +921,9 @@ namespace UnityEngine.Rendering.HighDefinition
 
                 cmd.SetGlobalInt(HDShaderIDs._SkyTextureImportanceSamplerReady, 1);
                 cmd.SetGlobalVector(HDShaderIDs._SkyTextureSizeInfos, new Vector4(marginals.conditionalMarginal.rt.height,
-                                                                                  1.0f / marginals.conditionalMarginal.rt.height,
-                                                                                  0.5f / marginals.conditionalMarginal.rt.height,
-                                                                                  0.0f));
+                    1.0f / marginals.conditionalMarginal.rt.height,
+                    0.5f / marginals.conditionalMarginal.rt.height,
+                    0.0f));
                 cmd.SetGlobalTexture(HDShaderIDs._SkyTextureIntegrals, marginals.integral);
                 cmd.SetGlobalTexture(HDShaderIDs._SkyTextureMarginals, marginals.marginal);
                 cmd.SetGlobalTexture(HDShaderIDs._SkyTextureConditionalMarginals, marginals.conditionalMarginal);

@@ -173,10 +173,10 @@ bool ImportanceSampleSky(float3x3 localToWorld, float3 V, float2 inputSample, ou
     float3 dir = SphericalTexCoordinateToDirection(latLongUV);
     float sin0 = sin(latLongUV.y * PI);
 
-	if (infos.x == 0.0f)
-		weight = 0.0f;
-	else
-		weight = integral * sin0;// / infos.x;
+    if (infos.x == 0.0f)
+        weight = 0.0f;
+    else
+        weight = integral * sin0;// / infos.x;
 
     return true;
 }
@@ -194,7 +194,7 @@ void GetHitInfos(uint2 positionSS, out float2 hitPositionNDC, out float srcPerce
     hitPositionNDC = _SsrHitPointTexture[COORD_TEXTURE2D_X(positionSS)].xy;
 
     float2 Xi;
-	float rnd;
+    float rnd;
     Xi.x = GetBNDSequenceSample(positionSS, _FrameCount, 0);
     Xi.y = GetBNDSequenceSample(positionSS, _FrameCount, 1);
     rnd = GetBNDSequenceSample(positionSS, _FrameCount, 2);
@@ -249,7 +249,7 @@ void GetHitInfos(uint2 positionSS, out float2 hitPositionNDC, out float srcPerce
     ImportanceSampleSky(localToWorld, V, Xi, L, weight);
 #else
     //if (rnd >= normalData.perceptualRoughness)
-	if (rnd >= roughness)
+    if (rnd >= roughness)
         SampleGGX_VNDF(roughness,
             localToWorld,
             V,

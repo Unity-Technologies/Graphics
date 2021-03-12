@@ -62,30 +62,30 @@ namespace UnityEngine.Rendering.HighDefinition
             var hdrp = HDRenderPipeline.defaultAsset;
             ComputeShader arithmeticsCS = hdrp.renderPipelineResources.shaders.gpuArithmeticsCS;
 
-            switch(operation)
+            switch (operation)
             {
-            case Operation.Add:
-                addon += "Add";
-            break;
-            case Operation.Mult:
-                addon += "Mult";
-            break;
-            case Operation.Div:
-                addon += "Div";
-            break;
-            case Operation.Mean:
-                addon += "Mean";
-            break;
-            case Operation.MAD:
-                addon += "MAD";
-            break;
-            case Operation.MAD_RG:
-                addon += "MAD_RG";
-            break;
+                case Operation.Add:
+                    addon += "Add";
+                    break;
+                case Operation.Mult:
+                    addon += "Mult";
+                    break;
+                case Operation.Div:
+                    addon += "Div";
+                    break;
+                case Operation.Mean:
+                    addon += "Mean";
+                    break;
+                case Operation.MAD:
+                    addon += "MAD";
+                    break;
+                case Operation.MAD_RG:
+                    addon += "MAD_RG";
+                    break;
             }
 
-            int numTilesX = (width  + (8 - 1))/8;
-            int numTilesY = (height + (8 - 1))/8;
+            int numTilesX = (width  + (8 - 1)) / 8;
+            int numTilesY = (height + (8 - 1)) / 8;
 
             int kernel = arithmeticsCS.FindKernel("CSMain" + addon);
             if (cmd != null)
@@ -95,8 +95,8 @@ namespace UnityEngine.Rendering.HighDefinition
                     cmd.SetComputeTextureParam(arithmeticsCS, kernel, HDShaderIDs._Output,   input);
                     if (paramsRT != null)
                         cmd.SetComputeTextureParam(arithmeticsCS, kernel, HDShaderIDs._InputVal, paramsRT);
-                    cmd.SetComputeIntParams   (arithmeticsCS, HDShaderIDs._Sizes,
-                                               input.rt.width, input.rt.height, input.rt.width, input.rt.height);
+                    cmd.SetComputeIntParams(arithmeticsCS, HDShaderIDs._Sizes,
+                        input.rt.width, input.rt.height, input.rt.width, input.rt.height);
                     cmd.DispatchCompute(arithmeticsCS, kernel, numTilesX, numTilesY, 1);
                 }
                 else
@@ -105,8 +105,8 @@ namespace UnityEngine.Rendering.HighDefinition
                     cmd.SetComputeTextureParam(arithmeticsCS, kernel, HDShaderIDs._Input,    input);
                     if (paramsRT != null)
                         cmd.SetComputeTextureParam(arithmeticsCS, kernel, HDShaderIDs._InputVal, paramsRT);
-                    cmd.SetComputeIntParams   (arithmeticsCS, HDShaderIDs._Sizes,
-                                               input.rt.width, input.rt.height, input.rt.width, input.rt.height);
+                    cmd.SetComputeIntParams(arithmeticsCS, HDShaderIDs._Sizes,
+                        input.rt.width, input.rt.height, input.rt.width, input.rt.height);
                     cmd.DispatchCompute(arithmeticsCS, kernel, numTilesX, numTilesY, 1);
                 }
             }
@@ -117,9 +117,9 @@ namespace UnityEngine.Rendering.HighDefinition
                     arithmeticsCS.SetTexture(kernel, HDShaderIDs._Output,   input);
                     if (paramsRT != null)
                         arithmeticsCS.SetTexture(kernel, HDShaderIDs._InputVal, paramsRT);
-                    arithmeticsCS.SetInts   (HDShaderIDs._Sizes,
-                                               input.rt.width, input.rt.height, input.rt.width, input.rt.height);
-                    arithmeticsCS.Dispatch  (kernel, numTilesX, numTilesY, 1);
+                    arithmeticsCS.SetInts(HDShaderIDs._Sizes,
+                        input.rt.width, input.rt.height, input.rt.width, input.rt.height);
+                    arithmeticsCS.Dispatch(kernel, numTilesX, numTilesY, 1);
                 }
                 else
                 {
@@ -127,9 +127,9 @@ namespace UnityEngine.Rendering.HighDefinition
                     arithmeticsCS.SetTexture(kernel, HDShaderIDs._Input,    input);
                     if (paramsRT != null)
                         arithmeticsCS.SetTexture(kernel, HDShaderIDs._InputVal, paramsRT);
-                    arithmeticsCS.SetInts   (HDShaderIDs._Sizes,
-                                               input.rt.width, input.rt.height, input.rt.width, input.rt.height);
-                    arithmeticsCS.Dispatch  (kernel, numTilesX, numTilesY, 1);
+                    arithmeticsCS.SetInts(HDShaderIDs._Sizes,
+                        input.rt.width, input.rt.height, input.rt.width, input.rt.height);
+                    arithmeticsCS.Dispatch(kernel, numTilesX, numTilesY, 1);
                 }
             }
         }
@@ -162,30 +162,30 @@ namespace UnityEngine.Rendering.HighDefinition
             var hdrp = HDRenderPipeline.defaultAsset;
             ComputeShader arithmeticsCS = hdrp.renderPipelineResources.shaders.gpuArithmeticsCS;
 
-            switch(operation)
+            switch (operation)
             {
-            case Operation.Add:
-                addon += "AddVal";
-            break;
-            case Operation.Mult:
-                addon += "MultVal";
-            break;
-            case Operation.Div:
-                addon += "DivVal";
-            break;
-            case Operation.Mean:
-                addon += "MeanVal";
-            break;
-            case Operation.MAD:
-                addon += "MADVal";
-            break;
-            case Operation.MAD_RG:
-                addon += "MAD_RGVal";
-            break;
+                case Operation.Add:
+                    addon += "AddVal";
+                    break;
+                case Operation.Mult:
+                    addon += "MultVal";
+                    break;
+                case Operation.Div:
+                    addon += "DivVal";
+                    break;
+                case Operation.Mean:
+                    addon += "MeanVal";
+                    break;
+                case Operation.MAD:
+                    addon += "MADVal";
+                    break;
+                case Operation.MAD_RG:
+                    addon += "MAD_RGVal";
+                    break;
             }
 
-            int numTilesX = (width  + (8 - 1))/8;
-            int numTilesY = (height + (8 - 1))/8;
+            int numTilesX = (width  + (8 - 1)) / 8;
+            int numTilesY = (height + (8 - 1)) / 8;
 
             int kernel = arithmeticsCS.FindKernel("CSMain" + addon);
             if (cmd != null)
@@ -193,18 +193,18 @@ namespace UnityEngine.Rendering.HighDefinition
                 if (self)
                 {
                     cmd.SetComputeTextureParam(arithmeticsCS, kernel, HDShaderIDs._Output,   input);
-                    cmd.SetComputeVectorParam (arithmeticsCS,         HDShaderIDs._InputVal, param);
-                    cmd.SetComputeIntParams   (arithmeticsCS, HDShaderIDs._Sizes,
-                                               input.rt.width, input.rt.height, input.rt.width, input.rt.height);
+                    cmd.SetComputeVectorParam(arithmeticsCS,         HDShaderIDs._InputVal, param);
+                    cmd.SetComputeIntParams(arithmeticsCS, HDShaderIDs._Sizes,
+                        input.rt.width, input.rt.height, input.rt.width, input.rt.height);
                     cmd.DispatchCompute(arithmeticsCS, kernel, numTilesX, numTilesY, 1);
                 }
                 else
                 {
                     cmd.SetComputeTextureParam(arithmeticsCS, kernel, HDShaderIDs._Output,   output);
                     cmd.SetComputeTextureParam(arithmeticsCS, kernel, HDShaderIDs._Input,    input);
-                    cmd.SetComputeVectorParam (arithmeticsCS,         HDShaderIDs._InputVal, param);
-                    cmd.SetComputeIntParams   (arithmeticsCS, HDShaderIDs._Sizes,
-                                               input.rt.width, input.rt.height, input.rt.width, input.rt.height);
+                    cmd.SetComputeVectorParam(arithmeticsCS,         HDShaderIDs._InputVal, param);
+                    cmd.SetComputeIntParams(arithmeticsCS, HDShaderIDs._Sizes,
+                        input.rt.width, input.rt.height, input.rt.width, input.rt.height);
                     cmd.DispatchCompute(arithmeticsCS, kernel, numTilesX, numTilesY, 1);
                 }
             }
@@ -213,19 +213,19 @@ namespace UnityEngine.Rendering.HighDefinition
                 if (self)
                 {
                     arithmeticsCS.SetTexture(kernel, HDShaderIDs._Output,   input);
-                    arithmeticsCS.SetVector (        HDShaderIDs._InputVal, param);
-                    arithmeticsCS.SetInts   (        HDShaderIDs._Sizes,
-                                               input.rt.width, input.rt.height, input.rt.width, input.rt.height);
-                    arithmeticsCS.Dispatch  (kernel, numTilesX, numTilesY, 1);
+                    arithmeticsCS.SetVector(HDShaderIDs._InputVal, param);
+                    arithmeticsCS.SetInts(HDShaderIDs._Sizes,
+                        input.rt.width, input.rt.height, input.rt.width, input.rt.height);
+                    arithmeticsCS.Dispatch(kernel, numTilesX, numTilesY, 1);
                 }
                 else
                 {
                     arithmeticsCS.SetTexture(kernel, HDShaderIDs._Output,   output);
                     arithmeticsCS.SetTexture(kernel, HDShaderIDs._Input,    input);
-                    arithmeticsCS.SetVector (        HDShaderIDs._InputVal, param);
-                    arithmeticsCS.SetInts   (        HDShaderIDs._Sizes,
-                                               input.rt.width, input.rt.height, input.rt.width, input.rt.height);
-                    arithmeticsCS.Dispatch  (kernel, numTilesX, numTilesY, 1);
+                    arithmeticsCS.SetVector(HDShaderIDs._InputVal, param);
+                    arithmeticsCS.SetInts(HDShaderIDs._Sizes,
+                        input.rt.width, input.rt.height, input.rt.width, input.rt.height);
+                    arithmeticsCS.Dispatch(kernel, numTilesX, numTilesY, 1);
                 }
             }
         }

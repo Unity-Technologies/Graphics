@@ -48,10 +48,10 @@ namespace UnityEngine.Rendering
             cmd.SetComputeTextureParam(invCDFCS, kernel, HDShaderIDs._CDF,      cdf);
             cmd.SetComputeTextureParam(invCDFCS, kernel, HDShaderIDs._Output,   invCDF);
             cmd.SetComputeTextureParam(invCDFCS, kernel, HDShaderIDs._PDF,      fullPDF);
-            cmd.SetComputeIntParams   (invCDFCS,         HDShaderIDs._Sizes,
-                                        cdf.rt.width, cdf.rt.height, invCDF.rt.width, invCDF.rt.height);
-            int numTilesX = (invCDF.rt.width  + (8 - 1))/8;
-            int numTilesY = (invCDF.rt.height + (8 - 1))/8;
+            cmd.SetComputeIntParams(invCDFCS,         HDShaderIDs._Sizes,
+                cdf.rt.width, cdf.rt.height, invCDF.rt.width, invCDF.rt.height);
+            int numTilesX = (invCDF.rt.width  + (8 - 1)) / 8;
+            int numTilesY = (invCDF.rt.height + (8 - 1)) / 8;
             cmd.DispatchCompute(invCDFCS, kernel, numTilesX, numTilesY, 1);
 
             return invCDF;

@@ -56,82 +56,82 @@ struct GGXSample
 
 float3 SphericalTexCoordinateToDirection(float2 sphTexCoord)
 {
-	float pi = 3.1415926535897932384626433832795f;
-	float theta = (1.0f - sphTexCoord.x) * (2.0f * pi);
-	float phi = (sphTexCoord.y - 0.5f) * pi;
+    float pi = 3.1415926535897932384626433832795f;
+    float theta = (1.0f - sphTexCoord.x) * (2.0f * pi);
+    float phi = (sphTexCoord.y - 0.5f) * pi;
 
-	float csTh, siTh, csPh, siPh;
-	sincos(theta, siTh, csTh);
-	sincos(phi, siPh, csPh);
+    float csTh, siTh, csPh, siPh;
+    sincos(theta, siTh, csTh);
+    sincos(phi, siPh, csPh);
 
-	// theta is 0 at negative Z (backwards). Coordinate frame is (-Z,X) meaning negative Z is primary axis and X is secondary axis.
-	return float3(siTh * csPh, siPh, -csTh * csPh);
+    // theta is 0 at negative Z (backwards). Coordinate frame is (-Z,X) meaning negative Z is primary axis and X is secondary axis.
+    return float3(siTh * csPh, siPh, -csTh * csPh);
 }
 
 bool ImportanceSampleSky(float3x3 localToWorld, float3 V, float2 inputSample, out float3 outgoingDir, out float weight)
 {
-	return true;
+    return true;
 }
 
 GGXSample GenerateGGXSampleDirection(uint2 currentCoord, float3 normalWS, float3 viewWS, float roughness, int frameIndex)
 {
-	float3x3 localToWorld = GetLocalFrame(normalWS);
+    float3x3 localToWorld = GetLocalFrame(normalWS);
 
-	// Generate the new sample (follwing values of the sequence)
-	int initialFrameIndex = frameIndex;
-	float2 theSample;
-	theSample.x = GetBNDSequenceSample(currentCoord, initialFrameIndex, 0);
-	theSample.y = GetBNDSequenceSample(currentCoord, initialFrameIndex, 1);
-	float rnd = GetBNDSequenceSample(currentCoord, initialFrameIndex, 2);
+    // Generate the new sample (follwing values of the sequence)
+    int initialFrameIndex = frameIndex;
+    float2 theSample;
+    theSample.x = GetBNDSequenceSample(currentCoord, initialFrameIndex, 0);
+    theSample.y = GetBNDSequenceSample(currentCoord, initialFrameIndex, 1);
+    float rnd = GetBNDSequenceSample(currentCoord, initialFrameIndex, 2);
 
-	GGXSample ggxSample;
-	if (rnd <= roughness)
-	{
-		float2 latLongUV;
+    GGXSample ggxSample;
+    if (rnd <= roughness)
+    {
+        float2 latLongUV;
 
-		float2 infos = ImportanceSamplingLatLongArray(latLongUV, ggxSample.direction, theSample, _SkyTextureSizeInfos.xyz, _SkyTextureMarginals, s_linear_clamp_sampler, _SkyTextureConditionalMarginals, s_linear_clamp_sampler);
+        float2 infos = ImportanceSamplingLatLongArray(latLongUV, ggxSample.direction, theSample, _SkyTextureSizeInfos.xyz, _SkyTextureMarginals, s_linear_clamp_sampler, _SkyTextureConditionalMarginals, s_linear_clamp_sampler);
 
-		float integral = SAMPLE_TEXTURE2D_ARRAY_LOD(_SkyTextureIntegrals, s_linear_clamp_sampler, float2(0.0f, 0.0f), 0, 0).x;
+        float integral = SAMPLE_TEXTURE2D_ARRAY_LOD(_SkyTextureIntegrals, s_linear_clamp_sampler, float2(0.0f, 0.0f), 0, 0).x;
 
-		float3 dir = SphericalTexCoordinateToDirection(latLongUV);
-		float sin0 = sin(latLongUV.y * PI);
+        float3 dir = SphericalTexCoordinateToDirection(latLongUV);
+        float sin0 = sin(latLongUV.y * PI);
 
-		float weight;
-		if (infos.x == 0.0f)
-			weight = 0.0f;
-		else
-			weight = integral * sin0;// / infos.x;
+        float weight;
+        if (infos.x == 0.0f)
+            weight = 0.0f;
+        else
+            weight = integral * sin0;// / infos.x;
 
-		ggxSample.pdf = infos.x;
-	}
-	else
-	{
-		// Importance sample the direction
-		float3 sampleDir = float3(0.0, 0.0, 0.0);
-		float NdotL, NdotH, VdotH;
-		SampleGGXDir(theSample, viewWS, localToWorld, roughness, sampleDir, NdotL, NdotH, VdotH);
+        ggxSample.pdf = infos.x;
+    }
+    else
+    {
+        // Importance sample the direction
+        float3 sampleDir = float3(0.0, 0.0, 0.0);
+        float NdotL, NdotH, VdotH;
+        SampleGGXDir(theSample, viewWS, localToWorld, roughness, sampleDir, NdotL, NdotH, VdotH);
 
-		// If this direction is under the surface, let's generate a new one that won't be.
-		// We allow ourselves 8 as the total of number of tries.
-		// TODO: use Eric's paper on visible normal distribution sampling
-		initialFrameIndex += 8;
-		for (int i = 1; i < 8; ++i)
-		{
-			if (dot(sampleDir, normalWS) >= 0.00f)
-				break;
+        // If this direction is under the surface, let's generate a new one that won't be.
+        // We allow ourselves 8 as the total of number of tries.
+        // TODO: use Eric's paper on visible normal distribution sampling
+        initialFrameIndex += 8;
+        for (int i = 1; i < 8; ++i)
+        {
+            if (dot(sampleDir, normalWS) >= 0.00f)
+                break;
 
-			theSample.x = GetBNDSequenceSample(currentCoord, initialFrameIndex + i, 0);
-			theSample.y = GetBNDSequenceSample(currentCoord, initialFrameIndex + i, 1);
-			SampleGGXDir(theSample, viewWS, localToWorld, roughness, sampleDir, NdotL, NdotH, VdotH);
-		}
+            theSample.x = GetBNDSequenceSample(currentCoord, initialFrameIndex + i, 0);
+            theSample.y = GetBNDSequenceSample(currentCoord, initialFrameIndex + i, 1);
+            SampleGGXDir(theSample, viewWS, localToWorld, roughness, sampleDir, NdotL, NdotH, VdotH);
+        }
 
-		// Build the sample and return it
-		GGXSample ggxSample;
-		ggxSample.direction = sampleDir;
-		// Given that GGX is invalid for a pure smooth material, we handle the case this by stating that the pdf == 1.0
-		ggxSample.pdf = roughness > 0.001 ? D_GGX(NdotH, roughness) * NdotH / (4.0 * VdotH) : 1.0;
-	}
-	return ggxSample;
+        // Build the sample and return it
+        GGXSample ggxSample;
+        ggxSample.direction = sampleDir;
+        // Given that GGX is invalid for a pure smooth material, we handle the case this by stating that the pdf == 1.0
+        ggxSample.pdf = roughness > 0.001 ? D_GGX(NdotH, roughness) * NdotH / (4.0 * VdotH) : 1.0;
+    }
+    return ggxSample;
 }
 
 [numthreads(RAYTRACING_REFLECTIONS_TILE_SIZE, RAYTRACING_REFLECTIONS_TILE_SIZE, 1)]

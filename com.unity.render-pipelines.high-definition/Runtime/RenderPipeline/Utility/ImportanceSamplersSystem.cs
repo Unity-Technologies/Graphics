@@ -256,7 +256,6 @@ namespace UnityEngine.Rendering.HighDefinition
             }
         }
 
-
         /// <summary>
         /// Get the format used for internal process, Internal use only
         /// </summary>
@@ -334,11 +333,11 @@ namespace UnityEngine.Rendering.HighDefinition
             {
                 // Latlong/equirectangular
                 // TODO: Octahedral (Compute: Jacobian), Octahedral_ConstArea vs Octahedral_Isotropic
-                width   = 4*value.input.width;
+                width   = 4 * value.input.width;
                 if (value.buildHemisphere)
                     height =   value.input.width;
                 else
-                    height = 2*value.input.width;
+                    height = 2 * value.input.width;
 
                 if (value.input.dimension == TextureDimension.CubeArray)
                 {
@@ -365,42 +364,42 @@ namespace UnityEngine.Rendering.HighDefinition
                 {
                     value.marginals.marginal =
                         RTHandles.Alloc(1, height, slices: slicesCount,
-                        dimension: buildMarginalArray ? TextureDimension.Tex2DArray : TextureDimension.Tex2D,
-                        colorFormat: format1, enableRandomWrite: true, useMipMap: hasMip, autoGenerateMips: false);
+                            dimension: buildMarginalArray ? TextureDimension.Tex2DArray : TextureDimension.Tex2D,
+                            colorFormat: format1, enableRandomWrite: true, useMipMap: hasMip, autoGenerateMips: false);
                 }
                 if (value.marginals.conditionalMarginal == null)
                 {
                     value.marginals.conditionalMarginal =
                         RTHandles.Alloc(width, height, slices: slicesCount,
-                        dimension: buildMarginalArray ? TextureDimension.Tex2DArray : TextureDimension.Tex2D,
-                        colorFormat: format4, enableRandomWrite: true, useMipMap: hasMip, autoGenerateMips: false);
+                            dimension: buildMarginalArray ? TextureDimension.Tex2DArray : TextureDimension.Tex2D,
+                            colorFormat: format4, enableRandomWrite: true, useMipMap: hasMip, autoGenerateMips: false);
                 }
                 if (value.marginals.integral == null)
                 {
                     value.marginals.integral =
                         RTHandles.Alloc(1, 1, slices: slicesCount,
-                        dimension: buildMarginalArray ? TextureDimension.Tex2DArray : TextureDimension.Tex2D,
-                        colorFormat: format1, enableRandomWrite: true, useMipMap: false, autoGenerateMips: false);
+                            dimension: buildMarginalArray ? TextureDimension.Tex2DArray : TextureDimension.Tex2D,
+                            colorFormat: format1, enableRandomWrite: true, useMipMap: false, autoGenerateMips: false);
                 }
 
                 if (value.input.dimension == TextureDimension.Tex2D ||
                     value.input.dimension == TextureDimension.Tex2DArray)
                 {
-                    int curWidth  = Mathf.RoundToInt((float)width /Mathf.Pow(2.0f, (float)value.currentMip));
-                    int curHeight = Mathf.RoundToInt((float)height/Mathf.Pow(2.0f, (float)value.currentMip));
+                    int curWidth  = Mathf.RoundToInt((float)width / Mathf.Pow(2.0f, (float)value.currentMip));
+                    int curHeight = Mathf.RoundToInt((float)height / Mathf.Pow(2.0f, (float)value.currentMip));
 
                     // Begin: Integrate to have the proper PDF
                     if (current.Value.currentMip == 0)
                     {
                         RTHandle rowTotal = GPUScan.ComputeOperation(rtInput,  cmd, GPUScan.Operation.Total, GPUScan.Direction.Horizontal, rtInput.rt.graphicsFormat);
-                                 integral = GPUScan.ComputeOperation(rowTotal, cmd, GPUScan.Operation.Total, GPUScan.Direction.Vertical,   rtInput.rt.graphicsFormat);
+                        integral = GPUScan.ComputeOperation(rowTotal, cmd, GPUScan.Operation.Total, GPUScan.Direction.Vertical,   rtInput.rt.graphicsFormat);
                         RTHandlesDeleter.ScheduleRelease(rowTotal);
                         RTHandlesDeleter.ScheduleRelease(integral);
                     }
                     // End
-                    RTHandle texCopy = RTHandles.Alloc( curWidth, curHeight,
-                                                        colorFormat: format1,
-                                                        enableRandomWrite: true, useMipMap: false, autoGenerateMips: false);
+                    RTHandle texCopy = RTHandles.Alloc(curWidth, curHeight,
+                        colorFormat: format1,
+                        enableRandomWrite: true, useMipMap: false, autoGenerateMips: false);
                     RTHandlesDeleter.ScheduleRelease(texCopy);
                     GPUArithmetic.ComputeOperation(texCopy, rtInput, null, cmd, GPUArithmetic.Operation.Mean);
 
@@ -409,12 +408,12 @@ namespace UnityEngine.Rendering.HighDefinition
                 else if (value.input.dimension == TextureDimension.Cube ||
                          value.input.dimension == TextureDimension.CubeArray)
                 {
-                    int curWidth  = Mathf.RoundToInt((float)width /Mathf.Pow(2.0f, (float)value.currentMip));
-                    int curHeight = Mathf.RoundToInt((float)height/Mathf.Pow(2.0f, (float)value.currentMip));
+                    int curWidth  = Mathf.RoundToInt((float)width / Mathf.Pow(2.0f, (float)value.currentMip));
+                    int curHeight = Mathf.RoundToInt((float)height / Mathf.Pow(2.0f, (float)value.currentMip));
 
-                    RTHandle latLongMap = RTHandles.Alloc(  curWidth, curHeight,
-                                                            colorFormat: format4,
-                                                            enableRandomWrite: true);
+                    RTHandle latLongMap = RTHandles.Alloc(curWidth, curHeight,
+                        colorFormat: format4,
+                        enableRandomWrite: true);
                     RTHandlesDeleter.ScheduleRelease(latLongMap);
 
                     var hdrp = HDRenderPipeline.defaultAsset;
@@ -431,39 +430,38 @@ namespace UnityEngine.Rendering.HighDefinition
                     {
                         usedMat.SetTexture(HDShaderIDs._SrcCubeTextureArray,    rtInput);
                     }
-                    usedMat.SetInt      (HDShaderIDs._CubeMipLvl,               current.Value.currentMip);
-                    usedMat.SetInt      (HDShaderIDs._CubeArrayIndex,           current.Value.currentSlice);
-                    usedMat.SetInt      (HDShaderIDs._BuildPDF,                 0);
-                    usedMat.SetInt      (HDShaderIDs._PreMultiplyBySolidAngle,  0);
-                    usedMat.SetInt      (HDShaderIDs._PreMultiplyByCosTheta,    0);
-                    usedMat.SetInt      (HDShaderIDs._PreMultiplyByJacobian,    1);
-                    usedMat.SetInt      (HDShaderIDs._ManualTex2SRGB,           0);
-                    usedMat.SetVector   (HDShaderIDs._Sizes, new Vector4(      (float)latLongMap.rt.width,        (float)latLongMap.rt.height,
-                                                                         1.0f/((float)latLongMap.rt.width), 1.0f/((float)latLongMap.rt.height)));
+                    usedMat.SetInt(HDShaderIDs._CubeMipLvl,               current.Value.currentMip);
+                    usedMat.SetInt(HDShaderIDs._CubeArrayIndex,           current.Value.currentSlice);
+                    usedMat.SetInt(HDShaderIDs._BuildPDF,                 0);
+                    usedMat.SetInt(HDShaderIDs._PreMultiplyBySolidAngle,  0);
+                    usedMat.SetInt(HDShaderIDs._PreMultiplyByCosTheta,    0);
+                    usedMat.SetInt(HDShaderIDs._PreMultiplyByJacobian,    1);
+                    usedMat.SetInt(HDShaderIDs._ManualTex2SRGB,           0);
+                    usedMat.SetVector(HDShaderIDs._Sizes, new Vector4((float)latLongMap.rt.width,        (float)latLongMap.rt.height,
+                        1.0f / ((float)latLongMap.rt.width), 1.0f / ((float)latLongMap.rt.height)));
 
                     cmd.Blit(Texture2D.whiteTexture, latLongMap, usedMat, value.input.dimension == TextureDimension.Cube ? 0 : 1);
 
-                    RTHandle latLongMap1 = RTHandles.Alloc( curWidth, curHeight,
-                                                            colorFormat: format1,
-                                                            enableRandomWrite: true);
+                    RTHandle latLongMap1 = RTHandles.Alloc(curWidth, curHeight,
+                        colorFormat: format1,
+                        enableRandomWrite: true);
                     GPUArithmetic.ComputeOperation(latLongMap1, latLongMap, null, cmd, GPUArithmetic.Operation.Mean);
 
                     // Begin: Integrate to have the proper PDF
                     if (current.Value.currentMip == 0)
                     {
                         RTHandle totalRows = GPUScan.ComputeOperation(latLongMap1, cmd, GPUScan.Operation.Total, GPUScan.Direction.Horizontal, format1);
-                                 integral  = GPUScan.ComputeOperation(totalRows,   cmd, GPUScan.Operation.Total, GPUScan.Direction.Vertical,   format1);
+                        integral  = GPUScan.ComputeOperation(totalRows,   cmd, GPUScan.Operation.Total, GPUScan.Direction.Vertical,   format1);
                         RTHandlesDeleter.ScheduleRelease(totalRows);
                         RTHandlesDeleter.ScheduleRelease(integral);
 
-                        float coef = Mathf.PI*Mathf.PI/((float)(latLongMap1.rt.width*latLongMap1.rt.height));
+                        float coef = Mathf.PI * Mathf.PI / ((float)(latLongMap1.rt.width * latLongMap1.rt.height));
                         if (current.Value.buildHemisphere)
                             coef *= 1.0f;
                         else
                             coef *= 2.0f;
 
                         GPUArithmetic.ComputeOperation(integral, integral, new Vector4(coef, coef, coef, coef), cmd, GPUArithmetic.Operation.Mult);
-
                     }
                     // End: Integrate Equirectangular Map
 
