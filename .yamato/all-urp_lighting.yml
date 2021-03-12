@@ -12,11 +12,15 @@ PR_URP_Lighting_trunk:
     dependencies:
       -  path: .yamato/urp_lighting-win-dx11.yml#URP_Lighting_Win_DX11_Standalone_cache_mono_Linear_trunk
          rerun: on-new-revision
+      -  path: .yamato/urp_lighting-win-dx11.yml#URP_Lighting_Win_DX11_Standalone_XR_cache_mono_Linear_trunk
+         rerun: on-new-revision
       -  path: .yamato/urp_lighting-win-dx11.yml#URP_Lighting_Win_DX11_playmode_XR_cache_mono_Linear_trunk
          rerun: on-new-revision
       -  path: .yamato/urp_lighting-win-dx11.yml#URP_Lighting_Win_DX11_editmode_mono_Linear_trunk
          rerun: on-new-revision
       -  path: .yamato/urp_lighting-win-dx12.yml#URP_Lighting_Win_DX12_Standalone_cache_mono_Linear_trunk
+         rerun: on-new-revision
+      -  path: .yamato/urp_lighting-win-dx12.yml#URP_Lighting_Win_DX12_Standalone_XR_cache_mono_Linear_trunk
          rerun: on-new-revision
       -  path: .yamato/urp_lighting-win-vulkan.yml#URP_Lighting_Win_Vulkan_Standalone_cache_mono_Linear_trunk
          rerun: on-new-revision
@@ -62,11 +66,15 @@ PR_URP_Lighting_CUSTOM-REVISION:
     dependencies:
       -  path: .yamato/urp_lighting-win-dx11.yml#URP_Lighting_Win_DX11_Standalone_cache_mono_Linear_CUSTOM-REVISION
          rerun: always
+      -  path: .yamato/urp_lighting-win-dx11.yml#URP_Lighting_Win_DX11_Standalone_XR_cache_mono_Linear_CUSTOM-REVISION
+         rerun: always
       -  path: .yamato/urp_lighting-win-dx11.yml#URP_Lighting_Win_DX11_playmode_XR_cache_mono_Linear_CUSTOM-REVISION
          rerun: always
       -  path: .yamato/urp_lighting-win-dx11.yml#URP_Lighting_Win_DX11_editmode_mono_Linear_CUSTOM-REVISION
          rerun: always
       -  path: .yamato/urp_lighting-win-dx12.yml#URP_Lighting_Win_DX12_Standalone_cache_mono_Linear_CUSTOM-REVISION
+         rerun: always
+      -  path: .yamato/urp_lighting-win-dx12.yml#URP_Lighting_Win_DX12_Standalone_XR_cache_mono_Linear_CUSTOM-REVISION
          rerun: always
       -  path: .yamato/urp_lighting-win-vulkan.yml#URP_Lighting_Win_Vulkan_Standalone_cache_mono_Linear_CUSTOM-REVISION
          rerun: always

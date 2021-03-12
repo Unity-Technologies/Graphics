@@ -24,15 +24,6 @@ MonoBehaviour:
     Reason: Fail on DX12 XR but not DX12...
   - FilteredScene: {fileID: 0}
     FilteredScenes:
-    - {fileID: 102900000, guid: 3f6529c22f7d2ca46814b2e7afd04ef9, type: 3}
-    ColorSpace: 1
-    BuildPlatform: -2
-    GraphicsDevice: 16
-    XrSdk: 
-    StereoModes: 0
-    Reason: unstable on yamato
-  - FilteredScene: {fileID: 0}
-    FilteredScenes:
     - {fileID: 102900000, guid: a43874f539bb5494e86fdea5ac9df469, type: 3}
     ColorSpace: 1
     BuildPlatform: -2
@@ -76,25 +67,6 @@ MonoBehaviour:
     XrSdk: 
     StereoModes: 0
     Reason: Disable this test as we disable the feature for Yamto on Mac
-  - FilteredScene: {fileID: 0}
-    FilteredScenes:
-    - {fileID: 102900000, guid: c566b460a3674184da6c102196a1a888, type: 3}
-    ColorSpace: 1
-    BuildPlatform: -2
-    GraphicsDevice: 16
-    XrSdk: 
-    StereoModes: 0
-    Reason: '[Error] Metal: Error creating pipeline state (Hidden/HDRP/Blit): output
-      of type float4 is not compatible with a MTLPixelFormatRGBA32Uint color attachement.'
-  - FilteredScene: {fileID: 0}
-    FilteredScenes:
-    - {fileID: 102900000, guid: 2486b40270d6e524d8762a9d2a0c1e78, type: 3}
-    ColorSpace: 1
-    BuildPlatform: -2
-    GraphicsDevice: 16
-    XrSdk: 
-    StereoModes: 0
-    Reason: Memory allocation test failed, 5 allocations detected.
   - FilteredScene: {fileID: 0}
     FilteredScenes:
     - {fileID: 102900000, guid: ac9787fadf0b4ed4391bee6ba1d8e213, type: 3}
@@ -178,15 +150,6 @@ MonoBehaviour:
     Reason: unstable on yamato
   - FilteredScene: {fileID: 0}
     FilteredScenes:
-    - {fileID: 102900000, guid: 100c0e304d8aba84186dcd9bf48e5b85, type: 3}
-    ColorSpace: 1
-    BuildPlatform: -2
-    GraphicsDevice: 16
-    XrSdk: 
-    StereoModes: 0
-    Reason: Memory allocation test failed, 2 allocations detected.
-  - FilteredScene: {fileID: 0}
-    FilteredScenes:
     - {fileID: 102900000, guid: 95280217564a80c45916bbb33c3159fb, type: 3}
     ColorSpace: -1
     BuildPlatform: -2
@@ -214,6 +177,33 @@ MonoBehaviour:
     Reason: cause swap chain error on yamato
   - FilteredScene: {fileID: 0}
     FilteredScenes:
+    - {fileID: 102900000, guid: f1d648a459637e342b078667ecd64f74, type: 3}
+    ColorSpace: 1
+    BuildPlatform: -2
+    GraphicsDevice: 16
+    XrSdk: 
+    StereoModes: 0
+    Reason: not working  correctly on yamato
+  - FilteredScene: {fileID: 0}
+    FilteredScenes:
+    - {fileID: 102900000, guid: 813bead26cd69ed4c9e9726f6670da5f, type: 3}
+    ColorSpace: 1
+    BuildPlatform: -2
+    GraphicsDevice: 18
+    XrSdk: 
+    StereoModes: 0
+    Reason: crash with xr
+  - FilteredScene: {fileID: 0}
+    FilteredScenes:
+    - {fileID: 102900000, guid: 6293ce393e2851d4e9827ff3dadd2673, type: 3}
+    ColorSpace: 1
+    BuildPlatform: -2
+    GraphicsDevice: 18
+    XrSdk: 
+    StereoModes: 0
+    Reason: incoclusive on  XR yamato
+  - FilteredScene: {fileID: 0}
+    FilteredScenes:
     - {fileID: 102900000, guid: 602816355ed2fb94383bb6396823e77e, type: 3}
     ColorSpace: 1
     BuildPlatform: -2
@@ -223,10 +213,28 @@ MonoBehaviour:
     Reason: unstable on yamato
   - FilteredScene: {fileID: 0}
     FilteredScenes:
+    - {fileID: 102900000, guid: 2c45a175605910b429f6a1568c825d52, type: 3}
+    ColorSpace: 1
+    BuildPlatform: -2
+    GraphicsDevice: 16
+    XrSdk: 
+    StereoModes: 0
+    Reason: unsupported yet
+  - FilteredScene: {fileID: 0}
+    FilteredScenes:
+    - {fileID: 102900000, guid: 2d74a7c25635150458c8929bffe51aa3, type: 3}
+    ColorSpace: 1
+    BuildPlatform: -2
+    GraphicsDevice: 16
+    XrSdk: 
+    StereoModes: 0
+    Reason: unsupported yet
+  - FilteredScene: {fileID: 0}
+    FilteredScenes:
     - {fileID: 102900000, guid: 7529f10e11b78924b9c1ee1727b1405f, type: 3}
     ColorSpace: 1
     BuildPlatform: -2
-    GraphicsDevice: 21
+    GraphicsDevice: 16
     XrSdk: 
     StereoModes: 0
     Reason: cause inconclusive on Yamato
@@ -235,7 +243,7 @@ MonoBehaviour:
     - {fileID: 102900000, guid: 7529f10e11b78924b9c1ee1727b1405f, type: 3}
     ColorSpace: 1
     BuildPlatform: -2
-    GraphicsDevice: 16
+    GraphicsDevice: 21
     XrSdk: 
     StereoModes: 0
     Reason: cause inconclusive on Yamato

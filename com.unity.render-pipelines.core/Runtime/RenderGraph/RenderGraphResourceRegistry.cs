@@ -432,7 +432,7 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
                 bool debugClear = m_RenderGraphDebug.clearRenderTargetsAtCreation && !resource.desc.clearBuffer;
                 using (new ProfilingScope(rgContext.cmd, ProfilingSampler.Get(debugClear ? RenderGraphProfileId.RenderGraphClearDebug : RenderGraphProfileId.RenderGraphClear)))
                 {
-                    var clearFlag = resource.desc.depthBufferBits != DepthBits.None ? ClearFlag.Depth : ClearFlag.Color;
+                    var clearFlag = resource.desc.depthBufferBits != DepthBits.None ? ClearFlag.DepthStencil : ClearFlag.Color;
                     var clearColor = debugClear ? Color.magenta : resource.desc.clearColor;
                     CoreUtils.SetRenderTarget(rgContext.cmd, resource.graphicsResource, clearFlag, clearColor);
                 }
@@ -464,7 +464,7 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
             {
                 using (new ProfilingScope(rgContext.cmd, ProfilingSampler.Get(RenderGraphProfileId.RenderGraphClearDebug)))
                 {
-                    var clearFlag = resource.desc.depthBufferBits != DepthBits.None ? ClearFlag.Depth : ClearFlag.Color;
+                    var clearFlag = resource.desc.depthBufferBits != DepthBits.None ? ClearFlag.DepthStencil : ClearFlag.Color;
                     CoreUtils.SetRenderTarget(rgContext.cmd, resource.graphicsResource, clearFlag, Color.magenta);
                 }
             }
@@ -564,9 +564,6 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
 
         internal void PurgeUnusedGraphicsResources()
         {
-            // TODO RENDERGRAPH: Might not be ideal to purge stale resources every frame.
-            // In case users enable/disable features along a level it might provoke performance spikes when things are reallocated...
-            // Will be much better when we have actual resource aliasing and we can manage memory more efficiently.
             for (int i = 0; i < (int)RenderGraphResourceType.Count; ++i)
                 m_RenderGraphResources[i].PurgeUnusedGraphicsResources(m_CurrentFrameIndex);
         }
