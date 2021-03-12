@@ -769,7 +769,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
         public static readonly KeywordDescriptor ReflectionProbeBlending = new KeywordDescriptor()
         {
             displayName = "Reflection Probe Blending",
-            referenceName = "REFLECTION_PROBE_BLENDING",
+            referenceName = "_REFLECTION_PROBE_BLENDING",
             type = KeywordType.Boolean,
             definition = KeywordDefinition.MultiCompile,
             scope = KeywordScope.Global,
@@ -778,7 +778,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
         public static readonly KeywordDescriptor ReflectionProbeBoxProjection = new KeywordDescriptor()
         {
             displayName = "Reflection Probe Box Projection",
-            referenceName = "REFLECTION_PROBE_BOX_PROJECTION",
+            referenceName = "_REFLECTION_PROBE_BOX_PROJECTION",
             type = KeywordType.Boolean,
             definition = KeywordDefinition.MultiCompile,
             scope = KeywordScope.Global,

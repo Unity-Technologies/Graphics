@@ -315,8 +315,8 @@ namespace UnityEngine.Rendering.Universal
         public static readonly string AdditionalLightsVertex = "_ADDITIONAL_LIGHTS_VERTEX";
         public static readonly string AdditionalLightsPixel = "_ADDITIONAL_LIGHTS";
         public static readonly string AdditionalLightShadows = "_ADDITIONAL_LIGHT_SHADOWS";
-        public static readonly string ReflectionProbeBoxProjection = "REFLECTION_PROBE_BOX_PROJECTION";
-        public static readonly string ReflectionProbeBlending = "REFLECTION_PROBE_BLENDING";
+        public static readonly string ReflectionProbeBoxProjection = "_REFLECTION_PROBE_BOX_PROJECTION";
+        public static readonly string ReflectionProbeBlending = "_REFLECTION_PROBE_BLENDING";
         public static readonly string SoftShadows = "_SHADOWS_SOFT";
         public static readonly string MixedLightingSubtractive = "_MIXED_LIGHTING_SUBTRACTIVE"; // Backward compatibility
         public static readonly string LightmapShadowMixing = "LIGHTMAP_SHADOW_MIXING";
