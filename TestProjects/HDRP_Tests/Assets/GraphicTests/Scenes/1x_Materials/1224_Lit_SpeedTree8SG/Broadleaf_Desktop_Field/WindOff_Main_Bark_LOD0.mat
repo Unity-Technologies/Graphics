@@ -20,7 +20,7 @@ Material:
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  m_Name: Main_Bark_LOD0
+  m_Name: WindOff_Main_Bark_LOD0
   m_Shader: {fileID: -6465566751694194690, guid: 4819724840ee9444f9da841b477038ce,
     type: 3}
   m_ShaderKeywords: _ALPHATEST_ON _DOUBLESIDED_ON _WINDQUALITY_BEST
@@ -92,7 +92,7 @@ Material:
     - _TransparentZWrite: 0
     - _UseShadowThreshold: 0
     - _WINDQUALITY: 4
-    - _WindQuality: 1
+    - _WindQuality: 0
     - _ZTestDepthEqualForOpaque: 3
     - _ZTestGBuffer: 3
     - _ZTestTransparent: 4
