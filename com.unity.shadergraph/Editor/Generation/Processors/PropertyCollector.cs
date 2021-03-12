@@ -39,6 +39,11 @@ namespace UnityEditor.ShaderGraph
             }
 
             m_Properties.Sort((a, b) => String.CompareOrdinal(a.referenceName, b.referenceName));
+
+            // reference name indices are now messed up, rebuild them
+            m_ReferenceNames.Clear();
+            for (int i = 0; i < m_Properties.Count; i++)
+                m_ReferenceNames.Add(m_Properties[i].referenceName, i);
         }
 
         public void SetReadOnly()
