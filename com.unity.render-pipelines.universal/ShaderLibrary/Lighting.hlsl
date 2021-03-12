@@ -627,21 +627,25 @@ half3 SampleLightmap(float2 lightmapUV, half3 normalWS)
 #define SAMPLE_GI(lmName, shName, normalWSName) SampleSHPixel(shName, normalWSName)
 #endif
 
-half3 BoxProjectedCubemapDirection(half3 reflectVector, half3 positionWS, float4 cubemapCenter, float4 boxMin, float4 boxMax)
+half3 BoxProjectedCubemapDirection(half3 reflectionWS, half3 positionWS, float4 cubemapPositionWS, float4 boxMin, float4 boxMax)
 {
-    // Do we have a valid reflection probe?
-    [branch] if (cubemapCenter.w > 0.0)
+    // Is this probe using box projection?
+    [branch] if (cubemapPositionWS.w > 0.0)
     {
-        float3 boxMinMax = (reflectVector > 0.0f) ? boxMax.xyz : boxMin.xyz;
-        float3 rbMinMax = (boxMinMax - positionWS) / reflectVector;
+        float3 boxMinMax = (reflectionWS > 0.0f) ? boxMax.xyz : boxMin.xyz;
+        float3 rbMinMax = (boxMinMax - positionWS) / reflectionWS;
 
         float fa = min(min(rbMinMax.x, rbMinMax.y), rbMinMax.z);
 
-        half3 pos = positionWS - cubemapCenter.xyz;
-        return pos + reflectVector * fa;
-    }
+        half3 worldPos = positionWS - cubemapPositionWS.xyz;
 
-    return reflectVector;
+        half3 result = worldPos + reflectionWS * fa;
+        return result;
+    }
+    else
+    {
+        return reflectionWS;
+    }
 }
 
 float CalculateProbeWeight(half3 positionWS, float4 probeBoxMin, float4 probeBoxMax)
