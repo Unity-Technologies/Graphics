@@ -81,14 +81,15 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 if (unlitData.enableShadowMatte)
                 {
                     // Shadow matte requires world normal provided from constructed TBN.
-                    forwardUnlit.descriptor.requiredFields.Add(HDStructFields.FragInputs.tangentToWorld);
+                    var depthUnlit = descriptor.passes.FirstOrDefault(p => p.descriptor.lightMode == "DepthForwardOnly");
+                    depthUnlit.descriptor.requiredFields.Add(HDStructFields.FragInputs.tangentToWorld);
 
                     if (VFXSubTarget.IsConfigured())
                     {
                         // VFX currently suffers from an issue where expressions that lead to particle to clip space computation must be exactly identical in both depth and forward pass.
-                        // Thus we are forced to include TBN for depth pass otherwise the compiler induces potential reordering in transform computation, which introduces numerical error (and therefore z fighting)
-                        var depthUnlit = descriptor.passes.FirstOrDefault(p => p.descriptor.lightMode == "DepthForwardOnly");
-                        depthUnlit.descriptor.requiredFields.Add(HDStructFields.FragInputs.tangentToWorld);
+                        // Thus we are forced to include TBN for forward pass otherwise the compiler induces potential reordering in transform computation,
+                        // which introduces numerical error (and therefore z fighting)
+                        forwardUnlit.descriptor.requiredFields.Add(HDStructFields.FragInputs.tangentToWorld);
                     }
                 }
 
