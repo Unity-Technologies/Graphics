@@ -3029,15 +3029,6 @@ namespace UnityEngine.Rendering.HighDefinition
                         cmd.DisableShaderKeyword("FLARE_INVERSE_SDF");
                     }
 
-                    if (element.count > 1 && element.distribution == SRPLensFlareDistribution.Uniform)
-                    {
-                        cmd.EnableShaderKeyword("FLARE_INSTANCED");
-                    }
-                    else
-                    {
-                        cmd.DisableShaderKeyword("FLARE_INSTANCED");
-                    }
-
                     if (element.lensFlareTexture != null)
                         cmd.SetGlobalTexture(HDShaderIDs._FlareTex, element.lensFlareTexture);
 
@@ -3115,27 +3106,14 @@ namespace UnityEngine.Rendering.HighDefinition
                                 Color col = element.colorGradient.Evaluate(timeScale);
 
                                 Vector4 flareData0 = GetFlareData0(screenPos, element.translationScale, vScreenRatio, element.rotation, position, element.angularOffset, element.positionOffset, element.autoRotate);
-                                //cmd.SetGlobalVector(HDShaderIDs._FlareData0, flareData0);
-                                //cmd.SetGlobalVector(HDShaderIDs._FlareData2, new Vector4(screenPos.x, screenPos.y, localSize.x, localSize.y));
-                                //cmd.SetGlobalVector(HDShaderIDs._FlareData3, new Vector4(rayOff.x * element.translationScale.x, rayOff.y * element.translationScale.y, 1.0f / (float)element.sideCount, 0.0f));
-                                //cmd.SetGlobalVector(HDShaderIDs._FlareColorValue, curColor * col);
-                                buffer0[elemIdx] = (flareData0);
-                                buffer2[elemIdx] = (new Vector4(screenPos.x, screenPos.y, localSize.x, localSize.y));
-                                buffer3[elemIdx] = (new Vector4(rayOff.x * element.translationScale.x, rayOff.y * element.translationScale.y, 1.0f / (float)element.sideCount, 0.0f));
-                                colors[elemIdx] = (curColor * col);
+                                cmd.SetGlobalVector(HDShaderIDs._FlareData0, flareData0);
+                                cmd.SetGlobalVector(HDShaderIDs._FlareData2, new Vector4(screenPos.x, screenPos.y, localSize.x, localSize.y));
+                                cmd.SetGlobalVector(HDShaderIDs._FlareData3, new Vector4(rayOff.x * element.translationScale.x, rayOff.y * element.translationScale.y, 1.0f / (float)element.sideCount, 0.0f));
+                                cmd.SetGlobalVector(HDShaderIDs._FlareColorValue, curColor * col);
 
-                                //cmd.DrawProcedural(Matrix4x4.identity, usedMaterial, 0, MeshTopology.Quads, 6, 1, null);
+                                cmd.DrawProcedural(Matrix4x4.identity, usedMaterial, 0, MeshTopology.Quads, 6, 1, null);
                                 position += dLength;
                             }
-                            parameters.gfxBuffer0.SetData(buffer0);
-                            parameters.gfxBuffer2.SetData(buffer2);
-                            parameters.gfxBuffer3.SetData(buffer3);
-                            parameters.gfxColors.SetData(colors);
-                            cmd.SetGlobalBuffer(HDShaderIDs._FlareData0, parameters.gfxBuffer0);
-                            cmd.SetGlobalBuffer(HDShaderIDs._FlareData2, parameters.gfxBuffer2);
-                            cmd.SetGlobalBuffer(HDShaderIDs._FlareData3, parameters.gfxBuffer3);
-                            cmd.SetGlobalBuffer(HDShaderIDs._FlareColorValue, parameters.gfxColors);
-                            cmd.DrawProcedural(Matrix4x4.identity, usedMaterial, 0, MeshTopology.Quads, 6, element.count, null);
                         }
                         else if (element.distribution == SRPLensFlareDistribution.Random)
                         {

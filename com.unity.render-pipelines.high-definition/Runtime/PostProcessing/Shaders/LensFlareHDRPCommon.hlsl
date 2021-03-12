@@ -5,9 +5,6 @@
 struct Attributes
 {
     uint vertexID : SV_VertexID;
-//#ifdef FLARE_INSTANCED
-//    ;
-//#endif
 };
 
 struct Varyings
@@ -15,26 +12,12 @@ struct Varyings
     float4 positionCS : SV_POSITION;
     float2 texcoord : TEXCOORD0;
     float occlusion : TEXCOORD1;
-//#ifdef FLARE_INSTANCED
-//    uint instanceID : TEXCOORD2;
-//#endif
     UNITY_VERTEX_OUTPUT_STEREO
 };
 
 sampler2D _FlareTex;
 TEXTURE2D_X(_FlareOcclusionBufferTex);
 
-#ifdef FLARE_INSTANCED
-StructuredBuffer<float4> _FlareColorValue;
-StructuredBuffer<float4> _FlareData0; // x: localCos0, y: localSin0, zw: PositionOffsetXY
-float4                   _FlareData1; // x: OcclusionRadius, y: OcclusionSampleCount, z: ScreenPosZ, w: Falloff
-StructuredBuffer<float4> _FlareData2; // xy: ScreenPos, zw: FlareSize
-StructuredBuffer<float4> _FlareData3; // xy: RayOffset, z: invSideCount, w: Edge Offset
-float4                   _FlareData4; // x: SDF Roundness, y: SDF Frequency
-float4                   _FlareData5; // x: Allow Offscreen
-
-#define MID_ELEM [instanceID]
-#else
 float4 _FlareColorValue;
 float4 _FlareData0; // x: localCos0, y: localSin0, zw: PositionOffsetXY
 float4 _FlareData1; // x: OcclusionRadius, y: OcclusionSampleCount, z: ScreenPosZ, w: Falloff
@@ -43,33 +26,30 @@ float4 _FlareData3; // xy: RayOffset, z: invSideCount
 float4 _FlareData4; // x: SDF Roundness, y: SDF Frequency
 float4 _FlareData5; // x: Allow Offscreen, y: Edge Offset
 
-#define MID_ELEM
-#endif
+#define _FlareColor             _FlareColorValue
 
-#define _FlareColor             ( _FlareColorValue MID_ELEM )
+#define _LocalCos0              _FlareData0.x
+#define _LocalSin0              _FlareData0.y
+#define _PositionOffset         _FlareData0.zw
 
-#define _LocalCos0              ( _FlareData0 MID_ELEM .x )
-#define _LocalSin0              ( _FlareData0 MID_ELEM .y )
-#define _PositionOffset         ( _FlareData0 MID_ELEM .zw )
+#define _OcclusionRadius        _FlareData1.x
+#define _OcclusionSampleCount   _FlareData1.y
+#define _ScreenPosZ             _FlareData1.z
+#define _FlareFalloff           _FlareData1.w
 
-#define _OcclusionRadius        ( _FlareData1.x )
-#define _OcclusionSampleCount   ( _FlareData1.y )
-#define _ScreenPosZ             ( _FlareData1.z )
-#define _FlareFalloff           ( _FlareData1.w )
+#define _ScreenPos              _FlareData2.xy
+#define _FlareSize              _FlareData2.zw
 
-#define _ScreenPos              ( _FlareData2 MID_ELEM .xy )
-#define _FlareSize              ( _FlareData2 MID_ELEM .zw )
+#define _FlareRayOffset         _FlareData3.xy
+#define _FlareShapeInvSide      _FlareData3.z
 
-#define _FlareRayOffset         ( _FlareData3 MID_ELEM .xy )
-#define _FlareShapeInvSide      ( _FlareData3 MID_ELEM .z )
+#define _FlareSDFRoundness      _FlareData4.x
+#define _FlareSDFPolyRadius     _FlareData4.y
+#define _FlareSDFPolyParam0     _FlareData4.z
+#define _FlareSDFPolyParam1     _FlareData4.w
 
-#define _FlareSDFRoundness      ( _FlareData4.x )
-#define _FlareSDFPolyRadius     ( _FlareData4.y )
-#define _FlareSDFPolyParam0     ( _FlareData4.z )
-#define _FlareSDFPolyParam1     ( _FlareData4.w )
-
-#define _OcclusionOffscreen     ( _FlareData5.x )
-#define _FlareEdgeOffset        ( _FlareData5.y )
+#define _OcclusionOffscreen     _FlareData5.x
+#define _FlareEdgeOffset        _FlareData5.y
 
 float2 Rotate(float2 v, float cos0, float sin0)
 {
@@ -110,7 +90,7 @@ float GetOcclusion(float2 screenPos, float flareDepth, float ratio)
 Varyings vert(Attributes input, uint instanceID : SV_InstanceID)
 {
     Varyings output;
-    //UNITY_SETUP_INSTANCE_ID(input);
+    UNITY_SETUP_INSTANCE_ID(input);
     UNITY_INITIALIZE_VERTEX_OUTPUT_STEREO(output);
 
     float screenRatio = _ScreenSize.y / _ScreenSize.x;
@@ -133,10 +113,6 @@ Varyings vert(Attributes input, uint instanceID : SV_InstanceID)
         occlusion *= 0.0f;
 
     output.occlusion = occlusion;
-
-//#ifdef FLARE_INSTANCED
-//    output.instanceID = input.instanceID;
-//#endif
 
     return output;
 }
@@ -172,7 +148,6 @@ float4 ComputePolygon(float2 uv_)
     float an = _FlareSDFPolyParam0;
     float he = _FlareSDFPolyParam1;
 
-    //p = -p.yx;
     float bn = an * floor((atan2(p.y, p.x) + 0.5f * an) / an);
     float cos0 = cos(bn);
     float sin0 = sin(bn);
