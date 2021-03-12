@@ -183,16 +183,16 @@ namespace UnityEngine.Rendering.Universal
         internal const int k_ShadowCascadeMinCount = 1;
         internal const int k_ShadowCascadeMaxCount = 4;
 
+        public static readonly int AdditionalLightsDefaultShadowResolutionTierLow = 256;
+        public static readonly int AdditionalLightsDefaultShadowResolutionTierMedium = 512;
+        public static readonly int AdditionalLightsDefaultShadowResolutionTierHigh = 1024;
+
 #if UNITY_EDITOR
         [NonSerialized]
         internal UniversalRenderPipelineEditorResources m_EditorResourcesAsset;
 
         public static readonly string packagePath = "Packages/com.unity.render-pipelines.universal";
         public static readonly string editorResourcesGUID = "a3d8d823eedde654bb4c11a1cfaf1abb";
-
-        public static readonly int AdditionalLightsDefaultShadowResolutionTierLow = 256;
-        public static readonly int AdditionalLightsDefaultShadowResolutionTierMedium = 512;
-        public static readonly int AdditionalLightsDefaultShadowResolutionTierHigh = 1024;
 
         public static UniversalRenderPipelineAsset Create(ScriptableRendererData rendererData = null)
         {
