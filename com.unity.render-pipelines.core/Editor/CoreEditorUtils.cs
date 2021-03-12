@@ -88,19 +88,19 @@ namespace UnityEditor.Rendering
             return tex2;
         }
 
-        /// <summary>Draw a Fix button</summary>
-        /// <param name="text">Displayed message</param>
-        /// <param name="action">Action performed when fix button is clicked</param>
+        /// <summary>Draw a help box with the Fix button.</summary>
+        /// <param name="text">The message text.</param>
+        /// <param name="action">When the user clicks the button, Unity performs this action.</param>
         public static void DrawFixMeBox(string text, Action action)
         {
             DrawFixMeBox(text, MessageType.Warning, action);
         }
 
         // UI Helpers
-        /// <summary>Draw a Fix button</summary>
-        /// <param name="text">Displayed message</param>
-        /// <param name="action">Action performed when fix buttom is clicked</param>
-        /// <param name="messageType">Type of the message</param>
+        /// <summary>Draw a help box with the Fix button.</summary>
+        /// <param name="text">The message text.</param>
+        /// <param name="messageType">The type of the message.</param>
+        /// <param name="action">When the user clicks the button, Unity performs this action.</param>        
         public static void DrawFixMeBox(string text, MessageType messageType, Action action)
         {
             EditorGUILayout.HelpBox(text, messageType);
