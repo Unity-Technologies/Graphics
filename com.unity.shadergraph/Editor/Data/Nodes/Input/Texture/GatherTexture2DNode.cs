@@ -1,7 +1,6 @@
 using System.Linq;
 using UnityEngine;
 using UnityEditor.Graphing;
-using UnityEditor.ShaderGraph.Drawing.Controls;
 using UnityEditor.ShaderGraph.Internal;
 
 namespace UnityEditor.ShaderGraph
@@ -10,13 +9,14 @@ namespace UnityEditor.ShaderGraph
     class GatherTexture2DNode : AbstractMaterialNode, IGeneratesBodyCode, IMayRequireMeshUV
     {
         public const int OutputSlotRGBAId = 0;
-        public const int OutputSlotRId = 4;
-        public const int OutputSlotGId = 5;
-        public const int OutputSlotBId = 6;
-        public const int OutputSlotAId = 7;
+        public const int OutputSlotRId = 5;
+        public const int OutputSlotGId = 6;
+        public const int OutputSlotBId = 7;
+        public const int OutputSlotAId = 8;
         public const int TextureInputId = 1;
         public const int UVInput = 2;
         public const int SamplerInput = 3;
+        public const int OffsetInput = 4;
 
         const string kOutputSlotRGBAName = "RGBA";
         const string kOutputSlotRName = "R";
@@ -26,8 +26,9 @@ namespace UnityEditor.ShaderGraph
         const string kTextureInputName = "Texture";
         const string kUVInputName = "UV";
         const string kSamplerInputName = "Sampler";
+        const string kOffsetInputName = "Offset";
 
-        public override bool hasPreview { get { return false; } }
+        public override bool hasPreview { get { return true; } }
 
         public GatherTexture2DNode()
         {
@@ -45,7 +46,9 @@ namespace UnityEditor.ShaderGraph
             AddSlot(new Texture2DInputMaterialSlot(TextureInputId, kTextureInputName, kTextureInputName));
             AddSlot(new UVMaterialSlot(UVInput, kUVInputName, kUVInputName, UVChannel.UV0));
             AddSlot(new SamplerStateMaterialSlot(SamplerInput, kSamplerInputName, kSamplerInputName, SlotType.Input));
-            RemoveSlotsNameNotMatching(new[] { OutputSlotRGBAId, OutputSlotRId, OutputSlotGId, OutputSlotBId, OutputSlotAId, TextureInputId, UVInput, SamplerInput });
+            AddSlot(new Vector2MaterialSlot(OffsetInput, kOffsetInputName, kOffsetInputName, SlotType.Input, Vector2.zero, ShaderStageCapability.All, null, null, false, true));
+
+            RemoveSlotsNameNotMatching(new[] { OutputSlotRGBAId, OutputSlotRId, OutputSlotGId, OutputSlotBId, OutputSlotAId, TextureInputId, UVInput, SamplerInput, OffsetInput });
         }
 
         public override void Setup()
@@ -65,18 +68,44 @@ namespace UnityEditor.ShaderGraph
             var edgesSampler = owner.GetEdges(samplerSlot.slotReference);
 
             var id = GetSlotValue(TextureInputId, generationMode);
-            var result = string.Format("$precision4 {0} = GATHER_TEXTURE2D({1}.tex, {2}.samplerstate, {3});"
-                , GetVariableNameForSlot(OutputSlotRGBAId)
-                , id
-                , edgesSampler.Any() ? GetSlotValue(SamplerInput, generationMode) : id
-                , uvName);
+            var offset = GetSlotValue(OffsetInput, generationMode);
 
-            sb.AppendLine(result);
+            sb.AppendLine("#if (SHADER_TARGET >= 41)");
+            {
+                sb.AppendLine(string.Format("$precision4 {0} = {1}.tex.Gather({2}.samplerstate, {3}, int2({4}.x, {4}.y));"
+                    , GetVariableNameForSlot(OutputSlotRGBAId)
+                    , id
+                    , edgesSampler.Any() ? GetSlotValue(SamplerInput, generationMode) : id
+                    , uvName
+                    , offset));
+                sb.AppendLine(string.Format("$precision {0} = {1}.r;", GetVariableNameForSlot(OutputSlotRId), GetVariableNameForSlot(OutputSlotRGBAId)));
+                sb.AppendLine(string.Format("$precision {0} = {1}.g;", GetVariableNameForSlot(OutputSlotGId), GetVariableNameForSlot(OutputSlotRGBAId)));
+                sb.AppendLine(string.Format("$precision {0} = {1}.b;", GetVariableNameForSlot(OutputSlotBId), GetVariableNameForSlot(OutputSlotRGBAId)));
+                sb.AppendLine(string.Format("$precision {0} = {1}.a;", GetVariableNameForSlot(OutputSlotAId), GetVariableNameForSlot(OutputSlotRGBAId)));
+            }
+            sb.AppendLine("#else");
+            {
+                // Gather offsets defined in this order:
+                // (-,+),(+,+),(+,-),(-,-)
 
-            sb.AppendLine(string.Format("$precision {0} = {1}.r;", GetVariableNameForSlot(OutputSlotRId), GetVariableNameForSlot(OutputSlotRGBAId)));
-            sb.AppendLine(string.Format("$precision {0} = {1}.g;", GetVariableNameForSlot(OutputSlotGId), GetVariableNameForSlot(OutputSlotRGBAId)));
-            sb.AppendLine(string.Format("$precision {0} = {1}.b;", GetVariableNameForSlot(OutputSlotBId), GetVariableNameForSlot(OutputSlotRGBAId)));
-            sb.AppendLine(string.Format("$precision {0} = {1}.a;", GetVariableNameForSlot(OutputSlotAId), GetVariableNameForSlot(OutputSlotRGBAId)));
+                // Ideally we'd use a sampler with the same wrap mode, but using point filtering for this fallback.
+                sb.AppendLine(string.Format("$precision2 uvR = (floor({0} * {1}.texelSize.zw + $precision2(-0.5, 0.5)) + int2({2}.x, {2}.y) + $precision2(0.5, 0.5)) * {1}.texelSize.xy;", uvName, id, offset));
+                sb.AppendLine(string.Format("$precision2 uvG = (floor({0} * {1}.texelSize.zw + $precision2(0.5, 0.5)) + int2({2}.x, {2}.y) + $precision2(0.5, 0.5)) * {1}.texelSize.xy;", uvName, id, offset));
+                sb.AppendLine(string.Format("$precision2 uvB = (floor({0} * {1}.texelSize.zw + $precision2(0.5, -0.5)) + int2({2}.x, {2}.y) + $precision2(0.5, 0.5)) * {1}.texelSize.xy;", uvName, id, offset));
+                sb.AppendLine(string.Format("$precision2 uvA = (floor({0} * {1}.texelSize.zw + $precision2(-0.5, -0.5)) + int2({2}.x, {2}.y) + $precision2(0.5, 0.5)) * {1}.texelSize.xy;", uvName, id, offset));
+                sb.AppendLine(string.Format("$precision {0} = SAMPLE_TEXTURE2D({1}.tex, {2}.samplerstate, uvR).r;", GetVariableNameForSlot(OutputSlotRId) , id , edgesSampler.Any() ? GetSlotValue(SamplerInput, generationMode) : id));
+                sb.AppendLine(string.Format("$precision {0} = SAMPLE_TEXTURE2D({1}.tex, {2}.samplerstate, uvG).r;", GetVariableNameForSlot(OutputSlotGId), id, edgesSampler.Any() ? GetSlotValue(SamplerInput, generationMode) : id));
+                sb.AppendLine(string.Format("$precision {0} = SAMPLE_TEXTURE2D({1}.tex, {2}.samplerstate, uvB).r;", GetVariableNameForSlot(OutputSlotBId), id, edgesSampler.Any() ? GetSlotValue(SamplerInput, generationMode) : id));
+                sb.AppendLine(string.Format("$precision {0} = SAMPLE_TEXTURE2D({1}.tex, {2}.samplerstate, uvA).r;", GetVariableNameForSlot(OutputSlotAId), id, edgesSampler.Any() ? GetSlotValue(SamplerInput, generationMode) : id));
+
+                sb.AppendLine(string.Format("$precision4 {0} = $precision4({1},{2},{3},{4});"
+                    , GetVariableNameForSlot(OutputSlotRGBAId)
+                    , GetVariableNameForSlot(OutputSlotRId)
+                    , GetVariableNameForSlot(OutputSlotGId)
+                    , GetVariableNameForSlot(OutputSlotBId)
+                    , GetVariableNameForSlot(OutputSlotAId)));
+            }
+            sb.AppendLine("#endif");
         }
 
         public bool RequiresMeshUV(UVChannel channel, ShaderStageCapability stageCapability)
