@@ -274,7 +274,6 @@ namespace UnityEngine.Rendering.HighDefinition
                 {
                     switch (category)
                     {
-                        // XRTODO: Verify the logic here. The count is not per view so the count might be larger than light data list size.
                         case BoundedEntityCategory.PunctualLight:
                             Debug.Assert(m_Views[i].punctualLightData.Count == count);
                             m_EntityDataBufferPerCategory[c].SetData(m_Views[i].punctualLightData,   0, i * count, count);
@@ -3092,14 +3091,6 @@ namespace UnityEngine.Rendering.HighDefinition
                     var category     = (BoundedEntityCategory)((sortKey >> layout.categoryOffset)  & ((1ul << layout.categoryBitCount)  - 1));
                     var gpuLightType = (GPULightType)((sortKey >> layout.lightTypeOffset) & ((1ul << layout.lightTypeBitCount) - 1));
                     var probeIndex   = (int)((sortKey >> layout.indexOffset)     & ((1ul << layout.indexBitCount)     - 1));
-
-                    if(category != BoundedEntityCategory.ReflectionProbe)
-                    {
-                        Debug.LogWarning("Reflection probe");
-
-                        //int i = 1;
-                        //return;
-                    }
 
                     ProcessedProbeData processedProbe = (gpuLightType == GPULightType.PlanarReflection) ? m_ProcessedPlanarProbeData[probeIndex]
                         : m_ProcessedReflectionProbeData[probeIndex];
