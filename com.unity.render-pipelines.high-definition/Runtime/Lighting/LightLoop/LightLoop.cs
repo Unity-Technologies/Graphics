@@ -227,7 +227,7 @@ namespace UnityEngine.Rendering.HighDefinition
         LocalVolumetricFog = 32,
         /// <summary>Local Volumetric Fog.</summary>
         [Obsolete("Use LocalVolumetricFog", false)]
-        [InspectorName("Local Volumetric Fogs")]
+        [InspectorName("Local Volumetric Fog")]
         DensityVolumes = 32
     };
 
