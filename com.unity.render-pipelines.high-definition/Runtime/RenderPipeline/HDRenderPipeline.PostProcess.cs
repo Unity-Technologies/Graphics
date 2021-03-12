@@ -32,6 +32,11 @@ namespace UnityEngine.Rendering.HighDefinition
         Material m_LensFlareScreen;
         Material m_LensFlareOcclusion;
         RTHandle m_LensFlareOcclusionTexture;
+        int m_MaxLensFlareElementsCount;
+        GraphicsBuffer m_LensFlareGfxBuffer0;
+        GraphicsBuffer m_LensFlareGfxBuffer2;
+        GraphicsBuffer m_LensFlareGfxBuffer3;
+        GraphicsBuffer m_LensFlareGfxColors;
 
         // Exposure data
         const int k_ExposureCurvePrecision = 128;
@@ -2656,6 +2661,10 @@ namespace UnityEngine.Rendering.HighDefinition
             public Material lensFlareOcclusion;
             public SRPLensFlareCommon lensFlares;
             public RTHandle occlusionTexture;
+            public GraphicsBuffer gfxBuffer0;
+            public GraphicsBuffer gfxBuffer2;
+            public GraphicsBuffer gfxBuffer3;
+            public GraphicsBuffer gfxColors;
         }
 
         LensFlareParameters PrepareLensFlareParameters(HDCamera camera)
@@ -2670,6 +2679,48 @@ namespace UnityEngine.Rendering.HighDefinition
             parameters.lensFlareScreen = m_LensFlareScreen;
             parameters.lensFlareOcclusion = m_LensFlareOcclusion;
             parameters.occlusionTexture = m_LensFlareOcclusionTexture;
+
+            int maxElementCount = -1;
+            foreach (SRPLensFlareOverride comp in parameters.lensFlares.GetData())
+            {
+                if (comp == null)
+                    continue;
+
+                SRPLensFlareData data = comp.lensFlareData;
+
+                if (!comp.enabled ||
+                    !comp.gameObject.activeSelf ||
+                    !comp.gameObject.activeInHierarchy ||
+                    data == null ||
+                    data.elements == null ||
+                    data.elements.Length == 0)
+                    continue;
+
+                foreach (SRPLensFlareDataElement element in data.elements)
+                {
+                    if (element == null ||
+                        (element.lensFlareTexture == null && element.flareType == SRPLensFlareType.Image) ||
+                        element.localIntensity <= 0.0f ||
+                        element.count <= 0)
+                        continue;
+
+                    maxElementCount = Mathf.Max(maxElementCount, element.count);
+                }
+            }
+            if (maxElementCount > m_MaxLensFlareElementsCount)
+            {
+                m_LensFlareGfxBuffer0 = new GraphicsBuffer(GraphicsBuffer.Target.Structured, maxElementCount, sizeof(float) * 4);
+                m_LensFlareGfxBuffer2 = new GraphicsBuffer(GraphicsBuffer.Target.Structured, maxElementCount, sizeof(float) * 4);
+                m_LensFlareGfxBuffer3 = new GraphicsBuffer(GraphicsBuffer.Target.Structured, maxElementCount, sizeof(float) * 4);
+                m_LensFlareGfxColors = new GraphicsBuffer(GraphicsBuffer.Target.Structured, maxElementCount, sizeof(float) * 4);
+
+                m_MaxLensFlareElementsCount = maxElementCount;
+            }
+
+            parameters.gfxBuffer0 = m_LensFlareGfxBuffer0;
+            parameters.gfxBuffer2 = m_LensFlareGfxBuffer2;
+            parameters.gfxBuffer3 = m_LensFlareGfxBuffer3;
+            parameters.gfxColors = m_LensFlareGfxColors;
 
             return parameters;
         }
@@ -3076,19 +3127,14 @@ namespace UnityEngine.Rendering.HighDefinition
                                 //cmd.DrawProcedural(Matrix4x4.identity, usedMaterial, 0, MeshTopology.Quads, 6, 1, null);
                                 position += dLength;
                             }
-                            GraphicsBuffer gfxBuffer0 = new GraphicsBuffer(GraphicsBuffer.Target.Structured, element.count, sizeof(float) * 4);
-                            GraphicsBuffer gfxBuffer2 = new GraphicsBuffer(GraphicsBuffer.Target.Structured, element.count, sizeof(float) * 4);
-                            GraphicsBuffer gfxBuffer3 = new GraphicsBuffer(GraphicsBuffer.Target.Structured, element.count, sizeof(float) * 4);
-                            GraphicsBuffer gfxColors = new GraphicsBuffer(GraphicsBuffer.Target.Structured, element.count, sizeof(float) * 4);
-                            gfxBuffer0.SetData(buffer0);
-                            gfxBuffer2.SetData(buffer2);
-                            gfxBuffer3.SetData(buffer3);
-                            gfxColors.SetData(colors);
-
-                            cmd.SetGlobalBuffer(HDShaderIDs._FlareData0, gfxBuffer0);
-                            cmd.SetGlobalBuffer(HDShaderIDs._FlareData2, gfxBuffer2);
-                            cmd.SetGlobalBuffer(HDShaderIDs._FlareData3, gfxBuffer3);
-                            cmd.SetGlobalBuffer(HDShaderIDs._FlareColorValue, gfxColors);
+                            parameters.gfxBuffer0.SetData(buffer0);
+                            parameters.gfxBuffer2.SetData(buffer2);
+                            parameters.gfxBuffer3.SetData(buffer3);
+                            parameters.gfxColors.SetData(colors);
+                            cmd.SetGlobalBuffer(HDShaderIDs._FlareData0, parameters.gfxBuffer0);
+                            cmd.SetGlobalBuffer(HDShaderIDs._FlareData2, parameters.gfxBuffer2);
+                            cmd.SetGlobalBuffer(HDShaderIDs._FlareData3, parameters.gfxBuffer3);
+                            cmd.SetGlobalBuffer(HDShaderIDs._FlareColorValue, parameters.gfxColors);
                             cmd.DrawProcedural(Matrix4x4.identity, usedMaterial, 0, MeshTopology.Quads, 6, element.count, null);
                         }
                         else if (element.distribution == SRPLensFlareDistribution.Random)

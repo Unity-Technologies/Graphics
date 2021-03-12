@@ -5,9 +5,9 @@
 struct Attributes
 {
     uint vertexID : SV_VertexID;
-#ifdef FLARE_INSTANCED
-    uint instanceID : SV_InstanceID;
-#endif
+//#ifdef FLARE_INSTANCED
+//    ;
+//#endif
 };
 
 struct Varyings
@@ -15,9 +15,9 @@ struct Varyings
     float4 positionCS : SV_POSITION;
     float2 texcoord : TEXCOORD0;
     float occlusion : TEXCOORD1;
-#ifdef FLARE_INSTANCED
-    uint instanceID : TEXCOORD2;
-#endif
+//#ifdef FLARE_INSTANCED
+//    uint instanceID : TEXCOORD2;
+//#endif
     UNITY_VERTEX_OUTPUT_STEREO
 };
 
@@ -33,7 +33,7 @@ StructuredBuffer<float4> _FlareData3; // xy: RayOffset, z: invSideCount, w: Edge
 float4                   _FlareData4; // x: SDF Roundness, y: SDF Frequency
 float4                   _FlareData5; // x: Allow Offscreen
 
-#define MID_ELEM [input.instanceID]
+#define MID_ELEM [instanceID]
 #else
 float4 _FlareColorValue;
 float4 _FlareData0; // x: localCos0, y: localSin0, zw: PositionOffsetXY
@@ -107,16 +107,16 @@ float GetOcclusion(float2 screenPos, float flareDepth, float ratio)
     return contrib;
 }
 
-Varyings vert(Attributes input)
+Varyings vert(Attributes input, uint instanceID : SV_InstanceID)
 {
     Varyings output;
-    UNITY_SETUP_INSTANCE_ID(input);
+    //UNITY_SETUP_INSTANCE_ID(input);
     UNITY_INITIALIZE_VERTEX_OUTPUT_STEREO(output);
 
     float screenRatio = _ScreenSize.y / _ScreenSize.x;
 
-    float4 posPreScale = float4(2.0f, 2.0f, 1.0f, 1.0f) * GetQuadVertexPosition(input.vertexID) - float4(1.0f, 1.0f, 0.0f, 0.0);
-    output.texcoord = GetQuadTexCoord(input.vertexID);
+    float4 posPreScale = float4(2.0f, 2.0f, 1.0f, 1.0f) * GetQuadVertexPosition(input.vertexID % 6) - float4(1.0f, 1.0f, 0.0f, 0.0);
+    output.texcoord = GetQuadTexCoord(input.vertexID % 6);
 
     posPreScale.xy *= _FlareSize;
     float2 local = Rotate(posPreScale.xy, _LocalCos0, _LocalSin0);
@@ -134,9 +134,9 @@ Varyings vert(Attributes input)
 
     output.occlusion = occlusion;
 
-#ifdef FLARE_INSTANCED
-    output.instanceID = input.instanceID;
-#endif
+//#ifdef FLARE_INSTANCED
+//    output.instanceID = input.instanceID;
+//#endif
 
     return output;
 }
