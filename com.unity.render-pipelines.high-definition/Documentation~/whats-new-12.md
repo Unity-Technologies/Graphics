@@ -13,8 +13,27 @@ This can be used to fix artefacts when using [Screen Space Global Illumination](
 Limitation: When Unity performs a separate pass for the Emissive contribution, it also performs an additional DrawCall. This means it uses more resources on your CPU.
 Group of Materials / GameObject can be setup to use Force Emissive forward with the script "Edit/Render Pipeline/HD Render Pipeline/Force Forward Emissive on Material/Enable In Selection".
 
-
 ## Improvements
+
+### Density Volume Improvements
+
+Density Volumes masks now support using 3D RenderTextures as masks. 3D mask textures now also use all four RGBA channel which allows volumetric fog to have different colors and density based on the 3D Texture.
+
+The size limit of 32x32x32 for the mask textures has also been replaced by a setting in the HDRP asset called "Max Density Volume Resolution", under the Lighting > Volumetrics section. The upper limit for mask textures is now 256x256x256, an info box below the field tells you how much memory is allocated to store these textures. Note that increasing the resolution of the mask texture doesn't necessarily improve the quality of the volumetric, what's important is to have a good balance between the **Volumetrics** quality and the density volume resolution.
+
+There is a new field to change the falloff HDRP applies when it blends the volume using the Blend Distance property. You can choose either Linear which is the default and previous technique, or Exponential which is more realistic.
+
+Finally, the minimal value of the **Fog Distance** parameter was lowered to 0.05 instead of 1 and now allows thicker fog effects to be created.
+
+### Cloud System
+
+![](Images/HDRPFeatures-CloudLayer.png)
+
+From HDRP 12.0, HDRP introduces a cloud system, which can be controlled through the volume framework in a similar way to the sky system.
+
+HDRP includes a Cloud Layer volume override which renders a cloud texture on top of the sky. For more information, see the [Cloud Layer](Override-Cloud-Layer.md) documentation.
+
+For detailed steps on how to create your custom cloud solution, see the documentation about [creating custom clouds](Creating-Custom-Clouds.md).
 
 ### Dynamic Resolution Scale
 This version of HDRP introduces multiple improvements to Dynamic Resolution Scaling:
@@ -22,7 +41,6 @@ This version of HDRP introduces multiple improvements to Dynamic Resolution Scal
 - The rendering artifact that caused black edges to appear on screen when in hardware mode no longer occurs.
 - The rendering artifacts that appeared when using the Lanczos filter in software mode no longer occur.
 - Hardware mode now utilizes the Contrast Adaptive Sharpening filter to prevent the results from looking too pixelated. This uses FidelityFX (CAS) AMD™. For information about FidelityFX and Contrast Adaptive Sharpening, see [AMD FidelityFX](https://www.amd.com/en/technologies/radeon-software-fidelityfx).
-
 
 ### AOV API
 

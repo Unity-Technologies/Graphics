@@ -142,7 +142,7 @@ namespace UnityEngine.Rendering.Universal
         /// <param name="cameraData">CameraData containing camera matrices information.</param>
         void SetPerCameraShaderVariables(CommandBuffer cmd, ref CameraData cameraData)
         {
-            using var profScope = new ProfilingScope(cmd, Profiling.setPerCameraShaderVariables);
+            using var profScope = new ProfilingScope(null, Profiling.setPerCameraShaderVariables);
 
             Camera camera = cameraData.camera;
 
@@ -531,7 +531,7 @@ namespace UnityEngine.Rendering.Universal
                 SetShaderTimeValues(cmd, time, deltaTime, smoothDeltaTime);
                 context.ExecuteCommandBuffer(cmd);
                 cmd.Clear();
-                using (new ProfilingScope(cmd, Profiling.sortRenderPasses))
+                using (new ProfilingScope(null, Profiling.sortRenderPasses))
                 {
                     // Sort the render pass queue
                     SortStable(m_ActiveRenderPassQueue);
@@ -541,20 +541,24 @@ namespace UnityEngine.Rendering.Universal
 
                 using var renderBlocks = new RenderBlocks(m_ActiveRenderPassQueue);
 
-                using (new ProfilingScope(cmd, Profiling.setupLights))
+                using (new ProfilingScope(null, Profiling.setupLights))
                 {
                     SetupLights(context, ref renderingData);
                 }
 
-                using (new ProfilingScope(cmd, Profiling.RenderBlock.beforeRendering))
+                // Before Render Block. This render blocks always execute in mono rendering.
+                // Camera is not setup.
+                // Used to render input textures like shadowmaps.
+                if (renderBlocks.GetLength(RenderPassBlock.BeforeRendering) > 0)
                 {
-                    // Before Render Block. This render blocks always execute in mono rendering.
-                    // Camera is not setup. Lights are not setup.
-                    // Used to render input textures like shadowmaps.
+                    // TODO: Separate command buffers per pass break the profiling scope order/hierarchy.
+                    // If a single buffer is used and passed as a param to passes,
+                    // put all of the "block" scopes back into the command buffer. (null -> cmd)
+                    using var profScope = new ProfilingScope(null, Profiling.RenderBlock.beforeRendering);
                     ExecuteBlock(RenderPassBlock.BeforeRendering, in renderBlocks, context, ref renderingData);
                 }
 
-                using (new ProfilingScope(cmd, Profiling.setupCamera))
+                using (new ProfilingScope(null, Profiling.setupCamera))
                 {
                     // This is still required because of the following reasons:
                     // - Camera billboard properties.
@@ -586,14 +590,17 @@ namespace UnityEngine.Rendering.Universal
                 // Opaque blocks...
                 if (renderBlocks.GetLength(RenderPassBlock.MainRenderingOpaque) > 0)
                 {
-                    using var profScope = new ProfilingScope(cmd, Profiling.RenderBlock.mainRenderingOpaque);
+                    // TODO: Separate command buffers per pass break the profiling scope order/hierarchy.
+                    // If a single buffer is used (passed as a param) for passes,
+                    // put all of the "block" scopes back into the command buffer. (i.e. null -> cmd)
+                    using var profScope = new ProfilingScope(null, Profiling.RenderBlock.mainRenderingOpaque);
                     ExecuteBlock(RenderPassBlock.MainRenderingOpaque, in renderBlocks, context, ref renderingData);
                 }
 
                 // Transparent blocks...
                 if (renderBlocks.GetLength(RenderPassBlock.MainRenderingTransparent) > 0)
                 {
-                    using var profScope = new ProfilingScope(cmd, Profiling.RenderBlock.mainRenderingTransparent);
+                    using var profScope = new ProfilingScope(null, Profiling.RenderBlock.mainRenderingTransparent);
                     ExecuteBlock(RenderPassBlock.MainRenderingTransparent, in renderBlocks, context, ref renderingData);
                 }
 
@@ -603,7 +610,7 @@ namespace UnityEngine.Rendering.Universal
                 // In this block after rendering drawing happens, e.g, post processing, video player capture.
                 if (renderBlocks.GetLength(RenderPassBlock.AfterRendering) > 0)
                 {
-                    using var profScope = new ProfilingScope(cmd, Profiling.RenderBlock.afterRendering);
+                    using var profScope = new ProfilingScope(null, Profiling.RenderBlock.afterRendering);
                     ExecuteBlock(RenderPassBlock.AfterRendering, in renderBlocks, context, ref renderingData);
                 }
 
@@ -659,7 +666,7 @@ namespace UnityEngine.Rendering.Universal
             // Overlay cameras composite on top of previous ones. They don't clear color.
             // For overlay cameras we check if depth should be cleared on not.
             if (cameraData.renderType == CameraRenderType.Overlay)
-                return (cameraData.clearDepth) ? ClearFlag.Depth : ClearFlag.None;
+                return (cameraData.clearDepth) ? ClearFlag.DepthStencil : ClearFlag.None;
 
             // Always clear on first render pass in mobile as it's same perf of DontCare and avoid tile clearing issues.
             if (Application.isMobilePlatform)
@@ -667,7 +674,7 @@ namespace UnityEngine.Rendering.Universal
 
             if ((cameraClearFlags == CameraClearFlags.Skybox && RenderSettings.skybox != null) ||
                 cameraClearFlags == CameraClearFlags.Nothing)
-                return ClearFlag.Depth;
+                return ClearFlag.DepthStencil;
 
             return ClearFlag.All;
         }
@@ -702,7 +709,7 @@ namespace UnityEngine.Rendering.Universal
 
         void ClearRenderingState(CommandBuffer cmd)
         {
-            using var profScope = new ProfilingScope(cmd, Profiling.clearRenderingState);
+            using var profScope = new ProfilingScope(null, Profiling.clearRenderingState);
 
             // Reset per-camera shader keywords. They are enabled depending on which render passes are executed.
             cmd.DisableShaderKeyword(ShaderKeywordStrings.MainLightShadows);
@@ -754,6 +761,8 @@ namespace UnityEngine.Rendering.Universal
         void ExecuteRenderPass(ScriptableRenderContext context, ScriptableRenderPass renderPass,
             ref RenderingData renderingData)
         {
+            // TODO: Separate command buffers per pass break the profiling scope order/hierarchy.
+            // If a single buffer is used (passed as a param) and passed to renderPass.Execute, put the scope into command buffer (i.e. null -> cmd)
             using var profScope = new ProfilingScope(null, renderPass.profilingSampler);
 
             ref CameraData cameraData = ref renderingData.cameraData;
@@ -761,7 +770,7 @@ namespace UnityEngine.Rendering.Universal
             CommandBuffer cmd = CommandBufferPool.Get();
 
             // Track CPU only as GPU markers for this scope were "too noisy".
-            using (new ProfilingScope(cmd, Profiling.RenderPass.configure))
+            using (new ProfilingScope(null, Profiling.RenderPass.configure))
             {
                 renderPass.Configure(cmd, cameraData.cameraTargetDescriptor);
                 SetRenderPassAttachments(cmd, renderPass, ref cameraData);
@@ -873,7 +882,7 @@ namespace UnityEngine.Rendering.Universal
                 if (renderPass.depthAttachment == m_CameraDepthTarget && m_FirstTimeCameraDepthTargetIsBound)
                 {
                     m_FirstTimeCameraDepthTargetIsBound = false;
-                    needCustomCameraDepthClear = (cameraClearFlag & ClearFlag.Depth) != (renderPass.clearFlag & ClearFlag.Depth);
+                    needCustomCameraDepthClear = (cameraClearFlag & ClearFlag.DepthStencil) != (renderPass.clearFlag & ClearFlag.DepthStencil);
                 }
 
                 // Perform all clear operations needed. ----------------
@@ -933,7 +942,7 @@ namespace UnityEngine.Rendering.Universal
 
                 // Bind all attachments, clear color only if there was no custom behaviour for cameraColorTarget, clear depth as needed.
                 ClearFlag finalClearFlag = ClearFlag.None;
-                finalClearFlag |= needCustomCameraDepthClear ? (cameraClearFlag & ClearFlag.Depth) : (renderPass.clearFlag & ClearFlag.Depth);
+                finalClearFlag |= needCustomCameraDepthClear ? (cameraClearFlag & ClearFlag.DepthStencil) : (renderPass.clearFlag & ClearFlag.DepthStencil);
                 finalClearFlag |= needCustomCameraColorClear ? 0 : (renderPass.clearFlag & ClearFlag.Color);
 
                 // Only setup render target if current render pass attachments are different from the active ones.
@@ -999,7 +1008,7 @@ namespace UnityEngine.Rendering.Universal
                         // m_CameraColorTarget can be an opaque pointer to a RenderTexture with depth-surface.
                         // We cannot infer this information here, so we must assume both camera color and depth are first-time bound here (this is the legacy behaviour).
                         m_FirstTimeCameraDepthTargetIsBound = false;
-                        finalClearFlag |= (cameraClearFlag & ClearFlag.Depth);
+                        finalClearFlag |= (cameraClearFlag & ClearFlag.DepthStencil);
                     }
                 }
                 else
@@ -1013,12 +1022,12 @@ namespace UnityEngine.Rendering.Universal
                 {
                     m_FirstTimeCameraDepthTargetIsBound = false;
 
-                    finalClearFlag |= (cameraClearFlag & ClearFlag.Depth);
+                    finalClearFlag |= (cameraClearFlag & ClearFlag.DepthStencil);
 
                     // finalClearFlag |= (cameraClearFlag & ClearFlag.Color);  // <- m_CameraDepthTarget is never a color-surface, so no need to add this here.
                 }
                 else
-                    finalClearFlag |= (renderPass.clearFlag & ClearFlag.Depth);
+                    finalClearFlag |= (renderPass.clearFlag & ClearFlag.DepthStencil);
 
                 if (IsRenderPassEnabled(renderPass) && cameraData.cameraType == CameraType.Game)
                 {
@@ -1134,7 +1143,7 @@ namespace UnityEngine.Rendering.Universal
             RenderBufferLoadAction colorLoadAction = ((uint)clearFlag & (uint)ClearFlag.Color) != 0 ?
                 RenderBufferLoadAction.DontCare : RenderBufferLoadAction.Load;
 
-            RenderBufferLoadAction depthLoadAction = ((uint)clearFlag & (uint)ClearFlag.Depth) != 0 ?
+            RenderBufferLoadAction depthLoadAction = ((uint)clearFlag & (uint)ClearFlag.Depth) != 0 || ((uint)clearFlag & (uint)ClearFlag.Stencil) != 0 ?
                 RenderBufferLoadAction.DontCare : RenderBufferLoadAction.Load;
 
             SetRenderTarget(cmd, colorAttachment, colorLoadAction, RenderBufferStoreAction.Store,
@@ -1213,7 +1222,7 @@ namespace UnityEngine.Rendering.Universal
         void InternalStartRendering(ScriptableRenderContext context, ref RenderingData renderingData)
         {
             CommandBuffer cmd = CommandBufferPool.Get();
-            using (new ProfilingScope(cmd, Profiling.internalStartRendering))
+            using (new ProfilingScope(null, Profiling.internalStartRendering))
             {
                 for (int i = 0; i < m_ActiveRenderPassQueue.Count; ++i)
                 {
@@ -1228,7 +1237,7 @@ namespace UnityEngine.Rendering.Universal
         void InternalFinishRendering(ScriptableRenderContext context, bool resolveFinalTarget)
         {
             CommandBuffer cmd = CommandBufferPool.Get();
-            using (new ProfilingScope(cmd, Profiling.internalFinishRendering))
+            using (new ProfilingScope(null, Profiling.internalFinishRendering))
             {
                 for (int i = 0; i < m_ActiveRenderPassQueue.Count; ++i)
                     m_ActiveRenderPassQueue[i].FrameCleanup(cmd);

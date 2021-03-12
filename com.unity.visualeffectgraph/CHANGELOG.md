@@ -12,12 +12,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Placement option (Vertex, Edge, Surface) in Sample Mesh & Skinned Mesh, allows triangle sampling.
 
 ### Changed
-- Moved Edit/Visual Effects/Rebuild And Save All VFX Graphs to Edit/VFX/Rebuild And Save All Visual Effect Graphs
-- Move Assets/Create/Visual Effects/Visual Effect Graph to Assets/Create/VFX/VFX Graph
-- Move Assets/Create/Visual Effects/Visual Effect Defaults to Assets/Create/VFX/VFX Defaults
-- Move Assets/Create/Visual Effects/Visual Effect Subgraph Operator to Assets/Create/VFX/VFX Subgraph Operator
-- Move Assets/Create/Visual Effects/Visual Effect Subgraph Block to Assets/Create/VFX/VFX Subgraph Block
 - Allow remaking an existing link.
+- Sphere and Cube outputs are now experimental
 
 ### Fixed
 - VFXEventBinderBase throwing a null reference exception in runtime
@@ -35,19 +31,20 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Handle correctly locked VisualEffectAsset with version control system [Case 1261051](https://issuetracker.unity3d.com/product/unity/issues/guid/1261051/)
 - Artefact in VFXView using efficient debug mode in component target board [Case 1243947](https://issuetracker.unity3d.com/product/unity/issues/guid/1243947/)
 - Sample Mesh Color when value is stored as float.
+- Compilation error due to direct access to GetWorldToObjectMatrix instead of VFXGetWorldToObjectMatrix [Case 1308481](https://issuetracker.unity3d.com/product/unity/issues/guid/1308481/)
+- Prevent infinite compilation loop [Case 1298466](https://issuetracker.unity3d.com/product/unity/issues/guid/1298466/)
+- Remove some useless compilation triggers (modifying not connected or disabled nodes for instance)
 - Tidy up of platform abstraction code for random number generation, requires a dependency on com.unity.render-pipelines.core for those abstractions.
 - Fixed shader compilation errors with textures in shader graph [Case 1309219](https://issuetracker.unity3d.com/product/unity/issues/guid/1309219/)
+- Fixed issue with VFX using incorrect buffer type for strip data
 
 ## [11.0.0] - 2020-10-21
-
 ### Added
 - Added new setting to output nodes to exclude from TAA
 - New Sample Point cache & Sample Attribute map operators
 
 ### Changed
 - Changed the "Edit" button so it becomes "New" when no asset is set on a Visual Effect component, in order to save a new visual effect graph asset.
-- Changed Window/Visual Effects/Visual Effect Graph to Window/VFX/VFX Graph
-- Changed Window/Visual Effects/Utilities/Point Cache Bake Tool to Window/VFX/Utilities/Point Cache Bake Tool
 
 ### Fixed
 - Forbid incorrect link between incompatible context [Case 1269756](https://issuetracker.unity3d.com/product/unity/issues/guid/1269756/)
