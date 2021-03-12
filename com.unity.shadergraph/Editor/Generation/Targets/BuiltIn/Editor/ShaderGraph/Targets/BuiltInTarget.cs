@@ -478,10 +478,32 @@ namespace UnityEditor.Rendering.BuiltIn.ShaderGraph
             { RenderState.Blend(Blend.DstColor, Blend.Zero), new FieldCondition(BuiltInFields.BlendMultiply, true) },
         };
 
+        public static readonly RenderStateCollection Forward = new RenderStateCollection
+        {
+            { RenderState.ZTest(ZTest.LEqual) },
+            { RenderState.ZWrite(ZWrite.On), new FieldCondition(BuiltInFields.SurfaceOpaque, true) },
+            { RenderState.ZWrite(ZWrite.Off), new FieldCondition(BuiltInFields.SurfaceTransparent, true) },
+            { RenderState.Cull(Cull.Back), new FieldCondition(Fields.DoubleSided, false) },
+            { RenderState.Cull(Cull.Off), new FieldCondition(Fields.DoubleSided, true) },
+            { RenderState.ColorMask("ColorMask RGB"), new FieldCondition(BuiltInFields.SurfaceOpaque, false) },
+            { RenderState.Blend(Blend.One, Blend.Zero), new FieldCondition(BuiltInFields.SurfaceOpaque, true) },
+            { RenderState.Blend(Blend.SrcAlpha, Blend.OneMinusSrcAlpha, Blend.One, Blend.OneMinusSrcAlpha), new FieldCondition(Fields.BlendAlpha, true) },
+            { RenderState.Blend(Blend.One, Blend.OneMinusSrcAlpha, Blend.One, Blend.OneMinusSrcAlpha), new FieldCondition(BuiltInFields.BlendPremultiply, true) },
+            { RenderState.Blend(Blend.SrcAlpha, Blend.One, Blend.One, Blend.One), new FieldCondition(BuiltInFields.BlendAdd, true) },
+            { RenderState.Blend(Blend.DstColor, Blend.Zero), new FieldCondition(BuiltInFields.BlendMultiply, true) },
+        };
+
         public static readonly RenderStateCollection ForwardAdd = new RenderStateCollection
         {
             { RenderState.ZWrite(ZWrite.Off) },
-            { RenderState.Blend(Blend.SrcAlpha, Blend.One, Blend.One, Blend.One) },
+            { RenderState.ColorMask("ColorMask RGB"), new FieldCondition(BuiltInFields.SurfaceOpaque, false) },
+            { RenderState.Blend(Blend.One, Blend.One) },
+
+            { RenderState.Blend(Blend.SrcAlpha, Blend.One, Blend.One, Blend.One), new FieldCondition(BuiltInFields.SurfaceOpaque, true) },
+            { RenderState.Blend(Blend.SrcAlpha, Blend.One), new FieldCondition(Fields.BlendAlpha, true) },
+            { RenderState.Blend(Blend.SrcAlpha, Blend.One), new FieldCondition(BuiltInFields.BlendPremultiply, true) },
+            { RenderState.Blend(Blend.SrcAlpha, Blend.One), new FieldCondition(BuiltInFields.BlendAdd, true) },
+            { RenderState.Blend(Blend.SrcAlpha, Blend.One), new FieldCondition(BuiltInFields.BlendMultiply, true) },
         };
 
         public static readonly RenderStateCollection Meta = new RenderStateCollection

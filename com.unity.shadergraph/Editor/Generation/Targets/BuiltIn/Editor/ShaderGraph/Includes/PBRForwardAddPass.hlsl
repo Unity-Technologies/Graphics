@@ -69,7 +69,9 @@ half4 PBRForwardAddFragment(v2f_surf vertexSurf, SurfaceOutputStandard o)
     c += LightingStandard (o, worldViewDir, gi);
     c.a = 0.0;
     UNITY_APPLY_FOG(_unity_fogCoord, c); // apply fog
+    #ifndef _SURFACE_TYPE_TRANSPARENT
     UNITY_OPAQUE_ALPHA(c.a);
+    #endif
     return c;
 }
 

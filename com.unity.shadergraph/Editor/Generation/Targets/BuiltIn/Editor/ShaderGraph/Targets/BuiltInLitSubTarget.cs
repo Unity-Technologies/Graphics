@@ -292,12 +292,12 @@ namespace UnityEditor.Rendering.BuiltIn.ShaderGraph
                 {
                     { PassVariant(LitPasses.Forward,         CorePragmas.DOTSForward) },
                     { PassVariant(LitPasses.ForwardAdd,      CorePragmas.DOTSForwardAdd) },
-                    //{ LitPasses.GBuffer },
+                    { LitPasses.GBuffer },
                     { PassVariant(CorePasses.ShadowCaster,   CorePragmas.DOTSInstanced) },
-                    //{ PassVariant(CorePasses.DepthOnly,      CorePragmas.DOTSInstanced) },
-                    //{ PassVariant(LitPasses.DepthNormalOnly, CorePragmas.DOTSInstanced) },
+                    { PassVariant(CorePasses.DepthOnly,      CorePragmas.DOTSInstanced) },
+                    { PassVariant(LitPasses.DepthNormalOnly, CorePragmas.DOTSInstanced) },
                     { PassVariant(LitPasses.Meta,            CorePragmas.DOTSDefault) },
-                    //{ PassVariant(LitPasses._2D,             CorePragmas.DOTSDefault) },
+                    { PassVariant(LitPasses._2D,             CorePragmas.DOTSDefault) },
                 },
             };
 
@@ -382,7 +382,7 @@ namespace UnityEditor.Rendering.BuiltIn.ShaderGraph
                 fieldDependencies = CoreFieldDependencies.Default,
 
                 // Conditional State
-                renderStates = CoreRenderStates.Default,
+                renderStates = CoreRenderStates.Forward,
                 pragmas  = CorePragmas.Forward,     // NOTE: SM 2.0 only GL
                 keywords = LitKeywords.Forward,
                 includes = LitIncludes.Forward,
