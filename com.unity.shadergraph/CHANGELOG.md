@@ -14,6 +14,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 ### Added
 - Added padding to the shader graph blackboard window to prevent scrollbars from being overlapped by the resize region at the boundaries of the window
 - Support for the XboxSeries platform has been added.
+- Added subshadergraphs for SpeedTree8 shadergraph support: LODCrossfade, SpeedTree8Wind, SpeedTree8HueVariation, SpeedTree8Billboard.
 
 ### Fixed
 - Fixed an issue where the "Node Settings" tab get switched to, overriding the "Graph Settings" tab, when user tries to modify a graph setting [1318844] (https://issuetracker.unity3d.com/issues/shader-graph-graph-settings-window-loses-focus-on-expanding-universal-dropdown-in-graph-inspector)

@@ -22,6 +22,9 @@ The version number for this package has increased due to a version update of a r
 - Fixed a regression where the precision was changed. [case 1313942](https://issuetracker.unity3d.com/issues/urp-shader-precision-is-reduced-to-half-when-scriptablerenderfeature-class-is-in-the-project)
 - Fixed issue causing missing shaders on DirectX 11 feature level 10 GPUs. [case 1278390](https://issuetracker.unity3d.com/product/unity/issues/guid/1278390/)
 
+### Added
+- Added SpeedTree8 shadergraph for universal. Since it behaves differently from existing ST8 shader, it is not hooked up or set to be default yet.
+
 ## [10.3.1] - 2020-01-26
 
 Version Updated
