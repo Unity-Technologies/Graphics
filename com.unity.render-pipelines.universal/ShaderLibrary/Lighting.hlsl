@@ -688,7 +688,7 @@ half3 CalculateIrradianceFromReflectionProbes(half3 reflectVector, half3 positio
     half3 originalReflectVector = reflectVector;
     half mip = PerceptualRoughnessToMipmapLevel(perceptualRoughness);
 
-    // Sample probe 0
+    // Sample the first reflection probe
     if (weightProbe0 > 0.01f)
     {
 #ifdef REFLECTION_PROBE_BOX_PROJECTION
@@ -706,7 +706,7 @@ half3 CalculateIrradianceFromReflectionProbes(half3 reflectVector, half3 positio
 #endif // UNITY_USE_NATIVE_HDR || UNITY_DOTS_INSTANCING_ENABLED
     }
 
-    // Sample probe 1 
+    // Sample the second reflection probe
     if (weightProbe1 > 0.01f)
     {
 #ifdef REFLECTION_PROBE_BOX_PROJECTION
@@ -723,11 +723,11 @@ half3 CalculateIrradianceFromReflectionProbes(half3 reflectVector, half3 positio
 #endif // UNITY_USE_NATIVE_HDR || UNITY_DOTS_INSTANCING_ENABLED
     }
 
-    // Use any remaining weight to blend to skybox
+    // Use any remaining weight to blend to environment reflection cube map
     if (totalWeight < 0.99)
     {
         reflectVector = originalReflectVector;
-        half4 encodedIrradiance = SAMPLE_TEXTURECUBE_LOD(_skybox, sampler_skybox, reflectVector, mip);
+        half4 encodedIrradiance = SAMPLE_TEXTURECUBE_LOD(_GlossyEnvironmentCubeMap, sampler_GlossyEnvironmentCubeMap, reflectVector, mip);
 
 #if defined(UNITY_USE_NATIVE_HDR) || defined(UNITY_DOTS_INSTANCING_ENABLED)
         irradiance += (1 - totalWeight) * encodedIrradiance.rbg;
@@ -741,7 +741,7 @@ half3 CalculateIrradianceFromReflectionProbes(half3 reflectVector, half3 positio
 
 half3 GlossyEnvironmentReflection(half3 reflectVector, half3 positionWS, half perceptualRoughness, half occlusion)
 {
-#if !defined(_ENVIRONMENTREFLECTIONS_OFF) //|| _GLOSSYREFLECTIONS_OFF
+#if !defined(_ENVIRONMENTREFLECTIONS_OFF)
     half3 irradiance = half3(0, 0, 0);
 
 #ifdef REFLECTION_PROBE_BLENDING

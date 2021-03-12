@@ -31,15 +31,15 @@ struct InputData
     half4   shadowMask;
 };
 
-TEXTURECUBE(_skybox);
-SAMPLER(sampler_skybox);
-
 ///////////////////////////////////////////////////////////////////////////////
 //                      Constant Buffers                                     //
 ///////////////////////////////////////////////////////////////////////////////
 
 half4 _GlossyEnvironmentColor;
 half4 _SubtractiveShadowColor;
+
+TEXTURECUBE(_GlossyEnvironmentCubeMap);
+SAMPLER(sampler_GlossyEnvironmentCubeMap);
 
 #define _InvCameraViewProj unity_MatrixInvVP
 float4 _ScaledScreenParams;
