@@ -12,6 +12,24 @@ using Unity.Jobs;
 using Unity.Collections.LowLevel.Unsafe;
 using Unity.Collections;
 
+public static class DecalUtilities
+{
+    public enum MaterialDecalPass
+    {
+        DBufferProjector = 0,
+        DecalProjectorForwardEmissive = 1,
+        DBufferMesh = 2,
+        DecalMeshForwardEmissive = 3,
+    };
+
+    private static readonly string[] s_MaterialDecalPassNames = Enum.GetNames(typeof(MaterialDecalPass));
+
+    public static string GetDecalPassName(MaterialDecalPass decalPass)
+    {
+        return s_MaterialDecalPassNames[(int)decalPass];
+    }
+}
+
 public class DecalEntityIndexer
 {
     public struct DecalEntityItem
@@ -133,12 +151,6 @@ public class DecalEntityChunk : DecalChunk
         RemoveAtSwapBack(ref decalProjectors, entityIndex, count);
         transformAccessArray.RemoveAtSwapBack(entityIndex);
         count--;
-
-        // TODO: probably needs to be removed
-        // Update index
-        /*DecalEntity entity = decalEntities[entityIndex];
-        entity.Index = entityIndex;
-        decalEntities[entityIndex] = entity;*/
     }
 
     public override void SetCapacity(int newCapacity)
@@ -203,7 +215,7 @@ public class DecalEntityManager : IDisposable
     }
 
     // TODO
-    public DecalEntity FindDecalEntity(DecalProjector decalProjector)
+    /*public DecalEntity FindDecalEntity(DecalProjector decalProjector)
     {
         if (m_MaterialToChunkIndex.TryGetValue(decalProjector.material, out int chunkIndex))
         {
@@ -216,7 +228,7 @@ public class DecalEntityManager : IDisposable
         }
 
         return new DecalEntity();
-    }
+    }*/
 
     public DecalEntity CreateDecalEntity(DecalProjector decalProjector)
     {
@@ -267,8 +279,17 @@ public class DecalEntityManager : IDisposable
     {
         if (!m_MaterialToChunkIndex.TryGetValue(material, out int chunkIndex))
         {
+            for (int i = 0; i < material.passCount; ++i)
+                Debug.Log(material.GetPassName(i));
+
             entityChunks.Add(new DecalEntityChunk() { material = material });
-            cachedChunks.Add(new DecalCachedChunk() { propertyBlock = new MaterialPropertyBlock(), drawDistance = 1000 });
+            cachedChunks.Add(new DecalCachedChunk()
+            {
+                propertyBlock = new MaterialPropertyBlock(),
+                drawDistance = 1000,
+            });
+
+
             culledChunks.Add(new DecalCulledChunk());
             drawCallChunks.Add(new DecalDrawCallChunk() { subCallCounts = new NativeArray<int>(1, Allocator.Persistent) });
 

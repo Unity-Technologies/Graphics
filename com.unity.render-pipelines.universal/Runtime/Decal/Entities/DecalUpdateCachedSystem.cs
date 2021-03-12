@@ -9,8 +9,11 @@ public class DecalCachedChunk : DecalChunk
 {
     public MaterialPropertyBlock propertyBlock;
     public int passIndex;
+    public int passIndexEmissive;
+    public int passIndexScreenSpace;
     public int drawOrder;
     public float drawDistance;
+    public bool isCreated;
 
     public NativeArray<float4x4> decalToWorlds;
     public NativeArray<float4x4> normalToWorlds;
@@ -129,6 +132,23 @@ public class DecalUpdateCachedSystem
     {
         if (count == 0)
             return;
+
+        if (!cachedChunk.isCreated)
+        {
+            var material = entityChunk.material;
+
+            int passIndex = material.FindPass(DecalUtilities.GetDecalPassName(DecalUtilities.MaterialDecalPass.DBufferProjector));
+            cachedChunk.passIndex = passIndex;
+
+            int passIndexEmissive = material.FindPass(DecalUtilities.GetDecalPassName(DecalUtilities.MaterialDecalPass.DecalProjectorForwardEmissive));
+            cachedChunk.passIndexEmissive = passIndexEmissive;
+
+            int passIndexScreenSpace = material.FindPass("DecalScreenSpaceProjector");
+            cachedChunk.passIndexScreenSpace = passIndexScreenSpace;
+
+
+            cachedChunk.isCreated = true;
+        }
 
         using (new ProfilingScope(null, m_SamplerJob))
         {

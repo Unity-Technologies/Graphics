@@ -5,34 +5,92 @@ using UnityEngine.Rendering.Universal.Internal;
 
 namespace UnityEngine.Rendering.Universal
 {
+    public enum DecalSurfaceData
+    {
+        Albedo,
+        AlbedoNormal,
+        AlbedoNormalMask,
+    }
     public enum DecalVersion
     {
         HDRP,
         NewDOD,
     }
 
+    public enum DecalTechnique
+    {
+        Automatic,
+        DBuffer,
+        ScreenSpace,
+        DBUFFER_HDRP_PORT,
+    }
+
+    [System.Serializable]
+    public class DBufferSettings
+    {
+        public DecalSurfaceData surfaceData;
+    }
+
+    public enum DecalNormalBlend
+    {
+        Off,
+        NormalLow,
+        NormalMedium,
+        NormalHigh,
+    }
+
+    [System.Serializable]
+    public class DecalScreenSpaceSettings
+    {
+        public DecalNormalBlend blend;
+    }
+
+    [System.Serializable]
+    public class DecalSettings
+    {
+        public DecalTechnique technique = DecalTechnique.Automatic;
+        public float maxDrawDistance = 1000;
+        public DBufferSettings dBufferSettings;
+        public DecalScreenSpaceSettings screenSpaceSettings;
+    }
+
     public class DecalRendererFeature : ScriptableRendererFeature
     {
-        public DecalVersion decalVersion;
+        public DecalSettings settings;
+        //public DecalSurfaceData surfaceData;
+        //public bool blend = true;
+        //public float drawDistance = 1000;
+        //public DecalVersion decalVersion;
 
+        [HideInInspector]
         [Reload("Shaders/Utils/CopyDepth.shader")]
         public Shader copyDepthPS;
 
-        CopyDepthPass copyDepthPass;
+        private CopyDepthPass m_CopyDepthPass;
+        private DBufferRenderPass m_DBufferRenderPass;
+        private DecalForwardEmissivePass m_ForwardEmissivePass;
+        private DecalPreviewPass m_DecalPreviewPass;
 
-        DBufferRenderPass renderObjectsPass;
 
+        // TODO: Remove
         DecalSystem.CullRequest decalCullRequest;
         DecalSystem.CullResult decalCullResult;
         ProfilingSampler decalSystemCull;
         ProfilingSampler decalSystemCullEnd;
 
-        DecalEntityManager m_DecalEntityManager;
-        DecalUpdateCachedSystem m_DecalUpdateCachedSystem;
-        DecalUpdateCullingGroupSystem m_DecalUpdateCullingGroupSystem;
-        DecalUpdateCulledSystem m_DecalUpdateCulledSystem;
-        DecalCreateDrawCallSystem m_DecalCreateDrawCallSystem;
-        DecalDrawIntoDBufferSystem m_DecalDrawIntoDBufferSystem;
+        // Entities
+        private DecalEntityManager m_DecalEntityManager;
+        private DecalUpdateCachedSystem m_DecalUpdateCachedSystem;
+        private DecalUpdateCullingGroupSystem m_DecalUpdateCullingGroupSystem;
+        private DecalUpdateCulledSystem m_DecalUpdateCulledSystem;
+        private DecalCreateDrawCallSystem m_DecalCreateDrawCallSystem;
+        private DecalDrawIntoDBufferSystem m_DecalDrawIntoDBufferSystem;
+        private DecalDrawFowardEmissiveSystem m_DecalDrawForwardEmissiveSystem;
+
+        private ScreenSpaceDecalRenderPass m_ScreenSpaceDecalRenderPass;
+        private DecalDrawScreenSpaceSystem m_DecalDrawScreenSpaceSystem;
+
+        public DecalTechnique technique { get => settings.technique; }
 
         public override void Create()
         {
@@ -40,17 +98,19 @@ namespace UnityEngine.Rendering.Universal
             ResourceReloader.TryReloadAllNullIn(this, UniversalRenderPipelineAsset.packagePath);
 #endif
             var copyDepthMaterial = CoreUtils.CreateEngineMaterial(copyDepthPS);
-            copyDepthPass = new CopyDepthPass(RenderPassEvent.AfterRenderingPrePasses, copyDepthMaterial);
+            m_CopyDepthPass = new CopyDepthPass(RenderPassEvent.AfterRenderingPrePasses, copyDepthMaterial);
 
-            renderObjectsPass = new DBufferRenderPass("DBuffer Render", RenderPassEvent.BeforeRenderingPrePasses, DecalSystem.s_MaterialDecalPassNames);
+            m_DecalPreviewPass = new DecalPreviewPass("Decal Preview Render");
 
-            if (decalVersion == DecalVersion.HDRP)
+            if (settings.technique == DecalTechnique.DBUFFER_HDRP_PORT)
             {
                 decalSystemCull = new ProfilingSampler("V1.DecalSystem.BeginCull");
                 decalSystemCullEnd = new ProfilingSampler("V1.DecalSystem.EndCull");
+
+                m_DBufferRenderPass = new DBufferRenderPass("DBuffer Render", settings.dBufferSettings, null);
             }
 
-            if (decalVersion == DecalVersion.NewDOD)
+            if (technique == DecalTechnique.DBuffer || technique == DecalTechnique.ScreenSpace)
             {
                 // This call will completely recreate decals, so try to call it rare as possible
                 if (m_DecalEntityManager == null)
@@ -73,11 +133,25 @@ namespace UnityEngine.Rendering.Universal
                 }
 
                 m_DecalUpdateCachedSystem = new DecalUpdateCachedSystem(m_DecalEntityManager);
-                m_DecalUpdateCullingGroupSystem = new DecalUpdateCullingGroupSystem(m_DecalEntityManager);
+                m_DecalUpdateCullingGroupSystem = new DecalUpdateCullingGroupSystem(m_DecalEntityManager, settings.maxDrawDistance);
                 m_DecalUpdateCulledSystem = new DecalUpdateCulledSystem(m_DecalEntityManager);
                 m_DecalCreateDrawCallSystem = new DecalCreateDrawCallSystem(m_DecalEntityManager);
-                m_DecalDrawIntoDBufferSystem = new DecalDrawIntoDBufferSystem(m_DecalEntityManager);
-                renderObjectsPass.m_DecalDrawIntoDBufferSystem = m_DecalDrawIntoDBufferSystem;
+
+                if (technique == DecalTechnique.ScreenSpace)
+                {
+                    m_CopyDepthPass = new CopyDepthPass(RenderPassEvent.AfterRenderingOpaques, copyDepthMaterial);
+
+                    m_DecalDrawScreenSpaceSystem = new DecalDrawScreenSpaceSystem(m_DecalEntityManager);
+                    m_ScreenSpaceDecalRenderPass = new ScreenSpaceDecalRenderPass("Decal Screen Space Render", settings.screenSpaceSettings, m_DecalDrawScreenSpaceSystem);
+                }
+                else
+                {
+                    m_DecalDrawIntoDBufferSystem = new DecalDrawIntoDBufferSystem(m_DecalEntityManager);
+                    m_DBufferRenderPass = new DBufferRenderPass("DBuffer Render", settings.dBufferSettings, m_DecalDrawIntoDBufferSystem);
+
+                    m_DecalDrawForwardEmissiveSystem = new DecalDrawFowardEmissiveSystem(m_DecalEntityManager);
+                    m_ForwardEmissivePass = new DecalForwardEmissivePass("Decal Forward Emissive Render", m_DecalDrawForwardEmissiveSystem);
+                }
 
                 Debug.Log("new DecalSystems");
             }
@@ -96,7 +170,10 @@ namespace UnityEngine.Rendering.Universal
 
         internal override void OnCull(in CameraData cameraData)
         {
-            if (decalVersion == DecalVersion.HDRP)
+            if (cameraData.cameraType == CameraType.Preview)
+                return;
+
+            if (technique == DecalTechnique.DBUFFER_HDRP_PORT)
             {
                 using (new ProfilingScope(null, decalSystemCull))
                 {
@@ -107,7 +184,7 @@ namespace UnityEngine.Rendering.Universal
                 }
             }
 
-            if (decalVersion == DecalVersion.NewDOD)
+            if (technique == DecalTechnique.DBuffer || technique == DecalTechnique.ScreenSpace)
             {
                 m_DecalUpdateCachedSystem.Execute();
                 m_DecalUpdateCullingGroupSystem.Execute(cameraData.camera);
@@ -116,7 +193,13 @@ namespace UnityEngine.Rendering.Universal
 
         public override void AddRenderPasses(ScriptableRenderer renderer, ref RenderingData renderingData)
         {
-            if (decalVersion == DecalVersion.HDRP)
+            if (renderingData.cameraData.cameraType == CameraType.Preview)
+            {
+                renderer.EnqueuePass(m_DecalPreviewPass);
+                return;
+            }
+
+            if (technique == DecalTechnique.DBUFFER_HDRP_PORT)
             {
                 using (new ProfilingScope(null, decalSystemCullEnd))
                 {
@@ -136,26 +219,48 @@ namespace UnityEngine.Rendering.Universal
                     DecalSystem.instance.CreateDrawData();          // prepare data is separate from draw
                                                                     //DecalSystem.instance.UpdateTextureAtlas(cmd);   // as this is only used for transparent pass, would've been nice not to have to do this if no transparent renderers are visible, needs to happen after CreateDrawData
 
+
                     if (decalCullResult != null)
                     {
                         decalCullResult.Clear();
                         GenericPool<DecalSystem.CullResult>.Release(decalCullResult);
                     }
+
+                    m_CopyDepthPass.Setup(
+                        new RenderTargetHandle(new RenderTargetIdentifier("_CameraDepthTexture")),
+                        new RenderTargetHandle(new RenderTargetIdentifier("DBufferDepth"))
+                    );
+                    renderer.EnqueuePass(m_CopyDepthPass);
+                    renderer.EnqueuePass(m_DBufferRenderPass);
                 }
             }
 
-            if (decalVersion == DecalVersion.NewDOD)
+            if (technique == DecalTechnique.DBuffer || technique == DecalTechnique.ScreenSpace)
             {
                 m_DecalUpdateCulledSystem.Execute();
                 m_DecalCreateDrawCallSystem.Execute();
-            }
 
-            copyDepthPass.Setup(
-                new RenderTargetHandle(new RenderTargetIdentifier("_CameraDepthTexture")),
-                new RenderTargetHandle(new RenderTargetIdentifier("DBufferDepth"))
-            );
-            renderer.EnqueuePass(copyDepthPass);
-            renderer.EnqueuePass(renderObjectsPass);
+                if (technique == DecalTechnique.ScreenSpace)
+                {
+                    /*m_CopyDepthPass.Setup(
+                        new RenderTargetHandle(new RenderTargetIdentifier("_CameraDepthTexture")),
+                        new RenderTargetHandle(new RenderTargetIdentifier("DBufferDepth"))
+                    );
+                    renderer.EnqueuePass(m_CopyDepthPass);*/
+
+                    renderer.EnqueuePass(m_ScreenSpaceDecalRenderPass);
+                }
+                else
+                {
+                    m_CopyDepthPass.Setup(
+                        new RenderTargetHandle(new RenderTargetIdentifier("_CameraDepthTexture")),
+                        new RenderTargetHandle(new RenderTargetIdentifier("DBufferDepth"))
+                    );
+                    renderer.EnqueuePass(m_CopyDepthPass);
+                    renderer.EnqueuePass(m_DBufferRenderPass);
+                    renderer.EnqueuePass(m_ForwardEmissivePass);
+                }
+            }
         }
 
         protected override void Dispose(bool disposing)

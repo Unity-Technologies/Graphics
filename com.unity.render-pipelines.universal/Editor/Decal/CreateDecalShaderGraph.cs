@@ -16,11 +16,11 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
                 BlockFields.SurfaceDescription.BaseColor,
                 BlockFields.SurfaceDescription.Alpha,
                 BlockFields.SurfaceDescription.NormalTS,
-                BlockFields.SurfaceDescription.NormalAlpha,
+                UniversalBlockFields.SurfaceDescription.NormalAlpha,
                 BlockFields.SurfaceDescription.Metallic,
                 BlockFields.SurfaceDescription.Occlusion,
                 BlockFields.SurfaceDescription.Smoothness,
-                BlockFields.SurfaceDescription.MAOSAlpha,
+                UniversalBlockFields.SurfaceDescription.MAOSAlpha,
             };
 
             GraphUtil.CreateNewGraphWithOutputs(new[] {target}, blockDescriptors);

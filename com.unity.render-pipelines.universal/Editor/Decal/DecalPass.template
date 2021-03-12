@@ -26,7 +26,7 @@ Pass
 
     #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Common.hlsl"
     #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Texture.hlsl"
-    //#include "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/ShaderPass/ShaderPass.cs.hlsl"
+    #include "Packages/com.unity.render-pipelines.universal/Editor/ShaderGraph/Includes/ShaderPass.hlsl"
 
     // Defines
     $Attributes.normalOS:               #define ATTRIBUTES_NEED_NORMAL
@@ -37,7 +37,9 @@ Pass
     $Attributes.uv3:                    #define ATTRIBUTES_NEED_TEXCOORD3
     $Attributes.color:                  #define ATTRIBUTES_NEED_COLOR
     $Varyings.positionWS:           #define VARYINGS_NEED_POSITION_WS
-    $Varyings.normalWS:             #define VARYINGS_NEED_TANGENT_TO_WORLD
+    $Varyings.normalWS:             #define VARYINGS_NEED_NORMAL_WS
+    $Varyings.viewDirectionWS:      #define VARYINGS_NEED_VIEWDIRECTION_WS
+    $Varyings.tangentWS:            #define VARYINGS_NEED_TANGENT_WS
     $Varyings.texCoord0:            #define VARYINGS_NEED_TEXCOORD0
     $Varyings.texCoord1:            #define VARYINGS_NEED_TEXCOORD1
     $Varyings.texCoord2:            #define VARYINGS_NEED_TEXCOORD2
@@ -112,6 +114,8 @@ Pass
         // When not using surface gradient, each vector of tangentToWorld are normalize (TODO: Maybe they should not even in case of no surface gradient ? Ask Morten)
         float3x3 tangentToWorld;
 
+        float3 viewDirectionWS;
+
         uint primitiveID; // Only with fullscreen pass debug currently - not supported on all platforms
 
         // For two sided lighting
@@ -130,12 +134,19 @@ Pass
         fragInputs.positionRWS = input.positionWS;
         #endif
 
-        #ifdef VARYINGS_NEED_TANGENT_TO_WORLD
-        fragInputs.tangentToWorld = input.tangentToWorld;
+        #if defined(VARYINGS_NEED_NORMAL_WS) && defined(VARYINGS_NEED_TANGENT_WS)
+        float sgn = input.tangentWS.w;      // should be either +1 or -1
+        float3 bitangent = sgn * cross(input.normalWS.xyz, input.tangentWS.xyz);
+        float3x3 tangentToWorld = half3x3(input.tangentWS.xyz, bitangent.xyz, input.normalWS.xyz);
+        fragInputs.tangentToWorld = tangentToWorld;
         #endif
 
         #ifdef VARYINGS_NEED_TEXCOORD0
         fragInputs.texCoord0 = input.texCoord0;
+        #endif
+
+        #ifdef VARYINGS_NEED_VIEWDIRECTION_WS
+        fragInputs.viewDirectionWS = input.viewDirectionWS;
         #endif
 
         return fragInputs;
@@ -191,7 +202,7 @@ Pass
 
     void GetSurfaceData(FragInputs fragInputs, float3 V, PositionInputs posInput, float angleFadeFactor, out DecalSurfaceData surfaceData)
     {
-        #if (SHADERPASS == SHADERPASS_DBUFFER_PROJECTOR) || (SHADERPASS == SHADERPASS_FORWARD_EMISSIVE_PROJECTOR)
+        #if (SHADERPASS == SHADERPASS_DBUFFER_PROJECTOR) || (SHADERPASS == SHADERPASS_FORWARD_EMISSIVE_PROJECTOR) || (SHADERPASS == SHADERPASS_DECAL_SCREEN_SPACE_PROJECTOR)
             float4x4 normalToWorld = UNITY_ACCESS_INSTANCED_PROP(Decal, _NormalToWorld);
             float fadeFactor = clamp(normalToWorld[0][3], 0.0f, 1.0f) * angleFadeFactor;
             float2 scale = float2(normalToWorld[3][0], normalToWorld[3][1]);
@@ -227,10 +238,10 @@ Pass
             $SurfaceDescription.Alpha:          surfaceData.baseColor.w = surfaceDescription.Alpha * fadeFactor;
         #endif
 
-        #ifdef _MATERIAL_AFFECTS_NORMAL
-            #if (SHADERPASS == SHADERPASS_DBUFFER_PROJECTOR) 
+        #if defined(_MATERIAL_AFFECTS_NORMAL) && !defined(DECALS_1RT)
+            #if (SHADERPASS == SHADERPASS_DBUFFER_PROJECTOR) || (SHADERPASS == SHADERPASS_DECAL_SCREEN_SPACE_PROJECTOR)
                 $SurfaceDescription.NormalTS:   surfaceData.normalWS.xyz = mul((float3x3)normalToWorld, surfaceDescription.NormalTS);
-            #elif (SHADERPASS == SHADERPASS_DBUFFER_MESH) || (SHADERPASS == SHADERPASS_FORWARD_PREVIEW)
+            #elif (SHADERPASS == SHADERPASS_DBUFFER_MESH) || (SHADERPASS == SHADERPASS_DECAL_SCREEN_SPACE_MESH) || (SHADERPASS == SHADERPASS_FORWARD_PREVIEW)
                 // We need to normalize as we use mikkt tangent space and this is expected (tangent space is not normalize)
                 $SurfaceDescription.NormalTS:   surfaceData.normalWS.xyz = normalize(TransformTangentToWorld(surfaceDescription.NormalTS, fragInputs.tangentToWorld));
             #endif
@@ -243,17 +254,19 @@ Pass
         #endif
 
             // In case of Smoothness / AO / Metal, all the three are always computed but color mask can change
-        #ifdef _MATERIAL_AFFECTS_MASKMAP
-            $SurfaceDescription.Smoothness:     surfaceData.mask.z = surfaceDescription.Smoothness;
-            $SurfaceDescription.MAOSAlpha:      surfaceData.mask.w = surfaceDescription.MAOSAlpha * fadeFactor;
-
-            #ifdef DECALS_4RT
-                $SurfaceDescription.Metallic:   surfaceData.mask.x = surfaceDescription.Metallic;
-                $SurfaceDescription.Occlusion:  surfaceData.mask.y = surfaceDescription.Occlusion;
-                $SurfaceDescription.MAOSAlpha:  surfaceData.MAOSBlend.x = surfaceDescription.MAOSAlpha * fadeFactor;
-                $SurfaceDescription.MAOSAlpha:  surfaceData.MAOSBlend.y = surfaceDescription.MAOSAlpha * fadeFactor;
+        #if !defined(DECALS_1RT) && !defined(DECALS_2RT)
+            #ifdef _MATERIAL_AFFECTS_METAL
+                $SurfaceDescription.Metallic:       surfaceData.mask.x = surfaceDescription.Metallic;
             #endif
-                                                      
+            #ifdef _MATERIAL_AFFECTS_AO
+                $SurfaceDescription.Occlusion:      surfaceData.mask.y = surfaceDescription.Occlusion;
+            #endif
+            #ifdef _MATERIAL_AFFECTS_SMOOTHNESS
+                $SurfaceDescription.Smoothness:     surfaceData.mask.z = surfaceDescription.Smoothness;
+            #endif
+            #if defined(_MATERIAL_AFFECTS_METAL) || defined(_MATERIAL_AFFECTS_AO) || defined(_MATERIAL_AFFECTS_SMOOTHNESS)
+                $SurfaceDescription.MAOSAlpha:      surfaceData.mask.w = surfaceDescription.MAOSAlpha * fadeFactor;
+            #endif
         #endif
     }
 

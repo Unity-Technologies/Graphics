@@ -162,14 +162,16 @@ void ApplyDecalToSurfaceData(DecalSurfaceData decalSurfaceData, float3 vtxNormal
     // Note: We only test weight (i.e decalSurfaceData.xxx.w is < 1.0) if it can save something
     surfaceData.albedo.xyz = surfaceData.albedo.xyz * decalSurfaceData.baseColor.w + decalSurfaceData.baseColor.xyz;
 
+#if defined(DECALS_2RT) || defined(DECALS_3RT)
     // Always test the normal as we can have decompression artifact
-    if (decalSurfaceData.normalWS.w < 1.0)
+    if (decalSurfaceData.normalWS.w < 1.0) // TODO
     {
         inputData.normalWS.xyz = normalize(inputData.normalWS.xyz * decalSurfaceData.normalWS.w + decalSurfaceData.normalWS.xyz);
     }
+#endif
 
-#ifdef DECALS_4RT // only smoothness in 3RT mode
-#ifdef _MATERIAL_FEATURE_SPECULAR_COLOR
+#if defined(DECALS_3RT)
+#ifdef _SPECULAR_SETUP
     if (decalSurfaceData.MAOSBlend.x < 1.0)
     {
         float3 decalSpecularColor = ComputeFresnel0((decalSurfaceData.baseColor.w < 1.0) ? decalSurfaceData.baseColor.xyz : float3(1.0, 1.0, 1.0), decalSurfaceData.mask.x, DEFAULT_SPECULAR_VALUE);
@@ -179,10 +181,12 @@ void ApplyDecalToSurfaceData(DecalSurfaceData decalSurfaceData, float3 vtxNormal
     surfaceData.metallic = surfaceData.metallic * decalSurfaceData.MAOSBlend.x + decalSurfaceData.mask.x;
 #endif
 
+    // TODO MAOSBlend
+
     surfaceData.occlusion = surfaceData.occlusion * decalSurfaceData.MAOSBlend.y + decalSurfaceData.mask.y;
-#endif
 
     surfaceData.smoothness = surfaceData.smoothness * decalSurfaceData.mask.w + decalSurfaceData.mask.z;
+#endif
 }
 
 

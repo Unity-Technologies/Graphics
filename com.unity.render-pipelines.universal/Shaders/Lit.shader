@@ -111,7 +111,7 @@ Shader "Universal Render Pipeline/Lit"
             #pragma shader_feature_local_fragment _ENVIRONMENTREFLECTIONS_OFF
             #pragma shader_feature_local_fragment _SPECULAR_SETUP
             #pragma shader_feature_local _RECEIVE_SHADOWS_OFF
-            #pragma multi_compile _ _DECAL
+            #pragma multi_compile _ DECALS_1RT DECALS_2RT DECALS_3RT
 
             // -------------------------------------
             // Universal Pipeline keywords
