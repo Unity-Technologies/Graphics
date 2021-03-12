@@ -43,9 +43,6 @@
         },
         {
             "m_Id": "a8eb1a55202a44469d7ae71abf7b59ca"
-        },
-        {
-            "m_Id": "f250e2aaa17f41c88bbd87331d68fae9"
         }
     ],
     "m_Nodes": [
@@ -6924,25 +6921,6 @@
     "m_Labels": [
         "X"
     ]
-}
-
-{
-    "m_SGVersion": 0,
-    "m_Type": "UnityEditor.ShaderGraph.ShaderKeyword",
-    "m_ObjectId": "f250e2aaa17f41c88bbd87331d68fae9",
-    "m_Guid": {
-        "m_GuidSerialized": "65a0a95d-ebde-4d6b-9ffa-1687d6a51860"
-    },
-    "m_Name": "_DOUBLESIDED_ON",
-    "m_DefaultReferenceName": "BOOLEAN_EA088D7_ON",
-    "m_OverrideReferenceName": "_DOUBLESIDED_ON",
-    "m_GeneratePropertyBlock": false,
-    "m_KeywordType": 0,
-    "m_KeywordDefinition": 0,
-    "m_KeywordScope": 0,
-    "m_Entries": [],
-    "m_Value": 0,
-    "m_IsEditable": true
 }
 
 {
