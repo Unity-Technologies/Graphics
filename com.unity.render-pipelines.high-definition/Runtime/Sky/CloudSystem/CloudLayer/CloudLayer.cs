@@ -65,6 +65,7 @@ namespace UnityEngine.Rendering.HighDefinition
     /// <summary>
     /// Enum volume parameter.
     /// </summary>
+    /// <typeparam name="T">The type of value to hold in this parameter.</typeparam>
     [Serializable, DebuggerDisplay(k_DebuggerDisplay)]
     public sealed class CloudLayerEnumParameter<T> : VolumeParameter<T>
     {
@@ -102,6 +103,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
 
         /// <summary>Controls the opacity of the cloud shadows.</summary>
+        [Header("Cloud Shadows")]
         [Tooltip("Controls the opacity of the cloud shadows.")]
         public MinFloatParameter shadowMultiplier = new MinFloatParameter(1.0f, 0.0f);
         /// <summary>Controls the tint of the cloud shadows.</summary>
@@ -152,7 +154,6 @@ namespace UnityEngine.Rendering.HighDefinition
             [Tooltip("Distortion mode used to simulate cloud movement.")]
             public VolumeParameter<CloudDistortionMode> distortionMode = new VolumeParameter<CloudDistortionMode>();
             /// <summary>Direction of the distortion.</summary>
-            [Tooltip("Sets the rotation of the distortion (in degrees).")]
             public ClampedFloatParameter scrollDirection = new ClampedFloatParameter(0.0f, 0.0f, 360.0f);
             /// <summary>Speed of the distortion.</summary>
             [Tooltip("Sets the cloud scrolling speed. The higher the value, the faster the clouds will move.")]

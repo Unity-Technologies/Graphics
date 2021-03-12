@@ -269,8 +269,10 @@ namespace UnityEditor.ShaderGraph.Drawing
                 {
                     messageManager.ClearAll();
                     materialGraph.messageManager = messageManager;
-                    var asset = AssetDatabase.LoadAssetAtPath<Object>(AssetDatabase.GUIDToAssetPath(selectedGuid));
-                    graphEditorView = new GraphEditorView(this, materialGraph, messageManager)
+                    string assetPath = AssetDatabase.GUIDToAssetPath(selectedGuid);
+                    string graphName = Path.GetFileNameWithoutExtension(assetPath);
+
+                    graphEditorView = new GraphEditorView(this, materialGraph, messageManager, graphName)
                     {
                         viewDataKey = selectedGuid,
                     };
@@ -304,9 +306,14 @@ namespace UnityEditor.ShaderGraph.Drawing
                         reloadedSomething |= reloaded;
                     }
 
-                    // reloading files may change serilization
+                    // reloading files may change serialization
                     if (reloadedSomething)
+                    {
                         updateTitle = true;
+
+                        // may also need to re-run validation/concretization
+                        graphObject.Validate();
+                    }
 
                     m_ChangedFileDependencyGUIDs.Clear();
                 }
@@ -677,7 +684,7 @@ namespace UnityEditor.ShaderGraph.Drawing
             bounds.center = Vector2.zero;
 
             // Collect graph inputs
-            var graphInputs = graphView.selection.OfType<BlackboardField>().Select(x => x.userData as ShaderInput);
+            var graphInputs = graphView.selection.OfType<BlackboardPropertyView>().Select(x => x.userData as ShaderInput);
 
             // Collect the property nodes and get the corresponding properties
             var propertyNodes = graphView.selection.OfType<IShaderNodeView>().Where(x => (x.node is PropertyNode)).Select(x => ((PropertyNode)x.node).property);
@@ -1106,6 +1113,7 @@ namespace UnityEditor.ShaderGraph.Drawing
                 if (selectedGuid == assetGuid)
                     return;
 
+
                 var path = AssetDatabase.GetAssetPath(asset);
                 var extension = Path.GetExtension(path);
                 if (extension == null)
@@ -1127,6 +1135,7 @@ namespace UnityEditor.ShaderGraph.Drawing
                 }
 
                 selectedGuid = assetGuid;
+                string graphName = Path.GetFileNameWithoutExtension(path);
 
                 using (GraphLoadMarker.Auto())
                 {
@@ -1144,7 +1153,7 @@ namespace UnityEditor.ShaderGraph.Drawing
 
                 using (CreateGraphEditorViewMarker.Auto())
                 {
-                    graphEditorView = new GraphEditorView(this, m_GraphObject.graph, messageManager)
+                    graphEditorView = new GraphEditorView(this, m_GraphObject.graph, messageManager, graphName)
                     {
                         viewDataKey = selectedGuid,
                     };
