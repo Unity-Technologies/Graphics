@@ -13,4 +13,3 @@ Density Volumes are now known as **Local Volumetric Fog**. If a Scene uses Densi
 ## ClearFlag
 
 ClearFlag.Depth does not implicitely clear stencil anymore. ClearFlag.Stencil added.
-
