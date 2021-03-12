@@ -40,7 +40,7 @@ namespace UnityEngine.Rendering.HighDefinition
         public int _MatcapMixAlbedo;
         public float _MatcapViewScale;
         public int _DebugSingleShadowIndex;
-        public int _DebugDisplayPad0;
+        public int _DebugIsLitShaderModeDeferred;
     }
 
     /// <summary>
