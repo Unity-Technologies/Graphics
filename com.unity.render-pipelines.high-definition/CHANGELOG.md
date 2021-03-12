@@ -58,6 +58,7 @@ The version number for this package has increased due to a version update of a r
 - Fixed issue in path tracing, where objects would cast shadows even if not present in the path traced layers (case 1318857).
 - Fixed SRP batcher not compatible with Decal (case 1311586)
 - Fixed issue with different shadow atlas stomping on each other when they have same resolution.
+- Fixed wrong color buffer being bound to pre refraction custom passes.
 
 ### Changed
 - Updated the tooltip for the Decal Angle Fade property (requires to enable Decal Layers in both HDRP asset and Frame settings) (case 1308048).
