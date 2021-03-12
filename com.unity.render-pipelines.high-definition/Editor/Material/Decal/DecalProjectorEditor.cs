@@ -214,6 +214,8 @@ namespace UnityEditor.Rendering.HighDefinition
             };
             m_FadeFactor = serializedObject.FindProperty("m_FadeFactor");
             m_DecalLayerMask = serializedObject.FindProperty("m_DecalLayerMask");
+
+            ReinitSavedRatioSizePivotPosition();
         }
 
         private void OnDisable()
@@ -336,6 +338,8 @@ namespace UnityEditor.Rendering.HighDefinition
 
                     decalProjector.pivot += Quaternion.Inverse(decalProjector.transform.rotation) * (decalProjector.transform.position - newPosition);
                     decalProjector.transform.position = newPosition;
+
+                    ReinitSavedRatioSizePivotPosition();
                 }
             }
         }
@@ -452,11 +456,66 @@ namespace UnityEditor.Rendering.HighDefinition
             };
         }
 
-        void UpdateSize(int axe, float newSize, float oldSize)
+        // Temporarilly save ratio beetwin size and pivot position while editing in inspector.
+        // null or NaN is used to say that there is no saved ratio.
+        // Aim is to keep propotion while sliding the value to 0 in Inspector and then go back to something else.
+        // Current solution only work for the life of this editor, but is enough in most case.
+        // Wich means if you go to there, selection something else and go back on it, pivot position is thus null.
+        Dictionary<DecalProjector, Vector3> ratioSizePivotPositionSaved = null;
+
+        void ReinitSavedRatioSizePivotPosition()
         {
-            m_SizeValues[axe].floatValue = newSize;
-            if (oldSize > Mathf.Epsilon)
-                m_OffsetValues[axe].floatValue *= newSize / oldSize;
+            ratioSizePivotPositionSaved = null;
+        }
+
+        void UpdateSize(int axe, float newSize)
+        {
+            void UpdateSizeOfOneTarget(DecalProjector currentTarget)
+            {
+                //lazy init on demand as targets array cannot be accessed from OnSceneGUI so in edit mode.
+                if (ratioSizePivotPositionSaved == null)
+                {
+                    ratioSizePivotPositionSaved = new Dictionary<DecalProjector, Vector3>();
+                    foreach (DecalProjector projector in targets)
+                        ratioSizePivotPositionSaved[projector] = new Vector3(float.NaN, float.NaN, float.NaN);
+                }
+
+                // Save old ratio if not registered
+                // Either or are NaN or no one, check only first
+                Vector3 saved = ratioSizePivotPositionSaved[currentTarget];
+                if (float.IsNaN(saved[axe]))
+                {
+                    float oldSize = currentTarget.m_Size[axe];
+                    saved[axe] =  Mathf.Abs(oldSize) <= Mathf.Epsilon ? 0f : currentTarget.m_Offset[axe] / oldSize;
+                    ratioSizePivotPositionSaved[currentTarget] = saved;
+                }
+
+                currentTarget.m_Size[axe] = newSize;
+                currentTarget.m_Offset[axe] = saved[axe] * newSize;
+
+                // refresh DecalProjector to update projection
+                currentTarget.OnValidate();
+            }
+
+            // Manually register Undo as we work directly on the target
+            Undo.RecordObjects(targets, "Change DecalProjector Size or Depth");
+
+            // Apply any change on target first
+            serializedObject.ApplyModifiedProperties();
+
+            // update each target
+            foreach (DecalProjector decalProjector in targets)
+                UpdateSizeOfOneTarget(decalProjector);
+
+            // update again serialize object to register change in targets
+            serializedObject.Update();
+
+            // change was not tracked by SerializeReference so force repaint the scene views and game views
+            UnityEditorInternal.InternalEditorUtility.RepaintAllViews();
+
+            // strange: we need to force it throu serialization to update multiple differente value state (value are right but still detected as different)
+            if (m_SizeValues[axe].hasMultipleDifferentValues)
+                m_SizeValues[axe].floatValue = newSize;
         }
 
         public override void OnInspectorGUI()
@@ -483,26 +542,31 @@ namespace UnityEditor.Rendering.HighDefinition
                 Rect rect = EditorGUILayout.GetControlRect(true, EditorGUI.GetPropertyHeight(SerializedPropertyType.Vector2, k_SizeContent));
                 EditorGUI.BeginProperty(rect, k_SizeSubContent[0], m_SizeValues[0]);
                 EditorGUI.BeginProperty(rect, k_SizeSubContent[1], m_SizeValues[1]);
+                bool savedHasMultipleDifferentValue = EditorGUI.showMixedValue;
+                EditorGUI.showMixedValue = m_SizeValues[0].hasMultipleDifferentValues || m_SizeValues[1].hasMultipleDifferentValues;
                 float[] size = new float[2] { m_SizeValues[0].floatValue, m_SizeValues[1].floatValue };
                 EditorGUI.BeginChangeCheck();
                 EditorGUI.MultiFloatField(rect, k_SizeContent, k_SizeSubContent, size);
                 if (EditorGUI.EndChangeCheck())
                 {
                     for (int i = 0; i < 2; ++i)
-                        UpdateSize(i, Mathf.Max(0, size[i]), m_SizeValues[i].floatValue);
+                        UpdateSize(i, Mathf.Max(0, size[i]));
                 }
+                EditorGUI.showMixedValue = savedHasMultipleDifferentValue;
                 EditorGUI.EndProperty();
                 EditorGUI.EndProperty();
+
+                EditorGUI.BeginProperty(rect, k_ProjectionDepthContent, m_SizeValues[2]);
+                EditorGUI.BeginChangeCheck();
+                float newSizeZ = EditorGUILayout.FloatField(k_ProjectionDepthContent, m_SizeValues[2].floatValue);
+                if (EditorGUI.EndChangeCheck())
+                    UpdateSize(2, Mathf.Max(0, newSizeZ));
 
                 EditorGUI.BeginChangeCheck();
-                float oldSizeZ = m_SizeValues[2].floatValue;
-                EditorGUILayout.PropertyField(m_SizeValues[2], k_ProjectionDepthContent);
-                if (EditorGUI.EndChangeCheck())
-                {
-                    UpdateSize(2, Mathf.Max(0, m_SizeValues[2].floatValue), oldSizeZ);
-                }
-
                 EditorGUILayout.PropertyField(m_Offset, k_Offset);
+                if (EditorGUI.EndChangeCheck())
+                    ReinitSavedRatioSizePivotPosition();
+                EditorGUI.EndProperty();
 
                 EditorGUILayout.PropertyField(m_MaterialProperty, k_MaterialContent);
 
@@ -553,7 +617,11 @@ namespace UnityEditor.Rendering.HighDefinition
                         EditorGUILayout.LabelField(EditorGUIUtility.TrTextContent("Multiple material type in selection"));
                 }
                 else if (showAffectTransparency)
+                {
                     EditorGUILayout.PropertyField(m_AffectsTransparencyProperty, k_AffectTransparentContent);
+                    if (m_AffectsTransparencyProperty.boolValue && !DecalSystem.instance.IsAtlasAllocatedSuccessfully())
+                        EditorGUILayout.HelpBox(DecalSystem.s_AtlasSizeWarningMessage, MessageType.Warning);
+                }
             }
             if (EditorGUI.EndChangeCheck())
                 serializedObject.ApplyModifiedProperties();
