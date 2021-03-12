@@ -27,7 +27,7 @@ Varyings ProjectShadow(Attributes v)
     // We should change 0 to a z value to shorten shadows. This will also require additional work for per-pixel distance as we have to overproject.
     float3 vertexOS0 =  float3(v.vertex.x * _ShadowModelScale.x, v.vertex.y * _ShadowModelScale.y, 0);
     float3 vertexOS1 =  float3(v.tangent.z * _ShadowModelScale.x, v.tangent.w * _ShadowModelScale.y, 0);  // the tangent has the adjacent point stored in zw
-    float3 lightPosOS = float3(mul(_ShadowModelInvMatrix, float4(_LightPos.x, _LightPos.y, 0, 1)).xyz);  // Transform the light into local space
+    float3 lightPosOS = float3(mul(_ShadowModelInvMatrix, float4(_LightPos.x, _LightPos.y, _LightPos.z, 1)).xy, 0);  // Transform the light into local space
                 
     float3 unnormalizedLightDir0 = vertexOS0 - lightPosOS;
     float3 unnormalizedLightDir1 = vertexOS1 - lightPosOS;
