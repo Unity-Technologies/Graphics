@@ -303,7 +303,7 @@ The tables that follow provide an overview of the **Features** that the High Def
 | Physically Based         | Not supported            | Yes                             |
 | Simple Lit (Blinn-Phong) | Yes                      | Not supported                   |
 | Unlit                    | Not supported            | Not supported                   |
-| Speed Tree               | Yes                      | Yes. Expect visual changes for correctness in future versions.|
+| Speed Tree               | Yes                      | SpeedTree8 only. Expect visual changes for correctness in future versions.|
 | Paint Trees              | Yes                      | Yes                             |
 | Detail                   | Yes                      | Not supported                   |
 | Wind Zone                | Yes                      | Not supported                   |
