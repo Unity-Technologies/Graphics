@@ -2920,7 +2920,7 @@ namespace UnityEngine.Rendering.HighDefinition
                     else if (blendMode == SRPLensFlareBlendMode.Premultiply)
                         materialPass = 2;
                     else if (blendMode == SRPLensFlareBlendMode.Lerp)
-                        materialPass = 2;
+                        materialPass = 3;
                     else
                         materialPass = 0;
 
