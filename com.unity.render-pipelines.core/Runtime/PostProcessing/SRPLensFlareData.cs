@@ -89,6 +89,7 @@ namespace UnityEngine
             lensFlareTexture = null;
             uniformScale = 1.0f;
             sizeXY = Vector2.one;
+            allowMultipleElement = false;
             count = 1;
             rotation = 0.0f;
             tint = new Color(1.0f, 1.0f, 1.0f, 0.5f);
@@ -160,6 +161,10 @@ namespace UnityEngine
         /// Scale size on each dimension
         /// </summary>
         public Vector2 sizeXY;
+        /// <summary>
+        /// Enable multiple slements
+        /// </summary>
+        public bool allowMultipleElement;
         /// <summary>
         /// Element can be repeated 'count' times
         /// </summary>

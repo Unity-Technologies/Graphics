@@ -63,6 +63,7 @@ namespace UnityEditor.Rendering
             SerializedProperty tintProp = property.FindPropertyRelative("tint");
             SerializedProperty blendModeProp = property.FindPropertyRelative("blendMode");
             SerializedProperty countProp = property.FindPropertyRelative("count");
+            SerializedProperty allowMultipleElementProp = property.FindPropertyRelative("allowMultipleElement");
             SerializedProperty rotationProp = property.FindPropertyRelative("rotation");
             SerializedProperty speedProp = property.FindPropertyRelative("speed");
             SerializedProperty autoRotateProp = property.FindPropertyRelative("autoRotate");
@@ -271,10 +272,16 @@ namespace UnityEditor.Rendering
                 ++EditorGUI.indentLevel;
                 {
                     rect = GetNextRect();
-                    if ((iTmp = EditorGUI.IntField(rect, Styles.count, countProp.intValue)) != countProp.intValue)
-                        countProp.intValue = Mathf.Max(iTmp, 1);
+                    if ((tmpBool = EditorGUI.Toggle(rect, Styles.allowMultipleElement, allowMultipleElementProp.boolValue)) != allowMultipleElementProp.boolValue)
+                        allowMultipleElementProp.boolValue = tmpBool;
 
-                    if (countProp.intValue > 1)
+                    if (allowMultipleElementProp.boolValue)
+                    {
+                        rect = GetNextRect();
+                        if ((iTmp = EditorGUI.IntField(rect, Styles.count, countProp.intValue)) != countProp.intValue)
+                            countProp.intValue = Mathf.Max(iTmp, 1);
+                    }
+                    if (allowMultipleElementProp.boolValue && countProp.intValue > 1)
                     {
                         rect = GetNextRect();
                         SRPLensFlareDistribution newDistribution;
@@ -371,6 +378,7 @@ namespace UnityEditor.Rendering
             SerializedProperty countProp = property.FindPropertyRelative("count");
             SerializedProperty flareTypeProp = property.FindPropertyRelative("flareType");
             SerializedProperty enableDistortionProp = property.FindPropertyRelative("enableRadialDistortion");
+            SerializedProperty allowMultipleElementProp = property.FindPropertyRelative("allowMultipleElement");
 
             SRPLensFlareType flareType = (SRPLensFlareType)flareTypeProp.enumValueIndex;
 
@@ -396,20 +404,25 @@ namespace UnityEditor.Rendering
                     coef -= 2.0f;
                 }
 
-                if (countProp.intValue > 1)
+                if (allowMultipleElementProp.boolValue)
                 {
-                    coef += 2.0f;
-                    if ((SRPLensFlareDistribution)distributionProp.enumValueIndex == SRPLensFlareDistribution.Uniform)
-                    {
+                    if (countProp.intValue == 1)
                         coef += 1.0f;
-                    }
-                    else if ((SRPLensFlareDistribution)distributionProp.enumValueIndex == SRPLensFlareDistribution.Random)
-                    {
-                        coef += 6.0f;
-                    }
-                    else if ((SRPLensFlareDistribution)distributionProp.enumValueIndex == SRPLensFlareDistribution.Curve)
+                    else
                     {
                         coef += 3.0f;
+                        if ((SRPLensFlareDistribution)distributionProp.enumValueIndex == SRPLensFlareDistribution.Uniform)
+                        {
+                            coef += 1.0f;
+                        }
+                        else if ((SRPLensFlareDistribution)distributionProp.enumValueIndex == SRPLensFlareDistribution.Random)
+                        {
+                            coef += 6.0f;
+                        }
+                        else if ((SRPLensFlareDistribution)distributionProp.enumValueIndex == SRPLensFlareDistribution.Curve)
+                        {
+                            coef += 3.0f;
+                        }
                     }
                 }
 
@@ -438,6 +451,7 @@ namespace UnityEditor.Rendering
             static public readonly GUIContent uniformScale = EditorGUIUtility.TrTextContent("Scale", "Uniform scale used to size the flare on width and height.");
             static public readonly GUIContent sizeXY = EditorGUIUtility.TrTextContent("Size", "Size for each dimension. Can be used with Radial Distortion.");
 
+            static public readonly GUIContent allowMultipleElement = EditorGUIUtility.TrTextContent("Enable", "Allow MultipleElement.");
             static public readonly GUIContent count = EditorGUIUtility.TrTextContent("Count", "Element Count.");
             static public readonly GUIContent rotation = EditorGUIUtility.TrTextContent("Rotation", "Local rotation of the texture.");
             static public readonly GUIContent autoRotate = EditorGUIUtility.TrTextContent("Auto Rotate", "Rotate the texture relative to the angle on the screen (the rotation will be added to the parameter 'rotation').");
