@@ -110,8 +110,8 @@ bool CalculateDebugColorLightingSettings(inout SurfaceData2D surfaceData, inout 
             return false;
         }
 
-        case DEBUGLIGHTINGMODE_LIGHT_ONLY:
-        case DEBUGLIGHTINGMODE_LIGHT_DETAIL:
+        case DEBUGLIGHTINGMODE_LIGHTING_WITHOUT_NORMAL_MAPS:
+        case DEBUGLIGHTINGMODE_LIGHTING_WITH_NORMAL_MAPS:
         {
             surfaceData.albedo = 1;
             return false;

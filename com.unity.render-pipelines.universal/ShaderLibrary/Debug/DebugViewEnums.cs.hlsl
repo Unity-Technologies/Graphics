@@ -1,5 +1,5 @@
 //
-// This file was automatically generated. Please don't edit by hand. Execute Editor command [ Edit / Render Pipeline / Generate Shader Includes ] instead
+// This file was automatically generated. Please don't edit by hand. Execute Editor command [ Edit > Rendering > Generate Shader Includes ] instead
 //
 
 #ifndef DEBUGVIEWENUMS_CS_HLSL
@@ -69,8 +69,8 @@
 //
 #define DEBUGLIGHTINGMODE_NONE (0)
 #define DEBUGLIGHTINGMODE_SHADOW_CASCADES (1)
-#define DEBUGLIGHTINGMODE_LIGHT_ONLY (2)
-#define DEBUGLIGHTINGMODE_LIGHT_DETAIL (3)
+#define DEBUGLIGHTINGMODE_LIGHTING_WITHOUT_NORMAL_MAPS (2)
+#define DEBUGLIGHTINGMODE_LIGHTING_WITH_NORMAL_MAPS (3)
 #define DEBUGLIGHTINGMODE_REFLECTIONS (4)
 #define DEBUGLIGHTINGMODE_REFLECTIONS_WITH_SMOOTHNESS (5)
 

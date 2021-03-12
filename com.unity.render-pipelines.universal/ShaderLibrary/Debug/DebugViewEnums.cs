@@ -1,4 +1,3 @@
-
 using System;
 
 namespace UnityEngine.Rendering.Universal
@@ -86,8 +85,8 @@ namespace UnityEngine.Rendering.Universal
     {
         None,
         ShadowCascades,
-        LightOnly,
-        LightDetail,
+        LightingWithoutNormalMaps,
+        LightingWithNormalMaps,
         Reflections,
         ReflectionsWithSmoothness,
     }
