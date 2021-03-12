@@ -29,7 +29,7 @@ namespace UnityEditor.Rendering
         }
     }
 
-    sealed class DebugWindow : EditorWindow
+    sealed class DebugWindow : EditorWindow, IHasCustomMenu
     {
         static Styles s_Styles;
         static GUIStyle s_SplitterLeft;
@@ -561,6 +561,33 @@ namespace UnityEditor.Rendering
                 sectionHeader.margin.left += 1;
                 sectionHeader.normal.textColor = EditorGUIUtility.isProSkin ? textColorDarkSkin : textColorLightSkin;
                 skinBackgroundColor = EditorGUIUtility.isProSkin ? backgroundColorDarkSkin : backgroundColorLightSkin;
+            }
+        }
+
+        public void AddItemsToMenu(GenericMenu menu)
+        {
+            menu.AddItem(EditorGUIUtility.TrTextContent("Expand All"), false, () => SetExpanded(true));
+            menu.AddItem(EditorGUIUtility.TrTextContent("Collapse All"), false, () => SetExpanded(false));
+        }
+
+        void SetExpanded(bool value)
+        {
+            var panels = DebugManager.instance.panels;
+            foreach (var p in panels)
+            {
+                foreach (var w in p.children)
+                {
+                    if (w.GetType() == typeof(DebugUI.Foldout))
+                    {
+                        m_WidgetStates.TryGetValue(w.queryPath, out DebugState state);
+                        if (state != null)
+                        {
+                            var foldout = (DebugUI.Foldout)w;
+                            state.SetValue(value, foldout);
+                            foldout.SetValue(value);
+                        }
+                    }
+                }
             }
         }
     }
