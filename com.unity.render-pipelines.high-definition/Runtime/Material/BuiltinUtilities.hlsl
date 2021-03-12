@@ -120,4 +120,54 @@ void PostInitBuiltinData(   float3 V, PositionInputs posInput, SurfaceData surfa
     ApplyDebugToBuiltinData(builtinData);
 }
 
+#ifdef SHADERPASS
+#if SHADERPASS == SHADERPASS_GBUFFER || SHADERPASS == SHADERPASS_FORWARD
+#include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/MaskVolume/MaskVolume.hlsl"
+#endif
+#endif // #ifdef SHADERPASS
+
+// Function signature exposed in a shader graph node, to keep
+float3 SampleMaskVolume(float3 positionRWS, float3 normalWS)
+{
+    float3 mask = 0.0f;
+
+#ifdef SHADERPASS
+#if SHADERPASS == SHADERPASS_GBUFFER || SHADERPASS == SHADERPASS_FORWARD
+
+    // Need PositionInputs for indexing mask volume clusters, but they are not available from the current SampleMaskVolume() function signature.
+    // Reconstruct.
+    PositionInputs posInputs;
+    ZERO_INITIALIZE(PositionInputs, posInputs);
+    posInputs.positionWS = positionRWS;
+
+    float4 positionCS = mul(UNITY_MATRIX_VP, float4(positionRWS, 1.0));
+    positionCS.xyz /= positionCS.w;
+    float2 positionNDC = positionCS.xy * float2(0.5, (_ProjectionParams.x > 0) ? 0.5 : -0.5) + 0.5;
+    float2 positionSS = positionNDC.xy * _ScreenSize.xy;
+    uint2 tileCoord = uint2(positionSS) / MaskVolumeGetTileSize();
+
+    posInputs.tileCoord = tileCoord; // Needed for mask volume cluster Indexing.
+    posInputs.linearDepth = LinearEyeDepth(positionRWS, UNITY_MATRIX_V); // Needed for mask volume cluster Indexing.
+    posInputs.positionNDC = float2(0, 0); // Not needed for mask volume cluster indexing.
+    posInputs.deviceDepth = 0.0f; // Not needed for mask volume cluster indexing.
+
+    // Use uniform directly - The float need to be cast to uint (as unity don't support to set a uint as uniform)
+    uint renderingLayers = GetMeshRenderingLightLayer();
+
+    float maskVolumeHierarchyWeight = 0.0f;
+
+    MaskVolumeEvaluateSphericalHarmonics(
+        posInputs,
+        normalWS,
+        renderingLayers,
+        maskVolumeHierarchyWeight,
+        mask
+    );
+
+#endif
+#endif // #ifdef SHADERPASS
+
+    return mask;
+}
+
 #endif //__BUILTINUTILITIES_HLSL__

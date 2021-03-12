@@ -219,7 +219,7 @@ namespace UnityEditor.Rendering.HighDefinition
             area.AmmendInfo(FrameSettingsField.DecalLayers, overrideable: () => hdrpSettings.supportDecalLayers);
             area.AmmendInfo(FrameSettingsField.Distortion, overrideable: () => hdrpSettings.supportDistortion);
             area.AmmendInfo(FrameSettingsField.RoughDistortion, overrideable: () => hdrpSettings.supportDistortion);
-
+            area.AmmendInfo(FrameSettingsField.MaskVolume, overrideable: () => hdrpSettings.supportMaskVolume);
             area.AmmendInfo(FrameSettingsField.Postprocess, overrideable: () => (frameSettingType != FrameSettingsRenderType.CustomOrBakedReflection &&
                                                                                 frameSettingType != FrameSettingsRenderType.RealtimeReflection));
 
