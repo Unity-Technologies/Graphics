@@ -40,8 +40,9 @@ namespace UnityEngine.Rendering.Universal
             }
 
             public AtlasSettings atlas;
-            public int maxAdditionalLights;
-            public bool useStructuredBuffer; // RenderingUtils.useStructuredBuffer
+            public int   maxAdditionalLights;        // UniversalRenderPipeline.maxVisibleAdditionalLights;
+            public float cubeOctahedralSizeScale;    // Cube octahedral projection size scale.
+            public bool  useStructuredBuffer;        // RenderingUtils.useStructuredBuffer
 
             public static Settings GetDefault()
             {
@@ -49,6 +50,10 @@ namespace UnityEngine.Rendering.Universal
                 s.atlas.resolution    = new Vector2Int(1024, 1024);
                 s.atlas.format        = GraphicsFormat.R8G8B8A8_SRGB; // TODO: optimize
                 s.maxAdditionalLights = UniversalRenderPipeline.maxVisibleAdditionalLights;
+                // (Scale * WH) / (6 * WH)
+                // 1: 1/6 = 16%, 2: 4/6 = 66%, 4: 16/6 == 266% of cube pixels
+                // 100% cube pixels == sqrt(6) ~= 2.45f;
+                s.cubeOctahedralSizeScale = s.atlas.isPow2 ? 2.0f : 2.45f;
                 s.useStructuredBuffer = RenderingUtils.useStructuredBuffer;
                 return s;
             }
@@ -166,15 +171,28 @@ namespace UnityEngine.Rendering.Universal
 
         void InitAdditionalLights(int size)
         {
-            // TODO: correct atlas type?
-            m_AdditionalLightsCookieAtlas = new Texture2DAtlas(
-                m_Settings.atlas.resolution.x,
-                m_Settings.atlas.resolution.y,
-                m_Settings.atlas.format,
-                FilterMode.Bilinear,    // TODO: option?
-                m_Settings.atlas.isPow2,    // TODO: necessary?
-                "Universal Light Cookie Atlas",
-                false); // TODO: support mips, use Pow2Atlas
+            if (m_Settings.atlas.isPow2)
+            {
+                m_AdditionalLightsCookieAtlas = new PowerOfTwoTextureAtlas(
+                    m_Settings.atlas.resolution.x,
+                    1,    // TODO: what's the correct value here, how many mips before bleed?
+                    m_Settings.atlas.format,
+                    FilterMode.Bilinear,    // TODO: option?
+                    "Universal Light Cookie Atlas",
+                    true);
+            }
+            else
+            {
+                m_AdditionalLightsCookieAtlas = new Texture2DAtlas(
+                    m_Settings.atlas.resolution.x,
+                    m_Settings.atlas.resolution.y,
+                    m_Settings.atlas.format,
+                    FilterMode.Bilinear,    // TODO: option?
+                    m_Settings.atlas.isPow2,
+                    "Universal Light Cookie Atlas",
+                    false); // support mips, use Pow2Atlas
+            }
+
 
             m_AdditionalLightsCookieShaderData = new LightCookieShaderData(size, m_Settings.useStructuredBuffer);
         }
@@ -355,17 +373,21 @@ namespace UnityEngine.Rendering.Universal
                 Light light = lightData.visibleLights[lcd.visibleLightIndex].light;
                 Texture cookie = light.cookie;
 
-                if (cookie.dimension != TextureDimension.Tex2D)
-                {
-                    // TODO: useful error messages
-                    //Debug.LogError($"Universal Light Cookie Manager: warning { cookie.name } is not a 2D Texture.");
-                    continue;
-                }
-
                 // TODO: blit point light into octahedraQuad or 2d slices.
                 // TODO: blit format convert into A8 or into sRGB
                 Vector4 uvScaleOffset = Vector4.zero;
-                bool isCached = m_AdditionalLightsCookieAtlas.AddTexture(cmd, ref uvScaleOffset, cookie);
+                if (cookie.dimension == TextureDimension.Cube)
+                {
+                    Debug.Assert(light.type == LightType.Point);
+                    uvScaleOffset = FetchCube(cmd, cookie);
+                }
+                else
+                {
+                    Debug.Assert(light.type == LightType.Spot);
+                    uvScaleOffset = Fetch2D(cmd, cookie);
+                }
+
+                bool isCached = uvScaleOffset != Vector4.zero;
                 if (!isCached)
                 {
                     // Update data
@@ -395,36 +417,56 @@ namespace UnityEngine.Rendering.Universal
             return uvRectCount;
         }
 
-        /*public Vector4 FetchCubeCookie(CommandBuffer cmd, Texture cookie, Texture ies)
+        Vector4 Fetch2D(CommandBuffer cmd, Texture cookie)
         {
             Debug.Assert(cookie != null);
-            Debug.Assert(ies != null);
+            Debug.Assert(cookie.dimension == TextureDimension.Tex2D);
+
+            Vector4 uvScaleOffset = Vector4.zero;
+            m_AdditionalLightsCookieAtlas.AddTexture(cmd, ref uvScaleOffset, cookie);
+            m_AdditionalLightsCookieAtlas.UpdateTexture(cmd, cookie, ref uvScaleOffset, cookie);
+            return uvScaleOffset;
+        }
+
+        int ComputeOctahedralCookieSize(Texture cookie)
+        {
+            // Map 6*WxH pixels into 2W*2H pixels, so 4/6 ratio or 66% of cube pixels.
+            int octCookieSize = Math.Max(cookie.width, cookie.height);
+            if (m_Settings.atlas.isPow2)
+                octCookieSize = octCookieSize * Mathf.NextPowerOfTwo((int)m_Settings.cubeOctahedralSizeScale);
+            else
+                octCookieSize = (int)(octCookieSize * m_Settings.cubeOctahedralSizeScale + 0.5f);
+            return octCookieSize;
+        }
+
+        public Vector4 FetchCube(CommandBuffer cmd, Texture cookie)
+        {
+            Debug.Assert(cookie != null);
             Debug.Assert(cookie.dimension == TextureDimension.Cube);
-            Debug.Assert(ies.dimension == TextureDimension.Cube);
 
-#if UNITY_2020_1_OR_NEWER
-            int projectionSize = 2 * cookie.width;
-#else
-            int projectionSize = 2 * (int)Mathf.Max((float)m_CookieCubeResolution, (float)cookie.width);
-#endif
-            if (projectionSize < k_MinCookieSize)
-                return Vector4.zero;
+            Vector4 uvScaleOffset = Vector4.zero;
 
-            if (!m_CookieAtlas.IsCached(out var scaleBias, cookie, ies) && !m_NoMoreSpace)
-                Debug.LogError($"Unity cannot fetch the Cube cookie texture: {cookie} because it is not on the cookie atlas. To resolve this, open your HDRP Asset and increase the resolution of the cookie atlas.");
-
-            if (m_CookieAtlas.NeedsUpdate(cookie, ies, true))
+            // Check if texture is present
+            bool isCached = m_AdditionalLightsCookieAtlas.IsCached(out uvScaleOffset, cookie);
+            if (isCached)
             {
-                Vector4 sourceScaleOffset = new Vector4(projectionSize / (float)atlasTexture.rt.width, projectionSize / (float)atlasTexture.rt.height, 0, 0);
+                // Update contents if required
+                m_AdditionalLightsCookieAtlas.UpdateTexture(cmd, cookie, ref uvScaleOffset);
 
-                Texture filteredProjected = FilterAreaLightTexture(cmd, cookie, projectionSize, projectionSize);
-                m_CookieAtlas.BlitOctahedralTexture(cmd, scaleBias, filteredProjected, sourceScaleOffset, blitMips: true, overrideInstanceID: m_CookieAtlas.GetTextureID(cookie, ies));
-                filteredProjected = FilterAreaLightTexture(cmd, ies, projectionSize, projectionSize);
-                m_CookieAtlas.BlitOctahedralTextureMultiply(cmd, scaleBias, filteredProjected, sourceScaleOffset, blitMips: true, overrideInstanceID: m_CookieAtlas.GetTextureID(cookie, ies));
+                return uvScaleOffset;
             }
 
-            return scaleBias;
-        }*/
+            // Scale octahedral projection, so that cube -> oct2D pixel count match better.
+            int octCookieSize = ComputeOctahedralCookieSize(cookie);
+
+            // Allocate new
+            bool isAllocated = m_AdditionalLightsCookieAtlas.AllocateTexture(cmd, ref uvScaleOffset, cookie, octCookieSize, octCookieSize);
+
+            if (isAllocated)
+                return uvScaleOffset;
+
+            return Vector4.zero;
+        }
 
         void DrawDebugFrustum(Matrix4x4 m, float near = 1, float far = -1)
         {
@@ -495,6 +537,7 @@ namespace UnityEngine.Rendering.Universal
             // Set all rects to Invalid (Vector4.zero).
             Array.Clear(atlasUVRects, 0, atlasUVRects.Length);
 
+            // Fill shader data
             for (int i = 0; i < validUvRects.Length; i++)
             {
                 int visIndex = validSortedLights[i].visibleLightIndex;
@@ -504,8 +547,7 @@ namespace UnityEngine.Rendering.Universal
                 worldToLights[bufIndex] = lightData.visibleLights[visIndex].localToWorldMatrix.inverse;
                 atlasUVRects[bufIndex]  = validUvRects[i];
 
-                // TODO: need spot projection here, or spot outer angle in shader
-                // TODO: projection should be in light data
+                // Spot projection
                 if (lightData.visibleLights[visIndex].lightType == LightType.Spot)
                 {
                     // VisibleLight.localToWorldMatrix only contains position & rotation.
@@ -522,6 +564,7 @@ namespace UnityEngine.Rendering.Universal
                 }
             }
 
+            // Apply changes and upload to GPU
             m_AdditionalLightsCookieShaderData.Apply(cmd);
         }
     }
