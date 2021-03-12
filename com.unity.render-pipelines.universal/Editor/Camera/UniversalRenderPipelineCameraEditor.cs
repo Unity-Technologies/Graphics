@@ -671,15 +671,15 @@ namespace UnityEditor.Rendering.Universal
                 if (m_TypeErrorCameras.Any())
                 {
                     var message = new StringBuilder();
+                    message.Append("The type of the following Cameras must be Overlay render type: ");
                     foreach (var camera in m_TypeErrorCameras)
                     {
                         message.Append(camera.name);
                         if (camera != m_TypeErrorCameras.Last())
                             message.Append(", ");
                         else
-                            message.Append(" ");
-                    }
-                    message.Append("needs to be Overlay render type.");
+                            message.Append(".");
+                    }                    
 
                     CoreEditorUtils.DrawFixMeBox(message.ToString(), MessageType.Error, () => UpdateStackCemerasToOverlay());
                 }
@@ -687,16 +687,16 @@ namespace UnityEditor.Rendering.Universal
                 if (m_OutputWarningCameras.Any())
                 {
                     var message = new StringBuilder();
+                    message.Append("The output properties of this Camera do not match the output properties of the following Cameras: ");
                     foreach (var camera in m_OutputWarningCameras)
                     {
                         message.Append(camera.name);
                         if (camera != m_OutputWarningCameras.Last())
                             message.Append(", ");
                         else
-                            message.Append(" ");
+                            message.Append(".");
                     }
-                    message.Append("output properties do not match base cameras.");
-
+                    
                     CoreEditorUtils.DrawFixMeBox(message.ToString(), MessageType.Warning, () => UpdateStackCamerasOutput());
                 }
                 EditorGUI.indentLevel++;
