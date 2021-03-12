@@ -224,7 +224,7 @@ namespace UnityEngine.Rendering.HighDefinition
         public LocalVolumetricFogResolution maxLocalVolumetricFogSize;
 
         /// <summary>Maximum number of Local Volumetric Fog at the same time on screen.</summary>
-        [Range(1, 512)]
+        [Range(1, HDRenderPipeline.k_MaxVisibleLocalVolumetricFogCount)]
         public int maxLocalVolumetricFogOnScreen;
     }
 }

@@ -295,7 +295,7 @@ namespace UnityEngine.Rendering
                             .FirstOrDefault() is InspectorNameAttribute attribute ? attribute.displayName : enumValue.ToString();
 
                         if (memInfo[0].GetCustomAttributes(typeof(ObsoleteAttribute), false).FirstOrDefault() is ObsoleteAttribute)
-                            name += "(Obsolete)";
+                            name += " (Obsolete)";
 
                         enumNames[i] = EditorGUIUtility.TrTextContent(ObjectNames.NicifyVariableName(name));
                         enumValues[i] = (int)enumValue;

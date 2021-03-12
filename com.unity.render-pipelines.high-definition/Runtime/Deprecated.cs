@@ -2,65 +2,21 @@ using System;
 
 namespace UnityEngine.Rendering.HighDefinition
 {
-    /// <summary>
-    /// Possible values for one element of the Local Volumetric Fog atlas.
-    /// </summary>
-    [Serializable]
-    [Obsolete("DensityVolumeResolution has been deprecated. Please use LocalVolumetricFogResolution (UnityUpgradable)", false)]
-    public enum DensityVolumeResolution
-    {
-        /// <summary>3D volume of 32x32x32 voxels.</summary>
-        Resolution32 = 32,
-        /// <summary>3D volume of 64x64x64 voxels.</summary>
-        Resolution64 = 64,
-        /// <summary>3D volume of 128x128x128 voxels.</summary>
-        Resolution128 = 128,
-        /// <summary>3D volume of 256x256x256 voxels.</summary>
-        Resolution256 = 256,
-    }
-
     public partial struct GlobalLightLoopSettings
     {
         // We keep this property for the migration code (we need to know how many cookies we could have before).
         [SerializeField, Obsolete("There is no more texture array for cookies, use cookie atlases properties instead.", false)]
         internal int cookieTexArraySize;
-
-        /// <summary>Maximum size of one Local Volumetric Fog texture.</summary>
-        [Obsolete("maxDensityVolumeSize property has been deprecated. Please use maxLocalVolumetricFogSize (UnityUpgradable)", false)]
-        public DensityVolumeResolution maxDensityVolumeSize
-        {
-            get => (DensityVolumeResolution)maxLocalVolumetricFogSize;
-            set => maxLocalVolumetricFogSize = (LocalVolumetricFogResolution)value;
-        }
-
-        /// <summary>Maximum number of Local Volumetric Fog at the same time on screen.</summary>
-        [Obsolete("maxDensityVolumesOnScreen property has been deprecated. Please use maxLocalVolumetricFogOnScreen (UnityUpgradable)", false)]
-        public int maxDensityVolumesOnScreen
-        {
-            get => maxLocalVolumetricFogOnScreen;
-            set => maxLocalVolumetricFogOnScreen = value;
-        }
     }
 
     /// <summary>Deprecated DensityVolume</summary>
-    [Obsolete("DensityVolume has been deprecated. Please use LocalVolumetricFog (UnityUpgradable)", false)]
+    [Obsolete("DensityVolume has been deprecated (UnityUpgradable) -> LocalVolumetricFog", false)]
     public class DensityVolume : LocalVolumetricFog
     {
     }
 
-    /// <summary></summary>
-    [GenerateHLSL]
-    [Obsolete("DensityVolumeFalloffMode property has been deprecated. Please use LocalVolumetricFogFalloffMode (UnityUpgradable)", false)]
-    public enum DensityVolumeFalloffMode
-    {
-        /// <summary></summary>
-        Linear,
-        /// <summary></summary>
-        Exponential,
-    }
-
     /// <summary>Deprecated DensityVolumeArtistParameters</summary>
-    [Obsolete("DensityVolumeArtistParameters has been deprecated. Please use LocalVolumetricFogArtistParameters (UnityUpgradable)", false)]
+    [Obsolete("DensityVolumeArtistParameters has been deprecated (UnityUpgradable) -> LocalVolumetricFogArtistParameters", false)]
     public struct DensityVolumeArtistParameters
     {
         LocalVolumetricFogArtistParameters m_Parameters;
@@ -155,13 +111,6 @@ namespace UnityEngine.Rendering.HighDefinition
         {
             get => m_Parameters.textureOffset;
             set => m_Parameters.textureOffset = value;
-        }
-
-        /// <summary>When Blend Distance is above 0, controls which kind of falloff is applied to the transition area.</summary>
-        public DensityVolumeFalloffMode falloffMode
-        {
-            get => (DensityVolumeFalloffMode)m_Parameters.falloffMode;
-            set => m_Parameters.falloffMode = (LocalVolumetricFogFalloffMode)value;
         }
 
         /// <summary>Constructor.</summary>
