@@ -138,7 +138,7 @@ namespace UnityEngine.Rendering.HighDefinition
     /// Global Light Loop Settings.
     /// </summary>
     [Serializable]
-    public partial struct GlobalLightLoopSettings
+    public struct GlobalLightLoopSettings
     {
         internal static readonly GlobalLightLoopSettings @default = default;
         /// <summary>Default GlobalDecalSettings</summary>
@@ -185,6 +185,9 @@ namespace UnityEngine.Rendering.HighDefinition
 #endif
         /// <summary>Last valid mip for cookie atlas.</summary>
         public int cookieAtlasLastValidMip;
+        // We keep this property for the migration code (we need to know how many cookies we could have before).
+        [SerializeField, Obsolete("There is no more texture array for cookies, use cookie atlases properties instead.", false)]
+        internal int cookieTexArraySize;
 
         /// <summary>Planar reflections atlas resolution.</summary>
         [FormerlySerializedAs("planarReflectionTextureSize")]

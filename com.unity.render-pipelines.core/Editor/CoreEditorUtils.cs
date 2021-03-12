@@ -1,15 +1,13 @@
 using System;
-using System.IO;
 using System.Collections.Generic;
-using System.ComponentModel;
+using System.IO;
 using System.Linq;
 using System.Linq.Expressions;
 using System.Reflection;
 using System.Text;
+using UnityEditor.AnimatedValues;
 using UnityEngine;
 using UnityEngine.Rendering;
-using UnityEditor.AnimatedValues;
-using Component = UnityEngine.Component;
 
 namespace UnityEditor.Rendering
 {

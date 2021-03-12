@@ -1,5 +1,4 @@
 using System;
-using UnityEngine.Serialization;
 
 namespace UnityEngine.Rendering.HighDefinition
 {
@@ -226,7 +225,7 @@ namespace UnityEngine.Rendering.HighDefinition
     /// Lighting Debug Settings.
     /// </summary>
     [Serializable]
-    public partial class LightingDebugSettings
+    public class LightingDebugSettings
     {
         /// <summary>
         /// Returns true if any lighting debug mode is enabled.
@@ -314,6 +313,9 @@ namespace UnityEngine.Rendering.HighDefinition
         public ExposureDebugMode    exposureDebugMode = ExposureDebugMode.None;
         /// <summary>Exposure compensation to apply on current scene exposure.</summary>
         public float                debugExposure = 0.0f;
+        /// <summary>Obsolete, please use  the lens attenuation mode in HDRP Default Settings.</summary>
+        [Obsolete("Please use the lens attenuation mode in HDRP Default Settings", true)]
+        public float debugLensAttenuation = 0.65f;
         /// <summary>Whether to show tonemap curve in the histogram debug view or not.</summary>
         public bool                 showTonemapCurveAlongHistogramView = true;
         /// <summary>Whether to center the histogram debug view around the middle-grey point or not.</summary>
