@@ -39,7 +39,7 @@ You can debug the exposure in your scene with the **Post-process Debug** compone
 
 The Light Meter monitor creates a logarithmic histogram that appears in the **Game** window. This displays information about the exposure in your scene in real time. For more information, see [Debugging](#Debugging).
 
-![](Images/Ppv2 _ Debugging_Light meter_Graph.png)
+![](Images\Ppv2 _ Debugging_Light meter_Graph.png)
 
 The Light Meter monitor.
 

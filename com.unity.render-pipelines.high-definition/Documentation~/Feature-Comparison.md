@@ -86,8 +86,8 @@ The tables that follow provide an overview of the Features that the High Definit
 
 | **Feature**            | **Built-in Render Pipeline** | **High Definition Render Pipeline (HDRP)** |
 | ------------------ | ------------------------ | ------------------------------- |
-| **Enlighten**      | Yes                      | Not supported                   |
-| **Enlighten Realtime** | Yes                      | Not supported                   |
+| **Enlighten**      | Yes                      | Deprecated                   |
+| **Enlighten Realtime** | Yes                      | Yes                   |
 | **Progressive CPU** | Yes                      | Yes                             |
 | **Progressive GPU** | Yes                      | Yes                             |
 

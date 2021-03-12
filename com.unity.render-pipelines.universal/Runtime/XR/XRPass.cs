@@ -339,8 +339,6 @@ namespace UnityEngine.Rendering.Universal
             occlusionMeshCombined.SetIndices(indices, MeshTopology.Triangles, 0);
         }
 
-        Vector4[] stereoEyeIndices = new Vector4[2] { Vector4.zero , Vector4.one };
-
         internal void StartSinglePass(CommandBuffer cmd)
         {
             if (enabled)
@@ -352,7 +350,6 @@ namespace UnityEngine.Rendering.Universal
                         if (SystemInfo.supportsMultiview)
                         {
                             cmd.EnableShaderKeyword("STEREO_MULTIVIEW_ON");
-                            cmd.SetGlobalVectorArray("unity_StereoEyeIndices", stereoEyeIndices);
                         }
                         else
                         {

@@ -83,6 +83,8 @@ namespace UnityEngine.Rendering.HighDefinition
             Lightmap,
             /// <summary>Display materials using instancing.</summary>
             Instancing,
+            /// <summary>Display deferred/forward shading capable materials.</summary>
+            DeferredMaterials,
         }
 
         /// <summary>
@@ -102,7 +104,7 @@ namespace UnityEngine.Rendering.HighDefinition
             AmbientOcclusion,
             /// <summary>Display metal (N/A for AxF).</summary>
             Metal,
-            /// <summary>Display specular.</summary>
+            /// <summary>Display the specular color (fresnel0). For materials using the metallic property, the corresponding fresnel0 term is displayed. (N/A for Unlit).</summary>
             Specular,
             /// <summary>Display alpha.</summary>
             Alpha,

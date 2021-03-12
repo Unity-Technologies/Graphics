@@ -61,6 +61,10 @@ namespace UnityEngine.Rendering.HighDefinition.Compositor
             {
                 if (m_OutputCamera)
                 {
+                    // If the state did not change, don't do anything
+                    if (m_OutputCamera.enabled == value)
+                        return;
+
                     m_OutputCamera.enabled = value;
 
                     // Aside from the output compositor camera, we also have to change the cameras of the layers
@@ -496,7 +500,7 @@ namespace UnityEngine.Rendering.HighDefinition.Compositor
         void Update()
         {
             // TODO: move all validation calls to onValidate. Before doing it, this needs some extra testing to ensure nothing breaks
-            if (ValidatePipeline() == false || ValidateAndFixRuntime() == false || RuntimeCheck() == false)
+            if (enableOutput == false || ValidatePipeline() == false || ValidateAndFixRuntime() == false || RuntimeCheck() == false)
             {
                 return;
             }
@@ -555,6 +559,9 @@ namespace UnityEngine.Rendering.HighDefinition.Compositor
             // We don't need the custom passes anymore
             var hdPipeline = RenderPipelineManager.currentPipeline as HDRenderPipeline;
             UnRegisterCustomPasses(hdPipeline);
+
+            // By now the s_CompositorManagedCameras should be empty, but clear it just to be safe
+            CompositorCameraRegistry.GetInstance().CleanUpCameraOrphans();
         }
 
         public void AddInputFilterAtLayer(CompositionFilter filter, int index)

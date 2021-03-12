@@ -6,8 +6,7 @@ namespace UnityEngine.Rendering.HighDefinition
     {
         CopyDepthBuffer,
         CopyDepthInTargetTexture,
-        CoarseStencilGeneration,
-        ResolveStencilBuffer,
+        BuildCoarseStencilAndResolveIfNeeded,
         AmbientOcclusion,
         HorizonSSAO,
         UpSampleSSAO,
@@ -18,7 +17,8 @@ namespace UnityEngine.Rendering.HighDefinition
         Distortion,
         AccumulateDistortion,
         ApplyDistortion,
-        DepthPrepass,
+        ForwardDepthPrepass,
+        DeferredDepthPrepass,
         TransparentDepthPrepass,
         GBuffer,
         DBufferRender,
@@ -39,7 +39,6 @@ namespace UnityEngine.Rendering.HighDefinition
         SSGIUpscale,
         SSGIConvert,
 
-        ForwardEmissive,
         ForwardOpaque,
         ForwardOpaqueDebug,
         ForwardTransparent,
@@ -55,7 +54,7 @@ namespace UnityEngine.Rendering.HighDefinition
         ColorPyramid,
         DepthPyramid,
         PostProcessing,
-        AfterPostProcessing,
+        AfterPostProcessingObjects,
         RenderFullScreenDebug,
         ClearBuffers,
         ClearStencil,
@@ -92,6 +91,14 @@ namespace UnityEngine.Rendering.HighDefinition
         PrepareVisibleDensityVolumeList,
         UpdateDensityVolumeAtlas,
 
+        VolumetricClouds,
+        VolumetricCloudsPrepare,
+        VolumetricCloudsTrace,
+        VolumetricCloudsReproject,
+        VolumetricCloudsUpscaleAndCombine,
+        VolumetricCloudsShadow,
+        VolumetricCloudMapGeneration,
+
         // RT Cluster
         RaytracingBuildCluster,
         RaytracingCullLights,
@@ -126,10 +133,12 @@ namespace UnityEngine.Rendering.HighDefinition
         // Other ray tracing
         RaytracingDebugOverlay,
         RayTracingRecursiveRendering,
-        RayTracingPrepass,
+        RayTracingDepthPrepass,
+        RayTracingFlagMask,
         // RT Deferred Lighting
         RaytracingDeferredLighting,
         // Denoisers
+        HistoryValidity,
         TemporalFilter,
         DiffuseFilter,
 

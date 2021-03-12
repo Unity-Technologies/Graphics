@@ -4,6 +4,7 @@
 #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Lighting.hlsl"
 #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/UnityGBuffer.hlsl"
 #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/ShaderVariablesFunctions.hlsl"
+#include "SpeedTreeUtility.hlsl"
 
 struct SpeedTreeVertexInput
 {
@@ -56,6 +57,7 @@ struct SpeedTreeVertexOutput
 struct SpeedTreeVertexDepthOutput
 {
     half3 uvHueVariation            : TEXCOORD0;
+    half3 viewDirWS                 : TEXCOORD1;
     float4 clipPos                  : SV_POSITION;
     UNITY_VERTEX_INPUT_INSTANCE_ID
     UNITY_VERTEX_OUTPUT_STEREO
@@ -126,7 +128,12 @@ half4 SpeedTree7Frag(SpeedTreeVertexOutput input) : SV_Target
 
 #if !defined(SHADER_QUALITY_LOW)
     #ifdef LOD_FADE_CROSSFADE // enable dithering LOD transition if user select CrossFade transition in LOD group
-        LODDitheringTransition(input.clipPos.xy, unity_LODFade.x);
+        #ifdef EFFECT_BUMP
+            half3 viewDirectionWS = half3(input.normalWS.w, input.tangentWS.w, input.bitangentWS.w);
+        #else
+            half3 viewDirectionWS = input.viewDirWS;
+        #endif
+        LODDitheringTransition(ComputeFadeMaskSeed(viewDirectionWS, input.clipPos.xy), unity_LODFade.x);
     #endif
 #endif
 
@@ -199,7 +206,7 @@ half4 SpeedTree7FragDepth(SpeedTreeVertexDepthOutput input) : SV_Target
 
 #if !defined(SHADER_QUALITY_LOW)
     #ifdef LOD_FADE_CROSSFADE // enable dithering LOD transition if user select CrossFade transition in LOD group
-        LODDitheringTransition(input.clipPos.xy, unity_LODFade.x);
+        LODDitheringTransition(ComputeFadeMaskSeed(input.viewDirWS, input.clipPos.xy), unity_LODFade.x);
     #endif
 #endif
 
@@ -226,7 +233,12 @@ half4 SpeedTree7FragDepthNormal(SpeedTreeVertexDepthNormalOutput input) : SV_Tar
 
     #if !defined(SHADER_QUALITY_LOW)
         #ifdef LOD_FADE_CROSSFADE // enable dithering LOD transition if user select CrossFade transition in LOD group
-            LODDitheringTransition(input.clipPos.xy, unity_LODFade.x);
+        #ifdef EFFECT_BUMP
+            half3 viewDirectionWS = half3(input.normalWS.w, input.tangentWS.w, input.bitangentWS.w);
+        #else
+            half3 viewDirectionWS = input.viewDirWS;
+        #endif
+        LODDitheringTransition(ComputeFadeMaskSeed(viewDirectionWS, input.clipPos.xy), unity_LODFade.x);
         #endif
     #endif
 

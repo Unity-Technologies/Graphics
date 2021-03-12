@@ -90,27 +90,31 @@ void EvaluateLightmap(float3 positionRWS, float3 normalWS, float3 backNormalWS, 
 #define SHADOWMASK_SAMPLE_EXTRA_ARGS uv
 #endif
 
-#ifdef LIGHTMAP_ON
-#ifdef DIRLIGHTMAP_COMBINED
-    SampleDirectionalLightmap(TEXTURE2D_LIGHTMAP_ARGS(LIGHTMAP_NAME, LIGHTMAP_SAMPLER_NAME),
+
+#if defined(SHADER_STAGE_FRAGMENT) || defined(SHADER_STAGE_RAY_TRACING)
+
+    #ifdef LIGHTMAP_ON
+    #ifdef DIRLIGHTMAP_COMBINED
+        SampleDirectionalLightmap(TEXTURE2D_LIGHTMAP_ARGS(LIGHTMAP_NAME, LIGHTMAP_SAMPLER_NAME),
             TEXTURE2D_LIGHTMAP_ARGS(LIGHTMAP_INDIRECTION_NAME, LIGHTMAP_SAMPLER_NAME),
             LIGHTMAP_SAMPLE_EXTRA_ARGS, unity_LightmapST, normalWS, backNormalWS, useRGBMLightmap, decodeInstructions, bakeDiffuseLighting, backBakeDiffuseLighting);
-#else
-    float3 illuminance = SampleSingleLightmap(TEXTURE2D_LIGHTMAP_ARGS(LIGHTMAP_NAME, LIGHTMAP_SAMPLER_NAME), LIGHTMAP_SAMPLE_EXTRA_ARGS, unity_LightmapST, useRGBMLightmap, decodeInstructions);
-    bakeDiffuseLighting += illuminance;
-    backBakeDiffuseLighting += illuminance;
-#endif
-#endif
+    #else
+        float3 illuminance = SampleSingleLightmap(TEXTURE2D_LIGHTMAP_ARGS(LIGHTMAP_NAME, LIGHTMAP_SAMPLER_NAME), LIGHTMAP_SAMPLE_EXTRA_ARGS, unity_LightmapST, useRGBMLightmap, decodeInstructions);
+        bakeDiffuseLighting += illuminance;
+        backBakeDiffuseLighting += illuminance;
+    #endif
+    #endif
 
-#ifdef DYNAMICLIGHTMAP_ON
-#ifdef DIRLIGHTMAP_COMBINED
-    SampleDirectionalLightmap(TEXTURE2D_ARGS(unity_DynamicLightmap, samplerunity_DynamicLightmap),
-        TEXTURE2D_ARGS(unity_DynamicDirectionality, samplerunity_DynamicLightmap),
-        uvDynamicLightmap, unity_DynamicLightmapST, normalWS, backNormalWS, false, decodeInstructions, bakeDiffuseLighting, backBakeDiffuseLighting);
-#else
-    float3 illuminance += SampleSingleLightmap(TEXTURE2D_ARGS(unity_DynamicLightmap, samplerunity_DynamicLightmap), uvDynamicLightmap, unity_DynamicLightmapST, false, decodeInstructions);
-    bakeDiffuseLighting += illuminance;
-    backBakeDiffuseLighting += illuminance;
+    #ifdef DYNAMICLIGHTMAP_ON
+    #ifdef DIRLIGHTMAP_COMBINED
+        SampleDirectionalLightmap(TEXTURE2D_ARGS(unity_DynamicLightmap, samplerunity_DynamicLightmap),
+            TEXTURE2D_ARGS(unity_DynamicDirectionality, samplerunity_DynamicLightmap),
+            uvDynamicLightmap, unity_DynamicLightmapST, normalWS, backNormalWS, false, decodeInstructions, bakeDiffuseLighting, backBakeDiffuseLighting);
+    #else
+        float3 illuminance = SampleSingleLightmap(TEXTURE2D_ARGS(unity_DynamicLightmap, samplerunity_DynamicLightmap), uvDynamicLightmap, unity_DynamicLightmapST, false, decodeInstructions);
+        bakeDiffuseLighting += illuminance;
+        backBakeDiffuseLighting += illuminance;
+    #endif
 #endif
 #endif
 }
