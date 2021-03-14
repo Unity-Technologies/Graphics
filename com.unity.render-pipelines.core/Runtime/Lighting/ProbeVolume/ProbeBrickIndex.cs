@@ -444,6 +444,8 @@ namespace UnityEngine.Rendering
 
         internal void WriteConstants(ref ProbeReferenceVolume.RefVolTransform refTrans, Vector3Int poolDim, float normalBias)
         {
+            if (m_IndexBuffer == null)
+                return;
 #if USE_INDEX_NATIVE_ARRAY
             NativeArray<int> dst = m_IndexBuffer.BeginWrite<int>(0, kAPVConstantsSize);
 #else

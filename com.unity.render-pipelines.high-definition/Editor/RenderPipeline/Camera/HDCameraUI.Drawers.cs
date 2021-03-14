@@ -21,6 +21,7 @@ namespace UnityEditor.Rendering.HighDefinition
             RenderLoop = 1 << 4,
             Rendering = 1 << 5,
             Environment = 1 << 6,
+            View = 1 << 7,
         }
 
         enum ProjectionType
@@ -132,6 +133,16 @@ namespace UnityEditor.Rendering.HighDefinition
             )
         );
 
+        public static readonly CED.IDrawer SectionViewSettings = CED.FoldoutGroup(
+            EditorGUIUtility.TrTextContent("View"),
+            Expandable.View,
+            k_ExpandedState,
+            FoldoutOption.Indent,
+            CED.Group(
+                Drawer_View
+            )
+        );
+
         public static readonly CED.IDrawer SectionEnvironmentSettings = CED.FoldoutGroup(
             Styles.environmentSettingsHeaderContent,
             Expandable.Environment,
@@ -175,6 +186,7 @@ namespace UnityEditor.Rendering.HighDefinition
         public static readonly CED.IDrawer[] Inspector = new[]
         {
             SectionProjectionSettings,
+            SectionViewSettings,
             SectionRenderingSettings,
             SectionFrameSettings,
             SectionEnvironmentSettings,
@@ -583,6 +595,11 @@ namespace UnityEditor.Rendering.HighDefinition
 
                 EditorGUI.indentLevel--;
             }
+        }
+
+        static void Drawer_View(SerializedHDCamera p, Editor owner)
+        {
+            EditorGUILayout.PropertyField(p.passMode);
         }
 
         static void Drawer_Dithering(SerializedHDCamera p, Editor owner)

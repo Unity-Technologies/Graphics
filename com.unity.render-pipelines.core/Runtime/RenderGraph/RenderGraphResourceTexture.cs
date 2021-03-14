@@ -315,7 +315,8 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
         public override void ReleasePooledGraphicsResource(int frameIndex)
         {
             if (graphicsResource == null)
-                throw new InvalidOperationException($"Tried to release a resource ({GetName()}) that was never created. Check that there is at least one pass writing to it first.");
+                return;
+            // throw new InvalidOperationException($"Tried to release a resource ({GetName()}) that was never created. Check that there is at least one pass writing to it first.");
 
             // Shared resources don't use the pool
             var pool = m_Pool as TexturePool;

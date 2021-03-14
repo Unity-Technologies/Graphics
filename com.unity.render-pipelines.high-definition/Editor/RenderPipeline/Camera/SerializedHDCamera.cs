@@ -29,6 +29,8 @@ namespace UnityEditor.Rendering.HighDefinition
         public SerializedProperty taaAntiRinging;
         public SerializedProperty taaQualityLevel;
 
+        public SerializedProperty passMode;
+
         public SerializedProperty dithering;
         public SerializedProperty stopNaNs;
         public SerializedProperty clearColorMode;
@@ -83,6 +85,7 @@ namespace UnityEditor.Rendering.HighDefinition
             taaMotionVectorRejection = serializedAdditionalDataObject.Find((HDAdditionalCameraData d) => d.taaMotionVectorRejection);
             taaAntiRinging = serializedAdditionalDataObject.Find((HDAdditionalCameraData d) => d.taaAntiHistoryRinging);
             taaQualityLevel = serializedAdditionalDataObject.Find((HDAdditionalCameraData d) => d.TAAQuality);
+            passMode = serializedAdditionalDataObject.Find((HDAdditionalCameraData d) => d.passMode);
 
             dithering = serializedAdditionalDataObject.Find((HDAdditionalCameraData d) => d.dithering);
             stopNaNs = serializedAdditionalDataObject.Find((HDAdditionalCameraData d) => d.stopNaNs);

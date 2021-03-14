@@ -312,7 +312,10 @@ namespace UnityEngine.Rendering.HighDefinition
 
             RenderGizmos(m_RenderGraph, hdCamera, colorBuffer, GizmoSubset.PostImageEffects);
 
+            m_RenderGraph.onPassCulling += hdCamera.CullPasses;
             m_RenderGraph.Execute();
+            m_RenderGraph.onPassCulling -= hdCamera.CullPasses;
+
 
             if (aovRequest.isValid)
             {

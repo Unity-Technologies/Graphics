@@ -878,8 +878,18 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
                 }
             }
 
+            // Additional pass culling based on camera settings
+            for (int i = 0; i < m_CompiledPassInfos.size; i++)
+            {
+                ref var pass = ref m_CompiledPassInfos[i];
+                if (onPassCulling(pass.pass.name, pass.pass.GetType()))
+                    pass.culled = true;
+            }
+
             LogCulledPasses();
         }
+
+        public event Func<string, Type, bool> onPassCulling;
 
         void UpdatePassSynchronization(ref CompiledPassInfo currentPassInfo, ref CompiledPassInfo producerPassInfo, int currentPassIndex, int lastProducer, ref int intLastSyncIndex)
         {

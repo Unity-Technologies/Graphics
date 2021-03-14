@@ -174,6 +174,43 @@ namespace UnityEngine.Rendering.HighDefinition
             return m_HistoryRTSystem.GetFrameRT(id, 0);
         }
 
+        public bool CullPasses(string passName, Type passType)
+        {
+            if (m_AdditionalCameraData  == null)
+                return false;
+
+            switch (m_AdditionalCameraData.passMode)
+            {
+                default:
+                case HDAdditionalCameraData.PassMode.All:
+                    return false;
+                case HDAdditionalCameraData.PassMode.Opaque:
+                    // TODO
+                    return false;
+                case HDAdditionalCameraData.PassMode.Transparent:
+                    frameSettings.SetEnabled(FrameSettingsField.Postprocess, false);
+                    m_AdditionalCameraData.customRenderingSettings = true;
+                    // All the required passes to render transparent
+                    if (passName.Contains("Transparent")
+                        || passName.Contains("Final Blit")
+                        || passName.Contains("Final Pass")
+                        || passName.Contains("Build Light List"))
+                        return false;
+                    else
+                        return true;
+                case HDAdditionalCameraData.PassMode.UI:
+                    frameSettings.SetEnabled(FrameSettingsField.Postprocess, false);
+                    m_AdditionalCameraData.customRenderingSettings = true;
+                    // All the required passes to render transparent
+                    if (passName.Contains("Transparent")
+                        || passName.Contains("Final Blit") // Final Pass needs Final Blit for input texture
+                        || passName.Contains("Final Pass")) // Final Pass is needed to copy color buffer into final RT
+                        return false;
+                    else
+                        return true;
+            }
+        }
+
         #endregion
 
         #region Internal API

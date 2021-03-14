@@ -281,6 +281,17 @@ namespace UnityEngine.Rendering.HighDefinition
         /// <summary>Quality of the anti-aliasing when using TAA.</summary>
         public TAAQualityLevel TAAQuality = TAAQualityLevel.Medium;
 
+        public enum PassMode
+        {
+            All,
+            Opaque,
+            Transparent,
+            UI,
+        }
+
+        /// <summary>Quality of the anti-aliasing when using TAA.</summary>
+        public PassMode passMode = PassMode.All;
+
         /// <summary>Strength of the sharpening of the history sampled for TAA.</summary>
         [Range(0, 1)]
         public float taaHistorySharpening = 0.35f;
