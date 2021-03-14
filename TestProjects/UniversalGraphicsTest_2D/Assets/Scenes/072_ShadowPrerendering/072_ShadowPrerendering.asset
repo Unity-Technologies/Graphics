@@ -10,12 +10,12 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 11145981673336645838492a2d98e247, type: 3}
-  m_Name: CustomSortMode2DRenderer
+  m_Name: 072_ShadowPrerendering
   m_EditorClassIdentifier: 
   m_RendererFeatures: []
   m_RendererFeatureMap: 
   m_UseNativeRenderPass: 0
-  m_TransparencySortMode: 3
+  m_TransparencySortMode: 0
   m_TransparencySortAxis: {x: 0, y: 1, z: 0}
   m_HDREmulationScale: 1
   m_LightRenderTextureScale: 0.5
@@ -37,7 +37,7 @@ MonoBehaviour:
   m_CameraSortingLayersTextureBound: -1
   m_CameraSortingLayerDownsamplingMethod: 0
   m_MaxLightRenderTextureCount: 16
-  m_MaxShadowRenderTextureCount: 1
+  m_MaxShadowRenderTextureCount: 3
   m_ShapeLightShader: {fileID: 4800000, guid: d79e1c784eaf80c4585c0be7391f757a, type: 3}
   m_ShapeLightVolumeShader: {fileID: 4800000, guid: 7e60080c8cd24a2468cb08b4bfee5606,
     type: 3}
