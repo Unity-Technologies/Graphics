@@ -16,7 +16,6 @@ struct Varyings
 };
 
 sampler2D _FlareTex;
-TEXTURE2D_X(_FlareOcclusionBufferTex);
 
 float4 _FlareColorValue;
 float4 _FlareData0; // x: localCos0, y: localSin0, zw: PositionOffsetXY
