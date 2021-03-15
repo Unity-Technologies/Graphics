@@ -208,8 +208,14 @@ namespace UnityEditor.Rendering.HighDefinition
             }
             EditorGUI.showMixedValue = false;
 
-            //Draw the mode
-            serialized.settings.DrawLightmapping();
+            // Draw the mode, for Tube and Disc lights, there is only one choice, so we can disable the enum.
+            if (serialized.areaLightShape == AreaLightShape.Tube || serialized.areaLightShape == AreaLightShape.Disc)
+            {
+                using (new EditorGUI.DisabledScope(true))
+                    serialized.settings.DrawLightmapping();
+            }
+            else
+                serialized.settings.DrawLightmapping();
 
             if (updatedLightType == HDLightType.Area)
             {
