@@ -82,6 +82,11 @@ void DecodeFromDBuffer(
     // Range goes from -0.99607 to 1.0039
     surfaceData.normalWS.xyz = inDBuffer1.xyz * 2.0 - (254.0 / 255.0);
     surfaceData.normalWS.w = inDBuffer1.w;
+
+    // Case 1317162: Apply a NaN guard via the normal blend mask.
+    // An epsilon will prevent a situation where two opposing normals (surface & decal) produce a 0 normal from blending.
+    surfaceData.normalWS.w += 1e-5;
+
     surfaceData.mask = inDBuffer2;
 #ifdef DECALS_4RT
     surfaceData.MAOSBlend = inDBuffer3;
