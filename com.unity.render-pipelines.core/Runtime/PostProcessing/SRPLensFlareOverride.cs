@@ -24,12 +24,12 @@ namespace UnityEngine
         /// Distance used to scale the Distance Attenuation Curve
         /// </summary>
         [Min(1e-5f)]
-        public float maxAttenuationDistance = 10.0f;
+        public float maxAttenuationDistance = 50.0f;
         /// <summary>
         /// Distance used to scale the Scale Attenuation Curve
         /// </summary>
         [Min(1e-5f)]
-        public float maxAttenuationScale = 10.0f;
+        public float maxAttenuationScale = 50.0f;
         /// <summary>
         /// Attenuation by distance
         /// </summary>
@@ -55,7 +55,7 @@ namespace UnityEngine
         /// Radius around the light used to occlude the flare (value in world space)
         /// </summary>
         [Min(0)]
-        public float occlusionRadius = 1.0f;
+        public float occlusionRadius = 0.1f;
         /// <summary>
         /// Random Samples Count used inside the disk with 'occlusionRadius'
         /// </summary>
@@ -65,7 +65,7 @@ namespace UnityEngine
         /// Z Occlusion Offset allow us to offset the plane where the disc of occlusion is place (closer to camera), value on world space.
         /// Useful for instance to sample occlusion outside a light bulb if we place a flare inside the light bulb
         /// </summary>
-        public float occlusionOffset = 0.0f;
+        public float occlusionOffset = 0.05f;
         /// <summary>
         /// If allowOffScreen is true then If the lens flare is outside the screen we still emit the flare on screen
         /// </summary>
