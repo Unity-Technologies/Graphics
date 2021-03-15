@@ -354,7 +354,7 @@ half4 SplatmapFragment(Varyings IN) : SV_TARGET
     float2 splatUV = (IN.uvMainAndLM.xy * (_Control_TexelSize.zw - 1.0f) + 0.5f) * _Control_TexelSize.xy;
     half4 splatControl = SAMPLE_TEXTURE2D(_Control, sampler_Control, splatUV);
 
-    half alpha = dot(splatControl, 1.0h);
+    half alpha = dot(splatControl, half4(1.0h, 1.0h, 1.0h, 1.0h));
 #ifdef _TERRAIN_BLEND_HEIGHT
     // disable Height Based blend when there are more than 4 layers (multi-pass breaks the normalization)
     if (_NumLayersCount <= 4)
