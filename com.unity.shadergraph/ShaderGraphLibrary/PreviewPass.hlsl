@@ -1,7 +1,12 @@
-﻿PackedVaryings vert(Attributes input)
+#include "Packages/com.unity.render-pipelines.core/ShaderLibrary/DotsDeformation.hlsl"
+
+PackedVaryings vert(Attributes input)
 {
     Varyings output = (Varyings)0;
     output = BuildVaryings(input);
+#if defined(DOTS_INSTANCING_ON)
+    FetchComputeVertexData(input.positionOS.xyz, input.normalOS, input.tangentOS, input.vertexID);
+#endif
     PackedVaryings packedOutput = PackVaryings(output);
     return packedOutput;
 }
