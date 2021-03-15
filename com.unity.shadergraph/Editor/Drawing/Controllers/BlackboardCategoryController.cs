@@ -77,7 +77,7 @@ namespace UnityEditor.ShaderGraph.Drawing
             {
                 // If category can be found with matching guid for this category
                 // And that category contains this input
-                if (categoryData.categoryGuid == ViewModel.associatedCategoryGuid)
+                if (categoryData.objectId == ViewModel.associatedCategoryID)
                 {
                     m_CategoryDataReference = categoryData;
                     break;
@@ -142,9 +142,9 @@ namespace UnityEditor.ShaderGraph.Drawing
                         InsertBlackboardRow(copyShaderInputAction.copiedShaderInput, copyShaderInputAction.insertIndex);
                     break;
                 case AddItemToCategoryAction addItemToCategoryAction:
-                    if (addItemToCategoryAction.categoryGuid == ViewModel.associatedCategoryGuid)
+                    if (addItemToCategoryAction.category.objectId == ViewModel.associatedCategoryID)
                     {
-                        InsertBlackboardRow(addItemToCategoryAction.blackboardItemReference);
+                        InsertBlackboardRow(addItemToCategoryAction.itemToAdd);
                     }
                     break;
             }
@@ -152,7 +152,7 @@ namespace UnityEditor.ShaderGraph.Drawing
 
         internal bool IsInputInCategory(ShaderInput shaderInput)
         {
-            return m_CategoryDataReference != null && m_CategoryDataReference.childItemIDSet.Contains(shaderInput.guid);
+            return m_CategoryDataReference != null && m_CategoryDataReference.Children.Contains(shaderInput);
         }
 
         internal SGBlackboardRow FindBlackboardRow(ShaderInput shaderInput)

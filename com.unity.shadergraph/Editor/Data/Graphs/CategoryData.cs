@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using UnityEditor.ShaderGraph.Internal;
 using UnityEditor.ShaderGraph.Serialization;
 using UnityEngine;
 using UnityEngine.Serialization;
@@ -31,65 +32,42 @@ namespace UnityEditor.ShaderGraph
             set => m_CategoryGuid = value;
         }
 
-        // We store Guids as a list out to the graph asset
         [SerializeField]
-        List<Guid> m_ChildItemIDList;
+        List<JsonRef<ShaderInput>> m_children;
 
-        // TODO: Make this be a list of JsonRefs<ShaderInput> that point at the actual blackboard Items
-        // That handles save/load automagically
-        [SerializeField]
-        List<string> m_ChildItemIDStringList;
+        public RefValueEnumerable<ShaderInput> Children => m_children.SelectValue(); 
 
-        HashSet<Guid> m_ChildItemIDSet;
-        // We expose Guids as a HashSet for faster existence checks
-        public HashSet<Guid> childItemIDSet
+        public void AddItemToCategory(ShaderInput shaderInput)
         {
-            get => m_ChildItemIDSet;
-            set => m_ChildItemIDSet = value;
+            m_children.Add(shaderInput);
         }
 
-        public void AddItemToCategory(Guid itemGUID)
+        public void RemoveItemFromCategory(ShaderInput shaderInput)
         {
-            m_ChildItemIDList.Add(itemGUID);
-            m_ChildItemIDSet.Add(itemGUID);
-        }
-
-        public void RemoveItemFromCategory(Guid itemGUID)
-        {
-            if (m_ChildItemIDSet.Contains(itemGUID))
+            foreach(var child in Children)
             {
-                m_ChildItemIDList.Remove(itemGUID);
-                m_ChildItemIDSet.Remove(itemGUID);
+                if(child == shaderInput)
+                {
+                    m_children.Remove(shaderInput);
+                }
             }
         }
 
         public CategoryData()
         {
             name = String.Empty;
-            m_ChildItemIDList = new List<Guid>();
-            m_ChildItemIDSet = new HashSet<Guid>();
+            m_children = new List<JsonRef<ShaderInput>>();
             categoryGuid = new Guid();
         }
 
-        public override void OnBeforeSerialize()
-        {
-            m_ChildItemIDStringList = new List<string>();
-            foreach (var guid in m_ChildItemIDList)
-            {
-                m_ChildItemIDStringList.Add(guid.ToString());
-            }
-            base.OnBeforeSerialize();
-        }
-
-        public CategoryData(string inName, Guid inCategoryGuid, List<Guid> inChildItemIDList = null)
+        public CategoryData(string inName, List<ShaderInput> inChildItems)
         {
             name = inName;
-            m_ChildItemIDList = inChildItemIDList;
-            if (m_ChildItemIDList != null)
-                m_ChildItemIDSet = new HashSet<Guid>(m_ChildItemIDList);
-            else
-                AssertHelpers.Fail("Category data provided invalid data for construction.");
-            categoryGuid = inCategoryGuid;
+            m_children = new List<JsonRef<ShaderInput>>();
+            foreach(var child in inChildItems)
+            {
+                m_children.Add(child);
+            }
         }
     }
 }

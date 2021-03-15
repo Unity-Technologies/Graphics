@@ -1551,29 +1551,18 @@ namespace UnityEditor.ShaderGraph
             m_CategoryData.Add(categoryDataReference);
         }
 
-        public void AddItemToCategory(Guid categoryGUID, Guid itemGUID)
+        public void AddItemToCategory(CategoryData category, ShaderInput shaderInput)
         {
             foreach (var categoryData in categories)
             {
-                if (categoryData.categoryGuid == categoryGUID)
-                {
-                    categoryData.AddItemToCategory(itemGUID);
-                }
-                // Also make sure to remove this items guid from an existing category if it exists within one
-                else if(categoryData.childItemIDSet.Contains(itemGUID))
-                {
-                    categoryData.RemoveItemFromCategory(itemGUID);
-                }
+                categoryData.RemoveItemFromCategory(shaderInput);
             }
+            category.AddItemToCategory(shaderInput);
         }
 
-        public void RemoveItemFromCategory(Guid categoryGUID, Guid itemGUID)
+        public void RemoveItemFromCategory(CategoryData category, ShaderInput shaderInput)
         {
-            foreach (var categoryData in categories)
-            {
-                if(categoryData.categoryGuid == categoryGUID)
-                    categoryData.RemoveItemFromCategory(itemGUID);
-            }
+            category.RemoveItemFromCategory(shaderInput);
         }
 
         public void OnKeywordChanged()
