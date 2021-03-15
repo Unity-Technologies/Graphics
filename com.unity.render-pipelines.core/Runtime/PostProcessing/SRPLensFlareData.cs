@@ -90,7 +90,7 @@ namespace UnityEngine
             uniformScale = 1.0f;
             sizeXY = Vector2.one;
             allowMultipleElement = false;
-            count = 1;
+            count = 5;
             rotation = 0.0f;
             tint = new Color(1.0f, 1.0f, 1.0f, 0.5f);
             blendMode = SRPLensFlareBlendMode.Additive;

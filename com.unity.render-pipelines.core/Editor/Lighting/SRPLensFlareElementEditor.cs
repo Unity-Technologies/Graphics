@@ -250,7 +250,7 @@ namespace UnityEditor.Rendering
                 --EditorGUI.indentLevel;
 
                 rect = GetNextRect();
-                EditorGUI.TextArea(rect, "Distortion", EditorStyles.boldLabel);
+                EditorGUI.TextArea(rect, "Radial Distortion", EditorStyles.boldLabel);
                 ++EditorGUI.indentLevel;
                 {
                     rect = GetNextRect();
@@ -281,7 +281,7 @@ namespace UnityEditor.Rendering
                         if ((iTmp = EditorGUI.IntField(rect, Styles.count, countProp.intValue)) != countProp.intValue)
                             countProp.intValue = Mathf.Max(iTmp, 1);
                     }
-                    if (allowMultipleElementProp.boolValue && countProp.intValue > 1)
+                    if (allowMultipleElementProp.boolValue)
                     {
                         rect = GetNextRect();
                         SRPLensFlareDistribution newDistribution;
@@ -353,10 +353,12 @@ namespace UnityEditor.Rendering
                 rect = GetNextRect();
                 if ((tmpCol = EditorGUI.ColorField(rect, Styles.tint, tintProp.colorValue)) != tintProp.colorValue)
                     tintProp.colorValue = tmpCol;
-
-                rect = GetNextRect();
-                if ((iTmp = EditorGUI.IntField(rect, Styles.count, countProp.intValue)) != countProp.intValue)
-                    countProp.intValue = Mathf.Max(iTmp, 1);
+                if (allowMultipleElementProp.boolValue)
+                {
+                    rect = GetNextRect();
+                    if ((iTmp = EditorGUI.IntField(rect, Styles.count, countProp.intValue)) != countProp.intValue)
+                        countProp.intValue = Mathf.Max(iTmp, 1);
+                }
 
                 isFoldOpenedProp.boolValue = false;
             }
@@ -406,23 +408,18 @@ namespace UnityEditor.Rendering
 
                 if (allowMultipleElementProp.boolValue)
                 {
-                    if (countProp.intValue == 1)
+                    coef += 3.0f;
+                    if ((SRPLensFlareDistribution)distributionProp.enumValueIndex == SRPLensFlareDistribution.Uniform)
+                    {
                         coef += 1.0f;
-                    else
+                    }
+                    else if ((SRPLensFlareDistribution)distributionProp.enumValueIndex == SRPLensFlareDistribution.Random)
+                    {
+                        coef += 6.0f;
+                    }
+                    else if ((SRPLensFlareDistribution)distributionProp.enumValueIndex == SRPLensFlareDistribution.Curve)
                     {
                         coef += 3.0f;
-                        if ((SRPLensFlareDistribution)distributionProp.enumValueIndex == SRPLensFlareDistribution.Uniform)
-                        {
-                            coef += 1.0f;
-                        }
-                        else if ((SRPLensFlareDistribution)distributionProp.enumValueIndex == SRPLensFlareDistribution.Random)
-                        {
-                            coef += 6.0f;
-                        }
-                        else if ((SRPLensFlareDistribution)distributionProp.enumValueIndex == SRPLensFlareDistribution.Curve)
-                        {
-                            coef += 3.0f;
-                        }
                     }
                 }
 
@@ -431,6 +428,10 @@ namespace UnityEditor.Rendering
             else
             {
                 coef = 5.0f;
+                if (!allowMultipleElementProp.boolValue)
+                {
+                    coef -= 1.0f;
+                }
             }
 
             return coef * (EditorGUIUtility.singleLineHeight + EditorGUIUtility.standardVerticalSpacing) + offset;
@@ -471,7 +472,7 @@ namespace UnityEditor.Rendering
             static public readonly GUIContent scaleCurve = EditorGUIUtility.TrTextContent("Scale Variation", "Curve describing how to scale flares distribution.");
 
             // For Distortion
-            static public readonly GUIContent enableDistortion = EditorGUIUtility.TrTextContent("Radial Distortion", "True to use or not the radial distortion.");
+            static public readonly GUIContent enableDistortion = EditorGUIUtility.TrTextContent("Enable", "True to use or not the radial distortion.");
             static public readonly GUIContent targetSizeDistortion = EditorGUIUtility.TrTextContent("Radial Edge Size", "Target size used on the edge of the screen.");
             static public readonly GUIContent distortionCurve = EditorGUIUtility.TrTextContent("Radial Edge Curve", "Curve blending from screen center to the edges of the screen.");
 
