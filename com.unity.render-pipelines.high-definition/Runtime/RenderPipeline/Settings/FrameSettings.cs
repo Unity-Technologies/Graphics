@@ -50,6 +50,20 @@ namespace UnityEngine.Rendering.HighDefinition
         OverrideQualitySettings,
     }
 
+    public enum MSAAMode
+    {
+        /// <summary>No MSAA.</summary>
+        None = MSAASamples.None,
+        /// <summary>MSAA 2X.</summary>
+        MSAA2X = MSAASamples.MSAA2x,
+        /// <summary>MSAA 4X.</summary>
+        MSAA4X = MSAASamples.MSAA4x,
+        /// <summary>MSAA 8X.</summary>
+        MSAA8X = MSAASamples.MSAA8x,
+        /// <summary>Uses MSAA mode from the current HDRP asset.</summary>
+        FromHDRPAsset,
+    }
+
     /* ////// HOW TO ADD FRAME SETTINGS //////
      *
      * 1 - Add an entry in the FrameSettingsField enum with a bit that is not used.
@@ -100,10 +114,12 @@ namespace UnityEngine.Rendering.HighDefinition
         [FrameSettingsField(0, displayedName: "Clear GBuffers", positiveDependencies: new[] { LitShaderMode }, customOrderInGroup: 2, tooltip: "When enabled, HDRP clear GBuffers for Cameras using these Frame Settings. Set Lit Shader Mode to Deferred to access this option.")]
         ClearGBuffers = 5,
         /// <summary>When enabled, Cameras using these Frame Settings calculate MSAA when they render the Scene. Set Lit Shader Mode to Forward to access this option.</summary>
-        [FrameSettingsField(0, displayedName: "MSAA within Forward", negativeDependencies: new[] { LitShaderMode }, customOrderInGroup: 3, tooltip: "When enabled, Cameras using these Frame Settings calculate MSAA when they render the Scene. Set Lit Shader Mode to Forward to access this option.")]
+        [Obsolete]
         MSAA = 31,
+        [FrameSettingsField(0, displayedName: "MSAA", type: FrameSettingsFieldAttribute.DisplayType.Others, targetType: typeof(MSAAMode), negativeDependencies: new[] { LitShaderMode }, customOrderInGroup: 3, tooltip: "Specifies the MSAA mode for Cameras using these Frame Settings.")]
+        MSAAMode = 4,
         /// <summary>When enabled, Cameras using these Frame Settings use Alpha To Mask. Activate MSAA to access this option.</summary>
-        [FrameSettingsField(0, displayedName: "Alpha To Mask", negativeDependencies: new[] { LitShaderMode }, positiveDependencies: new[] { MSAA }, customOrderInGroup: 3, tooltip: "When enabled, Cameras using these Frame Settings use Alpha To Mask. Activate MSAA to access this option.")]
+        [FrameSettingsField(0, displayedName: "Alpha To Mask", negativeDependencies: new[] { LitShaderMode }, positiveDependencies: new[] { MSAAMode }, customOrderInGroup: 3, tooltip: "When enabled, Cameras using these Frame Settings use Alpha To Mask. Activate MSAA to access this option.")]
         AlphaToMask = 56,
         /// <summary>When enabled, Cameras using these Frame Settings render opaque GameObjects.</summary>
         [FrameSettingsField(0, autoName: OpaqueObjects, customOrderInGroup: 4, tooltip: "When enabled, Cameras using these Frame Settings render opaque GameObjects.")]
@@ -449,12 +465,12 @@ namespace UnityEngine.Rendering.HighDefinition
                 (uint)FrameSettingsField.RayTracing,
                 (uint)FrameSettingsField.AlphaToMask,
                 (uint)FrameSettingsField.ProbeVolume,
-                (uint)FrameSettingsField.MSAA
             }),
             lodBias = 1,
             sssQualityMode        = SssQualityMode.FromQualitySettings,
             sssQualityLevel       = 0,
             sssCustomSampleBudget = (int)DefaultSssSampleBudgetForQualityLevel.Low,
+            msaaMode              = MSAAMode.None,
         };
         internal static FrameSettings NewDefaultRealtimeReflectionProbe() => new FrameSettings()
         {
@@ -513,6 +529,7 @@ namespace UnityEngine.Rendering.HighDefinition
             sssQualityMode        = SssQualityMode.FromQualitySettings,
             sssQualityLevel       = 0,
             sssCustomSampleBudget = (int)DefaultSssSampleBudgetForQualityLevel.Low,
+            msaaMode              = MSAAMode.None,
         };
         internal static FrameSettings NewDefaultCustomOrBakeReflectionProbe() => new FrameSettings()
         {
@@ -568,6 +585,7 @@ namespace UnityEngine.Rendering.HighDefinition
             sssQualityMode        = SssQualityMode.FromQualitySettings,
             sssQualityLevel       = 0,
             sssCustomSampleBudget = (int)DefaultSssSampleBudgetForQualityLevel.Low,
+            msaaMode              = MSAAMode.None,
         };
 
         // Each time you add data in the framesettings. Attempt to add boolean one only if possible.
@@ -611,6 +629,12 @@ namespace UnityEngine.Rendering.HighDefinition
         /// <summary>Stores SssCustomSampleBudget on disk.</summary>
         [SerializeField]
         public int sssCustomSampleBudget;
+
+        /// <summary>
+        /// Stores MSAA Mode on disk.</c>
+        /// </summary>
+        [SerializeField]
+        public MSAAMode msaaMode;
 
         /// <summary>The actual value used by the Subsurface Scattering algorithm. Updated every frame.</summary>
         internal int sssResolvedSampleBudget;
@@ -683,8 +707,21 @@ namespace UnityEngine.Rendering.HighDefinition
             {
                 case SssQualityMode.FromQualitySettings:     return source[sssQualityLevel];
                 case SssQualityMode.OverrideQualitySettings: return sssCustomSampleBudget;
-                default: throw new ArgumentOutOfRangeException(nameof(maximumLODLevelMode));
+                default: throw new ArgumentOutOfRangeException(nameof(sssCustomSampleBudget));
             }
+        }
+
+        /// <summary>
+        /// Calculates the Maximum LOD level to use.
+        /// </summary>
+        /// <param name="hdrp">The HDRP Asset to use</param>
+        /// <returns>The Maximum LOD level to use.</returns>
+        public MSAASamples GetResolvedMSAAMode(HDRenderPipelineAsset hdrp)
+        {
+            if (msaaMode == MSAAMode.FromHDRPAsset)
+                return hdrp.currentPlatformRenderPipelineSettings.msaaSampleCount;
+            else
+                return (MSAASamples)msaaMode;
         }
 
         // followings are helper for engine.
@@ -727,6 +764,8 @@ namespace UnityEngine.Rendering.HighDefinition
                 overriddenFrameSettings.maximumLODLevelQualityLevel = overridingFrameSettings.maximumLODLevelQualityLevel;
             if (frameSettingsOverideMask.mask[(uint)FrameSettingsField.MaterialQualityLevel])
                 overriddenFrameSettings.materialQuality = overridingFrameSettings.materialQuality;
+            if (frameSettingsOverideMask.mask[(uint)FrameSettingsField.MSAAMode])
+                overriddenFrameSettings.msaaMode = overridingFrameSettings.msaaMode;
         }
 
         /// <summary>Check FrameSettings with what is supported in RenderPipelineSettings and change value in order to be compatible.</summary>
@@ -764,9 +803,10 @@ namespace UnityEngine.Rendering.HighDefinition
             // Ray tracing effects are not allowed on reflection probes due to the accumulation process.
             bool rayTracingActive = sanitizedFrameSettings.bitDatas[(int)FrameSettingsField.RayTracing] &= pipelineSupportsRayTracing && !preview && temporalAccumulationAllowed;
 
-            //MSAA only supported in forward
-            // TODO: The work will be implemented piecemeal to support all passes
-            bool msaa = sanitizedFrameSettings.bitDatas[(int)FrameSettingsField.MSAA] &= renderPipelineSettings.supportMSAA && sanitizedFrameSettings.litShaderMode == LitShaderMode.Forward && !pipelineSupportsRayTracing;
+            //MSAA only supported in forward and when not using ray tracing.
+            if (sanitizedFrameSettings.litShaderMode != LitShaderMode.Forward || pipelineSupportsRayTracing)
+                sanitizedFrameSettings.msaaMode = MSAAMode.None;
+            bool msaa = (sanitizedFrameSettings.msaaMode == MSAAMode.FromHDRPAsset && renderPipelineSettings.msaaSampleCount != MSAASamples.None) || sanitizedFrameSettings.msaaMode != MSAAMode.None;
             sanitizedFrameSettings.bitDatas[(int)FrameSettingsField.AlphaToMask] &= msaa;
 
             // No recursive reflections
@@ -886,7 +926,8 @@ namespace UnityEngine.Rendering.HighDefinition
             && a.maximumLODLevel             == b.maximumLODLevel
             && a.maximumLODLevelMode         == b.maximumLODLevelMode
             && a.maximumLODLevelQualityLevel == b.maximumLODLevelQualityLevel
-            && a.materialQuality             == b.materialQuality;
+            && a.materialQuality             == b.materialQuality
+            && a.msaaMode                    == b.msaaMode;
 
         /// <summary>
         /// Inequality operator between two FrameSettings. Return `true` if different. (comparison of content).
@@ -913,7 +954,9 @@ namespace UnityEngine.Rendering.HighDefinition
             && maximumLODLevel.Equals(((FrameSettings)obj).maximumLODLevel)
             && maximumLODLevelMode.Equals(((FrameSettings)obj).maximumLODLevelMode)
             && maximumLODLevelQualityLevel.Equals(((FrameSettings)obj).maximumLODLevelQualityLevel)
-            && materialQuality.Equals(((FrameSettings)obj).materialQuality);
+            && materialQuality.Equals(((FrameSettings)obj).materialQuality)
+            && msaaMode.Equals(((FrameSettings)obj).msaaMode);
+
 
         /// <summary>
         /// Returns the hash code of this object.
@@ -934,6 +977,7 @@ namespace UnityEngine.Rendering.HighDefinition
             hashCode = hashCode * -1521134295 + maximumLODLevelMode.GetHashCode();
             hashCode = hashCode * -1521134295 + maximumLODLevelQualityLevel.GetHashCode();
             hashCode = hashCode * -1521134295 + materialQuality.GetHashCode();
+            hashCode = hashCode * -1521134295 + msaaMode.GetHashCode();
 
             return hashCode;
         }
@@ -1020,6 +1064,7 @@ namespace UnityEngine.Rendering.HighDefinition
                         new DebuggerEntry("maximumLODLevelMode", m_FrameSettings.maximumLODLevelMode),
                         new DebuggerEntry("maximumLODLevelQualityLevel", m_FrameSettings.maximumLODLevelQualityLevel),
                         new DebuggerEntry("materialQuality", m_FrameSettings.materialQuality),
+                        new DebuggerEntry("msaaMode", m_FrameSettings.msaaMode),
                     }));
 
                     return groups.ToArray();

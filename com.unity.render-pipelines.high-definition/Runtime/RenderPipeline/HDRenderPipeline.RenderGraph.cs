@@ -26,7 +26,7 @@ namespace UnityEngine.Rendering.HighDefinition
             var camera = hdCamera.camera;
             var cullingResults = renderRequest.cullingResults.cullingResults;
             var customPassCullingResults = renderRequest.cullingResults.customPassCullingResults ?? cullingResults;
-            bool msaa = hdCamera.frameSettings.IsEnabled(FrameSettingsField.MSAA);
+            bool msaa = hdCamera.msaaEnabled;
             var target = renderRequest.target;
 
             var renderGraphParams = new RenderGraphParameters()
@@ -76,8 +76,8 @@ namespace UnityEngine.Rendering.HighDefinition
 #endif
 
             LightingBuffers lightingBuffers = new LightingBuffers();
-            lightingBuffers.diffuseLightingBuffer = CreateDiffuseLightingBuffer(m_RenderGraph, msaa);
-            lightingBuffers.sssBuffer = CreateSSSBuffer(m_RenderGraph, msaa);
+            lightingBuffers.diffuseLightingBuffer = CreateDiffuseLightingBuffer(m_RenderGraph, hdCamera.msaaSamples);
+            lightingBuffers.sssBuffer = CreateSSSBuffer(m_RenderGraph, hdCamera.msaaSamples);
 
             var prepassOutput = RenderPrepass(m_RenderGraph, colorBuffer, lightingBuffers.sssBuffer, vtFeedbackBuffer, cullingResults, customPassCullingResults, hdCamera, aovRequest, aovBuffers);
 
@@ -751,13 +751,13 @@ namespace UnityEngine.Rendering.HighDefinition
                 }
                 else
                 {
-                    bool msaa = hdCamera.frameSettings.IsEnabled(FrameSettingsField.MSAA);
+                    bool msaa = hdCamera.msaaEnabled;
 
                     // It doesn't really matter what gets bound here since the color mask state set will prevent this from ever being written to. However, we still need to bind something
                     // to avoid warnings about unbound render targets. The following rendertarget could really be anything if renderVelocitiesForTransparent
                     // Create a new target here should reuse existing already released one
                     builder.UseColorBuffer(builder.CreateTransientTexture(new TextureDesc(Vector2.one, true, true)
-                        { colorFormat = GraphicsFormat.R8G8B8A8_SRGB, bindTextureMS = msaa, msaaSamples = m_MSAASamples, name = "Transparency Velocity Dummy" }), index++);
+                        { colorFormat = GraphicsFormat.R8G8B8A8_SRGB, bindTextureMS = msaa, msaaSamples = hdCamera.msaaSamples, name = "Transparency Velocity Dummy" }), index++);
                 }
                 builder.UseDepthBuffer(prepassOutput.depthBuffer, DepthAccess.ReadWrite);
 
@@ -803,7 +803,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 if (hdCamera.IsSSREnabled(transparent: true))
                 {
                     int index = 0;
-                    if (hdCamera.frameSettings.IsEnabled(FrameSettingsField.MSAA))
+                    if (hdCamera.msaaEnabled)
                         builder.UseColorBuffer(prepassOutput.depthAsColor, index++);
                     builder.UseColorBuffer(prepassOutput.normalBuffer, index++);
                 }
@@ -1318,7 +1318,7 @@ namespace UnityEngine.Rendering.HighDefinition
                         if (Fog.IsFogEnabled(data.hdCamera) || Fog.IsPBRFogEnabled(data.hdCamera))
                         {
                             var pixelCoordToViewDirWS = data.hdCamera.mainViewConstants.pixelCoordToViewDirWS;
-                            data.skyManager.RenderOpaqueAtmosphericScattering(context.cmd, data.hdCamera, data.colorBuffer, data.depthTexture, data.volumetricLighting, data.intermediateBuffer, data.depthStencilBuffer, pixelCoordToViewDirWS, data.hdCamera.frameSettings.IsEnabled(FrameSettingsField.MSAA));
+                            data.skyManager.RenderOpaqueAtmosphericScattering(context.cmd, data.hdCamera, data.colorBuffer, data.depthTexture, data.volumetricLighting, data.intermediateBuffer, data.depthStencilBuffer, pixelCoordToViewDirWS, data.hdCamera.msaaEnabled);
                         }
                     });
             }
@@ -1455,7 +1455,7 @@ namespace UnityEngine.Rendering.HighDefinition
                     colorFormat = GetColorBufferFormat(),
                     enableRandomWrite = !msaa,
                     bindTextureMS = msaa,
-                    msaaSamples = msaa ? m_MSAASamples : MSAASamples.None,
+                    msaaSamples = msaa ? hdCamera.msaaSamples : MSAASamples.None,
                     clearBuffer = NeedClearColorBuffer(hdCamera),
                     clearColor = GetColorBufferClearColor(hdCamera),
                     name = msaa ? "CameraColorMSAA" : "CameraColor"
@@ -1497,14 +1497,14 @@ namespace UnityEngine.Rendering.HighDefinition
         // When Custom Pass correctly use render graph we'll be able to remove that.
         TextureHandle ResolveMSAAColor(RenderGraph renderGraph, HDCamera hdCamera, TextureHandle input, TextureHandle output)
         {
-            if (hdCamera.frameSettings.IsEnabled(FrameSettingsField.MSAA))
+            if (hdCamera.msaaEnabled)
             {
                 using (var builder = renderGraph.AddRenderPass<ResolveColorData>("ResolveColor", out var passData))
                 {
                     passData.input = builder.ReadTexture(input);
                     passData.output = builder.UseColorBuffer(output, 0);
                     passData.resolveMaterial = m_ColorResolveMaterial;
-                    passData.passIndex = SampleCountToPassIndex(m_MSAASamples);
+                    passData.passIndex = SampleCountToPassIndex(hdCamera.msaaSamples);
 
                     builder.SetRenderFunc(
                         (ResolveColorData data, RenderGraphContext context) =>
@@ -1533,14 +1533,14 @@ namespace UnityEngine.Rendering.HighDefinition
 
         TextureHandle ResolveMotionVector(RenderGraph renderGraph, HDCamera hdCamera, TextureHandle input)
         {
-            if (hdCamera.frameSettings.IsEnabled(FrameSettingsField.MSAA))
+            if (hdCamera.msaaEnabled)
             {
                 using (var builder = renderGraph.AddRenderPass<ResolveMotionVectorData>("ResolveMotionVector", out var passData))
                 {
                     passData.input = builder.ReadTexture(input);
-                    passData.output = builder.UseColorBuffer(CreateMotionVectorBuffer(renderGraph, false, false), 0);
+                    passData.output = builder.UseColorBuffer(CreateMotionVectorBuffer(renderGraph, false, MSAASamples.None), 0);
                     passData.resolveMaterial = m_MotionVectorResolve;
-                    passData.passIndex = SampleCountToPassIndex(m_MSAASamples);
+                    passData.passIndex = SampleCountToPassIndex(hdCamera.msaaSamples);
 
                     builder.SetRenderFunc(
                         (ResolveMotionVectorData data, RenderGraphContext context) =>

@@ -287,7 +287,7 @@ namespace UnityEngine.Rendering.HighDefinition
         bool IsMSAAEnabled(HDCamera hdCamera)
         {
             // if MSAA is enabled and the current injection point is before transparent.
-            bool msaa = hdCamera.frameSettings.IsEnabled(FrameSettingsField.MSAA);
+            bool msaa = hdCamera.msaaEnabled;
             msaa &= injectionPoint == CustomPassInjectionPoint.BeforePreRefraction
                 || injectionPoint == CustomPassInjectionPoint.BeforeTransparent
                 || injectionPoint == CustomPassInjectionPoint.AfterOpaqueDepthAndNormal;

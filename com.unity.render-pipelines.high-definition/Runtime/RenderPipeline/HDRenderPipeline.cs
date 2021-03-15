@@ -166,9 +166,6 @@ namespace UnityEngine.Rendering.HighDefinition
         ShaderVariablesXR m_ShaderVariablesXRCB = new ShaderVariablesXR();
         ShaderVariablesRaytracing m_ShaderVariablesRayTracingCB = new ShaderVariablesRaytracing();
 
-        // The current MSAA count
-        MSAASamples m_MSAASamples;
-
         // The pass "SRPDefaultUnlit" is a fall back to legacy unlit rendering and is required to support unity 2d + unity UI that render in the scene.
         // s_ForwardEmissiveForDeferredName is only in m_ForwardOnlyPassNames as it match the lit mode deferred, not required in forward
         ShaderTagId[] m_ForwardAndForwardOnlyPassNames = { HDShaderPassNames.s_ForwardOnlyName, HDShaderPassNames.s_ForwardName, HDShaderPassNames.s_SRPDefaultUnlitName, HDShaderPassNames.s_DecalMeshForwardEmissiveName };
@@ -1041,7 +1038,7 @@ namespace UnityEngine.Rendering.HighDefinition
             CoreUtils.SetKeyword(cmd, "WRITE_DECAL_BUFFER", hdCamera.frameSettings.IsEnabled(FrameSettingsField.DecalLayers));
 
             // Raise or remove the depth msaa flag based on the frame setting
-            CoreUtils.SetKeyword(cmd, "WRITE_MSAA_DEPTH", hdCamera.frameSettings.IsEnabled(FrameSettingsField.MSAA));
+            CoreUtils.SetKeyword(cmd, "WRITE_MSAA_DEPTH", hdCamera.msaaEnabled);
         }
 
         struct RenderRequest
@@ -1904,7 +1901,6 @@ namespace UnityEngine.Rendering.HighDefinition
             {
                 aovRequest.AllocateTargetTexturesIfRequired(ref aovBuffers, ref aovCustomPassBuffers);
 
-                m_MSAASamples = hdCamera.frameSettings.IsEnabled(FrameSettingsField.MSAA) ? m_Asset.currentPlatformRenderPipelineSettings.msaaSampleCount : MSAASamples.None;
                 // If we render a reflection view or a preview we should not display any debug information
                 // This need to be call before ApplyDebugDisplaySettings()
                 if (camera.cameraType == CameraType.Reflection || camera.cameraType == CameraType.Preview)
@@ -1914,12 +1910,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 }
                 else
                 {
-                    // Override MSAA with debug value if needed.
-                    if (m_DebugDisplaySettings.data.msaaSamples != MSAASamples.None)
-                        m_MSAASamples = m_DebugDisplaySettings.data.msaaSamples;
-
                     m_DebugDisplaySettings.UpdateCameraFreezeOptions();
-
                     m_CurrentDebugDisplaySettings = m_DebugDisplaySettings;
                 }
 
@@ -2136,7 +2127,7 @@ namespace UnityEngine.Rendering.HighDefinition
             hdCamera = HDCamera.GetOrCreate(camera, xrPass.multipassId);
 
             // From this point, we should only use frame settings from the camera
-            hdCamera.Update(currentFrameSettings, this, m_MSAASamples, xrPass);
+            hdCamera.Update(currentFrameSettings, this, xrPass);
 
             // Custom Render requires a proper HDCamera, so we return after the HDCamera was setup
             if (additionalCameraData != null && additionalCameraData.hasCustomRender)
@@ -2571,7 +2562,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 overrideCamera.aspect = (float)hdrp.m_CurrentHDCamera.camera.pixelRect.width / (float)hdrp.m_CurrentHDCamera.camera.pixelRect.height;
 
                 // Update HDCamera datas
-                overrideHDCamera.Update(overrideHDCamera.frameSettings, hdrp, hdrp.m_MSAASamples, hdrp.m_XRSystem.emptyPass, allocateHistoryBuffers: false);
+                overrideHDCamera.Update(overrideHDCamera.frameSettings, hdrp, hdrp.m_XRSystem.emptyPass, allocateHistoryBuffers: false);
                 // Reset the reference size as it could have been changed by the override camera
                 hdrp.m_CurrentHDCamera.SetReferenceSize();
                 overrideHDCamera.UpdateShaderVariablesGlobalCB(ref hdrp.m_ShaderVariablesGlobalCB);

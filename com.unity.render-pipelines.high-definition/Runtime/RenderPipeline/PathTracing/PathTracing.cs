@@ -346,7 +346,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 passData.sunLight = GetCurrentSunLight();
                 passData.hdCamera = hdCamera;
                 passData.colorBuffer = builder.WriteTexture(skyBuffer);
-                passData.depthTexture = builder.WriteTexture(CreateDepthBuffer(renderGraph, true, false));
+                passData.depthTexture = builder.WriteTexture(CreateDepthBuffer(renderGraph, true, MSAASamples.None));
                 passData.debugDisplaySettings = m_CurrentDebugDisplaySettings;
                 passData.skyManager = m_SkyManager;
 

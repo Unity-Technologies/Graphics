@@ -54,7 +54,6 @@ namespace UnityEditor.Rendering.HighDefinition
         public SerializedProperty decalLayerName6;
         public SerializedProperty decalLayerName7;
 
-        public bool supportMSAA => MSAASampleCount.GetEnumValue<UnityEngine.Rendering.MSAASamples>() != UnityEngine.Rendering.MSAASamples.None;
         public SerializedProperty MSAASampleCount;
         public SerializedProperty supportMotionVectors;
         public SerializedProperty supportRuntimeDebugDisplay;

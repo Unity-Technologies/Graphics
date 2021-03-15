@@ -77,9 +77,6 @@ namespace UnityEditor.Rendering.HighDefinition
             if (inputData.shaderKeywordSet.IsEnabled(m_LodFadeCrossFade) && !hdrpAsset.currentPlatformRenderPipelineSettings.supportDitheringCrossFade)
                 return true;
 
-            if (inputData.shaderKeywordSet.IsEnabled(m_WriteMSAADepth) && !hdrpAsset.currentPlatformRenderPipelineSettings.supportMSAA)
-                return true;
-
             // Note that this is only going to affect the deferred shader and for a debug case, so it won't save much.
             if (inputData.shaderKeywordSet.IsEnabled(m_SubsurfaceScattering) && !hdrpAsset.currentPlatformRenderPipelineSettings.supportSubsurfaceScattering)
                 return true;
@@ -242,7 +239,6 @@ namespace UnityEditor.Rendering.HighDefinition
 
         protected ShadowKeywords m_ShadowKeywords = new ShadowKeywords();
         protected ShaderKeyword m_EnableAlpha = new ShaderKeyword("ENABLE_ALPHA");
-        protected ShaderKeyword m_MSAA = new ShaderKeyword("ENABLE_MSAA");
         protected ShaderKeyword m_ScreenSpaceShadowOFFKeywords = new ShaderKeyword("SCREEN_SPACE_SHADOWS_OFF");
         protected ShaderKeyword m_ScreenSpaceShadowONKeywords = new ShaderKeyword("SCREEN_SPACE_SHADOWS_ON");
         protected ShaderKeyword m_ProbeVolumesL1 = new ShaderKeyword("PROBE_VOLUMES_L1");
@@ -289,11 +285,6 @@ namespace UnityEditor.Rendering.HighDefinition
 
             if (inputData.shaderKeywordSet.IsEnabled(m_ScreenSpaceShadowONKeywords) && !shadowInitParams.supportScreenSpaceShadows)
                 return true;
-
-            if (inputData.shaderKeywordSet.IsEnabled(m_MSAA) && !hdAsset.currentPlatformRenderPipelineSettings.supportMSAA)
-            {
-                return true;
-            }
 
             if (inputData.shaderKeywordSet.IsEnabled(m_EnableAlpha) && !hdAsset.currentPlatformRenderPipelineSettings.supportsAlpha)
             {

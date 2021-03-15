@@ -181,13 +181,19 @@ namespace UnityEditor.Rendering.HighDefinition
             bool defaultDeferredUsed = !serialized.GetOverrides(FrameSettingsField.LitShaderMode) && defaultShaderLitMode == LitShaderMode.Deferred;
 
             // Due to various reasons, MSAA and ray tracing are not compatible, if ray tracing is enabled on the asset. MSAA can not be enabled on the frame settings.
-            bool msaaEnablable = hdrpSettings.supportMSAA && ((hdrpAssetSupportForward && (frameSettingsOverrideToForward || defaultForwardUsed)) || hdrpAssetIsForward) && !hdrpSettings.supportRayTracing;
-            area.AmmendInfo(FrameSettingsField.MSAA,
+            bool msaaEnablable = ((hdrpAssetSupportForward && (frameSettingsOverrideToForward || defaultForwardUsed)) || hdrpAssetIsForward) && !hdrpSettings.supportRayTracing;
+            area.AmmendInfo(
+                FrameSettingsField.MSAAMode,
                 overrideable: () => msaaEnablable,
                 ignoreDependencies: true,
-                overridedDefaultValue: msaaEnablable && defaultFrameSettings.IsEnabled(FrameSettingsField.MSAA));
+                overridedDefaultValue: msaaEnablable && defaultFrameSettings.IsEnabled(FrameSettingsField.MSAAMode),
+                customGetter: () => serialized.msaaMode.GetEnumValue<MSAAMode>(),
+                customSetter: v => serialized.msaaMode.SetEnumValue((MSAAMode)v),
+                hasMixedValues: serialized.msaaMode.hasMultipleDifferentValues);
 
-            bool msaaIsOff = (msaaEnablable && serialized.GetOverrides(FrameSettingsField.MSAA)) ? !(serialized.IsEnabled(FrameSettingsField.MSAA) ?? false) : !defaultFrameSettings.IsEnabled(FrameSettingsField.MSAA);
+            bool msaaIsOff = (msaaEnablable && serialized.GetOverrides(FrameSettingsField.MSAAMode))
+                ? serialized.msaaMode.GetEnumValue<MSAAMode>() != MSAAMode.None
+                : defaultFrameSettings.msaaMode != MSAAMode.None;
             area.AmmendInfo(FrameSettingsField.AlphaToMask,
                 overrideable: () => msaaEnablable && !msaaIsOff,
                 ignoreDependencies: true,

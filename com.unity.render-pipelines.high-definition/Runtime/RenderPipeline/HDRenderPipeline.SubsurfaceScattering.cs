@@ -160,8 +160,9 @@ namespace UnityEngine.Rendering.HighDefinition
 
         // Albedo + SSS Profile and mask / Specular occlusion (when no SSS)
         // This will be used during GBuffer and/or forward passes.
-        TextureHandle CreateSSSBuffer(RenderGraph renderGraph, bool msaa)
+        TextureHandle CreateSSSBuffer(RenderGraph renderGraph, MSAASamples msaaSamples)
         {
+            bool msaa = msaaSamples != MSAASamples.None;
 #if UNITY_2020_2_OR_NEWER
             FastMemoryDesc fastMemDesc;
             fastMemDesc.inFastMemory = true;
@@ -174,7 +175,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 colorFormat = GraphicsFormat.R8G8B8A8_SRGB,
                 enableRandomWrite = !msaa,
                 bindTextureMS = msaa,
-                msaaSamples = msaa ? m_MSAASamples : MSAASamples.None,
+                msaaSamples = msaaSamples,
                 clearBuffer = NeedClearGBuffer(),
                 clearColor = Color.clear,
                 name = msaa ? "SSSBufferMSAA" : "SSSBuffer"
@@ -214,7 +215,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
             using (var builder = renderGraph.AddRenderPass<SubsurfaceScaterringPassData>("Subsurface Scattering", out var passData, ProfilingSampler.Get(HDProfileId.SubsurfaceScattering)))
             {
-                if (hdCamera.frameSettings.IsEnabled(FrameSettingsField.MSAA))
+                if (hdCamera.msaaEnabled)
                 {
                     m_SubsurfaceScatteringCS.EnableKeyword("ENABLE_MSAA");
                 }
@@ -222,7 +223,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 passData.subsurfaceScatteringCS = m_SubsurfaceScatteringCS;
                 passData.subsurfaceScatteringCS.shaderKeywords = null;
                 passData.subsurfaceScatteringCSKernel = m_SubsurfaceScatteringKernel;
-                passData.needTemporaryBuffer = NeedTemporarySubsurfaceBuffer() || hdCamera.frameSettings.IsEnabled(FrameSettingsField.MSAA);
+                passData.needTemporaryBuffer = NeedTemporarySubsurfaceBuffer() || hdCamera.msaaEnabled;
                 passData.copyStencilForSplitLighting = m_SSSCopyStencilForSplitLighting;
                 passData.combineLighting = m_CombineLightingPass;
                 passData.numTilesX = ((int)hdCamera.screenSize.x + 15) / 16;
