@@ -46,7 +46,8 @@ namespace UnityEngine.Rendering.Universal
                         DebugDisplaySettingsRendering.WidgetFactory.CreateHDR(renderingSettingsData),
                         DebugDisplaySettingsRendering.WidgetFactory.CreateMSAA(renderingSettingsData),
                         DebugDisplaySettingsRendering.WidgetFactory.CreatePostProcessing(renderingSettingsData),
-                        DebugDisplaySettingsRendering.WidgetFactory.CreateAdditionalWireframeShaderViews(renderingSettingsData)
+                        DebugDisplaySettingsRendering.WidgetFactory.CreateAdditionalWireframeShaderViews(renderingSettingsData),
+                        DebugDisplaySettingsRendering.WidgetFactory.CreateOverdraw(renderingSettingsData)
                     }
                 });
 

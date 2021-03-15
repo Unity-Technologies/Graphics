@@ -5,6 +5,64 @@ namespace UnityEngine.Rendering.Universal
 {
     public class DebugDisplaySettingsRendering : IDebugDisplaySettingsData
     {
+        // Under the hood, the implementation uses a single enum (DebugSceneOverrideMode). For UI, we have split
+        // this enum into WireframeMode and a separate Overdraw boolean.
+
+        enum WireframeMode
+        {
+            None,
+            Wireframe,
+            SolidWireframe,
+            ShadedWireframe,
+        }
+
+        WireframeMode m_WireframeMode = WireframeMode.None;
+        WireframeMode wireframeMode
+        {
+            get => m_WireframeMode;
+            set
+            {
+                m_WireframeMode = value;
+                UpdateDebugSceneOverrideMode();
+            }
+        }
+
+        bool m_Overdraw = false;
+
+        bool overdraw
+        {
+            get => m_Overdraw;
+            set
+            {
+                m_Overdraw = value;
+                UpdateDebugSceneOverrideMode();
+            }
+        }
+
+        void UpdateDebugSceneOverrideMode()
+        {
+            if (wireframeMode == WireframeMode.Wireframe)
+            {
+                debugSceneOverrideMode = DebugSceneOverrideMode.Wireframe;
+            }
+            else if (wireframeMode == WireframeMode.SolidWireframe)
+            {
+                debugSceneOverrideMode = DebugSceneOverrideMode.SolidWireframe;
+            }
+            else if (wireframeMode == WireframeMode.ShadedWireframe)
+            {
+                debugSceneOverrideMode = DebugSceneOverrideMode.ShadedWireframe;
+            }
+            else if (overdraw)
+            {
+                debugSceneOverrideMode = DebugSceneOverrideMode.Overdraw;
+            }
+            else
+            {
+                debugSceneOverrideMode = DebugSceneOverrideMode.None;
+            }
+        }
+
         internal DebugFullScreenMode debugFullScreenMode { get; private set; } = DebugFullScreenMode.None;
         internal DebugSceneOverrideMode debugSceneOverrideMode { get; private set; } = DebugSceneOverrideMode.None;
         internal DebugMipInfoMode debugMipInfoMode { get; private set; } = DebugMipInfoMode.None;
@@ -28,11 +86,18 @@ namespace UnityEngine.Rendering.Universal
             internal static DebugUI.Widget CreateAdditionalWireframeShaderViews(DebugDisplaySettingsRendering data) => new DebugUI.EnumField
             {
                 displayName = "Additional Wireframe Shader Views",
-                autoEnum = typeof(DebugSceneOverrideMode),
-                getter = () => (int)data.debugSceneOverrideMode,
+                autoEnum = typeof(WireframeMode),
+                getter = () => (int)data.wireframeMode,
                 setter = (value) => {},
-                getIndex = () => (int)data.debugSceneOverrideMode,
-                setIndex = (value) => data.debugSceneOverrideMode = (DebugSceneOverrideMode)value
+                getIndex = () => (int)data.wireframeMode,
+                setIndex = (value) => data.wireframeMode = (WireframeMode)value
+            };
+
+            internal static DebugUI.Widget CreateOverdraw(DebugDisplaySettingsRendering data) => new DebugUI.BoolField
+            {
+                displayName = "Overdraw",
+                getter = () => data.overdraw,
+                setter = (value) => data.overdraw = value
             };
 
             internal static DebugUI.Widget CreateMipModesDebug(DebugDisplaySettingsRendering data) => new DebugUI.EnumField
@@ -89,7 +154,8 @@ namespace UnityEngine.Rendering.Universal
                         WidgetFactory.CreateMipModesDebug(data),
                         WidgetFactory.CreateMSAA(data),
                         WidgetFactory.CreatePostProcessing(data),
-                        WidgetFactory.CreateAdditionalWireframeShaderViews(data)
+                        WidgetFactory.CreateAdditionalWireframeShaderViews(data),
+                        WidgetFactory.CreateOverdraw(data)
                     }
                 });
 
