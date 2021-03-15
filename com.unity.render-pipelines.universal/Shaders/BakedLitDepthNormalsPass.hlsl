@@ -6,7 +6,7 @@
 struct Attributes
 {
     float4 positionOS   : POSITION;
-    half2 uv            : TEXCOORD0;
+    float2 uv           : TEXCOORD0;
     half3 normalOS      : NORMAL;
     half4 tangentOS     : TANGENT;
 
@@ -16,7 +16,7 @@ struct Attributes
 struct Varyings
 {
     float4 vertex       : SV_POSITION;
-    half2 uv            : TEXCOORD0;
+    float2 uv           : TEXCOORD0;
     half3 normalWS      : TEXCOORD1;
 
     #if defined(_NORMALMAP)
@@ -41,7 +41,7 @@ Varyings DepthNormalsVertex(Attributes input)
     // this is required to avoid skewing the direction during interpolation
     // also required for per-vertex SH evaluation
     VertexNormalInputs normalInput = GetVertexNormalInputs(input.normalOS, input.tangentOS);
-    output.normalWS = normalInput.normalWS;
+    output.normalWS = half3(normalInput.normalWS);
     #if defined(_NORMALMAP)
         real sign = input.tangentOS.w * GetOddNegativeScale();
         output.tangentWS = half4(normalInput.tangentWS.xyz, sign);
@@ -55,7 +55,7 @@ float4 DepthNormalsFragment(Varyings input) : SV_TARGET
     UNITY_SETUP_INSTANCE_ID(input);
     UNITY_SETUP_STEREO_EYE_INDEX_POST_VERTEX(input);
 
-    half4 texColor = SAMPLE_TEXTURE2D(_BaseMap, sampler_BaseMap, input.uv);
+    half4 texColor = (half4) SAMPLE_TEXTURE2D(_BaseMap, sampler_BaseMap, input.uv);
     half alpha = texColor.a * _BaseColor.a;
     AlphaDiscard(alpha, _Cutoff);
 
@@ -66,7 +66,6 @@ float4 DepthNormalsFragment(Varyings input) : SV_TARGET
         half3 packedNormalWS = PackFloat2To888(remappedOctNormalWS);      // values between [ 0,  1]
         return half4(packedNormalWS, 0.0);
     #else
-
         #if defined(_NORMALMAP)
             half3 normalTS = SampleNormal(input.uv, TEXTURE2D_ARGS(_BumpMap, sampler_BumpMap)).xyz;
             half sgn = input.tangentWS.w;      // should be either +1 or -1

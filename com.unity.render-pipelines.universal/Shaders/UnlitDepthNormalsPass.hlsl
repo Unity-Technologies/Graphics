@@ -41,9 +41,9 @@ float4 DepthNormalsFragment(Varyings input) : SV_TARGET
     // Output...
     #if defined(_GBUFFER_NORMALS_OCT)
         float3 normalWS = normalize(input.normalWS);
-        float2 octNormalWS = PackNormalOctQuadEncode(normalWS);           // values between [-1, +1], must use fp32 on Nintendo Switch.
-        float2 remappedOctNormalWS = saturate(octNormalWS * 0.5 + 0.5);   // values between [ 0,  1]
-        half3 packedNormalWS = PackFloat2To888(remappedOctNormalWS);      // values between [ 0,  1]
+        float2 octNormalWS = PackNormalOctQuadEncode(normalWS);             // values between [-1, +1], must use fp32 on Nintendo Switch.
+        float2 remappedOctNormalWS = saturate(octNormalWS * 0.5 + 0.5);     // values between [ 0,  1]
+        half3 packedNormalWS = half3(PackFloat2To888(remappedOctNormalWS)); // values between [ 0,  1]
         return half4(packedNormalWS, 0.0);
     #else
         return half4(NormalizeNormalPerPixel(input.normalWS), 0.0);

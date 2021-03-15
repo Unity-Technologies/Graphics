@@ -18,12 +18,12 @@ struct Varyings
     float2 uv              : TEXCOORD1;
 
     #ifdef _NORMALMAP
-        float4 normalWS    : TEXCOORD2;    // xyz: normal, w: viewDir.x
-        float4 tangentWS   : TEXCOORD3;    // xyz: tangent, w: viewDir.y
-        float4 bitangentWS : TEXCOORD4;    // xyz: bitangent, w: viewDir.z
+        half4 normalWS    : TEXCOORD2;    // xyz: normal, w: viewDir.x
+        half4 tangentWS   : TEXCOORD3;    // xyz: tangent, w: viewDir.y
+        half4 bitangentWS : TEXCOORD4;    // xyz: bitangent, w: viewDir.z
     #else
-        float3  normalWS   : TEXCOORD2;
-        float3 viewDir     : TEXCOORD3;
+        half3 normalWS    : TEXCOORD2;
+        half3 viewDir     : TEXCOORD3;
     #endif
 
     UNITY_VERTEX_INPUT_INSTANCE_ID
@@ -43,13 +43,13 @@ Varyings DepthNormalsVertex(Attributes input)
     VertexPositionInputs vertexInput = GetVertexPositionInputs(input.positionOS.xyz);
     VertexNormalInputs normalInput = GetVertexNormalInputs(input.normal, input.tangentOS);
 
-    half3 viewDirWS = GetWorldSpaceViewDir(vertexInput.positionWS);
+    half3 viewDirWS = GetWorldSpaceNormalizeViewDir(vertexInput.positionWS);
     #if defined(_NORMALMAP)
         output.normalWS = half4(normalInput.normalWS, viewDirWS.x);
         output.tangentWS = half4(normalInput.tangentWS, viewDirWS.y);
         output.bitangentWS = half4(normalInput.bitangentWS, viewDirWS.z);
     #else
-        output.normalWS = NormalizeNormalPerVertex(normalInput.normalWS);
+        output.normalWS = half3(NormalizeNormalPerVertex(normalInput.normalWS));
     #endif
 
     return output;
@@ -71,10 +71,10 @@ half4 DepthNormalsFragment(Varyings input) : SV_TARGET
         float2 uv = input.uv;
 
         #if defined(_NORMALMAP)
-            float3 normalTS = SampleNormal(uv, TEXTURE2D_ARGS(_BumpMap, sampler_BumpMap));
-            float3 normalWS = TransformTangentToWorld(normalTS, half3x3(input.tangentWS.xyz, input.bitangentWS.xyz, input.normalWS.xyz));
+            half3 normalTS = SampleNormal(uv, TEXTURE2D_ARGS(_BumpMap, sampler_BumpMap));
+            half3 normalWS = TransformTangentToWorld(normalTS, half3x3(input.tangentWS.xyz, input.bitangentWS.xyz, input.normalWS.xyz));
         #else
-            float3 normalWS = input.normalWS;
+            half3 normalWS = input.normalWS;
         #endif
 
         normalWS = NormalizeNormalPerPixel(normalWS);

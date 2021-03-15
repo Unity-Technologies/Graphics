@@ -29,16 +29,16 @@ struct Varyings
 {
     float4 positionCS   : SV_POSITION;
     float2 uv           : TEXCOORD1;
-    float3 normalWS     : TEXCOORD2;
+    half3 normalWS     : TEXCOORD2;
 
     #if defined(REQUIRES_WORLD_SPACE_TANGENT_INTERPOLATOR)
-    float4 tangentWS    : TEXCOORD4;    // xyz: tangent, w: sign
+    half4 tangentWS    : TEXCOORD4;    // xyz: tangent, w: sign
     #endif
 
-    float3 viewDirWS    : TEXCOORD5;
+    half3 viewDirWS    : TEXCOORD5;
 
     #if defined(REQUIRES_TANGENT_SPACE_VIEW_DIR_INTERPOLATOR)
-    float3 viewDirTS     : TEXCOORD8;
+    half3 viewDirTS     : TEXCOORD8;
     #endif
 
     UNITY_VERTEX_INPUT_INSTANCE_ID
@@ -58,10 +58,10 @@ Varyings DepthNormalsVertex(Attributes input)
     VertexPositionInputs vertexInput = GetVertexPositionInputs(input.positionOS.xyz);
     VertexNormalInputs normalInput = GetVertexNormalInputs(input.normal, input.tangentOS);
 
-    half3 viewDirWS = GetWorldSpaceViewDir(vertexInput.positionWS);
-    output.normalWS = normalInput.normalWS;
+    half3 viewDirWS = GetWorldSpaceNormalizeViewDir(vertexInput.positionWS);
+    output.normalWS = half3(normalInput.normalWS);
     #if defined(REQUIRES_WORLD_SPACE_TANGENT_INTERPOLATOR) || defined(REQUIRES_TANGENT_SPACE_VIEW_DIR_INTERPOLATOR)
-        real sign = input.tangentOS.w * GetOddNegativeScale();
+        float sign = input.tangentOS.w * float(GetOddNegativeScale());
         half4 tangentWS = half4(normalInput.tangentWS.xyz, sign);
     #endif
 
