@@ -35,6 +35,7 @@ namespace UnityEditor.Rendering
         public delegate void MaterialFinalizer(Material mat);
 
         string m_OldShader;
+        internal string NewShader => m_NewShader;
         string m_NewShader;
 
         MaterialFinalizer m_Finalizer;
@@ -56,6 +57,24 @@ namespace UnityEditor.Rendering
             public float setVal, unsetVal;
         }
         List<KeywordFloatRename> m_KeywordFloatRename = new List<KeywordFloatRename>();
+
+        internal enum RenameType
+        {
+            Texture,
+            Float,
+            Color
+        }
+
+        internal IReadOnlyDictionary<string, string> GetRename(RenameType type)
+        {
+            switch (type)
+            {
+                case RenameType.Texture: return m_TextureRename;
+                case RenameType.Float: return m_FloatRename;
+                case RenameType.Color: return m_ColorRename;
+                default: throw new ArgumentException(nameof(type));
+            }
+        }
 
         /// <summary>
         /// Upgrade Flags
