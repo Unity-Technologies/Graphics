@@ -1388,6 +1388,8 @@ namespace UnityEngine.Rendering.HighDefinition
                 m_ShaderVariablesGlobalCB._EnableRecursiveRayTracing = 0;
                 m_ShaderVariablesGlobalCB._SpecularOcclusionBlend = 1.0f;
             }
+            
+            m_ShaderVariablesGlobalCB._HybridDeformedVertexStreamIndex = UnityEngine.Time.frameCount & 1;
 
             // custom-begin:
             UpdateShaderVariablesGlobalBlueNoise(ref m_ShaderVariablesGlobalCB, cmd);
