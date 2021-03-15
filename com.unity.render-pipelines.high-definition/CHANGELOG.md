@@ -4,6 +4,11 @@ All notable changes to this package will be documented in this file.
 The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.html).
 
+## [10.5.0] - 2020-03-15
+
+Version Updated
+The version number for this package has increased due to a version update of a related graphics package.
+
 ## [10.4.0] - 2020-01-26
 
 ### Added
@@ -53,6 +58,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed issue in path tracing, where objects would cast shadows even if not present in the path traced layers (case 1318857).
 - Fixed SRP batcher not compatible with Decal (case 1311586)
 - Fixed issue with different shadow atlas stomping on each other when they have same resolution.
+- Fixed wrong color buffer being bound to pre refraction custom passes.
 
 ### Changed
 - Updated the tooltip for the Decal Angle Fade property (requires to enable Decal Layers in both HDRP asset and Frame settings) (case 1308048).
@@ -166,6 +172,7 @@ The version number for this package has increased due to a version update of a r
 - Transparent materials created by the Model Importer are set to not cast shadows. ( case 1295747)
 - Change some light unit slider value ranges to better reflect the lighting scenario.
 - Change the tooltip for color shadows and semi-transparent shadows (case 1307704).
+- Cached the base types of Volume Manager to improve memory and cpu usage.
 
 ## [10.2.1] - 2020-11-30
 

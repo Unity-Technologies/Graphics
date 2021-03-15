@@ -4,6 +4,11 @@ All notable changes to this package will be documented in this file.
 The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.html).
 
+## [10.5.0] - 2020-03-15
+
+Version Updated
+The version number for this package has increased due to a version update of a related graphics package.
+
 ## [10.4.0] - 2020-01-26
 ### Changed
 - Sphere and Cube outputs are now experimental
@@ -28,6 +33,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Property Binder : Allow copy/past from a game object to another
 - Deleting a context node and a block while both are selected throws a null ref exception. [Case 315578](https://issuetracker.unity3d.com/product/unity/issues/guid/1315578/)
 - Fixed shader compilation errors with textures in shader graph [Case 1309219](https://issuetracker.unity3d.com/product/unity/issues/guid/1309219/)
+- Fixed issue with VFX using incorrect buffer type for strip data
 
 ### Changed
 - Tidy up of platform abstraction code for random number generation, requires a dependency on com.unity.render-pipelines.core for those abstractions.
