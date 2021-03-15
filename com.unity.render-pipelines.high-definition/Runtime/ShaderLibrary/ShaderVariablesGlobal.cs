@@ -270,21 +270,20 @@ namespace UnityEngine.Rendering.HighDefinition
         // Can be set to 0 to globally "disable" tessellation
         // Because the DepthPrepass doesn't have a DEBUG_DISPLAY variant, it is the only way to disable it for debug modes
         public float    _GlobalTessellationFactorMultiplier;
+
+        public float    _SpecularOcclusionBlend;
+        public int      _HybridDeformedVertexStreamIndex;
         
         // Mask Volumes
-        public uint  _EnableMaskVolumes;
-        public uint  _MaskVolumeCount;
         public Vector4  _MaskVolumeAtlasResolutionAndSliceCount;
         public Vector4  _MaskVolumeAtlasResolutionAndSliceCountInverse;
+        public uint  _EnableMaskVolumes;
+        public uint  _MaskVolumeCount;
 
-		public float    _SpecularOcclusionBlend;
         // custom-begin:
         public uint _BlueNoiseRGBTextureResolutionMinusOne;
         
-		public uint _EnableDynamicBranchLighting;
-		public float   _Pad8;
-		public float   _Pad9;
-		public float   _Pad10;
+        public uint _EnableDynamicBranchLighting;
         // custom-end
     }
 }
