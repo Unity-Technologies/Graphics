@@ -61,7 +61,7 @@ namespace UnityEditor.ShaderGraph
             internal bool isFunc => src != null && dst != null && name != null && splice != null;
             internal bool isDefine => define != null && splice != null && src == null && dst == null & name == null;
             internal bool isValid => isDefine || isBlock || isStruct || isFunc;
-            internal bool hasPreprocessor => preprocessor != null && preprocessor != "";
+            internal bool hasPreprocessor => String.IsNullOrEmpty(preprocessor);
 
             internal static Descriptor MakeFunc(string splice, string name, string dstType, string srcType, string define = "", string preprocessor = "") => new Descriptor { splice = splice, name = name, dst = dstType, src = srcType, define = define, preprocessor = preprocessor };
             internal static Descriptor MakeStruct(string splice, string name, string define = "", string preprocessor = "") => new Descriptor { splice = splice, name = name, define = define, preprocessor = preprocessor };
