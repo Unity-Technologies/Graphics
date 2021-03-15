@@ -30,6 +30,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Added support for volumetric clouds in planar reflections.
 - Added deferred shading debug visualization
 - Added a new control slider on RTR and RTGI to force the LOD Bias on both effects.
+- Added missing documentation for volumetric clouds.
 
 ### Fixed
 - Fixed Intensity Multiplier not affecting realtime global illumination.
