@@ -266,6 +266,7 @@ The version number for this package has increased due to a version update of a r
 - Added light unit slider for automatic and automatic histrogram exposure limits.
 - Added View Bias for mesh decals.
 - Added support for the PlayStation 5 platform.
+- Added support for skinned motionvectors when using Hybrid Renderer
 
 ### Fixed
 - Fixed computation of geometric normal in path tracing (case 1293029).
@@ -378,7 +379,6 @@ The version number for this package has increased due to a version update of a r
 - Transparent materials created by the Model Importer are set to not cast shadows. ( case 1295747)
 - Change some light unit slider value ranges to better reflect the lighting scenario.
 - Change the tooltip for color shadows and semi-transparent shadows (case 1307704).
-- Cached the base types of Volume Manager to improve memory and cpu usage.
 
 ## [10.2.1] - 2020-11-30
 
