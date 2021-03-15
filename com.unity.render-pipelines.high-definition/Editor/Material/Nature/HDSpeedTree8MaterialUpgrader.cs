@@ -34,15 +34,13 @@ namespace UnityEditor.Rendering.HighDefinition
         }
 
         /// <summary>
-        /// Restores SpeedTree8-specific material properties and keywords that were set during import and should not be reset.
+        /// (Obsolete) Restores SpeedTree8-specific material properties and keywords that were set during import and should not be reset.
         /// </summary>
         /// <param name="mat">SpeedTree8 material.</param>
         public static void RestoreHDSpeedTree8Keywords(Material mat)
         {
-            if (mat.name.Contains("Billboard")) // Hacky but it'll hold until newer versions of shadergraph with keyword toggle support
-            {
-                mat.EnableKeyword("EFFECT_BILLBOARD");
-            }
+            // Since ShaderGraph now supports toggling keywords via float properties, keywords get
+            // correctly restored by default and this function is no longer needed.
         }
 
         private static void SetHDSpeedTree8Defaults(Material mat)

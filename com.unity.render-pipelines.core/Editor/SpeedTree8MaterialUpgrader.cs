@@ -49,7 +49,7 @@ namespace UnityEditor.Rendering
             mat.SetFloat("_WINDQUALITY", windQuality);
             if (isBillboard)
             {
-                mat.EnableKeyword("EFFECT_BILLBOARD");
+                mat.SetFloat("EFFECT_BILLBOARD", 1.0f);
                 cullmode = 2;
             }
             if (mat.HasProperty("_CullMode"))
