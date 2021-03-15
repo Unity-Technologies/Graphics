@@ -126,6 +126,8 @@ VaryingsToDS InterpolateWithBaryCoordsToDS(VaryingsToDS input0, VaryingsToDS inp
 #define PackVaryingsType PackVaryingsToPS
 #endif
 
+#include "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/ShaderPass/DotsDeformation.hlsl"
+
 // TODO: Here we will also have all the vertex deformation (GPU skinning, vertex animation, morph target...) or we will need to generate a compute shaders instead (better! but require work to deal with unpacking like fp16)
 // Make it inout so that MotionVectorPass can get the modified input values later.
 VaryingsMeshType VertMesh(AttributesMesh input, float3 worldSpaceOffset)
@@ -134,6 +136,10 @@ VaryingsMeshType VertMesh(AttributesMesh input, float3 worldSpaceOffset)
 
     UNITY_SETUP_INSTANCE_ID(input);
     UNITY_TRANSFER_INSTANCE_ID(input, output);
+
+#if defined(DOTS_INSTANCING_ON)
+    FetchComputeVertexData(input);
+#endif
 
 #if defined(HAVE_MESH_MODIFICATION)
     input = ApplyMeshModification(input, _TimeParameters.xyz);

@@ -269,6 +269,7 @@ namespace UnityEngine.Rendering.HighDefinition
         public float    _GlobalTessellationFactorMultiplier;
 
         public float    _SpecularOcclusionBlend;
-        public float    _Pad9;
+
+        public int      _HybridDeformedVertexStreamIndex;
     }
 }
