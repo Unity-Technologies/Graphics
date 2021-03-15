@@ -152,7 +152,7 @@ namespace UnityEditor.ShaderGraph.Drawing
 
         internal bool IsInputInCategory(ShaderInput shaderInput)
         {
-            return m_CategoryDataReference != null && m_CategoryDataReference.childItemIDSet.Contains(shaderInput.guid);
+            return m_CategoryDataReference != null && m_CategoryDataReference.IsItemInCategory(shaderInput);
         }
 
         internal SGBlackboardRow FindBlackboardRow(ShaderInput shaderInput)

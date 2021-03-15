@@ -1551,28 +1551,28 @@ namespace UnityEditor.ShaderGraph
             m_CategoryData.Add(categoryDataReference);
         }
 
-        public void AddItemToCategory(Guid categoryGUID, Guid itemGUID)
+        public void AddItemToCategory(string categoryGUID, ShaderInput itemToAdd)
         {
             foreach (var categoryData in categories)
             {
                 if (categoryData.categoryGuid == categoryGUID)
                 {
-                    categoryData.AddItemToCategory(itemGUID);
+                    categoryData.AddItemToCategory(itemToAdd);
                 }
                 // Also make sure to remove this items guid from an existing category if it exists within one
-                else if(categoryData.childItemIDSet.Contains(itemGUID))
+                else if(categoryData.childObjectIDSet.Contains(itemToAdd.objectId))
                 {
-                    categoryData.RemoveItemFromCategory(itemGUID);
+                    categoryData.RemoveItemFromCategory(itemToAdd);
                 }
             }
         }
 
-        public void RemoveItemFromCategory(Guid categoryGUID, Guid itemGUID)
+        public void RemoveItemFromCategory(string categoryGUID, ShaderInput itemToRemove)
         {
             foreach (var categoryData in categories)
             {
                 if(categoryData.categoryGuid == categoryGUID)
-                    categoryData.RemoveItemFromCategory(itemGUID);
+                    categoryData.RemoveItemFromCategory(itemToRemove);
             }
         }
 
