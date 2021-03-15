@@ -295,15 +295,19 @@ namespace UnityEditor.Rendering.HighDefinition
                     // Adjust decal transform if handle changed.
                     Undo.RecordObject(decalProjector, "Decal Projector Change");
 
+                    bool xChangeIsValid = scale.x != 0f;
+                    bool yChangeIsValid = scale.y != 0f;
+                    bool zChangeIsValid = scale.z != 0f;
+
                     // Preserve serialized state for axes with scale 0.
                     decalProjector.size = new Vector3(
-                        scale.x != 0f ? boxHandle.size.x : decalProjector.size.x,
-                        scale.y != 0f ? boxHandle.size.y : decalProjector.size.y,
-                        scale.z != 0f ? boxHandle.size.z : decalProjector.size.z);
+                        xChangeIsValid ? boxHandle.size.x : decalProjector.size.x,
+                        yChangeIsValid ? boxHandle.size.y : decalProjector.size.y,
+                        zChangeIsValid ? boxHandle.size.z : decalProjector.size.z);
                     decalProjector.pivot = new Vector3(
-                        scale.x != 0f ? boxHandle.center.x : decalProjector.pivot.x,
-                        scale.y != 0f ? boxHandle.center.y : decalProjector.pivot.y,
-                        scale.z != 0f ? boxHandle.center.z : decalProjector.pivot.z);
+                        xChangeIsValid ? boxHandle.center.x : decalProjector.pivot.x,
+                        yChangeIsValid ? boxHandle.center.y : decalProjector.pivot.y,
+                        zChangeIsValid ? boxHandle.center.z : decalProjector.pivot.z);
 
                     Vector3 boundsSizeCurrentOS = boxHandle.size;
                     Vector3 boundsMinCurrentOS = boxHandle.size * -0.5f + boxHandle.center;
@@ -314,17 +318,18 @@ namespace UnityEditor.Rendering.HighDefinition
                         // Compute a new uv scale and bias terms to pin decal projection pixels in world space, irrespective of projector bounds.
                         // Preserve serialized state for axes with scale 0.
                         Vector2 uvScale = decalProjector.uvScale;
-                        if (scale.x != 0f)
-                            uvScale.x *= Mathf.Max(1e-5f, boundsSizeCurrentOS.x) / Mathf.Max(1e-5f, boundsSizePreviousOS.x);
-                        if (scale.y != 0f)
-                            uvScale.y *= Mathf.Max(1e-5f, boundsSizeCurrentOS.y) / Mathf.Max(1e-5f, boundsSizePreviousOS.y);
-                        decalProjector.uvScale = uvScale;
-
                         Vector2 uvBias = decalProjector.uvBias;
-                        if (scale.x != 0f)
-                            uvBias.x += (boundsMinCurrentOS.x - boundsMinPreviousOS.x) / Mathf.Max(1e-5f, boundsSizeCurrentOS.x) * decalProjector.uvScale.x;
-                        if (scale.y != 0f)
-                            uvBias.y += (boundsMinCurrentOS.y - boundsMinPreviousOS.y) / Mathf.Max(1e-5f, boundsSizeCurrentOS.y) * decalProjector.uvScale.y;
+                        if (xChangeIsValid)
+                        {
+                            uvScale.x *= Mathf.Max(k_LimitInv, boundsSizeCurrentOS.x) / Mathf.Max(k_LimitInv, boundsSizePreviousOS.x);
+                            uvBias.x += (boundsMinCurrentOS.x - boundsMinPreviousOS.x) / Mathf.Max(k_LimitInv, boundsSizeCurrentOS.x) * decalProjector.uvScale.x;
+                        }
+                        if (yChangeIsValid)
+                        {
+                            uvScale.y *= Mathf.Max(k_LimitInv, boundsSizeCurrentOS.y) / Mathf.Max(k_LimitInv, boundsSizePreviousOS.y);
+                            uvBias.y += (boundsMinCurrentOS.y - boundsMinPreviousOS.y) / Mathf.Max(k_LimitInv, boundsSizeCurrentOS.y) * decalProjector.uvScale.y;
+                        }
+                        decalProjector.uvScale = uvScale;
                         decalProjector.uvBias = uvBias;
                     }
 
@@ -373,11 +378,14 @@ namespace UnityEditor.Rendering.HighDefinition
 
             using (new Handles.DrawingScope(Matrix4x4.TRS(decalProjector.transform.position + decalProjector.transform.rotation * (scaledPivot - .5f * scaledSize), decalProjector.transform.rotation, scale)))
             {
+                Vector2 uvScale = decalProjector.uvScale;
+                Vector2 uvBias = decalProjector.uvBias;
+
                 Vector2 uvSize = new Vector2(
-                    (decalProjector.uvScale.x > k_Limit || decalProjector.uvScale.x < -k_Limit) ? 0f : decalProjector.size.x / decalProjector.uvScale.x,
-                    (decalProjector.uvScale.y > k_Limit || decalProjector.uvScale.y < -k_Limit) ? 0f : decalProjector.size.y / decalProjector.uvScale.y
+                    (uvScale.x > k_Limit || uvScale.x < -k_Limit) ? 0f : decalProjector.size.x / uvScale.x,
+                    (uvScale.y > k_Limit || uvScale.y < -k_Limit) ? 0f : decalProjector.size.y / uvScale.y
                 );
-                Vector2 uvCenter = uvSize * .5f - new Vector2(decalProjector.uvBias.x * uvSize.x, decalProjector.uvBias.y * uvSize.y);
+                Vector2 uvCenter = uvSize * .5f - new Vector2(uvBias.x * uvSize.x, uvBias.y * uvSize.y);
 
                 uvHandles.center = uvCenter;
                 uvHandles.size = uvSize;
@@ -388,22 +396,30 @@ namespace UnityEditor.Rendering.HighDefinition
                 {
                     Undo.RecordObject(decalProjector, "Decal Projector Change");
 
-                    Vector2 limit = new Vector2(Mathf.Abs(decalProjector.size.x * k_LimitInv), Mathf.Abs(decalProjector.size.y * k_LimitInv));
-                    Vector2 uvScale = uvHandles.size;
                     for (int channel = 0; channel < 2; channel++)
                     {
-                        if (Mathf.Abs(uvScale[channel]) > limit[channel])
-                            uvScale[channel] = decalProjector.size[channel] / uvScale[channel];
-                        else
-                            uvScale[channel] = Mathf.Sign(decalProjector.size[channel]) * Mathf.Sign(uvScale[channel]) * k_Limit;
+                        // Preserve serialized state for axes with the scaled size 0.
+                        if (scaledSize[channel] != 0f)
+                        {
+                            float minusNewUVStart = .5f * uvHandles.size[channel] - uvHandles.center[channel];
+                            float handleSize = uvHandles.size[channel];
+                            float limit = k_LimitInv * decalProjector.size[channel];
+                            if (handleSize > limit || handleSize < -limit)
+                            {
+                                uvScale[channel] = decalProjector.size[channel] / uvHandles.size[channel];
+                                uvBias[channel] = minusNewUVStart / uvHandles.size[channel];
+                            }
+                            else
+                            {
+                                // TODO: Decide if decalProjector.size and uvHandles.size should ever have negative values. They can't currently.
+                                uvScale[channel] = k_Limit * Mathf.Sign(decalProjector.size[channel]) * Mathf.Sign(uvHandles.size[channel]);
+                                uvBias[channel] = k_Limit * minusNewUVStart / decalProjector.size[channel];
+                            }
+                        }
                     }
-                    decalProjector.uvScale = uvScale;
 
-                    var newUVStart = uvHandles.center - .5f * uvHandles.size;
-                    decalProjector.uvBias = -new Vector2(
-                        (uvHandles.size.x < k_LimitInv) && (uvHandles.size.x > -k_LimitInv) ? k_Limit * newUVStart.x / decalProjector.size.x : newUVStart.x / uvHandles.size.x, //parenthesis to force format tool
-                        (uvHandles.size.y < k_LimitInv) && (uvHandles.size.y > -k_LimitInv) ? k_Limit * newUVStart.y / decalProjector.size.y : newUVStart.y / uvHandles.size.y  //parenthesis to force format tool
-                    );
+                    decalProjector.uvScale = uvScale;
+                    decalProjector.uvBias = uvBias;
                 }
             }
         }
