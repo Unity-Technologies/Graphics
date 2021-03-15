@@ -100,7 +100,7 @@ namespace UnityEditor.Rendering
         /// <summary>Draw a help box with the Fix button.</summary>
         /// <param name="text">The message text.</param>
         /// <param name="messageType">The type of the message.</param>
-        /// <param name="action">When the user clicks the button, Unity performs this action.</param>        
+        /// <param name="action">When the user clicks the button, Unity performs this action.</param>
         public static void DrawFixMeBox(string text, MessageType messageType, Action action)
         {
             EditorGUILayout.HelpBox(text, messageType);

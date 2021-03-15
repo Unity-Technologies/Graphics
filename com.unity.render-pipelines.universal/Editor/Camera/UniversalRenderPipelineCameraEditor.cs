@@ -679,7 +679,7 @@ namespace UnityEditor.Rendering.Universal
                             message.Append(", ");
                         else
                             message.Append(".");
-                    }                    
+                    }
 
                     CoreEditorUtils.DrawFixMeBox(message.ToString(), MessageType.Error, () => UpdateStackCemerasToOverlay());
                 }
@@ -696,7 +696,7 @@ namespace UnityEditor.Rendering.Universal
                         else
                             message.Append(".");
                     }
-                    
+
                     CoreEditorUtils.DrawFixMeBox(message.ToString(), MessageType.Warning, () => UpdateStackCamerasOutput());
                 }
                 EditorGUI.indentLevel++;
