@@ -2,7 +2,7 @@
     <ui:VisualElement name="converterTopVisualElement" style="flex-grow: 1; height: 128px; width: 621px;">
         <ui:VisualElement>
             <ui:VisualElement style="height: 24px; width: 613px; flex-direction: row; flex-grow: 1; margin-left: 0; margin-right: 0; margin-top: 0; margin-bottom: 0; flex-shrink: 0;">
-                <ui:Toggle name="converterEnabled" value="true" />
+                <ui:Toggle name="converterEnabled" value="false" tooltip="Enabling this will start the pre-processing of this converter." />
                 <ui:Label name="converterName" text="Name Of The Converter" style="width: 143px; -unity-text-align: middle-center;" />
                 <ui:VisualElement style="width: 219px; flex-direction: row-reverse; flex-grow: 1;" />
                 <ui:Label name="converterStats" text="100 Items" style="flex-grow: 1; -unity-text-align: middle-right; -unity-font-style: bold;" />

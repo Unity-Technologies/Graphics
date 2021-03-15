@@ -4,60 +4,33 @@ using UnityEngine;
 
 public class MuppetsConverter : CoreConverter
 {
-    public override List<ConverterItemInfo> ItemInfos { get; set; }
-    public override string Name { get; }
-    public override string Info { get; }
+    public override string name => "Muppets";
+    public override string info => "Need to update all my Muppets";
 
-    List<string> converterAssetsPath;
+    List<string> m_AssetsToConvert = new List<string>();
 
-    public MuppetsConverter()
-    {
-        Name = "Muppets";
-        Info = "Need to update all my Muppets";
-
-        //URPConvertersEditor.OnClicked += PrintMe;
-        converterAssetsPath = new List<string>();
-        ItemInfos = new List<ConverterItemInfo>();
-    }
-
-    public override void Convert(List<bool> activeList)
-    {
-        // if (activeList.Count > 0)
-        // {
-        // Convert using the list entries
-        Debug.Log("Converting using a list of items");
-        Debug.Log(activeList.Count);
-        for (int i = 0; i < activeList.Count; i++)
-        {
-            if (activeList[i])
-            {
-                Debug.Log("We should convert this one :: " + converterAssetsPath[i]);
-            }
-        }
-        // }
-    }
-
-    public override void Initialize()
+    public override void OnInitialize(InitializeConverterContext ctx)
     {
         for (int i = 0; i < 20; i++)
         {
             ConverterItemInfo info = new ConverterItemInfo()
             {
-                Active = true,
-                Name = "Muppet : " + i,
-                Path = "Somewhere/On/My/Disk..." + i,
-                InitialInfo = "",
-                HelpLink = "?? yupp"
+                name = "Muppet : " + i,
+                path = "Somewhere/On/My/Disk..." + i,
+                initialInfo = "",
+                helpLink = "?? yupp",
+                id = i
             };
-            converterAssetsPath.Add(info.Path);
-            ItemInfos.Add(info);
+            ctx.AddAssetToConvert(info);
+            m_AssetsToConvert.Add(info.path);
         }
-
-        //return ItemInfos;
     }
 
-    public override void PrintMe(int index)
+    public override void OnRun(RunConverterContext ctx)
     {
-        Debug.Log("Clicked Index " + index);
+        foreach (var item in ctx.items)
+        {
+            var path = m_AssetsToConvert[item.id];
+        }
     }
 }

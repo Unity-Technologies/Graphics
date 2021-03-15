@@ -4,38 +4,33 @@ using UnityEngine;
 
 public class ChocolateConverter : CoreConverter
 {
-    public override List<ConverterItemInfo> ItemInfos { get; set; }
-    public override string Name { get; }
-    public override string Info { get; }
+    public override string name => "Mars";
+    public override string info => "Is better than Snickers";
 
-    List<string> AssetsToConvert = new List<string>();
+    List<string> m_AssetsToConvert = new List<string>();
 
-    public ChocolateConverter()
-    {
-        Name = "Mars Bar";
-        Info = "Is better than Snickers";
-        ItemInfos = new List<ConverterItemInfo>();
-    }
-
-    public override void Convert(List<bool> Active = null)
-    {
-        Debug.Log("Just a basic Convert Step no List");
-    }
-
-    public override void Initialize()
+    public override void OnInitialize(InitializeConverterContext ctx)
     {
         for (int i = 0; i < 2; i++)
         {
             ConverterItemInfo info = new ConverterItemInfo()
             {
-                Active = true,
-                Name = "Chocolate : " + i,
-                Path = "Chocolate/On/My/Disk..." + i * 100,
-                InitialInfo = "MilkChocolate",
-                HelpLink = "?? here is a link"
+                name = "Chocolate : " + i,
+                path = "Chocolate/On/My/Disk..." + i * 100,
+                initialInfo = "MilkChocolate",
+                helpLink = "?? here is a link",
+                id = i
             };
-            AssetsToConvert.Add(info.Path);
-            ItemInfos.Add(info);
+            ctx.AddAssetToConvert(info);
+            m_AssetsToConvert.Add(info.path);
+        }
+    }
+
+    public override void OnRun(RunConverterContext ctx)
+    {
+        foreach (var item in ctx.items)
+        {
+            var path = m_AssetsToConvert[item.id];
         }
     }
 }
