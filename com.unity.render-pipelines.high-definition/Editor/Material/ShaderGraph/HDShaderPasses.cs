@@ -358,6 +358,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             {
                 var renderState = new RenderStateCollection();
                 renderState.Add(CoreRenderStates.MotionVectors);
+
                 return renderState;
             }
 
