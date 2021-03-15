@@ -391,7 +391,7 @@ namespace UnityEngine.Rendering.Universal
 #endif
 
 #if !UNITY_ANDROID && !UNITY_IOS
-            bool useDepthPriming = requiresDepthPrepass && m_RenderingMode == RenderingMode.Forward;
+            bool useDepthPriming = requiresDepthPrepass && m_RenderingMode == RenderingMode.Forward /*&& SystemInfo.graphicsDeviceType != GraphicsDeviceType.Direct3D11 && SystemInfo.graphicsDeviceType != GraphicsDeviceType.Direct3D12*/;
 #else
             bool useDepthPriming = false;
 #endif
