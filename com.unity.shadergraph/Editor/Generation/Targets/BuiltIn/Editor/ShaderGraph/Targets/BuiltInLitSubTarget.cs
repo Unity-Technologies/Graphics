@@ -292,6 +292,7 @@ namespace UnityEditor.Rendering.BuiltIn.ShaderGraph
                 {
                     { PassVariant(LitPasses.Forward,         CorePragmas.DOTSForward) },
                     { PassVariant(LitPasses.ForwardAdd,      CorePragmas.DOTSForwardAdd) },
+                    { PassVariant(LitPasses.Deferred,        CorePragmas.Deferred) },
                     { LitPasses.GBuffer },
                     { PassVariant(CorePasses.ShadowCaster,   CorePragmas.DOTSInstanced) },
                     { PassVariant(CorePasses.DepthOnly,      CorePragmas.DOTSInstanced) },
@@ -448,6 +449,37 @@ namespace UnityEditor.Rendering.BuiltIn.ShaderGraph
                 pragmas  = CorePragmas.Forward,    // NOTE: SM 2.0 only GL
                 keywords = LitKeywords.Forward,
                 includes = LitIncludes.Forward,
+
+                // Custom Interpolator Support
+                customInterpolators = CoreCustomInterpDescriptors.Common
+            };
+
+            public static PassDescriptor Deferred = new PassDescriptor
+            {
+                // Definition
+                displayName = "BuiltIn Deferred",
+                referenceName = "SHADERPASS_DEFERRED",
+                lightMode = "Deferred",
+                useInPreview = true,
+
+                // Template
+                passTemplatePath = BuiltInTarget.kTemplatePath,
+                sharedTemplateDirectories = BuiltInTarget.kSharedTemplateDirectories,
+
+                // Port Mask
+                validVertexBlocks = CoreBlockMasks.Vertex,
+                validPixelBlocks = LitBlockMasks.FragmentLit,
+
+                // Fields
+                structs = CoreStructCollections.Default,
+                requiredFields = LitRequiredFields.Forward,
+                fieldDependencies = CoreFieldDependencies.Default,
+
+                // Conditional State
+                renderStates = CoreRenderStates.Default,
+                pragmas  = CorePragmas.Deferred,    // NOTE: SM 2.0 only GL
+                keywords = LitKeywords.Deferred,
+                includes = LitIncludes.Deferred,
 
                 // Custom Interpolator Support
                 customInterpolators = CoreCustomInterpDescriptors.Common
@@ -737,6 +769,17 @@ namespace UnityEditor.Rendering.BuiltIn.ShaderGraph
                 { CoreKeywordDescriptors.ShadowsShadowmask },
             };
 
+            public static readonly KeywordCollection Deferred = new KeywordCollection
+            {
+                { CoreKeywordDescriptors.Lightmap },
+                { CoreKeywordDescriptors.DirectionalLightmapCombined },
+                { CoreKeywordDescriptors.MainLightShadows },
+                { CoreKeywordDescriptors.ShadowsSoft },
+                { CoreKeywordDescriptors.LightmapShadowMixing },
+                { CoreKeywordDescriptors.MixedLightingSubtractive },
+                { GBufferNormalsOct },
+            };
+
             public static readonly KeywordCollection GBuffer = new KeywordCollection
             {
                 { CoreKeywordDescriptors.Lightmap },
@@ -762,6 +805,7 @@ namespace UnityEditor.Rendering.BuiltIn.ShaderGraph
             const string kMetaInput = "Packages/com.unity.shadergraph/Editor/Generation/Targets/BuiltIn/ShaderLibrary/MetaInput.hlsl";
             const string kForwardPass = "Packages/com.unity.shadergraph/Editor/Generation/Targets/BuiltIn/Editor/ShaderGraph/Includes/PBRForwardPass.hlsl";
             const string kForwardAddPass = "Packages/com.unity.shadergraph/Editor/Generation/Targets/BuiltIn/Editor/ShaderGraph/Includes/PBRForwardAddPass.hlsl";
+            const string kDeferredPass = "Packages/com.unity.shadergraph/Editor/Generation/Targets/BuiltIn/Editor/ShaderGraph/Includes/PBRDeferredPass.hlsl";
             const string kGBuffer = "Packages/com.unity.shadergraph/Editor/Generation/Targets/BuiltIn/ShaderLibrary/UnityGBuffer.hlsl";
             const string kPBRGBufferPass = "Packages/com.unity.shadergraph/Editor/Generation/Targets/BuiltIn/Editor/ShaderGraph/Includes/PBRGBufferPass.hlsl";
             const string kLightingMetaPass = "Packages/com.unity.shadergraph/Editor/Generation/Targets/BuiltIn/Editor/ShaderGraph/Includes/LightingMetaPass.hlsl";
@@ -788,6 +832,17 @@ namespace UnityEditor.Rendering.BuiltIn.ShaderGraph
                 // Post-graph
                 { CoreIncludes.CorePostgraph },
                 { kForwardAddPass, IncludeLocation.Postgraph },
+            };
+
+            public static readonly IncludeCollection Deferred = new IncludeCollection
+            {
+                // Pre-graph
+                { CoreIncludes.CorePregraph },
+                { CoreIncludes.ShaderGraphPregraph },
+
+                // Post-graph
+                { CoreIncludes.CorePostgraph },
+                { kDeferredPass, IncludeLocation.Postgraph },
             };
 
             public static readonly IncludeCollection GBuffer = new IncludeCollection

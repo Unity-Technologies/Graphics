@@ -588,6 +588,17 @@ namespace UnityEditor.Rendering.BuiltIn.ShaderGraph
             { Pragma.Fragment("frag") },
         };
 
+        public static readonly PragmaCollection Deferred = new PragmaCollection
+        {
+            { Pragma.Target(ShaderModel.Target20) },
+            { Pragma.MultiCompileInstancing },
+            { new PragmaDescriptor { value = "exclude_renderers nomrt" } },
+            { Pragma.MultiCompilePrePassFinal },
+            { Pragma.SkipVariants( new[] {"FOG_LINEAR", "FOG_EXP", "FOG_EXP2" }) },
+            { Pragma.Vertex("vert") },
+            { Pragma.Fragment("frag") },
+        };
+
         public static readonly PragmaCollection _2DDefault = new PragmaCollection
         {
             { Pragma.Target(ShaderModel.Target20) },

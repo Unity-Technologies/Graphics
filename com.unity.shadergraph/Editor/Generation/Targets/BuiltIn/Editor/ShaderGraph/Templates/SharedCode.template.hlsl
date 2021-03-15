@@ -62,6 +62,7 @@ struct v2f_surf {
   float4 pos;//UNITY_POSITION(pos);
   float3 worldNormal;// : TEXCOORD1;
   float3 worldPos;// : TEXCOORD2;
+  float3 viewDir;
   float4 lmap;// : TEXCOORD3;
   #if UNITY_SHOULD_SAMPLE_SH
   half3 sh;// : TEXCOORD3; // SH
@@ -100,20 +101,21 @@ void BuildAppDataFull(Attributes attributes, VertexDescription vertexDescription
 void VaryingsToSurfaceVertex(Varyings varyings, inout v2f_surf result)
 {
     result.pos = varyings.positionCS;
-    $Varyings.positionWS:  result.worldPos = varyings.positionWS;
-    $Varyings.normalWS:    result.worldNormal = varyings.normalWS;
+    $Varyings.positionWS:       result.worldPos = varyings.positionWS;
+    $Varyings.normalWS:         result.worldNormal = varyings.normalWS;
+    $Varyings.viewDirectionWS:  result.viewDir = varyings.viewDirectionWS;
     // World Tangent isn't an available input on v2f_surf
-    $Varyings.shadowCoord: result._ShadowCoord = varyings.shadowCoord;
-    $Varyings.sh:          #if UNITY_SHOULD_SAMPLE_SH
-    $Varyings.sh:          result.sh = varyings.sh;
-    $Varyings.sh:          #endif
-    $Varyings.instanceID:  #if UNITY_ANY_INSTANCING_ENABLED
-    $Varyings.instanceID:  UNITY_TRANSFER_INSTANCE_ID(varyings, result);
-    $Varyings.instanceID:  #endif
-    $Varyings.lightmapUV:  #if defined(LIGHTMAP_ON)
-    $Varyings.lightmapUV:  result.lmap.xy = varyings.lightmapUV;
-    $Varyings.lightmapUV:  #endif
-    $Varyings.shadowCoord: result._ShadowCoord = varyings.shadowCoord;
+    $Varyings.shadowCoord:      result._ShadowCoord = varyings.shadowCoord;
+    $Varyings.sh:               #if UNITY_SHOULD_SAMPLE_SH
+    $Varyings.sh:               result.sh = varyings.sh;
+    $Varyings.sh:               #endif
+    $Varyings.instanceID:       #if UNITY_ANY_INSTANCING_ENABLED
+    $Varyings.instanceID:       UNITY_TRANSFER_INSTANCE_ID(varyings, result);
+    $Varyings.instanceID:       #endif
+    $Varyings.lightmapUV:       #if defined(LIGHTMAP_ON)
+    $Varyings.lightmapUV:       result.lmap.xy = varyings.lightmapUV;
+    $Varyings.lightmapUV:       #endif
+    $Varyings.shadowCoord:      result._ShadowCoord = varyings.shadowCoord;
 
     #ifdef VARYINGS_NEED_FOG_AND_VERTEX_LIGHT
     result.fogCoord = varyings.fogFactorAndVertexLight.x;
@@ -126,20 +128,21 @@ void VaryingsToSurfaceVertex(Varyings varyings, inout v2f_surf result)
 void SurfaceVertexToVaryings(v2f_surf surfVertex, inout Varyings result)
 {
     result.positionCS = surfVertex.pos;
-    $Varyings.positionWS:  result.positionWS = surfVertex.worldPos;
-    $Varyings.normalWS:    result.normalWS = surfVertex.worldNormal;
+    $Varyings.positionWS:       result.positionWS = surfVertex.worldPos;
+    $Varyings.normalWS:         result.normalWS = surfVertex.worldNormal;
+    $Varyings.viewDirectionWS:  result.viewDirectionWS = surfVertex.viewDir;
     // World Tangent isn't an available input on v2f_surf
-    $Varyings.sh:          result.shadowCoord = surfVertex._ShadowCoord;
-    $Varyings.sh:          #if UNITY_SHOULD_SAMPLE_SH
-    $Varyings.sh:          result.sh = surfVertex.sh;
-    $Varyings.sh:          #endif
-    $Varyings.instanceID:  #if UNITY_ANY_INSTANCING_ENABLED
-    $Varyings.instanceID:  UNITY_TRANSFER_INSTANCE_ID(surfVertex, result);
-    $Varyings.instanceID:  #endif
-    $Varyings.lightmapUV:  #if defined(LIGHTMAP_ON)
-    $Varyings.lightmapUV:  result.lightmapUV = surfVertex.lmap.xy;
-    $Varyings.lightmapUV:  #endif
-    $Varyings.shadowCoord: result.shadowCoord = surfVertex._ShadowCoord;
+    $Varyings.sh:               result.shadowCoord = surfVertex._ShadowCoord;
+    $Varyings.sh:               #if UNITY_SHOULD_SAMPLE_SH
+    $Varyings.sh:               result.sh = surfVertex.sh;
+    $Varyings.sh:               #endif
+    $Varyings.instanceID:       #if UNITY_ANY_INSTANCING_ENABLED
+    $Varyings.instanceID:       UNITY_TRANSFER_INSTANCE_ID(surfVertex, result);
+    $Varyings.instanceID:       #endif
+    $Varyings.lightmapUV:       #if defined(LIGHTMAP_ON)
+    $Varyings.lightmapUV:       result.lightmapUV = surfVertex.lmap.xy;
+    $Varyings.lightmapUV:       #endif
+    $Varyings.shadowCoord:      result.shadowCoord = surfVertex._ShadowCoord;
     
     #ifdef VARYINGS_NEED_FOG_AND_VERTEX_LIGHT
     result.fogFactorAndVertexLight.x = surfVertex.fogCoord;
