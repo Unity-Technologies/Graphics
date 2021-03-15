@@ -1546,6 +1546,36 @@ namespace UnityEditor.ShaderGraph
             RemoveNodeNoValidate(propertyNode);
         }
 
+        public void AddCategory(CategoryData categoryDataReference)
+        {
+            m_CategoryData.Add(categoryDataReference);
+        }
+
+        public void AddItemToCategory(Guid categoryGUID, Guid itemGUID)
+        {
+            foreach (var categoryData in categories)
+            {
+                if (categoryData.categoryGuid == categoryGUID)
+                {
+                    categoryData.AddItemToCategory(itemGUID);
+                }
+                // Also make sure to remove this items guid from an existing category if it exists within one
+                else if(categoryData.childItemIDSet.Contains(itemGUID))
+                {
+                    categoryData.RemoveItemFromCategory(itemGUID);
+                }
+            }
+        }
+
+        public void RemoveItemFromCategory(Guid categoryGUID, Guid itemGUID)
+        {
+            foreach (var categoryData in categories)
+            {
+                if(categoryData.categoryGuid == categoryGUID)
+                    categoryData.RemoveItemFromCategory(itemGUID);
+            }
+        }
+
         public void OnKeywordChanged()
         {
             OnKeywordChangedNoValidate();
@@ -1726,6 +1756,9 @@ namespace UnityEditor.ShaderGraph
 
             foreach (GroupData groupData in other.groups)
                 AddGroup(groupData);
+
+            foreach(CategoryData categoryData in other.categories)
+                AddCategory(categoryData);
 
             foreach (var stickyNote in other.stickyNotes)
             {

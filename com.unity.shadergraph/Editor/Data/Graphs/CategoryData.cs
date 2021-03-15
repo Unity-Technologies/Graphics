@@ -18,6 +18,10 @@ namespace UnityEditor.ShaderGraph
             set => m_Name = value;
         }
 
+        /// <summary>
+        /// TODO: Just get rid of this cause JsonObjects already have objectID
+        /// </summary>
+
         [SerializeField]
         Guid m_CategoryGuid;
 
@@ -31,6 +35,11 @@ namespace UnityEditor.ShaderGraph
         [SerializeField]
         List<Guid> m_ChildItemIDList;
 
+        // TODO: Make this be a list of JsonRefs<ShaderInput> that point at the actual blackboard Items
+        // That handles save/load automagically
+        [SerializeField]
+        List<string> m_ChildItemIDStringList;
+
         HashSet<Guid> m_ChildItemIDSet;
         // We expose Guids as a HashSet for faster existence checks
         public HashSet<Guid> childItemIDSet
@@ -39,7 +48,40 @@ namespace UnityEditor.ShaderGraph
             set => m_ChildItemIDSet = value;
         }
 
-        public CategoryData(string inName,  List<Guid> inChildItemIDList = null, Guid inCategoryGuid = new Guid())
+        public void AddItemToCategory(Guid itemGUID)
+        {
+            m_ChildItemIDList.Add(itemGUID);
+            m_ChildItemIDSet.Add(itemGUID);
+        }
+
+        public void RemoveItemFromCategory(Guid itemGUID)
+        {
+            if (m_ChildItemIDSet.Contains(itemGUID))
+            {
+                m_ChildItemIDList.Remove(itemGUID);
+                m_ChildItemIDSet.Remove(itemGUID);
+            }
+        }
+
+        public CategoryData()
+        {
+            name = String.Empty;
+            m_ChildItemIDList = new List<Guid>();
+            m_ChildItemIDSet = new HashSet<Guid>();
+            categoryGuid = new Guid();
+        }
+
+        public override void OnBeforeSerialize()
+        {
+            m_ChildItemIDStringList = new List<string>();
+            foreach (var guid in m_ChildItemIDList)
+            {
+                m_ChildItemIDStringList.Add(guid.ToString());
+            }
+            base.OnBeforeSerialize();
+        }
+
+        public CategoryData(string inName, Guid inCategoryGuid, List<Guid> inChildItemIDList = null)
         {
             name = inName;
             m_ChildItemIDList = inChildItemIDList;

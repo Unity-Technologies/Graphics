@@ -4,7 +4,7 @@ using UnityEngine.UIElements;
 
 namespace UnityEditor.ShaderGraph.Drawing
 {
-    class BlackboardSectionViewModel : ISGViewModel
+    class BlackboardCategoryViewModel : ISGViewModel
     {
         public VisualElement parentView { get; set; }
         internal string name { get; set; }

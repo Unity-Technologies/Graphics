@@ -41,11 +41,11 @@ namespace UnityEditor.ShaderGraph.Drawing
         internal int newIndexValue { get; set; }
     }
 
-    class BlackboardSectionController : SGViewController<GraphData, BlackboardSectionViewModel>
+    class BlackboardCategoryController : SGViewController<GraphData, BlackboardCategoryViewModel>
     {
-        internal SGBlackboardSection BlackboardSectionView => m_BlackboardSectionView;
+        internal SGBlackboardCategory blackboardCategoryView => m_BlackboardCategoryView;
 
-        SGBlackboardSection m_BlackboardSectionView;
+        SGBlackboardCategory m_BlackboardCategoryView;
 
         // Reference to the category data this controller is responsible for representing
         CategoryData m_CategoryDataReference = null;
@@ -55,27 +55,27 @@ namespace UnityEditor.ShaderGraph.Drawing
         SGBlackboard blackboard { get; set; }
 
 
-        internal BlackboardSectionController(GraphData graphData, BlackboardSectionViewModel sectionViewModel, GraphDataStore dataStore)
-            : base(graphData, sectionViewModel, dataStore)
+        internal BlackboardCategoryController(GraphData graphData, BlackboardCategoryViewModel categoryViewModel, GraphDataStore dataStore)
+            : base(graphData, categoryViewModel, dataStore)
         {
-            m_BlackboardSectionView = new SGBlackboardSection(sectionViewModel);
+            m_BlackboardCategoryView = new SGBlackboardCategory(categoryViewModel);
 
-            blackboard = sectionViewModel.parentView as SGBlackboard;
+            blackboard = categoryViewModel.parentView as SGBlackboard;
             if (blackboard == null)
                 return;
 
-            blackboard.Add(m_BlackboardSectionView);
+            blackboard.Add(m_BlackboardCategoryView);
             // These make sure that the drag indicators are disabled whenever a drag action is cancelled without completing a drop
             blackboard.RegisterCallback<MouseUpEvent>(evt =>
             {
-                m_BlackboardSectionView.OnDragActionCanceled();
+                m_BlackboardCategoryView.OnDragActionCanceled();
             });
-            blackboard.hideDragIndicatorAction += m_BlackboardSectionView.OnDragActionCanceled;
+            blackboard.hideDragIndicatorAction += m_BlackboardCategoryView.OnDragActionCanceled;
 
             // Go through categories in Data Store
             foreach (var categoryData in graphData.categories)
             {
-                // If category can be found with matching guid for this section
+                // If category can be found with matching guid for this category
                 // And that category contains this input
                 if (categoryData.categoryGuid == ViewModel.associatedCategoryGuid)
                 {
@@ -86,13 +86,13 @@ namespace UnityEditor.ShaderGraph.Drawing
 
             foreach (var shaderInput in graphData.properties)
             {
-                if (IsInputInSection(shaderInput))
+                if (IsInputInCategory(shaderInput))
                     InsertBlackboardRow(shaderInput);
             }
 
             foreach (var shaderInput in graphData.keywords)
             {
-                if (IsInputInSection(shaderInput))
+                if (IsInputInCategory(shaderInput))
                     InsertBlackboardRow(shaderInput);
             }
         }
@@ -107,9 +107,9 @@ namespace UnityEditor.ShaderGraph.Drawing
         {
             switch (changeAction)
             {
-                // If newly added input doesn't belong to any of the sections, add it to the appropriate default section
+                // If newly added input doesn't belong to any of the user-made categories, add it to the appropriate default category
                 case AddShaderInputAction addBlackboardItemAction:
-                    if (IsInputInSection(addBlackboardItemAction.shaderInputReference))
+                    if (IsInputInCategory(addBlackboardItemAction.shaderInputReference))
                     {
                         var blackboardRow = InsertBlackboardRow(addBlackboardItemAction.shaderInputReference);
 
@@ -124,27 +124,33 @@ namespace UnityEditor.ShaderGraph.Drawing
                 case DeleteShaderInputAction deleteShaderInputAction:
                     foreach (var shaderInput in deleteShaderInputAction.shaderInputsToDelete)
                     {
-                        if (IsInputInSection(shaderInput))
+                        if (IsInputInCategory(shaderInput))
                             RemoveBlackboardRow(shaderInput);
                     }
                     break;
                 case HandleUndoRedoAction handleUndoRedoAction:
                     foreach (var shaderInput in graphData.removedInputs)
-                        if (IsInputInSection(shaderInput))
+                        if (IsInputInCategory(shaderInput))
                             RemoveBlackboardRow(shaderInput);
 
                     foreach (var shaderInput in graphData.addedInputs)
-                        if (IsInputInSection(shaderInput))
+                        if (IsInputInCategory(shaderInput))
                             InsertBlackboardRow(shaderInput);
                     break;
                 case CopyShaderInputAction copyShaderInputAction:
-                    if (IsInputInSection(copyShaderInputAction.copiedShaderInput))
+                    if (IsInputInCategory(copyShaderInputAction.copiedShaderInput))
                         InsertBlackboardRow(copyShaderInputAction.copiedShaderInput, copyShaderInputAction.insertIndex);
+                    break;
+                case AddItemToCategoryAction addItemToCategoryAction:
+                    if (addItemToCategoryAction.categoryGuid == ViewModel.associatedCategoryGuid)
+                    {
+                        InsertBlackboardRow(addItemToCategoryAction.blackboardItemReference);
+                    }
                     break;
             }
         }
 
-        internal bool IsInputInSection(ShaderInput shaderInput)
+        internal bool IsInputInCategory(ShaderInput shaderInput)
         {
             return m_CategoryDataReference != null && m_CategoryDataReference.childItemIDSet.Contains(shaderInput.guid);
         }
@@ -155,23 +161,23 @@ namespace UnityEditor.ShaderGraph.Drawing
             return associatedController?.BlackboardItemView;
         }
 
-        // Creates controller, view and view model for a blackboard item and adds the view to the specified index in the section
+        // Creates controller, view and view model for a blackboard item and adds the view to the specified index in the category
         // By default adds it to the end of the list if no insertionIndex specified
         internal SGBlackboardRow InsertBlackboardRow(BlackboardItem shaderInput, int insertionIndex = -1)
         {
-            // If no index specified, add to end of section
+            // If no index specified, add to end of category
             if (insertionIndex == -1)
                 insertionIndex = m_BlackboardItemControllers.Count;
 
             var shaderInputViewModel = new ShaderInputViewModel()
             {
                 model = shaderInput,
-                parentView = BlackboardSectionView,
+                parentView = blackboardCategoryView,
             };
             var blackboardItemController = new BlackboardItemController(shaderInput, shaderInputViewModel, DataStore);
             m_BlackboardItemControllers.Add(shaderInput.guid, blackboardItemController);
 
-            BlackboardSectionView.Insert(insertionIndex, blackboardItemController.BlackboardItemView);
+            blackboardCategoryView.Insert(insertionIndex, blackboardItemController.BlackboardItemView);
 
             return blackboardItemController.BlackboardItemView;
         }

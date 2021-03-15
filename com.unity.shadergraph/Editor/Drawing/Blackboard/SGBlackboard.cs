@@ -80,8 +80,8 @@ namespace UnityEditor.ShaderGraph.Drawing
             set => m_ViewModel = value;
         }
 
-        // List of user-made blackboard sections
-        IList<SGBlackboardSection> m_BlackboardSections = new List<SGBlackboardSection>();
+        // List of user-made blackboard category views
+        IList<SGBlackboardCategory> m_BlackboardCategories = new List<SGBlackboardCategory>();
 
         bool m_ScrollToTop = false;
         bool m_ScrollToBottom = false;
@@ -107,7 +107,7 @@ namespace UnityEditor.ShaderGraph.Drawing
         {
             ViewModel = viewModel;
 
-            InitializeAddPropertyMenu();
+            InitializeAddBlackboardItemMenu();
 
             // By default dock blackboard to left of graph window
             windowDockingLayout.dockingLeft = true;
@@ -223,7 +223,7 @@ namespace UnityEditor.ShaderGraph.Drawing
                 m_ScrollView.scrollOffset = new Vector2(m_ScrollView.scrollOffset.x, Mathf.Clamp(m_ScrollView.scrollOffset.y + k_DraggedPropertyScrollSpeed, 0, scrollableHeight));
         }
 
-        void InitializeAddPropertyMenu()
+        void InitializeAddBlackboardItemMenu()
         {
             m_AddBlackboardItemMenu = new GenericMenu();
 
@@ -260,6 +260,8 @@ namespace UnityEditor.ShaderGraph.Drawing
             {
                 m_AddBlackboardItemMenu.AddDisabledItem(new GUIContent(disabledKeywordName));
             }
+
+            m_AddBlackboardItemMenu.AddItem(new GUIContent("Category"), false, () => ViewModel.requestModelChangeAction(ViewModel.addCategoryAction));
         }
 
         void ShowAddPropertyMenu()

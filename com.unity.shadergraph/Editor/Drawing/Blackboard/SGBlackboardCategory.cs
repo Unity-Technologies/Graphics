@@ -7,7 +7,7 @@ using UnityEngine.UIElements;
 
 namespace UnityEditor.ShaderGraph.Drawing
 {
-    class SGBlackboardSection : GraphElement, ISGControlledElement<BlackboardSectionController>
+    class SGBlackboardCategory : GraphElement, ISGControlledElement<BlackboardCategoryController>
     {
         // --- Begin ISGControlledElement implementation
         public void OnControllerChanged(ref SGControllerChangedEvent e)
@@ -18,7 +18,7 @@ namespace UnityEditor.ShaderGraph.Drawing
         {
         }
 
-        public BlackboardSectionController controller
+        public BlackboardCategoryController controller
         {
             get => m_Controller;
             set
@@ -43,9 +43,9 @@ namespace UnityEditor.ShaderGraph.Drawing
 
         // --- ISGControlledElement implementation
 
-        BlackboardSectionController m_Controller;
+        BlackboardCategoryController m_Controller;
 
-        BlackboardSectionViewModel m_ViewModel;
+        BlackboardCategoryViewModel m_ViewModel;
 
         VisualElement m_DragIndicator;
         VisualElement m_MainContainer;
@@ -87,7 +87,7 @@ namespace UnityEditor.ShaderGraph.Drawing
             return index;
         }
 
-        VisualElement FindSectionDirectChild(VisualElement element)
+        VisualElement FindCategoryDirectChild(VisualElement element)
         {
             VisualElement directChild = element;
 
@@ -103,9 +103,9 @@ namespace UnityEditor.ShaderGraph.Drawing
             return null;
         }
 
-        internal SGBlackboardSection(BlackboardSectionViewModel sectionViewModel)
+        internal SGBlackboardCategory(BlackboardCategoryViewModel categoryViewModel)
         {
-            m_ViewModel = sectionViewModel;
+            m_ViewModel = categoryViewModel;
 
             // Setup VisualElement from Stylesheet and UXML file
             var tpl = Resources.Load("UXML/GraphView/BlackboardSection") as VisualTreeAsset;
@@ -135,7 +135,7 @@ namespace UnityEditor.ShaderGraph.Drawing
 
             m_InsertIndex = -1;
 
-            // Update section title from view model
+            // Update category title from view model
             m_TitleLabel.text = m_ViewModel.name;
         }
 
@@ -176,7 +176,7 @@ namespace UnityEditor.ShaderGraph.Drawing
             if (selection == null)
                 return false;
 
-            // Look for at least one selected element in this section to accept drop
+            // Look for at least one selected element in this category to accept drop
             foreach (ISelectable selected in selection)
             {
                 VisualElement selectedElement = selected as VisualElement;
@@ -279,7 +279,7 @@ namespace UnityEditor.ShaderGraph.Drawing
 
                     if (draggedElement != null && Contains(draggedElement))
                     {
-                        draggedElements.Add(new Tuple<VisualElement, VisualElement>(FindSectionDirectChild(draggedElement), draggedElement));
+                        draggedElements.Add(new Tuple<VisualElement, VisualElement>(FindCategoryDirectChild(draggedElement), draggedElement));
                     }
                 }
 
@@ -296,8 +296,8 @@ namespace UnityEditor.ShaderGraph.Drawing
 
                 foreach (Tuple<VisualElement, VisualElement> draggedElement in draggedElements)
                 {
-                    VisualElement sectionDirectChild = draggedElement.Item1;
-                    int indexOfDraggedElement = IndexOf(sectionDirectChild);
+                    VisualElement categoryDirectChild = draggedElement.Item1;
+                    int indexOfDraggedElement = IndexOf(categoryDirectChild);
 
                     if (!((indexOfDraggedElement == insertIndex) || ((insertIndex - 1) == indexOfDraggedElement)))
                     {
@@ -310,11 +310,11 @@ namespace UnityEditor.ShaderGraph.Drawing
 
                             if (insertIndex == contentContainer.childCount)
                             {
-                                sectionDirectChild.BringToFront();
+                                categoryDirectChild.BringToFront();
                             }
                             else
                             {
-                                sectionDirectChild.PlaceBehind(this[insertIndex]);
+                                categoryDirectChild.PlaceBehind(this[insertIndex]);
                             }
                         }
                     }
