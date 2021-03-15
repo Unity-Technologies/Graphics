@@ -121,6 +121,9 @@ namespace UnityEditor.Rendering.HighDefinition
             if (!HDShaderUtils.IsHDRPShader(material.shader, upgradable: true))
                 return;
 
+            if (HDSpeedTree8MaterialUpgrader.IsHDSpeedTree8Material(material))
+                SpeedTree8MaterialUpgrader.UpgradeSpeedTree8Material(material);
+
             HDShaderUtils.ResetMaterialKeywords(material);
         }
 

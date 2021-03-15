@@ -33,7 +33,7 @@ namespace UnityEngine.Rendering.Universal
             "Universal Render Pipeline/Baked Lit",
             "Universal Render Pipeline/Nature/SpeedTree7",
             "Universal Render Pipeline/Nature/SpeedTree7 Billboard",
-            "Universal Render Pipeline/Nature/SpeedTree8",
+            "Universal Render Pipeline/Nature/SpeedTree8_PBRLit",
         };
 
         public static string GetShaderPath(ShaderPathID id)

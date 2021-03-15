@@ -31,7 +31,7 @@ namespace UnityEditor.Rendering
             "_WINDQUALITY_PALM"
         };
         /// <summary>
-        /// Creates a material upgrader with only the renames in common between HD and Universal.
+        /// Creates a material upgrader to upgrade from the builtin ST8 shader with only the renames in common between HD and Universal.
         /// </summary>
         /// <param name="sourceShaderName">Original ST8 shader name.</param>
         /// <param name="destShaderName">New ST8 shader name.</param>
@@ -45,6 +45,8 @@ namespace UnityEditor.Rendering
 
         private static void ImportNewSpeedTree8Material(Material mat, int windQuality, bool isBillboard)
         {
+            if (mat == null)
+                return;
             int cullmode = 0;
             mat.SetFloat("_WINDQUALITY", windQuality);
             if (isBillboard)
@@ -75,11 +77,44 @@ namespace UnityEditor.Rendering
                 {
                     foreach (Material m in r.sharedMaterials)
                     {
+                        float cutoff = stImporter.alphaTestRef;
                         ImportNewSpeedTree8Material(m, wq, isBillboard);
-                        finalizer(m);
+                        if (finalizer != null)
+                            finalizer(m);
                     }
                 }
             }
+        }
+        /// <summary>
+        /// Preserve wind quality and billboard setting when upgrading a ST8 material from previous versions.
+        /// Wind priority order is enabled keyword > _WindQuality float value.
+        /// Should work for upgrading versions within a pipeline and from standard to current pipeline.
+        /// </summary>
+        /// <param name="material"></param>
+        /// <param name="windQuality"></param>
+        public static void UpgradeSpeedTree8Material(Material material)
+        {
+            if (material.HasProperty("_TwoSided") && material.HasProperty("_CullMode"))
+                material.SetFloat("_CullMode", material.GetFloat("_TwoSided"));
+
+            bool isBillboard = material.IsKeywordEnabled("EFFECT_BILLBOARD");
+            if (material.HasProperty("EFFECT_BILLBOARD"))
+                material.SetFloat("EFFECT_BILLBOARD", isBillboard ? 1.0f : 0.0f);
+
+            UpgradeWindQuality(material);
+        }
+
+        /// <summary>
+        /// Preserve wind quality setting when upgrading a ST8 material from previous versions.
+        /// Priority order is input windQuality > enabled keyword > _WindQuality float value.
+        /// Relies on _WindQuality being a float under the hood, despite being used as a bool property in the shadergraph.
+        /// </summary>
+        /// <param name="material">ST8 material to upgrade.</param>
+        /// <param name="windQuality">Optionally override previous wind quality.</param>
+        private static void UpgradeWindQuality(Material material, int windQuality = -1)
+        {
+            int wq = GetWindQuality(material, windQuality);
+            SetWindQuality(material, wq);
         }
 
         private static int GetWindQuality(Material material, int windQuality = -1)
@@ -109,12 +144,8 @@ namespace UnityEditor.Rendering
                 material.DisableKeyword(WindQualityString[i]);
             }
         }
-        /// <summary>
-        /// Overwrite wind quality, including associated properties and keywords, on a SpeedTree8 material.
-        /// </summary>
-        /// <param name="material">SpeedTree8 material to update.</param>
-        /// <param name="windQuality">Wind quality to set.</param>
-        public static void SetWindQuality(Material material, int windQuality)
+
+        private static void SetWindQuality(Material material, int windQuality)
         {
             Debug.Assert(WindIntValid(windQuality), "Attempting to set invalid wind quality on material " + material.name);
 
@@ -128,7 +159,8 @@ namespace UnityEditor.Rendering
 
             material.EnableKeyword(WindQualityString[windQuality]);
             material.SetFloat("_WindQuality", windQuality); // A legacy float used in native code to apply wind data
-            material.SetFloat("_WINDQUALITY", windQuality); // The actual name of the keyword enum for the shadergraph
+            if (material.HasProperty("_WINDQUALITY"))
+                material.SetFloat("_WINDQUALITY", windQuality); // The actual name of the keyword enum for the shadergraph
         }
 
         private static int GetWindQualityFromKeywords(string[] matKws)

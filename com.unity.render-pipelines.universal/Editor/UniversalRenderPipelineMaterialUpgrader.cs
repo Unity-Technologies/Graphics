@@ -47,7 +47,7 @@ namespace UnityEditor.Rendering.Universal
             shadersToIgnore.Add("Universal Render Pipeline/Simple Lit");
             shadersToIgnore.Add("Universal Render Pipeline/Nature/SpeedTree7");
             shadersToIgnore.Add("Universal Render Pipeline/Nature/SpeedTree7 Billboard");
-            shadersToIgnore.Add("Universal Render Pipeline/Nature/SpeedTree8");
+            shadersToIgnore.Add("Universal Render Pipeline/Nature/SpeedTree8_PBRLit");
             shadersToIgnore.Add("Universal Render Pipeline/2D/Sprite-Lit-Default");
             shadersToIgnore.Add("Universal Render Pipeline/Terrain/Lit");
             shadersToIgnore.Add("Universal Render Pipeline/Unlit");
@@ -438,11 +438,27 @@ namespace UnityEditor.Rendering.Universal
             RenameShader(oldShaderName, ShaderUtils.GetShaderPath(ShaderPathID.SpeedTree7Billboard));
         }
     }
-    internal class SpeedTree8Upgrader : MaterialUpgrader
+    public class SpeedTree8Upgrader : SpeedTree8MaterialUpgrader
     {
-        internal SpeedTree8Upgrader(string oldShaderName)
+        private static List<string> st8ShaderNames = new List<string>()
         {
-            RenameShader(oldShaderName, ShaderUtils.GetShaderPath(ShaderPathID.SpeedTree8));
+            "Universal Render Pipeline/Nature/SpeedTree8",
+            "Universal Render Pipeline/Nature/SpeedTree8_PBRLit"
+        };
+        public SpeedTree8Upgrader(string oldShaderName)
+            : base(oldShaderName, ShaderUtils.GetShaderPath(ShaderPathID.SpeedTree8))
+        {
+            st8ShaderNames.Add(oldShaderName);
+        }
+
+        public static bool IsUniversalSpeedTree8Shader(Material mat)
+        {
+            foreach (string name in st8ShaderNames)
+            {
+                if (mat.shader.name == name)
+                    return true;
+            }
+            return false;
         }
     }
 
