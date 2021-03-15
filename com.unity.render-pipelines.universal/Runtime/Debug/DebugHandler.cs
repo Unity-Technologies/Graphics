@@ -104,9 +104,10 @@ namespace UnityEngine.Rendering.Universal
             return new DebugPass(evt, m_FullScreenDebugMaterial);
         }
 
-        public bool TryGetFullscreenDebugMode(out DebugFullScreenMode debugFullScreenMode)
+        public bool TryGetFullscreenDebugMode(out DebugFullScreenMode debugFullScreenMode, out int outputHeight)
         {
             debugFullScreenMode = RenderingSettings.debugFullScreenMode;
+            outputHeight = RenderingSettings.debugFullScreenModeOutputSize;
             return debugFullScreenMode != DebugFullScreenMode.None;
         }
 

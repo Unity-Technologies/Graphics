@@ -64,6 +64,7 @@ namespace UnityEngine.Rendering.Universal
         }
 
         internal DebugFullScreenMode debugFullScreenMode { get; private set; } = DebugFullScreenMode.None;
+        internal int debugFullScreenModeOutputSize { get; private set; } = 480;
         internal DebugSceneOverrideMode debugSceneOverrideMode { get; private set; } = DebugSceneOverrideMode.None;
         internal DebugMipInfoMode debugMipInfoMode { get; private set; } = DebugMipInfoMode.None;
 
@@ -81,6 +82,22 @@ namespace UnityEngine.Rendering.Universal
                 setter = (value) => {},
                 getIndex = () => (int)data.debugFullScreenMode,
                 setIndex = (value) => data.debugFullScreenMode = (DebugFullScreenMode)value
+            };
+
+            internal static DebugUI.Widget CreateMapOverlaySize(DebugDisplaySettingsRendering data) => new DebugUI.Container()
+            {
+                children =
+                {
+                    new DebugUI.IntField
+                    {
+                        displayName = "Map Size",
+                        getter = () => data.debugFullScreenModeOutputSize,
+                        setter = value => data.debugFullScreenModeOutputSize = value,
+                        incStep = 10,
+                        min = () => 100,
+                        max = () => 2160
+                    }
+                }
             };
 
             internal static DebugUI.Widget CreateAdditionalWireframeShaderViews(DebugDisplaySettingsRendering data) => new DebugUI.EnumField
@@ -149,6 +166,7 @@ namespace UnityEngine.Rendering.Universal
                     children =
                     {
                         WidgetFactory.CreateMapOverlays(data),
+                        WidgetFactory.CreateMapOverlaySize(data),
                         // TODO: Map size widget
                         WidgetFactory.CreateHDR(data),
                         WidgetFactory.CreateMipModesDebug(data),
