@@ -372,13 +372,13 @@ void DoFGatherRings(PositionInputs posInputs, int numSamples, float maxRadius, S
     AccumulateCenterSample(centerSample, bgAccumData);
 
     // Compute the fg alpha. Needs to be normalized based on search radius.
-    float maxCoC = fgAccumData.CoC / fgAccumData.color.w;
-    //float maxCoC = fgAccumData.maxCoC / fgAccumData.color.w;
-    float scaleFactor = (maxCoC * maxCoC) / (maxRadius * maxRadius);
+    float normCoC = fgAccumData.CoC / fgAccumData.color.w;
+    //float normCoC = fgAccumData.maxCoC;
+    float scaleFactor = (normCoC * normCoC) / (maxRadius * maxRadius);
     float correctSamples = scaleFactor * (numSamples * numSamples);
 
     // Now blend the bg and fg layes
-    float fgAlpha = saturate(2 * fgAccumData.coverage / correctSamples);
+    float fgAlpha = saturate(2 * fgAccumData.color.w * rcp(GetSampleWeight(normCoC)) * rcp(correctSamples));
     color = bgAccumData.color * (1.0 - fgAlpha) + fgAlpha * fgAccumData.color;
     alpha = bgAccumData.alpha * (1.0 - fgAlpha) + fgAlpha * fgAccumData.alpha;
 }
