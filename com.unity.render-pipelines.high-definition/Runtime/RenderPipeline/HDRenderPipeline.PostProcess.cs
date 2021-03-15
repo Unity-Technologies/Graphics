@@ -283,11 +283,11 @@ namespace UnityEngine.Rendering.HighDefinition
 
                 //if exposure comes from the parent camera, it means we dont have to calculate / force it.
                 //Its already been done in the parent camera.
-                if (isFixedExposure && camera.exposureControlFS && camera.currentExposureTextures.useCurrentCamera)
+                if (isFixedExposure && camera.exposureControlFS && camera.currentExposureTextures.useCurrentCamera && camera.currentExposureTextures.current != null)
                 {
                     using (new ProfilingScope(cmd, ProfilingSampler.Get(HDProfileId.FixedExposure)))
                     {
-                        DoFixedExposure(PrepareExposureParameters(camera), cmd, camera.currentExposureTextures.current);
+                        DoFixedExposure(camera, cmd);
                     }
                 }
 
@@ -563,7 +563,7 @@ namespace UnityEngine.Rendering.HighDefinition
         #endregion
 
         #region Exposure
-        internal void SetExposureTextureToEmpty(RTHandle exposureTexture)
+        internal static void SetExposureTextureToEmpty(RTHandle exposureTexture)
         {
             var tex = new Texture2D(1, 1, GraphicsFormat.R16G16_SFloat, TextureCreationFlags.None);
             tex.SetPixel(0, 0, new Color(1f, ColorUtils.ConvertExposureToEV100(1f), 0f, 0f));
@@ -694,13 +694,10 @@ namespace UnityEngine.Rendering.HighDefinition
                 exposureParams = new Vector4(m_Exposure.compensation.value + m_DebugExposureCompensation, m_PhysicalCamera.aperture, m_PhysicalCamera.shutterSpeed, m_PhysicalCamera.iso);
             }
 
-            RTHandle prevExposure;
-            GrabExposureHistoryTextures(hdCamera, out prevExposure, out _);
-
             cmd.SetComputeVectorParam(cs, HDShaderIDs._ExposureParams, exposureParams);
             cmd.SetComputeVectorParam(cs, HDShaderIDs._ExposureParams2, exposureParams2);
 
-            cmd.SetComputeTextureParam(cs, kernel, HDShaderIDs._OutputTexture, prevExposure);
+            cmd.SetComputeTextureParam(cs, kernel, HDShaderIDs._OutputTexture, hdCamera.currentExposureTextures.current);
             cmd.DispatchCompute(cs, kernel, 1, 1, 1);
         }
 

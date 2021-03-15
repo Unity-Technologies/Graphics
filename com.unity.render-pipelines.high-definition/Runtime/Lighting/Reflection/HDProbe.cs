@@ -127,6 +127,7 @@ namespace UnityEngine.Rendering.HighDefinition
         internal string[] probeName = new string[6];
 
         float m_ProbeExposureValue = 1.0f;
+        public bool ExposureControlEnabled { set; get; }
 
         internal void SetProbeExposureValue(float exposure)
         {

@@ -1564,7 +1564,9 @@ namespace UnityEngine.Rendering.HighDefinition
 
                         if (visibleProbe.type == ProbeSettings.ProbeType.PlanarProbe)
                         {
-                            if (hdCamera.frameSettings.IsEnabled(FrameSettingsField.ExposureControl))
+                            //cache the resolved settings. Otherwise if we use the internal probe settings, it will be the wrong resolved result.
+                            visibleProbe.ExposureControlEnabled = hdCamera.frameSettings.IsEnabled(FrameSettingsField.ExposureControl);
+                            if (visibleProbe.ExposureControlEnabled)
                             {
                                 RTHandle exposureTexture = GetExposureTexture(hdParentCamera);
                                 hdParentCamera.RequestGpuExposureValue(exposureTexture);
@@ -1579,7 +1581,7 @@ namespace UnityEngine.Rendering.HighDefinition
                             {
                                 //the de-exposure multiplier must be used for anything rendering flatly, for example UI or Unlit.
                                 //this will cause them to blow up, but will match the standard nomralized exposure.
-                                hdParentCamera.RequestGpuDeExposureValue(m_PostProcessSystem.GetExposureTextureHandle(hdParentCamera.currentExposureTextures.previous));
+                                hdParentCamera.RequestGpuDeExposureValue(GetExposureTextureHandle(hdParentCamera.currentExposureTextures.previous));
                                 visibleProbe.SetProbeExposureValue(1.0f);
                                 additionalCameraData.deExposureMultiplier = 1.0f / hdParentCamera.GpuDeExposureValue();
                             }

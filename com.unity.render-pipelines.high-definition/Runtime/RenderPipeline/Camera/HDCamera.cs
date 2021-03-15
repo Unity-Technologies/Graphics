@@ -497,10 +497,10 @@ namespace UnityEngine.Rendering.HighDefinition
                 RTHandle Allocator(string id, int frameIndex, RTHandleSystem rtHandleSystem)
                 {
                     // r: multiplier, g: EV100
-                    var rt = rtHandleSystem.Alloc(1, 1, colorFormat: PostProcessSystem.k_ExposureFormat,
+                    var rt = rtHandleSystem.Alloc(1, 1, colorFormat: HDRenderPipeline.k_ExposureFormat,
                         enableRandomWrite: true, name: $"{id} Exposure Texture {frameIndex}"
                     );
-                    PostProcessSystem.SetExposureTextureToEmpty(rt);
+                    HDRenderPipeline.SetExposureTextureToEmpty(rt);
                     return rt;
                 }
 
