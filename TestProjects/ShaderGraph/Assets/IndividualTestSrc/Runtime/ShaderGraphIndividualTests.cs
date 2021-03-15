@@ -57,19 +57,34 @@ public class ShaderGraphIndividualTests
         try
         {
             ImageAssert.AreEqual(data.referenceImage, camera, data.imageComparisonSettings);
+            if (!data.SavedResultUpToDate())
+            {
+#if UNITY_EDITOR
+                data.UpdateResult();
+                File.AppendAllLines("UpdateTests.txt", new string[] { $"{data.testName}-{data.testMaterial.name},{data.FilePath},False" });
+
+#else
+                UpdatedTestAssetMessage updatedMessage = new UpdatedTestAssetMessage();
+                updatedMessage.testData = data;
+                updatedMessage.expectsResultImage = false;
+                PlayerConnection.instance.Send(UpdatedTestAssetMessage.MessageId, updatedMessage.Serialize());
+#endif
+            }
+
         }
-        catch(Exception e)
+        catch (Exception e)
         {
 
             if (!data.SavedResultUpToDate())
             {
 #if UNITY_EDITOR
                 data.UpdateResult();
-                File.AppendAllLines("UpdateTests.txt", new string[] { $"{data.testName}-{data.testMaterial.name}", data.FilePath });
+                File.AppendAllLines("UpdateTests.txt", new string[] { $"{data.testName}-{data.testMaterial.name},{data.FilePath},True"});
 
 #else
                 UpdatedTestAssetMessage updatedMessage = new UpdatedTestAssetMessage();
                 updatedMessage.testData = data;
+                updatedMessage.expectsResultImage = true;
                 PlayerConnection.instance.Send(UpdatedTestAssetMessage.MessageId, updatedMessage.Serialize());
 #endif
             }
