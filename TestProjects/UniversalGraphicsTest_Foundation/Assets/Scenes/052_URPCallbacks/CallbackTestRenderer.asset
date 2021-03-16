@@ -14,7 +14,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   m_RendererFeatures:
   - {fileID: 5740704530427184019}
-  m_RendererFeatureMap: 
+  m_RendererFeatureMap: 938396d85a14ab4f
   postProcessData: {fileID: 11400000, guid: 41439944d30ece34e96484bdb6645b55, type: 2}
   xrSystemData: {fileID: 11400000, guid: 60e1133243b97e347b653163a8c01b64, type: 2}
   shaders:
@@ -55,3 +55,5 @@ MonoBehaviour:
   m_Name: Callbacks
   m_EditorClassIdentifier: 
   m_Active: 1
+  m_SamplingShader: {fileID: 4800000, guid: 04c410c9937594faa893a11dceb85f7e, type: 3}
+  m_SamplingMaterial: {fileID: 0}

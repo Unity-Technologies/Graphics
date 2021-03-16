@@ -16,7 +16,8 @@ public class CameraCallbackTests : ScriptableRendererFeature
 	static RenderTargetHandle afterAll;
 
     BlitPass m_BlitRenderPassesToScreen;
-    Material m_SamplingMaterial;
+    [SerializeField] Shader m_SamplingShader;
+    [SerializeField, HideInInspector] Material m_SamplingMaterial;
 
 	public CameraCallbackTests()
 	{
@@ -29,7 +30,7 @@ public class CameraCallbackTests : ScriptableRendererFeature
 		afterAll.Init("_AfterAll");
 	}
 
-	public override void Create()
+    public override void Create()
     {
         UniversalRendererData data = null;
         if (UniversalRenderPipeline.asset.m_RendererDataList[0] != null)
@@ -45,7 +46,7 @@ public class CameraCallbackTests : ScriptableRendererFeature
             return;
 
         if (m_SamplingMaterial == null)
-            m_SamplingMaterial = CoreUtils.CreateEngineMaterial(data.shaders.samplingPS);
+            m_SamplingMaterial = CoreUtils.CreateEngineMaterial(m_SamplingShader);
 	}
 
     public override void AddRenderPasses(ScriptableRenderer renderer, ref RenderingData renderingData)
@@ -54,6 +55,8 @@ public class CameraCallbackTests : ScriptableRendererFeature
 
         var cameraColorTarget = renderer.cameraColorTarget;
         var clearRenderPass = new ClearColorPass(RenderPassEvent.BeforeRenderingOpaques, cameraColorTarget);
+
+
 
         var copyBeforeOpaquePass = new CopyColorPass(RenderPassEvent.BeforeRenderingOpaques, m_SamplingMaterial);
         copyBeforeOpaquePass.Setup(cameraColorTarget, beforeAll, downSamplingMethod);
