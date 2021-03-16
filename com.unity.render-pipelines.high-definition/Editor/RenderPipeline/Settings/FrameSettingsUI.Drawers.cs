@@ -186,7 +186,7 @@ namespace UnityEditor.Rendering.HighDefinition
                 FrameSettingsField.MSAAMode,
                 overrideable: () => msaaEnablable,
                 ignoreDependencies: true,
-                overridedDefaultValue: msaaEnablable && defaultFrameSettings.IsEnabled(FrameSettingsField.MSAAMode),
+                overridedDefaultValue: defaultFrameSettings.msaaMode,
                 customGetter: () => serialized.msaaMode.GetEnumValue<MSAAMode>(),
                 customSetter: v => serialized.msaaMode.SetEnumValue((MSAAMode)v),
                 hasMixedValues: serialized.msaaMode.hasMultipleDifferentValues);
