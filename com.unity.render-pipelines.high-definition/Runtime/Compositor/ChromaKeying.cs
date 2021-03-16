@@ -7,7 +7,7 @@ namespace UnityEngine.Rendering.HighDefinition.Compositor
 {
     // Custom post-processing pass that performs chroma keying
     // Shader adapted from: https://github.com/keijiro/ProcAmp
-    // Use VolumeComponentHidden to hide the component from the volume menu (it's for internal use only)
+    // Use HideInInspector to hide the component from the volume menu (it's for internal use only)
     [Serializable, HideInInspector]
     internal sealed class ChromaKeying : CustomPostProcessVolumeComponent, IPostProcessComponent
     {
