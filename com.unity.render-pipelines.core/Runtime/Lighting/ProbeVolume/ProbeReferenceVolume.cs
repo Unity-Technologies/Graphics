@@ -517,7 +517,11 @@ namespace UnityEngine.Rendering
 
         private void PerformPendingDeletion()
         {
-            if (m_PendingAssetsToBeUnloaded.Count == 0 || !m_ProbeReferenceVolumeInit)
+            if (!m_ProbeReferenceVolumeInit)
+            {
+                m_PendingAssetsToBeUnloaded.Clear(); // If we are not init, we have not loaded yet.
+            }
+            if (m_PendingAssetsToBeUnloaded.Count == 0)
             {
                 assetHasBeenUnloadedThisFrame = false;
                 return;

@@ -116,7 +116,34 @@ OutputRepresentation ProjectToOutput(uint probeIndex)
     return output;
 }
 
+RW_TEXTURE3D(float4, _PrevAPVResL0_L1Rx);
+RW_TEXTURE3D(float4, _PrevAPVResL1G_L1Ry);
+RW_TEXTURE3D(float4, _PrevAPVResL1B_L1Rz);
 
+void WriteToHistory(OutputRepresentation outputSpace, uint probeIndex)
+{
+    uint3 indexInPool = ProbeIndexToTexLocation(probeIndex);
+
+    float3 L1_R = float3(outputSpace.L1_0.x, outputSpace.L1_1.x, outputSpace.L1_2.x);
+    float3 L1_G = float3(outputSpace.L1_0.y, outputSpace.L1_1.y, outputSpace.L1_2.y);
+    float3 L1_B = float3(outputSpace.L1_0.z, outputSpace.L1_1.z, outputSpace.L1_2.z);
+
+    L1_R = EncodeSH(outputSpace.L0.x, L1_R);
+    L1_G = EncodeSH(outputSpace.L0.y, L1_G);
+    L1_B = EncodeSH(outputSpace.L0.z, L1_B);
+
+    if (AnyIsInf(outputSpace.L0) || AnyIsNaN(outputSpace.L0))
+    {
+        L1_R = 0;
+        L1_G = 0;
+        L1_B = 0;
+        outputSpace.L0 = 0;
+    }
+
+    _PrevAPVResL0_L1Rx[indexInPool] = float4(outputSpace.L0.xyz, L1_R.x);
+    _PrevAPVResL1G_L1Ry[indexInPool] = float4(L1_G.xyz, L1_R.y);
+    _PrevAPVResL1B_L1Rz[indexInPool] = float4(L1_B.xyz, L1_R.z);
+}
 
 [numthreads(GROUP_SIZE, 1, 1)]
 void CombineIrradianceCacheAndPV(uint3 id : SV_DispatchThreadID)
@@ -127,6 +154,7 @@ void CombineIrradianceCacheAndPV(uint3 id : SV_DispatchThreadID)
         uint3 dstLoc = ProbeIndexToTexLocation(probeIndex);
 
         OutputRepresentation dynamicPV = ProjectToOutput(probeIndex);
+        WriteToHistory(dynamicPV, probeIndex);
         if (_DeringingFactor > 0.0f)
         {
             ConvolveWithWindowing(dynamicPV, _DeringingFactor);

@@ -62,15 +62,16 @@ namespace UnityEngine.Rendering.HighDefinition
             }
         }
 
-        DynamicGIAPV m_DynamicGIAPV;
+        // TODO_FCC: NOTE We need an additional output APV only because original textures are texture3d and cannot write into them.
+        DynamicGIAPV m_OutputAPV;
         DynamicGIAPV m_PrevDynamicGI;
 
 
         internal void SwapHistory()
         {
             var tmp = m_PrevDynamicGI;
-            m_PrevDynamicGI = m_DynamicGIAPV;
-            m_DynamicGIAPV = tmp;
+            m_PrevDynamicGI = m_OutputAPV;
+            m_OutputAPV = tmp;
         }
 
         internal struct DynamicGIResources
@@ -83,9 +84,9 @@ namespace UnityEngine.Rendering.HighDefinition
         internal DynamicGIResources GetRuntimeResources()
         {
             DynamicGIResources dr;
-            dr.L0_L1Rx = m_DynamicGIAPV.L0_L1Rx;
-            dr.L1_G_ry = m_DynamicGIAPV.L1_G_ry;
-            dr.L1_B_rz = m_DynamicGIAPV.L1_B_rz;
+            dr.L0_L1Rx = m_OutputAPV.L0_L1Rx;
+            dr.L1_G_ry = m_OutputAPV.L1_G_ry;
+            dr.L1_B_rz = m_OutputAPV.L1_B_rz;
             return dr;
         }
 
@@ -94,10 +95,10 @@ namespace UnityEngine.Rendering.HighDefinition
         {
             if (m_LastAllocatedDimensions != dimensions)
             {
-                m_DynamicGIAPV.Cleanup();
+                m_OutputAPV.Cleanup();
                 m_PrevDynamicGI.Cleanup();
 
-                m_DynamicGIAPV.Allocate(dimensions);
+                m_OutputAPV.Allocate(dimensions);
                 m_PrevDynamicGI.Allocate(dimensions);
                 m_LastAllocatedDimensions = dimensions;
             }
@@ -107,7 +108,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
         internal void CleanupDynamicGIResources()
         {
-            m_DynamicGIAPV.Cleanup();
+            m_OutputAPV.Cleanup();
             m_PrevDynamicGI.Cleanup();
         }
 
@@ -211,9 +212,9 @@ namespace UnityEngine.Rendering.HighDefinition
 
             data.chunkIndices = chunkIndices;
 
-            data.apvL0L1rx = renderGraph.ImportTexture(m_DynamicGIAPV.L0_L1Rx); ;
-            data.apvL1Gry = renderGraph.ImportTexture(m_DynamicGIAPV.L1_G_ry);
-            data.apvL1Brz = renderGraph.ImportTexture(m_DynamicGIAPV.L1_B_rz);
+            data.apvL0L1rx = renderGraph.ImportTexture(m_OutputAPV.L0_L1Rx); ;
+            data.apvL1Gry = renderGraph.ImportTexture(m_OutputAPV.L1_G_ry);
+            data.apvL1Brz = renderGraph.ImportTexture(m_OutputAPV.L1_B_rz);
             data.prevApvL0L1rx = renderGraph.ImportTexture(m_PrevDynamicGI.L0_L1Rx);
             data.prevApvL1Gry = renderGraph.ImportTexture(m_PrevDynamicGI.L1_G_ry);
             data.prevApvL1Brz = renderGraph.ImportTexture(m_PrevDynamicGI.L1_B_rz);
@@ -309,7 +310,7 @@ namespace UnityEngine.Rendering.HighDefinition
         {
             if (forceClear)
             {
-                ClearTextureContent(renderGraph, m_DynamicGIAPV);
+                ClearTextureContent(renderGraph, m_OutputAPV);
                 ClearTextureContent(renderGraph, m_PrevDynamicGI);
             }
 
@@ -339,12 +340,17 @@ namespace UnityEngine.Rendering.HighDefinition
             public Vector4 poolDimensions;
             public int[] chunkIndices;
 
-            public TextureHandle firstL0L1rx;
-            public TextureHandle firstL1Gry;
-            public TextureHandle firstL1Brz;
+            public TextureHandle outputL0L1rx;
+            public TextureHandle outputL1Gry;
+            public TextureHandle outputL1Brz;
             public Texture3D secondL0L1rx;
             public Texture3D secondL1Gry;
             public Texture3D secondL1Brz;
+
+            public TextureHandle historyL0L1rx;
+            public TextureHandle historyL1Gry;
+            public TextureHandle historyL1Brz;
+
 
             public ComputeBufferHandle irradianceCacheBuffer;
         }
@@ -370,15 +376,17 @@ namespace UnityEngine.Rendering.HighDefinition
 
             data.irradianceCacheBuffer = renderGraph.ImportComputeBuffer(buffers.irradianceCache);
 
-
-            data.firstL0L1rx = renderGraph.ImportTexture(m_DynamicGIAPV.L0_L1Rx);
-            data.firstL1Gry = renderGraph.ImportTexture(m_DynamicGIAPV.L1_G_ry);
-            data.firstL1Brz = renderGraph.ImportTexture(m_DynamicGIAPV.L1_B_rz);
+            data.outputL0L1rx = renderGraph.ImportTexture(m_OutputAPV.L0_L1Rx);
+            data.outputL1Gry = renderGraph.ImportTexture(m_OutputAPV.L1_G_ry);
+            data.outputL1Brz = renderGraph.ImportTexture(m_OutputAPV.L1_B_rz);
             var rr = ProbeReferenceVolume.instance.GetRuntimeResources();
             data.secondL0L1rx = rr.L0_L1rx;
             data.secondL1Gry = rr.L1_G_ry;
             data.secondL1Brz = rr.L1_B_rz;
 
+            data.historyL0L1rx = renderGraph.ImportTexture(m_PrevDynamicGI.L0_L1Rx);
+            data.historyL1Gry = renderGraph.ImportTexture(m_PrevDynamicGI.L1_G_ry);
+            data.historyL1Brz = renderGraph.ImportTexture(m_PrevDynamicGI.L1_B_rz);
 
             //var apvL1GryHandle = renderGraph.ImportTexture(m_DynamicGIAPV.L1_G_ry);
             //var apvL1BrzHandle = renderGraph.ImportTexture(m_DynamicGIAPV.L1_B_rz);
@@ -398,9 +406,14 @@ namespace UnityEngine.Rendering.HighDefinition
                         var kernel = data.combineKernel;
                         var cmd = ctx.cmd;
 
-                        cmd.SetComputeTextureParam(cs, kernel, HDShaderIDs._RWAPVResL0_L1Rx, data.firstL0L1rx);
-                        cmd.SetComputeTextureParam(cs, kernel, HDShaderIDs._RWAPVResL1G_L1Ry, data.firstL1Gry);
-                        cmd.SetComputeTextureParam(cs, kernel, HDShaderIDs._RWAPVResL1B_L1Rz, data.firstL1Brz);
+                        cmd.SetComputeTextureParam(cs, kernel, HDShaderIDs._RWAPVResL0_L1Rx, data.outputL0L1rx);
+                        cmd.SetComputeTextureParam(cs, kernel, HDShaderIDs._RWAPVResL1G_L1Ry, data.outputL1Gry);
+                        cmd.SetComputeTextureParam(cs, kernel, HDShaderIDs._RWAPVResL1B_L1Rz, data.outputL1Brz);
+
+                        cmd.SetComputeTextureParam(cs, kernel, HDShaderIDs._PrevAPVResL0_L1Rx, data.historyL0L1rx);
+                        cmd.SetComputeTextureParam(cs, kernel, HDShaderIDs._PrevAPVResL1G_L1Ry, data.historyL1Gry);
+                        cmd.SetComputeTextureParam(cs, kernel, HDShaderIDs._PrevAPVResL1B_L1Rz, data.historyL1Brz);
+
 
                         cmd.SetComputeTextureParam(cs, kernel, HDShaderIDs._APVResL0_L1Rx, data.secondL0L1rx);
                         cmd.SetComputeTextureParam(cs, kernel, HDShaderIDs._APVResL1G_L1Ry, data.secondL1Gry);
@@ -438,8 +451,7 @@ namespace UnityEngine.Rendering.HighDefinition
             {
                 var buffer = buffersToProcess[i];
                 var indices = chunkIndices[i];
-                if (buffer.probeCount > 0)
-                    CombineProbeVolumes(renderGraph, buffer, indices, hdCamera);
+                CombineProbeVolumes(renderGraph, buffer, indices, hdCamera);
             }
         }
     }
