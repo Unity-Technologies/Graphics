@@ -25,7 +25,7 @@ bool CalculateDebugColor(half4 color, out half4 debugColor)
         }
         else
         {
-            debugColor = half4(LinearRgbToLuminance(color.rgb).rrr, 1);
+            debugColor = half4(Luminance(color).rrr, 1);
         }
 
         return true;
@@ -44,7 +44,7 @@ bool CalculateDebugColor(half4 color, out half4 debugColor)
         }
         else
         {
-            debugColor = half4(LinearRgbToLuminance(color.rgb).rrr, 1);
+            debugColor = half4(Luminance(color).rrr, 1);
         }
 
         return true;

@@ -13,15 +13,9 @@
 #define kOrangeBrownColor float4(219.0 / 255.0, 119.0 / 255.0, 59.0 / 255.0, 1.0) // #4B92F3
 #define kGrayColor float4(174.0 / 255.0, 174.0 / 255.0, 174.0 / 255.0, 1.0) // #AEAEAE
 
-// Convert rgb to luminance
-// with rgb in linear space with sRGB primaries and D65 white point
-half LinearRgbToLuminance(half3 linearRgb)
-{
-    return dot(linearRgb, half3(0.2126729f, 0.7151522f, 0.0721750f));
-}
-
 #if defined(_DEBUG_SHADER)
 
+#include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Color.hlsl"
 #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Debug.hlsl"
 
 // Material settings...
@@ -82,60 +76,6 @@ bool TryGetDebugColorInvalidMode(out half4 debugColor)
     // for now we'll simply make each pixel use "_DebugColorInvalidMode"...
     debugColor = _DebugColorInvalidMode;
     return true;
-}
-
-half3 UnityMeta_RGBToHSVHelper(float offset, half dominantColor, half colorone, half colortwo)
-{
-    half H, S, V;
-    V = dominantColor;
-
-    if (V != 0.0)
-    {
-        half small = 0.0;
-        if (colorone > colortwo)
-            small = colortwo;
-        else
-            small = colorone;
-
-        half diff = V - small;
-
-        if (diff != 0)
-        {
-            S = diff / V;
-            H = offset + ((colorone - colortwo) / diff);
-        }
-        else
-        {
-            S = 0;
-            H = offset + (colorone - colortwo);
-        }
-
-        H /= 6.0;
-
-        if (H < 6.0)
-        {
-            H += 1.0;
-        }
-    }
-    else
-    {
-        S = 0;
-        H = 0;
-    }
-    return half3(H, S, V);
-}
-
-half3 UnityMeta_RGBToHSV(half3 rgbColor)
-{
-    // when blue is highest valued
-    if ((rgbColor.b > rgbColor.g) && (rgbColor.b > rgbColor.r))
-        return UnityMeta_RGBToHSVHelper(4.0, rgbColor.b, rgbColor.r, rgbColor.g);
-    //when green is highest valued
-    else if (rgbColor.g > rgbColor.r)
-        return UnityMeta_RGBToHSVHelper(2.0, rgbColor.g, rgbColor.b, rgbColor.r);
-    //when red is highest valued
-    else
-        return UnityMeta_RGBToHSVHelper(0.0, rgbColor.r, rgbColor.g, rgbColor.b);
 }
 
 half4 GetTextNumber(uint numberValue, float3 positionWS)
@@ -221,7 +161,7 @@ bool CalculateValidationMipLevel(uint mipCount, uint originalTextureMipCount, fl
 
 bool CalculateValidationAlbedo(half3 albedo, out half4 color)
 {
-    half luminance = LinearRgbToLuminance(albedo);
+    half luminance = Luminance(albedo);
 
     if(luminance < _DebugValidateAlbedoMinLuminance)
     {
@@ -233,11 +173,11 @@ bool CalculateValidationAlbedo(half3 albedo, out half4 color)
     }
     else
     {
-        half3 hsv = UnityMeta_RGBToHSV(albedo);
+        half3 hsv = RgbToHsv(albedo);
         half hue = hsv.r;
         half sat = hsv.g;
 
-        half3 compHSV = UnityMeta_RGBToHSV(_DebugValidateAlbedoCompareColor.rgb);
+        half3 compHSV = RgbToHsv(_DebugValidateAlbedoCompareColor.rgb);
         half compHue = compHSV.r;
         half compSat = compHSV.g;
 

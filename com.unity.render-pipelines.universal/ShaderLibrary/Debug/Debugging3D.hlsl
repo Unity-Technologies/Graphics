@@ -118,7 +118,7 @@ bool CalculateValidationMetallic(half3 albedo, half metallic, inout half4 debugC
     }
     else
     {
-        half luminance = LinearRgbToLuminance(albedo);
+        half luminance = Luminance(albedo);
 
         debugColor = half4(luminance, luminance, luminance, 1);
     }
