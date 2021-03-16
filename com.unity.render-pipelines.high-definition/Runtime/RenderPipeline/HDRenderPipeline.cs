@@ -108,7 +108,6 @@ namespace UnityEngine.Rendering.HighDefinition
 #if ENABLE_VIRTUALTEXTURES
         readonly VTBufferManager m_VtBufferManager;
 #endif
-        readonly PostProcessSystem m_PostProcessSystem;
         readonly XRSystem m_XRSystem;
 
         // Keep track of previous Graphic and QualitySettings value to reset when switching to another pipeline
@@ -265,7 +264,7 @@ namespace UnityEngine.Rendering.HighDefinition
         bool frozenCullingParamAvailable = false;
 
         // RENDER GRAPH
-        RenderGraph m_RenderGraph = new RenderGraph("HDRPGraph");
+        RenderGraph m_RenderGraph = new RenderGraph("HDRP");
 
         // MSAA resolve materials
         Material m_ColorResolveMaterial = null;
@@ -391,7 +390,7 @@ namespace UnityEngine.Rendering.HighDefinition
             m_VtBufferManager = new VTBufferManager(asset);
 #endif
 
-            m_PostProcessSystem = new PostProcessSystem(asset, defaultResources);
+            InitializePostProcess();
 
             // Initialize various compute shader resources
             m_SsrTracingKernel = m_ScreenSpaceReflectionsCS.FindKernel("ScreenSpaceReflectionsTracing");
@@ -436,6 +435,11 @@ namespace UnityEngine.Rendering.HighDefinition
 
             InitializeLightLoop(m_IBLFilterArray);
 
+            if (m_Asset.currentPlatformRenderPipelineSettings.supportProbeVolume)
+            {
+                ProbeReferenceVolume.instance.SetMemoryBudget(m_Asset.currentPlatformRenderPipelineSettings.probeVolumeMemoryBudget);
+            }
+
             m_SkyManager.Build(asset, defaultResources, m_IBLFilterArray);
 
             InitializeVolumetricLighting();
@@ -458,7 +462,6 @@ namespace UnityEngine.Rendering.HighDefinition
 
             m_DepthPyramidMipLevelOffsetsBuffer = new ComputeBuffer(15, sizeof(int) * 2);
 
-            // TODO RENDERGRAPH: Moved those out of InitializeRenderTexture as they are still needed in render graph and would be deallocated otherwise when switching it on.
             m_CustomPassColorBuffer = new Lazy<RTHandle>(() => RTHandles.Alloc(Vector2.one, TextureXR.slices, dimension: TextureXR.dimension, colorFormat: GetCustomBufferFormat(), enableRandomWrite: true, useDynamicScale: true, name: "CustomPassColorBuffer"));
             m_CustomPassDepthBuffer = new Lazy<RTHandle>(() => RTHandles.Alloc(Vector2.one, TextureXR.slices, dimension: TextureXR.dimension, colorFormat: GraphicsFormat.R32_UInt, useDynamicScale: true, name: "CustomPassDepthBuffer", depthBufferBits: DepthBits.Depth32));
 
@@ -478,7 +481,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 InitRayTracedIndirectDiffuse();
                 InitRaytracingDeferred();
                 InitRecursiveRenderer();
-                InitPathTracing();
+                InitPathTracing(m_RenderGraph);
                 InitRayTracingAmbientOcclusion();
             }
 
@@ -715,11 +718,6 @@ namespace UnityEngine.Rendering.HighDefinition
 #endif
         }
 
-        void InitializeRenderGraph()
-        {
-            m_RenderGraph = new RenderGraph("HDRPGraph");
-        }
-
         void CleanupRenderGraph()
         {
             m_RenderGraph.Cleanup();
@@ -781,6 +779,9 @@ namespace UnityEngine.Rendering.HighDefinition
 
             CleanupLightLoop();
 
+            ReleaseVolumetricClouds();
+            CleanupSubsurfaceScattering();
+
             // For debugging
             MousePositionDebug.instance.Cleanup();
 
@@ -816,7 +817,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 m_IBLFilterArray[bsdfIdx].Cleanup();
             }
 
-            m_PostProcessSystem.Cleanup();
+            CleanupPostProcess();
             m_BlueNoise.Cleanup();
 
             HDCamera.ClearAll();
@@ -876,9 +877,9 @@ namespace UnityEngine.Rendering.HighDefinition
             }
 
 #endif
-
-                CleanupRenderGraph();
             }
+
+            CleanupRenderGraph();
 
             ConstantBuffer.ReleaseAll();
 
@@ -1011,7 +1012,7 @@ namespace UnityEngine.Rendering.HighDefinition
             m_ShaderVariablesRayTracingCB._RaytracingReflectionMinSmoothness = screenSpaceReflection.minSmoothness;
             m_ShaderVariablesRayTracingCB._RaytracingReflectionSmoothnessFadeStart = screenSpaceReflection.smoothnessFadeStart;
             m_ShaderVariablesRayTracingCB._DirectionalShadowFallbackIntensity = rayTracingSettings.directionalShadowFallbackIntensity.value;
-
+            m_ShaderVariablesRayTracingCB._RayTracingLodBias = 0;
             ConstantBuffer.PushGlobal(cmd, m_ShaderVariablesRayTracingCB, HDShaderIDs._ShaderVariablesRaytracing);
         }
 
@@ -1298,6 +1299,8 @@ namespace UnityEngine.Rendering.HighDefinition
                     // Render directly to XR render target if active
                     if (hdCamera.xr.enabled && hdCamera.xr.renderTargetValid)
                         targetId = hdCamera.xr.renderTarget;
+
+                    hdCamera.RequestDynamicResolution(cameraRequestedDynamicRes, dynResHandler);
 
                     // Add render request
                     var request = new RenderRequest
@@ -1959,7 +1962,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 cmd.DisableScissorRect();
 
                 Resize(hdCamera);
-                m_PostProcessSystem.BeginFrame(cmd, hdCamera, this);
+                BeginPostProcessFrame(cmd, hdCamera, this);
 
                 ApplyDebugDisplaySettings(hdCamera, cmd);
 
@@ -2035,9 +2038,6 @@ namespace UnityEngine.Rendering.HighDefinition
 
             m_CurrentHDCamera = null;
         }
-
-        internal RTHandle GetExposureTexture(HDCamera hdCamera) =>
-            m_PostProcessSystem.GetExposureTexture(hdCamera);
 
         void SetupCameraProperties(HDCamera hdCamera, ScriptableRenderContext renderContext, CommandBuffer cmd)
         {
@@ -2147,7 +2147,6 @@ namespace UnityEngine.Rendering.HighDefinition
 
             // From this point, we should only use frame settings from the camera
             hdCamera.Update(currentFrameSettings, this, m_MSAASamples, xrPass);
-            ResizeVolumetricLightingBuffers(hdCamera); // Safe to update the Volumetric Lighting System now
 
             // Custom Render requires a proper HDCamera, so we return after the HDCamera was setup
             if (additionalCameraData != null && additionalCameraData.hasCustomRender)
@@ -2491,6 +2490,11 @@ namespace UnityEngine.Rendering.HighDefinition
                 // Render forward transparent
                 var rendererListTransparent = RendererList.Create(CreateTransparentRendererListDesc(cull, hdCamera.camera, m_AllTransparentPassNames));
                 DrawTransparentRendererList(renderContext, cmd, hdCamera.frameSettings, rendererListTransparent);
+
+                renderContext.ExecuteCommandBuffer(cmd);
+                cmd.Clear();
+                renderContext.DrawGizmos(hdCamera.camera, GizmoSubset.PreImageEffects);
+                renderContext.DrawGizmos(hdCamera.camera, GizmoSubset.PostImageEffects);
             }
         }
 
@@ -2627,9 +2631,7 @@ namespace UnityEngine.Rendering.HighDefinition
         /// </summary>
         public void ReleasePersistentShadowAtlases()
         {
-            // TODO RENDERGRAPH remove test when we have only one code path.
-            if (m_RenderGraph != null)
-                m_ShadowManager.ReleaseSharedShadowAtlases(m_RenderGraph);
+            m_ShadowManager.ReleaseSharedShadowAtlases(m_RenderGraph);
         }
     }
 }
