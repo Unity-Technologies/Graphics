@@ -9,64 +9,64 @@ editor_version_names:
 editor_versions:
   trunk_latest_internal:
     Android:
-      revision: f4de2e18f4148a678759ff44540c9d25ffd9d99f
-      updated_at: '2021-03-15 23:26:26.034949'
+      revision: b8c2bb7e8b3624fe060fb433b783ce423dbb3456
+      updated_at: '2021-03-16 23:20:37.692225'
       version: ''
     Linux:
-      revision: f4de2e18f4148a678759ff44540c9d25ffd9d99f
-      updated_at: '2021-03-15 23:26:26.034949'
+      revision: b8c2bb7e8b3624fe060fb433b783ce423dbb3456
+      updated_at: '2021-03-16 23:20:37.692225'
       version: ''
     OSX:
-      revision: f4de2e18f4148a678759ff44540c9d25ffd9d99f
-      updated_at: '2021-03-15 23:26:26.034949'
+      revision: b8c2bb7e8b3624fe060fb433b783ce423dbb3456
+      updated_at: '2021-03-16 23:20:37.692225'
       version: ''
     Win:
-      revision: f4de2e18f4148a678759ff44540c9d25ffd9d99f
-      updated_at: '2021-03-15 23:26:26.034949'
+      revision: b8c2bb7e8b3624fe060fb433b783ce423dbb3456
+      updated_at: '2021-03-16 23:20:37.692225'
       version: ''
     iPhone:
-      revision: f4de2e18f4148a678759ff44540c9d25ffd9d99f
-      updated_at: '2021-03-15 23:26:26.034949'
+      revision: b8c2bb7e8b3624fe060fb433b783ce423dbb3456
+      updated_at: '2021-03-16 23:20:37.692225'
       version: ''
   trunk_latest_public:
     Android:
-      revision: f4de2e18f4148a678759ff44540c9d25ffd9d99f
-      updated_at: '2021-03-15 23:26:26.034949'
+      revision: b8c2bb7e8b3624fe060fb433b783ce423dbb3456
+      updated_at: '2021-03-16 23:20:37.692225'
       version: ''
     Linux:
-      revision: f4de2e18f4148a678759ff44540c9d25ffd9d99f
-      updated_at: '2021-03-15 23:26:26.034949'
+      revision: b8c2bb7e8b3624fe060fb433b783ce423dbb3456
+      updated_at: '2021-03-16 23:20:37.692225'
       version: ''
     OSX:
-      revision: f4de2e18f4148a678759ff44540c9d25ffd9d99f
-      updated_at: '2021-03-15 23:26:26.034949'
+      revision: b8c2bb7e8b3624fe060fb433b783ce423dbb3456
+      updated_at: '2021-03-16 23:20:37.692225'
       version: ''
     Win:
-      revision: f4de2e18f4148a678759ff44540c9d25ffd9d99f
-      updated_at: '2021-03-15 23:26:26.034949'
+      revision: b8c2bb7e8b3624fe060fb433b783ce423dbb3456
+      updated_at: '2021-03-16 23:20:37.692225'
       version: ''
     iPhone:
-      revision: f4de2e18f4148a678759ff44540c9d25ffd9d99f
-      updated_at: '2021-03-15 23:26:26.034949'
+      revision: b8c2bb7e8b3624fe060fb433b783ce423dbb3456
+      updated_at: '2021-03-16 23:20:37.692225'
       version: ''
   trunk_staging:
     Android:
-      revision: f4de2e18f4148a678759ff44540c9d25ffd9d99f
-      updated_at: '2021-03-15 23:26:26.034949'
+      revision: b8c2bb7e8b3624fe060fb433b783ce423dbb3456
+      updated_at: '2021-03-16 23:20:37.692225'
       version: ''
     Linux:
-      revision: f4de2e18f4148a678759ff44540c9d25ffd9d99f
-      updated_at: '2021-03-15 23:26:26.034949'
+      revision: b8c2bb7e8b3624fe060fb433b783ce423dbb3456
+      updated_at: '2021-03-16 23:20:37.692225'
       version: ''
     OSX:
-      revision: f4de2e18f4148a678759ff44540c9d25ffd9d99f
-      updated_at: '2021-03-15 23:26:26.034949'
+      revision: b8c2bb7e8b3624fe060fb433b783ce423dbb3456
+      updated_at: '2021-03-16 23:20:37.692225'
       version: ''
     Win:
-      revision: f4de2e18f4148a678759ff44540c9d25ffd9d99f
-      updated_at: '2021-03-15 23:26:26.034949'
+      revision: b8c2bb7e8b3624fe060fb433b783ce423dbb3456
+      updated_at: '2021-03-16 23:20:37.692225'
       version: ''
     iPhone:
-      revision: f4de2e18f4148a678759ff44540c9d25ffd9d99f
-      updated_at: '2021-03-15 23:26:26.034949'
+      revision: b8c2bb7e8b3624fe060fb433b783ce423dbb3456
+      updated_at: '2021-03-16 23:20:37.692225'
       version: ''
