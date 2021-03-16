@@ -53,7 +53,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
 #if UNITY_EDITOR
         //Making sure there is at least one HDRenderPipelineGlobalSettings instance in the project
-        static internal HDRenderPipelineGlobalSettings Ensure()
+        static internal HDRenderPipelineGlobalSettings Ensure(bool canCreateNewAsset = true)
         {
             bool needsMigration = (assetToBeMigrated != null && !assetToBeMigrated.Equals(null));
 
@@ -67,7 +67,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 if (HDRenderPipelineGlobalSettings.instance)
                     path = AssetDatabase.GetAssetPath(HDRenderPipelineGlobalSettings.instance);
 
-                assetCreated = MigrateFromHDRPAsset(assetToBeMigrated, path, bClearObsoleteFields: false);
+                assetCreated = MigrateFromHDRPAsset(assetToBeMigrated, path, bClearObsoleteFields: false, canCreateNewAsset: canCreateNewAsset);
                 if (assetCreated != null && !assetCreated.Equals(null))
                     assetToBeMigrated = null;
             }
@@ -84,11 +84,16 @@ namespace UnityEngine.Rendering.HighDefinition
                         path = AssetDatabase.GUIDToAssetPath(curGUID);
                         assetCreated = AssetDatabase.LoadAssetAtPath<HDRenderPipelineGlobalSettings>(path);
                     }
-                    else // or create one altogether
+                    else if (canCreateNewAsset)// or create one altogether
                     {
                         if (!AssetDatabase.IsValidFolder("Assets/HDRPDefaultResources/"))
                             AssetDatabase.CreateFolder("Assets", "HDRPDefaultResources");
                         assetCreated = Create(path);
+                    }
+                    else
+                    {
+                        Debug.LogError("Cannot migrate HDRP Asset to a new HDRP Global Settings asset. If you are building a Player, make sure to save an HDRP Global Settings asset by opening the project in the Editor.");
+                        return null;
                     }
                 }
             }
@@ -140,7 +145,7 @@ namespace UnityEngine.Rendering.HighDefinition
             assetToBeMigrated = oldAsset;
         }
 
-        internal static HDRenderPipelineGlobalSettings MigrateFromHDRPAsset(HDRenderPipelineAsset oldAsset, string path, bool bClearObsoleteFields = true)
+        internal static HDRenderPipelineGlobalSettings MigrateFromHDRPAsset(HDRenderPipelineAsset oldAsset, string path, bool bClearObsoleteFields = true, bool canCreateNewAsset = true)
         {
             HDRenderPipelineGlobalSettings assetCreated = null;
 
@@ -148,6 +153,11 @@ namespace UnityEngine.Rendering.HighDefinition
             assetCreated = AssetDatabase.LoadAssetAtPath<HDRenderPipelineGlobalSettings>(path);
             if (assetCreated == null)
             {
+                if (!canCreateNewAsset)
+                {
+                    Debug.LogError("Cannot migrate HDRP Asset to a new HDRP Global Settings asset. If you are building a Player, make sure to save an HDRP Global Settings asset by opening the project in the Editor.");
+                    return null;
+                }
                 if (!AssetDatabase.IsValidFolder("Assets/HDRPDefaultResources/"))
                     AssetDatabase.CreateFolder("Assets", "HDRPDefaultResources");
                 assetCreated = ScriptableObject.CreateInstance<HDRenderPipelineGlobalSettings>();

@@ -317,7 +317,7 @@ namespace UnityEditor.Rendering.HighDefinition
             if (HDRenderPipeline.currentAsset == null)
                 return;
 
-            if (HDRenderPipelineGlobalSettings.Ensure() == null)
+            if (HDRenderPipelineGlobalSettings.Ensure(canCreateNewAsset: false) == null)
                 return;
 
             var exportLog = ShaderBuildPreprocessor.hdrpAssets.Count > 0
@@ -475,7 +475,7 @@ namespace UnityEditor.Rendering.HighDefinition
             if (HDRenderPipeline.currentAsset == null)
                 return;
 
-            if (HDRenderPipelineGlobalSettings.Ensure() == null)
+            if (HDRenderPipelineGlobalSettings.Ensure(canCreateNewAsset: false) == null)
                 return;
 
             var exportLog = ShaderBuildPreprocessor.hdrpAssets.Count > 0
