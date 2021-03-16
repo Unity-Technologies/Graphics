@@ -1565,7 +1565,7 @@ namespace UnityEngine.Rendering.HighDefinition
                         if (visibleProbe.type == ProbeSettings.ProbeType.PlanarProbe)
                         {
                             //cache the resolved settings. Otherwise if we use the internal probe settings, it will be the wrong resolved result.
-                            visibleProbe.ExposureControlEnabled = hdCamera.frameSettings.IsEnabled(FrameSettingsField.ExposureControl);
+                            visibleProbe.ExposureControlEnabled = hdCamera.exposureControlFS;
                             if (visibleProbe.ExposureControlEnabled)
                             {
                                 RTHandle exposureTexture = GetExposureTexture(hdParentCamera);

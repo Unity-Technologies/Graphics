@@ -263,8 +263,8 @@ namespace UnityEngine.Rendering.HighDefinition
 
             m_ExposureTextures.clear();
             m_ExposureTextures.useCurrentCamera = false;
-            m_ExposureTextures.current = parentHdCam.currentExposureTextures.previous;
-            m_ExposureTextures.previous = parentHdCam.currentExposureTextures.current;
+            m_ExposureTextures.previous = parentHdCam.currentExposureTextures.previous;
+            m_ExposureTextures.current = parentHdCam.currentExposureTextures.current;
         }
 
         // This property is ray tracing specific. It allows us to track for the RayTracingShadow history which light was using which slot.
