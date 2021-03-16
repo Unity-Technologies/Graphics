@@ -140,11 +140,10 @@ namespace UnityEngine.Rendering
             QualitySettings.vSyncCount = 0;
 
             // On Android and iOS, vSyncCount is ignored and all frame rate control is done using Application.targetFrameRate.
-            // Set targetFrameRate to XR refresh rate (round up)
             if (Application.platform == RuntimePlatform.Android)
             {
-                float frameRate = 120.0f;
-                frameRate = s_Display.TryGetDisplayRefreshRate(out float refreshRate) ? refreshRate : frameRate;
+                float frameRate = 300.0f;
+                //frameRate = s_Display.TryGetDisplayRefreshRate(out float refreshRate) ? refreshRate : frameRate;
 
                 // XRTODO : move out, causing issues with HDRP timing
                 Application.targetFrameRate = Mathf.CeilToInt(frameRate);
