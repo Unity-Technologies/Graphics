@@ -307,6 +307,8 @@ void AccumulateRingData(float numSamples, const bool isForeground, AccumData rin
 
     if (isForeground)
     {
+        float accumOcclusion = 1 - saturate(ringAvgCoC - accumAvgCoC);
+
         // front-to-back blending
         float alpha = 1.0;
 #ifdef  RING_OCCLUSION
@@ -316,7 +318,7 @@ void AccumulateRingData(float numSamples, const bool isForeground, AccumData rin
         accumData.alpha += alpha * ringData.alpha;
         accumData.CoC += alpha * ringData.CoC;
 
-        accumData.destAlpha *= saturate(1 - 2 * ringOpacity);
+        accumData.destAlpha *= saturate(1 - 2 * ringOpacity * accumOcclusion);
     }
     else
     {
