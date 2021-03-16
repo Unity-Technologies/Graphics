@@ -344,7 +344,7 @@ Shader "HDRP/Lit"
     #ifndef _SURFACE_TYPE_TRANSPARENT
     #define _DEFERRED_CAPABLE_MATERIAL
     #endif
-    
+
     // In this shader, the heightmap implies depth offsets away from the camera.
     #ifdef _HEIGHTMAP
     #define _CONSERVATIVE_DEPTH_OFFSET
