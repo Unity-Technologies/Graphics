@@ -40,7 +40,7 @@ namespace UnityEditor.Rendering
         {
             RenameShader(sourceShaderName, destShaderName, finalizer);
             RenameFloat("_WindQuality", "_WINDQUALITY");
-            RenameFloat("_TwoSided", "_CullMode"); // Currently only used in HD. Update this once URP per-material cullmode is enabled via shadergraph. 
+            RenameFloat("_TwoSided", "_CullMode"); // Currently only used in HD. Update this once URP per-material cullmode is enabled via shadergraph.
         }
 
         private static void ImportNewSpeedTree8Material(Material mat, int windQuality, bool isBillboard)
@@ -56,6 +56,9 @@ namespace UnityEditor.Rendering
             }
             if (mat.HasProperty("_CullMode"))
                 mat.SetFloat("_CullMode", cullmode);
+
+            if (mat.IsKeywordEnabled("EFFECT_EXTRA_TEX"))
+                mat.SetFloat("EFFECT_EXTRA_TEX", 1.0f);
         }
 
         /// <summary>
@@ -96,6 +99,9 @@ namespace UnityEditor.Rendering
         {
             if (material.HasProperty("_TwoSided") && material.HasProperty("_CullMode"))
                 material.SetFloat("_CullMode", material.GetFloat("_TwoSided"));
+
+            if (material.IsKeywordEnabled("EFFECT_EXTRA_TEX"))
+                material.SetFloat("EFFECT_EXTRA_TEX", 1.0f);
 
             bool isBillboard = material.IsKeywordEnabled("EFFECT_BILLBOARD");
             if (material.HasProperty("EFFECT_BILLBOARD"))

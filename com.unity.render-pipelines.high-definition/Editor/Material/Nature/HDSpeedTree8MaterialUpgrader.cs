@@ -20,6 +20,7 @@ namespace UnityEditor.Rendering.HighDefinition
 
         public static void HDSpeedTree8MaterialFinalizer(Material mat)
         {
+            SetHDSpeedTree8Defaults(mat);
             HDShaderUtils.ResetMaterialKeywords(mat);
         }
         /// <summary>
@@ -41,5 +42,19 @@ namespace UnityEditor.Rendering.HighDefinition
             // Since ShaderGraph now supports toggling keywords via float properties, keywords get
             // correctly restored by default and this function is no longer needed.
         }
-	}
+
+        private static void SetHDSpeedTree8Defaults(Material mat)
+        {
+            // Since _DoubleSidedEnable controls _CullMode in HD,
+            // disable it for billboard LOD.
+            if (mat.IsKeywordEnabled("EFFECT_BILLBOARD"))
+            {
+                mat.SetFloat("_DoubleSidedEnable", 0.0f);
+            }
+            else
+            {
+                mat.SetFloat("_DoubleSidedEnable", 1.0f);
+            }
+        }
+    }
 }
