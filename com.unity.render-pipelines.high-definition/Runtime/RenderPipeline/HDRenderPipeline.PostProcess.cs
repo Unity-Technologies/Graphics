@@ -3003,10 +3003,15 @@ namespace UnityEngine.Rendering.HighDefinition
 
                         Vector2 rayOff = GetLensFlareRayOffset(screenPos, position, globalCos0, globalSin0);
                         Vector2 localSize = size;
+
                         if (element.enableRadialDistortion)
                         {
-                            localSize = new Vector2(Mathf.Lerp(localSize.x, element.uniformScale * element.targetSizeDistortion.x * scaleSize, radius),
-                                Mathf.Lerp(localSize.y, element.uniformScale * element.targetSizeDistortion.y * scaleSize, radius));
+                            Vector2 rayOff0 = GetLensFlareRayOffset(screenPos, 0.0f, globalCos0, globalSin0);
+                            Vector2 localRadPos = (rayOff - rayOff0) * 0.5f;
+                            float localRadius = Mathf.Clamp01(Mathf.Max(Mathf.Abs(localRadPos.x), Mathf.Abs(localRadPos.y))); // l1 norm (instead of l2 norm)
+                            float localLerpValue = element.distortionCurve.Evaluate(localRadius);
+                            localSize = new Vector2(Mathf.Lerp(localSize.x, element.uniformScale * element.targetSizeDistortion.x * scaleSize, localLerpValue),
+                                Mathf.Lerp(localSize.y, element.uniformScale * element.targetSizeDistortion.y * scaleSize, localLerpValue));
                         }
 
                         cmd.SetGlobalVector(HDShaderIDs._FlareData0, flareData0);
