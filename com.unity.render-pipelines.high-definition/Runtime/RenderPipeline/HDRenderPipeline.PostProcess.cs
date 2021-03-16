@@ -2815,9 +2815,22 @@ namespace UnityEngine.Rendering.HighDefinition
                     data.elements.Length == 0)
                     continue;
 
-                Vector3 positionWS = comp.transform.position;
-                Vector3 viewportPos = cam.WorldToViewportPoint(positionWS);
-                Vector3 positionScreen = cam.WorldToScreenPoint(positionWS);
+                Light light = comp.GetComponent<Light>();
+
+                Vector3 positionWS;
+                Vector3 viewportPos;
+                Vector3 positionScreen;
+
+                if (light != null && light.type == LightType.Directional)
+                {
+                    positionWS = -light.transform.forward * cam.farClipPlane;
+                }
+                else
+                {
+                    positionWS = comp.transform.position;
+                }
+                viewportPos = cam.WorldToViewportPoint(positionWS);
+                positionScreen = cam.WorldToScreenPoint(positionWS);
 
                 if (viewportPos.z < 0.0f)
                     continue;
@@ -2840,7 +2853,6 @@ namespace UnityEngine.Rendering.HighDefinition
 
                 Color globalColorModulation = Color.white;
 
-                Light light = comp.GetComponent<Light>();
                 if (light != null)
                 {
                     if (comp.attenuationByLightShape)
