@@ -27,6 +27,8 @@ namespace UnityEditor.VFX
             return settings;
         }
 
+        public bool NeedsSync() => m_PropertyMap.Count == 0;
+
         public void SyncFromMaterial(Material material)
         {
             m_PropertyMap.Clear();

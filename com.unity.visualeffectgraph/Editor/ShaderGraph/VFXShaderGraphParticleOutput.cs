@@ -180,6 +180,16 @@ namespace UnityEditor.VFX
 
             if (shaderGraph != null && shaderGraph.generatesWithShaderGraph)
             {
+                // In certain scenarios the context might not be configured with any serialized material information
+                // when assigned a shader graph for the first time. In this case we sync the settings to the incoming material,
+                // which will be pre-configured by shader graph with the render state & other properties (i.e. a SG with Transparent surface).
+                if (materialSettings.NeedsSync())
+                {
+                    materialSettings.SyncFromMaterial(material);
+                    Invalidate(InvalidationCause.kSettingChanged);
+                    return;
+                }
+
                 materialSettings.ApplyToMaterial(material);
                 VFXLibrary.currentSRPBinder.SetupMaterial(material, hasMotionVector, hasShadowCasting, shaderGraph);
 
@@ -266,6 +276,7 @@ namespace UnityEditor.VFX
         public override bool HasSorting()
         {
             var materialBlendMode = GetMaterialBlendMode();
+
             return base.HasSorting() || (sort == SortMode.Auto && (materialBlendMode == BlendMode.Alpha || materialBlendMode == BlendMode.AlphaPremultiplied));
         }
 
