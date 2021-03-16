@@ -95,6 +95,7 @@ namespace UnityEditor.Rendering
 
             if (EditorGUI.EndChangeCheck())
             {
+                Undo.RecordObjects(new UnityEngine.Object[] { m_LensFlareData.serializedObject.targetObject }, "Reset Lens Flare Component");
                 m_LensFlareData.serializedObject.ApplyModifiedProperties();
             }
         }
