@@ -1,3 +1,4 @@
+#pragma kernel ConvertObliqueDepth
 #pragma kernel DownscaleDepth
 #pragma kernel RenderClouds
 #pragma kernel ReprojectClouds
@@ -5,6 +6,7 @@
 #pragma kernel ComputeVolumetricCloudsShadow
 
 #pragma multi_compile _ PHYSICALLY_BASED_SUN
+#pragma multi_compile _ PLANAR_REFLECTION_CAMERA
 
 // #pragma enable_d3d11_debug_symbols
 
@@ -75,10 +77,44 @@ TEXTURE2D_X(_HistoryVolumetricClouds0Texture);
 TEXTURE2D_X(_HistoryVolumetricClouds1Texture);
 
 // Output texture
+RW_TEXTURE2D_X(float, _DepthBufferRW);
 RW_TEXTURE2D_X(float, _HalfResDepthBufferRW);
 RW_TEXTURE2D_X(float4, _CloudsLightingTextureRW);
 RW_TEXTURE2D_X(float, _CloudsDepthTextureRW);
 RW_TEXTURE2D_X(float3, _CloudsAdditionalTextureRW);
+
+float ConvertObliqueDepthToNonOblique(int2 currentCoord, float obliqueDepth)
+{
+    // Compute the world position of the tapped pixel
+    // Note: the view matrix here is not really used, but a valid matrix needs to be passed to this function.
+    PositionInputs centralPosInput = GetPositionInput(currentCoord, _ScreenSize.zw, obliqueDepth, UNITY_MATRIX_I_VP, UNITY_MATRIX_V);
+
+    // For some reason, with oblique matrices, when the point is on the background the reconstructed position ends up behind the camera and at the wrong position
+    float3 rayDirection = normalize(-centralPosInput.positionWS);
+    rayDirection = obliqueDepth == 0.0 ? -rayDirection : rayDirection;
+
+    // Adjust the position
+    centralPosInput.positionWS = obliqueDepth == 0.0 ? rayDirection * _ProjectionParams.z : centralPosInput.positionWS;
+
+    // Re-do the projection, but this time without the oblique part and export it
+    float4 hClip = mul(_CameraViewProjection_NO, float4(centralPosInput.positionWS, 1.0));
+
+    return saturate(hClip.z / hClip.w);
+}
+
+[numthreads(8, 8, 1)]
+void ConvertObliqueDepth(uint3 currentCoord : SV_DispatchThreadID, uint2 groupThreadId : SV_GroupThreadID, uint2 groupId : SV_GroupID)
+{
+    UNITY_XR_ASSIGN_VIEW_INDEX(currentCoord.z);
+
+    // If this is bigger than the trace size, we are done
+    if (any(currentCoord.xy > uint2(_ScreenSize.xy)))
+        return;
+
+    // Combine it with the current shift to define which half res depth should be used
+    _DepthBufferRW[COORD_TEXTURE2D_X(currentCoord.xy)] = ConvertObliqueDepthToNonOblique(currentCoord.xy, LOAD_TEXTURE2D_X(_DepthTexture, currentCoord.xy).x);
+}
+
 
 [numthreads(8, 8, 1)]
 void DownscaleDepth(uint3 intermediateCoord : SV_DispatchThreadID, uint2 groupThreadId : SV_GroupThreadID, uint2 groupId : SV_GroupID)
@@ -140,9 +176,13 @@ CloudRay BuildRay(uint2 halfResCoord)
     // Flag is this sky pixel occluded by an object?
     float isOccluded = ray.depthValue != UNITY_RAW_FAR_CLIP_VALUE ? 1.0 : 0.0;
 
+#ifdef PLANAR_REFLECTION_CAMERA
+    // Compute the world space position of the pixel (or at a virtual position is it the sky)
+    float3 pos = ComputeWorldSpacePosition((halfResCoord + 0.5) * _IntermediateScreenSize.zw, lerp(0.5, ray.depthValue, isOccluded), _CameraInverseViewProjection_NO);
+#else
     // Compute the world space position of the pixel (or at a virtual position is it the sky)
     float3 pos = ComputeWorldSpacePosition((halfResCoord + 0.5) * _IntermediateScreenSize.zw, lerp(0.5, ray.depthValue, isOccluded), UNITY_MATRIX_I_VP);
-
+#endif
     // normalize to get the direction
     ray.direction = normalize(pos);
 
@@ -162,7 +202,7 @@ CloudRay BuildRay(uint2 halfResCoord)
     // 1.0 means above the cloud domain
     if (ray.toEarthCenter < _EarthRadius)
         ray.insideClouds = -2.0;
-    else if (ray.toEarthCenter < (_LowestCloudAltitude + _EarthRadius))
+    else if (ray.toEarthCenter <= (_LowestCloudAltitude + _EarthRadius))
         ray.insideClouds = -1.0;
     else if (ray.toEarthCenter > (_HighestCloudAltitude + _EarthRadius))
         ray.insideClouds = 1.0f;
@@ -981,8 +1021,13 @@ void UpscaleAndCombineClouds(uint3 finalCoord : SV_DispatchThreadID,
     currentClouds.xyz *= rcp(1.0 - currentClouds.xyz);
     currentClouds.w = saturate(currentClouds.w);
 
+#ifdef PLANAR_REFLECTION_CAMERA
+    // Compute the pos input of the cloud position
+    PositionInputs cloudPosInput = GetPositionInput(finalCoord.xy, _FinalScreenSize.zw, GetCloudDepth_LDS(groupThreadId, IndexToLocalOffsetCoords[closestNeighbor]), _CameraInverseViewProjection_NO, GetWorldToViewMatrix(), 0);
+#else
     // Compute the pos input of the cloud position
     PositionInputs cloudPosInput = GetPositionInput(finalCoord.xy, _FinalScreenSize.zw, GetCloudDepth_LDS(groupThreadId, IndexToLocalOffsetCoords[closestNeighbor]), UNITY_MATRIX_I_VP, GetWorldToViewMatrix(), 0);
+#endif
 
     // Compute the view direction
     float3 viewDir = -normalize(cloudPosInput.positionWS);
