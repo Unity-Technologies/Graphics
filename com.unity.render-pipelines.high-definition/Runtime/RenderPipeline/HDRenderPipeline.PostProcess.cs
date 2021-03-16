@@ -1745,12 +1745,6 @@ namespace UnityEngine.Rendering.HighDefinition
             {
                 parameters.dofCoCReprojectCS.EnableKeyword("ENABLE_MAX_BLENDING");
                 parameters.ditheredTextureSet = GetBlueNoiseManager().DitheredTextureSet256SPP();
-
-                // For low sample counts use a fast approximation and not the full method
-                if (Mathf.Max(parameters.nearSampleCount, parameters.farSampleCount) <= 4 * resolutionScale)
-                {
-                    parameters.pbDoFGatherCS.EnableKeyword("FAST_APPROXIMAION");
-                }
             }
 
             parameters.useMipSafePath = m_UseSafePath;
