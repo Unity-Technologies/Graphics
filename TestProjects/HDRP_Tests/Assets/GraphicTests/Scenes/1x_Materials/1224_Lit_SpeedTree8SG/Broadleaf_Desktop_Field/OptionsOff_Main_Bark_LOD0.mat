@@ -1,5 +1,18 @@
 %YAML 1.1
 %TAG !u! tag:unity3d.com,2011:
+--- !u!114 &-1727745077301738108
+MonoBehaviour:
+  m_ObjectHideFlags: 11
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: da692e001514ec24dbc4cca1949ff7e8, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  version: 2
 --- !u!21 &2100000
 Material:
   serializedVersion: 6
@@ -7,13 +20,13 @@ Material:
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  m_Name: WindOff_Broadleaf_Desktop_Field_Billboard_LOD3
+  m_Name: OptionsOff_Main_Bark_LOD0
   m_Shader: {fileID: -6465566751694194690, guid: 4819724840ee9444f9da841b477038ce,
     type: 3}
-  m_ShaderKeywords: EFFECT_BILLBOARD _ALPHATEST_ON _WINDQUALITY_FASTEST
+  m_ShaderKeywords: _ALPHATEST_ON _DOUBLESIDED_ON _WINDQUALITY_BEST
   m_LightmapFlags: 4
   m_EnableInstancingVariants: 1
-  m_DoubleSidedGI: 0
+  m_DoubleSidedGI: 1
   m_CustomRenderQueue: -1
   stringTagMap:
     MotionVector: User
@@ -27,34 +40,38 @@ Material:
     serializedVersion: 3
     m_TexEnvs:
     - _BumpMap:
-        m_Texture: {fileID: 2800000, guid: 9d0bfe611b8a57b4390c3ce516819845, type: 3}
+        m_Texture: {fileID: 2800000, guid: d256364e5eabf0c4a8b39afb01ba577f, type: 3}
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
     - _ExtraTex:
-        m_Texture: {fileID: 2800000, guid: 6a479d164fa510f4fa80bd4fd2b37db2, type: 3}
+        m_Texture: {fileID: 2800000, guid: b936c526567ca2e4b8af36d098b3f9eb, type: 3}
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
     - _MainTex:
-        m_Texture: {fileID: 2800000, guid: 29371969d59762d45b41977065814b22, type: 3}
+        m_Texture: {fileID: 2800000, guid: c92a7e900daf3034e9ebb644f7bbac93, type: 3}
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
     - _SubsurfaceTex:
-        m_Texture: {fileID: 2800000, guid: c129c2ed9e7827a4694280bcf67c4c77, type: 3}
+        m_Texture: {fileID: 0}
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
     m_Floats:
+    - EFFECT_EXTRA_TEX: 0
     - _AlphaClipThreshold: 0.1
     - _AlphaCutoffEnable: 1
     - _AlphaDstBlend: 0
     - _AlphaSrcBlend: 1
     - _BlendMode: 0
-    - _CullMode: 2
-    - _CullModeForward: 2
+    - _CullMode: 0
+    - _CullModeForward: 0
     - _DiffusionProfileHash: 0
-    - _DoubleSidedEnable: 0
+    - _DoubleSidedEnable: 1
     - _DoubleSidedNormalMode: 0
     - _DstBlend: 0
     - _EnableFogOnTransparent: 1
+    - _Glossiness: 0.5
+    - _HueVariationKwToggle: 0
+    - _NormalMapKwToggle: 0
     - _ReceivesSSR: 1
     - _RenderQueueType: 1
     - _RequireSplitLighting: 0
@@ -69,6 +86,7 @@ Material:
     - _StencilWriteMaskDistortionVec: 4
     - _StencilWriteMaskGBuffer: 14
     - _StencilWriteMaskMV: 40
+    - _SubsurfaceKwToggle: 0
     - _SubsurfaceScale: 1
     - _SurfaceType: 0
     - _TransparentBackfaceEnable: 0
@@ -78,7 +96,7 @@ Material:
     - _TransparentSortPriority: 0
     - _TransparentZWrite: 0
     - _UseShadowThreshold: 0
-    - _WINDQUALITY: 1
+    - _WINDQUALITY: 4
     - _WindQuality: 0
     - _ZTestDepthEqualForOpaque: 3
     - _ZTestGBuffer: 3
@@ -90,16 +108,3 @@ Material:
     - _DoubleSidedConstants: {r: -1, g: -1, b: -1, a: 0}
     - _EmissionColor: {r: 1, g: 1, b: 1, a: 1}
     - _HueVariationColor: {r: 1, g: 0.5, b: 0, a: 0.1}
---- !u!114 &3902567511799838614
-MonoBehaviour:
-  m_ObjectHideFlags: 11
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 0}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: da692e001514ec24dbc4cca1949ff7e8, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  version: 2
