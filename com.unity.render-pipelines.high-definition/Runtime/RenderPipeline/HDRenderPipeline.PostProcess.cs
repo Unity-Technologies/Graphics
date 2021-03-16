@@ -2844,7 +2844,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
                 Vector4 modulationByColor = Vector4.one;
                 Vector4 modulationAttenuation = Vector4.one;
-                Vector3 diffToObject = comp.transform.position - cam.transform.position;
+                Vector3 diffToObject = positionWS - cam.transform.position;
                 float distToObject = diffToObject.magnitude;
                 float coefDistSample = distToObject / comp.maxAttenuationDistance;
                 float coefScaleSample = distToObject / comp.maxAttenuationScale;
