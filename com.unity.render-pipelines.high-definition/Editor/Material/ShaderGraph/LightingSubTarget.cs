@@ -116,10 +116,10 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 pass.keywords.Add(CoreKeywordDescriptors.Lightmap);
                 pass.keywords.Add(CoreKeywordDescriptors.DirectionalLightmapCombined);
                 pass.keywords.Add(CoreKeywordDescriptors.ProbeVolumes);
+                pass.keywords.Add(CoreKeywordDescriptors.DynamicLightmap);
 
                 if (!pass.IsDXR())
                 {
-                    pass.keywords.Add(CoreKeywordDescriptors.DynamicLightmap);
                     pass.keywords.Add(CoreKeywordDescriptors.ShadowsShadowmask);
                     pass.keywords.Add(CoreKeywordDescriptors.Decals);
                 }
