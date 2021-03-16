@@ -71,7 +71,7 @@ namespace UnityEngine.Rendering.Universal
             "0ca6dca7396eb48e5849247ffd444914",
             "0f4122b9a743b744abe2fb6a0a88868b",
             "5ec81c81908db34429b4f6ddecadd3bd",
-            "99134b1f0c27d54469a840832a28fadf",
+            "9920c1f1781549a46ba081a2a15a16ec",
         };
 
         internal static string GetShaderGUID(ShaderPathID id)
