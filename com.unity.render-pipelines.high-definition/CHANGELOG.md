@@ -111,6 +111,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed preview camera updating the skybox material triggering GI baking (case 1314361/1314373).
 - The default LookDev volume profile is now copied and referened in the Asset folder instead of the package folder.
 - Fixed SSS on console platforms.
+- Fixed multicamera rendering for Dynamic Resolution Scaling using dx12 hardware mode. Using a planar reflection probe (another render camera) should be safe.
 
 ### Changed
 - Changed Window/Render Pipeline/HD Render Pipeline Wizard to Window/Rendering/HDRP Wizard

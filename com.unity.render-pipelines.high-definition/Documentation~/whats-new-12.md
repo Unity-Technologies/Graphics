@@ -43,6 +43,8 @@ This version of HDRP introduces multiple improvements to Dynamic Resolution Scal
 - The rendering artifact that caused black edges to appear on screen when in hardware mode no longer occurs.
 - The rendering artifacts that appeared when using the Lanczos filter in software mode no longer occur.
 - Hardware mode now utilizes the Contrast Adaptive Sharpening filter to prevent the results from looking too pixelated. This uses FidelityFX (CAS) AMD™. For information about FidelityFX and Contrast Adaptive Sharpening, see [AMD FidelityFX](https://www.amd.com/en/technologies/radeon-software-fidelityfx).
+- Fixing a corrupted scaling on dx12 hardware mode when a planar reflection probe / secondary camera is present.
+- New API in DynamicResolutionHandler to handle multicamera rendering for hardware mode. Changing cameras and resetting scaling per camera should be safe.
 
 ### AOV API
 
