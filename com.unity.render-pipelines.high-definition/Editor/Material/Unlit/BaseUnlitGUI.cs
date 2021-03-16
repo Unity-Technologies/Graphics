@@ -267,7 +267,11 @@ namespace UnityEditor.Rendering.HighDefinition
             if (material.HasProperty(colorMapPropertyName))
             {
                 var mainTex = material.GetTexture(colorMapPropertyName);
+                var mainTexScale = material.GetTextureScale(colorMapPropertyName);
+                var mainTexOffset = material.GetTextureOffset(colorMapPropertyName);
                 material.SetTexture("_MainTex", mainTex);
+                material.SetTextureScale("_MainTex", mainTexScale);
+                material.SetTextureOffset("_MainTex", mainTexOffset);
             }
 
             if (material.HasProperty(colorPropertyName))

@@ -17,7 +17,7 @@ namespace UnityEditor.Rendering.HighDefinition
     public class SurfaceOptionUIBlock : MaterialUIBlock
     {
         /// <summary>
-        /// Options for surface option features. This allows you to display or hide certain parts f the UI.
+        /// Options for surface option features. This allows you to display or hide certain parts of the UI.
         /// </summary>
         [Flags]
         public enum Features
@@ -576,7 +576,7 @@ namespace UnityEditor.Rendering.HighDefinition
                         EditorGUILayout.LabelField(Styles.blendModeText, Styles.notSupportedInMultiEdition);
                 }
                 else if (blendMode != null)
-                    BlendModePopup();
+                    materialEditor.IntPopupShaderProperty(blendMode, Styles.blendModeText, Styles.blendModeNames, Styles.blendModeValues);
 
                 if ((m_Features & Features.PreserveSpecularLighting) != 0)
                 {
@@ -591,7 +591,7 @@ namespace UnityEditor.Rendering.HighDefinition
                 }
 
                 if (transparentSortPriority != null)
-                    IntegerShaderProperty(transparentSortPriority, Styles.transparentSortPriorityText, HDRenderQueue.ClampsTransparentRangePriority);
+                    materialEditor.IntShaderProperty(transparentSortPriority, Styles.transparentSortPriorityText, HDRenderQueue.ClampsTransparentRangePriority);
 
                 if (enableFogOnTransparent != null)
                     materialEditor.ShaderProperty(enableFogOnTransparent, Styles.enableTransparentFogText);
@@ -669,7 +669,7 @@ namespace UnityEditor.Rendering.HighDefinition
             // with default render-states.
             bool renderQueueTypeMismatchRenderQueue = HDRenderQueue.GetTypeByRenderQueueValue(material.renderQueue) != renderQueueType;
 
-            var newMode = (SurfaceType)PopupShaderProperty(surfaceType, Styles.surfaceTypeText, Styles.surfaceTypeNames);
+            var newMode = (SurfaceType)materialEditor.PopupShaderProperty(surfaceType, Styles.surfaceTypeText, Styles.surfaceTypeNames);
 
             bool isMixedRenderQueue = surfaceType.hasMixedValue || renderQueueHasMultipleDifferentValue;
             bool showAfterPostProcessPass = (m_Features & Features.ShowAfterPostProcessPass) != 0;
@@ -717,11 +717,6 @@ namespace UnityEditor.Rendering.HighDefinition
 
             if (material.HasProperty("_RenderQueueType"))
                 material.SetFloat("_RenderQueueType", (float)renderQueueType);
-        }
-
-        void BlendModePopup()
-        {
-            IntPopupShaderProperty(blendMode, Styles.blendModeText, Styles.blendModeNames, Styles.blendModeValues);
         }
 
         int DoOpaqueRenderingPassPopup(string text, int inputValue, bool afterPost)
@@ -856,15 +851,15 @@ namespace UnityEditor.Rendering.HighDefinition
                     EditorGUILayout.Space();
                     EditorGUI.indentLevel++;
 
-                    IntSliderShaderProperty(ppdMinSamples, Styles.ppdMinSamplesText);
+                    materialEditor.IntSliderShaderProperty(ppdMinSamples, Styles.ppdMinSamplesText);
                     ppdMaxSamples.floatValue = Mathf.Max(ppdMinSamples.floatValue, ppdMaxSamples.floatValue);
-                    IntSliderShaderProperty(ppdMaxSamples, Styles.ppdMaxSamplesText);
+                    materialEditor.IntSliderShaderProperty(ppdMaxSamples, Styles.ppdMaxSamplesText);
                     ppdMinSamples.floatValue = Mathf.Min(ppdMinSamples.floatValue, ppdMaxSamples.floatValue);
 
                     materialEditor.ShaderProperty(ppdLodThreshold, Styles.ppdLodThresholdText);
 
-                    MinFloatShaderProperty(ppdPrimitiveLength, Styles.ppdPrimitiveLength, 0.01f);
-                    MinFloatShaderProperty(ppdPrimitiveWidth, Styles.ppdPrimitiveWidth, 0.01f);
+                    materialEditor.MinFloatShaderProperty(ppdPrimitiveLength, Styles.ppdPrimitiveLength, 0.01f);
+                    materialEditor.MinFloatShaderProperty(ppdPrimitiveWidth, Styles.ppdPrimitiveWidth, 0.01f);
                     invPrimScale.vectorValue = new Vector4(1.0f / ppdPrimitiveLength.floatValue, 1.0f / ppdPrimitiveWidth.floatValue); // Precompute
 
                     materialEditor.ShaderProperty(depthOffsetEnable, Styles.depthOffsetEnableText);
