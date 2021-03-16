@@ -2598,20 +2598,18 @@ namespace UnityEngine.Rendering.HighDefinition
                         PushFullScreenDebugTexture(renderGraph, passData.fullresCoC, FullScreenDebugMode.DepthOfFieldCoc);
                     }
                 }
-            }
 
-            // When physically based DoF is enabled, TAA runs two times, first to stabilize the color buffer before DoF and then after DoF to accumulate more aperture samples
-            if (taaEnabled && m_DepthOfField.physicallyBased)
-            {
-                source = DoTemporalAntialiasing(renderGraph, hdCamera, depthBuffer, motionVectors, depthBufferMipChain, source, postDoF: true, "Post-DoF TAA Destination");
-                // Temporary hack to make post-dof TAA work with rendergraph (still the first frame flashes black). We need a better solution.
-                m_IsDoFHisotoryValid = true;
-                postDoFTAAEnabled = true;
-            }
-            else
-            {
-                // Temporary hack to make post-dof TAA work with rendergraph (still the first frame flashes black). We need a better solution.
-                m_IsDoFHisotoryValid = false;
+                // When physically based DoF is enabled, TAA runs two times, first to stabilize the color buffer before DoF and then after DoF to accumulate more aperture samples
+                if (taaEnabled && m_DepthOfField.physicallyBased)
+                {
+                    source = DoTemporalAntialiasing(renderGraph, hdCamera, depthBuffer, motionVectors, depthBufferMipChain, source, postDoF: true, "Post-DoF TAA Destination");
+                    m_IsDoFHisotoryValid = true;
+                    postDoFTAAEnabled = true;
+                }
+                else
+                {
+                    m_IsDoFHisotoryValid = false;
+                }
             }
 
             if (!postDoFTAAEnabled)
