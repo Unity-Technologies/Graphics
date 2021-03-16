@@ -312,6 +312,7 @@ namespace UnityEngine.Rendering.HighDefinition
             deferredParameters.diffuseLightingOnly = false;
             deferredParameters.halfResolution = !settings.fullResolution;
             deferredParameters.rayCountType = (int)RayCountValues.ReflectionDeferred;
+            deferredParameters.lodBias = settings.textureLodBias.value;
 
             // Camera data
             deferredParameters.width = hdCamera.actualWidth;
@@ -397,6 +398,7 @@ namespace UnityEngine.Rendering.HighDefinition
             public bool transparent;
             public float minSmoothness;
             public float smoothnessFadeStart;
+            public float lodBias;
 
             // Other parameters
             public RayTracingAccelerationStructure accelerationStructure;
@@ -435,6 +437,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 passData.transparent = transparent;
                 passData.minSmoothness = settings.minSmoothness;
                 passData.smoothnessFadeStart = settings.smoothnessFadeStart;
+                passData.lodBias = settings.textureLodBias.value;
 
                 // Other parameters
                 passData.accelerationStructure = RequestAccelerationStructure();
@@ -473,6 +476,7 @@ namespace UnityEngine.Rendering.HighDefinition
                         // Bind all the required scalars to the CB
                         data.shaderVariablesRayTracingCB._RaytracingReflectionMinSmoothness = data.minSmoothness;
                         data.shaderVariablesRayTracingCB._RaytracingReflectionSmoothnessFadeStart = data.smoothnessFadeStart;
+                        data.shaderVariablesRayTracingCB._RayTracingLodBias = data.lodBias;
                         ConstantBuffer.PushGlobal(ctx.cmd, data.shaderVariablesRayTracingCB, HDShaderIDs._ShaderVariablesRaytracing);
 
                         // Inject the ray-tracing sampling data

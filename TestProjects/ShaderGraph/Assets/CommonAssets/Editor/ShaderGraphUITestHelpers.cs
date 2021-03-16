@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
+using System.Runtime.InteropServices;
 using System.Text;
 using UnityEditor;
 using UnityEditor.ShaderGraph.UnitTests;
@@ -14,84 +15,6 @@ namespace UnityEditor.ShaderGraph.UnitTests
 {
     static class ShaderGraphUITestHelpers
     {
-        private static readonly MethodInfo CreateEventMethodInfo = null;
-        static ShaderGraphUITestHelpers()
-        {
-            // Get reference to UIElements assembly
-            Assembly uiElementAssembly = null;
-            foreach (var assembly in AppDomain.CurrentDomain.GetAssemblies())
-            {
-                var assemblyName = assembly.GetName().ToString();
-                if (assemblyName.Contains("UnityEngine.UIElementsModule"))
-                {
-                    uiElementAssembly = assembly;
-                }
-            }
-
-            // Get specific class that is used for UI event generation, as it is currently marked as internal and is inaccessible directly
-            Type uiElementsUtilityType = uiElementAssembly?.GetType("UnityEngine.UIElements.UIElementsUtility");
-
-            // Cache the method info for this function to be used through application lifetime
-            CreateEventMethodInfo = uiElementsUtilityType?.GetMethod("CreateEvent",
-                BindingFlags.FlattenHierarchy | BindingFlags.Static | BindingFlags.NonPublic,
-                null,
-                new Type[] {typeof(Event), typeof(EventType)},
-                null);
-        }
-
-        private static EventBase CreateEvent(Event evt)
-        {
-            return (EventBase)CreateEventMethodInfo?.Invoke(null,  new object[]{evt, evt.rawType});
-        }
-
-        public static EventBase MakeEvent(EventType type)
-        {
-            var evt = new Event() { type = type };
-            return CreateEvent(evt);
-        }
-
-        public static EventBase MakeEvent(EventType type, Vector2 position)
-        {
-            var evt = new Event() { type = type, mousePosition = position };
-            return CreateEvent(evt);
-        }
-
-        public static EventBase MakeKeyEvent(EventType type, KeyCode code, char character = '\0', EventModifiers modifiers = EventModifiers.None)
-        {
-            var evt = new Event() { type = type, keyCode = code, character = character, modifiers = modifiers};
-            return CreateEvent(evt);
-        }
-
-        public static EventBase MakeMouseMoveEvent(Vector2 mousePosition, MouseButton button = MouseButton.LeftMouse, EventModifiers modifiers = EventModifiers.None, int clickCount = 1)
-        {
-            var evt = new Event() { type = EventType.MouseMove, mousePosition = mousePosition, button = (int)button, modifiers = modifiers, clickCount = clickCount};
-            return CreateEvent(evt);
-        }
-
-        public static EventBase MakeMouseEvent(EventType type, Vector2 position, MouseButton button = MouseButton.LeftMouse, EventModifiers modifiers = EventModifiers.None, int clickCount = 1)
-        {
-            var evt = new Event() { type = type, mousePosition = position, button = (int)button, modifiers = modifiers, clickCount = clickCount};
-            return CreateEvent(evt);
-        }
-
-        public static EventBase MakeScrollWheelEvent(Vector2 delta, Vector2 position)
-        {
-            var evt = new Event
-            {
-                type = EventType.ScrollWheel,
-                delta = delta,
-                mousePosition = position
-            };
-
-            return CreateEvent(evt);
-        }
-
-        public static EventBase MakeCommandEvent(EventType type, string command)
-        {
-            var evt = new Event() { type = type, commandName = command };
-            return CreateEvent(evt);
-        }
-
         public static void TestAllElements(VisualElement container, Action<VisualElement> test)
         {
             test(container);
@@ -102,28 +25,74 @@ namespace UnityEditor.ShaderGraph.UnitTests
             }
         }
 
-        public static void SendMouseEventToVisualElement(
+        public static void SendMouseEvent(EditorWindow parentWindow,
             VisualElement elementToNotify,
-            EventType eventType,
+            EventType eventType = EventType.MouseDown,
             MouseButton mouseButton = MouseButton.LeftMouse,
-            Vector2 eventPositionOffset = default)
+            int clickCount = 1,
+            EventModifiers eventModifiers = EventModifiers.None,
+            Vector2 positionOffset = default)
         {
-            var screenButtonPosition = GetScreenPosition(elementToNotify);
-            // Apply offset if any was specified
-            screenButtonPosition += eventPositionOffset;
-            using var evt = ShaderGraphUITestHelpers.MakeMouseEvent(eventType, screenButtonPosition, mouseButton);
-            evt.target = elementToNotify;
-            elementToNotify.SendEvent(evt);
+            var screenButtonPosition = GetScreenPosition(parentWindow, elementToNotify);
+            var mouseEvent = new Event
+            {
+                type = eventType,
+                mousePosition = screenButtonPosition + positionOffset,
+                clickCount = clickCount,
+                button = (int)mouseButton,
+                modifiers = eventModifiers
+            };
+            parentWindow.SendEvent(mouseEvent);
         }
 
-        public static Vector2 GetScreenPosition(VisualElement visualElement)
+        public static void SendDeleteCommand(
+            EditorWindow parentWindow,
+            VisualElement elementToNotify)
+        {
+            var deleteCommand = new ExecuteCommandEvent();
+            deleteCommand.SetNonPrivateProperty("commandName", "SoftDelete");
+            elementToNotify.InvokePrivateFunc("OnExecuteCommand", new object[]{ deleteCommand });
+        }
+
+        public static void SendDuplicateCommand(
+            EditorWindow parentWindow,
+            VisualElement elementToNotify)
+        {
+            var duplicateCommand = new ExecuteCommandEvent();
+            duplicateCommand.SetNonPrivateProperty("commandName", "Duplicate");
+            elementToNotify.InvokePrivateFunc("OnExecuteCommand", new object[]{ new ExecuteCommandEvent() {} });
+        }
+
+        public static void SendKeyEvent(EditorWindow parentWindow,
+            VisualElement elementToNotify,
+            EventType eventType = EventType.KeyDown,
+            char keyboardCharacter = '\0',
+            KeyCode keyCode = KeyCode.None,
+            int pressCount = 1,
+            EventModifiers eventModifiers = EventModifiers.None,
+            Vector2 positionOffset = default)
+        {
+            var screenButtonPosition = GetScreenPosition(parentWindow, elementToNotify);
+            var keyboardEvent = new Event()
+            {
+                type = eventType,
+                mousePosition = screenButtonPosition + positionOffset,
+                clickCount = pressCount,
+                character = keyboardCharacter,
+                keyCode = keyCode,
+                modifiers = eventModifiers
+            };
+            parentWindow.SendEvent(keyboardEvent);
+        }
+
+        public static Vector2 GetScreenPosition(EditorWindow parentWindow, VisualElement visualElement)
         {
             // WorldBound is the "global" xposition of this element, relative to the top-left corner of this editor window
             var screenPosition = visualElement.worldBound.position;
             // EditorWindow.position is the top-left position of the window in desktop-space
-            screenPosition = (screenPosition + EditorWindow.focusedWindow.position.position);
+            //screenPosition = (screenPosition + parentWindow.position.position);
             // To account for 4k screens with virtual coordinates, need to be multiply by EditorGUI.pixelsPerPoint to get actual desktop pixels.
-            //actualScreenPosition *= EditorGUIUtility.pixelsPerPoint;
+            //screenPosition *= EditorGUIUtility.pixelsPerPoint;
             return screenPosition;
         }
 

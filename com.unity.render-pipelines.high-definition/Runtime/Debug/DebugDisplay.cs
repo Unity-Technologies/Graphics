@@ -85,7 +85,9 @@ namespace UnityEngine.Rendering.HighDefinition
         RayTracedSubSurface,
 
         // Volumetric Clouds
+        /// <summary>Display the volumetric clouds in-scattering x transmittance.</summary>
         VolumetricClouds,
+        /// <summary>Display the volumetric clouds shadow at ground level.</summary>
         VolumetricCloudsShadow,
 
         /// <summary>Maximum Full Screen Lighting debug mode value (used internally).</summary>
