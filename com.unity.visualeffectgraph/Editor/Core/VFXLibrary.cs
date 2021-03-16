@@ -2,6 +2,7 @@ using System;
 using System.Text;
 using System.Collections.Generic;
 using System.Linq;
+using UnityEditor.ShaderGraph;
 using UnityEditor.ShaderGraph.Internal;
 using UnityEngine;
 using UnityEngine.Rendering;
@@ -171,6 +172,8 @@ namespace UnityEditor.VFX
         public virtual bool TransparentMotionVectorEnabled(Material mat) => true;
 
         public virtual string GetShaderName(ShaderGraphVfxAsset shaderGraph) => string.Empty;
+
+        public virtual bool IsGraphDataValid(GraphData graph) => false;
     }
 
     // Not in Universal package because we dont want to add a dependency on VFXGraph

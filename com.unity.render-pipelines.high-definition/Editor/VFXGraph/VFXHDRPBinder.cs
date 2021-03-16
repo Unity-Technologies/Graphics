@@ -1,11 +1,14 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using UnityEditor.Rendering.HighDefinition;
 using UnityEditor.Rendering.HighDefinition.ShaderGraph;
+using UnityEditor.ShaderGraph;
 using UnityEditor.ShaderGraph.Internal;
 using UnityEditor.VFX;
 using UnityEngine;
 using UnityEngine.Rendering.HighDefinition;
+using BlendMode = UnityEditor.Rendering.HighDefinition.BlendMode;
 
 namespace UnityEditor.VFX.HDRP
 {
@@ -130,6 +133,37 @@ namespace UnityEditor.VFX.HDRP
                 return s_ShaderNames[shaderID];
 
             return string.Empty;
+        }
+
+        // List of shader properties that currently are not supported for exposure in VFX shaders.
+        private static readonly Dictionary<Type, string> s_UnsupportedShaderPropertyTypes = new Dictionary<Type, string>()
+        {
+            { typeof(DiffusionProfileShaderProperty), "Diffusion Profile" },
+            { typeof(VirtualTextureShaderProperty),   "Virtual Texture"   }
+        };
+
+        public override bool IsGraphDataValid(GraphData graph)
+        {
+            var valid = true;
+
+            // Filter property list for any unsupported shader properties.
+            foreach (var property in graph.properties)
+            {
+                if (s_UnsupportedShaderPropertyTypes.ContainsKey(property.GetType()))
+                {
+                    Debug.LogWarning($"{s_UnsupportedShaderPropertyTypes[property.GetType()]} properties are currently not supported in Visual Effect shaders.");
+                    valid = false;
+                }
+            }
+
+            // VFX currently does not support the concept of per-particle keywords.
+            if (graph.keywords.Any())
+            {
+                Debug.LogWarning("Keywords are currently not supported in Visual Effect shaders.");
+                valid = false;
+            }
+
+            return valid;
         }
     }
 }
