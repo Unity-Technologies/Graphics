@@ -8,7 +8,7 @@ namespace UnityEngine.Rendering
     /// </summary>
     public class PowerOfTwoTextureAtlas : Texture2DAtlas
     {
-        public int mipPadding;
+        int m_MipPadding;
         const float k_MipmapFactorApprox = 1.33f;
 
         private Dictionary<int, Vector2Int> m_RequestedTextures = new Dictionary<int, Vector2Int>();
@@ -19,14 +19,16 @@ namespace UnityEngine.Rendering
         public PowerOfTwoTextureAtlas(int size, int mipPadding, GraphicsFormat format, FilterMode filterMode = FilterMode.Point, string name = "", bool useMipMap = true)
             : base(size, size, format, filterMode, true, name, useMipMap)
         {
-            this.mipPadding = mipPadding;
+            this.m_MipPadding = mipPadding;
 
             // Check if size is a power of two
             if ((size & (size - 1)) != 0)
                 Debug.Assert(false, "Power of two atlas was constructed with non power of two size: " + size);
         }
 
-        int GetTexturePadding() => (int)Mathf.Pow(2, mipPadding) * 2;
+        public int mipPadding => m_MipPadding;
+
+        int GetTexturePadding() => (int)Mathf.Pow(2, m_MipPadding) * 2;
 
         void Blit2DTexturePadding(CommandBuffer cmd, Vector4 scaleOffset, Texture texture, Vector4 sourceScaleOffset, bool blitMips = true)
         {

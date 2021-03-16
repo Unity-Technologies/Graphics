@@ -9,7 +9,7 @@ namespace UnityEngine.Rendering
     {
         private class AtlasNodePool
         {
-            public AtlasNode[] m_Nodes;
+            internal AtlasNode[] m_Nodes;
             Int16 m_Next;
             Int16 m_FreelistHead;
 
