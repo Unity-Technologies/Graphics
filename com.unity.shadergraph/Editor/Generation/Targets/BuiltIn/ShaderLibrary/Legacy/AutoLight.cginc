@@ -171,16 +171,16 @@ unityShadowCoord4x4 unity_WorldToLight;
 #endif
 
 #ifdef SPOT
-sampler2D_float _LightTexture0;
+UNITY_DECLARE_TEX2D_FLOAT(_LightTexture0);
 unityShadowCoord4x4 unity_WorldToLight;
-sampler2D_float _LightTextureB0;
+UNITY_DECLARE_TEX2D_FLOAT(_LightTextureB0);
 inline fixed UnitySpotCookie(unityShadowCoord4 LightCoord)
 {
-    return tex2D(_LightTexture0, LightCoord.xy / LightCoord.w + 0.5).w;
+    return UNITY_SAMPLE_TEX2D(_LightTexture0, LightCoord.xy / LightCoord.w + 0.5).w;
 }
 inline fixed UnitySpotAttenuate(unityShadowCoord3 LightCoord)
 {
-    return tex2D(_LightTextureB0, dot(LightCoord, LightCoord).xx).r;
+    return UNITY_SAMPLE_TEX2D(_LightTextureB0, dot(LightCoord, LightCoord).xx).r;
 }
 #if !defined(UNITY_HALF_PRECISION_FRAGMENT_SHADER_REGISTERS)
 #define DECLARE_LIGHT_COORD(input, worldPos) unityShadowCoord4 lightCoord = mul(unity_WorldToLight, unityShadowCoord4(worldPos, 1))
