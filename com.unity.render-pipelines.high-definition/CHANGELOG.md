@@ -24,6 +24,11 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Added support for the PlayStation 5 platform.
 - Added support the XboxSeries platform.
 - Added the default quality settings to the HDRP asset for RTAO, RTR and RTGI (case 1304370).
+- Added a history rejection criterion based on if the pixel was moving in world space (case 1302392).
+- Added new API in CachedShadowManager
+- Added an additional check in the "check scene for ray tracing" (case 1314963).
+- API to allow OnDemand shadows to not render upon placement in the Cached Shadow Atlas.
+- Exposed update upon light movement for directional light shadows in UI.
 
 ### Fixed
 - Fixed probe volumes debug views.
@@ -89,6 +94,40 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed lightmaps not working properly with shader graphs in ray traced reflections (case 1305335).
 - Fixed skybox for ortho cameras.
 - Fixed issue when debug full screen 'Transparent Screen Space Reflection' do not take in consideration debug exposure
+- Fixed sub-shadow rendering for cached shadow maps.
+- Fixed PCSS filtering issues with cached shadow maps.
+- Fix screen being over-exposed when changing very different skies.
+- Fixed incorrect debug wireframe overlay on tessellated geometry (using littessellation), caused by the picking pass using an incorrect camera matrix.
+- Fixed nullref in layered lit shader editor.
+- Fix issue with Depth of Field CoC debug view.
+- Fixed an issue where first frame of SSAO could exhibit ghosting artefacts.
+- Fixed an issue with the mipmap generation internal format after rendering format change.
+- Fixed performance issue with ShaderGraph and Alpha Test
+- Fixed error when increasing the maximum planar reflection limit (case 1306530).
+- Fixed alpha output in debug view and AOVs when using shadow matte (case 1311830).
+- Fixed an issue with transparent meshes writing their depths and recursive rendering (case 1314409).
+- Fixed issue with compositor custom pass hooks added/removed repeatedly (case 1315971).
+- Fixed: SSR with transparent (case 1311088)
+- Fixed decals in material debug display.
+- Fixed update upon light movement for directional light rotation.
+- Fixed an issue in the planar reflection probe convolution.
+- Fixed loss of persistency of ratio between pivot position and size when sliding by 0 in DecalProjector inspector (case 1308338)
+- Fixed nullref when adding a volume component in a Volume profile asset (case 1317156).
+- Fixed decal normal for double sided materials (case 1312065).
+- Fixed multiple HDRP Frame Settings panel issues: missing "Refraction" Frame Setting. Fixing ordering of Rough Distortion, it should now be under the Distortion setting.
+- Fixed issue with automatic exposure settings not updating scene view.
+- Fixed issue with velocity rejection in post-DoF TAA. Fixing this reduces ghosting (case 1304381).
+- Fixed missing option to use POM on emissive for tessellated shaders.
+- Fixed Rough Distortion frame setting not greyed out when Distortion is disabled in HDRP Asset
+- Fixed ability to override AlphaToMask FrameSetting while camera in deferred lit shader mode
+- Fixed issue with physically-based DoF computation and transparent materials with depth-writes ON.
+- Fixed issue of accessing default frame setting stored in current HDRPAsset instead fo the default HDRPAsset
+- Fixed SSGI frame setting not greyed out while SSGI is disabled in HDRP Asset
+- Fixed wizard checking FrameSettings not in HDRP Default Settings
+- Fixed error when opening the default composition graph in the Graphics Compositor (case 1318933).
+- Fixed HDRP material being constantly dirty.
+- Fixed issue in path tracing, where objects would cast shadows even if not present in the path traced layers (case 1318857).
+- Fixed SRP batcher not compatible with Decal (case 1311586)
 
 ### Changed
 - Removed the material pass probe volumes evaluation mode.
@@ -112,6 +151,12 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Change some light unit slider value ranges to better reflect the lighting scenario.
 - Transparent materials created by the Model Importer are set to not cast shadows. ( case 1295747)
 - Updated the tooltip for the Decal Angle Fade property (requires to enable Decal Layers in both HDRP asset and Frame settings) (case 1308048).
+- The RTAO's history is now discarded if the occlusion caster was moving (case 1303418).
+- Unifying the history validation pass so that it is only done once for the whole frame and not per effect.
+- Tidy up of platform abstraction code for shader optimization.
+- Changed Path Tracing's maximum intensity from clamped (0 to 100) to positive value (case 1310514).
+- Avoid unnecessary RenderGraphBuilder.ReadTexture in the "Set Final Target" pass
+- Cached the base types of Volume Manager to improve memory and cpu usage.
 
 ## [10.3.0] - 2020-12-01
 

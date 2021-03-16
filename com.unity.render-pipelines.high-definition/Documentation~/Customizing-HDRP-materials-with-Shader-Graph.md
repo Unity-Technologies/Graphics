@@ -24,7 +24,7 @@ The [Lit](Lit-Shader.md), [LayeredLit](Layered-Lit-Shader.md), and [Unlit](Unlit
 To create a Material that uses a Shader Graph (for example, a StackLit Graph), follow these steps:
 
 1. Create a Shader with the Shader Graph that you want the Material to use.
-    1. Go to **Assets > Create > Shader > HDRP** to find the list of HDRP Shader Graphs. For this example, click **StackLit Graph**.
+    1. Go to **Assets > Create > Shader Graph > HDRP** to find the list of HDRP Shader Graphs. For this example, click **StackLit Graph**.
    1. Give the Shader Graph a unique name. This is important, because you need to reference this Shader Graph in the Material.
 1. Create a Material from the Shader.
 1. In your Project window, find the Shader that you just created and right-click it.

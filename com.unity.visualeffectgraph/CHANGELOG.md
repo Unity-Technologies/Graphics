@@ -10,9 +10,14 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - New Sample Point cache & Sample Attribute map operators
 - Sample vertices of a transformed skinned mesh with Position (Skinned Mesh) and Sample Skinned Mesh operator.
 - Placement option (Vertex, Edge, Surface) in Sample Mesh & Skinned Mesh, allows triangle sampling.
+- Added support for Texture2D Arrays in Flipbooks
 
 ### Changed
 - Changed the "Edit" button so it becomes "New" when no asset is set on a Visual Effect component, in order to save a new visual effect graph asset.
+- Sphere and Cube outputs are now experimental
+- Property Binder : Handle Remove Component removing linked hidden scriptable objectfields
+- Property Binder : Prevent multiple VFXPropertyBinder within the same game object
+- Tidy up of platform abstraction code for random number generation, requires a dependency on com.unity.render-pipelines.core for those abstractions.
 
 ### Fixed
 - Forbid incorrect link between incompatible context [Case 1269756](https://issuetracker.unity3d.com/product/unity/issues/guid/1269756/)
@@ -28,6 +33,21 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Sample Mesh Color when value is stored as float.
 - Prevent infinite compilation loop [Case 1298466](https://issuetracker.unity3d.com/product/unity/issues/guid/1298466/)
 - Remove some useless compilation triggers (modifying not connected or disabled nodes for instance)
+- Fixed issue with VFX using incorrect buffer type for strip data
+- Fixed shader compilation errors with textures in shader graph [Case 1309219](https://issuetracker.unity3d.com/product/unity/issues/guid/1309219/)
+- Modified Sign operator node output for float when input is 0.0f [Case 1299922](https://fogbugz.unity3d.com/f/cases/1299922/)
+- An existing link can be remade.
+- Use alphabetical order in type list in blackboard "+" button [Case 1304109](https://issuetracker.unity3d.com/product/unity/issues/guid/1304109/)
+- Consistently displays the Age Particles checkbox in Update context [Case 1221557](https://issuetracker.unity3d.com/product/unity/issues/guid/1221557/)
+- Fix compute culling compilation in URP [Case 1309174](https://fogbugz.unity3d.com/f/cases/1309174/)
+- pCache: Unexpected ditable field in Mesh Statistics, Save & Cancel pCache, error trying to access not readable texture [Case 1122417](https://issuetracker.unity3d.com/product/unity/issues/guid/1122417/)
+- Handle correctly locked VisualEffectAsset with version control system [Case 1261051](https://issuetracker.unity3d.com/product/unity/issues/guid/1261051/)
+- Artefact in VFXView using efficient debug mode in component target board [Case 1243947](https://issuetracker.unity3d.com/product/unity/issues/guid/1243947/)
+- Compilation error due to direct access to GetWorldToObjectMatrix instead of VFXGetWorldToObjectMatrix [Case 1308481](https://issuetracker.unity3d.com/product/unity/issues/guid/1308481/)
+- Safe Normalization of Cross Products in Orient blocks [Case 1272724](https://issuetracker.unity3d.com/product/unity/issues/guid/1272724)
+- Property Binder : Undo after reset [Case 1293794](https://issuetracker.unity3d.com/product/unity/issues/guid/1293794/)
+- Property Binder : Allow copy/past from a game object to another
+- Deleting a context node and a block while both are selected throws a null ref exception. [Case 315578](https://issuetracker.unity3d.com/product/unity/issues/guid/1315578/)
 
 ## [10.2.0] - 2020-10-19
 ### Added

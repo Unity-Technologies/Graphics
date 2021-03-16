@@ -1063,6 +1063,7 @@ MonoBehaviour:
   frustumCulling: 0
   castShadows: 0
   useExposureWeight: 0
+  flipbookLayout: 0
 --- !u!114 &114329351849546386
 MonoBehaviour:
   m_ObjectHideFlags: 1
@@ -5931,6 +5932,7 @@ MonoBehaviour:
   frustumCulling: 0
   castShadows: 0
   useExposureWeight: 0
+  flipbookLayout: 0
   shaderGraph: {fileID: 0}
   primitiveType: 1
   useGeometryShader: 0

@@ -15,9 +15,27 @@ This document covers:
 ## Hardware requirements
 
 Full ray tracing hardware acceleration is available on following GPUs:
-- NVIDIA GeForce RTX 2060, RTX 2060 Super, RTX 2070, RTX 2070 Super, RTX 2080, RTX 2080 Super, RTX 2080 Ti, and
-NVIDIA TITAN RTX
-- NVIDIA Quadro RTX 3000 (laptop only), RTX 4000, RTX 5000, RTX 6000, RTX 8000
+- NVIDIA GeForce 20 series:
+  - RTX 2060
+  - RTX 2060 Super
+  - RTX 2070
+  - RTX 2070 Super
+  - RTX 2080
+  - RTX 2080 Super
+  - RTX 2080 Ti
+  - NVIDIA TITAN RTX
+- NVIDIA GeForce 30 series:
+  - RTX 3060
+  - RTX 3060Ti
+  - RTX 3070
+  - RTX 3080
+  - RTX 3090
+- NVIDIA Quadro:
+  - RTX 3000 (laptop only)
+  - RTX 4000
+  - RTX 5000
+  - RTX 6000
+  - RTX 8000
 
 NVIDIA also provides a ray tracing fallback for some previous generation graphics cards:
 - NVIDIA GeForce GTX
@@ -43,7 +61,7 @@ There are two ways to do this:
 
 * [Manual setup](#ManualSetup)
 
-Once you have completed one of these, move onto [Final setup](#FinalSetup).
+Once you have completed one of these, move onto [Final setup](#final-setup).
 
 <a name="WizardSetup"></a>
 
@@ -56,7 +74,7 @@ You can use the [Render Pipeline Wizard](Render-Pipeline-Wizard.md) to set up ra
 3. Click the Fix All button.
 4. (Optional) Enable the HDRP asset features that are required for the ray tracing effects.
 
-Your HDRP Project now supports ray tracing. For information on how to set up ray tracing for your Scene, see [final setup](#FinalSetup).
+Your HDRP Project now supports ray tracing. For information on how to set up ray tracing for your Scene, see [final setup](#final-setup).
 
 <a name="ManualSetup"></a>
 
@@ -130,17 +148,16 @@ To enable the above effects in your HDRP Unity Project:
 4. Go to **Lighting > Shadows** and enable **Screen Space Shadows**.
 5. Go to **Lighting > Lighting** and enable **Screen Space Global Illumination**.
 
-Your HDRP Project now fully supports ray tracing. For information on how to set up ray tracing for your Scene, see [final setup](#FinalSetup).
-
-<a name="FinalSetup"></a>
+Your HDRP Project now fully supports ray tracing. For information on how to set up ray tracing for your Scene, see [final setup](#final-setup).
 
 ### Final setup
 
 Now that your HDRP Project supports ray tracing, there are a few steps you must complete in order to actually use it in your Scene.
 
-1. [Frame Settings validation](#FinalSetup-FrameSettings)
+1. [Frame Settings validation](#frame-settings)
+2. [Build settings validation](#build-settings)
+3. [Scene validation](#scene-validation)
 
-<a name="FinalSetup-FrameSettings"></a>
 
 #### Frame Settings
 
@@ -158,14 +175,18 @@ To enable ray tracing for a specific Camera:
 2. In the **General** section, enable **Custom Frame Settings**. This exposes Frame Settings just for this Camera.
 3. in the **Rendering** section, enable **Ray Tracing**.
 
-<a name="FinalSetup-BuildSettings"></a>
-
 #### Build settings
 
 To build your Project to a Unity Player, ray tracing requires that the build uses 64 bits architecture. To set your build to use 64 bits architecture:
 
 1. Open the Build Settings window (menu: **File > Build Settings**).
 2. From the **Architecture** drop-down, select **x86_64**.
+
+#### Scene validation
+
+To check whether it is possible to use ray tracing in a Scene, HDRP includes a menu option that validates each GameObject in the Scene. If you do not setup GameObjects correctly, this process throws warnings in the Console window. To use it:
+1. Click **Edit > Rendering > Check Scene Content for HDRP Ray Tracing**.
+2. In the Console window (menu: **Window > General > Console**), check if there are any warnings.
 
 <a name="RayTracingEffectsOverview"></a>
 
