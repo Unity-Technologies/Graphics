@@ -31,6 +31,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Added deferred shading debug visualization
 - Added a new control slider on RTR and RTGI to force the LOD Bias on both effects.
 - Added missing documentation for volumetric clouds.
+- Added an error message when trying to use disk lights with realtime GI (case 1317808).
 
 ### Fixed
 - Fixed Intensity Multiplier not affecting realtime global illumination.
@@ -99,6 +100,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed SRP batcher not compatible with Decal (case 1311586)
 - Fixed wrong color buffer being bound to pre refraction custom passes.
 - Fixed issue in Probe Reference Volume authoring component triggering an asset reload on all operations.
+- Fixed grey screen on playstation platform when histogram exposure is enabled but the curve mapping is not used.
 - Fixed volumetric fog noise due to sun light leaking (case 1319005)
 
 ### Changed
@@ -151,6 +153,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Decreased the minimal Fog Distance value in the Density Volume to 0.05.
 - Virtual Texturing Resolver now performs RTHandle resize logic in HDRP instead of in core Unity
 - Cached the base types of Volume Manager to improve memory and cpu usage.
+- Reduced the maximal number of bounces for both RTGI and RTR (case 1318876).
 
 ## [11.0.0] - 2020-10-21
 
