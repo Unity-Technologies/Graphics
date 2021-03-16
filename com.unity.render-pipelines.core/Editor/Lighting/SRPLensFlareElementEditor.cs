@@ -97,8 +97,6 @@ namespace UnityEditor.Rendering
             SerializedProperty targetSizeDistortionProp = property.FindPropertyRelative("targetSizeDistortion");
             SerializedProperty distortionCurveProp = property.FindPropertyRelative("distortionCurve");
 
-            //sideCount
-
             if (lensFlareProp.objectReferenceValue != null)
             {
                 Texture texture = lensFlareProp.objectReferenceValue as Texture;
@@ -164,7 +162,6 @@ namespace UnityEditor.Rendering
                         SerializedProperty sdfRoundnessProp = property.FindPropertyRelative("sdfRoundness");
                         SerializedProperty sideCountProp = property.FindPropertyRelative("sideCount");
                         SerializedProperty inverseSDFProp = property.FindPropertyRelative("inverseSDF");
-                        SerializedProperty frequencyProp = property.FindPropertyRelative("frequency");
 
                         rect = GetNextRect();
                         if ((tmp = EditorGUI.Slider(rect, Styles.edgeOffset, edgeOffsetProp.floatValue, 0.0f, 1.0f)) != edgeOffsetProp.floatValue)
@@ -280,7 +277,7 @@ namespace UnityEditor.Rendering
                     {
                         rect = GetNextRect();
                         if ((iTmp = EditorGUI.IntField(rect, Styles.count, countProp.intValue)) != countProp.intValue)
-                            countProp.intValue = Mathf.Max(iTmp, 1);
+                            countProp.intValue = Mathf.Clamp(iTmp, 2, 4096); // 4096 is large enough for all imaginable use case (I hope)
                     }
                     if (allowMultipleElementProp.boolValue)
                     {
