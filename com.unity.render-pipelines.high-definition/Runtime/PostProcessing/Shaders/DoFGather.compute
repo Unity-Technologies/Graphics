@@ -251,7 +251,6 @@ void AccumulateCenterSample(SampleData centerSample, inout AccumData accumData)
 #ifdef ENABLE_ALPHA
     accumData.alpha = accumData.alpha * (1 - centerAlpha) + centerAlpha * centerSample.color.w;
 #endif
-
 }
 
 void AccumulateSampleData(SampleData sampleData[2], SampleData centerSample, float sampleRadius, float borderRadius, const bool isForeground, inout AccumData ringAccum, inout AccumData accumData)
@@ -307,7 +306,8 @@ void AccumulateRingData(float numSamples, const bool isForeground, AccumData rin
 
     if (isForeground)
     {
-        float accumOcclusion = 1 - saturate(ringAvgCoC - accumAvgCoC);
+        const float occlusionWeight = 0.5;
+        float accumOcclusion = occlusionWeight * (1 - saturate(ringAvgCoC - accumAvgCoC));
 
         // front-to-back blending
         float alpha = 1.0;
@@ -400,7 +400,6 @@ void DoFGatherRings(PositionInputs posInputs, DoFTile tileData, SampleData cente
 
     // Compute the fg alpha. Needs to be normalized based on search radius.
     float normCoC = fgAccumData.CoC / fgAccumData.color.w;
-    //float normCoC = fgAccumData.maxCoC;
     float scaleFactor = (normCoC * normCoC) / (tileData.maxRadius * tileData.maxRadius);
     float correctSamples = scaleFactor * (tileData.numSamples * tileData.numSamples);
 
