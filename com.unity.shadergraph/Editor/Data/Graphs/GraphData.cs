@@ -16,6 +16,7 @@ using Edge = UnityEditor.Graphing.Edge;
 using UnityEngine.UIElements;
 using UnityEngine.Assertions;
 using UnityEngine.Pool;
+using UnityEngine.Serialization;
 
 namespace UnityEditor.ShaderGraph
 {
@@ -70,6 +71,15 @@ namespace UnityEditor.ShaderGraph
         public bool movedContexts => m_MovedContexts;
 
         public string assetGuid { get; set; }
+
+        #endregion
+
+        #region Category Data
+
+        [SerializeField]
+        List<JsonData<CategoryData>> m_CategoryData = new List<JsonData<CategoryData>>();
+
+        public DataValueEnumerable<CategoryData> categories => m_CategoryData.SelectValue();
 
         #endregion
 
@@ -803,6 +813,11 @@ namespace UnityEditor.ShaderGraph
                 target.GetActiveBlocks(ref context);
             }
 
+            // custom blocks aren't going to exist in GetActiveBlocks, we need to ensure we grab those too.
+            foreach (var cibnode in currentBlocks.Where(bn => bn.isCustomBlock))
+            {
+                context.AddBlock(cibnode.descriptor);
+            }
             return context.activeBlocks;
         }
 
@@ -810,9 +825,14 @@ namespace UnityEditor.ShaderGraph
         {
             // Set Blocks as active based on supported Block list
             //Note: we never want unknown blocks to be active, so explicitly set them to inactive always
+            bool disableCI = activeTargets.All(at => at.ignoreCustomInterpolators);
             foreach (var vertexBlock in vertexContext.blocks)
             {
-                if (vertexBlock.value?.descriptor?.isUnknown == true)
+                if (vertexBlock.value?.isCustomBlock == true)
+                {
+                    vertexBlock.value.SetOverrideActiveState(disableCI ? AbstractMaterialNode.ActiveState.ExplicitInactive : AbstractMaterialNode.ActiveState.ExplicitActive);
+                }
+                else if (vertexBlock.value?.descriptor?.isUnknown == true)
                 {
                     vertexBlock.value.SetOverrideActiveState(AbstractMaterialNode.ActiveState.ExplicitInactive);
                 }
@@ -844,6 +864,9 @@ namespace UnityEditor.ShaderGraph
             {
                 for (int i = 0; i < contextData.blocks.Count; i++)
                 {
+                    if (contextData.blocks[i].value?.isCustomBlock == true) // custom interpolators are fine.
+                        continue;
+
                     var block = contextData.blocks[i];
                     if (!activeBlockDescriptors.Contains(block.value.descriptor))
                     {
@@ -920,7 +943,7 @@ namespace UnityEditor.ShaderGraph
 
         void RemoveNodeNoValidate(AbstractMaterialNode node)
         {
-            if (!m_NodeDictionary.ContainsKey(node.objectId) && node.isActive)
+            if (!m_NodeDictionary.ContainsKey(node.objectId) && node.isActive && !m_RemovedNodes.Contains(node))
             {
                 throw new InvalidOperationException("Cannot remove a node that doesn't exist.");
             }
@@ -1256,6 +1279,8 @@ namespace UnityEditor.ShaderGraph
                         m_Keywords.Add(keyword);
                     else
                         m_Keywords.Insert(index, keyword);
+
+                    OnKeywordChangedNoValidate();
 
                     break;
                 default:
@@ -1597,6 +1622,8 @@ namespace UnityEditor.ShaderGraph
                     m_ParentGroupChanges.Remove(groupChange);
                 }
             }
+
+            ValidateCustomBlockLimit();
         }
 
         public void AddValidationError(string id, string errorMessage,
@@ -2357,7 +2384,11 @@ namespace UnityEditor.ShaderGraph
                 {
                     // Update NonSerialized data on the BlockNode
                     var block = blocks[i];
-                    block.descriptor = m_BlockFieldDescriptors.FirstOrDefault(x => $"{x.tag}.{x.name}" == block.serializedDescriptor);
+                    // custom interpolators fully regenerate their own descriptor on deserialization
+                    if (!block.isCustomBlock)
+                    {
+                        block.descriptor = m_BlockFieldDescriptors.FirstOrDefault(x => $"{x.tag}.{x.name}" == block.serializedDescriptor);
+                    }
                     if (block.descriptor == null)
                     {
                         //Hit a descriptor that was not recognized from the assembly (likely from a different SRP)
@@ -2451,6 +2482,49 @@ namespace UnityEditor.ShaderGraph
         public void OnDisable()
         {
             ShaderGraphPreferences.onVariantLimitChanged -= OnKeywordChanged;
+        }
+
+        internal void ValidateCustomBlockLimit()
+        {
+            if (m_ActiveTargets.Count() == 0)
+                return;
+
+            int nonCustomUsage = 0;
+            foreach (var bnode in vertexContext.blocks.Where(jb => !jb.value.isCustomBlock).Select(b => b.value))
+            {
+                if (bnode == null || bnode.descriptor == null)
+                    continue;
+
+                if (bnode.descriptor.HasPreprocessor() || bnode.descriptor.HasSemantic() || bnode.descriptor.vectorCount == 0) // not packable.
+                    nonCustomUsage += 4;
+                else nonCustomUsage += bnode.descriptor.vectorCount;
+            }
+            int maxTargetUsage = m_ActiveTargets.Select(jt => jt.value.padCustomInterpolatorLimit).Max() * 4;
+
+            int padding = nonCustomUsage + maxTargetUsage;
+
+            // TODO: Add editor settings to select warning/error thresholds.
+            int d3dSupport    = 32 * 4 - padding;   // 32 is standard expected for modern systems and D3D.
+            int chromeSupport = 15 * 4 - padding;   // 15 is for chrome's implementation of WebGL.
+            // int lowSupport = 10 * 4 - padding;   // 10 is some other limitation Unity recognizes.
+            // int minSupport =  8 * 4 - padding;   // If interpolators are supported, 8 is the bare minimum we can expect.
+
+            int total = 0;
+
+            // warn based on the interpolator's location in the block list.
+            foreach (var cib in vertexContext.blocks.Where(jb => jb.value.isCustomBlock).Select(b => b.value))
+            {
+                ClearErrorsForNode(cib);
+                total += (int)cib.customWidth;
+                if (total > d3dSupport)
+                {
+                    AddValidationError(cib.objectId, $"{cib.customName} may exceed interpolation channel limitations on most platforms (such as Direct3D).");
+                }
+                else if (total > chromeSupport)
+                {
+                    AddValidationError(cib.objectId, $"{cib.customName} may exceed interpolation channel limitations on low-end platforms (such as Chrome's WebGL).", ShaderCompilerMessageSeverity.Warning);
+                }
+            }
         }
     }
 
