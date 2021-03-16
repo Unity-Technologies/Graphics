@@ -17,7 +17,7 @@ namespace UnityEditor.Rendering.HighDefinition
                 FoldoutOption.Indent,
                 CED.Group(
                     Drawer_Rendering_Antialiasing
-                ),
+                    ),
                 AntialiasingModeDrawer(
                     HDAdditionalCameraData.AntialiasingMode.SubpixelMorphologicalAntiAliasing,
                     Drawer_Rendering_Antialiasing_SMAA),

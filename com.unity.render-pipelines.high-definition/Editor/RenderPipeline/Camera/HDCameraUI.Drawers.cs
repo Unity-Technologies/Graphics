@@ -277,6 +277,7 @@ namespace UnityEditor.Rendering.HighDefinition
         {
             EditorGUILayout.PropertyField(p.xrRendering, Styles.xrRenderingContent);
         }
+
 #endif
 
 #if ENABLE_MULTIPLE_DISPLAYS
