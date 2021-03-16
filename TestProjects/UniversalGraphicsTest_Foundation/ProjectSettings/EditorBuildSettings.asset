@@ -60,6 +60,9 @@ EditorBuildSettings:
     path: Assets/Scenes/016_Lighting_Scene_Directional.unity
     guid: 54170d1ce2ca64699a0d82056387d56f
   - enabled: 1
+    path: Assets/Scenes/019_Lighting_Scene_PointLights.unity
+    guid: c44973f9bcb9e469ea540fc8b0f0324a
+  - enabled: 1
     path: Assets/Scenes/020_Lighting_BasicDirectional.unity
     guid: 212f11efb89a64145b37e753079f1b51
   - enabled: 1
@@ -87,6 +90,9 @@ EditorBuildSettings:
     path: Assets/Scenes/029_Particles_Deferred.unity
     guid: a21a65517ffcc4449abcc073835e2b4d
   - enabled: 1
+    path: Assets/Scenes/037_Particles_Standard.unity
+    guid: 67bc76c89479b264aa4a5c176433ec3a
+  - enabled: 1
     path: Assets/Scenes/039_Particles_Instanced.unity
     guid: 5fca56b2f8a46664e858cbb290338fc8
   - enabled: 1
@@ -102,11 +108,23 @@ EditorBuildSettings:
     path: Assets/Scenes/050_Shader_Graphs_deferred.unity
     guid: 96da3a5f3f80f534d81098bfe585331d
   - enabled: 1
+    path: Assets/Scenes/052_URPCallbacks.unity
+    guid: 58d22e8497ba91141b3ae7abd7b0bb41
+  - enabled: 1
+    path: Assets/Scenes/053_UnlitShader.unity
+    guid: a28e1d48e6e3c0e42a4050ab4e770bf8
+  - enabled: 1
     path: Assets/Scenes/054_Lighting_Attenuation.unity
     guid: 93a99004f07ca6f4dbbc9ccb319c7698
   - enabled: 1
     path: Assets/Scenes/105_TransparentReceiveShadows.unity
     guid: 6d72a4ab29e211149914e8a46ba9d1cf
+  - enabled: 1
+    path: Assets/Scenes/106_MRT_CameraClearFlag.unity
+    guid: 3959cb47829dbc04eb99168004b60d90
+  - enabled: 1
+    path: Assets/Scenes/107_DepthPrepass.unity
+    guid: 12bed04065c037743845d8a5970cb5d0
   - enabled: 1
     path: Assets/Scenes/108_MoveCamera.unity
     guid: 5365b5739a6ca3c40bd03dc1ee5cb3c6
@@ -147,8 +165,14 @@ EditorBuildSettings:
     path: Assets/Scenes/126_SampleDepth.unity
     guid: d66b74ae4e7264d62bdb2c4f56261030
   - enabled: 1
+    path: Assets/Scenes/126_RendererFeatureActive.unity
+    guid: 92276052d376244eb94e9548db46b27f
+  - enabled: 1
     path: Assets/Scenes/127_ClearRenderTexture.unity
     guid: ecb4f57b7a1788b4b85f618d4cbc6677
+  - enabled: 1
+    path: Assets/Scenes/128_TBN.unity
+    guid: 49aa042448a7b4260874ed632254cd4e
   - enabled: 1
     path: Assets/Scenes/129_CameraStack3DOnUI_deferred.unity
     guid: 810b97dd4e5e5204b9e6ed3d05c42498
@@ -167,31 +191,4 @@ EditorBuildSettings:
   - enabled: 1
     path: Assets/Scenes/132_DetailMapping.unity
     guid: 0ad4d46f32f2cc942b4592c2f4368b83
-  - enabled: 1
-    path: Assets/Scenes/019_Lighting_Scene_PointLights.unity
-    guid: c44973f9bcb9e469ea540fc8b0f0324a
-  - enabled: 1
-    path: Assets/Scenes/037_Particles_Standard.unity
-    guid: 67bc76c89479b264aa4a5c176433ec3a
-  - enabled: 1
-    path: Assets/Scenes/050_Shader_Graphs.unity
-    guid: 6e7a83866a1e446b3becf7972371c5d0
-  - enabled: 1
-    path: Assets/Scenes/052_LWCallbacks.unity
-    guid: 58d22e8497ba91141b3ae7abd7b0bb41
-  - enabled: 1
-    path: Assets/Scenes/053_UnlitShader.unity
-    guid: a28e1d48e6e3c0e42a4050ab4e770bf8
-  - enabled: 1
-    path: Assets/Scenes/106_MRT_CameraClearFlag.unity
-    guid: 3959cb47829dbc04eb99168004b60d90
-  - enabled: 1
-    path: Assets/Scenes/107_DepthPrepass.unity
-    guid: 12bed04065c037743845d8a5970cb5d0
-  - enabled: 1
-    path: Assets/Scenes/126_RendererFeatureActive.unity
-    guid: 92276052d376244eb94e9548db46b27f
-  - enabled: 1
-    path: Assets/Scenes/128_TBN.unity
-    guid: 49aa042448a7b4260874ed632254cd4e
   m_configObjects: {}

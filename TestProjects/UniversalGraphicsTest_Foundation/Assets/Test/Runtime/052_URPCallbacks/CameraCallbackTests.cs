@@ -16,8 +16,10 @@ public class CameraCallbackTests : ScriptableRendererFeature
 	static RenderTargetHandle afterAll;
 
     BlitPass m_BlitRenderPassesToScreen;
-    [SerializeField] Shader m_SamplingShader;
-    [SerializeField, HideInInspector] Material m_SamplingMaterial;
+    [SerializeField, HideInInspector] private Shader m_SamplingShader;
+    [SerializeField, HideInInspector] private Shader m_CopyShader;
+    Material m_SamplingMaterial;
+    Material m_CopyMaterial;
 
 	public CameraCallbackTests()
 	{
@@ -30,50 +32,57 @@ public class CameraCallbackTests : ScriptableRendererFeature
 		afterAll.Init("_AfterAll");
 	}
 
+    void CreateMaterials()
+    {
+        if (m_SamplingMaterial == null)
+            m_SamplingMaterial = CoreUtils.CreateEngineMaterial(m_SamplingShader);
+
+        if (m_CopyMaterial == null)
+            m_CopyMaterial = CoreUtils.CreateEngineMaterial(m_CopyShader);
+    }
+
     public override void Create()
     {
         UniversalRendererData data = null;
         if (UniversalRenderPipeline.asset.m_RendererDataList[0] != null)
 		    data = UniversalRenderPipeline.asset.m_RendererDataList[0] as UniversalRendererData;
 
-		if (data == null)
-			return;
-
-        if (data.shaders == null)
+        if (data?.shaders?.samplingPS == null)
             return;
+        m_SamplingShader = data?.shaders?.samplingPS;
 
-        if (data.shaders.samplingPS == null)
+        if (data.shaders?.blitPS == null)
             return;
+        m_CopyShader = data.shaders?.blitPS;
 
-        if (m_SamplingMaterial == null)
-            m_SamplingMaterial = CoreUtils.CreateEngineMaterial(m_SamplingShader);
+        CreateMaterials();
 	}
 
     public override void AddRenderPasses(ScriptableRenderer renderer, ref RenderingData renderingData)
     {
         Downsampling downSamplingMethod = UniversalRenderPipeline.asset.opaqueDownsampling;
 
+        CreateMaterials();
+
         var cameraColorTarget = renderer.cameraColorTarget;
         var clearRenderPass = new ClearColorPass(RenderPassEvent.BeforeRenderingOpaques, cameraColorTarget);
 
-
-
-        var copyBeforeOpaquePass = new CopyColorPass(RenderPassEvent.BeforeRenderingOpaques, m_SamplingMaterial);
+        var copyBeforeOpaquePass = new CopyColorPass(RenderPassEvent.BeforeRenderingOpaques, m_SamplingMaterial, m_CopyMaterial);
         copyBeforeOpaquePass.Setup(cameraColorTarget, beforeAll, downSamplingMethod);
 
-        var copyAfterOpaquePass = new CopyColorPass(RenderPassEvent.AfterRenderingOpaques, m_SamplingMaterial);
+        var copyAfterOpaquePass = new CopyColorPass(RenderPassEvent.AfterRenderingOpaques, m_SamplingMaterial, m_CopyMaterial);
         copyAfterOpaquePass.Setup(cameraColorTarget, afterOpaque, downSamplingMethod);
 
-        var copyAfterSkyboxPass = new CopyColorPass(RenderPassEvent.AfterRenderingSkybox, m_SamplingMaterial);
+        var copyAfterSkyboxPass = new CopyColorPass(RenderPassEvent.AfterRenderingSkybox, m_SamplingMaterial, m_CopyMaterial);
         copyAfterSkyboxPass.Setup(cameraColorTarget, afterSkybox, downSamplingMethod);
 
-        var copyAfterSkyboxPass2 = new CopyColorPass(RenderPassEvent.AfterRenderingSkybox, m_SamplingMaterial);
+        var copyAfterSkyboxPass2 = new CopyColorPass(RenderPassEvent.AfterRenderingSkybox, m_SamplingMaterial, m_CopyMaterial);
         copyAfterSkyboxPass2.Setup(cameraColorTarget, afterSkybox2, Downsampling._4xBox);
 
-        var copyAfterTransparents = new CopyColorPass(RenderPassEvent.AfterRenderingTransparents, m_SamplingMaterial);
+        var copyAfterTransparents = new CopyColorPass(RenderPassEvent.AfterRenderingTransparents, m_SamplingMaterial, m_CopyMaterial);
         copyAfterTransparents.Setup(cameraColorTarget, afterTransparent, downSamplingMethod);
 
-        var copyAfterEverything = new CopyColorPass(RenderPassEvent.AfterRenderingPostProcessing, m_SamplingMaterial);
+        var copyAfterEverything = new CopyColorPass(RenderPassEvent.AfterRenderingPostProcessing, m_SamplingMaterial, m_CopyMaterial);
         copyAfterEverything.Setup(afterPost.id, afterAll, downSamplingMethod);
 
         if (m_BlitRenderPassesToScreen == null)

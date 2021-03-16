@@ -225,7 +225,7 @@ MonoBehaviour:
   m_RequiresOpaqueTextureOption: 2
   m_CameraType: 0
   m_Cameras: []
-  m_RendererIndex: 6
+  m_RendererIndex: 3
   m_VolumeLayerMask:
     serializedVersion: 2
     m_Bits: 1
@@ -261,7 +261,7 @@ MonoBehaviour:
     AverageCorrectnessThreshold: 0.005
     IncorrectPixelsThreshold: 0.0000038146973
     UseHDR: 0
-    UseBackBuffer: 0
+    UseBackBuffer: 1
     ImageResolution: 0
     ActiveImageTests: 1
     ActivePixelTests: 7
