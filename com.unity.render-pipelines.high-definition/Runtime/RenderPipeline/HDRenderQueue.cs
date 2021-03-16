@@ -9,7 +9,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
     internal static class HDRenderQueue
     {
-        public const int k_TransparentPriorityQueueRange = 100;
+        const int k_TransparentPriorityQueueRange = 100;
 
         public enum Priority
         {

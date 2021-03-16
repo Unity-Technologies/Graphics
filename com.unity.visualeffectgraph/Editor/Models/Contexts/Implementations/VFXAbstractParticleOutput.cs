@@ -291,7 +291,7 @@ namespace UnityEditor.VFX
                     gpuMapper.AddExpression(VFXBuiltInExpression.FrameIndex, "currentFrameIndex", -1);
                 return gpuMapper;
             }
-            return base.GetExpressionMapper(target);
+            return new VFXExpressionMapper();
         }
 
         public class InputPropertiesGradientMapped
@@ -304,9 +304,6 @@ namespace UnityEditor.VFX
         {
             get
             {
-                foreach (var property in base.inputProperties)
-                    yield return property;
-
                 foreach (var property in PropertiesFromType(GetInputPropertiesTypeName()))
                     yield return property;
 
