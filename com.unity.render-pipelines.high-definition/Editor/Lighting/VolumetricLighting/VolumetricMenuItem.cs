@@ -6,7 +6,7 @@ namespace UnityEditor.Rendering.HighDefinition
 {
     class VolumetricMenuItems
     {
-        [MenuItem("GameObject/Local Volumetric Fog", priority = CoreUtils.Priorities.gameObjectMenuPriority + 2)]
+        [MenuItem("GameObject/Rendering/Local Volumetric Fog", priority = CoreUtils.Priorities.gameObjectMenuPriority + 2)]
         static void CreateLocalVolumetricFogGameObject(MenuCommand menuCommand)
         {
             var parent = menuCommand.context as GameObject;

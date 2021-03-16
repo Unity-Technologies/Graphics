@@ -71,8 +71,7 @@ From HDRP 12.0, various top level menus are now different. This is to make the t
   * **C# Custom Pass** is now at **Assets > Create > Rendering > HDRP C# Custom Pass**
   * **C# Post Process Volume** is now at **Assets > Create > Rendering > HDRP C# Post Process Volume**
 * **GameObject**
-  * **Density Volume** is now at **GameObject > Local Volumetric Fog**
-  * **Decal Projector** is now at **GameObject > Decal Projector**
+  * **Density Volume** is now at **GameObject > Rendering > Local Volumetric Fog**
   * **Sky and Fog Volume** is now at **GameObject > Volume > Sky and Fog Global Volume**
 
 ## Issues resolved
