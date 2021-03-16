@@ -122,7 +122,13 @@ void ApplyDebug(LightLoopContext context, PositionInputs posInput, BSDFData bsdf
                     DirectionalLightData light = _DirectionalLightDatas[_DirectionalShadowIndex];
 
 #if defined(SCREEN_SPACE_SHADOWS_ON) && !defined(_SURFACE_TYPE_TRANSPARENT)
-                    if ((light.screenSpaceShadowIndex & SCREEN_SPACE_SHADOW_INDEX_MASK) != INVALID_SCREEN_SPACE_SHADOW)
+                    // Two different options are possible here
+                    // - We have a ray trace shadow in which case we have no valid signal for a transmission and we need to fallback on the rasterized shadow
+                    // - We have a screen space shadow and it already contains the transmission shadow and we can use it straight away
+                    bool visibleLight = dot(bsdfData.normalWS, -light.forward) > 0.0;
+                    bool validScreenSpaceShadow = (light.screenSpaceShadowIndex & SCREEN_SPACE_SHADOW_INDEX_MASK) != INVALID_SCREEN_SPACE_SHADOW;
+                    bool rayTracedShadow = (light.screenSpaceShadowIndex & RAY_TRACED_SCREEN_SPACE_SHADOW_FLAG) != 0;
+                    if (validScreenSpaceShadow && ((rayTracedShadow && visibleLight) || !rayTracedShadow))
                     {
                         shadow = GetScreenSpaceColorShadow(posInput, light.screenSpaceShadowIndex).SHADOW_TYPE_SWIZZLE;
                     }
@@ -202,7 +208,13 @@ void LightLoop( float3 V, PositionInputs posInput, PreLightData preLightData, BS
             DirectionalLightData light = _DirectionalLightDatas[_DirectionalShadowIndex];
 
 #if defined(SCREEN_SPACE_SHADOWS_ON) && !defined(_SURFACE_TYPE_TRANSPARENT)
-            if ((light.screenSpaceShadowIndex & SCREEN_SPACE_SHADOW_INDEX_MASK) != INVALID_SCREEN_SPACE_SHADOW)
+            // Two different options are possible here
+            // - We have a ray trace shadow in which case we have no valid signal for a transmission and we need to fallback on the rasterized shadow
+            // - We have a screen space shadow and it already contains the transmission shadow and we can use it straight away
+            bool visibleLight = dot(bsdfData.normalWS, -light.forward) > 0.0;
+            bool validScreenSpaceShadow = (light.screenSpaceShadowIndex & SCREEN_SPACE_SHADOW_INDEX_MASK) != INVALID_SCREEN_SPACE_SHADOW;
+            bool rayTracedShadow = (light.screenSpaceShadowIndex & RAY_TRACED_SCREEN_SPACE_SHADOW_FLAG) != 0;
+            if (validScreenSpaceShadow && ((rayTracedShadow && visibleLight) || !rayTracedShadow))
             {
                 context.shadowValue = GetScreenSpaceColorShadow(posInput, light.screenSpaceShadowIndex).SHADOW_TYPE_SWIZZLE;
             }
