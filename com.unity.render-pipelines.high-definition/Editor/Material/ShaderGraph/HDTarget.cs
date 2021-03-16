@@ -877,6 +877,14 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             { RayTracingQualityNode.GetRayTracingQualityKeyword(), 0 },
         };
 
+        public static DefineCollection ForwardLit = new DefineCollection
+        {
+            { CoreKeywordDescriptors.SupportBlendModePreserveSpecularLighting, 1 },
+            { CoreKeywordDescriptors.HasLightloop, 1 },
+            { RayTracingQualityNode.GetRayTracingQualityKeyword(), 0 },
+            { CoreKeywordDescriptors.ShaderLit, 1 },
+        };
+
         public static DefineCollection ForwardUnlit = new DefineCollection
         {
             { RayTracingQualityNode.GetRayTracingQualityKeyword(), 0 },
@@ -986,8 +994,8 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
         {
             // Pregraph includes
             { CoreIncludes.kRaytracingMacros, IncludeLocation.Pregraph },
-            { CoreIncludes.kMaterial, IncludeLocation.Pregraph },
             { CoreIncludes.kShaderVariablesRaytracing, IncludeLocation.Pregraph },
+            { CoreIncludes.kMaterial, IncludeLocation.Pregraph },
             { CoreIncludes.kShaderVariablesRaytracingLightLoop, IncludeLocation.Pregraph },
         };
 
@@ -1188,6 +1196,15 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
         {
             displayName = "Surface Type Transparent",
             referenceName = "_SURFACE_TYPE_TRANSPARENT",
+            type = KeywordType.Boolean,
+            definition = KeywordDefinition.ShaderFeature,
+            scope = KeywordScope.Global,
+        };
+
+        public static KeywordDescriptor ShaderLit = new KeywordDescriptor()
+        {
+            displayName = "Lit shader",
+            referenceName = "SHADER_LIT",
             type = KeywordType.Boolean,
             definition = KeywordDefinition.ShaderFeature,
             scope = KeywordScope.Global,
