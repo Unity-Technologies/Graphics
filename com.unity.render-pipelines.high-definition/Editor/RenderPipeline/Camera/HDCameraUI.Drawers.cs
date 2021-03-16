@@ -72,19 +72,6 @@ namespace UnityEditor.Rendering.HighDefinition
             )
         );
 
-        public static readonly CED.IDrawer SectionEnvironmentSettings = CED.FoldoutGroup(
-            Styles.environmentSettingsHeaderContent,
-            Expandable.Environment,
-            k_ExpandedState,
-            FoldoutOption.Indent,
-            CED.Group(
-                Drawer_FieldClear,
-                Drawer_FieldVolumeLayerMask,
-                Drawer_FieldVolumeAnchorOverride,
-                (p, owner) => EditorGUILayout.PropertyField(p.probeLayerMask, Styles.probeLayerMaskContent)
-            )
-        );
-
         public static readonly CED.IDrawer SectionOutputSettings = CED.FoldoutGroup(
             Styles.outputSettingsHeaderContent,
             Expandable.Output,
@@ -118,19 +105,9 @@ namespace UnityEditor.Rendering.HighDefinition
             SectionProjectionSettings,
             SectionRenderingSettings,
             SectionFrameSettings,
-            SectionEnvironmentSettings,
+            Environment.Drawer,
             SectionOutputSettings,
         };
-
-        static void Drawer_FieldVolumeLayerMask(SerializedHDCamera p, Editor owner)
-        {
-            EditorGUILayout.PropertyField(p.volumeLayerMask, Styles.volumeLayerMaskContent);
-        }
-
-        static void Drawer_FieldVolumeAnchorOverride(SerializedHDCamera p, Editor owner)
-        {
-            EditorGUILayout.PropertyField(p.volumeAnchorOverride, Styles.volumeAnchorOverrideContent);
-        }
 
         static void Drawer_FieldCullingMask(SerializedHDCamera p, Editor owner)
         {
@@ -254,20 +231,6 @@ namespace UnityEditor.Rendering.HighDefinition
         static void Drawer_FieldDepth(SerializedHDCamera p, Editor owner)
         {
             EditorGUILayout.PropertyField(p.baseCameraSettings.depth, Styles.depthContent);
-        }
-
-        static void Drawer_FieldClear(SerializedHDCamera p, Editor owner)
-        {
-            EditorGUILayout.PropertyField(p.clearColorMode, Styles.clearModeContent);
-            if (p.clearColorMode.GetEnumValue<HDAdditionalCameraData.ClearColorMode>() == HDAdditionalCameraData.ClearColorMode.Color)
-            {
-                EditorGUI.indentLevel++;
-                EditorGUILayout.PropertyField(p.backgroundColorHDR, Styles.backgroundColorContent);
-                EditorGUI.indentLevel--;
-            }
-
-            if (p.clearDepth.boolValue == false)
-                p.clearDepth.boolValue = true;
         }
 
         static void Drawer_Antialiasing(SerializedHDCamera p, Editor owner)
