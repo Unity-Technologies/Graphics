@@ -15,7 +15,7 @@ public class CopyImageToReferenceFolders
         string referenceImagesPath = Path.Combine("Assets", "ReferenceImages", "Linear");
         string[] leafFolders = EnumerateLeafFolders(referenceImagesPath).ToArray<string>();
         int numOfLeafFolders = leafFolders.Length;
-        
+
         Object[] selectedObjects = Selection.objects;
         int numOfCopies = numOfLeafFolders * selectedObjects.Length;
 
@@ -75,5 +75,20 @@ public class CopyImageToReferenceFolders
                 yield return root;
             }
         }
+    }
+}
+
+public class SetReferenceImageSettings : AssetPostprocessor
+{
+    void OnPreprocessTexture()
+    {
+        string path = assetPath.ToLower();
+        if (path.IndexOf("/referenceimages/") == -1 && path.IndexOf("/actualimages/") == -1)
+            return;
+
+        TextureImporter textureImporter  = (TextureImporter)assetImporter;
+        textureImporter.textureCompression = TextureImporterCompression.Uncompressed;
+        textureImporter.npotScale = TextureImporterNPOTScale.None;
+        textureImporter.mipmapEnabled = false;
     }
 }
