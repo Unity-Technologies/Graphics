@@ -49,9 +49,8 @@ struct AccumData
 {
     float4 color;
     float alpha;
-    float coverage;
+    float destAlpha;
     float CoC;
-    float maxCoC;
 };
 
 struct DoFTile
@@ -113,11 +112,11 @@ void LoadTileData(float2 sampleTC, SampleData centerSample, inout DoFTile tileDa
     tileData.layerThreshold = 0;
     if (cocRanges.y != 0 && cocRanges.w == 0)
     {
-        tileData.layerThreshold = (cocRanges.x + cocRanges.y) / 2;
+        tileData.layerThreshold = (2 * cocRanges.x + cocRanges.y) / 3;
     }
     else if (cocRanges.w != 0 && cocRanges.y == 0)
     {
-        tileData.layerThreshold = (cocRanges.z + cocRanges.w) / 2;
+        tileData.layerThreshold = (cocRanges.z + 2 * cocRanges.w) / 3;
     }
 }
 
@@ -241,23 +240,17 @@ void AccumulateSample(SampleData sampleData, float weight, inout AccumData accum
 #ifdef ENABLE_ALPHA
     accumData.alpha += sampleData.color.w * weight;
 #endif
-    if (weight > 0)
-    {
-        accumData.maxCoC = max(accumData.maxCoC, abs(sampleData.CoC));
-    }
 }
 
 void AccumulateCenterSample(SampleData centerSample, inout AccumData accumData)
 {
     float centerAlpha = GetSampleWeight(centerSample.CoC);
-    //AccumulateSample(centerSample, centerAlpha, accumData.color, accumData.CoC, accumData.maxCoC, accumData.alpha);
 
     accumData.color.xyz = accumData.color.xyz * (1 - centerAlpha) + centerAlpha * centerSample.color.xyz;
     accumData.color.w = accumData.color.w * (1 - centerAlpha) + centerAlpha;
 #ifdef ENABLE_ALPHA
     accumData.alpha = accumData.alpha * (1 - centerAlpha) + centerAlpha * centerSample.color.w;
 #endif
-    accumData.maxCoC = max(accumData.maxCoC, centerSample.CoC);
 
 }
 
@@ -278,18 +271,8 @@ void AccumulateSampleData(SampleData sampleData[2], SampleData centerSample, flo
 #ifndef RING_OCCLUSION
             borderWeight = 0;
 #endif
-
-            if (isForeground)
-            {
-                AccumulateSample(sampleData[k], visibility * sampleWeight, ringAccum);
-                ringAccum.coverage += visibility;
-            }
-            else
-            {
-                AccumulateSample(sampleData[k], borderWeight * visibility * sampleWeight, accumData);
-                AccumulateSample(sampleData[k], (1.0 - borderWeight) * visibility * sampleWeight, ringAccum);
-                ringAccum.coverage += borderWeight;
-            }
+            AccumulateSample(sampleData[k], borderWeight * visibility * sampleWeight, accumData);
+            AccumulateSample(sampleData[k], (1.0 - borderWeight) * visibility * sampleWeight, ringAccum);
 
 #if 0
             // Disabled for now due to artifacts
@@ -318,15 +301,22 @@ void AccumulateRingData(float numSamples, const bool isForeground, AccumData rin
     float accumAvgCoC = accumData.color.w > 0 ? accumData.CoC * rcp(accumData.color.w) : 0;
 
     float ringOcclusion = saturate(accumAvgCoC - ringAvgCoC);
-    float ringOpacity = 1.0 - saturate(ringData.coverage * rcp(numSamples));
+    //float ringOpacity = 1.0 - saturate(ringData.coverage * rcp(numSamples));
+    float normCoC = ringData.CoC * rcp(ringData.color.w);
+    float ringOpacity = saturate(ringData.color.w * rcp(GetSampleWeight(normCoC)) * rcp(numSamples));
 
     if (isForeground)
     {
-        accumData.color += ringData.color;
-        accumData.alpha += ringData.alpha;
-        accumData.CoC += ringData.CoC;
-        accumData.coverage += ringData.coverage;
-        accumData.maxCoC = max(accumData.maxCoC, ringData.maxCoC);
+        // front-to-back blending
+        float alpha = 1.0;
+#ifdef  RING_OCCLUSION
+        alpha = accumData.destAlpha;
+#endif
+        accumData.color += alpha * ringData.color;
+        accumData.alpha += alpha * ringData.alpha;
+        accumData.CoC += alpha * ringData.CoC;
+
+        accumData.destAlpha *= saturate(1 - 2 * ringOpacity);
     }
     else
     {
@@ -338,7 +328,6 @@ void AccumulateRingData(float numSamples, const bool isForeground, AccumData rin
         accumData.color = accumData.color * (1.0 - alpha) + ringData.color;
         accumData.alpha = accumData.alpha * (1.0 - alpha) + ringData.alpha;
         accumData.CoC = accumData.CoC * (1.0 - alpha) + ringData.CoC;
-        //accumData.coverage = accumData.coverage * (1.0 - alpha) + ringData.coverage;
     }
 }
 
@@ -347,6 +336,9 @@ void DoFGatherRings(PositionInputs posInputs, DoFTile tileData, SampleData cente
     AccumData bgAccumData, fgAccumData;
     ZERO_INITIALIZE(AccumData, bgAccumData);
     ZERO_INITIALIZE(AccumData, fgAccumData);
+
+    // fg layer is using front-to-back accumulation (so it starts with a dest alpha of 1)
+    fgAccumData.destAlpha = 1;
 
     float dR = rcp((float)tileData.numSamples);
     int blueNoiseOffset = _TaaFrameInfo.w != 0.0 ? _TaaFrameInfo.z : 0;
