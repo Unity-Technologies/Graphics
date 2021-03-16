@@ -800,7 +800,7 @@ void VolumetricLighting(uint3 dispatchThreadId : SV_DispatchThreadID,
 
     JitteredRay ray;
     ray.centerDirWS = rayDirWS * rcpLenRayDir; // Normalize
-    ray.originWS    = GetCurrentViewPosition() + ray.centerDirWS * (g_fNearPlane / dot(ray.centerDirWS, F));
+    ray.originWS    = GetCurrentViewPosition() + ray.centerDirWS * (g_fNearPlane / dot(ray.centerDirWS, F)); // set ray origin to the near-plane
 
     float FdotD = dot(F, ray.centerDirWS);
     float unitDistFaceSize = _VBufferUnitDepthTexelSpacing * FdotD * rcpLenRayDir;
