@@ -1560,7 +1560,7 @@ namespace UnityEditor.ShaderGraph
                     categoryData.AddItemToCategory(itemToAdd);
                 }
                 // Also make sure to remove this items guid from an existing category if it exists within one
-                else if(categoryData.childObjectIDSet.Contains(itemToAdd.objectId))
+                else if(categoryData.IsItemInCategory(itemToAdd))
                 {
                     categoryData.RemoveItemFromCategory(itemToAdd);
                 }
