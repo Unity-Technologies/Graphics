@@ -31,6 +31,16 @@ namespace UnityEditor.VFX
         }
         public override bool supportsExcludeFromTAA { get { return !owner.isBlendModeOpaque; } }
 
+        public override bool supportsMaterialOffset
+        {
+            get
+            {
+                if (owner.isBlendModeOpaque)
+                    return false;
+                return true;
+            }
+        }
+
         protected override IEnumerable<string> filteredOutSettings
         {
             get

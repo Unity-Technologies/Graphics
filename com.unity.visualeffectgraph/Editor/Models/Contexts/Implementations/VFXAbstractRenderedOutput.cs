@@ -63,6 +63,18 @@ namespace UnityEditor.VFX
             return subOutput.GetFilteredOutEnumerators(name);
         }
 
+        protected override IEnumerable<string> filteredOutSettings
+        {
+            get
+            {
+                foreach (var setting in base.filteredOutSettings)
+                    yield return setting;
+
+                if (!subOutput.supportsMaterialOffset)
+                    yield return nameof(materialOffset);
+            }
+        }
+
         public VFXSRPSubOutput subOutput
         {
             get
