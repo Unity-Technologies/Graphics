@@ -645,7 +645,7 @@ namespace UnityEngine.Rendering.HighDefinition
                             data.debugViewTilesMaterial.DisableKeyword(!bUseClustered ? "USE_CLUSTERED_LIGHTLIST" : "USE_FPTL_LIGHTLIST");
                             data.debugViewTilesMaterial.EnableKeyword("SHOW_LIGHT_CATEGORIES");
                             data.debugViewTilesMaterial.DisableKeyword("SHOW_FEATURE_VARIANTS");
-                            if (!bUseClustered && hdCamera.msaaEnabled)
+                            if (!bUseClustered && data.hdCamera.msaaEnabled)
                                 data.debugViewTilesMaterial.EnableKeyword("DISABLE_TILE_MODE");
                             else
                                 data.debugViewTilesMaterial.DisableKeyword("DISABLE_TILE_MODE");
