@@ -95,7 +95,7 @@ namespace UnityEditor.Rendering
         /// </summary>
         /// <param name="material"></param>
         /// <param name="windQuality"></param>
-        public static void UpgradeSpeedTree8Material(Material material)
+        public static void SpeedTree8MaterialFinalizer(Material material)
         {
             if (material.HasProperty("_TwoSided") && material.HasProperty("_CullMode"))
                 material.SetFloat("_CullMode", material.GetFloat("_TwoSided"));

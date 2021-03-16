@@ -122,7 +122,7 @@ namespace UnityEditor.Rendering.HighDefinition
                 return;
 
             if (HDSpeedTree8MaterialUpgrader.IsHDSpeedTree8Material(material))
-                SpeedTree8MaterialUpgrader.UpgradeSpeedTree8Material(material);
+                SpeedTree8MaterialUpgrader.SpeedTree8MaterialFinalizer(material);
 
             HDShaderUtils.ResetMaterialKeywords(material);
         }

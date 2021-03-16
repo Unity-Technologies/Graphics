@@ -175,8 +175,8 @@ namespace UnityEditor.Rendering.Universal
                     wasUpgraded = true;
                 }
 
-                if (SpeedTree8Upgrader.IsUniversalSpeedTree8Shader(material))
-                    SpeedTree8MaterialUpgrader.UpgradeSpeedTree8Material(material);
+                if (SpeedTree8Upgrader.IsUniversalSpeedTree8Shader(material.shader.name))
+                    SpeedTree8MaterialUpgrader.SpeedTree8MaterialFinalizer(material);
 
                 if (wasUpgraded)
                 {
