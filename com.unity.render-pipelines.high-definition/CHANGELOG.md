@@ -104,6 +104,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed HDRPAsset loosing its reference to the ray tracing resources when clicking on a different quality level that doesn't have ray tracing (case 1320304).
 - Fixed SRP batcher not compatible with Decal (case 1311586).
 - Fixed error message when having MSAA and Screen Space Shadows (case 1318698).
+- Fixed Nans happening when the history render target is bigger than the current viewport (case 1321139).
 
 ### Changed
 - Changed Window/Render Pipeline/HD Render Pipeline Wizard to Window/Rendering/HDRP Wizard
