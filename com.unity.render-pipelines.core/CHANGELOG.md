@@ -136,6 +136,7 @@ The version number for this package has increased due to a version update of a r
 - Updated macros to be compatible with the new shader preprocessor.
 - Updated shaders to be compatible with Microsoft's DXC.
 - Changed CommandBufferPool.Get() to create an unnamed CommandBuffer. (No profiling markers)
+- Deprecating VolumeComponentDeprecad, using HideInInspector or Obsolete instead
 
 ## [7.1.1] - 2019-09-05
 
