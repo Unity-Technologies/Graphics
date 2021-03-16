@@ -101,7 +101,7 @@ namespace UnityEditor.Rendering.HighDefinition
                             {
                                 materialEditor.TexturePropertySingleLine(Styles.refractionThicknessMapText, thicknessMap[0]);
                                 // Display the remap of texture values.
-                                MinMaxShaderProperty(thicknessRemap[0], 0.0f, 1.0f, Styles.refractionThicknessRemappingText);
+                                materialEditor.MinMaxShaderProperty(thicknessRemap[0], 0.0f, 1.0f, Styles.refractionThicknessRemappingText);
                             }
                         }
 
