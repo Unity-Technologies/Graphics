@@ -97,7 +97,7 @@ namespace UnityEngine.Rendering
 
         bool m_ComputeBufferFilled;
 
-        public int probeCount { get => (m_ProbeLocations.Capacity / 3); }
+        public int probeCount { get => m_ProbeLocations != null ? (m_ProbeLocations.Capacity / 3) : 0; }
 
 
         public int hitProbesAxisCount;

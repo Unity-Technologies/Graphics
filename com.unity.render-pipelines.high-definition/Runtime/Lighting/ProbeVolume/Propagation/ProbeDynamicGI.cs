@@ -320,7 +320,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 var buffer = buffersToProcess[i];
 
                 var indices = chunkIndices[i];
-                if (buffer.finalExtraDataBuffer != null)
+                if (buffer.finalExtraDataBuffer != null && buffer.probeCount > 0)
                     LightPropagation(renderGraph, buffer, indices, hdCamera);
             }
         }
@@ -438,7 +438,8 @@ namespace UnityEngine.Rendering.HighDefinition
             {
                 var buffer = buffersToProcess[i];
                 var indices = chunkIndices[i];
-                CombineProbeVolumes(renderGraph, buffer, indices, hdCamera);
+                if (buffer.probeCount > 0)
+                    CombineProbeVolumes(renderGraph, buffer, indices, hdCamera);
             }
         }
     }

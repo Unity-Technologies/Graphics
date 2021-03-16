@@ -20,7 +20,7 @@ float4 _PVCombineParameters;
 
 #define ONLY_FIRST 1
 #define ONLY_SECOND 2
-#define DEBUG ONLY_SECOND
+#define DEBUG 0
 
 //#pragma enable_d3d11_debug_symbols
 
