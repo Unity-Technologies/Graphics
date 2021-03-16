@@ -18,6 +18,6 @@ To fix this issue, restart the Unity editor.
 
 If you installed the local config package with the wizard, it may have been placed in `ROOT/LocalPackages/com.unity.render-pipelines.high-definition-config` depending on the HDRP version used at that moment.
 
-In that case, you can move the local config package from `ROOT/LocalPackages/com.unity.render-pipelines.high-definition-config` to `ROOT/Packages/com.unity.render-pipelines.high-definition-config` and update your `Packages/manifest.json` files accordingly.
+In that case, you can move the local config package from `ROOT/LocalPackages/com.unity.render-pipelines.high-definition-config` to `ROOT/Packages/com.unity.render-pipelines.high-definition-config` to embed it in your project.
 
-Now the local config package files will be versionned.
+Now the embedded config package files will be versionned.
