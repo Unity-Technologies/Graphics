@@ -158,6 +158,7 @@ namespace UnityEngine
                 Handles.color = previousH;
             }
         }
+
 #endif
     }
 }
