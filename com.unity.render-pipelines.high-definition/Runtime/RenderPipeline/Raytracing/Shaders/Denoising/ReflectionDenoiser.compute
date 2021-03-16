@@ -107,7 +107,7 @@ void TEMPORAL_ACCUMULATION(uint3 dispatchThreadId : SV_DispatchThreadID, uint2 g
         bool canBeReprojected = true;
 
         // If the pixel was outside of the screen during the previous frame, invalidate the history
-        if (historyCoordinate.x >= _CurrentEffectResolution.x || historyCoordinate.x < 0 
+        if (historyCoordinate.x >= _CurrentEffectResolution.x || historyCoordinate.x < 0
             || historyCoordinate.y >= _CurrentEffectResolution.y || historyCoordinate.y < 0)
             canBeReprojected = false;
 
