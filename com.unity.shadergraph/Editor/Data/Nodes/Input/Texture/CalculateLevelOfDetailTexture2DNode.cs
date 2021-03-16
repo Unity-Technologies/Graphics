@@ -70,9 +70,11 @@ namespace UnityEditor.ShaderGraph
 
             sb.AppendLine("#if (SHADER_TARGET >= 41)");
             {
-                sb.AppendLine(string.Format("$precision {0} = CALCULATE_TEXTURE2D_LOD({1}.tex, {2}.samplerstate, {3});"
+                var func = m_Clamp ? "CalculateLevelOfDetail" : "CalculateLevelOfDetailUnclamped";
+                sb.AppendLine(string.Format("$precision {0} = {1}.tex.{2}({3}.samplerstate, {4});"
                     , GetVariableNameForSlot(OutputSlotLODId)
                     , id
+                    , func
                     , edgesSampler.Any() ? GetSlotValue(SamplerInput, generationMode) : id
                     , uvName));
             }
