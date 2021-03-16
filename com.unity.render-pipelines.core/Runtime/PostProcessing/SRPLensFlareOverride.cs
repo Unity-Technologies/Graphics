@@ -19,6 +19,7 @@ namespace UnityEngine
         /// <summary>
         /// Intensity
         /// </summary>
+        [Min(0.0f)]
         public float intensity = 1.0f;
         /// <summary>
         /// Distance used to scale the Distance Attenuation Curve
