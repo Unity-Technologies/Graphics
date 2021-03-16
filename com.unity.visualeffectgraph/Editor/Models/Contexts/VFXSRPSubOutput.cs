@@ -57,13 +57,9 @@ namespace UnityEditor.VFX
                     break;
                 case BlendMode.Opaque:
                     if (owner.hasAlphaClipping)
-                    {
                         baseRenderQueue = "AlphaTest";
-                    }
                     else
-                    {
                         baseRenderQueue = "Geometry";
-                    }
                     break;
                 default:
                     throw new NotImplementedException("Unknown blend mode");
