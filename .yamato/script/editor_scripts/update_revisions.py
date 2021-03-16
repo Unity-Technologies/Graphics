@@ -7,8 +7,8 @@ import os
 import re
 import subprocess
 import sys
-import yaml
 import datetime
+from ruamel.yaml import YAML
 
 from util.subprocess_helpers import run_cmd, git_cmd
 
@@ -24,6 +24,8 @@ DEFAULT_SHARED_FILE = os.path.join(os.path.abspath(git_cmd('rev-parse --show-top
 
 INVALID_VERSION_ERROR = 'Are you sure this is actually a valid unity version?'
 VERSION_PARSER_RE = re.compile(r'Grabbing unity release ([0-9\.a-z]+) which is revision')
+
+yaml = YAML()
 
 def generate_downloader_cmd(track, version, trunk_track, platform):
     """Generate a list of commmand arguments for the invovation of the unity-downloader-cli."""
@@ -164,15 +166,15 @@ def write_versions_file(file_path, header, versions):
 
         # Write editor_version_names list:
         editor_version_names = {'editor_version_names': list(versions.keys())}
-        yaml.dump(editor_version_names, output_file, indent=2)
+        yaml.dump(editor_version_names, output_file)
 
         # Write editor_versions dict:
         editor_version = {'editor_versions': versions}
-        yaml.dump(editor_version, output_file, indent=2)
+        yaml.dump(editor_version, output_file)
 
 def load_yml(filename):
     with open(filename) as yaml_file:
-        return yaml.safe_load(yaml_file)
+        return yaml.load(yaml_file)
 
 
 def parse_args(flags):
