@@ -5,6 +5,7 @@ Shader "Custom/Lit"
         _BaseMap ("Base Map", 2D) = "white" {}
         _BaseColor ("Base Color", Color) = (1,1,1,1)
         _Metallic ("Metallic", Range(0,1)) = 0.0
+        _MetallicGlossMap("Metallic", 2D) = "white" {}
         _Smoothness ("Smoothness", Range(0,1)) = 0.5
     }
     SubShader
@@ -20,6 +21,7 @@ Shader "Custom/Lit"
         #pragma target 3.0
 
         sampler2D _BaseMap;
+        sampler2D _MetallicGlossMap;
 
         struct Input
         {
@@ -43,7 +45,8 @@ Shader "Custom/Lit"
             fixed4 c = tex2D (_BaseMap, IN.uv_BaseMap) * _BaseColor;
             o.Albedo = c.rgb;
             // Metallic and smoothness come from slider variables
-            o.Metallic = _Metallic;
+            float metallic = tex2D(_MetallicGlossMap, IN.uv_BaseMap).r * _Metallic;
+            o.Metallic = metallic;
             o.Smoothness = _Smoothness;
             o.Alpha = c.a;
         }
