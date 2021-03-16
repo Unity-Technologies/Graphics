@@ -1,13 +1,13 @@
 ## Local Volumetric Fog
 
-You may want to have fog effects in your Scene that global fog can not produce by itself. In these cases you can use local fog. To add localized fog, use a Local Volumetric Fog. A Local Volumetric Fog is a an additive Volume of fog represented as an oriented bounding box. By default, fog is constant (homogeneous), but you can alter it by assigning a Density Mask 3D texture to the __Texture__ field under the __Density Mask Texture__ section. Currently, HDRP supports 3D textures at a resolution of 32x32x32.
+You may want to have fog effects in your Scene that global fog can not produce by itself. In these cases you can use local fog. To add localized fog, use a Local Volumetric Fog component. Local Volumetric Fog is a an additive Volume of fog represented as an oriented bounding box. By default, fog is constant (homogeneous), but you can alter it by assigning a Density Mask 3D texture to the __Texture__ field under the __Density Mask Texture__ section. Currently, HDRP supports 3D textures at a resolution of 32x32x32.
 
 HDRP voxelizes Local Volumetric Fog to enhance performance. This results in two limitations:
 
-- Local Volumetric Fog does not support volumetric shadowing. If you place a Local Volumetric Fog between a Light and a surface, the Volume does not decrease the intensity of light that reaches the surface.
+- Local Volumetric Fog does not support volumetric shadowing. If you place Local Volumetric Fog between a Light and a surface, the Volume does not decrease the intensity of light that reaches the surface.
 - Local Volumetric Fog is voxelized at a very coarse rate, with typically only 64 or 128 slices along the camera's focal axis. This can cause noticeable aliasing at the boundary of the Volume. You can hide the aliasing by using Local Volumetric Fog in conjunction with some global fog, if possible. You can also use a Density Mask and a non-zero Blend Distance to decrease the hardness of the edge.
 
-To create a Local Volumetric Fog, right click in the Hierarchy and select __Volume > Local Volumetric Fog__. Alternatively, you can use the menu bar at the top of the screen and navigate to __GameObject > Volume > Local Volumetric Fog__.
+To create Local Volumetric Fog, right click in the Hierarchy and select __Volume > Local Volumetric Fog__. Alternatively, you can use the menu bar at the top of the screen and navigate to __GameObject > Volume > Local Volumetric Fog__.
 
 
 # Properties
@@ -26,8 +26,8 @@ To create a Local Volumetric Fog, right click in the Hierarchy and select __Volu
 | **Falloff Mode**             | Controls the falloff function applied to the blending of **Blend Distance**. By default the falloff is linear but you can change it to exponential for a more realistic look. |
 | **Invert Blend**             | Reverses the direction of the fade. Setting the Blend Distances on each axis to its maximum possible value preserves the fog at the center of the Volume and fades the edges. Inverting the blend fades the center and preserves the edges instead. |
 | **Distance Fade Start**      | Distance from the camera at which the Local Volumetric Fog starts to fade out. This is useful when optimizing a scene with a lot of Local Volumetric Fog and making the more distant ones disappear|
-| **Distance Fade End**        | Distance from the camera at which the Local Volumetric Fog has completely fade out. This is useful when optimizing a scene with a lot of Local Volumetric Fog and making the more distant ones disappear|
-| **Density Mask Texture**     | Specifies a 3D texture mapped to the interior of the Volume. The Local Volumetric Fog only uses the RGB channels of the texture for the fog color and A for the fog density multiplier. A value of 0 in the Texture alpha channel results in a Volume of 0 density, and the value of 1 results in the original constant (homogeneous) volume. |
+| **Distance Fade End**        | Distance from the camera at which the Local Volumetric Fog has completely faded out. This is useful when optimizing a scene with a lot of Local Volumetric Fog and making the more distant ones disappear|
+| **Density Mask Texture**     | Specifies a 3D texture mapped to the interior of the Volume. Local Volumetric Fog only uses the RGB channels of the texture for the fog color and A for the fog density multiplier. A value of 0 in the Texture alpha channel results in a Volume of 0 density, and the value of 1 results in the original constant (homogeneous) volume. |
 | **Scroll Speed**             | Specifies the speed (per-axis) at which the Local Volumetric Fog scrolls the texture. If you set every axis to 0, the Local Volumetric Fog does not scroll the texture and the fog is static. |
 | **Tiling**                   | Specifies the per-axis tiling rate of the texture. For example, setting the x-axis component to 2 means that the texture repeats 2 times on the x-axis within the interior of the volume. |
 
