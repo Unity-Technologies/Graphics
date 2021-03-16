@@ -211,14 +211,14 @@ MonoBehaviour:
     PerPixelCorrectnessThreshold: 0.005
     PerPixelGammaThreshold: 0.003921569
     PerPixelAlphaThreshold: 0.003921569
-    AverageCorrectnessThreshold: 0.001
+    AverageCorrectnessThreshold: 0.004
     IncorrectPixelsThreshold: 0.0000038146973
     UseHDR: 0
     UseBackBuffer: 0
     ImageResolution: 0
     ActiveImageTests: 1
     ActivePixelTests: 7
-  WaitFrames: 2
+  WaitFrames: 10
   XRCompatible: 1
 --- !u!114 &1102861100
 MonoBehaviour:
