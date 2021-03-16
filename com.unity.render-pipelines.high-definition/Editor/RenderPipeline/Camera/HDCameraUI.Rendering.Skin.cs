@@ -17,14 +17,6 @@ namespace UnityEditor.Rendering.HighDefinition
                 public static readonly GUIContent cullingMask = EditorGUIUtility.TrTextContent("Culling Mask");
                 public static readonly GUIContent occlusionCulling = EditorGUIUtility.TrTextContent("Occlusion Culling");
 
-                public static readonly GUIContent[] antialiasingModeNames =
-                {
-                    EditorGUIUtility.TrTextContent("No Anti-aliasing"),
-                    EditorGUIUtility.TrTextContent("Fast Approximate Anti-aliasing (FXAA)"),
-                    EditorGUIUtility.TrTextContent("Temporal Anti-aliasing (TAA)"),
-                    EditorGUIUtility.TrTextContent("Subpixel Morphological Anti-aliasing (SMAA)")
-                };
-
                 public static readonly GUIContent SMAAQualityPresetContent = EditorGUIUtility.TrTextContent("Quality Preset", "The quality preset for SMAA, low has the best performance but worst quality, High has the highest quality but worst performance.");
 
                 public static readonly GUIContent TAASharpen = EditorGUIUtility.TrTextContent("Sharpen Strength", "The intensity of the sharpen filter used to counterbalance the blur introduced by TAA. A high value might create artifacts such as dark lines depending on the frame content.");

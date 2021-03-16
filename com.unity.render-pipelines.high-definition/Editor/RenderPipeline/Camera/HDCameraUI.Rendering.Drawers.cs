@@ -41,7 +41,7 @@ namespace UnityEditor.Rendering.HighDefinition
                 EditorGUI.BeginProperty(antiAliasingRect, Styles.antialiasing, p.antialiasing);
                 {
                     EditorGUI.BeginChangeCheck();
-                    int selectedValue = EditorGUI.Popup(antiAliasingRect, Styles.antialiasing, p.antialiasing.intValue, Styles.antialiasingModeNames);
+                    int selectedValue = (int)(HDAdditionalCameraData.AntialiasingMode)EditorGUI.EnumPopup(antiAliasingRect, Styles.antialiasing, (HDAdditionalCameraData.AntialiasingMode)p.antialiasing.intValue);
                     if (EditorGUI.EndChangeCheck())
                         p.antialiasing.intValue = selectedValue;
                 }
