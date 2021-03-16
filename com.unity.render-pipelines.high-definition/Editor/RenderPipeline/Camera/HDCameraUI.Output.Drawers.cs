@@ -18,7 +18,7 @@ namespace UnityEditor.Rendering.HighDefinition
                 FoldoutOption.Indent,
                 CED.Group(
 #if ENABLE_VR && ENABLE_XR_MANAGEMENT
-                Drawer_SectionXRRendering,
+                    Drawer_SectionXRRendering,
 #endif
 #if ENABLE_MULTIPLE_DISPLAYS
                     Drawer_Output_MultiDisplay,
@@ -73,6 +73,7 @@ namespace UnityEditor.Rendering.HighDefinition
             {
                 EditorGUILayout.PropertyField(p.xrRendering, Styles.xrRenderingContent);
             }
+
 #endif
 
 #if ENABLE_MULTIPLE_DISPLAYS
@@ -107,6 +108,7 @@ namespace UnityEditor.Rendering.HighDefinition
             {
                 return (bool)k_ModuleManager_ShouldShowMultiDisplayOption.Invoke(null, null);
             }
+
 #endif
         }
     }
