@@ -413,10 +413,10 @@ namespace UnityEditor.Rendering.HighDefinition
             else
             {
                 if (hasMetallic)
-                    MinMaxShaderProperty(metallicRemapMin[m_LayerIndex], metallicRemapMax[m_LayerIndex], 0.0f, 1.0f, Styles.metallicRemappingText);
+                    materialEditor.MinMaxShaderProperty(metallicRemapMin[m_LayerIndex], metallicRemapMax[m_LayerIndex], 0.0f, 1.0f, Styles.metallicRemappingText);
 
-                MinMaxShaderProperty(smoothnessRemapMin[m_LayerIndex], smoothnessRemapMax[m_LayerIndex], 0.0f, 1.0f, Styles.smoothnessRemappingText);
-                MinMaxShaderProperty(aoRemapMin[m_LayerIndex], aoRemapMax[m_LayerIndex], 0.0f, 1.0f, Styles.aoRemappingText);
+                materialEditor.MinMaxShaderProperty(smoothnessRemapMin[m_LayerIndex], smoothnessRemapMax[m_LayerIndex], 0.0f, 1.0f, Styles.smoothnessRemappingText);
+                materialEditor.MinMaxShaderProperty(aoRemapMin[m_LayerIndex], aoRemapMax[m_LayerIndex], 0.0f, 1.0f, Styles.aoRemappingText);
             }
 
             materialEditor.TexturePropertySingleLine((materials.All(m => m.GetMaterialId() == MaterialId.LitSpecular)) ? Styles.maskMapSpecularText : Styles.maskMapSText, maskMap[m_LayerIndex]);
@@ -590,7 +590,7 @@ namespace UnityEditor.Rendering.HighDefinition
                 {
                     materialEditor.TexturePropertySingleLine(Styles.thicknessMapText, thicknessMap[m_LayerIndex]);
                     // Display the remap of texture values.
-                    MinMaxShaderProperty(thicknessRemap[m_LayerIndex], 0.0f, 1.0f, Styles.thicknessRemapText);
+                    materialEditor.MinMaxShaderProperty(thicknessRemap[m_LayerIndex], 0.0f, 1.0f, Styles.thicknessRemapText);
                 }
                 else
                 {
@@ -630,7 +630,7 @@ namespace UnityEditor.Rendering.HighDefinition
             {
                 materialEditor.TexturePropertySingleLine(Styles.iridescenceThicknessMapText, iridescenceThicknessMap);
                 // Display the remap of texture values.
-                MinMaxShaderProperty(iridescenceThicknessRemap, 0.0f, 1.0f, Styles.iridescenceThicknessRemapText);
+                materialEditor.MinMaxShaderProperty(iridescenceThicknessRemap, 0.0f, 1.0f, Styles.iridescenceThicknessRemapText);
             }
             else
             {
@@ -646,7 +646,7 @@ namespace UnityEditor.Rendering.HighDefinition
 
         void DrawLayerOptionsGUI()
         {
-            IntSliderShaderProperty(layerCount, 2, 4, Styles.layerCountText);
+            materialEditor.IntSliderShaderProperty(layerCount, 2, 4, Styles.layerCountText);
 
             materialEditor.TexturePropertySingleLine(Styles.layerMapMaskText, layerMaskMap);
 

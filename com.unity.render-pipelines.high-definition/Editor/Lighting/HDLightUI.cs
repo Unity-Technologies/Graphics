@@ -223,6 +223,9 @@ namespace UnityEditor.Rendering.HighDefinition
                     case AreaLightShape.Disc:
                         if (!serialized.settings.isCompletelyBaked)
                             EditorGUILayout.HelpBox("Disc Area Lights are baked only.", MessageType.Error);
+                        // Disc lights are not supported in Enlighten
+                        if (!Lightmapping.bakedGI && Lightmapping.realtimeGI)
+                            EditorGUILayout.HelpBox("Disc Area Lights are not supported with realtime GI.", MessageType.Error);
                         break;
                 }
             }
