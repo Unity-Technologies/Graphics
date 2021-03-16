@@ -255,6 +255,16 @@ namespace UnityEngine.Rendering
                     {
                         var asset = refVol2Asset[refVol];
                         asset.cells.Add(cell);
+
+                        foreach (var p in cell.probePositions)
+                        {
+                            float x = Mathf.Abs((float)p.x + refVol.transform.position.x);
+                            float y = Mathf.Abs((float)p.y + refVol.transform.position.y);
+                            float z = Mathf.Abs((float)p.z + refVol.transform.position.z);
+                            asset.maxCellIndex.x = Mathf.Max(asset.maxCellIndex.x, (int)(x * 2));
+                            asset.maxCellIndex.y = Mathf.Max(asset.maxCellIndex.y, (int)(y * 2));
+                            asset.maxCellIndex.z = Mathf.Max(asset.maxCellIndex.z, (int)(z * 2));
+                        }
                     }
                 }
             }
