@@ -2705,7 +2705,7 @@
     "m_Guid": {
         "m_GuidSerialized": "5f67ccdb-b506-4d03-8493-1fe1f5db480a"
     },
-    "m_Name": "Color Texture",
+    "m_Name": "Base Map",
     "m_DefaultRefNameVersion": 0,
     "m_RefNameGeneratedByDisplayName": "",
     "m_DefaultReferenceName": "",
@@ -10917,7 +10917,7 @@
     "m_Type": "UnityEditor.ShaderGraph.Texture2DMaterialSlot",
     "m_ObjectId": "f544c9b87a3376848ee3a2ca74484edf",
     "m_Id": 0,
-    "m_DisplayName": "Color Texture",
+    "m_DisplayName": "Base Map",
     "m_SlotType": 1,
     "m_Hidden": false,
     "m_ShaderOutputName": "Out",
