@@ -9,6 +9,27 @@ namespace UnityEditor.Rendering
 	/// </summary>
 	public class SpeedTree8MaterialUpgrader : MaterialUpgrader
     {
+        private enum WindQuality
+        {
+            None = 0,
+            Fastest,
+            Fast,
+            Better,
+            Best,
+            Palm,
+            Count
+        }
+
+        private static string[] WindQualityString =
+        {
+            "_WINDQUALITY_NONE",
+            "_WINDQUALITY_FASTEST",
+            "_WINDQUALITY_FAST",
+            "_WINDQUALITY_BETTER",
+            "_WINDQUALITY_BEST",
+            "_WINDQUALITY_PALM"
+        };
+
         /// <summary>
         /// Creates a material upgrader with only the renames in common between HD and Universal.
         /// </summary>
@@ -55,10 +76,105 @@ namespace UnityEditor.Rendering
                     foreach (Material m in r.sharedMaterials)
                     {
                         ImportNewSpeedTree8Material(m, wq, isBillboard);
-                        finalizer(m);
+                        if (finalizer != null)
+                            finalizer(m);
                     }
                 }
             }
+        }
+
+        /// <summary>
+        /// Preserve wind quality and billboard setting when upgrading a ST8 material from previous versions.
+        /// Wind priority order is enabled keyword > _WindQuality float value.
+        /// Should work for upgrading versions within a pipeline and from standard to current pipeline.
+        /// </summary>
+        /// <param name="material">SpeedTree8 material to upgrade.</param>
+        public static void SpeedTree8MaterialFinalizer(Material material)
+        {
+            if (material.HasProperty("_TwoSided") && material.HasProperty("_CullMode"))
+                material.SetFloat("_CullMode", material.GetFloat("_TwoSided"));
+
+            if (material.IsKeywordEnabled("EFFECT_EXTRA_TEX"))
+                material.SetFloat("EFFECT_EXTRA_TEX", 1.0f);
+
+            bool isBillboard = material.IsKeywordEnabled("EFFECT_BILLBOARD");
+            if (material.HasProperty("EFFECT_BILLBOARD"))
+                material.SetFloat("EFFECT_BILLBOARD", isBillboard ? 1.0f : 0.0f);
+
+            UpgradeWindQuality(material);
+        }
+
+        private static void UpgradeWindQuality(Material material, int windQuality = -1)
+        {
+            int wq = GetWindQuality(material, windQuality);
+            SetWindQuality(material, wq);
+        }
+
+        private static int GetWindQuality(Material material, int windQuality = -1)
+        {
+            // Conservative wind quality priority:
+            // input WindQuality > enabled keyword > _WindQuality float value
+            if (!WindIntValid(windQuality))
+            {
+                windQuality = GetWindQualityFromKeywords(material.shaderKeywords);
+                if (!WindIntValid(windQuality))
+                {
+                    windQuality = material.HasProperty("_WindQuality") ? (int)material.GetFloat("_WindQuality") : 0;
+
+                    if (!WindIntValid(windQuality))
+                        windQuality = 0;
+                }
+            }
+            return windQuality;
+        }
+
+        private static void ClearWindKeywords(Material material)
+        {
+            if (material == null)
+                return;
+            for (int i = 0; i < (int)WindQuality.Count; i++)
+            {
+                material.DisableKeyword(WindQualityString[i]);
+            }
+        }
+
+        private static void SetWindQuality(Material material, int windQuality)
+        {
+            Debug.Assert(WindIntValid(windQuality), "Attempting to set invalid wind quality on material " + material.name);
+
+            if (material == null)
+                return;
+
+            if (windQuality != GetWindQualityFromKeywords(material.shaderKeywords))
+            {
+                ClearWindKeywords(material);
+            }
+
+            material.EnableKeyword(WindQualityString[windQuality]);
+            material.SetFloat("_WindQuality", windQuality); // A legacy float used in native code to apply wind data
+            if (material.HasProperty("_WINDQUALITY"))
+                material.SetFloat("_WINDQUALITY", windQuality); // The actual name of the keyword enum for the shadergraph
+        }
+
+        private static int GetWindQualityFromKeywords(string[] matKws)
+        {
+            foreach (string kw in matKws)
+            {
+                if (kw.StartsWith("_WINDQUALITY_"))
+                {
+                    for (int i = 0; i < (int)WindQuality.Count; i++)
+                    {
+                        if (kw.EndsWith(WindQualityString[i]))
+                            return i;
+                    }
+                }
+            }
+            return -1;
+        }
+
+        private static bool WindIntValid(int windInt)
+        {
+            return ((int)WindQuality.None <= windInt) && (windInt < (int)WindQuality.Count);
         }
     }
 }
