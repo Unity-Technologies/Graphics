@@ -28,17 +28,31 @@ namespace UnityEngine.Rendering.Universal
             m_CameraColor.Init("_CameraColor");
             m_CameraDepth.Init("_CameraDepth");
 
-            m_ColorToMrtMaterial = CoreUtils.CreateEngineMaterial(data.shaders.colorToMrtPS);
-            m_ColorsToMrtsPass = new OutputColorsToMRTsRenderPass(m_ColorToMrtMaterial);
+            if (data.shaders.colorToMrtPS)
+            {
+                m_ColorToMrtMaterial = CoreUtils.CreateEngineMaterial(data.shaders.colorToMrtPS);
+                m_ColorsToMrtsPass = new OutputColorsToMRTsRenderPass(m_ColorToMrtMaterial);
+            }
+            else
+            {
+                Debug.LogError($"Shader {nameof(data.shaders.colorToMrtPS)} missing from {GetType().Name}");
+            }
 
             m_ColorToMrtOutputs = new RenderTargetHandle[2];
             m_ColorToMrtOutputs[0].Init("_ColorToMrtOutput0");
             m_ColorToMrtOutputs[1].Init("_ColorToMrtOutput1");
 
-            m_CopyToViewportMaterial = CoreUtils.CreateEngineMaterial(data.shaders.copyToViewportPS);
-            m_CopyToViewportPasses = new CopyToViewportRenderPass[2];
-            m_CopyToViewportPasses[0] = new CopyToViewportRenderPass(m_CopyToViewportMaterial);
-            m_CopyToViewportPasses[1] = new CopyToViewportRenderPass(m_CopyToViewportMaterial);
+            if (data.shaders.copyToViewportPS)
+            {
+                m_CopyToViewportMaterial = CoreUtils.CreateEngineMaterial(data.shaders.copyToViewportPS);
+                m_CopyToViewportPasses = new CopyToViewportRenderPass[2];
+                m_CopyToViewportPasses[0] = new CopyToViewportRenderPass(m_CopyToViewportMaterial);
+                m_CopyToViewportPasses[1] = new CopyToViewportRenderPass(m_CopyToViewportMaterial);
+            }
+            else
+            {
+                Debug.LogError($"Shader {nameof(data.shaders.copyToViewportPS)} missing from {GetType().Name}");
+            }
 
             m_BlitMaterial = CoreUtils.CreateEngineMaterial(data.shaders.blitPS);
             m_FinalBlitPass = new FinalBlitPass(RenderPassEvent.AfterRendering, m_BlitMaterial);

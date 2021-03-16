@@ -41,6 +41,7 @@ namespace UnityEngine.Rendering.Universal
 
             cmd.GetTemporaryRT(m_CameraColor.id, 1280, 720);
             cmd.GetTemporaryRT(m_CameraDepth.id, 1280, 720, 16);
+            cmd.SetGlobalTexture("_CameraDepthTexture", m_CameraDepth.id);
 
             context.ExecuteCommandBuffer(cmd);
             CommandBufferPool.Release(cmd);

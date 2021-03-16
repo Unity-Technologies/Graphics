@@ -13,7 +13,8 @@ MonoBehaviour:
   m_Name: Test105RendererDataAsset
   m_EditorClassIdentifier: 
   m_RendererFeatures: []
+  m_RendererFeatureMap: 
   shaders:
-    splitColorPS: {fileID: 4800000, guid: 19eba126951878a4caf1e3fbecdaa299, type: 3}
-    samplingPS: {fileID: 4800000, guid: 04c410c9937594faa893a11dceb85f7e, type: 3}
+    colorToMrtPS: {fileID: 4800000, guid: 19eba126951878a4caf1e3fbecdaa299, type: 3}
+    copyToViewportPS: {fileID: 4800000, guid: 925f44dcbd09f441facd3988c13ea4fe, type: 3}
     blitPS: {fileID: 4800000, guid: c17132b1f77d20942aa75f8429c0f8bc, type: 3}

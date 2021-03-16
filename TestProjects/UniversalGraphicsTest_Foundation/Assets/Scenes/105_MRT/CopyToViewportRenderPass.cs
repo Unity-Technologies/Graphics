@@ -36,6 +36,8 @@ internal class CopyToViewportRenderPass : ScriptableRenderPass
 
     public override void Execute(ScriptableRenderContext context, ref RenderingData renderingData)
     {
+        if (!m_CopyToViewportMaterial)
+            return;
         CommandBuffer cmd = CommandBufferPool.Get(m_ProfilerTag);
 
         cmd.SetRenderTarget(m_Destination.Identifier());
