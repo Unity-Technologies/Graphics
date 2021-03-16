@@ -169,26 +169,6 @@ Transform:
   m_Father: {fileID: 0}
   m_RootOrder: 1
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!1 &479063942 stripped
-GameObject:
-  m_CorrespondingSourceObject: {fileID: 1102861099, guid: 144d97346f1c24d4ebabd0eec382b95d,
-    type: 3}
-  m_PrefabInstance: {fileID: 2105869045282227417}
-  m_PrefabAsset: {fileID: 0}
---- !u!114 &479063947
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 479063942}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 2383b56288cd7514d91dcd5567c45ccf, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  defaultPipeline: {fileID: 11400000, guid: e6987eea1dd29074597d54ed91a54a26, type: 2}
-  thisTestPipeline: {fileID: 11400000, guid: d5978b946e0c949329b7ffe46e185396, type: 2}
 --- !u!1001 &2105869045282227417
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -298,53 +278,5 @@ PrefabInstance:
       propertyPath: m_IsActive
       value: 1
       objectReference: {fileID: 0}
-    m_RemovedComponents:
-    - {fileID: 1102861101, guid: 144d97346f1c24d4ebabd0eec382b95d, type: 3}
+    m_RemovedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: 144d97346f1c24d4ebabd0eec382b95d, type: 3}
---- !u!1 &2105869045282227418 stripped
-GameObject:
-  m_CorrespondingSourceObject: {fileID: 602204259, guid: 144d97346f1c24d4ebabd0eec382b95d,
-    type: 3}
-  m_PrefabInstance: {fileID: 2105869045282227417}
-  m_PrefabAsset: {fileID: 0}
---- !u!114 &2105869045282227419
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 2105869045282227418}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 2383b56288cd7514d91dcd5567c45ccf, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  defaultPipeline: {fileID: 11400000, guid: e6987eea1dd29074597d54ed91a54a26, type: 2}
-  thisTestPipeline: {fileID: 11400000, guid: 535fc99e4d3194e50b539410bcace814, type: 2}
---- !u!114 &2105869045282227420
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 2105869045282227418}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 73231aa468d81ea49bc3d914080de185, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  ImageComparisonSettings:
-    TargetWidth: 960
-    TargetHeight: 540
-    PerPixelCorrectnessThreshold: 0.005
-    PerPixelGammaThreshold: 0.003921569
-    PerPixelAlphaThreshold: 0.003921569
-    AverageCorrectnessThreshold: 0.0015
-    IncorrectPixelsThreshold: 0.0000038146973
-    UseHDR: 0
-    UseBackBuffer: 1
-    ImageResolution: 0
-    ActiveImageTests: 1
-    ActivePixelTests: 7
-  WaitFrames: 2
-  XRCompatible: 1
