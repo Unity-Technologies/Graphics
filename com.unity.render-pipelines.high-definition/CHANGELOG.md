@@ -95,6 +95,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed issue in path tracing, where objects would cast shadows even if not present in the path traced layers (case 1318857).
 - Fixed SRP batcher not compatible with Decal (case 1311586)
 - Fixed grey screen on playstation platform when histogram exposure is enabled but the curve mapping is not used.
+- Fixed warning fixed on ShadowLoop include (HDRISky and Unlit+ShadowMatte)
 
 ### Changed
 - Changed Window/Render Pipeline/HD Render Pipeline Wizard to Window/Rendering/HDRP Wizard

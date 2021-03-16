@@ -27,6 +27,8 @@ void ShadowLoopMin(HDShadowContext shadowContext, PositionInputs posInput, float
     // First of all we compute the shadow value of the directional light to reduce the VGPR pressure
     if (featureFlags & LIGHTFEATUREFLAGS_DIRECTIONAL)
     {
+        // SHADOW_TYPE is real or real3
+        float invCompCountType = 1.0f / dot(float3(1.0f, 1.0f, 1.0f).SHADOW_TYPE_REPLICATE, float3(1.0f, 1.0f, 1.0f).SHADOW_TYPE_REPLICATE); // == 1.0f or 1.0f / 3.0f 
         // Evaluate sun shadows.
         if (_DirectionalShadowIndex >= 0)
         {
@@ -60,7 +62,7 @@ void ShadowLoopMin(HDShadowContext shadowContext, PositionInputs posInput, float
                 shadow = min(shadow, shadowD.SHADOW_TYPE_SWIZZLE);
 #endif
                 shadowCount += 1.0f;
-                weight      += 1.0f - shadowD;
+                weight      += 1.0f - saturate(dot(shadowD, float3(1.0f, 1.0f, 1.0f).SHADOW_TYPE_REPLICATE) * invCompCountType);
             }
         }
     }
@@ -245,9 +247,6 @@ void ShadowLoopMin(HDShadowContext shadowContext, PositionInputs posInput, float
     {
         shadow = float3(1, 1, 1);
     }
-#else
-    //shadow = (1.0f - saturate(shadowCount)).xxx;
-    //shadow = (1.0f - saturate(weight)).xxx;
 #endif
 }
 
