@@ -195,16 +195,22 @@ def main(argv):
 
     try:
 
+        current_branch = git_cmd("rev-parse --abbrev-ref HEAD").strip()
+        git_cmd(['checkout', current_branch], cwd=ROOT)
+        print(f'Checked out branch: {current_branch}')
+
         editor_version_files = create_version_files(config, ROOT)
         if args.commit and len(editor_version_files) > 0:
-            print(f'INFO: Committing and pushing to current branch.')
+            print(f'INFO: Committing and pushing to branch.')
             git_cmd(['add','.'], cwd=ROOT)
             git_cmd(['commit', '-m', f'[CI] Updated pinned editor versions'], cwd=ROOT)
             git_cmd(['push'], cwd=ROOT)
         else:
             print(f'INFO: Will not commit or pushing to current branch. Use --commit to do so.')
+
         print(f'INFO: Done updating editor versions.')
         return 0
+
     except subprocess.CalledProcessError as err:
         print(f"ERROR: Failed to run '{err.cmd}'\nStdout:\n{err.stdout}\nStderr:\n{err.stderr}")
         return 1
