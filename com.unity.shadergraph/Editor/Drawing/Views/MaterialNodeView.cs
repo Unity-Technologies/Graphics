@@ -674,15 +674,15 @@ namespace UnityEditor.ShaderGraph.Drawing
             if (graphEditorView == null)
                 return;
 
-            var blackboardProvider = graphEditorView.blackboardProvider;
-            if (blackboardProvider == null)
+            var blackboardController = graphEditorView.blackboardController;
+            if (blackboardController == null)
                 return;
 
             // Keyword nodes should be highlighted when Blackboard entry is hovered
             // TODO: Move to new NodeView type when keyword node has unique style
             if (node is KeywordNode keywordNode)
             {
-                var keywordRow = blackboardProvider.GetBlackboardRow(keywordNode.keyword);
+                var keywordRow = blackboardController.GetBlackboardRow(keywordNode.keyword);
                 if (keywordRow != null)
                 {
                     if (evt.eventTypeId == MouseEnterEvent.TypeId())

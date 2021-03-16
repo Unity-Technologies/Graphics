@@ -26,6 +26,11 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Exposed update upon light movement for directional light shadows in UI.
 - Added a setting in the HDRP asset to change the Density Volume mask resolution of being locked at 32x32x32 (HDRP Asset > Lighting > Volumetrics > Max Density Volume Size).
 - Added a Falloff Mode (Linear or Exponential) in the Density Volume for volume blending with Blend Distance.
+- Added support for screen space shadows (directional and point, no area) for shadow matte unlit shader graph.
+- Added support for volumetric clouds in planar reflections.
+- Added deferred shading debug visualization
+- Added a new control slider on RTR and RTGI to force the LOD Bias on both effects.
+- Added missing documentation for volumetric clouds.
 
 ### Fixed
 - Fixed Intensity Multiplier not affecting realtime global illumination.
@@ -91,6 +96,9 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed error when opening the default composition graph in the Graphics Compositor (case 1318933).
 - Fixed gizmo rendering when wireframe mode is selected.
 - Fixed issue in path tracing, where objects would cast shadows even if not present in the path traced layers (case 1318857).
+- Fixed SRP batcher not compatible with Decal (case 1311586)
+- Fixed wrong color buffer being bound to pre refraction custom passes.
+- Fixed issue in Probe Reference Volume authoring component triggering an asset reload on all operations.
 
 ### Changed
 - Changed Window/Render Pipeline/HD Render Pipeline Wizard to Window/Rendering/HDRP Wizard
@@ -126,6 +134,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Change the handling of additional properties to base class
 - Improved shadow cascade GUI drawing with pixel perfect, hover and focus functionalities.
 - Improving the screen space global illumination.
+- ClearFlag.Depth does not implicitely clear stencil anymore. ClearFlag.Stencil added.
 - Improved the Camera Inspector, new sections and better grouping of fields
 - Moving MaterialHeaderScopes to Core
 - Changed resolution (to match the render buffer) of the sky used for camera misses in Path Tracing. (case 1304114).
@@ -134,8 +143,13 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Moved the HDRP render graph debug panel content to the Rendering debug panel.
 - Changed Path Tracing's maximum intensity from clamped (0 to 100) to positive value (case 1310514).
 - Avoid unnecessary RenderGraphBuilder.ReadTexture in the "Set Final Target" pass
+- Change Allow dynamic resolution from Rendering to Output on the Camera Inspector
+- Change Link FOV to Physical Camera to Physical Camera, and show and hide everything on the Projection Section
+- Change FOV Axis to Field of View Axis
 - Density Volumes can now take a 3D RenderTexture as mask, the mask can use RGBA format for RGB fog.
 - Decreased the minimal Fog Distance value in the Density Volume to 0.05.
+- Virtual Texturing Resolver now performs RTHandle resize logic in HDRP instead of in core Unity
+- Cached the base types of Volume Manager to improve memory and cpu usage.
 
 ## [11.0.0] - 2020-10-21
 
