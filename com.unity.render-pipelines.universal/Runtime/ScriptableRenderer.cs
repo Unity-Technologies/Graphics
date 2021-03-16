@@ -508,15 +508,15 @@ namespace UnityEngine.Rendering.Universal
             // reset all the passes last pass flag
             for (int i = 0; i < m_ActiveRenderPassQueue.Count - 1; ++i)
             {
-                m_ActiveRenderPassQueue[i].isLastPass = false;
+                var renderPass = m_ActiveRenderPassQueue[i];
+                renderPass.isLastPass = false;
+                renderPass.sceneIndex = i;
 
-                m_ActiveRenderPassQueue[i].sceneIndex = i;
-
-                Hash128 hash = new Hash128((uint)m_ActiveRenderPassQueue[i].renderTargetWidth, (uint)m_ActiveRenderPassQueue[i].renderTargetHeight, (uint)m_ActiveRenderPassQueue[i].renderTargetSampleCount, currentHashIndex);
+                Hash128 hash = new Hash128((uint)renderPass.renderTargetWidth, (uint)renderPass.renderTargetHeight, (uint)renderPass.renderTargetSampleCount, currentHashIndex);
 
                 sceneIndexToPassHash.Add(hash);
 
-                if (!m_ActiveRenderPassQueue[i].useNativeRenderPass)
+                if (!renderPass.useNativeRenderPass)
                     continue;
 
                 if (!mergeableRenderPassesMap.ContainsKey(hash))
@@ -530,7 +530,7 @@ namespace UnityEngine.Rendering.Universal
                     // if the passes are not sequential we want to split the current mergeable passes list. So we increment the hashIndex and update the hash
 
                     currentHashIndex++;
-                    hash = new Hash128((uint)m_ActiveRenderPassQueue[i].renderTargetWidth, (uint)m_ActiveRenderPassQueue[i].renderTargetHeight, (uint)m_ActiveRenderPassQueue[i].renderTargetSampleCount, currentHashIndex);
+                    hash = new Hash128((uint)renderPass.renderTargetWidth, (uint)renderPass.renderTargetHeight, (uint)renderPass.renderTargetSampleCount, currentHashIndex);
 
                     sceneIndexToPassHash[i] = hash;
 
