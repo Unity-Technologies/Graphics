@@ -237,12 +237,14 @@ namespace UnityEngine.Rendering.Universal
         public void ConfigureTarget(RenderTargetIdentifier colorAttachment, RenderTargetIdentifier depthAttachment)
         {
             m_DepthAttachment = depthAttachment;
+            overrideCameraDepthTarget = true;
             ConfigureTarget(colorAttachment);
         }
 
         internal void ConfigureTarget(RenderTargetIdentifier colorAttachment, RenderTargetIdentifier depthAttachment, GraphicsFormat format)
         {
             m_DepthAttachment = depthAttachment;
+            overrideCameraDepthTarget = true;
             ConfigureTarget(colorAttachment, format);
         }
 
