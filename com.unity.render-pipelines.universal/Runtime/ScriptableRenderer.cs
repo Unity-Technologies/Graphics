@@ -488,7 +488,7 @@ namespace UnityEngine.Rendering.Universal
         private List<Hash128> sceneIndexToPassHash = new List<Hash128>();
         Dictionary<Hash128, int> renderPassesAttachmentCount = new Dictionary<Hash128, int>();
 
-        private void SetLastPassFlag()
+        private void SetLastPassFlag(CameraData cameraData)
         {
             //TODO: edge cases to detect that should affect possible passes to merge
             // - different depth attachment
@@ -509,10 +509,22 @@ namespace UnityEngine.Rendering.Universal
             for (int i = 0; i < m_ActiveRenderPassQueue.Count - 1; ++i)
             {
                 var renderPass = m_ActiveRenderPassQueue[i];
+
+                // Empty configure to setup dimensions/targets and whatever data is needed for merging
+                // We do not execute this at this time, so render targets are still invalid
+                CommandBuffer cmd = CommandBufferPool.Get();
+                renderPass.Configure(cmd, cameraData.cameraTargetDescriptor);
+                CommandBufferPool.Release(cmd);
+
+                var width = renderPass.renderTargetWidth != -1 ? renderPass.renderTargetWidth : cameraData.cameraTargetDescriptor.width;
+                var height = renderPass.renderTargetHeight != -1 ? renderPass.renderTargetHeight : cameraData.cameraTargetDescriptor.height;
+                var sampleCount = renderPass.renderTargetSampleCount != -1 ? renderPass.renderTargetSampleCount : cameraData.cameraTargetDescriptor.msaaSamples;
+                var rtID = renderPass.depthOnly ? renderPass.colorAttachment.GetHashCode() : renderPass.depthAttachment.GetHashCode();
+
                 renderPass.isLastPass = false;
                 renderPass.sceneIndex = i;
 
-                Hash128 hash = new Hash128((uint)renderPass.renderTargetWidth, (uint)renderPass.renderTargetHeight, (uint)renderPass.renderTargetSampleCount, currentHashIndex);
+                Hash128 hash = new Hash128((uint) width * 10000 + (uint) height, (uint) rtID, (uint) sampleCount, currentHashIndex);
 
                 sceneIndexToPassHash.Add(hash);
 
@@ -530,7 +542,7 @@ namespace UnityEngine.Rendering.Universal
                     // if the passes are not sequential we want to split the current mergeable passes list. So we increment the hashIndex and update the hash
 
                     currentHashIndex++;
-                    hash = new Hash128((uint)renderPass.renderTargetWidth, (uint)renderPass.renderTargetHeight, (uint)renderPass.renderTargetSampleCount, currentHashIndex);
+                    hash = new Hash128((uint) width * 10000 + (uint) height, (uint) rtID, (uint) sampleCount, currentHashIndex);
 
                     sceneIndexToPassHash[i] = hash;
 
@@ -586,7 +598,7 @@ namespace UnityEngine.Rendering.Universal
                     SortStable(m_ActiveRenderPassQueue);
                 }
 
-                SetLastPassFlag();
+                SetLastPassFlag(cameraData);
 
                 using var renderBlocks = new RenderBlocks(m_ActiveRenderPassQueue);
 
