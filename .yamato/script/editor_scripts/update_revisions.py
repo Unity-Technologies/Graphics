@@ -196,7 +196,7 @@ def main(argv):
     try:
 
         current_branch = git_cmd("rev-parse --abbrev-ref HEAD").strip()
-        git_cmd(['checkout', current_branch], cwd=ROOT)
+        #git_cmd(['checkout', current_branch], cwd=ROOT)
         print(f'Checked out branch: {current_branch}')
 
         editor_version_files = create_version_files(config, ROOT)

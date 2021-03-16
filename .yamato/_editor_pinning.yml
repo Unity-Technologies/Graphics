@@ -24,6 +24,7 @@ editor-pinning-update:
       -  sudo apt install unity-downloader-cli
       -  git config --global user.name "noreply@unity3d.com"
       -  git config --global user.email "noreply@unity3d.com"
+      -  git checkout $GIT_BRANCH
       -  python3 .yamato/script/editor_scripts/update_revisions.py --commit
     triggers:
         recurring:
