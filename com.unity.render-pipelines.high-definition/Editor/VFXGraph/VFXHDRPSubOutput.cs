@@ -126,15 +126,20 @@ namespace UnityEditor.VFX
             return prefix + renderQueue.ToString("+#;-#;+0");
         }
 
-        public override int GetRenderQueueOffset()
+        private int GetRenderQueueOffset()
         {
             var renderQueueType = GetRenderQueueType();
-            return HDRenderQueue.ChangeType(renderQueueType, 0, owner.hasAlphaClipping);
+            return HDRenderQueue.ChangeType(renderQueueType, GetMaterialOffset(), owner.hasAlphaClipping);
         }
 
-        public override int GetRenderQueueOffsetRange()
+        private int GetMaterialOffset()
         {
-            return HDRenderQueue.k_TransparentPriorityQueueRange;
+            if (supportsMaterialOffset)
+            {
+                int rawMaterialOffset = owner.GetMaterialOffset();
+                return ClampsTransparentRangePriority(rawMaterialOffset);
+            }
+            return 0;
         }
 
         private void GetStencilStateCommon(out int stencilWriteMask, out int stencilRef)

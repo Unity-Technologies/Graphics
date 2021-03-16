@@ -29,8 +29,13 @@ namespace UnityEditor.VFX
         [VFXSetting(VFXSettingAttribute.VisibleFlags.InInspector), SerializeField, Tooltip("When enabled, particles will not be affected by temporal anti-aliasing.")]
         protected bool excludeFromTAA = false;
 
-        [VFXSetting(VFXSettingAttribute.VisibleFlags.InInspector), SerializeField, Tooltip("When enabled, the material queue can be offset by an integer.")]
-        protected bool useMaterialOffset = false;
+        [VFXSetting(VFXSettingAttribute.VisibleFlags.InInspector), SerializeField, Tooltip("Specifies an offset applied to the material render queue.")]
+        protected int materialOffset = 0;
+
+        public int GetMaterialOffset()
+        {
+            return materialOffset;
+        }
 
         public bool isBlendModeOpaque { get { return blendMode == BlendMode.Opaque; } }
 
@@ -206,48 +211,6 @@ namespace UnityEditor.VFX
                 }
             }
             base.Sanitize(version);
-        }
-
-        class MaterialOffset
-        {
-            [Tooltip("Specifies an offset applied to the material render queue.")]
-            public int materialOffset = 0;
-        }
-
-        protected override IEnumerable<VFXPropertyWithValue> inputProperties
-        {
-            get
-            {
-                IEnumerable<VFXPropertyWithValue> properties = base.inputProperties;
-                if (useMaterialOffset && subOutput.supportsMaterialOffset)
-                    properties = properties.Concat(PropertiesFromType(typeof(MaterialOffset)));
-                return properties;
-            }
-        }
-
-        public override VFXExpressionMapper GetExpressionMapper(VFXDeviceTarget target)
-        {
-            var mapper = new VFXExpressionMapper();
-            switch (target)
-            {
-                case VFXDeviceTarget.GPU:
-                    break;
-                case VFXDeviceTarget.CPU:
-                    if (useMaterialOffset && subOutput.supportsMaterialOffset)
-                    {
-                        var materialOffset = inputSlots.FirstOrDefault(o => o.name == nameof(MaterialOffset.materialOffset)).GetExpression();
-
-                        var baseOffsetRange = VFXValue.Constant(subOutput.GetRenderQueueOffsetRange());
-                        var minusOne = VFXOperatorUtility.MinusOneExpression[UnityEngine.VFX.VFXValueType.Int32];
-                        materialOffset = VFXOperatorUtility.Clamp(materialOffset, minusOne * baseOffsetRange, baseOffsetRange, false);
-
-                        var baseOffset = VFXValue.Constant(subOutput.GetRenderQueueOffset());
-                        mapper.AddExpression(baseOffset + materialOffset, "customRenderQueue", -1);
-                    }
-
-                    break;
-            }
-            return mapper;
         }
 
         [SerializeField]

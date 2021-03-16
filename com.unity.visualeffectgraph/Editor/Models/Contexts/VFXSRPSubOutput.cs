@@ -47,43 +47,31 @@ namespace UnityEditor.VFX
 
         public virtual string GetRenderQueueStr()
         {
+            var baseRenderQueue = string.Empty;
             switch (owner.blendMode)
             {
                 case BlendMode.Additive:
                 case BlendMode.Alpha:
                 case BlendMode.AlphaPremultiplied:
-                    return "Transparent";
+                    baseRenderQueue = "Transparent";
+                    break;
                 case BlendMode.Opaque:
                     if (owner.hasAlphaClipping)
-                        return "AlphaTest";
+                    {
+                        baseRenderQueue = "AlphaTest";
+                    }
                     else
-                        return "Geometry";
+                    {
+                        baseRenderQueue = "Geometry";
+                    }
+                    break;
                 default:
                     throw new NotImplementedException("Unknown blend mode");
             }
-        }
 
-        public virtual int GetRenderQueueOffset()
-        {
-            switch (owner.blendMode)
-            {
-                case BlendMode.Additive:
-                case BlendMode.Alpha:
-                case BlendMode.AlphaPremultiplied:
-                    return (int)UnityEngine.Rendering.RenderQueue.Transparent;
-                case BlendMode.Opaque:
-                    if (owner.hasAlphaClipping)
-                        return (int)UnityEngine.Rendering.RenderQueue.AlphaTest;
-                    else
-                        return (int)UnityEngine.Rendering.RenderQueue.Geometry;
-                default:
-                    throw new NotImplementedException("Unknown blend mode");
-            }
-        }
-
-        public virtual int GetRenderQueueOffsetRange()
-        {
-            return 50;
+            int rawMaterialOffset = owner.GetMaterialOffset();
+            int materialOffset = Mathf.Clamp(rawMaterialOffset, -50, +50);
+            return baseRenderQueue + materialOffset.ToString("+#;-#;+0");
         }
 
         public virtual IEnumerable<KeyValuePair<string, VFXShaderWriter>> GetStencilStateOverridesStr()
