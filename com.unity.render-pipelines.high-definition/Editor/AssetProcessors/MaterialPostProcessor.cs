@@ -200,7 +200,7 @@ namespace UnityEditor.Rendering.HighDefinition
         public void OnPostprocessSpeedTree(GameObject speedtree)
         {
             SpeedTreeImporter stImporter = assetImporter as SpeedTreeImporter;            
-            SpeedTree8MaterialUpgrader.PostprocessMaterials(speedtree, stImporter, HDSpeedTree8MaterialUpgrader.HDSpeedTree8MaterialFinalizer);
+            SpeedTree8MaterialUpgrader.PostprocessSpeedTree8Materials(speedtree, stImporter, HDSpeedTree8MaterialUpgrader.HDSpeedTree8MaterialFinalizer);
         }
 
         // Note: It is not possible to separate migration step by kind of shader

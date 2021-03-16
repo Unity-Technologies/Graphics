@@ -192,7 +192,7 @@ namespace UnityEditor.Rendering.Universal
         void OnPostprocessSpeedTree(GameObject speedTree)
         {
             SpeedTreeImporter treeImporter = assetImporter as SpeedTreeImporter;
-            SpeedTree8MaterialUpgrader.PostprocessMaterials(speedTree, treeImporter);
+            SpeedTree8MaterialUpgrader.PostprocessSpeedTree8Materials(speedTree, treeImporter);
         }
 
         static void InitializeLatest(Material material, ShaderPathID id)

@@ -9,8 +9,7 @@ namespace UnityEditor.Rendering
 	/// </summary>
 	public class SpeedTree8MaterialUpgrader : MaterialUpgrader
     {
-        public string targetShaderName = "";
-        public enum WindQuality
+        private enum WindQuality
         {
             None = 0,
             Fastest,
@@ -21,7 +20,7 @@ namespace UnityEditor.Rendering
             Count
         }
 
-        public static string[] WindQualityString =
+        private static string[] WindQualityString =
         {
             "_WINDQUALITY_NONE",
             "_WINDQUALITY_FASTEST",
@@ -30,6 +29,7 @@ namespace UnityEditor.Rendering
             "_WINDQUALITY_BEST",
             "_WINDQUALITY_PALM"
         };
+
         /// <summary>
         /// Creates a material upgrader to upgrade from the builtin ST8 shader with only the renames in common between HD and Universal.
         /// </summary>
@@ -67,7 +67,7 @@ namespace UnityEditor.Rendering
         /// <param name="speedtree">Game object for the SpeedTree asset being imported.</param>
         /// <param name="stImporter">The assetimporter used to import the SpeedTree asset.</param>
         /// <param name="finalizer">Render pipeline-specific material finalizer.</param>
-        public static void PostprocessMaterials(GameObject speedtree, SpeedTreeImporter stImporter, MaterialFinalizer finalizer = null)
+        public static void PostprocessSpeedTree8Materials(GameObject speedtree, SpeedTreeImporter stImporter, MaterialFinalizer finalizer = null)
         {
             LODGroup lg = speedtree.GetComponent<LODGroup>();
             LOD[] lods = lg.GetLODs();
@@ -88,13 +88,13 @@ namespace UnityEditor.Rendering
                 }
             }
         }
+
         /// <summary>
         /// Preserve wind quality and billboard setting when upgrading a ST8 material from previous versions.
         /// Wind priority order is enabled keyword > _WindQuality float value.
         /// Should work for upgrading versions within a pipeline and from standard to current pipeline.
         /// </summary>
-        /// <param name="material"></param>
-        /// <param name="windQuality"></param>
+        /// <param name="material">SpeedTree8 material to upgrade.</param>
         public static void SpeedTree8MaterialFinalizer(Material material)
         {
             if (material.HasProperty("_TwoSided") && material.HasProperty("_CullMode"))
@@ -110,13 +110,6 @@ namespace UnityEditor.Rendering
             UpgradeWindQuality(material);
         }
 
-        /// <summary>
-        /// Preserve wind quality setting when upgrading a ST8 material from previous versions.
-        /// Priority order is input windQuality > enabled keyword > _WindQuality float value.
-        /// Relies on _WindQuality being a float under the hood, despite being used as a bool property in the shadergraph.
-        /// </summary>
-        /// <param name="material">ST8 material to upgrade.</param>
-        /// <param name="windQuality">Optionally override previous wind quality.</param>
         private static void UpgradeWindQuality(Material material, int windQuality = -1)
         {
             int wq = GetWindQuality(material, windQuality);
