@@ -1,6 +1,6 @@
 # Known issues
 
-This page contains information on known about issues you may encounter while using HDRP. Each entry describes the issue and then details the steps to follow in order to resolve the issue.
+This page contains information on known about issues you may encounter while using the High Definition Render Pipeline (HDRP). Each entry describes the issue and then details the steps to follow in order to resolve the issue.
 
 ## Material array size
 
@@ -14,10 +14,8 @@ UnityEditor.EditorApplication:Internal_CallGlobalEventHandler()
 
 To fix this issue, restart the Unity editor.
 
-## Collaborate and local HDRP config package
+## Working with Collaborate and a local HDRP config package
 
-If you installed the local config package with the wizard, it may have been placed in `ROOT/LocalPackages/com.unity.render-pipelines.high-definition-config` depending on the HDRP version used at that moment.
+If you installed the [config package](HDRP-Config-Package.md) locally using the [HDRP Wizard](Render-Pipeline-Wizard.md), Unity may have placed it in `LocalPackages/com.unity.render-pipelines.high-definition-config` depending on the HDRP version your project used at that time.
 
-In that case, you can move the local config package from `ROOT/LocalPackages/com.unity.render-pipelines.high-definition-config` to `ROOT/Packages/com.unity.render-pipelines.high-definition-config` to embed it in your project.
-
-Now the embedded config package files will be versionned.
+In this case, Collaborate does not track changes you make to the local HDRP config package files. To fix this, move the local config package from `LocalPackages/com.unity.render-pipelines.high-definition-config` to `Packages/com.unity.render-pipelines.high-definition-config`. This embeds it in your project and allows Collaborate to tracks and version changes you make.
