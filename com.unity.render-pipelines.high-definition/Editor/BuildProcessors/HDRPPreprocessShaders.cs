@@ -317,6 +317,9 @@ namespace UnityEditor.Rendering.HighDefinition
             if (HDRenderPipeline.currentAsset == null)
                 return;
 
+            if (HDRenderPipelineGlobalSettings.Ensure() == null)
+                return;
+
             var exportLog = ShaderBuildPreprocessor.hdrpAssets.Count > 0
                 && (HDRenderPipelineGlobalSettings.instance.shaderVariantLogLevel != ShaderVariantLogLevel.Disabled);
 
@@ -470,6 +473,9 @@ namespace UnityEditor.Rendering.HighDefinition
         public void OnProcessShader(Shader shader, ShaderSnippetData snippet, IList<ShaderCompilerData> inputData)
         {
             if (HDRenderPipeline.currentAsset == null)
+                return;
+
+            if (HDRenderPipelineGlobalSettings.Ensure() == null)
                 return;
 
             var exportLog = ShaderBuildPreprocessor.hdrpAssets.Count > 0
