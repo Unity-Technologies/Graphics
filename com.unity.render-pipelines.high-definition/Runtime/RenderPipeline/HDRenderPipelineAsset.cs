@@ -24,7 +24,7 @@ namespace UnityEngine.Rendering.HighDefinition
     /// High Definition Render Pipeline asset.
     /// </summary>
     [HelpURL(Documentation.baseURL + Documentation.version + Documentation.subURL + "HDRP-Asset" + Documentation.endURL)]
-    public partial class HDRenderPipelineAsset : RenderPipelineAsset, IVirtualTexturingEnabledRenderPipeline
+    public partial class HDRenderPipelineAsset : RenderPipelineAsset, IVirtualTexturingEnabledRenderPipeline, IOverrideCoreEditorResources
     {
         [System.NonSerialized]
         internal bool isInOnValidateCall = false;
@@ -122,6 +122,8 @@ namespace UnityEngine.Rendering.HighDefinition
             }
             set { m_RenderPipelineEditorResources = value; }
         }
+
+        public Shader GetProbeVolumeProbeShader() => renderPipelineEditorResources.shaders.probeVolumeGizmoShader;
 #endif
 
         // To be able to turn on/off FrameSettings properties at runtime for debugging purpose without affecting the original one
