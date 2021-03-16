@@ -39,8 +39,7 @@ GrassVertexDepthNormalOutput DepthNormalOnlyVertex(GrassVertexDepthNormalInput v
     o.uv = v.texcoord;
     o.normal = TransformObjectToWorldNormal(v.normal);
     o.clipPos = vertexInput.positionCS;
-    o.viewDirWS = GetWorldSpaceViewDir(vertexInput.positionWS);
-
+    o.viewDirWS = GetWorldSpaceNormalizeViewDir(vertexInput.positionWS);
     return o;
 }
 
@@ -54,8 +53,7 @@ half4 DepthNormalOnlyFragment(GrassVertexDepthNormalOutput input) : SV_TARGET
         half3 packedNormalWS = PackFloat2To888(remappedOctNormalWS);      // values between [ 0,  1]
         return half4(packedNormalWS, 0.0);
     #else
-        half3 normalWS = NormalizeNormalPerPixel(input.normal);
-        normalWS = normalize(cross(ddy(input.viewDirWS), ddx(input.viewDirWS)));
+        half3 normalWS = normalize(cross(ddy(input.viewDirWS), ddx(input.viewDirWS)));
         return half4(normalWS, 0.0);
     #endif
 }
