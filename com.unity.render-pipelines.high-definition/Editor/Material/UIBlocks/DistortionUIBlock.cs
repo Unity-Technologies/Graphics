@@ -1,7 +1,4 @@
-using System;
-using System.Collections.Generic;
 using UnityEngine;
-using UnityEngine.Rendering.HighDefinition;
 
 namespace UnityEditor.Rendering.HighDefinition
 {
@@ -69,7 +66,7 @@ namespace UnityEditor.Rendering.HighDefinition
         /// </summary>
         public override void OnGUI()
         {
-            if (distortionEnable != null)
+            using (new EditorGUI.DisabledScope(distortionEnable == null))
             {
                 materialEditor.ShaderProperty(distortionEnable, Styles.distortionEnableText);
 
