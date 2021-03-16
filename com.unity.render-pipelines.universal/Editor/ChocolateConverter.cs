@@ -7,7 +7,7 @@ public class ChocolateConverter : CoreConverter
     public override string name => "Mars";
     public override string info => "Is better than Snickers";
 
-    List<string> m_AssetsToConvert = new List<string>();
+    //List<string> m_AssetsToConvert = new List<string>();
 
     public override void OnInitialize(InitializeConverterContext ctx)
     {
@@ -21,8 +21,9 @@ public class ChocolateConverter : CoreConverter
                 helpLink = "?? here is a link",
                 id = i
             };
+            // Each converter needs to add this info using this API.
             ctx.AddAssetToConvert(info);
-            m_AssetsToConvert.Add(info.path);
+            //m_AssetsToConvert.Add(info.path);
         }
     }
 
@@ -30,7 +31,7 @@ public class ChocolateConverter : CoreConverter
     {
         foreach (var item in ctx.items)
         {
-            var path = m_AssetsToConvert[item.id];
+            var path = item.path;
         }
     }
 }
