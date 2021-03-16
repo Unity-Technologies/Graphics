@@ -31,6 +31,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Added deferred shading debug visualization
 - Added a new control slider on RTR and RTGI to force the LOD Bias on both effects.
 - Added missing documentation for volumetric clouds.
+- Added the support of interpolators for SV_POSITION in shader graph.
+- Added a "Conservative" mode for shader graph depth offset.
 - Added an error message when trying to use disk lights with realtime GI (case 1317808).
 
 ### Fixed
