@@ -144,7 +144,7 @@ namespace UnityEngine.Rendering
         protected bool m_UseMipMaps;
         protected GraphicsFormat m_Format;
         private AtlasAllocator m_AtlasAllocator = null;
-        private Dictionary<int, Vector4> m_AllocationCache = new Dictionary<int, Vector4>();
+        private Dictionary<int, (Vector4 scaleOffset, Vector2Int size)> m_AllocationCache = new Dictionary<int, (Vector4, Vector2Int)>();
         private Dictionary<int, int> m_IsGPUTextureUpToDate = new Dictionary<int, int>();
         private Dictionary<int, int> m_TextureHashes = new Dictionary<int, int>();
 
@@ -328,7 +328,7 @@ namespace UnityEngine.Rendering
             if (m_AtlasAllocator.Allocate(ref scaleOffset, width, height))
             {
                 scaleOffset.Scale(new Vector4(1.0f / m_Width, 1.0f / m_Height, 1.0f / m_Width, 1.0f / m_Height));
-                m_AllocationCache.Add(instanceId, scaleOffset);
+                m_AllocationCache[instanceId] = (scaleOffset, new Vector2Int(width, height));
                 MarkGPUTextureInvalid(instanceId); // the texture data haven't been uploaded
                 m_TextureHashes[instanceId] = -1;
                 return true;
@@ -377,7 +377,17 @@ namespace UnityEngine.Rendering
         /// Check if the atlas contains the texture.
         /// </summary>
         public bool IsCached(out Vector4 scaleOffset, int id)
-            => m_AllocationCache.TryGetValue(id, out scaleOffset);
+        {
+            bool cached = m_AllocationCache.TryGetValue(id, out var value);
+            scaleOffset = value.scaleOffset;
+            return cached;
+        }
+
+        public Vector2Int GetCachedTextureSize(int id)
+        {
+            m_AllocationCache.TryGetValue(id, out var value);
+            return value.size;
+        }
 
         /// <summary>
         /// Check if contents of a texture needs to be updated in the atlas.
@@ -521,11 +531,16 @@ namespace UnityEngine.Rendering
         internal bool EnsureTextureSlot(out bool isUploadNeeded, ref Vector4 scaleBias, int key, int width, int height)
         {
             isUploadNeeded = false;
-            if (m_AllocationCache.TryGetValue(key, out scaleBias)) { return true; }
-            if (!m_AtlasAllocator.Allocate(ref scaleBias, width, height)) { return false; }
+            if (m_AllocationCache.TryGetValue(key, out var value))
+            {
+                scaleBias = value.scaleOffset;
+                return true;
+            }
+            if (!m_AtlasAllocator.Allocate(ref scaleBias, width, height))
+                return false;
             isUploadNeeded = true;
             scaleBias.Scale(new Vector4(1.0f / m_Width, 1.0f / m_Height, 1.0f / m_Width, 1.0f / m_Height));
-            m_AllocationCache.Add(key, scaleBias);
+            m_AllocationCache.Add(key, (scaleBias, new Vector2Int(width, height)));
             return true;
         }
     }

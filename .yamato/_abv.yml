@@ -43,15 +43,16 @@ all_project_ci_nightly_trunk:
          rerun: on-new-revision
       -  path: .yamato/all-hdrp_performancetests.yml#PR_HDRP_PerformanceTests_trunk
          rerun: on-new-revision
+      -  path: .yamato/all-vikingvillage_builtin.yml#PR_VikingVillage_BuiltIn_trunk
+         rerun: on-new-revision
+      -  path: .yamato/all-vikingvillage_urp.yml#PR_VikingVillage_URP_trunk
+         rerun: on-new-revision
       -  path: .yamato/_projectcontext.yml#all_package_ci_project_trunk
          rerun: on-new-revision
     triggers:
         recurring:
           -  branch: master
              frequency: 1 * * ?
-all_project_ci_weekly_trunk:
-    name: _Weekly ABV against trunk
-    dependencies: []
 trunk_verification_trunk:
     name: Trunk verification - trunk
     dependencies:
@@ -125,13 +126,12 @@ all_project_ci_nightly_CUSTOM-REVISION:
          rerun: always
       -  path: .yamato/all-hdrp_performancetests.yml#PR_HDRP_PerformanceTests_CUSTOM-REVISION
          rerun: always
+      -  path: .yamato/all-vikingvillage_builtin.yml#PR_VikingVillage_BuiltIn_CUSTOM-REVISION
+         rerun: always
+      -  path: .yamato/all-vikingvillage_urp.yml#PR_VikingVillage_URP_CUSTOM-REVISION
+         rerun: always
       -  path: .yamato/_projectcontext.yml#all_package_ci_project_CUSTOM-REVISION
          rerun: always
-    variables:
-        CUSTOM_REVISION: custom_revision_not_set
-all_project_ci_weekly_CUSTOM-REVISION:
-    name: _Weekly ABV against CUSTOM-REVISION
-    dependencies: []
     variables:
         CUSTOM_REVISION: custom_revision_not_set
 trunk_verification_CUSTOM-REVISION:
