@@ -40,7 +40,7 @@ namespace UnityEditor.Rendering.HighDefinition
         {
             public const string header = "Emission Inputs";
 
-            public static GUIContent emissiveText = new GUIContent("Emissive Color", "Emissive Color (RGB).");
+            public static GUIContent emissiveMap = new GUIContent("Emissive Map", "Specifies the emissive color (RGB) of the Material.");
 
             public static GUIContent albedoAffectEmissiveText = new GUIContent("Emission multiply with Base", "Specifies whether or not the emission color is multiplied by the albedo.");
             public static GUIContent useEmissiveIntensityText = new GUIContent("Use Emission Intensity", "Specifies whether to use to a HDR color or a LDR color with a separate multiplier.");
@@ -152,7 +152,7 @@ namespace UnityEditor.Rendering.HighDefinition
 
                 if (unitIsMixed)
                 {
-                    using (new EditorGUI.DisabledScope(unitIsMixed))
+                    using (new EditorGUI.DisabledScope(true))
                         materialEditor.ShaderProperty(emissiveIntensity, Styles.emissiveIntensityText);
                 }
                 else
@@ -219,9 +219,14 @@ namespace UnityEditor.Rendering.HighDefinition
             }
         }
 
+        internal static void DoEmissiveTextureProperty(MaterialEditor materialEditor, MaterialProperty texture, MaterialProperty color)
+        {
+            materialEditor.TexturePropertySingleLine(Styles.emissiveMap, texture, color);
+        }
+
         void DoEmissiveTextureProperty(MaterialProperty color)
         {
-            materialEditor.TexturePropertySingleLine(Styles.emissiveText, emissiveColorMap, color);
+            DoEmissiveTextureProperty(materialEditor, emissiveColorMap, color);
 
             if (materials.All(m => m.GetTexture(kEmissiveColorMap)))
             {
