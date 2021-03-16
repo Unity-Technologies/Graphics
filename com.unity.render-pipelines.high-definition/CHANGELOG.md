@@ -97,6 +97,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed sub-shadow rendering for cached shadow maps.
 - Fixed PCSS filtering issues with cached shadow maps.
 - Fix screen being over-exposed when changing very different skies.
+- Fixed pixelated appearance of Contrast Adaptive Sharpen upscaler and several other issues when Hardware DRS is on
 - Fixed incorrect debug wireframe overlay on tessellated geometry (using littessellation), caused by the picking pass using an incorrect camera matrix.
 - Fixed nullref in layered lit shader editor.
 - Fix issue with Depth of Field CoC debug view.
@@ -135,6 +136,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed error message when having MSAA and Screen Space Shadows (case 1318698).
 - Fixed Nans happening when the history render target is bigger than the current viewport (case 1321139).
 - Fixed Tube and Disc lights mode selection (case 1317776)
+- Fixed multicamera rendering for Dynamic Resolution Scaling using dx12 hardware mode. Using a planar reflection probe (another render camera) should be safe.
 
 ### Changed
 - Removed the material pass probe volumes evaluation mode.
