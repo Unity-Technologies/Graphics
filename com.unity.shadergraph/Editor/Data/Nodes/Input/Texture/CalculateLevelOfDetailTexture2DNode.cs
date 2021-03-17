@@ -83,13 +83,15 @@ namespace UnityEditor.ShaderGraph
                 var dUVdx = string.Format("ddx({0})", uvName);
                 var dUVdy = string.Format("ddy({0})", uvName);
                 var delta_max_sqr = string.Format("max(dot({0}, {0}), dot({1}, {1}))", dUVdx, dUVdy);
+                var dimension = string.Format("{0}_dimension", id);
+                var levels = string.Format("{0}_levels", id);
                 sb.AppendLine(string.Format("$precision {0};", GetVariableNameForSlot(OutputSlotLODId)));
                 sb.AppendLine("{");
-                sb.AppendLine(string.Format("uint2 {0}_dimension; uint {0}_levels; {0}.tex.GetDimensions(0, {0}_dimension.x, {0}_dimension.y, {0}_levels);", id));
-                sb.AppendLine(string.Format("{0} = {1}_levels - 1 + 0.5f*log2(max(1e-6, {2}));", GetVariableNameForSlot(OutputSlotLODId), id, delta_max_sqr));
+                sb.AppendLine(string.Format("uint2 {1}; uint {2}; {0}.tex.GetDimensions(0, {1}.x, {1}.y, {2});", id, dimension, levels));
+                sb.AppendLine(string.Format("{0} = {1}-1 + 0.5f*log2(max(1e-6, {2}));", GetVariableNameForSlot(OutputSlotLODId), levels, delta_max_sqr));
                 if (m_Clamp)
                 {
-                    sb.AppendLine(string.Format("{0} = clamp({0}, 0, {1}_levels-1);", GetVariableNameForSlot(OutputSlotLODId), id));
+                    sb.AppendLine(string.Format("{0} = clamp({0}, 0, {1}-1);", GetVariableNameForSlot(OutputSlotLODId), levels));
                 }
                 sb.AppendLine("}");
             }
