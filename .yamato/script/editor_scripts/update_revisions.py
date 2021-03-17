@@ -12,6 +12,17 @@ from ruamel.yaml import YAML
 
 from util.subprocess_helpers import run_cmd, git_cmd
 
+# EDITOR REVISION UPDATE SCRIPT
+# Updates .yamato/_latest_editor_versions_[TRACK].metafile for each editor specified in _editor.metafile editor_tracks.
+#
+# Run locally (updates the file, but does not add/commit/push to git):
+# python .\.yamato\script\editor_scripts\update_revisions.py
+#
+# Run in CI (updates the file, and adds/commits/pushes it to current branch):
+# python .\.yamato\script\editor_scripts\update_revisions.py --commit-and-push
+
+
+
 # These are by convention how the different revisions are categorized.
 # These should not be changed unless also updated in Yamato YAML.
 SUPPORTED_VERSION_TYPES = ('latest_internal', 'latest_public', 'staging')
@@ -179,7 +190,7 @@ def load_yml(filename):
 
 def parse_args(flags):
     parser = argparse.ArgumentParser()
-    parser.add_argument('--commit', action='store_true', help='Commits the changed revisions to current branch.')
+    parser.add_argument('--commit-and-push', action='store_true', help='Commits the changed revisions to current branch.')
     args = parser.parse_args(flags)
     return args
 
@@ -196,17 +207,16 @@ def main(argv):
     try:
 
         current_branch = git_cmd("rev-parse --abbrev-ref HEAD").strip()
-        #git_cmd(['checkout', current_branch], cwd=ROOT)
-        print(f'Checked out branch: {current_branch}')
+        print(f'INFO: Running on branch: {current_branch}')
 
         editor_version_files = create_version_files(config, ROOT)
-        if args.commit and len(editor_version_files) > 0:
+        if args.commit_and_push and len(editor_version_files) > 0:
             print(f'INFO: Committing and pushing to branch.')
             git_cmd(['add','.'], cwd=ROOT)
             git_cmd(['commit', '-m', f'[CI] Updated pinned editor versions'], cwd=ROOT)
             git_cmd(['push'], cwd=ROOT)
         else:
-            print(f'INFO: Will not commit or pushing to current branch. Use --commit to do so.')
+            print(f'INFO: Will not commit or push to current branch. Use --commit-and-push to do so.')
 
         print(f'INFO: Done updating editor versions.')
         return 0
