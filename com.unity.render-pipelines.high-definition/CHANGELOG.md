@@ -104,7 +104,6 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed issue in Probe Reference Volume authoring component triggering an asset reload on all operations.
 - Fixed grey screen on playstation platform when histogram exposure is enabled but the curve mapping is not used.
 - Fixed HDRPAsset loosing its reference to the ray tracing resources when clicking on a different quality level that doesn't have ray tracing (case 1320304).
-- Fixed SRP batcher not compatible with Decal (case 1311586).
 - Fixed error message when having MSAA and Screen Space Shadows (case 1318698).
 - Fixed Nans happening when the history render target is bigger than the current viewport (case 1321139).
 - Fixed Tube and Disc lights mode selection (case 1317776)
@@ -160,7 +159,6 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Virtual Texturing Resolver now performs RTHandle resize logic in HDRP instead of in core Unity
 - Cached the base types of Volume Manager to improve memory and cpu usage.
 - Reduced the maximal number of bounces for both RTGI and RTR (case 1318876).
-- Added tooltips to warn when some features may be disabled depending on MSAA/raytracing usage.
 
 ## [11.0.0] - 2020-10-21
 
