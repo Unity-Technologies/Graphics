@@ -3,9 +3,9 @@ using UnityEngine.Serialization;
 
 namespace UnityEngine.Rendering.HighDefinition
 {
-    /// <summary>Artist-friendly density volume parametrization.</summary>
+    /// <summary>Artist-friendly Local Volumetric Fog parametrization.</summary>
     [Serializable]
-    public partial struct DensityVolumeArtistParameters
+    public partial struct LocalVolumetricFogArtistParameters
     {
         /// <summary>Single scattering albedo: [0, 1]. Alpha is ignored.</summary>
         public Color     albedo;
@@ -13,7 +13,7 @@ namespace UnityEngine.Rendering.HighDefinition
         public float     meanFreePath; // Should be chromatic - this is an optimization!
         /// <summary>Anisotropy of the phase function: [-1, 1]. Positive values result in forward scattering, and negative values - in backward scattering.</summary>
         [FormerlySerializedAs("asymmetry")]
-        public float     anisotropy;   // . Not currently available for density volumes
+        public float     anisotropy;   // . Not currently available for Local Volumetric Fog
 
         /// <summary>Texture containing density values.</summary>
         public Texture   volumeMask;
@@ -52,7 +52,7 @@ namespace UnityEngine.Rendering.HighDefinition
         public Vector3   textureOffset;
 
         /// <summary>When Blend Distance is above 0, controls which kind of falloff is applied to the transition area.</summary>
-        public DensityVolumeFalloffMode falloffMode;
+        public LocalVolumetricFogFalloffMode falloffMode;
 
         /// <summary>Minimum fog distance you can set in the meanFreePath parameter</summary>
         internal const float kMinFogDistance = 0.05f;
@@ -61,7 +61,7 @@ namespace UnityEngine.Rendering.HighDefinition
         /// <param name="color">Single scattering albedo.</param>
         /// <param name="_meanFreePath">Mean free path.</param>
         /// <param name="_anisotropy">Anisotropy.</param>
-        public DensityVolumeArtistParameters(Color color, float _meanFreePath, float _anisotropy)
+        public LocalVolumetricFogArtistParameters(Color color, float _meanFreePath, float _anisotropy)
         {
             albedo                = color;
             meanFreePath          = _meanFreePath;
@@ -81,7 +81,7 @@ namespace UnityEngine.Rendering.HighDefinition
             distanceFadeStart     = 10000;
             distanceFadeEnd       = 10000;
 
-            falloffMode          = DensityVolumeFalloffMode.Linear;
+            falloffMode          = LocalVolumetricFogFalloffMode.Linear;
 
             m_EditorPositiveFade = Vector3.zero;
             m_EditorNegativeFade = Vector3.zero;
@@ -118,15 +118,15 @@ namespace UnityEngine.Rendering.HighDefinition
             distanceFadeEnd   = Mathf.Max(distanceFadeStart, distanceFadeEnd);
         }
 
-        internal DensityVolumeEngineData ConvertToEngineData()
+        internal LocalVolumetricFogEngineData ConvertToEngineData()
         {
-            DensityVolumeEngineData data = new DensityVolumeEngineData();
+            LocalVolumetricFogEngineData data = new LocalVolumetricFogEngineData();
 
             data.extinction     = VolumeRenderingUtils.ExtinctionFromMeanFreePath(meanFreePath);
             data.scattering     = VolumeRenderingUtils.ScatteringFromExtinctionAndAlbedo(data.extinction, (Vector4)albedo);
 
-            var atlas = DensityVolumeManager.manager.volumeAtlas.GetAtlas();
-            data.atlasOffset    = DensityVolumeManager.manager.volumeAtlas.GetTextureOffset(volumeMask);
+            var atlas = LocalVolumetricFogManager.manager.volumeAtlas.GetAtlas();
+            data.atlasOffset    = LocalVolumetricFogManager.manager.volumeAtlas.GetTextureOffset(volumeMask);
             data.atlasOffset.x /= (float)atlas.width;
             data.atlasOffset.y /= (float)atlas.height;
             data.atlasOffset.z /= (float)atlas.volumeDepth;
@@ -158,16 +158,16 @@ namespace UnityEngine.Rendering.HighDefinition
 
             return data;
         }
-    } // class DensityVolumeParameters
+    } // class LocalVolumetricFogParameters
 
-    /// <summary>Density volume class.</summary>
-    [HelpURL(Documentation.baseURL + Documentation.version + Documentation.subURL + "Density-Volume" + Documentation.endURL)]
+    /// <summary>Local Volumetric Fog class.</summary>
+    [HelpURL(Documentation.baseURL + Documentation.version + Documentation.subURL + "Local-Volumetric-Fog" + Documentation.endURL)]
     [ExecuteAlways]
-    [AddComponentMenu("Rendering/Density Volume")]
-    public partial class DensityVolume : MonoBehaviour
+    [AddComponentMenu("Rendering/Local Volumetric Fog")]
+    public partial class LocalVolumetricFog : MonoBehaviour
     {
-        /// <summary>Density volume parameters.</summary>
-        public DensityVolumeArtistParameters parameters = new DensityVolumeArtistParameters(Color.white, 10.0f, 0.0f);
+        /// <summary>Local Volumetric Fog parameters.</summary>
+        public LocalVolumetricFogArtistParameters parameters = new LocalVolumetricFogArtistParameters(Color.white, 10.0f, 0.0f);
 
         private Texture previousVolumeMask = null;
 #if UNITY_EDITOR
@@ -191,7 +191,7 @@ namespace UnityEngine.Rendering.HighDefinition
             if (updated)
             {
                 if (parameters.volumeMask != null)
-                    DensityVolumeManager.manager.AddTextureIntoAtlas(parameters.volumeMask);
+                    LocalVolumetricFogManager.manager.AddTextureIntoAtlas(parameters.volumeMask);
 
                 NotifyUpdatedTexure();
                 previousVolumeMask = parameters.volumeMask;
@@ -213,26 +213,26 @@ namespace UnityEngine.Rendering.HighDefinition
 
         private void OnEnable()
         {
-            DensityVolumeManager.manager.RegisterVolume(this);
+            LocalVolumetricFogManager.manager.RegisterVolume(this);
 
 #if UNITY_EDITOR
             // Handle scene visibility
-            UnityEditor.SceneVisibilityManager.visibilityChanged += UpdateDensityVolumeVisibility;
+            UnityEditor.SceneVisibilityManager.visibilityChanged += UpdateLocalVolumetricFogVisibility;
 #endif
         }
 
 #if UNITY_EDITOR
-        void UpdateDensityVolumeVisibility()
+        void UpdateLocalVolumetricFogVisibility()
         {
             if (UnityEditor.SceneVisibilityManager.instance.IsHidden(gameObject))
             {
-                if (DensityVolumeManager.manager.ContainsVolume(this))
-                    DensityVolumeManager.manager.DeRegisterVolume(this);
+                if (LocalVolumetricFogManager.manager.ContainsVolume(this))
+                    LocalVolumetricFogManager.manager.DeRegisterVolume(this);
             }
             else
             {
-                if (!DensityVolumeManager.manager.ContainsVolume(this))
-                    DensityVolumeManager.manager.RegisterVolume(this);
+                if (!LocalVolumetricFogManager.manager.ContainsVolume(this))
+                    LocalVolumetricFogManager.manager.RegisterVolume(this);
             }
         }
 
@@ -240,10 +240,10 @@ namespace UnityEngine.Rendering.HighDefinition
 
         private void OnDisable()
         {
-            DensityVolumeManager.manager.DeRegisterVolume(this);
+            LocalVolumetricFogManager.manager.DeRegisterVolume(this);
 
 #if UNITY_EDITOR
-            UnityEditor.SceneVisibilityManager.visibilityChanged -= UpdateDensityVolumeVisibility;
+            UnityEditor.SceneVisibilityManager.visibilityChanged -= UpdateLocalVolumetricFogVisibility;
 #endif
         }
 

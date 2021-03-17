@@ -1,4 +1,4 @@
-Shader "Hidden/HDRP/DebugDensityVolumeAtlas"
+Shader "Hidden/HDRP/DebugLocalVolumetricFogAtlas"
 {
     SubShader
     {
