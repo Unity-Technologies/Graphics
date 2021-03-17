@@ -260,7 +260,7 @@ namespace UnityEditor.Rendering.HighDefinition
             if (k_QuadMesh == null)
                 k_QuadMesh = Resources.GetBuiltinResource<Mesh>("Quad.fbx");
             if (k_PreviewMaterial == null)
-                k_PreviewMaterial = new Material(Shader.Find("Debug/PlanarReflectionProbePreview"));
+                k_PreviewMaterial = new Material(Shader.Find("Hidden/Debug/PlanarReflectionProbePreview"));
             if (k_PreviewOutlineMaterial == null)
                 k_PreviewOutlineMaterial = new Material(Shader.Find("Hidden/UnlitTransparentColored"));
 
