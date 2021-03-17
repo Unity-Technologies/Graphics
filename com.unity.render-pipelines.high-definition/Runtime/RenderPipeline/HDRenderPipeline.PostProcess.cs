@@ -2980,9 +2980,9 @@ namespace UnityEngine.Rendering.HighDefinition
                     {
                         Vector2 localRadPos = (rayOff - rayOff0) * 0.5f;
                         float localRadius = Mathf.Clamp01(Mathf.Max(Mathf.Abs(localRadPos.x), Mathf.Abs(localRadPos.y))); // l1 norm (instead of l2 norm)
-                        float localLerpValue = distortionCurve.Evaluate(localRadius);
-                        return new Vector2(Mathf.Lerp(curSize.x, element.uniformScale * element.targetSizeDistortion.x * scaleSize, localLerpValue),
-                            Mathf.Lerp(curSize.y, element.uniformScale * element.targetSizeDistortion.y * scaleSize, localLerpValue));
+                        float localLerpValue = Mathf.Clamp01(distortionCurve.Evaluate(localRadius));
+                        return new Vector2(Mathf.Lerp(curSize.x, curSize.x * element.targetSizeDistortion.x, localLerpValue),
+                            Mathf.Lerp(curSize.y, curSize.y * element.targetSizeDistortion.y, localLerpValue));
                     }
 
                     float usedSDFRoundness = element.sdfRoundness;
@@ -3078,12 +3078,12 @@ namespace UnityEngine.Rendering.HighDefinition
 
                                 Vector2 rayOff = GetLensFlareRayOffset(screenPos, position, globalCos0, globalSin0);
                                 Vector2 localSize = size;
+                                localSize += size * ((new Vector2(usedAspectRatio, 1.0f)) * element.scaleVariation * RandomRange(rnd, -1.0f, 1.0f));
                                 if (element.enableRadialDistortion)
                                 {
                                     Vector2 rayOff0 = GetLensFlareRayOffset(screenPos, 0.0f, globalCos0, globalSin0);
                                     localSize = ComputeLocalSize(rayOff, rayOff0, localSize, element.distortionCurve);
                                 }
-                                localSize += size * ((new Vector2(usedAspectRatio, 1.0f)) * element.scaleVariation * RandomRange(rnd, -1.0f, 1.0f));
 
                                 Color randCol = element.colorGradient.Evaluate(RandomRange(rnd, 0.0f, 1.0f));
 
