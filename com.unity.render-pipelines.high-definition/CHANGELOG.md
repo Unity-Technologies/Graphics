@@ -34,7 +34,6 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Added the support of interpolators for SV_POSITION in shader graph.
 - Added a "Conservative" mode for shader graph depth offset.
 - Added an error message when trying to use disk lights with realtime GI (case 1317808).
-- Added an error message when trying to use disk lights with realtime GI (case 1317808).
 - Added the multicompile for dynamic lightmaps to support enlighten in ray tracing (case 1318927).
 
 ### Fixed
@@ -111,7 +110,6 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed Nans happening when the history render target is bigger than the current viewport (case 1321139).
 - Fixed Tube and Disc lights mode selection (case 1317776)
 - Fixed preview camera updating the skybox material triggering GI baking (case 1314361/1314373).
-- Fixed grey screen on playstation platform when histogram exposure is enabled but the curve mapping is not used.
 
 ### Changed
 - Changed Window/Render Pipeline/HD Render Pipeline Wizard to Window/Rendering/HDRP Wizard
@@ -163,7 +161,6 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Virtual Texturing Resolver now performs RTHandle resize logic in HDRP instead of in core Unity
 - Cached the base types of Volume Manager to improve memory and cpu usage.
 - Changed Density Volume for Local Volumetric Fog
-- Reduced the maximal number of bounces for both RTGI and RTR (case 1318876).
 
 ## [11.0.0] - 2020-10-21
 
