@@ -107,6 +107,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed error message when having MSAA and Screen Space Shadows (case 1318698).
 - Fixed Nans happening when the history render target is bigger than the current viewport (case 1321139).
 - Fixed Tube and Disc lights mode selection (case 1317776)
+- Fixed warning fixed on ShadowLoop include (HDRISky and Unlit+ShadowMatte)
 
 ### Changed
 - Changed Window/Render Pipeline/HD Render Pipeline Wizard to Window/Rendering/HDRP Wizard
