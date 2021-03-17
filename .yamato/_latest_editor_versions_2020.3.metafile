@@ -51,8 +51,8 @@ editor_versions:
       version: 2020.3.0f1
   2020_3_staging:
     Android:
-      revision: e9164e68332df4878427bd2ef75c788f3e5eb23e
-      updated_at: '2021-03-16 23:18:57.019236'
+      revision: 58594120496c58d496dea3c4c7ebb5d278b0ae58
+      updated_at: '2021-03-17 23:09:40.736050'
       version: ''
     Linux:
       revision: e9164e68332df4878427bd2ef75c788f3e5eb23e
@@ -63,8 +63,8 @@ editor_versions:
       updated_at: '2021-03-17 13:13:21.117097'
       version: ''
     Win:
-      revision: e9164e68332df4878427bd2ef75c788f3e5eb23e
-      updated_at: '2021-03-16 23:18:57.019236'
+      revision: 58594120496c58d496dea3c4c7ebb5d278b0ae58
+      updated_at: '2021-03-17 23:09:40.736050'
       version: ''
     iPhone:
       revision: e9164e68332df4878427bd2ef75c788f3e5eb23e
