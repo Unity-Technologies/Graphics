@@ -26,10 +26,10 @@ namespace UnityEngine.Rendering.Universal
                 return true;
             }
 
-            switch (ValidationSettings.validationMode)
+            switch (MaterialSettings.MaterialValidationMode)
             {
-                case DebugValidationMode.ValidateAlbedo:
-                case DebugValidationMode.ValidateMetallic:
+                case DebugMaterialValidationMode.Albedo:
+                case DebugMaterialValidationMode.Metallic:
                 {
                     return true;
                 }

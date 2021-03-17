@@ -127,15 +127,15 @@ bool CalculateValidationMetallic(half3 albedo, half metallic, inout half4 debugC
 
 bool CalculateValidationColorForDebug(in InputData inputData, in SurfaceData surfaceData, inout half4 debugColor)
 {
-    switch(_DebugValidationMode)
+    switch(_DebugMaterialValidationMode)
     {
-        case DEBUGVALIDATIONMODE_NONE:
+        case DEBUGMATERIALVALIDATIONMODE_NONE:
             return false;
 
-        case DEBUGVALIDATIONMODE_VALIDATE_ALBEDO:
+        case DEBUGMATERIALVALIDATIONMODE_ALBEDO:
             return CalculateValidationAlbedo(surfaceData.albedo, debugColor);
 
-        case DEBUGVALIDATIONMODE_VALIDATE_METALLIC:
+        case DEBUGMATERIALVALIDATIONMODE_METALLIC:
             return CalculateValidationMetallic(surfaceData.albedo, surfaceData.metallic, debugColor);
 
         default:

@@ -33,6 +33,15 @@ namespace UnityEngine.Rendering.Universal
         Tangent,
         Normal,
     }
+
+    [GenerateHLSL]
+    public enum DebugMaterialValidationMode
+    {
+        None,
+        Albedo,
+        Metallic
+    }
+
     #endregion
 
     #region Rendering Settings
@@ -111,9 +120,7 @@ namespace UnityEngine.Rendering.Universal
     {
         None,
         HighlightNanInfNegative,
-        HighlightOutsideOfRange,
-        ValidateAlbedo,
-        ValidateMetallic
+        HighlightOutsideOfRange
     }
     #endregion
 }

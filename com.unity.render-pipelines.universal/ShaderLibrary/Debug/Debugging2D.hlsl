@@ -122,14 +122,12 @@ bool CalculateDebugColorLightingSettings(inout SurfaceData2D surfaceData, inout 
 
 bool CalculateDebugColorValidationSettings(in SurfaceData2D surfaceData, in InputData2D inputData, inout half4 debugColor)
 {
-    switch(_DebugValidationMode)
+    switch(_DebugMaterialValidationMode)
     {
-        case DEBUGVALIDATIONMODE_NONE:
-        case DEBUGVALIDATIONMODE_HIGHLIGHT_NAN_INF_NEGATIVE:
-        case DEBUGVALIDATIONMODE_HIGHLIGHT_OUTSIDE_OF_RANGE:
+        case DEBUGMATERIALVALIDATIONMODE_NONE:
             return false;
 
-        case DEBUGVALIDATIONMODE_VALIDATE_ALBEDO:
+        case DEBUGMATERIALVALIDATIONMODE_ALBEDO:
             return CalculateValidationAlbedo(surfaceData.albedo, debugColor);
 
         default:

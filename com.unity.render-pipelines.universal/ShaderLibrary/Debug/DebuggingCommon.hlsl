@@ -27,6 +27,7 @@ half LinearRgbToLuminance(half3 linearRgb)
 // Material settings...
 int _DebugMaterialMode;
 int _DebugVertexAttributeMode;
+int _DebugMaterialValidationMode;
 
 // Rendering settings...
 int _DebugFullScreenMode;
@@ -264,6 +265,7 @@ bool IsFogEnabled()
     #if defined(_DEBUG_SHADER)
     return (_DebugMaterialMode == DEBUGMATERIALMODE_NONE) &&
            (_DebugVertexAttributeMode == DEBUGVERTEXATTRIBUTEMODE_NONE) &&
+           (_DebugMaterialValidationMode == DEBUGMATERIALVALIDATIONMODE_NONE) &&
            (_DebugSceneOverrideMode == DEBUGSCENEOVERRIDEMODE_NONE) &&
            (_DebugMipInfoMode == DEBUGMIPINFOMODE_NONE) &&
            (_DebugLightingMode == DEBUGLIGHTINGMODE_NONE) &&

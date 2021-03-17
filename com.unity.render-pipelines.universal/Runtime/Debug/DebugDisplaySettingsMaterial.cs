@@ -4,8 +4,184 @@ namespace UnityEngine.Rendering.Universal
 {
     public class DebugDisplaySettingsMaterial : IDebugDisplaySettingsData
     {
+        #region Material validation
+        public enum AlbedoDebugValidationPreset
+        {
+            DefaultLuminance,
+            BlackAcrylicPaint,
+            DarkSoil,
+            WornAsphalt,
+            DryClaySoil,
+            GreenGrass,
+            OldConcrete,
+            RedClayTile,
+            DrySand,
+            NewConcrete,
+            WhiteAcrylicPaint,
+            FreshSnow,
+            BlueSky,
+            Foliage,
+        }
+
+        public struct AlbedoDebugValidationPresetData
+        {
+            public string name;
+            public Color color;
+            public float minLuminance;
+            public float maxLuminance;
+        }
+
+        AlbedoDebugValidationPresetData[] _albedoDebugValidationPresetData = new AlbedoDebugValidationPresetData[]
+        {
+            new AlbedoDebugValidationPresetData()
+            {
+                name = "Default Luminance",
+                color = new Color(127f / 255f, 127f / 255f, 127f / 255f),
+                minLuminance = 0.01f,
+                maxLuminance = 0.90f
+            },
+            // colors taken from http://www.babelcolor.com/index_htm_files/ColorChecker_RGB_and_spectra.xls
+            new AlbedoDebugValidationPresetData()
+            {
+                name = "Black Acrylic Paint",
+                color = new Color(56f / 255f, 56f / 255f, 56f / 255f),
+                minLuminance = 0.03f,
+                maxLuminance = 0.07f
+            },
+            new AlbedoDebugValidationPresetData()
+            {
+                name = "Dark Soil",
+                color = new Color(85f / 255f, 61f / 255f, 49f / 255f),
+                minLuminance = 0.05f,
+                maxLuminance = 0.14f
+            },
+
+            new AlbedoDebugValidationPresetData()
+            {
+                name = "Worn Asphalt",
+                color = new Color(91f / 255f, 91f / 255f, 91f / 255f),
+                minLuminance = 0.10f,
+                maxLuminance = 0.15f
+            },
+            new AlbedoDebugValidationPresetData()
+            {
+                name = "Dry Clay Soil",
+                color = new Color(137f / 255f, 120f / 255f, 102f / 255f),
+                minLuminance = 0.15f,
+                maxLuminance = 0.35f
+            },
+            new AlbedoDebugValidationPresetData()
+            {
+                name = "Green Grass",
+                color = new Color(123f / 255f, 131f / 255f, 74f / 255f),
+                minLuminance = 0.16f,
+                maxLuminance = 0.26f
+            },
+            new AlbedoDebugValidationPresetData()
+            {
+                name = "Old Concrete",
+                color = new Color(135f / 255f, 136f / 255f, 131f / 255f),
+                minLuminance = 0.17f,
+                maxLuminance = 0.30f
+            },
+            new AlbedoDebugValidationPresetData()
+            {
+                name = "Red Clay Tile",
+                color = new Color(197f / 255f, 125f / 255f, 100f / 255f),
+                minLuminance = 0.23f,
+                maxLuminance = 0.33f
+            },
+            new AlbedoDebugValidationPresetData()
+            {
+                name = "Dry Sand",
+                color = new Color(177f / 255f, 167f / 255f, 132f / 255f),
+                minLuminance = 0.20f,
+                maxLuminance = 0.45f
+            },
+            new AlbedoDebugValidationPresetData()
+            {
+                name = "New Concrete",
+                color = new Color(185f / 255f, 182f / 255f, 175f / 255f),
+                minLuminance = 0.32f,
+                maxLuminance = 0.55f
+            },
+            new AlbedoDebugValidationPresetData()
+            {
+                name = "White Acrylic Paint",
+                color = new Color(227f / 255f, 227f / 255f, 227f / 255f),
+                minLuminance = 0.75f,
+                maxLuminance = 0.85f
+            },
+            new AlbedoDebugValidationPresetData()
+            {
+                name = "Fresh Snow",
+                color = new Color(243f / 255f, 243f / 255f, 243f / 255f),
+                minLuminance = 0.85f,
+                maxLuminance = 0.95f
+            },
+            new AlbedoDebugValidationPresetData()
+            {
+                name = "Blue Sky",
+                color = new Color(93f / 255f, 123f / 255f, 157f / 255f),
+                minLuminance = new Color(93f / 255f, 123f / 255f, 157f / 255f).linear.maxColorComponent - 0.05f,
+                maxLuminance = new Color(93f / 255f, 123f / 255f, 157f / 255f).linear.maxColorComponent + 0.05f
+            },
+            new AlbedoDebugValidationPresetData()
+            {
+                name = "Foliage",
+                color = new Color(91f / 255f, 108f / 255f, 65f / 255f),
+                minLuminance = new Color(91f / 255f, 108f / 255f, 65f / 255f).linear.maxColorComponent - 0.05f,
+                maxLuminance = new Color(91f / 255f, 108f / 255f, 65f / 255f).linear.maxColorComponent + 0.05f
+            },
+        };
+
+        AlbedoDebugValidationPreset _albedoDebugValidationPreset;
+        public AlbedoDebugValidationPreset albedoDebugValidationPreset
+        {
+            get => _albedoDebugValidationPreset;
+            set
+            {
+                _albedoDebugValidationPreset = value;
+                AlbedoDebugValidationPresetData presetData = _albedoDebugValidationPresetData[(int)value];
+                AlbedoMinLuminance = presetData.minLuminance;
+                AlbedoMaxLuminance = presetData.maxLuminance;
+                AlbedoCompareColor = presetData.color;
+            }
+        }
+
+        public float AlbedoMinLuminance = 0.01f;
+        public float AlbedoMaxLuminance = 0.90f;
+
+        float _albedoHueTolerance = 0.104f;
+        public float AlbedoHueTolerance
+        {
+            get => _albedoDebugValidationPreset == AlbedoDebugValidationPreset.DefaultLuminance ? 1.0f : _albedoHueTolerance;
+            set => _albedoHueTolerance = value;
+        }
+
+        float _albedoSaturationTolerance = 0.214f;
+        public float AlbedoSaturationTolerance
+        {
+            get => _albedoDebugValidationPreset == AlbedoDebugValidationPreset.DefaultLuminance ? 1.0f : _albedoSaturationTolerance;
+            set => _albedoSaturationTolerance = value;
+        }
+
+        public Color AlbedoCompareColor = new Color(127f / 255f, 127f / 255f, 127f / 255f, 255f / 255f);
+
+        public float MetallicMinValue = 0.0f;
+        public float MetallicMaxValue = 0.9f;
+
+        public DebugMaterialValidationMode MaterialValidationMode;
+
+        #endregion
+
         public DebugMaterialMode DebugMaterialModeData;
         public DebugVertexAttributeMode DebugVertexAttributeIndexData;
+
+        internal static void ConditionalUIChanged<T>(DebugUI.Field<T> field, T value)
+        {
+            // TODO: Recreate UI to allow conditional widget visibility
+        }
 
         internal static class WidgetFactory
         {
@@ -28,6 +204,69 @@ namespace UnityEngine.Rendering.Universal
                 getIndex = () => (int)data.DebugVertexAttributeIndexData,
                 setIndex = (value) => data.DebugVertexAttributeIndexData = (DebugVertexAttributeMode)value
             };
+
+            internal static DebugUI.Widget CreateMaterialValidationMode(DebugDisplaySettingsMaterial data) => new DebugUI.EnumField
+            {
+                displayName = "Material Validation Mode",
+                autoEnum = typeof(DebugMaterialValidationMode),
+                getter = () => (int)data.MaterialValidationMode,
+                setter = (value) => {},
+                getIndex = () => (int)data.MaterialValidationMode,
+                setIndex = (value) => data.MaterialValidationMode = (DebugMaterialValidationMode)value,
+                onValueChanged = ConditionalUIChanged
+            };
+
+            internal static DebugUI.Widget CreateAlbedoPreset(DebugDisplaySettingsMaterial data) => new DebugUI.EnumField
+            {
+                displayName = "Albedo Validation Preset",
+                autoEnum = typeof(AlbedoDebugValidationPreset),
+                getter = () => (int)data.albedoDebugValidationPreset,
+                setter = (value) => {},
+                getIndex = () => (int)data.albedoDebugValidationPreset,
+                setIndex = (value) => data.albedoDebugValidationPreset = (AlbedoDebugValidationPreset)value
+            };
+
+            internal static DebugUI.Widget CreateAlbedoMinLuminance(DebugDisplaySettingsMaterial data) => new DebugUI.FloatField
+            {
+                displayName = "Albedo Min Luminance",
+                getter = () => data.AlbedoMinLuminance,
+                setter = (value) => data.AlbedoMinLuminance = value
+            };
+
+            internal static DebugUI.Widget CreateAlbedoMaxLuminance(DebugDisplaySettingsMaterial data) => new DebugUI.FloatField
+            {
+                displayName = "Albedo Max Luminance",
+                getter = () => data.AlbedoMaxLuminance,
+                setter = (value) => data.AlbedoMaxLuminance = value
+            };
+
+            internal static DebugUI.Widget CreateAlbedoHueTolerance(DebugDisplaySettingsMaterial data) => new DebugUI.FloatField
+            {
+                displayName = "Albedo Hue Tolerance",
+                getter = () => data.AlbedoHueTolerance,
+                setter = (value) => data.AlbedoHueTolerance = value
+            };
+
+            internal static DebugUI.Widget CreateAlbedoSaturationTolerance(DebugDisplaySettingsMaterial data) => new DebugUI.FloatField
+            {
+                displayName = "Albedo Saturation Tolerance",
+                getter = () => data.AlbedoSaturationTolerance,
+                setter = (value) => data.AlbedoSaturationTolerance = value
+            };
+
+            internal static DebugUI.Widget CreateMetallicMinValue(DebugDisplaySettingsMaterial data) => new DebugUI.FloatField
+            {
+                displayName = "Metallic Min Value",
+                getter = () => data.MetallicMinValue,
+                setter = (value) => data.MetallicMinValue = value
+            };
+
+            internal static DebugUI.Widget CreateMetallicMaxValue(DebugDisplaySettingsMaterial data) => new DebugUI.FloatField
+            {
+                displayName = "Metallic Max Value",
+                getter = () => data.MetallicMaxValue,
+                setter = (value) => data.MetallicMaxValue = value
+            };
         }
 
         private class SettingsPanel : DebugDisplaySettingsPanel
@@ -47,22 +286,41 @@ namespace UnityEngine.Rendering.Universal
                     }
                 });
 
-                // AddWidget(new DebugUI.Foldout
-                // {
-                //     displayName = "Albedo",
-                //     isHeader = true,
-                //     opened = true,
-                //     children =
-                //     {
-                //         // TODO: Albedo debug modes
-                //     }
-                // });
+                var validationFoldout = new DebugUI.Foldout
+                {
+                    displayName = "Material Validation",
+                    isHeader = true,
+                    opened = true,
+                    children =
+                    {
+                        WidgetFactory.CreateMaterialValidationMode(data)
+                    }
+                };
+
+                // TODO: Make albedo & metallic UI elements conditional on active material validation mode
+                //if (data.MaterialValidationMode == DebugMaterialValidationMode.Albedo)
+                {
+                    validationFoldout.children.Add(WidgetFactory.CreateAlbedoPreset(data));
+                    validationFoldout.children.Add(WidgetFactory.CreateAlbedoMinLuminance(data));
+                    validationFoldout.children.Add(WidgetFactory.CreateAlbedoMaxLuminance(data));
+                    validationFoldout.children.Add(WidgetFactory.CreateAlbedoHueTolerance(data));
+                    validationFoldout.children.Add(WidgetFactory.CreateAlbedoSaturationTolerance(data));
+                }
+                //else if (data.MaterialValidationMode == DebugMaterialValidationMode.Metallic)
+                {
+                    validationFoldout.children.Add(WidgetFactory.CreateMetallicMinValue(data));
+                    validationFoldout.children.Add(WidgetFactory.CreateMetallicMaxValue(data));
+                }
+
+                AddWidget(validationFoldout);
             }
         }
 
         #region IDebugDisplaySettingsData
-        public bool AreAnySettingsActive => (DebugMaterialModeData != DebugMaterialMode.None) ||
-        (DebugVertexAttributeIndexData != DebugVertexAttributeMode.None);
+        public bool AreAnySettingsActive =>
+            (DebugMaterialModeData != DebugMaterialMode.None) ||
+            (DebugVertexAttributeIndexData != DebugVertexAttributeMode.None) ||
+            (MaterialValidationMode != DebugMaterialValidationMode.None);
         public bool IsPostProcessingAllowed => !AreAnySettingsActive;
         public bool IsLightingActive => !AreAnySettingsActive;
 
