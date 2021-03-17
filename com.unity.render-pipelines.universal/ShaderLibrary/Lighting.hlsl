@@ -655,16 +655,16 @@ float CalculateProbeWeight(half3 positionWS, float4 probeBoxMin, float4 probeBox
     return saturate(min(weightDir.x, min(weightDir.y, weightDir.z)));
 }
 
-float CalculateProbeVolume(float4 probeBoxMin, float4 probeBoxMax)
+float CalculateProbeVolumeSqrMagnitude(float4 probeBoxMin, float4 probeBoxMax)
 {
     float3 maxToMin = probeBoxMax.xyz - probeBoxMin.xyz;
-    return maxToMin.x * maxToMin.y * maxToMin.z;
+    return dot(maxToMin, maxToMin);
 }
 
 half3 CalculateIrradianceFromReflectionProbes(half3 reflectVector, half3 positionWS, half perceptualRoughness)
 {
-    float probe0Volume = CalculateProbeVolume(unity_SpecCube0_BoxMin, unity_SpecCube0_BoxMax);
-    float probe1Volume = CalculateProbeVolume(unity_SpecCube1_BoxMin, unity_SpecCube1_BoxMax);
+    float probe0Volume = CalculateProbeVolumeSqrMagnitude(unity_SpecCube0_BoxMin, unity_SpecCube0_BoxMax);
+    float probe1Volume = CalculateProbeVolumeSqrMagnitude(unity_SpecCube1_BoxMin, unity_SpecCube1_BoxMax);
 
     float volumeSign = sign(probe0Volume - probe1Volume);
     float importanceSign = unity_SpecCube1_BoxMin.w;
