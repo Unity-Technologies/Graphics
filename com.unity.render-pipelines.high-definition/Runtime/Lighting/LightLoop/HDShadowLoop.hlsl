@@ -32,8 +32,6 @@ void ShadowLoopMin(HDShadowContext shadowContext, PositionInputs posInput, float
     // First of all we compute the shadow value of the directional light to reduce the VGPR pressure
     if (featureFlags & LIGHTFEATUREFLAGS_DIRECTIONAL)
     {
-        // SHADOW_TYPE is real or real3
-        float invCompCountType = 1.0f / dot(float3(1.0f, 1.0f, 1.0f).SHADOW_TYPE_REPLICATE, float3(1.0f, 1.0f, 1.0f).SHADOW_TYPE_REPLICATE); // == 1.0f or 1.0f / 3.0f
         // Evaluate sun shadows.
         if (_DirectionalShadowIndex >= 0)
         {
