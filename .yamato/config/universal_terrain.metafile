@@ -20,10 +20,15 @@ reuse_blocks:
     - [all]: --extra-editor-arg="-cacheServerNamespacePrefix" --extra-editor-arg="SRP"
     - [all]: --extra-editor-arg="-cacheServerEnableDownload" --extra-editor-arg="true"
     - [all]: --extra-editor-arg="-cacheServerEnableUpload" --extra-editor-arg="true"
-  code_coverage:
+  code_coverage_runtime:
     - [all]: --enable-code-coverage
     - [all]: --coverage-results-path=%YAMATO_SOURCE_DIR%/test-results/code-coverage
     - [all]: --coverage-options 'enableAdditionalMetrics;generateHtmlReport;assemblyFilters:+Unity.RenderPipelines.Universal.Runtime'
+  code_coverage_editor:
+    - [all]: --enable-code-coverage
+    - [all]: --coverage-results-path=%YAMATO_SOURCE_DIR%/test-results/code-coverage
+    - [all]: --coverage-options 'enableAdditionalMetrics;generateHtmlReport;assemblyFilters:+Unity.RenderPipelines.Universal.Editor'
+
 
 test_platforms:
   - type: Standalone
@@ -45,9 +50,10 @@ test_platforms:
 
   - type: playmode
     commands:
-      - [all]: <reuse_blocks.setup_with_utr>
+      - <reuse_blocks.setup_without_utr>
+      - [all]: <shared.platform.commands.call_utr>
         flags:
-          - <reuse_blocks.code_coverage>
+          - <reuse_blocks.code_coverage_runtime>
   - type: playmode
     name: playmode_cache
     commands:
@@ -55,13 +61,14 @@ test_platforms:
       - [all]: <shared.platform.commands.call_utr>
         flags:
           - <reuse_blocks.cache_server>
-          - <reuse_blocks.code_coverage>
+          - <reuse_blocks.code_coverage_runtime>
 
   - type: editmode
     commands:
-      - [all]: <reuse_blocks.setup_with_utr>
+      - <reuse_blocks.setup_without_utr>
+      - [all]: <shared.platform.commands.call_utr>
         flags:
-          - <reuse_blocks.code_coverage>
+          - <reuse_blocks.code_coverage_editor>
 
   - type: playmode
     name: playmode_XR
@@ -70,7 +77,7 @@ test_platforms:
       - [all]: <shared.platform.commands.call_utr>
         flags:
           - [all]: --extra-editor-arg="-xr-reuse-tests"
-          - <reuse_blocks.code_coverage>
+          - <reuse_blocks.code_coverage_runtime>
   - type: playmode
     name: playmode_XR_cache
     commands:
@@ -79,7 +86,7 @@ test_platforms:
         flags:
           - [all]: --extra-editor-arg="-xr-reuse-tests"
           - <reuse_blocks.cache_server>
-          - <reuse_blocks.code_coverage>
+          - <reuse_blocks.code_coverage_runtime>
 
   - type: Standalone
     name: Standalone_cache

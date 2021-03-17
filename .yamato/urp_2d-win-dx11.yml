@@ -87,7 +87,7 @@ URP_2D_Win_DX11_playmode_mono_Linear_trunk:
               set /p GIT_REVISIONDATE=<revdate.tmp
               echo %GIT_REVISIONDATE%
               del revdate.tmp
-              utr --artifacts_path=TestProjects/UniversalGraphicsTest_2D/test-results --editor-location=.Editor --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-force-d3d11" --scripting-backend=Mono2x --suite=playmode --testfilter=%TEST_FILTER% --testproject=./TestProjects/UniversalGraphicsTest_2D --zero-tests-are-ok=1
+              utr --artifacts_path=TestProjects/UniversalGraphicsTest_2D/test-results --coverage-options 'enableAdditionalMetrics;generateHtmlReport;assemblyFilters:+Unity.RenderPipelines.Universal.Runtime' --coverage-results-path=%YAMATO_SOURCE_DIR%/test-results/code-coverage --editor-location=.Editor --enable-code-coverage --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-force-d3d11" --scripting-backend=Mono2x --suite=playmode --testfilter=%TEST_FILTER% --testproject=./TestProjects/UniversalGraphicsTest_2D --zero-tests-are-ok=1
     artifacts:
         logs:
             paths:
@@ -142,7 +142,7 @@ URP_2D_Win_DX11_editmode_mono_Linear_trunk:
               set /p GIT_REVISIONDATE=<revdate.tmp
               echo %GIT_REVISIONDATE%
               del revdate.tmp
-              utr --artifacts_path=TestProjects/UniversalGraphicsTest_2D/test-results --editor-location=.Editor --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-force-d3d11" --extra-editor-arg="-playergraphicsapi=Direct3D11" --platform=editmode --scripting-backend=Mono2x --suite=editor --testfilter=%TEST_FILTER% --testproject=./TestProjects/UniversalGraphicsTest_2D --zero-tests-are-ok=1
+              utr --artifacts_path=TestProjects/UniversalGraphicsTest_2D/test-results --coverage-options 'enableAdditionalMetrics;generateHtmlReport;assemblyFilters:+Unity.RenderPipelines.Universal.Editor' --coverage-results-path=%YAMATO_SOURCE_DIR%/test-results/code-coverage --editor-location=.Editor --enable-code-coverage --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-force-d3d11" --extra-editor-arg="-playergraphicsapi=Direct3D11" --platform=editmode --scripting-backend=Mono2x --suite=editor --testfilter=%TEST_FILTER% --testproject=./TestProjects/UniversalGraphicsTest_2D --zero-tests-are-ok=1
     artifacts:
         logs:
             paths:
@@ -350,7 +350,7 @@ URP_2D_Win_DX11_playmode_mono_Linear_CUSTOM-REVISION:
               set /p GIT_REVISIONDATE=<revdate.tmp
               echo %GIT_REVISIONDATE%
               del revdate.tmp
-              utr --artifacts_path=TestProjects/UniversalGraphicsTest_2D/test-results --editor-location=.Editor --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-force-d3d11" --scripting-backend=Mono2x --suite=playmode --testfilter=%TEST_FILTER% --testproject=./TestProjects/UniversalGraphicsTest_2D --zero-tests-are-ok=1
+              utr --artifacts_path=TestProjects/UniversalGraphicsTest_2D/test-results --coverage-options 'enableAdditionalMetrics;generateHtmlReport;assemblyFilters:+Unity.RenderPipelines.Universal.Runtime' --coverage-results-path=%YAMATO_SOURCE_DIR%/test-results/code-coverage --editor-location=.Editor --enable-code-coverage --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-force-d3d11" --scripting-backend=Mono2x --suite=playmode --testfilter=%TEST_FILTER% --testproject=./TestProjects/UniversalGraphicsTest_2D --zero-tests-are-ok=1
     artifacts:
         logs:
             paths:
@@ -413,7 +413,7 @@ URP_2D_Win_DX11_editmode_mono_Linear_CUSTOM-REVISION:
               set /p GIT_REVISIONDATE=<revdate.tmp
               echo %GIT_REVISIONDATE%
               del revdate.tmp
-              utr --artifacts_path=TestProjects/UniversalGraphicsTest_2D/test-results --editor-location=.Editor --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-force-d3d11" --extra-editor-arg="-playergraphicsapi=Direct3D11" --platform=editmode --scripting-backend=Mono2x --suite=editor --testfilter=%TEST_FILTER% --testproject=./TestProjects/UniversalGraphicsTest_2D --zero-tests-are-ok=1
+              utr --artifacts_path=TestProjects/UniversalGraphicsTest_2D/test-results --coverage-options 'enableAdditionalMetrics;generateHtmlReport;assemblyFilters:+Unity.RenderPipelines.Universal.Editor' --coverage-results-path=%YAMATO_SOURCE_DIR%/test-results/code-coverage --editor-location=.Editor --enable-code-coverage --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-force-d3d11" --extra-editor-arg="-playergraphicsapi=Direct3D11" --platform=editmode --scripting-backend=Mono2x --suite=editor --testfilter=%TEST_FILTER% --testproject=./TestProjects/UniversalGraphicsTest_2D --zero-tests-are-ok=1
     artifacts:
         logs:
             paths:
