@@ -1,9 +1,5 @@
 using System;
-using System.Collections.Generic;
-using System.ComponentModel;
 using System.Linq;
-using System.Reflection;
-using UnityEditor;
 using UnityEngine.Assertions;
 
 namespace UnityEngine.Rendering
@@ -297,7 +293,7 @@ namespace UnityEngine.Rendering
                         if (memInfo[0].GetCustomAttributes(typeof(ObsoleteAttribute), false).FirstOrDefault() is ObsoleteAttribute)
                             name += " (Obsolete)";
 
-                        enumNames[i] = new GUIContent(ObjectNames.NicifyVariableName(name));
+                        enumNames[i] = new GUIContent(name);
                         enumValues[i] = (int)enumValue;
                     }
 
