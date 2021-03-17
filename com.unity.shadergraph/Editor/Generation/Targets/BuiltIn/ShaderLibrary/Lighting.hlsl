@@ -722,7 +722,7 @@ half3 GlobalIllumination(BRDFData brdfData, half3 bakedGI, half occlusion, half3
     return GlobalIllumination(brdfData, noClearCoat, 0.0, bakedGI, occlusion, normalWS, viewDirectionWS);
 }
 
-void MixRealtimeAndBakedGI(inout Light light, half3 normalWS, inout half3 bakedGI)
+void MixRealtimeAndBakedGI(Light light, half3 normalWS, inout half3 bakedGI)
 {
 #if defined(LIGHTMAP_ON) && defined(_MIXED_LIGHTING_SUBTRACTIVE)
     bakedGI = SubtractDirectMainLightFromLightmap(light, normalWS, bakedGI);
@@ -730,7 +730,7 @@ void MixRealtimeAndBakedGI(inout Light light, half3 normalWS, inout half3 bakedG
 }
 
 // Backwards compatiblity
-void MixRealtimeAndBakedGI(inout Light light, half3 normalWS, inout half3 bakedGI, half4 shadowMask)
+void MixRealtimeAndBakedGI(Light light, half3 normalWS, inout half3 bakedGI, half4 shadowMask)
 {
     MixRealtimeAndBakedGI(light, normalWS, bakedGI);
 }
