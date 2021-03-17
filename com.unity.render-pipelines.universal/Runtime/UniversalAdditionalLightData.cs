@@ -48,6 +48,14 @@ namespace UnityEngine.Rendering.Universal
             set => m_LightCookieSize = value;
         }
 
+        [Tooltip("Controls the offset of the cookie mask currently assigned to the light.")]
+        [SerializeField] Vector2 m_LightCookieOffset = Vector2.zero;
+        public Vector2 lightCookieOffset    // It's really a scale / multiplier, but called Size here for UI consistency
+        {
+            get => m_LightCookieOffset;
+            set => m_LightCookieOffset = value;
+        }
+
         // TODO: check priority ordering, so that it's consistent with rest URP/Unity
         [Tooltip("Light priority. Higher priority number is more important.")]
         [SerializeField] int m_Priority = 0;

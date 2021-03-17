@@ -16,6 +16,7 @@ namespace UnityEngine.Rendering.Universal
             public static readonly int _MainLightTexture        = Shader.PropertyToID("_MainLightCookieTexture");
             public static readonly int _MainLightWorldToLight   = Shader.PropertyToID("_MainLightWorldToLight");
             public static readonly int _MainLightCookieUVScale  = Shader.PropertyToID("_MainLightCookieUVScale");
+            public static readonly int _MainLightCookieUVOffset = Shader.PropertyToID("_MainLightCookieUVOffset");
             public static readonly int _MainLightCookieFormat   = Shader.PropertyToID("_MainLightCookieFormat");
 
             public static readonly int _AdditionalLightsCookieAtlasTexture      = Shader.PropertyToID("_AdditionalLightsCookieAtlasTexture");
@@ -233,16 +234,21 @@ namespace UnityEngine.Rendering.Universal
             {
                 Matrix4x4 cookieMatrix = visibleMainLight.localToWorldMatrix.inverse;
                 Vector2 cookieUVScale  = Vector2.one;
+                Vector2 cookieUVOffset = Vector2.zero;
                 float cookieFormat     = ((cookieTexture as Texture2D)?.format == TextureFormat.Alpha8) ? 1.0f : 0.0f;
 
                 // TODO: verify against HDRP if scale should actually be invScale
                 var additionalLightData = mainLight.GetComponent<UniversalAdditionalLightData>();
                 if (additionalLightData != null)
-                    cookieUVScale = additionalLightData.lightCookieSize;
+                {
+                    cookieUVScale  = additionalLightData.lightCookieSize;
+                    cookieUVOffset = additionalLightData.lightCookieOffset;
+                }
 
                 cmd.SetGlobalTexture(ShaderProperty._MainLightTexture,       cookieTexture);
                 cmd.SetGlobalMatrix(ShaderProperty._MainLightWorldToLight,  cookieMatrix);
                 cmd.SetGlobalVector(ShaderProperty._MainLightCookieUVScale, cookieUVScale);
+                cmd.SetGlobalVector(ShaderProperty._MainLightCookieUVOffset, cookieUVOffset);
                 cmd.SetGlobalFloat(ShaderProperty._MainLightCookieFormat,  cookieFormat);
 
                 //DrawDebugFrustum(visibleMainLight.localToWorldMatrix);

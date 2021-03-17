@@ -60,6 +60,7 @@ namespace UnityEditor.Rendering.Universal
             };
 
             public static readonly GUIContent LightCookieSize = EditorGUIUtility.TrTextContent("Cookie Size", "Controls the size of the cookie mask currently assigned to the light.");
+            public static readonly GUIContent LightCookieOffset = EditorGUIUtility.TrTextContent("Cookie Offset", "Controls the offset of the cookie mask currently assigned to the light.");
         }
 
         static Styles s_Styles;
@@ -93,6 +94,7 @@ namespace UnityEditor.Rendering.Universal
         SerializedProperty m_UseAdditionalDataProp;                     // Does light use shadow bias settings defined in UniversalRP asset file?
         SerializedProperty m_AdditionalLightsShadowResolutionTierProp;  // Index of the AdditionalLights ShadowResolution Tier
         SerializedProperty m_LightCookieSizeProp;                       // Multi dimensional light cookie size replacing `cookieSize` in legacy light.
+        SerializedProperty m_LightCookieOffsetProp;                     // Multi dimensional light cookie offset.
 
         protected override void OnEnable()
         {
@@ -126,6 +128,7 @@ namespace UnityEditor.Rendering.Universal
             m_UseAdditionalDataProp = m_AdditionalLightDataSO.FindProperty("m_UsePipelineSettings");
             m_AdditionalLightsShadowResolutionTierProp = m_AdditionalLightDataSO.FindProperty("m_AdditionalLightsShadowResolutionTier");
             m_LightCookieSizeProp = m_AdditionalLightDataSO.FindProperty("m_LightCookieSize");
+            m_LightCookieOffsetProp = m_AdditionalLightDataSO.FindProperty("m_LightCookieOffset");
 
             settings.ApplyModifiedProperties();
         }
@@ -450,11 +453,18 @@ namespace UnityEditor.Rendering.Universal
                         CreateAdditionalLightData();
                     }
 
+                    bool isChanged = false;
                     EditorGUI.BeginChangeCheck();
                     {
                         EditorGUILayout.PropertyField(m_LightCookieSizeProp, Styles.LightCookieSize, (GUILayoutOption[])System.Array.Empty<GUILayoutOption>());
                     }
-                    bool isChanged = EditorGUI.EndChangeCheck();
+                    isChanged |= EditorGUI.EndChangeCheck();
+
+                    EditorGUI.BeginChangeCheck();
+                    {
+                        EditorGUILayout.PropertyField(m_LightCookieOffsetProp, Styles.LightCookieOffset, (GUILayoutOption[])System.Array.Empty<GUILayoutOption>());
+                    }
+                    isChanged |= EditorGUI.EndChangeCheck();
                     if (isChanged)
                     {
                         m_AdditionalLightDataSO.ApplyModifiedProperties();

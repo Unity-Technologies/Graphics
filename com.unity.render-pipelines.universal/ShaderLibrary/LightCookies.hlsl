@@ -28,8 +28,9 @@ CBUFFER_START(MainLightCookie)
 #endif
     float4x4 _MainLightWorldToLight;  // TODO: Simple solution. Should property of the light! Orthographic! 3x4 would be enough or even just light.up (cross(spotDir, light.up), light.up, spotDir, lightPos)
     float2   _MainLightCookieUVScale;
+    float2   _MainLightCookieUVOffset;
     float    _MainLightCookieFormat;  // 0 RGBA, 1 Alpha only
-//  float   _MainLightCookie_Unused;
+//  float3   _MainLightCookie_Unused;
 #ifndef SHADER_API_GLES3
 CBUFFER_END
 #endif
@@ -85,7 +86,7 @@ CBUFFER_END
 // TODO: to namespace, or not to namespace (probably should namespace buffers too)
 // TODO: Could do Universal_Feature_Method or URP_Feature_Method for public API too
 // TODO: URP_Feature_Internal_Method or URP_Feature_Private_Method for internal API (by convention)
-half2 LightCookie_ComputeUVDirectional(float4x4 worldToLight, float3 samplePositionWS, float2 uvScale, float2 uvWrap, half4 atlasUVRect)
+half2 LightCookie_ComputeUVDirectional(float4x4 worldToLight, float3 samplePositionWS, float2 uvScale, float2 uvOffset, float2 uvWrap, half4 atlasUVRect)
 {
     // Translate and rotate 'positionWS' into the light space.
     float3 positionLS   = mul(worldToLight, float4(samplePositionWS, 1)).xyz;
@@ -98,6 +99,7 @@ half2 LightCookie_ComputeUVDirectional(float4x4 worldToLight, float3 samplePosit
 
     // Scale UVs
     positionUV *= uvScale;
+    positionUV += uvOffset;
 
     // Tile texture for cookie in repeat mode
     positionUV.x = (uvWrap.x == LIGHT_COOKIE_WRAP_MODE_REPEAT) ? frac(positionUV.x) : positionUV.x;
@@ -147,7 +149,7 @@ half2 LightCookie_ComputeUVPoint(float4x4 worldToLight, float3 samplePositionWS,
 
 half3 LightCookie_SampleMainLightCookie(float3 samplePositionWS)
 {
-    half2 uv = LightCookie_ComputeUVDirectional(_MainLightWorldToLight, samplePositionWS, _MainLightCookieUVScale, LIGHT_COOKIE_WRAP_MODE_NONE, half4(0, 0, 1, 1));
+    half2 uv = LightCookie_ComputeUVDirectional(_MainLightWorldToLight, samplePositionWS, _MainLightCookieUVScale, _MainLightCookieUVOffset, LIGHT_COOKIE_WRAP_MODE_NONE, half4(0, 0, 1, 1));
     return MAIN_LIGHT_COOKIE_FORMAT_IS_ALPHA ? SAMPLE_MAIN_LIGHT_COOKIE_TEXTURE(uv).aaa : SAMPLE_MAIN_LIGHT_COOKIE_TEXTURE(uv).rgb;
 }
 
