@@ -110,6 +110,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed warning fixed on ShadowLoop include (HDRISky and Unlit+ShadowMatte)
 - Fixed SSR Precision for 4K Screens
 - Fixed issue with gbuffer debug view when virtual texturing is enabled.
+- Fixed Decal's pivot edit mode 2D slider gizmo not supporting multi-edition
 
 ### Changed
 - Changed Window/Render Pipeline/HD Render Pipeline Wizard to Window/Rendering/HDRP Wizard
