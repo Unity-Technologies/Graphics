@@ -17,6 +17,7 @@ namespace UnityEngine.Rendering.Universal
                 // TODO: Tear the UI down and re-create it for now - this is horrible, so reset it instead.
                 UnregisterDebug();
                 RegisterDebug(m_Settings);
+                DebugManager.instance.RefreshEditor();
             }
         }
 

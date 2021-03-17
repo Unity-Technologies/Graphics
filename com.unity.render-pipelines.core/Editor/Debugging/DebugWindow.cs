@@ -478,7 +478,7 @@ namespace UnityEditor.Rendering
 
         void OnWidgetGUI(DebugUI.Widget widget)
         {
-            if (widget.isInactiveInEditor)
+            if (widget.isInactiveInEditor || widget.isHidden)
                 return;
 
             // State will be null for stateless widget

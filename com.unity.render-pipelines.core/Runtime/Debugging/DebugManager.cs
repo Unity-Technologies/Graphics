@@ -155,12 +155,12 @@ namespace UnityEngine.Rendering
         }
 
         /// <summary>
-        /// Redraw the runtime debug UI.
+        /// Request the runtime debug UI be redrawn on the next update.
         /// </summary>
         public void ReDrawOnScreenDebug()
         {
             if (displayRuntimeUI)
-                m_RootUICanvas?.ResetAllHierarchy();
+                m_RootUICanvas?.RequestHierarchyReset();
         }
 
         /// <summary>

@@ -178,10 +178,37 @@ namespace UnityEngine.Rendering.Universal
         public DebugMaterialMode DebugMaterialModeData;
         public DebugVertexAttributeMode DebugVertexAttributeIndexData;
 
-        internal static void ConditionalUIChanged<T>(DebugUI.Field<T> field, T value)
+        internal static void DebugMaterialValidationModeChanged(DebugUI.Field<int> field, int value)
         {
-            // TODO: Recreate UI to allow conditional widget visibility
+            // Hacky way to hide non-relevant UI options based on displayNames.
+            var mode = (DebugMaterialValidationMode)value;
+            var validationWidgets = field.parent.children;
+            foreach (var widget in validationWidgets)
+            {
+                if (mode == DebugMaterialValidationMode.None && (
+                    widget.displayName == k_AlbedoSettingsContainerName ||
+                    widget.displayName == k_MetallicSettingsContainerName))
+                {
+                    widget.isHidden = true;
+                }
+                else if (mode == DebugMaterialValidationMode.Albedo && widget.displayName == k_MetallicSettingsContainerName)
+                {
+                    widget.isHidden = true;
+                }
+                else if (mode == DebugMaterialValidationMode.Metallic && widget.displayName == k_AlbedoSettingsContainerName)
+                {
+                    widget.isHidden = true;
+                }
+                else
+                {
+                    widget.isHidden = false;
+                }
+            }
+            DebugManager.instance.ReDrawOnScreenDebug();
         }
+
+        const string k_AlbedoSettingsContainerName = "Albedo Settings";
+        const string k_MetallicSettingsContainerName = "Metallic Settings";
 
         internal static class WidgetFactory
         {
@@ -213,12 +240,12 @@ namespace UnityEngine.Rendering.Universal
                 setter = (value) => {},
                 getIndex = () => (int)data.MaterialValidationMode,
                 setIndex = (value) => data.MaterialValidationMode = (DebugMaterialValidationMode)value,
-                onValueChanged = ConditionalUIChanged
+                onValueChanged = DebugMaterialValidationModeChanged
             };
 
             internal static DebugUI.Widget CreateAlbedoPreset(DebugDisplaySettingsMaterial data) => new DebugUI.EnumField
             {
-                displayName = "Albedo Validation Preset",
+                displayName = "Validation Preset",
                 autoEnum = typeof(AlbedoDebugValidationPreset),
                 getter = () => (int)data.albedoDebugValidationPreset,
                 setter = (value) => {},
@@ -228,44 +255,50 @@ namespace UnityEngine.Rendering.Universal
 
             internal static DebugUI.Widget CreateAlbedoMinLuminance(DebugDisplaySettingsMaterial data) => new DebugUI.FloatField
             {
-                displayName = "Albedo Min Luminance",
+                displayName = "Min Luminance",
                 getter = () => data.AlbedoMinLuminance,
-                setter = (value) => data.AlbedoMinLuminance = value
+                setter = (value) => data.AlbedoMinLuminance = value,
+                incStep = 0.01f
             };
 
             internal static DebugUI.Widget CreateAlbedoMaxLuminance(DebugDisplaySettingsMaterial data) => new DebugUI.FloatField
             {
-                displayName = "Albedo Max Luminance",
+                displayName = "Max Luminance",
                 getter = () => data.AlbedoMaxLuminance,
-                setter = (value) => data.AlbedoMaxLuminance = value
+                setter = (value) => data.AlbedoMaxLuminance = value,
+                incStep = 0.01f
             };
 
             internal static DebugUI.Widget CreateAlbedoHueTolerance(DebugDisplaySettingsMaterial data) => new DebugUI.FloatField
             {
-                displayName = "Albedo Hue Tolerance",
+                displayName = "Hue Tolerance",
                 getter = () => data.AlbedoHueTolerance,
-                setter = (value) => data.AlbedoHueTolerance = value
+                setter = (value) => data.AlbedoHueTolerance = value,
+                incStep = 0.01f
             };
 
             internal static DebugUI.Widget CreateAlbedoSaturationTolerance(DebugDisplaySettingsMaterial data) => new DebugUI.FloatField
             {
-                displayName = "Albedo Saturation Tolerance",
+                displayName = "Saturation Tolerance",
                 getter = () => data.AlbedoSaturationTolerance,
-                setter = (value) => data.AlbedoSaturationTolerance = value
+                setter = (value) => data.AlbedoSaturationTolerance = value,
+                incStep = 0.01f
             };
 
             internal static DebugUI.Widget CreateMetallicMinValue(DebugDisplaySettingsMaterial data) => new DebugUI.FloatField
             {
-                displayName = "Metallic Min Value",
+                displayName = "Min Value",
                 getter = () => data.MetallicMinValue,
-                setter = (value) => data.MetallicMinValue = value
+                setter = (value) => data.MetallicMinValue = value,
+                incStep = 0.01f
             };
 
             internal static DebugUI.Widget CreateMetallicMaxValue(DebugDisplaySettingsMaterial data) => new DebugUI.FloatField
             {
-                displayName = "Metallic Max Value",
+                displayName = "Max Value",
                 getter = () => data.MetallicMaxValue,
-                setter = (value) => data.MetallicMaxValue = value
+                setter = (value) => data.MetallicMaxValue = value,
+                incStep = 0.01f
             };
         }
 
@@ -286,33 +319,39 @@ namespace UnityEngine.Rendering.Universal
                     }
                 });
 
-                var validationFoldout = new DebugUI.Foldout
+                AddWidget(new DebugUI.Foldout
                 {
                     displayName = "Material Validation",
                     isHeader = true,
                     opened = true,
                     children =
                     {
-                        WidgetFactory.CreateMaterialValidationMode(data)
+                        WidgetFactory.CreateMaterialValidationMode(data),
+                        new DebugUI.Container()
+                        {
+                            displayName = k_AlbedoSettingsContainerName,
+                            isHidden = true,
+                            children =
+                            {
+                                WidgetFactory.CreateAlbedoPreset(data),
+                                WidgetFactory.CreateAlbedoMinLuminance(data),
+                                WidgetFactory.CreateAlbedoMaxLuminance(data),
+                                WidgetFactory.CreateAlbedoHueTolerance(data),
+                                WidgetFactory.CreateAlbedoSaturationTolerance(data)
+                            }
+                        },
+                        new DebugUI.Container()
+                        {
+                            displayName = k_MetallicSettingsContainerName,
+                            isHidden = true,
+                            children =
+                            {
+                                WidgetFactory.CreateMetallicMinValue(data),
+                                WidgetFactory.CreateMetallicMaxValue(data)
+                            }
+                        }
                     }
-                };
-
-                // TODO: Make albedo & metallic UI elements conditional on active material validation mode
-                //if (data.MaterialValidationMode == DebugMaterialValidationMode.Albedo)
-                {
-                    validationFoldout.children.Add(WidgetFactory.CreateAlbedoPreset(data));
-                    validationFoldout.children.Add(WidgetFactory.CreateAlbedoMinLuminance(data));
-                    validationFoldout.children.Add(WidgetFactory.CreateAlbedoMaxLuminance(data));
-                    validationFoldout.children.Add(WidgetFactory.CreateAlbedoHueTolerance(data));
-                    validationFoldout.children.Add(WidgetFactory.CreateAlbedoSaturationTolerance(data));
-                }
-                //else if (data.MaterialValidationMode == DebugMaterialValidationMode.Metallic)
-                {
-                    validationFoldout.children.Add(WidgetFactory.CreateMetallicMinValue(data));
-                    validationFoldout.children.Add(WidgetFactory.CreateMetallicMaxValue(data));
-                }
-
-                AddWidget(validationFoldout);
+                });
             }
         }
 

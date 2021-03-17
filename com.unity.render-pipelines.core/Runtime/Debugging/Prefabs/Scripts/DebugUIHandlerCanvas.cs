@@ -64,7 +64,12 @@ namespace UnityEngine.Rendering.UI
                 m_UIPanels[m_SelectedPanel].ScrollTo(m_SelectedWidget);
         }
 
-        internal void ResetAllHierarchy()
+        internal void RequestHierarchyReset()
+        {
+            m_DebugTreeState = -1;
+        }
+
+        void ResetAllHierarchy()
         {
             foreach (Transform t in transform)
                 CoreUtils.Destroy(t.gameObject);
@@ -91,7 +96,7 @@ namespace UnityEngine.Rendering.UI
 
             foreach (var panel in panels)
             {
-                if (panel.isEditorOnly || panel.children.Count(x => !x.isEditorOnly) == 0)
+                if (panel.isEditorOnly || panel.children.Count(x => !x.isEditorOnly && !x.isHidden) == 0)
                     continue;
 
                 var go = Instantiate(panelPrefab, transform, false).gameObject;
@@ -115,7 +120,7 @@ namespace UnityEngine.Rendering.UI
             {
                 var child = container.children[i];
 
-                if (child.isEditorOnly)
+                if (child.isEditorOnly || child.isHidden)
                     continue;
 
                 Transform prefab;

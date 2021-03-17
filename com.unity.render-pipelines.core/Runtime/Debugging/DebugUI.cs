@@ -17,11 +17,11 @@ namespace UnityEngine.Rendering
             /// <summary>
             /// None.
             /// </summary>
-            None        = 0,
+            None = 0,
             /// <summary>
             /// This widget is Editor only.
             /// </summary>
-            EditorOnly  = 1 << 1,
+            EditorOnly = 1 << 1,
             /// <summary>
             /// This widget is Runtime only.
             /// </summary>
@@ -29,7 +29,11 @@ namespace UnityEngine.Rendering
             /// <summary>
             /// This widget will force the Debug Editor Window refresh.
             /// </summary>
-            EditorForceUpdate = 1 << 3
+            EditorForceUpdate = 1 << 3,
+            /// <summary>
+            /// This widget is not currently displayed (e.g. due to state of other widgets).
+            /// </summary>
+            IsHidden = 1 << 4
         }
 
         /// <summary>
@@ -42,6 +46,7 @@ namespace UnityEngine.Rendering
             /// Panels containing the widget.
             /// </summary>
             protected Panel m_Panel;
+
             /// <summary>
             /// Panels containing the widget.
             /// </summary>
@@ -55,6 +60,7 @@ namespace UnityEngine.Rendering
             /// Parent container.
             /// </summary>
             protected IContainer m_Parent;
+
             /// <summary>
             /// Parent container.
             /// </summary>
@@ -68,10 +74,12 @@ namespace UnityEngine.Rendering
             /// Flags for the widget.
             /// </summary>
             public Flags flags { get; set; }
+
             /// <summary>
             /// Display name.
             /// </summary>
             public string displayName { get; set; }
+
             /// <summary>
             /// Path of the widget.
             /// </summary>
@@ -80,15 +88,32 @@ namespace UnityEngine.Rendering
             /// <summary>
             /// True if the widget is Editor only.
             /// </summary>
-            public bool isEditorOnly { get { return (flags & Flags.EditorOnly) != 0; } }
+            public bool isEditorOnly => flags.HasFlag(Flags.EditorOnly);
+
             /// <summary>
             /// True if the widget is Runtime only.
             /// </summary>
-            public bool isRuntimeOnly { get { return (flags & Flags.RuntimeOnly) != 0; } }
+            public bool isRuntimeOnly => flags.HasFlag(Flags.RuntimeOnly);
+
             /// <summary>
-            /// True if the widget is inactive in the editor (ie: widget is runtime only and the application is not 'Playing')
+            /// True if the widget is inactive in the editor (i.e. widget is runtime only and the application is not 'Playing').
             /// </summary>
-            public bool isInactiveInEditor { get { return (isRuntimeOnly && !Application.isPlaying); } }
+            public bool isInactiveInEditor => (isRuntimeOnly && !Application.isPlaying);
+
+            /// <summary>
+            /// True if the widget has been hidden at runtime (e.g. due to state of other widgets).
+            /// </summary>
+            public bool isHidden
+            {
+                get => flags.HasFlag(Flags.IsHidden);
+                set
+                {
+                    if (value)
+                        flags |= Flags.IsHidden;
+                    else
+                        flags &= ~Flags.IsHidden;
+                }
+            }
 
             internal virtual void GenerateQueryPath()
             {
@@ -117,16 +142,17 @@ namespace UnityEngine.Rendering
             /// List of children of the container.
             /// </summary>
             ObservableList<Widget> children { get; }
+
             /// <summary>
             /// Display name of the container.
             /// </summary>
             string displayName { get; set; }
+
             /// <summary>
             /// Path of the container.
             /// </summary>
             string queryPath { get; }
         }
-
 
         /// <summary>
         /// Any widget that implements this will be considered for serialization (only if the setter is set and thus is not read-only)
@@ -138,11 +164,13 @@ namespace UnityEngine.Rendering
             /// </summary>
             /// <returns>Value of the field.</returns>
             object GetValue();
+
             /// <summary>
             /// Set the value of the field.
             /// </summary>
             /// <param name="value">Input value.</param>
             void SetValue(object value);
+
             /// <summary>
             /// Function used to validate the value when setting it.
             /// </summary>
@@ -181,7 +209,10 @@ namespace UnityEngine.Rendering
             /// <summary>
             /// Constructor.
             /// </summary>
-            public Value() { displayName = ""; }
+            public Value()
+            {
+                displayName = "";
+            }
 
             /// <summary>
             /// Returns the value of the widget.
