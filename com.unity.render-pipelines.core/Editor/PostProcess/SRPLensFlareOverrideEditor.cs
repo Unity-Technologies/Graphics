@@ -7,6 +7,7 @@ namespace UnityEditor.Rendering
     /// <summary>
     /// Editor for SRPLensFlareOverride: Lens Flare Data-Driven which can but added on any GameObject
     /// </summary>
+    [CanEditMultipleObjects]
     [CustomEditor(typeof(SRPLensFlareOverride))]
     public class SRPLensFlareOverrideEditor : Editor
     {
