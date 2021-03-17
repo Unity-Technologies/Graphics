@@ -762,10 +762,7 @@ namespace UnityEditor.VFX
 
             // Check the validity of the shader graph (unsupported keywords or shader property usage).
             if (!VFXLibrary.currentSRPBinder.IsGraphDataValid(graph))
-            {
-                Debug.LogWarning($"There was an issue with using Shader Graph ({context.GetOrRefreshShaderGraphObject().name}) with the Visual Effect Output ({context.name}). Falling back to default shader generation.");
                 return null;
-            }
 
             // Configure the state of VFX target generation utils.
             using (new VFXSubTarget.CompilationScope(context, contextData))

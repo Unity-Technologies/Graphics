@@ -147,12 +147,14 @@ namespace UnityEditor.VFX.HDRP
         {
             var valid = true;
 
+            var warnings = new List<string>();
+
             // Filter property list for any unsupported shader properties.
             foreach (var property in graph.properties)
             {
                 if (s_UnsupportedShaderPropertyTypes.ContainsKey(property.GetType()))
                 {
-                    Debug.LogWarning($"{s_UnsupportedShaderPropertyTypes[property.GetType()]} properties are currently not supported in Visual Effect shaders.");
+                    warnings.Add(s_UnsupportedShaderPropertyTypes[property.GetType()]);
                     valid = false;
                 }
             }
@@ -160,9 +162,12 @@ namespace UnityEditor.VFX.HDRP
             // VFX currently does not support the concept of per-particle keywords.
             if (graph.keywords.Any())
             {
-                Debug.LogWarning("Keywords are currently not supported in Visual Effect shaders.");
+                warnings.Add("Keyword");
                 valid = false;
             }
+
+            if (!valid)
+                Debug.LogWarning($"({String.Join(", ", warnings)}) blackboard properties in Shader Graph are currently not supported in Visual Effect shaders. Falling back to default generation path.");
 
             return valid;
         }
