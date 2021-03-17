@@ -12,6 +12,8 @@
     #endif
 #endif
 
+// TODO: Should move shader input parameters/data into a input header
+
 // Textures
 TEXTURE2D(_MainLightCookieTexture);
 TEXTURE2D(_AdditionalLightsCookieAtlasTexture);
@@ -53,6 +55,8 @@ CBUFFER_END
     #endif
 #endif
 
+// TODO: Should move shader type/data definitions into a data/type header
+
 // Param defines
 #define LIGHT_COOKIE_FORMAT_RGBA  0.0f
 #define LIGHT_COOKIE_FORMAT_ALPHA 1.0f
@@ -74,7 +78,7 @@ CBUFFER_END
 #define LIGHT_COOKIE_LIGHT_TYPE_POINT       2.0f
 
 // Function defines
-// TODO: make a function
+// TODO: prefer functions and types
 #define SAMPLE_MAIN_LIGHT_COOKIE_TEXTURE(uv)        SAMPLE_TEXTURE2D(_MainLightCookieTexture, sampler_MainLightCookieTexture, uv)
 #define SAMPLE_ADDITONAL_LIGHT_COOKIE_TEXTURE(uv)   SAMPLE_TEXTURE2D(_AdditionalLightsCookieAtlasTexture, sampler_AdditionalLightsCookieAtlasTexture, uv)
 
@@ -83,9 +87,119 @@ CBUFFER_END
 
 // Functions
 
-// TODO: to namespace, or not to namespace (probably should namespace buffers too)
-// TODO: Could do Universal_Feature_Method or URP_Feature_Method for public API too
+// TODO: Shader data functions vs. objects prototype
+// TODO: Rename / namespace
+#if 0
+float4x4 LightCookie_GetWorldToLight(int lightIndex)
+{
+    #if USE_STRUCTURED_BUFFER_FOR_LIGHT_DATA
+        return _AdditionalLightsWorldToLightBuffer[lightIndex];
+    #else
+        return _AdditionalLightsWorldToLights[lightIndex];
+    #endif
+}
+
+half4 LightCookie_GetAtlasUVRect(int lightIndex)
+{
+    #if USE_STRUCTURED_BUFFER_FOR_LIGHT_DATA
+        return _AdditionalLightsCookieAtlasUVRectBuffer[lightIndex];
+    #else
+        return _AdditionalLightsCookieAtlasUVRects[lightIndex];
+    #endif
+}
+
+float LightCookie_GetLightType(int lightIndex)
+{
+    #if USE_STRUCTURED_BUFFER_FOR_LIGHT_DATA
+        return _AdditionalLightsLightTypeBuffer[lightIndex];
+    #else
+        return _AdditionalLightsLightTypes[lightIndex];
+    #endif
+}
+
+bool LightCookie_IsEnabled(float4 uvRect)
+{
+    return all(uvRect == 0);
+}
+
+#else
+#define PROTO_OBJ_INTERFACE 1
+struct LightCookie
+{
+    int m_lightIndex;
+
+    float4x4 WorldToLight()
+    {
+        #if USE_STRUCTURED_BUFFER_FOR_LIGHT_DATA
+            return _AdditionalLightsWorldToLightBuffer[m_lightIndex];
+        #else
+            return _AdditionalLightsWorldToLights[m_lightIndex];
+        #endif
+    }
+
+    half4 AtlasUVRect()
+    {
+        #if USE_STRUCTURED_BUFFER_FOR_LIGHT_DATA
+            return _AdditionalLightsCookieAtlasUVRectBuffer[m_lightIndex];
+        #else
+            return _AdditionalLightsCookieAtlasUVRects[m_lightIndex];
+        #endif
+    }
+
+    float LightType()
+    {
+        #if USE_STRUCTURED_BUFFER_FOR_LIGHT_DATA
+            return _AdditionalLightsLightTypeBuffer[m_lightIndex];
+        #else
+            return _AdditionalLightsLightTypes[m_lightIndex];
+        #endif
+    }
+
+    bool IsEnabled(float4 uvRect)
+    {
+        return all(uvRect == 0);
+    }
+};
+LightCookie LightCookie_Create(int lightIndex)
+{
+    LightCookie l = (LightCookie)0;
+    l.m_lightIndex = lightIndex;
+    return l;
+}
+#endif
+
+// TODO: To namespace, or not to namespace (probably should namespace buffers too)
+// TODO:
+// TODO: URP names are like keywords. Users extending URP can't use them.
+// TODO: We can also accidentally hijack user names and break existing code by adding a symbol that conflicts with a user symbol.
+// TODO: All shader code is public. Sometimes we have implementation functions that aren't really for direct usage.
+// TODO: We can't protect against that, but we could mitigate that by having C style namespacing conventions.
+// TODO: A consistent names space for Universal would be great.
+// TODO: We could do Universal_Feature_Method or URP_Feature_Method for public API
 // TODO: URP_Feature_Internal_Method or URP_Feature_Private_Method for internal API (by convention)
+// TODO: Even if only 20% would avoid using internal methods, we would still reduce some breakage.
+// TODO: A 20% win in reduced code breakage is still a win!
+// TODO: Maximum benefit if all Universal shader code would follow standard organization and naming.
+// TODO: We have quite a lot of existing code.
+// TODO: Perhaps we could do a compatibility/deprecated header where we #define existing symbols to new name spaced symbols.
+// TODO: Amount of future URP code will be larger that amount of existing code!
+
+// TODO: We should organize .hlsl files per feature (when possible). Or by area "lighting".
+// TODO: Build shader "modules"
+// TODO: A module would be a folder/"solution filter" with module header .hlsl of the same name
+// TODO: For example, LightCookie shader files would be in LightCookie/ and to include the feature would be LightCookie/LightCookie.hlsl.
+// TODO: LightCookie.hlsl would include all the sub-headers.
+// TODO: 1 file to include to "register" module/feature usage
+// TODO: Example:
+// TODO: LightCookie/
+// TODO: LightCookie/LightCookie.hlsl                // Include light cookie feature to the shader. Could also implement public API (main feature functions). Includes all the sub headers.
+// TODO: LightCookie/LightCookiePrivate.hlsl         // Include light cookie shader implementation detail functions.
+// TODO: LightCookie/LightCookieInput.hlsl           // Include light cookie shader parameters/data. CPU -> GPU
+// TODO: LightCookie/LightCookieData.hlsl            // Include light cookie shader types, data structs and enums etc. Useful, if you only need to pass them forward.
+// TODO: LightCookie/LightCookieData.deprecated.hlsl // Include light cookie deprecated shader types. We should deprecate per file. We've already had cyclic issues when putting everything into one file.
+
+// Building blocks layer: projection from world to uv
+
 half2 LightCookie_ComputeUVDirectional(float4x4 worldToLight, float3 samplePositionWS, float2 uvScale, float2 uvOffset, float2 uvWrap, half4 atlasUVRect)
 {
     // Translate and rotate 'positionWS' into the light space.
@@ -147,6 +261,8 @@ half2 LightCookie_ComputeUVPoint(float4x4 worldToLight, float3 samplePositionWS,
     return positionAtlasUV;
 }
 
+// Main Layer: Cookie sampling per light
+
 half3 LightCookie_SampleMainLightCookie(float3 samplePositionWS)
 {
     half2 uv = LightCookie_ComputeUVDirectional(_MainLightWorldToLight, samplePositionWS, _MainLightCookieUVScale, _MainLightCookieUVOffset, LIGHT_COOKIE_WRAP_MODE_NONE, half4(0, 0, 1, 1));
@@ -155,15 +271,36 @@ half3 LightCookie_SampleMainLightCookie(float3 samplePositionWS)
 
 half3 LightCookie_SampleAdditionalLightCookie(int perObjectLightIndex, float3 samplePositionWS)
 {
-    float4 uvRect = _AdditionalLightsCookieAtlasUVRects[perObjectLightIndex];
+    #if 0
+        #ifdef PROTO_OBJ_INTERFACE
+            LightCookie c = LightCookie_Create(perObjectLightIndex);
+            float4 uvRect = c.AtlasUVRect();
 
-    // TODO: cookie enable bit, uint[8] for 256 lights
-    // TODO: read less
-    if(all(uvRect == 0))
-        return half3(1,1,1);
+            if(c.IsEnabled(uvRect))
+                return half3(1,1,1);
 
-    float    lightType    = _AdditionalLightsLightTypes[perObjectLightIndex];
-    float4x4 worldToLight = _AdditionalLightsWorldToLights[perObjectLightIndex];
+            float    lightType    = c.LightType();
+            float4x4 worldToLight = c.WorldToLight();
+        #else
+            float4 uvRect = LightCookie_GetAtlasUVRect(perObjectLightIndex);
+
+            if(LightCookie_IsEnabled(uvRect))
+                return half3(1,1,1);
+
+            float    lightType    = LightCookie_GetLightType(perObjectLightIndex);
+            float4x4 worldToLight = LightCookie_GetWorldToLightMatrix(perObjectLightIndex);
+        #endif
+    #else
+        float4 uvRect = _AdditionalLightsCookieAtlasUVRects[perObjectLightIndex];
+
+        // TODO: cookie enable bit, uint[8] for 256 lights
+        // TODO: read less
+        if(all(uvRect == 0))
+            return half3(1,1,1);
+
+        float    lightType    = _AdditionalLightsLightTypes[perObjectLightIndex];
+        float4x4 worldToLight = _AdditionalLightsWorldToLights[perObjectLightIndex];
+    #endif
 
     int isSpot = lightType == LIGHT_COOKIE_LIGHT_TYPE_SPOT;
 
