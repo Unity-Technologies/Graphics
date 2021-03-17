@@ -14,7 +14,7 @@ namespace UnityEngine.Rendering.HighDefinition
         Texture2D m_SparsePresetMap;
         Texture2D m_CloudyPresetMap;
         Texture2D m_OvercastPresetMap;
-        Texture2D m_StormCloudsPresetMap;
+        Texture2D m_StormyPresetMap;
 
         // The set of kernels that are required
         int m_ConvertObliqueDepthKernel;
@@ -67,16 +67,16 @@ namespace UnityEngine.Rendering.HighDefinition
             m_SparsePresetMap.Apply();
 
             m_CloudyPresetMap = new Texture2D(1, 1, GraphicsFormat.R8G8B8A8_UNorm, TextureCreationFlags.None) { name = "Default Cloudy Texture" };
-            m_CloudyPresetMap.SetPixel(0, 0, new Color(0.9f, 0.2f, 0.0625f, 1.0f));
+            m_CloudyPresetMap.SetPixel(0, 0, new Color(0.9f, 0.0f, 0.0625f, 1.0f));
             m_CloudyPresetMap.Apply();
 
             m_OvercastPresetMap = new Texture2D(1, 1, GraphicsFormat.R8G8B8A8_UNorm, TextureCreationFlags.None) { name = "Default Overcast Texture" };
-            m_OvercastPresetMap.SetPixel(0, 0, new Color(0.5f, 0.0f, 0.375f, 1.0f));
+            m_OvercastPresetMap.SetPixel(0, 0, new Color(0.5f, 0.0f, 0.8f, 1.0f));
             m_OvercastPresetMap.Apply();
 
-            m_StormCloudsPresetMap = new Texture2D(1, 1, GraphicsFormat.R8G8B8A8_UNorm, TextureCreationFlags.None) { name = "Default Storm Texture" };
-            m_StormCloudsPresetMap.SetPixel(0, 0, new Color(1.0f, 0.8f, 0.375f, 1.0f));
-            m_StormCloudsPresetMap.Apply();
+            m_StormyPresetMap = new Texture2D(1, 1, GraphicsFormat.R8G8B8A8_UNorm, TextureCreationFlags.None) { name = "Default Storm Texture" };
+            m_StormyPresetMap.SetPixel(0, 0, new Color(1.0f, 0.0f, 0.375f, 1.0f));
+            m_StormyPresetMap.Apply();
         }
 
         // Function that fills the buffer with the ambient probe values
@@ -211,38 +211,38 @@ namespace UnityEngine.Rendering.HighDefinition
             {
                 case VolumetricClouds.CloudPresets.Sparse:
                 {
-                    densityMultiplier = 0.85f;
-                    shapeFactor = 0.95f;
-                    shapeScale = 0.8f;
-                    erosionFactor = 0.5f;
-                    erosionScale = 1.2f;
+                    densityMultiplier = 0.8f;
+                    shapeFactor = 0.9f;
+                    shapeScale = 0.35f;
+                    erosionFactor = 0.7f;
+                    erosionScale = 0.6f;
                     return;
                 }
                 case VolumetricClouds.CloudPresets.Cloudy:
                 {
                     densityMultiplier = 0.9f;
-                    shapeFactor = 0.9f;
-                    shapeScale = 0.75f;
-                    erosionFactor = 0.45f;
-                    erosionScale = 1.1f;
+                    shapeFactor = 0.75f;
+                    shapeScale = 0.5f;
+                    erosionFactor = 0.8f;
+                    erosionScale = 0.6f;
                     return;
                 }
                 case VolumetricClouds.CloudPresets.Overcast:
                 {
-                    densityMultiplier = 0.25f;
-                    shapeFactor = 0.7f;
-                    shapeScale = 1.0f;
-                    erosionFactor = 0.5f;
+                    densityMultiplier = 1.0f;
+                    shapeFactor = 0.3f;
+                    shapeScale = 0.7f;
+                    erosionFactor = 0.3f;
                     erosionScale = 1.0f;
                     return;
                 }
-                case VolumetricClouds.CloudPresets.StormClouds:
+                case VolumetricClouds.CloudPresets.Stormy:
                 {
-                    densityMultiplier = 0.3f;
+                    densityMultiplier = 1.25f;
                     shapeFactor = 0.7f;
-                    shapeScale = 0.875f;
-                    erosionFactor = 0.4f;
-                    erosionScale = 1.0f;
+                    shapeScale = 0.7f;
+                    erosionFactor = 0.8f;
+                    erosionScale = 1.2f;
                     return;
                 }
             }
@@ -412,8 +412,8 @@ namespace UnityEngine.Rendering.HighDefinition
                     return m_CloudyPresetMap;
                 case VolumetricClouds.CloudPresets.Overcast:
                     return m_OvercastPresetMap;
-                case VolumetricClouds.CloudPresets.StormClouds:
-                    return m_StormCloudsPresetMap;
+                case VolumetricClouds.CloudPresets.Stormy:
+                    return m_StormyPresetMap;
                 case VolumetricClouds.CloudPresets.Custom:
                     return m_CloudyPresetMap;
             }
