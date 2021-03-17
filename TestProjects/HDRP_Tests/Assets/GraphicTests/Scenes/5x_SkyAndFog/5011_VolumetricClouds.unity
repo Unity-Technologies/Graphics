@@ -1190,7 +1190,7 @@ Light:
   m_BounceIntensity: 1
   m_ColorTemperature: 6570
   m_UseColorTemperature: 1
-  m_BoundingSphereOverride: {x: 1.02e-43, y: -2.1520224e-25, z: 4.5904e-41, w: 0}
+  m_BoundingSphereOverride: {x: 1.02e-43, y: -0.9065919, z: 4.5905e-41, w: 0}
   m_UseBoundingSphereOverride: 0
   m_UseViewFrustumForShadowCasterCull: 1
   m_ShadowRadius: 0
@@ -1304,6 +1304,7 @@ MonoBehaviour:
   m_BarnDoorAngle: 90
   m_BarnDoorLength: 0.05
   m_preserveCachedShadow: 0
+  m_OnDemandShadowRenderOnPlacement: 1
   m_ShadowCascadeRatios:
   - 0.05
   - 0.2
