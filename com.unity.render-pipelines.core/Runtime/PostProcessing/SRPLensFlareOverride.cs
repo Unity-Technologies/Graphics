@@ -148,13 +148,24 @@ namespace UnityEngine
             Camera mainCam = Camera.current;
             if (mainCam != null)
             {
+                Vector3 positionWS;
+                Light light = GetComponent<Light>();
+                if (light != null && light.type == LightType.Directional)
+                {
+                    positionWS = -transform.forward * mainCam.farClipPlane;
+                }
+                else
+                {
+                    positionWS = transform.position;
+                }
+
                 Color previousH = Handles.color;
                 Color previousG = Gizmos.color;
                 Handles.color = Color.red;
                 Gizmos.color = Color.red;
-                Vector3 dir = (mainCam.transform.position - transform.position).normalized;
-                Handles.DrawWireDisc(transform.position + dir * occlusionOffset, dir, occlusionRadius, 1.0f);
-                Gizmos.DrawWireSphere(transform.position, occlusionOffset);
+                Vector3 dir = (mainCam.transform.position - positionWS).normalized;
+                Handles.DrawWireDisc(positionWS + dir * occlusionOffset, dir, occlusionRadius, 1.0f);
+                Gizmos.DrawWireSphere(positionWS, occlusionOffset);
                 Gizmos.color = previousG;
                 Handles.color = previousH;
             }
