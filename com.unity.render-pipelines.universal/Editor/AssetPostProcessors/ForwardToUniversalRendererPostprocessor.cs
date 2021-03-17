@@ -11,39 +11,39 @@ class ForwardToUniversalRendererPostprocessor : AssetPostprocessor
         string stdRendererScriptFilePath = AssetDatabase.GUIDToAssetPath("f971995892640ec4f807ef396269e91e");
         var stdRendererScriptObj = AssetDatabase.LoadAssetAtPath(stdRendererScriptFilePath, typeof(Object));
 
-        //Gets the ForwardRendererData.cs file
-        string fwdRendererScriptFilePath = AssetDatabase.GUIDToAssetPath("de640fe3d0db1804a85f9fc8f5cadab6");
-        var fwdRendererScriptObj = AssetDatabase.LoadAssetAtPath(fwdRendererScriptFilePath, typeof(Object));
-
-        int noOfFwdRendererData = 0;
-
-        //Gets all the Renderer Assets in project
-        Object[] allRenderers = Resources.FindObjectsOfTypeAll(typeof(ScriptableRendererData));
+        //Gets all the ForwardRendererData Assets in project
+        string[] allRenderers = AssetDatabase.FindAssets("t:ForwardRendererData", null);
         for (int i = 0; i < allRenderers.Length; i++)
         {
-            SerializedObject so = new SerializedObject(allRenderers[i]);
+            string rendererDataPath = AssetDatabase.GUIDToAssetPath(allRenderers[i]);
+            Object rendererData = AssetDatabase.LoadAssetAtPath(rendererDataPath, typeof(Object));
+            SerializedObject so = new SerializedObject(rendererData);
+
+            //change the script to use UniversalRendererData
             SerializedProperty scriptProperty = so.FindProperty("m_Script");
             so.Update();
-            //check if the script is using ForwardRendererData
-            if (scriptProperty.objectReferenceValue.Equals(fwdRendererScriptObj))
-            {
-                //change the script to use UniversalRendererData
-                scriptProperty.objectReferenceValue = stdRendererScriptObj;
-                so.ApplyModifiedProperties();
-                noOfFwdRendererData++;
-            }
+            scriptProperty.objectReferenceValue = stdRendererScriptObj;
+            so.ApplyModifiedProperties();
+
+            //Save and re-import asset
+            //This prevents the "Importer(NativeFormatImporter) generated inconsistent result" warning
+            AssetDatabase.SaveAssets();
+            AssetDatabase.ImportAsset(rendererDataPath);
         }
 
         //If there is no ForwardRendererData in project then we don't need to do the following
-        if (noOfFwdRendererData == 0) return;
+        if (allRenderers.Length == 0) return;
 
-        //Gets all the Pipeline Assets in project
-        Object[] allRPassets = Resources.FindObjectsOfTypeAll(typeof(UniversalRenderPipelineAsset));
-        for (int i = 0; i < allRPassets.Length; i++)
+        //Gets all the UniversalRenderPipeline Assets in project
+        string[] allURPassets = AssetDatabase.FindAssets("t:UniversalRenderPipelineAsset", null);
+        for (int i = 0; i < allURPassets.Length; i++)
         {
+            string pipelineAssetPath = AssetDatabase.GUIDToAssetPath(allURPassets[i]);
+            Object pipelineAsset = AssetDatabase.LoadAssetAtPath(pipelineAssetPath, typeof(Object));
+            SerializedObject soAsset = new SerializedObject(pipelineAsset);
+
             //Make some changes on the Pipeline assets
             //If we don't do this, the pipeline assets won't recognise the changed renderer "type", so will complain about there is no Default Renderer asset
-            SerializedObject soAsset = new SerializedObject(allRPassets[i]);
             SerializedProperty scriptPropertyAsset = soAsset.FindProperty("m_RequireDepthTexture");
             soAsset.Update();
             if (scriptPropertyAsset != null)
