@@ -196,29 +196,6 @@ half4 GetMipCountDebugColor(float3 positionWS, half3 albedo, uint mipCount)
     return CalculateDebugColorWithNumber(positionWS, albedo, mipCount);
 }
 
-bool CalculateValidationMipLevel(uint mipCount, uint originalTextureMipCount, float2 uv, float4 texelSize, half3 albedo, half alpha, out half4 color)
-{
-    // TODO: This code can be found in "Debug.hlsl" but requires a Texture2D - we need a version that simply takes the parameters instead...
-    if (originalTextureMipCount != 0)
-    {
-        // Mip count has been reduced but the texelSize was not updated to take that into account
-        uint mipReductionLevel = originalTextureMipCount - mipCount;
-        uint mipReductionFactor = 1 << mipReductionLevel;
-        if (mipReductionFactor)
-        {
-            float oneOverMipReductionFactor = 1.0 / mipReductionFactor;
-            // texelSize.xy *= mipReductionRatio;   // Unused in GetDebugMipColor so lets not re-calculate it
-            texelSize.zw *= oneOverMipReductionFactor;
-        }
-    }
-
-    // https://aras-p.info/blog/2011/05/03/a-way-to-visualize-mip-levels/
-    const half4 mipColor = GetMipLevelColor(uv, texelSize);
-
-    color = half4(lerp(albedo, mipColor.rgb, mipColor.a), alpha);
-    return true;
-}
-
 bool CalculateValidationAlbedo(half3 albedo, out half4 color)
 {
     half luminance = LinearRgbToLuminance(albedo);

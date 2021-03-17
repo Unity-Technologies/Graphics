@@ -138,9 +138,6 @@ bool CalculateValidationColorForDebug(in InputData inputData, in SurfaceData sur
         case DEBUGVALIDATIONMODE_VALIDATE_METALLIC:
             return CalculateValidationMetallic(surfaceData.albedo, surfaceData.metallic, debugColor);
 
-        case DEBUGVALIDATIONMODE_VALIDATE_MIPMAPS:
-            return CalculateValidationMipLevel(inputData.mipCount, inputData.mipInfo.y, inputData.uv, inputData.texelSize, surfaceData.albedo, surfaceData.alpha, debugColor);
-
         default:
             return TryGetDebugColorInvalidMode(debugColor);
     }
@@ -159,6 +156,10 @@ bool CalculateDebugColorForMipmaps(in InputData inputData, in SurfaceData surfac
 
         case DEBUGMIPINFOMODE_COUNT:
             debugColor = GetMipCountDebugColor(inputData.positionWS, surfaceData.albedo, inputData.mipCount);
+            return true;
+
+        case DEBUGMIPINFOMODE_RATIO:
+            debugColor = half4(GetDebugMipColorIncludingMipReduction(surfaceData.albedo, inputData.mipCount, inputData.texelSize, inputData.uv, inputData.mipInfo), surfaceData.alpha);
             return true;
 
         default:

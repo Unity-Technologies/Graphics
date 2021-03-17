@@ -30,7 +30,6 @@ namespace UnityEngine.Rendering.Universal
             {
                 case DebugValidationMode.ValidateAlbedo:
                 case DebugValidationMode.ValidateMetallic:
-                case DebugValidationMode.ValidateMipmaps:
                 {
                     return true;
                 }

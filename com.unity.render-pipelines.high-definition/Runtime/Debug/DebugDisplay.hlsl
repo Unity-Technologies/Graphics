@@ -91,23 +91,24 @@ void GetPropertiesDataDebug(uint paramId, inout float3 result, inout bool needLi
 float3 GetTextureDataDebug(uint paramId, float2 uv, Texture2D tex, float4 texelSize, float4 mipInfo, float3 originalColor)
 {
     float3 outColor = originalColor;
+    uint mipCount = GetMipCount(tex);
 
     switch (paramId)
     {
     case DEBUGMIPMAPMODE_MIP_RATIO:
-        outColor = GetDebugMipColorIncludingMipReduction(originalColor, tex, texelSize, uv, mipInfo);
+        outColor = GetDebugMipColorIncludingMipReduction(originalColor, mipCount, texelSize, uv, mipInfo);
         break;
     case DEBUGMIPMAPMODE_MIP_COUNT:
-        outColor = GetDebugMipCountColor(originalColor, tex);
+        outColor = GetDebugMipCountColor(originalColor, mipCount);
         break;
     case DEBUGMIPMAPMODE_MIP_COUNT_REDUCTION:
-        outColor = GetDebugMipReductionColor(tex, mipInfo);
+        outColor = GetDebugMipReductionColor(mipCount, mipInfo);
         break;
     case DEBUGMIPMAPMODE_STREAMING_MIP_BUDGET:
-        outColor = GetDebugStreamingMipColor(tex, mipInfo);
+        outColor = GetDebugStreamingMipColor(mipCount, mipInfo);
         break;
     case DEBUGMIPMAPMODE_STREAMING_MIP:
-        outColor = GetDebugStreamingMipColorBlended(originalColor, tex, mipInfo);
+        outColor = GetDebugStreamingMipColorBlended(originalColor, mipCount, mipInfo);
         break;
     }
 

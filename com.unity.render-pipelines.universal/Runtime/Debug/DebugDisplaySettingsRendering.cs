@@ -119,7 +119,7 @@ namespace UnityEngine.Rendering.Universal
 
             internal static DebugUI.Widget CreateMipModesDebug(DebugDisplaySettingsRendering data) => new DebugUI.EnumField
             {
-                displayName = "Mip Modes Debug",
+                displayName = "Mipmap Debug Mode",
                 autoEnum = typeof(DebugMipInfoMode),
                 getter = () => (int)data.debugMipInfoMode,
                 setter = (value) => {},

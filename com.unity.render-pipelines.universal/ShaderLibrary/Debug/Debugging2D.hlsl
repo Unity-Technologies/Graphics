@@ -77,26 +77,22 @@ bool CalculateDebugColorForRenderingSettings(in SurfaceData2D surfaceData, in In
         switch(_DebugMipInfoMode)
         {
             case DEBUGMIPINFOMODE_NONE:
-            {
                 return false;
-            }
 
             case DEBUGMIPINFOMODE_LEVEL:
-            {
                 debugColor = GetMipLevelDebugColor(inputData.positionWS, surfaceData.albedo, inputData.uv, inputData.texelSize);
                 return true;
-            }
 
             case DEBUGMIPINFOMODE_COUNT:
-            {
                 debugColor = GetMipCountDebugColor(inputData.positionWS, surfaceData.albedo, inputData.mipCount);
                 return true;
-            }
+
+            case DEBUGMIPINFOMODE_RATIO:
+                debugColor = half4(GetDebugMipColorIncludingMipReduction(surfaceData.albedo, inputData.mipCount, inputData.texelSize, inputData.uv, inputData.mipInfo), surfaceData.alpha);
+                return true;
 
             default:
-            {
                 return TryGetDebugColorInvalidMode(debugColor);
-            }
         }
     }
 }
@@ -131,24 +127,13 @@ bool CalculateDebugColorValidationSettings(in SurfaceData2D surfaceData, in Inpu
         case DEBUGVALIDATIONMODE_NONE:
         case DEBUGVALIDATIONMODE_HIGHLIGHT_NAN_INF_NEGATIVE:
         case DEBUGVALIDATIONMODE_HIGHLIGHT_OUTSIDE_OF_RANGE:
-        {
             return false;
-        }
 
         case DEBUGVALIDATIONMODE_VALIDATE_ALBEDO:
-        {
             return CalculateValidationAlbedo(surfaceData.albedo, debugColor);
-        }
-
-        case DEBUGVALIDATIONMODE_VALIDATE_MIPMAPS:
-        {
-            return CalculateValidationMipLevel(inputData.mipCount, inputData.mipInfo.y, inputData.uv, inputData.texelSize, surfaceData.albedo, surfaceData.alpha, debugColor);
-        }
 
         default:
-        {
             return TryGetDebugColorInvalidMode(debugColor);
-        }
     }
 }
 

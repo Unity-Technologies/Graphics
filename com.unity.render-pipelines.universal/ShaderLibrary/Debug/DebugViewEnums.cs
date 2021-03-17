@@ -64,6 +64,7 @@ namespace UnityEngine.Rendering.Universal
         None,
         Level,
         Count,
+        Ratio
 
         //CountReduction,
         //StreamingMipBudget,
@@ -112,8 +113,7 @@ namespace UnityEngine.Rendering.Universal
         HighlightNanInfNegative,
         HighlightOutsideOfRange,
         ValidateAlbedo,
-        ValidateMetallic,
-        ValidateMipmaps,
+        ValidateMetallic
     }
     #endregion
 }
