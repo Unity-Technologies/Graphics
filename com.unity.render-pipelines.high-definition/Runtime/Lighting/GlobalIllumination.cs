@@ -176,7 +176,7 @@ namespace UnityEngine.Rendering.HighDefinition
         /// Number of bounces for evaluating the effect.
         /// </summary>
         [Tooltip("Number of bounces for GI.")]
-        public ClampedIntParameter bounceCount = new ClampedIntParameter(1, 1, 31);
+        public ClampedIntParameter bounceCount = new ClampedIntParameter(1, 1, 8);
 
         // Filtering
         /// <summary>
