@@ -7,7 +7,7 @@ namespace UnityEditor.Rendering
     /// <summary>
     /// SRPLensFlareEditor shows how the SRP Lens Flare Asset is shown in the UI
     /// </summary>
-    [DisallowMultipleComponent]
+    //[DisallowMultipleComponent]
     [CustomEditor(typeof(SRPLensFlareData))]
     [HelpURL(UnityEngine.Rendering.Documentation.baseURL + UnityEngine.Rendering.Documentation.version + UnityEngine.Rendering.Documentation.subURL + "Common/srp-lens-flare-asset" + UnityEngine.Rendering.Documentation.endURL)]
     public class SRPLensFlareEditor : Editor
@@ -28,6 +28,8 @@ namespace UnityEditor.Rendering
         /// </summary>
         public override void OnInspectorGUI()
         {
+            m_Elements.serializedObject.Update();
+
             EditorGUI.BeginChangeCheck();
             SRPLensFlareData lensFlareDat = m_Elements.serializedObject.targetObject as SRPLensFlareData;
             int countBefore = lensFlareDat != null && lensFlareDat.elements != null ? lensFlareDat.elements.Length : 0;

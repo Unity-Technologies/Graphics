@@ -30,7 +30,7 @@ namespace UnityEditor.Rendering
         public void OnEnable()
         {
             PropertyFetcher<SRPLensFlareOverride> entryPoint = new PropertyFetcher<SRPLensFlareOverride>(serializedObject);
-            m_LensFlareData = entryPoint.Find(x => x.lensFlareData);
+            m_LensFlareData = entryPoint.Find("m_LensFlareData");
             m_Intensity = entryPoint.Find(x => x.intensity);
             m_MaxAttenuationDistance = entryPoint.Find(x => x.maxAttenuationDistance);
             m_DistanceAttenuationCurve = entryPoint.Find(x => x.distanceAttenuationCurve);
@@ -95,7 +95,6 @@ namespace UnityEditor.Rendering
 
             if (EditorGUI.EndChangeCheck())
             {
-                Undo.RecordObjects(new UnityEngine.Object[] { m_LensFlareData.serializedObject.targetObject }, "Reset Lens Flare Component");
                 m_LensFlareData.serializedObject.ApplyModifiedProperties();
             }
         }

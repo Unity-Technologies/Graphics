@@ -2978,7 +2978,6 @@ namespace UnityEngine.Rendering.HighDefinition
 
                     Vector2 ComputeLocalSize(Vector2 rayOff, Vector2 rayOff0, Vector2 curSize, AnimationCurve distortionCurve)
                     {
-                        //Vector2 rayOff0 = GetLensFlareRayOffset(screenPos, 0.0f, globalCos0, globalSin0);
                         Vector2 localRadPos = (rayOff - rayOff0) * 0.5f;
                         float localRadius = Mathf.Clamp01(Mathf.Max(Mathf.Abs(localRadPos.x), Mathf.Abs(localRadPos.y))); // l1 norm (instead of l2 norm)
                         float localLerpValue = distortionCurve.Evaluate(localRadius);

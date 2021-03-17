@@ -7,7 +7,7 @@ namespace UnityEditor.Rendering
     /// <summary>
     /// SRPLensFlareElementEditor shows how each element in the SRP Lens Flare Asset are show in the UI
     /// </summary>
-    [DisallowMultipleComponent]
+    [CanEditMultipleObjects]
     [CustomPropertyDrawer(typeof(SRPLensFlareDataElement))]
     public class SRPLensFlareElementEditor : PropertyDrawer
     {

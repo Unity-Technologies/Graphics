@@ -7,15 +7,29 @@ namespace UnityEngine
     /// <summary>
     /// Lens Flare Data-Driven which can but added on any GameObject: SRPLensFlareOverride allow the GameObject to emit a LensFlare
     /// </summary>
-    [ExecuteInEditMode]
+    [ExecuteAlways]
     [AddComponentMenu("Rendering/SRP Lens Flare Source Override")]
     [HelpURL(Rendering.Documentation.baseURL + Rendering.Documentation.version + Rendering.Documentation.subURL + "Common/srp-lens-flare-component" + Rendering.Documentation.endURL)]
     public sealed class SRPLensFlareOverride : MonoBehaviour
     {
+        [SerializeField]
+        private SRPLensFlareData m_LensFlareData = null;
+
         /// <summary>
         /// Lens flare asset used on this component
         /// </summary>
-        public SRPLensFlareData lensFlareData = null;
+        public SRPLensFlareData lensFlareData
+        {
+            get
+            {
+                return m_LensFlareData;
+            }
+            set
+            {
+                m_LensFlareData = value;
+                OnValidate();
+            }
+        }
         /// <summary>
         /// Intensity
         /// </summary>
@@ -75,9 +89,9 @@ namespace UnityEngine
         /// <summary>
         /// Add or remove the lens flare to the queue of PostProcess
         /// </summary>
-        public void OnEnable()
+        void OnEnable()
         {
-            if (lensFlareData && (gameObject.activeInHierarchy || gameObject.activeSelf))
+            if (lensFlareData)
                 SRPLensFlareCommon.Instance.AddData(this);
             else
                 SRPLensFlareCommon.Instance.RemoveData(this);
@@ -86,57 +100,21 @@ namespace UnityEngine
         /// <summary>
         /// Remove the lens flare to the queue of PostProcess
         /// </summary>
-        public void OnDisable()
+        void OnDisable()
         {
-            if (lensFlareData)
-                SRPLensFlareCommon.Instance.RemoveData(this);
-        }
-
-        /// <summary>
-        /// Remove the lens flare to the queue of PostProcess
-        /// </summary>
-        public void OnDestroy()
-        {
-            if (lensFlareData)
-                SRPLensFlareCommon.Instance.RemoveData(this);
+            SRPLensFlareCommon.Instance.RemoveData(this);
         }
 
         /// <summary>
         /// Add or remove the lens flare to the queue of PostProcess
         /// </summary>
-        public void Start()
-        {
-            if (lensFlareData != null && (gameObject.activeInHierarchy || gameObject.activeSelf))
-            {
-                SRPLensFlareCommon.Instance.AddData(this);
-            }
-            else
-            {
-                SRPLensFlareCommon.Instance.RemoveData(this);
-            }
-        }
-
-        /// <summary>
-        /// Add or remove the lens flare to the queue of PostProcess
-        /// </summary>
-        public void OnValidate()
+        void OnValidate()
         {
             if (lensFlareData != null)
             {
                 SRPLensFlareCommon.Instance.AddData(this);
             }
             else
-            {
-                SRPLensFlareCommon.Instance.RemoveData(this);
-            }
-        }
-
-        /// <summary>
-        /// Add or remove the lens flare to the queue of PostProcess
-        /// </summary>
-        public void Update()
-        {
-            if (lensFlareData == null)
             {
                 SRPLensFlareCommon.Instance.RemoveData(this);
             }
