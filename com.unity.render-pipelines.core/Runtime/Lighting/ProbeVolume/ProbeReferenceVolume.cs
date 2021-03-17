@@ -231,6 +231,13 @@ namespace UnityEngine.Rendering
 
         internal float normalBiasFromProfile;
 
+        ProbeVolumeTextureMemoryBudget m_MemoryBudget;
+
+        /// <summary>
+        /// Get the memory budget for the Probe Volume system.
+        /// </summary>
+        public ProbeVolumeTextureMemoryBudget memoryBudget => m_MemoryBudget;
+
         static private ProbeReferenceVolume _instance = new ProbeReferenceVolume();
 
         /// <summary>
@@ -244,11 +251,18 @@ namespace UnityEngine.Rendering
             }
         }
 
-        internal void AddPendingIndexDimensionChange(Vector3Int indexDimensions)
+        /// <summary>
+        /// Set the memory budget for the Probe Volume System.
+        /// </summary>
+        /// <param name="budget"></param>
+        public void SetMemoryBudget(ProbeVolumeTextureMemoryBudget budget)
         {
-            m_PendingIndexDimChange = indexDimensions;
-            m_NeedsIndexDimChange = true;
-            m_NeedLoadAsset = true;
+            if (m_MemoryBudget != budget)
+            {
+                m_MemoryBudget = budget;
+                Cleanup();
+                InitProbeReferenceVolume(s_ProbeIndexPoolAllocationSize, m_MemoryBudget, m_PendingIndexDimChange);
+            }
         }
 
         internal void AddPendingAssetLoading(ProbeVolumeAsset asset)
@@ -260,6 +274,16 @@ namespace UnityEngine.Rendering
             }
             m_PendingAssetsToBeLoaded.Add(asset.GetSerializedFullPath(), asset);
             m_NeedLoadAsset = true;
+
+            // Compute the max index dimension from all the loaded assets + assets we need to load
+            Vector3Int indexDimension = Vector3Int.zero;
+            foreach (var a in m_PendingAssetsToBeLoaded.Values)
+                indexDimension = Vector3Int.Max(indexDimension, a.maxCellIndex);
+            foreach (var a in m_ActiveAssets.Values)
+                indexDimension = Vector3Int.Max(indexDimension, a.maxCellIndex);
+
+            m_PendingIndexDimChange = indexDimension;
+            m_NeedsIndexDimChange = true;
         }
 
         internal void AddPendingAssetRemoval(ProbeVolumeAsset asset)
@@ -299,12 +323,12 @@ namespace UnityEngine.Rendering
             }
         }
 
-        private void PerformPendingIndexDimensionChange()
+        private void PerformPendingIndexDimensionChangeAndInit()
         {
             if (m_NeedsIndexDimChange)
             {
                 Cleanup();
-                InitProbeReferenceVolume(s_ProbeIndexPoolAllocationSize, m_Pool.GetMemoryBudget(), m_PendingIndexDimChange);
+                InitProbeReferenceVolume(s_ProbeIndexPoolAllocationSize, m_MemoryBudget, m_PendingIndexDimChange);
                 m_NeedsIndexDimChange = false;
             }
         }
@@ -314,7 +338,8 @@ namespace UnityEngine.Rendering
             if (m_NormalBias != normalBiasFromProfile)
             {
                 m_NormalBias = normalBiasFromProfile;
-                m_Index.WriteConstants(ref m_Transform, m_Pool.GetPoolDimensions(), m_NormalBias);
+                if (m_Index != null)
+                    m_Index.WriteConstants(ref m_Transform, m_Pool.GetPoolDimensions(), m_NormalBias);
             }
         }
 
@@ -391,7 +416,7 @@ namespace UnityEngine.Rendering
         {
             PerformPendingDeletion();
             PerformPendingNormalBiasChange();
-            PerformPendingIndexDimensionChange();
+            PerformPendingIndexDimensionChangeAndInit();
             PerformPendingLoading();
         }
 
@@ -422,6 +447,11 @@ namespace UnityEngine.Rendering
                 Profiler.EndSample();
 
                 m_ProbeReferenceVolumeInit = true;
+
+                // Write constants on init to start with right data.
+                m_Index.WriteConstants(ref m_Transform, m_Pool.GetPoolDimensions(), m_NormalBias);
+                // Set the normalBiasFromProfile to avoid re-update of the constants up until the next change in profile editor
+                normalBiasFromProfile = m_NormalBias;
             }
             m_NeedLoadAsset = true;
         }
@@ -442,6 +472,9 @@ namespace UnityEngine.Rendering
         /// <returns>The resources to bind to runtime shaders.</returns>
         public RuntimeResources GetRuntimeResources()
         {
+            if (!m_ProbeReferenceVolumeInit)
+                return default(RuntimeResources);
+
             RuntimeResources rr = new RuntimeResources();
             m_Index.GetRuntimeResources(ref rr);
             m_Pool.GetRuntimeResources(ref rr);
