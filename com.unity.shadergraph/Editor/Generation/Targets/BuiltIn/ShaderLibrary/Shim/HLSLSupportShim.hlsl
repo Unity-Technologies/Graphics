@@ -16,7 +16,7 @@
 
 
 #define UNITY_PROJ_COORD(a) a
-#define UNITY_SAMPLE_DEPTH_TEXTURE(tex, uv) SAMPLE_DEPTH_TEXTURE(tex, sampler##tex, coord)
+#define UNITY_SAMPLE_DEPTH_TEXTURE(tex, coord) SAMPLE_DEPTH_TEXTURE(tex, sampler##tex, coord)
 
 // 2D textures
 #define UNITY_DECLARE_TEX2D(tex) TEXTURE2D(tex); SAMPLER(sampler##tex)
@@ -93,7 +93,7 @@
 // UNITY_DECLARE_SHADOWMAP declares a shadowmap.
 // UNITY_SAMPLE_SHADOW samples with a float3 coordinate (UV in xy, Z in z) and returns 0..1 scalar result.
 // UNITY_SAMPLE_SHADOW_PROJ samples with a projected coordinate (UV and Z divided by w).
-#define UNITY_DECLARE_SHADOWMAP(tex) TEXTURE2D_SHADOW(tex); SAMPLER(sampler##tex)
+#define UNITY_DECLARE_SHADOWMAP(tex) TEXTURE2D_SHADOW(tex); SAMPLER_CMP(sampler##tex)
 #define UNITY_DECLARE_TEXCUBE_SHADOWMAP(tex) TEXTURECUBE_SHADOW(tex); SAMPLER_CMP(sampler##tex)
 #define UNITY_SAMPLE_SHADOW(tex,coord) SAMPLE_TEXTURE2D_SHADOW(tex, sampler##tex, coord)
 #define UNITY_SAMPLE_SHADOW_PROJ(tex,coord) SAMPLE_TEXTURE2D_SHADOW(tex, sampler##tex, (coord.xyz / coord.w))

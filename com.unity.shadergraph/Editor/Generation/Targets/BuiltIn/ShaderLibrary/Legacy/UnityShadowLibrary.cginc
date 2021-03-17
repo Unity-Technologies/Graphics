@@ -46,10 +46,10 @@ inline fixed UnitySampleShadowmap (float4 shadowCoord)
         #if !defined (SHADOWS_NATIVE)
             float3 coord = shadowCoord.xyz / shadowCoord.w;
             float4 shadowVals;
-            shadowVals.x = UNITY_SAMPLE_DEPTH_TEXTURE(_ShadowMapTexture, coord + _ShadowOffsets[0].xy);
-            shadowVals.y = UNITY_SAMPLE_DEPTH_TEXTURE(_ShadowMapTexture, coord + _ShadowOffsets[1].xy);
-            shadowVals.z = UNITY_SAMPLE_DEPTH_TEXTURE(_ShadowMapTexture, coord + _ShadowOffsets[2].xy);
-            shadowVals.w = UNITY_SAMPLE_DEPTH_TEXTURE(_ShadowMapTexture, coord + _ShadowOffsets[3].xy);
+            shadowVals.x = UNITY_SAMPLE_SHADOW(_ShadowMapTexture, coord + _ShadowOffsets[0]);
+            shadowVals.y = UNITY_SAMPLE_SHADOW(_ShadowMapTexture, coord + _ShadowOffsets[1]);
+            shadowVals.z = UNITY_SAMPLE_SHADOW(_ShadowMapTexture, coord + _ShadowOffsets[2]);
+            shadowVals.w = UNITY_SAMPLE_SHADOW(_ShadowMapTexture, coord + _ShadowOffsets[3]);
             half4 shadows = (shadowVals < coord.zzzz) ? _LightShadowData.rrrr : 1.0f;
             shadow = dot(shadows, 0.25f);
         #else
@@ -76,7 +76,7 @@ inline fixed UnitySampleShadowmap (float4 shadowCoord)
             half shadow = UNITY_SAMPLE_SHADOW_PROJ(_ShadowMapTexture, shadowCoord);
             shadow = lerp(_LightShadowData.r, 1.0f, shadow);
         #else
-            half shadow = SAMPLE_DEPTH_TEXTURE_PROJ(_ShadowMapTexture, UNITY_PROJ_COORD(shadowCoord)) < (shadowCoord.z / shadowCoord.w) ? _LightShadowData.r : 1.0;
+            half shadow = UNITY_SAMPLE_SHADOW_PROJ(_ShadowMapTexture, UNITY_PROJ_COORD(shadowCoord)) < (shadowCoord.z / shadowCoord.w) ? _LightShadowData.r : 1.0;
         #endif
 
     #endif
