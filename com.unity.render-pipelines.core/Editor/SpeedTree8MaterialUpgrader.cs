@@ -9,8 +9,7 @@ namespace UnityEditor.Rendering
 	/// </summary>
 	public class SpeedTree8MaterialUpgrader : MaterialUpgrader
     {
-        public string targetShaderName = "";
-        public enum WindQuality
+        private enum WindQuality
         {
             None = 0,
             Fastest,
@@ -21,7 +20,7 @@ namespace UnityEditor.Rendering
             Count
         }
 
-        public static string[] WindQualityString =
+        private static string[] WindQualityString =
         {
             "_WINDQUALITY_NONE",
             "_WINDQUALITY_FASTEST",
@@ -30,6 +29,7 @@ namespace UnityEditor.Rendering
             "_WINDQUALITY_BEST",
             "_WINDQUALITY_PALM"
         };
+
         /// <summary>
         /// Creates a material upgrader with only the renames in common between HD and Universal.
         /// </summary>
@@ -62,7 +62,7 @@ namespace UnityEditor.Rendering
         /// <param name="speedtree">Game object for the SpeedTree asset being imported.</param>
         /// <param name="stImporter">The assetimporter used to import the SpeedTree asset.</param>
         /// <param name="finalizer">Render pipeline-specific material finalizer.</param>
-        public static void PostprocessMaterials(GameObject speedtree, SpeedTreeImporter stImporter, MaterialFinalizer finalizer = null)
+        public static void PostprocessSpeedTree8Materials(GameObject speedtree, SpeedTreeImporter stImporter, MaterialFinalizer finalizer = null)
         {
             LODGroup lg = speedtree.GetComponent<LODGroup>();
             LOD[] lods = lg.GetLODs();
@@ -76,10 +76,38 @@ namespace UnityEditor.Rendering
                     foreach (Material m in r.sharedMaterials)
                     {
                         ImportNewSpeedTree8Material(m, wq, isBillboard);
-                        finalizer(m);
+                        if (finalizer != null)
+                            finalizer(m);
                     }
                 }
             }
+        }
+
+        /// <summary>
+        /// Preserve wind quality and billboard setting when upgrading a ST8 material from previous versions.
+        /// Wind priority order is enabled keyword > _WindQuality float value.
+        /// Should work for upgrading versions within a pipeline and from standard to current pipeline.
+        /// </summary>
+        /// <param name="material">SpeedTree8 material to upgrade.</param>
+        public static void SpeedTree8MaterialFinalizer(Material material)
+        {
+            if (material.HasProperty("_TwoSided") && material.HasProperty("_CullMode"))
+                material.SetFloat("_CullMode", material.GetFloat("_TwoSided"));
+
+            if (material.IsKeywordEnabled("EFFECT_EXTRA_TEX"))
+                material.SetFloat("EFFECT_EXTRA_TEX", 1.0f);
+
+            bool isBillboard = material.IsKeywordEnabled("EFFECT_BILLBOARD");
+            if (material.HasProperty("EFFECT_BILLBOARD"))
+                material.SetFloat("EFFECT_BILLBOARD", isBillboard ? 1.0f : 0.0f);
+
+            UpgradeWindQuality(material);
+        }
+
+        private static void UpgradeWindQuality(Material material, int windQuality = -1)
+        {
+            int wq = GetWindQuality(material, windQuality);
+            SetWindQuality(material, wq);
         }
 
         private static int GetWindQuality(Material material, int windQuality = -1)
@@ -109,12 +137,8 @@ namespace UnityEditor.Rendering
                 material.DisableKeyword(WindQualityString[i]);
             }
         }
-        /// <summary>
-        /// Overwrite wind quality, including associated properties and keywords, on a SpeedTree8 material.
-        /// </summary>
-        /// <param name="material">SpeedTree8 material to update.</param>
-        /// <param name="windQuality">Wind quality to set.</param>
-        public static void SetWindQuality(Material material, int windQuality)
+
+        private static void SetWindQuality(Material material, int windQuality)
         {
             Debug.Assert(WindIntValid(windQuality), "Attempting to set invalid wind quality on material " + material.name);
 
@@ -128,7 +152,8 @@ namespace UnityEditor.Rendering
 
             material.EnableKeyword(WindQualityString[windQuality]);
             material.SetFloat("_WindQuality", windQuality); // A legacy float used in native code to apply wind data
-            material.SetFloat("_WINDQUALITY", windQuality); // The actual name of the keyword enum for the shadergraph
+            if (material.HasProperty("_WINDQUALITY"))
+                material.SetFloat("_WINDQUALITY", windQuality); // The actual name of the keyword enum for the shadergraph
         }
 
         private static int GetWindQualityFromKeywords(string[] matKws)
