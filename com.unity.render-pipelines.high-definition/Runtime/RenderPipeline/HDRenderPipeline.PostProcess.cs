@@ -2796,7 +2796,6 @@ namespace UnityEngine.Rendering.HighDefinition
             Vector2 screenSize = new Vector2((float)hdCam.actualWidth, (float)hdCam.actualHeight);
             float screenRatio = screenSize.x / screenSize.y;
             Vector2 vScreenRatio = new Vector2(screenRatio, 1.0f);
-            Vector2 vScreenRatioY = new Vector2(1.0f, screenRatio);
 
             cmd.CopyTexture(source, target);
             CoreUtils.SetRenderTarget(cmd, target);
@@ -2821,9 +2820,11 @@ namespace UnityEngine.Rendering.HighDefinition
                 Vector3 viewportPos;
                 Vector3 positionScreen;
 
+                bool isDirLight = false;
                 if (light != null && light.type == LightType.Directional)
                 {
                     positionWS = -light.transform.forward * cam.farClipPlane;
+                    isDirLight = true;
                 }
                 else
                 {
@@ -2848,8 +2849,8 @@ namespace UnityEngine.Rendering.HighDefinition
                 float distToObject = diffToObject.magnitude;
                 float coefDistSample = distToObject / comp.maxAttenuationDistance;
                 float coefScaleSample = distToObject / comp.maxAttenuationScale;
-                float distanceAttenuation = comp.distanceAttenuationCurve.length > 0 ? comp.distanceAttenuationCurve.Evaluate(coefDistSample) : 1.0f;
-                float scaleByDistance = comp.scaleByDistanceCurve.length >= 1 ? comp.scaleByDistanceCurve.Evaluate(coefScaleSample) : 1.0f;
+                float distanceAttenuation = !isDirLight && comp.distanceAttenuationCurve.length > 0 ? comp.distanceAttenuationCurve.Evaluate(coefDistSample) : 1.0f;
+                float scaleByDistance = !isDirLight && comp.scaleByDistanceCurve.length >= 1 ? comp.scaleByDistanceCurve.Evaluate(coefScaleSample) : 1.0f;
 
                 Color globalColorModulation = Color.white;
 
@@ -2978,7 +2979,12 @@ namespace UnityEngine.Rendering.HighDefinition
 
                     Vector2 ComputeLocalSize(Vector2 rayOff, Vector2 rayOff0, Vector2 curSize, AnimationCurve distortionCurve)
                     {
-                        Vector2 localRadPos = (rayOff - rayOff0) * 0.5f;
+                        Vector2 rayOffZ = GetLensFlareRayOffset(screenPos, position, globalCos0, globalSin0);
+                        Vector2 localRadPos;
+                        if (!element.distortionRelativeToCenter)
+                            localRadPos = (rayOff - rayOff0) * 0.5f;
+                        else
+                            localRadPos = screenPos + (rayOff + new Vector2(element.positionOffset.x, -element.positionOffset.y)) * element.translationScale;
                         float localRadius = Mathf.Clamp01(Mathf.Max(Mathf.Abs(localRadPos.x), Mathf.Abs(localRadPos.y))); // l1 norm (instead of l2 norm)
                         float localLerpValue = Mathf.Clamp01(distortionCurve.Evaluate(localRadius));
                         return new Vector2(Mathf.Lerp(curSize.x, curSize.x * element.targetSizeDistortion.x, localLerpValue),

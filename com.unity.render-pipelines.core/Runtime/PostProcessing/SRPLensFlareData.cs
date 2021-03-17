@@ -118,6 +118,7 @@ namespace UnityEngine
             enableRadialDistortion = false;
             targetSizeDistortion = Vector2.one;
             distortionCurve = new AnimationCurve(new Keyframe(0.0f, 0.0f, 1.0f, 1.0f), new Keyframe(1.0f, 1.0f, 1.0f, -1.0f));
+            distortionRelativeToCenter = false;
 
             // Parameters for Procedural
             fallOff = 1.0f;
@@ -162,7 +163,7 @@ namespace UnityEngine
         /// </summary>
         public Vector2 sizeXY;
         /// <summary>
-        /// Enable multiple slements
+        /// Enable multiple elements
         /// </summary>
         public bool allowMultipleElement;
         /// <summary>
@@ -256,6 +257,10 @@ namespace UnityEngine
         /// Curve blending from screen center to the edges of the screen.
         /// </summary>
         public AnimationCurve distortionCurve;
+        /// <summary>
+        /// If true the distortion is relative to center of the screen otherwise relative to lensFlare source screen position
+        /// </summary>
+        public bool distortionRelativeToCenter;
 
         /// <summary>
         /// Fall of the gradient used for the Procedural Flare.

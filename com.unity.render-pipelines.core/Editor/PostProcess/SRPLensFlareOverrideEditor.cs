@@ -53,10 +53,14 @@ namespace UnityEditor.Rendering
         {
             SRPLensFlareOverride lensFlareDat = m_Intensity.serializedObject.targetObject as SRPLensFlareOverride;
             bool attachedToLight = false;
+            bool lightIsDirLight = false;
+            Light light = null;
             if (lensFlareDat != null &&
-                lensFlareDat.GetComponent<Light>() != null)
+                (light = lensFlareDat.GetComponent<Light>()) != null)
             {
                 attachedToLight = true;
+                if (light.type == LightType.Directional)
+                    lightIsDirLight = true;
             }
 
             EditorGUI.BeginChangeCheck();
@@ -65,17 +69,20 @@ namespace UnityEditor.Rendering
             {
                 EditorGUILayout.PropertyField(m_LensFlareData, Styles.lensFlareData);
                 EditorGUILayout.PropertyField(m_Intensity, Styles.intensity);
-                if (attachedToLight)
-                    EditorGUILayout.PropertyField(m_AttenuationByLightShape, Styles.attenuationByLightShape);
-                EditorGUILayout.PropertyField(m_MaxAttenuationDistance, Styles.maxAttenuationDistance);
-                ++EditorGUI.indentLevel;
-                EditorGUILayout.PropertyField(m_DistanceAttenuationCurve, Styles.distanceAttenuationCurve);
-                --EditorGUI.indentLevel;
-                EditorGUILayout.PropertyField(m_MaxAttenuationScale, Styles.maxAttenuationScale);
-                ++EditorGUI.indentLevel;
-                EditorGUILayout.PropertyField(m_ScaleByDistanceCurve, Styles.scaleByDistanceCurve);
-                --EditorGUI.indentLevel;
-                EditorGUILayout.PropertyField(m_RadialScreenAttenuationCurve, Styles.radialScreenAttenuationCurve);
+                if (!lightIsDirLight)
+                {
+                    if (attachedToLight)
+                        EditorGUILayout.PropertyField(m_AttenuationByLightShape, Styles.attenuationByLightShape);
+                    EditorGUILayout.PropertyField(m_MaxAttenuationDistance, Styles.maxAttenuationDistance);
+                    ++EditorGUI.indentLevel;
+                    EditorGUILayout.PropertyField(m_DistanceAttenuationCurve, Styles.distanceAttenuationCurve);
+                    --EditorGUI.indentLevel;
+                    EditorGUILayout.PropertyField(m_MaxAttenuationScale, Styles.maxAttenuationScale);
+                    ++EditorGUI.indentLevel;
+                    EditorGUILayout.PropertyField(m_ScaleByDistanceCurve, Styles.scaleByDistanceCurve);
+                    --EditorGUI.indentLevel;
+                    EditorGUILayout.PropertyField(m_RadialScreenAttenuationCurve, Styles.radialScreenAttenuationCurve);
+                }
             }
             EditorGUILayout.EndFoldoutHeaderGroup();
             --EditorGUI.indentLevel;

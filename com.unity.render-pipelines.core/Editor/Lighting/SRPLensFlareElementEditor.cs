@@ -95,6 +95,7 @@ namespace UnityEditor.Rendering
             SerializedProperty enableDistortionProp = property.FindPropertyRelative("enableRadialDistortion");
             SerializedProperty targetSizeDistortionProp = property.FindPropertyRelative("targetSizeDistortion");
             SerializedProperty distortionCurveProp = property.FindPropertyRelative("distortionCurve");
+            SerializedProperty distortionRelativeToCenterProp = property.FindPropertyRelative("distortionRelativeToCenter");
 
             if (lensFlareProp.objectReferenceValue != null)
             {
@@ -260,6 +261,9 @@ namespace UnityEditor.Rendering
                             targetSizeDistortionProp.vector2Value = tmpVec2;
                         rect = GetNextRect();
                         EditorGUI.PropertyField(rect, distortionCurveProp, Styles.distortionCurve);
+                        rect = GetNextRect();
+                        if ((tmpBool = EditorGUI.Toggle(rect, Styles.distortionRelativeToCenter, distortionRelativeToCenterProp.boolValue)) != distortionRelativeToCenterProp.boolValue)
+                            distortionRelativeToCenterProp.boolValue = tmpBool;
                     }
                 }
                 --EditorGUI.indentLevel;
@@ -374,7 +378,6 @@ namespace UnityEditor.Rendering
             SerializedProperty isFoldOpened = property.FindPropertyRelative("isFoldOpened");
             SerializedProperty preserveAspectRatio = property.FindPropertyRelative("preserveAspectRatio");
             SerializedProperty distributionProp = property.FindPropertyRelative("distribution");
-            SerializedProperty countProp = property.FindPropertyRelative("count");
             SerializedProperty flareTypeProp = property.FindPropertyRelative("flareType");
             SerializedProperty enableDistortionProp = property.FindPropertyRelative("enableRadialDistortion");
             SerializedProperty allowMultipleElementProp = property.FindPropertyRelative("allowMultipleElement");
@@ -386,9 +389,9 @@ namespace UnityEditor.Rendering
             if (isFoldOpened.boolValue)
             {
                 if (preserveAspectRatio.boolValue)
-                    coef = 24.0f;
-                else
                     coef = 25.0f;
+                else
+                    coef = 26.0f;
 
                 if (flareType == SRPLensFlareType.Polygon || flareType == SRPLensFlareType.Circle)
                 {
@@ -400,7 +403,7 @@ namespace UnityEditor.Rendering
 
                 if (enableDistortionProp.boolValue == false)
                 {
-                    coef -= 2.0f;
+                    coef -= 3.0f;
                 }
 
                 if (allowMultipleElementProp.boolValue)
@@ -472,6 +475,7 @@ namespace UnityEditor.Rendering
             static public readonly GUIContent enableDistortion = EditorGUIUtility.TrTextContent("Enable", "True to use or not the radial distortion.");
             static public readonly GUIContent targetSizeDistortion = EditorGUIUtility.TrTextContent("Radial Edge Size", "Target size used on the edge of the screen.");
             static public readonly GUIContent distortionCurve = EditorGUIUtility.TrTextContent("Radial Edge Curve", "Curve blending from screen center to the edges of the screen.");
+            static public readonly GUIContent distortionRelativeToCenter = EditorGUIUtility.TrTextContent("Relative To Center", "REPLACE ME.");
 
             // For Procedural
             static public readonly GUIContent fallOff = EditorGUIUtility.TrTextContent("Falloff", "Fall of the gradient used for the Procedural Flare.");
