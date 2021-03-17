@@ -22,7 +22,7 @@ URP_Foundation_iPhone_Metal_Standalone_il2cpp_Linear_trunk:
       -  chmod +x ./utr
       -  |5-
               export GIT_REVISIONDATE=`git rev-parse HEAD | git show -s --format=%cI`
-              ./utr --artifacts_path=TestProjects/UniversalGraphicsTest_Foundation/test-results --platform=iOS --player-load-path=players --suite=playmode --timeout=1200 --zero-tests-are-ok=1 -coverageOptions 'enableCyclomaticComplexity;generateHtmlReport;assemblyFilters:+Unity.RenderPipelines.Universal.Runtime' -coverageResultsPath=TestProjects/UniversalGraphicsTest_Foundation/test-results/code-coverage -enableCodeCoverage
+              ./utr --artifacts_path=TestProjects/UniversalGraphicsTest_Foundation/test-results --coverage-options 'enableCyclomaticComplexity;generateHtmlReport;assemblyFilters:+Unity.RenderPipelines.Universal.Runtime' --coverage-results-path=TestProjects/UniversalGraphicsTest_Foundation/test-results/code-coverage --enable-code-coverage --platform=iOS --player-load-path=players --suite=playmode --timeout=1200 --zero-tests-are-ok=1
     artifacts:
         logs:
             paths:
@@ -49,7 +49,7 @@ Build_URP_Foundation_iPhone_Metal_Standalone_il2cpp_Linear_trunk:
       -  unity-downloader-cli -u {{editor_versions.trunk_latest_internal.iPhone.revision}} -c editor -c iOS -c il2cpp  --wait --published-only
       -  |5-
               export GIT_REVISIONDATE=`git rev-parse HEAD | git show -s --format=%cI`
-              ./utr --artifacts_path=TestProjects/UniversalGraphicsTest_Foundation/test-results --build-only --editor-location=.Editor --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-executemethod" --extra-editor-arg="SetupProject.ApplySettings" --extra-editor-arg="metal" --extra-editor-arg="Linear" --extra-editor-arg="-playergraphicsapi=Metal" --platform=iOS --player-save-path=players --scripting-backend=IL2CPP --suite=playmode --testfilter=$TEST_FILTER --testproject=./TestProjects/UniversalGraphicsTest_Foundation --timeout=3000 -coverageOptions 'enableCyclomaticComplexity;generateHtmlReport;assemblyFilters:+Unity.RenderPipelines.Universal.Runtime' -coverageResultsPath=TestProjects/UniversalGraphicsTest_Foundation/test-results/code-coverage -enableCodeCoverage
+              ./utr --artifacts_path=TestProjects/UniversalGraphicsTest_Foundation/test-results --build-only --coverage-options 'enableCyclomaticComplexity;generateHtmlReport;assemblyFilters:+Unity.RenderPipelines.Universal.Runtime' --coverage-results-path=TestProjects/UniversalGraphicsTest_Foundation/test-results/code-coverage --editor-location=.Editor --enable-code-coverage --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-executemethod" --extra-editor-arg="SetupProject.ApplySettings" --extra-editor-arg="metal" --extra-editor-arg="Linear" --extra-editor-arg="-playergraphicsapi=Metal" --platform=iOS --player-save-path=players --scripting-backend=IL2CPP --suite=playmode --testfilter=$TEST_FILTER --testproject=./TestProjects/UniversalGraphicsTest_Foundation --timeout=3000
     artifacts:
         logs:
             paths:
@@ -125,7 +125,7 @@ URP_Foundation_iPhone_Metal_Standalone_il2cpp_Linear_CUSTOM-REVISION:
       -  chmod +x ./utr
       -  |5-
               export GIT_REVISIONDATE=`git rev-parse HEAD | git show -s --format=%cI`
-              ./utr --artifacts_path=TestProjects/UniversalGraphicsTest_Foundation/test-results --platform=iOS --player-load-path=players --suite=playmode --timeout=1200 --zero-tests-are-ok=1 -coverageOptions 'enableCyclomaticComplexity;generateHtmlReport;assemblyFilters:+Unity.RenderPipelines.Universal.Runtime' -coverageResultsPath=TestProjects/UniversalGraphicsTest_Foundation/test-results/code-coverage -enableCodeCoverage
+              ./utr --artifacts_path=TestProjects/UniversalGraphicsTest_Foundation/test-results --coverage-options 'enableCyclomaticComplexity;generateHtmlReport;assemblyFilters:+Unity.RenderPipelines.Universal.Runtime' --coverage-results-path=TestProjects/UniversalGraphicsTest_Foundation/test-results/code-coverage --enable-code-coverage --platform=iOS --player-load-path=players --suite=playmode --timeout=1200 --zero-tests-are-ok=1
     artifacts:
         logs:
             paths:
@@ -155,7 +155,7 @@ Build_URP_Foundation_iPhone_Metal_Standalone_il2cpp_Linear_CUSTOM-REVISION:
       -  unity-downloader-cli --source-file unity_revision.txt -c editor -c iOS -c il2cpp  --wait --published-only
       -  |5-
               export GIT_REVISIONDATE=`git rev-parse HEAD | git show -s --format=%cI`
-              ./utr --artifacts_path=TestProjects/UniversalGraphicsTest_Foundation/test-results --build-only --editor-location=.Editor --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-executemethod" --extra-editor-arg="SetupProject.ApplySettings" --extra-editor-arg="metal" --extra-editor-arg="Linear" --extra-editor-arg="-playergraphicsapi=Metal" --platform=iOS --player-save-path=players --scripting-backend=IL2CPP --suite=playmode --testfilter=$TEST_FILTER --testproject=./TestProjects/UniversalGraphicsTest_Foundation --timeout=3000 -coverageOptions 'enableCyclomaticComplexity;generateHtmlReport;assemblyFilters:+Unity.RenderPipelines.Universal.Runtime' -coverageResultsPath=TestProjects/UniversalGraphicsTest_Foundation/test-results/code-coverage -enableCodeCoverage
+              ./utr --artifacts_path=TestProjects/UniversalGraphicsTest_Foundation/test-results --build-only --coverage-options 'enableCyclomaticComplexity;generateHtmlReport;assemblyFilters:+Unity.RenderPipelines.Universal.Runtime' --coverage-results-path=TestProjects/UniversalGraphicsTest_Foundation/test-results/code-coverage --editor-location=.Editor --enable-code-coverage --extra-editor-arg="-colorspace=Linear" --extra-editor-arg="-executemethod" --extra-editor-arg="SetupProject.ApplySettings" --extra-editor-arg="metal" --extra-editor-arg="Linear" --extra-editor-arg="-playergraphicsapi=Metal" --platform=iOS --player-save-path=players --scripting-backend=IL2CPP --suite=playmode --testfilter=$TEST_FILTER --testproject=./TestProjects/UniversalGraphicsTest_Foundation --timeout=3000
     artifacts:
         logs:
             paths:

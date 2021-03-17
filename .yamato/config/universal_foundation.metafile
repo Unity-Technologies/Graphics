@@ -21,9 +21,9 @@ reuse_blocks:
     - [all]: --extra-editor-arg="-cacheServerEnableDownload" --extra-editor-arg="true"
     - [all]: --extra-editor-arg="-cacheServerEnableUpload" --extra-editor-arg="true"
   code_coverage:
-    - [all]: -enableCodeCoverage
-    - [all]: -coverageResultsPath=TestProjects/<PROJECT_FOLDER>/test-results/code-coverage
-    - [all]: -coverageOptions 'enableCyclomaticComplexity;generateHtmlReport;assemblyFilters:+Unity.RenderPipelines.Universal.Runtime'
+    - [all]: --enable-code-coverage
+    - [all]: --coverage-results-path=TestProjects/<PROJECT_FOLDER>/test-results/code-coverage
+    - [all]: --coverage-options 'enableCyclomaticComplexity;generateHtmlReport;assemblyFilters:+Unity.RenderPipelines.Universal.Runtime'
 
 test_platforms:
   - type: Standalone
