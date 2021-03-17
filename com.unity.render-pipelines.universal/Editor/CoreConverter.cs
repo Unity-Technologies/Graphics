@@ -10,6 +10,7 @@ using UnityEngine.UIElements;
 /// InitialInfo = If there are some issues with the converter that we already know about.
 ///     Example: If we know it is a custom shader, we can not convert it so we add the information here.
 /// HelpLink = Link to the documentation of how to convert this asset. Useful if the conversion failed or if we know we can not convert this asset automatically.
+/// ID is for indexing if needed.
 /// </summary>
 public struct ConverterItemInfo
 {
@@ -38,6 +39,7 @@ public abstract class CoreConverter
     public abstract string name { get; }
     public abstract string info { get; }
 
+    public abstract string category { get; }
     public abstract void OnInitialize(InitializeConverterContext ctx);
 
     /// <summary>

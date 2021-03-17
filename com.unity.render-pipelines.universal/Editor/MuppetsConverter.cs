@@ -6,12 +6,13 @@ public class MuppetsConverter : CoreConverter
 {
     public override string name => "Muppets";
     public override string info => "Need to update all my Muppets";
+    public override string category { get; }
 
     List<string> m_AssetsToConvert = new List<string>();
 
     public override void OnInitialize(InitializeConverterContext ctx)
     {
-        for (int i = 0; i < 20; i++)
+        for (int i = 0; i < 10; i++)
         {
             ConverterItemInfo info = new ConverterItemInfo()
             {

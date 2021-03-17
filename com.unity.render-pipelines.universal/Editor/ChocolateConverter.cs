@@ -6,6 +6,7 @@ public class ChocolateConverter : CoreConverter
 {
     public override string name => "Mars";
     public override string info => "Is better than Snickers";
+    public override string category { get; }
 
     //List<string> m_AssetsToConvert = new List<string>();
 

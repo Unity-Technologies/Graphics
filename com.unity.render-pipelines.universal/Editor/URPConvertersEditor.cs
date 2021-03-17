@@ -19,6 +19,7 @@ class ConverterItemState
 class ConverterState
 {
     public bool isActive;
+    public bool isInitialized;
     public List<ConverterItemState> items;
 }
 
@@ -31,6 +32,7 @@ public class URPConvertersEditor : EditorWindow
 
     ScrollView m_ScrollView;
     List<CoreConverter> m_CoreConvertersList = new List<CoreConverter>();
+    // This list needs to be as long as the amount of converters
     List<List<ConverterItemInfo>> m_ItemsToConvert = new List<List<ConverterItemInfo>>();
     SerializedObject m_SerializedObject;
 
@@ -55,35 +57,50 @@ public class URPConvertersEditor : EditorWindow
             CoreConverter conv = (CoreConverter)Activator.CreateInstance(converters[i]);
             m_CoreConvertersList.Add(conv);
 
-            // Need to get the assets that this converter is converting.
-            // Need to return Name, Path, Initial info, Help link.
-            // New empty list of ConverterItemInfos
-            List<ConverterItemInfo> converterItemInfos = new List<ConverterItemInfo>();
-            var initCtx = new InitializeConverterContext { m_Items = converterItemInfos };
-
-            // This should also go to the init method
-            // This will fill out the converter item infos list
-            conv.OnInitialize(initCtx);
-
-            // Add the item infos list to a new list of items to convert
-            m_ItemsToConvert.Add(converterItemInfos);
-
-            // Create a new ConvertState which holds the active state of each item/asset
+            // Create a new ConvertState which holds the active state of the converter
             var converterState = new ConverterState
             {
                 isActive = true,
-                items = new List<ConverterItemState>(converterItemInfos.Count)
+                isInitialized = false,
+                items = null
             };
-            // Default all the entries to true
-            for (var j = 0; j < converterItemInfos.Count; j++)
-            {
-                converterState.items.Add(new ConverterItemState
-                {
-                    isActive = true
-                });
-            }
-            // Add this converterState to the list of converterStates.
             m_ConverterStates.Add(converterState);
+
+            // This just creates empty entries in the m_ItemsToConvert.
+            // This list need to have the same amount of entries as teh converters
+            List<ConverterItemInfo> converterItemInfos = new List<ConverterItemInfo>();
+            m_ItemsToConvert.Add(converterItemInfos);
+
+            // // This need to be in Init method
+            // // Need to get the assets that this converter is converting.
+            // // Need to return Name, Path, Initial info, Help link.
+            // // New empty list of ConverterItemInfos
+            // List<ConverterItemInfo> converterItemInfos = new List<ConverterItemInfo>();
+            // var initCtx = new InitializeConverterContext { m_Items = converterItemInfos };
+            //
+            // // This should also go to the init method
+            // // This will fill out the converter item infos list
+            // conv.OnInitialize(initCtx);
+            //
+            // // Add the item infos list to a new list of items to convert
+            // m_ItemsToConvert.Add(converterItemInfos);
+            //
+            // // Create a new ConvertState which holds the active state of each item/asset
+            // var converterState = new ConverterState
+            // {
+            //     isActive = true,
+            //     items = new List<ConverterItemState>(converterItemInfos.Count)
+            // };
+            // // Default all the entries to true
+            // for (var j = 0; j < converterItemInfos.Count; j++)
+            // {
+            //     converterState.items.Add(new ConverterItemState
+            //     {
+            //         isActive = true
+            //     });
+            // }
+            // // Add this converterState to the list of converterStates.
+            // m_ConverterStates.Add(converterState);
         }
     }
 
@@ -109,66 +126,66 @@ public class URPConvertersEditor : EditorWindow
             converterEnabledToggle.bindingPath = $"{nameof(m_ConverterStates)}.Array.data[{i}].{nameof(ConverterState.isActive)}";
 
 
-            // This should be in the INIT
-            // Get the ListView for the converter items
-            ListView listView = item.Q<ListView>("converterItems");
-
-            var converterItemInfos = m_ItemsToConvert[i];
-            // Update the amount of things to convert
-            item.Q<Label>("converterStats").text = $"{converterItemInfos.Count} items";
-
-            listView.makeItem = converterItem.CloneTree;
-            listView.showBoundCollectionSize = false;
-
-            listView.bindingPath = $"{nameof(m_ConverterStates)}.Array.data[{i}].{nameof(ConverterState.items)}";
-            // I would like this to work, have a separate method and not inlined like this
-            var i1 = i;
-            listView.bindItem = (element, index) =>
-            {
-                // ListView doesn't bind the child elements for us properly, so we do that for it
-                var property = m_SerializedObject.FindProperty($"{listView.bindingPath}.Array.data[{index}]");
-                // In the UXML our root is a BindableElement, as we can't bind otherwise.
-                var bindable = (BindableElement)element;
-                bindable.BindProperty(property);
-
-                ConverterItemInfo convItem = converterItemInfos[index];
-
-                element.Q<Label>("converterItemName").text = convItem.name;
-                element.Q<Label>("converterItemPath").text = convItem.path;
-
-                var imgHelp = EditorGUIUtility.FindTexture("_Help");
-                element.Q<Image>("converterItemHelpIcon").image = imgHelp;
-                element.Q<Image>("converterItemHelpIcon").tooltip = convItem.helpLink;
-
-                // Changing the icon here depending on the info.
-                // If there is some info here we show the "warning icon"
-                // If the string is empty we show the pending conversion icon.
-                if (!String.IsNullOrEmpty(convItem.initialInfo))
-                {
-                    var imgWarn = EditorGUIUtility.FindTexture("_Help");
-                    element.Q<Image>("converterItemStatusIcon").image = imgWarn;
-                    element.Q<Image>("converterItemStatusIcon").tooltip = convItem.initialInfo;
-                }
-            };
-            listView.unbindItem = (element, index) =>
-            {
-                var bindable = (BindableElement)element;
-                bindable.Unbind();
-            };
-            listView.Refresh();
-
-            // When right clicking an item it should pop up a small menu with 2 entries
-            // I also would like this a separate method instead of inline.
-            listView.onSelectionChange += obj =>
-            {
-                //conv.PrintMe(listView.selectedIndex);
-            };
+            // // This should be in the INIT
+            // // Get the ListView for the converter items
+            // ListView listView = item.Q<ListView>("converterItems");
+            //
+            // var converterItemInfos = m_ItemsToConvert[i];
+            // // Update the amount of things to convert
+            // item.Q<Label>("converterStats").text = $"{converterItemInfos.Count} items";
+            //
+            // listView.makeItem = converterItem.CloneTree;
+            // listView.showBoundCollectionSize = false;
+            //
+            // listView.bindingPath = $"{nameof(m_ConverterStates)}.Array.data[{i}].{nameof(ConverterState.items)}";
+            // // I would like this to work, have a separate method and not inlined like this
+            // var i1 = i;
+            // listView.bindItem = (element, index) =>
+            // {
+            //     // ListView doesn't bind the child elements for us properly, so we do that for it
+            //     var property = m_SerializedObject.FindProperty($"{listView.bindingPath}.Array.data[{index}]");
+            //     // In the UXML our root is a BindableElement, as we can't bind otherwise.
+            //     var bindable = (BindableElement)element;
+            //     bindable.BindProperty(property);
+            //
+            //     ConverterItemInfo convItem = converterItemInfos[index];
+            //
+            //     element.Q<Label>("converterItemName").text = convItem.name;
+            //     element.Q<Label>("converterItemPath").text = convItem.path;
+            //
+            //     var imgHelp = EditorGUIUtility.FindTexture("_Help");
+            //     element.Q<Image>("converterItemHelpIcon").image = imgHelp;
+            //     element.Q<Image>("converterItemHelpIcon").tooltip = convItem.helpLink;
+            //
+            //     // Changing the icon here depending on the info.
+            //     // If there is some info here we show the "warning icon"
+            //     // If the string is empty we show the pending conversion icon.
+            //     if (!String.IsNullOrEmpty(convItem.initialInfo))
+            //     {
+            //         var imgWarn = EditorGUIUtility.FindTexture("_Help");
+            //         element.Q<Image>("converterItemStatusIcon").image = imgWarn;
+            //         element.Q<Image>("converterItemStatusIcon").tooltip = convItem.initialInfo;
+            //     }
+            // };
+            // listView.unbindItem = (element, index) =>
+            // {
+            //     var bindable = (BindableElement)element;
+            //     bindable.Unbind();
+            // };
+            // listView.Refresh();
+            //
+            // // When right clicking an item it should pop up a small menu with 2 entries
+            // // I also would like this a separate method instead of inline.
+            // listView.onSelectionChange += obj =>
+            // {
+            //     //conv.PrintMe(listView.selectedIndex);
+            // };
             // ////
 
             m_ScrollView.Add(item);
-            rootVisualElement.Bind(m_SerializedObject);
+            //rootVisualElement.Bind(m_SerializedObject);
         }
-
+        rootVisualElement.Bind(m_SerializedObject);
         var button = rootVisualElement.Q<Button>("convertButton");
         button.RegisterCallback<ClickEvent>(Convert);
 
@@ -176,30 +193,51 @@ public class URPConvertersEditor : EditorWindow
         initButton.RegisterCallback<ClickEvent>(Init);
     }
 
-    void Convert(ClickEvent evt)
+    void GetAndSetData()
     {
         for (int i = 0; i < m_ConverterStates.Count; ++i)
         {
-            var state = m_ConverterStates[i];
-            Debug.Log(m_CoreConvertersList[i].name);
-            if (state.isActive)
+            // Checking if this converter should get the data
+            if (m_ConverterStates[i].isActive)
             {
-                var items = new List<ConverterItemInfo>(m_ItemsToConvert[i]);
-                Debug.Log($"Items before: {items.Count}");
-                for (var j = state.items.Count - 1; j >= 0; j--)
+                // This need to be in Init method
+                // Need to get the assets that this converter is converting.
+                // Need to return Name, Path, Initial info, Help link.
+                // New empty list of ConverterItemInfos
+                List<ConverterItemInfo> converterItemInfos = new List<ConverterItemInfo>();
+                var initCtx = new InitializeConverterContext { m_Items = converterItemInfos };
+
+                var conv = m_CoreConvertersList[i];
+                // This should also go to the init method
+                // This will fill out the converter item infos list
+                conv.OnInitialize(initCtx);
+
+                // Set the item infos list to to the right index
+                m_ItemsToConvert[i] = converterItemInfos;
+                //m_ItemsToConvert.Add(converterItemInfos);
+                m_ConverterStates[i].items = new List<ConverterItemState>(converterItemInfos.Count);
+
+                // Default all the entries to true
+                for (var j = 0; j < converterItemInfos.Count; j++)
                 {
-                    if (!state.items[j].isActive) items.RemoveAt(j);
+                    m_ConverterStates[i].items.Add(new ConverterItemState
+                    {
+                        isActive = true
+                    });
                 }
 
-                Debug.Log($"Items after: {items.Count}");
-                var ctx = new RunConverterContext { m_Items = items };
-                m_CoreConvertersList[i].OnRun(ctx);
+                // Add this converterState to the list of converterStates.
+                //m_ConverterStates.Add(converterState);
+
+                m_ConverterStates[i].isInitialized = true;
             }
         }
     }
 
     void Init(ClickEvent evt)
     {
+        GetAndSetData();
+
         for (int i = 0; i < m_ConverterStates.Count; ++i)
         {
             VisualElement child = m_ScrollView[i];
@@ -215,17 +253,21 @@ public class URPConvertersEditor : EditorWindow
 
                 listView.makeItem = converterItem.CloneTree;
                 listView.showBoundCollectionSize = false;
+                listView.itemsSource = converterItemInfos;
 
                 listView.bindingPath = $"{nameof(m_ConverterStates)}.Array.data[{i}].{nameof(ConverterState.items)}";
                 // I would like this to work, have a separate method and not inlined like this
-                var i1 = i;
+                //var i1 = i;
                 listView.bindItem = (element, index) =>
                 {
                     // ListView doesn't bind the child elements for us properly, so we do that for it
-                    var property = m_SerializedObject.FindProperty($"{listView.bindingPath}.Array.data[{index}]");
+                    //Debug.Log($"{listView.bindingPath}.Array.data[{index}]");
+                    // Can't get this binding to work again. :/
+                    //var property = m_SerializedObject.FindProperty($"{listView.bindingPath}.Array.data[{index}]");
                     // In the UXML our root is a BindableElement, as we can't bind otherwise.
-                    var bindable = (BindableElement)element;
-                    bindable.BindProperty(property);
+                    //var bindable = (BindableElement)element;
+                    //Debug.Log(property);
+                    //bindable.BindProperty(property);
 
                     ConverterItemInfo convItem = converterItemInfos[index];
 
@@ -260,6 +302,28 @@ public class URPConvertersEditor : EditorWindow
                     //conv.PrintMe(listView.selectedIndex);
                 };
                 ////
+            }
+        }
+    }
+
+    void Convert(ClickEvent evt)
+    {
+        for (int i = 0; i < m_ConverterStates.Count; ++i)
+        {
+            var state = m_ConverterStates[i];
+            if (state.isActive && state.isInitialized)
+            {
+                Debug.Log(m_CoreConvertersList[i].name);
+                var items = new List<ConverterItemInfo>(m_ItemsToConvert[i]);
+                Debug.Log($"Items before: {items.Count}");
+                for (var j = state.items.Count - 1; j >= 0; j--)
+                {
+                    if (!state.items[j].isActive) items.RemoveAt(j);
+                }
+
+                Debug.Log($"Items after: {items.Count}");
+                var ctx = new RunConverterContext { m_Items = items };
+                m_CoreConvertersList[i].OnRun(ctx);
             }
         }
     }
