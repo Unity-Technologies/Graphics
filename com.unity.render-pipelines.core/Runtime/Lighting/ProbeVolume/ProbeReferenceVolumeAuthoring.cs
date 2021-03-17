@@ -160,12 +160,16 @@ namespace UnityEngine.Rendering
             if (m_Profile != null)
             {
                 m_PrevProfile = m_Profile;
-                QueueAssetLoading();
             }
 
             if (volumeAsset != m_PrevAsset && m_PrevAsset != null)
             {
                 ProbeReferenceVolume.instance.AddPendingAssetRemoval(m_PrevAsset);
+            }
+
+            if (volumeAsset != m_PrevAsset)
+            {
+                QueueAssetLoading();
             }
 
             m_PrevAsset = volumeAsset;
