@@ -125,8 +125,6 @@ namespace UnityEngine.Rendering.HighDefinition
 
         System.Random m_Random;
 
-        bool m_IsDoFHisotoryValid = false;
-
         void InitializePostProcess()
         {
             m_FinalPassMaterial = CoreUtils.CreateEngineMaterial(defaultResources.shaders.finalPassPS);
@@ -2443,7 +2441,7 @@ namespace UnityEngine.Rendering.HighDefinition
             {
                 // If we switch DoF modes and the old one was not using TAA, make sure we invalidate the history
                 // Note: for Rendergraph the m_IsDoFHisotoryValid perhaps should be moved to the "pass data" struct
-                if (taaEnabled && m_IsDoFHisotoryValid != m_DepthOfField.physicallyBased)
+                if (taaEnabled && hdCamera.dofHistoryIsValid != m_DepthOfField.physicallyBased)
                 {
                     hdCamera.resetPostProcessingHistory = true;
                 }
@@ -2603,12 +2601,12 @@ namespace UnityEngine.Rendering.HighDefinition
                 if (taaEnabled && m_DepthOfField.physicallyBased)
                 {
                     source = DoTemporalAntialiasing(renderGraph, hdCamera, depthBuffer, motionVectors, depthBufferMipChain, source, postDoF: true, "Post-DoF TAA Destination");
-                    m_IsDoFHisotoryValid = true;
+                    hdCamera.dofHistoryIsValid = true;
                     postDoFTAAEnabled = true;
                 }
                 else
                 {
-                    m_IsDoFHisotoryValid = false;
+                    hdCamera.dofHistoryIsValid = false;
                 }
             }
 
