@@ -74,20 +74,10 @@ namespace UnityEditor.Rendering.HighDefinition
             )
         );
 
-        public static readonly CED.IDrawer SectionFrameSettings = CED.Conditional(
-            (serialized, owner) => k_ExpandedState[Expandable.Projection],
-            CED.Group((serialized, owner) =>
-            {
-                if (!serialized.passThrough.boolValue && serialized.customRenderingSettings.boolValue)
-                    FrameSettingsUI.Inspector().Draw(serialized.frameSettings, owner);
-            })
-        );
-
         public static readonly CED.IDrawer[] Inspector = new[]
         {
             SectionProjectionSettings,
             Rendering.Drawer,
-            SectionFrameSettings,
             Environment.Drawer,
             SectionOutputSettings,
         };

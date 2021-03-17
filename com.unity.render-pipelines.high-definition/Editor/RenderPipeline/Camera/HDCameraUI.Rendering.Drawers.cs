@@ -32,6 +32,9 @@ namespace UnityEditor.Rendering.HighDefinition
                     Drawer_Rendering_ExposureTarget,
                     Drawer_Rendering_RenderingPath,
                     Drawer_Rendering_CameraWarnings
+                    ),
+                CED.Group(
+                    Drawer_Rendering_FrameSettings
                 )
             );
 
@@ -128,6 +131,12 @@ namespace UnityEditor.Rendering.HighDefinition
                     if (warnings.Length > 0)
                         EditorGUILayout.HelpBox(string.Join("\n\n", warnings), MessageType.Warning, true);
                 }
+            }
+
+            static void Drawer_Rendering_FrameSettings(SerializedHDCamera serialized, Editor owner)
+            {
+                if (!serialized.passThrough.boolValue && serialized.customRenderingSettings.boolValue)
+                    FrameSettingsUI.Inspector().Draw(serialized.frameSettings, owner);
             }
         }
     }
