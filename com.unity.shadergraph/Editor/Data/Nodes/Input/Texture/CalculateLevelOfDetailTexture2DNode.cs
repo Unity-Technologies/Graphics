@@ -7,7 +7,7 @@ using UnityEditor.ShaderGraph.Drawing.Controls;
 namespace UnityEditor.ShaderGraph
 {
     [Title("Input", "Texture", "Calculate Level Of Detail Texture 2D")]
-    class CalculateLevelOfDetail : AbstractMaterialNode, IGeneratesBodyCode, IMayRequireMeshUV
+    class CalculateLevelOfDetailTexture2DNode : AbstractMaterialNode, IGeneratesBodyCode, IMayRequireMeshUV
     {
         [SerializeField]
         bool m_Clamp = true;
@@ -34,7 +34,7 @@ namespace UnityEditor.ShaderGraph
 
         public override bool hasPreview { get { return true; } }
 
-        public CalculateLevelOfDetail()
+        public CalculateLevelOfDetailTexture2DNode()
         {
             name = "Calculate Level Of Detail Texture 2D";
             UpdateNodeAfterDeserialization();
@@ -80,16 +80,18 @@ namespace UnityEditor.ShaderGraph
             }
             sb.AppendLine("#else");
             {
-                sb.AppendLine(string.Format("$precision2 dUVdx = ddx({0});", uvName));
-                sb.AppendLine(string.Format("$precision2 dUVdy = ddy({0});", uvName));
-                sb.AppendLine(string.Format("$precision delta_max_sqr = max(dot(dUVdx, dUVdx), dot(dUVdy, dUVdy));", id));
-                sb.AppendLine(string.Format("$precision epsilon = 1e-6;"));
-                sb.AppendLine(string.Format("uint2 dimension; uint levels; {0}.tex.GetDimensions(0, dimension.x, dimension.y, levels);", id));
-                sb.AppendLine(string.Format("$precision {0} = levels - 1 + 0.5f*log2(max(epsilon, delta_max_sqr));", GetVariableNameForSlot(OutputSlotLODId)));
+                var dUVdx = string.Format("ddx({0})", uvName);
+                var dUVdy = string.Format("ddy({0})", uvName);
+                var delta_max_sqr = string.Format("max(dot({0}, {0}), dot({1}, {1}))", dUVdx, dUVdy);
+                sb.AppendLine(string.Format("$precision {0};", GetVariableNameForSlot(OutputSlotLODId)));
+                sb.AppendLine("{");
+                sb.AppendLine(string.Format("uint2 {0}_dimension; uint {0}_levels; {0}.tex.GetDimensions(0, {0}_dimension.x, {0}_dimension.y, {0}_levels);", id));
+                sb.AppendLine(string.Format("{0} = {1}_levels - 1 + 0.5f*log2(max(1e-6, {2}));", GetVariableNameForSlot(OutputSlotLODId), id, delta_max_sqr));
                 if (m_Clamp)
                 {
-                    sb.AppendLine(string.Format("{0} = clamp({0}, 0, levels-1);", GetVariableNameForSlot(OutputSlotLODId)));
-                }                
+                    sb.AppendLine(string.Format("{0} = clamp({0}, 0, {1}_levels-1);", GetVariableNameForSlot(OutputSlotLODId), id));
+                }
+                sb.AppendLine("}");
             }
             sb.AppendLine("#endif");
         }
