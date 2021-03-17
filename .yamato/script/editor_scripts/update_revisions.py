@@ -214,6 +214,7 @@ def main(argv):
             print(f'INFO: Committing and pushing to branch.')
             git_cmd(['add','.'], cwd=ROOT)
             git_cmd(['commit', '-m', f'[CI] Updated pinned editor versions'], cwd=ROOT)
+            git_cmd(['pull'], cwd=ROOT)
             git_cmd(['push'], cwd=ROOT)
         else:
             print(f'INFO: Will not commit or push to current branch. Use --commit-and-push to do so.')
