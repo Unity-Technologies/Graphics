@@ -36,14 +36,12 @@ test_platforms:
       - [all]: <shared.platform.commands.call_utr>
         flags:
           - [OSX_Metal]: --timeout=2400
-          - <reuse_blocks.code_coverage>
       - [Android_OpenGLES3, Android_Vulkan]: <shared.platform.commands.kill_server>
     commands_build:
       - <reuse_blocks.setup_without_utr>
       - [all]: <shared.platform.commands.call_utr>
         flags:
           - [all]: --timeout=3000
-          - <reuse_blocks.code_coverage>
 
   - type: playmode
     commands:
@@ -61,7 +59,9 @@ test_platforms:
 
   - type: editmode
     commands:
-      - <reuse_blocks.setup_with_utr>
+      - [all]: <reuse_blocks.setup_with_utr>
+        flags:
+          - <reuse_blocks.code_coverage>
 
   - type: playmode
     name: playmode_XR
@@ -109,7 +109,6 @@ test_platforms:
       - [all]: <shared.platform.commands.call_utr>
         flags:
           - [all]: --extra-editor-arg="-xr-reuse-tests"
-          - <reuse_blocks.code_coverage>
       - [Android_OpenGLES3, Android_Vulkan]: <shared.platform.commands.kill_server>
     commands_build:
       - <reuse_blocks.setup_without_utr>
@@ -118,7 +117,6 @@ test_platforms:
           - [all]: --extra-editor-arg="-xr-reuse-tests"
           - [all]: --timeout=3000
           - <reuse_blocks.cache_server>
-          - <reuse_blocks.code_coverage>
 
 expression_trigger:
   expression: ''
