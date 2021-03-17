@@ -16,6 +16,13 @@ namespace UnityEngine.Rendering.Universal
     [RequireComponent(typeof(Light))]
     public class UniversalAdditionalLightData : MonoBehaviour
     {
+        // Version 0 means serialized data before the version field.
+        [SerializeField] int m_Version = 1;
+        public int version
+        {
+            get => m_Version;
+        }
+
         [Tooltip("Controls if light Shadow Bias parameters use pipeline settings.")]
         [SerializeField] bool m_UsePipelineSettings = true;
 
