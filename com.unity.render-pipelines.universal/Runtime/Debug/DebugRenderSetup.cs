@@ -14,7 +14,6 @@ namespace UnityEngine.Rendering.Universal
         private DebugDisplaySettingsMaterial MaterialSettings => m_DebugHandler.DebugDisplaySettings.MaterialSettings;
         private DebugDisplaySettingsRendering RenderingSettings => m_DebugHandler.DebugDisplaySettings.RenderingSettings;
         private DebugDisplaySettingsLighting LightingSettings => m_DebugHandler.DebugDisplaySettings.LightingSettings;
-        private DebugDisplaySettingsValidation ValidationSettings => m_DebugHandler.DebugDisplaySettings.ValidationSettings;
 
         private bool IsDebugMaterialPassNeeded()
         {

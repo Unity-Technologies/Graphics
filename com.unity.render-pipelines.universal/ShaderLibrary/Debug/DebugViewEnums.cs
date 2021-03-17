@@ -87,6 +87,14 @@ namespace UnityEngine.Rendering.Universal
         Auto,
         Enabled
     };
+
+    [GenerateHLSL]
+    public enum DebugValidationMode
+    {
+        None,
+        HighlightNanInfNegative,
+        HighlightOutsideOfRange
+    }
     #endregion
 
     #region Lighting settings
@@ -111,16 +119,6 @@ namespace UnityEngine.Rendering.Universal
         VertexLighting = 0x8,
         Emission = 0x10,
         AmbientOcclusion = 0x20,
-    }
-    #endregion
-
-    #region Validation settings
-    [GenerateHLSL]
-    public enum DebugValidationMode
-    {
-        None,
-        HighlightNanInfNegative,
-        HighlightOutsideOfRange
     }
     #endregion
 }

@@ -33,13 +33,11 @@ int _DebugMaterialValidationMode;
 int _DebugFullScreenMode;
 int _DebugSceneOverrideMode;
 int _DebugMipInfoMode;
+int _DebugValidationMode;
 
 // Lighting settings...
 int _DebugLightingMode;
 int _DebugLightingFeatureFlags;
-
-// Validation settings...
-int _DebugValidationMode;
 
 half _DebugValidateAlbedoMinLuminance = 0.01;
 half _DebugValidateAlbedoMaxLuminance = 0.90;

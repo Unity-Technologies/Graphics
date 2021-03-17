@@ -15,26 +15,22 @@ namespace UnityEngine.Rendering.Universal
         public DebugDisplaySettingsMaterial MaterialSettings { get; private set; }
         public DebugDisplaySettingsRendering RenderingSettings { get; private set; }
         public DebugDisplaySettingsLighting LightingSettings { get; private set; }
-        public DebugDisplaySettingsValidation ValidationSettings { get; private set; }
 
         #region IDebugDisplaySettingsQuery
         public bool AreAnySettingsActive => MaterialSettings.AreAnySettingsActive ||
         LightingSettings.AreAnySettingsActive ||
-        RenderingSettings.AreAnySettingsActive ||
-        ValidationSettings.AreAnySettingsActive;
+        RenderingSettings.AreAnySettingsActive;
 
         public bool TryGetScreenClearColor(ref Color color)
         {
             return MaterialSettings.TryGetScreenClearColor(ref color) ||
                 RenderingSettings.TryGetScreenClearColor(ref color) ||
-                LightingSettings.TryGetScreenClearColor(ref color) ||
-                ValidationSettings.TryGetScreenClearColor(ref color);
+                LightingSettings.TryGetScreenClearColor(ref color);
         }
 
         public bool IsLightingActive => MaterialSettings.IsLightingActive &&
         RenderingSettings.IsLightingActive &&
-        LightingSettings.IsLightingActive &&
-        ValidationSettings.IsLightingActive;
+        LightingSettings.IsLightingActive;
 
         public bool IsPostProcessingAllowed
         {
@@ -54,8 +50,7 @@ namespace UnityEngine.Rendering.Universal
                         // Only enable post-processing if we aren't using certain debug-views...
                         return MaterialSettings.IsPostProcessingAllowed &&
                             RenderingSettings.IsPostProcessingAllowed &&
-                            LightingSettings.IsPostProcessingAllowed &&
-                            ValidationSettings.IsPostProcessingAllowed;
+                            LightingSettings.IsPostProcessingAllowed;
                     }
 
                     case DebugPostProcessingMode.Enabled:
@@ -91,7 +86,6 @@ namespace UnityEngine.Rendering.Universal
             MaterialSettings = Add(new DebugDisplaySettingsMaterial());
             LightingSettings = Add(new DebugDisplaySettingsLighting());
             RenderingSettings = Add(new DebugDisplaySettingsRendering());
-            ValidationSettings = Add(new DebugDisplaySettingsValidation());
         }
 
         public void ForEach(Action<IDebugDisplaySettingsData> onExecute)

@@ -72,6 +72,41 @@ namespace UnityEngine.Rendering.Universal
         public bool enableMsaa { get; private set; } = true;
         public bool enableHDR { get; private set; } = true;
 
+        #region Pixel validation
+
+        public DebugValidationMode validationMode;
+        public float ValidationRangeMin = 0.0f;
+        public float ValidationRangeMax = 1.0f;
+        public bool AlsoHighlightAlphaOutsideRange = false;
+
+        const string k_RangeValidationSettingsContainerName = "Pixel Range Settings";
+
+        internal static void DebugPixelValidationModeChanged(DebugUI.Field<int> field, int value)
+        {
+            // Hacky way to hide non-relevant UI options based on displayNames.
+            var mode = (DebugValidationMode)value;
+            var validationWidgets = field.parent.children;
+            foreach (var widget in validationWidgets)
+            {
+                if ((mode == DebugValidationMode.None || mode == DebugValidationMode.HighlightNanInfNegative) &&
+                    widget.displayName == k_RangeValidationSettingsContainerName)
+                {
+                    widget.isHidden = true;
+                }
+                else if (mode == DebugValidationMode.HighlightOutsideOfRange && widget.displayName == k_RangeValidationSettingsContainerName)
+                {
+                    widget.isHidden = false;
+                }
+                else
+                {
+                    widget.isHidden = false;
+                }
+            }
+            DebugManager.instance.ReDrawOnScreenDebug();
+        }
+
+        #endregion
+
         internal static class WidgetFactory
         {
             internal static DebugUI.Widget CreateMapOverlays(DebugDisplaySettingsRendering data) => new DebugUI.EnumField
@@ -150,6 +185,40 @@ namespace UnityEngine.Rendering.Universal
                 getter = () => data.enableHDR,
                 setter = (value) => data.enableHDR = value
             };
+
+            internal static DebugUI.Widget CreatePixelValidationMode(DebugDisplaySettingsRendering data) => new DebugUI.EnumField
+            {
+                displayName = "Pixel Validation Mode",
+                autoEnum = typeof(DebugValidationMode),
+                getter = () => (int)data.validationMode,
+                setter = (value) => {},
+                getIndex = () => (int)data.validationMode,
+                setIndex = (value) => data.validationMode = (DebugValidationMode)value,
+                onValueChanged = DebugPixelValidationModeChanged
+            };
+
+            internal static DebugUI.Widget CreatePixelValueRangeMin(DebugDisplaySettingsRendering data) => new DebugUI.FloatField
+            {
+                displayName = "Value Range Min",
+                getter = () => data.ValidationRangeMin,
+                setter = (value) => data.ValidationRangeMin = value,
+                incStep = 0.01f
+            };
+
+            internal static DebugUI.Widget CreatePixelValueRangeMax(DebugDisplaySettingsRendering data) => new DebugUI.FloatField
+            {
+                displayName = "Value Range Max",
+                getter = () => data.ValidationRangeMax,
+                setter = (value) => data.ValidationRangeMax = value,
+                incStep = 0.01f
+            };
+
+            internal static DebugUI.Widget CreateHighlightOutOfRangeAlpha(DebugDisplaySettingsRendering data) => new DebugUI.BoolField
+            {
+                displayName = "Highlight Out-Of-Range Alpha",
+                getter = () => data.AlsoHighlightAlphaOutsideRange,
+                setter = (value) => data.AlsoHighlightAlphaOutsideRange = value
+            };
         }
 
         private class SettingsPanel : DebugDisplaySettingsPanel
@@ -167,7 +236,6 @@ namespace UnityEngine.Rendering.Universal
                     {
                         WidgetFactory.CreateMapOverlays(data),
                         WidgetFactory.CreateMapOverlaySize(data),
-                        // TODO: Map size widget
                         WidgetFactory.CreateHDR(data),
                         WidgetFactory.CreateMipModesDebug(data),
                         WidgetFactory.CreateMSAA(data),
@@ -177,16 +245,27 @@ namespace UnityEngine.Rendering.Universal
                     }
                 });
 
-                // AddWidget(new DebugUI.Foldout
-                // {
-                //     displayName = "Pixel Validation",
-                //     isHeader = true,
-                //     opened = true,
-                //     children =
-                //     {
-                //         // TODO: Pixel validation
-                //     }
-                // });
+                AddWidget(new DebugUI.Foldout
+                {
+                    displayName = "Pixel Validation",
+                    isHeader = true,
+                    opened = true,
+                    children =
+                    {
+                        WidgetFactory.CreatePixelValidationMode(data),
+                        new DebugUI.Container()
+                        {
+                            displayName = k_RangeValidationSettingsContainerName,
+                            isHidden = true,
+                            children =
+                            {
+                                WidgetFactory.CreatePixelValueRangeMin(data),
+                                WidgetFactory.CreatePixelValueRangeMax(data),
+                                WidgetFactory.CreateHighlightOutOfRangeAlpha(data)
+                            }
+                        }
+                    }
+                });
             }
         }
 
@@ -194,7 +273,8 @@ namespace UnityEngine.Rendering.Universal
         public bool AreAnySettingsActive => (debugPostProcessingMode != DebugPostProcessingMode.Auto) ||
         (debugFullScreenMode != DebugFullScreenMode.None) ||
         (debugSceneOverrideMode != DebugSceneOverrideMode.None) ||
-        (debugMipInfoMode != DebugMipInfoMode.None);
+        (debugMipInfoMode != DebugMipInfoMode.None) ||
+        (validationMode != DebugValidationMode.None);
 
         public bool IsPostProcessingAllowed => (debugPostProcessingMode != DebugPostProcessingMode.Disabled) &&
         (debugSceneOverrideMode == DebugSceneOverrideMode.None) &&

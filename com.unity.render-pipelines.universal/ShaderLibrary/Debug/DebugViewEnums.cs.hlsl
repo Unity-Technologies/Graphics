@@ -73,6 +73,13 @@
 #define DEBUGPOSTPROCESSINGMODE_ENABLED (2)
 
 //
+// UnityEngine.Rendering.Universal.DebugValidationMode:  static fields
+//
+#define DEBUGVALIDATIONMODE_NONE (0)
+#define DEBUGVALIDATIONMODE_HIGHLIGHT_NAN_INF_NEGATIVE (1)
+#define DEBUGVALIDATIONMODE_HIGHLIGHT_OUTSIDE_OF_RANGE (2)
+
+//
 // UnityEngine.Rendering.Universal.DebugLightingMode:  static fields
 //
 #define DEBUGLIGHTINGMODE_NONE (0)
@@ -92,13 +99,6 @@
 #define DEBUGLIGHTINGFEATUREFLAGS_VERTEX_LIGHTING (8)
 #define DEBUGLIGHTINGFEATUREFLAGS_EMISSION (16)
 #define DEBUGLIGHTINGFEATUREFLAGS_AMBIENT_OCCLUSION (32)
-
-//
-// UnityEngine.Rendering.Universal.DebugValidationMode:  static fields
-//
-#define DEBUGVALIDATIONMODE_NONE (0)
-#define DEBUGVALIDATIONMODE_HIGHLIGHT_NAN_INF_NEGATIVE (1)
-#define DEBUGVALIDATIONMODE_HIGHLIGHT_OUTSIDE_OF_RANGE (2)
 
 
 #endif
