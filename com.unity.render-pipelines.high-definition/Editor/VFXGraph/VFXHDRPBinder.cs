@@ -139,7 +139,8 @@ namespace UnityEditor.VFX.HDRP
         private static readonly Dictionary<Type, string> s_UnsupportedShaderPropertyTypes = new Dictionary<Type, string>()
         {
             { typeof(DiffusionProfileShaderProperty), "Diffusion Profile" },
-            { typeof(VirtualTextureShaderProperty),   "Virtual Texture"   }
+            { typeof(VirtualTextureShaderProperty),   "Virtual Texture"   },
+            { typeof(GradientShaderProperty),         "Gradient"          }
         };
 
         public override bool IsGraphDataValid(GraphData graph)
