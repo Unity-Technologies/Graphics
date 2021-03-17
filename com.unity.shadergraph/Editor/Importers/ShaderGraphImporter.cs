@@ -230,6 +230,45 @@ Shader ""Hidden/GraphErrorShader2""
                     }
                 }
             }
+
+            List<MinimalCategoryData.PropertyData> inputs = new List<MinimalCategoryData.PropertyData>();
+            foreach(AbstractShaderProperty prop in graph.properties)
+            {
+                inputs.Add(new MinimalCategoryData.PropertyData() { referenceName = prop.referenceName, valueType = prop.concreteShaderValueType, isKeyword = false});
+            }
+            foreach(ShaderKeyword keyword in graph.keywords)
+            {
+                inputs.Add(new MinimalCategoryData.PropertyData() { referenceName = keyword.referenceName, valueType = keyword.concreteShaderValueType, isKeyword = true});
+            }
+
+            sgMetadata.categoryDatas = new List<MinimalCategoryData>();
+            foreach(CategoryData catagory in graph.categories)
+            {
+                MinimalCategoryData mcd = new MinimalCategoryData()
+                {
+                    categoryName = catagory.name,
+                    propertyDatas = new List<MinimalCategoryData.PropertyData>()
+                };
+                foreach(var input in catagory.Children)
+                {
+                    bool isKeyworCheck = input is ShaderKeyword keyword;
+                    var propData = new MinimalCategoryData.PropertyData() { referenceName = input.referenceName, valueType = input.concreteShaderValueType, isKeyword = isKeyworCheck};
+                    mcd.propertyDatas.Add(propData);
+                    inputs.Remove(propData);
+                }
+                sgMetadata.categoryDatas.Add(mcd);
+            }
+
+            if(inputs.Count > 0)
+            {
+                sgMetadata.categoryDatas.Insert(0, new MinimalCategoryData() { categoryName = "", propertyDatas = inputs });
+            }
+
+            foreach(AbstractShaderProperty prop in graph.properties)
+            {
+                var propertyType = prop.propertyType;
+            }
+
             ctx.AddObjectToAsset("SGInternal:Metadata", sgMetadata);
 
             // declare dependencies
