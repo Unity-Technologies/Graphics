@@ -99,7 +99,7 @@ namespace UnityEngine.Rendering.HighDefinition
             public VolumetricCloudsParameters parameters;
             public TextureHandle shadowTexture;
         }
-        
+
         RTHandle RequestVolumetricCloudsShadowTexture(HDCamera hdCamera)
         {
             VolumetricClouds settings = hdCamera.volumeStack.GetComponent<VolumetricClouds>();

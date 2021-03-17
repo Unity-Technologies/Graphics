@@ -1179,7 +1179,6 @@ namespace UnityEngine.Rendering.HighDefinition
             }
             else
             {
-
                 if (lightComponent != null && lightComponent.cookie != null)
                 {
                     lightData.cookieMode = lightComponent.cookie.wrapMode == TextureWrapMode.Repeat ? CookieMode.Repeat : CookieMode.Clamp;
