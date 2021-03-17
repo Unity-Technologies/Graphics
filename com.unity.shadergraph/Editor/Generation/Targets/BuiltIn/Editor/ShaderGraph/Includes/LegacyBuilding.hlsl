@@ -45,6 +45,7 @@ SurfaceOutputStandard BuildStandardSurfaceOutput(SurfaceDescription surfaceDescr
     o.Metallic = surface.metallic;
     o.Smoothness = surface.smoothness;
     o.Occlusion = surface.occlusion;
+    o.Emission = surface.emission;
     o.Alpha = surface.alpha;
     return o;
 }
