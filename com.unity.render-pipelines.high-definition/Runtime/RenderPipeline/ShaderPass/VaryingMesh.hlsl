@@ -57,7 +57,7 @@ struct VaryingsMeshToPS
 
 struct PackedVaryingsMeshToPS
 {
-    float4 positionCS : SV_Position;
+    SV_POSITION_QUALIFIERS float4 positionCS : SV_Position;
 
 #ifdef VARYINGS_NEED_POSITION_WS
     float3 interpolators0 : TEXCOORD0;
