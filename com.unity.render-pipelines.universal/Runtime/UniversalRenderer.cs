@@ -51,6 +51,7 @@ namespace UnityEngine.Rendering.Universal
         internal DepthPrepassMode depthPrepassMode { get { return m_DepthPrepassMode; } }
         DepthOnlyPass m_DepthPrepass;
         DepthNormalOnlyPass m_DepthNormalPrepass;
+        CopyDepthPass m_PrimedDepthCopyPass;
         MainLightShadowCasterPass m_MainLightShadowCasterPass;
         AdditionalLightsShadowCasterPass m_AdditionalLightsShadowCasterPass;
         GBufferPass m_GBufferPass;
@@ -147,6 +148,11 @@ namespace UnityEngine.Rendering.Universal
 #endif
             m_DepthPrepass = new DepthOnlyPass(RenderPassEvent.BeforeRenderingPrePasses, RenderQueueRange.opaque, data.opaqueLayerMask);
             m_DepthNormalPrepass = new DepthNormalOnlyPass(RenderPassEvent.BeforeRenderingPrePasses, RenderQueueRange.opaque, data.opaqueLayerMask);
+
+            if (this.renderingMode == RenderingMode.Forward)
+            {
+                m_PrimedDepthCopyPass = new CopyDepthPass(RenderPassEvent.AfterRenderingPrePasses, m_CopyDepthMaterial);
+            }
 
             if (this.renderingMode == RenderingMode.Deferred)
             {
@@ -489,6 +495,15 @@ namespace UnityEngine.Rendering.Universal
                         EnqueuePass(m_DepthPrepass);
                     }
                 }
+            }
+
+            // Depth priming requires a manual resolve of MSAA depth right after the depth prepass.
+            if (useDepthPriming)
+            {
+                m_PrimedDepthCopyPass.Setup(m_ActiveCameraDepthAttachment, m_DepthTexture);
+                m_PrimedDepthCopyPass.AllocateRT = false;
+
+                EnqueuePass(m_PrimedDepthCopyPass);
             }
 
             if (generateColorGradingLUT)
@@ -886,10 +901,8 @@ namespace UnityEngine.Rendering.Universal
             bool supportsDepthTarget = RenderingUtils.SupportsRenderTextureFormat(RenderTextureFormat.Depth);
             bool supportsDepthCopy = !msaaEnabledForCamera && (supportsDepthTarget || supportsTextureCopy);
 
-            // TODO:  We don't have support to highp Texture2DMS currently and this breaks depth precision.
-            // currently disabling it until shader changes kick in.
-            //bool msaaDepthResolve = msaaEnabledForCamera && SystemInfo.supportsMultisampledTextures != 0;
-            bool msaaDepthResolve = false;
+            bool msaaDepthResolve = msaaEnabledForCamera && SystemInfo.supportsMultisampledTextures != 0;
+
             return supportsDepthCopy || msaaDepthResolve;
         }
     }

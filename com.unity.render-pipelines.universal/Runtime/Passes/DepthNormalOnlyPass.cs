@@ -50,21 +50,20 @@ namespace UnityEngine.Rendering.Universal.Internal
 
             this.depthHandle = depthHandle;
 
+            int normalSamples = baseDescriptor.msaaSamples;
 
-            baseDescriptor.graphicsFormat = GraphicsFormat.R32_SFloat;
-            baseDescriptor.depthBufferBits = 0;
-            if (!useDepthPriming)
-            {
-                baseDescriptor.msaaSamples = 1;// Depth-Only pass don't use MSAA
-            }
+            baseDescriptor.colorFormat = RenderTextureFormat.Depth;
+            baseDescriptor.depthBufferBits = k_DepthBufferBits;
+
+            // Never have MSAA on this depth texture. When doing MSAA depth priming this is the texture that is resolved to and used for post-processing.
+            baseDescriptor.msaaSamples = 1;// Depth-Only pass don't use MSAA
 
             depthDescriptor = baseDescriptor;
 
             this.normalHandle = normalHandle;
             baseDescriptor.graphicsFormat = normalsFormat;
             baseDescriptor.depthBufferBits = 0;
-            if (!useDepthPriming)
-                baseDescriptor.msaaSamples = 1;
+            baseDescriptor.msaaSamples = normalSamples;
             normalDescriptor = baseDescriptor;
 
             this.allocateDepth = true;
@@ -81,7 +80,7 @@ namespace UnityEngine.Rendering.Universal.Internal
             if (this.allocateDepth)
                 cmd.GetTemporaryRT(depthHandle.id, depthDescriptor, FilterMode.Point);
 
-            ConfigureTarget(new[] { new RenderTargetIdentifier(normalHandle.Identifier(), 0, CubemapFace.Unknown, -1), new RenderTargetIdentifier(depthHandle.Identifier(), 0, CubemapFace.Unknown, -1) });
+            ConfigureTarget(new RenderTargetIdentifier(normalHandle.Identifier(), 0, CubemapFace.Unknown, -1));
 
             ConfigureClear(ClearFlag.All, Color.black);
         }
