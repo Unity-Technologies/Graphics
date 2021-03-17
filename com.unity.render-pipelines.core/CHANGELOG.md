@@ -73,6 +73,7 @@ The version number for this package has increased due to a version update of a r
 ### Added
 - Added context options "Move to Top", "Move to Bottom", "Expand All" and "Collapse All" for volume components.
 - Added the support of input system V2
+- Added a SpeedTree8MaterialUpgrader which provides support for upgrading and importing to SpeedTree8 shadergraphs
 
 ### Fixed
 - Fixed the scene view to scale correctly when hardware dynamic resolution is enabled (case 1158661)

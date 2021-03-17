@@ -36,6 +36,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Added an error message when trying to use disk lights with realtime GI (case 1317808).
 - Added support for multi volumetric cloud shadows.
 - Added a Scale Mode setting for Decals.
+- Added a default SpeedTree8 shader to HD, including upgrader support from builtin ST8 and support for importing new ST8 assets.
 
 ### Fixed
 - Fixed Intensity Multiplier not affecting realtime global illumination.
