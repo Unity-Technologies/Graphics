@@ -55,6 +55,7 @@ namespace UnityEngine.Rendering.HighDefinition
             deferredParameters.diffuseLightingOnly = true;
             deferredParameters.halfResolution = !settings.fullResolution;
             deferredParameters.rayCountType = (int)RayCountValues.DiffuseGI_Deferred;
+            deferredParameters.lodBias = settings.textureLodBias.value;
 
             // Camera data
             deferredParameters.width = hdCamera.actualWidth;
@@ -367,6 +368,7 @@ namespace UnityEngine.Rendering.HighDefinition
             public int sampleCount;
             public float clampValue;
             public int bounceCount;
+            public int lodBias;
 
             // Other parameters
             public RayTracingShader indirectDiffuseRT;
@@ -400,6 +402,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 passData.sampleCount = settings.sampleCount.value;
                 passData.clampValue = settings.clampValue;
                 passData.bounceCount = settings.bounceCount.value;
+                passData.lodBias = settings.textureLodBias.value;
 
                 // Grab the additional parameters
                 passData.indirectDiffuseRT = m_Asset.renderPipelineRayTracingResources.indirectDiffuseRaytracingRT;
@@ -448,6 +451,7 @@ namespace UnityEngine.Rendering.HighDefinition
                         data.shaderVariablesRayTracingCB._RaytracingNumSamples = data.sampleCount;
                         data.shaderVariablesRayTracingCB._RaytracingMaxRecursion = data.bounceCount;
                         data.shaderVariablesRayTracingCB._RayTracingDiffuseLightingOnly = 1;
+                        data.shaderVariablesRayTracingCB._RayTracingLodBias = data.lodBias;
                         ConstantBuffer.PushGlobal(ctx.cmd, data.shaderVariablesRayTracingCB, HDShaderIDs._ShaderVariablesRaytracing);
 
                         // Only use the shader variant that has multi bounce if the bounce count > 1
