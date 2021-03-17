@@ -3118,13 +3118,14 @@ namespace UnityEngine.Rendering.HighDefinition
 
                                 float localPos = position + 2.0f * element.lengthSpread * positionSpacing;
                                 Vector2 rayOff = GetLensFlareRayOffset(screenPos, localPos, globalCos0, globalSin0);
-                                float sizeCurveValue = element.scaleCurve.length > 0 ? element.scaleCurve.Evaluate(timeScale) : 1.0f;
-                                Vector2 localSize = size * sizeCurveValue;
+                                Vector2 localSize = size;
                                 if (element.enableRadialDistortion)
                                 {
                                     Vector2 rayOff0 = GetLensFlareRayOffset(screenPos, 0.0f, globalCos0, globalSin0);
                                     localSize = ComputeLocalSize(rayOff, rayOff0, localSize, element.distortionCurve);
                                 }
+                                float sizeCurveValue = element.scaleCurve.length > 0 ? element.scaleCurve.Evaluate(timeScale) : 1.0f;
+                                localSize *= sizeCurveValue;
 
                                 Vector4 flareData0 = GetFlareData0(screenPos, element.translationScale, vScreenRatio, element.rotation, localPos, element.angularOffset, element.positionOffset, element.autoRotate);
                                 cmd.SetGlobalVector(HDShaderIDs._FlareData0, flareData0);
