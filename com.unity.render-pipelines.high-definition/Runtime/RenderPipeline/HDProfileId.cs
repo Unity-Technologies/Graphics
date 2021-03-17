@@ -71,7 +71,6 @@ namespace UnityEngine.Rendering.HighDefinition
         FilterCubemapCharlie,
         FilterCubemapGGX,
         DisplayPlanarReflectionProbeAtlas,
-        BlitTextureInPotAtlas,
         AreaLightCookieConvolution,
         DisplayDensityVolumeAtlas,
 

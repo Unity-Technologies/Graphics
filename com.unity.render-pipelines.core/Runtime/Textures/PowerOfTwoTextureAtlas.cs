@@ -1,43 +1,34 @@
-using System.Collections;
 using System.Collections.Generic;
-using UnityEngine;
-using UnityEngine.Rendering;
 using UnityEngine.Experimental.Rendering;
 
-namespace UnityEngine.Rendering.HighDefinition
+namespace UnityEngine.Rendering
 {
-    class PowerOfTwoTextureAtlas : Texture2DAtlas
+    /// <summary>
+    /// Texture atlas with rectangular power of two size.
+    /// </summary>
+    public class PowerOfTwoTextureAtlas : Texture2DAtlas
     {
-        public int mipPadding;
+        int m_MipPadding;
         const float k_MipmapFactorApprox = 1.33f;
 
         private Dictionary<int, Vector2Int> m_RequestedTextures = new Dictionary<int, Vector2Int>();
 
+        /// <summary>
+        /// Create a new texture atlas, must have power of two size.
+        /// </summary>
         public PowerOfTwoTextureAtlas(int size, int mipPadding, GraphicsFormat format, FilterMode filterMode = FilterMode.Point, string name = "", bool useMipMap = true)
             : base(size, size, format, filterMode, true, name, useMipMap)
         {
-            this.mipPadding = mipPadding;
+            this.m_MipPadding = mipPadding;
 
             // Check if size is a power of two
             if ((size & (size - 1)) != 0)
                 Debug.Assert(false, "Power of two atlas was constructed with non power of two size: " + size);
         }
 
-        int GetTexturePadding() => (int)Mathf.Pow(2, mipPadding) * 2;
+        public int mipPadding => m_MipPadding;
 
-        // branchless previous power of two: Hacker’s Delight, Second Edition page 66
-        static int PreviousPowerOfTwo(int size)
-        {
-            if (size <= 0)
-                return 0;
-
-            size |= (size >> 1);
-            size |= (size >> 2);
-            size |= (size >> 4);
-            size |= (size >> 8);
-            size |= (size >> 16);
-            return size - (size >> 1);
-        }
+        int GetTexturePadding() => (int)Mathf.Pow(2, m_MipPadding) * 2;
 
         void Blit2DTexturePadding(CommandBuffer cmd, Vector4 scaleOffset, Texture texture, Vector4 sourceScaleOffset, bool blitMips = true)
         {
@@ -49,12 +40,12 @@ namespace UnityEngine.Rendering.HighDefinition
             if (!blitMips)
                 mipCount = 1;
 
-            using (new ProfilingScope(cmd, ProfilingSampler.Get(HDProfileId.BlitTextureInPotAtlas)))
+            using (new ProfilingScope(cmd, ProfilingSampler.Get(CoreProfileId.BlitTextureInPotAtlas)))
             {
                 for (int mipLevel = 0; mipLevel < mipCount; mipLevel++)
                 {
                     cmd.SetRenderTarget(m_AtlasTexture, mipLevel);
-                    HDUtils.BlitQuadWithPadding(cmd, texture, textureSize, sourceScaleOffset, scaleOffset, mipLevel, bilinear, pixelPadding);
+                    Blitter.BlitQuadWithPadding(cmd, texture, textureSize, sourceScaleOffset, scaleOffset, mipLevel, bilinear, pixelPadding);
                 }
             }
         }
@@ -69,12 +60,12 @@ namespace UnityEngine.Rendering.HighDefinition
             if (!blitMips)
                 mipCount = 1;
 
-            using (new ProfilingScope(cmd, ProfilingSampler.Get(HDProfileId.BlitTextureInPotAtlas)))
+            using (new ProfilingScope(cmd, ProfilingSampler.Get(CoreProfileId.BlitTextureInPotAtlas)))
             {
                 for (int mipLevel = 0; mipLevel < mipCount; mipLevel++)
                 {
                     cmd.SetRenderTarget(m_AtlasTexture, mipLevel);
-                    HDUtils.BlitQuadWithPaddingMultiply(cmd, texture, textureSize, sourceScaleOffset, scaleOffset, mipLevel, bilinear, pixelPadding);
+                    Blitter.BlitQuadWithPaddingMultiply(cmd, texture, textureSize, sourceScaleOffset, scaleOffset, mipLevel, bilinear, pixelPadding);
                 }
             }
         }
@@ -89,12 +80,12 @@ namespace UnityEngine.Rendering.HighDefinition
             if (!blitMips)
                 mipCount = 1;
 
-            using (new ProfilingScope(cmd, ProfilingSampler.Get(HDProfileId.BlitTextureInPotAtlas)))
+            using (new ProfilingScope(cmd, ProfilingSampler.Get(CoreProfileId.BlitTextureInPotAtlas)))
             {
                 for (int mipLevel = 0; mipLevel < mipCount; mipLevel++)
                 {
                     cmd.SetRenderTarget(m_AtlasTexture, mipLevel);
-                    HDUtils.BlitOctahedralWithPadding(cmd, texture, textureSize, sourceScaleOffset, scaleOffset, mipLevel, bilinear, pixelPadding);
+                    Blitter.BlitOctahedralWithPadding(cmd, texture, textureSize, sourceScaleOffset, scaleOffset, mipLevel, bilinear, pixelPadding);
                 }
             }
         }
@@ -109,16 +100,19 @@ namespace UnityEngine.Rendering.HighDefinition
             if (!blitMips)
                 mipCount = 1;
 
-            using (new ProfilingScope(cmd, ProfilingSampler.Get(HDProfileId.BlitTextureInPotAtlas)))
+            using (new ProfilingScope(cmd, ProfilingSampler.Get(CoreProfileId.BlitTextureInPotAtlas)))
             {
                 for (int mipLevel = 0; mipLevel < mipCount; mipLevel++)
                 {
                     cmd.SetRenderTarget(m_AtlasTexture, mipLevel);
-                    HDUtils.BlitOctahedralWithPaddingMultiply(cmd, texture, textureSize, sourceScaleOffset, scaleOffset, mipLevel, bilinear, pixelPadding);
+                    Blitter.BlitOctahedralWithPaddingMultiply(cmd, texture, textureSize, sourceScaleOffset, scaleOffset, mipLevel, bilinear, pixelPadding);
                 }
             }
         }
 
+        /// <summary>
+        /// Copy texture into the atlas.
+        /// </summary>
         public override void BlitTexture(CommandBuffer cmd, Vector4 scaleOffset, Texture texture, Vector4 sourceScaleOffset, bool blitMips = true, int overrideInstanceID = -1)
         {
             // We handle ourself the 2D blit because cookies needs mipPadding for trilinear filtering
@@ -129,6 +123,9 @@ namespace UnityEngine.Rendering.HighDefinition
             }
         }
 
+        /// <summary>
+        /// Copy texture into the atlas with blending.
+        /// </summary>
         public void BlitTextureMultiply(CommandBuffer cmd, Vector4 scaleOffset, Texture texture, Vector4 sourceScaleOffset, bool blitMips = true, int overrideInstanceID = -1)
         {
             // We handle ourself the 2D blit because cookies needs mipPadding for trilinear filtering
@@ -139,6 +136,9 @@ namespace UnityEngine.Rendering.HighDefinition
             }
         }
 
+        /// <summary>
+        /// Copy texture into the atlas with Octahedral projection.
+        /// </summary>
         public override void BlitOctahedralTexture(CommandBuffer cmd, Vector4 scaleOffset, Texture texture, Vector4 sourceScaleOffset, bool blitMips = true, int overrideInstanceID = -1)
         {
             // We handle ourself the 2D blit because cookies needs mipPadding for trilinear filtering
@@ -149,6 +149,9 @@ namespace UnityEngine.Rendering.HighDefinition
             }
         }
 
+        /// <summary>
+        /// Copy texture into the atlas with Octahedral projection and blending.
+        /// </summary>
         public void BlitOctahedralTextureMultiply(CommandBuffer cmd, Vector4 scaleOffset, Texture texture, Vector4 sourceScaleOffset, bool blitMips = true, int overrideInstanceID = -1)
         {
             // We handle ourself the 2D blit because cookies needs mipPadding for trilinear filtering
@@ -175,6 +178,9 @@ namespace UnityEngine.Rendering.HighDefinition
         }
 
         // Override the behavior when we add a texture so all non-pot textures are blitted to a pot target zone
+        /// <summary>
+        /// Allocate space from the atlas for a texture and copy texture contents into the atlas.
+        /// </summary>
         public override bool AllocateTexture(CommandBuffer cmd, ref Vector4 scaleOffset, Texture texture, int width, int height, int overrideInstanceID = -1)
         {
             // This atlas only supports square textures
@@ -189,10 +195,15 @@ namespace UnityEngine.Rendering.HighDefinition
             return base.AllocateTexture(cmd, ref scaleOffset, texture, width, height);
         }
 
+        /// <summary>
+        /// Clear tracked requested textures.
+        /// </summary>
         public void ResetRequestedTexture() => m_RequestedTextures.Clear();
 
+        /// <summary>
+        /// Reserve space from atlas for a texture.
+        /// </summary>
         public bool ReserveSpace(Texture texture) => ReserveSpace(texture, texture.width, texture.height);
-
         public bool ReserveSpace(Texture texture, int width, int height)
             => ReserveSpace(GetTextureID(texture), width, height);
 
@@ -200,6 +211,9 @@ namespace UnityEngine.Rendering.HighDefinition
         public bool ReserveSpace(Texture textureA, Texture textureB, int width, int height)
             => ReserveSpace(GetTextureID(textureA, textureB), width, height);
 
+        /// <summary>
+        /// Reserve space from atlas.
+        /// </summary>
         bool ReserveSpace(int id, int width, int height)
         {
             m_RequestedTextures[id] = new Vector2Int(width, height);
@@ -243,15 +257,20 @@ namespace UnityEngine.Rendering.HighDefinition
             return success;
         }
 
+        /// <summary>
+        /// Get cache size in bytes.
+        /// </summary>
         public static long GetApproxCacheSizeInByte(int nbElement, int resolution, bool hasMipmap, GraphicsFormat format)
-            => (long)(nbElement * resolution * resolution * (double)((hasMipmap ? k_MipmapFactorApprox : 1.0f) * HDUtils.GetFormatSizeInBytes(format)));
+            => (long)(nbElement * resolution * resolution * (double)((hasMipmap ? k_MipmapFactorApprox : 1.0f) * GraphicsFormatUtility.GetBlockSize(format)));
 
+        /// <summary>
+        /// Compute the max size of a power of two atlas for a given size in byte (weight).
+        /// </summary>
         public static int GetMaxCacheSizeForWeightInByte(int weight, bool hasMipmap, GraphicsFormat format)
         {
-            // Compute the max size of a power of two atlas for a given size in byte (weight)
-            float bytePerPixel = (float)HDUtils.GetFormatSizeInBytes(format) * (hasMipmap ? k_MipmapFactorApprox : 1.0f);
+            float bytePerPixel = (float)GraphicsFormatUtility.GetBlockSize(format) * (hasMipmap ? k_MipmapFactorApprox : 1.0f);
             var maxAtlasSquareSize = Mathf.Sqrt((float)weight / bytePerPixel);
-            return PreviousPowerOfTwo((int)maxAtlasSquareSize);
+            return CoreUtils.PreviousPowerOfTwo((int)maxAtlasSquareSize);
         }
     }
 }

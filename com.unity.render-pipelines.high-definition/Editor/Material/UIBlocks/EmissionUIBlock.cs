@@ -215,7 +215,7 @@ namespace UnityEditor.Rendering.HighDefinition
             if ((m_Features & Features.EnableEmissionForGI) != 0)
             {
                 // Change the GI emission flag and fix it up with emissive as black if necessary.
-                materialEditor.LightmapEmissionFlagsProperty(MaterialEditor.kMiniTextureFieldLabelIndentLevel, true);
+                materialEditor.LightmapEmissionFlagsProperty(0, true);
             }
         }
 
