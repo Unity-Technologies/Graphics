@@ -61,6 +61,7 @@ From HDRP 12.0, various top level menus are now different. This is to make the t
 
 * **Window**
   * **HD Render Pipeline Wizard** is now at **Window > Rendering > HDRP Wizard**
+  * **Graphics Compositor** is now at **Window > Rendering > Graphics Compositor**
 * **Assets**
   * HDRP Shader Graphs are now in **Assets > Create > Shader Graph > HDRP**
   * **Custom FullScreen Pass** is now at **Assets > Create > Shader > HDRP Custom FullScreen Pass**
