@@ -159,8 +159,6 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Virtual Texturing Resolver now performs RTHandle resize logic in HDRP instead of in core Unity
 - Cached the base types of Volume Manager to improve memory and cpu usage.
 - Changed Density Volume for Local Volumetric Fog
-- Reduced the maximal number of bounces for both RTGI and RTR (case 1318876).
-- Added tooltips to warn when some features may be disabled depending on MSAA/raytracing usage.
 
 ## [11.0.0] - 2020-10-21
 
