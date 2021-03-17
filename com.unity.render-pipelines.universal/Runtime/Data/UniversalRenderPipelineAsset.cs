@@ -104,8 +104,8 @@ namespace UnityEngine.Rendering.Universal
         ScriptableRenderer[] m_Renderers = new ScriptableRenderer[1];
 
         // Default values set when a new UniversalRenderPipeline asset is created
-        [SerializeField] int k_AssetVersion = 8;
-        [SerializeField] int k_AssetPreviousVersion = 8;
+        [SerializeField] int k_AssetVersion = 9;
+        [SerializeField] int k_AssetPreviousVersion = 9;
 
         // Deprecated settings for upgrading sakes
         [SerializeField] RendererType m_RendererType = RendererType.UniversalRenderer;
@@ -933,6 +933,13 @@ namespace UnityEngine.Rendering.Universal
 
             if (k_AssetVersion < 8)
             {
+                k_AssetPreviousVersion = k_AssetVersion;
+                m_CascadeBorder = 0.1f; // In previous version we had this hard coded
+                k_AssetVersion = 8;
+            }
+
+            if (k_AssetVersion < 9)
+            {
                 if (m_AdditionalLightsShadowResolutionTierHigh == AdditionalLightsDefaultShadowResolutionTierHigh &&
                     m_AdditionalLightsShadowResolutionTierMedium == AdditionalLightsDefaultShadowResolutionTierMedium &&
                     m_AdditionalLightsShadowResolutionTierLow == AdditionalLightsDefaultShadowResolutionTierLow)
@@ -944,14 +951,7 @@ namespace UnityEngine.Rendering.Universal
                 }
 
                 k_AssetPreviousVersion = k_AssetVersion;
-                k_AssetVersion = 8;
-            }
-
-            if (k_AssetVersion < 8)
-            {
-                k_AssetPreviousVersion = k_AssetVersion;
-                m_CascadeBorder = 0.1f; // In previous version we had this hard coded
-                k_AssetVersion = 8;
+                k_AssetVersion = 9;
             }
 
 #if UNITY_EDITOR
@@ -984,10 +984,10 @@ namespace UnityEngine.Rendering.Universal
                 asset.k_AssetPreviousVersion = 5;
             }
 
-            if (asset.k_AssetPreviousVersion < 8)
+            if (asset.k_AssetPreviousVersion < 9)
             {
                 // The added feature was reverted, we keep this version to avoid breakage in case somebody already has version 7
-                asset.k_AssetPreviousVersion = 8;
+                asset.k_AssetPreviousVersion = 9;
             }
 
             EditorUtility.SetDirty(asset);
