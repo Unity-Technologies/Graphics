@@ -40,7 +40,8 @@ namespace UnityEngine.Rendering.Universal
             m_SamplingMaterial = CoreUtils.CreateEngineMaterial(data.samplingShader);
 
             m_Render2DLightingPass = new Render2DLightingPass(data, m_BlitMaterial, m_SamplingMaterial);
-            m_PixelPerfectBackgroundPass = new PixelPerfectBackgroundPass(RenderPassEvent.AfterRendering + 1);
+            // we should determine why clearing the camera target is set so late in the events... sounds like it could be earlier
+            m_PixelPerfectBackgroundPass = new PixelPerfectBackgroundPass(RenderPassEvent.AfterRenderingTransparents);
             m_FinalBlitPass = new FinalBlitPass(RenderPassEvent.AfterRendering + 1, m_BlitMaterial);
 
             m_PostProcessPasses = new PostProcessPasses(data.postProcessData, m_BlitMaterial);
@@ -182,6 +183,11 @@ namespace UnityEngine.Rendering.Universal
             CommandBufferPool.Release(cmd);
 
             ConfigureCameraTarget(colorTargetHandle.Identifier(), depthTargetHandle.Identifier());
+
+            // Add passes from Renderer Features. - NOTE: This should be reexamined in the future. Please see feedback from this PR https://github.com/Unity-Technologies/Graphics/pull/3147/files
+            isCameraColorTargetValid = true;    // This is to make it possible to call ScriptableRenderer.cameraColorTarget in the custom passes.
+            AddRenderPasses(ref renderingData);
+            isCameraColorTargetValid = false;
 
             // We generate color LUT in the base camera only. This allows us to not break render pass execution for overlay cameras.
             if (stackHasPostProcess && cameraData.renderType == CameraRenderType.Base && m_PostProcessPasses.isCreated)

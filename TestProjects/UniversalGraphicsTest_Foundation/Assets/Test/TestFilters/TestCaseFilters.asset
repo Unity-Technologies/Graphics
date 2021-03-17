@@ -11,33 +11,15 @@ MonoBehaviour:
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 5f6aa9f32113aec4a8bded44c1febe5c, type: 3}
   m_Name: TestCaseFilters
-  m_EditorClassIdentifier: 
+  m_EditorClassIdentifier:
   filters:
-  - FilteredScene: {fileID: 0}
-    FilteredScenes:
-    - {fileID: 102900000, guid: 7f2ec65906a47474383300df9c0aad69, type: 3}
-    ColorSpace: -1
-    BuildPlatform: 9
-    GraphicsDevice: 16
-    XrSdk: None
-    StereoModes: 0
-    Reason: 'Filtered out due to OoM issue (FB: 1304672)'
-  - FilteredScene: {fileID: 0}
-    FilteredScenes:
-    - {fileID: 102900000, guid: 8d65e7263d49aea4dad06fbbe0b9f438, type: 3}
-    ColorSpace: -1
-    BuildPlatform: 9
-    GraphicsDevice: 16
-    XrSdk: None
-    StereoModes: 0
-    Reason: 'Filtered out due to OoM issue (FB: 1304672)'
   - FilteredScene: {fileID: 0}
     FilteredScenes:
     - {fileID: 102900000, guid: 8d65e7263d49aea4dad06fbbe0b9f438, type: 3}
     ColorSpace: -1
     BuildPlatform: 19
     GraphicsDevice: 21
-    XrSdk: 
+    XrSdk:
     StereoModes: 0
     Reason: https://fogbugz.unity3d.com/f/cases/1305591/
   - FilteredScene: {fileID: 0}
@@ -51,38 +33,11 @@ MonoBehaviour:
     Reason: Needs fixing in OpenGL
   - FilteredScene: {fileID: 0}
     FilteredScenes:
-    - {fileID: 102900000, guid: 2b6b74b7929ae4191b3b936c12236e0a, type: 3}
-    ColorSpace: -1
-    BuildPlatform: 9
-    GraphicsDevice: 16
-    XrSdk: None
-    StereoModes: 0
-    Reason: 'Filtered out due to OoM issue (FB: 1304672)'
-  - FilteredScene: {fileID: 0}
-    FilteredScenes:
-    - {fileID: 102900000, guid: a770620fcd2f84f248d06edf3744b2c0, type: 3}
-    ColorSpace: -1
-    BuildPlatform: 9
-    GraphicsDevice: 16
-    XrSdk: None
-    StereoModes: 0
-    Reason: 'Filtered out due to OoM issue (FB: 1304672)'
-  - FilteredScene: {fileID: 0}
-    FilteredScenes:
-    - {fileID: 102900000, guid: bcb8635ea84c143f0ae0823f1e9b6f25, type: 3}
-    ColorSpace: -1
-    BuildPlatform: 9
-    GraphicsDevice: 16
-    XrSdk: None
-    StereoModes: 0
-    Reason: 'Filtered out due to OoM issue (FB: 1304672)'
-  - FilteredScene: {fileID: 0}
-    FilteredScenes:
     - {fileID: 102900000, guid: bcb8635ea84c143f0ae0823f1e9b6f25, type: 3}
     ColorSpace: -1
     BuildPlatform: 19
     GraphicsDevice: 21
-    XrSdk: 
+    XrSdk:
     StereoModes: 0
     Reason: https://fogbugz.unity3d.com/f/cases/1305591/
   - FilteredScene: {fileID: 0}
@@ -90,10 +45,10 @@ MonoBehaviour:
     - {fileID: 102900000, guid: 5fca56b2f8a46664e858cbb290338fc8, type: 3}
     ColorSpace: -1
     BuildPlatform: 13
-    GraphicsDevice: 4
+    GraphicsDevice: 11
     XrSdk: None
     StereoModes: 0
-    Reason: Android 039 new faulty testscene
+    Reason: https://fogbugz.unity3d.com/f/cases/1315494/
   - FilteredScene: {fileID: 0}
     FilteredScenes:
     - {fileID: 102900000, guid: 6d72a4ab29e211149914e8a46ba9d1cf, type: 3}
@@ -127,7 +82,7 @@ MonoBehaviour:
     ColorSpace: -1
     BuildPlatform: 31
     GraphicsDevice: 13
-    XrSdk: 
+    XrSdk:
     StereoModes: 0
     Reason: https://fogbugz.unity3d.com/f/cases/1293775/
   - FilteredScene: {fileID: 0}
@@ -143,18 +98,9 @@ MonoBehaviour:
     FilteredScenes:
     - {fileID: 102900000, guid: c7b61419ee9382545afe530714fda0c2, type: 3}
     ColorSpace: -1
-    BuildPlatform: 13
-    GraphicsDevice: 21
-    XrSdk: None
-    StereoModes: 0
-    Reason: 'Android Vulkan 119: tracked issue (1252270)'
-  - FilteredScene: {fileID: 0}
-    FilteredScenes:
-    - {fileID: 102900000, guid: c7b61419ee9382545afe530714fda0c2, type: 3}
-    ColorSpace: -1
     BuildPlatform: 31
     GraphicsDevice: 13
-    XrSdk: 
+    XrSdk:
     StereoModes: 0
     Reason: https://fogbugz.unity3d.com/f/cases/1293775/
   - FilteredScene: {fileID: 0}
@@ -163,7 +109,7 @@ MonoBehaviour:
     ColorSpace: -1
     BuildPlatform: 31
     GraphicsDevice: 13
-    XrSdk: 
+    XrSdk:
     StereoModes: 0
     Reason: https://fogbugz.unity3d.com/f/cases/1293775/
   - FilteredScene: {fileID: 0}
@@ -172,7 +118,7 @@ MonoBehaviour:
     ColorSpace: -1
     BuildPlatform: 31
     GraphicsDevice: 13
-    XrSdk: 
+    XrSdk:
     StereoModes: 0
     Reason: https://fogbugz.unity3d.com/f/cases/1293775/
   - FilteredScene: {fileID: 0}
@@ -181,7 +127,7 @@ MonoBehaviour:
     ColorSpace: -1
     BuildPlatform: 31
     GraphicsDevice: 13
-    XrSdk: 
+    XrSdk:
     StereoModes: 0
     Reason: https://fogbugz.unity3d.com/f/cases/1293775/
   - FilteredScene: {fileID: 0}
@@ -199,7 +145,7 @@ MonoBehaviour:
     ColorSpace: -1
     BuildPlatform: 31
     GraphicsDevice: 13
-    XrSdk: 
+    XrSdk:
     StereoModes: 0
     Reason: https://fogbugz.unity3d.com/f/cases/1293775/
   - FilteredScene: {fileID: 0}
@@ -217,7 +163,7 @@ MonoBehaviour:
     ColorSpace: -1
     BuildPlatform: 31
     GraphicsDevice: 13
-    XrSdk: 
+    XrSdk:
     StereoModes: 0
     Reason: https://fogbugz.unity3d.com/f/cases/1293775/
   - FilteredScene: {fileID: 0}
@@ -244,7 +190,7 @@ MonoBehaviour:
     ColorSpace: -1
     BuildPlatform: 31
     GraphicsDevice: 13
-    XrSdk: 
+    XrSdk:
     StereoModes: 0
     Reason: https://fogbugz.unity3d.com/f/cases/1293775/
   - FilteredScene: {fileID: 0}
@@ -280,6 +226,24 @@ MonoBehaviour:
     ColorSpace: -1
     BuildPlatform: 24
     GraphicsDevice: 21
-    XrSdk: 
+    XrSdk:
     StereoModes: 0
     Reason: https://fogbugz.unity3d.com/f/cases/1300373
+  - FilteredScene: {fileID: 0}
+    FilteredScenes:
+    - {fileID: 102900000, guid: a770620fcd2f84f248d06edf3744b2c0, type: 3}
+    ColorSpace: -1
+    BuildPlatform: 24
+    GraphicsDevice: 21
+    XrSdk: 
+    StereoModes: 0
+    Reason: https://fogbugz.unity3d.com/f/cases/1315774/
+  - FilteredScene: {fileID: 0}
+    FilteredScenes:
+    - {fileID: 102900000, guid: 2b6b74b7929ae4191b3b936c12236e0a, type: 3}
+    ColorSpace: -1
+    BuildPlatform: 24
+    GraphicsDevice: 21
+    XrSdk: 
+    StereoModes: 0
+    Reason: https://fogbugz.unity3d.com/f/cases/1315774/

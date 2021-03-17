@@ -1,4 +1,3 @@
-
 namespace UnityEngine.Rendering.Universal
 {
     internal interface IRenderPass2D

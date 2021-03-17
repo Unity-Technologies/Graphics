@@ -62,7 +62,6 @@ namespace UnityEditor.Rendering.Universal
         SerializedProperty m_UseRendererSilhouette;
         SerializedProperty m_CastsShadows;
         SerializedProperty m_SelfShadows;
-        SerializedProperty m_ReceivesShadows;
 
 
         SortingLayerDropDown m_SortingLayerDropDown;

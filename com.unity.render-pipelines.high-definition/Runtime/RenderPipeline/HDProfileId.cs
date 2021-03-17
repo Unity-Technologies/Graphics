@@ -39,7 +39,6 @@ namespace UnityEngine.Rendering.HighDefinition
         SSGIUpscale,
         SSGIConvert,
 
-        ForwardEmissive,
         ForwardOpaque,
         ForwardOpaqueDebug,
         ForwardTransparent,
