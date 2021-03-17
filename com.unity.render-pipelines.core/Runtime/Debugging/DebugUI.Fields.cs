@@ -297,7 +297,7 @@ namespace UnityEngine.Rendering
                         if (memInfo[0].GetCustomAttributes(typeof(ObsoleteAttribute), false).FirstOrDefault() is ObsoleteAttribute)
                             name += " (Obsolete)";
 
-                        enumNames[i] = EditorGUIUtility.TrTextContent(ObjectNames.NicifyVariableName(name));
+                        enumNames[i] = new GUIContent(ObjectNames.NicifyVariableName(name));
                         enumValues[i] = (int)enumValue;
                     }
 
