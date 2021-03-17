@@ -231,14 +231,14 @@ Shader ""Hidden/GraphErrorShader2""
                 }
             }
 
-            List<MinimalCategoryData.PropertyData> inputs = new List<MinimalCategoryData.PropertyData>();
+            List<MinimalCategoryData.GraphInputData> inputs = new List<MinimalCategoryData.GraphInputData>();
             foreach(AbstractShaderProperty prop in graph.properties)
             {
-                inputs.Add(new MinimalCategoryData.PropertyData() { referenceName = prop.referenceName, valueType = prop.concreteShaderValueType, isKeyword = false});
+                inputs.Add(new MinimalCategoryData.GraphInputData() { referenceName = prop.referenceName, propertyType = prop.propertyType, isKeyword = false});
             }
             foreach(ShaderKeyword keyword in graph.keywords)
             {
-                inputs.Add(new MinimalCategoryData.PropertyData() { referenceName = keyword.referenceName, valueType = keyword.concreteShaderValueType, isKeyword = true});
+                inputs.Add(new MinimalCategoryData.GraphInputData() { referenceName = keyword.referenceName, keywordType = keyword.keywordType, isKeyword = true});
             }
 
             sgMetadata.categoryDatas = new List<MinimalCategoryData>();
@@ -247,12 +247,20 @@ Shader ""Hidden/GraphErrorShader2""
                 MinimalCategoryData mcd = new MinimalCategoryData()
                 {
                     categoryName = catagory.name,
-                    propertyDatas = new List<MinimalCategoryData.PropertyData>()
+                    propertyDatas = new List<MinimalCategoryData.GraphInputData>()
                 };
                 foreach(var input in catagory.Children)
                 {
-                    bool isKeyworCheck = input is ShaderKeyword keyword;
-                    var propData = new MinimalCategoryData.PropertyData() { referenceName = input.referenceName, valueType = input.concreteShaderValueType, isKeyword = isKeyworCheck};
+                    MinimalCategoryData.GraphInputData propData; 
+                    if(input is ShaderKeyword keyword)
+                    {
+                        propData = new MinimalCategoryData.GraphInputData() { referenceName = input.referenceName, keywordType = keyword.keywordType, isKeyword = true};
+                    }
+                    else
+                    {
+                        var prop = input as AbstractShaderProperty;
+                        propData = new MinimalCategoryData.GraphInputData() { referenceName = input.referenceName, propertyType = prop.propertyType, isKeyword = false};
+                    }
                     mcd.propertyDatas.Add(propData);
                     inputs.Remove(propData);
                 }

@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using UnityEditor.ShaderGraph.Internal;
 using UnityEngine;
 using Object = UnityEngine.Object;
 
@@ -9,14 +10,15 @@ namespace UnityEditor.ShaderGraph
     class MinimalCategoryData
     {
         [Serializable]
-        public struct PropertyData
+        public struct GraphInputData
         {
             public string referenceName;
-            public ConcreteSlotValueType valueType;
             public bool isKeyword;
+            public PropertyType propertyType;
+            public KeywordType keywordType;
         }
         public string categoryName;
-        public List<PropertyData> propertyDatas;
+        public List<GraphInputData> propertyDatas;
     }
 
     class ShaderGraphMetadata : ScriptableObject

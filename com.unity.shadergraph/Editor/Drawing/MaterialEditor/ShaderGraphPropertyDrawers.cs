@@ -54,9 +54,9 @@ namespace UnityEditor.ShaderGraph.Drawing
             foreach(MinimalCategoryData categoryData in categoryDatas)
             {
                 s += $"{categoryData.categoryName}\n";
-                foreach(MinimalCategoryData.PropertyData propData in categoryData.propertyDatas)
+                foreach(MinimalCategoryData.GraphInputData propData in categoryData.propertyDatas)
                 {
-                    s += $"\t{propData.referenceName}, {propData.valueType}\n";
+                    s += $"\t{propData.referenceName}, {propData.propertyType}\n";
                 }
                 s += "\n";
             }
@@ -74,117 +74,112 @@ namespace UnityEditor.ShaderGraph.Drawing
                     DrawProperty(materialEditor, prop, propData);
                 }
             }
-
-            //materialEditor.PropertiesDefaultGUI(properties);
         }
 
-        private static void DrawProperty(MaterialEditor materialEditor, MaterialProperty property, MinimalCategoryData.PropertyData propertyData)
+        private static void DrawProperty(MaterialEditor materialEditor, MaterialProperty property, MinimalCategoryData.GraphInputData inputData)
         {
-            switch (propertyData.valueType)
+            if(inputData.isKeyword)
             {
-                case ConcreteSlotValueType.SamplerState:
-                    DrawSamplerStateProperty(property);
-                    break;
-                case ConcreteSlotValueType.Matrix4:
-                    DrawMatrix4Property(property);
-                    break;
-                case ConcreteSlotValueType.Matrix3:
-                    DrawMatrix3Property(property);
-                    break;
-                case ConcreteSlotValueType.Matrix2:
-                    DrawMatrix2Property(property);
-                    break;
-                case ConcreteSlotValueType.Texture2D:
-                    DrawTexture2DProperty(property);
-                    break;
-                case ConcreteSlotValueType.Texture2DArray:
-                    DrawTexture2DArrayProperty(property);
-                    break;
-                case ConcreteSlotValueType.Texture3D:
-                    DrawTexture3DProperty(property);
-                    break;
-                case ConcreteSlotValueType.Cubemap:
-                    DrawCubemapProperty(property);
-                    break;
-                case ConcreteSlotValueType.Gradient:
-                    break;
-                case ConcreteSlotValueType.Vector4:
-                    DrawVector4Property(property);
-                    break;
-                case ConcreteSlotValueType.Vector3:
-                    DrawVector3Property(property);
-                    break;
-                case ConcreteSlotValueType.Vector2:
-                    DrawVector2Property(property);
-                    break;
-                case ConcreteSlotValueType.Vector1:
-                    if (propertyData.isKeyword)
-                    {
-                        materialEditor.ShaderProperty(property, property.displayName);
-                    }
-                    else
-                    {
-                        DrawFloatProperty(property);
-                    }
-                    break;
-                case ConcreteSlotValueType.Boolean:
-                    materialEditor.ShaderProperty(property, property.displayName);
-                    break;
-                case ConcreteSlotValueType.VirtualTexture:
-                    DrawVirtualTextureProperty(property);
-                    break;
+                switch (inputData.keywordType)
+                {
+                    case KeywordType.Boolean:
+                        DrawBooleanKeyword(materialEditor, property);
+                        break;
+                    case KeywordType.Enum:
+                        DrawEnumKeyword(materialEditor, property);
+                        break;
+                }
+
+            }
+            else
+            {
+                switch (inputData.propertyType)
+                {
+                    case Internal.PropertyType.SamplerState:
+                        DrawSamplerStateProperty(materialEditor, property);
+                        break;
+                    case Internal.PropertyType.Matrix4:
+                        DrawMatrix4Property(materialEditor, property);
+                        break;
+                    case Internal.PropertyType.Matrix3:
+                        DrawMatrix3Property(materialEditor, property);
+                        break;
+                    case Internal.PropertyType.Matrix2:
+                        DrawMatrix2Property(materialEditor, property);
+                        break;
+                    case Internal.PropertyType.Texture2D:
+                        DrawTexture2DProperty(materialEditor, property);
+                        break;
+                    case Internal.PropertyType.Texture2DArray:
+                        DrawTexture2DArrayProperty(materialEditor, property);
+                        break;
+                    case Internal.PropertyType.Texture3D:
+                        DrawTexture3DProperty(materialEditor, property);
+                        break;
+                    case Internal.PropertyType.Cubemap:
+                        DrawCubemapProperty(materialEditor, property);
+                        break;
+                    case Internal.PropertyType.Gradient:
+                        break;
+                    case Internal.PropertyType.Vector4:
+                        DrawVector4Property(materialEditor, property);
+                        break;
+                    case Internal.PropertyType.Vector3:
+                        DrawVector3Property(materialEditor, property);
+                        break;
+                    case Internal.PropertyType.Vector2:
+                        DrawVector2Property(materialEditor, property);
+                        break;
+                    case Internal.PropertyType.Float:
+                        DrawFloatProperty(materialEditor, property);
+                        break;
+                    case Internal.PropertyType.Boolean:
+                        DrawBooleanProperty(materialEditor, property);
+                        break;
+                    case Internal.PropertyType.VirtualTexture:
+                        DrawVirtualTextureProperty(materialEditor, property);
+                        break;
+                    case Internal.PropertyType.Color:
+                        DrawColorProperty(materialEditor, property);
+                        break;
+                }
             }
         }
 
-        private static void DrawVirtualTextureProperty(MaterialProperty property)
+        private static void DrawColorProperty(MaterialEditor materialEditor, MaterialProperty property)
+        {
+            materialEditor.ShaderProperty(property, property.displayName);
+        }
+
+        private static void DrawEnumKeyword(MaterialEditor materialEditor, MaterialProperty property)
+        {
+            materialEditor.ShaderProperty(property, property.displayName);
+        }
+
+        private static void DrawBooleanKeyword(MaterialEditor materialEditor, MaterialProperty property)
+        {
+            materialEditor.ShaderProperty(property, property.displayName);
+        }
+
+        private static void DrawVirtualTextureProperty(MaterialEditor materialEditor, MaterialProperty property)
         {
         }
 
-        private static void DrawBooleanProperty(MaterialProperty property)
+        private static void DrawBooleanProperty(MaterialEditor materialEditor, MaterialProperty property)
         {
+            materialEditor.ShaderProperty(property, property.displayName);
         }
 
-        private static void DrawFloatProperty(MaterialProperty property)
+        private static void DrawFloatProperty(MaterialEditor materialEditor, MaterialProperty property)
+        {
+            materialEditor.ShaderProperty(property, property.displayName);
+        }
+
+        private static void DrawVector2Property(MaterialEditor materialEditor, MaterialProperty property)
         {
             EditorGUI.BeginChangeCheck();
             EditorGUI.showMixedValue = property.hasMixedValue;
-            float newValue = EditorGUILayout.FloatField(property.displayName, property.floatValue);
-            EditorGUI.showMixedValue = false;
-            if(EditorGUI.EndChangeCheck())
-            {
-                property.floatValue = newValue;
-            }
-        }
-
-        private static void DrawVector2Property(MaterialProperty property)
-        {
-            EditorGUI.BeginChangeCheck();
-            EditorGUI.showMixedValue = property.hasMixedValue;
-            Vector2 newValue = EditorGUILayout.Vector2Field(property.displayName, new Vector2(property.vectorValue.x, property.vectorValue.y));
-            EditorGUI.showMixedValue = false;
-            if(EditorGUI.EndChangeCheck())
-            {
-                property.vectorValue = newValue;
-            }
-        }
-
-        private static void DrawVector3Property(MaterialProperty property)
-        {
-            EditorGUI.BeginChangeCheck();
-            EditorGUI.showMixedValue = property.hasMixedValue;
-            Vector3 newValue = EditorGUILayout.Vector3Field(property.displayName, new Vector3(property.vectorValue.x, property.vectorValue.y, property.vectorValue.z));
-            EditorGUI.showMixedValue = false;
-            if(EditorGUI.EndChangeCheck())
-            {
-                property.vectorValue = newValue;
-            }
-        }
-
-        private static void DrawVector4Property(MaterialProperty property)
-        {
-            EditorGUI.BeginChangeCheck();
-            EditorGUI.showMixedValue = property.hasMixedValue;
-            Vector4 newValue = EditorGUILayout.Vector4Field(property.displayName, property.vectorValue);
+            Vector2 newValue = EditorGUI.Vector2Field(GetRect(property), property.displayName, new Vector2(property.vectorValue.x, property.vectorValue.y));
             EditorGUI.showMixedValue = false;
             if(EditorGUI.EndChangeCheck())
             {
@@ -192,75 +187,59 @@ namespace UnityEditor.ShaderGraph.Drawing
             }
         }
 
-        private static void DrawCubemapProperty(MaterialProperty property)
+        private static void DrawVector3Property(MaterialEditor materialEditor, MaterialProperty property)
         {
             EditorGUI.BeginChangeCheck();
             EditorGUI.showMixedValue = property.hasMixedValue;
-            Rect layout = GetRect(property);
-            Object newValue = EditorGUI.ObjectField(layout, property.displayName, property.textureValue, typeof(Cubemap), false);
+            Vector3 newValue = EditorGUI.Vector3Field(GetRect(property), property.displayName, new Vector3(property.vectorValue.x, property.vectorValue.y, property.vectorValue.z));
             EditorGUI.showMixedValue = false;
             if(EditorGUI.EndChangeCheck())
             {
-                property.textureValue = newValue as Cubemap;
+                property.vectorValue = newValue;
             }
         }
 
-        private static void DrawTexture3DProperty(MaterialProperty property)
+        private static void DrawVector4Property(MaterialEditor materialEditor, MaterialProperty property)
         {
-            EditorGUI.BeginChangeCheck();
-            EditorGUI.showMixedValue = property.hasMixedValue;
-            Rect layout = GetRect(property);
-            Object newValue = EditorGUI.ObjectField(layout, property.displayName, property.textureValue, typeof(Texture3D), false);
-            EditorGUI.showMixedValue = false;
-            if(EditorGUI.EndChangeCheck())
-            {
-                property.textureValue = newValue as Texture3D;
-            }
+            materialEditor.ShaderProperty(property, property.displayName);
         }
 
-        private static void DrawTexture2DArrayProperty(MaterialProperty property)
+        private static void DrawCubemapProperty(MaterialEditor materialEditor, MaterialProperty property)
         {
-            EditorGUI.BeginChangeCheck();
-            EditorGUI.showMixedValue = property.hasMixedValue;
-            Rect layout = GetRect(property);
-            Object newValue = EditorGUI.ObjectField(layout, property.displayName, property.textureValue, typeof(Texture2DArray), false);
-            EditorGUI.showMixedValue = false;
-            if(EditorGUI.EndChangeCheck())
-            {
-                property.textureValue = newValue as Texture2DArray;
-            }
+            materialEditor.ShaderProperty(property, property.displayName);
         }
 
-        private static void DrawTexture2DProperty(MaterialProperty property)
+        private static void DrawTexture3DProperty(MaterialEditor materialEditor, MaterialProperty property)
         {
-            EditorGUI.BeginChangeCheck();
-            EditorGUI.showMixedValue = property.hasMixedValue;
-
-            Rect layout = GetRect(property);
-            Object newValue = EditorGUI.ObjectField(layout, property.displayName, property.textureValue, typeof(Texture2D), false);
-            EditorGUI.showMixedValue = false;
-            if (EditorGUI.EndChangeCheck())
-            {
-                property.textureValue = newValue as Texture2D;
-            }
+            materialEditor.ShaderProperty(property, property.displayName);
         }
 
-        private static void DrawMatrix2Property(MaterialProperty property)
+        private static void DrawTexture2DArrayProperty(MaterialEditor materialEditor, MaterialProperty property)
+        {
+            materialEditor.ShaderProperty(property, property.displayName);
+        }
+
+        private static void DrawTexture2DProperty(MaterialEditor materialEditor, MaterialProperty property)
+        {
+            materialEditor.ShaderProperty(property, property.displayName);
+        }
+
+        private static void DrawMatrix2Property(MaterialEditor materialEditor, MaterialProperty property)
         {
             //we dont expose
         }
 
-        private static void DrawMatrix3Property(MaterialProperty property)
+        private static void DrawMatrix3Property(MaterialEditor materialEditor, MaterialProperty property)
         {
             //we dont expose
         }
 
-        private static void DrawMatrix4Property(MaterialProperty property)
+        private static void DrawMatrix4Property(MaterialEditor materialEditor, MaterialProperty property)
         {
             //we dont expose
         }
 
-        private static void DrawSamplerStateProperty(MaterialProperty property)
+        private static void DrawSamplerStateProperty(MaterialEditor materialEditor, MaterialProperty property)
         {
             //we dont expose
         }
