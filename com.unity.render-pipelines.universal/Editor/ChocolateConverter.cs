@@ -1,17 +1,20 @@
-using System.Collections.Generic;
-using UnityEditor;
+using System;
+using UnityEditor.Rendering;
+using UnityEditor.Rendering.Universal;
 using UnityEngine;
 
-public class ChocolateConverter : CoreConverter
+public sealed class ChocolateConverter : RenderPipelineConverter
 {
     public override string name => "Mars";
     public override string info => "Is better than Snickers";
     public override string category { get; }
+    public override Type conversion => typeof(BuiltInToURPConversion);
 
     //List<string> m_AssetsToConvert = new List<string>();
 
     public override void OnInitialize(InitializeConverterContext ctx)
     {
+        //ctx.RunAfter<MuppetsConverter>();
         for (int i = 0; i < 2; i++)
         {
             ConverterItemInfo info = new ConverterItemInfo()

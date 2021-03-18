@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Runtime.CompilerServices;
 using UnityEngine;
 using UnityEditor;
+using UnityEditor.Rendering;
 using UnityEditor.UIElements;
 using UnityEngine.UIElements;
 
@@ -31,7 +32,7 @@ public class URPConvertersEditor : EditorWindow
     public VisualTreeAsset converterItem;
 
     ScrollView m_ScrollView;
-    List<CoreConverter> m_CoreConvertersList = new List<CoreConverter>();
+    List<RenderPipelineConverter> m_CoreConvertersList = new List<RenderPipelineConverter>();
     // This list needs to be as long as the amount of converters
     List<List<ConverterItemInfo>> m_ItemsToConvert = new List<List<ConverterItemInfo>>();
     SerializedObject m_SerializedObject;
@@ -50,11 +51,11 @@ public class URPConvertersEditor : EditorWindow
 
     void OnEnable()
     {
-        var converters = TypeCache.GetTypesDerivedFrom<CoreConverter>();
+        var converters = TypeCache.GetTypesDerivedFrom<RenderPipelineConverter>();
         for (int i = 0; i < converters.Count; ++i)
         {
             // Iterate over the converters
-            CoreConverter conv = (CoreConverter)Activator.CreateInstance(converters[i]);
+            RenderPipelineConverter conv = (RenderPipelineConverter)Activator.CreateInstance(converters[i]);
             m_CoreConvertersList.Add(conv);
 
             // Create a new ConvertState which holds the active state of the converter

@@ -1,12 +1,15 @@
 using System;
 using System.Collections.Generic;
+using UnityEditor.Rendering;
+using UnityEditor.Rendering.Universal;
 using UnityEngine;
 
-public class MuppetsConverter : CoreConverter
+public sealed class MuppetsConverter : RenderPipelineConverter
 {
     public override string name => "Muppets";
     public override string info => "Need to update all my Muppets";
     public override string category { get; }
+    public override Type conversion => typeof(BuiltInToURPConversion);
 
     List<string> m_AssetsToConvert = new List<string>();
 
