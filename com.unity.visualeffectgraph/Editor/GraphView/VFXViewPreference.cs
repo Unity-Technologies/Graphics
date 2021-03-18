@@ -109,7 +109,7 @@ namespace UnityEditor.VFX
                 using (new SettingsWindow.GUIScope())
                 {
                     LoadIfNeeded();
-                    m_GenerateOutputContextWithShaderGraph = EditorGUILayout.Toggle(new GUIContent("Improved Shader Graph Generation", ""), m_GenerateOutputContextWithShaderGraph);
+                    m_GenerateOutputContextWithShaderGraph = EditorGUILayout.Toggle(new GUIContent("Improved Shader Graph Generation", "When enabled, any shadergraph shaders can be assigned to Visual Effect outputs as long as ‘Support VFX Graph’ is enabled in the ShaderGraph’s Graph Inspector."), m_GenerateOutputContextWithShaderGraph);
                     m_DisplayExperimentalOperator = EditorGUILayout.Toggle(new GUIContent("Experimental Operators/Blocks", "When enabled, operators and blocks which are still in an experimental state become available to use within the Visual Effect Graph."), m_DisplayExperimentalOperator);
                     m_DisplayExtraDebugInfo = EditorGUILayout.Toggle(new GUIContent("Show Additional Debug info", "When enabled, additional information becomes available in the inspector when selecting blocks, such as the attributes they use and their shader code."), m_DisplayExtraDebugInfo);
                     m_AdvancedLogs = EditorGUILayout.Toggle(new GUIContent("Verbose Mode for compilation", "When enabled, additional information about the data, expressions, and generated shaders is displayed in the console whenever a graph is compiled."), m_AdvancedLogs);

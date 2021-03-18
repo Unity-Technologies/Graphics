@@ -201,7 +201,8 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 else
                 {
                     m_SupportVFXToggle = new Toggle("") { value = m_SupportVFX };
-                    context.AddProperty("Support VFX Graph", m_SupportVFXToggle, (evt) =>
+                    const string k_VFXToggleTooltip = "When enabled, this shader can be assigned to a compatible Visual Effect Graph output.";
+                    context.AddProperty("Support VFX Graph", k_VFXToggleTooltip, 0, m_SupportVFXToggle, (evt) =>
                     {
                         m_SupportVFX = m_SupportVFXToggle.value;
                         onChange();
