@@ -7,16 +7,9 @@ namespace UnityEngine
     /// <summary>
     /// Editor for LensFlare (builtin): Editor to show an error message
     /// </summary>
-    [CustomEditor(typeof(UnityEngine.LensFlare))]
+    [CustomEditor(typeof(UnityEngine.Flare))]
     public class LensFlareEditor : Editor
     {
-        /// <summary>
-        /// Prepare the code for the UI
-        /// </summary>
-        public void OnEnable()
-        {
-        }
-
         /// <summary>
         /// Implement this function to make a custom inspector
         /// </summary>
