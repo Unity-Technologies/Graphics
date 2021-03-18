@@ -24,6 +24,8 @@ namespace UnityEngine.Rendering.HighDefinition
             public Shader terrainDetailLitShader;
             public Shader terrainDetailGrassShader;
             public Shader terrainDetailGrassBillboardShader;
+            [Reload("Editor/RenderPipelineResources/Shaders/ProbeVolumeGizmo.shader")]
+            public Shader probeVolumeGizmoShader;
         }
 
         [Serializable, ReloadGroup]

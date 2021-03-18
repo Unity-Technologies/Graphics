@@ -157,6 +157,11 @@
 #   endif
 #endif
 
+// This is the default keyword combination and needs to be overriden by the platforms that need specific behaviors
+// when enabling conservative depth overrides
+#define SV_POSITION_QUALIFIERS
+#define DEPTH_OFFSET_SEMANTIC SV_Depth
+
 // Include language header
 #if defined (SHADER_API_GAMECORE)
 #include "Packages/com.unity.render-pipelines.gamecore/ShaderLibrary/API/GameCore.hlsl"
@@ -1225,7 +1230,7 @@ bool HasFlag(uint bitfield, uint flag)
 // Normalize that account for vectors with zero length
 real3 SafeNormalize(float3 inVec)
 {
-    real dp3 = max(FLT_MIN, dot(inVec, inVec));
+    real dp3 = max(REAL_MIN, dot(inVec, inVec));
     return inVec * rsqrt(dp3);
 }
 

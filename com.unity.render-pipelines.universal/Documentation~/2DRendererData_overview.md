@@ -32,3 +32,7 @@ All layers captured for use in the supplied texture will be drawn from the very 
 
 ### Downsampling Method
 Downsampling will reduce the texture resolution used by _CameraSortingLayerTexture_. The options are: __None__, __2x Bilinear__, __4x Box__, __4x Bilinear__
+
+## Renderer Features
+
+The 2D Renderer supports [URP Renderer Features](urp-renderer-features). The setup for the features are called before any of the 2D built-in passes are queued. Refer to the [URP Renderer Features](urp-renderer-features) documentation for more information.
