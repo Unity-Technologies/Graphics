@@ -124,7 +124,7 @@ namespace UnityEngine
         void OnDrawGizmosSelected()
         {
             Camera mainCam = Camera.current;
-            if (mainCam != null)
+            if (mainCam != null && useOcclusion)
             {
                 Vector3 positionWS;
                 Light light = GetComponent<Light>();

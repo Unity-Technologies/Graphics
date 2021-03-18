@@ -2864,11 +2864,11 @@ namespace UnityEngine.Rendering.HighDefinition
 
                 if (comp.useOcclusion)
                 {
-                    cmd.DisableShaderKeyword("FLARE_WITHOUT_OCCLUSION");
+                    cmd.EnableShaderKeyword("FLARE_OCCLUSION");
                 }
                 else
                 {
-                    cmd.EnableShaderKeyword("FLARE_WITHOUT_OCCLUSION");
+                    cmd.DisableShaderKeyword("FLARE_OCCLUSION");
                 }
 
                 foreach (SRPLensFlareDataElement element in data.elements)
@@ -2933,7 +2933,6 @@ namespace UnityEngine.Rendering.HighDefinition
                     float position = 2.0f * element.position;
 
                     SRPLensFlareBlendMode blendMode = element.blendMode;
-                    //Material usedMaterial = null;
                     int materialPass;
                     if (blendMode == SRPLensFlareBlendMode.Additive)
                         materialPass = 0;
@@ -2990,11 +2989,17 @@ namespace UnityEngine.Rendering.HighDefinition
                     {
                         Vector2 rayOffZ = GetLensFlareRayOffset(screenPos, position, globalCos0, globalSin0);
                         Vector2 localRadPos;
+                        float localRadius;
                         if (!element.distortionRelativeToCenter)
+                        {
                             localRadPos = (rayOff - rayOff0) * 0.5f;
+                            localRadius = Mathf.Clamp01(Mathf.Max(Mathf.Abs(localRadPos.x), Mathf.Abs(localRadPos.y))); // l1 norm (instead of l2 norm)
+                        }
                         else
+                        {
                             localRadPos = screenPos + (rayOff + new Vector2(element.positionOffset.x, -element.positionOffset.y)) * element.translationScale;
-                        float localRadius = Mathf.Clamp01(Mathf.Max(Mathf.Abs(localRadPos.x), Mathf.Abs(localRadPos.y))); // l1 norm (instead of l2 norm)
+                            localRadius = Mathf.Clamp01(localRadPos.magnitude); // l2 norm (instead of l1 norm)
+                        }
                         float localLerpValue = Mathf.Clamp01(distortionCurve.Evaluate(localRadius));
                         return new Vector2(Mathf.Lerp(curSize.x, curSize.x * element.targetSizeDistortion.x, localLerpValue),
                             Mathf.Lerp(curSize.y, curSize.y * element.targetSizeDistortion.y, localLerpValue));

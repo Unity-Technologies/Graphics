@@ -56,7 +56,7 @@ float2 Rotate(float2 v, float cos0, float sin0)
                   v.x * sin0 + v.y * cos0);
 }
 
-#ifndef FLARE_WITHOUT_OCCLUSION
+#if FLARE_OCCLUSION
 float GetOcclusion(float2 screenPos, float flareDepth, float ratio)
 {
     if (_OcclusionSampleCount == 0.0f)
@@ -107,15 +107,15 @@ Varyings vert(Attributes input, uint instanceID : SV_InstanceID)
     output.positionCS.xy = local + _ScreenPos + _FlareRayOffset + _PositionOffset;
     output.positionCS.zw = posPreScale.zw;
 
-#if FLARE_WITHOUT_OCCLUSION
-    float occlusion = 1.0f;
-#else
+#if FLARE_OCCLUSION
     float occlusion = GetOcclusion(_ScreenPos.xy, _ScreenPosZ, screenRatio);
+#else
+    float occlusion = 1.0f;
 #endif
 
     if (_OcclusionOffscreen < 0.0f && // No lens flare off screen
         (any(_ScreenPos.xy < -1) || any(_ScreenPos.xy >= 1)))
-        occlusion *= 0.0f;
+        occlusion = 0.0f;
 
     output.occlusion = occlusion;
 
