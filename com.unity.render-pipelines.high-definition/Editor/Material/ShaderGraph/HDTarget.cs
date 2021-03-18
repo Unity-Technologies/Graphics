@@ -204,6 +204,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                     context.AddProperty("Support VFX Graph", m_SupportVFXToggle, (evt) =>
                     {
                         m_SupportVFX = m_SupportVFXToggle.value;
+                        onChange();
                     });
                 }
             }

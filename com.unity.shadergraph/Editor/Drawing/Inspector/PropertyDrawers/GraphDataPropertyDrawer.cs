@@ -55,14 +55,7 @@ namespace UnityEditor.ShaderGraph.Drawing.Inspector.PropertyDrawers
                 false,      // disallow reordering (active list is sorted)
                 target => target.value.displayName);
 
-            #if true // <--- TODO: VFX Package Symbol Guard
-            // Enforce the new ShaderGraph VFX generation path by hiding the option of Visual Effect target.
-            // However, we still support Visual Effect targets if they already exist.
-            const string vfxTargetName = "Visual Effect";
-            targetList.GetAddMenuOptions = () => graphData.GetPotentialTargetDisplayNames().Where(t => t != vfxTargetName).ToList();
-            #else
             targetList.GetAddMenuOptions = () => graphData.GetPotentialTargetDisplayNames();
-            #endif
 
             targetList.OnAddMenuItemCallback +=
                 (list, addMenuOptionIndex, addMenuOption) =>
@@ -81,6 +74,19 @@ namespace UnityEditor.ShaderGraph.Drawing.Inspector.PropertyDrawers
             };
 
             element.Add(targetList);
+
+            // Warn the user if there are multiple VFX compatible targets and one of them is the legacy VFX Target.
+            if (graphData.m_ActiveTargets.Count(t => t.value.WorksWithVFX()) >= 2 &&
+                graphData.m_ActiveTargets.Count(t => t.value is VFXTarget) == 1)
+            {
+                var vfxWarning = new HelpBoxRow(MessageType.Warning);
+
+                var vfxWarningLabel = new Label("There are multiple VFX compatible active targets.");
+                vfxWarningLabel.style.color = new StyleColor(Color.black);
+
+                vfxWarning.Add(vfxWarningLabel);
+                element.Add(vfxWarning);
+            }
 
             // Iterate active TargetImplementations
             foreach (var target in graphData.activeTargets)
