@@ -2862,6 +2862,13 @@ namespace UnityEngine.Rendering.HighDefinition
 
                 globalColorModulation *= distanceAttenuation;
 
+                Vector3 dir = (cam.transform.position - comp.transform.position).normalized;
+                Vector3 screenPosZ = cam.WorldToViewportPoint(positionWS + dir * comp.occlusionOffset);
+                Vector2 occlusionRadiusEdgeScreenPos0 = (Vector2)cam.WorldToViewportPoint(positionWS);
+                Vector2 occlusionRadiusEdgeScreenPos1 = (Vector2)cam.WorldToViewportPoint(positionWS + cam.transform.up * comp.occlusionRadius);
+                float occlusionRadius = (occlusionRadiusEdgeScreenPos1 - occlusionRadiusEdgeScreenPos0).magnitude;
+                cmd.SetGlobalVector(HDShaderIDs._FlareData1, new Vector4(occlusionRadius, comp.sampleCount, screenPosZ.z, 0.0f));
+
                 if (comp.useOcclusion)
                 {
                     cmd.EnableShaderKeyword("FLARE_OCCLUSION");
@@ -2920,9 +2927,6 @@ namespace UnityEngine.Rendering.HighDefinition
 
                     if (currentIntensity <= 0.0f)
                         continue;
-
-                    Vector3 dir = (cam.transform.position - comp.transform.position).normalized;
-                    Vector3 screenPosZ = cam.WorldToViewportPoint(positionWS + dir * comp.occlusionOffset);
 
                     curColor *= element.tint;
                     curColor *= currentIntensity;
@@ -3006,11 +3010,8 @@ namespace UnityEngine.Rendering.HighDefinition
                     }
 
                     float usedSDFRoundness = element.sdfRoundness;
-                    Vector2 occlusionRadiusEdgeScreenPos0 = (Vector2)cam.WorldToViewportPoint(positionWS);
-                    Vector2 occlusionRadiusEdgeScreenPos1 = (Vector2)cam.WorldToViewportPoint(positionWS + cam.transform.up * comp.occlusionRadius);
-                    float occlusionRadius = (occlusionRadiusEdgeScreenPos1 - occlusionRadiusEdgeScreenPos0).magnitude;
-                    cmd.SetGlobalVector(HDShaderIDs._FlareData1, new Vector4(occlusionRadius, comp.sampleCount, screenPosZ.z, Mathf.Exp(element.fallOff)));
-                    cmd.SetGlobalVector(HDShaderIDs._FlareData5, new Vector4(comp.allowOffScreen ? 1.0f : -1.0f, usedGradientPosition, 0.0f, 0.0f));
+
+                    cmd.SetGlobalVector(HDShaderIDs._FlareData5, new Vector4(comp.allowOffScreen ? 1.0f : -1.0f, usedGradientPosition, Mathf.Exp(element.fallOff), 0.0f));
                     if (element.flareType == SRPLensFlareType.Polygon)
                     {
                         float invSide = 1.0f / (float)element.sideCount;
