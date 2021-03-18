@@ -130,6 +130,7 @@ namespace UnityEditor.ShaderGraph.Drawing
                         InsertBlackboardRow(copyShaderInputAction.copiedShaderInput, copyShaderInputAction.insertIndex);
                     break;
                 case AddItemToCategoryAction addItemToCategoryAction:
+                    // If item was added to category that this controller manages, then add blackboard row to represent that item
                     if (addItemToCategoryAction.categoryGuid == ViewModel.associatedCategoryGuid)
                     {
                         InsertBlackboardRow(addItemToCategoryAction.itemToAdd);
