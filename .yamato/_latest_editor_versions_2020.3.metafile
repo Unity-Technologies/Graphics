@@ -5,25 +5,25 @@ editor_version_names:
 editor_versions:
   2020_3_latest_internal:
     Android:
-      revision: dd1ca0fdccac
-      updated_at: '2021-03-14 23:16:47.474698'
-      version: 2020.3.1f1
+      revision: 58594120496c
+      updated_at: '2021-03-18 23:12:53.893998'
+      version: 2020.3.2f1
     Linux:
-      revision: dd1ca0fdccac
-      updated_at: '2021-03-14 23:16:47.474698'
-      version: 2020.3.1f1
+      revision: 58594120496c
+      updated_at: '2021-03-18 23:12:53.893998'
+      version: 2020.3.2f1
     OSX:
-      revision: dd1ca0fdccac
-      updated_at: '2021-03-14 23:16:47.474698'
-      version: 2020.3.1f1
+      revision: 58594120496c
+      updated_at: '2021-03-18 23:12:53.893998'
+      version: 2020.3.2f1
     Win:
-      revision: dd1ca0fdccac
-      updated_at: '2021-03-14 23:16:47.474698'
-      version: 2020.3.1f1
+      revision: 58594120496c
+      updated_at: '2021-03-18 23:12:53.893998'
+      version: 2020.3.2f1
     iPhone:
-      revision: dd1ca0fdccac
-      updated_at: '2021-03-14 23:16:47.474698'
-      version: 2020.3.1f1
+      revision: 58594120496c
+      updated_at: '2021-03-18 23:12:53.893998'
+      version: 2020.3.2f1
   2020_3_latest_public:
     Android:
       revision: c7b5465681fb
@@ -55,18 +55,18 @@ editor_versions:
       updated_at: '2021-03-17 23:09:40.736050'
       version: ''
     Linux:
-      revision: e9164e68332df4878427bd2ef75c788f3e5eb23e
-      updated_at: '2021-03-17 13:13:21.117097'
+      revision: 58594120496c58d496dea3c4c7ebb5d278b0ae58
+      updated_at: '2021-03-18 23:12:53.893998'
       version: ''
     OSX:
-      revision: e9164e68332df4878427bd2ef75c788f3e5eb23e
-      updated_at: '2021-03-17 13:13:21.117097'
+      revision: 58594120496c58d496dea3c4c7ebb5d278b0ae58
+      updated_at: '2021-03-18 23:12:53.893998'
       version: ''
     Win:
       revision: 58594120496c58d496dea3c4c7ebb5d278b0ae58
       updated_at: '2021-03-17 23:09:40.736050'
       version: ''
     iPhone:
-      revision: e9164e68332df4878427bd2ef75c788f3e5eb23e
-      updated_at: '2021-03-17 13:13:21.117097'
+      revision: 58594120496c58d496dea3c4c7ebb5d278b0ae58
+      updated_at: '2021-03-18 23:12:53.893998'
       version: ''
