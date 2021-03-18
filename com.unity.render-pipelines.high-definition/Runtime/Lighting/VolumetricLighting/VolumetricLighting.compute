@@ -496,7 +496,7 @@ float3 EvaluateVoxelDiffuseGI(PositionInputs posInput, JitteredRay ray, float t0
 
 // Computes the in-scattered radiance along the ray.
 void FillVolumetricLightingBuffer(LightLoopContext context, uint featureFlags,
-                                  PositionInputs posInput, uint tileIndex, int groupIdx, JitteredRay ray)
+                                  PositionInputs posInput, uint tileIndex, int groupIdx, JitteredRay ray, float tStart)
 {
     uint lightCount, lightStart;
 
@@ -548,7 +548,7 @@ void FillVolumetricLightingBuffer(LightLoopContext context, uint featureFlags,
 
 #endif // USE_BIG_TILE_LIGHTLIST
 
-    float t0 = DecodeLogarithmicDepthGeneralized(0, _VBufferDistanceDecodingParams);
+    float t0 = max(tStart, DecodeLogarithmicDepthGeneralized(0, _VBufferDistanceDecodingParams));
     float de = _VBufferRcpSliceCount; // Log-encoded distance between slices
 
     // The contribution of the ambient probe does not depend on the position,
@@ -566,7 +566,7 @@ void FillVolumetricLightingBuffer(LightLoopContext context, uint featureFlags,
         uint3 voxelCoord = uint3(posInput.positionSS, slice + _VBufferSliceCount * unity_StereoEyeIndex);
 
         float e1 = slice * de + de; // (slice + 1) / sliceCount
-        float t1 = DecodeLogarithmicDepthGeneralized(e1, _VBufferDistanceDecodingParams);
+        float t1 = max(tStart, DecodeLogarithmicDepthGeneralized(e1, _VBufferDistanceDecodingParams));
         float tNext = t1;
 
     #if USE_DEPTH_BUFFER
@@ -581,8 +581,16 @@ void FillVolumetricLightingBuffer(LightLoopContext context, uint featureFlags,
             t1 = max(t0 * 1.0001, ray.geomDist);
         }
     #endif
-
         float dt = t1 - t0; // Is geometry-aware
+        if(dt <= 0.0)
+        {
+            _VBufferLighting[voxelCoord] = 0;
+#ifdef ENABLE_REPROJECTION
+            _VBufferFeedback[voxelCoord] = 0;
+#endif
+            t0 = t1;
+            continue;
+        }
 
         // Accurately compute the center of the voxel in the log space. It's important to perform
         // the inversion exactly, since the accumulated value of the integral is stored at the center.
@@ -816,6 +824,7 @@ void VolumetricLighting(uint3 dispatchThreadId : SV_DispatchThreadID,
 
     ray.jitterDirWS = normalize(ray.centerDirWS + sampleOffset.x * ray.xDirDerivWS
                                                 + sampleOffset.y * ray.yDirDerivWS);
+    float tStart = g_fNearPlane / dot(ray.jitterDirWS, F);
 
     // We would like to determine the screen pixel (at the full resolution) which
     // the jittered ray corresponds to. The exact solution can be obtained by intersecting
@@ -864,5 +873,5 @@ void VolumetricLighting(uint3 dispatchThreadId : SV_DispatchThreadID,
 
     ApplyCameraRelativeXR(ray.originWS);
 
-    FillVolumetricLightingBuffer(context, featureFlags, posInput, tileIndex, groupIndex, ray);
+    FillVolumetricLightingBuffer(context, featureFlags, posInput, tileIndex, groupIndex, ray, tStart);
 }

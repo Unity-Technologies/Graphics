@@ -119,6 +119,11 @@ namespace UnityEngine.Rendering.HighDefinition
         public LayerMaskParameter layerMask = new LayerMaskParameter(-1);
 
         /// <summary>
+        /// Defines the LOD Bias for sampling all the textures.
+        /// </summary>
+        public ClampedIntParameter textureLodBias = new ClampedIntParameter(1, 0, 7);
+
+        /// <summary>
         /// Controls the length of reflection rays.
         /// </summary>
         public float rayLength
