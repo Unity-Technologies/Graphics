@@ -24,7 +24,7 @@ namespace UnityEditor.Rendering
 
     public struct InitializeConverterContext
     {
-        internal List<ConverterItemInfo> m_Items;
+        public List<ConverterItemInfo> m_Items;
 
         public void AddAssetToConvert(ConverterItemInfo item)
         {
@@ -34,7 +34,7 @@ namespace UnityEditor.Rendering
 
     public struct RunConverterContext
     {
-        internal List<ConverterItemInfo> m_Items;
+        public List<ConverterItemInfo> m_Items;
         public IEnumerable<ConverterItemInfo> items => m_Items;
     }
 

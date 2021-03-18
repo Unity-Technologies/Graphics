@@ -1,6 +1,5 @@
 using System;
 using System.Collections.Generic;
-using System.Runtime.CompilerServices;
 using UnityEngine;
 using UnityEditor;
 using UnityEditor.Rendering;
@@ -25,7 +24,7 @@ class ConverterState
 }
 
 [Serializable]
-public class URPConvertersEditor : EditorWindow
+public class RenderPipelineConvertersEditor : EditorWindow
 {
     public VisualTreeAsset converterEditorAsset;
     public VisualTreeAsset converterListAsset;
@@ -42,11 +41,11 @@ public class URPConvertersEditor : EditorWindow
     [SerializeField]
     List<ConverterState> m_ConverterStates = new List<ConverterState>();
 
-    [MenuItem("URPConverter/URPConverter")]
+    [MenuItem("RenderPipelineConverter/RenderPipelineConverter")]
     public static void ShowWindow()
     {
-        URPConvertersEditor wnd = GetWindow<URPConvertersEditor>();
-        wnd.titleContent = new GUIContent("Universal Render Pipeline Converters");
+        RenderPipelineConvertersEditor wnd = GetWindow<RenderPipelineConvertersEditor>();
+        wnd.titleContent = new GUIContent("Render Pipeline Converters");
     }
 
     void OnEnable()
@@ -199,7 +198,7 @@ public class URPConvertersEditor : EditorWindow
         for (int i = 0; i < m_ConverterStates.Count; ++i)
         {
             // Checking if this converter should get the data
-            if (m_ConverterStates[i].isActive)
+            if (m_ConverterStates[i].isActive && !m_ConverterStates[i].isInitialized)
             {
                 // This need to be in Init method
                 // Need to get the assets that this converter is converting.
