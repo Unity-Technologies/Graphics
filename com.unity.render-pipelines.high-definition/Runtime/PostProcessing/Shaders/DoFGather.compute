@@ -332,6 +332,8 @@ void DebugTiles(DoFTile tileData, inout float4 outColor)
 [numthreads(GROUP_RES, GROUP_RES, 1)]
 void KMain(uint3 dispatchThreadId : SV_DispatchThreadID)
 {
+    UNITY_XR_ASSIGN_VIEW_INDEX(dispatchThreadId.z);
+
     PositionInputs posInputs = GetPositionInput(float2(dispatchThreadId.xy), _ScreenSize.zw, uint2(GROUP_RES, GROUP_RES));
 
     SampleData centerSample;
