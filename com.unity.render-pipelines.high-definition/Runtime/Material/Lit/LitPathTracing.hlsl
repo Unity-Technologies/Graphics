@@ -63,7 +63,7 @@ bool CreateMaterialData(PathIntersection pathIntersection, BuiltinData builtinDa
         float Fcoat = F_Schlick(CLEAR_COAT_F0, NdotV) * mtlData.bsdfData.coatMask;
         float Fspec = Luminance(F_Schlick(mtlData.bsdfData.fresnel0, NdotV));
 
-        // If N.V < 0 (can happen with normal mapping) we want to avoid spec sampling
+        // If N.V < 0 (can happen with normal mapping, or smooth normals on coarsely tesselated objects) we want to avoid spec sampling
         bool consistentNormal = (NdotV > 0.001);
         mtlData.bsdfWeight[1] = consistentNormal ? Fcoat : 0.0;
         coatingTransmission = 1.0 - mtlData.bsdfWeight[1];
@@ -358,6 +358,7 @@ float3 ApplyAbsorption(MaterialData mtlData, SurfaceData surfaceData, float dist
     #ifdef _REFRACTION_THIN
         value *= exp(-mtlData.bsdfData.absorptionCoefficient * REFRACTION_THIN_DISTANCE);
     #else
+        // We allow a reasonable max distance of 10 times the "atDistance" (so that objects do not end up appearing black)
         value *= exp(-mtlData.bsdfData.absorptionCoefficient * min(dist, surfaceData.atDistance * 10.0));
     #endif
     }

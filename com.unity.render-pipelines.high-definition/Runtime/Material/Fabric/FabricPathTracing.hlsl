@@ -41,10 +41,12 @@ bool CreateMaterialData(PathIntersection pathIntersection, BuiltinData builtinDa
 
     mtlData.bsdfWeight[0] = Luminance(mtlData.bsdfData.diffuseColor) * mtlData.bsdfData.ambientOcclusion;
 
-    // If N.V < 0 (can happen with normal mapping) we want to avoid spec sampling
+    // If N.V < 0 (can happen with normal mapping, or smooth normals on coarsely tesselated objects) we want to avoid spec sampling
     float NdotV = dot(mtlData.bsdfData.normalWS, mtlData.V);
     if (NdotV > 0.001)
     {
+        // For the cotton/wool material, diffuse and sheen BRDFs share the same cosine-weighted sampling, so we only give the upper hemisphere
+        // a gentle nudge with a small added weight (hence the 0.1 factor), while making sure it is not null if diffuse color is black
         mtlData.bsdfWeight[1] = HasFlag(mtlData.bsdfData.materialFeatures, MATERIALFEATUREFLAGS_FABRIC_COTTON_WOOL) ?
             0.1 * Luminance(mtlData.bsdfData.fresnel0) : Luminance(F_Schlick(mtlData.bsdfData.fresnel0, NdotV));
     }

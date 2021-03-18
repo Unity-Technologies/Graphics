@@ -468,7 +468,7 @@ bool SampleLambert(MaterialData mtlData,
                out float pdf)
 {
     bool retVal = BRDF::SampleLambert(mtlData, inputSample, outgoingDir, value, pdf);
-    outgoingDir *= -1.0;
+    outgoingDir = -outgoingDir;
     return retVal;
 }
 
