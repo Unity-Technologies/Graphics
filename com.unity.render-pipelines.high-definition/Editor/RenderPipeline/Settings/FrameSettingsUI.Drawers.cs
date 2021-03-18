@@ -196,8 +196,8 @@ namespace UnityEditor.Rendering.HighDefinition
                     hasMixedValues: serialized.msaaMode.hasMultipleDifferentValues);
 
                 bool msaaIsOff = (msaaEnablable && serialized.GetOverrides(FrameSettingsField.MSAAMode))
-                    ? serialized.msaaMode.GetEnumValue<MSAAMode>() != MSAAMode.None
-                    : defaultFrameSettings.msaaMode != MSAAMode.None;
+                    ? serialized.msaaMode.GetEnumValue<MSAAMode>() == MSAAMode.None
+                    : defaultFrameSettings.msaaMode == MSAAMode.None;
                 area.AmmendInfo(FrameSettingsField.AlphaToMask,
                     overrideable: () => msaaEnablable && !msaaIsOff,
                     ignoreDependencies: true,
