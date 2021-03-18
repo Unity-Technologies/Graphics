@@ -98,7 +98,7 @@ pr:
       color_space: Linear
       test_platforms:
         - performance_memory_cache
-        # - performance_run_build
+        - performance_run_build_cache
 nightly:
   dependencies:
     - project: HDRP_PerformanceTests
