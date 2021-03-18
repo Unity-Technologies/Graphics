@@ -233,7 +233,7 @@ namespace UnityEditor.Rendering.HighDefinition
             using (new EditorGUI.IndentLevelScope())
             {
                 EditorGUILayout.LabelField(Styles.frameSettingsLabel_Camera, Styles.subSectionHeaderStyle);
-                Drawer_FrameSettings_Custom(0, serialized.defaultFrameSettings, owner);
+                Drawer_FrameSettings_Custom(0, serialized.defaultCameraFrameSettings, owner);
                 EditorGUILayout.Space();
 
                 EditorGUILayout.LabelField(Styles.frameSettingsLabel_RTProbe, Styles.subSectionHeaderStyle);
