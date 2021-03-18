@@ -55,12 +55,6 @@ namespace UnityEngine.Rendering.Universal
 
             [Reload("Shaders/Utils/MaterialError.shader")]
             public Shader materialErrorPS;
-
-            [Reload("Shaders/Debug/FullScreenDebug.shader")]
-            public Shader fullScreenDebugPS;
-
-            [Reload("Shaders/Debug/DebugReplacement.shader")]
-            public Shader debugReplacementPS;
         }
 
         public sealed class TextureResources

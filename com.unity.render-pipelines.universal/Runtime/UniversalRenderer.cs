@@ -55,7 +55,6 @@ namespace UnityEngine.Rendering.Universal
         InvokeOnRenderObjectCallbackPass m_OnRenderObjectCallbackPass;
         FinalBlitPass m_FinalBlitPass;
         CapturePass m_CapturePass;
-        DebugPass m_DebugPass;
 #if ENABLE_VR && ENABLE_XR_MODULE
         XROcclusionMeshPass m_XROcclusionMeshPass;
         CopyDepthPass m_XRCopyDepthPass;
@@ -191,8 +190,6 @@ namespace UnityEngine.Rendering.Universal
 
             if(DebugHandler != null)
             {
-                m_DebugPass =  DebugHandler.CreatePass(RenderPassEvent.AfterRendering + 2);
-
                 // Hook in the debug-render where appropriate...
                 m_RenderOpaqueForwardPass.DebugHandler = DebugHandler;
                 m_FinalBlitPass.DebugHandler = DebugHandler;
@@ -574,6 +571,50 @@ namespace UnityEngine.Rendering.Universal
             }
             EnqueuePass(m_OnRenderObjectCallbackPass);
 
+            if((DebugHandler != null) && DebugHandler.IsActiveForCamera(ref cameraData))
+            {
+                if(DebugHandler.TryGetFullscreenDebugMode(out DebugFullScreenMode fullScreenDebugMode))
+                {
+                    float screenWidth = camera.pixelWidth;
+                    float screenHeight = camera.pixelHeight;
+                    float size = Mathf.Min(screenWidth, screenHeight);
+                    float normalizedSizeX = size / screenWidth;
+                    float normalizedSizeY = size / screenHeight;
+                    Rect normalizedRect = new Rect(1 - normalizedSizeX, 1 - normalizedSizeY, normalizedSizeX, normalizedSizeY);
+
+                    switch(fullScreenDebugMode)
+                    {
+                        case DebugFullScreenMode.Depth:
+                        {
+                            DebugHandler.SetDebugRenderTarget(m_DepthTexture.Identifier(), new Rect(0, 0, 1, 1));
+                            break;
+                        }
+                        // TODO: Restore this once we have access to the screen-space shadow texture...
+                        // case DebugFullScreenMode.MainLightShadowsOnly:
+                        //     debugBuffer = new RenderTargetIdentifier("_ScreenSpaceShadowmapTexture");
+                        //     break;
+                        case DebugFullScreenMode.AdditionalLightsShadowMap:
+                        {
+                            DebugHandler.SetDebugRenderTarget(m_AdditionalLightsShadowCasterPass.m_AdditionalLightsShadowmapTexture, normalizedRect);
+                            break;
+                        }
+                        case DebugFullScreenMode.MainLightShadowMap:
+                        {
+                            DebugHandler.SetDebugRenderTarget(m_MainLightShadowCasterPass.m_MainLightShadowmapTexture, normalizedRect);
+                            break;
+                        }
+                        default:
+                        {
+                            break;
+                        }
+                    }
+                }
+                else
+                {
+                    DebugHandler.ResetDebugRenderTarget();
+                }
+            }
+
             bool lastCameraInTheStack = cameraData.resolveFinalTarget;
             bool hasCaptureActions = renderingData.cameraData.captureActions != null && lastCameraInTheStack;
             bool applyFinalPostProcessing = anyPostProcessing && lastCameraInTheStack &&
@@ -647,42 +688,6 @@ namespace UnityEngine.Rendering.Universal
             {
                 postProcessPass.Setup(cameraTargetDescriptor, m_ActiveCameraColorAttachment, afterPostProcessColor, m_ActiveCameraDepthAttachment, colorGradingLut, false, false);
                 EnqueuePass(postProcessPass);
-            }
-
-            if((DebugHandler != null) &&
-                DebugHandler.IsActiveForCamera(ref cameraData) &&
-                DebugHandler.TryGetFullscreenDebugMode(out DebugFullScreenMode fullScreenDebugMode))
-            {
-                RenderTargetIdentifier debugBuffer;
-                float screenWidth = camera.pixelWidth;
-                float screenHeight = camera.pixelHeight;
-                float size = Mathf.Min(screenWidth, screenHeight);
-                Rect pixelRect = new Rect();
-
-                switch (fullScreenDebugMode)
-                {
-                    case DebugFullScreenMode.Depth:
-                        debugBuffer = m_DepthTexture.Identifier();
-                        break;
-                    // TODO: Restore this once we have access to the screen-space shadow texture...
-                    // case DebugFullScreenMode.MainLightShadowsOnly:
-                    //     debugBuffer = new RenderTargetIdentifier("_ScreenSpaceShadowmapTexture");
-                    //     break;
-                    case DebugFullScreenMode.AdditionalLightsShadowMap:
-                        debugBuffer = m_AdditionalLightsShadowCasterPass.m_AdditionalLightsShadowmapTexture;
-                        pixelRect = new Rect(screenWidth - size, screenHeight - size, size, size);
-                        break;
-                    case DebugFullScreenMode.MainLightShadowMap:
-                        debugBuffer = m_MainLightShadowCasterPass.m_MainLightShadowmapTexture;
-                        pixelRect = new Rect(screenWidth - size, screenHeight - size, size, size);
-                        break;
-                    default:
-                        debugBuffer = m_OpaqueColor.Identifier();
-                        break;
-                }
-
-                m_DebugPass.Setup(cameraTargetDescriptor, debugBuffer, fullScreenDebugMode, false, pixelRect);
-                EnqueuePass(m_DebugPass);
             }
 
 #if UNITY_EDITOR
