@@ -37,10 +37,11 @@ namespace UnityEditor.ShaderGraph.UnitTests
         {
             var node = new BlockNode();
             node.Init(s_DescriptorA);
-
+            // Note: Hardcoding SG as a reminder here as this is the namespace of built-in SG BlockFields (as specified by the BlockFields.m_ProviderInfo)
+            // and changing it has implications for deserialization of previous graphs
             Assert.IsNotNull(node.descriptor);
             Assert.AreEqual(s_DescriptorA, node.descriptor);
-            Assert.AreEqual("Test.BlockA", $"{node.descriptor.tag}.{node.descriptor.name}");
+            Assert.AreEqual("SG.Test.BlockA", $"{node.descriptor.uniqueNamespace}.{node.descriptor.tag}.{node.descriptor.name}");
         }
 
         [Test]
@@ -99,8 +100,9 @@ namespace UnityEditor.ShaderGraph.UnitTests
             var node = new BlockNode();
             node.Init(s_DescriptorA);
             node.OnBeforeSerialize();
-
-            Assert.AreEqual("Test.BlockA", node.serializedDescriptor);
+            // Note: Hardcoding SG as a reminder here as this is the namespace of built-in SG BlockFields (as specified by the BlockFields.m_ProviderInfo)
+            // and changing it has implications for deserialization of previous graphs
+            Assert.AreEqual("SG.Test.BlockA", node.serializedDescriptor);
         }
 
         [Test]
