@@ -1,10 +1,5 @@
-using System;
 using System.Linq;
-using System.Reflection;
-using System.Runtime.CompilerServices;
 using UnityEngine;
-using UnityEngine.Rendering.HighDefinition;
-using UnityEngine.Rendering;
 
 namespace UnityEditor.Rendering.HighDefinition
 {
@@ -55,41 +50,12 @@ namespace UnityEditor.Rendering.HighDefinition
             )
         );
 
-        public static readonly CED.IDrawer SectionOutputSettings = CED.FoldoutGroup(
-            Styles.outputSettingsHeaderContent,
-            Expandable.Output,
-            k_ExpandedState,
-            FoldoutOption.Indent,
-            CED.Group(
-#if ENABLE_VR && ENABLE_XR_MANAGEMENT
-                Drawer_SectionXRRendering,
-#endif
-#if ENABLE_MULTIPLE_DISPLAYS
-                Drawer_SectionMultiDisplay,
-#endif
-                Drawer_FieldRenderTarget,
-                Drawer_AllowDynamicResolution,
-                Drawer_FieldDepth,
-                Drawer_FieldNormalizedViewPort
-            )
-        );
-
-        public static readonly CED.IDrawer SectionFrameSettings = CED.Conditional(
-            (serialized, owner) => k_ExpandedState[Expandable.Projection],
-            CED.Group((serialized, owner) =>
-            {
-                if (!serialized.passThrough.boolValue && serialized.customRenderingSettings.boolValue)
-                    FrameSettingsUI.Inspector().Draw(serialized.frameSettings, owner);
-            })
-        );
-
         public static readonly CED.IDrawer[] Inspector = new[]
         {
             SectionProjectionSettings,
             Rendering.Drawer,
-            SectionFrameSettings,
             Environment.Drawer,
-            SectionOutputSettings,
+            Output.Drawer,
         };
 
         static void Drawer_Projection(SerializedHDCamera p, Editor owner)
@@ -199,83 +165,6 @@ namespace UnityEditor.Rendering.HighDefinition
                 Styles.clippingPlaneMultiFieldTitle,
                 new[] { p.baseCameraSettings.nearClippingPlane, p.baseCameraSettings.farClippingPlane },
                 new[] { Styles.nearPlaneContent, Styles.farPlaneContent });
-        }
-
-        static void Drawer_FieldNormalizedViewPort(SerializedHDCamera p, Editor owner)
-        {
-            EditorGUILayout.PropertyField(p.baseCameraSettings.normalizedViewPortRect, Styles.viewportContent);
-        }
-
-        static void Drawer_FieldDepth(SerializedHDCamera p, Editor owner)
-        {
-            EditorGUILayout.PropertyField(p.baseCameraSettings.depth, Styles.depthContent);
-        }
-
-        static void Drawer_AllowDynamicResolution(SerializedHDCamera p, Editor owner)
-        {
-            EditorGUILayout.PropertyField(p.allowDynamicResolution, Styles.allowDynResContent);
-            p.baseCameraSettings.allowDynamicResolution.boolValue = p.allowDynamicResolution.boolValue;
-        }
-
-        static void Drawer_FieldRenderTarget(SerializedHDCamera p, Editor owner)
-        {
-            EditorGUILayout.PropertyField(p.baseCameraSettings.targetTexture);
-
-            // show warning if we have deferred but manual MSAA set
-            // only do this if the m_TargetTexture has the same values across all target cameras
-            if (!p.baseCameraSettings.targetTexture.hasMultipleDifferentValues)
-            {
-                var targetTexture = p.baseCameraSettings.targetTexture.objectReferenceValue as RenderTexture;
-                if (targetTexture
-                    && targetTexture.antiAliasing > 1
-                    && p.frameSettings.litShaderMode == LitShaderMode.Deferred)
-                {
-                    EditorGUILayout.HelpBox(Styles.msaaWarningMessage, MessageType.Warning, true);
-                }
-            }
-        }
-
-#if ENABLE_VR && ENABLE_XR_MANAGEMENT
-        static void Drawer_SectionXRRendering(SerializedHDCamera p, Editor owner)
-        {
-            EditorGUILayout.PropertyField(p.xrRendering, Styles.xrRenderingContent);
-        }
-
-#endif
-
-#if ENABLE_MULTIPLE_DISPLAYS
-        static void Drawer_SectionMultiDisplay(SerializedHDCamera p, Editor owner)
-        {
-            if (ModuleManager_ShouldShowMultiDisplayOption())
-            {
-                var prevDisplay = p.baseCameraSettings.targetDisplay.intValue;
-                EditorGUILayout.IntPopup(p.baseCameraSettings.targetDisplay, DisplayUtility_GetDisplayNames(), DisplayUtility_GetDisplayIndices(), Styles.targetDisplayContent);
-                if (prevDisplay != p.baseCameraSettings.targetDisplay.intValue)
-                    UnityEditorInternal.InternalEditorUtility.RepaintAllViews();
-            }
-        }
-
-#endif
-
-        static MethodInfo k_DisplayUtility_GetDisplayIndices = Type.GetType("UnityEditor.DisplayUtility,UnityEditor")
-            .GetMethod("GetDisplayIndices");
-        static int[] DisplayUtility_GetDisplayIndices()
-        {
-            return (int[])k_DisplayUtility_GetDisplayIndices.Invoke(null, null);
-        }
-
-        static MethodInfo k_DisplayUtility_GetDisplayNames = Type.GetType("UnityEditor.DisplayUtility,UnityEditor")
-            .GetMethod("GetDisplayNames");
-        static GUIContent[] DisplayUtility_GetDisplayNames()
-        {
-            return (GUIContent[])k_DisplayUtility_GetDisplayNames.Invoke(null, null);
-        }
-
-        static MethodInfo k_ModuleManager_ShouldShowMultiDisplayOption = Type.GetType("UnityEditor.Modules.ModuleManager,UnityEditor")
-            .GetMethod("ShouldShowMultiDisplayOption", BindingFlags.Static | BindingFlags.NonPublic);
-        static bool ModuleManager_ShouldShowMultiDisplayOption()
-        {
-            return (bool)k_ModuleManager_ShouldShowMultiDisplayOption.Invoke(null, null);
         }
     }
 }

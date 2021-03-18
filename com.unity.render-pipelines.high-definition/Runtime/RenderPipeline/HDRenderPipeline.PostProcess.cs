@@ -125,8 +125,6 @@ namespace UnityEngine.Rendering.HighDefinition
 
         System.Random m_Random;
 
-        bool m_IsDoFHisotoryValid = false;
-
         void InitializePostProcess()
         {
             m_FinalPassMaterial = CoreUtils.CreateEngineMaterial(defaultResources.shaders.finalPassPS);
@@ -1550,10 +1548,13 @@ namespace UnityEngine.Rendering.HighDefinition
             // PB DoF shaders
             public ComputeShader dofCircleOfConfusionCS;
             public int dofCircleOfConfusionKernel;
-            public ComputeShader dofCoCPyramidCS;
-            public int dofCoCPyramidKernel;
+            public ComputeShader pbDoFCoCMinMaxCS;
+            public int pbDoFMinMaxKernel;
             public ComputeShader pbDoFGatherCS;
             public int pbDoFGatherKernel;
+            public ComputeShader pbDoFDilateCS;
+            public int pbDoFDilateKernel;
+            public int minMaxCoCTileSize;
 
             public BlueNoise.DitheredTextureSet ditheredTextureSet;
 
@@ -1626,10 +1627,13 @@ namespace UnityEngine.Rendering.HighDefinition
             parameters.dofClearIndirectArgsKernel = parameters.dofClearIndirectArgsCS.FindKernel("KClear");
 
             parameters.dofCircleOfConfusionCS = defaultResources.shaders.dofCircleOfConfusion;
-            parameters.dofCoCPyramidCS = defaultResources.shaders.DoFCoCPyramidCS;
-            parameters.dofCoCPyramidKernel = parameters.dofCoCPyramidCS.FindKernel("KMainCoCPyramid");
+            parameters.pbDoFCoCMinMaxCS = defaultResources.shaders.dofCoCMinMaxCS;
+            parameters.pbDoFMinMaxKernel = parameters.pbDoFCoCMinMaxCS.FindKernel("KMainCoCMinMax");
+            parameters.pbDoFDilateCS = defaultResources.shaders.dofMinMaxDilateCS;
+            parameters.pbDoFDilateKernel = parameters.pbDoFDilateCS.FindKernel("KMain");
             parameters.pbDoFGatherCS = defaultResources.shaders.dofGatherCS;
             parameters.pbDoFGatherKernel = parameters.pbDoFGatherCS.FindKernel("KMain");
+            parameters.minMaxCoCTileSize = 8;
 
             parameters.camera = camera;
             parameters.resetPostProcessingHistory = camera.resetPostProcessingHistory;
@@ -1641,7 +1645,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
             parameters.resolution = m_DepthOfField.resolution;
 
-            float scale = 1f / (float)parameters.resolution;
+            float scale = m_DepthOfField.physicallyBased ? 1f : 1f / (float)parameters.resolution; // Note: physical dof always runs at full resolution
             float resolutionScale = (camera.actualHeight / 1080f) * (scale * 2f);
 
             int farSamples = Mathf.CeilToInt(m_DepthOfField.farSampleCount * resolutionScale);
@@ -2264,29 +2268,17 @@ namespace UnityEngine.Rendering.HighDefinition
             fullresCoC = nextCoC;
         }
 
-        static void GetMipMapDimensions(RTHandle texture, int lod, out int width, out int height)
-        {
-            width = texture.rt.width;
-            height = texture.rt.height;
-
-            for (int level = 0; level < lod; ++level)
-            {
-                // Note: When the texture/mip size is an odd number, the size of the next level is rounded down.
-                // That's why we cannot find the actual size by doing (size >> lod).
-                width /= 2;
-                height /= 2;
-            }
-        }
-
-        static void DoPhysicallyBasedDepthOfField(in DepthOfFieldParameters dofParameters, CommandBuffer cmd, RTHandle source, RTHandle destination, RTHandle fullresCoC, RTHandle prevCoCHistory, RTHandle nextCoCHistory, RTHandle motionVecTexture, RTHandle sourcePyramid, RTHandle depthBuffer, bool taaEnabled)
+        static void DoPhysicallyBasedDepthOfField(in DepthOfFieldParameters dofParameters, CommandBuffer cmd, RTHandle source, RTHandle destination, RTHandle fullresCoC, RTHandle prevCoCHistory, RTHandle nextCoCHistory, RTHandle motionVecTexture, RTHandle sourcePyramid, RTHandle depthBuffer, RTHandle minMaxCoCPing, RTHandle minMaxCoCPong, bool taaEnabled)
         {
             float scale = 1f / (float)dofParameters.resolution;
             int targetWidth = Mathf.RoundToInt(dofParameters.camera.actualWidth * scale);
             int targetHeight = Mathf.RoundToInt(dofParameters.camera.actualHeight * scale);
 
-            // Map the old "max radius" parameters to a bigger range, so we can work on more challenging scenes
-            float maxRadius = Mathf.Max(dofParameters.farMaxBlur, dofParameters.nearMaxBlur);
-            float cocLimit = Mathf.Clamp(4 * maxRadius, 1, 64); //[1, 16] --> [1, 64]
+            // Map the old "max radius" parameters to a bigger range, so we can work on more challenging scenes, [0, 16] --> [0, 64]
+            Vector2 cocLimit = new Vector2(
+                Mathf.Max(4 * dofParameters.farMaxBlur, 0.01f),
+                Mathf.Max(4 * dofParameters.nearMaxBlur, 0.01f));
+            float maxCoc = Mathf.Max(cocLimit.x, cocLimit.y);
 
             ComputeShader cs;
             int kernel;
@@ -2316,7 +2308,7 @@ namespace UnityEngine.Rendering.HighDefinition
                     // Scale and Bias factors for directly computing CoC size from post-rasterization depth with a single mad
                     float cocBias = maxFarCoC * (1f - P / dofParameters.camera.camera.farClipPlane);
                     float cocScale = maxFarCoC * P * (dofParameters.camera.camera.farClipPlane - dofParameters.camera.camera.nearClipPlane) / (dofParameters.camera.camera.farClipPlane * dofParameters.camera.camera.nearClipPlane);
-                    cmd.SetComputeVectorParam(cs, HDShaderIDs._Params, new Vector4(cocLimit, 0.0f, cocScale, cocBias));
+                    cmd.SetComputeVectorParam(cs, HDShaderIDs._Params, new Vector4(cocLimit.x, cocLimit.y, cocScale, cocBias));
                 }
                 else
                 {
@@ -2325,7 +2317,7 @@ namespace UnityEngine.Rendering.HighDefinition
                     float farStart = Mathf.Max(dofParameters.farFocusStart, nearEnd);
                     float farEnd = Mathf.Max(dofParameters.farFocusEnd, farStart + 1e-5f);
                     cmd.SetComputeVectorParam(cs, HDShaderIDs._Params, new Vector4(farStart, nearEnd, 1.0f / (farEnd - farStart), 1.0f / (nearStart - nearEnd)));
-                    cmd.SetComputeVectorParam(cs, HDShaderIDs._Params2, new Vector4(dofParameters.nearMaxBlur, dofParameters.farMaxBlur, 0, 0));
+                    cmd.SetComputeVectorParam(cs, HDShaderIDs._Params2, new Vector4(cocLimit.y, cocLimit.x, 0, 0));
                 }
 
                 cmd.SetComputeTextureParam(cs, kernel, HDShaderIDs._CameraDepthTexture, depthBuffer);
@@ -2359,6 +2351,38 @@ namespace UnityEngine.Rendering.HighDefinition
                 }
             }
 
+            using (new ProfilingScope(cmd, ProfilingSampler.Get(HDProfileId.DepthOfFieldDilate)))
+            {
+                int tileSize = dofParameters.minMaxCoCTileSize;
+                int tx = ((dofParameters.camera.actualWidth / tileSize) + 7) / 8;
+                int ty = ((dofParameters.camera.actualHeight / tileSize) + 7) / 8;
+
+                // Min Max CoC tiles
+                {
+                    cs = dofParameters.pbDoFCoCMinMaxCS;
+                    kernel = dofParameters.pbDoFMinMaxKernel;
+
+                    cmd.SetComputeTextureParam(cs, kernel, HDShaderIDs._InputTexture, fullresCoC, 0);
+                    cmd.SetComputeTextureParam(cs, kernel, HDShaderIDs._OutputTexture, minMaxCoCPing, 0);
+                    cmd.DispatchCompute(cs, kernel, tx, ty, dofParameters.camera.viewCount);
+                }
+
+                //  Min Max CoC tile dilation
+                {
+                    cs = dofParameters.pbDoFDilateCS;
+                    kernel = dofParameters.pbDoFDilateKernel;
+
+                    int iterations = (int)Mathf.Max(Mathf.Ceil(cocLimit.y / dofParameters.minMaxCoCTileSize), 1.0f);
+                    for (int pass = 0; pass < iterations; ++pass)
+                    {
+                        cmd.SetComputeTextureParam(cs, kernel, HDShaderIDs._InputTexture, minMaxCoCPing, 0);
+                        cmd.SetComputeTextureParam(cs, kernel, HDShaderIDs._OutputTexture, minMaxCoCPong, 0);
+                        cmd.DispatchCompute(cs, kernel, tx, ty, dofParameters.camera.viewCount);
+                        CoreUtils.Swap(ref minMaxCoCPing, ref minMaxCoCPong);
+                    }
+                }
+            }
+
             using (new ProfilingScope(cmd, ProfilingSampler.Get(HDProfileId.DepthOfFieldCombine)))
             {
                 cs = dofParameters.pbDoFGatherCS;
@@ -2366,13 +2390,13 @@ namespace UnityEngine.Rendering.HighDefinition
                 float sampleCount = Mathf.Max(dofParameters.nearSampleCount, dofParameters.farSampleCount);
                 float anamorphism = dofParameters.physicalCameraAnamorphism / 4f;
 
-                float mipLevel = 1 + Mathf.Ceil(Mathf.Log(cocLimit, 2));
-                GetMipMapDimensions(fullresCoC, (int)mipLevel, out var mipMapWidth, out var mipMapHeight);
-                cmd.SetComputeVectorParam(cs, HDShaderIDs._Params, new Vector4(sampleCount, cocLimit, anamorphism, 0.0f));
-                cmd.SetComputeVectorParam(cs, HDShaderIDs._Params2, new Vector4(mipLevel, mipMapWidth, mipMapHeight, (float)dofParameters.resolution));
+                float mipLevel = 1 + Mathf.Ceil(Mathf.Log(maxCoc, 2));
+                cmd.SetComputeVectorParam(cs, HDShaderIDs._Params, new Vector4(sampleCount, maxCoc, anamorphism, 0.0f));
+                cmd.SetComputeVectorParam(cs, HDShaderIDs._Params2, new Vector4(mipLevel, 0, 0, (float)dofParameters.resolution));
                 cmd.SetComputeTextureParam(cs, kernel, HDShaderIDs._InputTexture, sourcePyramid != null ? sourcePyramid : source);
                 cmd.SetComputeTextureParam(cs, kernel, HDShaderIDs._InputCoCTexture, fullresCoC);
                 cmd.SetComputeTextureParam(cs, kernel, HDShaderIDs._OutputTexture, destination);
+                cmd.SetComputeTextureParam(cs, kernel, HDShaderIDs._TileList, minMaxCoCPing, 0);
                 BlueNoise.BindDitheredTextureSet(cmd, dofParameters.ditheredTextureSet);
                 cmd.DispatchCompute(cs, kernel, (dofParameters.camera.actualWidth + 7) / 8, (dofParameters.camera.actualHeight + 7) / 8, dofParameters.camera.viewCount);
             }
@@ -2426,7 +2450,7 @@ namespace UnityEngine.Rendering.HighDefinition
             {
                 // If we switch DoF modes and the old one was not using TAA, make sure we invalidate the history
                 // Note: for Rendergraph the m_IsDoFHisotoryValid perhaps should be moved to the "pass data" struct
-                if (taaEnabled && m_IsDoFHisotoryValid != m_DepthOfField.physicallyBased)
+                if (taaEnabled && hdCamera.dofHistoryIsValid != m_DepthOfField.physicallyBased)
                 {
                     hdCamera.resetPostProcessingHistory = true;
                 }
@@ -2559,35 +2583,40 @@ namespace UnityEngine.Rendering.HighDefinition
                     else
                     {
                         passData.fullresCoC = builder.ReadWriteTexture(renderGraph.CreateTexture(new TextureDesc(Vector2.one, true, true)
-                            { colorFormat = k_CoCFormat, enableRandomWrite = true, useMipMap = true, name = "Full res CoC" }));
+                            { colorFormat = k_CoCFormat, enableRandomWrite = true, useMipMap = false, name = "Full res CoC" }));
 
                         passData.pingFarRGB = builder.CreateTransientTexture(new TextureDesc(Vector2.one, true, true)
                             { colorFormat = m_PostProcessColorFormat, useMipMap = true, enableRandomWrite = true, name = "DoF Source Pyramid" });
 
+                        float scaleFactor = 1.0f / passData.parameters.minMaxCoCTileSize;
+                        passData.pingNearRGB = builder.CreateTransientTexture(new TextureDesc(Vector2.one * scaleFactor, true, true)
+                            { colorFormat = GraphicsFormat.R16G16B16A16_SFloat, useMipMap = false, enableRandomWrite = true, name = "CoC Min Max Tiles" });
+
+                        passData.pongNearRGB = builder.CreateTransientTexture(new TextureDesc(Vector2.one * scaleFactor, true, true)
+                            { colorFormat = GraphicsFormat.R16G16B16A16_SFloat, useMipMap = false, enableRandomWrite = true, name = "CoC Min Max Tiles" });
+
                         builder.SetRenderFunc(
                             (DepthofFieldData data, RenderGraphContext ctx) =>
                             {
-                                DoPhysicallyBasedDepthOfField(data.parameters, ctx.cmd, data.source, data.destination, data.fullresCoC, data.prevCoC, data.nextCoC, data.motionVecTexture, data.pingFarRGB, data.depthBuffer, data.taaEnabled);
+                                DoPhysicallyBasedDepthOfField(data.parameters, ctx.cmd, data.source, data.destination, data.fullresCoC, data.prevCoC, data.nextCoC, data.motionVecTexture, data.pingFarRGB, data.depthBuffer, data.pingNearRGB, data.pongNearRGB, data.taaEnabled);
                             });
 
                         source = passData.destination;
                         PushFullScreenDebugTexture(renderGraph, passData.fullresCoC, FullScreenDebugMode.DepthOfFieldCoc);
                     }
                 }
-            }
 
-            // When physically based DoF is enabled, TAA runs two times, first to stabilize the color buffer before DoF and then after DoF to accumulate more aperture samples
-            if (taaEnabled && m_DepthOfField.physicallyBased)
-            {
-                source = DoTemporalAntialiasing(renderGraph, hdCamera, depthBuffer, motionVectors, depthBufferMipChain, source, postDoF: true, "Post-DoF TAA Destination");
-                // Temporary hack to make post-dof TAA work with rendergraph (still the first frame flashes black). We need a better solution.
-                m_IsDoFHisotoryValid = true;
-                postDoFTAAEnabled = true;
-            }
-            else
-            {
-                // Temporary hack to make post-dof TAA work with rendergraph (still the first frame flashes black). We need a better solution.
-                m_IsDoFHisotoryValid = false;
+                // When physically based DoF is enabled, TAA runs two times, first to stabilize the color buffer before DoF and then after DoF to accumulate more aperture samples
+                if (taaEnabled && m_DepthOfField.physicallyBased)
+                {
+                    source = DoTemporalAntialiasing(renderGraph, hdCamera, depthBuffer, motionVectors, depthBufferMipChain, source, postDoF: true, "Post-DoF TAA Destination");
+                    hdCamera.dofHistoryIsValid = true;
+                    postDoFTAAEnabled = true;
+                }
+                else
+                {
+                    hdCamera.dofHistoryIsValid = false;
+                }
             }
 
             if (!postDoFTAAEnabled)
