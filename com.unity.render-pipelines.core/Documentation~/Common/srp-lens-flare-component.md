@@ -1,30 +1,31 @@
 # SRP Lens Flare Override Component
 
-The SRP (HDRP & URP) includes a component to describe Lens Flare, which consume an asset [SRP Lens Flare Data](srp-lens-flare-asset.md). This component can be attached to any game object, if it's attached to a light some extra option will be visible.
+Unity’s Scriptable Render Pipeline (SRP) includes the SRP Lens Flare Override component to control a [SRP Lens Flare Data](https://github.com/Unity-Technologies/Graphics/pull/3496/srp-lens-flare-asset.md) asset. You can attach an SRP Lens Flare Override component to any GameObject.
+Some properties only appear when you attach this component to a light.
 
 ![](images/LensFlareComp.png)
 
-### Properties
+## Properties
 
-## General
-
-| **Property**    | **Description**                                              |
-| --------------- | ------------------------------------------------------------ |
-| Lens Flare Data | A [SRP Lens Flare Data](srp-lens-flare-asset.md) used with this component. |
-| Intensity     | Intensity multiplier. |
-| Attenuation by Light Shape | If component attached to a light, attenuation the lens flare per light type. |
-| Attenuation Distance | Attenuation distance, this distance represent the end of the Attenuation Distance Curve (between 0 and 1), uses world space values. |
-| Attenuation Distance Curve | Attenuation by distance (normalized between 0 and 1), useful to fade out far flare. |
-| Scale Distance | Scale distance, this distance represent the end of the Scale Distance Curve (between 0 and 1), uses world space values. |
-| Scale Distance Curve | Scale the flare relative to distance, useful to change size out far flare. |
-| Screen Attenuation Curve | Attenuation based on distance to edge of screen, useful for instance to show flare only on edge of screen. |
-
-## Occlusion
+### General
 
 | **Property**    | **Description**                                              |
 | --------------- | ------------------------------------------------------------ |
-| Enable | True to enable occlusion based on depth buffer |
-| Occlusion Radius | Radius around the light used to occlude the flare (value in world space). |
-| Sample Count | Random Samples Count used inside the disk with 'occlusionRadius'. |
-| Occlusion Offset | Occlusion Offset allow us to offset the plane where the disc of occlusion is place (closer to camera), value on world space. Useful for instance to sample occlusion outside a light bulb if we place a flare inside the light bulb. |
-| Allow Off Screen | If allowOffScreen is true then If the lens flare is outside the screen we still emit the flare on screen. |
+| Lens Flare Data | Select the [Lens Flare Element](https://github.com/Unity-Technologies/Graphics/pull/3496/srp-lens-flare-asset.md) asset this component controls. |
+| Intensity     | Multiplies the intensity of the lens flare. |
+| Attenuation by Light Shape | Enable this property to automatically change the appearance of the lens flare based on the type of light you attached this component to.<br/>For example, if this component is attached to a spot light and the camera is looking at this light from behind, the lens flare will not be visible. <br/>This property is only available when this component is attached to a light. |
+| Attenuation Distance |The distance between the start and the end of the Attenuation Distance Curve.<br/>This value operates between 0 and 1 in world space.  |
+| Attenuation Distance Curve | Fades out the appearance of the lens flare over the distance between the GameObject this asset is attached to, and the Camera. |
+| Scale Distance | The distance between the start and the end of the **Scale Distance Curve**.<br/>This value operates between 0 and 1 in world space. |
+| Scale Distance Curve | Changes the size of the lens flare over the distance between the GameObject this asset is attached to, and the Camera. |
+| Screen Attenuation Curve | Reduces the effect of the lens flare based on its distance from the edge of the screen. You can use this to display a lens flare at the edge of your screen |
+
+### Occlusion
+
+| **Property**    | **Description**                                              |
+| --------------- | ------------------------------------------------------------ |
+| Enable | Enable this property to partially obscure the lens flare based on the depth buffer |
+| Occlusion Radius | Defines how far from the light source Unity occludes the lens flare. This value is in world space. |
+| Sample Count | The number of random samples the CPU uses to generate the **Occlusion Radius.** |
+| Occlusion Offset | Offsets the plane that the occlusion operates on. A higher value moves this plane closer to Camera. This value is in world space. <br/>For example, if a lens flare is inside the light bulb, you can use this to sample occlusion outside the light bulb. |
+| Allow Off Screen | Enable this property to allow lens flares outside the Camera's view to affect the current field of view. |

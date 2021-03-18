@@ -1,87 +1,114 @@
 # SRP Lens Flare Asset
 
-The SRP (HDRP & URP) includes an asset to describe Lens Flare, reused with the [SRP Lens Flare Override Component](srp-lens-flare-component.md).
+Unity’s [Scriptable Render Pipeline (SRP)](https://docs.unity3d.com/Manual/ScriptableRenderPipeline.html) includes the **Lens Flare Element** asset. You can use this asset to create lens flares in your scene and control their appearance. <br/>To create a Lens Flare Element asset, navigate to **Assets > Create > SRP Lens Flare**. To use this asset, assign it to the **Lens Flare Data** property of an [SRP Lens Flare Override Component](srp-lens-flare-component.md).
 
-### Properties
+## Properties
 
-The SRP Lens Flare Asset is splited in two part. The common and per element.
+The Lens Flare Element asset has the following properties:
 
-## Type
+- [Type](#Type)
+  - [Image](#Image)
+  - [Circle](#Circle)
+  - [Polygon](#Polygon)
+- [Common](#Common)
+- [AxisTransform](#AxisTransform)
+- [Distortion](#Distortion)
+- [Multiple Elements](#Multiple-Elements)
+  - [Uniform](#Uniform)
+  - [Curve](#Curve)
+  - [Random](#Random)
 
-| **Property**    | **Description**                                              |
-| --------------- | ------------------------------------------------------------ |
-| Type | The type of flare element, which can be [Image](#Image), [Circle](#Circle) or [Polygon](#Polygon) |
+<a name="Image"></a>
 
-### Image
+### Type
+
+| **Property** | **Description**                                              |
+| ------------ | ------------------------------------------------------------ |
+| Type         | Select the type of Lens Flare Element this asset creates: <br />&#8226; [Image](#Image) <br />&#8226; [Circle](#Circle) <br />&#8226; [Polygon](#Polygon) |
+
+<a name="Image"></a>
+
+#### Image
+
 ![](images/LensFlareShapeImage.png)
 
-| **Property**    | **Description**                                              |
-| --------------- | ------------------------------------------------------------ |
-| Flare Texture | Texture used to for this Lens Flare Element. |
-| Preserve Aspect Ratio | Preserve aspect ratio of the image (width/height), can be modulated with [Distortion](#Distortion) parameters. |
+| **Property**          | **Description**                                              |
+| --------------------- | ------------------------------------------------------------ |
+| Flare Texture         | The Texture used this lens flare element uses.               |
+| Preserve Aspect Ratio | Fixes the width and height (aspect ratio) of the **Flare Texture**. You can use [Distortion](#Distortion) to change this property. |
 
-### Circle
+<a name="Circle"></a>
+
+#### Circle
+
 ![](images/LensFlareShapeCircle.png)
 
-| **Property**    | **Description**                                              |
-| --------------- | ------------------------------------------------------------ |
-| Gradient | Gradient Offset used for the Procedural Flare. |
-| Falloff | Fall of the gradient used for the Procedural Flare. |
-| Inverse | Inverse the gradient direction. |
+| **Property** | **Description**                                              |
+| ------------ | ------------------------------------------------------------ |
+| Gradient     | Controls the offset of the circular flare's gradient. This value ranges from 0 to 1. |
+| Falloff      | Controls the falloff of the circular flare's gradient. This value ranges from 0 to 1, where 0 has no falloff between the tones and 1 creates a falloff that is spread evenly across the circle. |
+| Inverse      | Enable this property to reverse the direction of the gradient. |
 
-### Polygon
+<a name="Polygon"></a>
+
+#### Polygon
+
 ![](images/LensFlareShapePolygon.png)
 
-| **Property**    | **Description**                                              |
-| --------------- | ------------------------------------------------------------ |
-| Gradient | Gradient Offset used for the Procedural Flare. |
-| Falloff | Fall of the gradient used for the Procedural Flare. |
-| Side Count | Side count of the regular polygon generated. |
-| Roundness | Roundness of the polygon flare (0: Sharp Polygon, 1: Circle). |
-| Inverse | Inverse the gradient direction. |
+| **Property** | **Description**                                              |
+| ------------ | ------------------------------------------------------------ |
+| Gradient     | Controls the offset of the polygon flare's gradient. This value ranges from 0 to 1. |
+| Falloff      | Controls the falloff of the polygon flare's gradient. This value ranges from 0 to 1, where 0 has no falloff between the tones and 1 creates a falloff that is spread evenly across the polygon. |
+| Side Count   | Determines how many sides the polygon flare has.             |
+| Roundness    | Defines how smooth the edges of the polygon flare are. This value ranges from 0 to 1, where 0 is a sharp polygon and 1 is a circle. |
+| Inverse      | Enable this property to reverse the direction of the gradient |
+
+<a name="Common"></a>
 
 ## Common
+
 ![](images/LensFlareCommon.png)
 
-| **Property**    | **Description**                                              |
-| --------------- | ------------------------------------------------------------ |
-| Intensity | Intensity of this element. |
-| Tint | Tint of the texture can be modulated by the light we are attached to. |
-| Blend Mode | Blend mode used. Can be Additive, Screen, Premultiplied or Lerp. |
-| Modulate By Light Color | Modulate by light color if the asset is used in a 'SRP Lens Flare Source Override' attached to a light. |
-| Rotation | Local rotation of the texture. |
-| Size | Scale applied to the element, not visible if [Preserve Aspect Ratio](#Image) is used with type is [Image](#Image). |
-| Scale | Uniform scale applied to the flare. |
-| Auto Rotate | Rotate the texture relative to the angle on the screen (the rotation will be added to the parameter 'rotation'). The Auto Rotate angle is added to **Rotation** parameter. The behavior is similar to a LookAt to lens flare source, which implies if the [Starting Position](#AxisTransform) is 0 the flare cannot rotate, a very small value can be use to fix that for instance 0.00001. |
+| **Property**            | **Description**                                              |
+| ----------------------- | ------------------------------------------------------------ |
+| Intensity               | Controls the intensity of this element.                      |
+| Tint                    | Changes the tint of the lens flare. If this asset is attached to the light, this property is based on the light tint. |
+| Blend Mode              | Select the blend mode of the Lens Flare Element this asset creates:<br />• Additive  <br />• Screen  <br />• Premultiplied <br />• Lerp |
+| Modulate By Light Color | Allows light color to affect this Lens Flare Element. This only applies when the asset is used in a [SRP Lens Flare Override Component](srp-lens-flare-component.md) that is attached to a light |
+| Rotation                | Rotates the lens flare. This value operates in degrees of rotation. |
+| Size                    | Use this to adjust the scale of this lens flare element. <br/><br/> This property is not available when the [Type](https://github.com/Unity-Technologies/Graphics/pull/3496/files?file-filters[]=.md#Type) is set to [Image](https://github.com/Unity-Technologies/Graphics/pull/3496/files?file-filters[]=.md#Image) and **Preserve Aspect Ratio** is enabled. |
+| Scale                   | The size of this lens flare element in world space.          |
+| Auto Rotate             | Enable this property to automatically rotate the Lens Flare Texture relative to its angle on the screen. Unity uses the **Auto Rotate** angle to override the **Rotation** parameter. <br/><br/> To ensure the Lens Flare can rotate, assign a value greater than 0 to the [**Starting Position**](#AxisTransform)  property. |
 
-| **Property**    | **Description**                                              |
-| --------------- | ------------------------------------------------------------ |
-| Intensity       | Modulate the whole lens flare. |
-| Scale Curve     | Curve between 0 and 1 which describes the scale of each element, if the relative position is negative HDRP will read the negative part of the curve, the positive part otherwise. |
-| Position Curve  | Curve between -1 and 1 which describes the scale of each element, if the relative position is negative HDRP will read the negative part of the curve, the positive part otherwise. |
-| Elements        | List of SRPLensFlareDataElement. |
+<a name="AxisTransform"></a>
 
 ## AxisTransform
+
 ![](images/LensFlareAxisTransform.png)
 
-| **Property**    | **Description**                                              |
-| --------------- | ------------------------------------------------------------ |
-| Starting Position | Starting position relative to lens flare source. |
-| Position Offset | Screen space offset relative to lens flare source. |
-| Angular Offset | Angular offset, relative to the current position. |
-| Translation Scale | Constraint on lens flare offset, for instance to have horizontal flare use (1, 0) and (0, 1) for a vertical one. This scale can modulate the speed of the flare in his original path (0.5, 0.5) make the lens flare element move twice slower. |
+| **Property**      | **Description**                                              |
+| ----------------- | ------------------------------------------------------------ |
+| Starting Position | Defines the starting position of the lens flare relative to its source. This value operates in screen space. |
+| Position Offset   | Defines the offset of the lens flare's position in screen space, relative to its source. |
+| Angular Offset    | Controls the angular offset of the lens flare, relative to its current position. This value operates in degrees of rotation. |
+| Translation Scale | Limits the size of the lens flare offset. For example, values of (1, 0) create a horizontal lens flare, and (0, 1) create a vertical lens flare. <br/><br/>You can also use this property to control how quickly the lens flare appears to move. For example, values of (0.5, 0.5) make the lens flare element appear to move at half the speed. |
+
+<a name="Distortion"></a>
 
 ## Distortion
+
 ![](images/LensFlareRadialDistortion.png)
+
+<a name="Multiple-Elements"></a>
 
 ## Multiple Elements
 
 | **Property**    | **Description**                                              |
 | --------------- | ------------------------------------------------------------ |
-| Enable | Allow multiple element is false behave like single element. |
-| Count | Number of the same element generated, if **Count** is 1 will behave like a single element or **Enable** unchecked. |
-| Distribution | Describes the way we spread the elements generated can be [Uniform](#Uniform), parametrized by a [Curve](#Curve) or [Random](#Random). |
-| Length Spread | The length of the spread for the **Count** Element. |
+| Enable | Enable this to allow multiple lens flare elements in your scene. |
+| Count | Determines the number of identical lens flare elements Unity generates.<br/>A value of **1** appears the same as a single lens flare element. |
+| Distribution | Select the method that Unity uses to generate multiple lens flare elements:<br/>•[Uniform](https://github.com/Unity-Technologies/Graphics/pull/3496/files?file-filters[]=.md#Uniform)<br/>•[Curve](https://github.com/Unity-Technologies/Graphics/pull/3496/files?file-filters[]=.md#Curve)<br/>•[Random](https://github.com/Unity-Technologies/Graphics/pull/3496/files?file-filters[]=.md#Random) |
+| Length Spread | Controls how spread out multiple lens flare elements appear. |
 | Relative To Center | REPLACE ME. |
 
 ### Uniform
@@ -89,25 +116,31 @@ The SRP Lens Flare Asset is splited in two part. The common and per element.
 
 | **Property**    | **Description**                                              |
 | --------------- | ------------------------------------------------------------ |
-| Colors | Sequence of colors which will be used to modulate color of each elements on the spreaded flares. |
+| Colors | The range of colors that this asset applies to the lens flares. |
+
+<a name="Curve"></a>
 
 ### Curve
+
 ![](images/LensFlareMultileElementCurve.png)
 
-| **Property**    | **Description**                                              |
-| --------------- | ------------------------------------------------------------ |
-| Colors | Sequence of colors which will be used to modulate color of each elements on the spreaded flares, **Position Spacing** will modulate which color will be used for each flare. |
-| Position Spacing | A curve representing the placement of the flare element in the **Lens Spread**. |
-| Scale Variation | Curve parametrize the size modulation of each element. |
+| **Property**     | **Description**                                              |
+| ---------------- | ------------------------------------------------------------ |
+| Colors           | The range of colors that this asset applies to the lens flares. You can use the **Position Spacing** curve to determine how this range affects each lens flare. |
+| Position Spacing | Adjust this curve to change the placement of the lens flare elements in the **Lens Spread**. |
+| Scale Variation  | Adjust this curve to control the size range of the lens flare elements. |
+
+<a name="Random"></a>
 
 ### Random
+
 ![](images/LensFlareMultileElementRandom.png)
 
-| **Property**    | **Description**                                              |
-| --------------- | ------------------------------------------------------------ |
-| Seed | Seed used for the random. |
-| Intensity Variation | Coefficient used to modulate the variation, too high value can make some element disapeared. |
-| Colors | Collection of colors which will be selected randomly based on **Seed**. |
-| Position Variation | Coefficients used to modulate the position. Scale X is along axis of **Length Spread** (0 mean no position variation) and Y is spread along vertical screen space axis (based on **Seed**). |
-| Rotation Variation | Coefficient used to modulate the current rotation variation (based on **Seed**), this variation is added to **Rotation** parameter and **Auto Rotate**. |
-| Scale Variation | Coefficient used modulate the scale based on **Seed**.. |
+| **Property**        | **Description**                                              |
+| ------------------- | ------------------------------------------------------------ |
+| Seed                | The base value that this asset uses to generate randomness.  |
+| Intensity Variation | Controls the variation of brightness across the lens flare elements. A high value can make some elements might invisible. |
+| Colors              | The range of colors that this asset applies to the lens flares. This property is based on the **Seed** value. |
+| Position Variation  | Controls the position of the lens flares. The **X** value is spread along the same axis as **Length Spread**. A value of 0 means there is no change in the lens flare position. The **Y** value is spread along the vertical screen space axis based on the **Seed** value. |
+| Rotation Variation  | Controls the rotation variation of the lens flares, based on the **Seed** value. The **Rotation** and **Auto Rotate** parameters inherit from this property. |
+| Scale Variation     | Controls the scale of the lens flares based on the **Seed** value. |
