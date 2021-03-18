@@ -199,7 +199,7 @@ Canvas:
   m_OverrideSorting: 0
   m_OverridePixelPerfect: 0
   m_SortingBucketNormalizedSize: 0
-  m_AdditionalShaderChannelsFlag: 25
+  m_AdditionalShaderChannelsFlag: 1
   m_SortingLayerID: 0
   m_SortingOrder: 0
   m_TargetDisplay: 0
@@ -372,7 +372,7 @@ MonoBehaviour:
     m_LineSpacing: 1
   m_Text: This sample shows how the "Render Objects" renderer feature can be used
     to draw occluded geometry. The effect is achieved without writing any code. Eveything
-    is set up in the OcclusionEffect_Renderer
+    is set up in the OcclusionEffect_Renderer.
 --- !u!222 &243859163
 CanvasRenderer:
   m_ObjectHideFlags: 0
@@ -689,7 +689,7 @@ MonoBehaviour:
   m_RequiresOpaqueTextureOption: 2
   m_CameraType: 0
   m_Cameras: []
-  m_RendererIndex: 4
+  m_RendererIndex: 3
   m_VolumeLayerMask:
     serializedVersion: 2
     m_Bits: 1

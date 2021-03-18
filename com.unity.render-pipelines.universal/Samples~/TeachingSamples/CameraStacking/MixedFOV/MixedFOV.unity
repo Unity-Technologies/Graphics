@@ -409,7 +409,7 @@ Canvas:
   m_OverrideSorting: 0
   m_OverridePixelPerfect: 0
   m_SortingBucketNormalizedSize: 0
-  m_AdditionalShaderChannelsFlag: 25
+  m_AdditionalShaderChannelsFlag: 1
   m_SortingLayerID: 0
   m_SortingOrder: 0
   m_TargetDisplay: 0
@@ -747,7 +747,7 @@ GameObject:
   - component: {fileID: 194942083}
   - component: {fileID: 194942086}
   - component: {fileID: 194942085}
-  m_Layer: 8
+  m_Layer: 5
   m_Name: Cube (4)
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -1348,7 +1348,7 @@ Camera:
   m_Depth: -1
   m_CullingMask:
     serializedVersion: 2
-    m_Bits: 567
+    m_Bits: 983
   m_RenderingPath: -1
   m_TargetTexture: {fileID: 0}
   m_TargetDisplay: 0
@@ -1544,7 +1544,7 @@ GameObject:
   - component: {fileID: 1188625083}
   - component: {fileID: 1188625086}
   - component: {fileID: 1188625085}
-  m_Layer: 8
+  m_Layer: 5
   m_Name: Cube (5)
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -1823,7 +1823,7 @@ Camera:
   m_Depth: 0
   m_CullingMask:
     serializedVersion: 2
-    m_Bits: 256
+    m_Bits: 32
   m_RenderingPath: -1
   m_TargetTexture: {fileID: 0}
   m_TargetDisplay: 0
@@ -1891,7 +1891,7 @@ GameObject:
   - component: {fileID: 1490055365}
   - component: {fileID: 1490055368}
   - component: {fileID: 1490055367}
-  m_Layer: 8
+  m_Layer: 5
   m_Name: Cube (3)
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -2636,7 +2636,7 @@ GameObject:
   - component: {fileID: 1857608330}
   - component: {fileID: 1857608333}
   - component: {fileID: 1857608332}
-  m_Layer: 8
+  m_Layer: 5
   m_Name: Cube (2)
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -2871,8 +2871,8 @@ MonoBehaviour:
     m_VerticalOverflow: 1
     m_LineSpacing: 1
   m_Text: 'This sample shows how Camera Stacking can be used in an FPS game to prevent
-    the gun from clipping into walls. It also alows for differet Field of Views for
-    the "Level" camera and the "Gun" camera. '
+    the gun from clipping into walls. This setup also makes it possible to have differet
+    Field of Views for the "Level" camera and the "Gun" camera. '
 --- !u!222 &1895911235
 CanvasRenderer:
   m_ObjectHideFlags: 0
@@ -3195,7 +3195,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 5491915777010935821, guid: a380b55be3e354df6a4bffc3631467c0, type: 3}
       propertyPath: m_Layer
-      value: 8
+      value: 5
       objectReference: {fileID: 0}
     - target: {fileID: 5837401926700238487, guid: a380b55be3e354df6a4bffc3631467c0, type: 3}
       propertyPath: m_Materials.Array.data[0]
@@ -3249,6 +3249,10 @@ PrefabInstance:
       propertyPath: m_Name
       value: Gun
       objectReference: {fileID: 0}
+    - target: {fileID: 6383575433952177526, guid: a380b55be3e354df6a4bffc3631467c0, type: 3}
+      propertyPath: m_Layer
+      value: 5
+      objectReference: {fileID: 0}
     - target: {fileID: 6383575435370445603, guid: a380b55be3e354df6a4bffc3631467c0, type: 3}
       propertyPath: m_Materials.Array.data[0]
       value: 
@@ -3277,6 +3281,14 @@ PrefabInstance:
       propertyPath: m_LocalPosition.z
       value: 0.12
       objectReference: {fileID: 0}
+    - target: {fileID: 6383575435370445606, guid: a380b55be3e354df6a4bffc3631467c0, type: 3}
+      propertyPath: m_Layer
+      value: 5
+      objectReference: {fileID: 0}
+    - target: {fileID: 8005081713031155670, guid: a380b55be3e354df6a4bffc3631467c0, type: 3}
+      propertyPath: m_Layer
+      value: 5
+      objectReference: {fileID: 0}
     - target: {fileID: 8110100821560487685, guid: a380b55be3e354df6a4bffc3631467c0, type: 3}
       propertyPath: m_LocalScale.y
       value: 0.06
@@ -3288,6 +3300,10 @@ PrefabInstance:
     - target: {fileID: 8110100821560487685, guid: a380b55be3e354df6a4bffc3631467c0, type: 3}
       propertyPath: m_LocalPosition.z
       value: 0.603
+      objectReference: {fileID: 0}
+    - target: {fileID: 8237686651609456361, guid: a380b55be3e354df6a4bffc3631467c0, type: 3}
+      propertyPath: m_Layer
+      value: 5
       objectReference: {fileID: 0}
     - target: {fileID: 9127136985112803945, guid: a380b55be3e354df6a4bffc3631467c0, type: 3}
       propertyPath: m_Materials.Array.data[0]

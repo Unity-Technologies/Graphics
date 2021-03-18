@@ -12,17 +12,15 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: bf2edee5c58d82540a51f03df9d42094, type: 3}
   m_Name: SamplesPipelineAsset
   m_EditorClassIdentifier: 
-  k_AssetVersion: 7
-  k_AssetPreviousVersion: 7
+  k_AssetVersion: 8
+  k_AssetPreviousVersion: 8
   m_RendererType: 1
   m_RendererData: {fileID: 0}
   m_RendererDataList:
   - {fileID: 11400000, guid: 73aaea17d5ba84b43bb1279840f57989, type: 2}
   - {fileID: 11400000, guid: 8e323ecf9b8164ce6b844dc7a91b241a, type: 2}
   - {fileID: 11400000, guid: fe0805910be03443e8db5511136ece6c, type: 2}
-  - {fileID: 11400000, guid: fe0805910be03443e8db5511136ece6c, type: 2}
   - {fileID: 11400000, guid: 7f89ffbe67972458c800ca6eed4e1490, type: 2}
-  - {fileID: 11400000, guid: 6bd2c94a8ef9449a6b86d0407a3d6c77, type: 2}
   m_DefaultRendererIndex: 0
   m_RequireDepthTexture: 1
   m_RequireOpaqueTexture: 1
@@ -45,9 +43,10 @@ MonoBehaviour:
   m_ShadowCascadeCount: 4
   m_Cascade2Split: 0.25
   m_Cascade3Split: {x: 0.1, y: 0.3}
-  m_Cascade4Split: {x: 0.067, y: 0.2, z: 0.467}
+  m_Cascade4Split: {x: 0.16, y: 0.32, z: 0.64}
+  m_CascadeBorder: 0.1
   m_ShadowDepthBias: 1
-  m_ShadowNormalBias: 1
+  m_ShadowNormalBias: 0
   m_SoftShadowsSupported: 1
   m_UseSRPBatcher: 1
   m_SupportsDynamicBatching: 0

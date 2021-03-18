@@ -10,6 +10,7 @@ public class FPSController : MonoBehaviour
     public float walkSpeed = 1;
 
     private Rigidbody rb;
+    private bool firstFrame = true;
 
     // Start is called before the first frame update
     void Start()
@@ -21,12 +22,15 @@ public class FPSController : MonoBehaviour
 
     private void Update()
     {
+
         //Rotate based on mouse input
         float vert = Input.GetAxis("Mouse X") * Time.deltaTime * rotationSpeed * 100;
         float hori = Input.GetAxis("Mouse Y") * Time.deltaTime * rotationSpeed * 100;
 
         transform.Rotate(Vector3.up * vert, Space.World);
         transform.Rotate(-Vector3.right * hori, Space.Self);
+        
+        Debug.Log(vert);
     }
 
     // Update is called once per frame
