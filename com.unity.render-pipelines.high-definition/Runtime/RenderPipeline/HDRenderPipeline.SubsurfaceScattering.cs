@@ -195,6 +195,7 @@ namespace UnityEngine.Rendering.HighDefinition
             public int numTilesX;
             public int numTilesY;
             public int numTilesZ;
+            public Matrix4x4 invProjMatrix;
 
             public TextureHandle colorBuffer;
             public TextureHandle diffuseBuffer;
@@ -217,6 +218,18 @@ namespace UnityEngine.Rendering.HighDefinition
                 if (hdCamera.frameSettings.IsEnabled(FrameSettingsField.MSAA))
                 {
                     m_SubsurfaceScatteringCS.EnableKeyword("ENABLE_MSAA");
+                }
+
+                if (hdCamera.camera.cameraType == CameraType.Reflection)
+                {
+                    // Build a non-oblique projection matrix
+                    var projectionMatrixNonOblique = Matrix4x4.Perspective(hdCamera.camera.fieldOfView, hdCamera.camera.aspect, hdCamera.camera.nearClipPlane, hdCamera.camera.farClipPlane);
+                    var gpuProjNonOblique = GL.GetGPUProjectionMatrix(projectionMatrixNonOblique, true);
+                    passData.invProjMatrix = gpuProjNonOblique.inverse;
+                }
+                else
+                {
+                    passData.invProjMatrix = hdCamera.mainViewConstants.invProjMatrix;
                 }
 
                 passData.subsurfaceScatteringCS = m_SubsurfaceScatteringCS;
@@ -257,6 +270,8 @@ namespace UnityEngine.Rendering.HighDefinition
                         // In the case our frame is MSAA, for the moment given the fact that we do not have read/write access to the stencil buffer of the MSAA target; we need to keep this pass MSAA
                         // However, the compute can't output and MSAA target so we blend the non-MSAA target into the MSAA one.
                         ctx.cmd.SetComputeIntParam(data.subsurfaceScatteringCS, HDShaderIDs._SssSampleBudget, data.sampleBudget);
+
+                        ctx.cmd.SetComputeMatrixParam(data.subsurfaceScatteringCS, HDShaderIDs._InvProjMatrix_NO, data.invProjMatrix);
 
                         ctx.cmd.SetComputeTextureParam(data.subsurfaceScatteringCS, data.subsurfaceScatteringCSKernel, HDShaderIDs._DepthTexture, data.depthTexture);
                         ctx.cmd.SetComputeTextureParam(data.subsurfaceScatteringCS, data.subsurfaceScatteringCSKernel, HDShaderIDs._IrradianceSource, data.diffuseBuffer);

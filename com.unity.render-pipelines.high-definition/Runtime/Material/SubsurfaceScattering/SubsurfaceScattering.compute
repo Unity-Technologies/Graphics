@@ -59,6 +59,8 @@ int _SssSampleBudget;
 TEXTURE2D_X(_DepthTexture);                           // Z-buffer
 TEXTURE2D_X(_IrradianceSource);                       // Includes transmitted light
 
+float4x4 _InvProjMatrix_NO;                           // non oblique
+
 StructuredBuffer<uint>  _CoarseStencilBuffer;
 
 #ifdef USE_INTERMEDIATE_BUFFER
@@ -374,8 +376,8 @@ void SubsurfaceScattering(uint3 groupId          : SV_GroupID,
     // Reconstruct the view-space position corresponding to the central sample.
     float2 centerPosNDC = posInput.positionNDC;
     float2 cornerPosNDC = centerPosNDC + 0.5 * _ScreenSize.zw;
-    float3 centerPosVS  = ComputeViewSpacePosition(centerPosNDC, centerDepth, UNITY_MATRIX_I_P);
-    float3 cornerPosVS  = ComputeViewSpacePosition(cornerPosNDC, centerDepth, UNITY_MATRIX_I_P);
+    float3 centerPosVS  = ComputeViewSpacePosition(centerPosNDC, centerDepth, _InvProjMatrix_NO);
+    float3 cornerPosVS  = ComputeViewSpacePosition(cornerPosNDC, centerDepth, _InvProjMatrix_NO);
 
     // Rescaling the filter is equivalent to inversely scaling the world.
     float mmPerUnit  = MILLIMETERS_PER_METER * (metersPerUnit * rcp(distScale));

@@ -256,6 +256,7 @@ namespace UnityEngine.Rendering.HighDefinition
         public static readonly int _InvViewMatrix = Shader.PropertyToID("_InvViewMatrix");
         public static readonly int _ProjMatrix = Shader.PropertyToID("_ProjMatrix");
         public static readonly int _InvProjMatrix = Shader.PropertyToID("_InvProjMatrix");
+        public static readonly int _InvProjMatrix_NO = Shader.PropertyToID("_InvProjMatrix_NO");
         public static readonly int _NonJitteredViewProjMatrix = Shader.PropertyToID("_NonJitteredViewProjMatrix");
         public static readonly int _ViewProjMatrix = Shader.PropertyToID("_ViewProjMatrix");
         public static readonly int _CameraViewProjMatrix = Shader.PropertyToID("_CameraViewProjMatrix");

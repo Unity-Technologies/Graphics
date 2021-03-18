@@ -113,6 +113,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed volumetric fog noise due to sun light leaking (case 1319005)
 - Fixed an issue with Decal normal blending producing NaNs.
 - Fixed issue in wizard when resource folder don't exist
+- Fixed SSS materials in planar reflections (case 1319027).
 
 ### Changed
 - Changed Window/Render Pipeline/HD Render Pipeline Wizard to Window/Rendering/HDRP Wizard
