@@ -187,9 +187,8 @@ namespace UnityEditor.Rendering.BuiltIn.ShaderGraph
         {
             var descs = context.blocks.Select(x => x.descriptor);
             // Core fields
-            context.AddField(Fields.GraphVertex, descs.Contains(BlockFields.VertexDescription.Position) ||
-                descs.Contains(BlockFields.VertexDescription.Normal) ||
-                descs.Contains(BlockFields.VertexDescription.Tangent));
+            // Always force vertex as the shim between built-in cginc files and hlsl files requires this
+            context.AddField(Fields.GraphVertex);
             context.AddField(Fields.GraphPixel);
             context.AddField(Fields.AlphaClip, alphaClip);
             context.AddField(Fields.DoubleSided, twoSided);
@@ -944,7 +943,7 @@ namespace UnityEditor.Rendering.BuiltIn.ShaderGraph
 
             // sgci_PassThroughFunc is called from BuildVaryings in Varyings.hlsl to copy custom interpolators from vertex descriptions.
             // this entry point allows for the function to be defined before it is used.
-            CustomInterpSubGen.Descriptor.MakeFunc(CustomInterpSubGen.Splice.k_splicePreSurface, "CustomInterpolatorPassThroughFunc", "Varyings", "VertexDescription", "CUSTOMINTERPOLATOR_VARYPASSTHROUGH_FUNC")
+            CustomInterpSubGen.Descriptor.MakeFunc(CustomInterpSubGen.Splice.k_splicePreSurface, "CustomInterpolatorPassThroughFunc", "Varyings", "VertexDescription", "CUSTOMINTERPOLATOR_VARYPASSTHROUGH_FUNC", "FEATURES_GRAPH_VERTEX")
         };
     }
     #endregion

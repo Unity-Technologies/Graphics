@@ -20,9 +20,6 @@ namespace UnityEditor.Rendering.BuiltIn.ShaderGraph
         [SerializeField]
         NormalDropOffSpace m_NormalDropOffSpace = NormalDropOffSpace.Tangent;
 
-        [SerializeField]
-        bool m_ClearCoat = false;
-
         public BuiltInLitSubTarget()
         {
             displayName = "Lit";
@@ -40,21 +37,6 @@ namespace UnityEditor.Rendering.BuiltIn.ShaderGraph
             set => m_NormalDropOffSpace = value;
         }
 
-        public bool clearCoat
-        {
-            get => m_ClearCoat;
-            set => m_ClearCoat = value;
-        }
-
-        private bool complexLit
-        {
-            get
-            {
-                // Rules for switching to ComplexLit with forward only pass
-                return clearCoat; // && <complex feature>
-            }
-        }
-
         public override bool IsActive() => true;
 
         public override void Setup(ref TargetSetupContext context)
@@ -66,14 +48,7 @@ namespace UnityEditor.Rendering.BuiltIn.ShaderGraph
             SubShaderDescriptor[] litSubShaders = { SubShaders.LitComputeDOTS, SubShaders.LitGLES };
             SubShaderDescriptor[] complexLitSubShaders = { SubShaders.ComplexLitComputeDOTS, SubShaders.LitGLESForwardOnly};
 
-            // TODO: In the future:
-            // We could take a copy of subshaders and dynamically modify them here.
-            // For example, toggle "ComplexLit.ForwardOnlyPass.defines.ClearCoat" index/enable/disable to dynamically
-            // remove clear coat code.
-            // Currently ClearCoat is always on for a ComplexLit, but it's only used when ClearCoat is on.
-            // An alternative is to rely on shader branches and reduce variants/unique graph generations.
-
-            SubShaderDescriptor[] subShaders = complexLit ? complexLitSubShaders : litSubShaders;
+            SubShaderDescriptor[] subShaders = litSubShaders;
             //SubShaderDescriptor[] subShaders = { SubShaders.LitGLES };
             for (int i = 0; i < subShaders.Length; i++)
             {
@@ -105,10 +80,6 @@ namespace UnityEditor.Rendering.BuiltIn.ShaderGraph
             context.AddField(BuiltInFields.Normal,              descs.Contains(BlockFields.SurfaceDescription.NormalOS) ||
                 descs.Contains(BlockFields.SurfaceDescription.NormalTS) ||
                 descs.Contains(BlockFields.SurfaceDescription.NormalWS));
-            // Complex Lit
-
-            // Template Predicates
-            //context.AddField(UniversalFields.PredicateClearCoat, clearCoat);
         }
 
         public override void GetActiveBlocks(ref TargetActiveBlockContext context)
@@ -123,21 +94,20 @@ namespace UnityEditor.Rendering.BuiltIn.ShaderGraph
             context.AddBlock(BlockFields.SurfaceDescription.Metallic,           workflowMode == WorkflowMode.Metallic);
             context.AddBlock(BlockFields.SurfaceDescription.Alpha,              target.surfaceType == SurfaceType.Transparent || target.alphaClip);
             context.AddBlock(BlockFields.SurfaceDescription.AlphaClipThreshold, target.alphaClip);
-            context.AddBlock(BlockFields.SurfaceDescription.CoatMask,           clearCoat);
-            context.AddBlock(BlockFields.SurfaceDescription.CoatSmoothness,     clearCoat);
         }
 
         public override void GetPropertiesGUI(ref TargetPropertyGUIContext context, Action onChange, Action<String> registerUndo)
         {
-            context.AddProperty("Workflow", new EnumField(WorkflowMode.Metallic) { value = workflowMode }, (evt) =>
-            {
-                if (Equals(workflowMode, evt.newValue))
-                    return;
+            // Temporarily remove the workflow mode until specular is supported
+            //context.AddProperty("Workflow", new EnumField(WorkflowMode.Metallic) { value = workflowMode }, (evt) =>
+            //{
+            //    if (Equals(workflowMode, evt.newValue))
+            //        return;
 
-                registerUndo("Change Workflow");
-                workflowMode = (WorkflowMode)evt.newValue;
-                onChange();
-            });
+            //    registerUndo("Change Workflow");
+            //    workflowMode = (WorkflowMode)evt.newValue;
+            //    onChange();
+            //});
 
             context.AddProperty("Surface", new EnumField(SurfaceType.Opaque) { value = target.surfaceType }, (evt) =>
             {
@@ -186,16 +156,6 @@ namespace UnityEditor.Rendering.BuiltIn.ShaderGraph
 
                 registerUndo("Change Fragment Normal Space");
                 normalDropOffSpace = (NormalDropOffSpace)evt.newValue;
-                onChange();
-            });
-
-            context.AddProperty("Clear Coat", new Toggle() { value = clearCoat }, (evt) =>
-            {
-                if (Equals(clearCoat, evt.newValue))
-                    return;
-
-                registerUndo("Change Clear Coat");
-                clearCoat = evt.newValue;
                 onChange();
             });
         }
@@ -706,18 +666,8 @@ namespace UnityEditor.Rendering.BuiltIn.ShaderGraph
         #region Defines
         static class LitDefines
         {
-            public static readonly KeywordDescriptor ClearCoat = new KeywordDescriptor()
-            {
-                displayName = "Clear Coat",
-                referenceName = "_CLEARCOAT 1",
-                type = KeywordType.Boolean,
-                definition = KeywordDefinition.ShaderFeature,
-                scope = KeywordScope.Local,
-            };
-
             public static readonly DefineCollection ComplexLit = new DefineCollection()
             {
-                {ClearCoat, 1},
             };
         }
         #endregion
