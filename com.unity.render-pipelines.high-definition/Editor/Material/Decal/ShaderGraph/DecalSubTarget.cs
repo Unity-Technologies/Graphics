@@ -27,6 +27,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
         };
         protected override GUID subTargetAssetGuid => kSubTargetSourceCodeGuid;
         protected override string customInspector => "Rendering.HighDefinition.DecalShaderGraphGUI";
+        internal override MaterialResetter setupMaterialKeywordsAndPassFunc => DecalShaderGraphGUI.SetupDecalKeywordsAndPass;
         protected override string renderType => HDRenderTypeTags.Opaque.ToString();
         protected override string renderQueue => HDRenderQueue.GetShaderTagValue(HDRenderQueue.ChangeType(HDRenderQueue.RenderQueueType.Opaque, decalData.drawOrder, false, false));
         protected override ShaderID shaderID => HDShaderUtils.ShaderID.SG_Decal;
