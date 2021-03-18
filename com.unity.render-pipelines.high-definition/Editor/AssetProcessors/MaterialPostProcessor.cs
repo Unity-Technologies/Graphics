@@ -34,10 +34,11 @@ namespace UnityEditor.Rendering.HighDefinition
             // HDMetaData subasset will be included after SG creation anyway so unlike for materials
             // (cf .mat with AssetVersion in OnPostprocessAllAssets) we dont need to manually add a subasset.
             // For adding them to MaterialPostprocessor.s_ImportedAssetThatNeedSaving for SaveAssetsToDisk()
-            // to make them editable (flag for checkout), not sure this is helpful as right now, even on
-            // re-import, a .shadergraph multijson is not rewritten, so only /Library side serialized data
-            // is actually changed (including the generated .shader that can also change which is why we run
-            // shadergraph reimports), and re-import from the same .shadergraph should be idempotent.
+            // to make them editable (flag for checkout), we still detect those here, but not sure this is
+            // helpful as right now, even on re-import, a .shadergraph multijson is not rewritten, so only
+            // /Library side serialized data is actually changed (including the generated .shader that can
+            // also change which is why we run shadergraph reimports), and re-import from the same .shadergraph
+            // should be idempotent.
             if (asset.ToLowerInvariant().EndsWith($".{ShaderGraphImporter.Extension}.meta"))
             {
                 var sgPath = System.IO.Path.ChangeExtension(asset, null);
@@ -79,7 +80,6 @@ namespace UnityEditor.Rendering.HighDefinition
                 materialIdx++;
                 var path = AssetDatabase.GUIDToAssetPath(asset);
                 EditorUtility.DisplayProgressBar("Material Upgrader re-import", string.Format("({0} of {1}) {2}", materialIdx, totalMaterials, path), (float)materialIdx / (float)totalMaterials);
-                // TODOTODO: check SG here for upgrade or in PostProcess material ?
                 AssetDatabase.ImportAsset(path);
             }
             UnityEditor.EditorUtility.ClearProgressBar();
@@ -104,19 +104,6 @@ namespace UnityEditor.Rendering.HighDefinition
                 if (CheckHDShaderGraphVersionsForUpgrade(path))
                 {
                     AssetDatabase.ImportAsset(path);
-
-
-                    // TEST: TODO CLEANUP
-                    var allAssets = AssetDatabase.LoadAllAssetsAtPath(path);
-                    HDMetadata hdMetaObj = null;
-                    foreach (var subAsset in allAssets)
-                    {
-                        if (subAsset != null && subAsset.GetType() == typeof(HDMetadata))
-                        {
-                            hdMetaObj = subAsset as HDMetadata;
-                            break;
-                        }
-                    }
                 }
             }
             UnityEditor.EditorUtility.ClearProgressBar();
@@ -178,7 +165,7 @@ namespace UnityEditor.Rendering.HighDefinition
                 // This is needed because a shader can be changed on a material without any hooks to update it, so the material
                 // postprocessor which updates the .mat version on behalf of the shaders must make sure to not mis-interpret a version
                 // from a previous plugin shader. That's why the AssetVersion asset tracks a dictionary of current (material) versions
-                // by guid. (the .version field is of course the main HDRP versioning line as given by k_Migrations in MaterialPostProcessor)
+                // by guid. (The .version field is of course the main HDRP versioning line as given by k_Migrations in MaterialPostProcessor)
 
                 upgradeNeeded |= (hdMetaData.subTargetSpecificVersion < subTargetMaterialUtils.latestSubTargetVersion);
             }
@@ -293,18 +280,16 @@ namespace UnityEditor.Rendering.HighDefinition
                 AssetDatabase.MakeEditable(asset);
             }
 
-            AssetDatabase.SaveAssets(); // TODO TOCHECK: this seems to trigger another OnPostprocessAllAssets() call
+            AssetDatabase.SaveAssets();
             //to prevent data loss, only update the last saved version trackers if user applied change and assets are written to
             if (updateShaderGraphLastSeenVersions)
             {
-                //TODO_ACTIVATE
                 HDProjectSettings.hdShaderGraphLastSeenVersion = MigrationDescription.LastVersion<ShaderGraphVersion>();
                 HDProjectSettings.UpdateLastSeenSubTargetVersionsOfPluginSubTargets();
             }
             if (updateMaterialLastSeenVersions)
             {
                 HDProjectSettings.materialVersionForUpgrade = MaterialPostprocessor.k_Migrations.Length;
-                //TODO_ACTIVATE
                 HDProjectSettings.UpdateLastSeenMaterialVersionsOfPluginSubTargets();
             }
 
@@ -366,19 +351,8 @@ namespace UnityEditor.Rendering.HighDefinition
                         var shaderPath = AssetDatabase.GetAssetPath(material.shader.GetInstanceID());
                         AssetDatabase.ImportAsset(shaderPath);
 
-                        // TEST: TODO CLEANUP
-                        var allAssets = AssetDatabase.LoadAllAssetsAtPath(shaderPath);
-                        HDMetadata hdMetaObj = null;
-                        foreach (var subAsset in allAssets)
-                        {
-                            if (subAsset != null && subAsset.GetType() == typeof(HDMetadata))
-                            {
-                                hdMetaObj = subAsset as HDMetadata;
-                                break;
-                            }
-                        }
-
-                        // Restart the material import otherwise the shadergraph will be processed after
+                        // Restart the material import instead of proceeding otherwise the shadergraph will be processed after
+                        // (the above ImportAsset(shaderPath) returns before the actual re-importing taking place).
                         AssetDatabase.ImportAsset(asset);
                         continue;
                     }

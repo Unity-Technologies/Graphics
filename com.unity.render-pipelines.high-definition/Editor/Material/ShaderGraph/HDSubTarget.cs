@@ -99,22 +99,6 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
         {
             if (migrationSteps.Migrate(this))
                 OnBeforeSerialize();
-
-            // TODO CLEANUP
-            // The block of code below will migrate even newly created graphs, but the migration above wouldn't actually work in the future
-            // for graphs post masternode but preceding the existence of SystemData.version
-            // (precisely the case described in the comment below).
-            // Both issues are seemlessly fixed by the addition of OnBeforeDeserialize() in SystemData.
-
-            //// Migration hack to have the case where SG doesn't have version yet but is already upgraded to the stack system
-            //if (!systemData.firstTimeMigrationExecuted)
-            //{
-            //    // Force the initial migration step
-            //    MigrateTo(ShaderGraphVersion.FirstTimeMigration);
-            //    systemData.firstTimeMigrationExecuted = true;
-            //    OnBeforeSerialize();
-            //    systemData.materialNeedsUpdateHash = ComputeMaterialNeedsUpdateHash();
-            //}
         }
 
         static readonly GUID kSourceCodeGuid = new GUID("c09e6e9062cbd5a48900c48a0c2ed1c2");  // HDSubTarget.cs

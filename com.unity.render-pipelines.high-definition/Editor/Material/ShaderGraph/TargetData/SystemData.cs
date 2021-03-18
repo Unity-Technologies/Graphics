@@ -126,16 +126,6 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             set => m_Version = value;
         }
 
-        // TODOCLEANUP
-        //[SerializeField]
-        //bool m_FirstTimeMigrationExecuted = false;
-        //public bool firstTimeMigrationExecuted
-        //{
-        //    get => m_FirstTimeMigrationExecuted;
-        //    set => m_FirstTimeMigrationExecuted = value;
-        //}
-
-
         [SerializeField]
         internal int inspectorFoldoutMask;
 
