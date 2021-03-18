@@ -22,6 +22,7 @@ namespace UnityEngine
         /// </summary>
         public override void OnInspectorGUI()
         {
+            EditorGUILayout.HelpBox("This asset doesn't work on HDRP, use SRP Lens Flare instead.", MessageType.Error);
         }
     }
 }
