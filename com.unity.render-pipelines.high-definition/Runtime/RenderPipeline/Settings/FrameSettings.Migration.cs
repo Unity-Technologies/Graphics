@@ -346,12 +346,15 @@ namespace UnityEngine.Rendering.HighDefinition
             oldFrameSettingsFormat = null;
         }
 
-        internal static void MigrateMSAA(ref FrameSettings cameraFrameSettings)
+        internal static void MigrateMSAA(ref FrameSettings cameraFrameSettings, ref FrameSettingsOverrideMask newFrameSettingsOverrideMask)
         {
             if (cameraFrameSettings.IsEnabled(FrameSettingsField.MSAA))
                 cameraFrameSettings.msaaMode = MSAAMode.FromHDRPAsset;
             else
                 cameraFrameSettings.msaaMode = MSAAMode.None;
+
+            newFrameSettingsOverrideMask.mask[(int)FrameSettingsField.MSAAMode] = newFrameSettingsOverrideMask.mask[(int)FrameSettingsField.MSAA];
+            newFrameSettingsOverrideMask.mask[(int)FrameSettingsField.MSAA] = false;
         }
 
 #pragma warning restore 618 // Type or member is obsolete

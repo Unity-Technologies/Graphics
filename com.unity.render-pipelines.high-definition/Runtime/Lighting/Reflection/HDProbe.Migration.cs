@@ -26,6 +26,8 @@ namespace UnityEngine.Rendering.HighDefinition
             AddFrameSettingDirectSpecularLighting,
             /// <summary>Version Step</summary>
             PlanarResolutionScalability,
+            /// <summary>Version Step.</summary>
+            UpdateMSAA,
         }
 
         /// <summary>
@@ -85,6 +87,10 @@ namespace UnityEngine.Rendering.HighDefinition
             MigrationStep.New(Version.AddFrameSettingDirectSpecularLighting, (HDProbe data) =>
             {
                 FrameSettings.MigrateToNoDirectSpecularLighting(ref data.m_ProbeSettings.cameraSettings.renderingPathCustomFrameSettings);
+            }),
+            MigrationStep.New(Version.UpdateMSAA, (HDProbe data) =>
+            {
+                FrameSettings.MigrateMSAA(ref data.m_ProbeSettings.cameraSettings.renderingPathCustomFrameSettings, ref data.m_ProbeSettings.cameraSettings.renderingPathCustomFrameSettingsOverrideMask);
             })
         );
 

@@ -74,7 +74,7 @@ namespace UnityEngine.Rendering.HighDefinition
             }),
             MigrationStep.New(Version.UpdateMSAA, (HDAdditionalCameraData data) =>
             {
-                FrameSettings.MigrateMSAA(ref data.renderingPathCustomFrameSettings);
+                FrameSettings.MigrateMSAA(ref data.renderingPathCustomFrameSettings, ref data.renderingPathCustomFrameSettingsOverrideMask);
             })
         );
 

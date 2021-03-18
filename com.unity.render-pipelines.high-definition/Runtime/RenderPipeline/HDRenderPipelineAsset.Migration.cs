@@ -140,9 +140,10 @@ namespace UnityEngine.Rendering.HighDefinition
             }),
             MigrationStep.New(Version.UpdateMSAA, (HDRenderPipelineAsset data) =>
             {
-                FrameSettings.MigrateMSAA(ref data.m_RenderingPathDefaultCameraFrameSettings);
-                FrameSettings.MigrateMSAA(ref data.m_RenderingPathDefaultBakedOrCustomReflectionFrameSettings);
-                FrameSettings.MigrateMSAA(ref data.m_RenderingPathDefaultRealtimeReflectionFrameSettings);
+                FrameSettingsOverrideMask unusedMaskForDefault = new FrameSettingsOverrideMask();
+                FrameSettings.MigrateMSAA(ref data.m_RenderingPathDefaultCameraFrameSettings, ref unusedMaskForDefault);
+                FrameSettings.MigrateMSAA(ref data.m_RenderingPathDefaultBakedOrCustomReflectionFrameSettings, ref unusedMaskForDefault);
+                FrameSettings.MigrateMSAA(ref data.m_RenderingPathDefaultRealtimeReflectionFrameSettings, ref unusedMaskForDefault);
             })
         );
 
