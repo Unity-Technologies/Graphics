@@ -6,7 +6,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
     static class UniversalBlockFields
     {
         static BlockFieldProviderInfo m_ProviderInfo = new BlockFieldProviderInfo("URP");
-        // Note: the provider below is specific for the HDBlockFields.SurfaceDescription group below
+        // Note: the provider below is specific for the UniversalBlockFields.SurfaceDescription group below
         // and isn't meant to be constructed except by SG to enumerate the blockfields available and their signature.
         class Provider : BlockFieldProvider
         {

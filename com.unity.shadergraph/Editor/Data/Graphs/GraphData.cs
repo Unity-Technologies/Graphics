@@ -816,13 +816,8 @@ namespace UnityEditor.ShaderGraph
         {
             // Get list of active Block types
             var currentBlocks = GetNodes<BlockNode>();
-            // It seems useless to get current blocks no since below, we create context (local),
-            // while looking at TargetActiveBlockContext, the param to TargetActiveBlockContext ctor are the curent blocks,
-            // and we only want to add activeBlocks to this context!
-            //
-            // But see MultiJsonInternal's public class UnknownTargetType : Target.
-            // This is because when a Target is Unknown, it is assumed all currenBlocks that are themselves "isUnknown" are
-            // owned - and thus active - on this unknown Target, and the overriden UnknownTargetType.GetActiveBlocks() will
+            // Note: when a Target is Unknown, it is assumed all currenBlocks that are themselves "isUnknown" are
+            // owned - and thus active - on this unknown Target, and the UnknownTargetType.GetActiveBlocks() will
             // tranfert those into the activeBlocks list.
             var context = new TargetActiveBlockContext(currentBlocks.Select(x => x.descriptor).ToList(), null);
             foreach (var target in activeTargets)
