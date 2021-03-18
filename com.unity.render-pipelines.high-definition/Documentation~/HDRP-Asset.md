@@ -28,7 +28,9 @@ Unity now uses the High Definition Render Pipeline (HDRP) in your Unity Project.
 
 You can create multiple HDRP Assets containing different settings. This is useful for Project that support multiple platforms, such as PC, Xbox One and PlayStation 4. In each HDRP Asset, you can change settings to suite the hardware of each platform and then assign the relevant one when building your Project for each platform. For more information on using creating HDRP Assets to target different platforms, see [Scalability in HDRP](Scalability-Manual.md).
 
-To change which HDRP Asset your render pipeline uses, either manually select an HDRP Asset in the Graphics Settings window (as shown above), or use the GraphicsSettings.renderPipelineAsset property via script.
+To change which HDRP Asset your render pipeline uses, either manually select an HDRP Asset in the active Quality Level of the Quality Settings window (as shown above), or use the QualitySettings.renderPipeline property via script.
+
+To change which HDRP Asset your render pipeline uses by default, either manually select an HDRP Asset in the Graphics Settings window (as shown above), or use the GraphicsSettings.renderPipelineAsset property via script.
 
 When you create an HDRP Asset, open it in the Inspector to edit its properties.
 

@@ -23,7 +23,7 @@ namespace UnityEngine.Rendering.HighDefinition
         {
             get
             {
-                if (m_VolumeAtlas == null)
+                if (m_VolumeAtlas == null && HDRenderPipeline.isReady)
                 {
                     var settings = HDRenderPipeline.currentAsset.currentPlatformRenderPipelineSettings.lightLoopSettings;
 
@@ -69,7 +69,7 @@ namespace UnityEngine.Rendering.HighDefinition
             if (!SystemInfo.IsFormatSupported(localVolumetricFogAtlasFormat, FormatUsage.LoadStore))
                 return;
 
-            if (volume.parameters.volumeMask != null)
+            if (volume.parameters.volumeMask != null && volumeAtlas != null)
             {
                 if (volumeAtlas.IsTextureValid(volume.parameters.volumeMask))
                 {
