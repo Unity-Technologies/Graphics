@@ -215,6 +215,14 @@ namespace UnityEngine.Rendering.HighDefinition
                 enableRandomWrite: true, name: "Debug Exposure Info"
             );
 
+            m_ExposureCurveTexture = new Texture2D(k_ExposureCurvePrecision, 1, GraphicsFormat.R16G16B16A16_SFloat, TextureCreationFlags.None)
+            {
+                name = "Exposure Curve",
+                filterMode = FilterMode.Bilinear,
+                wrapMode = TextureWrapMode.Clamp
+            };
+            m_ExposureCurveTexture.hideFlags = HideFlags.HideAndDontSave;
+
             SetExposureTextureToEmpty(m_EmptyExposureTexture);
         }
 

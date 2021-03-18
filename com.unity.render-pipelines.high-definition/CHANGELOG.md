@@ -4,6 +4,18 @@ All notable changes to this package will be documented in this file.
 The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.html).
 
+## [10.5.0] - 2020-03-15
+
+### Fixed
+- Fixed grey screen on playstation platform when histogram exposure is enabled but the curve mapping is not used.
+- Fixed HDRPAsset loosing its reference to the ray tracing resources when clicking on a different quality level that doesn't have ray tracing (case 1320304).
+- Fixed error message when having MSAA and Screen Space Shadows (case 1318698).
+- Fixed Nans happening when the history render target is bigger than the current viewport (case 1321139).
+- Fixed Tube and Disc lights mode selection (case 1317776)
+
+### Changed
+- Reduced the maximal number of bounces for both RTGI and RTR (case 1318876).
+
 ## [10.4.0] - 2020-01-26
 
 ### Added
@@ -53,6 +65,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed issue in path tracing, where objects would cast shadows even if not present in the path traced layers (case 1318857).
 - Fixed SRP batcher not compatible with Decal (case 1311586)
 - Fixed issue with different shadow atlas stomping on each other when they have same resolution.
+- Fixed wrong color buffer being bound to pre refraction custom passes.
 
 ### Changed
 - Updated the tooltip for the Decal Angle Fade property (requires to enable Decal Layers in both HDRP asset and Frame settings) (case 1308048).

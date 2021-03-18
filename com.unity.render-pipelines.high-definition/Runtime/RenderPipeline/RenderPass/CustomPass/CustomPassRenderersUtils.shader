@@ -1,4 +1,4 @@
-﻿Shader "Renderers/CustomPassRenderersUtils"
+Shader "Hidden/HDRP/CustomPassRenderersUtils"
 {
     Properties
     {
