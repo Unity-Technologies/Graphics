@@ -50,7 +50,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
         readonly HDRenderPipelineAsset m_Asset;
         internal HDRenderPipelineAsset asset { get { return m_Asset; } }
-        internal RenderPipelineResources defaultResources { get { return HDRenderPipelineGlobalSettings.instance.renderPipelineResources; } }
+        internal RenderPipelineResources defaultResources { get { return m_GlobalSettings.renderPipelineResources; } }
 
         internal RenderPipelineSettings currentPlatformRenderPipelineSettings { get { return m_Asset.currentPlatformRenderPipelineSettings; } }
 
@@ -453,11 +453,6 @@ namespace UnityEngine.Rendering.HighDefinition
                 // If ray tracing is not enabled we do not want to have ray tracing resources referenced
                 m_GlobalSettings.ClearRayTracingResources();
             }
-        }
-
-        void ValidateResources()
-        {
-            HDRenderPipelineGlobalSettings.instance.EnsureShadersCompiled();
         }
 
 #endif
