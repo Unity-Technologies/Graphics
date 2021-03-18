@@ -19,7 +19,6 @@ namespace UnityEditor.ShaderGraph
             get => m_Name;
             set => m_Name = value;
         }
-
         public string categoryGuid => this.objectId;
 
         [SerializeField]
@@ -32,6 +31,7 @@ namespace UnityEditor.ShaderGraph
             get => m_ChildObjectIDSet;
             set => m_ChildObjectIDSet = value;
         }
+        public int childCount => m_ChildObjectIDSet.Count;
 
         public void AddItemToCategory(ShaderInput itemToAdd)
         {
@@ -49,6 +49,11 @@ namespace UnityEditor.ShaderGraph
         public bool IsItemInCategory(ShaderInput itemToCheck)
         {
             return m_ChildObjectIDSet.Contains(itemToCheck.objectId);
+        }
+
+        public bool IsNamedCategory()
+        {
+            return name != String.Empty;
         }
 
         public override void OnAfterDeserialize()
