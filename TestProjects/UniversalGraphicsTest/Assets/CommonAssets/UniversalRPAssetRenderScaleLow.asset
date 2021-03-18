@@ -12,8 +12,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: bf2edee5c58d82540a51f03df9d42094, type: 3}
   m_Name: UniversalRPAssetRenderScaleLow
   m_EditorClassIdentifier: 
-  k_AssetVersion: 8
-  k_AssetPreviousVersion: 8
+  k_AssetVersion: 6
+  k_AssetPreviousVersion: 5
   m_RendererType: 1
   m_RendererData: {fileID: 0}
   m_RendererDataList:
@@ -42,15 +42,11 @@ MonoBehaviour:
   m_AdditionalLightsPerObjectLimit: 8
   m_AdditionalLightShadowsSupported: 1
   m_AdditionalLightsShadowmapResolution: 512
-  m_AdditionalLightsShadowResolutionTierLow: 256
-  m_AdditionalLightsShadowResolutionTierMedium: 512
-  m_AdditionalLightsShadowResolutionTierHigh: 1024
   m_ShadowDistance: 50
   m_ShadowCascadeCount: 4
   m_Cascade2Split: 0.25
   m_Cascade3Split: {x: 0.1, y: 0.3}
   m_Cascade4Split: {x: 0.067, y: 0.2, z: 0.467}
-  m_CascadeBorder: 0.1
   m_ShadowDepthBias: 1
   m_ShadowNormalBias: 1
   m_SoftShadowsSupported: 1

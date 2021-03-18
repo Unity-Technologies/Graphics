@@ -194,7 +194,7 @@ Shader "Test/Simple Lit No ZWrite"
             #pragma multi_compile_instancing
 
             #include "Packages/com.unity.render-pipelines.universal/Shaders/LitInput.hlsl"
-            #include "Packages/com.unity.render-pipelines.universal/Shaders/SimpleLitDepthNormalsPass.hlsl"
+            #include "Packages/com.unity.render-pipelines.universal/Shaders/DepthNormalsPass.hlsl"
             ENDHLSL
         }
 
