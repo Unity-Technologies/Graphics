@@ -1430,6 +1430,8 @@ namespace UnityEditor.ShaderGraph
 
         public void RemoveGraphInput(ShaderInput input)
         {
+            // TODO: Account for category data changes when a shader input is removed
+
             switch (input)
             {
                 case AbstractShaderProperty property:
@@ -1546,23 +1548,68 @@ namespace UnityEditor.ShaderGraph
             RemoveNodeNoValidate(propertyNode);
         }
 
+        public bool DoesCategoryExist(string categoryGUID)
+        {
+            foreach (var categoryData in categories)
+            {
+                if (categoryData.categoryGuid == categoryGUID)
+                {
+                    return true;
+                }
+            }
+
+            return false;
+        }
+
         public void AddCategory(CategoryData categoryDataReference)
         {
             m_CategoryData.Add(categoryDataReference);
         }
 
-        public void AddItemToCategory(CategoryData category, ShaderInput shaderInput)
+        public void AddItemToCategory(string categoryGUID, ShaderInput itemToAdd)
         {
             foreach (var categoryData in categories)
             {
-                categoryData.RemoveItemFromCategory(shaderInput);
+                if (categoryData.categoryGuid == categoryGUID)
+                {
+                    categoryData.AddItemToCategory(itemToAdd);
+                }
+                // Also make sure to remove this items guid from an existing category if it exists within one
+                else if(categoryData.IsItemInCategory(itemToAdd))
+                {
+                    categoryData.RemoveItemFromCategory(itemToAdd);
+                }
             }
-            category.AddItemToCategory(shaderInput);
+
+            CleanupCategories();
         }
 
-        public void RemoveItemFromCategory(CategoryData category, ShaderInput shaderInput)
+        public void RemoveItemFromCategory(string categoryGUID, ShaderInput itemToRemove)
         {
-            category.RemoveItemFromCategory(shaderInput);
+            foreach (var categoryData in categories)
+            {
+                if (categoryData.categoryGuid == categoryGUID)
+                {
+                    categoryData.RemoveItemFromCategory(itemToRemove);
+                }
+            }
+
+            CleanupCategories();
+        }
+
+        public void RemoveCategory(CategoryData categoryDataReference)
+        {
+            m_CategoryData.Remove(categoryDataReference);
+        }
+
+        // Remove any empty categoryData instances that represent un-named categories as the view for those gets cleaned up as well
+        void CleanupCategories()
+        {
+            foreach (var categoryData in categories.ToList())
+            {
+                if (categoryData.childCount == 0 && categoryData.IsNamedCategory() == false)
+                    m_CategoryData.Remove(categoryData);
+            }
         }
 
         public void OnKeywordChanged()
@@ -1740,6 +1787,9 @@ namespace UnityEditor.ShaderGraph
                 foreach (var node in nodesToRemove)
                     RemoveNodeNoValidate(node);
             }
+
+            // Clear category data too before re-adding
+            m_CategoryData.Clear();
 
             ValidateGraph();
 

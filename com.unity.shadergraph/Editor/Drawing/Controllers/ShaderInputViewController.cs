@@ -298,5 +298,10 @@ namespace UnityEditor.ShaderGraph.Drawing
                     throw new ArgumentOutOfRangeException();
             }
         }
+
+        public override void Destroy()
+        {
+            BlackboardItemView.RemoveFromHierarchy();
+        }
     }
 }

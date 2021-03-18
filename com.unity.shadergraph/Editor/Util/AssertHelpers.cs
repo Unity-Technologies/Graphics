@@ -1,3 +1,5 @@
+#define SG_ASSERTIONS
+
 using NUnit.Framework;
 
 namespace UnityEditor.ShaderGraph
