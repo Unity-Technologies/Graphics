@@ -200,8 +200,8 @@ namespace UnityEngine.Rendering
                         // shv[rgb, 8] = sh[j][rgb, 8] / (l0 * l2scale * 2.0f) + 0.5f;
 
                         // Assert coefficient range
-                        for (int coeff = 1; coeff < 9; ++coeff)
-                            Debug.Assert(shv[rgb, coeff] >= 0.0f && shv[rgb, coeff] <= 1.0f);
+                        // for (int coeff = 1; coeff < 9; ++coeff)
+                        //     Debug.Assert(shv[rgb, coeff] >= 0.0f && shv[rgb, coeff] <= 1.0f);
                     }
 
                     SphericalHarmonicsL2Utils.SetL0(ref cell.sh[i], new Vector3(shv[0, 0], shv[1, 0], shv[2, 0]));
