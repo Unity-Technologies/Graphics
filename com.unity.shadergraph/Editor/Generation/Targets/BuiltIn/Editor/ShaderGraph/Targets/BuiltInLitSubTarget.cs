@@ -98,15 +98,16 @@ namespace UnityEditor.Rendering.BuiltIn.ShaderGraph
 
         public override void GetPropertiesGUI(ref TargetPropertyGUIContext context, Action onChange, Action<String> registerUndo)
         {
-            context.AddProperty("Workflow", new EnumField(WorkflowMode.Metallic) { value = workflowMode }, (evt) =>
-            {
-                if (Equals(workflowMode, evt.newValue))
-                    return;
+            // Temporarily remove the workflow mode until specular is supported
+            //context.AddProperty("Workflow", new EnumField(WorkflowMode.Metallic) { value = workflowMode }, (evt) =>
+            //{
+            //    if (Equals(workflowMode, evt.newValue))
+            //        return;
 
-                registerUndo("Change Workflow");
-                workflowMode = (WorkflowMode)evt.newValue;
-                onChange();
-            });
+            //    registerUndo("Change Workflow");
+            //    workflowMode = (WorkflowMode)evt.newValue;
+            //    onChange();
+            //});
 
             context.AddProperty("Surface", new EnumField(SurfaceType.Opaque) { value = target.surfaceType }, (evt) =>
             {
