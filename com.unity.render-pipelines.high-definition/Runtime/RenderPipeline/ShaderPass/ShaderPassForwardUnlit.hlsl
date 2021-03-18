@@ -72,7 +72,7 @@ void Frag(PackedVaryingsToPS packedInput,
             , out float4 outMotionVec : EXTRA_BUFFER_TARGET
         #endif
         #ifdef _DEPTHOFFSET_ON
-            , out float outputDepth : SV_Depth
+            , out float outputDepth : DEPTH_OFFSET_SEMANTIC
         #endif
 )
 {

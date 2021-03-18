@@ -2,12 +2,8 @@ using System;
 
 namespace UnityEngine.Rendering.HighDefinition
 {
-    public partial struct DensityVolumeArtistParameters
+    public partial struct LocalVolumetricFogArtistParameters
     {
-        /// <summary>Obsolete, do not use.</summary>
-        [Obsolete("Never worked correctly due to having engine working in percent. Will be removed soon.")]
-        public bool advancedFade => true;
-
         internal void MigrateToFixUniformBlendDistanceToBeMetric()
         {
             //Note: At this revision, advanceMode boolean is obsolete and unusable anymore
@@ -25,7 +21,7 @@ namespace UnityEngine.Rendering.HighDefinition
         }
     }
 
-    public partial class DensityVolume : IVersionable<DensityVolume.Version>
+    public partial class LocalVolumetricFog : IVersionable<LocalVolumetricFog.Version>
     {
         enum Version
         {
@@ -34,16 +30,16 @@ namespace UnityEngine.Rendering.HighDefinition
             FixUniformBlendDistanceToBeMetric,
         }
 
-        static readonly MigrationDescription<Version, DensityVolume> k_Migration = MigrationDescription.New(
-            MigrationStep.New(Version.ScaleIndependent, (DensityVolume data) =>
+        static readonly MigrationDescription<Version, LocalVolumetricFog> k_Migration = MigrationDescription.New(
+            MigrationStep.New(Version.ScaleIndependent, (LocalVolumetricFog data) =>
             {
                 data.parameters.size = data.transform.lossyScale;
 
                 //missing migrated data.
-                //when migrated prior to this fix, density volumes have to be manually set on advance mode.
+                //when migrated prior to this fix, Local Volumetric Fog have to be manually set on advance mode.
                 data.parameters.m_EditorAdvancedFade = true;
             }),
-            MigrationStep.New(Version.FixUniformBlendDistanceToBeMetric, (DensityVolume data) => data.parameters.MigrateToFixUniformBlendDistanceToBeMetric())
+            MigrationStep.New(Version.FixUniformBlendDistanceToBeMetric, (LocalVolumetricFog data) => data.parameters.MigrateToFixUniformBlendDistanceToBeMetric())
         );
 
         [SerializeField]
