@@ -111,6 +111,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed SSR Precision for 4K Screens
 - Fixed issue with gbuffer debug view when virtual texturing is enabled.
 - Fixed volumetric fog noise due to sun light leaking (case 1319005)
+- Fixed an issue with Decal normal blending producing NaNs.
 
 ### Changed
 - Changed Window/Render Pipeline/HD Render Pipeline Wizard to Window/Rendering/HDRP Wizard
