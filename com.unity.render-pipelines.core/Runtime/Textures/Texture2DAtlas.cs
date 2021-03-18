@@ -1,13 +1,12 @@
 using System.Collections.Generic;
 using UnityEngine.Experimental.Rendering;
-using System.Linq;
 using System;
 
 #if UNITY_EDITOR
 using UnityEditor;
 #endif
 
-namespace UnityEngine.Rendering.HighDefinition
+namespace UnityEngine.Rendering
 {
     class AtlasAllocator
     {
@@ -131,7 +130,12 @@ namespace UnityEngine.Rendering.HighDefinition
         }
     }
 
-    class Texture2DAtlas
+    /// <summary>
+    /// A generic Atlas texture of 2D textures.
+    /// An atlas texture is a texture collection that collects multiple sub-textures into a single big texture.
+    /// Sub-texture allocation for Texture2DAtlas is static and will not change after initial allocation.
+    /// </summary>
+    public class Texture2DAtlas
     {
         protected RTHandle m_AtlasTexture = null;
         internal bool m_IsAtlasTextureOwner = false;
@@ -147,8 +151,16 @@ namespace UnityEngine.Rendering.HighDefinition
         static readonly Vector4 fullScaleOffset = new Vector4(1, 1, 0, 0);
 
         // Maximum mip padding that can be applied to the textures in the atlas (1 << 10 = 1024 pixels)
-        public static readonly int maxMipLevelPadding = 10;
+        static readonly int s_MaxMipLevelPadding = 10;
 
+        /// <summary>
+        /// Maximum mip padding (pow2) that can be applied to the textures in the atlas
+        /// </summary>
+        public static int maxMipLevelPadding => s_MaxMipLevelPadding;
+
+        /// <summary>
+        /// Handle to the texture of the atlas.
+        /// </summary>
         public RTHandle AtlasTexture
         {
             get
@@ -157,6 +169,9 @@ namespace UnityEngine.Rendering.HighDefinition
             }
         }
 
+        /// <summary>
+        /// Creates a new empty texture atlas.
+        /// </summary>
         public Texture2DAtlas(int width, int height, GraphicsFormat format, FilterMode filterMode = FilterMode.Point, bool powerOfTwoPadding = false, string name = "", bool useMipMap = true)
         {
             m_Width = width;
@@ -186,12 +201,18 @@ namespace UnityEngine.Rendering.HighDefinition
             m_AtlasAllocator = new AtlasAllocator(width, height, powerOfTwoPadding);
         }
 
+        /// <summary>
+        /// Release atlas resources.
+        /// </summary>
         public void Release()
         {
             ResetAllocator();
             if (m_IsAtlasTextureOwner) { RTHandles.Release(m_AtlasTexture); }
         }
 
+        /// <summary>
+        /// Clear atlas sub-texture allocations.
+        /// </summary>
         public void ResetAllocator()
         {
             m_AtlasAllocator.Reset();
@@ -200,6 +221,9 @@ namespace UnityEngine.Rendering.HighDefinition
             m_IsGPUTextureUpToDate.Clear(); // mark all GPU textures as invalid.
         }
 
+        /// <summary>
+        /// Clear atlas texture.
+        /// </summary>
         public void ClearTarget(CommandBuffer cmd)
         {
             int mipCount = (m_UseMipMaps) ? GetTextureMipmapCount(m_Width, m_Height) : 1;
@@ -208,7 +232,7 @@ namespace UnityEngine.Rendering.HighDefinition
             for (int mipLevel = 0; mipLevel < mipCount; mipLevel++)
             {
                 cmd.SetRenderTarget(m_AtlasTexture, mipLevel);
-                HDUtils.BlitQuad(cmd, Texture2D.blackTexture, fullScaleOffset, fullScaleOffset, mipLevel, true);
+                Blitter.BlitQuad(cmd, Texture2D.blackTexture, fullScaleOffset, fullScaleOffset, mipLevel, true);
             }
 
             m_IsGPUTextureUpToDate.Clear(); // mark all GPU textures as invalid.
@@ -241,7 +265,7 @@ namespace UnityEngine.Rendering.HighDefinition
             for (int mipLevel = 0; mipLevel < mipCount; mipLevel++)
             {
                 cmd.SetRenderTarget(m_AtlasTexture, mipLevel);
-                HDUtils.BlitQuad(cmd, texture, sourceScaleOffset, scaleOffset, mipLevel, true);
+                Blitter.BlitQuad(cmd, texture, sourceScaleOffset, scaleOffset, mipLevel, true);
             }
         }
 
@@ -252,6 +276,9 @@ namespace UnityEngine.Rendering.HighDefinition
 
         protected void MarkGPUTextureInvalid(int instanceId) => m_IsGPUTextureUpToDate[instanceId] = 0;
 
+        /// <summary>
+        /// Copy a texture into atlas.
+        /// </summary>
         public virtual void BlitTexture(CommandBuffer cmd, Vector4 scaleOffset, Texture texture, Vector4 sourceScaleOffset, bool blitMips = true, int overrideInstanceID = -1)
         {
             // This atlas only support 2D texture so we only blit 2D textures
@@ -259,6 +286,9 @@ namespace UnityEngine.Rendering.HighDefinition
                 Blit2DTexture(cmd, scaleOffset, texture, sourceScaleOffset, blitMips);
         }
 
+        /// <summary>
+        /// Copy a texture into atlas with Octahedral projection.
+        /// </summary>
         public virtual void BlitOctahedralTexture(CommandBuffer cmd, Vector4 scaleOffset, Texture texture, Vector4 sourceScaleOffset, bool blitMips = true, int overrideInstanceID = -1)
         {
             // This atlas only support 2D texture so we only blit 2D textures
@@ -266,6 +296,9 @@ namespace UnityEngine.Rendering.HighDefinition
                 BlitOctahedralTexture(cmd, scaleOffset, texture, sourceScaleOffset, blitMips);
         }
 
+        /// <summary>
+        /// Allocate space from the atlas for a texture and copy texture contents into the atlas.
+        /// </summary>
         public virtual bool AllocateTexture(CommandBuffer cmd, ref Vector4 scaleOffset, Texture texture, int width, int height, int overrideInstanceID = -1)
         {
             bool allocated = AllocateTextureWithoutBlit(texture, width, height, ref scaleOffset);
@@ -279,9 +312,15 @@ namespace UnityEngine.Rendering.HighDefinition
             return allocated;
         }
 
+        /// <summary>
+        /// Allocate space from the atlas for a texture.
+        /// </summary>
         public bool AllocateTextureWithoutBlit(Texture texture, int width, int height, ref Vector4 scaleOffset)
             => AllocateTextureWithoutBlit(texture.GetInstanceID(), width, height, ref scaleOffset);
 
+        /// <summary>
+        /// Allocate space from the atlas for a texture.
+        /// </summary>
         public virtual bool AllocateTextureWithoutBlit(int instanceId, int width, int height, ref Vector4 scaleOffset)
         {
             scaleOffset = Vector4.zero;
@@ -302,26 +341,41 @@ namespace UnityEngine.Rendering.HighDefinition
 
         protected int GetTextureHash(Texture textureA, Texture textureB)
         {
-            int hash = HDUtils.GetTextureHash(textureA) + 23 * HDUtils.GetTextureHash(textureB);
+            int hash = CoreUtils.GetTextureHash(textureA) + 23 * CoreUtils.GetTextureHash(textureB);
             return hash;
         }
 
+        /// <summary>
+        /// Get sub-texture ID for the atlas.
+        /// </summary>
         public int GetTextureID(Texture texture)
         {
             return texture.GetInstanceID();
         }
 
+        /// <summary>
+        /// Get sub-texture ID for the atlas.
+        /// </summary>
         public int GetTextureID(Texture textureA, Texture textureB)
         {
             return GetTextureID(textureA) + 23 * GetTextureID(textureB);
         }
 
+        /// <summary>
+        /// Check if the atlas contains the textures.
+        /// </summary>
         public bool IsCached(out Vector4 scaleOffset, Texture textureA, Texture textureB)
             => IsCached(out scaleOffset, GetTextureID(textureA, textureB));
 
+        /// <summary>
+        /// Check if the atlas contains the texture.
+        /// </summary>
         public bool IsCached(out Vector4 scaleOffset, Texture texture)
             => IsCached(out scaleOffset, GetTextureID(texture));
 
+        /// <summary>
+        /// Check if the atlas contains the texture.
+        /// </summary>
         public bool IsCached(out Vector4 scaleOffset, int id)
         {
             bool cached = m_AllocationCache.TryGetValue(id, out var value);
@@ -335,11 +389,14 @@ namespace UnityEngine.Rendering.HighDefinition
             return value.size;
         }
 
+        /// <summary>
+        /// Check if contents of a texture needs to be updated in the atlas.
+        /// </summary>
         public virtual bool NeedsUpdate(Texture texture, bool needMips = false)
         {
             RenderTexture   rt = texture as RenderTexture;
             int             key = GetTextureID(texture);
-            int             textureHash = HDUtils.GetTextureHash(texture);
+            int             textureHash = CoreUtils.GetTextureHash(texture);
 
             // Update the render texture if needed
             if (rt != null)
@@ -373,6 +430,9 @@ namespace UnityEngine.Rendering.HighDefinition
             return false;
         }
 
+        /// <summary>
+        /// Check if contents of textures needs to be updated in the atlas.
+        /// </summary>
         public virtual bool NeedsUpdate(Texture textureA, Texture textureB, bool needMips = false)
         {
             RenderTexture rtA = textureA as RenderTexture;
@@ -422,6 +482,13 @@ namespace UnityEngine.Rendering.HighDefinition
             return false;
         }
 
+        /// <summary>
+        /// Add a texture into the atlas.
+        /// </summary>
+        /// <param name="cmd">Command buffer used for texture copy.</param>
+        /// <param name="scaleOffset">Sub-texture rectangle for the added texture. Scale in .xy, offset int .zw</param>
+        /// <param name="texture">The texture to be added.</param>
+        /// <returns>True if the atlas contains the texture, false otherwise.</returns>
         public virtual bool AddTexture(CommandBuffer cmd, ref Vector4 scaleOffset, Texture texture)
         {
             if (IsCached(out scaleOffset, texture))
@@ -434,6 +501,9 @@ namespace UnityEngine.Rendering.HighDefinition
             return AllocateTexture(cmd, ref scaleOffset, texture, texture.width, texture.height);
         }
 
+        /// <summary>
+        /// Update a texture in the atlas.
+        /// </summary>
         public virtual bool UpdateTexture(CommandBuffer cmd, Texture oldTexture, Texture newTexture, ref Vector4 scaleOffset, Vector4 sourceScaleOffset, bool updateIfNeeded = true, bool blitMips = true)
         {
             // In case the old texture is here, we Blit the new one at the scale offset of the old one
@@ -452,8 +522,12 @@ namespace UnityEngine.Rendering.HighDefinition
             }
         }
 
+        /// <summary>
+        /// Update a texture in the atlas.
+        /// </summary>
         public virtual bool UpdateTexture(CommandBuffer cmd, Texture texture, ref Vector4 scaleOffset, bool updateIfNeeded = true, bool blitMips = true)
             => UpdateTexture(cmd, texture, texture, ref scaleOffset, fullScaleOffset, updateIfNeeded, blitMips);
+
         internal bool EnsureTextureSlot(out bool isUploadNeeded, ref Vector4 scaleBias, int key, int width, int height)
         {
             isUploadNeeded = false;

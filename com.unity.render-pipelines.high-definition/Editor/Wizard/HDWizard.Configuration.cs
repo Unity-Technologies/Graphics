@@ -166,6 +166,7 @@ namespace UnityEditor.Rendering.HighDefinition
                         new Entry(InclusiveScope.HDRPAsset, Style.hdrpBatcher, IsSRPBatcherCorrect, FixSRPBatcher),
                         new Entry(InclusiveScope.HDRPAsset, Style.hdrpAssetDiffusionProfile, IsHdrpAssetDiffusionProfileCorrect, FixHdrpAssetDiffusionProfile),
                         new Entry(InclusiveScope.HDRP, Style.hdrpVolumeProfile, IsDefaultVolumeProfileAssigned, FixDefaultVolumeProfileAssigned),
+                        new Entry(InclusiveScope.HDRP, Style.hdrpLookDevVolumeProfile, IsDefaultLookDevVolumeProfileAssigned, FixDefaultLookDevVolumeProfileAssigned),
 
                         new Entry(InclusiveScope.VR, Style.vrLegacyVRSystem, IsOldVRSystemForCurrentBuildTargetGroupCorrect, FixOldVRSystemForCurrentBuildTargetGroup),
                         new Entry(InclusiveScope.VR, Style.vrXRManagementPackage, IsVRXRManagementPackageInstalledCorrect, FixVRXRManagementPackageInstalled),
@@ -479,27 +480,8 @@ namespace UnityEditor.Rendering.HighDefinition
             EditorUtility.SetDirty(hdrpAsset);
         }
 
-        bool IsDefaultVolumeProfileAssigned()
+        VolumeProfile CreateDefaultVolumeProfileIfNeeded(VolumeProfile defaultSettingsVolumeProfileInPackage)
         {
-            if (!IsHdrpAssetUsedCorrect())
-                return false;
-
-            var hdAsset = HDRenderPipeline.currentAsset;
-            return hdAsset.defaultVolumeProfile != null
-                && !hdAsset.defaultVolumeProfile.Equals(null)
-                && hdAsset.defaultVolumeProfile != hdAsset.renderPipelineEditorResources.defaultSettingsVolumeProfile;
-        }
-
-        void FixDefaultVolumeProfileAssigned(bool fromAsyncUnused)
-        {
-            if (!IsHdrpAssetUsedCorrect())
-                FixHdrpAssetUsed(fromAsync: false);
-
-            var hdrpAsset = HDRenderPipeline.currentAsset;
-            if (hdrpAsset == null)
-                return;
-
-            VolumeProfile defaultSettingsVolumeProfileInPackage = hdrpAsset.renderPipelineEditorResources.defaultSettingsVolumeProfile;
             string defaultSettingsVolumeProfilePath = "Assets/" + HDProjectSettings.projectSettingsFolderPath + '/' + defaultSettingsVolumeProfileInPackage.name + ".asset";
 
             //try load one if one already exist
@@ -510,7 +492,56 @@ namespace UnityEditor.Rendering.HighDefinition
                 AssetDatabase.CopyAsset(AssetDatabase.GetAssetPath(defaultSettingsVolumeProfileInPackage), defaultSettingsVolumeProfilePath);
                 defaultSettingsVolumeProfile = AssetDatabase.LoadAssetAtPath<VolumeProfile>(defaultSettingsVolumeProfilePath);
             }
-            hdrpAsset.defaultVolumeProfile = defaultSettingsVolumeProfile;
+
+            return defaultSettingsVolumeProfile;
+        }
+
+        bool IsDefaultVolumeProfileAssigned()
+        {
+            if (!IsHdrpAssetUsedCorrect())
+                return false;
+
+            var hdAsset = HDRenderPipeline.defaultAsset;
+            return hdAsset.defaultVolumeProfile != null
+                && !hdAsset.defaultVolumeProfile.Equals(null)
+                && hdAsset.defaultVolumeProfile != hdAsset.renderPipelineEditorResources.defaultSettingsVolumeProfile;
+        }
+
+        void FixDefaultVolumeProfileAssigned(bool fromAsyncUnused)
+        {
+            if (!IsHdrpAssetUsedCorrect())
+                FixHdrpAssetUsed(fromAsync: false);
+
+            var hdrpAsset = HDRenderPipeline.defaultAsset;
+            if (hdrpAsset == null)
+                return;
+
+            hdrpAsset.defaultVolumeProfile = CreateDefaultVolumeProfileIfNeeded(hdrpAsset.renderPipelineEditorResources.defaultSettingsVolumeProfile);
+
+            EditorUtility.SetDirty(hdrpAsset);
+        }
+
+        bool IsDefaultLookDevVolumeProfileAssigned()
+        {
+            if (!IsHdrpAssetUsedCorrect())
+                return false;
+
+            var hdAsset = HDRenderPipeline.defaultAsset;
+            return hdAsset.defaultLookDevProfile != null
+                && !hdAsset.defaultLookDevProfile.Equals(null)
+                && hdAsset.defaultLookDevProfile != hdAsset.renderPipelineEditorResources.lookDev.defaultLookDevVolumeProfile;
+        }
+
+        void FixDefaultLookDevVolumeProfileAssigned(bool fromAsyncUnused)
+        {
+            if (!IsHdrpAssetUsedCorrect())
+                FixHdrpAssetUsed(fromAsync: false);
+
+            var hdrpAsset = HDRenderPipeline.defaultAsset;
+            if (hdrpAsset == null)
+                return;
+
+            hdrpAsset.defaultLookDevProfile = CreateDefaultVolumeProfileIfNeeded(hdrpAsset.renderPipelineEditorResources.lookDev.defaultLookDevVolumeProfile);
 
             EditorUtility.SetDirty(hdrpAsset);
         }
