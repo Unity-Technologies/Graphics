@@ -249,6 +249,8 @@ namespace UnityEditor.ShaderGraph
         // as well as when deserializing descriptor fields on serialized Blocks
         [NonSerialized]
         List<BlockFieldDescriptor> m_BlockFieldDescriptors;
+        [NonSerialized]
+        Dictionary<string, BlockFieldDescriptor> m_BlockFieldDescriptorSignatureMap;
 
         public ContextData vertexContext => m_VertexContext;
         public ContextData fragmentContext => m_FragmentContext;
@@ -562,24 +564,31 @@ namespace UnityEditor.ShaderGraph
         void GetBlockFieldDescriptors()
         {
             m_BlockFieldDescriptors = new List<BlockFieldDescriptor>();
+            m_BlockFieldDescriptorSignatureMap = new Dictionary<string, BlockFieldDescriptor>();
 
-            var asmTypes = TypeCache.GetTypesWithAttribute<GenerateBlocksAttribute>();
-            foreach (var type in asmTypes)
+            var blockFieldProviders = TypeCache.GetTypesDerivedFrom<IBlockFieldProvider>()
+                .Where(type => (!type.IsAbstract && type.IsClass && (type.GetConstructor(BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic, null, Type.EmptyTypes, null) != null)))
+                .Select(t => Activator.CreateInstance(t, nonPublic: true))
+                .Cast<IBlockFieldProvider>();
+
+            foreach (var blockFieldProvider in blockFieldProviders)
             {
-                var attrs = type.GetCustomAttributes(typeof(GenerateBlocksAttribute), false);
-                if (attrs == null || attrs.Length <= 0)
-                    continue;
-
-                var attribute = attrs[0] as GenerateBlocksAttribute;
-
-                // Get all fields that are BlockFieldDescriptor
-                // If field and context stages match add to list
-                foreach (var fieldInfo in type.GetFields())
+                foreach (var map in blockFieldProvider.recognizedBlockFieldSignatures)
                 {
-                    if (fieldInfo.GetValue(type) is BlockFieldDescriptor blockFieldDescriptor)
+                    if (m_BlockFieldDescriptorSignatureMap.TryGetValue(map.blockFieldSignature.ToString(), out BlockFieldDescriptor someDescriptor))
                     {
-                        blockFieldDescriptor.path = attribute.path;
-                        m_BlockFieldDescriptors.Add(blockFieldDescriptor);
+                        Debug.LogError($"BlockFieldProvider {blockFieldProvider.uniqueNamespace} attempted to add BlockFieldDescriptor with signature {map.blockFieldSignature} but already"
+                            + $" present from {someDescriptor.uniqueNamespace}. Potential collision, skipping...");
+                    }
+                    else
+                    {
+                        m_BlockFieldDescriptorSignatureMap.Add(map.blockFieldSignature.ToString(), map.blockFieldDescriptor);
+                        if (map.blockFieldSignature.providerNamespace != "")
+                        {
+                            // This is not a legacy signature, add the corresponding descriptor to list of valid m_BlockFieldDescriptors to use
+                            // (is this even used? SearchWindow but stack blocks can't be added manually by user?)
+                            m_BlockFieldDescriptors.Add(map.blockFieldDescriptor);
+                        }
                     }
                 }
             }
@@ -807,6 +816,9 @@ namespace UnityEditor.ShaderGraph
         {
             // Get list of active Block types
             var currentBlocks = GetNodes<BlockNode>();
+            // Note: when a Target is Unknown, it is assumed all currenBlocks that are themselves "isUnknown" are
+            // owned - and thus active - on this unknown Target, and the UnknownTargetType.GetActiveBlocks() will
+            // tranfert those into the activeBlocks list.
             var context = new TargetActiveBlockContext(currentBlocks.Select(x => x.descriptor).ToList(), null);
             foreach (var target in activeTargets)
             {
@@ -2382,31 +2394,46 @@ namespace UnityEditor.ShaderGraph
                 var blockCount = blocks.Count;
                 for (int i = 0; i < blockCount; i++)
                 {
-                    // Update NonSerialized data on the BlockNode
+                    // Update NonSerialized data on the BlockNode by referencing a matching BlockFieldDescriptor in the reflected list.
                     var block = blocks[i];
+
                     // custom interpolators fully regenerate their own descriptor on deserialization
                     if (!block.isCustomBlock)
                     {
-                        block.descriptor = m_BlockFieldDescriptors.FirstOrDefault(x => $"{x.tag}.{x.name}" == block.serializedDescriptor);
-                    }
-                    if (block.descriptor == null)
-                    {
-                        //Hit a descriptor that was not recognized from the assembly (likely from a different SRP)
-                        //create a new entry for it and continue on
-                        if (string.IsNullOrEmpty(block.serializedDescriptor))
+                        m_BlockFieldDescriptorSignatureMap.TryGetValue(block.serializedDescriptor, out BlockFieldDescriptor desc);
+                        block.descriptor = desc;
+                        if (block.descriptor == null)
                         {
-                            throw new Exception($"Block {block} had no serialized descriptor");
-                        }
+                            // Hit a descriptor that was not recognized from the assembly (likely from a different SRP)
+                            // create a new entry for it and continue on
+                            if (string.IsNullOrEmpty(block.serializedDescriptor))
+                            {
+                                throw new Exception($"Block {block} had no serialized descriptor");
+                            }
 
-                        var tmp = block.serializedDescriptor.Split('.');
-                        if (tmp.Length != 2)
-                        {
-                            throw new Exception($"Block {block}'s serialized descriptor {block.serializedDescriptor} did not match expected format {{x.tag}}.{{x.name}}");
+                            var tmp = block.serializedDescriptor.Split('.');
+                            if (tmp.Length != 2 && tmp.Length != 3)
+                            {
+                                throw new Exception($"Block {block}'s serialized descriptor {block.serializedDescriptor} did not match expected format {{<x.providerNamespace.>}}{{x.tag}}.{{x.name}}");
+                            }
+
+                            // right thing to do?
+                            if (tmp.Length == 3)
+                            {
+                                FakeBlockFieldProvider fakeBlockFieldProvider = new FakeBlockFieldProvider(tmp[0]);
+                                block.descriptor = new BlockFieldDescriptor(fakeBlockFieldProvider, tmp[1], tmp[2], null, null, stage, isHidden: true, isUnknown: true);
+                            }
+                            else
+                            {
+                                FakeBlockFieldProvider fakeBlockFieldProvider = new FakeBlockFieldProvider("");
+                                block.descriptor = new BlockFieldDescriptor(fakeBlockFieldProvider, tmp[0], tmp[1], null, null, stage, isHidden: true, isUnknown: true);
+                            }
+                            // Update the map with the unknown descriptor serializedDescriptor string to BlockDescriptor object mapping but it shouldn't be possible to encounter it
+                            // multiple times ?
+                            m_BlockFieldDescriptorSignatureMap.Add(block.serializedDescriptor, block.descriptor);
                         }
-                        //right thing to do?
-                        block.descriptor = new BlockFieldDescriptor(tmp[0], tmp[1], null, null, stage, true, true);
-                        m_BlockFieldDescriptors.Add(block.descriptor);
                     }
+
                     block.contextData = contextData;
                 }
             }

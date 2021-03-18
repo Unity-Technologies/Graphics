@@ -9,11 +9,11 @@ namespace UnityEditor.ShaderGraph.UnitTests
     [TestFixture]
     class BlockNodeTests
     {
-        static BlockFieldDescriptor s_DescriptorA = new BlockFieldDescriptor("Test", "BlockA", string.Empty, new FloatControl(0.5f), ShaderStage.Fragment, true);
-        static BlockFieldDescriptor s_DescriptorB = new BlockFieldDescriptor("Test", "BlockB", string.Empty, new NormalControl(CoordinateSpace.World), ShaderStage.Fragment, true);
+        static BlockFieldDescriptor s_DescriptorA = new BlockFieldDescriptor(BlockFields.m_ProviderInfo, "Test", "BlockA", string.Empty, new FloatControl(0.5f), ShaderStage.Fragment, true);
+        static BlockFieldDescriptor s_DescriptorB = new BlockFieldDescriptor(BlockFields.m_ProviderInfo, "Test", "BlockB", string.Empty, new NormalControl(CoordinateSpace.World), ShaderStage.Fragment, true);
 
         static Vector3MaterialSlot s_MaterialSlot = new Vector3MaterialSlot(0, "Test", "BlockB", SlotType.Input, Vector3.one);
-        static CustomSlotBlockFieldDescriptor s_CustomSlotDescriptor = new CustomSlotBlockFieldDescriptor("Test", "CustomBlock", string.Empty,
+        static CustomSlotBlockFieldDescriptor s_CustomSlotDescriptor = new CustomSlotBlockFieldDescriptor(BlockFields.m_ProviderInfo, "Test", "CustomBlock", string.Empty,
             () => { return new Vector3MaterialSlot(0, "Test", "BlockB", SlotType.Input, Vector3.one); });
 
         [OneTimeSetUp]
