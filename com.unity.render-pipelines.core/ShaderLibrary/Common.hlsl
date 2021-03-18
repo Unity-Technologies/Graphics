@@ -157,6 +157,11 @@
 #   endif
 #endif
 
+// This is the default keyword combination and needs to be overriden by the platforms that need specific behaviors
+// when enabling conservative depth overrides
+#define SV_POSITION_QUALIFIERS
+#define DEPTH_OFFSET_SEMANTIC SV_Depth
+
 // Include language header
 #if defined (SHADER_API_GAMECORE)
 #include "Packages/com.unity.render-pipelines.gamecore/ShaderLibrary/API/GameCore.hlsl"
