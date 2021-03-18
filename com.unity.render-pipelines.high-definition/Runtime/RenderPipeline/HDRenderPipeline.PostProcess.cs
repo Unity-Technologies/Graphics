@@ -2862,6 +2862,15 @@ namespace UnityEngine.Rendering.HighDefinition
 
                 globalColorModulation *= distanceAttenuation;
 
+                if (comp.useOcclusion)
+                {
+                    cmd.DisableShaderKeyword("FLARE_WITHOUT_OCCLUSION");
+                }
+                else
+                {
+                    cmd.EnableShaderKeyword("FLARE_WITHOUT_OCCLUSION");
+                }
+
                 foreach (SRPLensFlareDataElement element in data.elements)
                 {
                     if (element == null ||
