@@ -106,10 +106,10 @@ namespace UnityEditor.Rendering.HighDefinition
                 error: "Default scene prefab must be set to create HD templated scene!");
             public static readonly ConfigStyle hdrpVolumeProfile = new ConfigStyle(
                 label: "Default volume profile",
-                error: "Default volume profile must be assigned in the HDRP asset! Also, for it to be editable, it should be outside of package.");
+                error: "Default volume profile must be assigned in the HDRP Global Settings! Also, for it to be editable, it should be outside of package.");
             public static readonly ConfigStyle hdrpLookDevVolumeProfile = new ConfigStyle(
                 label: "Default Look Dev volume profile",
-                error: "Default Look Dev volume profile must be assigned in the HDRP asset! Also, for it to be editable, it should be outside of package.");
+                error: "Default Look Dev volume profile must be assigned in the HDRP Global Settings! Also, for it to be editable, it should be outside of package.");
 
             public static readonly ConfigStyle vrLegacyVRSystem = new ConfigStyle(
                 label: "Legacy VR System",
