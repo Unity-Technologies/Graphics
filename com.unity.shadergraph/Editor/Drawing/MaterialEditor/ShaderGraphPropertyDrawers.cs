@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using UnityEditor;
 using UnityEngine;
+using UnityEngine.Rendering;
 using Object = UnityEngine.Object;
 
 namespace UnityEditor.ShaderGraph.Drawing
@@ -54,6 +55,13 @@ namespace UnityEditor.ShaderGraph.Drawing
             {
                 DrawCategory(materialEditor, properties, mcd);
             }
+
+            EditorGUILayout.Space();
+            EditorGUILayout.Space();
+            if (SupportedRenderingFeatures.active.editableMaterialRenderQueue)
+                materialEditor.RenderQueueField();
+            materialEditor.EnableInstancingField();
+            materialEditor.DoubleSidedGIField();
         }
 
         private static void DrawCategory(MaterialEditor materialEditor, MaterialProperty[] properties, MinimalCategoryData minimalCategoryData)
