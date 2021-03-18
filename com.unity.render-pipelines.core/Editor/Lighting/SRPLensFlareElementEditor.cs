@@ -475,7 +475,7 @@ namespace UnityEditor.Rendering
             static public readonly GUIContent enableDistortion = EditorGUIUtility.TrTextContent("Enable", "True to use or not the radial distortion.");
             static public readonly GUIContent targetSizeDistortion = EditorGUIUtility.TrTextContent("Radial Edge Size", "Target size used on the edge of the screen.");
             static public readonly GUIContent distortionCurve = EditorGUIUtility.TrTextContent("Radial Edge Curve", "Curve blending from screen center to the edges of the screen.");
-            static public readonly GUIContent distortionRelativeToCenter = EditorGUIUtility.TrTextContent("Relative To Center", "REPLACE ME.");
+            static public readonly GUIContent distortionRelativeToCenter = EditorGUIUtility.TrTextContent("Relative To Center", "Use the distance from the centre of the screen instead of the distance along axis to calculate distortion");
 
             // For Procedural
             static public readonly GUIContent fallOff = EditorGUIUtility.TrTextContent("Falloff", "Fall of the gradient used for the Procedural Flare.");
