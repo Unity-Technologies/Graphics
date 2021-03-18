@@ -128,6 +128,13 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed HDRP material being constantly dirty.
 - Fixed issue in path tracing, where objects would cast shadows even if not present in the path traced layers (case 1318857).
 - Fixed SRP batcher not compatible with Decal (case 1311586)
+- Fixed wrong color buffer being bound to pre refraction custom passes.
+- Fixed grey screen on playstation platform when histogram exposure is enabled but the curve mapping is not used.
+- Fixed HDRPAsset loosing its reference to the ray tracing resources when clicking on a different quality level that doesn't have ray tracing (case 1320304).
+- Fixed SRP batcher not compatible with Decal (case 1311586).
+- Fixed error message when having MSAA and Screen Space Shadows (case 1318698).
+- Fixed Nans happening when the history render target is bigger than the current viewport (case 1321139).
+- Fixed Tube and Disc lights mode selection (case 1317776)
 
 ### Changed
 - Removed the material pass probe volumes evaluation mode.
@@ -157,6 +164,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Changed Path Tracing's maximum intensity from clamped (0 to 100) to positive value (case 1310514).
 - Avoid unnecessary RenderGraphBuilder.ReadTexture in the "Set Final Target" pass
 - Cached the base types of Volume Manager to improve memory and cpu usage.
+- Reduced the maximal number of bounces for both RTGI and RTR (case 1318876).
 
 ## [10.3.0] - 2020-12-01
 
