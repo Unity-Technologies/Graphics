@@ -8,7 +8,7 @@ namespace UnityEditor.ShaderGraph.Drawing
     {
         public VisualElement parentView { get; set; }
         internal string name { get; set; }
-        internal string associatedCategoryID { get; set; }
+        internal string associatedCategoryGuid { get; set; }
         internal bool isExpanded { get; set; }
         internal Action<IGraphDataAction> requestModelChangeAction { get; set; }
 
@@ -16,7 +16,7 @@ namespace UnityEditor.ShaderGraph.Drawing
         public void ResetViewModelData()
         {
             name = String.Empty;
-            associatedCategoryID = string.Empty;
+            associatedCategoryGuid = String.Empty;
             isExpanded = false;
             requestModelChangeAction = null;
         }

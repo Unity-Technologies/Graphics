@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using UnityEditor.ShaderGraph.Internal;
 using UnityEditor.ShaderGraph.Serialization;
 using UnityEngine;
@@ -18,55 +19,77 @@ namespace UnityEditor.ShaderGraph
             get => m_Name;
             set => m_Name = value;
         }
-
-        /// <summary>
-        /// TODO: Just get rid of this cause JsonObjects already have objectID
-        /// </summary>
+        public string categoryGuid => this.objectId;
 
         [SerializeField]
-        Guid m_CategoryGuid;
+        List<JsonRef<ShaderInput>> m_ChildObjectList = new List<JsonRef<ShaderInput>>();
 
-        public Guid categoryGuid
+        HashSet<string> m_ChildObjectIDSet = new HashSet<string>();
+        // We expose the object list as a HashSet of their objectIDs for faster existence checks
+        public HashSet<string> childObjectIDSet
         {
-            get => m_CategoryGuid;
-            set => m_CategoryGuid = value;
+            get => m_ChildObjectIDSet;
+            set => m_ChildObjectIDSet = value;
+        }
+        public int childCount => m_ChildObjectIDSet.Count;
+
+        public void AddItemToCategory(ShaderInput itemToAdd)
+        {
+            m_ChildObjectList.Add(itemToAdd);
+            m_ChildObjectIDSet.Add(itemToAdd.objectId);
         }
 
-        [SerializeField]
-        List<JsonRef<ShaderInput>> m_children;
-
-        public RefValueEnumerable<ShaderInput> Children => m_children.SelectValue(); 
-
-        public void AddItemToCategory(ShaderInput shaderInput)
+        public void RemoveItemFromCategory(ShaderInput itemToRemove)
         {
-            m_children.Add(shaderInput);
+            m_ChildObjectList.Remove(itemToRemove);
+            if (m_ChildObjectIDSet.Contains(itemToRemove.objectId))
+                m_ChildObjectIDSet.Remove(itemToRemove.objectId);
         }
 
-        public void RemoveItemFromCategory(ShaderInput shaderInput)
+        public bool IsItemInCategory(ShaderInput itemToCheck)
         {
-            foreach(var child in Children)
+            return m_ChildObjectIDSet.Contains(itemToCheck.objectId);
+        }
+
+        public bool IsNamedCategory()
+        {
+            return name != String.Empty;
+        }
+
+        public override void OnAfterDeserialize()
+        {
+            if (m_ChildObjectList != null)
             {
-                if(child == shaderInput)
+                foreach (var childObject in m_ChildObjectList.ToList())
                 {
-                    m_children.Remove(shaderInput);
+                    if (childObject.value != null)
+                        m_ChildObjectIDSet.Add(childObject.value.objectId);
+                    else
+                        m_ChildObjectList.Remove(childObject);
                 }
             }
+
+            base.OnAfterDeserialize();
         }
 
         public CategoryData()
         {
-            name = String.Empty;
-            m_children = new List<JsonRef<ShaderInput>>();
-            categoryGuid = new Guid();
+            foreach (var childObject in m_ChildObjectList)
+            {
+                m_ChildObjectIDSet.Add(childObject.value.objectId);
+            }
         }
 
-        public CategoryData(string inName, List<ShaderInput> inChildItems)
+        public CategoryData(string inName, List<ShaderInput> inChildObjectList = null)
         {
             name = inName;
-            m_children = new List<JsonRef<ShaderInput>>();
-            foreach(var child in inChildItems)
+            if (inChildObjectList != null)
             {
-                m_children.Add(child);
+                foreach (var childObject in inChildObjectList)
+                {
+                    m_ChildObjectList.Add(childObject);
+                    m_ChildObjectIDSet.Add(childObject.objectId);
+                }
             }
         }
     }

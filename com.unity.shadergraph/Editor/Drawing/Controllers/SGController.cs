@@ -193,5 +193,7 @@ namespace UnityEditor.ShaderGraph
                 controller.ApplyChanges();
             }
         }
+
+        public virtual void Destroy() { }
     }
 }
