@@ -538,6 +538,14 @@ namespace UnityEngine.Rendering.HighDefinition
                 Debug.LogError("High Definition Render Pipeline doesn't support Gamma mode, change to Linear mode (HDRP isn't set up properly. Go to Windows > RenderPipeline > HDRP Wizard to fix your settings).");
             }
 #endif
+
+#if ENABLE_NVIDIA && ENABLE_NVIDIA_MODULE
+            m_DebugDisplaySettings.nvidiaDebugView.Reset();
+#endif
+            if (DLSSPass.SetupFeature(m_GlobalSettings))
+            {
+                HDDynamicResolutionPlatformCapabilities.ActivateDLSS();
+            }
         }
 
         bool CheckAPIValidity()
@@ -938,6 +946,31 @@ namespace UnityEngine.Rendering.HighDefinition
             CoreUtils.SetKeyword(cmd, "WRITE_MSAA_DEPTH", hdCamera.msaaEnabled);
         }
 
+        void SetupDLSSForCameraDataAndDynamicResHandler(
+            in HDAdditionalCameraData hdCam,
+            Camera camera,
+            XRPass xrPass,
+            bool cameraRequestedDynamicRes,
+            ref GlobalDynamicResolutionSettings outDrsSettings)
+        {
+            if (hdCam == null)
+                return;
+
+            hdCam.cameraCanRenderDLSS = cameraRequestedDynamicRes
+                && HDDynamicResolutionPlatformCapabilities.DLSSDetected
+                && hdCam.allowDeepLearningSuperSampling
+                && m_Asset.currentPlatformRenderPipelineSettings.dynamicResolutionSettings.enableDLSS
+                && m_Asset.currentPlatformRenderPipelineSettings.dynamicResolutionSettings.enabled;
+
+            if (m_DLSSPass != null && hdCam.cameraCanRenderDLSS)
+            {
+                bool useOptimalSettings = hdCam.deepLearningSuperSamplingUseCustomAttributes
+                    ? hdCam.deepLearningSuperSamplingUseOptimalSettings
+                    : m_Asset.currentPlatformRenderPipelineSettings.dynamicResolutionSettings.DLSSUseOptimalSettings;
+                m_DLSSPass.SetupAutomaticDRSScaling(useOptimalSettings, camera, xrPass, ref outDrsSettings);
+            }
+        }
+
         struct RenderRequest
         {
             public struct Target
@@ -1052,6 +1085,10 @@ namespace UnityEngine.Rendering.HighDefinition
                 HDCamera.CleanUnused();
             }
 
+#if ENABLE_NVIDIA && ENABLE_NVIDIA_MODULE
+            m_DebugDisplaySettings.nvidiaDebugView.Update();
+#endif
+
             // This syntax is awful and hostile to debugging, please don't use it...
             using (ListPool<RenderRequest>.Get(out List<RenderRequest> renderRequests))
             using (ListPool<int>.Get(out List<int> rootRenderRequestIndices))
@@ -1101,15 +1138,22 @@ namespace UnityEngine.Rendering.HighDefinition
                         continue;
 #endif
 
-                    DynamicResolutionHandler.UpdateAndUseCamera(camera, m_Asset.currentPlatformRenderPipelineSettings.dynamicResolutionSettings);
-                    var dynResHandler = DynamicResolutionHandler.instance;
-
                     bool cameraRequestedDynamicRes = false;
-                    HDAdditionalCameraData hdCam;
+                    HDAdditionalCameraData hdCam = null;
+                    var drsSettings = m_Asset.currentPlatformRenderPipelineSettings.dynamicResolutionSettings;
+
+                    DynamicResolutionHandler.SetActiveDynamicScalerSlot(DynamicResScalerSlot.User);
                     if (camera.TryGetComponent<HDAdditionalCameraData>(out hdCam))
                     {
                         cameraRequestedDynamicRes = hdCam.allowDynamicResolution && camera.cameraType == CameraType.Game;
+                    }
 
+                    SetupDLSSForCameraDataAndDynamicResHandler(hdCam, camera, xrPass, cameraRequestedDynamicRes, ref drsSettings);
+                    DynamicResolutionHandler.UpdateAndUseCamera(camera, m_Asset.currentPlatformRenderPipelineSettings.dynamicResolutionSettings);
+
+                    var dynResHandler = DynamicResolutionHandler.instance;
+                    if (hdCam != null)
+                    {
                         // We are in a case where the platform does not support hw dynamic resolution, so we force the software fallback.
                         // TODO: Expose the graphics caps info on whether the platform supports hw dynamic resolution or not.
                         // Temporarily disable HW Dynamic resolution on metal until the problems we have with it are fixed
@@ -1120,6 +1164,8 @@ namespace UnityEngine.Rendering.HighDefinition
                     }
 
                     dynResHandler.SetCurrentCameraRequest(cameraRequestedDynamicRes);
+                    dynResHandler.runUpscalerFilterOnFullResolution = hdCam != null && hdCam.cameraCanRenderDLSS;
+
                     RTHandles.SetHardwareDynamicResolutionState(dynResHandler.HardwareDynamicResIsEnabled());
 
                     VFXManager.PrepareCamera(camera);
@@ -2064,6 +2110,10 @@ namespace UnityEngine.Rendering.HighDefinition
             }
 
             hdCamera = HDCamera.GetOrCreate(camera, xrPass.multipassId);
+
+            //Forcefully disable antialiasing if DLSS is enabled.
+            if (additionalCameraData != null)
+                currentFrameSettings.SetEnabled(FrameSettingsField.Antialiasing, currentFrameSettings.IsEnabled(FrameSettingsField.Antialiasing) && !additionalCameraData.cameraCanRenderDLSS);
 
             // From this point, we should only use frame settings from the camera
             hdCamera.Update(currentFrameSettings, this, xrPass);
