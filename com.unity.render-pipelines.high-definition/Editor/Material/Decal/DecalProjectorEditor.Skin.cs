@@ -25,5 +25,6 @@ namespace UnityEditor.Rendering.HighDefinition
         static readonly GUIContent k_FadeFactorContent = EditorGUIUtility.TrTextContent("Fade Factor", "Controls the transparency of the decal.");
         static readonly GUIContent k_AffectTransparentContent = EditorGUIUtility.TrTextContent("Affects Transparent", "When enabled, HDRP draws this projector's decal on top of transparent surfaces.");
         static readonly GUIContent k_Offset = EditorGUIUtility.TrTextContent("Pivot", "Controls the position of the pivot point of the decal.");
+        static readonly GUIContent k_ApplyScale = EditorGUIUtility.TrTextContent("Apply Scale", "Should lossy scale of the Transform be applied to the decal. It attempts to match the actual world scale as much as it can, but may be incorrect for skewed objects.");
     }
 }

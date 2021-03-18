@@ -53,6 +53,7 @@ namespace UnityEditor.Rendering.HighDefinition
         SerializedProperty[] m_SizeValues;
         SerializedProperty m_Offset;
         SerializedProperty[] m_OffsetValues;
+        SerializedProperty m_ApplyScale;
         SerializedProperty m_FadeFactor;
         SerializedProperty m_DecalLayerMask;
 
@@ -212,6 +213,7 @@ namespace UnityEditor.Rendering.HighDefinition
                 m_Offset.FindPropertyRelative("y"),
                 m_Offset.FindPropertyRelative("z"),
             };
+            m_ApplyScale = serializedObject.FindProperty("m_ApplyScale");
             m_FadeFactor = serializedObject.FindProperty("m_FadeFactor");
             m_DecalLayerMask = serializedObject.FindProperty("m_DecalLayerMask");
 
@@ -278,7 +280,7 @@ namespace UnityEditor.Rendering.HighDefinition
 
         void DrawBoxTransformationHandles(DecalProjector decalProjector)
         {
-            Vector3 scale = decalProjector.transform.lossyScale;
+            Vector3 scale = decalProjector.effectiveScale;
             using (new Handles.DrawingScope(Color.white, Matrix4x4.TRS(decalProjector.transform.position, decalProjector.transform.rotation, scale)))
             {
                 Vector3 centerStart = decalProjector.pivot;
@@ -346,7 +348,7 @@ namespace UnityEditor.Rendering.HighDefinition
 
         void DrawPivotHandles(DecalProjector decalProjector)
         {
-            Vector3 scale = decalProjector.transform.lossyScale;
+            Vector3 scale = decalProjector.effectiveScale;
             Vector3 scaledPivot = Vector3.Scale(decalProjector.pivot, scale);
             Vector3 scaledSize = Vector3.Scale(decalProjector.size, scale);
 
@@ -372,7 +374,7 @@ namespace UnityEditor.Rendering.HighDefinition
 
         void DrawUVHandles(DecalProjector decalProjector)
         {
-            Vector3 scale = decalProjector.transform.lossyScale;
+            Vector3 scale = decalProjector.effectiveScale;
             Vector3 scaledPivot = Vector3.Scale(decalProjector.pivot, scale);
             Vector3 scaledSize = Vector3.Scale(decalProjector.size, scale);
 
@@ -447,7 +449,7 @@ namespace UnityEditor.Rendering.HighDefinition
             // Draw them with scale applied to size and pivot instead of the matrix to keep the proportions of the arrow and lines.
             using (new Handles.DrawingScope(fullColor, Matrix4x4.TRS(decalProjector.transform.position, decalProjector.transform.rotation, Vector3.one)))
             {
-                Vector3 scale = decalProjector.transform.lossyScale;
+                Vector3 scale = decalProjector.effectiveScale;
                 Vector3 scaledPivot = Vector3.Scale(decalProjector.pivot, scale);
                 Vector3 scaledSize = Vector3.Scale(decalProjector.size, scale);
 
@@ -612,6 +614,8 @@ namespace UnityEditor.Rendering.HighDefinition
                 if (EditorGUI.EndChangeCheck())
                     ReinitSavedRatioSizePivotPosition();
                 EditorGUI.EndProperty();
+
+                EditorGUILayout.PropertyField(m_ApplyScale, k_ApplyScale);
 
                 EditorGUILayout.PropertyField(m_MaterialProperty, k_MaterialContent);
 

@@ -215,6 +215,21 @@ namespace UnityEngine.Rendering.HighDefinition
             }
         }
 
+        [SerializeField]
+        private bool m_ApplyScale = false;
+        /// <summary>
+        /// Should lossy scale of the Transform be applied to the decal.
+        /// </summary>
+        public bool applyScale
+        {
+            get => m_ApplyScale;
+            set
+            {
+                m_ApplyScale = value;
+                OnValidate();
+            }
+        }
+
         /// <summary>
         /// Update the pivot to resize centered on the pivot position.
         /// </summary>
@@ -249,6 +264,8 @@ namespace UnityEngine.Rendering.HighDefinition
         private Material m_OldMaterial = null;
         private DecalSystem.DecalHandle m_Handle = null;
 
+        /// <summary>A scale that should be used for rendering and handles.</summary>
+        internal Vector3 effectiveScale => m_ApplyScale ? transform.lossyScale : Vector3.one;
 
         /// <summary>current position in a way the DecalSystem will be able to use it</summary>
         internal Vector3 position => transform.position;
@@ -261,7 +278,7 @@ namespace UnityEngine.Rendering.HighDefinition
             get
             {
                 // If Z-scale is negative we rotate decal differently to have correct forward direction for Angle Fade.
-                return transform.rotation * (transform.lossyScale.z >= 0f ? k_MinusYtoZRotation : k_YtoZRotation);
+                return transform.rotation * (effectiveScale.z >= 0f ? k_MinusYtoZRotation : k_YtoZRotation);
             }
         }
 
@@ -270,7 +287,7 @@ namespace UnityEngine.Rendering.HighDefinition
         {
             get
             {
-                Vector3 scale = transform.lossyScale;
+                Vector3 scale = effectiveScale;
 
                 // If Z-scale is negative the forward direction for rendering will be fixed by rotation,
                 // so we need to flip the scale of the affected axes back.
@@ -293,7 +310,7 @@ namespace UnityEngine.Rendering.HighDefinition
         {
             get
             {
-                Vector3 scale = transform.lossyScale;
+                Vector3 scale = effectiveScale;
 
                 // If Z-scale is negative the forward direction for rendering will be fixed by rotation,
                 // so we need to flip the scale of the affected axes back.
