@@ -232,10 +232,15 @@ public class URPConvertersEditor : EditorWindow
                 m_ConverterStates[i].isInitialized = true;
             }
         }
+
+        EditorUtility.SetDirty(this);
+        m_SerializedObject.Update();
     }
 
     void Init(ClickEvent evt)
     {
+        Undo.RegisterCompleteObjectUndo(this, "Initialize Converts");
+
         GetAndSetData();
 
         for (int i = 0; i < m_ConverterStates.Count; ++i)
@@ -253,7 +258,7 @@ public class URPConvertersEditor : EditorWindow
 
                 listView.makeItem = converterItem.CloneTree;
                 listView.showBoundCollectionSize = false;
-                listView.itemsSource = converterItemInfos;
+                //listView.itemsSource = converterItemInfos;
 
                 listView.bindingPath = $"{nameof(m_ConverterStates)}.Array.data[{i}].{nameof(ConverterState.items)}";
                 // I would like this to work, have a separate method and not inlined like this
@@ -261,13 +266,14 @@ public class URPConvertersEditor : EditorWindow
                 listView.bindItem = (element, index) =>
                 {
                     // ListView doesn't bind the child elements for us properly, so we do that for it
-                    //Debug.Log($"{listView.bindingPath}.Array.data[{index}]");
+                    Debug.Log($"{listView.bindingPath}.Array.data[{index}]");
+
                     // Can't get this binding to work again. :/
-                    //var property = m_SerializedObject.FindProperty($"{listView.bindingPath}.Array.data[{index}]");
+                    var property = m_SerializedObject.FindProperty($"{listView.bindingPath}.Array.data[{index}]");
                     // In the UXML our root is a BindableElement, as we can't bind otherwise.
-                    //var bindable = (BindableElement)element;
-                    //Debug.Log(property);
-                    //bindable.BindProperty(property);
+                    var bindable = (BindableElement)element;
+                    // Debug.Log(property);
+                    bindable.BindProperty(property);
 
                     ConverterItemInfo convItem = converterItemInfos[index];
 
@@ -304,6 +310,8 @@ public class URPConvertersEditor : EditorWindow
                 ////
             }
         }
+
+        rootVisualElement.Bind(m_SerializedObject);
     }
 
     void Convert(ClickEvent evt)
