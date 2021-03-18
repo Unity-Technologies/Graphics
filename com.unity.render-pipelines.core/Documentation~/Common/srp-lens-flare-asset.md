@@ -34,7 +34,7 @@ The Lens Flare Element asset has the following properties:
 
 | **Property**          | **Description**                                              |
 | --------------------- | ------------------------------------------------------------ |
-| Flare Texture         | The Texture used this lens flare element uses.               |
+| Flare Texture         | The Texture this lens flare element uses.                    |
 | Preserve Aspect Ratio | Fixes the width and height (aspect ratio) of the **Flare Texture**. You can use [Distortion](#Distortion) to change this property. |
 
 <a name="Circle"></a>
