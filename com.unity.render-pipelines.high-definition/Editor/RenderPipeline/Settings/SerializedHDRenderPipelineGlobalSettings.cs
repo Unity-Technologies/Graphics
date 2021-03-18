@@ -16,7 +16,7 @@ namespace UnityEditor.Rendering.HighDefinition
         public SerializedProperty renderPipelineResources;
         public SerializedProperty renderPipelineRayTracingResources;
 
-        public SerializedFrameSettings defaultFrameSettings;
+        public SerializedFrameSettings defaultCameraFrameSettings;
         public SerializedFrameSettings defaultBakedOrCustomReflectionFrameSettings;
         public SerializedFrameSettings defaultRealtimeReflectionFrameSettings;
 
@@ -92,7 +92,7 @@ namespace UnityEditor.Rendering.HighDefinition
 
             renderPipelineResources = serializedObject.FindProperty("m_RenderPipelineResources");
             renderPipelineRayTracingResources = serializedObject.FindProperty("m_RenderPipelineRayTracingResources");
-            defaultFrameSettings = new SerializedFrameSettings(serializedObject.FindProperty("m_RenderingPathDefaultCameraFrameSettings"), null); //no overrides in HDRPAsset
+            defaultCameraFrameSettings = new SerializedFrameSettings(serializedObject.FindProperty("m_RenderingPathDefaultCameraFrameSettings"), null); //no overrides in HDRPAsset
             defaultBakedOrCustomReflectionFrameSettings = new SerializedFrameSettings(serializedObject.FindProperty("m_RenderingPathDefaultBakedOrCustomReflectionFrameSettings"), null); //no overrides in HDRPAsset
             defaultRealtimeReflectionFrameSettings = new SerializedFrameSettings(serializedObject.FindProperty("m_RenderingPathDefaultRealtimeReflectionFrameSettings"), null); //no overrides in HDRPAsset
 
