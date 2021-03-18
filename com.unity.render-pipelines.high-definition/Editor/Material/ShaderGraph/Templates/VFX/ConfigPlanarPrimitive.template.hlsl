@@ -112,6 +112,9 @@ bool GetMeshAndElementIndex(inout AttributesMesh input, inout AttributesElement 
 #ifdef ATTRIBUTES_NEED_NORMAL
     input.normalOS = float3(0, 0, -1);
 #endif
+#ifdef ATTRIBUTES_NEED_TANGENT
+    input.tangentOS = float4(1, 0, 0, 1);
+#endif
 #ifdef ATTRIBUTES_NEED_TEXCOORD0
     input.uv0 = uv;
 #endif

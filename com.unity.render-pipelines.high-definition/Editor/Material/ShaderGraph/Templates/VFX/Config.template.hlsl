@@ -182,15 +182,21 @@ AttributesMesh TransformMeshToElement(AttributesMesh input, AttributesElement el
 
     input.positionOS = mul(elementToVFX, float4(input.positionOS, 1.0f)).xyz;
 
-#ifdef ATTRIBUTES_NEED_NORMAL
+#if defined(ATTRIBUTES_NEED_NORMAL) || defined(ATTRIBUTES_NEED_TANGENT)
     float3x3 elementToVFX_N = GetElementToVFXMatrixNormal(
         element.attributes.axisX,
         element.attributes.axisY,
         element.attributes.axisZ,
         float3(element.attributes.angleX, element.attributes.angleY, element.attributes.angleZ),
         size);
+#endif
 
+#ifdef ATTRIBUTES_NEED_NORMAL
     input.normalOS = normalize(mul(elementToVFX_N, input.normalOS));
+#endif
+
+#ifdef ATTRIBUTES_NEED_TANGENT
+    input.tangentOS = float4(normalize(mul(elementToVFX_N, input.tangentOS.xyz)), input.tangentOS.w);
 #endif
 
     return input;
