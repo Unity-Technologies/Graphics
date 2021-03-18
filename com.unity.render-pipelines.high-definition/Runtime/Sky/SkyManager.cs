@@ -493,6 +493,11 @@ namespace UnityEngine.Rendering.HighDefinition
             {
                 return;
             }
+            // For preview camera don't update the skybox material. This can inadvertently trigger GI baking. case 1314361/1314373.
+            if (hdCamera.camera.cameraType == CameraType.Preview)
+            {
+                return;
+            }
 
             // Workaround in the editor:
             // When in the editor, if we use baked lighting, we need to setup the skybox material with the static lighting texture otherwise when baking, the dynamic texture will be used

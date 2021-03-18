@@ -405,7 +405,7 @@ namespace UnityEngine.Rendering.HighDefinition
 #if UNITY_EDITOR
         internal bool IsVolumeProfileFromResources()
         {
-            return volumeProfile != null && renderPipelineEditorResources != null && volumeProfile.Equals(renderPipelineEditorResources.defaultSettingsVolumeProfile);
+            return volumeProfile != null && !volumeProfile.Equals(null) && renderPipelineEditorResources != null && volumeProfile.Equals(renderPipelineEditorResources.defaultSettingsVolumeProfile);
         }
 
 #endif
@@ -421,9 +421,7 @@ namespace UnityEngine.Rendering.HighDefinition
             get => m_VolumeProfileLookDev;
             set => m_VolumeProfileLookDev = value;
         }
-#endif
 
-#if UNITY_EDITOR
         internal VolumeProfile GetOrAssignLookDevVolumeProfile()
         {
             if (volumeProfileLookDev == null || volumeProfileLookDev.Equals(null))
@@ -431,6 +429,11 @@ namespace UnityEngine.Rendering.HighDefinition
                 volumeProfileLookDev = renderPipelineEditorResources.lookDev.defaultLookDevVolumeProfile;
             }
             return volumeProfileLookDev;
+        }
+
+        internal bool IsVolumeProfileLookDevFromResources()
+        {
+            return volumeProfileLookDev != null && !volumeProfileLookDev.Equals(null) && renderPipelineEditorResources != null && volumeProfileLookDev.Equals(renderPipelineEditorResources.lookDev.defaultLookDevVolumeProfile);
         }
 
 #endif

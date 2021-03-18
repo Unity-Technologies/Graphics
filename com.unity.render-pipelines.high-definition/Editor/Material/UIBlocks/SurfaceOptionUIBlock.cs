@@ -105,6 +105,7 @@ namespace UnityEditor.Rendering.HighDefinition
             public static GUIContent depthOffsetEnableText = new GUIContent("Depth Offset", "When enabled, HDRP uses the Height Map to calculate the depth offset for this Material.");
             public static GUIContent doubleSidedGIText = new GUIContent("Double-Sided GI", "When selecting Auto, Double-Sided GI is enabled if the material is Double-Sided, otherwise On enables it and Off disables it.\n" +
                 "When enabled, the lightmapper accounts for both sides of the geometry when calculating Global Illumination. Backfaces are not rendered or added to lightmaps, but get treated as valid when seen from other objects. When using the Progressive Lightmapper backfaces bounce light using the same emission and albedo as frontfaces. (Currently this setting is only available when baking with the Progressive Lightmapper backend.).");
+            public static GUIContent conservativeDepthOffsetEnableText = new GUIContent("Conservative", "When enabled, only positive depth offsets will be applied in order to take advantage of the early depth test mechanic.");
 
             // Displacement mapping (POM, tessellation, per vertex)
             //public static GUIContent enablePerPixelDisplacementText = new GUIContent("Per Pixel Displacement", "");
@@ -219,6 +220,7 @@ namespace UnityEditor.Rendering.HighDefinition
         const string kDisplacementLockTilingScale = "_DisplacementLockTilingScale";
 
         MaterialProperty depthOffsetEnable = null;
+        MaterialProperty conservativeDepthOffsetEnable = null;
 
         MaterialProperty tessellationMode = null;
         const string kTessellationMode = "_TessellationMode";
@@ -366,6 +368,7 @@ namespace UnityEditor.Rendering.HighDefinition
             }
             doubleSidedGIMode = FindProperty(kDoubleSidedGIMode);
             depthOffsetEnable = FindProperty(kDepthOffsetEnable);
+            conservativeDepthOffsetEnable = FindProperty(kConservativeDepthOffsetEnable);
 
             // MaterialID
             materialID = FindProperty(kMaterialID);
@@ -825,7 +828,15 @@ namespace UnityEditor.Rendering.HighDefinition
             {
                 // We only display Depth offset option when it's enabled in the ShaderGraph, otherwise the default value for depth offset is 0 does not make sense.
                 if (!AreMaterialsShaderGraphs() || (AreMaterialsShaderGraphs() && GetShaderDefaultFloatValue(kDepthOffsetEnable) > 0.0f == true))
+                {
                     materialEditor.ShaderProperty(depthOffsetEnable, Styles.depthOffsetEnableText);
+                    if (conservativeDepthOffsetEnable != null)
+                    {
+                        EditorGUI.indentLevel++;
+                        materialEditor.ShaderProperty(conservativeDepthOffsetEnable, Styles.conservativeDepthOffsetEnableText);
+                        EditorGUI.indentLevel--;
+                    }
+                }
             }
             else if (displacementMode != null)
             {

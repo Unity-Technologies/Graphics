@@ -3,17 +3,17 @@ using UnityEngine.Experimental.Rendering;
 
 namespace UnityEngine.Rendering.HighDefinition
 {
-    class DensityVolumeManager
+    class LocalVolumetricFogManager
     {
-        public static readonly GraphicsFormat densityVolumeAtlasFormat = GraphicsFormat.R8G8B8A8_UNorm;
+        public static readonly GraphicsFormat localVolumetricFogAtlasFormat = GraphicsFormat.R8G8B8A8_UNorm;
 
-        static DensityVolumeManager m_Manager;
-        public static DensityVolumeManager manager
+        static LocalVolumetricFogManager m_Manager;
+        public static LocalVolumetricFogManager manager
         {
             get
             {
                 if (m_Manager == null)
-                    m_Manager = new DensityVolumeManager();
+                    m_Manager = new LocalVolumetricFogManager();
                 return m_Manager;
             }
         }
@@ -30,17 +30,17 @@ namespace UnityEngine.Rendering.HighDefinition
                     // Prevent allocating too big textures:
                     int elementCount = Texture3DAtlas.GetMaxElementCountForWeightInByte(
                         HDRenderPipeline.k_MaxCacheSize,
-                        (int)settings.maxDensityVolumeSize,
-                        settings.maxDensityVolumesOnScreen,
-                        densityVolumeAtlasFormat,
+                        (int)settings.maxLocalVolumetricFogSize,
+                        settings.maxLocalVolumetricFogOnScreen,
+                        localVolumetricFogAtlasFormat,
                         true
                     );
 
-                    elementCount = Mathf.Clamp(elementCount, 1, settings.maxDensityVolumesOnScreen);
+                    elementCount = Mathf.Clamp(elementCount, 1, settings.maxLocalVolumetricFogOnScreen);
 
-                    m_VolumeAtlas = new Texture3DAtlas(densityVolumeAtlasFormat, (int)settings.maxDensityVolumeSize, elementCount);
+                    m_VolumeAtlas = new Texture3DAtlas(localVolumetricFogAtlasFormat, (int)settings.maxLocalVolumetricFogSize, elementCount);
 
-                    // When HDRP is initialized and this atlas created, some density volume may have been initialized before so we add them here.
+                    // When HDRP is initialized and this atlas created, some Local Volumetric Fog may have been initialized before so we add them here.
                     foreach (var volume in m_Volumes)
                     {
                         if (volume.parameters.volumeMask != null)
@@ -52,21 +52,21 @@ namespace UnityEngine.Rendering.HighDefinition
             }
         }
 
-        List<DensityVolume> m_Volumes = null;
+        List<LocalVolumetricFog> m_Volumes = null;
 
-        DensityVolumeManager()
+        LocalVolumetricFogManager()
         {
-            m_Volumes = new List<DensityVolume>();
+            m_Volumes = new List<LocalVolumetricFog>();
         }
 
-        public void RegisterVolume(DensityVolume volume)
+        public void RegisterVolume(LocalVolumetricFog volume)
         {
             m_Volumes.Add(volume);
 
-            // In case the density volume format is not support (which is impossible because all HDRP target supports R8G8B8A8_UNorm)
+            // In case the Local Volumetric Fog format is not support (which is impossible because all HDRP target supports R8G8B8A8_UNorm)
             // we avoid doing operations on the atlas.
             // This happens in the CI on linux when an editor using OpenGL is building a player for Vulkan.
-            if (!SystemInfo.IsFormatSupported(densityVolumeAtlasFormat, FormatUsage.LoadStore))
+            if (!SystemInfo.IsFormatSupported(localVolumetricFogAtlasFormat, FormatUsage.LoadStore))
                 return;
 
             if (volume.parameters.volumeMask != null && volumeAtlas != null)
@@ -81,18 +81,18 @@ namespace UnityEngine.Rendering.HighDefinition
         internal void AddTextureIntoAtlas(Texture volumeTexture)
         {
             if (!volumeAtlas.AddTexture(volumeTexture))
-                Debug.LogError($"No more space in the density volume atlas, consider increasing the max density volume on screen in the HDRP asset.");
+                Debug.LogError($"No more space in the Local Volumetric Fog atlas, consider increasing the max Local Volumetric Fog on screen in the HDRP asset.");
         }
 
-        public void DeRegisterVolume(DensityVolume volume)
+        public void DeRegisterVolume(LocalVolumetricFog volume)
         {
             if (m_Volumes.Contains(volume))
                 m_Volumes.Remove(volume);
 
-            // In case the density volume format is not support (which is impossible because all HDRP target supports R8G8B8A8_UNorm)
+            // In case the Local Volumetric Fog format is not support (which is impossible because all HDRP target supports R8G8B8A8_UNorm)
             // we avoid doing operations on the atlas.
             // This happens in the CI on linux when an editor using OpenGL is building a player for Vulkan.
-            if (!SystemInfo.IsFormatSupported(densityVolumeAtlasFormat, FormatUsage.LoadStore))
+            if (!SystemInfo.IsFormatSupported(localVolumetricFogAtlasFormat, FormatUsage.LoadStore))
                 return;
 
             if (volume.parameters.volumeMask != null)
@@ -103,16 +103,16 @@ namespace UnityEngine.Rendering.HighDefinition
             }
         }
 
-        public bool ContainsVolume(DensityVolume volume) => m_Volumes.Contains(volume);
+        public bool ContainsVolume(LocalVolumetricFog volume) => m_Volumes.Contains(volume);
 
-        public List<DensityVolume> PrepareDensityVolumeData(CommandBuffer cmd, HDCamera currentCam)
+        public List<LocalVolumetricFog> PrepareLocalVolumetricFogData(CommandBuffer cmd, HDCamera currentCam)
         {
             //Update volumes
             float time = currentCam.time;
-            foreach (DensityVolume volume in m_Volumes)
+            foreach (LocalVolumetricFog volume in m_Volumes)
                 volume.PrepareParameters(time);
 
-            using (new ProfilingScope(cmd, ProfilingSampler.Get(HDProfileId.UpdateDensityVolumeAtlas)))
+            using (new ProfilingScope(cmd, ProfilingSampler.Get(HDProfileId.UpdateLocalVolumetricFogAtlas)))
             {
                 volumeAtlas.Update(cmd);
             }
@@ -120,7 +120,7 @@ namespace UnityEngine.Rendering.HighDefinition
             return m_Volumes;
         }
 
-        // Note that this function will not release the manager itself as it have to live outside of HDRP to handle density volume components
+        // Note that this function will not release the manager itself as it have to live outside of HDRP to handle Local Volumetric Fog components
         internal void ReleaseAtlas()
         {
             // Release the atlas so next time the manager is used, it is reallocated with new HDRP settings.

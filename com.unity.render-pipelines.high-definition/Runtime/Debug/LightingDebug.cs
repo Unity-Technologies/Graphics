@@ -352,12 +352,12 @@ namespace UnityEngine.Rendering.HighDefinition
         /// <summary>True if reflection probes lights should be displayed in the scene.</summary>
         public bool                 showReflectionProbe = true;
 
-        /// <summary>Display the density volume atlas.</summary>
-        public bool                 displayDensityVolumeAtlas = false;
-        /// <summary>Density volume atlas slice.</summary>
-        public uint                 densityVolumeAtlasSlice = 0;
-        /// <summary>True if Density Volume Atlas debug mode should be displayed for the currently selected Density Volume.</summary>
-        public bool                 densityVolumeUseSelection = false;
+        /// <summary>Display the Local Volumetric Fog atlas.</summary>
+        public bool displayLocalVolumetricFogAtlas = false;
+        /// <summary>Local Volumetric Fog atlas slice.</summary>
+        public uint localVolumetricFogAtlasSlice = 0;
+        /// <summary>True if Local Volumetric Fog Atlas debug mode should be displayed for the currently selected Local Volumetric Fog.</summary>
+        public bool localVolumetricFogUseSelection = false;
 
         /// <summary>Tile and Cluster debug mode.</summary>
         public TileClusterDebug tileClusterDebug = TileClusterDebug.None;

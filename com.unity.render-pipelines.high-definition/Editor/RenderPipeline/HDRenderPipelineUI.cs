@@ -1,8 +1,8 @@
+using System.Text;
 using UnityEngine;
+using UnityEngine.Experimental.Rendering;
 using UnityEngine.Rendering;
 using UnityEngine.Rendering.HighDefinition;
-using System.Text;
-using UnityEngine.Experimental.Rendering;
 using static UnityEngine.Rendering.HighDefinition.RenderPipelineSettings;
 
 namespace UnityEditor.Rendering.HighDefinition
@@ -79,7 +79,6 @@ namespace UnityEditor.Rendering.HighDefinition
                 CED.FoldoutGroup(Styles.lightingSectionTitle, Expandable.Lighting, k_ExpandedState,
                     CED.Group(GroupOption.Indent, Drawer_SectionLightingUnsorted),
                     CED.FoldoutGroup(Styles.volumetricSubTitle, Expandable.Volumetric, k_ExpandedState, FoldoutOption.Indent | FoldoutOption.SubFoldout, Drawer_Volumetric),
-                    CED.FoldoutGroup(Styles.volumetricCloudsSubTitle, Expandable.VolumetricClouds, k_ExpandedState, FoldoutOption.Indent | FoldoutOption.SubFoldout, Drawer_VolumetricClouds),
                     CED.FoldoutGroup(Styles.probeVolumeSubTitle, Expandable.ProbeVolume, k_ExpandedState, FoldoutOption.Indent | FoldoutOption.SubFoldout, Drawer_SectionProbeVolume),
                     CED.FoldoutGroup(Styles.cookiesSubTitle, Expandable.Cookie, k_ExpandedState, FoldoutOption.Indent | FoldoutOption.SubFoldout, Drawer_SectionCookies),
                     CED.FoldoutGroup(Styles.reflectionsSubTitle, Expandable.Reflection, k_ExpandedState, FoldoutOption.Indent | FoldoutOption.SubFoldout, Drawer_SectionReflection),
@@ -114,26 +113,26 @@ namespace UnityEditor.Rendering.HighDefinition
 
         static void Drawer_Volumetric(SerializedHDRenderPipelineAsset serialized, Editor owner)
         {
-            EditorGUILayout.PropertyField(serialized.renderPipelineSettings.supportVolumetrics, Styles.supportVolumetricContent);
+            EditorGUILayout.PropertyField(serialized.renderPipelineSettings.supportVolumetrics, Styles.supportVolumetricFogContent);
 
             using (new EditorGUI.DisabledGroupScope(!serialized.renderPipelineSettings.supportVolumetrics.boolValue))
             {
+                EditorGUI.indentLevel++;
                 var lightSettings = serialized.renderPipelineSettings.lightLoopSettings;
-                EditorGUILayout.PropertyField(lightSettings.maxDensityVolumeSize, Styles.maxDensityVolumeSizeStyle);
-                EditorGUILayout.PropertyField(lightSettings.maxDensityVolumesOnScreen, Styles.maxDensityVolumesOnScreenStyle);
 
-                // Clamp values
-                lightSettings.maxDensityVolumeSize.intValue = Mathf.Clamp(lightSettings.maxDensityVolumeSize.intValue, (int)DensityVolumeResolution.Resolution32, (int)DensityVolumeResolution.Resolution256);
-                lightSettings.maxDensityVolumesOnScreen.intValue = Mathf.Clamp(lightSettings.maxDensityVolumesOnScreen.intValue, 1, HDRenderPipeline.k_MaxVisibleDensityVolumeCount);
+                lightSettings.maxLocalVolumetricFogSize.intValue = (int)(LocalVolumetricFogResolution)EditorGUILayout.EnumPopup(Styles.maxLocalVolumetricFogSizeStyle, (LocalVolumetricFogResolution)lightSettings.maxLocalVolumetricFogSize.intValue);
 
-                if (lightSettings.maxDensityVolumeSize.hasMultipleDifferentValues || lightSettings.maxDensityVolumesOnScreen.hasMultipleDifferentValues)
+                EditorGUILayout.PropertyField(lightSettings.maxLocalVolumetricFogOnScreen, Styles.maxLocalVolumetricFogOnScreenStyle);
+                lightSettings.maxLocalVolumetricFogOnScreen.intValue = Mathf.Clamp(lightSettings.maxLocalVolumetricFogOnScreen.intValue, 1, HDRenderPipeline.k_MaxVisibleLocalVolumetricFogCount);
+
+                if (lightSettings.maxLocalVolumetricFogSize.hasMultipleDifferentValues || lightSettings.maxLocalVolumetricFogOnScreen.hasMultipleDifferentValues)
                     EditorGUILayout.HelpBox(Styles.multipleDifferenteValueMessage, MessageType.Info);
                 else
                 {
                     long currentCache = Texture3DAtlas.GetApproxCacheSizeInByte(
-                        lightSettings.maxDensityVolumeSize.intValue,
-                        lightSettings.maxDensityVolumesOnScreen.intValue,
-                        DensityVolumeManager.densityVolumeAtlasFormat,
+                        lightSettings.maxLocalVolumetricFogSize.intValue,
+                        lightSettings.maxLocalVolumetricFogOnScreen.intValue,
+                        LocalVolumetricFogManager.localVolumetricFogAtlasFormat,
                         true
                     );
 
@@ -141,9 +140,9 @@ namespace UnityEditor.Rendering.HighDefinition
                     {
                         int count = Texture3DAtlas.GetMaxElementCountForWeightInByte(
                             HDRenderPipeline.k_MaxCacheSize,
-                            lightSettings.maxDensityVolumeSize.intValue,
-                            lightSettings.maxDensityVolumesOnScreen.intValue,
-                            DensityVolumeManager.densityVolumeAtlasFormat,
+                            lightSettings.maxLocalVolumetricFogSize.intValue,
+                            lightSettings.maxLocalVolumetricFogOnScreen.intValue,
+                            LocalVolumetricFogManager.localVolumetricFogAtlasFormat,
                             true
                         );
                         string message = string.Format(Styles.cacheErrorFormat, HDEditorUtils.HumanizeWeight(currentCache), count);
@@ -155,11 +154,9 @@ namespace UnityEditor.Rendering.HighDefinition
                         EditorGUILayout.HelpBox(message, MessageType.Info);
                     }
                 }
+                EditorGUI.indentLevel--;
             }
-        }
 
-        static void Drawer_VolumetricClouds(SerializedHDRenderPipelineAsset serialized, Editor owner)
-        {
             EditorGUILayout.PropertyField(serialized.renderPipelineSettings.supportVolumetricClouds, Styles.supportVolumetricCloudsContent);
         }
 
@@ -1180,7 +1177,7 @@ namespace UnityEditor.Rendering.HighDefinition
             AppendSupport(builder, serialized.renderPipelineSettings.supportSSR, Styles.supportSSRContent);
             AppendSupport(builder, serialized.renderPipelineSettings.supportSSAO, Styles.supportSSAOContent);
             AppendSupport(builder, serialized.renderPipelineSettings.supportSubsurfaceScattering, Styles.supportedSSSContent);
-            AppendSupport(builder, serialized.renderPipelineSettings.supportVolumetrics, Styles.supportVolumetricContent);
+            AppendSupport(builder, serialized.renderPipelineSettings.supportVolumetrics, Styles.supportVolumetricFogContent);
 
             if (serialized.renderPipelineSettings.supportLightLayers.hasMultipleDifferentValues)
                 builder.AppendLine().AppendFormat(supportedFormaterMultipleValue, Styles.supportLightLayerContent.text);
