@@ -19,11 +19,11 @@ sampler2D _FlareTex;
 
 float4 _FlareColorValue;
 float4 _FlareData0; // x: localCos0, y: localSin0, zw: PositionOffsetXY
-float4 _FlareData1; // x: OcclusionRadius, y: OcclusionSampleCount, z: ScreenPosZ, w: Falloff
+float4 _FlareData1; // x: OcclusionRadius, y: OcclusionSampleCount, z: ScreenPosZ
 float4 _FlareData2; // xy: ScreenPos, zw: FlareSize
 float4 _FlareData3; // xy: RayOffset, z: invSideCount
 float4 _FlareData4; // x: SDF Roundness, y: SDF Frequency
-float4 _FlareData5; // x: Allow Offscreen, y: Edge Offset
+float4 _FlareData5; // x: Allow Offscreen, y: Edge Offset, z: Falloff
 
 #define _FlareColor             _FlareColorValue
 
@@ -34,7 +34,6 @@ float4 _FlareData5; // x: Allow Offscreen, y: Edge Offset
 #define _OcclusionRadius        _FlareData1.x
 #define _OcclusionSampleCount   _FlareData1.y
 #define _ScreenPosZ             _FlareData1.z
-#define _FlareFalloff           _FlareData1.w
 
 #define _ScreenPos              _FlareData2.xy
 #define _FlareSize              _FlareData2.zw
@@ -49,6 +48,7 @@ float4 _FlareData5; // x: Allow Offscreen, y: Edge Offset
 
 #define _OcclusionOffscreen     _FlareData5.x
 #define _FlareEdgeOffset        _FlareData5.y
+#define _FlareFalloff           _FlareData5.z
 
 float2 Rotate(float2 v, float cos0, float sin0)
 {
@@ -56,6 +56,7 @@ float2 Rotate(float2 v, float cos0, float sin0)
                   v.x * sin0 + v.y * cos0);
 }
 
+#if FLARE_OCCLUSION
 float GetOcclusion(float2 screenPos, float flareDepth, float ratio)
 {
     if (_OcclusionSampleCount == 0.0f)
@@ -85,6 +86,7 @@ float GetOcclusion(float2 screenPos, float flareDepth, float ratio)
 
     return contrib;
 }
+#endif
 
 Varyings vert(Attributes input, uint instanceID : SV_InstanceID)
 {
@@ -105,11 +107,15 @@ Varyings vert(Attributes input, uint instanceID : SV_InstanceID)
     output.positionCS.xy = local + _ScreenPos + _FlareRayOffset + _PositionOffset;
     output.positionCS.zw = posPreScale.zw;
 
+#if FLARE_OCCLUSION
     float occlusion = GetOcclusion(_ScreenPos.xy, _ScreenPosZ, screenRatio);
+#else
+    float occlusion = 1.0f;
+#endif
 
     if (_OcclusionOffscreen < 0.0f && // No lens flare off screen
         (any(_ScreenPos.xy < -1) || any(_ScreenPos.xy >= 1)))
-        occlusion *= 0.0f;
+        occlusion = 0.0f;
 
     output.occlusion = occlusion;
 

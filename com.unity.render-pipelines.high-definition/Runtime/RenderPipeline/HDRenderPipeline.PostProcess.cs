@@ -2862,6 +2862,22 @@ namespace UnityEngine.Rendering.HighDefinition
 
                 globalColorModulation *= distanceAttenuation;
 
+                Vector3 dir = (cam.transform.position - comp.transform.position).normalized;
+                Vector3 screenPosZ = cam.WorldToViewportPoint(positionWS + dir * comp.occlusionOffset);
+                Vector2 occlusionRadiusEdgeScreenPos0 = (Vector2)cam.WorldToViewportPoint(positionWS);
+                Vector2 occlusionRadiusEdgeScreenPos1 = (Vector2)cam.WorldToViewportPoint(positionWS + cam.transform.up * comp.occlusionRadius);
+                float occlusionRadius = (occlusionRadiusEdgeScreenPos1 - occlusionRadiusEdgeScreenPos0).magnitude;
+                cmd.SetGlobalVector(HDShaderIDs._FlareData1, new Vector4(occlusionRadius, comp.sampleCount, screenPosZ.z, 0.0f));
+
+                if (comp.useOcclusion)
+                {
+                    cmd.EnableShaderKeyword("FLARE_OCCLUSION");
+                }
+                else
+                {
+                    cmd.DisableShaderKeyword("FLARE_OCCLUSION");
+                }
+
                 foreach (SRPLensFlareDataElement element in data.elements)
                 {
                     if (element == null ||
@@ -2912,9 +2928,6 @@ namespace UnityEngine.Rendering.HighDefinition
                     if (currentIntensity <= 0.0f)
                         continue;
 
-                    Vector3 dir = (cam.transform.position - comp.transform.position).normalized;
-                    Vector3 screenPosZ = cam.WorldToViewportPoint(positionWS + dir * comp.occlusionOffset);
-
                     curColor *= element.tint;
                     curColor *= currentIntensity;
 
@@ -2924,7 +2937,6 @@ namespace UnityEngine.Rendering.HighDefinition
                     float position = 2.0f * element.position;
 
                     SRPLensFlareBlendMode blendMode = element.blendMode;
-                    //Material usedMaterial = null;
                     int materialPass;
                     if (blendMode == SRPLensFlareBlendMode.Additive)
                         materialPass = 0;
@@ -2981,22 +2993,25 @@ namespace UnityEngine.Rendering.HighDefinition
                     {
                         Vector2 rayOffZ = GetLensFlareRayOffset(screenPos, position, globalCos0, globalSin0);
                         Vector2 localRadPos;
+                        float localRadius;
                         if (!element.distortionRelativeToCenter)
+                        {
                             localRadPos = (rayOff - rayOff0) * 0.5f;
+                            localRadius = Mathf.Clamp01(Mathf.Max(Mathf.Abs(localRadPos.x), Mathf.Abs(localRadPos.y))); // l1 norm (instead of l2 norm)
+                        }
                         else
+                        {
                             localRadPos = screenPos + (rayOff + new Vector2(element.positionOffset.x, -element.positionOffset.y)) * element.translationScale;
-                        float localRadius = Mathf.Clamp01(Mathf.Max(Mathf.Abs(localRadPos.x), Mathf.Abs(localRadPos.y))); // l1 norm (instead of l2 norm)
+                            localRadius = Mathf.Clamp01(localRadPos.magnitude); // l2 norm (instead of l1 norm)
+                        }
                         float localLerpValue = Mathf.Clamp01(distortionCurve.Evaluate(localRadius));
                         return new Vector2(Mathf.Lerp(curSize.x, curSize.x * element.targetSizeDistortion.x, localLerpValue),
                             Mathf.Lerp(curSize.y, curSize.y * element.targetSizeDistortion.y, localLerpValue));
                     }
 
                     float usedSDFRoundness = element.sdfRoundness;
-                    Vector2 occlusionRadiusEdgeScreenPos0 = (Vector2)cam.WorldToViewportPoint(positionWS);
-                    Vector2 occlusionRadiusEdgeScreenPos1 = (Vector2)cam.WorldToViewportPoint(positionWS + cam.transform.up * comp.occlusionRadius);
-                    float occlusionRadius = (occlusionRadiusEdgeScreenPos1 - occlusionRadiusEdgeScreenPos0).magnitude;
-                    cmd.SetGlobalVector(HDShaderIDs._FlareData1, new Vector4(occlusionRadius, comp.sampleCount, screenPosZ.z, Mathf.Exp(element.fallOff)));
-                    cmd.SetGlobalVector(HDShaderIDs._FlareData5, new Vector4(comp.allowOffScreen ? 1.0f : -1.0f, usedGradientPosition, 0.0f, 0.0f));
+
+                    cmd.SetGlobalVector(HDShaderIDs._FlareData5, new Vector4(comp.allowOffScreen ? 1.0f : -1.0f, usedGradientPosition, Mathf.Exp(element.fallOff), 0.0f));
                     if (element.flareType == SRPLensFlareType.Polygon)
                     {
                         float invSide = 1.0f / (float)element.sideCount;

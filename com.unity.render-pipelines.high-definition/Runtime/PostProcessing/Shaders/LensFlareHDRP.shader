@@ -19,12 +19,13 @@ Shader "Hidden/HDRP/LensFlare (HDRP Additive)"
 
             HLSLPROGRAM
 
-            #pragma target 5.0
+            #pragma target 2.0
             #pragma vertex vert
             #pragma fragment frag
 
             #pragma multi_compile_fragment _ FLARE_CIRCLE FLARE_POLYGON
             #pragma multi_compile_fragment _ FLARE_INVERSE_SDF
+            #pragma multi_compile_vertex _ FLARE_OCCLUSION
 
             #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Common.hlsl"
             #include "Packages/com.unity.render-pipelines.high-definition-config/Runtime/ShaderConfig.cs.hlsl"
@@ -55,12 +56,13 @@ Shader "Hidden/HDRP/LensFlare (HDRP Additive)"
 
             HLSLPROGRAM
 
-            #pragma target 5.0
+            #pragma target 2.0
             #pragma vertex vert
             #pragma fragment frag
 
             #pragma multi_compile_fragment _ FLARE_CIRCLE FLARE_POLYGON
             #pragma multi_compile_fragment _ FLARE_INVERSE_SDF
+            #pragma multi_compile_vertex _ FLARE_OCCLUSION
 
             #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Common.hlsl"
             #include "Packages/com.unity.render-pipelines.high-definition-config/Runtime/ShaderConfig.cs.hlsl"
@@ -91,12 +93,13 @@ Shader "Hidden/HDRP/LensFlare (HDRP Additive)"
 
             HLSLPROGRAM
 
-            #pragma target 5.0
+            #pragma target 2.0
             #pragma vertex vert
             #pragma fragment frag
 
             #pragma multi_compile_fragment _ FLARE_CIRCLE FLARE_POLYGON
             #pragma multi_compile_fragment _ FLARE_INVERSE_SDF
+            #pragma multi_compile_vertex _ FLARE_OCCLUSION
 
             #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Common.hlsl"
             #include "Packages/com.unity.render-pipelines.high-definition-config/Runtime/ShaderConfig.cs.hlsl"
@@ -127,12 +130,13 @@ Shader "Hidden/HDRP/LensFlare (HDRP Additive)"
 
             HLSLPROGRAM
 
-            #pragma target 5.0
+            #pragma target 2.0
             #pragma vertex vert
             #pragma fragment frag
 
             #pragma multi_compile_fragment _ FLARE_CIRCLE FLARE_POLYGON
             #pragma multi_compile_fragment _ FLARE_INVERSE_SDF
+            #pragma multi_compile_vertex _ FLARE_OCCLUSION
 
             #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Common.hlsl"
             #include "Packages/com.unity.render-pipelines.high-definition-config/Runtime/ShaderConfig.cs.hlsl"
