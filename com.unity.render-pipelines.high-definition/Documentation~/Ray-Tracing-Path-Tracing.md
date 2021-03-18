@@ -4,7 +4,7 @@ Path tracing is a ray tracing algorithm that sends rays from the Camera and, whe
 
 It enables HDRP to compute many different effects (such as hard or soft shadows, mirror or glossy reflections and refractions, and indirect illumination) in one single unified process.
 
-A notable downside to path tracing is noise. However, noise vanishes as more paths accumulate, and eventually converges toward a clean image.
+A notable downside to path tracing is noise. However, noise vanishes as more paths accumulate, and eventually converges toward a clean image. For more information about path tracing limitations in HDRP, see [Unsupported features of path tracing](Ray-Tracing-Getting-Started.md#unsupported-features-of-path-tracing).
 
 ![](Images/RayTracingPathTracing1.png)
 
@@ -16,11 +16,11 @@ Clean image with **Maximum Samples** set to 256
 
 The current implementation for path tracing in the High Definition Render Pipeline (HDRP) accumulates paths for every pixel up to a maximum count, unless the Camera moves. If the Camera moves, HDRP restarts the path accumulation. Path tracing supports Lit, LayeredLit and Unlit materials, and area, point, directional and environment lights.
 
-## Set up path tracing
+## Setting up path tracing
 
 Path tracing shares the general requirements and setup as other ray tracing effects, so for information on hardware requirements and set up, see [getting started with ray tracing](Ray-Tracing-Getting-Started.md). You must carry out this setup before you can add path tracing to your Scene.
 
-## Add path tracing to your Scene
+## Adding path tracing to a Scene
 
 Path tracing uses the [Volume](Volumes.md) framework, so to enable this feature, and modify its properties, you must add a Path Tracing override to a [Volume](Volumes.md) in your Scene. To do this:
 
