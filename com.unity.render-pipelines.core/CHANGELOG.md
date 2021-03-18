@@ -16,6 +16,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Calculating correct rtHandleScale by considering the possible pixel rounding when DRS is on
 - Problem on domain reload of Volume Parameter Ranges and UI values
 - Fixed Right Align of additional properties on Volume Components Editors
+- Fixed normal bias field of reference volume being wrong until the profile UI was displayed.
 
 ### Added
 - Support for the PlayStation 5 platform has been added.
@@ -27,6 +28,9 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - New method DrawHeaders for VolumeComponentsEditors
 - Unification of Material Editor Headers Scopes
 - New API functions with no side effects in DynamicResolutionHandler, to retrieve resolved drs scale and to apply DRS on a size.
+- Added a blitter for the SRPs.
+- Added 2D texture atlases.
+- New methods on CoreEditorDrawers, to allow adding a label on a group before rendering the internal drawers
 - Method to generate a Texture2D of 1x1 with a plain color
 - Red, Green, Blue Texture2D on CoreEditorStyles
 
@@ -39,6 +43,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Volume Gizmo alpha changed from 0.5 to 0.125
 - Moved Edit/Render Pipeline/Generate Shader Includes to Edit/Rendering/Generate Shader Includes
 - Moved Assets/Create/LookDev/Environment Library to Assets/Create/Rendering/Environment Library (Look Dev)
+- Changed Nintendo Switch specific half float fixes in color conversion routines to all platforms.
 
 ### Added
 - Added class for drawing shadow cascades `UnityEditor.Rendering.ShadowCascadeGUI.DrawShadowCascades`.

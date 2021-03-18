@@ -65,6 +65,7 @@ namespace UnityEngine.Rendering.HighDefinition
     /// <summary>
     /// Enum volume parameter.
     /// </summary>
+    /// <typeparam name="T">The type of value to hold in this parameter.</typeparam>
     [Serializable, DebuggerDisplay(k_DebuggerDisplay)]
     public sealed class CloudLayerEnumParameter<T> : VolumeParameter<T>
     {
@@ -332,7 +333,7 @@ namespace UnityEngine.Rendering.HighDefinition
         /// </summary>
         static void Init()
         {
-            var asset = HDRenderPipeline.currentAsset;
+            var asset = HDRenderPipelineGlobalSettings.instance;
             if (asset != null)
                 CloudMap.s_DefaultTexture = asset.renderPipelineResources?.textures.defaultCloudMap;
         }

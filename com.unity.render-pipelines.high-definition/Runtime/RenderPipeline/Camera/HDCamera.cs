@@ -67,6 +67,8 @@ namespace UnityEngine.Rendering.HighDefinition
             internal float pad2;
         };
 
+        /// <summary>Camera name.</summary>
+        public string               name { get; private set; } // Needs to be cached because camera.name generates GCAllocs
         /// <summary>
         /// Screen resolution information.
         /// Width, height, inverse width, inverse height.
@@ -103,6 +105,8 @@ namespace UnityEngine.Rendering.HighDefinition
         public VolumeStack          volumeStack { get; private set; }
         /// <summary>Current time for this camera.</summary>
         public float                time; // Take the 'animateMaterials' setting into account.
+
+        internal bool               dofHistoryIsValid = false;  // used to invalidate DoF accumulation history when switching DoF modes
 
         // Pass all the systems that may want to initialize per-camera data here.
         // That way you will never create an HDCamera and forget to initialize the data.
@@ -451,6 +455,8 @@ namespace UnityEngine.Rendering.HighDefinition
         internal HDCamera(Camera cam)
         {
             camera = cam;
+
+            name = cam.name;
 
             frustum = new Frustum();
             frustum.planes = new Plane[6];
