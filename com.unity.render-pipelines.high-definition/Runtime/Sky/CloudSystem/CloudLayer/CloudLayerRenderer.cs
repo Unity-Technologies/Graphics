@@ -29,7 +29,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
         public override void Build()
         {
-            var hdrp = HDRenderPipeline.defaultAsset;
+            var hdrp = HDRenderPipelineGlobalSettings.instance;
             m_CloudLayerMaterial = CoreUtils.CreateEngineMaterial(hdrp.renderPipelineResources.shaders.cloudLayerPS);
 
             s_BakeCloudTextureCS = hdrp.renderPipelineResources.shaders.bakeCloudTextureCS;

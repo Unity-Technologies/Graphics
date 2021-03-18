@@ -428,7 +428,7 @@ namespace UnityEditor.Rendering.HighDefinition
 
         bool IsHdrpAssetDiffusionProfileCorrect()
         {
-            var profileList = HDRenderPipeline.defaultAsset?.diffusionProfileSettingsList;
+            var profileList = HDRenderPipelineGlobalSettings.instance?.diffusionProfileSettingsList;
             return IsHdrpAssetUsedCorrect() && profileList.Length != 0 && profileList.Any(p => p != null);
         }
 
@@ -437,12 +437,12 @@ namespace UnityEditor.Rendering.HighDefinition
             if (!IsHdrpAssetUsedCorrect())
                 FixHdrpAssetUsed(fromAsync: false);
 
-            var hdrpAsset = HDRenderPipeline.defaultAsset;
+            var hdrpAsset = HDRenderPipelineGlobalSettings.instance;
             if (hdrpAsset == null)
                 return;
 
             var defaultAssetList = hdrpAsset.renderPipelineEditorResources.defaultDiffusionProfileSettingsList;
-            HDRenderPipeline.defaultAsset.diffusionProfileSettingsList = new DiffusionProfileSettings[0]; // clear the diffusion profile list
+            HDRenderPipelineGlobalSettings.instance.diffusionProfileSettingsList = new DiffusionProfileSettings[0]; // clear the diffusion profile list
 
             if (!AssetDatabase.IsValidFolder("Assets/" + HDProjectSettings.projectSettingsFolderPath))
                 AssetDatabase.CreateFolder("Assets", HDProjectSettings.projectSettingsFolderPath);
@@ -453,7 +453,7 @@ namespace UnityEditor.Rendering.HighDefinition
                 AssetDatabase.CopyAsset(AssetDatabase.GetAssetPath(diffusionProfileAsset), defaultDiffusionProfileSettingsPath);
 
                 var userAsset = AssetDatabase.LoadAssetAtPath<DiffusionProfileSettings>(defaultDiffusionProfileSettingsPath);
-                HDRenderPipeline.defaultAsset.AddDiffusionProfile(userAsset);
+                HDRenderPipelineGlobalSettings.instance.AddDiffusionProfile(userAsset);
             }
 
             EditorUtility.SetDirty(hdrpAsset);
@@ -662,7 +662,7 @@ namespace UnityEditor.Rendering.HighDefinition
 
         bool IsDXRScreenSpaceShadowFSCorrect()
         {
-            var hdrpAsset = HDRenderPipeline.defaultAsset;
+            var hdrpAsset = HDRenderPipelineGlobalSettings.instance;
             if (hdrpAsset != null)
             {
                 FrameSettings defaultCameraFS = hdrpAsset.GetDefaultFrameSettings(FrameSettingsRenderType.Camera);
@@ -678,7 +678,7 @@ namespace UnityEditor.Rendering.HighDefinition
 
         bool IsDXRReflectionsFSCorrect()
         {
-            var hdrpAsset = HDRenderPipeline.defaultAsset;
+            var hdrpAsset = HDRenderPipelineGlobalSettings.instance;
             if (hdrpAsset != null)
             {
                 FrameSettings defaultCameraFS = hdrpAsset.GetDefaultFrameSettings(FrameSettingsRenderType.Camera);
@@ -694,7 +694,7 @@ namespace UnityEditor.Rendering.HighDefinition
 
         bool IsDXRTransparentReflectionsFSCorrect()
         {
-            var hdrpAsset = HDRenderPipeline.defaultAsset;
+            var hdrpAsset = HDRenderPipelineGlobalSettings.instance;
             if (hdrpAsset != null)
             {
                 FrameSettings defaultCameraFS = hdrpAsset.GetDefaultFrameSettings(FrameSettingsRenderType.Camera);
@@ -710,7 +710,7 @@ namespace UnityEditor.Rendering.HighDefinition
 
         bool IsDXRGIFSCorrect()
         {
-            var hdrpAsset = HDRenderPipeline.defaultAsset;
+            var hdrpAsset = HDRenderPipelineGlobalSettings.instance;
             if (hdrpAsset != null)
             {
                 FrameSettings defaultCameraFS = hdrpAsset.GetDefaultFrameSettings(FrameSettingsRenderType.Camera);
