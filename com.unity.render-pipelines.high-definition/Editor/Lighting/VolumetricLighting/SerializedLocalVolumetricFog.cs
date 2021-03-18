@@ -3,7 +3,7 @@ using UnityEngine.Rendering.HighDefinition;
 
 namespace UnityEditor.Rendering.HighDefinition
 {
-    class SerializedDensityVolume
+    class SerializedLocalVolumetricFog
     {
         public SerializedProperty densityParams;
         public SerializedProperty albedo;
@@ -30,7 +30,7 @@ namespace UnityEditor.Rendering.HighDefinition
 
         SerializedObject m_SerializedObject;
 
-        public SerializedDensityVolume(SerializedObject serializedObject)
+        public SerializedLocalVolumetricFog(SerializedObject serializedObject)
         {
             m_SerializedObject = serializedObject;
 
@@ -58,7 +58,7 @@ namespace UnityEditor.Rendering.HighDefinition
             distanceFadeStart = densityParams.FindPropertyRelative("distanceFadeStart");
             distanceFadeEnd   = densityParams.FindPropertyRelative("distanceFadeEnd");
 
-            falloffMode = densityParams.FindPropertyRelative(nameof(DensityVolumeArtistParameters.falloffMode));
+            falloffMode = densityParams.FindPropertyRelative(nameof(LocalVolumetricFogArtistParameters.falloffMode));
         }
 
         public void Apply()

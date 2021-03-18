@@ -4,9 +4,9 @@ using UnityEngine.Rendering.HighDefinition;
 
 namespace UnityEditor.Rendering.HighDefinition
 {
-    using CED = CoreEditorDrawer<SerializedDensityVolume>;
+    using CED = CoreEditorDrawer<SerializedLocalVolumetricFog>;
 
-    static partial class DensityVolumeUI
+    static partial class LocalVolumetricFogUI
     {
         // also used for AdvancedModes
         [System.Flags]
@@ -16,7 +16,7 @@ namespace UnityEditor.Rendering.HighDefinition
             DensityMaskTexture = 1 << 1
         }
 
-        readonly static ExpandedState<Expandable, DensityVolume> k_ExpandedState = new ExpandedState<Expandable, DensityVolume>(Expandable.Volume | Expandable.DensityMaskTexture, "HDRP");
+        readonly static ExpandedState<Expandable, LocalVolumetricFog> k_ExpandedState = new ExpandedState<Expandable, LocalVolumetricFog>(Expandable.Volume | Expandable.DensityMaskTexture, "HDRP");
 
         public static readonly CED.IDrawer Inspector = CED.Group(
             CED.Group(
@@ -33,11 +33,11 @@ namespace UnityEditor.Rendering.HighDefinition
             )
         );
 
-        static void Drawer_ToolBar(SerializedDensityVolume serialized, Editor owner)
+        static void Drawer_ToolBar(SerializedLocalVolumetricFog serialized, Editor owner)
         {
             GUILayout.BeginHorizontal();
             GUILayout.FlexibleSpace();
-            EditMode.DoInspectorToolbar(new[] { DensityVolumeEditor.k_EditShape, DensityVolumeEditor.k_EditBlend }, Styles.s_Toolbar_Contents, () =>
+            EditMode.DoInspectorToolbar(new[] { LocalVolumetricFogEditor.k_EditShape, LocalVolumetricFogEditor.k_EditBlend }, Styles.s_Toolbar_Contents, () =>
             {
                 var bounds = new Bounds();
                 foreach (Component targetObject in owner.targets)
@@ -51,13 +51,13 @@ namespace UnityEditor.Rendering.HighDefinition
             GUILayout.EndHorizontal();
         }
 
-        static void Drawer_PrimarySettings(SerializedDensityVolume serialized, Editor owner)
+        static void Drawer_PrimarySettings(SerializedLocalVolumetricFog serialized, Editor owner)
         {
             EditorGUILayout.PropertyField(serialized.albedo, Styles.s_AlbedoLabel);
             EditorGUILayout.PropertyField(serialized.meanFreePath, Styles.s_MeanFreePathLabel);
         }
 
-        static void Drawer_VolumeContent(SerializedDensityVolume serialized, Editor owner)
+        static void Drawer_VolumeContent(SerializedLocalVolumetricFog serialized, Editor owner)
         {
             //keep previous data as value are stored in percent
             Vector3 previousSize = serialized.size.vector3Value;
@@ -177,7 +177,7 @@ namespace UnityEditor.Rendering.HighDefinition
             }
         }
 
-        static void Drawer_DensityMaskTextureContent(SerializedDensityVolume serialized, Editor owner)
+        static void Drawer_DensityMaskTextureContent(SerializedLocalVolumetricFog serialized, Editor owner)
         {
             EditorGUI.BeginChangeCheck();
             EditorGUILayout.PropertyField(serialized.volumeTexture, Styles.s_VolumeTextureLabel);
@@ -188,7 +188,7 @@ namespace UnityEditor.Rendering.HighDefinition
                 {
                     if (!(newTexture is RenderTexture rt && rt.dimension == UnityEngine.Rendering.TextureDimension.Tex3D || newTexture is Texture3D))
                     {
-                        Debug.LogError($"Can't assign texture '{newTexture}' to the Density Volume because the dimension doesn't match the expected Texture3D dimension.");
+                        Debug.LogError($"Can't assign texture '{newTexture}' to the Local Volumetric Fog because the dimension doesn't match the expected Texture3D dimension.");
                         serialized.volumeTexture.objectReferenceValue = null;
                     }
                 }

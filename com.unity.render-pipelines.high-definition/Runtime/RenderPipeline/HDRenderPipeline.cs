@@ -153,11 +153,6 @@ namespace UnityEngine.Rendering.HighDefinition
 
         Material m_ErrorMaterial;
 
-        Material m_Blit;
-        Material m_BlitTexArray;
-        Material m_BlitTexArraySingleSlice;
-        Material m_BlitColorAndDepth;
-
         Lazy<RTHandle> m_CustomPassColorBuffer;
         Lazy<RTHandle> m_CustomPassDepthBuffer;
 
@@ -249,9 +244,6 @@ namespace UnityEngine.Rendering.HighDefinition
 
         private CameraCache<(Transform viewer, HDProbe probe, int face)> m_ProbeCameraCache = new
             CameraCache<(Transform viewer, HDProbe probe, int face)>();
-
-        internal Material GetBlitMaterial(bool useTexArray, bool singleSlice) { return useTexArray ? (singleSlice ? m_BlitTexArraySingleSlice : m_BlitTexArray) : m_Blit; }
-        internal Material GetBlitColorAndDepthMaterial() { return m_BlitColorAndDepth; }
 
         ComputeBuffer m_DepthPyramidMipLevelOffsetsBuffer = null;
 
@@ -401,18 +393,9 @@ namespace UnityEngine.Rendering.HighDefinition
 
             InitializeDebug();
 
-            m_Blit = CoreUtils.CreateEngineMaterial(defaultResources.shaders.blitPS);
-            m_BlitColorAndDepth = CoreUtils.CreateEngineMaterial(defaultResources.shaders.blitColorAndDepthPS);
-            m_ErrorMaterial = CoreUtils.CreateEngineMaterial("Hidden/InternalErrorShader");
+            Blitter.Initialize(defaultResources.shaders.blitPS, defaultResources.shaders.blitColorAndDepthPS);
 
-            // With texture array enabled, we still need the normal blit version for other systems like atlas
-            if (TextureXR.useTexArray)
-            {
-                m_Blit.EnableKeyword("DISABLE_TEXTURE2D_X_ARRAY");
-                m_BlitTexArray = CoreUtils.CreateEngineMaterial(defaultResources.shaders.blitPS);
-                m_BlitTexArraySingleSlice = CoreUtils.CreateEngineMaterial(defaultResources.shaders.blitPS);
-                m_BlitTexArraySingleSlice.EnableKeyword("BLIT_SINGLE_SLICE");
-            }
+            m_ErrorMaterial = CoreUtils.CreateEngineMaterial("Hidden/InternalErrorShader");
 
             m_MaterialList.ForEach(material => material.Build(asset, defaultResources));
 
@@ -508,7 +491,7 @@ namespace UnityEngine.Rendering.HighDefinition
             ResourceReloader.ReloadAllNullIn(asset.renderPipelineResources, HDUtils.GetHDRenderPipelinePath());
 #endif
 
-            if (m_RayTracingSupported)
+            if (GatherRayTracingSupport(asset.currentPlatformRenderPipelineSettings))
             {
                 if (asset.renderPipelineRayTracingResources == null)
                     asset.renderPipelineRayTracingResources
@@ -794,9 +777,8 @@ namespace UnityEngine.Rendering.HighDefinition
 
             CleanupDebug();
 
-            CoreUtils.Destroy(m_Blit);
-            CoreUtils.Destroy(m_BlitTexArray);
-            CoreUtils.Destroy(m_BlitTexArraySingleSlice);
+            Blitter.Cleanup();
+
             CoreUtils.Destroy(m_CopyDepth);
             CoreUtils.Destroy(m_ErrorMaterial);
             CoreUtils.Destroy(m_UpsampleTransparency);
@@ -830,7 +812,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
             CustomPassVolume.Cleanup();
 
-            DensityVolumeManager.manager.ReleaseAtlas();
+            LocalVolumetricFogManager.manager.ReleaseAtlas();
 
             CleanupPrepass();
             CoreUtils.Destroy(m_ColorResolveMaterial);
@@ -1975,8 +1957,8 @@ namespace UnityEngine.Rendering.HighDefinition
                 foreach (var material in m_MaterialList)
                     material.Bind(cmd);
 
-                // Frustum cull density volumes on the CPU. Can be performed as soon as the camera is set up.
-                DensityVolumeList densityVolumes = PrepareVisibleDensityVolumeList(hdCamera, cmd);
+                // Frustum cull Local Volumetric Fog on the CPU. Can be performed as soon as the camera is set up.
+                LocalVolumetricFogList localVolumetricFog = PrepareVisibleLocalVolumetricFogList(hdCamera, cmd);
 
                 // do AdaptiveProbeVolume stuff
                 BindAPVRuntimeResources(cmd, hdCamera);
@@ -1987,7 +1969,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 // Currently to know if you need shadow mask you need to go through all visible lights (of CullResult), check the LightBakingOutput struct and look at lightmapBakeType/mixedLightingMode. If one light have shadow mask bake mode, then you need shadow mask features (i.e extra Gbuffer).
                 // It mean that when we build a standalone player, if we detect a light with bake shadow mask, we generate all shader variant (with and without shadow mask) and at runtime, when a bake shadow mask light is visible, we dynamically allocate an extra GBuffer and switch the shader.
                 // So the first thing to do is to go through all the light: PrepareLightsForGPU
-                bool enableBakeShadowMask = PrepareLightsForGPU(cmd, hdCamera, cullingResults, hdProbeCullingResults, densityVolumes, m_CurrentDebugDisplaySettings, aovRequest);
+                bool enableBakeShadowMask = PrepareLightsForGPU(cmd, hdCamera, cullingResults, hdProbeCullingResults, localVolumetricFog, m_CurrentDebugDisplaySettings, aovRequest);
 
                 UpdateGlobalConstantBuffers(hdCamera, cmd);
 
