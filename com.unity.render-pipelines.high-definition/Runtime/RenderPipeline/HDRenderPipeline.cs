@@ -239,11 +239,7 @@ namespace UnityEngine.Rendering.HighDefinition
         /// <param name="asset">Source HDRenderPipelineAsset.</param>
         public HDRenderPipeline(HDRenderPipelineAsset asset)
         {
-#if UNITY_EDITOR
             m_GlobalSettings = HDRenderPipelineGlobalSettings.Ensure();
-#else
-            m_GlobalSettings = HDRenderPipelineGlobalSettings.instance;
-#endif
             m_Asset = asset;
             HDProbeSystem.Parameters = asset.reflectionSystemParameters;
 

@@ -51,10 +51,10 @@ namespace UnityEngine.Rendering.HighDefinition
             cachedInstance = newSettings;
         }
 
-#if UNITY_EDITOR
         //Making sure there is at least one HDRenderPipelineGlobalSettings instance in the project
         static internal HDRenderPipelineGlobalSettings Ensure(bool canCreateNewAsset = true)
         {
+#if UNITY_EDITOR
             bool needsMigration = (assetToBeMigrated != null && !assetToBeMigrated.Equals(null));
 
             if (HDRenderPipelineGlobalSettings.instance && !needsMigration)
@@ -99,10 +99,14 @@ namespace UnityEngine.Rendering.HighDefinition
             }
             Debug.Assert(assetCreated, "Could not create HDRP's Global Settings - HDRP may not work correctly - Open the Graphics Window for additional help.");
             UpdateGraphicsSettings(assetCreated);
+#else
+            if (HDRenderPipelineGlobalSettings.instance == null)
+            {
+                Debug.LogError("Cannot find any HDRP Global Settings asset. Make sure to include one in your Player.");
+            }
+#endif
             return HDRenderPipelineGlobalSettings.instance;
         }
-
-#endif
 
         void Init()
         {
