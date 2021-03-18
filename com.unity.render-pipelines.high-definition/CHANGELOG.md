@@ -109,12 +109,12 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed Nans happening when the history render target is bigger than the current viewport (case 1321139).
 - Fixed Tube and Disc lights mode selection (case 1317776)
 - Fixed preview camera updating the skybox material triggering GI baking (case 1314361/1314373).
+- The default LookDev volume profile is now copied and referened in the Asset folder instead of the package folder.
 
 ### Changed
 - Changed Window/Render Pipeline/HD Render Pipeline Wizard to Window/Rendering/HDRP Wizard
 - Removed the material pass probe volumes evaluation mode.
-- Changed GameObject/Rendering/Density Volume to GameObject/Volume/Density Volume
-- Changed GameObject/Rendering/Decal Projector to GameObject/Decal Projector
+- Changed GameObject/Rendering/Density Volume to GameObject/Rendering/Local Volumetric Fog
 - Changed GameObject/Volume/Sky and Fog Volume to GameObject/Volume/Sky and Fog Global Volume
 - Move the Decal Gizmo Color initialization to preferences
 - Unifying the history validation pass so that it is only done once for the whole frame and not per effect.
@@ -160,8 +160,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Decreased the minimal Fog Distance value in the Density Volume to 0.05.
 - Virtual Texturing Resolver now performs RTHandle resize logic in HDRP instead of in core Unity
 - Cached the base types of Volume Manager to improve memory and cpu usage.
-- Reduced the maximal number of bounces for both RTGI and RTR (case 1318876).
-- Added tooltips to warn when some features may be disabled depending on MSAA/raytracing usage.
+- Changed Density Volume for Local Volumetric Fog
 
 ## [11.0.0] - 2020-10-21
 
