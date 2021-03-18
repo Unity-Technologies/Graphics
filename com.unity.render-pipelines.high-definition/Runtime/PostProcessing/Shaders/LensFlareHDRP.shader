@@ -1,4 +1,4 @@
-Shader "Hidden/HDRP/LensFlare (HDRP Additive)"
+Shader "Hidden/HDRP/LensFlare"
 {
     Properties
     {
@@ -19,7 +19,7 @@ Shader "Hidden/HDRP/LensFlare (HDRP Additive)"
 
             HLSLPROGRAM
 
-            #pragma target 2.0
+            #pragma target 5.0
             #pragma vertex vert
             #pragma fragment frag
 
@@ -30,15 +30,7 @@ Shader "Hidden/HDRP/LensFlare (HDRP Additive)"
             #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Common.hlsl"
             #include "Packages/com.unity.render-pipelines.high-definition-config/Runtime/ShaderConfig.cs.hlsl"
             #include "Packages/com.unity.render-pipelines.high-definition/Runtime/ShaderLibrary/ShaderVariables.hlsl"
-            #include "Packages/com.unity.render-pipelines.high-definition/Runtime/PostProcessing/Shaders/LensFlareHDRPCommon.hlsl"
-
-            float4 frag(Varyings input): SV_Target
-            {
-                UNITY_SETUP_STEREO_EYE_INDEX_POST_VERTEX(input);
-
-                float4 col = GetFlareShape(input.texcoord);
-                return col * _FlareColor * input.occlusion;
-            }
+            #include "Packages/com.unity.render-pipelines.core/Runtime/PostProcessing/Shaders/LensFlareHDRPCommon.hlsl"
 
             ENDHLSL
         }
@@ -67,15 +59,7 @@ Shader "Hidden/HDRP/LensFlare (HDRP Additive)"
             #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Common.hlsl"
             #include "Packages/com.unity.render-pipelines.high-definition-config/Runtime/ShaderConfig.cs.hlsl"
             #include "Packages/com.unity.render-pipelines.high-definition/Runtime/ShaderLibrary/ShaderVariables.hlsl"
-            #include "Packages/com.unity.render-pipelines.high-definition/Runtime/PostProcessing/Shaders/LensFlareHDRPCommon.hlsl"
-
-            float4 frag(Varyings input) : SV_Target
-            {
-                UNITY_SETUP_STEREO_EYE_INDEX_POST_VERTEX(input);
-
-                float4 col = GetFlareShape(input.texcoord);
-                return col * _FlareColor * input.occlusion;
-            }
+            #include "Packages/com.unity.render-pipelines.core/Runtime/PostProcessing/Shaders/LensFlareHDRPCommon.hlsl"
 
             ENDHLSL
         }
@@ -104,15 +88,7 @@ Shader "Hidden/HDRP/LensFlare (HDRP Additive)"
             #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Common.hlsl"
             #include "Packages/com.unity.render-pipelines.high-definition-config/Runtime/ShaderConfig.cs.hlsl"
             #include "Packages/com.unity.render-pipelines.high-definition/Runtime/ShaderLibrary/ShaderVariables.hlsl"
-            #include "Packages/com.unity.render-pipelines.high-definition/Runtime/PostProcessing/Shaders/LensFlareHDRPCommon.hlsl"
-
-            float4 frag(Varyings input) : SV_Target
-            {
-                UNITY_SETUP_STEREO_EYE_INDEX_POST_VERTEX(input);
-
-                float4 col = GetFlareShape(input.texcoord);
-                return col * _FlareColor * input.occlusion;
-            }
+            #include "Packages/com.unity.render-pipelines.core/Runtime/PostProcessing/Shaders/LensFlareHDRPCommon.hlsl"
 
             ENDHLSL
         }
@@ -141,15 +117,7 @@ Shader "Hidden/HDRP/LensFlare (HDRP Additive)"
             #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Common.hlsl"
             #include "Packages/com.unity.render-pipelines.high-definition-config/Runtime/ShaderConfig.cs.hlsl"
             #include "Packages/com.unity.render-pipelines.high-definition/Runtime/ShaderLibrary/ShaderVariables.hlsl"
-            #include "Packages/com.unity.render-pipelines.high-definition/Runtime/PostProcessing/Shaders/LensFlareHDRPCommon.hlsl"
-
-            float4 frag(Varyings input) : SV_Target
-            {
-                UNITY_SETUP_STEREO_EYE_INDEX_POST_VERTEX(input);
-
-                float4 col = GetFlareShape(input.texcoord);
-                return col * _FlareColor * input.occlusion;
-            }
+            #include "Packages/com.unity.render-pipelines.core/Runtime/PostProcessing/Shaders/LensFlareHDRPCommon.hlsl"
 
             ENDHLSL
         }

@@ -308,7 +308,7 @@ namespace UnityEngine.Rendering.HighDefinition
             [Reload("Runtime/PostProcessing/Shaders/LensFlareHDRP.shader")]
             public Shader lensFlareShaderPS;
 
-            // Physicaly based DoF
+            // Physically based DoF
             [Reload("Runtime/PostProcessing/Shaders/DoFCircleOfConfusion.compute")]
             public ComputeShader dofCircleOfConfusion;
             [Reload("Runtime/PostProcessing/Shaders/DoFGather.compute")]

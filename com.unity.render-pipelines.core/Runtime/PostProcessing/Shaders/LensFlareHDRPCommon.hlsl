@@ -186,3 +186,11 @@ float4 GetFlareShape(float2 uv)
     return tex2D(_FlareTex, uv);
 #endif
 }
+
+float4 frag(Varyings input) : SV_Target
+{
+    UNITY_SETUP_STEREO_EYE_INDEX_POST_VERTEX(input);
+
+    float4 col = GetFlareShape(input.texcoord);
+    return col * _FlareColor * input.occlusion;
+}
