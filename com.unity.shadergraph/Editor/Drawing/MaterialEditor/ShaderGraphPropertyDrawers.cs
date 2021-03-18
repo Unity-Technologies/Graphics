@@ -50,25 +50,26 @@ namespace UnityEditor.ShaderGraph.Drawing
 
         public static void DrawShaderGraphGUI(MaterialEditor materialEditor, MaterialProperty[] properties, IEnumerable<MinimalCategoryData> categoryDatas)
         {
-            string s = "";
-            foreach(MinimalCategoryData categoryData in categoryDatas)
-            {
-                s += $"{categoryData.categoryName}\n";
-                foreach(MinimalCategoryData.GraphInputData propData in categoryData.propertyDatas)
-                {
-                    s += $"\t{propData.referenceName}, {propData.propertyType}\n";
-                }
-                s += "\n";
-            }
-            Debug.Log(s);
-
             foreach(MinimalCategoryData mcd in categoryDatas)
             {
-                if (mcd.categoryName.Length > 0)
-                {
-                    EditorGUI.LabelField(GetRect(), mcd.categoryName, EditorStyles.boldLabel);
-                }
-                foreach(var propData in mcd.propertyDatas)
+                DrawCategory(materialEditor, properties, mcd);
+            }
+        }
+
+        private static void DrawCategory(MaterialEditor materialEditor, MaterialProperty[] properties, MinimalCategoryData minimalCategoryData)
+        {
+            if (minimalCategoryData.categoryName.Length > 0)
+            {
+                minimalCategoryData.expanded = EditorGUILayout.Foldout(minimalCategoryData.expanded, minimalCategoryData.categoryName);
+            }
+            else
+            {
+                //force draw if no category name to do foldout on
+                minimalCategoryData.expanded = true;
+            }
+            if (minimalCategoryData.expanded)
+            {
+                foreach (var propData in minimalCategoryData.propertyDatas)
                 {
                     MaterialProperty prop = FindProperty(propData.referenceName, properties);
                     DrawProperty(materialEditor, prop, propData);

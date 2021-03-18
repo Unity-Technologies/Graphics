@@ -19,6 +19,8 @@ namespace UnityEditor.ShaderGraph
         }
         public string categoryName;
         public List<GraphInputData> propertyDatas;
+        [NonSerialized]
+        public bool expanded = true;
     }
 
     class ShaderGraphMetadata : ScriptableObject
