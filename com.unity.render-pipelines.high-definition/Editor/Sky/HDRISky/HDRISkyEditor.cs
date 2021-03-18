@@ -95,9 +95,7 @@ namespace UnityEditor.Rendering.HighDefinition
             m_ShadowTint                = Unpack(o.Find(x => x.shadowTint));
 
             m_IntensityTexture = RTHandles.Alloc(1, 1, colorFormat: GraphicsFormat.R32G32B32A32_SFloat);
-            var hdrp = HDRenderPipeline.defaultAsset;
-            if (hdrp != null)
-                m_IntegrateHDRISkyMaterial = CoreUtils.CreateEngineMaterial(hdrp.renderPipelineResources.shaders.integrateHdriSkyPS);
+            m_IntegrateHDRISkyMaterial = CoreUtils.CreateEngineMaterial(HDRenderPipelineGlobalSettings.instance.renderPipelineResources.shaders.integrateHdriSkyPS);
             m_ReadBackTexture = new Texture2D(1, 1, GraphicsFormat.R32G32B32A32_SFloat, TextureCreationFlags.None);
         }
 

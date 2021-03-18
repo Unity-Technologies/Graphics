@@ -24,9 +24,6 @@ namespace UnityEngine.Rendering.HighDefinition
     public partial class HDRenderPipeline : RenderPipeline
     {
         #region Global Settings
-        internal static HDRenderPipelineGlobalSettings defaultAsset
-            => HDRenderPipelineGlobalSettings.instance;
-
         private HDRenderPipelineGlobalSettings m_GlobalSettings;
         public override RenderPipelineGlobalSettings defaultSettings => m_GlobalSettings;
 

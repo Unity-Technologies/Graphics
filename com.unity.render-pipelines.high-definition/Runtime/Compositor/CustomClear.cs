@@ -35,9 +35,7 @@ namespace UnityEngine.Rendering.HighDefinition.Compositor
             // Setup code here
             if (string.IsNullOrEmpty(name)) name = "CustomClear";
 
-            var hdrpAsset = HDRenderPipeline.defaultAsset;
-            if (hdrpAsset != null)
-                m_FullscreenPassMaterial = CoreUtils.CreateEngineMaterial(hdrpAsset.renderPipelineResources.shaders.customClearPS);
+            m_FullscreenPassMaterial = CoreUtils.CreateEngineMaterial(HDRenderPipelineGlobalSettings.instance.renderPipelineResources.shaders.customClearPS);
         }
 
         protected override void Execute(CustomPassContext ctx)

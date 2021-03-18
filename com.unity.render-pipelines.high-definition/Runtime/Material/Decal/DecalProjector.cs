@@ -458,8 +458,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 return false;
 
 #if UNITY_EDITOR
-            var hdrp = HDRenderPipeline.defaultAsset;
-            if ((hdrp != null) && (m_Material == hdrp.GetDefaultDecalMaterial()))
+            if (m_Material == HDRenderPipeline.currentAsset?.GetDefaultDecalMaterial())
                 return false;
 #endif
 
