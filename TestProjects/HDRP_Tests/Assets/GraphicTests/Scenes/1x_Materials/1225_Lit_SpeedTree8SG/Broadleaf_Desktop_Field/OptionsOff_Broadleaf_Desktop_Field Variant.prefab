@@ -89,6 +89,11 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 4091334179245277745, guid: cea5c55500800be4ca0d32a9514b350d,
         type: 3}
+      propertyPath: m_LightProbeUsage
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 4091334179245277745, guid: cea5c55500800be4ca0d32a9514b350d,
+        type: 3}
       propertyPath: m_Materials.Array.data[0]
       value: 
       objectReference: {fileID: 2100000, guid: b4ebc418a81635f45a9c4440e7555d0a, type: 2}
