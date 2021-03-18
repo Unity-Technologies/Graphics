@@ -50,6 +50,9 @@ namespace UnityEngine.Rendering.HighDefinition
         OverrideQualitySettings,
     }
 
+    /// <summary>
+    /// Defines the level of MSAA for the camera.
+    /// </summary>
     public enum MSAAMode
     {
         /// <summary>No MSAA.</summary>
@@ -116,6 +119,7 @@ namespace UnityEngine.Rendering.HighDefinition
         /// <summary>When enabled, Cameras using these Frame Settings calculate MSAA when they render the Scene. Set Lit Shader Mode to Forward to access this option.</summary>
         [Obsolete]
         MSAA = 31,
+        /// <summary>Specify the level of MSAA used when rendering the Scene. Set Lit Shader Mode to Forward to access this option.</summary>
         [FrameSettingsField(0, displayedName: "MSAA", type: FrameSettingsFieldAttribute.DisplayType.Others, targetType: typeof(MSAAMode), negativeDependencies: new[] { LitShaderMode }, customOrderInGroup: 3, tooltip: "Specifies the MSAA mode for Cameras using these Frame Settings.")]
         MSAAMode = 4,
         /// <summary>When enabled, Cameras using these Frame Settings use Alpha To Mask. Activate MSAA to access this option.</summary>
@@ -630,9 +634,7 @@ namespace UnityEngine.Rendering.HighDefinition
         [SerializeField]
         public int sssCustomSampleBudget;
 
-        /// <summary>
-        /// Stores MSAA Mode on disk.</c>
-        /// </summary>
+        /// <summary>Stores MSAA Mode on disk.</summary>
         [SerializeField]
         public MSAAMode msaaMode;
 

@@ -93,6 +93,7 @@ namespace UnityEngine.Rendering.HighDefinition
         public int                  actualHeight { get; private set; }
         /// <summary>Number of MSAA samples used for this frame.</summary>
         public MSAASamples          msaaSamples { get; private set; }
+        /// <summary>Returns true if MSAA is enabled for this camera (equivalent to msaaSamples != MSAASamples.None).</summary>
         public bool                 msaaEnabled { get { return msaaSamples != MSAASamples.None; } }
         /// <summary>Frame settings for this camera.</summary>
         public FrameSettings        frameSettings { get; private set; }
