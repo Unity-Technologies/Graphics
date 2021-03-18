@@ -16,6 +16,12 @@ namespace UnityEngine.Rendering.HighDefinition
         public ClampedFloatParameter leakMultiplier = new ClampedFloatParameter(0.0f, 0.0f, 1.0f);
         public ClampedFloatParameter intensityScale = new ClampedFloatParameter(1.0f, 0.0f, 5.0f);
         public ClampedFloatParameter antiRingingFactor = new ClampedFloatParameter(0.0f, 0.0f, 3.14f);
+
+
+        public ClampedFloatParameter updateDistanceBehindCamera = new ClampedFloatParameter(10.0f, 0.0f, 100.0f);
+        public ClampedFloatParameter updateDistanceInFrontOfCamera = new ClampedFloatParameter(300.0f, 0.0f, 500.0f);
+
+
         public BoolParameter clear = new BoolParameter(false);
     }
 
@@ -113,6 +119,11 @@ namespace UnityEngine.Rendering.HighDefinition
         }
 
         // ---------------------------------------------------------------------
+        // ----------------------------- Culling -------------------------------
+        // ---------------------------------------------------------------------
+        // ? 
+        // SHOULD DEFINITIVELY CULL CELLS. Though not here.
+        // ---------------------------------------------------------------------
         // --------------------------- Force Nuke ------------------------------
         // ---------------------------------------------------------------------
         class ClearTexturesData
@@ -162,6 +173,7 @@ namespace UnityEngine.Rendering.HighDefinition
             public Vector4 injectionParameters2;
             public Vector4 injectionParameters3;
             public Vector4 injectionParameters4;
+            public Vector4 injectionParameters5;
 
             public ComputeBufferHandle probeFinalExtraDataBuffer;
             public ComputeBufferHandle probePositionsBuffer;
@@ -208,6 +220,7 @@ namespace UnityEngine.Rendering.HighDefinition
             data.injectionParameters2 = new Vector4(ProbeReferenceVolume.instance.poolDimension.x, ProbeReferenceVolume.instance.poolDimension.y, ProbeReferenceVolume.instance.poolDimension.z, ProbeReferenceVolume.instance.chunkSizeInProbes);
             data.injectionParameters3 = new Vector4(giSettings.primaryDecay.value, giSettings.leakMultiplier.value, giSettings.intensityScale.value, giSettings.antiRingingFactor.value);
             data.injectionParameters4 = new Vector4(buffers.hitProbesAxisCount, buffers.missProbesAxisCount, probeDistance, giSettings.propagationDecay.value);
+            data.injectionParameters5 = new Vector4(giSettings.updateDistanceBehindCamera.value, giSettings.updateDistanceInFrontOfCamera.value, 0.0f, 0.0f);
 
 
             data.chunkIndices = chunkIndices;
@@ -251,6 +264,7 @@ namespace UnityEngine.Rendering.HighDefinition
                         cmd.SetComputeVectorParam(cs, HDShaderIDs._DynamicGIParams1, data.injectionParameters2);
                         cmd.SetComputeVectorParam(cs, HDShaderIDs._DynamicGIParams2, data.injectionParameters3);
                         cmd.SetComputeVectorParam(cs, HDShaderIDs._DynamicGIParams3, data.injectionParameters4);
+                        cmd.SetComputeVectorParam(cs, HDShaderIDs._DynamicGIParams4, data.injectionParameters5);
 
                         Vector4[] indicesArray = new Vector4[8];
 

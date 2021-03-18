@@ -108,6 +108,8 @@ namespace UnityEngine.Rendering
             public uint packedIndices;
             public uint packedAlbedo;
             public uint packedNormal;
+
+            public Vector3 position;
         }
         List<FinalDataPacked> m_HitIndices;
         List<FinalDataPacked> m_MissIndices;
@@ -265,6 +267,7 @@ namespace UnityEngine.Rendering
                 index.packedIndices = PackIndexAndValidity((uint)probeIndex, (uint)i, probeExtraData.validity);
                 index.packedAlbedo = extraDataPacked.packedAlbedo[i];
                 index.packedNormal = extraDataPacked.packedNormal[i];
+                index.position = probeLocation;
 
                 if (miss)
                 {
@@ -326,6 +329,69 @@ namespace UnityEngine.Rendering
             }
 
             missProbesAxisCount = m_MissIndices.Count;
+        }
+
+        // TODO_FCC: Can be optimized 
+        private bool ProbeNeedsCulling(Vector3 probeLocation, Vector3 cameraPosition, Vector3 cameraForward, float maxDistance, float behindCameraDistScale)
+        {
+            float probeOnCameraAxis = Vector3.Dot(cameraForward, probeLocation);
+            float cameraAlongItsAxis = Vector3.Dot(cameraForward, cameraPosition);
+
+            float distanceToCamera = Vector3.Distance(cameraPosition, probeLocation);
+
+            return probeOnCameraAxis < cameraAlongItsAxis ? (distanceToCamera > 3.0f) : false;
+            distanceToCamera = probeOnCameraAxis < cameraAlongItsAxis ? distanceToCamera * behindCameraDistScale : distanceToCamera;
+
+            return distanceToCamera > maxDistance;
+        }
+
+        // INCREDIBLY slow probably... here just testing (TODO TODO_FCC)
+        public void CullDataWithDistance(Vector3 cameraPosition, Vector3 cameraForward,  float maxDistance, float behindCameraDistScale)
+        {
+            List<FinalDataPacked> culledHitList = new List<FinalDataPacked>();
+            List<FinalDataPacked> culledMissList = new List<FinalDataPacked>();
+
+            for (int i = 0; i < m_HitIndices.Count; ++i)
+            {
+                var hitEntry = m_HitIndices[i];
+                if (!ProbeNeedsCulling(hitEntry.position, cameraPosition, cameraForward, maxDistance, behindCameraDistScale))
+                {
+                    culledHitList.Add(hitEntry);
+                }
+            }
+
+            hitProbesAxisCount = culledHitList.Count;
+
+            for (int i = 0; i < m_MissIndices.Count; ++i)
+            {
+                var missEntry = m_MissIndices[i];
+                if (!ProbeNeedsCulling(missEntry.position, cameraPosition, cameraForward, maxDistance, behindCameraDistScale))
+                {
+                    culledMissList.Add(missEntry);
+                }
+            }
+
+            missProbesAxisCount = culledMissList.Count;
+
+
+            m_FinalExtraData.Clear();
+            for (int i = 0; i < culledHitList.Count; ++i)
+            {
+                FinalDataPacked index = culledHitList[i];
+                m_FinalExtraData.Add(index.packedAlbedo);
+                m_FinalExtraData.Add(index.packedNormal);
+                m_FinalExtraData.Add(index.packedIndices);
+            }
+
+            for (int i = 0; i < culledMissList.Count; ++i)
+            {
+                FinalDataPacked index = culledMissList[i];
+                m_FinalExtraData.Add(index.packedAlbedo);
+                m_FinalExtraData.Add(index.packedNormal);
+                m_FinalExtraData.Add(index.packedIndices);
+            }
+
+            m_FinalExtraDataBuffer.SetData(m_FinalExtraData);
         }
 
         public void Dispose()

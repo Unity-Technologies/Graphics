@@ -943,6 +943,7 @@ namespace UnityEngine.Rendering.HighDefinition
         public static readonly int _DynamicGIParams1               = Shader.PropertyToID("_DynamicGIParams1");
         public static readonly int _DynamicGIParams2               = Shader.PropertyToID("_DynamicGIParams2");
         public static readonly int _DynamicGIParams3 = Shader.PropertyToID("_DynamicGIParams3");
+        public static readonly int _DynamicGIParams4 = Shader.PropertyToID("_DynamicGIParams4");
         public static readonly int _IrradianceCache = Shader.PropertyToID("_IrradianceCache");
         public static readonly int _PrevIrradianceCache = Shader.PropertyToID("_PrevIrradianceCache");
         public static readonly int _RayAxis                        = Shader.PropertyToID("_RayAxis");
