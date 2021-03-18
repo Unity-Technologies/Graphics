@@ -45,7 +45,7 @@ namespace UnityEditor.ShaderGraph.Drawing
             // If no categoryToAddItemToGuid is provided, add the input to a new un-named category at the end of the blackboard
             if (categoryToAddItemToGuid == String.Empty)
             {
-                var lastCategory = graphData.categories.ToList().Last();
+                var lastCategory = graphData.categories.ToList().LastOrDefault();
                 if (lastCategory != null && lastCategory.IsNamedCategory() == false)
                 {
                     var addItemToCategoryAction = new AddItemToCategoryAction();
