@@ -82,7 +82,7 @@ namespace UnityEngine.Rendering.Universal.Internal
             int additionalLightsCount = renderingData.lightData.additionalLightsCount;
             bool additionalLightsPerVertex = renderingData.lightData.shadeAdditionalLightsPerVertex;
             CommandBuffer cmd = CommandBufferPool.Get();
-            using (new ProfilingScope(cmd, m_ProfilingSampler))
+            using (new ProfilingScope(null, m_ProfilingSampler))
             {
                 SetupShaderLightConstants(cmd, ref renderingData);
 
