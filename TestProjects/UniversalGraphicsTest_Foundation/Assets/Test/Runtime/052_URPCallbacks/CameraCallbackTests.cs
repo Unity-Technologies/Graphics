@@ -16,12 +16,11 @@ public class CameraCallbackTests : ScriptableRendererFeature
 	static RenderTargetHandle afterAll;
 
     BlitPass m_BlitRenderPassesToScreen;
-    [SerializeField, HideInInspector] private Shader m_SamplingShader;
-    [SerializeField, HideInInspector] private Shader m_CopyShader;
-    Material m_SamplingMaterial;
-    Material m_CopyMaterial;
+    [SerializeField] private Material m_SamplingMaterial;
+    [SerializeField] private Material m_CopyMaterial;
+    [SerializeField] private Material m_BlitMaterial;
 
-	public CameraCallbackTests()
+    public CameraCallbackTests()
 	{
 		beforeAll.Init("_BeforeAll");
 		afterOpaque.Init("_AfterOpaque");
@@ -32,37 +31,14 @@ public class CameraCallbackTests : ScriptableRendererFeature
 		afterAll.Init("_AfterAll");
 	}
 
-    void CreateMaterials()
-    {
-        if (m_SamplingMaterial == null)
-            m_SamplingMaterial = CoreUtils.CreateEngineMaterial(m_SamplingShader);
-
-        if (m_CopyMaterial == null)
-            m_CopyMaterial = CoreUtils.CreateEngineMaterial(m_CopyShader);
-    }
-
     public override void Create()
     {
-        UniversalRendererData data = null;
-        if (UniversalRenderPipeline.asset.m_RendererDataList[0] != null)
-		    data = UniversalRenderPipeline.asset.m_RendererDataList[0] as UniversalRendererData;
 
-        if (data?.shaders?.samplingPS == null)
-            return;
-        m_SamplingShader = data?.shaders?.samplingPS;
-
-        if (data.shaders?.blitPS == null)
-            return;
-        m_CopyShader = data.shaders?.blitPS;
-
-        CreateMaterials();
-	}
+    }
 
     public override void AddRenderPasses(ScriptableRenderer renderer, ref RenderingData renderingData)
     {
         Downsampling downSamplingMethod = UniversalRenderPipeline.asset.opaqueDownsampling;
-
-        CreateMaterials();
 
         var cameraColorTarget = renderer.cameraColorTarget;
         var clearRenderPass = new ClearColorPass(RenderPassEvent.BeforeRenderingOpaques, cameraColorTarget);
@@ -86,7 +62,7 @@ public class CameraCallbackTests : ScriptableRendererFeature
         copyAfterEverything.Setup(afterPost.id, afterAll, downSamplingMethod);
 
         if (m_BlitRenderPassesToScreen == null)
-            m_BlitRenderPassesToScreen = new BlitPass(RenderPassEvent.AfterRendering, afterPost.id);
+            m_BlitRenderPassesToScreen = new BlitPass(RenderPassEvent.AfterRendering, afterPost.id, m_BlitMaterial);
 
         // Inserts out of order so we also test render passes sort correctly
         renderer.EnqueuePass(copyAfterEverything);
@@ -97,12 +73,6 @@ public class CameraCallbackTests : ScriptableRendererFeature
         renderer.EnqueuePass(copyAfterTransparents);
         renderer.EnqueuePass(clearRenderPass);
         renderer.EnqueuePass(copyBeforeOpaquePass);
-    }
-
-    protected override void Dispose(bool disposing)
-    {
-        CoreUtils.Destroy(m_SamplingMaterial);
-        m_BlitRenderPassesToScreen?.Cleanup();
     }
 
     internal class ClearColorPass : ScriptableRenderPass
@@ -116,7 +86,7 @@ public class CameraCallbackTests : ScriptableRendererFeature
 
         public override void Execute(ScriptableRenderContext context, ref RenderingData renderingData)
         {
-            var cmd = CommandBufferPool.Get("Clear Color");
+            var cmd = CommandBufferPool.Get();
             cmd.SetRenderTarget(m_ColorHandle);
             cmd.ClearRenderTarget(true, true, Color.yellow);
             context.ExecuteCommandBuffer(cmd);
@@ -131,24 +101,17 @@ public class CameraCallbackTests : ScriptableRendererFeature
 
         private readonly int m_SourceTexID = Shader.PropertyToID("_SourceTex");
 
-        private void CreateMaterial()
-        {
-            if(!m_BlitMaterial)
-                m_BlitMaterial = CoreUtils.CreateEngineMaterial(Shader.Find("Hidden/Universal Render Pipeline/Blit"));
-        }
-
-        public BlitPass(RenderPassEvent renderPassEvent, RenderTargetIdentifier colorHandle)
+        public BlitPass(RenderPassEvent renderPassEvent, RenderTargetIdentifier colorHandle, Material material)
         {
             this.colorHandle = colorHandle;
             this.renderPassEvent = renderPassEvent;
-            CreateMaterial();
+            m_BlitMaterial = material;
         }
 
         public override void Execute(ScriptableRenderContext context, ref RenderingData renderingData)
         {
             var mesh = RenderingUtils.fullscreenMesh;
-			CommandBuffer cmd = CommandBufferPool.Get("Blit Pass");
-            CreateMaterial();
+			CommandBuffer cmd = CommandBufferPool.Get();
 			cmd.SetRenderTarget(colorHandle);
 			cmd.SetViewProjectionMatrices(Matrix4x4.identity, Matrix4x4.identity);
 
@@ -193,10 +156,5 @@ public class CameraCallbackTests : ScriptableRendererFeature
 
 			base.OnCameraCleanup(cmd);
 		}
-
-        public void Cleanup()
-        {
-            CoreUtils.Destroy(m_BlitMaterial);
-        }
-	}
+    }
 }
