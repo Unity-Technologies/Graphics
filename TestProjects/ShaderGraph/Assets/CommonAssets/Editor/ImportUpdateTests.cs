@@ -133,6 +133,17 @@ namespace UnityEditor.ShaderGraph.UnitTests
                 string shader2 = generator2.generatedShader;
 
                 Assert.AreEqual(shader, shader2, $"Importing the graph {unityLocalPath} twice resulted in different generated shaders.");
+
+                // now create a Unity Shader from the string
+                var compiledShader = ShaderUtil.CreateShaderAsset(shader, true);
+                compiledShader.hideFlags = HideFlags.HideAndDontSave;
+
+                Assert.NotNull(compiledShader);
+
+                // compile all the shader passes to see if there are any errors
+                var mat = new Material(compiledShader) { hideFlags = HideFlags.HideAndDontSave };
+                for (int pass = 0; pass < mat.passCount; pass++)
+                    ShaderUtil.CompilePass(mat, pass, true);
             }
         }
 
