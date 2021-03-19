@@ -1,4 +1,4 @@
-Shader "Hidden/HDRP/LensFlare"
+Shader "Hidden/HDRP/LensFlareDataDriven"
 {
     Properties
     {

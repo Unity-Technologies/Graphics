@@ -376,6 +376,16 @@ namespace UnityEngine.Rendering.Universal.Internal
                 }
             }
 
+            // Lens Flare
+            if (!SRPLensFlareCommon.Instance.IsEmpty() && !isSceneViewCamera)
+            {
+                using (new ProfilingScope(cmd, ProfilingSampler.Get(URPProfileId.LensFlareDataDriven)))
+                {
+                    DoLensFlareDatadriven(cameraData.camera, cmd, GetSource(), GetDestination());
+                    Swap();
+                }
+            }
+
             // Motion blur
             if (m_MotionBlur.IsActive() && !isSceneViewCamera)
             {
@@ -786,6 +796,40 @@ namespace UnityEngine.Rendering.Universal.Internal
             cmd.ReleaseTemporaryRT(ShaderConstants._FullCoCTexture);
             cmd.ReleaseTemporaryRT(ShaderConstants._PingTexture);
             cmd.ReleaseTemporaryRT(ShaderConstants._PongTexture);
+        }
+
+        #endregion
+
+        #region LensFlareDataDriven
+
+
+        static float GetLensFlareLightAttenuation(Light light, Camera cam, Vector3 wo)
+        {
+            // Must always be true
+            if (light != null)
+            {
+                switch (light.type)
+                {
+                    case LightType.Directional:
+                        return SRPLensFlareCommon.ShapeAttenuationDirLight(light.transform.forward, wo);
+                    case LightType.Point:
+                        return SRPLensFlareCommon.ShapeAttenuationPointLight();
+                    case LightType.Spot:
+                        return SRPLensFlareCommon.ShapeAttenuationSpotConeLight(light.transform.forward, wo, light.spotAngle, light.innerSpotAngle/180.0f);
+                    default:
+                        return 1.0f;
+                }
+            }
+
+            return 1.0f;
+        }
+
+        void DoLensFlareDatadriven(Camera camera, CommandBuffer cmd, RenderTargetIdentifier source, RenderTargetIdentifier target)
+        {
+            SRPLensFlareCommon.DoLensFlareDataDriven(m_Materials.lensFlareDataDriven, SRPLensFlareCommon.Instance, camera, (float)Screen.width, (float)Screen.height,
+                cmd, source, target, GetLensFlareLightAttenuation,
+                ShaderConstants._FlareTex, ShaderConstants._FlareColorValue,
+                ShaderConstants._FlareData0, ShaderConstants._FlareData1, ShaderConstants._FlareData2, ShaderConstants._FlareData3, ShaderConstants._FlareData4, ShaderConstants._FlareData5);
         }
 
         #endregion
@@ -1261,6 +1305,7 @@ namespace UnityEngine.Rendering.Universal.Internal
             public readonly Material bloom;
             public readonly Material uber;
             public readonly Material finalPass;
+            public readonly Material lensFlareDataDriven;
 
             public MaterialLibrary(PostProcessData data)
             {
@@ -1273,6 +1318,7 @@ namespace UnityEngine.Rendering.Universal.Internal
                 bloom = Load(data.shaders.bloomPS);
                 uber = Load(data.shaders.uberPostPS);
                 finalPass = Load(data.shaders.finalPostPassPS);
+                lensFlareDataDriven = Load(data.shaders.lensFlarePS);
             }
 
             Material Load(Shader shader)
@@ -1346,6 +1392,15 @@ namespace UnityEngine.Rendering.Universal.Internal
             public static readonly int _InternalLut        = Shader.PropertyToID("_InternalLut");
             public static readonly int _UserLut            = Shader.PropertyToID("_UserLut");
             public static readonly int _DownSampleScaleFactor = Shader.PropertyToID("_DownSampleScaleFactor");
+
+            public static readonly int _FlareTex           = Shader.PropertyToID("_FlareTex");
+            public static readonly int _FlareColorValue    = Shader.PropertyToID("_FlareColorValue");
+            public static readonly int _FlareData0         = Shader.PropertyToID("_FlareData0");
+            public static readonly int _FlareData1         = Shader.PropertyToID("_FlareData1");
+            public static readonly int _FlareData2         = Shader.PropertyToID("_FlareData2");
+            public static readonly int _FlareData3         = Shader.PropertyToID("_FlareData3");
+            public static readonly int _FlareData4         = Shader.PropertyToID("_FlareData4");
+            public static readonly int _FlareData5         = Shader.PropertyToID("_FlareData5");
 
             public static readonly int _FullscreenProjMat  = Shader.PropertyToID("_FullscreenProjMat");
 

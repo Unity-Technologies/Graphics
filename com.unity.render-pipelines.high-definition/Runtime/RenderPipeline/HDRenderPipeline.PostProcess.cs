@@ -2616,7 +2616,7 @@ namespace UnityEngine.Rendering.HighDefinition
         {
             if (!SRPLensFlareCommon.Instance.IsEmpty())
             {
-                using (var builder = renderGraph.AddRenderPass<LensFlareData>("Lens Flare", out var passData, ProfilingSampler.Get(HDProfileId.LensFlare)))
+                using (var builder = renderGraph.AddRenderPass<LensFlareData>("Lens Flare", out var passData, ProfilingSampler.Get(HDProfileId.LensFlareDataDriven)))
                 {
                     passData.source = builder.ReadTexture(source);
                     passData.parameters = PrepareLensFlareParameters(hdCamera);

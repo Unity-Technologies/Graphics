@@ -12,14 +12,14 @@ struct Varyings
     float4 positionCS : SV_POSITION;
     float2 texcoord : TEXCOORD0;
     float occlusion : TEXCOORD1;
-    UNITY_VERTEX_OUTPUT_STEREO
+    //UNITY_VERTEX_OUTPUT_STEREO
 };
 
 sampler2D _FlareTex;
 
 float4 _FlareColorValue;
 float4 _FlareData0; // x: localCos0, y: localSin0, zw: PositionOffsetXY
-float4 _FlareData1; // x: OcclusionRadius, y: OcclusionSampleCount, z: ScreenPosZ
+float4 _FlareData1; // x: OcclusionRadius, y: OcclusionSampleCount, z: ScreenPosZ, w: ScreenRatio
 float4 _FlareData2; // xy: ScreenPos, zw: FlareSize
 float4 _FlareData3; // xy: RayOffset, z: invSideCount
 float4 _FlareData4; // x: SDF Roundness, y: SDF Frequency
@@ -34,6 +34,7 @@ float4 _FlareData5; // x: Allow Offscreen, y: Edge Offset, z: Falloff
 #define _OcclusionRadius        _FlareData1.x
 #define _OcclusionSampleCount   _FlareData1.y
 #define _ScreenPosZ             _FlareData1.z
+#define _ScreenRatio            _FlareData1.w
 
 #define _ScreenPos              _FlareData2.xy
 #define _FlareSize              _FlareData2.zw
@@ -91,10 +92,10 @@ float GetOcclusion(float2 screenPos, float flareDepth, float ratio)
 Varyings vert(Attributes input, uint instanceID : SV_InstanceID)
 {
     Varyings output;
-    UNITY_SETUP_INSTANCE_ID(input);
-    UNITY_INITIALIZE_VERTEX_OUTPUT_STEREO(output);
+    //UNITY_SETUP_INSTANCE_ID(input);
+    //UNITY_INITIALIZE_VERTEX_OUTPUT_STEREO(output);
 
-    float screenRatio = _ScreenSize.y / _ScreenSize.x;
+    float screenRatio = _ScreenRatio;// _ScreenSize.y / _ScreenSize.x;
 
     float4 posPreScale = float4(2.0f, 2.0f, 1.0f, 1.0f) * GetQuadVertexPosition(input.vertexID % 6) - float4(1.0f, 1.0f, 0.0f, 0.0);
     output.texcoord = GetQuadTexCoord(input.vertexID % 6);
@@ -189,8 +190,6 @@ float4 GetFlareShape(float2 uv)
 
 float4 frag(Varyings input) : SV_Target
 {
-    UNITY_SETUP_STEREO_EYE_INDEX_POST_VERTEX(input);
-
     float4 col = GetFlareShape(input.texcoord);
     return col * _FlareColor * input.occlusion;
 }
