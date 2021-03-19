@@ -23,6 +23,11 @@ public class DecalUpdateCulledSystem
 
     private void Execute(DecalCulledChunk culledChunk, int count)
     {
+        if (count == 0)
+            return;
+
+        culledChunk.currentJobHandle.Complete();
+
         CullingGroup cullingGroup = culledChunk.cullingGroups;
         culledChunk.visibleDecalCount = cullingGroup.QueryIndices(true, culledChunk.visibleDecalIndices, 0);
         culledChunk.visibleDecalIndices2.CopyFrom(culledChunk.visibleDecalIndices);

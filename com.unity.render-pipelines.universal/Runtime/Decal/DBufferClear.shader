@@ -1,58 +1,48 @@
-Shader "Unlit/DBufferClear"
+Shader "Hidden/Universal Render Pipeline/DBufferClear"
 {
-    Properties
-    {
-        _MainTex ("Texture", 2D) = "white" {}
-    }
     SubShader
     {
-        Tags { "RenderType"="Opaque" }
+        Tags { "RenderType" = "Opaque" "RenderPipeline" = "UniversalPipeline"}
         LOD 100
 
         Pass
         {
-            CGPROGRAM
-            #pragma vertex vert
-            #pragma fragment frag
-            // make fog work
-            #pragma multi_compile_fog
+            Name "DBufferClear"
+            ZTest Always
+            ZWrite Off
+            Cull Off
 
-            #include "UnityCG.cginc"
+            /*ColorMask 0 0
+            ColorMask RGBA 1
+            ColorMask 0 2*/
 
-            struct appdata
+            HLSLPROGRAM
+            #pragma vertex FullscreenVert
+            #pragma fragment Fragment
+            #pragma multi_compile_fragment DECALS_1RT DECALS_2RT DECALS_3RT
+
+            #define _USE_DRAW_PROCEDURAL 1
+
+            #include "Packages/com.unity.render-pipelines.universal/Shaders/Utils/Fullscreen.hlsl"
+            #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Color.hlsl"
+            #include "Packages/com.unity.render-pipelines.universal/Runtime/Decal/Decal.cs.hlsl"
+            #include "Packages/com.unity.render-pipelines.universal/Runtime/Decal/Decal.hlsl"
+
+            void Fragment(
+                Varyings input,
+                OUTPUT_DBUFFER(outDBuffer))
             {
-                float4 vertex : POSITION;
-                float2 uv : TEXCOORD0;
-            };
+                UNITY_SETUP_STEREO_EYE_INDEX_POST_VERTEX(input);
 
-            struct v2f
-            {
-                float2 uv : TEXCOORD0;
-                UNITY_FOG_COORDS(1)
-                float4 vertex : SV_POSITION;
-            };
-
-            sampler2D _MainTex;
-            float4 _MainTex_ST;
-
-            v2f vert (appdata v)
-            {
-                v2f o;
-                o.vertex = UnityObjectToClipPos(v.vertex);
-                o.uv = TRANSFORM_TEX(v.uv, _MainTex);
-                UNITY_TRANSFER_FOG(o,o.vertex);
-                return o;
+                outDBuffer0 = half4(0, 0, 0, 1);
+#if defined(DECALS_3RT) || defined(DECALS_2RT)
+                outDBuffer1 = half4(0.5f, 0.5f, 0.5f, 1);
+#endif
+#if defined(DECALS_3RT)
+                outDBuffer2 = half4(0, 0, 0, 1);
+#endif
             }
-
-            fixed4 frag (v2f i) : SV_Target
-            {
-                // sample the texture
-                fixed4 col = tex2D(_MainTex, i.uv);
-                // apply fog
-                UNITY_APPLY_FOG(i.fogCoord, col);
-                return col;
-            }
-            ENDCG
+            ENDHLSL
         }
     }
 }

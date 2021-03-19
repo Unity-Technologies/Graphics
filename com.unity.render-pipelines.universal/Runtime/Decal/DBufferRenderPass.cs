@@ -12,22 +12,27 @@ namespace UnityEngine.Rendering.Universal
 
         private DecalDrawIntoDBufferSystem m_DecalDrawIntoDBufferSystem;
         private DBufferSettings m_Settings;
+        private Material m_DBufferClear;
 
         private FilteringSettings m_FilteringSettings;
         private List<ShaderTagId> m_ShaderTagIdList;
         private int m_DBufferCount;
+        private ProfilingSampler m_ClearSampler;
         private ProfilingSampler m_ProfilingSampler;
+
         private ProfilingSampler m_RenderIntoDBufferSmpler; // TODO: Remove
 
-        public DBufferRenderPass(string profilerTag, DBufferSettings settings, DecalDrawIntoDBufferSystem decalDrawIntoDBufferSystem)
+        public DBufferRenderPass(string profilerTag, Material dBufferClear, DBufferSettings settings, DecalDrawIntoDBufferSystem decalDrawIntoDBufferSystem)
         {
             renderPassEvent = RenderPassEvent.AfterRenderingPrePasses + 1;
             ConfigureInput(ScriptableRenderPassInput.Depth); // Require depth
 
             m_DecalDrawIntoDBufferSystem = decalDrawIntoDBufferSystem;
             m_Settings = settings;
+            m_DBufferClear = dBufferClear;
             m_RenderIntoDBufferSmpler = new ProfilingSampler("V1.DecalSystem.RenderIntoDBuffer"); // TODO: Remove
             m_ProfilingSampler = new ProfilingSampler(profilerTag);
+            m_ClearSampler = new ProfilingSampler("DBuffer Setup");
             m_FilteringSettings = new FilteringSettings(k_RenderQueue_AllOpaque, -1);
 
             m_ShaderTagIdList = new List<ShaderTagId>();
@@ -92,7 +97,7 @@ namespace UnityEngine.Rendering.Universal
 
             // for alpha compositing, color is cleared to 0, alpha to 1
             // https://developer.nvidia.com/gpugems/GPUGems3/gpugems3_ch23.html
-            ConfigureClear(ClearFlag.Color, new Color(0, 0, 0, 1));
+            //ConfigureClear(ClearFlag.Color, new Color(0f, 0f, 0f, 1));
         }
 
         public override void Execute(ScriptableRenderContext context, ref RenderingData renderingData)
@@ -109,6 +114,17 @@ namespace UnityEngine.Rendering.Universal
                 CoreUtils.SetKeyword(cmd, "DECALS_1RT", m_Settings.surfaceData == DecalSurfaceData.Albedo);
                 CoreUtils.SetKeyword(cmd, "DECALS_2RT", m_Settings.surfaceData == DecalSurfaceData.AlbedoNormal);
                 CoreUtils.SetKeyword(cmd, "DECALS_3RT", m_Settings.surfaceData == DecalSurfaceData.AlbedoNormalMask);
+
+                // TODO: This should be replace with mrt clear once we support it
+                // Clear render targets
+                var clearSampleName = "Clear";
+                cmd.BeginSample(clearSampleName);
+                cmd.DrawProcedural(Matrix4x4.identity, m_DBufferClear, 0, MeshTopology.Quads, 4, 1, null);
+                cmd.EndSample(clearSampleName);
+
+                // Split here allows clear to be executed before DrawRenderers
+                context.ExecuteCommandBuffer(cmd);
+                cmd.Clear();
 
                 float width = renderingData.cameraData.pixelWidth;
                 float height = renderingData.cameraData.pixelHeight;

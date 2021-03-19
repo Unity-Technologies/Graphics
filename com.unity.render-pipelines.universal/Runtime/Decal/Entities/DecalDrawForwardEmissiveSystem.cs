@@ -48,6 +48,7 @@ public class DecalDrawFowardEmissiveSystem
         if (decalCachedChunk.passIndexEmissive == -1)
             return;
 
+        decalCachedChunk.currentJobHandle.Complete();
         decalDrawCallChunk.currentJobHandle.Complete();
 
         int subCallCount = decalDrawCallChunk.subCallCount;

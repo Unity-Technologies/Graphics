@@ -65,14 +65,11 @@ public class DecalCreateDrawCallSystem
 {
     private DecalEntityManager m_EntityManager;
     private ProfilingSampler m_Sampler;
-    private ProfilingSampler m_SamplerJob;
-    private ProfilingSampler m_SamplerNonJob;
+
     public DecalCreateDrawCallSystem(DecalEntityManager entityManager)
     {
         m_EntityManager = entityManager;
         m_Sampler = new ProfilingSampler("DecalCreateDrawCallSystem.Execute");
-        m_SamplerJob = new ProfilingSampler("DecalCreateDrawCallSystem.ExecuteJob");
-        m_SamplerNonJob = new ProfilingSampler("DecalCreateDrawCallSystem.ExecuteNonJob");
     }
 
     public void Execute()
@@ -86,104 +83,40 @@ public class DecalCreateDrawCallSystem
 
     private void Execute(DecalCachedChunk cachedChunk, DecalCulledChunk culledChunk, DecalDrawCallChunk drawCallChunk, int count)
     {
-        using (new ProfilingScope(null, m_SamplerJob))
+        if (count == 0)
+            return;
+
+        DrawCallJob drawCallJob = new DrawCallJob()
         {
-            DrawCallJob drawCallJob = new DrawCallJob()
-            {
-                decalToWorlds = cachedChunk.decalToWorlds,
-                normalToWorlds = cachedChunk.normalToWorlds,
-                sizeOffsets = cachedChunk.sizeOffsets,
-                drawDistances = cachedChunk.drawDistances,
-                angleFades = cachedChunk.angleFades,
-                uvScaleBiases = cachedChunk.uvScaleBias,
-                affectsTransparencies = cachedChunk.affectsTransparencies,
-                layerMasks = cachedChunk.layerMasks,
-                sceneLayerMasks = cachedChunk.sceneLayerMasks,
-                fadeFactors = cachedChunk.fadeFactors,
-                decalLayerMasks = cachedChunk.decalLayerMasks,
-                boundingSpheres = cachedChunk.boundingSpheres2,
+            decalToWorlds = cachedChunk.decalToWorlds,
+            normalToWorlds = cachedChunk.normalToWorlds,
+            sizeOffsets = cachedChunk.sizeOffsets,
+            drawDistances = cachedChunk.drawDistances,
+            angleFades = cachedChunk.angleFades,
+            uvScaleBiases = cachedChunk.uvScaleBias,
+            affectsTransparencies = cachedChunk.affectsTransparencies,
+            layerMasks = cachedChunk.layerMasks,
+            sceneLayerMasks = cachedChunk.sceneLayerMasks,
+            fadeFactors = cachedChunk.fadeFactors,
+            decalLayerMasks = cachedChunk.decalLayerMasks,
+            boundingSpheres = cachedChunk.boundingSpheres2,
 
-                cameraPosition = culledChunk.cameraPosition,
-                sceneCullingMask = culledChunk.sceneCullingMask,
-                cullingMask = culledChunk.cullingMask,
-                visibleDecalIndices = culledChunk.visibleDecalIndices2,
-                visibleDecalCount = culledChunk.visibleDecalCount,
+            cameraPosition = culledChunk.cameraPosition,
+            sceneCullingMask = culledChunk.sceneCullingMask,
+            cullingMask = culledChunk.cullingMask,
+            visibleDecalIndices = culledChunk.visibleDecalIndices2,
+            visibleDecalCount = culledChunk.visibleDecalCount,
 
-                decalToWorldsDraw = drawCallChunk.decalToWorlds,
-                normalToDecalsDraw = drawCallChunk.normalToDecals,
-                decalLayerMasksDraw = drawCallChunk.decalLayerMasks,
-                subCalls = drawCallChunk.subCalls,
-                subCallCount = drawCallChunk.subCallCounts,
-            };
+            decalToWorldsDraw = drawCallChunk.decalToWorlds,
+            normalToDecalsDraw = drawCallChunk.normalToDecals,
+            decalLayerMasksDraw = drawCallChunk.decalLayerMasks,
+            subCalls = drawCallChunk.subCalls,
+            subCallCount = drawCallChunk.subCallCounts,
+        };
 
-            var handle = drawCallJob.Schedule();
-            drawCallChunk.currentJobHandle = handle;
-            //handle.Complete();
-        }
-
-        /*using (new ProfilingScope(null, m_SamplerNonJob))
-        {
-            // Reset
-            drawCallChunk.subCallCount = 0;
-
-            int instanceIndex = 0;
-            int instanceStart = 0;
-
-            for (int i = 0; i < culledChunk.visibleDecalCount; ++i)
-            {
-                int decalIndex = culledChunk.visibleDecalIndices[i];
-
-#if UNITY_EDITOR
-                ulong decalSceneCullingMask = cachedChunk.sceneLayerMasks[decalIndex];
-                if ((culledChunk.sceneCullingMask & decalSceneCullingMask) == 0)
-                    continue;
-#endif
-                int decalMask = 1 << cachedChunk.layerMasks[decalIndex];
-                if ((culledChunk.cullingMask & decalMask) == 0)
-                    continue;
-
-                BoundingSphere boundingSphere = cachedChunk.boundingSpheres[decalIndex];
-                Vector2 drawDistasnces = cachedChunk.drawDistances[decalIndex];
-
-                float distanceToDecal = (culledChunk.cameraPosition - boundingSphere.position).magnitude;
-                float cullDistance = drawDistasnces.x + boundingSphere.radius;
-                if (distanceToDecal > cullDistance)
-                    continue;
-
-                drawCallChunk.decalToWorlds[instanceIndex] = cachedChunk.decalToWorlds[decalIndex];
-                drawCallChunk.normalToDecals[instanceIndex] = cachedChunk.normalToWorlds[decalIndex];
-
-                float fadeFactorScaler = cachedChunk.fadeFactors[decalIndex];
-                Vector2 angleFade = cachedChunk.angleFades[decalIndex];
-                Vector4 uvScaleBias = cachedChunk.uvScaleBias[decalIndex];
-
-                // NormalToWorldBatchis a Matrix4x4x but is a Rotation matrix so bottom row and last column can be used for other data to save space
-                Matrix4x4 normalToDecals = drawCallChunk.normalToDecals[instanceIndex];
-                float fadeFactor = fadeFactorScaler * Mathf.Clamp((cullDistance - distanceToDecal) / (cullDistance * (1.0f - drawDistasnces.y)), 0.0f, 1.0f);
-                normalToDecals.m03 = fadeFactor * 1.0f;
-                normalToDecals.m13 = angleFade.x;
-                normalToDecals.m23 = angleFade.y;
-                normalToDecals.SetRow(3, uvScaleBias);
-                cachedChunk.normalToWorlds[decalIndex] = normalToDecals;
-
-                drawCallChunk.decalLayerMasks[instanceIndex] = (int)cachedChunk.decalLayerMasks[decalIndex];
-
-                instanceIndex++;
-
-                int instanceCount = instanceIndex - instanceStart;
-                bool isReachedMaximumBatchSize = instanceCount >= 250;
-                bool isLastDecal = i == culledChunk.visibleDecalCount - 1;
-                if (isReachedMaximumBatchSize || isLastDecal)
-                {
-                    drawCallChunk.subCalls[drawCallChunk.subCallCount++] = new DecalSubDrawCall()
-                    {
-                        start = instanceStart,
-                        end = instanceIndex,
-                    };
-                    instanceStart = instanceIndex;
-                }
-            }
-        }*/
+        var handle = drawCallJob.Schedule(cachedChunk.currentJobHandle);
+        drawCallChunk.currentJobHandle = handle;
+        cachedChunk.currentJobHandle = handle;
     }
 
 #if ENABLE_BURST_1_0_0_OR_NEWER

@@ -5,61 +5,51 @@ using UnityEngine.Rendering;
 using UnityEngine.Rendering.Universal;
 using UnityEngine.Rendering.Universal.Internal;
 
-// Include material common properties names
-using static UnityEditor.Rendering.Universal.HDMaterialProperties;
-
-
 namespace UnityEditor.Rendering.Universal
 {
-    internal static class HDShaderIDs
-    {
-        public static readonly int _DecalColorMask0 = Shader.PropertyToID(HDMaterialProperties.kDecalColorMask0);
-        public static readonly int _DecalColorMask1 = Shader.PropertyToID(HDMaterialProperties.kDecalColorMask1);
-        public static readonly int _DecalColorMask2 = Shader.PropertyToID(HDMaterialProperties.kDecalColorMask2);
-        public static readonly int _DecalColorMask3 = Shader.PropertyToID(HDMaterialProperties.kDecalColorMask3);
-    }
-
-    internal static class HDMaterialProperties
-    {
-        internal const string kDecalColorMask0 = "_DecalColorMask0";
-        internal const string kDecalColorMask1 = "_DecalColorMask1";
-        internal const string kDecalColorMask2 = "_DecalColorMask2";
-        internal const string kDecalColorMask3 = "_DecalColorMask3";
-
-        /// <summary>Enable affect Albedo (decal only).</summary>
-        public const string kAffectAlbedo = "_AffectAlbedo";
-        /// <summary>Enable affect Normal (decal only.</summary>
-        public const string kAffectNormal = "_AffectNormal";
-        /// <summary>Enable affect AO (decal only.</summary>
-        public const string kAffectAO = "_AffectAO";
-        /// <summary>Enable affect Metal (decal only.</summary>
-        public const string kAffectMetal = "_AffectMetal";
-        /// <summary>Enable affect Smoothness (decal only.</summary>
-        public const string kAffectSmoothness = "_AffectSmoothness";
-        /// <summary>Enable affect Emission (decal only.</summary>
-        public const string kAffectEmission = "_AffectEmission";
-
-        internal const string kDecalStencilWriteMask = "_DecalStencilWriteMask";
-        internal const string kDecalStencilRef = "_DecalStencilRef";
-    }
-
-    internal static class HDShaderPassNames
-    {
-        /// <summary>DBuffer Projector pass name.</summary>
-        public static readonly string s_DBufferProjectorStr = DecalSystem.s_MaterialDecalPassNames[(int)DecalSystem.MaterialDecalPass.DBufferProjector];
-        /// <summary>Decal Projector Forward Emissive pass name.</summary>
-        public static readonly string s_DecalProjectorForwardEmissiveStr = DecalSystem.s_MaterialDecalPassNames[(int)DecalSystem.MaterialDecalPass.DecalProjectorForwardEmissive];
-        /// <summary>DBuffer Mesh pass name.</summary>
-        public static readonly string s_DBufferMeshStr = DecalSystem.s_MaterialDecalPassNames[(int)DecalSystem.MaterialDecalPass.DBufferMesh];
-        /// <summary>Decal Mesh Forward Emissive pass name.</summary>
-        public static readonly string s_DecalMeshForwardEmissiveStr = DecalSystem.s_MaterialDecalPassNames[(int)DecalSystem.MaterialDecalPass.DecalMeshForwardEmissive];
-    }
-
     /// <summary>
     /// Represents the GUI for HDRP Shader Graph materials.
     /// </summary>
     internal class DecalShaderGraphGUI : PBRMasterGUI
     {
+        internal class Styles
+        {
+            public static GUIContent sortingInputs = new GUIContent("Sorting Inputs");
+            public static GUIContent exposedInputs = new GUIContent("Exposed Inputs");
+
+            public static GUIContent meshDecalBiasType = new GUIContent("Mesh Decal Bias Type", "Set the type of bias that is applied to the mesh decal. Depth Bias applies a bias to the final depth value, while View bias applies a world space bias (in meters) alongside the view vector.");
+            public static GUIContent meshDecalDepthBiasText = new GUIContent("Mesh Decal Depth Bias", "Sets a depth bias to stop the decal's Mesh from overlapping with other Meshes.");
+            public static GUIContent meshDecalViewBiasText = new GUIContent("Mesh Decal View Bias", "Sets a world-space bias alongside the view vector to stop the decal's Mesh from overlapping with other Meshes. The unit is meters.");
+            public static GUIContent drawOrderText = new GUIContent("Draw Order", "Controls the draw order of Decal Projectors. HDRP draws decals with lower values first.");
+        }
+
+        protected enum Expandable
+        {
+            ExposedInputs = 1 << 0,
+            SortingInputs = 1 << 1,
+        }
+
+        const string kDecalMeshBiasType = "_DecalMeshBiasType";
+        const string kDecalMeshDepthBias = "_DecalMeshDepthBias";
+        const string kDecalViewDepthBias = "_DecalMeshViewBias";
+        const string kDrawOrder = "_DrawOrder";
+
+        readonly MaterialHeaderScopeList m_MaterialScopeList = new MaterialHeaderScopeList(uint.MaxValue);
+
+        MaterialEditor m_MaterialEditor;
+        MaterialProperty[] m_Properties;
+
+        MaterialProperty decalMeshBiasType;
+        MaterialProperty decalMeshDepthBias;
+        MaterialProperty decalMeshViewBias;
+        MaterialProperty drawOrder;
+
+        public DecalShaderGraphGUI()
+        {
+            m_MaterialScopeList.RegisterHeaderScope(Styles.exposedInputs, (uint)Expandable.ExposedInputs, DrawExposedProperties);
+            m_MaterialScopeList.RegisterHeaderScope(Styles.sortingInputs, (uint)Expandable.SortingInputs, DrawSortingProperties);
+        }
+
         /// <summary>
         /// Override this function to implement your custom GUI. To display a user interface similar to HDRP shaders, use a MaterialUIBlockList.
         /// </summary>
@@ -71,74 +61,76 @@ namespace UnityEditor.Rendering.Universal
             SerializedProperty instancing = materialEditor.serializedObject.FindProperty("m_EnableInstancingVariants");
             instancing.boolValue = true;
 
+            m_MaterialEditor = materialEditor;
+            FindProperties(props);
+
+            Material material = materialEditor.target as Material;
+
             using (var changed = new EditorGUI.ChangeCheckScope())
             {
-                base.OnGUI(materialEditor, props);
-                foreach (var serializedObject in materialEditor.targets)
-                {
-                    var material = serializedObject as Material;
-                    SetupDecalKeywordsAndPass(material);
-                }
+                m_MaterialScopeList.DrawHeaders(materialEditor, material);
             }
 
             // We should always do this call at the end
             materialEditor.serializedObject.ApplyModifiedProperties();
         }
 
-        public static void SetupDecalKeywordsAndPass(Material material)
+        private void FindProperties(MaterialProperty[] properties)
         {
-            /*bool affectsMaskmap = false;
-            affectsMaskmap |= material.HasProperty(kAffectMetal) && material.GetFloat(kAffectMetal) == 1.0f;
-            affectsMaskmap |= material.HasProperty(kAffectAO) && material.GetFloat(kAffectAO) == 1.0f;
-            affectsMaskmap |= material.HasProperty(kAffectSmoothness) && material.GetFloat(kAffectSmoothness) == 1.0f;
+            decalMeshBiasType = FindProperty(kDecalMeshBiasType, properties);
+            decalMeshViewBias = FindProperty(kDecalViewDepthBias, properties);
+            decalMeshDepthBias = FindProperty(kDecalMeshDepthBias, properties);
+            drawOrder = FindProperty(kDrawOrder, properties);
 
-            CoreUtils.SetKeyword(material, "_MATERIAL_AFFECTS_ALBEDO", material.HasProperty(kAffectAlbedo) && material.GetFloat(kAffectAlbedo) == 1.0f);
-            CoreUtils.SetKeyword(material, "_MATERIAL_AFFECTS_NORMAL", material.HasProperty(kAffectNormal) && material.GetFloat(kAffectNormal) == 1.0f);
-            CoreUtils.SetKeyword(material, "_MATERIAL_AFFECTS_MASKMAP", affectsMaskmap);*/
+            m_Properties = properties;
+        }
 
-            // Albedo : RT0 RGB, A - sRGB
-            // Normal : RT1 RGB, A
-            // Smoothness: RT2 B, A
-            // Metal: RT2 R, RT3 R
-            // AO: RT2 G, RT3 G
-            // Note RT3 is only RG
-            //ColorWriteMask mask0 = 0, mask1 = 0, mask2 = 0, mask3 = 0;
+        private void DrawExposedProperties(Material material)
+        {
+            MaterialProperty[] properties = m_Properties;
+            MaterialEditor materialEditor = m_MaterialEditor;
 
-            /*if (material.HasProperty(kAffectAlbedo) && material.GetFloat(kAffectAlbedo) == 1.0f)
-                mask0 |= ColorWriteMask.All;
-            if (material.HasProperty(kAffectNormal) && material.GetFloat(kAffectNormal) == 1.0f)
-                mask1 |= ColorWriteMask.All;
-            if (material.HasProperty(kAffectMetal) && material.GetFloat(kAffectMetal) == 1.0f)
-                mask2 |= mask3 |= ColorWriteMask.Red;
-            if (material.HasProperty(kAffectAO) && material.GetFloat(kAffectAO) == 1.0f)
-                mask2 |= mask3 |= ColorWriteMask.Green;
-            if (material.HasProperty(kAffectSmoothness) && material.GetFloat(kAffectSmoothness) == 1.0f)
-                mask2 |= ColorWriteMask.Blue | ColorWriteMask.Alpha;*/
+            //materialEditor.PropertiesDefaultGUI(properties);
+            //return;
 
-            /*material.SetInt(HDShaderIDs._DecalColorMask0, (int)mask0);
-            material.SetInt(HDShaderIDs._DecalColorMask1, (int)mask1);
-            material.SetInt(HDShaderIDs._DecalColorMask2, (int)mask2);
-            material.SetInt(HDShaderIDs._DecalColorMask3, (int)mask3);*/
+            // TODO: scope
+            var fieldWidth = EditorGUIUtility.fieldWidth;
+            var labelWidth = EditorGUIUtility.labelWidth;
 
-            // First reset the pass (in case new shader graph add or remove a pass)
-            /*material.SetShaderPassEnabled(HDShaderPassNames.s_DBufferProjectorStr, true);
-            material.SetShaderPassEnabled(HDShaderPassNames.s_DecalProjectorForwardEmissiveStr, true);
-            material.SetShaderPassEnabled(HDShaderPassNames.s_DBufferMeshStr, true);
-            material.SetShaderPassEnabled(HDShaderPassNames.s_DecalMeshForwardEmissiveStr, true);*/
+            // Copy of MaterialEditor.PropertiesDefaultGUI that excludes properties of PerRendererData
+            materialEditor.SetDefaultGUIWidths();
+            for (var i = 0; i < properties.Length; i++)
+            {
+                if ((properties[i].flags & (MaterialProperty.PropFlags.HideInInspector | MaterialProperty.PropFlags.PerRendererData)) != 0)
+                    continue;
 
-            // Then disable pass is they aren't needed
-            /*if (material.FindPass(HDShaderPassNames.s_DBufferProjectorStr) != -1)
-                material.SetShaderPassEnabled(HDShaderPassNames.s_DBufferProjectorStr, ((int)mask0 + (int)mask1 + (int)mask2 + (int)mask3) != 0);
-            if (material.FindPass(HDShaderPassNames.s_DecalProjectorForwardEmissiveStr) != -1)
-                material.SetShaderPassEnabled(HDShaderPassNames.s_DecalProjectorForwardEmissiveStr, material.HasProperty(kAffectEmission) && material.GetFloat(kAffectEmission) == 1.0f);
-            if (material.FindPass(HDShaderPassNames.s_DBufferMeshStr) != -1)
-                material.SetShaderPassEnabled(HDShaderPassNames.s_DBufferMeshStr, ((int)mask0 + (int)mask1 + (int)mask2 + (int)mask3) != 0);
-            if (material.FindPass(HDShaderPassNames.s_DecalMeshForwardEmissiveStr) != -1)
-                material.SetShaderPassEnabled(HDShaderPassNames.s_DecalMeshForwardEmissiveStr, material.HasProperty(kAffectEmission) && material.GetFloat(kAffectEmission) == 1.0f);
-            */
-            // Set stencil state
-            //material.SetInt(kDecalStencilWriteMask, (int)StencilUsage.Decals);
-            //material.SetInt(kDecalStencilRef, (int)StencilUsage.Decals);
+                float h = materialEditor.GetPropertyHeight(properties[i], properties[i].displayName);
+                Rect r = EditorGUILayout.GetControlRect(true, h, EditorStyles.layerMaskField);
+
+                materialEditor.ShaderProperty(r, properties[i], properties[i].displayName);
+            }
+
+            EditorGUIUtility.fieldWidth = fieldWidth;
+            EditorGUIUtility.labelWidth = labelWidth;
+        }
+
+        private void DrawSortingProperties(Material material)
+        {
+            MaterialEditor materialEditor = m_MaterialEditor;
+
+            materialEditor.ShaderProperty(drawOrder, Styles.drawOrderText);
+            materialEditor.ShaderProperty(decalMeshBiasType, Styles.meshDecalBiasType);
+
+            DecalMeshDepthBiasType decalBias = (DecalMeshDepthBiasType)decalMeshBiasType.intValue;
+            switch (decalBias)
+            {
+                case DecalMeshDepthBiasType.DepthBias:
+                    materialEditor.ShaderProperty(decalMeshDepthBias, Styles.meshDecalDepthBiasText);
+                    break;
+                case DecalMeshDepthBiasType.ViewBias:
+                    materialEditor.ShaderProperty(decalMeshViewBias, Styles.meshDecalViewBiasText);
+                    break;
+            }
         }
     }
 }

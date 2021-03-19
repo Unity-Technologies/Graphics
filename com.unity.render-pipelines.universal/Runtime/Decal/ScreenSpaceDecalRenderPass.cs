@@ -53,6 +53,7 @@ public class DecalDrawScreenSpaceSystem
         if (decalCachedChunk.passIndexScreenSpace == -1)
             return;
 
+        decalCachedChunk.currentJobHandle.Complete();
         decalDrawCallChunk.currentJobHandle.Complete();
 
         int subCallCount = decalDrawCallChunk.subCallCount;
@@ -117,7 +118,7 @@ namespace UnityEngine.Rendering.Universal
 #if ENABLE_VR && ENABLE_XR_MODULE
             int eyeCount = renderingData.cameraData.xr.enabled && renderingData.cameraData.xr.singlePassEnabled ? 2 : 1;
 #else
-                int eyeCount = 1;
+            int eyeCount = 1;
 #endif
             for (int eyeIndex = 0; eyeIndex < eyeCount; eyeIndex++)
             {
@@ -154,7 +155,7 @@ namespace UnityEngine.Rendering.Universal
 
         public override void Execute(ScriptableRenderContext context, ref RenderingData renderingData)
         {
-            SortingCriteria sortingCriteria = renderingData.cameraData.defaultOpaqueSortFlags;
+            SortingCriteria sortingCriteria = SortingCriteria.CommonTransparent;// renderingData.cameraData.defaultOpaqueSortFlags;
             DrawingSettings drawingSettings = CreateDrawingSettings(m_ShaderTagIdList, ref renderingData, sortingCriteria);
 
             CommandBuffer cmd = CommandBufferPool.Get();
@@ -173,6 +174,9 @@ namespace UnityEngine.Rendering.Universal
 
                 cmd.SetGlobalVector("_SourceSize", new Vector4(width, height, 1f / width, 1f / height));
                 SetupNormalReconstructProperties(cmd, ref renderingData);
+
+                context.ExecuteCommandBuffer(cmd);
+                cmd.Clear();
 
                 m_DrawSystem?.Execute(cmd);
 

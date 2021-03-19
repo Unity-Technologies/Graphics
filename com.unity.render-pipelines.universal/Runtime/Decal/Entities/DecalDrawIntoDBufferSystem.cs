@@ -45,6 +45,10 @@ public class DecalDrawIntoDBufferSystem
 
     private void Execute(DecalEntityChunk decalEntityChunk, DecalCachedChunk decalCachedChunk, DecalDrawCallChunk decalDrawCallChunk, int count, CommandBuffer cmd)
     {
+        if (count == 0)
+            return;
+
+        decalCachedChunk.currentJobHandle.Complete();
         decalDrawCallChunk.currentJobHandle.Complete();
 
         int subCallCount = decalDrawCallChunk.subCallCount;

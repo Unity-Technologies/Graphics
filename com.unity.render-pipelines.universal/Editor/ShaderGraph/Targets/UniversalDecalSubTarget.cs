@@ -53,6 +53,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
         private static FieldDescriptor AffectsSmoothness = new FieldDescriptor(kMaterial, "AffectsSmoothness", "");
         private static FieldDescriptor AffectsEmission = new FieldDescriptor(kMaterial, "AffectsEmission", "");
         private static FieldDescriptor DecalDefault = new FieldDescriptor(kMaterial, "DecalDefault", "");
+        private static FieldDescriptor AngleFade = new FieldDescriptor(kMaterial, "AngleFade", "");
 
         [System.Serializable]
         class DecalData
@@ -65,6 +66,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
             public bool affectsEmission;
             public int drawOrder;
             public bool supportLodCrossFade;
+            public bool angleFade;
         }
 
         [SerializeField]
@@ -125,7 +127,9 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
                 pass.lightMode == DecalSystem.s_MaterialDecalPassNames[(int)DecalSystem.MaterialDecalPass.DBufferMesh] ||
                 pass.lightMode == "DecalPreview" ||
                 pass.lightMode == "DecalScreenSpaceProjector" ||
-                pass.lightMode == "DecalScreenSpaceMesh"
+                pass.lightMode == "DecalScreenSpaceMesh" ||
+                pass.lightMode == "DecalGBufferProjector" ||
+                pass.lightMode == "DecalGBufferMesh"
             )
             {
                 if (decalData.affectsAlbedo)
@@ -142,7 +146,8 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
 
             if (pass.lightMode == DecalSystem.s_MaterialDecalPassNames[(int)DecalSystem.MaterialDecalPass.DecalMeshForwardEmissive] ||
                 pass.lightMode == DecalSystem.s_MaterialDecalPassNames[(int)DecalSystem.MaterialDecalPass.DBufferMesh] ||
-                pass.lightMode == "DecalScreenSpaceMesh")
+                pass.lightMode == "DecalScreenSpaceMesh" ||
+                pass.lightMode == "DecalGBufferMesh")
             {
                 if (decalData.supportLodCrossFade)
                     pass.defines.Add(DecalDefines.SupportsLodCrossFade);
@@ -244,6 +249,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
             context.AddField(DecalDefault, decalData.affectsAlbedo || decalData.affectsNormal || decalData.affectsMetal ||
                 decalData.affectsAO || decalData.affectsSmoothness);
             context.AddField(Fields.LodCrossFade, decalData.supportLodCrossFade);
+            context.AddField(AngleFade, decalData.angleFade);
         }
 
         public override void GetActiveBlocks(ref TargetActiveBlockContext context)
@@ -336,6 +342,16 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
                 decalData.supportLodCrossFade = (bool)evt.newValue;
                 onChange();
             });
+
+            context.AddProperty("Angle Fade", new Toggle() { value = decalData.angleFade }, (evt) =>
+            {
+                if (Equals(decalData.angleFade, evt.newValue))
+                    return;
+
+                registerUndo("Change Fragment Normal Space");
+                decalData.angleFade = (bool)evt.newValue;
+                onChange();
+            });
         }
 
         #region SubShader
@@ -349,13 +365,14 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
                 passes = new PassCollection
                 {
                     { DecalPasses.DBufferProjector, new FieldCondition(DecalDefault, true) },
-                    { DecalPasses.DecalProjectorForwardEmissive, new FieldCondition(AffectsEmission, true) },
-                    { DecalPasses.DecalScreenSpaceProjector, new FieldCondition(DecalDefault, true) },
+                    { DecalPasses.ForwardEmissiveProjector, new FieldCondition(AffectsEmission, true) },
+                    { DecalPasses.ScreenSpaceProjector, new FieldCondition(DecalDefault, true) },
+                    { DecalPasses.GBufferProjector, new FieldCondition(DecalDefault, true) },
                     { DecalPasses.DBufferMesh, new FieldCondition(DecalDefault, true) },
-                    { DecalPasses.DecalMeshForwardEmissive, new FieldCondition(AffectsEmission, true) },
-                    { DecalPasses.DecalScreenSpaceMesh, new FieldCondition(DecalDefault, true) },
+                    { DecalPasses.ForwardEmissiveMesh, new FieldCondition(AffectsEmission, true) },
+                    { DecalPasses.ScreenSpaceMesh, new FieldCondition(DecalDefault, true) },
+                    { DecalPasses.GBufferMesh, new FieldCondition(DecalDefault, true) },
                     { DecalPasses.ScenePicking, new FieldCondition(DecalDefault, true) },
-                    { DecalPasses.Preview, new FieldCondition(DecalDefault, true) },
                 },
             };
         }
@@ -401,18 +418,19 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
                 sharedTemplateDirectories = GenerationUtils.GetDefaultSharedTemplateDirectories(),
 
                 // Port mask
-                validPixelBlocks = DecalBlockMasks.FragmentDefault,
+                validPixelBlocks = DecalBlockMasks.FragmentWithoutEmessive,
 
                 //Fields
                 structs = CoreStructCollections.Default,
                 fieldDependencies = CoreFieldDependencies.Default,
                 renderStates = DecalRenderStates.DBufferProjector,
                 pragmas = DecalPragmas.Instanced,
-                keywords = DecalKeywords.Decals,
+                keywords = DecalKeywords.DBuffer,
+                defines = DecalDefines.Projector,
                 includes = DecalIncludes.Default,
             };
 
-            public static PassDescriptor DecalProjectorForwardEmissive = new PassDescriptor()
+            public static PassDescriptor ForwardEmissiveProjector = new PassDescriptor()
             {
                 // Definition
                 displayName = DecalSystem.s_MaterialDecalPassNames[(int)DecalSystem.MaterialDecalPass.DecalProjectorForwardEmissive],
@@ -425,20 +443,20 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
                 sharedTemplateDirectories = GenerationUtils.GetDefaultSharedTemplateDirectories(),
 
                 // Port mask
-                validPixelBlocks = DecalBlockMasks.FragmentEmissive,
+                validPixelBlocks = DecalBlockMasks.ForwardOnlyEmissive,
 
                 //Fields
                 structs = CoreStructCollections.Default,
                 fieldDependencies = CoreFieldDependencies.Default,
 
                 // Conditional State
-                renderStates = DecalRenderStates.DecalProjectorForwardEmissive,
+                renderStates = DecalRenderStates.ForwardEmissiveProjector,
                 pragmas = DecalPragmas.Instanced,
-                defines = DecalDefines.AffectsEmission,
+                defines = DecalDefines.ProjectorWithEmission,
                 includes = DecalIncludes.Default,
             };
 
-            public static PassDescriptor DecalScreenSpaceProjector = new PassDescriptor()
+            public static PassDescriptor ScreenSpaceProjector = new PassDescriptor()
             {
                 // Definition
                 displayName = "DecalScreenSpaceProjector",
@@ -451,17 +469,43 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
                 sharedTemplateDirectories = GenerationUtils.GetDefaultSharedTemplateDirectories(),
 
                 // Port mask
-                validPixelBlocks = DecalBlockMasks.FragmentMeshEmissive, // todo
+                validPixelBlocks = DecalBlockMasks.Fragment,
 
                 //Fields
                 structs = CoreStructCollections.Default,
-                requiredFields = DecalRequiredFields.DecalScreenSpaceProjector,
+                requiredFields = DecalRequiredFields.ScreenSpaceProjector,
                 fieldDependencies = CoreFieldDependencies.Default,
 
-                renderStates = DecalRenderStates.Preview,
+                renderStates = DecalRenderStates.ScreenSpaceProjector,
                 pragmas = DecalPragmas.Instanced,
-                defines = DecalDefines.DecalScreenSpace,
-                keywords = DecalKeywords.Forward,
+                defines = DecalDefines.ProjectorWithEmission,
+                keywords = DecalKeywords.ScreenSpace,
+                includes = DecalIncludes.Default,
+            };
+
+            public static PassDescriptor GBufferProjector = new PassDescriptor()
+            {
+                // Definition
+                displayName = "DecalGBufferProjector",
+                referenceName = "SHADERPASS_DECAL_GBUFFER_PROJECTOR",
+                lightMode = "DecalGBufferProjector",
+                useInPreview = false,
+
+                // Template
+                passTemplatePath = "Packages/com.unity.render-pipelines.universal/Editor/Decal/DecalPass.template",
+                sharedTemplateDirectories = GenerationUtils.GetDefaultSharedTemplateDirectories(),
+
+                // Port mask
+                validPixelBlocks = DecalBlockMasks.Fragment,
+
+                //Fields
+                structs = CoreStructCollections.Default,
+                fieldDependencies = CoreFieldDependencies.Default,
+
+                renderStates = DecalRenderStates.GBufferProjector,
+                pragmas = DecalPragmas.Instanced,
+                defines = DecalDefines.ProjectorWithEmission,
+                keywords = DecalKeywords.GBuffer,
                 includes = DecalIncludes.Default,
             };
 
@@ -478,21 +522,21 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
                 sharedTemplateDirectories = GenerationUtils.GetDefaultSharedTemplateDirectories(),
 
                 // Port mask
-                validPixelBlocks = DecalBlockMasks.FragmentDefault,
+                validPixelBlocks = DecalBlockMasks.FragmentWithoutEmessive,
 
                 //Fields
                 structs = CoreStructCollections.Default,
-                requiredFields = DecalRequiredFields.DBufferMesh,
+                requiredFields = DecalRequiredFields.Mesh,
                 fieldDependencies = CoreFieldDependencies.Default,
 
                 // Conditional State
                 renderStates = DecalRenderStates.DBufferMesh,
                 pragmas = DecalPragmas.Instanced,
-                keywords = DecalKeywords.Decals,
+                keywords = DecalKeywords.DBuffer,
                 includes = DecalIncludes.Default,
             };
 
-            public static PassDescriptor DecalMeshForwardEmissive = new PassDescriptor()
+            public static PassDescriptor ForwardEmissiveMesh = new PassDescriptor()
             {
                 // Definition
                 displayName = DecalSystem.s_MaterialDecalPassNames[(int)DecalSystem.MaterialDecalPass.DecalMeshForwardEmissive],
@@ -505,21 +549,21 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
                 sharedTemplateDirectories = GenerationUtils.GetDefaultSharedTemplateDirectories(),
 
                 // Port mask
-                validPixelBlocks = DecalBlockMasks.FragmentMeshEmissive,
+                validPixelBlocks = DecalBlockMasks.Fragment,
 
                 //Fields
                 structs = CoreStructCollections.Default,
-                requiredFields = DecalRequiredFields.DBufferMesh,
+                requiredFields = DecalRequiredFields.Mesh,
                 fieldDependencies = CoreFieldDependencies.Default,
 
                 // Conditional State
-                renderStates = DecalRenderStates.DecalMeshForwardEmissive,
+                renderStates = DecalRenderStates.ForwardEmissiveMesh,
                 pragmas = DecalPragmas.Instanced,
                 defines = DecalDefines.AffectsEmission,
                 includes = DecalIncludes.Default,
             };
 
-            public static PassDescriptor DecalScreenSpaceMesh = new PassDescriptor()
+            public static PassDescriptor ScreenSpaceMesh = new PassDescriptor()
             {
                 // Definition
                 displayName = "DecalScreenSpaceMesh",
@@ -532,43 +576,44 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
                 sharedTemplateDirectories = GenerationUtils.GetDefaultSharedTemplateDirectories(),
 
                 // Port mask
-                validPixelBlocks = DecalBlockMasks.FragmentMeshEmissive, // todo
+                validPixelBlocks = DecalBlockMasks.Fragment, // todo
 
                 //Fields
                 structs = CoreStructCollections.Default,
-                requiredFields = DecalRequiredFields.DecalScreenSpaceMesh,
+                requiredFields = DecalRequiredFields.ScreenSpaceMesh,
                 fieldDependencies = CoreFieldDependencies.Default,
 
-                renderStates = DecalRenderStates.Preview,
+                renderStates = DecalRenderStates.ScreenSpaceMesh,
                 pragmas = DecalPragmas.Instanced,
-                defines = DecalDefines.DecalScreenSpace,
-                keywords = DecalKeywords.Forward,
+                defines = DecalDefines.AffectsEmission,
+                keywords = DecalKeywords.ScreenSpace,
                 includes = DecalIncludes.Default,
             };
 
-            public static PassDescriptor Preview = new PassDescriptor()
+            public static PassDescriptor GBufferMesh = new PassDescriptor()
             {
                 // Definition
-                displayName = "DecalPreview",
-                referenceName = "SHADERPASS_FORWARD_PREVIEW",
-                lightMode = "DecalPreview",
-                useInPreview = true,
+                displayName = "DecalGBufferMesh",
+                referenceName = "SHADERPASS_DECAL_GBUFFER_MESH",
+                lightMode = "DecalGBufferMesh",
+                useInPreview = false,
 
                 // Template
                 passTemplatePath = "Packages/com.unity.render-pipelines.universal/Editor/Decal/DecalPass.template",
                 sharedTemplateDirectories = GenerationUtils.GetDefaultSharedTemplateDirectories(),
 
                 // Port mask
-                validPixelBlocks = DecalBlockMasks.FragmentMeshEmissive,
+                validPixelBlocks = DecalBlockMasks.Fragment, // todo
 
                 //Fields
                 structs = CoreStructCollections.Default,
-                requiredFields = DecalRequiredFields.Preview,
+                requiredFields = DecalRequiredFields.Mesh,
                 fieldDependencies = CoreFieldDependencies.Default,
 
-                // Render state overrides
-                renderStates = DecalRenderStates.Preview,
-                pragmas = DecalPragmas.Preview,
+                renderStates = DecalRenderStates.GBufferMesh,
+                pragmas = DecalPragmas.Instanced,
+                defines = DecalDefines.AffectsEmission,
+                keywords = DecalKeywords.GBuffer,
                 includes = DecalIncludes.Default,
             };
         }
@@ -577,7 +622,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
         #region PortMasks
         static class DecalBlockMasks
         {
-            public static BlockFieldDescriptor[] FragmentDefault = new BlockFieldDescriptor[]
+            public static BlockFieldDescriptor[] FragmentWithoutEmessive = new BlockFieldDescriptor[]
             {
                 BlockFields.SurfaceDescription.BaseColor,
                 BlockFields.SurfaceDescription.Alpha,
@@ -589,12 +634,12 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
                 UniversalBlockFields.SurfaceDescription.MAOSAlpha,
             };
 
-            public static BlockFieldDescriptor[] FragmentEmissive = new BlockFieldDescriptor[]
+            public static BlockFieldDescriptor[] ForwardOnlyEmissive = new BlockFieldDescriptor[]
             {
                 BlockFields.SurfaceDescription.Emission,
             };
 
-            public static BlockFieldDescriptor[] FragmentMeshEmissive = new BlockFieldDescriptor[]
+            public static BlockFieldDescriptor[] Fragment = new BlockFieldDescriptor[]
             {
                 BlockFields.SurfaceDescription.BaseColor,
                 BlockFields.SurfaceDescription.Alpha,
@@ -613,7 +658,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
         #region RequiredFields
         static class DecalRequiredFields
         {
-            public static FieldCollection DBufferMesh = new FieldCollection()
+            public static FieldCollection Mesh = new FieldCollection()
             {
                 StructFields.Attributes.normalOS,
                 StructFields.Attributes.tangentOS,
@@ -624,7 +669,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
                 StructFields.Varyings.texCoord0,
             };
 
-            public static FieldCollection DecalScreenSpaceProjector = new FieldCollection()
+            public static FieldCollection ScreenSpaceProjector = new FieldCollection()
             {
                 StructFields.Varyings.viewDirectionWS,
                 UniversalStructFields.Varyings.lightmapUV,
@@ -633,7 +678,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
                 UniversalStructFields.Varyings.shadowCoord,             // shadow coord, vert input is dependency
             };
 
-            public static FieldCollection DecalScreenSpaceMesh = new FieldCollection()
+            public static FieldCollection ScreenSpaceMesh = new FieldCollection()
             {
                 StructFields.Attributes.normalOS,
                 StructFields.Attributes.tangentOS,
@@ -647,17 +692,6 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
                 UniversalStructFields.Varyings.sh,
                 UniversalStructFields.Varyings.fogFactorAndVertexLight, // fog and vertex lighting, vert input is dependency
                 UniversalStructFields.Varyings.shadowCoord,             // shadow coord, vert input is dependency
-            };
-
-            public static FieldCollection Preview = new FieldCollection()
-            {
-                StructFields.Attributes.normalOS,
-                StructFields.Attributes.tangentOS,
-                StructFields.Attributes.uv0,
-                StructFields.Varyings.normalWS,
-                StructFields.Varyings.tangentWS,
-                StructFields.Varyings.positionWS,
-                StructFields.Varyings.texCoord0,
             };
         }
         #endregion
@@ -710,11 +744,28 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
                 // Render State setup in dynamically
             };
 
-            public static RenderStateCollection DecalProjectorForwardEmissive = new RenderStateCollection
+            public static RenderStateCollection ForwardEmissiveProjector = new RenderStateCollection
             {
                 { RenderState.Blend("Blend 0 SrcAlpha One") },
                 { RenderState.Cull(Cull.Front) },
                 { RenderState.ZTest(ZTest.Greater) },
+                { RenderState.ZWrite(ZWrite.Off) },
+            };
+
+            public static RenderStateCollection ScreenSpaceProjector = new RenderStateCollection
+            {
+                { RenderState.Blend("Blend SrcAlpha OneMinusSrcAlpha") },
+                { RenderState.Cull(Cull.Front) },
+                { RenderState.ZTest(ZTest.Greater) },
+                { RenderState.ZWrite(ZWrite.Off) },
+            };
+
+            public static RenderStateCollection GBufferProjector = new RenderStateCollection
+            {
+                { RenderState.Blend("Blend SrcAlpha OneMinusSrcAlpha") },
+                { RenderState.ColorMask("ColorMask RGB") },
+                { RenderState.Cull(Cull.Front) },
+                { RenderState.ZTest(ZTest.LEqual) },
                 { RenderState.ZWrite(ZWrite.Off) },
             };
 
@@ -736,17 +787,26 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
                 // Render State setup in dynamically
             };
 
-            public static RenderStateCollection DecalMeshForwardEmissive = new RenderStateCollection
+            public static RenderStateCollection ForwardEmissiveMesh = new RenderStateCollection
             {
                 { RenderState.Blend("Blend 0 SrcAlpha One") },
                 { RenderState.ZTest(ZTest.LEqual) },
                 { RenderState.ZWrite(ZWrite.Off) },
             };
 
-            public static RenderStateCollection Preview = new RenderStateCollection
+            public static RenderStateCollection ScreenSpaceMesh = new RenderStateCollection
             {
+                { RenderState.Blend("Blend SrcAlpha OneMinusSrcAlpha") },
                 { RenderState.ZTest(ZTest.LEqual) },
-                //{ new RenderStateDescriptor { type = RenderStateType.pr, value = "PreviewType Plane" } }
+                { RenderState.ZWrite(ZWrite.Off) },
+            };
+
+            public static RenderStateCollection GBufferMesh = new RenderStateCollection
+            {
+                { RenderState.Blend("Blend SrcAlpha OneMinusSrcAlpha") },
+                { RenderState.ColorMask("ColorMask RGB") },
+                { RenderState.ZTest(ZTest.LEqual) },
+                { RenderState.ZWrite(ZWrite.Off) },
             };
         }
         #endregion
@@ -760,7 +820,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
                 { Pragma.ExcludeRenderers(new[] { Platform.GLES, Platform.GLES3, Platform.GLCore }) },
                 { Pragma.Vertex("Vert") },
                 { Pragma.Fragment("Frag") },
-                { Pragma.EnableD3D11DebugSymbols },
+                //{ Pragma.EnableD3D11DebugSymbols },
                 { Pragma.MultiCompileInstancing },
 #if ENABLE_HYBRID_RENDERER_V2
                 { Pragma.DOTSInstancing },
@@ -841,13 +901,24 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
                     type = KeywordType.Boolean,
                 };
 
-                public static KeywordDescriptor Decals3RT = new KeywordDescriptor()
+                public static KeywordDescriptor AngleFade = new KeywordDescriptor()
                 {
-                    displayName = "Decals 3RT",
-                    referenceName = "DECALS_3RT",
+                    displayName = "Angle Fade",
+                    referenceName = "DECAL_ANGLE_FADE",
                     type = KeywordType.Boolean,
                 };
             }
+
+            public static DefineCollection Projector = new DefineCollection
+            {
+                { Descriptors.AngleFade, 1, new FieldCondition(AngleFade, true) }
+            };
+
+            public static DefineCollection ProjectorWithEmission = new DefineCollection
+            {
+                { Descriptors.AngleFade, 1, new FieldCondition(AngleFade, true) },
+                { Descriptors.AffectsEmission, 1 },
+            };
 
             public static DefineCollection AffectsAlbedo = new DefineCollection { { Descriptors.AffectsAlbedo, 1 }, };
             public static DefineCollection AffectsNormal = new DefineCollection { { Descriptors.AffectsNormal, 1 }, };
@@ -856,7 +927,6 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
             public static DefineCollection AffectsSmoothness = new DefineCollection { { Descriptors.AffectsSmoothness, 1 }, };
             public static DefineCollection AffectsEmission = new DefineCollection { { Descriptors.AffectsEmission, 1 }, };
             public static DefineCollection SupportsLodCrossFade = new DefineCollection { { Descriptors.SupportsLodCrossFade, 1 }, };
-            public static DefineCollection DecalScreenSpace = new DefineCollection { { Descriptors.AffectsEmission, 1 }, };
         }
         #endregion
 
@@ -904,12 +974,22 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
                         new KeywordEntry() { displayName = "HIGH", referenceName = "HIGH" },
                     }
                 };
+
+                // TODO: Move this to urp core
+                public static readonly KeywordDescriptor GBufferNormalsOct = new KeywordDescriptor()
+                {
+                    displayName = "GBuffer normal octaedron encoding",
+                    referenceName = "_GBUFFER_NORMALS_OCT",
+                    type = KeywordType.Boolean,
+                    definition = KeywordDefinition.MultiCompile,
+                    scope = KeywordScope.Global,
+                };
             }
 
-            public static KeywordCollection Decals = new KeywordCollection { { Descriptors.Decals } };
+            public static KeywordCollection DBuffer = new KeywordCollection { { Descriptors.Decals } };
             public static DefineCollection ScenePicking = new DefineCollection { { Descriptors.ScenePickingPass, 1 }, };
 
-            public static readonly KeywordCollection Forward = new KeywordCollection
+            public static readonly KeywordCollection ScreenSpace = new KeywordCollection
             {
                 { CoreKeywordDescriptors.Lightmap },
                 { CoreKeywordDescriptors.DirectionalLightmapCombined },
@@ -920,6 +1000,11 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
                 { CoreKeywordDescriptors.LightmapShadowMixing },
                 { CoreKeywordDescriptors.ShadowsShadowmask },
                 { Descriptors.DecalsNormalBlend },
+            };
+
+            public static readonly KeywordCollection GBuffer = new KeywordCollection
+            {
+                { Descriptors.GBufferNormalsOct },
             };
         }
         #endregion

@@ -11,6 +11,7 @@ public class DecalCachedChunk : DecalChunk
     public int passIndex;
     public int passIndexEmissive;
     public int passIndexScreenSpace;
+    public int passIndexGBuffer;
     public int drawOrder;
     public float drawDistance;
     public bool isCreated;
@@ -133,10 +134,14 @@ public class DecalUpdateCachedSystem
         if (count == 0)
             return;
 
+        cachedChunk.currentJobHandle.Complete();
+
+        // Make sure draw order is up to date
+        var material = entityChunk.material;
+        cachedChunk.drawOrder = material.GetInt("_DrawOrder");
+
         if (!cachedChunk.isCreated)
         {
-            var material = entityChunk.material;
-
             int passIndex = material.FindPass(DecalUtilities.GetDecalPassName(DecalUtilities.MaterialDecalPass.DBufferProjector));
             cachedChunk.passIndex = passIndex;
 
@@ -146,6 +151,8 @@ public class DecalUpdateCachedSystem
             int passIndexScreenSpace = material.FindPass("DecalScreenSpaceProjector");
             cachedChunk.passIndexScreenSpace = passIndexScreenSpace;
 
+            int passIndexGBuffer = material.FindPass("DecalGBufferProjector");
+            cachedChunk.passIndexGBuffer = passIndexGBuffer;
 
             cachedChunk.isCreated = true;
         }

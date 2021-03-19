@@ -118,6 +118,17 @@ public class DecalEntityIndexer
         entities[decalEntity.Index] = item;
     }
 
+    public void RemapChunkIndices(List<int> remaper)
+    {
+        for (int i = 0; i < entities.Count; ++i)
+        {
+            int newChunkIndex = remaper[entities[i].chunk];
+            var item = entities[i];
+            item.chunk = newChunkIndex;
+            entities[i] = item;
+        }
+    }
+
     public void Clear()
     {
         entities.Clear();
@@ -174,39 +185,38 @@ public class DecalEntityChunk : DecalChunk
     }
 }
 
-
 public class DecalEntityManager : IDisposable
 {
-    //public static DecalEntityManager active { get; set; }
-    public static DecalEntityManager s_Instance;
-
-    public static DecalEntityManager instance
-    {
-        get
-        {
-            if (s_Instance == null)
-                s_Instance = new DecalEntityManager();
-            return s_Instance;
-        }
-    }
-
     public List<DecalEntityChunk> entityChunks = new List<DecalEntityChunk>();
     public List<DecalCachedChunk> cachedChunks = new List<DecalCachedChunk>();
     public List<DecalCulledChunk> culledChunks = new List<DecalCulledChunk>();
     public List<DecalDrawCallChunk> drawCallChunks = new List<DecalDrawCallChunk>();
     public int chunkCount;
+
     private ProfilingSampler m_AddDecalSampler;
     private ProfilingSampler m_ResizeChunks;
+    private ProfilingSampler m_SortChunks;
     private DecalEntityIndexer decalEntityIndexer = new DecalEntityIndexer();
 
     private Dictionary<Material, int> m_MaterialToChunkIndex = new Dictionary<Material, int>();
 
-    public bool isEmpty { get => chunkCount == 0; }
+    private struct CombinedChunks
+    {
+        public DecalEntityChunk entityChunk;
+        public DecalCachedChunk cachedChunk;
+        public DecalCulledChunk culledChunk;
+        public DecalDrawCallChunk drawCallChunk;
+        public int previousChunkIndex;
+    }
+    private List<CombinedChunks> m_CombinedChunks = new List<CombinedChunks>();
+    private List<int> m_CombinedChunkRemmap = new List<int>();
 
     public DecalEntityManager()
     {
         m_AddDecalSampler = new ProfilingSampler("DecalEntityManager.CreateDecalEntity");
         m_ResizeChunks = new ProfilingSampler("DecalEntityManager.ResizeChunks");
+        m_SortChunks = new ProfilingSampler("DecalEntityManager.SortChunks");
+        Debug.Log("new DecalEntityManager");
     }
 
     public bool IsValid(DecalEntity decalEntity)
@@ -244,7 +254,6 @@ public class DecalEntityManager : IDisposable
             DecalCulledChunk culledChunk = culledChunks[chunkIndex];
             DecalDrawCallChunk drawCallChunk = drawCallChunks[chunkIndex];
 
-
             // Make sure we have space to add new entity
             if (entityChunks[chunkIndex].capacity == entityChunks[chunkIndex].count)
             {
@@ -279,9 +288,6 @@ public class DecalEntityManager : IDisposable
     {
         if (!m_MaterialToChunkIndex.TryGetValue(material, out int chunkIndex))
         {
-            for (int i = 0; i < material.passCount; ++i)
-                Debug.Log(material.GetPassName(i));
-
             entityChunks.Add(new DecalEntityChunk() { material = material });
             cachedChunks.Add(new DecalCachedChunk()
             {
@@ -289,9 +295,11 @@ public class DecalEntityManager : IDisposable
                 drawDistance = 1000,
             });
 
-
             culledChunks.Add(new DecalCulledChunk());
             drawCallChunks.Add(new DecalDrawCallChunk() { subCallCounts = new NativeArray<int>(1, Allocator.Persistent) });
+
+            m_CombinedChunks.Add(new CombinedChunks());
+            m_CombinedChunkRemmap.Add(0);
 
             m_MaterialToChunkIndex.Add(material, chunkCount);
             return chunkCount++;
@@ -382,9 +390,75 @@ public class DecalEntityManager : IDisposable
         drawCallChunk.RemoveAtSwapBack(entityIndex);
     }
 
+    public void Sort()
+    {
+        using (new ProfilingScope(null, m_SortChunks))
+        {
+            // Combine chunks into single array
+            for (int i = 0; i < chunkCount; ++i)
+            {
+                m_CombinedChunks[i] = new CombinedChunks()
+                {
+                    entityChunk = entityChunks[i],
+                    cachedChunk = cachedChunks[i],
+                    culledChunk = culledChunks[i],
+                    drawCallChunk = drawCallChunks[i],
+                    previousChunkIndex = i,
+                };
+            }
+
+            // Sort
+            m_CombinedChunks.Sort((a, b) =>
+            {
+                if (a.cachedChunk.drawOrder < b.cachedChunk.drawOrder)
+                    return -1;
+                if (a.cachedChunk.drawOrder > b.cachedChunk.drawOrder)
+                    return 1;
+                return a.GetHashCode().CompareTo(b.GetHashCode());
+            });
+
+            // Early out if nothing changed
+            bool dirty = false;
+            for (int i = 0; i < chunkCount; ++i)
+            {
+                if (m_CombinedChunks[i].previousChunkIndex != i)
+                {
+                    dirty = true;
+                    break;
+                }
+            }
+            if (!dirty)
+                return;
+
+            // Update chunks
+            m_MaterialToChunkIndex.Clear();
+            for (int i = 0; i < chunkCount; ++i)
+            {
+                entityChunks[i] = m_CombinedChunks[i].entityChunk;
+                cachedChunks[i] = m_CombinedChunks[i].cachedChunk;
+                culledChunks[i] = m_CombinedChunks[i].culledChunk;
+                drawCallChunks[i] = m_CombinedChunks[i].drawCallChunk;
+                m_MaterialToChunkIndex.Add(entityChunks[i].material, i);
+                m_CombinedChunkRemmap[m_CombinedChunks[i].previousChunkIndex] = i;
+            }
+
+            // Remap entities chunk index with new sorted ones
+            decalEntityIndexer.RemapChunkIndices(m_CombinedChunkRemmap);
+        }
+    }
+
     public void Dispose()
     {
-        Debug.Log("Dispose");
+        Debug.Log("DecalEntityManager.Dispose");
+
+        foreach (var entityChunk in entityChunks)
+            entityChunk.currentJobHandle.Complete();
+        foreach (var cachedChunk in cachedChunks)
+            cachedChunk.currentJobHandle.Complete();
+        foreach (var culledChunk in culledChunks)
+            culledChunk.currentJobHandle.Complete();
+        foreach (var drawCallChunk in drawCallChunks)
+            drawCallChunk.currentJobHandle.Complete();
 
         foreach (var entityChunk in entityChunks)
             entityChunk.Dispose();
@@ -401,6 +475,7 @@ public class DecalEntityManager : IDisposable
         cachedChunks.Clear();
         culledChunks.Clear();
         drawCallChunks.Clear();
+        m_CombinedChunks.Clear();
         chunkCount = 0;
     }
 }

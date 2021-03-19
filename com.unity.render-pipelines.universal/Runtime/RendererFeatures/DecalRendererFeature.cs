@@ -11,11 +11,6 @@ namespace UnityEngine.Rendering.Universal
         AlbedoNormal,
         AlbedoNormalMask,
     }
-    public enum DecalVersion
-    {
-        HDRP,
-        NewDOD,
-    }
 
     public enum DecalTechnique
     {
@@ -43,6 +38,7 @@ namespace UnityEngine.Rendering.Universal
     public class DecalScreenSpaceSettings
     {
         public DecalNormalBlend blend;
+        public bool useGBuffer = true;
     }
 
     [System.Serializable]
@@ -54,17 +50,94 @@ namespace UnityEngine.Rendering.Universal
         public DecalScreenSpaceSettings screenSpaceSettings;
     }
 
+    public class SharedDecalEntityManager : System.IDisposable
+    {
+        private DecalEntityManager m_DecalEntityManager;
+        private int m_UseCounter;
+
+        public DecalEntityManager Get()
+        {
+            if (m_DecalEntityManager == null)
+            {
+                Assertions.Assert.AreEqual(m_UseCounter, 0);
+
+                m_DecalEntityManager = new DecalEntityManager();
+
+                var decalProjectors = GameObject.FindObjectsOfType<DecalProjector>();
+                foreach (var decalProjector in decalProjectors)
+                {
+                    if (m_DecalEntityManager.IsValid(decalProjector.decalEntity))
+                        continue;
+                    decalProjector.decalEntity = m_DecalEntityManager.CreateDecalEntity(decalProjector);
+                }
+
+                DecalProjector.onDecalAdd += OnAddDecalProjector;
+                DecalProjector.onDecalRemove += OnRemoveDecalProjector;
+            }
+
+            m_UseCounter++;
+
+            return m_DecalEntityManager;
+        }
+
+        public void Release(DecalEntityManager decalEntityManager)
+        {
+            if (m_UseCounter == 0)
+                return;
+
+            m_UseCounter--;
+
+            if (m_UseCounter == 0)
+            {
+                Dispose();
+            }
+        }
+
+        public void Dispose()
+        {
+            m_DecalEntityManager.Dispose();
+            m_DecalEntityManager = null;
+            m_UseCounter = 0;
+            DecalProjector.onDecalAdd -= OnAddDecalProjector;
+            DecalProjector.onDecalRemove -= OnRemoveDecalProjector;
+        }
+
+        private void OnAddDecalProjector(DecalProjector decalProjector)
+        {
+            if (!m_DecalEntityManager.IsValid(decalProjector.decalEntity))
+                decalProjector.decalEntity = m_DecalEntityManager.CreateDecalEntity(decalProjector);
+        }
+
+        private void OnRemoveDecalProjector(DecalProjector decalProjector)
+        {
+            m_DecalEntityManager.DestroyDecalEntity(decalProjector.decalEntity);
+        }
+    }
+
+    [DisallowMultipleRendererFeature("Decal")]
     public class DecalRendererFeature : ScriptableRendererFeature
     {
+        private static SharedDecalEntityManager s_SharedDecalEntityManager;
+        private static SharedDecalEntityManager sharedDecalEntityManager
+        {
+            get
+            {
+                if (s_SharedDecalEntityManager == null)
+                    s_SharedDecalEntityManager = new SharedDecalEntityManager();
+                return s_SharedDecalEntityManager;
+            }
+        }
+
+
         public DecalSettings settings;
-        //public DecalSurfaceData surfaceData;
-        //public bool blend = true;
-        //public float drawDistance = 1000;
-        //public DecalVersion decalVersion;
 
         [HideInInspector]
         [Reload("Shaders/Utils/CopyDepth.shader")]
         public Shader copyDepthPS;
+
+        [HideInInspector]
+        [Reload("Runtime/Decal/DBufferClear.shader")]
+        public Shader dBufferClear;
 
         private CopyDepthPass m_CopyDepthPass;
         private DBufferRenderPass m_DBufferRenderPass;
@@ -90,6 +163,9 @@ namespace UnityEngine.Rendering.Universal
         private ScreenSpaceDecalRenderPass m_ScreenSpaceDecalRenderPass;
         private DecalDrawScreenSpaceSystem m_DecalDrawScreenSpaceSystem;
 
+        private DecalGBufferRenderPass m_GBufferRenderPass;
+        private DecalDrawGBufferSystem m_DrawGBufferSystem;
+
         public DecalTechnique technique { get => settings.technique; }
 
         public override void Create()
@@ -100,6 +176,8 @@ namespace UnityEngine.Rendering.Universal
             var copyDepthMaterial = CoreUtils.CreateEngineMaterial(copyDepthPS);
             m_CopyDepthPass = new CopyDepthPass(RenderPassEvent.AfterRenderingPrePasses, copyDepthMaterial);
 
+            var dBufferClearMaterial = CoreUtils.CreateEngineMaterial(dBufferClear);
+
             m_DecalPreviewPass = new DecalPreviewPass("Decal Preview Render");
 
             if (settings.technique == DecalTechnique.DBUFFER_HDRP_PORT)
@@ -107,7 +185,7 @@ namespace UnityEngine.Rendering.Universal
                 decalSystemCull = new ProfilingSampler("V1.DecalSystem.BeginCull");
                 decalSystemCullEnd = new ProfilingSampler("V1.DecalSystem.EndCull");
 
-                m_DBufferRenderPass = new DBufferRenderPass("DBuffer Render", settings.dBufferSettings, null);
+                m_DBufferRenderPass = new DBufferRenderPass("DBuffer Render", dBufferClearMaterial, settings.dBufferSettings, null);
             }
 
             if (technique == DecalTechnique.DBuffer || technique == DecalTechnique.ScreenSpace)
@@ -115,7 +193,7 @@ namespace UnityEngine.Rendering.Universal
                 // This call will completely recreate decals, so try to call it rare as possible
                 if (m_DecalEntityManager == null)
                 {
-                    m_DecalEntityManager = new DecalEntityManager();
+                    /*m_DecalEntityManager = new DecalEntityManager();
 
                     var decalProjectors = GameObject.FindObjectsOfType<DecalProjector>();
                     foreach (var decalProjector in decalProjectors)
@@ -129,7 +207,9 @@ namespace UnityEngine.Rendering.Universal
                     DecalProjector.onDecalRemove += OnRemoveDecalProjector;
 
 
-                    Debug.Log("new DecalEntityManager");
+                    */
+
+                    m_DecalEntityManager = sharedDecalEntityManager.Get();
                 }
 
                 m_DecalUpdateCachedSystem = new DecalUpdateCachedSystem(m_DecalEntityManager);
@@ -141,13 +221,16 @@ namespace UnityEngine.Rendering.Universal
                 {
                     m_CopyDepthPass = new CopyDepthPass(RenderPassEvent.AfterRenderingOpaques, copyDepthMaterial);
 
+                    m_DrawGBufferSystem = new DecalDrawGBufferSystem(m_DecalEntityManager);
+                    m_GBufferRenderPass = new DecalGBufferRenderPass("Decal GBuffer Render", settings.screenSpaceSettings, m_DrawGBufferSystem);
+
                     m_DecalDrawScreenSpaceSystem = new DecalDrawScreenSpaceSystem(m_DecalEntityManager);
                     m_ScreenSpaceDecalRenderPass = new ScreenSpaceDecalRenderPass("Decal Screen Space Render", settings.screenSpaceSettings, m_DecalDrawScreenSpaceSystem);
                 }
                 else
                 {
                     m_DecalDrawIntoDBufferSystem = new DecalDrawIntoDBufferSystem(m_DecalEntityManager);
-                    m_DBufferRenderPass = new DBufferRenderPass("DBuffer Render", settings.dBufferSettings, m_DecalDrawIntoDBufferSystem);
+                    m_DBufferRenderPass = new DBufferRenderPass("DBuffer Render", dBufferClearMaterial, settings.dBufferSettings, m_DecalDrawIntoDBufferSystem);
 
                     m_DecalDrawForwardEmissiveSystem = new DecalDrawFowardEmissiveSystem(m_DecalEntityManager);
                     m_ForwardEmissivePass = new DecalForwardEmissivePass("Decal Forward Emissive Render", m_DecalDrawForwardEmissiveSystem);
@@ -188,6 +271,8 @@ namespace UnityEngine.Rendering.Universal
             {
                 m_DecalUpdateCachedSystem.Execute();
                 m_DecalUpdateCullingGroupSystem.Execute(cameraData.camera);
+
+                m_DecalEntityManager.Sort();
             }
         }
 
@@ -219,17 +304,18 @@ namespace UnityEngine.Rendering.Universal
                     DecalSystem.instance.CreateDrawData();          // prepare data is separate from draw
                                                                     //DecalSystem.instance.UpdateTextureAtlas(cmd);   // as this is only used for transparent pass, would've been nice not to have to do this if no transparent renderers are visible, needs to happen after CreateDrawData
 
-
                     if (decalCullResult != null)
                     {
                         decalCullResult.Clear();
                         GenericPool<DecalSystem.CullResult>.Release(decalCullResult);
                     }
 
+
                     m_CopyDepthPass.Setup(
                         new RenderTargetHandle(new RenderTargetIdentifier("_CameraDepthTexture")),
                         new RenderTargetHandle(new RenderTargetIdentifier("DBufferDepth"))
                     );
+                    m_CopyDepthPass.AllocateRT = false;
                     renderer.EnqueuePass(m_CopyDepthPass);
                     renderer.EnqueuePass(m_DBufferRenderPass);
                 }
@@ -242,13 +328,17 @@ namespace UnityEngine.Rendering.Universal
 
                 if (technique == DecalTechnique.ScreenSpace)
                 {
-                    /*m_CopyDepthPass.Setup(
-                        new RenderTargetHandle(new RenderTargetIdentifier("_CameraDepthTexture")),
-                        new RenderTargetHandle(new RenderTargetIdentifier("DBufferDepth"))
-                    );
-                    renderer.EnqueuePass(m_CopyDepthPass);*/
-
-                    renderer.EnqueuePass(m_ScreenSpaceDecalRenderPass);
+                    var universalRenderer = renderer as UniversalRenderer;
+                    bool deferred = universalRenderer?.actualRenderingMode == RenderingMode.Deferred;
+                    if (settings.screenSpaceSettings.useGBuffer && deferred)
+                    {
+                        m_GBufferRenderPass.Setup(universalRenderer.deferredLights);
+                        renderer.EnqueuePass(m_GBufferRenderPass);
+                    }
+                    else
+                    {
+                        renderer.EnqueuePass(m_ScreenSpaceDecalRenderPass);
+                    }
                 }
                 else
                 {
@@ -265,10 +355,12 @@ namespace UnityEngine.Rendering.Universal
 
         protected override void Dispose(bool disposing)
         {
-            m_DecalEntityManager.Dispose();
+            m_DecalEntityManager = null;
+            sharedDecalEntityManager.Release(m_DecalEntityManager);
+            /*m_DecalEntityManager.Dispose();
             m_DecalEntityManager = null;
             DecalProjector.onDecalAdd -= OnAddDecalProjector;
-            DecalProjector.onDecalRemove -= OnRemoveDecalProjector;
+            DecalProjector.onDecalRemove -= OnRemoveDecalProjector;*/
 
             //DecalEntityManager.active = null;
         }

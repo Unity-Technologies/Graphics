@@ -453,7 +453,7 @@ namespace UnityEditor.Rendering.Universal
                     m_DrawDistanceProperty.floatValue = 0f;
 
                 EditorGUILayout.PropertyField(m_FadeScaleProperty, k_FadeScaleContent);
-                using (new EditorGUI.DisabledScope(!decalLayerEnabled))
+                //using (new EditorGUI.DisabledScope(!decalLayerEnabled))
                 {
                     float angleFadeMinValue = m_StartAngleFadeProperty.floatValue;
                     float angleFadeMaxValue = m_EndAngleFadeProperty.floatValue;
