@@ -12,7 +12,6 @@ struct Varyings
     float4 positionCS : SV_POSITION;
     float2 texcoord : TEXCOORD0;
     float occlusion : TEXCOORD1;
-    //UNITY_VERTEX_OUTPUT_STEREO
 };
 
 sampler2D _FlareTex;
@@ -92,10 +91,8 @@ float GetOcclusion(float2 screenPos, float flareDepth, float ratio)
 Varyings vert(Attributes input, uint instanceID : SV_InstanceID)
 {
     Varyings output;
-    //UNITY_SETUP_INSTANCE_ID(input);
-    //UNITY_INITIALIZE_VERTEX_OUTPUT_STEREO(output);
 
-    float screenRatio = _ScreenRatio;// _ScreenSize.y / _ScreenSize.x;
+    float screenRatio = _ScreenRatio;
 
     float4 posPreScale = float4(2.0f, 2.0f, 1.0f, 1.0f) * GetQuadVertexPosition(input.vertexID % 6) - float4(1.0f, 1.0f, 0.0f, 0.0);
     output.texcoord = GetQuadTexCoord(input.vertexID % 6);
