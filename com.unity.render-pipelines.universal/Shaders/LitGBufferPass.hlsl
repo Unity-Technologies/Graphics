@@ -58,9 +58,9 @@ struct Varyings
     UNITY_VERTEX_OUTPUT_STEREO
 };
 
-InputData CreateInputData(Varyings input, half3 normalTS)
+void InitializeInputData(Varyings input, half3 normalTS, out InputData inputData)
 {
-    InputData inputData = (InputData)0;
+    inputData = (InputData)0;
 
     #if defined(REQUIRES_WORLD_SPACE_POS_INTERPOLATOR)
         inputData.positionWS = input.positionWS;
@@ -95,8 +95,6 @@ InputData CreateInputData(Varyings input, half3 normalTS)
     inputData.bakedGI = SAMPLE_GI(input.lightmapUV, input.vertexSH, inputData.normalWS);
     inputData.normalizedScreenSpaceUV = GetNormalizedScreenSpaceUV(input.positionCS);
     inputData.shadowMask = SAMPLE_SHADOWMASK(input.lightmapUV);
-
-    return inputData;
 }
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -178,7 +176,8 @@ FragmentOutput LitGBufferPassFragment(Varyings input)
     SurfaceData surfaceData;
     InitializeStandardLitSurfaceData(input.uv, surfaceData);
 
-    InputData inputData = CreateInputData(input, surfaceData.normalTS);
+    InputData inputData;
+    InitializeInputData(input, surfaceData.normalTS, inputData);
     SETUP_DEBUG_TEXTURE_DATA(inputData, input.uv, _BaseMap);
 
     // Stripped down version of UniversalFragmentPBR().

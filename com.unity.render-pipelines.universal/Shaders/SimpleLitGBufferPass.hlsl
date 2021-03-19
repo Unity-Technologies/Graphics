@@ -44,9 +44,9 @@ struct Varyings
     UNITY_VERTEX_OUTPUT_STEREO
 };
 
-InputData CreateInputData(Varyings input, half3 normalTS)
+void InitializeInputData(Varyings input, half3 normalTS, out InputData inputData)
 {
-    InputData inputData = (InputData)0;
+    inputData = (InputData)0;
 
     inputData.positionWS = input.posWS;
 
@@ -88,8 +88,6 @@ InputData CreateInputData(Varyings input, half3 normalTS)
     #else
     inputData.vertexSH = input.vertexSH;
     #endif
-
-    return inputData;
 }
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -147,7 +145,8 @@ FragmentOutput LitPassFragmentSimple(Varyings input)
     SurfaceData surfaceData;
     InitializeSimpleLitSurfaceData(input.uv, surfaceData);
 
-    InputData inputData = CreateInputData(input, surfaceData.normalTS);
+    InputData inputData;
+    InitializeInputData(input, surfaceData.normalTS, inputData);
     SETUP_DEBUG_TEXTURE_DATA(inputData, input.uv, _BaseMap);
 
     Light mainLight = GetMainLight(inputData.shadowCoord, inputData.positionWS, inputData.shadowMask);

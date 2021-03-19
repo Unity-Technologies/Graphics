@@ -4,9 +4,9 @@
 #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Unlit.hlsl"
 #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Particles.hlsl"
 
-InputData CreateInputData(VaryingsParticle input, SurfaceData surfaceData)
+void InitializeInputData(VaryingsParticle input, SurfaceData surfaceData, out InputData output)
 {
-    InputData output = (InputData)0;
+    output = (InputData)0;
 
     output.positionWS = input.positionWS.xyz;
 
@@ -40,13 +40,11 @@ InputData CreateInputData(VaryingsParticle input, SurfaceData surfaceData)
     #else
     output.vertexSH = input.vertexSH;
     #endif
-
-    return output;
 }
 
-SurfaceData CreateSurfaceData(ParticleParams particleParams)
+void InitializeSurfaceData(ParticleParams particleParams, out SurfaceData surfaceData)
 {
-    SurfaceData surfaceData;
+    surfaceData = (SurfaceData)0;
     half4 albedo = SampleAlbedo(particleParams.uv, particleParams.blendUv, _BaseColor, particleParams.baseColor, particleParams.projectedPosition, TEXTURE2D_ARGS(_BaseMap, sampler_BaseMap));
     half3 normalTS = SampleNormalTS(particleParams.uv, particleParams.blendUv, TEXTURE2D_ARGS(_BumpMap, sampler_BumpMap));
 
@@ -73,8 +71,6 @@ SurfaceData CreateSurfaceData(ParticleParams particleParams)
 
     surfaceData.clearCoatMask       = 0.0h;
     surfaceData.clearCoatSmoothness = 1.0h;
-
-    return surfaceData;
 }
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -134,8 +130,10 @@ half4 fragParticleUnlit(VaryingsParticle input) : SV_Target
     ParticleParams particleParams;
     InitParticleParams(input, particleParams);
 
-    SurfaceData surfaceData = CreateSurfaceData(particleParams);
-    InputData inputData = CreateInputData(input, surfaceData);
+    SurfaceData surfaceData;
+    InitializeSurfaceData(particleParams, surfaceData);
+    InputData inputData;
+    InitializeInputData(input, surfaceData, inputData);
     SETUP_DEBUG_TEXTURE_DATA(inputData, input.texcoord, _BaseMap);
 
     half4 finalColor = UniversalFragmentUnlit(inputData, surfaceData);

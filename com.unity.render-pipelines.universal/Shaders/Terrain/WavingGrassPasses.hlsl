@@ -38,9 +38,9 @@ struct GrassVertexOutput
     UNITY_VERTEX_OUTPUT_STEREO
 };
 
-InputData CreateInputData(GrassVertexOutput input)
+void InitializeInputData(GrassVertexOutput input, out InputData inputData)
 {
-    InputData inputData = (InputData)0;
+    inputData = (InputData)0;
 
     inputData.positionWS = input.posWSShininess.xyz;
 
@@ -73,8 +73,6 @@ InputData CreateInputData(GrassVertexOutput input)
     #else
     inputData.vertexSH = input.vertexSH;
     #endif
-
-    return inputData;
 }
 
 void InitializeVertData(GrassVertexInput input, inout GrassVertexOutput vertData)
@@ -188,7 +186,8 @@ half4 LitPassFragmentGrass(GrassVertexOutput input) : SV_Target
     SurfaceData surfaceData;
     InitializeSimpleLitSurfaceData(input, surfaceData);
 
-    InputData inputData = CreateInputData(input);
+    InputData inputData;
+    InitializeInputData(input, inputData);
     SETUP_DEBUG_TEXTURE_DATA(inputData, input.uv, _MainTex);
 
 #ifdef TERRAIN_GBUFFER

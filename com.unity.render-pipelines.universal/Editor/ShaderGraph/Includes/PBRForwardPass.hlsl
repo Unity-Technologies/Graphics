@@ -1,7 +1,7 @@
 
-InputData CreateInputData(Varyings input, SurfaceDescription surfaceDescription)
+void InitializeInputData(Varyings input, SurfaceDescription surfaceDescription, out InputData inputData)
 {
-    InputData inputData = (InputData)0;
+    inputData = (InputData)0;
 
     inputData.positionWS = input.positionWS;
 
@@ -45,8 +45,6 @@ InputData CreateInputData(Varyings input, SurfaceDescription surfaceDescription)
     #else
     inputData.vertexSH = input.sh;
     #endif
-
-    return inputData;
 }
 
 PackedVaryings vert(Attributes input)
@@ -76,7 +74,8 @@ half4 frag(PackedVaryings packedInput) : SV_TARGET
         half alpha = 1;
     #endif
 
-    InputData inputData = CreateInputData(unpacked, surfaceDescription);
+    InputData inputData;
+    InitializeInputData(unpacked, surfaceDescription, inputData);
     //SETUP_DEBUG_TEXTURE_DATA(inputData, unpacked.texCoord1.xy, _MainTex);
 
     #ifdef _SPECULAR_SETUP

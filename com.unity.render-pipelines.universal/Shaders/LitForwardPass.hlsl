@@ -57,9 +57,9 @@ struct Varyings
     UNITY_VERTEX_OUTPUT_STEREO
 };
 
-InputData CreateInputData(Varyings input, half3 normalTS)
+void InitializeInputData(Varyings input, half3 normalTS, out InputData inputData)
 {
-    InputData inputData = (InputData)0;
+    inputData = (InputData)0;
 
 #if defined(REQUIRES_WORLD_SPACE_POS_INTERPOLATOR)
     inputData.positionWS = input.positionWS;
@@ -105,8 +105,6 @@ InputData CreateInputData(Varyings input, half3 normalTS)
     #else
     inputData.vertexSH = input.vertexSH;
     #endif
-
-    return inputData;
 }
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -190,7 +188,8 @@ half4 LitPassFragment(Varyings input) : SV_Target
     SurfaceData surfaceData;
     InitializeStandardLitSurfaceData(input.uv, surfaceData);
 
-    InputData inputData = CreateInputData(input, surfaceData.normalTS);
+    InputData inputData;
+    InitializeInputData(input, surfaceData.normalTS, inputData);
     SETUP_DEBUG_TEXTURE_DATA(inputData, input.uv, _BaseMap);
 
     half4 color = UniversalFragmentPBR(inputData, surfaceData);

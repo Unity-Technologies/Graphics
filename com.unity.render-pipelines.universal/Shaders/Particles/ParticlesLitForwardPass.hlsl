@@ -4,9 +4,9 @@
 #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Lighting.hlsl"
 #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Particles.hlsl"
 
-InputData CreateInputData(VaryingsParticle input, half3 normalTS)
+void InitializeInputData(VaryingsParticle input, half3 normalTS, out InputData output)
 {
-    InputData output = (InputData)0;
+    output = (InputData)0;
 
     output.positionWS = input.positionWS.xyz;
 
@@ -42,8 +42,6 @@ InputData CreateInputData(VaryingsParticle input, half3 normalTS)
     output.normalTS = normalTS;
     output.vertexSH = input.vertexSH;
     output.shadowMask = half4(1, 1, 1, 1);
-
-    return output;
 }
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -113,7 +111,8 @@ half4 ParticlesLitFragment(VaryingsParticle input) : SV_Target
     SurfaceData surfaceData;
     InitializeParticleLitSurfaceData(particleParams, surfaceData);
 
-    InputData inputData = CreateInputData(input, surfaceData.normalTS);
+    InputData inputData;
+    InitializeInputData(input, surfaceData.normalTS, inputData);
     SETUP_DEBUG_TEXTURE_DATA(inputData, input.texcoord, _BaseMap);
 
     half4 color = UniversalFragmentPBR(inputData, surfaceData);

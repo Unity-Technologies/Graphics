@@ -15,19 +15,17 @@ struct InputData2D
     #endif
 };
 
-InputData2D CreateInputData(float2 uv, half2 lightingUV)
+void InitializeInputData(float2 uv, half2 lightingUV, out InputData2D inputData)
 {
-    InputData2D inputData = (InputData2D)0;
+    inputData = (InputData2D)0;
 
     inputData.uv = uv;
     inputData.lightingUV = lightingUV;
-
-    return inputData;
 }
 
-InputData2D CreateInputData(float2 uv)
+void InitializeInputData(float2 uv, out InputData2D inputData)
 {
-    return CreateInputData(uv, 0);
+    InitializeInputData(uv, 0, inputData);
 }
 
 #endif

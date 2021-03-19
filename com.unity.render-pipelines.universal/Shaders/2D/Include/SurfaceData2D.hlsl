@@ -10,28 +10,26 @@ struct SurfaceData2D
     half3 normalTS;
 };
 
-SurfaceData2D CreateSurfaceData(half3 albedo, half alpha, half4 mask, half3 normalTS)
+void InitializeSurfaceData(half3 albedo, half alpha, half4 mask, half3 normalTS, out SurfaceData2D surfaceData)
 {
-    SurfaceData2D surfaceData;
+    surfaceData = (SurfaceData2D)0;
 
     surfaceData.albedo = albedo;
     surfaceData.alpha = alpha;
     surfaceData.mask = mask;
     surfaceData.normalTS = normalTS;
-
-    return surfaceData;
 }
 
-SurfaceData2D CreateSurfaceData(half3 albedo, half alpha, half4 mask)
+void InitializeSurfaceData(half3 albedo, half alpha, half4 mask, out SurfaceData2D surfaceData)
 {
     const half3 normalTS = half3(0, 0, 1);
 
-    return CreateSurfaceData(albedo, alpha, mask, normalTS);
+    InitializeSurfaceData(albedo, alpha, mask, normalTS, surfaceData);
 }
 
-SurfaceData2D CreateSurfaceData(half3 albedo, half alpha)
+void InitializeSurfaceData(half3 albedo, half alpha, out SurfaceData2D surfaceData)
 {
-    return CreateSurfaceData(albedo, alpha, 1);
+    InitializeSurfaceData(albedo, alpha, 1, surfaceData);
 }
 
 #endif

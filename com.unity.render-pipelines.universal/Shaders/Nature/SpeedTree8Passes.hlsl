@@ -309,9 +309,9 @@ SpeedTreeVertexDepthOutput SpeedTree8VertDepth(SpeedTreeVertexInput input)
     return output;
 }
 
-InputData CreateInputData(SpeedTreeFragmentInput input, half3 normalTS)
+void InitializeInputData(SpeedTreeFragmentInput input, half3 normalTS, out InputData inputData)
 {
-    InputData inputData = (InputData)0;
+    inputData = (InputData)0;
 
     inputData.positionWS = input.interpolated.positionWS.xyz;
 
@@ -351,8 +351,6 @@ InputData CreateInputData(SpeedTreeFragmentInput input, half3 normalTS)
     #if defined(_NORMALMAP)
     inputData.tangentMatrixWS = half3x3(input.interpolated.tangentWS.xyz, input.interpolated.bitangentWS.xyz, input.interpolated.normalWS.xyz);
     #endif
-
-    return inputData;
 }
 
 #ifdef GBUFFER
@@ -437,7 +435,8 @@ half4 SpeedTree8Frag(SpeedTreeFragmentInput input) : SV_Target
         emission = tex2D(_SubsurfaceTex, uv).rgb * _SubsurfaceColor.rgb;
     #endif
 
-    InputData inputData = CreateInputData(input, normalTs);
+    InputData inputData;
+    InitializeInputData(input, normalTs, inputData);
     SETUP_DEBUG_TEXTURE_DATA(inputData, input.interpolated.uv, _MainTex);
 
 #ifdef GBUFFER

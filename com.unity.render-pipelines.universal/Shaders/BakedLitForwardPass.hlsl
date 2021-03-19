@@ -32,9 +32,9 @@ struct Varyings
     UNITY_VERTEX_OUTPUT_STEREO
 };
 
-InputData CreateInputData(Varyings input, half3 normalTS)
+void InitializeInputData(Varyings input, half3 normalTS, out InputData inputData)
 {
-    InputData inputData = (InputData)0;
+    inputData = (InputData)0;
 
     #if defined(_DEBUG_SHADER)
     inputData.positionWS = input.positionWS;
@@ -67,8 +67,6 @@ InputData CreateInputData(Varyings input, half3 normalTS)
     #else
     inputData.vertexSH = input.vertexSH;
     #endif
-
-    return inputData;
 }
 
 Varyings BakedLitForwardPassVertex(Attributes input)
@@ -115,7 +113,8 @@ half4 BakedLitForwardPassFragment(Varyings input) : SV_Target
     #else
     half3 normalTS = half3(0, 0, 1);
     #endif
-    InputData inputData = CreateInputData(input, normalTS);
+    InputData inputData;
+    InitializeInputData(input, normalTS, inputData);
     SETUP_DEBUG_TEXTURE_DATA(inputData, input.uv0AndFogCoord.xy, _BaseMap);
 
     half4 texColor = SAMPLE_TEXTURE2D(_BaseMap, sampler_BaseMap, uv);

@@ -174,10 +174,12 @@ Shader "Universal Render Pipeline/2D/Sprite-Unlit-Default"
             half4 UnlitFragment(Varyings i) : SV_Target
             {
                 const half4 mainTex = i.color * SAMPLE_TEXTURE2D(_MainTex, sampler_MainTex, i.uv);
-                SurfaceData2D surfaceData = CreateSurfaceData(mainTex.rgb, mainTex.a);
-                InputData2D inputData = CreateInputData(i.uv);
+                SurfaceData2D surfaceData;
+                InputData2D inputData;
                 half4 debugColor = 0;
 
+                InitializeSurfaceData(mainTex.rgb, mainTex.a, surfaceData);
+                InitializeInputData(i.uv, inputData);
                 SETUP_DEBUG_DATA(inputData, i.positionWS);
 
                 if(CanDebugOverrideOutputColor(surfaceData, inputData, debugColor))
