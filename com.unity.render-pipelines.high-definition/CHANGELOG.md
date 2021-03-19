@@ -161,6 +161,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Virtual Texturing Resolver now performs RTHandle resize logic in HDRP instead of in core Unity
 - Cached the base types of Volume Manager to improve memory and cpu usage.
 - Changed Density Volume for Local Volumetric Fog
+- HDRP Global Settings are now saved into their own asset (HDRenderPipelineGlobalSettings) and HDRenderPipeline's default asset refers to this new asset.
+- Improved physically based Depth of Field with better near defocus blur quality.
 
 ## [11.0.0] - 2020-10-21
 
