@@ -324,12 +324,12 @@ namespace UnityEditor.Rendering.HighDefinition
                         if (xChangeIsValid)
                         {
                             uvScale.x *= Mathf.Max(k_LimitInv, boundsSizeCurrentOS.x) / Mathf.Max(k_LimitInv, boundsSizePreviousOS.x);
-                            uvBias.x += (boundsMinCurrentOS.x - boundsMinPreviousOS.x) / Mathf.Max(k_LimitInv, boundsSizeCurrentOS.x) * decalProjector.uvScale.x;
+                            uvBias.x += (boundsMinCurrentOS.x - boundsMinPreviousOS.x) / Mathf.Max(k_LimitInv, boundsSizeCurrentOS.x) * uvScale.x;
                         }
                         if (yChangeIsValid)
                         {
                             uvScale.y *= Mathf.Max(k_LimitInv, boundsSizeCurrentOS.y) / Mathf.Max(k_LimitInv, boundsSizePreviousOS.y);
-                            uvBias.y += (boundsMinCurrentOS.y - boundsMinPreviousOS.y) / Mathf.Max(k_LimitInv, boundsSizeCurrentOS.y) * decalProjector.uvScale.y;
+                            uvBias.y += (boundsMinCurrentOS.y - boundsMinPreviousOS.y) / Mathf.Max(k_LimitInv, boundsSizeCurrentOS.y) * uvScale.y;
                         }
                         decalProjector.uvScale = uvScale;
                         decalProjector.uvBias = uvBias;
@@ -403,19 +403,20 @@ namespace UnityEditor.Rendering.HighDefinition
                         // Preserve serialized state for axes with the scaled size 0.
                         if (scaledSize[channel] != 0f)
                         {
-                            float minusNewUVStart = .5f * uvHandles.size[channel] - uvHandles.center[channel];
                             float handleSize = uvHandles.size[channel];
-                            float limit = k_LimitInv * decalProjector.size[channel];
+                            float minusNewUVStart = .5f * handleSize - uvHandles.center[channel];
+                            float decalSize = decalProjector.size[channel];
+                            float limit = k_LimitInv * decalSize;
                             if (handleSize > limit || handleSize < -limit)
                             {
-                                uvScale[channel] = decalProjector.size[channel] / uvHandles.size[channel];
-                                uvBias[channel] = minusNewUVStart / uvHandles.size[channel];
+                                uvScale[channel] = decalSize / handleSize;
+                                uvBias[channel] = minusNewUVStart / handleSize;
                             }
                             else
                             {
                                 // TODO: Decide if decalProjector.size and uvHandles.size should ever have negative values. They can't currently.
-                                uvScale[channel] = k_Limit * Mathf.Sign(decalProjector.size[channel]) * Mathf.Sign(uvHandles.size[channel]);
-                                uvBias[channel] = k_Limit * minusNewUVStart / decalProjector.size[channel];
+                                uvScale[channel] = k_Limit * Mathf.Sign(decalSize) * Mathf.Sign(handleSize);
+                                uvBias[channel] = k_Limit * minusNewUVStart / decalSize;
                             }
                         }
                     }
