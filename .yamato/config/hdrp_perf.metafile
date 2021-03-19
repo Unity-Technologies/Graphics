@@ -27,7 +27,7 @@ test_platforms:
         flags:
           - [all]: --testfilter=Memory
           - [all]: --performance-project-version=. --report-performance-data --performance-project-id=HDRP
-          - [all]: --timeout=2400
+          - [all]: --timeout=7200
           - [all]: --platform=StandaloneWindows64
           - [all]: --loglevel=verbose
   - type: playmode
