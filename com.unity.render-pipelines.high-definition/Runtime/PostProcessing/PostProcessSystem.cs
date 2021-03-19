@@ -606,7 +606,7 @@ namespace UnityEngine.Rendering.HighDefinition
                         using (new ProfilingScope(cmd, ProfilingSampler.Get(HDProfileId.DepthOfField)))
                         {
                             // If we switch DoF modes and the old one was not using TAA, make sure we invalidate the history
-                            if (taaEnabled && m_IsDoFHisotoryValid != m_DepthOfField.physicallyBased)
+                            if (taaEnabled && camera.dofHistoryIsValid != m_DepthOfField.physicallyBased)
                             {
                                 camera.resetPostProcessingHistory = true;
                             }
@@ -711,9 +711,13 @@ namespace UnityEngine.Rendering.HighDefinition
                                 if (taaEnabled)
                                     GrabCoCHistory(camera, out prevCoC, out nextCoC, useMips: true);
 
-                                var fullresCoC = m_Pool.Get(Vector2.one, k_CoCFormat, true);
+                                var fullresCoC = m_Pool.Get(Vector2.one, k_CoCFormat, false);
                                 var colorPyramid = m_Pool.Get(Vector2.one, m_ColorFormat, true);
-                                DoPhysicallyBasedDepthOfField(dofParameters, cmd, source, destination, fullresCoC, prevCoC, nextCoC, motionVecTexture, colorPyramid, depthBuffer, taaEnabled);
+                                float scaleFactor = 1.0f / dofParameters.minMaxCoCTileSize;
+                                var minMaxCoCPing = m_Pool.Get(Vector2.one * scaleFactor, k_CoCFormat, false);
+                                var minMaxCoCPong = m_Pool.Get(Vector2.one * scaleFactor, k_CoCFormat, false);
+
+                                DoPhysicallyBasedDepthOfField(dofParameters, cmd, source, destination, fullresCoC, prevCoC, nextCoC, motionVecTexture, colorPyramid, depthBuffer, minMaxCoCPing, minMaxCoCPong, taaEnabled);
 
                                 m_Pool.Recycle(fullresCoC);
                                 m_Pool.Recycle(colorPyramid);
@@ -733,7 +737,7 @@ namespace UnityEngine.Rendering.HighDefinition
                                 postDoFTAAEnabled = true;
                             }
 
-                            m_IsDoFHisotoryValid = (m_DepthOfField.physicallyBased && taaEnabled);
+                            camera.dofHistoryIsValid = (m_DepthOfField.physicallyBased && taaEnabled);
                         }
                     }
 
