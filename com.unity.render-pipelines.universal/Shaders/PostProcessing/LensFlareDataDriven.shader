@@ -19,7 +19,7 @@ Shader "Hidden/URP/LensFlareDataDriven"
 
             HLSLPROGRAM
 
-            #pragma target 5.0
+            #pragma target 2.0
             #pragma vertex vert
             #pragma fragment frag
 
