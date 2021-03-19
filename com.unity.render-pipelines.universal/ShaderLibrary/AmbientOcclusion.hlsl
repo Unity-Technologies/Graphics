@@ -17,7 +17,7 @@ struct AmbientOcclusionFactor
 half SampleAmbientOcclusion(float2 normalizedScreenSpaceUV)
 {
     float2 uv = UnityStereoTransformScreenSpaceTex(normalizedScreenSpaceUV);
-    return SAMPLE_TEXTURE2D_X(_ScreenSpaceOcclusionTexture, sampler_ScreenSpaceOcclusionTexture, uv).x;
+    return half(SAMPLE_TEXTURE2D_X(_ScreenSpaceOcclusionTexture, sampler_ScreenSpaceOcclusionTexture, uv).x);
 }
 
 AmbientOcclusionFactor GetScreenSpaceAmbientOcclusion(float2 normalizedScreenSpaceUV)

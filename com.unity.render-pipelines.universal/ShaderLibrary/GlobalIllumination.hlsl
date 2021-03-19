@@ -120,16 +120,16 @@ half3 SampleLightmap(float2 lightmapUV, half3 normalWS)
 // If lightmap: sampleData.xy = lightmapUV
 // If probe: sampleData.xyz = L2 SH terms
 #if defined(LIGHTMAP_ON)
-    #define SAMPLE_GI(lmName, shName, normalWSName) SampleLightmap(lmName, normalWSName)
+#define SAMPLE_GI(lmName, shName, normalWSName) SampleLightmap(lmName, normalWSName)
 #else
-    #define SAMPLE_GI(lmName, shName, normalWSName) SampleSHPixel(shName, normalWSName)
+#define SAMPLE_GI(lmName, shName, normalWSName) SampleSHPixel(shName, normalWSName)
 #endif
 
 half3 GlossyEnvironmentReflection(half3 reflectVector, half perceptualRoughness, half occlusion)
 {
 #if !defined(_ENVIRONMENTREFLECTIONS_OFF)
     half mip = PerceptualRoughnessToMipmapLevel(perceptualRoughness);
-    half4 encodedIrradiance = SAMPLE_TEXTURECUBE_LOD(unity_SpecCube0, samplerunity_SpecCube0, reflectVector, mip);
+    half4 encodedIrradiance = half4(SAMPLE_TEXTURECUBE_LOD(unity_SpecCube0, samplerunity_SpecCube0, reflectVector, mip));
 
 //TODO:DOTS - we need to port probes to live in c# so we can manage this manually.
 #if defined(UNITY_USE_NATIVE_HDR) || defined(UNITY_DOTS_INSTANCING_ENABLED)
@@ -181,12 +181,12 @@ half3 GlobalIllumination(BRDFData brdfData, BRDFData brdfDataClearCoat, float cl
     half fresnelTerm = Pow4(1.0 - NoV);
 
     half3 indirectDiffuse = bakedGI;
-    half3 indirectSpecular = GlossyEnvironmentReflection(reflectVector, brdfData.perceptualRoughness, 1.0h);
+    half3 indirectSpecular = GlossyEnvironmentReflection(reflectVector, brdfData.perceptualRoughness, half(1.0));
 
     half3 color = EnvironmentBRDF(brdfData, indirectDiffuse, indirectSpecular, fresnelTerm);
 
 #if defined(_CLEARCOAT) || defined(_CLEARCOATMAP)
-    half3 coatIndirectSpecular = GlossyEnvironmentReflection(reflectVector, brdfDataClearCoat.perceptualRoughness, 1.0h);
+    half3 coatIndirectSpecular = GlossyEnvironmentReflection(reflectVector, brdfDataClearCoat.perceptualRoughness, half(1.0));
     // TODO: "grazing term" causes problems on full roughness
     half3 coatColor = EnvironmentBRDFClearCoat(brdfDataClearCoat, clearCoatMask, coatIndirectSpecular, fresnelTerm);
 
@@ -200,7 +200,7 @@ half3 GlobalIllumination(BRDFData brdfData, BRDFData brdfDataClearCoat, float cl
 #endif
 }
 
-// Backwards compatibility
+// Backwards compatiblity
 half3 GlobalIllumination(BRDFData brdfData, half3 bakedGI, half occlusion, half3 normalWS, half3 viewDirectionWS)
 {
     const BRDFData noClearCoat = (BRDFData)0;
@@ -214,7 +214,7 @@ void MixRealtimeAndBakedGI(inout Light light, half3 normalWS, inout half3 bakedG
 #endif
 }
 
-// Backwards compatibility
+// Backwards compatiblity
 void MixRealtimeAndBakedGI(inout Light light, half3 normalWS, inout half3 bakedGI, half4 shadowMask)
 {
     MixRealtimeAndBakedGI(light, normalWS, bakedGI);
