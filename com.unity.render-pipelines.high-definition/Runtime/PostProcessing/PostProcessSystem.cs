@@ -721,6 +721,8 @@ namespace UnityEngine.Rendering.HighDefinition
 
                                 m_Pool.Recycle(fullresCoC);
                                 m_Pool.Recycle(colorPyramid);
+                                m_Pool.Recycle(minMaxCoCPing);
+                                m_Pool.Recycle(minMaxCoCPong);
                             }
                             PoolSource(ref source, destination);
 
