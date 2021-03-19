@@ -134,10 +134,18 @@ namespace UnityEditor.Rendering.HighDefinition
             User19 = 1 << 30,
         }
 
-        internal MaterialUIBlock()
+        /// <summary>
+        /// Default Constructor, you must override the method OnGUI
+        /// </summary>
+        protected MaterialUIBlock()
         {
         }
 
+        /// <summary>
+        /// Constructor to auto generate the foldout section, override the method OnGUIOpen
+        /// </summary>
+        /// <param name="expandableBit"><see cref="ExpandableBit"/> used to store the state (open/closed) for this section</param>
+        /// <param name="header"><see cref="GUIContent"/>The title of this section</param>
         internal MaterialUIBlock(ExpandableBit expandableBit, GUIContent header)
         {
             this.expandableBit = expandableBit;
