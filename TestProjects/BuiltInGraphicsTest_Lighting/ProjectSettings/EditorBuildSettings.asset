@@ -6,17 +6,8 @@ EditorBuildSettings:
   serializedVersion: 2
   m_Scenes:
   - enabled: 1
-    path: Assets/Scenes/009_AdditionalLightsShadows.unity
-    guid: fe73f67a2bc4933468c714f164c6596d
-  - enabled: 1
-    path: Assets/Scenes/041_Lighting_BasicArea.unity
-    guid: cd37c7e9d54e74dd7add9b40a2698ada
-  - enabled: 1
     path: Assets/Scenes/117_SkyboxReflectionTestProjection.unity
     guid: f5310a9ab278ec748b2091bf7ba966a7
-  - enabled: 1
-    path: Assets/Scenes/118_SkyboxReflectionTestOrthographic.unity
-    guid: e1fb4b913911b734b88f86697de1b94a
   - enabled: 1
     path: Assets/Scenes/051_Lighting_Scene_NoLighting.unity
     guid: ad2db338b63034856a2718d37e4bdd7a
