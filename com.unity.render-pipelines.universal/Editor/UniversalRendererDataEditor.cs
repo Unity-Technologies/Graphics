@@ -19,6 +19,7 @@ namespace UnityEditor.Rendering.Universal
             public static readonly GUIContent LightingLabel = new GUIContent("Lighting", "Settings related to lighting and rendering paths.");
             public static readonly GUIContent RenderingModeLabel = new GUIContent("Rendering Path", "Select a rendering path.");
             public static readonly GUIContent DepthPrepassModeLabel = new GUIContent("Depth Prepass Mode", "How this renderer should decide to use a depth prepass.");
+            public static readonly GUIContent DepthPrimingModeLabel = new GUIContent("Depth Priming Mode", "How this renderer should decide to use depth priming.");
             public static readonly GUIContent RenderPassLabel = new GUIContent("Native RenderPass", "Enables URP to use RenderPass API");
             public static readonly GUIContent accurateGbufferNormalsLabel = EditorGUIUtility.TrTextContent("Accurate G-buffer normals", "Normals in G-buffer use octahedron encoding/decoding. This improves visual quality but might reduce performance.");
             //public static readonly GUIContent tiledDeferredShadingLabel = EditorGUIUtility.TrTextContent("Tiled Deferred Shading (Experimental)", "Allows Tiled Deferred Shading on appropriate lights");
@@ -31,6 +32,7 @@ namespace UnityEditor.Rendering.Universal
         SerializedProperty m_TransparentLayerMask;
         SerializedProperty m_RenderingMode;
         SerializedProperty m_DepthPrepassMode;
+        SerializedProperty m_DepthPrimingMode;
         SerializedProperty m_AccurateGbufferNormals;
         //SerializedProperty m_TiledDeferredShading;
 #if ENABLE_RENDER_PASS_UI
@@ -47,6 +49,7 @@ namespace UnityEditor.Rendering.Universal
             m_TransparentLayerMask = serializedObject.FindProperty("m_TransparentLayerMask");
             m_RenderingMode = serializedObject.FindProperty("m_RenderingMode");
             m_DepthPrepassMode = serializedObject.FindProperty("m_DepthPrepassMode");
+            m_DepthPrimingMode = serializedObject.FindProperty("m_DepthPrimingMode");
             m_AccurateGbufferNormals = serializedObject.FindProperty("m_AccurateGbufferNormals");
             // Not exposed yet.
             //m_TiledDeferredShading = serializedObject.FindProperty("m_TiledDeferredShading");
@@ -83,7 +86,14 @@ namespace UnityEditor.Rendering.Universal
                 EditorGUI.indentLevel--;
             }
 
-            EditorGUILayout.PropertyField(m_DepthPrepassMode, Styles.DepthPrepassModeLabel);
+            if (m_RenderingMode.intValue == (int)RenderingMode.Forward)
+            {
+                EditorGUI.indentLevel++;
+                EditorGUILayout.PropertyField(m_DepthPrepassMode, Styles.DepthPrepassModeLabel);
+                EditorGUILayout.PropertyField(m_DepthPrimingMode, Styles.DepthPrimingModeLabel);
+                EditorGUI.indentLevel--;
+            }
+
 
             EditorGUI.indentLevel--;
             EditorGUILayout.Space();

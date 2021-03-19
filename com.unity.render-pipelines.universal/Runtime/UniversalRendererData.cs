@@ -72,6 +72,7 @@ namespace UnityEngine.Rendering.Universal
         [SerializeField] bool m_ShadowTransparentReceive = true;
         [SerializeField] RenderingMode m_RenderingMode = RenderingMode.Forward;
         [SerializeField] private DepthPrepassMode m_DepthPrepassMode = DepthPrepassMode.Auto;
+        [SerializeField] private DepthPrimingMode m_DepthPrimingMode = DepthPrimingMode.Auto;
         [SerializeField] bool m_AccurateGbufferNormals = false;
         //[SerializeField] bool m_TiledDeferredShading = false;
 
@@ -156,6 +157,19 @@ namespace UnityEngine.Rendering.Universal
             {
                 SetDirty();
                 m_DepthPrepassMode = value;
+            }
+        }
+
+        /// <summary>
+        /// Depth priming mode.
+        /// </summary>
+        public DepthPrimingMode depthPrimingMode
+        {
+            get => m_DepthPrimingMode;
+            set
+            {
+                SetDirty();
+                m_DepthPrimingMode = value;
             }
         }
 

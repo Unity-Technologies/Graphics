@@ -16,7 +16,7 @@ namespace UnityEngine.Rendering.Universal
     };
 
     /// <summary>
-    /// When the Universal Renderer should use a depth prepass
+    /// When the Universal Renderer should use a depth prepass in Forward mode.
     /// </summary>
     public enum DepthPrepassMode
     {
@@ -25,6 +25,17 @@ namespace UnityEngine.Rendering.Universal
         /// <summary>A depth prepass will always be used.</summary>
         Forced
     };
+
+    /// <summary>
+    /// When the Universal Renderer should use a depth prepass in Forward mode.
+    /// </summary>
+    public enum DepthPrimingMode
+    {
+        /// <summary>A depth prepass will only be used if the rendering mode is set to forward and there is a depth prepass used.</summary>
+        Auto,
+        /// <summary>A depth prepass will never be used.</summary>
+        Disabled
+    }
 
     /// <summary>
     /// Default renderer for Universal RP.
@@ -49,6 +60,7 @@ namespace UnityEngine.Rendering.Universal
         internal bool accurateGbufferNormals { get { return m_DeferredLights != null ? m_DeferredLights.AccurateGbufferNormals : false; } }
         internal bool usesRenderPass;
         internal DepthPrepassMode depthPrepassMode { get { return m_DepthPrepassMode; } }
+        internal DepthPrimingMode depthPrimingMode { get { return m_DepthPrimingMode; } }
         DepthOnlyPass m_DepthPrepass;
         DepthNormalOnlyPass m_DepthNormalPrepass;
         CopyDepthPass m_PrimedDepthCopyPass;
@@ -93,6 +105,7 @@ namespace UnityEngine.Rendering.Universal
         DeferredLights m_DeferredLights;
         RenderingMode m_RenderingMode;
         DepthPrepassMode m_DepthPrepassMode;
+        DepthPrimingMode m_DepthPrimingMode;
         StencilState m_DefaultStencilState;
 
         // Materials used in URP Scriptable Render Passes
@@ -135,6 +148,7 @@ namespace UnityEngine.Rendering.Universal
             //m_DeferredLights.LightCulling = data.lightCulling;
             this.m_RenderingMode = data.renderingMode;
             this.m_DepthPrepassMode = data.depthPrepassMode;
+            this.m_DepthPrimingMode = data.depthPrimingMode;
             this.usesRenderPass = data.useNativeRenderPass;
 
             // Note: Since all custom render passes inject first and we have stable sort,
@@ -149,7 +163,7 @@ namespace UnityEngine.Rendering.Universal
             m_DepthPrepass = new DepthOnlyPass(RenderPassEvent.BeforeRenderingPrePasses, RenderQueueRange.opaque, data.opaqueLayerMask);
             m_DepthNormalPrepass = new DepthNormalOnlyPass(RenderPassEvent.BeforeRenderingPrePasses, RenderQueueRange.opaque, data.opaqueLayerMask);
 
-            if (this.renderingMode == RenderingMode.Forward)
+            if (this.renderingMode == RenderingMode.Forward && this.depthPrimingMode == DepthPrimingMode.Auto)
             {
                 m_PrimedDepthCopyPass = new CopyDepthPass(RenderPassEvent.AfterRenderingPrePasses, m_CopyDepthMaterial);
             }
@@ -397,7 +411,7 @@ namespace UnityEngine.Rendering.Universal
 #endif
 
 #if !UNITY_ANDROID && !UNITY_IOS
-            bool useDepthPriming = requiresDepthPrepass && m_RenderingMode == RenderingMode.Forward /*&& SystemInfo.graphicsDeviceType != GraphicsDeviceType.Direct3D11 && SystemInfo.graphicsDeviceType != GraphicsDeviceType.Direct3D12*/;
+            bool useDepthPriming = m_DepthPrimingMode == DepthPrimingMode.Auto && requiresDepthPrepass && m_RenderingMode == RenderingMode.Forward /*&& SystemInfo.graphicsDeviceType != GraphicsDeviceType.Direct3D11 && SystemInfo.graphicsDeviceType != GraphicsDeviceType.Direct3D12*/;
 #else
             bool useDepthPriming = false;
 #endif
