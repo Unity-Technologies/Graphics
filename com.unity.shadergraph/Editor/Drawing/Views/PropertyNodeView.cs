@@ -9,7 +9,6 @@ using UnityEditor.ShaderGraph.Internal;
 using UnityEngine;
 using UnityEngine.UIElements;
 using UnityEditor.ShaderGraph.Drawing.Inspector.PropertyDrawers;
-using UnityEditor.ShaderGraph.Drawing.Views.Blackboard;
 using ContextualMenuManipulator = UnityEngine.UIElements.ContextualMenuManipulator;
 
 namespace UnityEditor.ShaderGraph
@@ -17,8 +16,6 @@ namespace UnityEditor.ShaderGraph
     sealed class PropertyNodeView : TokenNode, IShaderNodeView, IInspectable
     {
         static readonly Texture2D exposedIcon = Resources.Load<Texture2D>("GraphView/Nodes/BlackboardFieldExposed");
-
-        internal delegate void ChangeDisplayNameCallback(string newDisplayName);
 
         // When the properties are changed, this delegate is used to trigger an update in the view that represents those properties
         Action m_propertyViewUpdateTrigger;
@@ -87,7 +84,6 @@ namespace UnityEditor.ShaderGraph
                     () => graph.ValidateGraph(),
                     () => graph.OnKeywordChanged(),
                     this.ChangePropertyValue,
-                    this.RegisterPropertyChangeUndo,
                     this.MarkNodesAsDirty);
 
                 this.m_propertyViewUpdateTrigger = inspectorUpdateDelegate;
@@ -230,7 +226,7 @@ namespace UnityEditor.ShaderGraph
         {
             var graph = node?.owner as GraphData;
             if ((graph != null) && (property != null))
-                icon = (graph.isSubGraph || property.isExposed) ? BlackboardProvider.exposedIcon : null;
+                icon = (graph.isSubGraph || property.isExposed) ? exposedIcon : null;
             else
                 icon = null;
         }
@@ -300,18 +296,16 @@ namespace UnityEditor.ShaderGraph
             }
         }
 
-        BlackboardRow GetAssociatedBlackboardRow()
+        SGBlackboardRow GetAssociatedBlackboardRow()
         {
             var graphView = GetFirstAncestorOfType<GraphEditorView>();
-            if (graphView == null)
-                return null;
 
-            var blackboardProvider = graphView.blackboardProvider;
-            if (blackboardProvider == null)
+            var blackboardController = graphView?.blackboardController;
+            if (blackboardController == null)
                 return null;
 
             var propNode = (PropertyNode)node;
-            return blackboardProvider.GetBlackboardRow(propNode.property);
+            return blackboardController.GetBlackboardRow(propNode.property);
         }
 
         void OnMouseHover(EventBase evt)
@@ -333,7 +327,7 @@ namespace UnityEditor.ShaderGraph
         public void Dispose()
         {
             var propRow = GetAssociatedBlackboardRow();
-            // The associated blackboard row can be deleted in which case this property node view is also cleaned up with it, so we want to check for null
+            // If this node view is deleted, remove highlighting from associated blackboard row
             if (propRow != null)
             {
                 propRow.RemoveFromClassList("hovered");

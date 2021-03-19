@@ -15,11 +15,13 @@ Group of Materials / GameObject can be setup to use Force Emissive forward with 
 
 ## Improvements
 
-### Density Volume Improvements
+### Density Volume (Local Volumetric Fog) Improvements
 
-Density Volumes masks now support using 3D RenderTextures as masks. 3D mask textures now also use all four RGBA channel which allows volumetric fog to have different colors and density based on the 3D Texture.
+Density Volumes are now known as **Local Volumetric Fog**. This is a more accurate, descriptive name that removes confusion with [Volumes](Volumes.md) and makes the relation to fog clearer.
 
-The size limit of 32x32x32 for the mask textures has also been replaced by a setting in the HDRP asset called "Max Density Volume Resolution", under the Lighting > Volumetrics section. The upper limit for mask textures is now 256x256x256, an info box below the field tells you how much memory is allocated to store these textures. Note that increasing the resolution of the mask texture doesn't necessarily improve the quality of the volumetric, what's important is to have a good balance between the **Volumetrics** quality and the density volume resolution.
+Local Volumetric Fog masks now support using 3D RenderTextures as masks. 3D mask textures now also use all four RGBA channel which allows volumetric fog to have different colors and density based on the 3D Texture.
+
+The size limit of 32x32x32 for the mask textures has also been replaced by a setting in the HDRP asset called "Max Local Volumetric Fog Resolution", under the Lighting > Volumetrics section. The upper limit for mask textures is now 256x256x256, an info box below the field tells you how much memory is allocated to store these textures. Note that increasing the resolution of the mask texture doesn't necessarily improve the quality of the volumetric, what's important is to have a good balance between the **Volumetrics** quality and the Local Volumetric Fog resolution.
 
 There is a new field to change the falloff HDRP applies when it blends the volume using the Blend Distance property. You can choose either Linear which is the default and previous technique, or Exponential which is more realistic.
 
@@ -59,6 +61,7 @@ From HDRP 12.0, various top level menus are now different. This is to make the t
 
 * **Window**
   * **HD Render Pipeline Wizard** is now at **Window > Rendering > HDRP Wizard**
+  * **Graphics Compositor** is now at **Window > Rendering > Graphics Compositor**
 * **Assets**
   * HDRP Shader Graphs are now in **Assets > Create > Shader Graph > HDRP**
   * **Custom FullScreen Pass** is now at **Assets > Create > Shader > HDRP Custom FullScreen Pass**
@@ -69,8 +72,7 @@ From HDRP 12.0, various top level menus are now different. This is to make the t
   * **C# Custom Pass** is now at **Assets > Create > Rendering > HDRP C# Custom Pass**
   * **C# Post Process Volume** is now at **Assets > Create > Rendering > HDRP C# Post Process Volume**
 * **GameObject**
-  * **Density Volume** is now at **GameObject > Volume > Density Volume**
-  * **Decal Projector** is now at **GameObject > Decal Projector**
+  * **Density Volume** is now at **GameObject > Rendering > Local Volumetric Fog**
   * **Sky and Fog Volume** is now at **GameObject > Volume > Sky and Fog Global Volume**
 
 ## Issues resolved

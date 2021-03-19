@@ -83,7 +83,8 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
         RenderGraphResourcesData[]          m_RenderGraphResources = new RenderGraphResourcesData[(int)RenderGraphResourceType.Count];
         DynamicArray<RendererListResource>  m_RendererListResources = new DynamicArray<RendererListResource>();
         RenderGraphDebugParams              m_RenderGraphDebug;
-        RenderGraphLogger                   m_Logger;
+        RenderGraphLogger                   m_ResourceLogger = new RenderGraphLogger();
+        RenderGraphLogger                   m_FrameInformationLogger; // Comes from the RenderGraph instance.
         int                                 m_CurrentFrameIndex;
         int                                 m_ExecutionCount;
 
@@ -126,10 +127,10 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
         {
         }
 
-        internal RenderGraphResourceRegistry(RenderGraphDebugParams renderGraphDebug, RenderGraphLogger logger)
+        internal RenderGraphResourceRegistry(RenderGraphDebugParams renderGraphDebug, RenderGraphLogger frameInformationLogger)
         {
             m_RenderGraphDebug = renderGraphDebug;
-            m_Logger = logger;
+            m_FrameInformationLogger = frameInformationLogger;
 
             for (int i = 0; i < (int)RenderGraphResourceType.Count; ++i)
             {
@@ -147,6 +148,10 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
         {
             m_ExecutionCount = executionCount;
             ResourceHandle.NewFrame(executionCount);
+
+            // We can log independently of current execution name since resources are shared across all executions of render graph.
+            if (m_RenderGraphDebug.enableLogging)
+                m_ResourceLogger.Initialize("RenderGraph Resources");
         }
 
         internal void BeginExecute(int currentFrameIndex)
@@ -408,8 +413,8 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
             {
                 resource.CreatePooledGraphicsResource();
 
-                if (m_RenderGraphDebug.logFrameInformation)
-                    resource.LogCreation(m_Logger);
+                if (m_RenderGraphDebug.enableLogging)
+                    resource.LogCreation(m_FrameInformationLogger);
 
                 m_RenderGraphResources[type].createResourceCallback?.Invoke(rgContext, resource);
             }
@@ -432,7 +437,7 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
                 bool debugClear = m_RenderGraphDebug.clearRenderTargetsAtCreation && !resource.desc.clearBuffer;
                 using (new ProfilingScope(rgContext.cmd, ProfilingSampler.Get(debugClear ? RenderGraphProfileId.RenderGraphClearDebug : RenderGraphProfileId.RenderGraphClear)))
                 {
-                    var clearFlag = resource.desc.depthBufferBits != DepthBits.None ? ClearFlag.Depth : ClearFlag.Color;
+                    var clearFlag = resource.desc.depthBufferBits != DepthBits.None ? ClearFlag.DepthStencil : ClearFlag.Color;
                     var clearColor = debugClear ? Color.magenta : resource.desc.clearColor;
                     CoreUtils.SetRenderTarget(rgContext.cmd, resource.graphicsResource, clearFlag, clearColor);
                 }
@@ -447,9 +452,9 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
             {
                 m_RenderGraphResources[type].releaseResourceCallback?.Invoke(rgContext, resource);
 
-                if (m_RenderGraphDebug.logFrameInformation)
+                if (m_RenderGraphDebug.enableLogging)
                 {
-                    resource.LogRelease(m_Logger);
+                    resource.LogRelease(m_FrameInformationLogger);
                 }
 
                 resource.ReleasePooledGraphicsResource(m_CurrentFrameIndex);
@@ -464,7 +469,7 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
             {
                 using (new ProfilingScope(rgContext.cmd, ProfilingSampler.Get(RenderGraphProfileId.RenderGraphClearDebug)))
                 {
-                    var clearFlag = resource.desc.depthBufferBits != DepthBits.None ? ClearFlag.Depth : ClearFlag.Color;
+                    var clearFlag = resource.desc.depthBufferBits != DepthBits.None ? ClearFlag.DepthStencil : ClearFlag.Color;
                     CoreUtils.SetRenderTarget(rgContext.cmd, resource.graphicsResource, clearFlag, Color.magenta);
                 }
             }
@@ -576,16 +581,21 @@ namespace UnityEngine.Experimental.Rendering.RenderGraphModule
             RTHandles.Release(m_CurrentBackbuffer);
         }
 
+        internal void FlushLogs()
+        {
+            Debug.Log(m_ResourceLogger.GetAllLogs());
+        }
+
         void LogResources()
         {
-            if (m_RenderGraphDebug.logResources)
+            if (m_RenderGraphDebug.enableLogging)
             {
-                m_Logger.LogLine("==== Allocated Resources ====\n");
+                m_ResourceLogger.LogLine("==== Allocated Resources ====\n");
 
                 for (int type = 0; type < (int)RenderGraphResourceType.Count; ++type)
                 {
-                    m_RenderGraphResources[type].pool.LogResources(m_Logger);
-                    m_Logger.LogLine("");
+                    m_RenderGraphResources[type].pool.LogResources(m_ResourceLogger);
+                    m_ResourceLogger.LogLine("");
                 }
             }
         }

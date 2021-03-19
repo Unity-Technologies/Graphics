@@ -53,6 +53,9 @@ namespace UnityEditor.Rendering
         public static GUIContent iconHelp { get; }
         public static GUIStyle iconHelpStyle { get; }
 
+        /// <summary>RenderPipeline Global Settings icon</summary>
+        public static readonly Texture2D globalSettingsIcon;
+
         static CoreEditorStyles()
         {
             smallTickbox = new GUIStyle("ShurikenToggle");
@@ -106,6 +109,7 @@ namespace UnityEditor.Rendering
 
             iconHelp = new GUIContent(EditorGUIUtility.FindTexture("_Help"));
             iconHelpStyle = GUI.skin.FindStyle("IconButton") ?? EditorGUIUtility.GetBuiltinSkin(EditorSkin.Inspector).FindStyle("IconButton");
+            globalSettingsIcon = EditorGUIUtility.FindTexture("ScriptableObject Icon");
 
             // Make sure that textures are unloaded on domain reloads.
             void OnBeforeAssemblyReload()
