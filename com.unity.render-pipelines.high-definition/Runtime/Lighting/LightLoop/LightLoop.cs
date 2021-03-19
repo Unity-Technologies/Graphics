@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.ComponentModel;
 using UnityEngine.Experimental.Rendering;
 
 namespace UnityEngine.Rendering.HighDefinition
@@ -66,7 +67,7 @@ namespace UnityEngine.Rendering.HighDefinition
         Area,
         Env,
         Decal,
-        DensityVolume, // WARNING: Currently lightlistbuild.compute assumes density volume is the last element in the LightCategory enum. Do not append new LightCategory types after DensityVolume. TODO: Fix .compute code.
+        LocalVolumetricFog, // WARNING: Currently lightlistbuild.compute assumes Local Volumetric Fog is the last element in the LightCategory enum. Do not append new LightCategory types after LocalVolumetricFog. TODO: Fix .compute code.
         Count
     }
 
@@ -203,20 +204,30 @@ namespace UnityEngine.Rendering.HighDefinition
         /// <summary>Area lights.</summary>
         Area = 2,
         /// <summary>Area and punctual lights.</summary>
+        [InspectorName("Area and Punctual")]
         AreaAndPunctual = 3,
         /// <summary>Environment lights.</summary>
+        [InspectorName("Reflection Probes")]
         Environment = 4,
         /// <summary>Environment and punctual lights.</summary>
+        [InspectorName("Reflection Probes and Punctual")]
         EnvironmentAndPunctual = 5,
         /// <summary>Environment and area lights.</summary>
+        [InspectorName("Reflection Probes and Area")]
         EnvironmentAndArea = 6,
         /// <summary>All lights.</summary>
+        [InspectorName("Reflection Probes, Area and Punctual")]
         EnvironmentAndAreaAndPunctual = 7,
         /// <summary>Probe Volumes.</summary>
+        [InspectorName("Probe Volumes")]
         ProbeVolumes = 8,
         /// <summary>Decals.</summary>
         Decal = 16,
-        /// <summary>Density Volumes.</summary>
+        /// <summary>Local Volumetric Fog.</summary>
+        LocalVolumetricFog = 32,
+        /// <summary>Local Volumetric Fog.</summary>
+        [Obsolete("Use LocalVolumetricFog", false)]
+        [InspectorName("Local Volumetric Fog")]
         DensityVolumes = 32
     };
 
@@ -243,7 +254,7 @@ namespace UnityEngine.Rendering.HighDefinition
         public uint         _EnvLightIndexShift;
         public uint         _DecalIndexShift;
 
-        public uint         _DensityVolumeIndexShift;
+        public uint         _LocalVolumetricFogIndexShift;
         public uint         _Pad0_SVLL;
         public uint         _Pad1_SVLL;
         public uint         _Pad2_SVLL;
@@ -391,7 +402,7 @@ namespace UnityEngine.Rendering.HighDefinition
             }
         }
 
-        // TODO RENDERGRAPH: When we remove the old pass, we need to remove/refactor this class
+        // TODO RENDERGRAPH: When we remove the old path, we need to remove/refactor this class
         // With render graph it's only useful for 3 buffers and a boolean value.
         class TileAndClusterData
         {
@@ -529,7 +540,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
         internal LightList m_lightList;
         int m_TotalLightCount = 0;
-        int m_DensityVolumeCount = 0;
+        int m_LocalVolumetricFogCount = 0;
         bool m_EnableBakeShadowMask = false; // Track if any light require shadow mask. In this case we will need to enable the keyword shadow mask
 
         ComputeShader buildScreenAABBShader { get { return defaultResources.shaders.buildScreenAABBCS; } }
@@ -865,10 +876,6 @@ namespace UnityEngine.Rendering.HighDefinition
                 Shader.EnableKeyword("SCREEN_SPACE_SHADOWS_OFF");
             }
 
-            if (m_Asset.currentPlatformRenderPipelineSettings.supportProbeVolume)
-            {
-                ProbeReferenceVolume.instance.InitProbeReferenceVolume(ProbeReferenceVolume.s_ProbeIndexPoolAllocationSize, m_Asset.currentPlatformRenderPipelineSettings.probeVolumeMemoryBudget, ProbeReferenceVolumeProfile.s_DefaultIndexDimensions);
-            }
             InitShadowSystem(asset, defaultResources);
 
             s_lightVolumes = new DebugLightVolumes();
@@ -2564,8 +2571,14 @@ namespace UnityEngine.Rendering.HighDefinition
         }
 
         // Return true if BakedShadowMask are enabled
-        bool PrepareLightsForGPU(CommandBuffer cmd, HDCamera hdCamera, CullingResults cullResults,
-            HDProbeCullingResults hdProbeCullingResults, DensityVolumeList densityVolumes, DebugDisplaySettings debugDisplaySettings, AOVRequestData aovRequest)
+        bool PrepareLightsForGPU(
+            CommandBuffer cmd,
+            HDCamera hdCamera,
+            CullingResults cullResults,
+            HDProbeCullingResults hdProbeCullingResults,
+            LocalVolumetricFogList localVolumetricFogList,
+            DebugDisplaySettings debugDisplaySettings,
+            AOVRequestData aovRequest)
         {
             var debugLightFilter = debugDisplaySettings.GetDebugLightFilterMode();
             var hasDebugLightFilter = debugLightFilter != DebugLightFilterMode.None;
@@ -2647,8 +2660,8 @@ namespace UnityEngine.Rendering.HighDefinition
                     }
                 }
 
-                // Inject density volumes into the clustered data structure for efficient look up.
-                m_DensityVolumeCount = densityVolumes.bounds != null ? densityVolumes.bounds.Count : 0;
+                // Inject Local Volumetric Fog into the clustered data structure for efficient look up.
+                m_LocalVolumetricFogCount = localVolumetricFogList.bounds != null ? localVolumetricFogList.bounds.Count : 0;
 
                 for (int viewIndex = 0; viewIndex < hdCamera.viewCount; ++viewIndex)
                 {
@@ -2660,17 +2673,17 @@ namespace UnityEngine.Rendering.HighDefinition
                         worldToViewCR.SetColumn(3, new Vector4(0, 0, 0, 1));
                     }
 
-                    for (int i = 0, n = m_DensityVolumeCount; i < n; i++)
+                    for (int i = 0, n = m_LocalVolumetricFogCount; i < n; i++)
                     {
-                        // Density volumes are not lights and therefore should not affect light classification.
+                        // Local Volumetric Fog are not lights and therefore should not affect light classification.
                         LightFeatureFlags featureFlags = 0;
-                        CreateBoxVolumeDataAndBound(densityVolumes.bounds[i], LightCategory.DensityVolume, featureFlags, worldToViewCR, 0.0f, out LightVolumeData volumeData, out SFiniteLightBound bound);
+                        CreateBoxVolumeDataAndBound(localVolumetricFogList.bounds[i], LightCategory.LocalVolumetricFog, featureFlags, worldToViewCR, 0.0f, out LightVolumeData volumeData, out SFiniteLightBound bound);
                         m_lightList.lightsPerView[viewIndex].lightVolumes.Add(volumeData);
                         m_lightList.lightsPerView[viewIndex].bounds.Add(bound);
                     }
                 }
 
-                m_TotalLightCount = m_lightList.lights.Count + m_lightList.envLights.Count + decalDatasCount + m_DensityVolumeCount;
+                m_TotalLightCount = m_lightList.lights.Count + m_lightList.envLights.Count + decalDatasCount + m_LocalVolumetricFogCount;
 
                 Debug.Assert(m_TotalLightCount == m_lightList.lightsPerView[0].bounds.Count);
                 Debug.Assert(m_TotalLightCount == m_lightList.lightsPerView[0].lightVolumes.Count);
@@ -2788,7 +2801,7 @@ namespace UnityEngine.Rendering.HighDefinition
         struct BuildGPULightListParameters
         {
             // Common
-            public int totalLightCount; // Regular + Env + Decal + Density Volumes
+            public int totalLightCount; // Regular + Env + Decal + Local Volumetric Fog
             public int viewCount;
             public bool runLightList;
             public bool clearLightLists;
@@ -3188,7 +3201,7 @@ namespace UnityEngine.Rendering.HighDefinition
             cb.g_iNumSamplesMSAA = (int)hdCamera.msaaSamples;
             cb._EnvLightIndexShift = (uint)m_lightList.lights.Count;
             cb._DecalIndexShift = (uint)(m_lightList.lights.Count + m_lightList.envLights.Count);
-            cb._DensityVolumeIndexShift = (uint)(m_lightList.lights.Count + m_lightList.envLights.Count + decalDatasCount);
+            cb._LocalVolumetricFogIndexShift = (uint)(m_lightList.lights.Count + m_lightList.envLights.Count + decalDatasCount);
 
             // Copy the constant buffer into the parameter struct.
             parameters.lightListCB = cb;
