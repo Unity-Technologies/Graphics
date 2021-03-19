@@ -277,7 +277,7 @@ namespace UnityEditor.VFX
         {
             var materialBlendMode = GetMaterialBlendMode();
 
-            return base.HasSorting() || (sort == SortMode.Auto && (materialBlendMode == BlendMode.Alpha || materialBlendMode == BlendMode.AlphaPremultiplied));
+            return base.HasSorting() || ((sort == SortMode.Auto && (materialBlendMode == BlendMode.Alpha || materialBlendMode == BlendMode.AlphaPremultiplied)) && !HasStrips(true));
         }
 
         protected string shaderName
