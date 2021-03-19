@@ -633,11 +633,11 @@ half3 BoxProjectedCubemapDirection(half3 reflectionWS, half3 positionWS, float4 
     [branch] if (cubemapPositionWS.w > 0.0)
     {
         float3 boxMinMax = (reflectionWS > 0.0f) ? boxMax.xyz : boxMin.xyz;
-        float3 rbMinMax = (boxMinMax - positionWS) / reflectionWS;
+        half3 rbMinMax = half3(boxMinMax - positionWS) / reflectionWS;
 
-        float fa = min(min(rbMinMax.x, rbMinMax.y), rbMinMax.z);
+        half fa = half(min(min(rbMinMax.x, rbMinMax.y), rbMinMax.z));
 
-        half3 worldPos = positionWS - cubemapPositionWS.xyz;
+        half3 worldPos = half3(positionWS - cubemapPositionWS.xyz);
 
         half3 result = worldPos + reflectionWS * fa;
         return result;
@@ -655,16 +655,16 @@ float CalculateProbeWeight(half3 positionWS, float4 probeBoxMin, float4 probeBox
     return saturate(min(weightDir.x, min(weightDir.y, weightDir.z)));
 }
 
-float CalculateProbeVolumeSqrMagnitude(float4 probeBoxMin, float4 probeBoxMax)
+half CalculateProbeVolumeSqrMagnitude(float4 probeBoxMin, float4 probeBoxMax)
 {
-    float3 maxToMin = probeBoxMax.xyz - probeBoxMin.xyz;
+    half3 maxToMin = half3(probeBoxMax.xyz - probeBoxMin.xyz);
     return dot(maxToMin, maxToMin);
 }
 
 half3 CalculateIrradianceFromReflectionProbes(half3 reflectVector, half3 positionWS, half perceptualRoughness)
 {
-    float probe0Volume = CalculateProbeVolumeSqrMagnitude(unity_SpecCube0_BoxMin, unity_SpecCube0_BoxMax);
-    float probe1Volume = CalculateProbeVolumeSqrMagnitude(unity_SpecCube1_BoxMin, unity_SpecCube1_BoxMax);
+    half probe0Volume = CalculateProbeVolumeSqrMagnitude(unity_SpecCube0_BoxMin, unity_SpecCube0_BoxMax);
+    half probe1Volume = CalculateProbeVolumeSqrMagnitude(unity_SpecCube1_BoxMin, unity_SpecCube1_BoxMax);
 
     float volumeSign = sign(probe0Volume - probe1Volume);
     float importanceSign = unity_SpecCube1_BoxMin.w;
@@ -693,7 +693,7 @@ half3 CalculateIrradianceFromReflectionProbes(half3 reflectVector, half3 positio
     half mip = PerceptualRoughnessToMipmapLevel(perceptualRoughness);
 
     // Sample the first reflection probe
-    if (weightProbe0 > 0.01f)
+    if (weightProbe0 > 0.01)
     {
 #ifdef _REFLECTION_PROBE_BOX_PROJECTION
         reflectVector = BoxProjectedCubemapDirection(originalReflectVector, positionWS, unity_SpecCube0_ProbePosition, unity_SpecCube0_BoxMin, unity_SpecCube0_BoxMax);
@@ -701,7 +701,7 @@ half3 CalculateIrradianceFromReflectionProbes(half3 reflectVector, half3 positio
         reflectVector = originalReflectVector;
 #endif // _REFLECTION_PROBE_BOX_PROJECTION
 
-        half4 encodedIrradiance = SAMPLE_TEXTURECUBE_LOD(unity_SpecCube0, samplerunity_SpecCube0, reflectVector, mip);
+        half4 encodedIrradiance = half4(SAMPLE_TEXTURECUBE_LOD(unity_SpecCube0, samplerunity_SpecCube0, reflectVector, mip));
 
 #if defined(UNITY_USE_NATIVE_HDR) || defined(UNITY_DOTS_INSTANCING_ENABLED)
         irradiance += weightProbe0 * encodedIrradiance.rbg;
@@ -711,14 +711,14 @@ half3 CalculateIrradianceFromReflectionProbes(half3 reflectVector, half3 positio
     }
 
     // Sample the second reflection probe
-    if (weightProbe1 > 0.01f)
+    if (weightProbe1 > 0.01)
     {
 #ifdef _REFLECTION_PROBE_BOX_PROJECTION
         reflectVector = BoxProjectedCubemapDirection(originalReflectVector, positionWS, unity_SpecCube1_ProbePosition, unity_SpecCube1_BoxMin, unity_SpecCube1_BoxMax);
 #else
         reflectVector = originalReflectVector;
 #endif // _REFLECTION_PROBE_BOX_PROJECTION
-        half4 encodedIrradiance = SAMPLE_TEXTURECUBE_LOD(unity_SpecCube1, samplerunity_SpecCube1, reflectVector, mip);
+        half4 encodedIrradiance = half4(SAMPLE_TEXTURECUBE_LOD(unity_SpecCube1, samplerunity_SpecCube1, reflectVector, mip));
 
 #if defined(UNITY_USE_NATIVE_HDR) || defined(UNITY_DOTS_INSTANCING_ENABLED)
         irradiance += weightProbe1 * encodedIrradiance.rbg;
@@ -731,7 +731,7 @@ half3 CalculateIrradianceFromReflectionProbes(half3 reflectVector, half3 positio
     if (totalWeight < 0.99)
     {
         reflectVector = originalReflectVector;
-        half4 encodedIrradiance = SAMPLE_TEXTURECUBE_LOD(_GlossyEnvironmentCubeMap, sampler_GlossyEnvironmentCubeMap, reflectVector, mip);
+        half4 encodedIrradiance = half4(SAMPLE_TEXTURECUBE_LOD(_GlossyEnvironmentCubeMap, sampler_GlossyEnvironmentCubeMap, reflectVector, mip));
 
 #if defined(UNITY_USE_NATIVE_HDR) || defined(UNITY_DOTS_INSTANCING_ENABLED)
         irradiance += (1 - totalWeight) * encodedIrradiance.rbg;
