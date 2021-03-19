@@ -70,6 +70,7 @@ namespace UnityEditor.Rendering
         {
             EditorGUI.BeginChangeCheck();
             EditorGUILayout.PropertyField(serialized.size, Styles.s_Size);
+            EditorGUILayout.PropertyField(serialized.maxSubdivision, Styles.s_MaxSubdivision);
             if (EditorGUI.EndChangeCheck())
             {
                 Vector3 tmpClamp = serialized.size.vector3Value;

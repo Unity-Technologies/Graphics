@@ -32,7 +32,7 @@ namespace UnityEditor.Rendering
             {
                 serializedObject.Update();
 
-                // ProbeVolumeUI.Inspector.Draw(m_SerializedHintVolume, this);
+                base.OnInspectorGUI();
 
                 serializedObject.ApplyModifiedProperties();
             }

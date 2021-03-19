@@ -61,12 +61,15 @@ namespace UnityEngine.Rendering
             internal Vector3 Y;
             internal Vector3 Z;
 
-            public Volume(Matrix4x4 trs)
+            internal float maxSubdivision;
+
+            public Volume(Matrix4x4 trs, float maxSubdivision)
             {
                 X = trs.GetColumn(0);
                 Y = trs.GetColumn(1);
                 Z = trs.GetColumn(2);
                 corner = (Vector3)trs.GetColumn(3) - X * 0.5f - Y * 0.5f - Z * 0.5f;
+                this.maxSubdivision = maxSubdivision;
             }
 
             public Volume(Volume copy)
@@ -75,6 +78,7 @@ namespace UnityEngine.Rendering
                 Y = copy.Y;
                 Z = copy.Z;
                 corner = copy.corner;
+                maxSubdivision = copy.maxSubdivision;
             }
 
             public Bounds CalculateAABB()
@@ -114,7 +118,7 @@ namespace UnityEngine.Rendering
 
             public override string ToString()
             {
-                return $"Corner: {corner}, X: {X}, Y: {Y}, Z: {Z}";
+                return $"Corner: {corner}, X: {X}, Y: {Y}, Z: {Z}, MaxSubdiv: {maxSubdivision}";
             }
         }
 
@@ -498,6 +502,7 @@ namespace UnityEngine.Rendering
         internal float MaxBrickSize() { return BrickSize(m_MaxSubdivision); }
         internal Matrix4x4 GetRefSpaceToWS() { return m_Transform.refSpaceToWS; }
         internal RefVolTransform GetTransform() { return m_Transform; }
+        internal int GetMaxSubdivision() => m_MaxSubdivision;
 
         /// <summary>
         /// Returns whether any brick data has been loaded.
@@ -595,8 +600,9 @@ namespace UnityEngine.Rendering
 
             int subDivCount = 0;
 
+            Debug.Log(volume.maxSubdivision);
             // iterative subdivision
-            while (m_TmpBricks[0].Count > 0 && subDivCount < m_MaxSubdivision)
+            while (m_TmpBricks[0].Count > 0 && subDivCount < Mathf.CeilToInt(m_MaxSubdivision * volume.maxSubdivision))
             {
                 m_TmpBricks[1].Clear();
                 m_TmpFlags.Clear();
@@ -755,6 +761,7 @@ namespace UnityEngine.Rendering
             outVolume.X = m.MultiplyVector(inVolume.X);
             outVolume.Y = m.MultiplyVector(inVolume.Y);
             outVolume.Z = m.MultiplyVector(inVolume.Z);
+            outVolume.maxSubdivision = inVolume.maxSubdivision;
         }
 
         // Creates bricks at the coarsest level for all areas that are overlapped by the pass in volume

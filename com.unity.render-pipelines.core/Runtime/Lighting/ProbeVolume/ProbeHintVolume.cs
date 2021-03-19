@@ -16,6 +16,8 @@ namespace UnityEngine.Rendering
         [SerializeField]
         Vector3 m_Extent = Vector3.one;
 
+        public int maxSubdivision = 1;
+
         public Vector3 extent
         {
             get => Vector3.Scale(m_Extent, transform.localScale);

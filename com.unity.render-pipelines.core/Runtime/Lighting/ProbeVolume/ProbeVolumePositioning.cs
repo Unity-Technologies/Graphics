@@ -25,6 +25,7 @@ namespace UnityEngine.Rendering
             bounds.X = refTrans.refSpaceToWS.GetColumn(0) * scaledSize;
             bounds.Y = refTrans.refSpaceToWS.GetColumn(1) * scaledSize;
             bounds.Z = refTrans.refSpaceToWS.GetColumn(2) * scaledSize;
+            bounds.maxSubdivision = 1;
 
             return bounds;
         }

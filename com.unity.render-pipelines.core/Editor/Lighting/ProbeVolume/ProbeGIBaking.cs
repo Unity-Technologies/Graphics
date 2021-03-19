@@ -517,9 +517,20 @@ namespace UnityEngine.Rendering
                 ProbeVolume[] probeVolumes = UnityEngine.Object.FindObjectsOfType<ProbeVolume>();
                 var probeHintVolumes = UnityEngine.Object.FindObjectsOfType<ProbeHintVolume>();
 
+                // Calculate the cell volume:
+                ProbeReferenceVolume.Volume cellVolume = new ProbeReferenceVolume.Volume();
+                cellVolume.corner = new Vector3(cellPos.x * bakingReferenceVolumeAuthoring.cellSize, cellPos.y * bakingReferenceVolumeAuthoring.cellSize, cellPos.z * bakingReferenceVolumeAuthoring.cellSize);
+                cellVolume.X = new Vector3(bakingReferenceVolumeAuthoring.cellSize, 0, 0);
+                cellVolume.Y = new Vector3(0, bakingReferenceVolumeAuthoring.cellSize, 0);
+                cellVolume.Z = new Vector3(0, 0, bakingReferenceVolumeAuthoring.cellSize);
+                cellVolume.Transform(cellTrans);
+
+                // The max subdivision in the cell is computed in CreateInfluenceVolumes() using the values in the Probe Volumes and Hint Volumes.
+                cellVolume.maxSubdivision = 0;
+
                 Dictionary<Scene, int> sceneRefs;
                 List<ProbeReferenceVolume.Volume> influenceVolumes;
-                ProbePlacement.CreateInfluenceVolumes(cell.position, renderers, probeVolumes, probeHintVolumes, bakingReferenceVolumeAuthoring, cellTrans, out influenceVolumes, out sceneRefs);
+                ProbePlacement.CreateInfluenceVolumes(ref cellVolume, renderers, probeVolumes, probeHintVolumes, out influenceVolumes, out sceneRefs);
 
                 // Each cell keeps a number of references it has to each scene it was influenced by
                 // We use this list to determine which scene's ProbeVolume asset to assign this cells data to
@@ -530,8 +541,7 @@ namespace UnityEngine.Rendering
                 Vector3[] probePositionsArr = null;
                 List<Brick> bricks = null;
 
-                ProbePlacement.Subdivide(cell.position, refVol, bakingReferenceVolumeAuthoring.cellSize, refVolTransform.posWS, refVolTransform.rot,
-                    influenceVolumes, ref probePositionsArr, ref bricks);
+                ProbePlacement.Subdivide(cellVolume, refVol, influenceVolumes, ref probePositionsArr, ref bricks);
 
                 if (probePositionsArr.Length > 0 && bricks.Count > 0)
                 {

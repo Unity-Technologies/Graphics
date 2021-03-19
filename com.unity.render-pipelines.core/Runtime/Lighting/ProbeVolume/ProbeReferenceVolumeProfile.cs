@@ -11,6 +11,8 @@ namespace UnityEngine.Rendering
     /// </summary>
     public sealed class ProbeReferenceVolumeProfile : ScriptableObject
     {
+        internal static readonly int k_MaxSubdivision = 8;
+
         /// <summary>
         /// The default dimensions for APV's index data structure.
         /// </summary>
@@ -24,7 +26,7 @@ namespace UnityEngine.Rendering
         /// <summary>
         /// The size of a Brick.
         /// </summary>
-        [Min(0.3333f)]
+        [Min(0.01f)]
         public float minDistanceBetweenProbes = 1.0f;
         /// <summary>
         /// The normal bias to apply during shading.
@@ -32,8 +34,8 @@ namespace UnityEngine.Rendering
         [Range(0.0f, 1.0f), Delayed]
         public float normalBias = 0.2f;
 
-        public int maxSubdivision => Mathf.CeilToInt(Mathf.Log(cellSize / brickSize, 2));
-        public int brickSize => Mathf.Max(1, Mathf.RoundToInt(minDistanceBetweenProbes * 3.0f));
+        public int maxSubdivision => Mathf.CeilToInt(Mathf.Log((float)cellSize / brickSize, 2));
+        public float brickSize => Mathf.Max(0.01f, minDistanceBetweenProbes * 3.0f);
 
         /// <summary>
         /// Determines if the Probe Reference Volume Profile is equivalent to another one.
@@ -58,6 +60,7 @@ namespace UnityEngine.Rendering
         private SerializedProperty m_MinDistanceBetweenProbes;
         private SerializedProperty m_NormalBias;
         private SerializedProperty m_IndexDimensions;
+        ProbeReferenceVolumeProfile profile => target as ProbeReferenceVolumeProfile;
 
         sealed class Styles
         {
@@ -84,6 +87,7 @@ namespace UnityEngine.Rendering
 
             EditorGUILayout.PropertyField(m_CellSize, s_Styles.cellSizeStyle);
             EditorGUILayout.PropertyField(m_MinDistanceBetweenProbes, s_Styles.minDistanceBetweenProbes);
+            EditorGUILayout.HelpBox("Maximum subvision of the volume: " + profile.maxSubdivision, MessageType.Info);
             EditorGUILayout.PropertyField(m_NormalBias, s_Styles.normalBias);
 
             ProbeReferenceVolume.instance.normalBiasFromProfile = m_NormalBias.floatValue;
@@ -91,6 +95,10 @@ namespace UnityEngine.Rendering
             if (EditorGUI.EndChangeCheck())
             {
                 serializedObject.ApplyModifiedProperties();
+
+                float minDistanceBetweenProbes = ((float)profile.cellSize / Mathf.Pow(2, ProbeReferenceVolumeProfile.k_MaxSubdivision)) / 3.0f;
+                if (profile.minDistanceBetweenProbes < minDistanceBetweenProbes)
+                    profile.minDistanceBetweenProbes = minDistanceBetweenProbes;
             }
         }
     }

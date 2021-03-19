@@ -18,7 +18,7 @@ namespace UnityEngine.Rendering
         public float dilationValidityThreshold;
         public bool greedyDilation;
 
-        public int brickSize;   // Not really a dilation setting, but used during dilation.
+        public float brickSize;   // Not really a dilation setting, but used during dilation.
     }
 
     [ExecuteAlways]
@@ -80,7 +80,7 @@ namespace UnityEngine.Rendering
 #endif
 
         internal ProbeReferenceVolumeProfile profile { get { return m_Profile; } }
-        internal int brickSize { get { return m_Profile.brickSize; } }
+        internal float brickSize { get { return m_Profile.brickSize; } }
         internal int cellSize { get { return m_Profile.cellSize; } }
         internal int maxSubdivision { get { return m_Profile.maxSubdivision; } }
         internal float normalBias { get { return m_Profile.normalBias; } }

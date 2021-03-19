@@ -72,10 +72,11 @@ namespace UnityEngine.Rendering
                 if (!hintVolume.isActiveAndEnabled)
                     continue;
 
-                ProbeReferenceVolume.Volume indicatorVolume = new ProbeReferenceVolume.Volume(hintVolume.GetTransform());
+                ProbeReferenceVolume.Volume indicatorVolume = new ProbeReferenceVolume.Volume(hintVolume.GetTransform(), hintVolume.maxSubdivision);
 
                 if (ProbeVolumePositioning.OBBIntersect(ref cellVolume, ref indicatorVolume))
                 {
+                    cellVolume.maxSubdivision = Mathf.Max(cellVolume.maxSubdivision, hintVolume.maxSubdivision);
                     volumes.Add(indicatorVolume);
                     TrackSceneRefs(hintVolume.gameObject.scene, ref sceneRefs);
                     num++;
@@ -100,10 +101,11 @@ namespace UnityEngine.Rendering
                 if (!pv.isActiveAndEnabled)
                     continue;
 
-                ProbeReferenceVolume.Volume indicatorVolume = new ProbeReferenceVolume.Volume(Matrix4x4.TRS(pv.transform.position, pv.transform.rotation, pv.GetExtents()));
+                ProbeReferenceVolume.Volume indicatorVolume = new ProbeReferenceVolume.Volume(Matrix4x4.TRS(pv.transform.position, pv.transform.rotation, pv.GetExtents()), pv.parameters.maxSubdivision);
 
                 if (ProbeVolumePositioning.OBBIntersect(ref cellVolume, ref indicatorVolume))
                 {
+                    cellVolume.maxSubdivision = Mathf.Max(cellVolume.maxSubdivision, pv.parameters.maxSubdivision);
                     volumes.Add(indicatorVolume);
                     TrackSceneRefs(pv.gameObject.scene, ref sceneRefs);
                     num++;
@@ -132,17 +134,9 @@ namespace UnityEngine.Rendering
             }
         }
 
-        static public void CreateInfluenceVolumes(Vector3Int cellPos,
-            Renderer[] renderers, ProbeVolume[] probeVolumes, ProbeHintVolume[] probeHintVolumes,
-            ProbeReferenceVolumeAuthoring settings, Matrix4x4 cellTrans, out List<ProbeReferenceVolume.Volume> culledVolumes, out Dictionary<Scene, int> sceneRefs)
+        static public void CreateInfluenceVolumes(ref ProbeReferenceVolume.Volume cellVolume, Renderer[] renderers, ProbeVolume[] probeVolumes, ProbeHintVolume[] probeHintVolumes,
+            out List<ProbeReferenceVolume.Volume> culledVolumes, out Dictionary<Scene, int> sceneRefs)
         {
-            ProbeReferenceVolume.Volume cellVolume = new ProbeReferenceVolume.Volume();
-            cellVolume.corner = new Vector3(cellPos.x * settings.cellSize, cellPos.y * settings.cellSize, cellPos.z * settings.cellSize);
-            cellVolume.X = new Vector3(settings.cellSize, 0, 0);
-            cellVolume.Y = new Vector3(0, settings.cellSize, 0);
-            cellVolume.Z = new Vector3(0, 0, settings.cellSize);
-            cellVolume.Transform(cellTrans);
-
             // Keep track of volumes and which scene they originated from
             sceneRefs = new Dictionary<Scene, int>();
 
@@ -174,10 +168,21 @@ namespace UnityEngine.Rendering
                 {
                     f.subdivide = true;
 
+                    // Get max from all overlapping probe volumes:
+                    float maxSubdiv = cellVolume.maxSubdivision;
+                    foreach (ProbeReferenceVolume.Volume v in probeVolumes)
+                    {
+                        ProbeReferenceVolume.Volume vol = v;
+                        if (ProbeVolumePositioning.OBBIntersect(ref vol, ref brickVolume))
+                            maxSubdiv = Mathf.Max(maxSubdiv, vol.maxSubdivision);
+                    }
+
                     // Transform into refvol space
                     brickVolume.Transform(refTrans.refSpaceToWS.inverse);
                     ProbeReferenceVolume.Volume cellVolumeTrans = new ProbeReferenceVolume.Volume(cellVolume);
                     cellVolumeTrans.Transform(refTrans.refSpaceToWS.inverse);
+                    cellVolumeTrans.maxSubdivision = maxSubdiv;
+                    Debug.Log("Max Subdiv: " + maxSubdiv);
 
                     // Discard parent brick if it extends outside of the cell, to prevent duplicates
                     var brickVolumeMax = brickVolume.corner + brickVolume.X + brickVolume.Y + brickVolume.Z;
@@ -211,17 +216,9 @@ namespace UnityEngine.Rendering
             return false;
         }
 
-        public static void Subdivide(Vector3Int cellPosGridSpace, ProbeReferenceVolume refVol, float cellSize, Vector3 translation, Quaternion rotation, List<ProbeReferenceVolume.Volume> influencerVolumes,
+        public static void Subdivide(ProbeReferenceVolume.Volume cellVolume, ProbeReferenceVolume refVol, List<ProbeReferenceVolume.Volume> influencerVolumes,
             ref Vector3[] positions, ref List<ProbeBrickIndex.Brick> bricks)
         {
-            //TODO: This per-cell volume is calculated 2 times during probe placement. We should calculate it once and reuse it.
-            ProbeReferenceVolume.Volume cellVolume = new ProbeReferenceVolume.Volume();
-            cellVolume.corner = new Vector3(cellPosGridSpace.x * cellSize, cellPosGridSpace.y * cellSize, cellPosGridSpace.z * cellSize);
-            cellVolume.X = new Vector3(cellSize, 0, 0);
-            cellVolume.Y = new Vector3(0, cellSize, 0);
-            cellVolume.Z = new Vector3(0, 0, cellSize);
-            cellVolume.Transform(Matrix4x4.TRS(translation, rotation, Vector3.one));
-
             // TODO move out
             var indicatorVolumes = new List<ProbeReferenceVolume.Volume>();
             foreach (ProbeVolume pv in UnityEngine.Object.FindObjectsOfType<ProbeVolume>())
@@ -229,7 +226,7 @@ namespace UnityEngine.Rendering
                 if (!pv.enabled)
                     continue;
 
-                indicatorVolumes.Add(new ProbeReferenceVolume.Volume(Matrix4x4.TRS(pv.transform.position, pv.transform.rotation, pv.GetExtents())));
+                indicatorVolumes.Add(new ProbeReferenceVolume.Volume(Matrix4x4.TRS(pv.transform.position, pv.transform.rotation, pv.GetExtents()), pv.parameters.maxSubdivision));
             }
 
             ProbeReferenceVolume.SubdivisionDel subdivDel =
