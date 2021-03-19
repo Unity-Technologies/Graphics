@@ -11,12 +11,12 @@ namespace UnityEditor.Rendering.Universal
 
         static void UpgradeAsset(Object rendererData, string rendererDataPath, Object fwdRendererScriptObj, Object stdRendererScriptObj)
         {
-            if(rendererData == null) return;
+            if (rendererData == null) return;
             SerializedObject so = new SerializedObject(rendererData);
 
             //Double check to see if it's using ForwardRendererData
             SerializedProperty scriptProperty = so.FindProperty("m_Script");
-            if(scriptProperty.objectReferenceValue == fwdRendererScriptObj)
+            if (scriptProperty.objectReferenceValue == fwdRendererScriptObj)
             {
                 //Change the script to use UniversalRendererData
                 so.Update();
@@ -55,7 +55,7 @@ namespace UnityEditor.Rendering.Universal
                     //Upgrade subAssets
                     UpgradeAsset(subAssets[j], rendererDataPath, fwdRendererScriptObj, stdRendererScriptObj);
                 }
-                
+
                 //Upgrade the main Asset
                 Object rendererData = AssetDatabase.LoadAssetAtPath(rendererDataPath, typeof(Object));
                 UpgradeAsset(rendererData, rendererDataPath, fwdRendererScriptObj, stdRendererScriptObj);
