@@ -19,6 +19,7 @@ namespace UnityEngine.Rendering.Universal
         }
 
         public ShaderResources shaders = null;
+        public LayerMask layerMask;
 
         protected override ScriptableRenderer Create()
         {

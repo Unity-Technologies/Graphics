@@ -58,6 +58,7 @@ Shader "Test/Simple Lit No ZWrite"
             // Use same blending / depth states as Standard shader
             Blend[_SrcBlend][_DstBlend]
             ZWrite Off
+            ZTest Equal
             Cull[_Cull]
 
             HLSLPROGRAM
