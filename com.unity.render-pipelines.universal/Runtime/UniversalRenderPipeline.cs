@@ -501,7 +501,7 @@ namespace UnityEngine.Rendering.Universal
 #endif
             using (new ProfilingScope(null, Profiling.Pipeline.beginCameraRendering))
             {
-                UpdateLegacyStereoMatrices(baseCameraData);
+                UpdateCameraStereoMatrices(baseCameraData);
                 BeginCameraRendering(context, baseCamera);
             }
 #if VISUAL_EFFECT_GRAPH_0_0_1_OR_NEWER
@@ -536,7 +536,7 @@ namespace UnityEngine.Rendering.Universal
 
                         using (new ProfilingScope(null, Profiling.Pipeline.beginCameraRendering))
                         {
-                            UpdateLegacyStereoMatrices(baseCameraData);
+                            UpdateCameraStereoMatrices(baseCameraData);
                             BeginCameraRendering(context, currCamera);
                         }
 #if VISUAL_EFFECT_GRAPH_0_0_1_OR_NEWER
@@ -1022,7 +1022,7 @@ namespace UnityEngine.Rendering.Universal
             lightData.supportsMixedLighting = settings.supportsMixedLighting;
         }
 
-        static void UpdateLegacyStereoMatrices(CameraData cameraData)
+        static void UpdateCameraStereoMatrices(CameraData cameraData)
         {
 #if ENABLE_VR && ENABLE_XR_MODULE
             if (cameraData.xr.enabled)
