@@ -714,8 +714,8 @@ namespace UnityEngine.Rendering.HighDefinition
                                 var fullresCoC = m_Pool.Get(Vector2.one, k_CoCFormat, false);
                                 var colorPyramid = m_Pool.Get(Vector2.one, m_ColorFormat, true);
                                 float scaleFactor = 1.0f / dofParameters.minMaxCoCTileSize;
-                                var minMaxCoCPing = m_Pool.Get(Vector2.one * scaleFactor, k_CoCFormat, false);
-                                var minMaxCoCPong = m_Pool.Get(Vector2.one * scaleFactor, k_CoCFormat, false);
+                                var minMaxCoCPing = m_Pool.Get(Vector2.one * scaleFactor, GraphicsFormat.R16G16B16A16_SFloat, false);
+                                var minMaxCoCPong = m_Pool.Get(Vector2.one * scaleFactor, GraphicsFormat.R16G16B16A16_SFloat, false);
 
                                 DoPhysicallyBasedDepthOfField(dofParameters, cmd, source, destination, fullresCoC, prevCoC, nextCoC, motionVecTexture, colorPyramid, depthBuffer, minMaxCoCPing, minMaxCoCPong, taaEnabled);
 
