@@ -1,6 +1,8 @@
 #ifndef UNITY_COMMON_INCLUDED
 #define UNITY_COMMON_INCLUDED
 
+#pragma warning (disable : 3205) // conversion of larger type to smaller
+
 // Convention:
 
 // Unity is Y up and left handed in world space
