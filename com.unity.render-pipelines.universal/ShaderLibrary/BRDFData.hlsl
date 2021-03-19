@@ -144,12 +144,9 @@ inline void InitializeBRDFDataClearCoat(half clearCoatMask, half clearCoatSmooth
     // TODO: what about diffuse? at least in specular workflow diffuse should be recalculated as it directly depends on it.
 }
 
-inline BRDFData CreateBRDFData(SurfaceData surfaceData)
+inline void InitializeBRDFData(SurfaceData surfaceData, out BRDFData brdfData)
 {
-    BRDFData brdfData;
-
     InitializeBRDFData(surfaceData.albedo, surfaceData.metallic, surfaceData.specular, surfaceData.smoothness, surfaceData.alpha, brdfData);
-    return brdfData;
 }
 
 // Computes the specular term for EnvironmentBRDF

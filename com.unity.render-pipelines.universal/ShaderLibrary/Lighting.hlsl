@@ -258,7 +258,8 @@ half4 UniversalFragmentPBR(InputData inputData, SurfaceData surfaceData)
     bool specularHighlightsOff = false;
     #endif
     // NOTE: can modify alpha
-    BRDFData brdfData = CreateBRDFData(surfaceData);
+    BRDFData brdfData;
+    InitializeBRDFData(surfaceData, brdfData);
 
     #if defined(_DEBUG_SHADER)
     half4 debugColor;

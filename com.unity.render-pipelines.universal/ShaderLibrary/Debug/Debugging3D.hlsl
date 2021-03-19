@@ -288,7 +288,7 @@ bool CanDebugOverrideOutputColor(inout InputData inputData, inout SurfaceData su
         }
 
         // Update the BRDF data following any changes to the input/surface above...
-        brdfData = CreateBRDFData(surfaceData);
+        InitializeBRDFData(surfaceData, brdfData);
 
         return (_DebugMaterialMode != DEBUGMATERIALMODE_LOD) && CalculateColorForDebug(inputData, surfaceData, debugColor);
     }
