@@ -257,6 +257,7 @@ namespace UnityEngine.Rendering.Universal
         public static readonly int subtractiveShadowColor = Shader.PropertyToID("_SubtractiveShadowColor");
 
         public static readonly int glossyEnvironmentCubeMap = Shader.PropertyToID("_GlossyEnvironmentCubeMap");
+        public static readonly int glossyEnvironmentCubeMapHDR = Shader.PropertyToID("_GlossyEnvironmentCubeMap_HDR");
 
         public static readonly int ambientSkyColor = Shader.PropertyToID("unity_AmbientSky");
         public static readonly int ambientEquatorColor = Shader.PropertyToID("unity_AmbientEquator");

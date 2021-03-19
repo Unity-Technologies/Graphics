@@ -736,7 +736,7 @@ half3 CalculateIrradianceFromReflectionProbes(half3 reflectVector, half3 positio
 #if defined(UNITY_USE_NATIVE_HDR) || defined(UNITY_DOTS_INSTANCING_ENABLED)
         irradiance += (1 - totalWeight) * encodedIrradiance.rbg;
 #else
-        irradiance += (1 - totalWeight) * DecodeHDREnvironment(encodedIrradiance, unity_SpecCube1_HDR);
+        irradiance += (1 - totalWeight) * DecodeHDREnvironment(encodedIrradiance, _GlossyEnvironmentCubeMap_HDR);
 #endif // UNITY_USE_NATIVE_HDR || UNITY_DOTS_INSTANCING_ENABLED
     }
 
