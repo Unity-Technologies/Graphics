@@ -12,7 +12,9 @@
                 <TabButton name="NodeSettingsButton" text="Node Settings" target="NodeSettingsContainer" />
                 <TabButton name="GraphSettingsButton" text="Graph Settings" target="GraphSettingsContainer" />
                 <ui:VisualElement name="GraphSettingsContainer" picking-mode="Ignore" />
-                <ui:VisualElement name="NodeSettingsContainer" picking-mode="Ignore" />
+                <ui:VisualElement name="NodeSettingsContainer" picking-mode="Ignore">
+                    <ui:Label name="maxItemsMessageLabel" picking-mode="Hidden" text ="Max of 20 visible items reached" />
+                </ui:VisualElement>
             </TabbedView>
     </ui:VisualElement>
     <sg:ResizableElement pickingMode="Ignore" resizeRestriction="FlexDirection"/>

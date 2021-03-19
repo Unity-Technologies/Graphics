@@ -28,7 +28,7 @@ InputData CreateInputData(VaryingsParticle input, SurfaceData surfaceData)
     output.viewDirectionWS = viewDirWS;
 
     output.fogCoord = (half)input.positionWS.w;
-    output.vertexLighting = half3(0.0h, 0.0h, 0.0h);
+    output.vertexLighting = half3(0.0, 0.0, 0.0);
     output.bakedGI = SampleSHPixel(input.vertexSH, output.normalWS);
     output.normalizedScreenSpaceUV = GetNormalizedScreenSpaceUV(input.clipPos);
     output.normalTS = surfaceData.normalTS;
@@ -98,17 +98,14 @@ VaryingsParticle vertParticleUnlit(AttributesParticle input)
     output.clipPos = vertexInput.positionCS;
     output.color = GetParticleColor(input.color);
 
-    half3 viewDirWS = GetWorldSpaceViewDir(vertexInput.positionWS);
-#if !SHADER_HINT_NICE_QUALITY
-    viewDirWS = SafeNormalize(viewDirWS);
-#endif
+    half3 viewDirWS = GetWorldSpaceNormalizeViewDir(vertexInput.positionWS);
 
 #ifdef _NORMALMAP
     output.normalWS = half4(normalInput.normalWS, viewDirWS.x);
     output.tangentWS = half4(normalInput.tangentWS, viewDirWS.y);
     output.bitangentWS = half4(normalInput.bitangentWS, viewDirWS.z);
 #else
-    output.normalWS = normalInput.normalWS;
+    output.normalWS = half3(normalInput.normalWS);
     output.viewDirWS = viewDirWS;
 #endif
 
