@@ -109,7 +109,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed Nans happening when the history render target is bigger than the current viewport (case 1321139).
 - Fixed Tube and Disc lights mode selection (case 1317776)
 - Fixed preview camera updating the skybox material triggering GI baking (case 1314361/1314373).
-- The default LookDev volume profile is now copied and referened in the Asset folder instead of the package folder.
+- Fixed issue with Decal projector edge on Metal (case 1286074)
 
 ### Changed
 - Changed Window/Render Pipeline/HD Render Pipeline Wizard to Window/Rendering/HDRP Wizard
@@ -163,6 +163,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Changed Density Volume for Local Volumetric Fog
 - HDRP Global Settings are now saved into their own asset (HDRenderPipelineGlobalSettings) and HDRenderPipeline's default asset refers to this new asset.
 - Improved physically based Depth of Field with better near defocus blur quality.
+- The default LookDev volume profile is now copied and referened in the Asset folder instead of the package folder.
 
 ## [11.0.0] - 2020-10-21
 
