@@ -67,6 +67,9 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
         [SerializeField]
         string m_CustomEditorGUI;
 
+        internal override bool ignoreCustomInterpolators => false;
+        internal override int padCustomInterpolatorLimit => 8;
+
         public override bool IsNodeAllowedByTarget(Type nodeType)
         {
             SRPFilterAttribute srpFilter = NodeClassCache.GetAttributeOnNodeType<SRPFilterAttribute>(nodeType);
@@ -874,6 +877,14 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             { RayTracingQualityNode.GetRayTracingQualityKeyword(), 0 },
         };
 
+        public static DefineCollection ForwardLit = new DefineCollection
+        {
+            { CoreKeywordDescriptors.SupportBlendModePreserveSpecularLighting, 1 },
+            { CoreKeywordDescriptors.HasLightloop, 1 },
+            { RayTracingQualityNode.GetRayTracingQualityKeyword(), 0 },
+            { CoreKeywordDescriptors.ShaderLit, 1 },
+        };
+
         public static DefineCollection ForwardUnlit = new DefineCollection
         {
             { RayTracingQualityNode.GetRayTracingQualityKeyword(), 0 },
@@ -983,8 +994,8 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
         {
             // Pregraph includes
             { CoreIncludes.kRaytracingMacros, IncludeLocation.Pregraph },
-            { CoreIncludes.kMaterial, IncludeLocation.Pregraph },
             { CoreIncludes.kShaderVariablesRaytracing, IncludeLocation.Pregraph },
+            { CoreIncludes.kMaterial, IncludeLocation.Pregraph },
             { CoreIncludes.kShaderVariablesRaytracingLightLoop, IncludeLocation.Pregraph },
         };
 
@@ -1185,6 +1196,15 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
         {
             displayName = "Surface Type Transparent",
             referenceName = "_SURFACE_TYPE_TRANSPARENT",
+            type = KeywordType.Boolean,
+            definition = KeywordDefinition.ShaderFeature,
+            scope = KeywordScope.Global,
+        };
+
+        public static KeywordDescriptor ShaderLit = new KeywordDescriptor()
+        {
+            displayName = "Lit shader",
+            referenceName = "SHADER_LIT",
             type = KeywordType.Boolean,
             definition = KeywordDefinition.ShaderFeature,
             scope = KeywordScope.Global,
@@ -1394,6 +1414,16 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             stages = KeywordShaderStage.Fragment
         };
 
+        public static KeywordDescriptor ConservativeDepthOffset = new KeywordDescriptor
+        {
+            displayName = "Conservative Depth Offset",
+            referenceName = "_CONSERVATIVE_DEPTH_OFFSET",
+            type = KeywordType.Boolean,
+            definition = KeywordDefinition.ShaderFeature,
+            scope = KeywordScope.Local,
+            stages = KeywordShaderStage.Fragment
+        };
+
         public static KeywordDescriptor multiBounceIndirect = new KeywordDescriptor
         {
             displayName = "Multi Bounce Indirect",
@@ -1403,5 +1433,20 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             scope = KeywordScope.Global,
         };
     }
+    #endregion
+
+    #region CustomInterpolators
+    static class CoreCustomInterpolators
+    {
+        public static readonly CustomInterpSubGen.Collection Common = new CustomInterpSubGen.Collection
+        {
+            CustomInterpSubGen.Descriptor.MakeDefine(CustomInterpSubGen.Splice.k_splicePreVertex, "USE_CUSTOMINTERP_APPLYMESHMOD"),
+            CustomInterpSubGen.Descriptor.MakeStruct(CustomInterpSubGen.Splice.k_splicePreInclude, "CustomInterpolators", "USE_CUSTOMINTERP_SUBSTRUCT"),
+            CustomInterpSubGen.Descriptor.MakeBlock("CustomInterpolatorVertexDefinitionToVaryings", "varyings", "vertexDescription"),
+            CustomInterpSubGen.Descriptor.MakeBlock("CustomInterpolatorVaryingsToFragInputs", "output.customInterpolators", "input"),
+            CustomInterpSubGen.Descriptor.MakeBlock(CustomInterpSubGen.Splice.k_spliceCopyToSDI, "output", "input.customInterpolators")
+        };
+    }
+
     #endregion
 }
