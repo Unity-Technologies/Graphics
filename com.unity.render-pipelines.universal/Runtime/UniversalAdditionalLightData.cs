@@ -91,6 +91,5 @@ namespace UnityEngine.Rendering.Universal
             get { return m_ShadowLayersMask; }
             set { m_ShadowLayersMask = value; }
         }
-
     }
 }

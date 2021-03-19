@@ -59,7 +59,7 @@ namespace UnityEditor.Rendering.Universal
                 new GUIContent("Use Pipeline Settings")
             };
 
-            public readonly GUIContent LightLayer = EditorGUIUtility.TrTextContent("Light Layer", "Specifies the current Light Layers that the Light affects. This Light illuminates corresponding Renderers with the same Light Layer flags."); 
+            public readonly GUIContent LightLayer = EditorGUIUtility.TrTextContent("Light Layer", "Specifies the current Light Layers that the Light affects. This Light illuminates corresponding Renderers with the same Light Layer flags.");
             public readonly GUIContent linkLightAndShadowLayers = EditorGUIUtility.TrTextContent("Link Light Layer", "When enabled, the Light Layer property in the General section specifies the light layers for both lighting and for shadows. When disabled, you can use the Light Layer property below to specify the light layers for shadows seperately to lighting.");
             public readonly GUIContent ShadowLayer = EditorGUIUtility.TrTextContent("Shadow Layer", "Specifies the light layer to use for shadows.");
         }

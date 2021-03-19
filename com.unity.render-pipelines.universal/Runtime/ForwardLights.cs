@@ -39,7 +39,7 @@ namespace UnityEngine.Rendering.Universal.Internal
         Vector4[] m_AdditionalLightAttenuations;
         Vector4[] m_AdditionalLightSpotDirections;
         Vector4[] m_AdditionalLightOcclusionProbeChannels;
-        float [] m_AdditionalLightsLightLayers; // Unity has no support for binding uint arrays. We will use asuint() in the shader instead.
+        float[] m_AdditionalLightsLightLayers;  // Unity has no support for binding uint arrays. We will use asuint() in the shader instead.
 
         bool m_UseStructuredBuffer;
 
