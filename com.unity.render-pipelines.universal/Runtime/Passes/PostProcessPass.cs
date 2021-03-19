@@ -429,6 +429,12 @@ namespace UnityEngine.Rendering.Universal.Internal
                     m_Materials.uber.EnableKeyword(ShaderKeywordStrings.UseFastSRGBLinearConversion);
                 }
 
+                if(isSceneViewCamera)
+                {
+                    // Scene-view doesn't necessarily use the final-blit, so ensure we set the debug properties here (if necessary)...
+                    DebugHandler?.UpdateShaderGlobalPropertiesFinalBlitPass(cmd, ref cameraData);
+                }
+
                 // Done with Uber, blit it
                 cmd.SetGlobalTexture(ShaderPropertyId.sourceTex, GetSource());
 

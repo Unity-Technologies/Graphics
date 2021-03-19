@@ -206,6 +206,10 @@ namespace UnityEngine.Rendering.Universal
                 {
                     m_DrawSkyboxPass.DebugHandler = DebugHandler;
                 }
+                if(m_PostProcessPasses.postProcessPass != null)
+                {
+                    m_PostProcessPasses.postProcessPass.DebugHandler = DebugHandler;
+                }
                 if(m_PostProcessPasses.finalPostProcessPass != null)
                 {
                     m_PostProcessPasses.finalPostProcessPass.DebugHandler = DebugHandler;
@@ -267,6 +271,54 @@ namespace UnityEngine.Rendering.Universal
             CoreUtils.Destroy(m_TileDepthInfoMaterial);
             CoreUtils.Destroy(m_TileDeferredMaterial);
             CoreUtils.Destroy(m_StencilDeferredMaterial);
+        }
+
+        private void SetupFinalPassDebug(ref CameraData cameraData)
+        {
+            if((DebugHandler != null) && DebugHandler.IsActiveForCamera(ref cameraData))
+            {
+                if(DebugHandler.TryGetFullscreenDebugMode(out DebugFullScreenMode fullScreenDebugMode))
+                {
+                    Camera camera = cameraData.camera;
+                    float screenWidth = camera.pixelWidth;
+                    float screenHeight = camera.pixelHeight;
+                    float size = Mathf.Min(screenWidth, screenHeight);
+                    float normalizedSizeX = size / screenWidth;
+                    float normalizedSizeY = size / screenHeight;
+                    Rect normalizedRect = new Rect(1 - normalizedSizeX, 1 - normalizedSizeY, normalizedSizeX, normalizedSizeY);
+
+                    switch(fullScreenDebugMode)
+                    {
+                        case DebugFullScreenMode.Depth:
+                        {
+                            DebugHandler.SetDebugRenderTarget(m_DepthTexture.Identifier(), new Rect(0, 0, 1, 1));
+                            break;
+                        }
+                        // TODO: Restore this once we have access to the screen-space shadow texture...
+                        // case DebugFullScreenMode.MainLightShadowsOnly:
+                        //     debugBuffer = new RenderTargetIdentifier("_ScreenSpaceShadowmapTexture");
+                        //     break;
+                        case DebugFullScreenMode.AdditionalLightsShadowMap:
+                        {
+                            DebugHandler.SetDebugRenderTarget(m_AdditionalLightsShadowCasterPass.m_AdditionalLightsShadowmapTexture, normalizedRect);
+                            break;
+                        }
+                        case DebugFullScreenMode.MainLightShadowMap:
+                        {
+                            DebugHandler.SetDebugRenderTarget(m_MainLightShadowCasterPass.m_MainLightShadowmapTexture, normalizedRect);
+                            break;
+                        }
+                        default:
+                        {
+                            break;
+                        }
+                    }
+                }
+                else
+                {
+                    DebugHandler.ResetDebugRenderTarget();
+                }
+            }
         }
 
         /// <inheritdoc />
@@ -571,50 +623,6 @@ namespace UnityEngine.Rendering.Universal
             }
             EnqueuePass(m_OnRenderObjectCallbackPass);
 
-            if((DebugHandler != null) && DebugHandler.IsActiveForCamera(ref cameraData))
-            {
-                if(DebugHandler.TryGetFullscreenDebugMode(out DebugFullScreenMode fullScreenDebugMode))
-                {
-                    float screenWidth = camera.pixelWidth;
-                    float screenHeight = camera.pixelHeight;
-                    float size = Mathf.Min(screenWidth, screenHeight);
-                    float normalizedSizeX = size / screenWidth;
-                    float normalizedSizeY = size / screenHeight;
-                    Rect normalizedRect = new Rect(1 - normalizedSizeX, 1 - normalizedSizeY, normalizedSizeX, normalizedSizeY);
-
-                    switch(fullScreenDebugMode)
-                    {
-                        case DebugFullScreenMode.Depth:
-                        {
-                            DebugHandler.SetDebugRenderTarget(m_DepthTexture.Identifier(), new Rect(0, 0, 1, 1));
-                            break;
-                        }
-                        // TODO: Restore this once we have access to the screen-space shadow texture...
-                        // case DebugFullScreenMode.MainLightShadowsOnly:
-                        //     debugBuffer = new RenderTargetIdentifier("_ScreenSpaceShadowmapTexture");
-                        //     break;
-                        case DebugFullScreenMode.AdditionalLightsShadowMap:
-                        {
-                            DebugHandler.SetDebugRenderTarget(m_AdditionalLightsShadowCasterPass.m_AdditionalLightsShadowmapTexture, normalizedRect);
-                            break;
-                        }
-                        case DebugFullScreenMode.MainLightShadowMap:
-                        {
-                            DebugHandler.SetDebugRenderTarget(m_MainLightShadowCasterPass.m_MainLightShadowmapTexture, normalizedRect);
-                            break;
-                        }
-                        default:
-                        {
-                            break;
-                        }
-                    }
-                }
-                else
-                {
-                    DebugHandler.ResetDebugRenderTarget();
-                }
-            }
-
             bool lastCameraInTheStack = cameraData.resolveFinalTarget;
             bool hasCaptureActions = renderingData.cameraData.captureActions != null && lastCameraInTheStack;
             bool applyFinalPostProcessing = anyPostProcessing && lastCameraInTheStack &&
@@ -626,6 +634,8 @@ namespace UnityEngine.Rendering.Universal
 
             if (lastCameraInTheStack)
             {
+                SetupFinalPassDebug(ref cameraData);
+
                 // Post-processing will resolve to final target. No need for final blit pass.
                 if (applyPostProcessing)
                 {
@@ -636,7 +646,6 @@ namespace UnityEngine.Rendering.Universal
                     postProcessPass.Setup(cameraTargetDescriptor, m_ActiveCameraColorAttachment, destination, m_ActiveCameraDepthAttachment, colorGradingLut, applyFinalPostProcessing, doSRGBConvertion);
                     EnqueuePass(postProcessPass);
                 }
-
 
                 // if we applied post-processing for this camera it means current active texture is m_AfterPostProcessColor
                 var sourceForFinalPass = (applyPostProcessing) ? afterPostProcessColor : m_ActiveCameraColorAttachment;
