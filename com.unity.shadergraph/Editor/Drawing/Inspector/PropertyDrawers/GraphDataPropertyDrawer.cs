@@ -75,19 +75,6 @@ namespace UnityEditor.ShaderGraph.Drawing.Inspector.PropertyDrawers
 
             element.Add(targetList);
 
-            // Warn the user if there are multiple VFX compatible targets and one of them is the legacy VFX Target.
-            if (graphData.m_ActiveTargets.Count(t => t.value.WorksWithVFX()) >= 2 &&
-                graphData.m_ActiveTargets.Count(t => t.value is VFXTarget) == 1)
-            {
-                var vfxWarning = new HelpBoxRow(MessageType.Warning);
-
-                var vfxWarningLabel = new Label("There are multiple VFX compatible active targets.");
-                vfxWarningLabel.style.color = new StyleColor(Color.black);
-
-                vfxWarning.Add(vfxWarningLabel);
-                element.Add(vfxWarning);
-            }
-
             // Iterate active TargetImplementations
             foreach (var target in graphData.activeTargets)
             {
@@ -118,6 +105,21 @@ namespace UnityEditor.ShaderGraph.Drawing.Inspector.PropertyDrawers
                     target.GetPropertiesGUI(ref context, onChange, RegisterActionToUndo);
                     element.Add(context);
                 }
+            }
+
+            // Warn the user if there are multiple VFX compatible targets and one of them is the legacy VFX Target.
+            if (graphData.m_ActiveTargets.Count(t => t.value.WorksWithVFX()) == 1 &&
+                graphData.m_ActiveTargets.Count(t => t.value is VFXTarget) == 1)
+            {
+                var vfxWarning = new HelpBoxRow(MessageType.Info);
+
+                var vfxWarningLabel = new Label("The Visual Effect target is deprecated. \n" +
+                    "Add a Universal or HDRP target instead, and enable 'Support VFX Graph' in the Graph Inspector.");
+
+                vfxWarningLabel.style.color = new StyleColor(Color.white);
+
+                vfxWarning.Add(vfxWarningLabel);
+                element.Add(vfxWarning);
             }
 
             return element;
