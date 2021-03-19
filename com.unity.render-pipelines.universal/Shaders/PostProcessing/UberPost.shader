@@ -222,9 +222,9 @@ Shader "Hidden/Universal Render Pipeline/UberPost"
             #endif
 
             #if defined(_DEBUG_SHADER)
-            half4 debugColor;
+            half4 debugColor = 0;
 
-            if(CalculateDebugColor(half4(color, 1), debugColor))
+            if(CanDebugOverrideOutputColor(half4(color, 1), uv, debugColor))
             {
                 return debugColor;
             }
