@@ -163,6 +163,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Changed Density Volume for Local Volumetric Fog
 - HDRP Global Settings are now saved into their own asset (HDRenderPipelineGlobalSettings) and HDRenderPipeline's default asset refers to this new asset.
 - Improved physically based Depth of Field with better near defocus blur quality.
+- Changed normal used in path tracing to create a local light list from the geometric to the smooth shading one.
 
 ## [11.0.0] - 2020-10-21
 
