@@ -63,7 +63,7 @@ namespace UnityEngine.Rendering.Universal.Internal
             this.normalHandle = normalHandle;
             baseDescriptor.graphicsFormat = normalsFormat;
             baseDescriptor.depthBufferBits = 0;
-            baseDescriptor.msaaSamples = normalSamples;
+            baseDescriptor.msaaSamples = useDepthPriming ? normalSamples : 1;
             normalDescriptor = baseDescriptor;
 
             this.allocateDepth = true;
@@ -80,7 +80,17 @@ namespace UnityEngine.Rendering.Universal.Internal
             if (this.allocateDepth)
                 cmd.GetTemporaryRT(depthHandle.id, depthDescriptor, FilterMode.Point);
 
-            ConfigureTarget(new RenderTargetIdentifier(normalHandle.Identifier(), 0, CubemapFace.Unknown, -1));
+            if (m_UseDepthPriming)
+            {
+                ConfigureTarget(new RenderTargetIdentifier(normalHandle.Identifier(), 0, CubemapFace.Unknown, -1));
+            }
+            else
+            {
+                ConfigureTarget(
+                    new RenderTargetIdentifier(normalHandle.Identifier(), 0, CubemapFace.Unknown, -1),
+                    new RenderTargetIdentifier(depthHandle.Identifier(), 0, CubemapFace.Unknown, -1)
+                );
+            }
 
             ConfigureClear(ClearFlag.All, Color.black);
         }
