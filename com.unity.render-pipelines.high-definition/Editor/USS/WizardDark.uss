@@ -1,4 +1,4 @@
-#HelpBox
+.HelpBox
 {
     background-color: #2E2E2E;
     border-color: #232323;
@@ -30,4 +30,14 @@ ToolbarRadio
 {
     background-color: rgba(0, 0, 0, 0);
     border-color: #181818;
+}
+
+.ScopeBox
+{
+    border-color: #C4C4C4;
+}
+
+.ScopeBox > #Title
+{
+    background-color: #424242;
 }

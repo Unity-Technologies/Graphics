@@ -1,4 +1,5 @@
 using UnityEngine;
+using UnityEngine.Rendering;
 using UnityEngine.Rendering.HighDefinition;
 using System.Runtime.InteropServices;
 using UnityEngine.UIElements;
@@ -53,6 +54,7 @@ namespace UnityEditor.Rendering.HighDefinition
             public const string resolveAll = "Fix All";
             public const string resolveAllQuality = "Fix All Qualities";
             public const string resolveAllBuildTarget = "Fix All Platforms";
+            public const string fixAllOnNonHDRP = "Current Quality is not using High Definition render pipeline. If you attempt a Fix All, the current Quality will be changed to use it.";
 
             public struct ConfigStyle
             {
@@ -83,13 +85,12 @@ namespace UnityEditor.Rendering.HighDefinition
                 label: "Shadowmask mode",
                 error: "Only distance shadowmask supported at the project level! (You can still change this per light.)",
                 button: resolveAllQuality);
-            public static readonly ConfigStyle hdrpAsset = new ConfigStyle(
-                label: "Asset configuration",
-                error: "There are issues in the HDRP asset configuration. (see below)",
-                button: resolveAll);
-            public static readonly ConfigStyle hdrpAssetAssigned = new ConfigStyle(
-                label: "Assigned",
-                error: "There is no HDRP asset assigned to the render pipeline!");
+            public static readonly ConfigStyle hdrpAssetGraphicsAssigned = new ConfigStyle(
+                label: "Assigned - Graphics",
+                error: "There is no HDRP asset assigned to the Graphic Settings!");
+            public static readonly ConfigStyle hdrpAssetQualityAssigned = new ConfigStyle(
+                label: "Assigned - Quality",
+                error: "The RenderPipelineAsset assigned in the current Quality must be null or a HDRenderPipelineAsset. If it is null, the asset for the current Quality will be the one in Graphics Settings. (The Fix or Fix All button will nullify it)");
             public static readonly ConfigStyle hdrpAssetRuntimeResources = new ConfigStyle(
                 label: "Runtime resources",
                 error: "There is an issue with the runtime resources!");
@@ -102,19 +103,19 @@ namespace UnityEditor.Rendering.HighDefinition
             public static readonly ConfigStyle hdrpAssetDiffusionProfile = new ConfigStyle(
                 label: "Diffusion profile",
                 error: "There is no diffusion profile assigned in the HDRP asset!");
-            public static readonly ConfigStyle hdrpScene = new ConfigStyle(
-                label: "Default scene prefab",
-                error: "Default scene prefab must be set to create HD templated scene!");
             public static readonly ConfigStyle hdrpVolumeProfile = new ConfigStyle(
                 label: "Default volume profile",
                 error: "Default volume profile must be assigned in the HDRP asset! Also, for it to be editable, it should be outside of package.");
-
+            public static readonly ConfigStyle hdrpLookDevVolumeProfile = new ConfigStyle(
+                label: "Default Look Dev volume profile",
+                error: "Default Look Dev volume profile must be assigned in the HDRP asset! Also, for it to be editable, it should be outside of package.");
+            
             public static readonly ConfigStyle vrLegacyVRSystem = new ConfigStyle(
                 label: "Legacy VR System",
                 error: "Legacy VR System need to be disabled in Player Settings!");
             public static readonly ConfigStyle vrXRManagementPackage = new ConfigStyle(
                 label: "XR Management Package",
-                error: "XR Management Package is not correctly set. (see below)");
+                error: "XR Management Package is required to run in VR!");
             public static readonly ConfigStyle vrXRManagementPackageInstalled = new ConfigStyle(
                 label: "Package Installed",
                 error: "Last version of XR Management Package must be added in your project!");
@@ -172,9 +173,6 @@ namespace UnityEditor.Rendering.HighDefinition
             public static readonly ConfigStyle dxrResources = new ConfigStyle(
                 label: "DXR resources",
                 error: "There is an issue with the DXR resources! Alternatively, Direct3D is not set as API (can be fixed with option above) or your hardware and/or OS cannot be used for DXR! (unfixable)");
-            public static readonly ConfigStyle dxrScene = new ConfigStyle(
-                label: "Default DXR scene prefab",
-                error: "Default DXR scene prefab must be set to create HD templated scene!");
 
             public const string hdrpAssetDisplayDialogTitle = "Create or Load HDRenderPipelineAsset";
             public const string hdrpAssetDisplayDialogContent = "Do you want to create a fresh HDRenderPipelineAsset in the default resource folder and automatically assign it?";
@@ -220,6 +218,9 @@ namespace UnityEditor.Rendering.HighDefinition
 
         void OnGUI()
         {
+            if (m_BaseUpdatable == null)
+                return;
+
             foreach (VisualElementUpdatable updatable in m_BaseUpdatable.Children().Where(c => c is VisualElementUpdatable))
                 updatable.CheckUpdate();
         }
@@ -310,6 +311,12 @@ namespace UnityEditor.Rendering.HighDefinition
                     },
                 out m_BaseUpdatable));
 
+            
+            var fixAllWarning = new HiddableUpdatableContainer(() => !IsHdrpAssetQualityUsedCorrect());
+            fixAllWarning.Add(new HelpBox(HelpBox.Kind.Error, Style.fixAllOnNonHDRP) { name = "FixAllWarning" });
+            fixAllWarning.Init();
+            m_BaseUpdatable.Add(fixAllWarning);
+
             m_BaseUpdatable.Add(new FixAllButton(
                 Style.resolveAll,
                 () =>
@@ -339,20 +346,40 @@ namespace UnityEditor.Rendering.HighDefinition
                             break;
                     }
                 }));
+            
+            ScopeBox globalScope = new ScopeBox("Global");
+            ScopeBox currentQualityScope = new ScopeBox("Current Quality");
+            
+            m_BaseUpdatable.Add(globalScope);
+            m_BaseUpdatable.Add(currentQualityScope);
 
-            AddHDRPConfigInfo(m_BaseUpdatable);
+            AddHDRPConfigInfo(globalScope, QualityScope.Global);
 
-            var vrScope = new HiddableUpdatableContainer(()
+            var vrScopeGlobal = new HiddableUpdatableContainer(()
                 => m_Configuration == Configuration.HDRP_VR);
-            AddVRConfigInfo(vrScope);
-            vrScope.Init();
-            m_BaseUpdatable.Add(vrScope);
+            AddVRConfigInfo(vrScopeGlobal, QualityScope.Global);
+            vrScopeGlobal.Init();
+            globalScope.Add(vrScopeGlobal);
 
-            var dxrScope = new HiddableUpdatableContainer(()
+            var dxrScopeGlobal = new HiddableUpdatableContainer(()
                 => m_Configuration == Configuration.HDRP_DXR);
-            AddDXRConfigInfo(dxrScope);
-            dxrScope.Init();
-            m_BaseUpdatable.Add(dxrScope);
+            AddDXRConfigInfo(dxrScopeGlobal, QualityScope.Global);
+            dxrScopeGlobal.Init();
+            globalScope.Add(dxrScopeGlobal);
+            
+            AddHDRPConfigInfo(currentQualityScope, QualityScope.CurrentQuality);
+            
+            var vrScopeCurrentQuality = new HiddableUpdatableContainer(()
+                => m_Configuration == Configuration.HDRP_VR);
+            AddVRConfigInfo(vrScopeCurrentQuality, QualityScope.CurrentQuality);
+            vrScopeCurrentQuality.Init();
+            currentQualityScope.Add(vrScopeCurrentQuality);
+
+            var dxrScopeCurrentQuality = new HiddableUpdatableContainer(()
+                => m_Configuration == Configuration.HDRP_DXR);
+            AddDXRConfigInfo(dxrScopeCurrentQuality, QualityScope.CurrentQuality);
+            dxrScopeCurrentQuality.Init();
+            currentQualityScope.Add(dxrScopeCurrentQuality);
 
             container.Add(CreateTitle(Style.migrationTitle));
             container.Add(CreateLargeButton(Style.migrateAllButton, UpgradeStandardShaderMaterials.UpgradeMaterialsProject));
@@ -490,9 +517,9 @@ namespace UnityEditor.Rendering.HighDefinition
             }
         }
 
-        void GroupEntriesForDisplay(VisualElement container, InclusiveScope filter)
+        void GroupEntriesForDisplay(VisualElement container, InclusiveMode filter, QualityScope scope)
         {
-            foreach (var entry in entries.Where(e => filter.Contains(e.scope)))
+            foreach (var entry in entries.Where(e => e.scope == scope && filter.Contains(e.inclusiveScope)))
             {
                 string error = entry.configStyle.error;
 
@@ -516,12 +543,12 @@ namespace UnityEditor.Rendering.HighDefinition
             }
         }
 
-        void AddHDRPConfigInfo(VisualElement container)
-            => GroupEntriesForDisplay(container, InclusiveScope.HDRP);
-        void AddVRConfigInfo(VisualElement container)
-            => GroupEntriesForDisplay(container, InclusiveScope.VR);
-        void AddDXRConfigInfo(VisualElement container)
-            => GroupEntriesForDisplay(container, InclusiveScope.DXROptional);
+        void AddHDRPConfigInfo(VisualElement container, QualityScope quality)
+            => GroupEntriesForDisplay(container, InclusiveMode.HDRP, quality);
+        void AddVRConfigInfo(VisualElement container, QualityScope quality)
+            => GroupEntriesForDisplay(container, InclusiveMode.VR, quality);
+        void AddDXRConfigInfo(VisualElement container, QualityScope quality)
+            => GroupEntriesForDisplay(container, InclusiveMode.DXROptional, quality);
 
         Label CreateTitle(string title)
         {
