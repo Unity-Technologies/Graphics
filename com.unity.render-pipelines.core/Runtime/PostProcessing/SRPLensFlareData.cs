@@ -362,7 +362,7 @@ namespace UnityEngine
             return null;
         }
 
-        [MenuItem("Assets/Create/SRP Lens Flare", priority = 303)]
+        [MenuItem("Assets/Create/SRP Lens Flare", priority = UnityEngine.Rendering.CoreUtils.Priorities.srpLensFlareMenuPriority)]
         private static void CreateSRPLensFlareAsset()
         {
             string className = typeof(SRPLensFlareData).Name;

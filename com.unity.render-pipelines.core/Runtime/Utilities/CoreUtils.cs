@@ -76,6 +76,8 @@ namespace UnityEngine.Rendering
             public const int editMenuPriority = 320;
             /// <summary>Game Object Menu priority</summary>
             public const int gameObjectMenuPriority = 10;
+            /// <summary>Lens Flare Priority</summary>
+            public const int srpLensFlareMenuPriority = 303;
         }
 
         const string obsoletePriorityMessage = "Use CoreUtils.Priorities instead";

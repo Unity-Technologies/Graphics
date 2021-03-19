@@ -70,6 +70,585 @@ namespace UnityEngine
         }
 
         /// <summary>
+        /// Attenuation by Light Shape for Point Light
+        /// </summary>
+        /// <returns>Attenuation Factor</returns>
+        static public float ShapeAttenuationPointLight()
+        {
+            return 1.0f;
+        }
+
+        /// <summary>
+        /// Attenuation by Light Shape for Directional Light
+        /// </summary>
+        /// <param name="forward">Forward Vector of Directional Light</param>
+        /// <param name="wo">Vector pointing to the eye</param>
+        /// <returns>Attenuation Factor</returns>
+        static public float ShapeAttenuationDirLight(Vector3 forward, Vector3 wo)
+        {
+            return Mathf.Max(Vector3.Dot(forward, wo), 0.0f);
+        }
+
+        /// <summary>
+        /// Attenuation by Light Shape for Spot Light with Cone Shape
+        /// </summary>
+        /// <param name="forward">Forward Vector of Directional Light</param>
+        /// <param name="wo">Vector pointing to the eye</param>
+        /// <param name="spotAngle">The angle of the light's spotlight cone in degrees.</param>
+        /// <param name="innerSpotPercent01">Get the inner spot radius between 0 and 1.</param>
+        /// <returns>Attenuation Factor</returns>
+        static public float ShapeAttenuationSpotConeLight(Vector3 forward, Vector3 wo, float spotAngle, float innerSpotPercent01)
+        {
+            float outerDot = Mathf.Max(Mathf.Cos(0.5f * spotAngle * Mathf.Deg2Rad), 0.0f);
+            float innerDot = Mathf.Max(Mathf.Cos(0.5f * spotAngle * Mathf.Deg2Rad * innerSpotPercent01), 0.0f);
+            float dot = Mathf.Max(Vector3.Dot(forward, wo), 0.0f);
+            return Mathf.Clamp01((dot - outerDot) / (innerDot - outerDot));
+        }
+
+        /// <summary>
+        /// Attenuation by Light Shape for Spot Light with Box Shape
+        /// </summary>
+        /// <param name="forward">Forward Vector of Directional Light</param>
+        /// <param name="wo">Vector pointing to the eye</param>
+        /// <returns>Attenuation Factor</returns>
+        static public float ShapeAttenuationSpotBoxLight(Vector3 forward, Vector3 wo)
+        {
+            return Mathf.Max(Mathf.Sign(Vector3.Dot(forward, wo)), 0.0f);
+        }
+
+        /// <summary>
+        /// Attenuation by Light Shape for Spot Light with Pyramid Shape
+        /// </summary>
+        /// <param name="forward">Forward Vector of Directional Light</param>
+        /// <param name="wo">Vector pointing to the eye</param>
+        /// <returns>Attenuation Factor</returns>
+        static public float ShapeAttenuationSpotPyramidLight(Vector3 forward, Vector3 wo)
+        {
+            return ShapeAttenuationSpotBoxLight(forward, wo);
+        }
+
+        /// <summary>
+        /// Attenuation by Light Shape for Area Light with Tube Shape
+        /// </summary>
+        /// <param name="forward">Forward Vector of Directional Light</param>
+        /// <param name="wo">Vector pointing to the eye</param>
+        /// <returns>Attenuation Factor</returns>
+        static public float ShapeAttenuationAreaTubeLight(Vector3 lightPositionWS, Vector3 lightSide, float lightWidth, Camera cam)
+        {
+            // Ref: https://hal.archives-ouvertes.fr/hal-02155101/document
+            // Listing 1.6. Analytic line-diffuse integration.
+            float Fpo(float d, float l)
+            {
+                return l / (d * (d * d + l * l)) + Mathf.Atan(l / d) / (d * d);
+            }
+
+            float Fwt(float d, float l)
+            {
+                return l * l / (d * (d * d + l * l));
+            }
+
+            Vector3 p1Global = lightPositionWS + lightSide * lightWidth * 0.5f;
+            Vector3 p2Global = lightPositionWS - lightSide * lightWidth * 0.5f;
+            Vector3 p1Front = lightPositionWS + cam.transform.right * lightWidth * 0.5f;
+            Vector3 p2Front = lightPositionWS - cam.transform.right * lightWidth * 0.5f;
+
+            Vector3 p1World = cam.transform.InverseTransformPoint(p1Global);
+            Vector3 p2World = cam.transform.InverseTransformPoint(p2Global);
+            Vector3 p1WorldFront = cam.transform.InverseTransformPoint(p1Front);
+            Vector3 p2WorldFront = cam.transform.InverseTransformPoint(p2Front);
+
+            float DiffLineIntegral(Vector3 p1, Vector3 p2)
+            {
+                float diffIntegral;
+                // tangent
+                Vector3 wt = (p2 - p1).normalized;
+                // clamping
+                if (p1.z <= 0.0 && p2.z <= 0.0)
+                {
+                    diffIntegral = 0.0f;
+                }
+                else
+                {
+                    if (p1.z < 0.0)
+                        p1 = (p1 * p2.z - p2 * p1.z) / (+p2.z - p1.z);
+                    if (p2.z < 0.0)
+                        p2 = (-p1 * p2.z + p2 * p1.z) / (-p2.z + p1.z);
+                    // parameterization
+                    float l1 = Vector3.Dot(p1, wt);
+                    float l2 = Vector3.Dot(p2, wt);
+                    // shading point orthonormal projection on the line
+                    Vector3 po = p1 - l1 * wt;
+                    // distance to line
+                    float d = po.magnitude;
+                    // integral
+                    float integral = (Fpo(d, l2) - Fpo(d, l1)) * po.z + (Fwt(d, l2) - Fwt(d, l1)) * wt.z;
+                    diffIntegral = integral / Mathf.PI;
+                }
+
+                return diffIntegral;
+            }
+
+            float frontModulation = DiffLineIntegral(p1WorldFront, p2WorldFront);
+            float worldModulation = DiffLineIntegral(p1World, p2World);
+
+            return frontModulation > 0.0f ? worldModulation / frontModulation : 1.0f;
+        }
+
+        /// <summary>
+        /// Attenuation by Light Shape for Area Light with Rectangular Shape
+        /// </summary>
+        /// <param name="forward">Forward Vector of Directional Light</param>
+        /// <param name="wo">Vector pointing to the eye</param>
+        /// <returns>Attenuation Factor</returns>
+        static public float ShapeAttenuationAreaRectangleLight(Vector3 forward, Vector3 wo)
+        {
+            return ShapeAttenuationDirLight(forward, wo);
+        }
+
+        /// <summary>
+        /// Attenuation by Light Shape for Area Light with Disc Shape
+        /// </summary>
+        /// <param name="forward">Forward Vector of Directional Light</param>
+        /// <param name="wo">Vector pointing to the eye</param>
+        /// <returns>Attenuation Factor</returns>
+        static public float ShapeAttenuationAreaDiscLight(Vector3 forward, Vector3 wo)
+        {
+            return ShapeAttenuationDirLight(forward, wo);
+        }
+
+        /// <summary>
+        /// Effective Job of drawing the set of Lens Flare registered
+        /// </summary>
+        /// <param name="lensFlareShader">Lens Flare material (HDRP or URP shader)</param>
+        /// <param name="lensFlares">Set of Lens Flare</param>
+        /// <param name="cam">Camera</param>
+        /// <param name="actualWidth">Width actually used for rendering after dynamic resolution and XR is applied.</param>
+        /// <param name="actualHeight">Height actually used for rendering after dynamic resolution and XR is applied.</param>
+        /// <param name="cmd">Command Buffer</param>
+        /// <param name="source">Source Render Target which contains the Color Buffer</param>
+        /// <param name="target">Target Render Target</param>
+        /// <param name="GetLensFlareLightAttenuation">Delegate to which return return the Attenuation of the light based on their shape which uses the functions ShapeAttenuation...(...), must reimplemented per SRP</param>
+        /// <param name="_FlareTex">ShaderID for the FlareTex</param>
+        /// <param name="_FlareColorValue">ShaderID for the FlareColor</param>
+        /// <param name="_FlareData0">ShaderID for the FlareData0</param>
+        /// <param name="_FlareData1">ShaderID for the FlareData1</param>
+        /// <param name="_FlareData2">ShaderID for the FlareData2</param>
+        /// <param name="_FlareData3">ShaderID for the FlareData3</param>
+        /// <param name="_FlareData4">ShaderID for the FlareData4</param>
+        /// <param name="_FlareData5">ShaderID for the FlareData5</param>
+        static public void DoLensFlareDataDriven(Material lensFlareShader, SRPLensFlareCommon lensFlares, Camera cam, float actualWidth, float actualHeight, UnityEngine.Rendering.CommandBuffer cmd, UnityEngine.Rendering.RTHandle source, UnityEngine.Rendering.RTHandle target,
+            System.Func<Light, Camera, Vector3, float> GetLensFlareLightAttenuation,
+            int _FlareTex, int _FlareColorValue, int _FlareData0, int _FlareData1, int _FlareData2, int _FlareData3, int _FlareData4, int _FlareData5)
+        {
+            Vector4 GetFlareData0(Vector2 screenPos, Vector2 translationScale, Vector2 vScreenRatio, float angleDeg, float position, float angularOffset, Vector2 positionOffset, bool autoRotate)
+            {
+                float globalCos0 = Mathf.Cos(-angularOffset * Mathf.Deg2Rad);
+                float globalSin0 = Mathf.Sin(-angularOffset * Mathf.Deg2Rad);
+
+                Vector2 rayOff = -translationScale * (screenPos + screenPos * (position - 1.0f));
+                rayOff = new Vector2(globalCos0 * rayOff.x - globalSin0 * rayOff.y,
+                    globalSin0 * rayOff.x + globalCos0 * rayOff.y);
+
+                float rotation = angleDeg;
+
+                rotation += 180.0f;
+                if (!autoRotate)
+                {
+                    rotation = Mathf.Abs(rotation) < 1e-4f ? -360.0f : -rotation;
+                }
+                else
+                {
+                    Vector2 pos = (rayOff.normalized * vScreenRatio) * translationScale;
+                    rotation -= Mathf.Rad2Deg * (Mathf.Atan2(pos.y, pos.x) + Mathf.PI * 0.5f);
+                }
+                rotation *= Mathf.Deg2Rad;
+                float localCos0 = Mathf.Cos(-rotation);
+                float localSin0 = Mathf.Sin(-rotation);
+
+                return new Vector4(localCos0, localSin0, positionOffset.x, -positionOffset.y);
+            }
+
+            Vector2 GetLensFlareRayOffset(Vector2 screenPos, float position, float globalCos0, float globalSin0)
+            {
+                Vector2 rayOff = -(screenPos + screenPos * (position - 1.0f));
+                return new Vector2(globalCos0 * rayOff.x - globalSin0 * rayOff.y,
+                    globalSin0 * rayOff.x + globalCos0 * rayOff.y);
+            }
+
+            if (lensFlares.IsEmpty())
+                return;
+
+            //Camera cam = camera.current;
+            Vector2 screenSize = new Vector2(actualWidth, actualHeight);
+            float screenRatio = screenSize.x / screenSize.y;
+            Vector2 vScreenRatio = new Vector2(screenRatio, 1.0f);
+
+            cmd.CopyTexture(source, target);
+            UnityEngine.Rendering.CoreUtils.SetRenderTarget(cmd, target);
+            foreach (SRPLensFlareOverride comp in lensFlares.GetData())
+            {
+                if (comp == null)
+                    continue;
+
+                SRPLensFlareData data = comp.lensFlareData;
+
+                if (!comp.enabled ||
+                    !comp.gameObject.activeSelf ||
+                    !comp.gameObject.activeInHierarchy ||
+                    data == null ||
+                    data.elements == null ||
+                    data.elements.Length == 0)
+                    continue;
+
+                Light light = comp.GetComponent<Light>();
+
+                Vector3 positionWS;
+                Vector3 viewportPos;
+                Vector3 positionScreen;
+
+                bool isDirLight = false;
+                if (light != null && light.type == LightType.Directional)
+                {
+                    positionWS = -light.transform.forward * cam.farClipPlane;
+                    isDirLight = true;
+                }
+                else
+                {
+                    positionWS = comp.transform.position;
+                }
+                viewportPos = cam.WorldToViewportPoint(positionWS);
+                positionScreen = cam.WorldToScreenPoint(positionWS);
+
+                if (viewportPos.z < 0.0f)
+                    continue;
+
+                if (!comp.allowOffScreen)
+                {
+                    if (viewportPos.x < 0.0f || viewportPos.x > 1.0f ||
+                        viewportPos.y < 0.0f || viewportPos.y > 1.0f)
+                        continue;
+                }
+
+                Vector4 modulationByColor = Vector4.one;
+                Vector4 modulationAttenuation = Vector4.one;
+                Vector3 diffToObject = positionWS - cam.transform.position;
+                float distToObject = diffToObject.magnitude;
+                float coefDistSample = distToObject / comp.maxAttenuationDistance;
+                float coefScaleSample = distToObject / comp.maxAttenuationScale;
+                float distanceAttenuation = !isDirLight && comp.distanceAttenuationCurve.length > 0 ? comp.distanceAttenuationCurve.Evaluate(coefDistSample) : 1.0f;
+                float scaleByDistance = !isDirLight && comp.scaleByDistanceCurve.length >= 1 ? comp.scaleByDistanceCurve.Evaluate(coefScaleSample) : 1.0f;
+
+                Color globalColorModulation = Color.white;
+
+                if (light != null)
+                {
+                    if (comp.attenuationByLightShape)
+                        globalColorModulation *= GetLensFlareLightAttenuation(light, cam, -diffToObject.normalized);
+                }
+
+                globalColorModulation *= distanceAttenuation;
+
+                Vector3 dir = (cam.transform.position - comp.transform.position).normalized;
+                Vector3 screenPosZ = cam.WorldToViewportPoint(positionWS + dir * comp.occlusionOffset);
+                Vector2 occlusionRadiusEdgeScreenPos0 = (Vector2)cam.WorldToViewportPoint(positionWS);
+                Vector2 occlusionRadiusEdgeScreenPos1 = (Vector2)cam.WorldToViewportPoint(positionWS + cam.transform.up * comp.occlusionRadius);
+                float occlusionRadius = (occlusionRadiusEdgeScreenPos1 - occlusionRadiusEdgeScreenPos0).magnitude;
+                cmd.SetGlobalVector(_FlareData1, new Vector4(occlusionRadius, comp.sampleCount, screenPosZ.z, 0.0f));
+
+                if (comp.useOcclusion)
+                {
+                    cmd.EnableShaderKeyword("FLARE_OCCLUSION");
+                }
+                else
+                {
+                    cmd.DisableShaderKeyword("FLARE_OCCLUSION");
+                }
+
+                foreach (SRPLensFlareDataElement element in data.elements)
+                {
+                    if (element == null ||
+                        (element.lensFlareTexture == null && element.flareType == SRPLensFlareType.Image) ||
+                        element.localIntensity <= 0.0f ||
+                        element.count <= 0)
+                        continue;
+
+                    Color colorModulation = globalColorModulation;
+                    if (light != null && element.modulateByLightColor)
+                    {
+                        if (light.useColorTemperature)
+                            colorModulation *= light.color * Mathf.CorrelatedColorTemperatureToRGB(light.colorTemperature);
+                        else
+                            colorModulation *= light.color;
+                    }
+
+                    Color curColor = colorModulation;
+                    Vector2 screenPos = new Vector2(2.0f * viewportPos.x - 1.0f, 1.0f - 2.0f * viewportPos.y);
+                    Vector2 translationScale = new Vector2(element.translationScale.x, element.translationScale.y);
+                    Texture texture = element.lensFlareTexture;
+                    float elemAspectRatio = element.sizeXY.x / element.sizeXY.y;
+                    float usedAspectRatio;
+                    if (element.flareType == SRPLensFlareType.Image)
+                        usedAspectRatio = element.preserveAspectRatio ? (((float)texture.width) / ((float)texture.height)) : 1.0f;
+                    else
+                        usedAspectRatio = 1.0f;
+
+                    float rotation = element.rotation;
+                    Vector4 tint = Vector4.Scale(element.tint, curColor);
+                    Vector2 radPos = new Vector2(Mathf.Abs(screenPos.x), Mathf.Abs(screenPos.y));
+                    float radius = Mathf.Max(radPos.x, radPos.y); // l1 norm (instead of l2 norm)
+                    float radialsScaleRadius = comp.radialScreenAttenuationCurve.length > 0 ? comp.radialScreenAttenuationCurve.Evaluate(radius) : 1.0f;
+
+                    Vector2 elemSizeXY;
+                    if (element.preserveAspectRatio)
+                        elemSizeXY = new Vector2(element.sizeXY.y / usedAspectRatio, element.sizeXY.y);
+                    else
+                        elemSizeXY = new Vector2(element.sizeXY.x, element.sizeXY.y);
+                    float scaleSize = 0.1f;
+                    Vector2 size = new Vector2(scaleByDistance * elemSizeXY.x, scaleByDistance * elemSizeXY.y);
+                    size *= scaleSize * element.uniformScale; // Arbitrary values
+
+                    Vector4 gradientModulation = new Vector4(1.0f, 1.0f, 1.0f, 1.0f);
+
+                    float currentIntensity = comp.intensity * element.localIntensity * radialsScaleRadius * distanceAttenuation;
+
+                    if (currentIntensity <= 0.0f)
+                        continue;
+
+                    curColor *= element.tint;
+                    curColor *= currentIntensity;
+
+                    float globalCos0 = Mathf.Cos(-element.angularOffset * Mathf.Deg2Rad);
+                    float globalSin0 = Mathf.Sin(-element.angularOffset * Mathf.Deg2Rad);
+
+                    float position = 2.0f * element.position;
+
+                    SRPLensFlareBlendMode blendMode = element.blendMode;
+                    int materialPass;
+                    if (blendMode == SRPLensFlareBlendMode.Additive)
+                        materialPass = 0;
+                    else if (blendMode == SRPLensFlareBlendMode.Screen)
+                        materialPass = 1;
+                    else if (blendMode == SRPLensFlareBlendMode.Premultiply)
+                        materialPass = 2;
+                    else if (blendMode == SRPLensFlareBlendMode.Lerp)
+                        materialPass = 3;
+                    else
+                        materialPass = 0;
+
+                    if (element.flareType == SRPLensFlareType.Image)
+                    {
+                        cmd.DisableShaderKeyword("FLARE_CIRCLE");
+                        cmd.DisableShaderKeyword("FLARE_POLYGON");
+                    }
+                    else if (element.flareType == SRPLensFlareType.Circle)
+                    {
+                        cmd.EnableShaderKeyword("FLARE_CIRCLE");
+                        cmd.DisableShaderKeyword("FLARE_POLYGON");
+                    }
+                    else if (element.flareType == SRPLensFlareType.Polygon)
+                    {
+                        cmd.DisableShaderKeyword("FLARE_CIRCLE");
+                        cmd.EnableShaderKeyword("FLARE_POLYGON");
+                    }
+
+                    if (element.flareType == SRPLensFlareType.Circle ||
+                        element.flareType == SRPLensFlareType.Polygon)
+                    {
+                        if (element.inverseSDF)
+                        {
+                            cmd.EnableShaderKeyword("FLARE_INVERSE_SDF");
+                        }
+                        else
+                        {
+                            cmd.DisableShaderKeyword("FLARE_INVERSE_SDF");
+                        }
+                    }
+                    else
+                    {
+                        cmd.DisableShaderKeyword("FLARE_INVERSE_SDF");
+                    }
+
+                    if (element.lensFlareTexture != null)
+                        cmd.SetGlobalTexture(_FlareTex, element.lensFlareTexture);
+
+                    float usedGradientPosition = Mathf.Clamp01(element.edgeOffset - 1e-6f);
+                    if (element.flareType == SRPLensFlareType.Polygon)
+                        usedGradientPosition = Mathf.Pow(usedGradientPosition + 1.0f, 5);
+
+                    Vector2 ComputeLocalSize(Vector2 rayOff, Vector2 rayOff0, Vector2 curSize, AnimationCurve distortionCurve)
+                    {
+                        Vector2 rayOffZ = GetLensFlareRayOffset(screenPos, position, globalCos0, globalSin0);
+                        Vector2 localRadPos;
+                        float localRadius;
+                        if (!element.distortionRelativeToCenter)
+                        {
+                            localRadPos = (rayOff - rayOff0) * 0.5f;
+                            localRadius = Mathf.Clamp01(Mathf.Max(Mathf.Abs(localRadPos.x), Mathf.Abs(localRadPos.y))); // l1 norm (instead of l2 norm)
+                        }
+                        else
+                        {
+                            localRadPos = screenPos + (rayOff + new Vector2(element.positionOffset.x, -element.positionOffset.y)) * element.translationScale;
+                            localRadius = Mathf.Clamp01(localRadPos.magnitude); // l2 norm (instead of l1 norm)
+                        }
+                        float localLerpValue = Mathf.Clamp01(distortionCurve.Evaluate(localRadius));
+                        return new Vector2(Mathf.Lerp(curSize.x, curSize.x * element.targetSizeDistortion.x, localLerpValue),
+                            Mathf.Lerp(curSize.y, curSize.y * element.targetSizeDistortion.y, localLerpValue));
+                    }
+
+                    float usedSDFRoundness = element.sdfRoundness;
+
+                    cmd.SetGlobalVector(_FlareData5, new Vector4(comp.allowOffScreen ? 1.0f : -1.0f, usedGradientPosition, Mathf.Exp(element.fallOff), 0.0f));
+                    if (element.flareType == SRPLensFlareType.Polygon)
+                    {
+                        float invSide = 1.0f / (float)element.sideCount;
+                        float rCos = Mathf.Cos(Mathf.PI * invSide);
+                        float roundValue = rCos * usedSDFRoundness;
+                        float r = rCos - roundValue;
+                        float an = 2.0f * Mathf.PI * invSide;
+                        float he = r * Mathf.Tan(0.5f * an);
+                        cmd.SetGlobalVector(_FlareData4, new Vector4(usedSDFRoundness, r, an, he));
+                    }
+                    else
+                    {
+                        cmd.SetGlobalVector(_FlareData4, new Vector4(usedSDFRoundness, 0.0f, 0.0f, 0.0f));
+                    }
+
+                    if (!element.allowMultipleElement || element.count == 1)
+                    {
+                        Vector4 flareData0 = GetFlareData0(screenPos, element.translationScale, vScreenRatio, element.rotation, position, element.angularOffset, element.positionOffset, element.autoRotate);
+
+                        Vector2 rayOff = GetLensFlareRayOffset(screenPos, position, globalCos0, globalSin0);
+                        Vector2 localSize = size;
+
+                        if (element.enableRadialDistortion)
+                        {
+                            Vector2 rayOff0 = GetLensFlareRayOffset(screenPos, 0.0f, globalCos0, globalSin0);
+                            localSize = ComputeLocalSize(rayOff, rayOff0, localSize, element.distortionCurve);
+                        }
+
+                        cmd.SetGlobalVector(_FlareData0, flareData0);
+                        cmd.SetGlobalVector(_FlareData2, new Vector4(screenPos.x, screenPos.y, localSize.x, localSize.y));
+                        cmd.SetGlobalVector(_FlareData3, new Vector4(rayOff.x * element.translationScale.x, rayOff.y * element.translationScale.y, 1.0f / (float)element.sideCount, 0.0f));
+                        cmd.SetGlobalVector(_FlareColorValue, curColor);
+
+                        cmd.DrawProcedural(Matrix4x4.identity, lensFlareShader, materialPass, MeshTopology.Quads, 6, 1, null);
+                    }
+                    else
+                    {
+                        float dLength = 2.0f * element.lengthSpread / ((float)(element.count - 1));
+
+                        if (element.distribution == SRPLensFlareDistribution.Uniform)
+                        {
+                            Vector4[] buffer0 = new Vector4[element.count];
+                            Vector4[] buffer2 = new Vector4[element.count];
+                            Vector4[] buffer3 = new Vector4[element.count];
+                            Vector4[] colors = new Vector4[element.count];
+                            for (int elemIdx = 0; elemIdx < element.count; ++elemIdx)
+                            {
+                                Vector2 rayOff = GetLensFlareRayOffset(screenPos, position, globalCos0, globalSin0);
+
+                                Vector2 localSize = size;
+                                if (element.enableRadialDistortion)
+                                {
+                                    Vector2 rayOff0 = GetLensFlareRayOffset(screenPos, 0.0f, globalCos0, globalSin0);
+                                    localSize = ComputeLocalSize(rayOff, rayOff0, localSize, element.distortionCurve);
+                                }
+
+                                float timeScale = element.count >= 2 ? ((float)elemIdx) / ((float)(element.count - 1)) : 0.5f;
+
+                                Color col = element.colorGradient.Evaluate(timeScale);
+
+                                Vector4 flareData0 = GetFlareData0(screenPos, element.translationScale, vScreenRatio, element.rotation, position, element.angularOffset, element.positionOffset, element.autoRotate);
+                                cmd.SetGlobalVector(_FlareData0, flareData0);
+                                cmd.SetGlobalVector(_FlareData2, new Vector4(screenPos.x, screenPos.y, localSize.x, localSize.y));
+                                cmd.SetGlobalVector(_FlareData3, new Vector4(rayOff.x * element.translationScale.x, rayOff.y * element.translationScale.y, 1.0f / (float)element.sideCount, 0.0f));
+                                cmd.SetGlobalVector(_FlareColorValue, curColor * col);
+
+                                cmd.DrawProcedural(Matrix4x4.identity, lensFlareShader, materialPass, MeshTopology.Quads, 6, 1, null);
+                                position += dLength;
+                            }
+                        }
+                        else if (element.distribution == SRPLensFlareDistribution.Random)
+                        {
+                            Vector2 side = new Vector2(Mathf.Sin(-element.angularOffset * Mathf.Deg2Rad), Mathf.Cos(-element.angularOffset * Mathf.Deg2Rad));
+                            side *= element.positionVariation.y;
+                            float RandomRange(System.Random rnd, float min, float max)
+                            {
+                                float x = (float)rnd.NextDouble();
+                                return x * (max - min) + min;
+                            }
+
+                            System.Random rnd = new System.Random(element.seed);
+                            for (int elemIdx = 0; elemIdx < element.count; ++elemIdx)
+                            {
+                                float localIntensity = RandomRange(rnd, -1.0f, 1.0f) * element.intensityVariation + 1.0f;
+
+                                Vector2 rayOff = GetLensFlareRayOffset(screenPos, position, globalCos0, globalSin0);
+                                Vector2 localSize = size;
+                                localSize += size * ((new Vector2(usedAspectRatio, 1.0f)) * element.scaleVariation * RandomRange(rnd, -1.0f, 1.0f));
+                                if (element.enableRadialDistortion)
+                                {
+                                    Vector2 rayOff0 = GetLensFlareRayOffset(screenPos, 0.0f, globalCos0, globalSin0);
+                                    localSize = ComputeLocalSize(rayOff, rayOff0, localSize, element.distortionCurve);
+                                }
+
+                                Color randCol = element.colorGradient.Evaluate(RandomRange(rnd, 0.0f, 1.0f));
+
+                                Vector2 localPositionOffset = element.positionOffset + RandomRange(rnd, -1.0f, 1.0f) * side;
+
+                                float localRotation = element.rotation + RandomRange(rnd, -Mathf.PI, Mathf.PI) * element.rotationVariation;
+
+                                if (localIntensity > 0.0f)
+                                {
+                                    Vector4 flareData0 = GetFlareData0(screenPos, element.translationScale, vScreenRatio, localRotation, position, element.angularOffset, localPositionOffset, element.autoRotate);
+                                    cmd.SetGlobalVector(_FlareData0, flareData0);
+                                    cmd.SetGlobalVector(_FlareData2, new Vector4(screenPos.x, screenPos.y, localSize.x, localSize.y));
+                                    cmd.SetGlobalVector(_FlareData3, new Vector4(rayOff.x * element.translationScale.x, rayOff.y * element.translationScale.y, 1.0f / (float)element.sideCount, 0.0f));
+                                    cmd.SetGlobalVector(_FlareColorValue, curColor * randCol * localIntensity);
+
+                                    cmd.DrawProcedural(Matrix4x4.identity, lensFlareShader, materialPass, MeshTopology.Quads, 6, 1, null);
+                                }
+
+                                position += dLength;
+                                position += 0.5f * dLength * RandomRange(rnd, -1.0f, 1.0f) * element.positionVariation.x;
+                            }
+                        }
+                        else if (element.distribution == SRPLensFlareDistribution.Curve)
+                        {
+                            for (int elemIdx = 0; elemIdx < element.count; ++elemIdx)
+                            {
+                                float timeScale = element.count >= 2 ? ((float)elemIdx) / ((float)(element.count - 1)) : 0.5f;
+
+                                Color col = element.colorGradient.Evaluate(timeScale);
+
+                                float positionSpacing = element.positionCurve.length > 0 ? element.positionCurve.Evaluate(timeScale) : 1.0f;
+
+                                float localPos = position + 2.0f * element.lengthSpread * positionSpacing;
+                                Vector2 rayOff = GetLensFlareRayOffset(screenPos, localPos, globalCos0, globalSin0);
+                                Vector2 localSize = size;
+                                if (element.enableRadialDistortion)
+                                {
+                                    Vector2 rayOff0 = GetLensFlareRayOffset(screenPos, 0.0f, globalCos0, globalSin0);
+                                    localSize = ComputeLocalSize(rayOff, rayOff0, localSize, element.distortionCurve);
+                                }
+                                float sizeCurveValue = element.scaleCurve.length > 0 ? element.scaleCurve.Evaluate(timeScale) : 1.0f;
+                                localSize *= sizeCurveValue;
+
+                                Vector4 flareData0 = GetFlareData0(screenPos, element.translationScale, vScreenRatio, element.rotation, localPos, element.angularOffset, element.positionOffset, element.autoRotate);
+                                cmd.SetGlobalVector(_FlareData0, flareData0);
+                                cmd.SetGlobalVector(_FlareData2, new Vector4(screenPos.x, screenPos.y, localSize.x, localSize.y));
+                                cmd.SetGlobalVector(_FlareData3, new Vector4(rayOff.x * element.translationScale.x, rayOff.y * element.translationScale.y, 1.0f / (float)element.sideCount, 0.0f));
+                                cmd.SetGlobalVector(_FlareColorValue, curColor * col);
+
+                                cmd.DrawProcedural(Matrix4x4.identity, lensFlareShader, materialPass, MeshTopology.Quads, 6, 1, null);
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
+        /// <summary>
         /// Remove a lens flare data which exist in the pool.
         /// </summary>
         /// <param name="data">The data which exist in the pool</param>
