@@ -235,9 +235,7 @@ namespace UnityEditor.Rendering.HighDefinition
                 MaterialEditor.FixupEmissiveFlag(material);
             }
 
-            // Commented out for now because unfortunately we used the hard coded property names used by the GI system for our own parameters
-            // So we need a way to work around that before we activate this.
-            material.SetupMainTexForAlphaTestGI("_EmissiveColorMap", "_EmissiveColor");
+            material.SetupMainTexForAlphaTestGI("_UnlitColorMap", "_UnlitColor");
 
             // depth offset for ShaderGraphs (they don't have the displacement mode property)
             if (!material.HasProperty(kDisplacementMode) && material.HasProperty(kDepthOffsetEnable))
@@ -245,16 +243,28 @@ namespace UnityEditor.Rendering.HighDefinition
                 // Depth offset is only enabled if per pixel displacement is
                 bool depthOffsetEnable = (material.GetFloat(kDepthOffsetEnable) > 0.0f);
                 CoreUtils.SetKeyword(material, "_DEPTHOFFSET_ON", depthOffsetEnable);
+
+                // conservative depth offset for ShaderGraphs
+                if (material.HasProperty(kConservativeDepthOffsetEnable))
+                {
+                    // Depth offset is only enabled if per pixel displacement is
+                    bool conservativeDepthOffset = (material.GetFloat(kConservativeDepthOffsetEnable) > 0.0f);
+                    CoreUtils.SetKeyword(material, "_CONSERVATIVE_DEPTH_OFFSET", conservativeDepthOffset);
+                }
             }
 
             // DoubleSidedGI has to be synced with our double sided toggle
             var serializedObject = new SerializedObject(material);
+            bool doubleSidedGI = false;
             if (doubleSidedGIMode == DoubleSidedGIMode.Auto)
-                material.doubleSidedGI = doubleSidedEnable;
+                doubleSidedGI = doubleSidedEnable;
             else if (doubleSidedGIMode == DoubleSidedGIMode.On)
-                material.doubleSidedGI = true;
+                doubleSidedGI = true;
             else if (doubleSidedGIMode == DoubleSidedGIMode.Off)
-                material.doubleSidedGI = false;
+                doubleSidedGI = false;
+            // material always call setdirty, so set only if new value is different
+            if (doubleSidedGI != material.doubleSidedGI)
+                material.doubleSidedGI = doubleSidedGI;
             serializedObject.ApplyModifiedProperties();
         }
 
@@ -265,7 +275,11 @@ namespace UnityEditor.Rendering.HighDefinition
             if (material.HasProperty(colorMapPropertyName))
             {
                 var mainTex = material.GetTexture(colorMapPropertyName);
+                var mainTexScale = material.GetTextureScale(colorMapPropertyName);
+                var mainTexOffset = material.GetTextureOffset(colorMapPropertyName);
                 material.SetTexture("_MainTex", mainTex);
+                material.SetTextureScale("_MainTex", mainTexScale);
+                material.SetTextureOffset("_MainTex", mainTexOffset);
             }
 
             if (material.HasProperty(colorPropertyName))
@@ -283,7 +297,13 @@ namespace UnityEditor.Rendering.HighDefinition
 
         static public void SetupBaseUnlitPass(this Material material)
         {
-            if (material.HasProperty(kDistortionEnable))
+            if (material.shader.IsShaderGraph())
+            {
+                // Shader graph generate distortion pass only if required. So we can safely enable it
+                // all the time here.
+                material.SetShaderPassEnabled(HDShaderPassNames.s_DistortionVectorsStr, true);
+            }
+            else if (material.HasProperty(kDistortionEnable))
             {
                 bool distortionEnable = material.GetFloat(kDistortionEnable) > 0.0f && ((SurfaceType)material.GetFloat(kSurfaceType) == SurfaceType.Transparent);
 
@@ -311,12 +331,6 @@ namespace UnityEditor.Rendering.HighDefinition
                 material.SetShaderPassEnabled(HDShaderPassNames.s_RayTracingPrepassStr, enablePass);
                 material.SetShaderPassEnabled(HDShaderPassNames.s_MetaStr, enablePass);
                 material.SetShaderPassEnabled(HDShaderPassNames.s_ShadowCasterStr, enablePass);
-            }
-            else if (material.shader.IsShaderGraph())
-            {
-                // Shader graph generate distortion pass only if required. So we can safely enable it
-                // all the time here.
-                material.SetShaderPassEnabled(HDShaderPassNames.s_DistortionVectorsStr, true);
             }
 
             if (material.HasProperty(kTransparentDepthPrepassEnable))
