@@ -54,7 +54,7 @@ namespace UnityEditor.Rendering.Universal
             shadersToIgnore.Add("Sprites/Default");
         }
 
-        private static void GetUpgraders(ref List<MaterialUpgrader> upgraders)
+        internal static void GetUpgraders(ref List<MaterialUpgrader> upgraders)
         {
             /////////////////////////////////////
             //     Unity Standard Upgraders    //
