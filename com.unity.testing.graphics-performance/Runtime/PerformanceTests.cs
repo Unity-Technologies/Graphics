@@ -43,12 +43,14 @@ public class PerformanceTests : IPrebuildSetup
     [TearDown]
     public void TearDown() => CleanupTestSceneIfNeeded();
 
-    protected IEnumerator MeasureProfilingSamplers(IEnumerable<ProfilingSampler> samplers, int warmupFramesCount = 20, int measureFrameCount = 30)
+    protected void MeasureProfilingSamplersEnable(IEnumerable<ProfilingSampler> samplers)
     {
-        // Enable all the markers
         foreach (var sampler in samplers)
             sampler.enableRecording = true;
+    }
 
+    protected IEnumerator MeasureProfilingSamplers(IEnumerable<ProfilingSampler> samplers, int warmupFramesCount = 20, int measureFrameCount = 30)
+    {
         // Allocate all sample groups:
         var sampleGroups = new Dictionary<ProfilingSampler, (SampleGroup cpu, SampleGroup inlineCPU, SampleGroup gpu)>();
         foreach (var sampler in samplers)

@@ -1,8 +1,9 @@
-﻿using System.Collections;
+using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.Rendering.HighDefinition;
 using System;
+using System.Linq;
 using UnityEngine.Rendering;
 using NUnit.Framework;
 using UnityEngine.TestTools;
@@ -37,7 +38,13 @@ public class HDRPRuntimePerformanceTests : PerformanceTests
 
         var hdCamera = HDCamera.GetOrCreate(sceneSettings.testCamera, 0); // We don't support XR for now
 
-        yield return MeasureProfilingSamplers(GetAllMarkers(hdCamera), WarmupCount, sceneSettings.measurementCount);
+        var allMarkers = GetAllMarkers(hdCamera).ToList();
+        MeasureProfilingSamplersEnable(allMarkers);
+
+        for (int i = 0; i < 10; i++)
+            yield return null;
+
+        yield return MeasureProfilingSamplers(allMarkers, 0, sceneSettings.measurementCount);
     }
 
     static IEnumerable<MemoryTestDescription> GetMemoryTests()
