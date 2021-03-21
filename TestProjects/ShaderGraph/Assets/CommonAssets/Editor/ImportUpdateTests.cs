@@ -5,6 +5,7 @@ using System.Linq;
 using UnityEditor.Graphing.Util;
 using UnityEditor.ShaderGraph.Serialization;
 using UnityEngine;
+using GraphicsDeviceType = UnityEngine.Rendering.GraphicsDeviceType;
 
 namespace UnityEditor.ShaderGraph.UnitTests
 {
@@ -137,16 +138,16 @@ namespace UnityEditor.ShaderGraph.UnitTests
                 // Texture test won't work on platforms that don't support more than 16 samplers
 
                 bool isGL =
-                    (FileSystemInfo.graphicsDeviceType == GraphicsDeviceType.OpenGLCore) ||
-                    (FileSystemInfo.graphicsDeviceType == GraphicsDeviceType.OpenGLES2) ||
-                    (FileSystemInfo.graphicsDeviceType == GraphicsDeviceType.OpenGLES3);
+                    (SystemInfo.graphicsDeviceType == GraphicsDeviceType.OpenGLCore) ||
+                    (SystemInfo.graphicsDeviceType == GraphicsDeviceType.OpenGLES2) ||
+                    (SystemInfo.graphicsDeviceType == GraphicsDeviceType.OpenGLES3);
 
                 bool isOSX =
                     (Application.platform == RuntimePlatform.OSXEditor) ||
                     (Application.platform == RuntimePlatform.OSXPlayer);
 
                 bool samplersSupported = !(isOSX && isGL);
-                if (!samplerSupported && fullPath.Contains("TextureTest"))
+                if (!samplersSupported && fullPath.Contains("TextureTest"))
                 {
                     // skip the compile test -- we know this shader won't compile on these platforms
                 }
