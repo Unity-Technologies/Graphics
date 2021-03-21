@@ -134,16 +134,35 @@ namespace UnityEditor.ShaderGraph.UnitTests
 
                 Assert.AreEqual(shader, shader2, $"Importing the graph {unityLocalPath} twice resulted in different generated shaders.");
 
-                // now create a Unity Shader from the string
-                var compiledShader = ShaderUtil.CreateShaderAsset(shader, true);
-                compiledShader.hideFlags = HideFlags.HideAndDontSave;
+                // Texture test won't work on platforms that don't support more than 16 samplers
 
-                Assert.NotNull(compiledShader);
+                bool isGL =
+                    (FileSystemInfo.graphicsDeviceType == GraphicsDeviceType.OpenGLCore) ||
+                    (FileSystemInfo.graphicsDeviceType == GraphicsDeviceType.OpenGLES2) ||
+                    (FileSystemInfo.graphicsDeviceType == GraphicsDeviceType.OpenGLES3);
 
-                // compile all the shader passes to see if there are any errors
-                var mat = new Material(compiledShader) { hideFlags = HideFlags.HideAndDontSave };
-                for (int pass = 0; pass < mat.passCount; pass++)
-                    ShaderUtil.CompilePass(mat, pass, true);
+                bool isOSX =
+                    (Application.platform == RuntimePlatform.OSXEditor) ||
+                    (Application.platform == RuntimePlatform.OSXPlayer);
+
+                bool samplersSupported = !(isOSX && isGL);
+                if (!samplerSupported && fullPath.Contains("TextureTest"))
+                {
+                    // skip the compile test -- we know this shader won't compile on these platforms
+                }
+                else
+                {
+                    // now create a Unity Shader from the string
+                    var compiledShader = ShaderUtil.CreateShaderAsset(shader, true);
+                    compiledShader.hideFlags = HideFlags.HideAndDontSave;
+
+                    Assert.NotNull(compiledShader);
+
+                    // compile all the shader passes to see if there are any errors
+                    var mat = new Material(compiledShader) { hideFlags = HideFlags.HideAndDontSave };
+                    for (int pass = 0; pass < mat.passCount; pass++)
+                        ShaderUtil.CompilePass(mat, pass, true);
+                }
             }
         }
 
