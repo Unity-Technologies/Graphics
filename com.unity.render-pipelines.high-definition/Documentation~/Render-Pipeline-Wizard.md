@@ -109,13 +109,13 @@ Note that every **Fix** will be deactivated if your Hardware or OS do not suppor
 
 **Current Quality:**
 
-| **Configuration Option**                     | **Description**                                              |
-| -------------------------------------------- | ------------------------------------------------------------ |
-| **DXR Activated**                            | Checks to make sure **DXR Activated** is enabled in the current [HDRP Asset](HDRP-Asset.md). <br />Press the **Fix** button to enable **DXR Activated**. |
-| **Screen Space Shadow (Asset)**              | Checks to make sure **Screen Space Shadow** is enabled in the current [HDRP Asset](HDRP-Asset.md). <br />Press the **Fix** button to enable **Screen Space Shadow**. |
-| **Reflections (Asset)**                      | Checks to make sure **Screen Space Reflection** is enabled in the current [HDRP Asset](HDRP-Asset.md). <br />Press the **Fix** button to enable **Screen Space Reflection**. |
-| **Screen Space Reflection (Asset)**          | Checks to make sure **Screen Space Reflection** is enabled in the current [HDRP Asset](HDRP-Asset.md). <br />Press the **Fix** button to enable **Screen Space Reflection**. |
-| **Screen Space Global Illumination (Asset)** | Checks to make sure **Screen Space Global Illumination** is enabled in the current [HDRP Asset](HDRP-Asset.md). <br />Press the **Fix** button to enable **Screen Space Global Illumination**. |
+| **Configuration Option**                           | **Description**                                              |
+| -------------------------------------------------- | ------------------------------------------------------------ |
+| **DXR Activated**                                  | Checks to make sure **DXR Activated** is enabled in the current [HDRP Asset](HDRP-Asset.md). <br />Press the **Fix** button to enable **DXR Activated**. |
+| **Screen Space Shadows (Asset)**                   | Checks to make sure **Screen Space Shadows** is enabled in the current [HDRP Asset](HDRP-Asset.md). <br />Press the **Fix** button to enable **Screen Space Shadows**. |
+| **Screen Space Reflection (Asset)**                | Checks to make sure **Screen Space Reflection** is enabled in the current [HDRP Asset](HDRP-Asset.md). <br />Press the **Fix** button to enable **Screen Space Reflection**. |
+| **Screen Space Reflection - Transparents (Asset)** | Checks to make sure **Transparents** is enabled in the current [HDRP Asset](HDRP-Asset.md). <br />Press the **Fix** button to enable **Transparents**. |
+| **Screen Space Global Illumination (Asset)**       | Checks to make sure **Screen Space Global Illumination** is enabled in the current [HDRP Asset](HDRP-Asset.md). <br />Press the **Fix** button to enable **Screen Space Global Illumination**. |
 
 ## Project Migration Quick-links
 
