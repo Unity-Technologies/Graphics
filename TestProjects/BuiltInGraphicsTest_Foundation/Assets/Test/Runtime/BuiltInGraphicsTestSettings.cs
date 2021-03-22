@@ -1,11 +1,11 @@
 using UnityEngine.TestTools.Graphics;
 
-public class UniversalGraphicsTestSettings : GraphicsTestSettings
+public class BuiltInGraphicsTestSettings : GraphicsTestSettings
 {
     public int WaitFrames = 0;
     public bool XRCompatible = true;
 
-    public UniversalGraphicsTestSettings()
+    public BuiltInGraphicsTestSettings()
     {
         ImageComparisonSettings.TargetWidth = 512;
         ImageComparisonSettings.TargetHeight = 512;

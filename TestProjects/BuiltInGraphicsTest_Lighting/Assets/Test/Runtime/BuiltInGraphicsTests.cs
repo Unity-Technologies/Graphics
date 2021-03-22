@@ -7,18 +7,18 @@ using UnityEngine.SceneManagement;
 using UnityEngine.TestTools;
 using UnityEngine.TestTools.Graphics;
 
-public class UniversalGraphicsTests
+public class BuiltInGraphicsTests
 {
 #if UNITY_ANDROID
     static bool wasFirstSceneRan = false;
     const int firstSceneAdditionalFrames = 3;
 #endif
 
-    public const string universalPackagePath = "Assets/ReferenceImages";
+    public const string builtinPackagePath = "Assets/ReferenceImages";
 
-    [UnityTest, Category("UniversalRP")]
+    [UnityTest, Category("BuiltInRP")]
     [PrebuildSetup("SetupGraphicsTestCases")]
-    [UseGraphicsTestCases(universalPackagePath)]
+    [UseGraphicsTestCases(builtinPackagePath)]
     public IEnumerator Run(GraphicsTestCase testCase)
     {
         SceneManager.LoadScene(testCase.ScenePath);
@@ -27,8 +27,8 @@ public class UniversalGraphicsTests
         yield return null;
 
         var cameras = GameObject.FindGameObjectsWithTag("MainCamera").Select(x => x.GetComponent<Camera>());
-        var settings = Object.FindObjectOfType<UniversalGraphicsTestSettings>();
-        Assert.IsNotNull(settings, "Invalid test scene, couldn't find UniversalGraphicsTestSettings");
+        var settings = Object.FindObjectOfType<BuiltInGraphicsTestSettings>();
+        Assert.IsNotNull(settings, "Invalid test scene, couldn't find BuiltInGraphicsTestSettings");
 
         int waitFrames = Unity.Testing.XR.Runtime.ConfigureMockHMD.SetupTest(settings.XRCompatible, settings.WaitFrames, settings.ImageComparisonSettings);
 
