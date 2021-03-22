@@ -258,9 +258,9 @@ namespace UnityEngine.Rendering
 
                         foreach (var p in cell.probePositions)
                         {
-                            float x = Mathf.Abs((float)p.x + refVol.transform.position.x);
-                            float y = Mathf.Abs((float)p.y + refVol.transform.position.y);
-                            float z = Mathf.Abs((float)p.z + refVol.transform.position.z);
+                            float x = Mathf.Abs((float)p.x + refVol.transform.position.x) / refVol.profile.brickSize;
+                            float y = Mathf.Abs((float)p.y + refVol.transform.position.y) / refVol.profile.brickSize;
+                            float z = Mathf.Abs((float)p.z + refVol.transform.position.z) / refVol.profile.brickSize;
                             asset.maxCellIndex.x = Mathf.Max(asset.maxCellIndex.x, (int)(x * 2));
                             asset.maxCellIndex.y = Mathf.Max(asset.maxCellIndex.y, (int)(y * 2));
                             asset.maxCellIndex.z = Mathf.Max(asset.maxCellIndex.z, (int)(z * 2));
@@ -377,8 +377,8 @@ namespace UnityEngine.Rendering
                 var currentBrick = bricks[brickIdx];
                 var otherBrick = bricks[otherBrickIdx];
 
-                float currentBrickSize = Mathf.Pow(3f, currentBrick.size);
-                float otherBrickSize = Mathf.Pow(3f, otherBrick.size);
+                float currentBrickSize = Mathf.Pow(3f, currentBrick.subdivisionLevel);
+                float otherBrickSize = Mathf.Pow(3f, otherBrick.subdivisionLevel);
 
                 // TODO: This should probably be revisited.
                 float sqrt2 = 1.41421356237f;
@@ -526,6 +526,8 @@ namespace UnityEngine.Rendering
                 cellVolume.Transform(cellTrans);
 
                 // The max subdivision in the cell is computed in CreateInfluenceVolumes() using the values in the Probe Volumes and Hint Volumes.
+
+                // In this max subdiv field, we store the minimum subdivision possible for the cell, then, locally we can subdivide more based on the probe volumes subdiv multiplier
                 cellVolume.maxSubdivision = 0;
 
                 Dictionary<Scene, int> sceneRefs;

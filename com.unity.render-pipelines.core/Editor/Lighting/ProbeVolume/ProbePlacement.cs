@@ -156,33 +156,34 @@ namespace UnityEngine.Rendering
             CullVolumes(ref influenceVolumes, ref indicatorVolumes, ref culledVolumes);
         }
 
-        public static void SubdivisionAlgorithm(ProbeReferenceVolume.Volume cellVolume, List<ProbeReferenceVolume.Volume> probeVolumes, List<ProbeReferenceVolume.Volume> influenceVolumes, RefTrans refTrans, List<Brick> inBricks, List<Flags> outFlags)
+        public static void SubdivisionAlgorithm(ProbeReferenceVolume.Volume cellVolume, List<ProbeReferenceVolume.Volume> probeVolumes, List<ProbeReferenceVolume.Volume> influenceVolumes, RefTrans refTrans, List<Brick> inBricks, int subdivisionLevel, List<Flags> outFlags)
         {
             Flags f = new Flags();
             for (int i = 0; i < inBricks.Count; i++)
             {
                 ProbeReferenceVolume.Volume brickVolume = ProbeVolumePositioning.CalculateBrickVolume(ref refTrans, inBricks[i]);
 
+                // Find the local max from all overlapping probe volumes:
+                float localMaxSubdiv = 0;
+                foreach (ProbeReferenceVolume.Volume v in probeVolumes)
+                {
+                    ProbeReferenceVolume.Volume vol = v;
+                    if (ProbeVolumePositioning.OBBIntersect(ref vol, ref brickVolume))
+                        localMaxSubdiv = Mathf.Max(localMaxSubdiv, vol.maxSubdivision);
+                }
+
+                bool subdivisionBelowLimit = subdivisionLevel <= ProbeReferenceVolume.instance.GetMaxSubdivision(localMaxSubdiv);
+
                 // Keep bricks that overlap at least one probe volume, and at least one influencer (mesh)
-                if (ShouldKeepBrick(probeVolumes, brickVolume) && ShouldKeepBrick(influenceVolumes, brickVolume))
+                if (subdivisionBelowLimit && ShouldKeepBrick(probeVolumes, brickVolume) && ShouldKeepBrick(influenceVolumes, brickVolume))
                 {
                     f.subdivide = true;
-
-                    // Get max from all overlapping probe volumes:
-                    float maxSubdiv = cellVolume.maxSubdivision;
-                    foreach (ProbeReferenceVolume.Volume v in probeVolumes)
-                    {
-                        ProbeReferenceVolume.Volume vol = v;
-                        if (ProbeVolumePositioning.OBBIntersect(ref vol, ref brickVolume))
-                            maxSubdiv = Mathf.Max(maxSubdiv, vol.maxSubdivision);
-                    }
 
                     // Transform into refvol space
                     brickVolume.Transform(refTrans.refSpaceToWS.inverse);
                     ProbeReferenceVolume.Volume cellVolumeTrans = new ProbeReferenceVolume.Volume(cellVolume);
                     cellVolumeTrans.Transform(refTrans.refSpaceToWS.inverse);
-                    cellVolumeTrans.maxSubdivision = maxSubdiv;
-                    Debug.Log("Max Subdiv: " + maxSubdiv);
+                    cellVolumeTrans.maxSubdivision = localMaxSubdiv;
 
                     // Discard parent brick if it extends outside of the cell, to prevent duplicates
                     var brickVolumeMax = brickVolume.corner + brickVolume.X + brickVolume.Y + brickVolume.Z;
@@ -230,14 +231,14 @@ namespace UnityEngine.Rendering
             }
 
             ProbeReferenceVolume.SubdivisionDel subdivDel =
-                (RefTrans refTrans, List<Brick> inBricks, List<Flags> outFlags) =>
-            { SubdivisionAlgorithm(cellVolume, indicatorVolumes, influencerVolumes, refTrans, inBricks, outFlags); };
+                (RefTrans refTrans, int subdivisionLevel, List<Brick> inBricks, List<Flags> outFlags) =>
+            { SubdivisionAlgorithm(cellVolume, indicatorVolumes, influencerVolumes, refTrans, inBricks, subdivisionLevel, outFlags); };
 
             bricks = new List<ProbeBrickIndex.Brick>();
 
             // get a list of bricks for this volume
             int numProbes;
-            refVol.CreateBricks(new List<ProbeReferenceVolume.Volume>() { cellVolume }, subdivDel, bricks, out numProbes);
+            refVol.CreateBricks(new List<ProbeReferenceVolume.Volume>() { cellVolume }, influencerVolumes, subdivDel, bricks, out numProbes);
 
             positions = new Vector3[numProbes];
             refVol.ConvertBricks(bricks, positions);

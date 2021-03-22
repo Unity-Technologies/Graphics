@@ -203,11 +203,12 @@ namespace UnityEngine.Rendering
 
             Handles.zTest = CompareFunction.LessEqual;
 
+            var refVolumeTransform = Matrix4x4.TRS(ProbeReferenceVolume.instance.GetTransform().posWS, ProbeReferenceVolume.instance.GetTransform().rot, Vector3.one);
             if (m_DrawCells)
             {
                 // Fetching this from components instead of from the reference volume allows the user to
                 // preview how cells will look before they commit to a bake.
-                using (new Handles.DrawingScope(Color.green, ProbeReferenceVolume.instance.GetRefSpaceToWS()))
+                using (new Handles.DrawingScope(Color.green, refVolumeTransform))
                 {
                     foreach (var cell in ProbeReferenceVolume.instance.cells.Values)
                     {
@@ -236,7 +237,7 @@ namespace UnityEngine.Rendering
 
                         foreach (var brick in cell.bricks)
                         {
-                            Vector3 scaledSize = Vector3.one * Mathf.Pow(3, brick.size);
+                            Vector3 scaledSize = Vector3.one * Mathf.Pow(3, brick.subdivisionLevel);
                             Vector3 scaledPos = brick.position + scaledSize / 2;
                             Handles.DrawWireCube(scaledPos, scaledSize);
                         }
