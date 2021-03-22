@@ -627,12 +627,12 @@ half3 SampleLightmap(float2 lightmapUV, half3 normalWS)
 #define SAMPLE_GI(lmName, shName, normalWSName) SampleSHPixel(shName, normalWSName)
 #endif
 
-half3 BoxProjectedCubemapDirection(half3 reflectionWS, half3 positionWS, float4 cubemapPositionWS, float4 boxMin, float4 boxMax)
+half3 BoxProjectedCubemapDirection(half3 reflectionWS, half3 positionWS, half4 cubemapPositionWS, half4 boxMin, half4 boxMax)
 {
     // Is this probe using box projection?
     [branch] if (cubemapPositionWS.w > 0.0)
     {
-        float3 boxMinMax = (reflectionWS > 0.0f) ? boxMax.xyz : boxMin.xyz;
+        half3 boxMinMax = (reflectionWS > 0.0f) ? boxMax.xyz : boxMin.xyz;
         half3 rbMinMax = half3(boxMinMax - positionWS) / reflectionWS;
 
         half fa = half(min(min(rbMinMax.x, rbMinMax.y), rbMinMax.z));
@@ -648,14 +648,14 @@ half3 BoxProjectedCubemapDirection(half3 reflectionWS, half3 positionWS, float4 
     }
 }
 
-float CalculateProbeWeight(half3 positionWS, float4 probeBoxMin, float4 probeBoxMax)
+half CalculateProbeWeight(half3 positionWS, half4 probeBoxMin, half4 probeBoxMax)
 {
-    float blendDistance = probeBoxMax.w;
-    float3 weightDir = min(positionWS - probeBoxMin.xyz, probeBoxMax.xyz - positionWS) / blendDistance;
+    half blendDistance = probeBoxMax.w;
+    half3 weightDir = min(positionWS - probeBoxMin.xyz, probeBoxMax.xyz - positionWS) / blendDistance;
     return saturate(min(weightDir.x, min(weightDir.y, weightDir.z)));
 }
 
-half CalculateProbeVolumeSqrMagnitude(float4 probeBoxMin, float4 probeBoxMax)
+half CalculateProbeVolumeSqrMagnitude(half4 probeBoxMin, half4 probeBoxMax)
 {
     half3 maxToMin = half3(probeBoxMax.xyz - probeBoxMin.xyz);
     return dot(maxToMin, maxToMin);
@@ -666,22 +666,22 @@ half3 CalculateIrradianceFromReflectionProbes(half3 reflectVector, half3 positio
     half probe0Volume = CalculateProbeVolumeSqrMagnitude(unity_SpecCube0_BoxMin, unity_SpecCube0_BoxMax);
     half probe1Volume = CalculateProbeVolumeSqrMagnitude(unity_SpecCube1_BoxMin, unity_SpecCube1_BoxMax);
 
-    float volumeSign = sign(probe0Volume - probe1Volume);
-    float importanceSign = unity_SpecCube1_BoxMin.w;
+    half volumeSign = sign(probe0Volume - probe1Volume);
+    half importanceSign = unity_SpecCube1_BoxMin.w;
 
     // A probe is dominant if its importance is higher
     // Or have equal importance but smaller volume
     bool probe0Dominant = importanceSign > 0 || (importanceSign == 0 && volumeSign < 0);
     bool probe1Dominant = importanceSign < 0 || (importanceSign == 0 && volumeSign > 0);
 
-    float desiredWeightProbe0 = CalculateProbeWeight(positionWS, unity_SpecCube0_BoxMin, unity_SpecCube0_BoxMax);
-    float desiredWeightProbe1 = CalculateProbeWeight(positionWS, unity_SpecCube1_BoxMin, unity_SpecCube1_BoxMax);
+    half desiredWeightProbe0 = CalculateProbeWeight(positionWS, unity_SpecCube0_BoxMin, unity_SpecCube0_BoxMax);
+    half desiredWeightProbe1 = CalculateProbeWeight(positionWS, unity_SpecCube1_BoxMin, unity_SpecCube1_BoxMax);
 
     // Subject the probes weight if the other probe is dominant
-    float weightProbe0 = probe1Dominant ? min(desiredWeightProbe0, 1 - desiredWeightProbe1) : desiredWeightProbe0;
-    float weightProbe1 = probe0Dominant ? min(desiredWeightProbe1, 1 - desiredWeightProbe0) : desiredWeightProbe1;
+    half weightProbe0 = probe1Dominant ? min(desiredWeightProbe0, 1 - desiredWeightProbe1) : desiredWeightProbe0;
+    half weightProbe1 = probe0Dominant ? min(desiredWeightProbe1, 1 - desiredWeightProbe0) : desiredWeightProbe1;
 
-    float totalWeight = weightProbe0 + weightProbe1;
+    half totalWeight = weightProbe0 + weightProbe1;
 
     // If either probe 0 or probe 1 is dominant the sum of weights is guaranteed to be 1.
     // If neither is dominant this is not guaranteed - only normalize weights if totalweight exceeds 1.
