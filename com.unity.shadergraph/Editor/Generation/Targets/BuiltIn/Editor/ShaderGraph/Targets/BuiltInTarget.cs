@@ -561,14 +561,14 @@ namespace UnityEditor.Rendering.BuiltIn.ShaderGraph
     {
         public static readonly PragmaCollection Default = new PragmaCollection
         {
-            { Pragma.Target(ShaderModel.Target20) },
+            { Pragma.Target(ShaderModel.Target30) },
             { Pragma.Vertex("vert") },
             { Pragma.Fragment("frag") },
         };
 
         public static readonly PragmaCollection Instanced = new PragmaCollection
         {
-            { Pragma.Target(ShaderModel.Target20) },
+            { Pragma.Target(ShaderModel.Target30) },
             { Pragma.MultiCompileInstancing },
             { Pragma.Vertex("vert") },
             { Pragma.Fragment("frag") },
@@ -576,7 +576,7 @@ namespace UnityEditor.Rendering.BuiltIn.ShaderGraph
 
         public static readonly PragmaCollection Forward = new PragmaCollection
         {
-            { Pragma.Target(ShaderModel.Target20) },
+            { Pragma.Target(ShaderModel.Target30) },
             { Pragma.MultiCompileInstancing },
             { Pragma.MultiCompileFog },
             { Pragma.MultiCompileForwardBase },
@@ -586,7 +586,7 @@ namespace UnityEditor.Rendering.BuiltIn.ShaderGraph
 
         public static readonly PragmaCollection ForwardAdd = new PragmaCollection
         {
-            { Pragma.Target(ShaderModel.Target20) },
+            { Pragma.Target(ShaderModel.Target30) },
             { Pragma.MultiCompileInstancing },
             { Pragma.MultiCompileFog },
             { Pragma.MultiCompileForwardAddFullShadowsBase },
@@ -607,7 +607,7 @@ namespace UnityEditor.Rendering.BuiltIn.ShaderGraph
 
         public static readonly PragmaCollection ShadowCaster = new PragmaCollection
         {
-            { Pragma.Target(ShaderModel.Target20) },
+            { Pragma.Target(ShaderModel.Target30) },
             { Pragma.MultiCompileShadowCaster },
             { Pragma.Vertex("vert") },
             { Pragma.Fragment("frag") },
@@ -615,7 +615,7 @@ namespace UnityEditor.Rendering.BuiltIn.ShaderGraph
 
         public static readonly PragmaCollection _2DDefault = new PragmaCollection
         {
-            { Pragma.Target(ShaderModel.Target20) },
+            { Pragma.Target(ShaderModel.Target30) },
             { Pragma.ExcludeRenderers(new[] { Platform.D3D9 }) },
             { Pragma.Vertex("vert") },
             { Pragma.Fragment("frag") },
