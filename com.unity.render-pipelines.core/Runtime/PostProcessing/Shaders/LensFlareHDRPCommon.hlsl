@@ -1,20 +1,22 @@
 #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Common.hlsl"
+#include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Filtering.hlsl"
 #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Random.hlsl"
 #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Sampling/Sampling.hlsl"
 
-struct Attributes
+struct AttributesLensFlare
 {
     uint vertexID : SV_VertexID;
 };
 
-struct Varyings
+struct VaryingsLensFlare
 {
     float4 positionCS : SV_POSITION;
     float2 texcoord : TEXCOORD0;
     float occlusion : TEXCOORD1;
 };
 
-sampler2D _FlareTex;
+TEXTURE2D_X(_FlareTex);
+SAMPLER(sampler_FlareTex);
 
 float4 _FlareColorValue;
 float4 _FlareData0; // x: localCos0, y: localSin0, zw: PositionOffsetXY
@@ -88,9 +90,9 @@ float GetOcclusion(float2 screenPos, float flareDepth, float ratio)
 }
 #endif
 
-Varyings vert(Attributes input, uint instanceID : SV_InstanceID)
+VaryingsLensFlare vert(AttributesLensFlare input, uint instanceID : SV_InstanceID)
 {
-    Varyings output;
+    VaryingsLensFlare output;
 
     float screenRatio = _ScreenRatio;
 
@@ -181,11 +183,11 @@ float4 GetFlareShape(float2 uv)
 #elif FLARE_SHIMMER
     return ComputeShimmer(uv);
 #else
-    return tex2D(_FlareTex, uv);
+    return SAMPLE_TEXTURE2D_X(_FlareTex, sampler_FlareTex, uv);
 #endif
 }
 
-float4 frag(Varyings input) : SV_Target
+float4 frag(VaryingsLensFlare input) : SV_Target
 {
     float4 col = GetFlareShape(input.texcoord);
     return col * _FlareColor * input.occlusion;

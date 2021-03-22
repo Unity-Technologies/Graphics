@@ -238,7 +238,7 @@ namespace UnityEngine
         /// <param name="_FlareData5">ShaderID for the FlareData5</param>
         static public void DoLensFlareDataDriven(Material lensFlareShader, SRPLensFlareCommon lensFlares, Camera cam, float actualWidth, float actualHeight, UnityEngine.Rendering.CommandBuffer cmd, UnityEngine.Rendering.RenderTargetIdentifier source, UnityEngine.Rendering.RenderTargetIdentifier target,
             System.Func<Light, Camera, Vector3, float> GetLensFlareLightAttenuation,
-            int _FlareTex, int _FlareColorValue, int _FlareData0, int _FlareData1, int _FlareData2, int _FlareData3, int _FlareData4, int _FlareData5)
+            int _FlareTex, int _FlareColorValue, int _FlareData0, int _FlareData1, int _FlareData2, int _FlareData3, int _FlareData4, int _FlareData5, bool skipCopy)
         {
             Vector4 GetFlareData0(Vector2 screenPos, Vector2 translationScale, Vector2 vScreenRatio, float angleDeg, float position, float angularOffset, Vector2 positionOffset, bool autoRotate)
             {
@@ -278,13 +278,24 @@ namespace UnityEngine
             if (lensFlares.IsEmpty())
                 return;
 
-            //Camera cam = camera.current;
             Vector2 screenSize = new Vector2(actualWidth, actualHeight);
             float screenRatio = screenSize.x / screenSize.y;
             Vector2 vScreenRatio = new Vector2(screenRatio, 1.0f);
 
-            cmd.CopyTexture(source, target);
-            UnityEngine.Rendering.CoreUtils.SetRenderTarget(cmd, target);
+            //if (skipCopy)
+            //cmd.CopyTexture(source, target);
+            if (skipCopy)
+            {
+                cmd.CopyTexture(source, target);
+                UnityEngine.Rendering.CoreUtils.SetRenderTarget(cmd, target);
+                cmd.ClearRenderTarget(false, true, Color.black);
+            }
+            else
+            {
+                cmd.CopyTexture(source, target);
+                UnityEngine.Rendering.CoreUtils.SetRenderTarget(cmd, target);
+            }
+
             foreach (SRPLensFlareOverride comp in lensFlares.GetData())
             {
                 if (comp == null)
