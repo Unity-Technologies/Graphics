@@ -93,8 +93,8 @@ namespace UnityEngine.Rendering
             if (m_Pool.TexL0_L1rx == null)
             {
                 m_Pool.Cleanup();
+                m_Pool = CreateDataLocation(m_Pool.width * m_Pool.height * m_Pool.depth, false, ProbeVolumeSHBands.SphericalHarmonicsL2);
             }
-            m_Pool = CreateDataLocation(m_Pool.width * m_Pool.height * m_Pool.depth, false, ProbeVolumeSHBands.SphericalHarmonicsL2);
         }
 
         internal int GetChunkSize() { return m_AllocationSize; }

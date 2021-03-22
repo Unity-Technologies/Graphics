@@ -82,6 +82,12 @@ namespace UnityEngine.Rendering.HighDefinition
         public LayerMaskParameter layerMask = new LayerMaskParameter(-1);
 
         /// <summary>
+        /// The LOD Bias HDRP applies to textures in the global illumination.
+        /// </summary>
+        [Tooltip("The LOD Bias HDRP applies to textures in the global illumination. A higher value increases performance and makes denoising easier, but it might reduce visual fidelity.")]
+        public ClampedIntParameter textureLodBias = new ClampedIntParameter(7, 0, 7);
+
+        /// <summary>
         /// Controls the length of GI rays.
         /// </summary>
         public float rayLength
@@ -159,7 +165,7 @@ namespace UnityEngine.Rendering.HighDefinition
         /// Number of bounces for evaluating the effect.
         /// </summary>
         [Tooltip("Number of bounces for GI.")]
-        public ClampedIntParameter bounceCount = new ClampedIntParameter(1, 1, 31);
+        public ClampedIntParameter bounceCount = new ClampedIntParameter(1, 1, 8);
 
         // Filtering
         /// <summary>
