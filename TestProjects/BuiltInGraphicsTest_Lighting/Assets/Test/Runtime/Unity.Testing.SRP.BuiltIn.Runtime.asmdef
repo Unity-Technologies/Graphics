@@ -1,5 +1,5 @@
 {
-    "name": "UniversalGraphicsTests",
+    "name": "BuiltInGraphicsTests",
     "references": [
         "GUID:c081bc530f560634bb5c21d4b323a7f1",
         "GUID:15fc0a57446b3144c949da3e2b9737a9",
