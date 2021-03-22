@@ -73,7 +73,6 @@ public class LensFlareInput : MonoBehaviour
     {
         if (Input.GetMouseButton(0))
         {
-
             mousePosition.x = Input.mousePosition.x / Screen.width;
             mousePosition.y = Input.mousePosition.y / Screen.height;
 
@@ -108,18 +107,7 @@ public class LensFlareInput : MonoBehaviour
 
     private void CameraMovementWithMouse()
     {
-        // Lock and hide cursor when right mouse button is clicked
-        if (Input.GetMouseButtonDown(1))
-        {
-            Cursor.lockState = CursorLockMode.Locked;
-        }
-
-        // Unlock and show cursor when right mouse button released
-        if (Input.GetMouseButtonUp(1))
-        {
-            Cursor.visible = true;
-            Cursor.lockState = CursorLockMode.None;
-        }
+        LockCursorWhileMouseButtonDown(1);
 
         if (Input.GetMouseButton(1))
         {
@@ -133,6 +121,22 @@ public class LensFlareInput : MonoBehaviour
             {
                 cameraGameObject.transform.localEulerAngles += new Vector3(mouseMovement.x * -1f, mouseMovement.y, 0f);
             }
+        }
+    }
+
+    private void LockCursorWhileMouseButtonDown(int mouseButton)
+    {
+        // Lock and hide cursor when mouse button is clicked
+        if (Input.GetMouseButtonDown(mouseButton))
+        {
+            Cursor.lockState = CursorLockMode.Locked;
+        }
+
+        // Unlock and show cursor when mouse button released
+        if (Input.GetMouseButtonUp(mouseButton))
+        {
+            Cursor.visible = true;
+            Cursor.lockState = CursorLockMode.None;
         }
     }
 
