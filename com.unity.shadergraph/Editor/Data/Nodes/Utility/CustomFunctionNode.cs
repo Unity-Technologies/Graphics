@@ -126,6 +126,27 @@ namespace UnityEditor.ShaderGraph
 
         public static string defaultFunctionBody => k_DefaultFunctionBody;
 
+        static Int32 HashString(string src)
+        {
+            byte[] stringbytes = Encoding.UTF8.GetBytes(src);
+            byte[] hashedBytes = new System.Security.Cryptography
+                .SHA1CryptoServiceProvider()
+                .ComputeHash(stringbytes);
+            Array.Resize(ref hashedBytes, 16);
+            return hashedBytes[0] + 256 * (hashedBytes[1] + 256 * (hashedBytes[2] + 256 * hashedBytes[3]));
+        }
+
+        // might be a problem with long variable names on some OSX/GLCore machines...
+        public override string GetVariableNameForSlot(int slotId)
+        {
+            var slot = FindSlot<MaterialSlot>(slotId);
+            if (slot == null)
+                throw new ArgumentException(string.Format("Attempting to use MaterialSlot({0}) on node of type {1} where this slot can not be found", slotId, this), "slotId");
+            var str = string.Format("_{0}_{1}_{2}", GetVariableNameForNode(), NodeUtils.GetHLSLSafeName(slot.shaderOutputName), unchecked((uint)slotId));
+            var hash = HashString(str);
+            return "_CFN_" + hash.ToString("X8");
+        }
+
         public void GenerateNodeCode(ShaderStringBuilder sb, GenerationMode generationMode)
         {
             using (var inputSlots = PooledList<MaterialSlot>.Get())
