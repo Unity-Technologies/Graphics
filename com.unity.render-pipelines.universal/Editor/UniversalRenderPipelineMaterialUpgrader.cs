@@ -446,10 +446,16 @@ namespace UnityEditor.Rendering.Universal
             "Universal Render Pipeline/Nature/SpeedTree8_PBRLit"
         };
         public SpeedTree8Upgrader(string oldShaderName)
-            : base(oldShaderName, ShaderUtils.GetShaderPath(ShaderPathID.SpeedTree8), SpeedTree8MaterialFinalizer)
+            : base(oldShaderName, ShaderUtils.GetShaderPath(ShaderPathID.SpeedTree8), UniversalSpeedTree8MaterialFinalizer)
         {
             if (!IsUniversalSpeedTree8Shader(oldShaderName))
                 st8ShaderNames.Add(oldShaderName);
+        }
+
+        private static void UniversalSpeedTree8MaterialFinalizer(Material mat)
+        {
+            mat.SetFloat("_OldHueVarBehavior", 1.0f);
+            SpeedTree8MaterialFinalizer(mat);
         }
 
         public static bool IsUniversalSpeedTree8Shader(string shaderName)
