@@ -114,6 +114,7 @@ namespace UnityEngine.Rendering.HighDefinition
         public Vector4 unity_DeltaTime;             // { dt, 1/dt, smoothdt, 1/smoothdt }
         public Vector4 _TimeParameters;             // { t, sin(t), cos(t) }
         public Vector4 _LastTimeParameters;         // { t, sin(t), cos(t) }
+        public Vector4 _DeExposureParameters;       // { deExposure, 1.0/deExposure, unused, unused }
 
         // Volumetric lighting / Fog.
         public int      _FogEnabled;
@@ -192,7 +193,7 @@ namespace UnityEngine.Rendering.HighDefinition
         public float _MicroShadowOpacity;
         public uint  _EnableProbeVolumes;
         public uint  _ProbeVolumeCount;
-        public float _DeExposureMultiplier;
+        public float _Pad6;
 
         public Vector4  _CookieAtlasSize;
         public Vector4  _CookieAtlasData;

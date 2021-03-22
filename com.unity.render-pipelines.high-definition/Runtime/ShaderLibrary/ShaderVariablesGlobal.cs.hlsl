@@ -47,6 +47,7 @@ GLOBAL_CBUFFER_START(ShaderVariablesGlobal, b0)
     float4 unity_DeltaTime;
     float4 _TimeParameters;
     float4 _LastTimeParameters;
+    float4 _DeExposureParameters;
     int _FogEnabled;
     int _PBRFogEnabled;
     int _EnableVolumetricFog;
@@ -106,7 +107,7 @@ GLOBAL_CBUFFER_START(ShaderVariablesGlobal, b0)
     float _MicroShadowOpacity;
     uint _EnableProbeVolumes;
     uint _ProbeVolumeCount;
-    float _DeExposureMultiplier;
+    float _Pad6;
     float4 _CookieAtlasSize;
     float4 _CookieAtlasData;
     float4 _PlanarAtlasData;

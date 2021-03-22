@@ -108,7 +108,7 @@ void Frag(PackedVaryingsToPS packedInput,
 #endif
 
     // Note: we must not access bsdfData in shader pass, but for unlit we make an exception and assume it should have a color field
-    float4 outResult = ApplyBlendMode(bsdfData.color*_DeExposureMultiplier + builtinData.emissiveColor * GetCurrentExposureMultiplier(), builtinData.opacity);
+    float4 outResult = ApplyBlendMode(bsdfData.color*_DeExposureParameters.x + builtinData.emissiveColor * GetCurrentExposureMultiplier(), builtinData.opacity);
     outResult = EvaluateAtmosphericScattering(posInput, V, outResult);
 
 #ifdef DEBUG_DISPLAY
