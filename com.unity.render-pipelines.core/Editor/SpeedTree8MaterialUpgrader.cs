@@ -4,10 +4,10 @@ using System;
 
 namespace UnityEditor.Rendering
 {
-	/// <summary>
-	/// Material upgrader and relevant utilities for SpeedTree8.
-	/// </summary>
-	public class SpeedTree8MaterialUpgrader : MaterialUpgrader
+    /// <summary>
+    /// Material upgrader and relevant utilities for SpeedTree8.
+    /// </summary>
+    public class SpeedTree8MaterialUpgrader : MaterialUpgrader
     {
         private enum WindQuality
         {
@@ -47,6 +47,7 @@ namespace UnityEditor.Rendering
         {
             if (mat == null)
                 return;
+
             int cullmode = 0;
             mat.SetFloat("_WINDQUALITY", windQuality);
             if (isBillboard)

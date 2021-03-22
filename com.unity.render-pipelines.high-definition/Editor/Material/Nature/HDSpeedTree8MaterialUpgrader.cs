@@ -6,7 +6,7 @@ namespace UnityEditor.Rendering.HighDefinition
     /// <summary>
     /// SpeedTree8 material upgrader for HDRP.
     /// </summary>
-	class HDSpeedTree8MaterialUpgrader : SpeedTree8MaterialUpgrader
+    class HDSpeedTree8MaterialUpgrader : SpeedTree8MaterialUpgrader
     {
         /// <summary>
         /// Creates a SpeedTree8 material upgrader for HDRP.
@@ -14,8 +14,8 @@ namespace UnityEditor.Rendering.HighDefinition
         /// <param name="sourceShaderName">Original shader name.</param>
         /// <param name="destShaderName">Upgrade shader name.</param>
         public HDSpeedTree8MaterialUpgrader(string sourceShaderName, string destShaderName)
-			: base(sourceShaderName, destShaderName, HDSpeedTree8MaterialFinalizer)
-		{
+            : base(sourceShaderName, destShaderName, HDSpeedTree8MaterialFinalizer)
+        {
         }
 
         public static void HDSpeedTree8MaterialFinalizer(Material mat)
@@ -23,6 +23,7 @@ namespace UnityEditor.Rendering.HighDefinition
             SetHDSpeedTree8Defaults(mat);
             HDShaderUtils.ResetMaterialKeywords(mat);
         }
+
         /// <summary>
         /// Checks if a given material is an HD SpeedTree8 material.
         /// </summary>

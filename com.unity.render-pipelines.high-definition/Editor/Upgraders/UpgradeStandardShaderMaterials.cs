@@ -22,7 +22,7 @@ namespace UnityEditor.Rendering.HighDefinition
             upgraders.Add(new StandardsTerrainToHDTerrainLitUpgrader("Nature/Terrain/Standard", "HDRP/TerrainLit"));
 
             upgraders.Add(new HDSpeedTree8MaterialUpgrader("Nature/SpeedTree8", "HDRP/Nature/SpeedTree8"));
-			
+
             return upgraders;
         }
 
