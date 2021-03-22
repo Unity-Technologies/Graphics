@@ -6,7 +6,7 @@ public class MobileControls : MonoBehaviour
 {
     public GameObject movementControls;
     public GameObject aimControls;
-    
+
     void Start()
     {
         if (SystemInfo.deviceType == DeviceType.Handheld)

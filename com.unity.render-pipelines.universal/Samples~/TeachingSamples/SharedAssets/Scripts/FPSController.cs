@@ -22,7 +22,7 @@ public class FPSController : MonoBehaviour
             Cursor.visible = false;
             Cursor.lockState = CursorLockMode.Locked;
         }
-        
+
         rb = GetComponent<Rigidbody>();
 
         movementFlags = 0;
@@ -42,7 +42,6 @@ public class FPSController : MonoBehaviour
         Vector3 rotation = MovementMaskToRotation() * (Time.deltaTime * buttonSensitivity * 100);
         transform.Rotate(0, rotation.y, 0, Space.World);
         transform.Rotate(rotation.x, 0, 0, Space.Self);
-
     }
 
     // Update is called once per frame
@@ -56,9 +55,8 @@ public class FPSController : MonoBehaviour
         Vector3 direction = Vector3.zero;
 
 
-
         direction = MovementMaskToWalkDirection();
-        
+
 
         if (Input.GetKey(KeyCode.W))
         {
@@ -104,7 +102,7 @@ public class FPSController : MonoBehaviour
         direction += ((movementFlags & 32) >> 5) * Vector3.right; //down
         direction += ((movementFlags & 64) >> 6) * -Vector3.up; //left
         direction += ((movementFlags & 128) >> 7) * Vector3.up; //right
-        
+
         return direction;
     }
 
