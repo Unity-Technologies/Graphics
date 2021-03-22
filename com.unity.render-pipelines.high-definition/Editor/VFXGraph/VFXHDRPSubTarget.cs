@@ -14,6 +14,20 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
     {
         internal const string Inspector = "Rendering.HighDefinition.VFXShaderGraphGUI";
 
+        // TODO: Note on VFX Coordinate Spaces in HDRP
+        public static readonly DependencyCollection ElementSpaceDependencies = new DependencyCollection
+        {
+            new FieldDependency(HDStructFields.FragInputs.worldToElement, HDStructFields.VaryingsMeshToPS.worldToElement0),
+            new FieldDependency(HDStructFields.FragInputs.worldToElement, HDStructFields.VaryingsMeshToPS.worldToElement1),
+            new FieldDependency(HDStructFields.FragInputs.worldToElement, HDStructFields.VaryingsMeshToPS.worldToElement2),
+
+            new FieldDependency(StructFields.SurfaceDescriptionInputs.ObjectSpaceNormal,             HDStructFields.FragInputs.worldToElement),
+            new FieldDependency(StructFields.SurfaceDescriptionInputs.ObjectSpaceTangent,            HDStructFields.FragInputs.worldToElement),
+            new FieldDependency(StructFields.SurfaceDescriptionInputs.ObjectSpaceBiTangent,          HDStructFields.FragInputs.worldToElement),
+            new FieldDependency(StructFields.SurfaceDescriptionInputs.ObjectSpacePosition,           HDStructFields.FragInputs.worldToElement),
+            new FieldDependency(StructFields.SurfaceDescriptionInputs.ObjectSpaceViewDirection,      HDStructFields.FragInputs.worldToElement),
+        };
+
         static VFXHDRPSubTarget()
         {
             VFXSubTarget.OnPostProcessSubShader += PostProcessSubShader;
@@ -138,6 +152,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             }
         };
 
+        // TODO: Reconstructing FragInputs like this is not good. We should be simply appending to its list of fields.
         static StructDescriptor GenerateFragInputs(VFXContext context, VFXContextCompiledData contextData)
         {
             var fields = new List<FieldDescriptor>();
@@ -155,6 +170,9 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             fields.Add(new FieldDescriptor(HDStructFields.FragInputs.name, "color", "", ShaderValueType.Float4));
             fields.Add(new FieldDescriptor(HDStructFields.FragInputs.name, "primitiveID", "", ShaderValueType.Uint));
             fields.Add(new FieldDescriptor(HDStructFields.FragInputs.name, "isFrontFace", "", ShaderValueType.Boolean));
+
+            // VFX Object Space
+            fields.Add(new FieldDescriptor(HDStructFields.FragInputs.name, "worldToElement", "", ShaderValueType.Matrix4));
 
             // VFX Material Properties
             // TODO: This can be merged with AppendVFXInterpolater. Lots of duplicated code just to query simple info.
@@ -221,6 +239,11 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                     fields.Add(new FieldDescriptor(HDStructFields.VaryingsMeshToPS.name, filteredNamedExpression.name, "", shaderValueType, $"NORMAL{normalSemanticIndex++}", "", StructFieldOptions.Static, interpolationModifier));
                 }
             }
+
+            // VFX Object Space Interpolators
+            fields.Add(HDStructFields.VaryingsMeshToPS.worldToElement0);
+            fields.Add(HDStructFields.VaryingsMeshToPS.worldToElement1);
+            fields.Add(HDStructFields.VaryingsMeshToPS.worldToElement2);
 
             interpolator.fields = fields.ToArray();
             return interpolator;

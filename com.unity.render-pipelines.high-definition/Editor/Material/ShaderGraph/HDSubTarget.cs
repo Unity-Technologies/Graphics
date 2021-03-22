@@ -184,6 +184,9 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 if (passDescriptor.fieldDependencies == null)
                     passDescriptor.fieldDependencies = CoreFieldDependencies.Default;
 
+                if (VFXSubTarget.IsConfigured())
+                    passDescriptor.fieldDependencies.Add(VFXHDRPSubTarget.ElementSpaceDependencies);
+
                 finalPasses.Add(passDescriptor, passes[i].fieldConditions);
             }
 

@@ -147,9 +147,6 @@ VaryingsMeshType VertMesh(AttributesMesh input, float3 worldSpaceOffset
 
     if(!GetInterpolatorAndElementData(output, element))
         return output; // Dead particle.
-
-    // In VFX, "Element Space" is treated as Object Space.
-    input = TransformMeshToElement(input, element);
 #endif
 
 #if defined(HAVE_MESH_MODIFICATION)
@@ -163,6 +160,11 @@ VaryingsMeshType VertMesh(AttributesMesh input, float3 worldSpaceOffset
         , element
     #endif
     );
+#endif
+
+#if defined(HAVE_VFX_MODIFICATION)
+    // Particle to VFX Space.
+    input = TransformMeshToElement(input, element);
 #endif
 
     // This return the camera relative position (if enable)

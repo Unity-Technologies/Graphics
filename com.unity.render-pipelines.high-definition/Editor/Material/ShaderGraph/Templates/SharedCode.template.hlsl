@@ -20,6 +20,8 @@ FragInputs BuildFragInputs(VaryingsMeshToPS input)
     #ifdef HAVE_VFX_MODIFICATION
     // FragInputs from VFX come from two places: Interpolator or CBuffer.
     $splice(VFXSetFragInputs)
+
+    $FragInputs.worldToElement:     output.worldToElement = BuildWorldToElement(input);
     #endif
 
     // splice point to copy custom interpolator fields from varyings to frag inputs
@@ -34,28 +36,19 @@ SurfaceDescriptionInputs FragInputsToSurfaceDescriptionInputs(FragInputs input, 
     ZERO_INITIALIZE(SurfaceDescriptionInputs, output);
 
     $SurfaceDescriptionInputs.WorldSpaceNormal:          output.WorldSpaceNormal =            normalize(input.tangentToWorld[2].xyz);
-    #if defined(SHADER_STAGE_RAY_TRACING)
-    $SurfaceDescriptionInputs.ObjectSpaceNormal:         output.ObjectSpaceNormal =           mul(output.WorldSpaceNormal, (float3x3) ObjectToWorld3x4());
-    #else
-    $SurfaceDescriptionInputs.ObjectSpaceNormal:         output.ObjectSpaceNormal =           mul(output.WorldSpaceNormal, (float3x3) UNITY_MATRIX_M);           // transposed multiplication by inverse matrix to handle normal scale
-    #endif
     $SurfaceDescriptionInputs.ViewSpaceNormal:           output.ViewSpaceNormal =             mul(output.WorldSpaceNormal, (float3x3) UNITY_MATRIX_I_V);         // transposed multiplication by inverse matrix to handle normal scale
     $SurfaceDescriptionInputs.TangentSpaceNormal:        output.TangentSpaceNormal =          float3(0.0f, 0.0f, 1.0f);
     $SurfaceDescriptionInputs.WorldSpaceTangent:         output.WorldSpaceTangent =           input.tangentToWorld[0].xyz;
-    $SurfaceDescriptionInputs.ObjectSpaceTangent:        output.ObjectSpaceTangent =          TransformWorldToObjectDir(output.WorldSpaceTangent);
     $SurfaceDescriptionInputs.ViewSpaceTangent:          output.ViewSpaceTangent =            TransformWorldToViewDir(output.WorldSpaceTangent);
     $SurfaceDescriptionInputs.TangentSpaceTangent:       output.TangentSpaceTangent =         float3(1.0f, 0.0f, 0.0f);
     $SurfaceDescriptionInputs.WorldSpaceBiTangent:       output.WorldSpaceBiTangent =         input.tangentToWorld[1].xyz;
-    $SurfaceDescriptionInputs.ObjectSpaceBiTangent:      output.ObjectSpaceBiTangent =        TransformWorldToObjectDir(output.WorldSpaceBiTangent);
     $SurfaceDescriptionInputs.ViewSpaceBiTangent:        output.ViewSpaceBiTangent =          TransformWorldToViewDir(output.WorldSpaceBiTangent);
     $SurfaceDescriptionInputs.TangentSpaceBiTangent:     output.TangentSpaceBiTangent =       float3(0.0f, 1.0f, 0.0f);
     $SurfaceDescriptionInputs.WorldSpaceViewDirection:   output.WorldSpaceViewDirection =     normalize(viewWS);
-    $SurfaceDescriptionInputs.ObjectSpaceViewDirection:  output.ObjectSpaceViewDirection =    TransformWorldToObjectDir(output.WorldSpaceViewDirection);
     $SurfaceDescriptionInputs.ViewSpaceViewDirection:    output.ViewSpaceViewDirection =      TransformWorldToViewDir(output.WorldSpaceViewDirection);
     $SurfaceDescriptionInputs.TangentSpaceViewDirection: float3x3 tangentSpaceTransform =     float3x3(output.WorldSpaceTangent,output.WorldSpaceBiTangent,output.WorldSpaceNormal);
     $SurfaceDescriptionInputs.TangentSpaceViewDirection: output.TangentSpaceViewDirection =   TransformWorldToTangent(output.WorldSpaceViewDirection, tangentSpaceTransform);
     $SurfaceDescriptionInputs.WorldSpacePosition:        output.WorldSpacePosition =          input.positionRWS;
-    $SurfaceDescriptionInputs.ObjectSpacePosition:       output.ObjectSpacePosition =         TransformWorldToObject(input.positionRWS);
     $SurfaceDescriptionInputs.ViewSpacePosition:         output.ViewSpacePosition =           TransformWorldToView(input.positionRWS);
     $SurfaceDescriptionInputs.TangentSpacePosition:      output.TangentSpacePosition =        float3(0.0f, 0.0f, 0.0f);
     $SurfaceDescriptionInputs.AbsoluteWorldSpacePosition:output.AbsoluteWorldSpacePosition =  GetAbsolutePositionWS(input.positionRWS);
@@ -67,6 +60,26 @@ SurfaceDescriptionInputs FragInputsToSurfaceDescriptionInputs(FragInputs input, 
     $SurfaceDescriptionInputs.VertexColor:               output.VertexColor =                 input.color;
     $SurfaceDescriptionInputs.FaceSign:                  output.FaceSign =                    input.isFrontFace;
     $SurfaceDescriptionInputs.TimeParameters:            output.TimeParameters =              _TimeParameters.xyz; // This is mainly for LW as HD overwrite this value
+
+#if defined(HAVE_VFX_MODIFICATION)
+    // VFX maintains an internal coordinate space and here we handle the case of going from world to element space (object space to the user).
+    $SurfaceDescriptionInputs.ObjectSpacePosition:       output.ObjectSpacePosition =         TransformWorldToElement(input.worldToElement, input.positionRWS);
+    $SurfaceDescriptionInputs.ObjectSpaceTangent:        output.ObjectSpaceTangent =          TransformWorldToElementDir(input.worldToElement, output.WorldSpaceTangent);
+    $SurfaceDescriptionInputs.ObjectSpaceBiTangent:      output.ObjectSpaceBiTangent =        TransformWorldToElementDir(input.worldToElement, output.WorldSpaceBiTangent);
+    $SurfaceDescriptionInputs.ObjectSpaceViewDirection:  output.ObjectSpaceViewDirection =    TransformWorldToElementDir(input.worldToElement, output.WorldSpaceViewDirection);
+    $SurfaceDescriptionInputs.ObjectSpaceNormal:         output.ObjectSpaceNormal =           TransformWorldToElementDir(input.worldToElement, output.WorldSpaceNormal);
+#else
+    $SurfaceDescriptionInputs.ObjectSpacePosition:       output.ObjectSpacePosition =         TransformWorldToObject(input.positionRWS);
+    $SurfaceDescriptionInputs.ObjectSpaceTangent:        output.ObjectSpaceTangent =          TransformWorldToObjectDir(output.WorldSpaceTangent);
+    $SurfaceDescriptionInputs.ObjectSpaceBiTangent:      output.ObjectSpaceBiTangent =        TransformWorldToObjectDir(output.WorldSpaceBiTangent);
+    $SurfaceDescriptionInputs.ObjectSpaceViewDirection:  output.ObjectSpaceViewDirection =    TransformWorldToObjectDir(output.WorldSpaceViewDirection);
+
+    #if defined(SHADER_STAGE_RAY_TRACING)
+    $SurfaceDescriptionInputs.ObjectSpaceNormal:         output.ObjectSpaceNormal =           mul(output.WorldSpaceNormal, (float3x3) ObjectToWorld3x4());
+    #else
+    $SurfaceDescriptionInputs.ObjectSpaceNormal:         output.ObjectSpaceNormal =           normalize(mul(output.WorldSpaceNormal, (float3x3) UNITY_MATRIX_M));           // transposed multiplication by inverse matrix to handle normal scale
+    #endif
+#endif
 
     // splice point to copy frag inputs custom interpolator pack into the SDI
     $splice(CustomInterpolatorCopyToSDI)

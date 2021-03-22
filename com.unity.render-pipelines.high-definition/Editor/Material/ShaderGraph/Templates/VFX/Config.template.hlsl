@@ -149,6 +149,30 @@ $OutputType.PlanarPrimitive: $include("VFX/ConfigPlanarPrimitive.template.hlsl")
 
 // Loads the element-specific attribute data, as well as fills any interpolator.
 #define VaryingsMeshType VaryingsMeshToPS
+
+// Reconstruct the VFX/World to Element matrix provided by interpolator.
+float4x4 BuildWorldToElement(VaryingsMeshType input)
+{
+    float4x4 worldToElement;
+#ifdef VARYINGS_NEED_WORLD_TO_ELEMENT
+    worldToElement[0] = input.worldToElement0;
+    worldToElement[1] = input.worldToElement1;
+    worldToElement[2] = input.worldToElement2;
+    worldToElement[3] = float4(0,0,0,1);
+#endif
+    return worldToElement;
+}
+
+float3 TransformWorldToElement(float4x4 worldToElement, float3 position)
+{
+    return mul(worldToElement, float4(position, 1)).xyz;
+}
+
+float3 TransformWorldToElementDir(float4x4 worldToElement, float3 direction)
+{
+    return normalize(mul((float3x3)worldToElement, direction));
+}
+
 bool GetInterpolatorAndElementData(inout VaryingsMeshType output, inout AttributesElement element)
 {
     GetElementData(element);
@@ -160,6 +184,42 @@ bool GetInterpolatorAndElementData(inout VaryingsMeshType output, inout Attribut
     #endif
 
     $splice(VFXInterpolantsGeneration)
+
+    #ifdef VARYINGS_NEED_WORLD_TO_ELEMENT
+    float4x4 worldToElement = GetVFXToElementMatrix(
+        attributes.axisX,
+        attributes.axisY,
+        attributes.axisZ,
+        float3(attributes.angleX,attributes.angleY,attributes.angleZ),
+        float3(attributes.pivotX,attributes.pivotY,attributes.pivotZ),
+        GetSize(element.attributes),
+        attributes.position
+    );
+
+    #ifdef VFX_LOCAL_SPACE
+    worldToElement = mul(worldToElement, VFXGetWorldToObjectMatrix());
+    #else
+
+    // We still must handle the camera relative case for world space particles since they do not recieve the world matrix (which contains the camera pre-translation).
+    #if (SHADEROPTIONS_CAMERA_RELATIVE_RENDERING != 0)
+        float4x4 relativeToAbsolute = float4x4
+        (
+            1, 0, 0, _WorldSpaceCameraPos.x,
+            0, 1, 0, _WorldSpaceCameraPos.y,
+            0, 0, 1, _WorldSpaceCameraPos.z,
+            0, 0, 0, 1
+        );
+
+        worldToElement = mul(worldToElement, relativeToAbsolute);
+    #endif
+
+    #endif // VFX_LOCAL_SPACE
+
+    // Pack into interpolator
+    output.worldToElement0 = worldToElement[0];
+    output.worldToElement1 = worldToElement[1];
+    output.worldToElement2 = worldToElement[2];
+    #endif
 
     return true;
 }
