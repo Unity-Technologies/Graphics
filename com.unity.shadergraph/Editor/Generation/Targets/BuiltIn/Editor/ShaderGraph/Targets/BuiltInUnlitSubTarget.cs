@@ -143,9 +143,9 @@ namespace UnityEditor.Rendering.BuiltIn.ShaderGraph
                     var shadowCaster = CorePasses.ShadowCaster;
                     var depthOnly = CorePasses.DepthOnly;
 
-                    unlit.pragmas = CorePragmas.DOTSForward;
-                    shadowCaster.pragmas = CorePragmas.DOTSInstanced;
-                    depthOnly.pragmas = CorePragmas.DOTSInstanced;
+                    unlit.pragmas = CorePragmas.Forward;
+                    shadowCaster.pragmas = CorePragmas.Instanced;
+                    depthOnly.pragmas = CorePragmas.Instanced;
 
                     return new SubShaderDescriptor()
                     {

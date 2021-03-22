@@ -570,7 +570,6 @@ namespace UnityEditor.Rendering.BuiltIn.ShaderGraph
         public static readonly PragmaCollection Instanced = new PragmaCollection
         {
             { Pragma.Target(ShaderModel.Target20) },
-            { Pragma.OnlyRenderers(new[] { Platform.GLES, Platform.GLES3, Platform.GLCore }) },
             { Pragma.MultiCompileInstancing },
             { Pragma.Vertex("vert") },
             { Pragma.Fragment("frag") },
@@ -579,7 +578,6 @@ namespace UnityEditor.Rendering.BuiltIn.ShaderGraph
         public static readonly PragmaCollection Forward = new PragmaCollection
         {
             { Pragma.Target(ShaderModel.Target20) },
-            //{ Pragma.OnlyRenderers(new[] { Platform.GLES, Platform.GLES3, Platform.GLCore }) },
             { Pragma.MultiCompileInstancing },
             { Pragma.MultiCompileFog },
             { Pragma.MultiCompileForwardBase },
@@ -587,9 +585,19 @@ namespace UnityEditor.Rendering.BuiltIn.ShaderGraph
             { Pragma.Fragment("frag") },
         };
 
-        public static readonly PragmaCollection Deferred = new PragmaCollection
+        public static readonly PragmaCollection ForwardAdd = new PragmaCollection
         {
             { Pragma.Target(ShaderModel.Target20) },
+            { Pragma.MultiCompileInstancing },
+            { Pragma.MultiCompileFog },
+            { Pragma.MultiCompileForwardAddFullShadowsBase },
+            { Pragma.Vertex("vert") },
+            { Pragma.Fragment("frag") },
+        };
+
+        public static readonly PragmaCollection Deferred = new PragmaCollection
+        {
+            { Pragma.Target(ShaderModel.Target45) },
             { Pragma.MultiCompileInstancing },
             { new PragmaDescriptor { value = "exclude_renderers nomrt" } },
             { Pragma.MultiCompilePrePassFinal },
@@ -610,59 +618,6 @@ namespace UnityEditor.Rendering.BuiltIn.ShaderGraph
         {
             { Pragma.Target(ShaderModel.Target20) },
             { Pragma.ExcludeRenderers(new[] { Platform.D3D9 }) },
-            { Pragma.Vertex("vert") },
-            { Pragma.Fragment("frag") },
-        };
-
-        public static readonly PragmaCollection DOTSDefault = new PragmaCollection
-        {
-            { Pragma.Target(ShaderModel.Target45) },
-            { Pragma.ExcludeRenderers(new[] { Platform.GLES, Platform.GLES3, Platform.GLCore }) },
-            { Pragma.Vertex("vert") },
-            { Pragma.Fragment("frag") },
-        };
-
-        public static readonly PragmaCollection DOTSInstanced = new PragmaCollection
-        {
-            { Pragma.Target(ShaderModel.Target45) },
-            { Pragma.ExcludeRenderers(new[] { Platform.GLES, Platform.GLES3, Platform.GLCore }) },
-            { Pragma.MultiCompileInstancing },
-            { Pragma.DOTSInstancing },
-            { Pragma.Vertex("vert") },
-            { Pragma.Fragment("frag") },
-        };
-
-        public static readonly PragmaCollection DOTSForward = new PragmaCollection
-        {
-            { Pragma.Target(ShaderModel.Target45) },
-            { Pragma.ExcludeRenderers(new[] { Platform.GLES, Platform.GLES3, Platform.GLCore }) },
-            { Pragma.MultiCompileInstancing },
-            { Pragma.MultiCompileFog },
-            { Pragma.MultiCompileForwardBase },
-            { Pragma.DOTSInstancing },
-            { Pragma.Vertex("vert") },
-            { Pragma.Fragment("frag") },
-        };
-
-        public static readonly PragmaCollection DOTSForwardAdd = new PragmaCollection
-        {
-            { Pragma.Target(ShaderModel.Target45) },
-            { Pragma.ExcludeRenderers(new[] { Platform.GLES, Platform.GLES3, Platform.GLCore }) },
-            { Pragma.MultiCompileInstancing },
-            { Pragma.MultiCompileFog },
-            { Pragma.MultiCompileForwardAddFullShadowsBase },
-            { Pragma.DOTSInstancing },
-            { Pragma.Vertex("vert") },
-            { Pragma.Fragment("frag") },
-        };
-
-        public static readonly PragmaCollection DOTSGBuffer = new PragmaCollection
-        {
-            { Pragma.Target(ShaderModel.Target45) },
-            { Pragma.ExcludeRenderers(new[] { Platform.GLES, Platform.GLES3, Platform.GLCore }) },
-            { Pragma.MultiCompileInstancing },
-            { Pragma.MultiCompileFog },
-            { Pragma.DOTSInstancing },
             { Pragma.Vertex("vert") },
             { Pragma.Fragment("frag") },
         };
