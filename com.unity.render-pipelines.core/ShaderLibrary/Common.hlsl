@@ -1189,7 +1189,7 @@ void ApplyDepthOffsetPositionInput(float3 V, float depthOffsetVS, float3 viewFor
 // ----------------------------------------------------------------------------
 // Terrain/Brush heightmap encoding/decoding
 // ----------------------------------------------------------------------------
-
+#ifndef UNITY_CG_INCLUDED
 #if defined(SHADER_API_VULKAN) || defined(SHADER_API_GLES) || defined(SHADER_API_GLES3)
 
 real4 PackHeightmap(real height)
@@ -1215,6 +1215,7 @@ real UnpackHeightmap(real4 height)
     return height.r;
 }
 
+#endif
 #endif
 
 // ----------------------------------------------------------------------------
