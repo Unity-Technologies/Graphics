@@ -967,7 +967,7 @@ namespace UnityEngine.Rendering.HighDefinition
             cb._ProbeExposureScale  = exposureMultiplierForProbes;
 
             float deExposureMultiplier = m_AdditionalCameraData == null ? 1.0f : m_AdditionalCameraData.deExposureMultiplier;
-            cb._DeExposureParameters = new Vector4( deExposureMultiplier, 1.0f/deExposureMultiplier, 0.0f, 0.0f ) ;
+            cb._DeExposureParameters = new Vector4(deExposureMultiplier, 1.0f / deExposureMultiplier, 0.0f, 0.0f);
 
             cb._TransparentCameraOnlyMotionVectors = (frameSettings.IsEnabled(FrameSettingsField.MotionVectors) &&
                 !frameSettings.IsEnabled(FrameSettingsField.TransparentsWriteMotionVector)) ? 1 : 0;
