@@ -525,7 +525,7 @@ namespace UnityEngine.Rendering.Universal
                 renderingData.cameraData.antialiasing == AntialiasingMode.FastApproximateAntialiasing;
 
             // Avoid doing post-processing on full swapchain resolution if upscaling.
-            bool upscaling = renderingData.postProcessingData.useRenderScale && renderingData.cameraData.renderScale < 0.9f;
+            bool upscaling = anyPostProcessing && renderingData.postProcessingData.useRenderScale && renderingData.cameraData.renderScale < 0.9f;
 
             // When post-processing is enabled we can use the stack to resolve rendering to camera target (screen or RT).
             // However when there are render passes executing after post we avoid resolving to screen so rendering continues (before sRGBConvertion etc)
