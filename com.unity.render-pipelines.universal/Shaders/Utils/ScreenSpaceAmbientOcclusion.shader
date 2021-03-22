@@ -134,7 +134,7 @@ Shader "Hidden/Universal Render Pipeline/ScreenSpaceAmbientOcclusion"
                     UNITY_SETUP_STEREO_EYE_INDEX_POST_VERTEX(input);
 
                     AmbientOcclusionFactor aoFactor = GetScreenSpaceAmbientOcclusion(input.uv);
-                    half occlusion = aoFactor.directAmbientOcclusion;
+                    half occlusion = aoFactor.indirectAmbientOcclusion;
                     return half4(0.0, 0.0, 0.0, occlusion);
                 }
 
