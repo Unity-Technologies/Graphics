@@ -110,6 +110,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed Tube and Disc lights mode selection (case 1317776)
 - Fixed preview camera updating the skybox material triggering GI baking (case 1314361/1314373).
 - The default LookDev volume profile is now copied and referened in the Asset folder instead of the package folder.
+- Fixed SSS on console platforms.
 
 ### Changed
 - Changed Window/Render Pipeline/HD Render Pipeline Wizard to Window/Rendering/HDRP Wizard
