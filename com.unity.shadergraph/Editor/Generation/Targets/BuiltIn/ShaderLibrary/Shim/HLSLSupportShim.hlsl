@@ -97,7 +97,13 @@
 #define UNITY_DECLARE_TEXCUBE_SHADOWMAP(tex) TEXTURECUBE_SHADOW(tex); SAMPLER_CMP(sampler##tex)
 #define UNITY_SAMPLE_SHADOW(tex,coord) SAMPLE_TEXTURE2D_SHADOW(tex, sampler##tex, coord)
 #define UNITY_SAMPLE_SHADOW_PROJ(tex,coord) SAMPLE_TEXTURE2D_SHADOW(tex, sampler##tex, (coord.xyz / coord.w))
-#define UNITY_SAMPLE_TEXCUBE_SHADOW(tex,coord) SAMPLE_TEXTURECUBE_SHADOW(tex, sampler##tex, coord)
+
+#if defined(SHADER_API_GLCORE) || defined(SHADER_API_GLES3) || defined(SHADER_API_VULKAN) || defined(SHADER_API_SWITCH)
+    // GLSL does not have textureLod(samplerCubeShadow, ...) support. GLES2 does not have core support for samplerCubeShadow, so we ignore it.
+    #define UNITY_SAMPLE_TEXCUBE_SHADOW(tex,coord) tex.SampleCmp (sampler##tex,(coord).xyz,(coord).w)
+#else
+    #define UNITY_SAMPLE_TEXCUBE_SHADOW(tex,coord) SAMPLE_TEXTURECUBE_SHADOW(tex, sampler##tex, coord)
+#endif
 
 #if defined(UNITY_STEREO_INSTANCING_ENABLED) || defined(UNITY_STEREO_MULTIVIEW_ENABLED)
 
