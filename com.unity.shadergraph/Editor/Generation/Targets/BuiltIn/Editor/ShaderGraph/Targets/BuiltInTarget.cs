@@ -562,7 +562,6 @@ namespace UnityEditor.Rendering.BuiltIn.ShaderGraph
         public static readonly PragmaCollection Default = new PragmaCollection
         {
             { Pragma.Target(ShaderModel.Target20) },
-            { Pragma.OnlyRenderers(new[] { Platform.GLES, Platform.GLES3, Platform.GLCore }) },
             { Pragma.Vertex("vert") },
             { Pragma.Fragment("frag") },
         };
