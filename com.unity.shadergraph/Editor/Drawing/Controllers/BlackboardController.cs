@@ -183,6 +183,27 @@ namespace UnityEditor.ShaderGraph.Drawing
         public List<ShaderInput> childObjects { get; set; }
     }
 
+    class RemoveCategoryAction : IGraphDataAction
+    {
+        void RemoveCategory(GraphData graphData)
+        {
+            AssertHelpers.IsNotNull(graphData, "GraphData is null while carrying out RemoveCategoryAction");
+            AssertHelpers.IsNotNull(categoryToRemove, "CategoryToRemove is null while carrying out RemoveCategoryAction");
+
+            if (categoryToRemove == null)
+                return;
+
+            graphData.owner.RegisterCompleteObjectUndo("Remove Category");
+            // If categoryDataReference is not null, directly add it to graphData
+            graphData.RemoveCategory(categoryToRemove);
+        }
+
+        public Action<GraphData> modifyGraphDataAction => RemoveCategory;
+
+        // Direct reference to the categoryData instance to remove
+        public CategoryData categoryToRemove { get; set; }
+    }
+
     // TODO: These are stub classes, feel free to change them
     class AddItemToCategoryAction : IGraphDataAction
     {
