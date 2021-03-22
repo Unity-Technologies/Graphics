@@ -517,6 +517,10 @@ namespace UnityEngine.Rendering.Universal
                 ApplyAdaptivePerformance(ref baseCameraData);
 #endif
             RenderSingleCamera(context, baseCameraData, anyPostProcessingEnabled);
+            using (new ProfilingScope(null, Profiling.Pipeline.endCameraRendering))
+            {
+                EndCameraRendering(context, baseCamera);
+            }
 
             if (isStackedRendering)
             {
@@ -558,10 +562,6 @@ namespace UnityEngine.Rendering.Universal
                 }
             }
 
-            using (new ProfilingScope(null, Profiling.Pipeline.endCameraRendering))
-            {
-                EndCameraRendering(context, baseCamera);
-            }
 #if ENABLE_VR && ENABLE_XR_MODULE
             if (baseCameraData.xr.enabled)
                 baseCameraData.cameraTargetDescriptor = originalTargetDesc;
