@@ -68,8 +68,22 @@ namespace UnityEditor.ShaderGraph.UnitTests
             string sourceDir = Path.GetFullPath(directory).TrimEnd(Path.DirectorySeparatorChar);
             string dirName = Path.GetFileName(sourceDir);
 
+            string targetUnityDir = "Assets/Testing/ImportTests/" + dirName;
             string targetDir = Application.dataPath + "/Testing/ImportTests/" + dirName;
-            DirectoryCopy(sourceDir, targetDir, true, true);
+            try
+            {
+                AssetDatabase.StartAssetEditing();
+                DirectoryCopy(sourceDir, targetDir, true, true);
+            }
+            finally
+            {
+                AssetDatabase.StopAssetEditing();
+            }
+
+            // import all the files in the directory
+            // NOTE: this is important, as our shader generation relies on the AssetDatabase being fully populated
+            // so we can lookup file paths by GUID.
+            AssetDatabase.ImportAsset(targetUnityDir, ImportAssetOptions.ImportRecursive | ImportAssetOptions.ForceUpdate | ImportAssetOptions.ForceSynchronousImport);
 
             foreach (var assetFullPath in Directory.GetFiles(targetDir, "*.shader*", SearchOption.TopDirectoryOnly))
             {
