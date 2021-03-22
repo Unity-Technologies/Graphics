@@ -49,8 +49,6 @@
         "com.unity.modules.xr": "1.0.0"
     },
     "testables": [
-        "com.unity.render-pipelines.core",
-        "com.unity.render-pipelines.universal",
         "com.unity.testframework.graphics",
         "com.unity.testing.xr"
     ]
