@@ -1877,6 +1877,20 @@
 
 {
     "m_SGVersion": 0,
+    "m_Type": "UnityEditor.ShaderGraph.BooleanMaterialSlot",
+    "m_ObjectId": "227d6f2892434196ad8e7eb088a93dee",
+    "m_Id": 1418130796,
+    "m_DisplayName": "Use Old Hue Variation Behavior",
+    "m_SlotType": 0,
+    "m_Hidden": false,
+    "m_ShaderOutputName": "Boolean_aae4eda2032b46628db49f6d51efcbd6",
+    "m_StageCapability": 2,
+    "m_Value": false,
+    "m_DefaultValue": false
+}
+
+{
+    "m_SGVersion": 0,
     "m_Type": "UnityEditor.ShaderGraph.Texture2DInputMaterialSlot",
     "m_ObjectId": "22909a5efe2e6b8fbee1b5f890827722",
     "m_Id": 1,
@@ -5095,6 +5109,9 @@
             "m_Id": "d6f78beb07144ce9b6a075a404ec8468"
         },
         {
+            "m_Id": "227d6f2892434196ad8e7eb088a93dee"
+        },
+        {
             "m_Id": "b440fca2b7f4445c8a25ff00f2c0ddcf"
         },
         {
@@ -5121,7 +5138,8 @@
         "ff03d852-ed6e-48ef-95fa-bd3890db14dd",
         "8ecd0068-982c-44b3-8c13-8d4d6c7e83c5",
         "43586b1c-7edc-4415-bf3d-ba0532c0d6e1",
-        "85075283-3091-4269-8dc9-d91bbfc0ec45"
+        "85075283-3091-4269-8dc9-d91bbfc0ec45",
+        "120cb8eb-338a-4dc1-94bf-75ab62348d46"
     ],
     "m_PropertyIds": [
         -603744991,
@@ -5129,7 +5147,8 @@
         -1351774112,
         -1679735778,
         -2021380120,
-        1821773999
+        1821773999,
+        1418130796
     ]
 }
 
