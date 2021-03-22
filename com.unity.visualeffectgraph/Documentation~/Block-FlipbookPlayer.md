@@ -8,7 +8,7 @@ Flipbook textures are texture sheets that consist of multiple smaller sub-images
 
 ![](Images/Block-FlipbookPlayerExampleLHS.png)![img](Images/Block-FlipbookPlayerExampleRHS.gif)
 
-To generate a Flipbook, use external digital content creation tools. 
+To generate a Flipbook, use external digital content creation tools.
 
 To set an output to use flipbooks, change its **UV Mode** to **Flipbook**, **Flipbook Blend**, or **Flipbook Motion Blend**. For more information on the different UV Modes, see the documentation for the various output Contexts.
 

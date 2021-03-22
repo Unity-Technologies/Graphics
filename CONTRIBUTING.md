@@ -27,7 +27,7 @@ By making a pull request, you are confirming agreement to the terms and conditio
 
 * The PR author is expected to merge the PR. If the author wants the last approving reviewer to merge it instead, this should be explicitly communicated. There is no guideline on how that communication should happen (on GitHub, Slack or even verbally - whatever makes the most sense in the given situation and scope) but it must always be clear to all reviewers if they are expected to merge.
 
-* A reviewer should not feel nitpicky about requesting (small) changes in a PR, this guideline explicitly encourages this -- also this kind of feedback adds to the quality of our product and it should not be taken personal. Here is a suggestion for a "fast path" though: the reviewer should suggest a solution (like a different phrasing, name or hinting a typo). If the author resolves those exactly as the reviewer suggested, he or she can assume the approval of the reviewer without awaiting another explicit re-review/approval.   
+* A reviewer should not feel nitpicky about requesting (small) changes in a PR, this guideline explicitly encourages this -- also this kind of feedback adds to the quality of our product and it should not be taken personal. Here is a suggestion for a "fast path" though: the reviewer should suggest a solution (like a different phrasing, name or hinting a typo). If the author resolves those exactly as the reviewer suggested, he or she can assume the approval of the reviewer without awaiting another explicit re-review/approval.
 
 
 ### Adding Reviewers
@@ -36,7 +36,7 @@ By making a pull request, you are confirming agreement to the terms and conditio
 
 * For each reviewer added, **reach out to that person on Slack** so that they are made aware of the request.
 
-* As a Reviewer, please **comment on or approve a PR in a timely manner**. If you’re unable to do so, reach out to the author and let them know. 
+* As a Reviewer, please **comment on or approve a PR in a timely manner**. If you’re unable to do so, reach out to the author and let them know.
 
 * As the PR author you are responsible for landing your PR swiftly. Reach out to devs who do not review in a timely manner on slack and remind them.
 

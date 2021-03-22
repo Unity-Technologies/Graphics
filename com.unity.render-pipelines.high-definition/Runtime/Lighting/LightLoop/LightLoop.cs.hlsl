@@ -1,5 +1,5 @@
 //
-// This file was automatically generated. Please don't edit by hand. Execute Editor command [ Edit / Render Pipeline / Generate Shader Includes ] instead
+// This file was automatically generated. Please don't edit by hand. Execute Editor command [ Edit > Rendering > Generate Shader Includes ] instead
 //
 
 #ifndef LIGHTLOOP_CS_HLSL
@@ -18,10 +18,9 @@
 #define LIGHTCATEGORY_PUNCTUAL (0)
 #define LIGHTCATEGORY_AREA (1)
 #define LIGHTCATEGORY_ENV (2)
-#define LIGHTCATEGORY_PROBE_VOLUME (3)
-#define LIGHTCATEGORY_DECAL (4)
-#define LIGHTCATEGORY_DENSITY_VOLUME (5)
-#define LIGHTCATEGORY_COUNT (6)
+#define LIGHTCATEGORY_DECAL (3)
+#define LIGHTCATEGORY_LOCAL_VOLUMETRIC_FOG (4)
+#define LIGHTCATEGORY_COUNT (5)
 
 //
 // UnityEngine.Rendering.HighDefinition.LightFeatureFlags:  static fields
@@ -111,10 +110,10 @@ CBUFFER_START(ShaderVariablesLightList)
     int g_iNumSamplesMSAA;
     uint _EnvLightIndexShift;
     uint _DecalIndexShift;
-    uint _DensityVolumeIndexShift;
-    uint _ProbeVolumeIndexShift;
+    uint _LocalVolumetricFogIndexShift;
     uint _Pad0_SVLL;
     uint _Pad1_SVLL;
+    uint _Pad2_SVLL;
 CBUFFER_END
 
 //

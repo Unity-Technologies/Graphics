@@ -15,16 +15,46 @@ MonoBehaviour:
   m_Filters:
   - name: GBuffer
     category: Lit
-    keywordFilter: SHADOWS_SHADOWMASK&DECALS_OFF&LIGHT_LAYERS
+    keywordFilter: SHADOWS_SHADOWMASK&DECALS_3RT&LIGHT_LAYERS
     passNameFilter: +GBuffer
+  - name: Forward
+    category: Lit
+    keywordFilter: SHADOWS_SHADOWMASK&DECALS_3RT&LIGHT_LAYERS&SHADOW_LOW
+    passNameFilter: +Forward
   m_AssetDefinitions:
-  - assetAlias: LitShaderGraph
-    assetCategory: Default
+  - assetAlias: Deferred
+    assetCategory: ComputeShader
+    testName: Default
+    asset: {fileID: 7200000, guid: 0b64f79746d2daf4198eaf6eab9af259, type: 3}
+    filter:
+      filterType: 1
+      referenceName: 
+      definition:
+        name: Deferred
+        category: Lit
+        keywordFilter: SHADOWS_SHADOWMASK&SCREEN_SPACE_SHADOWS_ON&SHADOW_LOW
+        passNameFilter: Deferred_Indirect_Fptl_Variant0
+    includeInTargets: 1f000000
+  - assetAlias: Lit ShaderGraph
+    assetCategory: ShaderGraph
     testName: Default
     asset: {fileID: 2100000, guid: d21ceb45c06d0f840bbac5ce3ba6076b, type: 2}
     filter:
       filterType: 2
       referenceName: GBuffer
+      definition:
+        name: Deferred
+        category: Lit
+        keywordFilter: SHADOWS_SHADOWMASK&SCREEN_SPACE_SHADOWS_ON&SHADOW_LOW
+        passNameFilter: Deferred_Indirect_Fptl_Variant0
+    includeInTargets: 1f000000
+  - assetAlias: Lit ShaderGraph
+    assetCategory: ShaderGraph
+    testName: Default
+    asset: {fileID: 2100000, guid: d21ceb45c06d0f840bbac5ce3ba6076b, type: 2}
+    filter:
+      filterType: 2
+      referenceName: Forward
       definition:
         name: 
         category: 

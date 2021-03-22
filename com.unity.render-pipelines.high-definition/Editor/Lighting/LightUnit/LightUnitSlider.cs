@@ -1,9 +1,8 @@
-using System;
 using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
-using UnityEngine.Rendering;
 using UnityEngine.Rendering.HighDefinition;
+using UnityEngine.Experimental.Rendering;
 
 namespace UnityEditor.Rendering.HighDefinition
 {
@@ -523,7 +522,7 @@ namespace UnityEditor.Rendering.HighDefinition
                 var kelvinTexture = (Texture2D)typeof(LightEditor.Settings).GetField("m_KelvinGradientTexture", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance).GetValue(settings);
 
                 // This seems to be the only way to gamma-correct the internal gradient tex (aside from drawing it manually).
-                var kelvinTextureLinear = new Texture2D(kelvinTexture.width, kelvinTexture.height, TextureFormat.RGBA32, true);
+                var kelvinTextureLinear = new Texture2D(kelvinTexture.width, kelvinTexture.height, GraphicsFormat.R8G8B8A8_SRGB, TextureCreationFlags.MipChain);
                 kelvinTextureLinear.SetPixels(kelvinTexture.GetPixels());
                 kelvinTextureLinear.Apply();
 
@@ -569,12 +568,14 @@ namespace UnityEditor.Rendering.HighDefinition
             // Draw the exponential slider that fits 6500K to the white point on the gradient texture.
             var internalValue = GUI.HorizontalSlider(rect, ValueToSlider(value), 0f, 1f, SliderStyles.k_TemperatureBorder, SliderStyles.k_TemperatureThumb);
 
-            // Map the value back into kelvin.
-            value = SliderToValue(internalValue);
-
             // Round to nearest since so much precision is not necessary for kelvin while sliding.
             if (EditorGUI.EndChangeCheck())
+            {
+                // Map the value back into kelvin.
+                value = SliderToValue(internalValue);
+
                 value = Mathf.Round(value);
+            }
         }
     }
 

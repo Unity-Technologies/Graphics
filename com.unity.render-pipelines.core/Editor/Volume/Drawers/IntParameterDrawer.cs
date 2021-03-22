@@ -1,5 +1,6 @@
 using UnityEngine;
 using UnityEngine.Rendering;
+using UnityEditorInternal;
 
 namespace UnityEditor.Rendering
 {
@@ -101,6 +102,21 @@ namespace UnityEditor.Rendering
             var o = parameter.GetObjectRef<NoInterpClampedIntParameter>();
             EditorGUILayout.IntSlider(value, o.min, o.max, title);
             value.intValue = Mathf.Clamp(value.intValue, o.min, o.max);
+            return true;
+        }
+    }
+
+    [VolumeParameterDrawer(typeof(LayerMaskParameter))]
+    sealed class LayerMaskParameterDrawer : VolumeParameterDrawer
+    {
+        public override bool OnGUI(SerializedDataParameter parameter, GUIContent title)
+        {
+            var value = parameter.value;
+
+            if (value.propertyType != SerializedPropertyType.LayerMask)
+                return false;
+
+            value.intValue = EditorGUILayout.MaskField(title, value.intValue, InternalEditorUtility.layers);
             return true;
         }
     }

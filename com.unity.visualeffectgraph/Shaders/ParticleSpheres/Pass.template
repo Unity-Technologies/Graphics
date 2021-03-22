@@ -51,8 +51,6 @@ VFX_VARYING_PS_INPUTS vert(uint id : SV_VertexID, vs_input i)
 	return o;
 }
 
-${VFXFragmentCommonFunctions}
-
 void VFXClipSphereAndGetDepthOffsetAndNormal(out float depthOffset, out float3 normalWS ,VFX_VARYING_PS_INPUTS i)
 {
 	float lsqr = dot(i.VFX_VARYING_UV, i.VFX_VARYING_UV);

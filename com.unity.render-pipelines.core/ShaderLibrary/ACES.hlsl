@@ -322,7 +322,7 @@ half rgb_2_yc(half3 rgb)
     half k = b * (b - g) + g * (g - r) + r * (r - b);
     k = max(k, 0.0h); // Clamp to avoid precision issue causing k < 0, making sqrt(k) undefined
 #if defined(SHADER_API_SWITCH)
-    half chroma = k == 0.0 ? 0.0 : sqrt(k); // Fix NaN on Nintendo Switch (should not happen in theory).
+    half chroma = k == 0.0 ? 0.0 : sqrt(k); // Avoid Nan
 #else
     half chroma = sqrt(k);
 #endif
