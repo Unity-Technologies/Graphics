@@ -765,7 +765,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
                 { RenderState.Blend("Blend SrcAlpha OneMinusSrcAlpha") },
                 { RenderState.ColorMask("ColorMask RGB") },
                 { RenderState.Cull(Cull.Front) },
-                { RenderState.ZTest(ZTest.LEqual) },
+                { RenderState.ZTest(ZTest.Greater) },
                 { RenderState.ZWrite(ZWrite.Off) },
             };
 
@@ -820,7 +820,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
                 { Pragma.ExcludeRenderers(new[] { Platform.GLES, Platform.GLES3, Platform.GLCore }) },
                 { Pragma.Vertex("Vert") },
                 { Pragma.Fragment("Frag") },
-                //{ Pragma.EnableD3D11DebugSymbols },
+                { Pragma.EnableD3D11DebugSymbols },
                 { Pragma.MultiCompileInstancing },
 #if ENABLE_HYBRID_RENDERER_V2
                 { Pragma.DOTSInstancing },

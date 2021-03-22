@@ -138,8 +138,6 @@ namespace UnityEngine.Rendering.Universal
                 context.ExecuteCommandBuffer(cmd);
                 cmd.Clear();
 
-                cmd.SetGlobalTexture("_CameraDepthTexture", Shader.PropertyToID("_CameraDepthAttachment"));
-
                 m_DrawSystem?.Execute(cmd);
 
                 context.DrawRenderers(renderingData.cullResults, ref drawingSettings, ref m_FilteringSettings);
