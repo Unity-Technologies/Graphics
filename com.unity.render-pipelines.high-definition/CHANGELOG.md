@@ -30,6 +30,10 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Added support for volumetric clouds in planar reflections.
 - Added deferred shading debug visualization
 - Added a new control slider on RTR and RTGI to force the LOD Bias on both effects.
+- Added missing documentation for volumetric clouds.
+- Added the support of interpolators for SV_POSITION in shader graph.
+- Added a "Conservative" mode for shader graph depth offset.
+- Added an error message when trying to use disk lights with realtime GI (case 1317808).
 
 ### Fixed
 - Fixed Intensity Multiplier not affecting realtime global illumination.
@@ -97,12 +101,21 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed issue in path tracing, where objects would cast shadows even if not present in the path traced layers (case 1318857).
 - Fixed SRP batcher not compatible with Decal (case 1311586)
 - Fixed wrong color buffer being bound to pre refraction custom passes.
+- Fixed issue in Probe Reference Volume authoring component triggering an asset reload on all operations.
+- Fixed grey screen on playstation platform when histogram exposure is enabled but the curve mapping is not used.
+- Fixed HDRPAsset loosing its reference to the ray tracing resources when clicking on a different quality level that doesn't have ray tracing (case 1320304).
+- Fixed SRP batcher not compatible with Decal (case 1311586).
+- Fixed error message when having MSAA and Screen Space Shadows (case 1318698).
+- Fixed Nans happening when the history render target is bigger than the current viewport (case 1321139).
+- Fixed Tube and Disc lights mode selection (case 1317776)
+- Fixed preview camera updating the skybox material triggering GI baking (case 1314361/1314373).
+- The default LookDev volume profile is now copied and referened in the Asset folder instead of the package folder.
+- Fixed SSS on console platforms.
 
 ### Changed
 - Changed Window/Render Pipeline/HD Render Pipeline Wizard to Window/Rendering/HDRP Wizard
 - Removed the material pass probe volumes evaluation mode.
-- Changed GameObject/Rendering/Density Volume to GameObject/Volume/Density Volume
-- Changed GameObject/Rendering/Decal Projector to GameObject/Decal Projector
+- Changed GameObject/Rendering/Density Volume to GameObject/Rendering/Local Volumetric Fog
 - Changed GameObject/Volume/Sky and Fog Volume to GameObject/Volume/Sky and Fog Global Volume
 - Move the Decal Gizmo Color initialization to preferences
 - Unifying the history validation pass so that it is only done once for the whole frame and not per effect.
@@ -141,10 +154,16 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Moved the HDRP render graph debug panel content to the Rendering debug panel.
 - Changed Path Tracing's maximum intensity from clamped (0 to 100) to positive value (case 1310514).
 - Avoid unnecessary RenderGraphBuilder.ReadTexture in the "Set Final Target" pass
+- Change Allow dynamic resolution from Rendering to Output on the Camera Inspector
+- Change Link FOV to Physical Camera to Physical Camera, and show and hide everything on the Projection Section
+- Change FOV Axis to Field of View Axis
 - Density Volumes can now take a 3D RenderTexture as mask, the mask can use RGBA format for RGB fog.
 - Decreased the minimal Fog Distance value in the Density Volume to 0.05.
 - Virtual Texturing Resolver now performs RTHandle resize logic in HDRP instead of in core Unity
 - Cached the base types of Volume Manager to improve memory and cpu usage.
+- Changed Density Volume for Local Volumetric Fog
+- HDRP Global Settings are now saved into their own asset (HDRenderPipelineGlobalSettings) and HDRenderPipeline's default asset refers to this new asset.
+- Improved physically based Depth of Field with better near defocus blur quality.
 
 ## [11.0.0] - 2020-10-21
 
