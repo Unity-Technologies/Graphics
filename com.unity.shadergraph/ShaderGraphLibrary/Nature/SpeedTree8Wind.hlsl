@@ -25,14 +25,12 @@ float4 _ST_WindFrondRipple;
 float4 _ST_WindAnimation;
 CBUFFER_END
 
-
 #define ST_WIND_QUALITY_NONE 0
 #define ST_WIND_QUALITY_FASTEST 1
 #define ST_WIND_QUALITY_FAST 2
 #define ST_WIND_QUALITY_BETTER 3
 #define ST_WIND_QUALITY_BEST 4
 #define ST_WIND_QUALITY_PALM 5
-
 
 #define ST_GEOM_TYPE_BRANCH 0
 #define ST_GEOM_TYPE_FROND 1

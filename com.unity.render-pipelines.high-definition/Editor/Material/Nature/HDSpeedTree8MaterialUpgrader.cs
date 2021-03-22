@@ -15,7 +15,7 @@ namespace UnityEditor.Rendering.HighDefinition
         /// <param name="destShaderName">Upgrade shader name.</param>
         public HDSpeedTree8MaterialUpgrader(string sourceShaderName, string destShaderName)
 			: base(sourceShaderName, destShaderName, HDSpeedTree8MaterialFinalizer)
-		{
+	{
         }
 
         public static void HDSpeedTree8MaterialFinalizer(Material mat)

@@ -19,7 +19,7 @@ namespace UnityEditor.Rendering.HighDefinition
             upgraders.Add(new UnlitsToHDUnlitUpgrader("Unlit/Transparent", "HDRP/Unlit"));
             upgraders.Add(new UnlitsToHDUnlitUpgrader("Unlit/Transparent Cutout", "HDRP/Unlit"));
             
-			upgraders.Add(new StandardsTerrainToHDTerrainLitUpgrader("Nature/Terrain/Standard", "HDRP/TerrainLit"));
+            upgraders.Add(new StandardsTerrainToHDTerrainLitUpgrader("Nature/Terrain/Standard", "HDRP/TerrainLit"));
 
             upgraders.Add(new HDSpeedTree8MaterialUpgrader("Nature/SpeedTree8", "HDRP/Nature/SpeedTree8"));
 			

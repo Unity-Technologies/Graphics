@@ -132,6 +132,7 @@ namespace UnityEditor.Rendering
         {
             if (material == null)
                 return;
+
             for (int i = 0; i < (int)WindQuality.Count; i++)
             {
                 material.DisableKeyword(WindQualityString[i]);
