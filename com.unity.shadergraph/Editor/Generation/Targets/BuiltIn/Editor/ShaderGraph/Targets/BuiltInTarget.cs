@@ -390,7 +390,7 @@ namespace UnityEditor.Rendering.BuiltIn.ShaderGraph
 
             // Conditional State
             renderStates = CoreRenderStates.ShadowCaster,
-            pragmas = CorePragmas.Instanced,
+            pragmas = CorePragmas.ShadowCaster,
             keywords = CoreKeywords.ShadowCaster,
             includes = CoreIncludes.ShadowCaster,
 
@@ -594,6 +594,14 @@ namespace UnityEditor.Rendering.BuiltIn.ShaderGraph
             { new PragmaDescriptor { value = "exclude_renderers nomrt" } },
             { Pragma.MultiCompilePrePassFinal },
             { Pragma.SkipVariants( new[] {"FOG_LINEAR", "FOG_EXP", "FOG_EXP2" }) },
+            { Pragma.Vertex("vert") },
+            { Pragma.Fragment("frag") },
+        };
+
+        public static readonly PragmaCollection ShadowCaster = new PragmaCollection
+        {
+            { Pragma.Target(ShaderModel.Target20) },
+            { Pragma.MultiCompileShadowCaster },
             { Pragma.Vertex("vert") },
             { Pragma.Fragment("frag") },
         };

@@ -46,10 +46,8 @@ namespace UnityEditor.Rendering.BuiltIn.ShaderGraph
 
             // Process SubShaders
             SubShaderDescriptor[] litSubShaders = { SubShaders.LitComputeDOTS, SubShaders.LitGLES };
-            SubShaderDescriptor[] complexLitSubShaders = { SubShaders.ComplexLitComputeDOTS, SubShaders.LitGLESForwardOnly};
 
             SubShaderDescriptor[] subShaders = litSubShaders;
-            //SubShaderDescriptor[] subShaders = { SubShaders.LitGLES };
             for (int i = 0; i < subShaders.Length; i++)
             {
                 // Update Render State
@@ -254,30 +252,11 @@ namespace UnityEditor.Rendering.BuiltIn.ShaderGraph
                     { PassVariant(LitPasses.ForwardAdd,      CorePragmas.DOTSForwardAdd) },
                     { PassVariant(LitPasses.Deferred,        CorePragmas.Deferred) },
                     { LitPasses.GBuffer },
-                    { PassVariant(CorePasses.ShadowCaster,   CorePragmas.DOTSInstanced) },
+                    { CorePasses.ShadowCaster },
                     { PassVariant(CorePasses.DepthOnly,      CorePragmas.DOTSInstanced) },
                     { PassVariant(LitPasses.DepthNormalOnly, CorePragmas.DOTSInstanced) },
                     { PassVariant(LitPasses.Meta,            CorePragmas.DOTSDefault) },
                     { PassVariant(LitPasses._2D,             CorePragmas.DOTSDefault) },
-                },
-            };
-
-            // Similar to lit, but handles complex material features.
-            // Always ForwardOnly and acts as forward fallback in deferred.
-            // SM 4.5, compute with dots instancing
-            public readonly static SubShaderDescriptor ComplexLitComputeDOTS = new SubShaderDescriptor()
-            {
-                //pipelineTag = BuiltInTarget.kPipelineTag,
-                customTags = BuiltInTarget.kLitMaterialTypeTag,
-                generatesPreview = true,
-                passes = new PassCollection
-                {
-                    { PassVariant(LitPasses.ForwardOnly,     CoreBlockMasks.Vertex, LitBlockMasks.FragmentComplexLit, CorePragmas.DOTSForward, LitDefines.ComplexLit) },
-                    { PassVariant(CorePasses.ShadowCaster,   CorePragmas.DOTSInstanced) },
-                    { PassVariant(CorePasses.DepthOnly,      CorePragmas.DOTSInstanced) },
-                    { PassVariant(LitPasses.DepthNormalOnly, CorePragmas.DOTSInstanced) },
-                    { PassVariant(LitPasses.Meta,            CorePragmas.DOTSDefault)   },
-                    { PassVariant(LitPasses._2D,             CorePragmas.DOTSDefault)   },
                 },
             };
 
@@ -290,24 +269,8 @@ namespace UnityEditor.Rendering.BuiltIn.ShaderGraph
                 passes = new PassCollection
                 {
                     { LitPasses.Forward },
-                    { CorePasses.ShadowCaster },
-                    { CorePasses.DepthOnly },
-                    { LitPasses.DepthNormalOnly },
-                    { LitPasses.Meta },
-                    { LitPasses._2D },
-                },
-            };
-
-            // ForwardOnly pass for SM 2.0, GLES
-            // Used as complex Lit SM 2.0 fallback for GLES. Drops advanced features and renders materials as Lit.
-            public readonly static SubShaderDescriptor LitGLESForwardOnly = new SubShaderDescriptor()
-            {
-                pipelineTag = BuiltInTarget.kPipelineTag,
-                customTags = BuiltInTarget.kLitMaterialTypeTag,
-                generatesPreview = true,
-                passes = new PassCollection
-                {
-                    { LitPasses.ForwardOnly },
+                    { LitPasses.ForwardAdd },
+                    { LitPasses.Deferred },
                     { CorePasses.ShadowCaster },
                     { CorePasses.DepthOnly },
                     { LitPasses.DepthNormalOnly },
