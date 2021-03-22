@@ -23,9 +23,8 @@ namespace UnityEditor.Rendering.Universal
                 scriptProperty.objectReferenceValue = stdRendererScriptObj;
                 so.ApplyModifiedProperties();
 
-                //Save and re-import asset
+                //Re-import asset
                 //This prevents the "Importer(NativeFormatImporter) generated inconsistent result" warning
-                AssetDatabase.SaveAssets();
                 AssetDatabase.ImportAsset(rendererDataPath);
 
                 editedAssetsCount++;
