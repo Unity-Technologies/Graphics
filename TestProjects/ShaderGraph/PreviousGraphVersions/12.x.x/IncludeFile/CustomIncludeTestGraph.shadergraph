@@ -614,15 +614,15 @@
     "m_Group": {
         "m_Id": ""
     },
-    "m_Name": "GetValue (Custom Function)",
+    "m_Name": "GV (Custom Function)",
     "m_DrawState": {
         "m_Expanded": true,
         "m_Position": {
             "serializedVersion": "2",
-            "x": -252.0,
-            "y": 154.0,
-            "width": 208.0,
-            "height": 278.0
+            "x": -154.00001525878907,
+            "y": 154.00003051757813,
+            "width": 208.0000457763672,
+            "height": 277.9999694824219
         }
     },
     "m_Slots": [
@@ -641,7 +641,7 @@
         "m_SerializableColors": []
     },
     "m_SourceType": 0,
-    "m_FunctionName": "GetValue",
+    "m_FunctionName": "GV",
     "m_FunctionSource": "281daabd6cbc40042a225c90cee41f7a",
     "m_FunctionBody": "Enter function body here..."
 }

@@ -151,11 +151,6 @@ namespace UnityEditor.ShaderGraph.UnitTests
                 {
                     // skip the compile test -- we know this shader won't compile on these platforms
                 }
-                else if (!samplersSupported && fullPath.Contains("IncludeFile"))
-                {
-                    // there's a weird bug that only shows up in farm-run tests for the OSX GL compilation of this shader..
-                    // disabling the test for now
-                }
                 else
                 {
                     // now create a Unity Shader from the string
