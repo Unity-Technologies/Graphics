@@ -61,7 +61,7 @@ struct AttributesElement
 #endif
 };
 
-bool ShouldCull(uint index)
+bool ShouldCullElement(uint index)
 {
     uint deadCount = 0;
 #if USE_DEAD_LIST_COUNT
@@ -70,7 +70,7 @@ bool ShouldCull(uint index)
     return (index >= asuint(nbMax) - deadCount);
 }
 
-float3 GetSize(Attributes attributes)
+float3 GetElementSize(Attributes attributes)
 {
     float3 size3 = float3(attributes.size,attributes.size,attributes.size);
 
@@ -192,7 +192,7 @@ bool GetInterpolatorAndElementData(inout VaryingsMeshType output, inout Attribut
         attributes.axisZ,
         float3(attributes.angleX,attributes.angleY,attributes.angleZ),
         float3(attributes.pivotX,attributes.pivotY,attributes.pivotZ),
-        GetSize(element.attributes),
+        GetElementSize(element.attributes),
         attributes.position
     );
 
@@ -229,7 +229,7 @@ bool GetInterpolatorAndElementData(inout VaryingsMeshType output, inout Attribut
 // For the previous frame, the element matrices are cached and read back by the mesh element index.
 AttributesMesh TransformMeshToElement(AttributesMesh input, AttributesElement element)
 {
-    float3 size = GetSize(element.attributes);
+    float3 size = GetElementSize(element.attributes);
 
     float4x4 elementToVFX = GetElementToVFXMatrix(
         element.attributes.axisX,

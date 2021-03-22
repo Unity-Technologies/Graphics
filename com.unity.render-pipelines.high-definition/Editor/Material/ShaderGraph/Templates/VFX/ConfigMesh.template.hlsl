@@ -4,7 +4,7 @@ bool GetMeshAndElementIndex(inout AttributesMesh input, inout AttributesElement 
 {
     uint index = input.instanceID;
 
-    if (ShouldCull(index))
+    if (ShouldCullElement(index))
         return false;
 
     #if VFX_HAS_INDIRECT_DRAW

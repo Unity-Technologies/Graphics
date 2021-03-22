@@ -37,7 +37,7 @@ bool GetMeshAndElementIndex(inout AttributesMesh input, inout AttributesElement 
         index = (id >> 3) + VFX_GET_INSTANCE_ID(i) * 1024;
     #endif
 
-    if (ShouldCull(index))
+    if (ShouldCullElement(index))
         return false;
 
     #if VFX_HAS_INDIRECT_DRAW
