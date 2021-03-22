@@ -119,7 +119,6 @@ public class CameraCallbackTests : ScriptableRendererFeature
             var width = pixelRect.width / 3.0f;
             var height = pixelRect.height / 2.0f;
 
-
             cmd.SetViewport(new Rect(0, pixelRect.height / 2.0f, width, height));
 
 			cmd.SetGlobalTexture(m_SourceTexID, beforeAll.Identifier());

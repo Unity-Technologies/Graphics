@@ -7,7 +7,7 @@ Material:
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  m_Name: Test_Simple Lit No ZWrite
+  m_Name: Test_SimpleLitNoZWrite
   m_Shader: {fileID: 4800000, guid: 3d454074018a649e1843b64016ba3b49, type: 3}
   m_ShaderKeywords: 
   m_LightmapFlags: 4
