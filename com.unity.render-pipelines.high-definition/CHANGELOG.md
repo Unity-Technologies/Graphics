@@ -180,6 +180,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Changed the behavior of the clear coat and SSR/RTR for the stack lit to mimic the Lit's behavior (case 1320154).
 - The default LookDev volume profile is now copied and referened in the Asset folder instead of the package folder.
 - Changed normal used in path tracing to create a local light list from the geometric to the smooth shading one.
+- Assets going through the migration system are now dirtied.
 
 ## [10.3.0] - 2020-12-01
 
