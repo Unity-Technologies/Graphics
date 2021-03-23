@@ -66,7 +66,7 @@ namespace UnityEditor.Rendering.HighDefinition
         /// </summary>
         public override void OnGUI()
         {
-            using (new EditorGUI.DisabledScope(distortionEnable == null))
+            if (distortionEnable != null)
             {
                 materialEditor.ShaderProperty(distortionEnable, Styles.distortionEnableText);
 

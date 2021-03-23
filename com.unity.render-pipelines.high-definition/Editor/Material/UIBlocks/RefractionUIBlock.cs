@@ -79,7 +79,7 @@ namespace UnityEditor.Rendering.HighDefinition
         /// </summary>
         public override void OnGUI()
         {
-            using (new EditorGUI.DisabledScope(refractionModel == null))
+            if (refractionModel != null)
             {
                 materialEditor.ShaderProperty(refractionModel, Styles.refractionModelText);
                 var mode = (ScreenSpaceRefraction.RefractionModel)refractionModel.floatValue;
