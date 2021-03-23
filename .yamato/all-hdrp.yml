@@ -62,6 +62,8 @@ Nightly_HDRP_2020.3:
          rerun: on-new-revision
       -  path: .yamato/hdrp-linux-vulkan.yml#HDRP_Linux_Vulkan_editmode_mono_Linear_2020.3
          rerun: on-new-revision
+      -  path: .yamato/hdrp-osx-metal.yml#HDRP_OSX_Metal_Standalone_cache_mono_Linear_2020.3
+         rerun: on-new-revision
     variables:
         UTR_VERSION: "current"
         TEST_FILTER: .*
@@ -118,6 +120,8 @@ Nightly_HDRP_CUSTOM-REVISION:
       -  path: .yamato/hdrp-win-vulkan.yml#HDRP_Win_Vulkan_playmode_XR_cache_mono_Linear_CUSTOM-REVISION
          rerun: always
       -  path: .yamato/hdrp-linux-vulkan.yml#HDRP_Linux_Vulkan_editmode_mono_Linear_CUSTOM-REVISION
+         rerun: always
+      -  path: .yamato/hdrp-osx-metal.yml#HDRP_OSX_Metal_Standalone_cache_mono_Linear_CUSTOM-REVISION
          rerun: always
     variables:
         CUSTOM_REVISION: custom_revision_not_set
