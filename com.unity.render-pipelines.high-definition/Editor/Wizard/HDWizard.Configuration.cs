@@ -398,7 +398,7 @@ namespace UnityEditor.Rendering.HighDefinition
             => QualitySettings.renderPipeline == null || QualitySettings.renderPipeline is HDRenderPipelineAsset;
 
         void FixHdrpAssetQualityUsed(bool fromAsync)
-            => GraphicsSettings.renderPipelineAsset = null;
+            => QualitySettings.renderPipeline = null;
 
         bool IsHdrpAssetRuntimeResourcesCorrect()
             => IsHdrpAssetGraphicsUsedCorrect()
