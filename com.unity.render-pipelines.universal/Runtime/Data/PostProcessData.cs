@@ -67,7 +67,7 @@ namespace UnityEngine.Rendering.Universal
             public Shader bloomPS;
 
             [Reload("Shaders/PostProcessing/LensFlareDataDriven.shader")]
-            public Shader lensFlarePS;
+            public Shader LensFlareDataDrivenPS;
 
             [Reload("Shaders/PostProcessing/UberPost.shader")]
             public Shader uberPostPS;

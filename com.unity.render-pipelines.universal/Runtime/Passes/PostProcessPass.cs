@@ -829,7 +829,7 @@ namespace UnityEngine.Rendering.Universal.Internal
             SRPLensFlareCommon.DoLensFlareDataDriven(m_Materials.lensFlareDataDriven, SRPLensFlareCommon.Instance, camera, (float)Screen.width, (float)Screen.height,
                 cmd, source, target, GetLensFlareLightAttenuation,
                 ShaderConstants._FlareTex, ShaderConstants._FlareColorValue,
-                ShaderConstants._FlareData0, ShaderConstants._FlareData1, ShaderConstants._FlareData2, ShaderConstants._FlareData3, ShaderConstants._FlareData4, ShaderConstants._FlareData5);
+                ShaderConstants._FlareData0, ShaderConstants._FlareData1, ShaderConstants._FlareData2, ShaderConstants._FlareData3, ShaderConstants._FlareData4, ShaderConstants._FlareData5, false);
         }
 
         #endregion
@@ -1318,7 +1318,13 @@ namespace UnityEngine.Rendering.Universal.Internal
                 bloom = Load(data.shaders.bloomPS);
                 uber = Load(data.shaders.uberPostPS);
                 finalPass = Load(data.shaders.finalPostPassPS);
-                lensFlareDataDriven = Load(data.shaders.lensFlarePS);
+                lensFlareDataDriven = Load(data.shaders.LensFlareDataDrivenPS);
+
+                //lensFlareDataDriven.SetOverrideTag("RenderType", "Transparent");
+                //lensFlareDataDriven.SetFloat("_ZWrite", 0.0f);
+                //lensFlareDataDriven.renderQueue = (int)RenderQueue.Transparent;
+                ////lensFlareDataDriven.renderQueue += material.HasProperty("_QueueOffset") ? (int)material.GetFloat("_QueueOffset") : 0;
+                //lensFlareDataDriven.SetShaderPassEnabled("ShadowCaster", false);
             }
 
             Material Load(Shader shader)

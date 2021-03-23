@@ -1,16 +1,14 @@
-Shader "Hidden/URP/LensFlareDataDriven"
+Shader "Hidden/Universal Render Pipeline/LensFlareDataDriven"
 {
-    Properties
-    {
-        _MainTex("Texture", 2D) = "white" {}
-    }
     SubShader
     {
         // Additive
         Pass
         {
-            Name "ForwardUnlit"
-            Tags{ "LightMode" = "Forward"  "RenderQueue" = "Transparent" }
+            Name "LensFlareAdditive"
+            Tags { "Queue" = "Transparent" "RenderType" = "Transparent" "RenderPipeline" = "UniversalPipeline" }
+            LOD 100
+            //Tags {"RenderType" = "Transparent" "RenderQueue" = "Transparent" "IgnoreProjector" = "True" "RenderPipeline" = "UniversalPipeline" "ShaderModel" = "2.0"}
 
             Blend One One
             ZWrite Off
@@ -23,12 +21,18 @@ Shader "Hidden/URP/LensFlareDataDriven"
             #pragma vertex vert
             #pragma fragment frag
 
+            #pragma exclude_renderers gles
+
             #pragma multi_compile_fragment _ FLARE_CIRCLE FLARE_POLYGON
             #pragma multi_compile_fragment _ FLARE_INVERSE_SDF
             #pragma multi_compile_vertex _ FLARE_OCCLUSION
 
             #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Common.hlsl"
             #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/UnityInput.hlsl"
+
+            #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Core.hlsl"
+            #include "Packages/com.unity.render-pipelines.universal/Shaders/PostProcessing/Common.hlsl"
+
             #include "Packages/com.unity.render-pipelines.core/Runtime/PostProcessing/Shaders/LensFlareHDRPCommon.hlsl"
 
             ENDHLSL
@@ -36,8 +40,9 @@ Shader "Hidden/URP/LensFlareDataDriven"
         // Screen
         Pass
         {
-            Name "ForwardUnlit"
-            Tags{ "LightMode" = "Forward"  "RenderQueue" = "Transparent" }
+            Name "LensFlareScreen"
+            Tags { "Queue" = "Transparent" "RenderType" = "Transparent" "RenderPipeline" = "UniversalPipeline" }
+            LOD 100
 
             Blend One OneMinusSrcColor
             BlendOp Max
@@ -51,12 +56,18 @@ Shader "Hidden/URP/LensFlareDataDriven"
             #pragma vertex vert
             #pragma fragment frag
 
+            #pragma exclude_renderers gles
+
             #pragma multi_compile_fragment _ FLARE_CIRCLE FLARE_POLYGON
             #pragma multi_compile_fragment _ FLARE_INVERSE_SDF
             #pragma multi_compile_vertex _ FLARE_OCCLUSION
 
             #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Common.hlsl"
             #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/UnityInput.hlsl"
+
+            #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Core.hlsl"
+            #include "Packages/com.unity.render-pipelines.universal/Shaders/PostProcessing/Common.hlsl"
+
             #include "Packages/com.unity.render-pipelines.core/Runtime/PostProcessing/Shaders/LensFlareHDRPCommon.hlsl"
 
             ENDHLSL
@@ -64,8 +75,9 @@ Shader "Hidden/URP/LensFlareDataDriven"
         // Premultiply
         Pass
         {
-            Name "ForwardUnlit"
-            Tags{ "LightMode" = "Forward"  "RenderQueue" = "Transparent" }
+            Name "LensFlarePremultiply"
+            Tags { "Queue" = "Transparent" "RenderType" = "Transparent" "RenderPipeline" = "UniversalPipeline" }
+            LOD 100
 
             Blend One OneMinusSrcAlpha
             ColorMask RGB
@@ -79,12 +91,18 @@ Shader "Hidden/URP/LensFlareDataDriven"
             #pragma vertex vert
             #pragma fragment frag
 
+            #pragma exclude_renderers gles
+
             #pragma multi_compile_fragment _ FLARE_CIRCLE FLARE_POLYGON
             #pragma multi_compile_fragment _ FLARE_INVERSE_SDF
             #pragma multi_compile_vertex _ FLARE_OCCLUSION
 
             #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Common.hlsl"
             #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/UnityInput.hlsl"
+
+            #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Core.hlsl"
+            #include "Packages/com.unity.render-pipelines.universal/Shaders/PostProcessing/Common.hlsl"
+
             #include "Packages/com.unity.render-pipelines.core/Runtime/PostProcessing/Shaders/LensFlareHDRPCommon.hlsl"
 
             ENDHLSL
@@ -92,8 +110,9 @@ Shader "Hidden/URP/LensFlareDataDriven"
         // Lerp
         Pass
         {
-            Name "ForwardUnlit"
-            Tags{ "LightMode" = "Forward"  "RenderQueue" = "Transparent" }
+            Name "LensFlareLerp"
+            Tags { "Queue" = "Transparent" "RenderType" = "Transparent" "RenderPipeline" = "UniversalPipeline" }
+            LOD 100
 
             Blend SrcAlpha OneMinusSrcAlpha
             ColorMask RGB
@@ -107,12 +126,18 @@ Shader "Hidden/URP/LensFlareDataDriven"
             #pragma vertex vert
             #pragma fragment frag
 
+            #pragma exclude_renderers gles
+
             #pragma multi_compile_fragment _ FLARE_CIRCLE FLARE_POLYGON
             #pragma multi_compile_fragment _ FLARE_INVERSE_SDF
             #pragma multi_compile_vertex _ FLARE_OCCLUSION
 
             #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Common.hlsl"
             #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/UnityInput.hlsl"
+
+            #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Core.hlsl"
+            #include "Packages/com.unity.render-pipelines.universal/Shaders/PostProcessing/Common.hlsl"
+
             #include "Packages/com.unity.render-pipelines.core/Runtime/PostProcessing/Shaders/LensFlareHDRPCommon.hlsl"
 
             ENDHLSL
