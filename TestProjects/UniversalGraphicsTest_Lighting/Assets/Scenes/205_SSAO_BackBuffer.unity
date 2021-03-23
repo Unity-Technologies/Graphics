@@ -169,26 +169,6 @@ Transform:
   m_Father: {fileID: 0}
   m_RootOrder: 1
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!1 &479063942 stripped
-GameObject:
-  m_CorrespondingSourceObject: {fileID: 1102861099, guid: 144d97346f1c24d4ebabd0eec382b95d,
-    type: 3}
-  m_PrefabInstance: {fileID: 2105869045282227417}
-  m_PrefabAsset: {fileID: 0}
---- !u!114 &479063947
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 479063942}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 2383b56288cd7514d91dcd5567c45ccf, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  defaultPipeline: {fileID: 11400000, guid: e6987eea1dd29074597d54ed91a54a26, type: 2}
-  thisTestPipeline: {fileID: 0}
 --- !u!1001 &2105869045282227417
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -207,18 +187,6 @@ PrefabInstance:
     - target: {fileID: 602204260, guid: 144d97346f1c24d4ebabd0eec382b95d, type: 3}
       propertyPath: m_RequiresOpaqueTextureOption
       value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 602204264, guid: 144d97346f1c24d4ebabd0eec382b95d, type: 3}
-      propertyPath: m_HDR
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 602204264, guid: 144d97346f1c24d4ebabd0eec382b95d, type: 3}
-      propertyPath: m_AllowMSAA
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 602204264, guid: 144d97346f1c24d4ebabd0eec382b95d, type: 3}
-      propertyPath: m_NormalizedViewPortRect.width
-      value: 0.5
       objectReference: {fileID: 0}
     - target: {fileID: 1102861099, guid: 144d97346f1c24d4ebabd0eec382b95d, type: 3}
       propertyPath: m_IsActive
