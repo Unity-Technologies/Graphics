@@ -100,7 +100,7 @@ PostProcessing_Linux_Vulkan_Standalone_mono_Linear_trunk:
               -  "TestProjects/PostProcessing_Tests/Logs/*.log"
     dependencies:
       -  path: .yamato/postprocessing-linux-vulkan.yml#Build_PostProcessing_Linux_Vulkan_Standalone_mono_Linear_trunk
-         rerun: on-new-revision
+         rerun: on_new_revision
 Build_PostProcessing_Linux_Vulkan_Standalone_mono_Linear_trunk:
     name: Build PostProcessing on Linux_Vulkan_mono_Linear_Standalone_build_Player on version trunk
     agent:
@@ -149,7 +149,7 @@ PostProcessing_Linux_Vulkan_Standalone_cache_mono_Linear_trunk:
               -  "TestProjects/PostProcessing_Tests/Logs/*.log"
     dependencies:
       -  path: .yamato/postprocessing-linux-vulkan.yml#Build_PostProcessing_Linux_Vulkan_Standalone_cache_mono_Linear_trunk
-         rerun: on-new-revision
+         rerun: on_new_revision
 Build_PostProcessing_Linux_Vulkan_Standalone_cache_mono_Linear_trunk:
     name: Build PostProcessing on Linux_Vulkan_mono_Linear_Standalone_cache_build_Player on version trunk
     agent:

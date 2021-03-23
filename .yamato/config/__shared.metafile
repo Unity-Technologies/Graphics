@@ -9,7 +9,7 @@ conditional_jobs: # some jobs are relevent only depending on the branch
 editors: # applied for all yml files
   - track: trunk
     name: trunk
-    rerun_strategy: on-new-revision
+    rerun_strategy: on_new_revision
     editor_pinning:
       enabled: True
       green_abv_required: False

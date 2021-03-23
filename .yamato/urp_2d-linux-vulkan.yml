@@ -28,7 +28,7 @@ URP_2D_Linux_Vulkan_Standalone_mono_Linear_trunk:
               -  "TestProjects/UniversalGraphicsTest_2D/Logs/*.log"
     dependencies:
       -  path: .yamato/urp_2d-linux-vulkan.yml#Build_URP_2D_Linux_Vulkan_Standalone_mono_Linear_trunk
-         rerun: on-new-revision
+         rerun: on_new_revision
 Build_URP_2D_Linux_Vulkan_Standalone_mono_Linear_trunk:
     name: Build URP_2D on Linux_Vulkan_mono_Linear_Standalone_build_Player on version trunk
     agent:
@@ -149,7 +149,7 @@ URP_2D_Linux_Vulkan_Standalone_cache_mono_Linear_trunk:
               -  "TestProjects/UniversalGraphicsTest_2D/Logs/*.log"
     dependencies:
       -  path: .yamato/urp_2d-linux-vulkan.yml#Build_URP_2D_Linux_Vulkan_Standalone_cache_mono_Linear_trunk
-         rerun: on-new-revision
+         rerun: on_new_revision
 Build_URP_2D_Linux_Vulkan_Standalone_cache_mono_Linear_trunk:
     name: Build URP_2D on Linux_Vulkan_mono_Linear_Standalone_cache_build_Player on version trunk
     agent:

@@ -48,7 +48,7 @@ URP_Performance_BoatAttack_Win_Vulkan_performance_playmode_runtime_mono_Linear_t
               -  "TestProjects/BoatAttack/Logs/*.log"
     dependencies:
       -  path: .yamato/urp_performance_boatattack-win-vulkan.yml#Build_URP_Performance_BoatAttack_Win_Vulkan_performance_playmode_runtime_mono_Linear_trunk
-         rerun: on-new-revision
+         rerun: on_new_revision
 Build_URP_Performance_BoatAttack_Win_Vulkan_performance_playmode_runtime_mono_Linear_trunk:
     name: Build URP_Performance_BoatAttack on Win_Vulkan_mono_Linear_performance_playmode_runtime_build_Player on version trunk
     agent:

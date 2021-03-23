@@ -34,7 +34,7 @@ URP_2D_Win_DX12_Standalone_mono_Linear_trunk:
               -  "TestProjects/UniversalGraphicsTest_2D/Logs/*.log"
     dependencies:
       -  path: .yamato/urp_2d-win-dx12.yml#Build_URP_2D_Win_DX12_Standalone_mono_Linear_trunk
-         rerun: on-new-revision
+         rerun: on_new_revision
 Build_URP_2D_Win_DX12_Standalone_mono_Linear_trunk:
     name: Build URP_2D on Win_DX12_mono_Linear_Standalone_build_Player on version trunk
     agent:
@@ -231,7 +231,7 @@ URP_2D_Win_DX12_Standalone_cache_mono_Linear_trunk:
               -  "TestProjects/UniversalGraphicsTest_2D/Logs/*.log"
     dependencies:
       -  path: .yamato/urp_2d-win-dx12.yml#Build_URP_2D_Win_DX12_Standalone_cache_mono_Linear_trunk
-         rerun: on-new-revision
+         rerun: on_new_revision
 Build_URP_2D_Win_DX12_Standalone_cache_mono_Linear_trunk:
     name: Build URP_2D on Win_DX12_mono_Linear_Standalone_cache_build_Player on version trunk
     agent:

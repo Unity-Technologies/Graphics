@@ -32,7 +32,7 @@ ShaderGraph_Stereo_Win_Standalone_mono_Linear_trunk:
               -  "TestProjects/ShaderGraphUniversalStereo/Logs/*.log"
     dependencies:
       -  path: .yamato/shadergraph_stereo-win.yml#Build_ShaderGraph_Stereo_Win_Standalone_mono_Linear_trunk
-         rerun: on-new-revision
+         rerun: on_new_revision
 Build_ShaderGraph_Stereo_Win_Standalone_mono_Linear_trunk:
     name: Build ShaderGraph_Stereo on Win__mono_Linear_Standalone_build_Player on version trunk
     agent:
@@ -111,7 +111,7 @@ ShaderGraph_Stereo_Win_Standalone_cache_mono_Linear_trunk:
               -  "TestProjects/ShaderGraphUniversalStereo/Logs/*.log"
     dependencies:
       -  path: .yamato/shadergraph_stereo-win.yml#Build_ShaderGraph_Stereo_Win_Standalone_cache_mono_Linear_trunk
-         rerun: on-new-revision
+         rerun: on_new_revision
 Build_ShaderGraph_Stereo_Win_Standalone_cache_mono_Linear_trunk:
     name: Build ShaderGraph_Stereo on Win__mono_Linear_Standalone_cache_build_Player on version trunk
     agent:

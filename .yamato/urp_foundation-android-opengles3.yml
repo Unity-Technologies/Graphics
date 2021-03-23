@@ -37,7 +37,7 @@ URP_Foundation_Android_OpenGLES3_Standalone_il2cpp_Linear_trunk:
               -  "TestProjects/UniversalGraphicsTest_Foundation/Logs/*.log"
     dependencies:
       -  path: .yamato/urp_foundation-android-opengles3.yml#Build_URP_Foundation_Android_OpenGLES3_Standalone_il2cpp_Linear_trunk
-         rerun: on-new-revision
+         rerun: on_new_revision
 Build_URP_Foundation_Android_OpenGLES3_Standalone_il2cpp_Linear_trunk:
     name: Build URP_Foundation on Android_OpenGLES3_il2cpp_Linear_Standalone_build_Player on version trunk
     agent:
@@ -98,7 +98,7 @@ URP_Foundation_Android_OpenGLES3_Standalone_cache_il2cpp_Linear_trunk:
               -  "TestProjects/UniversalGraphicsTest_Foundation/Logs/*.log"
     dependencies:
       -  path: .yamato/urp_foundation-android-opengles3.yml#Build_URP_Foundation_Android_OpenGLES3_Standalone_cache_il2cpp_Linear_trunk
-         rerun: on-new-revision
+         rerun: on_new_revision
 Build_URP_Foundation_Android_OpenGLES3_Standalone_cache_il2cpp_Linear_trunk:
     name: Build URP_Foundation on Android_OpenGLES3_il2cpp_Linear_Standalone_cache_build_Player on version trunk
     agent:

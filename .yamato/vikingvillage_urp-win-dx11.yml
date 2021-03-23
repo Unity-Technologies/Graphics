@@ -36,7 +36,7 @@ VikingVillage_URP_Win_DX11_performance_playmode_runtime_mono_Linear_trunk:
               -  "TestProjects/Viking-Village-Perf/Logs/*.log"
     dependencies:
       -  path: .yamato/vikingvillage_urp-win-dx11.yml#Build_VikingVillage_URP_Win_DX11_performance_playmode_runtime_mono_Linear_trunk
-         rerun: on-new-revision
+         rerun: on_new_revision
 Build_VikingVillage_URP_Win_DX11_performance_playmode_runtime_mono_Linear_trunk:
     name: Build VikingVillage_URP on Win_DX11_mono_Linear_performance_playmode_runtime_build_Player on version trunk
     agent:

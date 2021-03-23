@@ -28,7 +28,7 @@ VFX_URP_Linux_OpenGLCore_Standalone_PerformanceTests_mono_Linear_trunk:
               -  "TestProjects/VisualEffectGraph_URP/Logs/*.log"
     dependencies:
       -  path: .yamato/vfx_urp-linux-openglcore.yml#Build_VFX_URP_Linux_OpenGLCore_Standalone_PerformanceTests_mono_Linear_trunk
-         rerun: on-new-revision
+         rerun: on_new_revision
 Build_VFX_URP_Linux_OpenGLCore_Standalone_PerformanceTests_mono_Linear_trunk:
     name: Build VFX_URP on Linux_OpenGLCore_mono_Linear_Standalone_PerformanceTests_build_Player on version trunk
     agent:

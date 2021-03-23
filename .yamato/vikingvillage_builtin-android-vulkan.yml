@@ -39,7 +39,7 @@ VikingVillage_BuiltIn_Android_Vulkan_performance_playmode_runtime_il2cpp_Linear_
               -  "TestProjects/Viking-Village-Perf/Logs/*.log"
     dependencies:
       -  path: .yamato/vikingvillage_builtin-android-vulkan.yml#Build_VikingVillage_BuiltIn_Android_Vulkan_performance_playmode_runtime_il2cpp_Linear_trunk
-         rerun: on-new-revision
+         rerun: on_new_revision
 Build_VikingVillage_BuiltIn_Android_Vulkan_performance_playmode_runtime_il2cpp_Linear_trunk:
     name: Build VikingVillage_BuiltIn on Android_Vulkan_il2cpp_Linear_performance_playmode_runtime_build_Player on version trunk
     agent:

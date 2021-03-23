@@ -37,7 +37,7 @@ Universal_Android_Vulkan_Standalone_il2cpp_Linear_trunk:
               -  "TestProjects/UniversalGraphicsTest/Logs/*.log"
     dependencies:
       -  path: .yamato/universal-android-vulkan.yml#Build_Universal_Android_Vulkan_Standalone_il2cpp_Linear_trunk
-         rerun: on-new-revision
+         rerun: on_new_revision
 Build_Universal_Android_Vulkan_Standalone_il2cpp_Linear_trunk:
     name: Build Universal on Android_Vulkan_il2cpp_Linear_Standalone_build_Player on version trunk
     agent:
@@ -98,7 +98,7 @@ Universal_Android_Vulkan_Standalone_cache_il2cpp_Linear_trunk:
               -  "TestProjects/UniversalGraphicsTest/Logs/*.log"
     dependencies:
       -  path: .yamato/universal-android-vulkan.yml#Build_Universal_Android_Vulkan_Standalone_cache_il2cpp_Linear_trunk
-         rerun: on-new-revision
+         rerun: on_new_revision
 Build_Universal_Android_Vulkan_Standalone_cache_il2cpp_Linear_trunk:
     name: Build Universal on Android_Vulkan_il2cpp_Linear_Standalone_cache_build_Player on version trunk
     agent:

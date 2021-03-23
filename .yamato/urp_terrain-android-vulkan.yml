@@ -37,7 +37,7 @@ URP_Terrain_Android_Vulkan_Standalone_il2cpp_Linear_trunk:
               -  "TestProjects/UniversalGraphicsTest_Terrain/Logs/*.log"
     dependencies:
       -  path: .yamato/urp_terrain-android-vulkan.yml#Build_URP_Terrain_Android_Vulkan_Standalone_il2cpp_Linear_trunk
-         rerun: on-new-revision
+         rerun: on_new_revision
 Build_URP_Terrain_Android_Vulkan_Standalone_il2cpp_Linear_trunk:
     name: Build URP_Terrain on Android_Vulkan_il2cpp_Linear_Standalone_build_Player on version trunk
     agent:
@@ -98,7 +98,7 @@ URP_Terrain_Android_Vulkan_Standalone_cache_il2cpp_Linear_trunk:
               -  "TestProjects/UniversalGraphicsTest_Terrain/Logs/*.log"
     dependencies:
       -  path: .yamato/urp_terrain-android-vulkan.yml#Build_URP_Terrain_Android_Vulkan_Standalone_cache_il2cpp_Linear_trunk
-         rerun: on-new-revision
+         rerun: on_new_revision
 Build_URP_Terrain_Android_Vulkan_Standalone_cache_il2cpp_Linear_trunk:
     name: Build URP_Terrain on Android_Vulkan_il2cpp_Linear_Standalone_cache_build_Player on version trunk
     agent:

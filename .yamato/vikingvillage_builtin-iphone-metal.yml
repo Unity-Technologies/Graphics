@@ -32,7 +32,7 @@ VikingVillage_BuiltIn_iPhone_Metal_performance_playmode_runtime_il2cpp_Linear_tr
               -  "TestProjects/Viking-Village-Perf/Logs/*.log"
     dependencies:
       -  path: .yamato/vikingvillage_builtin-iphone-metal.yml#Build_VikingVillage_BuiltIn_iPhone_Metal_performance_playmode_runtime_il2cpp_Linear_trunk
-         rerun: on-new-revision
+         rerun: on_new_revision
 Build_VikingVillage_BuiltIn_iPhone_Metal_performance_playmode_runtime_il2cpp_Linear_trunk:
     name: Build VikingVillage_BuiltIn on iPhone_Metal_il2cpp_Linear_performance_playmode_runtime_build_Player on version trunk
     agent:

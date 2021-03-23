@@ -34,7 +34,7 @@ URP_Terrain_Win_DX11_Standalone_mono_Linear_trunk:
               -  "TestProjects/UniversalGraphicsTest_Terrain/Logs/*.log"
     dependencies:
       -  path: .yamato/urp_terrain-win-dx11.yml#Build_URP_Terrain_Win_DX11_Standalone_mono_Linear_trunk
-         rerun: on-new-revision
+         rerun: on_new_revision
 Build_URP_Terrain_Win_DX11_Standalone_mono_Linear_trunk:
     name: Build URP_Terrain on Win_DX11_mono_Linear_Standalone_build_Player on version trunk
     agent:
@@ -231,7 +231,7 @@ URP_Terrain_Win_DX11_Standalone_cache_mono_Linear_trunk:
               -  "TestProjects/UniversalGraphicsTest_Terrain/Logs/*.log"
     dependencies:
       -  path: .yamato/urp_terrain-win-dx11.yml#Build_URP_Terrain_Win_DX11_Standalone_cache_mono_Linear_trunk
-         rerun: on-new-revision
+         rerun: on_new_revision
 Build_URP_Terrain_Win_DX11_Standalone_cache_mono_Linear_trunk:
     name: Build URP_Terrain on Win_DX11_mono_Linear_Standalone_cache_build_Player on version trunk
     agent:

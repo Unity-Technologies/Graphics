@@ -37,7 +37,7 @@ ShaderGraph_Android_OpenGLES3_Standalone_il2cpp_Linear_trunk:
               -  "TestProjects/ShaderGraph/Logs/*.log"
     dependencies:
       -  path: .yamato/shadergraph-android-opengles3.yml#Build_ShaderGraph_Android_OpenGLES3_Standalone_il2cpp_Linear_trunk
-         rerun: on-new-revision
+         rerun: on_new_revision
 Build_ShaderGraph_Android_OpenGLES3_Standalone_il2cpp_Linear_trunk:
     name: Build ShaderGraph on Android_OpenGLES3_il2cpp_Linear_Standalone_build_Player on version trunk
     agent:
@@ -98,7 +98,7 @@ ShaderGraph_Android_OpenGLES3_Standalone_cache_il2cpp_Linear_trunk:
               -  "TestProjects/ShaderGraph/Logs/*.log"
     dependencies:
       -  path: .yamato/shadergraph-android-opengles3.yml#Build_ShaderGraph_Android_OpenGLES3_Standalone_cache_il2cpp_Linear_trunk
-         rerun: on-new-revision
+         rerun: on_new_revision
 Build_ShaderGraph_Android_OpenGLES3_Standalone_cache_il2cpp_Linear_trunk:
     name: Build ShaderGraph on Android_OpenGLES3_il2cpp_Linear_Standalone_cache_build_Player on version trunk
     agent:

@@ -85,7 +85,7 @@ Smoke_Test_Win_DX11_Standalone_mono_Linear_trunk:
               -  "TestProjects/SRP_SmokeTest/Logs/*.log"
     dependencies:
       -  path: .yamato/smoke_test-win-dx11.yml#Build_Smoke_Test_Win_DX11_Standalone_mono_Linear_trunk
-         rerun: on-new-revision
+         rerun: on_new_revision
 Build_Smoke_Test_Win_DX11_Standalone_mono_Linear_trunk:
     name: Build Smoke_Test on Win_DX11_mono_Linear_Standalone_build_Player on version trunk
     agent:

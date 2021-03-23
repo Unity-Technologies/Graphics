@@ -30,7 +30,7 @@ VikingVillage_BuiltIn_Linux_Vulkan_performance_playmode_runtime_mono_Linear_trun
               -  "TestProjects/Viking-Village-Perf/Logs/*.log"
     dependencies:
       -  path: .yamato/vikingvillage_builtin-linux-vulkan.yml#Build_VikingVillage_BuiltIn_Linux_Vulkan_performance_playmode_runtime_mono_Linear_trunk
-         rerun: on-new-revision
+         rerun: on_new_revision
 Build_VikingVillage_BuiltIn_Linux_Vulkan_performance_playmode_runtime_mono_Linear_trunk:
     name: Build VikingVillage_BuiltIn on Linux_Vulkan_mono_Linear_performance_playmode_runtime_build_Player on version trunk
     agent:

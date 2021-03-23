@@ -28,7 +28,7 @@ Universal_Hybrid_Linux_Vulkan_Standalone_mono_Linear_trunk:
               -  "TestProjects/UniversalHybridTest/Logs/*.log"
     dependencies:
       -  path: .yamato/universal_hybrid-linux-vulkan.yml#Build_Universal_Hybrid_Linux_Vulkan_Standalone_mono_Linear_trunk
-         rerun: on-new-revision
+         rerun: on_new_revision
 Build_Universal_Hybrid_Linux_Vulkan_Standalone_mono_Linear_trunk:
     name: Build Universal_Hybrid on Linux_Vulkan_mono_Linear_Standalone_build_Player on version trunk
     agent:
@@ -125,7 +125,7 @@ Universal_Hybrid_Linux_Vulkan_Standalone_cache_mono_Linear_trunk:
               -  "TestProjects/UniversalHybridTest/Logs/*.log"
     dependencies:
       -  path: .yamato/universal_hybrid-linux-vulkan.yml#Build_Universal_Hybrid_Linux_Vulkan_Standalone_cache_mono_Linear_trunk
-         rerun: on-new-revision
+         rerun: on_new_revision
 Build_Universal_Hybrid_Linux_Vulkan_Standalone_cache_mono_Linear_trunk:
     name: Build Universal_Hybrid on Linux_Vulkan_mono_Linear_Standalone_cache_build_Player on version trunk
     agent:

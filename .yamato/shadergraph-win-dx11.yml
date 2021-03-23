@@ -33,7 +33,7 @@ ShaderGraph_Win_DX11_Standalone_mono_Linear_trunk:
               -  "TestProjects/ShaderGraph/Logs/*.log"
     dependencies:
       -  path: .yamato/shadergraph-win-dx11.yml#Build_ShaderGraph_Win_DX11_Standalone_mono_Linear_trunk
-         rerun: on-new-revision
+         rerun: on_new_revision
 Build_ShaderGraph_Win_DX11_Standalone_mono_Linear_trunk:
     name: Build ShaderGraph on Win_DX11_mono_Linear_Standalone_build_Player on version trunk
     agent:
@@ -169,7 +169,7 @@ ShaderGraph_Win_DX11_Standalone_cache_mono_Linear_trunk:
               -  "TestProjects/ShaderGraph/Logs/*.log"
     dependencies:
       -  path: .yamato/shadergraph-win-dx11.yml#Build_ShaderGraph_Win_DX11_Standalone_cache_mono_Linear_trunk
-         rerun: on-new-revision
+         rerun: on_new_revision
 Build_ShaderGraph_Win_DX11_Standalone_cache_mono_Linear_trunk:
     name: Build ShaderGraph on Win_DX11_mono_Linear_Standalone_cache_build_Player on version trunk
     agent:

@@ -46,7 +46,7 @@ URP_Performance_BoatAttack_Android_OpenGLES3_performance_playmode_runtime_il2cpp
               -  "TestProjects/BoatAttack/Logs/*.log"
     dependencies:
       -  path: .yamato/urp_performance_boatattack-android-opengles3.yml#Build_URP_Performance_BoatAttack_Android_OpenGLES3_performance_playmode_runtime_il2cpp_Linear_trunk
-         rerun: on-new-revision
+         rerun: on_new_revision
 Build_URP_Performance_BoatAttack_Android_OpenGLES3_performance_playmode_runtime_il2cpp_Linear_trunk:
     name: Build URP_Performance_BoatAttack on Android_OpenGLES3_il2cpp_Linear_performance_playmode_runtime_build_Player on version trunk
     agent:
