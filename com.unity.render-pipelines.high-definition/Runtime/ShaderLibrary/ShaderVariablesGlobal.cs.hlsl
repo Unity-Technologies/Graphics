@@ -47,7 +47,6 @@ GLOBAL_CBUFFER_START(ShaderVariablesGlobal, b0)
     float4 unity_DeltaTime;
     float4 _TimeParameters;
     float4 _LastTimeParameters;
-    float4 _DeExposureParameters;
     int _FogEnabled;
     int _PBRFogEnabled;
     int _EnableVolumetricFog;
@@ -154,7 +153,7 @@ GLOBAL_CBUFFER_START(ShaderVariablesGlobal, b0)
     int _TransparentCameraOnlyMotionVectors;
     float _GlobalTessellationFactorMultiplier;
     float _SpecularOcclusionBlend;
-    float _Pad9;
+    float _DeExposureMultiplier;
 CBUFFER_END
 
 

@@ -104,6 +104,10 @@ Pass
     #endif
     #endif
 
+    #if defined(SHADER_API_VULKAN)
+    #define DISABLE_UNLIT_DEEXPOSURE
+    #endif
+
     #ifndef DEBUG_DISPLAY
         // In case of opaque we don't want to perform the alpha test, it is done in depth prepass and we use depth equal for ztest (setup from UI)
         // Don't do it with debug display mode as it is possible there is no depth prepass in this case
