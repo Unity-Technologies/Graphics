@@ -104,6 +104,8 @@ namespace UnityEngine.Rendering.HighDefinition
         DepthOfFieldCoc,
         /// <summary>Display Transparency Overdraw.</summary>
         TransparencyOverdraw,
+        /// <summary>Black background to visualize the Lens Flare</summary>
+        LensFlareDataDriven,
         /// <summary>Display Quad Overdraw.</summary>
         QuadOverdraw,
         /// <summary>Display Vertex Density.</summary>
@@ -245,6 +247,8 @@ namespace UnityEngine.Rendering.HighDefinition
             public uint maxVertexDensity = 10;
             /// <summary>Display ray tracing ray count per frame.</summary>
             public bool countRays = false;
+            /// <summary>Display Show Lens Flare Data Driven Only.</summary>
+            public bool showLensFlareDataDrivenOnly = false;
 
             /// <summary>Index of the camera to freeze for visibility.</summary>
             public int debugCameraToFreeze = 0;
@@ -1736,6 +1740,16 @@ namespace UnityEngine.Rendering.HighDefinition
                     children =
                     {
                         new DebugUI.UIntField {displayName = "Max Vertex Density", getter = () => data.maxVertexDensity, setter = value => data.maxVertexDensity = value, min = () => 1, max = () => 100}
+                    }
+                });
+            }
+            else if (data.fullScreenDebugMode == FullScreenDebugMode.LensFlareDataDriven)
+            {
+                widgetList.Add(new DebugUI.Container
+                {
+                    children =
+                    {
+                        new DebugUI.BoolField {displayName = "Lens Flare Data Driven Only", getter = () => data.showLensFlareDataDrivenOnly, setter = value => data.showLensFlareDataDrivenOnly = value}
                     }
                 });
             }

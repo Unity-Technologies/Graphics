@@ -2614,7 +2614,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
         TextureHandle LensFlareDataDrivenPass(RenderGraph renderGraph, HDCamera hdCamera, TextureHandle source)
         {
-            if (!SRPLensFlareCommon.Instance.IsEmpty())
+            if (!SRPLensFlareCommon.Instance.IsEmpty() )
             {
                 using (var builder = renderGraph.AddRenderPass<LensFlareData>("Lens Flare", out var passData, ProfilingSampler.Get(HDProfileId.LensFlareDataDriven)))
                 {
@@ -2640,6 +2640,7 @@ namespace UnityEngine.Rendering.HighDefinition
         {
             public Material lensFlareShader;
             public SRPLensFlareCommon lensFlares;
+            public bool skipCopy;
         }
 
         LensFlareParameters PrepareLensFlareParameters(HDCamera camera)
@@ -2648,6 +2649,8 @@ namespace UnityEngine.Rendering.HighDefinition
 
             parameters.lensFlares = SRPLensFlareCommon.Instance;
             parameters.lensFlareShader = m_LensFlareShader;
+            parameters.skipCopy = m_CurrentDebugDisplaySettings.data.showLensFlareDataDrivenOnly;
+                //m_CurrentDebugDisplaySettings.data.fullScreenDebugMode == FullScreenDebugMode.LensFlareDataDriven;
 
             return parameters;
         }
@@ -2699,7 +2702,7 @@ namespace UnityEngine.Rendering.HighDefinition
             SRPLensFlareCommon.DoLensFlareDataDriven(parameters.lensFlareShader, parameters.lensFlares, hdCam.camera, (float)hdCam.actualWidth, (float)hdCam.actualHeight,
                 cmd, source, target, GetLensFlareLightAttenuation,
                 HDShaderIDs._FlareTex, HDShaderIDs._FlareColorValue,
-                HDShaderIDs._FlareData0, HDShaderIDs._FlareData1, HDShaderIDs._FlareData2, HDShaderIDs._FlareData3, HDShaderIDs._FlareData4, HDShaderIDs._FlareData5);
+                HDShaderIDs._FlareData0, HDShaderIDs._FlareData1, HDShaderIDs._FlareData2, HDShaderIDs._FlareData3, HDShaderIDs._FlareData4, HDShaderIDs._FlareData5, parameters.skipCopy);
         }
 
         #endregion

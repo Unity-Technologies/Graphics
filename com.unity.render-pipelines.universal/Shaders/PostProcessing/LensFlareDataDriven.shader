@@ -1,4 +1,4 @@
-Shader "Hidden/Universal Render Pipeline/LensFlareDataDriven (UnityEngine.Shader)"
+Shader "Hidden/Universal Render Pipeline/LensFlareDataDriven"
 {
     SubShader
     {
@@ -7,6 +7,7 @@ Shader "Hidden/Universal Render Pipeline/LensFlareDataDriven (UnityEngine.Shader
         {
             Name "LensFlareAdditive"
             Tags { "Queue" = "Transparent" "RenderType" = "Transparent" "RenderPipeline" = "UniversalPipeline" }
+            LOD 100
             //Tags {"RenderType" = "Transparent" "RenderQueue" = "Transparent" "IgnoreProjector" = "True" "RenderPipeline" = "UniversalPipeline" "ShaderModel" = "2.0"}
 
             Blend One One
@@ -41,6 +42,7 @@ Shader "Hidden/Universal Render Pipeline/LensFlareDataDriven (UnityEngine.Shader
         {
             Name "LensFlareScreen"
             Tags { "Queue" = "Transparent" "RenderType" = "Transparent" "RenderPipeline" = "UniversalPipeline" }
+            LOD 100
 
             Blend One OneMinusSrcColor
             BlendOp Max
@@ -75,6 +77,7 @@ Shader "Hidden/Universal Render Pipeline/LensFlareDataDriven (UnityEngine.Shader
         {
             Name "LensFlarePremultiply"
             Tags { "Queue" = "Transparent" "RenderType" = "Transparent" "RenderPipeline" = "UniversalPipeline" }
+            LOD 100
 
             Blend One OneMinusSrcAlpha
             ColorMask RGB
@@ -109,6 +112,7 @@ Shader "Hidden/Universal Render Pipeline/LensFlareDataDriven (UnityEngine.Shader
         {
             Name "LensFlareLerp"
             Tags { "Queue" = "Transparent" "RenderType" = "Transparent" "RenderPipeline" = "UniversalPipeline" }
+            LOD 100
 
             Blend SrcAlpha OneMinusSrcAlpha
             ColorMask RGB
