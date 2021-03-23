@@ -42,12 +42,11 @@ namespace UnityEngine.Rendering.UI
                 toggle.nameLabel.text = enumName.text;
                 toggle.Init();
                 toggleIndex++;
-            }
-            ;
+            };
 
             for (; toggleIndex < toggles.Count; ++toggleIndex)
             {
-                toggles[toggleIndex].transform.SetParent(null);
+                toggles[toggleIndex].gameObject.SetActive(false);
             }
         }
 
