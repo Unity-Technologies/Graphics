@@ -27,10 +27,10 @@ There are three tabs that you can use to set up your HDRP Project for different 
 * [HDRP + VR](#VRTab): Use this tab to set up your HDRP Project and enable support for virtual reality.
 * [HDRP + DXR](#DXRTab): Use this tab to set up your HDRP Project and enable support for ray tracing. 
 
-Also every configuration is separated in two scopes:
+Also every configuration is separated into two scopes:
 
-- **Global:** settings in Unity Editor or in the [HDRP Asset](HDRP-Asset.md) set in Graphics Settings.
-- **Current Quality:** settings in the [HDRP Asset](HDRP-Asset.md) set in Quality Settings or, if null is set here, the one used in Global above.
+- **Global:** These settings are either in the Unity Editor, or in the [HDRP Asset](HDRP-Asset.md) set in Graphics Settings.
+- **Current Quality:** These settings in the [HDRP Asset](HDRP-Asset.md) set in Quality Settings. If there is no HDRP Asset set in Quality Settings, HDRP uses the one in global above.
 
 <a name="HDRPTab"></a>
 
@@ -38,7 +38,7 @@ Also every configuration is separated in two scopes:
 
 This tab provides you with configuration options to help you make your Unity Project use HDRP.
 
-**Global:** 
+#### Global
 
 | **Configuration Option**           | **Description**                                              |
 | -------------------------------- | ------------------------------------------------------------ |
@@ -53,7 +53,7 @@ This tab provides you with configuration options to help you make your Unity Pro
 | **Default Volume Profile** | Checks to make sure you have assigned a **Default Volume Profile Asset** in **Edit** > **Project Settings** > **HDRP Default Settings** that is not the one in the package.<br />It is only required to enable modification on the profile.<br />Press the **Fix** button to copy the one in package into the **Default Resource Folder** and use it instead. |
 | **LookDev Volume Profile** | Checks to make sure you have assigned a **LookDev Volume Profile Asset** in **Edit** > **Project Settings** > **HDRP Default Settings**  that is not the one in the package.<br />It is only required to use the LookDev and want to be able to modify the profile used in it.<br />Press the **Fix** button to copy the one in package into the **Default Resource Folder** and use it instead. |
 
-**Current Quality:** 
+#### Current Quality
 
 | **Configuration Option** | **Description**                                              |
 | ------------------------ | ------------------------------------------------------------ |
@@ -82,7 +82,7 @@ This tab provides all of the configuration options from the [HDRP tab](#HDRPTab)
 
 Note that every **Fix** will be deactivated if your Hardware or OS do not support DXR.
 
-**Global:** 
+#### Global
 
 | **Configuration Option**          | **Description**                                              |
 | -------------------------------- | ------------------------------------------------------------ |
@@ -97,7 +97,7 @@ Note that every **Fix** will be deactivated if your Hardware or OS do not suppor
 | **Screen Space Global Illumination (HDRP Frame Settings)** | Checks to make sure that your [Default Settings](Default-Settings-Window.md) have the **Screen Space Global Illumination** [Frame Setting](Frame-Settings.md) enabled by default for Cameras.<br/ >Press the **Fix** button to enable the **Screen Space Global Illumination** Frame Setting.<br />Note: This configuration option depends on **Screen Space Global Illumination (Asset)**. This means, before you fix this, you must fix **Screen Space Global Illumination (Asset)** first. |
 | **DXR Shader Config** | Checks to make sure that the **ShaderConfig.cs.hlsl**, in the **High Definition RP Config** package referenced in your Project, has **SHADEROPTIONS_RAYTRACING** set to **1**. <br />Press the **Fix** button to create a local copy of the **High Definition RP Config** package and, in the **ShaderConfig.cs.hlsl**, set **SHADEROPTIONS_RAYTRACING** to **1**. |
 
-**Current Quality:**
+#### Current Quality
 
 | **Configuration Option**                           | **Description**                                              |
 | -------------------------------------------------- | ------------------------------------------------------------ |
