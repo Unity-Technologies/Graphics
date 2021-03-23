@@ -295,7 +295,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 ReflectionHistoryBufferAllocatorFunction, 1);
         }
 
-        DeferredLightingRTParameters PrepareReflectionDeferredLightingRTParameters(HDCamera hdCamera)
+        DeferredLightingRTParameters PrepareReflectionDeferredLightingRTParameters(HDCamera hdCamera, bool transparent)
         {
             DeferredLightingRTParameters deferredParameters = new DeferredLightingRTParameters();
 
@@ -315,7 +315,7 @@ namespace UnityEngine.Rendering.HighDefinition
             deferredParameters.lodBias = settings.textureLodBias.value;
 
             // Ray Marching parameters
-            deferredParameters.hybridTracing = settings.tracing.value == RayCastingMode.Hybrid && hdCamera.frameSettings.litShaderMode == LitShaderMode.Deferred;
+            deferredParameters.hybridTracing = (settings.tracing.value == RayCastingMode.Hybrid && hdCamera.frameSettings.litShaderMode == LitShaderMode.Deferred) && !transparent;
             deferredParameters.raySteps = settings.rayMaxIterationsRT;
             deferredParameters.nearClipPlane = hdCamera.camera.nearClipPlane;
             deferredParameters.farClipPlane = hdCamera.camera.farClipPlane;
@@ -369,7 +369,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
             TextureHandle directionBuffer = DirGenRTR(renderGraph, hdCamera, settings, prepassOutput.depthPyramidTexture, prepassOutput.stencilBuffer, prepassOutput.normalBuffer, clearCoatTexture, transparent);
 
-            DeferredLightingRTParameters deferredParamters = PrepareReflectionDeferredLightingRTParameters(hdCamera);
+            DeferredLightingRTParameters deferredParamters = PrepareReflectionDeferredLightingRTParameters(hdCamera, transparent);
             TextureHandle lightingBuffer = DeferredLightingRT(renderGraph, in deferredParamters, directionBuffer, prepassOutput, skyTexture, rayCountTexture);
 
             rtrResult = AdjustWeightRTR(renderGraph, hdCamera, settings, prepassOutput.depthPyramidTexture, prepassOutput.normalBuffer, clearCoatTexture, lightingBuffer, directionBuffer);
