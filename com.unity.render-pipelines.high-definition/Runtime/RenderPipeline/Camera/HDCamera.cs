@@ -564,35 +564,35 @@ namespace UnityEngine.Rendering.HighDefinition
                 if (isHistoryColorPyramidRequired) // Superset of case above
                     numColorPyramidBuffersRequired = 2;
 
-                int numVolumetricBuffersRequired = isVolumetricHistoryRequired ? 2 : 0; // History + feedback
-
-                if ((m_NumColorPyramidBuffersAllocated != numColorPyramidBuffersRequired) ||
-                    (m_NumVolumetricBuffersAllocated != numVolumetricBuffersRequired))
+                // Handle the color buffers
+                if (m_NumColorPyramidBuffersAllocated != numColorPyramidBuffersRequired)
                 {
                     // Reinit the system.
                     colorPyramidHistoryIsValid = false;
                     // Since we nuke all history we must inform the post process system too.
                     resetPostProcessingHistory = true;
 
-                    HDRenderPipeline.DestroyVolumetricHistoryBuffers(this);
-
                     // The history system only supports the "nuke all" option.
+                    // TODO: Fix this, only the color buffers should be discarded.
                     m_HistoryRTSystem.Dispose();
                     m_HistoryRTSystem = new BufferedRTHandleSystem();
 
                     if (numColorPyramidBuffersRequired != 0)
-                    {
                         AllocHistoryFrameRT((int)HDCameraFrameHistoryType.ColorBufferMipChain, HistoryBufferAllocatorFunction, numColorPyramidBuffersRequired);
-                    }
-
-                    if (numVolumetricBuffersRequired != 0)
-                    {
-                        HDRenderPipeline.CreateVolumetricHistoryBuffers(this, numVolumetricBuffersRequired);
-                    }
 
                     // Mark as init.
                     m_NumColorPyramidBuffersAllocated = numColorPyramidBuffersRequired;
-                    m_NumVolumetricBuffersAllocated   = numVolumetricBuffersRequired;
+                }
+
+                // Handle the volumetric fog buffers
+                int numVolumetricBuffersRequired = isVolumetricHistoryRequired ? 2 : 0; // History + feedback
+                if (m_NumVolumetricBuffersAllocated != numVolumetricBuffersRequired)
+                {
+                    HDRenderPipeline.DestroyVolumetricHistoryBuffers(this);
+                    if (numVolumetricBuffersRequired != 0)
+                        HDRenderPipeline.CreateVolumetricHistoryBuffers(this, numVolumetricBuffersRequired);
+                    // Mark as init.
+                    m_NumVolumetricBuffersAllocated = numVolumetricBuffersRequired;
                 }
             }
 
