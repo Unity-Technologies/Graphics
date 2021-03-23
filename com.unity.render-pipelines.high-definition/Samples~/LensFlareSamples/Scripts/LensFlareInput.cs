@@ -24,7 +24,6 @@ public class LensFlareInput : MonoBehaviour
     public float cameraShakeAmplitude;
 
     private Camera cameraComponent;
-    private Vector3 cameraRotation;
 
     private int skyNumber;
 
@@ -40,7 +39,6 @@ public class LensFlareInput : MonoBehaviour
     {
         SetSkyFromInput();
         MoveLightWithMouse();
-        MoveCameraWithKeyboard();
         CameraMovementWithMouse();
         CameraShake();
     }
@@ -80,31 +78,6 @@ public class LensFlareInput : MonoBehaviour
         }
     }
 
-    private void MoveCameraWithKeyboard()
-    {
-        cameraRotation = cameraGameObject.transform.localEulerAngles;
-
-        if (Input.GetKey("a"))
-        {
-            cameraRotation.y -= cameraRotationSpeed;
-        }
-        if (Input.GetKey("d"))
-        {
-            cameraRotation.y += cameraRotationSpeed;
-        }
-        if (Input.GetKey("w"))
-        {
-            cameraRotation.x -= cameraRotationSpeed;
-        }
-        if (Input.GetKey("s"))
-        {
-            cameraRotation.x += cameraRotationSpeed;
-
-        }
-
-        cameraGameObject.transform.localEulerAngles = cameraRotation;
-    }
-
     private void CameraMovementWithMouse()
     {
         LockCursorWhileMouseButtonDown(1);
@@ -126,13 +99,11 @@ public class LensFlareInput : MonoBehaviour
 
     private void LockCursorWhileMouseButtonDown(int mouseButton)
     {
-        // Lock and hide cursor when mouse button is clicked
         if (Input.GetMouseButtonDown(mouseButton))
         {
             Cursor.lockState = CursorLockMode.Locked;
         }
 
-        // Unlock and show cursor when mouse button released
         if (Input.GetMouseButtonUp(mouseButton))
         {
             Cursor.visible = true;
