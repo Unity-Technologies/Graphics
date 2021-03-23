@@ -9,7 +9,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Added View Vector node to mimic old behavior of View Direction node in URP.
 - Added support for the PlayStation 5 platform.
 - Enabled deferred renderer in UI.
-- Light layers interface.
+- Added support for light layers, which uses Rendering Layer Masks to make Lights in your Scene only light up specific Meshes.
 
 ### Changed
 - The Forward Renderer asset is renamed to the Universal Renderer asset. The Universal Renderer asset contains the property Rendering Path that lets you select the Forward or the Deferred Rendering Path.
