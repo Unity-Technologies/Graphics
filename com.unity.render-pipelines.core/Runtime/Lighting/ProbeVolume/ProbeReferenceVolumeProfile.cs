@@ -11,8 +11,6 @@ namespace UnityEngine.Rendering
     /// </summary>
     public sealed class ProbeReferenceVolumeProfile : ScriptableObject
     {
-        internal static readonly int k_MaxSubdivision = 7;
-
         /// <summary>
         /// The default dimensions for APV's index data structure.
         /// </summary>
@@ -96,7 +94,7 @@ namespace UnityEngine.Rendering
             {
                 serializedObject.ApplyModifiedProperties();
 
-                float minDistanceBetweenProbes = ((float)profile.cellSize / Mathf.Pow(3, ProbeReferenceVolumeProfile.k_MaxSubdivision)) / 3.0f;
+                float minDistanceBetweenProbes = ((float)profile.cellSize / Mathf.Pow(3, ProbeBrickIndex.kMaxSubdivisionLevels)) / 3.0f;
                 if (profile.minDistanceBetweenProbes < minDistanceBetweenProbes)
                     profile.minDistanceBetweenProbes = minDistanceBetweenProbes;
             }
