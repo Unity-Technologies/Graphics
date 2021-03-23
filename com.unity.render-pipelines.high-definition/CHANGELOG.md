@@ -31,6 +31,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Added deferred shading debug visualization
 - Added a new control slider on RTR and RTGI to force the LOD Bias on both effects.
 - Added missing documentation for volumetric clouds.
+- Added an Apply Scale setting for Decals.
 
 ### Fixed
 - Fixed Intensity Multiplier not affecting realtime global illumination.
