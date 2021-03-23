@@ -8,7 +8,7 @@ Material:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_Name: CustomLitGraph Op1
-  m_Shader: {fileID: -6465566751694194690, guid: b1edf0fdb85194591bcde94da9c4e503,
+  m_Shader: {fileID: -6465566751694194690, guid: a23f8aefbe4714cb381fd414038d2d6a,
     type: 3}
   m_ShaderKeywords: ETC1_EXTERNAL_ALPHA
   m_LightmapFlags: 4

@@ -22,7 +22,7 @@ half4 frag(PackedVaryings packedInput) : SV_TARGET
 #ifdef UNIVERSAL_USELEGACYSPRITEBLOCKS
     half4 color = surfaceDescription.SpriteColor;
 #else
-    half4 color = half4(surfaceDescription.BaseColor, surfaceDescription.Alpha);
+    half4 color = half4(1.0,1.0,1.0, surfaceDescription.Alpha);
 #endif
 
     return NormalsRenderingShared(color, surfaceDescription.NormalTS, unpacked.tangentWS.xyz, bitangent, unpacked.normalWS);

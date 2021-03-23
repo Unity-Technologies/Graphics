@@ -8,7 +8,7 @@ Material:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_Name: LitSpriteGraph
-  m_Shader: {fileID: -6465566751694194690, guid: 2b77f3af30ced40038743255fdd5d939,
+  m_Shader: {fileID: -6465566751694194690, guid: 720a94a5de7c84aa9bcc290a20492bb6,
     type: 3}
   m_ShaderKeywords: ETC1_EXTERNAL_ALPHA
   m_LightmapFlags: 4
