@@ -528,7 +528,7 @@ namespace UnityEngine.Rendering.Universal
 
                 sceneIndexToPassHash.Add(hash);
 
-                if (!renderPass.useNativeRenderPass)
+                if (!IsRenderPassEnabled(renderPass))
                     continue;
 
                 if (!mergeableRenderPassesMap.ContainsKey(hash))
