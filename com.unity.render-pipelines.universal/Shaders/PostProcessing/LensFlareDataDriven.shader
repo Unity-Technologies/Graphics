@@ -10,6 +10,7 @@ Shader "Hidden/Universal Render Pipeline/LensFlareDataDriven"
             LOD 100
             //Tags {"RenderType" = "Transparent" "RenderQueue" = "Transparent" "IgnoreProjector" = "True" "RenderPipeline" = "UniversalPipeline" "ShaderModel" = "2.0"}
 
+
             Blend One One
             ZWrite Off
             Cull Off

@@ -59,6 +59,18 @@ float2 Rotate(float2 v, float cos0, float sin0)
 }
 
 #if FLARE_OCCLUSION
+float GetLinearDepthValue(float2 uv)
+{
+#ifdef HDRP_FLARE
+    //float depth = LinearEyeDepth(SampleCameraDepth(uv), _ZBufferParams);
+    float depth = LOAD_TEXTURE2D_X_LOD(_CameraDepthTexture, uint2(uv * _ScreenSize.xy), 0).r;
+#else
+    float depth = 0.5f;
+#endif
+
+    return 1.0 / (_ZBufferParams.z * depth + _ZBufferParams.w);
+}
+
 float GetOcclusion(float2 screenPos, float flareDepth, float ratio)
 {
     if (_OcclusionSampleCount == 0.0f)
@@ -76,7 +88,8 @@ float GetOcclusion(float2 screenPos, float flareDepth, float ratio)
         pos.y = 1.0f - pos.y;
         if (all(pos >= 0) && all(pos <= 1))
         {
-            float depth0 = LinearEyeDepth(SampleCameraDepth(pos), _ZBufferParams);
+            //float depth0 = LinearEyeDepth(SampleCameraDepth(pos), _ZBufferParams);
+            float depth0 = GetLinearDepthValue(pos);
             if (flareDepth < depth0)
                 contrib += sample_Contrib;
         }

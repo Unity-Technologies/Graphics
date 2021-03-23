@@ -377,7 +377,7 @@ namespace UnityEngine.Rendering.Universal.Internal
             }
 
             // Lens Flare
-            if (!SRPLensFlareCommon.Instance.IsEmpty() && !isSceneViewCamera)
+            if (!SRPLensFlareCommon.Instance.IsEmpty())
             {
                 using (new ProfilingScope(cmd, ProfilingSampler.Get(URPProfileId.LensFlareDataDriven)))
                 {
@@ -1319,12 +1319,6 @@ namespace UnityEngine.Rendering.Universal.Internal
                 uber = Load(data.shaders.uberPostPS);
                 finalPass = Load(data.shaders.finalPostPassPS);
                 lensFlareDataDriven = Load(data.shaders.LensFlareDataDrivenPS);
-
-                //lensFlareDataDriven.SetOverrideTag("RenderType", "Transparent");
-                //lensFlareDataDriven.SetFloat("_ZWrite", 0.0f);
-                //lensFlareDataDriven.renderQueue = (int)RenderQueue.Transparent;
-                ////lensFlareDataDriven.renderQueue += material.HasProperty("_QueueOffset") ? (int)material.GetFloat("_QueueOffset") : 0;
-                //lensFlareDataDriven.SetShaderPassEnabled("ShadowCaster", false);
             }
 
             Material Load(Shader shader)
