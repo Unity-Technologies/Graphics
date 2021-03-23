@@ -9,6 +9,12 @@ EditorBuildSettings:
     path: Assets/Scenes/117_SkyboxReflectionTestProjection.unity
     guid: f5310a9ab278ec748b2091bf7ba966a7
   - enabled: 1
+    path: Assets/Scenes/039-PixelLights.unity
+    guid: 12563bc302497e1448ca29dcbd377431
+  - enabled: 1
+    path: Assets/Scenes/040-VertexLights.unity
+    guid: 368aab24b35c44880a38fdee6a08cf4a
+  - enabled: 1
     path: Assets/Scenes/051_Lighting_Scene_NoLighting.unity
     guid: ad2db338b63034856a2718d37e4bdd7a
   m_configObjects: {}
