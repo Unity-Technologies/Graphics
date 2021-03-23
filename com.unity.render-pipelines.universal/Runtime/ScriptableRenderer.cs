@@ -866,7 +866,7 @@ namespace UnityEngine.Rendering.Universal
                 Hash128 currentPassHash = sceneIndexToPassHash[currentSceneIndex];
                 List<int> currentMergeablePasses = mergeableRenderPassesMap[currentPassHash];
 
-                int validColorBuffersCount = renderPassesAttachmentCount[currentPassHash]; //(int)RenderingUtils.GetValidColorBufferCount(renderPass.colorAttachments);
+                int validColorBuffersCount = renderPassesAttachmentCount[currentPassHash];
 
                 bool isLastPass = renderPass.isLastPass;
                 // TODO: review the lastPassToBB logic to mak it work with merged passes
@@ -1057,17 +1057,7 @@ namespace UnityEngine.Rendering.Universal
                             // if this is the current camera's last pass, also check if one of the RTs is the backbuffer (BuiltinRenderTextureType.CameraTarget)
                             isLastPassToBB |= isLastPass && (pass.colorAttachments[i] == BuiltinRenderTextureType.CameraTarget);
 
-                            int existingAttachmentIndex = -1;
-                            for (int k = 0; k < currentAttachmentIdx; ++k)
-                            {
-                                AttachmentDescriptor att = m_ActiveColorAttachmentDescriptors[k];
-
-                                if (att.loadStoreTarget == currentAttachmentDescriptor.loadStoreTarget)
-                                {
-                                    existingAttachmentIndex = k;
-                                    break;
-                                }
-                            }
+                            int existingAttachmentIndex = RenderingUtils.FindAttachmentDescriptorIndexInList(currentAttachmentIdx, currentAttachmentDescriptor, m_ActiveColorAttachmentDescriptors);
 
                             if (existingAttachmentIndex == -1)
                             {
@@ -1266,18 +1256,7 @@ namespace UnityEngine.Rendering.Universal
                         if (samples > 1)
                             currentAttachmentDescriptor.ConfigureResolveTarget(colorAttachmentTarget); // resolving to the implicit color target's resolve surface TODO: handle m_CameraResolveTarget if present?
 
-
-                        int existingAttachmentIndex = -1;
-                        for (int i = 0; i < currentAttachmentIdx; ++i)
-                        {
-                            AttachmentDescriptor att = m_ActiveColorAttachmentDescriptors[i];
-
-                            if (att.loadStoreTarget == currentAttachmentDescriptor.loadStoreTarget)
-                            {
-                                existingAttachmentIndex = i;
-                                break;
-                            }
-                        }
+                        int existingAttachmentIndex = RenderingUtils.FindAttachmentDescriptorIndexInList(currentAttachmentIdx, currentAttachmentDescriptor, m_ActiveColorAttachmentDescriptors);
 
                         if (existingAttachmentIndex == -1)
                         {

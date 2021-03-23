@@ -393,6 +393,23 @@ namespace UnityEngine.Rendering.Universal
             return nonNullColorBuffers;
         }
 
+        internal static int FindAttachmentDescriptorIndexInList(int attachmentIdx, AttachmentDescriptor attachmentDescriptor, AttachmentDescriptor[] attachmentDescriptors)
+        {
+            int existingAttachmentIndex = -1;
+            for (int i = 0; i < attachmentIdx; ++i)
+            {
+                AttachmentDescriptor att = attachmentDescriptors[i];
+
+                if (att.loadStoreTarget == attachmentDescriptor.loadStoreTarget)
+                {
+                    existingAttachmentIndex = i;
+                    break;
+                }
+            }
+
+            return existingAttachmentIndex;
+        }
+
         /// <summary>
         /// Return true if colorBuffers is an actual MRT setup
         /// </summary>
