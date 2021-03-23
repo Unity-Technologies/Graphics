@@ -502,11 +502,12 @@ namespace UnityEngine.Rendering.Universal
                     xrActive = true;
                     // Helper function for updating cameraData with xrPass Data
                     m_XRSystem.UpdateCameraData(ref baseCameraData, baseCameraData.xr);
+
+                    UpdateCameraStereoMatrices(baseCameraData);
                 }
 #endif
             using (new ProfilingScope(null, Profiling.Pipeline.beginCameraRendering))
             {
-                UpdateCameraStereoMatrices(baseCameraData);
                 BeginCameraRendering(context, baseCamera);
             }
 #if VISUAL_EFFECT_GRAPH_0_0_1_OR_NEWER
@@ -539,9 +540,10 @@ namespace UnityEngine.Rendering.Universal
                         CameraData overlayCameraData = baseCameraData;
                         bool lastCamera = i == lastActiveOverlayCameraIndex;
 
+                        UpdateCameraStereoMatrices(overlayCameraData);
+
                         using (new ProfilingScope(null, Profiling.Pipeline.beginCameraRendering))
                         {
-                            UpdateCameraStereoMatrices(baseCameraData);
                             BeginCameraRendering(context, currCamera);
                         }
 #if VISUAL_EFFECT_GRAPH_0_0_1_OR_NEWER
