@@ -189,7 +189,7 @@ namespace UnityEngine.Rendering.HighDefinition
             var newParameters = component.parameters;
             var profileParameters = componentFromProfile.parameters;
 
-            var defaultVolume = HDRenderPipeline.GetOrCreateDefaultVolume();
+            var defaultVolume = HDRenderPipelineGlobalSettings.instance.GetOrCreateDefaultVolume();
             T defaultComponent = null;
             if (defaultVolume.sharedProfile != null)     // This can happen with old projects.
                 defaultVolume.sharedProfile.TryGet(type, out defaultComponent);
@@ -219,6 +219,9 @@ namespace UnityEngine.Rendering.HighDefinition
 
         void UpdateCurrentStaticLightingSky()
         {
+            if ((RenderPipelineManager.currentPipeline is HDRenderPipeline) == false)
+                return;
+
             // First, grab the sky settings of the right type in the profile.
             CoreUtils.Destroy(m_SkySettings);
             m_SkySettings = null;

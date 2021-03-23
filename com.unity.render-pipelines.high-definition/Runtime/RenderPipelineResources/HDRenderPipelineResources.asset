@@ -48,13 +48,9 @@ MonoBehaviour:
     volumetricLightingFilteringCS: {fileID: 7200000, guid: ef9a910d0ec6ebb41ae3f5c7a69daf46, type: 3}
     deferredTilePS: {fileID: 4800000, guid: dedaf4ea0d134ca4aad1d95a558c46e5, type: 3}
     screenSpaceShadowPS: {fileID: 4800000, guid: bfa43a48695613b4ea19c58858ae1a61, type: 3}
-    probeVolumeAtlasBlitCS: {fileID: 7200000, guid: 07f429bf534edb44eb5a0e4b2c65b108, type: 3}
-    probeVolumeAtlasOctahedralDepthBlitCS: {fileID: 7200000, guid: f60c895d3a3061848844b36ccf9e44a9, type: 3}
-    probeVolumeAtlasOctahedralDepthConvolveCS: {fileID: 7200000, guid: 7ef71ce05401a4c4081039b475d3b9ee, type: 3}
-    debugDisplayProbeVolumePS: {fileID: 4800000, guid: e7c19cfee7a88394fbb53652b9644cc0, type: 3}
     subsurfaceScatteringCS: {fileID: 7200000, guid: b06a7993621def248addd55d0fe931b1, type: 3}
     combineLightingPS: {fileID: 4800000, guid: 2e37131331fbdca449b1a2bc47a639ca, type: 3}
-    debugDensityVolumeAtlasPS: {fileID: 4800000, guid: 8371b763f09c7304889c22aa97ebdfd2, type: 3}
+    debugLocalVolumetricFogAtlasPS: {fileID: 4800000, guid: 8371b763f09c7304889c22aa97ebdfd2, type: 3}
     cameraMotionVectorsPS: {fileID: 4800000, guid: 035941b63024d1943af48811c1db20d9, type: 3}
     clearStencilBufferPS: {fileID: 4800000, guid: 8ea49ef16606acd489439e676ab84040, type: 3}
     copyStencilBufferPS: {fileID: 4800000, guid: 3d1574f1cdfa0ce4995f9bc79ed7f8ec, type: 3}
@@ -81,7 +77,7 @@ MonoBehaviour:
     planarReflectionFilteringCS: {fileID: 7200000, guid: 9f3f8a01b8caaaa4595591dc96d43dd2, type: 3}
     cloudLayerPS: {fileID: 4800000, guid: 001a47fa123e95a4bba13ecb0442d944, type: 3}
     bakeCloudTextureCS: {fileID: 7200000, guid: 09a7f6850ee9fb4439e5ebd632127da5, type: 3}
-    bakeCloudShadowsCS: {fileID: 7200000, guid: 3e7317e0800c066448ee07a3e47f102b, type: 3}    
+    bakeCloudShadowsCS: {fileID: 7200000, guid: 3e7317e0800c066448ee07a3e47f102b, type: 3}
     volumetricCloudsCS: {fileID: 7200000, guid: f911a8577fa9a4546a6b255bcf888baf, type: 3}
     volumetricCloudMapGeneratorCS: {fileID: 7200000, guid: 6b22771f0aa98744cb09f455a5a818cb, type: 3}
     preIntegratedFGD_GGXDisneyDiffusePS: {fileID: 4800000, guid: 123f13d52852ef547b2962de4bd9eaad, type: 3}
@@ -149,7 +145,8 @@ MonoBehaviour:
     temporalAntialiasingPS: {fileID: 4800000, guid: 3dd9fd928fdb83743b1f27d15df22179, type: 3}
     dofCircleOfConfusion: {fileID: 7200000, guid: 75332b7b315c80d4babe506820aa0bfd, type: 3}
     dofGatherCS: {fileID: 7200000, guid: 1e6b16a7970a1494db74b1d3d007d1cc, type: 3}
-    DoFCoCPyramidCS: {fileID: 7200000, guid: df41a69211c03fe479b63a8bed3bfbb4, type: 3}
+    dofCoCMinMaxCS: {fileID: 7200000, guid: c70dd492c3d2fe94589d6ca8d4e37915, type: 3}
+    dofMinMaxDilateCS: {fileID: 7200000, guid: 757a3f81b35177b44b2b178909b49172, type: 3}
     contrastAdaptiveSharpenCS: {fileID: 7200000, guid: 560896aec2f412c48995be35551a4ac6, type: 3}
     VTFeedbackDownsample: {fileID: 7200000, guid: 32d963548086c2c439aeb23a93e9a00a, type: 3}
     accumulationCS: {fileID: 7200000, guid: ed80add7a217efa468d137d6f7c668f3, type: 3}

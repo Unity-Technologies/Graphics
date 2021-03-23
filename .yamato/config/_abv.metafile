@@ -33,6 +33,10 @@ nightly:
       pr: true
     - project: HDRP_PerformanceTests
       pr: true
+    - project: VikingVillage_BuiltIn
+      pr: true
+    - project: VikingVillage_URP
+      pr: true
 trunk_verification: # jobs to include in trunk verification job
   dependencies:
     - project: URP_2D

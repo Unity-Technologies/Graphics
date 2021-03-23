@@ -119,6 +119,11 @@ namespace UnityEngine.Rendering.HighDefinition
         public LayerMaskParameter layerMask = new LayerMaskParameter(-1);
 
         /// <summary>
+        /// Defines the LOD Bias for sampling all the textures.
+        /// </summary>
+        public ClampedIntParameter textureLodBias = new ClampedIntParameter(1, 0, 7);
+
+        /// <summary>
         /// Controls the length of reflection rays.
         /// </summary>
         public float rayLength
@@ -222,7 +227,7 @@ namespace UnityEngine.Rendering.HighDefinition
         /// <summary>
         /// Number of bounces for reflection rays.
         /// </summary>
-        public ClampedIntParameter bounceCount = new ClampedIntParameter(1, 1, 31);
+        public ClampedIntParameter bounceCount = new ClampedIntParameter(1, 1, 8);
 
         /// <summary>
         /// Sets the maximum number of steps HDRP uses for raytracing. Affects both correctness and performance.
