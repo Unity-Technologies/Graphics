@@ -350,8 +350,6 @@ namespace UnityEngine.Rendering.HighDefinition
             cb._IntermediateScreenSize.Set((float)parameters.intermediateWidth, (float)parameters.intermediateHeight, 1.0f / (float)parameters.intermediateWidth, 1.0f / (float)parameters.intermediateHeight);
             cb._TraceScreenSize.Set((float)parameters.traceWidth, (float)parameters.traceHeight, 1.0f / (float)parameters.traceWidth, 1.0f / (float)parameters.traceHeight);
 
-            cb._DepthMipOffset = new Vector2(0, 0);
-
             float absoluteCloudHighest = cb._HighestCloudAltitude + cb._EarthRadius;
             cb._MaxCloudDistance = Mathf.Sqrt(absoluteCloudHighest * absoluteCloudHighest - cb._EarthRadius * cb._EarthRadius);
 

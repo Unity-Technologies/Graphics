@@ -86,7 +86,7 @@ namespace UnityEngine.Rendering.HighDefinition
         public Vector2 _HistoryBufferSize;
 
         // MipOffset of the first depth mip
-        public Vector2 _DepthMipOffset;
+        public Vector2 _Padding;
         // Frame index for the accumulation
         public int _AccumulationFrameIndex;
         // Index for which of the 4 local pixels should be evaluated

@@ -41,7 +41,7 @@ CBUFFER_START(ShaderVariablesClouds)
     float4 _TraceScreenSize;
     float2 _HistoryViewportSize;
     float2 _HistoryBufferSize;
-    float2 _DepthMipOffset;
+    float2 _Padding;
     int _AccumulationFrameIndex;
     int _SubPixelIndex;
     float4 _AmbientProbeCoeffs[7];
