@@ -526,7 +526,9 @@ namespace UnityEditor.ShaderGraph
                 return supports;
             }
         }
-        public bool isOnlyVFXTarget => hasVFXTarget && activeTargets.Count() == 1 && !hasVFXCompatibleTarget;
+
+        public bool isOnlyVFXTarget => activeTargets.Count() == 1 &&
+        activeTargets.Count(t => t is VFXTarget) == 1;
 #else
         public bool isVFXTarget => false;
         public bool isOnlyVFXTarget => false;
