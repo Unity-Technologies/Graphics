@@ -123,6 +123,20 @@ namespace UnityEngine.Rendering
         }
 
         /// <summary>
+        /// Get the Instance ID of the RTHandle.
+        /// </summary>
+        /// <returns>The RTHandle Instance ID.</returns>
+        public int GetInstanceID()
+        {
+            if (m_RT != null)
+                return m_RT.GetInstanceID();
+            else if (m_ExternalTexture != null)
+                return m_ExternalTexture.GetInstanceID();
+            else
+                return m_NameID.GetHashCode(); // No instance ID so we return the hash code.
+        }
+
+        /// <summary>
         /// Release the RTHandle
         /// </summary>
         public void Release()

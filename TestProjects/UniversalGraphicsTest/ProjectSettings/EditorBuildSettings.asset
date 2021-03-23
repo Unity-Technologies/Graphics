@@ -225,6 +225,12 @@ EditorBuildSettings:
     path: Assets/Scenes/111_CameraStackMSAA.unity
     guid: 83adeebeb3ba74a13816f2b8636588aa
   - enabled: 1
+    path: Assets/Scenes/112_FogBasic.unity
+    guid: a13b9207cccbd4cbb99cf2a72b761eef
+  - enabled: 1
+    path: Assets/Scenes/113_FogTerrain.unity
+    guid: 848cdeb8585cb4f96a667c02e9ce3880
+  - enabled: 1
     path: Assets/Scenes/117_SkyboxReflectionTestProjection.unity
     guid: f5310a9ab278ec748b2091bf7ba966a7
   - enabled: 1
