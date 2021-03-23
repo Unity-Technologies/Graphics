@@ -524,7 +524,7 @@ namespace UnityEngine.Rendering.Universal
                 renderPass.isLastPass = false;
                 renderPass.sceneIndex = i;
 
-                Hash128 hash = new Hash128((uint) width * 10000 + (uint) height, (uint) rtID, (uint) sampleCount, currentHashIndex);
+                Hash128 hash = new Hash128((uint)width * 10000 + (uint)height, (uint)rtID, (uint)sampleCount, currentHashIndex);
 
                 sceneIndexToPassHash.Add(hash);
 
@@ -542,7 +542,7 @@ namespace UnityEngine.Rendering.Universal
                     // if the passes are not sequential we want to split the current mergeable passes list. So we increment the hashIndex and update the hash
 
                     currentHashIndex++;
-                    hash = new Hash128((uint) width * 10000 + (uint) height, (uint) rtID, (uint) sampleCount, currentHashIndex);
+                    hash = new Hash128((uint)width * 10000 + (uint)height, (uint)rtID, (uint)sampleCount, currentHashIndex);
 
                     sceneIndexToPassHash[i] = hash;
 
@@ -556,6 +556,9 @@ namespace UnityEngine.Rendering.Universal
             }
 
             m_ActiveRenderPassQueue[lastPassIndex].isLastPass = true;
+
+            for (int i = 0; i < m_ActiveRenderPassQueue.Count; ++i)
+                m_ActiveRenderPassQueue[i].attachmentIndices = new NativeArray<int>(8, Allocator.Temp);
         }
 
         /// <summary>
@@ -674,6 +677,9 @@ namespace UnityEngine.Rendering.Universal
                 DrawGizmos(context, camera, GizmoSubset.PostImageEffects);
 
                 InternalFinishRendering(context, cameraData.resolveFinalTarget);
+
+                for (int i = 0; i < m_ActiveRenderPassQueue.Count; ++i)
+                    m_ActiveRenderPassQueue[i].attachmentIndices.Dispose();
             }
 
             context.ExecuteCommandBuffer(cmd);

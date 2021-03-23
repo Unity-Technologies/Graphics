@@ -187,7 +187,7 @@ namespace UnityEngine.Rendering.Universal
 
         internal int sceneIndex { get; set; }
 
-        internal NativeArray<int> attachmentIndices = new NativeArray<int>(8, Allocator.Persistent);
+        internal NativeArray<int> attachmentIndices;
 
         internal GraphicsFormat[] renderTargetFormat { get; set; }
         RenderTargetIdentifier[] m_ColorAttachments = new RenderTargetIdentifier[] {BuiltinRenderTextureType.CameraTarget};
