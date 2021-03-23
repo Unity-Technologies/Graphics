@@ -983,6 +983,9 @@ namespace UnityEngine.Rendering.Universal
                 RenderTargetIdentifier passColorAttachment = renderPass.colorAttachment;
                 RenderTargetIdentifier passDepthAttachment = renderPass.depthAttachment;
 
+                // When render pass doesn't call ConfigureTarget for either color or depth we assume it's expected to render to camera target
+                // which might be backbuffer or the framebuffer render textures.
+
                 const RenderPassEvent maintainCurrentRTBeforeEvent = RenderPassEvent.BeforeRenderingPrePasses;
 
                 if (!renderPass.overrideCameraColorTarget && !renderPass.overrideCameraDepthTarget)
@@ -992,9 +995,6 @@ namespace UnityEngine.Rendering.Universal
                     if (renderPass.renderPassEvent < maintainCurrentRTBeforeEvent)
                         return;
                 }
-
-                // When render pass doesn't call ConfigureTarget for either color or depth we assume it's expected to render to camera target
-                // which might be backbuffer or the framebuffer render textures.
 
                 if (!renderPass.overrideCameraColorTarget)
                 {

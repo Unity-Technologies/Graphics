@@ -17,7 +17,7 @@ namespace UnityEngine.Rendering.Universal.Internal
         private RenderTargetHandle normalHandle { get; set; }
         private FilteringSettings m_FilteringSettings;
 
-        private bool m_UseDepthPriming;
+        private bool useDepthPriming;
 
         // Constants
         private const int k_DepthBufferBits = 32;
@@ -69,7 +69,7 @@ namespace UnityEngine.Rendering.Universal.Internal
             this.allocateDepth = true;
             this.allocateNormal = true;
             this.shaderTagId = k_ShaderTagId;
-            this.m_UseDepthPriming = useDepthPriming;
+            this.useDepthPriming = useDepthPriming;
         }
 
         /// <inheritdoc/>
@@ -80,7 +80,7 @@ namespace UnityEngine.Rendering.Universal.Internal
             if (this.allocateDepth)
                 cmd.GetTemporaryRT(depthHandle.id, depthDescriptor, FilterMode.Point);
 
-            if (m_UseDepthPriming)
+            if (this.useDepthPriming)
             {
                 ConfigureTarget(new RenderTargetIdentifier(normalHandle.Identifier(), 0, CubemapFace.Unknown, -1));
             }
