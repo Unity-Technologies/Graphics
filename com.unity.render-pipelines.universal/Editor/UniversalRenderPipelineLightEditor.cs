@@ -95,6 +95,8 @@ namespace UnityEditor.Rendering.Universal
             if(additionalLightData == null)
                 return;
             m_AdditionalLightDataSO = new SerializedObject(additionalLightData);
+            //Internal callback to set unsupported properties on the serialized object
+            InspectorUtility.Internal_CallSetSupportedPropertyCallback(m_AdditionalLightDataSO);
             m_UseAdditionalDataProp = m_AdditionalLightDataSO.FindProperty("m_UsePipelineSettings");
 
             settings.ApplyModifiedProperties();
@@ -242,11 +244,8 @@ namespace UnityEditor.Rendering.Universal
                 EditorGUI.BeginProperty(controlRectAdditionalData, Styles.shadowBias, m_UseAdditionalDataProp);
             EditorGUI.BeginChangeCheck();
 
-            if (settings.shadowsBias.isUnsupportedByBuildTarget != null)
-                EditorGUIUtility.BeginDisableUnsupportedProperty(Styles.shadowBias, settings.shadowsBias.isUnsupportedByBuildTarget);
-
-            selectedUseAdditionalData = EditorGUI.IntPopup(controlRectAdditionalData, Styles.shadowBias, selectedUseAdditionalData, Styles.displayedDefaultOptions, Styles.optionDefaultValues);
-            EditorGUIUtility.EndDisableUnsupportedProperty();
+            using (new EditorGUI.DisabledUnsupportedPropertyScope(settings.shadowsBias, Styles.shadowBias))
+                selectedUseAdditionalData = EditorGUI.IntPopup(controlRectAdditionalData, Styles.shadowBias, selectedUseAdditionalData, Styles.displayedDefaultOptions, Styles.optionDefaultValues);
 
             if (EditorGUI.EndChangeCheck())
             {
@@ -258,16 +257,11 @@ namespace UnityEditor.Rendering.Universal
             if (selectedUseAdditionalData != 1 && m_AdditionalLightDataSO != null)
             {
                 EditorGUI.indentLevel++;
-                if (settings.shadowsBias.isUnsupportedByBuildTarget != null)
-                    EditorGUIUtility.BeginDisableUnsupportedProperty(Styles.shadowBias, settings.shadowsBias.isUnsupportedByBuildTarget);
+                using (new EditorGUI.DisabledUnsupportedPropertyScope(settings.shadowsBias, Styles.shadowBias))
+                    EditorGUILayout.Slider(settings.shadowsBias, 0f, 10f, "Depth");
 
-                EditorGUILayout.Slider(settings.shadowsBias, 0f, 10f, "Depth");
-                EditorGUIUtility.EndDisableUnsupportedProperty();
-
-                if (settings.shadowsNormalBias.isUnsupportedByBuildTarget != null)
-                    EditorGUIUtility.BeginDisableUnsupportedProperty(Styles.shadowBias, settings.shadowsBias.isUnsupportedByBuildTarget);
-                EditorGUILayout.Slider(settings.shadowsNormalBias, 0f, 10f, "Normal");
-                EditorGUIUtility.EndDisableUnsupportedProperty();
+                using (new EditorGUI.DisabledUnsupportedPropertyScope(settings.shadowsNormalBias, Styles.shadowBias))
+                    EditorGUILayout.Slider(settings.shadowsNormalBias, 0f, 10f, "Normal");
 
                 EditorGUI.indentLevel--;
                 GUI.enabled = true;
@@ -321,11 +315,8 @@ namespace UnityEditor.Rendering.Universal
                     EditorGUILayout.LabelField(Styles.ShadowRealtimeSettings);
                     EditorGUI.indentLevel += 1;
 
-                    if (settings.shadowsStrength.isUnsupportedByBuildTarget != null)
-                        EditorGUIUtility.BeginDisableUnsupportedProperty(Styles.ShadowStrength, settings.shadowsStrength.isUnsupportedByBuildTarget);
-                    EditorGUILayout.Slider(settings.shadowsStrength, 0f, 1f, Styles.ShadowStrength);
-
-                    EditorGUIUtility.EndDisableUnsupportedProperty();
+                    using(new EditorGUI.DisabledUnsupportedPropertyScope(settings.shadowsStrength, Styles.ShadowStrength))
+                        EditorGUILayout.Slider(settings.shadowsStrength, 0f, 1f, Styles.ShadowStrength);
 
                     DrawAdditionalShadowData();
 

@@ -409,6 +409,9 @@ namespace UnityEditor.Rendering.Universal
                 return;
 
             m_AdditionalCameraDataSO = new SerializedObject(additionalCameraData.ToArray());
+            //Internal callback to set unsupported properties on the serialized object
+            InspectorUtility.Internal_CallSetSupportedPropertyCallback(m_AdditionalCameraDataSO);
+
             m_AdditionalCameraDataRenderShadowsProp = m_AdditionalCameraDataSO.FindProperty("m_RenderShadows");
             m_AdditionalCameraDataRenderDepthProp = m_AdditionalCameraDataSO.FindProperty("m_RequiresDepthTextureOption");
             m_AdditionalCameraDataRenderOpaqueProp = m_AdditionalCameraDataSO.FindProperty("m_RequiresOpaqueTextureOption");
