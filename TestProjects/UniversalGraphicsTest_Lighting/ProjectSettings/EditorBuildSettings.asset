@@ -77,4 +77,7 @@ EditorBuildSettings:
   - enabled: 1
     path: Assets/Scenes/146_AdditionalLightShadowCustomResolution.unity
     guid: 5cb07294042344649a35ad91c91b539a
+  - enabled: 1
+    path: Assets/Scenes/149_ReflectionProbes_Blending.unity
+    guid: 563a251f782be254a91472c4db94e506
   m_configObjects: {}
