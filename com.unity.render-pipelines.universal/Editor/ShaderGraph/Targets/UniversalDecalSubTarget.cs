@@ -117,9 +117,6 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
 
         private void CollectPassDefines(ref PassDescriptor pass)
         {
-            // Make copy to avoid overwriting static
-            pass.defines = pass.defines == null ? new DefineCollection() : new DefineCollection() { pass.defines };
-
             // TODO: Check if we can move this to conditional fields
 
             // Emissive pass only have the emission keyword
@@ -132,6 +129,9 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
                 pass.lightMode == "DecalGBufferMesh"
             )
             {
+                // Make copy to avoid overwriting static
+                pass.defines = pass.defines == null ? new DefineCollection() : new DefineCollection() { pass.defines };
+
                 if (decalData.affectsAlbedo)
                     pass.defines.Add(DecalDefines.AffectsAlbedo);
                 if (decalData.affectsNormal)
@@ -149,8 +149,11 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
                 pass.lightMode == "DecalScreenSpaceMesh" ||
                 pass.lightMode == "DecalGBufferMesh")
             {
+                // Make copy to avoid overwriting static
+                pass.keywords = pass.keywords == null ? new KeywordCollection() : new KeywordCollection() { pass.keywords };
+
                 if (decalData.supportLodCrossFade)
-                    pass.defines.Add(DecalDefines.SupportsLodCrossFade);
+                    pass.keywords.Add(DecalKeywords.LodCrossFade);
             }
         }
 
@@ -192,7 +195,8 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
             Vector1ShaderProperty drawOrder = new Vector1ShaderProperty();
             drawOrder.overrideReferenceName = "_DrawOrder";
             drawOrder.displayName = "Draw Order";
-            drawOrder.floatType = FloatType.Integer;
+            drawOrder.floatType = FloatType.Slider;
+            drawOrder.rangeValues = new Vector2(-50, 50);
             drawOrder.hidden = true;
             drawOrder.value = 0;
             collector.AddShaderProperty(drawOrder);
@@ -397,8 +401,8 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
 
                 // Collections
                 renderStates = DecalRenderStates.ScenePicking,
-                pragmas = DecalPragmas.Instanced,
-                defines = DecalKeywords.ScenePicking,
+                pragmas = DecalPragmas.MultipleRenderTargets,
+                defines = DecalDefines.ScenePicking,
                 includes = DecalIncludes.ScenePicking,
 
                 structs = CoreStructCollections.Default,
@@ -424,7 +428,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
                 structs = CoreStructCollections.Default,
                 fieldDependencies = CoreFieldDependencies.Default,
                 renderStates = DecalRenderStates.DBufferProjector,
-                pragmas = DecalPragmas.Instanced,
+                pragmas = DecalPragmas.MultipleRenderTargets,
                 keywords = DecalKeywords.DBuffer,
                 defines = DecalDefines.Projector,
                 includes = DecalIncludes.Default,
@@ -451,7 +455,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
 
                 // Conditional State
                 renderStates = DecalRenderStates.ForwardEmissiveProjector,
-                pragmas = DecalPragmas.Instanced,
+                pragmas = DecalPragmas.MultipleRenderTargets,
                 defines = DecalDefines.ProjectorWithEmission,
                 includes = DecalIncludes.Default,
             };
@@ -477,7 +481,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
                 fieldDependencies = CoreFieldDependencies.Default,
 
                 renderStates = DecalRenderStates.ScreenSpaceProjector,
-                pragmas = DecalPragmas.Instanced,
+                pragmas = DecalPragmas.MultipleRenderTargets,
                 defines = DecalDefines.ProjectorWithEmission,
                 keywords = DecalKeywords.ScreenSpace,
                 includes = DecalIncludes.Default,
@@ -503,7 +507,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
                 fieldDependencies = CoreFieldDependencies.Default,
 
                 renderStates = DecalRenderStates.GBufferProjector,
-                pragmas = DecalPragmas.Instanced,
+                pragmas = DecalPragmas.MultipleRenderTargets,
                 defines = DecalDefines.ProjectorWithEmission,
                 keywords = DecalKeywords.GBuffer,
                 includes = DecalIncludes.Default,
@@ -531,7 +535,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
 
                 // Conditional State
                 renderStates = DecalRenderStates.DBufferMesh,
-                pragmas = DecalPragmas.Instanced,
+                pragmas = DecalPragmas.MultipleRenderTargets,
                 keywords = DecalKeywords.DBuffer,
                 includes = DecalIncludes.Default,
             };
@@ -558,7 +562,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
 
                 // Conditional State
                 renderStates = DecalRenderStates.ForwardEmissiveMesh,
-                pragmas = DecalPragmas.Instanced,
+                pragmas = DecalPragmas.MultipleRenderTargets,
                 defines = DecalDefines.AffectsEmission,
                 includes = DecalIncludes.Default,
             };
@@ -584,7 +588,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
                 fieldDependencies = CoreFieldDependencies.Default,
 
                 renderStates = DecalRenderStates.ScreenSpaceMesh,
-                pragmas = DecalPragmas.Instanced,
+                pragmas = DecalPragmas.Derivatives,
                 defines = DecalDefines.AffectsEmission,
                 keywords = DecalKeywords.ScreenSpace,
                 includes = DecalIncludes.Default,
@@ -611,7 +615,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
                 fieldDependencies = CoreFieldDependencies.Default,
 
                 renderStates = DecalRenderStates.GBufferMesh,
-                pragmas = DecalPragmas.Instanced,
+                pragmas = DecalPragmas.MultipleRenderTargets,
                 defines = DecalDefines.AffectsEmission,
                 keywords = DecalKeywords.GBuffer,
                 includes = DecalIncludes.Default,
@@ -814,24 +818,22 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
         #region Pragmas
         static class DecalPragmas
         {
-            public static PragmaCollection Instanced = new PragmaCollection
+            public static PragmaCollection Derivatives = new PragmaCollection
             {
-                { Pragma.Target(ShaderModel.Target45) },
-                { Pragma.ExcludeRenderers(new[] { Platform.GLES, Platform.GLES3, Platform.GLCore }) },
+                { Pragma.Target(ShaderModel.Target25) }, // Derivatives
                 { Pragma.Vertex("Vert") },
                 { Pragma.Fragment("Frag") },
                 { Pragma.EnableD3D11DebugSymbols },
                 { Pragma.MultiCompileInstancing },
-#if ENABLE_HYBRID_RENDERER_V2
-                { Pragma.DOTSInstancing },
-#endif
             };
 
-            public static PragmaCollection Preview = new PragmaCollection
+            public static PragmaCollection MultipleRenderTargets = new PragmaCollection
             {
+                { Pragma.Target(ShaderModel.Target35) }, // MRT4
                 { Pragma.Vertex("Vert") },
                 { Pragma.Fragment("Frag") },
                 { Pragma.EnableD3D11DebugSymbols },
+                { Pragma.MultiCompileInstancing },
             };
         }
         #endregion
@@ -894,17 +896,17 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
                     type = KeywordType.Boolean,
                 };
 
-                public static KeywordDescriptor SupportsLodCrossFade = new KeywordDescriptor()
-                {
-                    displayName = "Supports LOD Cross Fade",
-                    referenceName = "LOD_FADE_CROSSFADE",
-                    type = KeywordType.Boolean,
-                };
-
                 public static KeywordDescriptor AngleFade = new KeywordDescriptor()
                 {
                     displayName = "Angle Fade",
                     referenceName = "DECAL_ANGLE_FADE",
+                    type = KeywordType.Boolean,
+                };
+
+                public static KeywordDescriptor ScenePickingPass = new KeywordDescriptor()
+                {
+                    displayName = "Scene Picking Pass",
+                    referenceName = "SCENEPICKINGPASS",
                     type = KeywordType.Boolean,
                 };
             }
@@ -926,7 +928,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
             public static DefineCollection AffectsAO = new DefineCollection { { Descriptors.AffectsAO, 1 }, };
             public static DefineCollection AffectsSmoothness = new DefineCollection { { Descriptors.AffectsSmoothness, 1 }, };
             public static DefineCollection AffectsEmission = new DefineCollection { { Descriptors.AffectsEmission, 1 }, };
-            public static DefineCollection SupportsLodCrossFade = new DefineCollection { { Descriptors.SupportsLodCrossFade, 1 }, };
+            public static DefineCollection ScenePicking = new DefineCollection { { Descriptors.ScenePickingPass, 1 }, };
         }
         #endregion
 
@@ -950,15 +952,6 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
                     }
                 };
 
-                public static KeywordDescriptor ScenePickingPass = new KeywordDescriptor()
-                {
-                    displayName = "Scene Picking Pass",
-                    referenceName = "SCENEPICKINGPASS",
-                    type = KeywordType.Boolean,
-                    definition = KeywordDefinition.ShaderFeature,
-                    scope = KeywordScope.Local,
-                };
-
                 public static KeywordDescriptor DecalsNormalBlend = new KeywordDescriptor()
                 {
                     displayName = "Decal Normal Blend",
@@ -978,8 +971,17 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
                 // TODO: Move this to urp core
                 public static readonly KeywordDescriptor GBufferNormalsOct = new KeywordDescriptor()
                 {
-                    displayName = "GBuffer normal octaedron encoding",
+                    displayName = "GBuffer normal octahedron encoding",
                     referenceName = "_GBUFFER_NORMALS_OCT",
+                    type = KeywordType.Boolean,
+                    definition = KeywordDefinition.MultiCompile,
+                    scope = KeywordScope.Global,
+                };
+
+                public static readonly KeywordDescriptor LodCrossFade = new KeywordDescriptor()
+                {
+                    displayName = "LOD Cross Fade",
+                    referenceName = "LOD_FADE_CROSSFADE",
                     type = KeywordType.Boolean,
                     definition = KeywordDefinition.MultiCompile,
                     scope = KeywordScope.Global,
@@ -987,7 +989,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
             }
 
             public static KeywordCollection DBuffer = new KeywordCollection { { Descriptors.Decals } };
-            public static DefineCollection ScenePicking = new DefineCollection { { Descriptors.ScenePickingPass, 1 }, };
+            public static KeywordCollection LodCrossFade = new KeywordCollection { { Descriptors.LodCrossFade }, };
 
             public static readonly KeywordCollection ScreenSpace = new KeywordCollection
             {

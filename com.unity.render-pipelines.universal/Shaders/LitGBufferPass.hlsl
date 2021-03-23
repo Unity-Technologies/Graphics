@@ -180,12 +180,10 @@ FragmentOutput LitGBufferPassFragment(Varyings input)
     InitializeInputData(input, surfaceData.normalTS, inputData);
 
 #if defined(DECALS_1RT) || defined(DECALS_2RT) || defined(DECALS_3RT)
-    float alpha = surfaceData.alpha;
-
     PositionInputs posInput = GetPositionInput(input.positionCS, _ScreenSize.zw);
 
-    DecalSurfaceData decalSurfaceData = GetDecalSurfaceData(posInput, input.normalWS.xyz, alpha);
-    ApplyDecalToSurfaceData(decalSurfaceData, input.normalWS.xyz, surfaceData, inputData);
+    DecalSurfaceData decalSurfaceData = GetDecalSurfaceData(posInput, input.normalWS.xyz, surfaceData.alpha);
+    ApplyDecalToSurfaceData(decalSurfaceData, surfaceData, inputData);
 #endif
 
     // Stripped down version of UniversalFragmentPBR().

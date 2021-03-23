@@ -1,16 +1,15 @@
 using System.Collections.Generic;
-using UnityEngine.Rendering.Universal;
-using UnityEngine.Rendering;
-using UnityEngine.Scripting.APIUpdating;
-using UnityEngine.Experimental.Rendering.Universal;
-using UnityEngine.Experimental.Rendering;
 
 namespace UnityEngine.Rendering.Universal
 {
+    public class DecalDrawFowardEmissiveSystem : DecalDrawSystem
+    {
+        public DecalDrawFowardEmissiveSystem(DecalEntityManager entityManager) : base("DecalDrawFowardEmissiveSystem.Execute", entityManager) {}
+        protected override int GetPassIndex(DecalCachedChunk decalCachedChunk) => decalCachedChunk.passIndexEmissive;
+    }
+
     public class DecalForwardEmissivePass : ScriptableRenderPass
     {
-        public static readonly RenderQueueRange k_RenderQueue_AllOpaque = new RenderQueueRange { lowerBound = (int)RenderQueue.Geometry, upperBound = (int)RenderQueue.GeometryLast };
-
         private FilteringSettings m_FilteringSettings;
         private ProfilingSampler m_ProfilingSampler;
         private List<ShaderTagId> m_ShaderTagIdList;
@@ -23,7 +22,7 @@ namespace UnityEngine.Rendering.Universal
 
             m_DrawSystem = decalDrawFowardEmissiveSystem;
             m_ProfilingSampler = new ProfilingSampler(profilerTag);
-            m_FilteringSettings = new FilteringSettings(k_RenderQueue_AllOpaque, -1);
+            m_FilteringSettings = new FilteringSettings(RenderQueueRange.opaque, -1);
 
             m_ShaderTagIdList = new List<ShaderTagId>();
             m_ShaderTagIdList.Add(new ShaderTagId(DecalUtilities.GetDecalPassName(DecalUtilities.MaterialDecalPass.DecalMeshForwardEmissive)));

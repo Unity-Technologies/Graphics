@@ -319,6 +319,9 @@ namespace UnityEngine.Rendering.Universal
 
         public static event DecalProjectorAction onDecalAdd;
         public static event DecalProjectorAction onDecalRemove;
+        public static event DecalProjectorAction onDecalPropertyChange;
+        public static event DecalProjectorAction onDecalMaterialChange;
+        public static bool isAnySystemUsing => onDecalAdd != null;
 
         public DecalEntity decalEntity { get; set; }
 
@@ -417,11 +420,14 @@ namespace UnityEngine.Rendering.Universal
                         OnMaterialChange();
                     }
 
+                    onDecalMaterialChange?.Invoke(this);
+
                     m_OldMaterial = m_Material;
                 }
                 else // no material change, just update whatever else changed
                 {
                     DecalSystem.instance.UpdateCachedData(m_Handle, GetCachedDecalData());
+                    onDecalPropertyChange?.Invoke(this);
                 }
             }
         }

@@ -14,19 +14,19 @@ namespace UnityEditor.Rendering.Universal
     {
         internal class Styles
         {
-            public static GUIContent sortingInputs = new GUIContent("Sorting Inputs");
-            public static GUIContent exposedInputs = new GUIContent("Exposed Inputs");
+            public static GUIContent inputs = new GUIContent("Inputs");
+            public static GUIContent advancedOptions = new GUIContent("Advanced Options");
 
-            public static GUIContent meshDecalBiasType = new GUIContent("Mesh Decal Bias Type", "Set the type of bias that is applied to the mesh decal. Depth Bias applies a bias to the final depth value, while View bias applies a world space bias (in meters) alongside the view vector.");
-            public static GUIContent meshDecalDepthBiasText = new GUIContent("Mesh Decal Depth Bias", "Sets a depth bias to stop the decal's Mesh from overlapping with other Meshes.");
-            public static GUIContent meshDecalViewBiasText = new GUIContent("Mesh Decal View Bias", "Sets a world-space bias alongside the view vector to stop the decal's Mesh from overlapping with other Meshes. The unit is meters.");
-            public static GUIContent drawOrderText = new GUIContent("Draw Order", "Controls the draw order of Decal Projectors. HDRP draws decals with lower values first.");
+            public static GUIContent meshDecalBiasType = new GUIContent("Mesh Bias Type", "Set the type of bias that is applied to the mesh decal. Depth Bias applies a bias to the final depth value, while View bias applies a world space bias (in meters) alongside the view vector.");
+            public static GUIContent meshDecalDepthBiasText = new GUIContent("Depth Bias", "Sets a depth bias to stop the decal's Mesh from overlapping with other Meshes.");
+            public static GUIContent meshDecalViewBiasText = new GUIContent("View Bias", "Sets a world-space bias alongside the view vector to stop the decal's Mesh from overlapping with other Meshes. The unit is meters.");
+            public static GUIContent drawOrderText = new GUIContent("Projector Priority", "Controls the draw order of Decal Projectors. HDRP draws decals with lower values first.");
         }
 
         protected enum Expandable
         {
-            ExposedInputs = 1 << 0,
-            SortingInputs = 1 << 1,
+            Inputs = 1 << 0,
+            Advanced = 1 << 1,
         }
 
         const string kDecalMeshBiasType = "_DecalMeshBiasType";
@@ -34,7 +34,7 @@ namespace UnityEditor.Rendering.Universal
         const string kDecalViewDepthBias = "_DecalMeshViewBias";
         const string kDrawOrder = "_DrawOrder";
 
-        readonly MaterialHeaderScopeList m_MaterialScopeList = new MaterialHeaderScopeList(uint.MaxValue);
+        readonly MaterialHeaderScopeList m_MaterialScopeList = new MaterialHeaderScopeList(uint.MaxValue & ~((uint)Expandable.Advanced));
 
         MaterialEditor m_MaterialEditor;
         MaterialProperty[] m_Properties;
@@ -46,8 +46,8 @@ namespace UnityEditor.Rendering.Universal
 
         public DecalShaderGraphGUI()
         {
-            m_MaterialScopeList.RegisterHeaderScope(Styles.exposedInputs, (uint)Expandable.ExposedInputs, DrawExposedProperties);
-            m_MaterialScopeList.RegisterHeaderScope(Styles.sortingInputs, (uint)Expandable.SortingInputs, DrawSortingProperties);
+            m_MaterialScopeList.RegisterHeaderScope(Styles.inputs, (uint)Expandable.Inputs, DrawExposedProperties);
+            m_MaterialScopeList.RegisterHeaderScope(Styles.advancedOptions, (uint)Expandable.Advanced, DrawSortingProperties);
         }
 
         /// <summary>
@@ -118,10 +118,12 @@ namespace UnityEditor.Rendering.Universal
         {
             MaterialEditor materialEditor = m_MaterialEditor;
 
-            materialEditor.ShaderProperty(drawOrder, Styles.drawOrderText);
+            materialEditor.EnableInstancingField();
+            DrawOrder();
             materialEditor.ShaderProperty(decalMeshBiasType, Styles.meshDecalBiasType);
 
-            DecalMeshDepthBiasType decalBias = (DecalMeshDepthBiasType)decalMeshBiasType.intValue;
+            DecalMeshDepthBiasType decalBias = (DecalMeshDepthBiasType)decalMeshBiasType.floatValue;
+            EditorGUI.indentLevel++;
             switch (decalBias)
             {
                 case DecalMeshDepthBiasType.DepthBias:
@@ -131,6 +133,17 @@ namespace UnityEditor.Rendering.Universal
                     materialEditor.ShaderProperty(decalMeshViewBias, Styles.meshDecalViewBiasText);
                     break;
             }
+            EditorGUI.indentLevel--;
+        }
+
+        private void DrawOrder()
+        {
+            EditorGUI.BeginChangeCheck();
+            EditorGUI.showMixedValue = drawOrder.hasMixedValue;
+            var queue = EditorGUILayout.IntSlider(Styles.drawOrderText, (int)drawOrder.floatValue, -50, 50);
+            if (EditorGUI.EndChangeCheck())
+                drawOrder.floatValue = queue;
+            EditorGUI.showMixedValue = false;
         }
     }
 }

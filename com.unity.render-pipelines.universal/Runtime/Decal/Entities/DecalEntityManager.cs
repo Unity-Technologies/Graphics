@@ -216,7 +216,6 @@ public class DecalEntityManager : IDisposable
         m_AddDecalSampler = new ProfilingSampler("DecalEntityManager.CreateDecalEntity");
         m_ResizeChunks = new ProfilingSampler("DecalEntityManager.ResizeChunks");
         m_SortChunks = new ProfilingSampler("DecalEntityManager.SortChunks");
-        Debug.Log("new DecalEntityManager");
     }
 
     public bool IsValid(DecalEntity decalEntity)
@@ -242,6 +241,9 @@ public class DecalEntityManager : IDisposable
 
     public DecalEntity CreateDecalEntity(DecalProjector decalProjector)
     {
+        if (decalProjector.material == null)
+            return new DecalEntity();
+
         using (new ProfilingScope(null, m_AddDecalSampler))
         {
             int chunkIndex = CreateChunkIndex(decalProjector.material);
@@ -357,6 +359,7 @@ public class DecalEntityManager : IDisposable
         cachedChunk.sceneLayerMasks[i] = sceneLayerMask;
         cachedChunk.fadeFactors[i] = fadeFactor;
         cachedChunk.decalLayerMasks[i] = decalLayerMask;
+        cachedChunk.dirty[i] = true;
     }
 
     public void DestroyDecalEntity(DecalEntity decalEntity)
@@ -449,8 +452,6 @@ public class DecalEntityManager : IDisposable
 
     public void Dispose()
     {
-        Debug.Log("DecalEntityManager.Dispose");
-
         foreach (var entityChunk in entityChunks)
             entityChunk.currentJobHandle.Complete();
         foreach (var cachedChunk in cachedChunks)

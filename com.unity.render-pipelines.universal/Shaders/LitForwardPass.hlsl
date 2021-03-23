@@ -180,16 +180,10 @@ half4 LitPassFragment(Varyings input) : SV_Target
     InitializeInputData(input, surfaceData.normalTS, inputData);
 
 #if defined(DECALS_1RT) || defined(DECALS_2RT) || defined(DECALS_3RT)
-    float alpha = surfaceData.alpha;
-
-    /*float sgn = input.tangentWS.w;      // should be either +1 or -1
-    float3 bitangent = sgn * cross(input.normalWS.xyz, input.tangentWS.xyz);
-    half3x3 tangentToWorld = half3x3(input.tangentWS.xyz, bitangent.xyz, input.normalWS.xyz);*/
-
     PositionInputs posInput = GetPositionInput(input.positionCS, _ScreenSize.zw);
 
-    DecalSurfaceData decalSurfaceData = GetDecalSurfaceData(posInput, input.normalWS.xyz, alpha);
-    ApplyDecalToSurfaceData(decalSurfaceData, input.normalWS.xyz, surfaceData, inputData);
+    DecalSurfaceData decalSurfaceData = GetDecalSurfaceData(posInput, input.normalWS.xyz, surfaceData.alpha);
+    ApplyDecalToSurfaceData(decalSurfaceData, surfaceData, inputData);
 #endif
 
     half4 color = UniversalFragmentPBR(inputData, surfaceData);

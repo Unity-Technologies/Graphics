@@ -1,11 +1,12 @@
 using System;
 using UnityEditor.ShaderGraph;
+using UnityEngine.Rendering;
 
 namespace UnityEditor.Rendering.Universal.ShaderGraph
 {
     static class CreateDecalShaderGraph
     {
-        [MenuItem("Assets/Create/Shader/Universal Render Pipeline/Decal Shader Graph", false, 50)]
+        [MenuItem("Assets/Create/Shader Graph/URP/Decal Shader Graph", priority = CoreUtils.Priorities.assetsCreateShaderMenuPriority + 1)]
         public static void CreateLitGraph()
         {
             var target = (UniversalTarget)Activator.CreateInstance(typeof(UniversalTarget));

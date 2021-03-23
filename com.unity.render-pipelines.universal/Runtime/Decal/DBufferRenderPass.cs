@@ -3,9 +3,14 @@ using UnityEngine.Experimental.Rendering;
 
 namespace UnityEngine.Rendering.Universal
 {
+    public class DecalDrawIntoDBufferSystem : DecalDrawSystem
+    {
+        public DecalDrawIntoDBufferSystem(DecalEntityManager entityManager) : base("DecalDrawIntoDBufferSystem.Execute", entityManager) {}
+        protected override int GetPassIndex(DecalCachedChunk decalCachedChunk) => decalCachedChunk.passIndexDBuffer;
+    }
+
     public class DBufferRenderPass : ScriptableRenderPass
     {
-        private static readonly RenderQueueRange k_RenderQueue_AllOpaque = new RenderQueueRange { lowerBound = (int)RenderQueue.Geometry, upperBound = (int)RenderQueue.GeometryLast };
         private static string[] s_DBufferNames = { "_DBufferTexture0", "_DBufferTexture1", "_DBufferTexture2", "_DBufferTexture3" };
         private static string s_DBufferDepthName = "DBufferDepth";
         private static GraphicsFormat[] s_DBufferFormats = { GraphicsFormat.R8G8B8A8_SRGB, GraphicsFormat.R8G8B8A8_UNorm, GraphicsFormat.R8G8B8A8_UNorm, GraphicsFormat.R8G8_UNorm };
@@ -33,7 +38,7 @@ namespace UnityEngine.Rendering.Universal
             m_RenderIntoDBufferSmpler = new ProfilingSampler("V1.DecalSystem.RenderIntoDBuffer"); // TODO: Remove
             m_ProfilingSampler = new ProfilingSampler(profilerTag);
             m_ClearSampler = new ProfilingSampler("DBuffer Setup");
-            m_FilteringSettings = new FilteringSettings(k_RenderQueue_AllOpaque, -1);
+            m_FilteringSettings = new FilteringSettings(RenderQueueRange.opaque, -1);
 
             m_ShaderTagIdList = new List<ShaderTagId>();
             m_ShaderTagIdList.Add(new ShaderTagId(DecalUtilities.GetDecalPassName(DecalUtilities.MaterialDecalPass.DBufferMesh)));

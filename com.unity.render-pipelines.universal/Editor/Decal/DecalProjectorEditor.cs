@@ -466,11 +466,11 @@ namespace UnityEditor.Rendering.Universal
                     }
                 }
 
-                if (!decalLayerEnabled)
+                /*if (!decalLayerEnabled)
                 {
                     EditorGUILayout.HelpBox("Enable 'Decal Layers' in your HDRP Asset if you want to control the Angle Fade. There is a performance cost of enabling this option.",
                         MessageType.Info);
-                }
+                }*/
 
                 EditorGUILayout.PropertyField(m_UVScaleProperty, k_UVScaleContent);
                 EditorGUILayout.PropertyField(m_UVBiasProperty, k_UVBiasContent);
@@ -494,6 +494,12 @@ namespace UnityEditor.Rendering.Universal
                 {
                     (decalProjector as DecalProjector).OnValidate();
                 }
+            }
+
+            bool isDecalSupported = DecalProjector.isAnySystemUsing;
+            if (!isDecalSupported)
+            {
+                EditorGUILayout.HelpBox("No system is currently using this decal. Make sure that current render pipeline has decal enabled.", MessageType.Info);
             }
 
             if (m_MaterialEditor != null)

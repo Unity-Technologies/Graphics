@@ -8,12 +8,13 @@ using UnityEngine.Rendering.Universal;
 public class DecalCachedChunk : DecalChunk
 {
     public MaterialPropertyBlock propertyBlock;
-    public int passIndex;
+    public int passIndexDBuffer;
     public int passIndexEmissive;
     public int passIndexScreenSpace;
     public int passIndexGBuffer;
     public int drawOrder;
     public float drawDistance;
+    public bool enabledInstancing;
     public bool isCreated;
 
     public NativeArray<float4x4> decalToWorlds;
@@ -30,6 +31,7 @@ public class DecalCachedChunk : DecalChunk
     public NativeArray<BoundingSphere> boundingSpheres2;
     public NativeArray<float3> positions;
     public NativeArray<quaternion> rotation;
+    public NativeArray<bool> dirty;
 
     public BoundingSphere[] boundingSpheres;
 
@@ -55,6 +57,7 @@ public class DecalCachedChunk : DecalChunk
         RemoveAtSwapBack(ref boundingSpheres2, entityIndex, count);
         RemoveAtSwapBack(ref positions, entityIndex, count);
         RemoveAtSwapBack(ref rotation, entityIndex, count);
+        RemoveAtSwapBack(ref dirty, entityIndex, count);
         count--;
     }
 
@@ -74,6 +77,7 @@ public class DecalCachedChunk : DecalChunk
         ResizeNativeArray(ref boundingSpheres2, newCapacity);
         ResizeNativeArray(ref positions, newCapacity);
         ResizeNativeArray(ref rotation, newCapacity);
+        ResizeNativeArray(ref dirty, newCapacity);
 
         ResizeArray(ref boundingSpheres, newCapacity);
         capacity = newCapacity;
@@ -98,6 +102,7 @@ public class DecalCachedChunk : DecalChunk
         boundingSpheres2.Dispose();
         positions.Dispose();
         rotation.Dispose();
+        dirty.Dispose();
         count = 0;
         capacity = 0;
     }
@@ -140,10 +145,13 @@ public class DecalUpdateCachedSystem
         var material = entityChunk.material;
         cachedChunk.drawOrder = material.GetInt("_DrawOrder");
 
+        // Shader can change any time in editor, so we have to update passes each time
+#if !UNITY_EDITOR
         if (!cachedChunk.isCreated)
+#endif
         {
             int passIndex = material.FindPass(DecalUtilities.GetDecalPassName(DecalUtilities.MaterialDecalPass.DBufferProjector));
-            cachedChunk.passIndex = passIndex;
+            cachedChunk.passIndexDBuffer = passIndex;
 
             int passIndexEmissive = material.FindPass(DecalUtilities.GetDecalPassName(DecalUtilities.MaterialDecalPass.DecalProjectorForwardEmissive));
             cachedChunk.passIndexEmissive = passIndexEmissive;
@@ -154,6 +162,8 @@ public class DecalUpdateCachedSystem
             int passIndexGBuffer = material.FindPass("DecalGBufferProjector");
             cachedChunk.passIndexGBuffer = passIndexGBuffer;
 
+            cachedChunk.enabledInstancing = material.enableInstancing;
+
             cachedChunk.isCreated = true;
         }
 
@@ -163,11 +173,12 @@ public class DecalUpdateCachedSystem
             {
                 positions = cachedChunk.positions,
                 rotations = cachedChunk.rotation,
+                dirty = cachedChunk.dirty,
                 sizeOffsets = cachedChunk.sizeOffsets,
                 decalToWorlds = cachedChunk.decalToWorlds,
                 normalToWorlds = cachedChunk.normalToWorlds,
                 boundingSpheres = cachedChunk.boundingSpheres2,
-                minDistance = 0.1f,
+                minDistance = 0.01f,
             };
 
             var handle = updateTransformJob.Schedule(entityChunk.transformAccessArray);
@@ -184,6 +195,7 @@ public class DecalUpdateCachedSystem
 
         public NativeArray<float3> positions;
         public NativeArray<quaternion> rotations;
+        public NativeArray<bool> dirty;
 
         [ReadOnly] public NativeArray<float4x4> sizeOffsets;
         [WriteOnly] public NativeArray<float4x4> decalToWorlds;
@@ -203,7 +215,7 @@ public class DecalUpdateCachedSystem
                 rotations[index] = rotation;
 
             // Early out if position did not changed
-            if (!positionChanged && !rotationChanged)
+            if (!positionChanged && !rotationChanged && !dirty[index])
                 return;
 
             float4x4 sizeOffset = sizeOffsets[index];

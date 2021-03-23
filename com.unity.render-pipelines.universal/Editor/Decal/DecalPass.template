@@ -92,137 +92,56 @@ Pass
     $features.graphPixel:   $include("SharedCode.template.hlsl")
     $features.graphPixel:   $include("BuildSurfaceDescriptionInputs.template.hlsl")
 
-    // TODO
-    struct FragInputs
-    {
-        // Contain value return by SV_POSITION (That is name positionCS in PackedVarying).
-        // xy: unormalized screen position (offset by 0.5), z: device depth, w: depth in view space
-        // Note: SV_POSITION is the result of the clip space position provide to the vertex shaders that is transform by the viewport
-        float4 positionSS; // In case depth offset is use, positionRWS.w is equal to depth offset
-        float3 positionRWS; // Relative camera space position
-        float4 texCoord0;
-        float4 texCoord1;
-        float4 texCoord2;
-        float4 texCoord3;
-        float4 color; // vertex color
-
-        // TODO: confirm with Morten following statement
-        // Our TBN is orthogonal but is maybe not orthonormal in order to be compliant with external bakers (Like xnormal that use mikktspace).
-        // (xnormal for example take into account the interpolation when baking the normal and normalizing the tangent basis could cause distortion).
-        // When using tangentToWorld with surface gradient, it doesn't normalize the tangent/bitangent vector (We instead use exact same scale as applied to interpolated vertex normal to avoid breaking compliance).
-        // this mean that any usage of tangentToWorld[1] or tangentToWorld[2] outside of the context of normal map (like for POM) must normalize the TBN (TCHECK if this make any difference ?)
-        // When not using surface gradient, each vector of tangentToWorld are normalize (TODO: Maybe they should not even in case of no surface gradient ? Ask Morten)
-        float3x3 tangentToWorld;
-
-        float3 viewDirectionWS;
-
-        uint primitiveID; // Only with fullscreen pass debug currently - not supported on all platforms
-
-        // For two sided lighting
-        bool isFrontFace;
-    };
-
-    FragInputs UnpackVaryingsToFragInputs(PackedVaryings packedInput)
-    {
-        Varyings input = UnpackVaryings(packedInput);
-
-        FragInputs fragInputs = (FragInputs)0;
-
-        fragInputs.positionSS = input.positionCS;
-
-        #ifdef VARYINGS_NEED_POSITION_WS
-        fragInputs.positionRWS = input.positionWS;
-        #endif
-
-        #if defined(VARYINGS_NEED_NORMAL_WS) && defined(VARYINGS_NEED_TANGENT_WS)
-        float sgn = input.tangentWS.w;      // should be either +1 or -1
-        float3 bitangent = sgn * cross(input.normalWS.xyz, input.tangentWS.xyz);
-        float3x3 tangentToWorld = half3x3(input.tangentWS.xyz, bitangent.xyz, input.normalWS.xyz);
-        fragInputs.tangentToWorld = tangentToWorld;
-        #endif
-
-        #ifdef VARYINGS_NEED_TEXCOORD0
-        fragInputs.texCoord0 = input.texCoord0;
-        #endif
-
-        #ifdef VARYINGS_NEED_VIEWDIRECTION_WS
-        fragInputs.viewDirectionWS = input.viewDirectionWS;
-        #endif
-
-        return fragInputs;
-    }
-
-    SurfaceDescriptionInputs FragInputsToSurfaceDescriptionInputs(FragInputs input, float3 viewWS)
-    {
-        SurfaceDescriptionInputs output;
-        ZERO_INITIALIZE(SurfaceDescriptionInputs, output);
-
-        $SurfaceDescriptionInputs.WorldSpaceNormal:          output.WorldSpaceNormal =            normalize(input.tangentToWorld[2].xyz);
-        #if defined(SHADER_STAGE_RAY_TRACING)
-        $SurfaceDescriptionInputs.ObjectSpaceNormal:         output.ObjectSpaceNormal =           mul(output.WorldSpaceNormal, (float3x3) ObjectToWorld3x4());
-        #else
-        $SurfaceDescriptionInputs.ObjectSpaceNormal:         output.ObjectSpaceNormal =           mul(output.WorldSpaceNormal, (float3x3) UNITY_MATRIX_M);           // transposed multiplication by inverse matrix to handle normal scale
-        #endif
-        $SurfaceDescriptionInputs.ViewSpaceNormal:           output.ViewSpaceNormal =             mul(output.WorldSpaceNormal, (float3x3) UNITY_MATRIX_I_V);         // transposed multiplication by inverse matrix to handle normal scale
-        $SurfaceDescriptionInputs.TangentSpaceNormal:        output.TangentSpaceNormal =          float3(0.0f, 0.0f, 1.0f);
-        $SurfaceDescriptionInputs.WorldSpaceTangent:         output.WorldSpaceTangent =           input.tangentToWorld[0].xyz;
-        $SurfaceDescriptionInputs.ObjectSpaceTangent:        output.ObjectSpaceTangent =          TransformWorldToObjectDir(output.WorldSpaceTangent);
-        $SurfaceDescriptionInputs.ViewSpaceTangent:          output.ViewSpaceTangent =            TransformWorldToViewDir(output.WorldSpaceTangent);
-        $SurfaceDescriptionInputs.TangentSpaceTangent:       output.TangentSpaceTangent =         float3(1.0f, 0.0f, 0.0f);
-        $SurfaceDescriptionInputs.WorldSpaceBiTangent:       output.WorldSpaceBiTangent =         input.tangentToWorld[1].xyz;
-        $SurfaceDescriptionInputs.ObjectSpaceBiTangent:      output.ObjectSpaceBiTangent =        TransformWorldToObjectDir(output.WorldSpaceBiTangent);
-        $SurfaceDescriptionInputs.ViewSpaceBiTangent:        output.ViewSpaceBiTangent =          TransformWorldToViewDir(output.WorldSpaceBiTangent);
-        $SurfaceDescriptionInputs.TangentSpaceBiTangent:     output.TangentSpaceBiTangent =       float3(0.0f, 1.0f, 0.0f);
-        $SurfaceDescriptionInputs.WorldSpaceViewDirection:   output.WorldSpaceViewDirection =     normalize(viewWS);
-        $SurfaceDescriptionInputs.ObjectSpaceViewDirection:  output.ObjectSpaceViewDirection =    TransformWorldToObjectDir(output.WorldSpaceViewDirection);
-        $SurfaceDescriptionInputs.ViewSpaceViewDirection:    output.ViewSpaceViewDirection =      TransformWorldToViewDir(output.WorldSpaceViewDirection);
-        $SurfaceDescriptionInputs.TangentSpaceViewDirection: float3x3 tangentSpaceTransform =     float3x3(output.WorldSpaceTangent,output.WorldSpaceBiTangent,output.WorldSpaceNormal);
-        $SurfaceDescriptionInputs.TangentSpaceViewDirection: output.TangentSpaceViewDirection =   mul(tangentSpaceTransform, output.WorldSpaceViewDirection);
-        $SurfaceDescriptionInputs.WorldSpacePosition:        output.WorldSpacePosition =          input.positionRWS;
-        $SurfaceDescriptionInputs.ObjectSpacePosition:       output.ObjectSpacePosition =         TransformWorldToObject(input.positionRWS);
-        $SurfaceDescriptionInputs.ViewSpacePosition:         output.ViewSpacePosition =           TransformWorldToView(input.positionRWS);
-        $SurfaceDescriptionInputs.TangentSpacePosition:      output.TangentSpacePosition =        float3(0.0f, 0.0f, 0.0f);
-        $SurfaceDescriptionInputs.AbsoluteWorldSpacePosition:output.AbsoluteWorldSpacePosition =  GetAbsolutePositionWS(input.positionRWS);
-        $SurfaceDescriptionInputs.ScreenPosition:            output.ScreenPosition =              ComputeScreenPos(TransformWorldToHClip(input.positionRWS), _ProjectionParams.x);
-        $SurfaceDescriptionInputs.uv0:                       output.uv0 =                         input.texCoord0;
-        $SurfaceDescriptionInputs.uv1:                       output.uv1 =                         input.texCoord1;
-        $SurfaceDescriptionInputs.uv2:                       output.uv2 =                         input.texCoord2;
-        $SurfaceDescriptionInputs.uv3:                       output.uv3 =                         input.texCoord3;
-        $SurfaceDescriptionInputs.VertexColor:               output.VertexColor =                 input.color;
-        $SurfaceDescriptionInputs.FaceSign:                  output.FaceSign =                    input.isFrontFace;
-        $SurfaceDescriptionInputs.TimeParameters:            output.TimeParameters =              _TimeParameters.xyz; // This is mainly for LW as HD overwrite this value
-
-        return output;
-    }
-
-
-
     // --------------------------------------------------
     // Build Surface Data
 
-    void GetSurfaceData(FragInputs fragInputs, float3 V, PositionInputs posInput, float angleFadeFactor, out DecalSurfaceData surfaceData)
+    uint2 ComputeFadeMaskSeed(float3 V, uint2 positionSS)
+    {
+        uint2 fadeMaskSeed;
+
+        // Is this a reasonable quality gate?
+    /*#if defined(SHADER_QUALITY_HIGH)
+        if (IsPerspectiveProjection())
+        {
+            // Start with the world-space direction V. It is independent from the orientation of the camera,
+            // and only depends on the position of the camera and the position of the fragment.
+            // Now, project and transform it into [-1, 1].
+            float2 pv = PackNormalOctQuadEncode(V).xy;
+            // Rescale it to account for the resolution of the screen.
+            pv *= _ScreenParams.xy;
+            // The camera only sees a small portion of the sphere, limited by hFoV and vFoV.
+            // Therefore, we must rescale again (before quantization), roughly, by 1/tan(FoV/2).
+            pv *= UNITY_MATRIX_P._m00_m11;
+            // Truncate and quantize.
+            fadeMaskSeed = asuint((int2)pv);
+        }
+        else
+    #endif*/
+        {
+            // Can't use the view direction, it is the same across the entire screen.
+            fadeMaskSeed = positionSS;
+        }
+
+        return fadeMaskSeed;
+    }
+
+    void GetSurfaceData(Varyings input, float3 V, uint2 positionSS, float angleFadeFactor, out DecalSurfaceData surfaceData)
     {
         #if (SHADERPASS == SHADERPASS_DBUFFER_PROJECTOR) || (SHADERPASS == SHADERPASS_FORWARD_EMISSIVE_PROJECTOR) || (SHADERPASS == SHADERPASS_DECAL_SCREEN_SPACE_PROJECTOR) || (SHADERPASS == SHADERPASS_DECAL_GBUFFER_PROJECTOR)
             float4x4 normalToWorld = UNITY_ACCESS_INSTANCED_PROP(Decal, _NormalToWorld);
-            float fadeFactor = clamp(normalToWorld[0][3], 0.0f, 1.0f) * angleFadeFactor;
+            real fadeFactor = real(clamp(normalToWorld[0][3], 0.0f, 1.0f) * angleFadeFactor);
             float2 scale = float2(normalToWorld[3][0], normalToWorld[3][1]);
             float2 offset = float2(normalToWorld[3][2], normalToWorld[3][3]);
-            fragInputs.texCoord0.xy = fragInputs.texCoord0.xy * scale + offset;
-            fragInputs.texCoord1.xy = fragInputs.texCoord1.xy * scale + offset;
-            fragInputs.texCoord2.xy = fragInputs.texCoord2.xy * scale + offset;
-            fragInputs.texCoord3.xy = fragInputs.texCoord3.xy * scale + offset;
-            fragInputs.positionRWS = fragInputs.positionRWS;
-            fragInputs.tangentToWorld[2].xyz = TransformObjectToWorldDir(float3(0, 1, 0));
-            fragInputs.tangentToWorld[1].xyz = TransformObjectToWorldDir(float3(0, 0, 1));
+            $Varyings.texCoord0: input.texCoord0.xy = input.texCoord0.xy * scale + offset;
         #else
             #ifdef LOD_FADE_CROSSFADE // enable dithering LOD transition if user select CrossFade transition in LOD group
-            LODDitheringTransition(ComputeFadeMaskSeed(V, posInput.positionSS), unity_LODFade.x);
+                LODDitheringTransition(ComputeFadeMaskSeed(V, positionSS), unity_LODFade);
             #endif
 
-            float fadeFactor = 1.0;
+            real fadeFactor = real(1.0);
         #endif
 
-        SurfaceDescriptionInputs surfaceDescriptionInputs = FragInputsToSurfaceDescriptionInputs(fragInputs, V);
+        SurfaceDescriptionInputs surfaceDescriptionInputs = BuildSurfaceDescriptionInputs(input);
         SurfaceDescription surfaceDescription = SurfaceDescriptionFunction(surfaceDescriptionInputs);
 
         // setup defaults -- these are used if the graph doesn't output a value
@@ -242,11 +161,17 @@ Pass
             #if (SHADERPASS == SHADERPASS_DBUFFER_PROJECTOR) || (SHADERPASS == SHADERPASS_DECAL_SCREEN_SPACE_PROJECTOR) || (SHADERPASS == SHADERPASS_DECAL_GBUFFER_PROJECTOR)
                 $SurfaceDescription.NormalTS:   surfaceData.normalWS.xyz = mul((float3x3)normalToWorld, surfaceDescription.NormalTS);
             #elif (SHADERPASS == SHADERPASS_DBUFFER_MESH) || (SHADERPASS == SHADERPASS_DECAL_SCREEN_SPACE_MESH) || (SHADERPASS == SHADERPASS_DECAL_GBUFFER_MESH)
+                float sgn = input.tangentWS.w;      // should be either +1 or -1
+                float3 bitangent = sgn * cross(input.normalWS.xyz, input.tangentWS.xyz);
+                float3x3 tangentToWorld = float3x3(input.tangentWS.xyz, bitangent.xyz, input.normalWS.xyz);
+
                 // We need to normalize as we use mikkt tangent space and this is expected (tangent space is not normalize)
-                $SurfaceDescription.NormalTS:   surfaceData.normalWS.xyz = normalize(TransformTangentToWorld(surfaceDescription.NormalTS, fragInputs.tangentToWorld));
+                $SurfaceDescription.NormalTS:   surfaceData.normalWS.xyz = normalize(TransformTangentToWorld(surfaceDescription.NormalTS, tangentToWorld));
             #endif
 
             $SurfaceDescription.NormalAlpha:    surfaceData.normalWS.w = surfaceDescription.NormalAlpha * fadeFactor;
+        #elif (SHADERPASS == SHADERPASS_DECAL_SCREEN_SPACE_MESH)
+            surfaceData.normalWS.xyz = input.normalWS; // Default to vertex normal
         #endif
 
             // In case of Smoothness / AO / Metal, all the three are always computed but color mask can change

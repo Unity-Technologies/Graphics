@@ -9,15 +9,15 @@ namespace UnityEngine.Rendering.Universal
         [GenerateHLSL(PackingRules.Exact, false)]
         public struct DecalSurfaceData
         {
-            [SurfaceDataAttributes("Base Color", false, true)]
+            [SurfaceDataAttributes("Base Color", false, true, precision: FieldPrecision.Real)]
             public Vector4 baseColor;
-            [SurfaceDataAttributes("Normal", true)]
+            [SurfaceDataAttributes("Normal", true, precision: FieldPrecision.Real)]
             public Vector4 normalWS;
-            [SurfaceDataAttributes("Mask", true)]
+            [SurfaceDataAttributes("Mask", true, precision: FieldPrecision.Real)]
             public Vector4 mask; // Metal, AmbientOcclusion, Smoothness, smoothness opacity
-            [SurfaceDataAttributes("Emissive")]
+            [SurfaceDataAttributes("Emissive", precision: FieldPrecision.Real)]
             public Vector3 emissive;
-            [SurfaceDataAttributes("AOSBlend", true)]
+            [SurfaceDataAttributes("AOSBlend", true, precision: FieldPrecision.Real)]
             public Vector2 MAOSBlend; // Metal opacity and Ambient occlusion opacity
         };
 
