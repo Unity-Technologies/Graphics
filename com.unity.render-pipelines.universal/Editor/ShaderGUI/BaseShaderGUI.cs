@@ -298,6 +298,7 @@ namespace UnityEditor
             var emissive = true;
             var hadEmissionTexture = emissionMapProp.textureValue != null;
 
+            EditorGUI.indentLevel -= 1;
             if (!keyword)
             {
                 materialEditor.TexturePropertyWithHDRColor(Styles.emissionMap, emissionMapProp, emissionColorProp,
@@ -317,6 +318,7 @@ namespace UnityEditor
                 }
                 EditorGUI.EndDisabledGroup();
             }
+            EditorGUI.indentLevel += 1;
 
             // If texture was assigned and color was black set color to white
             var brightness = emissionColorProp.colorValue.maxColorComponent;
