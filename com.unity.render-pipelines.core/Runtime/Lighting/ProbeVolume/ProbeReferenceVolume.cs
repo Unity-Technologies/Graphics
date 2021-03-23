@@ -61,12 +61,15 @@ namespace UnityEngine.Rendering
             internal Vector3 Y;
             internal Vector3 Z;
 
-            public Volume(Matrix4x4 trs)
+            internal float maxSubdivision;
+
+            public Volume(Matrix4x4 trs, float maxSubdivision)
             {
                 X = trs.GetColumn(0);
                 Y = trs.GetColumn(1);
                 Z = trs.GetColumn(2);
                 corner = (Vector3)trs.GetColumn(3) - X * 0.5f - Y * 0.5f - Z * 0.5f;
+                this.maxSubdivision = maxSubdivision;
             }
 
             public Volume(Volume copy)
@@ -75,6 +78,7 @@ namespace UnityEngine.Rendering
                 Y = copy.Y;
                 Z = copy.Z;
                 corner = copy.corner;
+                maxSubdivision = copy.maxSubdivision;
             }
 
             public Bounds CalculateAABB()
@@ -114,7 +118,7 @@ namespace UnityEngine.Rendering
 
             public override string ToString()
             {
-                return $"Corner: {corner}, X: {X}, Y: {Y}, Z: {Z}";
+                return $"Corner: {corner}, X: {X}, Y: {Y}, Z: {Z}, MaxSubdiv: {maxSubdivision}";
             }
         }
 
@@ -498,6 +502,8 @@ namespace UnityEngine.Rendering
         internal float MaxBrickSize() { return BrickSize(m_MaxSubdivision); }
         internal Matrix4x4 GetRefSpaceToWS() { return m_Transform.refSpaceToWS; }
         internal RefVolTransform GetTransform() { return m_Transform; }
+        internal int GetMaxSubdivision() => m_MaxSubdivision;
+        internal int GetMaxSubdivision(float multiplier) => Mathf.CeilToInt(m_MaxSubdivision * multiplier);
 
         /// <summary>
         /// Returns whether any brick data has been loaded.
@@ -505,7 +511,7 @@ namespace UnityEngine.Rendering
         /// <returns></returns>
         public bool DataHasBeenLoaded() { return m_BricksLoaded; }
 
-        internal delegate void SubdivisionDel(RefVolTransform refSpaceToWS, List<Brick> inBricks, List<BrickFlags> outControlFlags);
+        internal delegate void SubdivisionDel(RefVolTransform refSpaceToWS, int subdivisionLevel, List<Brick> inBricks, List<BrickFlags> outControlFlags);
 
         internal void Clear()
         {
@@ -518,21 +524,21 @@ namespace UnityEngine.Rendering
         }
 
 #if UNITY_EDITOR
-        internal void CreateBricks(List<Volume> volumes, SubdivisionDel subdivider, List<Brick> outSortedBricks, out int positionArraySize)
+        internal void CreateBricks(List<Volume> cellVolumes, List<Volume> subVolumes, SubdivisionDel subdivider, List<Brick> outSortedBricks, out int positionArraySize)
         {
             Profiler.BeginSample("CreateBricks");
             // generate bricks for all areas covered by the passed in volumes, potentially subdividing them based on the subdivider's decisions
-            foreach (var v in volumes)
+            foreach (var v in cellVolumes)
             {
-                ConvertVolume(v, subdivider, outSortedBricks);
+                ConvertVolume(v, subVolumes, subdivider, outSortedBricks);
             }
 
             Profiler.BeginSample("sort");
             // sort from larger to smaller bricks
             outSortedBricks.Sort((Brick lhs, Brick rhs) =>
             {
-                if (lhs.size != rhs.size)
-                    return lhs.size > rhs.size ? -1 : 1;
+                if (lhs.subdivisionLevel != rhs.subdivisionLevel)
+                    return lhs.subdivisionLevel > rhs.subdivisionLevel ? -1 : 1;
                 if (lhs.position.z != rhs.position.z)
                     return lhs.position.z < rhs.position.z ? -1 : 1;
                 if (lhs.position.y != rhs.position.y)
@@ -558,12 +564,12 @@ namespace UnityEngine.Rendering
 
             foreach (var brick in inBricks)
             {
-                if (brick.size == 0)
+                if (brick.subdivisionLevel == 0)
                     continue;
 
                 Brick b = new Brick();
-                b.size = brick.size - 1;
-                int offset = CellSize(b.size);
+                b.subdivisionLevel = brick.subdivisionLevel - 1;
+                int offset = CellSize(b.subdivisionLevel);
 
                 for (int z = 0; z < ProbeBrickPool.kBrickCellCount; z++)
                 {
@@ -585,25 +591,25 @@ namespace UnityEngine.Rendering
         }
 
         // converts a volume into bricks, subdivides the bricks and culls subdivided volumes falling outside the original volume
-        private void ConvertVolume(Volume volume, SubdivisionDel subdivider, List<Brick> outSortedBricks)
+        private void ConvertVolume(Volume cellVolume, List<Volume> subVolumes, SubdivisionDel subdivider, List<Brick> outSortedBricks)
         {
             Profiler.BeginSample("ConvertVolume");
             m_TmpBricks[0].Clear();
-            Transform(volume, out Volume vol);
+            Transform(cellVolume, out Volume vol);
             // rasterize bricks according to the coarsest grid
             Rasterize(vol, m_TmpBricks[0]);
 
             int subDivCount = 0;
 
             // iterative subdivision
-            while (m_TmpBricks[0].Count > 0 && subDivCount < m_MaxSubdivision)
+            while (m_TmpBricks[0].Count > 0 && subDivCount <= GetMaxSubdivision(cellVolume.maxSubdivision))
             {
                 m_TmpBricks[1].Clear();
                 m_TmpFlags.Clear();
                 m_TmpFlags.Capacity = Mathf.Max(m_TmpFlags.Capacity, m_TmpBricks[0].Count);
 
                 Profiler.BeginSample("Subdivider");
-                subdivider(m_Transform, m_TmpBricks[0], m_TmpFlags);
+                subdivider(m_Transform, subDivCount, m_TmpBricks[0], m_TmpFlags);
                 Profiler.EndSample();
                 Debug.Assert(m_TmpBricks[0].Count == m_TmpFlags.Count);
 
@@ -618,14 +624,13 @@ namespace UnityEngine.Rendering
                 m_TmpBricks[0].Clear();
                 if (m_TmpBricks[1].Count > 0)
                 {
-                    //Debug.Log("Calling SubdivideBricks with " + m_TmpBricks[1].Count + " bricks.");
                     SubdivideBricks(m_TmpBricks[1], m_TmpBricks[0]);
 
                     // Cull out of bounds bricks
                     Profiler.BeginSample("Cull bricks");
                     for (int i = m_TmpBricks[0].Count - 1; i >= 0; i--)
                     {
-                        if (!ProbeVolumePositioning.OBBIntersect(ref m_Transform, m_TmpBricks[0][i], ref volume))
+                        if (!ProbeVolumePositioning.OBBIntersect(ref m_Transform, m_TmpBricks[0][i], ref cellVolume))
                         {
                             m_TmpBricks[0].RemoveAt(i);
                         }
@@ -651,7 +656,7 @@ namespace UnityEngine.Rendering
             {
                 Vector3 offset = b.position;
                 offset = m.MultiplyPoint(offset);
-                float scale = CellSize(b.size);
+                float scale = CellSize(b.subdivisionLevel);
                 Vector3 X = m.GetColumn(0) * scale;
                 Vector3 Y = m.GetColumn(1) * scale;
                 Vector3 Z = m.GetColumn(2) * scale;
@@ -755,6 +760,7 @@ namespace UnityEngine.Rendering
             outVolume.X = m.MultiplyVector(inVolume.X);
             outVolume.Y = m.MultiplyVector(inVolume.Y);
             outVolume.Z = m.MultiplyVector(inVolume.Z);
+            outVolume.maxSubdivision = inVolume.maxSubdivision;
         }
 
         // Creates bricks at the coarsest level for all areas that are overlapped by the pass in volume
@@ -766,7 +772,7 @@ namespace UnityEngine.Rendering
 
             // Calculate smallest brick size capable of covering shortest AABB dimension
             float minVolumeSize = Mathf.Min(AABB.size.x, Mathf.Min(AABB.size.y, AABB.size.z));
-            int brickSubDivLevel = Mathf.Min(Mathf.CeilToInt(Mathf.Log(minVolumeSize, 3)), m_MaxSubdivision);
+            int brickSubDivLevel = Mathf.Min(Mathf.CeilToInt(Mathf.Log(minVolumeSize, 3)), m_MaxSubdivision) + 1;
             int brickTotalSize = (int)Mathf.Pow(3, brickSubDivLevel);
 
             // Extend AABB to have origin that lies on a grid point

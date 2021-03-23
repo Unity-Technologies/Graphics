@@ -9,11 +9,14 @@ namespace UnityEngine.Rendering
     [Serializable]
     internal struct ProbeVolumeArtistParameters
     {
-        public Vector3 size;
+        public Vector3  size;
+        [Range(0, 1)]
+        public float    maxSubdivision;
 
-        public ProbeVolumeArtistParameters(Color debugColor)
+        public ProbeVolumeArtistParameters(Color debugColor, float maxSubdivision = 1)
         {
             this.size = Vector3.one;
+            this.maxSubdivision = maxSubdivision;
         }
     } // class ProbeVolumeArtistParameters
 

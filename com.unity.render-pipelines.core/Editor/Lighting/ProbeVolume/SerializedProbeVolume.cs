@@ -5,6 +5,7 @@ namespace UnityEditor.Rendering
         internal SerializedProperty probeVolumeParams;
 
         internal SerializedProperty size;
+        internal SerializedProperty maxSubdivision;
 
         SerializedObject m_SerializedObject;
 
@@ -15,6 +16,7 @@ namespace UnityEditor.Rendering
             probeVolumeParams = m_SerializedObject.FindProperty("parameters");
 
             size = probeVolumeParams.FindPropertyRelative("size");
+            maxSubdivision = probeVolumeParams.FindPropertyRelative("maxSubdivision");
         }
 
         internal void Apply()

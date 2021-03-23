@@ -10,11 +10,13 @@ namespace UnityEngine.Rendering
     /// A volume to modify how the probe subdivision is distributed in the scene.
     /// </summary>
     [ExecuteAlways]
-    [AddComponentMenu("Light/Experimental/Probe Hint Volume")]
+    // [AddComponentMenu("Light/Experimental/Probe Hint Volume")]
     public class ProbeHintVolume : MonoBehaviour
     {
         [SerializeField]
         Vector3 m_Extent = Vector3.one;
+
+        public int maxSubdivision = 1;
 
         public Vector3 extent
         {

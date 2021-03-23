@@ -17,7 +17,7 @@ namespace UnityEngine.Rendering
         // TODO: Take refvol translation and rotation into account
         public static ProbeReferenceVolume.Volume CalculateBrickVolume(ref RefTrans refTrans, Brick brick)
         {
-            float scaledSize = Mathf.Pow(3, brick.size);
+            float scaledSize = Mathf.Pow(3, brick.subdivisionLevel);
             Vector3 scaledPos = refTrans.refSpaceToWS.MultiplyPoint(brick.position);
 
             ProbeReferenceVolume.Volume bounds;
@@ -25,6 +25,7 @@ namespace UnityEngine.Rendering
             bounds.X = refTrans.refSpaceToWS.GetColumn(0) * scaledSize;
             bounds.Y = refTrans.refSpaceToWS.GetColumn(1) * scaledSize;
             bounds.Z = refTrans.refSpaceToWS.GetColumn(2) * scaledSize;
+            bounds.maxSubdivision = 1;
 
             return bounds;
         }
