@@ -15,7 +15,7 @@ struct VaryingsLensFlare
     float occlusion : TEXCOORD1;
 };
 
-TEXTURE2D_X(_FlareTex);
+TEXTURE2D(_FlareTex);
 SAMPLER(sampler_FlareTex);
 
 float4 _FlareColorValue;
@@ -183,7 +183,7 @@ float4 GetFlareShape(float2 uv)
 #elif FLARE_SHIMMER
     return ComputeShimmer(uv);
 #else
-    return SAMPLE_TEXTURE2D_X(_FlareTex, sampler_FlareTex, uv);
+    return SAMPLE_TEXTURE2D(_FlareTex, sampler_FlareTex, uv);
 #endif
 }
 
