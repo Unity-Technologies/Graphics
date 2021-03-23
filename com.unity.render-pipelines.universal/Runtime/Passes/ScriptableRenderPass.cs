@@ -237,15 +237,15 @@ namespace UnityEngine.Rendering.Universal
         public void ConfigureTarget(RenderTargetIdentifier colorAttachment, RenderTargetIdentifier depthAttachment)
         {
             m_DepthAttachment = depthAttachment;
-            overrideCameraDepthTarget = true;
             ConfigureTarget(colorAttachment);
+            overrideCameraDepthTarget = true;
         }
 
         internal void ConfigureTarget(RenderTargetIdentifier colorAttachment, RenderTargetIdentifier depthAttachment, GraphicsFormat format)
         {
             m_DepthAttachment = depthAttachment;
-            overrideCameraDepthTarget = true;
             ConfigureTarget(colorAttachment, format);
+            overrideCameraDepthTarget = true;
         }
 
         /// <summary>
@@ -284,6 +284,7 @@ namespace UnityEngine.Rendering.Universal
         public void ConfigureTarget(RenderTargetIdentifier colorAttachment)
         {
             overrideCameraColorTarget = true;
+            overrideCameraDepthTarget = false;
 
             m_ColorAttachments[0] = colorAttachment;
             for (int i = 1; i < m_ColorAttachments.Length; ++i)
@@ -296,10 +297,7 @@ namespace UnityEngine.Rendering.Universal
             for (int i = 1; i < m_ColorAttachments.Length; ++i)
                 renderTargetFormat[i] = GraphicsFormat.None;
 
-            if (depth)
-            {
-                overrideCameraDepthTarget = true;
-            }
+            overrideCameraDepthTarget = depth;
 
             renderTargetWidth = width;
             renderTargetHeight = height;
@@ -317,6 +315,7 @@ namespace UnityEngine.Rendering.Universal
         public void ConfigureTarget(RenderTargetIdentifier[] colorAttachments)
         {
             overrideCameraColorTarget = true;
+            overrideCameraDepthTarget = false;
 
             uint nonNullColorBuffers = RenderingUtils.GetValidColorBufferCount(colorAttachments);
             if (nonNullColorBuffers > SystemInfo.supportedRenderTargetCount)
