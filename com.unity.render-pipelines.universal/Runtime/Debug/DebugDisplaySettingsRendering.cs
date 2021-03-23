@@ -237,7 +237,8 @@ namespace UnityEngine.Rendering.Universal
                         WidgetFactory.CreateMapOverlays(data),
                         WidgetFactory.CreateMapOverlaySize(data),
                         WidgetFactory.CreateHDR(data),
-                        WidgetFactory.CreateMipModesDebug(data),
+                        // Mipmap debug modes are unsupported by ShaderGraph and cannot be enabled unless that is addressed.
+                        //WidgetFactory.CreateMipModesDebug(data),
                         WidgetFactory.CreateMSAA(data),
                         WidgetFactory.CreatePostProcessing(data),
                         WidgetFactory.CreateAdditionalWireframeShaderViews(data),
