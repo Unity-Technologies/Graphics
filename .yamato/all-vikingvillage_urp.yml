@@ -49,25 +49,25 @@ PR_VikingVillage_URP_CUSTOM-REVISION:
     name: VikingVillage_URP PR Job - CUSTOM-REVISION
     dependencies:
       -  path: .yamato/vikingvillage_urp-win-dx11.yml#VikingVillage_URP_Win_DX11_performance_playmode_runtime_mono_Linear_CUSTOM-REVISION
-         rerun: always
+         rerun: on_new_revision
       -  path: .yamato/vikingvillage_urp-win-dx11.yml#VikingVillage_URP_Win_DX11_performance_playmode_editor_mono_Linear_CUSTOM-REVISION
-         rerun: always
+         rerun: on_new_revision
       -  path: .yamato/vikingvillage_urp-win-dx11.yml#VikingVillage_URP_Win_DX11_performance_build_editmode_mono_Linear_CUSTOM-REVISION
-         rerun: always
+         rerun: on_new_revision
       -  path: .yamato/vikingvillage_urp-win-vulkan.yml#VikingVillage_URP_Win_Vulkan_performance_playmode_runtime_mono_Linear_CUSTOM-REVISION
-         rerun: always
+         rerun: on_new_revision
       -  path: .yamato/vikingvillage_urp-win-vulkan.yml#VikingVillage_URP_Win_Vulkan_performance_build_editmode_mono_Linear_CUSTOM-REVISION
-         rerun: always
+         rerun: on_new_revision
       -  path: .yamato/vikingvillage_urp-android-opengles3.yml#VikingVillage_URP_Android_OpenGLES3_performance_build_editmode_il2cpp_Linear_CUSTOM-REVISION
-         rerun: always
+         rerun: on_new_revision
       -  path: .yamato/vikingvillage_urp-android-vulkan.yml#VikingVillage_URP_Android_Vulkan_performance_build_editmode_il2cpp_Linear_CUSTOM-REVISION
-         rerun: always
+         rerun: on_new_revision
       -  path: .yamato/vikingvillage_urp-iphone-metal.yml#VikingVillage_URP_iPhone_Metal_performance_build_editmode_il2cpp_Linear_CUSTOM-REVISION
-         rerun: always
+         rerun: on_new_revision
       -  path: .yamato/vikingvillage_urp-linux-vulkan.yml#VikingVillage_URP_Linux_Vulkan_performance_playmode_runtime_mono_Linear_CUSTOM-REVISION
-         rerun: always
+         rerun: on_new_revision
       -  path: .yamato/vikingvillage_urp-linux-vulkan.yml#VikingVillage_URP_Linux_Vulkan_performance_build_editmode_mono_Linear_CUSTOM-REVISION
-         rerun: always
+         rerun: on_new_revision
     variables:
         CUSTOM_REVISION: custom_revision_not_set
         UTR_VERSION: "current"
@@ -78,7 +78,7 @@ Nightly_VikingVillage_URP_CUSTOM-REVISION:
     name: Nightly VikingVillage_URP - CUSTOM-REVISION
     dependencies:
       -  path: .yamato/all-vikingvillage_urp.yml#PR_VikingVillage_URP_CUSTOM-REVISION
-         rerun: always
+         rerun: on_new_revision
     variables:
         CUSTOM_REVISION: custom_revision_not_set
         UTR_VERSION: "current"

@@ -19,7 +19,7 @@ editors: # applied for all yml files
       weekly_job_trigger: False # if true, adds recurrent trigger to weekly job
   - track: CUSTOM-REVISION
     name: CUSTOM-REVISION
-    rerun_strategy: always
+    rerun_strategy: on_new_revision
     editor_pinning:
       enabled: False
       green_abv_required: False

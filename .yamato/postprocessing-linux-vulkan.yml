@@ -204,7 +204,7 @@ PostProcessing_Linux_Vulkan_playmode_mono_Linear_CUSTOM-REVISION:
               -  "TestProjects/PostProcessing_Tests/Logs/*.log"
     dependencies:
       -  path: .yamato/_editor_priming.yml#editor:priming:CUSTOM-REVISION:Linux
-         rerun: always
+         rerun: on_new_revision
 PostProcessing_Linux_Vulkan_playmode_cache_mono_Linear_CUSTOM-REVISION:
     name: PostProcessing on Linux_Vulkan_playmode_cache_mono_Linear on version CUSTOM-REVISION
     agent:
@@ -232,7 +232,7 @@ PostProcessing_Linux_Vulkan_playmode_cache_mono_Linear_CUSTOM-REVISION:
               -  "TestProjects/PostProcessing_Tests/Logs/*.log"
     dependencies:
       -  path: .yamato/_editor_priming.yml#editor:priming:CUSTOM-REVISION:Linux
-         rerun: always
+         rerun: on_new_revision
 PostProcessing_Linux_Vulkan_editmode_mono_Linear_CUSTOM-REVISION:
     name: PostProcessing on Linux_Vulkan_editmode_mono_Linear on version CUSTOM-REVISION
     agent:
@@ -260,7 +260,7 @@ PostProcessing_Linux_Vulkan_editmode_mono_Linear_CUSTOM-REVISION:
               -  "TestProjects/PostProcessing_Tests/Logs/*.log"
     dependencies:
       -  path: .yamato/_editor_priming.yml#editor:priming:CUSTOM-REVISION:Linux
-         rerun: always
+         rerun: on_new_revision
 PostProcessing_Linux_Vulkan_Standalone_mono_Linear_CUSTOM-REVISION:
     name: PostProcessing on Linux_Vulkan_Standalone_mono_Linear on version CUSTOM-REVISION
     agent:
@@ -283,9 +283,9 @@ PostProcessing_Linux_Vulkan_Standalone_mono_Linear_CUSTOM-REVISION:
               -  "TestProjects/PostProcessing_Tests/Logs/*.log"
     dependencies:
       -  path: .yamato/_editor_priming.yml#editor:priming:CUSTOM-REVISION:Linux
-         rerun: always
+         rerun: on_new_revision
       -  path: .yamato/postprocessing-linux-vulkan.yml#Build_PostProcessing_Linux_Vulkan_Standalone_mono_Linear_CUSTOM-REVISION
-         rerun: always
+         rerun: on_new_revision
 Build_PostProcessing_Linux_Vulkan_Standalone_mono_Linear_CUSTOM-REVISION:
     name: Build PostProcessing on Linux_Vulkan_mono_Linear_Standalone_build_Player on version CUSTOM-REVISION
     agent:
@@ -316,7 +316,7 @@ Build_PostProcessing_Linux_Vulkan_Standalone_mono_Linear_CUSTOM-REVISION:
               -  "players*/**"
     dependencies:
       -  path: .yamato/_editor_priming.yml#editor:priming:CUSTOM-REVISION:Linux
-         rerun: always
+         rerun: on_new_revision
 PostProcessing_Linux_Vulkan_Standalone_cache_mono_Linear_CUSTOM-REVISION:
     name: PostProcessing on Linux_Vulkan_Standalone_cache_mono_Linear on version CUSTOM-REVISION
     agent:
@@ -339,9 +339,9 @@ PostProcessing_Linux_Vulkan_Standalone_cache_mono_Linear_CUSTOM-REVISION:
               -  "TestProjects/PostProcessing_Tests/Logs/*.log"
     dependencies:
       -  path: .yamato/_editor_priming.yml#editor:priming:CUSTOM-REVISION:Linux
-         rerun: always
+         rerun: on_new_revision
       -  path: .yamato/postprocessing-linux-vulkan.yml#Build_PostProcessing_Linux_Vulkan_Standalone_cache_mono_Linear_CUSTOM-REVISION
-         rerun: always
+         rerun: on_new_revision
 Build_PostProcessing_Linux_Vulkan_Standalone_cache_mono_Linear_CUSTOM-REVISION:
     name: Build PostProcessing on Linux_Vulkan_mono_Linear_Standalone_cache_build_Player on version CUSTOM-REVISION
     agent:
@@ -372,4 +372,4 @@ Build_PostProcessing_Linux_Vulkan_Standalone_cache_mono_Linear_CUSTOM-REVISION:
               -  "players*/**"
     dependencies:
       -  path: .yamato/_editor_priming.yml#editor:priming:CUSTOM-REVISION:Linux
-         rerun: always
+         rerun: on_new_revision
