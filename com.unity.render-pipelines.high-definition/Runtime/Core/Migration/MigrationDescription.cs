@@ -104,10 +104,16 @@ namespace UnityEngine.Rendering.HighDefinition
             }
 
 #if UNITY_EDITOR
-            // Special in prefab case
-            if (target is UnityEngine.Object && UnityEditor.PrefabUtility.IsPartOfNonAssetPrefabInstance(target as UnityEngine.Object))
+            UnityEngine.Object targetObject = target as UnityEngine.Object;
+            if (targetObject != null)
             {
-                UnityEditor.PrefabUtility.RecordPrefabInstancePropertyModifications(target as UnityEngine.Object);
+                // Special in prefab case
+                if (UnityEditor.PrefabUtility.IsPartOfNonAssetPrefabInstance(targetObject))
+                {
+                    UnityEditor.PrefabUtility.RecordPrefabInstancePropertyModifications(targetObject);
+                }
+
+                UnityEditor.EditorUtility.SetDirty(targetObject);
             }
 #endif
             return true;
