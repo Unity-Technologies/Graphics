@@ -726,15 +726,6 @@ MonoBehaviour:
     Reason: 
   - FilteredScene: {fileID: 0}
     FilteredScenes:
-    - {fileID: 102900000, guid: 332a75631f7a3420ab1e02475d98a1fc, type: 3}
-    ColorSpace: -1
-    BuildPlatform: -2
-    GraphicsDevice: 4
-    XrSdk: 
-    StereoModes: 0
-    Reason: 
-  - FilteredScene: {fileID: 0}
-    FilteredScenes:
     - {fileID: 102900000, guid: 93a99004f07ca6f4dbbc9ccb319c7698, type: 3}
     ColorSpace: -1
     BuildPlatform: -2
