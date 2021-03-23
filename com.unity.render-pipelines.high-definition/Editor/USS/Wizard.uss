@@ -124,15 +124,9 @@ ToolbarRadio
     border-top-right-radius: 3px;
 }
 
-#ResourceRow
-{
-    flex-direction:row;
-}
-
 #DefaultResourceFolder
 {
-    flex: 1;
-    margin-right: 130px;
+    margin-right: 10px;
 }
 
 .RightAnchoredButton

@@ -158,12 +158,6 @@ namespace UnityEditor.Rendering.HighDefinition
             }
         }
 
-        void CreateFolder()
-        {
-            if (!AssetDatabase.IsValidFolder("Assets/" + HDProjectSettings.projectSettingsFolderPath))
-                AssetDatabase.CreateFolder("Assets", HDProjectSettings.projectSettingsFolderPath);
-        }
-
         #endregion
 
         #region UIELEMENT
