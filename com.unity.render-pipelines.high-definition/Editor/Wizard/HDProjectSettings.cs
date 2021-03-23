@@ -56,12 +56,14 @@ namespace UnityEditor.Rendering.HighDefinition
         // This tracks latest versions of every plugin subtargets ever seen in the project.
         // The dictionary key is the SubTarget GUID.
         // If the project has ever seen an external-to-HDRP ("plugin") material, it saves the version
-        // of the IMaterialWithPluginSubTarget here. That way, we can use the same logic to forward upgrade calls
+        // of the material here. That way, we can use the same logic to forward upgrade calls
         // than for the internally known HDRP materials: if a plugin material version is higher than
         // what is seen here, we can trigger a re-import (see RegisterUpgraderReimport in MaterialPostProcessor).
         [SerializeField]
         PluginMaterialVersions m_PluginMaterialVersions = new PluginMaterialVersions();
 
+        // Same as above but for the *subtarget* versioning specific to the subtarget (ie not HDRP ShaderGraphVersion,
+        // see m_HDShaderGraphLastSeenVersion above for that).
         [SerializeField]
         PluginMaterialVersions m_PluginSubTargetVersions = new PluginMaterialVersions();
 
