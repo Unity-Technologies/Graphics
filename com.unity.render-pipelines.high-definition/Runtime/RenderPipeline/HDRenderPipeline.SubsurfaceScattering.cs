@@ -215,13 +215,9 @@ namespace UnityEngine.Rendering.HighDefinition
 
             using (var builder = renderGraph.AddRenderPass<SubsurfaceScaterringPassData>("Subsurface Scattering", out var passData, ProfilingSampler.Get(HDProfileId.SubsurfaceScattering)))
             {
-                if (hdCamera.msaaEnabled)
-                {
-                    m_SubsurfaceScatteringCS.EnableKeyword("ENABLE_MSAA");
-                }
+                CoreUtils.SetKeyword(m_SubsurfaceScatteringCS, "ENABLE_MSAA", hdCamera.msaaEnabled);
 
                 passData.subsurfaceScatteringCS = m_SubsurfaceScatteringCS;
-                passData.subsurfaceScatteringCS.shaderKeywords = null;
                 passData.subsurfaceScatteringCSKernel = m_SubsurfaceScatteringKernel;
                 passData.needTemporaryBuffer = NeedTemporarySubsurfaceBuffer() || hdCamera.msaaEnabled;
                 passData.copyStencilForSplitLighting = m_SSSCopyStencilForSplitLighting;
