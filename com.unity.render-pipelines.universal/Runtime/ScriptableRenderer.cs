@@ -506,7 +506,7 @@ namespace UnityEngine.Rendering.Universal
 
             uint currentHashIndex = 0;
             // reset all the passes last pass flag
-            for (int i = 0; i < m_ActiveRenderPassQueue.Count - 1; ++i)
+            for (int i = 0; i < m_ActiveRenderPassQueue.Count; ++i)
             {
                 var renderPass = m_ActiveRenderPassQueue[i];
 
