@@ -94,6 +94,7 @@ namespace UnityEngine.Rendering.UI
             m_DebugTreeState = DebugManager.instance.GetState();
             var panels = DebugManager.instance.panels;
 
+            DebugUIHandlerWidget selectedWidget = null;
             foreach (var panel in panels)
             {
                 if (panel.isEditorOnly || panel.children.Count(x => !x.isEditorOnly && !x.isHidden) == 0)
@@ -106,13 +107,19 @@ namespace UnityEngine.Rendering.UI
                 uiPanel.Canvas = this;
                 m_UIPanels.Add(uiPanel);
                 var container = go.GetComponent<DebugUIHandlerContainer>();
-                Traverse(panel, container.contentHolder, null);
+                DebugUIHandlerWidget selected = null;
+                Traverse(panel, container.contentHolder, null, ref selected);
+
+                if (selected != null && selected.GetWidget().queryPath.Contains(panel.queryPath))
+                {
+                    selectedWidget = selected;
+                }
             }
 
-            ActivatePanel(m_SelectedPanel, true);
+            ActivatePanel(m_SelectedPanel, selectedWidget);
         }
 
-        void Traverse(DebugUI.IContainer container, Transform parentTransform, DebugUIHandlerWidget parentUIHandler)
+        void Traverse(DebugUI.IContainer container, Transform parentTransform, DebugUIHandlerWidget parentUIHandler, ref DebugUIHandlerWidget selectedHandler)
         {
             DebugUIHandlerWidget previousUIHandler = null;
 
@@ -141,6 +148,11 @@ namespace UnityEngine.Rendering.UI
                     continue;
                 }
 
+                if (!string.IsNullOrEmpty(m_CurrentQueryPath) && child.queryPath.Equals(m_CurrentQueryPath))
+                {
+                    selectedHandler = uiHandler;
+                }
+
                 if (previousUIHandler != null) previousUIHandler.nextUIHandler = uiHandler;
                 uiHandler.previousUIHandler = previousUIHandler;
                 previousUIHandler = uiHandler;
@@ -149,7 +161,7 @@ namespace UnityEngine.Rendering.UI
 
                 var childContainer = go.GetComponent<DebugUIHandlerContainer>();
                 if (childContainer != null && child is DebugUI.IContainer)
-                    Traverse(child as DebugUI.IContainer, childContainer.contentHolder, uiHandler);
+                    Traverse(child as DebugUI.IContainer, childContainer.contentHolder, uiHandler, ref selectedHandler);
             }
         }
 
@@ -165,7 +177,7 @@ namespace UnityEngine.Rendering.UI
                 .FirstOrDefault(w => w.GetWidget().queryPath == queryPath);
         }
 
-        void ActivatePanel(int index, bool tryAndKeepSelection = false)
+        void ActivatePanel(int index, DebugUIHandlerWidget selectedWidget = null)
         {
             if (m_UIPanels.Count == 0)
                 return;
@@ -177,19 +189,10 @@ namespace UnityEngine.Rendering.UI
             m_UIPanels[index].gameObject.SetActive(true);
             m_SelectedPanel = index;
 
-            DebugUIHandlerWidget widget = null;
+            if (selectedWidget == null)
+                selectedWidget = m_UIPanels[index].GetFirstItem();
 
-            if (tryAndKeepSelection && !string.IsNullOrEmpty(m_CurrentQueryPath))
-            {
-                widget = m_UIPanels[m_SelectedPanel]
-                    .GetComponentsInChildren<DebugUIHandlerWidget>()
-                    .FirstOrDefault(w => w.GetWidget().queryPath == m_CurrentQueryPath);
-            }
-
-            if (widget == null)
-                widget = m_UIPanels[index].GetFirstItem();
-
-            ChangeSelection(widget, true);
+            ChangeSelection(selectedWidget, true);
         }
 
         internal void ChangeSelection(DebugUIHandlerWidget widget, bool fromNext)
