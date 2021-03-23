@@ -62,10 +62,11 @@ float2 Rotate(float2 v, float cos0, float sin0)
 float GetLinearDepthValue(float2 uv)
 {
 #ifdef HDRP_FLARE
-    //float depth = LinearEyeDepth(SampleCameraDepth(uv), _ZBufferParams);
-    float depth = LOAD_TEXTURE2D_X_LOD(_CameraDepthTexture, uint2(uv * _ScreenSize.xy), 0).r;
+    float depth = //LoadSceneDepth(uv * _ScreenSize.xy);
+        LOAD_TEXTURE2D_X_LOD(_CameraDepthTexture, uint2(uv * _ScreenSize.xy), 0).r;
 #else
-    float depth = 0.5f;
+    float depth = LoadSceneDepth(uv * _ScreenSize.xy);
+        //LOAD_TEXTURE2D_X(_CameraDepthTexture, uint2(uv * _ScreenSize.xy)).r;
 #endif
 
     return 1.0 / (_ZBufferParams.z * depth + _ZBufferParams.w);
@@ -90,7 +91,11 @@ float GetOcclusion(float2 screenPos, float flareDepth, float ratio)
         {
             //float depth0 = LinearEyeDepth(SampleCameraDepth(pos), _ZBufferParams);
             float depth0 = GetLinearDepthValue(pos);
+//#ifdef HDRP_FLARE
             if (flareDepth < depth0)
+//#else
+//            if (flareDepth <= depth0)
+//#endif
                 contrib += sample_Contrib;
         }
         else if (_OcclusionOffscreen > 0.0f)
@@ -144,12 +149,18 @@ float InverseGradient(float x)
 float4 ComputeCircle(float2 uv)
 {
     float2 v = (uv - 0.5f) * 2.0f;
+    //v /= float2(ddx(v));
 
     float x = length(v);
 
-    float sdf = saturate((x - 1.0f) / (_FlareEdgeOffset - 1.0f));
+    //float sdf = saturate((x - 1.0f) / (fwidth(1.0f - x)));
+    float sdf = saturate((x - 1.0f) / ((_FlareEdgeOffset - 1.0f)));
+    //float sdf = (x - 1.0f) / (_FlareEdgeOffset - 1.0f);
+
+    //sdf /= fwidth(sdf);
 
 #if FLARE_INVERSE_SDF
+    sdf = saturate(sdf);
     sdf = InverseGradient(sdf);
 #endif
 
