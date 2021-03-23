@@ -105,10 +105,10 @@ void InitializeInputData(Varyings IN, half3 normalTS, out InputData input)
     #endif
 
     #ifdef _ADDITIONAL_LIGHTS_VERTEX
-        input.fogCoord = IN.fogFactorAndVertexLight.x;
+    input.fogCoord = InitializeInputDataFog(float4(IN.positionWS, 1.0), IN.fogFactorAndVertexLight.x);
         input.vertexLighting = IN.fogFactorAndVertexLight.yzw;
     #else
-        input.fogCoord = IN.fogFactor;
+    input.fogCoord = InitializeInputDataFog(float4(IN.positionWS, 1.0), IN.fogFactor);
     #endif
 
     input.bakedGI = SAMPLE_GI(IN.uvMainAndLM.zw, SH, input.normalWS);
@@ -289,11 +289,16 @@ Varyings SplatmapVert(Attributes v)
         o.vertexSH = SampleSH(o.normal);
     #endif
 
+    half fogFactor = 0;
+    #if !defined(_FOG_FRAGMENT)
+        fogFactor = ComputeFogFactor(Attributes.positionCS.z);
+    #endif
+
     #ifdef _ADDITIONAL_LIGHTS_VERTEX
-        o.fogFactorAndVertexLight.x = ComputeFogFactor(Attributes.positionCS.z);
+        o.fogFactorAndVertexLight.x = fogFactor;
         o.fogFactorAndVertexLight.yzw = VertexLighting(Attributes.positionWS, o.normal.xyz);
     #else
-        o.fogFactor = ComputeFogFactor(Attributes.positionCS.z);
+        o.fogFactor = fogFactor;
     #endif
 
     o.positionWS = Attributes.positionWS;
