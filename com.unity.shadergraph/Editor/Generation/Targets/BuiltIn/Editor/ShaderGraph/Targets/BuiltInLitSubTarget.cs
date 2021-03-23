@@ -45,11 +45,9 @@ namespace UnityEditor.Rendering.BuiltIn.ShaderGraph
             //context.AddCustomEditorForRenderPipeline("ShaderGraph.PBRMasterGUI", typeof(UnityEngine.Rendering.Universal.UniversalRenderPipelineAsset)); // TODO: This should be owned by URP
 
             // Process SubShaders
-            SubShaderDescriptor[] litSubShaders = { SubShaders.LitComputeDOTS, SubShaders.LitGLES };
-            SubShaderDescriptor[] complexLitSubShaders = { SubShaders.ComplexLitComputeDOTS, SubShaders.LitGLESForwardOnly};
+            SubShaderDescriptor[] litSubShaders = { SubShaders.Lit };
 
             SubShaderDescriptor[] subShaders = litSubShaders;
-            //SubShaderDescriptor[] subShaders = { SubShaders.LitGLES };
             for (int i = 0; i < subShaders.Length; i++)
             {
                 // Update Render State
@@ -242,47 +240,8 @@ namespace UnityEditor.Rendering.BuiltIn.ShaderGraph
 
             #endregion
 
-            // SM 4.5, compute with dots instancing
-            public readonly static SubShaderDescriptor LitComputeDOTS = new SubShaderDescriptor()
-            {
-                //pipelineTag = BuiltInTarget.kPipelineTag,
-                customTags = BuiltInTarget.kLitMaterialTypeTag,
-                generatesPreview = true,
-                passes = new PassCollection
-                {
-                    { PassVariant(LitPasses.Forward,         CorePragmas.DOTSForward) },
-                    { PassVariant(LitPasses.ForwardAdd,      CorePragmas.DOTSForwardAdd) },
-                    { PassVariant(LitPasses.Deferred,        CorePragmas.Deferred) },
-                    { LitPasses.GBuffer },
-                    { PassVariant(CorePasses.ShadowCaster,   CorePragmas.DOTSInstanced) },
-                    { PassVariant(CorePasses.DepthOnly,      CorePragmas.DOTSInstanced) },
-                    { PassVariant(LitPasses.DepthNormalOnly, CorePragmas.DOTSInstanced) },
-                    { PassVariant(LitPasses.Meta,            CorePragmas.DOTSDefault) },
-                    { PassVariant(LitPasses._2D,             CorePragmas.DOTSDefault) },
-                },
-            };
-
-            // Similar to lit, but handles complex material features.
-            // Always ForwardOnly and acts as forward fallback in deferred.
-            // SM 4.5, compute with dots instancing
-            public readonly static SubShaderDescriptor ComplexLitComputeDOTS = new SubShaderDescriptor()
-            {
-                //pipelineTag = BuiltInTarget.kPipelineTag,
-                customTags = BuiltInTarget.kLitMaterialTypeTag,
-                generatesPreview = true,
-                passes = new PassCollection
-                {
-                    { PassVariant(LitPasses.ForwardOnly,     CoreBlockMasks.Vertex, LitBlockMasks.FragmentComplexLit, CorePragmas.DOTSForward, LitDefines.ComplexLit) },
-                    { PassVariant(CorePasses.ShadowCaster,   CorePragmas.DOTSInstanced) },
-                    { PassVariant(CorePasses.DepthOnly,      CorePragmas.DOTSInstanced) },
-                    { PassVariant(LitPasses.DepthNormalOnly, CorePragmas.DOTSInstanced) },
-                    { PassVariant(LitPasses.Meta,            CorePragmas.DOTSDefault)   },
-                    { PassVariant(LitPasses._2D,             CorePragmas.DOTSDefault)   },
-                },
-            };
-
-            // SM 2.0, GLES
-            public readonly static SubShaderDescriptor LitGLES = new SubShaderDescriptor()
+            // SM 2.0
+            public readonly static SubShaderDescriptor Lit = new SubShaderDescriptor()
             {
                 //pipelineTag = BuiltInTarget.kPipelineTag,
                 customTags = BuiltInTarget.kLitMaterialTypeTag,
@@ -290,24 +249,8 @@ namespace UnityEditor.Rendering.BuiltIn.ShaderGraph
                 passes = new PassCollection
                 {
                     { LitPasses.Forward },
-                    { CorePasses.ShadowCaster },
-                    { CorePasses.DepthOnly },
-                    { LitPasses.DepthNormalOnly },
-                    { LitPasses.Meta },
-                    { LitPasses._2D },
-                },
-            };
-
-            // ForwardOnly pass for SM 2.0, GLES
-            // Used as complex Lit SM 2.0 fallback for GLES. Drops advanced features and renders materials as Lit.
-            public readonly static SubShaderDescriptor LitGLESForwardOnly = new SubShaderDescriptor()
-            {
-                pipelineTag = BuiltInTarget.kPipelineTag,
-                customTags = BuiltInTarget.kLitMaterialTypeTag,
-                generatesPreview = true,
-                passes = new PassCollection
-                {
-                    { LitPasses.ForwardOnly },
+                    { LitPasses.ForwardAdd },
+                    { LitPasses.Deferred },
                     { CorePasses.ShadowCaster },
                     { CorePasses.DepthOnly },
                     { LitPasses.DepthNormalOnly },
@@ -375,7 +318,7 @@ namespace UnityEditor.Rendering.BuiltIn.ShaderGraph
 
                 // Conditional State
                 renderStates = CoreRenderStates.ForwardAdd,
-                pragmas  = CorePragmas.Forward,     // NOTE: SM 2.0 only GL
+                pragmas  = CorePragmas.ForwardAdd,     // NOTE: SM 2.0 only GL
                 keywords = LitKeywords.ForwardAdd,
                 includes = LitIncludes.ForwardAdd,
 
@@ -440,37 +383,6 @@ namespace UnityEditor.Rendering.BuiltIn.ShaderGraph
                 pragmas  = CorePragmas.Deferred,    // NOTE: SM 2.0 only GL
                 keywords = LitKeywords.Deferred,
                 includes = LitIncludes.Deferred,
-
-                // Custom Interpolator Support
-                customInterpolators = CoreCustomInterpDescriptors.Common
-            };
-
-            // Deferred only in SM4.5, MRT not supported in GLES2
-            public static PassDescriptor GBuffer = new PassDescriptor
-            {
-                // Definition
-                displayName = "GBuffer",
-                referenceName = "SHADERPASS_GBUFFER",
-                lightMode = "BuiltInGBuffer",
-
-                // Template
-                passTemplatePath = BuiltInTarget.kTemplatePath,
-                sharedTemplateDirectories = BuiltInTarget.kSharedTemplateDirectories,
-
-                // Port Mask
-                validVertexBlocks = CoreBlockMasks.Vertex,
-                validPixelBlocks = LitBlockMasks.FragmentLit,
-
-                // Fields
-                structs = CoreStructCollections.Default,
-                requiredFields = LitRequiredFields.GBuffer,
-                fieldDependencies = CoreFieldDependencies.Default,
-
-                // Conditional State
-                renderStates = CoreRenderStates.Default,
-                pragmas = CorePragmas.DOTSGBuffer,
-                keywords = LitKeywords.GBuffer,
-                includes = LitIncludes.GBuffer,
 
                 // Custom Interpolator Support
                 customInterpolators = CoreCustomInterpDescriptors.Common

@@ -77,6 +77,14 @@ half4 frag(PackedVaryings packedInput) : SV_TARGET
     UNITY_SETUP_INSTANCE_ID(unpacked);
     UNITY_SETUP_STEREO_EYE_INDEX_POST_VERTEX(unpacked);
 
+    SurfaceDescriptionInputs surfaceDescriptionInputs = BuildSurfaceDescriptionInputs(unpacked);
+    SurfaceDescription surfaceDescription = SurfaceDescriptionFunction(surfaceDescriptionInputs);
+    
+    #if _AlphaClip
+       half alpha = surfaceDescription.Alpha;
+       clip(alpha - surfaceDescription.AlphaClipThreshold);
+    #endif
+
     half4 color = ShadowCasterFragment(unpacked);
     return color;
 }
