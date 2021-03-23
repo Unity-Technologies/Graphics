@@ -1,4 +1,7 @@
-
+#if ENABLE_INPUT_SYSTEM && ENABLE_INPUT_SYSTEM_PACKAGE
+    #define USE_INPUT_SYSTEM
+    using UnityEngine.InputSystem.UI;
+#endif
 using UnityEngine.EventSystems;
 
 namespace UnityEngine.Rendering
@@ -18,7 +21,16 @@ namespace UnityEngine.Rendering
             if(es == null)
             {
                 go.AddComponent<EventSystem>();
+#if USE_INPUT_SYSTEM
+                // FIXME: InputSystemUIInputModule has a quirk where the default actions fail to get initialized if the
+                // component is initialized while the GameObject is active. So we deactivate it temporarily.
+                // See https://fogbugz.unity3d.com/f/cases/1323566/
+                go.SetActive(false);
+                go.AddComponent<InputSystemUIInputModule>();
+                go.SetActive(true);
+#else
                 go.AddComponent<StandaloneInputModule>();
+#endif
             }
             DontDestroyOnLoad(go);
         }
@@ -39,7 +51,8 @@ namespace UnityEngine.Rendering
                 {
                     foreach (var touch in Input.touches)
                     {
-                        if (touch.phase == TouchPhase.Began)
+                        // Gesture: 3-finger double-tap
+                        if (touch.phase == TouchPhase.Began && touch.tapCount == 2)
                             debugManager.displayRuntimeUI = !debugManager.displayRuntimeUI;
                     }
                 }
