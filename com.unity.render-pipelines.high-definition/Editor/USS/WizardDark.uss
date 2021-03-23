@@ -34,7 +34,7 @@ ToolbarRadio
 
 .ScopeBox
 {
-    border-color: #C4C4C4;
+    border-color: #181818;
 }
 
 .ScopeBox > #Title

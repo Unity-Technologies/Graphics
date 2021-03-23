@@ -158,21 +158,10 @@ namespace UnityEditor.Rendering.HighDefinition
             }
         }
 
-        void Repopulate()
+        void CreateFolder()
         {
             if (!AssetDatabase.IsValidFolder("Assets/" + HDProjectSettings.projectSettingsFolderPath))
                 AssetDatabase.CreateFolder("Assets", HDProjectSettings.projectSettingsFolderPath);
-
-            var hdrpAsset = ScriptableObject.CreateInstance<HDRenderPipelineAsset>();
-            hdrpAsset.name = "HDRenderPipelineAsset";
-
-            AssetDatabase.CreateAsset(hdrpAsset, "Assets/" + HDProjectSettings.projectSettingsFolderPath + "/" + hdrpAsset.name + ".asset");
-
-            GraphicsSettings.renderPipelineAsset = hdrpAsset;
-            if (!IsHdrpAssetRuntimeResourcesCorrect())
-                FixHdrpAssetRuntimeResources(true);
-            if (!IsHdrpAssetEditorResourcesCorrect())
-                FixHdrpAssetEditorResources(true);
         }
 
         #endregion

@@ -18,8 +18,8 @@ namespace UnityEditor.Rendering.HighDefinition
 
             public const string hdrpProjectSettingsPathLabel = "Default Resources Folder";
             public const string hdrpProjectSettingsPathTooltip = "Resources Folder will be the one where to get project elements related to HDRP as default scene and default settings.";
-            public const string firstTimeInitLabel = "Populate / Reset";
-            public const string firstTimeInitTooltip = "Populate or override Default Resources Folder content with required assets and assign it in GraphicSettings.";
+            public const string createFolderLabel = "Create";
+            public const string createFolderTooltip = "Create the folder if it is not existing.";
             public const string newSceneLabel = "Default Scene Prefab";
             public const string newSceneTooltip = "This prefab contains scene elements that are used when creating a new scene in HDRP.";
             public const string newDXRSceneLabel = "Default DXR Scene Prefab";
@@ -141,25 +141,25 @@ namespace UnityEditor.Rendering.HighDefinition
                 label: "Screen Space Shadows (Asset)",
                 error: "Screen Space Shadows are disabled in the current HDRP Asset which means you cannot enable ray-traced shadows for lights in your scene. To enable this feature, open your HDRP Asset, go to Lighting > Shadows, and enable Screen Space Shadows", messageType: MessageType.Warning);
             public static readonly ConfigStyle dxrScreenSpaceShadowFS = new ConfigStyle(
-                label: "Screen Space Shadows (Default Camera Frame Setting)",
+                label: "Screen Space Shadows (HDRP Default Settings)",
                 error: "Screen Space Shadows are disabled in the default Camera Frame Settings. This means Cameras that use these Frame Settings do not render ray-traced shadows. To enable this feature, go to Project Settings > HDRP Default Settings > Frame Settings > Default Frame Settings For Camera > Lighting and enable Screen Space Shadows", messageType: MessageType.Info);
             public static readonly ConfigStyle dxrReflections = new ConfigStyle(
-                label: "Reflection (Asset)",
+                label: "Screan Space Reflection (Asset)",
                 error: "Screen Space Reflection is disabled in the current HDRP Asset which means you cannot enable ray-traced reflections in Volume components. To enable this feature, open your HDRP Asset, go to Lighting > Reflections, and enable Screen Space Reflections", messageType: MessageType.Warning);
             public static readonly ConfigStyle dxrReflectionsFS = new ConfigStyle(
-                label: "Reflection (Default Camera Frame Setting)",
+                label: "Screan Space Reflection (HDRP Default Settings)",
                 error: "Screen Space Reflection is disabled in the default Camera Frame Settings. This means Cameras that use these Frame Settings do not render ray-traced reflections. To enable this feature, go to Project Settings > HDRP Default Settings > Frame Settings > Default Frame Settings For Camera > Lighting and enable Screen Space Reflections", messageType: MessageType.Info);
             public static readonly ConfigStyle dxrTransparentReflections = new ConfigStyle(
                 label: "Screen Space Reflection - Transparent (Asset)",
-                error: "Screen Space Reflection - Transparent is disabled in the current HDRP Asset which means you cannot enable ray-traced reflections for transparent GameObjects from Volume components. To enable this feature, open your HDRP Asset, go to Lighting > Reflections, and enable Transparents receive SSR", messageType: MessageType.Warning);
+                error: "Screen Space Reflection - Transparent is disabled in the current HDRP Asset which means you cannot enable ray-traced reflections on transparent GameObjects from Volume components. To enable this feature, open your HDRP Asset, go to Lighting > Reflections, and enable Transparents receive SSR", messageType: MessageType.Warning);
             public static readonly ConfigStyle dxrTransparentReflectionsFS = new ConfigStyle(
-                label: "Screen Space Reflection - Transparent (Default Camera Frame Setting)",
-                error: "Screen Space Reflection - Transparent is disabled in the default Camera Frame Settings. This means Cameras that use these Frame Settings do not render ray-traced reflections for transparent GameObjects. To enable this feature, go to Project Settings > HDRP Default Settings > Frame Settings > Default Frame Settings For Camera > Lighting and enable On Transparent", messageType: MessageType.Info);
+                label: "Screen Space Reflection - Transparent (HDRP Default Settings)",
+                error: "Screen Space Reflection - Transparent is disabled in the default Camera Frame Settings. This means Cameras that use these Frame Settings do not render ray-traced reflections on transparent GameObjects. To enable this feature, go to Project Settings > HDRP Default Settings > Frame Settings > Default Frame Settings For Camera > Lighting and enable Transparent", messageType: MessageType.Info);
             public static readonly ConfigStyle dxrGI = new ConfigStyle(
-                label: "Global Illumination (Asset)",
+                label: "Screen Space Global Illumination (Asset)",
                 error: "Screen Space Global Illumination is disabled in the current HDRP asset which means you cannot enable ray-traced global illumination in Volume components. To enable this feature, open your HDRP Asset, go to Lighting and enable Screen Space Global Illumination", messageType: MessageType.Warning);
             public static readonly ConfigStyle dxrGIFS = new ConfigStyle(
-                label: "Global Illumination (Default Camera Frame Setting)",
+                label: "Screen Space Global Illumination (HDRP Default Settings)",
                 error: "Screen Space Global Illumination is disabled in the default Camera Frame Settings. This means Cameras that use these Frame Settings do not render ray-traced global illumination. To enable this feature, go to Project Settings > HDRP Default Settings > Frame Settings > Default Frame Settings For Camera > Lighting and enable Screen Space Global Illumination", messageType: MessageType.Info);
             public static readonly ConfigStyle dxr64bits = new ConfigStyle(
                 label: "Architecture 64 bits",
@@ -404,10 +404,10 @@ namespace UnityEditor.Rendering.HighDefinition
             defaultResourceFolder.RegisterValueChangedCallback(evt
                 => HDProjectSettings.projectSettingsFolderPath = evt.newValue);
 
-            var repopulate = new Button(Repopulate)
+            var repopulate = new Button(CreateFolder)
             {
-                text = Style.firstTimeInitLabel,
-                tooltip = Style.firstTimeInitTooltip
+                text = Style.createFolderLabel,
+                tooltip = Style.createFolderTooltip
             };
             repopulate.AddToClassList("RightAnchoredButton");
 
