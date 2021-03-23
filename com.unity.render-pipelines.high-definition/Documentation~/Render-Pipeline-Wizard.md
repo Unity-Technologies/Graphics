@@ -16,17 +16,7 @@ You also have a button allow you to creates a local instance of the [High Defini
 
 | **Property**                 | **Description**                                              |
 | ---------------------------- | ------------------------------------------------------------ |
-| **Default Resources Folder** | Set the folder name that the Render Pipeline Wizard uses when it loads or creates resources. Click the **Populate / Reset** button to populate the **Default Resources Folder** with the resources that HDRP needs to render a Scene (for details, see [Populating the default resources folder](#populating-the-default-resources-folder)). If a default Asset already exists in the folder then clicking the Populate/Reset button resets the existing Asset. |
-
-### Populating the default resources folder
-
-When you click **Populate/Reset**, HDRP generates the following Assets:
-
-- **DefautRenderingSettings**: The default [Volume Profile](Volume-Profile.md) that the template Scene uses to render visual elements like shadows, fog, and the sky.
-- **DefautPostprocessingSettings**: The default [Volume Profile](Volume-Profile.md) that the template Scene uses for post-processing effects.
-- **HDRenderPipellineAsset**: The [HDRP Asset](HDRP-Asset.md) that Unity uses to configure HDRP settings for the Unity Project.
-- **Foliage Diffusion Profile**: A [Diffusion Profile](Diffusion-Profile.md) that simulates sub-surface light interaction with foliage.
-- **Skin Diffusion Profile**: A [Diffusion Profile](Diffusion-Profile.md) that simulates sub-surface light interaction with skin.
+| **Default Resources Folder** | Set the folder name that the Render Pipeline Wizard uses when it loads or creates resources. |
 
 ## Configuration Checking
 
