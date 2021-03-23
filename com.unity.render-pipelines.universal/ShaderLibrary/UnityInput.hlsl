@@ -105,6 +105,10 @@ float4x4 unity_ObjectToWorld;
 float4x4 unity_WorldToObject;
 float4 unity_LODFade; // x is the fade value ranging within [0,1]. y is x quantized into 16 levels
 real4 unity_WorldTransformParams; // w is usually 1.0, or -1.0 for odd-negative scale transforms
+
+// Render Layer block feature
+// Each float represents 8 bits of the rendering layer mask (32 bits). Each float must be reinterpreted using asuint() to extract the original 8 bits values.
+// {x, y, z, w} => bits {0-7, 8-15, 16-23, 24-32}
 float4 unity_RenderingLayer;
 
 // Light Indices block feature
