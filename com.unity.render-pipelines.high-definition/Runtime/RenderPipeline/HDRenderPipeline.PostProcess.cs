@@ -156,18 +156,6 @@ namespace UnityEngine.Rendering.HighDefinition
             // relying on (breaks determinism in their code)
             m_Random = new System.Random();
 
-            m_PostProcessColorFormat = (GraphicsFormat)postProcessSettings.bufferFormat;
-            m_KeepAlpha = false;
-
-            // if both rendering and post-processing support an alpha channel, then post-processing will process (or copy) the alpha
-            m_EnableAlpha = asset.currentPlatformRenderPipelineSettings.supportsAlpha && postProcessSettings.supportsAlpha;
-
-            if (m_EnableAlpha == false)
-            {
-                // if only rendering has an alpha channel (and not post-processing), then we just copy the alpha to the output (but we don't process it).
-                m_KeepAlpha = asset.currentPlatformRenderPipelineSettings.supportsAlpha;
-            }
-
             // Setup a default exposure textures and clear it to neutral values so that the exposure
             // multiplier is 1 and thus has no effect
             // Beware that 0 in EV100 maps to a multiplier of 0.833 so the EV100 value in this
@@ -282,6 +270,17 @@ namespace UnityEngine.Rendering.HighDefinition
             m_DebugExposureCompensation = m_CurrentDebugDisplaySettings.data.lightingDebugSettings.debugExposure;
 
             CheckRenderTexturesValidity();
+
+            var hdAsset = (HDRenderPipeline)(RenderPipelineManager.currentPipeline);
+            var postProcessSettings = hdAsset.currentPlatformRenderPipelineSettings.postProcessSettings;
+            m_PostProcessColorFormat = (GraphicsFormat)postProcessSettings.bufferFormat;
+            m_KeepAlpha = false;
+
+            if (m_EnableAlpha == false)
+            {
+                // if only rendering has an alpha channel (and not post-processing), then we just copy the alpha to the output (but we don't process it).
+                m_KeepAlpha = hdAsset.currentPlatformRenderPipelineSettings.SupportsAlpha();
+            }
 
             // Handle fixed exposure & disabled pre-exposure by forcing an exposure multiplier of 1
             if (!m_ExposureControlFS)
