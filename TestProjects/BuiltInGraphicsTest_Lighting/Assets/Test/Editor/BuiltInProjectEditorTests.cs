@@ -6,7 +6,6 @@ using UnityEngine.Rendering.Universal;
 
 public class BuiltInProjectEditorTests
 {
-
     [Test]
     public void GetCurrentAsset()
     {
