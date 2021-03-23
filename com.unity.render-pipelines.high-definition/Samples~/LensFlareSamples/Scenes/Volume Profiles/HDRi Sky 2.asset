@@ -318,10 +318,10 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   components:
   - {fileID: -7125086063054558014}
-  - {fileID: -354064037920849355}
-  - {fileID: -5846556161683155364}
-  - {fileID: -6427130540544615397}
   - {fileID: 6210326931562676241}
+  - {fileID: -6427130540544615397}
+  - {fileID: -5846556161683155364}
+  - {fileID: -354064037920849355}
 --- !u!114 &6210326931562676241
 MonoBehaviour:
   m_ObjectHideFlags: 3

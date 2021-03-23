@@ -239,6 +239,46 @@ MonoBehaviour:
   proceduralSoftness:
     m_OverrideState: 0
     m_Value: 0.5
+--- !u!114 &-7178935025213973393
+MonoBehaviour:
+  m_ObjectHideFlags: 3
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: f086a068d4c5889438831b3ae9afc11c, type: 3}
+  m_Name: Tonemapping
+  m_EditorClassIdentifier: 
+  active: 0
+  mode:
+    m_OverrideState: 1
+    m_Value: 0
+  toeStrength:
+    m_OverrideState: 0
+    m_Value: 0
+  toeLength:
+    m_OverrideState: 0
+    m_Value: 0.5
+  shoulderStrength:
+    m_OverrideState: 0
+    m_Value: 0
+  shoulderLength:
+    m_OverrideState: 0
+    m_Value: 0.5
+  shoulderAngle:
+    m_OverrideState: 0
+    m_Value: 0
+  gamma:
+    m_OverrideState: 0
+    m_Value: 1
+  lutTexture:
+    m_OverrideState: 0
+    m_Value: {fileID: 0}
+  lutContribution:
+    m_OverrideState: 0
+    m_Value: 1
 --- !u!114 &-2945517319943106614
 MonoBehaviour:
   m_ObjectHideFlags: 3
@@ -278,9 +318,10 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   components:
   - {fileID: -2945517319943106614}
-  - {fileID: -8396985680391411353}
-  - {fileID: -8246037931198312451}
   - {fileID: 1388349699659564041}
+  - {fileID: -8246037931198312451}
+  - {fileID: -8396985680391411353}
+  - {fileID: -7178935025213973393}
 --- !u!114 &1388349699659564041
 MonoBehaviour:
   m_ObjectHideFlags: 3

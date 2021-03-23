@@ -165,9 +165,9 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   components:
   - {fileID: 5966000216957409321}
-  - {fileID: 3457080192519990944}
-  - {fileID: -826297336579102667}
   - {fileID: 4484661784381793578}
+  - {fileID: -826297336579102667}
+  - {fileID: 3457080192519990944}
 --- !u!114 &3457080192519990944
 MonoBehaviour:
   m_ObjectHideFlags: 3
