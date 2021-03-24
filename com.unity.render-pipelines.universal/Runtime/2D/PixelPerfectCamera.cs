@@ -14,6 +14,26 @@ namespace UnityEngine.Experimental.Rendering.Universal
     [HelpURL("https://docs.unity3d.com/Packages/com.unity.render-pipelines.universal@latest/index.html?subfolder=/manual/2d-pixelperfect.html%23properties")]
     public class PixelPerfectCamera : MonoBehaviour, IPixelPerfectCamera
     {
+        public enum CropFrame
+        {
+            None,
+            Pillarbox,
+            Letterbox,
+            Windowbox,
+            StretchFill
+        }
+
+        public enum GridSnapping
+        {
+            None,
+            PixelSnapping,
+            UpscaleRenderTexture
+        }
+
+
+        public CropFrame cropFrame { get { return m_CropFrame; } set { m_CropFrame = value; } }
+        public GridSnapping gridSnapping { get { return m_GridSnapping;} set { m_GridSnapping = value; } }
+
         /// <summary>
         /// Match this value to to the Pixels Per Unit values of all Sprites within the Scene.
         /// </summary>
@@ -33,28 +53,99 @@ namespace UnityEngine.Experimental.Rendering.Universal
         /// Set to true to have the Scene rendered to a temporary texture set as close as possible to the Reference Resolution,
         /// while maintaining the full screen aspect ratio. This temporary texture is then upscaled to fit the full screen.
         /// </summary>
-        public bool upscaleRT { get { return m_UpscaleRT; } set { m_UpscaleRT = value; } }
+        [System.Obsolete("Use gridSnapping instead", false)]
+        public bool upscaleRT
+        {
+            get
+            {
+                return m_GridSnapping == GridSnapping.UpscaleRenderTexture;
+            }
+            set
+            {
+                m_GridSnapping = value ? GridSnapping.UpscaleRenderTexture : GridSnapping.None;
+            }
+        }
 
         /// <summary>
         /// Set to true to prevent subpixel movement and make Sprites appear to move in pixel-by-pixel increments.
         /// Only applicable when upscaleRT is false.
         /// </summary>
-        public bool pixelSnapping { get { return m_PixelSnapping; } set { m_PixelSnapping = value; } }
+        [System.Obsolete("Use gridSnapping instead", false)]
+        public bool pixelSnapping
+        {
+            get
+            {
+                return m_GridSnapping == GridSnapping.PixelSnapping;
+            }
+            set
+            {
+                m_GridSnapping = value ? GridSnapping.PixelSnapping : GridSnapping.None;
+            }
+        }
 
         /// <summary>
         /// Set to true to crop the viewport with black bars to match refResolutionX in the horizontal direction.
         /// </summary>
-        public bool cropFrameX { get { return m_CropFrameX; } set { m_CropFrameX = value; } }
+        [System.Obsolete("Use cropFrame instead", false)]
+        public bool cropFrameX
+        {
+            get
+            {
+                return m_CropFrame == CropFrame.StretchFill || m_CropFrame == CropFrame.Windowbox || m_CropFrame == CropFrame.Letterbox;
+            }
+            set
+            {
+                if (value)
+                {
+                    if (m_CropFrame == CropFrame.None)
+                        m_CropFrame = CropFrame.Letterbox;
+                    else if (m_CropFrame == CropFrame.Pillarbox)
+                        m_CropFrame = CropFrame.Windowbox;
+                }
+                else
+                {
+                    if (m_CropFrame == CropFrame.Letterbox)
+                        m_CropFrame = CropFrame.None;
+                    else if (m_CropFrame == CropFrame.Windowbox || m_CropFrame == CropFrame.StretchFill)
+                        m_CropFrame = CropFrame.Pillarbox;
+                }
+            }
+        }
 
         /// <summary>
         /// Set to true to crop the viewport with black bars to match refResolutionY in the vertical direction.
         /// </summary>
-        public bool cropFrameY { get { return m_CropFrameY; } set { m_CropFrameY = value; } }
+        [System.Obsolete("Use cropFrame instead", false)]
+        public bool cropFrameY
+        {
+            get
+            {
+                return m_CropFrame == CropFrame.StretchFill || m_CropFrame == CropFrame.Windowbox || m_CropFrame == CropFrame.Pillarbox;
+            }
+            set
+            {
+                if (value)
+                {
+                    if (m_CropFrame == CropFrame.None)
+                        m_CropFrame = CropFrame.Pillarbox;
+                    else if (m_CropFrame == CropFrame.Letterbox)
+                        m_CropFrame = CropFrame.Windowbox;
+                }
+                else
+                {
+                    if (m_CropFrame == CropFrame.Pillarbox)
+                        m_CropFrame = CropFrame.None;
+                    else if (m_CropFrame == CropFrame.Windowbox || m_CropFrame == CropFrame.StretchFill)
+                        m_CropFrame = CropFrame.Letterbox;
+                }
+            }
+        }
 
         /// <summary>
         /// Set to true to expand the viewport to fit the screen resolution while maintaining the viewport's aspect ratio.
         /// Only applicable when both cropFrameX and cropFrameY are true.
         /// </summary>
+        [System.Obsolete("Use cropFrame instead", false)]
         public bool stretchFill { get { return m_StretchFill; } set { m_StretchFill = value; } }
 
         /// <summary>
@@ -118,11 +209,17 @@ namespace UnityEngine.Experimental.Rendering.Universal
         [SerializeField] int    m_AssetsPPU         = 100;
         [SerializeField] int    m_RefResolutionX    = 320;
         [SerializeField] int    m_RefResolutionY    = 180;
+
+        [SerializeField] CropFrame m_CropFrame;
+        [SerializeField] GridSnapping m_GridSnapping;
+
+        // These are obsolete. They are here only for migration.
         [SerializeField] bool   m_UpscaleRT;
         [SerializeField] bool   m_PixelSnapping;
         [SerializeField] bool   m_CropFrameX;
         [SerializeField] bool   m_CropFrameY;
         [SerializeField] bool   m_StretchFill;
+
 
         Camera m_Camera;
         PixelPerfectCameraInternal m_Internal;
