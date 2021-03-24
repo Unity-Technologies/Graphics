@@ -1179,7 +1179,7 @@
     "m_DefaultRefNameVersion": 1,
     "m_RefNameGeneratedByDisplayName": "Occlusion Map",
     "m_DefaultReferenceName": "Occlusion_Map",
-    "m_OverrideReferenceName": "_OcclusionMap",
+    "m_OverrideReferenceName": "_AmbientOcclusion",
     "m_GeneratePropertyBlock": true,
     "m_Precision": 0,
     "overrideHLSLDeclaration": false,
