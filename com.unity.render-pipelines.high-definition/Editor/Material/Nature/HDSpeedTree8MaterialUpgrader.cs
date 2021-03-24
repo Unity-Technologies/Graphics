@@ -57,6 +57,48 @@ namespace UnityEditor.Rendering.HighDefinition
                 mat.SetFloat("_DoubleSidedEnable", 1.0f);
             }
             mat.SetFloat("_DoubleSidedNormalMode", (int)DoubleSidedNormalMode.Mirror);
+
+            SetDefaultDiffusionProfile(mat);
+        }
+
+        // Should match HDRenderPipelineEditorResources.defaultDiffusionProfileSettingsList[foliageIdx]
+        private const string kFoliageDiffusionProfilePath = "Runtime/RenderPipelineResources/FoliageDiffusionProfile.asset";
+        // Should match HDRenderPipelineEditorResources.defaultDiffusionProfileSettingsList[foliageIdx].name
+        private const string kDefaultDiffusionProfileName = "Foliage";
+        private static void SetDefaultDiffusionProfile(Material mat)
+        {
+            string guid = "";
+            long localID;
+            uint diffusionProfileHash = 0;
+            foreach (var diffusionProfileAsset in HDRenderPipeline.defaultAsset.diffusionProfileSettingsList)
+            {
+                if (diffusionProfileAsset != null && diffusionProfileAsset.name.Equals(kDefaultDiffusionProfileName))
+                {
+                    if (AssetDatabase.TryGetGUIDAndLocalFileIdentifier<DiffusionProfileSettings>(diffusionProfileAsset, out guid, out localID))
+                    {
+                        diffusionProfileHash = diffusionProfileAsset.profile.hash;
+                        break;
+                    }
+                }
+            }
+
+            if (diffusionProfileHash == 0)
+            {
+                // If the user doesn't have a foliage diffusion profile defined, grab the foliage diffusion profile that comes with HD.
+                // This won't work until the user adds it to their default diffusion profiles list,
+                // but there is a nice "fix" button on the material to help with that.
+                DiffusionProfileSettings foliageSettings = AssetDatabase.LoadAssetAtPath<DiffusionProfileSettings>(HDUtils.GetHDRenderPipelinePath() + kFoliageDiffusionProfilePath);
+                if (AssetDatabase.TryGetGUIDAndLocalFileIdentifier<DiffusionProfileSettings>(foliageSettings, out guid, out localID))
+                {
+                    diffusionProfileHash = foliageSettings.profile.hash;
+                }
+            }
+
+            if (diffusionProfileHash != 0)
+            {
+                mat.SetVector(HDShaderIDs._DiffusionProfileAsset, HDUtils.ConvertGUIDToVector4(guid));
+                mat.SetFloat(HDShaderIDs._DiffusionProfileHash, HDShadowUtils.Asfloat(diffusionProfileHash));
+            }
         }
 	}
 }
