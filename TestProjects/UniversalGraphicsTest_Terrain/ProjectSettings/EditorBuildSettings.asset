@@ -29,4 +29,7 @@ EditorBuildSettings:
   - enabled: 1
     path: Assets/Scenes/129_EnvironmentShaderVariables.unity
     guid: 4992b4e789a834290bb09f01dd4d4433
+  - enabled: 1
+    path: Assets/Scenes/113_FogTerrain.unity
+    guid: 848cdeb8585cb4f96a667c02e9ce3880
   m_configObjects: {}
