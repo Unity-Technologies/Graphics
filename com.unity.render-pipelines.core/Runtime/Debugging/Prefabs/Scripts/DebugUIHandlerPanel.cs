@@ -18,6 +18,7 @@ namespace UnityEngine.Rendering.UI
         RectTransform m_ScrollTransform;
         RectTransform m_ContentTransform;
         RectTransform m_MaskTransform;
+        DebugUIHandlerWidget m_ScrollTarget;
 
         internal protected DebugUI.Panel m_Panel;
 
@@ -49,13 +50,18 @@ namespace UnityEngine.Rendering.UI
             Canvas.SelectPreviousPanel();
         }
 
-        // TODO: Jumps around with foldouts and the likes, fix me
-        internal void ScrollTo(DebugUIHandlerWidget target)
+        internal void SetScrollTarget(DebugUIHandlerWidget target)
         {
-            if (target == null)
+            m_ScrollTarget = target;
+        }
+
+        // TODO: Jumps around with foldouts and the likes, fix me
+        internal void UpdateScroll()
+        {
+            if (m_ScrollTarget == null)
                 return;
 
-            var targetTransform = target.GetComponent<RectTransform>();
+            var targetTransform = m_ScrollTarget.GetComponent<RectTransform>();
 
             float itemY = GetYPosInScroll(targetTransform);
             float targetY = GetYPosInScroll(m_MaskTransform);

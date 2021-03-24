@@ -1,6 +1,6 @@
 #if ENABLE_INPUT_SYSTEM && ENABLE_INPUT_SYSTEM_PACKAGE
     #define USE_INPUT_SYSTEM
-    using UnityEngine.InputSystem.UI;
+using UnityEngine.InputSystem.UI;
 #endif
 using UnityEngine.EventSystems;
 
@@ -18,7 +18,7 @@ namespace UnityEngine.Rendering
             go.AddComponent<DebugUpdater>();
 
             var es = GameObject.FindObjectOfType<EventSystem>();
-            if(es == null)
+            if (es == null)
             {
                 go.AddComponent<EventSystem>();
 #if USE_INPUT_SYSTEM
@@ -62,6 +62,9 @@ namespace UnityEngine.Rendering
             {
                 debugManager.Reset();
             }
+
+            if (Input.mouseScrollDelta != Vector2.zero)
+                debugManager.SetScrollTarget(null); // Allow mouse wheel scroll without causing auto-scroll
         }
     }
 }

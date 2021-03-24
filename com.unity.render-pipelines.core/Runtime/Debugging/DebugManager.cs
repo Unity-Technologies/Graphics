@@ -201,6 +201,11 @@ namespace UnityEngine.Rendering
             m_RootUICanvas.ChangeSelection(widget, fromNext);
         }
 
+        internal void SetScrollTarget(DebugUIHandlerWidget widget)
+        {
+            m_RootUICanvas.SetScrollTarget(widget);
+        }
+
         void CheckPersistentCanvas()
         {
             if (m_RootUIPersistentCanvas == null)

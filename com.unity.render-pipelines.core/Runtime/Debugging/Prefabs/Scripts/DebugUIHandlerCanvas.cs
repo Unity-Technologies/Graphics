@@ -61,7 +61,7 @@ namespace UnityEngine.Rendering.UI
 
             // Update scroll position in the panel
             if (m_UIPanels != null && m_SelectedPanel < m_UIPanels.Count && m_UIPanels[m_SelectedPanel] != null)
-                m_UIPanels[m_SelectedPanel].ScrollTo(m_SelectedWidget);
+                m_UIPanels[m_SelectedPanel].UpdateScroll();
         }
 
         internal void RequestHierarchyReset()
@@ -205,6 +205,7 @@ namespace UnityEngine.Rendering.UI
 
             var prev = m_SelectedWidget;
             m_SelectedWidget = widget;
+            SetScrollTarget(widget);
 
             if (!m_SelectedWidget.OnSelection(fromNext, prev))
             {
@@ -313,6 +314,12 @@ namespace UnityEngine.Rendering.UI
                 else
                     SelectPreviousItem();
             }
+        }
+
+        public void SetScrollTarget(DebugUIHandlerWidget widget)
+        {
+            if (m_UIPanels != null && m_SelectedPanel < m_UIPanels.Count && m_UIPanels[m_SelectedPanel] != null)
+                m_UIPanels[m_SelectedPanel].SetScrollTarget(widget);
         }
     }
 }
