@@ -246,9 +246,9 @@ namespace UnityEditor.ShaderGraph
 
         // We build this once and cache it as it uses reflection
         // This list is used to build the Create Node menu entries for Blocks
-        // as well as when deserializing descriptor fields on serialized Blocks
         [NonSerialized]
         List<BlockFieldDescriptor> m_BlockFieldDescriptors;
+        // This is used when deserializing descriptor fields on serialized Blocks
         [NonSerialized]
         Dictionary<string, BlockFieldDescriptor> m_BlockFieldDescriptorSignatureMap;
 
@@ -571,6 +571,8 @@ namespace UnityEditor.ShaderGraph
                 .Select(t => Activator.CreateInstance(t, nonPublic: true))
                 .Cast<IBlockFieldProvider>();
 
+            HashSet<BlockFieldDescriptor> blockFieldDescriptorsAdded = new HashSet<BlockFieldDescriptor>();
+
             foreach (var blockFieldProvider in blockFieldProviders)
             {
                 foreach (var map in blockFieldProvider.recognizedBlockFieldSignatures)
@@ -583,10 +585,13 @@ namespace UnityEditor.ShaderGraph
                     else
                     {
                         m_BlockFieldDescriptorSignatureMap.Add(map.blockFieldSignature.ToString(), map.blockFieldDescriptor);
-                        if (map.blockFieldSignature.providerNamespace != "")
+                        if (!blockFieldDescriptorsAdded.Contains(map.blockFieldDescriptor))
                         {
-                            // This is not a legacy signature, add the corresponding descriptor to list of valid m_BlockFieldDescriptors to use
-                            // (is this even used? SearchWindow but stack blocks can't be added manually by user?)
+                            blockFieldDescriptorsAdded.Add(map.blockFieldDescriptor);
+                            // This descriptor wasn't already added for any other signatures (legacy signature, without namespace, eg "", or any other:
+                            // in the future, we could provide more signatures for the same descriptor, ie if a name change is desired by subtargets / providers),
+                            // add the corresponding descriptor to list of valid m_BlockFieldDescriptors to use
+                            // (this list is used for context menu when manually adding blocknodes to a stage stack).
                             m_BlockFieldDescriptors.Add(map.blockFieldDescriptor);
                         }
                     }
