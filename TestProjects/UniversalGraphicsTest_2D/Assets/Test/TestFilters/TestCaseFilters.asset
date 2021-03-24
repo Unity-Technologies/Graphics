@@ -35,7 +35,7 @@ MonoBehaviour:
     FilteredScenes:
     - {fileID: 102900000, guid: 9f750aafa54d07a43b7601615bb2c7ea, type: 3}
     ColorSpace: -1
-    BuildPlatform: -2
+    BuildPlatform: 13
     GraphicsDevice: 11
     XrSdk: None
     StereoModes: 0
