@@ -15,8 +15,7 @@ In the Inspector for your HDRP Asset, navigate to the **Rendering** section and 
 
 HDRP calculates motion vectors in two stages:
 
-1. HDRP first calculates object motion vectors. To make a Mesh Renderer write object motion vectors, in its Inspector, go to **Additional Settings** and select **Per Object Motion** from the **Motion Vectors** drop-down. HDRP now calculates object motion vectors for this Mesh Renderer, if you enable **Object Motion Vectors** in the Frame Settings.
-![](Images/MotionVectors1.png)
+1. HDRP first calculates object motion vectors. To make a Mesh Renderer write object motion vectors, in its Inspector, go to **Additional Settings** and select **Per Object Motion** from the **Motion Vectors** drop-down. HDRP now calculates object motion vectors for this Mesh Renderer, if you enable **Object Motion Vectors** in the Frame Settings.<br/>![](Images/MotionVectors1.png)
 2. HDRP then calculates Camera motion vectors, which are caused by the movement of the Camera. This is for pixels that did not write motion vectors during the first stage. To make HDRP calculate Camera motion vectors for a Mesh Renderer, in the Inspector for the Mesh Renderer, go to **Additional Settings** and select **Camera Motion Only** from the **Motion Vectors** drop-down.
 
 If you do not want HDRP to calculate motion vectors for a Mesh Renderer at all, in the Inspector for the Mesh Renderer, go to **Additional Settings** and select **Force No Motion** from the **Motion Vectors** drop-down.
