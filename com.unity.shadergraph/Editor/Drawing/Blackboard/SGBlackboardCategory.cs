@@ -434,9 +434,8 @@ namespace UnityEditor.ShaderGraph.Drawing
 
         void RequestCategoryDelete()
         {
-            var deleteCategoryAction = new DeleteCategoryAction();
-            deleteCategoryAction.categoriesToRemoveGuids.Add(viewModel.associatedCategoryGuid);
-            viewModel.requestModelChangeAction(deleteCategoryAction);
+            var materialGraphView = Blackboard.ParentView as MaterialGraphView;
+            materialGraphView?.deleteSelection?.Invoke("Delete", GraphView.AskUser.DontAskUser);
         }
 
         void AddContextMenuOptions(ContextualMenuPopulateEvent evt)

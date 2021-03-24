@@ -485,18 +485,6 @@ namespace UnityEditor.ShaderGraph.Drawing
             return null;
         }
 
-        BlackboardCategoryController GetCategoryController(ShaderInput blackboardItem)
-        {
-            foreach (var categoryController in m_BlackboardCategoryControllers)
-            {
-                var blackboardRow = categoryController.FindBlackboardRow(blackboardItem);
-                if (blackboardRow != null)
-                    return categoryController;
-            }
-
-            return null;
-        }
-
         int numberOfCategories => m_BlackboardCategoryControllers.Count;
 
         // Gets the index after the currently selected shader input per row.
