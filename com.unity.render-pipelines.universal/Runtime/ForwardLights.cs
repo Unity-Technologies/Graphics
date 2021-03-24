@@ -1,5 +1,6 @@
 using UnityEngine.Experimental.GlobalIllumination;
 using Unity.Collections;
+using Unity.Jobs;
 
 namespace UnityEngine.Rendering.Universal.Internal
 {
@@ -70,6 +71,16 @@ namespace UnityEngine.Rendering.Universal.Internal
 
         public void Setup(ScriptableRenderContext context, ref RenderingData renderingData)
         {
+            var job = new MinMaxZJob
+            {
+                worldToViewMatrix = renderingData.cameraData.GetViewMatrix(),
+                lights = renderingData.lightData.visibleLights,
+                output = new NativeArray<LightMinMaxZ>(renderingData.lightData.visibleLights.Length, Allocator.TempJob)
+            };
+            job.Run(renderingData.lightData.visibleLights.Length);
+
+            job.output.Dispose();
+
             int additionalLightsCount = renderingData.lightData.additionalLightsCount;
             bool additionalLightsPerVertex = renderingData.lightData.shadeAdditionalLightsPerVertex;
             CommandBuffer cmd = CommandBufferPool.Get();
