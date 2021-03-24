@@ -911,10 +911,10 @@ void GetSurfaceDataDebug(uint paramId, SurfaceData surfaceData, inout float3 res
         }
         case DEBUGVIEW_STACKLIT_SURFACEDATA_SPECULAR_COLOR:
         {
-            if (!HasFlag(surfaceData.materialFeatures, DEBUGVIEW_STACKLIT_SURFACEDATA_SPECULAR_COLOR))
+            if (!HasFlag(surfaceData.materialFeatures, MATERIALFEATUREFLAGS_STACK_LIT_SPECULAR_COLOR))
             {
                 // Derive the specular/fresnel0 term from the metallic parameter
-                result = ComputeFresnel0(surfaceData.baseColor, surfaceData.metallic.x, DEFAULT_SPECULAR_VALUE);
+                result = ComputeFresnel0(surfaceData.baseColor, surfaceData.metallic.x, IorToFresnel0(surfaceData.dielectricIor));
             }
             break;
         }
