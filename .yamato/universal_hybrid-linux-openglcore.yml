@@ -82,7 +82,7 @@ Universal_Hybrid_Linux_OpenGLCore_playmode_mono_Linear_CUSTOM-REVISION:
               -  "TestProjects/UniversalHybridTest/Logs/*.log"
     dependencies:
       -  path: .yamato/_editor_priming.yml#editor:priming:CUSTOM-REVISION:Linux
-         rerun: always
+         rerun: on_new_revision
 Universal_Hybrid_Linux_OpenGLCore_playmode_cache_mono_Linear_CUSTOM-REVISION:
     name: Universal_Hybrid on Linux_OpenGLCore_playmode_cache_mono_Linear on version CUSTOM-REVISION
     agent:
@@ -110,4 +110,4 @@ Universal_Hybrid_Linux_OpenGLCore_playmode_cache_mono_Linear_CUSTOM-REVISION:
               -  "TestProjects/UniversalHybridTest/Logs/*.log"
     dependencies:
       -  path: .yamato/_editor_priming.yml#editor:priming:CUSTOM-REVISION:Linux
-         rerun: always
+         rerun: on_new_revision
