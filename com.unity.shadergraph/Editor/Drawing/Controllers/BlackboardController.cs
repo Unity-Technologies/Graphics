@@ -157,12 +157,6 @@ namespace UnityEditor.ShaderGraph.Drawing
 
     class AddCategoryAction : IGraphDataAction
     {
-        public enum AddActionSource
-        {
-            Default,
-            AddMenu
-        }
-
         void AddCategory(GraphData graphData)
         {
             AssertHelpers.IsNotNull(graphData, "GraphData is null while carrying out AddCategoryAction");
@@ -175,11 +169,7 @@ namespace UnityEditor.ShaderGraph.Drawing
 
         // Direct reference to the categoryData to use if it is specified
         public CategoryData categoryDataReference { get; set; }
-
-        public AddActionSource addInputActionType { get; set; }
-
         public string categoryName { get; set; } = String.Empty;
-
         public List<ShaderInput> childObjects { get; set; }
     }
 
@@ -365,16 +355,6 @@ namespace UnityEditor.ShaderGraph.Drawing
                 return blackboardCategoryController.FindBlackboardRow(shaderInput);
             }
         }
-
-        void RemoveBlackboardCategory(CategoryData categoryInfo)
-        {
-            foreach (var categoryController in m_BlackboardCategoryControllers)
-            {
-                if (categoryController.Model == categoryInfo)
-                    categoryController.Destroy();
-            }
-        }
-
         public void UpdateBlackboardTitle(string newTitle)
         {
             ViewModel.title = newTitle;
@@ -406,7 +386,7 @@ namespace UnityEditor.ShaderGraph.Drawing
                             propertyView.OpenTextEditor();
                     }
                     break;
-                // Need to handle deletion of shader inputs here as opposed to in categories as due to the framework currently,
+                // Need to handle deletion of shader inputs here as opposed to BlackboardCategoryController, as currently,
                 // once removed from the categories there is no way to associate an input with the category that owns it
                 case DeleteShaderInputAction deleteShaderInputAction:
                     foreach (var shaderInput in deleteShaderInputAction.shaderInputsToDelete)
@@ -444,6 +424,7 @@ namespace UnityEditor.ShaderGraph.Drawing
                     // Iterate through anything that is selected currently
                     foreach (var selectedElement in blackboard.selection.ToList())
                     {
+                        // Don't add selected items to an un-named category
                         if (selectedElement is BlackboardPropertyView { userData: ShaderInput shaderInput } && addCategoryAction.categoryDataReference.IsNamedCategory())
                         {
                             // If a blackboard item is selected, first remove it from the blackboard
