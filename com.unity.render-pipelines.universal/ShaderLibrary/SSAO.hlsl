@@ -152,14 +152,19 @@ half UVRandom(float u, int sampleIndex)
     return RandomUV[u * 20 + sampleIndex];
 }
 
+float2 GetScreenSpacePosition(float2 uv)
+{
+    return float2(uv * SCREEN_PARAMS.xy * DOWNSAMPLE);
+}
+
 // Sample point picker
 half3 PickSamplePoint(float2 uv, int sampleIndex)
 {
-    float2 positionSS = float2(uv * SCREEN_PARAMS.xy * DOWNSAMPLE);
-    half gn = half(InterleavedGradientNoise(positionSS, sampleIndex));
+    const float2 positionSS = GetScreenSpacePosition(uv);
+    const half gn = half(InterleavedGradientNoise(positionSS, sampleIndex));
 
-    half u = frac(UVRandom(half(0.0), sampleIndex) + gn) * half(2.0) - half(1.0);
-    half theta = (UVRandom(half(1.0), sampleIndex) + gn) * half(TWO_PI);
+    const half u = frac(UVRandom(half(0.0), sampleIndex) + gn) * half(2.0) - half(1.0);
+    const half theta = (UVRandom(half(1.0), sampleIndex) + gn) * half(TWO_PI);
 
     return half3(CosSin(theta) * sqrt(half(1.0) - u * u), u);
 }
