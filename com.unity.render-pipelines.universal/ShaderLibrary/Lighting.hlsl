@@ -149,7 +149,12 @@ Light GetMainLight()
     light.distanceAttenuation = unity_LightData.z; // unity_LightData.z is 1 when not culled by the culling mask, otherwise 0.
     light.shadowAttenuation = 1.0;
     light.color = _MainLightColor.rgb;
+
+#ifdef _LIGHT_LAYERS
     light.lightLayers = _MainLightLightLayers;
+#else
+    light.lightLayers = DEFAULT_LIGHT_LAYERS;
+#endif
 
     return light;
 }
@@ -177,13 +182,23 @@ Light GetAdditionalPerObjectLight(int perObjectLightIndex, float3 positionWS)
     half3 color = _AdditionalLightsBuffer[perObjectLightIndex].color.rgb;
     half4 distanceAndSpotAttenuation = _AdditionalLightsBuffer[perObjectLightIndex].attenuation;
     half4 spotDirection = _AdditionalLightsBuffer[perObjectLightIndex].spotDirection;
+#ifdef _LIGHT_LAYERS
     uint lightLayers = _AdditionalLightsBuffer[perObjectLightIndex].lightLayers;
+#else
+    uint lightLayers = DEFAULT_LIGHT_LAYERS;
+#endif
+
 #else
     float4 lightPositionWS = _AdditionalLightsPosition[perObjectLightIndex];
     half3 color = _AdditionalLightsColor[perObjectLightIndex].rgb;
     half4 distanceAndSpotAttenuation = _AdditionalLightsAttenuation[perObjectLightIndex];
     half4 spotDirection = _AdditionalLightsSpotDir[perObjectLightIndex];
+#ifdef _LIGHT_LAYERS
     uint lightLayers = asuint(_AdditionalLightsLightLayers[perObjectLightIndex]);
+#else
+    uint lightLayers = DEFAULT_LIGHT_LAYERS;
+#endif
+
 #endif
 
     // Directional lights store direction in lightPosition.xyz and have .w set to 0.0.
