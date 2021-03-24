@@ -827,6 +827,33 @@ namespace UnityEngine.Rendering.Universal
             return renderPass.useNativeRenderPass && useRenderPassEnabled;
         }
 
+        void ConfigureRenderPass(CommandBuffer cmd, ScriptableRenderPass renderPass, CameraData cameraData)
+        {
+            if (IsRenderPassEnabled(renderPass))
+            {
+                int currentSceneIndex = renderPass.sceneIndex;
+                Hash128 currentPassHash = sceneIndexToPassHash[currentSceneIndex];
+                List<int> currentMergeablePasses = mergeableRenderPassesMap[currentPassHash];
+                bool isFirstMergeablePass = currentMergeablePasses.First() == currentSceneIndex;
+
+                if (isFirstMergeablePass)
+                {
+                    foreach (var passIdx in currentMergeablePasses)
+                    {
+                        if (passIdx == -1)
+                            break;
+                        ScriptableRenderPass pass = m_ActiveRenderPassQueue[passIdx];
+
+                        pass.Configure(cmd, cameraData.cameraTargetDescriptor);
+                    }
+                }
+            }
+            else
+            {
+                renderPass.Configure(cmd, cameraData.cameraTargetDescriptor);
+            }
+        }
+
         void ExecuteRenderPass(ScriptableRenderContext context, ScriptableRenderPass renderPass,
             ref RenderingData renderingData)
         {
@@ -839,31 +866,7 @@ namespace UnityEngine.Rendering.Universal
             // Track CPU only as GPU markers for this scope were "too noisy".
             using (new ProfilingScope(cmd, Profiling.RenderPass.configure))
             {
-                if (IsRenderPassEnabled(renderPass))
-                {
-                    int currentSceneIndex = renderPass.sceneIndex;
-                    Hash128 currentPassHash = sceneIndexToPassHash[currentSceneIndex];
-                    int[] currentMergeablePasses = mergeableRenderPassesMap[currentPassHash];
-                    bool isFirstMergeablePass = currentMergeablePasses.First() == currentSceneIndex;
-
-                    if (isFirstMergeablePass)
-                    {
-                        foreach (var passIdx in currentMergeablePasses)
-                        {
-                            if (passIdx == -1)
-                                break;
-                            ScriptableRenderPass pass = m_ActiveRenderPassQueue[passIdx];
-
-                            pass.Configure(cmd, cameraData.cameraTargetDescriptor);
-                        }
-                    }
-                }
-                else
-                {
-                    renderPass.Configure(cmd, cameraData.cameraTargetDescriptor);
-                }
-
-
+                ConfigureRenderPass(cmd, renderPass, cameraData);
                 SetRenderPassAttachments(cmd, renderPass, ref cameraData);
             }
 
