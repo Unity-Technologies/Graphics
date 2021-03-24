@@ -114,6 +114,7 @@ namespace UnityEngine.Rendering.Universal
             private bool isRendererDeferred => m_Renderer != null && m_Renderer is UniversalRenderer && ((UniversalRenderer)m_Renderer).renderingMode == RenderingMode.Deferred;
 
             // Private Variables
+            private bool m_SupportsR8RenderTextureFormat = SystemInfo.SupportsRenderTextureFormat(RenderTextureFormat.R8);
             private Material m_Material;
             private Vector4[] m_CameraTopLeftCorner = new Vector4[2];
             private Vector4[] m_CameraXExtent = new Vector4[2];
@@ -130,7 +131,6 @@ namespace UnityEngine.Rendering.Universal
             private RenderTextureDescriptor m_BlurPassesDescriptor;
             private RenderTextureDescriptor m_FinalDescriptor;
             private ScreenSpaceAmbientOcclusionSettings m_CurrentSettings;
-
 
             // Constants
             private const string k_SSAOTextureName = "_ScreenSpaceOcclusionTexture";
@@ -306,7 +306,7 @@ namespace UnityEngine.Rendering.Universal
                 m_BlurPassesDescriptor.colorFormat = RenderTextureFormat.ARGB32;
 
                 m_FinalDescriptor = descriptor;
-                m_FinalDescriptor.colorFormat = SystemInfo.SupportsRenderTextureFormat(RenderTextureFormat.R8) ? RenderTextureFormat.R8 : RenderTextureFormat.ARGB32;
+                m_FinalDescriptor.colorFormat = m_SupportsR8RenderTextureFormat ? RenderTextureFormat.R8 : RenderTextureFormat.ARGB32;
 
                 // Get temporary render textures
                 cmd.GetTemporaryRT(s_SSAOTexture1ID,     m_AOPassDescriptor,      FilterMode.Bilinear);
