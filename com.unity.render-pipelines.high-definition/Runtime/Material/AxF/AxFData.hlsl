@@ -524,7 +524,7 @@ void SetFlakesSurfaceData(TextureUVMapping uvMapping, inout SurfaceData surfaceD
 
 #ifndef SHADER_STAGE_RAY_TRACING
 
-void ApplyDecalToSurfaceData(DecalSurfaceData decalSurfaceData, float3 vtxNormal, inout SurfaceData surfaceData)
+void ApplyDecalToSurfaceData(DecalSurfaceData decalSurfaceData, float3 vtxNormal, inout SurfaceData surfaceData, inout float3 normalTS, inout float3 clearcoatNormalTS)
 {
 #if defined(_AXF_BRDF_TYPE_SVBRDF) || defined(_AXF_BRDF_TYPE_CAR_PAINT) // Not implemented for BTF
     // using alpha compositing https://developer.nvidia.com/gpugems/GPUGems3/gpugems3_ch23.html
@@ -537,8 +537,9 @@ void ApplyDecalToSurfaceData(DecalSurfaceData decalSurfaceData, float3 vtxNormal
     if (decalSurfaceData.normalWS.w < 1.0)
     {
         // Affect both normal and clearcoat normal
-        surfaceData.normalWS.xyz = SafeNormalize(surfaceData.normalWS.xyz * decalSurfaceData.normalWS.w + decalSurfaceData.normalWS.xyz);
-        surfaceData.clearcoatNormalWS = SafeNormalize(surfaceData.clearcoatNormalWS.xyz * decalSurfaceData.normalWS.w + decalSurfaceData.normalWS.xyz);
+        float3 surfGrad = SurfaceGradientFromVolumeGradient(vtxNormal, decalSurfaceData.normalWS.xyz);
+        normalTS = normalTS * decalSurfaceData.normalWS.w + surfGrad;
+        clearcoatNormalTS = clearcoatNormalTS * decalSurfaceData.normalWS.w + surfGrad;
     }
 
 #ifdef DECALS_4RT // only smoothness in 3RT mode
@@ -596,6 +597,7 @@ void GetSurfaceAndBuiltinData(FragInputs input, float3 V, inout PositionInputs p
     // to have "V" (from -incidentDir)
     surfaceData.viewWS = V;
 
+    float3 normalTS = 0;
     float alpha = AXF_SAMPLE_SMP_TEXTURE2D(_SVBRDF_AlphaMap, sampler_SVBRDF_AlphaMap, uvMapping).x;
 
 #ifdef _ALPHATEST_ON
@@ -638,18 +640,11 @@ void GetSurfaceAndBuiltinData(FragInputs input, float3 V, inout PositionInputs p
     float sqrtF0 = sqrt(clearcoatF0);
     surfaceData.clearcoatIOR = max(1.0, (1.0 + sqrtF0) / (1.00001 - sqrtF0));    // We make sure it's working for F0=1
 
-    //
-    // TBN
-    //
-    // Note: since SURFACE_GRADIENT is enabled, resolve is done with input.tangentToWorld[2] in GetNormalWS(),
-    // and uvMapping uses that as vertexNormalWS.
-
-    //Normal sampling:
-    GetNormalWS(input, AXF_SAMPLE_SMP_TEXTURE2D_NORMAL_AS_GRAD(_SVBRDF_NormalMap, sampler_SVBRDF_NormalMap, uvMapping).xyz, surfaceData.normalWS, doubleSidedConstants);
-    GetNormalWS(input, AXF_SAMPLE_SMP_TEXTURE2D_NORMAL_AS_GRAD(_ClearcoatNormalMap, sampler_ClearcoatNormalMap, uvMapping).xyz, surfaceData.clearcoatNormalWS, doubleSidedConstants);
-
     // Useless for SVBRDF, will be optimized out
     //SetFlakesSurfaceData(uvMapping, surfaceData);
+
+    //Normal sampling:
+    normalTS = AXF_SAMPLE_SMP_TEXTURE2D_NORMAL_AS_GRAD(_SVBRDF_NormalMap, sampler_SVBRDF_NormalMap, uvMapping);
 
     //-----------------------------------------------------------------------------
     // _AXF_BRDF_TYPE_CAR_PAINT
@@ -662,9 +657,6 @@ void GetSurfaceAndBuiltinData(FragInputs input, float3 V, inout PositionInputs p
 
     surfaceData.specularLobe = _CarPaint2_CTSpreads.xyz; // We may want to modify these (eg for Specular AA)
 
-    surfaceData.normalWS = input.tangentToWorld[2].xyz;
-    GetNormalWS(input, AXF_SAMPLE_SMP_TEXTURE2D_NORMAL_AS_GRAD(_ClearcoatNormalMap, sampler_ClearcoatNormalMap, uvMapping).xyz, surfaceData.clearcoatNormalWS, doubleSidedConstants);
-
     SetFlakesSurfaceData(uvMapping, surfaceData, GETSURFACEANDBUILTINDATA_RAYCONE_PARAM);
 
     surfaceData.clearcoatColor = 1;
@@ -675,6 +667,19 @@ void GetSurfaceAndBuiltinData(FragInputs input, float3 V, inout PositionInputs p
     surfaceData.height_mm = 0;
     surfaceData.anisotropyAngle = 0;
 #endif
+
+    float3 clearcoatNormalTS = AXF_SAMPLE_SMP_TEXTURE2D_NORMAL_AS_GRAD(_ClearcoatNormalMap, sampler_ClearcoatNormalMap, uvMapping);
+
+#if HAVE_DECALS
+    if (_EnableDecals)
+    {
+        DecalSurfaceData decalSurfaceData = GetDecalSurfaceData(posInput, input, alpha);
+        ApplyDecalToSurfaceData(decalSurfaceData, input.tangentToWorld[2], surfaceData, normalTS, clearcoatNormalTS);
+    }
+#endif
+
+    GetNormalWS(input, normalTS, surfaceData.normalWS, doubleSidedConstants);
+    GetNormalWS(input, clearcoatNormalTS, surfaceData.clearcoatNormalWS, doubleSidedConstants);
 
     // TODO
     // Assume same xyz encoding for AxF bent normal as other normal maps.
@@ -712,15 +717,6 @@ void GetSurfaceAndBuiltinData(FragInputs input, float3 V, inout PositionInputs p
         float3x3 tbn = float3x3(uvMapping.vertexTangentWS, uvMapping.vertexBitangentWS, uvMapping.vertexNormalWS);
         surfaceData.tangentWS = TransformTangentToWorld(tangentTS, input.tangentToWorld);
     }
-
-    #if HAVE_DECALS
-        if (_EnableDecals)
-        {
-            // Both uses and modifies 'surfaceData.normalWS'.
-            DecalSurfaceData decalSurfaceData = GetDecalSurfaceData(posInput, input, alpha);
-            ApplyDecalToSurfaceData(decalSurfaceData, input.tangentToWorld[2], surfaceData);
-        }
-    #endif
 
     surfaceData.tangentWS = Orthonormalize(surfaceData.tangentWS, surfaceData.normalWS);
 

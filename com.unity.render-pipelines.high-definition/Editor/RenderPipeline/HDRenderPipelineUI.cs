@@ -411,6 +411,8 @@ namespace UnityEditor.Rendering.HighDefinition
                     serialized.renderPipelineSettings.lightLoopSettings.maxDecalsOnScreen.intValue = Mathf.Clamp(serialized.renderPipelineSettings.lightLoopSettings.maxDecalsOnScreen.intValue, 1, HDRenderPipeline.k_MaxDecalsOnScreen);
 
                 EditorGUILayout.PropertyField(serialized.renderPipelineSettings.supportDecalLayers, Styles.supportDecalLayersContent);
+
+                EditorGUILayout.PropertyField(serialized.renderPipelineSettings.decalNormalBufferHP, Styles.decalNormalFormatContent);
             }
             --EditorGUI.indentLevel;
         }

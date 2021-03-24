@@ -94,6 +94,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 supportedLitShaderMode = SupportedLitShaderMode.DeferredOnly,
                 supportDecals = true,
                 supportDecalLayers = false,
+                decalNormalBufferHP = false,
                 msaaSampleCount = MSAASamples.None,
                 supportMotionVectors = true,
                 supportRuntimeDebugDisplay = false,
@@ -251,6 +252,8 @@ namespace UnityEngine.Rendering.HighDefinition
         public bool supportDecals;
         /// <summary>Support decal Layers.</summary>
         public bool supportDecalLayers;
+        /// <summary>High precision normal buffer.</summary>
+        public bool decalNormalBufferHP;
         /// <summary>Name for decal layer 0.</summary>
         public string decalLayerName0
         {
