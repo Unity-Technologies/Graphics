@@ -215,12 +215,16 @@ namespace UnityEngine.Rendering.HighDefinition
         public enum AntialiasingMode
         {
             /// <summary>No Anti-aliasing.</summary>
+            [InspectorName("No Anti-aliasing")]
             None,
             /// <summary>FXAA.</summary>
+            [InspectorName("Fast Approximate Anti-aliasing (FXAA)")]
             FastApproximateAntialiasing,
             /// <summary>Temporal anti-aliasing.</summary>
+            [InspectorName("Temporal Anti-aliasing (TAA)")]
             TemporalAntialiasing,
             /// <summary>SMAA.</summary>
+            [InspectorName("Subpixel Morphological Anti-aliasing (SMAA)")]
             SubpixelMorphologicalAntiAliasing
         }
 
@@ -343,6 +347,7 @@ namespace UnityEngine.Rendering.HighDefinition
         public GameObject exposureTarget = null;
 
         internal float probeCustomFixedExposure = 1.0f;
+        internal float deExposureMultiplier = 1.0f;
 
         [SerializeField, FormerlySerializedAs("renderingPathCustomFrameSettings")]
         FrameSettings m_RenderingPathCustomFrameSettings = FrameSettings.NewDefaultCamera();
