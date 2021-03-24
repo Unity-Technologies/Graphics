@@ -138,6 +138,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed Tube and Disc lights mode selection (case 1317776)
 - Fixed missing Update in Wizard's DXR Documentation
 - Fixed multicamera rendering for Dynamic Resolution Scaling using dx12 hardware mode. Using a planar reflection probe (another render camera) should be safe.
+- Fixed Exposure Frame Settings control issues on Planar reflection probes (case 1312153). Dynamic reflections now keep their own exposure relative to their parent camera.
 
 ### Changed
 - Removed the material pass probe volumes evaluation mode.
