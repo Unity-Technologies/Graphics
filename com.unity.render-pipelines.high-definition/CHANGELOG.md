@@ -4,15 +4,6 @@ All notable changes to this package will be documented in this file.
 The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.html).
 
-
-## [11.0.1]
-
-### Fixed
-- Fixed missing Update in Wizard's DXR Documentation
-
-### Changed
-- Updated Wizard to better handle RenderPipelineAsset in Quality Settings
-
 ## [11.0.0] - 2020-12-02
 
 ### Added
@@ -144,7 +135,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed error message when having MSAA and Screen Space Shadows (case 1318698).
 - Fixed Nans happening when the history render target is bigger than the current viewport (case 1321139).
 - Fixed Tube and Disc lights mode selection (case 1317776)
-
+- Fixed missing Update in Wizard's DXR Documentation
+- 
 ### Changed
 - Removed the material pass probe volumes evaluation mode.
 - Volume parameter of type Cubemap can now accept Cubemap render textures and custom render textures.
@@ -174,6 +166,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Avoid unnecessary RenderGraphBuilder.ReadTexture in the "Set Final Target" pass
 - Cached the base types of Volume Manager to improve memory and cpu usage.
 - Reduced the maximal number of bounces for both RTGI and RTR (case 1318876).
+- Updated Wizard to better handle RenderPipelineAsset in Quality Settings
 
 ## [10.3.0] - 2020-12-01
 
