@@ -444,7 +444,12 @@ namespace UnityEditor.VFX
             {
                 var filteredNamedExpression = mainParameters.FirstOrDefault(o => vertexParameter == o.name);
 
-                vertexInputsGeneration.WriteAssignement(filteredNamedExpression.exp.valueType, $"properties.{filteredNamedExpression.name}", $"{filteredNamedExpression.name}__");
+                // If the parameter is in the global scope, read from the cbuffer directly (no suffix).
+                if (!(expressionToName.ContainsKey(filteredNamedExpression.exp) && expressionToName[filteredNamedExpression.exp] == filteredNamedExpression.name))
+                    vertexInputsGeneration.WriteAssignement(filteredNamedExpression.exp.valueType, $"properties.{filteredNamedExpression.name}", $"{filteredNamedExpression.name}__");
+                else
+                    vertexInputsGeneration.WriteAssignement(filteredNamedExpression.exp.valueType, $"properties.{filteredNamedExpression.name}", $"{filteredNamedExpression.name}");
+
                 vertexInputsGeneration.WriteLine();
             }
 
