@@ -71,12 +71,7 @@ namespace UnityEngine.Rendering.Universal.Internal
 
         public void Setup(ScriptableRenderContext context, ref RenderingData renderingData)
         {
-            var job = new MinMaxZJob
-            {
-                worldToViewMatrix = renderingData.cameraData.GetViewMatrix(),
-                lights = renderingData.lightData.visibleLights,
-                output = new NativeArray<LightMinMaxZ>(renderingData.lightData.visibleLights.Length, Allocator.TempJob)
-            };
+            var job = new MinMaxZJob(ref renderingData);
             job.Run(renderingData.lightData.visibleLights.Length);
 
             job.output.Dispose();

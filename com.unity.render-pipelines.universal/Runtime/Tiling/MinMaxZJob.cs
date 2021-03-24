@@ -20,6 +20,13 @@ namespace UnityEngine.Rendering.Universal
         public NativeArray<VisibleLight> lights;
         public NativeArray<LightMinMaxZ> output;
 
+        public MinMaxZJob(ref RenderingData renderingData)
+        {
+            worldToViewMatrix = renderingData.cameraData.GetViewMatrix();
+            lights = renderingData.lightData.visibleLights;
+            output = new NativeArray<LightMinMaxZ>(renderingData.lightData.visibleLights.Length, Allocator.TempJob);
+        }
+
         public void Execute(int index)
         {
             var light = lights[index];
