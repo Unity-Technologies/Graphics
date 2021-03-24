@@ -426,7 +426,7 @@ half4 SpeedTree8Frag(SpeedTreeFragmentInput input) : SV_Target
 
     // subsurface (hijack emissive)
     #ifdef EFFECT_SUBSURFACE
-        emission = tex2D(_SubsurfaceTex, uv).rgb * _SubsurfaceColor.rgb * inputData.bakedGI.rgb;
+        emission = tex2D(_SubsurfaceTex, uv).rgb * _SubsurfaceColor.rgb * inputData.bakedGI.rgb * _SubsurfaceIndirect;
     #endif
 
 #ifdef GBUFFER
