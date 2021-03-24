@@ -410,6 +410,19 @@ namespace UnityEngine.Rendering.Universal
             return existingAttachmentIndex;
         }
 
+        internal static int GetValidPassIndexCount(int[] array)
+        {
+            for (int i = 0; i < array.Length; ++i)
+                if (array[i] == -1)
+                    return i;
+            return array.Length - 1;
+        }
+
+        internal static Hash128 CreateRenderPassHash(int width, int height, int depthID, int sample, uint hashIndex)
+        {
+            return new Hash128((uint) width * 10000 + (uint)height, (uint) depthID, (uint) sample, hashIndex);
+        }
+
         /// <summary>
         /// Return true if colorBuffers is an actual MRT setup
         /// </summary>
