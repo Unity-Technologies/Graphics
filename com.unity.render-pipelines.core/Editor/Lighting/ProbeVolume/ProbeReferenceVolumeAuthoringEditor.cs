@@ -211,7 +211,8 @@ namespace UnityEngine.Rendering
         void UpdateDebugMaterial()
         {
             Shader debugShader = Shader.Find("Hidden/InstancedProbeShader");
-            if (QualitySettings.renderPipeline is IOverrideCoreEditorResources overrideResources)
+            var srpAsset = QualitySettings.renderPipeline ?? GraphicsSettings.renderPipelineAsset;
+            if (srpAsset is IOverrideCoreEditorResources overrideResources)
                 debugShader = overrideResources.GetProbeVolumeProbeShader();
 
             debugMaterial = new Material(debugShader) { enableInstancing = true };

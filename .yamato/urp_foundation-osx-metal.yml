@@ -234,7 +234,7 @@ URP_Foundation_OSX_Metal_Standalone_mono_Linear_CUSTOM-REVISION:
               -  "TestProjects/UniversalGraphicsTest_Foundation/Logs/*.log"
     dependencies:
       -  path: .yamato/_editor_priming.yml#editor:priming:CUSTOM-REVISION:OSX
-         rerun: always
+         rerun: on_new_revision
 URP_Foundation_OSX_Metal_playmode_mono_Linear_CUSTOM-REVISION:
     name: URP_Foundation on OSX_Metal_playmode_mono_Linear on version CUSTOM-REVISION
     agent:
@@ -266,7 +266,7 @@ URP_Foundation_OSX_Metal_playmode_mono_Linear_CUSTOM-REVISION:
               -  "TestProjects/UniversalGraphicsTest_Foundation/Logs/*.log"
     dependencies:
       -  path: .yamato/_editor_priming.yml#editor:priming:CUSTOM-REVISION:OSX
-         rerun: always
+         rerun: on_new_revision
 URP_Foundation_OSX_Metal_playmode_cache_mono_Linear_CUSTOM-REVISION:
     name: URP_Foundation on OSX_Metal_playmode_cache_mono_Linear on version CUSTOM-REVISION
     agent:
@@ -298,7 +298,7 @@ URP_Foundation_OSX_Metal_playmode_cache_mono_Linear_CUSTOM-REVISION:
               -  "TestProjects/UniversalGraphicsTest_Foundation/Logs/*.log"
     dependencies:
       -  path: .yamato/_editor_priming.yml#editor:priming:CUSTOM-REVISION:OSX
-         rerun: always
+         rerun: on_new_revision
 URP_Foundation_OSX_Metal_playmode_XR_mono_Linear_CUSTOM-REVISION:
     name: URP_Foundation on OSX_Metal_playmode_XR_mono_Linear on version CUSTOM-REVISION
     agent:
@@ -330,7 +330,7 @@ URP_Foundation_OSX_Metal_playmode_XR_mono_Linear_CUSTOM-REVISION:
               -  "TestProjects/UniversalGraphicsTest_Foundation/Logs/*.log"
     dependencies:
       -  path: .yamato/_editor_priming.yml#editor:priming:CUSTOM-REVISION:OSX
-         rerun: always
+         rerun: on_new_revision
 URP_Foundation_OSX_Metal_playmode_XR_cache_mono_Linear_CUSTOM-REVISION:
     name: URP_Foundation on OSX_Metal_playmode_XR_cache_mono_Linear on version CUSTOM-REVISION
     agent:
@@ -362,7 +362,7 @@ URP_Foundation_OSX_Metal_playmode_XR_cache_mono_Linear_CUSTOM-REVISION:
               -  "TestProjects/UniversalGraphicsTest_Foundation/Logs/*.log"
     dependencies:
       -  path: .yamato/_editor_priming.yml#editor:priming:CUSTOM-REVISION:OSX
-         rerun: always
+         rerun: on_new_revision
 URP_Foundation_OSX_Metal_Standalone_cache_mono_Linear_CUSTOM-REVISION:
     name: URP_Foundation on OSX_Metal_Standalone_cache_mono_Linear on version CUSTOM-REVISION
     agent:
@@ -394,7 +394,7 @@ URP_Foundation_OSX_Metal_Standalone_cache_mono_Linear_CUSTOM-REVISION:
               -  "TestProjects/UniversalGraphicsTest_Foundation/Logs/*.log"
     dependencies:
       -  path: .yamato/_editor_priming.yml#editor:priming:CUSTOM-REVISION:OSX
-         rerun: always
+         rerun: on_new_revision
 URP_Foundation_OSX_Metal_Standalone_XR_cache_mono_Linear_CUSTOM-REVISION:
     name: URP_Foundation on OSX_Metal_Standalone_XR_cache_mono_Linear on version CUSTOM-REVISION
     agent:
@@ -426,4 +426,4 @@ URP_Foundation_OSX_Metal_Standalone_XR_cache_mono_Linear_CUSTOM-REVISION:
               -  "TestProjects/UniversalGraphicsTest_Foundation/Logs/*.log"
     dependencies:
       -  path: .yamato/_editor_priming.yml#editor:priming:CUSTOM-REVISION:OSX
-         rerun: always
+         rerun: on_new_revision
