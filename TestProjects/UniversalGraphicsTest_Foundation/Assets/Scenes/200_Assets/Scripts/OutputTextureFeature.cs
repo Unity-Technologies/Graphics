@@ -81,6 +81,7 @@ public class OutputTextureFeature : ScriptableRendererFeature
                 cmd.SetRenderTarget(m_Renderer.cameraColorTarget,
                     RenderBufferLoadAction.DontCare, RenderBufferStoreAction.Store, // color
                     RenderBufferLoadAction.DontCare, RenderBufferStoreAction.DontCare); // depth
+                cmd.ClearRenderTarget(true, true, Color.white, 1.0f);
                 cmd.DrawMesh(RenderingUtils.fullscreenMesh, Matrix4x4.identity, m_Material, 0, 0);
             }
 
