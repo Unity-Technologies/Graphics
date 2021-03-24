@@ -175,9 +175,6 @@ namespace UnityEditor.Rendering.Universal
                     wasUpgraded = true;
                 }
 
-                if (SpeedTree8Upgrader.IsUniversalSpeedTree8Shader(material.shader.name))
-                    SpeedTree8MaterialUpgrader.SpeedTree8MaterialFinalizer(material);
-
                 if (wasUpgraded)
                 {
                     upgradeLog += debug;
@@ -187,12 +184,6 @@ namespace UnityEditor.Rendering.Universal
                     s_NeedsSavingAssets = true;
                 }
             }
-        }
-
-        void OnPostprocessSpeedTree(GameObject speedTree)
-        {
-            SpeedTreeImporter treeImporter = assetImporter as SpeedTreeImporter;
-            SpeedTree8MaterialUpgrader.PostprocessSpeedTree8Materials(speedTree, treeImporter);
         }
 
         static void InitializeLatest(Material material, ShaderPathID id)

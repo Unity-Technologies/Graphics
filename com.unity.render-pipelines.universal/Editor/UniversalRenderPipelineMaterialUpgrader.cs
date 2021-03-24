@@ -47,7 +47,7 @@ namespace UnityEditor.Rendering.Universal
             shadersToIgnore.Add("Universal Render Pipeline/Simple Lit");
             shadersToIgnore.Add("Universal Render Pipeline/Nature/SpeedTree7");
             shadersToIgnore.Add("Universal Render Pipeline/Nature/SpeedTree7 Billboard");
-            shadersToIgnore.Add("Universal Render Pipeline/Nature/SpeedTree8_PBRLit");
+            shadersToIgnore.Add("Universal Render Pipeline/Nature/SpeedTree8");
             shadersToIgnore.Add("Universal Render Pipeline/2D/Sprite-Lit-Default");
             shadersToIgnore.Add("Universal Render Pipeline/Terrain/Lit");
             shadersToIgnore.Add("Universal Render Pipeline/Unlit");
@@ -438,34 +438,11 @@ namespace UnityEditor.Rendering.Universal
             RenameShader(oldShaderName, ShaderUtils.GetShaderPath(ShaderPathID.SpeedTree7Billboard));
         }
     }
-    public class SpeedTree8Upgrader : SpeedTree8MaterialUpgrader
+    internal class SpeedTree8Upgrader : MaterialUpgrader
     {
-        private static List<string> st8ShaderNames = new List<string>()
+        internal SpeedTree8Upgrader(string oldShaderName)
         {
-            "Universal Render Pipeline/Nature/SpeedTree8",
-            "Universal Render Pipeline/Nature/SpeedTree8_PBRLit"
-        };
-        public SpeedTree8Upgrader(string oldShaderName)
-            : base(oldShaderName, ShaderUtils.GetShaderPath(ShaderPathID.SpeedTree8), UniversalSpeedTree8MaterialFinalizer)
-        {
-            if (!IsUniversalSpeedTree8Shader(oldShaderName))
-                st8ShaderNames.Add(oldShaderName);
-        }
-
-        private static void UniversalSpeedTree8MaterialFinalizer(Material mat)
-        {
-            mat.SetFloat("_OldHueVarBehavior", 1.0f);
-            SpeedTree8MaterialFinalizer(mat);
-        }
-
-        public static bool IsUniversalSpeedTree8Shader(string shaderName)
-        {
-            foreach (string name in st8ShaderNames)
-            {
-                if (shaderName == name)
-                    return true;
-            }
-            return false;
+            RenameShader(oldShaderName, ShaderUtils.GetShaderPath(ShaderPathID.SpeedTree8));
         }
     }
 
