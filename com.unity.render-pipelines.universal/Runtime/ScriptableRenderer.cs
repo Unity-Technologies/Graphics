@@ -936,7 +936,7 @@ namespace UnityEngine.Rendering.Universal
             {
                 int currentSceneIndex = renderPass.sceneIndex;
                 Hash128 currentPassHash = sceneIndexToPassHash[currentSceneIndex];
-                List<int> currentMergeablePasses = mergeableRenderPassesMap[currentPassHash];
+                int[] currentMergeablePasses = mergeableRenderPassesMap[currentPassHash];
                 bool isFirstMergeablePass = currentMergeablePasses.First() == currentSceneIndex;
 
                 if (isFirstMergeablePass)
