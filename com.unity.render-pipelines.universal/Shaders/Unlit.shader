@@ -64,9 +64,9 @@ Shader "Universal Render Pipeline/Unlit"
 
             struct Varyings
             {
-                float2 uv        : TEXCOORD0;
-                float fogCoord  : TEXCOORD1;
-                float4 vertex : SV_POSITION;
+                float4 vertex  : SV_POSITION;
+                float2 uv      : TEXCOORD0;
+                float fogCoord : TEXCOORD1;
 
                 UNITY_VERTEX_INPUT_INSTANCE_ID
                 UNITY_VERTEX_OUTPUT_STEREO
@@ -83,7 +83,12 @@ Shader "Universal Render Pipeline/Unlit"
                 VertexPositionInputs vertexInput = GetVertexPositionInputs(input.positionOS.xyz);
                 output.vertex = vertexInput.positionCS;
                 output.uv = TRANSFORM_TEX(input.uv, _BaseMap);
+
+            #if defined(_FOG_FRAGMENT)
+                output.fogCoord = vertexInput.positionVS.z;
+            #else
                 output.fogCoord = ComputeFogFactor(vertexInput.positionCS.z);
+            #endif
 
                 return output;
             }
@@ -99,9 +104,20 @@ Shader "Universal Render Pipeline/Unlit"
                 half alpha = texColor.a * _BaseColor.a;
                 AlphaDiscard(alpha, _Cutoff);
 
-#ifdef _ALPHAPREMULTIPLY_ON
+            #ifdef _ALPHAPREMULTIPLY_ON
                 color *= alpha;
-#endif
+            #endif
+
+                half fogFactor = 0.0;
+            #if defined(_FOG_FRAGMENT)
+                #if (defined(FOG_LINEAR) || defined(FOG_EXP) || defined(FOG_EXP2))
+                    float viewZ = -input.fogCoord;
+                    float nearToFarZ = max(viewZ - _ProjectionParams.y, 0);
+                    fogFactor = ComputeFogFactorZ0ToFar(nearToFarZ);
+                #endif
+            #else
+                fogFactor = input.fogCoord;
+            #endif
 
                 #if defined(_SCREEN_SPACE_OCCLUSION)
                     float2 normalizedScreenSpaceUV = GetNormalizedScreenSpaceUV(input.vertex);
@@ -109,7 +125,7 @@ Shader "Universal Render Pipeline/Unlit"
                     color *= aoFactor.directAmbientOcclusion;
                 #endif
 
-                color = MixFog(color, input.fogCoord);
+                color = MixFog(color, fogFactor);
 
                 return half4(color, alpha);
             }
@@ -265,9 +281,9 @@ Shader "Universal Render Pipeline/Unlit"
 
             struct Varyings
             {
-                float2 uv        : TEXCOORD0;
-                float fogCoord  : TEXCOORD1;
-                float4 vertex : SV_POSITION;
+                float4 vertex  : SV_POSITION;
+                float2 uv      : TEXCOORD0;
+                float fogCoord : TEXCOORD1;
 
                 UNITY_VERTEX_INPUT_INSTANCE_ID
                 UNITY_VERTEX_OUTPUT_STEREO
@@ -284,7 +300,11 @@ Shader "Universal Render Pipeline/Unlit"
                 VertexPositionInputs vertexInput = GetVertexPositionInputs(input.positionOS.xyz);
                 output.vertex = vertexInput.positionCS;
                 output.uv = TRANSFORM_TEX(input.uv, _BaseMap);
+            #if defined(_FOG_FRAGMENT)
+                output.fogCoord = vertexInput.positionVS.z;
+            #else
                 output.fogCoord = ComputeFogFactor(vertexInput.positionCS.z);
+            #endif
 
                 return output;
             }
@@ -300,9 +320,9 @@ Shader "Universal Render Pipeline/Unlit"
                 half alpha = texColor.a * _BaseColor.a;
                 AlphaDiscard(alpha, _Cutoff);
 
-#ifdef _ALPHAPREMULTIPLY_ON
-                color *= alpha;
-#endif
+                #ifdef _ALPHAPREMULTIPLY_ON
+                    color *= alpha;
+                #endif
 
                 #if defined(_SCREEN_SPACE_OCCLUSION)
                     float2 normalizedScreenSpaceUV = GetNormalizedScreenSpaceUV(input.vertex);
@@ -310,7 +330,18 @@ Shader "Universal Render Pipeline/Unlit"
                     color *= aoFactor.directAmbientOcclusion;
                 #endif
 
-                color = MixFog(color, input.fogCoord);
+                half fogFactor = 0.0;
+            #if defined(_FOG_FRAGMENT)
+                #if (defined(FOG_LINEAR) || defined(FOG_EXP) || defined(FOG_EXP2))
+                    float viewZ = -input.fogCoord;
+                    float nearToFarZ = max(viewZ - _ProjectionParams.y, 0);
+                    fogFactor = ComputeFogFactorZ0ToFar(nearToFarZ);
+                #endif
+            #else
+                fogFactor = input.fogCoord;
+            #endif
+
+                color = MixFog(color, fogFactor);
                 alpha = OutputAlpha(alpha, _Surface);
 
                 return half4(color, alpha);
