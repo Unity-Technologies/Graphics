@@ -111,6 +111,15 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed preview camera updating the skybox material triggering GI baking (case 1314361/1314373).
 - The default LookDev volume profile is now copied and referened in the Asset folder instead of the package folder.
 - Fixed SSS on console platforms.
+- Assets going through the migration system are now dirtied.
+- Fixed warning fixed on ShadowLoop include (HDRISky and Unlit+ShadowMatte)
+- Fixed SSR Precision for 4K Screens
+- Fixed issue with gbuffer debug view when virtual texturing is enabled.
+- Fixed volumetric fog noise due to sun light leaking (case 1319005)
+- Fixed an issue with Decal normal blending producing NaNs.
+- Fixed issue in wizard when resource folder don't exist
+- Fixed issue with Decal projector edge on Metal (case 1286074)
+- Fixed Exposure Frame Settings control issues on Planar reflection probes (case 1312153). Dynamic reflections now keep their own exposure relative to their parent camera.
 - Fixed multicamera rendering for Dynamic Resolution Scaling using dx12 hardware mode. Using a planar reflection probe (another render camera) should be safe.
 
 ### Changed
@@ -162,9 +171,13 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Decreased the minimal Fog Distance value in the Density Volume to 0.05.
 - Virtual Texturing Resolver now performs RTHandle resize logic in HDRP instead of in core Unity
 - Cached the base types of Volume Manager to improve memory and cpu usage.
+- Reduced the maximal number of bounces for both RTGI and RTR (case 1318876).
 - Changed Density Volume for Local Volumetric Fog
 - HDRP Global Settings are now saved into their own asset (HDRenderPipelineGlobalSettings) and HDRenderPipeline's default asset refers to this new asset.
 - Improved physically based Depth of Field with better near defocus blur quality.
+- Changed the behavior of the clear coat and SSR/RTR for the stack lit to mimic the Lit's behavior (case 1320154).
+- The default LookDev volume profile is now copied and referened in the Asset folder instead of the package folder.
+- Changed normal used in path tracing to create a local light list from the geometric to the smooth shading one.
 
 ## [11.0.0] - 2020-10-21
 

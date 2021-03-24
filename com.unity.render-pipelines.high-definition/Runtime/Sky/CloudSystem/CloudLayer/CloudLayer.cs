@@ -84,7 +84,7 @@ namespace UnityEngine.Rendering.HighDefinition
     /// </summary>
     [VolumeComponentMenu("Sky/Cloud Layer")]
     [CloudUniqueID((int)CloudType.CloudLayer)]
-    [HelpURL(Documentation.baseURL + Documentation.version + Documentation.subURL + "Override-Cloud-Layer" + Documentation.endURL)]
+    [HDRPHelpURLAttribute("Override-Cloud-Layer")]
     public class CloudLayer : CloudSettings
     {
         /// <summary>Controls the global opacity of the cloud layer.</summary>
