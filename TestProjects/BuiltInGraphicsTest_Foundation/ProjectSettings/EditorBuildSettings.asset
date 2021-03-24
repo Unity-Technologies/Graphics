@@ -42,6 +42,9 @@ EditorBuildSettings:
     path: Assets/Scenes/060_Lighting_BasicEmission.unity
     guid: 8ed6497a4620b8a498139faebc3b7b32
   - enabled: 1
-    path: Assets/Scenes/061_Lighting_BasicKeywordTest.unity
+    path: Assets/Scenes/061_Lighting_BasicAOMap.unity
+    guid: d1de2dd8d6df6ba489d0459630f457a5
+  - enabled: 1
+    path: Assets/Scenes/062_Lighting_BasicKeywordTest.unity
     guid: c745a4a7130c7c1418d2b1064a8f1f8e
   m_configObjects: {}
