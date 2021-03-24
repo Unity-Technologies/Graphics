@@ -5,20 +5,20 @@ editor_version_names:
 editor_versions:
   2020_3_latest_internal:
     Android:
-      revision: 58594120496c
-      updated_at: '2021-03-18 23:12:53.893998'
+      revision: 6e012ea551ed
+      updated_at: '2021-03-24 23:11:40.129017'
       version: 2020.3.2f1
     Linux:
-      revision: 58594120496c
-      updated_at: '2021-03-18 23:12:53.893998'
+      revision: 6e012ea551ed
+      updated_at: '2021-03-24 23:11:40.129017'
       version: 2020.3.2f1
     OSX:
-      revision: 58594120496c
-      updated_at: '2021-03-18 23:12:53.893998'
+      revision: 6e012ea551ed
+      updated_at: '2021-03-24 23:11:40.129017'
       version: 2020.3.2f1
     Win:
-      revision: 58594120496c
-      updated_at: '2021-03-18 23:12:53.893998'
+      revision: 6e012ea551ed
+      updated_at: '2021-03-24 23:11:40.129017'
       version: 2020.3.2f1
     iPhone:
       revision: 58594120496c
@@ -51,22 +51,22 @@ editor_versions:
       version: 2020.3.1f1
   2020_3_staging:
     Android:
-      revision: 58594120496c58d496dea3c4c7ebb5d278b0ae58
-      updated_at: '2021-03-17 23:09:40.736050'
+      revision: 6e012ea551ed372e65e1280c9cdfe944d4741c8d
+      updated_at: '2021-03-24 23:11:40.129017'
       version: ''
     Linux:
-      revision: 58594120496c58d496dea3c4c7ebb5d278b0ae58
-      updated_at: '2021-03-18 23:12:53.893998'
+      revision: 6e012ea551ed372e65e1280c9cdfe944d4741c8d
+      updated_at: '2021-03-24 23:11:40.129017'
       version: ''
     OSX:
-      revision: 58594120496c58d496dea3c4c7ebb5d278b0ae58
-      updated_at: '2021-03-18 23:12:53.893998'
+      revision: 6e012ea551ed372e65e1280c9cdfe944d4741c8d
+      updated_at: '2021-03-24 23:11:40.129017'
       version: ''
     Win:
-      revision: 58594120496c58d496dea3c4c7ebb5d278b0ae58
-      updated_at: '2021-03-17 23:09:40.736050'
+      revision: 6e012ea551ed372e65e1280c9cdfe944d4741c8d
+      updated_at: '2021-03-24 23:11:40.129017'
       version: ''
     iPhone:
-      revision: 58594120496c58d496dea3c4c7ebb5d278b0ae58
-      updated_at: '2021-03-18 23:12:53.893998'
+      revision: 6e012ea551ed372e65e1280c9cdfe944d4741c8d
+      updated_at: '2021-03-24 23:11:40.129017'
       version: ''
