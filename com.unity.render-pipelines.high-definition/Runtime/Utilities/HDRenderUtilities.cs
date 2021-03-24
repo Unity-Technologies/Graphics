@@ -160,6 +160,93 @@ namespace UnityEngine.Rendering.HighDefinition
             }
         }
 
+
+        /// <summary>TODO</summary>
+        public static void Render(
+            HDCamera hdCamera,
+            Texture target,
+            uint staticFlags = 0
+        )
+        {
+            // Argument checking
+            if (target == null)
+                throw new ArgumentNullException(nameof(target));
+
+            var rtTarget = target as RenderTexture;
+            var cubeTarget = target as Cubemap;
+            switch (target.dimension)
+            {
+                case TextureDimension.Tex2D:
+                    if (rtTarget == null)
+                        throw new ArgumentException("'target' must be a RenderTexture when rendering into a 2D texture");
+                    break;
+                case TextureDimension.Cube:
+                    break;
+                default:
+                    throw new ArgumentException("Rendering into a target of dimension "
+                        + $"{target.dimension} is not supported");
+            }
+
+            switch (target.dimension)
+                {
+                    case TextureDimension.Tex2D:
+                        {
+#if DEBUG
+                            Debug.LogWarning(
+                                "A static flags bitmask was provided but this is ignored when rendering into a Tex2D"
+                            );
+#endif
+                            Assert.IsNotNull(rtTarget);
+                            hdCamera.camera.targetTexture = rtTarget;
+                            hdCamera.camera.Render();
+                            hdCamera.camera.targetTexture = null;
+                            target.IncrementUpdateCount();
+                            break;
+                        }
+                    case TextureDimension.Cube:
+                        {
+                            Assert.IsTrue(rtTarget != null || cubeTarget != null);
+
+                            var canHandleStaticFlags = false;
+#if UNITY_EDITOR
+                            canHandleStaticFlags = true;
+#endif
+                            // ReSharper disable ConditionIsAlwaysTrueOrFalse
+                            if (canHandleStaticFlags && staticFlags != 0)
+                            // ReSharper restore ConditionIsAlwaysTrueOrFalse
+                            {
+#if UNITY_EDITOR
+                                UnityEditor.Rendering.EditorCameraUtils.RenderToCubemap(
+                                    hdCamera.camera,
+                                    rtTarget,
+                                    -1,
+                                    (UnityEditor.StaticEditorFlags)staticFlags
+                                );
+#endif
+                            }
+                            else
+                            {
+                                // ReSharper disable ConditionIsAlwaysTrueOrFalse
+                                if (!canHandleStaticFlags && staticFlags != 0)
+                                // ReSharper restore ConditionIsAlwaysTrueOrFalse
+                                {
+                                    Debug.LogWarning(
+                                        "A static flags bitmask was provided but this is ignored in player builds"
+                                    );
+                                }
+
+                                if (rtTarget != null)
+                                    hdCamera.camera.RenderToCubemap(rtTarget);
+                                if (cubeTarget != null)
+                                    hdCamera.camera.RenderToCubemap(cubeTarget);
+                            }
+
+                            target.IncrementUpdateCount();
+                            break;
+                        }
+                }
+        }
+
         /// <summary>
         /// Performs a rendering of a probe.
         /// </summary>

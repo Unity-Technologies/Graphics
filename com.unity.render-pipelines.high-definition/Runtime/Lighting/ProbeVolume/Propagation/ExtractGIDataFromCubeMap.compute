@@ -1,0 +1,99 @@
+#include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Common.hlsl"
+#include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Packing.hlsl"
+#include "Packages/com.unity.render-pipelines.high-definition/Runtime/ShaderLibrary/ShaderVariables.hlsl"
+
+
+#pragma kernel ExtractData 
+
+#define GROUP_SIZE 64
+#define AXIS_COUNT 14
+
+float4 _RayAxis[AXIS_COUNT];
+float4 _ExtractParameters;
+float4x4 _SkewMatrix;
+
+#define _ProbeIndexOffset _ExtractParameters.x
+#define _BatchSize _ExtractParameters.y
+
+
+uint PackAxisDir(float4 axis)
+{
+    uint axisType = (axis.w == 1.0f) ? 0u : 1u;
+
+    uint encodedX = axis.x < 0 ? 0u :
+        axis.x == 0 ? 1u :
+        2u;
+
+    uint encodedY = axis.y < 0 ? 0u :
+        axis.y == 0 ? 1u :
+        2u;
+
+    uint encodedZ = axis.z < 0 ? 0u :
+        axis.z == 0 ? 1u :
+        2u;
+
+    uint output = 0;
+    // Encode type of axis in bit 7
+    output |= (axisType << 6);
+    // Encode axis signs in [5:6] [3:4] [1:2]
+    output |= (encodedZ << 4);
+    output |= (encodedY << 2);
+    output |= (encodedX << 0);
+
+    return output;
+}
+
+uint PackNormalAndAxis(float3 N, int axisIndex)
+{
+    uint packedOutput = 0;
+
+    float2 octNormalWS = PackNormalOctQuadEncode(N);
+
+    uint i0 = (uint)(octNormalWS.x * 4095.5f); uint i1 = (uint)(octNormalWS.y * 4095.5f);
+    uint hi0 = i0 >> 8; uint hi1 = i1 >> 8;
+    uint lo0 = hi0 & 255; uint lo1 = hi1 & 255;
+
+    packedOutput |= (lo0 << 0);
+    packedOutput |= (lo1 << 8);
+    packedOutput |= ((hi0 | (hi1 << 4)) << 16);
+    packedOutput |= (PackAxisDir(_RayAxis[axisIndex]) << 24);
+
+    return packedOutput;
+}
+
+uint PackAlbedo(float3 color, float distance)
+{
+    float albedoR = saturate(color.x);
+    float albedoG = saturate(color.y);
+    float albedoB = saturate(color.z);
+
+    float searchDistance = 1; // TODO: PUT ACTUAL VALUES HERE... search dist * sqrt(3) for normalizing.
+    float normalizedDistance = saturate(distance / searchDistance);
+
+    uint packedOutput = 0;
+
+    packedOutput |= ((uint)(albedoR * 255.5f) << 0);
+    packedOutput |= ((uint)(albedoG * 255.5f) << 8);
+    packedOutput |= ((uint)(albedoB * 255.5f) << 16);
+    packedOutput |= ((uint)(normalizedDistance * 255.5f) << 24);
+
+    return packedOutput;
+}
+
+
+[numthreads(GROUP_SIZE, 1, 1)]
+void ExtractData(uint3 id : SV_DispatchThreadID)
+{
+    if (id.x < _BatchSize)
+    {
+        for (int i = 0; i < AXIS_COUNT; ++i)
+        {
+            float4 axis = _RayAxis[i];
+
+            // Skew the axis as the rendering was skewed to start with.
+            //float3 actualAxis = mul(_SkewMatrix, float4(normalize(axis.xyz), 0.0f)).xyz;
+            float3 sampleAxis = normalize(axis.xyz);
+        }
+    }
+}
+

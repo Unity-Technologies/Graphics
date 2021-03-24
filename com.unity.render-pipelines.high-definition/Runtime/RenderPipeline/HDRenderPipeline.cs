@@ -442,6 +442,7 @@ namespace UnityEngine.Rendering.HighDefinition
             InitializeVolumetricLighting();
             InitializeVolumetricClouds();
             InitializeSubsurfaceScattering();
+            ProbeDynamicGIExtraDataManager.instance.AllocateResources();
 
             m_DebugDisplaySettings.RegisterDebug();
 #if UNITY_EDITOR
@@ -487,6 +488,9 @@ namespace UnityEngine.Rendering.HighDefinition
 
             // Initialize screen space shadows
             InitializeScreenSpaceShadows();
+
+            // TODO_FCC: TODO ONLY WHEN AVAILABLE
+            ProbeDynamicGIExtraDataManager.instance.AllocateResources();
 
             CameraCaptureBridge.enabled = true;
 
@@ -1126,6 +1130,7 @@ namespace UnityEngine.Rendering.HighDefinition
             // This function should be called once every render (once for all camera)
             LightLoopNewRender();
 
+
 #if UNITY_2021_1_OR_NEWER
             BeginContextRendering(renderContext, cameras);
 #else
@@ -1158,7 +1163,6 @@ namespace UnityEngine.Rendering.HighDefinition
 
             var dynResHandler = DynamicResolutionHandler.instance;
             dynResHandler.Update(m_Asset.currentPlatformRenderPipelineSettings.dynamicResolutionSettings);
-
 
             // This syntax is awful and hostile to debugging, please don't use it...
             using (ListPool<RenderRequest>.Get(out List<RenderRequest> renderRequests))
@@ -1743,7 +1747,6 @@ namespace UnityEngine.Rendering.HighDefinition
                             RTHandles.SetReferenceSize(maxSize.x, maxSize.y, m_MSAASamples);
                         }
 
-
                         // Execute render request graph, in reverse order
                         for (int i = renderRequestIndicesToRender.Count - 1; i >= 0; --i)
                         {
@@ -1774,6 +1777,7 @@ namespace UnityEngine.Rendering.HighDefinition
                                 var probeRenderData = probeDataPair.Item1;
                                 probe.SetRenderData(ProbeSettings.Mode.Realtime, probeRenderData);
                             }
+
 
                             // var aovRequestIndex = 0;
                             foreach (var aovRequest in renderRequest.hdCamera.aovRequests)
@@ -1849,8 +1853,12 @@ namespace UnityEngine.Rendering.HighDefinition
                 }
             }
 
+         //   GetProbeVolumeExtraData();
+
+
             m_RenderGraph.EndFrame();
             m_XRSystem.ReleaseFrame();
+
 
 #if UNITY_2021_1_OR_NEWER
             EndContextRendering(renderContext, cameras);

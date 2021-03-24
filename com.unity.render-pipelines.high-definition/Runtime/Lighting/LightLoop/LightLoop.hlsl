@@ -516,7 +516,7 @@ void LightLoop( float3 V, PositionInputs posInput, PreLightData preLightData, BS
             SetAsUninitializedGI(apvBuiltinData.backBakeDiffuseLighting);
 
             float3 noise = 0;
-#if 1 // TODO: Add only if dynamic GI.
+#if 1 // TODO: Add only if dynamic GI. TODO : THIS IS SOMEWHAT BROKEN (SEE BELOW FACES BEING BLACK, FIX!)
             float3 T = Orthonormalize(float3(0, 1, 0), bsdfData.normalWS);
             float3 B = normalize(cross(T, bsdfData.normalWS));
             float noise1D_0 = (InterleavedGradientNoise(posInput.positionSS, 0) * 2.0f - 1.0f) * 0.2f;

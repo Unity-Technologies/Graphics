@@ -100,6 +100,13 @@ namespace UnityEngine.Rendering
         public int probeCount { get => m_ProbeLocations != null ? (m_ProbeLocations.Capacity / 3) : 0; }
 
 
+        public Vector3 GetPosition(int index)
+        {
+            Debug.Assert(index < probeCount);
+            int floatIdx = index * 3;
+            return new Vector3(m_ProbeLocations[floatIdx], m_ProbeLocations[floatIdx + 1], m_ProbeLocations[floatIdx + 2]);
+        }
+
         public int hitProbesAxisCount;
         public int missProbesAxisCount;
 
@@ -148,7 +155,7 @@ namespace UnityEngine.Rendering
             float albedoG = Mathf.Clamp01(color.y);
             float albedoB = Mathf.Clamp01(color.z);
 
-            float normalizedDistance = Mathf.Clamp01(distance / ProbeReferenceVolume.instance.MinDistanceBetweenProbes());
+            float normalizedDistance = Mathf.Clamp01(distance / (ProbeReferenceVolume.instance.MinDistanceBetweenProbes() * Mathf.Sqrt(3.0f)));
 
             uint packedOutput = 0;
 

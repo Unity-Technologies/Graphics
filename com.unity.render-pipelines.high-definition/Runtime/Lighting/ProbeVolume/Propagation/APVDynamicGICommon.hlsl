@@ -130,7 +130,7 @@ float4 UnpackAlbedoAndDistance(uint packedVal)
     outVal.b = ((packedVal >> 16) & 255) / 255.0f;
 
     outVal.a = ((packedVal >> 24) & 255) / 255.0f;
-    outVal.a *= _MaxNeighbourRayDist;
+    outVal.a *= _MaxNeighbourRayDist * sqrt(3.0f);
 
     return outVal;
 }

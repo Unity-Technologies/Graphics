@@ -365,6 +365,22 @@ namespace UnityEngine.Rendering
             }
         }
 
+        /// <summary>
+        /// Return a list of array, one per cell, containing the probe locations.
+        /// </summary>
+        /// <returns>A list of array, one per cell, containing the probe locations</returns>
+        public List<Vector3[]> GetProbeLocations()
+        {
+            List<Vector3[]> outList = new List<Vector3[]>(cells.Count);
+
+            foreach (var cell in cells.Values)
+            {
+                outList.Add(cell.probePositions);
+            }
+
+            return outList;
+        }
+
         internal bool SupportsDynamicPropagation()
         {
             var renderPipelineAsset = GraphicsSettings.renderPipelineAsset;
