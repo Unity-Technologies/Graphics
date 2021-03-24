@@ -250,7 +250,8 @@ namespace UnityEngine.Rendering.Universal
                 getter = () => (int)data.albedoDebugValidationPreset,
                 setter = (value) => {},
                 getIndex = () => (int)data.albedoDebugValidationPreset,
-                setIndex = (value) => data.albedoDebugValidationPreset = (AlbedoDebugValidationPreset)value
+                setIndex = (value) => data.albedoDebugValidationPreset = (AlbedoDebugValidationPreset)value,
+                onValueChanged = (field, value) => DebugManager.instance.ReDrawOnScreenDebug()
             };
 
             internal static DebugUI.Widget CreateAlbedoMinLuminance(DebugDisplaySettingsMaterial data) => new DebugUI.FloatField
