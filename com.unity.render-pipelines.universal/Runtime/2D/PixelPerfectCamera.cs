@@ -146,7 +146,20 @@ namespace UnityEngine.Experimental.Rendering.Universal
         /// Only applicable when both cropFrameX and cropFrameY are true.
         /// </summary>
         [System.Obsolete("Use cropFrame instead", false)]
-        public bool stretchFill { get { return m_StretchFill; } set { m_StretchFill = value; } }
+        public bool stretchFill
+        {
+            get
+            {
+                return m_CropFrame == CropFrame.StretchFill;
+            }
+            set
+            {
+                if (value)
+                    m_CropFrame = CropFrame.StretchFill;
+                else
+                    m_CropFrame = CropFrame.Windowbox;
+            }
+        }
 
         /// <summary>
         /// Ratio of the rendered Sprites compared to their original size (readonly).
@@ -157,7 +170,7 @@ namespace UnityEngine.Experimental.Rendering.Universal
             {
                 if (m_CinemachineCompatibilityMode)
                 {
-                    if (m_UpscaleRT)
+                    if (m_GridSnapping == GridSnapping.UpscaleRenderTexture)
                         return m_Internal.zoom * m_Internal.cinemachineVCamZoom;
                     else
                         return m_Internal.cinemachineVCamZoom;
@@ -214,11 +227,11 @@ namespace UnityEngine.Experimental.Rendering.Universal
         [SerializeField] GridSnapping m_GridSnapping;
 
         // These are obsolete. They are here only for migration.
-        [SerializeField] bool   m_UpscaleRT;
-        [SerializeField] bool   m_PixelSnapping;
-        [SerializeField] bool   m_CropFrameX;
-        [SerializeField] bool   m_CropFrameY;
-        [SerializeField] bool   m_StretchFill;
+        [SerializeField] bool m_UpscaleRT;
+        [SerializeField] bool m_PixelSnapping;
+        [SerializeField] bool m_CropFrameX;
+        [SerializeField] bool m_CropFrameY;
+        [SerializeField] bool m_StretchFill;
 
 
         Camera m_Camera;
