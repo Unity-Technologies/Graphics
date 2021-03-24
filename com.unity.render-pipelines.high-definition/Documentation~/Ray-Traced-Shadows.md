@@ -89,7 +89,7 @@ Ray-traced shadows offer an alternative to the shadow map that Point and Spot Li
 
 **Ray-traced Point Light shadows (radius = 0.5m)**
 
-Ray-traced shadows offer the possibility of semi-transparent shadows for Point Lights cast by tranparent and transmissive GameObjects.
+Ray-traced shadows offer the possibility of semi-transparent shadows for Point Lights cast by transparent and transmissive GameObjects.
 
 ![](Images/RayTracedShadows11.png)
 
