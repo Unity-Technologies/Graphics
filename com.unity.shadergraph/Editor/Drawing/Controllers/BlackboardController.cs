@@ -43,7 +43,7 @@ namespace UnityEditor.ShaderGraph.Drawing
             graphData.AddGraphInput(shaderInputReference);
 
             // If no categoryToAddItemToGuid is provided, add the input to a new un-named category at the end of the blackboard
-            /*if (categoryToAddItemToGuid == String.Empty)
+            if (categoryToAddItemToGuid == String.Empty)
             {
                 var lastCategory = graphData.categories.ToList().LastOrDefault();
                 if (lastCategory != null && lastCategory.IsNamedCategory() == false)
@@ -66,7 +66,7 @@ namespace UnityEditor.ShaderGraph.Drawing
                 addItemToCategoryAction.categoryGuid = categoryToAddItemToGuid;
                 addItemToCategoryAction.itemToAdd = shaderInputReference;
                 graphData.owner.graphDataStore.Dispatch(addItemToCategoryAction);
-            }*/
+            }
         }
 
         public Action<GraphData> modifyGraphDataAction => AddShaderInput;
@@ -413,15 +413,6 @@ namespace UnityEditor.ShaderGraph.Drawing
                         RemoveInputFromBlackboard(shaderInput);
                     break;
 
-                case MoveShaderInputAction moveShaderInputAction:
-                    if (IsInputUncategorized(moveShaderInputAction.shaderInputReference))
-                    {
-                        var blackboardRow = GetBlackboardRow(moveShaderInputAction.shaderInputReference);
-                        blackboardRow.RemoveFromHierarchy();
-                        blackboard.Insert(moveShaderInputAction.newIndexValue, blackboardRow);
-                    }
-                    break;
-
                 case HandleUndoRedoAction handleUndoRedoAction:
                     ClearBlackboardCategories();
 
@@ -453,7 +444,7 @@ namespace UnityEditor.ShaderGraph.Drawing
                     // Iterate through anything that is selected currently
                     foreach (var selectedElement in blackboard.selection.ToList())
                     {
-                        if (selectedElement is BlackboardPropertyView { userData: ShaderInput shaderInput })
+                        if (selectedElement is BlackboardPropertyView { userData: ShaderInput shaderInput } && addCategoryAction.categoryDataReference.IsNamedCategory())
                         {
                             // If a blackboard item is selected, first remove it from the blackboard
                             RemoveInputFromBlackboard(shaderInput);

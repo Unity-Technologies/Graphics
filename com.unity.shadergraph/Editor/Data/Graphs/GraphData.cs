@@ -1501,6 +1501,13 @@ namespace UnityEditor.ShaderGraph
                 m_Properties.Insert(newIndex, property);
             if (!m_MovedInputs.Contains(property))
                 m_MovedInputs.Add(property);
+
+            foreach (var categoryData in m_CategoryData)
+                if (categoryData.value.IsItemInCategory(property))
+                {
+                    categoryData.value.MoveItemInCategory(property, newIndex);
+                    break;
+                }
         }
 
         public void MoveKeyword(ShaderKeyword keyword, int newIndex)
@@ -1522,6 +1529,13 @@ namespace UnityEditor.ShaderGraph
                 m_Keywords.Insert(newIndex, keyword);
             if (!m_MovedInputs.Contains(keyword))
                 m_MovedInputs.Add(keyword);
+
+            foreach (var categoryData in m_CategoryData)
+                if (categoryData.value.IsItemInCategory(keyword))
+                {
+                    categoryData.value.MoveItemInCategory(keyword, newIndex);
+                    break;
+                }
         }
 
         public int GetGraphInputIndex(ShaderInput input)

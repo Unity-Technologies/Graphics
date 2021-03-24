@@ -377,6 +377,14 @@ namespace UnityEditor.ShaderGraph.Drawing
         {
             SetDragIndicatorVisible(false);
         }
+
+        public override void Select(VisualElement selectionContainer, bool additive)
+        {
+            // Don't add un-named categories to graph selections
+            if(controller.Model.IsNamedCategory())
+                base.Select(selectionContainer, additive);
+        }
+
         public override void OnSelected()
         {
             AddToClassList("selected");
@@ -389,6 +397,10 @@ namespace UnityEditor.ShaderGraph.Drawing
 
         public void AddToSelection(ISelectable selectable)
         {
+            // Don't add un-named categories to graph selections
+            if (controller.Model.IsNamedCategory() == false && selectable == this)
+                return;
+
             var materialGraphView = m_ViewModel.parentView.GetFirstAncestorOfType<MaterialGraphView>();
             materialGraphView?.AddToSelection(selectable);
         }

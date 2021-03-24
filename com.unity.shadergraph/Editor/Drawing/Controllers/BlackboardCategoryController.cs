@@ -75,7 +75,7 @@ namespace UnityEditor.ShaderGraph.Drawing
             : base(categoryData, categoryViewModel, dataStore)
         {
             m_BlackboardCategoryView = new SGBlackboardCategory(categoryViewModel);
-
+            m_BlackboardCategoryView.controller = this;
             blackboard = categoryViewModel.parentView as SGBlackboard;
             if (blackboard == null)
                 return;
@@ -122,6 +122,8 @@ namespace UnityEditor.ShaderGraph.Drawing
                     if (IsInputInCategory(addBlackboardItemAction.shaderInputReference))
                     {
                         var blackboardRow = FindBlackboardRow(addBlackboardItemAction.shaderInputReference);
+                        if (blackboardRow == null)
+                            blackboardRow = InsertBlackboardRow(addBlackboardItemAction.shaderInputReference);
                         // Rows should auto-expand when an input is first added
                         // blackboardRow.expanded = true;
                         var propertyView = blackboardRow.Q<BlackboardPropertyView>();
@@ -206,7 +208,6 @@ namespace UnityEditor.ShaderGraph.Drawing
             if (existingItemController == null)
             {
                 m_BlackboardItemControllers.Add(shaderInput.objectId, blackboardItemController);
-                insertionIndex = Mathf.Clamp(insertionIndex, 0, blackboardCategoryView.childCount);
                 blackboardCategoryView.Insert(insertionIndex, blackboardItemController.BlackboardItemView);
                 return blackboardItemController.BlackboardItemView;
             }

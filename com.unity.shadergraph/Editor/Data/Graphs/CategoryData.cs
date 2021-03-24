@@ -48,6 +48,18 @@ namespace UnityEditor.ShaderGraph
                 m_ChildObjectIDSet.Remove(itemToRemove.objectId);
         }
 
+        public void MoveItemInCategory(ShaderInput itemToMove, int newIndex)
+        {
+            m_ChildObjectList.Remove(itemToMove);
+            m_ChildObjectList.Insert(newIndex,itemToMove);
+            // Recreate the hash-set as the data structure does not allow for moving/inserting elements
+            m_ChildObjectIDSet.Clear();
+            foreach (var childObject in m_ChildObjectList)
+            {
+                m_ChildObjectIDSet.Add(childObject.value.objectId);
+            }
+        }
+
         public bool IsItemInCategory(ShaderInput itemToCheck)
         {
             return m_ChildObjectIDSet.Contains(itemToCheck.objectId);
