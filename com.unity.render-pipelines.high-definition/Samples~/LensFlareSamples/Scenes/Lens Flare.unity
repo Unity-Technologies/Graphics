@@ -154,7 +154,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: dc1448cf6f3dca245955f3e298bf2914, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  m_LensFlareData: {fileID: 11400000, guid: 86a0f171ed6e3364e9e2d4ad07646f6e, type: 2}
+  m_LensFlareData: {fileID: 11400000, guid: baf5c6a0a1312f14098e7d3d24d9dc8b, type: 2}
   intensity: 1
   maxAttenuationDistance: 50
   maxAttenuationScale: 50
@@ -234,7 +234,7 @@ MonoBehaviour:
   useOcclusion: 1
   occlusionRadius: 0.5
   sampleCount: 32
-  occlusionOffset: 0
+  occlusionOffset: 0.1
   allowOffScreen: 0
 --- !u!114 &79213239
 MonoBehaviour:
@@ -413,7 +413,7 @@ Light:
   m_LightShadowCasterMode: 2
   m_AreaSize: {x: 0.5, y: 0.5}
   m_BounceIntensity: 1
-  m_ColorTemperature: 6800
+  m_ColorTemperature: 20000
   m_UseColorTemperature: 1
   m_BoundingSphereOverride: {x: 0, y: 0, z: 0, w: 0}
   m_UseBoundingSphereOverride: 0
@@ -669,6 +669,7 @@ MonoBehaviour:
   - {fileID: 2046100714}
   - {fileID: 1052013042}
   - {fileID: 1013397970}
+  lightDistance: 1
   cameraRotationSpeed: 1
   useMouseDragInsteadOfFPSControl: 0
   enableCameraShake: 0

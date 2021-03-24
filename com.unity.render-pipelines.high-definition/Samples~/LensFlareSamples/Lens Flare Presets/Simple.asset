@@ -17,9 +17,9 @@ MonoBehaviour:
     positionOffset: {x: 0, y: 0}
     angularOffset: 0
     translationScale: {x: 1, y: 1}
-    localIntensity: 3.2
+    localIntensity: 0.56
     lensFlareTexture: {fileID: 0}
-    uniformScale: 4.73
+    uniformScale: 7.44
     sizeXY: {x: 1, y: 1}
     allowMultipleElement: 0
     count: 5
@@ -30,7 +30,7 @@ MonoBehaviour:
     autoRotate: 0
     flareType: 1
     modulateByLightColor: 1
-    isFoldOpened: 0
+    isFoldOpened: 1
     distribution: 0
     lengthSpread: 1
     positionCurve:
@@ -151,10 +151,10 @@ MonoBehaviour:
     positionOffset: {x: 0, y: 0}
     angularOffset: 0
     translationScale: {x: 1, y: 1}
-    localIntensity: 1
+    localIntensity: 0.12
     lensFlareTexture: {fileID: 0}
     uniformScale: 1
-    sizeXY: {x: 3.8, y: 0.07}
+    sizeXY: {x: 6, y: 0.08}
     allowMultipleElement: 1
     count: 20
     preserveAspectRatio: 0

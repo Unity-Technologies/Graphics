@@ -12,6 +12,10 @@ public class LensFlareInput : MonoBehaviour
 
     public GameObject[] skies;
 
+    [Header("Light Settings")]
+    public float lightDistance;
+
+
     [Header("Camera Movement")]
     public float cameraRotationSpeed;
     public bool useMouseDragInsteadOfFPSControl;
@@ -74,7 +78,7 @@ public class LensFlareInput : MonoBehaviour
             mousePosition.x = Input.mousePosition.x / Screen.width;
             mousePosition.y = Input.mousePosition.y / Screen.height;
 
-            lensFlareLight.transform.position = cameraComponent.ScreenToWorldPoint(new Vector3(Input.mousePosition.x, Input.mousePosition.y, 100.0f));
+            lensFlareLight.transform.position = cameraComponent.ScreenToWorldPoint(new Vector3(Input.mousePosition.x, Input.mousePosition.y, lightDistance));
         }
     }
 
