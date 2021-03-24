@@ -34,6 +34,8 @@ namespace UnityEngine.Experimental.Rendering.Universal
         public CropFrame cropFrame { get { return m_CropFrame; } set { m_CropFrame = value; } }
         public GridSnapping gridSnapping { get { return m_GridSnapping;} set { m_GridSnapping = value; } }
 
+        public float orthographicSize { get { return m_Internal.orthoSize; } }
+
         /// <summary>
         /// Match this value to to the Pixels Per Unit values of all Sprites within the Scene.
         /// </summary>
@@ -227,11 +229,11 @@ namespace UnityEngine.Experimental.Rendering.Universal
         [SerializeField] GridSnapping m_GridSnapping;
 
         // These are obsolete. They are here only for migration.
-        [SerializeField] bool m_UpscaleRT;
-        [SerializeField] bool m_PixelSnapping;
-        [SerializeField] bool m_CropFrameX;
-        [SerializeField] bool m_CropFrameY;
-        [SerializeField] bool m_StretchFill;
+        //[SerializeField] bool m_UpscaleRT;
+        //[SerializeField] bool m_PixelSnapping;
+        //[SerializeField] bool m_CropFrameX;
+        //[SerializeField] bool m_CropFrameY;
+        //[SerializeField] bool m_StretchFill;
 
 
         Camera m_Camera;

@@ -14,8 +14,7 @@ namespace UnityEditor.Experimental.Rendering.Universal
             public GUIContent y = new GUIContent("Y");
             public GUIContent assetsPPU = new GUIContent("Assets Pixels Per Unit", "The amount of pixels that make up one unit of the Scene. Set this value to match the PPU value of Sprites in the Scene.");
             public GUIContent refRes = new GUIContent("Reference Resolution", "The original resolution the Assets are designed for.");
-            public GUIContent upscaleRT = new GUIContent("Upscale Render Texture", "If enabled, the Scene is rendered as close as possible to the Reference Resolution while maintaining the screen aspect ratio, then upscaled to fit the full screen.");
-            public GUIContent pixelSnapping = new GUIContent("Pixel Snapping", "If enabled, Sprite Renderers are snapped to a grid in world space at render-time. Grid size is based on the Assets Pixels Per Unit value. This does not affect GameObjects' Transform positions.");
+            public GUIContent gridSnapping = new GUIContent("Grid Snapping", "Sets the snapping behavior for the camera and sprites.");
             public GUIContent cropFrame = new GUIContent("Crop Frame", "Crops the viewport to match the Reference Resolution, along the checked axis. Black bars will be added to fit the screen aspect ratio.");
             public GUIContent stretchFill = new GUIContent("Stretch Fill", "If enabled, expands the viewport to fit the screen resolution while maintaining the viewport aspect ratio.");
             public GUIContent currentPixelRatio = new GUIContent("Current Pixel Ratio", "Ratio of the rendered Sprites compared to their original size.");
@@ -39,11 +38,8 @@ namespace UnityEditor.Experimental.Rendering.Universal
         private SerializedProperty m_AssetsPPU;
         private SerializedProperty m_RefResX;
         private SerializedProperty m_RefResY;
-        private SerializedProperty m_UpscaleRT;
-        private SerializedProperty m_PixelSnapping;
-        private SerializedProperty m_CropFrameY;
-        private SerializedProperty m_CropFrameX;
-        private SerializedProperty m_StretchFill;
+        private SerializedProperty m_CropFrame;
+        private SerializedProperty m_GridSnapping;
 
         private Vector2 m_GameViewSize = Vector2.zero;
         private GUIContent m_CurrentPixelRatioValue;
@@ -83,11 +79,8 @@ namespace UnityEditor.Experimental.Rendering.Universal
             m_AssetsPPU = serializedObject.FindProperty("m_AssetsPPU");
             m_RefResX = serializedObject.FindProperty("m_RefResolutionX");
             m_RefResY = serializedObject.FindProperty("m_RefResolutionY");
-            m_UpscaleRT = serializedObject.FindProperty("m_UpscaleRT");
-            m_PixelSnapping = serializedObject.FindProperty("m_PixelSnapping");
-            m_CropFrameY = serializedObject.FindProperty("m_CropFrameY");
-            m_CropFrameX = serializedObject.FindProperty("m_CropFrameX");
-            m_StretchFill = serializedObject.FindProperty("m_StretchFill");
+            m_CropFrame = serializedObject.FindProperty("m_CropFrame");
+            m_GridSnapping = serializedObject.FindProperty("m_GridSnapping");
         }
 
         public override bool RequiresConstantRepaint()
@@ -143,31 +136,9 @@ namespace UnityEditor.Experimental.Rendering.Universal
             }
             EditorGUILayout.EndHorizontal();
 
-            EditorGUILayout.PropertyField(m_UpscaleRT, m_Style.upscaleRT);
-            if (!m_UpscaleRT.boolValue)
-            {
-                EditorGUI.indentLevel++;
-                EditorGUILayout.PropertyField(m_PixelSnapping, m_Style.pixelSnapping);
-                EditorGUI.indentLevel--;
-            }
+            EditorGUILayout.PropertyField(m_CropFrame, m_Style.cropFrame);
+            EditorGUILayout.PropertyField(m_GridSnapping, m_Style.gridSnapping);
 
-            EditorGUILayout.BeginHorizontal();
-            {
-                EditorGUILayout.PrefixLabel(m_Style.cropFrame);
-
-                EditorGUIUtility.labelWidth = k_SingleLetterLabelWidth * (EditorGUI.indentLevel + 1);
-                EditorGUILayout.PropertyField(m_CropFrameX, m_Style.x, GUILayout.MaxWidth(40.0f));
-                EditorGUILayout.PropertyField(m_CropFrameY, m_Style.y);
-                EditorGUIUtility.labelWidth = originalLabelWidth;
-            }
-            EditorGUILayout.EndHorizontal();
-
-            if (m_CropFrameY.boolValue && m_CropFrameX.boolValue)
-            {
-                EditorGUI.indentLevel++;
-                EditorGUILayout.PropertyField(m_StretchFill, m_Style.stretchFill);
-                EditorGUI.indentLevel--;
-            }
 
             serializedObject.ApplyModifiedProperties();
 
