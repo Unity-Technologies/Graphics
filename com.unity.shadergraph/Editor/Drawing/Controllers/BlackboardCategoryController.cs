@@ -158,7 +158,7 @@ namespace UnityEditor.ShaderGraph.Drawing
                     break;
 
                 case DeleteCategoryAction deleteCategoryAction:
-                    if(deleteCategoryAction.categoriesToRemoveGuids.Contains(ViewModel.associatedCategoryGuid))
+                    if (deleteCategoryAction.categoriesToRemoveGuids.Contains(ViewModel.associatedCategoryGuid))
                         this.Destroy();
 
                     // Check if any inputs were added to this category (i.e. if a category merge took place)
@@ -170,6 +170,13 @@ namespace UnityEditor.ShaderGraph.Drawing
                     }
                     break;
 
+                case ChangeCategoryNameAction changeCategoryNameAction:
+                    if (changeCategoryNameAction.categoryGuid == ViewModel.associatedCategoryGuid)
+                    {
+                        ViewModel.name = changeCategoryNameAction.newCategoryNameValue;
+                        m_BlackboardCategoryView.title = ViewModel.name;
+                    }
+                    break;
             }
 
             // If a non-named category ever reaches 0 children, remove it from the blackboard
@@ -187,6 +194,7 @@ namespace UnityEditor.ShaderGraph.Drawing
             m_BlackboardItemControllers.TryGetValue(shaderInput.objectId, out var associatedController);
             return associatedController?.BlackboardItemView;
         }
+
         // Creates controller, view and view model for a blackboard item and adds the view to the specified index in the category
         // By default adds it to the end of the list if no insertionIndex specified
         internal SGBlackboardRow InsertBlackboardRow(BlackboardItem shaderInput, int insertionIndex = -1)

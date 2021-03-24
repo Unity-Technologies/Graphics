@@ -216,7 +216,22 @@ namespace UnityEditor.ShaderGraph.Drawing
 
         public ShaderInput itemToRemove { get; set; }
     }
+    class ChangeCategoryNameAction : IGraphDataAction
+    {
+        void ChangeCategoryName(GraphData graphData)
+        {
+            AssertHelpers.IsNotNull(graphData, "GraphData is null while carrying out ChangeCategoryNameAction");
+            graphData.owner.RegisterCompleteObjectUndo("Change Category Name");
+            graphData.ChangeCategoryName(categoryGuid, newCategoryNameValue);
+        }
 
+        public Action<GraphData> modifyGraphDataAction => ChangeCategoryName;
+
+        //Reference to the category being modified
+        public string categoryGuid { get; set; }
+
+        internal string newCategoryNameValue { get; set; }
+    }
     class BlackboardController : SGViewController<GraphData, BlackboardViewModel>
     {
         // Type changes (adds/removes of Types) only happen after a full assembly reload so its safe to make this static
