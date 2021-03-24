@@ -1,5 +1,4 @@
 {
-  "registry": "https://artifactory.prd.cds.internal.unity3d.com/artifactory/api/npm/upm-candidates",
   "disableProjectUpdate": true,
   "dependencies": {
     "com.unity.ide.vscode": "1.1.3",
