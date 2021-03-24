@@ -110,6 +110,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed Tube and Disc lights mode selection (case 1317776)
 - Fixed preview camera updating the skybox material triggering GI baking (case 1314361/1314373).
 - The default LookDev volume profile is now copied and referened in the Asset folder instead of the package folder.
+- Fixed SSS on console platforms.
+- Assets going through the migration system are now dirtied.
 - Fixed warning fixed on ShadowLoop include (HDRISky and Unlit+ShadowMatte)
 - Fixed SSR Precision for 4K Screens
 - Fixed issue with gbuffer debug view when virtual texturing is enabled.
