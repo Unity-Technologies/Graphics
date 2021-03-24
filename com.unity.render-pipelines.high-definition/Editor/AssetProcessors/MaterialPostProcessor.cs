@@ -123,7 +123,7 @@ namespace UnityEditor.Rendering.HighDefinition
                 // eg using a masternode.
                 if (!HDShaderUtils.IsHDRPShaderGraph(shader))
                 {
-                    if (!testBypass)
+                    if (!testBypass) // TODO CLEANUP
                         return false;
                 }
             }
@@ -202,7 +202,7 @@ namespace UnityEditor.Rendering.HighDefinition
                     // First test if scan for shadergraph version upgrade might be needed (triggered through their importer)
                     // We do shadergraphs first as the HDMetaData object might need to be updated and the material update might depend
                     // on it.
-
+                    // Note: this auto-update is disabled by default for now.
                     if (s_AutoReimportProjectShaderGraphsOnVersionUpdate && scanHDShaderGraphsForUpgradeNeeded)
                     {
                         string commandLineOptions = System.Environment.CommandLine;
@@ -333,20 +333,19 @@ namespace UnityEditor.Rendering.HighDefinition
                 // Materials (.mat) post processing:
 
                 var material = (Material)AssetDatabase.LoadAssetAtPath(asset, typeof(Material));
-                bool testBypass = false;
-                if (!testBypass)
-                    if (!HDShaderUtils.IsHDRPShader(material.shader, upgradable: true))
-                        continue;
 
                 if (MaterialReimporter.s_ReimportShaderGraphDependencyOnMaterialUpdate && GraphUtil.IsShaderGraph(material.shader))
                 {
-                    // Check first if the HDRP shadergraph assigned needs a migration: here we ignoreNonHDRPShaderGraphs as we already
-                    // test and ignore non HDRP-detected shadergraph materials above.
+                    // Check first if the HDRP shadergraph assigned needs a migration: here we dont ignore non HDRP ShaderGraphs as
+                    // the detection is based on the presence of the "HDMetaData" object and old HDRP ShaderGraphs don't have these,
+                    // so we conservatively force a re-import of any ShaderGraphs. Unity might not have reimported such ShaderGraphs
+                    // based on declared source dependencies by the ShaderGraphImporter because these might have moved / changed
+                    // for old ones. We cover these cases here.
                     //
                     // Note we could also check this dependency in ReimportAllMaterials but in case a user manually re-imports a material,
                     // (ie the OnPostprocessAllAssets call here is not generated from ReimportAllMaterials())
                     // we would miss re-importing that dependency.
-                    if (MaterialReimporter.CheckHDShaderGraphVersionsForUpgrade("", material.shader, ignoreNonHDRPShaderGraphs: true))
+                    if (MaterialReimporter.CheckHDShaderGraphVersionsForUpgrade("", material.shader, ignoreNonHDRPShaderGraphs: false))
                     {
                         var shaderPath = AssetDatabase.GetAssetPath(material.shader.GetInstanceID());
                         AssetDatabase.ImportAsset(shaderPath);
@@ -357,6 +356,9 @@ namespace UnityEditor.Rendering.HighDefinition
                         continue;
                     }
                 }
+
+                if (!HDShaderUtils.IsHDRPShader(material.shader, upgradable: true))
+                    continue;
 
                 (HDShaderUtils.ShaderID id, GUID subTargetGUID) = HDShaderUtils.GetShaderIDsFromShader(material.shader);
                 var latestVersion = k_Migrations.Length;
