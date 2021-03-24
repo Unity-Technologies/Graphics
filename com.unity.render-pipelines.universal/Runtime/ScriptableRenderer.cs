@@ -605,9 +605,6 @@ namespace UnityEngine.Rendering.Universal
 
                 // Empty configure to setup dimensions/targets and whatever data is needed for merging
                 // We do not execute this at this time, so render targets are still invalid
-                CommandBuffer cmd = CommandBufferPool.Get();
-                renderPass.Configure(cmd, cameraData.cameraTargetDescriptor);
-                CommandBufferPool.Release(cmd);
 
                 var width = renderPass.renderTargetWidth != -1 ? renderPass.renderTargetWidth : cameraData.cameraTargetDescriptor.width;
                 var height = renderPass.renderTargetHeight != -1 ? renderPass.renderTargetHeight : cameraData.cameraTargetDescriptor.height;
