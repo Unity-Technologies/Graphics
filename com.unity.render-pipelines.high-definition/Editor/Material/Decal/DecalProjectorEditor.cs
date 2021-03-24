@@ -49,11 +49,11 @@ namespace UnityEditor.Rendering.HighDefinition
         SerializedProperty m_UVScaleProperty;
         SerializedProperty m_UVBiasProperty;
         SerializedProperty m_AffectsTransparencyProperty;
+        SerializedProperty m_ScaleMode;
         SerializedProperty m_Size;
         SerializedProperty[] m_SizeValues;
         SerializedProperty m_Offset;
         SerializedProperty[] m_OffsetValues;
-        SerializedProperty m_ApplyScale;
         SerializedProperty m_FadeFactor;
         SerializedProperty m_DecalLayerMask;
 
@@ -199,6 +199,7 @@ namespace UnityEditor.Rendering.HighDefinition
             m_UVScaleProperty = serializedObject.FindProperty("m_UVScale");
             m_UVBiasProperty = serializedObject.FindProperty("m_UVBias");
             m_AffectsTransparencyProperty = serializedObject.FindProperty("m_AffectsTransparency");
+            m_ScaleMode = serializedObject.FindProperty("m_ScaleMode");
             m_Size = serializedObject.FindProperty("m_Size");
             m_SizeValues = new[]
             {
@@ -213,7 +214,6 @@ namespace UnityEditor.Rendering.HighDefinition
                 m_Offset.FindPropertyRelative("y"),
                 m_Offset.FindPropertyRelative("z"),
             };
-            m_ApplyScale = serializedObject.FindProperty("m_ApplyScale");
             m_FadeFactor = serializedObject.FindProperty("m_FadeFactor");
             m_DecalLayerMask = serializedObject.FindProperty("m_DecalLayerMask");
 
@@ -281,7 +281,7 @@ namespace UnityEditor.Rendering.HighDefinition
         void DrawBoxTransformationHandles(DecalProjector decalProjector)
         {
             Vector3 scale = decalProjector.effectiveScale;
-            using (new Handles.DrawingScope(Color.white, Matrix4x4.TRS(decalProjector.transform.position, decalProjector.transform.rotation, scale)))
+            using (new Handles.DrawingScope(fullColor, Matrix4x4.TRS(decalProjector.transform.position, decalProjector.transform.rotation, scale)))
             {
                 Vector3 centerStart = decalProjector.pivot;
                 boxHandle.center = centerStart;
@@ -414,8 +414,8 @@ namespace UnityEditor.Rendering.HighDefinition
                             }
                             else
                             {
-                                // TODO: Decide if decalProjector.size and uvHandles.size should ever have negative values. They can't currently.
-                                uvScale[channel] = k_Limit * Mathf.Sign(decalSize) * Mathf.Sign(handleSize);
+                                // TODO: Decide if uvHandles.size should ever have negative value. It can't currently.
+                                uvScale[channel] = k_Limit * Mathf.Sign(handleSize);
                                 uvBias[channel] = k_Limit * minusNewUVStart / decalSize;
                             }
                         }
@@ -587,6 +587,8 @@ namespace UnityEditor.Rendering.HighDefinition
 
                 EditorGUILayout.Space();
 
+                EditorGUILayout.PropertyField(m_ScaleMode, k_ScaleMode);
+
                 Rect rect = EditorGUILayout.GetControlRect(true, EditorGUI.GetPropertyHeight(SerializedPropertyType.Vector2, k_SizeContent));
                 EditorGUI.BeginProperty(rect, k_SizeSubContent[0], m_SizeValues[0]);
                 EditorGUI.BeginProperty(rect, k_SizeSubContent[1], m_SizeValues[1]);
@@ -615,8 +617,6 @@ namespace UnityEditor.Rendering.HighDefinition
                 if (EditorGUI.EndChangeCheck())
                     ReinitSavedRatioSizePivotPosition();
                 EditorGUI.EndProperty();
-
-                EditorGUILayout.PropertyField(m_ApplyScale, k_ApplyScale);
 
                 EditorGUILayout.PropertyField(m_MaterialProperty, k_MaterialContent);
 

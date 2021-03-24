@@ -8,6 +8,7 @@ namespace UnityEditor.Rendering.HighDefinition
         const string k_EditShapeWithoutPreservingUVTooltip = "Modifies the projector boundaries and stretches the decal to fill them.";
         const string k_EditUVTooltip = "Modify the UV and the pivot position without moving the projection box. It can alter Transform.";
 
+        static readonly GUIContent k_ScaleMode = EditorGUIUtility.TrTextContent("Scale Mode", "Specifies the scaling mode to apply to decals that use this Decal Projector.");
         static readonly GUIContent k_SizeContent = EditorGUIUtility.TrTextContent("Size", "Sets the size of the projector.");
         static readonly GUIContent[] k_SizeSubContent = new[]
         {
@@ -25,6 +26,5 @@ namespace UnityEditor.Rendering.HighDefinition
         static readonly GUIContent k_FadeFactorContent = EditorGUIUtility.TrTextContent("Fade Factor", "Controls the transparency of the decal.");
         static readonly GUIContent k_AffectTransparentContent = EditorGUIUtility.TrTextContent("Affects Transparent", "When enabled, HDRP draws this projector's decal on top of transparent surfaces.");
         static readonly GUIContent k_Offset = EditorGUIUtility.TrTextContent("Pivot", "Controls the position of the pivot point of the decal.");
-        static readonly GUIContent k_ApplyScale = EditorGUIUtility.TrTextContent("Apply Scale", "Should lossy scale of the Transform be applied to the decal. It attempts to match the actual world scale as much as it can, but may be incorrect for skewed objects.");
     }
 }

@@ -4,6 +4,16 @@ using UnityEditor.Rendering.HighDefinition;
 
 namespace UnityEngine.Rendering.HighDefinition
 {
+    /// <summary>The scaling mode to apply to decals that use the Decal Projector.</summary>
+    public enum DecalScaleMode
+    {
+        /// <summary>Ignores the transformation hierarchy and uses the scale values in the Decal Projector component directly.</summary>
+        ScaleInvariant,
+        /// <summary>Multiplies the lossy scale of the Transform with the Decal Projector's own scale then applies this to the decal.</summary>
+        [InspectorName("Inherit from Hierarchy")]
+        InheritFromHierarchy,
+    }
+
     /// <summary>
     /// Decal Projector component.
     /// </summary>
@@ -181,6 +191,21 @@ namespace UnityEngine.Rendering.HighDefinition
         }
 
         [SerializeField]
+        private DecalScaleMode m_ScaleMode = DecalScaleMode.ScaleInvariant;
+        /// <summary>
+        /// The scaling mode to apply to decals that use this Decal Projector.
+        /// </summary>
+        public DecalScaleMode scaleMode
+        {
+            get => m_ScaleMode;
+            set
+            {
+                m_ScaleMode = value;
+                OnValidate();
+            }
+        }
+
+        [SerializeField]
         internal Vector3 m_Offset = new Vector3(0, 0, 0);
         /// <summary>
         /// Change the pivot position.
@@ -211,21 +236,6 @@ namespace UnityEngine.Rendering.HighDefinition
             set
             {
                 m_Size = value;
-                OnValidate();
-            }
-        }
-
-        [SerializeField]
-        private bool m_ApplyScale = false;
-        /// <summary>
-        /// Should lossy scale of the Transform be applied to the decal.
-        /// </summary>
-        public bool applyScale
-        {
-            get => m_ApplyScale;
-            set
-            {
-                m_ApplyScale = value;
                 OnValidate();
             }
         }
@@ -265,7 +275,7 @@ namespace UnityEngine.Rendering.HighDefinition
         private DecalSystem.DecalHandle m_Handle = null;
 
         /// <summary>A scale that should be used for rendering and handles.</summary>
-        internal Vector3 effectiveScale => m_ApplyScale ? transform.lossyScale : Vector3.one;
+        internal Vector3 effectiveScale => m_ScaleMode == DecalScaleMode.InheritFromHierarchy ? transform.lossyScale : Vector3.one;
 
         /// <summary>current position in a way the DecalSystem will be able to use it</summary>
         internal Vector3 position => transform.position;
