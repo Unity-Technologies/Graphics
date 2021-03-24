@@ -53,6 +53,14 @@ namespace UnityEngine.Rendering.Universal
                 context.ExecuteCommandBuffer(cmd);
                 cmd.Clear();
 
+                float width = renderingData.cameraData.pixelWidth;
+                float height = renderingData.cameraData.pixelHeight;
+                cmd.SetGlobalVector("_ScreenSize", new Vector4(width, height, 1f / width, 1f / height));
+
+                // Split here allows clear to be executed before DrawRenderers
+                context.ExecuteCommandBuffer(cmd);
+                cmd.Clear();
+
                 m_DrawSystem?.Execute(cmd);
 
                 context.DrawRenderers(renderingData.cullResults, ref drawingSettings, ref m_FilteringSettings);

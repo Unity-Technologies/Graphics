@@ -437,6 +437,13 @@ namespace UnityEditor.Rendering.Universal
                 EditorGUILayout.PropertyField(m_MaterialProperty, k_MaterialContent);
 
                 bool decalLayerEnabled = false;
+                foreach (var decalProjector in targets)
+                {
+                    var mat = (decalProjector as DecalProjector).material;
+                    if (mat == null)
+                        continue;
+                    decalLayerEnabled = mat.HasProperty("_DecalAngleFadeSupported");
+                }
                 /*HDRenderPipelineAsset hdrp = HDRenderPipeline.currentAsset;
                 if (hdrp != null)
                 {
@@ -453,7 +460,7 @@ namespace UnityEditor.Rendering.Universal
                     m_DrawDistanceProperty.floatValue = 0f;
 
                 EditorGUILayout.PropertyField(m_FadeScaleProperty, k_FadeScaleContent);
-                //using (new EditorGUI.DisabledScope(!decalLayerEnabled))
+                using (new EditorGUI.DisabledScope(!decalLayerEnabled))
                 {
                     float angleFadeMinValue = m_StartAngleFadeProperty.floatValue;
                     float angleFadeMaxValue = m_EndAngleFadeProperty.floatValue;
@@ -466,11 +473,10 @@ namespace UnityEditor.Rendering.Universal
                     }
                 }
 
-                /*if (!decalLayerEnabled)
+                if (!decalLayerEnabled)
                 {
-                    EditorGUILayout.HelpBox("Enable 'Decal Layers' in your HDRP Asset if you want to control the Angle Fade. There is a performance cost of enabling this option.",
-                        MessageType.Info);
-                }*/
+                    EditorGUILayout.HelpBox("Decal layer not enabled in shader or render pipeline.", MessageType.Info);
+                }
 
                 EditorGUILayout.PropertyField(m_UVScaleProperty, k_UVScaleContent);
                 EditorGUILayout.PropertyField(m_UVBiasProperty, k_UVBiasContent);

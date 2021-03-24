@@ -36,15 +36,17 @@ Pass
     $Attributes.uv2:                    #define ATTRIBUTES_NEED_TEXCOORD2
     $Attributes.uv3:                    #define ATTRIBUTES_NEED_TEXCOORD3
     $Attributes.color:                  #define ATTRIBUTES_NEED_COLOR
-    $Varyings.positionWS:           #define VARYINGS_NEED_POSITION_WS
-    $Varyings.normalWS:             #define VARYINGS_NEED_NORMAL_WS
-    $Varyings.viewDirectionWS:      #define VARYINGS_NEED_VIEWDIRECTION_WS
-    $Varyings.tangentWS:            #define VARYINGS_NEED_TANGENT_WS
-    $Varyings.texCoord0:            #define VARYINGS_NEED_TEXCOORD0
-    $Varyings.texCoord1:            #define VARYINGS_NEED_TEXCOORD1
-    $Varyings.texCoord2:            #define VARYINGS_NEED_TEXCOORD2
-    $Varyings.texCoord3:            #define VARYINGS_NEED_TEXCOORD3
-    $Varyings.color:                #define VARYINGS_NEED_COLOR
+    $Varyings.positionWS:               #define VARYINGS_NEED_POSITION_WS
+    $Varyings.normalWS:                 #define VARYINGS_NEED_NORMAL_WS
+    $Varyings.viewDirectionWS:          #define VARYINGS_NEED_VIEWDIRECTION_WS
+    $Varyings.tangentWS:                #define VARYINGS_NEED_TANGENT_WS
+    $Varyings.texCoord0:                #define VARYINGS_NEED_TEXCOORD0
+    $Varyings.texCoord1:                #define VARYINGS_NEED_TEXCOORD1
+    $Varyings.texCoord2:                #define VARYINGS_NEED_TEXCOORD2
+    $Varyings.texCoord3:                #define VARYINGS_NEED_TEXCOORD3
+    $Varyings.color:                    #define VARYINGS_NEED_COLOR
+    $Varyings.fogFactorAndVertexLight:  #define VARYINGS_NEED_FOG_AND_VERTEX_LIGHT
+    $Varyings.shadowCoord:              #define VARYINGS_NEED_SHADOW_COORD
     
     $features.graphVertex:                  #define HAVE_MESH_MODIFICATION
 
@@ -146,6 +148,8 @@ Pass
 
         // setup defaults -- these are used if the graph doesn't output a value
         ZERO_INITIALIZE(DecalSurfaceData, surfaceData);
+        surfaceData.mask.y = 1.0;
+        surfaceData.mask.z = 0.5;
 
         #ifdef _MATERIAL_AFFECTS_EMISSION
             $SurfaceDescription.Emission:       surfaceData.emissive.rgb = surfaceDescription.Emission.rgb * fadeFactor;

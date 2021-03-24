@@ -128,6 +128,7 @@ namespace UnityEngine.Rendering.Universal
             m_DecalEntityManager = null;
             m_UseCounter = 0;
 
+
             DecalProjector.onDecalAdd -= OnDecalAdd;
             DecalProjector.onDecalRemove -= OnDecalRemove;
             DecalProjector.onDecalPropertyChange -= OnDecalPropertyChange;
@@ -173,8 +174,11 @@ namespace UnityEngine.Rendering.Universal
             }
         }
 
-        public DecalSettings settings; // todo
+        public DecalSettings settings = new DecalSettings(); // todo
         private DecalSettings m_ActualSettings;
+
+        private bool m_TechniqueValid;
+        private bool m_DirtySystems;
 
         [HideInInspector]
         [Reload("Shaders/Utils/CopyDepth.shader")]
@@ -188,6 +192,7 @@ namespace UnityEngine.Rendering.Universal
         private DBufferRenderPass m_DBufferRenderPass;
         private DecalForwardEmissivePass m_ForwardEmissivePass;
         private DecalPreviewPass m_DecalPreviewPass;
+        private NormalReconstructionSetupPass m_NormalReconstructionSetupPass;
 
         // TODO: Remove
         /*DecalSystem.CullRequest decalCullRequest;
@@ -216,23 +221,19 @@ namespace UnityEngine.Rendering.Universal
 
         private DecalSettings actualSettings { get => m_ActualSettings; }
         public DecalTechnique technique { get => m_ActualSettings.technique; }
-        public bool valid { get; private set; }
 
         public override void Create()
         {
 #if UNITY_EDITOR
             ResourceReloader.TryReloadAllNullIn(this, UniversalRenderPipelineAsset.packagePath);
 #endif
-            var copyDepthMaterial = CoreUtils.CreateEngineMaterial(copyDepthPS);
-            m_CopyDepthPass = new CopyDepthPass(RenderPassEvent.AfterRenderingPrePasses, copyDepthMaterial);
-
-            var dBufferClearMaterial = CoreUtils.CreateEngineMaterial(dBufferClear);
-
             m_DecalPreviewPass = new DecalPreviewPass("Decal Preview Render");
+
+            m_NormalReconstructionSetupPass = new NormalReconstructionSetupPass("Normal Reconstruction Setup");
 
             if (settings.technique == DecalTechnique.Automatic)
             {
-                m_ActualSettings = actualSettings.CreateAutomatic();
+                m_ActualSettings = settings.CreateAutomatic();
             }
             else
             {
@@ -242,15 +243,31 @@ namespace UnityEngine.Rendering.Universal
                 if (technique == DecalTechnique.DBuffer && !mrt4)
                 {
                     Debug.LogError("Decal DBuffer technique requires MRT4 support.");
+                    m_TechniqueValid = false;
                     return;
                 }
 
                 if (technique == DecalTechnique.ScreenSpace && actualSettings.screenSpaceSettings.useGBuffer && !mrt4)
                 {
                     Debug.LogError("Decal useGBuffer option requires MRT4 support.");
+                    m_TechniqueValid = false;
                     return;
                 }
             }
+
+            m_DirtySystems = true;
+            m_TechniqueValid = true;
+        }
+
+        private void RecreateSystemsIfNeeded()
+        {
+            if (!m_DirtySystems)
+                return;
+
+            var copyDepthMaterial = CoreUtils.CreateEngineMaterial(copyDepthPS);
+            m_CopyDepthPass = new CopyDepthPass(RenderPassEvent.AfterRenderingPrePasses, copyDepthMaterial);
+
+            var dBufferClearMaterial = CoreUtils.CreateEngineMaterial(dBufferClear);
 
             /*if (actualSettings.technique == DecalTechnique.DBUFFER_HDRP_PORT)
             {
@@ -290,24 +307,15 @@ namespace UnityEngine.Rendering.Universal
                     m_DecalDrawForwardEmissiveSystem = new DecalDrawFowardEmissiveSystem(m_DecalEntityManager);
                     m_ForwardEmissivePass = new DecalForwardEmissivePass("Decal Forward Emissive Render", m_DecalDrawForwardEmissiveSystem);
                 }
-
-                valid = true;
             }
+
+            m_DirtySystems = false;
         }
 
-        private DecalTechnique GetPreferredTechnique()
-        {
-            bool mrt4 = SystemInfo.supportedRenderTargetCount >= 4;
-
-            if (mrt4 && (SystemInfo.deviceType == DeviceType.Desktop || SystemInfo.deviceType == DeviceType.Console))
-                return DecalTechnique.DBuffer;
-            else
-                return DecalTechnique.ScreenSpace;
-        }
 
         internal override void OnCull(in CameraData cameraData)
         {
-            if (!valid)
+            if (!m_TechniqueValid)
                 return;
 
             if (cameraData.cameraType == CameraType.Preview)
@@ -326,6 +334,8 @@ namespace UnityEngine.Rendering.Universal
 
             if (technique == DecalTechnique.DBuffer || technique == DecalTechnique.ScreenSpace)
             {
+                RecreateSystemsIfNeeded();
+
                 m_DecalUpdateCachedSystem.Execute();
                 m_DecalUpdateCullingGroupSystem.Execute(cameraData.camera);
 
@@ -335,7 +345,7 @@ namespace UnityEngine.Rendering.Universal
 
         public override void AddRenderPasses(ScriptableRenderer renderer, ref RenderingData renderingData)
         {
-            if (!valid)
+            if (!m_TechniqueValid)
                 return;
 
             if (renderingData.cameraData.cameraType == CameraType.Preview)
@@ -343,6 +353,8 @@ namespace UnityEngine.Rendering.Universal
                 renderer.EnqueuePass(m_DecalPreviewPass);
                 return;
             }
+
+            renderer.EnqueuePass(m_NormalReconstructionSetupPass);
 
             /*if (technique == DecalTechnique.DBUFFER_HDRP_PORT)
             {
@@ -383,6 +395,7 @@ namespace UnityEngine.Rendering.Universal
 
             if (technique == DecalTechnique.DBuffer || technique == DecalTechnique.ScreenSpace)
             {
+                RecreateSystemsIfNeeded();
                 m_DecalUpdateCulledSystem.Execute();
                 m_DecalCreateDrawCallSystem.Execute();
 
@@ -415,8 +428,11 @@ namespace UnityEngine.Rendering.Universal
 
         protected override void Dispose(bool disposing)
         {
-            m_DecalEntityManager = null;
-            sharedDecalEntityManager.Release(m_DecalEntityManager);
+            if (m_DecalEntityManager != null)
+            {
+                m_DecalEntityManager = null;
+                sharedDecalEntityManager.Release(m_DecalEntityManager);
+            }
         }
     }
 }

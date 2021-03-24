@@ -32,10 +32,13 @@
 
 #if defined(DECAL_SCREEN_SPACE) || defined(DECAL_ANGLE_FADE)
 #define DECAL_RECONSTRUCT_NORMAL
+
+#if !defined(DECAL_SCREEN_SPACE)
+#define _RECONSTRUCT_NORMAL_LOW
+#endif
 #endif
 
 #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Core.hlsl"
-#include "Packages/com.unity.render-pipelines.universal/Editor/ShaderGraph/Includes/Varyings.hlsl" // VertMesh
 
 #if defined(DECAL_PROJECTOR) || defined(DECAL_RECONSTRUCT_NORMAL)
 #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/DeclareDepthTexture.hlsl" // Load Scene Depth
@@ -57,6 +60,8 @@
 #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/NormalReconstruction.hlsl"
 #endif
 
+#include "Packages/com.unity.render-pipelines.universal/Editor/ShaderGraph/Includes/Varyings.hlsl" // VertMesh
+
 void MeshDecalsPositionZBias(inout Varyings input)
 {
 #if UNITY_REVERSED_Z
@@ -76,6 +81,10 @@ PackedVaryings Vert(Attributes inputMesh)
         inputMesh.positionOS += viewDirectionOS * (_DecalMeshViewBias);
     }
     varyingsType = BuildVaryings(inputMesh);
+#if (SHADERPASS == SHADERPASS_DECAL_SCREEN_SPACE_MESH) || (SHADERPASS == SHADERPASS_DECAL_GBUFFER_MESH)
+    OUTPUT_LIGHTMAP_UV(inputMesh.uv1, unity_LightmapST, varyingsType.lightmapUV);
+    OUTPUT_SH(varyingsType.normalWS, varyingsType.sh);
+#endif
     if (_DecalMeshBiasType == DECALMESHDEPTHBIASTYPE_DEPTH_BIAS) // TODO: Check performance of branch
     {
         MeshDecalsPositionZBias(varyingsType);
@@ -176,20 +185,24 @@ void Frag(PackedVaryings packedInput,
 #if defined(DECAL_DBUFFER)
     ENCODE_INTO_DBUFFER(surfaceData, outDBuffer);
 #elif defined(DECAL_SCREEN_SPACE)
-    InputData inputData;
+
+    InputData inputData = (InputData)0;
     inputData.positionWS = posInput.positionWS;
 
 #if defined(DECALS_NORMAL_BLEND_LOW) || defined(DECALS_NORMAL_BLEND_MEDIUM) || defined(DECALS_NORMAL_BLEND_HIGH)
     float normalAlpha = 1.0 - surfaceData.normalWS.w;
     float3 decalNormal = surfaceData.normalWS.xyz * surfaceData.normalWS.w;// ((surfaceData.normalWS.xyz * 0.5 + 0.5) * surfaceData.normalWS.w) * 2 - (254.0 / 255.0); // TODO
-    inputData.normalWS = normalize(normalWS * normalAlpha + decalNormal);
+    inputData.normalWS.xyz = half3(
+        normalize(normalWS.xyz *
+            normalAlpha +
+            decalNormal));
 #else
-    inputData.normalWS = surfaceData.normalWS;
+    inputData.normalWS.xyz = half3(surfaceData.normalWS.xyz);
 #endif
 
     inputData.viewDirectionWS = viewDirectionWS;
 
-#if defined(REQUIRES_VERTEX_SHADOW_COORD_INTERPOLATOR)
+#if defined(VARYINGS_NEED_SHADOW_COORD) && defined(REQUIRES_VERTEX_SHADOW_COORD_INTERPOLATOR)
     inputData.shadowCoord = input.shadowCoord;
 #elif defined(MAIN_LIGHT_CALCULATE_SHADOWS)
     inputData.shadowCoord = TransformWorldToShadowCoord(inputData.positionWS);
@@ -198,10 +211,12 @@ void Frag(PackedVaryings packedInput,
 #endif
 
     inputData.fogCoord = input.fogFactorAndVertexLight.x;
+#ifdef DECAL_MESH
     inputData.vertexLighting = input.fogFactorAndVertexLight.yzw;
     inputData.bakedGI = SAMPLE_GI(input.lightmapUV, input.sh, inputData.normalWS);
     inputData.normalizedScreenSpaceUV = GetNormalizedScreenSpaceUV(input.positionCS);
     inputData.shadowMask = SAMPLE_SHADOWMASK(input.lightmapUV);
+#endif
 
     SurfaceData surface = (SurfaceData)0;
     surface.albedo = surfaceData.baseColor.rgb;
@@ -220,12 +235,49 @@ void Frag(PackedVaryings packedInput,
 
     outColor = color;
 #elif defined(DECAL_GBUFFER)
-    half3 packedNormalWS = PackNormal(surfaceData.normalWS.xyz);
 
+    InputData inputData = (InputData)0;
+    inputData.normalWS.xyz = half3(surfaceData.normalWS.xyz);
+    inputData.viewDirectionWS = viewDirectionWS;
+
+#if defined(VARYINGS_NEED_SHADOW_COORD) && defined(REQUIRES_VERTEX_SHADOW_COORD_INTERPOLATOR)
+    inputData.shadowCoord = input.shadowCoord;
+#elif defined(MAIN_LIGHT_CALCULATE_SHADOWS)
+    inputData.shadowCoord = TransformWorldToShadowCoord(inputData.positionWS);
+#else
+    inputData.shadowCoord = float4(0, 0, 0, 0);
+#endif
+
+#ifdef DECAL_MESH
+    inputData.bakedGI = SAMPLE_GI(input.lightmapUV, input.sh, inputData.normalWS);
+    inputData.shadowMask = SAMPLE_SHADOWMASK(input.lightmapUV);
+#endif
+
+    SurfaceData surface = (SurfaceData)0;
+    surface.albedo = surfaceData.baseColor.rgb;
+    surface.metallic = saturate(surfaceData.mask.x);
+    surface.specular = 0;
+    surface.smoothness = saturate(surfaceData.mask.z);
+    surface.occlusion = surfaceData.mask.y;
+    surface.emission = surfaceData.emissive;
+    surface.alpha = saturate(surfaceData.baseColor.w);
+    surface.clearCoatMask = 0;
+    surface.clearCoatSmoothness = 1;
+
+    // in LitForwardPass GlobalIllumination (and temporarily LightingPhysicallyBased) are called inside UniversalFragmentPBR
+    // in Deferred rendering we store the sum of these values (and of emission as well) in the GBuffer
+    BRDFData brdfData;
+    InitializeBRDFData(surface.albedo, surface.metallic, 0, surface.smoothness, surface.alpha, brdfData);
+
+    Light mainLight = GetMainLight(inputData.shadowCoord, inputData.positionWS, inputData.shadowMask);
+    MixRealtimeAndBakedGI(mainLight, inputData.normalWS, inputData.bakedGI, inputData.shadowMask);
+    half3 color = GlobalIllumination(brdfData, inputData.bakedGI, surface.occlusion, inputData.normalWS, inputData.viewDirectionWS);
+
+    half3 packedNormalWS = PackNormal(surfaceData.normalWS.xyz);
     fragmentOutput.GBuffer0 = half4(surfaceData.baseColor.rgb, surfaceData.baseColor.a);
     fragmentOutput.GBuffer1 = 0;
     fragmentOutput.GBuffer2 = half4(packedNormalWS, surfaceData.normalWS.a);
-    fragmentOutput.GBuffer3 = half4(surfaceData.emissive, surfaceData.baseColor.a);
+    fragmentOutput.GBuffer3 = half4(surfaceData.emissive + color, surfaceData.baseColor.a);
 #if OUTPUT_SHADOWMASK
     fragmentOutput.GBuffer4 = 0; // TODO: Does shader and pipeline target count must match?
 #endif

@@ -65,6 +65,8 @@ public abstract class DecalDrawSystem
 
     private void Draw(CommandBuffer cmd, DecalEntityChunk decalEntityChunk, DecalCachedChunk decalCachedChunk, DecalDrawCallChunk decalDrawCallChunk, int passIndex)
     {
+        decalCachedChunk.propertyBlock.SetVector("unity_LightData", new Vector4(1, 1, 1, 0)); // GetMainLight requires z component to be set
+
         int subCallCount = decalDrawCallChunk.subCallCount;
         for (int i = 0; i < subCallCount; ++i)
         {
@@ -81,6 +83,8 @@ public abstract class DecalDrawSystem
 
     private void DrawInstanced(CommandBuffer cmd, DecalEntityChunk decalEntityChunk, DecalCachedChunk decalCachedChunk, DecalDrawCallChunk decalDrawCallChunk, int passIndex)
     {
+        decalCachedChunk.propertyBlock.SetVector("unity_LightData", new Vector4(1, 1, 1, 0)); // GetMainLight requires z component to be set
+
         int subCallCount = decalDrawCallChunk.subCallCount;
         for (int i = 0; i < subCallCount; ++i)
         {

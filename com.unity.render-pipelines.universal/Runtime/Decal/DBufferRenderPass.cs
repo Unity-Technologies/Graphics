@@ -13,7 +13,6 @@ namespace UnityEngine.Rendering.Universal
     {
         private static string[] s_DBufferNames = { "_DBufferTexture0", "_DBufferTexture1", "_DBufferTexture2", "_DBufferTexture3" };
         private static string s_DBufferDepthName = "DBufferDepth";
-        private static GraphicsFormat[] s_DBufferFormats = { GraphicsFormat.R8G8B8A8_SRGB, GraphicsFormat.R8G8B8A8_UNorm, GraphicsFormat.R8G8B8A8_UNorm, GraphicsFormat.R8G8_UNorm };
 
         private DecalDrawIntoDBufferSystem m_DecalDrawIntoDBufferSystem;
         private DBufferSettings m_Settings;
@@ -50,7 +49,7 @@ namespace UnityEngine.Rendering.Universal
             // base
             {
                 var desc = renderingData.cameraData.cameraTargetDescriptor;
-                desc.graphicsFormat = s_DBufferFormats[dBufferCount];
+                desc.graphicsFormat = QualitySettings.activeColorSpace == ColorSpace.Linear ? GraphicsFormat.R8G8B8A8_SRGB : GraphicsFormat.R8G8B8A8_UNorm;
                 desc.depthBufferBits = 0;
 
                 cmd.GetTemporaryRT(Shader.PropertyToID(s_DBufferNames[dBufferCount]), desc);
@@ -60,7 +59,7 @@ namespace UnityEngine.Rendering.Universal
             if (m_Settings.surfaceData == DecalSurfaceData.AlbedoNormal || m_Settings.surfaceData == DecalSurfaceData.AlbedoNormalMask)
             {
                 var desc = renderingData.cameraData.cameraTargetDescriptor;
-                desc.graphicsFormat = s_DBufferFormats[dBufferCount];
+                desc.graphicsFormat = GraphicsFormat.R8G8B8A8_UNorm;
                 desc.depthBufferBits = 0;
 
                 cmd.GetTemporaryRT(Shader.PropertyToID(s_DBufferNames[dBufferCount]), desc);
@@ -70,7 +69,7 @@ namespace UnityEngine.Rendering.Universal
             if (m_Settings.surfaceData == DecalSurfaceData.AlbedoNormalMask)
             {
                 var desc = renderingData.cameraData.cameraTargetDescriptor;
-                desc.graphicsFormat = s_DBufferFormats[dBufferCount];
+                desc.graphicsFormat = GraphicsFormat.R8G8B8A8_UNorm;
                 desc.depthBufferBits = 0;
 
                 cmd.GetTemporaryRT(Shader.PropertyToID(s_DBufferNames[dBufferCount]), desc);
@@ -127,13 +126,13 @@ namespace UnityEngine.Rendering.Universal
                 cmd.DrawProcedural(Matrix4x4.identity, m_DBufferClear, 0, MeshTopology.Quads, 4, 1, null);
                 cmd.EndSample(clearSampleName);
 
-                // Split here allows clear to be executed before DrawRenderers
-                context.ExecuteCommandBuffer(cmd);
-                cmd.Clear();
-
                 float width = renderingData.cameraData.pixelWidth;
                 float height = renderingData.cameraData.pixelHeight;
                 cmd.SetGlobalVector("_ScreenSize", new Vector4(width, height, 1f / width, 1f / height));
+
+                // Split here allows clear to be executed before DrawRenderers
+                context.ExecuteCommandBuffer(cmd);
+                cmd.Clear();
 
                 // TODO: Remove
                 if (m_DecalDrawIntoDBufferSystem == null)

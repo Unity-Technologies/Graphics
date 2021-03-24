@@ -159,6 +159,30 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
 
         private void CollectPassRenderState(ref PassDescriptor pass)
         {
+            if (pass.lightMode == "DecalGBufferProjector" ||
+                pass.lightMode == "DecalGBufferMesh")
+            {
+                // Make copy to avoid overwriting static
+                pass.renderStates = new RenderStateCollection() { pass.renderStates };
+
+                if (decalData.affectsAlbedo)
+                    pass.renderStates.Add(RenderState.ColorMask("ColorMask RGB"));
+                else
+                    pass.renderStates.Add(RenderState.ColorMask("ColorMask 0"));
+
+                pass.renderStates.Add(RenderState.ColorMask("ColorMask 0 1"));
+
+                if (decalData.affectsNormal)
+                    pass.renderStates.Add(RenderState.ColorMask("ColorMask RGB 2"));
+                else
+                    pass.renderStates.Add(RenderState.ColorMask("ColorMask 0 2"));
+
+                if (decalData.affectsEmission || pass.lightMode == "DecalGBufferMesh") // GBufferMesh uses emission for GI
+                    pass.renderStates.Add(RenderState.ColorMask("ColorMask RGB 3"));
+                else
+                    pass.renderStates.Add(RenderState.ColorMask("ColorMask 0 3"));
+            }
+
             if (pass.lightMode == DecalSystem.s_MaterialDecalPassNames[(int)DecalSystem.MaterialDecalPass.DBufferProjector] ||
                 pass.lightMode == DecalSystem.s_MaterialDecalPassNames[(int)DecalSystem.MaterialDecalPass.DBufferMesh])
             {
@@ -226,6 +250,17 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
             decalMeshViewBias.floatType = FloatType.Default;
             decalMeshViewBias.value = 0;
             collector.AddShaderProperty(decalMeshViewBias);
+
+            if (decalData.angleFade)
+            {
+                Vector1ShaderProperty decalAngleFadeSupported = new Vector1ShaderProperty();
+                decalAngleFadeSupported.overrideReferenceName = "_DecalAngleFadeSupported";
+                decalAngleFadeSupported.displayName = "Decal Angle Fade Supported";
+                decalAngleFadeSupported.hidden = true;
+                decalAngleFadeSupported.floatType = FloatType.Default;
+                decalAngleFadeSupported.value = 1;
+                collector.AddShaderProperty(decalAngleFadeSupported);
+            }
 
             AddStencilProperty(HDMaterialProperties.kDecalStencilWriteMask);
             AddStencilProperty(HDMaterialProperties.kDecalStencilRef);
@@ -481,9 +516,9 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
                 fieldDependencies = CoreFieldDependencies.Default,
 
                 renderStates = DecalRenderStates.ScreenSpaceProjector,
-                pragmas = DecalPragmas.MultipleRenderTargets,
+                pragmas = DecalPragmas.Derivatives,
                 defines = DecalDefines.ProjectorWithEmission,
-                keywords = DecalKeywords.ScreenSpace,
+                keywords = DecalKeywords.ScreenSpaceProjector,
                 includes = DecalIncludes.Default,
             };
 
@@ -509,7 +544,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
                 renderStates = DecalRenderStates.GBufferProjector,
                 pragmas = DecalPragmas.MultipleRenderTargets,
                 defines = DecalDefines.ProjectorWithEmission,
-                keywords = DecalKeywords.GBuffer,
+                keywords = DecalKeywords.GBufferProjector,
                 includes = DecalIncludes.Default,
             };
 
@@ -590,7 +625,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
                 renderStates = DecalRenderStates.ScreenSpaceMesh,
                 pragmas = DecalPragmas.Derivatives,
                 defines = DecalDefines.AffectsEmission,
-                keywords = DecalKeywords.ScreenSpace,
+                keywords = DecalKeywords.ScreenSpaceMesh,
                 includes = DecalIncludes.Default,
             };
 
@@ -611,13 +646,13 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
 
                 //Fields
                 structs = CoreStructCollections.Default,
-                requiredFields = DecalRequiredFields.Mesh,
+                requiredFields = DecalRequiredFields.ScreenSpaceMesh,
                 fieldDependencies = CoreFieldDependencies.Default,
 
                 renderStates = DecalRenderStates.GBufferMesh,
                 pragmas = DecalPragmas.MultipleRenderTargets,
                 defines = DecalDefines.AffectsEmission,
-                keywords = DecalKeywords.GBuffer,
+                keywords = DecalKeywords.GBufferMesh,
                 includes = DecalIncludes.Default,
             };
         }
@@ -676,10 +711,11 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
             public static FieldCollection ScreenSpaceProjector = new FieldCollection()
             {
                 StructFields.Varyings.viewDirectionWS,
-                UniversalStructFields.Varyings.lightmapUV,
-                UniversalStructFields.Varyings.sh,
+                //UniversalStructFields.Varyings.lightmapUV, // todo
+                //UniversalStructFields.Varyings.sh, //todo
                 UniversalStructFields.Varyings.fogFactorAndVertexLight, // fog and vertex lighting, vert input is dependency
-                UniversalStructFields.Varyings.shadowCoord,             // shadow coord, vert input is dependency
+                // todo
+                //UniversalStructFields.Varyings.shadowCoord,             // shadow coord, vert input is dependency
             };
 
             public static FieldCollection ScreenSpaceMesh = new FieldCollection()
@@ -695,7 +731,8 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
                 UniversalStructFields.Varyings.lightmapUV,
                 UniversalStructFields.Varyings.sh,
                 UniversalStructFields.Varyings.fogFactorAndVertexLight, // fog and vertex lighting, vert input is dependency
-                UniversalStructFields.Varyings.shadowCoord,             // shadow coord, vert input is dependency
+                // todo
+                //UniversalStructFields.Varyings.shadowCoord,             // shadow coord, vert input is dependency
             };
         }
         #endregion
@@ -766,8 +803,11 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
 
             public static RenderStateCollection GBufferProjector = new RenderStateCollection
             {
-                { RenderState.Blend("Blend SrcAlpha OneMinusSrcAlpha") },
-                { RenderState.ColorMask("ColorMask RGB") },
+                { RenderState.Blend("Blend 0 SrcAlpha OneMinusSrcAlpha") },
+                { RenderState.Blend("Blend 1 SrcAlpha OneMinusSrcAlpha") },
+                { RenderState.Blend("Blend 2 SrcAlpha OneMinusSrcAlpha") },
+                { RenderState.Blend("Blend 3 SrcAlpha OneMinusSrcAlpha") },
+                //{ RenderState.ColorMask("ColorMask RGB") },
                 { RenderState.Cull(Cull.Front) },
                 { RenderState.ZTest(ZTest.Greater) },
                 { RenderState.ZWrite(ZWrite.Off) },
@@ -807,8 +847,11 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
 
             public static RenderStateCollection GBufferMesh = new RenderStateCollection
             {
-                { RenderState.Blend("Blend SrcAlpha OneMinusSrcAlpha") },
-                { RenderState.ColorMask("ColorMask RGB") },
+                { RenderState.Blend("Blend 0 SrcAlpha OneMinusSrcAlpha") },
+                { RenderState.Blend("Blend 1 SrcAlpha OneMinusSrcAlpha") },
+                { RenderState.Blend("Blend 2 SrcAlpha OneMinusSrcAlpha") },
+                { RenderState.Blend("Blend 3 SrcAlpha OneMinusSrcAlpha") },
+                // { RenderState.ColorMask("ColorMask RGB") }, Dynamically set
                 { RenderState.ZTest(ZTest.LEqual) },
                 { RenderState.ZWrite(ZWrite.Off) },
             };
@@ -991,7 +1034,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
             public static KeywordCollection DBuffer = new KeywordCollection { { Descriptors.Decals } };
             public static KeywordCollection LodCrossFade = new KeywordCollection { { Descriptors.LodCrossFade }, };
 
-            public static readonly KeywordCollection ScreenSpace = new KeywordCollection
+            public static readonly KeywordCollection ScreenSpaceMesh = new KeywordCollection
             {
                 { CoreKeywordDescriptors.Lightmap },
                 { CoreKeywordDescriptors.DirectionalLightmapCombined },
@@ -1004,7 +1047,25 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
                 { Descriptors.DecalsNormalBlend },
             };
 
-            public static readonly KeywordCollection GBuffer = new KeywordCollection
+            public static readonly KeywordCollection ScreenSpaceProjector = new KeywordCollection
+            {
+                { CoreKeywordDescriptors.MainLightShadows },
+                { CoreKeywordDescriptors.ShadowsSoft },
+                { Descriptors.DecalsNormalBlend },
+            };
+
+            public static readonly KeywordCollection GBufferMesh = new KeywordCollection
+            {
+                { CoreKeywordDescriptors.Lightmap },
+                { CoreKeywordDescriptors.DirectionalLightmapCombined },
+                { CoreKeywordDescriptors.MainLightShadows },
+                { CoreKeywordDescriptors.ShadowsSoft },
+                { CoreKeywordDescriptors.LightmapShadowMixing },
+                { CoreKeywordDescriptors.MixedLightingSubtractive },
+                { Descriptors.GBufferNormalsOct },
+            };
+
+            public static readonly KeywordCollection GBufferProjector = new KeywordCollection
             {
                 { Descriptors.GBufferNormalsOct },
             };
