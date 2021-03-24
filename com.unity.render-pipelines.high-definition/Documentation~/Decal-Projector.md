@@ -41,6 +41,7 @@ Using the Inspector allows you to change all of the Decal Projector properties, 
 | **Size**                | The size of the projector influence box, and thus the decal along the projected plane. The projector scales the decal to match the **Width** (along the local x-axis) and **Height** (along the local y-axis) components of the **Size**. |
 | **Projection Depth**    | The depth of the projector influence box. The projector scales the decal to match **Projection Depth**. The Decal Projector component projects decals along the local z-axis. |
 | **Pivot**               | The offset position of the transform regarding the projection box. To  rotate the projected texture around a specific position, adjust the **X** and **Y** values. To set a depth offset for the projected texture, adjust the **Z** value. |
+| **Apply Scale**         | Indicates whether to apply the [Transform](https://docs.unity3d.com/Manual/class-Transform.html) scale to the Decal's handles and rendering. Enabling this option allows Decals to be part of a Prefab which you can scale in a Scene. |
 | **Material**            | The decal Material to project. The decal Material must use a HDRP/Decal Shader. |
 | **Decal Layer**         | The layer that specifies the Materials to project the decal onto. Any Mesh Renderers or Terrain that uses a matching Decal Layer receives the decal. |
 | **Draw Distance**       | The distance from the Camera to the Decal at which this projector stops projecting the decal and HDRP no longer renders the decal. |
