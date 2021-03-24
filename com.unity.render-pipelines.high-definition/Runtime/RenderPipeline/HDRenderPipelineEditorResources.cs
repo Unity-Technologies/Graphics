@@ -20,9 +20,12 @@ namespace UnityEngine.Rendering.HighDefinition
         [Serializable, ReloadGroup]
         public sealed class ShaderResources
         {
+            // Terrain
             public Shader terrainDetailLitShader;
             public Shader terrainDetailGrassShader;
             public Shader terrainDetailGrassBillboardShader;
+            [Reload("Editor/RenderPipelineResources/Shaders/ProbeVolumeGizmo.shader")]
+            public Shader probeVolumeGizmoShader;
         }
 
         [Serializable, ReloadGroup]
@@ -51,11 +54,11 @@ namespace UnityEngine.Rendering.HighDefinition
         [Serializable, ReloadGroup]
         public sealed class ShaderGraphResources
         {
-            [Reload("Runtime/RenderPipelineResources/ShaderGraph/AutodeskInteractive.ShaderGraph")]
+            [Reload("Runtime/RenderPipelineResources/ShaderGraph/AutodeskInteractive.shadergraph")]
             public Shader autodeskInteractive;
-            [Reload("Runtime/RenderPipelineResources/ShaderGraph/AutodeskInteractiveMasked.ShaderGraph")]
+            [Reload("Runtime/RenderPipelineResources/ShaderGraph/AutodeskInteractiveMasked.shadergraph")]
             public Shader autodeskInteractiveMasked;
-            [Reload("Runtime/RenderPipelineResources/ShaderGraph/AutodeskInteractiveTransparent.ShaderGraph")]
+            [Reload("Runtime/RenderPipelineResources/ShaderGraph/AutodeskInteractiveTransparent.shadergraph")]
             public Shader autodeskInteractiveTransparent;
         }
 

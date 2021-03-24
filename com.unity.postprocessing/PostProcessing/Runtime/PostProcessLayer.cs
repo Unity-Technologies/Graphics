@@ -856,7 +856,10 @@ namespace UnityEngine.Rendering.PostProcessing
         {
             // Juggling required when a scene with post processing is loaded from an asset bundle
             // See #1148230
-            if (m_OldResources != m_Resources)
+            // Additional !RuntimeUtilities.isValidResources() to fix #1262826
+            // The static member s_Resources is unset by addressable. The code is ill formed as it
+            // is not made to handle multiple scene.
+            if (m_OldResources != m_Resources || !RuntimeUtilities.isValidResources())
             {
                 RuntimeUtilities.UpdateResources(m_Resources);
                 m_OldResources = m_Resources;
@@ -1197,7 +1200,7 @@ namespace UnityEngine.Rendering.PostProcessing
                 context.destination = tempTarget;
 
                 // Handle FXAA's keep alpha mode
-                if (antialiasingMode == Antialiasing.FastApproximateAntialiasing && !fastApproximateAntialiasing.keepAlpha)
+                if (antialiasingMode == Antialiasing.FastApproximateAntialiasing && !fastApproximateAntialiasing.keepAlpha && HasAlpha(context.sourceFormat))
                     uberSheet.properties.SetFloat(ShaderIDs.LumaInAlpha, 1f);
             }
 
@@ -1309,8 +1312,13 @@ namespace UnityEngine.Rendering.PostProcessing
                         : "FXAA"
                     );
 
-                    if (fastApproximateAntialiasing.keepAlpha)
-                        uberSheet.EnableKeyword("FXAA_KEEP_ALPHA");
+                    if (HasAlpha(context.sourceFormat))
+                    {
+                        if (fastApproximateAntialiasing.keepAlpha)
+                            uberSheet.EnableKeyword("FXAA_KEEP_ALPHA");
+                    }
+                    else
+                        uberSheet.EnableKeyword("FXAA_NO_ALPHA");
                 }
                 else if (antialiasingMode == Antialiasing.SubpixelMorphologicalAntialiasing && subpixelMorphologicalAntialiasing.IsSupported())
                 {
@@ -1384,6 +1392,22 @@ namespace UnityEngine.Rendering.PostProcessing
             bool autoExpo = GetBundle<AutoExposure>().settings.IsEnabledAndSupported(context);
             bool lightMeter = debugLayer.lightMeter.IsRequestedAndSupported(context);
             return autoExpo || lightMeter;
+        }
+
+        static bool HasAlpha(RenderTextureFormat format)
+        {
+            return
+                format == RenderTextureFormat.ARGB32
+                || format == RenderTextureFormat.ARGBHalf
+                || format == RenderTextureFormat.ARGB4444
+                || format == RenderTextureFormat.ARGB1555
+                || format == RenderTextureFormat.ARGB2101010
+                || format == RenderTextureFormat.ARGB64
+                || format == RenderTextureFormat.ARGBFloat
+                || format == RenderTextureFormat.ARGBInt
+                || format == RenderTextureFormat.BGRA32
+                || format == RenderTextureFormat.RGBAUShort
+                || format == RenderTextureFormat.BGRA10101010_XR;
         }
     }
 }

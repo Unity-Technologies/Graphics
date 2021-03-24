@@ -18,4 +18,3 @@ The **int** inline Operator allows you to store an instance of an int. This is o
 | **Output** | int   | The value of the Operator. |
 
 [!include[](Snippets/Operator-InlineNotes.md)]
-

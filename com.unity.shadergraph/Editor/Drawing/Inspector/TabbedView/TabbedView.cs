@@ -124,14 +124,16 @@ public class TabbedView : VisualElement
         VisualElement target = tabButton.Target;
 
         tabButton.Select();
-        Add(target);
+        if (target != null)
+            Add(target);
     }
 
     private void DeselectTab(TabButton tabButton)
     {
         VisualElement target = tabButton.Target;
 
-        Remove(target);
+        if (target != null)
+            Remove(target);
         tabButton.Deselect();
     }
 

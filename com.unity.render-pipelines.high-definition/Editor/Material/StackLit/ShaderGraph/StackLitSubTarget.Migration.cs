@@ -147,7 +147,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
 
             if (stackLitData.coat)
             {
-                blockMap.Add(HDBlockFields.SurfaceDescription.CoatSmoothness, StackLitMasterNode1.CoatSmoothnessSlotId);
+                blockMap.Add(BlockFields.SurfaceDescription.CoatSmoothness, StackLitMasterNode1.CoatSmoothnessSlotId);
                 blockMap.Add(HDBlockFields.SurfaceDescription.CoatIor, StackLitMasterNode1.CoatIorSlotId);
                 blockMap.Add(HDBlockFields.SurfaceDescription.CoatThickness, StackLitMasterNode1.CoatThicknessSlotId);
                 blockMap.Add(HDBlockFields.SurfaceDescription.CoatExtinction, StackLitMasterNode1.CoatExtinctionSlotId);
@@ -157,7 +157,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                     blockMap.Add(HDBlockFields.SurfaceDescription.CoatNormalTS, StackLitMasterNode1.CoatNormalSlotId);
                 }
 
-                blockMap.Add(HDBlockFields.SurfaceDescription.CoatMask, StackLitMasterNode1.CoatMaskSlotId);
+                blockMap.Add(BlockFields.SurfaceDescription.CoatMask, StackLitMasterNode1.CoatMaskSlotId);
             }
 
             if (stackLitData.dualSpecularLobe)

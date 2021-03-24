@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using Unity.Collections;
+using UnityEngine.Experimental.Rendering;
 
 namespace UnityEngine.Rendering.Universal.Internal
 {
@@ -17,6 +18,7 @@ namespace UnityEngine.Rendering.Universal.Internal
             public static int _AdditionalShadowOffset1;
             public static int _AdditionalShadowOffset2;
             public static int _AdditionalShadowOffset3;
+            public static int _AdditionalShadowFadeParams;
             public static int _AdditionalShadowmapSize;
         }
 
@@ -56,6 +58,9 @@ namespace UnityEngine.Rendering.Universal.Internal
 
         int m_ShadowmapWidth;
         int m_ShadowmapHeight;
+
+        float m_MaxShadowDistanceSq;
+        float m_CascadeBorder;
 
         ShadowSliceData[] m_AdditionalLightsShadowSlices = null;
 
@@ -99,6 +104,7 @@ namespace UnityEngine.Rendering.Universal.Internal
             AdditionalShadowsConstantBuffer._AdditionalShadowOffset1 = Shader.PropertyToID("_AdditionalShadowOffset1");
             AdditionalShadowsConstantBuffer._AdditionalShadowOffset2 = Shader.PropertyToID("_AdditionalShadowOffset2");
             AdditionalShadowsConstantBuffer._AdditionalShadowOffset3 = Shader.PropertyToID("_AdditionalShadowOffset3");
+            AdditionalShadowsConstantBuffer._AdditionalShadowFadeParams = Shader.PropertyToID("_AdditionalShadowFadeParams");
             AdditionalShadowsConstantBuffer._AdditionalShadowmapSize = Shader.PropertyToID("_AdditionalShadowmapSize");
             m_AdditionalLightsShadowmap.Init("_AdditionalLightsShadowmapTexture");
 
@@ -112,14 +118,15 @@ namespace UnityEngine.Rendering.Universal.Internal
             int maxVisibleAdditionalLights = UniversalRenderPipeline.maxVisibleAdditionalLights;
             const int maxMainLights = 1;
             int maxVisibleLights = UniversalRenderPipeline.maxVisibleAdditionalLights + maxMainLights;
+            int maxAdditionalLightShadowParams = m_UseStructuredBuffer ? maxVisibleLights : Math.Min(maxVisibleLights, UniversalRenderPipeline.maxVisibleAdditionalLights);
 
             // These array sizes should be as big as ScriptableCullingParameters.maximumVisibleLights (that is defined during ScriptableRenderer.SetupCullingParameters).
-            // We initialize these array sizes with the number of visible lights allowed by the ForwardRenderer.
+            // We initialize these array sizes with the number of visible lights allowed by the UniversalRenderer.
             // The number of visible lights can become much higher when using the Deferred rendering path, we resize the arrays during Setup() if required.
-            m_AdditionalLightIndexToVisibleLightIndex = new int[maxVisibleLights];
+            m_AdditionalLightIndexToVisibleLightIndex = new int[maxAdditionalLightShadowParams];
             m_VisibleLightIndexToAdditionalLightIndex = new int[maxVisibleLights];
             m_VisibleLightIndexToSortedShadowResolutionRequestsFirstSliceIndex = new int[maxVisibleLights];
-            m_AdditionalLightIndexToShadowParams = new Vector4[maxVisibleLights];
+            m_AdditionalLightIndexToShadowParams = new Vector4[maxAdditionalLightShadowParams];
             m_VisibleLightIndexToCameraSquareDistance = new float[maxVisibleLights];
 
             if (!m_UseStructuredBuffer)
@@ -251,7 +258,7 @@ namespace UnityEngine.Rendering.Universal.Internal
                 else if (shadowSliceResolution <= 1024)
                     fovBias += 0.17f;
 
-                // These values were verified to work on platforms for which m_SupportsBoxFilterForShadows is true (Mobile, Switch).
+                // These values were verified to work on untethered devices for which m_SupportsBoxFilterForShadows is true.
                 // TODO: Investigate finer-tuned values for those platforms. Soft shadows are implemented differently for them.
             }
 
@@ -259,8 +266,6 @@ namespace UnityEngine.Rendering.Universal.Internal
         }
 
         bool m_IssuedMessageAboutShadowSlicesTooMany = false;
-
-        Vector4 m_MainLightShadowParams; // Shadow Fade parameters _MainLightShadowParams.zw are actually also used by AdditionalLights
 
         // Adapted from InsertionSort() in com.unity.render-pipelines.high-definition/Runtime/Lighting/Shadow/HDDynamicShadowAtlas.cs
         // Sort array in decreasing requestedResolution order,
@@ -477,10 +482,6 @@ namespace UnityEngine.Rendering.Universal.Internal
             m_ShadowmapWidth = renderingData.shadowData.additionalLightsShadowmapWidth;
             m_ShadowmapHeight = renderingData.shadowData.additionalLightsShadowmapHeight;
 
-            // In order to apply shadow fade to AdditionalLights, we need to set constants _MainLightShadowParams.zw used by function GetShadowFade in Shadows.hlsl.
-            // However, we also have to make sure not to override _MainLightShadowParams.xy constants, that are used by MainLight only. Therefore we need to store these values in m_MainLightShadowParams and set them again during SetupAdditionalLightsShadowReceiverConstants.
-            m_MainLightShadowParams = ShadowUtils.GetMainLightShadowParams(ref renderingData);
-
             var visibleLights = renderingData.lightData.visibleLights;
             int additionalLightsCount = renderingData.lightData.additionalLightsCount;
 
@@ -510,17 +511,22 @@ namespace UnityEngine.Rendering.Universal.Internal
                 }
             }
 
-            if (m_AdditionalLightIndexToVisibleLightIndex.Length < visibleLights.Length)
+            if (m_VisibleLightIndexToAdditionalLightIndex.Length < visibleLights.Length)
             {
                 // Array "visibleLights" is returned by ScriptableRenderContext.Cull()
                 // The maximum number of "visibleLights" that ScriptableRenderContext.Cull() should return, is defined by parameter ScriptableCullingParameters.maximumVisibleLights
                 // Universal RP sets this "ScriptableCullingParameters.maximumVisibleLights" value during ScriptableRenderer.SetupCullingParameters.
                 // When using Deferred rendering, it is possible to specify a very high number of visible lights.
-                m_AdditionalLightIndexToVisibleLightIndex = new int[visibleLights.Length];
                 m_VisibleLightIndexToAdditionalLightIndex = new int[visibleLights.Length];
-                m_AdditionalLightIndexToShadowParams = new Vector4[visibleLights.Length];
                 m_VisibleLightIndexToCameraSquareDistance = new float[visibleLights.Length];
                 m_VisibleLightIndexToSortedShadowResolutionRequestsFirstSliceIndex = new int[visibleLights.Length];
+            }
+
+            int maxAdditionalLightShadowParams = m_UseStructuredBuffer ? visibleLights.Length : Math.Min(visibleLights.Length, UniversalRenderPipeline.maxVisibleAdditionalLights);
+            if (m_AdditionalLightIndexToVisibleLightIndex.Length < maxAdditionalLightShadowParams)
+            {
+                m_AdditionalLightIndexToVisibleLightIndex = new int[maxAdditionalLightShadowParams];
+                m_AdditionalLightIndexToShadowParams = new Vector4[maxAdditionalLightShadowParams];
             }
 
             // reset m_VisibleLightIndexClosenessToCamera
@@ -607,13 +613,13 @@ namespace UnityEngine.Rendering.Universal.Internal
             Vector4 defaultShadowParams = new Vector4(0 /*shadowStrength*/, 0, 0, -1 /*perLightFirstShadowSliceIndex*/);
             // shadowParams.x is used in RenderAdditionalShadowMapAtlas to skip shadow map rendering for non-shadow-casting lights
             // shadowParams.w is used in Lighting shader to find if Additional light casts shadows
-            for (int i = 0; i < visibleLights.Length; ++i)
+            for (int i = 0; i < maxAdditionalLightShadowParams; ++i)
                 m_AdditionalLightIndexToShadowParams[i] = defaultShadowParams;
 
             int validShadowCastingLightsCount = 0;
             bool supportsSoftShadows = renderingData.shadowData.supportsSoftShadows;
-            int additionalLightIndex = -1;
-            for (int visibleLightIndex = 0; visibleLightIndex < visibleLights.Length && m_ShadowSliceToAdditionalLightIndex.Count < totalShadowSlicesCount; ++visibleLightIndex)
+            int additionalLightCount = 0;
+            for (int visibleLightIndex = 0; visibleLightIndex < visibleLights.Length && m_ShadowSliceToAdditionalLightIndex.Count < totalShadowSlicesCount && additionalLightCount < maxAdditionalLightShadowParams; ++visibleLightIndex)
             {
                 VisibleLight shadowLight = visibleLights[visibleLightIndex];
 
@@ -624,7 +630,7 @@ namespace UnityEngine.Rendering.Universal.Internal
                     continue;
                 }
 
-                ++additionalLightIndex; // ForwardLights.SetupAdditionalLightConstants skips main Light and thus uses a different index for additional lights
+                int additionalLightIndex = additionalLightCount++;
                 m_AdditionalLightIndexToVisibleLightIndex[additionalLightIndex] = visibleLightIndex;
                 m_VisibleLightIndexToAdditionalLightIndex[visibleLightIndex] = additionalLightIndex;
 
@@ -641,6 +647,7 @@ namespace UnityEngine.Rendering.Universal.Internal
                     }
                     break;
                 }
+
 
                 int perLightFirstShadowSliceIndex = m_ShadowSliceToAdditionalLightIndex.Count; // shadowSliceIndex within the global array of all additional light shadow slices
 
@@ -749,7 +756,7 @@ namespace UnityEngine.Rendering.Universal.Internal
             Matrix4x4 sliceTransform;
             for (int globalShadowSliceIndex = 0; globalShadowSliceIndex < shadowCastingLightsBufferCount; ++globalShadowSliceIndex)
             {
-                additionalLightIndex = m_ShadowSliceToAdditionalLightIndex[globalShadowSliceIndex];
+                int additionalLightIndex = m_ShadowSliceToAdditionalLightIndex[globalShadowSliceIndex];
 
                 // We can skip the slice if strength is zero.
                 if (Mathf.Approximately(m_AdditionalLightIndexToShadowParams[additionalLightIndex].x, 0.0f)  || Mathf.Approximately(m_AdditionalLightIndexToShadowParams[additionalLightIndex].w, -1.0f))
@@ -777,13 +784,16 @@ namespace UnityEngine.Rendering.Universal.Internal
                 m_AdditionalLightShadowSliceIndexTo_WorldShadowMatrix[globalShadowSliceIndex] = sliceTransform * m_AdditionalLightShadowSliceIndexTo_WorldShadowMatrix[globalShadowSliceIndex];
             }
 
+            m_MaxShadowDistanceSq = renderingData.cameraData.maxShadowDistance * renderingData.cameraData.maxShadowDistance;
+            m_CascadeBorder = renderingData.shadowData.mainLightShadowCascadeBorder;
+
             return true;
         }
 
         public override void Configure(CommandBuffer cmd, RenderTextureDescriptor cameraTextureDescriptor)
         {
             m_AdditionalLightsShadowmapTexture = ShadowUtils.GetTemporaryShadowTexture(m_ShadowmapWidth, m_ShadowmapHeight, k_ShadowmapBufferBits);
-            ConfigureTarget(new RenderTargetIdentifier(m_AdditionalLightsShadowmapTexture));
+            ConfigureTarget(new RenderTargetIdentifier(m_AdditionalLightsShadowmapTexture), GraphicsFormat.ShadowAuto, m_ShadowmapWidth, m_ShadowmapHeight, 1, true);
             ConfigureClear(ClearFlag.All, Color.black);
         }
 
@@ -894,9 +904,6 @@ namespace UnityEngine.Rendering.Universal.Internal
 
             cmd.SetGlobalTexture(m_AdditionalLightsShadowmap.id, m_AdditionalLightsShadowmapTexture);
 
-            // set shadow fade (shadow distance) parameters
-            ShadowUtils.SetupShadowReceiverConstantBuffer(cmd, m_MainLightShadowParams);
-
             if (m_UseStructuredBuffer)
             {
                 // per-light data
@@ -914,6 +921,9 @@ namespace UnityEngine.Rendering.Universal.Internal
                 cmd.SetGlobalVectorArray(AdditionalShadowsConstantBuffer._AdditionalShadowParams, m_AdditionalLightIndexToShadowParams);                         // per-light data
                 cmd.SetGlobalMatrixArray(AdditionalShadowsConstantBuffer._AdditionalLightsWorldToShadow, m_AdditionalLightShadowSliceIndexTo_WorldShadowMatrix); // per-shadow-slice data
             }
+
+            ShadowUtils.GetScaleAndBiasForLinearDistanceFade(m_MaxShadowDistanceSq, m_CascadeBorder, out float shadowFadeScale, out float shadowFadeBias);
+            cmd.SetGlobalVector(AdditionalShadowsConstantBuffer._AdditionalShadowFadeParams, new Vector4(shadowFadeScale, shadowFadeBias, 0, 0));
 
             if (softShadows)
             {

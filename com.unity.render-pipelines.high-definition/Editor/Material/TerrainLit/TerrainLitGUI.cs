@@ -14,12 +14,12 @@ namespace UnityEditor.Rendering.HighDefinition
     /// </summary>
     class TerrainLitGUI : HDShaderGUI, ITerrainLayerCustomUI
     {
-        const SurfaceOptionUIBlock.Features surfaceOptionFeatures = SurfaceOptionUIBlock.Features.Unlit;
+        const SurfaceOptionUIBlock.Features surfaceOptionFeatures = SurfaceOptionUIBlock.Features.Unlit | SurfaceOptionUIBlock.Features.ReceiveDecal;
 
         [Flags]
         enum Expandable
         {
-            Terrain     = 1 << 0,
+            Terrain     = 1 << 1,
         }
 
         MaterialUIBlockList uiBlocks = new MaterialUIBlockList
@@ -40,7 +40,7 @@ namespace UnityEditor.Rendering.HighDefinition
                 // TODO: move the terrain UI to a MaterialUIBlock to clarify the code
                 DrawTerrainGUI(materialEditor);
 
-                uiBlocks.FetchUIBlock<SurfaceOptionUIBlock>().UpdateMaterialProperties(props);
+                uiBlocks.FetchUIBlock<AdvancedOptionsUIBlock>().UpdateMaterialProperties(props);
                 uiBlocks.FetchUIBlock<AdvancedOptionsUIBlock>().OnGUI();
 
                 ApplyKeywordsAndPassesIfNeeded(changed.changed, uiBlocks.materials);

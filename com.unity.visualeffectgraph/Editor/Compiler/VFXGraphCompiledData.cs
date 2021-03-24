@@ -135,10 +135,12 @@ namespace UnityEditor.VFX
                         case VFXValueType.TextureCubeArray:
                             value = CreateObjectValueDesc<Texture>(exp, i);
                             break;
+                        case VFXValueType.CameraBuffer: value = CreateObjectValueDesc<Texture>(exp, i); break;
                         case VFXValueType.Matrix4x4: value = CreateValueDesc<Matrix4x4>(exp, i); break;
                         case VFXValueType.Curve: value = CreateValueDesc<AnimationCurve>(exp, i); break;
                         case VFXValueType.ColorGradient: value = CreateValueDesc<Gradient>(exp, i); break;
                         case VFXValueType.Mesh: value = CreateObjectValueDesc<Mesh>(exp, i); break;
+                        case VFXValueType.SkinnedMeshRenderer: value = CreateObjectValueDesc<SkinnedMeshRenderer>(exp, i); break;
                         case VFXValueType.Boolean: value = CreateValueDesc<bool>(exp, i); break;
                         default: throw new InvalidOperationException("Invalid type");
                     }
@@ -1220,10 +1222,12 @@ namespace UnityEditor.VFX
                         case VFXValueType.TextureCubeArray:
                             SetObjectValueDesc<Texture>(desc, exp);
                             break;
+                        case VFXValueType.CameraBuffer: SetObjectValueDesc<Texture>(desc, exp); break;
                         case VFXValueType.Matrix4x4: SetValueDesc<Matrix4x4>(desc, exp); break;
                         case VFXValueType.Curve: SetValueDesc<AnimationCurve>(desc, exp); break;
                         case VFXValueType.ColorGradient: SetValueDesc<Gradient>(desc, exp); break;
                         case VFXValueType.Mesh: SetObjectValueDesc<Mesh>(desc, exp); break;
+                        case VFXValueType.SkinnedMeshRenderer: SetObjectValueDesc<SkinnedMeshRenderer>(desc, exp); break;
                         case VFXValueType.Boolean: SetValueDesc<bool>(desc, exp); break;
                         default: throw new InvalidOperationException("Invalid type");
                     }

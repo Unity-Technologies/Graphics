@@ -39,7 +39,7 @@ namespace UnityEngine.Experimental.Rendering.Universal
 
         private readonly Renderer2DData m_Renderer2DData;
 
-        private bool m_HasValidDepth;
+        private bool m_NeedsDepth;
 
         public Render2DLightingPass(Renderer2DData rendererData, Material blitMaterial, Material samplingMaterial)
         {
@@ -48,34 +48,32 @@ namespace UnityEngine.Experimental.Rendering.Universal
             m_SamplingMaterial = samplingMaterial;
         }
 
-        internal void Setup(bool hasValidDepth)
+        internal void Setup(bool useDepth)
         {
-            m_HasValidDepth = hasValidDepth;
+            m_NeedsDepth = useDepth;
         }
 
         private void GetTransparencySortingMode(Camera camera, ref SortingSettings sortingSettings)
         {
-            var mode = camera.transparencySortMode;
+            var mode = m_Renderer2DData.transparencySortMode;
 
             if (mode == TransparencySortMode.Default)
             {
-                mode = m_Renderer2DData.transparencySortMode;
-                if (mode == TransparencySortMode.Default)
-                    mode = camera.orthographic ? TransparencySortMode.Orthographic : TransparencySortMode.Perspective;
+                mode = camera.orthographic ? TransparencySortMode.Orthographic : TransparencySortMode.Perspective;
             }
 
-            if (mode == TransparencySortMode.Perspective)
+            switch (mode)
             {
-                sortingSettings.distanceMetric = DistanceMetric.Perspective;
-            }
-            else if (mode == TransparencySortMode.Orthographic)
-            {
-                sortingSettings.distanceMetric = DistanceMetric.Orthographic;
-            }
-            else
-            {
-                sortingSettings.distanceMetric = DistanceMetric.CustomAxis;
-                sortingSettings.customAxis = m_Renderer2DData.transparencySortAxis;
+                case TransparencySortMode.Perspective:
+                    sortingSettings.distanceMetric = DistanceMetric.Perspective;
+                    break;
+                case TransparencySortMode.Orthographic:
+                    sortingSettings.distanceMetric = DistanceMetric.Orthographic;
+                    break;
+                default:
+                    sortingSettings.distanceMetric = DistanceMetric.CustomAxis;
+                    sortingSettings.customAxis = m_Renderer2DData.transparencySortAxis;
+                    break;
             }
         }
 
@@ -143,7 +141,7 @@ namespace UnityEngine.Experimental.Rendering.Universal
                     if (layerBatch.lightStats.totalNormalMapUsage > 0)
                     {
                         filterSettings.sortingLayerRange = layerBatch.layerRange;
-                        var depthTarget = m_HasValidDepth ? depthAttachment : BuiltinRenderTextureType.None;
+                        var depthTarget = m_NeedsDepth ? depthAttachment : BuiltinRenderTextureType.None;
                         this.RenderNormals(context, renderingData, normalsDrawSettings, filterSettings, depthTarget, cmd, layerBatch.lightStats);
                     }
 

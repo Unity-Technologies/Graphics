@@ -5,7 +5,7 @@
 //--------------------------------------------------------------------------------------------------
 
 // #pragma enable_d3d11_debug_symbols
-#pragma only_renderers d3d11 playstation xboxone vulkan metal switch
+#pragma only_renderers d3d11 playstation xboxone xboxseries vulkan metal switch
 
 #pragma kernel SubsurfaceScattering
 
@@ -33,7 +33,7 @@
 
 // Check for support of typed UAV loads from FORMAT_R16G16B16A16_FLOAT.
 // TODO: query the format support more precisely.
-#if !(defined(SHADER_API_PSSL) || defined(SHADER_API_XBOXONE)) || defined(ENABLE_MSAA)
+#if !(defined(SHADER_API_PSSL) || defined(SHADER_API_XBOXONE) || defined(SHADER_API_GAMECORE)) || defined(ENABLE_MSAA)
 #define USE_INTERMEDIATE_BUFFER
 #endif
 

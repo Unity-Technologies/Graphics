@@ -272,11 +272,24 @@ uint FetchIndex(uint lightStart, uint lightOffset)
 }
 
 #else
-// Fallback case (mainly for raytracing right now)
+// Fallback case (mainly for raytracing right or for shader stages that don't define the keywords)
 uint FetchIndex(uint lightStart, uint lightOffset)
 {
     return 0;
 }
+
+uint GetTileSize()
+{
+    return 1;
+}
+
+void GetCountAndStart(PositionInputs posInput, uint lightCategory, out uint start, out uint lightCount)
+{
+    start = 0;
+    lightCount = 0;
+    return;
+}
+
 #endif // USE_FPTL_LIGHTLIST
 
 #else

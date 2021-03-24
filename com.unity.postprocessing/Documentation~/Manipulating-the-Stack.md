@@ -8,9 +8,12 @@ Use the `QuickVolume` method to quickly spawn new volumes in the scene, to creat
 
 ```csharp
 [
-public PostProcessVolume QuickVolume(int layer, float priority, params PostProcessEffectSettings[] settings) 
+public PostProcessVolume QuickVolume(int layer, float priority, params PostProcessEffectSettings[] settings)
 ]
+```
 The following example demonstrates how to use a script to create a pulsating vignette effect:
+
+```csharp
 [
 using UnityEngine;
 using UnityEngine.Rendering.PostProcessing;
@@ -76,25 +79,25 @@ public class VignettePulse : MonoBehaviour
 
 ## Profile Editing
 
-The above examples demonstrate how to create new effects and Volumes at runtime, but you can also manually edit an existing Profile that is used by one or more Volumes. To do this, you can use one of two methods which have slightly different effects:
+The above examples demonstrate how to create new effects and Volumes at runtime, but you can also manually edit an existing Profile that is used by one or more Volumes. To do this, you can use one of two fields on the `PostProcessVolume` . Each field has a slightly different effects:
 
 - Modify the shared profile directly:
-  - Class field name: `sharedProfile`
+  - Class field name: [`sharedProfile`](...api/UnityEngine.Rendering.PostProcessing.PostProcessVolume.html#UnityEngine_Rendering_PostProcessing_PostProcessVolume_sharedProfile.html)
   - Applies changes to all volumes using the same profile
   - Modifies the asset and doesn’t reset when you exit play mode
 - Request a clone of the shared Profile that will only be used for this Volume:
-  - Class field name: `profile`
+  - Class field name: [`profile`](...api/UnityEngine.Rendering.PostProcessing.PostProcessVolume.html#UnityEngine_Rendering_PostProcessing_PostProcessVolume_profile.html)
   - Applies changes to the specified volume
   - Resets when you exit play mode
   - You must manually destroy the profile when you don't need it anymore
 
-The `PostProcessProfile` class contains the following utility methods to help you manage assigned effects: 
+The `PostProcessProfile` class contains the following utility methods to help you manage assigned effects:
 | Utility method                                               | **Description**                                              |
 | ------------------------------------------------------------ | ------------------------------------------------------------ |
-| `T AddSettings()`                                            | Creates, adds and returns a new effect of type `T` to the profile. It throws an exception if it already exist |
-| `PostProcessEffectSettings AddSettings(PostProcessEffectSettings effect)` | Adds and returns an effect that you created to the profile.  |
-| `void RemoveSettings()`                                      | Removes an effect from the profile. It throws an exception if it doesn't exist. |
-| `bool TryGetSettings(out T outSetting)`                      | Gets an effect from the profile, returns `true` if it found a profile, or `false` if it did not find a profile. |
+| [`T AddSettings()`](...api/UnityEngine.Rendering.PostProcessing.PostProcessProfile.html#UnityEngine_Rendering_PostProcessing_PostProcessProfile_AddSettings__1) | Creates, adds and returns a new effect of type `T` to the profile. It throws an exception if it already exist |
+| [`PostProcessEffectSettings AddSettings(PostProcessEffectSettings effect)`](api/UnityEngine.Rendering.PostProcessing.PostProcessProfile.html#UnityEngine_Rendering_PostProcessing_PostProcessProfile_AddSettings_UnityEngine_Rendering_PostProcessing_PostProcessEffectSettings_) | Adds and returns an effect that you created to the profile.  |
+| [`void RemoveSettings()`](api/UnityEngine.Rendering.PostProcessing.PostProcessProfile.html#UnityEngine_Rendering_PostProcessing_PostProcessProfile_RemoveSettings__1) | Removes an effect from the profile. It throws an exception if it doesn't exist. |
+| [`bool TryGetSettings(out T outSetting)`](...api/UnityEngine.Rendering.PostProcessing.PostProcessProfile.html#UnityEngine_Rendering_PostProcessing_PostProcessProfile_TryGetSettings__1___0__) | Gets an effect from the profile, returns `true` if it found a profile, or `false` if it did not find a profile. |
 
 You can find more methods in the `/PostProcessing/Runtime/PostProcessProfile.cs` source file.
 

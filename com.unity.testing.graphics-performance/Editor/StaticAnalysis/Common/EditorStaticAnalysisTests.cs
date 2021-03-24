@@ -66,7 +66,7 @@ public class EditorStaticAnalysisTests
                 );
     }
 
-    const int k_MaxMeasurePerTest = 200;
+    const int k_MaxMeasurePerTest = 500;
 
     public static IEnumerable<StaticAnalysisEntry> GetStaticAnalysisEntries(BuildTarget buildTarget)
     {
@@ -138,7 +138,8 @@ public class EditorStaticAnalysisTests
 
             try
             {
-                buildReportJob.Tick();
+                if (buildReportJob.Tick())
+                    buildReportJob.SetProgress(1, "Completed")  ;
                 EditorUpdateManager.Tick();
             }
             catch (Exception e)

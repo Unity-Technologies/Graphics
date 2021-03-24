@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using System;
+using System.Reflection;
 using UnityEngine.Rendering.HighDefinition.Attributes;
 
 namespace UnityEngine.Rendering.HighDefinition
@@ -82,6 +83,8 @@ namespace UnityEngine.Rendering.HighDefinition
             Lightmap,
             /// <summary>Display materials using instancing.</summary>
             Instancing,
+            /// <summary>Display deferred/forward shading capable materials.</summary>
+            DeferredMaterials,
         }
 
         /// <summary>
@@ -101,7 +104,7 @@ namespace UnityEngine.Rendering.HighDefinition
             AmbientOcclusion,
             /// <summary>Display metal (N/A for AxF).</summary>
             Metal,
-            /// <summary>Display specular.</summary>
+            /// <summary>Display the specular color (fresnel0). For materials using the metallic property, the corresponding fresnel0 term is displayed. (N/A for Unlit).</summary>
             Specular,
             /// <summary>Display alpha.</summary>
             Alpha,
@@ -154,9 +157,7 @@ namespace UnityEngine.Rendering.HighDefinition
         // className include the additional "/"
         static void FillWithProperties(Type type, ref List<GUIContent> debugViewMaterialStringsList, ref List<int> debugViewMaterialValuesList, string className)
         {
-            var attributes = type.GetCustomAttributes(true);
-            // Get attribute to get the start number of the value for the enum
-            var attr = attributes[0] as GenerateHLSL;
+            var attr = type.GetCustomAttribute<GenerateHLSL>();
 
             if (!attr.needParamDebug)
             {
@@ -359,8 +360,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
                 // builtins parameters
                 Type builtin = typeof(Builtin.BuiltinData);
-                var attributes = builtin.GetCustomAttributes(true);
-                var generateHLSLAttribute = attributes[0] as GenerateHLSL;
+                var generateHLSLAttribute = builtin.GetCustomAttribute<GenerateHLSL>();
                 int materialStartIndex = generateHLSLAttribute.paramDefinesStart;
 
                 int localIndex = 0;
@@ -379,8 +379,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 // specific shader parameters
                 foreach (MaterialItem materialItem in materialItems)
                 {
-                    attributes = materialItem.surfaceDataType.GetCustomAttributes(true);
-                    generateHLSLAttribute = attributes[0] as GenerateHLSL;
+                    generateHLSLAttribute = materialItem.surfaceDataType.GetCustomAttribute<GenerateHLSL>();
                     materialStartIndex = generateHLSLAttribute.paramDefinesStart;
 
                     if (!generateHLSLAttribute.needParamDebug)
@@ -404,8 +403,7 @@ namespace UnityEngine.Rendering.HighDefinition
                     if (materialItem.bsdfDataType == null)
                         continue;
 
-                    attributes = materialItem.bsdfDataType.GetCustomAttributes(true);
-                    generateHLSLAttribute = attributes[0] as GenerateHLSL;
+                    generateHLSLAttribute = materialItem.bsdfDataType.GetCustomAttribute<GenerateHLSL>();
                     materialStartIndex = generateHLSLAttribute.paramDefinesStart;
 
                     if (!generateHLSLAttribute.needParamDebug)

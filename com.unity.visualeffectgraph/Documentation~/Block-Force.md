@@ -1,6 +1,6 @@
 # Force
 
-Menu Path : **Force > Force** 
+Menu Path : **Force > Force**
 
 The **Force** Block applies the given force to particles. To do this, it changes the affected particles’ velocity.
 

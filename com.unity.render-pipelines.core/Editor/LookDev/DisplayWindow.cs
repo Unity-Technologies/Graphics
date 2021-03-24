@@ -217,6 +217,10 @@ namespace UnityEditor.Rendering.LookDev
         StyleSheet styleSheet = null;
         StyleSheet styleSheetLight = null;
 
+        SwitchableCameraController m_FirstOrCompositeManipulator;
+        CameraController m_SecondManipulator;
+        ComparisonGizmoController m_GizmoManipulator;
+
         void ReloadStyleSheets()
         {
             if (styleSheet == null || styleSheet.Equals(null))
@@ -395,9 +399,7 @@ namespace UnityEditor.Rendering.LookDev
             m_Views[(int)ViewIndex.Second] = new Image() { name = Style.k_SecondViewName, image = Texture2D.blackTexture };
             m_ViewContainer.Add(m_Views[(int)ViewIndex.Second]);
 
-            var firstOrCompositeManipulator = new SwitchableCameraController(
-                LookDev.currentContext.GetViewContent(ViewIndex.First).camera,
-                LookDev.currentContext.GetViewContent(ViewIndex.Second).camera,
+            m_FirstOrCompositeManipulator = new SwitchableCameraController(
                 this,
                 index =>
                 {
@@ -406,8 +408,7 @@ namespace UnityEditor.Rendering.LookDev
                     if (sidePanel == SidePanel.Environment && environment != null && LookDev.currentContext.environmentLibrary != null)
                         m_EnvironmentList.selectedIndex = LookDev.currentContext.environmentLibrary.IndexOf(environment);
                 });
-            var secondManipulator = new CameraController(
-                LookDev.currentContext.GetViewContent(ViewIndex.Second).camera,
+            m_SecondManipulator = new CameraController(
                 this,
                 () =>
                 {
@@ -416,10 +417,10 @@ namespace UnityEditor.Rendering.LookDev
                     if (sidePanel == SidePanel.Environment && environment != null && LookDev.currentContext.environmentLibrary != null)
                         m_EnvironmentList.selectedIndex = LookDev.currentContext.environmentLibrary.IndexOf(environment);
                 });
-            var gizmoManipulator = new ComparisonGizmoController(LookDev.currentContext.layout.gizmoState, firstOrCompositeManipulator);
-            m_Views[(int)ViewIndex.First].AddManipulator(gizmoManipulator); //must take event first to switch the firstOrCompositeManipulator
-            m_Views[(int)ViewIndex.First].AddManipulator(firstOrCompositeManipulator);
-            m_Views[(int)ViewIndex.Second].AddManipulator(secondManipulator);
+            m_GizmoManipulator = new ComparisonGizmoController(m_FirstOrCompositeManipulator);
+            m_Views[(int)ViewIndex.First].AddManipulator(m_GizmoManipulator); //must take event first to switch the firstOrCompositeManipulator
+            m_Views[(int)ViewIndex.First].AddManipulator(m_FirstOrCompositeManipulator);
+            m_Views[(int)ViewIndex.Second].AddManipulator(m_SecondManipulator);
 
             m_NoObject1 = new Label(Style.k_DragAndDropObject);
             m_NoObject1.style.flexGrow = 1;
@@ -667,6 +668,11 @@ namespace UnityEditor.Rendering.LookDev
                     Debug.LogError("LookDev is not supported: No SRP detected.");
                 LookDev.Close();
             }
+
+            // All those states coming from the Contexts can become invalid after a domain reload so we need to update them.
+            m_FirstOrCompositeManipulator.UpdateCameraState(LookDev.currentContext);
+            m_SecondManipulator.UpdateCameraState(LookDev.currentContext, ViewIndex.Second);
+            m_GizmoManipulator.UpdateGizmoState(LookDev.currentContext.layout.gizmoState);
         }
 
         void OnGUI()

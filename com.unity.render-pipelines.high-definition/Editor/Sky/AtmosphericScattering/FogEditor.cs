@@ -44,8 +44,6 @@ namespace UnityEditor.Rendering.HighDefinition
         static GUIContent s_EnableVolumetricFog = new GUIContent("Volumetric Fog", "When enabled, activates volumetric fog.");
         static GUIContent s_DepthExtentLabel = new GUIContent("Volumetric Fog Distance", "Sets the distance (in meters) from the Camera's Near Clipping Plane to the back of the Camera's volumetric lighting buffer. The lower the distance is, the higher the fog quality is.");
 
-        public override bool hasAdvancedMode => true;
-
         public override void OnEnable()
         {
             var o = new PropertyFetcher<Fog>(serializedObject);
@@ -107,13 +105,9 @@ namespace UnityEditor.Rendering.HighDefinition
                 else
                 {
                     PropertyField(m_Tint);
-
-                    if (isInAdvancedMode)
-                    {
-                        PropertyField(m_MipFogNear);
-                        PropertyField(m_MipFogFar);
-                        PropertyField(m_MipFogMaxMip);
-                    }
+                    PropertyField(m_MipFogNear);
+                    PropertyField(m_MipFogFar);
+                    PropertyField(m_MipFogMaxMip);
                 }
             }
 
@@ -133,17 +127,15 @@ namespace UnityEditor.Rendering.HighDefinition
                     PropertyField(m_DepthExtent, s_DepthExtentLabel);
                     PropertyField(m_DenoisingMode);
 
-                    if (isInAdvancedMode)
+                    PropertyField(m_SliceDistributionUniformity);
+
+                    base.OnInspectorGUI(); // Quality Setting
+
+                    using (new HDEditorUtils.IndentScope())
+                    using (new QualityScope(this))
                     {
-                        PropertyField(m_SliceDistributionUniformity);
-
-                        base.OnInspectorGUI(); // Quality Setting
-
-                        using (new HDEditorUtils.IndentScope())
-                        using (new QualityScope(this))
+                        if (PropertyField(m_FogControlMode))
                         {
-                            PropertyField(m_FogControlMode);
-
                             using (new HDEditorUtils.IndentScope())
                             {
                                 if ((FogControl)m_FogControlMode.value.intValue == FogControl.Balance)
@@ -158,16 +150,20 @@ namespace UnityEditor.Rendering.HighDefinition
                                 }
                             }
                         }
+                    }
 
-                        PropertyField(m_DirectionalLightsOnly);
-                        PropertyField(m_Anisotropy, s_AnisotropyLabel);
-                        if (m_Anisotropy.value.floatValue != 0.0f)
+                    PropertyField(m_DirectionalLightsOnly);
+                    PropertyField(m_Anisotropy, s_AnisotropyLabel);
+                    if (m_Anisotropy.value.floatValue != 0.0f)
+                    {
+                        if (BeginAdditionalPropertiesScope())
                         {
                             EditorGUILayout.Space();
                             EditorGUILayout.HelpBox(
                                 "When the value is not 0, the anisotropy effect significantly increases the performance impact of volumetric fog.",
                                 MessageType.Info, wide: true);
                         }
+                        EndAdditionalPropertiesScope();
                     }
                 }
             }

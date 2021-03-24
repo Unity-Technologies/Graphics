@@ -21,6 +21,7 @@ Using a lower `Sample Count` will improve performance.
 ### Known issues and limitations
 
 - Motion blur doesn't support AR/VR.
+- Versions 7.0 to 7.5 of [Universal Render Pipeline (URP)](https://docs.unity3d.com/Packages/com.unity.render-pipelines.universal@7.5/manual/index.html) do not support this version of the Motion Blur effect. Instead, use [Motion Blur for URP](https://docs.unity3d.com/Packages/com.unity.render-pipelines.universal@latest?/manual/Post-Processing-Motion-Blur.html).
 
 ### Requirements
 

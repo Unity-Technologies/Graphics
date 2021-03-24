@@ -1,8 +1,8 @@
 # Get Custom Attribute
 
-Menu Path : **Operator > Attribute > Get Custom Attribute** 
+Menu Path : **Operator > Attribute > Get Custom Attribute**
 
-The **Get Custom Attribute** Operator returns the value of a named custom Attribute of a given type depending on its location. 
+The **Get Custom Attribute** Operator returns the value of a named custom Attribute of a given type depending on its location.
 
 ## Operator settings
 

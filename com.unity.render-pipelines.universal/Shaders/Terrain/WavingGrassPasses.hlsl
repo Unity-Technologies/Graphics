@@ -58,7 +58,16 @@ void InitializeInputData(GrassVertexOutput input, out InputData inputData)
     inputData.shadowCoord = float4(0, 0, 0, 0);
 #endif
 
+#if defined(_FOG_FRAGMENT)
+    float clipZ = input.clipPos.z;
+    #if !UNITY_REVERSED_Z
+    clipZ = lerp(UNITY_NEAR_CLIP_VALUE, 1, clipZ);    // OpenGL NDC, -1 < z < 1
+    #endif
+    clipZ *= input.clipPos.w;
+    inputData.fogCoord = ComputeFogFactor(clipZ);
+#else
     inputData.fogCoord = input.fogFactorAndVertexLight.x;
+#endif
     inputData.vertexLighting = input.fogFactorAndVertexLight.yzw;
 
     inputData.bakedGI = SAMPLE_GI(input.lightmapUV, input.vertexSH, inputData.normalWS);
@@ -92,7 +101,11 @@ void InitializeVertData(GrassVertexInput input, inout GrassVertexOutput vertData
     OUTPUT_SH(vertData.normal, vertData.vertexSH);
 
     half3 vertexLight = VertexLighting(vertexInput.positionWS, vertData.normal.xyz);
+#if defined(_FOG_FRAGMENT)
+    half fogFactor = 0;
+#else
     half fogFactor = ComputeFogFactor(vertexInput.positionCS.z);
+#endif
     vertData.fogFactorAndVertexLight = half4(fogFactor, vertexLight);
 
 #if defined(REQUIRES_VERTEX_SHADOW_COORD_INTERPOLATOR)
@@ -161,7 +174,7 @@ inline void InitializeSimpleLitSurfaceData(GrassVertexOutput input, out SurfaceD
     outSurfaceData.specular = 0.1;// SampleSpecularSmoothness(uv, diffuseAlpha.a, _SpecColor, TEXTURE2D_ARGS(_SpecGlossMap, sampler_SpecGlossMap));
     outSurfaceData.smoothness = input.posWSShininess.w;
     outSurfaceData.normalTS = 0.0; // unused
-    outSurfaceData.occlusion = 1.0; // unused
+    outSurfaceData.occlusion = 1.0;
     outSurfaceData.emission = 0.0;
 }
 
@@ -291,7 +304,17 @@ GrassVertexDepthNormalOutput DepthNormalOnlyVertex(GrassVertexDepthNormalInput v
 half4 DepthNormalOnlyFragment(GrassVertexDepthNormalOutput input) : SV_TARGET
 {
     Alpha(SampleAlbedoAlpha(input.uv, TEXTURE2D_ARGS(_MainTex, sampler_MainTex)).a, input.color, _Cutoff);
-    return float4(PackNormalOctRectEncode(TransformWorldToViewDir(NormalizeNormalPerPixel(input.normal), true)), 0.0, 0.0);
+
+    #if defined(_GBUFFER_NORMALS_OCT)
+    float3 normalWS = normalize(input.normal);
+    float2 octNormalWS = PackNormalOctQuadEncode(normalWS);           // values between [-1, +1], must use fp32 on some platforms.
+    float2 remappedOctNormalWS = saturate(octNormalWS * 0.5 + 0.5);   // values between [ 0,  1]
+    half3 packedNormalWS = PackFloat2To888(remappedOctNormalWS);      // values between [ 0,  1]
+    return half4(packedNormalWS, 0.0);
+    #else
+    half3 normalWS = NormalizeNormalPerPixel(input.normal);
+    return half4(normalWS, 0.0);
+    #endif
 }
 
 #endif
