@@ -79,7 +79,7 @@ struct SpeedTreeDepthNormalFragmentInput
 {
     SpeedTreeVertexDepthNormalOutput interpolated;
 #ifdef EFFECT_BACKSIDE_NORMALS
-    half facing : VFACE;
+    FRONT_FACE_TYPE facing : FRONT_FACE_SEMANTIC;
 #endif
 };
 
@@ -87,7 +87,7 @@ struct SpeedTreeFragmentInput
 {
     SpeedTreeVertexOutput interpolated;
 #ifdef EFFECT_BACKSIDE_NORMALS
-    half facing : VFACE;
+    FRONT_FACE_TYPE facing : FRONT_FACE_SEMANTIC;
 #endif
 };
 
@@ -242,10 +242,13 @@ SpeedTreeVertexOutput SpeedTree8Vert(SpeedTreeVertexInput input)
     half3 normalWS = TransformObjectToWorldNormal(input.normal);
 
     half3 vertexLight = VertexLighting(vertexInput.positionWS, normalWS);
-    half fogFactor = ComputeFogFactor(vertexInput.positionCS.z);
+    half fogFactor = 0.0;
+    #if !defined(_FOG_FRAGMENT)
+    fogFactor = ComputeFogFactor(vertexInput.positionCS.z);
+    #endif
     output.fogFactorAndVertexLight = half4(fogFactor, vertexLight);
 
-    half3 viewDirWS = GetWorldSpaceViewDir(vertexInput.positionWS);
+    half3 viewDirWS = GetWorldSpaceNormalizeViewDir(vertexInput.positionWS);
 
     #ifdef EFFECT_BUMP
         real sign = input.tangent.w * GetOddNegativeScale();
@@ -289,7 +292,7 @@ SpeedTreeVertexDepthOutput SpeedTree8VertDepth(SpeedTreeVertexInput input)
 
     VertexPositionInputs vertexInput = GetVertexPositionInputs(input.vertex.xyz);
 
-    output.viewDirWS = GetWorldSpaceViewDir(vertexInput.positionWS);
+    output.viewDirWS = GetWorldSpaceNormalizeViewDir(vertexInput.positionWS);
 
 #ifdef SHADOW_CASTER
     half3 normalWS = TransformObjectToWorldNormal(input.normal);
@@ -334,7 +337,7 @@ void InitializeInputData(SpeedTreeFragmentInput input, half3 normalTS, out Input
         inputData.shadowCoord = float4(0, 0, 0, 0);
     #endif
 
-    inputData.fogCoord = input.interpolated.fogFactorAndVertexLight.x;
+    inputData.fogCoord = InitializeInputDataFog(float4(input.interpolated.positionWS, 1.0), input.interpolated.fogFactorAndVertexLight.x);
     inputData.vertexLighting = input.interpolated.fogFactorAndVertexLight.yzw;
     inputData.bakedGI = SAMPLE_GI(input.interpolated.lightmapUV, input.interpolated.vertexSH, inputData.normalWS);
     inputData.normalizedScreenSpaceUV = GetNormalizedScreenSpaceUV(input.interpolated.clipPos);
@@ -397,10 +400,7 @@ half4 SpeedTree8Frag(SpeedTreeFragmentInput input) : SV_Target
 
     // flip normal on backsides
     #ifdef EFFECT_BACKSIDE_NORMALS
-        if (input.facing < 0.5)
-        {
-            normalTs.z = -normalTs.z;
-        }
+        normalTs.z = IS_FRONT_VFACE(input.facing, normalTs.z, -normalTs.z);
     #endif
 
     // adjust billboard normals to improve GI and matching
@@ -490,7 +490,7 @@ SpeedTreeVertexDepthNormalOutput SpeedTree8VertDepthNormal(SpeedTreeVertexInput 
 
     VertexPositionInputs vertexInput = GetVertexPositionInputs(input.vertex.xyz);
     half3 normalWS = TransformObjectToWorldNormal(input.normal);
-    half3 viewDirWS = GetWorldSpaceViewDir(vertexInput.positionWS);
+    half3 viewDirWS = GetWorldSpaceNormalizeViewDir(vertexInput.positionWS);
     #ifdef EFFECT_BUMP
         real sign = input.tangent.w * GetOddNegativeScale();
         output.normalWS.xyz = normalWS;

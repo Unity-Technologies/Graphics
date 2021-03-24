@@ -16,8 +16,8 @@ struct AttributesParticle
     #endif
 
     #if !defined(PARTICLES_EDITOR_META_PASS)
-        float3 normal               : NORMAL;
-        float4 tangent              : TANGENT;
+        half3 normal : NORMAL;
+        half4 tangent : TANGENT;
     #endif
     UNITY_VERTEX_INPUT_INSTANCE_ID
 };
@@ -36,12 +36,12 @@ struct VaryingsParticle
         float4 positionWS           : TEXCOORD1;
 
         #ifdef _NORMALMAP
-            float4 normalWS         : TEXCOORD2;    // xyz: normal, w: viewDir.x
-            float4 tangentWS        : TEXCOORD3;    // xyz: tangent, w: viewDir.y
-            float4 bitangentWS      : TEXCOORD4;    // xyz: bitangent, w: viewDir.z
+            half4 normalWS         : TEXCOORD2;    // xyz: normal, w: viewDir.x
+            half4 tangentWS        : TEXCOORD3;    // xyz: tangent, w: viewDir.y
+            half4 bitangentWS      : TEXCOORD4;    // xyz: bitangent, w: viewDir.z
         #else
-            float3 normalWS         : TEXCOORD2;
-            float3 viewDirWS        : TEXCOORD3;
+            half3 normalWS         : TEXCOORD2;
+            half3 viewDirWS        : TEXCOORD3;
         #endif
 
         #if defined(_SOFTPARTICLES_ON) || defined(_FADING_ON) || defined(_DISTORTION_ON)
@@ -52,7 +52,7 @@ struct VaryingsParticle
             float4 shadowCoord      : TEXCOORD7;
         #endif
 
-        float3 vertexSH             : TEXCOORD8; // SH
+        half3 vertexSH             : TEXCOORD8; // SH
     #endif
 
     UNITY_VERTEX_INPUT_INSTANCE_ID
