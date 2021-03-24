@@ -14,6 +14,7 @@ Shader "Custom/Lit"
         [HDR] _OcclusionStrength("Occlusion Strength", float) = 1.0
         [NoScaleOffset] _AmbientOcclusion("Occlusion Map", 2D) = "white" {}
 
+        _BumpScale("Bump Scale", float) = 1.0
         [NoScaleOffset] _BumpMap("Normal Map", 2D) = "bump" {}
     }
     SubShader
@@ -44,6 +45,7 @@ Shader "Custom/Lit"
         fixed4 _BaseColor;
         fixed4 _EmissionColor;
         float _OcclusionStrength;
+        float _BumpScale;
 
         // Add instancing support for this shader. You need to check 'Enable Instancing' on materials that use the shader.
         // See https://docs.unity3d.com/Manual/GPUInstancing.html for more information about instancing.
@@ -65,7 +67,7 @@ Shader "Custom/Lit"
             o.Albedo = c.rgb;
             // Metallic and smoothness come from slider variables
             o.Metallic = SampleAndScale(uv, _MetallicGlossMap, _Metallic).r;
-            o.Normal = UnpackNormal(SampleAndScale(uv, _BumpMap, 1));
+            o.Normal = UnpackNormalWithScale(SampleAndScale(uv, _BumpMap, 1), _BumpScale);
             o.Emission = SampleAndScale(uv, _EmissionMap, _EmissionColor);
             o.Occlusion = SampleAndScale(uv, _AmbientOcclusion, _OcclusionStrength);
             o.Smoothness = _Smoothness;
