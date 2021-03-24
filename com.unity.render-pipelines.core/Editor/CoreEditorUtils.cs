@@ -1,13 +1,13 @@
 using System;
-using System.IO;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Linq.Expressions;
 using System.Reflection;
 using System.Text;
+using UnityEditor.AnimatedValues;
 using UnityEngine;
 using UnityEngine.Rendering;
-using UnityEditor.AnimatedValues;
 
 namespace UnityEditor.Rendering
 {
@@ -432,7 +432,7 @@ namespace UnityEditor.Rendering
         /// <returns>return the state of the foldout header</returns>
         public static bool DrawHeaderToggle(GUIContent title, SerializedProperty group, SerializedProperty activeField, Action<Vector2> contextAction, Func<bool> hasMoreOptions, Action toggleMoreOptions, string documentationURL)
         {
-            var backgroundRect = GUILayoutUtility.GetRect(1f, 17f);
+            var backgroundRect = EditorGUI.IndentedRect(GUILayoutUtility.GetRect(1f, 17f));
 
             var labelRect = backgroundRect;
             labelRect.xMin += 32f;
