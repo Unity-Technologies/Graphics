@@ -1,6 +1,8 @@
 #ifndef UNITY_BSDF_INCLUDED
 #define UNITY_BSDF_INCLUDED
 
+#pragma warning (disable : 3205) // conversion of larger type to smaller
+
 #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Color.hlsl"
 
 // Note: All NDF and diffuse term have a version with and without divide by PI.
@@ -635,4 +637,7 @@ real3 D_KajiyaKay(real3 T, real3 H, real specularExponent)
 
     return dirAttn * norm * PositivePow(sinTHSq, 0.5 * n);
 }
+
+#pragma warning (enable : 3205) // conversion of larger type to smaller
+
 #endif // UNITY_BSDF_INCLUDED

@@ -1,6 +1,8 @@
 #ifndef UNITY_PACKING_INCLUDED
 #define UNITY_PACKING_INCLUDED
 
+#pragma warning (disable : 3205) // conversion of larger type to smaller
+
 //-----------------------------------------------------------------------------
 // Normal packing
 //-----------------------------------------------------------------------------
@@ -544,5 +546,7 @@ float2 Unpack888ToFloat2(float3 x)
     return cb / 4095.0;
 }
 #endif // SHADER_API_GLES
+
+#pragma warning (enable : 3205) // conversion of larger type to smaller
 
 #endif // UNITY_PACKING_INCLUDED

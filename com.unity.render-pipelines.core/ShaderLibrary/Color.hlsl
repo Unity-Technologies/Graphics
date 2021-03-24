@@ -1,6 +1,8 @@
 #ifndef UNITY_COLOR_INCLUDED
 #define UNITY_COLOR_INCLUDED
 
+#pragma warning (disable : 3205) // conversion of larger type to smaller
+
 #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/ACES.hlsl"
 
 //-----------------------------------------------------------------------------
@@ -721,5 +723,7 @@ half3 DecodeRGBM(half4 rgbm)
 {
     return rgbm.xyz * rgbm.w * kRGBMRange;
 }
+
+#pragma warning (enable : 3205) // conversion of larger type to smaller
 
 #endif // UNITY_COLOR_INCLUDED

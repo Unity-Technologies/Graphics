@@ -1,6 +1,8 @@
 #ifndef UNITY_SPACE_TRANSFORMS_INCLUDED
 #define UNITY_SPACE_TRANSFORMS_INCLUDED
 
+#pragma warning (disable : 3205) // conversion of larger type to smaller
+
 // Return the PreTranslated ObjectToWorld Matrix (i.e matrix with _WorldSpaceCameraPos apply to it if we use camera relative rendering)
 float4x4 GetObjectToWorldMatrix()
 {
@@ -217,5 +219,7 @@ real3 TransformObjectToTangent(real3 dirOS, real3x3 tangentToWorld)
     // transform from world to tangent
     return TransformWorldToTangent(normalWS, tangentToWorld);
 }
+
+#pragma warning (enable : 3205) // conversion of larger type to smaller
 
 #endif

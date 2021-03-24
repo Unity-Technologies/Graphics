@@ -1,6 +1,8 @@
 #ifndef UNITY_SAMPLING_INCLUDED
 #define UNITY_SAMPLING_INCLUDED
 
+#pragma warning (disable : 3205) // conversion of larger type to smaller
+
 //-----------------------------------------------------------------------------
 // Sample generator
 //-----------------------------------------------------------------------------
@@ -289,5 +291,7 @@ void SampleCone(real2 u, real cosHalfAngle,
     dir    = SphericalToCartesian(phi, cosTheta);
     rcpPdf = TWO_PI * (1 - cosHalfAngle);
 }
+
+#pragma warning (enable : 3205) // conversion of larger type to smaller
 
 #endif // UNITY_SAMPLING_INCLUDED
