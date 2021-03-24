@@ -1,6 +1,8 @@
 #ifndef UNITY_ENTITY_LIGHTING_INCLUDED
 #define UNITY_ENTITY_LIGHTING_INCLUDED
 
+#pragma warning (disable : 3205) // conversion of larger type to smaller
+
 #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Common.hlsl"
 #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Color.hlsl"
 
@@ -355,5 +357,6 @@ real3 SampleDirectionalLightmap(TEXTURE2D_LIGHTMAP_PARAM(lightmapTex, lightmapSa
     return bakeDiffuseLighting;
 }
 
+#pragma warning (enable : 3205) // conversion of larger type to smaller
 
 #endif // UNITY_ENTITY_LIGHTING_INCLUDED

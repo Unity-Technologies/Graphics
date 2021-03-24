@@ -1,6 +1,8 @@
 #ifndef UNITY_FIBONACCI_INCLUDED
 #define UNITY_FIBONACCI_INCLUDED
 
+#pragma warning (disable : 3205) // conversion of larger type to smaller
+
 // Computes a point using the Fibonacci sequence of length N.
 // Input: Fib[N - 1], Fib[N - 2], and the index 'i' of the point.
 // Ref: Efficient Quadrature Rules for Illumination Integrals
@@ -294,5 +296,7 @@ real2 SampleSphereFibonacci(uint i, uint sampleCount)
     real2 f = Fibonacci2d(i, sampleCount);
     return real2(1 - 2 * f.x, TWO_PI * f.y);
 }
+
+#pragma warning (enable : 3205) // conversion of larger type to smaller
 
 #endif // UNITY_FIBONACCI_INCLUDED
