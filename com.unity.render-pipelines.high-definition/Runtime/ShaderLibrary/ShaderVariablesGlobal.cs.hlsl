@@ -153,7 +153,7 @@ GLOBAL_CBUFFER_START(ShaderVariablesGlobal, b0)
     int _TransparentCameraOnlyMotionVectors;
     float _GlobalTessellationFactorMultiplier;
     float _SpecularOcclusionBlend;
-    float _Pad9;
+    float _DeExposureMultiplier;
 CBUFFER_END
 
 
