@@ -36,7 +36,7 @@ Universal_Hybrid_Android_Vulkan_Standalone_DOTS_mono_Linear_2020.3:
               -  "TestProjects/UniversalHybridTest/Logs/*.log"
     dependencies:
       -  path: .yamato/universal_hybrid-android-vulkan.yml#Build_Universal_Hybrid_Android_Vulkan_Standalone_DOTS_mono_Linear_2020.3
-         rerun: on-new-revision
+         rerun: on_new_revision
 Build_Universal_Hybrid_Android_Vulkan_Standalone_DOTS_mono_Linear_2020.3:
     name: Build Universal_Hybrid on Android_Vulkan_mono_Linear_Standalone_DOTS_build_Player on version 2020.3
     agent:
@@ -96,7 +96,7 @@ Universal_Hybrid_Android_Vulkan_Standalone_DOTS_cache_mono_Linear_2020.3:
               -  "TestProjects/UniversalHybridTest/Logs/*.log"
     dependencies:
       -  path: .yamato/universal_hybrid-android-vulkan.yml#Build_Universal_Hybrid_Android_Vulkan_Standalone_DOTS_cache_mono_Linear_2020.3
-         rerun: on-new-revision
+         rerun: on_new_revision
 Build_Universal_Hybrid_Android_Vulkan_Standalone_DOTS_cache_mono_Linear_2020.3:
     name: Build Universal_Hybrid on Android_Vulkan_mono_Linear_Standalone_DOTS_cache_build_Player on version 2020.3
     agent:
@@ -157,9 +157,9 @@ Universal_Hybrid_Android_Vulkan_Standalone_DOTS_mono_Linear_CUSTOM-REVISION:
               -  "TestProjects/UniversalHybridTest/Logs/*.log"
     dependencies:
       -  path: .yamato/_editor_priming.yml#editor:priming:CUSTOM-REVISION:Android
-         rerun: always
+         rerun: on_new_revision
       -  path: .yamato/universal_hybrid-android-vulkan.yml#Build_Universal_Hybrid_Android_Vulkan_Standalone_DOTS_mono_Linear_CUSTOM-REVISION
-         rerun: always
+         rerun: on_new_revision
 Build_Universal_Hybrid_Android_Vulkan_Standalone_DOTS_mono_Linear_CUSTOM-REVISION:
     name: Build Universal_Hybrid on Android_Vulkan_mono_Linear_Standalone_DOTS_build_Player on version CUSTOM-REVISION
     agent:
@@ -193,7 +193,7 @@ Build_Universal_Hybrid_Android_Vulkan_Standalone_DOTS_mono_Linear_CUSTOM-REVISIO
               -  "players*/**"
     dependencies:
       -  path: .yamato/_editor_priming.yml#editor:priming:CUSTOM-REVISION:Android
-         rerun: always
+         rerun: on_new_revision
 Universal_Hybrid_Android_Vulkan_Standalone_DOTS_cache_mono_Linear_CUSTOM-REVISION:
     name: Universal_Hybrid on Android_Vulkan_Standalone_DOTS_cache_mono_Linear on version CUSTOM-REVISION
     agent:
@@ -224,9 +224,9 @@ Universal_Hybrid_Android_Vulkan_Standalone_DOTS_cache_mono_Linear_CUSTOM-REVISIO
               -  "TestProjects/UniversalHybridTest/Logs/*.log"
     dependencies:
       -  path: .yamato/_editor_priming.yml#editor:priming:CUSTOM-REVISION:Android
-         rerun: always
+         rerun: on_new_revision
       -  path: .yamato/universal_hybrid-android-vulkan.yml#Build_Universal_Hybrid_Android_Vulkan_Standalone_DOTS_cache_mono_Linear_CUSTOM-REVISION
-         rerun: always
+         rerun: on_new_revision
 Build_Universal_Hybrid_Android_Vulkan_Standalone_DOTS_cache_mono_Linear_CUSTOM-REVISION:
     name: Build Universal_Hybrid on Android_Vulkan_mono_Linear_Standalone_DOTS_cache_build_Player on version CUSTOM-REVISION
     agent:
@@ -260,4 +260,4 @@ Build_Universal_Hybrid_Android_Vulkan_Standalone_DOTS_cache_mono_Linear_CUSTOM-R
               -  "players*/**"
     dependencies:
       -  path: .yamato/_editor_priming.yml#editor:priming:CUSTOM-REVISION:Android
-         rerun: always
+         rerun: on_new_revision
