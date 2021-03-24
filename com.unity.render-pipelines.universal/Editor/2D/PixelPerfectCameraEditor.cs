@@ -146,24 +146,6 @@ namespace UnityEditor.Experimental.Rendering.Universal
 
             if (obj != null)
             {
-                EditorGUI.BeginDisabledGroup(EditorApplication.isPlaying || !obj.isActiveAndEnabled);
-                EditorGUI.BeginChangeCheck();
-
-                bool runInEditMode = EditorGUILayout.Toggle(obj.runInEditMode, GUI.skin.button, GUILayout.Width(110.0f));
-                GUI.Label(GUILayoutUtility.GetLastRect(), m_Style.runInEditMode, m_Style.centeredLabel);
-
-                if (EditorGUI.EndChangeCheck())
-                {
-                    obj.runInEditMode = runInEditMode;
-
-                    if (runInEditMode)
-                        obj.GetComponent<Camera>().Render();
-                    else
-                        obj.OnDisable();
-                }
-
-                EditorGUI.EndDisabledGroup();
-
                 if (obj.isActiveAndEnabled && (EditorApplication.isPlaying || obj.runInEditMode))
                 {
                     if (Event.current.type == EventType.Layout)
@@ -193,17 +175,17 @@ namespace UnityEditor.Experimental.Rendering.Universal
             float verticalOrthoSize;
             float horizontalOrthoSize;
 
-            if (obj.cropFrameY && obj.cropFrameX)
+            if (obj.cropFrame == PixelPerfectCamera.CropFrame.StretchFill || obj.cropFrame == PixelPerfectCamera.CropFrame.Windowbox)
             {
                 verticalOrthoSize = obj.refResolutionY * 0.5f / obj.assetsPPU;
                 horizontalOrthoSize = verticalOrthoSize * ((float)obj.refResolutionX / obj.refResolutionY);
             }
-            else if (obj.cropFrameY)
+            else if (obj.cropFrame == PixelPerfectCamera.CropFrame.Pillarbox)
             {
                 verticalOrthoSize = obj.refResolutionY * 0.5f / obj.assetsPPU;
                 horizontalOrthoSize = verticalOrthoSize * ((float)gameViewWidth / (zoom * obj.refResolutionY));
             }
-            else if (obj.cropFrameX)
+            else if (obj.cropFrame == PixelPerfectCamera.CropFrame.Letterbox)
             {
                 horizontalOrthoSize = obj.refResolutionX * 0.5f / obj.assetsPPU;
                 verticalOrthoSize = horizontalOrthoSize / (zoom * obj.refResolutionX / (float)gameViewHeight);
