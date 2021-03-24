@@ -191,12 +191,10 @@
 }
 
 .blackboardSection {
-    margin-top: 1px;
-    margin-bottom: 1px;
     padding: 1px;
-    border-width: 0.25px;
-    border-radius: 2px;
     border-color: dimgray;
+    border-width: 0.5px;
+    border-radius: 3px;
 }
 
 .blackboardSection  > .mainContainer > #sectionHeader {
@@ -213,6 +211,19 @@
     background-color: #44C0FF;
     position: absolute;
     min-height: 2px;
+}
+
+.blackboardSection.selected {
+    border-color: cornflowerblue;
+}
+
+.blackboardSection.unnamed {
+    border-width: 0;
+    border-radius: 0;
+    border-color: black;
+}
+.blackboardSection.hovered {
+    border-color: lightskyblue;
 }
 
 #SGBlackboardRow {
@@ -245,14 +256,8 @@
     border-top-width: 0;
     border-right-width: 0;
     border-bottom-width: 0;
-    margin-left: 0;
-    margin-top: 0;
-    margin-right: 0;
-    margin-bottom: 0;
-    padding-left: 0;
-    padding-top: 0;
-    padding-right: 0;
-    padding-bottom: 0;
+    margin: 0;
+    padding: 0;
 }
 
 #SGBlackboardRow > .mainContainer > #root > #itemRow > #expandButton > #buttonImage {
@@ -276,7 +281,7 @@
 #SGBlackboardRow.hovered #pill #selection-border
 {
     background-color:rgba(68,192,255,0.4);
-    border-color: #44C0FF;
+    border-color: red;
     border-left-width: 2px;
     border-top-width: 2px;
     border-right-width: 2px;
@@ -307,7 +312,6 @@
 
 #BlackboardPropertyView > .mainContainer > #textField {
     position: absolute;
-    top:0;
     left:0;
     right:0;
     bottom:0;

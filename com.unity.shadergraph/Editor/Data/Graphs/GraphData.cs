@@ -67,6 +67,30 @@ namespace UnityEditor.ShaderGraph
         }
 
         [NonSerialized]
+        List<CategoryData> m_AddedCategories = new List<CategoryData>();
+
+        public IEnumerable<CategoryData> addedCategories
+        {
+            get { return m_AddedCategories; }
+        }
+
+        [NonSerialized]
+        List<CategoryData> m_RemovedCategories = new List<CategoryData>();
+
+        public IEnumerable<CategoryData> removedCategories
+        {
+            get { return m_RemovedCategories; }
+        }
+
+        [NonSerialized]
+        List<CategoryData> m_MovedCategories = new List<CategoryData>();
+
+        public IEnumerable<CategoryData> movedCategories
+        {
+            get { return m_MovedCategories; }
+        }
+
+        [NonSerialized]
         bool m_MovedContexts = false;
         public bool movedContexts => m_MovedContexts;
 
@@ -627,6 +651,9 @@ namespace UnityEditor.ShaderGraph
             m_AddedInputs.Clear();
             m_RemovedInputs.Clear();
             m_MovedInputs.Clear();
+            m_AddedCategories.Clear();
+            m_RemovedCategories.Clear();
+            m_MovedCategories.Clear();
             m_AddedStickyNotes.Clear();
             m_RemovedNotes.Clear();
             m_PastedStickyNotes.Clear();
@@ -1430,8 +1457,6 @@ namespace UnityEditor.ShaderGraph
 
         public void RemoveGraphInput(ShaderInput input)
         {
-            // TODO: Account for category data changes when a shader input is removed
-
             switch (input)
             {
                 case AbstractShaderProperty property:
@@ -1440,6 +1465,18 @@ namespace UnityEditor.ShaderGraph
                         ReplacePropertyNodeWithConcreteNodeNoValidate(propertyNode);
                     break;
             }
+
+            // Also remove this input from any category it existed in
+            foreach (var categoryData in categories)
+            {
+                if (categoryData.IsItemInCategory(input))
+                {
+                    categoryData.RemoveItemFromCategory(input);
+                    break;
+                }
+            }
+
+            CleanupCategories();
 
             RemoveGraphInputNoValidate(input);
             ValidateGraph();
@@ -1564,6 +1601,7 @@ namespace UnityEditor.ShaderGraph
         public void AddCategory(CategoryData categoryDataReference)
         {
             m_CategoryData.Add(categoryDataReference);
+            m_AddedCategories.Add(categoryDataReference);
         }
 
         public void AddItemToCategory(string categoryGUID, ShaderInput itemToAdd)
@@ -1597,19 +1635,51 @@ namespace UnityEditor.ShaderGraph
             CleanupCategories();
         }
 
-        public void RemoveCategory(CategoryData categoryDataReference)
+        public void RemoveCategory(string categoryGUID)
         {
-            m_CategoryData.Remove(categoryDataReference);
+            foreach (var categoryData in categories.ToList())
+            {
+                if (categoryData.categoryGuid == categoryGUID)
+                {
+                    m_CategoryData.Remove(categoryData);
+                    m_RemovedCategories.Add(categoryData);
+
+                    // Whenever a category is removed, also remove any inputs within that category
+                    foreach (var shaderInput in categoryData.Children)
+                        RemoveGraphInput(shaderInput);
+                }
+            }
+
+            CleanupCategories();
         }
 
-        // Remove any empty categoryData instances that represent un-named categories as the view for those gets cleaned up as well
         void CleanupCategories()
         {
             foreach (var categoryData in categories.ToList())
             {
                 if (categoryData.childCount == 0 && categoryData.IsNamedCategory() == false)
+                {
                     m_CategoryData.Remove(categoryData);
+                    m_RemovedCategories.Add(categoryData);
+                }
             }
+
+            for(var i = 0; i < m_CategoryData.ToList().Count()-1; ++i)
+            {
+                var thisCategory = m_CategoryData[i];
+                var nextCategory = m_CategoryData[i + 1];
+                if (thisCategory.value.IsNamedCategory() == false && nextCategory.value.IsNamedCategory() == false)
+                    MergeCategories(thisCategory, nextCategory);
+            }
+        }
+
+        void MergeCategories(CategoryData categoryA, CategoryData categoryB)
+        {
+            foreach (var categoryBChild in categoryB.Children)
+            {
+                categoryA.AddItemToCategory(categoryBChild);
+            }
+            m_CategoryData.Remove(categoryB);
         }
 
         public void OnKeywordChanged()

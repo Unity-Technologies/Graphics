@@ -962,6 +962,7 @@ namespace UnityEditor.ShaderGraph.Drawing
 
             var copiedSelectionList = new List<ISelectable>(selection);
             var deleteShaderInputAction = new DeleteShaderInputAction();
+            var deleteCategoriesAction = new DeleteCategoryAction();
 
             for (int index = 0; index < copiedSelectionList.Count; ++index)
             {
@@ -977,9 +978,16 @@ namespace UnityEditor.ShaderGraph.Drawing
                         keywordsDirty = true;
                     }
                 }
+                else if (selectable is SGBlackboardCategory category)
+                {
+                    deleteCategoriesAction.categoriesToRemoveGuids.Add(category.viewModel.associatedCategoryGuid);
+                }
             }
 
-            graph.owner.graphDataStore.Dispatch(deleteShaderInputAction);
+            if(deleteShaderInputAction.shaderInputsToDelete.Count != 0)
+                graph.owner.graphDataStore.Dispatch(deleteShaderInputAction);
+            if(deleteCategoriesAction.categoriesToRemoveGuids.Count != 0)
+                graph.owner.graphDataStore.Dispatch(deleteCategoriesAction);
 
             // Test Keywords against variant limit
             if (keywordsDirty)
