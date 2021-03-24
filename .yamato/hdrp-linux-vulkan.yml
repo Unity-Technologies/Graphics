@@ -100,7 +100,7 @@ HDRP_Linux_Vulkan_Standalone_mono_Linear_trunk:
               -  "TestProjects/HDRP_RuntimeTests/Logs/*.log"
     dependencies:
       -  path: .yamato/hdrp-linux-vulkan.yml#Build_HDRP_Linux_Vulkan_Standalone_mono_Linear_trunk
-         rerun: on-new-revision
+         rerun: on_new_revision
 Build_HDRP_Linux_Vulkan_Standalone_mono_Linear_trunk:
     name: Build HDRP on Linux_Vulkan_mono_Linear_Standalone_build_Player on version trunk
     agent:
@@ -149,7 +149,7 @@ HDRP_Linux_Vulkan_Standalone_cache_mono_Linear_trunk:
               -  "TestProjects/HDRP_RuntimeTests/Logs/*.log"
     dependencies:
       -  path: .yamato/hdrp-linux-vulkan.yml#Build_HDRP_Linux_Vulkan_Standalone_cache_mono_Linear_trunk
-         rerun: on-new-revision
+         rerun: on_new_revision
 Build_HDRP_Linux_Vulkan_Standalone_cache_mono_Linear_trunk:
     name: Build HDRP on Linux_Vulkan_mono_Linear_Standalone_cache_build_Player on version trunk
     agent:
@@ -204,7 +204,7 @@ HDRP_Linux_Vulkan_playmode_mono_Linear_CUSTOM-REVISION:
               -  "TestProjects/HDRP_Tests/Logs/*.log"
     dependencies:
       -  path: .yamato/_editor_priming.yml#editor:priming:CUSTOM-REVISION:Linux
-         rerun: always
+         rerun: on_new_revision
 HDRP_Linux_Vulkan_playmode_cache_mono_Linear_CUSTOM-REVISION:
     name: HDRP on Linux_Vulkan_playmode_cache_mono_Linear on version CUSTOM-REVISION
     agent:
@@ -232,7 +232,7 @@ HDRP_Linux_Vulkan_playmode_cache_mono_Linear_CUSTOM-REVISION:
               -  "TestProjects/HDRP_Tests/Logs/*.log"
     dependencies:
       -  path: .yamato/_editor_priming.yml#editor:priming:CUSTOM-REVISION:Linux
-         rerun: always
+         rerun: on_new_revision
 HDRP_Linux_Vulkan_editmode_mono_Linear_CUSTOM-REVISION:
     name: HDRP on Linux_Vulkan_editmode_mono_Linear on version CUSTOM-REVISION
     agent:
@@ -260,7 +260,7 @@ HDRP_Linux_Vulkan_editmode_mono_Linear_CUSTOM-REVISION:
               -  "TestProjects/HDRP_Tests/Logs/*.log"
     dependencies:
       -  path: .yamato/_editor_priming.yml#editor:priming:CUSTOM-REVISION:Linux
-         rerun: always
+         rerun: on_new_revision
 HDRP_Linux_Vulkan_Standalone_mono_Linear_CUSTOM-REVISION:
     name: HDRP on Linux_Vulkan_Standalone_mono_Linear on version CUSTOM-REVISION
     agent:
@@ -283,9 +283,9 @@ HDRP_Linux_Vulkan_Standalone_mono_Linear_CUSTOM-REVISION:
               -  "TestProjects/HDRP_RuntimeTests/Logs/*.log"
     dependencies:
       -  path: .yamato/_editor_priming.yml#editor:priming:CUSTOM-REVISION:Linux
-         rerun: always
+         rerun: on_new_revision
       -  path: .yamato/hdrp-linux-vulkan.yml#Build_HDRP_Linux_Vulkan_Standalone_mono_Linear_CUSTOM-REVISION
-         rerun: always
+         rerun: on_new_revision
 Build_HDRP_Linux_Vulkan_Standalone_mono_Linear_CUSTOM-REVISION:
     name: Build HDRP on Linux_Vulkan_mono_Linear_Standalone_build_Player on version CUSTOM-REVISION
     agent:
@@ -316,7 +316,7 @@ Build_HDRP_Linux_Vulkan_Standalone_mono_Linear_CUSTOM-REVISION:
               -  "players*/**"
     dependencies:
       -  path: .yamato/_editor_priming.yml#editor:priming:CUSTOM-REVISION:Linux
-         rerun: always
+         rerun: on_new_revision
 HDRP_Linux_Vulkan_Standalone_cache_mono_Linear_CUSTOM-REVISION:
     name: HDRP on Linux_Vulkan_Standalone_cache_mono_Linear on version CUSTOM-REVISION
     agent:
@@ -339,9 +339,9 @@ HDRP_Linux_Vulkan_Standalone_cache_mono_Linear_CUSTOM-REVISION:
               -  "TestProjects/HDRP_RuntimeTests/Logs/*.log"
     dependencies:
       -  path: .yamato/_editor_priming.yml#editor:priming:CUSTOM-REVISION:Linux
-         rerun: always
+         rerun: on_new_revision
       -  path: .yamato/hdrp-linux-vulkan.yml#Build_HDRP_Linux_Vulkan_Standalone_cache_mono_Linear_CUSTOM-REVISION
-         rerun: always
+         rerun: on_new_revision
 Build_HDRP_Linux_Vulkan_Standalone_cache_mono_Linear_CUSTOM-REVISION:
     name: Build HDRP on Linux_Vulkan_mono_Linear_Standalone_cache_build_Player on version CUSTOM-REVISION
     agent:
@@ -372,4 +372,4 @@ Build_HDRP_Linux_Vulkan_Standalone_cache_mono_Linear_CUSTOM-REVISION:
               -  "players*/**"
     dependencies:
       -  path: .yamato/_editor_priming.yml#editor:priming:CUSTOM-REVISION:Linux
-         rerun: always
+         rerun: on_new_revision
