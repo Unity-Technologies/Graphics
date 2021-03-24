@@ -759,7 +759,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
                     m_ExposureTextures.clear();
 
-                    if (numColorPyramidBuffersRequired != 0 || forceReallocPyramid))
+                    if (numColorPyramidBuffersRequired != 0 || forceReallocPyramid)
                         AllocHistoryFrameRT((int)HDCameraFrameHistoryType.ColorBufferMipChain, HistoryBufferAllocatorFunction, numColorPyramidBuffersRequired);
 
                     // Mark as init.
