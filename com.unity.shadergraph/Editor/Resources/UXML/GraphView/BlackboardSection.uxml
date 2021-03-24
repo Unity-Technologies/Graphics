@@ -2,7 +2,8 @@
 <UXML xmlns:ui="UnityEngine.UIElements">
     <ui:VisualElement name="sectionHeader" pickingMode="Ignore">
         <ui:Label name="sectionTitleLabel" pickingMode="Ignore" text="Text"/>
+        <ui:TextField name="textField" text="" />
     </ui:VisualElement>
-    <ui:VisualElement name="rowsContainer" pickingMode="Ignore" />
+  <ui:VisualElement name="rowsContainer" pickingMode="Ignore" />
         <ui:VisualElement name="dragIndicator" pickingMode="Ignore" />
 </UXML>

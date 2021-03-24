@@ -147,6 +147,13 @@ namespace UnityEditor.ShaderGraph.Drawing
                         InsertBlackboardRow(addItemToCategoryAction.blackboardItemReference);
                     }
                     break;
+                case ChangeCategoryNameAction changeCategoryNameAction:
+                    if (changeCategoryNameAction.categoryGuid == ViewModel.associatedCategoryGuid)
+                    {
+                        ViewModel.name = changeCategoryNameAction.newCategoryNameValue;
+                        m_BlackboardCategoryView.title = ViewModel.name;
+                    }
+                    break;
             }
         }
 

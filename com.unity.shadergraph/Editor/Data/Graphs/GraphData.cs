@@ -1551,6 +1551,17 @@ namespace UnityEditor.ShaderGraph
             m_CategoryData.Add(categoryDataReference);
         }
 
+        public void ChangeCategoryName(string categoryGUID, string newName)
+        {
+            foreach (var categoryData in categories)
+            {
+                if (categoryData.categoryGuid == categoryGUID)
+                {
+                    categoryData.name = newName;
+                }
+            }
+        }
+
         public void AddItemToCategory(string categoryGUID, ShaderInput itemToAdd)
         {
             foreach (var categoryData in categories)
@@ -1560,7 +1571,7 @@ namespace UnityEditor.ShaderGraph
                     categoryData.AddItemToCategory(itemToAdd);
                 }
                 // Also make sure to remove this items guid from an existing category if it exists within one
-                else if(categoryData.childObjectIDSet.Contains(itemToAdd.objectId))
+                else if (categoryData.childObjectIDSet.Contains(itemToAdd.objectId))
                 {
                     categoryData.RemoveItemFromCategory(itemToAdd);
                 }
@@ -1571,7 +1582,7 @@ namespace UnityEditor.ShaderGraph
         {
             foreach (var categoryData in categories)
             {
-                if(categoryData.categoryGuid == categoryGUID)
+                if (categoryData.categoryGuid == categoryGUID)
                     categoryData.RemoveItemFromCategory(itemToRemove);
             }
         }
@@ -1757,7 +1768,7 @@ namespace UnityEditor.ShaderGraph
             foreach (GroupData groupData in other.groups)
                 AddGroup(groupData);
 
-            foreach(CategoryData categoryData in other.categories)
+            foreach (CategoryData categoryData in other.categories)
                 AddCategory(categoryData);
 
             foreach (var stickyNote in other.stickyNotes)

@@ -51,6 +51,8 @@ namespace UnityEditor.ShaderGraph.Drawing
         VisualElement m_MainContainer;
         VisualElement m_Header;
         Label m_TitleLabel;
+        TextField m_TextField;
+        internal TextField textField => m_TextField;
         VisualElement m_RowsContainer;
         int m_InsertIndex;
         SGBlackboard Blackboard => m_ViewModel.parentView as SGBlackboard;
@@ -115,6 +117,8 @@ namespace UnityEditor.ShaderGraph.Drawing
             m_Header = m_MainContainer.Q("sectionHeader");
             m_TitleLabel = m_MainContainer.Q<Label>("sectionTitleLabel");
             m_RowsContainer = m_MainContainer.Q("rowsContainer");
+            m_TextField = m_MainContainer.Q<TextField>("textField");
+            m_TextField.style.display = DisplayStyle.None;
 
             hierarchy.Add(m_MainContainer);
 
@@ -125,6 +129,15 @@ namespace UnityEditor.ShaderGraph.Drawing
 
             ClearClassList();
             AddToClassList("blackboardSection");
+            RegisterCallback<MouseDownEvent>(OnMouseDownEvent);
+            capabilities |= Capabilities.Selectable | Capabilities.Droppable | Capabilities.Deletable | Capabilities.Renamable;
+
+            //add right click context menu
+            this.AddManipulator(new SelectionDropper());
+            this.AddManipulator(new ContextualMenuManipulator(BuildFieldContextualMenu));
+
+            var textInputElement = m_TextField.Q(TextField.textInputUssName);
+            textInputElement.RegisterCallback<FocusOutEvent>(e => { OnEditTextFinished(); });
 
             RegisterCallback<DragUpdatedEvent>(OnDragUpdatedEvent);
             RegisterCallback<DragPerformEvent>(OnDragPerformEvent);
@@ -327,6 +340,48 @@ namespace UnityEditor.ShaderGraph.Drawing
 
             SetDragIndicatorVisible(false);
             evt.StopPropagation();
+        }
+
+        void OnMouseDownEvent(MouseDownEvent e)
+        {
+            if ((e.clickCount == 2) && e.button == (int)MouseButton.LeftMouse && IsRenamable())
+            {
+                OpenTextEditor();
+                e.PreventDefault();
+            }
+        }
+
+        protected virtual void BuildFieldContextualMenu(ContextualMenuPopulateEvent evt)
+        {
+            evt.menu.AppendAction("Rename", (a) => OpenTextEditor(), DropdownMenuAction.AlwaysEnabled);
+        }
+
+        internal void OpenTextEditor()
+        {
+            m_TextField.SetValueWithoutNotify(title);
+            m_TextField.style.display = DisplayStyle.Flex;
+            m_TitleLabel.visible = false;
+            m_TextField.Q(TextField.textInputUssName).Focus();
+            m_TextField.SelectAll();
+        }
+
+        void OnEditTextFinished()
+        {
+            m_TitleLabel.visible = true;
+            m_TextField.style.display = DisplayStyle.None;
+
+            if (title != m_TextField.text && String.IsNullOrWhiteSpace(m_TextField.text) == false && String.IsNullOrEmpty(m_TextField.text) == false)
+            {
+                var changeCategoryNameAction = new ChangeCategoryNameAction();
+                changeCategoryNameAction.newCategoryNameValue = m_TextField.text;
+                changeCategoryNameAction.categoryGuid = m_ViewModel.associatedCategoryGuid;
+                m_ViewModel.requestModelChangeAction(changeCategoryNameAction);
+            }
+            else
+            {
+                // Reset text field to original name
+                m_TextField.value = title;
+            }
         }
 
         void OnDragLeaveEvent(DragLeaveEvent evt)

@@ -159,6 +159,23 @@ namespace UnityEditor.ShaderGraph.Drawing
         public List<ShaderInput> childObjects { get; set; }
     }
 
+    class ChangeCategoryNameAction : IGraphDataAction
+    {
+        void ChangeCategoryName(GraphData graphData)
+        {
+            AssertHelpers.IsNotNull(graphData, "GraphData is null while carrying out ChangeCategoryNameAction");
+            graphData.owner.RegisterCompleteObjectUndo("Change Category Name");
+            graphData.ChangeCategoryName(categoryGuid, newCategoryNameValue);
+        }
+
+        public Action<GraphData> modifyGraphDataAction => ChangeCategoryName;
+
+        //Reference to the category being modified
+        public string categoryGuid { get; set; }
+
+        internal string newCategoryNameValue { get; set; }
+    }
+
     // TODO: These are stub classes, feel free to change them
     class AddItemToCategoryAction : IGraphDataAction
     {
