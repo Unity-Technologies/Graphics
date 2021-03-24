@@ -1273,8 +1273,9 @@ namespace UnityEngine.Rendering
         public static bool IsSceneFilteringEnabled()
         {
 #if UNITY_EDITOR && UNITY_2021_2_OR_NEWER
-            foreach (UnityEditor.SceneView sv in UnityEditor.SceneView.sceneViews)
+            for (int i = 0; i < UnityEditor.SceneView.sceneViews.Count; i++)
             {
+                var sv = UnityEditor.SceneView.sceneViews[i] as UnityEditor.SceneView;
                 if (sv.isUsingSceneFiltering) return true;
             }
 #endif
