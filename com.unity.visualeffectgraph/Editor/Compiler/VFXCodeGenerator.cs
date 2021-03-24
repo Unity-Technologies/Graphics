@@ -412,7 +412,7 @@ namespace UnityEditor.VFX
 
                 if (filteredNamedExpression.exp != null)
                 {
-                    additionalVertexProperties.WriteVariable(filteredNamedExpression.exp.valueType, filteredNamedExpression.name, "0");
+                    additionalVertexProperties.WriteVariable(filteredNamedExpression.exp.valueType, filteredNamedExpression.name + "__", "0");
                     var expressionToNameLocal = new Dictionary<VFXExpression, string>(expressionToName);
                     additionalVertexProperties.EnterScope();
                     {
@@ -421,7 +421,7 @@ namespace UnityEditor.VFX
                             additionalVertexProperties.WriteVariable(filteredNamedExpression.exp, expressionToNameLocal);
                             additionalVertexProperties.WriteLine();
                         }
-                        additionalVertexProperties.WriteAssignement(filteredNamedExpression.exp.valueType, filteredNamedExpression.name, expressionToNameLocal[filteredNamedExpression.exp]);
+                        additionalVertexProperties.WriteAssignement(filteredNamedExpression.exp.valueType, filteredNamedExpression.name + "__", expressionToNameLocal[filteredNamedExpression.exp]);
                         additionalVertexProperties.WriteLine();
                     }
                     additionalVertexProperties.ExitScope();
@@ -444,7 +444,7 @@ namespace UnityEditor.VFX
             {
                 var filteredNamedExpression = mainParameters.FirstOrDefault(o => vertexParameter == o.name);
 
-                vertexInputsGeneration.WriteAssignement(filteredNamedExpression.exp.valueType, $"properties.{filteredNamedExpression.name}", $"{filteredNamedExpression.name}");
+                vertexInputsGeneration.WriteAssignement(filteredNamedExpression.exp.valueType, $"properties.{filteredNamedExpression.name}", $"{filteredNamedExpression.name}__");
                 vertexInputsGeneration.WriteLine();
             }
 
