@@ -12,7 +12,7 @@ namespace UnityEngine.Experimental.Rendering.Universal
     [RequireComponent(typeof(Camera))]
     [MovedFrom("UnityEngine.Experimental.Rendering.LWRP")]
     [HelpURL("https://docs.unity3d.com/Packages/com.unity.render-pipelines.universal@latest/index.html?subfolder=/manual/2d-pixelperfect.html%23properties")]
-    public class PixelPerfectCamera : MonoBehaviour, IPixelPerfectCamera
+    public class PixelPerfectCamera : MonoBehaviour, IPixelPerfectCamera, ISerializationCallbackReceiver
     {
         public enum CropFrame
         {
@@ -30,6 +30,14 @@ namespace UnityEngine.Experimental.Rendering.Universal
             UpscaleRenderTexture
         }
 
+        public enum ComponentVersions
+        {
+            Version_Unserialized = 0,
+            Version_1 = 1
+        }
+
+        const ComponentVersions k_CurrentComponentVersion = ComponentVersions.Version_1;
+        [SerializeField] ComponentVersions m_ComponentVersion = ComponentVersions.Version_Unserialized;
 
         public CropFrame cropFrame { get { return m_CropFrame; } set { m_CropFrame = value; } }
         public GridSnapping gridSnapping { get { return m_GridSnapping;} set { m_GridSnapping = value; } }
@@ -229,12 +237,13 @@ namespace UnityEngine.Experimental.Rendering.Universal
         [SerializeField] GridSnapping m_GridSnapping;
 
         // These are obsolete. They are here only for migration.
-        //[SerializeField] bool m_UpscaleRT;
-        //[SerializeField] bool m_PixelSnapping;
-        //[SerializeField] bool m_CropFrameX;
-        //[SerializeField] bool m_CropFrameY;
-        //[SerializeField] bool m_StretchFill;
-
+#if UNITY_EDITOR
+        [SerializeField] bool m_UpscaleRT;
+        [SerializeField] bool m_PixelSnapping;
+        [SerializeField] bool m_CropFrameX;
+        [SerializeField] bool m_CropFrameY;
+        [SerializeField] bool m_StretchFill;
+#endif
 
         Camera m_Camera;
         PixelPerfectCameraInternal m_Internal;
@@ -419,5 +428,48 @@ namespace UnityEngine.Experimental.Rendering.Universal
         }
 
 #endif
+
+        public void OnBeforeSerialize()
+        {
+#if UNITY_EDITOR
+            m_ComponentVersion = k_CurrentComponentVersion;
+#endif
+        }
+
+        public void OnAfterDeserialize()
+        {
+#if UNITY_EDITOR
+            // Upgrade from no serialized version
+            if (m_ComponentVersion == ComponentVersions.Version_Unserialized)
+            {
+                if (m_UpscaleRT)
+                    m_GridSnapping = GridSnapping.UpscaleRenderTexture;
+                else if (m_PixelSnapping)
+                    m_GridSnapping = GridSnapping.PixelSnapping;
+
+                if(m_CropFrameX && m_CropFrameY)
+                {
+                    if (m_StretchFill)
+                        m_CropFrame = CropFrame.StretchFill;
+                    else
+                        m_CropFrame = CropFrame.Windowbox;
+                }
+                else if(m_CropFrameX)
+                {
+                    m_CropFrame = CropFrame.Letterbox;
+                }
+                else if(m_CropFrameY)
+                {
+                    m_CropFrame = CropFrame.Pillarbox;
+                }
+                else
+                {
+                    m_CropFrame = CropFrame.None;
+                }
+
+                m_ComponentVersion = ComponentVersions.Version_1;
+            }
+#endif
+        }
     }
 }
