@@ -152,7 +152,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             }
         };
 
-        // TODO: Reconstructing FragInputs like this is not good. We should be simply appending to its list of fields.
+        // TODO: Perhaps keep HDRP FragInputs alone and instead pack all VFX interpolators into a substruct (or see if we can just use SG CustomInterpolator).
         static StructDescriptor GenerateFragInputs(VFXContext context, VFXContextCompiledData contextData)
         {
             var fields = new List<FieldDescriptor>();
@@ -173,6 +173,9 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
 
             // VFX Object Space
             fields.Add(new FieldDescriptor(HDStructFields.FragInputs.name, "worldToElement", "", ShaderValueType.Matrix4));
+
+            // Custom Interpolator
+            fields.Add(new FieldDescriptor(HDStructFields.FragInputs.name, "customInterpolators", "", "CustomInterpolators", preprocessor: "USE_CUSTOMINTERP_SUBSTRUCT"));
 
             // VFX Material Properties
             // TODO: This can be merged with AppendVFXInterpolater. Lots of duplicated code just to query simple info.
