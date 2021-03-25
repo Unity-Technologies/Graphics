@@ -232,7 +232,7 @@ namespace UnityEditor.ShaderGraph.Drawing
         internal int propertyCategoryIndex = 0;
         internal int keywordCategoryIndex = 1;
 
-        IList<BlackboardCategoryController> m_BlackboardCategoryControllers = new List<BlackboardCategoryController>();
+        Dictionary<string, BlackboardCategoryController> m_BlackboardCategoryControllers = new Dictionary<string, BlackboardCategoryController>();
 
         SGBlackboard m_Blackboard;
 
@@ -337,7 +337,7 @@ namespace UnityEditor.ShaderGraph.Drawing
             blackboardCategoryViewModel.name = categoryInfo.name;
             blackboardCategoryViewModel.associatedCategoryGuid = categoryInfo.objectId;
             var blackboardCategoryController = new BlackboardCategoryController(categoryInfo, blackboardCategoryViewModel, graphDataStore);
-            m_BlackboardCategoryControllers.Add(blackboardCategoryController);
+            m_BlackboardCategoryControllers.Add(categoryInfo.objectId, blackboardCategoryController);
             return blackboardCategoryController;
         }
 
@@ -345,7 +345,10 @@ namespace UnityEditor.ShaderGraph.Drawing
         // By default adds it to the end of the list if no insertionIndex specified
         internal SGBlackboardRow InsertBlackboardRow(BlackboardItem shaderInput, int insertionIndex = -1)
         {
-            var lastCategoryController = m_BlackboardCategoryControllers.LastOrDefault();
+            var keyValuePair = m_BlackboardCategoryControllers.LastOrDefault();
+            BlackboardCategoryController lastCategoryController = null;
+            lastCategoryController = keyValuePair.Value;
+
             if (lastCategoryController != null && lastCategoryController.Model.IsNamedCategory() == false)
                 return lastCategoryController.InsertBlackboardRow(shaderInput, insertionIndex);
             else
@@ -438,6 +441,15 @@ namespace UnityEditor.ShaderGraph.Drawing
                         }
                     }
                     break;
+
+                case DeleteCategoryAction deleteCategoryAction:
+                    // Clean up deleted categories
+                    foreach (var categoryGUID in deleteCategoryAction.categoriesToRemoveGuids)
+                    {
+                        RemoveBlackboardCategory(categoryGUID);
+                    }
+                    break;
+
             }
 
             // Lets all event handlers this controller owns/manages know that the model has changed
@@ -451,7 +463,7 @@ namespace UnityEditor.ShaderGraph.Drawing
         void RemoveInputFromBlackboard(ShaderInput shaderInput)
         {
             // Check if input is in one of the categories
-            foreach (var controller in m_BlackboardCategoryControllers)
+            foreach (var controller in m_BlackboardCategoryControllers.Values)
             {
                 var blackboardRow = controller.FindBlackboardRow(shaderInput);
                 if (blackboardRow != null)
@@ -464,7 +476,7 @@ namespace UnityEditor.ShaderGraph.Drawing
 
         bool IsInputUncategorized(ShaderInput shaderInput)
         {
-            foreach (var categoryController in m_BlackboardCategoryControllers)
+            foreach (var categoryController in m_BlackboardCategoryControllers.Values)
             {
                 if (categoryController.IsInputInCategory(shaderInput))
                     return false;
@@ -475,7 +487,7 @@ namespace UnityEditor.ShaderGraph.Drawing
 
         public SGBlackboardRow GetBlackboardRow(ShaderInput blackboardItem)
         {
-            foreach (var categoryController in m_BlackboardCategoryControllers)
+            foreach (var categoryController in m_BlackboardCategoryControllers.Values)
             {
                 var blackboardRow = categoryController.FindBlackboardRow(blackboardItem);
                 if (blackboardRow != null)
@@ -523,9 +535,21 @@ namespace UnityEditor.ShaderGraph.Drawing
             return indexPerCategory;
         }
 
+        void RemoveBlackboardCategory(string categoryGUID)
+        {
+            m_BlackboardCategoryControllers.TryGetValue(categoryGUID, out var blackboardCategoryController);
+            if (blackboardCategoryController != null)
+            {
+                blackboardCategoryController.Destroy();
+                m_BlackboardCategoryControllers.Remove(categoryGUID);
+            }
+            else
+                AssertHelpers.Fail("Tried to remove a category that doesn't exist. ");
+        }
+
         void ClearBlackboardCategories()
         {
-            foreach (var categoryController in m_BlackboardCategoryControllers)
+            foreach (var categoryController in m_BlackboardCategoryControllers.Values)
             {
                 categoryController.Destroy();
             }

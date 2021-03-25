@@ -440,7 +440,11 @@ namespace UnityEditor.ShaderGraph.Drawing
 
         void AddContextMenuOptions(ContextualMenuPopulateEvent evt)
         {
-            evt.menu.AppendAction("Delete", evt => RequestCategoryDelete());
+            // Don't allow un-named sections to have right-click menu options
+            if (controller.Model.IsNamedCategory())
+            {
+                evt.menu.AppendAction("Delete", evt => RequestCategoryDelete());
+            }
         }
     }
 }

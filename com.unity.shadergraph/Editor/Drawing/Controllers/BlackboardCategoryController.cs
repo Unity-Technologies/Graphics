@@ -152,7 +152,7 @@ namespace UnityEditor.ShaderGraph.Drawing
                             var blackboardItemController = m_BlackboardItemControllers[key];
                             if (blackboardItemController.Model == addItemToCategoryAction.itemToAdd)
                             {
-                                blackboardItemController.Destroy();
+                                RemoveBlackboardRow(addItemToCategoryAction.itemToAdd);
                                 break;
                             }
                         }
@@ -160,8 +160,11 @@ namespace UnityEditor.ShaderGraph.Drawing
                     break;
 
                 case DeleteCategoryAction deleteCategoryAction:
-                    if(deleteCategoryAction.categoriesToRemoveGuids.Contains(ViewModel.associatedCategoryGuid))
+                    if (deleteCategoryAction.categoriesToRemoveGuids.Contains(ViewModel.associatedCategoryGuid))
+                    {
                         this.Destroy();
+                        return;
+                    }
 
                     // Check if any inputs were added to this category (i.e. if a category merge took place)
                     foreach (var childInput in Model.Children)
