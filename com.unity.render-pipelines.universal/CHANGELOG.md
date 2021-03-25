@@ -14,6 +14,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Added support for the PlayStation 5 platform.
 - Enabled deferred renderer in UI.
 - Fixed an error where multisampled texture being bound to a non-multisampled sampler in XR. [case 1297013](https://issuetracker.unity3d.com/issues/android-urp-black-screen-when-building-project-to-an-android-device-with-mock-hmd-enabled-and-multisampled-sampler-errors)
+- Fixed an issue with the Lit SubTarget missing an emission material property [1319637](https://issuetracker.unity3d.com/product/unity/issues/guid/1319637/)
 
 ### Changed
 - ClearFlag.Depth does not implicitely clear stencil anymore. ClearFlag.Stencil added.
