@@ -3,6 +3,7 @@ using System.Linq;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEditor.ShaderGraph;
+using UnityEditor.ShaderGraph.Internal;
 using UnityEngine.Rendering;
 using UnityEditor.UIElements;
 using UnityEngine.UIElements;
@@ -126,6 +127,20 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
             context.AddBlock(BlockFields.SurfaceDescription.AlphaClipThreshold, target.alphaClip);
             context.AddBlock(BlockFields.SurfaceDescription.CoatMask,           clearCoat);
             context.AddBlock(BlockFields.SurfaceDescription.CoatSmoothness,     clearCoat);
+        }
+
+        public override void CollectShaderProperties(PropertyCollector collector, GenerationMode generationMode)
+        {
+            base.CollectShaderProperties(collector, generationMode);
+            collector.AddShaderProperty(new ColorShaderProperty()
+            {
+                overrideReferenceName = "_EmissionColor",
+                hidden = true,
+                overrideHLSLDeclaration = true,
+                hlslDeclarationOverride = HLSLDeclaration.UnityPerMaterial,
+                value = new Color(1.0f, 1.0f, 1.0f, 1.0f)
+            });
+
         }
 
         public override void GetPropertiesGUI(ref TargetPropertyGUIContext context, Action onChange, Action<String> registerUndo)
