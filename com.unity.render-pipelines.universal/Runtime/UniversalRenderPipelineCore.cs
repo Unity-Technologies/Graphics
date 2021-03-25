@@ -364,7 +364,7 @@ namespace UnityEngine.Rendering.Universal
         static RenderTextureDescriptor CreateRenderTextureDescriptor(Camera camera, float renderScale,
             bool isStereoEnabled, bool isHdrEnabled, int msaaSamples, bool needsAlpha, bool requiresOpaqueTexture)
         {
-            RenderTextureDescriptor desc;
+            RenderTextureDescriptor desc = new RenderTextureDescriptor(camera.pixelWidth, camera.pixelHeight);;
             GraphicsFormat renderTextureFormatDefault = SystemInfo.GetGraphicsFormat(DefaultFormat.LDR);
 
             // NB: There's a weird case about XR and render texture
@@ -376,11 +376,14 @@ namespace UnityEngine.Rendering.Universal
                 desc = XRGraphics.eyeTextureDesc;
                 renderTextureFormatDefault = desc.graphicsFormat;
             }
-            else if (camera.targetTexture == null)
+
+            if (camera.targetTexture == null)
             {
-                desc = new RenderTextureDescriptor(camera.pixelWidth, camera.pixelHeight);
-                desc.width = (int)((float)desc.width * renderScale);
-                desc.height = (int)((float)desc.height * renderScale);
+                if (!isStereoEnabled)
+                {
+                    desc.width = (int)((float)desc.width * renderScale);
+                    desc.height = (int)((float)desc.height * renderScale);
+                }
 
                 GraphicsFormat hdrFormat;
                 if (!needsAlpha && RenderingUtils.SupportsGraphicsFormat(GraphicsFormat.B10G11R11_UFloatPack32, FormatUsage.Linear | FormatUsage.Render))
@@ -469,7 +472,6 @@ namespace UnityEngine.Rendering.Universal
                 lightData.InitNoBake(light.GetInstanceID());
                 lightsOutput[i] = lightData;
             }
-            Debug.LogWarning("Realtime GI is not supported in Universal Pipeline.");
 #endif
         };
     }
