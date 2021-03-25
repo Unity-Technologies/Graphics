@@ -543,8 +543,12 @@ namespace UnityEditor.Rendering.Universal
             {
                 UnityEngine.Experimental.Rendering.Universal.PixelPerfectCamera pixelPerfectCamera;
                 camera.TryGetComponent<UnityEngine.Experimental.Rendering.Universal.PixelPerfectCamera>(out pixelPerfectCamera);
+                bool pixelPerfectEnabled = pixelPerfectCamera != null && pixelPerfectCamera.enabled;
 
-                EditorGUI.BeginDisabledGroup(pixelPerfectCamera != null);
+                if(pixelPerfectEnabled)
+                    EditorGUILayout.HelpBox(Styles.pixelPerfectWarning, MessageType.Warning);
+
+                EditorGUI.BeginDisabledGroup(pixelPerfectEnabled);
                 settings.DrawProjection();
                 EditorGUI.EndDisabledGroup();
 
