@@ -1,8 +1,9 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
+using UnityEditor.ShaderGraph.Internal;
 using UnityEditor.ShaderGraph.Serialization;
 using UnityEngine;
-using UnityEngine.Serialization;
 
 namespace UnityEditor.ShaderGraph
 {
@@ -17,37 +18,92 @@ namespace UnityEditor.ShaderGraph
             get => m_Name;
             set => m_Name = value;
         }
+        public string categoryGuid => this.objectId;
 
         [SerializeField]
-        Guid m_CategoryGuid;
+        List<JsonRef<ShaderInput>> m_ChildObjectList = new List<JsonRef<ShaderInput>>();
 
-        public Guid categoryGuid
+        public RefValueEnumerable<ShaderInput> Children => m_ChildObjectList.SelectValue();
+
+        HashSet<string> m_ChildObjectIDSet = new HashSet<string>();
+        // We expose the object list as a HashSet of their objectIDs for faster existence checks
+        public HashSet<string> childObjectIDSet
         {
-            get => m_CategoryGuid;
-            set => m_CategoryGuid = value;
+            get => m_ChildObjectIDSet;
+            set => m_ChildObjectIDSet = value;
+        }
+        public int childCount => m_ChildObjectIDSet.Count;
+
+        public void AddItemToCategory(ShaderInput itemToAdd)
+        {
+            m_ChildObjectList.Add(itemToAdd);
+            m_ChildObjectIDSet.Add(itemToAdd.objectId);
         }
 
-        // We store Guids as a list out to the graph asset
-        [SerializeField]
-        List<Guid> m_ChildItemIDList;
-
-        HashSet<Guid> m_ChildItemIDSet;
-        // We expose Guids as a HashSet for faster existence checks
-        public HashSet<Guid> childItemIDSet
+        public void RemoveItemFromCategory(ShaderInput itemToRemove)
         {
-            get => m_ChildItemIDSet;
-            set => m_ChildItemIDSet = value;
+            m_ChildObjectList.Remove(itemToRemove);
+            if (m_ChildObjectIDSet.Contains(itemToRemove.objectId))
+                m_ChildObjectIDSet.Remove(itemToRemove.objectId);
         }
 
-        public CategoryData(string inName,  List<Guid> inChildItemIDList = null, Guid inCategoryGuid = new Guid())
+        public void MoveItemInCategory(ShaderInput itemToMove, int newIndex)
+        {
+            m_ChildObjectList.Remove(itemToMove);
+            m_ChildObjectList.Insert(newIndex,itemToMove);
+            // Recreate the hash-set as the data structure does not allow for moving/inserting elements
+            m_ChildObjectIDSet.Clear();
+            foreach (var childObject in m_ChildObjectList)
+            {
+                m_ChildObjectIDSet.Add(childObject.value.objectId);
+            }
+        }
+
+        public bool IsItemInCategory(ShaderInput itemToCheck)
+        {
+            return m_ChildObjectIDSet.Contains(itemToCheck.objectId);
+        }
+
+        public bool IsNamedCategory()
+        {
+            return name != String.Empty;
+        }
+
+        public override void OnAfterDeserialize()
+        {
+            if (m_ChildObjectList != null)
+            {
+                foreach (var childObject in m_ChildObjectList.ToList())
+                {
+                    if (childObject.value != null)
+                        m_ChildObjectIDSet.Add(childObject.value.objectId);
+                    else
+                        m_ChildObjectList.Remove(childObject);
+                }
+            }
+
+            base.OnAfterDeserialize();
+        }
+
+        public CategoryData()
+        {
+            foreach (var childObject in m_ChildObjectList)
+            {
+                m_ChildObjectIDSet.Add(childObject.value.objectId);
+            }
+        }
+
+        public CategoryData(string inName, List<ShaderInput> inChildObjectList = null)
         {
             name = inName;
-            m_ChildItemIDList = inChildItemIDList;
-            if (m_ChildItemIDList != null)
-                m_ChildItemIDSet = new HashSet<Guid>(m_ChildItemIDList);
-            else
-                AssertHelpers.Fail("Category data provided invalid data for construction.");
-            categoryGuid = inCategoryGuid;
+            if (inChildObjectList != null)
+            {
+                foreach (var childObject in inChildObjectList)
+                {
+                    m_ChildObjectList.Add(childObject);
+                    m_ChildObjectIDSet.Add(childObject.objectId);
+                }
+            }
         }
     }
 }
