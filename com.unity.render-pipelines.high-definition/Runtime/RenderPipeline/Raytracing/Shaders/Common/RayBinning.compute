@@ -85,7 +85,7 @@ void RAY_BINNING(uint2 groupThreadId : SV_GroupThreadID, uint2 groupId : SV_Grou
         // Output the indices of the original pixels
         uint groupdIndex = groupId.y * _RayBinTileCountX + groupId.x;
         uint globalOffset = groupdIndex * RAY_BINNING_TILE_SIZE * RAY_BINNING_TILE_SIZE + gs_binOffset[binIndex] + rayBinIndex;
-        _RayBinResult[globalOffset] = ((currentCoord.x & 0xffff) << 16) + (currentCoord.y & 0xffff);        
+        _RayBinResult[globalOffset] = ((currentCoord.x & 0xffff) << 16) + (currentCoord.y & 0xffff);
     }
 
     // Then output the size of every bin

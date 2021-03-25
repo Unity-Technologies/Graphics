@@ -39,7 +39,7 @@ void InitBuiltinData(PositionInputs posInput, float alpha, float3 normalWS, floa
     builtinData.opacity = alpha;
 
     // Use uniform directly - The float need to be cast to uint (as unity don't support to set a uint as uniform)
-    builtinData.renderingLayers = _EnableLightLayers ? asuint(unity_RenderingLayer.x) : DEFAULT_LIGHT_LAYERS;
+    builtinData.renderingLayers = GetMeshRenderingLightLayer();
 
     // Sample lightmap/probevolume/lightprobe/volume proxy
     builtinData.bakeDiffuseLighting = 0.0;
@@ -95,9 +95,14 @@ void ModifyBakedDiffuseLighting(float3 V, PositionInputs posInput, SurfaceData s
 void PostInitBuiltinData(   float3 V, PositionInputs posInput, SurfaceData surfaceData,
                             inout BuiltinData builtinData)
 {
-#if SHADEROPTIONS_PROBE_VOLUMES_EVALUATION_MODE == PROBEVOLUMESEVALUATIONMODES_LIGHT_LOOP
+#if defined(PROBE_VOLUMES_L1) || defined(PROBE_VOLUMES_L2)
     if (IsUninitializedGI(builtinData.bakeDiffuseLighting))
+    {
+#ifdef HAS_PAYLOAD_WITH_UNINIT_GI
+        EncodePayloadWithUninitGI(GetUninitializedGIPayload(surfaceData), builtinData.bakeDiffuseLighting);
+#endif
         return;
+    }
 #else
     // Apply control from the indirect lighting volume settings - This is apply here so we don't affect emissive
     // color in case of lit deferred for example and avoid material to have to deal with it

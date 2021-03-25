@@ -1,12 +1,25 @@
 #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Common.hlsl"
 #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/CommonMaterial.hlsl"
+#include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Texture.hlsl"
 #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Core.hlsl"
 #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Shadows.hlsl"
 #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/DeclareDepthTexture.hlsl"
 
 float3 _LightDirection;
 
+#ifdef VFX_VARYING_PS_INPUTS
 void VFXTransformPSInputs(inout VFX_VARYING_PS_INPUTS input) {}
+
+float4 VFXApplyPreExposure(float4 color, float exposureWeight)
+{
+    return color;
+}
+
+float4 VFXApplyPreExposure(float4 color, VFX_VARYING_PS_INPUTS input)
+{
+    return color;
+}
+#endif
 
 float4 VFXTransformFinalColor(float4 color)
 {
@@ -63,6 +76,15 @@ float4 VFXTransformPositionObjectToPreviousClip(float3 posOS)
 float3 VFXTransformPositionWorldToView(float3 posWS)
 {
     return TransformWorldToView(posWS);
+}
+
+float3 VFXTransformPositionWorldToCameraRelative(float3 posWS)
+{
+#if (VFX_WORLD_SPACE || SHADEROPTIONS_CAMERA_RELATIVE_RENDERING == 0)
+    return posWS - _WorldSpaceCameraPos.xyz;
+#else
+    return posWS;
+#endif
 }
 
 float4x4 VFXGetObjectToWorldMatrix()
@@ -130,7 +152,7 @@ float4 VFXApplyFog(float4 color,float4 posCS,float3 posWS)
    return color;
 }
 
-float4 VFXApplyPreExposure(float4 color, VFX_VARYING_PS_INPUTS input)
+float3 VFXGetCameraWorldDirection()
 {
-    return color;
+    return unity_CameraToWorld._m02_m12_m22;
 }

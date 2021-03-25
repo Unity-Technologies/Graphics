@@ -27,7 +27,7 @@ void ClosestHitGBuffer(inout RayIntersectionGBuffer rayIntersectionGbuffer : SV_
     cone.width = 0.0;
     cone.spreadAngle = 0.0;
     GetSurfaceAndBuiltinData(fragInput, -incidentDir, posInput, surfaceData, builtinData, currentVertex, cone, isVisible);
-    
+
     // First we pack the data into the standard bsdf data
     StandardBSDFData standardLitData;
     ZERO_INITIALIZE(StandardBSDFData, standardLitData);

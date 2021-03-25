@@ -15,13 +15,15 @@ namespace UnityEditor.ShaderGraph
     [Serializable]
     struct FunctionPair
     {
-        public string key;
-        public string value;
+        public string key;              // aka function name
+        public string value;            // aka function code
+        public int graphPrecisionFlags; // Flags<GraphPrecision> indicating which precision variants are requested by the subgraph
 
-        public FunctionPair(string key, string value)
+        public FunctionPair(string key, string value, int graphPrecisionFlags)
         {
             this.key = key;
             this.value = value;
+            this.graphPrecisionFlags = graphPrecisionFlags;
         }
     }
 
@@ -54,6 +56,8 @@ namespace UnityEditor.ShaderGraph
 
         public List<FunctionPair> functions = new List<FunctionPair>();
 
+        public IncludeCollection includes;
+
         public List<string> vtFeedbackVariables = new List<string>();
 
         private SubGraphData m_SubGraphData;
@@ -73,47 +77,59 @@ namespace UnityEditor.ShaderGraph
 
         public List<string> children = new List<string>();          // guids of direct USED SUBGRAPH file dependencies
 
-        public List<string> descendents = new List<string>();       // guids of ALL file dependencies at any level
+        public List<string> descendents = new List<string>();       // guids of ALL file dependencies at any level, SHOULD LIST EVEN MISSING DESCENDENTS
 
         public ShaderStageCapability effectiveShaderStage;
 
-        public ConcretePrecision graphPrecision;
 
-        public ConcretePrecision outputPrecision;
+        // this is the precision that the entire subgraph is set to (indicates whether the graph is hard-coded or switchable)
+        public GraphPrecision subGraphGraphPrecision;
+
+        // this is the precision of the subgraph outputs
+        // NOTE: this may not be the same as subGraphGraphPrecision
+        // for example, a graph could allow switching precisions for internal calculations,
+        // but the output of the graph is always full float
+        // NOTE: we don't currently have a way to select the graph precision for EACH output
+        // there's a single shared precision for all of them
+        public GraphPrecision outputGraphPrecision;
+
+        public PreviewMode previewMode;
 
         public void WriteData(IEnumerable<AbstractShaderProperty> inputs, IEnumerable<ShaderKeyword> keywords, IEnumerable<AbstractShaderProperty> nodeProperties, IEnumerable<MaterialSlot> outputs, IEnumerable<Target> unsupportedTargets)
         {
-            if(m_SubGraphData == null)
+            if (m_SubGraphData == null)
             {
                 m_SubGraphData = new SubGraphData();
+                m_SubGraphData.OverrideObjectId(assetGuid, "_subGraphData");
             }
+
             m_SubGraphData.inputs.Clear();
             m_SubGraphData.keywords.Clear();
             m_SubGraphData.nodeProperties.Clear();
             m_SubGraphData.outputs.Clear();
             m_SubGraphData.unsupportedTargets.Clear();
 
-            foreach(var input in inputs)
+            foreach (var input in inputs)
             {
                 m_SubGraphData.inputs.Add(input);
             }
 
-            foreach(var keyword in keywords)
+            foreach (var keyword in keywords)
             {
                 m_SubGraphData.keywords.Add(keyword);
             }
 
-            foreach(var nodeProperty in nodeProperties)
+            foreach (var nodeProperty in nodeProperties)
             {
                 m_SubGraphData.nodeProperties.Add(nodeProperty);
             }
 
-            foreach(var output in outputs)
+            foreach (var output in outputs)
             {
                 m_SubGraphData.outputs.Add(output);
             }
 
-            foreach(var unsupportedTarget in unsupportedTargets)
+            foreach (var unsupportedTarget in unsupportedTargets)
             {
                 m_SubGraphData.unsupportedTargets.Add(unsupportedTarget);
             }
@@ -128,13 +144,12 @@ namespace UnityEditor.ShaderGraph
 
         public void OnAfterDeserialize()
         {
-
         }
 
         public void LoadGraphData()
         {
             m_SubGraphData = new SubGraphData();
-            if(!String.IsNullOrEmpty(m_SerializedSubGraphData.JSONnodeData))
+            if (!String.IsNullOrEmpty(m_SerializedSubGraphData.JSONnodeData))
             {
                 MultiJson.Deserialize(m_SubGraphData, m_SerializedSubGraphData.JSONnodeData);
             }

@@ -30,6 +30,17 @@ namespace UnityEditor.Experimental.Rendering.Universal.Path2D
         public TangentCache brokenCache;
         public bool mirrorLeft;
 
+        public ControlPoint(Vector3 pos)
+        {
+            position = pos;
+            localLeftTangent = Vector3.zero;
+            localRightTangent = Vector3.zero;
+            tangentMode = TangentMode.Linear;
+            continuousCache = default(TangentCache);
+            brokenCache = default(TangentCache);
+            mirrorLeft = false;
+        }
+
         public Vector3 leftTangent
         {
             get { return localLeftTangent + position; }

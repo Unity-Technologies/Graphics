@@ -49,7 +49,12 @@ namespace UnityEngine.Rendering.Universal
             {
                 return rtid;
             }
-            return new RenderTargetIdentifier(id);
+            return new RenderTargetIdentifier(id, 0, CubemapFace.Unknown, -1);
+        }
+
+        public bool HasInternalRenderTargetId()
+        {
+            return id == -2;
         }
 
         public bool Equals(RenderTargetHandle other)

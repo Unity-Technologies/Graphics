@@ -20,13 +20,13 @@ namespace UnityEditor.ShaderGraph
                     bool disallowedByAnyTargets = false;
                     bool disallowedByAllTargets = true;
                     IEnumerable<Target> targets = node.owner.activeTargets;
-                    if(node.owner.isSubGraph)
+                    if (node.owner.isSubGraph)
                     {
-                        targets = node.owner.validTargets;
+                        targets = node.owner.allPotentialTargets;
                     }
                     foreach (var target in targets)
                     {
-                        //if at least one target doesnt allow a node, it is considered invalid
+                        //if at least one target doesn't allow a node, it is considered invalid
                         if (!target.IsNodeAllowedByTarget(t))
                         {
                             disallowedByAnyTargets = true;

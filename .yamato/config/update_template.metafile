@@ -1,0 +1,66 @@
+project:
+  name: URPUpdate
+  folder: URP-Update-Testing/URP-Update-Testing
+  variables:
+    TEMPLATE_UPDATE_PROJECT_BRANCH: master
+    TEMPLATE_UPDATE_PROJECT_REVISION: 61a06c2185bfd01c8c260a6210715edc53f23a54
+
+reuse_blocks:
+  setup_with_utr:
+    - [iPhone_Metal, OSX_Metal, Linux_Vulkan]: git clone https://github.cds.internal.unity3d.com/sophia/URP-Update-testing.git -b $TEMPLATE_UPDATE_PROJECT_BRANCH TestProjects/URP-Update-Testing
+    - [Win_DX11, Win_DX12, Win_Vulkan, Android_OpenGLES3, Android_Vulkan]: git clone https://github.cds.internal.unity3d.com/sophia/URP-Update-testing.git -b %TEMPLATE_UPDATE_PROJECT_BRANCH% TestProjects/URP-Update-Testing
+      
+    - [iPhone_Metal, OSX_Metal, Linux_Vulkan]: cd TestProjects/URP-Update-Testing && git checkout $TEMPLATE_UPDATE_PROJECT_REVISION
+    - [Win_DX11, Win_DX12, Win_Vulkan, Android_OpenGLES3, Android_Vulkan]: cd TestProjects/URP-Update-Testing && git checkout %TEMPLATE_UPDATE_PROJECT_REVISION%
+
+    - [Win_DX11, Win_DX12, Win_Vulkan]: Xcopy /E /I "com.unity.render-pipelines.core" "TestProjects/<PROJECT_FOLDER>/Packages/com.unity.render-pipelines.core" /Y
+    - [Win_DX11, Win_DX12, Win_Vulkan]: Xcopy /E /I "com.unity.render-pipelines.universal" "TestProjects/<PROJECT_FOLDER>/Packages/com.unity.render-pipelines.universal" /Y
+    - [Win_DX11, Win_DX12, Win_Vulkan]: Xcopy /E /I "com.unity.shadergraph" "TestProjects/<PROJECT_FOLDER>/Packages/com.unity.shadergraph" /Y
+    - [Win_DX11, Win_DX12, Win_Vulkan, Android_OpenGLES3, Android_Vulkan]: <shared.platform.commands.turn_off_firewall>
+    - [all]: <shared.platform.commands.setup_utr>
+    - [all]: <shared.platform.commands.unity_downloader_cli>
+    - [all]: <shared.platform.commands.call_utr>
+
+test_platforms:
+  - type: playmode
+    commands:
+      - <reuse_blocks.setup_with_utr>
+  - type: editmode
+    commands:
+      - <reuse_blocks.setup_with_utr>
+expression_trigger: 
+  expression: ""
+platforms:
+  - name: Win
+    apis:
+      - name: DX11
+      - name: Vulkan
+    build_configs:
+      - name: mono
+    color_spaces:
+      - Linear
+#  - name: OSX
+#    apis:
+#      - name: OpenGLCore
+#      - name: Metal
+#    build_configs:
+#      - name: mono
+#    color_spaces:
+#      - Linear
+pr:
+  dependencies:
+    - platform: Win
+      api: DX11
+      build_config: mono
+      color_space: Linear
+      test_platforms:
+        - editmode
+        - playmode
+#    - project: URPUpdate_BoatAttack
+#      pr: true
+    - project: URPUpdate_Top_Asset_Store
+      pr: true  
+nightly:
+  dependencies:
+    - project: URPUpdate
+      pr: true

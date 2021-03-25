@@ -52,7 +52,7 @@ LightmapSettings:
     m_AlbedoBoost: 1
     m_EnvironmentLightingMode: 1
     m_EnableBakedLightmaps: 0
-    m_EnableRealtimeLightmaps: 1
+    m_EnableRealtimeLightmaps: 0
   m_LightmapEditorSettings:
     serializedVersion: 12
     m_Resolution: 2
@@ -248,6 +248,7 @@ MonoBehaviour:
     PerPixelCorrectnessThreshold: 0.005
     AverageCorrectnessThreshold: 0.0005
   WaitFrames: 0
+  XRCompatible: 0
 --- !u!20 &380492253
 Camera:
   m_ObjectHideFlags: 0

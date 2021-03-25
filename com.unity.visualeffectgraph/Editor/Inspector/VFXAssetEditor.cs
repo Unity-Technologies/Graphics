@@ -6,7 +6,6 @@ using UnityEditorInternal;
 using UnityEditor;
 using UnityEngine;
 using UnityEngine.VFX;
-using UnityEngine.Rendering;
 using UnityEditor.Callbacks;
 using UnityEditor.VFX;
 using UnityEditor.VFX.UI;
@@ -90,6 +89,21 @@ class VFXExternalShaderProcessor : AssetPostprocessor
 [CanEditMultipleObjects]
 class VisualEffectAssetEditor : Editor
 {
+#if UNITY_2021_1_OR_NEWER
+    [OnOpenAsset(OnOpenAssetAttributeMode.Validate)]
+    public static bool WillOpenInUnity(int instanceID)
+    {
+        var obj = EditorUtility.InstanceIDToObject(instanceID);
+        if (obj is VFXGraph || obj is VFXModel || obj is VFXUI)
+            return true;
+        else if (obj is VisualEffectAsset)
+            return true;
+        else if (obj is VisualEffectSubgraph)
+            return true;
+        return false;
+    }
+
+#endif
     [OnOpenAsset(1)]
     public static bool OnOpenVFX(int instanceID, int line)
     {
@@ -417,19 +431,19 @@ class VisualEffectAssetEditor : Editor
         VFXUpdateMode initialUpdateMode = (VFXUpdateMode)0;
         bool? initialFixedDeltaTime = null;
         bool? initialProcessEveryFrame = null;
-        bool? initialIgnoreGameTimeScale= null;
+        bool? initialIgnoreGameTimeScale = null;
         if (resourceUpdateModeProperty.hasMultipleDifferentValues)
         {
             var resourceUpdateModeProperties = resourceUpdateModeProperty.serializedObject.targetObjects
-                                                .Select(o => new SerializedObject(o)
-                                                .FindProperty(resourceUpdateModeProperty.propertyPath))
-                                                .ToArray(); //N.B.: This will create garbage
-            var allDeltaTime = resourceUpdateModeProperties .Select(o => ((VFXUpdateMode)o.intValue & VFXUpdateMode.DeltaTime) == VFXUpdateMode.DeltaTime)
-                                                            .Distinct();
-            var allProcessEveryFrame = resourceUpdateModeProperties .Select(o => ((VFXUpdateMode)o.intValue & VFXUpdateMode.ExactFixedTimeStep) == VFXUpdateMode.ExactFixedTimeStep)
-                                                                    .Distinct();
+                .Select(o => new SerializedObject(o)
+                    .FindProperty(resourceUpdateModeProperty.propertyPath))
+                .ToArray();                                 //N.B.: This will create garbage
+            var allDeltaTime = resourceUpdateModeProperties.Select(o => ((VFXUpdateMode)o.intValue & VFXUpdateMode.DeltaTime) == VFXUpdateMode.DeltaTime)
+                .Distinct();
+            var allProcessEveryFrame = resourceUpdateModeProperties.Select(o => ((VFXUpdateMode)o.intValue & VFXUpdateMode.ExactFixedTimeStep) == VFXUpdateMode.ExactFixedTimeStep)
+                .Distinct();
             var allIgnoreScale = resourceUpdateModeProperties.Select(o => ((VFXUpdateMode)o.intValue & VFXUpdateMode.IgnoreTimeScale) == VFXUpdateMode.IgnoreTimeScale)
-                                                             .Distinct();
+                .Distinct();
             if (allDeltaTime.Count() == 1)
                 initialFixedDeltaTime = !allDeltaTime.First();
             if (allProcessEveryFrame.Count() == 1)
@@ -444,11 +458,11 @@ class VisualEffectAssetEditor : Editor
             initialProcessEveryFrame = (initialUpdateMode & VFXUpdateMode.ExactFixedTimeStep) == VFXUpdateMode.ExactFixedTimeStep;
             initialIgnoreGameTimeScale = (initialUpdateMode & VFXUpdateMode.IgnoreTimeScale) == VFXUpdateMode.IgnoreTimeScale;
         }
-        
+
         EditorGUI.showMixedValue = !initialFixedDeltaTime.HasValue;
-        var deltaTimeContent = EditorGUIUtility.TrTextContent("Fixed Delta Time", "If enabled, use visual effect manager fixed delta time mode.");
-        var processEveryFrameContent = EditorGUIUtility.TrTextContent("Exact Fixed Time", "Only relevant for fixed delta time mode, if enabled, can process several updates per frame (e.g.: if a frame is 30ms but the fixed frame rate is set to 5ms, it will update 6 times with a 5ms deltaTime instead of one time with a 30ms deltaTime). This update mode isn't efficient and should only be used for really high quality purpose.");
-        var ignoreTimeScaleContent = EditorGUIUtility.TrTextContent("Ignore Time Scale", "If enabled, the computed visual effect delta time ignore the game time scale value (play rate is still applied).");
+        var deltaTimeContent = EditorGUIUtility.TrTextContent("Fixed Delta Time", "If enabled, use visual effect manager fixed delta time mode, otherwise, use the default Time.deltaTime.");
+        var processEveryFrameContent = EditorGUIUtility.TrTextContent("Exact Fixed Time", "Only relevant when using Fixed Delta Time. When enabled, several updates can be processed per frame (e.g.: if a frame is 10ms and the fixed frame rate is set to 5 ms, the effect will update twice with a 5ms deltaTime instead of once with a 10ms deltaTime). This method is expensive and should only be used for high-end scenarios.");
+        var ignoreTimeScaleContent = EditorGUIUtility.TrTextContent("Ignore Time Scale", "When enabled, the computed visual effect delta time ignores the game Time Scale value (Play Rate is still applied).");
 
         EditorGUI.BeginChangeCheck();
 
@@ -456,8 +470,13 @@ class VisualEffectAssetEditor : Editor
         bool newFixedDeltaTime = EditorGUILayout.Toggle(deltaTimeContent, initialFixedDeltaTime ?? false);
         bool newExactFixedTimeStep = false;
         EditorGUI.showMixedValue = !initialProcessEveryFrame.HasValue;
-        if (initialFixedDeltaTime.HasValue && initialFixedDeltaTime.Value || resourceUpdateModeProperty.hasMultipleDifferentValues)
-            newExactFixedTimeStep = EditorGUILayout.Toggle(processEveryFrameContent, initialProcessEveryFrame ?? false);
+        EditorGUI.BeginDisabledGroup((!initialFixedDeltaTime.HasValue || !initialFixedDeltaTime.Value) && !resourceUpdateModeProperty.hasMultipleDifferentValues);
+
+#if CASE_1289829_HAS_BEEN_FIXED
+        newExactFixedTimeStep = EditorGUILayout.Toggle(processEveryFrameContent, initialProcessEveryFrame ?? false);
+#endif
+
+        EditorGUI.EndDisabledGroup();
         EditorGUI.showMixedValue = !initialIgnoreGameTimeScale.HasValue;
         bool newIgnoreTimeScale = EditorGUILayout.Toggle(ignoreTimeScaleContent, initialIgnoreGameTimeScale ?? false);
 
@@ -500,7 +519,7 @@ class VisualEffectAssetEditor : Editor
                         updateMode = updateMode | VFXUpdateMode.ExactFixedTimeStep;
                     else if (initialProcessEveryFrame.HasValue)
                         updateMode = updateMode & ~VFXUpdateMode.ExactFixedTimeStep;
-                    
+
                     if (newIgnoreTimeScale)
                         updateMode = updateMode | VFXUpdateMode.IgnoreTimeScale;
                     else if (initialIgnoreGameTimeScale.HasValue)

@@ -61,24 +61,24 @@ namespace UnityEditor.Rendering.Universal
     sealed class SavedBool : SavedParameter<bool>
     {
         public SavedBool(string key, bool value)
-            : base(key, value, EditorPrefs.GetBool, EditorPrefs.SetBool) { }
+            : base(key, value, EditorPrefs.GetBool, EditorPrefs.SetBool) {}
     }
 
     sealed class SavedInt : SavedParameter<int>
     {
         public SavedInt(string key, int value)
-            : base(key, value, EditorPrefs.GetInt, EditorPrefs.SetInt) { }
+            : base(key, value, EditorPrefs.GetInt, EditorPrefs.SetInt) {}
     }
 
     sealed class SavedFloat : SavedParameter<float>
     {
         public SavedFloat(string key, float value)
-            : base(key, value, EditorPrefs.GetFloat, EditorPrefs.SetFloat) { }
+            : base(key, value, EditorPrefs.GetFloat, EditorPrefs.SetFloat) {}
     }
 
     sealed class SavedString : SavedParameter<string>
     {
         public SavedString(string key, string value)
-            : base(key, value, EditorPrefs.GetString, EditorPrefs.SetString) { }
+            : base(key, value, EditorPrefs.GetString, EditorPrefs.SetString) {}
     }
 }

@@ -32,6 +32,10 @@ namespace UnityEditor.VFX.UI
         IEnumerable<int> filteredOutEnumerators { get; }
         void RetractPath();
         void ExpandPath();
+
+
+        void StartLiveModification();
+        void EndLiveModification();
     }
 
 
@@ -91,6 +95,10 @@ namespace UnityEditor.VFX.UI
         {}
         void IPropertyRMProvider.ExpandPath()
         {}
+
+
+        void IPropertyRMProvider.StartLiveModification() {}
+        void IPropertyRMProvider.EndLiveModification() {}
     }
 
     abstract class PropertyRM : VisualElement
@@ -495,8 +503,6 @@ namespace UnityEditor.VFX.UI
             m_Field.AddToClassList("fieldContainer");
             m_Field.OnValueChanged += OnValueChanged;
             Add(m_Field);
-
-            //m_Field.SetEnabled(enabledSelf);
         }
 
         public void OnValueChanged()

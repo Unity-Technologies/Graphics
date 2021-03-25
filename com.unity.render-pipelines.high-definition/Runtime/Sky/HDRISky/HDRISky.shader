@@ -6,18 +6,15 @@ Shader "Hidden/HDRP/Sky/HDRISky"
 
     #pragma editor_sync_compilation
     #pragma target 4.5
-    #pragma only_renderers d3d11 playstation xboxone vulkan metal switch
+    #pragma only_renderers d3d11 playstation xboxone xboxseries vulkan metal switch
 
     #define LIGHTLOOP_DISABLE_TILE_AND_CLUSTER
 
-    #pragma multi_compile_local _ SKY_MOTION
-    #pragma multi_compile_local _ USE_FLOWMAP
+    #pragma multi_compile_local_fragment _ SKY_MOTION
+    #pragma multi_compile_local_fragment _ USE_FLOWMAP
 
-    #pragma multi_compile_local _ USE_CLOUD_MAP
-    #pragma multi_compile_local _ USE_CLOUD_MOTION
-
-    #pragma multi_compile _ DEBUG_DISPLAY
-    #pragma multi_compile SHADOW_LOW SHADOW_MEDIUM SHADOW_HIGH
+    #pragma multi_compile_fragment _ DEBUG_DISPLAY
+    #pragma multi_compile_local_fragment SHADOW_LOW SHADOW_MEDIUM SHADOW_HIGH
 
     #pragma multi_compile USE_FPTL_LIGHTLIST USE_CLUSTERED_LIGHTLIST
 
@@ -37,7 +34,6 @@ Shader "Hidden/HDRP/Sky/HDRISky"
     #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/CommonLighting.hlsl"
     #include "Packages/com.unity.render-pipelines.high-definition/Runtime/ShaderLibrary/ShaderVariables.hlsl"
     #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Sky/SkyUtils.hlsl"
-    #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Sky/CloudLayer/CloudLayer.hlsl"
     #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/SDF2D.hlsl"
 
     #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Common.hlsl"
@@ -53,7 +49,7 @@ Shader "Hidden/HDRP/Sky/HDRISky"
 
     TEXTURECUBE(_Cubemap);
     SAMPLER(sampler_Cubemap);
-    
+
     TEXTURE2D(_Flowmap);
     SAMPLER(sampler_Flowmap);
 
@@ -65,7 +61,7 @@ Shader "Hidden/HDRP/Sky/HDRISky"
     uint   _BackplateShadowFilter;
 
     float4 _FlowmapParam; // x upper hemisphere only, y scroll factor, zw scroll direction (cosPhi and sinPhi)
-    
+
     #define _Intensity          _SkyParam.x
     #define _CosPhi             _SkyParam.z
     #define _SinPhi             _SkyParam.w
@@ -186,7 +182,7 @@ Shader "Hidden/HDRP/Sky/HDRISky"
         return IsHit(sdf, dir.y);
     }
 
-    float3 GetDistordedSkyColor(float3 dir)
+    float3 GetSkyColor(float3 dir)
     {
 #if SKY_MOTION
         if (dir.y >= 0 || !_UpperHemisphere)
@@ -218,12 +214,6 @@ Shader "Hidden/HDRP/Sky/HDRISky"
 #endif
 
         return SAMPLE_TEXTURECUBE_LOD(_Cubemap, sampler_Cubemap, dir, 0).rgb;
-    }
-
-    float3 GetSkyColor(float3 dir)
-    {
-        float3 sky = GetDistordedSkyColor(dir);
-        return ApplyCloudLayer(dir, sky);
     }
 
     float4 GetColorWithRotation(float3 dir, float exposure, float2 cos_sin)
@@ -265,7 +255,7 @@ Shader "Hidden/HDRP/Sky/HDRISky"
         HDShadowContext shadowContext = InitShadowContext();
         float shadow;
         // Use uniform directly - The float need to be cast to uint (as unity don't support to set a uint as uniform)
-        uint renderingLayers = _EnableLightLayers ? asuint(unity_RenderingLayer.x) : DEFAULT_LIGHT_LAYERS;
+        uint renderingLayers = GetMeshRenderingLightLayer();
         float3 shadow3;
         ShadowLoopMin(shadowContext, posInput, float3(0.0, 1.0, 0.0), _ShadowFilter, renderingLayers, shadow3);
         shadow = dot(shadow3, float3(1.0 / 3.0, 1.0 / 3.0, 1.0 / 3.0));
@@ -320,11 +310,6 @@ Shader "Hidden/HDRP/Sky/HDRISky"
         return results;
     }
 
-    float4 FragBakingBackplate(Varyings input) : SV_Target
-    {
-        return RenderBackplate(input, 1.0);
-    }
-
     float4 FragRenderBackplate(Varyings input) : SV_Target
     {
         UNITY_SETUP_STEREO_EYE_INDEX_POST_VERTEX(input);
@@ -348,18 +333,10 @@ Shader "Hidden/HDRP/Sky/HDRISky"
         return depth;
     }
 
-    float FragBakingBackplateDepth(Varyings input) : SV_Depth
-    {
-        UNITY_SETUP_STEREO_EYE_INDEX_POST_VERTEX(input);
-        return GetDepthWithBackplate(input);
-    }
-
     float4 FragRenderBackplateDepth(Varyings input, out float depth : SV_Depth) : SV_Target0
     {
         UNITY_SETUP_STEREO_EYE_INDEX_POST_VERTEX(input);
         depth = GetDepthWithBackplate(input);
-
-        PositionInputs posInput = GetPositionInput(input.positionCS.xy, _ScreenSize.zw, depth, UNITY_MATRIX_I_VP, UNITY_MATRIX_V);
 
         NormalData normalData;
         normalData.normalWS            = float3(0, 1, 0);
@@ -368,7 +345,7 @@ Shader "Hidden/HDRP/Sky/HDRISky"
         float4 gbufferNormal = 0;
 
         if (depth != UNITY_RAW_FAR_CLIP_VALUE)
-            EncodeIntoNormalBuffer(normalData, posInput.positionSS, gbufferNormal);
+            EncodeIntoNormalBuffer(normalData, gbufferNormal);
 
         return gbufferNormal;
     }
@@ -404,20 +381,6 @@ Shader "Hidden/HDRP/Sky/HDRISky"
             ENDHLSL
         }
 
-        // HDRI Sky with Backplate
-        // For cubemap with Backplate
-        Pass
-        {
-            ZWrite Off
-            ZTest Always
-            Blend Off
-            Cull Off
-
-            HLSLPROGRAM
-                #pragma fragment FragBakingBackplate
-            ENDHLSL
-        }
-
         // For fullscreen Sky with Backplate
         Pass
         {
@@ -428,20 +391,6 @@ Shader "Hidden/HDRP/Sky/HDRISky"
 
             HLSLPROGRAM
                 #pragma fragment FragRenderBackplate
-            ENDHLSL
-        }
-
-        // HDRI Sky with Backplate for PreRenderSky (Depth Only Pass)
-        // DepthOnly For cubemap with Backplate
-        Pass
-        {
-            ZWrite On
-            ZTest LEqual
-            Blend Off
-            Cull Off
-
-            HLSLPROGRAM
-                #pragma fragment FragBakingBackplateDepth
             ENDHLSL
         }
 

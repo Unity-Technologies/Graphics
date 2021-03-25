@@ -39,29 +39,29 @@ namespace UnityEngine.Rendering.UI
             {
                 drawHeaderCallback = rect => EditorGUI.LabelField(rect, "Widget Prefabs"),
                 drawElementCallback = (rect, index, isActive, isFocused) =>
-                    {
-                        var element = m_PrefabList.serializedProperty.GetArrayElementAtIndex(index);
-                        rect.y += 2f;
-                        const float kTypeWidth = 100f;
+                {
+                    var element = m_PrefabList.serializedProperty.GetArrayElementAtIndex(index);
+                    rect.y += 2f;
+                    const float kTypeWidth = 100f;
 
-                        // Type selector
-                        var typeProp = element.FindPropertyRelative("type");
-                        int typeIndex = ArrayUtility.IndexOf(s_Types, typeProp.stringValue);
-                        typeIndex = Mathf.Max(typeIndex, 0);
-                        typeIndex = EditorGUI.Popup(new Rect(rect.x, rect.y, kTypeWidth, EditorGUIUtility.singleLineHeight), typeIndex, s_DisplayTypes);
-                        typeProp.stringValue = s_Types[typeIndex];
+                    // Type selector
+                    var typeProp = element.FindPropertyRelative("type");
+                    int typeIndex = ArrayUtility.IndexOf(s_Types, typeProp.stringValue);
+                    typeIndex = Mathf.Max(typeIndex, 0);
+                    typeIndex = EditorGUI.Popup(new Rect(rect.x, rect.y, kTypeWidth, EditorGUIUtility.singleLineHeight), typeIndex, s_DisplayTypes);
+                    typeProp.stringValue = s_Types[typeIndex];
 
-                        // Prefab
-                        EditorGUI.PropertyField(
-                            new Rect(rect.x + kTypeWidth + 2f, rect.y, rect.width - kTypeWidth - 2f, EditorGUIUtility.singleLineHeight),
-                            element.FindPropertyRelative("prefab"), GUIContent.none);
-                    },
+                    // Prefab
+                    EditorGUI.PropertyField(
+                        new Rect(rect.x + kTypeWidth + 2f, rect.y, rect.width - kTypeWidth - 2f, EditorGUIUtility.singleLineHeight),
+                        element.FindPropertyRelative("prefab"), GUIContent.none);
+                },
                 onSelectCallback = list =>
-                    {
-                        var prefab = list.serializedProperty.GetArrayElementAtIndex(list.index).FindPropertyRelative("prefab").objectReferenceValue as GameObject;
-                        if (prefab)
-                            EditorGUIUtility.PingObject(prefab.gameObject);
-                    }
+                {
+                    var prefab = list.serializedProperty.GetArrayElementAtIndex(list.index).FindPropertyRelative("prefab").objectReferenceValue as GameObject;
+                    if (prefab)
+                        EditorGUIUtility.PingObject(prefab.gameObject);
+                }
             };
         }
 

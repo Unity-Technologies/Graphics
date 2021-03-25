@@ -1,46 +1,43 @@
 #if USE_NORMAL_MAP
     #if LIGHT_QUALITY_FAST
         #define NORMALS_LIGHTING_COORDS(TEXCOORDA, TEXCOORDB) \
-            half4	lightDirection	: TEXCOORDA;\
-            half2	screenUV   : TEXCOORDB;
+            half4   lightDirection  : TEXCOORDA;\
+            half2   screenUV   : TEXCOORDB;
 
         #define TRANSFER_NORMALS_LIGHTING(output, worldSpacePos)\
-            float4 clipVertex = output.positionCS / output.positionCS.w;\
-            output.screenUV = ComputeScreenPos(clipVertex).xy;\
-            output.lightDirection.xy = _LightPosition.xy - worldSpacePos.xy;\
-            output.lightDirection.z = _LightZDistance;\
-            output.lightDirection.w = 0;\
-            output.lightDirection.xyz = normalize(output.lightDirection.xyz);
-            
+            output.screenUV = ComputeNormalizedDeviceCoordinates(output.positionCS.xyz / output.positionCS.w);\
+            half3 planeNormal = -GetViewForwardDir();\
+            half3 projLightPos = _LightPosition.xyz - (dot(_LightPosition.xyz - worldSpacePos.xyz, planeNormal) - _LightZDistance) * planeNormal;\
+            output.lightDirection.xyz = normalize(projLightPos - worldSpacePos.xyz);\
+            output.lightDirection.w = 0;
+
         #define APPLY_NORMALS_LIGHTING(input, lightColor)\
             half4 normal = SAMPLE_TEXTURE2D(_NormalMap, sampler_NormalMap, input.screenUV);\
-            half3 normalUnpacked = UnpackNormal(normal);\
+            half3 normalUnpacked = UnpackNormalRGBNoScale(normal);\
             lightColor = lightColor * saturate(dot(input.lightDirection.xyz, normalUnpacked));
     #else
         #define NORMALS_LIGHTING_COORDS(TEXCOORDA, TEXCOORDB) \
-            half4	positionWS : TEXCOORDA;\
-            half2	screenUV   : TEXCOORDB;
+            half4   positionWS : TEXCOORDA;\
+            half2   screenUV   : TEXCOORDB;
 
         #define TRANSFER_NORMALS_LIGHTING(output, worldSpacePos) \
-            float4 clipVertex = output.positionCS / output.positionCS.w;\
-            output.screenUV = ComputeScreenPos(clipVertex).xy; \
+            output.screenUV = ComputeNormalizedDeviceCoordinates(output.positionCS.xyz / output.positionCS.w); \
             output.positionWS = worldSpacePos;
 
         #define APPLY_NORMALS_LIGHTING(input, lightColor)\
             half4 normal = SAMPLE_TEXTURE2D(_NormalMap, sampler_NormalMap, input.screenUV);\
-            half3 normalUnpacked = UnpackNormal(normal);\
-            half3 dirToLight;\
-            dirToLight.xy = _LightPosition.xy - input.positionWS.xy;\
-            dirToLight.z =  _LightZDistance;\
-            dirToLight = normalize(dirToLight);\
+            half3 normalUnpacked = UnpackNormalRGBNoScale(normal);\
+            half3 planeNormal = -GetViewForwardDir();\
+            half3 projLightPos = _LightPosition.xyz - (dot(_LightPosition.xyz - input.positionWS.xyz, planeNormal) - _LightZDistance) * planeNormal;\
+            half3 dirToLight = normalize(projLightPos - input.positionWS.xyz);\
             lightColor = lightColor * saturate(dot(dirToLight, normalUnpacked));
     #endif
 
     #define NORMALS_LIGHTING_VARIABLES \
             TEXTURE2D(_NormalMap); \
             SAMPLER(sampler_NormalMap); \
-            half4	    _LightPosition;\
-            half	    _LightZDistance;
+            half4       _LightPosition;\
+            half        _LightZDistance;
 #else
     #define NORMALS_LIGHTING_COORDS(TEXCOORDA, TEXCOORDB)
     #define NORMALS_LIGHTING_VARIABLES
@@ -65,10 +62,10 @@
         color.rgb = (color.rgb * shadowIntensity) + (color.rgb * intensity*(1 - shadowIntensity));\
     }
 
-    
+
 
 #define TRANSFER_SHADOWS(output)\
-    output.shadowUV = ComputeScreenPos(output.positionCS / output.positionCS.w).xy;
+    output.shadowUV = ComputeNormalizedDeviceCoordinates(output.positionCS.xyz);
 
 #define SHAPE_LIGHT(index)\
     TEXTURE2D(_ShapeLightTexture##index);\
@@ -76,4 +73,3 @@
     half2 _ShapeLightBlendFactors##index;\
     half4 _ShapeLightMaskFilter##index;\
     half4 _ShapeLightInvertedFilter##index;
-

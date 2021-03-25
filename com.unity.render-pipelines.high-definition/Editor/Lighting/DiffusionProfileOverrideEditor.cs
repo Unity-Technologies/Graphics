@@ -70,7 +70,7 @@ namespace UnityEditor.Rendering.HighDefinition
                         var profile = GetMaterialDiffusionProfile(mat);
 
                         if (profiles.Count == DiffusionProfileConstants.DIFFUSION_PROFILE_COUNT - 1)
-                            break ;
+                            break;
 
                         if (profile != null)
                             profiles.Add(profile);

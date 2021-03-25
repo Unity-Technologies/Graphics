@@ -103,12 +103,12 @@ namespace UnityEditor.Rendering.HighDefinition
             m_CustomPassMaterialsHash = materialsHash;
         }
 
-        Dictionary<SerializedProperty, CustomPassDrawer> customPassDrawers = new Dictionary<SerializedProperty, CustomPassDrawer>();
-        CustomPassDrawer GetCustomPassDrawer(SerializedProperty pass, int listIndex)
+        Dictionary<CustomPass, CustomPassDrawer> customPassDrawers = new Dictionary<CustomPass, CustomPassDrawer>();
+        CustomPassDrawer GetCustomPassDrawer(SerializedProperty pass, CustomPass reference, int listIndex)
         {
             CustomPassDrawer drawer;
 
-            if (customPassDrawers.TryGetValue(pass, out drawer))
+            if (customPassDrawers.TryGetValue(reference, out drawer))
                 return drawer;
 
             var customPass = m_Volume.customPasses[listIndex];
@@ -132,7 +132,7 @@ namespace UnityEditor.Rendering.HighDefinition
                 }
             }
 
-            customPassDrawers[pass] = drawer;
+            customPassDrawers[reference] = drawer;
 
             return drawer;
         }
@@ -140,7 +140,7 @@ namespace UnityEditor.Rendering.HighDefinition
         void DrawSettingsGUI()
         {
             serializedObject.Update();
-            
+
             EditorGUI.BeginChangeCheck();
             {
                 Rect isGlobalRect = EditorGUILayout.GetControlRect();
@@ -192,9 +192,10 @@ namespace UnityEditor.Rendering.HighDefinition
 
             m_CustomPassList.drawElementCallback = (rect, index, active, focused) => {
                 EditorGUI.BeginChangeCheck();
-                
+
+                passList.serializedObject.ApplyModifiedProperties();
                 var customPass = passList.GetArrayElementAtIndex(index);
-                var drawer = GetCustomPassDrawer(customPass, index);
+                var drawer = GetCustomPassDrawer(customPass, m_Volume.customPasses[index], index);
                 if (drawer != null)
                     drawer.OnGUI(rect, customPass, null);
                 else
@@ -205,8 +206,9 @@ namespace UnityEditor.Rendering.HighDefinition
 
             m_CustomPassList.elementHeightCallback = (index) =>
             {
+                passList.serializedObject.ApplyModifiedProperties();
                 var customPass = passList.GetArrayElementAtIndex(index);
-                var drawer = GetCustomPassDrawer(customPass, index);
+                var drawer = GetCustomPassDrawer(customPass, m_Volume.customPasses[index], index);
                 if (drawer != null)
                     return drawer.GetPropertyHeight(customPass, null);
                 else
@@ -223,26 +225,31 @@ namespace UnityEditor.Rendering.HighDefinition
                         continue;
 
                     menu.AddItem(new GUIContent(customPassType.Name), false, () => {
-                        passList.serializedObject.Update();
+                        passList.serializedObject.ApplyModifiedProperties();
                         m_Volume.AddPassOfType(customPassType);
                         UpdateMaterialEditors();
-                        passList.serializedObject.ApplyModifiedProperties();
+                        passList.serializedObject.Update();
                         // Notify the prefab that something have changed:
                         PrefabUtility.RecordPrefabInstancePropertyModifications(target);
-                   });
+                    });
                 }
                 menu.ShowAsContext();
-			};
-
-            m_CustomPassList.onRemoveCallback = (list) => {
-                passList.serializedObject.Update();
-                Undo.RegisterCompleteObjectUndo(target, "Remove custom pass");
-                m_Volume.customPasses.RemoveAt(list.index);
-                UpdateMaterialEditors();
-                passList.serializedObject.ApplyModifiedProperties();
-                // Notify the prefab that something have changed:
-                PrefabUtility.RecordPrefabInstancePropertyModifications(target);
             };
+
+            m_CustomPassList.onReorderCallback = (index) => ClearCustomPassCache();
+
+            m_CustomPassList.onRemoveCallback = (list) =>
+            {
+                ReorderableList.defaultBehaviours.DoRemoveButton(list);
+                ClearCustomPassCache();
+            };
+        }
+
+        void ClearCustomPassCache()
+        {
+            // When custom passes are re-ordered, a topological change happens in the SerializedProperties
+            // So we have to rebuild all the drawers that were storing SerializedProperties.
+            customPassDrawers.Clear();
         }
 
         float GetCustomPassEditorHeight(SerializedProperty pass) => EditorGUIUtility.singleLineHeight;

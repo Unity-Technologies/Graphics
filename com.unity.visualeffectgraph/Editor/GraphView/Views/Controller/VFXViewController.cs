@@ -61,13 +61,13 @@ namespace UnityEditor.VFX.UI
             }
         }
 
-        static HashSet<ScriptableObject>[] NewPrioritizedHashSet()
+        static Dictionary<ScriptableObject, bool>[] NewPrioritizedHashSet()
         {
-            HashSet<ScriptableObject>[] result = new HashSet<ScriptableObject>[(int)Priorities.Count];
+            Dictionary<ScriptableObject, bool>[] result = new Dictionary<ScriptableObject, bool>[(int)Priorities.Count];
 
             for (int i = 0; i < (int)Priorities.Count; ++i)
             {
-                result[i] = new HashSet<ScriptableObject>();
+                result[i] = new Dictionary<ScriptableObject, bool>();
             }
 
             return result;
@@ -94,12 +94,21 @@ namespace UnityEditor.VFX.UI
             return Priorities.Default;
         }
 
-        HashSet<ScriptableObject>[] modifiedModels = NewPrioritizedHashSet();
-        HashSet<ScriptableObject>[] otherModifiedModels = NewPrioritizedHashSet();
+        Dictionary<ScriptableObject, bool>[] modifiedModels = NewPrioritizedHashSet();
+        Dictionary<ScriptableObject, bool>[] otherModifiedModels = NewPrioritizedHashSet();
 
-        public void OnObjectModified(VFXObject obj)
+        public void OnObjectModified(VFXObject obj, bool uiChange)
         {
-            modifiedModels[(int)GetPriority(obj)].Add(obj);
+            // uiChange == false is stronger : if we have a uiChange and there was a nonUIChange before we keep the non uichange.
+            if (!uiChange)
+            {
+                modifiedModels[(int)GetPriority(obj)][obj] = false;
+            }
+            else
+            {
+                if (!modifiedModels[(int)GetPriority(obj)].ContainsKey(obj))
+                    modifiedModels[(int)GetPriority(obj)][obj] = true;
+            }
         }
 
         Dictionary<ScriptableObject, List<Action>> m_Notified = new Dictionary<ScriptableObject, List<Action>>();
@@ -156,6 +165,9 @@ namespace UnityEditor.VFX.UI
         ScriptableObject m_CurrentlyNotified; //this and the next list are used when in case a notification removes a following modification
         List<Action> m_CurrentActions = new List<Action>();
 
+
+        public bool errorRefresh { get; set; } = true;
+
         public void NotifyUpdate()
         {
             m_InNotify = true;
@@ -178,8 +190,9 @@ namespace UnityEditor.VFX.UI
             int cpt = 0;
             foreach (var objs in otherModifiedModels)
             {
-                foreach (var obj in objs)
+                foreach (var kv in objs)
                 {
+                    var obj = kv.Key;
                     List<Action> notifieds;
                     Profiler.BeginSample("VFXViewController.Notify:" + obj.GetType().Name);
                     if (m_Notified.TryGetValue(obj, out notifieds))
@@ -191,12 +204,23 @@ namespace UnityEditor.VFX.UI
                         while (m_CurrentActions.Count > 0)
                         {
                             var action = m_CurrentActions[m_CurrentActions.Count - 1];
-                            action();
+                            try
+                            {
+                                action();
+                            }
+                            catch (Exception e)
+                            {
+                                Debug.LogException(e);
+                            }
                             cpt++;
                             m_CurrentActions.RemoveAt(m_CurrentActions.Count - 1);
                         }
                     }
                     Profiler.EndSample();
+                    if (!kv.Value && obj is VFXModel model && errorRefresh) // we refresh errors only if it wasn't a ui change
+                    {
+                        model.RefreshErrors(m_Graph);
+                    }
                 }
                 m_CurrentlyNotified = null;
 
@@ -597,6 +621,12 @@ namespace UnityEditor.VFX.UI
                 VFXParameterNodeController fromController = output.sourceNode as VFXParameterNodeController;
                 if (fromController != null)
                 {
+                    foreach (var anyNode in fromController.parentController.nodes)
+                    {
+                        if (anyNode.infos.linkedSlots != null)
+                            anyNode.infos.linkedSlots.RemoveAll(t => t.inputSlot == resulting.inputSlot && t.outputSlot == resulting.outputSlot);
+                    }
+
                     if (fromController.infos.linkedSlots == null)
                         fromController.infos.linkedSlots = new List<VFXParameter.NodeLinkedSlot>();
                     fromController.infos.linkedSlots.Add(resulting);
@@ -605,6 +635,12 @@ namespace UnityEditor.VFX.UI
                 VFXParameterNodeController toController = input.sourceNode as VFXParameterNodeController;
                 if (toController != null)
                 {
+                    foreach (var anyNode in toController.parentController.nodes)
+                    {
+                        if (anyNode.infos.linkedSlots != null)
+                            anyNode.infos.linkedSlots.RemoveAll(t => t.inputSlot == resulting.inputSlot && t.outputSlot == resulting.outputSlot);
+                    }
+
                     var infos = toController.infos;
                     if (infos.linkedSlots == null)
                         infos.linkedSlots = new List<VFXParameter.NodeLinkedSlot>();
@@ -1471,7 +1507,7 @@ namespace UnityEditor.VFX.UI
                 {
                     categories.AddRange(missingCategories.Select(t => new VFXUI.CategoryInfo { name = t}));
                     ui.categories = categories;
-                    ui.Modified();
+                    ui.Modified(true);
                 }
             }
         }

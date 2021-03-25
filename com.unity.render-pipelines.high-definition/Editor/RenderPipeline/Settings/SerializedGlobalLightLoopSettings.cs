@@ -10,10 +10,14 @@ namespace UnityEditor.Rendering.HighDefinition
         public SerializedProperty cookieAtlasSize;
         public SerializedProperty cookieFormat;
         public SerializedProperty cookieAtlasLastValidMip;
+#if UNITY_2020_1_OR_NEWER
+#else
         public SerializedProperty pointCookieSize;
+#endif
         public SerializedProperty reflectionProbeCacheSize;
         public SerializedProperty reflectionCubemapSize;
         public SerializedProperty reflectionCacheCompressed;
+        public SerializedProperty reflectionProbeFormat;
         public SerializedProperty planarReflectionAtlasSize;
         public SerializedProperty skyReflectionSize;
         public SerializedProperty skyLightingOverrideLayerMask;
@@ -24,6 +28,9 @@ namespace UnityEditor.Rendering.HighDefinition
         public SerializedProperty maxEnvLightsOnScreen;
         public SerializedProperty maxDecalsOnScreen;
         public SerializedProperty maxPlanarReflectionOnScreen;
+        public SerializedProperty maxLightsPerClusterCell;
+        public SerializedProperty maxLocalVolumetricFogSize;
+        public SerializedProperty maxLocalVolumetricFogOnScreen;
 
         public SerializedGlobalLightLoopSettings(SerializedProperty root)
         {
@@ -32,11 +39,15 @@ namespace UnityEditor.Rendering.HighDefinition
             cookieAtlasSize = root.Find((GlobalLightLoopSettings s) => s.cookieAtlasSize);
             cookieFormat = root.Find((GlobalLightLoopSettings s) => s.cookieFormat);
             cookieAtlasLastValidMip = root.Find((GlobalLightLoopSettings s) => s.cookieAtlasLastValidMip);
+#if UNITY_2020_1_OR_NEWER
+#else
             pointCookieSize = root.Find((GlobalLightLoopSettings s) => s.pointCookieSize);
+#endif
 
             reflectionProbeCacheSize = root.Find((GlobalLightLoopSettings s) => s.reflectionProbeCacheSize);
             reflectionCubemapSize = root.Find((GlobalLightLoopSettings s) => s.reflectionCubemapSize);
             reflectionCacheCompressed = root.Find((GlobalLightLoopSettings s) => s.reflectionCacheCompressed);
+            reflectionProbeFormat = root.Find((GlobalLightLoopSettings s) => s.reflectionProbeFormat);
 
             planarReflectionAtlasSize = root.Find((GlobalLightLoopSettings s) => s.planarReflectionAtlasSize);
 
@@ -50,6 +61,10 @@ namespace UnityEditor.Rendering.HighDefinition
             maxEnvLightsOnScreen = root.Find((GlobalLightLoopSettings s) => s.maxEnvLightsOnScreen);
             maxDecalsOnScreen = root.Find((GlobalLightLoopSettings s) => s.maxDecalsOnScreen);
             maxPlanarReflectionOnScreen = root.Find((GlobalLightLoopSettings s) => s.maxPlanarReflectionOnScreen);
+            maxLightsPerClusterCell = root.Find((GlobalLightLoopSettings s) => s.maxLightsPerClusterCell);
+
+            maxLocalVolumetricFogSize = root.Find((GlobalLightLoopSettings s) => s.maxLocalVolumetricFogSize);
+            maxLocalVolumetricFogOnScreen = root.Find((GlobalLightLoopSettings s) => s.maxLocalVolumetricFogOnScreen);
         }
     }
 }

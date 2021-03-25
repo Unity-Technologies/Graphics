@@ -7,6 +7,7 @@ using System;
 using System.Linq;
 using static PerformanceMetricNames;
 using Object = UnityEngine.Object;
+using System.IO;
 
 [CustomEditor(typeof(TestSceneAsset))]
 class TestSceneAssetEditor : Editor
@@ -67,12 +68,28 @@ class TestSceneAssetEditor : Editor
             rect.height = EditorGUIUtility.singleLineHeight;
 
             // Scene field
-            var sceneGUID = AssetDatabase.FindAssets($"t:Scene {sceneName.stringValue}", new [] {"Assets"}).FirstOrDefault();
-            var sceneAsset = String.IsNullOrEmpty(sceneGUID) ? null : AssetDatabase.LoadAssetAtPath<SceneAsset>(AssetDatabase.GUIDToAssetPath(sceneGUID));
+            var sceneGUID = AssetDatabase.FindAssets($"t:Scene {sceneName.stringValue}", new [] {"Assets", "Packages"})
+                .FirstOrDefault(guid => Path.GetFileNameWithoutExtension(AssetDatabase.GUIDToAssetPath(guid)) == sceneName.stringValue);
+            SceneAsset sceneAsset = null;
+            if (!String.IsNullOrEmpty(sceneGUID))
+            {
+                string path = AssetDatabase.GUIDToAssetPath(sceneGUID);
+
+                // Only if the scene we found is the correct one, we assign it correctly
+                if (Path.GetFileNameWithoutExtension(path) == sceneName.stringValue)
+                {
+                    sceneAsset = String.IsNullOrEmpty(sceneGUID) ? null : AssetDatabase.LoadAssetAtPath<SceneAsset>(AssetDatabase.GUIDToAssetPath(sceneGUID));
+                }
+            }
+
+            EditorGUI.BeginChangeCheck();
             sceneAsset = EditorGUI.ObjectField(rect, "Test Scene", sceneAsset, typeof(SceneAsset), false) as SceneAsset;
-            sceneName.stringValue = sceneAsset != null && !sceneAsset.Equals(null) ? sceneAsset.name : null;
-            scenePath.stringValue = AssetDatabase.GetAssetPath(sceneAsset);
-            sceneLabels.stringValue = GetLabelForAsset(sceneAsset);
+            if (EditorGUI.EndChangeCheck())
+            {
+                sceneName.stringValue = sceneAsset != null && !sceneAsset.Equals(null) ? sceneAsset.name : null;
+                scenePath.stringValue = AssetDatabase.GetAssetPath(sceneAsset);
+                sceneLabels.stringValue = GetLabelForAsset(sceneAsset);
+            }
 
             // Enabled field
             rect.y += fieldHeight;

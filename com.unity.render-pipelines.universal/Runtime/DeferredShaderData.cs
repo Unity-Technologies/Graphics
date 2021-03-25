@@ -106,7 +106,7 @@ namespace UnityEngine.Rendering.Universal
         ComputeBuffer GetOrUpdateBuffer(int count, int stride, bool isConstantBuffer)
         {
             ComputeBufferType type = isConstantBuffer ? ComputeBufferType.Constant : ComputeBufferType.Structured;
-#if UNITY_SWITCH // maxQueuedFrames returns -1 on Switch!
+#if UNITY_SWITCH // currently maxQueuedFrames returns -1
             int maxQueuedFrames = 3;
 #else
             int maxQueuedFrames = QualitySettings.maxQueuedFrames;
@@ -153,7 +153,6 @@ namespace UnityEngine.Rendering.Universal
             {
                 for (int j = 0; j < buffers.GetLength(1); ++j)
                 {
-
                     if (buffers[i, j] != null)
                     {
                         buffers[i, j].Dispose();

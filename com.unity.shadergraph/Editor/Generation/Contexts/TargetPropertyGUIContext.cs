@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using UnityEditor.UIElements;
 using UnityEngine.UIElements;
@@ -16,12 +16,11 @@ namespace UnityEditor.ShaderGraph
 
         public TargetPropertyGUIContext()
         {
-            
         }
 
         public void AddProperty<T>(string label, BaseField<T> field, bool condition, EventCallback<ChangeEvent<T>> evt)
         {
-            if(condition == true)
+            if (condition == true)
             {
                 AddProperty<T>(label, field, evt);
             }
@@ -29,7 +28,7 @@ namespace UnityEditor.ShaderGraph
 
         public void AddProperty<T>(string label, int indentLevel, BaseField<T> field, bool condition, EventCallback<ChangeEvent<T>> evt)
         {
-            if(condition == true)
+            if (condition == true)
             {
                 AddProperty<T>(label, indentLevel, field, evt);
             }
@@ -42,11 +41,10 @@ namespace UnityEditor.ShaderGraph
 
         public void AddProperty<T>(string label, int indentLevel, BaseField<T> field, EventCallback<ChangeEvent<T>> evt)
         {
-            if(field is INotifyValueChanged<T> notifyValueChanged)
+            if (field is INotifyValueChanged<T> notifyValueChanged)
             {
                 notifyValueChanged.RegisterValueChangedCallback(evt);
             }
-
 
             var propertyRow = new PropertyRow(new Label(label));
             ApplyPadding(propertyRow, indentLevel);
@@ -59,6 +57,13 @@ namespace UnityEditor.ShaderGraph
             var propertyRow = new PropertyRow(new Label(label));
             ApplyPadding(propertyRow, indentLevel);
             this.hierarchy.Add(propertyRow);
+        }
+
+        public void AddHelpBox(MessageType messageType, string messageText)
+        {
+            var helpBox = new HelpBoxRow(messageType);
+            helpBox.Add(new Label(messageText));
+            this.hierarchy.Add(helpBox);
         }
 
         void ApplyPadding(PropertyRow row, int indentLevel)

@@ -90,7 +90,21 @@ namespace UnityEditor.VFX.UI
             m_VectorField.RegisterCallback<ChangeEvent<Vector3>>(OnValueChanged);
             m_VectorField.AddToClassList("fieldContainer");
 
+            m_VectorField.control.onValueDragFinished = ValueDragFinished;
+            m_VectorField.control.onValueDragStarted = ValueDragStarted;
             Add(m_VectorField);
+        }
+
+        protected void ValueDragFinished()
+        {
+            m_Provider.EndLiveModification();
+            hasChangeDelayed = false;
+            NotifyValueChanged();
+        }
+
+        protected void ValueDragStarted()
+        {
+            m_Provider.StartLiveModification();
         }
 
         public override float GetPreferredControlWidth()

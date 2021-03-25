@@ -18,7 +18,7 @@ Shader "Hidden/Universal Render Pipeline/SubpixelMorphologicalAntialiasing"
     {
         Cull Off ZWrite Off ZTest Always
 
-        // Edge detection 
+        // Edge detection
         Pass
         {
             Stencil

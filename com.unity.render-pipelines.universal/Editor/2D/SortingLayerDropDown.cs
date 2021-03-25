@@ -46,7 +46,7 @@ namespace UnityEditor.Experimental.Rendering.Universal
 
         void UpdateApplyToSortingLayersArray(object layerSelectionDataObject)
         {
-            LayerSelectionData layerSelectionData = (LayerSelectionData)layerSelectionDataObject; 
+            LayerSelectionData layerSelectionData = (LayerSelectionData)layerSelectionDataObject;
 
             m_ApplyToSortingLayers.ClearArray();
             for (int i = 0; i < m_ApplyToSortingLayersList.Count; ++i)
@@ -57,7 +57,7 @@ namespace UnityEditor.Experimental.Rendering.Universal
 
             if (layerSelectionData.onSelectionChanged != null)
                 layerSelectionData.onSelectionChanged(layerSelectionData.serializedObject);
-            
+
             layerSelectionData.serializedObject.ApplyModifiedProperties();
 
             if (layerSelectionData.targets is Light2D[])
@@ -65,7 +65,7 @@ namespace UnityEditor.Experimental.Rendering.Universal
                 foreach (Light2D light in layerSelectionData.targets)
                 {
                     if (light != null && light.lightType == Light2D.LightType.Global)
-                        light.ErrorIfDuplicateGlobalLight();
+                        Light2DManager.ErrorIfDuplicateGlobalLight(light);
                 }
             }
         }
@@ -85,7 +85,6 @@ namespace UnityEditor.Experimental.Rendering.Universal
 
         void OnSortingLayerSelected(object layerSelectionDataObject)
         {
-
             LayerSelectionData layerSelectionData = (LayerSelectionData)layerSelectionDataObject;
 
             int layerID = (int)layerSelectionData.layerID;

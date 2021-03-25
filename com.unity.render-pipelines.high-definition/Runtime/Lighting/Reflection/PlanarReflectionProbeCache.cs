@@ -61,7 +61,6 @@ namespace UnityEngine.Rendering.HighDefinition
                     Graphics.SetRenderTarget(m_ConvolutionTargetTexture, mipIdx, CubemapFace.Unknown);
                     GL.Clear(false, true, Color.clear);
                 }
-
             }
 
             m_FrameProbeIndex = 0;
@@ -126,8 +125,8 @@ namespace UnityEngine.Rendering.HighDefinition
                         Debug.LogError("Can't convolve or update the planar reflection render target");
             }
             else // Either we add it to the atlas
-                if (!UpdatePlanarTexture(cmd, texture, ref planarTextureFilteringParameters, ref scaleOffset))
-                    Debug.LogError("No more space in the planar reflection probe atlas. To solve this issue, increase the size of the Planar Reflection Probe Atlas in the HDRP settings.");
+            if (!UpdatePlanarTexture(cmd, texture, ref planarTextureFilteringParameters, ref scaleOffset))
+                Debug.LogError("No more space in the planar reflection probe atlas. To solve this issue, increase the size of the Planar Reflection Probe Atlas in the HDRP settings.");
 
             return scaleOffset;
         }
@@ -208,7 +207,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
         internal static int GetMaxCacheSizeForWeightInByte(int weight, GraphicsFormat format)
             => PowerOfTwoTextureAtlas.GetMaxCacheSizeForWeightInByte(weight, true, format);
-        
+
         internal Vector4 GetAtlasDatas()
         {
             float padding = Mathf.Pow(2.0f, m_TextureAtlas.mipPadding) * 2.0f;

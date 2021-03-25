@@ -38,7 +38,7 @@ namespace UnityEngine.Rendering.HighDefinition
 #pragma warning restore 649 //never assigned
 
         /// <summary>Serialization callback</summary>
-        public void OnBeforeSerialize() { }
+        public void OnBeforeSerialize() {}
         /// <summary>Serialization callback</summary>
         public void OnAfterDeserialize() => k_Migration.Migrate(this);
     }

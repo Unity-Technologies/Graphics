@@ -26,7 +26,7 @@ public class EditorPerformanceTests
         BuildPlayerOptions buildPlayerOptions = new BuildPlayerOptions();
         buildPlayerOptions.scenes = new[] { scenePath };
         buildPlayerOptions.locationPathName = buildLocation;
-        buildPlayerOptions.target = BuildTarget.StandaloneWindows64;
+        buildPlayerOptions.target = EditorUserBuildSettings.activeBuildTarget;
 
         // Make sure we compile the shaders when we build:
         ClearShaderCache();

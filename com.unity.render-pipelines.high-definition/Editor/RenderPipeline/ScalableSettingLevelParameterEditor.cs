@@ -14,7 +14,7 @@ namespace UnityEditor.Rendering.HighDefinition
                 return false;
 
             var o = parameter.GetObjectRef<ScalableSettingLevelParameter>();
-            var (level, useOverride) = o.levelAndOverride;
+            var(level, useOverride) = o.levelAndOverride;
 
             var rect = GUILayoutUtility.GetRect(0, float.Epsilon, 0, EditorGUIUtility.singleLineHeight);
             // Magic number for padding

@@ -120,6 +120,18 @@ real2 SampleDiskUniform(real u1, real u2)
     return r * real2(cosPhi, sinPhi);
 }
 
+// Performs cubic sampling of the unit disk.
+real2 SampleDiskCubic(real u1, real u2)
+{
+    real r   = u1;
+    real phi = TWO_PI * u2;
+
+    real sinPhi, cosPhi;
+    sincos(phi, sinPhi, cosPhi);
+
+    return r * real2(cosPhi, sinPhi);
+}
+
 real3 SampleConeUniform(real u1, real u2, real cos_theta)
 {
     float r0 = cos_theta + u1 * (1.0f - cos_theta);
@@ -156,8 +168,11 @@ real3 SampleHemisphereCosine(real u1, real u2)
 // Ref: http://www.amietia.com/lambertnotangent.html
 real3 SampleHemisphereCosine(real u1, real u2, real3 normal)
 {
+    // This function needs to used safenormalize because there is a probability
+    // that the generated direction is the exact opposite of the normal and that would lead
+    // to a nan vector otheriwse.
     real3 pointOnSphere = SampleSphereUniform(u1, u2);
-    return normalize(normal + pointOnSphere);
+    return SafeNormalize(normal + pointOnSphere);
 }
 
 real3 SampleHemisphereUniform(real u1, real u2)

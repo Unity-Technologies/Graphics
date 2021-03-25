@@ -5,6 +5,7 @@ namespace UnityEngine.Rendering.Universal
     [Serializable, VolumeComponentMenu("Post-processing/Bloom")]
     public sealed class Bloom : VolumeComponent, IPostProcessComponent
     {
+        [Header("Bloom")]
         [Tooltip("Filters out pixels under this level of brightness. Value is in gamma-space.")]
         public MinFloatParameter threshold = new MinFloatParameter(0.9f, 0f);
 
@@ -23,6 +24,10 @@ namespace UnityEngine.Rendering.Universal
         [Tooltip("Use bicubic sampling instead of bilinear sampling for the upsampling passes. This is slightly more expensive but helps getting smoother visuals.")]
         public BoolParameter highQualityFiltering = new BoolParameter(false);
 
+        [Tooltip("The number of final iterations to skip in the effect processing sequence.")]
+        public ClampedIntParameter skipIterations = new ClampedIntParameter(1, 0, 16);
+
+        [Header("Lens Dirt")]
         [Tooltip("Dirtiness texture to add smudges or dust to the bloom effect.")]
         public TextureParameter dirtTexture = new TextureParameter(null);
 

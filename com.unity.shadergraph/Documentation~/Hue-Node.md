@@ -9,7 +9,7 @@ Offsets the hue of input **In** by the amount of input **Offset**. The unit of t
 | Name        | Direction           | Type  | Binding | Description |
 |:------------ |:-------------|:-----|:---|:---|
 | In      | Input | Vector 3 | None | Input value |
-| Offset      | Input | Vector 1 | None | Amount to offset hue |
+| Offset      | Input | Float    | None | Amount to offset hue |
 | Out | Output      |    Vector 3 | None | Output value |
 
 ## Controls

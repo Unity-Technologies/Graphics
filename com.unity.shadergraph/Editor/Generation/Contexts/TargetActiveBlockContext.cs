@@ -1,4 +1,4 @@
-﻿using System.Collections.Generic;
+using System.Collections.Generic;
 
 namespace UnityEditor.ShaderGraph
 {
@@ -18,7 +18,7 @@ namespace UnityEditor.ShaderGraph
 
         public void AddBlock(BlockFieldDescriptor block, bool conditional = true)
         {
-            if(conditional == true)
+            if (conditional == true)
             {
                 activeBlocks.Add(block);
             }

@@ -41,7 +41,16 @@ namespace UnityEngine.Rendering.HighDefinition
         RayTracedSubSurface,
         /// <summary>Path tracing buffer.</summary>
         PathTracing,
+        /// <summary>Temporal antialiasing history after DoF.</summary>
+        TemporalAntialiasingPostDoF,
+        /// <summary>Volumetric clouds buffer 0.</summary>
+        VolumetricClouds0,
+        /// <summary>Volumetric clouds buffer 1.</summary>
+        VolumetricClouds1,
         /// <summary>Number of history buffers.</summary>
-        Count
+        Count, // TODO: Obsolete
+        // TODO: Move before count for 11.0
+        /// <summary>Screen Space Reflection Accumulation.</summary>
+        ScreenSpaceReflectionAccumulation
     }
 }

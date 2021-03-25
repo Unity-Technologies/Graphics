@@ -1,5 +1,6 @@
 using System;
 using System.Runtime.CompilerServices;
+using UnityEngine.Experimental.Rendering;
 
 namespace UnityEngine.Rendering
 {
@@ -58,7 +59,7 @@ namespace UnityEngine.Rendering
         /// <param name="loop">Should the curve automatically loop in the given <paramref name="bounds"/>?</param>
         /// <param name="bounds">The boundaries of the curve.</param>
         public TextureCurve(AnimationCurve baseCurve, float zeroValue, bool loop, in Vector2 bounds)
-            : this(baseCurve.keys, zeroValue, loop, bounds) { }
+            : this(baseCurve.keys, zeroValue, loop, bounds) {}
 
         /// <summary>
         /// Creates a new <see cref="TextureCurve"/> from an arbitrary number of keyframes.
@@ -108,14 +109,14 @@ namespace UnityEngine.Rendering
             m_IsTextureDirty = true;
         }
 
-        static TextureFormat GetTextureFormat()
+        static GraphicsFormat GetTextureFormat()
         {
-            if (SystemInfo.SupportsTextureFormat(TextureFormat.RHalf))
-                return TextureFormat.RHalf;
-            if (SystemInfo.SupportsTextureFormat(TextureFormat.R8))
-                return TextureFormat.R8;
+            if (SystemInfo.IsFormatSupported(GraphicsFormat.R16_SFloat, FormatUsage.Sample | FormatUsage.SetPixels))
+                return GraphicsFormat.R16_SFloat;
+            if (SystemInfo.IsFormatSupported(GraphicsFormat.R8_UNorm, FormatUsage.Sample | FormatUsage.SetPixels))
+                return GraphicsFormat.R8_UNorm;
 
-            return TextureFormat.ARGB32;
+            return GraphicsFormat.R8G8B8A8_UNorm;
         }
 
         /// <summary>
@@ -126,7 +127,7 @@ namespace UnityEngine.Rendering
         {
             if (m_Texture == null)
             {
-                m_Texture = new Texture2D(k_Precision, 1, GetTextureFormat(), false, true);
+                m_Texture = new Texture2D(k_Precision, 1, GetTextureFormat(), TextureCreationFlags.None);
                 m_Texture.name = "CurveTexture";
                 m_Texture.hideFlags = HideFlags.HideAndDontSave;
                 m_Texture.filterMode = FilterMode.Bilinear;
@@ -250,8 +251,11 @@ namespace UnityEngine.Rendering
         /// <param name="value">The initial value to store in the parameter.</param>
         /// <param name="overrideState">The initial override state for the parameter.</param>
         public TextureCurveParameter(TextureCurve value, bool overrideState = false)
-            : base(value, overrideState) { }
+            : base(value, overrideState) {}
 
+        /// <summary>
+        /// Release implementation.
+        /// </summary>
         public override void Release() => m_Value.Release();
 
         // TODO: TextureCurve interpolation

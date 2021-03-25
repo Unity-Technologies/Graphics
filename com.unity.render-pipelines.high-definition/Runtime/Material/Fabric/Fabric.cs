@@ -36,10 +36,10 @@ namespace UnityEngine.Rendering.HighDefinition
             public float specularOcclusion;
 
             [MaterialSharedPropertyMapping(MaterialSharedProperty.Normal)]
-            [SurfaceDataAttributes(new string[] { "Normal", "Normal View Space" }, true)]
+            [SurfaceDataAttributes(new string[] { "Normal", "Normal View Space" }, true, checkIsNormalized = true)]
             public Vector3 normalWS;
 
-            [SurfaceDataAttributes(new string[] { "Geometric Normal", "Geometric Normal View Space" }, true)]
+            [SurfaceDataAttributes(new string[] { "Geometric Normal", "Geometric Normal View Space" }, true, checkIsNormalized = true)]
             public Vector3 geomNormalWS;
 
             [MaterialSharedPropertyMapping(MaterialSharedProperty.Smoothness)]
@@ -91,10 +91,10 @@ namespace UnityEngine.Rendering.HighDefinition
             public float ambientOcclusion;
             public float specularOcclusion;
 
-            [SurfaceDataAttributes(new string[] { "Normal WS", "Normal View Space" }, true)]
+            [SurfaceDataAttributes(new string[] { "Normal WS", "Normal View Space" }, true, checkIsNormalized = true)]
             public Vector3 normalWS;
 
-            [SurfaceDataAttributes(new string[] { "Geometric Normal", "Geometric Normal View Space" }, true)]
+            [SurfaceDataAttributes(new string[] { "Geometric Normal", "Geometric Normal View Space" }, true, checkIsNormalized = true)]
             public Vector3 geomNormalWS;
 
             public float perceptualRoughness;

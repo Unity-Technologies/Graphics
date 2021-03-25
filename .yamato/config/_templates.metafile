@@ -18,22 +18,8 @@ templates:
       - universal
     hascodependencies: 1
 platforms:
-    - name: Win
-      os: windows
-      components:
-      - editor
-      - il2cpp
-      agent_default: package_ci_win_large
-      copycmd: copy upm-ci~\packages\*.tgz .Editor\Data\Resources\PackageManager\Editor
-      editorpath: .\.Editor
-    - name: OSX
-      os: macos
-      components:
-      - editor
-      - il2cpp
-      agent_default: package_ci_mac
-      copycmd: cp ./upm-ci~/packages/*.tgz ./.Editor/Unity.app/Contents/Resources/PackageManager/Editor
-      editorpath: "$(pwd)/.Editor/Unity.app/Contents/MacOS/Unity"
+  - name: Win
+  - name: OSX
 agent_pack: package_ci_win_large
 agent_test:  package_ci_win_large
 agent_all_ci: package_ci_win_large

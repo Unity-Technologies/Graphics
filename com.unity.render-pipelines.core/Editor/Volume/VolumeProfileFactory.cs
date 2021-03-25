@@ -20,7 +20,7 @@ namespace UnityEditor.Rendering
                 "New Volume Profile.asset",
                 null,
                 null
-                );
+            );
         }
 
         /// <summary>
@@ -69,7 +69,7 @@ namespace UnityEditor.Rendering
                             AssetDatabase.CreateFolder(rootPath.TrimEnd(Path.DirectorySeparatorChar), directory);
                         rootPath = newPath + Path.DirectorySeparatorChar;
                     }
-                }  
+                }
 
                 path = profilePath + Path.DirectorySeparatorChar;
             }

@@ -1,14 +1,14 @@
 # Volume Overrides
 
-__Volume Overrides__ are structures which contain values that override the default properties in a [Volume Profile](Volume-Profile.html). The High Definition Render Pipeline (HDRP) uses these Profiles within the [Volume](Volumes.html) framework. For example, you could use a Volume Override in your Unity Project to render a different fog color in a certain area of your Scene.
+__Volume Overrides__ are structures which contain values that override the default properties in a [Volume Profile](Volume-Profile.md). The High Definition Render Pipeline (HDRP) uses these Profiles within the [Volume](Volumes.md) framework. For example, you could use a Volume Override in your Unity Project to render a different fog color in a certain area of your Scene.
 
-[Fog](Override-Fog.html) is an example of a Volume Override:
+[Fog](Override-Fog.md) is an example of a Volume Override:
 
-![](Images/VolumeComponents1.png)
+![](Images/Override-VolumetricFog1.png)
 
 Each Volume Override property has a checkbox on its left. Enable the checkbox to make that property editable. This also tells HDRP to use that property for this Volume component rather than the default value. If you disable the checkbox, HDRP ignores the property you set and uses the Volume’s default value for that property instead.
 
-Override checkboxes allow you to override as many or as few values on a Volume component as you want. To quickly toggle all the properties between editable or not, click the __All__ or __None__ shortcuts in the top left of the Volume Override respectively. 
+Override checkboxes allow you to override as many or as few values on a Volume component as you want. To quickly toggle all the properties between editable or not, click the __All__ or __None__ shortcuts in the top left of the Volume Override respectively.
 
 ## Using Volume Overrides
 

@@ -49,7 +49,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
         // Sub-Surface Scattering
         [Reload("Runtime/RenderPipeline/Raytracing/Shaders/RayTracingSubSurface.raytrace")]
-        public RayTracingShader subSurfaceRayTracing;
+        public RayTracingShader subSurfaceRayTracingRT;
         [Reload("Runtime/RenderPipeline/Raytracing/Shaders/SubSurface/RayTracingSubSurface.compute")]
         public ComputeShader subSurfaceRayTracingCS;
 

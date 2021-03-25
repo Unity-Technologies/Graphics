@@ -1,3 +1,6 @@
+#ifndef UNITY_COOKIE_SAMPLING_INCLUDED
+#define UNITY_COOKIE_SAMPLING_INCLUDED
+
 //-----------------------------------------------------------------------------
 // Cookie sampling functions
 // ----------------------------------------------------------------------------
@@ -15,7 +18,7 @@ float2 RemapUVWithPadding(float2 coord, float2 size, float rcpPaddingWidth, floa
     float2 offset = 0.5 * (1.0 - scale);
 
     // Avoid edge bleeding for texture when sampling with lod by clamping uvs:
-    float2 mipClamp = pow(2, lod) / (size * COOKIE_ATLAS_SIZE * 2);
+    float2 mipClamp = pow(2, ceil(lod)) / (size * COOKIE_ATLAS_SIZE * 2);
     return clamp(coord * scale + offset, mipClamp, 1 - mipClamp);
 }
 
@@ -47,3 +50,5 @@ float3 SamplePointCookie(float3 lightToSample, float4 scaleOffset, float lod = 0
 
     return SampleCookie2D(uv, scaleOffset, lod);
 }
+
+#endif // UNITY_COOKIE_SAMPLING_INCLUDED

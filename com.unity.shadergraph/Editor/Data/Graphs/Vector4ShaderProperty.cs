@@ -6,16 +6,16 @@ namespace UnityEditor.ShaderGraph.Internal
 {
     [Serializable]
     [FormerName("UnityEditor.ShaderGraph.Vector4ShaderProperty")]
+    [BlackboardInputInfo(4)]
     public sealed class Vector4ShaderProperty : VectorShaderProperty
     {
         internal Vector4ShaderProperty()
         {
             displayName = "Vector4";
         }
-        internal override bool isGpuInstanceable => true;
-        
+
         public override PropertyType propertyType => PropertyType.Vector4;
-        
+
         internal override AbstractMaterialNode ToConcreteNode()
         {
             var node = new Vector4Node();
@@ -40,11 +40,24 @@ namespace UnityEditor.ShaderGraph.Internal
             return new Vector4ShaderProperty()
             {
                 displayName = displayName,
-                hidden = hidden,
                 value = value,
-                precision = precision,
-                gpuInstanced = gpuInstanced,
             };
+        }
+
+        internal override void ForeachHLSLProperty(Action<HLSLProperty> action)
+        {
+            HLSLDeclaration decl = GetDefaultHLSLDeclaration();
+            action(new HLSLProperty(HLSLType._float4, referenceName, decl, concretePrecision));
+        }
+
+        public override int latestVersion => 1;
+        public override void OnAfterDeserialize(string json)
+        {
+            if (sgVersion == 0)
+            {
+                LegacyShaderPropertyData.UpgradeToHLSLDeclarationOverride(json, this);
+                ChangeVersion(1);
+            }
         }
     }
 }

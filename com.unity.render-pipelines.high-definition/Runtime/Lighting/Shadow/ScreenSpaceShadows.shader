@@ -3,9 +3,9 @@ Shader "Hidden/HDRP/ScreenSpaceShadows"
     HLSLINCLUDE
 
         #pragma target 4.5
-        #pragma only_renderers d3d11 playstation xboxone vulkan metal switch
+        #pragma only_renderers d3d11 playstation xboxone xboxseries vulkan metal switch
 
-        #pragma multi_compile SHADOW_LOW SHADOW_MEDIUM SHADOW_HIGH
+        #pragma multi_compile_fragment SHADOW_LOW SHADOW_MEDIUM SHADOW_HIGH
 
         #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Common.hlsl"
         #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/CommonLighting.hlsl"
@@ -56,7 +56,7 @@ Shader "Hidden/HDRP/ScreenSpaceShadows"
             DirectionalLightData light = _DirectionalLightDatas[_DirectionalShadowIndex];
             float3 L = -light.forward;
 
-            // We also need the normal 
+            // We also need the normal
             NormalData normalData;
             DecodeFromNormalBuffer(posInput.positionSS.xy, normalData);
             float3 normalWS = normalData.normalWS;

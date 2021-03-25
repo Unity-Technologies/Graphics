@@ -69,6 +69,7 @@ namespace UnityEngine.Rendering.HighDefinition
     /// A volume component that holds settings for the Film Grain effect.
     /// </summary>
     [Serializable, VolumeComponentMenu("Post-processing/Film Grain")]
+    [HelpURL(Documentation.baseURL + Documentation.version + Documentation.subURL + "Post-Processing-Film-Grain" + Documentation.endURL)]
     public sealed class FilmGrain : VolumeComponent, IPostProcessComponent
     {
         /// <summary>
@@ -118,6 +119,6 @@ namespace UnityEngine.Rendering.HighDefinition
         /// </summary>
         /// <param name="value">The initial value to store in the parameter.</param>
         /// <param name="overrideState">The initial override state for the parameter.</param>
-        public FilmGrainLookupParameter(FilmGrainLookup value, bool overrideState = false) : base(value, overrideState) { }
+        public FilmGrainLookupParameter(FilmGrainLookup value, bool overrideState = false) : base(value, overrideState) {}
     }
 }

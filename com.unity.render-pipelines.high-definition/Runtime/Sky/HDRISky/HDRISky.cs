@@ -8,6 +8,7 @@ namespace UnityEngine.Rendering.HighDefinition
     /// </summary>
     [VolumeComponentMenu("Sky/HDRI Sky")]
     [SkyUniqueID((int)SkyType.HDRI)]
+    [HelpURL(Documentation.baseURL + Documentation.version + Documentation.subURL + "Override-HDRI-Sky" + Documentation.endURL)]
     public class HDRISky : SkySettings
     {
         /// <summary>Cubemap used to render the HDRI sky.</summary>
@@ -34,42 +35,55 @@ namespace UnityEngine.Rendering.HighDefinition
         public MinFloatParameter        scrollSpeed           = new MinFloatParameter(2.0f, 0.0f);
 
         /// <summary>Enable Backplate to have it visible.</summary>
+        [AdditionalProperty]
         [Tooltip("Enable or disable the backplate.")]
         public BoolParameter            enableBackplate     = new BoolParameter(false);
         /// <summary>Backplate Type {Disc, Rectangle, Ellipse, Infinite (Plane)}.</summary>
+        [AdditionalProperty]
         [Tooltip("Backplate type.")]
         public BackplateTypeParameter   backplateType       = new BackplateTypeParameter(BackplateType.Disc);
         /// <summary>Define the ground level of the Backplate.</summary>
+        [AdditionalProperty]
         [Tooltip("Define the ground level of the Backplate.")]
         public FloatParameter           groundLevel         = new FloatParameter(0.0f);
         /// <summary>Extent of the Backplate (if circle only the X value is considered).</summary>
+        [AdditionalProperty]
         [Tooltip("Extent of the Backplate (if circle only the X value is considered).")]
-        public Vector2Parameter         scale               = new Vector2Parameter(Vector2.one*32.0f);
+        public Vector2Parameter         scale               = new Vector2Parameter(Vector2.one * 32.0f);
         /// <summary>Backplate's projection distance to varying the cubemap projection on the plate.</summary>
+        [AdditionalProperty]
         [Tooltip("Backplate's projection distance to varying the cubemap projection on the plate.")]
         public MinFloatParameter        projectionDistance  = new MinFloatParameter(16.0f, 1e-7f);
         /// <summary>Backplate rotation parameter for the geometry.</summary>
+        [AdditionalProperty]
         [Tooltip("Backplate rotation parameter for the geometry.")]
         public ClampedFloatParameter    plateRotation       = new ClampedFloatParameter(0.0f, 0.0f, 360.0f);
         /// <summary>Backplate rotation parameter for the projected texture.</summary>
+        [AdditionalProperty]
         [Tooltip("Backplate rotation parameter for the projected texture.")]
         public ClampedFloatParameter    plateTexRotation    = new ClampedFloatParameter(0.0f, 0.0f, 360.0f);
         /// <summary>Backplate projection offset on the plane.</summary>
+        [AdditionalProperty]
         [Tooltip("Backplate projection offset on the plane.")]
         public Vector2Parameter         plateTexOffset      = new Vector2Parameter(Vector2.zero);
         /// <summary>Backplate blend parameter to blend the edge of the backplate with the background.</summary>
+        [AdditionalProperty]
         [Tooltip("Backplate blend parameter to blend the edge of the backplate with the background.")]
         public ClampedFloatParameter    blendAmount         = new ClampedFloatParameter(0.0f, 0.0f, 100.0f);
         /// <summary>Backplate Shadow Tint projected on the plane.</summary>
+        [AdditionalProperty]
         [Tooltip("Backplate Shadow Tint projected on the plane.")]
         public ColorParameter           shadowTint          = new ColorParameter(Color.grey);
         /// <summary>Allow backplate to receive shadow from point light.</summary>
+        [AdditionalProperty]
         [Tooltip("Allow backplate to receive shadow from point light.")]
         public BoolParameter            pointLightShadow    = new BoolParameter(false);
         /// <summary>Allow backplate to receive shadow from directional light.</summary>
+        [AdditionalProperty]
         [Tooltip("Allow backplate to receive shadow from directional light.")]
         public BoolParameter            dirLightShadow      = new BoolParameter(false);
         /// <summary>Allow backplate to receive shadow from Area light.</summary>
+        [AdditionalProperty]
         [Tooltip("Allow backplate to receive shadow from Area light.")]
         public BoolParameter            rectLightShadow     = new BoolParameter(false);
 
@@ -153,6 +167,21 @@ namespace UnityEngine.Rendering.HighDefinition
             }
 
             return hash;
+        }
+
+        /// <summary>
+        /// Determines if the SkySettings is significantly divergent from another. This is going to be used to determine whether
+        /// to reset completely the ambient probe instead of using previous one when waiting for current data upon changes.
+        /// In addition to the checks done with the base function, this HDRISky override checks whether the cubemap parameter
+        /// has changed if both settings are HDRISky.
+        /// </summary>
+        /// <param name="otherSettings">The settings to compare with.</param>
+        /// <returns>Whether the settings are deemed very different.</returns>
+        public override bool SignificantlyDivergesFrom(SkySettings otherSettings)
+        {
+            HDRISky otherHdriSkySettings = otherSettings as HDRISky;
+
+            return base.SignificantlyDivergesFrom(otherSettings) || hdriSky.value != otherHdriSkySettings.hdriSky.value;
         }
 
         /// <summary>

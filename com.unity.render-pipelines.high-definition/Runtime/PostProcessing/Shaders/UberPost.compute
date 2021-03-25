@@ -5,7 +5,7 @@
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/PostProcessing/Shaders/UberPostFeatures.cs.hlsl"
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/PostProcessing/Shaders/BloomCommon.hlsl"
 
-#pragma only_renderers d3d11 playstation xboxone vulkan metal switch
+#pragma only_renderers d3d11 playstation xboxone xboxseries vulkan metal switch
 
 #pragma kernel Uber
 
@@ -44,6 +44,7 @@ CBUFFER_START(cb0)
     float4 _BloomDirtScaleOffset;
     float4 _BloomBicubicParams;
     float4 _DebugFlags;
+    float4 _AlphaScaleBias;
 CBUFFER_END
 
 #define DistCenter              _DistortionParams1.xy
@@ -76,6 +77,9 @@ CBUFFER_END
 #define DirtOffset              _BloomDirtScaleOffset.zw
 
 #define OutputLogEnabled        _DebugFlags.x
+
+#define AlphaScale              _AlphaScaleBias.x
+#define AlphaBias               _AlphaScaleBias.y
 
 float2 DistortUV(float2 uv)
 {
@@ -115,7 +119,7 @@ void Uber(uint3 dispatchThreadId : SV_DispatchThreadID)
     CTYPE color = 0.0;
     CTYPE inputColor = 0.0;
 
-    // Chromatic aberration    
+    // Chromatic aberration
     // Inspired by the method described in "Rendering Inside" [Playdead 2016]
     // https://twitter.com/pixelmager/status/717019757766123520
 #ifdef CHROMATIC_ABERRATION
@@ -171,6 +175,11 @@ void Uber(uint3 dispatchThreadId : SV_DispatchThreadID)
             float3 dirt = SAMPLE_TEXTURE2D_LOD(_BloomDirtTexture, sampler_LinearClamp, uvDistorted * DirtScale + DirtOffset, 0.0).xyz;
             color.xyz += bloom * dirt * DirtIntensity;
         }
+
+#ifdef ENABLE_ALPHA
+        // Bloom should also spread in areas with zero alpha, so we save the image with bloom here to do the mixing at the end of the shader
+        inputColor.xyz = color.xyz;
+#endif
     }
 
     // Vignette
@@ -218,8 +227,10 @@ void Uber(uint3 dispatchThreadId : SV_DispatchThreadID)
     // Alpha mask
 #ifdef ENABLE_ALPHA
         // Post processing is not applied on pixels with zero alpha
+        // The alpha scale and bias control how steep is the transition between the post-processed and plain regions
+        float alpha = inputColor.a * AlphaScale + AlphaBias;
         // Saturate is necessary to avoid issues when additive blending pushes the alpha over 1.
-        color.xyz = lerp(inputColor.xyz, color.xyz, saturate(inputColor.a));
+        color.xyz = lerp(inputColor.xyz, color.xyz, saturate(alpha));
 #endif
 
     // Done

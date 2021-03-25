@@ -4,16 +4,16 @@
 
 In the Universal Render Pipeline (URP), use this Shader to make particles appear almost photorealistic, for example for camp fire particles, rain drops or torch smoke. This Shader produces lifelike visuals but uses the most computationally heavy [shading model](shading-model.md) in URP, which can impact performance.
 
-## Using the Particles Lit Shader in the Editor 
+## Using the Particles Lit Shader in the Editor
 
 To select and use this Shader:
 
-1. In your Project, create or find the Material you want to use the Shader on.  Select the __Material__. A Material Inspector window opens. 
+1. In your Project, create or find the Material you want to use the Shader on.  Select the __Material__. A Material Inspector window opens.
 2. Click __Shader__, and select __Universal Render Pipeline__ > __Particles__ > __Lit__.
 
-## UI overview 
+## UI overview
 
-The Inspector window for this Shader contains these elements: 
+The Inspector window for this Shader contains these elements:
 
 - __[Surface Options](#surface-options)__
 - __[Surface Inputs](#surface-inputs)__
@@ -21,9 +21,9 @@ The Inspector window for this Shader contains these elements:
 
 ![Inspector for the Particles Lit Shader](Images/Inspectors/Shaders/ParticlesLit.png)
 
-### Surface Options 
+### Surface Options
 
-The __Surface Options__ control how URP renders the Material on a screen. 
+The __Surface Options__ control how URP renders the Material on a screen.
 
 | Property           | Description                                                  |
 | ------------------ | ------------------------------------------------------------ |
@@ -35,7 +35,7 @@ The __Surface Options__ control how URP renders the Material on a screen.
 
 ### Surface Inputs
 
-The __Surface Inputs__ describe the surface itself. For example, you can use these properties to make your surface look wet, dry, rough, or smooth. 
+The __Surface Inputs__ describe the surface itself. For example, you can use these properties to make your surface look wet, dry, rough, or smooth.
 
 
 | Property         | Description                                                  |
@@ -43,7 +43,7 @@ The __Surface Inputs__ describe the surface itself. For example, you can use the
 | __Base Map__     | Adds color to the surface. To assign a Texture to the __Base Map__ setting, click the object picker next to it. This opens the Asset Browser, where you can select from the Textures in your Project. Alternatively, you can use the [color picker](https://docs.unity3d.com/Manual/EditingValueProperties.html). The color next to the setting shows the tint on top of your assigned Texture. To assign another tint, you can click this color swatch. If you select __Transparent__ or __Alpha Clipping__ under __Surface Options__, your Material uses the Texture’s alpha channel or color. The Base Map is also known as a diffuse map. |
 | __Metallic Map__ | Shows the map input for the metallic highlights and reflections from direct lighting, for example [Directional, Point, and Spot lights](https://docs.unity3d.com/Manual/Lighting.html). <br/> You can use the __Smoothness__ slider to control the spread of highlights on the surface. 0 gives a wide, rough highlight. 1 gives a small, sharp highlight like glass. Values in between 0 and 1 produce semi-glossy looks. For example, 0.5 produces a plastic-like glossiness. |
 | __Normal Map__   | Adds a normal map to the surface. With a [normal map](https://docs.unity3d.com/Manual/StandardShaderMaterialParameterNormalMap.html), you can add surface details like bumps, scratches and grooves. To add the map, click the object picker next to it. The normal map picks up ambient lighting in the environment.<br/>The float value next to the setting is a multiplier for the effect of the  __Normal Map__. Low values decrease the effect of the normal map. High values create stronger effects. |
-| __Emission__     | Makes the surface look like it emits lights. When enabled, the  __Emission Map__ and __Emission Color__ settings appear.<br/>To assign an __Emission Map__, click the object picture next to it. This opens the Asset Browser, where you can select from the textures in your Project.<br/>For __Emission Color__, you can choose the color picker](https://docs.unity3d.com/Manual/EditingValueProperties.html) to assign a tint on top of the color. This can be more than 100% white, which is useful for effects like lava, that shines brighter than white while still being another color.<br/>If you have not assigned an __Emission Map__, the __Emission__ setting only uses the tint you’ve assigned in __Emission Color__.<br/>If you do not enable __Emission__, URP sets the emission to black and does not calculate emission. |
+| __Emission__     | Makes the surface look like it emits lights. When enabled, the  __Emission Map__ and __Emission Color__ settings appear.<br/>To assign an __Emission Map__, click the object picture next to it. This opens the Asset Browser, where you can select from the textures in your Project.<br/>For __Emission Color__, you can use the [color picker](https://docs.unity3d.com/Manual/EditingValueProperties.html) to assign a tint on top of the color. This can be more than 100% white, which is useful for effects like lava, that shines brighter than white while still being another color.<br/>If you have not assigned an __Emission Map__, the __Emission__ setting only uses the tint you’ve assigned in __Emission Color__.<br/>If you do not enable __Emission__, URP sets the emission to black and does not calculate emission. |
 
 
 
@@ -69,4 +69,3 @@ If you’ve chosen a Transparent surface type under [Surface Options](#surface-o
 | __Soft Particles__ | Tick this box to make particles fade out when they get close to intersecting with the surface of other geometry written into the [depth buffer](https://docs.unity3d.com/Manual/class-RenderTexture.html).<br/>When you enable this feature, the **Surface Fade** settings appear:<br/>__Near__ sets the distance from the other surface where the particle is completely transparent. This is where the particle appears to fade out completely.<br/>__Far__ sets the distance from the other surface where the particle is completely opaque. The particle appears solid here.<br/>Distances are measured in world units. Only usable for transparent surface types.<br/><br/>**Note:** This setting uses the `CameraDepthTexture` that is created by URP. To use this setting, enable __Depth Texture__ in the [URP Asset](universalrp-asset.md) or for the [Camera](camera-component-reference.md) that is rendering the particles. |
 | __Camera Fading__  | Tick this box to make particles fade out when they get close to the camera.<br/>When you enable this feature, the __Distance__ settings appear:<br/>__Near__ sets the distance from the camera where the particle is completely transparent. This is where the particle appears to fade out completely.<br/>__Far__ sets the distance from the camera where the particle is completely opaque. The particle appears solid here.<br/>Distances are measured in world units. <br/><br/>**Note:** This uses the `CameraDepthTexture` that is created by URP. To use this setting, enable __Depth Texture__ in the [URP Asset](universalrp-asset.md) or for the [Camera](camera-component-reference.md) that is rendering the particles. |
 | __Distortion__     | Creates a distortion effect by making particles perform refraction with the objects drawn before them. This is useful for creating a heat wave effect or for warping objects behind the particles. <br/>When you enable this feature, these settings appear:<br/>__Strength__ controls how much the Particle distorts the background. Negative values have the opposite effect of positive values. So if something was offset to the right with a positive value, the equal negative value offsets it to the left.<br/>__Blend__ controls how visible the distortion is. At 0, there is no visible distortion. At 1, only the distortion effect is visible.<br/><br/>**Note:** This uses the `CameraOpaqueTexture` that is created by URP. To use this setting, enable __Opaque Texture__ in the [URP Asset](universalrp-asset.md) or for the [Camera](camera-component-reference.md) that is rendering the particles. |
-

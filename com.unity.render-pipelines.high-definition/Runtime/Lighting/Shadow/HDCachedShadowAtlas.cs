@@ -1,7 +1,5 @@
-using System;
 using System.Collections.Generic;
-using System.Collections;
-using UnityEngine.Experimental.Rendering;
+using UnityEngine.Experimental.Rendering.RenderGraphModule;
 
 namespace UnityEngine.Rendering.HighDefinition
 {
@@ -22,22 +20,40 @@ namespace UnityEngine.Rendering.HighDefinition
             internal int shadowIndex;
             internal int viewportSize;                               // We assume only square shadows maps.
             internal Vector4 offsetInAtlas;                          // When is registered xy is the offset in the texture atlas, in UVs, the zw is the entry offset in the C# representation.
+            internal bool rendersOnPlacement;
+        }
+
+        // We need an extra struct to track differences in the light transform
+        // since we don't have such a callback (a-la invalidate) for those.
+        struct CachedTransform
+        {
+            internal Vector3 position;
+            internal Vector3 angles; // Only for area and spot
+        }
+
+        enum SlotValue : byte
+        {
+            Free,
+            Occupied,
+            TempOccupied        //  Used when checking if it will fit.
         }
 
         private int m_AtlasResolutionInSlots;       // Atlas Resolution / m_MinSlotSize
 
-        private bool m_NeedOptimalPacking = true;   // Whenever this is set to true, the pending lights are sorted before insertion. 
+        private bool m_NeedOptimalPacking = true;   // Whenever this is set to true, the pending lights are sorted before insertion.
 
-        private List<bool> m_AtlasSlots;            // One entry per slot (of size m_MinSlotSize) true if occupied, false if free.
+        private List<SlotValue> m_AtlasSlots;            // One entry per slot (of size m_MinSlotSize) true if occupied, false if free.
 
         // Note: Some of these could be simple lists, but since we might need to search by index some of them and we want to avoid GC alloc, a dictionary is easier.
         // This also mean slightly worse performance, however hopefully the number of cached shadow lights is not huge at any tie.
         private Dictionary<int, CachedShadowRecord> m_PlacedShadows;
         private Dictionary<int, CachedShadowRecord> m_ShadowsPendingRendering;
+        private Dictionary<int, int> m_ShadowsWithValidData;                            // Shadows that have been placed and rendered at least once (OnDemand shadows are not rendered unless requested explicitly). It is a dictionary for fast access by shadow index.
         private Dictionary<int, HDAdditionalLightData> m_RegisteredLightDataPendingPlacement;
         private Dictionary<int, CachedShadowRecord> m_RecordsPendingPlacement;          // Note: this is different from m_RegisteredLightDataPendingPlacement because it contains records that were allocated in the system
                                                                                         // but they lost their spot (e.g. post defrag). They don't have a light associated anymore if not by index, so we keep a separate collection.
 
+        private Dictionary<int, CachedTransform> m_TransformCaches;
         private List<CachedShadowRecord> m_TempListForPlacement;
 
 
@@ -50,23 +66,27 @@ namespace UnityEngine.Rendering.HighDefinition
         {
             m_PlacedShadows = new Dictionary<int, CachedShadowRecord>(s_InitialCapacity);
             m_ShadowsPendingRendering = new Dictionary<int, CachedShadowRecord>(s_InitialCapacity);
+            m_ShadowsWithValidData = new Dictionary<int, int>(s_InitialCapacity);
             m_TempListForPlacement = new List<CachedShadowRecord>(s_InitialCapacity);
 
             m_RegisteredLightDataPendingPlacement = new Dictionary<int, HDAdditionalLightData>(s_InitialCapacity);
-            m_RecordsPendingPlacement = new Dictionary<int, CachedShadowRecord>(s_InitialCapacity); 
+            m_RecordsPendingPlacement = new Dictionary<int, CachedShadowRecord>(s_InitialCapacity);
+
+            m_TransformCaches = new Dictionary<int, CachedTransform>(s_InitialCapacity / 2);
 
             m_ShadowType = type;
         }
 
-        public override void InitAtlas(RenderPipelineResources renderPipelineResources, int width, int height, int atlasShaderID, Material clearMaterial, int maxShadowRequests, HDShadowInitParameters initParams, BlurAlgorithm blurAlgorithm = BlurAlgorithm.None, FilterMode filterMode = FilterMode.Bilinear, DepthBits depthBufferBits = DepthBits.Depth16, RenderTextureFormat format = RenderTextureFormat.Shadowmap, string name = "")
+        public override void InitAtlas(RenderPipelineResources renderPipelineResources, RenderGraph renderGraph, bool useSharedTexture, int width, int height, int atlasShaderID, Material clearMaterial, int maxShadowRequests, HDShadowInitParameters initParams, BlurAlgorithm blurAlgorithm = BlurAlgorithm.None, FilterMode filterMode = FilterMode.Bilinear, DepthBits depthBufferBits = DepthBits.Depth16, RenderTextureFormat format = RenderTextureFormat.Shadowmap, string name = "")
         {
-            base.InitAtlas(renderPipelineResources, width, height, atlasShaderID, clearMaterial, maxShadowRequests, initParams, blurAlgorithm, filterMode, depthBufferBits, format, name);
+            base.InitAtlas(renderPipelineResources, renderGraph, useSharedTexture, width, height, atlasShaderID, clearMaterial, maxShadowRequests, initParams, blurAlgorithm, filterMode, depthBufferBits, format, name);
+            m_IsACacheForShadows = true;
 
             m_AtlasResolutionInSlots = HDUtils.DivRoundUp(width, m_MinSlotSize);
-            m_AtlasSlots = new List<bool>(m_AtlasResolutionInSlots * m_AtlasResolutionInSlots);
+            m_AtlasSlots = new List<SlotValue>(m_AtlasResolutionInSlots * m_AtlasResolutionInSlots);
             for (int i = 0; i < m_AtlasResolutionInSlots * m_AtlasResolutionInSlots; ++i)
             {
-                m_AtlasSlots.Add(false);
+                m_AtlasSlots.Add(SlotValue.Free);
             }
 
             // Note: If changing the characteristics of the atlas via HDRP asset, the lights OnEnable will not be called again so we are missing them, however we can explicitly
@@ -75,29 +95,49 @@ namespace UnityEngine.Rendering.HighDefinition
             m_CanTryPlacement = true;
             m_NeedOptimalPacking = true;
         }
-        // ------------------------------------------------------------------------------------------
-
-
 
         // ------------------------------------------------------------------------------------------
-        //          Functions to access and deal with the C# representation of the atlas 
+
+        // ------------------------------------------------------------------------------------------
+        //          Functions for mixed cached shadows that need to live in cached atlas
+        // ------------------------------------------------------------------------------------------
+
+        public void AddBlitRequestsForUpdatedShadows(HDDynamicShadowAtlas dynamicAtlas)
+        {
+            foreach (var request in m_ShadowRequests)
+            {
+                if (request.shouldRenderCachedComponent) // meaning it has been updated this time frame
+                {
+                    dynamicAtlas.AddRequestToPendingBlitFromCache(request);
+                }
+            }
+        }
+
+        // ------------------------------------------------------------------------------------------
+        //          Functions to access and deal with the C# representation of the atlas
         // ------------------------------------------------------------------------------------------
         private bool IsEntryEmpty(int x, int y)
         {
-            return (m_AtlasSlots[y * m_AtlasResolutionInSlots + x] == false);
+            return (m_AtlasSlots[y * m_AtlasResolutionInSlots + x] == SlotValue.Free);
         }
+
         private bool IsEntryFull(int x, int y)
         {
-            return (m_AtlasSlots[y * m_AtlasResolutionInSlots + x]);
+            return (m_AtlasSlots[y * m_AtlasResolutionInSlots + x]) != SlotValue.Free;
+        }
+
+        private bool IsEntryTempOccupied(int x, int y)
+        {
+            return (m_AtlasSlots[y * m_AtlasResolutionInSlots + x]) == SlotValue.TempOccupied;
         }
 
         // Always fill slots in a square shape, for example : if x = 1 and y = 2, if numEntries = 2 it will fill {(1,2),(2,2),(1,3),(2,3)}
         private void FillEntries(int x, int y, int numEntries)
         {
-            MarkEntries(x, y, numEntries, true);
+            MarkEntries(x, y, numEntries, SlotValue.Occupied);
         }
 
-        private void MarkEntries(int x, int y, int numEntries, bool value)
+        private void MarkEntries(int x, int y, int numEntries, SlotValue value)
         {
             for (int j = y; j < y + numEntries; ++j)
             {
@@ -124,10 +164,9 @@ namespace UnityEngine.Rendering.HighDefinition
             return true;
         }
 
-        internal bool FindSlotInAtlas(int resolution, out int x, out int y)
+        internal bool FindSlotInAtlas(int resolution, bool tempFill, out int x, out int y)
         {
             int numEntries = HDUtils.DivRoundUp(resolution, m_MinSlotSize);
-
             for (int j = 0; j < m_AtlasResolutionInSlots; ++j)
             {
                 for (int i = 0; i < m_AtlasResolutionInSlots; ++i)
@@ -136,6 +175,10 @@ namespace UnityEngine.Rendering.HighDefinition
                     {
                         x = i;
                         y = j;
+
+                        if (tempFill)
+                            MarkEntries(x, y, numEntries, SlotValue.TempOccupied);
+
                         return true;
                     }
                 }
@@ -144,6 +187,26 @@ namespace UnityEngine.Rendering.HighDefinition
             x = 0;
             y = 0;
             return false;
+        }
+
+        internal void FreeTempFilled(int x, int y, int resolution)
+        {
+            int numEntries = HDUtils.DivRoundUp(resolution, m_MinSlotSize);
+            for (int j = y; j < y + numEntries; ++j)
+            {
+                for (int i = x; i < x + numEntries; ++i)
+                {
+                    if (m_AtlasSlots[j * m_AtlasResolutionInSlots + i] == SlotValue.TempOccupied)
+                    {
+                        m_AtlasSlots[j * m_AtlasResolutionInSlots + i] = SlotValue.Free;
+                    }
+                }
+            }
+        }
+
+        internal bool FindSlotInAtlas(int resolution, out int x, out int y)
+        {
+            return FindSlotInAtlas(resolution, false, out x, out y);
         }
 
         internal bool GetSlotInAtlas(int resolution, out int x, out int y)
@@ -157,16 +220,17 @@ namespace UnityEngine.Rendering.HighDefinition
 
             return false;
         }
-        // ---------------------------------------------------------------------------------------       
+
+        // ---------------------------------------------------------------------------------------
 
         // ------------------------------------------------------------------------------------------
-        //                           Entry and exit points to the atlas 
+        //                           Entry and exit points to the atlas
         // ------------------------------------------------------------------------------------------
 
         internal int GetNextLightIdentifier()
         {
             int outputId = m_NextLightID;
-            m_NextLightID += m_MaxShadowsPerLight; // We give unique identifiers to each 
+            m_NextLightID += m_MaxShadowsPerLight; // We give unique identifiers to each
             return outputId;
         }
 
@@ -176,14 +240,14 @@ namespace UnityEngine.Rendering.HighDefinition
             if (lightData.lightIdxForCachedShadows >= 0 && m_PlacedShadows.ContainsKey(lightData.lightIdxForCachedShadows))
                 return;
 
-            // We register only if not already pending placement and if enabled. 
+            // We register only if not already pending placement and if enabled.
             if (!m_RegisteredLightDataPendingPlacement.ContainsKey(lightData.lightIdxForCachedShadows) && lightData.isActiveAndEnabled)
             {
 #if UNITY_2020_2_OR_NEWER
                 lightData.legacyLight.useViewFrustumForShadowCasterCull = false;
 #endif
                 lightData.lightIdxForCachedShadows = GetNextLightIdentifier();
-
+                RegisterTransformCacheSlot(lightData);
                 m_RegisteredLightDataPendingPlacement.Add(lightData.lightIdxForCachedShadows, lightData);
                 m_CanTryPlacement = true;
             }
@@ -192,6 +256,7 @@ namespace UnityEngine.Rendering.HighDefinition
         internal void EvictLight(HDAdditionalLightData lightData)
         {
             m_RegisteredLightDataPendingPlacement.Remove(lightData.lightIdxForCachedShadows);
+            RemoveTransformFromCache(lightData);
 
             int numberOfShadows = (lightData.type == HDLightType.Point) ? 6 : 1;
 
@@ -214,18 +279,35 @@ namespace UnityEngine.Rendering.HighDefinition
 #endif
                     m_PlacedShadows.Remove(shadowIdx);
                     m_ShadowsPendingRendering.Remove(shadowIdx);
+                    m_ShadowsWithValidData.Remove(shadowIdx);
 
-                    MarkEntries((int)recordToRemove.offsetInAtlas.z, (int)recordToRemove.offsetInAtlas.w, HDUtils.DivRoundUp(recordToRemove.viewportSize, m_MinSlotSize), false);
+                    MarkEntries((int)recordToRemove.offsetInAtlas.z, (int)recordToRemove.offsetInAtlas.w, HDUtils.DivRoundUp(recordToRemove.viewportSize, m_MinSlotSize), SlotValue.Free);
                     m_CanTryPlacement = true;
                 }
             }
+        }
+
+        internal void RegisterTransformCacheSlot(HDAdditionalLightData lightData)
+        {
+            if (lightData.lightIdxForCachedShadows >= 0 && lightData.updateUponLightMovement && !m_TransformCaches.ContainsKey(lightData.lightIdxForCachedShadows))
+            {
+                CachedTransform transform;
+                transform.position = lightData.transform.position;
+                transform.angles = lightData.transform.eulerAngles;
+                m_TransformCaches.Add(lightData.lightIdxForCachedShadows, transform);
+            }
+        }
+
+        internal void RemoveTransformFromCache(HDAdditionalLightData lightData)
+        {
+            m_TransformCaches.Remove(lightData.lightIdxForCachedShadows);
         }
 
         // ------------------------------------------------------------------------------------------
 
 
         // ------------------------------------------------------------------------------------------
-        //                           Atlassing on the actual textures 
+        //                           Atlassing on the actual textures
         // ------------------------------------------------------------------------------------------
 
 
@@ -268,7 +350,9 @@ namespace UnityEngine.Rendering.HighDefinition
                     record.shadowIndex = currentLightData.lightIdxForCachedShadows + i;
                     record.viewportSize = resolution;
                     record.offsetInAtlas = new Vector4(-1, -1, -1, -1); // Will be set later.
-
+                    // Only situation in which we allow not to render on placement if it is OnDemand and onDomandShadowRenderOnPlacement is false
+                    record.rendersOnPlacement = (currentLightData.shadowUpdateMode == ShadowUpdateMode.OnDemand) ? (currentLightData.forceRenderOnPlacement || currentLightData.onDomandShadowRenderOnPlacement) : true;
+                    currentLightData.forceRenderOnPlacement = false; // reset the force flag as we scheduled the rendering forcefully already.
                     recordList.Add(record);
                 }
             }
@@ -300,26 +384,29 @@ namespace UnityEngine.Rendering.HighDefinition
             }
 
             // If they all fit, we actually placed them, otherwise we mark the slot that we temp filled as free and go on.
-            if(successfullyPlaced == numberOfShadows)   // Success.
+            if (successfullyPlaced == numberOfShadows)   // Success.
             {
                 for (int j = 0; j < numberOfShadows; ++j)
                 {
                     var record = m_TempListForPlacement[startIdx + j];
-                    
+
                     record.offsetInAtlas = new Vector4(placements[j].x * m_MinSlotSize, placements[j].y * m_MinSlotSize, placements[j].x, placements[j].y);
 
-                    m_ShadowsPendingRendering.Add(record.shadowIndex, record);
+                    if (record.rendersOnPlacement)
+                    {
+                        m_ShadowsPendingRendering.Add(record.shadowIndex, record);
+                    }
                     m_PlacedShadows.Add(record.shadowIndex, record);
                 }
 
                 return true;
             }
-            else if(successfullyPlaced > 0)   // Couldn't place them all, but we placed something, so we revert those placements.
+            else if (successfullyPlaced > 0)   // Couldn't place them all, but we placed something, so we revert those placements.
             {
                 int numEntries = HDUtils.DivRoundUp(m_TempListForPlacement[startIdx].viewportSize, m_MinSlotSize);
-                for (int j=0; j <successfullyPlaced; ++j)
+                for (int j = 0; j < successfullyPlaced; ++j)
                 {
-                    MarkEntries(placements[j].x, placements[j].y, numEntries, false);
+                    MarkEntries(placements[j].x, placements[j].y, numEntries, SlotValue.Free);
                 }
             }
 
@@ -359,7 +446,10 @@ namespace UnityEngine.Rendering.HighDefinition
                         // Convert offset to atlas offset.
                         record.offsetInAtlas = new Vector4(x * m_MinSlotSize, y * m_MinSlotSize, x, y);
 
-                        m_ShadowsPendingRendering.Add(record.shadowIndex, record);
+                        if (record.rendersOnPlacement)
+                        {
+                            m_ShadowsPendingRendering.Add(record.shadowIndex, record);
+                        }
                         m_PlacedShadows.Add(record.shadowIndex, record);
                         m_RegisteredLightDataPendingPlacement.Remove(record.shadowIndex);
                         m_RecordsPendingPlacement.Remove(record.shadowIndex);
@@ -403,15 +493,16 @@ namespace UnityEngine.Rendering.HighDefinition
 
             for (int i = 0; i < m_AtlasResolutionInSlots * m_AtlasResolutionInSlots; ++i)
             {
-                m_AtlasSlots[i] = false;
+                m_AtlasSlots[i] = SlotValue.Free;
             }
 
             // Clear the other state lists.
             m_PlacedShadows.Clear();
             m_ShadowsPendingRendering.Clear();
+            m_ShadowsWithValidData.Clear();
             m_RecordsPendingPlacement.Clear(); // We'll reset what records are pending.
 
-            // Sort in order to obtain a more optimal packing. 
+            // Sort in order to obtain a more optimal packing.
             InsertionSort(ref m_TempListForPlacement, 0, m_TempListForPlacement.Count);
 
             PerformPlacement();
@@ -444,12 +535,39 @@ namespace UnityEngine.Rendering.HighDefinition
         internal bool LightIsPendingPlacement(HDAdditionalLightData lightData)
         {
             return (m_RegisteredLightDataPendingPlacement.ContainsKey(lightData.lightIdxForCachedShadows) ||
-                    m_RecordsPendingPlacement.ContainsKey(lightData.lightIdxForCachedShadows));
+                m_RecordsPendingPlacement.ContainsKey(lightData.lightIdxForCachedShadows));
         }
 
         internal bool ShadowIsPendingRendering(int shadowIdx)
         {
             return m_ShadowsPendingRendering.ContainsKey(shadowIdx);
+        }
+
+        internal bool ShadowHasRenderedAtLeastOnce(int shadowIdx)
+        {
+            return m_ShadowsWithValidData.ContainsKey(shadowIdx);
+        }
+
+        internal bool FullLightShadowHasRenderedAtLeastOnce(HDAdditionalLightData lightData)
+        {
+            int cachedShadowIdx = lightData.lightIdxForCachedShadows;
+            if (lightData.type == HDLightType.Point)
+            {
+                bool allRendered = true;
+                for (int i = 0; i < 6; ++i)
+                {
+                    allRendered = allRendered && m_ShadowsWithValidData.ContainsKey(cachedShadowIdx + i);
+                }
+
+                return allRendered;
+            }
+            return m_ShadowsWithValidData.ContainsKey(cachedShadowIdx);
+        }
+
+        internal bool LightIsPlaced(HDAdditionalLightData lightData)
+        {
+            int cachedShadowIdx = lightData.lightIdxForCachedShadows;
+            return cachedShadowIdx >= 0 && m_PlacedShadows.ContainsKey(cachedShadowIdx);
         }
 
         internal void ScheduleShadowUpdate(HDAdditionalLightData lightData)
@@ -464,6 +582,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 if (m_RegisteredLightDataPendingPlacement.ContainsKey(lightIdx))
                     return;
 
+                lightData.forceRenderOnPlacement = true;
                 RegisterLight(lightData);
             }
             else
@@ -499,6 +618,7 @@ namespace UnityEngine.Rendering.HighDefinition
             if (m_ShadowsPendingRendering.ContainsKey(shadowIdx))
             {
                 m_ShadowsPendingRendering.Remove(shadowIdx);
+                m_ShadowsWithValidData.Add(shadowIdx, shadowIdx);
             }
         }
 
@@ -513,12 +633,47 @@ namespace UnityEngine.Rendering.HighDefinition
                 Debug.LogWarning("Trying to render a cached shadow map that doesn't have a slot in the atlas yet.");
             }
 
-            request.atlasViewport = new Rect(record.offsetInAtlas.x, record.offsetInAtlas.y, record.viewportSize, record.viewportSize);
+            request.cachedAtlasViewport = new Rect(record.offsetInAtlas.x, record.offsetInAtlas.y, record.viewportSize, record.viewportSize);
             request.resolution = new Vector2(record.viewportSize, record.viewportSize);
+        }
+
+        internal bool NeedRenderingDueToTransformChange(HDAdditionalLightData lightData, HDLightType lightType)
+        {
+            bool needUpdate = false;
+
+            if (m_TransformCaches.TryGetValue(lightData.lightIdxForCachedShadows, out CachedTransform cachedTransform))
+            {
+                float positionThreshold = lightData.cachedShadowTranslationUpdateThreshold;
+                Vector3 positionDiffVec = cachedTransform.position - lightData.transform.position;
+                float positionDiff = Vector3.Dot(positionDiffVec, positionDiffVec);
+                if (positionDiff > positionThreshold * positionThreshold)
+                {
+                    needUpdate = true;
+                }
+                if (lightType != HDLightType.Point)
+                {
+                    float angleDiffThreshold = lightData.cachedShadowAngleUpdateThreshold;
+                    Vector3 angleDiff = cachedTransform.angles - lightData.transform.eulerAngles;
+                    // Any angle difference
+                    if (Mathf.Abs(angleDiff.x) > angleDiffThreshold || Mathf.Abs(angleDiff.y) > angleDiffThreshold || Mathf.Abs(angleDiff.z) > angleDiffThreshold)
+                    {
+                        needUpdate = true;
+                    }
+                }
+
+                if (needUpdate)
+                {
+                    // Update the record (CachedTransform is a struct, so we remove old one and replace with a new one)
+                    m_TransformCaches.Remove(lightData.lightIdxForCachedShadows);
+                    cachedTransform.position = lightData.transform.position;
+                    cachedTransform.angles = lightData.transform.eulerAngles;
+                    m_TransformCaches.Add(lightData.lightIdxForCachedShadows, cachedTransform);
+                }
+            }
+
+            return needUpdate;
         }
 
         // ------------------------------------------------------------------------------------------
     }
 }
-
-

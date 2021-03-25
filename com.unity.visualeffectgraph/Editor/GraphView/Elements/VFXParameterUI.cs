@@ -14,7 +14,7 @@ namespace UnityEditor.VFX.UI
         {
             var anchor = new VFXOutputParameterDataAnchor(controller.orientation, controller.direction, controller.portType, node);
 
-            anchor.m_EdgeConnector = new EdgeConnector<VFXDataEdge>(anchor);
+            anchor.m_EdgeConnector = new VFXEdgeConnector(anchor);
             anchor.controller = controller;
             anchor.AddManipulator(anchor.m_EdgeConnector);
             return anchor;
@@ -54,7 +54,7 @@ namespace UnityEditor.VFX.UI
 
     static class UXMLHelper
     {
-        const string folderName = "Editor Default Resources";
+        const string folderName = VisualEffectAssetEditorUtility.editorResourcesFolder;
 
         public static string GetUXMLPath(string name)
         {

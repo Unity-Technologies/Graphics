@@ -1,17 +1,46 @@
 using System;
+using System.Diagnostics;
 using UnityEngine.Serialization;
 
 namespace UnityEngine.Rendering.HighDefinition
 {
     /// <summary>
+    /// Screen Space Reflection Algorithm
+    /// </summary>
+    public enum ScreenSpaceReflectionAlgorithm
+    {
+        /// <summary>Legacy SSR approximation.</summary>
+        Approximation,
+        /// <summary>Screen Space Reflection, Physically Based with Accumulation through multiple frame.</summary>
+        PBRAccumulation
+    }
+
+    /// <summary>
+    /// Screen Space Reflection Algorithm Type volume parameter.
+    /// </summary>
+    [Serializable, DebuggerDisplay(k_DebuggerDisplay)]
+    public sealed class SSRAlgoParameter : VolumeParameter<ScreenSpaceReflectionAlgorithm>
+    {
+        /// <summary>
+        /// Screen Space Reflection Algorithm Type volume parameter constructor.
+        /// </summary>
+        /// <param name="value">SSR Algo Type parameter.</param>
+        /// <param name="overrideState">Initial override state.</param>
+        public SSRAlgoParameter(ScreenSpaceReflectionAlgorithm value, bool overrideState = false)
+            : base(value, overrideState) {}
+    }
+
+    /// <summary>
     /// A volume component that holds settings for screen space reflection and ray traced reflections.
     /// </summary>
     [Serializable, VolumeComponentMenu("Lighting/Screen Space Reflection")]
+    [HelpURL(Documentation.baseURL + Documentation.version + Documentation.subURL + "Override-Screen-Space-Reflection" + Documentation.endURL)]
     public class ScreenSpaceReflection : VolumeComponentWithQuality
     {
         bool UsesRayTracingQualityMode()
         {
-            return mode.overrideState && mode == RayTracingMode.Quality;
+            // The default value is set to quality. So we should be in quality if not overriden or we have an override set to quality
+            return !mode.overrideState || mode == RayTracingMode.Quality;
         }
 
         bool UsesRayTracing()
@@ -23,6 +52,9 @@ namespace UnityEngine.Rendering.HighDefinition
         /// <summary>Enable Screen Space Reflections.</summary>
         [Tooltip("Enable Screen Space Reflections.")]
         public BoolParameter enabled = new BoolParameter(true);
+
+        /// <summary>Screen Space Reflections Algorithm used.</summary>
+        public SSRAlgoParameter usedAlgorithm = new SSRAlgoParameter(ScreenSpaceReflectionAlgorithm.Approximation);
 
         /// <summary>
         /// Enable ray traced reflections.
@@ -77,9 +109,19 @@ namespace UnityEngine.Rendering.HighDefinition
         public ClampedFloatParameter screenFadeDistance = new ClampedFloatParameter(0.1f, 0.0f, 1.0f);
 
         /// <summary>
+        /// Controls the amount of accumulation (0 no accumulation, 1 just accumulate)
+        /// </summary>
+        public ClampedFloatParameter accumulationFactor = new ClampedFloatParameter(0.75f, 0.0f, 1.0f);
+
+        /// <summary>
         /// Layer mask used to include the objects for screen space reflection.
         /// </summary>
         public LayerMaskParameter layerMask = new LayerMaskParameter(-1);
+
+        /// <summary>
+        /// Defines the LOD Bias for sampling all the textures.
+        /// </summary>
+        public ClampedIntParameter textureLodBias = new ClampedIntParameter(1, 0, 7);
 
         /// <summary>
         /// Controls the length of reflection rays.
@@ -140,26 +182,26 @@ namespace UnityEngine.Rendering.HighDefinition
             }
             set { m_DenoiserRadius.value = value; }
         }
+
+        /// <summary>
+        /// Controls if the denoising should affect pefectly smooth surfaces
+        /// </summary>
+        public bool affectSmoothSurfaces
+        {
+            get
+            {
+                if (!UsesQualitySettings() || UsesRayTracingQualityMode())
+                    return m_AffectSmoothSurfaces.value;
+                else
+                    return GetLightingQualitySettings().RTRSmoothDenoising[(int)quality.value];
+            }
+            set { m_AffectSmoothSurfaces.value = value; }
+        }
+
         /// <summary>
         /// Controls which version of the effect should be used.
         /// </summary>
         public RayTracingModeParameter mode = new RayTracingModeParameter(RayTracingMode.Quality);
-
-        // Performance
-        /// <summary>
-        /// Controls the size of the upscale radius.
-        /// </summary>
-        public int upscaleRadius
-        {
-            get
-            {
-                if (!UsesQualitySettings())
-                    return m_UpscaleRadius.value;
-                else
-                    return GetLightingQualitySettings().RTRUpScaleRadius[(int)quality.value];
-            }
-            set { m_UpscaleRadius.value = value; }
-        }
 
         /// <summary>
         /// Defines if the effect should be evaluated at full resolution.
@@ -185,7 +227,7 @@ namespace UnityEngine.Rendering.HighDefinition
         /// <summary>
         /// Number of bounces for reflection rays.
         /// </summary>
-        public ClampedIntParameter bounceCount = new ClampedIntParameter(1, 1, 31);
+        public ClampedIntParameter bounceCount = new ClampedIntParameter(1, 1, 8);
 
         /// <summary>
         /// Sets the maximum number of steps HDRP uses for raytracing. Affects both correctness and performance.
@@ -212,16 +254,11 @@ namespace UnityEngine.Rendering.HighDefinition
         private IntParameter m_RayMaxIterations = new IntParameter(32);
 
         [SerializeField, FormerlySerializedAs("rayLength")]
-        [Tooltip("Controls the length of reflection rays.")]
-        private ClampedFloatParameter m_RayLength = new ClampedFloatParameter(50.0f, 0f, 50f);
+        private MinFloatParameter m_RayLength = new MinFloatParameter(50.0f, 0.01f);
 
         [SerializeField, FormerlySerializedAs("clampValue")]
         [Tooltip("Controls the clamp of intensity.")]
         private ClampedFloatParameter m_ClampValue = new ClampedFloatParameter(1.0f, 0.001f, 10.0f);
-
-        [SerializeField, FormerlySerializedAs("upscaleRadius")]
-        [Tooltip("Upscale Radius")]
-        private ClampedIntParameter m_UpscaleRadius = new ClampedIntParameter(2, 2, 6);
 
         [SerializeField, FormerlySerializedAs("fullResolution")]
         [Tooltip("Full Resolution")]
@@ -234,5 +271,9 @@ namespace UnityEngine.Rendering.HighDefinition
         [SerializeField, FormerlySerializedAs("denoiserRadius")]
         [Tooltip("Controls the radius of the ray traced reflection denoiser.")]
         private ClampedIntParameter m_DenoiserRadius = new ClampedIntParameter(8, 1, 32);
+
+        [SerializeField]
+        [Tooltip("Denoiser affects smooth surfaces.")]
+        private BoolParameter m_AffectSmoothSurfaces = new BoolParameter(false);
     }
 }

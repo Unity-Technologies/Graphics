@@ -10,7 +10,6 @@ namespace UnityEditor.ShaderGraph
             name = "Fraction";
         }
 
-
         protected override MethodInfo GetFunctionToConvert()
         {
             return GetType().GetMethod("Unity_Fraction", BindingFlags.Static | BindingFlags.NonPublic);
@@ -21,7 +20,7 @@ namespace UnityEditor.ShaderGraph
             [Slot(1, Binding.None)] out DynamicDimensionVector Out)
         {
             return
-                @"
+@"
 {
     Out = frac(In);
 }

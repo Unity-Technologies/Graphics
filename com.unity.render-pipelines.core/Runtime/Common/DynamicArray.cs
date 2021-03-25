@@ -6,7 +6,7 @@ namespace UnityEngine.Rendering
     /// Generic growable array.
     /// </summary>
     /// <typeparam name="T">Type of the array.</typeparam>
-    public class DynamicArray<T> where T: new()
+    public class DynamicArray<T> where T : new()
     {
         T[] m_Array = null;
 
@@ -14,6 +14,11 @@ namespace UnityEngine.Rendering
         /// Number of elements in the array.
         /// </summary>
         public int size { get; private set; }
+
+        /// <summary>
+        /// Allocated size of the array.
+        /// </summary>
+        public int capacity { get { return m_Array.Length; } }
 
         /// <summary>
         /// Constructor.
@@ -107,5 +112,4 @@ namespace UnityEngine.Rendering
             }
         }
     }
-
 }

@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 
@@ -16,6 +16,7 @@ namespace UnityEditor.ShaderAnalysis
             foreach (var value in values)
                 m_Values.Add(value);
         }
+
         public bool Contains(string value) => m_Values?.Contains(value) ?? false;
         public void Add(string value) => m_Values?.Add(value);
         public bool IsSubsetOf(HashSet<string> entry) => m_Values?.IsSubsetOf(entry) ?? true;

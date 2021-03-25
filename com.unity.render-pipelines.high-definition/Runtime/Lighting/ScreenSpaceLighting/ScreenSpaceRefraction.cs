@@ -6,6 +6,7 @@ namespace UnityEngine.Rendering.HighDefinition
     /// A volume component that holds settings for the Screen Space Refraction effect.
     /// </summary>
     [Serializable, VolumeComponentMenu("Lighting/Screen Space Refraction")]
+    [HelpURL(Documentation.baseURL + Documentation.version + Documentation.subURL + "Override-Screen-Space-Refraction" + Documentation.endURL)]
     public class ScreenSpaceRefraction : VolumeComponent
     {
         internal enum RefractionModel

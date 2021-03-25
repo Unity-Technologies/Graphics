@@ -119,4 +119,3 @@ namespace UnityEditor.VFX.UI
         public override bool showsEverything { get { return true; } }
     }
 }
-

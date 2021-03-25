@@ -20,85 +20,85 @@ namespace UnityEngine.Rendering.HighDefinition
 
         static readonly MigrationDescription<ReflectionProbeVersion, HDAdditionalReflectionData> k_ReflectionProbeMigration
             = MigrationDescription.New(
-                MigrationStep.New(ReflectionProbeVersion.RemoveUsageOfLegacyProbeParamsForStocking, (HDAdditionalReflectionData t) =>
-                {
+            MigrationStep.New(ReflectionProbeVersion.RemoveUsageOfLegacyProbeParamsForStocking, (HDAdditionalReflectionData t) =>
+            {
 #pragma warning disable 618 // Type or member is obsolete
-                    t.m_ObsoleteBlendDistancePositive = t.m_ObsoleteBlendDistanceNegative = Vector3.one * t.reflectionProbe.blendDistance;
-                    t.m_ObsoleteWeight = t.reflectionProbe.importance;
-                    t.m_ObsoleteMultiplier = t.reflectionProbe.intensity;
-                    switch (t.reflectionProbe.refreshMode)
-                    {
-                        case UnityEngine.Rendering.ReflectionProbeRefreshMode.EveryFrame: t.realtimeMode = ProbeSettings.RealtimeMode.EveryFrame; break;
-                        case UnityEngine.Rendering.ReflectionProbeRefreshMode.OnAwake: t.realtimeMode = ProbeSettings.RealtimeMode.OnEnable; break;
-                    }
+                t.m_ObsoleteBlendDistancePositive = t.m_ObsoleteBlendDistanceNegative = Vector3.one * t.reflectionProbe.blendDistance;
+                t.m_ObsoleteWeight = t.reflectionProbe.importance;
+                t.m_ObsoleteMultiplier = t.reflectionProbe.intensity;
+                switch (t.reflectionProbe.refreshMode)
+                {
+                    case UnityEngine.Rendering.ReflectionProbeRefreshMode.EveryFrame: t.realtimeMode = ProbeSettings.RealtimeMode.EveryFrame; break;
+                    case UnityEngine.Rendering.ReflectionProbeRefreshMode.OnAwake: t.realtimeMode = ProbeSettings.RealtimeMode.OnEnable; break;
+                }
 #pragma warning restore 618 // Type or member is obsolete
-                }),
-                MigrationStep.New(ReflectionProbeVersion.UseInfluenceVolume, (HDAdditionalReflectionData t) =>
-                {
+            }),
+            MigrationStep.New(ReflectionProbeVersion.UseInfluenceVolume, (HDAdditionalReflectionData t) =>
+            {
 #pragma warning disable 618
-                    t.m_ObsoleteInfluenceVolume = t.m_ObsoleteInfluenceVolume ?? new InfluenceVolume();
-                    t.m_ObsoleteInfluenceVolume.boxSize = t.reflectionProbe.size;
-                    t.m_ObsoleteInfluenceVolume.obsoleteOffset = t.reflectionProbe.center;
-                    t.m_ObsoleteInfluenceVolume.sphereRadius = t.m_ObsoleteInfluenceSphereRadius;
-                    t.m_ObsoleteInfluenceVolume.shape = t.m_ObsoleteInfluenceShape; //must be done after each size transfert
-                    t.m_ObsoleteInfluenceVolume.boxBlendDistancePositive = t.m_ObsoleteBlendDistancePositive;
-                    t.m_ObsoleteInfluenceVolume.boxBlendDistanceNegative = t.m_ObsoleteBlendDistanceNegative;
-                    t.m_ObsoleteInfluenceVolume.boxBlendNormalDistancePositive = t.m_ObsoleteBlendNormalDistancePositive;
-                    t.m_ObsoleteInfluenceVolume.boxBlendNormalDistanceNegative = t.m_ObsoleteBlendNormalDistanceNegative;
-                    t.m_ObsoleteInfluenceVolume.boxSideFadePositive = t.m_ObsoleteBoxSideFadePositive;
-                    t.m_ObsoleteInfluenceVolume.boxSideFadeNegative = t.m_ObsoleteBoxSideFadeNegative;
+                t.m_ObsoleteInfluenceVolume = t.m_ObsoleteInfluenceVolume ?? new InfluenceVolume();
+                t.m_ObsoleteInfluenceVolume.boxSize = t.reflectionProbe.size;
+                t.m_ObsoleteInfluenceVolume.obsoleteOffset = t.reflectionProbe.center;
+                t.m_ObsoleteInfluenceVolume.sphereRadius = t.m_ObsoleteInfluenceSphereRadius;
+                t.m_ObsoleteInfluenceVolume.shape = t.m_ObsoleteInfluenceShape;     //must be done after each size transfert
+                t.m_ObsoleteInfluenceVolume.boxBlendDistancePositive = t.m_ObsoleteBlendDistancePositive;
+                t.m_ObsoleteInfluenceVolume.boxBlendDistanceNegative = t.m_ObsoleteBlendDistanceNegative;
+                t.m_ObsoleteInfluenceVolume.boxBlendNormalDistancePositive = t.m_ObsoleteBlendNormalDistancePositive;
+                t.m_ObsoleteInfluenceVolume.boxBlendNormalDistanceNegative = t.m_ObsoleteBlendNormalDistanceNegative;
+                t.m_ObsoleteInfluenceVolume.boxSideFadePositive = t.m_ObsoleteBoxSideFadePositive;
+                t.m_ObsoleteInfluenceVolume.boxSideFadeNegative = t.m_ObsoleteBoxSideFadeNegative;
 #pragma warning restore 618
-                }),
-                MigrationStep.New(ReflectionProbeVersion.MergeEditors, (HDAdditionalReflectionData t) =>
-                {
+            }),
+            MigrationStep.New(ReflectionProbeVersion.MergeEditors, (HDAdditionalReflectionData t) =>
+            {
 #pragma warning disable 618
-                    t.m_ObsoleteInfiniteProjection = !t.reflectionProbe.boxProjection;
+                t.m_ObsoleteInfiniteProjection = !t.reflectionProbe.boxProjection;
 #pragma warning restore 618
-                    t.reflectionProbe.boxProjection = false;
-                }),
-                MigrationStep.New(ReflectionProbeVersion.AddCaptureSettingsAndFrameSettings, (HDAdditionalReflectionData t) =>
-                {
+                t.reflectionProbe.boxProjection = false;
+            }),
+            MigrationStep.New(ReflectionProbeVersion.AddCaptureSettingsAndFrameSettings, (HDAdditionalReflectionData t) =>
+            {
 #pragma warning disable 618, 612
-                    t.m_ObsoleteCaptureSettings = t.m_ObsoleteCaptureSettings ?? new ObsoleteCaptureSettings();
-                    t.m_ObsoleteCaptureSettings.cullingMask = t.reflectionProbe.cullingMask;
+                t.m_ObsoleteCaptureSettings = t.m_ObsoleteCaptureSettings ?? new ObsoleteCaptureSettings();
+                t.m_ObsoleteCaptureSettings.cullingMask = t.reflectionProbe.cullingMask;
 #if UNITY_EDITOR //m_UseOcclusionCulling is not exposed in c# !
-                    var serializedReflectionProbe = new UnityEditor.SerializedObject(t.reflectionProbe);
-                    t.m_ObsoleteCaptureSettings.useOcclusionCulling = serializedReflectionProbe.FindProperty("m_UseOcclusionCulling").boolValue;
+                var serializedReflectionProbe = new UnityEditor.SerializedObject(t.reflectionProbe);
+                t.m_ObsoleteCaptureSettings.useOcclusionCulling = serializedReflectionProbe.FindProperty("m_UseOcclusionCulling").boolValue;
 #endif
-                    t.m_ObsoleteCaptureSettings.nearClipPlane = t.reflectionProbe.nearClipPlane;
-                    t.m_ObsoleteCaptureSettings.farClipPlane = t.reflectionProbe.farClipPlane;
+                t.m_ObsoleteCaptureSettings.nearClipPlane = t.reflectionProbe.nearClipPlane;
+                t.m_ObsoleteCaptureSettings.farClipPlane = t.reflectionProbe.farClipPlane;
 #pragma warning restore 618, 612
-                }),
-                MigrationStep.New(ReflectionProbeVersion.ModeAndTextures, (HDAdditionalReflectionData t) =>
-                {
+            }),
+            MigrationStep.New(ReflectionProbeVersion.ModeAndTextures, (HDAdditionalReflectionData t) =>
+            {
 #pragma warning disable 618
-                    t.m_ObsoleteMode = (ProbeSettings.Mode)t.reflectionProbe.mode;
+                t.m_ObsoleteMode = (ProbeSettings.Mode)t.reflectionProbe.mode;
 #pragma warning restore 618
-                    t.SetTexture(ProbeSettings.Mode.Baked, t.reflectionProbe.bakedTexture);
-                    t.SetTexture(ProbeSettings.Mode.Custom, t.reflectionProbe.customBakedTexture);
-                }),
-                MigrationStep.New(ReflectionProbeVersion.ProbeSettings, (HDAdditionalReflectionData t) =>
-                {
-                    k_Migration.ExecuteStep(t, Version.ProbeSettings);
+                t.SetTexture(ProbeSettings.Mode.Baked, t.reflectionProbe.bakedTexture);
+                t.SetTexture(ProbeSettings.Mode.Custom, t.reflectionProbe.customBakedTexture);
+            }),
+            MigrationStep.New(ReflectionProbeVersion.ProbeSettings, (HDAdditionalReflectionData t) =>
+            {
+                k_Migration.ExecuteStep(t, Version.ProbeSettings);
 
 #pragma warning disable 618
-                    // Migrate capture position
-                    // Previously, the capture position of a reflection probe was the position of the game object
-                    //   and the center of the influence volume is (transform.position + t.influenceVolume.m_ObsoleteOffset) in world space
-                    // Now, the center of the influence volume is the position of the transform and the capture position
-                    //   is t.probeSettings.proxySettings.capturePositionProxySpace and is in capture space
+                // Migrate capture position
+                // Previously, the capture position of a reflection probe was the position of the game object
+                //   and the center of the influence volume is (transform.position + t.influenceVolume.m_ObsoleteOffset) in world space
+                // Now, the center of the influence volume is the position of the transform and the capture position
+                //   is t.probeSettings.proxySettings.capturePositionProxySpace and is in capture space
 
-                    var capturePositionWS = t.transform.position;
-                    // set the transform position to the influence position world space
-                    var mat = Matrix4x4.TRS(t.transform.position, t.transform.rotation, Vector3.one);
-                    t.transform.position = mat.MultiplyPoint(t.influenceVolume.obsoleteOffset);
+                var capturePositionWS = t.transform.position;
+                // set the transform position to the influence position world space
+                var mat = Matrix4x4.TRS(t.transform.position, t.transform.rotation, Vector3.one);
+                t.transform.position = mat.MultiplyPoint(t.influenceVolume.obsoleteOffset);
 
-                    var capturePositionPS = t.proxyToWorld.inverse.MultiplyPoint(capturePositionWS);
-                    t.m_ProbeSettings.proxySettings.capturePositionProxySpace = capturePositionPS;
+                var capturePositionPS = t.proxyToWorld.inverse.MultiplyPoint(capturePositionWS);
+                t.m_ProbeSettings.proxySettings.capturePositionProxySpace = capturePositionPS;
 #pragma warning restore 618
-                }),
-                MigrationStep.New(ReflectionProbeVersion.SeparatePassThrough, (HDAdditionalReflectionData t) => k_Migration.ExecuteStep(t, Version.SeparatePassThrough)),
-                MigrationStep.New(ReflectionProbeVersion.UpgradeFrameSettingsToStruct, (HDAdditionalReflectionData t) => k_Migration.ExecuteStep(t, Version.UpgradeFrameSettingsToStruct))
+            }),
+            MigrationStep.New(ReflectionProbeVersion.SeparatePassThrough, (HDAdditionalReflectionData t) => k_Migration.ExecuteStep(t, Version.SeparatePassThrough)),
+            MigrationStep.New(ReflectionProbeVersion.UpgradeFrameSettingsToStruct, (HDAdditionalReflectionData t) => k_Migration.ExecuteStep(t, Version.UpgradeFrameSettingsToStruct))
             );
 
         [SerializeField, FormerlySerializedAs("version"), FormerlySerializedAs("m_Version")]

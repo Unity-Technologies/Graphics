@@ -49,7 +49,6 @@ namespace UnityEditor.ShaderGraph
             UpdateNodeAfterDeserialization();
         }
 
-
         public override bool hasPreview { get { return false; } }
 
         private const int kOutputSlotId = 0;
@@ -61,16 +60,26 @@ namespace UnityEditor.ShaderGraph
             RemoveSlotsNameNotMatching(new[] { kOutputSlotId });
         }
 
-        public override string GetVariableNameForSlot(int slotId)
+        string GetSamplerStatePropertyName()
         {
             return GetVariableNameForNode();
+        }
+
+        string GetSamplerStateVariableName()
+        {
+            return $"UnityBuildSamplerStateStruct({GetSamplerStatePropertyName()})";
+        }
+
+        public override string GetVariableNameForSlot(int slotId)
+        {
+            return GetSamplerStateVariableName();
         }
 
         public override void CollectShaderProperties(PropertyCollector properties, GenerationMode generationMode)
         {
             properties.AddShaderProperty(new SamplerStateShaderProperty()
             {
-                overrideReferenceName = string.Format("{0}_{1}_{2}", NodeUtils.GetHLSLSafeName(name), m_filter, m_wrap),
+                overrideReferenceName = GetSamplerStatePropertyName(),
                 generatePropertyBlock = false,
 
                 value = new TextureSamplerState()
@@ -83,15 +92,15 @@ namespace UnityEditor.ShaderGraph
 
         public override string GetVariableNameForNode()
         {
-            return string.Format(@"{0}_{1}_{2}", NodeUtils.GetHLSLSafeName(name), 
-                Enum.GetName(typeof(TextureSamplerState.FilterMode), filter), 
+            return string.Format(@"SamplerState_{0}_{1}",
+                Enum.GetName(typeof(TextureSamplerState.FilterMode), filter),
                 Enum.GetName(typeof(TextureSamplerState.WrapMode), wrap));
         }
 
         public AbstractShaderProperty AsShaderProperty()
         {
-            return new SamplerStateShaderProperty 
-            { 
+            return new SamplerStateShaderProperty
+            {
                 value = new TextureSamplerState()
                 {
                     filter = this.filter,

@@ -5,7 +5,7 @@ Shader "Hidden/Universal Render Pipeline/XR/XRMirrorView"
         Tags{ "RenderPipeline" = "UniversalPipeline" }
 
         HLSLINCLUDE
-            #pragma exclude_renderers d3d11_9x
+            #pragma exclude_renderers gles
         ENDHLSL
 
         // 0: TEXTURE2D

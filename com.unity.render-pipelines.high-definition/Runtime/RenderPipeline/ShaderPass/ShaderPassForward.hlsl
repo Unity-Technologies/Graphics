@@ -99,7 +99,7 @@ void Frag(PackedVaryingsToPS packedInput,
         #endif // _WRITE_TRANSPARENT_MOTION_VECTOR
         #endif // OUTPUT_SPLIT_LIGHTING
         #ifdef _DEPTHOFFSET_ON
-            , out float outputDepth : SV_Depth
+            , out float outputDepth : DEPTH_OFFSET_SEMANTIC
         #endif
 )
 {
@@ -110,7 +110,7 @@ void Frag(PackedVaryingsToPS packedInput,
 #endif
 
     UNITY_SETUP_STEREO_EYE_INDEX_POST_VERTEX(packedInput);
-    FragInputs input = UnpackVaryingsMeshToFragInputs(packedInput.vmesh);
+    FragInputs input = UnpackVaryingsToFragInputs(packedInput);
 
     // We need to readapt the SS position as our screen space positions are for a low res buffer, but we try to access a full res buffer.
     input.positionSS.xy = _OffScreenRendering > 0 ? (input.positionSS.xy * _OffScreenDownsampleFactor) : input.positionSS.xy;

@@ -1,4 +1,4 @@
-﻿using UnityEngine;
+using UnityEngine;
 using UnityEditor.ShaderGraph.Internal;
 
 namespace UnityEditor.ShaderGraph
@@ -29,7 +29,7 @@ namespace UnityEditor.ShaderGraph
                 new NormalControl(CoordinateSpace.Object), ShaderStage.Fragment);
             public static BlockFieldDescriptor NormalWS      = new BlockFieldDescriptor(SurfaceDescription.name, "NormalWS", "Normal (World Space)", "SURFACEDESCRIPTION_NORMALWS",
                 new NormalControl(CoordinateSpace.World), ShaderStage.Fragment);
-            public static BlockFieldDescriptor Metallic      = new BlockFieldDescriptor(SurfaceDescription.name, "Metallic", "SURFACEDESCRIPTION_METALLIC", 
+            public static BlockFieldDescriptor Metallic      = new BlockFieldDescriptor(SurfaceDescription.name, "Metallic", "SURFACEDESCRIPTION_METALLIC",
                 new FloatControl(0.0f), ShaderStage.Fragment);
             public static BlockFieldDescriptor Specular      = new BlockFieldDescriptor(SurfaceDescription.name, "Specular", "Specular Color", "SURFACEDESCRIPTION_SPECULAR",
                 new ColorControl(UnityEngine.Color.grey, false), ShaderStage.Fragment);
@@ -43,6 +43,10 @@ namespace UnityEditor.ShaderGraph
                 new FloatControl(1.0f), ShaderStage.Fragment);
             public static BlockFieldDescriptor AlphaClipThreshold = new BlockFieldDescriptor(SurfaceDescription.name, "AlphaClipThreshold", "Alpha Clip Threshold", "SURFACEDESCRIPTION_ALPHACLIPTHRESHOLD",
                 new FloatControl(0.5f), ShaderStage.Fragment);
+            public static BlockFieldDescriptor CoatMask       = new BlockFieldDescriptor(SurfaceDescription.name, "CoatMask", "Coat Mask", "SURFACEDESCRIPTION_COATMASK",
+                new FloatControl(0.0f), ShaderStage.Fragment);
+            public static BlockFieldDescriptor CoatSmoothness = new BlockFieldDescriptor(SurfaceDescription.name, "CoatSmoothness", "Coat Smoothness", "SURFACEDESCRIPTION_COATSMOOTHNESS",
+                new FloatControl(1.0f), ShaderStage.Fragment);
         }
 
         [GenerateBlocks]

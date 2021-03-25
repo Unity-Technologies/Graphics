@@ -254,7 +254,8 @@ real YCoCgCheckBoardEdgeFilter(real centerLum, real2 a0, real2 a1, real2 a2, rea
 }
 
 // Converts linear RGB to LMS
-real3 LinearToLMS(real3 x)
+// Full float precision to avoid precision artefact when using ACES tonemapping
+float3 LinearToLMS(float3 x)
 {
     const real3x3 LIN_2_LMS_MAT = {
         3.90405e-1, 5.49941e-1, 8.92632e-3,
@@ -265,7 +266,8 @@ real3 LinearToLMS(real3 x)
     return mul(LIN_2_LMS_MAT, x);
 }
 
-real3 LMSToLinear(real3 x)
+// Full float precision to avoid precision artefact when using ACES tonemapping
+float3 LMSToLinear(float3 x)
 {
     const real3x3 LMS_2_LIN_MAT = {
         2.85847e+0, -1.62879e+0, -2.48910e-2,
@@ -389,13 +391,14 @@ real LinearToLogC_Precise(real x)
 {
     real o;
     if (x > LogC.cut)
-        o = LogC.c * log10(LogC.a * x + LogC.b) + LogC.d;
+        o = LogC.c * log10(max(LogC.a * x + LogC.b, 0.0)) + LogC.d;
     else
         o = LogC.e * x + LogC.f;
     return o;
 }
 
-real3 LinearToLogC(real3 x)
+// Full float precision to avoid precision artefact when using ACES tonemapping
+float3 LinearToLogC(float3 x)
 {
 #if USE_PRECISE_LOGC
     return real3(
@@ -404,7 +407,7 @@ real3 LinearToLogC(real3 x)
         LinearToLogC_Precise(x.z)
     );
 #else
-    return LogC.c * log10(LogC.a * x + LogC.b) + LogC.d;
+    return LogC.c * log10(max(LogC.a * x + LogC.b, 0.0)) + LogC.d;
 #endif
 }
 
@@ -418,7 +421,8 @@ real LogCToLinear_Precise(real x)
     return o;
 }
 
-real3 LogCToLinear(real3 x)
+// Full float precision to avoid precision artefact when using ACES tonemapping
+float3 LogCToLinear(float3 x)
 {
 #if USE_PRECISE_LOGC
     return real3(
@@ -538,14 +542,16 @@ real3 GetLutStripValue(float2 uv, float4 params)
 
 // Neutral tonemapping (Hable/Hejl/Frostbite)
 // Input is linear RGB
-#if defined(SHADER_API_SWITCH) // We need more accuracy on Nintendo Switch to avoid NaN on extremely high values.
+// More accuracy to avoid NaN on extremely high values.
 float3 NeutralCurve(float3 x, real a, real b, real c, real d, real e, real f)
-#else
-real3 NeutralCurve(real3 x, real a, real b, real c, real d, real e, real f)
-#endif
 {
     return ((x * (a * x + c * b) + d * e) / (x * (a * x + b) + d * f)) - e / f;
 }
+
+#define TONEMAPPING_CLAMP_MAX 435.18712 //(-b + sqrt(b * b - 4 * a * (HALF_MAX - d * f))) / (2 * a * whiteScale)
+//Extremely high values cause NaN output when using fp16, we clamp to avoid the performace hit of switching to fp32
+//The overflow happens in (x * (a * x + b) + d * f) of the NeutralCurve, highest value that avoids fp16 precision errors is ~571.56873
+//Since whiteScale is constant (~1.31338) max input is ~435.18712
 
 real3 NeutralTonemap(real3 x)
 {
@@ -558,6 +564,10 @@ real3 NeutralTonemap(real3 x)
     const real f = 0.3;
     const real whiteLevel = 5.3;
     const real whiteClip = 1.0;
+
+#if defined(SHADER_API_MOBILE)
+    x = min(x, TONEMAPPING_CLAMP_MAX);
+#endif
 
     real3 whiteScale = (1.0).xxx / NeutralCurve(whiteLevel, a, b, c, d, e, f);
     x = NeutralCurve(x * whiteScale, a, b, c, d, e, f);
@@ -670,7 +680,7 @@ float3 AcesTonemap(float3 aces)
     const float d = 0.887122 * 0.01;
     const float e = 0.806889 * 0.01;
     float3 x = acescg;
-   float3 rgbPost = ((a * x + b)) / ((c * x + d) + e/(x + FLT_MIN));
+    float3 rgbPost = ((a * x + b)) / ((c * x + d) + e/(x + FLT_MIN));
 #else
     const float a = 2.785085;
     const float b = 0.107772;

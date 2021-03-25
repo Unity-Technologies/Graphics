@@ -11,7 +11,6 @@ namespace UnityEditor.ShaderGraph
             name = "Reflection Probe";
         }
 
-
         public override bool hasPreview { get { return false; } }
 
         protected override MethodInfo GetFunctionToConvert()
@@ -27,7 +26,7 @@ namespace UnityEditor.ShaderGraph
         {
             Out = Vector3.one;
             return
-                @"
+@"
 {
     Out = SHADERGRAPH_REFLECTION_PROBE(ViewDir, Normal, LOD);
 }

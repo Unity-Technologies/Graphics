@@ -20,5 +20,7 @@ namespace UnityEditor.ShaderGraph.Legacy
         public List<StickyNoteData0> m_StickyNotes;
 
         public List<GroupData0> m_Groups;
+
+        public int m_Version = -1;
     }
 }

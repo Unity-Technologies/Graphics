@@ -93,14 +93,16 @@ namespace UnityEngine.Rendering.HighDefinition
             if (String.IsNullOrEmpty(overrideMaterialPassName) && overrideMaterial != null)
                 overrideMaterialPassName = overrideMaterial.GetPassName(overrideMaterialPassIndex);
 
-            forwardShaderTags = new ShaderTagId[] {
+            forwardShaderTags = new ShaderTagId[]
+            {
                 HDShaderPassNames.s_ForwardName,            // HD Lit shader
                 HDShaderPassNames.s_ForwardOnlyName,        // HD Unlit shader
                 HDShaderPassNames.s_SRPDefaultUnlitName,    // Cross SRP Unlit shader
                 HDShaderPassNames.s_EmptyName,              // Add an empty slot for the override material
             };
 
-            depthShaderTags = new ShaderTagId[] {
+            depthShaderTags = new ShaderTagId[]
+            {
                 HDShaderPassNames.s_DepthForwardOnlyName,
                 HDShaderPassNames.s_DepthOnlyName,
                 HDShaderPassNames.s_EmptyName,              // Add an empty slot for the override material
@@ -154,7 +156,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 stencilState = new StencilState(false),
             };
 
-            PerObjectData renderConfig = ctx.hdCamera.frameSettings.IsEnabled(FrameSettingsField.Shadowmask) ? HDUtils.k_RendererConfigurationBakedLightingWithShadowMask : HDUtils.k_RendererConfigurationBakedLighting;
+            PerObjectData renderConfig = ctx.hdCamera.frameSettings.IsEnabled(FrameSettingsField.Shadowmask) ? HDUtils.GetBakedLightingWithShadowMaskRenderConfig() : HDUtils.GetBakedLightingRenderConfig();
 
             var result = new RendererListDesc(shaderPasses, ctx.cullingResults, ctx.hdCamera.camera)
             {
@@ -168,7 +170,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 layerMask = layerMask,
             };
 
-            HDUtils.DrawRendererList(ctx.renderContext, ctx.cmd, RendererList.Create(result));
+            CoreUtils.DrawRendererList(ctx.renderContext, ctx.cmd, RendererList.Create(result));
         }
 
         /// <summary>

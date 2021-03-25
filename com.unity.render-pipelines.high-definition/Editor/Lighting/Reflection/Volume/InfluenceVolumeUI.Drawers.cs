@@ -82,7 +82,7 @@ namespace UnityEditor.Rendering.HighDefinition
                 Vector3 blendNormalPositive = serialized.boxBlendNormalDistancePositive.vector3Value;
                 Vector3 blendNormalNegative = serialized.boxBlendNormalDistanceNegative.vector3Value;
                 Vector3 size = serialized.boxSize.vector3Value;
-                for(int i = 0; i<3; ++i)
+                for (int i = 0; i < 3; ++i)
                 {
                     size[i] = Mathf.Max(0f, size[i]);
                 }
@@ -108,9 +108,9 @@ namespace UnityEditor.Rendering.HighDefinition
                 }
                 else
                 {
-                    serialized.editorSimplifiedModeBlendDistance.floatValue = Mathf.Max(blendPositive.x, blendPositive.y, blendPositive.z, blendNegative.x, blendNegative.y, blendNegative.z);
+                    serialized.editorSimplifiedModeBlendDistance.floatValue = Mathf.Min(blendPositive.x, blendPositive.y, blendPositive.z, blendNegative.x, blendNegative.y, blendNegative.z);
                     serialized.boxBlendDistancePositive.vector3Value = serialized.boxBlendDistanceNegative.vector3Value = Vector3.one * serialized.editorSimplifiedModeBlendDistance.floatValue;
-                    serialized.editorSimplifiedModeBlendNormalDistance.floatValue = Mathf.Max(blendNormalPositive.x, blendNormalPositive.y, blendNormalPositive.z, blendNormalNegative.x, blendNormalNegative.y, blendNormalNegative.z);
+                    serialized.editorSimplifiedModeBlendNormalDistance.floatValue = Mathf.Min(blendNormalPositive.x, blendNormalPositive.y, blendNormalPositive.z, blendNormalNegative.x, blendNormalNegative.y, blendNormalNegative.z);
                     serialized.boxBlendNormalDistancePositive.vector3Value = serialized.boxBlendNormalDistanceNegative.vector3Value = Vector3.one * serialized.editorSimplifiedModeBlendNormalDistance.floatValue;
                 }
             }
@@ -163,7 +163,7 @@ namespace UnityEditor.Rendering.HighDefinition
             if (serialized.editorAdvancedModeEnabled.boolValue)
             {
                 if (!(Mathf.Approximately(Vector3.SqrMagnitude(blendDistancePositive.vector3Value - editorAdvancedModeBlendDistancePositive.vector3Value), 0f)
-                    && Mathf.Approximately(Vector3.SqrMagnitude(blendDistanceNegative.vector3Value - editorAdvancedModeBlendDistanceNegative.vector3Value), 0f)))
+                      && Mathf.Approximately(Vector3.SqrMagnitude(blendDistanceNegative.vector3Value - editorAdvancedModeBlendDistanceNegative.vector3Value), 0f)))
                 {
                     blendDistancePositive.vector3Value = editorAdvancedModeBlendDistancePositive.vector3Value;
                     blendDistanceNegative.vector3Value = editorAdvancedModeBlendDistanceNegative.vector3Value;

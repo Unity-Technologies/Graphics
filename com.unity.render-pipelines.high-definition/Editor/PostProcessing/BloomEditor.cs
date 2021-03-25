@@ -1,5 +1,3 @@
-using UnityEditor.Rendering;
-using UnityEngine;
 using UnityEngine.Rendering.HighDefinition;
 
 namespace UnityEditor.Rendering.HighDefinition
@@ -15,16 +13,13 @@ namespace UnityEditor.Rendering.HighDefinition
         SerializedDataParameter m_DirtIntensity;
 
         // Advanced settings
+        SerializedDataParameter m_HighQualityPrefiltering;
         SerializedDataParameter m_HighQualityFiltering;
         SerializedDataParameter m_Resolution;
         SerializedDataParameter m_Anamorphic;
 
-        public override bool hasAdvancedMode => true;
-
         public override void OnEnable()
         {
-            base.OnEnable();
-
             var o = new PropertyFetcher<Bloom>(serializedObject);
 
             m_Threshold = Unpack(o.Find(x => x.threshold));
@@ -34,36 +29,60 @@ namespace UnityEditor.Rendering.HighDefinition
             m_DirtTexture = Unpack(o.Find(x => x.dirtTexture));
             m_DirtIntensity = Unpack(o.Find(x => x.dirtIntensity));
 
+            m_HighQualityPrefiltering = Unpack(o.Find("m_HighQualityPrefiltering"));
             m_HighQualityFiltering = Unpack(o.Find("m_HighQualityFiltering"));
             m_Resolution = Unpack(o.Find("m_Resolution"));
             m_Anamorphic = Unpack(o.Find(x => x.anamorphic));
+
+            base.OnEnable();
         }
 
         public override void OnInspectorGUI()
         {
             base.OnInspectorGUI();
 
-            EditorGUILayout.LabelField("Bloom", EditorStyles.miniLabel);
             PropertyField(m_Threshold);
             PropertyField(m_Intensity);
             PropertyField(m_Scatter);
             PropertyField(m_Tint);
 
-            EditorGUILayout.LabelField("Lens Dirt", EditorStyles.miniLabel);
             PropertyField(m_DirtTexture, EditorGUIUtility.TrTextContent("Texture"));
             PropertyField(m_DirtIntensity, EditorGUIUtility.TrTextContent("Intensity"));
 
-            if (isInAdvancedMode)
+            using (new QualityScope(this))
             {
-                EditorGUILayout.LabelField("Advanced Tweaks", EditorStyles.miniLabel);
-
-                GUI.enabled = useCustomValue;
                 PropertyField(m_Resolution);
+                PropertyField(m_HighQualityPrefiltering);
                 PropertyField(m_HighQualityFiltering);
-                GUI.enabled = true;
-
-                PropertyField(m_Anamorphic);
             }
+
+            PropertyField(m_Anamorphic);
+        }
+
+        public override QualitySettingsBlob SaveCustomQualitySettingsAsObject(QualitySettingsBlob settings = null)
+        {
+            if (settings == null)
+                settings = new QualitySettingsBlob();
+
+            settings.Save<int>(m_Resolution);
+            settings.Save<bool>(m_HighQualityPrefiltering);
+            settings.Save<bool>(m_HighQualityFiltering);
+
+            return settings;
+        }
+
+        public override void LoadSettingsFromObject(QualitySettingsBlob settings)
+        {
+            settings.TryLoad<int>(ref m_Resolution);
+            settings.TryLoad<bool>(ref m_HighQualityPrefiltering);
+            settings.TryLoad<bool>(ref m_HighQualityFiltering);
+        }
+
+        public override void LoadSettingsFromQualityPreset(RenderPipelineSettings settings, int level)
+        {
+            CopySetting(ref m_Resolution, (int)settings.postProcessQualitySettings.BloomRes[level]);
+            CopySetting(ref m_HighQualityPrefiltering, settings.postProcessQualitySettings.BloomHighQualityPrefiltering[level]);
+            CopySetting(ref m_HighQualityFiltering, settings.postProcessQualitySettings.BloomHighQualityFiltering[level]);
         }
     }
 }

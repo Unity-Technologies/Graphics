@@ -46,11 +46,18 @@ namespace UnityEditor.Rendering.Universal
             public static GUIContent addditionalLightsRenderingModeText = EditorGUIUtility.TrTextContent("Additional Lights", "Additional lights support.");
             public static GUIContent perObjectLimit = EditorGUIUtility.TrTextContent("Per Object Limit", "Maximum amount of additional lights. These lights are sorted and culled per-object.");
             public static GUIContent supportsAdditionalShadowsText = EditorGUIUtility.TrTextContent("Cast Shadows", "If enabled shadows will be supported for spot lights.\n");
-            public static GUIContent additionalLightsShadowmapResolution = EditorGUIUtility.TrTextContent("Shadow Resolution", "All additional lights are packed into a single shadowmap atlas. This setting controls the atlas size.");
+            public static GUIContent additionalLightsShadowmapResolution = EditorGUIUtility.TrTextContent("Shadow Atlas Resolution", "All additional lights are packed into a single shadowmap atlas. This setting controls the atlas size.");
+            public static GUIContent additionalLightsShadowResolutionTiers = EditorGUIUtility.TrTextContent("Shadow Resolution Tiers", "Additional Lights Shadow Resolution Tiers. Rounded to the next power of two, and clamped to be at least 128.");
+            public static GUIContent[] additionalLightsShadowResolutionTierNames =
+            {
+                new GUIContent("Low"),
+                new GUIContent("Medium"),
+                new GUIContent("High")
+            };
 
             // Shadow settings
-            public static GUIContent shadowDistanceText = EditorGUIUtility.TrTextContent("Distance", "Maximum shadow rendering distance.");
-            public static GUIContent shadowCascadesText = EditorGUIUtility.TrTextContent("Cascades", "Number of cascade splits used in for directional shadows");
+            public static GUIContent shadowDistanceText = EditorGUIUtility.TrTextContent("Max Distance", "Maximum shadow rendering distance.");
+            public static GUIContent shadowCascadesText = EditorGUIUtility.TrTextContent("Cascade Count", "Number of cascade splits used for directional shadows.");
             public static GUIContent shadowDepthBias = EditorGUIUtility.TrTextContent("Depth Bias", "Controls the distance at which the shadows will be pushed away from the light. Useful for avoiding false self-shadowing artifacts.");
             public static GUIContent shadowNormalBias = EditorGUIUtility.TrTextContent("Normal Bias", "Controls distance at which the shadow casting surfaces will be shrunk along the surface normal. Useful for avoiding false self-shadowing artifacts.");
             public static GUIContent supportsSoftShadows = EditorGUIUtility.TrTextContent("Soft Shadows", "If enabled pipeline will perform shadow filtering. Otherwise all lights that cast shadows will fallback to perform a single shadow sample.");
@@ -58,6 +65,7 @@ namespace UnityEditor.Rendering.Universal
             // Post-processing
             public static GUIContent colorGradingMode = EditorGUIUtility.TrTextContent("Grading Mode", "Defines how color grading will be applied. Operators will react differently depending on the mode.");
             public static GUIContent colorGradingLutSize = EditorGUIUtility.TrTextContent("LUT size", "Sets the size of the internal and external color grading lookup textures (LUTs).");
+            public static GUIContent useFastSRGBLinearConversion = EditorGUIUtility.TrTextContent("Fast sRGB/Linear conversions", "Use faster, but less accurate approximation functions when converting between the sRGB and Linear color spaces.");
             public static string colorGradingModeWarning = "HDR rendering is required to use the high dynamic range color grading mode. The low dynamic range will be used instead.";
             public static string colorGradingModeSpecInfo = "The high dynamic range color grading mode works best on platforms that support floating point textures.";
             public static string colorGradingLutSizeWarning = "The minimal recommended LUT size for the high dynamic range color grading mode is 32. Using lower values will potentially result in color banding and posterization effects.";
@@ -81,10 +89,11 @@ namespace UnityEditor.Rendering.Universal
                 EditorGUIUtility.TrTextContent("Missing Default Renderer\nThere is no default renderer assigned, so Unity can’t perform any rendering. Set another renderer to be the new Default, or assign a renderer to the Default slot.");
             public static GUIContent rendererMissingMessage =
                 EditorGUIUtility.TrTextContent("Missing Renderer(s)\nOne or more renderers are either missing or unassigned.  Switching to these renderers at runtime can cause issues.");
+            public static GUIContent rendererUnsupportedAPIMessage =
+                EditorGUIUtility.TrTextContent("Some Renderer(s) in the Renderer List are incompatible with the Player Graphics APIs list.  Switching to these renderers at runtime can cause issues.\n\n");
 
             // Dropdown menu options
             public static string[] mainLightOptions = { "Disabled", "Per Pixel" };
-            public static string[] shadowCascadeOptions = {"No Cascades", "Two Cascades", "Four Cascades"};
             public static string[] opaqueDownsamplingOptions = {"None", "2x (Bilinear)", "4x (Box)", "4x (Bilinear)"};
         }
 
@@ -118,10 +127,16 @@ namespace UnityEditor.Rendering.Universal
         SerializedProperty m_AdditionalLightShadowsSupportedProp;
         SerializedProperty m_AdditionalLightShadowmapResolutionProp;
 
+        SerializedProperty m_AdditionalLightsShadowResolutionTierLowProp;
+        SerializedProperty m_AdditionalLightsShadowResolutionTierMediumProp;
+        SerializedProperty m_AdditionalLightsShadowResolutionTierHighProp;
+
         SerializedProperty m_ShadowDistanceProp;
-        SerializedProperty m_ShadowCascadesProp;
+        SerializedProperty m_ShadowCascadeCountProp;
         SerializedProperty m_ShadowCascade2SplitProp;
+        SerializedProperty m_ShadowCascade3SplitProp;
         SerializedProperty m_ShadowCascade4SplitProp;
+        SerializedProperty m_ShadowCascadeBorderProp;
         SerializedProperty m_ShadowDepthBiasProp;
         SerializedProperty m_ShadowNormalBiasProp;
 
@@ -134,11 +149,12 @@ namespace UnityEditor.Rendering.Universal
 
         SerializedProperty m_ShaderVariantLogLevel;
 
-        LightRenderingMode selectedLightRenderingMode;
         SerializedProperty m_ColorGradingMode;
         SerializedProperty m_ColorGradingLutSize;
+        SerializedProperty m_UseFastSRGBLinearConversion;
 
         SerializedProperty m_UseAdaptivePerformance;
+        EditorPrefBoolFlags<EditorUtils.Unit> m_State;
 
         public override void OnInspectorGUI()
         {
@@ -169,7 +185,7 @@ namespace UnityEditor.Rendering.Universal
 
             m_RendererDataProp = serializedObject.FindProperty("m_RendererDataList");
             m_DefaultRendererProp = serializedObject.FindProperty("m_DefaultRendererIndex");
-            m_RendererDataList = new ReorderableList(serializedObject, m_RendererDataProp, false, true, true, true);
+            m_RendererDataList = new ReorderableList(serializedObject, m_RendererDataProp, true, true, true, true);
 
             DrawRendererListLayout(m_RendererDataList, m_RendererDataProp);
 
@@ -191,10 +207,17 @@ namespace UnityEditor.Rendering.Universal
             m_AdditionalLightShadowsSupportedProp = serializedObject.FindProperty("m_AdditionalLightShadowsSupported");
             m_AdditionalLightShadowmapResolutionProp = serializedObject.FindProperty("m_AdditionalLightsShadowmapResolution");
 
+            m_AdditionalLightsShadowResolutionTierLowProp = serializedObject.FindProperty("m_AdditionalLightsShadowResolutionTierLow");
+            m_AdditionalLightsShadowResolutionTierMediumProp = serializedObject.FindProperty("m_AdditionalLightsShadowResolutionTierMedium");
+            m_AdditionalLightsShadowResolutionTierHighProp = serializedObject.FindProperty("m_AdditionalLightsShadowResolutionTierHigh");
+
             m_ShadowDistanceProp = serializedObject.FindProperty("m_ShadowDistance");
-            m_ShadowCascadesProp = serializedObject.FindProperty("m_ShadowCascades");
+
+            m_ShadowCascadeCountProp = serializedObject.FindProperty("m_ShadowCascadeCount");
             m_ShadowCascade2SplitProp = serializedObject.FindProperty("m_Cascade2Split");
+            m_ShadowCascade3SplitProp = serializedObject.FindProperty("m_Cascade3Split");
             m_ShadowCascade4SplitProp = serializedObject.FindProperty("m_Cascade4Split");
+            m_ShadowCascadeBorderProp = serializedObject.FindProperty("m_CascadeBorder");
             m_ShadowDepthBiasProp = serializedObject.FindProperty("m_ShadowDepthBias");
             m_ShadowNormalBiasProp = serializedObject.FindProperty("m_ShadowNormalBias");
             m_SoftShadowsSupportedProp = serializedObject.FindProperty("m_SoftShadowsSupported");
@@ -209,9 +232,12 @@ namespace UnityEditor.Rendering.Universal
             m_ColorGradingMode = serializedObject.FindProperty("m_ColorGradingMode");
             m_ColorGradingLutSize = serializedObject.FindProperty("m_ColorGradingLutSize");
 
+            m_UseFastSRGBLinearConversion = serializedObject.FindProperty("m_UseFastSRGBLinearConversion");
+
             m_UseAdaptivePerformance = serializedObject.FindProperty("m_UseAdaptivePerformance");
 
-            selectedLightRenderingMode = (LightRenderingMode)m_AdditionalLightsRenderingModeProp.intValue;
+            string Key = "Universal_Shadow_Setting_Unit:UI_State";
+            m_State = new EditorPrefBoolFlags<EditorUtils.Unit>(Key);
         }
 
         void DrawGeneralSettings()
@@ -227,11 +253,14 @@ namespace UnityEditor.Rendering.Universal
                 EditorGUI.indentLevel++;
 
                 UniversalRenderPipelineAsset asset = target as UniversalRenderPipelineAsset;
+                string unsupportedGraphicsApisMessage;
 
                 if (!asset.ValidateRendererData(-1))
                     EditorGUILayout.HelpBox(Styles.rendererMissingDefaultMessage.text, MessageType.Error, true);
                 else if (!asset.ValidateRendererDataList(true))
                     EditorGUILayout.HelpBox(Styles.rendererMissingMessage.text, MessageType.Warning, true);
+                else if (!ValidateRendererGraphicsAPIs(asset, out unsupportedGraphicsApisMessage))
+                    EditorGUILayout.HelpBox(Styles.rendererUnsupportedAPIMessage.text + unsupportedGraphicsApisMessage, MessageType.Warning, true);
 
                 EditorGUILayout.PropertyField(m_RequireDepthTextureProp, Styles.requireDepthTextureText);
                 EditorGUILayout.PropertyField(m_RequireOpaqueTextureProp, Styles.requireOpaqueTextureText);
@@ -294,8 +323,7 @@ namespace UnityEditor.Rendering.Universal
                 EditorGUILayout.Space();
 
                 // Additional light
-                selectedLightRenderingMode = (LightRenderingMode)EditorGUILayout.EnumPopup(Styles.addditionalLightsRenderingModeText, selectedLightRenderingMode);
-                m_AdditionalLightsRenderingModeProp.intValue = (int)selectedLightRenderingMode;
+                EditorGUILayout.PropertyField(m_AdditionalLightsRenderingModeProp, Styles.addditionalLightsRenderingModeText);
                 EditorGUI.indentLevel++;
 
                 disableGroup = m_AdditionalLightsRenderingModeProp.intValue == (int)LightRenderingMode.Disabled;
@@ -311,6 +339,7 @@ namespace UnityEditor.Rendering.Universal
                 disableGroup |= !m_AdditionalLightShadowsSupportedProp.boolValue;
                 EditorGUI.BeginDisabledGroup(disableGroup);
                 EditorGUILayout.PropertyField(m_AdditionalLightShadowmapResolutionProp, Styles.additionalLightsShadowmapResolution);
+                DrawShadowResolutionTierSettings();
                 EditorGUI.EndDisabledGroup();
 
                 EditorGUI.indentLevel--;
@@ -322,6 +351,44 @@ namespace UnityEditor.Rendering.Universal
             EditorGUILayout.EndFoldoutHeaderGroup();
         }
 
+        void DrawShadowResolutionTierSettings()
+        {
+            // UI code adapted from HDRP U.I logic implemented in com.unity.render-pipelines.high-definition/Editor/RenderPipeline/Settings/SerializedScalableSetting.cs )
+
+            var rect = GUILayoutUtility.GetRect(0, float.Epsilon, EditorGUIUtility.singleLineHeight, EditorGUIUtility.singleLineHeight);
+            var contentRect = EditorGUI.PrefixLabel(rect, Styles.additionalLightsShadowResolutionTiers);
+
+            EditorGUI.BeginChangeCheck();
+
+            const int k_ShadowResolutionTiersCount = 3;
+            var values = new[] { m_AdditionalLightsShadowResolutionTierLowProp, m_AdditionalLightsShadowResolutionTierMediumProp, m_AdditionalLightsShadowResolutionTierHighProp};
+
+            var num = contentRect.width / (float)k_ShadowResolutionTiersCount;  // space allocated for every field including the label
+
+            var indentLevel = EditorGUI.indentLevel;
+            EditorGUI.indentLevel = 0; // Reset the indentation
+
+            float pixelShift = 0;  // Variable to keep track of the current pixel shift in the rectangle we were assigned for this whole section.
+            for (var index = 0; index < k_ShadowResolutionTiersCount; ++index)
+            {
+                var labelWidth = Mathf.Clamp(EditorStyles.label.CalcSize(Styles.additionalLightsShadowResolutionTierNames[index]).x, 0, num);
+                EditorGUI.LabelField(new Rect(contentRect.x + pixelShift, contentRect.y, labelWidth, contentRect.height), Styles.additionalLightsShadowResolutionTierNames[index]);
+                pixelShift += labelWidth;           // We need to remove from the position the label size that we've just drawn and shift by it's length
+                float spaceLeft = num - labelWidth; // The amount of space left for the field
+                if (spaceLeft > 2) // If at least two pixels are left to draw this field, draw it, otherwise, skip
+                {
+                    var fieldSlot = new Rect(contentRect.x + pixelShift, contentRect.y, num - labelWidth, contentRect.height); // Define the rectangle for the field
+                    int value = EditorGUI.DelayedIntField(fieldSlot, values[index].intValue);
+                    values[index].intValue = Mathf.Max(128, Mathf.NextPowerOfTwo(value));
+                }
+                pixelShift += spaceLeft;  // Shift by the slot that was left for the field
+            }
+
+            EditorGUI.indentLevel = indentLevel;
+
+            EditorGUI.EndChangeCheck();
+        }
+
         void DrawShadowSettings()
         {
             m_ShadowSettingsFoldout.value = EditorGUILayout.BeginFoldoutHeaderGroup(m_ShadowSettingsFoldout.value, Styles.shadowSettingsText);
@@ -329,13 +396,31 @@ namespace UnityEditor.Rendering.Universal
             {
                 EditorGUI.indentLevel++;
                 m_ShadowDistanceProp.floatValue = Mathf.Max(0.0f, EditorGUILayout.FloatField(Styles.shadowDistanceText, m_ShadowDistanceProp.floatValue));
-                CoreEditorUtils.DrawPopup(Styles.shadowCascadesText, m_ShadowCascadesProp, Styles.shadowCascadeOptions);
+                EditorUtils.Unit unit = EditorUtils.Unit.Metric;
+                if (m_ShadowCascadeCountProp.intValue != 0)
+                {
+                    EditorGUI.BeginChangeCheck();
+                    unit = (EditorUtils.Unit)EditorGUILayout.EnumPopup(EditorGUIUtility.TrTextContent("Working Unit", "Except Max Distance which will be still in meter."), m_State.value);
+                    if (EditorGUI.EndChangeCheck())
+                    {
+                        m_State.value = unit;
+                    }
+                }
 
-                ShadowCascadesOption cascades = (ShadowCascadesOption)m_ShadowCascadesProp.intValue;
-                if (cascades == ShadowCascadesOption.FourCascades)
-                    EditorUtils.DrawCascadeSplitGUI<Vector3>(ref m_ShadowCascade4SplitProp);
-                else if (cascades == ShadowCascadesOption.TwoCascades)
-                    EditorUtils.DrawCascadeSplitGUI<float>(ref m_ShadowCascade2SplitProp);
+                EditorGUILayout.IntSlider(m_ShadowCascadeCountProp, UniversalRenderPipelineAsset.k_ShadowCascadeMinCount, UniversalRenderPipelineAsset.k_ShadowCascadeMaxCount, Styles.shadowCascadesText);
+
+                int cascadeCount = m_ShadowCascadeCountProp.intValue;
+                EditorGUI.indentLevel++;
+
+                bool useMetric = unit == EditorUtils.Unit.Metric;
+                float baseMetric = m_ShadowDistanceProp.floatValue;
+                int cascadeSplitCount = cascadeCount - 1;
+
+                DrawCascadeSliders(cascadeSplitCount, useMetric, baseMetric);
+
+                EditorGUI.indentLevel--;
+                DrawCascades(cascadeCount, useMetric, baseMetric);
+                EditorGUI.indentLevel++;
 
                 m_ShadowDepthBiasProp.floatValue = EditorGUILayout.Slider(Styles.shadowDepthBias, m_ShadowDepthBiasProp.floatValue, 0.0f, UniversalRenderPipeline.maxShadowBias);
                 m_ShadowNormalBiasProp.floatValue = EditorGUILayout.Slider(Styles.shadowNormalBias, m_ShadowNormalBiasProp.floatValue, 0.0f, UniversalRenderPipeline.maxShadowBias);
@@ -345,6 +430,144 @@ namespace UnityEditor.Rendering.Universal
                 EditorGUILayout.Space();
             }
             EditorGUILayout.EndFoldoutHeaderGroup();
+        }
+
+        private void DrawCascadeSliders(int splitCount, bool useMetric, float baseMetric)
+        {
+            Vector4 shadowCascadeSplit = Vector4.one;
+            if (splitCount == 3)
+                shadowCascadeSplit = new Vector4(m_ShadowCascade4SplitProp.vector3Value.x, m_ShadowCascade4SplitProp.vector3Value.y, m_ShadowCascade4SplitProp.vector3Value.z, 1);
+            else if (splitCount == 2)
+                shadowCascadeSplit = new Vector4(m_ShadowCascade3SplitProp.vector2Value.x, m_ShadowCascade3SplitProp.vector2Value.y, 1, 0);
+            else if (splitCount == 1)
+                shadowCascadeSplit = new Vector4(m_ShadowCascade2SplitProp.floatValue, 1, 0, 0);
+
+            float splitBias = 0.001f;
+            float invBaseMetric = baseMetric == 0 ? 0 : 1f / baseMetric;
+
+            // Ensure correct split order
+            shadowCascadeSplit[0] = Mathf.Clamp(shadowCascadeSplit[0], 0f, shadowCascadeSplit[1] - splitBias);
+            shadowCascadeSplit[1] = Mathf.Clamp(shadowCascadeSplit[1], shadowCascadeSplit[0] + splitBias, shadowCascadeSplit[2] - splitBias);
+            shadowCascadeSplit[2] = Mathf.Clamp(shadowCascadeSplit[2], shadowCascadeSplit[1] + splitBias, shadowCascadeSplit[3] - splitBias);
+
+
+            EditorGUI.BeginChangeCheck();
+            for (int i = 0; i < splitCount; ++i)
+            {
+                float value = shadowCascadeSplit[i];
+
+                float minimum = i == 0 ? 0 : shadowCascadeSplit[i - 1] + splitBias;
+                float maximum = i == splitCount - 1 ? 1 : shadowCascadeSplit[i + 1] - splitBias;
+
+                if (useMetric)
+                {
+                    float valueMetric = value * baseMetric;
+                    valueMetric = EditorGUILayout.Slider(EditorGUIUtility.TrTextContent($"Split {i + 1}", ""), valueMetric, 0f, baseMetric, null);
+
+                    shadowCascadeSplit[i] = Mathf.Clamp(valueMetric * invBaseMetric, minimum, maximum);
+                }
+                else
+                {
+                    float valueProcentage = value * 100f;
+                    valueProcentage = EditorGUILayout.Slider(EditorGUIUtility.TrTextContent($"Split {i + 1}", ""), valueProcentage, 0f, 100f, null);
+
+                    shadowCascadeSplit[i] = Mathf.Clamp(valueProcentage * 0.01f, minimum, maximum);
+                }
+            }
+
+            if (EditorGUI.EndChangeCheck())
+            {
+                if (splitCount == 3)
+                    m_ShadowCascade4SplitProp.vector3Value = shadowCascadeSplit;
+                else if (splitCount == 2)
+                    m_ShadowCascade3SplitProp.vector2Value = shadowCascadeSplit;
+                else if (splitCount == 1)
+                    m_ShadowCascade2SplitProp.floatValue = shadowCascadeSplit.x;
+            }
+
+            var borderValue = m_ShadowCascadeBorderProp.floatValue;
+
+            EditorGUI.BeginChangeCheck();
+            if (useMetric)
+            {
+                var lastCascadeSplitSize = splitCount == 0 ? baseMetric : (1.0f - shadowCascadeSplit[splitCount - 1]) * baseMetric;
+                var invLastCascadeSplitSize = lastCascadeSplitSize == 0 ? 0 : 1f / lastCascadeSplitSize;
+                float valueMetric = borderValue * lastCascadeSplitSize;
+                valueMetric = EditorGUILayout.Slider(EditorGUIUtility.TrTextContent("Last Border", ""), valueMetric, 0f, lastCascadeSplitSize, null);
+
+                borderValue = valueMetric * invLastCascadeSplitSize;
+            }
+            else
+            {
+                float valueProcentage = borderValue * 100f;
+                valueProcentage = EditorGUILayout.Slider(EditorGUIUtility.TrTextContent("Last Border", ""), valueProcentage, 0f, 100f, null);
+
+                borderValue = valueProcentage * 0.01f;
+            }
+
+            if (EditorGUI.EndChangeCheck())
+            {
+                m_ShadowCascadeBorderProp.floatValue = borderValue;
+            }
+        }
+
+        private void DrawCascades(int cascadeCount, bool useMetric, float baseMetric)
+        {
+            var cascades = new ShadowCascadeGUI.Cascade[cascadeCount];
+
+            Vector3 shadowCascadeSplit = Vector3.zero;
+            if (cascadeCount == 4)
+                shadowCascadeSplit = m_ShadowCascade4SplitProp.vector3Value;
+            else if (cascadeCount == 3)
+                shadowCascadeSplit = m_ShadowCascade3SplitProp.vector2Value;
+            else if (cascadeCount == 2)
+                shadowCascadeSplit.x = m_ShadowCascade2SplitProp.floatValue;
+            else
+                shadowCascadeSplit.x = m_ShadowCascade2SplitProp.floatValue;
+
+            float lastCascadePartitionSplit = 0;
+            for (int i = 0; i < cascadeCount - 1; ++i)
+            {
+                cascades[i] = new ShadowCascadeGUI.Cascade()
+                {
+                    size = i == 0 ? shadowCascadeSplit[i] : shadowCascadeSplit[i] - lastCascadePartitionSplit, // Calculate the size of cascade
+                    borderSize = 0,
+                    cascadeHandleState = ShadowCascadeGUI.HandleState.Enabled,
+                    borderHandleState = ShadowCascadeGUI.HandleState.Hidden,
+                };
+                lastCascadePartitionSplit = shadowCascadeSplit[i];
+            }
+
+            // Last cascade is special
+            var lastCascade = cascadeCount - 1;
+            cascades[lastCascade] = new ShadowCascadeGUI.Cascade()
+            {
+                size = lastCascade == 0 ? 1.0f : 1 - shadowCascadeSplit[lastCascade - 1], // Calculate the size of cascade
+                borderSize = m_ShadowCascadeBorderProp.floatValue,
+                cascadeHandleState = ShadowCascadeGUI.HandleState.Hidden,
+                borderHandleState = ShadowCascadeGUI.HandleState.Enabled,
+            };
+
+            EditorGUI.BeginChangeCheck();
+            ShadowCascadeGUI.DrawCascades(ref cascades, useMetric, baseMetric);
+            if (EditorGUI.EndChangeCheck())
+            {
+                if (cascadeCount == 4)
+                    m_ShadowCascade4SplitProp.vector3Value = new Vector3(
+                        cascades[0].size,
+                        cascades[0].size + cascades[1].size,
+                        cascades[0].size + cascades[1].size + cascades[2].size
+                    );
+                else if (cascadeCount == 3)
+                    m_ShadowCascade3SplitProp.vector2Value = new Vector2(
+                        cascades[0].size,
+                        cascades[0].size + cascades[1].size
+                    );
+                else if (cascadeCount == 2)
+                    m_ShadowCascade2SplitProp.floatValue = cascades[0].size;
+
+                m_ShadowCascadeBorderProp.floatValue = cascades[lastCascade].borderSize;
+            }
         }
 
         void DrawPostProcessingSettings()
@@ -366,6 +589,8 @@ namespace UnityEditor.Rendering.Universal
                 m_ColorGradingLutSize.intValue = Mathf.Clamp(m_ColorGradingLutSize.intValue, UniversalRenderPipelineAsset.k_MinLutSize, UniversalRenderPipelineAsset.k_MaxLutSize);
                 if (isHdrOn && m_ColorGradingMode.intValue == (int)ColorGradingMode.HighDynamicRange && m_ColorGradingLutSize.intValue < 32)
                     EditorGUILayout.HelpBox(Styles.colorGradingLutSizeWarning, MessageType.Warning);
+
+                EditorGUILayout.PropertyField(m_UseFastSRGBLinearConversion, Styles.useFastSRGBLinearConversion);
 
                 EditorGUI.indentLevel--;
                 EditorGUILayout.Space();
@@ -417,13 +642,13 @@ namespace UnityEditor.Rendering.Universal
 
                 EditorGUI.BeginChangeCheck();
                 EditorGUI.ObjectField(objRect, prop.GetArrayElementAtIndex(index), GUIContent.none);
-                if(EditorGUI.EndChangeCheck())
+                if (EditorGUI.EndChangeCheck())
                     EditorUtility.SetDirty(target);
 
-                Rect defaultButton = new Rect(rect.width - 90, rect.y, 86, EditorGUIUtility.singleLineHeight);
+                Rect defaultButton = new Rect(rect.width - 75, rect.y, 86, EditorGUIUtility.singleLineHeight);
                 var defaultRenderer = m_DefaultRendererProp.intValue;
                 GUI.enabled = index != defaultRenderer;
-                if(GUI.Button(defaultButton, !GUI.enabled ? Styles.rendererDefaultText : Styles.rendererSetDefaultText))
+                if (GUI.Button(defaultButton, !GUI.enabled ? Styles.rendererDefaultText : Styles.rendererSetDefaultText))
                 {
                     m_DefaultRendererProp.intValue = index;
                     EditorUtility.SetDirty(target);
@@ -460,29 +685,106 @@ namespace UnityEditor.Rendering.Universal
             list.drawHeaderCallback = (Rect rect) =>
             {
                 EditorGUI.LabelField(rect, Styles.rendererHeaderText);
-                list.index = list.count - 1;
             };
 
             list.onCanRemoveCallback = li => { return li.count > 1; };
 
-            list.onCanAddCallback = li => { return li.count < UniversalRenderPipeline.maxScriptableRenderers; };
-
             list.onRemoveCallback = li =>
             {
-                if (li.serializedProperty.arraySize - 1 != m_DefaultRendererProp.intValue)
+                bool shouldUpdateIndex = false;
+                // Checking so that the user is not deleting  the default renderer
+                if (li.index != m_DefaultRendererProp.intValue)
                 {
-                    if(li.serializedProperty.GetArrayElementAtIndex(li.serializedProperty.arraySize - 1).objectReferenceValue != null)
-                        li.serializedProperty.DeleteArrayElementAtIndex(li.serializedProperty.arraySize - 1);
-                    li.serializedProperty.arraySize--;
-                    li.index = li.count - 1;
+                    // Need to add the undo to the removal of our assets here, for it to work properly.
+                    Undo.RecordObject(target, $"Deleting renderer at index {li.index}");
+
+                    if (prop.GetArrayElementAtIndex(li.index).objectReferenceValue == null)
+                    {
+                        shouldUpdateIndex = true;
+                    }
+                    prop.DeleteArrayElementAtIndex(li.index);
                 }
                 else
                 {
                     EditorUtility.DisplayDialog(Styles.rendererListDefaultMessage.text, Styles.rendererListDefaultMessage.tooltip,
                         "Close");
                 }
+
+                if (shouldUpdateIndex)
+                {
+                    UpdateDefaultRendererValue(li.index);
+                }
+
                 EditorUtility.SetDirty(target);
             };
+
+            list.onReorderCallbackWithDetails += (reorderableList, index, newIndex) =>
+            {
+                // Need to update the default renderer index
+                UpdateDefaultRendererValue(index, newIndex);
+            };
+        }
+
+        void UpdateDefaultRendererValue(int index)
+        {
+            // If the index that is being removed is lower than the default renderer value,
+            // the default prop value needs to be one lower.
+            if (index < m_DefaultRendererProp.intValue)
+            {
+                m_DefaultRendererProp.intValue--;
+            }
+        }
+
+        void UpdateDefaultRendererValue(int prevIndex, int newIndex)
+        {
+            // If we are moving the index that is the same as the default renderer we need to update that
+            if (prevIndex == m_DefaultRendererProp.intValue)
+            {
+                m_DefaultRendererProp.intValue = newIndex;
+            }
+            // If newIndex is the same as default
+            // then we need to know if newIndex is above or below the default index
+            else if (newIndex == m_DefaultRendererProp.intValue)
+            {
+                m_DefaultRendererProp.intValue += prevIndex > newIndex ? 1 : -1;
+            }
+            // If the old index is lower than default renderer and
+            // the new index is higher then we need to move the default renderer index one lower
+            else if (prevIndex < m_DefaultRendererProp.intValue && newIndex > m_DefaultRendererProp.intValue)
+            {
+                m_DefaultRendererProp.intValue--;
+            }
+            else if (newIndex < m_DefaultRendererProp.intValue && prevIndex > m_DefaultRendererProp.intValue)
+            {
+                m_DefaultRendererProp.intValue++;
+            }
+        }
+
+        bool ValidateRendererGraphicsAPIs(UniversalRenderPipelineAsset pipelineAsset, out string unsupportedGraphicsApisMessage)
+        {
+            // Check the list of Renderers against all Graphics APIs the player is built with.
+            unsupportedGraphicsApisMessage = null;
+
+            BuildTarget platform = EditorUserBuildSettings.activeBuildTarget;
+            GraphicsDeviceType[] graphicsAPIs = PlayerSettings.GetGraphicsAPIs(platform);
+            int rendererCount = pipelineAsset.m_RendererDataList.Length;
+
+            for (int i = 0; i < rendererCount; i++)
+            {
+                ScriptableRenderer renderer = pipelineAsset.GetRenderer(i);
+                if (renderer == null)
+                    continue;
+
+                GraphicsDeviceType[] unsupportedAPIs = renderer.unsupportedGraphicsDeviceTypes;
+
+                for (int apiIndex = 0; apiIndex < unsupportedAPIs.Length; apiIndex++)
+                {
+                    if (System.Array.FindIndex(graphicsAPIs, element => element == unsupportedAPIs[apiIndex]) >= 0)
+                        unsupportedGraphicsApisMessage += System.String.Format("{0} at index {1} does not support {2}.\n", renderer, i, unsupportedAPIs[apiIndex]);
+                }
+            }
+
+            return unsupportedGraphicsApisMessage == null;
         }
     }
 }

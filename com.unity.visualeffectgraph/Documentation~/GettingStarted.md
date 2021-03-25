@@ -4,23 +4,17 @@ This page shows you how  to install Visual Effect Graph, and gives a brief overv
 Visual Effect Graph is a Unity package that uses a [Scriptable Render Pipeline](https://docs.unity3d.com/Manual/ScriptableRenderPipeline.html) to render visual effects. Visual Effect graph uses on compute Shaders to simulate effects.
 
 ## Requirements
-* Unity 2018.3 or newer. Verified packages start at Unity 2019.3.
-* A [Scriptable Render Pipeline](https://docs.unity3d.com/Manual/ScriptableRenderPipeline.html) package:
-  * [High Definition Render Pipeline](https://docs.unity3d.com/Packages/com.unity.render-pipelines.high-definition@latest/index.html) (HDRP): Unity 2018.3 or newer. Verified from Unity 2019.3.<br/>The Visual Effect Graph supports every platform that HDRP supports. For information on which platforms this includes, see HDRP's [system requirements](https://docs.unity3d.com/Packages/com.unity.render-pipelines.high-definition@latest/index.html?subfolder=/manual/System-Requirements.html).
-  * [Universal Render Pipeline](https://docs.unity3d.com/Packages/com.unity.render-pipelines.universal@latest/index.html) (URP): Unity 2019.3 or newer.<br/>The Visual Effect Graph is not out of preview with URP and so only supports a subset of platforms that URP supports. It also does not support every feature that is does with HDRP and also only supports unlit particles.
-
-**Note:** When you download the High Definition Render Pipeline package from Package Manager, Unity automatically installs the Visual Effect Graph package.
-* A target device that can use compute Shaders, such as aWindows PC, Playstation 4, XBox One, or Mac running MacOS.
+For information on system requirements for the Visual Effect Graph, see [Requirements and compatibility](System-Requirements.md).
 
 ## Installing Visual Effect Graph
 
 To install the Visual Effect Graph package:
 
-
-1. In the Unity Editor, go to __Window__ &gt; __Package Manager__. In the top navigation bar, make sure __All packages__ is selected.
-2. Note: On version prior to Unity 2019.3, you will have to check the "Show preview packages" "Advanced" option for the Visual Effect Graph to appear in the list.
-3. Select the __Visual Effect Graph__ package.
-4. In the bottom right corner, click __Install__.
+1. Open a Unity project.
+2. Open the __Package Manager__ window (__Window > Package Manager__).
+3. In the __Package Manager__ window, in the **Packages** field, select **Unity Registry**.
+4. Select **Visual Effect Graph** from the list of packages.
+5. In the bottom right corner of the Package Manager window, select __Install__. Unity installs URP into your Project.
 
 ![](Images/InstallVisualEffectGraph.png)
 

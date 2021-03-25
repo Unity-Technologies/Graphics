@@ -52,7 +52,8 @@ namespace UnityEditor.VFX.Operator
                 || GetOperandType() == typeof(Texture2DArray)
                 || GetOperandType() == typeof(CubemapArray))
             {
-                return new VFXExpression[] {
+                return new VFXExpression[]
+                {
                     new VFXExpressionTextureWidth(inputExpression[0]),
                     new VFXExpressionTextureHeight(inputExpression[0]),
                     new VFXExpressionTextureDepth(inputExpression[0]),
@@ -60,7 +61,8 @@ namespace UnityEditor.VFX.Operator
             }
             else
             {
-                return new VFXExpression[] {
+                return new VFXExpression[]
+                {
                     new VFXExpressionTextureWidth(inputExpression[0]),
                     new VFXExpressionTextureHeight(inputExpression[0]),
                 };

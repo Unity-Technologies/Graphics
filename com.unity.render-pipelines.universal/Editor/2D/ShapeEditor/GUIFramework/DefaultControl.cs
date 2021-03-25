@@ -6,7 +6,7 @@ namespace UnityEditor.Experimental.Rendering.Universal.Path2D.GUIFramework
     internal abstract class DefaultControl : Control
     {
         public static readonly float kPickDistance = 5f;
-        
+
         public DefaultControl(string name) : base(name)
         {
         }

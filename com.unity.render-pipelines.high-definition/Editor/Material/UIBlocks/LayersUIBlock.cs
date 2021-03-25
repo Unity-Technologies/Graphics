@@ -10,33 +10,38 @@ using static UnityEngine.Rendering.HighDefinition.HDMaterialProperties;
 
 namespace UnityEditor.Rendering.HighDefinition
 {
-    class LayersUIBlock : MaterialUIBlock
+    /// <summary>
+    /// The UI block that represents layer options for materials.
+    /// </summary>
+    public class LayersUIBlock : MaterialUIBlock
     {
-        public class Styles
+        internal class Styles
         {
-            public static readonly string[] headers =
+            public static Vector2 layerIconSize = new Vector2(5, 5);
+
+            public static GUIContent[] layers { get; } =
             {
-                "Main layer",
-                "Layer 1",
-                "Layer 2",
-                "Layer 3",
+                EditorGUIUtility.TrTextContent(" Main layer", icon: Texture2D.whiteTexture),
+                EditorGUIUtility.TrTextContent(" Layer 1", icon: CoreEditorStyles.redTexture),
+                EditorGUIUtility.TrTextContent(" Layer 2", icon: CoreEditorStyles.greenTexture),
+                EditorGUIUtility.TrTextContent(" Layer 3", icon: CoreEditorStyles.blueTexture),
             };
 
-            public static readonly Expandable[] layerExpandableBits =
+            public static ExpandableBit[] layerExpandableBits { get; } =
             {
-                Expandable.MainLayer,
-                Expandable.Layer1,
-                Expandable.Layer2,
-                Expandable.Layer3,
+                ExpandableBit.MainLayer,
+                ExpandableBit.Layer1,
+                ExpandableBit.Layer2,
+                ExpandableBit.Layer3,
             };
 
             // We need this because LayeringOption values are not contiguous
-            public static readonly Expandable[] layeringOptionsExpandableBits =
+            public static ExpandableBit[] layeringOptionsExpandableBits { get; } =
             {
-                Expandable.LayeringOptionMain,
-                Expandable.LayeringOption1,
-                Expandable.LayeringOption2,
-                Expandable.LayeringOption3,
+                ExpandableBit.LayeringOptionMain,
+                ExpandableBit.LayeringOption1,
+                ExpandableBit.LayeringOption2,
+                ExpandableBit.LayeringOption3,
             };
         }
 
@@ -57,29 +62,38 @@ namespace UnityEditor.Rendering.HighDefinition
                 layerUIBlocks[i] = new MaterialUIBlockList(parent)
                 {
                     new LayeringOptionsUIBlock(Styles.layeringOptionsExpandableBits[i], i),
-                    new LitSurfaceInputsUIBlock((Expandable)((uint)Expandable.MainInput + i), kMaxLayerCount, i, features: litInputsFeatures),
-                    new DetailInputsUIBlock((Expandable)((uint)Expandable.MainDetail + i), kMaxLayerCount, i, features: detailInputsFeatures),
+                    new LitSurfaceInputsUIBlock((ExpandableBit)((uint)ExpandableBit.MainInput + i), kMaxLayerCount, i, features: litInputsFeatures),
+                    new DetailInputsUIBlock((ExpandableBit)((uint)ExpandableBit.MainDetail + i), kMaxLayerCount, i, features: detailInputsFeatures),
                 };
             }
         }
 
+        /// <summary>
+        /// Loads the material properties for the block.
+        /// </summary>
         public override void LoadMaterialProperties()
         {
             layerCount = FindProperty(kLayerCount);
         }
 
+        /// <summary>
+        /// Renders the properties in the block.
+        /// </summary>
         public override void OnGUI()
         {
             if (layerUIBlocks == null)
                 CreateUIBlockLayers();
 
-            for (int layerIndex = 0; layerIndex < layerCount.floatValue; layerIndex++)
+            using (new EditorGUIUtility.IconSizeScope(Styles.layerIconSize))
             {
-                using (var header = new MaterialHeaderScope(Styles.headers[layerIndex], (uint)Styles.layerExpandableBits[layerIndex], materialEditor, colorDot: kLayerColors[layerIndex]))
+                for (int layerIndex = 0; layerIndex < layerCount.floatValue; layerIndex++)
                 {
-                    if (header.expanded)
+                    using (var header = new MaterialHeaderScope(Styles.layers[layerIndex], (uint)Styles.layerExpandableBits[layerIndex], materialEditor))
                     {
-                        DrawLayerGUI(layerIndex);
+                        if (header.expanded)
+                        {
+                            DrawLayerGUI(layerIndex);
+                        }
                     }
                 }
             }

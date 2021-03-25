@@ -10,7 +10,6 @@ namespace UnityEditor.ShaderGraph
             name = "Clamp";
         }
 
-
         protected override MethodInfo GetFunctionToConvert()
         {
             return GetType().GetMethod("Unity_Clamp", BindingFlags.Static | BindingFlags.NonPublic);
@@ -23,7 +22,7 @@ namespace UnityEditor.ShaderGraph
             [Slot(3, Binding.None)] out DynamicDimensionVector Out)
         {
             return
-                @"
+@"
 {
     Out = clamp(In, Min, Max);
 }";

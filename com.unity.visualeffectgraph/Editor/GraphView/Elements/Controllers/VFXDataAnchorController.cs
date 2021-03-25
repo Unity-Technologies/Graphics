@@ -524,6 +524,16 @@ namespace UnityEditor.VFX.UI
                 VFXGizmoUtility.Draw(m_GizmoContext, component);
             }
         }
+
+        void IPropertyRMProvider.StartLiveModification()
+        {
+            sourceNode.viewController.errorRefresh = false;
+        }
+
+        void IPropertyRMProvider.EndLiveModification()
+        {
+            sourceNode.viewController.errorRefresh = true;
+        }
     }
 
     class VFXUpcommingDataAnchorController : VFXDataAnchorController

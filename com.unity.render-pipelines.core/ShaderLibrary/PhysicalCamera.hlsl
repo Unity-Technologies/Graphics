@@ -67,7 +67,7 @@ float ComputeLuminanceAdaptation(float previousLuminance, float currentLuminance
 {
     float delta = currentLuminance - previousLuminance;
     float speed = delta > 0.0 ? speedDarkToLight : speedLightToDark;
-    
+
     // Exponential decay
     return previousLuminance + delta * (1.0 - exp2(-deltaTime * speed));
 }

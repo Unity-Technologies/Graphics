@@ -20,7 +20,6 @@ namespace UnityEditor.Experimental.Rendering.Universal.Path2D.GUIFramework
             return guiState.eventType == EventType.MouseUp && guiState.mouseButton == 0;
         }
 
-
         protected override void OnTrigger(IGUIState guiState)
         {
             base.OnTrigger(guiState);

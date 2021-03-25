@@ -1,5 +1,8 @@
+using System;
 using System.Collections.Generic;
+using System.Reflection;
 using UnityEngine.Scripting.APIUpdating;
+
 #if UNITY_EDITOR
 using System.Linq;
 using UnityEditor;
@@ -11,7 +14,8 @@ namespace UnityEngine.Rendering.Universal
     /// Class <c>ScriptableRendererData</c> contains resources for a <c>ScriptableRenderer</c>.
     /// <seealso cref="ScriptableRenderer"/>
     /// </summary>
-    [MovedFrom("UnityEngine.Rendering.LWRP")] public abstract class ScriptableRendererData : ScriptableObject
+    [MovedFrom("UnityEngine.Rendering.LWRP")]
+    public abstract class ScriptableRendererData : ScriptableObject
     {
         internal bool isInvalidated { get; set; }
 
@@ -23,6 +27,7 @@ namespace UnityEngine.Rendering.Universal
 
         [SerializeField] internal List<ScriptableRendererFeature> m_RendererFeatures = new List<ScriptableRendererFeature>(10);
         [SerializeField] internal List<long> m_RendererFeatureMap = new List<long>(10);
+        [SerializeField] bool m_UseNativeRenderPass = false;
 
         /// <summary>
         /// List of additional render pass features for this renderer.
@@ -61,6 +66,16 @@ namespace UnityEngine.Rendering.Universal
             SetDirty();
         }
 
+        public bool useNativeRenderPass
+        {
+            get => m_UseNativeRenderPass;
+            set
+            {
+                SetDirty();
+                m_UseNativeRenderPass = value;
+            }
+        }
+
 #if UNITY_EDITOR
         internal virtual Material GetDefaultMaterial(DefaultMaterialType materialType)
         {
@@ -79,7 +94,6 @@ namespace UnityEngine.Rendering.Universal
             var linkedIds = new List<long>();
             var loadedAssets = new Dictionary<long, object>();
             var mapValid = m_RendererFeatureMap != null && m_RendererFeatureMap?.Count == m_RendererFeatures?.Count;
-
             var debugOutput = $"{name}\nValid Sub-assets:\n";
 
             // Collect valid, compiled sub-assets
@@ -94,7 +108,7 @@ namespace UnityEngine.Rendering.Universal
             // Collect assets that are connected to the list
             for (var i = 0; i < m_RendererFeatures?.Count; i++)
             {
-                if(!m_RendererFeatures[i]) continue;
+                if (!m_RendererFeatures[i]) continue;
                 if (AssetDatabase.TryGetGUIDAndLocalFileIdentifier(m_RendererFeatures[i], out var guid, out long localId))
                 {
                     linkedIds.Add(localId);
@@ -120,17 +134,23 @@ namespace UnityEngine.Rendering.Universal
                         m_RendererFeatures[i] = (ScriptableRendererFeature)GetUnusedAsset(ref linkedIds, ref loadedAssets);
                     }
                 }
+
                 debugOutput += m_RendererFeatures[i] != null ? $"-{i}:Linked\n" : $"-{i}:Missing\n";
             }
-            if(UniversalRenderPipeline.asset.debugLevel != PipelineDebugLevel.Disabled)
-                Debug.LogWarning(debugOutput);
 
             UpdateMap();
 
-            if (!m_RendererFeatures.Contains(null)) return true;
+            if (!m_RendererFeatures.Contains(null))
+                return true;
 
             Debug.LogError($"{name} is missing RendererFeatures\nThis could be due to missing scripts or compile error.", this);
             return false;
+        }
+
+        internal bool DuplicateFeatureCheck(Type type)
+        {
+            var isSingleFeature = type.GetCustomAttribute(typeof(DisallowMultipleRendererFeature));
+            return isSingleFeature != null && m_RendererFeatures.Select(renderFeature => renderFeature.GetType()).Any(t => t == type);
         }
 
         private static object GetUnusedAsset(ref List<long> usedIds, ref Dictionary<long, object> assets)
@@ -139,7 +159,9 @@ namespace UnityEngine.Rendering.Universal
             {
                 var alreadyLinked = usedIds.Any(used => asset.Key == used);
 
-                if (alreadyLinked) continue;
+                if (alreadyLinked)
+                    continue;
+
                 usedIds.Add(asset.Key);
                 return asset.Value;
             }
@@ -155,15 +177,15 @@ namespace UnityEngine.Rendering.Universal
                 m_RendererFeatureMap.AddRange(new long[m_RendererFeatures.Count]);
             }
 
-            for (var i = 0; i < rendererFeatures.Count; i++)
+            for (int i = 0; i < rendererFeatures.Count; i++)
             {
-                if(m_RendererFeatures[i] == null) continue;
-                if (!AssetDatabase.TryGetGUIDAndLocalFileIdentifier(m_RendererFeatures[i], out var guid,
-                    out long localId)) continue;
+                if (m_RendererFeatures[i] == null) continue;
+                if (!AssetDatabase.TryGetGUIDAndLocalFileIdentifier(m_RendererFeatures[i], out var guid, out long localId)) continue;
+
                 m_RendererFeatureMap[i] = localId;
             }
         }
+
 #endif
     }
 }
-

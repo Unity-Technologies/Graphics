@@ -21,6 +21,8 @@ namespace UnityEngine.Rendering.HighDefinition
 
         internal struct PlanarTextureFilteringParameters
         {
+            // Flag that defines if we should be evaluating all the mip levels for the planar reflection
+            public bool smoothPlanarReflection;
             // Depth buffer (oblique) that was produced
             public RenderTexture captureCameraDepthBuffer;
             // Inverse view projection matrix (oblique)

@@ -734,6 +734,7 @@ GameObject:
   - component: {fileID: 1849253499}
   - component: {fileID: 1849253498}
   - component: {fileID: 1849253500}
+  - component: {fileID: 1849253501}
   m_Layer: 0
   m_Name: Visual_Effect_Shadow
   m_TagString: Untagged
@@ -833,3 +834,23 @@ VFXRenderer:
   m_SortingLayerID: 0
   m_SortingLayer: 0
   m_SortingOrder: 0
+--- !u!114 &1849253501
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1849253497}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 20f198885badb1f4fa1e65869995ff82, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  ImageComparisonSettings:
+    TargetWidth: 512
+    TargetHeight: 512
+    PerPixelCorrectnessThreshold: 0
+    AverageCorrectnessThreshold: 0.00001
+    UseHDR: 0
+    UseBackBuffer: 0
+    ImageResolution: 0

@@ -196,7 +196,7 @@ namespace UnityEditor.Rendering.LookDev
             var lineRenderer = go.GetComponent<LineRenderer>();
             if (lineRenderer != null)
                 lineRenderer.lightProbeUsage = UnityEngine.Rendering.LightProbeUsage.Off;
-            
+
             var volumes = go.GetComponents<UnityEngine.Rendering.Volume>();
             foreach (var volume in volumes)
                 volume.UpdateLayer(); //force update of layer now as the Update can be called after we unregister volume from manager
@@ -217,16 +217,28 @@ namespace UnityEditor.Rendering.LookDev
                 if (go == null || go.Equals(null))
                     continue;
                 foreach (UnityEngine.Renderer renderer in go.GetComponentsInChildren<UnityEngine.Renderer>())
-                    renderer.enabled = visible;
+                {
+                    if ((renderer.hideFlags & HideFlags.HideInInspector) == 0 && ((renderer.hideFlags & HideFlags.HideAndDontSave) == 0))
+                        renderer.enabled = visible;
+                }
                 foreach (Light light in go.GetComponentsInChildren<Light>())
-                    light.enabled = visible;
+                {
+                    if ((light.hideFlags & HideFlags.HideInInspector) == 0 && ((light.hideFlags & HideFlags.HideAndDontSave) == 0))
+                        light.enabled = visible;
+                }
             }
 
             // in case we add camera frontal light and such
             foreach (UnityEngine.Renderer renderer in m_Camera.GetComponentsInChildren<UnityEngine.Renderer>())
-                renderer.enabled = visible;
+            {
+                if ((renderer.hideFlags & HideFlags.HideInInspector) == 0 && ((renderer.hideFlags & HideFlags.HideAndDontSave) == 0))
+                    renderer.enabled = visible;
+            }
             foreach (Light light in m_Camera.GetComponentsInChildren<Light>())
-                light.enabled = visible;
+            {
+                if ((light.hideFlags & HideFlags.HideInInspector) == 0 && ((light.hideFlags & HideFlags.HideAndDontSave) == 0))
+                    light.enabled = visible;
+            }
         }
 
         public void OnBeginRendering(IDataProvider dataProvider)
@@ -272,16 +284,15 @@ namespace UnityEditor.Rendering.LookDev
         const string secondStageName = "LookDevSecondView";
 
         Stage[] m_Stages;
-        Context m_Contexts;
+        IDataProvider m_CurrentDataProvider;
 
         public Stage this[ViewIndex index]
             => m_Stages[(int)index];
 
         public bool initialized { get; private set; }
 
-        public StageCache(IDataProvider dataProvider, Context contexts)
+        public StageCache(IDataProvider dataProvider)
         {
-            m_Contexts = contexts;
             m_Stages = new Stage[2]
             {
                 InitStage(ViewIndex.First, dataProvider),
@@ -310,6 +321,8 @@ namespace UnityEditor.Rendering.LookDev
             }
 
             dataProvider.FirstInitScene(stage.runtimeInterface);
+
+            m_CurrentDataProvider = dataProvider;
             return stage;
         }
 
@@ -318,7 +331,7 @@ namespace UnityEditor.Rendering.LookDev
             Stage stage = this[index];
             stage.Clear();
 
-            var viewContent = m_Contexts.GetViewContent(index);
+            var viewContent = LookDev.currentContext.GetViewContent(index);
             if (viewContent == null)
             {
                 viewContent.viewedInstanceInPreview = null;
@@ -332,10 +345,10 @@ namespace UnityEditor.Rendering.LookDev
         public void UpdateSceneLighting(ViewIndex index, IDataProvider provider)
         {
             Stage stage = this[index];
-            Environment environment = m_Contexts.GetViewContent(index).environment;
+            Environment environment = LookDev.currentContext.GetViewContent(index).environment;
             provider.UpdateSky(stage.camera,
                 environment == null ? default : environment.sky,
-                stage.runtimeInterface);
+                    stage.runtimeInterface);
         }
 
         private bool disposedValue = false; // To detect redundant calls
@@ -345,7 +358,10 @@ namespace UnityEditor.Rendering.LookDev
             if (!disposedValue)
             {
                 foreach (Stage stage in m_Stages)
+                {
+                    m_CurrentDataProvider.Cleanup(stage.runtimeInterface);
                     stage.Dispose();
+                }
 
                 disposedValue = true;
             }

@@ -1,5 +1,5 @@
 //
-// This file was automatically generated. Please don't edit by hand.
+// This file was automatically generated. Please don't edit by hand. Execute Editor command [ Edit > Rendering > Generate Shader Includes ] instead
 //
 
 #ifndef SHADERVARIABLESSCREENSPACEREFLECTION_CS_HLSL
@@ -19,7 +19,7 @@ CBUFFER_START(ShaderVariablesScreenSpaceReflection)
     int _SsrDepthPyramidMaxMip;
     int _SsrColorPyramidMaxMip;
     int _SsrReflectsSky;
-    float _ScreenSpaceReflectionPad0;
+    float _SsrAccumulationAmount;
 CBUFFER_END
 
 

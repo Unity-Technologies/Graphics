@@ -1,0 +1,114 @@
+project:
+  name: HDRP_PerformanceTests
+  folder: HDRP_PerformanceTests
+  variables:
+    GIT_BRANCH: master
+
+reuse_blocks:
+  cache_server:
+    - [all]: --extra-editor-arg="-adb2"
+    - [all]: --extra-editor-arg="-enableCacheServer"
+    - [all]: --extra-editor-arg="-cacheServerEndpoint" --extra-editor-arg="cacheserver-slo.hq.unity3d.com"
+    - [all]: --extra-editor-arg="-cacheServerNamespacePrefix" --extra-editor-arg="SRP"
+    - [all]: --extra-editor-arg="-cacheServerEnableDownload" --extra-editor-arg="true"
+    - [all]: --extra-editor-arg="-cacheServerEnableUpload" --extra-editor-arg="true"
+
+test_platforms:
+  - type: Standalone
+    name: performance_memory
+    add_artifacts:
+      - artifacts.logs.paths: "PrebuildLog/**"
+    commands:
+      - [Win_DX11, Win_DX12, Win_Vulkan]: <shared.platform.commands.turn_off_firewall>
+      - [all]: <shared.platform.commands.setup_utr>
+      - [all]: <shared.platform.commands.call_utr_without_git>
+        flags:
+          - [all]: --testfilter=Memory
+          - [all]: --performance-project-version=. --report-performance-data --performance-project-id=HDRP
+          - [all]: --timeout=7200
+          - [all]: --platform=StandaloneWindows64
+          - [all]: --loglevel=verbose
+    commands_build:
+      - [Win_DX11, Win_DX12, Win_Vulkan, Android_OpenGLES3, Android_Vulkan]: <shared.platform.commands.turn_off_firewall>
+      - [all]: <shared.platform.commands.unity_downloader_cli>
+      - [all]: git checkout %GIT_BRANCH%
+      - [all]: <shared.platform.commands.setup_utr>
+      - [all]: <shared.platform.commands.call_utr_without_git>
+        flags:
+          - [all]: --testfilter=Memory
+          - [all]: --timeout=7200
+          - [all]: --loglevel=verbose
+
+  - type: editmode
+    name: performance_run_build
+    add_artifacts:
+      - artifacts.logs.paths: "PrebuildLog/**"
+    commands:
+      - [Win_DX11, Win_DX12, Win_Vulkan]: <shared.platform.commands.turn_off_firewall>
+      - [all]: <shared.platform.commands.setup_utr>
+      - [all]: <shared.platform.commands.unity_downloader_cli>
+      - [all]: git checkout %GIT_BRANCH%
+      - [all]: <shared.platform.commands.call_utr_without_git>
+        flags:
+          - [all]: --testfilter=Build
+          - [all]: --performance-project-version=. --report-performance-data --performance-project-id=HDRP
+          - [all]: --timeout=14400
+          - [all]: --platform=editmode
+          - [all]: --loglevel=verbose
+  - type: playmode
+    name: performance_memory_cache
+    add_artifacts:
+      - artifacts.logs.paths: "PrebuildLog/**"
+    commands:
+      - [Win_DX11, Win_DX12, Win_Vulkan]: <shared.platform.commands.turn_off_firewall>
+      - [all]: <shared.platform.commands.setup_utr>
+      - [all]: <shared.platform.commands.unity_downloader_cli>
+      - [all]: git checkout %GIT_BRANCH%
+      - [all]: <shared.platform.commands.call_utr_without_git>
+        flags:
+          - [all]: --testfilter=Memory
+          - [all]: --performance-project-version=. --report-performance-data --performance-project-id=HDRP
+          - [all]: --timeout=14400
+          - [all]: --platform=StandaloneWindows64
+          - [all]: --loglevel=verbose
+          - [all]: <reuse_blocks.cache_server>
+  - type: editmode
+    name: performance_run_build_cache
+    add_artifacts:
+      - artifacts.logs.paths: "PrebuildLog/**"
+    commands:
+      - [Win_DX11, Win_DX12, Win_Vulkan]: <shared.platform.commands.turn_off_firewall>
+      - [all]: <shared.platform.commands.setup_utr>
+      - [all]: <shared.platform.commands.unity_downloader_cli>
+      - [all]: git checkout %GIT_BRANCH%
+      - [all]: <shared.platform.commands.call_utr_without_git>
+        flags:
+          - [all]: --testfilter=Build
+          - [all]: --performance-project-version=. --report-performance-data --performance-project-id=HDRP
+          - [all]: --timeout=14400
+          - [all]: --platform=editmode
+          - [all]: --loglevel=verbose
+          - [all]: <reuse_blocks.cache_server>
+expression_trigger:
+  expression: ""
+platforms:
+  - name: Win
+    apis:
+      - name: DX11
+    build_configs:
+      - name: il2cpp
+    color_spaces:
+      - Linear
+pr:
+  dependencies:
+    - platform: Win
+      api: DX11
+      build_config: il2cpp
+      color_space: Linear
+      test_platforms:
+        - performance_memory_cache
+        # - performance_run_build
+nightly:
+  dependencies:
+    - project: HDRP_PerformanceTests
+      pr: true

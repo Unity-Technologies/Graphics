@@ -4,6 +4,83 @@ All notable changes to this package will be documented in this file.
 The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.html).
 
+## [12.0.0] - 2021-01-11
+
+### Changed
+- ClearFlag.Depth does not implicitely clear stencil anymore. ClearFlag.Stencil added.
+
+### Fixed
+- Fixed missing warning UI about Projector component being unsupported (case 1300327).
+- Fixed the display name of a Volume Parameter when is defined the attribute InspectorName
+- Calculating correct rtHandleScale by considering the possible pixel rounding when DRS is on
+- Problem on domain reload of Volume Parameter Ranges and UI values
+- Fixed Right Align of additional properties on Volume Components Editors
+- Fixed normal bias field of reference volume being wrong until the profile UI was displayed.
+
+### Added
+- Support for the PlayStation 5 platform has been added.
+- Support for additional properties for Volume Components without custom editor
+- Calculating correct rtHandleScale by considering the possible pixel rounding when DRS is on
+- Support for the PlayStation 5 platform has been added.
+- Support for the XboxSeries platform has been added.
+- Added Editor window that allow showing an icon to browse the documentation
+- New method DrawHeaders for VolumeComponentsEditors
+- Unification of Material Editor Headers Scopes
+- New API functions with no side effects in DynamicResolutionHandler, to retrieve resolved drs scale and to apply DRS on a size.
+- Added a blitter for the SRPs.
+- Added 2D texture atlases.
+- New methods on CoreEditorDrawers, to allow adding a label on a group before rendering the internal drawers
+- Method to generate a Texture2D of 1x1 with a plain color
+- Red, Green, Blue Texture2D on CoreEditorStyles
+
+### Changed
+- Changed Window/Render Pipeline/Render Pipeline Debug to Window/Rendering/Render Pipeline Debugger
+- Changed Window/Render Pipeline/Look Dev to Window/Analysis/Look Dev
+- Changed Window/Render Pipeline/Render Graph Viewer to Window/Analysis/Render Graph Viewer
+- Changed Window/Render Pipeline/Graphics Compositor to Window/Rendering/Graphics Compositor
+- Volume Gizmo Color setting is now under Colors->Scene->Volume Gizmo
+- Volume Gizmo alpha changed from 0.5 to 0.125
+- Moved Edit/Render Pipeline/Generate Shader Includes to Edit/Rendering/Generate Shader Includes
+- Moved Assets/Create/LookDev/Environment Library to Assets/Create/Rendering/Environment Library (Look Dev)
+- Changed Nintendo Switch specific half float fixes in color conversion routines to all platforms.
+
+### Added
+- Added class for drawing shadow cascades `UnityEditor.Rendering.ShadowCascadeGUI.DrawShadowCascades`.
+
+## [11.0.0] - 2020-10-21
+
+### Fixed
+- Fixed the default background color for previews to use the original color.
+- Fixed spacing between property fields on the Volume Component Editors.
+- Fixed ALL/NONE to maintain the state on the Volume Component Editors.
+- Fixed the selection of the Additional properties from ALL/NONE when the option "Show additional properties" is disabled
+- Fixed ACES tonemaping for Nintendo Switch by forcing some shader color conversion functions to full float precision.
+- Fixed a bug in FreeCamera which would only provide a speed boost for the first frame when pressing the Shfit key.
+
+### Added
+- New View Lighting Tool, a component which allow to setup light in the camera space
+- New function in GeometryTools.hlsl to calculate triangle edge and full triangle culling.
+- Several utils functions to access SphericalHarmonicsL2 in a more verbose and intuitive fashion.
+
+## [10.2.0] - 2020-10-19
+
+Version Updated
+The version number for this package has increased due to a version update of a related graphics package.
+
+## [10.1.0] - 2020-10-12
+
+### Added
+- Added context options "Move to Top", "Move to Bottom", "Expand All" and "Collapse All" for volume components.
+- Added the support of input system V2
+
+### Fixed
+- Fixed the scene view to scale correctly when hardware dynamic resolution is enabled (case 1158661)
+- Fixed game view artifacts on resizing when hardware dynamic resolution was enabled
+- Fixed issue that caused `UNITY_REVERSED_Z` and `UNITY_UV_STARTS_AT_TOP` being defined in platforms that don't support it.
+
+### Changed
+- LookDev menu item entry is now disabled if the current pipeline does not support it.
+
 ## [10.0.0] - 2019-06-10
 
 ### Added
@@ -44,6 +121,12 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed division by zero in `V_SmithJointGGX` function.
 - Fixed null reference exception in LookDev when setting the SRP to one not implementing LookDev (case 1245086)
 - Fix LookDev's undo/redo on EnvironmentLibrary (case 1234725)
+- Fix a compil error on OpenGL ES2 in directional lightmap sampling shader code
+- Fix hierarchicalbox gizmo outside facing check in symetry or homothety mode no longer move the center
+- Fix artifacts on Adreno 630 GPUs when using ACES Tonemapping
+- Fixed a null ref in the volume component list when there is no volume components in the project.
+- Fixed issue with volume manager trying to access a null volume.
+- HLSL codegen will work with C# file using both the `GenerateHLSL` and C# 7 features.
 
 ### Changed
 - Restored usage of ENABLE_VR to fix compilation errors on some platforms.
@@ -54,6 +137,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Enable RWTexture2D, RWTexture2DArray, RWTexture3D in gles 3.1
 - Updated macros to be compatible with the new shader preprocessor.
 - Updated shaders to be compatible with Microsoft's DXC.
+- Changed CommandBufferPool.Get() to create an unnamed CommandBuffer. (No profiling markers)
 
 ## [7.1.1] - 2019-09-05
 

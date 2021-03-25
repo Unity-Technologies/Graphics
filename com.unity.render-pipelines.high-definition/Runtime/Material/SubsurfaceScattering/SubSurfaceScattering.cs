@@ -20,8 +20,10 @@ namespace UnityEngine.Rendering.HighDefinition
         /// </summary>
         [Tooltip("Number of samples for sub-surface scattering.")]
         public ClampedIntParameter sampleCount = new ClampedIntParameter(1, 1, 32);
-
-        SubSurfaceScattering()
+        /// <summary>
+        /// Default constructor for the subsurface scattering volume component.
+        /// </summary>
+        public SubSurfaceScattering()
         {
             displayName = "SubSurface Scattering (Preview)";
         }

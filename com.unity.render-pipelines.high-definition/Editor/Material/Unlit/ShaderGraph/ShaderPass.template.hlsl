@@ -6,6 +6,11 @@ void BuildSurfaceData(FragInputs fragInputs, inout SurfaceDescription surfaceDes
     // copy across graph values, if defined
     $SurfaceDescription.BaseColor: surfaceData.color = surfaceDescription.BaseColor;
 
+    #ifdef WRITE_NORMAL_BUFFER
+    // When we need to export the normal (in the depth prepass, we write the geometry one)
+    surfaceData.normalWS = fragInputs.tangentToWorld[2];
+    #endif
+
     #if defined(DEBUG_DISPLAY)
     if (_DebugMipMapMode != DEBUGMIPMAPMODE_NONE)
     {
@@ -15,14 +20,13 @@ void BuildSurfaceData(FragInputs fragInputs, inout SurfaceDescription surfaceDes
 
     #if defined(_ENABLE_SHADOW_MATTE) && SHADERPASS == SHADERPASS_FORWARD_UNLIT
         HDShadowContext shadowContext = InitShadowContext();
-        float shadow;
         float3 shadow3;
         // We need to recompute some coordinate not computed by default for shadow matte
         posInput = GetPositionInput(fragInputs.positionSS.xy, _ScreenSize.zw, fragInputs.positionSS.z, UNITY_MATRIX_I_VP, UNITY_MATRIX_V);
         float3 upWS = normalize(fragInputs.tangentToWorld[1]);
-        uint renderingLayers = _EnableLightLayers ? asuint(unity_RenderingLayer.x) : DEFAULT_LIGHT_LAYERS;
+        uint renderingLayers = GetMeshRenderingLightLayer();
         ShadowLoopMin(shadowContext, posInput, upWS, asuint(_ShadowMatteFilter), renderingLayers, shadow3);
-        shadow = dot(shadow3, float3(1.0 / 3.0, 1.0 / 3.0, 1.0 / 3.0));
+        float4 shadow = float4(shadow3, dot(shadow3, float3(1.0/3.0, 1.0/3.0, 1.0/3.0)));
 
         float4 shadowColor = (1.0 - shadow) * surfaceDescription.ShadowTint.rgba;
         float  localAlpha  = saturate(shadowColor.a + surfaceDescription.Alpha);

@@ -1,6 +1,5 @@
-﻿using System;
+using System;
 using System.Reflection;
-using Data.Interfaces;
 using UnityEditor.Graphing.Util;
 using UnityEditor.ShaderGraph.Drawing;
 using UnityEngine;
@@ -30,7 +29,7 @@ namespace UnityEditor.ShaderGraph.Drawing.Inspector.PropertyDrawers
 
             if (valueChangedCallback != null)
             {
-                var toggle = (Toggle) propertyToggle;
+                var toggle = (Toggle)propertyToggle;
                 toggle.OnToggleChanged(evt => valueChangedCallback(evt.newValue));
             }
 
@@ -48,7 +47,7 @@ namespace UnityEditor.ShaderGraph.Drawing.Inspector.PropertyDrawers
             return this.CreateGUI(
                 // Use the setter from the provided property as the callback
                 newBoolValue => propertyInfo.GetSetMethod(true).Invoke(actualObject, new object[] {newBoolValue}),
-                (bool) propertyInfo.GetValue(actualObject),
+                (bool)propertyInfo.GetValue(actualObject),
                 attribute.labelName,
                 out var propertyVisualElement);
         }

@@ -70,7 +70,7 @@ namespace UnityEditor.VFX.UI
 
         static string UXMLResourceToPackage(string resourcePath)
         {
-            return VisualEffectGraphPackageInfo.assetPackagePath + "/Editor Default Resources/" + resourcePath + ".uxml";
+            return VisualEffectAssetEditorUtility.editorResourcesPath + "/" + resourcePath + ".uxml";
         }
 
         public VFXNodeUI(string template) : base(UXMLResourceToPackage(template))

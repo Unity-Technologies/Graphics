@@ -4,54 +4,6 @@
 #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Lighting.hlsl"
 #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/UnityGBuffer.hlsl"
 
-struct AttributesParticle
-{
-    float4 vertex : POSITION;
-    float3 normal : NORMAL;
-    half4 color : COLOR;
-#if defined(_FLIPBOOKBLENDING_ON) && !defined(UNITY_PARTICLE_INSTANCING_ENABLED)
-    float4 texcoords : TEXCOORD0;
-    float texcoordBlend : TEXCOORD1;
-#else
-    float2 texcoords : TEXCOORD0;
-#endif
-    float4 tangent : TANGENT;
-     UNITY_VERTEX_INPUT_INSTANCE_ID
-};
-
-struct VaryingsParticle
-{
-    half4 color                     : COLOR;
-    float2 texcoord                 : TEXCOORD0;
-
-    float3 positionWS               : TEXCOORD1;
-
-#ifdef _NORMALMAP
-    float4 normalWS                 : TEXCOORD2;    // xyz: normal, w: viewDir.x
-    float4 tangentWS                : TEXCOORD3;    // xyz: tangent, w: viewDir.y
-    float4 bitangentWS              : TEXCOORD4;    // xyz: bitangent, w: viewDir.z
-#else
-    float3 normalWS                 : TEXCOORD2;
-    float3 viewDirWS                : TEXCOORD3;
-#endif
-
-#if defined(_FLIPBOOKBLENDING_ON)
-    float3 texcoord2AndBlend        : TEXCOORD5;
-#endif
-#if defined(_SOFTPARTICLES_ON) || defined(_FADING_ON) || defined(_DISTORTION_ON)
-    float4 projectedPosition        : TEXCOORD6;
-#endif
-
-#if defined(REQUIRES_VERTEX_SHADOW_COORD_INTERPOLATOR)
-    float4 shadowCoord              : TEXCOORD7;
-#endif
-
-    float3 vertexSH                 : TEXCOORD8; // SH
-    float4 clipPos                  : SV_POSITION;
-    UNITY_VERTEX_INPUT_INSTANCE_ID
-    UNITY_VERTEX_OUTPUT_STEREO
-};
-
 void InitializeInputData(VaryingsParticle input, half3 normalTS, out InputData output)
 {
     output = (InputData)0;
@@ -86,6 +38,8 @@ void InitializeInputData(VaryingsParticle input, half3 normalTS, out InputData o
     output.fogCoord = 0.0; // not used for deferred shading
     output.vertexLighting = half3(0.0h, 0.0h, 0.0h);
     output.bakedGI = SampleSHPixel(input.vertexSH, output.normalWS);
+    output.normalizedScreenSpaceUV = GetNormalizedScreenSpaceUV(input.clipPos);
+    output.shadowMask = half4(1, 1, 1, 1);
 }
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -103,19 +57,15 @@ VaryingsParticle ParticlesGBufferVertex(AttributesParticle input)
     VertexPositionInputs vertexInput = GetVertexPositionInputs(input.vertex.xyz);
     VertexNormalInputs normalInput = GetVertexNormalInputs(input.normal, input.tangent);
 
-    half3 viewDirWS = GetWorldSpaceViewDir(vertexInput.positionWS);
-#if !SHADER_HINT_NICE_QUALITY
-    viewDirWS = SafeNormalize(viewDirWS);
-#endif
-
-    half3 vertexLight = VertexLighting(vertexInput.positionWS, normalInput.normalWS);
+    half3 viewDirWS = GetWorldSpaceNormalizeViewDir(vertexInput.positionWS);
+    half3 vertexLight = VertexLighting(vertexInput.positionWS, half3(normalInput.normalWS));
 
 #ifdef _NORMALMAP
     output.normalWS = half4(normalInput.normalWS, viewDirWS.x);
     output.tangentWS = half4(normalInput.tangentWS, viewDirWS.y);
     output.bitangentWS = half4(normalInput.bitangentWS, viewDirWS.z);
 #else
-    output.normalWS = normalInput.normalWS;
+    output.normalWS = half3(normalInput.normalWS);
     output.viewDirWS = viewDirWS;
 #endif
 
@@ -125,14 +75,14 @@ VaryingsParticle ParticlesGBufferVertex(AttributesParticle input)
     output.clipPos = vertexInput.positionCS;
     output.color = input.color;
 
-    output.texcoord = input.texcoords.xy;
-#ifdef _FLIPBOOKBLENDING_ON
-    output.texcoord2AndBlend.xy = input.texcoords.zw;
-    output.texcoord2AndBlend.z = input.texcoordBlend;
+#if defined(_FLIPBOOKBLENDING_ON)
+#if defined(UNITY_PARTICLE_INSTANCING_ENABLED)
+    GetParticleTexcoords(output.texcoord, output.texcoord2AndBlend, input.texcoords.xyxy, 0.0);
+#else
+    GetParticleTexcoords(output.texcoord, output.texcoord2AndBlend, input.texcoords, input.texcoordBlend);
 #endif
-
-#if defined(_SOFTPARTICLES_ON) || defined(_FADING_ON) || defined(_DISTORTION_ON)
-    output.projectedPosition = vertexInput.positionNDC;
+#else
+    GetParticleTexcoords(output.texcoord, input.texcoords.xy);
 #endif
 
 #if defined(REQUIRES_VERTEX_SHADOW_COORD_INTERPOLATOR)
@@ -169,15 +119,12 @@ FragmentOutput ParticlesGBufferFragment(VaryingsParticle input)
     // in Deferred rendering we store the sum of these values (and of emission as well) in the GBuffer
     BRDFData brdfData;
     InitializeBRDFData(surfaceData.albedo, surfaceData.metallic, surfaceData.specular, surfaceData.smoothness, surfaceData.alpha, brdfData);
-    
-    Light mainLight = GetMainLight(inputData.shadowCoord);                                      // TODO move this to a separate full-screen single gbuffer pass?
-    MixRealtimeAndBakedGI(mainLight, inputData.normalWS, inputData.bakedGI, half4(0, 0, 0, 0)); // TODO move this to a separate full-screen single gbuffer pass?
 
+    Light mainLight = GetMainLight(inputData.shadowCoord, inputData.positionWS, inputData.shadowMask);
+    MixRealtimeAndBakedGI(mainLight, inputData.normalWS, inputData.bakedGI, inputData.shadowMask);
     half3 color = GlobalIllumination(brdfData, inputData.bakedGI, surfaceData.occlusion, inputData.normalWS, inputData.viewDirectionWS);
 
-    color += LightingPhysicallyBased(brdfData, mainLight, inputData.normalWS, inputData.viewDirectionWS, false); // TODO move this to a separate full-screen single gbuffer pass?
-
-    return BRDFDataToGbuffer(brdfData, inputData, surfaceData.smoothness, surfaceData.emission + color);
+    return BRDFDataToGbuffer(brdfData, inputData, surfaceData.smoothness, surfaceData.emission + color, surfaceData.occlusion);
 }
 
 #endif // UNIVERSAL_PARTICLES_GBUFFER_LIT_PASS_INCLUDED

@@ -2,13 +2,13 @@
 
 ## Description
 
-Defines a constant **Vector 1** value in the shader using an **Integer** field. Can be converted to a **Vector 1** type [Property](Property-Types.md) with a **Mode** setting of **Integer** via the [Node's](Node.md) context menu.
+Defines a constant **Float** value in the shader using an **Integer** field. Can be converted to a **Float** type [Property](Property-Types.md) with a **Mode** setting of **Integer** via the [Node's](Node.md) context menu.
 
 ## Ports
 
 | Name        | Direction           | Type  | Binding | Description |
 |:------------ |:-------------|:-----|:---|:---|
-| Out | Output      |    Vector 1 | None | Output value |
+| Out | Output      |    Float    | None | Output value |
 
 ## Controls
 

@@ -12,14 +12,14 @@ Shader "Hidden/HDRP/DebugExposure"
 
     #pragma vertex Vert
     #pragma target 4.5
-    #pragma only_renderers d3d11 playstation xboxone vulkan metal switch
+    #pragma only_renderers d3d11 playstation xboxone xboxseries vulkan metal switch
 
     #define PERCENTILE_AS_BARS 0
 
     // Contains the scene color post-processed (tonemapped etc.)
     TEXTURE2D_X(_DebugFullScreenTexture);
 
-    // Tonemap related 
+    // Tonemap related
     TEXTURE3D(_LogLut3D);
     SAMPLER(sampler_LogLut3D);
 
@@ -66,11 +66,11 @@ Shader "Hidden/HDRP/DebugExposure"
 
     float3 Tonemap(float3 colorLinear)
     {
-        if(_TonemapType == TONEMAPPINGMODE_NEUTRAL) 
+        if(_TonemapType == TONEMAPPINGMODE_NEUTRAL)
         {
             colorLinear = NeutralTonemap(colorLinear);
         }
-        if (_TonemapType == TONEMAPPINGMODE_ACES) 
+        if (_TonemapType == TONEMAPPINGMODE_ACES)
         {
             // Note: input is actually ACEScg (AP1 w/ linear encoding)
             float3 aces = ACEScg_to_ACES(colorLinear);
@@ -113,7 +113,7 @@ Shader "Hidden/HDRP/DebugExposure"
         {
             float inRange = (uv.x - startSidebar.x) / (endSidebar.x - startSidebar.x);
             evValueRange = clamp(evValueRange, 0.0f, 1.0f);
-            int distanceInPixels = abs(evValueRange - inRange) * sidebarSize.x * _ScreenSize.x;
+            int distanceInPixels = abs(evValueRange - inRange) * sidebarSize.x * _ScreenSize.x / _RTHandleScale.x;
             if (distanceInPixels < indicatorHalfSize)
             {
                 sidebarColor = indicatorColor;
@@ -239,7 +239,7 @@ Shader "Hidden/HDRP/DebugExposure"
 
         if (uv.y > frameHeight) return false;
 
-        // ---- Draw General frame ---- 
+        // ---- Draw General frame ----
         if (uv.x < borderSize.x || uv.x >(1.0f - borderSize.x))
         {
             outColor = 0.0;
@@ -265,7 +265,7 @@ Shader "Hidden/HDRP/DebugExposure"
     }
 
     float2 GetMinMaxLabelRange(float currEV)
-    {        
+    {
         if (_CenterAroundTargetExposure > 0)
         {
             int maxAtBothSide = min(0.5f * (ParamExposureLimitMax - ParamExposureLimitMin), 10);
@@ -317,7 +317,7 @@ Shader "Hidden/HDRP/DebugExposure"
             else
             {
                 binIndex = centerBin;
-                
+
                 locWithinBin = (higherMidPoint - coordOnX);
             }
         }
@@ -403,7 +403,7 @@ Shader "Hidden/HDRP/DebugExposure"
                 if (isEdgeOfBin) outColor.rgb = 0;
             }
 
-            // ---- Draw labels ---- 
+            // ---- Draw labels ----
 
             // Number of labels
             int labelCount = 12;
@@ -431,7 +431,7 @@ Shader "Hidden/HDRP/DebugExposure"
                 DrawTriangleIndicator(float2(unormCoord.xy), labelFrameHeightScreen, targetEVInRange, halfIndicatorSize, float3(0.9f, 0.75f, 0.1f), outColor);
                 DrawTriangleIndicator(float2(unormCoord.xy), labelFrameHeightScreen, evInRange, halfIndicatorSize, float3(0.15f, 0.15f, 0.1f), outColor);
             }
-            // TODO: Add bar? 
+            // TODO: Add bar?
             //else
             //{
             //    if (_CenterAroundTargetExposure > 0)
@@ -470,7 +470,7 @@ Shader "Hidden/HDRP/DebugExposure"
         if (all(input.positionCS.xy < topRight))
         {
             float2 scaledUV = uv / pipFraction;
-            float3 pipColor = SAMPLE_TEXTURE2D_X_LOD(_SourceTexture, s_linear_clamp_sampler, scaledUV, 0.0).xyz;
+            float3 pipColor = _ExposureDebugParams.x > 0 ? float3(1.0f, 1.0f, 1.0f) : SAMPLE_TEXTURE2D_X_LOD(_SourceTexture, s_linear_clamp_sampler, scaledUV, 0.0).xyz;
             float  luminance = SampleLuminance(scaledUV);
             float weight = WeightSample(scaledUV.xy * _ScreenSize.xy / _RTHandleScale.xy, _ScreenSize.xy, luminance);
 
@@ -523,7 +523,7 @@ Shader "Hidden/HDRP/DebugExposure"
         }
 
         // Get value at indicator
-        float2 indicatorUV = _MousePixelCoord.zw;
+        float2 indicatorUV = _MousePixelCoord.xy * _ScreenSize.zw * _RTHandleScale.xy;
         float indicatorEV = GetEVAtLocation(indicatorUV);
         float indicatorEVRange = (indicatorEV - ParamExposureLimitMin) / (ParamExposureLimitMax - ParamExposureLimitMin);
 
@@ -559,10 +559,15 @@ Shader "Hidden/HDRP/DebugExposure"
         }
 
         int displayTextOffsetX = DEBUG_FONT_TEXT_WIDTH;
+        textLocation = uint2(_MousePixelCoord.x + displayTextOffsetX + 1, _MousePixelCoord.y - 1);
+        DrawFloatExplicitPrecision(indicatorEV, 1.0f - textColor, unormCoord, 1, textLocation, outputColor.rgb);
         textLocation = uint2(_MousePixelCoord.x + displayTextOffsetX, _MousePixelCoord.y);
         DrawFloatExplicitPrecision(indicatorEV, textColor, unormCoord, 1, textLocation, outputColor.rgb);
+
+        textLocation = uint2(_MousePixelCoord.x + 1, _MousePixelCoord.y - 1);
+        DrawCharacter('X', 1.0f - textColor, unormCoord, textLocation, outputColor.rgb);
         textLocation = _MousePixelCoord.xy;
-        DrawCharacter('X', float3(0.0f, 0.0f, 0.0f), unormCoord, textLocation, outputColor.rgb);
+        DrawCharacter('X', textColor, unormCoord, textLocation, outputColor.rgb);
 
         return outputColor;
     }
@@ -707,7 +712,7 @@ Shader "Hidden/HDRP/DebugExposure"
         float binLocMax = 1.0f - safeBand;
         if (DrawEmptyFrame(uv, float3(0.125, 0.125, 0.125), 0.4, histFrameHeight, heightLabelBar, outputColor))
         {
-            // Draw labels	
+            // Draw labels
             const int labelCount = 12;
             int minLabelLocationX = DEBUG_FONT_TEXT_WIDTH * 0.25;
             int maxLabelLocationX = _ScreenSize.x - (DEBUG_FONT_TEXT_WIDTH * 3);
@@ -723,7 +728,7 @@ Shader "Hidden/HDRP/DebugExposure"
                 DrawInteger(labelValue, float3(1.0f, 1.0f, 1.0f), unormCoord, labelLoc, outputColor.rgb);
             }
             float remappedX = (((float)unormCoord.x / _ScreenSize.x) - binLocMin) / (binLocMax - binLocMin);
-            // Draw bins	
+            // Draw bins
             uint bin = saturate(remappedX) * 255;
             float4 val = _FullImageHistogram[bin];
             val /= float4(maxValue, maxValue, maxValue, maxLuma);
@@ -797,7 +802,7 @@ Shader "Hidden/HDRP/DebugExposure"
             Blend Off
             Cull Off
             HLSLPROGRAM
-                #pragma fragment FragImageHistogram	
+                #pragma fragment FragImageHistogram
             ENDHLSL
         }
 

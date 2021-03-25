@@ -14,8 +14,6 @@ Shader "Hidden/Universal Render Pipeline/Sampling"
             Cull Off
 
             HLSLPROGRAM
-            // Required to compile gles 2.0 with standard srp library
-            #pragma prefer_hlslcc gles
             #pragma vertex FullscreenVert
             #pragma fragment FragBoxDownsample
 
@@ -29,7 +27,7 @@ Shader "Hidden/Universal Render Pipeline/Sampling"
 
             float _SampleOffset;
 
-            half4 FragBoxDownsample(FullscreenVaryings input) : SV_Target
+            half4 FragBoxDownsample(Varyings input) : SV_Target
             {
                 UNITY_SETUP_STEREO_EYE_INDEX_POST_VERTEX(input);
 

@@ -6,6 +6,7 @@ namespace UnityEngine.Rendering.HighDefinition
     /// A volume component that holds settings for the Exposure effect.
     /// </summary>
     [Serializable, VolumeComponentMenu("Exposure")]
+    [HelpURL(Documentation.baseURL + Documentation.version + Documentation.subURL + "Override-Exposure" + Documentation.endURL)]
     public sealed class Exposure : VolumeComponent, IPostProcessComponent
     {
         /// <summary>
@@ -48,14 +49,14 @@ namespace UnityEngine.Rendering.HighDefinition
         /// This parameter is only used when <see cref="ExposureMode.Automatic"/> or <see cref="ExposureMode.CurveMapping"/> is set.
         /// </summary>
         [Tooltip("Sets the minimum value that the Scene exposure can be set to.")]
-        public FloatParameter limitMin = new FloatParameter(-10f);
+        public FloatParameter limitMin = new FloatParameter(-1f);
 
         /// <summary>
         /// Sets the maximum value that the Scene exposure can be set to.
         /// This parameter is only used when <see cref="ExposureMode.Automatic"/> or <see cref="ExposureMode.CurveMapping"/> is set.
         /// </summary>
         [Tooltip("Sets the maximum value that the Scene exposure can be set to.")]
-        public FloatParameter limitMax = new FloatParameter(20f);
+        public FloatParameter limitMax = new FloatParameter(14f);
 
         /// <summary>
         /// Specifies a curve that remaps the Scene exposure on the x-axis to the exposure you want on the y-axis.
@@ -82,6 +83,7 @@ namespace UnityEngine.Rendering.HighDefinition
         /// Specifies the method that HDRP uses to change the exposure when the Camera moves from dark to light and vice versa.
         /// This parameter is only used when <see cref="ExposureMode.Automatic"/> or <see cref="ExposureMode.CurveMapping"/> is set.
         /// </summary>
+        [Header("Adaptation")]
         [Tooltip("Specifies the method that HDRP uses to change the exposure when the Camera moves from dark to light and vice versa.")]
         public AdaptationModeParameter adaptationMode = new AdaptationModeParameter(AdaptationMode.Progressive);
 
@@ -110,6 +112,7 @@ namespace UnityEngine.Rendering.HighDefinition
         /// find a stable average luminance. Values outside of this range will be discarded and won't
         /// contribute to the average luminance.
         /// </summary>
+        [Header("Histogram")]
         [Tooltip("Sets the range of values (in terms of percentages) of the histogram that are accepted while finding a stable average exposure. Anything outside the value is discarded.")]
         public FloatRangeParameter histogramPercentages = new FloatRangeParameter(new Vector2(40.0f, 90.0f), 0.0f, 100.0f);
 
@@ -121,14 +124,16 @@ namespace UnityEngine.Rendering.HighDefinition
 
         /// <summary>
         /// Sets the desired Mid gray level used by the auto exposure (i.e. to what grey value the auto exposure system maps the average scene luminance).
-        /// Note that the lens model used in HDRP is not of a perfect lens, hence it will not map precisely to the selected value. 
+        /// Note that the lens model used in HDRP is not of a perfect lens, hence it will not map precisely to the selected value.
         /// </summary>
+        [AdditionalProperty]
         [Tooltip("Sets the desired Mid gray level used by the auto exposure (i.e. to what grey value the auto exposure system maps the average scene luminance).")]
         public TargetMidGrayParameter targetMidGray = new TargetMidGrayParameter(TargetMidGray.Grey125);
 
         /// <summary>
         /// Sets whether the procedural metering mask is centered around the exposure target (to be set on the camera)
         /// </summary>
+        [Header("Procedural Mask")]
         [Tooltip("Sets whether histogram exposure mode will remap the computed exposure with a curve remapping (akin to Curve Remapping mode).")]
         public BoolParameter centerAroundExposureTarget = new BoolParameter(false);
 
@@ -137,17 +142,19 @@ namespace UnityEngine.Rendering.HighDefinition
         /// </summary>
         public NoInterpVector2Parameter proceduralCenter = new NoInterpVector2Parameter(new Vector2(0.5f, 0.5f));
         /// <summary>
-        /// Sets the radii of the procedural mask, in terms of fraction of the screen (i.e. 0.5 means a radius that stretch half of the screen).
+        /// Sets the radii of the procedural mask, in terms of fraction of half the screen (i.e. 0.5 means a mask that stretch half of the screen in both directions).
         /// </summary>
-        public NoInterpVector2Parameter proceduralRadii  = new NoInterpVector2Parameter(new Vector2(0.15f, 0.15f));
+        public NoInterpVector2Parameter proceduralRadii  = new NoInterpVector2Parameter(new Vector2(0.3f, 0.3f));
         /// <summary>
-        /// All pixels below this threshold (in EV100 units) will be assigned a weight of 0 in the metering mask. 
+        /// All pixels below this threshold (in EV100 units) will be assigned a weight of 0 in the metering mask.
         /// </summary>
+        [AdditionalProperty]
         [Tooltip("All pixels below this threshold (in EV100 units) will be assigned a weight of 0 in the metering mask.")]
         public FloatParameter maskMinIntensity = new FloatParameter(-30.0f);
         /// <summary>
-        /// All pixels above this threshold (in EV100 units) will be assigned a weight of 0 in the metering mask. 
+        /// All pixels above this threshold (in EV100 units) will be assigned a weight of 0 in the metering mask.
         /// </summary>
+        [AdditionalProperty]
         [Tooltip("All pixels above this threshold (in EV100 units) will be assigned a weight of 0 in the metering mask.")]
         public FloatParameter maskMaxIntensity = new FloatParameter(30.0f);
 
@@ -176,27 +183,27 @@ namespace UnityEngine.Rendering.HighDefinition
         /// <summary>
         /// Allows you to manually sets the Scene exposure.
         /// </summary>
-        Fixed,
+        Fixed = 0,
 
         /// <summary>
         /// Automatically sets the exposure depending on what is on screen.
         /// </summary>
-        Automatic,
+        Automatic = 1,
 
         /// <summary>
         /// Automatically sets the exposure depending on what is on screen and can filter out outliers based on provided settings.
         /// </summary>
-        AutomaticHistogram,
+        AutomaticHistogram = 4,
 
         /// <summary>
         /// Maps the current Scene exposure to a custom curve.
         /// </summary>
-        CurveMapping,
+        CurveMapping = 2,
 
         /// <summary>
         /// Uses the current physical Camera settings to set the Scene exposure.
         /// </summary>
-        UsePhysicalCamera
+        UsePhysicalCamera = 3
     }
 
     /// <summary>
@@ -233,11 +240,9 @@ namespace UnityEngine.Rendering.HighDefinition
         MaskWeighted,
 
         /// <summary>
-        /// Create a weight mask centered around the specified UV and with the desired parameters. 
+        /// Create a weight mask centered around the specified UV and with the desired parameters.
         /// </summary>
         ProceduralMask,
-
-
     }
 
     /// <summary>
@@ -328,7 +333,7 @@ namespace UnityEngine.Rendering.HighDefinition
         /// </summary>
         /// <param name="value">The initial value to store in the parameter.</param>
         /// <param name="overrideState">The initial override state for the parameter.</param>
-        public MeteringModeParameter(MeteringMode value, bool overrideState = false) : base(value, overrideState) { }
+        public MeteringModeParameter(MeteringMode value, bool overrideState = false) : base(value, overrideState) {}
     }
 
     /// <summary>
@@ -370,6 +375,6 @@ namespace UnityEngine.Rendering.HighDefinition
         /// </summary>
         /// <param name="value">The initial value to store in the parameter.</param>
         /// <param name="overrideState">The initial override state for the parameter.</param>
-        public TargetMidGrayParameter(TargetMidGray value, bool overrideState = false) : base(value, overrideState) { }
+        public TargetMidGrayParameter(TargetMidGray value, bool overrideState = false) : base(value, overrideState) {}
     }
 }

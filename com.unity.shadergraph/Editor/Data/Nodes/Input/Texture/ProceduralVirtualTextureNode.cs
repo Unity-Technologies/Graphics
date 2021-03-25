@@ -78,6 +78,8 @@ namespace UnityEditor.ShaderGraph
 
                 SetLayerCount(value);
                 Dirty(ModificationScope.Topological);
+                //Hack to handle downstream SampleVirtualTextureNodes
+                owner.ValidateGraph();
             }
         }
 
@@ -102,4 +104,3 @@ namespace UnityEditor.ShaderGraph
     }
 #endif // PROCEDURAL_VT_IN_GRAPH
 }
-

@@ -7,32 +7,54 @@ namespace UnityEditor.ShaderGraph.Internal
 {
     [Serializable]
     [FormerName("UnityEditor.ShaderGraph.ColorShaderProperty")]
+    [BlackboardInputInfo(10)]
     public sealed class ColorShaderProperty : AbstractShaderProperty<Color>
     {
+        // 0 - original (broken color space)
+        // 1 - fixed color space
+        // 2 - original (broken color space) with HLSLDeclaration override
+        // 3 - fixed color space with HLSLDeclaration override
+        public override int latestVersion => 3;
+        public const int deprecatedVersion = 2;
+
         internal ColorShaderProperty()
         {
             displayName = "Color";
         }
-        
+
+        internal ColorShaderProperty(int version) : this()
+        {
+            this.sgVersion = version;
+        }
+
         public override PropertyType propertyType => PropertyType.Color;
-        
-        internal override bool isBatchable => true;
+
         internal override bool isExposable => true;
         internal override bool isRenamable => true;
-        internal override bool isGpuInstanceable => true;
-        
+
         internal string hdrTagString => colorMode == ColorMode.HDR ? "[HDR]" : "";
 
         internal override string GetPropertyBlockString()
         {
-            return $"{hideTagString}{hdrTagString}{referenceName}(\"{displayName}\", Color) = ({NodeUtils.FloatToShaderValue(value.r)}, {NodeUtils.FloatToShaderValue(value.g)}, {NodeUtils.FloatToShaderValue(value.b)}, {NodeUtils.FloatToShaderValue(value.a)})";
+            return $"{hideTagString}{hdrTagString}{referenceName}(\"{displayName}\", Color) = ({NodeUtils.FloatToShaderValueShaderLabSafe(value.r)}, {NodeUtils.FloatToShaderValueShaderLabSafe(value.g)}, {NodeUtils.FloatToShaderValueShaderLabSafe(value.b)}, {NodeUtils.FloatToShaderValueShaderLabSafe(value.a)})";
         }
 
-        public override string GetDefaultReferenceName()
+        internal override string GetPropertyAsArgumentString(string precisionString)
+        {
+            return $"{concreteShaderValueType.ToShaderString(precisionString)} {referenceName}";
+        }
+
+        internal override void ForeachHLSLProperty(Action<HLSLProperty> action)
+        {
+            HLSLDeclaration decl = GetDefaultHLSLDeclaration();
+            action(new HLSLProperty(HLSLType._float4, referenceName, decl, concretePrecision));
+        }
+
+        public override string GetOldDefaultReferenceName()
         {
             return $"Color_{objectId}";
         }
-        
+
         [SerializeField]
         ColorMode m_ColorMode;
 
@@ -41,7 +63,7 @@ namespace UnityEditor.ShaderGraph.Internal
             get => m_ColorMode;
             set => m_ColorMode = value;
         }
-        
+
         internal override AbstractMaterialNode ToConcreteNode()
         {
             return new ColorNode { color = new ColorNode.Color(value, colorMode) };
@@ -49,24 +71,45 @@ namespace UnityEditor.ShaderGraph.Internal
 
         internal override PreviewProperty GetPreviewMaterialProperty()
         {
-            return new PreviewProperty(propertyType)
+            UnityEngine.Color propColor = value;
+            if (colorMode == ColorMode.Default)
+            {
+                if (PlayerSettings.colorSpace == ColorSpace.Linear)
+                    propColor = propColor.linear;
+            }
+            else if (colorMode == ColorMode.HDR)
+            {
+                // conversion from linear to active color space is handled in the shader code (see PropertyNode.cs)
+            }
+
+            // we use Vector4 type to avoid all of the automatic color conversions of PropertyType.Color
+            return new PreviewProperty(PropertyType.Vector4)
             {
                 name = referenceName,
-                colorValue = value
+                vector4Value = propColor
             };
-        }        
+        }
 
         internal override ShaderInput Copy()
         {
             return new ColorShaderProperty()
             {
+                sgVersion = sgVersion,
                 displayName = displayName,
-                hidden = hidden,
                 value = value,
                 colorMode = colorMode,
-                precision = precision,
-                gpuInstanced = gpuInstanced,
             };
+        }
+
+        public override void OnAfterDeserialize(string json)
+        {
+            if (sgVersion < 2)
+            {
+                LegacyShaderPropertyData.UpgradeToHLSLDeclarationOverride(json, this);
+                // version 0 upgrades to 2
+                // version 1 upgrades to 3
+                ChangeVersion((sgVersion == 0) ? 2 : 3);
+            }
         }
     }
 }

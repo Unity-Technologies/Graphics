@@ -11,13 +11,14 @@ using Unity.Collections;
 
 namespace UnityEngine.Rendering.Universal.Internal
 {
-    // Render all tiled-based deferred lights.      
+    // Render all tiled-based deferred lights.
     internal class DeferredPass : ScriptableRenderPass
     {
         DeferredLights m_DeferredLights;
 
         public DeferredPass(RenderPassEvent evt, DeferredLights deferredLights)
         {
+            base.profilingSampler = new ProfilingSampler(nameof(DeferredPass));
             base.renderPassEvent = evt;
             m_DeferredLights = deferredLights;
         }
@@ -25,8 +26,12 @@ namespace UnityEngine.Rendering.Universal.Internal
         // ScriptableRenderPass
         public override void Configure(CommandBuffer cmd, RenderTextureDescriptor cameraTextureDescripor)
         {
+            RenderTargetIdentifier lightingAttachmentId = m_DeferredLights.GbufferAttachmentIdentifiers[m_DeferredLights.GBufferLightingIndex];
+            RenderTargetIdentifier depthAttachmentId = m_DeferredLights.DepthAttachmentIdentifier;
+
+            // TODO: change to m_DeferredLights.GetGBufferFormat(m_DeferredLights.GBufferLightingIndex) when it's not GraphicsFormat.None
             // TODO: Cannot currently bind depth texture as read-only!
-            ConfigureTarget(m_DeferredLights.m_GbufferColorAttachments[3].Identifier(), m_DeferredLights.m_DepthTexture.Identifier());
+            ConfigureTarget(lightingAttachmentId, depthAttachmentId, cameraTextureDescripor.graphicsFormat);
         }
 
         // ScriptableRenderPass

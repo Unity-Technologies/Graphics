@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using UnityEngine;
 using UnityEngine.Rendering.HighDefinition;
 
@@ -63,6 +63,14 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
         }
 
         [SerializeField]
+        bool m_ConservativeDepthOffset;
+        public bool conservativeDepthOffset
+        {
+            get => m_ConservativeDepthOffset;
+            set => m_ConservativeDepthOffset = value;
+        }
+
+        [SerializeField]
         bool m_TransparencyFog = true;
         public bool transparencyFog
         {
@@ -84,6 +92,30 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
         {
             get => m_BackThenFrontRendering;
             set => m_BackThenFrontRendering = value;
+        }
+
+        [SerializeField]
+        bool m_TransparentDepthPrepass;
+        public bool transparentDepthPrepass
+        {
+            get => m_TransparentDepthPrepass;
+            set => m_TransparentDepthPrepass = value;
+        }
+
+        [SerializeField]
+        bool m_TransparentDepthPostpass;
+        public bool transparentDepthPostpass
+        {
+            get => m_TransparentDepthPostpass;
+            set => m_TransparentDepthPostpass = value;
+        }
+
+        [SerializeField]
+        bool m_SupportLodCrossFade;
+        public bool supportLodCrossFade
+        {
+            get => m_SupportLodCrossFade;
+            set => m_SupportLodCrossFade = value;
         }
     }
 }

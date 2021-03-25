@@ -1,0 +1,13 @@
+fileFormatVersion: 2
+guid: f62c9c65cf3354c93be831c8bc075510
+MonoImporter:
+  externalObjects: {}
+  serializedVersion: 2
+  defaultReferences:
+  - m_Shader: {instanceID: 0}
+  - m_BlueNoise: {fileID: 2800000, guid: cbdfedcb32329429aae80014a0d36ad9, type: 3}
+  executionOrder: 0
+  icon: {instanceID: 0}
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 

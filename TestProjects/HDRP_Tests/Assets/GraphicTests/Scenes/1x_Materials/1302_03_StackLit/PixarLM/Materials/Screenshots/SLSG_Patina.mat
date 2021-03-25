@@ -250,6 +250,7 @@ Material:
         m_Texture: {fileID: 0}
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
+    m_Ints: []
     m_Floats:
     - Vector1_2632BC3D: 0.45
     - Vector1_3D385304: 1.5
@@ -274,6 +275,7 @@ Material:
     - _AlphaDstBlend: 0
     - _AlphaSrcBlend: 1
     - _AlphaToMask: 0
+    - _AlphaToMaskInspectorValue: 0
     - _AmbientOcclusion: 1
     - _AmbientOcclusionMapChannel: 0
     - _AmbientOcclusionMapSamplerSharingOptout: 0
@@ -716,4 +718,4 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: da692e001514ec24dbc4cca1949ff7e8, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  version: 5
+  version: 12

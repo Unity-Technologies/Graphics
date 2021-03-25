@@ -14,10 +14,10 @@ namespace UnityEditor.VFX
         public OpaqueRenderQueue opaqueRenderQueue = OpaqueRenderQueue.Default;
 
         [VFXSetting(VFXSettingAttribute.VisibleFlags.InInspector), Header("HDRP"), Tooltip("Specifies when in the render queue particles are drawn. This is useful for drawing particles behind refractive surfaces like frosted glass, for performance gains by rendering them in low resolution, or to draw particles after post processing so they are not affected by effects such as Depth of Field.")]
-        public TransparentRenderQueue transparentRenderQueue = TransparentRenderQueue.Default;       
+        public TransparentRenderQueue transparentRenderQueue = TransparentRenderQueue.Default;
 
         // Caps
-        public override bool supportsExposure { get { return true; } } 
+        public override bool supportsExposure { get { return true; } }
         public override bool supportsMotionVector
         {
             get
@@ -29,6 +29,7 @@ namespace UnityEditor.VFX
                     && transparentRenderQueue != TransparentRenderQueue.AfterPostProcessing;
             }
         }
+        public override bool supportsExcludeFromTAA { get { return !owner.isBlendModeOpaque; } }
 
         protected override IEnumerable<string> filteredOutSettings
         {
@@ -46,12 +47,12 @@ namespace UnityEditor.VFX
             }
         }
 
-        protected override void OnSettingModified(VFXSetting setting)
+        public override void OnSettingModified(VFXSetting setting)
         {
             base.OnSettingModified(setting);
             // Reset to default if render queue is invalid
             if (setting.name == "transparentRenderQueue")
-            {               
+            {
                 if (!supportsQueueSelection || (isLit && transparentRenderQueue == TransparentRenderQueue.AfterPostProcessing))
                     transparentRenderQueue = TransparentRenderQueue.Default;
             }
@@ -80,7 +81,7 @@ namespace UnityEditor.VFX
                 }
             }
         }
-        
+
         public override string GetBlendModeStr()
         {
             bool isOffscreen = transparentRenderQueue == TransparentRenderQueue.LowResolution || transparentRenderQueue == TransparentRenderQueue.AfterPostProcessing;
@@ -118,50 +119,77 @@ namespace UnityEditor.VFX
             return prefix + renderQueue.ToString("+#;-#;+0");
         }
 
-        //TODO : extend & factorize this method
-        public static void GetStencilStateForPasses(bool receiveDecals, bool receiveSSR, bool useObjectVelocity, bool hasSubsurfaceScattering,
-                                                       out int stencilWriteMask, out int stencilRef,
-                                                       out int stencilWriteMaskGBuffer, out int stencilRefGBuffer,
-                                                       out int stencilWriteMaskDistortion, out int stencilRefDistortion)
+        private void GetStencilStateCommon(out int stencilWriteMask, out int stencilRef)
         {
             stencilWriteMask = 0;
             stencilRef = 0;
+        }
+
+        private void GetStencilStateMotionVector(out int stencilWriteMask, out int stencilRef, bool receiveSSR, bool useObjectVelocity)
+        {
+            GetStencilStateCommon(out stencilWriteMask, out stencilRef);
 
             stencilWriteMask |= (int)StencilUsage.TraceReflectionRay;
             stencilRef |= receiveSSR ? (int)StencilUsage.TraceReflectionRay : 0;
 
             stencilWriteMask |= useObjectVelocity ? (int)StencilUsage.ObjectMotionVector : 0;
             stencilRef |= useObjectVelocity ? (int)StencilUsage.ObjectMotionVector : 0;
+        }
 
-            stencilRefGBuffer = (int)StencilUsage.RequiresDeferredLighting;
-            if(hasSubsurfaceScattering)
-                stencilRefGBuffer |= (int)StencilUsage.SubsurfaceScattering;
+        private void GetStencilStateDistortion(out int stencilWriteMask, out int stencilRef)
+        {
+            GetStencilStateCommon(out stencilWriteMask, out stencilRef);
 
-            stencilWriteMaskGBuffer = (int)StencilUsage.RequiresDeferredLighting | (int)StencilUsage.SubsurfaceScattering;
+            stencilWriteMask |= (int)StencilUsage.DistortionVectors;
+            stencilRef |= (int)StencilUsage.DistortionVectors;
+        }
 
-            stencilRefDistortion = (int)StencilUsage.DistortionVectors;
-            stencilWriteMaskDistortion = (int)StencilUsage.DistortionVectors;
+        private void GetStencilStateGBuffer(out int stencilWriteMask, out int stencilRef, bool hasSubsurfaceScattering)
+        {
+            GetStencilStateCommon(out stencilWriteMask, out stencilRef);
+
+            stencilWriteMask |= (int)StencilUsage.RequiresDeferredLighting;
+            stencilRef |= (int)StencilUsage.RequiresDeferredLighting;
+
+            stencilWriteMask |= (int)StencilUsage.SubsurfaceScattering;
+            stencilRef |= hasSubsurfaceScattering ? (int)StencilUsage.SubsurfaceScattering : 0;
+        }
+
+        private void GetStencilStateForward(out int stencilWriteMask, out int stencilRef, bool excludeFromTAA)
+        {
+            GetStencilStateCommon(out stencilWriteMask, out stencilRef);
+
+            stencilWriteMask |= excludeFromTAA ? (int)StencilUsage.ExcludeFromTAA : 0;
+            stencilRef |= excludeFromTAA ? (int)StencilUsage.ExcludeFromTAA : 0;
         }
 
         public override IEnumerable<KeyValuePair<string, VFXShaderWriter>> GetStencilStateOverridesStr()
         {
-            int stencilWriteMask, stencilRef;
-            int stencilGBufferWriteMask, stencilRefGBuffer;
+            int stencilWriteMaskMV, stencilRefMV;
+            GetStencilStateMotionVector(out stencilWriteMaskMV, out stencilRefMV, false, true);
+            yield return CreateStencilStateOverrideStr("${VFXStencilMotionVector}", stencilWriteMaskMV, stencilRefMV);
+
             int stencilWriteMaskDistortion, stencilRefDistortion;
-            GetStencilStateForPasses(false, false, true, false, out stencilWriteMask, out stencilRef,
-                                                                   out stencilGBufferWriteMask, out stencilRefGBuffer,
-                                                                   out stencilWriteMaskDistortion, out stencilRefDistortion);
-            var stencilForMV = new VFXShaderWriter();
-            stencilForMV.WriteFormat("Stencil\n{{\n WriteMask {0}\n Ref {1}\n Comp Always\n Pass Replace\n}}", stencilWriteMask, stencilRef);
-            yield return new KeyValuePair<string, VFXShaderWriter>("${VFXStencilMotionVector}", stencilForMV);
+            GetStencilStateDistortion(out stencilWriteMaskDistortion, out stencilRefDistortion);
+            yield return CreateStencilStateOverrideStr("${VFXStencilDistortionVectors}", stencilWriteMaskDistortion, stencilRefDistortion);
 
-            var stencilForDistortion = new VFXShaderWriter();
-            stencilForDistortion.WriteFormat("Stencil\n{{\n WriteMask {0}\n Ref {1}\n Comp Always\n Pass Replace\n}}", stencilWriteMaskDistortion, stencilRefDistortion);
-            yield return new KeyValuePair<string, VFXShaderWriter>("${VFXStencilDistortionVectors}", stencilForDistortion);
+            int stencilWriteMaskGBuffer, stencilRefGBuffer;
+            GetStencilStateGBuffer(out stencilWriteMaskGBuffer, out stencilRefGBuffer, false);
+            yield return CreateStencilStateOverrideStr("${VFXStencilGBuffer}", stencilWriteMaskGBuffer, stencilRefGBuffer);
 
-            var stencilForGBuffer = new VFXShaderWriter();
-            stencilForGBuffer.WriteFormat("Stencil\n{{\n WriteMask {0}\n Ref {1}\n Comp Always\n Pass Replace\n}}", stencilGBufferWriteMask, stencilRefGBuffer);
-            yield return new KeyValuePair<string, VFXShaderWriter>("${VFXStencilGBuffer}", stencilForGBuffer);
+            int stencilWriteMaskForward, stencilRefForward;
+            GetStencilStateForward(out stencilWriteMaskForward, out stencilRefForward, owner.hasExcludeFromTAA);
+            yield return CreateStencilStateOverrideStr("${VFXStencilForward}", stencilWriteMaskForward, stencilRefForward);
+        }
+
+        private KeyValuePair<string, VFXShaderWriter> CreateStencilStateOverrideStr(string variable, int stencilWriteMask, int stencilRef)
+        {
+            var shaderWriter = new VFXShaderWriter();
+            if (stencilWriteMask != 0)
+            {
+                shaderWriter.WriteFormat("Stencil\n{{\n WriteMask {0}\n Ref {1}\n Comp Always\n Pass Replace\n}}", stencilWriteMask, stencilRef);
+            }
+            return new KeyValuePair<string, VFXShaderWriter>(variable, shaderWriter);
         }
     }
 }

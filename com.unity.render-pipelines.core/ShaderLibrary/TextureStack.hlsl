@@ -70,7 +70,7 @@ struct StackInfo
 {
     GraniteLookupData lookupData;
     GraniteLODLookupData lookupDataLod;
-	float4 resolveOutput;
+    float4 resolveOutput;
 };
 
 struct VTProperty
@@ -211,30 +211,30 @@ float4 SampleVT_##layerSamplerName(StackInfo info, int lodCalculation, int quali
     }
 
 #define DECLARE_STACK(stackName, layer0SamplerName)\
-	DECLARE_STACK_BASE(stackName)\
-	DECLARE_STACK_LAYER(stackName, layer0SamplerName, 0)\
-	DECLARE_BUILD_PROPERTIES(stackName, 1, 0, 0, 0, 0)
+    DECLARE_STACK_BASE(stackName)\
+    DECLARE_STACK_LAYER(stackName, layer0SamplerName, 0)\
+    DECLARE_BUILD_PROPERTIES(stackName, 1, 0, 0, 0, 0)
 
 #define DECLARE_STACK2(stackName, layer0SamplerName, layer1SamplerName)\
-	DECLARE_STACK_BASE(stackName)\
-	DECLARE_STACK_LAYER(stackName, layer0SamplerName, 0)\
-	DECLARE_STACK_LAYER(stackName, layer1SamplerName, 1)\
-	DECLARE_BUILD_PROPERTIES(stackName, 2, 0, 1, 1, 1)
+    DECLARE_STACK_BASE(stackName)\
+    DECLARE_STACK_LAYER(stackName, layer0SamplerName, 0)\
+    DECLARE_STACK_LAYER(stackName, layer1SamplerName, 1)\
+    DECLARE_BUILD_PROPERTIES(stackName, 2, 0, 1, 1, 1)
 
 #define DECLARE_STACK3(stackName, layer0SamplerName, layer1SamplerName, layer2SamplerName)\
-	DECLARE_STACK_BASE(stackName)\
-	DECLARE_STACK_LAYER(stackName, layer0SamplerName, 0)\
-	DECLARE_STACK_LAYER(stackName, layer1SamplerName, 1)\
-	DECLARE_STACK_LAYER(stackName, layer2SamplerName, 2)\
-	DECLARE_BUILD_PROPERTIES(stackName, 3, 0, 1, 2, 2)
+    DECLARE_STACK_BASE(stackName)\
+    DECLARE_STACK_LAYER(stackName, layer0SamplerName, 0)\
+    DECLARE_STACK_LAYER(stackName, layer1SamplerName, 1)\
+    DECLARE_STACK_LAYER(stackName, layer2SamplerName, 2)\
+    DECLARE_BUILD_PROPERTIES(stackName, 3, 0, 1, 2, 2)
 
 #define DECLARE_STACK4(stackName, layer0SamplerName, layer1SamplerName, layer2SamplerName, layer3SamplerName)\
-	DECLARE_STACK_BASE(stackName)\
-	DECLARE_STACK_LAYER(stackName, layer0SamplerName, 0)\
-	DECLARE_STACK_LAYER(stackName, layer1SamplerName, 1)\
-	DECLARE_STACK_LAYER(stackName, layer2SamplerName, 2)\
-	DECLARE_STACK_LAYER(stackName, layer3SamplerName, 3)\
-	DECLARE_BUILD_PROPERTIES(stackName, 4, 0, 1, 2, 3)
+    DECLARE_STACK_BASE(stackName)\
+    DECLARE_STACK_LAYER(stackName, layer0SamplerName, 0)\
+    DECLARE_STACK_LAYER(stackName, layer1SamplerName, 1)\
+    DECLARE_STACK_LAYER(stackName, layer2SamplerName, 2)\
+    DECLARE_STACK_LAYER(stackName, layer3SamplerName, 3)\
+    DECLARE_BUILD_PROPERTIES(stackName, 4, 0, 1, 2, 3)
 
 #define PrepareStack(inputParams, stackName) PrepareVT_##stackName(inputParams)
 #define SampleStack(info, lodMode, quality, textureName) SampleVT_##textureName(info, lodMode, quality)
@@ -316,12 +316,12 @@ struct VTProperty
     TEXTURE2D(Layer1);
     TEXTURE2D(Layer2);
     TEXTURE2D(Layer3);
-#ifndef SHADER_API_GLES    
+#ifndef SHADER_API_GLES
     SAMPLER(samplerLayer0);
     SAMPLER(samplerLayer1);
     SAMPLER(samplerLayer2);
     SAMPLER(samplerLayer3);
-#endif    
+#endif
 };
 
 StackInfo MakeStackInfo(VtInputParameters vt)

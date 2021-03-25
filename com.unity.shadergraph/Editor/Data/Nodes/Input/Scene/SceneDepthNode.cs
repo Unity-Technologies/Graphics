@@ -31,7 +31,7 @@ namespace UnityEditor.ShaderGraph
             set
             {
                 if (m_DepthSamplingMode == value)
-                    return ;
+                    return;
 
                 m_DepthSamplingMode = value;
                 Dirty(ModificationScope.Graph);
@@ -66,7 +66,7 @@ namespace UnityEditor.ShaderGraph
             [Slot(1, Binding.None, ShaderStageCapability.Fragment)] out Vector1 Out)
         {
             return
-                @"
+@"
 {
     Out = Linear01Depth(SHADERGRAPH_SAMPLE_SCENE_DEPTH(UV.xy), _ZBufferParams);
 }
@@ -78,7 +78,7 @@ namespace UnityEditor.ShaderGraph
             [Slot(1, Binding.None, ShaderStageCapability.Fragment)] out Vector1 Out)
         {
             return
-                @"
+@"
 {
     Out = SHADERGRAPH_SAMPLE_SCENE_DEPTH(UV.xy);
 }
@@ -90,7 +90,7 @@ namespace UnityEditor.ShaderGraph
             [Slot(1, Binding.None, ShaderStageCapability.Fragment)] out Vector1 Out)
         {
             return
-                @"
+@"
 {
     Out = LinearEyeDepth(SHADERGRAPH_SAMPLE_SCENE_DEPTH(UV.xy), _ZBufferParams);
 }

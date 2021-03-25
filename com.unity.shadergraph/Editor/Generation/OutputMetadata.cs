@@ -15,7 +15,7 @@ namespace UnityEditor.ShaderGraph.Internal
         [SerializeField]
         int m_Id;
 
-        internal OutputMetadata(int index, string referenceName,int id)
+        internal OutputMetadata(int index, string referenceName, int id)
         {
             m_Index = index;
             m_ReferenceName = referenceName;

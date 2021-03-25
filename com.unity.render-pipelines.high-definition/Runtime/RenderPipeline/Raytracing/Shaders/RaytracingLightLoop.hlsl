@@ -1,10 +1,10 @@
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/Raytracing/Shaders/RayTracingLightCluster.hlsl"
 
-#define USE_LIGHT_CLUSTER 
+#define USE_LIGHT_CLUSTER
 
-void LightLoop( float3 V, PositionInputs posInput, PreLightData preLightData, BSDFData bsdfData, BuiltinData builtinData, 
+void LightLoop( float3 V, PositionInputs posInput, PreLightData preLightData, BSDFData bsdfData, BuiltinData builtinData,
                 float reflectionHierarchyWeight, float refractionHierarchyWeight, float3 reflection, float3 transmission,
-			    out LightLoopOutput lightLoopOutput)
+                out LightLoopOutput lightLoopOutput)
 {
     // Init LightLoop output structure
     ZERO_INITIALIZE(LightLoopOutput, lightLoopOutput);
@@ -17,7 +17,7 @@ void LightLoop( float3 V, PositionInputs posInput, PreLightData preLightData, BS
 
     // Initialize the contactShadow and contactShadowFade fields
     InvalidateConctactShadow(posInput, context);
-    
+
     // Evaluate sun shadows.
     if (_DirectionalShadowIndex >= 0)
     {
@@ -31,9 +31,12 @@ void LightLoop( float3 V, PositionInputs posInput, PreLightData preLightData, BS
             IsNonZeroBSDF(V, L, preLightData, bsdfData) &&
             !ShouldEvaluateThickObjectTransmission(V, L, preLightData, bsdfData, light.shadowIndex))
         {
-            context.shadowValue = GetDirectionalShadowAttenuation(context.shadowContext,
-                                                                  posInput.positionSS, posInput.positionWS, GetNormalForShadowBias(bsdfData),
-                                                                  light.shadowIndex, L);
+            int shadowSplitIndex;
+            context.shadowValue = EvalShadow_CascadedDepth_Dither_SplitIndex(context.shadowContext, _ShadowmapCascadeAtlas, s_linear_clamp_compare_sampler, posInput.positionSS, posInput.positionWS, GetNormalForShadowBias(bsdfData), light.shadowIndex, L, shadowSplitIndex);
+            if (shadowSplitIndex < 0.0)
+            {
+                 context.shadowValue = _DirectionalShadowFallbackIntensity;
+            }
         }
     }
 
@@ -43,10 +46,10 @@ void LightLoop( float3 V, PositionInputs posInput, PreLightData preLightData, BS
     // Indices of the subranges to process
     uint lightStart = 0, lightEnd = 0;
 
-    // The light cluster is in actual world space coordinates, 
+    // The light cluster is in actual world space coordinates,
     #ifdef USE_LIGHT_CLUSTER
     // Get the actual world space position
-    float3 actualWSPos = GetAbsolutePositionWS(posInput.positionWS);
+    float3 actualWSPos = posInput.positionWS;
     #endif
 
     #ifdef USE_LIGHT_CLUSTER
@@ -99,7 +102,7 @@ void LightLoop( float3 V, PositionInputs posInput, PreLightData preLightData, BS
 
 // Environment cubemap test lightlayers, sky don't test it
 #define EVALUATE_BSDF_ENV(envLightData, TYPE, type) if (IsMatchingLightLayer(envLightData.lightLayers, builtinData.renderingLayers)) { EVALUATE_BSDF_ENV_SKY(envLightData, TYPE, type) }
-    
+
     #ifdef USE_LIGHT_CLUSTER
     // Get the punctual light count
     GetLightCountAndStartCluster(actualWSPos, LIGHTCATEGORY_ENV, lightStart, lightEnd, cellIndex);
@@ -119,7 +122,6 @@ void LightLoop( float3 V, PositionInputs posInput, PreLightData preLightData, BS
         #else
         EnvLightData envLightData = _EnvLightDatasRT[envLightIdx];
         #endif
-        envLightData.multiplier = _EnvLightDatas[envLightIdx].multiplier;
 
         if (reflectionHierarchyWeight < 1.0)
         {
@@ -167,7 +169,7 @@ void LightLoop( float3 V, PositionInputs posInput, PreLightData preLightData, BS
 
 
     #ifdef USE_LIGHT_CLUSTER
-    // Let's loop through all the 
+    // Let's loop through all the
     GetLightCountAndStartCluster(actualWSPos, LIGHTCATEGORY_AREA, lightStart, lightEnd, cellIndex);
     #else
     lightStart = _PunctualLightCountRT;

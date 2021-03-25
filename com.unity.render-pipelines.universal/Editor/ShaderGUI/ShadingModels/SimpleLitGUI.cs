@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using UnityEngine;
 using UnityEngine.Rendering;
 using UnityEngine.Scripting.APIUpdating;
@@ -78,15 +78,15 @@ namespace UnityEditor.Rendering.Universal.ShaderGUI
         {
             SpecularSource specSource = (SpecularSource)properties.specHighlights.floatValue;
             EditorGUI.BeginDisabledGroup(specSource == SpecularSource.NoSpecular);
-            BaseShaderGUI.TextureColorProps(materialEditor, Styles.specularMapText, properties.specGlossMap,properties.specColor, true);
+            BaseShaderGUI.TextureColorProps(materialEditor, Styles.specularMapText, properties.specGlossMap, properties.specColor, true);
             DoSmoothness(properties, material);
             EditorGUI.EndDisabledGroup();
         }
 
         public static void DoSmoothness(SimpleLitProperties properties, Material material)
         {
-            var opaque = ((BaseShaderGUI.SurfaceType) material.GetFloat("_Surface") ==
-                          BaseShaderGUI.SurfaceType.Opaque);
+            var opaque = ((BaseShaderGUI.SurfaceType)material.GetFloat("_Surface") ==
+                BaseShaderGUI.SurfaceType.Opaque);
             EditorGUI.indentLevel += 2;
 
             EditorGUI.BeginChangeCheck();
@@ -104,7 +104,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGUI
             EditorGUI.BeginDisabledGroup(!opaque);
             EditorGUI.BeginChangeCheck();
             EditorGUI.showMixedValue = properties.smoothnessMapChannel.hasMixedValue;
-            if(opaque)
+            if (opaque)
                 smoothnessSource = EditorGUILayout.Popup(Styles.smoothnessMapChannelText, smoothnessSource, Enum.GetNames(typeof(SmoothnessMapChannel)));
             else
                 EditorGUILayout.Popup(Styles.smoothnessMapChannelText, 0, Enum.GetNames(typeof(SmoothnessMapChannel)));
@@ -122,8 +122,8 @@ namespace UnityEditor.Rendering.Universal.ShaderGUI
 
         private static void UpdateMaterialSpecularSource(Material material)
         {
-            var opaque = ((BaseShaderGUI.SurfaceType) material.GetFloat("_Surface") ==
-                          BaseShaderGUI.SurfaceType.Opaque);
+            var opaque = ((BaseShaderGUI.SurfaceType)material.GetFloat("_Surface") ==
+                BaseShaderGUI.SurfaceType.Opaque);
             SpecularSource specSource = (SpecularSource)material.GetFloat("_SpecularHighlights");
             if (specSource == SpecularSource.NoSpecular)
             {
@@ -137,7 +137,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGUI
                 bool hasMap = material.GetTexture("_SpecGlossMap");
                 CoreUtils.SetKeyword(material, "_SPECGLOSSMAP", hasMap);
                 CoreUtils.SetKeyword(material, "_SPECULAR_COLOR", !hasMap);
-                if(opaque)
+                if (opaque)
                     CoreUtils.SetKeyword(material, "_GLOSSINESS_FROM_BASE_ALPHA", smoothnessSource == SmoothnessMapChannel.AlbedoAlpha);
                 else
                     CoreUtils.SetKeyword(material, "_GLOSSINESS_FROM_BASE_ALPHA", false);

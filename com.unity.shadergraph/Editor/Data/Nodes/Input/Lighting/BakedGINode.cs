@@ -17,10 +17,9 @@ namespace UnityEditor.ShaderGraph
             name = "Baked GI";
         }
 
-
         protected override MethodInfo GetFunctionToConvert()
         {
-            if(applyScaling.isOn)
+            if (applyScaling.isOn)
                 return GetType().GetMethod("Unity_BakedGIScale", BindingFlags.Static | BindingFlags.NonPublic);
             else
                 return GetType().GetMethod("Unity_BakedGI", BindingFlags.Static | BindingFlags.NonPublic);
@@ -43,15 +42,15 @@ namespace UnityEditor.ShaderGraph
         }
 
         static string Unity_BakedGI(
-           [Slot(2, Binding.WorldSpacePosition)] Vector3 Position,
-           [Slot(0, Binding.WorldSpaceNormal)] Vector3 Normal,
-           [Slot(3, Binding.MeshUV1)] Vector2 StaticUV,
-           [Slot(4, Binding.MeshUV2)] Vector2 DynamicUV,
-           [Slot(1, Binding.None)] out Vector3 Out)
+            [Slot(2, Binding.WorldSpacePosition)] Vector3 Position,
+            [Slot(0, Binding.WorldSpaceNormal)] Vector3 Normal,
+            [Slot(3, Binding.MeshUV1)] Vector2 StaticUV,
+            [Slot(4, Binding.MeshUV2)] Vector2 DynamicUV,
+            [Slot(1, Binding.None)] out Vector3 Out)
         {
             Out = Vector3.one;
             return
-                @"
+@"
 {
     Out = SHADERGRAPH_BAKED_GI(Position, Normal, StaticUV, DynamicUV, false);
 }
@@ -59,15 +58,15 @@ namespace UnityEditor.ShaderGraph
         }
 
         static string Unity_BakedGIScale(
-           [Slot(2, Binding.WorldSpacePosition)] Vector3 Position,
-           [Slot(0, Binding.WorldSpaceNormal)] Vector3 Normal,
-           [Slot(3, Binding.MeshUV1)] Vector2 StaticUV,
-           [Slot(4, Binding.MeshUV2)] Vector2 DynamicUV,
-           [Slot(1, Binding.None)] out Vector3 Out)
+            [Slot(2, Binding.WorldSpacePosition)] Vector3 Position,
+            [Slot(0, Binding.WorldSpaceNormal)] Vector3 Normal,
+            [Slot(3, Binding.MeshUV1)] Vector2 StaticUV,
+            [Slot(4, Binding.MeshUV2)] Vector2 DynamicUV,
+            [Slot(1, Binding.None)] out Vector3 Out)
         {
             Out = Vector3.one;
             return
-                @"
+@"
 {
     Out = SHADERGRAPH_BAKED_GI(Position, Normal, StaticUV, DynamicUV, true);
 }

@@ -1,6 +1,6 @@
 void SampleSphericalCone(float3 conePosition, float coneRadius, float3 coneDir,
                         float coneAngle,
-                        float u, float v, 
+                        float u, float v,
                         float3 position, float3 normal, out float3 outPosition, out float outPDF)
 {
     // Compute the half angle cosine

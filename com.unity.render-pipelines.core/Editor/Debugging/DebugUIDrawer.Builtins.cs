@@ -105,7 +105,7 @@ namespace UnityEditor.Rendering
             labelRect.width = EditorGUIUtility.labelWidth;
             const int oneValueWidth = 70;
             var valueRects = new Rect[w.historyDepth + 1];
-            for(int i = 0; i < w.historyDepth + 1; i++)
+            for (int i = 0; i < w.historyDepth + 1; i++)
             {
                 valueRects[i] = rect;
                 valueRects[i].x += EditorGUIUtility.labelWidth + i * oneValueWidth;

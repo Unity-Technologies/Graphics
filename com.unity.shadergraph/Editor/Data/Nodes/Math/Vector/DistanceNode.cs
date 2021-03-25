@@ -10,7 +10,6 @@ namespace UnityEditor.ShaderGraph
             name = "Distance";
         }
 
-
         protected override MethodInfo GetFunctionToConvert()
         {
             return GetType().GetMethod("Unity_Distance", BindingFlags.Static | BindingFlags.NonPublic);
@@ -22,7 +21,7 @@ namespace UnityEditor.ShaderGraph
             [Slot(2, Binding.None)] out Vector1 Out)
         {
             return
-                @"
+@"
 {
     Out = distance(A, B);
 }

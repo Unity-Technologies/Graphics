@@ -4,7 +4,27 @@ All notable changes to this project template will be documented in this file.
 The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.html).
 
-## [Unreleased] - XXXX-XX-XX
+## [12.0.0] - 2021-01-11
+
+### Changed
+- Update SRP package to 12.0.0
+
+## [11.0.0] - 2020-10-21
+
+### Changed
+- Update SRP package to 11.0.0
+
+## [10.2.0] - 2020-10-19
+
+### Changed
+- Update SRP package to 10.2.0
+
+## [10.1.0] - 2020-10-12
+
+Version Updated
+The version number for this package has increased due to a version update of a related graphics package.
+
+## [10.0.0] - 2020-08-03
 
 ### Changed
 - Updated version to Universal RP version 10.0.0
@@ -13,7 +33,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 ### Fixed
 - Fixed camera from always rendering into a RenderTexture, this caused un-needed performance slowdown
 
-## [7.1.7] - 2019-12-3
+## [7.1.7] - 2019-12-03
 - Editor will force text serialization to occur on one line
 
 ## [7.1.6] - 2019-11-22
@@ -58,11 +78,11 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ## [3.6.0] - 2019-05-17
 - Updated to SRP package 6.7.0
-- Adding test framework package to manifest. 
+- Adding test framework package to manifest.
 - Updating project settings to make sure the sample scene is opened on load.
 
 ## [3.5.2] - 2019-03-15
-- Fixed incorrect default property setting for ProjectSettings.SupportedNpadStyles 
+- Fixed incorrect default property setting for ProjectSettings.SupportedNpadStyles
 
 ## [3.5.1] - 2019-03-13
 - PlayerSettings.legacyClampBlendShapeWeights property now defaults to false.
@@ -137,14 +157,14 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Physics.autoSyncTransforms property now defaults to false.
 - Physics2D.autoSyncTransforms property now defaults to false.
 
-## [1.1.0] - 2018-24-10
+## [1.1.0] - 2018-10-24
 
 ### Changed
-- Updating LW Version 
+- Updating LW Version
 - AndroidTVCompatibility to false
 
 
-## [1.0.6] - 2018-24-09
+## [1.0.6] - 2018-09-24
 
 ### Changed
 - Oculus XR settings default to dash support and depth export enabled.
@@ -167,7 +187,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 ## [1.0.3] - 2018-06-06
 
 ### Changed
-- Migrating old lightweight templates into package format 
+- Migrating old lightweight templates into package format
 
 ## [1.0.2] - 2018-06-01
 
@@ -182,7 +202,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Removed Vertex Lighting from all lightweight assets
 - Added soft shadows to Lightweight high quality and medium quality assets
 
-## [1.0.0] - 2018-2-25
+## [1.0.0] - 2018-02-25
 
 ### Added
 - Sample static meshes to show best practices
@@ -191,30 +211,30 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ### Changed
 - Removed cinemachine and text mesh pro
-- Updated package version for LW 
+- Updated package version for LW
 - Additional setting and lighting polish
 - Removing basic content (red cube)
 
-## [0.0.5] - 2018-1-29
+## [0.0.5] - 2018-01-29
 
 ### Added
 - cinemachine and text mesh pro packages
 
-## [0.0.4] - 2018-1-29
+## [0.0.4] - 2018-01-29
 
 ### Added
 - cinemachine and text mesh pro packages
 
-## [0.0.3] - 2018-1-26 
+## [0.0.3] - 2018-01-26
 
-### Changed 
+### Changed
 - Updating Shadergraph and lightweight to new version
 - Updating lighting settings based on internal feedback from lighting team
 
 ## [0.0.2] - 2017-12-12
 ### Added
 - Packages for Lightweight SRP and Shadergraph
-- Simple example content - red cube 
+- Simple example content - red cube
 
 ### Changed
 - Project and Lighting Settings adjusted for use with Lightweight Render Pipeline
@@ -223,4 +243,3 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ### Added
 - Initial Project Creation for Unity Lightweight Project Template \com.unity.template.lightweight.
-

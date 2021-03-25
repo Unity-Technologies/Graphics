@@ -9,10 +9,10 @@ Generates a Voronoi, or [Worley](https://en.wikipedia.org/wiki/Worley_noise), no
 | Name        | Direction           | Type  | Binding | Description |
 |:------------ |:-------------|:-----|:---|:---|
 | UV      | Input | Vector 2 | UV | Input UV value |
-| Angle Offset      | Input | Vector 1 | None | Offset value for points |
-| Cell Density      | Input | Vector 1 | None | Density of cells generated |
-| Out | Output      |    Vector 1 | None | Output noise value |
-| Cells | Output      |    Vector 1 | None | Raw cell data |
+| Angle Offset      | Input | Float    | None | Offset value for points |
+| Cell Density      | Input | Float    | None | Density of cells generated |
+| Out | Output      |    Float    | None | Output noise value |
+| Cells | Output      |    Float    | None | Raw cell data |
 
 ## Generated Code Example
 

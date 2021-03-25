@@ -10,7 +10,6 @@ namespace UnityEditor.ShaderGraph
             name = "Normalize";
         }
 
-
         protected override MethodInfo GetFunctionToConvert()
         {
             return GetType().GetMethod("Unity_Normalize", BindingFlags.Static | BindingFlags.NonPublic);
@@ -21,7 +20,7 @@ namespace UnityEditor.ShaderGraph
             [Slot(1, Binding.None)] out DynamicDimensionVector Out)
         {
             return
-                @"
+@"
 {
     Out = normalize(In);
 }

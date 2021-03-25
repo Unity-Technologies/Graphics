@@ -11,11 +11,11 @@ Shader "Hidden/HDRP/Material/Decal/DecalNormalBuffer"
     HLSLINCLUDE
 
         #pragma target 4.5
-        #pragma only_renderers d3d11 playstation xboxone vulkan metal switch
+        #pragma only_renderers d3d11 playstation xboxone xboxseries vulkan metal switch
         #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Common.hlsl"
         #include "Packages/com.unity.render-pipelines.high-definition/Runtime/ShaderLibrary/ShaderVariables.hlsl"
-		#include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Decal/Decal.hlsl"
-		#include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/NormalBuffer.hlsl"
+        #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/Decal/Decal.hlsl"
+        #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/NormalBuffer.hlsl"
 
 #if defined(PLATFORM_NEEDS_UNORM_UAV_SPECIFIER) && defined(PLATFORM_SUPPORTS_EXPLICIT_BINDING)
         // Explicit binding is needed on D3D since we bind the UAV to slot 1 and we don't have a colour RT bound to fix a D3D warning.
@@ -59,13 +59,13 @@ Shader "Hidden/HDRP/Material/Decal/DecalNormalBuffer"
             DECODE_FROM_DBUFFER(DBuffer, decalSurfaceData);
 
             uint2 positionSS = uint2(input.texcoord * _ScreenSize.xy);
-            float4 GBufferNormal = _NormalBuffer[COORD_TEXTURE2D_X(positionSS)];
+            float4 normalbuffer = _NormalBuffer[COORD_TEXTURE2D_X(positionSS)];
             NormalData normalData;
-            DecodeFromNormalBuffer(GBufferNormal, uint2(0, 0), normalData);
+            DecodeFromNormalBuffer(normalbuffer, normalData);
             normalData.normalWS.xyz = normalize(normalData.normalWS.xyz * decalSurfaceData.normalWS.w + decalSurfaceData.normalWS.xyz);
             normalData.perceptualRoughness = PerceptualSmoothnessToPerceptualRoughness(PerceptualRoughnessToPerceptualSmoothness(normalData.perceptualRoughness) * decalSurfaceData.mask.w + decalSurfaceData.mask.z);
-            EncodeIntoNormalBuffer(normalData, uint2(0, 0), GBufferNormal);
-            _NormalBuffer[COORD_TEXTURE2D_X(positionSS)] = GBufferNormal;
+            EncodeIntoNormalBuffer(normalData, normalbuffer);
+            _NormalBuffer[COORD_TEXTURE2D_X(positionSS)] = normalbuffer;
         }
 
     ENDHLSL
@@ -88,6 +88,10 @@ Shader "Hidden/HDRP/Material/Decal/DecalNormalBuffer"
                 Ref [_DecalNormalBufferStencilRef]
                 Comp Equal
                 Pass Zero   // Clear bits since they are not needed anymore.
+                            // Note: this is fine with the combination
+                            // _DecalNormalBufferStencilReadMask - StencilUsage.Decals | (int)StencilUsage.RequiresDeferredLighting
+                            // _DecalNormalBufferStencilRef = (int)StencilUsage.Decals
+                            // Because the test success only if RequiresDeferredLighting isn't set, and thus we can clear the 2 bits, RequiresDeferredLighting already don't exist
             }
 
             HLSLPROGRAM

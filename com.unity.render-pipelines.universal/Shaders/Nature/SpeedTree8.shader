@@ -36,6 +36,7 @@ Shader "Universal Render Pipeline/Nature/SpeedTree8"
             "RenderType"="TransparentCutout"
             "DisableBatching"="LODFading"
             "RenderPipeline" = "UniversalPipeline"
+            "UniversalMaterialType" = "Lit"
         }
         LOD 400
         Cull [_TwoSided]
@@ -50,13 +51,13 @@ Shader "Universal Render Pipeline/Nature/SpeedTree8"
             #pragma vertex SpeedTree8Vert
             #pragma fragment SpeedTree8Frag
 
-            #pragma multi_compile _ _MAIN_LIGHT_SHADOWS
-            #pragma multi_compile _ _MAIN_LIGHT_SHADOWS_CASCADE
+            #pragma multi_compile _ _MAIN_LIGHT_SHADOWS _MAIN_LIGHT_SHADOWS_CASCADE _MAIN_LIGHT_SHADOWS_SCREEN
             #pragma multi_compile _ _ADDITIONAL_LIGHTS_VERTEX _ADDITIONAL_LIGHTS
             #pragma multi_compile _ _ADDITIONAL_LIGHT_SHADOWS
             #pragma multi_compile _ _SHADOWS_SOFT
+            #pragma multi_compile _ LOD_FADE_CROSSFADE
+            #pragma multi_compile_fragment _ _SCREEN_SPACE_OCCLUSION
             #pragma multi_compile_vertex LOD_FADE_PERCENTAGE
-            #pragma multi_compile __ LOD_FADE_CROSSFADE
             #pragma multi_compile_fog
 
             #pragma multi_compile_instancing
@@ -83,15 +84,13 @@ Shader "Universal Render Pipeline/Nature/SpeedTree8"
             Name "SceneSelectionPass"
             Tags{"LightMode" = "SceneSelectionPass"}
 
-            ColorMask 0
-
             HLSLPROGRAM
 
             #pragma vertex SpeedTree8VertDepth
             #pragma fragment SpeedTree8FragDepth
 
+            #pragma multi_compile _ LOD_FADE_CROSSFADE
             #pragma multi_compile_vertex LOD_FADE_PERCENTAGE
-            #pragma multi_compile __ LOD_FADE_CROSSFADE
             #pragma multi_compile_instancing
             #pragma instancing_options assumeuniformscaling maxcount:50
 
@@ -113,29 +112,17 @@ Shader "Universal Render Pipeline/Nature/SpeedTree8"
             Name "GBuffer"
             Tags{"LightMode" = "UniversalGBuffer"}
 
-            // [Stencil] Bit 5-6 material type. 00 = unlit/bakedLit, 01 = Lit, 10 = SimpleLit
-            // This is a Lit material.
-            Stencil {
-                Ref 32       // 0b00100000
-                WriteMask 96 // 0b01100000
-                Comp Always
-                Pass Replace
-                Fail Keep
-                ZFail Keep
-            }
-
             HLSLPROGRAM
-
+            #pragma exclude_renderers gles
             #pragma vertex SpeedTree8Vert
             #pragma fragment SpeedTree8Frag
 
-            #pragma multi_compile _ _MAIN_LIGHT_SHADOWS
-            #pragma multi_compile _ _MAIN_LIGHT_SHADOWS_CASCADE
+            #pragma multi_compile _ _MAIN_LIGHT_SHADOWS _MAIN_LIGHT_SHADOWS_CASCADE _MAIN_LIGHT_SHADOWS_SCREEN
             //#pragma multi_compile _ _ADDITIONAL_LIGHTS_VERTEX _ADDITIONAL_LIGHTS
             //#pragma multi_compile _ _ADDITIONAL_LIGHT_SHADOWS
             #pragma multi_compile _ _SHADOWS_SOFT
+            #pragma multi_compile _ LOD_FADE_CROSSFADE
             #pragma multi_compile_vertex LOD_FADE_PERCENTAGE
-            #pragma multi_compile __ LOD_FADE_CROSSFADE
             #pragma multi_compile_fragment _ _GBUFFER_NORMALS_OCT
 
             #pragma multi_compile_instancing
@@ -163,13 +150,15 @@ Shader "Universal Render Pipeline/Nature/SpeedTree8"
             Name "ShadowCaster"
             Tags{"LightMode" = "ShadowCaster"}
 
+            ColorMask 0
+
             HLSLPROGRAM
 
             #pragma vertex SpeedTree8VertDepth
             #pragma fragment SpeedTree8FragDepth
 
+            #pragma multi_compile _ LOD_FADE_CROSSFADE
             #pragma multi_compile_vertex LOD_FADE_PERCENTAGE
-            #pragma multi_compile __ LOD_FADE_CROSSFADE
             #pragma multi_compile_instancing
             #pragma instancing_options assumeuniformscaling maxcount:50
 
@@ -179,6 +168,12 @@ Shader "Universal Render Pipeline/Nature/SpeedTree8"
             #define ENABLE_WIND
             #define DEPTH_ONLY
             #define SHADOW_CASTER
+
+            // -------------------------------------
+            // Universal Pipeline keywords
+
+            // This is used during shadow map generation to differentiate between directional and punctual light shadows, as they use different formulas to apply Normal Bias
+            #pragma multi_compile_vertex _ _CASTING_PUNCTUAL_LIGHT_SHADOW
 
             #include "SpeedTree8Input.hlsl"
             #include "SpeedTree8Passes.hlsl"
@@ -198,8 +193,8 @@ Shader "Universal Render Pipeline/Nature/SpeedTree8"
             #pragma vertex SpeedTree8VertDepth
             #pragma fragment SpeedTree8FragDepth
 
+            #pragma multi_compile _ LOD_FADE_CROSSFADE
             #pragma multi_compile_vertex LOD_FADE_PERCENTAGE
-            #pragma multi_compile __ LOD_FADE_CROSSFADE
             #pragma multi_compile_instancing
             #pragma instancing_options assumeuniformscaling maxcount:50
 
@@ -212,6 +207,35 @@ Shader "Universal Render Pipeline/Nature/SpeedTree8"
             #include "SpeedTree8Input.hlsl"
             #include "SpeedTree8Passes.hlsl"
 
+            ENDHLSL
+        }
+
+        // This pass is used when drawing to a _CameraNormalsTexture texture
+        Pass
+        {
+            Name "DepthNormals"
+            Tags{"LightMode" = "DepthNormals"}
+
+            ZWrite On
+
+            HLSLPROGRAM
+            #pragma vertex SpeedTree8VertDepthNormal
+            #pragma fragment SpeedTree8FragDepthNormal
+
+            #pragma shader_feature_local _WINDQUALITY_NONE _WINDQUALITY_FASTEST _WINDQUALITY_FAST _WINDQUALITY_BETTER _WINDQUALITY_BEST _WINDQUALITY_PALM
+            #pragma shader_feature_local EFFECT_BUMP
+
+            #pragma multi_compile _ LOD_FADE_CROSSFADE
+            #pragma multi_compile_instancing
+            #pragma multi_compile_vertex LOD_FADE_PERCENTAGE
+
+            #pragma instancing_options assumeuniformscaling maxcount:50
+
+            #define ENABLE_WIND
+            #define EFFECT_BACKSIDE_NORMALS
+
+            #include "SpeedTree8Input.hlsl"
+            #include "SpeedTree8Passes.hlsl"
             ENDHLSL
         }
     }

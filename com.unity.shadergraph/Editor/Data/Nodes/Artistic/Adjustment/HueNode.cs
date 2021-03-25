@@ -54,7 +54,7 @@ namespace UnityEditor.ShaderGraph
         {
             Out = Vector3.zero;
             return
-                @"
+@"
 {
     // RGB to HSV
     $precision4 K = $precision4(0.0, -1.0 / 3.0, 2.0 / 3.0, -1.0);
@@ -85,7 +85,7 @@ namespace UnityEditor.ShaderGraph
         {
             Out = Vector3.zero;
             return
-                @"
+@"
 {
     // RGB to HSV
     $precision4 K = $precision4(0.0, -1.0 / 3.0, 2.0 / 3.0, -1.0);

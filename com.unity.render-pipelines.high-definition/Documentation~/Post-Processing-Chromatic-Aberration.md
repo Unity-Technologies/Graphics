@@ -4,14 +4,14 @@ Chromatic Aberration mimics the effect that a real-world camera produces when it
 
 For more information on the Chromatic Aberration effect, see the [Chromatic Aberration](https://docs.unity3d.com/Manual/PostProcessing-ChromaticAberration.html) documentation in the Unity Manual.
 
-## Comparison images
-
 ## Using Chromatic Aberration
 
-**Chromatic Aberration** uses the [Volume](Volumes.html) framework, so to enable and modify **Chromatic Aberration** properties, you must add a **Chromatic Aberration** override to a [Volume](Volumes.html) in your Scene. To add **Chromatic Aberration** to a Volume:
+**Chromatic Aberration** uses the [Volume](Volumes.md) framework, so to enable and modify **Chromatic Aberration** properties, you must add a **Chromatic Aberration** override to a [Volume](Volumes.md) in your Scene. To add **Chromatic Aberration** to a Volume:
 
 1. In the Scene or Hierarchy view, select a GameObject that contains a Volume component to view it in the Inspector.
 2. In the Inspector, navigate to **Add Override > Post-processing** and click on **Chromatic Aberration**. HDRP now applies **Chromatic Aberration** to any Camera this Volume affects.
+
+[!include[](snippets/volume-override-api.md)]
 
 ## Properties
 

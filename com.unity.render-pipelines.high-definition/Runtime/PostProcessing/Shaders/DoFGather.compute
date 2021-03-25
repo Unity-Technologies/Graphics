@@ -2,8 +2,9 @@
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/ShaderLibrary/ShaderVariables.hlsl"
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/PostProcessing/Shaders/PostProcessDefines.hlsl"
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/PostProcessing/Shaders/DepthOfFieldCommon.hlsl"
+#include "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/Raytracing/Shaders/RaytracingSampling.hlsl"
 
-#pragma only_renderers d3d11 playstation xboxone vulkan metal switch
+#pragma only_renderers d3d11 playstation xboxone xboxseries vulkan metal switch
 
 #pragma kernel KMain
 
@@ -11,344 +12,354 @@
 
 CBUFFER_START(cb0)
 float4 _Params;
+float4 _Params2;
 CBUFFER_END
+
+#define NumRings            _Params.x
+#define MaxCoCRadius        _Params.y
+#define Anamorphism         _Params.z
+#define MaxCoCMipLevel      _Params2.x
+#define MaxColorMip         _Params2.w
 
 // Input textures
 TEXTURE2D_X(_InputTexture);
 TEXTURE2D_X(_InputCoCTexture);
+TEXTURE2D_X(_TileList);
 
 // Outpute texture
 RW_TEXTURE2D_X(CTYPE, _OutputTexture);
 
-// A set of Defines to fine-tune the algorithm
-#define NUM_BUCKETS 3
-#define COC_FAR_CLAMPING
-#define CENTER_DENSITY
-#define RING_DENSITY 8.0
-#define UNIFORM_WEIGHTS
-//#define ADAPTIVE_RADIUS
-#define GRADIENT_NOISE
-//#define OCTAWEB_SORTING
+#define TILE_RES  8u
 
-// DO NOT EDIT: Helper defines so we can have one code path when OCTAWEB_SORTING is enabled or disabled.
-#ifndef OCTAWEB_SORTING
-    #define RING_COLOR totalColor
-    #define RING_MAXCOC maxCoC
-    #define RING_HITS totalHits
-    #define RING_ALPHA totalAlpha
-#else
-    #define RING_COLOR ringColor
-    #define RING_MAXCOC ringMaxCoC
-    #define RING_HITS ringHits
-    #define RING_ALPHA ringAlpha
-#endif
+// A set of Defines to fine-tune the algorithm
+#define ADAPTIVE_SAMPLING
+#define STRATIFY
+#define FORCE_POINT_SAMPLING
+#define RING_OCCLUSION
+#define PER_TILE_BG_FG_CLASSIFICATION
+#define PHYSICAL_WEIGHTS
+
 
 #define GROUP_RES  8u
 #define GROUP_SIZE (GROUP_RES * GROUP_RES)
 
-
-int GetCoCBucket(float cocSize)
+struct AccumData
 {
-#if (NUM_BUCKETS == 1)
-    return 0;
-#endif
+    float4 color;
+    float alpha;
+    float destAlpha;
+    float CoC;
+};
 
-#ifdef UNIFORM_WEIGHTS
-    return 0;
-#endif
+struct DoFTile
+{
+    float maxRadius;
+    float layerBorder;
+    int numSamples;
+};
 
-    // Threshold to split near, far and in-focus range. We don't need to expose this parameter, as the algorithm is robust against it
-    const float dofThreshold = 6;
+struct SampleData
+{
+    CTYPE color;
+    float CoC;
+};
 
-    if (cocSize > dofThreshold)
-    {
-        return 0;
-    }
-    else if (abs(cocSize) < dofThreshold)
-    {
-        return 1;
-    }
-    else
-    {
-        return 2;
-    }
-}
-
-float GetCoCRadius(int2 positionSS, out int bucketIndex)
+float GetCoCRadius(int2 positionSS)
 {
     float CoCRadius = LOAD_TEXTURE2D_X(_InputCoCTexture, positionSS).x;
-    bucketIndex = GetCoCBucket(CoCRadius);
-    return abs(CoCRadius);
+    return CoCRadius;
 }
 
-float GetCoCMaxRadius(int2 positionSS)
+CTYPE GetColorSample(float2 sampleTC, float lod)
 {
-#ifndef ADAPTIVE_RADIUS
-    return _Params.y;
+#ifndef FORCE_POINT_SAMPLING
+    return SAMPLE_TEXTURE2D_X_LOD(_InputTexture, s_trilinear_clamp_sampler, ClampAndScaleUVForBilinear(sampleTC * _ScreenSize.zw), lod).CTYPE_SWIZZLE;
 #else
-    // We only have up to 6 mip levels 
-    int lod = min(6, _Params.z);
-    float maxOverlapingCoC = LOAD_TEXTURE2D_X_LOD(_InputCoCTexture, positionSS >> lod, lod).x;
-    return abs(maxOverlapingCoC);
+    return LOAD_TEXTURE2D_X(_InputTexture, sampleTC).CTYPE_SWIZZLE;
 #endif
 }
 
 float GetSampleWeight(float cocRadius)
 {
-#ifdef UNIFORM_WEIGHTS
+#ifdef PHYSICAL_WEIGHTS
+    float pixelRadius = 0.7071f;
+    float radius = max(pixelRadius, abs(cocRadius));
+    return PI * pixelRadius * pixelRadius * rcp(PI * radius * radius);
+#else
     return 1.0f;
 #endif
+}
 
-    if (cocRadius == 0.0) return 0.0;
+void LoadTileData(float2 sampleTC, SampleData centerSample, inout DoFTile tileData)
+{
+    float4 cocRanges = LOAD_TEXTURE2D_X(_TileList, sampleTC / TILE_RES);
 
-    float pixelRadius = 0.7071f;
-    float singlePixelArea = PI * pixelRadius * pixelRadius;
-    float diskArea = PI * cocRadius * cocRadius;
-    return diskArea >= singlePixelArea ? rcp(diskArea) : rcp(singlePixelArea);
+    // Note: for the far-field, we don't need to search further than than the central CoC.
+    // If there is a larger CoC that overlaps the central pixel then it will have greater depth
+    tileData.maxRadius = max(2 * abs(centerSample.CoC), -cocRanges.w);
+
+    // Detect tiles than need more samples
+    tileData.numSamples = NumRings;
+    tileData.numSamples = tileData.maxRadius > 0 ? tileData.numSamples : 0;
+
+#ifdef ADAPTIVE_SAMPLING
+    float minRadius = min(cocRanges.x, -cocRanges.z);
+    tileData.numSamples = (minRadius / tileData.maxRadius < 0.1) ? tileData.numSamples * 4 : tileData.numSamples;
+#endif
+
+    // By default split the fg and bg layers at 0
+    tileData.layerBorder = 0;
+#ifdef PER_TILE_BG_FG_CLASSIFICATION
+    if (cocRanges.w != 0 && cocRanges.y == 0)
+    {
+        // If there is no far field, then compute a splitting threshold that puts fg and bg in the near field
+        // We do it this way becayse we don't want any layers that span both the near and far field (CoC < 0 & CoC > 0)
+        tileData.layerBorder = (/*cocRanges.z*/ 0 + cocRanges.w) / 2;
+    }
+#endif
 }
 
 float2 PointInCircle(float angle)
 {
-    return float2(cos(angle), sin(angle));
+    return float2(cos(angle), sin(angle)) * float2 (1 - Anamorphism, 1 + Anamorphism);
 }
 
-float GetNumSamples(float radius)
+void ResolveColorAndAlpha(inout float4 outColor, inout float outAlpha, CTYPE defaultValue)
 {
-    //TODO: needs to take into account the density push towards the center (when enabled) 
-    float numRings = _Params.x;
-    float maxRadius = _Params.y;
+    outColor.xyz = outColor.w > 0 ? outColor.xyz / outColor.w : defaultValue.xyz;
+#ifdef ENABLE_ALPHA
+    outAlpha = outColor.w > 0 ? outAlpha / outColor.w : defaultValue.w;
+#endif
+}
 
-    float dR = maxRadius / numRings;
-    float rings = floor(radius / dR);
-    float seriesSum = 0.5 * rings * (rings + 1);
-    return 1.0 + seriesSum * RING_DENSITY;
+void AccumulateSample(SampleData sampleData, float weight, inout AccumData accumData)
+{
+    accumData.color += float4(sampleData.color.xyz * weight, weight);
+    accumData.CoC += abs(sampleData.CoC) * weight;
+#ifdef ENABLE_ALPHA
+    accumData.alpha += sampleData.color.w * weight;
+#endif
+}
+
+void AccumulateCenterSample(SampleData centerSample, inout AccumData accumData)
+{
+    float centerAlpha = GetSampleWeight(centerSample.CoC);
+
+    accumData.color.xyz = accumData.color.xyz * (1 - centerAlpha) + centerAlpha * centerSample.color.xyz;
+    accumData.color.w = accumData.color.w * (1 - centerAlpha) + centerAlpha;
+#ifdef ENABLE_ALPHA
+    accumData.alpha = accumData.alpha * (1 - centerAlpha) + centerAlpha * centerSample.color.w;
+#endif
+}
+
+void AccumulateSampleData(SampleData sampleData[2], SampleData centerSample, float sampleRadius, float borderRadius, float layerBorder, const bool isForeground, inout AccumData ringAccum, inout AccumData accumData)
+{
+    UNITY_UNROLL
+        for (int k = 0; k < 2; k++)
+        {
+            // saturate allows a small overlap between the layers, this helps conceal any continuity artifacts due to differences in sorting
+            float w = saturate(sampleData[k].CoC - layerBorder);
+            float layerWeight = isForeground ? 1.0 - w : w;
+
+            float CoC = abs(sampleData[k].CoC);
+
+            float sampleWeight = GetSampleWeight(CoC);
+            //float visibility = saturate(CoC - sampleRadius);
+            float visibility = step(0.0, CoC - sampleRadius);
+
+            // Check if the sample belongs to the current bucket
+            float borderWeight = saturate(CoC - borderRadius);
+
+#ifndef RING_OCCLUSION
+            borderWeight = 0;
+#endif
+            float weight = layerWeight * visibility * sampleWeight;
+            AccumulateSample(sampleData[k], borderWeight * weight, accumData);
+            AccumulateSample(sampleData[k], (1.0 - borderWeight) * weight, ringAccum);
+
+#if 0
+            // Disabled for now due to artifacts
+            // Mirroring improves the near blur, but since the background reconstruction is not perfect, we limit the radius it is applied
+            const float mirrorLimit = 2;
+            const float radius = sampleRadius - CoC;
+            if (ringData.isForeground && visibility == 0 && radius < mirrorLimit)
+            {
+                int pairIndex = k == 0 ? 1 : 0;
+                float mirrorWeight = 1 ;
+                //AccumulateSample(sampleData[pairIndex], mirrorWeight * sampleWeight, ringAccum);
+            }
+#endif
+        }
+}
+
+void AccumulateRingData(float numSamples, const bool isNearField, AccumData ringData, inout AccumData accumData)
+{
+    if (ringData.color.w == 0)
+    {
+        // nothing to accumulate
+        return;
+    }
+
+    float ringAvgCoC = ringData.color.w > 0 ? ringData.CoC * rcp(ringData.color.w) : 0;
+    float accumAvgCoC = accumData.color.w > 0 ? accumData.CoC * rcp(accumData.color.w) : 0;
+
+    float ringOcclusion = saturate(accumAvgCoC - ringAvgCoC);
+    //float ringOpacity = 1.0 - saturate(ringData.coverage * rcp(numSamples));
+    float normCoC = ringData.CoC * rcp(ringData.color.w);
+    float ringOpacity = saturate(ringData.color.w * rcp(GetSampleWeight(normCoC)) * rcp(numSamples));
+
+    // Near-field is the region where CoC > 0. In this case sorting is reversed.
+    if (isNearField)
+    {
+        const float occlusionWeight = 0.5;
+        float accumOcclusion = occlusionWeight * (1 - saturate(ringAvgCoC - accumAvgCoC));
+
+        // front-to-back blending
+        float alpha = 1.0;
+#ifdef  RING_OCCLUSION
+        alpha = accumData.destAlpha;
+#endif
+        accumData.color += alpha * ringData.color;
+        accumData.alpha += alpha * ringData.alpha;
+        accumData.CoC += alpha * ringData.CoC;
+
+        accumData.destAlpha *= saturate(1 - 2 * ringOpacity * accumOcclusion);
+    }
+    else
+    {
+        // back-to-front blending
+        float alpha = 0.0;
+#ifdef  RING_OCCLUSION
+        alpha = (accumData.color.w > 0.0) ? ringOpacity * ringOcclusion : 1.0;
+#endif
+        accumData.color = accumData.color * (1.0 - alpha) + ringData.color;
+        accumData.alpha = accumData.alpha * (1.0 - alpha) + ringData.alpha;
+        accumData.CoC = accumData.CoC * (1.0 - alpha) + ringData.CoC;
+    }
+}
+
+void DoFGatherRings(PositionInputs posInputs, DoFTile tileData, SampleData centerSample, out float4 color, out float alpha)
+{
+    AccumData bgAccumData, fgAccumData;
+    ZERO_INITIALIZE(AccumData, bgAccumData);
+    ZERO_INITIALIZE(AccumData, fgAccumData);
+
+    // Layers in the near field are using front-to-back accumulation (so start with a dest alpha of 1, ignored if in the far field)
+    fgAccumData.destAlpha = 1;
+    bgAccumData.destAlpha = 1;
+
+    const bool isBgLayerInNearField = tileData.layerBorder < 0;
+
+    float dR = rcp((float)tileData.numSamples);
+    int blueNoiseOffset = _TaaFrameInfo.w != 0.0 ? _TaaFrameInfo.z : 0;
+    int halfSamples = tileData.numSamples >> 1;
+    float dAng = PI * rcp(halfSamples);
+
+    // Select the appropriate mip to sample based on the amount of samples. Lower sample counts will be faster at the cost of "leaking"
+    float lod = min(MaxColorMip, log2(2 * PI * tileData.maxRadius * rcp(tileData.numSamples)));
+
+    // Gather the DoF samples
+    for (int ring = tileData.numSamples - 1; ring >= 0; ring--)
+    {
+        AccumData bgRingData, fgRingData;
+        ZERO_INITIALIZE(AccumData, bgRingData);
+        ZERO_INITIALIZE(AccumData, fgRingData);
+
+        for (int i = 0; i < halfSamples; i++)
+        {
+            float r1 = GetBNDSequenceSample(posInputs.positionSS.xy, ring * tileData.numSamples + i + blueNoiseOffset, 0);
+            float r2 = GetBNDSequenceSample(posInputs.positionSS.xy, ring * tileData.numSamples + i + blueNoiseOffset, 1);
+
+#ifdef STRATIFY
+            float sampleRadius = sqrt((ring + r1) * dR) * tileData.maxRadius;
+#else
+            float sampleRadius = sqrt(r2) * tileData.maxRadius;
+#endif
+            float borderRadius = sqrt((ring + 1.5) * dR) * tileData.maxRadius;
+
+            SampleData sampleData[2];
+            const float offset[2] = {0, PI};
+
+            UNITY_UNROLL
+                for (int j = 0; j < 2; j++)
+                {
+#ifdef STRATIFY
+                    float2 sampleTC = posInputs.positionSS + sampleRadius * PointInCircle(offset[j] + (i + r2) * dAng);
+#else
+                    float2 sampleTC = posInputs.positionSS + sampleRadius * PointInCircle(offset[j] + r2 * PI);
+#endif
+                    sampleData[j].color = GetColorSample(sampleTC, lod);
+                    sampleData[j].CoC = GetCoCRadius(sampleTC);
+                }
+
+            const float borderFudgingFactor = 9;
+            float layerBorder = min(0, tileData.layerBorder - borderFudgingFactor * r2);
+            AccumulateSampleData(sampleData, centerSample, sampleRadius, borderRadius, layerBorder, false, bgRingData, bgAccumData);
+            AccumulateSampleData(sampleData, centerSample, sampleRadius, borderRadius, layerBorder, true, fgRingData, fgAccumData);
+        }
+
+        AccumulateRingData(tileData.numSamples, isBgLayerInNearField, bgRingData, bgAccumData);
+        AccumulateRingData(tileData.numSamples, true, fgRingData, fgAccumData);
+    }
+
+    ResolveColorAndAlpha(bgAccumData.color, bgAccumData.alpha, centerSample.color);
+    ResolveColorAndAlpha(fgAccumData.color, fgAccumData.alpha, centerSample.color);
+
+    // Accumulate center sample in bg
+    AccumulateCenterSample(centerSample, bgAccumData);
+
+    // Compute the fg alpha. Needs to be normalized based on search radius.
+    float normCoC = fgAccumData.CoC / fgAccumData.color.w;
+    float scaleFactor = (normCoC * normCoC) / (tileData.maxRadius * tileData.maxRadius);
+    float correctSamples = scaleFactor * (tileData.numSamples * tileData.numSamples);
+
+    // Now blend the bg and fg layes
+    float fgAlpha = saturate(2 * fgAccumData.color.w * rcp(GetSampleWeight(normCoC)) * rcp(correctSamples));
+    color = bgAccumData.color * (1.0 - fgAlpha) + fgAlpha * fgAccumData.color;
+    alpha = bgAccumData.alpha * (1.0 - fgAlpha) + fgAlpha * fgAccumData.alpha;
+}
+
+void DebugTiles(DoFTile tileData, inout float4 outColor)
+{
+    // Debug the tile type
+    const bool isBgLayerInNearField = tileData.layerBorder < 0;
+    if (isBgLayerInNearField)
+    {
+        outColor.xyz *= float3(0.5, 0.5, 1.0);
+    }
 }
 
 [numthreads(GROUP_RES, GROUP_RES, 1)]
 void KMain(uint3 dispatchThreadId : SV_DispatchThreadID)
 {
+    UNITY_XR_ASSIGN_VIEW_INDEX(dispatchThreadId.z);
+
     PositionInputs posInputs = GetPositionInput(float2(dispatchThreadId.xy), _ScreenSize.zw, uint2(GROUP_RES, GROUP_RES));
 
-    CTYPE centerColor = LOAD_TEXTURE2D_X(_InputTexture, posInputs.positionSS).CTYPE_SWIZZLE;
-    int bucketIndex = 0;
-    float centerCoc = GetCoCRadius(posInputs.positionSS, bucketIndex);
+    SampleData centerSample;
+    centerSample.color = GetColorSample(posInputs.positionSS, 0);
+    centerSample.CoC = GetCoCRadius(posInputs.positionSS);
 
-    // Bucket 0 : far focus region
-    // Bucket 1 : in focus region
-    // Bucket 2 : near focus region
-    float4 totalColor[NUM_BUCKETS];
-    float maxCoC[NUM_BUCKETS];
-    float prevRingWeight[NUM_BUCKETS];
-    float totalHits[NUM_BUCKETS];
-#ifdef ENABLE_ALPHA
-    float totalAlpha[NUM_BUCKETS];
-#endif
+    DoFTile tileData;
+    LoadTileData(posInputs.positionSS, centerSample, tileData);
 
-    // Initialize color/weights and everything else to zero (for all buckets)
-    for (int i = 0; i < NUM_BUCKETS; ++i)
-    {
-        totalColor[i] = 0.0f;
-        maxCoC[i] = 0.0f;
-        prevRingWeight[i] = 0.0f;
-        totalHits[i] = 0.0f;
-#ifdef ENABLE_ALPHA
-        totalAlpha[i] = 0.0f;
-#endif
-    }
-
-    // Record the central sample
-    {
-        float weight = GetSampleWeight(centerCoc);
-        totalColor[bucketIndex].xyz = centerColor.xyz * weight;
-        totalColor[bucketIndex].w = weight;
-        maxCoC[bucketIndex] = centerCoc;
-        prevRingWeight[bucketIndex] = weight;
-#ifdef ENABLE_ALPHA
-        totalAlpha[bucketIndex] = centerColor.w;
-#endif
-    }
-
-    float numRings = _Params.x;
-    float maxRadius = GetCoCMaxRadius(posInputs.positionSS); 
-
-    float dR = maxRadius * rcp(numRings);
-    float stratum = fmod(posInputs.positionSS.x + posInputs.positionSS.y, 2.0f);
-    // Note: gradient noise seems to give worse results than s
-    float noise = InterleavedGradientNoise(posInputs.positionSS.xy, 0);
-    float noise2 = InterleavedGradientNoise(posInputs.positionSS.xy, 9);
-
-    // Iterate over the octaweb pattern and gather the DoF samples
-    for (float ring = 1; ring <= numRings; ring += 1.0)
-    {
-        float scaledRad = dR;
-
-#ifdef CENTER_DENSITY
-        // make the samples more dense at the center
-        scaledRad = lerp(0.5 * dR, dR, ring * rcp(numRings));
-#endif
-
-        float dAng = 2.0f * PI / (ring * RING_DENSITY);
-
-        // for high sample counts, checkerboarding looks better
-#ifndef GRADIENT_NOISE
-        float radius = ring * scaledRad + stratum * scaledRad;
-        float ringOffset = 0.5 * fmod(ring, 2.0f) * dAng;
+    float4 outColor;
+    float outAlpha;
+#ifdef FAST_APPROXIMAION
+    DoFGatherFast(posInputs, tileData, centerSample, outColor, outAlpha);
 #else
-        float radius = ring * scaledRad + noise2 * scaledRad;
-        float ringOffset = noise * dAng;
+    DoFGatherRings(posInputs, tileData, centerSample, outColor, outAlpha);
 #endif
 
-#ifdef OCTAWEB_SORTING
-        float4 ringColor[NUM_BUCKETS];
-        float ringMaxCoC[NUM_BUCKETS];
-        float ringHits[NUM_BUCKETS];
-#ifdef ENABLE_ALPHA
-        float4 ringAlpha[NUM_BUCKETS];
-#endif
-
-        for (int i = 0; i < NUM_BUCKETS; ++i)
-        {
-            ringColor[i] = 0.0f;
-            ringMaxCoC[i] = 0.0f;
-            ringHits[i] = 0.0f;
-#ifdef ENABLE_ALPHA
-            ringAlpha[i] = 0.0f;
-#endif
-        }
-#endif
-
-        for (float ang = ringOffset; ang < 2 * PI; ang += dAng)
-        {
-            float2 sampleTC = posInputs.positionSS + radius * PointInCircle(ang);
-            sampleTC = clamp(sampleTC, float2(0, 0), _ScreenSize.xy - float2(1, 1));
-
-            int sampleBucket = 0;
-            CTYPE sampleColor = LOAD_TEXTURE2D_X(_InputTexture, sampleTC).CTYPE_SWIZZLE;
-            float sampleCoC = GetCoCRadius(sampleTC, sampleBucket);
-
-#ifdef COC_FAR_CLAMPING
-            if (sampleBucket < 1)
-                sampleCoC = clamp(sampleCoC, 0, centerCoc);
-#endif
-
-            if (sampleCoC > radius)
-            {
-                float weight = GetSampleWeight(sampleCoC);
-                RING_COLOR[sampleBucket].xyz += sampleColor.xyz * weight;
-                RING_COLOR[sampleBucket].w += weight;
-                RING_MAXCOC[sampleBucket] = max(RING_MAXCOC[sampleBucket], sampleCoC);
-                RING_HITS[sampleBucket] += 1.0;
-#ifdef ENABLE_ALPHA
-                RING_ALPHA[sampleBucket] = sampleColor.w * weight;
-#endif
-            }
-#ifdef UNIFORM_WEIGHTS
-            else
-            {
-                RING_COLOR[sampleBucket].xyz += RING_COLOR[sampleBucket].xyz / RING_COLOR[sampleBucket].w;
-                RING_COLOR[sampleBucket].w += 1.0f;
-#ifdef ENABLE_ALPHA
-                RING_ALPHA[sampleBucket] += RING_ALPHA[sampleBucket] / RING_COLOR[sampleBucket].w;
-#endif
-            }
-#endif
-        }
-
-#ifdef OCTAWEB_SORTING
-        // Far bucket
-        {
-            totalColor[0] += RING_COLOR[0];
-            maxCoC[0] = max(maxCoC[0], RING_MAXCOC[0]);
-            totalHits[0] += RING_HITS[0];
-#ifdef ENABLE_ALPHA
-            totalAlpha[0] += RING_ALPHA[0];
-#endif
-        }
-
-        // In-focus bucket
-        {
-            totalColor[1] += RING_COLOR[1];
-            maxCoC[1] = max(maxCoC[1], RING_MAXCOC[1]);
-            totalHits[1] += RING_HITS[1];
-#ifdef ENABLE_ALPHA
-            totalAlpha[1] += RING_ALPHA[1];
-#endif
-        }
-
-        // Near bucket
-        {
-            float currentAvg = RING_COLOR[2].w * rcp(ring * RING_DENSITY);
-            float prevAvg = prevRingWeight[2] * ((ring > 1) ? rcp((ring - 1.0) * RING_DENSITY) : 1);
-            float occlusion = saturate(prevAvg - currentAvg);
-            //float alpha = saturate(RING_COLOR[2].w * rcp(GetNumSamples(RING_MAXCOC[2])) * rcp(getSampleWeight(RING_MAXCOC[2])));
-            float alpha = ringHits[2] * rcp(ring * RING_DENSITY);
-
-            //totalColor[2] += RING_COLOR[2];
-            maxCoC[2] = max(maxCoC[2], RING_MAXCOC[2]);
-            totalHits[2] += RING_HITS[2];
-
-            float blendFactor = 1.0 - alpha * occlusion;
-            totalColor[2] = blendFactor * totalColor[2] + RING_COLOR[2];
-            prevRingWeight[2] = ringColor[2].w;
-#ifdef ENABLE_ALPHA
-            totalAlpha[2] += blendFactor * totalAlpha[2] + RING_ALPHA[2];
-#endif
-        }
-#endif
-    }
-
-    // Now compute the final color by combining the near, far and in-focus buckets with proper blending
-
-    // Far range
-    float3 outColor = totalColor[0].xyz;
-    float  totalW = totalColor[0].w;
-#ifdef ENABLE_ALPHA
-    float outAlpha = totalAlpha[0];
-#endif
-
-#ifndef UNIFORM_WEIGHTS 
-    // In focus range
-    {
-        // TODO: we might need to re-investigate the normaziation here, there is banding
-        float alpha = saturate(totalColor[1].w * rcp(GetNumSamples(maxCoC[1])) * rcp(GetSampleWeight(maxCoC[1])));
-        outColor.xyz = (1.0 - alpha) * outColor.xyz + totalColor[1].xyz;
-        totalW = (1.0 - alpha) * totalW + totalColor[1].w;
-#ifdef ENABLE_ALPHA
-        outAlpha = (1.0 - alpha) * outAlpha + totalAlpha[1];
-#endif
-    }
-    if (totalW > 0) outColor.xyz /= totalW;
-
-    // Near range
-    float alpha = saturate(3 * totalHits[2] * rcp(GetNumSamples(maxCoC[2])));
-    float3 srcColor = totalColor[2].w > 0 ? totalColor[2].xyz / totalColor[2].w : 0.0f;
-    outColor.xyz = (1.0 - alpha) * outColor.xyz + alpha * srcColor;
-#ifdef ENABLE_ALPHA
-    float srcAlpha = totalColor[2].w > 0 ? totalAlpha[2] / totalColor[2].w : 0.0f;
-    outAlpha = (1.0 - alpha) * outAlpha + alpha * srcAlpha;
-
-#endif
-#else
-
-    // back to front alpha blending of the other buckets
-    for (int j = 1; j < NUM_BUCKETS; ++j)
-    {
-        // TODO: we might need to re-investigate the normaziation here, there is banding
-        float alpha = saturate(totalColor[j].w * rcp(GetNumSamples(maxCoC[j])) * rcp(GetSampleWeight(maxCoC[j])));
-
-        outColor.xyz = (1.0 - alpha) * outColor.xyz + totalColor[j].xyz;
-        totalW = (1.0 - alpha) * totalW + totalColor[j].w;
-#ifdef ENABLE_ALPHA
-        outAlpha = (1.0 - alpha) * outAlpha + totalAlpha[j];
-#endif
-    }
-    outColor.xyz = outColor.xyz * rcp(totalW);
-#endif
+    //DebugTiles(tileData, outColor);
 
 #ifdef ENABLE_ALPHA
-    _OutputTexture[COORD_TEXTURE2D_X(posInputs.positionSS)] = float4(outColor.xyz, outAlpha * rcp(totalW));
-#else
-    _OutputTexture[COORD_TEXTURE2D_X(posInputs.positionSS)] = outColor.xyz;
+    // Preserve the original value of the pixels with zero alpha.
+    // The second line with the lerp+smoothstep combination avoids a hard transition in edge cases
+    //outColor.xyz = outAlpha > 0 ? outColor.xyz : originalColor.xyz;
+    outColor.xyz = lerp(centerSample.color.xyz, outColor.xyz, smoothstep(0, 0.01, outAlpha));
+    outColor.w = outAlpha;
 #endif
 
+    _OutputTexture[COORD_TEXTURE2D_X(posInputs.positionSS)] = (CTYPE) outColor;
 }

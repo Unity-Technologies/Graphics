@@ -31,6 +31,7 @@ namespace UnityEditor.ShaderGraph
                     return;
 
                 m_Keyword = value;
+                m_Keyword.value.displayNameUpdateTrigger += UpdateNodeDisplayName;
                 UpdateNode();
                 Dirty(ModificationScope.Topological);
             }
@@ -39,6 +40,14 @@ namespace UnityEditor.ShaderGraph
         public override bool canSetPrecision => false;
         public override bool hasPreview => true;
         public const int OutputSlotId = 0;
+
+        public void UpdateNodeDisplayName(string newDisplayName)
+        {
+            MaterialSlot foundSlot = FindSlot<MaterialSlot>(OutputSlotId);
+
+            if (foundSlot != null)
+                foundSlot.displayName = newDisplayName;
+        }
 
         public void OnEnable()
         {
@@ -53,14 +62,14 @@ namespace UnityEditor.ShaderGraph
 
         void UpdatePorts()
         {
-            switch(keyword.keywordType)
+            switch (keyword.keywordType)
             {
                 case KeywordType.Boolean:
                 {
                     // Boolean type has preset slots
                     PooledList<MaterialSlot> temp = PooledList<MaterialSlot>.Get();
                     GetInputSlots(temp);
-                    if(temp.Any())
+                    if (temp.Any())
                     {
                         temp.Dispose();
                         break;
@@ -87,7 +96,7 @@ namespace UnityEditor.ShaderGraph
                         edgeDict.Add(slot, (List<IEdge>)slot.owner.owner.GetEdges(slot.slotReference));
 
                     // Remove old slots
-                    for(int i = 0; i < inputSlots.Count; i++)
+                    for (int i = 0; i < inputSlots.Count; i++)
                     {
                         RemoveSlot(inputSlots[i].id);
                     }
@@ -98,7 +107,7 @@ namespace UnityEditor.ShaderGraph
                     // Add input slots
                     int[] slotIds = new int[keyword.entries.Count + 1];
                     slotIds[keyword.entries.Count] = OutputSlotId;
-                    for(int i = 0; i < keyword.entries.Count; i++)
+                    for (int i = 0; i < keyword.entries.Count; i++)
                     {
                         // Get slot based on entry id
                         MaterialSlot slot = inputSlots.Where(x =>
@@ -107,7 +116,7 @@ namespace UnityEditor.ShaderGraph
                             x.shaderOutputName == keyword.entries[i].referenceName).FirstOrDefault();
 
                         // If slot doesnt exist its new so create it
-                        if(slot == null)
+                        if (slot == null)
                         {
                             slot = new DynamicVectorMaterialSlot(keyword.entries[i].id, keyword.entries[i].displayName, keyword.entries[i].referenceName, SlotType.Input, Vector4.zero);
                         }
@@ -135,7 +144,7 @@ namespace UnityEditor.ShaderGraph
         public void GenerateNodeCode(ShaderStringBuilder sb, GenerationMode generationMode)
         {
             var outputSlot = FindOutputSlot<MaterialSlot>(OutputSlotId);
-            switch(keyword.keywordType)
+            switch (keyword.keywordType)
             {
                 case KeywordType.Boolean:
                 {
@@ -154,14 +163,14 @@ namespace UnityEditor.ShaderGraph
                 case KeywordType.Enum:
                 {
                     // Iterate all entries in the keyword
-                    for(int i = 0; i < keyword.entries.Count; i++)
+                    for (int i = 0; i < keyword.entries.Count; i++)
                     {
                         // Insert conditional
-                        if(i == 0)
+                        if (i == 0)
                         {
                             sb.AppendLine($"#if defined({keyword.referenceName}_{keyword.entries[i].referenceName})");
                         }
-                        else if(i == keyword.entries.Count - 1)
+                        else if (i == keyword.entries.Count - 1)
                         {
                             sb.AppendLine("#else");
                         }
@@ -186,7 +195,7 @@ namespace UnityEditor.ShaderGraph
 
         public int GetSlotIdForPermutation(KeyValuePair<ShaderKeyword, int> permutation)
         {
-            switch(permutation.Key.keywordType)
+            switch (permutation.Key.keywordType)
             {
                 // Slot 0 is output
                 case KeywordType.Boolean:

@@ -3,350 +3,173 @@
 # Introduce any changes under .yamato/config/*.metafile files (for most cases) or under .yamato/ruamel/* within Python (more elaborate cases), and rerun build.py to regenerate all .yml files. 
 # Read more under .yamato/docs/readme.md 
 
-smoke_test_Standalone_trunk:
-    name: SRP Smoke Test - Standalone_trunk
-    agent:
-        type: Unity::VM::GPU
-        image: sdet/gamecode_win10:stable
-        flavor: b1.large
-    variables:
-        UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
-    commands:
-      -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr.bat --output TestProjects/SRP_SmokeTest/utr.bat
-      -  pip install unity-downloader-cli --extra-index-url https://artifactory.internal.unity3d.com/api/pypi/common-python/simple --upgrade
-      -  cd TestProjects/SRP_SmokeTest && unity-downloader-cli --source-file ../../unity_revision.txt -c editor --wait --published-only
-      -  cd TestProjects/SRP_SmokeTest && utr --suite=playmode --platform=StandaloneWindows64 --testproject=. --editor-location=.Editor --artifacts_path=test-results --timeout=1200
-    dependencies:
-      -  path: .yamato/_editor.yml#editor:priming:trunk:windows
-         rerun: on-new-revision
-    artifacts:
-        logs:
-            paths:
-              -  "**/test-results/**"
-smoke_test_playmode_trunk:
-    name: SRP Smoke Test - playmode_trunk
-    agent:
-        type: Unity::VM::GPU
-        image: sdet/gamecode_win10:stable
-        flavor: b1.large
-    variables:
-        UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
-    commands:
-      -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr.bat --output TestProjects/SRP_SmokeTest/utr.bat
-      -  pip install unity-downloader-cli --extra-index-url https://artifactory.internal.unity3d.com/api/pypi/common-python/simple --upgrade
-      -  cd TestProjects/SRP_SmokeTest && unity-downloader-cli --source-file ../../unity_revision.txt -c editor --wait --published-only
-      -  cd TestProjects/SRP_SmokeTest && utr --suite=playmode --testproject=. --editor-location=.Editor --artifacts_path=test-results
-    dependencies:
-      -  path: .yamato/_editor.yml#editor:priming:trunk:windows
-         rerun: on-new-revision
-    artifacts:
-        logs:
-            paths:
-              -  "**/test-results/**"
-smoke_test_editmode_trunk:
-    name: SRP Smoke Test - editmode_trunk
-    agent:
-        type: Unity::VM
-        image: sdet/gamecode_win10:stable
-        flavor: b1.large
-    variables:
-        UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
-    commands:
-      -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr.bat --output TestProjects/SRP_SmokeTest/utr.bat
-      -  pip install unity-downloader-cli --extra-index-url https://artifactory.internal.unity3d.com/api/pypi/common-python/simple --upgrade
-      -  cd TestProjects/SRP_SmokeTest && unity-downloader-cli --source-file ../../unity_revision.txt -c editor --wait --published-only
-      -  cd TestProjects/SRP_SmokeTest && utr --suite=editor --platform=editmode --testproject=. --editor-location=.Editor --artifacts_path=test-results
-    dependencies:
-      -  path: .yamato/_editor.yml#editor:priming:trunk:windows
-         rerun: on-new-revision
-    artifacts:
-        logs:
-            paths:
-              -  "**/test-results/**"
-all_smoke_tests_trunk:
-    name: All Smoke Tests - trunk
-    dependencies:
-      -  path: .yamato/_abv.yml#smoke_test_Standalone_trunk
-         rerun: on-new-revision
-      -  path: .yamato/_abv.yml#smoke_test_playmode_trunk
-         rerun: on-new-revision
-      -  path: .yamato/_abv.yml#smoke_test_editmode_trunk
-         rerun: on-new-revision
+{% metadata_file .yamato/_latest_editor_versions_trunk.metafile -%}
+
+---
+
 all_project_ci_trunk:
-    name: _ABV for SRP repository - trunk
+    name: _ABV for SRP repository (all PR jobs) - trunk
     dependencies:
-      -  path: .yamato/_packages.yml#all_package_ci_trunk
+      -  path: .yamato/all-universal_split.yml#PR_Universal_Split_trunk
          rerun: on-new-revision
-      -  path: .yamato/all-universal.yml#All_Universal_trunk
+      -  path: .yamato/all-shadergraph.yml#PR_ShaderGraph_trunk
          rerun: on-new-revision
-      -  path: .yamato/all-shadergraph.yml#All_ShaderGraph_trunk
+      -  path: .yamato/all-hdrp.yml#PR_HDRP_trunk
          rerun: on-new-revision
-      -  path: .yamato/all-hdrp.yml#All_HDRP_trunk
+      -  path: .yamato/all-vfx_hdrp.yml#PR_VFX_HDRP_trunk
          rerun: on-new-revision
-      -  path: .yamato/all-vfx_hdrp.yml#All_VFX_HDRP_trunk
+      -  path: .yamato/all-vfx_urp.yml#PR_VFX_URP_trunk
          rerun: on-new-revision
-      -  path: .yamato/all-vfx_urp.yml#All_VFX_URP_trunk
+      -  path: .yamato/_projectcontext.yml#all_package_ci_project_trunk
          rerun: on-new-revision
+    triggers:
+        expression: pull_request.target eq "master" AND NOT pull_request.draft AND pull_request.changes.any match ["com.unity.render-pipelines.core/**/*"] AND NOT pull_request.push.changes.all match ["*.md", "**/*.md", "doc/**/*", "**/Documentation*/**/*"]
 all_project_ci_nightly_trunk:
     name: _Nightly ABV against trunk
     dependencies:
-      -  path: .yamato/_abv.yml#all_project_ci_trunk
+      -  path: .yamato/all-universal_split.yml#Nightly_Universal_Split_trunk
          rerun: on-new-revision
-      -  path: .yamato/_abv.yml#smoke_test_Standalone_trunk
+      -  path: .yamato/all-shadergraph.yml#Nightly_ShaderGraph_trunk
          rerun: on-new-revision
-      -  path: .yamato/_abv.yml#smoke_test_playmode_trunk
+      -  path: .yamato/all-hdrp.yml#Nightly_HDRP_trunk
          rerun: on-new-revision
-      -  path: .yamato/_abv.yml#smoke_test_editmode_trunk
+      -  path: .yamato/all-vfx_hdrp.yml#Nightly_VFX_HDRP_trunk
          rerun: on-new-revision
-      -  path: .yamato/universal-android-opengles3.yml#Universal_Android_OpenGLES3_Standalone_trunk
+      -  path: .yamato/all-vfx_urp.yml#Nightly_VFX_URP_trunk
          rerun: on-new-revision
-      -  path: .yamato/universal-android-vulkan.yml#Universal_Android_Vulkan_Standalone_trunk
+      -  path: .yamato/all-urp_performance_boatattack.yml#PR_URP_Performance_BoatAttack_trunk
          rerun: on-new-revision
-      -  path: .yamato/universal-iphone-metal.yml#Universal_iPhone_Metal_Standalone_trunk
+      -  path: .yamato/all-urp_performance_lostcrypt.yml#PR_URP_Performance_LostCrypt_trunk
+         rerun: on-new-revision
+      -  path: .yamato/all-hdrp_performancetests.yml#PR_HDRP_PerformanceTests_trunk
+         rerun: on-new-revision
+      -  path: .yamato/all-vikingvillage_builtin.yml#PR_VikingVillage_BuiltIn_trunk
+         rerun: on-new-revision
+      -  path: .yamato/all-vikingvillage_urp.yml#PR_VikingVillage_URP_trunk
+         rerun: on-new-revision
+      -  path: .yamato/_projectcontext.yml#all_package_ci_project_trunk
          rerun: on-new-revision
     triggers:
         recurring:
           -  branch: master
-             frequency: 0 * * ?
+             frequency: 1 * * ?
 trunk_verification_trunk:
     name: Trunk verification - trunk
     dependencies:
-      -  path: .yamato/universal-win-dx11.yml#Universal_Win_DX11_playmode_trunk
+      -  path: .yamato/urp_2d-win-dx11.yml#URP_2D_Win_DX11_playmode_cache_mono_Linear_trunk
          rerun: on-new-revision
-      -  path: .yamato/universal-win-dx11.yml#Universal_Win_DX11_editmode_trunk
+      -  path: .yamato/urp_2d-win-dx11.yml#URP_2D_Win_DX11_editmode_mono_Linear_trunk
          rerun: on-new-revision
-      -  path: .yamato/shadergraph-win-dx11.yml#ShaderGraph_Win_DX11_playmode_trunk
+      -  path: .yamato/urp_foundation-win-dx11.yml#URP_Foundation_Win_DX11_playmode_cache_mono_Linear_trunk
          rerun: on-new-revision
-      -  path: .yamato/shadergraph-win-dx11.yml#ShaderGraph_Win_DX11_editmode_trunk
+      -  path: .yamato/urp_foundation-win-dx11.yml#URP_Foundation_Win_DX11_editmode_mono_Linear_trunk
          rerun: on-new-revision
-      -  path: .yamato/hdrp-win-dx11.yml#HDRP_Win_DX11_playmode_trunk
+      -  path: .yamato/urp_lighting-win-dx11.yml#URP_Lighting_Win_DX11_playmode_cache_mono_Linear_trunk
          rerun: on-new-revision
-      -  path: .yamato/hdrp-win-dx11.yml#HDRP_Win_DX11_editmode_trunk
+      -  path: .yamato/urp_lighting-win-dx11.yml#URP_Lighting_Win_DX11_editmode_mono_Linear_trunk
          rerun: on-new-revision
-      -  path: .yamato/vfx_hdrp-win-dx11.yml#VFX_HDRP_Win_DX11_playmode_trunk
+      -  path: .yamato/urp_postpro-win-dx11.yml#URP_PostPro_Win_DX11_playmode_cache_mono_Linear_trunk
          rerun: on-new-revision
-      -  path: .yamato/vfx_hdrp-win-dx11.yml#VFX_HDRP_Win_DX11_editmode_trunk
+      -  path: .yamato/urp_postpro-win-dx11.yml#URP_PostPro_Win_DX11_editmode_mono_Linear_trunk
          rerun: on-new-revision
-      -  path: .yamato/vfx_urp-win-dx11.yml#VFX_URP_Win_DX11_playmode_trunk
+      -  path: .yamato/urp_terrain-win-dx11.yml#URP_Terrain_Win_DX11_playmode_cache_mono_Linear_trunk
          rerun: on-new-revision
-smoke_test_Standalone_fast-trunk:
-    name: SRP Smoke Test - Standalone_fast-trunk
-    agent:
-        type: Unity::VM::GPU
-        image: sdet/gamecode_win10:stable
-        flavor: b1.large
-    variables:
-        UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
-    commands:
-      -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr.bat --output TestProjects/SRP_SmokeTest/utr.bat
-      -  pip install unity-downloader-cli --extra-index-url https://artifactory.internal.unity3d.com/api/pypi/common-python/simple --upgrade
-      -  cd TestProjects/SRP_SmokeTest && unity-downloader-cli --source-file ../../unity_revision.txt -c editor --wait --published-only
-      -  cd TestProjects/SRP_SmokeTest && utr --suite=playmode --platform=StandaloneWindows64 --testproject=. --editor-location=.Editor --artifacts_path=test-results --timeout=1200
-    dependencies:
-      -  path: .yamato/_editor.yml#editor:priming:fast-trunk:windows
+      -  path: .yamato/urp_terrain-win-dx11.yml#URP_Terrain_Win_DX11_editmode_mono_Linear_trunk
          rerun: on-new-revision
-    artifacts:
-        logs:
-            paths:
-              -  "**/test-results/**"
-smoke_test_playmode_fast-trunk:
-    name: SRP Smoke Test - playmode_fast-trunk
-    agent:
-        type: Unity::VM::GPU
-        image: sdet/gamecode_win10:stable
-        flavor: b1.large
-    variables:
-        UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
-    commands:
-      -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr.bat --output TestProjects/SRP_SmokeTest/utr.bat
-      -  pip install unity-downloader-cli --extra-index-url https://artifactory.internal.unity3d.com/api/pypi/common-python/simple --upgrade
-      -  cd TestProjects/SRP_SmokeTest && unity-downloader-cli --source-file ../../unity_revision.txt -c editor --wait --published-only
-      -  cd TestProjects/SRP_SmokeTest && utr --suite=playmode --testproject=. --editor-location=.Editor --artifacts_path=test-results
-    dependencies:
-      -  path: .yamato/_editor.yml#editor:priming:fast-trunk:windows
+      -  path: .yamato/shadergraph-win-dx11.yml#ShaderGraph_Win_DX11_playmode_cache_mono_Linear_trunk
          rerun: on-new-revision
-    artifacts:
-        logs:
-            paths:
-              -  "**/test-results/**"
-smoke_test_editmode_fast-trunk:
-    name: SRP Smoke Test - editmode_fast-trunk
-    agent:
-        type: Unity::VM
-        image: sdet/gamecode_win10:stable
-        flavor: b1.large
-    variables:
-        UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
-    commands:
-      -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr.bat --output TestProjects/SRP_SmokeTest/utr.bat
-      -  pip install unity-downloader-cli --extra-index-url https://artifactory.internal.unity3d.com/api/pypi/common-python/simple --upgrade
-      -  cd TestProjects/SRP_SmokeTest && unity-downloader-cli --source-file ../../unity_revision.txt -c editor --wait --published-only
-      -  cd TestProjects/SRP_SmokeTest && utr --suite=editor --platform=editmode --testproject=. --editor-location=.Editor --artifacts_path=test-results
-    dependencies:
-      -  path: .yamato/_editor.yml#editor:priming:fast-trunk:windows
+      -  path: .yamato/shadergraph-win-dx11.yml#ShaderGraph_Win_DX11_editmode_mono_Linear_trunk
          rerun: on-new-revision
-    artifacts:
-        logs:
-            paths:
-              -  "**/test-results/**"
-all_smoke_tests_fast-trunk:
-    name: All Smoke Tests - fast-trunk
-    dependencies:
-      -  path: .yamato/_abv.yml#smoke_test_Standalone_fast-trunk
+      -  path: .yamato/hdrp-win-dx11.yml#HDRP_Win_DX11_playmode_cache_mono_Linear_trunk
          rerun: on-new-revision
-      -  path: .yamato/_abv.yml#smoke_test_playmode_fast-trunk
+      -  path: .yamato/hdrp-win-dx11.yml#HDRP_Win_DX11_editmode_mono_Linear_trunk
          rerun: on-new-revision
-      -  path: .yamato/_abv.yml#smoke_test_editmode_fast-trunk
+      -  path: .yamato/vfx_hdrp-win-dx11.yml#VFX_HDRP_Win_DX11_playmode_cache_mono_Linear_trunk
          rerun: on-new-revision
-all_project_ci_fast-trunk:
-    name: _ABV for SRP repository - fast-trunk
-    dependencies:
-      -  path: .yamato/_packages.yml#all_package_ci_fast-trunk
+      -  path: .yamato/vfx_hdrp-win-dx11.yml#VFX_HDRP_Win_DX11_editmode_mono_Linear_trunk
          rerun: on-new-revision
-      -  path: .yamato/all-universal.yml#All_Universal_fast-trunk
+      -  path: .yamato/vfx_urp-win-dx11.yml#VFX_URP_Win_DX11_playmode_cache_mono_Linear_trunk
          rerun: on-new-revision
-      -  path: .yamato/all-shadergraph.yml#All_ShaderGraph_fast-trunk
-         rerun: on-new-revision
-      -  path: .yamato/all-hdrp.yml#All_HDRP_fast-trunk
-         rerun: on-new-revision
-      -  path: .yamato/all-vfx_hdrp.yml#All_VFX_HDRP_fast-trunk
-         rerun: on-new-revision
-      -  path: .yamato/all-vfx_urp.yml#All_VFX_URP_fast-trunk
-         rerun: on-new-revision
-    triggers:
-        expression: pull_request.target eq "master" AND NOT pull_request.draft AND NOT pull_request.push.changes.all match ["**/*.md", "doc/**/*", "**/Documentation*/**/*"]
-trunk_verification_fast-trunk:
-    name: Trunk verification - fast-trunk
-    dependencies:
-      -  path: .yamato/universal-win-dx11.yml#Universal_Win_DX11_playmode_fast-trunk
-         rerun: on-new-revision
-      -  path: .yamato/universal-win-dx11.yml#Universal_Win_DX11_editmode_fast-trunk
-         rerun: on-new-revision
-      -  path: .yamato/shadergraph-win-dx11.yml#ShaderGraph_Win_DX11_playmode_fast-trunk
-         rerun: on-new-revision
-      -  path: .yamato/shadergraph-win-dx11.yml#ShaderGraph_Win_DX11_editmode_fast-trunk
-         rerun: on-new-revision
-      -  path: .yamato/hdrp-win-dx11.yml#HDRP_Win_DX11_playmode_fast-trunk
-         rerun: on-new-revision
-      -  path: .yamato/hdrp-win-dx11.yml#HDRP_Win_DX11_editmode_fast-trunk
-         rerun: on-new-revision
-      -  path: .yamato/vfx_hdrp-win-dx11.yml#VFX_HDRP_Win_DX11_playmode_fast-trunk
-         rerun: on-new-revision
-      -  path: .yamato/vfx_hdrp-win-dx11.yml#VFX_HDRP_Win_DX11_editmode_fast-trunk
-         rerun: on-new-revision
-      -  path: .yamato/vfx_urp-win-dx11.yml#VFX_URP_Win_DX11_playmode_fast-trunk
-         rerun: on-new-revision
-smoke_test_Standalone_CUSTOM-REVISION:
-    name: SRP Smoke Test - Standalone_CUSTOM-REVISION
-    agent:
-        type: Unity::VM::GPU
-        image: sdet/gamecode_win10:stable
-        flavor: b1.large
-    variables:
-        UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
-        CUSTOM_REVISION: custom_revision_not_set
-    commands:
-      -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr.bat --output TestProjects/SRP_SmokeTest/utr.bat
-      -  pip install unity-downloader-cli --extra-index-url https://artifactory.internal.unity3d.com/api/pypi/common-python/simple --upgrade
-      -  cd TestProjects/SRP_SmokeTest && unity-downloader-cli --source-file ../../unity_revision.txt -c editor --wait --published-only
-      -  cd TestProjects/SRP_SmokeTest && utr --suite=playmode --platform=StandaloneWindows64 --testproject=. --editor-location=.Editor --artifacts_path=test-results --timeout=1200
-    dependencies:
-      -  path: .yamato/_editor.yml#editor:priming:CUSTOM-REVISION:windows
-         rerun: always
-    artifacts:
-        logs:
-            paths:
-              -  "**/test-results/**"
-smoke_test_playmode_CUSTOM-REVISION:
-    name: SRP Smoke Test - playmode_CUSTOM-REVISION
-    agent:
-        type: Unity::VM::GPU
-        image: sdet/gamecode_win10:stable
-        flavor: b1.large
-    variables:
-        UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
-        CUSTOM_REVISION: custom_revision_not_set
-    commands:
-      -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr.bat --output TestProjects/SRP_SmokeTest/utr.bat
-      -  pip install unity-downloader-cli --extra-index-url https://artifactory.internal.unity3d.com/api/pypi/common-python/simple --upgrade
-      -  cd TestProjects/SRP_SmokeTest && unity-downloader-cli --source-file ../../unity_revision.txt -c editor --wait --published-only
-      -  cd TestProjects/SRP_SmokeTest && utr --suite=playmode --testproject=. --editor-location=.Editor --artifacts_path=test-results
-    dependencies:
-      -  path: .yamato/_editor.yml#editor:priming:CUSTOM-REVISION:windows
-         rerun: always
-    artifacts:
-        logs:
-            paths:
-              -  "**/test-results/**"
-smoke_test_editmode_CUSTOM-REVISION:
-    name: SRP Smoke Test - editmode_CUSTOM-REVISION
-    agent:
-        type: Unity::VM
-        image: sdet/gamecode_win10:stable
-        flavor: b1.large
-    variables:
-        UPM_REGISTRY: https://artifactory-slo.bf.unity3d.com/artifactory/api/npm/upm-candidates
-        CUSTOM_REVISION: custom_revision_not_set
-    commands:
-      -  curl -s https://artifactory.internal.unity3d.com/core-automation/tools/utr-standalone/utr.bat --output TestProjects/SRP_SmokeTest/utr.bat
-      -  pip install unity-downloader-cli --extra-index-url https://artifactory.internal.unity3d.com/api/pypi/common-python/simple --upgrade
-      -  cd TestProjects/SRP_SmokeTest && unity-downloader-cli --source-file ../../unity_revision.txt -c editor --wait --published-only
-      -  cd TestProjects/SRP_SmokeTest && utr --suite=editor --platform=editmode --testproject=. --editor-location=.Editor --artifacts_path=test-results
-    dependencies:
-      -  path: .yamato/_editor.yml#editor:priming:CUSTOM-REVISION:windows
-         rerun: always
-    artifacts:
-        logs:
-            paths:
-              -  "**/test-results/**"
-all_smoke_tests_CUSTOM-REVISION:
-    name: All Smoke Tests - CUSTOM-REVISION
-    dependencies:
-      -  path: .yamato/_abv.yml#smoke_test_Standalone_CUSTOM-REVISION
-         rerun: always
-      -  path: .yamato/_abv.yml#smoke_test_playmode_CUSTOM-REVISION
-         rerun: always
-      -  path: .yamato/_abv.yml#smoke_test_editmode_CUSTOM-REVISION
-         rerun: always
-    variables:
-        CUSTOM_REVISION: custom_revision_not_set
 all_project_ci_CUSTOM-REVISION:
-    name: _ABV for SRP repository - CUSTOM-REVISION
+    name: _ABV for SRP repository (all PR jobs) - CUSTOM-REVISION
     dependencies:
-      -  path: .yamato/_packages.yml#all_package_ci_CUSTOM-REVISION
+      -  path: .yamato/all-universal_split.yml#PR_Universal_Split_CUSTOM-REVISION
          rerun: always
-      -  path: .yamato/all-universal.yml#All_Universal_CUSTOM-REVISION
+      -  path: .yamato/all-shadergraph.yml#PR_ShaderGraph_CUSTOM-REVISION
          rerun: always
-      -  path: .yamato/all-shadergraph.yml#All_ShaderGraph_CUSTOM-REVISION
+      -  path: .yamato/all-hdrp.yml#PR_HDRP_CUSTOM-REVISION
          rerun: always
-      -  path: .yamato/all-hdrp.yml#All_HDRP_CUSTOM-REVISION
+      -  path: .yamato/all-vfx_hdrp.yml#PR_VFX_HDRP_CUSTOM-REVISION
          rerun: always
-      -  path: .yamato/all-vfx_hdrp.yml#All_VFX_HDRP_CUSTOM-REVISION
+      -  path: .yamato/all-vfx_urp.yml#PR_VFX_URP_CUSTOM-REVISION
          rerun: always
-      -  path: .yamato/all-vfx_urp.yml#All_VFX_URP_CUSTOM-REVISION
+      -  path: .yamato/_projectcontext.yml#all_package_ci_project_CUSTOM-REVISION
+         rerun: always
+    variables:
+        CUSTOM_REVISION: custom_revision_not_set
+all_project_ci_nightly_CUSTOM-REVISION:
+    name: _Nightly ABV against CUSTOM-REVISION
+    dependencies:
+      -  path: .yamato/all-universal_split.yml#Nightly_Universal_Split_CUSTOM-REVISION
+         rerun: always
+      -  path: .yamato/all-shadergraph.yml#Nightly_ShaderGraph_CUSTOM-REVISION
+         rerun: always
+      -  path: .yamato/all-hdrp.yml#Nightly_HDRP_CUSTOM-REVISION
+         rerun: always
+      -  path: .yamato/all-vfx_hdrp.yml#Nightly_VFX_HDRP_CUSTOM-REVISION
+         rerun: always
+      -  path: .yamato/all-vfx_urp.yml#Nightly_VFX_URP_CUSTOM-REVISION
+         rerun: always
+      -  path: .yamato/all-urp_performance_boatattack.yml#PR_URP_Performance_BoatAttack_CUSTOM-REVISION
+         rerun: always
+      -  path: .yamato/all-urp_performance_lostcrypt.yml#PR_URP_Performance_LostCrypt_CUSTOM-REVISION
+         rerun: always
+      -  path: .yamato/all-hdrp_performancetests.yml#PR_HDRP_PerformanceTests_CUSTOM-REVISION
+         rerun: always
+      -  path: .yamato/all-vikingvillage_builtin.yml#PR_VikingVillage_BuiltIn_CUSTOM-REVISION
+         rerun: always
+      -  path: .yamato/all-vikingvillage_urp.yml#PR_VikingVillage_URP_CUSTOM-REVISION
+         rerun: always
+      -  path: .yamato/_projectcontext.yml#all_package_ci_project_CUSTOM-REVISION
          rerun: always
     variables:
         CUSTOM_REVISION: custom_revision_not_set
 trunk_verification_CUSTOM-REVISION:
     name: Trunk verification - CUSTOM-REVISION
     dependencies:
-      -  path: .yamato/universal-win-dx11.yml#Universal_Win_DX11_playmode_CUSTOM-REVISION
+      -  path: .yamato/urp_2d-win-dx11.yml#URP_2D_Win_DX11_playmode_cache_mono_Linear_CUSTOM-REVISION
          rerun: always
-      -  path: .yamato/universal-win-dx11.yml#Universal_Win_DX11_editmode_CUSTOM-REVISION
+      -  path: .yamato/urp_2d-win-dx11.yml#URP_2D_Win_DX11_editmode_mono_Linear_CUSTOM-REVISION
          rerun: always
-      -  path: .yamato/shadergraph-win-dx11.yml#ShaderGraph_Win_DX11_playmode_CUSTOM-REVISION
+      -  path: .yamato/urp_foundation-win-dx11.yml#URP_Foundation_Win_DX11_playmode_cache_mono_Linear_CUSTOM-REVISION
          rerun: always
-      -  path: .yamato/shadergraph-win-dx11.yml#ShaderGraph_Win_DX11_editmode_CUSTOM-REVISION
+      -  path: .yamato/urp_foundation-win-dx11.yml#URP_Foundation_Win_DX11_editmode_mono_Linear_CUSTOM-REVISION
          rerun: always
-      -  path: .yamato/hdrp-win-dx11.yml#HDRP_Win_DX11_playmode_CUSTOM-REVISION
+      -  path: .yamato/urp_lighting-win-dx11.yml#URP_Lighting_Win_DX11_playmode_cache_mono_Linear_CUSTOM-REVISION
          rerun: always
-      -  path: .yamato/hdrp-win-dx11.yml#HDRP_Win_DX11_editmode_CUSTOM-REVISION
+      -  path: .yamato/urp_lighting-win-dx11.yml#URP_Lighting_Win_DX11_editmode_mono_Linear_CUSTOM-REVISION
          rerun: always
-      -  path: .yamato/vfx_hdrp-win-dx11.yml#VFX_HDRP_Win_DX11_playmode_CUSTOM-REVISION
+      -  path: .yamato/urp_postpro-win-dx11.yml#URP_PostPro_Win_DX11_playmode_cache_mono_Linear_CUSTOM-REVISION
          rerun: always
-      -  path: .yamato/vfx_hdrp-win-dx11.yml#VFX_HDRP_Win_DX11_editmode_CUSTOM-REVISION
+      -  path: .yamato/urp_postpro-win-dx11.yml#URP_PostPro_Win_DX11_editmode_mono_Linear_CUSTOM-REVISION
          rerun: always
-      -  path: .yamato/vfx_urp-win-dx11.yml#VFX_URP_Win_DX11_playmode_CUSTOM-REVISION
+      -  path: .yamato/urp_terrain-win-dx11.yml#URP_Terrain_Win_DX11_playmode_cache_mono_Linear_CUSTOM-REVISION
+         rerun: always
+      -  path: .yamato/urp_terrain-win-dx11.yml#URP_Terrain_Win_DX11_editmode_mono_Linear_CUSTOM-REVISION
+         rerun: always
+      -  path: .yamato/shadergraph-win-dx11.yml#ShaderGraph_Win_DX11_playmode_cache_mono_Linear_CUSTOM-REVISION
+         rerun: always
+      -  path: .yamato/shadergraph-win-dx11.yml#ShaderGraph_Win_DX11_editmode_mono_Linear_CUSTOM-REVISION
+         rerun: always
+      -  path: .yamato/hdrp-win-dx11.yml#HDRP_Win_DX11_playmode_cache_mono_Linear_CUSTOM-REVISION
+         rerun: always
+      -  path: .yamato/hdrp-win-dx11.yml#HDRP_Win_DX11_editmode_mono_Linear_CUSTOM-REVISION
+         rerun: always
+      -  path: .yamato/vfx_hdrp-win-dx11.yml#VFX_HDRP_Win_DX11_playmode_cache_mono_Linear_CUSTOM-REVISION
+         rerun: always
+      -  path: .yamato/vfx_hdrp-win-dx11.yml#VFX_HDRP_Win_DX11_editmode_mono_Linear_CUSTOM-REVISION
+         rerun: always
+      -  path: .yamato/vfx_urp-win-dx11.yml#VFX_URP_Win_DX11_playmode_cache_mono_Linear_CUSTOM-REVISION
          rerun: always
     variables:
         CUSTOM_REVISION: custom_revision_not_set

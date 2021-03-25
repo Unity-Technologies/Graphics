@@ -18,6 +18,10 @@ Shader "Universal Render Pipeline/Baked Lit"
 
         // Editmode props
         [HideInInspector] _QueueOffset("Queue offset", Float) = 0.0
+
+        [HideInInspector][NoScaleOffset]unity_Lightmaps("unity_Lightmaps", 2DArray) = "" {}
+        [HideInInspector][NoScaleOffset]unity_LightmapsInd("unity_LightmapsInd", 2DArray) = "" {}
+        [HideInInspector][NoScaleOffset]unity_ShadowMasks("unity_ShadowMasks", 2DArray) = "" {}
     }
     SubShader
     {
@@ -34,26 +38,36 @@ Shader "Universal Render Pipeline/Baked Lit"
             Tags{ "LightMode" = "UniversalForwardOnly" }
 
             HLSLPROGRAM
-            #pragma exclude_renderers d3d11_9x gles
+            #pragma exclude_renderers gles gles3 glcore
             #pragma target 4.5
 
             #pragma vertex vert
             #pragma fragment frag
+
+            // -------------------------------------
+            // Material Keywords
             #pragma shader_feature_local _NORMALMAP
             #pragma shader_feature_local_fragment _ALPHATEST_ON
             #pragma shader_feature_local_fragment _ALPHAPREMULTIPLY_ON
 
             // -------------------------------------
+            // Universal Pipeline keywords
+            #pragma multi_compile_fragment _ _SCREEN_SPACE_OCCLUSION
+
+            // -------------------------------------
             // Unity defined keywords
-            #pragma multi_compile_fragment _ DIRLIGHTMAP_COMBINED
+            #pragma multi_compile _ DIRLIGHTMAP_COMBINED
             #pragma multi_compile _ LIGHTMAP_ON
             #pragma multi_compile_fog
+
+            //--------------------------------------
+            // GPU Instancing
             #pragma multi_compile_instancing
             #pragma multi_compile _ DOTS_INSTANCING_ON
 
             // Lighting include is needed because of GI
-            #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Lighting.hlsl"
             #include "Packages/com.unity.render-pipelines.universal/Shaders/BakedLitInput.hlsl"
+            #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Lighting.hlsl"
 
             struct Attributes
             {
@@ -133,8 +147,12 @@ Shader "Universal Render Pipeline/Baked Lit"
     #endif
                 normalWS = NormalizeNormalPerPixel(normalWS);
                 color *= SAMPLE_GI(input.lightmapUV, input.vertexSH, normalWS);
+                #if defined(_SCREEN_SPACE_OCCLUSION)
+                    float2 normalizedScreenSpaceUV = GetNormalizedScreenSpaceUV(input.vertex);
+                    color *= SampleAmbientOcclusion(normalizedScreenSpaceUV);
+                #endif
                 color = MixFog(color, input.uv0AndFogCoord.z);
-                alpha = OutputAlpha(alpha);
+                alpha = OutputAlpha(alpha, _Surface);
 
                 return half4(color, alpha);
             }
@@ -149,7 +167,7 @@ Shader "Universal Render Pipeline/Baked Lit"
             ColorMask 0
 
             HLSLPROGRAM
-            #pragma exclude_renderers d3d11_9x gles
+            #pragma exclude_renderers gles gles3 glcore
             #pragma target 4.5
 
             #pragma vertex DepthOnlyVertex
@@ -169,6 +187,80 @@ Shader "Universal Render Pipeline/Baked Lit"
             ENDHLSL
         }
 
+        // This pass is used when drawing to a _CameraNormalsTexture texture
+        Pass
+        {
+            Name "DepthNormals"
+            Tags{"LightMode" = "DepthNormals"}
+
+            ZWrite On
+            Cull[_Cull]
+
+            HLSLPROGRAM
+            #pragma exclude_renderers gles gles3 glcore
+            #pragma target 4.5
+
+            #pragma vertex DepthNormalsVertex
+            #pragma fragment DepthNormalsFragment
+
+            // -------------------------------------
+            // Material Keywords
+            #pragma shader_feature_local _ _NORMALMAP
+            #pragma shader_feature_local_fragment _ALPHATEST_ON
+
+            //--------------------------------------
+            // Defines
+            #define BUMP_SCALE_NOT_SUPPORTED 1
+
+            //--------------------------------------
+            // GPU Instancing
+            #pragma multi_compile_instancing
+            #pragma multi_compile _ DOTS_INSTANCING_ON
+
+            #include "Packages/com.unity.render-pipelines.universal/Shaders/BakedLitInput.hlsl"
+            #include "Packages/com.unity.render-pipelines.universal/Shaders/DepthNormalsPass.hlsl"
+            ENDHLSL
+        }
+
+        // Same as DepthNormals pass, but used for deferred renderer and forwardOnly materials.
+        Pass
+        {
+            Name "DepthNormalsOnly"
+            Tags{"LightMode" = "DepthNormalsOnly"}
+
+            ZWrite On
+            Cull[_Cull]
+
+            HLSLPROGRAM
+            #pragma exclude_renderers gles gles3 glcore
+            #pragma target 4.5
+
+            #pragma vertex DepthNormalsVertex
+            #pragma fragment DepthNormalsFragment
+
+            // -------------------------------------
+            // Material Keywords
+            #pragma shader_feature_local _ _NORMALMAP
+            #pragma shader_feature_local_fragment _ALPHATEST_ON
+
+            // -------------------------------------
+            // Unity defined keywords
+            #pragma multi_compile_fragment _ _GBUFFER_NORMALS_OCT // forward-only variant
+
+            //--------------------------------------
+            // Defines
+            #define BUMP_SCALE_NOT_SUPPORTED 1
+
+            //--------------------------------------
+            // GPU Instancing
+            #pragma multi_compile_instancing
+            #pragma multi_compile _ DOTS_INSTANCING_ON
+
+            #include "Packages/com.unity.render-pipelines.universal/Shaders/BakedLitInput.hlsl"
+            #include "Packages/com.unity.render-pipelines.universal/Shaders/DepthNormalsPass.hlsl"
+            ENDHLSL
+        }
+
         // This pass it not used during regular rendering, only for lightmap baking.
         Pass
         {
@@ -178,7 +270,7 @@ Shader "Universal Render Pipeline/Baked Lit"
             Cull Off
 
             HLSLPROGRAM
-            #pragma exclude_renderers d3d11_9x gles
+            #pragma exclude_renderers gles gles3 glcore
             #pragma target 4.5
 
             #pragma vertex UniversalVertexMeta
@@ -199,7 +291,7 @@ Shader "Universal Render Pipeline/Baked Lit"
             Cull[_Cull]
 
             HLSLPROGRAM
-            #pragma exclude_renderers d3d11_9x gles
+            #pragma exclude_renderers gles gles3 glcore
             #pragma target 4.5
 
             #pragma vertex vert
@@ -228,20 +320,30 @@ Shader "Universal Render Pipeline/Baked Lit"
             Tags{ "LightMode" = "UniversalForwardOnly" }
 
             HLSLPROGRAM
-            #pragma only_renderers gles gles3 glcore
+            #pragma only_renderers gles gles3 glcore d3d11
             #pragma target 2.0
 
             #pragma vertex vert
             #pragma fragment frag
-            #pragma shader_feature_local _ _NORMALMAP
+
+            // -------------------------------------
+            // Material Keywords
+            #pragma shader_feature_local _NORMALMAP
             #pragma shader_feature_local_fragment _ALPHATEST_ON
             #pragma shader_feature_local_fragment _ALPHAPREMULTIPLY_ON
 
             // -------------------------------------
+            // Universal Pipeline keywords
+            #pragma multi_compile_fragment _ _SCREEN_SPACE_OCCLUSION
+
+            // -------------------------------------
             // Unity defined keywords
-            #pragma multi_compile_fragment _ DIRLIGHTMAP_COMBINED
+            #pragma multi_compile _ DIRLIGHTMAP_COMBINED
             #pragma multi_compile _ LIGHTMAP_ON
             #pragma multi_compile_fog
+
+            //--------------------------------------
+            // GPU Instancing
             #pragma multi_compile_instancing
 
             // Lighting include is needed because of GI
@@ -326,8 +428,12 @@ Shader "Universal Render Pipeline/Baked Lit"
     #endif
                 normalWS = NormalizeNormalPerPixel(normalWS);
                 color *= SAMPLE_GI(input.lightmapUV, input.vertexSH, normalWS);
+                #if defined(_SCREEN_SPACE_OCCLUSION)
+                    float2 normalizedScreenSpaceUV = GetNormalizedScreenSpaceUV(input.vertex);
+                    color *= SampleAmbientOcclusion(normalizedScreenSpaceUV);
+                #endif
                 color = MixFog(color, input.uv0AndFogCoord.z);
-                alpha = OutputAlpha(alpha);
+                alpha = OutputAlpha(alpha, _Surface);
 
                 return half4(color, alpha);
             }
@@ -342,9 +448,9 @@ Shader "Universal Render Pipeline/Baked Lit"
             ColorMask 0
 
             HLSLPROGRAM
-            #pragma only_renderers gles gles3 glcore
+            #pragma only_renderers gles gles3 glcore d3d11
             #pragma target 2.0
-            
+
             //--------------------------------------
             // GPU Instancing
             #pragma multi_compile_instancing
@@ -361,6 +467,40 @@ Shader "Universal Render Pipeline/Baked Lit"
             ENDHLSL
         }
 
+        // This pass is used when drawing to a _CameraNormalsTexture texture
+        Pass
+        {
+            Name "DepthNormals"
+            Tags{"LightMode" = "DepthNormals"}
+
+            ZWrite On
+            Cull[_Cull]
+
+            HLSLPROGRAM
+            #pragma only_renderers gles gles3 glcore d3d11
+            #pragma target 2.0
+
+            #pragma vertex DepthNormalsVertex
+            #pragma fragment DepthNormalsFragment
+
+            // -------------------------------------
+            // Material Keywords
+            #pragma shader_feature_local _ _NORMALMAP
+            #pragma shader_feature_local_fragment _ALPHATEST_ON
+
+            //--------------------------------------
+            // Defines
+            #define BUMP_SCALE_NOT_SUPPORTED 1
+
+            //--------------------------------------
+            // GPU Instancing
+            #pragma multi_compile_instancing
+
+            #include "Packages/com.unity.render-pipelines.universal/Shaders/BakedLitInput.hlsl"
+            #include "Packages/com.unity.render-pipelines.universal/Shaders/DepthNormalsPass.hlsl"
+            ENDHLSL
+        }
+
         // This pass it not used during regular rendering, only for lightmap baking.
         Pass
         {
@@ -370,7 +510,7 @@ Shader "Universal Render Pipeline/Baked Lit"
             Cull Off
 
             HLSLPROGRAM
-            #pragma only_renderers gles gles3 glcore
+            #pragma only_renderers gles gles3 glcore d3d11
             #pragma target 2.0
 
             #pragma vertex UniversalVertexMeta
@@ -391,7 +531,7 @@ Shader "Universal Render Pipeline/Baked Lit"
             Cull[_Cull]
 
             HLSLPROGRAM
-            #pragma only_renderers gles gles3 glcore
+            #pragma only_renderers gles gles3 glcore d3d11
             #pragma target 2.0
 
             #pragma vertex vert

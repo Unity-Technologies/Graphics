@@ -2,10 +2,11 @@ using UnityEditor.SceneManagement;
 using UnityEngine;
 using UnityEngine.Rendering.Universal;
 using UnityEngine.Experimental.Rendering.Universal;
+using UnityEngine.Rendering;
 
 namespace UnityEditor.Experimental.Rendering.Universal
 {
-    static class Renderer2DUpgrader
+    internal static class Renderer2DUpgrader
     {
         delegate void Upgrader<T>(T toUpgrade) where T : Object;
 
@@ -23,6 +24,58 @@ namespace UnityEditor.Experimental.Rendering.Universal
                         upgrader(obj);
                     }
                 }
+            }
+        }
+
+        public static void UpgradeObjectWithParametricLights(GameObject obj)
+        {
+            Light2D[] lights = obj.GetComponents<Light2D>();
+            if (lights.Length > 0)
+            {
+                foreach (var light in lights)
+                    UpgradeParametricLight(light);
+            }
+        }
+
+        public static void UpgradeParametricLight(Light2D light)
+        {
+            if (light.lightType == (Light2D.LightType)Light2D.DeprecatedLightType.Parametric)
+            {
+                light.lightType = Light2D.LightType.Freeform;
+
+                float radius = light.shapeLightParametricRadius;
+                float angle = light.shapeLightParametricAngleOffset;
+                int   sides = light.shapeLightParametricSides;
+
+                var angleOffset = Mathf.PI / 2.0f + Mathf.Deg2Rad * angle;
+                if (sides < 3)
+                {
+                    radius = 0.70710678118654752440084436210485f * radius;
+                    sides = 4;
+                }
+
+                if (sides == 4)
+                {
+                    angleOffset = Mathf.PI / 4.0f + Mathf.Deg2Rad * angle;
+                }
+
+                var radiansPerSide = 2 * Mathf.PI / sides;
+                var min = new Vector3(float.MaxValue, float.MaxValue, 0);
+                var max = new Vector3(float.MinValue, float.MinValue, 0);
+
+
+                Vector3[] shapePath = new Vector3[sides];
+                for (var i = 0; i < sides; i++)
+                {
+                    var endAngle = (i + 1) * radiansPerSide;
+                    var extrudeDir = new Vector3(Mathf.Cos(endAngle + angleOffset), Mathf.Sin(endAngle + angleOffset), 0);
+                    var endPoint = radius * extrudeDir;
+
+                    shapePath[i] = endPoint;
+                }
+
+                light.shapePath = shapePath;
+                light.UpdateMesh(true);
             }
         }
 
@@ -53,7 +106,6 @@ namespace UnityEditor.Experimental.Rendering.Universal
                         {
                             newMaterials[i] = renderer.sharedMaterials[i];
                         }
-
                     }
 
                     if (upgraded)
@@ -82,7 +134,18 @@ namespace UnityEditor.Experimental.Rendering.Universal
             }
         }
 
-        [MenuItem("Edit/Render Pipeline/Universal Render Pipeline/2D Renderer/Upgrade Scene to 2D Renderer (Experimental)", false)]
+        [MenuItem("Edit/Rendering/Materials/Convert All Built-in Materials to URP 2D Renderer", false, priority = CoreUtils.Sections.section1 + CoreUtils.Priorities.editMenuPriority + 2)]
+        static void UpgradeProjectTo2DRenderer()
+        {
+            if (!EditorUtility.DisplayDialog("2D Renderer Upgrader", "The upgrade will search for all prefabs in your project that use Sprite Renderers and change the material references of those Sprite Renderers to a lit material. You can't undo this operation. It's highly recommended to backup your project before proceeding.", "Proceed", "Cancel"))
+                return;
+
+            ProcessAssetDatabaseObjects<GameObject>("t: Prefab", UpgradeGameObject);
+            AssetDatabase.SaveAssets();
+            Resources.UnloadUnusedAssets();
+        }
+
+        [MenuItem("Edit/Rendering/Materials/Convert All Built-in Scene Materials to URP 2D Renderer", false, priority = CoreUtils.Sections.section1 + CoreUtils.Priorities.editMenuPriority + 3)]
         static void UpgradeSceneTo2DRenderer()
         {
             if (!EditorUtility.DisplayDialog("2D Renderer Upgrader", "The upgrade will change the material references of Sprite Renderers in currently open scene(s) to a lit material. You can't undo this operation. Make sure you save the scene(s) before proceeding.", "Proceed", "Cancel"))
@@ -98,27 +161,56 @@ namespace UnityEditor.Experimental.Rendering.Universal
             }
         }
 
-        [MenuItem("Edit/Render Pipeline/Universal Render Pipeline/2D Renderer/Upgrade Scene to 2D Renderer (Experimental)", true)]
-        static bool UpgradeSceneTo2DRendererValidation()
+        [MenuItem("Edit/Rendering/Materials/Convert All Built-in Materials to URP 2D Renderer", true)]
+        [MenuItem("Edit/Rendering/Materials/Convert All Built-in Scene Materials to URP 2D Renderer", true)]
+        static bool MenuValidation()
         {
             return Light2DEditorUtility.IsUsing2DRenderer();
         }
 
-        [MenuItem("Edit/Render Pipeline/Universal Render Pipeline/2D Renderer/Upgrade Project to 2D Renderer (Experimental)", false)]
-        static void UpgradeProjectTo2DRenderer()
+        public static void UpgradeParametricLightsInScene(bool prompt)
         {
-            if (!EditorUtility.DisplayDialog("2D Renderer Upgrader", "The upgrade will search for all prefabs in your project that use Sprite Renderers and change the material references of those Sprite Renderers to a lit material. You can't undo this operation. It's highly recommended to backup your project before proceeding.", "Proceed", "Cancel"))
-                return;
+            if (prompt)
+            {
+                if (!EditorUtility.DisplayDialog("Parametric Light Upgrader", "The upgrade will change all game objects which use Parametric Light2D to Freeform Light2D in currently open scene(s). You can't undo this operation. Make sure you save the scene(s) before proceeding.", "Proceed", "Cancel"))
+                    return;
+            }
 
-            ProcessAssetDatabaseObjects<GameObject>("t: Prefab", UpgradeGameObject);
+            GameObject[] gameObjects = Object.FindObjectsOfType<GameObject>();
+            if (gameObjects != null && gameObjects.Length > 0)
+            {
+                foreach (GameObject go in gameObjects)
+                {
+                    UpgradeObjectWithParametricLights(go);
+                }
+            }
+        }
+
+        public static void UpgradeParametricLightsInProject(bool prompt = true)
+        {
+            if (prompt)
+            {
+                if (!EditorUtility.DisplayDialog("Parametric Light Upgrader", "The upgrade will search for all prefabs in your project that use Parametric Light2D and change them to Freeform Light2D. You can't undo this operation. It's highly recommended to backup your project before proceeding.", "Proceed", "Cancel"))
+                    return;
+            }
+
+            ProcessAssetDatabaseObjects<GameObject>("t: Prefab", UpgradeObjectWithParametricLights);
             AssetDatabase.SaveAssets();
             Resources.UnloadUnusedAssets();
         }
 
-        [MenuItem("Edit/Render Pipeline/Universal Render Pipeline/2D Renderer/Upgrade Project to 2D Renderer (Experimental)", true)]
-        static bool UpgradeProjectTo2DRendererValidation()
+        // Set priority to get these to the bottom. Add test for pipeline enabled
+
+        [MenuItem("Edit/Rendering/Lights/Convert Project URP Parametric Lights to Freeform", false, priority = CoreUtils.Priorities.editMenuPriority + 1)]
+        public static void UpgradeParametricLightsInProject()
         {
-            return Light2DEditorUtility.IsUsing2DRenderer();
+            UpgradeParametricLightsInProject(true);
+        }
+
+        [MenuItem("Edit/Rendering/Lights/Convert Scene URP Parametric Lights to Freeform", false, priority = CoreUtils.Priorities.editMenuPriority + 2)]
+        public static void UpgradeParametricLightsInScene()
+        {
+            UpgradeParametricLightsInScene(true);
         }
     }
 }

@@ -42,7 +42,7 @@ CBUFFER_END
 #define ParamEvaluateMode               _Variants.w
 
 #define ProceduralCenter           _ProceduralMaskParams.xy     // Transformed in screen space on CPU
-#define ProceduralRadii            _ProceduralMaskParams.zw     
+#define ProceduralRadii            _ProceduralMaskParams.zw
 #define ProceduralSoftness         _ProceduralMaskParams2.x
 #define ProceduralMin              _ProceduralMaskParams2.y
 #define ProceduralMax              _ProceduralMaskParams2.z

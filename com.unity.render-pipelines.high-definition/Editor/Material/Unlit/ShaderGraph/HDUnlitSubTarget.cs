@@ -18,6 +18,8 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
     {
         public HDUnlitSubTarget() => displayName = "Unlit";
 
+        static readonly GUID kSubTargetSourceCodeGuid = new GUID("4516595d40fa52047a77940183dc8e74");  // HDUnlitSubTarget.cs
+
         static string[] passTemplateMaterialDirectories = new string[]
         {
             $"{HDUtils.GetHDRenderPipelinePath()}Editor/Material/Unlit/ShaderGraph/",
@@ -27,7 +29,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
         protected override string[] templateMaterialDirectories => passTemplateMaterialDirectories;
         protected override ShaderID shaderID => HDShaderUtils.ShaderID.SG_Unlit;
         protected override string renderType => HDRenderTypeTags.HDUnlitShader.ToString();
-        protected override string subTargetAssetGuid => "4516595d40fa52047a77940183dc8e74"; // HDUnlitSubTarget
+        protected override GUID subTargetAssetGuid => kSubTargetSourceCodeGuid;
         protected override string customInspector => "Rendering.HighDefinition.HDUnlitGUI";
         protected override FieldDescriptor subShaderField => new FieldDescriptor(kSubShader, "Unlit SubShader", "");
         protected override string raytracingInclude => CoreIncludes.kUnlitRaytracing;
@@ -60,7 +62,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 return new SubShaderDescriptor
                 {
                     generatesPreview = true,
-                    passes = new PassCollection{ { HDShaderPasses.GenerateDistortionPass(false), new FieldCondition(TransparentDistortion, true) } }
+                    passes = new PassCollection { { HDShaderPasses.GenerateDistortionPass(false), new FieldCondition(TransparentDistortion, true) } }
                 };
             }
             else
@@ -76,6 +78,17 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 forwardUnlit.descriptor.includes.Add(CoreIncludes.kHDShadowLoop, IncludeLocation.Pregraph, new FieldCondition(EnableShadowMatte, true));
 
                 return descriptor;
+            }
+        }
+
+        protected override void CollectPassKeywords(ref PassDescriptor pass)
+        {
+            base.CollectPassKeywords(ref pass);
+
+            if (pass.IsForward())
+            {
+                pass.keywords.Add(CoreKeywordDescriptors.Shadow, new FieldCondition(HDUnlitSubTarget.EnableShadowMatte, true));
+                pass.keywords.Add(CoreKeywordDescriptors.ScreenSpaceShadow, new FieldCondition(HDUnlitSubTarget.EnableShadowMatte, true));
             }
         }
 
@@ -106,7 +119,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
         public override void CollectShaderProperties(PropertyCollector collector, GenerationMode generationMode)
         {
             base.CollectShaderProperties(collector, generationMode);
-    
+
             if (unlitData.enableShadowMatte)
             {
                 uint mantissa = ((uint)LightFeatureFlags.Punctual | (uint)LightFeatureFlags.Directional | (uint)LightFeatureFlags.Area) & 0x007FFFFFu;

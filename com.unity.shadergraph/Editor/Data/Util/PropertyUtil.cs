@@ -34,7 +34,7 @@ namespace UnityEditor.ShaderGraph
                     return ConcreteSlotValueType.Vector3;
                 case PropertyType.Vector2:
                     return ConcreteSlotValueType.Vector2;
-                case PropertyType.Vector1:
+                case PropertyType.Float:
                     return ConcreteSlotValueType.Vector1;
                 case PropertyType.Boolean:
                     return ConcreteSlotValueType.Boolean;

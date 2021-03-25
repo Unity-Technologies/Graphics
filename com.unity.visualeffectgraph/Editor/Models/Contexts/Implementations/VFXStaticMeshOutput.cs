@@ -49,6 +49,11 @@ namespace UnityEditor.VFX
             shader = ((VFXDataMesh)GetData()).shader;
         }
 
+        public override VFXCoordinateSpace GetOutputSpaceFromSlot(VFXSlot slot)
+        {
+            return VFXCoordinateSpace.Local;
+        }
+
         public override bool SetupCompilation()
         {
             shader = ((VFXDataMesh)GetData()).shader;
@@ -86,7 +91,6 @@ namespace UnityEditor.VFX
                 yield return new VFXPropertyWithValue(new VFXProperty(typeof(Mesh), "mesh"), VFXResources.defaultResources.mesh);
                 yield return new VFXPropertyWithValue(new VFXProperty(typeof(Transform), "transform"), Transform.defaultValue);
                 yield return new VFXPropertyWithValue(new VFXProperty(typeof(uint), "subMeshMask", new BitFieldAttribute()), uint.MaxValue);
-
 
                 if (GetData() != null)
                 {
@@ -140,8 +144,17 @@ namespace UnityEditor.VFX
                                         case TextureDimension.Tex3D:
                                             propertyType = typeof(Texture3D);
                                             break;
+                                        case TextureDimension.Cube:
+                                            propertyType = typeof(Cubemap);
+                                            break;
+                                        case TextureDimension.Tex2DArray:
+                                            propertyType = typeof(Texture2DArray);
+                                            break;
+                                        case TextureDimension.CubeArray:
+                                            propertyType = typeof(CubemapArray);
+                                            break;
                                         default:
-                                            break;     // TODO
+                                            break;
                                     }
                                     propertyValue = mat.GetTexture(propertyNameId);
                                     break;
@@ -244,6 +257,7 @@ namespace UnityEditor.VFX
             get
             {
                 yield return new VFXMapping("sortPriority", sortPriority);
+                yield return new VFXMapping("castShadows", castShadows ? 1 : 0);
             }
         }
 
@@ -251,8 +265,10 @@ namespace UnityEditor.VFX
         {
             base.CheckGraphBeforeImport();
             // If the graph is reimported it can be because one of its depedency such as the shadergraphs, has been changed.
-
+            ((VFXDataMesh)GetData()).RefreshShader(); // TODO This triggers an invalidate that is theorically not needed but require to fix a bug with shader graph dependency
             ResyncSlots(true);
+
+            Invalidate(InvalidationCause.kUIChangedTransient);
         }
     }
 }

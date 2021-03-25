@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Diagnostics;
 using System.IO;
 using System.Text;
@@ -128,7 +128,7 @@ namespace UnityEditor.ShaderAnalysis
         }
 
         /// <summary>Initialize the compiler.</summary>
-        public virtual void Initialize() { }
+        public virtual void Initialize() {}
 
         /// <summary>Start a compile operation.</summary>
         /// <param name="sourceFile">Path of the file to compile.</param>

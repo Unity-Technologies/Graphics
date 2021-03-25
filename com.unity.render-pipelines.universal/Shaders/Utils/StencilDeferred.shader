@@ -1,22 +1,46 @@
 Shader "Hidden/Universal Render Pipeline/StencilDeferred"
 {
+    Properties {
+        _StencilRef ("StencilRef", Int) = 0
+        _StencilReadMask ("StencilReadMask", Int) = 0
+        _StencilWriteMask ("StencilWriteMask", Int) = 0
+
+        _LitPunctualStencilRef ("LitPunctualStencilWriteMask", Int) = 0
+        _LitPunctualStencilReadMask ("LitPunctualStencilReadMask", Int) = 0
+        _LitPunctualStencilWriteMask ("LitPunctualStencilWriteMask", Int) = 0
+
+        _SimpleLitPunctualStencilRef ("SimpleLitPunctualStencilWriteMask", Int) = 0
+        _SimpleLitPunctualStencilReadMask ("SimpleLitPunctualStencilReadMask", Int) = 0
+        _SimpleLitPunctualStencilWriteMask ("SimpleLitPunctualStencilWriteMask", Int) = 0
+
+        _LitDirStencilRef ("LitDirStencilRef", Int) = 0
+        _LitDirStencilReadMask ("LitDirStencilReadMask", Int) = 0
+        _LitDirStencilWriteMask ("LitDirStencilWriteMask", Int) = 0
+
+        _SimpleLitDirStencilRef ("SimpleLitDirStencilRef", Int) = 0
+        _SimpleLitDirStencilReadMask ("SimpleLitDirStencilReadMask", Int) = 0
+        _SimpleLitDirStencilWriteMask ("SimpleLitDirStencilWriteMask", Int) = 0
+
+        _ClearStencilRef ("ClearStencilRef", Int) = 0
+        _ClearStencilReadMask ("ClearStencilReadMask", Int) = 0
+        _ClearStencilWriteMask ("ClearStencilWriteMask", Int) = 0
+    }
+
     HLSLINCLUDE
 
     // _ADDITIONAL_LIGHT_SHADOWS is shader keyword globally enabled for a range of render-passes.
     // When rendering deferred lights, we need to set/unset this flag dynamically for each deferred
     // light, however there is no way to restore the value of the keyword, whch is needed by the
     // forward transparent pass. The workaround is to use a new shader keyword
-    // _DEFERRED_ADDITIONAL_LIGHT_SHADOWS to set _ADDITIONAL_LIGHT_SHADOWS as a #define, so that
+    // _DEFERRED_LIGHT_SHADOWS to set _ADDITIONAL_LIGHT_SHADOWS as a #define, so that
     // the "state" of the keyword itself is unchanged.
-    #ifdef _DEFERRED_ADDITIONAL_LIGHT_SHADOWS
+    #ifdef _DEFERRED_LIGHT_SHADOWS
     #define _ADDITIONAL_LIGHT_SHADOWS 1
     #endif
 
     #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Core.hlsl"
     #include "Packages/com.unity.render-pipelines.universal/Shaders/Utils/Deferred.hlsl"
-
-    // XR not supported in 2020.1 preview
-    #define XR_MODE 0 // defined(USING_STEREO_MATRICES) && (defined(_POINT) || defined(_SPOT) || defined(_DIRECTIONAL))
+    #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Shadows.hlsl"
 
     struct Attributes
     {
@@ -28,9 +52,6 @@ Shader "Hidden/Universal Render Pipeline/StencilDeferred"
     struct Varyings
     {
         float4 positionCS : SV_POSITION;
-        #if XR_MODE
-        float4 posCS : TEXCOORD0;
-        #endif
         float3 screenUV : TEXCOORD1;
         UNITY_VERTEX_INPUT_INSTANCE_ID
         UNITY_VERTEX_OUTPUT_STEREO
@@ -67,11 +88,18 @@ Shader "Hidden/Universal Render Pipeline/StencilDeferred"
         }
         #endif
 
-        #if defined(_DIRECTIONAL) || defined(_FOG)
-        output.positionCS = float4(positionOS.xy, UNITY_RAW_FAR_CLIP_VALUE, 1.0); // Force triangle to be on zfar
+        #if defined(_DIRECTIONAL) || defined(_FOG) || defined(_CLEAR_STENCIL_PARTIAL) || (defined(_SSAO_ONLY) && defined(_SCREEN_SPACE_OCCLUSION))
+            // Full screen render using a large triangle.
+            output.positionCS = float4(positionOS.xy, UNITY_RAW_FAR_CLIP_VALUE, 1.0); // Force triangle to be on zfar
+        #elif defined(_SSAO_ONLY) && !defined(_SCREEN_SPACE_OCCLUSION)
+            // Deferred renderer does not know whether there is a SSAO feature or not at the C# scripting level.
+            // However, this is known at the shader level because of the shader keyword SSAO feature enables.
+            // If the keyword was not enabled, discard the SSAO_only pass by rendering the geometry outside the screen.
+            output.positionCS = float4(positionOS.xy, -2, 1.0); // Force triangle to be discarded
         #else
-        VertexPositionInputs vertexInput = GetVertexPositionInputs(positionOS.xyz);
-        output.positionCS = vertexInput.positionCS;
+            // Light shape geometry is projected as normal.
+            VertexPositionInputs vertexInput = GetVertexPositionInputs(positionOS.xyz);
+            output.positionCS = vertexInput.positionCS;
         #endif
 
         output.screenUV = output.positionCS.xyw;
@@ -81,10 +109,6 @@ Shader "Hidden/Universal Render Pipeline/StencilDeferred"
         output.screenUV.xy = output.screenUV.xy * 0.5 + 0.5 * output.screenUV.z;
         #endif
 
-        #if XR_MODE
-        output.posCS = output.positionCS;
-        #endif
-
         return output;
     }
 
@@ -92,13 +116,19 @@ Shader "Hidden/Universal Render Pipeline/StencilDeferred"
     TEXTURE2D_X_HALF(_GBuffer0);
     TEXTURE2D_X_HALF(_GBuffer1);
     TEXTURE2D_X_HALF(_GBuffer2);
-    float4x4 _ScreenToWorld;
+    #ifdef _DEFERRED_MIXED_LIGHTING
+    TEXTURE2D_X_HALF(_GBuffer4);
+    #endif
+
+    float4x4 _ScreenToWorld[2];
     SamplerState my_point_clamp_sampler;
 
     float3 _LightPosWS;
-    float3 _LightColor;
-    float4 _LightAttenuation; // .xy are used by DistanceAttenuation - .zw are used by AngleAttenuation *for SpotLights)
-    float3 _LightDirection; // directional/spotLights support
+    half3 _LightColor;
+    half4 _LightAttenuation; // .xy are used by DistanceAttenuation - .zw are used by AngleAttenuation *for SpotLights)
+    half3 _LightDirection;   // directional/spotLights support
+    half4 _LightOcclusionProbInfo;
+    int _LightFlags;
     int _ShadowLightIndex;
 
     half4 FragWhite(Varyings input) : SV_Target
@@ -119,23 +149,15 @@ Shader "Hidden/Universal Render Pipeline/StencilDeferred"
         half4 gbuffer1 = SAMPLE_TEXTURE2D_X_LOD(_GBuffer1, my_point_clamp_sampler, screen_uv, 0);
         half4 gbuffer2 = SAMPLE_TEXTURE2D_X_LOD(_GBuffer2, my_point_clamp_sampler, screen_uv, 0);
 
-        #if XR_MODE
-            #if UNITY_REVERSED_Z
-            d = 1.0 - d;
-            #endif
-            d = d * 2.0 - 1.0;
-            float4 posCS = float4(input.posCS.xy, d * input.posCS.w, input.posCS.w);
-            #if UNITY_UV_STARTS_AT_TOP
-            posCS.y = -posCS.y;
-            #endif
-            float3 posWS = ComputeWorldSpacePosition(posCS, UNITY_MATRIX_I_VP);
+        #ifdef _DEFERRED_MIXED_LIGHTING
+        half4 gbuffer4 = SAMPLE_TEXTURE2D_X_LOD(_GBuffer4, my_point_clamp_sampler, screen_uv, 0);
+        half4 shadowMask = gbuffer4;
         #else
-            // We can fold all this into 1 neat matrix transform, unless in XR Single Pass mode at the moment.
-            float4 posWS = mul(_ScreenToWorld, float4(input.positionCS.xy, d, 1.0));
-            posWS.xyz *= rcp(posWS.w);
+        half4 shadowMask = 1.0;
         #endif
 
-        InputData inputData = InputDataFromGbufferAndWorldPosition(gbuffer2, posWS.xyz);
+        half surfaceDataOcclusion = gbuffer1.a;
+
         uint materialFlags = UnpackMaterialFlags(gbuffer0.a);
         bool materialReceiveShadowsOff = (materialFlags & kMaterialFlagReceiveShadowsOff) != 0;
         #if SHADER_API_MOBILE || SHADER_API_SWITCH
@@ -145,13 +167,54 @@ Shader "Hidden/Universal Render Pipeline/StencilDeferred"
         bool materialSpecularHighlightsOff = (materialFlags & kMaterialFlagSpecularHighlightsOff);
         #endif
 
+        #if defined(_DEFERRED_MIXED_LIGHTING)
+        // If both lights and geometry are static, then no realtime lighting to perform for this combination.
+        [branch] if ((_LightFlags & materialFlags) == kMaterialFlagSubtractiveMixedLighting)
+            return half4(0.0, 0.0, 0.0, 1.0); // Cannot discard because stencil must be updated.
+        #endif
+
+        #if defined(USING_STEREO_MATRICES)
+        int eyeIndex = unity_StereoEyeIndex;
+        #else
+        int eyeIndex = 0;
+        #endif
+        float4 posWS = mul(_ScreenToWorld[eyeIndex], float4(input.positionCS.xy, d, 1.0));
+        posWS.xyz *= rcp(posWS.w);
+
+        InputData inputData = InputDataFromGbufferAndWorldPosition(gbuffer2, posWS.xyz);
+
         Light unityLight;
 
         #if defined(_DIRECTIONAL)
-            unityLight.direction = _LightDirection;
-            unityLight.color = _LightColor.rgb;
-            unityLight.distanceAttenuation = 1.0;
-            unityLight.shadowAttenuation = 1.0; // TODO materialFlagReceiveShadows
+            #if defined(_DEFERRED_MAIN_LIGHT)
+                unityLight = GetMainLight();
+                // unity_LightData.z is set per mesh for forward renderer, we cannot cull lights in this fashion with deferred renderer.
+                unityLight.distanceAttenuation = 1.0;
+
+                if (!materialReceiveShadowsOff)
+                {
+                    #if defined(MAIN_LIGHT_CALCULATE_SHADOWS)
+                        #if defined(_MAIN_LIGHT_SHADOWS_SCREEN)
+                            float4 shadowCoord = float4(screen_uv, 0.0, 1.0);
+                        #else
+                            float4 shadowCoord = TransformWorldToShadowCoord(posWS.xyz);
+                        #endif
+                        unityLight.shadowAttenuation = MainLightShadow(shadowCoord, posWS.xyz, shadowMask, _MainLightOcclusionProbes);
+                    #endif
+                }
+            #else
+                unityLight.direction = _LightDirection;
+                unityLight.distanceAttenuation = 1.0;
+                unityLight.shadowAttenuation = 1.0;
+                unityLight.color = _LightColor.rgb;
+
+                if (!materialReceiveShadowsOff)
+                {
+                    #if defined(_DEFERRED_LIGHT_SHADOWS)
+                        unityLight.shadowAttenuation = AdditionalLightShadow(_ShadowLightIndex, posWS.xyz, _LightDirection, shadowMask, _LightOcclusionProbInfo);
+                    #endif
+                }
+            #endif
         #else
             PunctualLightData light;
             light.posWS = _LightPosWS;
@@ -159,11 +222,25 @@ Shader "Hidden/Universal Render Pipeline/StencilDeferred"
             light.color = float4(_LightColor, 0.0);
             light.attenuation = _LightAttenuation;
             light.spotDirection = _LightDirection;
-            light.shadowLightIndex = _ShadowLightIndex;
-            unityLight = UnityLightFromPunctualLightDataAndWorldSpacePosition(light, posWS.xyz, materialReceiveShadowsOff);
+            light.occlusionProbeInfo = _LightOcclusionProbInfo;
+            light.flags = _LightFlags;
+            unityLight = UnityLightFromPunctualLightDataAndWorldSpacePosition(light, posWS.xyz, shadowMask, _ShadowLightIndex, materialReceiveShadowsOff);
         #endif
 
         half3 color = 0.0.xxx;
+        half alpha = 1.0;
+
+        #if defined(_SCREEN_SPACE_OCCLUSION)
+            AmbientOcclusionFactor aoFactor = GetScreenSpaceAmbientOcclusion(screen_uv);
+            unityLight.color *= aoFactor.directAmbientOcclusion;
+            #if defined(_DIRECTIONAL) && defined(_DEFERRED_FIRST_LIGHT)
+            // What we want is really to apply the mininum occlusion value between the baked occlusion from surfaceDataOcclusion and real-time occlusion from SSAO.
+            // But we already applied the baked occlusion during gbuffer pass, so we have to cancel it out here.
+            // We must also avoid divide-by-0 that the reciprocal can generate.
+            half occlusion = aoFactor.indirectAmbientOcclusion < surfaceDataOcclusion ? aoFactor.indirectAmbientOcclusion * rcp(surfaceDataOcclusion) : 1.0;
+            alpha = occlusion;
+            #endif
+        #endif
 
         #if defined(_LIT)
             BRDFData brdfData = BRDFDataFromGbuffer(gbuffer0, gbuffer1, gbuffer2);
@@ -177,7 +254,7 @@ Shader "Hidden/Universal Render Pipeline/StencilDeferred"
             color = diffuseColor * surfaceData.albedo + specularColor;
         #endif
 
-        return half4(color, 0.0);
+        return half4(color, alpha);
     }
 
     half4 FragFog(Varyings input) : SV_Target
@@ -188,6 +265,18 @@ Shader "Hidden/Universal Render Pipeline/StencilDeferred"
         half fogFactor = ComputeFogFactor(clip_z);
         half fogIntensity = ComputeFogIntensity(fogFactor);
         return half4(unity_FogColor.rgb, fogIntensity);
+    }
+
+    half4 FragSSAOOnly(Varyings input) : SV_Target
+    {
+        float2 screen_uv = (input.screenUV.xy / input.screenUV.z);
+        AmbientOcclusionFactor aoFactor = GetScreenSpaceAmbientOcclusion(screen_uv);
+        half surfaceDataOcclusion = SAMPLE_TEXTURE2D_X_LOD(_GBuffer1, my_point_clamp_sampler, screen_uv, 0).a;
+        // What we want is really to apply the mininum occlusion value between the baked occlusion from surfaceDataOcclusion and real-time occlusion from SSAO.
+        // But we already applied the baked occlusion during gbuffer pass, so we have to cancel it out here.
+        // We must also avoid divide-by-0 that the reciprocal can generate.
+        half occlusion = aoFactor.indirectAmbientOcclusion < surfaceDataOcclusion ? aoFactor.indirectAmbientOcclusion * rcp(surfaceDataOcclusion) : 1.0;
+        return half4(0.0, 0.0, 0.0, occlusion);
     }
 
     ENDHLSL
@@ -203,24 +292,27 @@ Shader "Hidden/Universal Render Pipeline/StencilDeferred"
 
             ZTest LEQual
             ZWrite Off
+            ZClip false
             Cull Off
             ColorMask 0
 
-            // Bit 4 is used for the stencil volume.
             Stencil {
-                WriteMask 16
-                ReadMask 16
-                CompFront Always
+                Ref [_StencilRef]
+                ReadMask [_StencilReadMask]
+                WriteMask [_StencilWriteMask]
+                CompFront NotEqual
                 PassFront Keep
                 ZFailFront Invert
-                CompBack Always
+                CompBack NotEqual
                 PassBack Keep
                 ZFailBack Invert
             }
 
             HLSLPROGRAM
+            #pragma exclude_renderers gles gles3 glcore
+            #pragma target 4.5
 
-            #pragma multi_compile _ _SPOT
+            #pragma multi_compile_vertex _ _SPOT
 
             #pragma vertex Vertex
             #pragma fragment FragWhite
@@ -236,16 +328,15 @@ Shader "Hidden/Universal Render Pipeline/StencilDeferred"
 
             ZTest GEqual
             ZWrite Off
+            ZClip false
             Cull Front
             Blend One One, Zero One
             BlendOp Add, Add
 
-            // [Stencil] Bit 4 is used for the stencil volume.
-            // [Stencil] Bit 5-6 material type. 00 = unlit/bakedLit, 01 = Lit, 10 = SimpleLit
             Stencil {
-                Ref 48       // 0b00110000
-                WriteMask 16 // 0b00010000
-                ReadMask 112 // 0b01110000
+                Ref [_LitPunctualStencilRef]
+                ReadMask [_LitPunctualStencilReadMask]
+                WriteMask [_LitPunctualStencilWriteMask]
                 Comp Equal
                 Pass Zero
                 Fail Keep
@@ -253,13 +344,18 @@ Shader "Hidden/Universal Render Pipeline/StencilDeferred"
             }
 
             HLSLPROGRAM
+            #pragma exclude_renderers gles gles3 glcore
+            #pragma target 4.5
 
             #pragma multi_compile _POINT _SPOT
             #pragma multi_compile_fragment _LIT
-            #pragma multi_compile_fragment _ADDITIONAL_LIGHTS
-            #pragma multi_compile_fragment _ _DEFERRED_ADDITIONAL_LIGHT_SHADOWS
+            #pragma multi_compile_fragment _ _DEFERRED_LIGHT_SHADOWS
             #pragma multi_compile_fragment _ _SHADOWS_SOFT
+            #pragma multi_compile_fragment _ LIGHTMAP_SHADOW_MIXING
+            #pragma multi_compile_fragment _ SHADOWS_SHADOWMASK
             #pragma multi_compile_fragment _ _GBUFFER_NORMALS_OCT
+            #pragma multi_compile_fragment _ _DEFERRED_MIXED_LIGHTING
+            #pragma multi_compile_fragment _ _SCREEN_SPACE_OCCLUSION
 
             #pragma vertex Vertex
             #pragma fragment DeferredShading
@@ -275,16 +371,15 @@ Shader "Hidden/Universal Render Pipeline/StencilDeferred"
 
             ZTest GEqual
             ZWrite Off
+            ZClip false
             Cull Front
             Blend One One, Zero One
             BlendOp Add, Add
 
-            // [Stencil] Bit 4 is used for the stencil volume.
-            // [Stencil] Bit 5-6 material type. 00 = unlit/bakedLit, 01 = Lit, 10 = SimpleLit
             Stencil {
-                Ref 80       // 0b01010000
-                WriteMask 16 // 0b00010000
-                ReadMask 112 // 0b01110000
+                Ref [_SimpleLitPunctualStencilRef]
+                ReadMask [_SimpleLitPunctualStencilReadMask]
+                WriteMask [_SimpleLitPunctualStencilWriteMask]
                 CompBack Equal
                 PassBack Zero
                 FailBack Keep
@@ -292,13 +387,18 @@ Shader "Hidden/Universal Render Pipeline/StencilDeferred"
             }
 
             HLSLPROGRAM
+            #pragma exclude_renderers gles gles3 glcore
+            #pragma target 4.5
 
             #pragma multi_compile _POINT _SPOT
             #pragma multi_compile_fragment _SIMPLELIT
-            #pragma multi_compile_fragment _ADDITIONAL_LIGHTS
-            #pragma multi_compile_fragment _ _DEFERRED_ADDITIONAL_LIGHT_SHADOWS
+            #pragma multi_compile_fragment _ _DEFERRED_LIGHT_SHADOWS
             #pragma multi_compile_fragment _ _SHADOWS_SOFT
+            #pragma multi_compile_fragment _ LIGHTMAP_SHADOW_MIXING
+            #pragma multi_compile_fragment _ SHADOWS_SHADOWMASK
             #pragma multi_compile_fragment _ _GBUFFER_NORMALS_OCT
+            #pragma multi_compile_fragment _ _DEFERRED_MIXED_LIGHTING
+            #pragma multi_compile_fragment _ _SCREEN_SPACE_OCCLUSION
 
             #pragma vertex Vertex
             #pragma fragment DeferredShading
@@ -307,7 +407,7 @@ Shader "Hidden/Universal Render Pipeline/StencilDeferred"
             ENDHLSL
         }
 
-        // 3 - Directional Light (Lit)
+        // 3 - Deferred Directional Light (Lit)
         Pass
         {
             Name "Deferred Directional Light (Lit)"
@@ -315,15 +415,13 @@ Shader "Hidden/Universal Render Pipeline/StencilDeferred"
             ZTest NotEqual
             ZWrite Off
             Cull Off
-            Blend One One, Zero One
+            Blend One SrcAlpha, Zero One
             BlendOp Add, Add
 
-            // [Stencil] Bit 4 is used for the stencil volume.
-            // [Stencil] Bit 5-6 material type. 00 = unlit/bakedLit, 01 = Lit, 10 = SimpleLit
             Stencil {
-                Ref 32      // 0b00100000
-                WriteMask 0 // 0b00000000
-                ReadMask 96 // 0b01100000
+                Ref [_LitDirStencilRef]
+                ReadMask [_LitDirStencilReadMask]
+                WriteMask [_LitDirStencilWriteMask]
                 Comp Equal
                 Pass Keep
                 Fail Keep
@@ -331,13 +429,21 @@ Shader "Hidden/Universal Render Pipeline/StencilDeferred"
             }
 
             HLSLPROGRAM
+            #pragma exclude_renderers gles gles3 glcore
+            #pragma target 4.5
 
             #pragma multi_compile _DIRECTIONAL
             #pragma multi_compile_fragment _LIT
-            #pragma multi_compile_fragment _ADDITIONAL_LIGHTS
-            #pragma multi_compile_fragment _ _DEFERRED_ADDITIONAL_LIGHT_SHADOWS
+            #pragma multi_compile_fragment _ _MAIN_LIGHT_SHADOWS _MAIN_LIGHT_SHADOWS_CASCADE _MAIN_LIGHT_SHADOWS_SCREEN
+            #pragma multi_compile_fragment _ _DEFERRED_MAIN_LIGHT
+            #pragma multi_compile_fragment _ _DEFERRED_FIRST_LIGHT
+            #pragma multi_compile_fragment _ _DEFERRED_LIGHT_SHADOWS
             #pragma multi_compile_fragment _ _SHADOWS_SOFT
+            #pragma multi_compile_fragment _ LIGHTMAP_SHADOW_MIXING
+            #pragma multi_compile_fragment _ SHADOWS_SHADOWMASK
             #pragma multi_compile_fragment _ _GBUFFER_NORMALS_OCT
+            #pragma multi_compile_fragment _ _DEFERRED_MIXED_LIGHTING
+            #pragma multi_compile_fragment _ _SCREEN_SPACE_OCCLUSION
 
             #pragma vertex Vertex
             #pragma fragment DeferredShading
@@ -346,7 +452,7 @@ Shader "Hidden/Universal Render Pipeline/StencilDeferred"
             ENDHLSL
         }
 
-        // 4 - Directional Light (SimpleLit)
+        // 4 - Deferred Directional Light (SimpleLit)
         Pass
         {
             Name "Deferred Directional Light (SimpleLit)"
@@ -354,15 +460,13 @@ Shader "Hidden/Universal Render Pipeline/StencilDeferred"
             ZTest NotEqual
             ZWrite Off
             Cull Off
-            Blend One One, Zero One
+            Blend One SrcAlpha, Zero One
             BlendOp Add, Add
 
-            // [Stencil] Bit 4 is used for the stencil volume.
-            // [Stencil] Bit 5-6 material type. 00 = unlit/bakedLit, 01 = Lit, 10 = SimpleLit
             Stencil {
-                Ref 64      // 0b01000000
-                WriteMask 0 // 0b00000000
-                ReadMask 96 // 0b01100000
+                Ref [_SimpleLitDirStencilRef]
+                ReadMask [_SimpleLitDirStencilReadMask]
+                WriteMask [_SimpleLitDirStencilWriteMask]
                 Comp Equal
                 Pass Keep
                 Fail Keep
@@ -370,13 +474,21 @@ Shader "Hidden/Universal Render Pipeline/StencilDeferred"
             }
 
             HLSLPROGRAM
+            #pragma exclude_renderers gles gles3 glcore
+            #pragma target 4.5
 
             #pragma multi_compile _DIRECTIONAL
             #pragma multi_compile_fragment _SIMPLELIT
-            #pragma multi_compile_fragment _ADDITIONAL_LIGHTS
-            #pragma multi_compile_fragment _ _DEFERRED_ADDITIONAL_LIGHT_SHADOWS
+            #pragma multi_compile_fragment _ _MAIN_LIGHT_SHADOWS _MAIN_LIGHT_SHADOWS_CASCADE _MAIN_LIGHT_SHADOWS_SCREEN
+            #pragma multi_compile_fragment _ _DEFERRED_MAIN_LIGHT
+            #pragma multi_compile_fragment _ _DEFERRED_FIRST_LIGHT
+            #pragma multi_compile_fragment _ _DEFERRED_LIGHT_SHADOWS
             #pragma multi_compile_fragment _ _SHADOWS_SOFT
+            #pragma multi_compile_fragment _ LIGHTMAP_SHADOW_MIXING
+            #pragma multi_compile_fragment _ SHADOWS_SHADOWMASK
             #pragma multi_compile_fragment _ _GBUFFER_NORMALS_OCT
+            #pragma multi_compile_fragment _ _DEFERRED_MIXED_LIGHTING
+            #pragma multi_compile_fragment _ _SCREEN_SPACE_OCCLUSION
 
             #pragma vertex Vertex
             #pragma fragment DeferredShading
@@ -397,6 +509,8 @@ Shader "Hidden/Universal Render Pipeline/StencilDeferred"
             BlendOp Add, Add
 
             HLSLPROGRAM
+            #pragma exclude_renderers gles gles3 glcore
+            #pragma target 4.5
 
             #pragma multi_compile _FOG
             #pragma multi_compile FOG_LINEAR FOG_EXP FOG_EXP2
@@ -407,5 +521,69 @@ Shader "Hidden/Universal Render Pipeline/StencilDeferred"
 
             ENDHLSL
         }
+
+        // 6 - Clear stencil partial
+        // This pass clears stencil between camera stacks rendering.
+        // This is because deferred renderer encodes material properties in the 4 highest bits of the stencil buffer,
+        // but we don't want to keep this information between camera stacks.
+        Pass
+        {
+            Name "ClearStencilPartial"
+
+            ColorMask 0
+            ZTest NotEqual
+            ZWrite Off
+            Cull Off
+
+            Stencil {
+                Ref [_ClearStencilRef]
+                ReadMask [_ClearStencilReadMask]
+                WriteMask [_ClearStencilWriteMask]
+                Comp NotEqual
+                Pass Zero
+                Fail Keep
+                ZFail Keep
+            }
+
+            HLSLPROGRAM
+            #pragma exclude_renderers gles gles3 glcore
+            #pragma target 4.5
+
+            #pragma multi_compile _CLEAR_STENCIL_PARTIAL
+            #pragma vertex Vertex
+            #pragma fragment FragWhite
+
+            ENDHLSL
+        }
+
+        // 7 - SSAO Only
+        // This pass only runs when there is no fullscreen deferred light rendered (no directional light). It will adjust indirect/baked lighting with realtime occlusion
+        // by rendering just before deferred shading pass.
+        // This pass is also completely discarded from vertex shader when SSAO renderer feature is not enabled.
+        Pass
+        {
+            Name "SSAOOnly"
+
+            ZTest NotEqual
+            ZWrite Off
+            Cull Off
+            Blend One SrcAlpha, Zero One
+            BlendOp Add, Add
+
+            HLSLPROGRAM
+            #pragma exclude_renderers gles gles3 glcore
+            #pragma target 4.5
+
+            #pragma multi_compile_vertex _SSAO_ONLY
+            #pragma multi_compile_vertex _ _SCREEN_SPACE_OCCLUSION
+
+            #pragma vertex Vertex
+            #pragma fragment FragSSAOOnly
+            //#pragma enable_d3d11_debug_symbols
+
+            ENDHLSL
+        }
     }
+
+    FallBack "Hidden/Universal Render Pipeline/FallbackError"
 }

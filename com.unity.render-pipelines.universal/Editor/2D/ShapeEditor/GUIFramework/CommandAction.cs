@@ -24,13 +24,13 @@ namespace UnityEditor.Experimental.Rendering.Universal.Path2D.GUIFramework
 
             return false;
         }
-        
+
         protected override bool GetFinishContidtion(IGUIState guiState)
         {
             if (guiState.eventType == EventType.ExecuteCommand && guiState.commandName == m_CommandName)
             {
                 guiState.UseCurrentEvent();
-                
+
                 return true;
             }
 

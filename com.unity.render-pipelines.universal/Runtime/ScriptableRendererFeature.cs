@@ -1,3 +1,4 @@
+using System;
 using UnityEngine.Scripting.APIUpdating;
 
 namespace UnityEngine.Rendering.Universal
@@ -8,7 +9,7 @@ namespace UnityEngine.Rendering.Universal
     /// <seealso cref="ScriptableRenderer"/>
     /// <seealso cref="ScriptableRenderPass"/>
     [ExcludeFromPreset]
-    [MovedFrom("UnityEngine.Rendering.LWRP")] public abstract class ScriptableRendererFeature : ScriptableObject
+    [MovedFrom("UnityEngine.Rendering.LWRP")] public abstract class ScriptableRendererFeature : ScriptableObject, IDisposable
     {
         [SerializeField, HideInInspector] private bool m_Active = true;
         /// <summary>
@@ -26,8 +27,7 @@ namespace UnityEngine.Rendering.Universal
         /// </summary>
         /// <param name="renderPasses">List of render passes to add to.</param>
         /// <param name="renderingData">Rendering state. Use this to setup render passes.</param>
-        public abstract void AddRenderPasses(ScriptableRenderer renderer,
-            ref RenderingData renderingData);
+        public abstract void AddRenderPasses(ScriptableRenderer renderer, ref RenderingData renderingData);
 
         void OnEnable()
         {
@@ -47,6 +47,19 @@ namespace UnityEngine.Rendering.Universal
         public void SetActive(bool active)
         {
             m_Active = active;
+        }
+
+        /// <summary>
+        /// Disposable pattern implementation.
+        /// </summary>
+        public void Dispose()
+        {
+            Dispose(true);
+            GC.SuppressFinalize(this);
+        }
+
+        protected virtual void Dispose(bool disposing)
+        {
         }
     }
 }

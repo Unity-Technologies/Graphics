@@ -68,6 +68,10 @@ namespace UnityEngine.Rendering
         /// <returns>RenderTexture representation of the RTHandle.</returns>
         public static implicit operator RenderTexture(RTHandle handle)
         {
+            // If RTHandle is null then conversion should give a null RenderTexture
+            if (handle == null)
+                return null;
+
             Debug.Assert(handle.rt != null, "RTHandle was created using a regular Texture and is used as a RenderTexture");
             return handle.rt;
         }
@@ -79,6 +83,10 @@ namespace UnityEngine.Rendering
         /// <returns>Texture representation of the RTHandle.</returns>
         public static implicit operator Texture(RTHandle handle)
         {
+            // If RTHandle is null then conversion should give a null Texture
+            if (handle == null)
+                return null;
+
             Debug.Assert(handle.m_ExternalTexture != null || handle.rt != null);
             return (handle.rt != null) ? handle.rt : handle.m_ExternalTexture;
         }
@@ -90,12 +98,12 @@ namespace UnityEngine.Rendering
         /// <returns>RenderTargetIdentifier representation of the RTHandle.</returns>
         public static implicit operator RenderTargetIdentifier(RTHandle handle)
         {
-            return handle.nameID;
+            return handle != null ? handle.nameID : default(RenderTargetIdentifier);
         }
 
         internal void SetRenderTexture(RenderTexture rt)
         {
-            m_RT=  rt;
+            m_RT =  rt;
             m_ExternalTexture = null;
             m_NameID = new RenderTargetIdentifier(rt);
         }
@@ -112,6 +120,20 @@ namespace UnityEngine.Rendering
             m_RT = null;
             m_ExternalTexture = null;
             m_NameID = tex;
+        }
+
+        /// <summary>
+        /// Get the Instance ID of the RTHandle.
+        /// </summary>
+        /// <returns>The RTHandle Instance ID.</returns>
+        public int GetInstanceID()
+        {
+            if (m_RT != null)
+                return m_RT.GetInstanceID();
+            else if (m_ExternalTexture != null)
+                return m_ExternalTexture.GetInstanceID();
+            else
+                return m_NameID.GetHashCode(); // No instance ID so we return the hash code.
         }
 
         /// <summary>
@@ -142,7 +164,26 @@ namespace UnityEngine.Rendering
                 return new Vector2Int(
                     x: Mathf.RoundToInt(scaleFactor.x * refSize.x),
                     y: Mathf.RoundToInt(scaleFactor.y * refSize.y)
-                    );
+                );
+            }
+        }
+
+        /// <summary>
+        /// Return the scaled size of the RTHandle.
+        /// </summary>
+        /// <returns>The scaled size of the RTHandle.</returns>
+        public Vector2Int GetScaledSize()
+        {
+            if (scaleFunc != null)
+            {
+                return scaleFunc(referenceSize);
+            }
+            else
+            {
+                return new Vector2Int(
+                    x: Mathf.RoundToInt(scaleFactor.x * referenceSize.x),
+                    y: Mathf.RoundToInt(scaleFactor.y * referenceSize.y)
+                );
             }
         }
 
@@ -159,7 +200,7 @@ namespace UnityEngine.Rendering
             float residencyFraction = 1.0f,
             FastMemoryFlags flags = FastMemoryFlags.SpillTop,
             bool copyContents = false
-            )
+        )
         {
             residencyFraction = Mathf.Clamp01(residencyFraction);
             cmd.SwitchIntoFastMemory(m_RT, flags, residencyFraction, copyContents);
@@ -174,7 +215,7 @@ namespace UnityEngine.Rendering
         public void CopyToFastMemory(CommandBuffer cmd,
             float residencyFraction = 1.0f,
             FastMemoryFlags flags = FastMemoryFlags.SpillTop
-            )
+        )
         {
             SwitchToFastMemory(cmd, residencyFraction, flags, copyContents: true);
         }
@@ -188,7 +229,7 @@ namespace UnityEngine.Rendering
         {
             cmd.SwitchOutOfFastMemory(m_RT, copyContents);
         }
-#endif
 
+#endif
     }
 }

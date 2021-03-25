@@ -3,13 +3,16 @@
 
 #define MAX_VISIBLE_LIGHTS_UBO  32
 #define MAX_VISIBLE_LIGHTS_SSBO 256
+
+// Keep in sync with RenderingUtils.useStructuredBuffer
 #define USE_STRUCTURED_BUFFER_FOR_LIGHT_DATA 0
 
 #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/ShaderTypes.cs.hlsl"
+#include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Deprecated.hlsl"
 
-#if defined(SHADER_API_MOBILE) && (SHADER_TARGET < 45)
-#define MAX_VISIBLE_LIGHTS 16
-#elif defined(SHADER_API_MOBILE) || (defined(SHADER_API_GLCORE) && !defined(SHADER_API_SWITCH)) || defined(SHADER_API_GLES) || defined(SHADER_API_GLES3) // Workaround for bug on Nintendo Switch where SHADER_API_GLCORE is mistakenly defined
+#if defined(SHADER_API_MOBILE) && (defined(SHADER_API_GLES) || defined(SHADER_API_GLES30))
+    #define MAX_VISIBLE_LIGHTS 16
+#elif defined(SHADER_API_MOBILE) || (defined(SHADER_API_GLCORE) && !defined(SHADER_API_SWITCH)) || defined(SHADER_API_GLES) || defined(SHADER_API_GLES3) // Workaround because SHADER_API_GLCORE is also defined when SHADER_API_SWITCH is
     #define MAX_VISIBLE_LIGHTS 32
 #else
     #define MAX_VISIBLE_LIGHTS 256
@@ -24,6 +27,8 @@ struct InputData
     half    fogCoord;
     half3   vertexLighting;
     half3   bakedGI;
+    float2  normalizedScreenSpaceUV;
+    half4   shadowMask;
 };
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -38,12 +43,11 @@ float4 _ScaledScreenParams;
 
 float4 _MainLightPosition;
 half4 _MainLightColor;
+half4 _MainLightOcclusionProbes;
 
-// Global object render pass data containing various settings.
-// x,y,z are currently unused
-// w is used for knowing whether the object is opaque(1) or alpha blended(0)
-half4 _DrawObjectPassData;
-
+// xyz are currently unused
+// w: directLightStrength
+half4 _AmbientOcclusionParam;
 
 half4 _AdditionalLightsCount;
 
@@ -70,7 +74,7 @@ CBUFFER_END
 #define UNITY_MATRIX_V     unity_MatrixV
 #define UNITY_MATRIX_I_V   unity_MatrixInvV
 #define UNITY_MATRIX_P     OptimizeProjectionMatrix(glstate_matrix_projection)
-#define UNITY_MATRIX_I_P   ERROR_UNITY_MATRIX_I_P_IS_NOT_DEFINED
+#define UNITY_MATRIX_I_P   unity_MatrixInvP
 #define UNITY_MATRIX_VP    unity_MatrixVP
 #define UNITY_MATRIX_I_VP  unity_MatrixInvVP
 #define UNITY_MATRIX_MV    mul(UNITY_MATRIX_V, UNITY_MATRIX_M)

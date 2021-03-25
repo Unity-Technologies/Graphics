@@ -2,7 +2,7 @@
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/ShaderLibrary/ShaderVariables.hlsl"
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/PostProcessing/Shaders/DepthOfFieldCommon.hlsl"
 
-#pragma only_renderers d3d11 playstation xboxone vulkan metal switch
+#pragma only_renderers d3d11 playstation xboxone xboxseries vulkan metal switch
 
 #pragma kernel KMainNear MAIN=KMainNear  NEAR
 #pragma kernel KMainFar  MAIN=KMainFar FAR
@@ -97,13 +97,9 @@ void MAIN(uint3 dispatchThreadId : SV_DispatchThreadID)
     float mip = min(kMaxMips, (1.0 / (SampleCount - 1.5)) * samp0CoC * Radius);
 #endif
 
-    // Avoid bleeding with the RTHandle autosize system
-#if FAR
-        // A bit more generous maxCoord because of trilinear being involved.
-    float texelsToClamp = 2.0f;
-#else
-    float texelsToClamp = 1.0f;
-#endif
+    uint mipCeiled = ceil(mip);
+    float texelsToClamp = (1u << mipCeiled) + 1;
+
     float4 acc = 0.0;
     float nearWeightAcc = 0.0;
     float accAlpha = 0.0;
@@ -124,7 +120,7 @@ void MAIN(uint3 dispatchThreadId : SV_DispatchThreadID)
 
         CTYPE sampColor = SAMPLE_TEXTURE2D_X_LOD(_InputTexture, SamplerTap, sampTap, mip).CTYPE_SWIZZLE;
         float sampCoC = SAMPLE_TEXTURE2D_X_LOD(_InputCoCTexture, SamplerTap, sampTap, mip).x;
-    
+
         #if NEAR
         {
             float weight = saturate(1.0 - (sampCoC - samp0CoC));

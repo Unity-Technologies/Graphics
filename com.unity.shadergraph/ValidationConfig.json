@@ -1,0 +1,9 @@
+{
+	"FileContentKeywordValidation":
+	{
+		"IgnoreFilenames":
+		[
+			"Editor/Generation/Enumerations/Platform.cs"
+		]
+	}
+}
