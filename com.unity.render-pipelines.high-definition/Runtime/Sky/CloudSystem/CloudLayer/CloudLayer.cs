@@ -333,7 +333,7 @@ namespace UnityEngine.Rendering.HighDefinition
         /// </summary>
         static void Init()
         {
-            var asset = HDRenderPipeline.currentAsset;
+            var asset = HDRenderPipelineGlobalSettings.instance;
             if (asset != null)
                 CloudMap.s_DefaultTexture = asset.renderPipelineResources?.textures.defaultCloudMap;
         }

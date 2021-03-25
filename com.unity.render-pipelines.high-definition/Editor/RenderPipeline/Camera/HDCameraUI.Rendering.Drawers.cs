@@ -32,6 +32,10 @@ namespace UnityEditor.Rendering.HighDefinition
                     Drawer_Rendering_ExposureTarget,
                     Drawer_Rendering_RenderingPath,
                     Drawer_Rendering_CameraWarnings
+                    ),
+                CED.Conditional(
+                    (serialized, owner) => !serialized.passThrough.boolValue && serialized.customRenderingSettings.boolValue,
+                    (serialized, owner) => FrameSettingsUI.Inspector().Draw(serialized.frameSettings, owner)
                 )
             );
 
