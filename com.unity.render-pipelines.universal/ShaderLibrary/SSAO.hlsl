@@ -30,7 +30,7 @@ float4 _CameraViewZExtent[2];
 // r = frac(43758.5453 * sin( dot(float2(12.9898, 78.233), uv)) ));
 // Indices  0 to 19 are for u = 0.0
 // Indices 20 to 39 are for u = 1.0
-static half RandomUV[40] =
+static half SSAORandomUV[40] =
 {
     0.00000000,  // 00
     0.33984375,  // 01
@@ -152,9 +152,9 @@ half2 CosSin(half theta)
 }
 
 // Pseudo random number generator with 2D coordinates
-half UVRandom(float u, int sampleIndex)
+half GetRandomUVForSSAO(float u, int sampleIndex)
 {
-    return RandomUV[u * 20 + sampleIndex];
+    return SSAORandomUV[u * 20 + sampleIndex];
 }
 
 float2 GetScreenSpacePosition(float2 uv)
@@ -168,8 +168,8 @@ half3 PickSamplePoint(float2 uv, int sampleIndex)
     const float2 positionSS = GetScreenSpacePosition(uv);
     const half gn = half(InterleavedGradientNoise(positionSS, sampleIndex));
 
-    const half u = frac(UVRandom(half(0.0), sampleIndex) + gn) * half(2.0) - half(1.0);
-    const half theta = (UVRandom(half(1.0), sampleIndex) + gn) * half(TWO_PI);
+    const half u = frac(GetRandomUVForSSAO(half(0.0), sampleIndex) + gn) * half(2.0) - half(1.0);
+    const half theta = (GetRandomUVForSSAO(half(1.0), sampleIndex) + gn) * half(TWO_PI);
 
     return half3(CosSin(theta) * sqrt(half(1.0) - u * u), u);
 }
