@@ -23,7 +23,7 @@ namespace UnityEngine.Rendering.Universal
             }
         }
 
-        [MenuItem("Assets/Create/Rendering/Universal Render Pipeline/Tests/Test 105 Renderer", priority = CoreUtils.assetCreateMenuPriority1)]
+        [MenuItem("Assets/Create/Rendering/Universal Render Pipeline/Tests/Test 105 Renderer", priority = CoreUtils.Priorities.assetsCreateRenderingMenuPriority + CoreUtils.Sections.section8)]
         static void CreateTest105RendererData()
         {
             ProjectWindowUtil.StartNameEditingIfProjectWindowExists(0, CreateInstance<CreateTest105RendererAsset>(), "Test105RendererData.asset", null, null);

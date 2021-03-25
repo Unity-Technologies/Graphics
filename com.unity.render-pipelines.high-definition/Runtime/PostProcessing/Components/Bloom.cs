@@ -25,7 +25,7 @@ namespace UnityEngine.Rendering.HighDefinition
     /// A volume component that holds settings for the Bloom effect.
     /// </summary>
     [Serializable, VolumeComponentMenu("Post-processing/Bloom")]
-    [HelpURL(Documentation.baseURL + Documentation.version + Documentation.subURL + "Post-Processing-Bloom" + Documentation.endURL)]
+    [HDRPHelpURLAttribute("Post-Processing-Bloom")]
     public sealed class Bloom : VolumeComponentWithQuality, IPostProcessComponent
     {
         /// <summary>
