@@ -18,14 +18,8 @@ namespace UnityEngine.Rendering.Universal
 
         [ReadOnly]
         public NativeArray<VisibleLight> lights;
-        public NativeArray<LightMinMaxZ> output;
-
-        public MinMaxZJob(ref RenderingData renderingData)
-        {
-            worldToViewMatrix = renderingData.cameraData.GetViewMatrix();
-            lights = renderingData.lightData.visibleLights;
-            output = new NativeArray<LightMinMaxZ>(renderingData.lightData.visibleLights.Length, Allocator.TempJob);
-        }
+        public NativeArray<LightMinMaxZ> minMaxZs;
+        public NativeArray<float> meanZs;
 
         public void Execute(int index)
         {
@@ -62,7 +56,10 @@ namespace UnityEngine.Rendering.Universal
                 if (a.z < coneHeight * cosAngleA) minMax.maxZ = math.max(originVS.z, endPointVS.z + e * coneRadius);
             }
 
-            output[index] = minMax;
+            minMax.minZ = math.max(minMax.minZ, 0);
+            minMax.maxZ = math.max(minMax.maxZ, 0);
+            minMaxZs[index] = minMax;
+            meanZs[index] = (minMax.minZ + minMax.maxZ) / 2.0f;
         }
     }
 }

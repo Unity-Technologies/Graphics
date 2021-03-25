@@ -1,6 +1,9 @@
 using UnityEngine.Experimental.GlobalIllumination;
 using Unity.Collections;
 using Unity.Jobs;
+using Unity.Jobs.LowLevel.Unsafe;
+using UnityEngine.Assertions;
+using System.Text;
 
 namespace UnityEngine.Rendering.Universal.Internal
 {
@@ -71,10 +74,39 @@ namespace UnityEngine.Rendering.Universal.Internal
 
         public void Setup(ScriptableRenderContext context, ref RenderingData renderingData)
         {
-            var job = new MinMaxZJob(ref renderingData);
-            job.Run(renderingData.lightData.visibleLights.Length);
+            var lightCount = renderingData.lightData.visibleLights.Length;
 
-            job.output.Dispose();
+            var minMaxZs = new NativeArray<LightMinMaxZ>(lightCount, Allocator.TempJob);
+            var meanZs = new NativeArray<float>(lightCount * 2, Allocator.TempJob);
+
+            var minMaxZJob = new MinMaxZJob
+            {
+                worldToViewMatrix = renderingData.cameraData.GetViewMatrix(),
+                lights = renderingData.lightData.visibleLights,
+                minMaxZs = minMaxZs,
+                meanZs = meanZs
+            };
+            var minMaxZHandle = minMaxZJob.ScheduleParallel(lightCount, 32, new JobHandle());
+
+            var indices = new NativeArray<int>(lightCount * 2, Allocator.TempJob);
+            var radixSortJob = new RadixSortJob
+            {
+                // Floats can be sorted bitwise with no special handling if positive floats only
+                keys = meanZs.Reinterpret<uint>(),
+                indices = indices
+            };
+            var zSortHandle = radixSortJob.Schedule(minMaxZHandle);
+
+            zSortHandle.Complete();
+
+            for (var i = 1; i < lightCount; i++)
+            {
+                Assert.IsTrue(meanZs[i] >= meanZs[i - 1]);
+            }
+
+            minMaxZs.Dispose();
+            meanZs.Dispose();
+            indices.Dispose();
 
             int additionalLightsCount = renderingData.lightData.additionalLightsCount;
             bool additionalLightsPerVertex = renderingData.lightData.shadeAdditionalLightsPerVertex;
