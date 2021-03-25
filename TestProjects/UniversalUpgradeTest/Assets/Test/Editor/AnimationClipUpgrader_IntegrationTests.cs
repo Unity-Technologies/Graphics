@@ -513,7 +513,7 @@ namespace UnityEngine.Rendering.Tests
             };
             var clipData = new Dictionary<
                 IAnimationClip,
-                (ClipPath Path, EditorCurveBinding[] Bindings, ClipUsage Usage, IDictionary<string, string> PropertyRenames)
+                (ClipPath Path, EditorCurveBinding[] Bindings, SerializedShaderPropertyUsage Usage, IDictionary<string, string> PropertyRenames)
             >();
 
             AnimationClipUpgrader.GatherClipsUsageInDependentPrefabs(

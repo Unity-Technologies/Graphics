@@ -1,4 +1,3 @@
-using System;
 using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
@@ -6,34 +5,6 @@ using UnityEngine.Rendering;
 
 namespace UnityEditor.Rendering
 {
-    /// <summary>
-    /// Flags describing usage of an <see cref="AnimationClip"/> by its dependent assets.
-    /// </summary>
-    [Flags]
-    public enum ClipUsage : byte
-    {
-        /// <summary>
-        /// Clip's usage is unknown.
-        /// </summary>
-        Unknown = 0,
-        /// <summary>
-        /// Clip contains no animated material properties.
-        /// </summary>
-        NoMaterialAnimation = 1,
-        /// <summary>
-        /// Clip is used by animated objects that have materials which have been upgraded.
-        /// </summary>
-        UsedByUpgraded = 2,
-        /// <summary>
-        /// Clip is used by animated objects that have materials which were not upgraded.
-        /// </summary>
-        UsedByNonUpgraded = 4,
-        /// <summary>
-        /// Clip is used by animated objects that have materials which may have been upgraded, but there is no unambiguous upgrade path.
-        /// </summary>
-        UsedByAmbiguouslyUpgraded = 4 | 2
-    }
-
     /// <summary>
     /// Internal type definitions for <see cref="AnimationClipUpgrader"/>.
     /// </summary>

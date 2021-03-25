@@ -65,14 +65,14 @@ namespace UnityEditor.Rendering
         /// </returns>
         internal static IDictionary<
             IAnimationClip,
-            (ClipPath Path, EditorCurveBinding[] Bindings, ClipUsage Usage, IDictionary<string, string> PropertyRenames)
+            (ClipPath Path, EditorCurveBinding[] Bindings, SerializedShaderPropertyUsage Usage, IDictionary<string, string> PropertyRenames)
         > GetAssetDataForClipsFiltered(
             IEnumerable<ClipPath> clipPaths
         )
         {
             var result = new Dictionary<
                 IAnimationClip,
-                (ClipPath Path, EditorCurveBinding[] Bindings, ClipUsage Usage, IDictionary<string, string> PropertyRenames)
+                (ClipPath Path, EditorCurveBinding[] Bindings, SerializedShaderPropertyUsage Usage, IDictionary<string, string> PropertyRenames)
             >();
             foreach (var clipPath in clipPaths)
             {
@@ -88,7 +88,7 @@ namespace UnityEditor.Rendering
                         continue;
 
                     result[(AnimationClipProxy)clip] =
-                        (clipPath, bindings, ClipUsage.Unknown, new Dictionary<string, string>());
+                        (clipPath, bindings, SerializedShaderPropertyUsage.Unknown, new Dictionary<string, string>());
                 }
             }
 
@@ -171,7 +171,7 @@ namespace UnityEditor.Rendering
             IReadOnlyDictionary<PrefabPath, IReadOnlyCollection<ClipPath>> assetDependencies,
             IDictionary<
                 IAnimationClip,
-                (ClipPath Path, EditorCurveBinding[] Bindings, ClipUsage Usage, IDictionary<string, string> PropertyRenames)
+                (ClipPath Path, EditorCurveBinding[] Bindings, SerializedShaderPropertyUsage Usage, IDictionary<string, string> PropertyRenames)
             > clipData,
             IReadOnlyDictionary<string, IReadOnlyList<MaterialUpgrader>> allUpgradePathsToNewShaders,
             IReadOnlyDictionary<IMaterial, MaterialUpgrader> upgradePathsUsedByMaterials = default
@@ -218,7 +218,7 @@ namespace UnityEditor.Rendering
             IReadOnlyDictionary<ScenePath, IReadOnlyCollection<ClipPath>> assetDependencies,
             IDictionary<
                 IAnimationClip,
-                (ClipPath Path, EditorCurveBinding[] Bindings, ClipUsage Usage, IDictionary<string, string>
+                (ClipPath Path, EditorCurveBinding[] Bindings, SerializedShaderPropertyUsage Usage, IDictionary<string, string>
                 PropertyRenames)
             > clipData,
             IReadOnlyDictionary<string, IReadOnlyList<MaterialUpgrader>> allUpgradePathsToNewShaders,
@@ -253,7 +253,7 @@ namespace UnityEditor.Rendering
             GameObject go,
             IDictionary<
                 IAnimationClip,
-                (ClipPath Path, EditorCurveBinding[] Bindings, ClipUsage Usage, IDictionary<string, string> PropertyRenames)
+                (ClipPath Path, EditorCurveBinding[] Bindings, SerializedShaderPropertyUsage Usage, IDictionary<string, string> PropertyRenames)
             > clipData,
             IReadOnlyDictionary<string, IReadOnlyList<MaterialUpgrader>> allUpgradePathsToNewShaders,
             IReadOnlyDictionary<IMaterial, MaterialUpgrader> upgradePathsUsedByMaterials = default
@@ -332,7 +332,7 @@ namespace UnityEditor.Rendering
             IEnumerable<IAnimationClip> clips,
             IDictionary<
                 IAnimationClip,
-                (ClipPath Path, EditorCurveBinding[] Bindings, ClipUsage Usage, IDictionary<string, string>
+                (ClipPath Path, EditorCurveBinding[] Bindings, SerializedShaderPropertyUsage Usage, IDictionary<string, string>
                 PropertyRenames)
             > clipData,
             IReadOnlyDictionary<string, IReadOnlyList<MaterialUpgrader>> allUpgradePathsToNewShaders,
@@ -392,7 +392,7 @@ namespace UnityEditor.Rendering
             IAnimationClip clip,
             IDictionary<
                 IAnimationClip,
-                (ClipPath Path, EditorCurveBinding[] Bindings, ClipUsage Usage, IDictionary<string, string>
+                (ClipPath Path, EditorCurveBinding[] Bindings, SerializedShaderPropertyUsage Usage, IDictionary<string, string>
                 PropertyRenames)
             > clipData,
             IReadOnlyDictionary<string, (IRenderer Renderer, List<IMaterial> Materials)> renderersByPath,
@@ -429,7 +429,7 @@ namespace UnityEditor.Rendering
                     if (upgradePathsUsedByMaterials != null &&
                         upgradePathsUsedByMaterials.TryGetValue(material, out var upgrader))
                     {
-                        data.Usage |= ClipUsage.UsedByUpgraded;
+                        data.Usage |= SerializedShaderPropertyUsage.UsedByUpgraded;
 
                         var propertyRenameTable = upgrader.GetRename(renameType);
                         propertyRenameTable.TryGetValue(shaderProperty.Name, out newPropertyName);
@@ -444,7 +444,7 @@ namespace UnityEditor.Rendering
                         // if there are none, then assume this material was not upgraded
                         if ((possibleUpgraders?.Count ?? 0) == 0)
                         {
-                            data.Usage |= ClipUsage.UsedByNonUpgraded;
+                            data.Usage |= SerializedShaderPropertyUsage.UsedByNonUpgraded;
                         }
                         // otherwise, see if there are any possible upgrade paths
                         else
@@ -457,14 +457,14 @@ namespace UnityEditor.Rendering
                             // if there are any, assume the material has been upgraded
                             if (possibleUpgraders.Any())
                             {
-                                data.Usage |= ClipUsage.UsedByUpgraded;
+                                data.Usage |= SerializedShaderPropertyUsage.UsedByUpgraded;
 
                                 // if there are many possible upgrade paths to take, mark the upgrade as ambiguous
                                 newPropertyName = possibleUpgraders[0].GetRename(renameType)[shaderProperty.Name];
                                 if (possibleUpgraders.Any(
                                     u => u.GetRename(renameType)[shaderProperty.Name] != newPropertyName
                                 ))
-                                    data.Usage |= ClipUsage.UsedByAmbiguouslyUpgraded;
+                                    data.Usage |= SerializedShaderPropertyUsage.UsedByAmbiguouslyUpgraded;
                             }
                         }
                     }
@@ -486,10 +486,10 @@ namespace UnityEditor.Rendering
         /// <param name="upgraded">Collector for all clips that are upgraded.</param>
         /// <param name="notUpgraded">Collector for all clips that are not upgraded.</param>
         internal static void UpgradeClips(
-            IDictionary<IAnimationClip, (ClipPath Path, EditorCurveBinding[] Bindings, ClipUsage Usage, IDictionary<string, string> PropertyRenames)> clipsToUpgrade,
-            ClipUsage excludeFlags,
-            HashSet<(IAnimationClip Clip, ClipPath Path, ClipUsage Usage)> upgraded,
-            HashSet<(IAnimationClip Clip, ClipPath Path, ClipUsage Usage)> notUpgraded
+            IDictionary<IAnimationClip, (ClipPath Path, EditorCurveBinding[] Bindings, SerializedShaderPropertyUsage Usage, IDictionary<string, string> PropertyRenames)> clipsToUpgrade,
+            SerializedShaderPropertyUsage excludeFlags,
+            HashSet<(IAnimationClip Clip, ClipPath Path, SerializedShaderPropertyUsage Usage)> upgraded,
+            HashSet<(IAnimationClip Clip, ClipPath Path, SerializedShaderPropertyUsage Usage)> notUpgraded
         )
         {
             upgraded.Clear();
@@ -497,7 +497,7 @@ namespace UnityEditor.Rendering
 
             foreach (var kv in clipsToUpgrade)
             {
-                if (kv.Value.Usage == ClipUsage.Unknown || (kv.Value.Usage & excludeFlags) != 0)
+                if (kv.Value.Usage == SerializedShaderPropertyUsage.Unknown || (kv.Value.Usage & excludeFlags) != 0)
                 {
                     notUpgraded.Add((kv.Key, kv.Value.Path, kv.Value.Usage));
                     continue;
@@ -536,7 +536,7 @@ namespace UnityEditor.Rendering
         public static void DoUpgradeAllClipsMenuItem(
             IEnumerable<MaterialUpgrader> allUpgraders,
             IReadOnlyDictionary<IMaterial, MaterialUpgrader> knownUpgradePaths = default,
-            ClipUsage filterFlags = ~ClipUsage.UsedByUpgraded
+            SerializedShaderPropertyUsage filterFlags = ~SerializedShaderPropertyUsage.UsedByUpgraded
         )
         {
             var clipPaths =AssetDatabase.FindAssets("t:AnimationClip")
@@ -569,7 +569,7 @@ namespace UnityEditor.Rendering
         public static void DoUpgradeSelectedClipsMenuItem(
             IEnumerable<MaterialUpgrader> allUpgraders,
             IReadOnlyDictionary<IMaterial, MaterialUpgrader> knownUpgradePaths = default,
-            ClipUsage filterFlags = ~ClipUsage.UsedByUpgraded
+            SerializedShaderPropertyUsage filterFlags = ~SerializedShaderPropertyUsage.UsedByUpgraded
         )
         {
             var clipPaths = Selection.objects
@@ -592,7 +592,7 @@ namespace UnityEditor.Rendering
             ClipPath[] clipPaths,
             IEnumerable<MaterialUpgrader> allUpgraders,
             IReadOnlyDictionary<IMaterial, MaterialUpgrader> upgradePathsUsedByMaterials,
-            ClipUsage filterFlags
+            SerializedShaderPropertyUsage filterFlags
         )
         {
             // display dialog box
@@ -649,8 +649,8 @@ namespace UnityEditor.Rendering
             }
 
             // patch clips that should be upgraded
-            var upgraded = new HashSet<(IAnimationClip Clip, ClipPath Path, ClipUsage Usage)>();
-            var notUpgraded = new HashSet<(IAnimationClip Clip, ClipPath Path, ClipUsage Usage)>();
+            var upgraded = new HashSet<(IAnimationClip Clip, ClipPath Path, SerializedShaderPropertyUsage Usage)>();
+            var notUpgraded = new HashSet<(IAnimationClip Clip, ClipPath Path, SerializedShaderPropertyUsage Usage)>();
 
             AssetDatabase.StartAssetEditing();
             UpgradeClips(clipData, filterFlags, upgraded, notUpgraded);
