@@ -6,6 +6,7 @@ using UnityEditor.Animations;
 using UnityEditor.SceneManagement;
 using UnityEngine;
 using UnityEngine.Rendering;
+using IMaterial = UnityEditor.Rendering.UpgradeUtility.IMaterial;
 
 namespace UnityEditor.Rendering
 {
@@ -392,8 +393,7 @@ namespace UnityEditor.Rendering
             IAnimationClip clip,
             IDictionary<
                 IAnimationClip,
-                (ClipPath Path, EditorCurveBinding[] Bindings, SerializedShaderPropertyUsage Usage, IDictionary<string, string>
-                PropertyRenames)
+                (ClipPath Path, EditorCurveBinding[] Bindings, SerializedShaderPropertyUsage Usage, IDictionary<string, string> PropertyRenames)
             > clipData,
             IReadOnlyDictionary<string, (IRenderer Renderer, List<IMaterial> Materials)> renderersByPath,
             IReadOnlyDictionary<string, IReadOnlyList<MaterialUpgrader>> allUpgradePathsToNewShaders,
@@ -422,53 +422,14 @@ namespace UnityEditor.Rendering
                 // material property animations apply to all materials, so check shader usage in all of them
                 foreach (var material in rendererData.Materials)
                 {
-                    // we want to find out if we should rename the property
-                    var newPropertyName = shaderProperty.Name;
-
-                    // first check if we already know how this material was upgraded
-                    if (upgradePathsUsedByMaterials != null &&
-                        upgradePathsUsedByMaterials.TryGetValue(material, out var upgrader))
-                    {
-                        data.Usage |= SerializedShaderPropertyUsage.UsedByUpgraded;
-
-                        var propertyRenameTable = upgrader.GetRename(renameType);
-                        propertyRenameTable.TryGetValue(shaderProperty.Name, out newPropertyName);
-                    }
-
-                    // otherwise, try to guess whether it might have been upgraded
-                    if (newPropertyName == shaderProperty.Name)
-                    {
-                        // get possible known upgrade paths material might have taken
-                        allUpgradePathsToNewShaders.TryGetValue(material.ShaderName, out var possibleUpgraders);
-
-                        // if there are none, then assume this material was not upgraded
-                        if ((possibleUpgraders?.Count ?? 0) == 0)
-                        {
-                            data.Usage |= SerializedShaderPropertyUsage.UsedByNonUpgraded;
-                        }
-                        // otherwise, see if there are any possible upgrade paths
-                        else
-                        {
-                            // narrow possible upgraders to those which specify a rename for the bound property
-                            possibleUpgraders = possibleUpgraders.Where(
-                                u => u.GetRename(renameType).ContainsKey(shaderProperty.Name)
-                            ).ToList();
-
-                            // if there are any, assume the material has been upgraded
-                            if (possibleUpgraders.Any())
-                            {
-                                data.Usage |= SerializedShaderPropertyUsage.UsedByUpgraded;
-
-                                // if there are many possible upgrade paths to take, mark the upgrade as ambiguous
-                                newPropertyName = possibleUpgraders[0].GetRename(renameType)[shaderProperty.Name];
-                                if (possibleUpgraders.Any(
-                                    u => u.GetRename(renameType)[shaderProperty.Name] != newPropertyName
-                                ))
-                                    data.Usage |= SerializedShaderPropertyUsage.UsedByAmbiguouslyUpgraded;
-                            }
-                        }
-                    }
-
+                    data.Usage |= UpgradeUtility.GetNewPropertyName(
+                        shaderProperty.Name,
+                        material,
+                        renameType,
+                        allUpgradePathsToNewShaders,
+                        upgradePathsUsedByMaterials,
+                        out var newPropertyName
+                    );
                     data.PropertyRenames[shaderProperty.Name] = newPropertyName;
                 }
             }

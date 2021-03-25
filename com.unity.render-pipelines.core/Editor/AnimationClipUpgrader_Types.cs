@@ -2,6 +2,8 @@ using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
 using UnityEngine.Rendering;
+using IMaterial = UnityEditor.Rendering.UpgradeUtility.IMaterial;
+using MaterialProxy = UnityEditor.Rendering.UpgradeUtility.MaterialProxy;
 
 namespace UnityEditor.Rendering
 {
@@ -37,20 +39,6 @@ namespace UnityEditor.Rendering
             public static implicit operator AnimationClip(AnimationClipProxy proxy) => proxy.Clip;
             public static implicit operator AnimationClipProxy(AnimationClip clip) => new AnimationClipProxy { Clip = clip };
             public override string ToString() => Clip.ToString();
-        }
-
-        internal interface IMaterial
-        {
-            string ShaderName{ get; }
-        }
-
-        internal struct MaterialProxy : IMaterial
-        {
-            Material m_Material;
-            public string ShaderName => m_Material.shader.name;
-            public static implicit operator Material(MaterialProxy proxy) => proxy.m_Material;
-            public static implicit operator MaterialProxy(Material material) => new MaterialProxy { m_Material = material };
-            public override string ToString() => m_Material.ToString();
         }
 
         internal interface IRenderer

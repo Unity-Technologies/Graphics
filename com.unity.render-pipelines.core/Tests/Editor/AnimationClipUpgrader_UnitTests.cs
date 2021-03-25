@@ -8,13 +8,14 @@ using UnityEngine.Rendering;
 using UnityObject = UnityEngine.Object;
 using AnimationClipProxy = UnityEditor.Rendering.AnimationClipUpgrader.AnimationClipProxy;
 using IAnimationClip = UnityEditor.Rendering.AnimationClipUpgrader.IAnimationClip;
-using IMaterial = UnityEditor.Rendering.AnimationClipUpgrader.IMaterial;
+using IMaterial = UnityEditor.Rendering.UpgradeUtility.IMaterial;
 using IRenderer = UnityEditor.Rendering.AnimationClipUpgrader.IRenderer;
 using ClipPath = UnityEditor.Rendering.AnimationClipUpgrader.ClipPath;
 using PrefabPath = UnityEditor.Rendering.AnimationClipUpgrader.PrefabPath;
 using ScenePath = UnityEditor.Rendering.AnimationClipUpgrader.ScenePath;
 using RenameType = UnityEditor.Rendering.MaterialUpgrader.RenameType;
 using static UnityEditor.Rendering.Tests.AnimationClipUpgraderTestUtility;
+using static UnityEditor.Rendering.Tests.UpgraderTestUtility;
 
 namespace UnityEditor.Rendering.Tests
 {
@@ -23,49 +24,6 @@ namespace UnityEditor.Rendering.Tests
     /// </summary>
     static class AnimationClipUpgraderTestUtility
     {
-        internal static Dictionary<string, IReadOnlyList<MaterialUpgrader>> CreateUpgradePathsToNewShaders(
-            (string OldShader, string NewShader, (string From, string To, int Type)[] Renames)[] materialUpgraderParams
-        )
-        {
-            var result = new Dictionary<string, List<MaterialUpgrader>>();
-            foreach (var upgrader in CreateMaterialUpgraders(materialUpgraderParams))
-            {
-                if (!result.TryGetValue(upgrader.NewShader, out var upgraders))
-                    upgraders = result[upgrader.NewShader] = new List<MaterialUpgrader>();
-                upgraders.Add(upgrader);
-            }
-            return result.ToDictionary(kv => kv.Key, kv => kv.Value as IReadOnlyList<MaterialUpgrader>);
-        }
-
-        internal static IReadOnlyList<MaterialUpgrader> CreateMaterialUpgraders(
-            params (string OldShader, string NewShader, (string From, string To, int Type)[] Renames)[] materialUpgraderParams
-        )
-        {
-            var result = new List<MaterialUpgrader>(materialUpgraderParams.Length);
-
-            foreach (var muParams in materialUpgraderParams)
-            {
-                var materialUpgrader = new MaterialUpgrader();
-                materialUpgrader.RenameShader(muParams.OldShader, muParams.NewShader);
-                foreach (var rename in muParams.Renames)
-                {
-                    switch ((RenameType)rename.Type)
-                    {
-                        case RenameType.Color:
-                            materialUpgrader.RenameColor(rename.From, rename.To);
-                            break;
-                        case RenameType.Float:
-                            materialUpgrader.RenameFloat(rename.From, rename.To);
-                            break;
-                    }
-                }
-
-                result.Add(materialUpgrader);
-            }
-
-            return result;
-        }
-
         internal static List<IMaterial> CreateMockMaterials(IEnumerable<string> shaderNames)
         {
             var result = new List<IMaterial>();
