@@ -166,8 +166,11 @@ namespace UnityEngine.Experimental.Rendering.Universal
                         cameraTargetDescriptor.height = ppc.offscreenRTSize.y;
                     }
 
+                    renderingData.cameraData.camera.orthographic = true;
+                    renderingData.cameraData.camera.orthographicSize = ppc.orthographicSize;
+
                     colorTextureFilterMode = ppc.finalBlitFilterMode;
-                    ppcUpscaleRT = ppc.gridSnapping == PixelPerfectCamera.GridSnapping.UpscaleRenderTexture && ppc.isRunning;
+                    ppcUpscaleRT = ppc.gridSnapping == PixelPerfectCamera.GridSnapping.UpscaleRenderTexture;
                 }
             }
 
@@ -226,7 +229,7 @@ namespace UnityEngine.Experimental.Rendering.Universal
                 colorTargetHandle = postProcessDestHandle;
             }
 
-            if (ppc != null && ppc.isRunning && (ppc.cropFrame == PixelPerfectCamera.CropFrame.Letterbox|| ppc.cropFrame == PixelPerfectCamera.CropFrame.Pillarbox))
+            if (ppc != null && (ppc.cropFrame == PixelPerfectCamera.CropFrame.Letterbox|| ppc.cropFrame == PixelPerfectCamera.CropFrame.Pillarbox))
                 EnqueuePass(m_PixelPerfectBackgroundPass);
 
             if (requireFinalPostProcessPass && m_PostProcessPasses.isCreated)

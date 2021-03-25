@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using UnityEngine;
 using UnityEngine.Rendering;
 using UnityEngine.Scripting.APIUpdating;
 
@@ -7,6 +8,7 @@ namespace UnityEngine.Experimental.Rendering.Universal
     /// <summary>
     /// The Pixel Perfect Camera component ensures your pixel art remains crisp and clear at different resolutions, and stable in motion.
     /// </summary>
+    [ExecuteInEditMode]
     [DisallowMultipleComponent]
     [AddComponentMenu("Rendering/2D/Pixel Perfect Camera (Experimental)")]
     [RequireComponent(typeof(Camera))]
@@ -249,26 +251,11 @@ namespace UnityEngine.Experimental.Rendering.Universal
         PixelPerfectCameraInternal m_Internal;
         bool m_CinemachineCompatibilityMode;
 
-        internal bool isRunning
-        {
-            get
-            {
-#if UNITY_EDITOR
-                return (Application.isPlaying || runInEditMode) && enabled;
-#else
-                return enabled;
-#endif
-            }
-        }
-
         internal FilterMode finalBlitFilterMode
         {
             get
             {
-                if (!isRunning)
-                    return FilterMode.Bilinear;
-                else
-                    return m_Internal.useStretchFill ? FilterMode.Bilinear : FilterMode.Point;
+                return m_Internal.useStretchFill ? FilterMode.Bilinear : FilterMode.Point;
             }
         }
 
@@ -276,10 +263,7 @@ namespace UnityEngine.Experimental.Rendering.Universal
         {
             get
             {
-                if (!isRunning)
-                    return Vector2Int.zero;
-                else
-                    return new Vector2Int(m_Internal.offscreenRTWidth, m_Internal.offscreenRTHeight);
+                return new Vector2Int(m_Internal.offscreenRTWidth, m_Internal.offscreenRTHeight);
             }
         }
 
@@ -309,7 +293,6 @@ namespace UnityEngine.Experimental.Rendering.Universal
             m_Camera = GetComponent<Camera>();
             m_Internal = new PixelPerfectCameraInternal(this);
 
-            m_Internal.originalOrthoSize = m_Camera.orthographicSize;
 
             // Case 1249076: Initialize internals immediately after the scene is loaded,
             // as the Cinemachine extension may need them before OnBeginContextRendering is called.
@@ -328,15 +311,6 @@ namespace UnityEngine.Experimental.Rendering.Universal
                 m_Camera.pixelRect = m_Internal.CalculateFinalBlitPixelRect(rtSize.x, rtSize.y);
             else
                 m_Camera.rect = new Rect(0.0f, 0.0f, 1.0f, 1.0f);
-
-            // In Cinemachine compatibility mode the control over orthographic size should
-            // be given to the virtual cameras, whose orthographic sizes will be corrected to
-            // be pixel-perfect. This way when there's blending between virtual cameras, we
-            // can have temporary not-pixel-perfect but smooth transitions.
-            if (!m_CinemachineCompatibilityMode)
-            {
-                m_Camera.orthographicSize = m_Internal.orthoSize;
-            }
         }
 
         void OnBeginCameraRendering(ScriptableRenderContext context, Camera camera)
@@ -358,11 +332,6 @@ namespace UnityEngine.Experimental.Rendering.Universal
             RenderPipelineManager.beginContextRendering += OnBeginContextRendering;
             RenderPipelineManager.beginCameraRendering += OnBeginCameraRendering;
             RenderPipelineManager.endCameraRendering += OnEndCameraRendering;
-
-#if UNITY_EDITOR
-            if (!UnityEditor.EditorApplication.isPlaying)
-                UnityEditor.EditorApplication.playModeStateChanged += OnPlayModeChanged;
-#endif
         }
 
         internal void OnDisable()
@@ -372,24 +341,13 @@ namespace UnityEngine.Experimental.Rendering.Universal
             RenderPipelineManager.endCameraRendering -= OnEndCameraRendering;
 
             m_Camera.rect = new Rect(0.0f, 0.0f, 1.0f, 1.0f);
-            m_Camera.orthographicSize = m_Internal.originalOrthoSize;
             m_Camera.ResetWorldToCameraMatrix();
-
-#if UNITY_EDITOR
-            if (!UnityEditor.EditorApplication.isPlaying)
-                UnityEditor.EditorApplication.playModeStateChanged -= OnPlayModeChanged;
-#endif
         }
 
 #if DEVELOPMENT_BUILD || UNITY_EDITOR
         // Show on-screen warning about invalid render resolutions.
         void OnGUI()
         {
-#if UNITY_EDITOR
-            if (!UnityEditor.EditorApplication.isPlaying && !runInEditMode)
-                return;
-#endif
-
             Color oldColor = GUI.color;
             GUI.color = Color.red;
 
@@ -416,18 +374,6 @@ namespace UnityEngine.Experimental.Rendering.Universal
 
 #endif
 
-#if UNITY_EDITOR
-        void OnPlayModeChanged(UnityEditor.PlayModeStateChange state)
-        {
-            // Stop running in edit mode when entering play mode.
-            if (state == UnityEditor.PlayModeStateChange.ExitingEditMode)
-            {
-                runInEditMode = false;
-                OnDisable();
-            }
-        }
-
-#endif
 
         public void OnBeforeSerialize()
         {
