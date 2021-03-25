@@ -34,6 +34,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Added the support of interpolators for SV_POSITION in shader graph.
 - Added a "Conservative" mode for shader graph depth offset.
 - Added an error message when trying to use disk lights with realtime GI (case 1317808).
+- Added support for multi volumetric cloud shadows.
 
 ### Fixed
 - Fixed Intensity Multiplier not affecting realtime global illumination.
