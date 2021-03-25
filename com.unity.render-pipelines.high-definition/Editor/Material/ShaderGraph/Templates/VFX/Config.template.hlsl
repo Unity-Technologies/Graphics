@@ -176,7 +176,9 @@ float3 TransformWorldToElementDir(float4x4 worldToElement, float3 direction)
 bool GetInterpolatorAndElementData(inout VaryingsMeshType output, inout AttributesElement element)
 {
     GetElementData(element);
-    const Attributes attributes = element.attributes;
+
+    // Note: Cannot be const due to some VFX generated function require l-value (out / inout).
+    Attributes attributes = element.attributes;
 
     #if !HAS_STRIPS
     if (!attributes.alive)
