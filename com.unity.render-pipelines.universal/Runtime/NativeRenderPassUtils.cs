@@ -101,10 +101,19 @@ namespace UnityEngine.Rendering.Universal
                 for (int i = 0; i < pass.attachmentIndices.Length; ++i)
                     pass.attachmentIndices[i] = -1;
 
-                AttachmentDescriptor currentAttachmentDescriptor = new AttachmentDescriptor(cameraData.cameraTargetDescriptor.graphicsFormat);
+                AttachmentDescriptor currentAttachmentDescriptor;
+                var usesTargetTexture = cameraData.targetTexture != null;
+                var depthOnly = renderPass.depthOnly || (usesTargetTexture &&
+                                                         cameraData.targetTexture.graphicsFormat == GraphicsFormat.DepthAuto);
+                // Offscreen depth-only cameras need this set explicitly
+                if (depthOnly && usesTargetTexture)
+                {
+                    passColorAttachment = new RenderTargetIdentifier(cameraData.targetTexture);
+                    currentAttachmentDescriptor = new AttachmentDescriptor(GraphicsFormat.DepthAuto);
+                }
+                else
+                    currentAttachmentDescriptor = new AttachmentDescriptor(cameraData.cameraTargetDescriptor.graphicsFormat);
 
-                //if (!pass.overrideCameraTarget)
-                //  m_ActiveColorAttachmentDescriptors[0] = new AttachmentDescriptor(cameraData.cameraTargetDescriptor.graphicsFormat);
                 if (pass.overrideCameraTarget)
                 {
                     GraphicsFormat hdrFormat = GraphicsFormat.None;
@@ -125,16 +134,14 @@ namespace UnityEngine.Rendering.Universal
                 bool isLastPass = pass.isLastPass;
                 var samples = pass.renderTargetSampleCount != -1 ? pass.renderTargetSampleCount : cameraData.cameraTargetDescriptor.msaaSamples;
 
-                var colorAttachmentTarget = (pass.depthOnly || passColorAttachment != BuiltinRenderTextureType.CameraTarget)
+                var colorAttachmentTarget = (depthOnly || passColorAttachment != BuiltinRenderTextureType.CameraTarget)
                     ? passColorAttachment
-                    : (cameraData.targetTexture != null
-                        ? new RenderTargetIdentifier(cameraData.targetTexture.colorBuffer)
+                    : (usesTargetTexture ? new RenderTargetIdentifier(cameraData.targetTexture.colorBuffer)
                         : BuiltinRenderTextureType.CameraTarget);
 
                 var depthAttachmentTarget = (passDepthAttachment != BuiltinRenderTextureType.CameraTarget)
                     ? passDepthAttachment
-                    : (cameraData.targetTexture != null
-                        ? new RenderTargetIdentifier(cameraData.targetTexture.depthBuffer)
+                    : (usesTargetTexture ? new RenderTargetIdentifier(cameraData.targetTexture.depthBuffer)
                         : BuiltinRenderTextureType.Depth);
 
                 // TODO: review the lastPassToBB logic to mak it work with merged passes
@@ -150,7 +157,7 @@ namespace UnityEngine.Rendering.Universal
                 if (finalClearFlag != ClearFlag.None)
                 {
                     // We don't clear color for Overlay render targets, however pipeline set's up depth only render passes as color attachments which we do need to clear
-                    if ((cameraData.renderType != CameraRenderType.Overlay || pass.depthOnly && ((uint)finalClearFlag & (uint)ClearFlag.Color) != 0))
+                    if ((cameraData.renderType != CameraRenderType.Overlay || depthOnly && ((uint)finalClearFlag & (uint)ClearFlag.Color) != 0))
                         currentAttachmentDescriptor.ConfigureClear(finalClearColor, 1.0f, 0);
                     if (((uint)finalClearFlag & (uint)ClearFlag.Depth) != 0)
                         activeDepthAttachmentDescriptor.ConfigureClear(Color.black, 1.0f, 0);
@@ -212,14 +219,15 @@ namespace UnityEngine.Rendering.Universal
             // keep track if this is the current camera's last pass and the RT is the backbuffer (BuiltinRenderTextureType.CameraTarget)
             bool isLastPassToBB = isLastPass && (activeColorAttachmentDescriptors[0].loadStoreTarget == BuiltinRenderTextureType.CameraTarget);
             bool useDepth = activeDepthAttachment == RenderTargetHandle.CameraTarget.Identifier() && (!(isLastPassToBB || (isLastPass && cameraData.camera.targetTexture != null)));
+            var depthOnly = renderPass.depthOnly || (cameraData.targetTexture != null && cameraData.targetTexture.graphicsFormat == GraphicsFormat.DepthAuto);
 
             var attachments =
-                new NativeArray<AttachmentDescriptor>(useDepth && !renderPass.depthOnly ? validColorBuffersCount + 1 : 1, Allocator.Temp);
+                new NativeArray<AttachmentDescriptor>(useDepth && !depthOnly ? validColorBuffersCount + 1 : 1, Allocator.Temp);
 
             for (int i = 0; i < validColorBuffersCount; ++i)
                 attachments[i] = activeColorAttachmentDescriptors[i];
 
-            if (useDepth && !renderPass.depthOnly)
+            if (useDepth && !depthOnly)
                 attachments[validColorBuffersCount] = activeDepthAttachmentDescriptor;
 
             var desc = renderingData.cameraData.cameraTargetDescriptor;
@@ -236,8 +244,8 @@ namespace UnityEngine.Rendering.Universal
 
             var attachmentIndicesCount = RenderingUtils.GetSubPassAttachmentIndicesCount(renderPass);
 
-            var attachmentIndices = new NativeArray<int>(!renderPass.depthOnly ? (int)attachmentIndicesCount : 0, Allocator.Temp);
-            if (!renderPass.depthOnly)
+            var attachmentIndices = new NativeArray<int>(!depthOnly ? (int)attachmentIndicesCount : 0, Allocator.Temp);
+            if (!depthOnly)
             {
                 for (int i = 0; i < attachmentIndicesCount; ++i)
                 {
@@ -248,7 +256,7 @@ namespace UnityEngine.Rendering.Universal
             if (validPassCount == 1 || isFirstMergeablePass)
             {
                 context.BeginRenderPass(width, height, Math.Max(sampleCount, 1), attachments,
-                    useDepth ? (!renderPass.depthOnly ? validColorBuffersCount : 0) : -1);
+                    useDepth ? (!depthOnly ? validColorBuffersCount : 0) : -1);
                 attachments.Dispose();
 
                 context.BeginSubPass(attachmentIndices);
