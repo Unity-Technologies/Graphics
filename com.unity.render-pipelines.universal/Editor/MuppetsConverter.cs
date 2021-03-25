@@ -11,22 +11,21 @@ public sealed class MuppetsConverter : RenderPipelineConverter
     public override string category { get; }
     public override Type conversion => typeof(BuiltInToURPConversion);
 
-    List<string> m_AssetsToConvert = new List<string>();
+    //List<string> m_AssetsToConvert = new List<string>();
 
     public override void OnInitialize(InitializeConverterContext ctx)
     {
         for (int i = 0; i < 10; i++)
         {
-            ConverterItemInfo info = new ConverterItemInfo()
+            ConverterItemDescriptor info = new ConverterItemDescriptor()
             {
                 name = "Muppet : " + i,
                 path = "Somewhere/On/My/Disk..." + i,
                 initialInfo = "",
                 helpLink = "?? yupp",
-                id = i
             };
             ctx.AddAssetToConvert(info);
-            m_AssetsToConvert.Add(info.path);
+            //m_AssetsToConvert.Add(info.path);
         }
     }
 
@@ -34,7 +33,16 @@ public sealed class MuppetsConverter : RenderPipelineConverter
     {
         foreach (var item in ctx.items)
         {
-            var path = m_AssetsToConvert[item.id];
+            //var path = m_AssetsToConvert[item.id];
+            // if failed.
+            if (item.index == 2)
+                ctx.MarkFailed(item.index);
+            else if (item.descriptor.name == "Muppet : 5")
+                ctx.MarkFailed(item.index, "Super Serious Awesomeness");
+            else
+            {
+                ctx.MarkSuccessful(item.index);
+            }
         }
     }
 }

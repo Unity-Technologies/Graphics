@@ -3,9 +3,9 @@
     <ui:VisualElement style="height: 25px; width: 1012px;">
         <ui:Label text="Render Pipeline Converter" style="-unity-font-style: bold; font-size: 16px;" />
     </ui:VisualElement>
-    <ui:TextElement text="The Render Pipeline Conversion Wizard is meant to help Convert projects from built-in to Universal Render Pipeline." style="height: 46px; width: 1038px;" />
+    <ui:TextElement text="The RP Conversion Wizard is meant to help Convert projects from built-in to Universal Render Pipeline." name="conversionText" style="height: 46px; width: 1038px;" />
     <ui:VisualElement style="flex-direction: row;">
-        <ui:DropdownField index="-1" style="height: 27px; width: 208px;" />
+        <ui:DropdownField index="-1" name="conversionDropDown" style="height: 27px; width: 208px;" />
         <ui:VisualElement style="flex-grow: 1;" />
     </ui:VisualElement>
     <ui:ScrollView scroll-deceleration-rate="0,135" elasticity="0,1" name="convertersScrollView" style="flex-grow: 1;" />

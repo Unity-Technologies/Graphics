@@ -6,10 +6,14 @@ using UnityEditor.Rendering;
 using UnityEditor.UIElements;
 using UnityEngine.UIElements;
 
+
 [Serializable]
 class ConverterItemState
 {
     public bool isActive;
+
+    // Maybe add the conversion info here
+    public string info;
 }
 
 // Each converter uses the active bool
@@ -18,38 +22,78 @@ class ConverterItemState
 [Serializable]
 class ConverterState
 {
+    // This is the enabled state of the whole converter
+    public bool isEnabled;
     public bool isActive;
     public bool isInitialized;
     public List<ConverterItemState> items;
+    // This will state if there is a warning or not from the init phase.
+    // This is here so
+    public bool hasWarnings;
+
+    public int pending;
+    public int warnings;
+    public int errors;
+    public int success;
 }
 
 [Serializable]
 public class RenderPipelineConvertersEditor : EditorWindow
 {
+    Texture2D kImgWarn;
+    Texture2D kImgHelp;
+    Texture2D kImgFail;
+    Texture2D kImgSuccess;
+    Texture2D kImgPending;
+
     public VisualTreeAsset converterEditorAsset;
     public VisualTreeAsset converterListAsset;
     public VisualTreeAsset converterItem;
 
     ScrollView m_ScrollView;
+    DropdownField m_ConversionsDropdownField;
+
     List<RenderPipelineConverter> m_CoreConvertersList = new List<RenderPipelineConverter>();
     // This list needs to be as long as the amount of converters
-    List<List<ConverterItemInfo>> m_ItemsToConvert = new List<List<ConverterItemInfo>>();
+    List<List<ConverterItemDescriptor>> m_ItemsToConvert = new List<List<ConverterItemDescriptor>>();
     SerializedObject m_SerializedObject;
 
+    List<string> conversionsChoices = new List<string>();
     // This is a list of Converter States which holds a list of which converter items/assets are active
     // There is one for each Converter.
     [SerializeField]
     List<ConverterState> m_ConverterStates = new List<ConverterState>();
 
+
+    TypeCache.TypeCollection conversions;
+
+#if RENDER_PIPELINE_CONVERTER
     [MenuItem("RenderPipelineConverter/RenderPipelineConverter")]
+#endif
     public static void ShowWindow()
     {
         RenderPipelineConvertersEditor wnd = GetWindow<RenderPipelineConvertersEditor>();
         wnd.titleContent = new GUIContent("Render Pipeline Converters");
     }
 
+    //d__Help.png
     void OnEnable()
     {
+        kImgWarn = EditorGUIUtility.FindTexture("console.warnicon");
+        kImgHelp = EditorGUIUtility.FindTexture("_Help");
+        kImgFail = EditorGUIUtility.FindTexture("console.erroricon");
+        kImgSuccess = EditorGUIUtility.FindTexture("TestPassed");
+        kImgPending = EditorGUIUtility.FindTexture("Toolbar Minus");
+
+        conversions = TypeCache.GetTypesDerivedFrom<RenderPipelineConversion>();
+        for (int j = 0; j < conversions.Count; j++)
+        {
+            // Iterate over the converters
+            RenderPipelineConversion conversion = (RenderPipelineConversion)Activator.CreateInstance(conversions[j]);
+            conversionsChoices.Add(conversion.name);
+        }
+
+
         var converters = TypeCache.GetTypesDerivedFrom<RenderPipelineConverter>();
         for (int i = 0; i < converters.Count; ++i)
         {
@@ -60,15 +104,17 @@ public class RenderPipelineConvertersEditor : EditorWindow
             // Create a new ConvertState which holds the active state of the converter
             var converterState = new ConverterState
             {
+                isEnabled = conv.enabled(),
                 isActive = true,
                 isInitialized = false,
-                items = null
+                items = null,
+                hasWarnings = false
             };
             m_ConverterStates.Add(converterState);
 
             // This just creates empty entries in the m_ItemsToConvert.
             // This list need to have the same amount of entries as the converters
-            List<ConverterItemInfo> converterItemInfos = new List<ConverterItemInfo>();
+            List<ConverterItemDescriptor> converterItemInfos = new List<ConverterItemDescriptor>();
             m_ItemsToConvert.Add(converterItemInfos);
         }
     }
@@ -77,6 +123,11 @@ public class RenderPipelineConvertersEditor : EditorWindow
     {
         m_SerializedObject = new SerializedObject(this);
         converterEditorAsset.CloneTree(rootVisualElement);
+
+        // Adding the different conversions
+        // Right now the .choices attribute is internal so we can not add it. This will be public in the future.
+        m_ConversionsDropdownField = rootVisualElement.Q<DropdownField>("conversionDropDown");
+        //m_ConversionsDropdownField.choices = conversionsChoices;
 
         // Getting the scrollview where the converters should be added
         m_ScrollView = rootVisualElement.Q<ScrollView>("convertersScrollView");
@@ -88,11 +139,32 @@ public class RenderPipelineConvertersEditor : EditorWindow
             VisualElement item = new VisualElement();
             converterListAsset.CloneTree(item);
             var conv = m_CoreConvertersList[i];
+            item.SetEnabled(conv.enabled());
             item.Q<Label>("converterName").text = conv.name;
+            item.Q<Label>("converterInfo").text = conv.info;
             item.Q<VisualElement>("converterTopVisualElement").tooltip = conv.info;
+
+            // setup the images
+            item.Q<Image>("pendingImage").image = kImgPending;
+            item.Q<Image>("pendingImage").tooltip = "Pending";
+            var pendingLabel = item.Q<Label>("pendingLabel");
+            item.Q<Image>("warningImage").image = kImgWarn;
+            item.Q<Image>("warningImage").tooltip = "Warnings";
+            var warningLabel = item.Q<Label>("warningLabel");
+            item.Q<Image>("errorImage").image = kImgFail;
+            item.Q<Image>("errorImage").tooltip = "Failed";
+            var errorLabel = item.Q<Label>("errorLabel");
+            item.Q<Image>("successImage").image = kImgSuccess;
+            item.Q<Image>("successImage").tooltip = "Success";
+            var successLabel = item.Q<Label>("successLabel");
 
             var converterEnabledToggle = item.Q<Toggle>("converterEnabled");
             converterEnabledToggle.bindingPath = $"{nameof(m_ConverterStates)}.Array.data[{i}].{nameof(ConverterState.isActive)}";
+
+            pendingLabel.bindingPath = $"{nameof(m_ConverterStates)}.Array.data[{i}].{nameof(ConverterState.pending)}";
+            warningLabel.bindingPath = $"{nameof(m_ConverterStates)}.Array.data[{i}].{nameof(ConverterState.warnings)}";
+            errorLabel.bindingPath = $"{nameof(m_ConverterStates)}.Array.data[{i}].{nameof(ConverterState.errors)}";
+            successLabel.bindingPath = $"{nameof(m_ConverterStates)}.Array.data[{i}].{nameof(ConverterState.success)}";
 
             m_ScrollView.Add(item);
         }
@@ -108,36 +180,45 @@ public class RenderPipelineConvertersEditor : EditorWindow
     {
         for (int i = 0; i < m_ConverterStates.Count; ++i)
         {
-            // Checking if this converter should get the data
-            if (m_ConverterStates[i].isActive && !m_ConverterStates[i].isInitialized)
+            // Checking if this converter is enabled or not
+            if (m_ConverterStates[i].isEnabled)
             {
-                // This need to be in Init method
-                // Need to get the assets that this converter is converting.
-                // Need to return Name, Path, Initial info, Help link.
-                // New empty list of ConverterItemInfos
-                List<ConverterItemInfo> converterItemInfos = new List<ConverterItemInfo>();
-                var initCtx = new InitializeConverterContext { m_Items = converterItemInfos };
-
-                var conv = m_CoreConvertersList[i];
-                // This should also go to the init method
-                // This will fill out the converter item infos list
-                conv.OnInitialize(initCtx);
-
-                // Set the item infos list to to the right index
-                m_ItemsToConvert[i] = converterItemInfos;
-                m_ConverterStates[i].items = new List<ConverterItemState>(converterItemInfos.Count);
-
-                // Default all the entries to true
-                for (var j = 0; j < converterItemInfos.Count; j++)
+                // Checking if this converter should get the data
+                if (m_ConverterStates[i].isActive && !m_ConverterStates[i].isInitialized)
                 {
-                    m_ConverterStates[i].items.Add(new ConverterItemState
-                    {
-                        isActive = true
-                    });
-                }
+                    // This need to be in Init method
+                    // Need to get the assets that this converter is converting.
+                    // Need to return Name, Path, Initial info, Help link.
+                    // New empty list of ConverterItemInfos
+                    List<ConverterItemDescriptor> converterItemInfos = new List<ConverterItemDescriptor>();
+                    var initCtx = new InitializeConverterContext { m_Items = converterItemInfos };
 
-                // Add this converterState to the list of converterStates.
-                m_ConverterStates[i].isInitialized = true;
+                    var conv = m_CoreConvertersList[i];
+
+                    // This should also go to the init method
+                    // This will fill out the converter item infos list
+                    conv.OnInitialize(initCtx);
+
+                    // Set the item infos list to to the right index
+                    m_ItemsToConvert[i] = converterItemInfos;
+                    m_ConverterStates[i].items = new List<ConverterItemState>(converterItemInfos.Count);
+
+                    // Default all the entries to true
+                    for (var j = 0; j < converterItemInfos.Count; j++)
+                    {
+                        m_ConverterStates[i].items.Add(new ConverterItemState
+                        {
+                            isActive = true,
+                            info = ""
+                        });
+                    }
+
+                    // Add this converterState to the list of converterStates.
+                    m_ConverterStates[i].isInitialized = true;
+
+                    // Making sure that the pending amount is set to the amount of items needs converting
+                    m_ConverterStates[i].pending = m_ConverterStates[i].items.Count;
+                }
             }
         }
 
@@ -156,7 +237,6 @@ public class RenderPipelineConvertersEditor : EditorWindow
             VisualElement child = m_ScrollView[i];
             if (m_ConverterStates[i].isActive)
             {
-                // This should be in the INIT
                 // Get the ListView for the converter items
                 ListView listView = child.Q<ListView>("converterItems");
 
@@ -178,23 +258,32 @@ public class RenderPipelineConvertersEditor : EditorWindow
                     var bindable = (BindableElement)element;
                     bindable.BindProperty(property);
 
-                    ConverterItemInfo convItem = converterItemInfos[index];
+                    ConverterItemDescriptor convItemDesc = converterItemInfos[index];
 
-                    element.Q<Label>("converterItemName").text = convItem.name;
-                    element.Q<Label>("converterItemPath").text = convItem.path;
+                    element.Q<Label>("converterItemName").text = convItemDesc.name;
+                    element.Q<Label>("converterItemPath").text = convItemDesc.path;
 
-                    var imgHelp = EditorGUIUtility.FindTexture("_Help");
-                    element.Q<Image>("converterItemHelpIcon").image = imgHelp;
-                    element.Q<Image>("converterItemHelpIcon").tooltip = convItem.helpLink;
+                    element.Q<Image>("converterItemHelpIcon").image = kImgHelp;
+                    element.Q<Image>("converterItemHelpIcon").tooltip = convItemDesc.helpLink;
+
 
                     // Changing the icon here depending on the info.
                     // If there is some info here we show the "warning icon"
                     // If the string is empty we show the pending conversion icon.
-                    if (!String.IsNullOrEmpty(convItem.initialInfo))
+                    if (!String.IsNullOrEmpty(convItemDesc.initialInfo))
                     {
-                        var imgWarn = EditorGUIUtility.FindTexture("_Help");
-                        element.Q<Image>("converterItemStatusIcon").image = imgWarn;
-                        element.Q<Image>("converterItemStatusIcon").tooltip = convItem.initialInfo;
+                        element.Q<Image>("converterItemStatusIcon").image = kImgWarn;
+                        element.Q<Image>("converterItemStatusIcon").tooltip = convItemDesc.initialInfo;
+                    }
+                    else if (element.Q<Label>("converterItemInfo").text != "")
+                    {
+                        element.Q<Image>("converterItemStatusIcon").image = kImgFail;
+                        element.Q<Image>("converterItemStatusIcon").tooltip = element.Q<Label>("converterItemInfo").text;
+                    }
+                    else
+                    {
+                        element.Q<Image>("converterItemStatusIcon").image = null;
+                        element.Q<Image>("converterItemStatusIcon").tooltip = "";
                     }
                 };
                 listView.unbindItem = (element, index) =>
@@ -216,6 +305,22 @@ public class RenderPipelineConvertersEditor : EditorWindow
         rootVisualElement.Bind(m_SerializedObject);
     }
 
+    void UpdateInfo(int stateIndex, RunConverterContext ctx)
+    {
+        var failedItems = ctx.m_FailedItems;
+        var failedCount = failedItems.Count;
+        var successCount = ctx.m_SuccessfulItems.Count;
+        foreach (FailedItem failedItem in failedItems)
+        {
+            m_ConverterStates[stateIndex].items[failedItem.index].info = failedItem.message;
+        }
+
+        m_ConverterStates[stateIndex].success = successCount;
+        m_ConverterStates[stateIndex].pending -= failedCount;
+        m_ConverterStates[stateIndex].pending -= successCount;
+        m_ConverterStates[stateIndex].errors = failedCount;
+    }
+
     void Convert(ClickEvent evt)
     {
         for (int i = 0; i < m_ConverterStates.Count; ++i)
@@ -223,14 +328,26 @@ public class RenderPipelineConvertersEditor : EditorWindow
             var state = m_ConverterStates[i];
             if (state.isActive && state.isInitialized)
             {
-                var items = new List<ConverterItemInfo>(m_ItemsToConvert[i]);
-                for (var j = state.items.Count - 1; j >= 0; j--)
+                var itemCount = m_ItemsToConvert[i].Count;
+                var items = new List<ConverterItemInfo>(itemCount);
+                for (var j = 0; j < itemCount; j++)
                 {
-                    if (!state.items[j].isActive) items.RemoveAt(j);
+                    if (state.items[j].isActive)
+                    {
+                        items.Add(new ConverterItemInfo
+                        {
+                            index = j,
+                            descriptor = m_ItemsToConvert[i][j]
+                        });
+                    }
                 }
 
-                var ctx = new RunConverterContext { m_Items = items };
+                // Running the converter with the context
+                // in the converter step the converter adds if it failed to convert
+                var ctx = new RunConverterContext(items);
                 m_CoreConvertersList[i].OnRun(ctx);
+
+                UpdateInfo(i, ctx);
             }
         }
     }

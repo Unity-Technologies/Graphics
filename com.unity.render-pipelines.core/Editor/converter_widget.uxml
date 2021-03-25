@@ -14,12 +14,16 @@
             </ui:VisualElement>
         </ui:VisualElement>
         <ui:VisualElement style="flex-direction: row; height: 19px;">
-            <ui:Label text="test&#10;" />
+            <ui:Label text="collapse&#10;" />
             <ui:Label style="flex-grow: 1; width: 51px;" />
-            <ui:Label text="Pending" />
-            <ui:Label text="Risk" />
-            <ui:Label text="Error" />
-            <ui:Label text="Success" style="flex-grow: 0; width: 53px; height: 31px;" />
+            <ui:Image name="pendingImage" style="max-width: 16px; max-height: 16px; min-width: 16px; min-height: 16px;" />
+            <ui:Label name="pendingLabel" />
+            <ui:Image name="warningImage" style="max-width: 16px; max-height: 16px; min-width: 16px; min-height: 16px;" />
+            <ui:Label name="warningLabel" />
+            <ui:Image name="errorImage" style="max-width: 16px; max-height: 16px; min-width: 16px; min-height: 16px;" />
+            <ui:Label name="errorLabel" />
+            <ui:Image name="successImage" style="max-width: 16px; max-height: 16px; min-width: 16px; min-height: 16px;" />
+            <ui:Label name="successLabel" style="flex-grow: 0; width: 53px; height: 31px;" />
         </ui:VisualElement>
         <ui:ListView focusable="true" name="converterItems" show-alternating-row-backgrounds="All" style="flex-grow: 1; flex-shrink: 0;" />
     </ui:VisualElement>

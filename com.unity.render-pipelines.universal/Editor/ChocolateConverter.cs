@@ -10,6 +10,11 @@ public sealed class ChocolateConverter : RenderPipelineConverter
     public override string category { get; }
     public override Type conversion => typeof(BuiltInToURPConversion);
 
+    // public override bool enabled()
+    // {
+    //     return false;
+    // }
+
     //List<string> m_AssetsToConvert = new List<string>();
 
     public override void OnInitialize(InitializeConverterContext ctx)
@@ -17,13 +22,12 @@ public sealed class ChocolateConverter : RenderPipelineConverter
         //ctx.RunAfter<MuppetsConverter>();
         for (int i = 0; i < 2; i++)
         {
-            ConverterItemInfo info = new ConverterItemInfo()
+            ConverterItemDescriptor info = new ConverterItemDescriptor()
             {
                 name = "Chocolate : " + i,
                 path = "Chocolate/On/My/Disk..." + i * 100,
                 initialInfo = "MilkChocolate",
                 helpLink = "?? here is a link",
-                id = i
             };
             // Each converter needs to add this info using this API.
             ctx.AddAssetToConvert(info);
@@ -35,7 +39,10 @@ public sealed class ChocolateConverter : RenderPipelineConverter
     {
         foreach (var item in ctx.items)
         {
-            var path = item.path;
+            var path = item.descriptor.path;
+
+            // if failed.
+            //ctx.MarkFailed(item.index);
         }
     }
 }
