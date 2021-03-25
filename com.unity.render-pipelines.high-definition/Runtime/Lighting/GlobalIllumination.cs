@@ -7,7 +7,7 @@ namespace UnityEngine.Rendering.HighDefinition
     /// A volume component that holds settings for the global illumination (screen space and ray traced).
     /// </summary>
     [Serializable, VolumeComponentMenu("Lighting/Screen Space Global Illumination")]
-    [HelpURL(Documentation.baseURL + Documentation.version + Documentation.subURL + "Ray-Traced-Global-Illumination" + Documentation.endURL)]
+    [HDRPHelpURLAttribute("Ray-Traced-Global-Illumination")]
     public sealed class GlobalIllumination : VolumeComponentWithQuality
     {
         bool UsesQualityMode()
@@ -165,7 +165,7 @@ namespace UnityEngine.Rendering.HighDefinition
         /// Number of bounces for evaluating the effect.
         /// </summary>
         [Tooltip("Number of bounces for GI.")]
-        public ClampedIntParameter bounceCount = new ClampedIntParameter(1, 1, 31);
+        public ClampedIntParameter bounceCount = new ClampedIntParameter(1, 1, 8);
 
         // Filtering
         /// <summary>

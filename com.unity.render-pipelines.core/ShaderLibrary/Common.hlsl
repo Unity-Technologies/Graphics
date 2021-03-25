@@ -1,6 +1,8 @@
 #ifndef UNITY_COMMON_INCLUDED
 #define UNITY_COMMON_INCLUDED
 
+#pragma warning (disable : 3205) // conversion of larger type to smaller
+
 // Convention:
 
 // Unity is Y up and left handed in world space
@@ -156,6 +158,11 @@
 #       endif
 #   endif
 #endif
+
+// This is the default keyword combination and needs to be overriden by the platforms that need specific behaviors
+// when enabling conservative depth overrides
+#define SV_POSITION_QUALIFIERS
+#define DEPTH_OFFSET_SEMANTIC SV_Depth
 
 // Include language header
 #if defined (SHADER_API_GAMECORE)
@@ -1345,5 +1352,7 @@ float SharpenAlpha(float alpha, float alphaClipTreshold)
 
 // These clamping function to max of floating point 16 bit are use to prevent INF in code in case of extreme value
 TEMPLATE_1_REAL(ClampToFloat16Max, value, return min(value, HALF_MAX))
+
+#pragma warning (enable : 3205) // conversion of larger type to smaller
 
 #endif // UNITY_COMMON_INCLUDED

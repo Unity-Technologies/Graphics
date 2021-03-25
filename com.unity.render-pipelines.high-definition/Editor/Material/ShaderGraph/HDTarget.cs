@@ -610,7 +610,6 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
         public static RenderStateCollection SceneSelection = new RenderStateCollection
         {
             { RenderState.Cull(Cull.Off) },
-            { RenderState.ColorMask("ColorMask 0") },
         };
 
         public static RenderStateCollection DepthOnly = new RenderStateCollection
@@ -1408,6 +1407,16 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
         {
             displayName = "Depth Offset",
             referenceName = "_DEPTHOFFSET_ON",
+            type = KeywordType.Boolean,
+            definition = KeywordDefinition.ShaderFeature,
+            scope = KeywordScope.Local,
+            stages = KeywordShaderStage.Fragment
+        };
+
+        public static KeywordDescriptor ConservativeDepthOffset = new KeywordDescriptor
+        {
+            displayName = "Conservative Depth Offset",
+            referenceName = "_CONSERVATIVE_DEPTH_OFFSET",
             type = KeywordType.Boolean,
             definition = KeywordDefinition.ShaderFeature,
             scope = KeywordScope.Local,
