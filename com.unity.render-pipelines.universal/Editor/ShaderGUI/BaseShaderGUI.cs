@@ -467,6 +467,8 @@ namespace UnityEditor
         public static void TwoFloatSingleLine(GUIContent title, MaterialProperty prop1, GUIContent prop1Label,
             MaterialProperty prop2, GUIContent prop2Label, MaterialEditor materialEditor, float labelWidth = 30f)
         {
+            const int kInterFieldPadding = 2;
+
             Rect rect = EditorGUILayout.GetControlRect();
             EditorGUI.PrefixLabel(rect, title);
 
@@ -483,7 +485,7 @@ namespace UnityEditor
             if (EditorGUI.EndChangeCheck())
                 prop1.floatValue = prop1val;
 
-            Rect propRect2 = new Rect(propRect1.x + propRect1.width + 2, rect.y,
+            Rect propRect2 = new Rect(propRect1.x + propRect1.width + kInterFieldPadding, rect.y,
                 propRect1.width, EditorGUIUtility.singleLineHeight);
             EditorGUI.BeginChangeCheck();
             EditorGUI.showMixedValue = prop2.hasMixedValue;
