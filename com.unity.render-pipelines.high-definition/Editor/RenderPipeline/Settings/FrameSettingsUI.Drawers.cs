@@ -396,12 +396,20 @@ namespace UnityEditor.Rendering.HighDefinition
                 hasMixedValues: serialized.sssCustomSampleBudget.hasMultipleDifferentValues
             );
 
-            // Atmospheric is always enablable for now
             bool isAtmosphericScatteringOn = false;
             if (isEditingDefault || serialized.GetOverrides(FrameSettingsField.AtmosphericScattering))
                 isAtmosphericScatteringOn = serialized.IsEnabled(FrameSettingsField.AtmosphericScattering) ?? false;
+            else if (defaultFrameSettings.HasValue)
+                isAtmosphericScatteringOn = defaultFrameSettings.Value.IsEnabled(FrameSettingsField.AtmosphericScattering);
             area.AmmendInfo(FrameSettingsField.Volumetrics, overrideable: () => isAtmosphericScatteringOn && (isEditingDefault || qualityLevelSettings.supportVolumetrics));
-            area.AmmendInfo(FrameSettingsField.ReprojectionForVolumetrics, overrideable: () => isEditingDefault || qualityLevelSettings.supportVolumetrics);
+
+            bool isVolumetricsOn = false;
+            if (isAtmosphericScatteringOn && (isEditingDefault || serialized.GetOverrides(FrameSettingsField.Volumetrics)))
+                isVolumetricsOn = serialized.IsEnabled(FrameSettingsField.Volumetrics) ?? false;
+            else if (defaultFrameSettings.HasValue)
+                isVolumetricsOn = defaultFrameSettings.Value.IsEnabled(FrameSettingsField.Volumetrics);
+
+            area.AmmendInfo(FrameSettingsField.ReprojectionForVolumetrics, overrideable: () => isVolumetricsOn && (isEditingDefault || qualityLevelSettings.supportVolumetrics));
             area.AmmendInfo(FrameSettingsField.LightLayers, overrideable: () => isEditingDefault || qualityLevelSettings.supportLightLayers);
             area.AmmendInfo(FrameSettingsField.ProbeVolume, overrideable: () => isEditingDefault || qualityLevelSettings.supportProbeVolume);
             area.AmmendInfo(FrameSettingsField.ScreenSpaceShadows, overrideable: () => isEditingDefault || qualityLevelSettings.hdShadowInitParams.supportScreenSpaceShadows);
