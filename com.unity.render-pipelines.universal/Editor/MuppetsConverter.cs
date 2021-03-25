@@ -33,6 +33,8 @@ public sealed class MuppetsConverter : RenderPipelineConverter
     {
         foreach (var item in ctx.items)
         {
+            ctx.Processing(item.index);
+
             //var path = m_AssetsToConvert[item.id];
             // if failed.
             if (item.index == 2)
@@ -44,5 +46,10 @@ public sealed class MuppetsConverter : RenderPipelineConverter
                 ctx.MarkSuccessful(item.index);
             }
         }
+    }
+
+    public override void OnClicked(int index)
+    {
+        Debug.Log($"{index} has been clicked. Do something awesome with that.");
     }
 }

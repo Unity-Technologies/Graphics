@@ -39,6 +39,7 @@ public sealed class ChocolateConverter : RenderPipelineConverter
     {
         foreach (var item in ctx.items)
         {
+            ctx.Processing(item.index);
             var path = item.descriptor.path;
 
             // if failed.

@@ -14,6 +14,10 @@ class ConverterItemState
 
     // Maybe add the conversion info here
     public string info;
+
+    internal enum Status
+    {
+    }
 }
 
 // Each converter uses the active bool
@@ -29,7 +33,7 @@ class ConverterState
     public List<ConverterItemState> items;
     // This will state if there is a warning or not from the init phase.
     // This is here so
-    public bool hasWarnings;
+    //public bool hasWarnings;
 
     public int pending;
     public int warnings;
@@ -85,6 +89,7 @@ public class RenderPipelineConvertersEditor : EditorWindow
         kImgSuccess = EditorGUIUtility.FindTexture("TestPassed");
         kImgPending = EditorGUIUtility.FindTexture("Toolbar Minus");
 
+        // This is the drop down choices.
         conversions = TypeCache.GetTypesDerivedFrom<RenderPipelineConversion>();
         for (int j = 0; j < conversions.Count; j++)
         {
@@ -108,7 +113,7 @@ public class RenderPipelineConvertersEditor : EditorWindow
                 isActive = true,
                 isInitialized = false,
                 items = null,
-                hasWarnings = false
+                //hasWarnings = false
             };
             m_ConverterStates.Add(converterState);
 
@@ -234,6 +239,7 @@ public class RenderPipelineConvertersEditor : EditorWindow
 
         for (int i = 0; i < m_ConverterStates.Count; ++i)
         {
+            var id = i;
             VisualElement child = m_ScrollView[i];
             if (m_ConverterStates[i].isActive)
             {
@@ -286,6 +292,10 @@ public class RenderPipelineConvertersEditor : EditorWindow
                         element.Q<Image>("converterItemStatusIcon").tooltip = "";
                     }
                 };
+                listView.onSelectionChange += obj =>
+                {
+                    m_CoreConvertersList[id].OnClicked(listView.selectedIndex);
+                };
                 listView.unbindItem = (element, index) =>
                 {
                     var bindable = (BindableElement)element;
@@ -295,10 +305,6 @@ public class RenderPipelineConvertersEditor : EditorWindow
 
                 // When right clicking an item it should pop up a small menu with 2 entries
                 // I also would like this a separate method instead of inline.
-                listView.onSelectionChange += obj =>
-                {
-                    //conv.PrintMe(listView.selectedIndex);
-                };
             }
         }
 
@@ -310,8 +316,10 @@ public class RenderPipelineConvertersEditor : EditorWindow
         var failedItems = ctx.m_FailedItems;
         var failedCount = failedItems.Count;
         var successCount = ctx.m_SuccessfulItems.Count;
+
         foreach (FailedItem failedItem in failedItems)
         {
+            // This put the error message onto the icon and also changes the icon to the fail one since there is binding going on in the background
             m_ConverterStates[stateIndex].items[failedItem.index].info = failedItem.message;
         }
 

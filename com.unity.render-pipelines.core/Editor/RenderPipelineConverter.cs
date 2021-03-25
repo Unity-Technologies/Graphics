@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Runtime.CompilerServices;
 using UnityEngine;
 using UnityEngine.UIElements;
 
@@ -60,11 +61,13 @@ namespace UnityEditor.Rendering
         internal List<SuccessfulItem> m_SuccessfulItems;
         public IEnumerable<ConverterItemInfo> items => m_Items;
 
+        public string m_ProcessingInfo;
         public RunConverterContext(List<ConverterItemInfo> items)
         {
             m_Items = items;
             m_FailedItems = new List<FailedItem>();
             m_SuccessfulItems = new List<SuccessfulItem>();
+            m_ProcessingInfo = "";
         }
 
         public void MarkFailed(int index)
@@ -81,6 +84,11 @@ namespace UnityEditor.Rendering
         {
             m_SuccessfulItems.Add(new SuccessfulItem(){index = index});
         }
+
+        public void Processing(int index)
+        {
+            m_ProcessingInfo = m_Items[index].descriptor.name;
+        }
     }
 
 // Might need to change this name before making it public
@@ -94,6 +102,10 @@ namespace UnityEditor.Rendering
         public virtual bool enabled()
         {
             return true;
+        }
+
+        public virtual void OnClicked(int index)
+        {
         }
 
         // This is so that we can have different segment in out UI, example Unity converters, your custom converters etc..
