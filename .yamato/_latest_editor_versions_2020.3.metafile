@@ -21,8 +21,8 @@ editor_versions:
       updated_at: '2021-03-24 23:11:40.129017'
       version: 2020.3.2f1
     iPhone:
-      revision: 58594120496c
-      updated_at: '2021-03-18 23:12:53.893998'
+      revision: 6e012ea551ed
+      updated_at: '2021-03-25 23:13:41.410393'
       version: 2020.3.2f1
   2020_3_latest_public:
     Android:
