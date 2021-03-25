@@ -4,6 +4,7 @@ using Unity.Jobs;
 using Unity.Jobs.LowLevel.Unsafe;
 using UnityEngine.Assertions;
 using System.Text;
+using Unity.Profiling;
 
 namespace UnityEngine.Rendering.Universal.Internal
 {
@@ -72,8 +73,11 @@ namespace UnityEngine.Rendering.Universal.Internal
             }
         }
 
+        ProfilerMarker mainThreadMarker = new ProfilerMarker("Forward+");
+
         public void Setup(ScriptableRenderContext context, ref RenderingData renderingData)
         {
+            mainThreadMarker.Begin();
             var lightCount = renderingData.lightData.visibleLights.Length;
 
             var minMaxZs = new NativeArray<LightMinMaxZ>(lightCount, Allocator.TempJob);
@@ -97,7 +101,23 @@ namespace UnityEngine.Rendering.Universal.Internal
             };
             var zSortHandle = radixSortJob.Schedule(minMaxZHandle);
 
-            zSortHandle.Complete();
+            var reorderedLights = new NativeArray<VisibleLight>(lightCount, Allocator.TempJob);
+            var reorderedMinMaxZs = new NativeArray<LightMinMaxZ>(lightCount, Allocator.TempJob);
+
+            var reorderLightsJob = new ReorderJob<VisibleLight> { indices = indices, input = renderingData.lightData.visibleLights, output = reorderedLights };
+            var reorderLightsHandle = reorderLightsJob.ScheduleParallel(lightCount, 32, zSortHandle);
+
+            var reorderMinMaxZsJob = new ReorderJob<LightMinMaxZ> { indices = indices, input = minMaxZs, output = reorderedMinMaxZs };
+            var reorderMinMaxZsHandle = reorderMinMaxZsJob.ScheduleParallel(lightCount, 32, zSortHandle);
+            minMaxZs.Dispose(reorderMinMaxZsHandle);
+            minMaxZs = reorderedMinMaxZs;
+
+            var reorderHandle = JobHandle.CombineDependencies(
+                reorderLightsHandle,
+                reorderMinMaxZsHandle
+            );
+
+            reorderHandle.Complete();
 
             for (var i = 1; i < lightCount; i++)
             {
@@ -107,6 +127,9 @@ namespace UnityEngine.Rendering.Universal.Internal
             minMaxZs.Dispose();
             meanZs.Dispose();
             indices.Dispose();
+            reorderedLights.Dispose();
+
+            mainThreadMarker.End();
 
             int additionalLightsCount = renderingData.lightData.additionalLightsCount;
             bool additionalLightsPerVertex = renderingData.lightData.shadeAdditionalLightsPerVertex;
