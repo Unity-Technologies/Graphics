@@ -35,4 +35,13 @@ EditorBuildSettings:
   - enabled: 1
     path: Assets/Scenes/058_Lighting_BasicLitTransparency.unity
     guid: 2d9f712bea4002e47a18b95e8526f176
+  - enabled: 1
+    path: Assets/Scenes/059_Lighting_BasicNormals.unity
+    guid: 8bcc1f5676608a44e8fcf74707e3bb0d
+  - enabled: 1
+    path: Assets/Scenes/060_Lighting_BasicEmission.unity
+    guid: 8ed6497a4620b8a498139faebc3b7b32
+  - enabled: 1
+    path: Assets/Scenes/061_Lighting_BasicKeywordTest.unity
+    guid: c745a4a7130c7c1418d2b1064a8f1f8e
   m_configObjects: {}
