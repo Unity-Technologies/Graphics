@@ -10,25 +10,25 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 57071992ac7c2674b8b868cf10ae2a2c, type: 3}
-  m_Name: Anamorphic Streak Dirty
+  m_Name: Simple Spike
   m_EditorClassIdentifier: 
   elements:
   - position: 0
     positionOffset: {x: 0, y: 0}
     angularOffset: 0
     translationScale: {x: 1, y: 1}
-    localIntensity: 0.09
-    lensFlareTexture: {fileID: 0}
-    uniformScale: 1
-    sizeXY: {x: 80, y: 0.36}
+    localIntensity: 2
+    lensFlareTexture: {fileID: 2800000, guid: ca6ab6b6493b415439b6e31928ab43ee, type: 3}
+    uniformScale: 5
+    sizeXY: {x: 1, y: 1}
     allowMultipleElement: 1
-    count: 9
+    count: 2
     preserveAspectRatio: 0
-    rotation: 0.59
+    rotation: 23.03
     tint: {r: 1, g: 1, b: 1, a: 0.5}
     blendMode: 0
     autoRotate: 0
-    flareType: 1
+    flareType: 0
     modulateByLightColor: 1
     isFoldOpened: 0
     distribution: 2
@@ -81,15 +81,15 @@ MonoBehaviour:
       m_PreInfinity: 2
       m_PostInfinity: 2
       m_RotationOrder: 4
-    seed: 13
+    seed: 0
     colorGradient:
       serializedVersion: 2
       key0: {r: 1, g: 1, b: 1, a: 1}
       key1: {r: 1, g: 1, b: 1, a: 1}
-      key2: {r: 0.9974991, g: 1, b: 0, a: 0}
-      key3: {r: 0.016162038, g: 1, b: 0, a: 0}
-      key4: {r: 0, g: 0.054581404, b: 1, a: 0}
-      key5: {r: 0.63479805, g: 0, b: 1, a: 0}
+      key2: {r: 0.99876064, g: 1, b: 0.6839622, a: 0}
+      key3: {r: 0.6146319, g: 1, b: 0.6084906, a: 0}
+      key4: {r: 0.54147387, g: 0.565612, b: 0.9811321, a: 0}
+      key5: {r: 0.8365704, g: 0.5518868, b: 1, a: 0}
       key6: {r: 0, g: 0, b: 0, a: 0}
       key7: {r: 0, g: 0, b: 0, a: 0}
       ctime0: 0
@@ -111,10 +111,10 @@ MonoBehaviour:
       m_Mode: 0
       m_NumColorKeys: 2
       m_NumAlphaKeys: 2
-    intensityVariation: 0
+    intensityVariation: 1
     positionVariation: {x: 0, y: 0}
-    scaleVariation: 0
-    rotationVariation: 0.39
+    scaleVariation: 0.42
+    rotationVariation: 36.65
     enableRadialDistortion: 0
     targetSizeDistortion: {x: 1, y: 1}
     distortionCurve:
@@ -142,8 +142,8 @@ MonoBehaviour:
       m_PostInfinity: 2
       m_RotationOrder: 4
     distortionRelativeToCenter: 0
-    fallOff: 2
-    edgeOffset: 0.15
+    fallOff: 1
+    edgeOffset: 0.9
     sideCount: 6
     sdfRoundness: 0
     inverseSDF: 0

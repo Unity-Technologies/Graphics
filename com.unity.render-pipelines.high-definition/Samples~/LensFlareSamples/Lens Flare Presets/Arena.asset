@@ -10,7 +10,7 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 57071992ac7c2674b8b868cf10ae2a2c, type: 3}
-  m_Name: Simple 1
+  m_Name: Arena
   m_EditorClassIdentifier: 
   elements:
   - position: 0
@@ -18,20 +18,20 @@ MonoBehaviour:
     angularOffset: 0
     translationScale: {x: 1, y: 1}
     localIntensity: 1
-    lensFlareTexture: {fileID: 2800000, guid: ca6ab6b6493b415439b6e31928ab43ee, type: 3}
-    uniformScale: 3.79
+    lensFlareTexture: {fileID: 2800000, guid: 57bb5846aaf6f144d99efd4f8439bb63, type: 3}
+    uniformScale: 4
     sizeXY: {x: 1, y: 1}
     allowMultipleElement: 0
-    count: 5
+    count: 1
     preserveAspectRatio: 0
-    rotation: 0
+    rotation: 16.46
     tint: {r: 1, g: 1, b: 1, a: 0.5}
     blendMode: 0
     autoRotate: 0
     flareType: 0
     modulateByLightColor: 1
     isFoldOpened: 0
-    distribution: 0
+    distribution: 1
     lengthSpread: 1
     positionCurve:
       serializedVersion: 2
@@ -122,9 +122,9 @@ MonoBehaviour:
       m_Curve:
       - serializedVersion: 3
         time: 0
-        value: 0
-        inSlope: 1
-        outSlope: 1
+        value: 1
+        inSlope: 0
+        outSlope: 0
         tangentMode: 0
         weightedMode: 0
         inWeight: 0
@@ -132,8 +132,8 @@ MonoBehaviour:
       - serializedVersion: 3
         time: 1
         value: 1
-        inSlope: 1
-        outSlope: -1
+        inSlope: 0
+        outSlope: 0
         tangentMode: 0
         weightedMode: 0
         inWeight: 0
@@ -142,8 +142,8 @@ MonoBehaviour:
       m_PostInfinity: 2
       m_RotationOrder: 4
     distortionRelativeToCenter: 0
-    fallOff: 1
-    edgeOffset: 0.9
+    fallOff: 2
+    edgeOffset: 0
     sideCount: 6
     sdfRoundness: 0
     inverseSDF: 0
@@ -151,22 +151,22 @@ MonoBehaviour:
     positionOffset: {x: 0, y: 0}
     angularOffset: 0
     translationScale: {x: 1, y: 1}
-    localIntensity: 2
-    lensFlareTexture: {fileID: 2800000, guid: ca6ab6b6493b415439b6e31928ab43ee, type: 3}
-    uniformScale: 5
-    sizeXY: {x: 1, y: 1}
-    allowMultipleElement: 0
-    count: 5
+    localIntensity: 1
+    lensFlareTexture: {fileID: 2800000, guid: 89a6f25e454769946b889e55e0908e56, type: 3}
+    uniformScale: 1
+    sizeXY: {x: 0.2, y: 20}
+    allowMultipleElement: 1
+    count: 2
     preserveAspectRatio: 0
-    rotation: 23.03
+    rotation: -4.4
     tint: {r: 1, g: 1, b: 1, a: 0.5}
     blendMode: 0
     autoRotate: 0
     flareType: 0
     modulateByLightColor: 1
     isFoldOpened: 0
-    distribution: 0
-    lengthSpread: 1
+    distribution: 2
+    lengthSpread: 0
     positionCurve:
       serializedVersion: 2
       m_Curve:
@@ -248,7 +248,7 @@ MonoBehaviour:
     intensityVariation: 0
     positionVariation: {x: 0, y: 0}
     scaleVariation: 0
-    rotationVariation: 0
+    rotationVariation: 168.4
     enableRadialDistortion: 0
     targetSizeDistortion: {x: 1, y: 1}
     distortionCurve:
@@ -256,9 +256,9 @@ MonoBehaviour:
       m_Curve:
       - serializedVersion: 3
         time: 0
-        value: 0
-        inSlope: 1
-        outSlope: 1
+        value: 1
+        inSlope: 0
+        outSlope: 0
         tangentMode: 0
         weightedMode: 0
         inWeight: 0
@@ -266,8 +266,8 @@ MonoBehaviour:
       - serializedVersion: 3
         time: 1
         value: 1
-        inSlope: 1
-        outSlope: -1
+        inSlope: 0
+        outSlope: 0
         tangentMode: 0
         weightedMode: 0
         inWeight: 0
@@ -276,8 +276,8 @@ MonoBehaviour:
       m_PostInfinity: 2
       m_RotationOrder: 4
     distortionRelativeToCenter: 0
-    fallOff: 1
-    edgeOffset: 0.9
+    fallOff: 2
+    edgeOffset: 0.2
     sideCount: 6
     sdfRoundness: 0
     inverseSDF: 0

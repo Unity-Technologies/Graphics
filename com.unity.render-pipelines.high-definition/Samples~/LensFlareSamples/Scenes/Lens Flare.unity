@@ -413,7 +413,7 @@ Light:
   m_LightShadowCasterMode: 2
   m_AreaSize: {x: 0.5, y: 0.5}
   m_BounceIntensity: 1
-  m_ColorTemperature: 20000
+  m_ColorTemperature: 6800
   m_UseColorTemperature: 1
   m_BoundingSphereOverride: {x: 0, y: 0, z: 0, w: 0}
   m_UseBoundingSphereOverride: 0
@@ -434,6 +434,85 @@ Transform:
   m_Father: {fileID: 0}
   m_RootOrder: 3
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!1 &196923333
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 196923334}
+  - component: {fileID: 196923336}
+  - component: {fileID: 196923335}
+  m_Layer: 5
+  m_Name: Preset name
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!224 &196923334
+RectTransform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 196923333}
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 0.4, y: 0.4, z: 0.4}
+  m_Children: []
+  m_Father: {fileID: 912585141}
+  m_RootOrder: 1
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+  m_AnchorMin: {x: 0, y: 0}
+  m_AnchorMax: {x: 0, y: 0}
+  m_AnchoredPosition: {x: 0, y: 0}
+  m_SizeDelta: {x: 239.9, y: 30}
+  m_Pivot: {x: 0, y: 0.5}
+--- !u!114 &196923335
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 196923333}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 5f7201a12d95ffc409449d95f23cf332, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  m_Material: {fileID: 0}
+  m_Color: {r: 0.754717, g: 0.754717, b: 0.754717, a: 1}
+  m_RaycastTarget: 0
+  m_RaycastPadding: {x: 0, y: 0, z: 0, w: 0}
+  m_Maskable: 1
+  m_OnCullStateChanged:
+    m_PersistentCalls:
+      m_Calls: []
+  m_FontData:
+    m_Font: {fileID: 10102, guid: 0000000000000000e000000000000000, type: 0}
+    m_FontSize: 50
+    m_FontStyle: 0
+    m_BestFit: 0
+    m_MinSize: 1
+    m_MaxSize: 300
+    m_Alignment: 7
+    m_AlignByGeometry: 0
+    m_RichText: 0
+    m_HorizontalOverflow: 1
+    m_VerticalOverflow: 1
+    m_LineSpacing: 1
+  m_Text: 
+--- !u!222 &196923336
+CanvasRenderer:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 196923333}
+  m_CullTransparentMesh: 1
 --- !u!1 &298882543
 GameObject:
   m_ObjectHideFlags: 0
@@ -662,19 +741,40 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   cameraGameObject: {fileID: 298882543}
-  lensFlareLight: {fileID: 79213237}
+  lensFlareComponent: {fileID: 79213238}
+  lensFlareUIText: {fileID: 196923335}
   skies:
   - {fileID: 1509821796}
   - {fileID: 1509821796}
   - {fileID: 2046100714}
   - {fileID: 1052013042}
   - {fileID: 1013397970}
-  lightDistance: 1
+  lensFlares:
+  - {fileID: 11400000, guid: baf5c6a0a1312f14098e7d3d24d9dc8b, type: 2}
+  - {fileID: 11400000, guid: 9d92c1edf9573e247ae1d0e5082f2927, type: 2}
+  - {fileID: 11400000, guid: 74861a38ba159bf4dbd3f735a6759398, type: 2}
+  - {fileID: 11400000, guid: f2ee181709448e5449fe530fa24bb234, type: 2}
+  - {fileID: 11400000, guid: afe5d42012ab90449a093f7f94c9e2fa, type: 2}
+  - {fileID: 11400000, guid: 64ea8b27003b2cf4780083018fa19f02, type: 2}
+  - {fileID: 11400000, guid: 309c452b9ba01354a8dfc55d668a59e2, type: 2}
+  - {fileID: 11400000, guid: e6885eef0c54ab445be789e5b5e140d7, type: 2}
+  - {fileID: 11400000, guid: dc8845e74337c0548a4d6eaf9c469395, type: 2}
+  - {fileID: 11400000, guid: 53911c48239b6a3459cd28c1f6fd6dc4, type: 2}
+  - {fileID: 11400000, guid: 671f67a8ddef9004791a31a81a4474d7, type: 2}
+  - {fileID: 11400000, guid: 5a2ce4d2af7d9ec4a827ae40bab0d516, type: 2}
+  - {fileID: 11400000, guid: 1b97fc4f4fadd2645bdbcc8c2085e3fc, type: 2}
+  - {fileID: 11400000, guid: cf60fa531ca3e0f4491d0a0de44adbc2, type: 2}
+  - {fileID: 11400000, guid: 51cf2d471ff210241b76b02140ca0966, type: 2}
+  - {fileID: 11400000, guid: ca579f552d556624ca563ffeab2dddf3, type: 2}
+  - {fileID: 11400000, guid: 9cae3a57f197c4f4092677f0878f70e9, type: 2}
+  - {fileID: 11400000, guid: d8dfd27284ce83241afbf1156803aeee, type: 2}
+  lensFlareLight: {fileID: 79213237}
+  lightDistance: 100
   cameraRotationSpeed: 1
   useMouseDragInsteadOfFPSControl: 0
   enableCameraShake: 0
-  cameraShakeSpeed: 1
-  cameraShakeAmplitude: 0.5
+  cameraShakeSpeed: 3
+  cameraShakeAmplitude: 0.3
 --- !u!4 &586852970
 Transform:
   m_ObjectHideFlags: 0
@@ -747,7 +847,6 @@ GameObject:
   - component: {fileID: 912585140}
   - component: {fileID: 912585139}
   - component: {fileID: 912585142}
-  - component: {fileID: 912585138}
   m_Layer: 5
   m_Name: UI
   m_TagString: Untagged
@@ -755,34 +854,6 @@ GameObject:
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
   m_IsActive: 1
---- !u!114 &912585138
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 912585137}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 8407cd09923ac1b4fad1cd8b59ec8861, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  timerLength: 7
-  timerEvent:
-    m_PersistentCalls:
-      m_Calls:
-      - m_Target: {fileID: 912585137}
-        m_TargetAssemblyTypeName: UnityEngine.GameObject, UnityEngine
-        m_MethodName: SetActive
-        m_Mode: 6
-        m_Arguments:
-          m_ObjectArgument: {fileID: 0}
-          m_ObjectArgumentAssemblyTypeName: UnityEngine.Object, UnityEngine
-          m_IntArgument: 0
-          m_FloatArgument: 0
-          m_StringArgument: 
-          m_BoolArgument: 0
-        m_CallState: 2
 --- !u!114 &912585139
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -839,6 +910,7 @@ RectTransform:
   m_LocalScale: {x: 0, y: 0, z: 0}
   m_Children:
   - {fileID: 1045076801}
+  - {fileID: 196923334}
   m_Father: {fileID: 0}
   m_RootOrder: 1
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
@@ -932,8 +1004,9 @@ GameObject:
   - component: {fileID: 1045076801}
   - component: {fileID: 1045076803}
   - component: {fileID: 1045076802}
+  - component: {fileID: 1045076804}
   m_Layer: 5
-  m_Name: Text
+  m_Name: Instructions
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -991,12 +1064,15 @@ MonoBehaviour:
     m_HorizontalOverflow: 1
     m_VerticalOverflow: 1
     m_LineSpacing: 1
-  m_Text: 'Use Left Click to place the lens flare
+  m_Text: 'Left Click to place and move  the lens flare
 
-    Use Right Click to navigate
+    Right Click to navigate
     the scene
 
-    Use the number keys (1,2,3,4) to change the environment'
+    Scroll Wheel to change flare
+
+    Use the number keys (1,2,3,4)
+    to change the environment'
 --- !u!222 &1045076803
 CanvasRenderer:
   m_ObjectHideFlags: 0
@@ -1005,6 +1081,34 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1045076800}
   m_CullTransparentMesh: 1
+--- !u!114 &1045076804
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1045076800}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 8407cd09923ac1b4fad1cd8b59ec8861, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  timerLength: 7
+  timerEvent:
+    m_PersistentCalls:
+      m_Calls:
+      - m_Target: {fileID: 1045076802}
+        m_TargetAssemblyTypeName: UnityEngine.Behaviour, UnityEngine
+        m_MethodName: set_enabled
+        m_Mode: 6
+        m_Arguments:
+          m_ObjectArgument: {fileID: 0}
+          m_ObjectArgumentAssemblyTypeName: UnityEngine.Object, UnityEngine
+          m_IntArgument: 0
+          m_FloatArgument: 0
+          m_StringArgument: 
+          m_BoolArgument: 0
+        m_CallState: 2
 --- !u!1 &1052013042
 GameObject:
   m_ObjectHideFlags: 0

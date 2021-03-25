@@ -2,17 +2,20 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.UI;
 
 public class LensFlareInput : MonoBehaviour
 {
     [Header("References")]
-
     public GameObject cameraGameObject;
-    public GameObject lensFlareLight;
+    public SRPLensFlareOverride lensFlareComponent;
+    public Text lensFlareUIText;
 
     public GameObject[] skies;
+    public SRPLensFlareData[] lensFlares;
 
     [Header("Light Settings")]
+    public GameObject lensFlareLight;
     public float lightDistance;
 
 
@@ -22,13 +25,14 @@ public class LensFlareInput : MonoBehaviour
 
     [Header("Camera Shake")]
     public bool enableCameraShake;
-    [Range(0,10)]
+    [Range(0, 10)]
     public float cameraShakeSpeed;
     [Range(0, 1)]
     public float cameraShakeAmplitude;
 
     private Camera cameraComponent;
 
+    private int flareNumber;
     private int skyNumber;
 
     private Vector2 mousePosition;
@@ -43,9 +47,11 @@ public class LensFlareInput : MonoBehaviour
     {
         SetSkyFromInput();
         MoveLightWithMouse();
+        ChangeLensFlareWithMiddleMouse();
         CameraMovementWithMouse();
         CameraShake();
     }
+
     private void SetSkyFromInput()
     {
         for (int i = 0; i < skies.Length; i++)
@@ -80,6 +86,40 @@ public class LensFlareInput : MonoBehaviour
 
             lensFlareLight.transform.position = cameraComponent.ScreenToWorldPoint(new Vector3(Input.mousePosition.x, Input.mousePosition.y, lightDistance));
         }
+    }
+
+    private void ChangeLensFlareWithMiddleMouse()
+    {
+        if (Input.GetAxis("Mouse ScrollWheel") < 0f)
+        {
+            flareNumber += 1;
+
+            if (flareNumber == lensFlares.Length)
+            {
+                flareNumber = 0;
+            }
+
+            lensFlareComponent.lensFlareData = lensFlares[flareNumber];
+            UpdateFlareNameUI();
+        }
+        else if (Input.GetAxis("Mouse ScrollWheel") > 0f)
+        {
+            flareNumber -= 1;
+
+            if (flareNumber < 0)
+            {
+                flareNumber = lensFlares.Length - 1;
+            }
+
+            lensFlareComponent.lensFlareData = lensFlares[flareNumber];
+            UpdateFlareNameUI();
+        }
+    }
+
+    private void UpdateFlareNameUI()
+    {
+        // set the flare name in the UI but only the name 
+        lensFlareUIText.text = lensFlares[flareNumber].ToString().Split(char.Parse("("))[0];
     }
 
     private void CameraMovementWithMouse()
