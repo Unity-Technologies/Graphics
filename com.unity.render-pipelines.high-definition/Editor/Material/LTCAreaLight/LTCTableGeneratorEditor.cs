@@ -55,7 +55,7 @@ namespace UnityEngine.Rendering.HighDefinition.LTC
             }
         }
 
-        [MenuItem("Window/Rendering/HDRP LTC Tables Generator")]
+        [MenuItem("Edit/Render Pipeline/HD Render Pipeline/Generate Area Light LTC Tables")]
         private static void Init()
         {
             // Create the window
