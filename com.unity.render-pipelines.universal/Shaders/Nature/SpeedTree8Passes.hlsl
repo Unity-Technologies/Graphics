@@ -89,6 +89,15 @@ struct SpeedTreeFragmentInput
 #endif
 };
 
+#define UNITY_INV_PI        0.31830988618f
+inline float GGXTerm (float NdotH, float roughness)
+{
+    float a2 = roughness * roughness;
+    float d = (NdotH * a2 - NdotH) * NdotH + 1.0f; // 2 mad
+    return UNITY_INV_PI * a2 / (d * d + 1e-7f); // This function is not intended to be running on Mobile,
+                                            // therefore epsilon is smaller than what can be represented by half
+}
+
 void InitializeData(inout SpeedTreeVertexInput input, float lodValue)
 {
     // smooth LOD
@@ -412,7 +421,14 @@ half4 SpeedTree8Frag(SpeedTreeFragmentInput input) : SV_Target
 
     // subsurface (hijack emissive)
     #ifdef EFFECT_SUBSURFACE
-        emission = tex2D(_SubsurfaceTex, uv).rgb * _SubsurfaceColor.rgb * inputData.bakedGI.rgb * _SubsurfaceIndirect;
+    	Light mainLight = GetMainLight();
+	half fSubsurfaceRough = 0.7 - smoothness * 0.5;
+	half fSubsurface = GGXTerm(clamp(-dot(mainLight.direction.xyz, inputData.viewDirectionWS.xyz), 0, 1), fSubsurfaceRough); 
+
+	float3 tintedSubsurface = tex2D(_SubsurfaceTex, uv).rgb * _SubsurfaceColor.rgb;
+        float3 directSubsurface = tintedSubsurface.rgb * mainLight.color.rgb * fSubsurface * (1 - GetMainLightShadowParams().x); 
+	float3 indirectSubsurface = tintedSubsurface.rgb * inputData.bakedGI.rgb * _SubsurfaceIndirect;
+	emission = directSubsurface + indirectSubsurface;
     #endif
 
 
