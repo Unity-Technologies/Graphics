@@ -160,6 +160,7 @@ namespace UnityEditor.Rendering
         /// </param>
         /// <param name="allUpgradePathsToNewShaders">
         /// A table of new shader names and all known upgrade paths to them in the target pipeline.
+        /// (See also <seealso cref="UpgradeUtility.GetAllUpgradePathsToShaders"/>.)
         /// </param>
         /// <param name="upgradePathsUsedByMaterials">
         /// Optional table of materials known to have gone through a specific upgrade path.
@@ -206,6 +207,7 @@ namespace UnityEditor.Rendering
         /// </param>
         /// <param name="allUpgradePathsToNewShaders">
         /// A table of new shader names and all known upgrade paths to them in the target pipeline.
+        /// (See also <seealso cref="UpgradeUtility.GetAllUpgradePathsToShaders"/>.)
         /// </param>
         /// <param name="upgradePathsUsedByMaterials">
         /// Optional table of materials known to have gone through a specific upgrade path.
@@ -242,6 +244,7 @@ namespace UnityEditor.Rendering
         /// </param>
         /// <param name="allUpgradePathsToNewShaders">
         /// A table of new shader names and all known upgrade paths to them in the target pipeline.
+        /// (See also <seealso cref="UpgradeUtility.GetAllUpgradePathsToShaders"/>.)
         /// </param>
         /// <param name="upgradePathsUsedByMaterials">
         /// Optional table of materials known to have gone through a specific upgrade path.
@@ -319,6 +322,7 @@ namespace UnityEditor.Rendering
         /// </param>
         /// <param name="allUpgradePathsToNewShaders">
         /// A table of new shader names and all known upgrade paths to them in the target pipeline.
+        /// (See also <seealso cref="UpgradeUtility.GetAllUpgradePathsToShaders"/>.)
         /// </param>
         /// <param name="upgradePathsUsedByMaterials">
         /// Optional table of materials known to have gone through a specific upgrade path.
@@ -379,6 +383,7 @@ namespace UnityEditor.Rendering
         /// </param>
         /// <param name="allUpgradePathsToNewShaders">
         /// A table of new shader names and all known upgrade paths to them in the target pipeline.
+        /// (See also <seealso cref="UpgradeUtility.GetAllUpgradePathsToShaders"/>.)
         /// </param>
         /// <param name="upgradePathsUsedByMaterials">
         /// Optional table of materials known to have gone through a specific upgrade path.
@@ -626,15 +631,7 @@ namespace UnityEditor.Rendering
             var clipData = GetAssetDataForClipsFiltered(clipPaths);
 
             // create table mapping all upgrade paths to new shaders
-            var upgradePathBuilder = new Dictionary<string, List<MaterialUpgrader>>();
-            foreach (var upgrader in allUpgraders)
-            {
-                if (!upgradePathBuilder.TryGetValue(upgrader.NewShader, out var allPaths))
-                    upgradePathBuilder[upgrader.NewShader] = allPaths = new List<MaterialUpgrader>();
-                allPaths.Add(upgrader);
-            }
-            var allUpgradePathsToNewShaders =
-                upgradePathBuilder.ToDictionary(kv => kv.Key, kv => kv.Value as IReadOnlyList<MaterialUpgrader>);
+            var allUpgradePathsToNewShaders = UpgradeUtility.GetAllUpgradePathsToShaders(allUpgraders);
 
             // retrieve interdependencies with prefabs to figure out which clips can be safely upgraded
             GetClipDependencyMappings(clipPaths, prefabPaths, out var clipPrefabDependents, out var prefabDependencies);
