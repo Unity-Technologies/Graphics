@@ -425,8 +425,10 @@ half4 SpeedTree8Frag(SpeedTreeFragmentInput input) : SV_Target
 	half fSubsurfaceRough = 0.7 - smoothness * 0.5;
 	half fSubsurface = GGXTerm(clamp(-dot(mainLight.direction.xyz, inputData.viewDirectionWS.xyz), 0, 1), fSubsurfaceRough); 
 
+    float4 shadowCoord = TransformWorldToShadowCoord(inputData.positionWS);
+    half realtimeShadow = MainLightRealtimeShadow(shadowCoord);
 	float3 tintedSubsurface = tex2D(_SubsurfaceTex, uv).rgb * _SubsurfaceColor.rgb;
-        float3 directSubsurface = tintedSubsurface.rgb * mainLight.color.rgb * fSubsurface * (1 - GetMainLightShadowParams().x); 
+        float3 directSubsurface = tintedSubsurface.rgb * mainLight.color.rgb * fSubsurface * realtimeShadow; 
 	float3 indirectSubsurface = tintedSubsurface.rgb * inputData.bakedGI.rgb * _SubsurfaceIndirect;
 	emission = directSubsurface + indirectSubsurface;
     #endif
