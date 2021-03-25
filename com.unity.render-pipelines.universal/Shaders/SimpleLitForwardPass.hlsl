@@ -74,7 +74,7 @@ void InitializeInputData(Varyings input, half3 normalTS, out InputData inputData
         inputData.fogCoord = InitializeInputDataFog(float4(input.posWS, 1.0), input.fogFactorAndVertexLight.x);
         inputData.vertexLighting = input.fogFactorAndVertexLight.yzw;
     #else
-        inputData.fogCoord = InitializeInputDataFog(float4(input.posWS, 1.0), input.fogFactor);
+        inputData.fogCoord = InitializeInputDataFog(float4(input.positionWS, 1.0), input.fogFactor);
         inputData.vertexLighting = half3(0, 0, 0);
     #endif
 

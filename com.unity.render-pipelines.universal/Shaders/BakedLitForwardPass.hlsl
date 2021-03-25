@@ -80,7 +80,11 @@ Varyings BakedLitForwardPassVertex(Attributes input)
     VertexPositionInputs vertexInput = GetVertexPositionInputs(input.positionOS.xyz);
     output.positionCS = vertexInput.positionCS;
     output.uv0AndFogCoord.xy = TRANSFORM_TEX(input.uv, _BaseMap);
+    #if defined(_FOG_FRAGMENT)
+    output.uv0AndFogCoord.z = vertexInput.positionVS.z;
+    #else
     output.uv0AndFogCoord.z = ComputeFogFactor(vertexInput.positionCS.z);
+    #endif
 
     // normalWS and tangentWS already normalize.
     // this is required to avoid skewing the direction during interpolation

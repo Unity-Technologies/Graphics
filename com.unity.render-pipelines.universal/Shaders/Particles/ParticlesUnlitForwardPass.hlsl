@@ -28,15 +28,15 @@ void InitializeInputData(VaryingsParticle input, SurfaceData surfaceData, out In
     output.viewDirectionWS = viewDirWS;
 
     output.fogCoord = InitializeInputDataFog(float4(input.positionWS.xyz, 1.0), input.positionWS.w);
-    output.vertexLighting = half3(0.0, 0.0, 0.0);
+    output.vertexLighting = 0;
     output.bakedGI = SampleSHPixel(input.vertexSH, output.normalWS);
     output.normalizedScreenSpaceUV = GetNormalizedScreenSpaceUV(input.clipPos);
     output.normalTS = surfaceData.normalTS;
-    output.shadowMask = half4(1, 1, 1, 1);
-    output.shadowCoord = float4(0, 0, 0, 0);
+    output.shadowMask = 1;
+    output.shadowCoord = 0;
 
     #if defined(LIGHTMAP_ON)
-    output.lightmapUV = half2(0, 0);
+    output.lightmapUV = 0;
     #else
     output.vertexSH = input.vertexSH;
     #endif
@@ -45,7 +45,7 @@ void InitializeInputData(VaryingsParticle input, SurfaceData surfaceData, out In
 void InitializeSurfaceData(ParticleParams particleParams, out SurfaceData surfaceData)
 {
     surfaceData = (SurfaceData)0;
-    half4 albedo = SampleAlbedo(particleParams.uv, particleParams.blendUv, _BaseColor, particleParams.baseColor, particleParams.projectedPosition, TEXTURE2D_ARGS(_BaseMap, sampler_BaseMap));
+    half4 albedo = SampleAlbedo(TEXTURE2D_ARGS(_BaseMap, sampler_BaseMap), particleParams);
     half3 normalTS = SampleNormalTS(particleParams.uv, particleParams.blendUv, TEXTURE2D_ARGS(_BumpMap, sampler_BumpMap));
 
     #if defined (_DISTORTION_ON)
@@ -55,11 +55,11 @@ void InitializeSurfaceData(ParticleParams particleParams, out SurfaceData surfac
     #if defined(_EMISSION)
     half3 emission = BlendTexture(TEXTURE2D_ARGS(_EmissionMap, sampler_EmissionMap), particleParams.uv, particleParams.blendUv).rgb * _EmissionColor.rgb;
     #else
-    half3 emission = half3(0, 0, 0);
+    const half3 emission = 0;
     #endif
 
     surfaceData.albedo = albedo.rgb;
-    surfaceData.specular = half3(0.0h, 0.0h, 0.0h);
+    surfaceData.specular = 0;
     surfaceData.normalTS = normalTS;
     surfaceData.emission = emission;
     surfaceData.metallic = 0;
@@ -69,8 +69,8 @@ void InitializeSurfaceData(ParticleParams particleParams, out SurfaceData surfac
     surfaceData.albedo = AlphaModulate(surfaceData.albedo, albedo.a);
     surfaceData.alpha = albedo.a;
 
-    surfaceData.clearCoatMask       = 0.0h;
-    surfaceData.clearCoatSmoothness = 1.0h;
+    surfaceData.clearCoatMask       = 0;
+    surfaceData.clearCoatSmoothness = 1;
 }
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -142,9 +142,7 @@ half4 fragParticleUnlit(VaryingsParticle input) : SV_Target
     SETUP_DEBUG_TEXTURE_DATA(inputData, input.texcoord, _BaseMap);
 
     half4 finalColor = UniversalFragmentUnlit(inputData, surfaceData);
-    half fogFactor = InitializeInputDataFog(float4(input.positionWS.xyz, 1.0), input.positionWS.w);
-
-    finalColor.rgb = MixFog(finalColor.rgb, fogFactor);
+    finalColor.rgb = MixFog(finalColor.rgb, inputData.fogCoord);
     finalColor.a = OutputAlpha(finalColor.a, _Surface);
 
     return finalColor;
