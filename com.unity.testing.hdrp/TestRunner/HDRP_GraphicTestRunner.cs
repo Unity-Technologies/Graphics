@@ -39,7 +39,9 @@ public class HDRP_GraphicTestRunner
         // Grab the HDCamera
         HDCamera hdCamera = HDCamera.GetOrCreate(camera);
 
-        if (settings.ImageComparisonSettings.UseBackBuffer)
+        bool useBackBuffer = settings.ImageComparisonSettings.UseBackBuffer;
+
+        if (useBackBuffer)
             GameViewUtils.SetGameViewSize(settings.ImageComparisonSettings.TargetWidth, settings.ImageComparisonSettings.TargetHeight);
 
         Time.captureFramerate = settings.captureFramerate;
@@ -67,7 +69,7 @@ public class HDRP_GraphicTestRunner
             settings.doBeforeTest.Invoke();
 
             // Wait again one frame, to be sure.
-            yield return new WaitForEndOfFrame();
+            yield return WaitFunction( useBackBuffer );
         }
 
         hdCamera.Reset();
@@ -77,26 +79,20 @@ public class HDRP_GraphicTestRunner
             // Get HDRP instance
             var hdrp = RenderPipelineManager.currentPipeline as HDRenderPipeline;
 
-            // Standard Test
-            if (settings.ImageComparisonSettings.UseBackBuffer) // Using Backbuffer
-            {
-                // When we capture from the back buffer, there is no requirement of compensation frames
-                while (((hdCamera.cameraFrameCount) % (uint)settings.frameCountMultiple) != 0) yield return new WaitForEndOfFrame();
-            }
-            else
-            {
-                // Given that we will render two frames, we need to compensate for them in the waiting
-                // After this line, the next frame will be frame 0.
-                while (((hdCamera.cameraFrameCount + 2) % (uint)settings.frameCountMultiple) != 0) yield return new WaitForEndOfFrame();
-            }
+            // When we capture from the back buffer, there is no requirement of compensation frames
+            // Else, given that we will render two frames, we need to compensate for them in the waiting
+            var frameCountOffset = useBackBuffer ? 0 : 2;
+
+            while (((hdCamera.cameraFrameCount + frameCountOffset) % (uint)settings.frameCountMultiple) != 0)
+                WaitFunction( useBackBuffer );
         }
 
         // Force clear all the history buffers
-        if (settings.ImageComparisonSettings.UseBackBuffer)
+        if (useBackBuffer)
             hdCamera.RequestClearHistoryBuffers();
 
         for (int i=0; i<waitFrames; ++i)
-            yield return new WaitForEndOfFrame();
+            yield return WaitFunction( useBackBuffer );
 
         var settingsSG = (GameObject.FindObjectOfType<HDRP_TestSettings>() as HDRP_ShaderGraph_TestSettings);
         if (settingsSG == null || !settingsSG.compareSGtoBI)
@@ -139,8 +135,8 @@ public class HDRP_GraphicTestRunner
 
             settingsSG.sgObjs.SetActive(true);
             settingsSG.biObjs.SetActive(false);
-            yield return new WaitForEndOfFrame();
-            yield return new WaitForEndOfFrame();
+            yield return WaitFunction( useBackBuffer );
+            yield return WaitFunction( useBackBuffer );
             bool sgFail = false;
             bool biFail = false;
 
@@ -157,8 +153,8 @@ public class HDRP_GraphicTestRunner
             settingsSG.sgObjs.SetActive(false);
             settingsSG.biObjs.SetActive(true);
             settingsSG.biObjs.transform.position = settingsSG.sgObjs.transform.position; // Move to the same location.
-            yield return new WaitForEndOfFrame();
-            yield return new WaitForEndOfFrame();
+            yield return WaitFunction( useBackBuffer );
+            yield return WaitFunction( useBackBuffer );
 
             // Second test: HDRP/Lit Materials
             try
@@ -184,6 +180,11 @@ public class HDRP_GraphicTestRunner
 #else
         Screen.SetResolution(width, height, Screen.fullScreenMode);
 #endif
+    }
+
+    YieldInstruction WaitFunction(bool isBackbuffer)
+    {
+        return isBackbuffer ? new WaitForEndOfFrame() : null;
     }
 
 #if UNITY_EDITOR
