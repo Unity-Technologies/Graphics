@@ -121,7 +121,7 @@ namespace UnityEngine.Rendering.HighDefinition.LTC
                 float x = (float)thetaIndex / (tableResolution - 1);
                 cosTheta = 1.0f - x * x;
                 // Clamp to cos(1.57)
-                cosTheta = Mathf.Max(3.7540224885647058065387021283285e-4f, cosTheta);    
+                cosTheta = Mathf.Max(3.7540224885647058065387021283285e-4f, cosTheta);
             }
             else
             {
@@ -177,8 +177,8 @@ namespace UnityEngine.Rendering.HighDefinition.LTC
             // Find best-fit LTC lobe (scale, alphax, alphay)
             if (currentLTCData.magnitude > 1e-6)
             {
-                double [] startFit = LTCDataUtilities.GetFittingParms(in currentLTCData);
-                double [] resultFit = new double[startFit.Length];
+                double[] startFit = LTCDataUtilities.GetFittingParms(in currentLTCData);
+                double[] resultFit = new double[startFit.Length];
 
                 currentLTCData.error = (float)fitter.FindFit(resultFit, startFit, k_FitExploreDelta, k_Tolerance, k_MaxIterations, (double[] parameters) =>
                 {
@@ -270,7 +270,7 @@ namespace UnityEngine.Rendering.HighDefinition.LTC
 
             using (var ltcData = new NativeArray<LTCData>(brdfGenerator.tableResolution * brdfGenerator.tableResolution, Allocator.TempJob))
             {
-                // Create the fitter 
+                // Create the fitter
                 NelderMead fitter = new NelderMead(3);
 
                 Debug.Log("Running fitting job on the " + brdfGenerator.type.Name + " BRDF.");
@@ -321,26 +321,26 @@ namespace UnityEngine.Rendering.HighDefinition.LTC
             string tableName = "s_LtcMatrixData_" + brdfName;
 
             sourceCode += "using UnityEngine;\n"
-                        + "using System;\n"
-                        + "\n"
-                        + "namespace UnityEngine.Rendering.HighDefinition\n"
-                        + "{\n"
-                        + "    public partial class LTCAreaLight\n"
-                        + "    {\n"
-                        + "        // [GENERATED CONTENT " + DateTime.Now.ToString("dd MMM yyyy HH:mm:ss") + "]\n"
-                        + "        // Table contains 3x3 matrix coefficients of M^-1 for the fitting of the " + brdfName + " BRDF using the LTC technique\n"
-                        + "        // From \"Real-Time Polygonal-Light Shading with Linearly Transformed Cosines\" 2016 (https://eheitzresearch.wordpress.com/415-2/)\n"
-                        + "        //\n"
-                        + "        // The table is accessed via LTCAreaLight." + tableName + "[<roughnessIndex> + 64 * <thetaIndex>]    // Theta values are along the Y axis, Roughness values are along the X axis\n"
-                        + "        //    • roughness = ( <roughnessIndex> / " + (tableResolution - 1) + " )^2  (the table is indexed by perceptual roughness)\n";
+                + "using System;\n"
+                + "\n"
+                + "namespace UnityEngine.Rendering.HighDefinition\n"
+                + "{\n"
+                + "    public partial class LTCAreaLight\n"
+                + "    {\n"
+                + "        // [GENERATED CONTENT " + DateTime.Now.ToString("dd MMM yyyy HH:mm:ss") + "]\n"
+                + "        // Table contains 3x3 matrix coefficients of M^-1 for the fitting of the " + brdfName + " BRDF using the LTC technique\n"
+                + "        // From \"Real-Time Polygonal-Light Shading with Linearly Transformed Cosines\" 2016 (https://eheitzresearch.wordpress.com/415-2/)\n"
+                + "        //\n"
+                + "        // The table is accessed via LTCAreaLight." + tableName + "[<roughnessIndex> + 64 * <thetaIndex>]    // Theta values are along the Y axis, Roughness values are along the X axis\n"
+                + "        //    • roughness = ( <roughnessIndex> / " + (tableResolution - 1) + " )^2  (the table is indexed by perceptual roughness)\n";
             if (parametrization == LTCTableParametrization.CosTheta)
                 sourceCode += "        //    • cosTheta = 1 - ( <thetaIndex> / " + (tableResolution - 1) + " )^2\n";
             else
                 sourceCode += "        //    • theta = ( <thetaIndex> / " + (tableResolution - 1) + " )\n";
-             sourceCode += "        //\n"
-                        //                        + "        public static double[,]    " + tableName + " = new double[k_LtcLUTResolution * k_LtcLUTResolution, k_LtcLUTMatrixDim * k_LtcLUTMatrixDim] {";
-                        + "        public static double[,]    " + tableName + " = new double[" + tableResolution + " * " + tableResolution + ", 3 * 3]\n"
-                        + "        {";
+            sourceCode += "        //\n"
+                //                        + "        public static double[,]    " + tableName + " = new double[k_LtcLUTResolution * k_LtcLUTResolution, k_LtcLUTMatrixDim * k_LtcLUTMatrixDim] {";
+                + "        public static double[,]    " + tableName + " = new double[" + tableResolution + " * " + tableResolution + ", 3 * 3]\n"
+                + "        {";
 
             string lotsOfSpaces = "                                                                                                                            ";
             float alpha, cosTheta;

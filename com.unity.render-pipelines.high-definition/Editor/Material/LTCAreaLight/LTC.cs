@@ -65,7 +65,7 @@ namespace UnityEngine.Rendering.HighDefinition.LTC
         // Last fitting error
         public double error;
         // Last amount of iterations
-        public int iterationsCount;    
+        public int iterationsCount;
         // Runtime matrix representation
         public Matrix invM;
         // Determinant of the matrix
@@ -105,7 +105,8 @@ namespace UnityEngine.Rendering.HighDefinition.LTC
 
         static public double[] GetFittingParms(in LTCData ltcData)
         {
-            double[] tempParams = new double[] {
+            double[] tempParams = new double[]
+            {
                 ltcData.m11,
                 ltcData.m22,
                 ltcData.m13,
@@ -133,7 +134,7 @@ namespace UnityEngine.Rendering.HighDefinition.LTC
             }
 
             // Update the matrices
-            Update(ref ltcData);   
+            Update(ref ltcData);
         }
 
         static public void ComputeAverageTerms(IBRDF brdf, ref Vector3 tsView, float roughness, int sampleCount, ref LTCData ltcData)
@@ -241,7 +242,7 @@ namespace UnityEngine.Rendering.HighDefinition.LTC
         static double Invert(in Matrix _A, ref Matrix _B)
         {
             double det = (_A.m00 * _A.m11 * _A.m22 + _A.m01 * _A.m12 * _A.m20 + _A.m02 * _A.m10 * _A.m21)
-                        - (_A.m20 * _A.m11 * _A.m02 + _A.m21 * _A.m12 * _A.m00 + _A.m22 * _A.m10 * _A.m01);
+                - (_A.m20 * _A.m11 * _A.m02 + _A.m21 * _A.m12 * _A.m00 + _A.m22 * _A.m10 * _A.m01);
             if (Math.Abs(det) < double.Epsilon)
             {
                 // SHOULD NEVER HAPPEN
@@ -267,7 +268,7 @@ namespace UnityEngine.Rendering.HighDefinition.LTC
         public static void GetSamplingDirection(LTCData ltcData, float _U1, float _U2, ref Vector3 _direction)
         {
             // float theta = Mathf.Asin(Mathf.Sqrt(_U1));
-            float   theta = Mathf.Acos( Mathf.Sqrt( _U1 ) );
+            float   theta = Mathf.Acos(Mathf.Sqrt(_U1));
             float phi = 2.0f * Mathf.PI * _U2;
             Vector3 D = new Vector3(Mathf.Sin(theta) * Mathf.Cos(phi), Mathf.Sin(theta) * Mathf.Sin(phi), Mathf.Cos(theta));
 

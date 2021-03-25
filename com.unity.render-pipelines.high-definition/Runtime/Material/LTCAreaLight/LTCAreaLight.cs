@@ -106,7 +106,7 @@ namespace UnityEngine.Rendering.HighDefinition
         public void Build()
         {
             Debug.Assert(m_refCounting >= 0);
-            
+
             if (m_refCounting == 0)
             {
                 m_LtcData = new Texture2DArray(k_LtcLUTResolution, k_LtcLUTResolution, (int)LTCLightingModel.Count, GraphicsFormat.R16G16B16A16_SFloat, TextureCreationFlags.None)

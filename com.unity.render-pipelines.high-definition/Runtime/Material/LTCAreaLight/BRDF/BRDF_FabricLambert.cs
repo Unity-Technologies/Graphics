@@ -8,10 +8,10 @@ namespace UnityEngine.Rendering.HighDefinition.LTC
     /// </summary>
     struct BRDF_FabricLambert : IBRDF
     {
-        public double Eval( ref Vector3 _tsView, ref Vector3 _tsLight, float _alpha, out double _pdf )
+        public double Eval(ref Vector3 _tsView, ref Vector3 _tsLight, float _alpha, out double _pdf)
         {
             // Light Sample under the surface
-            if ( _tsView.z <= 0 )
+            if (_tsView.z <= 0)
             {
                 _pdf = 0;
                 return 0;

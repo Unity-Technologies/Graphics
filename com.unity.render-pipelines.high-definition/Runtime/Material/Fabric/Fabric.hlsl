@@ -337,7 +337,7 @@ PreLightData GetPreLightData(float3 V, PositionInputs posInput, inout BSDFData b
         preLightData.ltcTransformDiffuse      = 0.0;
         preLightData.ltcTransformDiffuse._m22 = 1.0;
         preLightData.ltcTransformDiffuse._m00_m02_m11_m20 = SAMPLE_TEXTURE2D_ARRAY_LOD(_LtcData, s_linear_clamp_sampler, uv, LTCLIGHTINGMODELS_FABRIC_LAMBERT, 0);
-        
+
         // Note we load the matrix transpose (avoid to have to transpose it in shader)
         preLightData.ltcTransformSpecular      = 0.0;
         preLightData.ltcTransformSpecular._m22 = 1.0;

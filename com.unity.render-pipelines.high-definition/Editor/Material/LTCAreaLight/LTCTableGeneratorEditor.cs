@@ -36,8 +36,8 @@ namespace UnityEngine.Rendering.HighDefinition.LTC
             List<Type> types = new List<Type>();
             Type searchInterface = typeof(IBRDF);
             return AppDomain.CurrentDomain.GetAssemblies()
-                    .SelectMany(s => s.GetTypes())
-                    .Where(p => searchInterface.IsAssignableFrom(p) && !p.IsInterface).ToArray();
+                .SelectMany(s => s.GetTypes())
+                .Where(p => searchInterface.IsAssignableFrom(p) && !p.IsInterface).ToArray();
         }
 
         static void BuildBRDFGenerators(ref LTCTableGenerator.BRDFGenerator[] BRDFGeneratorArray)
@@ -78,7 +78,7 @@ namespace UnityEngine.Rendering.HighDefinition.LTC
 
             EditorGUILayout.LabelField("Recognized BRDF Types: " + m_BRDFGeneratorArray.Length);
 
-            EditorGUILayout.Separator(); 
+            EditorGUILayout.Separator();
 
             // Display the generators and their toggles
             int numActiveGenerators = 0;

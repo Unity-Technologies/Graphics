@@ -10,15 +10,15 @@ namespace UnityEngine.Rendering.HighDefinition.LTC
     /// </summary>
     struct BRDF_KajiyaKaySpecular : IBRDF
     {
-        public double Eval( ref Vector3 _tsView, ref Vector3 _tsLight, float _alpha, out double _pdf )
+        public double Eval(ref Vector3 _tsView, ref Vector3 _tsLight, float _alpha, out double _pdf)
         {
-            if ( _tsView.z <= 0 )
+            if (_tsView.z <= 0)
             {
                 _pdf = 0;
                 return 0;
             }
 
-            _alpha = Mathf.Max( 0.002f, _alpha );
+            _alpha = Mathf.Max(0.002f, _alpha);
             double perceptualRoughness = Math.Sqrt(_alpha);
 
             Vector3 T = Vector3.right;
@@ -48,7 +48,7 @@ namespace UnityEngine.Rendering.HighDefinition.LTC
 
             // Uniform Sampling
             _pdf = 0.5 / Math.PI;
-    
+
             return res;
         }
 
@@ -67,7 +67,7 @@ namespace UnityEngine.Rendering.HighDefinition.LTC
             return Math.Min(Math.Max(2.0 / (roughness * roughness) - 2.0, 1e-4), 3e3);
         }
 
-        double F_Schlick(double _F0, double _F90, double _cosTheta )
+        double F_Schlick(double _F0, double _F90, double _cosTheta)
         {
             double x = 1.0f - _cosTheta;
             double x2 = x * x;
