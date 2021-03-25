@@ -149,6 +149,3 @@ Depending on the [Graph Settings](#graph-settings) you use, Shader Graph can add
 [!include[](snippets/shader-properties/advanced-options/add-precomputed-velocity.md)]
 </table>
 
-## Limitations
-
-[!include[](snippets/area-light-material-support-disclaimer.md)]

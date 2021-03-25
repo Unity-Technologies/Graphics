@@ -55,7 +55,8 @@ namespace UnityEngine.Rendering.HighDefinition.LTC
             }
         }
 
-        [MenuItem("Edit/Render Pipeline/HD Render Pipeline/Generate Area Light LTC Tables")]
+        // Not expose to users for now
+        //[MenuItem("Edit/Render Pipeline/HD Render Pipeline/Generate Area Light LTC Tables")]
         private static void Init()
         {
             // Create the window

@@ -15,6 +15,10 @@ Group of Materials / GameObject can be setup to use Force Emissive forward with 
 
 ## Improvements
 
+### Area Lights
+
+Area lights are now correctly supported for Fabric and Hair master node as well as for AxF shader.
+
 ### Density Volume (Local Volumetric Fog) Improvements
 
 Density Volumes are now known as **Local Volumetric Fog**. This is a more accurate, descriptive name that removes confusion with [Volumes](Volumes.md) and makes the relation to fog clearer.
