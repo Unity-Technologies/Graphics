@@ -6,6 +6,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using UnityEditor.Callbacks;
+using UnityEditorInternal;
 using UnityEngine;
 using UnityEngine.Rendering;
 
@@ -370,7 +371,11 @@ namespace UnityEditor.Rendering
             GUILayout.BeginHorizontal(EditorStyles.toolbar);
             GUILayout.FlexibleSpace();
             if (GUILayout.Button(Styles.resetButtonContent, EditorStyles.toolbarButton))
+            {
                 DebugManager.instance.Reset();
+                InternalEditorUtility.RepaintAllViews();
+            }
+
             GUILayout.EndHorizontal();
 
             using (new EditorGUILayout.HorizontalScope())
