@@ -6,9 +6,6 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ## [7.6.0] - 2021-03-25
 
-Version Updated
-The version number for this package has increased due to a version update of a related graphics package.
-
 ### Added
 - Support for the PlayStation 5 platform has been added.
 
