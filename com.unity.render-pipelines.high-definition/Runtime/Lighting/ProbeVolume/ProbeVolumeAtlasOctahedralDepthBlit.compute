@@ -8,6 +8,21 @@
 
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Lighting/ProbeVolume/ProbeVolumeLighting.cs.hlsl"
 
+// DEBUG:
+float3 UnpackNormalOctQuadEncode(float2 f)
+{
+    float3 n = float3(f.x, f.y, 1.0 - abs(f.x) - abs(f.y));
+
+    //float2 val = 1.0 - abs(n.yx);
+    //n.xy = (n.zz < float2(0.0, 0.0) ? (n.xy >= 0.0 ? val : -val) : n.xy);
+
+    // Optimized version of above code:
+    float t = max(-n.z, 0.0);
+    n.xy += n.xy >= 0.0 ? -t.xx : t.xx;
+
+    return normalize(n);
+}
+
 StructuredBuffer<float> _ProbeVolumeAtlasOctahedralDepthReadBuffer;
 RWTexture2D<float2> _ProbeVolumeAtlasOctahedralDepthWriteTexture;
 
@@ -19,8 +34,6 @@ float4 _ProbeVolumeAtlasOctahedralDepthResolutionAndInverse;
 
 uint2 ComputeWriteIndexFromReadIndex(uint readIndex, float3 resolution, float3 resolutionInverse, float4 scaleBias, float4 atlasResolutionAndInverse)
 {
-    // return uint2(readIndex % 1024u, readIndex >> 10);
-
     // _ProbeVolumeAtlasOctahedralDepthReadBuffer[z * resolutionY * resolutionX + y * resolutionX + x]
     // TODO: Could implement as floating point operations, which is likely faster.
     // Would need to verify precision.
@@ -32,9 +45,10 @@ uint2 ComputeWriteIndexFromReadIndex(uint readIndex, float3 resolution, float3 r
     // int width = resolution.x * resolution.z;
     // int height = resolution.y;
     // scaleBias: x,y is width and height (scale) z,w offset into atlas (bias)
-    // Handle Z "vertical" flip, as in source, index z == 0 is "top" and index z == resolution.z - 1 is "bottom"
-    // but in destination atlas, z coordinate min is "bottom", and z coordinate max is "top".
-    uint atlasX = x + (resolution.z - 1 - z) * (uint)resolution.x;
+    // // Handle Z "vertical" flip, as in source, index z == 0 is "top" and index z == resolution.z - 1 is "bottom"
+    // // but in destination atlas, z coordinate min is "bottom", and z coordinate max is "top".
+    // uint atlasX = x + (resolution.z - 1 - z) * (uint)resolution.x;
+    uint atlasX = x + z * (uint)resolution.x;
     uint atlasY = y;
 
     float atlasU = (float)atlasX + scaleBias.z * atlasResolutionAndInverse.x;
@@ -65,6 +79,22 @@ void PROBE_VOLUME_ATLAS_OCTAHEDRAL_DEPTH_BLIT_KERNEL(uint groupThreadId : SV_Gro
     uint2 writeIndexOctahedral = uint2(readIndexOctahedral % 8, readIndexOctahedral / 8);
     uint2 writeIndex = writeIndexProbe * 8 + writeIndexOctahedral;
 
-    // Depth sample is placed in X component, in order to be filtered into a mean, variance distribution and stored into XY in a following pass.
-    _ProbeVolumeAtlasOctahedralDepthWriteTexture[uint2(writeIndex.x, writeIndex.y)] = float2(_ProbeVolumeAtlasOctahedralDepthReadBuffer[readIndex], 0.0f);
+    float depthMean = _ProbeVolumeAtlasOctahedralDepthReadBuffer[readIndex * 2 + 0];
+    float depthMeanSquared =  _ProbeVolumeAtlasOctahedralDepthReadBuffer[readIndex * 2 + 1];
+    _ProbeVolumeAtlasOctahedralDepthWriteTexture[uint2(writeIndex.x, writeIndex.y)] = float2(depthMean, depthMeanSquared);
+
+    // {
+    //     // DEBUG: DELETE
+    //     uint x = readIndexProbe % (uint)_ProbeVolumeResolution.x;
+    //     uint y = (readIndexProbe / (uint)_ProbeVolumeResolution.x) % (uint)_ProbeVolumeResolution.y;
+    //     uint z = readIndexProbe / ((uint)_ProbeVolumeResolution.y * (uint)_ProbeVolumeResolution.x);
+
+    //     float normalizedX = (float)x / (float)_ProbeVolumeResolution.x;
+    //     float normalizedY = (float)y / (float)_ProbeVolumeResolution.y;
+    //     float normalizedZ = (float)z / (float)_ProbeVolumeResolution.z;
+
+    //     float3 octNormalWS = UnpackNormalOctQuadEncode(((float2)writeIndexOctahedral + 0.5f) / 8.0f * 2.0f - 1.0f);
+
+    //     _ProbeVolumeAtlasOctahedralDepthWriteTexture[uint2(writeIndex.x, writeIndex.y)] = float2(octNormalWS.z, 0.0f);
+    // }
 }

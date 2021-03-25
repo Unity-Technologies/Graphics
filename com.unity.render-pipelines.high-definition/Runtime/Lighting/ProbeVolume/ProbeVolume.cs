@@ -70,7 +70,7 @@ namespace UnityEngine.Rendering.HighDefinition
         public float[] dataSHL01;
         public float[] dataSHL2;
         public float[] dataValidity;
-        public float[] dataOctahedralDepth;
+        public float[] dataOctahedralDepth; // [depth, depthSquared] tuples.
 
         public static readonly ProbeVolumePayload zero = new ProbeVolumePayload
         {
@@ -88,6 +88,11 @@ namespace UnityEngine.Rendering.HighDefinition
         public static int GetDataSHL2Stride()
         {
             return 9 * 3 - GetDataSHL01Stride();
+        }
+
+        public static int GetDataOctahedralDepthStride()
+        {
+            return 8 * 8 * 2;
         }
 
         public static bool IsNull(ref ProbeVolumePayload payload)
@@ -113,7 +118,7 @@ namespace UnityEngine.Rendering.HighDefinition
             payload.dataOctahedralDepth = null;
             if (ShaderConfig.s_ProbeVolumesBilateralFilteringMode == ProbeVolumesBilateralFilteringModes.OctahedralDepth)
             {
-                payload.dataOctahedralDepth = new float[length * 8 * 8];
+                payload.dataOctahedralDepth = new float[length * GetDataOctahedralDepthStride()];
             }
         }
 
@@ -151,7 +156,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
             if (payloadSrc.dataOctahedralDepth != null && payloadDst.dataOctahedralDepth != null)
             {
-                Array.Copy(payloadSrc.dataOctahedralDepth, payloadDst.dataOctahedralDepth, length * 8 * 8);
+                Array.Copy(payloadSrc.dataOctahedralDepth, payloadDst.dataOctahedralDepth, length * GetDataOctahedralDepthStride());
             }
         }
 
@@ -377,6 +382,10 @@ namespace UnityEngine.Rendering.HighDefinition
     internal struct ProbeVolumeArtistParameters
     {
         public bool drawProbes;
+        public bool drawOctahedralDepthRays;
+        public int drawOctahedralDepthRayIndexX;
+        public int drawOctahedralDepthRayIndexY;
+        public int drawOctahedralDepthRayIndexZ;
         public Color debugColor;
         public int payloadIndex;
         public Vector3 size;
@@ -455,6 +464,10 @@ namespace UnityEngine.Rendering.HighDefinition
         {
             this.debugColor = debugColor;
             this.drawProbes = false;
+            this.drawOctahedralDepthRays = false;
+            this.drawOctahedralDepthRayIndexX = 0;
+            this.drawOctahedralDepthRayIndexY = 0;
+            this.drawOctahedralDepthRayIndexZ = 0;
             this.payloadIndex = -1;
             this.size = Vector3.one;
             this.m_PositiveFade = Vector3.zero;
@@ -649,6 +662,8 @@ namespace UnityEngine.Rendering.HighDefinition
                     break;
 
                 case ProbeVolumeAsset.AssetVersion.AddProbeVolumesAtlasEncodingModes:
+                    ApplyMigrationAddOctahedralDepthVarianceFromLightmapper();
+                    break;
                 default:
                     // No migration required.
                     break;
@@ -673,6 +688,33 @@ namespace UnityEngine.Rendering.HighDefinition
             probeVolumeAsset.dataSH = null;
             probeVolumeAsset.dataValidity = null;
             probeVolumeAsset.dataOctahedralDepth = null;
+        }
+
+        void ApplyMigrationAddOctahedralDepthVarianceFromLightmapper()
+        {
+            Debug.Assert(probeVolumeAsset != null && probeVolumeAsset.Version == (int)ProbeVolumeAsset.AssetVersion.AddProbeVolumesAtlasEncodingModes);
+
+            probeVolumeAsset.m_Version = (int)ProbeVolumeAsset.AssetVersion.AddOctahedralDepthVarianceFromLightmapper;
+
+            if (probeVolumeAsset.payload.dataOctahedralDepth == null) { return; }
+            
+            int probeLength = ProbeVolumePayload.GetLength(ref probeVolumeAsset.payload);
+            var dataOctahedralDepthMigrated = new float[probeLength * ProbeVolumePayload.GetDataOctahedralDepthStride()];
+
+            // Previously, the lightmapper only returned scalar mean depth values for octahedralDepth.
+            // Now it returns float2(depthMean, depthMean^2) which can be used to reconstruct a variance estimate.
+            int dataOctahedralDepthLengthPrevious = probeVolumeAsset.payload.dataOctahedralDepth.Length;
+            for (int i = 0; i < dataOctahedralDepthLengthPrevious; ++i)
+            {
+                float depthMean = probeVolumeAsset.payload.dataOctahedralDepth[i];
+
+                // For our migration, simply initialize our depthMeanSquared slots with depthMean * depthMean, which will reconstruct a zero variance estimate.
+                // Really, the user will want to rebake to get a real variance estimate. This migration just ensures we do not error out.
+                float depthMeanSquared = depthMean * depthMean;
+                dataOctahedralDepthMigrated[i * 2 + 0] = depthMean;
+                dataOctahedralDepthMigrated[i * 2 + 1] = depthMeanSquared;
+            }
+            probeVolumeAsset.payload.dataOctahedralDepth = dataOctahedralDepthMigrated;
         }
 
         protected void OnEnable()
@@ -802,7 +844,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
             // TODO: Currently, we need to always allocate and pass this octahedralDepth array into GetAdditionalBakedProbes().
             // In the future, we should add an API call for GetAdditionalBakedProbes() without octahedralDepth required.
-            var octahedralDepth = new NativeArray<float>(numProbes * 8 * 8, Allocator.Temp, NativeArrayOptions.UninitializedMemory);
+            var octahedralDepth = new NativeArray<Vector2>(numProbes * 8 * 8, Allocator.Temp, NativeArrayOptions.UninitializedMemory);
 
             if(UnityEditor.Experimental.Lightmapping.GetAdditionalBakedProbes(GetID(), sh, validity, octahedralDepth))
             {
@@ -827,7 +869,11 @@ namespace UnityEngine.Rendering.HighDefinition
 
                 if (ShaderConfig.s_ProbeVolumesBilateralFilteringMode == ProbeVolumesBilateralFilteringModes.OctahedralDepth)
                 {
-                    octahedralDepth.CopyTo(probeVolumeAsset.payload.dataOctahedralDepth);
+                    for (int i = 0, iLen = octahedralDepth.Length; i < iLen; ++i)
+                    {
+                        probeVolumeAsset.payload.dataOctahedralDepth[i * 2 + 0] = octahedralDepth[i].x;
+                        probeVolumeAsset.payload.dataOctahedralDepth[i * 2 + 1] = octahedralDepth[i].y;
+                    }
                 }
 
                 if (UnityEditor.Lightmapping.giWorkflowMode != UnityEditor.Lightmapping.GIWorkflowMode.Iterative)
@@ -1007,6 +1053,8 @@ namespace UnityEngine.Rendering.HighDefinition
 
         internal void DrawSelectedProbes()
         {
+            DrawOctahedralDepthRays(this);
+
             if (!ShouldDrawGizmos(this))
                 return;
 
@@ -1037,6 +1085,135 @@ namespace UnityEngine.Rendering.HighDefinition
 
             foreach (Matrix4x4[] matrices in m_DebugProbeMatricesList)
                 Graphics.DrawMeshInstanced(mesh, submeshIndex, material, matrices, matrices.Length, properties, castShadows, receiveShadows, layer, emptyCamera, lightProbeUsage, lightProbeProxyVolume);
+        }
+
+        private static void DrawOctahedralDepthRays(ProbeVolume probeVolume)
+        {
+            if (ShaderConfig.s_ProbeVolumesBilateralFilteringMode != ProbeVolumesBilateralFilteringModes.OctahedralDepth) { return; }
+            if (!probeVolume.parameters.drawOctahedralDepthRays) { return; }
+            if (probeVolume.probeVolumeAsset == null) { return; }
+            if (probeVolume.probeVolumeAsset.payload.dataOctahedralDepth == null) { return; }
+
+            Vector3 probePositionWS = ComputeProbePositionWS(
+                probeVolume,
+                probeVolume.parameters.drawOctahedralDepthRayIndexX,
+                probeVolume.parameters.drawOctahedralDepthRayIndexY,
+                probeVolume.parameters.drawOctahedralDepthRayIndexZ
+            );
+
+            int probeIndex1D = ComputeProbeIndex1DFrom3D(
+                probeVolume,
+                probeVolume.parameters.drawOctahedralDepthRayIndexX,
+                probeVolume.parameters.drawOctahedralDepthRayIndexY,
+                probeVolume.parameters.drawOctahedralDepthRayIndexZ
+            );
+
+            const int octahedralDepthResolution = 8;
+            int octahedralDepthIndexBase = probeIndex1D * octahedralDepthResolution * octahedralDepthResolution;
+
+            for (int y = 0; y < octahedralDepthResolution; ++y)
+            {
+                for (int x = 0; x < octahedralDepthResolution; ++x)
+                {
+                    int i = y * 8 + x + octahedralDepthIndexBase;
+
+                    Vector3 rayDirectionWS = UnpackNormalOctQuadEncode(new Vector2(
+                        ((float)x + 0.5f) / octahedralDepthResolution * 2.0f - 1.0f,
+                        ((float)y + 0.5f) / octahedralDepthResolution * 2.0f - 1.0f
+                    ));
+
+                    float depthMean = probeVolume.probeVolumeAsset.payload.dataOctahedralDepth[i * 2 + 0];
+                    float depthMeanSquared = probeVolume.probeVolumeAsset.payload.dataOctahedralDepth[i * 2 + 1];
+                    float variance = Mathf.Max(1e-5f, depthMeanSquared - depthMean * depthMean);
+
+                    Vector3 positionVarianceMinWS = rayDirectionWS * Mathf.Max(0.0f, (depthMean - variance)) + probePositionWS;
+                    Vector3 positionVarianceMaxWS = rayDirectionWS * Mathf.Max(0.0f, (depthMean + variance)) + probePositionWS;
+                    Debug.DrawLine(probePositionWS, positionVarianceMinWS, Color.red);
+                    Debug.DrawLine(positionVarianceMinWS, positionVarianceMaxWS, Color.green);
+                }
+            }
+        }
+
+        private static Vector3 ComputeProbePositionWS(ProbeVolume probeVolume, int x, int y, int z)
+        {
+            Debug.Assert(probeVolume != null);
+            Debug.Assert(x >= 0 && x < probeVolume.parameters.resolutionX);
+            Debug.Assert(y >= 0 && y < probeVolume.parameters.resolutionY);
+            Debug.Assert(z >= 0 && z < probeVolume.parameters.resolutionZ);
+
+            Vector3 uvw = new Vector3(
+                (x + 0.5f) / probeVolume.parameters.resolutionX,
+                (y + 0.5f) / probeVolume.parameters.resolutionY,
+                (z + 0.5f) / probeVolume.parameters.resolutionZ
+            );
+
+            Vector3 positionOS = new Vector3(
+                (uvw.x - 0.5f) * probeVolume.parameters.size.x,
+                (uvw.y - 0.5f) * probeVolume.parameters.size.y,
+                (uvw.z - 0.5f) * probeVolume.parameters.size.z
+            );
+            Vector3 positionWS = (probeVolume.transform.rotation * positionOS) + probeVolume.transform.position;
+
+            return positionWS;
+        }
+
+        // Expects a [-1, 1] range value.
+        private static Vector3 UnpackNormalOctQuadEncode(Vector2 f)
+        {
+            Vector3 n = new Vector3(f.x, f.y, 1.0f - Mathf.Abs(f.x) - Mathf.Abs(f.y));
+            float t = Mathf.Max(-n.z, 0.0f);
+
+            n = new Vector3(
+                n.x + (n.x > 0.0f ? -t : t),
+                n.y + (n.y > 0.0f ? -t : t),
+                n.z
+            );
+
+            return Vector3.Normalize(n);
+        }
+
+        internal static int ComputeProbeIndex1DFrom3D(ProbeVolume probeVolume, int x, int y, int z)
+        {
+            Debug.Assert(probeVolume != null);
+            Debug.Assert(x >= 0 && x < probeVolume.parameters.resolutionX);
+            Debug.Assert(y >= 0 && y < probeVolume.parameters.resolutionY);
+            Debug.Assert(z >= 0 && z < probeVolume.parameters.resolutionZ);
+
+            return z * probeVolume.parameters.resolutionY * probeVolume.parameters.resolutionX
+                + y * probeVolume.parameters.resolutionX
+                + x;
+        }
+
+        internal static Vector2Int ComputeProbeOctahedralDepthIndex2DFrom3D(ProbeVolume probeVolume, int x, int y, int z)
+        {
+            Debug.Assert(probeVolume != null);
+            Debug.Assert(x >= 0 && x < probeVolume.parameters.resolutionX);
+            Debug.Assert(y >= 0 && y < probeVolume.parameters.resolutionY);
+            Debug.Assert(z >= 0 && z < probeVolume.parameters.resolutionZ);
+
+            // Z slices are packed horizontally.
+            return new Vector2Int(
+                x + z * probeVolume.parameters.resolutionX,
+                y
+            );
+        }
+
+        internal static Vector4 ComputeProbeOctahedralDepthScaleBias2D(ProbeVolume probeVolume, int x, int y, int z)
+        {
+            Debug.Assert(probeVolume != null);
+            Debug.Assert(x >= 0 && x < probeVolume.parameters.resolutionX);
+            Debug.Assert(y >= 0 && y < probeVolume.parameters.resolutionY);
+            Debug.Assert(z >= 0 && z < probeVolume.parameters.resolutionZ);
+
+            Vector2Int probeOctahedralDepthIndex2D = ComputeProbeOctahedralDepthIndex2DFrom3D(probeVolume, x, y, z);
+
+            // Z slices are packed horizontally.
+            Vector2 probeOctahedralDepthScale2D = new Vector2(
+                1.0f / (probeVolume.parameters.resolutionX * probeVolume.parameters.resolutionZ),
+                1.0f / probeVolume.parameters.resolutionY
+            );
+
+            return new Vector4(probeOctahedralDepthScale2D.x, probeOctahedralDepthScale2D.y, probeOctahedralDepthIndex2D.x, probeOctahedralDepthIndex2D.y);
         }
 #endif
     }

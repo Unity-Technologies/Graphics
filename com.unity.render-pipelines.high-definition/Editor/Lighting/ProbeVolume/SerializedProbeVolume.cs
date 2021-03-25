@@ -6,6 +6,10 @@ namespace UnityEditor.Rendering.HighDefinition
         internal SerializedProperty probeVolumeAsset;
         internal SerializedProperty debugColor;
         internal SerializedProperty drawProbes;
+        internal SerializedProperty drawOctahedralDepthRays;
+        internal SerializedProperty drawOctahedralDepthRayIndexX;
+        internal SerializedProperty drawOctahedralDepthRayIndexY;
+        internal SerializedProperty drawOctahedralDepthRayIndexZ;
 
         internal SerializedProperty probeSpacingMode;
 
@@ -47,6 +51,11 @@ namespace UnityEditor.Rendering.HighDefinition
 
             debugColor = probeVolumeParams.FindPropertyRelative("debugColor");
             drawProbes = probeVolumeParams.FindPropertyRelative("drawProbes");
+
+            drawOctahedralDepthRays = probeVolumeParams.FindPropertyRelative("drawOctahedralDepthRays");
+            drawOctahedralDepthRayIndexX = probeVolumeParams.FindPropertyRelative("drawOctahedralDepthRayIndexX");
+            drawOctahedralDepthRayIndexY = probeVolumeParams.FindPropertyRelative("drawOctahedralDepthRayIndexY");
+            drawOctahedralDepthRayIndexZ = probeVolumeParams.FindPropertyRelative("drawOctahedralDepthRayIndexZ");
 
             probeSpacingMode = probeVolumeParams.FindPropertyRelative("probeSpacingMode");
 

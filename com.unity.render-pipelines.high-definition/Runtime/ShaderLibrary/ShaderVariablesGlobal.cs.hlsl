@@ -153,6 +153,9 @@ GLOBAL_CBUFFER_START(ShaderVariablesGlobal, b0)
     float _GlobalTessellationFactorMultiplier;
     float _SpecularOcclusionBlend;
     float _Pad9;
+    float2 _ProbeVolumeBilateralFilterOctahedralDepthParameters;
+    float _Pad10;
+    float _Pad11;
 CBUFFER_END
 
 
