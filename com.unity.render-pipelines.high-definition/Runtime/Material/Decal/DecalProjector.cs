@@ -7,7 +7,7 @@ namespace UnityEngine.Rendering.HighDefinition
     /// <summary>
     /// Decal Projector component.
     /// </summary>
-    [HelpURL(Documentation.baseURL + Documentation.version + Documentation.subURL + "Decal-Projector" + Documentation.endURL)]
+    [HDRPHelpURLAttribute("Decal-Projector")]
     [ExecuteAlways]
 #if UNITY_EDITOR
     [CanEditMultipleObjects]
@@ -316,8 +316,7 @@ namespace UnityEngine.Rendering.HighDefinition
             if (m_Material == null)
             {
 #if UNITY_EDITOR
-                var hdrp = HDRenderPipeline.defaultAsset;
-                m_Material = hdrp != null ? hdrp.GetDefaultDecalMaterial() : null;
+                m_Material = HDRenderPipelineGlobalSettings.instance != null ? HDRenderPipelineGlobalSettings.instance.GetDefaultDecalMaterial() : null;
 #else
                 m_Material = null;
 #endif

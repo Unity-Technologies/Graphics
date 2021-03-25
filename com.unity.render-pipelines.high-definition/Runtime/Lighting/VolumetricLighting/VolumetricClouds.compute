@@ -36,7 +36,7 @@
 #define MIN_CLOUD_DISTANCE 10.0
 // Distance until which the erosion texture i used
 #define MIN_EROSION_DISTANCE 3000.0
-#define MAX_EROSION_DISTANCE 100000.0
+#define MAX_EROSION_DISTANCE 300000.0
 // Value that is used to normalize the noise textures
 #define NOISE_TEXTURE_NORMALIZATION_FACTOR 100000.0f
 
@@ -442,8 +442,8 @@ void EvaluateCloudProperties(float3 positionWS, float noiseMipOffset, float eros
     float3 densityErosionAO = SAMPLE_TEXTURE2D_LOD(_CloudLutTexture, s_linear_clamp_sampler, float2(cloudCoverageData.cloudType, properties.height), CLOUD_LUT_MIP_OFFSET);
 
     // Adjust the shape and erosion factor based on the LUT and the coverage
-    shapeFactor = lerp(0, shapeFactor * densityErosionAO.y, cloudCoverageData.coverage.x);
-    erosionFactor = lerp(0, erosionFactor * densityErosionAO.y, cloudCoverageData.coverage.x);
+    shapeFactor = shapeFactor * densityErosionAO.y;
+    erosionFactor = erosionFactor * densityErosionAO.y;
 
     // Combine with the low frequency noise, we want less shaping for large clouds
     lowFrequencyNoise = lerp(1.0, lowFrequencyNoise, shapeFactor);
@@ -454,7 +454,7 @@ void EvaluateCloudProperties(float3 positionWS, float noiseMipOffset, float eros
     properties.ambientOcclusion = densityErosionAO.z;
 
     // Change the sigma based on the rain cloud data
-    properties.sigmaT = lerp(0.04, 0.12, cloudCoverageData.rainClouds);
+    properties.sigmaT = lerp(0.01, 0.12, cloudCoverageData.rainClouds);
 
     // The ambient occlusion value that is baked is less relevant if there is shaping or erosion, small hack to compensate that
     float ambientOcclusionBlend = saturate(1.0 - max(erosionFactor, shapeFactor) * 0.5);
@@ -1064,7 +1064,7 @@ void ComputeVolumetricCloudsShadow(uint3 currentCoords : SV_DispatchThreadID, ui
     IntersectPlane(float3(0, _EarthRadius, 0), _SunDirection.xyz, shadowPlaneOrigin, shadowPlaneNormal, t);
 
     // Compute the position of the shadow plane
-    float3 shadowCookieCenter = float3(_WorldSpaceCameraPos.x, _EarthRadius + _ShadowPlaneOffset, _WorldSpaceCameraPos.z) + t * _SunDirection.xyz;
+    float3 shadowCookieCenter = float3(_WorldSpaceShadowCenter.x, _EarthRadius + _ShadowPlaneOffset, _WorldSpaceShadowCenter.y) + t * _SunDirection.xyz;
 
     // Compute the normalized coordinate on the shadow plane
     float2 normalizedCoord = (currentCoords.xy - _ShadowCookieResolution * 0.5f) / (_ShadowCookieResolution * 0.5f);

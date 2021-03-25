@@ -29,7 +29,7 @@
 // Thereshold at which we decide to reject the reflection history
 #define REFLECTION_HISTORY_REJECTION_THRESHOLD 0.75
 // Threshold at which we go from accumulation to clampiong
-#define SMOOTHNESS_ACCUMULATION_THRESHOLD 0.5
+#define ROUGHNESS_ACCUMULATION_THRESHOLD 0.5
 
 // Input textures
 TEXTURE2D_X(_DenoiseInputTexture);
@@ -86,7 +86,7 @@ void TEMPORAL_ACCUMULATION(uint3 dispatchThreadId : SV_DispatchThreadID, uint2 g
     // Compute the current and history UV coordinates
     float2 currentUV = (mainCoord + 0.5f) * _ScreenSize.zw;
     float2 historyCoordinate = ((float2)(mainCoord + 0.5f) - velocity * _CurrentEffectResolution.xy);
-    float2 historyUV = historyCoordinate * _HistoryBufferSize.xy;
+    float2 historyUV = clamp(historyCoordinate, 0.0f, _CurrentEffectResolution.xy - 1.0f) * _HistoryBufferSize.xy;
 
     // Fetch the current and history values and apply the exposition to it.
     float3 color = Fetch(_DenoiseInputTexture, currentUV, 0.0, _RTHandleScale.xy) * GetCurrentExposureMultiplier();
@@ -102,12 +102,13 @@ void TEMPORAL_ACCUMULATION(uint3 dispatchThreadId : SV_DispatchThreadID, uint2 g
 
     float sampleCount = historyRaw.w;
     float3 result;
-    if (normalData.perceptualRoughness > SMOOTHNESS_ACCUMULATION_THRESHOLD)
+    if (normalData.perceptualRoughness > ROUGHNESS_ACCUMULATION_THRESHOLD)
     {
         bool canBeReprojected = true;
 
         // If the pixel was outside of the screen during the previous frame, invalidate the history
-        if (historyCoordinate.x >= _CurrentEffectResolution.x || historyCoordinate.x < 0 || historyCoordinate.y >= _CurrentEffectResolution.y || historyCoordinate.y < 0)
+        if (historyCoordinate.x >= _CurrentEffectResolution.x || historyCoordinate.x < 0
+            || historyCoordinate.y >= _CurrentEffectResolution.y || historyCoordinate.y < 0)
             canBeReprojected = false;
 
     #ifdef HALF_RESOLUTION
