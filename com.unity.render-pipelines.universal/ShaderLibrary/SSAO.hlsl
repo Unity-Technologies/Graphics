@@ -25,6 +25,11 @@ float4 _CameraViewXExtent[2];
 float4 _CameraViewYExtent[2];
 float4 _CameraViewZExtent[2];
 
+// Hardcoded random UV values that improves performance.
+// The values were taken from this function:
+// r = frac(43758.5453 * sin( dot(float2(12.9898, 78.233), uv)) ));
+// Indices  0 to 19 are for u = 0.0
+// Indices 20 to 39 are for u = 1.0
 static half RandomUV[40] =
 {
     0.00000000,  // 00
@@ -85,21 +90,21 @@ static half RandomUV[40] =
 // Function defines
 #define SCREEN_PARAMS        GetScaledScreenParams()
 #define SAMPLE_BASEMAP(uv)   SAMPLE_TEXTURE2D_X(_BaseMap, sampler_BaseMap, UnityStereoTransformScreenSpaceTex(uv));
-#define SAMPLE_BASEMAP_R(uv) SAMPLE_TEXTURE2D_X(_BaseMap, sampler_BaseMap, UnityStereoTransformScreenSpaceTex(uv)).r;
-
 
 // Constants
 // kContrast determines the contrast of occlusion. This allows users to control over/under
 // occlusion. At the moment, this is not exposed to the editor because it's rarely useful.
-static const half kContrast = half(0.6);
+// The range is between 0 and 1.
+static const half kContrast = half(0.5);
 
 // The constant below controls the geometry-awareness of the bilateral
 // filter. The higher value, the more sensitive it is.
 static const half kGeometryCoeff = half(0.8);
 
 // The constants below are used in the AO estimator. Beta is mainly used for suppressing
-// self-shadowing noise, and Epsilon is used to prevent calculation underflow. See the
-// paper (Morgan 2011 https://bit.ly/3uAPRgz) for further details of these constants.
+// self-shadowing noise, and Epsilon is used to prevent calculation underflow. See the paper
+// (Morgan 2011 https://casual-effects.com/research/McGuire2011AlchemyAO/index.html)
+// for further details of these constants.
 static const half kBeta = half(0.002);
 static const half kEpsilon = half(0.0001);
 
@@ -325,7 +330,7 @@ half4 SSAO(Varyings input) : SV_Target
     for (int s = 0; s < SAMPLE_COUNT; s++)
     {
         // Sample point
-        half3 v_s1 = PickSamplePoint(uv, s); // (kchang) should we rotate this "random" vector to world space?
+        half3 v_s1 = PickSamplePoint(uv, s);
 
         // Make it distributed between [0, _Radius]
         v_s1 *= sqrt((half(s) + half(1.0)) * rcpSampleCount) * RADIUS;
