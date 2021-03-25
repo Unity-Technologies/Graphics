@@ -21,8 +21,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ### Added
 - Support for the XboxSeries platform has been added.
-
 ### Fixed
+- Fixed an issue where fog node density was incorrectly calculated.
 - Fixed inspector property header styling
 - Added padding to the blackboard window to prevent overlapping of resize region and scrollbars interfering with user interaction
 - Blackboard now properly handles selection persistence of items between undo and redos
