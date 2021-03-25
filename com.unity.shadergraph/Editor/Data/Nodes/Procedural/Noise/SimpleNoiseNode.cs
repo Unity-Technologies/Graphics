@@ -48,7 +48,7 @@ namespace UnityEditor.ShaderGraph
             registry.ProvideFunction("Unity_SimpleNoise_RandomValue_$precision", s => s.Append(@"
 inline $precision Unity_SimpleNoise_RandomValue_$precision ($precision2 uv)
 {
-    return frac(sin(dot(uv, $precision2(12.9898, 78.233)))*43758.5453);
+    return frac(sin(fmod(dot(uv, $precision2(12.9898, 78.233)), TWO_PI))*43758.5453);
 }"));
 
             registry.ProvideFunction($"Unity_SimpleNnoise_Interpolate_$precision", s => s.Append(@"
