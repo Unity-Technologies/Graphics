@@ -62,14 +62,14 @@ float2 Rotate(float2 v, float cos0, float sin0)
 float GetLinearDepthValue(float2 uv)
 {
 #ifdef HDRP_FLARE
-    float depth = //LoadSceneDepth(uv * _ScreenSize.xy);
-        LOAD_TEXTURE2D_X_LOD(_CameraDepthTexture, uint2(uv * _ScreenSize.xy), 0).r;
-#else
-    float depth = LoadSceneDepth(uv * _ScreenSize.xy);
-        //LOAD_TEXTURE2D_X(_CameraDepthTexture, uint2(uv * _ScreenSize.xy)).r;
-#endif
+    float depth = LOAD_TEXTURE2D_X_LOD(_CameraDepthTexture, uint2(uv * _ScreenSize.xy), 0).r;
 
     return 1.0 / (_ZBufferParams.z * depth + _ZBufferParams.w);
+#else
+    float depth = LOAD_TEXTURE2D_X(_CameraDepthTexture, uint2(uv * _ScreenSize.xy)).r;
+
+    return UNITY_Z_0_FAR_FROM_CLIPSPACE(depth);
+#endif
 }
 
 float GetOcclusion(float2 screenPos, float flareDepth, float ratio)
@@ -86,7 +86,10 @@ float GetOcclusion(float2 screenPos, float flareDepth, float ratio)
         float2 dir = _OcclusionRadius * SampleDiskUniform(Hash(2 * i + 0 + 1), Hash(2 * i + 1 + 1));
         float2 pos = screenPos + dir;
         pos.xy = pos * 0.5f + 0.5f;
+#ifdef HDRP_FLARE
         pos.y = 1.0f - pos.y;
+#else
+#endif
         if (all(pos >= 0) && all(pos <= 1))
         {
             //float depth0 = LinearEyeDepth(SampleCameraDepth(pos), _ZBufferParams);
