@@ -65,25 +65,7 @@ namespace UnityEngine.Rendering
 
         static protected int ImportanceVolumesToVolumes(ProbeHintVolume[] hintVolumes, ref ProbeReferenceVolume.Volume cellVolume, ref List<ProbeReferenceVolume.Volume> volumes, ref Dictionary<Scene, int> sceneRefs)
         {
-            int num = 0;
-
-            foreach (var hintVolume in hintVolumes)
-            {
-                if (!hintVolume.isActiveAndEnabled)
-                    continue;
-
-                ProbeReferenceVolume.Volume indicatorVolume = new ProbeReferenceVolume.Volume(hintVolume.GetTransform(), hintVolume.maxSubdivision);
-
-                if (ProbeVolumePositioning.OBBIntersect(ref cellVolume, ref indicatorVolume))
-                {
-                    cellVolume.maxSubdivision = Mathf.Max(cellVolume.maxSubdivision, hintVolume.maxSubdivision);
-                    volumes.Add(indicatorVolume);
-                    TrackSceneRefs(hintVolume.gameObject.scene, ref sceneRefs);
-                    num++;
-                }
-            }
-
-            return num;
+            return 0;
         }
 
         static protected int LightsToVolumes(ref ProbeReferenceVolume.Volume cellVolume, ref List<ProbeReferenceVolume.Volume> volumes, ref Dictionary<Scene, int> sceneRefs)
@@ -101,11 +83,11 @@ namespace UnityEngine.Rendering
                 if (!pv.isActiveAndEnabled)
                     continue;
 
-                ProbeReferenceVolume.Volume indicatorVolume = new ProbeReferenceVolume.Volume(Matrix4x4.TRS(pv.transform.position, pv.transform.rotation, pv.GetExtents()), pv.parameters.maxSubdivision);
+                ProbeReferenceVolume.Volume indicatorVolume = new ProbeReferenceVolume.Volume(Matrix4x4.TRS(pv.transform.position, pv.transform.rotation, pv.GetExtents()), pv.parameters.maxSubdivision, pv.parameters.minSubdivision);
 
                 if (ProbeVolumePositioning.OBBIntersect(ref cellVolume, ref indicatorVolume))
                 {
-                    cellVolume.maxSubdivision = Mathf.Max(cellVolume.maxSubdivision, pv.parameters.maxSubdivision);
+                    cellVolume.maxSubdivision = Mathf.Max(cellVolume.maxSubdivision, pv.parameters.maxSubdivision, pv.parameters.minSubdivision);
                     volumes.Add(indicatorVolume);
                     TrackSceneRefs(pv.gameObject.scene, ref sceneRefs);
                     num++;
@@ -165,6 +147,7 @@ namespace UnityEngine.Rendering
 
                 // Find the local max from all overlapping probe volumes:
                 float localMaxSubdiv = 0;
+                float localMinSubdiv = 0;
                 foreach (ProbeReferenceVolume.Volume v in probeVolumes)
                 {
                     ProbeReferenceVolume.Volume vol = v;
@@ -173,9 +156,10 @@ namespace UnityEngine.Rendering
                 }
 
                 bool subdivisionBelowLimit = subdivisionLevel <= ProbeReferenceVolume.instance.GetMaxSubdivision(localMaxSubdiv);
+                bool subdivision = subdivisionLevel <= ProbeReferenceVolume.instance.GetMaxSubdivision(localMaxSubdiv);
 
                 // Keep bricks that overlap at least one probe volume, and at least one influencer (mesh)
-                if (subdivisionBelowLimit && ShouldKeepBrick(probeVolumes, brickVolume) && ShouldKeepBrick(influenceVolumes, brickVolume))
+                if ((subdivisionBelowLimit && ShouldKeepBrick(probeVolumes, brickVolume) && ShouldKeepBrick(influenceVolumes, brickVolume)))
                 {
                     f.subdivide = true;
 
@@ -227,7 +211,7 @@ namespace UnityEngine.Rendering
                 if (!pv.enabled)
                     continue;
 
-                indicatorVolumes.Add(new ProbeReferenceVolume.Volume(Matrix4x4.TRS(pv.transform.position, pv.transform.rotation, pv.GetExtents()), pv.parameters.maxSubdivision));
+                indicatorVolumes.Add(new ProbeReferenceVolume.Volume(Matrix4x4.TRS(pv.transform.position, pv.transform.rotation, pv.GetExtents()), pv.parameters.maxSubdivision, pv.parameters.minSubdivision));
             }
 
             ProbeReferenceVolume.SubdivisionDel subdivDel =

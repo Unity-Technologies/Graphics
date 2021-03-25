@@ -20,12 +20,12 @@ namespace UnityEngine.Rendering
             float scaledSize = Mathf.Pow(3, brick.subdivisionLevel);
             Vector3 scaledPos = refTrans.refSpaceToWS.MultiplyPoint(brick.position);
 
-            ProbeReferenceVolume.Volume bounds;
-            bounds.corner = scaledPos;
-            bounds.X = refTrans.refSpaceToWS.GetColumn(0) * scaledSize;
-            bounds.Y = refTrans.refSpaceToWS.GetColumn(1) * scaledSize;
-            bounds.Z = refTrans.refSpaceToWS.GetColumn(2) * scaledSize;
-            bounds.maxSubdivision = 1;
+            var bounds = new ProbeReferenceVolume.Volume(
+                scaledPos,
+                refTrans.refSpaceToWS.GetColumn(0) * scaledSize,
+                refTrans.refSpaceToWS.GetColumn(1) * scaledSize,
+                refTrans.refSpaceToWS.GetColumn(2) * scaledSize
+            );
 
             return bounds;
         }
@@ -38,6 +38,15 @@ namespace UnityEngine.Rendering
 
         public static bool OBBIntersect(ref ProbeReferenceVolume.Volume a, ref ProbeReferenceVolume.Volume b)
         {
+            // First we test if the bouding spheres intersects, in which case we case do the more complex OBB test
+            a.UpdateStuff();
+            b.UpdateStuff();
+
+            var aRadius = Mathf.Max(Mathf.Max(a.size.x, a.size.y), a.size.z) / 2.0f;
+            var bRadius = Mathf.Max(Mathf.Max(b.size.x, b.size.y), b.size.z) / 2.0f;
+            if (Vector3.Distance(a.center, b.center) > aRadius + bRadius)
+                return false;
+
             m_Axes[0] = a.X.normalized;
             m_Axes[1] = a.Y.normalized;
             m_Axes[2] = a.Z.normalized;

@@ -3,6 +3,7 @@
 using System.Collections.Generic;
 using Unity.Collections;
 using System;
+using System.Linq;
 using UnityEditor;
 
 using Brick = UnityEngine.Rendering.ProbeBrickIndex.Brick;
@@ -444,37 +445,59 @@ namespace UnityEngine.Rendering
 
         private static void DeduplicateProbePositions(in Vector3[] probePositions, out Vector3[] deduplicatedProbePositions, out int[] indices)
         {
-            List<Vector3> uniqueProbePositions = new List<Vector3>();
-
+            var uniquePositions = new Dictionary<Vector3, int>();
             indices = new int[probePositions.Length];
 
-            // find duplicates
-            for (int i = 0; i < probePositions.Length; ++i)
+            int uniqueIndex = 0;
+            for (int i = 0; i < probePositions.Length; i++)
             {
-                Vector3 ppi = probePositions[i];
-                bool isDuplicate = false;
-                int index = uniqueProbePositions.Count;
+                var pos = probePositions[i];
 
-                // push if not a duplicate
-                for (int j = 0; j < uniqueProbePositions.Count; ++j)
+                if (uniquePositions.TryGetValue(pos, out var index))
                 {
-                    Vector3 ppj = uniqueProbePositions[j];
-
-                    if (ppi == ppj)
-                    {
-                        isDuplicate = true;
-                        index = j;
-                        break;
-                    }
+                    indices[i] = index;
                 }
-
-                if (!isDuplicate)
-                    uniqueProbePositions.Add(ppi);
-
-                indices[i] = index;
+                else
+                {
+                    uniquePositions[pos] = uniqueIndex;
+                    indices[i] = uniqueIndex;
+                    uniqueIndex++;
+                }
             }
 
-            deduplicatedProbePositions = uniqueProbePositions.ToArray();
+            deduplicatedProbePositions = uniquePositions.Keys.ToArray();
+
+            // List<Vector3> uniqueProbePositions = new List<Vector3>();
+
+            // indices = new int[probePositions.Length];
+
+            // // find duplicates
+            // for (int i = 0; i < probePositions.Length; ++i)
+            // {
+            //     Vector3 ppi = probePositions[i];
+            //     bool isDuplicate = false;
+            //     int index = uniqueProbePositions.Count;
+
+            //     // push if not a duplicate
+            //     for (int j = 0; j < uniqueProbePositions.Count; ++j)
+            //     {
+            //         Vector3 ppj = uniqueProbePositions[j];
+
+            //         if (ppi == ppj)
+            //         {
+            //             isDuplicate = true;
+            //             index = j;
+            //             break;
+            //         }
+            //     }
+
+            //     if (!isDuplicate)
+            //         uniqueProbePositions.Add(ppi);
+
+            //     indices[i] = index;
+            // }
+
+            // deduplicatedProbePositions = uniqueProbePositions.ToArray();
         }
 
         public static void RunPlacement()

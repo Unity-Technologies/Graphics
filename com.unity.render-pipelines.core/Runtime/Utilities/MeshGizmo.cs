@@ -92,7 +92,6 @@ namespace UnityEngine.Rendering
 
         public void Dispose()
         {
-            CoreUtils.Destroy(wireMaterial);
             CoreUtils.Destroy(mesh);
         }
     }

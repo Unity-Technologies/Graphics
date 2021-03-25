@@ -10,13 +10,16 @@ namespace UnityEngine.Rendering
     internal struct ProbeVolumeArtistParameters
     {
         public Vector3  size;
-        [Range(0, 1)]
+        [HideInInspector]
         public float    maxSubdivision;
+        [HideInInspector]
+        public float    minSubdivision;
 
-        public ProbeVolumeArtistParameters(Color debugColor, float maxSubdivision = 1)
+        public ProbeVolumeArtistParameters(Color debugColor, float maxSubdivision = 1, float minSubdivision = 0)
         {
             this.size = Vector3.one;
             this.maxSubdivision = maxSubdivision;
+            this.minSubdivision = minSubdivision;
         }
     } // class ProbeVolumeArtistParameters
 

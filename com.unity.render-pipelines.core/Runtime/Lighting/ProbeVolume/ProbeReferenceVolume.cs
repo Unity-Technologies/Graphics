@@ -60,16 +60,34 @@ namespace UnityEngine.Rendering
             internal Vector3 X;   // the vectors are NOT normalized, their length determines the size of the box
             internal Vector3 Y;
             internal Vector3 Z;
+            internal Vector3 center;
+            internal Vector3 size;
 
             internal float maxSubdivision;
+            internal float minSubdivision;
 
-            public Volume(Matrix4x4 trs, float maxSubdivision)
+            public Volume(Matrix4x4 trs, float maxSubdivision, float minSubdivision)
             {
                 X = trs.GetColumn(0);
                 Y = trs.GetColumn(1);
                 Z = trs.GetColumn(2);
                 corner = (Vector3)trs.GetColumn(3) - X * 0.5f - Y * 0.5f - Z * 0.5f;
+                center = (Vector3)trs.GetColumn(3);
+                size = new Vector3(X.magnitude, Y.magnitude, Z.magnitude);
                 this.maxSubdivision = maxSubdivision;
+                this.minSubdivision = minSubdivision;
+            }
+
+            public Volume(Vector3 corner, Vector3 X, Vector3 Y, Vector3 Z, float maxSubdivision = 1, float minSubdivision = 0)
+            {
+                this.corner = corner;
+                this.X = X;
+                this.Y = Y;
+                this.Z = Z;
+                this.maxSubdivision = maxSubdivision;
+                this.minSubdivision = minSubdivision;
+                center = corner + X * 0.5f + Y * 0.5f + Z * 0.5f;
+                size = new Vector3(X.magnitude, Y.magnitude, Z.magnitude);
             }
 
             public Volume(Volume copy)
@@ -78,7 +96,10 @@ namespace UnityEngine.Rendering
                 Y = copy.Y;
                 Z = copy.Z;
                 corner = copy.corner;
+                center = copy.center;
                 maxSubdivision = copy.maxSubdivision;
+                minSubdivision = copy.minSubdivision;
+                size = copy.size;
             }
 
             public Bounds CalculateAABB()
@@ -108,12 +129,20 @@ namespace UnityEngine.Rendering
                 return new Bounds((min + max) / 2, max - min);
             }
 
+            public void UpdateStuff()
+            {
+                size = new Vector3(X.magnitude, Y.magnitude, Z.magnitude);
+                center = corner + X * 0.5f + Y * 0.5f + Z * 0.5f;
+            }
+
             public void Transform(Matrix4x4 trs)
             {
                 corner = trs.MultiplyPoint(corner);
+                center = trs.MultiplyPoint(center);
                 X = trs.MultiplyVector(X);
                 Y = trs.MultiplyVector(Y);
                 Z = trs.MultiplyVector(Z);
+                size = new Vector3(X.magnitude, Y.magnitude, Z.magnitude);
             }
 
             public override string ToString()
@@ -761,6 +790,9 @@ namespace UnityEngine.Rendering
             outVolume.Y = m.MultiplyVector(inVolume.Y);
             outVolume.Z = m.MultiplyVector(inVolume.Z);
             outVolume.maxSubdivision = inVolume.maxSubdivision;
+            outVolume.minSubdivision = inVolume.minSubdivision;
+            outVolume.size = new Vector3(outVolume.X.magnitude, outVolume.Y.magnitude, outVolume.Z.magnitude);
+            outVolume.center = m.MultiplyPoint(inVolume.center);
         }
 
         // Creates bricks at the coarsest level for all areas that are overlapped by the pass in volume
