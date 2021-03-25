@@ -167,7 +167,7 @@ namespace UnityEngine.Experimental.Rendering.Universal
                     }
 
                     colorTextureFilterMode = ppc.finalBlitFilterMode;
-                    ppcUpscaleRT = ppc.upscaleRT && ppc.isRunning;
+                    ppcUpscaleRT = ppc.gridSnapping == PixelPerfectCamera.GridSnapping.UpscaleRenderTexture && ppc.isRunning;
                 }
             }
 
@@ -226,7 +226,7 @@ namespace UnityEngine.Experimental.Rendering.Universal
                 colorTargetHandle = postProcessDestHandle;
             }
 
-            if (ppc != null && ppc.isRunning && (ppc.cropFrameX || ppc.cropFrameY))
+            if (ppc != null && ppc.isRunning && (ppc.cropFrame == PixelPerfectCamera.CropFrame.Letterbox|| ppc.cropFrame == PixelPerfectCamera.CropFrame.Pillarbox))
                 EnqueuePass(m_PixelPerfectBackgroundPass);
 
             if (requireFinalPostProcessPass && m_PostProcessPasses.isCreated)
