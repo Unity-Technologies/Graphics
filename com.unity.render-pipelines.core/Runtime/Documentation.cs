@@ -18,7 +18,7 @@ namespace UnityEngine.Rendering
         /// </summary>
         ///
         [Obsolete("Can not be used anymore, use Documentation.releaseVersion", false)]
-        public const string version = "7.3";
+        public const string version = "7.6";
     }
 
     //Need to live in Runtime as Attribute of documentation is on Runtime classes \o/
@@ -35,7 +35,7 @@ namespace UnityEngine.Rendering
         internal const string endURL = ".html";
 
 
-        internal const string releaseVersion = "7.5";
+        internal const string releaseVersion = "7.6";
 
         //Temporary for now, there is several part of the Core documentation that are misplaced in HDRP documentation.
         //use this base url for them:
