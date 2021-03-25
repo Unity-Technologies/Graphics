@@ -516,7 +516,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
                 fieldDependencies = CoreFieldDependencies.Default,
 
                 renderStates = DecalRenderStates.ScreenSpaceProjector,
-                pragmas = DecalPragmas.Derivatives,
+                pragmas = DecalPragmas.ScreenSpace,
                 defines = DecalDefines.ProjectorWithEmission,
                 keywords = DecalKeywords.ScreenSpaceProjector,
                 includes = DecalIncludes.Default,
@@ -542,7 +542,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
                 fieldDependencies = CoreFieldDependencies.Default,
 
                 renderStates = DecalRenderStates.GBufferProjector,
-                pragmas = DecalPragmas.MultipleRenderTargets,
+                pragmas = DecalPragmas.GBuffer,
                 defines = DecalDefines.ProjectorWithEmission,
                 keywords = DecalKeywords.GBufferProjector,
                 includes = DecalIncludes.Default,
@@ -623,7 +623,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
                 fieldDependencies = CoreFieldDependencies.Default,
 
                 renderStates = DecalRenderStates.ScreenSpaceMesh,
-                pragmas = DecalPragmas.Derivatives,
+                pragmas = DecalPragmas.ScreenSpace,
                 defines = DecalDefines.AffectsEmission,
                 keywords = DecalKeywords.ScreenSpaceMesh,
                 includes = DecalIncludes.Default,
@@ -650,7 +650,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
                 fieldDependencies = CoreFieldDependencies.Default,
 
                 renderStates = DecalRenderStates.GBufferMesh,
-                pragmas = DecalPragmas.MultipleRenderTargets,
+                pragmas = DecalPragmas.GBuffer,
                 defines = DecalDefines.AffectsEmission,
                 keywords = DecalKeywords.GBufferMesh,
                 includes = DecalIncludes.Default,
@@ -861,13 +861,24 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
         #region Pragmas
         static class DecalPragmas
         {
-            public static PragmaCollection Derivatives = new PragmaCollection
+            public static PragmaCollection ScreenSpace = new PragmaCollection
             {
                 { Pragma.Target(ShaderModel.Target25) }, // Derivatives
                 { Pragma.Vertex("Vert") },
                 { Pragma.Fragment("Frag") },
                 { Pragma.EnableD3D11DebugSymbols },
                 { Pragma.MultiCompileInstancing },
+                { Pragma.MultiCompileFog },
+            };
+
+            public static PragmaCollection GBuffer = new PragmaCollection
+            {
+                { Pragma.Target(ShaderModel.Target35) }, // MRT4
+                { Pragma.Vertex("Vert") },
+                { Pragma.Fragment("Frag") },
+                { Pragma.EnableD3D11DebugSymbols },
+                { Pragma.MultiCompileInstancing },
+                { Pragma.MultiCompileFog },
             };
 
             public static PragmaCollection MultipleRenderTargets = new PragmaCollection
