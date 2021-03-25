@@ -39,7 +39,7 @@ namespace UnityEditor.Rendering.HighDefinition
             internal static readonly GUIContent defaultVolumeProfileLabel = EditorGUIUtility.TrTextContent("Default Volume Profile Asset");
             internal static readonly GUIContent lookDevVolumeProfileLabel = EditorGUIUtility.TrTextContent("LookDev Volume Profile Asset");
 
-            internal static readonly GUIContent frameSettingsLabel = EditorGUIUtility.TrTextContent("Frame Settings");
+            internal static readonly GUIContent frameSettingsLabel = EditorGUIUtility.TrTextContent("Frame Settings (Default Values)");
             internal static readonly GUIContent frameSettingsLabel_Camera = EditorGUIUtility.TrTextContent("Camera");
             internal static readonly GUIContent frameSettingsLabel_RTProbe = EditorGUIUtility.TrTextContent("Realtime Reflection");
             internal static readonly GUIContent frameSettingsLabel_BakedProbe = EditorGUIUtility.TrTextContent("Baked or Custom Reflection");
@@ -84,6 +84,9 @@ namespace UnityEditor.Rendering.HighDefinition
             internal static readonly GUIContent lensAttenuationModeContentLabel = EditorGUIUtility.TrTextContent("Lens Attenuation Mode", "Set the attenuation mode of the lens that is used to compute exposure. With imperfect lens some energy is lost when converting from EV100 to the exposure multiplier.");
 
             internal static readonly GUIContent diffusionProfileSettingsLabel = EditorGUIUtility.TrTextContent("Diffusion Profile Assets");
+            internal static readonly string warningHdrpNotActive = "No HD Render Pipeline currently active. Verify your Graphics Settings and active Quality Level.";
+            internal static readonly string warningGlobalSettingsMissing = "No active settings for HDRP. Rendering may be broken until a new one is assigned.";
+            internal static readonly string infoGlobalSettingsMissing = "No active Global Settings for HDRP. You may assign one below.";
         }
 
         public static readonly CED.IDrawer Inspector;
@@ -111,30 +114,34 @@ namespace UnityEditor.Rendering.HighDefinition
         HDRenderPipelineGlobalSettings settingsSerialized;
         public void DoGUI(string searchContext)
         {
-            if (HDRenderPipeline.currentPipeline == null)
+            // When the asset being serialized has been deleted before its reconstruction
+            if ((serializedSettings == null) || (settingsSerialized != HDRenderPipelineGlobalSettings.instance) || serializedSettings.serializedObject.targetObject == null)
             {
-                EditorGUILayout.HelpBox("No HDRP pipeline currently active (see Quality Settings active level).", MessageType.Warning);
+                if (HDRenderPipeline.currentPipeline == null)
+                {
+                    settingsSerialized = HDRenderPipelineGlobalSettings.Ensure();
+                    var serializedObject = new SerializedObject(settingsSerialized);
+                    serializedSettings = new SerializedHDRenderPipelineGlobalSettings(serializedObject);
+                }
+                else
+                {
+                    serializedSettings = null;
+                    settingsSerialized = null;
+                }
             }
-
-            if ((serializedSettings == null) || (settingsSerialized != HDRenderPipelineGlobalSettings.instance))
-            {
-                settingsSerialized = HDRenderPipelineGlobalSettings.Ensure();
-                var serializedObject = new SerializedObject(settingsSerialized);
-                serializedSettings = new SerializedHDRenderPipelineGlobalSettings(serializedObject);
-            }
-            else
+            if (settingsSerialized != null && serializedSettings != null)
             {
                 serializedSettings.serializedObject.Update();
             }
-            Draw_AssetSelection(ref serializedSettings, null);
 
+            Draw_Warnings(ref serializedSettings, null);
+            Draw_AssetSelection(ref serializedSettings, null);
             if (settingsSerialized != null && serializedSettings != null)
             {
                 EditorGUILayout.Space();
                 Inspector.Draw(serializedSettings, null);
+                serializedSettings.serializedObject?.ApplyModifiedProperties();
             }
-
-            serializedSettings.serializedObject.ApplyModifiedProperties();
         }
 
         /// <summary>
@@ -146,16 +153,29 @@ namespace UnityEditor.Rendering.HighDefinition
         {
         }
 
+        void Draw_Warnings(ref SerializedHDRenderPipelineGlobalSettings serialized, Editor owner)
+        {
+            bool isHDRPRunning = HDRenderPipeline.currentPipeline != null;
+            if (isHDRPRunning && serialized != null)
+                return;
+
+            if (isHDRPRunning)
+            {
+                EditorGUILayout.HelpBox(Styles.warningGlobalSettingsMissing, MessageType.Warning);
+            }
+            else
+            {
+                EditorGUILayout.HelpBox(Styles.warningHdrpNotActive, MessageType.Warning);
+                if (serialized == null)
+                    EditorGUILayout.HelpBox(Styles.infoGlobalSettingsMissing, MessageType.Info);
+            }
+        }
+
         #region Global HDRenderPipelineGlobalSettings asset selection
         void Draw_AssetSelection(ref SerializedHDRenderPipelineGlobalSettings serialized, Editor owner)
         {
             var oldWidth = EditorGUIUtility.labelWidth;
             EditorGUIUtility.labelWidth = Styles.labelWidth;
-
-            if (settingsSerialized == null)
-            {
-                EditorGUILayout.HelpBox("No active settings for HDRP. Rendering may be broken until a new one is assigned.", MessageType.Warning);
-            }
             using (new EditorGUILayout.HorizontalScope())
             {
                 EditorGUI.BeginChangeCheck();
