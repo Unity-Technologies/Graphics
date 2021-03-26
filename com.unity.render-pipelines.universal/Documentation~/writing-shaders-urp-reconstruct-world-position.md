@@ -1,18 +1,38 @@
-# URP reconstruct world  position
+# Reconstruct the world space positions of pixels from the depth texture
 
-The Unity shader in this example draws a 3d checkerboard pattern based on the surface world position. It will reconstruct the world position for each pixel using a depth texture and screen space UV coordinates.
+The Unity shader in this example reconstructs the world space positions for pixels using a depth texture and screen space UV coordinates. The shader draws a checkerboard pattern on a mesh to visualize the positions.
 
-Setting up the test scene:
+The following illustration shows the end result:
 
-1. Create a new Universal Render Pipeline project and open the SampleScene.
-2. Create a plane and place it in coordinates `(3, 0, 1.4)`. Set the rotation to `(90, 0, 0)` degrees. Set the scale to `(0.25, 0.5, 0.25)`.
-3. Create a new material and name it `ReconstructWorldPos` and assign it to the plane.
-4. Create a new shader and assign it to the material. Use the Unity shader source file from section [URP unlit basic shader](writing-shaders-urp-basic-unlit-structure.md).
-5. Select the Universal Rendering Pipeline asset `Assets/Settings/UniversalRP-HighQuality`.
-6. Enable `Depth Texture` under `General` in the Inspector.
-7. Open the shader from step 4.
+![Checkerboard pattern visualizing the reconstructed world space positions.](Images/shader-examples/urp-shader-tutorial-reconstruct-world-positions-from-depth.png) 
+
+## Create the sample scene:
+
+Create the sample scene to follow the steps in this section:
+
+1. Install URP into an existing Unity project, or create a new project using the [__Universal Project Template__](creating-a-new-project-with-urp.md).
+
+2. In the sample Scene, create a plane GameObject and place it so that it occludes some of the GameObjects.
+
+    ![Create a plane](Images/shader-examples/urp-shader-tutorial-create-place-gameobj.png)
+
+3. Create a new Material and assign it to the plane.
+
+4. Create a new shader and assign it to the material. Copy and paste the Unity shader source code from the page [URP unlit basic shader](writing-shaders-urp-basic-unlit-structure.md).
+
+5. Select the URP Asset. If you created the project using the Universal Render Pipeline template, the URP Asset path is `Assets/Settings/UniversalRP-HighQuality`.
+
+6. In the URP Asset, in the General section, enable `Depth Texture`.
+
+    ![In URP Asset, enable Depth Texture](Images/shader-examples/urp-asset-depth-texture.png)
+
+7. Open the shader you created on step 4.
+
+## Edit the ShaderLab code
 
 Make the following changes to the ShaderLab code: 
+
+TODO: START HERE.
 
 1. Add a new include for a depth texture shader header. You can place it under the existing include for `Core.hlsl`.
     
@@ -26,6 +46,8 @@ Make the following changes to the ShaderLab code:
     ```c++
     half4 frag(Varyings IN) : SV_Target
     ```
+    
+    TODO: put this in a different place:
     Varyings are per vertex values (output from the vertex shader) that are interpolated across the triangles to provide per pixel value in the fragment shader.
     
     ```c++
@@ -35,9 +57,10 @@ Make the following changes to the ShaderLab code:
         float4 positionHCS  : SV_POSITION;
     };
     ```
+    TODO: same as above:
     The Varyings struct has a member `float4 positionHCS : SV_POSITION;` For fragment shader the varying field with `SV_POSITION` will provide a pixel location.
 
-3. To compute the UV coordinates for sampling the depth buffer, the pixel location is divided with render target resolution.
+3. To calculate the UV coordinates for sampling the depth buffer, the pixel location is divided with render target resolution.
 
     ```c++
     float2 UV = IN.positionHCS.xy / _ScaledScreenParams.xy;
@@ -58,13 +81,16 @@ Make the following changes to the ShaderLab code:
    
    `UNITY_REVERSED_Z` is used to detect the platform difference and adjust the Z value range. More detailed explanation in step 6.
    
-   `UNITY_NEAR_CLIP_VALUE`is a platform independent near plane value for clip space.
+   `UNITY_NEAR_CLIP_VALUE` is a platform independent near plane value for clip space.
+
+   TODO: Also add the link from Erik.
+
 5. Reconstruct world position from the UV and Z coordinates.
     ```c++
     float3 worldPos = ComputeWorldSpacePosition(UV, depth, UNITY_MATRIX_I_VP);
     ```
     `ComputeWorldSpacePosition` is a utility function that computes the world position from UV and Z depth, defined in `Common.hlsl`.
-    `UNITY_MATRIX_I_VP` is a builtin inverse view projection matrix which transforms points from the clip space to the world space.
+    `UNITY_MATRIX_I_VP` is an inverse view projection matrix which transforms points from the clip space to the world space.
 
 6. Create the 3D checkboard effect.
 
@@ -96,7 +122,7 @@ Make the following changes to the ShaderLab code:
     Some platforms use reversed Z values (0 == far vs. 1 == far), to improve Z-buffer value distribution. `UNITY_REVERSED_Z` is used to handle all platforms correctly.
     
 The end result should look like this:
-![3D Checkerboard](Images/shader-examples/unlit-shader-tutorial-reconstruct-world-position.png) 
+![3D Checkerboard](Images/shader-examples/urp-shader-tutorial-reconstruct-world-positions-from-depth.png) 
 
 Below is the complete ShaderLab code for this example.
 
