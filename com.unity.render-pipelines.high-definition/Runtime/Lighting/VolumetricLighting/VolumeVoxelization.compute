@@ -79,16 +79,14 @@ float SampleVolumeMask(DensityVolumeEngineData volumeData, float3 voxelCenterNDC
     // Scale and bias the UVWs and then take fractional part, will be in [0,1] range.
     float3 voxelCenterUVW = frac(voxelCenterNDC * volumeData.textureTiling + volumeData.textureScroll);
 
-    float rcpNumTextures = _VolumeMaskDimensions.x;
     float textureWidth   = _VolumeMaskDimensions.y;
     float textureDepth   = _VolumeMaskDimensions.z;
     float maxLod         = _VolumeMaskDimensions.w;
 
-    float offset = volumeData.textureIndex * rcpNumTextures;
-    voxelCenterUVW.z = voxelCenterUVW.z * rcpNumTextures + offset;
+    voxelCenterUVW = voxelCenterUVW * volumeData.atlasScale + float3(0.0, 0.0, volumeData.atlasBias);
 
     // TODO: expose the LoD bias parameter.
-    float lod = ComputeTextureLOD(duvw_dx, duvw_dy, duvw_dz, textureWidth);
+    float lod = ComputeTextureLOD(duvw_dx, duvw_dy, duvw_dz, textureWidth * volumeData.atlasScale.x);
     lod = clamp(lod, 0, maxLod);
 
     // TODO: bugfix.
@@ -99,13 +97,13 @@ float SampleVolumeMask(DensityVolumeEngineData volumeData, float3 voxelCenterNDC
     // If you use ceil(lod), the upper LoD effectively loses a texel at the border, which may break tileable textures.
     // For now, we choose the second option.
     // We support texture filtering across the wrap in Z in neither case.
-    int   textureSize   = (int)textureDepth;
-    int   mipSize       = textureSize >> (int)ceil(lod);
+    int   textureSize = (int)textureDepth;
+    int   mipSize = textureSize >> (int)ceil(lod);
     float halfTexelSize = 0.5f * rcp(mipSize);
-    voxelCenterUVW.z    = clamp(voxelCenterUVW.z, offset + halfTexelSize, offset + rcpNumTextures - halfTexelSize);
+    voxelCenterUVW.z    = clamp(voxelCenterUVW.z, volumeData.atlasBias + halfTexelSize, volumeData.atlasBias + volumeData.atlasScale.z - halfTexelSize);
 
     // Reminder: still no filtering across the the wrap in Z.
-    return SAMPLE_TEXTURE3D_LOD(_VolumeMaskAtlas, s_trilinear_repeat_sampler, voxelCenterUVW, lod).a;
+    return SAMPLE_TEXTURE3D_LOD(_VolumeMaskAtlas, s_trilinear_repeat_sampler, voxelCenterUVW, lod).r;
 }
 
 void FillVolumetricDensityBuffer(PositionInputs posInput, uint tileIndex, JitteredRay ray)
@@ -278,7 +276,7 @@ void FillVolumetricDensityBuffer(PositionInputs posInput, uint tileIndex, Jitter
                                                      _VolumeData[volumeIndex].endTimesRcpDistFadeLen);
 
                 // Sample the volumeMask.
-                if (_VolumeData[volumeIndex].textureIndex != -1)
+                if (_VolumeData[volumeIndex].atlasBias >= 0.0)
                 {
                     float3 xDerivUVW = (0.5 *  t) * voxelAxisRightBS   * rcp(obbExtents);
                     float3 yDerivUVW = (0.5 *  t) * voxelAxisUpBS      * rcp(obbExtents);

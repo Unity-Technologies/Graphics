@@ -80,6 +80,7 @@ namespace UnityEditor.Rendering.HighDefinition
         public SerializedLightingQualitySettings lightingQualitySettings;
         internal SerializedGlobalProbeVolumeSettings probeVolumeSettings;
         internal SerializedGlobalMaskVolumeSettings maskVolumeSettings;
+        internal SerializedDensityVolumeSettings densityVolumeSettings;
 
         public SerializedLightSettings lightSettings;
         public SerializedScalableSetting lodBias;
@@ -153,6 +154,7 @@ namespace UnityEditor.Rendering.HighDefinition
             postProcessQualitySettings = new SerializedPostProcessingQualitySettings(root.Find((RenderPipelineSettings s) => s.postProcessQualitySettings));
             probeVolumeSettings = new SerializedGlobalProbeVolumeSettings(root.Find((RenderPipelineSettings s) => s.probeVolumeSettings));
             maskVolumeSettings = new SerializedGlobalMaskVolumeSettings(root.Find((RenderPipelineSettings s) => s.maskVolumeSettings));
+            densityVolumeSettings = new SerializedDensityVolumeSettings(root.Find((RenderPipelineSettings s) => s.densityVolumeSettings));
 
             lightSettings = new SerializedLightSettings(root.Find((RenderPipelineSettings s) => s.lightSettings));
             lodBias = new SerializedScalableSetting(root.Find((RenderPipelineSettings s) => s.lodBias));

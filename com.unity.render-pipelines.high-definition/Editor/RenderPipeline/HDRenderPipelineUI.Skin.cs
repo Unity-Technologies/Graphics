@@ -31,6 +31,7 @@ namespace UnityEditor.Rendering.HighDefinition
             public static readonly GUIContent lightingQualitySettings = EditorGUIUtility.TrTextContent("Lighting Quality Settings");
 
             public static readonly GUIContent lightLayerSubTitle = EditorGUIUtility.TrTextContent("Light Layers");
+            public static readonly GUIContent volumetricsSubTitle = EditorGUIUtility.TrTextContent("Volumetrics");
             public static readonly GUIContent cookiesSubTitle = EditorGUIUtility.TrTextContent("Cookies");
             public static readonly GUIContent reflectionsSubTitle = EditorGUIUtility.TrTextContent("Reflections");
             public static readonly GUIContent skySubTitle = EditorGUIUtility.TrTextContent("Sky");
@@ -94,7 +95,7 @@ namespace UnityEditor.Rendering.HighDefinition
             public static readonly GUIContent supportSSGIContent = EditorGUIUtility.TrTextContent("Screen Space Global Illumination", "When enabled, HDRP allocates memory for processing screen space global illumination (SSGI). This allows you to use SSGI in your Unity Project.");
             public static readonly GUIContent supportedSSSContent = EditorGUIUtility.TrTextContent("Subsurface Scattering", "When enabled, HDRP allocates memory for processing subsurface scattering (SSS). This allows you to use SSS in your Unity Project.");
             public static readonly GUIContent sssSampleBudget = EditorGUIUtility.TrTextContent("Sample Budget", "Maximum number of samples the Subsurface Scattering algorithm is allowed to take.");
-            public static readonly GUIContent supportVolumetricContent = EditorGUIUtility.TrTextContent("Volumetrics", "When enabled, HDRP allocates Shader variants and memory for volumetric effects. This allows you to use volumetric lighting and fog in your Unity Project.");
+            public static readonly GUIContent supportVolumetricContent = EditorGUIUtility.TrTextContent("Enable", "When enabled, HDRP allocates Shader variants and memory for volumetric effects. This allows you to use volumetric lighting and fog in your Unity Project.");
             public static readonly GUIContent volumetricResolutionContent = EditorGUIUtility.TrTextContent("High Quality ", "When enabled, HDRP increases the resolution of volumetric lighting buffers. Warning: There is a high performance cost, do not enable on consoles.");
             public static readonly GUIContent supportLightLayerContent = EditorGUIUtility.TrTextContent("Light Layers", "When enabled, HDRP allocates memory for processing Light Layers. This allows you to use Light Layers in your Unity Project. For deferred rendering, this allocation includes an extra render target in memory and extra cost.");
             public static readonly GUIContent lightLayerName0 = EditorGUIUtility.TrTextContent("Light Layer Name 0", "The display name for Light Layer 0. This is purely cosmetic, and can be used to articulate intended use of Light Layer 0");
@@ -141,6 +142,7 @@ namespace UnityEditor.Rendering.HighDefinition
             internal static readonly GUIContent probeVolumeAtlasOctahedralDepthResolution = EditorGUIUtility.TrTextContent("Octahedral Depth Atlas Resolution", "Resolution of the 2D texture atlas containing visible ProbeVolumes octahedral depth data.");
             internal static readonly GUIContent supportMaskVolumeContent = EditorGUIUtility.TrTextContent("Mask Volume", "When enabled, HDRP allocates Shader variants and memory for mask volumes.");
             internal static readonly GUIContent maskVolumeAtlasResolution = EditorGUIUtility.TrTextContent("Atlas Resolution", "Resolution of the 3D texture atlas containing visible MaskVolumes.");
+            internal static readonly GUIContent densityVolumeAtlasResolution = EditorGUIUtility.TrTextContent("Density Atlas Resolution", "Resolution of the 3D texture atlas containing fog density.");
 
             public const string cacheErrorFormat = "This configuration will lead to more than 2 GB reserved for this cache at runtime! ({0} requested) Only {1} element will be reserved instead.";
             public const string cacheInfoFormat = "Reserving {0} in memory at runtime.";

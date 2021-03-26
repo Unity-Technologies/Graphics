@@ -22,6 +22,9 @@ namespace UnityEngine.Rendering.HighDefinition
         /// <summary>Tiling rate of the density texture.</summary>
         public Vector3   textureTiling;
 
+        public ComputeShader volumeShader;
+        public Vector3Int volumeShaderResolution;
+
         /// <summary>Edge fade factor along the positive X, Y and Z axes.</summary>
         [FormerlySerializedAs("m_PositiveFade")]
         public Vector3   positiveFade;
@@ -48,7 +51,9 @@ namespace UnityEngine.Rendering.HighDefinition
         /// <summary>Distance at which density fading ends.</summary>
         public float     distanceFadeEnd;
         [SerializeField]
-        internal int     textureIndex;
+        public int     atlasIndex;
+        public float   atlasBias;
+        public Vector3 atlasScale;
         /// <summary>Allows translation of the tiling density texture.</summary>
         [SerializeField, FormerlySerializedAs("volumeScrollingAmount")]
         public Vector3   textureOffset;
@@ -64,10 +69,14 @@ namespace UnityEngine.Rendering.HighDefinition
             anisotropy            = _anisotropy;
 
             volumeMask            = null;
-            textureIndex          = -1;
+            atlasIndex            = -1;
+            atlasBias             = -1.0f;
+            atlasScale            = Vector3.one;
             textureScrollingSpeed = Vector3.zero;
             textureTiling         = Vector3.one;
             textureOffset         = textureScrollingSpeed;
+            volumeShader          = null;
+            volumeShaderResolution = new Vector3Int(32, 32, 32);
 
             size                  = Vector3.one;
 
@@ -120,7 +129,8 @@ namespace UnityEngine.Rendering.HighDefinition
             data.extinction     = VolumeRenderingUtils.ExtinctionFromMeanFreePath(meanFreePath);
             data.scattering     = VolumeRenderingUtils.ScatteringFromExtinctionAndAlbedo(data.extinction, (Vector3)(Vector4)albedo);
 
-            data.textureIndex   = textureIndex;
+            data.atlasBias      = atlasBias;
+            data.atlasScale = atlasScale;
             data.textureScroll  = textureOffset;
             data.textureTiling  = textureTiling;
 
@@ -157,6 +167,8 @@ namespace UnityEngine.Rendering.HighDefinition
         public DensityVolumeArtistParameters parameters = new DensityVolumeArtistParameters(Color.white, 10.0f, 0.0f);
 
         private Texture3D previousVolumeMask = null;
+        private ComputeShader previousVolumeShader = null;
+        private Vector3Int previousVolumeShaderResolution;
 #if UNITY_EDITOR
         private int volumeMaskHash = 0;
 #endif
@@ -164,12 +176,38 @@ namespace UnityEngine.Rendering.HighDefinition
         /// <summary>Action shich should be performed after updating the texture.</summary>
         public Action OnTextureUpdated;
 
+        /// <summary>
+        ///  If the user is runs a compute shader to write to a volume subatlas, the subatlas
+        ///  resolution needs to be a multiple of a number, e.g. 8. Then the compute shader
+        ///  can be dispatched using [numthreads(8,8,8)] for a balance of SM occupancy and GPU
+        ///  scheduling.
+        ///  This also has an impact on mip-map generation, and power-of-two quantums are
+        ///  recommended.
+        /// </summary>
+        public const int RESOLUTION_QUANTUM = 8;
+        /// <summary>
+        /// If the UI resolution is invalid, fix it so that it is a positive multiple of the
+        /// resolution quantum.
+        /// </summary>
+        internal static Vector3Int FixupDynamicVolumeResolution(Vector3Int inRes)
+        {
+            const int Q = RESOLUTION_QUANTUM;
+            Vector3Int outRes = new Vector3Int(
+                (inRes.x / Q) * Q,
+                (inRes.y / Q) * Q,
+                (inRes.z / Q) * Q
+            );
+            return Vector3Int.Max(new Vector3Int(Q, Q, Q), outRes);
+        }
 
         /// <summary>Gather and Update any parameters that may have changed.</summary>
         internal void PrepareParameters(float time)
         {
             //Texture has been updated notify the manager
-            bool updated = previousVolumeMask != parameters.volumeMask;
+            bool updated =
+                (previousVolumeMask != parameters.volumeMask) ||
+                (previousVolumeShader != parameters.volumeShader) ||
+                (previousVolumeShaderResolution != parameters.volumeShaderResolution);
 #if UNITY_EDITOR
             int newMaskHash = parameters.volumeMask ? parameters.volumeMask.imageContentsHash.GetHashCode() : 0;
             updated |= newMaskHash != volumeMaskHash;
@@ -179,6 +217,8 @@ namespace UnityEngine.Rendering.HighDefinition
             {
                 NotifyUpdatedTexure();
                 previousVolumeMask = parameters.volumeMask;
+                previousVolumeShader = parameters.volumeShader;
+                previousVolumeShaderResolution = parameters.volumeShaderResolution;
 #if UNITY_EDITOR
                 volumeMaskHash = newMaskHash;
 #endif

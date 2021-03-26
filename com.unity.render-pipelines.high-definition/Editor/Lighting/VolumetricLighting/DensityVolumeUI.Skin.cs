@@ -8,6 +8,7 @@ namespace UnityEditor.Rendering.HighDefinition
         {
             public static readonly GUIContent k_VolumeHeader = new GUIContent("Volume");
             public static readonly GUIContent k_DensityMaskTextureHeader = new GUIContent("Density Mask Texture");
+            public static readonly GUIContent k_DensityMaskShaderHeader = new GUIContent("Density Mask Shader");
 
             public static readonly GUIContent[] s_Toolbar_Contents = new GUIContent[]
             {
@@ -21,6 +22,8 @@ namespace UnityEditor.Rendering.HighDefinition
             public static readonly GUIContent s_VolumeTextureLabel = new GUIContent("Texture", "The fog Texture for the Density Mask. Generate this Texture type using the Density Volume Texture Tool.");
             public static readonly GUIContent s_TextureScrollLabel = new GUIContent("Scroll Speed", "Modify the speed for each axis at which HDRP scrolls the fog Texture.");
             public static readonly GUIContent s_TextureTileLabel = new GUIContent("Tiling", "Modify the tiling of the fog Texture on each axis individually.");
+            public static readonly GUIContent s_VolumeShaderLabel = new GUIContent("Shader", "The fog shader for the Density Mask.");
+            public static readonly GUIContent s_VolumeShaderResolutionLabel = new GUIContent("Resolution", "The resolution of the texture that the shader will write to.");
             public static readonly GUIContent s_BlendLabel = new GUIContent("Blend Distance", "Interior distance from the Size where the fog fades in completely.");
             public static readonly GUIContent s_InvertFadeLabel = new GUIContent("Invert Blend", "Inverts blend values so 0 becomes the new maximum value and the original maximum value becomes 0.");
             public static readonly GUIContent s_ManipulatonTypeContent = EditorGUIUtility.TrTextContent("Per Axis Control", "When checked, each face can be manipulated separatly. This also include fading options.");

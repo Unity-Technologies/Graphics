@@ -41,7 +41,8 @@ namespace UnityEditor.Rendering.HighDefinition
             LightingQuality = 1 << 25,
             SSRQuality = 1 << 26,
             VirtualTexturing = 1 << 27,
-            FogQuality = 1 << 28
+            FogQuality = 1 << 28,
+            Volumetrics = 1 << 29
         }
 
         static readonly ExpandedState<Expandable, HDRenderPipelineAsset> k_ExpandedState = new ExpandedState<Expandable, HDRenderPipelineAsset>(Expandable.CameraFrameSettings | Expandable.General, "HDRP");
@@ -80,6 +81,7 @@ namespace UnityEditor.Rendering.HighDefinition
                     ),
                 CED.FoldoutGroup(Styles.lightingSectionTitle, Expandable.Lighting, k_ExpandedState,
                     CED.Group(GroupOption.Indent, Drawer_SectionLightingUnsorted),
+                    CED.FoldoutGroup(Styles.volumetricsSubTitle, Expandable.Volumetrics, k_ExpandedState, FoldoutOption.Indent | FoldoutOption.SubFoldout, Drawer_SectionVolumetrics),
                     CED.FoldoutGroup(Styles.cookiesSubTitle, Expandable.Cookie, k_ExpandedState, FoldoutOption.Indent | FoldoutOption.SubFoldout, Drawer_SectionCookies),
                     CED.FoldoutGroup(Styles.reflectionsSubTitle, Expandable.Reflection, k_ExpandedState, FoldoutOption.Indent | FoldoutOption.SubFoldout, Drawer_SectionReflection),
                     CED.FoldoutGroup(Styles.skySubTitle, Expandable.Sky, k_ExpandedState, FoldoutOption.Indent | FoldoutOption.SubFoldout, Drawer_SectionSky),
@@ -976,8 +978,6 @@ namespace UnityEditor.Rendering.HighDefinition
             EditorGUILayout.PropertyField(serialized.renderPipelineSettings.supportSSAO, Styles.supportSSAOContent);
             EditorGUILayout.PropertyField(serialized.renderPipelineSettings.supportSSGI, Styles.supportSSGIContent);
 
-            EditorGUILayout.PropertyField(serialized.renderPipelineSettings.supportVolumetrics, Styles.supportVolumetricContent);
-
             EditorGUILayout.PropertyField(serialized.renderPipelineSettings.supportLightLayers, Styles.supportLightLayerContent);
 
             if (ShaderConfig.s_ProbeVolumesEvaluationMode != ProbeVolumesEvaluationModes.Disabled)
@@ -1058,6 +1058,27 @@ namespace UnityEditor.Rendering.HighDefinition
             } // s_ProbeVolumesEvaluationMode
 
             EditorGUILayout.Space(); //to separate with following sub sections
+        }
+        static void Drawer_SectionVolumetrics(SerializedHDRenderPipelineAsset serialized, Editor owner)
+        {
+            EditorGUILayout.PropertyField(serialized.renderPipelineSettings.supportVolumetrics, Styles.supportVolumetricContent);
+
+            ++EditorGUI.indentLevel;
+            using (new EditorGUI.DisabledScope(!serialized.renderPipelineSettings.supportVolumetrics.boolValue))
+            {
+                EditorGUI.BeginChangeCheck();
+                EditorGUILayout.PropertyField(serialized.renderPipelineSettings.densityVolumeSettings.atlasResolution, Styles.densityVolumeAtlasResolution);
+                if (EditorGUI.EndChangeCheck())
+                    serialized.renderPipelineSettings.densityVolumeSettings.atlasResolution.vector3IntValue =
+                        Vector3Int.Min(
+                            Vector3Int.Max(
+                                serialized.renderPipelineSettings.densityVolumeSettings.atlasResolution.vector3IntValue,
+                                Vector3Int.one
+                            ),
+                            new Vector3Int(2048, 2048, 2048)
+                        );
+            }
+            --EditorGUI.indentLevel;
         }
 
         static void Drawer_SectionMaterialUnsorted(SerializedHDRenderPipelineAsset serialized, Editor owner)
