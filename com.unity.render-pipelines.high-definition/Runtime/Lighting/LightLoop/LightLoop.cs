@@ -1137,37 +1137,6 @@ namespace UnityEngine.Rendering.HighDefinition
             lightData.screenSpaceShadowIndex = (int)LightDefinitions.s_InvalidScreenSpaceShadow;
             lightData.isRayTracedContactShadow = 0.0f;
 
-            if (lightComponent != null && lightComponent.cookie != null)
-            {
-                lightData.cookieMode = lightComponent.cookie.wrapMode == TextureWrapMode.Repeat ? CookieMode.Repeat : CookieMode.Clamp;
-                lightData.cookieScaleOffset = m_TextureCaches.lightCookieManager.Fetch2DCookie(cmd, lightComponent.cookie);
-            }
-            else
-            {
-                lightData.cookieMode = CookieMode.None;
-            }
-
-            if (additionalLightData.surfaceTexture == null)
-            {
-                lightData.surfaceTextureScaleOffset = Vector4.zero;
-            }
-            else
-            {
-                lightData.surfaceTextureScaleOffset = m_TextureCaches.lightCookieManager.Fetch2DCookie(cmd, additionalLightData.surfaceTexture);
-            }
-
-            lightData.shadowDimmer           = additionalLightData.shadowDimmer;
-            lightData.volumetricShadowDimmer = additionalLightData.volumetricShadowDimmer;
-            GetContactShadowMask(additionalLightData, HDAdditionalLightData.ScalableSettings.UseContactShadow(m_Asset), hdCamera, isRasterization: true, ref lightData.contactShadowMask, ref lightData.isRayTracedContactShadow);
-
-            // We want to have a colored penumbra if the flag is on and the color is not gray
-            bool penumbraTint = additionalLightData.penumbraTint && ((additionalLightData.shadowTint.r != additionalLightData.shadowTint.g) || (additionalLightData.shadowTint.g != additionalLightData.shadowTint.b));
-            lightData.penumbraTint = penumbraTint ? 1.0f : 0.0f;
-            if (penumbraTint)
-                lightData.shadowTint = new Vector3(additionalLightData.shadowTint.r * additionalLightData.shadowTint.r, additionalLightData.shadowTint.g * additionalLightData.shadowTint.g, additionalLightData.shadowTint.b * additionalLightData.shadowTint.b);
-            else
-                lightData.shadowTint = new Vector3(additionalLightData.shadowTint.r, additionalLightData.shadowTint.g, additionalLightData.shadowTint.b);
-
             // fix up shadow information
             lightData.shadowIndex = shadowIndex;
             if (shadowIndex != -1)
@@ -1193,6 +1162,55 @@ namespace UnityEngine.Rendering.HighDefinition
                 m_CurrentSunLightDirectionalLightData = lightData;
                 m_CurrentShadowSortedSunLightIndex = sortedIndex;
             }
+
+            // Fallback to the first non shadow casting directional light.
+            if (m_CurrentSunLight == null)
+            {
+                m_CurrentSunLight = lightComponent;
+                m_CurrentSunLightIndex = m_lightList.directionalLights.Count;
+            }
+
+            // If this is the current sun light and volumetric cloud shadows are enabled we need to render the shadows
+            if (lightComponent == GetCurrentSunLight() && HasVolumetricCloudsShadows_IgnoreSun(hdCamera))
+            {
+                RTHandle shadowCookie = RenderVolumetricCloudsShadows(cmd, hdCamera);
+                lightData.cookieMode = CookieMode.Clamp;
+                lightData.cookieScaleOffset = m_TextureCaches.lightCookieManager.Fetch2DCookie(cmd, shadowCookie);
+            }
+            else
+            {
+                if (lightComponent != null && lightComponent.cookie != null)
+                {
+                    lightData.cookieMode = lightComponent.cookie.wrapMode == TextureWrapMode.Repeat ? CookieMode.Repeat : CookieMode.Clamp;
+                    lightData.cookieScaleOffset = m_TextureCaches.lightCookieManager.Fetch2DCookie(cmd, lightComponent.cookie);
+                }
+                else
+                {
+                    lightData.cookieMode = CookieMode.None;
+                }
+            }
+
+            if (additionalLightData.surfaceTexture == null)
+            {
+                lightData.surfaceTextureScaleOffset = Vector4.zero;
+            }
+            else
+            {
+                lightData.surfaceTextureScaleOffset = m_TextureCaches.lightCookieManager.Fetch2DCookie(cmd, additionalLightData.surfaceTexture);
+            }
+
+            lightData.shadowDimmer           = additionalLightData.shadowDimmer;
+            lightData.volumetricShadowDimmer = additionalLightData.volumetricShadowDimmer;
+            GetContactShadowMask(additionalLightData, HDAdditionalLightData.ScalableSettings.UseContactShadow(m_Asset), hdCamera, isRasterization: true, ref lightData.contactShadowMask, ref lightData.isRayTracedContactShadow);
+
+            // We want to have a colored penumbra if the flag is on and the color is not gray
+            bool penumbraTint = additionalLightData.penumbraTint && ((additionalLightData.shadowTint.r != additionalLightData.shadowTint.g) || (additionalLightData.shadowTint.g != additionalLightData.shadowTint.b));
+            lightData.penumbraTint = penumbraTint ? 1.0f : 0.0f;
+            if (penumbraTint)
+                lightData.shadowTint = new Vector3(additionalLightData.shadowTint.r * additionalLightData.shadowTint.r, additionalLightData.shadowTint.g * additionalLightData.shadowTint.g, additionalLightData.shadowTint.b * additionalLightData.shadowTint.b);
+            else
+                lightData.shadowTint = new Vector3(additionalLightData.shadowTint.r, additionalLightData.shadowTint.g, additionalLightData.shadowTint.b);
+
             //Value of max smoothness is derived from AngularDiameter. Formula results from eyeballing. Angular diameter of 0 results in 1 and angular diameter of 80 results in 0.
             float maxSmoothness = Mathf.Clamp01(1.35f / (1.0f + Mathf.Pow(1.15f * (0.0315f * additionalLightData.angularDiameter + 0.4f), 2f)) - 0.11f);
             // Value of max smoothness is from artists point of view, need to convert from perceptual smoothness to roughness
@@ -1237,13 +1255,6 @@ namespace UnityEngine.Rendering.HighDefinition
             lightData.flareFalloff    = additionalLightData.flareFalloff;
             lightData.flareTint       = (Vector3)(Vector4)additionalLightData.flareTint;
             lightData.surfaceTint     = (Vector3)(Vector4)additionalLightData.surfaceTint;
-
-            // Fallback to the first non shadow casting directional light.
-            if (m_CurrentSunLight == null)
-            {
-                m_CurrentSunLight = lightComponent;
-                m_CurrentSunLightIndex = m_lightList.directionalLights.Count;
-            }
 
             m_lightList.directionalLights.Add(lightData);
         }
@@ -1815,7 +1826,9 @@ namespace UnityEngine.Rendering.HighDefinition
                     //capturedForwardWS.z *= -1; // Transform to RHS standard
                     m_TextureCaches.env2DCaptureForward[fetchIndex] = new Vector4(capturedForwardWS.x, capturedForwardWS.y, capturedForwardWS.z, 0.0f);
 
-                    if (probe.frameSettings.IsEnabled(FrameSettingsField.ExposureControl))
+                    //We must use the setting resolved from the probe, not from the frameSettings.
+                    //Using the frmaeSettings from the probe is wrong because it can be disabled (not ticking on using custom frame settings in the probe reflection component)
+                    if (probe.ExposureControlEnabled)
                         envLightData.rangeCompressionFactorCompensation = 1.0f / probe.ProbeExposureValue();
                     else
                         envLightData.rangeCompressionFactorCompensation = Mathf.Max(probe.rangeCompressionFactor, 1e-6f);
@@ -2240,6 +2253,13 @@ namespace UnityEngine.Rendering.HighDefinition
 
                 // 5 bit (0x1F) light category, 5 bit (0x1F) GPULightType, 5 bit (0x1F) lightVolume, 1 bit for shadow casting, 16 bit index
                 m_SortKeys[sortCount++] = (uint)processedData.lightCategory << 27 | (uint)processedData.gpuLightType << 22 | (uint)processedData.lightVolumeType << 17 | (uint)lightIndex;
+            }
+
+            // Also we need to allocate space for the volumetric clouds texture if necessary
+            if (HasVolumetricCloudsShadows_IgnoreSun(hdCamera))
+            {
+                RTHandle cloudTexture = RequestVolumetricCloudsShadowTexture(hdCamera);
+                m_TextureCaches.lightCookieManager.ReserveSpace(cloudTexture);
             }
 
             CoreUnsafeUtils.QuickSort(m_SortKeys, 0, sortCount - 1); // Call our own quicksort instead of Array.Sort(sortKeys, 0, sortCount) so we don't allocate memory (note the SortCount-1 that is different from original call).
@@ -2718,9 +2738,11 @@ namespace UnityEngine.Rendering.HighDefinition
             switch (lightType)
             {
                 case HDLightType.Directional:
+                {
                     m_TextureCaches.lightCookieManager.ReserveSpace(hdLightData.surfaceTexture);
                     m_TextureCaches.lightCookieManager.ReserveSpace(light?.cookie);
                     break;
+                }
                 case HDLightType.Point:
                     if (light?.cookie != null && hdLightData.IESPoint != null && light.cookie != hdLightData.IESPoint)
                         m_TextureCaches.lightCookieManager.ReserveSpaceCube(light.cookie, hdLightData.IESPoint);

@@ -3,7 +3,7 @@ using System;
 namespace UnityEngine.Rendering.HighDefinition
 {
     [Serializable, VolumeComponentMenu("Material/Diffusion Profile Override")]
-    [HelpURL(Documentation.baseURL + Documentation.version + Documentation.subURL + "Override-Diffusion-Profile" + Documentation.endURL)]
+    [HDRPHelpURLAttribute("Override-Diffusion-Profile")]
     sealed class DiffusionProfileOverride : VolumeComponent
     {
         [Tooltip("List of diffusion profiles used inside the volume.")]
