@@ -20,6 +20,7 @@ namespace UnityEditor.Experimental.Rendering.Universal
             public GUIContent currentPixelRatio = new GUIContent("Current Pixel Ratio", "Ratio of the rendered Sprites compared to their original size.");
             public GUIContent runInEditMode = new GUIContent("Run In Edit Mode", "Enable this to preview Camera setting changes in Edit Mode. This will cause constant changes to the Scene while active.");
             public const string cameraStackingWarning = "Pixel Perfect Camera won't function properly if stacked with another camera.";
+            public const string nonRenderer2DError = "Pixel Perfect Camera requires a camera using a 2D Renderer.";
 
             public GUIStyle centeredLabel;
 
@@ -52,6 +53,22 @@ namespace UnityEditor.Experimental.Rendering.Universal
 
             if (m_CurrentPixelRatioValue == null)
                 m_CurrentPixelRatioValue = new GUIContent();
+        }
+
+        bool UsingRenderer2D()
+        {
+            PixelPerfectCamera obj = target as PixelPerfectCamera;
+            UniversalAdditionalCameraData cameraData = null;
+            obj?.TryGetComponent(out cameraData);
+
+            if (cameraData != null)
+            {
+                Renderer2D renderer2D = cameraData.scriptableRenderer as Renderer2D;
+                if (renderer2D != null)
+                    return true;
+            }
+
+            return false;
         }
 
         void CheckForCameraStacking()
@@ -103,6 +120,12 @@ namespace UnityEditor.Experimental.Rendering.Universal
         public override void OnInspectorGUI()
         {
             LazyInit();
+
+            if (!UsingRenderer2D())
+            {
+                EditorGUILayout.HelpBox(Style.nonRenderer2DError, MessageType.Error);
+                return;
+            }
 
             float originalLabelWidth = EditorGUIUtility.labelWidth;
 
