@@ -50,7 +50,7 @@ namespace UnityEditor.ShaderGraph.Drawing
         // Reference to the category data this controller is responsible for representing
         CategoryData m_CategoryDataReference = null;
 
-        Dictionary<Guid, BlackboardItemController> m_BlackboardItemControllers = new Dictionary<Guid, ShaderInputViewController>();
+        Dictionary<string, BlackboardItemController> m_BlackboardItemControllers = new Dictionary<string, ShaderInputViewController>();
 
         SGBlackboard blackboard { get; set; }
 
@@ -146,12 +146,12 @@ namespace UnityEditor.ShaderGraph.Drawing
 
         internal bool IsInputInSection(ShaderInput shaderInput)
         {
-            return m_CategoryDataReference != null && m_CategoryDataReference.childItemIDSet.Contains(shaderInput.guid);
+            return m_CategoryDataReference != null && m_CategoryDataReference.IsItemInCategory(shaderInput);
         }
 
         internal SGBlackboardRow FindBlackboardRow(ShaderInput shaderInput)
         {
-            m_BlackboardItemControllers.TryGetValue(shaderInput.guid, out var associatedController);
+            m_BlackboardItemControllers.TryGetValue(shaderInput.objectId, out var associatedController);
             return associatedController?.BlackboardItemView;
         }
 
@@ -169,7 +169,7 @@ namespace UnityEditor.ShaderGraph.Drawing
                 parentView = BlackboardSectionView,
             };
             var blackboardItemController = new BlackboardItemController(shaderInput, shaderInputViewModel, DataStore);
-            m_BlackboardItemControllers.Add(shaderInput.guid, blackboardItemController);
+            m_BlackboardItemControllers.Add(shaderInput.objectId, blackboardItemController);
 
             BlackboardSectionView.Insert(insertionIndex, blackboardItemController.BlackboardItemView);
 
@@ -179,12 +179,12 @@ namespace UnityEditor.ShaderGraph.Drawing
         internal void RemoveBlackboardRow(BlackboardItem shaderInput)
         {
             BlackboardItemController associatedBlackboardItemController = null;
-            m_BlackboardItemControllers.TryGetValue(shaderInput.guid, out associatedBlackboardItemController);
+            m_BlackboardItemControllers.TryGetValue(shaderInput.objectId, out associatedBlackboardItemController);
 
             if (associatedBlackboardItemController != null)
             {
                 associatedBlackboardItemController.BlackboardItemView.RemoveFromHierarchy();
-                m_BlackboardItemControllers.Remove(shaderInput.guid);
+                m_BlackboardItemControllers.Remove(shaderInput.objectId);
             }
             else
             {

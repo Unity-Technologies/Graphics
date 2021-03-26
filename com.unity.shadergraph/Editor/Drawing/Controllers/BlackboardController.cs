@@ -29,6 +29,8 @@ namespace UnityEditor.ShaderGraph.Drawing
             // If type property is valid, create instance of that type
             if (blackboardItemType != null && blackboardItemType.IsSubclassOf(typeof(BlackboardItem)))
                 shaderInputReference = (BlackboardItem)Activator.CreateInstance(blackboardItemType, true);
+            else if (keywordType != null)
+                shaderInputReference = keywordType == KeywordType.Boolean ? new ShaderKeyword(KeywordType.Boolean) : new ShaderKeyword(KeywordType.Enum);
             // If type is null a direct override object must have been provided or else we are in an error-state
             else if (shaderInputReference == null)
             {
@@ -51,6 +53,9 @@ namespace UnityEditor.ShaderGraph.Drawing
         public BlackboardItem shaderInputReference { get; set; }
 
         public AddActionSource addInputActionType { get; set; }
+
+        // The specific case of adding keywords requires passing the type of keyword to the constructor, hence we need to store it
+        public KeywordType? keywordType { get; set; } = null;
     }
 
     class ChangeGraphPathAction : IGraphDataAction
@@ -194,15 +199,15 @@ namespace UnityEditor.ShaderGraph.Drawing
             }
 
             // Default Keywords next
-            ViewModel.defaultKeywordNameToAddActionMap.Add("Boolean",  new AddShaderInputAction() { shaderInputReference = new ShaderKeyword(KeywordType.Boolean), addInputActionType = AddShaderInputAction.AddActionSource.AddMenu });
-            ViewModel.defaultKeywordNameToAddActionMap.Add("Enum",  new AddShaderInputAction() { shaderInputReference = new ShaderKeyword(KeywordType.Enum), addInputActionType = AddShaderInputAction.AddActionSource.AddMenu });
+            ViewModel.defaultKeywordNameToAddActionMap.Add("Boolean",  new AddShaderInputAction() { keywordType = KeywordType.Boolean, addInputActionType = AddShaderInputAction.AddActionSource.AddMenu });
+            ViewModel.defaultKeywordNameToAddActionMap.Add("Enum",  new AddShaderInputAction() { keywordType = KeywordType.Enum, addInputActionType = AddShaderInputAction.AddActionSource.AddMenu });
 
             // Built-In Keywords last
             foreach (var builtinKeywordDescriptor in KeywordUtil.GetBuiltinKeywordDescriptors())
             {
                 var keyword = ShaderKeyword.CreateBuiltInKeyword(builtinKeywordDescriptor);
-                // Do not allow user to add built-in keywords that conflict with user-made keywords that have the same reference name
-                if (Model.keywords.Any(x => x.referenceName == keyword.referenceName))
+                // Do not allow user to add built-in keywords that conflict with user-made keywords that have the same reference name or display name
+                if (Model.keywords.Any(x => x.referenceName == keyword.referenceName || x.displayName == keyword.displayName))
                 {
                     ViewModel.disabledKeywordNameList.Add(keyword.displayName);
                 }
@@ -219,16 +224,16 @@ namespace UnityEditor.ShaderGraph.Drawing
             // If no user-made categories exist, then create the default categories and add all inputs that exist to them
             if (ViewModel.categoryInfoList.Count == 0)
             {
-                var propertyGUIDs = new List<Guid>();
+                var properties = new List<ShaderInput>();
                 foreach (var property in DataStore.State.properties)
-                    propertyGUIDs.Add(property.guid);
-                var defaultPropertyCategory = new CategoryData("Properties", propertyGUIDs);
+                    properties.Add(property);
+                var defaultPropertyCategory = new CategoryData("Properties", properties);
                 ViewModel.categoryInfoList.Add(defaultPropertyCategory);
 
-                var keywordGUIDs = new List<Guid>();
+                var keywords = new List<ShaderInput>();
                 foreach (var keyword in DataStore.State.keywords)
-                    keywordGUIDs.Add(keyword.guid);
-                var defaultKeywordCategory = new CategoryData("Keywords", keywordGUIDs);
+                    keywords.Add(keyword);
+                var defaultKeywordCategory = new CategoryData("Keywords", keywords);
                 ViewModel.categoryInfoList.Add(defaultKeywordCategory);
             }
         }

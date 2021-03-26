@@ -107,14 +107,13 @@ namespace UnityEditor.ShaderGraph.Drawing
         {
             ViewModel = viewModel;
 
-            InitializeAddPropertyMenu();
-
             // By default dock blackboard to left of graph window
             windowDockingLayout.dockingLeft = true;
 
             if (m_MainContainer.Q(name: "addButton") is Button addButton)
                 addButton.clickable.clicked += () =>
                 {
+                    InitializeAddPropertyMenu();
                     addItemRequested?.Invoke();
                     ShowAddPropertyMenu();
                 };
@@ -258,7 +257,7 @@ namespace UnityEditor.ShaderGraph.Drawing
 
             foreach (string disabledKeywordName in ViewModel.disabledKeywordNameList)
             {
-                m_AddBlackboardItemMenu.AddDisabledItem(new GUIContent(disabledKeywordName));
+                m_AddBlackboardItemMenu.AddDisabledItem(new GUIContent($"Keyword/{disabledKeywordName}"));
             }
         }
 

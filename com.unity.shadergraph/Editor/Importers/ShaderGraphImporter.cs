@@ -230,6 +230,100 @@ Shader ""Hidden/GraphErrorShader2""
                     }
                 }
             }
+
+            List<MinimalCategoryData.GraphInputData> inputInspectorDataList = new List<MinimalCategoryData.GraphInputData>();
+            foreach(AbstractShaderProperty prop in graph.properties)
+            {
+                // Don't write out data for non-exposed blackboard items
+                if (!prop.isExposed)
+                    continue;
+                inputInspectorDataList.Add(new MinimalCategoryData.GraphInputData() { referenceName = prop.referenceName, propertyType = prop.propertyType, isKeyword = false});
+            }
+            foreach(ShaderKeyword keyword in graph.keywords)
+            {
+                // Don't write out data for non-exposed blackboard items
+                if (!keyword.isExposed)
+                    continue;
+                inputInspectorDataList.Add(new MinimalCategoryData.GraphInputData() { referenceName = keyword.referenceName, keywordType = keyword.keywordType, isKeyword = true});
+            }
+            sgMetadata.categoryDatas = new List<MinimalCategoryData>();
+            foreach(CategoryData categoryData in graph.categories)
+            {
+                MinimalCategoryData mcd = new MinimalCategoryData()
+                {
+                    categoryName = categoryData.name,
+                    propertyDatas = new List<MinimalCategoryData.GraphInputData>()
+                };
+                foreach(var input in categoryData.Children)
+                {
+                    MinimalCategoryData.GraphInputData propData;
+                    if(input is ShaderKeyword keyword)
+                    {
+                        propData = new MinimalCategoryData.GraphInputData() { referenceName = input.referenceName, keywordType = keyword.keywordType, isKeyword = true};
+                    }
+                    else
+                    {
+                        var prop = input as AbstractShaderProperty;
+                        propData = new MinimalCategoryData.GraphInputData() { referenceName = input.referenceName, propertyType = prop.propertyType, isKeyword = false };
+                    }
+
+                    // Only write out data for exposed blackboard items
+                    if (input.isExposed)
+                        mcd.propertyDatas.Add(propData);
+
+                    inputInspectorDataList.Remove(propData);
+                }
+                sgMetadata.categoryDatas.Add(mcd);
+            }
+
+            // Any uncategorized elements get tossed into an un-named category at the top as a fallback
+            if(inputInspectorDataList.Count > 0)
+            {
+                foreach (var inputInspectorData in inputInspectorDataList.ToList())
+                {
+                    if (inputInspectorData.propertyType == PropertyType.VirtualTexture)
+                    {
+                        // Remove the virtual texture input
+                        var layerReferenceNames = new List<string>();
+                        ShaderInput matchingGraphInput = null;
+                        foreach (var property in graph.properties)
+                        {
+                            if (property.referenceName == inputInspectorData.referenceName)
+                            {
+                                matchingGraphInput = property;
+                                break;
+                            }
+                        }
+
+                        if(matchingGraphInput == null)
+                            continue;
+                        if (matchingGraphInput is VirtualTextureShaderProperty virtualTextureShaderProperty)
+                        {
+                            virtualTextureShaderProperty.GetPropertyReferenceNames(layerReferenceNames);
+                            List<MinimalCategoryData.GraphInputData> virtualTextureLayerDataList = new List<MinimalCategoryData.GraphInputData>();
+                            // Skip the first entry in this list as that's the Virtual Texture reference name itself, which won't exist in ShaderLab
+                            foreach (var referenceName in layerReferenceNames.Skip(1))
+                            {
+                                var layerPropertyData = new MinimalCategoryData.GraphInputData() { referenceName = referenceName, propertyType = PropertyType.Texture2D, isKeyword = false };
+                                virtualTextureLayerDataList.Add(layerPropertyData);
+                            }
+
+                            var insertionIndex = inputInspectorDataList.IndexOf(inputInspectorData);
+                            // Remove the virtual texture layer property data as ShaderLab does not understand VTs, throws an exception
+                            inputInspectorDataList.Remove(inputInspectorData);
+                            // Insert the texture layers that comprise this virtual texture instead
+                            inputInspectorDataList.InsertRange(insertionIndex, virtualTextureLayerDataList);
+                        }
+                    }
+                }
+                sgMetadata.categoryDatas.Insert(0, new MinimalCategoryData() { categoryName = "", propertyDatas = inputInspectorDataList });
+            }
+
+            foreach(AbstractShaderProperty prop in graph.properties)
+            {
+                var propertyType = prop.propertyType;
+            }
+
             ctx.AddObjectToAsset("SGInternal:Metadata", sgMetadata);
 
             // declare dependencies
