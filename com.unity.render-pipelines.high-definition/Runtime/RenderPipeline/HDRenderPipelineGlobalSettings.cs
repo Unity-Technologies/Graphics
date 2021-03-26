@@ -170,7 +170,7 @@ namespace UnityEngine.Rendering.HighDefinition
 #pragma warning disable 618 // Type or member is obsolete
             //2. Migrate obsolete assets (version DefaultSettingsAsAnAsset)
             assetCreated.volumeProfile        = oldAsset.m_ObsoleteDefaultVolumeProfile;
-            assetCreated.volumeProfileLookDev = oldAsset.m_ObsoleteDefaultLookDevProfile;
+            assetCreated.lookDevVolumeProfile = oldAsset.m_ObsoleteDefaultLookDevProfile;
 
             assetCreated.m_RenderingPathDefaultCameraFrameSettings                  = oldAsset.m_ObsoleteFrameSettingsMovedToDefaultSettings;
             assetCreated.m_RenderingPathDefaultBakedOrCustomReflectionFrameSettings = oldAsset.m_ObsoleteBakedOrCustomReflectionFrameSettingsMovedToDefaultSettings;
@@ -271,7 +271,7 @@ namespace UnityEngine.Rendering.HighDefinition
                     assetCreated.renderPipelineRayTracingResources = src.renderPipelineRayTracingResources;
 
                     assetCreated.volumeProfile = src.volumeProfile;
-                    assetCreated.volumeProfileLookDev = src.volumeProfileLookDev;
+                    assetCreated.lookDevVolumeProfile = src.lookDevVolumeProfile;
 
                     assetCreated.m_RenderingPathDefaultCameraFrameSettings = src.m_RenderingPathDefaultCameraFrameSettings;
                     assetCreated.m_RenderingPathDefaultBakedOrCustomReflectionFrameSettings = src.m_RenderingPathDefaultBakedOrCustomReflectionFrameSettings;
@@ -417,26 +417,26 @@ namespace UnityEngine.Rendering.HighDefinition
 
         #region Look Dev Profile
 #if UNITY_EDITOR
-        [SerializeField] private VolumeProfile m_VolumeProfileLookDev;
+        [SerializeField] private VolumeProfile m_LookDevVolumeProfile;
 
-        internal VolumeProfile volumeProfileLookDev
+        internal VolumeProfile lookDevVolumeProfile
         {
-            get => m_VolumeProfileLookDev;
-            set => m_VolumeProfileLookDev = value;
+            get => m_LookDevVolumeProfile;
+            set => m_LookDevVolumeProfile = value;
         }
 
         internal VolumeProfile GetOrAssignLookDevVolumeProfile()
         {
-            if (volumeProfileLookDev == null || volumeProfileLookDev.Equals(null))
+            if (lookDevVolumeProfile == null || lookDevVolumeProfile.Equals(null))
             {
-                volumeProfileLookDev = renderPipelineEditorResources.lookDev.defaultLookDevVolumeProfile;
+                lookDevVolumeProfile = renderPipelineEditorResources.lookDev.defaultLookDevVolumeProfile;
             }
-            return volumeProfileLookDev;
+            return lookDevVolumeProfile;
         }
 
         internal bool IsVolumeProfileLookDevFromResources()
         {
-            return volumeProfileLookDev != null && !volumeProfileLookDev.Equals(null) && renderPipelineEditorResources != null && volumeProfileLookDev.Equals(renderPipelineEditorResources.lookDev.defaultLookDevVolumeProfile);
+            return lookDevVolumeProfile != null && !lookDevVolumeProfile.Equals(null) && renderPipelineEditorResources != null && lookDevVolumeProfile.Equals(renderPipelineEditorResources.lookDev.defaultLookDevVolumeProfile);
         }
 
 #endif
