@@ -16,7 +16,6 @@ namespace UnityEngine.Rendering.Universal
         NormalWorldSpace,
         NormalTangentSpace,
         LightingComplexity,
-        LOD,
         Metallic,
         SpriteMask,
     }

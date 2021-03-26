@@ -29,28 +29,6 @@ void SetupDebugDataBrdf(inout InputData inputData, half3 brdfDiffuse, half3 brdf
     inputData.brdfSpecular = brdfSpecular;
 }
 
-half3 GetLODDebugColor()
-{
-    if (IsBitSet(unity_LODFade.z, 0))
-        return GetDebugColor(0);
-    else if (IsBitSet(unity_LODFade.z, 1))
-        return GetDebugColor(1);
-    else if (IsBitSet(unity_LODFade.z, 2))
-        return GetDebugColor(2);
-    else if (IsBitSet(unity_LODFade.z, 3))
-        return GetDebugColor(3);
-    else if (IsBitSet(unity_LODFade.z, 4))
-        return GetDebugColor(4);
-    else if (IsBitSet(unity_LODFade.z, 5))
-        return GetDebugColor(5);
-    else if (IsBitSet(unity_LODFade.z, 6))
-        return GetDebugColor(6);
-    else if (IsBitSet(unity_LODFade.z, 7))
-        return GetDebugColor(7);
-    else
-        return GetDebugColor(8);
-}
-
 bool UpdateSurfaceAndInputDataForDebug(inout SurfaceData surfaceData, inout InputData inputData)
 {
     bool changed = false;
@@ -207,10 +185,6 @@ bool CalculateColorForDebugMaterial(in InputData inputData, in SurfaceData surfa
             debugColor = half4(surfaceData.normalTS.xyz * 0.5 + 0.5, 1);
             return true;
 
-        case DEBUGMATERIALMODE_LOD:
-            debugColor = half4(GetLODDebugColor(), 1);
-            return true;
-
         case DEBUGMATERIALMODE_METALLIC:
             debugColor = half4(surfaceData.metallic.rrr, 1);
             return true;
@@ -275,10 +249,6 @@ bool CanDebugOverrideOutputColor(inout InputData inputData, inout SurfaceData su
         {
             surfaceData.albedo = CalculateDebugShadowCascadeColor(inputData);
         }
-        else if ((_DebugMaterialMode == DEBUGMATERIALMODE_LOD) && CalculateColorForDebug(inputData, surfaceData, debugColor))
-        {
-            surfaceData.albedo = debugColor.rgb;
-        }
         else
         {
             if(UpdateSurfaceAndInputDataForDebug(surfaceData, inputData))
@@ -291,7 +261,7 @@ bool CanDebugOverrideOutputColor(inout InputData inputData, inout SurfaceData su
         // Update the BRDF data following any changes to the input/surface above...
         brdfData = CreateBRDFData(surfaceData);
 
-        return (_DebugMaterialMode != DEBUGMATERIALMODE_LOD) && CalculateColorForDebug(inputData, surfaceData, debugColor);
+        return CalculateColorForDebug(inputData, surfaceData, debugColor);
     }
 }
 
@@ -308,10 +278,6 @@ bool CanDebugOverrideOutputColor(inout InputData inputData, inout SurfaceData su
         {
             surfaceData.albedo = CalculateDebugShadowCascadeColor(inputData);
         }
-        else if ((_DebugMaterialMode == DEBUGMATERIALMODE_LOD) && CalculateColorForDebug(inputData, surfaceData, debugColor))
-        {
-            surfaceData.albedo = debugColor.rgb;
-        }
         else
         {
             if(UpdateSurfaceAndInputDataForDebug(surfaceData, inputData))
@@ -321,7 +287,7 @@ bool CanDebugOverrideOutputColor(inout InputData inputData, inout SurfaceData su
             }
         }
 
-        return (_DebugMaterialMode != DEBUGMATERIALMODE_LOD) && CalculateColorForDebug(inputData, surfaceData, debugColor);
+        return CalculateColorForDebug(inputData, surfaceData, debugColor);
     }
 }
 
