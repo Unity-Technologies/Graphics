@@ -13,7 +13,8 @@ namespace UnityEngine.Rendering.HighDefinition
         public Vector3 scattering;    // [0, 1]
         public float   extinction;    // [0, 1]
         public Vector3 textureTiling;
-        public int     textureIndex;
+        public float   atlasBias;
+        public Vector3 atlasScale;
         public Vector3 textureScroll;
         public int     invertFade;    // bool...
         public Vector3 rcpPosFaceFade;
@@ -27,7 +28,8 @@ namespace UnityEngine.Rendering.HighDefinition
 
             data.scattering             = Vector3.zero;
             data.extinction             = 0;
-            data.textureIndex           = -1;
+            data.atlasBias              = -1.0f;
+            data.atlasScale             = Vector3.one;
             data.textureTiling          = Vector3.one;
             data.textureScroll          = Vector3.zero;
             data.rcpPosFaceFade         = new Vector3(float.MaxValue, float.MaxValue, float.MaxValue);
@@ -761,7 +763,12 @@ namespace UnityEngine.Rendering.HighDefinition
                 m_VisibleVolumeData.Clear();
 
                 // Collect all visible finite volume data, and upload it to the GPU.
-                var volumes = DensityVolumeManager.manager.PrepareDensityVolumeData(cmd, hdCamera);
+                var volumes = DensityVolumeManager.manager.PrepareDensityVolumeData(
+                    cmd,
+                    hdCamera,
+                    asset.renderPipelineResources.shaders.blit3dCS,
+                    asset.currentPlatformRenderPipelineSettings.densityVolumeSettings.atlasResolution
+                );
 
                 for (int i = 0; i < Math.Min(volumes.Count, k_MaxVisibleVolumeCount); i++)
                 {
@@ -806,7 +813,7 @@ namespace UnityEngine.Rendering.HighDefinition
             public int                          viewCount;
             public bool                         tiledLighting;
 
-            public Texture3D                    volumeAtlas;
+            public RenderTexture                volumeAtlas;
 
             public ShaderVariablesVolumetric    volumetricCB;
             public ShaderVariablesLightList     lightListCB;
@@ -853,12 +860,12 @@ namespace UnityEngine.Rendering.HighDefinition
 
             var volumeAtlas = DensityVolumeManager.manager.volumeAtlas.GetAtlas();
             cb._VolumeMaskDimensions = Vector4.zero;
-            if (DensityVolumeManager.manager.volumeAtlas.GetAtlas() != null)
+            if (volumeAtlas != null)
             {
-                cb._VolumeMaskDimensions.x = (float)volumeAtlas.width / volumeAtlas.depth; // 1 / number of textures
-                cb._VolumeMaskDimensions.y = volumeAtlas.width;
-                cb._VolumeMaskDimensions.z = volumeAtlas.depth;
-                cb._VolumeMaskDimensions.w = Mathf.Log(volumeAtlas.width, 2); // Max LoD
+                cb._VolumeMaskDimensions.x = 1.0f / DensityVolumeManager.manager.volumeAtlas.NumTexturesInAtlas; // 1 / number of textures
+                cb._VolumeMaskDimensions.y = volumeAtlas.rt.width;
+                cb._VolumeMaskDimensions.z = volumeAtlas.rt.volumeDepth;
+                cb._VolumeMaskDimensions.w = Mathf.Log(volumeAtlas.rt.width, 2); // Max LoD
             }
 
             SetPreconvolvedAmbientLightProbe(ref cb, hdCamera, fog);
@@ -917,7 +924,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
             if (parameters.volumeAtlas == null)
             {
-                parameters.volumeAtlas = CoreUtils.blackVolumeTexture;
+                parameters.volumeAtlas = CoreUtils.emptyUAV;
             }
 
             UpdateShaderVariableslVolumetrics(ref m_ShaderVariablesVolumetricCB, hdCamera, parameters.resolution);

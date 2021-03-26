@@ -11,7 +11,8 @@ struct DensityVolumeEngineData
     float3 scattering;
     float extinction;
     float3 textureTiling;
-    int textureIndex;
+    float atlasBias;
+    float3 atlasScale;
     float3 textureScroll;
     int invertFade;
     float3 rcpPosFaceFade;
@@ -61,9 +62,13 @@ float3 GetTextureTiling(DensityVolumeEngineData value)
 {
     return value.textureTiling;
 }
-int GetTextureIndex(DensityVolumeEngineData value)
+float GetAtlasBias(DensityVolumeEngineData value)
 {
-    return value.textureIndex;
+    return value.atlasBias;
+}
+float3 GetAtlasScale(DensityVolumeEngineData value)
+{
+    return value.atlasScale;
 }
 float3 GetTextureScroll(DensityVolumeEngineData value)
 {

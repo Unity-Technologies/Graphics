@@ -2,9 +2,11 @@ using System.Collections.Generic;
 
 namespace UnityEngine.Rendering.HighDefinition
 {
-    class DensityVolumeManager
+    public class DensityVolumeManager
     {
         static private DensityVolumeManager _instance = null;
+        public delegate void ComputeShaderParamsDelegate(List<DensityVolume> volumes, CommandBuffer cmd, RTHandle atlas);
+        public static ComputeShaderParamsDelegate DynamicDensityVolumeCallback;
 
         public static DensityVolumeManager manager
         {
@@ -18,19 +20,14 @@ namespace UnityEngine.Rendering.HighDefinition
             }
         }
 
-        public Texture3DAtlas volumeAtlas = null;
+        public DensityVolumeAtlas volumeAtlas = null;
         private bool atlasNeedsRefresh = false;
-
-        //TODO: hardcoded size....:-(
-        public static int volumeTextureSize = 32;
 
         private DensityVolumeManager()
         {
             volumes = new List<DensityVolume>();
 
-            volumeAtlas = new Texture3DAtlas(TextureFormat.Alpha8, volumeTextureSize);
-
-            volumeAtlas.OnAtlasUpdated += AtlasUpdated;
+            volumeAtlas = new DensityVolumeAtlas();
         }
 
         private List<DensityVolume> volumes = null;
@@ -40,11 +37,7 @@ namespace UnityEngine.Rendering.HighDefinition
             volumes.Add(volume);
 
             volume.OnTextureUpdated += TriggerVolumeAtlasRefresh;
-
-            if (volume.parameters.volumeMask != null)
-            {
-                volumeAtlas.AddTexture(volume.parameters.volumeMask);
-            }
+            volumeAtlas.AddVolume(volume);
         }
 
         public void DeRegisterVolume(DensityVolume volume)
@@ -58,7 +51,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
             if (volume.parameters.volumeMask != null)
             {
-                volumeAtlas.RemoveTexture(volume.parameters.volumeMask);
+                volumeAtlas.RemoveVolume(volume);
             }
 
             //Upon removal we have to refresh the texture list.
@@ -67,7 +60,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
         public bool ContainsVolume(DensityVolume volume) => volumes.Contains(volume);
 
-        public List<DensityVolume> PrepareDensityVolumeData(CommandBuffer cmd, HDCamera currentCam)
+        public List<DensityVolume> PrepareDensityVolumeData(CommandBuffer cmd, HDCamera currentCam, ComputeShader blit3dShader, Vector3Int atlasResolution)
         {
             //Update volumes
             float time = currentCam.time;
@@ -82,34 +75,23 @@ namespace UnityEngine.Rendering.HighDefinition
                 VolumeAtlasRefresh();
             }
 
-            volumeAtlas.GenerateAtlas(cmd);
+            volumeAtlas.UpdateAtlas(cmd, blit3dShader, atlasResolution);
 
             return volumes;
         }
 
         private void VolumeAtlasRefresh()
         {
-            volumeAtlas.ClearTextures();
+            volumeAtlas.ClearVolumes();
             foreach (DensityVolume volume in volumes)
             {
-                if (volume.parameters.volumeMask != null)
-                {
-                    volumeAtlas.AddTexture(volume.parameters.volumeMask);
-                }
+                volumeAtlas.AddVolume(volume);
             }
         }
 
         public void TriggerVolumeAtlasRefresh()
         {
             atlasNeedsRefresh = true;
-        }
-
-        private void AtlasUpdated()
-        {
-            foreach (DensityVolume volume in volumes)
-            {
-                volume.parameters.textureIndex = volumeAtlas.GetTextureIndex(volume.parameters.volumeMask);
-            }
         }
     }
 }

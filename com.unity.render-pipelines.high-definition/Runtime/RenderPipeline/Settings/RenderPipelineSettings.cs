@@ -136,6 +136,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 lightLayerName7 = "Light Layer 7",
                 supportProbeVolume = false,
                 probeVolumeSettings = GlobalProbeVolumeSettings.@default,
+                densityVolumeSettings = DensityVolumeSettings.@default,
             };
             return settings;
         }
@@ -276,6 +277,8 @@ namespace UnityEngine.Rendering.HighDefinition
 
         /// <summary>Global Probe Volume settings.</summary>
         [SerializeField] internal GlobalProbeVolumeSettings probeVolumeSettings;
+        /// <summary>Density Volume settings.</summary>
+        [SerializeField] internal DensityVolumeSettings densityVolumeSettings;
 		/// <summary>Global light loop settings.</summary>
         public GlobalLightLoopSettings lightLoopSettings;
         /// <summary>Global shadows settings.</summary>
