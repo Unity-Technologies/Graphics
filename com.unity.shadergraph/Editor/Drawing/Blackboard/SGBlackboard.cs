@@ -107,6 +107,8 @@ namespace UnityEditor.ShaderGraph.Drawing
         {
             ViewModel = viewModel;
 
+            InitializeAddPropertyMenu();
+
             // By default dock blackboard to left of graph window
             windowDockingLayout.dockingLeft = true;
 
