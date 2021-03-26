@@ -3,9 +3,7 @@
 # Introduce any changes under .yamato/config/*.metafile files (for most cases) or under .yamato/ruamel/* within Python (more elaborate cases), and rerun build.py to regenerate all .yml files.
 # Read more under .yamato/docs/readme.md
 
-{% metadata_file .yamato/_latest_editor_versions_trunk.metafile -%}
 
----
 
 PR_Universal_Split_trunk:
     name: Universal_Split PR Job - trunk
@@ -38,11 +36,13 @@ PR_Universal_Split_trunk:
 Nightly_Universal_Split_trunk:
     name: Nightly Universal_Split - trunk
     agent:
-        type: Unity::VM
-        image: package-ci/ubuntu:stable
-        flavor: b1.large
+      type: Unity::VM::osx
+      image: package-ci/mac:stable
+      flavor: m1.mac
     commands:
-      - utr --coverage-options 'enableAdditionalMetrics;generateHtmlReport;assemblyFilters:+Unity.RenderPipelines.Universal.Runtime' --coverage-results-path=%YAMATO_SOURCE_DIR%/test-results/code-coverage --enable-code-coverage
+      - curl -s https://artifactory.prd.it.unity3d.com/artifactory/unity-tools-local/utr-standalone/utr --output utr
+      - chmod +x utr
+      - ./utr --coverage-options 'enableAdditionalMetrics;generateHtmlReport;assemblyFilters:+Unity.RenderPipelines.Universal.Runtime' --coverage-results-path=%YAMATO_SOURCE_DIR%/test-results/code-coverage --enable-code-coverage
     dependencies:
       -  path: .yamato/all-urp_2d.yml#Nightly_URP_2D_trunk
          rerun: on-new-revision
