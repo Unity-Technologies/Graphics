@@ -215,8 +215,9 @@ namespace UnityEngine.Rendering.HighDefinition
                 oldAsset.diffusionProfileSettings.TryToUpgrade();
             }
 
-            System.Array.Resize(ref assetCreated.diffusionProfileSettingsList, oldAsset.m_ObsoleteDiffusionProfileSettingsList.Length);
-            for (int i = 0; i < oldAsset.m_ObsoleteDiffusionProfileSettingsList.Length; ++i)
+            int oldSize = oldAsset.m_ObsoleteDiffusionProfileSettingsList?.Length ?? 0;
+            System.Array.Resize(ref assetCreated.diffusionProfileSettingsList, oldSize);
+            for (int i = 0; i < oldSize; ++i)
                 assetCreated.diffusionProfileSettingsList[i] = oldAsset.m_ObsoleteDiffusionProfileSettingsList[i];
 
             //3. Clear obsolete fields
