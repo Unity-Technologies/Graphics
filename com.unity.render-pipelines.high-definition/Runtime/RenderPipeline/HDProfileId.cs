@@ -251,5 +251,8 @@ namespace UnityEngine.Rendering.HighDefinition
         VTFeedbackClear,
         VTFeedbackDownsample,
 #endif
+        BlitStaticDensityVolumeMasks,
+        DispatchDynamicDensityVolumeShaders,
+        GenerateDensityVolumeAtlasMipmaps
     }
 }

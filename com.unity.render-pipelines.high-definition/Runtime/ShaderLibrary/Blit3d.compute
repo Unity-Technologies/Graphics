@@ -1,0 +1,13 @@
+#pragma kernel CSMain
+
+RWTexture3D<float> _DstTex;
+Texture3D<float4> _SrcTex;
+int _ZBias;
+
+[numthreads(8, 8, 8)]
+void CSMain(uint3 id : SV_DispatchThreadID)
+{
+    uint3 write_idx = id + uint3(0, 0, _ZBias);
+    _DstTex[write_idx] = _SrcTex[id].a;
+}
+
