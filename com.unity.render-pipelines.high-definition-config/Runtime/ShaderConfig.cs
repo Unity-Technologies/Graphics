@@ -50,6 +50,19 @@ namespace UnityEngine.Rendering.HighDefinition
     }
 
     /// <summary>
+    /// Options for the mode HDRP uses for probe volume bilateral filtering.
+    /// </summary>
+    ///<seealso cref="ShaderOptions"/>
+    [GenerateHLSL(PackingRules.Exact)]
+    public enum ProbeVolumesBilateralFilteringSampleModes
+    {
+        /// <summary>Bilateral filtering blends weighted texture coordinates, and then takes a single hardware filtered sample from the atlas. Reduces texture sample bandwidth at the cost of inexact bilateral filter reconstruction, and hardware interpolation precision banding.</summary>
+        ApproximateSample = 0,
+        /// <summary>Bilateral filtering loads 8x taps from the atlas, and weights these results. Reconstructs precise bilateral filter results at the potential cost of bandwidth.</summary>
+        PreciseLoad = 1
+    }
+
+    /// <summary>
     /// Project-wide shader configuration options.
     /// </summary>
     /// <remarks>This enum will generate the proper shader defines.</remarks>
@@ -91,8 +104,11 @@ namespace UnityEngine.Rendering.HighDefinition
         /// <summary>The probe volume filtering mode.</summary>
         /// <seealso cref="ProbeVolumesBilateralFilteringModes"/>
         ProbeVolumesBilateralFilteringMode = ProbeVolumesBilateralFilteringModes.Validity,
+        /// <summary>The probe volume bilateral filtering sample mode.</summary>
+        /// <seealso cref="ProbeVolumesBilateralFilteringSampleModes"/>
+        ProbeVolumesBilateralFilteringSampleMode = ProbeVolumesBilateralFilteringSampleModes.ApproximateSample,
         /// <summary>The probe volume encoding method.</summary>
-        /// /// <seealso cref="ProbeVolumesEncodingModes"/>
+        /// <seealso cref="ProbeVolumesEncodingModes"/>
         ProbeVolumesEncodingMode = ProbeVolumesEncodingModes.SphericalHarmonicsL2,
 
         /// <summary>Support for area lights.</summary>
@@ -136,6 +152,9 @@ namespace UnityEngine.Rendering.HighDefinition
         /// <summary>Specifies the probe volume filtering mode.</summary>
         ///<seealso cref="ShaderOptions.ProbeVolumesBilateralFilteringMode"/>
         public static ProbeVolumesBilateralFilteringModes s_ProbeVolumesBilateralFilteringMode = (ProbeVolumesBilateralFilteringModes)ShaderOptions.ProbeVolumesBilateralFilteringMode;
+        /// <summary>Specifies the probe volume filtering mode.</summary>
+        ///<seealso cref="ShaderOptions.ProbeVolumesBilateralFilteringMode"/>
+        public static ProbeVolumesBilateralFilteringSampleModes s_ProbeVolumesBilateralFilteringSampleMode = (ProbeVolumesBilateralFilteringSampleModes)ShaderOptions.ProbeVolumesBilateralFilteringSampleMode;
         /// <summary>Specifies the probe volume encoding method.</summary>
         ///<seealso cref="ShaderOptions.ProbeVolumesEncodingMode"/>
         public static ProbeVolumesEncodingModes s_ProbeVolumesEncodingMode = (ProbeVolumesEncodingModes)ShaderOptions.ProbeVolumesEncodingMode;
