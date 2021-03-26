@@ -7,6 +7,14 @@ using UnityEditor.UIElements;
 using UnityEngine.UIElements;
 
 
+enum Status
+{
+    Pending,
+    Warning,
+    Error,
+    Success
+}
+
 [Serializable]
 class ConverterItemState
 {
@@ -15,9 +23,7 @@ class ConverterItemState
     // Maybe add the conversion info here
     public string info;
 
-    internal enum Status
-    {
-    }
+    internal Status status;
 }
 
 // Each converter uses the active bool
@@ -211,10 +217,25 @@ public class RenderPipelineConvertersEditor : EditorWindow
                     // Default all the entries to true
                     for (var j = 0; j < converterItemInfos.Count; j++)
                     {
+                        string info = "";
+                        Status status;
+                        // If this data hasn't been filled in from the init phase then we can assume that there are no issues / warnings
+                        if (string.IsNullOrEmpty(converterItemInfos[j].initialInfo))
+                        {
+                            status = Status.Pending;
+                        }
+                        else
+                        {
+                            status = Status.Warning;
+                            info = converterItemInfos[j].initialInfo;
+                            m_ConverterStates[i].warnings++;
+                        }
+
                         m_ConverterStates[i].items.Add(new ConverterItemState
                         {
                             isActive = true,
-                            info = ""
+                            info = info,
+                            status = status,
                         });
                     }
 
@@ -276,21 +297,45 @@ public class RenderPipelineConvertersEditor : EditorWindow
                     // Changing the icon here depending on the info.
                     // If there is some info here we show the "warning icon"
                     // If the string is empty we show the pending conversion icon.
-                    if (!String.IsNullOrEmpty(convItemDesc.initialInfo))
+
+                    Status status = m_ConverterStates[id].items[index].status;
+                    string info = m_ConverterStates[id].items[index].info;
+                    Texture2D icon = null;
+
+                    switch (status)
                     {
-                        element.Q<Image>("converterItemStatusIcon").image = kImgWarn;
-                        element.Q<Image>("converterItemStatusIcon").tooltip = convItemDesc.initialInfo;
+                        case Status.Pending:
+                            icon = kImgPending;
+                            break;
+                        case Status.Error:
+                            icon = kImgFail;
+                            break;
+                        case Status.Warning:
+                            icon = kImgWarn;
+                            break;
+                        case Status.Success:
+                            icon = kImgSuccess;
+                            break;
                     }
-                    else if (element.Q<Label>("converterItemInfo").text != "")
-                    {
-                        element.Q<Image>("converterItemStatusIcon").image = kImgFail;
-                        element.Q<Image>("converterItemStatusIcon").tooltip = element.Q<Label>("converterItemInfo").text;
-                    }
-                    else
-                    {
-                        element.Q<Image>("converterItemStatusIcon").image = null;
-                        element.Q<Image>("converterItemStatusIcon").tooltip = "";
-                    }
+
+                    // if (!String.IsNullOrEmpty(convItemDesc.initialInfo))
+                    // {
+                    //     element.Q<Image>("converterItemStatusIcon").image = kImgWarn;
+                    //     element.Q<Image>("converterItemStatusIcon").tooltip = convItemDesc.initialInfo;
+                    // }
+                    // else if (element.Q<Label>("converterItemInfo").text != "")
+                    // {
+                    //     element.Q<Image>("converterItemStatusIcon").image = kImgFail;
+                    //     element.Q<Image>("converterItemStatusIcon").tooltip = element.Q<Label>("converterItemInfo").text;
+                    // }
+                    // else
+                    // {
+                    //     element.Q<Image>("converterItemStatusIcon").image = null;
+                    //     element.Q<Image>("converterItemStatusIcon").tooltip = "";
+                    // }
+
+                    element.Q<Image>("converterItemStatusIcon").image = icon;
+                    element.Q<Image>("converterItemStatusIcon").tooltip = info;
                 };
                 listView.onSelectionChange += obj =>
                 {
@@ -321,6 +366,12 @@ public class RenderPipelineConvertersEditor : EditorWindow
         {
             // This put the error message onto the icon and also changes the icon to the fail one since there is binding going on in the background
             m_ConverterStates[stateIndex].items[failedItem.index].info = failedItem.message;
+            m_ConverterStates[stateIndex].items[failedItem.index].status = Status.Error;
+        }
+
+        foreach (SuccessfulItem successfulItem in ctx.m_SuccessfulItems)
+        {
+            m_ConverterStates[stateIndex].items[successfulItem.index].status = Status.Success;
         }
 
         m_ConverterStates[stateIndex].success = successCount;

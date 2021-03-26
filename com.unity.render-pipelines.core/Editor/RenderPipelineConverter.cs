@@ -50,6 +50,10 @@ namespace UnityEditor.Rendering
 
         public void AddAssetToConvert(ConverterItemDescriptor item)
         {
+            //if (!string.IsNullOrEmpty(item.initialInfo))
+            //{
+            //    item.
+            //}
             m_Items.Add(item);
         }
     }
@@ -61,13 +65,14 @@ namespace UnityEditor.Rendering
         internal List<SuccessfulItem> m_SuccessfulItems;
         public IEnumerable<ConverterItemInfo> items => m_Items;
 
-        public string m_ProcessingInfo;
+        //public string m_ProcessingInfo;
+        public int m_ProcessingID;
         public RunConverterContext(List<ConverterItemInfo> items)
         {
             m_Items = items;
             m_FailedItems = new List<FailedItem>();
             m_SuccessfulItems = new List<SuccessfulItem>();
-            m_ProcessingInfo = "";
+            m_ProcessingID = 0;
         }
 
         public void MarkFailed(int index)
@@ -87,7 +92,7 @@ namespace UnityEditor.Rendering
 
         public void Processing(int index)
         {
-            m_ProcessingInfo = m_Items[index].descriptor.name;
+            m_ProcessingID = index;
         }
     }
 
