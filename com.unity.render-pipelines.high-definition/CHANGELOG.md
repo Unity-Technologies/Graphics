@@ -35,6 +35,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Added a "Conservative" mode for shader graph depth offset.
 - Added an error message when trying to use disk lights with realtime GI (case 1317808).
 - Added support for multi volumetric cloud shadows.
+- Added a Scale Mode setting for Decals.
 
 ### Fixed
 - Fixed Intensity Multiplier not affecting realtime global illumination.
