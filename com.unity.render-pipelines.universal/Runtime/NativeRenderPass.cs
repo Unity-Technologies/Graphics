@@ -2,13 +2,16 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using Unity.Collections;
+using UnityEngine;
 using UnityEngine.Experimental.Rendering;
+using UnityEngine.Rendering;
+using UnityEngine.Rendering.Universal;
 
 namespace UnityEngine.Rendering.Universal
 {
-    public static class NativeRenderPassUtils
+    public static class NativeRenderPass
     {
-        public static void SetMRTAttachmentsList(ScriptableRenderPass renderPass, ref CameraData cameraData, uint validColorBuffersCount, bool needCustomCameraColorClear,
+        internal static void SetMRTAttachmentsList(ScriptableRenderPass renderPass, ref CameraData cameraData, uint validColorBuffersCount, bool needCustomCameraColorClear,
             bool needCustomCameraDepthClear, Dictionary<Hash128, int[]> mergeableRenderPassesMap, Hash128[] sceneIndexToPassHash,
             Dictionary<Hash128, int> renderPassesAttachmentCount, List<ScriptableRenderPass> activeRenderPassQueue,
             ref AttachmentDescriptor[] activeColorAttachmentDescriptors, ref AttachmentDescriptor activeDepthAttachmentDescriptor)
@@ -44,7 +47,7 @@ namespace UnityEngine.Rendering.Universal
                     // if this is the current camera's last pass, also check if one of the RTs is the backbuffer (BuiltinRenderTextureType.CameraTarget)
                     isLastPassToBB |= isLastPass && (pass.colorAttachments[i] == BuiltinRenderTextureType.CameraTarget);
 
-                    int existingAttachmentIndex = RenderingUtils.FindAttachmentDescriptorIndexInList(currentAttachmentIdx, currentAttachmentDescriptor, activeColorAttachmentDescriptors);
+                    int existingAttachmentIndex = FindAttachmentDescriptorIndexInList(currentAttachmentIdx, currentAttachmentDescriptor, activeColorAttachmentDescriptors);
 
                     if (existingAttachmentIndex == -1)
                     {
@@ -76,7 +79,7 @@ namespace UnityEngine.Rendering.Universal
             }
         }
 
-        public static void SetAttachmentList(ScriptableRenderPass renderPass, ref CameraData cameraData, RenderTargetIdentifier passColorAttachment, RenderTargetIdentifier passDepthAttachment, ClearFlag finalClearFlag, Color finalClearColor,
+        internal static void SetAttachmentList(ScriptableRenderPass renderPass, ref CameraData cameraData, RenderTargetIdentifier passColorAttachment, RenderTargetIdentifier passDepthAttachment, ClearFlag finalClearFlag, Color finalClearColor,
             Dictionary<Hash128, int[]> mergeableRenderPassesMap, Hash128[] sceneIndexToPassHash,
             Dictionary<Hash128, int> renderPassesAttachmentCount, List<ScriptableRenderPass> activeRenderPassQueue,
             ref AttachmentDescriptor[] activeColorAttachmentDescriptors, ref AttachmentDescriptor activeDepthAttachmentDescriptor)
@@ -104,7 +107,7 @@ namespace UnityEngine.Rendering.Universal
                 AttachmentDescriptor currentAttachmentDescriptor;
                 var usesTargetTexture = cameraData.targetTexture != null;
                 var depthOnly = renderPass.depthOnly || (usesTargetTexture &&
-                                                         cameraData.targetTexture.graphicsFormat == GraphicsFormat.DepthAuto);
+                    cameraData.targetTexture.graphicsFormat == GraphicsFormat.DepthAuto);
                 // Offscreen depth-only cameras need this set explicitly
                 if (depthOnly && usesTargetTexture)
                 {
@@ -166,7 +169,7 @@ namespace UnityEngine.Rendering.Universal
                 if (samples > 1)
                     currentAttachmentDescriptor.ConfigureResolveTarget(colorAttachmentTarget); // resolving to the implicit color target's resolve surface TODO: handle m_CameraResolveTarget if present?
 
-                int existingAttachmentIndex = RenderingUtils.FindAttachmentDescriptorIndexInList(currentAttachmentIdx, currentAttachmentDescriptor, activeColorAttachmentDescriptors);
+                int existingAttachmentIndex = FindAttachmentDescriptorIndexInList(currentAttachmentIdx, currentAttachmentDescriptor, activeColorAttachmentDescriptors);
 
                 if (existingAttachmentIndex == -1)
                 {
@@ -184,7 +187,7 @@ namespace UnityEngine.Rendering.Universal
             }
         }
 
-        public static void Configure(CommandBuffer cmd, ScriptableRenderPass renderPass, CameraData cameraData, Hash128[] sceneIndexToPassHash, Dictionary<Hash128, int[]> mergeableRenderPassesMap, List<ScriptableRenderPass> activeRenderPassQueue)
+        internal static void Configure(CommandBuffer cmd, ScriptableRenderPass renderPass, CameraData cameraData, Hash128[] sceneIndexToPassHash, Dictionary<Hash128, int[]> mergeableRenderPassesMap, List<ScriptableRenderPass> activeRenderPassQueue)
         {
             int currentSceneIndex = renderPass.sceneIndex;
             Hash128 currentPassHash = sceneIndexToPassHash[currentSceneIndex];
@@ -204,7 +207,7 @@ namespace UnityEngine.Rendering.Universal
             }
         }
 
-        public static void Execute(ScriptableRenderContext context, ScriptableRenderPass renderPass, CameraData cameraData, ref RenderingData renderingData,  Dictionary<Hash128, int[]> mergeableRenderPassesMap, Hash128[] sceneIndexToPassHash,
+        internal static void Execute(ScriptableRenderContext context, ScriptableRenderPass renderPass, CameraData cameraData, ref RenderingData renderingData,  Dictionary<Hash128, int[]> mergeableRenderPassesMap, Hash128[] sceneIndexToPassHash,
             Dictionary<Hash128, int> renderPassesAttachmentCount, List<ScriptableRenderPass> activeRenderPassQueue,
             ref AttachmentDescriptor[] activeColorAttachmentDescriptors, ref AttachmentDescriptor activeDepthAttachmentDescriptor, RenderTargetIdentifier activeDepthAttachment)
         {
@@ -239,10 +242,10 @@ namespace UnityEngine.Rendering.Universal
                 : sampleCount;
 
             bool isFirstMergeablePass = currentMergeablePasses[0] == currentSceneIndex;
-            int validPassCount = RenderingUtils.GetValidPassIndexCount(currentMergeablePasses);
+            int validPassCount = GetValidPassIndexCount(currentMergeablePasses);
             bool isLastMergeablePass = currentMergeablePasses[validPassCount - 1] == currentSceneIndex;
 
-            var attachmentIndicesCount = RenderingUtils.GetSubPassAttachmentIndicesCount(renderPass);
+            var attachmentIndicesCount = GetSubPassAttachmentIndicesCount(renderPass);
 
             var attachmentIndices = new NativeArray<int>(!depthOnly ? (int)attachmentIndicesCount : 0, Allocator.Temp);
             if (!depthOnly)
@@ -263,7 +266,7 @@ namespace UnityEngine.Rendering.Universal
             }
             else
             {
-                if (!RenderingUtils.AreAttachmentIndicesCompatible(activeRenderPassQueue[currentSceneIndex - 1], activeRenderPassQueue[currentSceneIndex]))
+                if (!AreAttachmentIndicesCompatible(activeRenderPassQueue[currentSceneIndex - 1], activeRenderPassQueue[currentSceneIndex]))
                 {
                     context.EndSubPass();
                     context.BeginSubPass(attachmentIndices);
@@ -285,6 +288,84 @@ namespace UnityEngine.Rendering.Universal
                 activeColorAttachmentDescriptors[i] = RenderingUtils.emptyAttachment;
             }
             activeDepthAttachmentDescriptor = RenderingUtils.emptyAttachment;
+        }
+
+        internal static uint GetSubPassAttachmentIndicesCount(ScriptableRenderPass pass)
+        {
+            uint numValidAttachments = 0;
+
+            foreach (var attIdx in pass.attachmentIndices)
+            {
+                if (attIdx >= 0)
+                    ++numValidAttachments;
+            }
+
+            return numValidAttachments;
+        }
+
+        internal static bool AreAttachmentIndicesCompatible(ScriptableRenderPass lastSubPass, ScriptableRenderPass currentSubPass)
+        {
+            uint lastSubPassAttCount = GetSubPassAttachmentIndicesCount(lastSubPass);
+            uint currentSubPassAttCount = GetSubPassAttachmentIndicesCount(currentSubPass);
+
+            if (currentSubPassAttCount > lastSubPassAttCount)
+                return false;
+
+            uint numEqualAttachments = 0;
+            for (int currPassIdx = 0; currPassIdx < currentSubPassAttCount; ++currPassIdx)
+            {
+                for (int lastPassIdx = 0; lastPassIdx < lastSubPassAttCount; ++lastPassIdx)
+                {
+                    if (currentSubPass.attachmentIndices[currPassIdx] == lastSubPass.attachmentIndices[lastPassIdx])
+                        numEqualAttachments++;
+                }
+            }
+
+            return (numEqualAttachments == currentSubPassAttCount);
+        }
+
+        internal static uint GetValidColorAttachmentCount(AttachmentDescriptor[] colorAttachments)
+        {
+            uint nonNullColorBuffers = 0;
+            if (colorAttachments != null)
+            {
+                foreach (var attachment in colorAttachments)
+                {
+                    if (attachment != RenderingUtils.emptyAttachment)
+                        ++nonNullColorBuffers;
+                }
+            }
+            return nonNullColorBuffers;
+        }
+
+        internal static int FindAttachmentDescriptorIndexInList(int attachmentIdx, AttachmentDescriptor attachmentDescriptor, AttachmentDescriptor[] attachmentDescriptors)
+        {
+            int existingAttachmentIndex = -1;
+            for (int i = 0; i < attachmentIdx; ++i)
+            {
+                AttachmentDescriptor att = attachmentDescriptors[i];
+
+                if (att.loadStoreTarget == attachmentDescriptor.loadStoreTarget)
+                {
+                    existingAttachmentIndex = i;
+                    break;
+                }
+            }
+
+            return existingAttachmentIndex;
+        }
+
+        internal static int GetValidPassIndexCount(int[] array)
+        {
+            for (int i = 0; i < array.Length; ++i)
+                if (array[i] == -1)
+                    return i;
+            return array.Length - 1;
+        }
+
+        internal static Hash128 CreateRenderPassHash(int width, int height, int depthID, int sample, uint hashIndex)
+        {
+            return new Hash128((uint)width * 10000 + (uint)height, (uint)depthID, (uint)sample, hashIndex);
         }
     }
 }

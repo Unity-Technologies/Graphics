@@ -614,7 +614,7 @@ namespace UnityEngine.Rendering.Universal
                 renderPass.isLastPass = false;
                 renderPass.sceneIndex = i;
 
-                Hash128 hash = RenderingUtils.CreateRenderPassHash(width, height, rtID, sampleCount, currentHashIndex);
+                Hash128 hash = NativeRenderPass.CreateRenderPassHash(width, height, rtID, sampleCount, currentHashIndex);
 
                 sceneIndexToPassHash[i] = hash;
 
@@ -626,12 +626,12 @@ namespace UnityEngine.Rendering.Universal
                     mergeableRenderPassesMap.Add(hash, mergeableRenderPassesMapArrays[mergeableRenderPassesMap.Count]);
                     renderPassesAttachmentCount.Add(hash, 0);
                 }
-                else if (mergeableRenderPassesMap[hash][RenderingUtils.GetValidPassIndexCount(mergeableRenderPassesMap[hash]) - 1] != (i - 1))
+                else if (mergeableRenderPassesMap[hash][NativeRenderPass.GetValidPassIndexCount(mergeableRenderPassesMap[hash]) - 1] != (i - 1))
                 {
                     // if the passes are not sequential we want to split the current mergeable passes list. So we increment the hashIndex and update the hash
 
                     currentHashIndex++;
-                    hash = RenderingUtils.CreateRenderPassHash(width, height, rtID, sampleCount, currentHashIndex);
+                    hash = NativeRenderPass.CreateRenderPassHash(width, height, rtID, sampleCount, currentHashIndex);
 
                     sceneIndexToPassHash[i] = hash;
 
@@ -639,7 +639,7 @@ namespace UnityEngine.Rendering.Universal
                     renderPassesAttachmentCount.Add(hash, 0);
                 }
 
-                mergeableRenderPassesMap[hash][RenderingUtils.GetValidPassIndexCount(mergeableRenderPassesMap[hash])] = i;
+                mergeableRenderPassesMap[hash][NativeRenderPass.GetValidPassIndexCount(mergeableRenderPassesMap[hash])] = i;
             }
 
             m_ActiveRenderPassQueue[lastPassIndex].isLastPass = true;
@@ -942,7 +942,7 @@ namespace UnityEngine.Rendering.Universal
             using (new ProfilingScope(null, Profiling.RenderPass.configure))
             {
                 if (IsRenderPassEnabled(renderPass) && cameraData.cameraType == CameraType.Game)
-                    NativeRenderPassUtils.Configure(cmd,  renderPass,
+                    NativeRenderPass.Configure(cmd,  renderPass,
                         cameraData, sceneIndexToPassHash,
                         mergeableRenderPassesMap,
                         m_ActiveRenderPassQueue);
@@ -957,7 +957,7 @@ namespace UnityEngine.Rendering.Universal
             CommandBufferPool.Release(cmd);
 
             if (IsRenderPassEnabled(renderPass) && cameraData.cameraType == CameraType.Game)
-                NativeRenderPassUtils.Execute(context,  renderPass,
+                NativeRenderPass.Execute(context,  renderPass,
                     cameraData, ref  renderingData,
                     mergeableRenderPassesMap, sceneIndexToPassHash,
                     renderPassesAttachmentCount,
@@ -1053,7 +1053,7 @@ namespace UnityEngine.Rendering.Universal
                     }
                 }
 
-                NativeRenderPassUtils.SetMRTAttachmentsList(renderPass, ref  cameraData,
+                NativeRenderPass.SetMRTAttachmentsList(renderPass, ref  cameraData,
                     validColorBuffersCount,  needCustomCameraColorClear,
                     needCustomCameraDepthClear, mergeableRenderPassesMap,
                     sceneIndexToPassHash,
@@ -1153,7 +1153,7 @@ namespace UnityEngine.Rendering.Universal
 
                 if (IsRenderPassEnabled(renderPass) && cameraData.cameraType == CameraType.Game)
                 {
-                    NativeRenderPassUtils.SetAttachmentList(renderPass, ref cameraData, passColorAttachment,
+                    NativeRenderPass.SetAttachmentList(renderPass, ref cameraData, passColorAttachment,
                         passDepthAttachment, finalClearFlag, finalClearColor,
                         mergeableRenderPassesMap, sceneIndexToPassHash,
                         renderPassesAttachmentCount, m_ActiveRenderPassQueue,
