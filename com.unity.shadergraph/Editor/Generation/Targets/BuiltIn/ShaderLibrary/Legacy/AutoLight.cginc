@@ -162,25 +162,25 @@ half UnityComputeForwardShadows(float2 lightmapUV, float3 worldPos, float4 scree
 #endif
 
 #ifdef POINT
-UNITY_DECLARE_TEX2D_FLOAT(_LightTexture0);
+sampler2D_float _LightTexture0;
 unityShadowCoord4x4 unity_WorldToLight;
 #   define UNITY_LIGHT_ATTENUATION(destName, input, worldPos) \
         unityShadowCoord3 lightCoord = mul(unity_WorldToLight, unityShadowCoord4(worldPos, 1)).xyz; \
         fixed shadow = UNITY_SHADOW_ATTENUATION(input, worldPos); \
-        fixed destName = UNITY_SAMPLE_TEX2D(_LightTexture0, dot(lightCoord, lightCoord).rr).r * shadow;
+        fixed destName = tex2D(_LightTexture0, dot(lightCoord, lightCoord).rr).r * shadow;
 #endif
 
 #ifdef SPOT
-UNITY_DECLARE_TEX2D_FLOAT(_LightTexture0);
+sampler2D_float _LightTexture0;
 unityShadowCoord4x4 unity_WorldToLight;
-UNITY_DECLARE_TEX2D_FLOAT(_LightTextureB0);
+sampler2D_float _LightTextureB0;
 inline fixed UnitySpotCookie(unityShadowCoord4 LightCoord)
 {
-    return UNITY_SAMPLE_TEX2D(_LightTexture0, LightCoord.xy / LightCoord.w + 0.5).w;
+    return tex2D(_LightTexture0, LightCoord.xy / LightCoord.w + 0.5).w;
 }
 inline fixed UnitySpotAttenuate(unityShadowCoord3 LightCoord)
 {
-    return UNITY_SAMPLE_TEX2D(_LightTextureB0, dot(LightCoord, LightCoord).xx).r;
+    return tex2D(_LightTextureB0, dot(LightCoord, LightCoord).xx).r;
 }
 #if !defined(UNITY_HALF_PRECISION_FRAGMENT_SHADER_REGISTERS)
 #define DECLARE_LIGHT_COORD(input, worldPos) unityShadowCoord4 lightCoord = mul(unity_WorldToLight, unityShadowCoord4(worldPos, 1))
@@ -198,9 +198,9 @@ inline fixed UnitySpotAttenuate(unityShadowCoord3 LightCoord)
 #endif
 
 #ifdef POINT_COOKIE
-UNITY_DECLARE_TEXCUBE(_LightTexture0);
+samplerCUBE_float _LightTexture0;
 unityShadowCoord4x4 unity_WorldToLight;
-UNITY_DECLARE_TEX2D_FLOAT(_LightTextureB0);
+sampler2D_float _LightTextureB0;
 #   if !defined(UNITY_HALF_PRECISION_FRAGMENT_SHADER_REGISTERS)
 #       define DECLARE_LIGHT_COORD(input, worldPos) unityShadowCoord3 lightCoord = mul(unity_WorldToLight, unityShadowCoord4(worldPos, 1)).xyz
 #   else
@@ -209,11 +209,11 @@ UNITY_DECLARE_TEX2D_FLOAT(_LightTextureB0);
 #   define UNITY_LIGHT_ATTENUATION(destName, input, worldPos) \
         DECLARE_LIGHT_COORD(input, worldPos); \
         fixed shadow = UNITY_SHADOW_ATTENUATION(input, worldPos); \
-        fixed destName = UNITY_SAMPLE_TEX2D(_LightTextureB0, dot(lightCoord, lightCoord).rr).r * UNITY_SAMPLE_TEXCUBE(_LightTexture0, lightCoord).w * shadow;
+        fixed destName = tex2D(_LightTextureB0, dot(lightCoord, lightCoord).rr).r * texCUBE(_LightTexture0, lightCoord).w * shadow;
 #endif
 
 #ifdef DIRECTIONAL_COOKIE
-UNITY_DECLARE_TEX2D_FLOAT(_LightTexture0);
+sampler2D_float _LightTexture0;
 unityShadowCoord4x4 unity_WorldToLight;
 #   if !defined(UNITY_HALF_PRECISION_FRAGMENT_SHADER_REGISTERS)
 #       define DECLARE_LIGHT_COORD(input, worldPos) unityShadowCoord2 lightCoord = mul(unity_WorldToLight, unityShadowCoord4(worldPos, 1)).xy
@@ -223,7 +223,7 @@ unityShadowCoord4x4 unity_WorldToLight;
 #   define UNITY_LIGHT_ATTENUATION(destName, input, worldPos) \
         DECLARE_LIGHT_COORD(input, worldPos); \
         fixed shadow = UNITY_SHADOW_ATTENUATION(input, worldPos); \
-        fixed destName = UNITY_SAMPLE_TEX2D(_LightTexture0, lightCoord).w * shadow;
+        fixed destName = tex2D(_LightTexture0, lightCoord).w * shadow;
 #endif
 
 

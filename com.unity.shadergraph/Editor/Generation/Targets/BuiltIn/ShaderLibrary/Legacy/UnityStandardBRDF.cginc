@@ -407,12 +407,12 @@ half4 BRDF2_Unity_PBS (half3 diffColor, half3 specColor, half oneMinusReflectivi
     return half4(color, 1);
 }
 
-UNITY_DECLARE_TEX2D_FLOAT(unity_NHxRoughness);
+sampler2D_float unity_NHxRoughness;
 half3 BRDF3_Direct(half3 diffColor, half3 specColor, half rlPow4, half smoothness)
 {
     half LUT_RANGE = 16.0; // must match range in NHxRoughness() function in GeneratedTextures.cpp
     // Lookup texture to save instructions
-    half specular = UNITY_SAMPLE_TEX2D(unity_NHxRoughness, half2(rlPow4, SmoothnessToPerceptualRoughness(smoothness))).r * LUT_RANGE;
+    half specular = tex2D(unity_NHxRoughness, half2(rlPow4, SmoothnessToPerceptualRoughness(smoothness))).r * LUT_RANGE;
 #if defined(_SPECULARHIGHLIGHTS_OFF)
     specular = 0.0;
 #endif
