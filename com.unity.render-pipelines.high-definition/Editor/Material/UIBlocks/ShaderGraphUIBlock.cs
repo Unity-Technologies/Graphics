@@ -6,6 +6,7 @@ using System.Linq;
 
 // Include material common properties names
 using static UnityEngine.Rendering.HighDefinition.HDMaterialProperties;
+using UnityEditor.ShaderGraph.Drawing;
 
 namespace UnityEditor.Rendering.HighDefinition
 {
@@ -137,16 +138,7 @@ namespace UnityEditor.Rendering.HighDefinition
         /// <param name="properties">List of Material Properties to draw</param>
         protected void PropertiesDefaultGUI(MaterialProperty[] properties)
         {
-            for (var i = 0; i < properties.Length; i++)
-            {
-                if ((properties[i].flags & (MaterialProperty.PropFlags.HideInInspector | MaterialProperty.PropFlags.PerRendererData)) != 0)
-                    continue;
-
-                float h = materialEditor.GetPropertyHeight(properties[i], properties[i].displayName);
-                Rect r = EditorGUILayout.GetControlRect(true, h, EditorStyles.layerMaskField);
-
-                materialEditor.ShaderProperty(r, properties[i], properties[i].displayName);
-            }
+            ShaderGraphPropertyDrawers.DrawShaderGraphGUI(materialEditor, properties);
         }
 
         /// <summary>
