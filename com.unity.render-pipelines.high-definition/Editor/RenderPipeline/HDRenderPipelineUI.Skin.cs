@@ -118,10 +118,7 @@ namespace UnityEditor.Rendering.HighDefinition
             public static readonly GUIContent FogSettingsBudget = EditorGUIUtility.TrTextContent("Volumetric Fog Budget");
             public static readonly GUIContent FogSettingsRatio = EditorGUIUtility.TrTextContent("Volumetric Fog Ratio");
 
-            public static readonly GUIContent defaultFrameSettingsContent = EditorGUIUtility.TrTextContent("Default Frame Settings For");
-
             public static readonly GUIContent materialQualityLevelContent = EditorGUIUtility.TrTextContent("Default Material Quality Level", "");
-            public static readonly GUIContent diffusionProfileSettingsContent = EditorGUIUtility.TrTextContent("Diffusion Profile List");
             public static readonly GUIContent SRPBatcher = EditorGUIUtility.TrTextContent("SRP Batcher", "When enabled, the render pipeline uses the SRP batcher.");
 
             public static readonly GUIContent supportShadowMaskContent = EditorGUIUtility.TrTextContent("Shadowmask", "When enabled, HDRP allocates Shader variants and memory for processing shadow masks. This allows you to use shadow masks in your Unity Project.");

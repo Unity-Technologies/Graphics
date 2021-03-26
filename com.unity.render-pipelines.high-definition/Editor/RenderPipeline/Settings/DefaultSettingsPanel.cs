@@ -115,21 +115,22 @@ namespace UnityEditor.Rendering.HighDefinition
         public void DoGUI(string searchContext)
         {
             // When the asset being serialized has been deleted before its reconstruction
-            if ((serializedSettings == null) || (settingsSerialized != HDRenderPipelineGlobalSettings.instance) || serializedSettings.serializedObject.targetObject == null)
+            if (serializedSettings != null && serializedSettings.serializedObject.targetObject == null)
             {
-                if (HDRenderPipeline.currentPipeline == null)
+                serializedSettings = null;
+                settingsSerialized = null;
+            }
+
+            if (serializedSettings == null || settingsSerialized != HDRenderPipelineGlobalSettings.instance)
+            {
+                if (HDRenderPipeline.currentPipeline != null || HDRenderPipelineGlobalSettings.instance != null)
                 {
                     settingsSerialized = HDRenderPipelineGlobalSettings.Ensure();
                     var serializedObject = new SerializedObject(settingsSerialized);
                     serializedSettings = new SerializedHDRenderPipelineGlobalSettings(serializedObject);
                 }
-                else
-                {
-                    serializedSettings = null;
-                    settingsSerialized = null;
-                }
             }
-            if (settingsSerialized != null && serializedSettings != null)
+            else if (settingsSerialized != null && serializedSettings != null)
             {
                 serializedSettings.serializedObject.Update();
             }
@@ -183,13 +184,15 @@ namespace UnityEditor.Rendering.HighDefinition
                 if (EditorGUI.EndChangeCheck())
                 {
                     HDRenderPipelineGlobalSettings.UpdateGraphicsSettings(newAsset);
-                    EditorUtility.SetDirty(settingsSerialized);
+                    if (settingsSerialized != null && !settingsSerialized.Equals(null))
+                        EditorUtility.SetDirty(settingsSerialized);
                 }
 
                 if (GUILayout.Button(EditorGUIUtility.TrTextContent("New", "Create a HD Global Settings Asset in your default resource folder (defined in Wizard)"), GUILayout.Width(45), GUILayout.Height(18)))
                 {
                     HDAssetFactory.HDRenderPipelineGlobalSettingsCreator.Create(useProjectSettingsFolder: true, activateAsset: true);
                 }
+
                 bool guiEnabled = GUI.enabled;
                 GUI.enabled = guiEnabled && (settingsSerialized != null);
                 if (GUILayout.Button(EditorGUIUtility.TrTextContent("Clone", "Clone a HD Global Settings Asset in your default resource folder (defined in Wizard)"), GUILayout.Width(45), GUILayout.Height(18)))

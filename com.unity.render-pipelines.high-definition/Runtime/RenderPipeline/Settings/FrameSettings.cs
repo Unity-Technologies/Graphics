@@ -133,11 +133,7 @@ namespace UnityEngine.Rendering.HighDefinition
         [FrameSettingsField(0, autoName: CustomPass, customOrderInGroup: 11, tooltip: "When enabled, HDRP renders custom passes contained in CustomPassVolume components.")]
         CustomPass = 6,
         /// <summary>When enabled, HDRP can use virtual texturing.</summary>
-#if ENABLE_VIRTUALTEXTURES
-        [FrameSettingsField(0, autoName: VirtualTexturing, customOrderInGroup: 105, tooltip: "When enabled, HDRP can use virtual texturing.")]
-#else
         [FrameSettingsField(0, autoName: VirtualTexturing, customOrderInGroup: 105, tooltip: "Virtual Texturing needs to be enabled first in Project Settings > Player > Other Settings > Virtual Texturing.")]
-#endif
         VirtualTexturing = 68,
 
         /// <summary>When enabled, HDRP processes a motion vector pass for Cameras using these Frame Settings.</summary>
@@ -844,6 +840,10 @@ namespace UnityEngine.Rendering.HighDefinition
 
 
             sanitizedFrameSettings.bitDatas[(int)FrameSettingsField.SubsurfaceScattering] &= sanitizedFrameSettings.bitDatas[(int)FrameSettingsField.OpaqueObjects];
+
+#if !ENABLE_VIRTUALTEXTURES
+            sanitizedFrameSettings.bitDatas[(int)FrameSettingsField.VirtualTexturing] = false;
+#endif
         }
 
         /// <summary>Aggregation is default with override of the renderer then sanitized depending on supported features of hdrpasset.</summary>

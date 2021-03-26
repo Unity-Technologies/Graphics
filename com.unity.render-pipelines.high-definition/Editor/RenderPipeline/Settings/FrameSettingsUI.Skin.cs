@@ -5,7 +5,7 @@ namespace UnityEditor.Rendering.HighDefinition
 {
     partial class FrameSettingsUI
     {
-        static readonly GUIContent frameSettingsHeaderContent = EditorGUIUtility.TrTextContent("Frame Settings Overrides", "Default FrameSettings are defined in your Unity Project's HDRP Asset.");
+        static readonly GUIContent frameSettingsHeaderContent = EditorGUIUtility.TrTextContent("Frame Settings Overrides", "Default values for Frame Settings are defined in the Global Settings asset located in Project Settings > Graphics > HDRP Settings.");
 
         const string renderingSettingsHeaderContent = "Rendering";
         const string lightSettingsHeaderContent = "Lighting";

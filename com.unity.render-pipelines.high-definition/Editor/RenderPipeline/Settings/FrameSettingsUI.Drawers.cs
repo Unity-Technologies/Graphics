@@ -167,13 +167,15 @@ namespace UnityEditor.Rendering.HighDefinition
             area.AmmendInfo(FrameSettingsField.ClearGBuffers, ignoreDependencies: true);
             area.AmmendInfo(FrameSettingsField.MSAA, ignoreDependencies: true);
             area.AmmendInfo(FrameSettingsField.AlphaToMask, ignoreDependencies: true);
+            area.AmmendInfo(FrameSettingsField.DecalLayers, ignoreDependencies: true);
+            area.AmmendInfo(FrameSettingsField.ObjectMotionVectors, ignoreDependencies: true);
+            area.AmmendInfo(FrameSettingsField.TransparentsWriteMotionVector, ignoreDependencies: true);
 
-#if !ENABLE_VIRTUALTEXTURES
-            area.AmmendInfo(FrameSettingsField.VirtualTexturing, overrideable: () => false);
-#endif
             var isEditingCamera = owner is HDCameraEditor;
             area.AmmendInfo(FrameSettingsField.Postprocess, overrideable: () => isEditingCamera);
 
+            var hdrpAsset = GetHDRPAssetFor(owner);
+            RenderPipelineSettings qualityLevelSettings = hdrpAsset?.currentPlatformRenderPipelineSettings ?? default;
             area.AmmendInfo(
                 FrameSettingsField.LODBiasMode,
                 overridedDefaultValue: LODBiasMode.FromQualitySettings,
@@ -190,7 +192,7 @@ namespace UnityEditor.Rendering.HighDefinition
                 hasMixedValues: serialized.lodBiasQualityLevel.hasMultipleDifferentValues);
 
             area.AmmendInfo(FrameSettingsField.LODBias,
-                // overridedDefaultValue: qualityLevelSettings.lodBias[serialized.lodBiasQualityLevel.intValue],
+                overridedDefaultValue: hdrpAsset ? qualityLevelSettings.lodBias[serialized.lodBiasQualityLevel.intValue] : 0,
                 customGetter: () => serialized.lodBias.floatValue,
                 customSetter: v => serialized.lodBias.floatValue = (float)v,
                 overrideable: () => serialized.lodBiasMode.GetEnumValue<LODBiasMode>() != LODBiasMode.FromQualitySettings,
@@ -214,7 +216,7 @@ namespace UnityEditor.Rendering.HighDefinition
                 hasMixedValues: serialized.maximumLODLevelQualityLevel.hasMultipleDifferentValues);
 
             area.AmmendInfo(FrameSettingsField.MaximumLODLevel,
-                //overridedDefaultValue: qualityLevelSettings.maximumLODLevel[serialized.maximumLODLevelQualityLevel.intValue],
+                overridedDefaultValue: hdrpAsset ? qualityLevelSettings.maximumLODLevel[serialized.maximumLODLevelQualityLevel.intValue] : 0,
                 customGetter: () => serialized.maximumLODLevel.intValue,
                 customSetter: v => serialized.maximumLODLevel.intValue = (int)v,
                 overrideable: () => serialized.maximumLODLevelMode.GetEnumValue<MaximumLODLevelMode>() != MaximumLODLevelMode.FromQualitySettings,
@@ -252,6 +254,10 @@ namespace UnityEditor.Rendering.HighDefinition
 
             var area = OverridableFrameSettingsArea.GetGroupContent(1, defaultFrameSettings, serialized);
 
+            area.AmmendInfo(FrameSettingsField.Volumetrics, ignoreDependencies: true);
+            area.AmmendInfo(FrameSettingsField.ReprojectionForVolumetrics, ignoreDependencies: true);
+            area.AmmendInfo(FrameSettingsField.TransparentSSR, ignoreDependencies: true);
+
             area.AmmendInfo(
                 FrameSettingsField.SssQualityMode,
                 overridedDefaultValue: SssQualityMode.FromQualitySettings,
@@ -287,12 +293,24 @@ namespace UnityEditor.Rendering.HighDefinition
         static internal void Drawer_SectionAsyncComputeSettings(SerializedFrameSettings serialized, Editor owner, bool withOverride)
         {
             var area = GetFrameSettingSectionContent(2, serialized, owner);
+
+            area.AmmendInfo(FrameSettingsField.LightListAsync, ignoreDependencies: true);
+            area.AmmendInfo(FrameSettingsField.SSRAsync, ignoreDependencies: true);
+            area.AmmendInfo(FrameSettingsField.SSAOAsync, ignoreDependencies: true);
+            area.AmmendInfo(FrameSettingsField.ContactShadowsAsync, ignoreDependencies: true);
+            area.AmmendInfo(FrameSettingsField.VolumeVoxelizationsAsync, ignoreDependencies: true);
+
             area.Draw(withOverride);
         }
 
         static internal void Drawer_SectionLightLoopSettings(SerializedFrameSettings serialized, Editor owner, bool withOverride)
         {
             var area = GetFrameSettingSectionContent(3, serialized, owner);
+
+            area.AmmendInfo(FrameSettingsField.ComputeLightEvaluation, ignoreDependencies: true);
+            area.AmmendInfo(FrameSettingsField.ComputeLightVariants, ignoreDependencies: true);
+            area.AmmendInfo(FrameSettingsField.ComputeMaterialVariants, ignoreDependencies: true);
+
             area.Draw(withOverride);
         }
 
