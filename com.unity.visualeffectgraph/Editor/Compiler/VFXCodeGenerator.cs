@@ -769,11 +769,14 @@ namespace UnityEditor.VFX
             if (!VFXLibrary.currentSRPBinder.IsGraphDataValid(graph))
                 return null;
 
+            // TODO: Configure a VFX Target here.
+            var targets = graph.activeTargets;
+
             // Configure the state of VFX target generation utils.
             using (new VFXSubTarget.CompilationScope(context, contextData))
             {
                 // Use ShaderGraph to generate the VFX shader.
-                var text = ShaderGraphImporter.GetShaderText(path, out configuredTextures, assetCollection, graph, GenerationMode.VFX);
+                var text = ShaderGraphImporter.GetShaderText(path, out configuredTextures, assetCollection, graph, GenerationMode.VFX, targets.ToArray());
 
                 // Append the shader + strip the name header (VFX stamps one in later on).
                 stringBuilder.Append(text);

@@ -34,8 +34,20 @@ namespace UnityEditor.ShaderGraph
 
         public Generator(GraphData graphData, AbstractMaterialNode outputNode, GenerationMode mode, string name, AssetCollection assetCollection)
         {
-            m_GraphData = graphData;
+            m_GraphData  = graphData;
             m_OutputNode = outputNode;
+            Generate(mode, name, assetCollection, GetTargetImplementations());
+        }
+
+        public Generator(GraphData graphData, AbstractMaterialNode outputNode, GenerationMode mode, string name, AssetCollection assetCollection, Target[] targets)
+        {
+            m_GraphData  = graphData;
+            m_OutputNode = outputNode;
+            Generate(mode, name, assetCollection, targets);
+        }
+
+        void Generate(GenerationMode mode, string name, AssetCollection assetCollection, Target[] targets)
+        {
             m_Mode = mode;
             m_Name = name;
 
@@ -43,21 +55,21 @@ namespace UnityEditor.ShaderGraph
             m_ConfiguredTextures = new List<PropertyCollector.TextureInfo>();
             m_assetCollection = assetCollection;
 
-            m_ActiveBlocks = graphData.GetNodes<BlockNode>().ToList();
+            m_ActiveBlocks = m_GraphData.GetNodes<BlockNode>().ToList();
             m_TemporaryBlocks = new List<BlockNode>();
-            GetTargetImplementations();
+            m_Targets = targets;
             BuildShader();
         }
 
-        void GetTargetImplementations()
+        Target[] GetTargetImplementations()
         {
             if (m_OutputNode == null)
             {
-                m_Targets = m_GraphData.activeTargets.ToArray();
+                return m_GraphData.activeTargets.ToArray();
             }
             else
             {
-                m_Targets = new Target[] { new PreviewTarget() };
+                return new Target[] { new PreviewTarget() };
             }
         }
 
