@@ -546,7 +546,7 @@ namespace UnityEditor.Rendering.Universal
                 bool pixelPerfectEnabled = pixelPerfectCamera != null && pixelPerfectCamera.enabled;
 
                 if(pixelPerfectEnabled)
-                    EditorGUILayout.HelpBox(Styles.pixelPerfectWarning, MessageType.Warning);
+                    EditorGUILayout.HelpBox(Styles.pixelPerfectInfo, MessageType.Info);
                 else
                     settings.DrawProjection();
     

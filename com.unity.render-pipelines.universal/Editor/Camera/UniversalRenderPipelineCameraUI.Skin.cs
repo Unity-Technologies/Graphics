@@ -56,7 +56,7 @@ namespace UnityEditor.Rendering.Universal
             public static readonly string noRendererError = "There are no valid Renderers available on the Universal Render Pipeline asset.";
             public static readonly string disabledPostprocessing = "Post Processing is currently disabled on the current Universal Render Pipeline renderer.";
 
-            public static readonly string pixelPerfectWarning = "Projection and Size are disabled because the Pixel Perfect Camera is in use.";
+            public static readonly string pixelPerfectInfo = "Projection and Size have been hidden because the Pixel Perfect Camera is in use.";
 
             public static GUIContent[] cameraBackgroundType =
             {
