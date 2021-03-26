@@ -316,7 +316,7 @@ float3 TransformPreviousObjectToWorldVFX(float3 positionOS)
 // Vertex + Pixel Graph Properties Generation
 void GetElementVertexProperties(AttributesElement element, inout GraphProperties properties)
 {
-    const Attributes attributes = element.attributes;
+    Attributes attributes = element.attributes;
     $splice(VFXVertexPropertiesGeneration)
     $splice(VFXVertexPropertiesAssign)
 }
