@@ -203,7 +203,8 @@ namespace UnityEngine.Rendering
 
         internal void SetScrollTarget(DebugUIHandlerWidget widget)
         {
-            m_RootUICanvas.SetScrollTarget(widget);
+            if (m_RootUICanvas != null)
+                m_RootUICanvas.SetScrollTarget(widget);
         }
 
         void CheckPersistentCanvas()

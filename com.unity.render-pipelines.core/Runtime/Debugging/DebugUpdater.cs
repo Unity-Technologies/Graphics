@@ -1,6 +1,8 @@
 #if ENABLE_INPUT_SYSTEM && ENABLE_INPUT_SYSTEM_PACKAGE
     #define USE_INPUT_SYSTEM
+using UnityEngine.InputSystem;
 using UnityEngine.InputSystem.UI;
+using UnityEngine.InputSystem.EnhancedTouch;
 #endif
 using UnityEngine.EventSystems;
 
@@ -28,6 +30,7 @@ namespace UnityEngine.Rendering
                 go.SetActive(false);
                 go.AddComponent<InputSystemUIInputModule>();
                 go.SetActive(true);
+                EnhancedTouchSupport.Enable();
 #else
                 go.AddComponent<StandaloneInputModule>();
 #endif
@@ -41,21 +44,10 @@ namespace UnityEngine.Rendering
 
             debugManager.UpdateActions();
 
-            if (debugManager.GetAction(DebugAction.EnableDebugMenu) != 0.0f)
+            if (debugManager.GetAction(DebugAction.EnableDebugMenu) != 0.0f ||
+                debugManager.GetActionToggleDebugMenuWithTouch())
             {
                 debugManager.displayRuntimeUI = !debugManager.displayRuntimeUI;
-            }
-            else
-            {
-                if (Input.touchCount == 3)
-                {
-                    foreach (var touch in Input.touches)
-                    {
-                        // Gesture: 3-finger double-tap
-                        if (touch.phase == TouchPhase.Began && touch.tapCount == 2)
-                            debugManager.displayRuntimeUI = !debugManager.displayRuntimeUI;
-                    }
-                }
             }
 
             if (debugManager.displayRuntimeUI && debugManager.GetAction(DebugAction.ResetAll) != 0.0f)
@@ -63,7 +55,7 @@ namespace UnityEngine.Rendering
                 debugManager.Reset();
             }
 
-            if (Input.mouseScrollDelta != Vector2.zero)
+            if (debugManager.GetActionReleaseScrollTarget())
                 debugManager.SetScrollTarget(null); // Allow mouse wheel scroll without causing auto-scroll
         }
     }
