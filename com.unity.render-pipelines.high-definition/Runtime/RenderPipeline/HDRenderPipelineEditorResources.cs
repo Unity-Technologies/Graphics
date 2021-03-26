@@ -3,7 +3,7 @@ using System;
 
 namespace UnityEngine.Rendering.HighDefinition
 {
-    [HelpURL(Documentation.baseURL + Documentation.version + Documentation.subURL + "HDRP-Asset" + Documentation.endURL)]
+    [HDRPHelpURLAttribute("HDRP-Asset")]
     public partial class HDRenderPipelineEditorResources : ScriptableObject
     {
         [Reload(new[]
