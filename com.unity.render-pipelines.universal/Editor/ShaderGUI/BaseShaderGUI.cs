@@ -474,6 +474,7 @@ namespace UnityEditor
             if (material.HasProperty("_Surface"))
             {
                 SurfaceType surfaceType = (SurfaceType)material.GetFloat("_Surface");
+                CoreUtils.SetKeyword(material, "_SURFACE_TYPE_TRANSPARENT", surfaceType == SurfaceType.Transparent);
                 if (surfaceType == SurfaceType.Opaque)
                 {
                     if (alphaClip)
