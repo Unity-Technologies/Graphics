@@ -9,7 +9,8 @@ namespace UnityEngine.Rendering.HighDefinition
 
     public class ProbeDynamicGIExtraDataManager
     {
-        internal const int kCubeFaceSize = 64;
+        internal const int kCubeFaceSize = 16;
+        private const int kPoolSize = 64;
 
 
         private ProbeDynamicGIExtraDataManager()
@@ -18,17 +19,24 @@ namespace UnityEngine.Rendering.HighDefinition
         private static ProbeDynamicGIExtraDataManager s_Instance = new ProbeDynamicGIExtraDataManager();
         internal static ProbeDynamicGIExtraDataManager instance { get { return s_Instance; } }
 
-        internal class ExtraDataCubeMap
+        internal bool needBaking = true;
+
+        public CullingResults cullResult;
+        public bool cullDone = false;
+
+        internal class ExtraDataCubemapPool
         {
             internal RTHandle albedo;
             internal RTHandle normal;
             internal RTHandle depth;
 
+            internal float[] validity = new float[kPoolSize] ;
+
             internal void Allocate()
             {
-                albedo = RTHandles.Alloc(kCubeFaceSize, kCubeFaceSize, dimension: TextureDimension.Cube, colorFormat: GraphicsFormat.R8G8B8A8_UNorm, enableRandomWrite: true, name: "AlbedoForProbeExtraData");
-                normal = RTHandles.Alloc(kCubeFaceSize, kCubeFaceSize, dimension: TextureDimension.Cube, colorFormat: GraphicsFormat.R16G16_SFloat, enableRandomWrite: true, name: "NormalForProbeExtraData");
-                depth = RTHandles.Alloc(kCubeFaceSize, kCubeFaceSize, dimension: TextureDimension.Cube, colorFormat: GraphicsFormat.R16_SFloat, enableRandomWrite: true, name: "DepthForCustomData");
+                albedo = RTHandles.Alloc(kCubeFaceSize, kCubeFaceSize, kPoolSize * 6, dimension: TextureDimension.CubeArray, colorFormat: GraphicsFormat.R8G8B8A8_UNorm, enableRandomWrite: true, name: "AlbedoForProbeExtraData");
+                normal = RTHandles.Alloc(kCubeFaceSize, kCubeFaceSize, kPoolSize * 6, dimension: TextureDimension.CubeArray, colorFormat: GraphicsFormat.R16G16_SFloat, enableRandomWrite: true, name: "NormalForProbeExtraData");
+                depth = RTHandles.Alloc(kCubeFaceSize, kCubeFaceSize, kPoolSize * 6, dimension: TextureDimension.CubeArray, colorFormat: GraphicsFormat.R16_SFloat, enableRandomWrite: true, name: "DepthForCustomData");
             }
 
             internal void Dispose()
@@ -37,11 +45,13 @@ namespace UnityEngine.Rendering.HighDefinition
                 RTHandles.Release(normal);
                 RTHandles.Release(depth);
             }
+
         }
-        private const int kPoolSize = 64;
+
         private const float kExtraDataCameraNearPlane = 0.0001f;
-        private ExtraDataCubeMap[] m_CubemapPool = new ExtraDataCubeMap[kPoolSize];
         private RTHandle m_DepthForDynamicGIExtraData = null;
+
+        private ExtraDataCubemapPool m_DataPool = new ExtraDataCubemapPool();
 
         private int m_CurrentPoolIndex = 0;
         private int m_CurrentSlice = 0;
@@ -60,36 +70,35 @@ namespace UnityEngine.Rendering.HighDefinition
             return m_DepthForDynamicGIExtraData;
         }
 
-        internal ExtraDataCubeMap GetCurrentExtraDataDestination()
+        internal int GetCurrentExtraDataPoolIndex()
         {
-            Debug.Assert(m_CurrentPoolIndex < kPoolSize);
-            return m_CubemapPool[m_CurrentPoolIndex];
+            return m_CurrentPoolIndex;
         }
 
-        internal int GetCurrentSlice()
+        internal int GetCubemapFace()
         {
             int outputSlice = m_CurrentSlice;
             m_CurrentSlice = (m_CurrentSlice + 1) % 6;
             return outputSlice;
         }
 
+        internal ExtraDataCubemapPool GetCubemapPool()
+        {
+            if (m_DataPool == null) m_DataPool.Allocate();
+
+            return m_DataPool;
+        }
+
         public void AllocateResources()
         {
             m_CurrentPoolIndex = 0;
             m_DepthForDynamicGIExtraData = RTHandles.Alloc(kCubeFaceSize, kCubeFaceSize, depthBufferBits: DepthBits.Depth32, name: "Depth buffer for GI extra data");
-            for (int i = 0; i<kPoolSize; ++i)
-            {
-                m_CubemapPool[i] = new ExtraDataCubeMap();
-                m_CubemapPool[i].Allocate();
-            }
+            m_DataPool.Allocate();
         }
 
         private void Dispose()
         {
-            foreach (var extraDataCubeMap in m_CubemapPool)
-            {
-                extraDataCubeMap.Dispose(); // Just in case
-            }
+            m_DataPool.Dispose();
             RTHandles.Release(m_DepthForDynamicGIExtraData);
         }
 
@@ -98,45 +107,60 @@ namespace UnityEngine.Rendering.HighDefinition
             return Matrix4x4.identity;
             return Matrix4x4.Rotate(Quaternion.Euler(40.0f, 40.0f, 40.0f));
         }
+
+        internal void ReorganizeBuffer(ComputeBuffer packedData, int bufferSize, out int hitCount, out int missCount)
+        {
+            uint[] unsortedData = new uint[bufferSize];
+
+            packedData.GetData(unsortedData);
+
+            int elementCount = bufferSize / 3; // 3 uint per probe/axis couple
+
+            List<uint> hits = new List<uint>();
+            List<uint> misses = new List<uint>();
+            missCount = 0;
+            hitCount = 0;
+
+            for (int i=0; i < elementCount; ++i)
+            {
+                uint packedAlbedo  = unsortedData[i * 3 + 0];
+                uint packedNormal  = unsortedData[i * 3 + 1];
+                uint packedIndices = unsortedData[i * 3 + 2];
+
+                if (packedAlbedo == 0)
+                {
+                    misses.Add(packedAlbedo);
+                    misses.Add(packedNormal);
+                    misses.Add(packedIndices);
+
+                    missCount++;
+                }
+                else
+                {
+                    hits.Add(packedAlbedo);
+                    hits.Add(packedNormal);
+                    hits.Add(packedIndices);
+
+                    hitCount++;
+                }
+            }
+
+            unsortedData = new uint[bufferSize];
+            int outIndex = 0;
+            for(int i=0; i<hits.Count; ++i)
+            {
+                unsortedData[outIndex++] = hits[i];
+            }
+            for (int i = 0; i < misses.Count; ++i)
+            {
+                unsortedData[outIndex++] = misses[i];
+            }
+
+            packedData.SetData(unsortedData);
+
+            Debug.Assert(outIndex == bufferSize);
+
+        }
     }
 
-
-    public partial class HDRenderPipeline
-    {
-        // NOTE: If we have to do a near plane, when recovering position we need to add back the near 
-
-
-        // TODOs:
-        //  - For each cell: 
-        //  - Once cubemap is done store in pool.
-        //  - Once pool is full process in a compute 
-        //  - To retrieve data:
-        //      * Undo the rotation done to skew away from corners on the diagonal axis
-        //      * Sample in the 14 directions we want
-        //      * Write to a buffer
-
-        //  - Once the buffer is complete read back completely and reorganize to hit/misses like is done in old version.
-        //  - Flag the data as reorganized on cell and store in cell (refVol.setExtraCellData(cellIdx, DATA) so we can blindly upload when we do not need a rebake.
-        //      * NOTE: The cell index is just what is in the list and is the same obtained alongside the positions, a transient thing. 
-        //  - When reorganized, re upload.
-
-        // ON THE REFERENCE VOLUME:
-        //   - Prepare extra data locally and just do a set of the data.
-        //   - Move all the buffer processing to HDRP and here.
-        //   - Move the irradiance cache stuff here indexed by cell index? or keep on cell? <<< LATER FOR CLEANUP.
-        //   - Get list <cellIndex, LISTOFPOSITIONS> 
-
-
-
-        // ---------------------------------------------------------------------
-        // -------------------------- Extract Data -----------------------------
-        // ---------------------------------------------------------------------
-        // This pass extracts data from cubemap to the format we expect them and pack 
-        // directly into the output buffer used at runtime.
-
-
-
-
-
-    }
 }

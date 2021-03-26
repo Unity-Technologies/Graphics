@@ -65,6 +65,9 @@ namespace UnityEngine.Rendering
 
                 if (extraData == null) return;
 
+                if (probeExtraDataBuffers == null)
+                    probeExtraDataBuffers = new ProbeExtraDataBuffers(this);
+
                 if (probeExtraDataBuffers.finalExtraDataBuffer != null)
                     probeExtraDataBuffers.Dispose();
 
@@ -381,6 +384,22 @@ namespace UnityEngine.Rendering
             return outList;
         }
 
+        /// <summary>
+        /// Return a list of array, one per cell, containing the probe validity.
+        /// </summary>
+        /// <returns>A list of array, one per cell, containing the probe validity</returns>
+        public List<float[]> GetProbesValidity()
+        {
+            List<float[]> outList = new List<float[]>(cells.Count);
+
+            foreach (var cell in cells.Values)
+            {
+                outList.Add(cell.validity);
+            }
+
+            return outList;
+        }
+
         internal bool SupportsDynamicPropagation()
         {
             var renderPipelineAsset = GraphicsSettings.renderPipelineAsset;
@@ -433,7 +452,7 @@ namespace UnityEngine.Rendering
                 if (cells.ContainsKey(cell.index))
                     cells.Remove(cell.index);
 
-                if (SupportsDynamicPropagation() && cell.probeExtraDataBuffers.finalExtraDataBuffer != null)
+                if (SupportsDynamicPropagation() && (cell.probeExtraDataBuffers != null && cell.probeExtraDataBuffers.finalExtraDataBuffer != null))
                     cell.probeExtraDataBuffers.Dispose();
             }
 

@@ -4,17 +4,25 @@
 
 
 #pragma kernel ExtractData 
-
+#pragma enable_d3d11_debug_symbols
 #define GROUP_SIZE 64
 #define AXIS_COUNT 14
 
 float4 _RayAxis[AXIS_COUNT];
+float4 _ProbeValidity[GROUP_SIZE / 4];
 float4 _ExtractParameters;
 float4x4 _SkewMatrix;
 
 #define _ProbeIndexOffset _ExtractParameters.x
 #define _BatchSize _ExtractParameters.y
+#define _SearchDistance _ExtractParameters.z
 
+
+TEXTURECUBE_ARRAY(_CubemapPoolAlbedo);
+TEXTURECUBE_ARRAY(_CubemapPoolNormal);
+TEXTURECUBE_ARRAY(_CubemapPoolDepth);
+
+RWStructuredBuffer<uint3>  _PackedProbeExtraData;
 
 uint PackAxisDir(float4 axis)
 {
@@ -43,11 +51,9 @@ uint PackAxisDir(float4 axis)
     return output;
 }
 
-uint PackNormalAndAxis(float3 N, int axisIndex)
+uint PackNormalAndAxis(float2 octNormalWS, int axisIndex)
 {
     uint packedOutput = 0;
-
-    float2 octNormalWS = PackNormalOctQuadEncode(N);
 
     uint i0 = (uint)(octNormalWS.x * 4095.5f); uint i1 = (uint)(octNormalWS.y * 4095.5f);
     uint hi0 = i0 >> 8; uint hi1 = i1 >> 8;
@@ -67,7 +73,8 @@ uint PackAlbedo(float3 color, float distance)
     float albedoG = saturate(color.y);
     float albedoB = saturate(color.z);
 
-    float searchDistance = 1; // TODO: PUT ACTUAL VALUES HERE... search dist * sqrt(3) for normalizing.
+    // TODO_FCC: TODO! REMOVE NEAR PLANE THINGIE.
+    float searchDistance = _SearchDistance; // TODO: PUT ACTUAL VALUES HERE... search dist * sqrt(3) for normalizing.
     float normalizedDistance = saturate(distance / searchDistance);
 
     uint packedOutput = 0;
@@ -80,12 +87,29 @@ uint PackAlbedo(float3 color, float distance)
     return packedOutput;
 }
 
+uint PackIndexAndValidity(uint probeIndex, uint axisIndex, float validity)
+{
+    uint output = 0;
+
+    output |= axisIndex;
+    output |= ((uint)(validity * 255.5f) << 5);
+    output |= (probeIndex << 13);
+
+    return output;
+}
+
+
 
 [numthreads(GROUP_SIZE, 1, 1)]
 void ExtractData(uint3 id : SV_DispatchThreadID)
 {
-    if (id.x < _BatchSize)
+    uint indexInPool = id.x;
+    if (indexInPool < _BatchSize)
     {
+        uint probeIndex = _ProbeIndexOffset + indexInPool;
+
+        float probeValidity = _ProbeValidity[indexInPool / 4][indexInPool % 4];
+
         for (int i = 0; i < AXIS_COUNT; ++i)
         {
             float4 axis = _RayAxis[i];
@@ -93,6 +117,17 @@ void ExtractData(uint3 id : SV_DispatchThreadID)
             // Skew the axis as the rendering was skewed to start with.
             //float3 actualAxis = mul(_SkewMatrix, float4(normalize(axis.xyz), 0.0f)).xyz;
             float3 sampleAxis = normalize(axis.xyz);
+
+            float3 albedo = SAMPLE_TEXTURECUBE_ARRAY_LOD(_CubemapPoolAlbedo, s_trilinear_clamp_sampler, sampleAxis, indexInPool, 0).xyz;
+            float2 N = SAMPLE_TEXTURECUBE_ARRAY_LOD(_CubemapPoolNormal, s_trilinear_clamp_sampler, sampleAxis, indexInPool, 0).xy;
+            float depth = SAMPLE_TEXTURECUBE_ARRAY_LOD(_CubemapPoolDepth, s_trilinear_clamp_sampler, sampleAxis, indexInPool, 0).x;
+
+            uint3 packedData = 0;
+            packedData.x = PackAlbedo(albedo, depth);
+            packedData.y = PackNormalAndAxis(N, i);
+            packedData.z = PackIndexAndValidity(probeIndex, i, probeValidity);
+
+            _PackedProbeExtraData[probeIndex * AXIS_COUNT + i] = packedData;
         }
     }
 }

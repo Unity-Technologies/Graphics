@@ -298,8 +298,11 @@ namespace UnityEngine.Rendering.HighDefinition
                         cmd.SetComputeBufferParam(cs, kernel, HDShaderIDs._IrradianceCache, data.irradianceCacheBuffer);
                         cmd.SetComputeBufferParam(cs, kernel, HDShaderIDs._PrevIrradianceCache, data.prevIrradianceCacheBuffer);
 
-                        groupCount = HDUtils.DivRoundUp((int)data.injectionParameters4.y, probesPerGroup);
-                        cmd.DispatchCompute(cs, kernel, groupCount, 1, 1);
+                        if (data.injectionParameters4.y > 0)
+                        {
+                            groupCount = HDUtils.DivRoundUp((int)data.injectionParameters4.y, probesPerGroup);
+                            cmd.DispatchCompute(cs, kernel, groupCount, 1, 1);
+                        }
 
                         if (data.clear)
                         {
@@ -335,6 +338,11 @@ namespace UnityEngine.Rendering.HighDefinition
                 var buffer = buffersToProcess[i];
 
                 var indices = chunkIndices[i];
+
+                var unsortedData = new uint[buffer.probeCount * 14 * 3];
+                buffer.finalExtraDataBuffer.GetData(unsortedData);
+
+
                 if (buffer.finalExtraDataBuffer != null && buffer.probeCount > 0)
                     LightPropagation(renderGraph, buffer, indices, hdCamera);
             }

@@ -343,6 +343,8 @@ namespace UnityEngine.Rendering.HighDefinition
             public ComputeShader combineProbeVolumesCS;
             [Reload("Runtime/Lighting/ProbeVolume/Propagation/FirstBounceGeneration.compute")]
             public ComputeShader probeGIInjectionCS;
+            [Reload("Runtime/Lighting/ProbeVolume/Propagation/ExtractGIDataFromCubeMap.compute")]
+            public ComputeShader extactProbeExtraDataCS;
 
             // Iterator to retrieve all compute shaders in reflection so we don't have to keep a list of
             // used compute shaders up to date (prefer editor-only usage)

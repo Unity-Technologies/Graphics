@@ -300,7 +300,7 @@ namespace UnityEngine.Rendering
 
             extraData.validity = validity;
 
-            Debug.Log("HITS: " + hits);
+            Debug.Log("HITS: " + hits + " POS " + position);
         }
 
         private static void CleanupRenderers()

@@ -67,24 +67,56 @@ namespace UnityEngine.Rendering.HighDefinition
             additionalCameraData.customRender -= RenderCubeMapForExtraData;
         }
 
+        CullingResults GetCullingResults(ScriptableRenderContext renderContext)
+        {
+            // TEST ONLY.
+            var go = new GameObject("Probe Extra Data Camera");
+            var camera = go.AddComponent<Camera>();
+            camera.enabled = false;
+            camera.cameraType = CameraType.Reflection;
+
+            camera.orthographic = true;
+            camera.nearClipPlane = 0.0001f;
+            camera.farClipPlane = 2000.0f;
+
+            camera.transform.position = new Vector3(-10.0f, -10.0f, -10.0f);
+
+            ScriptableCullingParameters cullingParams = default;
+            camera.TryGetCullingParameters(false, out cullingParams);
+            cullingParams.cullingOptions |= CullingOptions.DisablePerObjectCulling;
+
+            return renderContext.Cull(ref cullingParams);
+
+        }
 
         public void GetProbeVolumeExtraData()
         {
             var refVol = ProbeReferenceVolume.instance;
             var positionsArrays = refVol.GetProbeLocations();
 
+
             HDCamera cameraForGen = CreateCameraForExtraData(refVol.MinDistanceBetweenProbes() + kExtraDataCameraNearPlane);
+
+            var cmd = CommandBufferPool.Get("");
 
             // dummy, not really needed
             RTHandle dummyRT = RTHandles.Alloc(ProbeDynamicGIExtraDataManager.instance.GetCubeMapSize(), ProbeDynamicGIExtraDataManager.instance.GetCubeMapSize(), dimension: TextureDimension.Cube, colorFormat: GraphicsFormat.R8G8B8A8_UNorm, enableRandomWrite: true, name: "Dummy output");
 
             var buffers = refVol.GetExtraDataBuffers();
+
+            var validityList = refVol.GetProbesValidity();
+
+            bool anyBufferFilled = false;
+
             for (int i=0; i< buffers.Count; ++i)
             {
                 var bufferSet = buffers[i];
+                if (!bufferSet.needBufferFilling) continue;
+
                 int probeCount = bufferSet.probeCount;
 
                 int currentBatchIndex = 0;
+                int currentBufferOffset = 0;
                 for (int probe = 0; probe < probeCount; ++probe)
                 {
                     // TODO: This will change if the min distance changes per probe area.
@@ -95,17 +127,37 @@ namespace UnityEngine.Rendering.HighDefinition
                     HDRenderUtilities.Render(cameraForGen, dummyRT.rt);
                     ModifyCameraPostProbeRendering(cameraForGen);
 
+                    ProbeDynamicGIExtraDataManager.instance.GetCubemapPool().validity[currentBatchIndex] = validityList[i][currentBatchIndex];
+
                     ProbeDynamicGIExtraDataManager.instance.MoveToNextExtraData();
                     currentBatchIndex++;
-                    if (currentBatchIndex > 63)
+                    //Debug.Log("ProbeIdx " + probe + " position " + position);
+
+                    if (currentBatchIndex > kPoolSize-1 || probe == probeCount - 1)
                     {
-                        // TODO: EXTRACT.
+                        anyBufferFilled = true;
+                        ExtractDataFromExtraDataPool(cmd, bufferSet, currentBufferOffset, currentBatchIndex);
+                        currentBatchIndex = 0;
+                        currentBufferOffset += kPoolSize;
+                        Graphics.ExecuteCommandBuffer(cmd);
+                        cmd.Clear();
+
+                        Debug.Log("Still to go... " + (probeCount - currentBufferOffset));
                     }
                 }
+
+
+                ProbeDynamicGIExtraDataManager.instance.ReorganizeBuffer(bufferSet.finalExtraDataBuffer, probeCount * ProbeExtraData.s_AxisCount * 3, out bufferSet.hitProbesAxisCount, out bufferSet.missProbesAxisCount);
+                bufferSet.needBufferFilling = false;
             }
 
             CoreUtils.Destroy(cameraForGen.camera.gameObject);
             RTHandles.Release(dummyRT);
+
+            CommandBufferPool.Release(cmd);
+
+            ProbeDynamicGIExtraDataManager.instance.needBaking = false;
+
         }
 
         private void RenderCubeMapForExtraData(ScriptableRenderContext renderContext, HDCamera camera)
@@ -124,8 +176,7 @@ namespace UnityEngine.Rendering.HighDefinition
             hdCamera.BeginRender(cmd);
             Resize(hdCamera);
 
-            var mat = Matrix4x4.Rotate(Quaternion.Euler(40.0f, 40.0f, 40.0f));
-            hdCamera.camera.worldToCameraMatrix *= mat;
+            hdCamera.camera.worldToCameraMatrix *= ProbeDynamicGIExtraDataManager.instance.GetSkewRotationMatrix();
             hdCamera.UpdateAllViewConstants(false);
 
 
@@ -133,11 +184,19 @@ namespace UnityEngine.Rendering.HighDefinition
             ConstantBuffer.PushGlobal(cmd, m_ShaderVariablesGlobalCB, HDShaderIDs._ShaderVariablesGlobal);
 
             CullingResults cullingResults;
-            ScriptableCullingParameters cullingParams = default;
-            hdCamera.camera.TryGetCullingParameters(false, out cullingParams);
-            cullingParams.cullingOptions |= CullingOptions.DisablePerObjectCulling;
+            //ScriptableCullingParameters cullingParams = default;
+            //hdCamera.camera.TryGetCullingParameters(false, out cullingParams);
+            //cullingParams.cullingOptions |= CullingOptions.DisablePerObjectCulling;
 
-            cullingResults = renderContext.Cull(ref cullingParams);
+            //cullingResults = renderContext.Cull(ref cullingParams);
+
+            if (!ProbeDynamicGIExtraDataManager.instance.cullDone)
+            {
+                ProbeDynamicGIExtraDataManager.instance.cullResult = GetCullingResults(renderContext);
+                ProbeDynamicGIExtraDataManager.instance.cullDone = true;
+            }
+
+            cullingResults = ProbeDynamicGIExtraDataManager.instance.cullResult;
 
             RendererListDesc renderListDesc = new RendererListDesc(HDShaderPassNames.s_DynamicGIDataGenName, cullingResults, hdCamera.camera)
             {
@@ -149,14 +208,11 @@ namespace UnityEngine.Rendering.HighDefinition
                 excludeObjectMotionVectors = false
             };
             
-            var extraDataRTs = ProbeDynamicGIExtraDataManager.instance.GetCurrentExtraDataDestination();
+            var extraDataRTs = ProbeDynamicGIExtraDataManager.instance.GetCubemapPool();
 
-            if (extraDataRTs.albedo == null)
-            {
-                extraDataRTs.Allocate();
-            }
 
-            int face = ProbeDynamicGIExtraDataManager.instance.GetCurrentSlice();
+            int face = ProbeDynamicGIExtraDataManager.instance.GetCubemapFace();
+            int slice = ProbeDynamicGIExtraDataManager.instance.GetCurrentExtraDataPoolIndex();
             rts[0] = extraDataRTs.albedo;
             rts[1] = extraDataRTs.normal;
             rts[2] = extraDataRTs.depth;
@@ -165,9 +221,8 @@ namespace UnityEngine.Rendering.HighDefinition
 
             using (new ProfilingScope(cmd, ProfilingSampler.Get(HDProfileId.RenderForwardError)))
             {
-                cmd.SetRenderTarget(rts, depthBuffer, 0, (CubemapFace)face, 0);
+                cmd.SetRenderTarget(rts, depthBuffer, 0, 0, slice*6 + face);
                 CoreUtils.ClearRenderTarget(cmd, ClearFlag.All, Color.clear);
-
                 CoreUtils.DrawRendererList(renderContext, cmd, RendererList.Create(renderListDesc));
             }
             renderContext.ExecuteCommandBuffer(cmd);
@@ -182,8 +237,37 @@ namespace UnityEngine.Rendering.HighDefinition
         // directly into the output buffer used at runtime.
 
 
-        void ExtractDataFromExtraDataPool(ProbeExtraDataBuffers bufferSet, int bufferOffsetStart, int batchSize)
-        { }
+        void ExtractDataFromExtraDataPool(CommandBuffer cmd, ProbeExtraDataBuffers bufferSet, int bufferOffsetStart, int batchSize)
+        {
+            var cs = defaultResources.shaders.extactProbeExtraDataCS;
+            var kernel = cs.FindKernel("ExtractData");
+
+            var refVol = ProbeReferenceVolume.instance;
+            var extraDataManager = ProbeDynamicGIExtraDataManager.instance;
+            Vector4 parameters = new Vector4(bufferOffsetStart, batchSize, refVol.MinDistanceBetweenProbes() * Mathf.Sqrt(3.0f), 0);
+
+            cmd.SetComputeVectorParam(cs, HDShaderIDs._ExtractParameters, parameters);
+
+            var cubemapPool = extraDataManager.GetCubemapPool();
+            cmd.SetComputeTextureParam(cs, kernel, HDShaderIDs._CubemapPoolAlbedo, cubemapPool.albedo);
+            cmd.SetComputeTextureParam(cs, kernel, HDShaderIDs._CubemapPoolNormal, cubemapPool.normal);
+            cmd.SetComputeTextureParam(cs, kernel, HDShaderIDs._CubemapPoolDepth, cubemapPool.depth);
+
+            cmd.SetComputeBufferParam(cs, kernel, HDShaderIDs._PackedProbeExtraData, bufferSet.finalExtraDataBuffer);
+            cmd.SetComputeVectorArrayParam(cs, HDShaderIDs._RayAxis, ProbeExtraData.NeighbourAxis);
+
+            Vector4[] validityArray = new Vector4[16];
+
+            var validity = extraDataManager.GetCubemapPool().validity;
+            for (int i = 0; i < validity.Length; ++i)
+            {
+                validityArray[i / 4][i % 4] = validity[i];
+            }
+            cmd.SetComputeVectorArrayParam(cs, HDShaderIDs._ProbeValidity, validityArray);
+
+
+            cmd.DispatchCompute(cs, kernel, 1, 1, 1);
+        }
 
 
     }

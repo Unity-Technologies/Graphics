@@ -954,6 +954,10 @@ namespace UnityEngine.Rendering.HighDefinition
         public static readonly int _ChunkIndices                   = Shader.PropertyToID("_ChunkIndices");
         public static readonly int _PVCombineParameters            = Shader.PropertyToID("_PVCombineParameters");
 
+        public static readonly int _ExtractParameters = Shader.PropertyToID("_ExtractParameters");
+        public static readonly int _CubemapPoolAlbedo = Shader.PropertyToID("_CubemapPoolAlbedo");
+        public static readonly int _CubemapPoolNormal = Shader.PropertyToID("_CubemapPoolNormal");
+        public static readonly int _CubemapPoolDepth = Shader.PropertyToID("_CubemapPoolDepth");
 
         public static readonly int _APVResL2_0                     = Shader.PropertyToID("_APVResL2_0");
         public static readonly int _APVResL2_1                     = Shader.PropertyToID("_APVResL2_1");

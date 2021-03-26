@@ -65,7 +65,7 @@ namespace UnityEngine.Rendering
     // TODO_FCC: Remove the note.
     // TODO_FCC: Verify if needs to be public. We might want to move stuff around.
     //NOTE: We will have one of this per cell
-    public struct ProbeExtraDataBuffers
+    public class ProbeExtraDataBuffers
     {
         // We 1 albedo, 1 normal and 1 distance per axis in ProbeExtraData.NeighbourAxis.
         // These informations are packed as follow in a uint2:
@@ -84,7 +84,7 @@ namespace UnityEngine.Rendering
 
         ComputeBuffer m_ProbeLocationsBuffer;
         public ComputeBuffer probeLocationBuffer { get => m_ProbeLocationsBuffer; }
-
+        
         ComputeBuffer m_IrradianceCache;
         public ComputeBuffer irradianceCache { get => m_IrradianceCache; }
 
@@ -109,6 +109,8 @@ namespace UnityEngine.Rendering
 
         public int hitProbesAxisCount;
         public int missProbesAxisCount;
+
+        public bool needBufferFilling = true;
 
         struct FinalDataPacked
         {
@@ -147,6 +149,8 @@ namespace UnityEngine.Rendering
 
             hitProbesAxisCount = 0;
             missProbesAxisCount = 0;
+
+            needBufferFilling = true;
         }
 
         private uint PackAlbedo(Vector3 color, float distance)
@@ -308,7 +312,7 @@ namespace UnityEngine.Rendering
                 m_ProbeLocations.Capacity == m_ProbeLocations.Count)
             {
                 m_ProbeLocationsBuffer.SetData(m_ProbeLocations);
-                m_FinalExtraDataBuffer.SetData(m_FinalExtraData);
+            //    m_FinalExtraDataBuffer.SetData(m_FinalExtraData);
                 m_ComputeBufferFilled = true;
             }
         }
@@ -398,7 +402,7 @@ namespace UnityEngine.Rendering
                 m_FinalExtraData.Add(index.packedIndices);
             }
 
-            m_FinalExtraDataBuffer.SetData(m_FinalExtraData);
+           // m_FinalExtraDataBuffer.SetData(m_FinalExtraData);
         }
 
         public void Dispose()
