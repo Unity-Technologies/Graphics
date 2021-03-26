@@ -1,6 +1,13 @@
 #ifndef UNITY_CLUSTER_DISPLAY_INCLUDED
 #define UNITY_CLUSTER_DISPLAY_INCLUDED
 
+// _ClusterDisplayParams holds all cluster related data:
+// row 0: normalized viewport subsection, (0, 0) is bottom-left, (1, 1) is top-right
+// row 1: global screensize (xy) and its reciprocate (zw)
+// row 2: grid size expressed in tiles (x:int, y:int, 0, 0)
+// row 3: unused
+float4x4 _ClusterDisplayParams;
+
 float2 DeviceToClusterFullscreenUV(float2 xy)
 {
     return _ClusterDisplayParams[0].xy + xy * _ClusterDisplayParams[0].zw;
