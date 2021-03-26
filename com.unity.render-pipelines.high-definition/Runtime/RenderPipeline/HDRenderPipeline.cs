@@ -157,8 +157,13 @@ namespace UnityEngine.Rendering.HighDefinition
         // Use to detect frame changes (for accurate frame count in editor, consider using hdCamera.GetCameraFrameCount)
         int m_FrameCount;
 
-        GraphicsFormat GetColorBufferFormat()
-            => m_ShouldOverrideColorBufferFormat ? m_AOVGraphicsFormat : (GraphicsFormat)m_Asset.currentPlatformRenderPipelineSettings.colorBufferFormat;
+        internal GraphicsFormat GetColorBufferFormat()
+        {
+            if (CoreUtils.IsSceneFilteringEnabled())
+                return GraphicsFormat.R16G16B16A16_SFloat;
+
+            return m_ShouldOverrideColorBufferFormat ? m_AOVGraphicsFormat : (GraphicsFormat)m_Asset.currentPlatformRenderPipelineSettings.colorBufferFormat;
+        }
 
         GraphicsFormat GetCustomBufferFormat()
             => (GraphicsFormat)m_Asset.currentPlatformRenderPipelineSettings.customBufferFormat;

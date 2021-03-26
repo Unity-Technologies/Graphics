@@ -34,10 +34,10 @@ namespace UnityEditor.Rendering.HighDefinition
             public const string configurationTitle = "Configuration Checking";
             public const string migrationTitle = "Project Migration Quick-links";
 
-            public const string installConfigPackageLabel = "Install Configuration Editable Package";
-            public const string installConfigPackageInfoInCheck = "Checking if the local config package is installed in your project's LocalPackage folder.";
-            public const string installConfigPackageInfoInProgress = "The local config package is being installed in your project's LocalPackage folder.";
-            public const string installConfigPackageInfoFinished = "The local config package is already installed in your project's LocalPackage folder.";
+            public const string installConfigPackageLabel = "Embed Configuration Editable Package";
+            public const string installConfigPackageInfoInCheck = "Checking if the config package is embedded in your project.";
+            public const string installConfigPackageInfoInProgress = "The config package is being embedded in your project.";
+            public const string installConfigPackageInfoFinished = "The config package is already embedded in your project.";
 
             public const string migrateAllButton = "Convert All Built-in Materials to HDRP";
             public const string migrateSelectedButton = "Convert Selected Built-in Materials to HDRP";
