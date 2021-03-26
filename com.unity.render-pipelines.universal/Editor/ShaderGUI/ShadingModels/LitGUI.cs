@@ -221,14 +221,15 @@ namespace UnityEditor.Rendering.Universal.ShaderGUI
 
                 EditorGUI.indentLevel++;
                 EditorGUI.showMixedValue = smoothnessMapChannel.hasMixedValue;
-                materialEditor.BeginProperty(smoothnessMapChannel);
                 if (opaque)
                 {
+                    materialEditor.BeginProperty(smoothnessMapChannel);
                     EditorGUI.BeginChangeCheck();
                     var smoothnessSource = (int)smoothnessMapChannel.floatValue;
                     smoothnessSource = EditorGUILayout.Popup(Styles.smoothnessMapChannelText, smoothnessSource, smoothnessChannelNames);
                     if (EditorGUI.EndChangeCheck())
                         smoothnessMapChannel.floatValue = smoothnessSource;
+                    materialEditor.EndProperty();
                 }
                 else
                 {
@@ -236,7 +237,6 @@ namespace UnityEditor.Rendering.Universal.ShaderGUI
                     EditorGUILayout.Popup(Styles.smoothnessMapChannelText, 0, smoothnessChannelNames);
                     EditorGUI.EndDisabledGroup();
                 }
-                materialEditor.EndProperty();
                 EditorGUI.showMixedValue = false;
                 EditorGUI.indentLevel--;
             }

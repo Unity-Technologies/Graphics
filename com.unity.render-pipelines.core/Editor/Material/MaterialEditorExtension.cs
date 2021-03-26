@@ -172,7 +172,7 @@ namespace UnityEditor.Rendering
             EditorGUI.showMixedValue = prop.hasMixedValue;
             int newValue = EditorGUILayout.Popup(label, val, displayedOptions);
             EditorGUI.showMixedValue = false;
-            if (EditorGUI.EndChangeCheck() && (newValue != val))
+            if (EditorGUI.EndChangeCheck() && (newValue != val || prop.hasMixedValue))
             {
                 editor.RegisterPropertyChangeUndo(label.text);
                 prop.floatValue = val = newValue;

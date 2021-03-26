@@ -489,6 +489,9 @@ namespace UnityEditor
         // Helper to show texture and color properties
         public static Rect TextureColorProps(MaterialEditor materialEditor, GUIContent label, MaterialProperty textureProp, MaterialProperty colorProp, bool hdr = false)
         {
+            materialEditor.BeginProperty(textureProp);
+            materialEditor.BeginProperty(colorProp);
+
             Rect rect = EditorGUILayout.GetControlRect();
             EditorGUI.showMixedValue = textureProp.hasMixedValue;
             materialEditor.TexturePropertyMiniThumbnail(rect, textureProp, label.text, label.tooltip);
@@ -512,6 +515,9 @@ namespace UnityEditor
                 }
                 EditorGUI.showMixedValue = false;
             }
+
+            materialEditor.EndProperty();
+            materialEditor.EndProperty();
 
             return rect;
         }
