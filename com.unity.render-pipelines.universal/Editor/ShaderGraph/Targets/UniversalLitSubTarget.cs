@@ -141,7 +141,6 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
                 colorMode = ColorMode.HDR,
                 value = new Color(1.0f, 1.0f, 1.0f, 1.0f)
             });
-
         }
 
         public override void GetPropertiesGUI(ref TargetPropertyGUIContext context, Action onChange, Action<String> registerUndo)
