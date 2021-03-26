@@ -138,6 +138,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 probeVolumeSettings = GlobalProbeVolumeSettings.@default,
                 supportMaskVolume = false,
                 maskVolumeSettings = GlobalMaskVolumeSettings.@default,
+                densityVolumeSettings = DensityVolumeSettings.@default,
             };
             return settings;
         }
@@ -282,6 +283,8 @@ namespace UnityEngine.Rendering.HighDefinition
         [SerializeField] internal GlobalProbeVolumeSettings probeVolumeSettings;
         /// <summary>Global Probe Volume settings.</summary>
         [SerializeField] internal GlobalMaskVolumeSettings maskVolumeSettings;
+        /// <summary>Density Volume settings.</summary>
+        [SerializeField] internal DensityVolumeSettings densityVolumeSettings;
 		/// <summary>Global light loop settings.</summary>
         public GlobalLightLoopSettings lightLoopSettings;
         /// <summary>Global shadows settings.</summary>
