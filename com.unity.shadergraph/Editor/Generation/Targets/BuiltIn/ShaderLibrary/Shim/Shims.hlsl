@@ -5,6 +5,11 @@
 
 #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Common.hlsl"
 
+// Duplicate define in Macros.hlsl
+#if defined (TRANSFORM_TEX)
+#undef TRANSFORM_TEX
+#endif
+
 #include "HLSLSupportShim.hlsl"
 #include "InputsShim.hlsl"
 #include "SurfaceShaderProxy.hlsl"

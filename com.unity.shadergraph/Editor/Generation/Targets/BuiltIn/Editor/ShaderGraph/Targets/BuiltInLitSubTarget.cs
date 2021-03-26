@@ -288,6 +288,7 @@ namespace UnityEditor.Rendering.BuiltIn.ShaderGraph
                 // Conditional State
                 renderStates = CoreRenderStates.Forward,
                 pragmas  = CorePragmas.Forward,     // NOTE: SM 2.0 only GL
+                defines = CoreDefines.BuiltInTargetAPI,
                 keywords = LitKeywords.Forward,
                 includes = LitIncludes.Forward,
 
@@ -319,6 +320,7 @@ namespace UnityEditor.Rendering.BuiltIn.ShaderGraph
                 // Conditional State
                 renderStates = CoreRenderStates.ForwardAdd,
                 pragmas  = CorePragmas.ForwardAdd,     // NOTE: SM 2.0 only GL
+                defines = CoreDefines.BuiltInTargetAPI,
                 keywords = LitKeywords.ForwardAdd,
                 includes = LitIncludes.ForwardAdd,
 
@@ -350,6 +352,7 @@ namespace UnityEditor.Rendering.BuiltIn.ShaderGraph
                 // Conditional State
                 renderStates = CoreRenderStates.Default,
                 pragmas  = CorePragmas.Forward,    // NOTE: SM 2.0 only GL
+                defines = CoreDefines.BuiltInTargetAPI,
                 keywords = LitKeywords.Forward,
                 includes = LitIncludes.Forward,
 
@@ -381,6 +384,7 @@ namespace UnityEditor.Rendering.BuiltIn.ShaderGraph
                 // Conditional State
                 renderStates = CoreRenderStates.Default,
                 pragmas  = CorePragmas.Deferred,    // NOTE: SM 2.0 only GL
+                defines = CoreDefines.BuiltInTargetAPI,
                 keywords = LitKeywords.Deferred,
                 includes = LitIncludes.Deferred,
 
@@ -411,6 +415,7 @@ namespace UnityEditor.Rendering.BuiltIn.ShaderGraph
                 // Conditional State
                 renderStates = CoreRenderStates.Meta,
                 pragmas = CorePragmas.Default,
+                defines = CoreDefines.BuiltInTargetAPI,
                 keywords = LitKeywords.Meta,
                 includes = LitIncludes.Meta,
 
@@ -439,6 +444,7 @@ namespace UnityEditor.Rendering.BuiltIn.ShaderGraph
                 // Conditional State
                 renderStates = CoreRenderStates.Default,
                 pragmas = CorePragmas.Instanced,
+                defines = CoreDefines.BuiltInTargetAPI,
                 includes = LitIncludes._2D,
 
                 // Custom Interpolator Support
@@ -469,6 +475,7 @@ namespace UnityEditor.Rendering.BuiltIn.ShaderGraph
                 // Conditional State
                 renderStates = CoreRenderStates.DepthNormalsOnly,
                 pragmas = CorePragmas.Instanced,
+                defines = CoreDefines.BuiltInTargetAPI,
                 includes = CoreIncludes.DepthNormalsOnly,
 
                 // Custom Interpolator Support

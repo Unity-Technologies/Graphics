@@ -362,6 +362,7 @@ namespace UnityEditor.Rendering.BuiltIn.ShaderGraph
             // Conditional State
             renderStates = CoreRenderStates.DepthOnly,
             pragmas = CorePragmas.Instanced,
+            defines = CoreDefines.BuiltInTargetAPI,
             includes = CoreIncludes.DepthOnly,
 
             // Custom Interpolator Support
@@ -391,6 +392,7 @@ namespace UnityEditor.Rendering.BuiltIn.ShaderGraph
             // Conditional State
             renderStates = CoreRenderStates.ShadowCaster,
             pragmas = CorePragmas.ShadowCaster,
+            defines = CoreDefines.BuiltInTargetAPI,
             keywords = CoreKeywords.ShadowCaster,
             includes = CoreIncludes.ShadowCaster,
 
@@ -703,6 +705,10 @@ namespace UnityEditor.Rendering.BuiltIn.ShaderGraph
         {
             { CoreKeywordDescriptors.UseLegacySpriteBlocks, 1, new FieldCondition(CoreFields.UseLegacySpriteBlocks, true) },
         };
+        public static readonly DefineCollection BuiltInTargetAPI = new DefineCollection
+        {
+            { CoreKeywordDescriptors.BuiltInTargetAPI, 1 },
+        };
     }
     #endregion
 
@@ -872,6 +878,13 @@ namespace UnityEditor.Rendering.BuiltIn.ShaderGraph
         {
             displayName = "UseLegacySpriteBlocks",
             referenceName = "USELEGACYSPRITEBLOCKS",
+            type = KeywordType.Boolean,
+        };
+
+        public static readonly KeywordDescriptor BuiltInTargetAPI = new KeywordDescriptor()
+        {
+            displayName = "BuiltInTargetAPI",
+            referenceName = "BUILTIN_TARGET_API",
             type = KeywordType.Boolean,
         };
     }
