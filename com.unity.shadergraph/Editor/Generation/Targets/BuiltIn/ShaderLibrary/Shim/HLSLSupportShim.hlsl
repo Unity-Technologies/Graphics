@@ -152,4 +152,70 @@
     #define UNITY_SAMPLE_SCREENSPACE_TEXTURE(tex, uv) tex2D(tex, uv)
 #endif
 
+// DXC no longer supports DX9-style HLSL syntax of sampler2D, tex2D and friends.
+// Emulate those using our own small structs & functions that have a combined sampler & texture.
+#if defined(UNITY_COMPILER_DXC) && !defined(DXC_SAMPLER_COMPATIBILITY)
+#define DXC_SAMPLER_COMPATIBILITY 1
+struct sampler1D            { Texture1D t; SamplerState s; };
+struct sampler2D            { Texture2D t; SamplerState s; };
+struct sampler3D            { Texture3D t; SamplerState s; };
+struct samplerCUBE          { TextureCube t; SamplerState s; };
+
+float4 tex1D(sampler1D x, float v)              { return x.t.Sample(x.s, v); }
+float4 tex2D(sampler2D x, float2 v)             { return x.t.Sample(x.s, v); }
+float4 tex3D(sampler3D x, float3 v)             { return x.t.Sample(x.s, v); }
+float4 texCUBE(samplerCUBE x, float3 v)         { return x.t.Sample(x.s, v); }
+
+float4 tex1Dbias(sampler1D x, in float4 t)              { return x.t.SampleBias(x.s, t.x, t.w); }
+float4 tex2Dbias(sampler2D x, in float4 t)              { return x.t.SampleBias(x.s, t.xy, t.w); }
+float4 tex3Dbias(sampler3D x, in float4 t)              { return x.t.SampleBias(x.s, t.xyz, t.w); }
+float4 texCUBEbias(samplerCUBE x, in float4 t)          { return x.t.SampleBias(x.s, t.xyz, t.w); }
+
+float4 tex1Dlod(sampler1D x, in float4 t)           { return x.t.SampleLevel(x.s, t.x, t.w); }
+float4 tex2Dlod(sampler2D x, in float4 t)           { return x.t.SampleLevel(x.s, t.xy, t.w); }
+float4 tex3Dlod(sampler3D x, in float4 t)           { return x.t.SampleLevel(x.s, t.xyz, t.w); }
+float4 texCUBElod(samplerCUBE x, in float4 t)       { return x.t.SampleLevel(x.s, t.xyz, t.w); }
+
+float4 tex1Dgrad(sampler1D x, float t, float dx, float dy)              { return x.t.SampleGrad(x.s, t, dx, dy); }
+float4 tex2Dgrad(sampler2D x, float2 t, float2 dx, float2 dy)           { return x.t.SampleGrad(x.s, t, dx, dy); }
+float4 tex3Dgrad(sampler3D x, float3 t, float3 dx, float3 dy)           { return x.t.SampleGrad(x.s, t, dx, dy); }
+float4 texCUBEgrad(samplerCUBE x, float3 t, float3 dx, float3 dy)       { return x.t.SampleGrad(x.s, t, dx, dy); }
+
+float4 tex1D(sampler1D x, float t, float dx, float dy)              { return x.t.SampleGrad(x.s, t, dx, dy); }
+float4 tex2D(sampler2D x, float2 t, float2 dx, float2 dy)           { return x.t.SampleGrad(x.s, t, dx, dy); }
+float4 tex3D(sampler3D x, float3 t, float3 dx, float3 dy)           { return x.t.SampleGrad(x.s, t, dx, dy); }
+float4 texCUBE(samplerCUBE x, float3 t, float3 dx, float3 dy)       { return x.t.SampleGrad(x.s, t, dx, dy); }
+
+float4 tex1Dproj(sampler1D s, in float2 t)              { return tex1D(s, t.x / t.y); }
+float4 tex1Dproj(sampler1D s, in float4 t)              { return tex1D(s, t.x / t.w); }
+float4 tex2Dproj(sampler2D s, in float3 t)              { return tex2D(s, t.xy / t.z); }
+float4 tex2Dproj(sampler2D s, in float4 t)              { return tex2D(s, t.xy / t.w); }
+float4 tex3Dproj(sampler3D s, in float4 t)              { return tex3D(s, t.xyz / t.w); }
+float4 texCUBEproj(samplerCUBE s, in float4 t)          { return texCUBE(s, t.xyz / t.w); }
+#endif
+
+// Define "fixed" precision to be half on non-GLSL platforms,
+// and sampler*_prec to be just simple samplers.
+#if !defined(SHADER_API_GLES) && !defined(SHADER_API_PSSL) && !defined(SHADER_API_GLES3) && !defined(SHADER_API_VULKAN) && !defined(SHADER_API_METAL) && !defined(SHADER_API_SWITCH)
+#define UNITY_FIXED_IS_HALF 1
+#define sampler2D_half sampler2D
+#define sampler2D_float sampler2D
+#define samplerCUBE_half samplerCUBE
+#define samplerCUBE_float samplerCUBE
+#define sampler3D_float sampler3D
+#define sampler3D_half sampler3D
+#define Texture2D_half Texture2D
+#define Texture2D_float Texture2D
+#define Texture2DArray_half Texture2DArray
+#define Texture2DArray_float Texture2DArray
+#define Texture2DMS_half Texture2DMS
+#define Texture2DMS_float Texture2DMS
+#define TextureCube_half TextureCube
+#define TextureCube_float TextureCube
+#define TextureCubeArray_half TextureCubeArray
+#define TextureCubeArray_float TextureCubeArray
+#define Texture3D_float Texture3D
+#define Texture3D_half Texture3D
+#endif
+
 #endif // HLSL_SUPPORT_SHIM_INCLUDED
