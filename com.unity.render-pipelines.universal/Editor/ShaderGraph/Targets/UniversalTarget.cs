@@ -212,7 +212,8 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
 
         public override void CollectShaderProperties(PropertyCollector collector, GenerationMode generationMode)
         {
-            base.CollectShaderProperties(collector, generationMode);
+            // SubTarget
+            m_ActiveSubTarget.value.CollectShaderProperties(collector, generationMode);
 
             collector.AddShaderProperty(LightmappingShaderProperties.kLightmapsArray);
             collector.AddShaderProperty(LightmappingShaderProperties.kLightmapsIndirectionArray);

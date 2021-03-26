@@ -135,9 +135,10 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
             collector.AddShaderProperty(new ColorShaderProperty()
             {
                 overrideReferenceName = "_EmissionColor",
-                hidden = true,
+                hidden = false,
                 overrideHLSLDeclaration = true,
-                hlslDeclarationOverride = HLSLDeclaration.UnityPerMaterial,
+                hlslDeclarationOverride = HLSLDeclaration.DoNotDeclare,
+                colorMode = ColorMode.HDR,
                 value = new Color(1.0f, 1.0f, 1.0f, 1.0f)
             });
 
