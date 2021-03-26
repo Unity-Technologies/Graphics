@@ -18,6 +18,10 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Reduced the maximal number of bounces for both RTGI and RTR (case 1318876).
 - Updated Wizard to better handle RenderPipelineAsset in Quality Settings
 
+### Fixed
+- Fixed multicamera rendering for Dynamic Resolution Scaling using dx12 hardware mode. Using a planar reflection probe (another render camera) should be safe.
+- Fixed pixelated appearance of Contrast Adaptive Sharpen upscaler and several other issues when Hardware DRS is on
+
 ## [10.4.0] - 2020-01-26
 
 ### Added
