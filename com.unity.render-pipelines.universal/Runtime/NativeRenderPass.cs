@@ -11,20 +11,84 @@ namespace UnityEngine.Rendering.Universal
 {
     public static class NativeRenderPass
     {
+        internal const int kRenderPassMapSize = 10;
+        internal const int kRenderPassMaxCount = 20;
+        internal static Dictionary<Hash128, int[]> m_MergeableRenderPassesMap = new Dictionary<Hash128, int[]>(kRenderPassMapSize);
+        internal static int[][] m_MergeableRenderPassesMapArrays;
+        internal static Hash128[] m_SceneIndexToPassHash = new Hash128[kRenderPassMaxCount];
+        internal static Dictionary<Hash128, int> m_RenderPassesAttachmentCount = new Dictionary<Hash128, int>(kRenderPassMapSize);
+
+        internal static void SetupFrameData(CameraData cameraData, List<ScriptableRenderPass> activeRenderPassQueue)
+        {
+            //TODO: edge cases to detect that should affect possible passes to merge
+            // - total number of color attachment > 8
+
+            // Scene and RenderPasses setup:
+            // - Go through all the passes and mark the final one as last pass (Make sure the list is already sorted!)
+            // - Setup the RenderPass merging lists.
+
+            m_MergeableRenderPassesMap.Clear();
+            m_RenderPassesAttachmentCount.Clear();
+
+            uint currentHashIndex = 0;
+            // reset all the passes last pass flag
+            for (int i = 0; i < activeRenderPassQueue.Count; ++i)
+            {
+                var renderPass = activeRenderPassQueue[i];
+
+                // Empty configure to setup dimensions/targets and whatever data is needed for merging
+                // We do not execute this at this time, so render targets are still invalid
+
+                var width = renderPass.renderTargetWidth != -1 ? renderPass.renderTargetWidth : cameraData.cameraTargetDescriptor.width;
+                var height = renderPass.renderTargetHeight != -1 ? renderPass.renderTargetHeight : cameraData.cameraTargetDescriptor.height;
+                var sampleCount = renderPass.renderTargetSampleCount != -1 ? renderPass.renderTargetSampleCount : cameraData.cameraTargetDescriptor.msaaSamples;
+                var rtID = renderPass.depthOnly ? renderPass.colorAttachment.GetHashCode() : renderPass.depthAttachment.GetHashCode();
+
+                Hash128 hash = CreateRenderPassHash(width, height, rtID, sampleCount, currentHashIndex);
+
+                m_SceneIndexToPassHash[i] = hash;
+
+                if (!renderPass.useNativeRenderPass)
+                    continue;
+
+                if (!m_MergeableRenderPassesMap.ContainsKey(hash))
+                {
+                    m_MergeableRenderPassesMap.Add(hash, m_MergeableRenderPassesMapArrays[m_MergeableRenderPassesMap.Count]);
+                    m_RenderPassesAttachmentCount.Add(hash, 0);
+                }
+                else if (m_MergeableRenderPassesMap[hash][GetValidPassIndexCount(m_MergeableRenderPassesMap[hash]) - 1] != (i - 1))
+                {
+                    // if the passes are not sequential we want to split the current mergeable passes list. So we increment the hashIndex and update the hash
+
+                    currentHashIndex++;
+                    hash = CreateRenderPassHash(width, height, rtID, sampleCount, currentHashIndex);
+
+                    m_SceneIndexToPassHash[i] = hash;
+
+                    m_MergeableRenderPassesMap.Add(hash, m_MergeableRenderPassesMapArrays[m_MergeableRenderPassesMap.Count]);
+                    m_RenderPassesAttachmentCount.Add(hash, 0);
+                }
+
+                m_MergeableRenderPassesMap[hash][GetValidPassIndexCount(m_MergeableRenderPassesMap[hash])] = i;
+            }
+
+            for (int i = 0; i < activeRenderPassQueue.Count; ++i)
+                activeRenderPassQueue[i].attachmentIndices = new NativeArray<int>(8, Allocator.Temp);
+        }
+
         internal static void SetMRTAttachmentsList(ScriptableRenderPass renderPass, ref CameraData cameraData, uint validColorBuffersCount, bool needCustomCameraColorClear,
-            bool needCustomCameraDepthClear, Dictionary<Hash128, int[]> mergeableRenderPassesMap, Hash128[] sceneIndexToPassHash,
-            Dictionary<Hash128, int> renderPassesAttachmentCount, List<ScriptableRenderPass> activeRenderPassQueue,
+            bool needCustomCameraDepthClear, List<ScriptableRenderPass> activeRenderPassQueue,
             ref AttachmentDescriptor[] activeColorAttachmentDescriptors, ref AttachmentDescriptor activeDepthAttachmentDescriptor)
         {
             int currentSceneIndex = renderPass.sceneIndex;
-            Hash128 currentPassHash = sceneIndexToPassHash[currentSceneIndex];
-            int[] currentMergeablePasses = mergeableRenderPassesMap[currentPassHash];
+            Hash128 currentPassHash = m_SceneIndexToPassHash[currentSceneIndex];
+            int[] currentMergeablePasses = m_MergeableRenderPassesMap[currentPassHash];
             bool isFirstMergeablePass = currentMergeablePasses.First() == currentSceneIndex;
 
             if (!isFirstMergeablePass)
                 return;
 
-            renderPassesAttachmentCount[currentPassHash] = 0;
+            m_RenderPassesAttachmentCount[currentPassHash] = 0;
 
             int currentAttachmentIdx = 0;
             foreach (var passIdx in currentMergeablePasses)
@@ -62,7 +126,7 @@ namespace UnityEngine.Rendering.Universal
                         pass.attachmentIndices[i] = currentAttachmentIdx;
 
                         currentAttachmentIdx++;
-                        renderPassesAttachmentCount[currentPassHash]++;
+                        m_RenderPassesAttachmentCount[currentPassHash]++;
                     }
                     else
                     {
@@ -80,19 +144,18 @@ namespace UnityEngine.Rendering.Universal
         }
 
         internal static void SetAttachmentList(ScriptableRenderPass renderPass, ref CameraData cameraData, RenderTargetIdentifier passColorAttachment, RenderTargetIdentifier passDepthAttachment, ClearFlag finalClearFlag, Color finalClearColor,
-            Dictionary<Hash128, int[]> mergeableRenderPassesMap, Hash128[] sceneIndexToPassHash,
-            Dictionary<Hash128, int> renderPassesAttachmentCount, List<ScriptableRenderPass> activeRenderPassQueue,
+            List<ScriptableRenderPass> activeRenderPassQueue,
             ref AttachmentDescriptor[] activeColorAttachmentDescriptors, ref AttachmentDescriptor activeDepthAttachmentDescriptor)
         {
             int currentSceneIndex = renderPass.sceneIndex;
-            Hash128 currentPassHash = sceneIndexToPassHash[currentSceneIndex];
-            int[] currentMergeablePasses = mergeableRenderPassesMap[currentPassHash];
+            Hash128 currentPassHash = m_SceneIndexToPassHash[currentSceneIndex];
+            int[] currentMergeablePasses = m_MergeableRenderPassesMap[currentPassHash];
             bool isFirstMergeablePass = currentMergeablePasses.First() == currentSceneIndex;
 
             if (!isFirstMergeablePass)
                 return;
 
-            renderPassesAttachmentCount[currentPassHash] = 0;
+            m_RenderPassesAttachmentCount[currentPassHash] = 0;
 
             int currentAttachmentIdx = 0;
             foreach (var passIdx in currentMergeablePasses)
@@ -177,7 +240,7 @@ namespace UnityEngine.Rendering.Universal
                     pass.attachmentIndices[0] = currentAttachmentIdx;
                     activeColorAttachmentDescriptors[currentAttachmentIdx] = currentAttachmentDescriptor;
                     currentAttachmentIdx++;
-                    renderPassesAttachmentCount[currentPassHash]++;
+                    m_RenderPassesAttachmentCount[currentPassHash]++;
                 }
                 else
                 {
@@ -187,11 +250,11 @@ namespace UnityEngine.Rendering.Universal
             }
         }
 
-        internal static void Configure(CommandBuffer cmd, ScriptableRenderPass renderPass, CameraData cameraData, Hash128[] sceneIndexToPassHash, Dictionary<Hash128, int[]> mergeableRenderPassesMap, List<ScriptableRenderPass> activeRenderPassQueue)
+        internal static void Configure(CommandBuffer cmd, ScriptableRenderPass renderPass, CameraData cameraData, List<ScriptableRenderPass> activeRenderPassQueue)
         {
             int currentSceneIndex = renderPass.sceneIndex;
-            Hash128 currentPassHash = sceneIndexToPassHash[currentSceneIndex];
-            int[] currentMergeablePasses = mergeableRenderPassesMap[currentPassHash];
+            Hash128 currentPassHash = m_SceneIndexToPassHash[currentSceneIndex];
+            int[] currentMergeablePasses = m_MergeableRenderPassesMap[currentPassHash];
             bool isFirstMergeablePass = currentMergeablePasses.First() == currentSceneIndex;
 
             if (isFirstMergeablePass)
@@ -207,15 +270,14 @@ namespace UnityEngine.Rendering.Universal
             }
         }
 
-        internal static void Execute(ScriptableRenderContext context, ScriptableRenderPass renderPass, CameraData cameraData, ref RenderingData renderingData,  Dictionary<Hash128, int[]> mergeableRenderPassesMap, Hash128[] sceneIndexToPassHash,
-            Dictionary<Hash128, int> renderPassesAttachmentCount, List<ScriptableRenderPass> activeRenderPassQueue,
+        internal static void Execute(ScriptableRenderContext context, ScriptableRenderPass renderPass, CameraData cameraData, ref RenderingData renderingData,  List<ScriptableRenderPass> activeRenderPassQueue,
             ref AttachmentDescriptor[] activeColorAttachmentDescriptors, ref AttachmentDescriptor activeDepthAttachmentDescriptor, RenderTargetIdentifier activeDepthAttachment)
         {
             int currentSceneIndex = renderPass.sceneIndex;
-            Hash128 currentPassHash = sceneIndexToPassHash[currentSceneIndex];
-            int[] currentMergeablePasses = mergeableRenderPassesMap[currentPassHash];
+            Hash128 currentPassHash = m_SceneIndexToPassHash[currentSceneIndex];
+            int[] currentMergeablePasses = m_MergeableRenderPassesMap[currentPassHash];
 
-            int validColorBuffersCount = renderPassesAttachmentCount[currentPassHash];
+            int validColorBuffersCount = m_RenderPassesAttachmentCount[currentPassHash];
 
             bool isLastPass = renderPass.isLastPass;
             // TODO: review the lastPassToBB logic to mak it work with merged passes
