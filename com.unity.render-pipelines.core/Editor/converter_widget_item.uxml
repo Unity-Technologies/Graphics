@@ -2,7 +2,7 @@
     <ui:BindableElement style="flex-grow: 1; flex-direction: row; align-items: center; flex-shrink: 0;">
         <ui:Toggle value="true" name="converterItemActive" binding-path="isActive" />
         <ui:Label name="converterItemName" text="name" style="flex-grow: 1;" />
-        <ui:Label name="converterItemInfo" style="display: none; flex-grow: 0;" binding-path="info" />
+        <ui:Label name="converterItemInfo" style="visibility: hidden;" />
         <ui:Label name="converterItemPath" text="path..." style="flex-grow: 1;" />
         <ui:Image name="converterItemStatusIcon" style="max-width: 24px; max-height: 24px; min-width: 24px; min-height: 24px; justify-content: center; flex-grow: 0; width: 24px;" />
         <ui:Image name="converterItemHelpIcon" style="max-width: 24px; max-height: 24px; min-width: 24px; min-height: 24px; justify-content: center; flex-grow: 0;" />
