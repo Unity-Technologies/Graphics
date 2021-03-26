@@ -2212,6 +2212,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Remove unused _ComputeEyeIndex
 - Updated HDRenderPipelineAsset inspector
 - Re-enable SRP batcher for metal
+- Updated Frame Settings UX in the HDRP Settings and Camera
 
 ## [5.2.0-preview] - 2018-11-27
 

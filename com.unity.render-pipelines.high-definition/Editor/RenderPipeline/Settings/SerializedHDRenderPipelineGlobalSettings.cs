@@ -20,7 +20,7 @@ namespace UnityEditor.Rendering.HighDefinition
         public SerializedFrameSettings defaultBakedOrCustomReflectionFrameSettings;
         public SerializedFrameSettings defaultRealtimeReflectionFrameSettings;
 
-        public SerializedProperty volumeProfileDefault;
+        public SerializedProperty defaultVolumeProfile;
         public SerializedProperty lookDevVolumeProfile;
 
         public SerializedProperty lightLayerName0;
@@ -98,7 +98,7 @@ namespace UnityEditor.Rendering.HighDefinition
 
             InitializeCustomPostProcessesLists();
 
-            volumeProfileDefault  = serializedObject.FindProperty("m_VolumeProfileDefault");
+            defaultVolumeProfile  = serializedObject.FindProperty("m_DefaultVolumeProfile");
             lookDevVolumeProfile  = serializedObject.FindProperty("m_LookDevVolumeProfile");
 
             lightLayerName0 = serializedObject.Find((HDRenderPipelineGlobalSettings s) => s.lightLayerName0);

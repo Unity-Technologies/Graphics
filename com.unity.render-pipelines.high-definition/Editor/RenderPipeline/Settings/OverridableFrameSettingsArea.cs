@@ -163,7 +163,7 @@ namespace UnityEditor.Rendering.HighDefinition
             }
             bool enabled = field.IsOverrideableWithDependencies(serializedFrameSettings, defaultFrameSettings);
             withOverride &= enabled & GUI.enabled;
-            bool shouldBeDisabled = (withOverride || !enabled || !GUI.enabled);
+            bool shouldBeDisabled = withOverride || !enabled || !GUI.enabled;
 
             const int k_IndentPerLevel = 15;
             const int k_CheckBoxWidth = 15;

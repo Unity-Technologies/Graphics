@@ -439,11 +439,11 @@ namespace UnityEditor.Rendering.HighDefinition
             if (!IsHdrpAssetUsedCorrect())
                 FixHdrpAssetUsed(fromAsync: false);
 
-            var hdrpAsset = HDRenderPipelineGlobalSettings.instance;
-            if (hdrpAsset == null)
+            var globalSettings = HDRenderPipelineGlobalSettings.instance;
+            if (globalSettings == null)
                 return;
 
-            var defaultAssetList = hdrpAsset.renderPipelineEditorResources.defaultDiffusionProfileSettingsList;
+            var defaultAssetList = globalSettings.renderPipelineEditorResources.defaultDiffusionProfileSettingsList;
             HDRenderPipelineGlobalSettings.instance.diffusionProfileSettingsList = new DiffusionProfileSettings[0]; // clear the diffusion profile list
 
             if (!AssetDatabase.IsValidFolder("Assets/" + HDProjectSettings.projectSettingsFolderPath))
@@ -458,7 +458,7 @@ namespace UnityEditor.Rendering.HighDefinition
                 HDRenderPipelineGlobalSettings.instance.AddDiffusionProfile(userAsset);
             }
 
-            EditorUtility.SetDirty(hdrpAsset);
+            EditorUtility.SetDirty(globalSettings);
         }
 
         VolumeProfile CreateDefaultVolumeProfileIfNeeded(VolumeProfile defaultSettingsVolumeProfileInPackage)
@@ -664,10 +664,10 @@ namespace UnityEditor.Rendering.HighDefinition
 
         bool IsDXRScreenSpaceShadowFSCorrect()
         {
-            var hdrpAsset = HDRenderPipelineGlobalSettings.instance;
-            if (hdrpAsset != null)
+            var globalSettings = HDRenderPipelineGlobalSettings.instance;
+            if (globalSettings != null)
             {
-                FrameSettings defaultCameraFS = hdrpAsset.GetDefaultFrameSettings(FrameSettingsRenderType.Camera);
+                FrameSettings defaultCameraFS = globalSettings.GetDefaultFrameSettings(FrameSettingsRenderType.Camera);
                 return defaultCameraFS.IsEnabled(FrameSettingsField.ScreenSpaceShadows);
             }
             else
@@ -680,10 +680,10 @@ namespace UnityEditor.Rendering.HighDefinition
 
         bool IsDXRReflectionsFSCorrect()
         {
-            var hdrpAsset = HDRenderPipelineGlobalSettings.instance;
-            if (hdrpAsset != null)
+            var globalSettings = HDRenderPipelineGlobalSettings.instance;
+            if (globalSettings != null)
             {
-                FrameSettings defaultCameraFS = hdrpAsset.GetDefaultFrameSettings(FrameSettingsRenderType.Camera);
+                FrameSettings defaultCameraFS = globalSettings.GetDefaultFrameSettings(FrameSettingsRenderType.Camera);
                 return defaultCameraFS.IsEnabled(FrameSettingsField.SSR);
             }
             else
@@ -696,10 +696,10 @@ namespace UnityEditor.Rendering.HighDefinition
 
         bool IsDXRTransparentReflectionsFSCorrect()
         {
-            var hdrpAsset = HDRenderPipelineGlobalSettings.instance;
-            if (hdrpAsset != null)
+            var globalSettings = HDRenderPipelineGlobalSettings.instance;
+            if (globalSettings != null)
             {
-                FrameSettings defaultCameraFS = hdrpAsset.GetDefaultFrameSettings(FrameSettingsRenderType.Camera);
+                FrameSettings defaultCameraFS = globalSettings.GetDefaultFrameSettings(FrameSettingsRenderType.Camera);
                 return defaultCameraFS.IsEnabled(FrameSettingsField.TransparentSSR);
             }
             else
@@ -712,10 +712,10 @@ namespace UnityEditor.Rendering.HighDefinition
 
         bool IsDXRGIFSCorrect()
         {
-            var hdrpAsset = HDRenderPipelineGlobalSettings.instance;
-            if (hdrpAsset != null)
+            var globalSettings = HDRenderPipelineGlobalSettings.instance;
+            if (globalSettings != null)
             {
-                FrameSettings defaultCameraFS = hdrpAsset.GetDefaultFrameSettings(FrameSettingsRenderType.Camera);
+                FrameSettings defaultCameraFS = globalSettings.GetDefaultFrameSettings(FrameSettingsRenderType.Camera);
                 return defaultCameraFS.IsEnabled(FrameSettingsField.SSGI);
             }
             else

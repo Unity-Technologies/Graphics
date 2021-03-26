@@ -1,6 +1,7 @@
 using System.Collections.Generic; //needed for list of Custom Post Processes injections
 using System.IO;
 using System.Linq;
+using UnityEngine.Serialization;
 #if UNITY_EDITOR
 using UnityEditorInternal;
 using UnityEditor;
@@ -384,12 +385,13 @@ namespace UnityEngine.Rendering.HighDefinition
 
         #region VolumeProfile
 
-        [SerializeField] private VolumeProfile m_VolumeProfileDefault;
+        [SerializeField, FormerlySerializedAs("m_VolumeProfileDefault")]
+        private VolumeProfile m_DefaultVolumeProfile;
 
         internal VolumeProfile volumeProfile
         {
-            get => m_VolumeProfileDefault;
-            set => m_VolumeProfileDefault = value;
+            get => m_DefaultVolumeProfile;
+            set => m_DefaultVolumeProfile = value;
         }
 
         /// <summary>Get the current default VolumeProfile asset. If it is missing, the builtin one is assigned to the current settings.</summary>
@@ -417,7 +419,8 @@ namespace UnityEngine.Rendering.HighDefinition
 
         #region Look Dev Profile
 #if UNITY_EDITOR
-        [SerializeField] private VolumeProfile m_LookDevVolumeProfile;
+        [SerializeField, FormerlySerializedAs("VolumeProfileLookDev")]
+        private VolumeProfile m_LookDevVolumeProfile;
 
         internal VolumeProfile lookDevVolumeProfile
         {

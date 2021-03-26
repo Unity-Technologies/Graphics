@@ -401,13 +401,13 @@ namespace UnityEditor.Rendering.HighDefinition
                 VolumeProfile asset = null;
                 using (new EditorGUILayout.HorizontalScope())
                 {
-                    var oldAssetValue = serialized.volumeProfileDefault.objectReferenceValue;
-                    EditorGUILayout.PropertyField(serialized.volumeProfileDefault, Styles.defaultVolumeProfileLabel);
-                    asset = serialized.volumeProfileDefault.objectReferenceValue as VolumeProfile;
+                    var oldAssetValue = serialized.defaultVolumeProfile.objectReferenceValue;
+                    EditorGUILayout.PropertyField(serialized.defaultVolumeProfile, Styles.defaultVolumeProfileLabel);
+                    asset = serialized.defaultVolumeProfile.objectReferenceValue as VolumeProfile;
                     if (asset == null && oldAssetValue != null)
                     {
                         Debug.Log("Default Volume Profile Asset cannot be null. Rolling back to previous value.");
-                        serialized.volumeProfileDefault.objectReferenceValue = oldAssetValue;
+                        serialized.defaultVolumeProfile.objectReferenceValue = oldAssetValue;
                     }
 
                     if (GUILayout.Button(EditorGUIUtility.TrTextContent("New", "Create a new Volume Profile for default in your default resource folder (defined in Wizard)"), GUILayout.Width(38), GUILayout.Height(18)))
