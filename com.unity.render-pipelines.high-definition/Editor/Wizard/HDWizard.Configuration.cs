@@ -502,7 +502,7 @@ namespace UnityEditor.Rendering.HighDefinition
         }
 
         bool IsDefaultVolumeProfileCorrect()
-            => IsHdrpGlobalSettingsUsedCorrect() && HDRenderPipelineGlobalSettings.instance.IsVolumeProfileFromResources();
+            => IsHdrpGlobalSettingsUsedCorrect() && !HDRenderPipelineGlobalSettings.instance.IsVolumeProfileFromResources();
 
         void FixDefaultVolumeProfile(bool fromAsyncUnused)
         {
@@ -519,7 +519,7 @@ namespace UnityEditor.Rendering.HighDefinition
         }
 
         bool IsDefaultLookDevVolumeProfileCorrect()
-            => IsHdrpGlobalSettingsUsedCorrect() && HDRenderPipelineGlobalSettings.instance.IsVolumeProfileLookDevFromResources();
+            => IsHdrpGlobalSettingsUsedCorrect() && !HDRenderPipelineGlobalSettings.instance.IsVolumeProfileLookDevFromResources();
 
         void FixDefaultLookDevVolumeProfile(bool fromAsyncUnused)
         {
