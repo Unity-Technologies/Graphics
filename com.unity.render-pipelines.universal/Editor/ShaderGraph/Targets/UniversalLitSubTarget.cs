@@ -101,8 +101,8 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
             var descs = context.blocks.Select(x => x.descriptor);
             // Surface Type & Blend Mode
             // These must be set per SubTarget as Sprite SubTargets override them
-            context.AddField(UniversalFields.SurfaceOpaque,         target.surfaceType == SurfaceType.Opaque);
-            context.AddField(UniversalFields.SurfaceTransparent,    target.surfaceType != SurfaceType.Opaque);
+            //context.AddField(UniversalFields.SurfaceOpaque,         target.surfaceType == SurfaceType.Opaque);      // <<-- TODO: get rid of this?
+            //context.AddField(UniversalFields.SurfaceTransparent,    target.surfaceType != SurfaceType.Opaque);
             context.AddField(UniversalFields.BlendAdd,              target.surfaceType != SurfaceType.Opaque && target.alphaMode == AlphaMode.Additive);
             context.AddField(Fields.BlendAlpha,                     target.surfaceType != SurfaceType.Opaque && target.alphaMode == AlphaMode.Alpha);
             context.AddField(UniversalFields.BlendMultiply,         target.surfaceType != SurfaceType.Opaque && target.alphaMode == AlphaMode.Multiply);
@@ -737,6 +737,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
                 { CoreKeywordDescriptors.LightmapShadowMixing },
                 { CoreKeywordDescriptors.ShadowsShadowmask },
                 CoreKeywordDescriptors.AlphaTestOn,
+                CoreKeywordDescriptors.SurfaceTypeTransparent,
                 CoreKeywordDescriptors.AlphaPremultiplyOn,    // TODO: double check if this is needed
             };
 
@@ -750,6 +751,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
                 { CoreKeywordDescriptors.MixedLightingSubtractive },
                 { GBufferNormalsOct },
                 CoreKeywordDescriptors.AlphaTestOn,
+                CoreKeywordDescriptors.SurfaceTypeTransparent,
                 CoreKeywordDescriptors.AlphaPremultiplyOn,    // TODO: double check if this is needed
             };
 

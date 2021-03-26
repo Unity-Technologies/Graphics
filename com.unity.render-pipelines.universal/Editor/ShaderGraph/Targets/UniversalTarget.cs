@@ -814,6 +814,17 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
             stages = KeywordShaderStage.Fragment,
         };
 
+
+        public static readonly KeywordDescriptor SurfaceTypeTransparent = new KeywordDescriptor()
+        {
+            displayName = "_SURFACE_TYPE_TRANSPARENT",
+            referenceName = "_SURFACE_TYPE_TRANSPARENT",
+            type = KeywordType.Boolean,
+            definition = KeywordDefinition.ShaderFeature,
+            scope = KeywordScope.Local,
+            stages = KeywordShaderStage.Fragment,
+        };
+
         public static readonly KeywordDescriptor AlphaPremultiplyOn = new KeywordDescriptor()
         {
             displayName = "_ALPHAPREMULTIPLY_ON",
