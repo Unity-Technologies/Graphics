@@ -9,7 +9,6 @@ namespace UnityEditor
     {
         public override void MaterialChanged(Material material)
         {
-            Debug.Log("URPUnlitGUI Material Changed");
             if (material == null)
                 throw new ArgumentNullException("material");
 
