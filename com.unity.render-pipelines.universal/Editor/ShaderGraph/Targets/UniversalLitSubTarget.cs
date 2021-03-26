@@ -78,6 +78,24 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
             context.AddSubShader(SubShaders.LitGLESSubShader(workflowMode, target.renderType, target.renderQueue, complexLit));
         }
 
+        public override void ProcessPreviewMaterial(Material material)
+        {
+            // copy our target's default settings into the material
+            // (technically not necessary since we are always recreating the material from the shader each time,
+            // which will pull over the defaults from the shader definition)
+            // but if that ever changes, this will ensure the defaults are set
+            material.SetFloat(Property.SpecularWorkflowMode, (float)((workflowMode == WorkflowMode.MaterialChoice) ? WorkflowMode.Metallic : workflowMode));
+            material.SetFloat(Property.CastShadows, 1.0f);      // TODO set up default
+            material.SetFloat(Property.ReceiveShadows, 1.0f);      // TODO set up default
+            material.SetFloat(Property.Surface, (float)target.surfaceType);
+            material.SetFloat(Property.Blend, (float)target.alphaMode);
+            material.SetFloat(Property.AlphaClip, target.alphaClip ? 1.0f : 0.0f);
+            material.SetFloat(Property.Cull, (int)target.renderFace);
+
+            // call the full unlit material setup function
+            URPLitGUI.SetMaterialKeywords(material);
+        }
+
         public override void GetFields(ref TargetFieldContext context)
         {
             var descs = context.blocks.Select(x => x.descriptor);
@@ -134,7 +152,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
             collector.AddFloatProperty(Property.SrcBlendSG, 1.0f);    // always set by material inspector (TODO : get src/dst blend and set here?)
             collector.AddFloatProperty(Property.DstBlendSG, 0.0f);    // always set by material inspector
             collector.AddFloatProperty(Property.ZWriteSG, (target.surfaceType == SurfaceType.Opaque) ? 1.0f : 0.0f);
-            collector.AddFloatProperty(Property.Cull, (float)(target.twoSided ? CullMode.Off : CullMode.Back));
+            collector.AddFloatProperty(Property.Cull, (float)target.renderFace);    // render face enum is designed to directly pass as a cull mode
             collector.AddFloatProperty(Property.QueueOffset, 0.0f);
         }
 
@@ -180,13 +198,13 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
                 onChange();
             });
 
-            context.AddProperty("Two Sided", new Toggle() { value = target.twoSided }, (evt) =>
+            context.AddProperty("Render Face", new EnumField(RenderFace.Front) { value = target.renderFace }, (evt) =>
             {
-                if (Equals(target.twoSided, evt.newValue))
+                if (Equals(target.renderFace, evt.newValue))
                     return;
 
-                registerUndo("Change Two Sided");
-                target.twoSided = evt.newValue;
+                registerUndo("Change Render Face");
+                target.renderFace = (RenderFace)evt.newValue;
                 onChange();
             });
 

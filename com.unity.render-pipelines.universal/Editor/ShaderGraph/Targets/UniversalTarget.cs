@@ -42,8 +42,17 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
         Multiply,
     }
 
+    public enum RenderFace
+    {
+        Front = 2,      // = CullMode.Back -- render front face only
+        Back = 1,       // = CullMode.Front -- render back face only
+        Both = 0        // = CullMode.Off -- render both faces
+    }
+
     sealed class UniversalTarget : Target, ILegacyTarget
     {
+        public override int latestVersion => 1;
+
         // Constants
         static readonly GUID kSourceCodeGuid = new GUID("8c72f47fdde33b14a9340e325ce56f4d"); // UniversalTarget.cs
         public const string kPipelineTag = "UniversalPipeline";
@@ -71,7 +80,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
         AlphaMode m_AlphaMode = AlphaMode.Alpha;
 
         [SerializeField]
-        bool m_TwoSided = false;
+        RenderFace m_RenderFace = RenderFace.Front;
 
         [SerializeField]
         bool m_AlphaClip = false;
@@ -133,10 +142,10 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
             set => m_AlphaMode = value;
         }
 
-        public bool twoSided
+        public RenderFace renderFace
         {
-            get => m_TwoSided;
-            set => m_TwoSided = value;
+            get => m_RenderFace;
+            set => m_RenderFace = value;
         }
 
         public bool alphaClip
@@ -194,7 +203,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
                 descs.Contains(BlockFields.VertexDescription.Tangent));
             context.AddField(Fields.GraphPixel);
             context.AddField(Fields.AlphaClip, alphaClip);
-            context.AddField(Fields.DoubleSided, twoSided);
+            //context.AddField(Fields.DoubleSided, twoSided);
 
             // SubTarget fields
             m_ActiveSubTarget.value.GetFields(ref context);
@@ -210,6 +219,11 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
 
             // SubTarget blocks
             m_ActiveSubTarget.value.GetActiveBlocks(ref context);
+        }
+
+        public override void ProcessPreviewMaterial(Material material)
+        {
+            m_ActiveSubTarget.value.ProcessPreviewMaterial(material);
         }
 
         public override void CollectShaderProperties(PropertyCollector collector, GenerationMode generationMode)
@@ -294,14 +308,14 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
                 case PBRMasterNode1 pbrMasterNode:
                     m_SurfaceType = (SurfaceType)pbrMasterNode.m_SurfaceType;
                     m_AlphaMode = (AlphaMode)pbrMasterNode.m_AlphaMode;
-                    m_TwoSided = pbrMasterNode.m_TwoSided;
+                    m_RenderFace = pbrMasterNode.m_TwoSided ? RenderFace.Both : RenderFace.Front;
                     UpgradeAlphaClip();
                     m_CustomEditorGUI = pbrMasterNode.m_OverrideEnabled ? pbrMasterNode.m_ShaderGUIOverride : "";
                     break;
                 case UnlitMasterNode1 unlitMasterNode:
                     m_SurfaceType = (SurfaceType)unlitMasterNode.m_SurfaceType;
                     m_AlphaMode = (AlphaMode)unlitMasterNode.m_AlphaMode;
-                    m_TwoSided = unlitMasterNode.m_TwoSided;
+                    m_RenderFace = unlitMasterNode.m_TwoSided ? RenderFace.Both : RenderFace.Front;
                     UpgradeAlphaClip();
                     m_CustomEditorGUI = unlitMasterNode.m_OverrideEnabled ? unlitMasterNode.m_ShaderGUIOverride : "";
                     break;
@@ -333,6 +347,30 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
         public override bool WorksWithSRP(RenderPipelineAsset scriptableRenderPipeline)
         {
             return scriptableRenderPipeline?.GetType() == typeof(UniversalRenderPipelineAsset);
+        }
+
+        [Serializable]
+        class UniversalTargetLegacySerialization
+        {
+            [SerializeField]
+            public bool m_TwoSided = false;
+        }
+
+        public override void OnAfterDeserialize(string json)
+        {
+            base.OnAfterDeserialize(json);
+
+            if (this.sgVersion < latestVersion)
+            {
+                if (this.sgVersion == 0)
+                {
+                    // deserialize old value:   TODO: use legacy and remove two sided
+                    var oldSettings = JsonUtility.FromJson<UniversalTargetLegacySerialization>(json);
+
+                    this.m_RenderFace = oldSettings.m_TwoSided ? RenderFace.Both : RenderFace.Front;
+                }
+                ChangeVersion(latestVersion);
+            }
         }
     }
 
