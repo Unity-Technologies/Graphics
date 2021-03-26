@@ -174,22 +174,14 @@ half3 PickSamplePoint(float2 uv, int sampleIndex)
     return half3(CosSin(theta) * sqrt(half(1.0) - u * u), u);
 }
 
-float RawToLinearDepth(float rawDepth)
+float SampleAndGetLinearEyeDepth(float2 uv)
 {
+    float rawDepth = SampleSceneDepth(uv.xy);
     #if defined(_ORTHOGRAPHIC)
-        #if UNITY_REVERSED_Z
-            return ((_ProjectionParams.z - _ProjectionParams.y) * (1.0 - rawDepth) + _ProjectionParams.y);
-        #else
-            return ((_ProjectionParams.z - _ProjectionParams.y) * (rawDepth) + _ProjectionParams.y);
-        #endif
+        return LinearDepthToEyeDepth(rawDepth);
     #else
         return LinearEyeDepth(rawDepth, _ZBufferParams);
     #endif
-}
-
-float SampleAndGetLinearDepth(float2 uv)
-{
-    return RawToLinearDepth(SampleSceneDepth(uv.xy));
 }
 
 // This returns a vector in world unit (not a position), from camera to the given point described by uv screen coordinate and depth (in absolute world unit).
@@ -235,10 +227,10 @@ half3 ReconstructNormal(float2 uv, float depth, float3 vpos)
         float2 uUV = float2(0.0,  delta.y);
         float2 dUV = float2(0.0, -delta.y);
 
-        float3 l1 = float3(uv + lUV, 0.0); l1.z = SampleAndGetLinearDepth(l1.xy); // Left1
-        float3 r1 = float3(uv + rUV, 0.0); r1.z = SampleAndGetLinearDepth(r1.xy); // Right1
-        float3 u1 = float3(uv + uUV, 0.0); u1.z = SampleAndGetLinearDepth(u1.xy); // Up1
-        float3 d1 = float3(uv + dUV, 0.0); d1.z = SampleAndGetLinearDepth(d1.xy); // Down1
+        float3 l1 = float3(uv + lUV, 0.0); l1.z = SampleAndGetLinearEyeDepth(l1.xy); // Left1
+        float3 r1 = float3(uv + rUV, 0.0); r1.z = SampleAndGetLinearEyeDepth(r1.xy); // Right1
+        float3 u1 = float3(uv + uUV, 0.0); u1.z = SampleAndGetLinearEyeDepth(u1.xy); // Up1
+        float3 d1 = float3(uv + dUV, 0.0); d1.z = SampleAndGetLinearEyeDepth(d1.xy); // Down1
 
         // Determine the closest horizontal and vertical pixels...
         // horizontal: left = 0.0 right = 1.0
@@ -247,10 +239,10 @@ half3 ReconstructNormal(float2 uv, float depth, float3 vpos)
              uint closest_horizontal = l1.z > r1.z ? 0 : 1;
              uint closest_vertical   = d1.z > u1.z ? 0 : 1;
         #else
-            float3 l2 = float3(uv + lUV * 2.0, 0.0); l2.z = SampleAndGetLinearDepth(l2.xy); // Left2
-            float3 r2 = float3(uv + rUV * 2.0, 0.0); r2.z = SampleAndGetLinearDepth(r2.xy); // Right2
-            float3 u2 = float3(uv + uUV * 2.0, 0.0); u2.z = SampleAndGetLinearDepth(u2.xy); // Up2
-            float3 d2 = float3(uv + dUV * 2.0, 0.0); d2.z = SampleAndGetLinearDepth(d2.xy); // Down2
+            float3 l2 = float3(uv + lUV * 2.0, 0.0); l2.z = SampleAndGetLinearEyeDepth(l2.xy); // Left2
+            float3 r2 = float3(uv + rUV * 2.0, 0.0); r2.z = SampleAndGetLinearEyeDepth(r2.xy); // Right2
+            float3 u2 = float3(uv + uUV * 2.0, 0.0); u2.z = SampleAndGetLinearEyeDepth(u2.xy); // Up2
+            float3 d2 = float3(uv + dUV * 2.0, 0.0); d2.z = SampleAndGetLinearEyeDepth(d2.xy); // Down2
 
             const uint closest_horizontal = abs( (2.0 * l1.z - l2.z) - depth) < abs( (2.0 * r1.z - r2.z) - depth) ? 0 : 1;
             const uint closest_vertical   = abs( (2.0 * d1.z - d2.z) - depth) < abs( (2.0 * u1.z - u2.z) - depth) ? 0 : 1;
@@ -289,7 +281,7 @@ half3 SampleNormal(float2 uv)
     #if defined(_SOURCE_DEPTH_NORMALS)
         return half3(SampleSceneNormals(uv));
     #else
-        float depth = SampleAndGetLinearDepth(uv);
+        float depth = SampleAndGetLinearEyeDepth(uv);
         half3 vpos = ReconstructViewPos(uv, depth);
         return ReconstructNormal(uv, depth, vpos);
     #endif
@@ -297,7 +289,7 @@ half3 SampleNormal(float2 uv)
 
 void SampleDepthNormalView(float2 uv, out float depth, out half3 normal, out half3 vpos)
 {
-    depth  = SampleAndGetLinearDepth(uv);
+    depth  = SampleAndGetLinearEyeDepth(uv);
     vpos   = ReconstructViewPos(uv, depth);
 
     #if defined(_SOURCE_DEPTH_NORMALS)
@@ -350,7 +342,7 @@ half4 SSAO(Varyings input) : SV_Target
         #endif
 
         // Depth at the sample point
-        float depth_s1 = SampleAndGetLinearDepth(uv_s1_01);
+        float depth_s1 = SampleAndGetLinearEyeDepth(uv_s1_01);
 
         // Relative position of the sample point
         half3 vpos_s2 = ReconstructViewPos(uv_s1_01, depth_s1);
