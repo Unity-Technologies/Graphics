@@ -48,7 +48,7 @@ namespace UnityEditor.Rendering.HighDefinition
             public const string resolveAll = "Fix All";
             public const string resolveAllQuality = "Fix All Qualities";
             public const string resolveAllBuildTarget = "Fix All Platforms";
-            public const string fixAllOnNonHDRP = "Current Quality is not using High Definition render pipeline. If you attempt a Fix All, the current Quality will be changed to use it.";
+            public const string fixAllOnNonHDRP = "The active Quality Level is not using a High Definition Render Pipeline asset. If you attempt a Fix All, the Quality Level will be changed to use it.";
 
             public struct ConfigStyle
             {
