@@ -85,8 +85,8 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
             // which will pull over the defaults from the shader definition)
             // but if that ever changes, this will ensure the defaults are set
             material.SetFloat(Property.SpecularWorkflowMode, (float)((workflowMode == WorkflowMode.MaterialChoice) ? WorkflowMode.Metallic : workflowMode));
-            material.SetFloat(Property.CastShadows, 1.0f);      // TODO set up default
-            material.SetFloat(Property.ReceiveShadows, 1.0f);      // TODO set up default
+            material.SetFloat(Property.CastShadows, target.castShadows ? 1.0f : 0.0f);
+            material.SetFloat(Property.ReceiveShadows, target.receiveShadows ? 1.0f : 0.0f);
             material.SetFloat(Property.Surface, (float)target.surfaceType);
             material.SetFloat(Property.Blend, (float)target.alphaMode);
             material.SetFloat(Property.AlphaClip, target.alphaClip ? 1.0f : 0.0f);
@@ -131,12 +131,16 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
             context.AddBlock(BlockFields.SurfaceDescription.NormalWS,           normalDropOffSpace == NormalDropOffSpace.World);
             context.AddBlock(BlockFields.SurfaceDescription.Emission);
             context.AddBlock(BlockFields.SurfaceDescription.Occlusion);
+
+            // TODO: these should be predicated on workflow mode ONLY when not locked
             context.AddBlock(BlockFields.SurfaceDescription.Specular,           workflowMode != WorkflowMode.Metallic);
             context.AddBlock(BlockFields.SurfaceDescription.Metallic,           workflowMode != WorkflowMode.Specular);
 
+            // TODO: these should be predicated on transparency and alpha clip ONLY when those values are locked
             context.AddBlock(BlockFields.SurfaceDescription.Alpha);                 // ,              target.surfaceType == SurfaceType.Transparent || target.alphaClip);
             context.AddBlock(BlockFields.SurfaceDescription.AlphaClipThreshold);    //, target.alphaClip);
 
+            // this is controlled 100% by the Target clearCoat checkbox (for now)
             context.AddBlock(BlockFields.SurfaceDescription.CoatMask,           clearCoat);
             context.AddBlock(BlockFields.SurfaceDescription.CoatSmoothness,     clearCoat);
         }
@@ -146,8 +150,8 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
             if (workflowMode == WorkflowMode.MaterialChoice)
                 collector.AddShaderProperty(Property.WorkflowModeProperty(workflowMode));
 
-            collector.AddFloatProperty(Property.CastShadows, 1.0f);      // TODO set up default
-            collector.AddFloatProperty(Property.ReceiveShadows, 1.0f);      // TODO set up default
+            collector.AddFloatProperty(Property.CastShadows, target.castShadows ? 1.0f : 0.0f);
+            collector.AddFloatProperty(Property.ReceiveShadows, target.receiveShadows ? 1.0f : 0.0f);
 
             // setup properties using the defaults
             collector.AddFloatProperty(Property.Surface, (float)target.surfaceType);
@@ -162,7 +166,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
 
         public override void GetPropertiesGUI(ref TargetPropertyGUIContext context, Action onChange, Action<String> registerUndo)
         {
-            context.AddProperty("Workflow", new EnumField(WorkflowMode.Metallic) { value = workflowMode }, (evt) =>
+            context.AddProperty("Workflow Mode", new EnumField(WorkflowMode.Metallic) { value = workflowMode }, (evt) =>
             {
                 if (Equals(workflowMode, evt.newValue))
                     return;
@@ -172,7 +176,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
                 onChange();
             });
 
-            context.AddProperty("Surface", new EnumField(SurfaceType.Opaque) { value = target.surfaceType }, (evt) =>
+            context.AddProperty("Surface Type", new EnumField(SurfaceType.Opaque) { value = target.surfaceType }, (evt) =>
             {
                 if (Equals(target.surfaceType, evt.newValue))
                     return;
@@ -182,23 +186,13 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
                 onChange();
             });
 
-            context.AddProperty("Blend", new EnumField(AlphaMode.Alpha) { value = target.alphaMode }, target.surfaceType == SurfaceType.Transparent, (evt) =>
+            context.AddProperty("Blending Mode", new EnumField(AlphaMode.Alpha) { value = target.alphaMode }, target.surfaceType == SurfaceType.Transparent, (evt) =>
             {
                 if (Equals(target.alphaMode, evt.newValue))
                     return;
 
                 registerUndo("Change Blend");
                 target.alphaMode = (AlphaMode)evt.newValue;
-                onChange();
-            });
-
-            context.AddProperty("Alpha Clip", new Toggle() { value = target.alphaClip }, (evt) =>
-            {
-                if (Equals(target.alphaClip, evt.newValue))
-                    return;
-
-                registerUndo("Change Alpha Clip");
-                target.alphaClip = evt.newValue;
                 onChange();
             });
 
@@ -209,6 +203,36 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
 
                 registerUndo("Change Render Face");
                 target.renderFace = (RenderFace)evt.newValue;
+                onChange();
+            });
+
+            context.AddProperty("Alpha Clipping", new Toggle() { value = target.alphaClip }, (evt) =>
+            {
+                if (Equals(target.alphaClip, evt.newValue))
+                    return;
+
+                registerUndo("Change Alpha Clip");
+                target.alphaClip = evt.newValue;
+                onChange();
+            });
+
+            context.AddProperty("Cast Shadows", new Toggle() { value = target.castShadows }, (evt) =>
+            {
+                if (Equals(target.castShadows, evt.newValue))
+                    return;
+
+                registerUndo("Change Cast Shadows");
+                target.castShadows = evt.newValue;
+                onChange();
+            });
+
+            context.AddProperty("Receive Shadows", new Toggle() { value = target.receiveShadows }, (evt) =>
+            {
+                if (Equals(target.receiveShadows, evt.newValue))
+                    return;
+
+                registerUndo("Change Receive Shadows");
+                target.receiveShadows = evt.newValue;
                 onChange();
             });
 

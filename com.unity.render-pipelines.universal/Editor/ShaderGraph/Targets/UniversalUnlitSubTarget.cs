@@ -50,6 +50,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
             material.SetFloat(Property.Blend, (float)target.alphaMode);
             material.SetFloat(Property.AlphaClip, target.alphaClip ? 1.0f : 0.0f);
             material.SetFloat(Property.Cull, (int)target.renderFace);
+            material.SetFloat(Property.CastShadows, target.castShadows ? 1.0f : 0.0f);
 
             // call the full unlit material setup function
             URPUnlitGUI.SetMaterialKeywords(material);
@@ -76,6 +77,8 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
 
         public override void CollectShaderProperties(PropertyCollector collector, GenerationMode generationMode)
         {
+            collector.AddFloatProperty(Property.CastShadows, target.castShadows ? 1.0f : 0.0f);
+
             collector.AddFloatProperty(Property.Surface, (float)target.surfaceType);
             collector.AddFloatProperty(Property.Blend, (float)target.alphaMode);
             collector.AddFloatProperty(Property.AlphaClip, target.alphaClip ? 1.0f : 0.0f);
@@ -88,7 +91,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
 
         public override void GetPropertiesGUI(ref TargetPropertyGUIContext context, Action onChange, Action<String> registerUndo)
         {
-            context.AddProperty("Surface", new EnumField(SurfaceType.Opaque) { value = target.surfaceType }, (evt) =>
+            context.AddProperty("Surface Type", new EnumField(SurfaceType.Opaque) { value = target.surfaceType }, (evt) =>
             {
                 if (Equals(target.surfaceType, evt.newValue))
                     return;
@@ -98,23 +101,13 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
                 onChange();
             });
 
-            context.AddProperty("Blend", new EnumField(AlphaMode.Alpha) { value = target.alphaMode }, target.surfaceType == SurfaceType.Transparent, (evt) =>
+            context.AddProperty("Blending Mode", new EnumField(AlphaMode.Alpha) { value = target.alphaMode }, target.surfaceType == SurfaceType.Transparent, (evt) =>
             {
                 if (Equals(target.alphaMode, evt.newValue))
                     return;
 
                 registerUndo("Change Blend");
                 target.alphaMode = (AlphaMode)evt.newValue;
-                onChange();
-            });
-
-            context.AddProperty("Alpha Clip", new Toggle() { value = target.alphaClip }, (evt) =>
-            {
-                if (Equals(target.alphaClip, evt.newValue))
-                    return;
-
-                registerUndo("Change Alpha Clip");
-                target.alphaClip = evt.newValue;
                 onChange();
             });
 
@@ -127,6 +120,28 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
                 target.renderFace = (RenderFace)evt.newValue;
                 onChange();
             });
+
+            context.AddProperty("Alpha Clipping", new Toggle() { value = target.alphaClip }, (evt) =>
+            {
+                if (Equals(target.alphaClip, evt.newValue))
+                    return;
+
+                registerUndo("Change Alpha Clip");
+                target.alphaClip = evt.newValue;
+                onChange();
+            });
+
+            context.AddProperty("Cast Shadows", new Toggle() { value = target.castShadows }, (evt) =>
+            {
+                if (Equals(target.castShadows, evt.newValue))
+                    return;
+
+                registerUndo("Change Cast Shadows");
+                target.castShadows = evt.newValue;
+                onChange();
+            });
+
+            // unlit cannot receive shadows
         }
 
         public bool TryUpgradeFromMasterNode(IMasterNode1 masterNode, out Dictionary<BlockFieldDescriptor, int> blockMap)

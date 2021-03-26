@@ -86,6 +86,12 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
         bool m_AlphaClip = false;
 
         [SerializeField]
+        bool m_CastShadows = true;
+
+        [SerializeField]
+        bool m_ReceiveShadows = true;
+
+        [SerializeField]
         string m_CustomEditorGUI;
 
         internal override bool ignoreCustomInterpolators => false;
@@ -111,6 +117,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
             }
         }
 
+        // TODO what is this used for?  It's using a default value (alphaClip) that may not always apply...
         public string renderQueue
         {
             get
@@ -152,6 +159,18 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
         {
             get => m_AlphaClip;
             set => m_AlphaClip = value;
+        }
+
+        public bool castShadows
+        {
+            get => m_CastShadows;
+            set => m_CastShadows = value;
+        }
+
+        public bool receiveShadows
+        {
+            get => m_ReceiveShadows;
+            set => m_ReceiveShadows = value;
         }
 
         public string customEditorGUI
@@ -202,7 +221,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
                 descs.Contains(BlockFields.VertexDescription.Normal) ||
                 descs.Contains(BlockFields.VertexDescription.Tangent));
             context.AddField(Fields.GraphPixel);
-            context.AddField(Fields.AlphaClip, alphaClip);
+            //context.AddField(Fields.AlphaClip, alphaClip);
             //context.AddField(Fields.DoubleSided, twoSided);
 
             // SubTarget fields
