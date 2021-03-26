@@ -1,7 +1,9 @@
 #ifndef UNITY_IMAGE_BASED_LIGHTING_INCLUDED
 #define UNITY_IMAGE_BASED_LIGHTING_INCLUDED
 
+#if SHADER_API_MOBILE || SHADER_API_GLES || SHADER_API_GLES3
 #pragma warning (disable : 3205) // conversion of larger type to smaller
+#endif
 
 #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/CommonLighting.hlsl"
 #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/CommonMaterial.hlsl"
@@ -763,6 +765,8 @@ float InfluenceFadeNormalWeight(float3 normal, float3 centerToPos)
     return saturate((-1.0f / 0.4f) * dot(normal, centerToPos) + (0.6f / 0.4f));
 }
 
+#if SHADER_API_MOBILE || SHADER_API_GLES || SHADER_API_GLES3
 #pragma warning (enable : 3205) // conversion of larger type to smaller
+#endif
 
 #endif // UNITY_IMAGE_BASED_LIGHTING_INCLUDED

@@ -1,7 +1,9 @@
 #ifndef UNITY_PACKING_INCLUDED
 #define UNITY_PACKING_INCLUDED
 
+#if SHADER_API_MOBILE || SHADER_API_GLES || SHADER_API_GLES3
 #pragma warning (disable : 3205) // conversion of larger type to smaller
+#endif
 
 //-----------------------------------------------------------------------------
 // Normal packing
@@ -547,6 +549,8 @@ float2 Unpack888ToFloat2(float3 x)
 }
 #endif // SHADER_API_GLES
 
+#if SHADER_API_MOBILE || SHADER_API_GLES || SHADER_API_GLES3
 #pragma warning (enable : 3205) // conversion of larger type to smaller
+#endif
 
 #endif // UNITY_PACKING_INCLUDED
