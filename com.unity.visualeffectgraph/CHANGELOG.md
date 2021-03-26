@@ -6,6 +6,9 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ## [7.6.0] - 2021-03-25
 
+### Fixed
+- Fixed issue with VFX using incorrect buffer type for strip data
+
 ### Changed
 - Tidy up of platform abstraction code for random number generation, requires a dependency on com.unity.render-pipelines.core for those abstractions.
 
