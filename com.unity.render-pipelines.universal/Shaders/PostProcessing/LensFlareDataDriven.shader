@@ -147,4 +147,3 @@ Shader "Hidden/Universal Render Pipeline/LensFlareDataDriven"
         }
     }
 }
-

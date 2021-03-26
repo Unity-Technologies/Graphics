@@ -829,7 +829,7 @@ namespace UnityEngine.Rendering.Universal.Internal
                     case LightType.Point:
                         return SRPLensFlareCommon.ShapeAttenuationPointLight();
                     case LightType.Spot:
-                        return SRPLensFlareCommon.ShapeAttenuationSpotConeLight(light.transform.forward, wo, light.spotAngle, light.innerSpotAngle/180.0f);
+                        return SRPLensFlareCommon.ShapeAttenuationSpotConeLight(light.transform.forward, wo, light.spotAngle, light.innerSpotAngle / 180.0f);
                     default:
                         return 1.0f;
                 }
