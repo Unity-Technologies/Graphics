@@ -17,7 +17,7 @@ Group of Materials / GameObject can be setup to use Force Emissive forward with 
 
 ### Area Lights
 
-Area lights are now correctly supported for Fabric and Hair master node as well as for AxF shader.
+The AxF shader and Fabric and Hair master nodes now correctly support Area lights.
 
 ### Density Volume (Local Volumetric Fog) Improvements
 

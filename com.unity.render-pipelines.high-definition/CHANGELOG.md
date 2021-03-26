@@ -35,9 +35,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Added a "Conservative" mode for shader graph depth offset.
 - Added an error message when trying to use disk lights with realtime GI (case 1317808).
 - Added support for multi volumetric cloud shadows.
-- Added an LTC Fitting tools for all the BRDFs supported by HDRP.
-- Adding the support for area lights for Hair and Fabric.
-- using the proper lighting models for AxF for area lights.
+- Added LTC Fitting tools for all BRDFs that HDRP supports.
+- Added Area Light support for Hair and Fabric master nodes.
 
 ### Fixed
 - Fixed Intensity Multiplier not affecting realtime global illumination.
@@ -182,6 +181,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - The default LookDev volume profile is now copied and referened in the Asset folder instead of the package folder.
 - Changed normal used in path tracing to create a local light list from the geometric to the smooth shading one.
 - Embed the HDRP config package instead of copying locally, the `Packages` folder is versionned by Collaborate. (case 1276518)
+- Improved lighting models for AxF shader area lights.
 
 ## [11.0.0] - 2020-10-21
 
