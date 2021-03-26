@@ -1,11 +1,15 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Threading;
 using UnityEditor;
+using UnityEditor.Build.Content;
+using UnityEditor.Build.Player;
 using UnityEditor.Rendering;
 using UnityEditor.Rendering.Universal;
 using UnityEditor.SceneManagement;
 using UnityEngine;
+using UnityEngine.Rendering;
 using UnityEngine.Rendering.Universal;
 using UnityEngine.SceneManagement;
 using Object = UnityEngine.Object;
@@ -23,23 +27,26 @@ public class ProjectSettingsConverter : RenderPipelineConverter
     private List<CameraSettings> cameraSettings = new List<CameraSettings>();
 
     private bool needsForward = false;
+    private int forwardIndex = -1;
     private bool needsDeferred = false;
+    private int deferredIndex = -1;
 
     public override void OnInitialize(InitializeConverterContext context)
     {
+        // find all cameras and thier info
+        GatherCameras(context);
 
         //checking if deferred or forward
         // check graphics tiers
         GatherGraphicsTiers();
 
-        // find all cameras and thier info
-        GatherCameras(context);
-
         var id = 0;
         foreach (var levelName in QualitySettings.names)
         {
+            var projectSettings = new ProjectSettingItem();
             var setting = QualitySettings.GetRenderPipelineAssetAt(id);
             var item = new ConverterItemDescriptor();
+            projectSettings.levelName = levelName;
             item.name = $"Quality Level {id}:{levelName}";
 
             var text = "";
@@ -60,7 +67,8 @@ public class ProjectSettingsConverter : RenderPipelineConverter
             }
 
             item.path = text;
-
+            projectSettings.index = id;
+            settingsItems.Add(projectSettings);
             context.AddAssetToConvert(item);
             id++;
         }
@@ -68,26 +76,69 @@ public class ProjectSettingsConverter : RenderPipelineConverter
 
     public override void OnRun(RunConverterContext context)
     {
-        foreach (var item in context.items)
+        var currentQualityLevel = QualitySettings.GetQualityLevel();
+
+        for (int i = context.items.Count() - 1; i >= 0; i--)
         {
-            // which one am I?
-            Debug.Log($"Starting upgrade of Quality Level {item.index}:{item.descriptor.name}");
-
-            //creating pipeline asset
-
-            //create renderers
-            if (needsForward)
+            var item = context.items.ElementAt(i);
+            // is camera
+            if (item.index > cameraSettings.Count - 1)
             {
-                Debug.Log($"Generating a forward renderer");
-            }
+                var projectSetting = settingsItems[item.index - cameraSettings.Count];
+                // which one am I?
+                Debug.Log($"Starting upgrade of Quality Level {projectSetting.index}:{projectSetting.levelName}");
 
-            if (needsDeferred)
+                //creating pipeline asset
+                Thread.Sleep(100);
+                var asset = ScriptableObject.CreateInstance(typeof(UniversalRenderPipelineAsset)) as UniversalRenderPipelineAsset;
+                if(!AssetDatabase.IsValidFolder("Assets/TestAssets"))
+                    AssetDatabase.CreateFolder("Assets", "TestAssets");
+                var path = $"Assets/TestAssets/{projectSetting.levelName}_PipelineAsset.asset";
+                AssetDatabase.CreateAsset(asset, path);
+
+                //create renderers
+                if (needsForward)
+                {
+                    Debug.Log($"Generating a forward renderer");
+                    var rendererAsset = UniversalRenderPipelineAsset.CreateRendererAsset(path, RendererType.UniversalRenderer);
+                    //Missing API to set deferred or forward
+                    //missing API to assign to pipeline assetß
+                    forwardIndex = asset.m_RendererDataList.Length == 1 ? -1 : 1;
+                    // TODO remove in final
+                    Thread.Sleep(100);
+                }
+
+                if (needsDeferred)
+                {
+                    Debug.Log("Generating a deferred renderer");
+                    var rendererAsset = UniversalRenderPipelineAsset.CreateRendererAsset(path, RendererType.UniversalRenderer);
+                    //Missing API to set deferred or forward
+                    //missing API to assign to pipeline asset
+                    deferredIndex = asset.m_RendererDataList.Length == 1 ? -1 : asset.m_RendererDataList.Length - 1;
+                    // TODO remove in final
+                    Thread.Sleep(100);
+                }
+
+                //looping through all settings
+
+                //assign asset
+                QualitySettings.SetQualityLevel(projectSetting.index);
+                QualitySettings.renderPipeline = asset;
+            }
+            else // is quality level
             {
-                Debug.Log("Generating a deferred renderer");
+                if (cameraSettings[item.index].renderingPath == RenderingPath.Forward)
+                {
+                    needsForward = true;
+                }
+                if (cameraSettings[item.index].renderingPath == RenderingPath.DeferredLighting ||
+                    cameraSettings[item.index].renderingPath == RenderingPath.DeferredShading)
+                {
+                    needsDeferred = true;
+                }
             }
-
-            //looping through all settings
         }
+        QualitySettings.SetQualityLevel(currentQualityLevel);
     }
 
     public override void OnClicked(int index)
@@ -108,13 +159,35 @@ public class ProjectSettingsConverter : RenderPipelineConverter
 
     internal void GatherGraphicsTiers()
     {
-
+        var targetGrp = BuildPipeline.GetBuildTargetGroup(EditorUserBuildSettings.activeBuildTarget);
+        for (var i = 0; i < 3; i++)
+        {
+            var tier = EditorGraphicsSettings.GetTierSettings(targetGrp, i == 0 ? GraphicsTier.Tier1 : i == 1 ? GraphicsTier.Tier2 : GraphicsTier.Tier3);
+            switch (tier.renderingPath)
+            {
+                case RenderingPath.VertexLit:
+                    needsForward = true;
+                    break;
+                case RenderingPath.Forward:
+                    needsForward = true;
+                    break;
+                case RenderingPath.DeferredLighting:
+                    needsDeferred = true;
+                    break;
+                case RenderingPath.DeferredShading:
+                    needsDeferred = true;
+                    break;
+                default:
+                    needsForward = true;
+                    break;
+            }
+        }
     }
 
     internal void GatherCameras(InitializeConverterContext context)
     {
         var cameras = Object.FindObjectsOfType<Camera>();
-        // final version will take some time so...
+        // TODO remove in final
         Thread.Sleep(100);
 
         foreach (var camera in cameras)
@@ -132,14 +205,17 @@ public class ProjectSettingsConverter : RenderPipelineConverter
                 case RenderingPath.Forward:
                     camSettings = new CameraSettings();
                     CaptureCamera(camera, ref camSettings);
+                    needsForward = true;
                     break;
                 case RenderingPath.DeferredLighting:
                     camSettings = new CameraSettings();
                     CaptureCamera(camera, ref camSettings);
+                    needsDeferred = true;
                     break;
                 case RenderingPath.DeferredShading:
                     camSettings = new CameraSettings();
                     CaptureCamera(camera, ref camSettings);
+                    needsDeferred = true;
                     break;
                 default:
                     throw new ArgumentOutOfRangeException();
@@ -157,6 +233,8 @@ public class ProjectSettingsConverter : RenderPipelineConverter
                 initialInfo = "",
             };
             context.AddAssetToConvert(info);
+            // TODO remove in final
+            Thread.Sleep(100);
         }
     }
 
@@ -200,7 +278,7 @@ public class ProjectSettingsConverter : RenderPipelineConverter
     {
         public int index;
         public string levelName;
-        public UniversalRenderPipelineAsset URPAsset;
+        //public UniversalRenderPipelineAsset URPAsset;
     }
 
     internal class CameraSettings
