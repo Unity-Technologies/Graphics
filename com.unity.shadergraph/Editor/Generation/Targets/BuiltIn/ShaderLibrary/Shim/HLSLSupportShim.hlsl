@@ -3,6 +3,13 @@
 
 #define HLSL_SUPPORT_INCLUDED
 
+#if !defined(SHADER_API_GLES)
+    // all platforms except GLES2.0 have built-in shadow comparison samplers
+    #define SHADOWS_NATIVE
+#elif defined(SHADER_API_GLES) && defined(UNITY_ENABLE_NATIVE_SHADOW_LOOKUPS)
+    // GLES2.0 also has built-in shadow comparison samplers, but only on platforms where we pass UNITY_ENABLE_NATIVE_SHADOW_LOOKUPS from the editor
+    #define SHADOWS_NATIVE
+#endif
 
 #define fixed real
 #define fixed2 real2
