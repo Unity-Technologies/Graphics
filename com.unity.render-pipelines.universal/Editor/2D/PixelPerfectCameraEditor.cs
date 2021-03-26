@@ -180,12 +180,12 @@ namespace UnityEditor.Experimental.Rendering.Universal
                 verticalOrthoSize = obj.refResolutionY * 0.5f / obj.assetsPPU;
                 horizontalOrthoSize = verticalOrthoSize * ((float)obj.refResolutionX / obj.refResolutionY);
             }
-            else if (obj.cropFrame == PixelPerfectCamera.CropFrame.Pillarbox)
+            else if (obj.cropFrame == PixelPerfectCamera.CropFrame.Letterbox)
             {
                 verticalOrthoSize = obj.refResolutionY * 0.5f / obj.assetsPPU;
                 horizontalOrthoSize = verticalOrthoSize * ((float)gameViewWidth / (zoom * obj.refResolutionY));
             }
-            else if (obj.cropFrame == PixelPerfectCamera.CropFrame.Letterbox)
+            else if (obj.cropFrame == PixelPerfectCamera.CropFrame.Pillarbox)
             {
                 horizontalOrthoSize = obj.refResolutionX * 0.5f / obj.assetsPPU;
                 verticalOrthoSize = horizontalOrthoSize / (zoom * obj.refResolutionX / (float)gameViewHeight);

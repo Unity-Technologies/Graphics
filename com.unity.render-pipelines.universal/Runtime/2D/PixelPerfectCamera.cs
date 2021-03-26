@@ -103,35 +103,6 @@ namespace UnityEngine.Experimental.Rendering.Universal
         {
             get
             {
-                return m_CropFrame == CropFrame.StretchFill || m_CropFrame == CropFrame.Windowbox || m_CropFrame == CropFrame.Letterbox;
-            }
-            set
-            {
-                if (value)
-                {
-                    if (m_CropFrame == CropFrame.None)
-                        m_CropFrame = CropFrame.Letterbox;
-                    else if (m_CropFrame == CropFrame.Pillarbox)
-                        m_CropFrame = CropFrame.Windowbox;
-                }
-                else
-                {
-                    if (m_CropFrame == CropFrame.Letterbox)
-                        m_CropFrame = CropFrame.None;
-                    else if (m_CropFrame == CropFrame.Windowbox || m_CropFrame == CropFrame.StretchFill)
-                        m_CropFrame = CropFrame.Pillarbox;
-                }
-            }
-        }
-
-        /// <summary>
-        /// Set to true to crop the viewport with black bars to match refResolutionY in the vertical direction.
-        /// </summary>
-        [System.Obsolete("Use cropFrame instead", false)]
-        public bool cropFrameY
-        {
-            get
-            {
                 return m_CropFrame == CropFrame.StretchFill || m_CropFrame == CropFrame.Windowbox || m_CropFrame == CropFrame.Pillarbox;
             }
             set
@@ -149,6 +120,35 @@ namespace UnityEngine.Experimental.Rendering.Universal
                         m_CropFrame = CropFrame.None;
                     else if (m_CropFrame == CropFrame.Windowbox || m_CropFrame == CropFrame.StretchFill)
                         m_CropFrame = CropFrame.Letterbox;
+                }
+            }
+        }
+
+        /// <summary>
+        /// Set to true to crop the viewport with black bars to match refResolutionY in the vertical direction.
+        /// </summary>
+        [System.Obsolete("Use cropFrame instead", false)]
+        public bool cropFrameY
+        {
+            get
+            {
+                return m_CropFrame == CropFrame.StretchFill || m_CropFrame == CropFrame.Windowbox || m_CropFrame == CropFrame.Letterbox;
+            }
+            set
+            {
+                if (value)
+                {
+                    if (m_CropFrame == CropFrame.None)
+                        m_CropFrame = CropFrame.Letterbox;
+                    else if (m_CropFrame == CropFrame.Pillarbox)
+                        m_CropFrame = CropFrame.Windowbox;
+                }
+                else
+                {
+                    if (m_CropFrame == CropFrame.Letterbox)
+                        m_CropFrame = CropFrame.None;
+                    else if (m_CropFrame == CropFrame.Windowbox || m_CropFrame == CropFrame.StretchFill)
+                        m_CropFrame = CropFrame.Pillarbox;
                 }
             }
         }
@@ -402,11 +402,11 @@ namespace UnityEngine.Experimental.Rendering.Universal
                 }
                 else if(m_CropFrameX)
                 {
-                    m_CropFrame = CropFrame.Letterbox;
+                    m_CropFrame = CropFrame.Pillarbox;
                 }
                 else if(m_CropFrameY)
                 {
-                    m_CropFrame = CropFrame.Pillarbox;
+                    m_CropFrame = CropFrame.Letterbox;
                 }
                 else
                 {

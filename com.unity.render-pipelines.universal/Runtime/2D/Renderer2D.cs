@@ -229,7 +229,7 @@ namespace UnityEngine.Experimental.Rendering.Universal
                 colorTargetHandle = postProcessDestHandle;
             }
 
-            if (ppc != null && (ppc.cropFrame == PixelPerfectCamera.CropFrame.Letterbox|| ppc.cropFrame == PixelPerfectCamera.CropFrame.Pillarbox))
+            if (ppc != null && (ppc.cropFrame == PixelPerfectCamera.CropFrame.Pillarbox|| ppc.cropFrame == PixelPerfectCamera.CropFrame.Letterbox))
                 EnqueuePass(m_PixelPerfectBackgroundPass);
 
             if (requireFinalPostProcessPass && m_PostProcessPasses.isCreated)
