@@ -547,11 +547,9 @@ namespace UnityEditor.Rendering.Universal
 
                 if(pixelPerfectEnabled)
                     EditorGUILayout.HelpBox(Styles.pixelPerfectWarning, MessageType.Warning);
-
-                EditorGUI.BeginDisabledGroup(pixelPerfectEnabled);
-                settings.DrawProjection();
-                EditorGUI.EndDisabledGroup();
-
+                else
+                    settings.DrawProjection();
+    
                 settings.DrawClippingPlanes();
                 EditorGUILayout.Space();
                 EditorGUILayout.Space();
