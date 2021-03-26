@@ -91,7 +91,7 @@ namespace UnityEditor
             public static readonly GUIContent fixNormalNow = EditorGUIUtility.TrTextContent("Fix now",
                 "Converts the assigned texture to be a normal map format.");
 
-            public static readonly GUIContent queueSlider = EditorGUIUtility.TrTextContent("Priority",
+            public static readonly GUIContent queueSlider = EditorGUIUtility.TrTextContent("Sorting Priority",
                 "Determines the chronological rendering order for a Material. High values are rendered first.");
         }
 
@@ -265,14 +265,7 @@ namespace UnityEditor
         protected void DrawQueueOffsetField()
         {
             if (queueOffsetProp != null)
-            {
-                EditorGUI.BeginChangeCheck();
-                EditorGUI.showMixedValue = queueOffsetProp.hasMixedValue;
-                var queue = EditorGUILayout.IntSlider(Styles.queueSlider, (int)queueOffsetProp.floatValue, -queueOffsetRange, queueOffsetRange);
-                if (EditorGUI.EndChangeCheck())
-                    queueOffsetProp.floatValue = queue;
-                EditorGUI.showMixedValue = false;
-            }
+                materialEditor.IntSliderShaderProperty(queueOffsetProp, -queueOffsetRange, queueOffsetRange, Styles.queueSlider);
         }
 
         public virtual void FillAdditionalFoldouts(MaterialHeaderScopeList materialScopesList) {}
