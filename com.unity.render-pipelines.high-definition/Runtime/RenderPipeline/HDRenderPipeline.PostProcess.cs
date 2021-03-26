@@ -2715,7 +2715,8 @@ namespace UnityEngine.Rendering.HighDefinition
 
         static void DoLensFlareDataDriven(in LensFlareParameters parameters, HDCamera hdCam, CommandBuffer cmd, RTHandle source, RTHandle target)
         {
-            SRPLensFlareCommon.DoLensFlareDataDriven(parameters.lensFlareShader, parameters.lensFlares, hdCam.camera, (float)hdCam.actualWidth, (float)hdCam.actualHeight,
+            SRPLensFlareCommon.DoLensFlareDataDriven(
+                parameters.lensFlareShader, parameters.lensFlares, hdCam.camera, (float)hdCam.actualWidth, (float)hdCam.actualHeight,
                 cmd, source, target, GetLensFlareLightAttenuation,
                 HDShaderIDs._FlareTex, HDShaderIDs._FlareColorValue,
                 HDShaderIDs._FlareData0, HDShaderIDs._FlareData1, HDShaderIDs._FlareData2, HDShaderIDs._FlareData3, HDShaderIDs._FlareData4, HDShaderIDs._FlareData5, parameters.skipCopy);
