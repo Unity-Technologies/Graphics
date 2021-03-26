@@ -59,7 +59,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
         public const string kLitMaterialTypeTag = "\"UniversalMaterialType\" = \"Lit\"";
         public const string kUnlitMaterialTypeTag = "\"UniversalMaterialType\" = \"Unlit\"";
         public static readonly string[] kSharedTemplateDirectories = GenerationUtils.GetDefaultSharedTemplateDirectories().Union(new string[] {"Packages/com.unity.render-pipelines.universal/Editor/ShaderGraph/Templates" }).ToArray();
-        public const string kTemplatePath = "Packages/com.unity.render-pipelines.universal/Editor/ShaderGraph/Templates/ShaderPass.template";
+        public const string kUberTemplatePath = "Packages/com.unity.render-pipelines.universal/Editor/ShaderGraph/Templates/ShaderPass.template";
 
         // SubTarget
         List<SubTarget> m_SubTargets;
@@ -386,7 +386,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
             useInPreview = true,
 
             // Template
-            passTemplatePath = UniversalTarget.kTemplatePath,
+            passTemplatePath = UniversalTarget.kUberTemplatePath,
             sharedTemplateDirectories = UniversalTarget.kSharedTemplateDirectories,
 
             // Port Mask
@@ -415,7 +415,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
             lightMode = "ShadowCaster",
 
             // Template
-            passTemplatePath = UniversalTarget.kTemplatePath, //GenerationUtils.GetDefaultTemplatePath("PassMesh.template"),
+            passTemplatePath = UniversalTarget.kUberTemplatePath,
             sharedTemplateDirectories = UniversalTarget.kSharedTemplateDirectories,
 
             // Port Mask

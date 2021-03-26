@@ -123,6 +123,8 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
 
         public override void GetActiveBlocks(ref TargetActiveBlockContext context)
         {
+            // TODO: these blocks should only be disabled when "material control" is disabled / they are locked
+
             context.AddBlock(BlockFields.SurfaceDescription.Smoothness);
             context.AddBlock(BlockFields.SurfaceDescription.NormalOS,           normalDropOffSpace == NormalDropOffSpace.Object);
             context.AddBlock(BlockFields.SurfaceDescription.NormalTS,           normalDropOffSpace == NormalDropOffSpace.Tangent);
@@ -131,8 +133,10 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
             context.AddBlock(BlockFields.SurfaceDescription.Occlusion);
             context.AddBlock(BlockFields.SurfaceDescription.Specular,           workflowMode != WorkflowMode.Metallic);
             context.AddBlock(BlockFields.SurfaceDescription.Metallic,           workflowMode != WorkflowMode.Specular);
-            context.AddBlock(BlockFields.SurfaceDescription.Alpha,              target.surfaceType == SurfaceType.Transparent || target.alphaClip);
-            context.AddBlock(BlockFields.SurfaceDescription.AlphaClipThreshold, target.alphaClip);
+
+            context.AddBlock(BlockFields.SurfaceDescription.Alpha);                 // ,              target.surfaceType == SurfaceType.Transparent || target.alphaClip);
+            context.AddBlock(BlockFields.SurfaceDescription.AlphaClipThreshold);    //, target.alphaClip);
+
             context.AddBlock(BlockFields.SurfaceDescription.CoatMask,           clearCoat);
             context.AddBlock(BlockFields.SurfaceDescription.CoatSmoothness,     clearCoat);
         }
@@ -357,7 +361,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
                     useInPreview = true,
 
                     // Template
-                    passTemplatePath = UniversalTarget.kTemplatePath,
+                    passTemplatePath = UniversalTarget.kUberTemplatePath,
                     sharedTemplateDirectories = UniversalTarget.kSharedTemplateDirectories,
 
                     // Port Mask
@@ -405,7 +409,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
                     useInPreview = true,
 
                     // Template
-                    passTemplatePath = UniversalTarget.kTemplatePath,
+                    passTemplatePath = UniversalTarget.kUberTemplatePath,
                     sharedTemplateDirectories = UniversalTarget.kSharedTemplateDirectories,
 
                     // Port Mask
@@ -451,7 +455,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
                     lightMode = "UniversalGBuffer",
 
                     // Template
-                    passTemplatePath = UniversalTarget.kTemplatePath,
+                    passTemplatePath = UniversalTarget.kUberTemplatePath,
                     sharedTemplateDirectories = UniversalTarget.kSharedTemplateDirectories,
 
                     // Port Mask
@@ -490,7 +494,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
                 lightMode = "Meta",
 
                 // Template
-                passTemplatePath = UniversalTarget.kTemplatePath,
+                passTemplatePath = UniversalTarget.kUberTemplatePath,
                 sharedTemplateDirectories = UniversalTarget.kSharedTemplateDirectories,
 
                 // Port Mask
@@ -519,7 +523,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
                 lightMode = "Universal2D",
 
                 // Template
-                passTemplatePath = UniversalTarget.kTemplatePath,
+                passTemplatePath = UniversalTarget.kUberTemplatePath,
                 sharedTemplateDirectories = UniversalTarget.kSharedTemplateDirectories,
 
                 // Port Mask
@@ -549,7 +553,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
                 useInPreview = false,
 
                 // Template
-                passTemplatePath = UniversalTarget.kTemplatePath,
+                passTemplatePath = UniversalTarget.kUberTemplatePath,
                 sharedTemplateDirectories = UniversalTarget.kSharedTemplateDirectories,
 
                 // Port Mask
