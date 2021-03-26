@@ -1,4 +1,7 @@
 
+#ifndef URP_UNLIT_FORWARD_PASS_INCLUDED
+#define URP_UNLIT_FORWARD_PASS_INCLUDED
+
 #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Unlit.hlsl"
 
 struct Attributes
@@ -125,3 +128,5 @@ half4 UniversalFragmentUnlit(Varyings input) : SV_Target
 
     return finalColor;
 }
+
+#endif

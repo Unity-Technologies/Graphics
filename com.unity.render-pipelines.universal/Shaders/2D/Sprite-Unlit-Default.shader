@@ -180,7 +180,7 @@ Shader "Universal Render Pipeline/2D/Sprite-Unlit-Default"
 
                 InitializeSurfaceData(mainTex.rgb, mainTex.a, surfaceData);
                 InitializeInputData(i.uv, inputData);
-                SETUP_DEBUG_DATA(inputData, i.positionWS);
+                SETUP_DEBUG_DATA_2D(inputData, i.positionWS);
 
                 if(CanDebugOverrideOutputColor(surfaceData, inputData, debugColor))
                 {
