@@ -1053,14 +1053,17 @@ namespace UnityEngine.Rendering.Universal
                     }
                 }
 
-                NativeRenderPass.SetMRTAttachmentsList(renderPass, ref  cameraData,
-                    validColorBuffersCount,  needCustomCameraColorClear,
-                    needCustomCameraDepthClear, mergeableRenderPassesMap,
-                    sceneIndexToPassHash,
-                    renderPassesAttachmentCount,
-                    m_ActiveRenderPassQueue,
-                    ref m_ActiveColorAttachmentDescriptors,
-                    ref m_ActiveDepthAttachmentDescriptor);
+                if (IsRenderPassEnabled(renderPass) && cameraData.cameraType == CameraType.Game)
+                {
+                    NativeRenderPass.SetMRTAttachmentsList(renderPass, ref cameraData,
+                        validColorBuffersCount, needCustomCameraColorClear,
+                        needCustomCameraDepthClear, mergeableRenderPassesMap,
+                        sceneIndexToPassHash,
+                        renderPassesAttachmentCount,
+                        m_ActiveRenderPassQueue,
+                        ref m_ActiveColorAttachmentDescriptors,
+                        ref m_ActiveDepthAttachmentDescriptor);
+                }
 
                 // Bind all attachments, clear color only if there was no custom behaviour for cameraColorTarget, clear depth as needed.
                 ClearFlag finalClearFlag = ClearFlag.None;
