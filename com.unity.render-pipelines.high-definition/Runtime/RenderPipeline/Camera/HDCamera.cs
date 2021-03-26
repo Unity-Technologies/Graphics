@@ -726,6 +726,18 @@ namespace UnityEngine.Rendering.HighDefinition
                 bool isHistoryColorPyramidRequired = IsSSREnabled() || IsSSGIEnabled() || antialiasing == AntialiasingMode.TemporalAntialiasing;
                 bool isVolumetricHistoryRequired = IsVolumetricReprojectionEnabled();
 
+                // If we have a mismatch with color buffer format we need to reallocate the pyramid
+                var hdPipeline = (HDRenderPipeline)(RenderPipelineManager.currentPipeline);
+                bool forceReallocPyramid = false;
+                if (m_NumColorPyramidBuffersAllocated > 0)
+                {
+                    var currPyramid = GetCurrentFrameRT((int)HDCameraFrameHistoryType.ColorBufferMipChain);
+                    if (currPyramid != null && currPyramid.rt.graphicsFormat != hdPipeline.GetColorBufferFormat())
+                    {
+                        forceReallocPyramid = true;
+                    }
+                }
+
                 int numColorPyramidBuffersRequired = 0;
                 if (isCurrentColorPyramidRequired)
                     numColorPyramidBuffersRequired = 1;
@@ -733,7 +745,7 @@ namespace UnityEngine.Rendering.HighDefinition
                     numColorPyramidBuffersRequired = 2;
 
                 // Handle the color buffers
-                if (m_NumColorPyramidBuffersAllocated != numColorPyramidBuffersRequired)
+                if (m_NumColorPyramidBuffersAllocated != numColorPyramidBuffersRequired || forceReallocPyramid)
                 {
                     // Reinit the system.
                     colorPyramidHistoryIsValid = false;
@@ -747,7 +759,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
                     m_ExposureTextures.clear();
 
-                    if (numColorPyramidBuffersRequired != 0)
+                    if (numColorPyramidBuffersRequired != 0 || forceReallocPyramid)
                         AllocHistoryFrameRT((int)HDCameraFrameHistoryType.ColorBufferMipChain, HistoryBufferAllocatorFunction, numColorPyramidBuffersRequired);
 
                     // Mark as init.
@@ -1638,7 +1650,7 @@ namespace UnityEngine.Rendering.HighDefinition
             frameIndex &= 1;
             var hdPipeline = (HDRenderPipeline)RenderPipelineManager.currentPipeline;
 
-            return rtHandleSystem.Alloc(Vector2.one, TextureXR.slices, colorFormat: (GraphicsFormat)hdPipeline.currentPlatformRenderPipelineSettings.colorBufferFormat,
+            return rtHandleSystem.Alloc(Vector2.one, TextureXR.slices, colorFormat: hdPipeline.GetColorBufferFormat(),
                 dimension: TextureXR.dimension, enableRandomWrite: true, useMipMap: true, autoGenerateMips: false, useDynamicScale: true,
                 name: string.Format("{0}_CameraColorBufferMipChain{1}", viewName, frameIndex));
         }
