@@ -167,9 +167,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGUI
                 // Soft Particles
                 {
                     materialEditor.ShaderProperty(properties.softParticlesEnabled, Styles.softParticlesEnabled);
-                    var enabled = properties.softParticlesEnabled.floatValue >= 0.5f;
-
-                    if (enabled)
+                    if (properties.softParticlesEnabled.floatValue >= 0.5f)
                     {
                         UniversalRenderPipelineAsset urpAsset = UniversalRenderPipeline.asset;
                         if (urpAsset != null && !urpAsset.supportsCameraDepthTexture)
@@ -194,9 +192,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGUI
                 // Camera Fading
                 {
                     materialEditor.ShaderProperty(properties.cameraFadingEnabled, Styles.cameraFadingEnabled);
-                    var enabled = properties.cameraFadingEnabled.floatValue >= 0.5f;
-
-                    if (enabled)
+                    if (properties.cameraFadingEnabled.floatValue >= 0.5f)
                     {
                         EditorGUI.indentLevel++;
                         BaseShaderGUI.TwoFloatSingleLine(new GUIContent("Distance"),
@@ -213,9 +209,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGUI
                 if (properties.distortionEnabled != null)
                 {
                     materialEditor.ShaderProperty(properties.distortionEnabled, Styles.distortionEnabled);
-                    var enabled = properties.distortionEnabled.floatValue >= 0.5f;
-
-                    if (enabled)
+                    if (properties.distortionEnabled.floatValue >= 0.5f)
                     {
                         EditorGUI.indentLevel++;
                         materialEditor.ShaderProperty(properties.distortionStrength, Styles.distortionStrength);

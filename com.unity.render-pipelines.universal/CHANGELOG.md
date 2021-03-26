@@ -5,6 +5,10 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.html).
 
 ## [12.0.0] - 2021-01-11
+### Changed
+- Moved fog evaluation from vertex shader to pixel shader. This improves rendering of fog for big triangles and fog quality. This can change the look of the fog slightly.
+- UNITY_Z_0_FAR_FROM_CLIPSPACE now remaps to [0, far] range on all platforms consistently. Previously OpenGL platforms did not remap, discarding small amount of range [-near, 0].
+
 ### Added
 - Added View Vector node to mimic old behavior of View Direction node in URP.
 - Added support for the PlayStation 5 platform.
@@ -26,8 +30,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Added Depth and DepthNormals passes to particles shaders.
 - Changed UniversalRenderPipelineCameraEditor to URPCameraEditor
 - Reduced the size of the fragment input struct of the TerrainLitPasses and LitGBufferPass, SimpleLitForwardPass and SimpleLitGBufferPass lighting shaders.
-- Fixed materials being constantly dirty.
-- Fixed double sided and clear coat multi editing shader.
+- Bokeh Depth of Field performance improvement: moved some calculations from GPU to CPU.
 
 ### Fixed
 - Fixed an issue where ShadowCaster2D was generating garbage when running in the editor. [case 1304158](https://issuetracker.unity3d.com/product/unity/issues/guid/1304158/)
@@ -48,12 +51,19 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed material upgrader to run in batch mode [case 1305402]
 - Fixed gizmos drawing in game view. [case 1302504](https://issuetracker.unity3d.com/issues/urp-handles-with-set-ztest-do-not-respect-depth-sorting-in-the-game-view)
 - Fixed an issue in shaderGraph target where the ShaderPass.hlsl was being included after SHADERPASS was defined
+- Fixed base camera to keep render texture in sync with camera stacks. [case 1288105](https://issuetracker.unity3d.com/issues/srp-base-camera-rendering-to-render-texture-takes-overlay-camera-into-account-but-not-its-canvas)
+- Fixed base camera to keep viewport in sync with camera stacks. [case 1311268](https://issuetracker.unity3d.com/issues/buttons-clickable-area-is-offset-when-canvas-render-camera-is-an-overlay-camera-and-viewport-rect-is-changed-on-base-camera)
+- Fixed base camera to keep display index in sync with camera stacks. [case 1252265](https://issuetracker.unity3d.com/issues/universal-rp-overlay-camera-still-renders-to-displaya)
+- Fixed base camera to keep display index in sync with camera stacks for canvas. [case 1291872](https://issuetracker.unity3d.com/issues/canvas-renders-only-on-the-display-1-when-its-set-to-screen-space-camera-or-world-space-and-has-overlay-type-camera-assigned)
+- Fixed render pass reusage with camera stack on vulkan. [case 1226940](https://issuetracker.unity3d.com/issues/vulkan-each-camera-stack-layer-generate-a-render-pass-separately-when-render-pass-are-the-same)
+- Fixed camera stack UI correctly work with prefabs. [case 1308717](https://issuetracker.unity3d.com/issues/the-prefab-apply-slash-revert-menu-cant-be-opened-by-right-clicking-on-the-stack-label-under-the-camera-component-in-the-inspector)
 - Fixed an issue where Particle Lit shader had an incorrect fallback shader [case 1312459]
 - Fixed an issue with backbuffer MSAA on Vulkan desktop platforms.
 - Fixed shadow cascade blend culling factor.
 - Fixed shadowCoord error when main light shadow defined in unlit shader graph [case 1175274](https://issuetracker.unity3d.com/issues/shadows-not-applying-when-using-file-in-a-custom-function-node-with-universal-rp)
 - Removed Custom.meta which was causing warnings. [case 1314288](https://issuetracker.unity3d.com/issues/urp-warnings-about-missing-metadata-appear-after-installing)
 - Fixed a case where shadow fade was clipped too early.
+- Fixed multi editing of Bias property on lights. [case 1289620]
 - Fixed an issue where bokeh dof is applied incorrectly when there is an overlay camera in the camera stack. [case 1303572](https://issuetracker.unity3d.com/issues/urp-bokeh-depth-of-field-is-applied-incorrectly-when-the-main-camera-has-an-overlay-camera-in-the-camera-stack)
 - Fixed SafeNormalize returning invalid vector when using half with zero length. [case 1315956]
 - Fixed lit shader property duplication issue. [case 1315032](https://issuetracker.unity3d.com/issues/shader-dot-propertytoid-returns-the-same-id-when-shaders-properties-have-the-same-name-but-different-type)
@@ -61,6 +71,11 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed an issue where SSAO would sometimes not render with a recently imported renderer.
 - Fixed a regression where the precision was changed. [case 1313942](https://issuetracker.unity3d.com/issues/urp-shader-precision-is-reduced-to-half-when-scriptablerenderfeature-class-is-in-the-project)
 - Fixed an issue where motion blur would allocate memory each frame. [case 1314613](https://issuetracker.unity3d.com/issues/urp-gc-alloc-increases-when-motion-blur-override-is-enabled-with-intensity-set-above-0)
+- Fixed an issue where using Camera.targetTexture with Linear Color Space on an Android device that does not support sRGB backbuffer results in a RenderTexture that is too bright. [case 1307710]
+- Fixed issue causing missing shaders on DirectX 11 feature level 10 GPUs. [case 1278390](https://issuetracker.unity3d.com/product/unity/issues/guid/1278390/)
+- Fixed errors when the Profiler is used with XR multipass. [case 1313141](https://issuetracker.unity3d.com/issues/xr-urp-profiler-spams-errors-in-the-console-upon-entering-play-mode)
+- Fixed materials being constantly dirty.
+- Fixed double sided and clear coat multi editing shader.
 
 ### Changed
 - Change Asset/Create/Shader/Universal Render Pipeline/Lit Shader Graph to Asset/Create/Shader Graph/URP/Lit Shader Graph
