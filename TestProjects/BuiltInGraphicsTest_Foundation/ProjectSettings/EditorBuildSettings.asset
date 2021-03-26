@@ -46,5 +46,14 @@ EditorBuildSettings:
     guid: d1de2dd8d6df6ba489d0459630f457a5
   - enabled: 1
     path: Assets/Scenes/062_Lighting_BasicKeywordTest.unity
-    guid: c745a4a7130c7c1418d2b1064a8f1f8e
+    guid: c745a4a7130c7c1418d2b1064a8f1f8e    
+  - enabled: 1
+    path: Assets/Scenes/065_Lighting_BasicVertexTangent.unity
+    guid: 1cd2b6263e3a53c4aadfbbdd9da27a0b
+  - enabled: 1
+    path: Assets/Scenes/064_Lighting_BasicVertexNormal.unity
+    guid: e606b7abc0f38724d8e6f6d81b74f0d1
+  - enabled: 1
+    path: Assets/Scenes/063_Lighting_BasicVertexPosition.unity
+    guid: e2daf39e5a0f09744a2a6851d38e7081
   m_configObjects: {}
