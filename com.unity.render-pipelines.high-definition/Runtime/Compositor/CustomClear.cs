@@ -32,6 +32,9 @@ namespace UnityEngine.Rendering.HighDefinition.Compositor
         // The render pipeline will ensure target setup and clearing happens in an performance manner.
         protected override void Setup(ScriptableRenderContext renderContext, CommandBuffer cmd)
         {
+            if (!HDRenderPipeline.isReady)
+                return;
+
             // Setup code here
             if (string.IsNullOrEmpty(name)) name = "CustomClear";
 

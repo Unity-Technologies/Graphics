@@ -1149,7 +1149,7 @@ namespace UnityEngine.Rendering.HighDefinition
 #if UNITY_EDITOR
         void OnBakeStarted()
         {
-            if (HDRenderPipeline.currentAsset == null)
+            if (!HDRenderPipeline.isReady)
                 return;
 
             // Happens sometime in the tests.
