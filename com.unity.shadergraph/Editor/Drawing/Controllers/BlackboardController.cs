@@ -41,7 +41,6 @@ namespace UnityEditor.ShaderGraph.Drawing
 
             graphData.owner.RegisterCompleteObjectUndo("Add Shader Input");
             graphData.AddGraphInput(shaderInputReference);
-
             // If no categoryToAddItemToGuid is provided, add the input to a new un-named category at the end of the blackboard
             if (categoryToAddItemToGuid == String.Empty)
             {
@@ -241,6 +240,32 @@ namespace UnityEditor.ShaderGraph.Drawing
             get => m_Blackboard;
             private set => m_Blackboard = value;
         }
+        public string GetFirstSelectedCategoryGuid()
+        {
+            if (m_Blackboard == null)
+            {
+                return string.Empty;
+            }
+            var copiedSelectionList = new List<ISelectable>(m_Blackboard.selection);
+            var selectedCategories = new List<SGBlackboardCategory>();
+            var selectedCategoryGuid = String.Empty;
+            for (int i = 0; i < copiedSelectionList.Count; i++)
+            {
+                var selectable = copiedSelectionList[i];
+
+                if (selectable is SGBlackboardCategory category)
+                {
+                    selectedCategories.Add(selectable as SGBlackboardCategory);
+                    // addBlackboardItemAction.categoryToAddItemToGuid = category.viewModel.associatedCategoryGuid;
+                }
+            }
+            if (selectedCategories.Count == 1)
+            {
+                selectedCategoryGuid = selectedCategories[0].viewModel.associatedCategoryGuid;
+                //addBlackboardItemAction.categoryToAddItemToGuid = selectedCategories[0].viewModel.associatedCategoryGuid;
+            }
+            return selectedCategoryGuid;
+        }
 
         void InitializeViewModel()
         {
@@ -358,6 +383,7 @@ namespace UnityEditor.ShaderGraph.Drawing
                 return blackboardCategoryController.FindBlackboardRow(shaderInput);
             }
         }
+
         public void UpdateBlackboardTitle(string newTitle)
         {
             ViewModel.title = newTitle;
@@ -449,7 +475,6 @@ namespace UnityEditor.ShaderGraph.Drawing
                         RemoveBlackboardCategory(categoryGUID);
                     }
                     break;
-
             }
 
             // Lets all event handlers this controller owns/manages know that the model has changed
