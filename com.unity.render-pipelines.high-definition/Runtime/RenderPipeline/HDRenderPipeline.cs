@@ -150,6 +150,7 @@ namespace UnityEngine.Rendering.HighDefinition
         RenderStateBlock m_AlphaToMaskBlock;
 
         readonly List<CustomPassVolume> m_ActivePassVolumes = new List<CustomPassVolume>(6);
+        readonly List<Terrain> m_ActiveTerrains = new List<Terrain>();
 
         // Detect when windows size is changing
         int m_MaxCameraWidth;
@@ -1050,7 +1051,7 @@ namespace UnityEngine.Rendering.HighDefinition
             var dynResHandler = DynamicResolutionHandler.instance;
             dynResHandler.Update(m_Asset.currentPlatformRenderPipelineSettings.dynamicResolutionSettings);
 
-            var activeTerrains = Terrain.activeTerrains;
+            Terrain.FillActiveTerrainList(m_ActiveTerrains);
 
             // This syntax is awful and hostile to debugging, please don't use it...
             using (ListPool<RenderRequest>.Get(out List<RenderRequest> renderRequests))
@@ -1405,7 +1406,7 @@ namespace UnityEngine.Rendering.HighDefinition
                     {
                         var camera = m_ProbeCameraCache.GetOrCreate((viewerTransform, visibleProbe, j), Time.frameCount, CameraType.Reflection);
 
-                        foreach (var terrain in activeTerrains)
+                        foreach (var terrain in m_ActiveTerrains)
                             terrain.SetKeepUnusedCameraRenderingResources(camera.GetInstanceID(), true);
 
                         if (!camera.TryGetComponent<HDAdditionalCameraData>(out var additionalCameraData))
