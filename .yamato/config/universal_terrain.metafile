@@ -96,7 +96,8 @@ test_platforms:
       - [all]: <shared.platform.commands.setup_utr>
       - [OSX_Metal]: <shared.platform.commands.unity_downloader_cli>
       - [all]: <shared.platform.commands.call_utr>
-      - [all]: --extra-editor-arg="-xr-reuse-tests"
+        flags:
+          - [all]: --extra-editor-arg="-xr-reuse-tests"
       - [Android_OpenGLES3, Android_Vulkan]: <shared.platform.commands.kill_server>
     commands_build:
       - <reuse_blocks.setup_without_utr>
