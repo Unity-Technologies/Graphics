@@ -435,7 +435,7 @@ namespace UnityEngine.Rendering.HighDefinition
             {
                 // If we switch DoF modes and the old one was not using TAA, make sure we invalidate the history
                 // Note: for Rendergraph the m_IsDoFHisotoryValid perhaps should be moved to the "pass data" struct
-                if (taaEnabled && m_IsDoFHisotoryValid != m_DepthOfField.physicallyBased)
+                if (taaEnabled && hdCamera.dofHistoryIsValid != m_DepthOfField.physicallyBased)
                 {
                     hdCamera.resetPostProcessingHistory = true;
                 }
@@ -568,15 +568,23 @@ namespace UnityEngine.Rendering.HighDefinition
                     else
                     {
                         passData.fullresCoC = builder.ReadWriteTexture(renderGraph.CreateTexture(new TextureDesc(Vector2.one, true, true)
-                            { colorFormat = k_CoCFormat, enableRandomWrite = true, useMipMap = true, name = "Full res CoC" }));
+                            { colorFormat = k_CoCFormat, enableRandomWrite = true, useMipMap = false, name = "Full res CoC" }));
 
                         passData.pingFarRGB = builder.CreateTransientTexture(new TextureDesc(Vector2.one, true, true)
                             { colorFormat = m_ColorFormat, useMipMap = true, enableRandomWrite = true, name = "DoF Source Pyramid" });
 
+                        float scaleFactor = 1.0f / passData.parameters.minMaxCoCTileSize;
+                        passData.pingNearRGB = builder.CreateTransientTexture(new TextureDesc(Vector2.one * scaleFactor, true, true)
+                            { colorFormat = GraphicsFormat.R16G16B16A16_SFloat, useMipMap = false, enableRandomWrite = true, name = "CoC Min Max Tiles" });
+
+                        passData.pongNearRGB = builder.CreateTransientTexture(new TextureDesc(Vector2.one * scaleFactor, true, true)
+                            { colorFormat = GraphicsFormat.R16G16B16A16_SFloat, useMipMap = false, enableRandomWrite = true, name = "CoC Min Max Tiles" });
+
+
                         builder.SetRenderFunc(
                             (DepthofFieldData data, RenderGraphContext ctx) =>
                             {
-                                DoPhysicallyBasedDepthOfField(data.parameters, ctx.cmd, data.source, data.destination, data.fullresCoC, data.prevCoC, data.nextCoC, data.motionVecTexture, data.pingFarRGB, data.depthBuffer, data.taaEnabled);
+                                DoPhysicallyBasedDepthOfField(data.parameters, ctx.cmd, data.source, data.destination, data.fullresCoC, data.prevCoC, data.nextCoC, data.motionVecTexture, data.pingFarRGB, data.depthBuffer, data.pingNearRGB, data.pongNearRGB, data.taaEnabled);
                             });
 
                         source = passData.destination;
@@ -623,20 +631,18 @@ namespace UnityEngine.Rendering.HighDefinition
                                 data.nextHistory,
                                 data.prevMVLen,
                                 data.nextMVLen);
-
-                            // Temporary hack to make post-dof TAA work with rendergraph (still the first frame flashes black). We need a better solution.
-                            m_IsDoFHisotoryValid = true;
                         });
 
                     source = passData.destination;
                 }
 
+                hdCamera.dofHistoryIsValid = true;
                 postDoFTAAEnabled = true;
             }
             else
             {
                 // Temporary hack to make post-dof TAA work with rendergraph (still the first frame flashes black). We need a better solution.
-                m_IsDoFHisotoryValid = false;
+                hdCamera.dofHistoryIsValid = false;
             }
 
             if (!postDoFTAAEnabled)
