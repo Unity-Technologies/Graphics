@@ -306,7 +306,7 @@ namespace UnityEngine.Rendering.Universal.Internal
         internal int GBufferNormalSmoothnessIndex { get { return 2; } }
         internal int GBufferLightingIndex { get { return 3; } }
         internal int GbufferDepthIndex { get { return UseRenderPass ? GBufferLightingIndex + 1 : -1; } }
-        internal int GBufferShadowMask { get { return UseShadowMask ? GBufferLightingIndex + (UseRenderPass ? 1 : 0) : -1; } }
+        internal int GBufferShadowMask { get { return UseShadowMask ? GBufferLightingIndex + (UseRenderPass ? 1 : 0) + 1 : -1; } }
         internal int GBufferRenderingLayers { get { return UseRenderingLayers ? GBufferLightingIndex + (UseRenderPass ? 1 : 0) + (UseShadowMask ? 1 : 0) + 1 : -1; } }
         // Color buffer count (not including dephStencil).
         internal int GBufferSliceCount { get { return 4 + (UseRenderPass ? 1 : 0) + (UseShadowMask ? 1 : 0) + (UseRenderingLayers ? 1 : 0); } }

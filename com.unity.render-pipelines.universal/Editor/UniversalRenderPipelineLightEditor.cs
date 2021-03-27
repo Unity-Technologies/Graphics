@@ -492,15 +492,15 @@ namespace UnityEditor.Rendering.Universal
             init(m_AdditionalLightData);
         }
 
-        internal static void DrawLightLayerMask(SerializedProperty property, GUIContent label)
+        internal static void DrawLightLayerMask(SerializedProperty property, GUIContent style)
         {
-            Rect lineRect = GUILayoutUtility.GetRect(1, EditorGUIUtility.singleLineHeight);
+            Rect controlRect = EditorGUILayout.GetControlRect(true);
             int lightLayer = property.intValue;
 
-            EditorGUI.BeginProperty(lineRect, label, property);
+            EditorGUI.BeginProperty(controlRect, style, property);
 
             EditorGUI.BeginChangeCheck();
-            lightLayer = EditorGUI.MaskField(lineRect, label ?? GUIContent.none, lightLayer, UniversalRenderPipeline.asset.lightLayerMaskNames);
+            lightLayer = EditorGUI.MaskField(controlRect, style, lightLayer, UniversalRenderPipeline.asset.lightLayerMaskNames);
             if (EditorGUI.EndChangeCheck())
                 property.intValue = lightLayer;
 

@@ -140,6 +140,65 @@ Shader "Hidden/Universal Render Pipeline/StencilDeferred"
         return half4(1.0, 1.0, 1.0, 1.0);
     }
 
+    Light GetStencilLight(float3 posWS, float2 screen_uv, half4 shadowMask, uint materialFlags)
+    {
+        Light unityLight;
+
+        bool materialReceiveShadowsOff = (materialFlags & kMaterialFlagReceiveShadowsOff) != 0;
+
+        #ifdef _LIGHT_LAYERS
+        uint lightLayers =_LightLayers;
+        #else
+        uint lightLayers = DEFAULT_LIGHT_LAYERS;
+        #endif
+
+        #if defined(_DIRECTIONAL)
+            #if defined(_DEFERRED_MAIN_LIGHT)
+                unityLight = GetMainLight();
+                // unity_LightData.z is set per mesh for forward renderer, we cannot cull lights in this fashion with deferred renderer.
+                unityLight.distanceAttenuation = 1.0;
+
+                if (!materialReceiveShadowsOff)
+                {
+                    #if defined(MAIN_LIGHT_CALCULATE_SHADOWS)
+                        #if defined(_MAIN_LIGHT_SHADOWS_SCREEN)
+                            float4 shadowCoord = float4(screen_uv, 0.0, 1.0);
+                        #else
+                            float4 shadowCoord = TransformWorldToShadowCoord(posWS.xyz);
+                        #endif
+                        unityLight.shadowAttenuation = MainLightShadow(shadowCoord, posWS.xyz, shadowMask, _MainLightOcclusionProbes);
+                    #endif
+                }
+            #else
+                unityLight.direction = _LightDirection;
+                unityLight.distanceAttenuation = 1.0;
+                unityLight.shadowAttenuation = 1.0;
+                unityLight.color = _LightColor.rgb;
+                unityLight.lightLayers = lightLayers;
+
+                if (!materialReceiveShadowsOff)
+                {
+                    #if defined(_DEFERRED_LIGHT_SHADOWS)
+                        unityLight.shadowAttenuation = AdditionalLightShadow(_ShadowLightIndex, posWS.xyz, _LightDirection, shadowMask, _LightOcclusionProbInfo);
+                    #endif
+                }
+            #endif
+        #else
+            PunctualLightData light;
+            light.posWS = _LightPosWS;
+            light.radius2 = 0.0; //  only used by tile-lights.
+            light.color = float4(_LightColor, 0.0);
+            light.attenuation = _LightAttenuation;
+            light.spotDirection = _LightDirection;
+            light.occlusionProbeInfo = _LightOcclusionProbInfo;
+            light.flags = _LightFlags;
+            light.lightLayers = lightLayers;
+            unityLight = UnityLightFromPunctualLightDataAndWorldSpacePosition(light, posWS.xyz, shadowMask, _ShadowLightIndex, materialReceiveShadowsOff);
+        #endif
+
+        return unityLight;
+    }
+
     half4 DeferredShading(Varyings input) : SV_Target
     {
         UNITY_SETUP_INSTANCE_ID(input);
@@ -167,15 +226,7 @@ Shader "Hidden/Universal Render Pipeline/StencilDeferred"
         #endif
 
         half surfaceDataOcclusion = gbuffer1.a;
-
         uint materialFlags = UnpackMaterialFlags(gbuffer0.a);
-        bool materialReceiveShadowsOff = (materialFlags & kMaterialFlagReceiveShadowsOff) != 0;
-        #if SHADER_API_MOBILE || SHADER_API_SWITCH
-        // Specular highlights are still silenced by setting specular to 0.0 during gbuffer pass and GPU timing is still reduced.
-        bool materialSpecularHighlightsOff = false;
-        #else
-        bool materialSpecularHighlightsOff = (materialFlags & kMaterialFlagSpecularHighlightsOff);
-        #endif
 
         half3 color = 0.0.xxx;
         half alpha = 1.0;
@@ -194,53 +245,7 @@ Shader "Hidden/Universal Render Pipeline/StencilDeferred"
         float4 posWS = mul(_ScreenToWorld[eyeIndex], float4(input.positionCS.xy, d, 1.0));
         posWS.xyz *= rcp(posWS.w);
 
-        InputData inputData = InputDataFromGbufferAndWorldPosition(gbuffer2, posWS.xyz);
-
-        Light unityLight;
-
-        #if defined(_DIRECTIONAL)
-            #if defined(_DEFERRED_MAIN_LIGHT)
-                unityLight = GetMainLight();
-                // unity_LightData.z is set per mesh for forward renderer, we cannot cull lights in this fashion with deferred renderer.
-                unityLight.distanceAttenuation = 1.0;
-
-                if (!materialReceiveShadowsOff)
-                {
-                    #if defined(MAIN_LIGHT_CALCULATE_SHADOWS)
-                        #if defined(_MAIN_LIGHT_SHADOWS_SCREEN)
-                            float4 shadowCoord = float4(screen_uv, 0.0, 1.0);
-                        #else
-                            float4 shadowCoord = TransformWorldToShadowCoord(posWS.xyz);
-                        #endif
-                        unityLight.shadowAttenuation = MainLightShadow(shadowCoord, posWS.xyz, shadowMask, _MainLightOcclusionProbes);
-                    #endif
-                }
-            #else
-                unityLight.direction = _LightDirection;
-                unityLight.distanceAttenuation = 1.0;
-                unityLight.shadowAttenuation = 1.0;
-                unityLight.color = _LightColor.rgb;
-                unityLight.lightLayers = _LightLayers;
-
-                if (!materialReceiveShadowsOff)
-                {
-                    #if defined(_DEFERRED_LIGHT_SHADOWS)
-                        unityLight.shadowAttenuation = AdditionalLightShadow(_ShadowLightIndex, posWS.xyz, _LightDirection, shadowMask, _LightOcclusionProbInfo);
-                    #endif
-                }
-            #endif
-        #else
-            PunctualLightData light;
-            light.posWS = _LightPosWS;
-            light.radius2 = 0.0; //  only used by tile-lights.
-            light.color = float4(_LightColor, 0.0);
-            light.attenuation = _LightAttenuation;
-            light.spotDirection = _LightDirection;
-            light.occlusionProbeInfo = _LightOcclusionProbInfo;
-            light.flags = _LightFlags;
-            light.lightLayers = _LightLayers;
-            unityLight = UnityLightFromPunctualLightDataAndWorldSpacePosition(light, posWS.xyz, shadowMask, _ShadowLightIndex, materialReceiveShadowsOff);
-        #endif
+        Light unityLight = GetStencilLight(posWS.xyz, screen_uv, shadowMask, materialFlags);
 
         [branch] if (!IsMatchingLightLayer(unityLight.lightLayers, meshRenderingLayers))
             return half4(color, alpha); // Cannot discard because stencil must be updated.
@@ -257,7 +262,15 @@ Shader "Hidden/Universal Render Pipeline/StencilDeferred"
             #endif
         #endif
 
+        InputData inputData = InputDataFromGbufferAndWorldPosition(gbuffer2, posWS.xyz);
+
         #if defined(_LIT)
+            #if SHADER_API_MOBILE || SHADER_API_SWITCH
+            // Specular highlights are still silenced by setting specular to 0.0 during gbuffer pass and GPU timing is still reduced.
+            bool materialSpecularHighlightsOff = false;
+            #else
+            bool materialSpecularHighlightsOff = (materialFlags & kMaterialFlagSpecularHighlightsOff);
+            #endif
             BRDFData brdfData = BRDFDataFromGbuffer(gbuffer0, gbuffer1, gbuffer2);
             color = LightingPhysicallyBased(brdfData, unityLight, inputData.normalWS, inputData.viewDirectionWS, materialSpecularHighlightsOff);
         #elif defined(_SIMPLELIT)
