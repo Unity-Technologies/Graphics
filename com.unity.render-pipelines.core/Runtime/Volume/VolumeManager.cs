@@ -355,6 +355,12 @@ namespace UnityEngine.Rendering
                 // Skip volumes that aren't in the scene currently displayed in the scene view
                 if (!IsVolumeRenderedByCamera(volume, camera))
                     continue;
+
+                // custom-begin:
+                // Make volumes respect the scene visibility toggle - ignore influence from volumes that are hidden.
+                if (UnityEditor.SceneVisibilityManager.instance.IsHidden(volume.gameObject))
+                    continue;
+                // custom-end
 #endif
 
                 // Skip disabled volumes and volumes without any data or weight
