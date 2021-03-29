@@ -107,7 +107,7 @@ namespace UnityEditor.ShaderGraph.Drawing.Inspector.PropertyDrawers
                 }
             }
 
-            // Warn the user if there are multiple VFX compatible targets and one of them is the legacy VFX Target.
+            // Inform the user that VFXTarget is deprecated, if they are using one.
             if (graphData.m_ActiveTargets.Count(t => t.value.SupportsVFX()) == 1 &&
                 graphData.m_ActiveTargets.Count(t => t.value is VFXTarget) == 1)
             {
