@@ -37,9 +37,6 @@ class ConverterState
     public bool isActive;
     public bool isInitialized;
     public List<ConverterItemState> items;
-    // This will state if there is a warning or not from the init phase.
-    // This is here so
-    //public bool hasWarnings;
 
     public int pending;
     public int warnings;
@@ -115,7 +112,7 @@ public class RenderPipelineConvertersEditor : EditorWindow
             // Create a new ConvertState which holds the active state of the converter
             var converterState = new ConverterState
             {
-                isEnabled = conv.enabled(),
+                isEnabled = conv.Enabled(),
                 isActive = true,
                 isInitialized = false,
                 items = null,
@@ -150,7 +147,7 @@ public class RenderPipelineConvertersEditor : EditorWindow
             VisualElement item = new VisualElement();
             converterListAsset.CloneTree(item);
             var conv = m_CoreConvertersList[i];
-            item.SetEnabled(conv.enabled());
+            item.SetEnabled(conv.Enabled());
             item.Q<Label>("converterName").text = conv.name;
             item.Q<Label>("converterInfo").text = conv.info;
             item.Q<VisualElement>("converterTopVisualElement").tooltip = conv.info;
@@ -273,7 +270,6 @@ public class RenderPipelineConvertersEditor : EditorWindow
 
                 listView.makeItem = converterItem.CloneTree;
                 listView.showBoundCollectionSize = false;
-                //listView.itemsSource = converterItemInfos;
 
                 listView.bindingPath = $"{nameof(m_ConverterStates)}.Array.data[{i}].{nameof(ConverterState.items)}";
                 // I would like this to work, have a separate method and not inlined like this
@@ -285,6 +281,9 @@ public class RenderPipelineConvertersEditor : EditorWindow
                     var bindable = (BindableElement)element;
                     bindable.BindProperty(property);
 
+                    // Adding the contextual menu for each item
+
+
                     ConverterItemDescriptor convItemDesc = converterItemInfos[index];
 
                     element.Q<Label>("converterItemName").text = convItemDesc.name;
@@ -293,11 +292,7 @@ public class RenderPipelineConvertersEditor : EditorWindow
                     element.Q<Image>("converterItemHelpIcon").image = kImgHelp;
                     element.Q<Image>("converterItemHelpIcon").tooltip = convItemDesc.helpLink;
 
-
-                    // Changing the icon here depending on the info.
-                    // If there is some info here we show the "warning icon"
-                    // If the string is empty we show the pending conversion icon.
-
+                    // Changing the icon here depending on the status.
                     Status status = m_ConverterStates[id].items[index].status;
                     string info = m_ConverterStates[id].items[index].info;
                     Texture2D icon = null;
@@ -318,27 +313,12 @@ public class RenderPipelineConvertersEditor : EditorWindow
                             break;
                     }
 
-                    // if (!String.IsNullOrEmpty(convItemDesc.initialInfo))
-                    // {
-                    //     element.Q<Image>("converterItemStatusIcon").image = kImgWarn;
-                    //     element.Q<Image>("converterItemStatusIcon").tooltip = convItemDesc.initialInfo;
-                    // }
-                    // else if (element.Q<Label>("converterItemInfo").text != "")
-                    // {
-                    //     element.Q<Image>("converterItemStatusIcon").image = kImgFail;
-                    //     element.Q<Image>("converterItemStatusIcon").tooltip = element.Q<Label>("converterItemInfo").text;
-                    // }
-                    // else
-                    // {
-                    //     element.Q<Image>("converterItemStatusIcon").image = null;
-                    //     element.Q<Image>("converterItemStatusIcon").tooltip = "";
-                    // }
-
                     element.Q<Image>("converterItemStatusIcon").image = icon;
                     element.Q<Image>("converterItemStatusIcon").tooltip = info;
                 };
                 listView.onSelectionChange += obj =>
                 {
+                    Debug.Log(listView.selectedIndex);
                     m_CoreConvertersList[id].OnClicked(listView.selectedIndex);
                 };
                 listView.unbindItem = (element, index) =>
@@ -346,6 +326,8 @@ public class RenderPipelineConvertersEditor : EditorWindow
                     var bindable = (BindableElement)element;
                     bindable.Unbind();
                 };
+
+                //listView.AddManipulator(new ContextualMenuManipulator(evt => AddToContextMenu(evt, id, listView.selectedIndex)));
                 listView.Refresh();
 
                 // When right clicking an item it should pop up a small menu with 2 entries
@@ -354,6 +336,21 @@ public class RenderPipelineConvertersEditor : EditorWindow
         }
 
         rootVisualElement.Bind(m_SerializedObject);
+    }
+
+    void AddToContextMenu(ContextualMenuPopulateEvent evt, int coreConverterIndex, int index)
+    {
+        Debug.Log(m_CoreConvertersList[coreConverterIndex].name);
+        Debug.Log(coreConverterIndex);
+        Debug.Log("INDEX:: " + index);
+
+        /*evt.menu.AppendAction("Run converter for this asset",
+            e =>
+            {
+                ConvertIndex(coreConverterIndex, index);
+            },
+            DropdownMenuAction.AlwaysEnabled);
+            */
     }
 
     void UpdateInfo(int stateIndex, RunConverterContext ctx)
@@ -378,6 +375,10 @@ public class RenderPipelineConvertersEditor : EditorWindow
         m_ConverterStates[stateIndex].pending -= failedCount;
         m_ConverterStates[stateIndex].pending -= successCount;
         m_ConverterStates[stateIndex].errors = failedCount;
+
+        VisualElement child = m_ScrollView[stateIndex];
+        // Update the UI with the new values
+        child.Q<ListView>("converterItems").Refresh();
     }
 
     void Convert(ClickEvent evt)
@@ -408,6 +409,23 @@ public class RenderPipelineConvertersEditor : EditorWindow
 
                 UpdateInfo(i, ctx);
             }
+        }
+    }
+
+    void ConvertIndex(int coreConverterIndex, int index)
+    {
+        // Need to check if this index is active or not.
+        if (m_ConverterStates[coreConverterIndex].items[index].isActive)
+        {
+            var item = new List<ConverterItemInfo>(1);
+            item.Add(new ConverterItemInfo
+            {
+                index = index,
+                descriptor = m_ItemsToConvert[coreConverterIndex][index],
+            });
+            var ctx = new RunConverterContext(item);
+            m_CoreConvertersList[coreConverterIndex].OnRun(ctx);
+            UpdateInfo(coreConverterIndex, ctx);
         }
     }
 }

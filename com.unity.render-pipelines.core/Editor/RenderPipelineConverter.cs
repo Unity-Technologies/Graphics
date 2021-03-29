@@ -104,7 +104,7 @@ namespace UnityEditor.Rendering
         // The information when hovering over the converter
         public abstract string info { get; }
         // A check if the converter is enabled or not.
-        public virtual bool enabled()
+        public virtual bool Enabled()
         {
             return true;
         }
