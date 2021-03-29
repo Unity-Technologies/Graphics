@@ -154,7 +154,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: dc1448cf6f3dca245955f3e298bf2914, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  m_LensFlareData: {fileID: 11400000, guid: baf5c6a0a1312f14098e7d3d24d9dc8b, type: 2}
+  m_LensFlareData: {fileID: 11400000, guid: 86a0f171ed6e3364e9e2d4ad07646f6e, type: 2}
   intensity: 1
   maxAttenuationDistance: 50
   maxAttenuationScale: 50
@@ -750,12 +750,13 @@ MonoBehaviour:
   - {fileID: 1052013042}
   - {fileID: 1013397970}
   lensFlares:
-  - {fileID: 11400000, guid: baf5c6a0a1312f14098e7d3d24d9dc8b, type: 2}
+  - {fileID: 11400000, guid: 86a0f171ed6e3364e9e2d4ad07646f6e, type: 2}
   - {fileID: 11400000, guid: 9d92c1edf9573e247ae1d0e5082f2927, type: 2}
   - {fileID: 11400000, guid: 74861a38ba159bf4dbd3f735a6759398, type: 2}
   - {fileID: 11400000, guid: f2ee181709448e5449fe530fa24bb234, type: 2}
   - {fileID: 11400000, guid: afe5d42012ab90449a093f7f94c9e2fa, type: 2}
   - {fileID: 11400000, guid: 64ea8b27003b2cf4780083018fa19f02, type: 2}
+  - {fileID: 11400000, guid: b4701d6e6bd5dca40b1c49cd2c031b1f, type: 2}
   - {fileID: 11400000, guid: 309c452b9ba01354a8dfc55d668a59e2, type: 2}
   - {fileID: 11400000, guid: e6885eef0c54ab445be789e5b5e140d7, type: 2}
   - {fileID: 11400000, guid: dc8845e74337c0548a4d6eaf9c469395, type: 2}
