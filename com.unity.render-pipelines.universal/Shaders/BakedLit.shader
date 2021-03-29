@@ -47,6 +47,7 @@ Shader "Universal Render Pipeline/Baked Lit"
             // -------------------------------------
             // Material Keywords
             #pragma shader_feature_local _NORMALMAP
+            #pragma shader_feature_local_fragment _SURFACE_TYPE_TRANSPARENT
             #pragma shader_feature_local_fragment _ALPHATEST_ON
             #pragma shader_feature_local_fragment _ALPHAPREMULTIPLY_ON
 
@@ -152,7 +153,7 @@ Shader "Universal Render Pipeline/Baked Lit"
     #endif
                 normalWS = NormalizeNormalPerPixel(normalWS);
                 color *= SAMPLE_GI(input.lightmapUV, input.vertexSH, normalWS);
-                #if defined(_SCREEN_SPACE_OCCLUSION)
+                #if defined(_SCREEN_SPACE_OCCLUSION) && !defined(_SURFACE_TYPE_TRANSPARENT)
                     float2 normalizedScreenSpaceUV = GetNormalizedScreenSpaceUV(input.vertex);
                     color *= SampleAmbientOcclusion(normalizedScreenSpaceUV);
                 #endif
@@ -346,6 +347,7 @@ Shader "Universal Render Pipeline/Baked Lit"
             // -------------------------------------
             // Material Keywords
             #pragma shader_feature_local _NORMALMAP
+            #pragma shader_feature_local_fragment _SURFACE_TYPE_TRANSPARENT
             #pragma shader_feature_local_fragment _ALPHATEST_ON
             #pragma shader_feature_local_fragment _ALPHAPREMULTIPLY_ON
 
@@ -449,7 +451,7 @@ Shader "Universal Render Pipeline/Baked Lit"
     #endif
                 normalWS = NormalizeNormalPerPixel(normalWS);
                 color *= SAMPLE_GI(input.lightmapUV, input.vertexSH, normalWS);
-                #if defined(_SCREEN_SPACE_OCCLUSION)
+                #if defined(_SCREEN_SPACE_OCCLUSION) && !defined(_SURFACE_TYPE_TRANSPARENT)
                     float2 normalizedScreenSpaceUV = GetNormalizedScreenSpaceUV(input.vertex);
                     color *= SampleAmbientOcclusion(normalizedScreenSpaceUV);
                 #endif
