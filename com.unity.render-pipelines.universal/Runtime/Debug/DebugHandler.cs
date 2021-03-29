@@ -151,7 +151,7 @@ namespace UnityEngine.Rendering.Universal
                 }
             }       // End of switch.
 
-            switch(@ValidationSettings.validationMode)
+            switch(ValidationSettings.validationMode)
             {
                 case DebugValidationMode.ValidateAlbedo:
                 {
