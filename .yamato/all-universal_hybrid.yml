@@ -11,9 +11,9 @@ PR_Universal_Hybrid_trunk:
     name: Universal_Hybrid PR Job - trunk
     dependencies:
       -  path: .yamato/universal_hybrid-win-dx11.yml#Universal_Hybrid_Win_DX11_playmode_mono_Linear_trunk
-         rerun: on-new-revision
+         rerun: on_new_revision
       -  path: .yamato/universal_hybrid-osx-metal.yml#Universal_Hybrid_OSX_Metal_playmode_mono_Linear_trunk
-         rerun: on-new-revision
+         rerun: on_new_revision
     variables:
         UTR_VERSION: "current"
         TEST_FILTER: .*
@@ -21,7 +21,7 @@ Nightly_Universal_Hybrid_trunk:
     name: Nightly Universal_Hybrid - trunk
     dependencies:
       -  path: .yamato/all-universal_hybrid.yml#PR_Universal_Hybrid_trunk
-         rerun: on-new-revision
+         rerun: on_new_revision
     variables:
         UTR_VERSION: "current"
         TEST_FILTER: .*
@@ -29,9 +29,9 @@ PR_Universal_Hybrid_CUSTOM-REVISION:
     name: Universal_Hybrid PR Job - CUSTOM-REVISION
     dependencies:
       -  path: .yamato/universal_hybrid-win-dx11.yml#Universal_Hybrid_Win_DX11_playmode_mono_Linear_CUSTOM-REVISION
-         rerun: always
+         rerun: on_new_revision
       -  path: .yamato/universal_hybrid-osx-metal.yml#Universal_Hybrid_OSX_Metal_playmode_mono_Linear_CUSTOM-REVISION
-         rerun: always
+         rerun: on_new_revision
     variables:
         CUSTOM_REVISION: custom_revision_not_set
         UTR_VERSION: "current"
@@ -40,7 +40,7 @@ Nightly_Universal_Hybrid_CUSTOM-REVISION:
     name: Nightly Universal_Hybrid - CUSTOM-REVISION
     dependencies:
       -  path: .yamato/all-universal_hybrid.yml#PR_Universal_Hybrid_CUSTOM-REVISION
-         rerun: always
+         rerun: on_new_revision
     variables:
         CUSTOM_REVISION: custom_revision_not_set
         UTR_VERSION: "current"
