@@ -18,7 +18,7 @@ namespace UnityEditor.Rendering.HighDefinition
             var planarProbe = plane.AddComponent<PlanarReflectionProbe>();
             planarProbe.influenceVolume.boxSize = new Vector3(10, 0.01f, 10);
 
-            var material = HDRenderPipeline.currentAsset?.GetDefaultMirrorMaterial();
+            var material = HDRenderPipelineGlobalSettings.instance?.GetDefaultMirrorMaterial();
             if (material)
             {
                 plane.GetComponent<MeshRenderer>().sharedMaterial = material;
