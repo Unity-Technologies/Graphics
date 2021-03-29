@@ -94,6 +94,16 @@ namespace UnityEngine.Rendering.Universal
         HighlightNanInfNegative,
         HighlightOutsideOfRange
     }
+
+    [GenerateHLSL]
+    public enum PixelValidationChannels
+    {
+        RGB,
+        R,
+        G,
+        B,
+        A
+    }
     #endregion
 
     #region Lighting settings

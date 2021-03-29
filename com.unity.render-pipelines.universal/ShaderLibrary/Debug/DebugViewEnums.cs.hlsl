@@ -79,6 +79,15 @@
 #define DEBUGVALIDATIONMODE_HIGHLIGHT_OUTSIDE_OF_RANGE (2)
 
 //
+// UnityEngine.Rendering.Universal.PixelValidationChannels:  static fields
+//
+#define PIXELVALIDATIONCHANNELS_RGB (0)
+#define PIXELVALIDATIONCHANNELS_R (1)
+#define PIXELVALIDATIONCHANNELS_G (2)
+#define PIXELVALIDATIONCHANNELS_B (3)
+#define PIXELVALIDATIONCHANNELS_A (4)
+
+//
 // UnityEngine.Rendering.Universal.DebugLightingMode:  static fields
 //
 #define DEBUGLIGHTINGMODE_NONE (0)

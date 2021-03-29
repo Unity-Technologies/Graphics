@@ -39,9 +39,9 @@ namespace UnityEngine.Rendering.Universal
         private static readonly int kDebugValidateMetallicMinValueId = Shader.PropertyToID("_DebugValidateMetallicMinValue");
         private static readonly int kDebugValidateMetallicMaxValueId = Shader.PropertyToID("_DebugValidateMetallicMaxValue");
 
+        private static readonly int kValidationChannelsId = Shader.PropertyToID("_ValidationChannels");
         private static readonly int kRangeMinimumId = Shader.PropertyToID("_RangeMinimum");
         private static readonly int kRangeMaximumId = Shader.PropertyToID("_RangeMaximum");
-        private static readonly int kHighlightOutOfRangeAlpha = Shader.PropertyToID("_HighlightOutOfRangeAlpha");
         #endregion
 
         private readonly Material m_FullScreenDebugMaterial;
@@ -184,9 +184,9 @@ namespace UnityEngine.Rendering.Universal
             var renderingSettings = m_DebugDisplaySettings.RenderingSettings;
             if (renderingSettings.validationMode == DebugValidationMode.HighlightOutsideOfRange)
             {
+                cmd.SetGlobalInt(kValidationChannelsId, (int)renderingSettings.validationChannels);
                 cmd.SetGlobalFloat(kRangeMinimumId, renderingSettings.ValidationRangeMin);
                 cmd.SetGlobalFloat(kRangeMaximumId, renderingSettings.ValidationRangeMax);
-                cmd.SetGlobalInt(kHighlightOutOfRangeAlpha, renderingSettings.AlsoHighlightAlphaOutsideRange ? 1 : 0);
             }
         }
 

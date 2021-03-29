@@ -75,9 +75,9 @@ namespace UnityEngine.Rendering.Universal
         #region Pixel validation
 
         public DebugValidationMode validationMode;
+        public PixelValidationChannels validationChannels = PixelValidationChannels.RGB;
         public float ValidationRangeMin = 0.0f;
         public float ValidationRangeMax = 1.0f;
-        public bool AlsoHighlightAlphaOutsideRange = false;
 
         const string k_RangeValidationSettingsContainerName = "Pixel Range Settings";
 
@@ -197,6 +197,16 @@ namespace UnityEngine.Rendering.Universal
                 onValueChanged = DebugPixelValidationModeChanged
             };
 
+            internal static DebugUI.Widget CreatePixelValidationChannels(DebugDisplaySettingsRendering data) => new DebugUI.EnumField
+            {
+                displayName = "Channels",
+                autoEnum = typeof(PixelValidationChannels),
+                getter = () => (int)data.validationChannels,
+                setter = (value) => {},
+                getIndex = () => (int)data.validationChannels,
+                setIndex = (value) => data.validationChannels = (PixelValidationChannels)value
+            };
+
             internal static DebugUI.Widget CreatePixelValueRangeMin(DebugDisplaySettingsRendering data) => new DebugUI.FloatField
             {
                 displayName = "Value Range Min",
@@ -211,13 +221,6 @@ namespace UnityEngine.Rendering.Universal
                 getter = () => data.ValidationRangeMax,
                 setter = (value) => data.ValidationRangeMax = value,
                 incStep = 0.01f
-            };
-
-            internal static DebugUI.Widget CreateHighlightOutOfRangeAlpha(DebugDisplaySettingsRendering data) => new DebugUI.BoolField
-            {
-                displayName = "Highlight Out-Of-Range Alpha",
-                getter = () => data.AlsoHighlightAlphaOutsideRange,
-                setter = (value) => data.AlsoHighlightAlphaOutsideRange = value
             };
         }
 
@@ -260,9 +263,9 @@ namespace UnityEngine.Rendering.Universal
                             isHidden = true,
                             children =
                             {
+                                WidgetFactory.CreatePixelValidationChannels(data),
                                 WidgetFactory.CreatePixelValueRangeMin(data),
-                                WidgetFactory.CreatePixelValueRangeMax(data),
-                                WidgetFactory.CreateHighlightOutOfRangeAlpha(data)
+                                WidgetFactory.CreatePixelValueRangeMax(data)
                             }
                         }
                     }

@@ -3,9 +3,9 @@
 
 #if defined(_DEBUG_SHADER)
 
+int _ValidationChannels;
 float _RangeMinimum;
 float _RangeMaximum;
-int _HighlightOutOfRangeAlpha;
 
 bool CalculateDebugColor(half4 color, out half4 debugColor)
 {
@@ -32,20 +32,34 @@ bool CalculateDebugColor(half4 color, out half4 debugColor)
     }
     else if(_DebugValidationMode == DEBUGVALIDATIONMODE_HIGHLIGHT_OUTSIDE_OF_RANGE)
     {
-        if(color.r < _RangeMinimum || color.g < _RangeMinimum || color.b < _RangeMinimum ||
-            (_HighlightOutOfRangeAlpha && (color.a < _RangeMinimum)))
+        float val;
+        if (_ValidationChannels == PIXELVALIDATIONCHANNELS_RGB)
         {
+            val = LinearRgbToLuminance(color.rgb);
+        }
+        else if (_ValidationChannels == PIXELVALIDATIONCHANNELS_R)
+        {
+            val = color.r;
+        }
+        else if (_ValidationChannels == PIXELVALIDATIONCHANNELS_G)
+        {
+            val = color.g;
+        }
+        else if (_ValidationChannels == PIXELVALIDATIONCHANNELS_B)
+        {
+            val = color.b;
+        }
+        else if (_ValidationChannels == PIXELVALIDATIONCHANNELS_A)
+        {
+            val = color.a;
+        }
+
+        if (val < _RangeMinimum)
             debugColor = _DebugValidateBelowMinThresholdColor;
-        }
-        else if(color.r > _RangeMaximum || color.g > _RangeMaximum || color.b > _RangeMaximum ||
-                (_HighlightOutOfRangeAlpha && (color.a > _RangeMaximum)))
-        {
+        else if (val > _RangeMaximum)
             debugColor = _DebugValidateAboveMaxThresholdColor;
-        }
         else
-        {
             debugColor = half4(LinearRgbToLuminance(color.rgb).rrr, 1);
-        }
 
         return true;
     }
