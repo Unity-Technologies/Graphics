@@ -17,7 +17,6 @@ namespace UnityEngine.Rendering.Universal
         Automatic,
         DBuffer,
         ScreenSpace,
-        //DBUFFER_HDRP_PORT,
     }
 
     [System.Serializable]
@@ -195,12 +194,6 @@ namespace UnityEngine.Rendering.Universal
         private DecalPreviewPass m_DecalPreviewPass;
         private NormalReconstructionSetupPass m_NormalReconstructionSetupPass;
 
-        // TODO: Remove
-        /*DecalSystem.CullRequest decalCullRequest;
-        DecalSystem.CullResult decalCullResult;
-        ProfilingSampler decalSystemCull;
-        ProfilingSampler decalSystemCullEnd;*/
-
         // Entities
         private DecalEntityManager m_DecalEntityManager;
         private DecalUpdateCachedSystem m_DecalUpdateCachedSystem;
@@ -272,14 +265,6 @@ namespace UnityEngine.Rendering.Universal
 
             var dBufferClearMaterial = CoreUtils.CreateEngineMaterial(dBufferClear);
 
-            /*if (actualSettings.technique == DecalTechnique.DBUFFER_HDRP_PORT)
-            {
-                decalSystemCull = new ProfilingSampler("V1.DecalSystem.BeginCull");
-                decalSystemCullEnd = new ProfilingSampler("V1.DecalSystem.EndCull");
-
-                m_DBufferRenderPass = new DBufferRenderPass("DBuffer Render", dBufferClearMaterial, actualSettings.dBufferSettings, null);
-            }*/
-
             if (technique == DecalTechnique.DBuffer || technique == DecalTechnique.ScreenSpace)
             {
                 if (m_DecalEntityManager == null)
@@ -325,17 +310,6 @@ namespace UnityEngine.Rendering.Universal
             if (cameraData.cameraType == CameraType.Preview)
                 return;
 
-            /*if (technique == DecalTechnique.DBUFFER_HDRP_PORT)
-            {
-                using (new ProfilingScope(null, decalSystemCull))
-                {
-                    // decal system needs to be updated with current camera, it needs it to set up culling and light list generation parameters
-                    decalCullRequest = GenericPool<DecalSystem.CullRequest>.Get();
-                    DecalSystem.instance.CurrentCamera = cameraData.camera;
-                    DecalSystem.instance.BeginCull(decalCullRequest);
-                }
-            }*/
-
             if (technique == DecalTechnique.DBuffer || technique == DecalTechnique.ScreenSpace)
             {
                 RecreateSystemsIfNeeded();
@@ -351,7 +325,6 @@ namespace UnityEngine.Rendering.Universal
                 {
                     m_DecalSkipCulledSystem.Execute(cameraData.camera);
                     m_DecalCreateDrawCallSystem.Execute();
-                    //m_DecalDrawRendererSystem.Execute(cameraData);
 
                     if (technique == DecalTechnique.ScreenSpace)
                     {
@@ -383,43 +356,6 @@ namespace UnityEngine.Rendering.Universal
 
             renderer.EnqueuePass(m_NormalReconstructionSetupPass);
 
-            /*if (technique == DecalTechnique.DBUFFER_HDRP_PORT)
-            {
-                using (new ProfilingScope(null, decalSystemCullEnd))
-                {
-                    decalCullResult = GenericPool<DecalSystem.CullResult>.Get();
-                    DecalSystem.instance.EndCull(decalCullRequest, decalCullResult);
-
-                    if (decalCullRequest != null)
-                    {
-                        decalCullRequest.Clear();
-                        GenericPool<DecalSystem.CullRequest>.Release(decalCullRequest);
-                    }
-
-                    // TODO: update singleton with DecalCullResults
-                    DecalSystem.instance.CurrentCamera = renderingData.cameraData.camera; // Singletons are extremely dangerous...
-                    DecalSystem.instance.LoadCullResults(decalCullResult);
-                    DecalSystem.instance.UpdateCachedMaterialData(); // textures, alpha or fade distances could've changed
-                    DecalSystem.instance.CreateDrawData();          // prepare data is separate from draw
-                                                                    //DecalSystem.instance.UpdateTextureAtlas(cmd);   // as this is only used for transparent pass, would've been nice not to have to do this if no transparent renderers are visible, needs to happen after CreateDrawData
-
-                    if (decalCullResult != null)
-                    {
-                        decalCullResult.Clear();
-                        GenericPool<DecalSystem.CullResult>.Release(decalCullResult);
-                    }
-
-
-                    m_CopyDepthPass.Setup(
-                        new RenderTargetHandle(new RenderTargetIdentifier("_CameraDepthTexture")),
-                        new RenderTargetHandle(new RenderTargetIdentifier("DBufferDepth"))
-                    );
-                    m_CopyDepthPass.AllocateRT = false;
-                    renderer.EnqueuePass(m_CopyDepthPass);
-                    renderer.EnqueuePass(m_DBufferRenderPass);
-                }
-            }*/
-
             if (technique == DecalTechnique.DBuffer || technique == DecalTechnique.ScreenSpace)
             {
                 RecreateSystemsIfNeeded();
@@ -428,10 +364,6 @@ namespace UnityEngine.Rendering.Universal
                 {
                     m_DecalUpdateCulledSystem.Execute();
                     m_DecalCreateDrawCallSystem.Execute();
-                }
-                else
-                {
-                    //m_DecalDrawRendererSystem.Execute(renderingData.cameraData);
                 }
 
                 if (technique == DecalTechnique.ScreenSpace)
