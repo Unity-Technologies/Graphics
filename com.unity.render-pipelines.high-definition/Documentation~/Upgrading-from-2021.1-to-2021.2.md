@@ -13,3 +13,7 @@ Density Volumes are now known as **Local Volumetric Fog**. If a Scene uses Densi
 ## ClearFlag
 
 ClearFlag.Depth does not implicitely clear stencil anymore. ClearFlag.Stencil added.
+
+## HDRP Global Settings
+
+From 2021.2, the HDRP Asset assigned in the Graphics Settings no longer acts as the default Asset for HDRP. A new HDRP Global Settings Asset now exists to save settings unrelated to which HDRP Asset is active.

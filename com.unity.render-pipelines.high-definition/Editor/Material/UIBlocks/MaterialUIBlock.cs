@@ -1,8 +1,6 @@
 using System;
 using System.Linq;
 using UnityEngine;
-using UnityEngine.Rendering.HighDefinition;
-using UnityEditor.Rendering;
 
 namespace UnityEditor.Rendering.HighDefinition
 {
@@ -11,6 +9,9 @@ namespace UnityEditor.Rendering.HighDefinition
     /// </summary>
     public abstract class MaterialUIBlock
     {
+        public ExpandableBit expandableBit { get; }
+        public GUIContent header { get; }
+
         /// <summary>The current material editor.</summary>
         protected MaterialEditor        materialEditor;
         /// <summary>The list of selected materials to edit.</summary>
@@ -133,11 +134,31 @@ namespace UnityEditor.Rendering.HighDefinition
             User19 = 1 << 30,
         }
 
+        /// <summary>
+        /// Default Constructor, you must override the method OnGUI
+        /// </summary>
+        protected MaterialUIBlock()
+        {
+        }
+
+        /// <summary>
+        /// Constructor to auto generate the foldout section, override the method OnGUIOpen
+        /// </summary>
+        /// <param name="expandableBit"><see cref="ExpandableBit"/> used to store the state (open/closed) for this section</param>
+        /// <param name="header"><see cref="GUIContent"/>The title of this section</param>
+        internal MaterialUIBlock(ExpandableBit expandableBit, GUIContent header)
+        {
+            this.expandableBit = expandableBit;
+            this.header = header;
+        }
+
         internal void Initialize(MaterialEditor materialEditor, MaterialProperty[] properties, MaterialUIBlockList parent)
         {
             this.materialEditor = materialEditor;
             this.parent = parent;
-            materials = materialEditor.targets.Select(target => target as Material).ToArray();
+            materials = materialEditor.targets
+                .Select(target => target as Material)
+                .ToArray();
         }
 
         internal void UpdateMaterialProperties(MaterialProperty[] properties)
@@ -198,6 +219,34 @@ namespace UnityEditor.Rendering.HighDefinition
         /// <summary>
         /// Renders the properties in the block.
         /// </summary>
-        public abstract void OnGUI();
+        public virtual void OnGUI()
+        {
+            if (!showSection)
+                return;
+
+            using var scope = new MaterialHeaderScope(header, (uint)expandableBit, materialEditor, subHeader: isSubHeader);
+            if (scope.expanded)
+            {
+                OnGUIOpen();
+            }
+        }
+
+        /// <summary>
+        /// Property that specifies if the scope is a subheader
+        /// </summary>
+        protected virtual bool isSubHeader => false;
+
+        /// <summary>
+        /// If the section should be shown
+        /// </summary>
+        protected virtual bool showSection => true;
+
+        /// <summary>
+        /// GUI callback when the header is open
+        /// </summary>
+        protected virtual void OnGUIOpen()
+        {
+            throw new NotImplementedException($"You must implement {nameof(OnGUIOpen)} if you are not overriding {nameof(OnGUI)}");
+        }
     }
 }

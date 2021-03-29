@@ -696,7 +696,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 passData.rayTracingEnabled = RayTracedContactShadowsRequired();
                 if (hdCamera.frameSettings.IsEnabled(FrameSettingsField.RayTracing))
                 {
-                    passData.contactShadowsRTS = m_Asset.renderPipelineRayTracingResources.contactShadowRayTracingRT;
+                    passData.contactShadowsRTS = HDRenderPipelineGlobalSettings.instance.renderPipelineRayTracingResources.contactShadowRayTracingRT;
                     passData.accelerationStructure = RequestAccelerationStructure();
 
                     passData.actualWidth = hdCamera.actualWidth;

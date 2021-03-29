@@ -1,9 +1,61 @@
 using UnityEngine.Experimental.Rendering;
+using UnityEngine.Rendering.HighDefinition.LTC;
 
 namespace UnityEngine.Rendering.HighDefinition
 {
+    [GenerateHLSL]
+    public enum LTCLightingModel
+    {
+        // Lit, Stack-Lit and Fabric/Silk
+        GGX,
+        DisneyDiffuse,
+
+        // Fabric/CottonWool shader
+        Charlie,
+        FabricLambert,
+
+        // Hair
+        KajiyaKaySpecular,
+        KajiyaKayDiffuse,
+
+        // Other
+        CookTorrance,
+        Ward,
+        OrenNayar,
+        Count
+    }
+
     partial class LTCAreaLight
     {
+        internal static IBRDF GetBRDFInterface(LTCLightingModel model)
+        {
+            switch (model)
+            {
+                case LTCLightingModel.GGX:
+                    return new BRDF_GGX();
+                case LTCLightingModel.DisneyDiffuse:
+                    return new BRDF_Disney();
+
+                case LTCLightingModel.Charlie:
+                    return new BRDF_Charlie();
+                case LTCLightingModel.FabricLambert:
+                    return new BRDF_FabricLambert();
+
+                case LTCLightingModel.KajiyaKaySpecular:
+                    return new BRDF_KajiyaKaySpecular();
+                case LTCLightingModel.KajiyaKayDiffuse:
+                    return new BRDF_KajiyaKayDiffuse();
+
+                case LTCLightingModel.CookTorrance:
+                    return new BRDF_CookTorrance();
+                case LTCLightingModel.Ward:
+                    return new BRDF_Ward();
+                case LTCLightingModel.OrenNayar:
+                    return new BRDF_OrenNayar();
+            }
+            return new BRDF_GGX();
+        }
+
         static LTCAreaLight s_Instance;
 
         public static LTCAreaLight instance
@@ -57,16 +109,26 @@ namespace UnityEngine.Rendering.HighDefinition
 
             if (m_refCounting == 0)
             {
-                m_LtcData = new Texture2DArray(k_LtcLUTResolution, k_LtcLUTResolution, 3, GraphicsFormat.R16G16B16A16_SFloat, TextureCreationFlags.None)
+                m_LtcData = new Texture2DArray(k_LtcLUTResolution, k_LtcLUTResolution, (int)LTCLightingModel.Count, GraphicsFormat.R16G16B16A16_SFloat, TextureCreationFlags.None)
                 {
                     hideFlags = HideFlags.HideAndDontSave,
                     wrapMode = TextureWrapMode.Clamp,
                     filterMode = FilterMode.Bilinear,
-                    name = CoreUtils.GetTextureAutoName(k_LtcLUTResolution, k_LtcLUTResolution, GraphicsFormat.R16G16B16A16_SFloat, depth: 2, dim: TextureDimension.Tex2DArray, name: "LTC_LUT")
+                    name = CoreUtils.GetTextureAutoName(k_LtcLUTResolution, k_LtcLUTResolution, GraphicsFormat.R16G16B16A16_SFloat, depth: (int)LTCLightingModel.Count, dim: TextureDimension.Tex2DArray, name: "LTC_LUT")
                 };
 
-                LoadLUT(m_LtcData, 0, GraphicsFormat.R16G16B16A16_SFloat, s_LtcGGXMatrixData);
-                LoadLUT(m_LtcData, 1, GraphicsFormat.R16G16B16A16_SFloat, s_LtcDisneyDiffuseMatrixData);
+                LoadLUT(m_LtcData, (int)LTCLightingModel.GGX, GraphicsFormat.R16G16B16A16_SFloat, s_LtcMatrixData_BRDF_GGX);
+                LoadLUT(m_LtcData, (int)LTCLightingModel.DisneyDiffuse, GraphicsFormat.R16G16B16A16_SFloat, s_LtcMatrixData_BRDF_Disney);
+
+                LoadLUT(m_LtcData, (int)LTCLightingModel.Charlie, GraphicsFormat.R16G16B16A16_SFloat, s_LtcMatrixData_BRDF_Charlie);
+                LoadLUT(m_LtcData, (int)LTCLightingModel.FabricLambert, GraphicsFormat.R16G16B16A16_SFloat, s_LtcMatrixData_BRDF_FabricLambert);
+
+                LoadLUT(m_LtcData, (int)LTCLightingModel.KajiyaKaySpecular, GraphicsFormat.R16G16B16A16_SFloat, s_LtcMatrixData_BRDF_KajiyaKaySpecular);
+                LoadLUT(m_LtcData, (int)LTCLightingModel.KajiyaKayDiffuse, GraphicsFormat.R16G16B16A16_SFloat, s_LtcMatrixData_BRDF_KajiyaKayDiffuse);
+
+                LoadLUT(m_LtcData, (int)LTCLightingModel.CookTorrance, GraphicsFormat.R16G16B16A16_SFloat, s_LtcMatrixData_BRDF_CookTorrance);
+                LoadLUT(m_LtcData, (int)LTCLightingModel.Ward, GraphicsFormat.R16G16B16A16_SFloat, s_LtcMatrixData_BRDF_Ward);
+                LoadLUT(m_LtcData, (int)LTCLightingModel.OrenNayar, GraphicsFormat.R16G16B16A16_SFloat, s_LtcMatrixData_BRDF_OrenNayar);
 
                 m_LtcData.Apply();
             }
