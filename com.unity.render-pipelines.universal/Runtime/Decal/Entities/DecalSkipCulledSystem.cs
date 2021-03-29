@@ -33,7 +33,7 @@ public class DecalSkipCulledSystem
         culledChunk.currentJobHandle.Complete();
 
         for (int i = 0; i < count; ++i)
-            culledChunk.visibleDecalIndices[i] = i;
+            culledChunk.visibleDecalIndices2[i] = i;
         culledChunk.visibleDecalCount = count;
         culledChunk.cameraPosition = m_Camera.transform.position;
         culledChunk.cullingMask = m_Camera.cullingMask;

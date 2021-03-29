@@ -380,6 +380,7 @@ namespace UnityEditor.Rendering.Universal
         {
             serializedObject.Update();
 
+            bool materialChanged = false;
             EditorGUI.BeginChangeCheck();
             {
                 EditorGUILayout.BeginHorizontal();
@@ -415,10 +416,9 @@ namespace UnityEditor.Rendering.Universal
                     m_OffsetZ.floatValue = m_SizeValues[2].floatValue * 0.5f;
                 }
 
-                if (EditorGUILayout.PropertyField(m_MaterialProperty, k_MaterialContent))
-                {
-                    UpdateMaterialEditor();
-                }
+                EditorGUI.BeginChangeCheck();
+                EditorGUILayout.PropertyField(m_MaterialProperty, k_MaterialContent);
+                materialChanged = EditorGUI.EndChangeCheck();
 
                 bool decalLayerEnabled = false;
                 foreach (var decalProjector in targets)
@@ -477,6 +477,9 @@ namespace UnityEditor.Rendering.Universal
             }
             if (EditorGUI.EndChangeCheck())
                 serializedObject.ApplyModifiedProperties();
+
+            if (materialChanged)
+                UpdateMaterialEditor();
 
             if (layerMaskHasMultipleValue || layerMask != (target as Component).gameObject.layer)
             {
