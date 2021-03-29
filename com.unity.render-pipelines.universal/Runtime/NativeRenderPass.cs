@@ -221,7 +221,11 @@ namespace UnityEngine.Rendering.Universal
                     // Offscreen depth-only cameras need this set explicitly
                     if (depthOnly && usesTargetTexture)
                     {
-                        passColorAttachment = new RenderTargetIdentifier(cameraData.targetTexture);
+                        if (cameraData.targetTexture.graphicsFormat == GraphicsFormat.DepthAuto &&
+                                !pass.overrideCameraTarget)
+                                passColorAttachment = new RenderTargetIdentifier(cameraData.targetTexture);
+                        else
+                                passColorAttachment = renderPass.colorAttachment;
                         currentAttachmentDescriptor = new AttachmentDescriptor(GraphicsFormat.DepthAuto);
                     }
                     else
