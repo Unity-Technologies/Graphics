@@ -8,6 +8,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ### Fixed
 - Fix for broken MSVO on desktop platforms.
+- Fix for compilation issue with BuildTarget error on XboxOne platform.
 
 ## [3.1.0] - 2021-03-02
 

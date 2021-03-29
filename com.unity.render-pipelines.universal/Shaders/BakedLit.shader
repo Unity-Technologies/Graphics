@@ -8,16 +8,17 @@ Shader "Universal Render Pipeline/Baked Lit"
         _BumpMap("Normal Map", 2D) = "bump" {}
 
         // BlendMode
-        [HideInInspector] _Surface("__surface", Float) = 0.0
-        [HideInInspector] _Blend("__blend", Float) = 0.0
-        [HideInInspector] _AlphaClip("__clip", Float) = 0.0
-        [HideInInspector] _SrcBlend("Src", Float) = 1.0
-        [HideInInspector] _DstBlend("Dst", Float) = 0.0
-        [HideInInspector] _ZWrite("ZWrite", Float) = 1.0
-        [HideInInspector] _Cull("__cull", Float) = 2.0
+        _Surface("__surface", Float) = 0.0
+        _Blend("__mode", Float) = 0.0
+        _Cull("__cull", Float) = 2.0
+        [ToggleUI] _AlphaClip("__clip", Float) = 0.0
+        [HideInInspector] _BlendOp("__blendop", Float) = 0.0
+        [HideInInspector] _SrcBlend("__src", Float) = 1.0
+        [HideInInspector] _DstBlend("__dst", Float) = 0.0
+        [HideInInspector] _ZWrite("__zw", Float) = 1.0
 
         // Editmode props
-        [HideInInspector] _QueueOffset("Queue offset", Float) = 0.0
+        _QueueOffset("Queue offset", Float) = 0.0
 
         [HideInInspector][NoScaleOffset]unity_Lightmaps("unity_Lightmaps", 2DArray) = "" {}
         [HideInInspector][NoScaleOffset]unity_LightmapsInd("unity_LightmapsInd", 2DArray) = "" {}
@@ -105,7 +106,12 @@ Shader "Universal Render Pipeline/Baked Lit"
                 VertexPositionInputs vertexInput = GetVertexPositionInputs(input.positionOS.xyz);
                 output.vertex = vertexInput.positionCS;
                 output.uv0AndFogCoord.xy = TRANSFORM_TEX(input.uv, _BaseMap);
+
+            #if defined(_FOG_FRAGMENT)
+                output.uv0AndFogCoord.z = vertexInput.positionVS.z;
+            #else
                 output.uv0AndFogCoord.z = ComputeFogFactor(vertexInput.positionCS.z);
+            #endif
 
                 // normalWS and tangentWS already normalize.
                 // this is required to avoid skewing the direction during interpolation
@@ -151,7 +157,19 @@ Shader "Universal Render Pipeline/Baked Lit"
                     float2 normalizedScreenSpaceUV = GetNormalizedScreenSpaceUV(input.vertex);
                     color *= SampleAmbientOcclusion(normalizedScreenSpaceUV);
                 #endif
-                color = MixFog(color, input.uv0AndFogCoord.z);
+
+                half fogFactor = 0.0;
+            #if defined(_FOG_FRAGMENT)
+                #if (defined(FOG_LINEAR) || defined(FOG_EXP) || defined(FOG_EXP2))
+                    float viewZ = -input.uv0AndFogCoord.z;
+                    float nearToFarZ = max(viewZ - _ProjectionParams.y, 0);
+                    fogFactor = ComputeFogFactorZ0ToFar(nearToFarZ);
+                #endif
+            #else
+                fogFactor = input.uv0AndFogCoord.z;
+            #endif
+
+                color = MixFog(color, fogFactor);
                 alpha = OutputAlpha(alpha, _Surface);
 
                 return half4(color, alpha);
@@ -320,7 +338,7 @@ Shader "Universal Render Pipeline/Baked Lit"
             Tags{ "LightMode" = "UniversalForwardOnly" }
 
             HLSLPROGRAM
-            #pragma only_renderers gles gles3 glcore
+            #pragma only_renderers gles gles3 glcore d3d11
             #pragma target 2.0
 
             #pragma vertex vert
@@ -386,7 +404,11 @@ Shader "Universal Render Pipeline/Baked Lit"
                 VertexPositionInputs vertexInput = GetVertexPositionInputs(input.positionOS.xyz);
                 output.vertex = vertexInput.positionCS;
                 output.uv0AndFogCoord.xy = TRANSFORM_TEX(input.uv, _BaseMap);
+            #if defined(_FOG_FRAGMENT)
+                output.uv0AndFogCoord.z = vertexInput.positionVS.z;
+            #else
                 output.uv0AndFogCoord.z = ComputeFogFactor(vertexInput.positionCS.z);
+            #endif
 
                 // normalWS and tangentWS already normalize.
                 // this is required to avoid skewing the direction during interpolation
@@ -432,7 +454,19 @@ Shader "Universal Render Pipeline/Baked Lit"
                     float2 normalizedScreenSpaceUV = GetNormalizedScreenSpaceUV(input.vertex);
                     color *= SampleAmbientOcclusion(normalizedScreenSpaceUV);
                 #endif
-                color = MixFog(color, input.uv0AndFogCoord.z);
+
+                half fogFactor = 0.0;
+            #if defined(_FOG_FRAGMENT)
+                #if (defined(FOG_LINEAR) || defined(FOG_EXP) || defined(FOG_EXP2))
+                    float viewZ = -input.uv0AndFogCoord.z;
+                    float nearToFarZ = max(viewZ - _ProjectionParams.y, 0);
+                    fogFactor = ComputeFogFactorZ0ToFar(nearToFarZ);
+                #endif
+            #else
+                fogFactor = input.uv0AndFogCoord.z;
+            #endif
+
+                color = MixFog(color, fogFactor);
                 alpha = OutputAlpha(alpha, _Surface);
 
                 return half4(color, alpha);
@@ -448,7 +482,7 @@ Shader "Universal Render Pipeline/Baked Lit"
             ColorMask 0
 
             HLSLPROGRAM
-            #pragma only_renderers gles gles3 glcore
+            #pragma only_renderers gles gles3 glcore d3d11
             #pragma target 2.0
 
             //--------------------------------------
@@ -477,7 +511,7 @@ Shader "Universal Render Pipeline/Baked Lit"
             Cull[_Cull]
 
             HLSLPROGRAM
-            #pragma only_renderers gles gles3 glcore
+            #pragma only_renderers gles gles3 glcore d3d11
             #pragma target 2.0
 
             #pragma vertex DepthNormalsVertex
@@ -510,7 +544,7 @@ Shader "Universal Render Pipeline/Baked Lit"
             Cull Off
 
             HLSLPROGRAM
-            #pragma only_renderers gles gles3 glcore
+            #pragma only_renderers gles gles3 glcore d3d11
             #pragma target 2.0
 
             #pragma vertex UniversalVertexMeta
@@ -531,7 +565,7 @@ Shader "Universal Render Pipeline/Baked Lit"
             Cull[_Cull]
 
             HLSLPROGRAM
-            #pragma only_renderers gles gles3 glcore
+            #pragma only_renderers gles gles3 glcore d3d11
             #pragma target 2.0
 
             #pragma vertex vert

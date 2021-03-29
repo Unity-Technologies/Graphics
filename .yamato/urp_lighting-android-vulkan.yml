@@ -37,7 +37,7 @@ URP_Lighting_Android_Vulkan_Standalone_il2cpp_Linear_trunk:
               -  "TestProjects/UniversalGraphicsTest_Lighting/Logs/*.log"
     dependencies:
       -  path: .yamato/urp_lighting-android-vulkan.yml#Build_URP_Lighting_Android_Vulkan_Standalone_il2cpp_Linear_trunk
-         rerun: on-new-revision
+         rerun: on_new_revision
 Build_URP_Lighting_Android_Vulkan_Standalone_il2cpp_Linear_trunk:
     name: Build URP_Lighting on Android_Vulkan_il2cpp_Linear_Standalone_build_Player on version trunk
     agent:
@@ -98,7 +98,7 @@ URP_Lighting_Android_Vulkan_Standalone_cache_il2cpp_Linear_trunk:
               -  "TestProjects/UniversalGraphicsTest_Lighting/Logs/*.log"
     dependencies:
       -  path: .yamato/urp_lighting-android-vulkan.yml#Build_URP_Lighting_Android_Vulkan_Standalone_cache_il2cpp_Linear_trunk
-         rerun: on-new-revision
+         rerun: on_new_revision
 Build_URP_Lighting_Android_Vulkan_Standalone_cache_il2cpp_Linear_trunk:
     name: Build URP_Lighting on Android_Vulkan_il2cpp_Linear_Standalone_cache_build_Player on version trunk
     agent:
@@ -159,7 +159,7 @@ URP_Lighting_Android_Vulkan_Standalone_XR_cache_il2cpp_Linear_trunk:
               -  "TestProjects/UniversalGraphicsTest_Lighting/Logs/*.log"
     dependencies:
       -  path: .yamato/urp_lighting-android-vulkan.yml#Build_URP_Lighting_Android_Vulkan_Standalone_XR_cache_il2cpp_Linear_trunk
-         rerun: on-new-revision
+         rerun: on_new_revision
 Build_URP_Lighting_Android_Vulkan_Standalone_XR_cache_il2cpp_Linear_trunk:
     name: Build URP_Lighting on Android_Vulkan_il2cpp_Linear_Standalone_XR_cache_build_Player on version trunk
     agent:
@@ -221,9 +221,9 @@ URP_Lighting_Android_Vulkan_Standalone_il2cpp_Linear_CUSTOM-REVISION:
               -  "TestProjects/UniversalGraphicsTest_Lighting/Logs/*.log"
     dependencies:
       -  path: .yamato/_editor_priming.yml#editor:priming:CUSTOM-REVISION:Android
-         rerun: always
+         rerun: on_new_revision
       -  path: .yamato/urp_lighting-android-vulkan.yml#Build_URP_Lighting_Android_Vulkan_Standalone_il2cpp_Linear_CUSTOM-REVISION
-         rerun: always
+         rerun: on_new_revision
 Build_URP_Lighting_Android_Vulkan_Standalone_il2cpp_Linear_CUSTOM-REVISION:
     name: Build URP_Lighting on Android_Vulkan_il2cpp_Linear_Standalone_build_Player on version CUSTOM-REVISION
     agent:
@@ -257,7 +257,7 @@ Build_URP_Lighting_Android_Vulkan_Standalone_il2cpp_Linear_CUSTOM-REVISION:
               -  "players*/**"
     dependencies:
       -  path: .yamato/_editor_priming.yml#editor:priming:CUSTOM-REVISION:Android
-         rerun: always
+         rerun: on_new_revision
 URP_Lighting_Android_Vulkan_Standalone_cache_il2cpp_Linear_CUSTOM-REVISION:
     name: URP_Lighting on Android_Vulkan_Standalone_cache_il2cpp_Linear on version CUSTOM-REVISION
     agent:
@@ -289,9 +289,9 @@ URP_Lighting_Android_Vulkan_Standalone_cache_il2cpp_Linear_CUSTOM-REVISION:
               -  "TestProjects/UniversalGraphicsTest_Lighting/Logs/*.log"
     dependencies:
       -  path: .yamato/_editor_priming.yml#editor:priming:CUSTOM-REVISION:Android
-         rerun: always
+         rerun: on_new_revision
       -  path: .yamato/urp_lighting-android-vulkan.yml#Build_URP_Lighting_Android_Vulkan_Standalone_cache_il2cpp_Linear_CUSTOM-REVISION
-         rerun: always
+         rerun: on_new_revision
 Build_URP_Lighting_Android_Vulkan_Standalone_cache_il2cpp_Linear_CUSTOM-REVISION:
     name: Build URP_Lighting on Android_Vulkan_il2cpp_Linear_Standalone_cache_build_Player on version CUSTOM-REVISION
     agent:
@@ -325,7 +325,7 @@ Build_URP_Lighting_Android_Vulkan_Standalone_cache_il2cpp_Linear_CUSTOM-REVISION
               -  "players*/**"
     dependencies:
       -  path: .yamato/_editor_priming.yml#editor:priming:CUSTOM-REVISION:Android
-         rerun: always
+         rerun: on_new_revision
 URP_Lighting_Android_Vulkan_Standalone_XR_cache_il2cpp_Linear_CUSTOM-REVISION:
     name: URP_Lighting on Android_Vulkan_Standalone_XR_cache_il2cpp_Linear on version CUSTOM-REVISION
     agent:
@@ -357,9 +357,9 @@ URP_Lighting_Android_Vulkan_Standalone_XR_cache_il2cpp_Linear_CUSTOM-REVISION:
               -  "TestProjects/UniversalGraphicsTest_Lighting/Logs/*.log"
     dependencies:
       -  path: .yamato/_editor_priming.yml#editor:priming:CUSTOM-REVISION:Android
-         rerun: always
+         rerun: on_new_revision
       -  path: .yamato/urp_lighting-android-vulkan.yml#Build_URP_Lighting_Android_Vulkan_Standalone_XR_cache_il2cpp_Linear_CUSTOM-REVISION
-         rerun: always
+         rerun: on_new_revision
 Build_URP_Lighting_Android_Vulkan_Standalone_XR_cache_il2cpp_Linear_CUSTOM-REVISION:
     name: Build URP_Lighting on Android_Vulkan_il2cpp_Linear_Standalone_XR_cache_build_Player on version CUSTOM-REVISION
     agent:
@@ -393,4 +393,4 @@ Build_URP_Lighting_Android_Vulkan_Standalone_XR_cache_il2cpp_Linear_CUSTOM-REVIS
               -  "players*/**"
     dependencies:
       -  path: .yamato/_editor_priming.yml#editor:priming:CUSTOM-REVISION:Android
-         rerun: always
+         rerun: on_new_revision
