@@ -17,7 +17,7 @@
 
 #define RAYCAST_USE_LOOP (defined(SHADER_API_GAMECORE))
 
-#pragma only_renderers d3d11 ps4 xboxone xboxseries vulkan metal switch
+#pragma only_renderers d3d11 playstation xboxone xboxseries vulkan metal switch
 
 #ifdef SHADER_API_PSSL
 #include SHADER_COMPILER_GLOBAL_OPTIMIZE_REGISTER_USAGE
