@@ -45,7 +45,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
         Custom
     }
 
-    sealed class HDTarget : Target, IHasMetadata, ILegacyTarget, IMaySupportVFX
+    sealed class HDTarget : Target, IHasMetadata, ILegacyTarget, IMaySupportVFX, IRequireVFXContext
     {
         // Constants
         static readonly GUID kSourceCodeGuid = new GUID("61d9843d4027e3e4a924953135f76f3c"); // HDTarget.cs
@@ -375,6 +375,11 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 return false;
 
             return m_SupportVFX;
+        }
+
+        public void ConfigureContextData(VFXContext context, VFXContextCompiledData data)
+        {
+            Debug.Log("Invoked HDTarget.ConfigureContextData.");
         }
     }
 
