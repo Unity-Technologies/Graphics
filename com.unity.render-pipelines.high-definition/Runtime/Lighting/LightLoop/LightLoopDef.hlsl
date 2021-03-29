@@ -90,9 +90,9 @@ float4 SampleEnv(LightLoopContext lightLoopContext, int index, float3 texCoord, 
     {
         if (cacheType == ENVCACHETYPE_TEXTURE2D)
         {
-			// Index start at 1, because -0 == 0, so we can't known which cache to sample for that index. Thus it is invalid.
-			// for texture2D index would start as negative
-			index = abs(index+1);
+            // Index start at 1, because -0 == 0, so we can't known which cache to sample for that index. Thus it is invalid.
+            // for texture2D index would start as negative
+            index = abs(index+1);
 
             //_Env2DCaptureVP is in capture space
             float3 ndc = ComputeNormalizedDeviceCoordinatesWithZ(texCoord, _Env2DCaptureVP[index]);
@@ -122,9 +122,9 @@ float4 SampleEnv(LightLoopContext lightLoopContext, int index, float3 texCoord, 
         }
         else if (cacheType == ENVCACHETYPE_CUBEMAP)
         {
-			// Index start at 1, because -0 == 0, so we can't known which cache to sample for that index. Thus it is invalid.
-			// for cubemap types index starts as positive
-			index = index - 1;
+            // Index start at 1, because -0 == 0, so we can't known which cache to sample for that index. Thus it is invalid.
+            // for cubemap types index starts as positive
+            index = index - 1;
             color.rgb = SAMPLE_TEXTURECUBE_ARRAY_LOD_ABSTRACT(_EnvCubemapTextures, s_trilinear_clamp_sampler, texCoord, _EnvSliceSize * index + sliceIdx, lod).rgb;
         }
 

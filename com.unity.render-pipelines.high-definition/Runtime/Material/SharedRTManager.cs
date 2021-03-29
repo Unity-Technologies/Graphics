@@ -123,8 +123,8 @@ namespace UnityEngine.Rendering.HighDefinition
                 SystemInfo.graphicsDeviceType == GraphicsDeviceType.PlayStation5 ||
                 SystemInfo.graphicsDeviceType == GraphicsDeviceType.XboxOne ||
                 SystemInfo.graphicsDeviceType == GraphicsDeviceType.XboxOneD3D12 ||
-				SystemInfo.graphicsDeviceType == GraphicsDeviceType.GameCoreXboxOne ||
-				SystemInfo.graphicsDeviceType == GraphicsDeviceType.GameCoreXboxSeries;
+                SystemInfo.graphicsDeviceType == GraphicsDeviceType.GameCoreXboxOne ||
+                SystemInfo.graphicsDeviceType == GraphicsDeviceType.GameCoreXboxSeries;
         }
 
         // Function that will return the set of buffers required for the prepass (depending on if msaa is enabled or not)
