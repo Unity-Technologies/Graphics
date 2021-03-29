@@ -125,6 +125,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed Render Graph Debug UI not refreshing correctly in the Render Pipeline Debugger.
 - Fixed SSS materials in planar reflections (case 1319027).
 - Fixed Decal's pivot edit mode 2D slider gizmo not supporting multi-edition
+- Fixed issue were the final image is inverted in the Y axis. Occurred only on final Player (non-dev for any platform) that use Dynamic Resolution Scaling with Contrast Adaptive Sharpening filter.
 
 ### Changed
 - Changed Window/Render Pipeline/HD Render Pipeline Wizard to Window/Rendering/HDRP Wizard
