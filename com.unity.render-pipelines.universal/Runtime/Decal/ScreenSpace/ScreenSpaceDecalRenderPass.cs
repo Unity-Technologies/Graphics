@@ -31,9 +31,9 @@ namespace UnityEngine.Rendering.Universal
             m_ShaderTagIdList = new List<ShaderTagId>();
 
             if (m_Settings.supportAdditionalLights)
-                m_ShaderTagIdList.Add(new ShaderTagId("DecalScreenSpaceProjector"));
+                m_ShaderTagIdList.Add(new ShaderTagId(DecalShaderPassNames.DecalScreenSpaceProjector));
             else
-                m_ShaderTagIdList.Add(new ShaderTagId("DecalScreenSpaceMesh"));
+                m_ShaderTagIdList.Add(new ShaderTagId(DecalShaderPassNames.DecalScreenSpaceMesh));
         }
 
         public override void Execute(ScriptableRenderContext context, ref RenderingData renderingData)

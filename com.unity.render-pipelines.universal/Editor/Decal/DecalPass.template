@@ -165,7 +165,7 @@ Pass
             $SurfaceDescription.Alpha:          surfaceData.baseColor.w = surfaceDescription.Alpha * fadeFactor;
         #endif
 
-        #if defined(_MATERIAL_AFFECTS_NORMAL) && !defined(DECALS_1RT)
+        #if defined(_MATERIAL_AFFECTS_NORMAL) && !defined(_DBUFFER_MRT1)
             #if (SHADERPASS == SHADERPASS_DBUFFER_PROJECTOR) || (SHADERPASS == SHADERPASS_DECAL_SCREEN_SPACE_PROJECTOR) || (SHADERPASS == SHADERPASS_DECAL_GBUFFER_PROJECTOR)
                 $SurfaceDescription.NormalTS:   surfaceData.normalWS.xyz = mul((float3x3)normalToWorld, surfaceDescription.NormalTS);
             #elif (SHADERPASS == SHADERPASS_DBUFFER_MESH) || (SHADERPASS == SHADERPASS_DECAL_SCREEN_SPACE_MESH) || (SHADERPASS == SHADERPASS_DECAL_GBUFFER_MESH)
@@ -183,7 +183,7 @@ Pass
         #endif
 
             // In case of Smoothness / AO / Metal, all the three are always computed but color mask can change
-        #if !defined(DECALS_1RT) && !defined(DECALS_2RT)
+        #if !defined(_DBUFFER_MRT1) && !defined(_DBUFFER_MRT2)
             #ifdef _MATERIAL_AFFECTS_METAL
                 $SurfaceDescription.Metallic:       surfaceData.mask.x = surfaceDescription.Metallic;
             #endif

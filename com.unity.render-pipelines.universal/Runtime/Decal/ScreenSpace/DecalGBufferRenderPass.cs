@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using UnityEditor.Rendering.Universal;
 using UnityEngine.Rendering.Universal.Internal;
 
 namespace UnityEngine.Rendering.Universal
@@ -30,9 +31,9 @@ namespace UnityEngine.Rendering.Universal
 
             m_ShaderTagIdList = new List<ShaderTagId>();
             if (m_Settings.supportAdditionalLights)
-                m_ShaderTagIdList.Add(new ShaderTagId("DecalGBufferProjector"));
+                m_ShaderTagIdList.Add(new ShaderTagId(DecalShaderPassNames.DecalGBufferProjector));
             else
-                m_ShaderTagIdList.Add(new ShaderTagId("DecalGBufferMesh"));
+                m_ShaderTagIdList.Add(new ShaderTagId(DecalShaderPassNames.DecalGBufferMesh));
         }
 
         internal void Setup(DeferredLights deferredLights)

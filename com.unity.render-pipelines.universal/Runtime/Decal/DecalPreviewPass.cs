@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using UnityEditor.Rendering.Universal;
 
 namespace UnityEngine.Rendering.Universal
 {
@@ -17,8 +18,7 @@ namespace UnityEngine.Rendering.Universal
             m_FilteringSettings = new FilteringSettings(RenderQueueRange.opaque, -1);
 
             m_ShaderTagIdList = new List<ShaderTagId>();
-            //m_ShaderTagIdList.Add(new ShaderTagId("DecalPreview"));
-            m_ShaderTagIdList.Add(new ShaderTagId("DecalScreenSpaceMesh"));
+            m_ShaderTagIdList.Add(new ShaderTagId(DecalShaderPassNames.DecalScreenSpaceMesh));
         }
 
         public override void Execute(ScriptableRenderContext context, ref RenderingData renderingData)

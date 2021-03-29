@@ -120,7 +120,7 @@ Shader "Universal Render Pipeline/Lit"
             #pragma multi_compile_fragment _ _SCREEN_SPACE_OCCLUSION
             #pragma multi_compile _ LIGHTMAP_SHADOW_MIXING
             #pragma multi_compile _ SHADOWS_SHADOWMASK
-            #pragma multi_compile_fragment _ DECALS_1RT DECALS_2RT DECALS_3RT
+            #pragma multi_compile_fragment _ _DBUFFER_MRT1 _DBUFFER_MRT2 _DBUFFER_MRT3
 
             // -------------------------------------
             // Unity defined keywords
@@ -193,6 +193,7 @@ Shader "Universal Render Pipeline/Lit"
             HLSLPROGRAM
             #pragma exclude_renderers gles gles3 glcore
             #pragma target 4.5
+            #pragma enable_d3d11_debug_symbols
 
             // -------------------------------------
             // Material Keywords
@@ -219,7 +220,7 @@ Shader "Universal Render Pipeline/Lit"
             #pragma multi_compile _ _SHADOWS_SOFT
             #pragma multi_compile _ LIGHTMAP_SHADOW_MIXING
             #pragma multi_compile _ SHADOWS_SHADOWMASK
-            #pragma multi_compile_fragment _ DECALS_1RT DECALS_2RT DECALS_3RT
+            #pragma multi_compile_fragment _ _DBUFFER_MRT1 _DBUFFER_MRT2 _DBUFFER_MRT3
 
             // -------------------------------------
             // Unity defined keywords
@@ -411,7 +412,7 @@ Shader "Universal Render Pipeline/Lit"
             #pragma multi_compile _ LIGHTMAP_SHADOW_MIXING
             #pragma multi_compile _ SHADOWS_SHADOWMASK
             #pragma multi_compile_fragment _ _SCREEN_SPACE_OCCLUSION
-            #pragma multi_compile_fragment _ DECALS_1RT DECALS_2RT DECALS_3RT
+            #pragma multi_compile_fragment _ _DBUFFER_MRT1 _DBUFFER_MRT2 _DBUFFER_MRT3
 
             // -------------------------------------
             // Unity defined keywords

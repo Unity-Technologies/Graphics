@@ -179,11 +179,8 @@ FragmentOutput LitGBufferPassFragment(Varyings input)
     InputData inputData;
     InitializeInputData(input, surfaceData.normalTS, inputData);
 
-#if defined(DECALS_1RT) || defined(DECALS_2RT) || defined(DECALS_3RT)
-    PositionInputs posInput = GetPositionInput(input.positionCS, _ScreenSize.zw);
-
-    DecalSurfaceData decalSurfaceData = GetDecalSurfaceData(posInput, input.normalWS.xyz, surfaceData.alpha);
-    ApplyDecalToSurfaceData(decalSurfaceData, surfaceData, inputData);
+#if defined(_DBUFFER)
+    ApplyDecalToSurfaceData(input.positionCS, surfaceData, inputData);
 #endif
 
     // Stripped down version of UniversalFragmentPBR().

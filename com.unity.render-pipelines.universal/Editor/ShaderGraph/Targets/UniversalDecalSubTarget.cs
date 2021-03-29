@@ -104,13 +104,13 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
             // TODO: Check if we can move this to conditional fields
 
             // Emissive pass only have the emission keyword
-            if (pass.lightMode == DecalSystem.s_MaterialDecalPassNames[(int)DecalSystem.MaterialDecalPass.DBufferProjector] ||
-                pass.lightMode == DecalSystem.s_MaterialDecalPassNames[(int)DecalSystem.MaterialDecalPass.DBufferMesh] ||
+            if (pass.lightMode == DecalShaderPassNames.DBufferProjector ||
+                pass.lightMode == DecalShaderPassNames.DBufferMesh ||
                 pass.lightMode == "DecalPreview" ||
-                pass.lightMode == "DecalScreenSpaceProjector" ||
-                pass.lightMode == "DecalScreenSpaceMesh" ||
-                pass.lightMode == "DecalGBufferProjector" ||
-                pass.lightMode == "DecalGBufferMesh"
+                pass.lightMode == DecalShaderPassNames.DecalScreenSpaceProjector ||
+                pass.lightMode == DecalShaderPassNames.DecalScreenSpaceMesh ||
+                pass.lightMode == DecalShaderPassNames.DecalGBufferProjector ||
+                pass.lightMode == DecalShaderPassNames.DecalGBufferMesh
             )
             {
                 // Make copy to avoid overwriting static
@@ -128,10 +128,10 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
                     pass.defines.Add(DecalDefines.AffectsSmoothness);
             }
 
-            if (pass.lightMode == DecalSystem.s_MaterialDecalPassNames[(int)DecalSystem.MaterialDecalPass.DecalMeshForwardEmissive] ||
-                pass.lightMode == DecalSystem.s_MaterialDecalPassNames[(int)DecalSystem.MaterialDecalPass.DBufferMesh] ||
-                pass.lightMode == "DecalScreenSpaceMesh" ||
-                pass.lightMode == "DecalGBufferMesh")
+            if (pass.lightMode == DecalShaderPassNames.DecalMeshForwardEmissive ||
+                pass.lightMode == DecalShaderPassNames.DBufferMesh ||
+                pass.lightMode == DecalShaderPassNames.DecalScreenSpaceMesh ||
+                pass.lightMode == DecalShaderPassNames.DecalGBufferMesh)
             {
                 // Make copy to avoid overwriting static
                 pass.keywords = pass.keywords == null ? new KeywordCollection() : new KeywordCollection() { pass.keywords };
@@ -143,8 +143,8 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
 
         private void CollectPassRenderState(ref PassDescriptor pass)
         {
-            if (pass.lightMode == "DecalGBufferProjector" ||
-                pass.lightMode == "DecalGBufferMesh")
+            if (pass.lightMode == DecalShaderPassNames.DecalGBufferProjector ||
+                pass.lightMode == DecalShaderPassNames.DecalGBufferMesh)
             {
                 // Make copy to avoid overwriting static
                 pass.renderStates = new RenderStateCollection() { pass.renderStates };
@@ -161,14 +161,14 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
                 else
                     pass.renderStates.Add(RenderState.ColorMask("ColorMask 0 2"));
 
-                //if (decalData.affectsEmission || pass.lightMode == "DecalGBufferMesh") // GBufferMesh uses emission for GI
+                //if (decalData.affectsEmission || pass.lightMode == DecalShaderPassNames.DecalGBufferMesh) // GBufferMesh uses emission for GI
                 pass.renderStates.Add(RenderState.ColorMask("ColorMask RGB 3"));
                 //else
                 //    pass.renderStates.Add(RenderState.ColorMask("ColorMask 0 3"));
             }
 
-            if (pass.lightMode == DecalSystem.s_MaterialDecalPassNames[(int)DecalSystem.MaterialDecalPass.DBufferProjector] ||
-                pass.lightMode == DecalSystem.s_MaterialDecalPassNames[(int)DecalSystem.MaterialDecalPass.DBufferMesh])
+            if (pass.lightMode == DecalShaderPassNames.DBufferProjector ||
+                pass.lightMode == DecalShaderPassNames.DBufferMesh)
             {
                 // Make copy to avoid overwriting static
                 pass.renderStates = new RenderStateCollection() { pass.renderStates };
@@ -418,9 +418,9 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
             public static PassDescriptor DBufferProjector = new PassDescriptor()
             {
                 // Definition
-                displayName = DecalSystem.s_MaterialDecalPassNames[(int)DecalSystem.MaterialDecalPass.DBufferProjector],
+                displayName = DecalShaderPassNames.DBufferProjector,
                 referenceName = "SHADERPASS_DBUFFER_PROJECTOR",
-                lightMode = DecalSystem.s_MaterialDecalPassNames[(int)DecalSystem.MaterialDecalPass.DBufferProjector],
+                lightMode = DecalShaderPassNames.DBufferProjector,
                 useInPreview = false,
 
                 // Template
@@ -443,9 +443,9 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
             public static PassDescriptor ForwardEmissiveProjector = new PassDescriptor()
             {
                 // Definition
-                displayName = DecalSystem.s_MaterialDecalPassNames[(int)DecalSystem.MaterialDecalPass.DecalProjectorForwardEmissive],
+                displayName = DecalShaderPassNames.DecalProjectorForwardEmissive,
                 referenceName = "SHADERPASS_FORWARD_EMISSIVE_PROJECTOR",
-                lightMode = DecalSystem.s_MaterialDecalPassNames[(int)DecalSystem.MaterialDecalPass.DecalProjectorForwardEmissive],
+                lightMode = DecalShaderPassNames.DecalProjectorForwardEmissive,
                 useInPreview = false,
 
                 // Template
@@ -469,9 +469,9 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
             public static PassDescriptor ScreenSpaceProjector = new PassDescriptor()
             {
                 // Definition
-                displayName = "DecalScreenSpaceProjector",
+                displayName = DecalShaderPassNames.DecalScreenSpaceProjector,
                 referenceName = "SHADERPASS_DECAL_SCREEN_SPACE_PROJECTOR",
-                lightMode = "DecalScreenSpaceProjector",
+                lightMode = DecalShaderPassNames.DecalScreenSpaceProjector,
                 useInPreview = false,
 
                 // Template
@@ -496,9 +496,9 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
             public static PassDescriptor GBufferProjector = new PassDescriptor()
             {
                 // Definition
-                displayName = "DecalGBufferProjector",
+                displayName = DecalShaderPassNames.DecalGBufferProjector,
                 referenceName = "SHADERPASS_DECAL_GBUFFER_PROJECTOR",
-                lightMode = "DecalGBufferProjector",
+                lightMode = DecalShaderPassNames.DecalGBufferProjector,
                 useInPreview = false,
 
                 // Template
@@ -523,9 +523,9 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
             public static PassDescriptor DBufferMesh = new PassDescriptor()
             {
                 // Definition
-                displayName = DecalSystem.s_MaterialDecalPassNames[(int)DecalSystem.MaterialDecalPass.DBufferMesh],
+                displayName = DecalShaderPassNames.DBufferMesh,
                 referenceName = "SHADERPASS_DBUFFER_MESH",
-                lightMode = DecalSystem.s_MaterialDecalPassNames[(int)DecalSystem.MaterialDecalPass.DBufferMesh],
+                lightMode = DecalShaderPassNames.DBufferMesh,
                 useInPreview = false,
 
                 // Template
@@ -550,9 +550,9 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
             public static PassDescriptor ForwardEmissiveMesh = new PassDescriptor()
             {
                 // Definition
-                displayName = DecalSystem.s_MaterialDecalPassNames[(int)DecalSystem.MaterialDecalPass.DecalMeshForwardEmissive],
+                displayName = DecalShaderPassNames.DecalMeshForwardEmissive,
                 referenceName = "SHADERPASS_FORWARD_EMISSIVE_MESH",
-                lightMode = DecalSystem.s_MaterialDecalPassNames[(int)DecalSystem.MaterialDecalPass.DecalMeshForwardEmissive],
+                lightMode = DecalShaderPassNames.DecalMeshForwardEmissive,
                 useInPreview = false,
 
                 // Template
@@ -577,9 +577,9 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
             public static PassDescriptor ScreenSpaceMesh = new PassDescriptor()
             {
                 // Definition
-                displayName = "DecalScreenSpaceMesh",
+                displayName = DecalShaderPassNames.DecalScreenSpaceMesh,
                 referenceName = "SHADERPASS_DECAL_SCREEN_SPACE_MESH",
-                lightMode = "DecalScreenSpaceMesh",
+                lightMode = DecalShaderPassNames.DecalScreenSpaceMesh,
                 useInPreview = true,
 
                 // Template
@@ -604,9 +604,9 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
             public static PassDescriptor GBufferMesh = new PassDescriptor()
             {
                 // Definition
-                displayName = "DecalGBufferMesh",
+                displayName = DecalShaderPassNames.DecalGBufferMesh,
                 referenceName = "SHADERPASS_DECAL_GBUFFER_MESH",
-                lightMode = "DecalGBufferMesh",
+                lightMode = DecalShaderPassNames.DecalGBufferMesh,
                 useInPreview = false,
 
                 // Template
@@ -831,7 +831,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
                 { Pragma.Target(ShaderModel.Target25) }, // Derivatives
                 { Pragma.Vertex("Vert") },
                 { Pragma.Fragment("Frag") },
-                { Pragma.EnableD3D11DebugSymbols },
+                //{ Pragma.EnableD3D11DebugSymbols },
                 { Pragma.MultiCompileInstancing },
                 { Pragma.MultiCompileFog },
             };
@@ -841,7 +841,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
                 { Pragma.Target(ShaderModel.Target35) }, // MRT4
                 { Pragma.Vertex("Vert") },
                 { Pragma.Fragment("Frag") },
-                { Pragma.EnableD3D11DebugSymbols },
+                //{ Pragma.EnableD3D11DebugSymbols },
                 { Pragma.MultiCompileInstancing },
                 { Pragma.MultiCompileFog },
             };
@@ -1069,17 +1069,18 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
         #region Includes
         static class DecalIncludes
         {
-            const string kShaderVariablesDecal = "Packages/com.unity.render-pipelines.universal/Runtime/Decal/ShaderVariablesDecal.hlsl";
-            const string kPassDecal = "Packages/com.unity.render-pipelines.universal/Runtime/Decal/ShaderPassDecal.hlsl";
+            const string kDecalInput = "Packages/com.unity.render-pipelines.universal/ShaderLibrary/DecalInput.hlsl";
+            const string kShaderVariablesDecal = "Packages/com.unity.render-pipelines.universal/Editor/ShaderGraph/Includes/ShaderVariablesDecal.hlsl";
+            const string kPassDecal = "Packages/com.unity.render-pipelines.universal/Editor/ShaderGraph/Includes/ShaderPassDecal.hlsl";
             const string kShaderPass = "Packages/com.unity.render-pipelines.universal/Editor/ShaderGraph/Includes/ShaderPass.hlsl";
             const string kVaryings = "Packages/com.unity.render-pipelines.universal/Editor/ShaderGraph/Includes/Varyings.hlsl";
-
-            const string kDecal = "Packages/com.unity.render-pipelines.universal/Runtime/Decal/Decal.hlsl"; // DBuffer
-            const string kGBuffer = "Packages/com.unity.render-pipelines.universal/ShaderLibrary/UnityGBuffer.hlsl"; // GBuffer
+            const string kDBuffer = "Packages/com.unity.render-pipelines.universal/ShaderLibrary/DBuffer.hlsl";
+            const string kGBuffer = "Packages/com.unity.render-pipelines.universal/ShaderLibrary/UnityGBuffer.hlsl";
 
             public static IncludeCollection DecalPregraph = new IncludeCollection
             {
                 { kShaderPass, IncludeLocation.Pregraph },
+                { kDecalInput, IncludeLocation.Pregraph },
                 { kShaderVariablesDecal, IncludeLocation.Pregraph },
             };
 
@@ -1095,7 +1096,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
                 { CoreIncludes.CorePregraph },
                 { CoreIncludes.ShaderGraphPregraph },
                 { DecalPregraph },
-                { kDecal, IncludeLocation.Pregraph },
+                { kDBuffer, IncludeLocation.Pregraph },
 
                 // Post-graph
                 { DecalPostgraph },

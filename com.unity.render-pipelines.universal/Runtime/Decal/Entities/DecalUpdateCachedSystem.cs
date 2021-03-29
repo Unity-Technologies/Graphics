@@ -1,5 +1,6 @@
 using Unity.Collections;
 using Unity.Mathematics;
+using UnityEditor.Rendering.Universal;
 using UnityEngine;
 using UnityEngine.Jobs;
 using UnityEngine.Rendering;
@@ -156,10 +157,10 @@ public class DecalUpdateCachedSystem
             int passIndexEmissive = material.FindPass(DecalUtilities.GetDecalPassName(DecalUtilities.MaterialDecalPass.DecalProjectorForwardEmissive));
             cachedChunk.passIndexEmissive = passIndexEmissive;
 
-            int passIndexScreenSpace = material.FindPass("DecalScreenSpaceProjector");
+            int passIndexScreenSpace = material.FindPass(DecalShaderPassNames.DecalScreenSpaceProjector);
             cachedChunk.passIndexScreenSpace = passIndexScreenSpace;
 
-            int passIndexGBuffer = material.FindPass("DecalGBufferProjector");
+            int passIndexGBuffer = material.FindPass(DecalShaderPassNames.DecalGBufferProjector);
             cachedChunk.passIndexGBuffer = passIndexGBuffer;
 
             cachedChunk.enabledInstancing = material.enableInstancing;

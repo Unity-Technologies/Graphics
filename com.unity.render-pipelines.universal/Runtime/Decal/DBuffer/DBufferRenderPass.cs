@@ -115,9 +115,9 @@ namespace UnityEngine.Rendering.Universal
                 context.ExecuteCommandBuffer(cmd);
                 cmd.Clear();
 
-                CoreUtils.SetKeyword(cmd, "DECALS_1RT", m_Settings.surfaceData == DecalSurfaceData.Albedo);
-                CoreUtils.SetKeyword(cmd, "DECALS_2RT", m_Settings.surfaceData == DecalSurfaceData.AlbedoNormal);
-                CoreUtils.SetKeyword(cmd, "DECALS_3RT", m_Settings.surfaceData == DecalSurfaceData.AlbedoNormalMask);
+                CoreUtils.SetKeyword(cmd, "_DBUFFER_MRT1", m_Settings.surfaceData == DecalSurfaceData.Albedo);
+                CoreUtils.SetKeyword(cmd, "_DBUFFER_MRT2", m_Settings.surfaceData == DecalSurfaceData.AlbedoNormal);
+                CoreUtils.SetKeyword(cmd, "_DBUFFER_MRT3", m_Settings.surfaceData == DecalSurfaceData.AlbedoNormalMask);
 
                 // TODO: This should be replace with mrt clear once we support it
                 // Clear render targets
@@ -158,9 +158,9 @@ namespace UnityEngine.Rendering.Universal
                 throw new System.ArgumentNullException("cmd");
             }
 
-            CoreUtils.SetKeyword(cmd, "DECALS_1RT", false);
-            CoreUtils.SetKeyword(cmd, "DECALS_2RT", false);
-            CoreUtils.SetKeyword(cmd, "DECALS_3RT", false);
+            CoreUtils.SetKeyword(cmd, "_DBUFFER_MRT1", false);
+            CoreUtils.SetKeyword(cmd, "_DBUFFER_MRT2", false);
+            CoreUtils.SetKeyword(cmd, "_DBUFFER_MRT3", false);
 
             for (int dbufferIndex = 0; dbufferIndex < m_DBufferCount; ++dbufferIndex)
             {

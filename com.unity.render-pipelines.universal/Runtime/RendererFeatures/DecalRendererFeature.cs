@@ -186,7 +186,7 @@ namespace UnityEngine.Rendering.Universal
         public Shader copyDepthPS;
 
         [HideInInspector]
-        [Reload("Runtime/Decal/DBufferClear.shader")]
+        [Reload("Runtime/Decal/DBuffer/DBufferClear.shader")]
         public Shader dBufferClear;
 
         private CopyDepthPass m_CopyDepthPass;

@@ -43,7 +43,7 @@
 #endif
 
 #ifdef DECAL_MESH
-#include "Packages/com.unity.render-pipelines.universal/Runtime/Decal/DecalMeshBiasTypeEnum.cs.hlsl"
+#include "Packages/com.unity.render-pipelines.universal/Editor/ShaderGraph/Includes/DecalMeshBiasTypeEnum.cs.hlsl"
 #endif
 #ifdef DECAL_RECONSTRUCT_NORMAL
 #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/NormalReconstruction.hlsl"
