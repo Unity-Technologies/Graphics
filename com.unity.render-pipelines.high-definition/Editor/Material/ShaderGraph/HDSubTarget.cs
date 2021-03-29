@@ -186,11 +186,15 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                 // Set default values for HDRP "surface" passes:
                 if (passDescriptor.structs == null)
                     passDescriptor.structs = CoreStructCollections.Default;
-                if (passDescriptor.fieldDependencies == null)
-                    passDescriptor.fieldDependencies = CoreFieldDependencies.Default;
 
-                if (TargetsVFX())
-                    passDescriptor.fieldDependencies.Add(VFXHDRPSubTarget.ElementSpaceDependencies);
+                if (passDescriptor.fieldDependencies == null)
+                {
+                    // For now we handle VFX here since the only target that specifies field dependencies is decal, which is currently not supported.
+                    if (TargetsVFX())
+                        passDescriptor.fieldDependencies = VFXHDRPSubTarget.FieldDependencies;
+                    else
+                        passDescriptor.fieldDependencies = CoreFieldDependencies.Default;
+                }
 
                 finalPasses.Add(passDescriptor, passes[i].fieldConditions);
             }
