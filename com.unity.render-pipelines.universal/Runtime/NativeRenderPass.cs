@@ -11,12 +11,12 @@ namespace UnityEngine.Rendering.Universal
 {
     public static class NativeRenderPass
     {
-        internal const int kRenderPassMapSize = 10;
-        internal const int kRenderPassMaxCount = 20;
-        internal static Dictionary<Hash128, int[]> mergeableRenderPassesMap = new Dictionary<Hash128, int[]>(kRenderPassMapSize);
-        internal static int[][] mergeableRenderPassesMapArrays;
-        internal static Hash128[] sceneIndexToPassHash = new Hash128[kRenderPassMaxCount];
-        internal static Dictionary<Hash128, int> renderPassesAttachmentCount = new Dictionary<Hash128, int>(kRenderPassMapSize);
+        private const int kRenderPassMapSize = 10;
+        private const int kRenderPassMaxCount = 20;
+        private static Dictionary<Hash128, int[]> mergeableRenderPassesMap = new Dictionary<Hash128, int[]>(kRenderPassMapSize);
+        private static int[][] mergeableRenderPassesMapArrays;
+        private static Hash128[] sceneIndexToPassHash = new Hash128[kRenderPassMaxCount];
+        private static Dictionary<Hash128, int> renderPassesAttachmentCount = new Dictionary<Hash128, int>(kRenderPassMapSize);
 
         private static class Profiling
         {
@@ -28,6 +28,23 @@ namespace UnityEngine.Rendering.Universal
 
 
             public static readonly ProfilingSampler sortRenderPasses            = new ProfilingSampler($"Sort Render Passes");
+        }
+
+        internal static void ResetFrameData()
+        {
+            if (mergeableRenderPassesMapArrays == null)
+                mergeableRenderPassesMapArrays = new int[NativeRenderPass.kRenderPassMapSize][];
+
+            for (int i = 0; i < kRenderPassMapSize; ++i)
+            {
+                if (mergeableRenderPassesMapArrays[i] == null)
+                    mergeableRenderPassesMapArrays[i] = new int[kRenderPassMaxCount];
+
+                for (int j = 0; j < kRenderPassMaxCount; ++j)
+                {
+                    mergeableRenderPassesMapArrays[i][j] = -1;
+                }
+            }
         }
 
         internal static void SetupFrameData(CameraData cameraData, ref List<ScriptableRenderPass> m_ActiveRenderPassQueue, bool isRenderPassEnabled)

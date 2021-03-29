@@ -475,15 +475,7 @@ namespace UnityEngine.Rendering.Universal
                 m_RendererFeatures.Add(feature);
             }
 
-            NativeRenderPass.mergeableRenderPassesMapArrays = new int[NativeRenderPass.kRenderPassMapSize][];
-            for (int i = 0; i < NativeRenderPass.kRenderPassMapSize; ++i)
-            {
-                NativeRenderPass.mergeableRenderPassesMapArrays[i] = new int[NativeRenderPass.kRenderPassMaxCount];
-                for (int j = 0; j < NativeRenderPass.kRenderPassMaxCount; ++j)
-                {
-                    NativeRenderPass.mergeableRenderPassesMapArrays[i][j] = -1;
-                }
-            }
+            NativeRenderPass.ResetFrameData();
 
             useRenderPassEnabled = data.useNativeRenderPass;
             Clear(CameraRenderType.Base);
@@ -1241,13 +1233,7 @@ namespace UnityEngine.Rendering.Universal
                 m_ActiveRenderPassQueue.Clear();
             }
 
-            for (int i = 0; i < NativeRenderPass.kRenderPassMapSize; ++i)
-            {
-                for (int j = 0; j < NativeRenderPass.kRenderPassMaxCount; ++j)
-                {
-                    NativeRenderPass.mergeableRenderPassesMapArrays[i][j] = -1;
-                }
-            }
+            NativeRenderPass.ResetFrameData();
 
             context.ExecuteCommandBuffer(cmd);
             CommandBufferPool.Release(cmd);
