@@ -27,16 +27,16 @@ For example, an atlas of size 1024 x 1024 can fit:
 
 ### Matching shadow atlas resolution to Built-In RP settings
 
-In projects that used the **Built-In Render Pipeline**, you controlled shadow maps resolution by selecting a shadow resolution level ("Low", "Medium", "High", "Very High") in your project's Quality Settings.  
-For each shadow map, Unity then decided which resolution to actually use, based on the algorithm explained in the [Built-In RP Manual Page about Shadow Mapping](https://docs.unity3d.com/Manual/shadow-mapping.html).  
+In projects that used the **Built-In Render Pipeline**, you controlled shadow maps resolution by selecting a shadow resolution level ("Low", "Medium", "High", "Very High") in your project's Quality Settings.
+For each shadow map, Unity then decided which resolution to actually use, based on the algorithm explained in the [Built-In RP Manual Page about Shadow Mapping](https://docs.unity3d.com/Manual/shadow-mapping.html).
 You could then inspect in the [Frame Debugger](https://docs.unity3d.com/Manual/FrameDebugger.html) the resolution actually used for a specific shadow map.
 
-In **Universal Render Pipeline**, you specify the resolution of the Shadow Atlases. Therefore you can control the amount of video memory your application will allocate for shadows.  
+In **Universal Render Pipeline**, you specify the resolution of the Shadow Atlases. Therefore you can control the amount of video memory your application will allocate for shadows.
 
-If you want to make sure that the resolution Universal RP uses for a specific punctual light shadow in your project, will not go under a specific value: Consider the number of shadow maps required in the scene, and select a big enough shadow atlas resolution.  
+If you want to make sure that the resolution Universal RP uses for a specific punctual light shadow in your project, will not go under a specific value: Consider the number of shadow maps required in the scene, and select a big enough shadow atlas resolution.
 
-For example: if your scene has four Spot Lights and one Point light ; and you want each shadow map resolution to be at least 256x256.  
-Your scene needs to render ten shadow maps (one for each Spot Light, and six for the Point Light), each with resolution 256x256.  
+For example: if your scene has four Spot Lights and one Point light ; and you want each shadow map resolution to be at least 256x256.
+Your scene needs to render ten shadow maps (one for each Spot Light, and six for the Point Light), each with resolution 256x256.
 Using a shadow atlas of size 512x512 would not be enough, because it can contain only four maps of size 256x256. Therefore, you should use a shadow atlas of size 1024x1024, that can contain up to sixteen maps of size 256x256.
 
 
