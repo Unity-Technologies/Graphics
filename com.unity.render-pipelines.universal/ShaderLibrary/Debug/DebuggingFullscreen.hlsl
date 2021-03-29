@@ -15,13 +15,6 @@ bool CalculateDebugColorRenderingSettings(half4 color, float2 uv, inout half4 de
     switch(_DebugFullScreenMode)
     {
         case DEBUGFULLSCREENMODE_DEPTH:
-        {
-            half4 sampleColor = SAMPLE_TEXTURE2D(_DebugTexture, sampler_DebugTexture, uv);
-
-            debugColor = half4(sampleColor.rrr, 1);
-            return true;
-        }
-
         case DEBUGFULLSCREENMODE_MAIN_LIGHT_SHADOW_MAP:
         case DEBUGFULLSCREENMODE_ADDITIONAL_LIGHTS_SHADOW_MAP:
         {
@@ -32,7 +25,8 @@ bool CalculateDebugColorRenderingSettings(half4 color, float2 uv, inout half4 de
             {
                 float2 debugTextureUv = float2(uvOffset.x / _DebugTextureDisplayRect.z, uvOffset.y / _DebugTextureDisplayRect.w);
 
-                debugColor = SAMPLE_TEXTURE2D(_DebugTexture, sampler_DebugTexture, debugTextureUv);
+                half4 sampleColor = SAMPLE_TEXTURE2D(_DebugTexture, sampler_DebugTexture, debugTextureUv);
+                debugColor = _DebugFullScreenMode == DEBUGFULLSCREENMODE_DEPTH ? half4(sampleColor.rrr, 1) : sampleColor;
                 return true;
             }
             else
@@ -79,7 +73,7 @@ bool CalculateDebugColorValidationSettings(half4 color, float2 uv, inout half4 d
             float val;
             if (_ValidationChannels == PIXELVALIDATIONCHANNELS_RGB)
             {
-                val = LinearRgbToLuminance(color.rgb);
+                val = Luminance(color.rgb);
             }
             else if (_ValidationChannels == PIXELVALIDATIONCHANNELS_R)
             {
@@ -103,7 +97,7 @@ bool CalculateDebugColorValidationSettings(half4 color, float2 uv, inout half4 d
             else if (val > _RangeMaximum)
                 debugColor = _DebugValidateAboveMaxThresholdColor;
             else
-                debugColor = half4(LinearRgbToLuminance(color.rgb).rrr, 1);
+                debugColor = half4(Luminance(color.rgb).rrr, 1);
 
             return true;
         }
