@@ -1026,7 +1026,8 @@ namespace UnityEngine.Rendering.HighDefinition
 
         void RefreshRenderingDebug<T>(DebugUI.Field<T> field, T value)
         {
-            UnregisterDebugItems(k_PanelRendering, m_DebugRenderingItems);
+            // Explicitly invoke the render debug unregister to handle render graph items.
+            UnregisterRenderingDebug();
             RegisterRenderingDebug();
         }
 

@@ -6,6 +6,9 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ## [10.5.0] - 2020-03-15
 
+### Added
+Added a fallback for the ray traced directional shadow in case of a transmission (case 1307870).
+ 
 ### Fixed
 - Fixed grey screen on playstation platform when histogram exposure is enabled but the curve mapping is not used.
 - Fixed HDRPAsset loosing its reference to the ray tracing resources when clicking on a different quality level that doesn't have ray tracing (case 1320304).
@@ -22,6 +25,9 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed an issue with Decal normal blending producing NaNs.
 - Fixed issue in wizard when resource folder don't exist
 - Fixed issue with Decal projector edge on Metal (case 1286074)
+- Fixed Render Graph Debug UI not refreshing correctly in the Render Pipeline Debugger.
+- Fixed SSS materials in planar reflections (case 1319027).
+- Fixed Decal's pivot edit mode 2D slider gizmo not supporting multi-edition
 
 ### Changed
 - Reduced the maximal number of bounces for both RTGI and RTR (case 1318876).
