@@ -73,10 +73,6 @@ namespace UnityEngine.Rendering.Universal
         Level,
         Count,
         Ratio
-
-        //CountReduction,
-        //StreamingMipBudget,
-        //StreamingMip,
     }
 
     [GenerateHLSL]
@@ -91,7 +87,9 @@ namespace UnityEngine.Rendering.Universal
     public enum DebugValidationMode
     {
         None,
+        [InspectorName("Highlight NaN, Inf and Negative Values")]
         HighlightNanInfNegative,
+        [InspectorName("Highlight Values Outside Range")]
         HighlightOutsideOfRange
     }
 
