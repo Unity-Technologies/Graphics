@@ -38,6 +38,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Added a Scale Mode setting for Decals.
 - Added LTC Fitting tools for all BRDFs that HDRP supports.
 - Added Area Light support for Hair and Fabric master nodes.
+- Added a fallback for the ray traced directional shadow in case of a transmission (case 1307870).
 
 ### Fixed
 - Fixed Intensity Multiplier not affecting realtime global illumination.
@@ -125,6 +126,9 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed issue with Decal projector edge on Metal (case 1286074)
 - Fixed Exposure Frame Settings control issues on Planar reflection probes (case 1312153). Dynamic reflections now keep their own exposure relative to their parent camera.
 - Fixed multicamera rendering for Dynamic Resolution Scaling using dx12 hardware mode. Using a planar reflection probe (another render camera) should be safe.
+- Fixed Render Graph Debug UI not refreshing correctly in the Render Pipeline Debugger.
+- Fixed SSS materials in planar reflections (case 1319027).
+- Fixed Decal's pivot edit mode 2D slider gizmo not supporting multi-edition
 
 ### Changed
 - Changed Window/Render Pipeline/HD Render Pipeline Wizard to Window/Rendering/HDRP Wizard
