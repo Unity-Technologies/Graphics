@@ -39,8 +39,6 @@ namespace UnityEditor.ShaderGraph
 
         public override bool WorksWithSRP(RenderPipelineAsset scriptableRenderPipeline) => true;
 
-        public override bool WorksWithVFX() => false;
-
         static class SubShaders
         {
             public static SubShaderDescriptor Preview = new SubShaderDescriptor()

@@ -108,7 +108,7 @@ namespace UnityEditor.ShaderGraph.Drawing.Inspector.PropertyDrawers
             }
 
             // Warn the user if there are multiple VFX compatible targets and one of them is the legacy VFX Target.
-            if (graphData.m_ActiveTargets.Count(t => t.value.WorksWithVFX()) == 1 &&
+            if (graphData.m_ActiveTargets.Count(t => t.value.SupportsVFX()) == 1 &&
                 graphData.m_ActiveTargets.Count(t => t.value is VFXTarget) == 1)
             {
                 var vfxWarning = new HelpBoxRow(MessageType.Info);

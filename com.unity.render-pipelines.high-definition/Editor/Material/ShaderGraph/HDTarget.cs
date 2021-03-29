@@ -45,7 +45,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
         Custom
     }
 
-    sealed class HDTarget : Target, IHasMetadata, ILegacyTarget
+    sealed class HDTarget : Target, IHasMetadata, ILegacyTarget, IMaySupportVFX
     {
         // Constants
         static readonly GUID kSourceCodeGuid = new GUID("61d9843d4027e3e4a924953135f76f3c"); // HDTarget.cs
@@ -366,7 +366,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             return scriptableRenderPipeline?.GetType() == typeof(HDRenderPipelineAsset);
         }
 
-        public override bool WorksWithVFX()
+        public bool SupportsVFX()
         {
             if (m_ActiveSubTarget.value == null)
                 return false;

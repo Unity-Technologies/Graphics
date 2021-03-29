@@ -513,7 +513,7 @@ namespace UnityEditor.ShaderGraph
 
         // TODO: Need a better way to handle this
 #if VFX_GRAPH_10_0_0_OR_NEWER
-        public bool hasVFXCompatibleTarget => activeTargets.Any(o => o.WorksWithVFX());
+        public bool hasVFXCompatibleTarget => activeTargets.Any(o => o.SupportsVFX());
         public bool hasVFXTarget
         {
             get

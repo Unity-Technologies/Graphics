@@ -350,7 +350,7 @@ Shader ""Hidden/GraphErrorShader2""
         // remove this container.
         static ShaderGraphVfxAsset GenerateVfxShaderGraphAsset(GraphData graph)
         {
-            var target = graph.activeTargets.FirstOrDefault(x => x.WorksWithVFX());
+            var target = graph.activeTargets.FirstOrDefault(x => x.SupportsVFX());
 
             if (target == null)
                 return null;
