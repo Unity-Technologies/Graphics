@@ -84,7 +84,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                     var depthUnlit = descriptor.passes.FirstOrDefault(p => p.descriptor.lightMode == "DepthForwardOnly");
                     depthUnlit.descriptor.requiredFields.Add(HDStructFields.FragInputs.tangentToWorld);
 
-                    if (VFXSubTarget.IsConfigured())
+                    if (TargetsVFX())
                     {
                         // VFX currently suffers from an issue where expressions that lead to particle to clip space computation must be exactly identical in both depth and forward pass.
                         // Thus we are forced to include TBN for forward pass otherwise the compiler induces potential reordering in transform computation,

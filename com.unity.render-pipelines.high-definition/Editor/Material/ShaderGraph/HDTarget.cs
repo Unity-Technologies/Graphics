@@ -379,7 +379,10 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
 
         public void ConfigureContextData(VFXContext context, VFXContextCompiledData data)
         {
-            Debug.Log("Invoked HDTarget.ConfigureContextData.");
+            if (!(m_ActiveSubTarget.value is IRequireVFXContext vfxSubtarget))
+                return;
+
+            vfxSubtarget.ConfigureContextData(context, data);
         }
     }
 

@@ -63,7 +63,7 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
             yield return PostProcessSubShader(GetSubShaderDescriptor());
 
             // Always omit DXR SubShader for VFX until DXR support is added.
-            if (!VFXSubTarget.IsConfigured())
+            if (!TargetsVFX())
             {
                 if (supportRaytracing || supportPathtracing)
                     yield return PostProcessSubShader(GetRaytracingSubShaderDescriptor());
