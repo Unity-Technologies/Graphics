@@ -62,18 +62,13 @@ namespace UnityEngine.Rendering
         }
 
         /// <summary>
-        /// Implicit conversion operator to RenderTexture
+        /// Implicit conversion operator to RenderTargetIdentifier
         /// </summary>
         /// <param name="handle">Input RTHandle</param>
-        /// <returns>RenderTexture representation of the RTHandle.</returns>
-        public static implicit operator RenderTexture(RTHandle handle)
+        /// <returns>RenderTargetIdentifier representation of the RTHandle.</returns>
+        public static implicit operator RenderTargetIdentifier(RTHandle handle)
         {
-            // If RTHandle is null then conversion should give a null RenderTexture
-            if (handle == null)
-                return null;
-
-            Debug.Assert(handle.rt != null, "RTHandle was created using a regular Texture and is used as a RenderTexture");
-            return handle.rt;
+            return handle != null ? handle.nameID : default(RenderTargetIdentifier);
         }
 
         /// <summary>
@@ -92,13 +87,18 @@ namespace UnityEngine.Rendering
         }
 
         /// <summary>
-        /// Implicit conversion operator to RenderTargetIdentifier
+        /// Implicit conversion operator to RenderTexture
         /// </summary>
         /// <param name="handle">Input RTHandle</param>
-        /// <returns>RenderTargetIdentifier representation of the RTHandle.</returns>
-        public static implicit operator RenderTargetIdentifier(RTHandle handle)
+        /// <returns>RenderTexture representation of the RTHandle.</returns>
+        public static implicit operator RenderTexture(RTHandle handle)
         {
-            return handle != null ? handle.nameID : default(RenderTargetIdentifier);
+            // If RTHandle is null then conversion should give a null RenderTexture
+            if (handle == null)
+                return null;
+
+            Debug.Assert(handle.rt != null, "RTHandle was created using a regular Texture and is used as a RenderTexture");
+            return handle.rt;
         }
 
         internal void SetRenderTexture(RenderTexture rt)
