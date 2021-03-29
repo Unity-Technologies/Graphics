@@ -129,7 +129,7 @@ half AngleAttenuation(half3 spotDirection, half3 lightDirection, half2 spotAtten
 Light GetMainLight()
 {
     Light light;
-    
+
 #ifndef BUILTIN_TARGET_API
     light.direction = _MainLightPosition.xyz;
     light.distanceAttenuation = unity_LightData.z; // unity_LightData.z is 1 when not culled by the culling mask, otherwise 0.
@@ -200,7 +200,7 @@ uint GetPerObjectLightIndexOffset()
 // This abstract the underlying data implementation for storing lights/light indices
 int GetPerObjectLightIndex(uint index)
 {
-    
+
 #ifndef BUILTIN_TARGET_API
 /////////////////////////////////////////////////////////////////////////////////////////////
 // Structured Buffer Path                                                                   /
@@ -269,7 +269,7 @@ Light GetAdditionalLight(uint i, float3 positionWS, half4 shadowMask)
 
 int GetAdditionalLightsCount()
 {
-    
+
 #ifndef BUILTIN_TARGET_API
     // TODO: we need to expose in SRP api an ability for the pipeline cap the amount of lights
     // in the culling. This way we could do the loop branch with an uniform

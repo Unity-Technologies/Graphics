@@ -13,7 +13,7 @@ SurfaceData SurfaceDescriptionToSurfaceData(SurfaceDescription surfaceDescriptio
     #else
        half alpha = 1;
     #endif
-    
+
     #ifdef _SPECULAR_SETUP
         float3 specular = surfaceDescription.Specular;
         float metallic = 1;
@@ -38,7 +38,7 @@ SurfaceData SurfaceDescriptionToSurfaceData(SurfaceDescription surfaceDescriptio
 SurfaceOutputStandard BuildStandardSurfaceOutput(SurfaceDescription surfaceDescription, InputData inputData)
 {
     SurfaceData surface = SurfaceDescriptionToSurfaceData(surfaceDescription);
-    
+
     SurfaceOutputStandard o = (SurfaceOutputStandard)0;
     o.Albedo = surface.albedo;
     o.Normal = inputData.normalWS;

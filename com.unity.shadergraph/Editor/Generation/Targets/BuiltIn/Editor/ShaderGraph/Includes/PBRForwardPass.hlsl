@@ -72,7 +72,7 @@ half4 PBRStandardFragment(v2f_surf vertexSurf, SurfaceOutputStandard o)
 {
     v2f_surf IN = vertexSurf;
     UNITY_SETUP_INSTANCE_ID(IN);
-    
+
     #ifdef FOG_COMBINED_WITH_TSPACE
       UNITY_EXTRACT_FOG_FROM_TSPACE(IN);
     #elif defined FOG_COMBINED_WITH_WORLD_POS
@@ -88,7 +88,7 @@ half4 PBRStandardFragment(v2f_surf vertexSurf, SurfaceOutputStandard o)
     fixed3 lightDir = _WorldSpaceLightPos0.xyz;
   #endif
   float3 worldViewDir = normalize(UnityWorldSpaceViewDir(worldPos));
-  
+
   fixed3 normalWorldVertex = fixed3(0,0,1);
   normalWorldVertex = IN.worldNormal;
 
@@ -159,7 +159,7 @@ PackedVaryings vert(Attributes input)
     Varyings output;
     ZERO_INITIALIZE(Varyings, output);
     output = BuildVaryings(input);
-    
+
     VertexDescriptionInputs vertexDescriptionInputs = BuildVertexDescriptionInputs(input);
     VertexDescription vertexDescription = VertexDescriptionFunction(vertexDescriptionInputs);
     PBRStandardVertex(input, vertexDescription, output);
@@ -180,7 +180,7 @@ half4 frag(PackedVaryings packedInput) : SV_TARGET
 
     InputData inputData;
     BuildInputData(unpacked, surfaceDescription, inputData);
-    
+
     half4 color = PBRStandardFragment(surfaceDescription, inputData, unpacked);
     return color;
 }

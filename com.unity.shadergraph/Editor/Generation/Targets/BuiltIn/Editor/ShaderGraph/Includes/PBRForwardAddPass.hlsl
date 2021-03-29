@@ -9,7 +9,7 @@ v2f_surf PBRForwardAddVertex(appdata_full v)
     UNITY_INITIALIZE_OUTPUT(v2f_surf,o);
     UNITY_TRANSFER_INSTANCE_ID(v,o);
     UNITY_INITIALIZE_VERTEX_OUTPUT_STEREO(o);
-    
+
     o.pos = UnityObjectToClipPos(v.vertex);
     float3 worldPos = mul(unity_ObjectToWorld, v.vertex).xyz;
     float3 worldNormal = UnityObjectToWorldNormal(v.normal);
@@ -43,7 +43,7 @@ half4 PBRForwardAddFragment(v2f_surf vertexSurf, SurfaceOutputStandard o)
     #else
         UNITY_EXTRACT_FOG(IN);
     #endif
-    
+
     float3 worldPos = IN.worldPos.xyz;
     #ifndef USING_DIRECTIONAL_LIGHT
         fixed3 lightDir = normalize(UnityWorldSpaceLightDir(worldPos));
@@ -91,7 +91,7 @@ PackedVaryings vert(Attributes input)
     Varyings output;
     ZERO_INITIALIZE(Varyings, output);
     output = BuildVaryings(input);
-    
+
     VertexDescriptionInputs vertexDescriptionInputs = BuildVertexDescriptionInputs(input);
     VertexDescription vertexDescription = VertexDescriptionFunction(vertexDescriptionInputs);
     PBRForwardAddVertex(input, vertexDescription, output);
@@ -112,7 +112,7 @@ half4 frag(PackedVaryings packedInput) : SV_TARGET
 
     InputData inputData;
     BuildInputData(unpacked, surfaceDescription, inputData);
-    
+
     half4 color = PBRForwardAddFragment(surfaceDescription, inputData, unpacked);
     return color;
 }
