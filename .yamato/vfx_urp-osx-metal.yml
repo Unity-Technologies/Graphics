@@ -262,7 +262,7 @@ VFX_URP_OSX_Metal_Standalone_mono_Linear_CUSTOM-REVISION:
               -  "TestProjects/VisualEffectGraph_URP/Logs/*.log"
     dependencies:
       -  path: .yamato/_editor_priming.yml#editor:priming:CUSTOM-REVISION:OSX
-         rerun: always
+         rerun: on_new_revision
 VFX_URP_OSX_Metal_Standalone_PerformanceTests_mono_Linear_CUSTOM-REVISION:
     name: VFX_URP on OSX_Metal_Standalone_PerformanceTests_mono_Linear on version CUSTOM-REVISION
     agent:
@@ -294,7 +294,7 @@ VFX_URP_OSX_Metal_Standalone_PerformanceTests_mono_Linear_CUSTOM-REVISION:
               -  "TestProjects/VisualEffectGraph_URP/Logs/*.log"
     dependencies:
       -  path: .yamato/_editor_priming.yml#editor:priming:CUSTOM-REVISION:OSX
-         rerun: always
+         rerun: on_new_revision
 VFX_URP_OSX_Metal_playmode_mono_Linear_CUSTOM-REVISION:
     name: VFX_URP on OSX_Metal_playmode_mono_Linear on version CUSTOM-REVISION
     agent:
@@ -326,7 +326,7 @@ VFX_URP_OSX_Metal_playmode_mono_Linear_CUSTOM-REVISION:
               -  "TestProjects/VisualEffectGraph_URP/Logs/*.log"
     dependencies:
       -  path: .yamato/_editor_priming.yml#editor:priming:CUSTOM-REVISION:OSX
-         rerun: always
+         rerun: on_new_revision
 VFX_URP_OSX_Metal_playmode_cache_mono_Linear_CUSTOM-REVISION:
     name: VFX_URP on OSX_Metal_playmode_cache_mono_Linear on version CUSTOM-REVISION
     agent:
@@ -358,7 +358,7 @@ VFX_URP_OSX_Metal_playmode_cache_mono_Linear_CUSTOM-REVISION:
               -  "TestProjects/VisualEffectGraph_URP/Logs/*.log"
     dependencies:
       -  path: .yamato/_editor_priming.yml#editor:priming:CUSTOM-REVISION:OSX
-         rerun: always
+         rerun: on_new_revision
 VFX_URP_OSX_Metal_playmode_PerformanceTests_mono_Linear_CUSTOM-REVISION:
     name: VFX_URP on OSX_Metal_playmode_PerformanceTests_mono_Linear on version CUSTOM-REVISION
     agent:
@@ -390,7 +390,7 @@ VFX_URP_OSX_Metal_playmode_PerformanceTests_mono_Linear_CUSTOM-REVISION:
               -  "TestProjects/VisualEffectGraph_URP/Logs/*.log"
     dependencies:
       -  path: .yamato/_editor_priming.yml#editor:priming:CUSTOM-REVISION:OSX
-         rerun: always
+         rerun: on_new_revision
 VFX_URP_OSX_Metal_editmode_mono_Linear_CUSTOM-REVISION:
     name: VFX_URP on OSX_Metal_editmode_mono_Linear on version CUSTOM-REVISION
     agent:
@@ -422,7 +422,7 @@ VFX_URP_OSX_Metal_editmode_mono_Linear_CUSTOM-REVISION:
               -  "TestProjects/VisualEffectGraph_URP/Logs/*.log"
     dependencies:
       -  path: .yamato/_editor_priming.yml#editor:priming:CUSTOM-REVISION:OSX
-         rerun: always
+         rerun: on_new_revision
 VFX_URP_OSX_Metal_editmode_PerformanceTests_mono_Linear_CUSTOM-REVISION:
     name: VFX_URP on OSX_Metal_editmode_PerformanceTests_mono_Linear on version CUSTOM-REVISION
     agent:
@@ -454,7 +454,7 @@ VFX_URP_OSX_Metal_editmode_PerformanceTests_mono_Linear_CUSTOM-REVISION:
               -  "TestProjects/VisualEffectGraph_URP/Logs/*.log"
     dependencies:
       -  path: .yamato/_editor_priming.yml#editor:priming:CUSTOM-REVISION:OSX
-         rerun: always
+         rerun: on_new_revision
 VFX_URP_OSX_Metal_Standalone_cache_mono_Linear_CUSTOM-REVISION:
     name: VFX_URP on OSX_Metal_Standalone_cache_mono_Linear on version CUSTOM-REVISION
     agent:
@@ -486,4 +486,4 @@ VFX_URP_OSX_Metal_Standalone_cache_mono_Linear_CUSTOM-REVISION:
               -  "TestProjects/VisualEffectGraph_URP/Logs/*.log"
     dependencies:
       -  path: .yamato/_editor_priming.yml#editor:priming:CUSTOM-REVISION:OSX
-         rerun: always
+         rerun: on_new_revision
