@@ -345,7 +345,7 @@ namespace UnityEngine.Rendering
 
             internal void InitIndexes()
             {
-                enumNames ?? = new GUIContent[0];
+                enumNames ??= new GUIContent[0];
 
                 indexes = new int[enumNames.Length];
                 for (int i = 0; i < enumNames.Length; i++)
