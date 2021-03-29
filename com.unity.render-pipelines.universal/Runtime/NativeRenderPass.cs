@@ -11,6 +11,13 @@ namespace UnityEngine.Rendering.Universal
 {
     public static class NativeRenderPass
     {
+        internal const int kRenderPassMapSize = 10;
+        internal const int kRenderPassMaxCount = 20;
+        internal static Dictionary<Hash128, int[]> mergeableRenderPassesMap = new Dictionary<Hash128, int[]>(kRenderPassMapSize);
+        internal static int[][] mergeableRenderPassesMapArrays;
+        internal static Hash128[] sceneIndexToPassHash = new Hash128[kRenderPassMaxCount];
+        internal static Dictionary<Hash128, int> renderPassesAttachmentCount = new Dictionary<Hash128, int>(kRenderPassMapSize);
+
         private static class Profiling
         {
             private const string k_Name = nameof(NativeRenderPass);
@@ -23,10 +30,76 @@ namespace UnityEngine.Rendering.Universal
             public static readonly ProfilingSampler sortRenderPasses            = new ProfilingSampler($"Sort Render Passes");
         }
 
+        internal static void SetupFrameData(CameraData cameraData, ref List<ScriptableRenderPass> m_ActiveRenderPassQueue, bool isRenderPassEnabled)
+        {
+            //TODO: edge cases to detect that should affect possible passes to merge
+            // - different depth attachment
+            // - total number of color attachment > 8
+
+            // Go through all the passes and mark the final one as last pass
+
+            int lastPassIndex = m_ActiveRenderPassQueue.Count - 1;
+
+            // Make sure the list is already sorted!
+
+            mergeableRenderPassesMap.Clear();
+            renderPassesAttachmentCount.Clear();
+
+            uint currentHashIndex = 0;
+            // reset all the passes last pass flag
+            for (int i = 0; i < m_ActiveRenderPassQueue.Count; ++i)
+            {
+                var renderPass = m_ActiveRenderPassQueue[i];
+
+                // Empty configure to setup dimensions/targets and whatever data is needed for merging
+                // We do not execute this at this time, so render targets are still invalid
+
+                var width = renderPass.renderTargetWidth != -1 ? renderPass.renderTargetWidth : cameraData.cameraTargetDescriptor.width;
+                var height = renderPass.renderTargetHeight != -1 ? renderPass.renderTargetHeight : cameraData.cameraTargetDescriptor.height;
+                var sampleCount = renderPass.renderTargetSampleCount != -1 ? renderPass.renderTargetSampleCount : cameraData.cameraTargetDescriptor.msaaSamples;
+                var rtID = renderPass.depthOnly ? renderPass.colorAttachment.GetHashCode() : renderPass.depthAttachment.GetHashCode();
+
+                renderPass.isLastPass = false;
+                renderPass.sceneIndex = i;
+
+                Hash128 hash = NativeRenderPass.CreateRenderPassHash(width, height, rtID, sampleCount, currentHashIndex);
+
+                NativeRenderPass.sceneIndexToPassHash[i] = hash;
+
+                bool RPEnabled = renderPass.useNativeRenderPass && isRenderPassEnabled;
+                if (!RPEnabled)
+                    continue;
+
+                if (!mergeableRenderPassesMap.ContainsKey(hash))
+                {
+                    mergeableRenderPassesMap.Add(hash, mergeableRenderPassesMapArrays[mergeableRenderPassesMap.Count]);
+                    renderPassesAttachmentCount.Add(hash, 0);
+                }
+                else if (mergeableRenderPassesMap[hash][GetValidPassIndexCount(mergeableRenderPassesMap[hash]) - 1] != (i - 1))
+                {
+                    // if the passes are not sequential we want to split the current mergeable passes list. So we increment the hashIndex and update the hash
+
+                    currentHashIndex++;
+                    hash = CreateRenderPassHash(width, height, rtID, sampleCount, currentHashIndex);
+
+                    sceneIndexToPassHash[i] = hash;
+
+                    mergeableRenderPassesMap.Add(hash, mergeableRenderPassesMapArrays[mergeableRenderPassesMap.Count]);
+                    renderPassesAttachmentCount.Add(hash, 0);
+                }
+
+                mergeableRenderPassesMap[hash][GetValidPassIndexCount(mergeableRenderPassesMap[hash])] = i;
+            }
+
+            m_ActiveRenderPassQueue[lastPassIndex].isLastPass = true;
+
+            for (int i = 0; i < m_ActiveRenderPassQueue.Count; ++i)
+                m_ActiveRenderPassQueue[i].attachmentIndices = new NativeArray<int>(8, Allocator.Temp);
+        }
+
         internal static void SetMRTAttachmentsList(ScriptableRenderPass renderPass, ref CameraData cameraData, uint validColorBuffersCount, bool needCustomCameraColorClear,
-            bool needCustomCameraDepthClear, Dictionary<Hash128, int[]> mergeableRenderPassesMap, Hash128[] sceneIndexToPassHash,
-            Dictionary<Hash128, int> renderPassesAttachmentCount, List<ScriptableRenderPass> activeRenderPassQueue,
-            ref AttachmentDescriptor[] activeColorAttachmentDescriptors, ref AttachmentDescriptor activeDepthAttachmentDescriptor)
+            bool needCustomCameraDepthClear, List<ScriptableRenderPass> activeRenderPassQueue, ref AttachmentDescriptor[] activeColorAttachmentDescriptors,
+            ref AttachmentDescriptor activeDepthAttachmentDescriptor)
         {
             using (new ProfilingScope(null, Profiling.setMRTAttachmentsList))
             {
@@ -99,9 +172,7 @@ namespace UnityEngine.Rendering.Universal
         }
 
         internal static void SetAttachmentList(ScriptableRenderPass renderPass, ref CameraData cameraData, RenderTargetIdentifier passColorAttachment, RenderTargetIdentifier passDepthAttachment, ClearFlag finalClearFlag, Color finalClearColor,
-            Dictionary<Hash128, int[]> mergeableRenderPassesMap, Hash128[] sceneIndexToPassHash,
-            Dictionary<Hash128, int> renderPassesAttachmentCount, List<ScriptableRenderPass> activeRenderPassQueue,
-            ref AttachmentDescriptor[] activeColorAttachmentDescriptors, ref AttachmentDescriptor activeDepthAttachmentDescriptor)
+            List<ScriptableRenderPass> activeRenderPassQueue, ref AttachmentDescriptor[] activeColorAttachmentDescriptors, ref AttachmentDescriptor activeDepthAttachmentDescriptor)
         {
             using (new ProfilingScope(null, Profiling.setAttachmentList))
             {
@@ -128,8 +199,8 @@ namespace UnityEngine.Rendering.Universal
                     AttachmentDescriptor currentAttachmentDescriptor;
                     var usesTargetTexture = cameraData.targetTexture != null;
                     var depthOnly = renderPass.depthOnly || (usesTargetTexture &&
-                                                             cameraData.targetTexture.graphicsFormat ==
-                                                             GraphicsFormat.DepthAuto);
+                        cameraData.targetTexture.graphicsFormat ==
+                        GraphicsFormat.DepthAuto);
                     // Offscreen depth-only cameras need this set explicitly
                     if (depthOnly && usesTargetTexture)
                     {
@@ -161,8 +232,8 @@ namespace UnityEngine.Rendering.Universal
                             : SystemInfo.GetGraphicsFormat(DefaultFormat.LDR);
                         currentAttachmentDescriptor = new AttachmentDescriptor(
                             pass.renderTargetFormat[0] != GraphicsFormat.None
-                                ? pass.renderTargetFormat[0]
-                                : defaultFormat);
+                            ? pass.renderTargetFormat[0]
+                            : defaultFormat);
                     }
 
                     bool isLastPass = pass.isLastPass;
@@ -172,9 +243,9 @@ namespace UnityEngine.Rendering.Universal
 
                     var colorAttachmentTarget =
                         (depthOnly || passColorAttachment != BuiltinRenderTextureType.CameraTarget)
-                            ? passColorAttachment : (usesTargetTexture
-                                ? new RenderTargetIdentifier(cameraData.targetTexture.colorBuffer)
-                                : BuiltinRenderTextureType.CameraTarget);
+                        ? passColorAttachment : (usesTargetTexture
+                            ? new RenderTargetIdentifier(cameraData.targetTexture.colorBuffer)
+                            : BuiltinRenderTextureType.CameraTarget);
 
                     var depthAttachmentTarget = (passDepthAttachment != BuiltinRenderTextureType.CameraTarget) ?
                         passDepthAttachment : (usesTargetTexture
@@ -187,27 +258,27 @@ namespace UnityEngine.Rendering.Universal
                     bool isLastPassToBB =
                         isLastPass && (colorAttachmentTarget == BuiltinRenderTextureType.CameraTarget);
                     currentAttachmentDescriptor.ConfigureTarget(colorAttachmentTarget,
-                        ((uint) finalClearFlag & (uint) ClearFlag.Color) == 0, !(samples > 1 && isLastPassToBB));
+                        ((uint)finalClearFlag & (uint)ClearFlag.Color) == 0, !(samples > 1 && isLastPassToBB));
 
                     // TODO: this is redundant and is being setup for each attachment. Needs to be done only once per mergeable pass list (we need to make sure mergeable passes use the same depth!)
                     activeDepthAttachmentDescriptor = new AttachmentDescriptor(GraphicsFormat.DepthAuto);
                     activeDepthAttachmentDescriptor.ConfigureTarget(depthAttachmentTarget,
-                        ((uint) finalClearFlag & (uint) ClearFlag.Depth) == 0, !isLastPassToBB);
+                        ((uint)finalClearFlag & (uint)ClearFlag.Depth) == 0, !isLastPassToBB);
 
                     if (finalClearFlag != ClearFlag.None)
                     {
                         // We don't clear color for Overlay render targets, however pipeline set's up depth only render passes as color attachments which we do need to clear
                         if ((cameraData.renderType != CameraRenderType.Overlay ||
-                             depthOnly && ((uint) finalClearFlag & (uint) ClearFlag.Color) != 0))
+                             depthOnly && ((uint)finalClearFlag & (uint)ClearFlag.Color) != 0))
                             currentAttachmentDescriptor.ConfigureClear(finalClearColor, 1.0f, 0);
-                        if (((uint) finalClearFlag & (uint) ClearFlag.Depth) != 0)
+                        if (((uint)finalClearFlag & (uint)ClearFlag.Depth) != 0)
                             activeDepthAttachmentDescriptor.ConfigureClear(Color.black, 1.0f, 0);
                     }
 
                     if (samples > 1)
                         currentAttachmentDescriptor
                             .ConfigureResolveTarget(
-                                colorAttachmentTarget); // resolving to the implicit color target's resolve surface TODO: handle m_CameraResolveTarget if present?
+                            colorAttachmentTarget);     // resolving to the implicit color target's resolve surface TODO: handle m_CameraResolveTarget if present?
 
                     int existingAttachmentIndex = FindAttachmentDescriptorIndexInList(currentAttachmentIdx,
                         currentAttachmentDescriptor, activeColorAttachmentDescriptors);
@@ -229,7 +300,7 @@ namespace UnityEngine.Rendering.Universal
             }
         }
 
-        internal static void Configure(CommandBuffer cmd, ScriptableRenderPass renderPass, CameraData cameraData, Hash128[] sceneIndexToPassHash, Dictionary<Hash128, int[]> mergeableRenderPassesMap, List<ScriptableRenderPass> activeRenderPassQueue)
+        internal static void Configure(CommandBuffer cmd, ScriptableRenderPass renderPass, CameraData cameraData, List<ScriptableRenderPass> activeRenderPassQueue)
         {
             using (new ProfilingScope(null, Profiling.configure))
             {
@@ -251,8 +322,7 @@ namespace UnityEngine.Rendering.Universal
             }
         }
 
-        internal static void Execute(ScriptableRenderContext context, ScriptableRenderPass renderPass, CameraData cameraData, ref RenderingData renderingData,  Dictionary<Hash128, int[]> mergeableRenderPassesMap, Hash128[] sceneIndexToPassHash,
-            Dictionary<Hash128, int> renderPassesAttachmentCount, List<ScriptableRenderPass> activeRenderPassQueue,
+        internal static void Execute(ScriptableRenderContext context, ScriptableRenderPass renderPass, CameraData cameraData, ref RenderingData renderingData, List<ScriptableRenderPass> activeRenderPassQueue,
             ref AttachmentDescriptor[] activeColorAttachmentDescriptors, ref AttachmentDescriptor activeDepthAttachmentDescriptor, RenderTargetIdentifier activeDepthAttachment)
         {
             using (new ProfilingScope(null, Profiling.execute))
@@ -267,11 +337,11 @@ namespace UnityEngine.Rendering.Universal
                 // TODO: review the lastPassToBB logic to mak it work with merged passes
                 // keep track if this is the current camera's last pass and the RT is the backbuffer (BuiltinRenderTextureType.CameraTarget)
                 bool isLastPassToBB = isLastPass && (activeColorAttachmentDescriptors[0].loadStoreTarget ==
-                                                     BuiltinRenderTextureType.CameraTarget);
+                    BuiltinRenderTextureType.CameraTarget);
                 bool useDepth = activeDepthAttachment == RenderTargetHandle.CameraTarget.Identifier() &&
-                                (!(isLastPassToBB || (isLastPass && cameraData.camera.targetTexture != null)));
+                    (!(isLastPassToBB || (isLastPass && cameraData.camera.targetTexture != null)));
                 var depthOnly = renderPass.depthOnly || (cameraData.targetTexture != null &&
-                                                         cameraData.targetTexture.graphicsFormat == GraphicsFormat.DepthAuto);
+                    cameraData.targetTexture.graphicsFormat == GraphicsFormat.DepthAuto);
 
                 var attachments =
                     new NativeArray<AttachmentDescriptor>(useDepth && !depthOnly ? validColorBuffersCount + 1 : 1,
@@ -298,7 +368,7 @@ namespace UnityEngine.Rendering.Universal
                 var attachmentIndicesCount = GetSubPassAttachmentIndicesCount(renderPass);
 
                 var attachmentIndices =
-                    new NativeArray<int>(!depthOnly ? (int) attachmentIndicesCount : 0, Allocator.Temp);
+                    new NativeArray<int>(!depthOnly ? (int)attachmentIndicesCount : 0, Allocator.Temp);
                 if (!depthOnly)
                 {
                     for (int i = 0; i < attachmentIndicesCount; ++i)

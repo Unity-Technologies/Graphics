@@ -449,13 +449,6 @@ namespace UnityEngine.Rendering.Universal
             new RenderTargetIdentifier[] {0, 0, 0, 0, 0, 0, 0, 0 },  // m_TrimmedColorAttachmentCopies[8] is an array of 8 RenderTargetIdentifiers
         };
 
-        const int kRenderPassMapSize = 10;
-        const int kRenderPassMaxCount = 20;
-        Dictionary<Hash128, int[]> mergeableRenderPassesMap = new Dictionary<Hash128, int[]>(kRenderPassMapSize);
-        int[][] mergeableRenderPassesMapArrays;
-        Hash128[] sceneIndexToPassHash = new Hash128[kRenderPassMaxCount];
-        Dictionary<Hash128, int> renderPassesAttachmentCount = new Dictionary<Hash128, int>(kRenderPassMapSize);
-
         private static Plane[] s_Planes = new Plane[6];
         private static Vector4[] s_VectorPlanes = new Vector4[6];
 
@@ -482,13 +475,13 @@ namespace UnityEngine.Rendering.Universal
                 m_RendererFeatures.Add(feature);
             }
 
-            mergeableRenderPassesMapArrays = new int[kRenderPassMapSize][];
-            for (int i = 0; i < kRenderPassMapSize; ++i)
+            NativeRenderPass.mergeableRenderPassesMapArrays = new int[NativeRenderPass.kRenderPassMapSize][];
+            for (int i = 0; i < NativeRenderPass.kRenderPassMapSize; ++i)
             {
-                mergeableRenderPassesMapArrays[i] = new int[kRenderPassMaxCount];
-                for (int j = 0; j < kRenderPassMaxCount; ++j)
+                NativeRenderPass.mergeableRenderPassesMapArrays[i] = new int[NativeRenderPass.kRenderPassMaxCount];
+                for (int j = 0; j < NativeRenderPass.kRenderPassMaxCount; ++j)
                 {
-                    mergeableRenderPassesMapArrays[i][j] = -1;
+                    NativeRenderPass.mergeableRenderPassesMapArrays[i][j] = -1;
                 }
             }
 
@@ -582,72 +575,6 @@ namespace UnityEngine.Rendering.Universal
         {
         }
 
-        private void SetLastPassFlag(CameraData cameraData)
-        {
-            //TODO: edge cases to detect that should affect possible passes to merge
-            // - different depth attachment
-            // - total number of color attachment > 8
-
-            // Go through all the passes and mark the final one as last pass
-
-            int lastPassIndex = m_ActiveRenderPassQueue.Count - 1;
-
-            // Make sure the list is already sorted!
-
-            mergeableRenderPassesMap.Clear();
-            renderPassesAttachmentCount.Clear();
-
-            uint currentHashIndex = 0;
-            // reset all the passes last pass flag
-            for (int i = 0; i < m_ActiveRenderPassQueue.Count; ++i)
-            {
-                var renderPass = m_ActiveRenderPassQueue[i];
-
-                // Empty configure to setup dimensions/targets and whatever data is needed for merging
-                // We do not execute this at this time, so render targets are still invalid
-
-                var width = renderPass.renderTargetWidth != -1 ? renderPass.renderTargetWidth : cameraData.cameraTargetDescriptor.width;
-                var height = renderPass.renderTargetHeight != -1 ? renderPass.renderTargetHeight : cameraData.cameraTargetDescriptor.height;
-                var sampleCount = renderPass.renderTargetSampleCount != -1 ? renderPass.renderTargetSampleCount : cameraData.cameraTargetDescriptor.msaaSamples;
-                var rtID = renderPass.depthOnly ? renderPass.colorAttachment.GetHashCode() : renderPass.depthAttachment.GetHashCode();
-
-                renderPass.isLastPass = false;
-                renderPass.sceneIndex = i;
-
-                Hash128 hash = NativeRenderPass.CreateRenderPassHash(width, height, rtID, sampleCount, currentHashIndex);
-
-                sceneIndexToPassHash[i] = hash;
-
-                if (!IsRenderPassEnabled(renderPass))
-                    continue;
-
-                if (!mergeableRenderPassesMap.ContainsKey(hash))
-                {
-                    mergeableRenderPassesMap.Add(hash, mergeableRenderPassesMapArrays[mergeableRenderPassesMap.Count]);
-                    renderPassesAttachmentCount.Add(hash, 0);
-                }
-                else if (mergeableRenderPassesMap[hash][NativeRenderPass.GetValidPassIndexCount(mergeableRenderPassesMap[hash]) - 1] != (i - 1))
-                {
-                    // if the passes are not sequential we want to split the current mergeable passes list. So we increment the hashIndex and update the hash
-
-                    currentHashIndex++;
-                    hash = NativeRenderPass.CreateRenderPassHash(width, height, rtID, sampleCount, currentHashIndex);
-
-                    sceneIndexToPassHash[i] = hash;
-
-                    mergeableRenderPassesMap.Add(hash, mergeableRenderPassesMapArrays[mergeableRenderPassesMap.Count]);
-                    renderPassesAttachmentCount.Add(hash, 0);
-                }
-
-                mergeableRenderPassesMap[hash][NativeRenderPass.GetValidPassIndexCount(mergeableRenderPassesMap[hash])] = i;
-            }
-
-            m_ActiveRenderPassQueue[lastPassIndex].isLastPass = true;
-
-            for (int i = 0; i < m_ActiveRenderPassQueue.Count; ++i)
-                m_ActiveRenderPassQueue[i].attachmentIndices = new NativeArray<int>(8, Allocator.Temp);
-        }
-
         /// <summary>
         /// Execute the enqueued render passes. This automatically handles editor and stereo rendering.
         /// </summary>
@@ -693,7 +620,7 @@ namespace UnityEngine.Rendering.Universal
                     SortStable(m_ActiveRenderPassQueue);
                 }
 
-                SetLastPassFlag(cameraData);
+                NativeRenderPass.SetupFrameData(cameraData, ref m_ActiveRenderPassQueue, useRenderPassEnabled);
 
                 using var renderBlocks = new RenderBlocks(m_ActiveRenderPassQueue);
 
@@ -942,10 +869,7 @@ namespace UnityEngine.Rendering.Universal
             using (new ProfilingScope(null, Profiling.RenderPass.configure))
             {
                 if (IsRenderPassEnabled(renderPass) && cameraData.cameraType == CameraType.Game)
-                    NativeRenderPass.Configure(cmd,  renderPass,
-                        cameraData, sceneIndexToPassHash,
-                        mergeableRenderPassesMap,
-                        m_ActiveRenderPassQueue);
+                    NativeRenderPass.Configure(cmd,  renderPass, cameraData, m_ActiveRenderPassQueue);
                 else
                     renderPass.Configure(cmd, cameraData.cameraTargetDescriptor);
 
@@ -957,14 +881,7 @@ namespace UnityEngine.Rendering.Universal
             CommandBufferPool.Release(cmd);
 
             if (IsRenderPassEnabled(renderPass) && cameraData.cameraType == CameraType.Game)
-                NativeRenderPass.Execute(context,  renderPass,
-                    cameraData, ref  renderingData,
-                    mergeableRenderPassesMap, sceneIndexToPassHash,
-                    renderPassesAttachmentCount,
-                    m_ActiveRenderPassQueue,
-                    ref m_ActiveColorAttachmentDescriptors,
-                    ref m_ActiveDepthAttachmentDescriptor,
-                    m_ActiveDepthAttachment);
+                NativeRenderPass.Execute(context,  renderPass, cameraData, ref  renderingData, m_ActiveRenderPassQueue, ref m_ActiveColorAttachmentDescriptors, ref m_ActiveDepthAttachmentDescriptor, m_ActiveDepthAttachment);
             else
                 renderPass.Execute(context, ref renderingData);
         }
@@ -1055,14 +972,8 @@ namespace UnityEngine.Rendering.Universal
 
                 if (IsRenderPassEnabled(renderPass) && cameraData.cameraType == CameraType.Game)
                 {
-                    NativeRenderPass.SetMRTAttachmentsList(renderPass, ref cameraData,
-                        validColorBuffersCount, needCustomCameraColorClear,
-                        needCustomCameraDepthClear, mergeableRenderPassesMap,
-                        sceneIndexToPassHash,
-                        renderPassesAttachmentCount,
-                        m_ActiveRenderPassQueue,
-                        ref m_ActiveColorAttachmentDescriptors,
-                        ref m_ActiveDepthAttachmentDescriptor);
+                    NativeRenderPass.SetMRTAttachmentsList(renderPass, ref cameraData, validColorBuffersCount, needCustomCameraColorClear, needCustomCameraDepthClear,
+                        m_ActiveRenderPassQueue, ref m_ActiveColorAttachmentDescriptors, ref m_ActiveDepthAttachmentDescriptor);
                 }
 
                 // Bind all attachments, clear color only if there was no custom behaviour for cameraColorTarget, clear depth as needed.
@@ -1156,10 +1067,7 @@ namespace UnityEngine.Rendering.Universal
 
                 if (IsRenderPassEnabled(renderPass) && cameraData.cameraType == CameraType.Game)
                 {
-                    NativeRenderPass.SetAttachmentList(renderPass, ref cameraData, passColorAttachment,
-                        passDepthAttachment, finalClearFlag, finalClearColor,
-                        mergeableRenderPassesMap, sceneIndexToPassHash,
-                        renderPassesAttachmentCount, m_ActiveRenderPassQueue,
+                    NativeRenderPass.SetAttachmentList(renderPass, ref cameraData, passColorAttachment, passDepthAttachment, finalClearFlag, finalClearColor, m_ActiveRenderPassQueue,
                         ref m_ActiveColorAttachmentDescriptors, ref m_ActiveDepthAttachmentDescriptor);
                 }
                 else
@@ -1333,11 +1241,11 @@ namespace UnityEngine.Rendering.Universal
                 m_ActiveRenderPassQueue.Clear();
             }
 
-            for (int i = 0; i < kRenderPassMapSize; ++i)
+            for (int i = 0; i < NativeRenderPass.kRenderPassMapSize; ++i)
             {
-                for (int j = 0; j < kRenderPassMaxCount; ++j)
+                for (int j = 0; j < NativeRenderPass.kRenderPassMaxCount; ++j)
                 {
-                    mergeableRenderPassesMapArrays[i][j] = -1;
+                    NativeRenderPass.mergeableRenderPassesMapArrays[i][j] = -1;
                 }
             }
 
