@@ -144,20 +144,6 @@ namespace UnityEngine.Rendering.HighDefinition
             }
         }
 
-        private DecalSystem.DecalHandle m_Handle = null;
-
-        internal DecalSystem.DecalHandle Handle
-        {
-            get
-            {
-                return this.m_Handle;
-            }
-            set
-            {
-                this.m_Handle = value;
-            }
-        }
-
         // Struct used to gather all decal property required to be cached to be sent to shader code
         internal struct CachedDecalData
         {

@@ -6,7 +6,7 @@ using UnityEngine;
 
 namespace UnityEngine.Rendering.MeshDecal
 {
-    public partial class MeshDecalProjector : MonoBehaviour
+    public partial class MeshDecalProjector
     {
         public void GetMeshes()
         {
@@ -20,14 +20,14 @@ namespace UnityEngine.Rendering.MeshDecal
 
             var points = new Vector3[]
             {
-            transform.TransformPoint( new Vector3(-size.x, -size.y, -size.z)*0.5f ),
-            transform.TransformPoint( new Vector3(-size.x, -size.y,  size.z)*0.5f ),
-            transform.TransformPoint( new Vector3(-size.x,  size.y, -size.z)*0.5f ),
-            transform.TransformPoint( new Vector3(-size.x,  size.y,  size.z)*0.5f ),
-            transform.TransformPoint( new Vector3( size.x, -size.y, -size.z)*0.5f ),
-            transform.TransformPoint( new Vector3( size.x, -size.y,  size.z)*0.5f ),
-            transform.TransformPoint( new Vector3( size.x,  size.y, -size.z)*0.5f ),
-            transform.TransformPoint( new Vector3( size.x,  size.y,  size.z)*0.5f )
+            transform.TransformPoint( new Vector3(-m_Size.x, -m_Size.y, -m_Size.z)*0.5f ),
+            transform.TransformPoint( new Vector3(-m_Size.x, -m_Size.y,  m_Size.z)*0.5f ),
+            transform.TransformPoint( new Vector3(-m_Size.x,  m_Size.y, -m_Size.z)*0.5f ),
+            transform.TransformPoint( new Vector3(-m_Size.x,  m_Size.y,  m_Size.z)*0.5f ),
+            transform.TransformPoint( new Vector3( m_Size.x, -m_Size.y, -m_Size.z)*0.5f ),
+            transform.TransformPoint( new Vector3( m_Size.x, -m_Size.y,  m_Size.z)*0.5f ),
+            transform.TransformPoint( new Vector3( m_Size.x,  m_Size.y, -m_Size.z)*0.5f ),
+            transform.TransformPoint( new Vector3( m_Size.x,  m_Size.y,  m_Size.z)*0.5f )
             };
 
             for (int i = 0; i < 8; i++)

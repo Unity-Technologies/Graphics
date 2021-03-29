@@ -7,7 +7,7 @@ using UnityEngine.Rendering.MeshDecal;
 namespace UnityEditor.Rendering.MeshDecal
 {
     [CustomEditor(typeof(MeshDecalProjector))]
-    public class MeshDecalProjector_Editor : Editor
+    public class MeshDecalProjector_Editor : DecalEditorBase
     {
         public override void OnInspectorGUI()
         {

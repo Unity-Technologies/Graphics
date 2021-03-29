@@ -8,7 +8,7 @@ namespace UnityEngine.Rendering
         internal static readonly Quaternion k_MinusYtoZRotation = Quaternion.Euler(-90, 0, 0);
 
         [SerializeField]
-        private Vector2 m_UVScale = new Vector2(1, 1);
+        protected Vector2 m_UVScale = new Vector2(1, 1);
         /// <summary>
         /// Tilling of the UV of the projected texture.
         /// </summary>
@@ -26,7 +26,7 @@ namespace UnityEngine.Rendering
         }
 
         [SerializeField]
-        private Vector2 m_UVBias = new Vector2(0, 0);
+        protected Vector2 m_UVBias = new Vector2(0, 0);
         /// <summary>
         /// Offset of the UV of the projected texture.
         /// </summary>
@@ -140,6 +140,20 @@ namespace UnityEngine.Rendering
         protected void OnValidate()
         {
 
+        }
+
+        protected DecalHandle m_Handle = null;
+
+        internal DecalHandle Handle
+        {
+            get
+            {
+                return this.m_Handle;
+            }
+            set
+            {
+                this.m_Handle = value;
+            }
         }
     }
 }

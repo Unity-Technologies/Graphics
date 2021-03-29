@@ -7,18 +7,14 @@ namespace UnityEngine.Rendering.MeshDecal
 {
     [RequireComponent(typeof(MeshFilter), (typeof(MeshRenderer)))]
     [ExecuteAlways]
-    public partial class MeshDecalProjector : MonoBehaviour
+    public partial class MeshDecalProjector : DecalBase
     {
-        public Vector3 size = Vector3.one;
-
-        public float radius => size.magnitude * Mathf.Max(transform.lossyScale.x, Mathf.Max(transform.lossyScale.y, transform.lossyScale.z));
+        public float radius => m_Size.magnitude * Mathf.Max(transform.lossyScale.x, Mathf.Max(transform.lossyScale.y, transform.lossyScale.z));
 
         public bool useManualMeshFilters = false;
         public List<MeshFilter> manualMeshFilters;
 
         public float offset = 0.001f;
-
-        public Rect uvRect = new Rect(0, 0, 1, 1);
 
         public Sprite sprite;
 
@@ -27,25 +23,7 @@ namespace UnityEngine.Rendering.MeshDecal
 
         [SerializeField, HideInInspector] private Material decalBaseMaterial;
 
-        private Rect m_uvRect
-        {
-            get
-            {
-                if (sprite == null)
-                {
-                    return uvRect;
-                }
-                else
-                {
-                    var spriteRect = sprite.rect;
-                    spriteRect.x /= sprite.texture.width;
-                    spriteRect.width /= sprite.texture.width;
-                    spriteRect.y /= sprite.texture.height;
-                    spriteRect.height /= sprite.texture.height;
-                    return spriteRect;
-                }
-            }
-        }
+        private Rect m_uvRect => new Rect(m_UVBias, m_UVScale);
 
         [Range(0f, 1f)]
         public float normalBlend = 1f;
@@ -80,7 +58,7 @@ namespace UnityEngine.Rendering.MeshDecal
             meshFilter = GetComponent<MeshFilter>();
             meshRenderer = GetComponent<MeshRenderer>();
 
-            // meshRenderer.sharedMaterial = decalBaseMaterial;
+            meshRenderer.sharedMaterial = m_Material;
 
             if (mesh == null) mesh = new Mesh();
             mesh.name = "Decal Mesh";
@@ -142,7 +120,7 @@ namespace UnityEngine.Rendering.MeshDecal
 
             Gizmos.color = Color.white;
             Gizmos.matrix = transform.localToWorldMatrix;
-            Gizmos.DrawWireCube(Vector3.zero, size);
+            Gizmos.DrawWireCube(Vector3.zero, m_Size);
 
             // Debug Normals
             /*

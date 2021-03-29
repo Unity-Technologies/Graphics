@@ -12,7 +12,7 @@ using UnityEditor;
 #endif
 namespace UnityEngine.Rendering.MeshDecal
 {
-    public partial class MeshDecalProjector : MonoBehaviour
+    public partial class MeshDecalProjector
     {
         const float MaxLocalZNormal = -0.1f;
 
@@ -58,7 +58,7 @@ namespace UnityEngine.Rendering.MeshDecal
             // Generate mesh
             var decalMeshDataArray = Mesh.AllocateWritableMeshData(1);
 
-            GenerateMeshData(meshDataArray, matrixList, size, offset, new float4(m_uvRect.x, m_uvRect.y, m_uvRect.width, m_uvRect.height), normalBlend, decalMeshDataArray[0]);
+            GenerateMeshData(meshDataArray, matrixList, m_Size, offset, new float4(m_uvRect.x, m_uvRect.y, m_uvRect.width, m_uvRect.height), normalBlend, decalMeshDataArray[0]);
 
             meshDataArray.Dispose();
             matrixList.Dispose();

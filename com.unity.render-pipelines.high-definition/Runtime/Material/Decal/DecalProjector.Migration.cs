@@ -34,10 +34,10 @@ namespace UnityEngine.Rendering.HighDefinition
                 decal.m_Offset.x *= decal.transform.lossyScale.x;
 
                 // Update decal system
-                if (decal.m_Handle != null)
-                    DecalSystem.instance.RemoveDecal(decal.m_Handle);
+                if (decal.Handle != null)
+                    DecalSystem.instance.RemoveDecal(decal.Handle);
 
-                decal.m_Handle = DecalSystem.instance.AddDecal(decal.m_Material, decal.GetCachedDecalData());
+                decal.Handle = DecalSystem.instance.AddDecal(decal.m_Material, decal.GetCachedDecalData());
             }),
             MigrationStep.New(Version.FixPivotPosition, (DecalProjector decal) =>
             {
@@ -66,10 +66,10 @@ namespace UnityEngine.Rendering.HighDefinition
                 }
 
                 // Update decal system
-                if (decal.m_Handle != null)
-                    DecalSystem.instance.RemoveDecal(decal.m_Handle);
+                if (decal.Handle != null)
+                    DecalSystem.instance.RemoveDecal(decal.Handle);
 
-                decal.m_Handle = DecalSystem.instance.AddDecal(decal.m_Material, decal.GetCachedDecalData());
+                decal.Handle = DecalSystem.instance.AddDecal(decal.m_Material, decal.GetCachedDecalData());
             })
         );
 

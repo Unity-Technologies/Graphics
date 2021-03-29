@@ -3,7 +3,7 @@ using System.Linq.Expressions;
 using System.Reflection;
 using UnityEditor;
 
-namespace UnityEngine.Rendering.HighDefinition
+namespace UnityEngine.Rendering
 {
     class ProjectedTransform
     {

@@ -5,3 +5,5 @@ using System.Runtime.CompilerServices;
 #endif
 
 [assembly: InternalsVisibleTo("Unity.RenderPipelines.Core.Editor")]
+[assembly: InternalsVisibleTo("Unity.RenderPipelines.HighDefinition.Editor")]
+[assembly: InternalsVisibleTo("Unity.RenderPipelines.HighDefinition.Runtime")]

@@ -1,9 +1,9 @@
 using System;
 using System.Collections.Generic;
 using UnityEditor.IMGUI.Controls;
-using UnityEditor.ShortcutManagement;
 using UnityEngine;
 using UnityEngine.Rendering.HighDefinition;
+using UnityEngine.Rendering;
 using static UnityEditorInternal.EditMode;
 using UnityEditor.Rendering;
 
@@ -13,10 +13,6 @@ namespace UnityEditor.Rendering.HighDefinition
     [CanEditMultipleObjects]
     partial class DecalProjectorEditor : DecalEditorBase
     {
-        const float k_Limit = 100000;
-        const float k_LimitInv = 1 / k_Limit;
-
-
         SerializedProperty m_DrawDistanceProperty;
         SerializedProperty m_FadeScaleProperty;
         SerializedProperty m_AffectsTransparencyProperty;
@@ -72,191 +68,6 @@ namespace UnityEditor.Rendering.HighDefinition
             m_AffectsTransparencyProperty = serializedObject.FindProperty("m_AffectsTransparency");
             m_FadeFactor = serializedObject.FindProperty("m_FadeFactor");
             m_DecalLayerMask = serializedObject.FindProperty("m_DecalLayerMask");
-        }
-
-        public bool HasFrameBounds()
-        {
-            return true;
-        }
-
-        public Bounds OnGetFrameBounds()
-        {
-            DecalProjector decalProjector = target as DecalProjector;
-
-            return new Bounds(decalProjector.transform.position, boxHandle.size);
-        }
-
-        void OnSceneGUI()
-        {
-            //called on each targets
-            DrawHandles();
-        }
-
-        void DrawBoxTransformationHandles(DecalProjector decalProjector)
-        {
-            using (new Handles.DrawingScope(fullColor, Matrix4x4.TRS(decalProjector.transform.position, decalProjector.transform.rotation, Vector3.one)))
-            {
-                Vector3 centerStart = decalProjector.pivot;
-                boxHandle.center = centerStart;
-                boxHandle.size = decalProjector.size;
-
-                Vector3 boundsSizePreviousOS = boxHandle.size;
-                Vector3 boundsMinPreviousOS = boxHandle.size * -0.5f + boxHandle.center;
-
-                EditorGUI.BeginChangeCheck();
-                boxHandle.DrawHandle();
-                if (EditorGUI.EndChangeCheck())
-                {
-                    // Adjust decal transform if handle changed.
-                    Undo.RecordObject(decalProjector, "Decal Projector Change");
-
-                    decalProjector.size = boxHandle.size;
-                    decalProjector.pivot += boxHandle.center - centerStart;
-
-                    Vector3 boundsSizeCurrentOS = boxHandle.size;
-                    Vector3 boundsMinCurrentOS = boxHandle.size * -0.5f + boxHandle.center;
-
-                    if (editMode == k_EditShapePreservingUV)
-                    {
-                        // Treat decal projector bounds as a crop tool, rather than a scale tool.
-                        // Compute a new uv scale and bias terms to pin decal projection pixels in world space, irrespective of projector bounds.
-                        Vector2 uvScale = decalProjector.uvScale;
-                        uvScale.x *= Mathf.Max(1e-5f, boundsSizeCurrentOS.x) / Mathf.Max(1e-5f, boundsSizePreviousOS.x);
-                        uvScale.y *= Mathf.Max(1e-5f, boundsSizeCurrentOS.y) / Mathf.Max(1e-5f, boundsSizePreviousOS.y);
-                        decalProjector.uvScale = uvScale;
-
-                        Vector2 uvBias = decalProjector.uvBias;
-                        uvBias.x += (boundsMinCurrentOS.x - boundsMinPreviousOS.x) / Mathf.Max(1e-5f, boundsSizeCurrentOS.x) * decalProjector.uvScale.x;
-                        uvBias.y += (boundsMinCurrentOS.y - boundsMinPreviousOS.y) / Mathf.Max(1e-5f, boundsSizeCurrentOS.y) * decalProjector.uvScale.y;
-                        decalProjector.uvBias = uvBias;
-                    }
-
-                    if (PrefabUtility.IsPartOfNonAssetPrefabInstance(decalProjector))
-                    {
-                        PrefabUtility.RecordPrefabInstancePropertyModifications(decalProjector);
-                    }
-
-                    // Smoothly update the decal image projected
-                    DecalSystem.instance.UpdateCachedData(decalProjector.Handle, decalProjector.GetCachedDecalData());
-                }
-            }
-        }
-
-        void DrawPivotHandles(DecalProjector decalProjector)
-        {
-            using (new Handles.DrawingScope(fullColor, Matrix4x4.TRS(Vector3.zero, decalProjector.transform.rotation, Vector3.one)))
-            {
-                EditorGUI.BeginChangeCheck();
-                Vector3 newPosition = ProjectedTransform.DrawHandles(decalProjector.transform.position, .5f * decalProjector.size.z - decalProjector.pivot.z, decalProjector.transform.rotation);
-                if (EditorGUI.EndChangeCheck())
-                {
-                    Undo.RecordObjects(new UnityEngine.Object[] { decalProjector, decalProjector.transform }, "Decal Projector Change");
-
-                    decalProjector.pivot += Quaternion.Inverse(decalProjector.transform.rotation) * (decalProjector.transform.position - newPosition);
-                    decalProjector.transform.position = newPosition;
-                }
-            }
-        }
-
-        void DrawUVHandles(DecalProjector decalProjector)
-        {
-            using (new Handles.DrawingScope(Matrix4x4.TRS(decalProjector.transform.position + decalProjector.transform.rotation * (decalProjector.pivot - .5f * decalProjector.size), decalProjector.transform.rotation, Vector3.one)))
-            {
-                Vector2 uvSize = new Vector2(
-                    (decalProjector.uvScale.x > k_Limit || decalProjector.uvScale.x < -k_Limit) ? 0f : decalProjector.size.x / decalProjector.uvScale.x,
-                    (decalProjector.uvScale.y > k_Limit || decalProjector.uvScale.y < -k_Limit) ? 0f : decalProjector.size.y / decalProjector.uvScale.y
-                );
-                Vector2 uvCenter = uvSize * .5f - new Vector2(decalProjector.uvBias.x * uvSize.x, decalProjector.uvBias.y * uvSize.y);
-
-                uvHandles.center = uvCenter;
-                uvHandles.size = uvSize;
-
-                EditorGUI.BeginChangeCheck();
-                uvHandles.DrawHandle();
-                if (EditorGUI.EndChangeCheck())
-                {
-                    Undo.RecordObject(decalProjector, "Decal Projector Change");
-
-                    Vector2 limit = new Vector2(Mathf.Abs(decalProjector.size.x * k_LimitInv), Mathf.Abs(decalProjector.size.y * k_LimitInv));
-                    Vector2 uvScale = uvHandles.size;
-                    for (int channel = 0; channel < 2; channel++)
-                    {
-                        if (Mathf.Abs(uvScale[channel]) > limit[channel])
-                            uvScale[channel] = decalProjector.size[channel] / uvScale[channel];
-                        else
-                            uvScale[channel] = Mathf.Sign(decalProjector.size[channel]) * Mathf.Sign(uvScale[channel]) * k_Limit;
-                    }
-                    decalProjector.uvScale = uvScale;
-
-                    var newUVStart = uvHandles.center - .5f * uvHandles.size;
-                    decalProjector.uvBias = -new Vector2(
-                        (uvHandles.size.x < k_LimitInv) && (uvHandles.size.x > -k_LimitInv) ? k_Limit * newUVStart.x / decalProjector.size.x : newUVStart.x / uvHandles.size.x, //parenthesis to force format tool
-                        (uvHandles.size.y < k_LimitInv) && (uvHandles.size.y > -k_LimitInv) ? k_Limit * newUVStart.y / decalProjector.size.y : newUVStart.y / uvHandles.size.y  //parenthesis to force format tool
-                    );
-                }
-            }
-        }
-
-        void DrawHandles()
-        {
-            DecalProjector decalProjector = target as DecalProjector;
-
-            if (editMode == k_EditShapePreservingUV || editMode == k_EditShapeWithoutPreservingUV)
-                DrawBoxTransformationHandles(decalProjector);
-            else if (editMode == k_EditUVAndPivot)
-            {
-                DrawPivotHandles(decalProjector);
-                DrawUVHandles(decalProjector);
-            }
-        }
-
-        [DrawGizmo(GizmoType.Selected | GizmoType.Active)]
-        static void DrawGizmosSelected(DecalProjector decalProjector, GizmoType gizmoType)
-        {
-            UpdateColorsInHandlesIfRequired();
-
-            const float k_DotLength = 5f;
-
-            //draw them scale independent
-            using (new Handles.DrawingScope(fullColor, Matrix4x4.TRS(decalProjector.transform.position, decalProjector.transform.rotation, Vector3.one)))
-            {
-                boxHandle.center = decalProjector.pivot;
-                boxHandle.size = decalProjector.size;
-                bool isVolumeEditMode = editMode == k_EditShapePreservingUV || editMode == k_EditShapeWithoutPreservingUV;
-                bool isPivotEditMode = editMode == k_EditUVAndPivot;
-                boxHandle.DrawHull(isVolumeEditMode);
-
-                Vector3 pivot = Vector3.zero;
-                Vector3 projectedPivot = new Vector3(0, 0, decalProjector.pivot.z - .5f * decalProjector.size.z);
-
-                if (isPivotEditMode)
-                {
-                    Handles.DrawDottedLines(new[] { projectedPivot, pivot }, k_DotLength);
-                }
-                else
-                {
-                    float arrowSize = decalProjector.size.z * 0.25f;
-                    Handles.ArrowHandleCap(0, projectedPivot, Quaternion.identity, arrowSize, EventType.Repaint);
-                }
-
-                //draw UV and bolder edges
-                using (new Handles.DrawingScope(Matrix4x4.TRS(decalProjector.transform.position + decalProjector.transform.rotation * new Vector3(decalProjector.pivot.x, decalProjector.pivot.y, decalProjector.pivot.z - .5f * decalProjector.size.z), decalProjector.transform.rotation, Vector3.one)))
-                {
-                    Vector2 UVSize = new Vector2(
-                        (decalProjector.uvScale.x > k_Limit || decalProjector.uvScale.x < -k_Limit) ? 0f : decalProjector.size.x / decalProjector.uvScale.x,
-                        (decalProjector.uvScale.y > k_Limit || decalProjector.uvScale.y < -k_Limit) ? 0f : decalProjector.size.y / decalProjector.uvScale.y
-                    );
-                    Vector2 UVCenter = UVSize * .5f - new Vector2(decalProjector.uvBias.x * UVSize.x, decalProjector.uvBias.y * UVSize.y) - (Vector2)decalProjector.size * .5f;
-
-                    uvHandles.center = UVCenter;
-                    uvHandles.size = UVSize;
-                    uvHandles.DrawRect(dottedLine: true, screenSpaceSize: k_DotLength);
-
-                    uvHandles.center = default;
-                    uvHandles.size = decalProjector.size;
-                    uvHandles.DrawRect(dottedLine: false, thickness: 3f);
-                }
-            }
         }
 
         public override void OnInspectorGUI()
@@ -400,71 +211,10 @@ namespace UnityEditor.Rendering.HighDefinition
             }
         }
 
-        [Shortcut("HDRP/Decal: Handle changing size stretching UV", typeof(SceneView), KeyCode.Keypad1, ShortcutModifiers.Action)]
-        static void EnterEditModeWithoutPreservingUV(ShortcutArguments args)
+        protected override void DecalUpdateCallback( DecalBase decalProjector )
         {
-            //If editor is not there, then the selected GameObject does not contains a DecalProjector
-            DecalProjector activeDecalProjector = Selection.activeGameObject?.GetComponent<DecalProjector>();
-            if (activeDecalProjector == null || activeDecalProjector.Equals(null))
-                return;
-
-            ChangeEditMode(k_EditShapeWithoutPreservingUV, GetBoundsGetter(activeDecalProjector)(), FindEditorFromSelection());
-        }
-
-        [Shortcut("HDRP/Decal: Handle changing size cropping UV", typeof(SceneView), KeyCode.Keypad2, ShortcutModifiers.Action)]
-        static void EnterEditModePreservingUV(ShortcutArguments args)
-        {
-            //If editor is not there, then the selected GameObject does not contains a DecalProjector
-            DecalProjector activeDecalProjector = Selection.activeGameObject?.GetComponent<DecalProjector>();
-            if (activeDecalProjector == null || activeDecalProjector.Equals(null))
-                return;
-
-            ChangeEditMode(k_EditShapePreservingUV, GetBoundsGetter(activeDecalProjector)(), FindEditorFromSelection());
-        }
-
-        [Shortcut("HDRP/Decal: Handle changing pivot position and UVs", typeof(SceneView), KeyCode.Keypad3, ShortcutModifiers.Action)]
-        static void EnterEditModePivotPreservingUV(ShortcutArguments args)
-        {
-            //If editor is not there, then the selected GameObject does not contains a DecalProjector
-            DecalProjector activeDecalProjector = Selection.activeGameObject?.GetComponent<DecalProjector>();
-            if (activeDecalProjector == null || activeDecalProjector.Equals(null))
-                return;
-
-            ChangeEditMode(k_EditUVAndPivot, GetBoundsGetter(activeDecalProjector)(), FindEditorFromSelection());
-        }
-
-        [Shortcut("HDRP/Decal: Handle swap between cropping and stretching UV", typeof(SceneView), KeyCode.W, ShortcutModifiers.Action)]
-        static void SwappingEditUVMode(ShortcutArguments args)
-        {
-            //If editor is not there, then the selected GameObject does not contains a DecalProjector
-            DecalProjector activeDecalProjector = Selection.activeGameObject?.GetComponent<DecalProjector>();
-            if (activeDecalProjector == null || activeDecalProjector.Equals(null))
-                return;
-
-            SceneViewEditMode targetMode = SceneViewEditMode.None;
-            switch (editMode)
-            {
-                case k_EditShapePreservingUV:
-                case k_EditUVAndPivot:
-                    targetMode = k_EditShapeWithoutPreservingUV;
-                    break;
-                case k_EditShapeWithoutPreservingUV:
-                    targetMode = k_EditShapePreservingUV;
-                    break;
-            }
-            if (targetMode != SceneViewEditMode.None)
-                ChangeEditMode(targetMode, GetBoundsGetter(activeDecalProjector)(), FindEditorFromSelection());
-        }
-
-        [Shortcut("HDRP/Decal: Stop Editing", typeof(SceneView), KeyCode.Keypad0, ShortcutModifiers.Action)]
-        static void ExitEditMode(ShortcutArguments args)
-        {
-            //If editor is not there, then the selected GameObject does not contains a DecalProjector
-            DecalProjector activeDecalProjector = Selection.activeGameObject?.GetComponent<DecalProjector>();
-            if (activeDecalProjector == null || activeDecalProjector.Equals(null))
-                return;
-
-            QuitEditMode();
+            // Smoothly update the decal image projected
+            DecalSystem.instance.UpdateCachedData(decalProjector.Handle, (decalProjector as DecalProjector).GetCachedDecalData());
         }
     }
 }
