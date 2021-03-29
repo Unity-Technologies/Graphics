@@ -29,22 +29,6 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
             public static GUIContent supportLodCrossFadeText = new GUIContent("Support LOD CrossFade", "When enabled, this decal material supports LOD Cross fade if use on a Mesh.");
         }
 
-        public struct HDMaterialProperties
-        {
-            internal const string kStencilRef = "_StencilRef";
-            internal const string kStencilWriteMask = "_StencilWriteMask";
-            internal const string kStencilRefDepth = "_StencilRefDepth";
-            internal const string kStencilWriteMaskDepth = "_StencilWriteMaskDepth";
-            internal const string kStencilRefGBuffer = "_StencilRefGBuffer";
-            internal const string kStencilWriteMaskGBuffer = "_StencilWriteMaskGBuffer";
-            internal const string kStencilRefMV = "_StencilRefMV";
-            internal const string kStencilWriteMaskMV = "_StencilWriteMaskMV";
-            internal const string kStencilRefDistortionVec = "_StencilRefDistortionVec";
-            internal const string kStencilWriteMaskDistortionVec = "_StencilWriteMaskDistortionVec";
-            internal const string kDecalStencilWriteMask = "_DecalStencilWriteMask";
-            internal const string kDecalStencilRef = "_DecalStencilRef";
-        }
-
         private const string kMaterial = "Material";
         private static FieldDescriptor AffectsAlbedo = new FieldDescriptor(kMaterial, "AffectsAlbedo", "");
         private static FieldDescriptor AffectsNormal = new FieldDescriptor(kMaterial, "AffectsNormal", "");
@@ -177,10 +161,10 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
                 else
                     pass.renderStates.Add(RenderState.ColorMask("ColorMask 0 2"));
 
-                if (decalData.affectsEmission || pass.lightMode == "DecalGBufferMesh") // GBufferMesh uses emission for GI
-                    pass.renderStates.Add(RenderState.ColorMask("ColorMask RGB 3"));
-                else
-                    pass.renderStates.Add(RenderState.ColorMask("ColorMask 0 3"));
+                //if (decalData.affectsEmission || pass.lightMode == "DecalGBufferMesh") // GBufferMesh uses emission for GI
+                pass.renderStates.Add(RenderState.ColorMask("ColorMask RGB 3"));
+                //else
+                //    pass.renderStates.Add(RenderState.ColorMask("ColorMask 0 3"));
             }
 
             if (pass.lightMode == DecalSystem.s_MaterialDecalPassNames[(int)DecalSystem.MaterialDecalPass.DBufferProjector] ||
@@ -260,19 +244,6 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
                 decalAngleFadeSupported.floatType = FloatType.Default;
                 decalAngleFadeSupported.value = 1;
                 collector.AddShaderProperty(decalAngleFadeSupported);
-            }
-
-            AddStencilProperty(HDMaterialProperties.kDecalStencilWriteMask);
-            AddStencilProperty(HDMaterialProperties.kDecalStencilRef);
-
-            void AddStencilProperty(string referenceName)
-            {
-                collector.AddShaderProperty(new Vector1ShaderProperty
-                {
-                    overrideReferenceName = referenceName,
-                    floatType = FloatType.Integer,
-                    hidden = true,
-                });
             }
         }
 
@@ -466,7 +437,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
                 pragmas = DecalPragmas.MultipleRenderTargets,
                 keywords = DecalKeywords.DBuffer,
                 defines = DecalDefines.Projector,
-                includes = DecalIncludes.Default,
+                includes = DecalIncludes.DBuffer,
             };
 
             public static PassDescriptor ForwardEmissiveProjector = new PassDescriptor()
@@ -492,7 +463,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
                 renderStates = DecalRenderStates.ForwardEmissiveProjector,
                 pragmas = DecalPragmas.MultipleRenderTargets,
                 defines = DecalDefines.ProjectorWithEmission,
-                includes = DecalIncludes.Default,
+                includes = DecalIncludes.DBuffer,
             };
 
             public static PassDescriptor ScreenSpaceProjector = new PassDescriptor()
@@ -519,7 +490,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
                 pragmas = DecalPragmas.ScreenSpace,
                 defines = DecalDefines.ProjectorWithEmission,
                 keywords = DecalKeywords.ScreenSpaceProjector,
-                includes = DecalIncludes.Default,
+                includes = DecalIncludes.ScreenSpace,
             };
 
             public static PassDescriptor GBufferProjector = new PassDescriptor()
@@ -539,13 +510,14 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
 
                 //Fields
                 structs = CoreStructCollections.Default,
+                requiredFields = DecalRequiredFields.GBufferProjector,
                 fieldDependencies = CoreFieldDependencies.Default,
 
                 renderStates = DecalRenderStates.GBufferProjector,
                 pragmas = DecalPragmas.GBuffer,
                 defines = DecalDefines.ProjectorWithEmission,
                 keywords = DecalKeywords.GBufferProjector,
-                includes = DecalIncludes.Default,
+                includes = DecalIncludes.GBuffer,
             };
 
             public static PassDescriptor DBufferMesh = new PassDescriptor()
@@ -572,7 +544,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
                 renderStates = DecalRenderStates.DBufferMesh,
                 pragmas = DecalPragmas.MultipleRenderTargets,
                 keywords = DecalKeywords.DBuffer,
-                includes = DecalIncludes.Default,
+                includes = DecalIncludes.DBuffer,
             };
 
             public static PassDescriptor ForwardEmissiveMesh = new PassDescriptor()
@@ -599,7 +571,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
                 renderStates = DecalRenderStates.ForwardEmissiveMesh,
                 pragmas = DecalPragmas.MultipleRenderTargets,
                 defines = DecalDefines.AffectsEmission,
-                includes = DecalIncludes.Default,
+                includes = DecalIncludes.DBuffer,
             };
 
             public static PassDescriptor ScreenSpaceMesh = new PassDescriptor()
@@ -626,7 +598,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
                 pragmas = DecalPragmas.ScreenSpace,
                 defines = DecalDefines.AffectsEmission,
                 keywords = DecalKeywords.ScreenSpaceMesh,
-                includes = DecalIncludes.Default,
+                includes = DecalIncludes.ScreenSpace,
             };
 
             public static PassDescriptor GBufferMesh = new PassDescriptor()
@@ -653,7 +625,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
                 pragmas = DecalPragmas.GBuffer,
                 defines = DecalDefines.AffectsEmission,
                 keywords = DecalKeywords.GBufferMesh,
-                includes = DecalIncludes.Default,
+                includes = DecalIncludes.GBuffer,
             };
         }
         #endregion
@@ -710,10 +682,26 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
 
             public static FieldCollection ScreenSpaceProjector = new FieldCollection()
             {
+                // todo
+                StructFields.Varyings.normalWS,
+
                 StructFields.Varyings.viewDirectionWS,
-                //UniversalStructFields.Varyings.lightmapUV, // todo
-                //UniversalStructFields.Varyings.sh, //todo
+                UniversalStructFields.Varyings.lightmapUV,
+                UniversalStructFields.Varyings.sh,
                 UniversalStructFields.Varyings.fogFactorAndVertexLight, // fog and vertex lighting, vert input is dependency
+                // todo
+                //UniversalStructFields.Varyings.shadowCoord,             // shadow coord, vert input is dependency
+            };
+
+            public static FieldCollection GBufferProjector = new FieldCollection()
+            {
+                // todo
+                StructFields.Varyings.normalWS,
+
+                //StructFields.Varyings.viewDirectionWS,
+                UniversalStructFields.Varyings.lightmapUV,
+                UniversalStructFields.Varyings.sh,
+                //UniversalStructFields.Varyings.fogFactorAndVertexLight, // fog and vertex lighting, vert input is dependency
                 // todo
                 //UniversalStructFields.Varyings.shadowCoord,             // shadow coord, vert input is dependency
             };
@@ -751,14 +739,11 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
         #region RenderStates
         static class DecalRenderStates
         {
-            private const string kDecalStencilWriteMask = "_DecalStencilWriteMask";
-            private const string kDecalStencilRef = "_DecalStencilRef";
-            private readonly static string[] s_DecalBlends = new string[4]
+            private readonly static string[] s_DecalBlends = new string[]
             {
                 "Blend 0 SrcAlpha OneMinusSrcAlpha, Zero OneMinusSrcAlpha",
                 "Blend 1 SrcAlpha OneMinusSrcAlpha, Zero OneMinusSrcAlpha",
                 "Blend 2 SrcAlpha OneMinusSrcAlpha, Zero OneMinusSrcAlpha",
-                "Blend 3 Zero OneMinusSrcColor"
             };
 
             public static RenderStateCollection ScenePicking = new RenderStateCollection
@@ -771,18 +756,9 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
                 { RenderState.Blend(s_DecalBlends[0]) },
                 { RenderState.Blend(s_DecalBlends[1]) },
                 { RenderState.Blend(s_DecalBlends[2]) },
-                { RenderState.Blend(s_DecalBlends[3]) },
                 { RenderState.Cull(Cull.Front) },
                 { RenderState.ZTest(ZTest.Greater) },
                 { RenderState.ZWrite(ZWrite.Off) },
-                { RenderState.Stencil(new StencilDescriptor()
-                {
-                    WriteMask = $"[{kDecalStencilWriteMask}]",
-                    Ref = $"[{kDecalStencilRef}]",
-                    Comp = "Always",
-                    Pass = "Replace",
-                }) },
-                // Render State setup in dynamically
             };
 
             public static RenderStateCollection ForwardEmissiveProjector = new RenderStateCollection
@@ -807,7 +783,6 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
                 { RenderState.Blend("Blend 1 SrcAlpha OneMinusSrcAlpha") },
                 { RenderState.Blend("Blend 2 SrcAlpha OneMinusSrcAlpha") },
                 { RenderState.Blend("Blend 3 SrcAlpha OneMinusSrcAlpha") },
-                //{ RenderState.ColorMask("ColorMask RGB") },
                 { RenderState.Cull(Cull.Front) },
                 { RenderState.ZTest(ZTest.Greater) },
                 { RenderState.ZWrite(ZWrite.Off) },
@@ -818,17 +793,8 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
                 { RenderState.Blend(s_DecalBlends[0]) },
                 { RenderState.Blend(s_DecalBlends[1]) },
                 { RenderState.Blend(s_DecalBlends[2]) },
-                { RenderState.Blend(s_DecalBlends[3]) },
                 { RenderState.ZTest(ZTest.LEqual) },
                 { RenderState.ZWrite(ZWrite.Off) },
-                { RenderState.Stencil(new StencilDescriptor()
-                {
-                    WriteMask = $"[{kDecalStencilWriteMask}]",
-                    Ref = $"[{kDecalStencilRef}]",
-                    Comp = "Always",
-                    Pass = "Replace",
-                }) },
-                // Render State setup in dynamically
             };
 
             public static RenderStateCollection ForwardEmissiveMesh = new RenderStateCollection
@@ -851,7 +817,6 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
                 { RenderState.Blend("Blend 1 SrcAlpha OneMinusSrcAlpha") },
                 { RenderState.Blend("Blend 2 SrcAlpha OneMinusSrcAlpha") },
                 { RenderState.Blend("Blend 3 SrcAlpha OneMinusSrcAlpha") },
-                // { RenderState.ColorMask("ColorMask RGB") }, Dynamically set
                 { RenderState.ZTest(ZTest.LEqual) },
                 { RenderState.ZWrite(ZWrite.Off) },
             };
@@ -886,7 +851,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
                 { Pragma.Target(ShaderModel.Target35) }, // MRT4
                 { Pragma.Vertex("Vert") },
                 { Pragma.Fragment("Frag") },
-                { Pragma.EnableD3D11DebugSymbols },
+                //{ Pragma.EnableD3D11DebugSymbols },
                 { Pragma.MultiCompileInstancing },
             };
         }
@@ -1060,8 +1025,18 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
 
             public static readonly KeywordCollection ScreenSpaceProjector = new KeywordCollection
             {
+                //todo
+                { CoreKeywordDescriptors.Lightmap },
+                { CoreKeywordDescriptors.DirectionalLightmapCombined },
                 { CoreKeywordDescriptors.MainLightShadows },
+                { CoreKeywordDescriptors.AdditionalLights },
+                { CoreKeywordDescriptors.AdditionalLightShadows },
                 { CoreKeywordDescriptors.ShadowsSoft },
+                { CoreKeywordDescriptors.LightmapShadowMixing },
+                { CoreKeywordDescriptors.ShadowsShadowmask },
+
+                //{ CoreKeywordDescriptors.MainLightShadows },
+                //{ CoreKeywordDescriptors.ShadowsSoft },
                 { Descriptors.DecalsNormalBlend },
             };
 
@@ -1078,6 +1053,14 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
 
             public static readonly KeywordCollection GBufferProjector = new KeywordCollection
             {
+                // todo
+                { CoreKeywordDescriptors.Lightmap },
+                { CoreKeywordDescriptors.DirectionalLightmapCombined },
+                { CoreKeywordDescriptors.MainLightShadows },
+                { CoreKeywordDescriptors.ShadowsSoft },
+                { CoreKeywordDescriptors.LightmapShadowMixing },
+                { CoreKeywordDescriptors.MixedLightingSubtractive },
+
                 { Descriptors.GBufferNormalsOct },
             };
         }
@@ -1086,42 +1069,70 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
         #region Includes
         static class DecalIncludes
         {
-            const string kUnityInput = "Packages/com.unity.render-pipelines.universal/ShaderLibrary/UnityInput.hlsl";
-            const string kSpaceTransforms = "Packages/com.unity.render-pipelines.core/ShaderLibrary/SpaceTransforms.hlsl";
-            const string kInput = "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Input.hlsl";
-            const string kPacking = "Packages/com.unity.render-pipelines.core/ShaderLibrary/Packing.hlsl";
-            const string kColor = "Packages/com.unity.render-pipelines.core/ShaderLibrary/Color.hlsl";
-            const string kFunctions = "Packages/com.unity.shadergraph/ShaderGraphLibrary/Functions.hlsl";
             const string kShaderVariablesDecal = "Packages/com.unity.render-pipelines.universal/Runtime/Decal/ShaderVariablesDecal.hlsl";
-            const string kDecal = "Packages/com.unity.render-pipelines.universal/Runtime/Decal/Decal.hlsl";
             const string kPassDecal = "Packages/com.unity.render-pipelines.universal/Runtime/Decal/ShaderPassDecal.hlsl";
+            const string kShaderPass = "Packages/com.unity.render-pipelines.universal/Editor/ShaderGraph/Includes/ShaderPass.hlsl";
+            const string kVaryings = "Packages/com.unity.render-pipelines.universal/Editor/ShaderGraph/Includes/Varyings.hlsl";
 
-            public static IncludeCollection Default = new IncludeCollection
+            const string kDecal = "Packages/com.unity.render-pipelines.universal/Runtime/Decal/Decal.hlsl"; // DBuffer
+            const string kGBuffer = "Packages/com.unity.render-pipelines.universal/ShaderLibrary/UnityGBuffer.hlsl"; // GBuffer
+
+            public static IncludeCollection DecalPregraph = new IncludeCollection
             {
-                { kPacking, IncludeLocation.Pregraph },
-                { kColor, IncludeLocation.Pregraph },
-                { kFunctions, IncludeLocation.Pregraph },
-                { kUnityInput, IncludeLocation.Pregraph },
-                //{ kVaryings, IncludeLocation.Pregraph },
-                { kInput, IncludeLocation.Pregraph },
+                { kShaderPass, IncludeLocation.Pregraph },
                 { kShaderVariablesDecal, IncludeLocation.Pregraph },
-                { kDecal, IncludeLocation.Pregraph },
-                //{ kSpaceTransforms, IncludeLocation.Pregraph },
+            };
+
+            public static IncludeCollection DecalPostgraph = new IncludeCollection
+            {
+                { kVaryings, IncludeLocation.Postgraph },
                 { kPassDecal, IncludeLocation.Postgraph },
+            };
+
+            public static IncludeCollection DBuffer = new IncludeCollection
+            {
+                // Pre-graph
+                { CoreIncludes.CorePregraph },
+                { CoreIncludes.ShaderGraphPregraph },
+                { DecalPregraph },
+                { kDecal, IncludeLocation.Pregraph },
+
+                // Post-graph
+                { DecalPostgraph },
+            };
+
+            public static IncludeCollection ScreenSpace = new IncludeCollection
+            {
+                // Pre-graph
+                { CoreIncludes.CorePregraph },
+                { CoreIncludes.ShaderGraphPregraph },
+                { DecalPregraph },
+
+                // Post-graph
+                { DecalPostgraph },
+            };
+
+            public static IncludeCollection GBuffer = new IncludeCollection
+            {
+                // Pre-graph
+                { CoreIncludes.CorePregraph },
+                { CoreIncludes.ShaderGraphPregraph },
+                { kGBuffer, IncludeLocation.Pregraph },
+                { DecalPregraph },
+
+                // Post-graph
+                { DecalPostgraph },
             };
 
             public static IncludeCollection ScenePicking = new IncludeCollection
             {
-                { kPacking, IncludeLocation.Pregraph },
-                { kColor, IncludeLocation.Pregraph },
-                { kFunctions, IncludeLocation.Pregraph },
-                { kUnityInput, IncludeLocation.Pregraph },
+                // Pre-graph
+                { CoreIncludes.CorePregraph },
+                { CoreIncludes.ShaderGraphPregraph },
+                { DecalPregraph },
 
-                { kInput, IncludeLocation.Pregraph },
-                { kShaderVariablesDecal, IncludeLocation.Pregraph },
-                { kDecal, IncludeLocation.Pregraph },
-                { kSpaceTransforms, IncludeLocation.Pregraph },
-                { kPassDecal, IncludeLocation.Postgraph },
+                // Post-graph
+                { DecalPostgraph },
             };
         }
         #endregion

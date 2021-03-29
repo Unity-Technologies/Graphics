@@ -689,7 +689,7 @@ namespace UnityEngine.Rendering.Universal
                 {
                     continue;
                 }
-                rendererFeatures[i].OnCull(in cameraData);
+                rendererFeatures[i].OnCull(this, in cameraData);
             }
         }
 

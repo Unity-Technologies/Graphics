@@ -169,10 +169,10 @@ public class DecalCreateDrawCallSystem
                     continue;
 
                 BoundingSphere boundingSphere = boundingSpheres[decalIndex];
-                float2 drawDistasnces = drawDistances[decalIndex];
+                float2 drawDistance = drawDistances[decalIndex];
 
                 float distanceToDecal = (cameraPosition - boundingSphere.position).magnitude;
-                float cullDistance = drawDistasnces.x + boundingSphere.radius;
+                float cullDistance = drawDistance.x + boundingSphere.radius;
                 if (distanceToDecal > cullDistance)
                     continue;
 
@@ -184,7 +184,7 @@ public class DecalCreateDrawCallSystem
 
                 float4x4 normalToDecals = normalToWorlds[decalIndex];
                 // NormalToWorldBatchis a Matrix4x4x but is a Rotation matrix so bottom row and last column can be used for other data to save space
-                float fadeFactor = fadeFactorScaler * Mathf.Clamp((cullDistance - distanceToDecal) / (cullDistance * (1.0f - drawDistasnces.y)), 0.0f, 1.0f);
+                float fadeFactor = fadeFactorScaler * Mathf.Clamp((cullDistance - distanceToDecal) / (cullDistance * (1.0f - drawDistance.y)), 0.0f, 1.0f);
                 normalToDecals.c0.w = uvScaleBias.x;// fadeFactor * 1.0f;
                 normalToDecals.c1.w = uvScaleBias.y;// angleFade.x;
                 normalToDecals.c2.w = uvScaleBias.z;// angleFade.y;

@@ -29,7 +29,10 @@ namespace UnityEngine.Rendering.Universal
             m_FilteringSettings = new FilteringSettings(RenderQueueRange.opaque, -1);
 
             m_ShaderTagIdList = new List<ShaderTagId>();
-            m_ShaderTagIdList.Add(new ShaderTagId("DecalGBufferMesh"));
+            if (m_Settings.supportAdditionalLights)
+                m_ShaderTagIdList.Add(new ShaderTagId("DecalGBufferProjector"));
+            else
+                m_ShaderTagIdList.Add(new ShaderTagId("DecalGBufferMesh"));
         }
 
         internal void Setup(DeferredLights deferredLights)
@@ -61,7 +64,8 @@ namespace UnityEngine.Rendering.Universal
                 context.ExecuteCommandBuffer(cmd);
                 cmd.Clear();
 
-                m_DrawSystem?.Execute(cmd);
+                if (!m_Settings.supportAdditionalLights)
+                    m_DrawSystem?.Execute(cmd);
 
                 context.DrawRenderers(renderingData.cullResults, ref drawingSettings, ref m_FilteringSettings);
             }

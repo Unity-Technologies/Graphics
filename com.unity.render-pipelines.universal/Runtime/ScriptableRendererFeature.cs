@@ -17,7 +17,7 @@ namespace UnityEngine.Rendering.Universal
         /// </summary>
         public bool isActive => m_Active;
 
-        internal virtual void OnCull(in CameraData cameraData) {}
+        internal virtual void OnCull(ScriptableRenderer renderer, in CameraData cameraData) {}
 
         /// <summary>
         /// Initializes this feature's resources. This is called every time serialization happens.

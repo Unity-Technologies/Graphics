@@ -39,6 +39,7 @@ namespace UnityEngine.Rendering.Universal
     {
         public DecalNormalBlend blend = DecalNormalBlend.NormalLow;
         public bool useGBuffer = true;
+        public bool supportAdditionalLights = false;
     }
 
     [System.Serializable]
@@ -214,6 +215,7 @@ namespace UnityEngine.Rendering.Universal
         // Screen Space
         private ScreenSpaceDecalRenderPass m_ScreenSpaceDecalRenderPass;
         private DecalDrawScreenSpaceSystem m_DecalDrawScreenSpaceSystem;
+        private DecalSkipCulledSystem m_DecalSkipCulledSystem;
 
         // GBuffer
         private DecalGBufferRenderPass m_GBufferRenderPass;
@@ -221,6 +223,7 @@ namespace UnityEngine.Rendering.Universal
 
         private DecalSettings actualSettings { get => m_ActualSettings; }
         public DecalTechnique technique { get => m_ActualSettings.technique; }
+        public bool intermmediateRendering { get => !(technique == DecalTechnique.ScreenSpace && settings.screenSpaceSettings.supportAdditionalLights); }
 
         public override void Create()
         {
@@ -298,6 +301,8 @@ namespace UnityEngine.Rendering.Universal
 
                     m_DecalDrawScreenSpaceSystem = new DecalDrawScreenSpaceSystem(m_DecalEntityManager);
                     m_ScreenSpaceDecalRenderPass = new ScreenSpaceDecalRenderPass("Decal Screen Space Render", actualSettings.screenSpaceSettings, m_DecalDrawScreenSpaceSystem);
+
+                    m_DecalSkipCulledSystem = new DecalSkipCulledSystem(m_DecalEntityManager);
                 }
                 else
                 {
@@ -312,8 +317,7 @@ namespace UnityEngine.Rendering.Universal
             m_DirtySystems = false;
         }
 
-
-        internal override void OnCull(in CameraData cameraData)
+        internal override void OnCull(ScriptableRenderer renderer, in CameraData cameraData)
         {
             if (!m_TechniqueValid)
                 return;
@@ -337,9 +341,32 @@ namespace UnityEngine.Rendering.Universal
                 RecreateSystemsIfNeeded();
 
                 m_DecalUpdateCachedSystem.Execute();
-                m_DecalUpdateCullingGroupSystem.Execute(cameraData.camera);
+                if (intermmediateRendering)
+                {
+                    m_DecalUpdateCullingGroupSystem.Execute(cameraData.camera);
 
-                m_DecalEntityManager.Sort();
+                    m_DecalEntityManager.Sort();
+                }
+                else
+                {
+                    m_DecalSkipCulledSystem.Execute(cameraData.camera);
+                    m_DecalCreateDrawCallSystem.Execute();
+                    //m_DecalDrawRendererSystem.Execute(cameraData);
+
+                    if (technique == DecalTechnique.ScreenSpace)
+                    {
+                        var universalRenderer = renderer as UniversalRenderer;
+                        bool deferred = universalRenderer?.actualRenderingMode == RenderingMode.Deferred;
+                        if (actualSettings.screenSpaceSettings.useGBuffer && deferred)
+                        {
+                            m_DrawGBufferSystem.Execute(cameraData);
+                        }
+                        else
+                        {
+                            m_DecalDrawScreenSpaceSystem.Execute(cameraData);
+                        }
+                    }
+                }
             }
         }
 
@@ -396,8 +423,16 @@ namespace UnityEngine.Rendering.Universal
             if (technique == DecalTechnique.DBuffer || technique == DecalTechnique.ScreenSpace)
             {
                 RecreateSystemsIfNeeded();
-                m_DecalUpdateCulledSystem.Execute();
-                m_DecalCreateDrawCallSystem.Execute();
+
+                if (intermmediateRendering)
+                {
+                    m_DecalUpdateCulledSystem.Execute();
+                    m_DecalCreateDrawCallSystem.Execute();
+                }
+                else
+                {
+                    //m_DecalDrawRendererSystem.Execute(renderingData.cameraData);
+                }
 
                 if (technique == DecalTechnique.ScreenSpace)
                 {
