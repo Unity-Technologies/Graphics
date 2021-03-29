@@ -77,13 +77,13 @@ namespace UnityEditor.Rendering.Universal
             }
         }
 
-        bool showAffectTransparency => ((target as DecalProjector).material != null) && DecalSystem.IsHDRenderPipelineDecal((target as DecalProjector).material.shader);
+        bool showAffectTransparency => false;// ((target as DecalProjector).material != null) && DecalSystem.IsHDRenderPipelineDecal((target as DecalProjector).material.shader);
 
         bool showAffectTransparencyHaveMultipleDifferentValue
         {
             get
             {
-                if (targets.Length < 2)
+                /*if (targets.Length < 2)
                     return false;
                 DecalProjector decalProjector0 = (targets[0] as DecalProjector);
                 bool show = decalProjector0.material != null && DecalSystem.IsHDRenderPipelineDecal(decalProjector0.material.shader);
@@ -95,7 +95,7 @@ namespace UnityEditor.Rendering.Universal
                         if (decalProjectori != null && DecalSystem.IsHDRenderPipelineDecal(decalProjectori.material.shader) ^ show)
                             return true;
                     }
-                }
+                }*/
                 return false;
             }
         }
@@ -149,10 +149,6 @@ namespace UnityEditor.Rendering.Universal
 
             // Create an instance of the MaterialEditor
             UpdateMaterialEditor();
-            foreach (var decalProjector in targets)
-            {
-                (decalProjector as DecalProjector).OnMaterialChange += RequireUpdateMaterialEditor;
-            }
 
             // Fetch serialized properties
             m_MaterialProperty = serializedObject.FindProperty("m_Material");
@@ -177,11 +173,6 @@ namespace UnityEditor.Rendering.Universal
 
         private void OnDisable()
         {
-            foreach (DecalProjector decalProjector in targets)
-            {
-                if (decalProjector != null)
-                    decalProjector.OnMaterialChange -= RequireUpdateMaterialEditor;
-            }
             s_Owner = null;
         }
 
@@ -199,10 +190,6 @@ namespace UnityEditor.Rendering.Universal
 
             return new Bounds(decalProjector.transform.position, handle.size);
         }
-
-        private bool m_RequireUpdateMaterialEditor = false;
-
-        private void RequireUpdateMaterialEditor() => m_RequireUpdateMaterialEditor = true;
 
         public void UpdateMaterialEditor()
         {
@@ -310,7 +297,7 @@ namespace UnityEditor.Rendering.Universal
                     if (needToRefreshDecalProjector)
                     {
                         // Smoothly update the decal image projected
-                        DecalSystem.instance.UpdateCachedData(decalProjector.Handle, decalProjector.GetCachedDecalData());
+                        //DecalSystem.instance.UpdateCachedData(decalProjector.Handle, decalProjector.GetCachedDecalData());
                     }
                 }
             }
@@ -393,12 +380,6 @@ namespace UnityEditor.Rendering.Universal
         {
             serializedObject.Update();
 
-            if (m_RequireUpdateMaterialEditor)
-            {
-                UpdateMaterialEditor();
-                m_RequireUpdateMaterialEditor = false;
-            }
-
             EditorGUI.BeginChangeCheck();
             {
                 EditorGUILayout.BeginHorizontal();
@@ -434,7 +415,10 @@ namespace UnityEditor.Rendering.Universal
                     m_OffsetZ.floatValue = m_SizeValues[2].floatValue * 0.5f;
                 }
 
-                EditorGUILayout.PropertyField(m_MaterialProperty, k_MaterialContent);
+                if (EditorGUILayout.PropertyField(m_MaterialProperty, k_MaterialContent))
+                {
+                    UpdateMaterialEditor();
+                }
 
                 bool decalLayerEnabled = false;
                 foreach (var decalProjector in targets)
@@ -521,7 +505,7 @@ namespace UnityEditor.Rendering.Universal
                         var mat = (decalProjector as DecalProjector).material;
 
                         //isDefaultMaterial |= mat == hdrp.GetDefaultDecalMaterial();
-                        isValidDecalMaterial &= mat != null && DecalSystem.IsDecalMaterial(mat);
+                        //isValidDecalMaterial &= mat != null && DecalSystem.IsDecalMaterial(mat);
                     }
                 }
 

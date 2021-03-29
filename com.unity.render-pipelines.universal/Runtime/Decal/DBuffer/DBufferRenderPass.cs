@@ -24,8 +24,6 @@ namespace UnityEngine.Rendering.Universal
         private ProfilingSampler m_ClearSampler;
         private ProfilingSampler m_ProfilingSampler;
 
-        private ProfilingSampler m_RenderIntoDBufferSmpler; // TODO: Remove
-
         public DBufferRenderPass(string profilerTag, Material dBufferClear, DBufferSettings settings, DecalDrawIntoDBufferSystem decalDrawIntoDBufferSystem)
         {
             renderPassEvent = RenderPassEvent.AfterRenderingPrePasses + 1;
@@ -34,7 +32,6 @@ namespace UnityEngine.Rendering.Universal
             m_DecalDrawIntoDBufferSystem = decalDrawIntoDBufferSystem;
             m_Settings = settings;
             m_DBufferClear = dBufferClear;
-            m_RenderIntoDBufferSmpler = new ProfilingSampler("V1.DecalSystem.RenderIntoDBuffer"); // TODO: Remove
             m_ProfilingSampler = new ProfilingSampler(profilerTag);
             m_ClearSampler = new ProfilingSampler("DBuffer Setup");
             m_FilteringSettings = new FilteringSettings(RenderQueueRange.opaque, -1);
@@ -133,15 +130,6 @@ namespace UnityEngine.Rendering.Universal
                 // Split here allows clear to be executed before DrawRenderers
                 context.ExecuteCommandBuffer(cmd);
                 cmd.Clear();
-
-                // TODO: Remove
-                if (m_DecalDrawIntoDBufferSystem == null)
-                {
-                    using (new ProfilingScope(cmd, m_RenderIntoDBufferSmpler))
-                    {
-                        DecalSystem.instance.RenderIntoDBuffer(cmd);
-                    }
-                }
 
                 m_DecalDrawIntoDBufferSystem?.Execute(cmd);
 

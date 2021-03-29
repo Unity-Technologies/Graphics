@@ -106,7 +106,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
             // Emissive pass only have the emission keyword
             if (pass.lightMode == DecalShaderPassNames.DBufferProjector ||
                 pass.lightMode == DecalShaderPassNames.DBufferMesh ||
-                pass.lightMode == "DecalPreview" ||
+                pass.lightMode == DecalShaderPassNames.DecalPreview ||
                 pass.lightMode == DecalShaderPassNames.DecalScreenSpaceProjector ||
                 pass.lightMode == DecalShaderPassNames.DecalScreenSpaceMesh ||
                 pass.lightMode == DecalShaderPassNames.DecalGBufferProjector ||
@@ -959,15 +959,15 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
                 public static KeywordDescriptor Decals = new KeywordDescriptor()
                 {
                     displayName = "Decals",
-                    referenceName = "DECALS",
+                    referenceName = "_DBUFFER",
                     type = KeywordType.Enum,
                     definition = KeywordDefinition.MultiCompile,
                     scope = KeywordScope.Global,
                     entries = new KeywordEntry[]
                     {
-                        new KeywordEntry() { displayName = "1RT", referenceName = "1RT" },
-                        new KeywordEntry() { displayName = "2RT", referenceName = "2RT" },
-                        new KeywordEntry() { displayName = "3RT", referenceName = "3RT" },
+                        new KeywordEntry() { displayName = "MRT1", referenceName = "MRT1" },
+                        new KeywordEntry() { displayName = "MRT2", referenceName = "MRT2" },
+                        new KeywordEntry() { displayName = "MRT3", referenceName = "MRT3" },
                     }
                 };
 

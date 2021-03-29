@@ -1,5 +1,4 @@
 using System;
-using System.Collections;
 using System.Collections.Generic;
 using Unity.Collections;
 using Unity.Mathematics;
@@ -8,9 +7,6 @@ using UnityEngine.Assertions;
 using UnityEngine.Jobs;
 using UnityEngine.Rendering;
 using UnityEngine.Rendering.Universal;
-using Unity.Jobs;
-using Unity.Collections.LowLevel.Unsafe;
-using Unity.Collections;
 
 public static class DecalUtilities
 {

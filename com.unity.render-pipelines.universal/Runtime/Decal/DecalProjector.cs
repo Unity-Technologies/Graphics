@@ -4,6 +4,31 @@ using UnityEditor.Rendering.Universal;
 
 namespace UnityEngine.Rendering.Universal
 {
+    /// <summary>Decal Layers.</summary>
+    public enum DecalLayerEnum
+    {
+        /// <summary>The light will no affect any object.</summary>
+        Nothing = 0,   // Custom name for "Nothing" option
+        /// <summary>Decal Layer 0.</summary>
+        LightLayerDefault = 1 << 0,
+        /// <summary>Decal Layer 1.</summary>
+        DecalLayer1 = 1 << 1,
+        /// <summary>Decal Layer 2.</summary>
+        DecalLayer2 = 1 << 2,
+        /// <summary>Decal Layer 3.</summary>
+        DecalLayer3 = 1 << 3,
+        /// <summary>Decal Layer 4.</summary>
+        DecalLayer4 = 1 << 4,
+        /// <summary>Decal Layer 5.</summary>
+        DecalLayer5 = 1 << 5,
+        /// <summary>Decal Layer 6.</summary>
+        DecalLayer6 = 1 << 6,
+        /// <summary>Decal Layer 7.</summary>
+        DecalLayer7 = 1 << 7,
+        /// <summary>Everything.</summary>
+        Everything = 0xFF, // Custom name for "Everything" option
+    }
+
     /// <summary>
     /// Decal Projector component.
     /// </summary>
@@ -236,7 +261,7 @@ namespace UnityEngine.Rendering.Universal
         }
 
         private Material m_OldMaterial = null;
-        private DecalSystem.DecalHandle m_Handle = null;
+        //private DecalSystem.DecalHandle m_Handle = null;
 
 
         /// <summary>current rotation in a way the DecalSystem will be able to use it</summary>
@@ -249,57 +274,6 @@ namespace UnityEngine.Rendering.Universal
         internal Vector3 decalOffset => new Vector3(m_Offset.x, -m_Offset.z, m_Offset.y);
         /// <summary>current uv parameters in a way the DecalSystem will be able to use it</summary>
         internal Vector4 uvScaleBias => new Vector4(m_UVScale.x, m_UVScale.y, m_UVBias.x, m_UVBias.y);
-
-        internal DecalSystem.DecalHandle Handle
-        {
-            get
-            {
-                return this.m_Handle;
-            }
-            set
-            {
-                this.m_Handle = value;
-            }
-        }
-
-        // Struct used to gather all decal property required to be cached to be sent to shader code
-        internal struct CachedDecalData
-        {
-            public Matrix4x4 localToWorld;
-            public Quaternion rotation;
-            public Matrix4x4 sizeOffset;
-            public float drawDistance;
-            public float fadeScale;
-            public float startAngleFade;
-            public float endAngleFade;
-            public Vector4 uvScaleBias;
-            public bool affectsTransparency;
-            public int layerMask;
-            public ulong sceneLayerMask;
-            public float fadeFactor;
-            public DecalLayerEnum decalLayerMask;
-        }
-
-        internal CachedDecalData GetCachedDecalData()
-        {
-            CachedDecalData data = new CachedDecalData();
-
-            data.localToWorld = Matrix4x4.TRS(position, rotation, Vector3.one);
-            data.rotation = rotation;
-            data.sizeOffset = Matrix4x4.Translate(decalOffset) * Matrix4x4.Scale(decalSize);
-            data.drawDistance = m_DrawDistance;
-            data.fadeScale = m_FadeScale;
-            data.startAngleFade = m_StartAngleFade;
-            data.endAngleFade = m_EndAngleFade;
-            data.uvScaleBias = uvScaleBias;
-            data.affectsTransparency = m_AffectsTransparency;
-            data.layerMask = gameObject.layer;
-            data.sceneLayerMask = gameObject.sceneCullingMask;
-            data.fadeFactor = m_FadeFactor;
-            data.decalLayerMask = decalLayerMask;
-
-            return data;
-        }
 
         void InitMaterial()
         {
@@ -329,18 +303,11 @@ namespace UnityEngine.Rendering.Universal
 
         void OnEnable()
         {
-            onDecalAdd?.Invoke(this);
-
             InitMaterial();
 
-            if (m_Handle != null)
-            {
-                DecalSystem.instance.RemoveDecal(m_Handle);
-                m_Handle = null;
-            }
-
-            m_Handle = DecalSystem.instance.AddDecal(m_Material, GetCachedDecalData());
             m_OldMaterial = m_Material;
+
+            onDecalAdd?.Invoke(this);
 
 #if UNITY_EDITOR
             m_Layer = gameObject.layer;
@@ -353,19 +320,14 @@ namespace UnityEngine.Rendering.Universal
         void UpdateDecalVisibility()
         {
             // Fade out the decal when it is hidden by the scene visibility
-            if (UnityEditor.SceneVisibilityManager.instance.IsHidden(gameObject) && m_Handle != null)
+            if (UnityEditor.SceneVisibilityManager.instance.IsHidden(gameObject))
             {
-                DecalSystem.instance.RemoveDecal(m_Handle);
-                m_Handle = null;
-            }
-            else if (m_Handle == null)
-            {
-                m_Handle = DecalSystem.instance.AddDecal(m_Material, GetCachedDecalData());
+                onDecalRemove?.Invoke(this);
             }
             else
             {
-                // Scene culling mask may have changed.
-                DecalSystem.instance.UpdateCachedData(m_Handle, GetCachedDecalData());
+                onDecalAdd?.Invoke(this);
+                onDecalPropertyChange?.Invoke(this); // Scene culling mask may have changed.
             }
         }
 
@@ -375,104 +337,20 @@ namespace UnityEngine.Rendering.Universal
         {
             onDecalRemove?.Invoke(this);
 
-            if (m_Handle != null)
-            {
-                DecalSystem.instance.RemoveDecal(m_Handle);
-                m_Handle = null;
-            }
 #if UNITY_EDITOR
             UnityEditor.SceneVisibilityManager.visibilityChanged -= UpdateDecalVisibility;
 #endif
         }
 
-        /// <summary>
-        /// Event called each time the used material change.
-        /// </summary>
-        public event Action OnMaterialChange;
-
         internal void OnValidate()
         {
-            if (m_Handle != null) // don't do anything if OnEnable hasn't been called yet when scene is loading.
+            if (m_Material != m_OldMaterial)
             {
-                if (m_Material == null)
-                {
-                    DecalSystem.instance.RemoveDecal(m_Handle);
-                }
-
-                // handle material changes, because decals are stored as sets sorted by material, if material changes decal needs to be removed and re-added to that it goes into correct set
-                if (m_OldMaterial != m_Material)
-                {
-                    DecalSystem.instance.RemoveDecal(m_Handle);
-
-                    if (m_Material != null)
-                    {
-                        m_Handle = DecalSystem.instance.AddDecal(m_Material, GetCachedDecalData());
-
-                        if (!DecalSystem.IsHDRenderPipelineDecal(m_Material.shader)) // non HDRP/decal shaders such as shader graph decal do not affect transparency
-                        {
-                            m_AffectsTransparency = false;
-                        }
-                    }
-
-                    // notify the editor that material has changed so it can update the shader foldout
-                    if (OnMaterialChange != null)
-                    {
-                        OnMaterialChange();
-                    }
-
-                    onDecalMaterialChange?.Invoke(this);
-
-                    m_OldMaterial = m_Material;
-                }
-                else // no material change, just update whatever else changed
-                {
-                    DecalSystem.instance.UpdateCachedData(m_Handle, GetCachedDecalData());
-                    onDecalPropertyChange?.Invoke(this);
-                }
+                onDecalMaterialChange?.Invoke(this);
+                m_OldMaterial = m_Material;
             }
-        }
-
-/*#if UNITY_EDITOR
-        void Update() // only run in editor
-        {
-            if (m_Layer != gameObject.layer)
-            {
-                m_Layer = gameObject.layer;
-                DecalSystem.instance.UpdateCachedData(m_Handle, GetCachedDecalData());
-            }
-        }
-
-#endif
-
-        void LateUpdate()
-        {
-            if (m_Handle != null)
-            {
-                if (transform.hasChanged == true)
-                {
-                    DecalSystem.instance.UpdateCachedData(m_Handle, GetCachedDecalData());
-                    transform.hasChanged = false;
-                }
-            }
-        }*/
-
-        /// <summary>
-        /// Check if the material is set and if it is different than the default one
-        /// </summary>
-        /// <returns>True: the material is set and is not the default one</returns>
-        public bool IsValid()
-        {
-            // don't draw if no material or if material is the default decal material (empty)
-            if (m_Material == null)
-                return false;
-
-#if UNITY_EDITOR
-            //var hdrp = HDRenderPipeline.defaultAsset;
-            //if ((hdrp != null) && (m_Material == hdrp.GetDefaultDecalMaterial()))
-            //    return false;
-#endif
-
-            return true;
+            else
+                onDecalPropertyChange?.Invoke(this);
         }
     }
 }
