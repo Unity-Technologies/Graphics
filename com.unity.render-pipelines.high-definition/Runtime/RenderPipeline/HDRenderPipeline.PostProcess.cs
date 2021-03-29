@@ -26,7 +26,7 @@ namespace UnityEngine.Rendering.HighDefinition
         Material m_TemporalAAMaterial;
 
         // Lens Flare Data-Driven
-        Material m_LensFlareShader;
+        Material m_LensFlareDataDrivenShader;
 
         // Exposure data
         const int k_ExposureCurvePrecision = 128;
@@ -135,7 +135,7 @@ namespace UnityEngine.Rendering.HighDefinition
             m_TemporalAAMaterial = CoreUtils.CreateEngineMaterial(defaultResources.shaders.temporalAntialiasingPS);
 
             // Lens Flare
-            m_LensFlareShader = CoreUtils.CreateEngineMaterial(defaultResources.shaders.lensFlareShaderPS);
+            m_LensFlareDataDrivenShader = CoreUtils.CreateEngineMaterial(defaultResources.shaders.lensFlareDataDrivenPS);
 
             // Some compute shaders fail on specific hardware or vendors so we'll have to use a
             // safer but slower code path for them
@@ -2664,7 +2664,7 @@ namespace UnityEngine.Rendering.HighDefinition
             LensFlareParameters parameters = new LensFlareParameters();
 
             parameters.lensFlares = SRPLensFlareCommon.Instance;
-            parameters.lensFlareShader = m_LensFlareShader;
+            parameters.lensFlareShader = m_LensFlareDataDrivenShader;
             parameters.skipCopy = m_CurrentDebugDisplaySettings.data.fullScreenDebugMode == FullScreenDebugMode.LensFlareDataDriven;
 
             return parameters;

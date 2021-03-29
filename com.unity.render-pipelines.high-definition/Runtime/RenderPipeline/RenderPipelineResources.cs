@@ -306,7 +306,7 @@ namespace UnityEngine.Rendering.HighDefinition
             [Reload("Runtime/PostProcessing/Shaders/TemporalAntialiasing.shader")]
             public Shader temporalAntialiasingPS;
             [Reload("Runtime/PostProcessing/Shaders/LensFlareDataDriven.shader")]
-            public Shader lensFlareShaderPS;
+            public Shader lensFlareDataDrivenPS;
 
             // Physically based DoF
             [Reload("Runtime/PostProcessing/Shaders/DoFCircleOfConfusion.compute")]

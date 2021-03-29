@@ -282,13 +282,13 @@ namespace UnityEngine
             float screenRatio = screenSize.x / screenSize.y;
             Vector2 vScreenRatio = new Vector2(screenRatio, 1.0f);
 
-            if (skipCopy)
-            {
-                cmd.CopyTexture(source, target);
-                UnityEngine.Rendering.CoreUtils.SetRenderTarget(cmd, target);
-                cmd.ClearRenderTarget(false, true, Color.black);
-            }
-            else
+            //if (skipCopy)
+            //{
+            //    cmd.CopyTexture(source, target);
+            //    UnityEngine.Rendering.CoreUtils.SetRenderTarget(cmd, target);
+            //    cmd.ClearRenderTarget(false, true, Color.black);
+            //}
+            //else
             {
                 cmd.CopyTexture(source, target);
                 UnityEngine.Rendering.CoreUtils.SetRenderTarget(cmd, target);

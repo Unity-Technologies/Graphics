@@ -1,9 +1,5 @@
 Shader "Hidden/HDRP/LensFlareDataDriven"
 {
-    Properties
-    {
-        _MainTex("Texture", 2D) = "white" {}
-    }
     SubShader
     {
         // Additive
@@ -19,7 +15,7 @@ Shader "Hidden/HDRP/LensFlareDataDriven"
 
             HLSLPROGRAM
 
-            #pragma target 2.0
+            #pragma target 5.0
             #pragma vertex vert
             #pragma fragment frag
 
@@ -48,7 +44,7 @@ Shader "Hidden/HDRP/LensFlareDataDriven"
 
             HLSLPROGRAM
 
-            #pragma target 2.0
+            #pragma target 5.0
             #pragma vertex vert
             #pragma fragment frag
 
@@ -77,7 +73,7 @@ Shader "Hidden/HDRP/LensFlareDataDriven"
 
             HLSLPROGRAM
 
-            #pragma target 2.0
+            #pragma target 5.0
             #pragma vertex vert
             #pragma fragment frag
 
@@ -106,7 +102,7 @@ Shader "Hidden/HDRP/LensFlareDataDriven"
 
             HLSLPROGRAM
 
-            #pragma target 2.0
+            #pragma target 5.0
             #pragma vertex vert
             #pragma fragment frag
 
