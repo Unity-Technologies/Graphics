@@ -57,15 +57,15 @@ struct Varyings
     UNITY_VERTEX_OUTPUT_STEREO
 };
 
-InputData CreateInputData(Varyings input, half3 normalTS)
+void InitializeInputData(Varyings input, half3 normalTS, out InputData inputData)
 {
-    InputData inputData = (InputData)0;
+    inputData = (InputData)0;
 
 #if defined(REQUIRES_WORLD_SPACE_POS_INTERPOLATOR)
     inputData.positionWS = input.positionWS;
 #endif
 
-    half3 viewDirWS = SafeNormalize(GetWorldSpaceViewDir(input.positionWS));
+    half3 viewDirWS = GetWorldSpaceNormalizeViewDir(input.positionWS);
 #if defined(_NORMALMAP) || defined(_DETAIL)
     float sgn = input.tangentWS.w;      // should be either +1 or -1
     float3 bitangent = sgn * cross(input.normalWS.xyz, input.tangentWS.xyz);
@@ -105,8 +105,6 @@ InputData CreateInputData(Varyings input, half3 normalTS)
     #else
     inputData.vertexSH = input.vertexSH;
     #endif
-
-    return inputData;
 }
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -145,7 +143,7 @@ Varyings LitPassVertex(Attributes input)
 #endif
 
 #if defined(REQUIRES_TANGENT_SPACE_VIEW_DIR_INTERPOLATOR)
-    half3 viewDirWS = GetWorldSpaceViewDir(vertexInput.positionWS);
+    half3 viewDirWS = GetWorldSpaceNormalizeViewDir(vertexInput.positionWS);
     half3 viewDirTS = GetViewDirectionTangentSpace(tangentWS, output.normalWS, viewDirWS);
     output.viewDirTS = viewDirTS;
 #endif
@@ -181,7 +179,7 @@ half4 LitPassFragment(Varyings input) : SV_Target
 #if defined(REQUIRES_TANGENT_SPACE_VIEW_DIR_INTERPOLATOR)
     half3 viewDirTS = input.viewDirTS;
 #else
-    half3 viewDirWS = GetWorldSpaceViewDir(input.positionWS);
+    half3 viewDirWS = GetWorldSpaceNormalizeViewDir(input.positionWS);
     half3 viewDirTS = GetViewDirectionTangentSpace(input.tangentWS, input.normalWS, viewDirWS);
 #endif
     ApplyPerPixelDisplacement(viewDirTS, input.uv);
@@ -190,7 +188,8 @@ half4 LitPassFragment(Varyings input) : SV_Target
     SurfaceData surfaceData;
     InitializeStandardLitSurfaceData(input.uv, surfaceData);
 
-    InputData inputData = CreateInputData(input, surfaceData.normalTS);
+    InputData inputData;
+    InitializeInputData(input, surfaceData.normalTS, inputData);
     SETUP_DEBUG_TEXTURE_DATA(inputData, input.uv, _BaseMap);
 
     half4 color = UniversalFragmentPBR(inputData, surfaceData);

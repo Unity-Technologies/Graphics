@@ -202,7 +202,8 @@ namespace UnityEditor.ShaderAnalysis
                                     throw new Exception(
                                         $"Failed to compile {unit.sourceCodeFile}, relaunching compile job, reason: {job.Key.errors}");
 
-                                Debug.LogWarningFormat("Failed to compile {0}, relaunching compile job, reason: {1}", unit.sourceCodeFile, job.Key.errors);
+                                if (unit.sourceCodeFile != null && job.Key.errors != null)
+                                    Debug.LogWarningFormat("Failed to compile {0}, relaunching compile job, reason: {1}", unit.sourceCodeFile, job.Key.errors);
                                 var retryJob = compiler.Compile(unit.sourceCodeFile, temporaryDirectory, unit.compiledFile, unit.compileOptions, unit.compileProfile, unit.compileTarget);
                                 m_CompileJobMap[retryJob] = job.Value;
                                 compiled = false;

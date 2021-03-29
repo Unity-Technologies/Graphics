@@ -41,6 +41,8 @@ namespace UnityEngine.Rendering.HighDefinition
             public Matrix4x4 invViewProjMatrix;
             /// <summary>Non-jittered View Projection matrix.</summary>
             public Matrix4x4 nonJitteredViewProjMatrix;
+            /// <summary>Previous view matrix from previous frame.</summary>
+            public Matrix4x4 prevViewMatrix;
             /// <summary>Non-jittered View Projection matrix from previous frame.</summary>
             public Matrix4x4 prevViewProjMatrix;
             /// <summary>Non-jittered Inverse View Projection matrix from previous frame.</summary>
@@ -65,6 +67,8 @@ namespace UnityEngine.Rendering.HighDefinition
             internal float pad2;
         };
 
+        /// <summary>Camera name.</summary>
+        public string               name { get; private set; } // Needs to be cached because camera.name generates GCAllocs
         /// <summary>
         /// Screen resolution information.
         /// Width, height, inverse width, inverse height.
@@ -99,6 +103,8 @@ namespace UnityEngine.Rendering.HighDefinition
         public VolumeStack          volumeStack { get; private set; }
         /// <summary>Current time for this camera.</summary>
         public float                time; // Take the 'animateMaterials' setting into account.
+
+        internal bool               dofHistoryIsValid = false;  // used to invalidate DoF accumulation history when switching DoF modes
 
         // Pass all the systems that may want to initialize per-camera data here.
         // That way you will never create an HDCamera and forget to initialize the data.
@@ -448,6 +454,8 @@ namespace UnityEngine.Rendering.HighDefinition
         {
             camera = cam;
 
+            name = cam.name;
+
             frustum = new Frustum();
             frustum.planes = new Plane[6];
             frustum.corners = new Vector3[8];
@@ -564,35 +572,35 @@ namespace UnityEngine.Rendering.HighDefinition
                 if (isHistoryColorPyramidRequired) // Superset of case above
                     numColorPyramidBuffersRequired = 2;
 
-                int numVolumetricBuffersRequired = isVolumetricHistoryRequired ? 2 : 0; // History + feedback
-
-                if ((m_NumColorPyramidBuffersAllocated != numColorPyramidBuffersRequired) ||
-                    (m_NumVolumetricBuffersAllocated != numVolumetricBuffersRequired))
+                // Handle the color buffers
+                if (m_NumColorPyramidBuffersAllocated != numColorPyramidBuffersRequired)
                 {
                     // Reinit the system.
                     colorPyramidHistoryIsValid = false;
                     // Since we nuke all history we must inform the post process system too.
                     resetPostProcessingHistory = true;
 
-                    HDRenderPipeline.DestroyVolumetricHistoryBuffers(this);
-
                     // The history system only supports the "nuke all" option.
+                    // TODO: Fix this, only the color buffers should be discarded.
                     m_HistoryRTSystem.Dispose();
                     m_HistoryRTSystem = new BufferedRTHandleSystem();
 
                     if (numColorPyramidBuffersRequired != 0)
-                    {
                         AllocHistoryFrameRT((int)HDCameraFrameHistoryType.ColorBufferMipChain, HistoryBufferAllocatorFunction, numColorPyramidBuffersRequired);
-                    }
-
-                    if (numVolumetricBuffersRequired != 0)
-                    {
-                        HDRenderPipeline.CreateVolumetricHistoryBuffers(this, numVolumetricBuffersRequired);
-                    }
 
                     // Mark as init.
                     m_NumColorPyramidBuffersAllocated = numColorPyramidBuffersRequired;
-                    m_NumVolumetricBuffersAllocated   = numVolumetricBuffersRequired;
+                }
+
+                // Handle the volumetric fog buffers
+                int numVolumetricBuffersRequired = isVolumetricHistoryRequired ? 2 : 0; // History + feedback
+                if (m_NumVolumetricBuffersAllocated != numVolumetricBuffersRequired)
+                {
+                    HDRenderPipeline.DestroyVolumetricHistoryBuffers(this);
+                    if (numVolumetricBuffersRequired != 0)
+                        HDRenderPipeline.CreateVolumetricHistoryBuffers(this, numVolumetricBuffersRequired);
+                    // Mark as init.
+                    m_NumVolumetricBuffersAllocated = numVolumetricBuffersRequired;
                 }
             }
 
@@ -1171,6 +1179,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 if (isFirstFrame)
                 {
                     viewConstants.prevWorldSpaceCameraPos = cameraPosition;
+                    viewConstants.prevViewMatrix = gpuView;
                     viewConstants.prevViewProjMatrix = gpuVP;
                     viewConstants.prevInvViewProjMatrix = viewConstants.prevViewProjMatrix.inverse;
                     viewConstants.prevViewProjMatrixNoCameraTrans = gpuVPNoTrans;
@@ -1178,6 +1187,7 @@ namespace UnityEngine.Rendering.HighDefinition
                 else
                 {
                     viewConstants.prevWorldSpaceCameraPos = viewConstants.worldSpaceCameraPos;
+                    viewConstants.prevViewMatrix = viewConstants.viewMatrix;
                     viewConstants.prevViewProjMatrix = viewConstants.nonJitteredViewProjMatrix;
                     viewConstants.prevViewProjMatrixNoCameraTrans = viewConstants.viewProjectionNoCameraTrans;
                 }

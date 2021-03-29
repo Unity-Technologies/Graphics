@@ -54,7 +54,6 @@ namespace UnityEngine.Rendering.Universal
         InvokeOnRenderObjectCallbackPass m_OnRenderObjectCallbackPass;
         FinalBlitPass m_FinalBlitPass;
         CapturePass m_CapturePass;
-        DebugPass m_DebugPass;
 #if ENABLE_VR && ENABLE_XR_MODULE
         XROcclusionMeshPass m_XROcclusionMeshPass;
         CopyDepthPass m_XRCopyDepthPass;
@@ -190,8 +189,6 @@ namespace UnityEngine.Rendering.Universal
 
             if (DebugHandler != null)
             {
-                m_DebugPass =  DebugHandler.CreatePass(RenderPassEvent.AfterRendering + 2);
-
                 // Hook in the debug-render where appropriate...
                 m_RenderOpaqueForwardPass.DebugHandler = DebugHandler;
                 m_FinalBlitPass.DebugHandler = DebugHandler;
@@ -207,6 +204,10 @@ namespace UnityEngine.Rendering.Universal
                 if (m_DrawSkyboxPass != null)
                 {
                     m_DrawSkyboxPass.DebugHandler = DebugHandler;
+                }
+                if (m_PostProcessPasses.postProcessPass != null)
+                {
+                    m_PostProcessPasses.postProcessPass.DebugHandler = DebugHandler;
                 }
                 if (m_PostProcessPasses.finalPostProcessPass != null)
                 {
@@ -269,6 +270,55 @@ namespace UnityEngine.Rendering.Universal
             CoreUtils.Destroy(m_TileDepthInfoMaterial);
             CoreUtils.Destroy(m_TileDeferredMaterial);
             CoreUtils.Destroy(m_StencilDeferredMaterial);
+        }
+
+        private void SetupFinalPassDebug(ref CameraData cameraData)
+        {
+            if ((DebugHandler != null) && DebugHandler.IsActiveForCamera(ref cameraData))
+            {
+                if (DebugHandler.TryGetFullscreenDebugMode(out DebugFullScreenMode fullScreenDebugMode, out int outputHeight))
+                {
+                    Camera camera = cameraData.camera;
+                    float screenWidth = camera.pixelWidth;
+                    float screenHeight = camera.pixelHeight;
+                    float height = Mathf.Min(outputHeight, screenHeight);
+                    float width = height * (screenWidth / screenHeight);
+                    float normalizedSizeX = width / screenWidth;
+                    float normalizedSizeY = height / screenHeight;
+                    Rect normalizedRect = new Rect(1 - normalizedSizeX, 1 - normalizedSizeY, normalizedSizeX, normalizedSizeY);
+
+                    switch (fullScreenDebugMode)
+                    {
+                        case DebugFullScreenMode.Depth:
+                        {
+                            DebugHandler.SetDebugRenderTarget(m_DepthTexture.Identifier(), normalizedRect);
+                            break;
+                        }
+                        // TODO: Restore this once we have access to the screen-space shadow texture...
+                        // case DebugFullScreenMode.MainLightShadowsOnly:
+                        //     debugBuffer = new RenderTargetIdentifier("_ScreenSpaceShadowmapTexture");
+                        //     break;
+                        case DebugFullScreenMode.AdditionalLightsShadowMap:
+                        {
+                            DebugHandler.SetDebugRenderTarget(m_AdditionalLightsShadowCasterPass.m_AdditionalLightsShadowmapTexture, normalizedRect);
+                            break;
+                        }
+                        case DebugFullScreenMode.MainLightShadowMap:
+                        {
+                            DebugHandler.SetDebugRenderTarget(m_MainLightShadowCasterPass.m_MainLightShadowmapTexture, normalizedRect);
+                            break;
+                        }
+                        default:
+                        {
+                            break;
+                        }
+                    }
+                }
+                else
+                {
+                    DebugHandler.ResetDebugRenderTarget();
+                }
+            }
         }
 
         /// <inheritdoc />
@@ -584,6 +634,8 @@ namespace UnityEngine.Rendering.Universal
 
             if (lastCameraInTheStack)
             {
+                SetupFinalPassDebug(ref cameraData);
+
                 // Post-processing will resolve to final target. No need for final blit pass.
                 if (applyPostProcessing)
                 {
@@ -594,7 +646,6 @@ namespace UnityEngine.Rendering.Universal
                     postProcessPass.Setup(cameraTargetDescriptor, m_ActiveCameraColorAttachment, destination, m_ActiveCameraDepthAttachment, colorGradingLut, applyFinalPostProcessing, doSRGBConvertion);
                     EnqueuePass(postProcessPass);
                 }
-
 
                 // if we applied post-processing for this camera it means current active texture is m_AfterPostProcessColor
                 var sourceForFinalPass = (applyPostProcessing) ? afterPostProcessColor : m_ActiveCameraColorAttachment;
@@ -646,44 +697,6 @@ namespace UnityEngine.Rendering.Universal
             {
                 postProcessPass.Setup(cameraTargetDescriptor, m_ActiveCameraColorAttachment, afterPostProcessColor, m_ActiveCameraDepthAttachment, colorGradingLut, false, false);
                 EnqueuePass(postProcessPass);
-            }
-
-            if ((DebugHandler != null) &&
-                DebugHandler.IsActiveForCamera(ref cameraData) &&
-                DebugHandler.TryGetFullscreenDebugMode(out DebugFullScreenMode fullScreenDebugMode, out int outputHeight))
-            {
-                RenderTargetIdentifier debugBuffer;
-                float screenWidth = camera.pixelWidth;
-                float screenHeight = camera.pixelHeight;
-                float height = Mathf.Min(outputHeight, screenHeight);
-                float width = height * (screenWidth / screenHeight);
-                Rect pixelRect = new Rect();
-
-                switch (fullScreenDebugMode)
-                {
-                    case DebugFullScreenMode.Depth:
-                        debugBuffer = m_DepthTexture.Identifier();
-                        pixelRect = new Rect(screenWidth - width, screenHeight - height, width, height);
-                        break;
-                    // TODO: Restore this once we have access to the screen-space shadow texture...
-                    // case DebugFullScreenMode.MainLightShadowsOnly:
-                    //     debugBuffer = new RenderTargetIdentifier("_ScreenSpaceShadowmapTexture");
-                    //     break;
-                    case DebugFullScreenMode.AdditionalLightsShadowMap:
-                        debugBuffer = m_AdditionalLightsShadowCasterPass.m_AdditionalLightsShadowmapTexture;
-                        pixelRect = new Rect(screenWidth - width, screenHeight - height, width, height);
-                        break;
-                    case DebugFullScreenMode.MainLightShadowMap:
-                        debugBuffer = m_MainLightShadowCasterPass.m_MainLightShadowmapTexture;
-                        pixelRect = new Rect(screenWidth - width, screenHeight - height, width, height);
-                        break;
-                    default:
-                        debugBuffer = m_OpaqueColor.Identifier();
-                        break;
-                }
-
-                m_DebugPass.Setup(cameraTargetDescriptor, debugBuffer, fullScreenDebugMode, false, pixelRect);
-                EnqueuePass(m_DebugPass);
             }
 
 #if UNITY_EDITOR
@@ -834,7 +847,7 @@ namespace UnityEngine.Rendering.Universal
         void CreateCameraRenderTarget(ScriptableRenderContext context, ref RenderTextureDescriptor descriptor)
         {
             CommandBuffer cmd = CommandBufferPool.Get();
-            using (new ProfilingScope(cmd, Profiling.createCameraRenderTarget))
+            using (new ProfilingScope(null, Profiling.createCameraRenderTarget))
             {
                 if (m_ActiveCameraColorAttachment != RenderTargetHandle.CameraTarget)
                 {

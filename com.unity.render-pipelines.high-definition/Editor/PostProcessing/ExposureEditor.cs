@@ -123,13 +123,8 @@ namespace UnityEditor.Rendering.HighDefinition
                     m_ProceduralRadii.value.vector2Value = new Vector2(Mathf.Clamp01(radiiValue.x), Mathf.Clamp01(radiiValue.y));
                     PropertyField(m_ProceduralRadii, EditorGUIUtility.TrTextContent("Radii", "Sets the radii of the procedural mask, in terms of fraction of the screen (i.e. 0.5 means a radius that stretch half of the screen)."));
                     PropertyField(m_ProceduralSoftness, EditorGUIUtility.TrTextContent("Softness", "Sets the softness of the mask, the higher the value the less influence is given to pixels at the edge of the mask"));
-
-                    if (BeginAdditionalPropertiesScope())
-                    {
-                        PropertyField(m_ProceduralMinIntensity);
-                        PropertyField(m_ProceduralMaxIntensity);
-                    }
-                    EndAdditionalPropertiesScope();
+                    PropertyField(m_ProceduralMinIntensity);
+                    PropertyField(m_ProceduralMaxIntensity);
 
                     EditorGUILayout.Space();
                 }
@@ -174,11 +169,7 @@ namespace UnityEditor.Rendering.HighDefinition
                     PropertyField(m_AdaptationSpeedLightToDark, EditorGUIUtility.TrTextContent("Speed Light to Dark"));
                 }
 
-                if (BeginAdditionalPropertiesScope())
-                {
-                    PropertyField(m_TargetMidGray, EditorGUIUtility.TrTextContent("Target Mid Grey", "Sets the desired Mid gray level used by the auto exposure (i.e. to what grey value the auto exposure system maps the average scene luminance)."));
-                }
-                EndAdditionalPropertiesScope();
+                PropertyField(m_TargetMidGray, EditorGUIUtility.TrTextContent("Target Mid Grey", "Sets the desired Mid gray level used by the auto exposure (i.e. to what grey value the auto exposure system maps the average scene luminance)."));
             }
 
             // Since automatic exposure works on 2 frames (automatic exposure is computed from previous frame data), we need to trigger the scene repaint twice if

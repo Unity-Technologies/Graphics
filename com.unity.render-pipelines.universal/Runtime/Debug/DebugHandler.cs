@@ -1,17 +1,18 @@
 using System.Collections;
 using System.Collections.Generic;
 using System.Diagnostics;
-using UnityEngine.Rendering.Universal.Internal;
 
 namespace UnityEngine.Rendering.Universal
 {
     public class DebugHandler : IDebugDisplaySettingsQuery
     {
-        private static readonly int s_DebugColorInvalidModePropertyId = Shader.PropertyToID("_DebugColorInvalidMode");
-        private static readonly int s_DebugNumberTexturePropertyId = Shader.PropertyToID("_DebugNumberTexture");
-
         #region Property Id Constants
+        private static readonly int kDebugColorInvalidModePropertyId = Shader.PropertyToID("_DebugColorInvalidMode");
+        private static readonly int kDebugNumberTexturePropertyId = Shader.PropertyToID("_DebugNumberTexture");
+
         private static readonly int kDebugColorPropertyId = Shader.PropertyToID("_DebugColor");
+        private static readonly int kDebugTexturePropertyId = Shader.PropertyToID("_DebugTexture");
+        private static readonly int kDebugTextureDisplayRect = Shader.PropertyToID("_DebugTextureDisplayRect");
 
         // Material settings...
         private static readonly int kDebugMaterialModeId = Shader.PropertyToID("_DebugMaterialMode");
@@ -44,9 +45,12 @@ namespace UnityEngine.Rendering.Universal
         private static readonly int kRangeMaximumId = Shader.PropertyToID("_RangeMaximum");
         #endregion
 
-        private readonly Material m_FullScreenDebugMaterial;
         private readonly Texture2D m_NumberFontTexture;
         private readonly Material m_ReplacementMaterial;
+
+        private bool m_HasDebugRenderTarget;
+        private Vector4 m_DebugRenderTargetPixelRect;
+        private RenderTargetIdentifier m_DebugRenderTargetIdentifier;
 
         private readonly DebugDisplaySettings m_DebugDisplaySettings;
 
@@ -81,25 +85,18 @@ namespace UnityEngine.Rendering.Universal
 
         public DebugHandler(ScriptableRendererData scriptableRendererData)
         {
-            Texture2D numberFontTexture = scriptableRendererData.NumberFont;
-            Shader fullScreenDebugShader = scriptableRendererData.fullScreenDebugPS;
-            Shader debugReplacementShader = scriptableRendererData.debugReplacementPS;
+            Texture2D numberFontTexture = scriptableRendererData.debugShaders.NumberFont;
+            Shader debugReplacementShader = scriptableRendererData.debugShaders.debugReplacementPS;
 
             m_DebugDisplaySettings = DebugDisplaySettings.Instance;
 
             m_NumberFontTexture = numberFontTexture;
-            m_FullScreenDebugMaterial = (fullScreenDebugShader == null) ? null : CoreUtils.CreateEngineMaterial(fullScreenDebugShader);
             m_ReplacementMaterial = (debugReplacementShader == null) ? null : CoreUtils.CreateEngineMaterial(debugReplacementShader);
         }
 
         public bool IsActiveForCamera(ref CameraData cameraData)
         {
             return !cameraData.isPreviewCamera && AreAnySettingsActive;
-        }
-
-        internal DebugPass CreatePass(RenderPassEvent evt)
-        {
-            return new DebugPass(evt, m_FullScreenDebugMaterial);
         }
 
         public bool TryGetFullscreenDebugMode(out DebugFullScreenMode debugFullScreenMode, out int outputHeight)
@@ -169,6 +166,18 @@ namespace UnityEngine.Rendering.Universal
             }
         }
 
+        public void SetDebugRenderTarget(RenderTargetIdentifier renderTargetIdentifier, Rect displayRect)
+        {
+            m_HasDebugRenderTarget = true;
+            m_DebugRenderTargetIdentifier = renderTargetIdentifier;
+            m_DebugRenderTargetPixelRect = new Vector4(displayRect.x, displayRect.y, displayRect.width, displayRect.height);
+        }
+
+        public void ResetDebugRenderTarget()
+        {
+            m_HasDebugRenderTarget = false;
+        }
+
         [Conditional("DEVELOPMENT_BUILD"), Conditional("UNITY_EDITOR")]
         public void UpdateShaderGlobalPropertiesFinalBlitPass(CommandBuffer cmd, ref CameraData cameraData)
         {
@@ -179,6 +188,12 @@ namespace UnityEngine.Rendering.Universal
             else
             {
                 cmd.DisableShaderKeyword("_DEBUG_SHADER");
+            }
+
+            if (m_HasDebugRenderTarget)
+            {
+                cmd.SetGlobalTexture(kDebugTexturePropertyId, m_DebugRenderTargetIdentifier);
+                cmd.SetGlobalVector(kDebugTextureDisplayRect, m_DebugRenderTargetPixelRect);
             }
 
             var renderingSettings = m_DebugDisplaySettings.RenderingSettings;
@@ -214,8 +229,8 @@ namespace UnityEngine.Rendering.Universal
             cmd.SetGlobalInt(kDebugLightingFeatureFlagsId, (int)LightingSettings.DebugLightingFeatureFlagsMask);
 
             // Set-up any other persistent properties...
-            cmd.SetGlobalColor(s_DebugColorInvalidModePropertyId, Color.red);
-            cmd.SetGlobalTexture(s_DebugNumberTexturePropertyId, m_NumberFontTexture);
+            cmd.SetGlobalColor(kDebugColorInvalidModePropertyId, Color.red);
+            cmd.SetGlobalTexture(kDebugNumberTexturePropertyId, m_NumberFontTexture);
 
             context.ExecuteCommandBuffer(cmd);
             CommandBufferPool.Release(cmd);

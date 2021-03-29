@@ -96,7 +96,7 @@ bool CalculateValidationMetallic(half3 albedo, half metallic, inout half4 debugC
     }
     else
     {
-        half luminance = LinearRgbToLuminance(albedo);
+        half luminance = Luminance(albedo);
 
         debugColor = half4(luminance, luminance, luminance, 1);
     }
@@ -259,7 +259,7 @@ bool CanDebugOverrideOutputColor(inout InputData inputData, inout SurfaceData su
         }
 
         // Update the BRDF data following any changes to the input/surface above...
-        brdfData = CreateBRDFData(surfaceData);
+        InitializeBRDFData(surfaceData, brdfData);
 
         return CalculateColorForDebug(inputData, surfaceData, debugColor);
     }

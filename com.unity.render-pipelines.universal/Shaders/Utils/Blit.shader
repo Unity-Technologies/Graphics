@@ -29,17 +29,18 @@ Shader "Hidden/Universal Render Pipeline/Blit"
             half4 Fragment(Varyings input) : SV_Target
             {
                 UNITY_SETUP_STEREO_EYE_INDEX_POST_VERTEX(input);
+                float2 uv = input.uv;
 
-                half4 col = SAMPLE_TEXTURE2D_X(_SourceTex, sampler_SourceTex, input.uv);
+                half4 col = SAMPLE_TEXTURE2D_X(_SourceTex, sampler_SourceTex, uv);
 
              	#ifdef _LINEAR_TO_SRGB_CONVERSION
                 col = LinearToSRGB(col);
              	#endif
 
                 #if defined(_DEBUG_SHADER)
-                half4 debugColor;
+                half4 debugColor = 0;
 
-                if(CalculateDebugColor(col, debugColor))
+                if(CanDebugOverrideOutputColor(col, uv, debugColor))
                 {
                     return debugColor;
                 }

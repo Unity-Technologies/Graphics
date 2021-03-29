@@ -31,9 +31,9 @@ struct Varyings
     UNITY_VERTEX_OUTPUT_STEREO
 };
 
-InputData CreateInputData(Varyings input)
+void InitializeInputData(Varyings input, out InputData inputData)
 {
-    InputData inputData = (InputData)0;
+    inputData = (InputData)0;
 
     inputData.normalWS = half3(0, 1, 0);
     inputData.viewDirectionWS = half3(0, 0, 1);
@@ -65,13 +65,11 @@ InputData CreateInputData(Varyings input)
     #else
     inputData.positionWS = float3(0, 0, 0);
     #endif
-
-    return inputData;
 }
 
-SurfaceData CreateSurfaceData(half3 albedo, half alpha)
+void InitializeSurfaceData(half3 albedo, half alpha, out SurfaceData surfaceData)
 {
-    SurfaceData surfaceData;
+    surfaceData = (SurfaceData)0;
 
     surfaceData.albedo = albedo;
     surfaceData.alpha = alpha;
@@ -83,8 +81,6 @@ SurfaceData CreateSurfaceData(half3 albedo, half alpha)
     surfaceData.clearCoatMask = 0;
     surfaceData.clearCoatSmoothness = 1;
     surfaceData.normalTS = half3(0, 0, 1);
-
-    return surfaceData;
 }
 
 half4 UniversalTerrainLit(InputData inputData, SurfaceData surfaceData)
@@ -117,7 +113,8 @@ half4 UniversalTerrainLit(InputData inputData, SurfaceData surfaceData)
 
 half4 UniversalTerrainLit(InputData inputData, half3 albedo, half alpha)
 {
-    SurfaceData surfaceData = CreateSurfaceData(albedo, alpha);
+    SurfaceData surfaceData;
+    InitializeSurfaceData(albedo, alpha, surfaceData);
 
     return UniversalTerrainLit(inputData, surfaceData);
 }
@@ -181,7 +178,8 @@ half4 TerrainLitForwardFragment(Varyings input) : SV_Target
 {
     UNITY_SETUP_STEREO_EYE_INDEX_POST_VERTEX(input);
 
-    InputData inputData = CreateInputData(input);
+    InputData inputData;
+    InitializeInputData(input, inputData);
     half4 tex = SAMPLE_TEXTURE2D(_MainTex, sampler_MainTex, input.UV01);
     half4 color = UniversalTerrainLit(inputData, tex.rgb, tex.a);
 
@@ -195,8 +193,10 @@ FragmentOutput TerrainLitGBufferFragment(Varyings input)
     UNITY_SETUP_STEREO_EYE_INDEX_POST_VERTEX(input);
 
     half4 tex = SAMPLE_TEXTURE2D(_MainTex, sampler_MainTex, input.UV01);
-    InputData inputData = CreateInputData(input);
-    SurfaceData surfaceData = CreateSurfaceData(tex.rgb, tex.a);
+    InputData inputData;
+    InitializeInputData(input, inputData);
+    SurfaceData surfaceData;
+    InitializeSurfaceData(tex.rgb, tex.a, surfaceData);
     half4 color = UniversalTerrainLit(inputData, tex.rgb, tex.a);
 
     return SurfaceDataToGbuffer(surfaceData, inputData, color.rgb, kLightingInvalid);

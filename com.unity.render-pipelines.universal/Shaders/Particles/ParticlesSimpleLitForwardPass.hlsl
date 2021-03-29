@@ -4,9 +4,9 @@
 #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Lighting.hlsl"
 #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Particles.hlsl"
 
-InputData CreateInputData(VaryingsParticle input, half3 normalTS)
+void InitializeInputData(VaryingsParticle input, half3 normalTS, out InputData output)
 {
-    InputData output = (InputData)0;
+    output = (InputData)0;
 
     output.positionWS = input.positionWS.xyz;
 
@@ -42,8 +42,6 @@ InputData CreateInputData(VaryingsParticle input, half3 normalTS)
     output.normalTS = normalTS;
     output.vertexSH = input.vertexSH;
     output.shadowMask = half4(1, 1, 1, 1);
-
-    return output;
 }
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -60,18 +58,14 @@ VaryingsParticle ParticlesLitVertex(AttributesParticle input)
 
     VertexPositionInputs vertexInput = GetVertexPositionInputs(input.positionOS.xyz);
     VertexNormalInputs normalInput = GetVertexNormalInputs(input.normalOS, input.tangentOS);
-
-    half3 viewDirWS = GetWorldSpaceViewDir(vertexInput.positionWS);
-#if !SHADER_HINT_NICE_QUALITY
-    viewDirWS = SafeNormalize(viewDirWS);
-#endif
+    half3 viewDirWS = GetWorldSpaceNormalizeViewDir(vertexInput.positionWS);
 
 #ifdef _NORMALMAP
     output.normalWS = half4(normalInput.normalWS, viewDirWS.x);
     output.tangentWS = half4(normalInput.tangentWS, viewDirWS.y);
     output.bitangentWS = half4(normalInput.bitangentWS, viewDirWS.z);
 #else
-    output.normalWS = normalInput.normalWS;
+    output.normalWS = half3(normalInput.normalWS);
     output.viewDirWS = viewDirWS;
 #endif
 
@@ -126,7 +120,8 @@ half4 ParticlesLitFragment(VaryingsParticle input) : SV_Target
     diffuse = Distortion(half4(diffuse, alpha), normalTS, _DistortionStrengthScaled, _DistortionBlend, particleParams.projectedPosition);
 #endif
 
-    InputData inputData = CreateInputData(input, normalTS);
+    InputData inputData;
+    InitializeInputData(input, normalTS, inputData);
 
     half4 color = UniversalFragmentBlinnPhong(inputData, diffuse, specularGloss, specularGloss.a, emission, alpha, normalTS);
 

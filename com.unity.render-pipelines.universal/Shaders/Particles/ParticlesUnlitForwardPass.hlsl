@@ -4,9 +4,9 @@
 #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Unlit.hlsl"
 #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Particles.hlsl"
 
-InputData CreateInputData(VaryingsParticle input, SurfaceData surfaceData)
+void InitializeInputData(VaryingsParticle input, SurfaceData surfaceData, out InputData output)
 {
-    InputData output = (InputData)0;
+    output = (InputData)0;
 
     output.positionWS = input.positionWS.xyz;
 
@@ -28,7 +28,7 @@ InputData CreateInputData(VaryingsParticle input, SurfaceData surfaceData)
     output.viewDirectionWS = viewDirWS;
 
     output.fogCoord = (half)input.positionWS.w;
-    output.vertexLighting = half3(0.0h, 0.0h, 0.0h);
+    output.vertexLighting = half3(0.0, 0.0, 0.0);
     output.bakedGI = SampleSHPixel(input.vertexSH, output.normalWS);
     output.normalizedScreenSpaceUV = GetNormalizedScreenSpaceUV(input.clipPos);
     output.normalTS = surfaceData.normalTS;
@@ -40,13 +40,11 @@ InputData CreateInputData(VaryingsParticle input, SurfaceData surfaceData)
     #else
     output.vertexSH = input.vertexSH;
     #endif
-
-    return output;
 }
 
-SurfaceData CreateSurfaceData(ParticleParams particleParams)
+void InitializeSurfaceData(ParticleParams particleParams, out SurfaceData surfaceData)
 {
-    SurfaceData surfaceData;
+    surfaceData = (SurfaceData)0;
     half4 albedo = SampleAlbedo(particleParams.uv, particleParams.blendUv, _BaseColor, particleParams.baseColor, particleParams.projectedPosition, TEXTURE2D_ARGS(_BaseMap, sampler_BaseMap));
     half3 normalTS = SampleNormalTS(particleParams.uv, particleParams.blendUv, TEXTURE2D_ARGS(_BumpMap, sampler_BumpMap));
 
@@ -73,8 +71,6 @@ SurfaceData CreateSurfaceData(ParticleParams particleParams)
 
     surfaceData.clearCoatMask       = 0.0h;
     surfaceData.clearCoatSmoothness = 1.0h;
-
-    return surfaceData;
 }
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -98,17 +94,14 @@ VaryingsParticle vertParticleUnlit(AttributesParticle input)
     output.clipPos = vertexInput.positionCS;
     output.color = GetParticleColor(input.color);
 
-    half3 viewDirWS = GetWorldSpaceViewDir(vertexInput.positionWS);
-#if !SHADER_HINT_NICE_QUALITY
-    viewDirWS = SafeNormalize(viewDirWS);
-#endif
+    half3 viewDirWS = GetWorldSpaceNormalizeViewDir(vertexInput.positionWS);
 
 #ifdef _NORMALMAP
     output.normalWS = half4(normalInput.normalWS, viewDirWS.x);
     output.tangentWS = half4(normalInput.tangentWS, viewDirWS.y);
     output.bitangentWS = half4(normalInput.bitangentWS, viewDirWS.z);
 #else
-    output.normalWS = normalInput.normalWS;
+    output.normalWS = half3(normalInput.normalWS);
     output.viewDirWS = viewDirWS;
 #endif
 
@@ -137,8 +130,10 @@ half4 fragParticleUnlit(VaryingsParticle input) : SV_Target
     ParticleParams particleParams;
     InitParticleParams(input, particleParams);
 
-    SurfaceData surfaceData = CreateSurfaceData(particleParams);
-    InputData inputData = CreateInputData(input, surfaceData);
+    SurfaceData surfaceData;
+    InitializeSurfaceData(particleParams, surfaceData);
+    InputData inputData;
+    InitializeInputData(input, surfaceData, inputData);
     SETUP_DEBUG_TEXTURE_DATA(inputData, input.texcoord, _BaseMap);
 
     half4 finalColor = UniversalFragmentUnlit(inputData, surfaceData);

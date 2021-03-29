@@ -1,9 +1,9 @@
 ﻿
 #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Unlit.hlsl"
 
-InputData CreateInputData(Varyings input)
+void InitializeInputData(Varyings input, out InputData inputData)
 {
-    InputData inputData = (InputData)0;
+    inputData = (InputData)0;
 
     #if defined(_DEBUG_SHADER)
     inputData.positionWS = input.positionWS;
@@ -27,8 +27,6 @@ InputData CreateInputData(Varyings input)
     #else
     inputData.vertexSH = half3(0, 0, 0);
     #endif
-
-    return inputData;
 }
 
 PackedVaryings vert(Attributes input)
@@ -57,7 +55,8 @@ half4 frag(PackedVaryings packedInput) : SV_TARGET
         half alpha = 1;
     #endif
 
-    InputData inputData = CreateInputData(packedInput);
+    InputData inputData;
+    InitializeInputData(packedInput, inputData);
     //SETUP_DEBUG_TEXTURE_DATA(inputData, input.texCoord1, _MainTex);
 
     half4 finalColor = UniversalFragmentUnlit(inputData, surfaceDescription.BaseColor, alpha);
