@@ -29,6 +29,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Added an additional check in the "check scene for ray tracing" (case 1314963).
 - API to allow OnDemand shadows to not render upon placement in the Cached Shadow Atlas.
 - Exposed update upon light movement for directional light shadows in UI.
+- Added a fallback for the ray traced directional shadow in case of a transmission (case 1307870).
 
 ### Fixed
 - Fixed probe volumes debug views.
@@ -146,6 +147,9 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed an issue with Decal normal blending producing NaNs.
 - Fixed issue in wizard when resource folder don't exist
 - Fixed issue with Decal projector edge on Metal (case 1286074)
+- Fixed Render Graph Debug UI not refreshing correctly in the Render Pipeline Debugger.
+- Fixed SSS materials in planar reflections (case 1319027).
+- Fixed Decal's pivot edit mode 2D slider gizmo not supporting multi-edition
 
 ### Changed
 - Removed the material pass probe volumes evaluation mode.
