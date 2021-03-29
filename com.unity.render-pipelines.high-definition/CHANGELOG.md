@@ -97,6 +97,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed sub-shadow rendering for cached shadow maps.
 - Fixed PCSS filtering issues with cached shadow maps.
 - Fix screen being over-exposed when changing very different skies.
+- Fixed pixelated appearance of Contrast Adaptive Sharpen upscaler and several other issues when Hardware DRS is on
 - Fixed incorrect debug wireframe overlay on tessellated geometry (using littessellation), caused by the picking pass using an incorrect camera matrix.
 - Fixed nullref in layered lit shader editor.
 - Fix issue with Depth of Field CoC debug view.
@@ -135,6 +136,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed error message when having MSAA and Screen Space Shadows (case 1318698).
 - Fixed Nans happening when the history render target is bigger than the current viewport (case 1321139).
 - Fixed Tube and Disc lights mode selection (case 1317776)
+- Fixed missing Update in Wizard's DXR Documentation
+- Fixed multicamera rendering for Dynamic Resolution Scaling using dx12 hardware mode. Using a planar reflection probe (another render camera) should be safe.
 
 ### Changed
 - Removed the material pass probe volumes evaluation mode.
@@ -165,6 +168,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Avoid unnecessary RenderGraphBuilder.ReadTexture in the "Set Final Target" pass
 - Cached the base types of Volume Manager to improve memory and cpu usage.
 - Reduced the maximal number of bounces for both RTGI and RTR (case 1318876).
+- Updated Wizard to better handle RenderPipelineAsset in Quality Settings
 
 ## [10.3.0] - 2020-12-01
 
