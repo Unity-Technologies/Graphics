@@ -38,7 +38,8 @@ namespace UnityEngine.Rendering.Universal
     {
         public DecalNormalBlend blend = DecalNormalBlend.NormalLow;
         public bool useGBuffer = true;
-        public bool supportAdditionalLights = false;
+        [HideInInspector]
+        public bool supportAdditionalLights = true;
     }
 
     [System.Serializable]

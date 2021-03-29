@@ -128,11 +128,11 @@ Pass
         return fadeMaskSeed;
     }
 
-    void GetSurfaceData(Varyings input, float3 V, uint2 positionSS, float angleFadeFactor, out DecalSurfaceData surfaceData)
+    void GetSurfaceData(Varyings input, half3 viewDirectioWS, uint2 positionSS, float angleFadeFactor, out DecalSurfaceData surfaceData)
     {
         #if (SHADERPASS == SHADERPASS_DBUFFER_PROJECTOR) || (SHADERPASS == SHADERPASS_FORWARD_EMISSIVE_PROJECTOR) || (SHADERPASS == SHADERPASS_DECAL_SCREEN_SPACE_PROJECTOR) || (SHADERPASS == SHADERPASS_DECAL_GBUFFER_PROJECTOR)
-            float4x4 normalToWorld = UNITY_ACCESS_INSTANCED_PROP(Decal, _NormalToWorld);
-            real fadeFactor = real(clamp(normalToWorld[0][3], 0.0f, 1.0f) * angleFadeFactor);
+            half4x4 normalToWorld = UNITY_ACCESS_INSTANCED_PROP(Decal, _NormalToWorld);
+            half fadeFactor = clamp(normalToWorld[0][3], 0.0f, 1.0f) * angleFadeFactor;
             float2 scale = float2(normalToWorld[3][0], normalToWorld[3][1]);
             float2 offset = float2(normalToWorld[3][2], normalToWorld[3][3]);
             $Varyings.texCoord0: input.texCoord0.xy = input.texCoord0.xy * scale + offset;
@@ -141,10 +141,10 @@ Pass
             $Varyings.texCoord3: input.texCoord3.xy = input.texCoord3.xy * scale + offset;
         #else
             #ifdef LOD_FADE_CROSSFADE // enable dithering LOD transition if user select CrossFade transition in LOD group
-                LODDitheringTransition(ComputeFadeMaskSeed(V, positionSS), unity_LODFade.x);
+                LODDitheringTransition(ComputeFadeMaskSeed(viewDirectioWS, positionSS), unity_LODFade.x);
             #endif
 
-            real fadeFactor = real(1.0);
+            half fadeFactor = half(1.0);
         #endif
 
         SurfaceDescriptionInputs surfaceDescriptionInputs = BuildSurfaceDescriptionInputs(input);
@@ -152,26 +152,22 @@ Pass
 
         // setup defaults -- these are used if the graph doesn't output a value
         ZERO_INITIALIZE(DecalSurfaceData, surfaceData);
-        surfaceData.mask.y = 1.0;
-        surfaceData.mask.z = 0.5;
+        surfaceData.mask.y = half(1.0);
+        surfaceData.mask.z = half(0.5);
 
-        #ifdef _MATERIAL_AFFECTS_EMISSION
-            $SurfaceDescription.Emission:       surfaceData.emissive.rgb = surfaceDescription.Emission.rgb * fadeFactor;
-        #endif
+        $SurfaceDescription.Emission:       surfaceData.emissive.rgb = half3(surfaceDescription.Emission.rgb * fadeFactor);
 
         // copy across graph values, if defined
-        #ifdef _MATERIAL_AFFECTS_ALBEDO
-            $SurfaceDescription.BaseColor:      surfaceData.baseColor.xyz = surfaceDescription.BaseColor;
-            $SurfaceDescription.Alpha:          surfaceData.baseColor.w = surfaceDescription.Alpha * fadeFactor;
-        #endif
+        $SurfaceDescription.BaseColor:      surfaceData.baseColor.xyz = half3(surfaceDescription.BaseColor);
+        $SurfaceDescription.Alpha:          surfaceData.baseColor.w = half(surfaceDescription.Alpha * fadeFactor);
 
         #if defined(_MATERIAL_AFFECTS_NORMAL) && !defined(_DBUFFER_MRT1)
             #if (SHADERPASS == SHADERPASS_DBUFFER_PROJECTOR) || (SHADERPASS == SHADERPASS_DECAL_SCREEN_SPACE_PROJECTOR) || (SHADERPASS == SHADERPASS_DECAL_GBUFFER_PROJECTOR)
-                $SurfaceDescription.NormalTS:   surfaceData.normalWS.xyz = mul((float3x3)normalToWorld, surfaceDescription.NormalTS);
+                $SurfaceDescription.NormalTS:   surfaceData.normalWS.xyz = mul(normalToWorld, surfaceDescription.NormalTS);
             #elif (SHADERPASS == SHADERPASS_DBUFFER_MESH) || (SHADERPASS == SHADERPASS_DECAL_SCREEN_SPACE_MESH) || (SHADERPASS == SHADERPASS_DECAL_GBUFFER_MESH)
                 float sgn = input.tangentWS.w;      // should be either +1 or -1
                 float3 bitangent = sgn * cross(input.normalWS.xyz, input.tangentWS.xyz);
-                float3x3 tangentToWorld = float3x3(input.tangentWS.xyz, bitangent.xyz, input.normalWS.xyz);
+                half3x3 tangentToWorld = float3x3(input.tangentWS.xyz, bitangent.xyz, input.normalWS.xyz);
 
                 // We need to normalize as we use mikkt tangent space and this is expected (tangent space is not normalize)
                 $SurfaceDescription.NormalTS:   surfaceData.normalWS.xyz = normalize(TransformTangentToWorld(surfaceDescription.NormalTS, tangentToWorld));
@@ -179,23 +175,15 @@ Pass
 
             $SurfaceDescription.NormalAlpha:    surfaceData.normalWS.w = surfaceDescription.NormalAlpha * fadeFactor;
         #elif (SHADERPASS == SHADERPASS_DECAL_SCREEN_SPACE_MESH)
-            surfaceData.normalWS.xyz = input.normalWS; // Default to vertex normal
+            surfaceData.normalWS.xyz = half3(input.normalWS); // Default to vertex normal
         #endif
 
             // In case of Smoothness / AO / Metal, all the three are always computed but color mask can change
         #if !defined(_DBUFFER_MRT1) && !defined(_DBUFFER_MRT2)
-            #ifdef _MATERIAL_AFFECTS_METAL
-                $SurfaceDescription.Metallic:       surfaceData.mask.x = surfaceDescription.Metallic;
-            #endif
-            #ifdef _MATERIAL_AFFECTS_AO
-                $SurfaceDescription.Occlusion:      surfaceData.mask.y = surfaceDescription.Occlusion;
-            #endif
-            #ifdef _MATERIAL_AFFECTS_SMOOTHNESS
-                $SurfaceDescription.Smoothness:     surfaceData.mask.z = surfaceDescription.Smoothness;
-            #endif
-            #if defined(_MATERIAL_AFFECTS_METAL) || defined(_MATERIAL_AFFECTS_AO) || defined(_MATERIAL_AFFECTS_SMOOTHNESS)
-                $SurfaceDescription.MAOSAlpha:      surfaceData.mask.w = surfaceDescription.MAOSAlpha * fadeFactor;
-            #endif
+            $SurfaceDescription.Metallic:       surfaceData.mask.x = half(surfaceDescription.Metallic);
+            $SurfaceDescription.Occlusion:      surfaceData.mask.y = half(surfaceDescription.Occlusion);
+            $SurfaceDescription.Smoothness:     surfaceData.mask.z = half(surfaceDescription.Smoothness);
+            $SurfaceDescription.MAOSAlpha:      surfaceData.mask.w = half(surfaceDescription.MAOSAlpha * fadeFactor);
         #endif
     }
 

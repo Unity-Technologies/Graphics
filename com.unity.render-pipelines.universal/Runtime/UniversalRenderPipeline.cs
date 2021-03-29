@@ -168,6 +168,8 @@ namespace UnityEngine.Rendering.Universal
             CameraCaptureBridge.enabled = true;
 
             RenderingUtils.ClearSystemInfoCache();
+
+            DecalProjector.defaultMaterial = asset.decalMaterial;
         }
 
         protected override void Dispose(bool disposing)

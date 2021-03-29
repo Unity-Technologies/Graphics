@@ -459,7 +459,7 @@ namespace UnityEditor.Rendering.Universal
 
                 if (!decalLayerEnabled)
                 {
-                    EditorGUILayout.HelpBox("Decal layer not enabled in shader or render pipeline.", MessageType.Info);
+                    EditorGUILayout.HelpBox($"Decal layer is not enabled in Shader.", MessageType.Info);
                 }
 
                 EditorGUILayout.PropertyField(m_UVScaleProperty, k_UVScaleContent);
@@ -500,26 +500,26 @@ namespace UnityEditor.Rendering.Universal
                 // We need to prevent the user to edit default decal materials
                 bool isDefaultMaterial = false;
                 bool isValidDecalMaterial = true;
-                //var hdrp = HDRenderPipeline.currentAsset;
-                //if (hdrp != null)
-                {
-                    foreach (var decalProjector in targets)
-                    {
-                        var mat = (decalProjector as DecalProjector).material;
 
-                        //isDefaultMaterial |= mat == hdrp.GetDefaultDecalMaterial();
-                        //isValidDecalMaterial &= mat != null && DecalSystem.IsDecalMaterial(mat);
+                {
+                    foreach (var target in targets)
+                    {
+                        var decalProjector = target as DecalProjector;
+                        var mat = decalProjector.material;
+
+                        isDefaultMaterial |= decalProjector.material == DecalProjector.defaultMaterial;
+                        isValidDecalMaterial &= decalProjector.IsValid();
                     }
                 }
 
                 if (isValidDecalMaterial)
                 {
-                    // Draw the material's foldout and the material shader field
-                    // Required to call m_MaterialEditor.OnInspectorGUI ();
-                    m_MaterialEditor.DrawHeader();
-
                     using (new EditorGUI.DisabledGroupScope(isDefaultMaterial))
                     {
+                        // Draw the material's foldout and the material shader field
+                        // Required to call m_MaterialEditor.OnInspectorGUI ();
+                        m_MaterialEditor.DrawHeader();
+
                         // Draw the material properties
                         // Works only if the foldout of m_MaterialEditor.DrawHeader () is open
                         m_MaterialEditor.OnInspectorGUI();

@@ -58,7 +58,7 @@ void MeshDecalsPositionZBias(inout Varyings input)
 #endif
 }
 
-void InitializeInputData2(Varyings input, float3 positionWS, half3 normalWS, half3 viewDirectionWS, inout InputData inputData)
+void InitializeInputData(Varyings input, float3 positionWS, half3 normalWS, half3 viewDirectionWS, inout InputData inputData)
 {
     inputData.positionWS = positionWS;
     inputData.normalWS = normalWS;
@@ -73,12 +73,12 @@ void InitializeInputData2(Varyings input, float3 positionWS, half3 normalWS, hal
 #endif
 
 #ifdef VARYINGS_NEED_FOG_AND_VERTEX_LIGHT
-    inputData.fogCoord = input.fogFactorAndVertexLight.x;
-    inputData.vertexLighting = input.fogFactorAndVertexLight.yzw;
+    inputData.fogCoord = half(input.fogFactorAndVertexLight.x);
+    inputData.vertexLighting = half3(input.fogFactorAndVertexLight.yzw);
 #endif
 
 #ifdef VARYINGS_NEED_SH
-    inputData.bakedGI = SAMPLE_GI(input.lightmapUV, input.sh, inputData.normalWS);
+    inputData.bakedGI = SAMPLE_GI(input.lightmapUV, half3(input.sh), normalWS);
     inputData.shadowMask = SAMPLE_SHADOWMASK(input.lightmapUV);
 #endif
 
@@ -108,10 +108,6 @@ PackedVaryings Vert(Attributes inputMesh)
         inputMesh.positionOS += viewDirectionOS * (_DecalMeshViewBias);
     }
     output = BuildVaryings(inputMesh);
-/*#if (SHADERPASS == SHADERPASS_DECAL_SCREEN_SPACE_MESH) || (SHADERPASS == SHADERPASS_DECAL_GBUFFER_MESH)
-    OUTPUT_LIGHTMAP_UV(inputMesh.uv1, unity_LightmapST, output.lightmapUV);
-    OUTPUT_SH(output.normalWS, output.sh);
-#endif*/
     if (_DecalMeshBiasType == DECALMESHDEPTHBIASTYPE_DEPTH_BIAS) // TODO: Check performance of branch
     {
         MeshDecalsPositionZBias(output);
@@ -154,7 +150,7 @@ void Frag(PackedVaryings packedInput,
     UNITY_SETUP_INSTANCE_ID(packedInput);
     Varyings input = UnpackVaryings(packedInput);
 
-    float angleFadeFactor = 1.0;
+    half angleFadeFactor = 1.0;
 
 #ifdef DECAL_PROJECTOR
     float depth = LoadSceneDepth(input.positionCS.xy);
@@ -185,18 +181,18 @@ void Frag(PackedVaryings packedInput,
 #ifdef DECAL_RECONSTRUCT_NORMAL
     float linearDepth = RawToLinearDepth(depth);
     float3 vpos = ReconstructViewPos(posInput.positionNDC, linearDepth);
-    float3 normalWS = ReconstructNormal(posInput.positionNDC, linearDepth, vpos);
+    half3 normalWS = half3(ReconstructNormal(posInput.positionNDC, linearDepth, vpos));
 #endif
 
 #ifdef DECAL_ANGLE_FADE
     // Check if this decal projector require angle fading
-    float4x4 normalToWorld = UNITY_ACCESS_INSTANCED_PROP(Decal, _NormalToWorld);
-    float2 angleFade = float2(normalToWorld[1][3], normalToWorld[2][3]);
+    half4x4 normalToWorld = UNITY_ACCESS_INSTANCED_PROP(Decal, _NormalToWorld);
+    half2 angleFade = half2(normalToWorld[1][3], normalToWorld[2][3]);
 
     if (angleFade.y < 0.0f) // if angle fade is enabled
     {
-        float3 decalNormal = float3(normalToWorld[0].z, normalToWorld[1].z, normalToWorld[2].z);
-        float dotAngle = dot(normalWS, decalNormal);
+        half3 decalNormal = half3(normalToWorld[0].z, normalToWorld[1].z, normalToWorld[2].z);
+        half dotAngle = dot(normalWS, decalNormal);
         // See equation in DecalSystem.cs - simplified to a madd mul add here
         angleFadeFactor = saturate(angleFade.x + angleFade.y * (dotAngle * (dotAngle - 2.0)));
     }
@@ -212,16 +208,16 @@ void Frag(PackedVaryings packedInput,
 
     float linearDepth = RawToLinearDepth(depth);
     float3 vpos = ReconstructViewPos(posInput.positionNDC, linearDepth);
-    float3 normalWS = ReconstructNormal(posInput.positionNDC, linearDepth, vpos);
+    half3 normalWS = half3(ReconstructNormal(posInput.positionNDC, linearDepth, vpos));
 #endif
 
 #endif
 
 #ifdef VARYINGS_NEED_VIEWDIRECTION_WS
-    float3 viewDirectionWS = input.viewDirectionWS;
+    half3 viewDirectionWS = half3(input.viewDirectionWS);
 #else
     // Unused
-    float3 viewDirectionWS = float3(1.0, 1.0, 1.0); // Avoid the division by 0
+    half3 viewDirectionWS = half3(1.0, 1.0, 1.0); // Avoid the division by 0
 #endif
 
     DecalSurfaceData surfaceData;
@@ -237,7 +233,7 @@ void Frag(PackedVaryings packedInput,
 #endif
 
     InputData inputData = (InputData)0;
-    InitializeInputData2(input, posInput.positionWS, half3(surfaceData.normalWS.xyz), half3(viewDirectionWS), inputData);
+    InitializeInputData(input, posInput.positionWS, surfaceData.normalWS.xyz, viewDirectionWS, inputData);
 
     SurfaceData surface = (SurfaceData)0;
     GetSurface(surfaceData, surface);
@@ -250,21 +246,17 @@ void Frag(PackedVaryings packedInput,
 #elif defined(DECAL_GBUFFER)
 
     InputData inputData = (InputData)0;
-    InitializeInputData2(input, posInput.positionWS, half3(surfaceData.normalWS.xyz), half3(viewDirectionWS), inputData);
+    InitializeInputData(input, posInput.positionWS, surfaceData.normalWS.xyz, viewDirectionWS, inputData);
 
     SurfaceData surface = (SurfaceData)0;
     GetSurface(surfaceData, surface);
 
-    half3 color = 0;
-    // Requires per object data
-//#ifdef DECAL_MESH
     BRDFData brdfData;
     InitializeBRDFData(surface.albedo, surface.metallic, 0, surface.smoothness, surface.alpha, brdfData);
 
     Light mainLight = GetMainLight(inputData.shadowCoord, inputData.positionWS, inputData.shadowMask);
     MixRealtimeAndBakedGI(mainLight, inputData.normalWS, inputData.bakedGI, inputData.shadowMask);
-    color = GlobalIllumination(brdfData, inputData.bakedGI, surface.occlusion, inputData.normalWS, inputData.viewDirectionWS);
-//#endif
+    half3 color = GlobalIllumination(brdfData, inputData.bakedGI, surface.occlusion, inputData.normalWS, inputData.viewDirectionWS);
 
     half3 packedNormalWS = PackNormal(surfaceData.normalWS.xyz);
     fragmentOutput.GBuffer0 = half4(surfaceData.baseColor.rgb, surfaceData.baseColor.a);

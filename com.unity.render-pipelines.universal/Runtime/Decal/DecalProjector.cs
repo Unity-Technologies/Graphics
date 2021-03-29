@@ -37,10 +37,22 @@ namespace UnityEngine.Rendering.Universal
 #if UNITY_EDITOR
     [CanEditMultipleObjects]
 #endif
-    [AddComponentMenu("Rendering/URP Decal Projector")]
+    [AddComponentMenu("Rendering/URP/Decal Projector")]
     public partial class DecalProjector : MonoBehaviour
     {
         internal static readonly Quaternion k_MinusYtoZRotation = Quaternion.Euler(-90, 0, 0);
+
+        public delegate void DecalProjectorAction(DecalProjector decalProjector);
+        public static event DecalProjectorAction onDecalAdd;
+        public static event DecalProjectorAction onDecalRemove;
+        public static event DecalProjectorAction onDecalPropertyChange;
+        public static event DecalProjectorAction onDecalMaterialChange;
+
+        public static bool isAnySystemUsing => onDecalAdd != null;
+
+        public DecalEntity decalEntity { get; set; }
+
+        public static Material defaultMaterial { get; set; }
 
         [SerializeField]
         private Material m_Material = null;
@@ -261,8 +273,6 @@ namespace UnityEngine.Rendering.Universal
         }
 
         private Material m_OldMaterial = null;
-        //private DecalSystem.DecalHandle m_Handle = null;
-
 
         /// <summary>current rotation in a way the DecalSystem will be able to use it</summary>
         internal Quaternion rotation => transform.rotation * k_MinusYtoZRotation;
@@ -280,26 +290,10 @@ namespace UnityEngine.Rendering.Universal
             if (m_Material == null)
             {
 #if UNITY_EDITOR
-                m_Material = null;
-                //var hdrp = HDRenderPipeline.defaultAsset;
-                //m_Material = hdrp != null ? hdrp.GetDefaultDecalMaterial() : null;
-#else
-                m_Material = null;
+                m_Material = defaultMaterial;
 #endif
             }
         }
-
-        public delegate void DecalProjectorAction(DecalProjector decalProjector);
-
-        public static event DecalProjectorAction onDecalAdd;
-        public static event DecalProjectorAction onDecalRemove;
-        public static event DecalProjectorAction onDecalPropertyChange;
-        public static event DecalProjectorAction onDecalMaterialChange;
-        public static bool isAnySystemUsing => onDecalAdd != null;
-
-        public DecalEntity decalEntity { get; set; }
-
-        void Reset() => InitMaterial();
 
         void OnEnable()
         {
@@ -351,6 +345,17 @@ namespace UnityEngine.Rendering.Universal
             }
             else
                 onDecalPropertyChange?.Invoke(this);
+        }
+
+        public bool IsValid()
+        {
+            if (material == null)
+                return false;
+
+            if (material.FindPass(DecalShaderPassNames.DBufferProjector) == -1)
+                return false;
+
+            return true;
         }
     }
 }
