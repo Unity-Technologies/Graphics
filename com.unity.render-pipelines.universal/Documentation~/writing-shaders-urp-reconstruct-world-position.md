@@ -30,99 +30,106 @@ Create the sample scene to follow the steps in this section:
 
 ## Edit the ShaderLab code
 
+This section assumes that you copied the source code from the page [URP unlit basic shader](writing-shaders-urp-basic-unlit-structure.md).
+
 Make the following changes to the ShaderLab code: 
 
-TODO: START HERE.
-
-1. Add a new include for a depth texture shader header. You can place it under the existing include for `Core.hlsl`.
+1. In the `HLSLPROGRAM` block, add the include declaration for the depth texture shader header. For example, place it under the existing include declaration for `Core.hlsl`.
     
     ```c++
-    #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/DeclareDepthTexture.hlsl`"
-    ```
-    The DeclareDepthTexture.hlsl file contains utilities for sampling camera depth texture which are needed for sampling the Z coordiante for the pixel.
+    #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Core.hlsl"
 
-2. Add input Varyings struct for the fragment shader. 
+    // The DeclareDepthTexture.hlsl file contains utilities for sampling the Camera
+    // depth texture.
+    #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/DeclareDepthTexture.hlsl"
+    ```
+    The DeclareDepthTexture.hlsl file contains functions for sampling the Camera depth texture. This example uses the `SampleSceneDepth` function for sampling the Z coordinate for pixels.
+
+2. In the fragment shader definition, add `Varyings IN` as input. 
     
     ```c++
     half4 frag(Varyings IN) : SV_Target
     ```
-    
-    TODO: put this in a different place:
-    Varyings are per vertex values (output from the vertex shader) that are interpolated across the triangles to provide per pixel value in the fragment shader.
-    
-    ```c++
-    struct Varyings
-    {
-        // The positions in this struct must have the SV_POSITION semantic.
-        float4 positionHCS  : SV_POSITION;
-    };
-    ```
-    TODO: same as above:
-    The Varyings struct has a member `float4 positionHCS : SV_POSITION;` For fragment shader the varying field with `SV_POSITION` will provide a pixel location.
 
-3. To calculate the UV coordinates for sampling the depth buffer, the pixel location is divided with render target resolution.
+    In this example, the fragment shader uses the `positionHCS` property from the `Varyings` struct to get locations of pixels.
+
+3. In the fragment shader, to calculate the UV coordinates for sampling the depth buffer, divide the pixel location by the render target resolution `_ScaledScreenParams`. The property `_ScaledScreenParams.xy` takes into account any scaling of the render target, such as Dynamic Resolution.
 
     ```c++
     float2 UV = IN.positionHCS.xy / _ScaledScreenParams.xy;
     ```
-    The _ScaledScreenParams.xy will take into account any scaling of the render target (such as Dynamic Resolution).
 
-4. Sample the depth buffer.
+4. In the fragment shader, use the `SampleSceneDepth` functions to sample the depth buffer.
+
     ```c++
     #if UNITY_REVERSED_Z
-    real depth = SampleSceneDepth(UV);
+        real depth = SampleSceneDepth(UV);
     #else
-    // Adjust z to match NDC for OpenGL
-    real depth = lerp(UNITY_NEAR_CLIP_VALUE, 1, SampleSceneDepth(UV));
+        // Adjust z to match NDC for OpenGL
+        real depth = lerp(UNITY_NEAR_CLIP_VALUE, 1, SampleSceneDepth(UV));
     #endif
     ```
-   `SampleSceneDepth` is defined in the `DeclareDepthTexture.hlsl`. It will return Z value in the range of `[0, 1]`.
-   The depth value needs to be in NDC space for the reconstruction function. For Z in D3D it is `[0,1]`, but in OpenGL it is `[-1, 1]`.
-   
-   `UNITY_REVERSED_Z` is used to detect the platform difference and adjust the Z value range. More detailed explanation in step 6.
-   
-   `UNITY_NEAR_CLIP_VALUE` is a platform independent near plane value for clip space.
 
-   TODO: Also add the link from Erik.
+   The `SampleSceneDepth` function comes from the `DeclareDepthTexture.hlsl` file. It returns the Z value in the range `[0, 1]`.
 
-5. Reconstruct world position from the UV and Z coordinates.
+   For the reconstruction function (`ComputeWorldSpacePosition`) to work, the depth value must be in the normalized device coordinate (NDC) space. In D3D, Z is in range `[0,1]`, in OpenGL, Z is in range `[-1, 1]`.
+   
+   This example uses the `UNITY_REVERSED_Z` variable to determine the platform and adjust the Z value range. See step 6 in this example for more explanations.
+   
+   The `UNITY_NEAR_CLIP_VALUE` variable is a platform independent near clipping plane value for the clip space.
+
+   For more information, see [Platform-specific rendering differences](https://docs.unity3d.com/Manual/SL-PlatformDifferences.html).
+
+5. Reconstruct world space positions from the UV and Z coordinates of pixels.
+
     ```c++
     float3 worldPos = ComputeWorldSpacePosition(UV, depth, UNITY_MATRIX_I_VP);
     ```
-    `ComputeWorldSpacePosition` is a utility function that computes the world position from UV and Z depth, defined in `Common.hlsl`.
+
+    `ComputeWorldSpacePosition` is a utility function that calculates the world space position from the UV and the depth (Z) values. This fanction is defined in the `Common.hlsl` file.
+
     `UNITY_MATRIX_I_VP` is an inverse view projection matrix which transforms points from the clip space to the world space.
 
-6. Create the 3D checkboard effect.
+6. To visualize the world space positions of pixels, create the checkboard effect.
 
     ```c++
     uint scale = 10;
-    uint3 worldIntPos = uint3(abs(worldPos.xyz * scale));
-    ```
-    The `scale` is the inverse scale of the checkboard pattern size.
-    The `abs` mirrors the pattern to negative coordinate side.
-    The `uint3` snaps the coordinate positions into integers.
-    
-    ```c++
+    uint3 worldIntPos = uint3(abs(worldPos.xyz * scale));    
     bool white = (worldIntPos.x & 1) ^ (worldIntPos.y & 1) ^ (worldIntPos.z & 1);
     half4 color = white ? half4(1,1,1,1) : half4(0,0,0,1);
     ```
-    The `AND` operator `<integer value> & 1` checks if the value is even (0) or odd (1). It is used to divide the coordinates into squares.
-    The `XOR` operator `<integer value> ^ <integer value>` is used to flip the square color.
+    
+    The `scale` is the inverse scale of the checkboard pattern size.
+
+    The `abs` function mirrors the pattern to the negative coordinate side.
+
+    The `uint3` declaration for the `worldIntPos` variable snaps the coordinate positions to integers.
+
+    The `AND` operator in the expresion `<integer value> & 1` checks if the value is even (0) or odd (1). The expression lets the code divide the surface into squares.
+
+    The `XOR` operator in the expresion `<integer value> ^ <integer value>` flips the square color.
+
+    The depth buffer might not have valid values for areas where no geometry is rendered. The following code draws black color in such areas.
     
     ```c++
     #if UNITY_REVERSED_Z
-    if(depth < 0.0001)
-        return half4(0,0,0,1);
+        if(depth < 0.0001)
+            return half4(0,0,0,1);
     #else
-    if(depth > 0.9999)
-        return half4(0,0,0,1);
+        if(depth > 0.9999)
+            return half4(0,0,0,1);
     #endif
     ```
-    The depth buffer might not have a valid value for areas where no geometry is rendered. This part will mask parts of the image close to the `far plane` as black.
-    Some platforms use reversed Z values (0 == far vs. 1 == far), to improve Z-buffer value distribution. `UNITY_REVERSED_Z` is used to handle all platforms correctly.
+
+    Different platforms use different Z values for far clipping planes (0 == far, or 1 == far). The `UNITY_REVERSED_Z` variable lets the code handle all platforms correctly.
+
+    Save the shader code, the example is ready.
     
-The end result should look like this:
+The following illustration shows the end result:
+
 ![3D Checkerboard](Images/shader-examples/urp-shader-tutorial-reconstruct-world-positions-from-depth.png) 
+
+## The complete ShaderLab code
 
 Below is the complete ShaderLab code for this example.
 
