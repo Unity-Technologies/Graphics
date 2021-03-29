@@ -199,7 +199,7 @@ namespace UnityEngine.Rendering.Universal
             var renderingSettings = m_DebugDisplaySettings.RenderingSettings;
             if (renderingSettings.validationMode == DebugValidationMode.HighlightOutsideOfRange)
             {
-                cmd.SetGlobalInt(kValidationChannelsId, (int)renderingSettings.validationChannels);
+                cmd.SetGlobalInteger(kValidationChannelsId, (int)renderingSettings.validationChannels);
                 cmd.SetGlobalFloat(kRangeMinimumId, renderingSettings.ValidationRangeMin);
                 cmd.SetGlobalFloat(kRangeMaximumId, renderingSettings.ValidationRangeMax);
             }
@@ -214,19 +214,19 @@ namespace UnityEngine.Rendering.Universal
             cmd.SetGlobalFloat(kDebugMaterialModeId, (int)MaterialSettings.DebugMaterialModeData);
             cmd.SetGlobalFloat(kDebugVertexAttributeModeId, (int)MaterialSettings.DebugVertexAttributeIndexData);
 
-            cmd.SetGlobalInt(kDebugMaterialValidationModeId, (int)MaterialSettings.MaterialValidationMode);
+            cmd.SetGlobalInteger(kDebugMaterialValidationModeId, (int)MaterialSettings.MaterialValidationMode);
 
             // Rendering settings...
-            cmd.SetGlobalInt(kDebugMipInfoModeId, (int)RenderingSettings.debugMipInfoMode);
-            cmd.SetGlobalInt(kDebugSceneOverrideModeId, (int)RenderingSettings.debugSceneOverrideMode);
-            cmd.SetGlobalInt(kDebugFullScreenModeId, (int)RenderingSettings.debugFullScreenMode);
-            cmd.SetGlobalInt(kDebugValidationModeId, (int)RenderingSettings.validationMode);
+            cmd.SetGlobalInteger(kDebugMipInfoModeId, (int)RenderingSettings.debugMipInfoMode);
+            cmd.SetGlobalInteger(kDebugSceneOverrideModeId, (int)RenderingSettings.debugSceneOverrideMode);
+            cmd.SetGlobalInteger(kDebugFullScreenModeId, (int)RenderingSettings.debugFullScreenMode);
+            cmd.SetGlobalInteger(kDebugValidationModeId, (int)RenderingSettings.validationMode);
             cmd.SetGlobalColor(kDebugValidateBelowMinThresholdColorPropertyId, Color.red);
             cmd.SetGlobalColor(kDebugValidateAboveMaxThresholdColorPropertyId, Color.blue);
 
             // Lighting settings...
             cmd.SetGlobalFloat(kDebugLightingModeId, (int)LightingSettings.DebugLightingMode);
-            cmd.SetGlobalInt(kDebugLightingFeatureFlagsId, (int)LightingSettings.DebugLightingFeatureFlagsMask);
+            cmd.SetGlobalInteger(kDebugLightingFeatureFlagsId, (int)LightingSettings.DebugLightingFeatureFlagsMask);
 
             // Set-up any other persistent properties...
             cmd.SetGlobalColor(kDebugColorInvalidModePropertyId, Color.red);
