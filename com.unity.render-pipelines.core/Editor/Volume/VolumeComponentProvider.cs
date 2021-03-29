@@ -68,12 +68,13 @@ namespace UnityEditor.Rendering
                 bool skipComponent = false;
                 foreach (var attr in attrs)
                 {
-                    var attrMenu = attr as VolumeComponentMenu;
-                    if (attrMenu != null)
+                    if (attr is VolumeComponentMenu attrMenu)
                         path = attrMenu.menu;
 
-                    var attrDeprecated = attr as VolumeComponentDeprecated;
-                    if (attrDeprecated != null)
+                    if (attr is HideInInspector attrHide)
+                        skipComponent = true;
+
+                    if (attr is ObsoleteAttribute attrDeprecated)
                         skipComponent = true;
                 }
 

@@ -111,6 +111,9 @@ EditorBuildSettings:
     path: Assets/GraphicTests/Scenes/1x_Materials/1351_Fabric.unity
     guid: ce2b258da0df8d245b659390b6c2ac51
   - enabled: 1
+    path: Assets/GraphicTests/Scenes/1x_Materials/1351_Fabric_Area_Light.unity
+    guid: 671cc97b65e9fff439b889734383db04
+  - enabled: 1
     path: Assets/GraphicTests/Scenes/1x_Materials/1352_Fabric_Env_Convolution.unity
     guid: 54443f41976c13246b6b67ce1dc2a06f
   - enabled: 1
@@ -120,8 +123,14 @@ EditorBuildSettings:
     path: Assets/GraphicTests/Scenes/1x_Materials/1401_HairGraph.unity
     guid: 7c0b384fd32894841954edea3211d084
   - enabled: 1
+    path: Assets/GraphicTests/Scenes/1x_Materials/1401_HairGraph_Area_Light.unity
+    guid: 742fd14ea433315428d74ff668204092
+  - enabled: 1
     path: Assets/GraphicTests/Scenes/1x_Materials/1451_AxF_SVBRDF.unity
     guid: 96afd39d83184974299cc32cded820c5
+  - enabled: 1
+    path: Assets/GraphicTests/Scenes/1x_Materials/1451_AxF_SVBRDF_AreaLights.unity
+    guid: 58c04d8d44efb81418e09c89dbdde3d5
   - enabled: 1
     path: Assets/GraphicTests/Scenes/1x_Materials/1501_EyeTestSG.unity
     guid: f62791cf7ace7534680a0f9c461be164
