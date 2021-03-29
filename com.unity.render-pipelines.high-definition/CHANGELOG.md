@@ -35,6 +35,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Added a "Conservative" mode for shader graph depth offset.
 - Added an error message when trying to use disk lights with realtime GI (case 1317808).
 - Added support for multi volumetric cloud shadows.
+- Added a Scale Mode setting for Decals.
 
 ### Fixed
 - Fixed Intensity Multiplier not affecting realtime global illumination.
@@ -121,6 +122,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed issue in wizard when resource folder don't exist
 - Fixed issue with Decal projector edge on Metal (case 1286074)
 - Fixed Exposure Frame Settings control issues on Planar reflection probes (case 1312153). Dynamic reflections now keep their own exposure relative to their parent camera.
+- Fixed multicamera rendering for Dynamic Resolution Scaling using dx12 hardware mode. Using a planar reflection probe (another render camera) should be safe.
 - Fixed missing Update in Wizard's DXR Documentation
 
 ### Changed
