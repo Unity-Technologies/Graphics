@@ -5,16 +5,21 @@
 
 #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Common.hlsl"
 
+// Duplicate define in Macros.hlsl
+#if defined (TRANSFORM_TEX)
+#undef TRANSFORM_TEX
+#endif
+
 #include "HLSLSupportShim.hlsl"
 #include "InputsShim.hlsl"
 #include "SurfaceShaderProxy.hlsl"
 
-#include "Packages/com.unity.shadergraph/Editor/Generation/Targets/BuiltIn/ShaderLibrary/Legacy/UnityShaderVariables.cginc"
-#include "Packages/com.unity.shadergraph/Editor/Generation/Targets/BuiltIn/ShaderLibrary/Legacy/UnityShaderUtilities.cginc"
-#include "Packages/com.unity.shadergraph/Editor/Generation/Targets/BuiltIn/ShaderLibrary/Legacy/UnityCG.cginc"
-#include "Packages/com.unity.shadergraph/Editor/Generation/Targets/BuiltIn/ShaderLibrary/Legacy/Lighting.cginc"
-#include "Packages/com.unity.shadergraph/Editor/Generation/Targets/BuiltIn/ShaderLibrary/Legacy/UnityPBSLighting.cginc"
-#include "Packages/com.unity.shadergraph/Editor/Generation/Targets/BuiltIn/ShaderLibrary/Legacy/AutoLight.cginc"
+#include "UnityShaderVariables.cginc"
+#include "UnityShaderUtilities.cginc"
+#include "UnityCG.cginc"
+#include "Lighting.cginc"
+#include "UnityPBSLighting.cginc"
+#include "AutoLight.cginc"
 
 
 #ifdef POINT

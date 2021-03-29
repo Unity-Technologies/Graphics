@@ -3,7 +3,7 @@
 
 #define BUILTIN_SHADER_VARIABLES_INCLUDED
 
-#include "Packages/com.unity.shadergraph/Editor/Generation/Targets/BuiltIn/ShaderLibrary/Legacy/UnityShaderVariables.cginc"
+#include "UnityShaderVariables.cginc"
 
 // scaleBias.x = flipSign
 // scaleBias.y = scale

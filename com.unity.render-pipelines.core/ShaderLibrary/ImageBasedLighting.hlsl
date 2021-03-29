@@ -1,5 +1,5 @@
-#ifndef UNITY_IMAGE_BASED_LIGHTING_INCLUDED
-#define UNITY_IMAGE_BASED_LIGHTING_INCLUDED
+#ifndef UNITY_IMAGE_BASED_LIGHTING_HLSL_INCLUDED
+#define UNITY_IMAGE_BASED_LIGHTING_HLSL_INCLUDED
 
 #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/CommonLighting.hlsl"
 #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/CommonMaterial.hlsl"
@@ -738,4 +738,4 @@ float InfluenceFadeNormalWeight(float3 normal, float3 centerToPos)
     return saturate((-1.0f / 0.4f) * dot(normal, centerToPos) + (0.6f / 0.4f));
 }
 
-#endif // UNITY_IMAGE_BASED_LIGHTING_INCLUDED
+#endif // UNITY_IMAGE_BASED_LIGHTING_HLSL_INCLUDED

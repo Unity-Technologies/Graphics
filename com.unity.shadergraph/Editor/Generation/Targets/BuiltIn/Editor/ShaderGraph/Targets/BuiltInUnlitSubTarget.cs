@@ -190,6 +190,7 @@ namespace UnityEditor.Rendering.BuiltIn.ShaderGraph
                 // Conditional State
                 renderStates = CoreRenderStates.Default,
                 pragmas = CorePragmas.Forward,
+                defines = CoreDefines.BuiltInTargetAPI,
                 keywords = UnlitKeywords.Unlit,
                 includes = UnlitIncludes.Unlit,
 
