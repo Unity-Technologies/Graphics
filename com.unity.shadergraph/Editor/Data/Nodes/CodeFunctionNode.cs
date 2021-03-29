@@ -348,7 +348,7 @@ namespace UnityEditor.ShaderGraph
                 GetOutputSlots(tempSlots);
                 foreach (var outSlot in tempSlots)
                 {
-                    sb.AppendLine(outSlot.concreteValueType.ToShaderString() + " " + GetVariableNameForSlot(outSlot.id) + ";");
+                    sb.AppendLine(outSlot.concreteValueType.ToShaderString(PrecisionUtil.Token) + " " + GetVariableNameForSlot(outSlot.id) + ";");
                 }
 
                 string call = GetFunctionName() + "(";
@@ -378,7 +378,7 @@ namespace UnityEditor.ShaderGraph
         private string GetFunctionName()
         {
             var function = GetFunctionToConvert();
-            return function.Name + (function.IsStatic ? string.Empty : "_" + objectId) + "_" + concretePrecision.ToShaderString()
+            return function.Name + (function.IsStatic ? string.Empty : "_" + objectId) + "_$precision"
                 + (this.GetSlots<DynamicVectorMaterialSlot>().Select(s => NodeUtils.GetSlotDimension(s.concreteValueType)).FirstOrDefault() ?? "")
                 + (this.GetSlots<DynamicMatrixMaterialSlot>().Select(s => NodeUtils.GetSlotDimension(s.concreteValueType)).FirstOrDefault() ?? "");
         }
@@ -402,7 +402,8 @@ namespace UnityEditor.ShaderGraph
                     if (slot.isOutputSlot)
                         header += "out ";
 
-                    header += slot.concreteValueType.ToShaderString() + " " + slot.shaderOutputName;
+                    // always use generic precisions for parameters, they will get concretized by the system
+                    header += slot.concreteValueType.ToShaderString(PrecisionUtil.Token) + " " + slot.shaderOutputName;
                 }
 
                 header += ")";

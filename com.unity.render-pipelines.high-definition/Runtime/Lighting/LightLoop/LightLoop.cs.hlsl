@@ -1,5 +1,5 @@
 //
-// This file was automatically generated. Please don't edit by hand. Execute Editor command [ Edit / Render Pipeline / Generate Shader Includes ] instead
+// This file was automatically generated. Please don't edit by hand. Execute Editor command [ Edit > Rendering > Generate Shader Includes ] instead
 //
 
 #ifndef LIGHTLOOP_CS_HLSL
@@ -19,7 +19,7 @@
 #define LIGHTCATEGORY_AREA (1)
 #define LIGHTCATEGORY_ENV (2)
 #define LIGHTCATEGORY_DECAL (3)
-#define LIGHTCATEGORY_DENSITY_VOLUME (4)
+#define LIGHTCATEGORY_LOCAL_VOLUMETRIC_FOG (4)
 #define LIGHTCATEGORY_COUNT (5)
 
 //
@@ -110,7 +110,7 @@ CBUFFER_START(ShaderVariablesLightList)
     int g_iNumSamplesMSAA;
     uint _EnvLightIndexShift;
     uint _DecalIndexShift;
-    uint _DensityVolumeIndexShift;
+    uint _LocalVolumetricFogIndexShift;
     uint _Pad0_SVLL;
     uint _Pad1_SVLL;
     uint _Pad2_SVLL;

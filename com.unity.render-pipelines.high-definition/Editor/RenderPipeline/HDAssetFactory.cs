@@ -7,7 +7,7 @@ namespace UnityEditor.Rendering.HighDefinition
 {
     using UnityObject = UnityEngine.Object;
 
-    static class HDAssetFactory
+    static partial class HDAssetFactory
     {
         static string s_RenderPipelineResourcesPath
         {
@@ -22,7 +22,7 @@ namespace UnityEditor.Rendering.HighDefinition
                 newAsset.name = Path.GetFileName(pathName);
                 // Load default renderPipelineResources / Material / Shader
                 newAsset.renderPipelineResources = AssetDatabase.LoadAssetAtPath<RenderPipelineResources>(s_RenderPipelineResourcesPath);
-                EditorDefaultSettings.GetOrAssignDefaultVolumeProfile(newAsset);
+                HDRenderPipelineGlobalSettings.instance.GetOrCreateDefaultVolumeProfile();
 
                 //as we must init the editor resources with lazy init, it is not required here
 
@@ -51,6 +51,7 @@ namespace UnityEditor.Rendering.HighDefinition
                 var newAsset = CreateInstance<RenderPipelineResources>();
                 newAsset.name = Path.GetFileName(pathName);
 
+                // to prevent cases when the asset existed prior but then when upgrading the package, there is null field inside the resource asset
                 ResourceReloader.ReloadAllNullIn(newAsset, HDUtils.GetHDRenderPipelinePath());
 
                 AssetDatabase.CreateAsset(newAsset, pathName);

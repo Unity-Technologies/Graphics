@@ -7,7 +7,8 @@ using UnityEngine.Rendering.HighDefinition.Compositor;
 
 namespace UnityEditor.Rendering.HighDefinition.Compositor
 {
-    internal class CompositorWindow : EditorWindow
+    [HDRPHelpURLAttribute("Compositor-User-Guide")]
+    internal class CompositorWindow : EditorWindowWithHelpButton
     {
         static class Styles
         {

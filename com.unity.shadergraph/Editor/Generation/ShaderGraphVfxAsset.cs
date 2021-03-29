@@ -4,14 +4,26 @@ using System.Linq;
 using UnityEditor.Graphing;
 using UnityEditor.ShaderGraph.Serialization;
 using UnityEngine;
+using TextureDimension = UnityEngine.Rendering.TextureDimension;
 
 namespace UnityEditor.ShaderGraph.Internal
 {
     [Serializable]
     public struct TextureInfo
     {
+        public TextureInfo(string name, Texture texture, TextureDimension dimension)
+        {
+            this.name = name;
+            this.texture = texture;
+            this.dimension = dimension;
+            Debug.Assert(texture == null || texture.dimension == dimension);
+        }
+
         public string name;
         public Texture texture;
+        public TextureDimension dimension;
+
+        public int instanceID => texture != null ? texture.GetInstanceID() : 0;
     }
 
     public sealed class ShaderGraphVfxAsset : ScriptableObject, ISerializationCallbackReceiver
@@ -78,7 +90,7 @@ namespace UnityEditor.ShaderGraph.Internal
 
         internal void SetTextureInfos(IList<PropertyCollector.TextureInfo> textures)
         {
-            m_TextureInfos = textures.Select(t => new TextureInfo() { name = t.name, texture = EditorUtility.InstanceIDToObject(t.textureId) as Texture }).ToArray();
+            m_TextureInfos = textures.Select(t => new TextureInfo(t.name, EditorUtility.InstanceIDToObject(t.textureId) as Texture, t.dimension)).ToArray();
         }
 
         internal void SetOutputs(OutputMetadata[] outputs)
@@ -146,7 +158,7 @@ namespace UnityEditor.ShaderGraph.Internal
 
             foreach (var property in m_Data.m_Properties.SelectValue())
             {
-                property.ValidateConcretePrecision(m_ConcretePrecision);
+                property.SetupConcretePrecision(m_ConcretePrecision);
             }
         }
 
