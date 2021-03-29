@@ -424,7 +424,7 @@ namespace UnityEditor.VFX
                 VFXSlot slot = VFXSlot.Create(new VFXProperty(_type, "o"), VFXSlot.Direction.kOutput);
                 AddSlot(slot);
 
-                if (!typeof(UnityEngine.Object).IsAssignableFrom(_type))
+                if (!typeof(UnityEngine.Object).IsAssignableFrom(_type) && _type != typeof(GraphicsBuffer))
                     slot.value = System.Activator.CreateInstance(_type);
             }
             else

@@ -171,6 +171,47 @@ namespace UnityEditor.VFX.Test
         }
 
         [UnityTest]
+        public IEnumerator CreateComponent_And_BindGraphicsBuffer()
+        {
+            var graph = VFXTestCommon.MakeTemporaryGraph();
+
+            var graphicsBufferDesc = VFXLibrary.GetParameters().Where(o => o.name.ToLowerInvariant().Contains("graphicsbuffer")).FirstOrDefault();
+            Assert.IsNotNull(graphicsBufferDesc);
+
+            var targetGraphicsBuffer = "my_exposed_graphics_buffer";
+
+            var parameter = graphicsBufferDesc.CreateInstance();
+            parameter.SetSettingValue("m_ExposedName", targetGraphicsBuffer);
+            parameter.SetSettingValue("m_Exposed", true);
+            graph.AddChild(parameter);
+            AssetDatabase.ImportAsset(AssetDatabase.GetAssetPath(graph));
+
+            while (m_mainObject.GetComponent<VisualEffect>() != null)
+                UnityEngine.Object.DestroyImmediate(m_mainObject.GetComponent<VisualEffect>());
+            var vfx = m_mainObject.AddComponent<VisualEffect>();
+            vfx.visualEffectAsset = graph.visualEffectResource.asset;
+
+            yield return null;
+
+            Assert.IsTrue(vfx.HasGraphicsBuffer(targetGraphicsBuffer));
+            Assert.IsNull(vfx.GetGraphicsBuffer(targetGraphicsBuffer));
+
+            var newGraphicsBuffer = new GraphicsBuffer(GraphicsBuffer.Target.Structured, 1, 4);
+            vfx.SetGraphicsBuffer(targetGraphicsBuffer, newGraphicsBuffer);
+            Assert.IsNotNull(vfx.GetGraphicsBuffer(targetGraphicsBuffer));
+
+            var readGraphicBuffer = vfx.GetGraphicsBuffer(targetGraphicsBuffer);
+            Assert.IsNotNull(readGraphicBuffer);
+            Assert.AreEqual(newGraphicsBuffer.count, readGraphicBuffer.count);
+            Assert.AreEqual(newGraphicsBuffer.stride, readGraphicBuffer.stride);
+            Assert.AreEqual(newGraphicsBuffer.GetNativeBufferPtr(), readGraphicBuffer.GetNativeBufferPtr());
+
+            newGraphicsBuffer.Release();
+            yield return null;
+
+        }
+
+        [UnityTest]
         public IEnumerator CreateComponent_And_Graph_Restart_Component_Expected()
         {
             yield return new EnterPlayMode();

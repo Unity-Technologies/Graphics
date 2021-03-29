@@ -142,7 +142,8 @@ namespace UnityEditor.VFX
                         case VFXValueType.Mesh: value = CreateObjectValueDesc<Mesh>(exp, i); break;
                         case VFXValueType.SkinnedMeshRenderer: value = CreateObjectValueDesc<SkinnedMeshRenderer>(exp, i); break;
                         case VFXValueType.Boolean: value = CreateValueDesc<bool>(exp, i); break;
-                        default: throw new InvalidOperationException("Invalid type");
+                        case VFXValueType.Buffer: value = CreateValueDesc<GraphicsBuffer>(exp, i); break;
+                        default: throw new InvalidOperationException("Invalid type : " + exp.valueType);
                     }
                     value.expressionIndex = (uint)i;
                     outValueDescs.Add(value);

@@ -288,6 +288,11 @@ namespace UnityEditor.VFX
                 m_Content = obj.GetInstanceID();
                 return;
             }
+            if (value is GraphicsBuffer)
+            {
+                m_Content = (int)0;
+                return;
+            }
 
             m_Content = (int)value;
         }
