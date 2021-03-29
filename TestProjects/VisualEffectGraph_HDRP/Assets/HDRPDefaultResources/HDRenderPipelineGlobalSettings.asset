@@ -12,12 +12,13 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 781cc897cf8675041a751163b51f97dd, type: 3}
   m_Name: HDRenderPipelineGlobalSettings
   m_EditorClassIdentifier: 
-  m_VolumeProfileDefault: {fileID: 0}
+  m_VolumeProfileDefault: {fileID: 11400000, guid: 6da6f79984c6a5e40ae22ead3a2ecfec,
+    type: 2}
   m_VolumeProfileLookDev: {fileID: 0}
   m_RenderingPathDefaultCameraFrameSettings:
     bitDatas:
-      data1: 72198262773251917
-      data2: 13763000468760363032
+      data1: 87872878411613
+      data2: 4539628425463136280
     lodBias: 1
     lodBiasMode: 0
     lodBiasQualityLevel: 0
@@ -30,8 +31,8 @@ MonoBehaviour:
     materialQuality: 0
   m_RenderingPathDefaultBakedOrCustomReflectionFrameSettings:
     bitDatas:
-      data1: 135310754214733
-      data2: 4539628428684427288
+      data1: 87872878411613
+      data2: 4539628425463136280
     lodBias: 1
     lodBiasMode: 0
     lodBiasQualityLevel: 0
@@ -44,8 +45,8 @@ MonoBehaviour:
     materialQuality: 0
   m_RenderingPathDefaultRealtimeReflectionFrameSettings:
     bitDatas:
-      data1: 139923391782733
-      data2: 13763000465807638544
+      data1: 87288601124637
+      data2: 4539628424389459992
     lodBias: 1
     lodBiasMode: 0
     lodBiasQualityLevel: 0
@@ -56,7 +57,8 @@ MonoBehaviour:
     sssQualityLevel: 0
     sssCustomSampleBudget: 20
     materialQuality: 0
-  m_RenderPipelineResources: {fileID: 0}
+  m_RenderPipelineResources: {fileID: 11400000, guid: 3ce144cff5783da45aa5d4fdc2da14b7,
+    type: 2}
   m_RenderPipelineRayTracingResources: {fileID: 0}
   beforeTransparentCustomPostProcesses: []
   beforePostProcessCustomPostProcesses: []
@@ -80,5 +82,7 @@ MonoBehaviour:
   decalLayerName7: 
   shaderVariantLogLevel: 0
   lensAttenuationMode: 0
-  diffusionProfileSettingsList: []
+  diffusionProfileSettingsList:
+  - {fileID: 11400000, guid: cbe1ee9036c47b84ba1b8b3dbcde2aff, type: 2}
+  - {fileID: 11400000, guid: 38c0905fbe269274782e939ce4393d85, type: 2}
   m_Version: 0
