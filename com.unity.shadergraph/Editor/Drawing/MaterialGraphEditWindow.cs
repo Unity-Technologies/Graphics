@@ -331,6 +331,7 @@ namespace UnityEditor.ShaderGraph.Drawing
                 {
                     updateTitle = true;
                     graphObject.isDirty = false;
+                    hasUnsavedChanges = false;
                 }
 
                 // Called again to handle changes from deserialization in case an undo/redo was performed
@@ -432,7 +433,16 @@ namespace UnityEditor.ShaderGraph.Drawing
             else
             {
                 if (GraphHasChangedSinceLastSerialization())
-                    title = title + "*";
+                {
+                    hasUnsavedChanges = true;
+                    // This is the message EditorWindow will show when prompting to close while dirty
+                    saveChangesMessage = GetSaveChangesMessage();
+                }
+                else
+                {
+                    hasUnsavedChanges = false;
+                    saveChangesMessage = "";
+                }
                 if (!AssetFileExists())
                     title = title + " (deleted)";
             }
@@ -453,32 +463,13 @@ namespace UnityEditor.ShaderGraph.Drawing
 
         void OnDestroy()
         {
-            // we are closing the shadergraph window
-            MaterialGraphEditWindow newWindow = null;
-            if (!PromptSaveIfDirtyOnQuit())
-            {
-                // user does not want to close the window.
-                // we can't stop the close from this code path though..
-                // all we can do is open a new window and transfer our data to the new one to avoid losing it
-                // newWin = Instantiate<MaterialGraphEditWindow>(this);
-                newWindow = EditorWindow.CreateWindow<MaterialGraphEditWindow>(typeof(MaterialGraphEditWindow), typeof(SceneView));
-                newWindow.Initialize(this);
-            }
-            else
-            {
-                // the window is closing for good.. cleanup undo history for the graph object
-                Undo.ClearUndo(graphObject);
-            }
+            // Prompting the user if they want to close is now handled via the EditorWindow's system (hasSavedChanges)
+
+            // the window is closing for good.. cleanup undo history for the graph object
+            Undo.ClearUndo(graphObject);
 
             graphObject = null;
             graphEditorView = null;
-
-            // show new window if we have one
-            if (newWindow != null)
-            {
-                newWindow.Show();
-                newWindow.Focus();
-            }
         }
 
         public void PingAsset()
@@ -546,6 +537,7 @@ namespace UnityEditor.ShaderGraph.Drawing
                 }
 
                 OnSaveGraph(path);
+                hasUnsavedChanges = false;
             }
 
             UpdateTitle();
@@ -1196,9 +1188,7 @@ namespace UnityEditor.ShaderGraph.Drawing
                 {
                     int option = EditorUtility.DisplayDialogComplex(
                         "Shader Graph Has Been Modified",
-                        "Do you want to save the changes you made in the Shader Graph?\n\n" +
-                        AssetDatabase.GUIDToAssetPath(selectedGuid) +
-                        "\n\nYour changes will be lost if you don't save them.",
+                        GetSaveChangesMessage(),
                         "Save", "Cancel", "Discard Changes");
 
                     if (option == 0) // save
@@ -1216,6 +1206,19 @@ namespace UnityEditor.ShaderGraph.Drawing
                 }
             }
             return true;
+        }
+
+        private string GetSaveChangesMessage()
+        {
+            return "Do you want to save the changes you made in the Shader Graph?\n\n" +
+                AssetDatabase.GUIDToAssetPath(selectedGuid) +
+                "\n\nYour changes will be lost if you don't save them.";
+        }
+
+        public override void SaveChanges()
+        {
+            base.SaveChanges();
+            SaveAsset();
         }
 
         void OnGeometryChanged(GeometryChangedEvent evt)
