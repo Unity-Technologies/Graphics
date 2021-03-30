@@ -194,6 +194,7 @@ namespace UnityEngine.Rendering.Universal
         private DecalForwardEmissivePass m_ForwardEmissivePass;
         private DecalPreviewPass m_DecalPreviewPass;
         private NormalReconstructionSetupPass m_NormalReconstructionSetupPass;
+        private DecalDrawErrorSystem m_DrawErrorSystem;
 
         // Entities
         private DecalEntityManager m_DecalEntityManager;
@@ -277,6 +278,7 @@ namespace UnityEngine.Rendering.Universal
                 m_DecalUpdateCullingGroupSystem = new DecalUpdateCullingGroupSystem(m_DecalEntityManager, actualSettings.maxDrawDistance);
                 m_DecalUpdateCulledSystem = new DecalUpdateCulledSystem(m_DecalEntityManager);
                 m_DecalCreateDrawCallSystem = new DecalCreateDrawCallSystem(m_DecalEntityManager);
+                m_DrawErrorSystem = new DecalDrawErrorSystem(m_DecalEntityManager);
 
                 if (technique == DecalTechnique.ScreenSpace)
                 {
@@ -341,6 +343,8 @@ namespace UnityEngine.Rendering.Universal
                         }
                     }
                 }
+
+                m_DrawErrorSystem.Execute(cameraData);
             }
         }
 

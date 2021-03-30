@@ -207,11 +207,16 @@ public class DecalEntityManager : IDisposable
     private List<CombinedChunks> m_CombinedChunks = new List<CombinedChunks>();
     private List<int> m_CombinedChunkRemmap = new List<int>();
 
+    private Material m_ErrorMaterial;
+
+    public Material errorMaterial => m_ErrorMaterial;
+
     public DecalEntityManager()
     {
         m_AddDecalSampler = new ProfilingSampler("DecalEntityManager.CreateDecalEntity");
         m_ResizeChunks = new ProfilingSampler("DecalEntityManager.ResizeChunks");
         m_SortChunks = new ProfilingSampler("DecalEntityManager.SortChunks");
+        m_ErrorMaterial = new Material(Shader.Find("Hidden/InternalErrorShader"));
     }
 
     public bool IsValid(DecalEntity decalEntity)
@@ -237,12 +242,14 @@ public class DecalEntityManager : IDisposable
 
     public DecalEntity CreateDecalEntity(DecalProjector decalProjector)
     {
-        if (decalProjector.material == null)
-            return new DecalEntity();
+        var material = decalProjector.material;
+        if (material == null)
+            material = m_ErrorMaterial;
+        //return new DecalEntity();
 
         using (new ProfilingScope(null, m_AddDecalSampler))
         {
-            int chunkIndex = CreateChunkIndex(decalProjector.material);
+            int chunkIndex = CreateChunkIndex(material);
             int entityIndex = entityChunks[chunkIndex].count;
 
             DecalEntity entity = decalEntityIndexer.CreateDecalEntity(entityIndex, chunkIndex);

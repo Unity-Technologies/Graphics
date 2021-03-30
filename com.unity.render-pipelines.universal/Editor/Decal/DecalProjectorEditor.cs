@@ -381,6 +381,9 @@ namespace UnityEditor.Rendering.Universal
             serializedObject.Update();
 
             bool materialChanged = false;
+            bool isDefaultMaterial = false;
+            bool isValidDecalMaterial = true;
+
             EditorGUI.BeginChangeCheck();
             {
                 EditorGUILayout.BeginHorizontal();
@@ -420,6 +423,24 @@ namespace UnityEditor.Rendering.Universal
                 EditorGUILayout.PropertyField(m_MaterialProperty, k_MaterialContent);
                 materialChanged = EditorGUI.EndChangeCheck();
 
+                foreach (var target in targets)
+                {
+                    var decalProjector = target as DecalProjector;
+                    var mat = decalProjector.material;
+
+                    isDefaultMaterial |= decalProjector.material == DecalProjector.defaultMaterial;
+                    isValidDecalMaterial &= decalProjector.IsValid();
+                }
+
+                if (m_MaterialEditor && !isValidDecalMaterial)
+                {
+                    CoreEditorUtils.DrawFixMeBox("Decal only work with Decal Material. Use default material or create from decal shader graph sub target.", () =>
+                    {
+                        m_MaterialProperty.objectReferenceValue = DecalProjector.defaultMaterial;
+                        materialChanged = true;
+                    });
+                }
+
                 bool decalLayerEnabled = false;
                 foreach (var decalProjector in targets)
                 {
@@ -428,15 +449,6 @@ namespace UnityEditor.Rendering.Universal
                         continue;
                     decalLayerEnabled = mat.HasProperty("_DecalAngleFadeSupported");
                 }
-                /*HDRenderPipelineAsset hdrp = HDRenderPipeline.currentAsset;
-                if (hdrp != null)
-                {
-                    decalLayerEnabled = hdrp.currentPlatformRenderPipelineSettings.supportDecals && hdrp.currentPlatformRenderPipelineSettings.supportDecalLayers;
-                    using (new EditorGUI.DisabledScope(!decalLayerEnabled))
-                    {
-                        EditorGUILayout.PropertyField(m_DecalLayerMask, k_DecalLayerMaskContent);
-                    }
-                }*/
 
                 EditorGUI.BeginChangeCheck();
                 EditorGUILayout.PropertyField(m_DrawDistanceProperty, k_DistanceContent);
@@ -457,9 +469,9 @@ namespace UnityEditor.Rendering.Universal
                     }
                 }
 
-                if (!decalLayerEnabled)
+                if (!decalLayerEnabled && isValidDecalMaterial)
                 {
-                    EditorGUILayout.HelpBox($"Decal layer is not enabled in Shader.", MessageType.Info);
+                    EditorGUILayout.HelpBox($"Decal layer is not enabled in Shader. In ShaderGraph enable Angle Fade option.", MessageType.Info);
                 }
 
                 EditorGUILayout.PropertyField(m_UVScaleProperty, k_UVScaleContent);
@@ -498,20 +510,6 @@ namespace UnityEditor.Rendering.Universal
             if (m_MaterialEditor != null)
             {
                 // We need to prevent the user to edit default decal materials
-                bool isDefaultMaterial = false;
-                bool isValidDecalMaterial = true;
-
-                {
-                    foreach (var target in targets)
-                    {
-                        var decalProjector = target as DecalProjector;
-                        var mat = decalProjector.material;
-
-                        isDefaultMaterial |= decalProjector.material == DecalProjector.defaultMaterial;
-                        isValidDecalMaterial &= decalProjector.IsValid();
-                    }
-                }
-
                 if (isValidDecalMaterial)
                 {
                     using (new EditorGUI.DisabledGroupScope(isDefaultMaterial))
@@ -524,11 +522,6 @@ namespace UnityEditor.Rendering.Universal
                         // Works only if the foldout of m_MaterialEditor.DrawHeader () is open
                         m_MaterialEditor.OnInspectorGUI();
                     }
-                }
-                else
-                {
-                    EditorGUILayout.HelpBox("Decal only work with Decal Material. Decal Material can be selected in the shader list HDRP/Decal or can be created from a Decal Master Node.",
-                        MessageType.Error);
                 }
             }
         }

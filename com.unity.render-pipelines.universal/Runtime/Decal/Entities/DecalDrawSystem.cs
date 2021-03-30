@@ -5,11 +5,13 @@ using UnityEngine.Rendering.Universal;
 
 public abstract class DecalDrawSystem
 {
-    private DecalEntityManager m_EntityManager;
+    protected DecalEntityManager m_EntityManager;
     private Mesh m_DecalMesh;
     private Matrix4x4[] m_WorldToDecals;
     private Matrix4x4[] m_NormalToDecals;
     private ProfilingSampler m_Sampler;
+
+    public Material overrideMaterial { get; set; }
 
     public DecalDrawSystem(string sampler, DecalEntityManager entityManager)
     {
@@ -42,6 +44,8 @@ public abstract class DecalDrawSystem
         }
     }
 
+    protected virtual Material GetMaterial(DecalEntityChunk decalEntityChunk) => decalEntityChunk.material;
+
     protected abstract int GetPassIndex(DecalCachedChunk decalCachedChunk);
 
     private void Execute(CommandBuffer cmd, DecalEntityChunk decalEntityChunk, DecalCachedChunk decalCachedChunk, DecalDrawCallChunk decalDrawCallChunk, int count)
@@ -66,6 +70,7 @@ public abstract class DecalDrawSystem
 
     private void Draw(CommandBuffer cmd, DecalEntityChunk decalEntityChunk, DecalCachedChunk decalCachedChunk, DecalDrawCallChunk decalDrawCallChunk, int passIndex)
     {
+        var material = GetMaterial(decalEntityChunk);
         decalCachedChunk.propertyBlock.SetVector("unity_LightData", new Vector4(1, 1, 1, 0)); // GetMainLight requires z component to be set
 
         int subCallCount = decalDrawCallChunk.subCallCount;
@@ -77,13 +82,14 @@ public abstract class DecalDrawSystem
             {
                 decalCachedChunk.propertyBlock.SetMatrix("_NormalToWorld", decalDrawCallChunk.normalToDecals[j]);
                 //cmd.SetGlobalMatrix(Shader.PropertyToID("_NormalToWorld"), decalDrawCallChunk.normalToDecals[j]);
-                cmd.DrawMesh(m_DecalMesh, decalDrawCallChunk.decalToWorlds[j], decalEntityChunk.material, 0, passIndex, decalCachedChunk.propertyBlock);
+                cmd.DrawMesh(m_DecalMesh, decalDrawCallChunk.decalToWorlds[j], material, 0, passIndex, decalCachedChunk.propertyBlock);
             }
         }
     }
 
     private void DrawInstanced(CommandBuffer cmd, DecalEntityChunk decalEntityChunk, DecalCachedChunk decalCachedChunk, DecalDrawCallChunk decalDrawCallChunk, int passIndex)
     {
+        var material = GetMaterial(decalEntityChunk);
         decalCachedChunk.propertyBlock.SetVector("unity_LightData", new Vector4(1, 1, 1, 0)); // GetMainLight requires z component to be set
 
         int subCallCount = decalDrawCallChunk.subCallCount;
@@ -98,7 +104,7 @@ public abstract class DecalDrawSystem
             NativeArray<Matrix4x4>.Copy(normalToWorldSlice, subCall.start, m_NormalToDecals, 0, subCall.count);
 
             decalCachedChunk.propertyBlock.SetMatrixArray("_NormalToWorld", m_NormalToDecals);
-            cmd.DrawMeshInstanced(m_DecalMesh, 0, decalEntityChunk.material, passIndex, m_WorldToDecals, subCall.end - subCall.start, decalCachedChunk.propertyBlock);
+            cmd.DrawMeshInstanced(m_DecalMesh, 0, material, passIndex, m_WorldToDecals, subCall.end - subCall.start, decalCachedChunk.propertyBlock);
         }
     }
 
@@ -144,6 +150,7 @@ public abstract class DecalDrawSystem
 
     private void Draw(in CameraData cameraData, DecalEntityChunk decalEntityChunk, DecalCachedChunk decalCachedChunk, DecalDrawCallChunk decalDrawCallChunk, int passIndex)
     {
+        var material = GetMaterial(decalEntityChunk);
         int subCallCount = decalDrawCallChunk.subCallCount;
         for (int i = 0; i < subCallCount; ++i)
         {
@@ -153,13 +160,14 @@ public abstract class DecalDrawSystem
             {
                 decalCachedChunk.propertyBlock.SetMatrix("_NormalToWorld", decalDrawCallChunk.normalToDecals[j]);
                 //cmd.SetGlobalMatrix(Shader.PropertyToID("_NormalToWorld"), decalDrawCallChunk.normalToDecals[j]);
-                Graphics.DrawMesh(m_DecalMesh, decalCachedChunk.decalToWorlds[j], decalEntityChunk.material, 0 /*decalCachedChunk.layerMasks[j]*/, cameraData.camera, 0, decalCachedChunk.propertyBlock);
+                Graphics.DrawMesh(m_DecalMesh, decalCachedChunk.decalToWorlds[j], material, 0 /*decalCachedChunk.layerMasks[j]*/, cameraData.camera, 0, decalCachedChunk.propertyBlock);
             }
         }
     }
 
     private void DrawInstanced(in CameraData cameraData, DecalEntityChunk decalEntityChunk, DecalCachedChunk decalCachedChunk, DecalDrawCallChunk decalDrawCallChunk, int passIndex)
     {
+        var material = GetMaterial(decalEntityChunk);
         decalCachedChunk.propertyBlock.SetVector("unity_LightData", new Vector4(1, 1, 1, 0)); // GetMainLight requires z component to be set
 
         int subCallCount = decalDrawCallChunk.subCallCount;
@@ -174,7 +182,7 @@ public abstract class DecalDrawSystem
             NativeArray<Matrix4x4>.Copy(normalToWorldSlice, subCall.start, m_NormalToDecals, 0, subCall.count);
 
             decalCachedChunk.propertyBlock.SetMatrixArray("_NormalToWorld", m_NormalToDecals);
-            Graphics.DrawMeshInstanced(m_DecalMesh, 0, decalEntityChunk.material,
+            Graphics.DrawMeshInstanced(m_DecalMesh, 0, material,
                 m_WorldToDecals, subCall.count, decalCachedChunk.propertyBlock, ShadowCastingMode.On, true, 0, cameraData.camera);
         }
     }
