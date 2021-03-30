@@ -216,10 +216,12 @@ public class RenderPipelineConvertersEditor : EditorWindow
                     {
                         string info = "";
                         Status status;
+                        bool active = true;
                         // If this data hasn't been filled in from the init phase then we can assume that there are no issues / warnings
                         if (string.IsNullOrEmpty(converterItemInfos[j].initialInfo))
                         {
                             status = Status.Pending;
+                            active = false;
                         }
                         else
                         {
@@ -230,7 +232,7 @@ public class RenderPipelineConvertersEditor : EditorWindow
 
                         m_ConverterStates[i].items.Add(new ConverterItemState
                         {
-                            isActive = true,
+                            isActive = active,
                             info = info,
                             status = status,
                         });
@@ -281,8 +283,9 @@ public class RenderPipelineConvertersEditor : EditorWindow
                     var bindable = (BindableElement)element;
                     bindable.BindProperty(property);
 
-                    // Adding the contextual menu for each item
-
+                    // Adding the contextual menu for each item, not working properly
+                    //element.AddManipulator(new ContextualMenuManipulator(evt => AddToContextMenu(evt, id, index)));
+                    //element.AddManipulator(new ContextualMenuManipulator(evt => AddToContextMenu(evt, index)));
 
                     ConverterItemDescriptor convItemDesc = converterItemInfos[index];
 
@@ -327,7 +330,6 @@ public class RenderPipelineConvertersEditor : EditorWindow
                     bindable.Unbind();
                 };
 
-                //listView.AddManipulator(new ContextualMenuManipulator(evt => AddToContextMenu(evt, id, listView.selectedIndex)));
                 listView.Refresh();
 
                 // When right clicking an item it should pop up a small menu with 2 entries
@@ -338,26 +340,35 @@ public class RenderPipelineConvertersEditor : EditorWindow
         rootVisualElement.Bind(m_SerializedObject);
     }
 
-    void AddToContextMenu(ContextualMenuPopulateEvent evt, int coreConverterIndex, int index)
-    {
-        Debug.Log(m_CoreConvertersList[coreConverterIndex].name);
-        Debug.Log(coreConverterIndex);
-        Debug.Log("INDEX:: " + index);
-
-        /*evt.menu.AppendAction("Run converter for this asset",
-            e =>
-            {
-                ConvertIndex(coreConverterIndex, index);
-            },
-            DropdownMenuAction.AlwaysEnabled);
-            */
-    }
+    // void AddToContextMenu(ContextualMenuPopulateEvent evt, int index)
+    // {
+    //     Debug.Log($"Index ::: {index}");
+    // }
+    //
+    // void AddToContextMenu(ContextualMenuPopulateEvent evt, int coreConverterIndex, int index)
+    // {
+    //     Debug.Log(evt.target);
+    //     //Debug.Log(m_CoreConvertersList[coreConverterIndex].name);
+    //     //Debug.Log(coreConverterIndex);
+    //     Debug.Log("INDEX:: " + index);
+    //
+    //     /*evt.menu.AppendAction("Run converter for this asset",
+    //         e =>
+    //         {
+    //             ConvertIndex(coreConverterIndex, index);
+    //         },
+    //         DropdownMenuAction.AlwaysEnabled);
+    //         */
+    // }
 
     void UpdateInfo(int stateIndex, RunConverterContext ctx)
     {
         var failedItems = ctx.m_FailedItems;
         var failedCount = failedItems.Count;
         var successCount = ctx.m_SuccessfulItems.Count;
+
+        // Get the pending amount
+        m_ConverterStates[stateIndex].pending =  m_ConverterStates[stateIndex].items.Count;
 
         foreach (FailedItem failedItem in failedItems)
         {
