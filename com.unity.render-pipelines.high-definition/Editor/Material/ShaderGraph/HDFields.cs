@@ -56,6 +56,7 @@ namespace UnityEditor.Rendering.HighDefinition
         public static FieldDescriptor LightingGI =              new FieldDescriptor(string.Empty, "LightingGI", "_LIGHTING_GI 1");
         public static FieldDescriptor BackLightingGI =          new FieldDescriptor(string.Empty, "BackLightingGI", "_BACK_LIGHTING_GI 1");
         public static FieldDescriptor DepthOffset =             new FieldDescriptor(string.Empty, "DepthOffset", "_DEPTH_OFFSET 1");
+        public static FieldDescriptor ConservativeDepthOffset = new FieldDescriptor(string.Empty, "ConservativeDepthOffset", "_CONSERVATIVE_DEPTH_OFFSET 1");
         public static FieldDescriptor TransparentBackFace =     new FieldDescriptor(string.Empty, "TransparentBackFace", string.Empty);
         public static FieldDescriptor TransparentDepthPrePass = new FieldDescriptor(string.Empty, "TransparentDepthPrePass", string.Empty);
         public static FieldDescriptor TransparentDepthPostPass = new FieldDescriptor(string.Empty, "TransparentDepthPostPass", string.Empty);

@@ -210,7 +210,7 @@ VikingVillage_BuiltIn_OSX_Metal_performance_playmode_runtime_mono_Linear_CUSTOM-
               -  "TestProjects/Viking-Village-Perf/Logs/*.log"
     dependencies:
       -  path: .yamato/_editor_priming.yml#editor:priming:CUSTOM-REVISION:OSX
-         rerun: always
+         rerun: on_new_revision
 VikingVillage_BuiltIn_OSX_Metal_performance_playmode_editor_mono_Linear_CUSTOM-REVISION:
     name: VikingVillage_BuiltIn on OSX_Metal_performance_playmode_editor_mono_Linear on version CUSTOM-REVISION
     agent:
@@ -264,7 +264,7 @@ VikingVillage_BuiltIn_OSX_Metal_performance_playmode_editor_mono_Linear_CUSTOM-R
               -  "TestProjects/Viking-Village-Perf/Logs/*.log"
     dependencies:
       -  path: .yamato/_editor_priming.yml#editor:priming:CUSTOM-REVISION:OSX
-         rerun: always
+         rerun: on_new_revision
 VikingVillage_BuiltIn_OSX_Metal_performance_build_editmode_mono_Linear_CUSTOM-REVISION:
     name: VikingVillage_BuiltIn on OSX_Metal_performance_build_editmode_mono_Linear on version CUSTOM-REVISION
     agent:
@@ -318,4 +318,4 @@ VikingVillage_BuiltIn_OSX_Metal_performance_build_editmode_mono_Linear_CUSTOM-RE
               -  "TestProjects/Viking-Village-Perf/Logs/*.log"
     dependencies:
       -  path: .yamato/_editor_priming.yml#editor:priming:CUSTOM-REVISION:OSX
-         rerun: always
+         rerun: on_new_revision

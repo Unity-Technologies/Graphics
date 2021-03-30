@@ -39,6 +39,6 @@ The Unity Player system requirements for the Visual Effect Graph depend on which
 - The Visual Effect Graph is not out of preview for mobile platforms.
 - For either render pipeline, the minimum hardware requirements are:
   - Support for compute shaders. If a platform supports compute shaders, it returns `true` for [SystemInfo.supportsComputeShaders](https://docs.unity3d.com/ScriptReference/SystemInfo-supportsComputeShaders.html).
-  - Support for Shader Storage Buffer Objects (SSBOs). If a platform supports SSBOs, it returns a value greater than 0 for [SystemInfo.maxComputeBufferInputsVertex](https://docs.unity3d.com/ScriptReference/SystemInfo-maxComputeBufferInputsVertex.html).<br/><br/>These requirements mean that OpenGL ES is not suitable for the VFX Graph and you should use Vulkan when targeting mobile platforms instead.
+  - Support for Shader Storage Buffer Objects (SSBOs). If a platform supports SSBOs, it returns a value greater than 0 for [SystemInfo.maxComputeBufferInputsVertex](https://docs.unity3d.com/ScriptReference/SystemInfo-maxComputeBufferInputsVertex.html).<br/><br/>These requirements mean that OpenGL ES is not suitable for the VFX Graph and you should use Vulkan when targeting Android instead.
 
 For more information on general system requirements for the Unity Player, see [System requirements for Unity](https://docs.unity3d.com/Manual/system-requirements.html).
