@@ -110,14 +110,14 @@ namespace UnityEditor.Rendering
         sealed class Styles
         {
             static public readonly GUIContent lensFlareData = EditorGUIUtility.TrTextContent("Lens Flare Data", "Lens flare asset used on this component.");
-            static public readonly GUIContent intensity = EditorGUIUtility.TrTextContent("Intensity", "REPLACE ME.");
+            static public readonly GUIContent intensity = EditorGUIUtility.TrTextContent("Intensity", "Intensity multiplier.");
             static public readonly GUIContent maxAttenuationDistance = EditorGUIUtility.TrTextContent("Attenuation Distance", "Distance used to scale the Distance Attenuation Curve.");
             static public readonly GUIContent distanceAttenuationCurve = EditorGUIUtility.TrTextContent("Attenuation Distance Curve", "Attenuation by distance, scaled by max distance.");
             static public readonly GUIContent maxAttenuationScale = EditorGUIUtility.TrTextContent("Scale Distance", "Distance used to scale the Scale Attenuation Curve.");
-            static public readonly GUIContent scaleByDistanceCurve = EditorGUIUtility.TrTextContent("Scale Distance Curve", "REPLACE ME");
+            static public readonly GUIContent scaleByDistanceCurve = EditorGUIUtility.TrTextContent("Scale Distance Curve", "Attenuation used radially, which allow for instance to enable flare only on the edge of the screen.");
             static public readonly GUIContent attenuationByLightShape = EditorGUIUtility.TrTextContent("Attenuation By Light Shape", "If component attached to a light, attenuation the lens flare per light type.");
             static public readonly GUIContent radialScreenAttenuationCurve = EditorGUIUtility.TrTextContent("Screen Attenuation Curve", "Attenuation used radially, which allow for instance to enable flare only on the edge of the screen.");
-            static public readonly GUIContent enableOcclusion = EditorGUIUtility.TrTextContent("Enable", "REPLACE ME.");
+            static public readonly GUIContent enableOcclusion = EditorGUIUtility.TrTextContent("Enable", "Enable Occlusion feature.");
             static public readonly GUIContent occlusionRadius = EditorGUIUtility.TrTextContent("Occlusion Radius", "Radius around the light used to occlude the flare (value in world space).");
             static public readonly GUIContent sampleCount = EditorGUIUtility.TrTextContent("Sample Count", "Random sample count used inside the disk with 'occlusion radius'. Higher sample counts will give a smoother attenuation when being occluded.");
             static public readonly GUIContent occlusionOffset = EditorGUIUtility.TrTextContent("Occlusion Offset", "Occlusion Offset allows us to offset the plane for where the disc of occlusion is placed in world space (which will make it appear smaller or larger on the debug view as it is moving relative to the camera).\nThis is useful in order to sample occlusion outside a light bulb if a flare was placed inside.");

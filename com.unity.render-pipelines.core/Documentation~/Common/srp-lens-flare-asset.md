@@ -99,6 +99,13 @@ The Lens Flare Element asset has the following properties:
 
 ![](images/LensFlareRadialDistortion.png)
 
+| **Property**    | **Description**                                              |
+| --------------- | ------------------------------------------------------------ |
+| Enable | True to use or not the radial distortion. |
+| Radial Edge Size | Target size used on the edge of the screen. |
+| Radial Edge Curve | Curve blending from screen center to the edges of the screen. |
+| Relative To Center | If true the distortion is relative to center of the screen otherwise relative to lensFlare source screen position. |
+
 <a name="Multiple-Elements"></a>
 
 ## Multiple Elements
@@ -109,7 +116,7 @@ The Lens Flare Element asset has the following properties:
 | Count | Determines the number of identical lens flare elements Unity generates.<br/>A value of **1** appears the same as a single lens flare element. |
 | Distribution | Select the method that Unity uses to generate multiple lens flare elements:<br/>•[Uniform](https://github.com/Unity-Technologies/Graphics/pull/3496/files?file-filters[]=.md#Uniform)<br/>•[Curve](https://github.com/Unity-Technologies/Graphics/pull/3496/files?file-filters[]=.md#Curve)<br/>•[Random](https://github.com/Unity-Technologies/Graphics/pull/3496/files?file-filters[]=.md#Random) |
 | Length Spread | Controls how spread out multiple lens flare elements appear. |
-| Relative To Center | REPLACE ME. |
+| Relative To Center | If true the distortion is relative to center of the screen otherwise relative to lensFlare source screen position. |
 
 ### Uniform
 ![](images/LensFlareMultileElementUniform.png)

@@ -258,7 +258,7 @@ namespace UnityEngine
         /// </summary>
         public AnimationCurve distortionCurve;
         /// <summary>
-        /// If true the distortion is relative to center of the screen otherwise relative to lensFlare source screen position
+        /// If true the distortion is relative to center of the screen otherwise relative to lensFlare source screen position.
         /// </summary>
         public bool distortionRelativeToCenter;
 
