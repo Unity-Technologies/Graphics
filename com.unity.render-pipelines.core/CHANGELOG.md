@@ -32,6 +32,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - New methods on CoreEditorDrawers, to allow adding a label on a group before rendering the internal drawers
 - Method to generate a Texture2D of 1x1 with a plain color
 - Red, Green, Blue Texture2D on CoreEditorStyles
+- New API in DynamicResolutionHandler to handle multicamera rendering for hardware mode. Changing cameras and resetting scaling per camera should be safe.
 
 ### Changed
 - Changed Window/Render Pipeline/Render Pipeline Debug to Window/Rendering/Render Pipeline Debugger
@@ -138,6 +139,7 @@ The version number for this package has increased due to a version update of a r
 - Updated macros to be compatible with the new shader preprocessor.
 - Updated shaders to be compatible with Microsoft's DXC.
 - Changed CommandBufferPool.Get() to create an unnamed CommandBuffer. (No profiling markers)
+- Deprecating VolumeComponentDeprecad, using HideInInspector or Obsolete instead
 
 ## [7.1.1] - 2019-09-05
 
