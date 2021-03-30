@@ -362,18 +362,12 @@ namespace UnityEditor.ShaderGraph.Drawing
         void OnEnable()
         {
             this.SetAntiAliasing(4);
-
-            // subscribe this event so it is registered on assembly reloads (we don't run Initialize on assembly reload)
-            // doing remove before add ensures we never subscribe twice
-            EditorApplication.wantsToQuit -= PromptSaveIfDirtyOnQuit;
-            EditorApplication.wantsToQuit += PromptSaveIfDirtyOnQuit;
         }
 
         void OnDisable()
         {
             graphEditorView = null;
             messageManager.ClearAll();
-            EditorApplication.wantsToQuit -= PromptSaveIfDirtyOnQuit;
         }
 
         // returns true only when the file on disk doesn't match the graph we last loaded or saved to disk (i.e. someone else changed it)
@@ -1060,8 +1054,6 @@ namespace UnityEditor.ShaderGraph.Drawing
             // for example, if the graph of a closing window was dirty, but could not be saved
             try
             {
-                EditorApplication.wantsToQuit -= PromptSaveIfDirtyOnQuit;
-
                 selectedGuid = other.selectedGuid;
 
                 graphObject = CreateInstance<GraphObject>();
@@ -1073,7 +1065,6 @@ namespace UnityEditor.ShaderGraph.Drawing
                 UpdateTitle();
 
                 Repaint();
-                EditorApplication.wantsToQuit += PromptSaveIfDirtyOnQuit;
             }
             catch (Exception e)
             {
@@ -1091,7 +1082,6 @@ namespace UnityEditor.ShaderGraph.Drawing
         {
             try
             {
-                EditorApplication.wantsToQuit -= PromptSaveIfDirtyOnQuit;
                 m_ColorSpace = PlayerSettings.colorSpace;
                 m_RenderPipelineAsset = GraphicsSettings.renderPipelineAsset;
 
@@ -1154,7 +1144,6 @@ namespace UnityEditor.ShaderGraph.Drawing
                 UpdateTitle();
 
                 Repaint();
-                EditorApplication.wantsToQuit += PromptSaveIfDirtyOnQuit;
             }
             catch (Exception)
             {
