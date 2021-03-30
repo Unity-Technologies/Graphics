@@ -154,6 +154,11 @@ float EvalShadow_PunctualDepth(HDShadowData sd, Texture2D tex, SamplerComparison
 //
 float EvalShadow_AreaDepth(HDShadowData sd, Texture2D tex, float2 positionSS, float3 positionWS, float3 normalWS, float3 L, float L_dist, bool perspective)
 {
+    // TODO: implement less messily. Also probably shouldn't even rely on a global quality setting, but on a per-light shadow algorithm switch.
+#ifdef SHADOW_HIGH // Do PCSS
+    return EvalShadow_PunctualDepth(sd, tex, s_linear_clamp_compare_sampler, positionSS, positionWS, normalWS, L, L_dist, perspective);
+#else // Do EVSM
+
     float2 texelSize = sd.isInCachedAtlas ? _CachedAreaShadowAtlasSize.zw : _AreaShadowAtlasSize.zw;
 
     positionWS = positionWS + sd.cacheTranslationDelta.xyz;
@@ -176,6 +181,7 @@ float EvalShadow_AreaDepth(HDShadowData sd, Texture2D tex, float2 positionSS, fl
         float varianceBias = sd.shadowFilterParams0.z;
         return SampleShadow_EVSM_1tap(posTC, lightLeakBias, varianceBias, exponents, false, tex, s_linear_clamp_sampler);
     }
+#endif
 }
 
 

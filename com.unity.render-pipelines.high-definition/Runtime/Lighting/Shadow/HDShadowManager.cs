@@ -341,15 +341,17 @@ namespace UnityEngine.Rendering.HighDefinition
             HDShadowAtlas.BlurAlgorithm cascadeBlur = GetDirectionalShadowAlgorithm() == DirectionalShadowAlgorithm.IMS ? HDShadowAtlas.BlurAlgorithm.IM : HDShadowAtlas.BlurAlgorithm.None;
             m_CascadeAtlas = new HDDynamicShadowAtlas(renderPipelineResources, renderGraph, useSharedTexture: false, 1, 1, HDShaderIDs._ShadowmapCascadeAtlas, m_ClearShadowMaterial, initParams.maxShadowRequests, initParams, cascadeBlur, depthBufferBits: initParams.directionalShadowsDepthBits, name: "Cascade Shadow Map Atlas");
 
+            HDShadowAtlas.BlurAlgorithm areaLightShadowBlurAlgorithm = GetAreaLightShadowBlurAlgorithm();
+
             if (ShaderConfig.s_AreaLights == 1)
                 m_AreaLightShadowAtlas = new HDDynamicShadowAtlas(renderPipelineResources, renderGraph, useSharedTexture: false, initParams.areaLightShadowAtlas.shadowAtlasResolution, initParams.areaLightShadowAtlas.shadowAtlasResolution,
-                    HDShaderIDs._ShadowmapAreaAtlas, m_ClearShadowMaterial, initParams.maxShadowRequests, initParams, HDShadowAtlas.BlurAlgorithm.EVSM, depthBufferBits: initParams.areaLightShadowAtlas.shadowAtlasDepthBits, name: "Area Light Shadow Map Atlas");
+                    HDShaderIDs._ShadowmapAreaAtlas, m_ClearShadowMaterial, initParams.maxShadowRequests, initParams, areaLightShadowBlurAlgorithm, depthBufferBits: initParams.areaLightShadowAtlas.shadowAtlasDepthBits, name: "Area Light Shadow Map Atlas");
 
             cachedShadowManager.InitPunctualShadowAtlas(renderPipelineResources, renderGraph, useSharedTexture: true, initParams.cachedPunctualLightShadowAtlas, initParams.cachedPunctualLightShadowAtlas,
                 HDShaderIDs._CachedShadowmapAtlas, m_ClearShadowMaterial, initParams.maxShadowRequests, initParams: initParams, depthBufferBits: initParams.punctualLightShadowAtlas.shadowAtlasDepthBits, name: "Cached Shadow Map Atlas");
             if (ShaderConfig.s_AreaLights == 1)
                 cachedShadowManager.InitAreaLightShadowAtlas(renderPipelineResources, renderGraph, useSharedTexture: true, initParams.cachedAreaLightShadowAtlas, initParams.cachedAreaLightShadowAtlas,
-                    HDShaderIDs._CachedAreaLightShadowmapAtlas, m_ClearShadowMaterial, initParams.maxShadowRequests, initParams: initParams, HDShadowAtlas.BlurAlgorithm.EVSM, depthBufferBits: initParams.areaLightShadowAtlas.shadowAtlasDepthBits, name: "Cached Area Light Shadow Map Atlas");
+                    HDShaderIDs._CachedAreaLightShadowmapAtlas, m_ClearShadowMaterial, initParams.maxShadowRequests, initParams: initParams, areaLightShadowBlurAlgorithm, depthBufferBits: initParams.areaLightShadowAtlas.shadowAtlasDepthBits, name: "Cached Area Light Shadow Map Atlas");
         }
 
         public void Cleanup(RenderGraph renderGraph)
@@ -389,6 +391,12 @@ namespace UnityEngine.Rendering.HighDefinition
             }
             ;
             return DirectionalShadowAlgorithm.PCF5x5;
+        }
+
+        public static HDShadowAtlas.BlurAlgorithm GetAreaLightShadowBlurAlgorithm()
+        {
+            return HDRenderPipeline.currentAsset.currentPlatformRenderPipelineSettings.hdShadowInitParams.shadowFilteringQuality == HDShadowFilteringQuality.High ? 
+                HDShadowAtlas.BlurAlgorithm.None : HDShadowAtlas.BlurAlgorithm.EVSM;
         }
 
         public void UpdateShaderVariablesGlobalCB(ref ShaderVariablesGlobal cb)
