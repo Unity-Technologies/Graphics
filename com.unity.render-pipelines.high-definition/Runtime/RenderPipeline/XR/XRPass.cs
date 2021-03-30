@@ -35,14 +35,16 @@ namespace UnityEngine.Rendering.HighDefinition
     {
         internal readonly Matrix4x4 projMatrix;
         internal readonly Matrix4x4 viewMatrix;
+        internal readonly Matrix4x4 clusterDisplayParams;
         internal readonly Rect viewport;
         internal readonly Mesh occlusionMesh;
         internal readonly int textureArraySlice;
 
-        internal XRView(Matrix4x4 proj, Matrix4x4 view, Rect vp, int dstSlice)
+        internal XRView(Matrix4x4 proj, Matrix4x4 view, Matrix4x4 clusterDisplay, Rect vp, int dstSlice)
         {
             projMatrix = proj;
             viewMatrix = view;
+            clusterDisplayParams = clusterDisplay;
             viewport = vp;
             occlusionMesh = null;
             textureArraySlice = dstSlice;
@@ -53,6 +55,7 @@ namespace UnityEngine.Rendering.HighDefinition
         {
             projMatrix = renderParameter.projection;
             viewMatrix = renderParameter.view;
+            clusterDisplayParams = Matrix4x4.zero;
             viewport = renderParameter.viewport;
             occlusionMesh = renderParameter.occlusionMesh;
             textureArraySlice = renderParameter.textureArraySlice;
@@ -88,6 +91,8 @@ namespace UnityEngine.Rendering.HighDefinition
         internal Matrix4x4 GetViewMatrix(int viewIndex = 0)  { return views[viewIndex].viewMatrix; }
         internal int GetTextureArraySlice(int viewIndex = 0) { return views[viewIndex].textureArraySlice; }
         internal Rect GetViewport(int viewIndex = 0)         { return views[viewIndex].viewport; }
+
+        internal Matrix4x4 GetClusterDisplayParams(int viewIndex = 0) { return views[viewIndex].clusterDisplayParams; }
 
         // Combined projection and view matrices for culling
         internal ScriptableCullingParameters cullingParams { get; private set; }
@@ -132,9 +137,9 @@ namespace UnityEngine.Rendering.HighDefinition
             return passInfo;
         }
 
-        internal void AddView(Matrix4x4 proj, Matrix4x4 view, Rect vp, int textureArraySlice = -1)
+        internal void AddView(Matrix4x4 proj, Matrix4x4 view, Matrix4x4 clusterDisplay, Rect vp, int textureArraySlice = -1)
         {
-            AddViewInternal(new XRView(proj, view, vp, textureArraySlice));
+            AddViewInternal(new XRView(proj, view, clusterDisplay, vp, textureArraySlice));
         }
 
 #if ENABLE_VR && ENABLE_XR_MODULE

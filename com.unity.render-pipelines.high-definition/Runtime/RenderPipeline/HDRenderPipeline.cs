@@ -2738,6 +2738,9 @@ namespace UnityEngine.Rendering.HighDefinition
                 currentFrameSettings.SetEnabled(FrameSettingsField.TransparentsWriteMotionVector, false);
             }
 
+            var useClusterDisplay = xrPass.viewCount > 0 && xrPass.GetClusterDisplayParams() != Matrix4x4.zero;
+            currentFrameSettings.SetEnabled(FrameSettingsField.ClusterDisplay, useClusterDisplay);
+
             hdCamera = HDCamera.GetOrCreate(camera, xrPass.multipassId);
 
             // From this point, we should only use frame settings from the camera

@@ -107,10 +107,17 @@ namespace UnityEngine.Rendering.HighDefinition
 
         internal List<(Camera, XRPass)> SetupFrame(Camera[] cameras, bool singlePassAllowed, bool singlePassTestModeActive)
         {
+            /*
             foreach (var camera in cameras)
+            {
+                if (camera == null)
+                    continue;
+
                 if (customLayout != null)
                     customLayout(new XRLayout() { camera = camera, xrSystem = this });
-            /*
+            }
+            */
+
             bool xrActive = RefreshXrSdk();
 
             if (framePasses.Count > 0)
@@ -119,10 +126,10 @@ namespace UnityEngine.Rendering.HighDefinition
                 ReleaseFrame();
             }
 
-            if ((singlePassTestModeActive || automatedTestRunning) && testModeEnabled)
-                SetCustomLayout(LayoutSinglePassTestMode);
-            else
-                SetCustomLayout(null);
+            // if ((singlePassTestModeActive || automatedTestRunning) && testModeEnabled)
+            //     SetCustomLayout(LayoutSinglePassTestMode);
+            // else
+            //     SetCustomLayout(null);
 
             foreach (var camera in cameras)
             {
@@ -156,7 +163,6 @@ namespace UnityEngine.Rendering.HighDefinition
                     AddPassToFrame(camera, emptyPass);
                 }
             }
-            */
 
             CaptureDebugInfo();
 

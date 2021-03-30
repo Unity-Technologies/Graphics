@@ -234,6 +234,14 @@ namespace UnityEngine.Rendering.HighDefinition
                     ? m_AdditionalCameraData.clusterDisplayParams
                     : Matrix4x4.zero;
             }
+
+            set
+            {
+                if (m_AdditionalCameraData == null)
+                    return;
+
+                m_AdditionalCameraData.clusterDisplayParams = value;
+            }
         }
 
         // Always true for cameras that just got added to the pool - needed for previous matrices to
@@ -460,10 +468,12 @@ namespace UnityEngine.Rendering.HighDefinition
                 if (xr.enabled)
                 {
                     finalViewport = xr.GetViewport();
+                    clusterDisplayParams = xr.GetClusterDisplayParams();
                 }
                 else
                 {
                     finalViewport = new Rect(camera.pixelRect.x, camera.pixelRect.y, camera.pixelWidth, camera.pixelHeight);
+                    clusterDisplayParams = Matrix4x4.zero;
                 }
 
                 actualWidth = Math.Max((int)finalViewport.size.x, 1);
