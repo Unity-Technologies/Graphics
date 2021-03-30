@@ -27,7 +27,7 @@ void InitializeInputData(VaryingsParticle input, half3 normalTS, out InputData o
 
     output.viewDirectionWS = viewDirWS;
 
-    output.fogCoord = (half)input.positionWS.w;
+    output.fogCoord = InitializeInputDataFog(float4(input.positionWS.xyz, 1.0), input.positionWS.w);
     output.vertexLighting = half3(0.0, 0.0, 0.0);
     output.bakedGI = SampleSHPixel(input.vertexSH, output.normalWS);
     output.normalizedScreenSpaceUV = GetNormalizedScreenSpaceUV(input.clipPos);
@@ -49,9 +49,14 @@ VaryingsParticle vertParticleUnlit(AttributesParticle input)
     VertexPositionInputs vertexInput = GetVertexPositionInputs(input.vertex.xyz);
     VertexNormalInputs normalInput = GetVertexNormalInputs(input.normal, input.tangent);
 
+    half fogFactor = 0.0;
+#if !defined(_FOG_FRAGMENT)
+    fogFactor = ComputeFogFactor(vertexInput.positionCS.z);
+#endif
+
     // position ws is used to compute eye depth in vertFading
     output.positionWS.xyz = vertexInput.positionWS;
-    output.positionWS.w = ComputeFogFactor(vertexInput.positionCS.z);
+    output.positionWS.w = fogFactor;
     output.clipPos = vertexInput.positionCS;
     output.color = GetParticleColor(input.color);
 
@@ -105,7 +110,7 @@ half4 fragParticleUnlit(VaryingsParticle input) : SV_Target
 #endif
 
     half3 result = albedo.rgb + emission;
-    half fogFactor = half(input.positionWS.w);
+    half fogFactor = InitializeInputDataFog(float4(input.positionWS.xyz, 1.0), input.positionWS.w);
     result = MixFog(result, fogFactor);
     albedo.a = OutputAlpha(albedo.a, _Surface);
 
