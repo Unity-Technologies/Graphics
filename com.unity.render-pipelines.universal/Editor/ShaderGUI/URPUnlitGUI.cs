@@ -7,12 +7,17 @@ namespace UnityEditor
     // Used for ShaderGraph Lit shaders
     class URPUnlitGUI : BaseShaderGUI
     {
+        public static void UpdateMaterial(Material material)
+        {
+            BaseShaderGUI.SetMaterialKeywords(material);
+        }
+
         public override void MaterialChanged(Material material)
         {
             if (material == null)
                 throw new ArgumentNullException("material");
 
-            SetMaterialKeywords(material);
+            UpdateMaterial(material);
         }
 
         // material main surface inputs

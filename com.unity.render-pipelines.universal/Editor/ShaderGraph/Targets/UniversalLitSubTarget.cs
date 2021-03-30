@@ -20,6 +20,11 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
         [SerializeField]
         WorkflowMode m_WorkflowMode = WorkflowMode.Metallic;
 
+        // lets the Material choose the workflow (via the _SPECULAR_SETUP keyword)
+        // this should get versioned into the "lock" property mechanic with Material Variants
+        [SerializeField]
+        bool m_WorkflowMode_MaterialControl = false;
+
         [SerializeField]
         NormalDropOffSpace m_NormalDropOffSpace = NormalDropOffSpace.Tangent;
 
@@ -74,8 +79,8 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
             }
 
             // Process SubShaders
-            context.AddSubShader(SubShaders.LitComputeDotsSubShader(workflowMode, target.renderType, target.renderQueue, complexLit));
-            context.AddSubShader(SubShaders.LitGLESSubShader(workflowMode, target.renderType, target.renderQueue, complexLit));
+            context.AddSubShader(SubShaders.LitComputeDotsSubShader(workflowMode, m_WorkflowMode_MaterialControl, target.renderType, target.renderQueue, complexLit));
+            context.AddSubShader(SubShaders.LitGLESSubShader(workflowMode, m_WorkflowMode_MaterialControl, target.renderType, target.renderQueue, complexLit));
         }
 
         public override void ProcessPreviewMaterial(Material material)
@@ -84,7 +89,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
             // (technically not necessary since we are always recreating the material from the shader each time,
             // which will pull over the defaults from the shader definition)
             // but if that ever changes, this will ensure the defaults are set
-            material.SetFloat(Property.SpecularWorkflowMode, (float)((workflowMode == WorkflowMode.MaterialChoice) ? WorkflowMode.Metallic : workflowMode));
+            material.SetFloat(Property.SpecularWorkflowMode, (float)workflowMode);
             material.SetFloat(Property.CastShadows, target.castShadows ? 1.0f : 0.0f);
             material.SetFloat(Property.ReceiveShadows, target.receiveShadows ? 1.0f : 0.0f);
             material.SetFloat(Property.Surface, (float)target.surfaceType);
@@ -93,7 +98,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
             material.SetFloat(Property.Cull, (int)target.renderFace);
 
             // call the full unlit material setup function
-            URPLitGUI.SetMaterialKeywords(material);
+            URPLitGUI.UpdateMaterial(material);
         }
 
         public override void GetFields(ref TargetFieldContext context)
@@ -133,8 +138,8 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
             context.AddBlock(BlockFields.SurfaceDescription.Occlusion);
 
             // TODO: these should be predicated on workflow mode ONLY when not locked
-            context.AddBlock(BlockFields.SurfaceDescription.Specular,           workflowMode != WorkflowMode.Metallic);
-            context.AddBlock(BlockFields.SurfaceDescription.Metallic,           workflowMode != WorkflowMode.Specular);
+            context.AddBlock(BlockFields.SurfaceDescription.Specular,           (workflowMode == WorkflowMode.Specular) || m_WorkflowMode_MaterialControl);
+            context.AddBlock(BlockFields.SurfaceDescription.Metallic,           (workflowMode == WorkflowMode.Metallic) || m_WorkflowMode_MaterialControl);
 
             // TODO: these should be predicated on transparency and alpha clip ONLY when those values are locked
             context.AddBlock(BlockFields.SurfaceDescription.Alpha);                 // ,              target.surfaceType == SurfaceType.Transparent || target.alphaClip);
@@ -147,7 +152,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
 
         public override void CollectShaderProperties(PropertyCollector collector, GenerationMode generationMode)
         {
-            if (workflowMode == WorkflowMode.MaterialChoice)
+            if (m_WorkflowMode_MaterialControl)     // if using material control, add the material property to control it
                 collector.AddShaderProperty(Property.WorkflowModeProperty(workflowMode));
 
             collector.AddFloatProperty(Property.CastShadows, target.castShadows ? 1.0f : 0.0f);
@@ -173,6 +178,17 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
 
                 registerUndo("Change Workflow");
                 workflowMode = (WorkflowMode)evt.newValue;
+                onChange();
+            });
+
+            // TODO use new lock behavior when Material Variants get merged
+            context.AddProperty("Allow Material Control of Workflow Mode", new Toggle() { value = m_WorkflowMode_MaterialControl }, (evt) =>
+            {
+                if (Equals(m_WorkflowMode_MaterialControl, evt.newValue))
+                    return;
+
+                registerUndo("Change Workflow Mode Material Control");
+                m_WorkflowMode_MaterialControl = evt.newValue;
                 onChange();
             });
 
@@ -264,6 +280,8 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
                 return false;
 
             m_WorkflowMode = (WorkflowMode)pbrMasterNode.m_Model;
+            m_WorkflowMode_MaterialControl = false;
+
             m_NormalDropOffSpace = (NormalDropOffSpace)pbrMasterNode.m_NormalDropOffSpace;
 
             // Handle mapping of Normal block specifically
@@ -309,7 +327,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
         static class SubShaders
         {
             // SM 4.5, compute with dots instancing
-            public static SubShaderDescriptor LitComputeDotsSubShader(WorkflowMode workflowMode, string renderType, string renderQueue, bool complexLit)
+            public static SubShaderDescriptor LitComputeDotsSubShader(WorkflowMode workflowMode, bool workflowMode_MaterialControl, string renderType, string renderQueue, bool complexLit)
             {
                 SubShaderDescriptor result = new SubShaderDescriptor()
                 {
@@ -322,12 +340,12 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
                 };
 
                 if (complexLit)
-                    result.passes.Add(LitPasses.ForwardOnly(workflowMode, complexLit, CoreBlockMasks.Vertex, LitBlockMasks.FragmentComplexLit, CorePragmas.DOTSForward));
+                    result.passes.Add(LitPasses.ForwardOnly(workflowMode, workflowMode_MaterialControl, complexLit, CoreBlockMasks.Vertex, LitBlockMasks.FragmentComplexLit, CorePragmas.DOTSForward));
                 else
-                    result.passes.Add(LitPasses.Forward(workflowMode, CorePragmas.DOTSForward));
+                    result.passes.Add(LitPasses.Forward(workflowMode, workflowMode_MaterialControl, CorePragmas.DOTSForward));
 
                 if (!complexLit)
-                    result.passes.Add(LitPasses.GBuffer(workflowMode));
+                    result.passes.Add(LitPasses.GBuffer(workflowMode, workflowMode_MaterialControl));
 
                 result.passes.Add(PassVariant(CorePasses.ShadowCaster,   CorePragmas.DOTSInstanced));
                 result.passes.Add(PassVariant(CorePasses.DepthOnly,      CorePragmas.DOTSInstanced));
@@ -338,7 +356,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
                 return result;
             }
 
-            public static SubShaderDescriptor LitGLESSubShader(WorkflowMode workflowMode, string renderType, string renderQueue, bool complexLit)
+            public static SubShaderDescriptor LitGLESSubShader(WorkflowMode workflowMode, bool workflowMode_MaterialControl, string renderType, string renderQueue, bool complexLit)
             {
                 // SM 2.0, GLES
 
@@ -356,9 +374,9 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
                 };
 
                 if (complexLit)
-                    result.passes.Add(LitPasses.ForwardOnly(workflowMode, complexLit));
+                    result.passes.Add(LitPasses.ForwardOnly(workflowMode, workflowMode_MaterialControl, complexLit));
                 else
-                    result.passes.Add(LitPasses.Forward(workflowMode));
+                    result.passes.Add(LitPasses.Forward(workflowMode, workflowMode_MaterialControl));
 
                 result.passes.Add(CorePasses.ShadowCaster);
                 result.passes.Add(CorePasses.DepthOnly);
@@ -374,7 +392,10 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
         #region Passes
         static class LitPasses
         {
-            public static PassDescriptor Forward(WorkflowMode workflowMode, PragmaCollection pragmas = null)
+            public static PassDescriptor Forward(
+                WorkflowMode workflowMode,
+                bool workflowMode_MaterialControl,
+                PragmaCollection pragmas = null)
             {
                 var result = new PassDescriptor()
                 {
@@ -409,16 +430,17 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
                 };
 
                 // setup defines
-                if (workflowMode == WorkflowMode.Specular)
-                    result.defines.Add(LitDefines.SpecularSetup, 1);
-                else if (workflowMode == WorkflowMode.MaterialChoice)
-                    result.keywords.Add(LitDefines.SpecularSetup);
+                if (workflowMode_MaterialControl)
+                    result.keywords.Add(LitDefines.SpecularSetup);      // add _SPECULAR_SETUP as a keyword
+                else if (workflowMode == WorkflowMode.Specular)
+                    result.defines.Add(LitDefines.SpecularSetup, 1);    // add _SPECULAR_SETUP as a define
 
                 return result;
             }
 
             public static PassDescriptor ForwardOnly(
                 WorkflowMode workflowMode,
+                bool workflowMode_MaterialControl,
                 bool complexLit,
                 BlockFieldDescriptor[] vertexBlocks = null,
                 BlockFieldDescriptor[] pixelBlocks = null,
@@ -460,16 +482,18 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
                 if (complexLit)
                     result.defines.Add(LitDefines.ClearCoat, 1);
 
-                if (workflowMode == WorkflowMode.Specular)
-                    result.defines.Add(LitDefines.SpecularSetup, 1);
-                else if (workflowMode == WorkflowMode.MaterialChoice)
-                    result.keywords.Add(LitDefines.SpecularSetup);
+                if (workflowMode_MaterialControl)
+                    result.keywords.Add(LitDefines.SpecularSetup);      // add _SPECULAR_SETUP as a keyword
+                else if (workflowMode == WorkflowMode.Specular)
+                    result.defines.Add(LitDefines.SpecularSetup, 1);    // add _SPECULAR_SETUP as a define
 
                 return result;
             }
 
             // Deferred only in SM4.5, MRT not supported in GLES2
-            public static PassDescriptor GBuffer(WorkflowMode workflowMode)
+            public static PassDescriptor GBuffer(
+                WorkflowMode workflowMode,
+                bool workflowMode_MaterialControl)
             {
                 var result = new PassDescriptor
                 {
@@ -502,10 +526,10 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
                     customInterpolators = CoreCustomInterpDescriptors.Common
                 };
 
-                if (workflowMode == WorkflowMode.Specular)
-                    result.defines.Add(LitDefines.SpecularSetup, 1);
-                else if (workflowMode == WorkflowMode.MaterialChoice)
-                    result.keywords.Add(LitDefines.SpecularSetup);
+                if (workflowMode_MaterialControl)
+                    result.keywords.Add(LitDefines.SpecularSetup);      // add _SPECULAR_SETUP as a keyword
+                else if (workflowMode == WorkflowMode.Specular)
+                    result.defines.Add(LitDefines.SpecularSetup, 1);    // add _SPECULAR_SETUP as a define
 
                 return result;
             }

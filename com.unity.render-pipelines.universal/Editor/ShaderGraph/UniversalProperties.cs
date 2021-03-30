@@ -32,7 +32,7 @@ namespace UnityEditor.Rendering.Universal
                 hidden = true,
                 overrideHLSLDeclaration = true,
                 hlslDeclarationOverride = HLSLDeclaration.DoNotDeclare,
-                value = (float)((workflowModeDefault == WorkflowMode.MaterialChoice) ? WorkflowMode.Metallic : workflowModeDefault),
+                value = (float)workflowModeDefault,
                 displayName = "Workflow Mode",
                 overrideReferenceName = SpecularWorkflowMode,
             };

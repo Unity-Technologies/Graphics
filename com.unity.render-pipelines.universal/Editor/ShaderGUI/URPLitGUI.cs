@@ -20,13 +20,18 @@ namespace UnityEditor
             workflowMode = BaseShaderGUI.FindProperty("_WorkflowMode", properties, false);
         }
 
+        public static void UpdateMaterial(Material material)
+        {
+            BaseShaderGUI.SetMaterialKeywords(material);
+            LitGUI.SetMaterialKeywordsBase(material, out bool isSpecularWorkflow);
+        }
+
         public override void MaterialChanged(Material material)
         {
             if (material == null)
                 throw new ArgumentNullException("material");
 
-            SetMaterialKeywords(material);
-            LitGUI.SetMaterialKeywordsBase(material, out bool isSpecularWorkflow);
+            UpdateMaterial(material);
         }
 
         public override void DrawSurfaceOptions(Material material)

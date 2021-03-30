@@ -225,13 +225,29 @@ namespace UnityEditor.ShaderGraph
                     foreach (var blockFieldDesc in activeBlockContext.activeBlocks)
                     {
                         // attempt to get BlockNode(s) from the stack
+                        bool found = false;
                         var vertBlockNode = graph.vertexContext.blocks.FirstOrDefault(x => x.value.descriptor == blockFieldDesc).value;
                         if (vertBlockNode != null)
+                        {
                             activeNodes.Add(vertBlockNode);
+                            found = true;
+                        }
 
                         var fragBlockNode = graph.fragmentContext.blocks.FirstOrDefault(x => x.value.descriptor == blockFieldDesc).value;
                         if (fragBlockNode != null)
+                        {
                             activeNodes.Add(fragBlockNode);
+                            found = true;
+                        }
+
+                        if (!found)
+                        {
+                            // create temp block node (just so we can gather properties from it)
+                            var tempBlock = new BlockNode();
+                            tempBlock.Init(blockFieldDesc);
+                            tempBlock.owner = graph;
+                            activeNodes.Add(tempBlock);
+                        }
                     }
                 }
                 else

@@ -25,7 +25,6 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
     {
         Specular,
         Metallic,
-        MaterialChoice   // lets the Material choose the workflow (via the _SPECULAR_SETUP keyword)     // TODO: this should be a separate boolean
     }
 
     enum SurfaceType

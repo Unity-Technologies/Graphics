@@ -53,7 +53,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
             material.SetFloat(Property.CastShadows, target.castShadows ? 1.0f : 0.0f);
 
             // call the full unlit material setup function
-            URPUnlitGUI.SetMaterialKeywords(material);
+            URPUnlitGUI.UpdateMaterial(material);
         }
 
         public override void GetFields(ref TargetFieldContext context)
