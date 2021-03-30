@@ -70,7 +70,7 @@ struct v2f_surf {
   float1 fogCoord; //UNITY_FOG_COORDS(4)
   DECLARE_LIGHT_COORDS(4)//unityShadowCoord4 _LightCoord;
   UNITY_SHADOW_COORDS(5)//unityShadowCoord4 _ShadowCoord;
-  
+
   //#ifdef DIRLIGHTMAP_COMBINED
   float3 tSpace0 : TEXCOORD6;
   float3 tSpace1 : TEXCOORD7;
@@ -105,7 +105,7 @@ void VaryingsToSurfaceVertex(Varyings varyings, inout v2f_surf result)
     $Varyings.normalWS:         result.worldNormal = varyings.normalWS;
     $Varyings.viewDirectionWS:  result.viewDir = varyings.viewDirectionWS;
     // World Tangent isn't an available input on v2f_surf
-    
+
     $Varyings.shadowCoord:      result._ShadowCoord = varyings.shadowCoord;
 
     #if UNITY_ANY_INSTANCING_ENABLED
@@ -150,4 +150,3 @@ void SurfaceVertexToVaryings(v2f_surf surfVertex, inout Varyings result)
 
     DEFAULT_UNITY_TRANSFER_VERTEX_OUTPUT_STEREO(surfVertex, result);
 }
-

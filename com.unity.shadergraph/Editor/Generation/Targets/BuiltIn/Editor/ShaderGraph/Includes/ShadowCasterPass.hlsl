@@ -8,7 +8,7 @@ v2f_surf ShadowCasterVertex(appdata_full v)
     UNITY_INITIALIZE_OUTPUT(v2f_surf,o);
     UNITY_TRANSFER_INSTANCE_ID(v,o);
     UNITY_INITIALIZE_VERTEX_OUTPUT_STEREO(o);
-    
+
     float3 worldPos = mul(unity_ObjectToWorld, v.vertex).xyz;
     float3 worldNormal = UnityObjectToWorldNormal(v.normal);
     o.worldPos.xyz = worldPos;
@@ -20,7 +20,7 @@ void ShadowCasterVertex(Attributes input, VertexDescription vertexDescription, i
 {
     appdata_full v;
     ZERO_INITIALIZE(appdata_full, v);
-    BuildAppDataFull(input, vertexDescription, v); 
+    BuildAppDataFull(input, vertexDescription, v);
 
     v2f_surf o = ShadowCasterVertex(v);
     SurfaceVertexToVaryings(o, varyings);
@@ -61,7 +61,7 @@ PackedVaryings vert(Attributes input)
     Varyings output;
     ZERO_INITIALIZE(Varyings, output);
     output = BuildVaryings(input);
-    
+
     VertexDescriptionInputs vertexDescriptionInputs = BuildVertexDescriptionInputs(input);
     VertexDescription vertexDescription = VertexDescriptionFunction(vertexDescriptionInputs);
     ShadowCasterVertex(input, vertexDescription, output);
@@ -79,7 +79,7 @@ half4 frag(PackedVaryings packedInput) : SV_TARGET
 
     SurfaceDescriptionInputs surfaceDescriptionInputs = BuildSurfaceDescriptionInputs(unpacked);
     SurfaceDescription surfaceDescription = SurfaceDescriptionFunction(surfaceDescriptionInputs);
-    
+
     #if _AlphaClip
        half alpha = surfaceDescription.Alpha;
        clip(alpha - surfaceDescription.AlphaClipThreshold);

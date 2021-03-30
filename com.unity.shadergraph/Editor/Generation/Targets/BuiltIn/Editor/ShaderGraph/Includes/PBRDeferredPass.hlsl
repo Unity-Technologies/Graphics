@@ -76,13 +76,13 @@ void PBRDeferredFragment(v2f_surf IN, SurfaceOutputStandard o,
     fixed3 lightDir = _WorldSpaceLightPos0.xyz;
   #endif
   float3 worldViewDir = normalize(UnityWorldSpaceViewDir(worldPos));
-  
+
   fixed3 normalWorldVertex = fixed3(0,0,1);
-  
+
   normalWorldVertex = IN.worldNormal;
 
   // call surface function
-  
+
   fixed3 originalNormal = o.Normal;
   half atten = 1;
 
@@ -155,7 +155,7 @@ PackedVaryings vert(Attributes input)
     Varyings output;
     ZERO_INITIALIZE(Varyings, output);
     output = BuildVaryings(input);
-    
+
     VertexDescriptionInputs vertexDescriptionInputs = BuildVertexDescriptionInputs(input);
     VertexDescription vertexDescription = VertexDescriptionFunction(vertexDescriptionInputs);
     PBRDeferredVertex(input, vertexDescription, output);
@@ -176,6 +176,6 @@ FragmentOutput frag(PackedVaryings packedInput)
 
     InputData inputData;
     BuildInputData(unpacked, surfaceDescription, inputData);
-    
+
     return PBRDeferredFragment(surfaceDescription, inputData, unpacked);
 }

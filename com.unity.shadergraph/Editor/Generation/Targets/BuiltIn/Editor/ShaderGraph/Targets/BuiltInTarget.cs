@@ -220,10 +220,10 @@ namespace UnityEditor.Rendering.BuiltIn.ShaderGraph
 
         public override void GetPropertiesGUI(ref TargetPropertyGUIContext context, Action onChange, Action<String> registerUndo)
         {
-             if (m_ActiveSubTarget.value == null)
+            if (m_ActiveSubTarget.value == null)
                 return;
 
-           // Core properties
+            // Core properties
             m_SubTargetField = new PopupField<string>(m_SubTargetNames, activeSubTargetIndex);
             context.AddProperty("Material", m_SubTargetField, (evt) =>
             {
@@ -602,7 +602,7 @@ namespace UnityEditor.Rendering.BuiltIn.ShaderGraph
             { Pragma.MultiCompileInstancing },
             { new PragmaDescriptor { value = "exclude_renderers nomrt" } },
             { Pragma.MultiCompilePrePassFinal },
-            { Pragma.SkipVariants( new[] {"FOG_LINEAR", "FOG_EXP", "FOG_EXP2" }) },
+            { Pragma.SkipVariants(new[] {"FOG_LINEAR", "FOG_EXP", "FOG_EXP2" }) },
             { Pragma.Vertex("vert") },
             { Pragma.Fragment("frag") },
         };

@@ -88,7 +88,7 @@ Varyings BuildVaryings(Attributes input)
 #elif (SHADERPASS == SHADERPASS_META)
     output.positionCS = MetaVertexPosition(float4(input.positionOS, 0), input.uv1, input.uv2, unity_LightmapST, unity_DynamicLightmapST);
 #else
-    output.positionCS = TransformWorldToHClip(positionWS);    
+    output.positionCS = TransformWorldToHClip(positionWS);
 #endif
 #else
     output.positionCS = TransformWorldToHClip(positionWS);
