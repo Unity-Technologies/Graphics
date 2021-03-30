@@ -630,7 +630,7 @@ half3 SampleLightmap(float2 lightmapUV, half3 normalWS)
 half3 BoxProjectedCubemapDirection(half3 reflectionWS, float3 positionWS, float4 cubemapPositionWS, float4 boxMin, float4 boxMax)
 {
     // Is this probe using box projection?
-    [branch] if (cubemapPositionWS.w > 0.0)
+    if (cubemapPositionWS.w > 0.0)
     {
         float3 boxMinMax = (reflectionWS > 0.0f) ? boxMax.xyz : boxMin.xyz;
         half3 rbMinMax = half3(boxMinMax - positionWS) / reflectionWS;
