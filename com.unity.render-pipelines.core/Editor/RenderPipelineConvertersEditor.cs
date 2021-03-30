@@ -221,12 +221,12 @@ public class RenderPipelineConvertersEditor : EditorWindow
                         if (string.IsNullOrEmpty(converterItemInfos[j].initialInfo))
                         {
                             status = Status.Pending;
-                            active = false;
                         }
                         else
                         {
                             status = Status.Warning;
                             info = converterItemInfos[j].initialInfo;
+                            active = false;
                             m_ConverterStates[i].warnings++;
                         }
 
