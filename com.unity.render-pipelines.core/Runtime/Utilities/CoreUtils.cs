@@ -1267,6 +1267,22 @@ namespace UnityEngine.Rendering
         }
 
         /// <summary>
+        /// Returns true if any Scene view is using the Scene filtering.
+        /// </summary>
+        /// <returns>True if any Scene view is using the Scene filtering.</returns>
+        public static bool IsSceneFilteringEnabled()
+        {
+#if UNITY_EDITOR && UNITY_2021_2_OR_NEWER
+            for (int i = 0; i < UnityEditor.SceneView.sceneViews.Count; i++)
+            {
+                var sv = UnityEditor.SceneView.sceneViews[i] as UnityEditor.SceneView;
+                if (sv.isUsingSceneFiltering) return true;
+            }
+#endif
+            return false;
+        }
+
+        /// <summary>
         /// Draw a renderer list.
         /// </summary>
         /// <param name="renderContext">Current Scriptable Render Context.</param>

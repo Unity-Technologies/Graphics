@@ -145,6 +145,8 @@ namespace UnityEngine.Rendering
                 meshGizmo.Dispose();
             brickGizmos.Clear();
 
+            m_PrevAsset = null;
+
             ProbeReferenceVolume.instance.AddPendingAssetRemoval(volumeAsset);
         }
 
@@ -153,10 +155,8 @@ namespace UnityEngine.Rendering
 #if UNITY_EDITOR
             if (m_Profile == null)
                 m_Profile = CreateReferenceVolumeProfile(gameObject.scene, gameObject.name);
-
-#else   // In player we load on start
-            QueueAssetLoading();
 #endif
+            QueueAssetLoading();
         }
 
 #if UNITY_EDITOR
