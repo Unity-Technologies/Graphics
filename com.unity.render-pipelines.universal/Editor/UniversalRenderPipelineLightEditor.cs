@@ -124,11 +124,6 @@ namespace UnityEditor.Rendering.Universal
 
         public override void OnInspectorGUI()
         {
-            // Light layers are stored in additional light data. We must create one if it doesn't exist.
-            UniversalRenderPipelineAsset urpAsset = UniversalRenderPipeline.asset;
-            if (urpAsset.supportsLightLayers && m_AdditionalLightDataSO == null)
-                MultipleAdditionalLightDataCheck();
-
             if (s_Styles == null)
                 s_Styles = new Styles();
 
