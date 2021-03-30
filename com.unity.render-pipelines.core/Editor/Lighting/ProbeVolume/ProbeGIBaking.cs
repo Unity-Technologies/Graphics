@@ -538,7 +538,6 @@ namespace UnityEngine.Rendering
                 //BakeMesh[] bakeMeshes = GetEntityQuery(typeof(BakeMesh)).ToComponentDataArray<BakeMesh>();
                 Renderer[] renderers = UnityEngine.Object.FindObjectsOfType<Renderer>();
                 ProbeVolume[] probeVolumes = UnityEngine.Object.FindObjectsOfType<ProbeVolume>();
-                var probeHintVolumes = UnityEngine.Object.FindObjectsOfType<ProbeHintVolume>();
 
                 // Calculate the cell volume:
                 ProbeReferenceVolume.Volume cellVolume = new ProbeReferenceVolume.Volume();
@@ -551,11 +550,11 @@ namespace UnityEngine.Rendering
                 // The max subdivision in the cell is computed in CreateInfluenceVolumes() using the values in the Probe Volumes and Hint Volumes.
 
                 // In this max subdiv field, we store the minimum subdivision possible for the cell, then, locally we can subdivide more based on the probe volumes subdiv multiplier
-                cellVolume.maxSubdivision = 0;
+                cellVolume.maxSubdivisionMultiplier = 0;
 
                 Dictionary<Scene, int> sceneRefs;
                 List<ProbeReferenceVolume.Volume> influenceVolumes;
-                ProbePlacement.CreateInfluenceVolumes(ref cellVolume, renderers, probeVolumes, probeHintVolumes, out influenceVolumes, out sceneRefs);
+                ProbePlacement.CreateInfluenceVolumes(ref cellVolume, renderers, probeVolumes, out influenceVolumes, out sceneRefs);
 
                 // Each cell keeps a number of references it has to each scene it was influenced by
                 // We use this list to determine which scene's ProbeVolume asset to assign this cells data to
