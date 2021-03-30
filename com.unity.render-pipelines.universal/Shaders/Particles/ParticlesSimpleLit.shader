@@ -21,9 +21,9 @@ Shader "Universal Render Pipeline/Particles/Simple Lit"
         [HDR] _EmissionColor("Color", Color) = (0,0,0)
         _EmissionMap("Emission", 2D) = "white" {}
 
-        [HideInInspector] _SmoothnessSource("Smoothness Source", Float) = 0.0
-        [ToggleOff] _SpecularHighlights("Specular Highlights", Float) = 1.0
-        _ReceiveShadows("Receive Shadows", Float) = 1.0
+        _SmoothnessSource("Smoothness Source", Float) = 0.0
+        _SpecularHighlights("Specular Highlights", Float) = 1.0
+        [ToggleUI] _ReceiveShadows("Receive Shadows", Float) = 1.0
 
         // -------------------------------------
         // Particle specific
@@ -31,33 +31,33 @@ Shader "Universal Render Pipeline/Particles/Simple Lit"
         _SoftParticlesFarFadeDistance("Soft Particles Far Fade", Float) = 1.0
         _CameraNearFadeDistance("Camera Near Fade", Float) = 1.0
         _CameraFarFadeDistance("Camera Far Fade", Float) = 2.0
-        _DistortionBlend("Distortion Blend", Float) = 0.5
+        _DistortionBlend("Distortion Blend", Range(0.0, 1.0)) = 0.5
         _DistortionStrength("Distortion Strength", Float) = 1.0
 
         // -------------------------------------
         // Hidden properties - Generic
-        [HideInInspector] _Surface("__surface", Float) = 0.0
-        [HideInInspector] _Blend("__mode", Float) = 0.0
-        [HideInInspector] _AlphaClip("__clip", Float) = 0.0
+        _Surface("__surface", Float) = 0.0
+        _Blend("__mode", Float) = 0.0
+        _Cull("__cull", Float) = 2.0
+        [ToggleUI] _AlphaClip("__clip", Float) = 0.0
         [HideInInspector] _BlendOp("__blendop", Float) = 0.0
         [HideInInspector] _SrcBlend("__src", Float) = 1.0
         [HideInInspector] _DstBlend("__dst", Float) = 0.0
         [HideInInspector] _ZWrite("__zw", Float) = 1.0
-        [HideInInspector] _Cull("__cull", Float) = 2.0
 
         // Particle specific
-        [HideInInspector] _ColorMode("_ColorMode", Float) = 0.0
+        _ColorMode("_ColorMode", Float) = 0.0
         [HideInInspector] _BaseColorAddSubDiff("_ColorMode", Vector) = (0,0,0,0)
         [ToggleOff] _FlipbookBlending("__flipbookblending", Float) = 0.0
-        [HideInInspector] _SoftParticlesEnabled("__softparticlesenabled", Float) = 0.0
-        [HideInInspector] _CameraFadingEnabled("__camerafadingenabled", Float) = 0.0
+        [ToggleUI] _SoftParticlesEnabled("__softparticlesenabled", Float) = 0.0
+        [ToggleUI] _CameraFadingEnabled("__camerafadingenabled", Float) = 0.0
+        [ToggleUI] _DistortionEnabled("__distortionenabled", Float) = 0.0
         [HideInInspector] _SoftParticleFadeParams("__softparticlefadeparams", Vector) = (0,0,0,0)
         [HideInInspector] _CameraFadeParams("__camerafadeparams", Vector) = (0,0,0,0)
-        [HideInInspector] _DistortionEnabled("__distortionenabled", Float) = 0.0
         [HideInInspector] _DistortionStrengthScaled("Distortion Strength Scaled", Float) = 0.1
 
         // Editmode props
-        [HideInInspector] _QueueOffset("Queue offset", Float) = 0.0
+        _QueueOffset("Queue offset", Float) = 0.0
 
         // ObsoleteProperties
         [HideInInspector] _FlipbookMode("flipbook", Float) = 0
@@ -65,6 +65,13 @@ Shader "Universal Render Pipeline/Particles/Simple Lit"
         [HideInInspector] _Mode("mode", Float) = 0
         [HideInInspector] _Color("color", Color) = (1,1,1,1)
     }
+
+    HLSLINCLUDE
+
+    //Particle shaders rely on "write" to CB syntax which is not supported by DXC
+    #pragma never_use_dxc
+
+    ENDHLSL
 
     SubShader
     {

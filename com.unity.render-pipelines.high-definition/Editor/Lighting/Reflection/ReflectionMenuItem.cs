@@ -7,7 +7,7 @@ namespace UnityEditor.Rendering.HighDefinition
 {
     class ReflectionMenuItems
     {
-        [MenuItem("GameObject/3D Object/Mirror", priority = CoreUtils.gameObjectMenuPriority)]
+        [MenuItem("GameObject/3D Object/Mirror", priority = CoreUtils.Priorities.gameObjectMenuPriority)]
         static void CreateMirrorGameObject(MenuCommand menuCommand)
         {
             GameObject plane = GameObject.CreatePrimitive(PrimitiveType.Plane);

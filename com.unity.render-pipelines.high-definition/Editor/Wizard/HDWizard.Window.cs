@@ -34,10 +34,10 @@ namespace UnityEditor.Rendering.HighDefinition
             public const string configurationTitle = "Configuration Checking";
             public const string migrationTitle = "Project Migration Quick-links";
 
-            public const string installConfigPackageLabel = "Install Configuration Editable Package";
-            public const string installConfigPackageInfoInCheck = "Checking if the local config package is installed in your project's LocalPackage folder.";
-            public const string installConfigPackageInfoInProgress = "The local config package is being installed in your project's LocalPackage folder.";
-            public const string installConfigPackageInfoFinished = "The local config package is already installed in your project's LocalPackage folder.";
+            public const string installConfigPackageLabel = "Embed Configuration Editable Package";
+            public const string installConfigPackageInfoInCheck = "Checking if the config package is embedded in your project.";
+            public const string installConfigPackageInfoInProgress = "The config package is being embedded in your project.";
+            public const string installConfigPackageInfoFinished = "The config package is already embedded in your project.";
 
             public const string migrateAllButton = "Convert All Built-in Materials to HDRP";
             public const string migrateSelectedButton = "Convert Selected Built-in Materials to HDRP";
@@ -107,6 +107,9 @@ namespace UnityEditor.Rendering.HighDefinition
             public static readonly ConfigStyle hdrpVolumeProfile = new ConfigStyle(
                 label: "Default volume profile",
                 error: "Default volume profile must be assigned in the HDRP asset! Also, for it to be editable, it should be outside of package.");
+            public static readonly ConfigStyle hdrpLookDevVolumeProfile = new ConfigStyle(
+                label: "Default Look Dev volume profile",
+                error: "Default Look Dev volume profile must be assigned in the HDRP asset! Also, for it to be editable, it should be outside of package.");
 
             public static readonly ConfigStyle vrLegacyVRSystem = new ConfigStyle(
                 label: "Legacy VR System",
@@ -140,25 +143,25 @@ namespace UnityEditor.Rendering.HighDefinition
                 error: "Screen Space Shadows are disabled in the current HDRP Asset which means you cannot enable ray-traced shadows for lights in your scene. To enable this feature, open your HDRP Asset, go to Lighting > Shadows, and enable Screen Space Shadows", messageType: MessageType.Warning);
             public static readonly ConfigStyle dxrScreenSpaceShadowFS = new ConfigStyle(
                 label: "Screen Space Shadows (Default Camera Frame Setting)",
-                error: "Screen Space Shadows are disabled in the default Camera Frame Settings. This means Cameras that use these Frame Settings do not render ray-traced shadows. To enable this feature, go to Project Settings > HDRP Default Settings > Frame Settings > Default Frame Settings For Camera > Lighting and enable Screen Space Shadows", messageType: MessageType.Info);
+                error: "Screen Space Shadows are disabled in the default Camera Frame Settings. This means Cameras that use these Frame Settings do not render ray-traced shadows. To enable this feature, go to Project Settings > Graphics > HDRP Settings > Frame Settings > Default Frame Settings For Camera > Lighting and enable Screen Space Shadows", messageType: MessageType.Info);
             public static readonly ConfigStyle dxrReflections = new ConfigStyle(
                 label: "Reflection (Asset)",
                 error: "Screen Space Reflection is disabled in the current HDRP Asset which means you cannot enable ray-traced reflections in Volume components. To enable this feature, open your HDRP Asset, go to Lighting > Reflections, and enable Screen Space Reflections", messageType: MessageType.Warning);
             public static readonly ConfigStyle dxrReflectionsFS = new ConfigStyle(
                 label: "Reflection (Default Camera Frame Setting)",
-                error: "Screen Space Reflection is disabled in the default Camera Frame Settings. This means Cameras that use these Frame Settings do not render ray-traced reflections. To enable this feature, go to Project Settings > HDRP Default Settings > Frame Settings > Default Frame Settings For Camera > Lighting and enable Screen Space Reflections", messageType: MessageType.Info);
+                error: "Screen Space Reflection is disabled in the default Camera Frame Settings. This means Cameras that use these Frame Settings do not render ray-traced reflections. To enable this feature, go to Project Settings > Graphics > HDRP Settings > Frame Settings > Default Frame Settings For Camera > Lighting and enable Screen Space Reflections", messageType: MessageType.Info);
             public static readonly ConfigStyle dxrTransparentReflections = new ConfigStyle(
                 label: "Screen Space Reflection - Transparent (Asset)",
                 error: "Screen Space Reflection - Transparent is disabled in the current HDRP Asset which means you cannot enable ray-traced reflections for transparent GameObjects from Volume components. To enable this feature, open your HDRP Asset, go to Lighting > Reflections, and enable Transparents receive SSR", messageType: MessageType.Warning);
             public static readonly ConfigStyle dxrTransparentReflectionsFS = new ConfigStyle(
                 label: "Screen Space Reflection - Transparent (Default Camera Frame Setting)",
-                error: "Screen Space Reflection - Transparent is disabled in the default Camera Frame Settings. This means Cameras that use these Frame Settings do not render ray-traced reflections for transparent GameObjects. To enable this feature, go to Project Settings > HDRP Default Settings > Frame Settings > Default Frame Settings For Camera > Lighting and enable On Transparent", messageType: MessageType.Info);
+                error: "Screen Space Reflection - Transparent is disabled in the default Camera Frame Settings. This means Cameras that use these Frame Settings do not render ray-traced reflections for transparent GameObjects. To enable this feature, go to Project Settings > Graphics > HDRP Settings > Frame Settings > Default Frame Settings For Camera > Lighting and enable On Transparent", messageType: MessageType.Info);
             public static readonly ConfigStyle dxrGI = new ConfigStyle(
                 label: "Global Illumination (Asset)",
                 error: "Screen Space Global Illumination is disabled in the current HDRP asset which means you cannot enable ray-traced global illumination in Volume components. To enable this feature, open your HDRP Asset, go to Lighting and enable Screen Space Global Illumination", messageType: MessageType.Warning);
             public static readonly ConfigStyle dxrGIFS = new ConfigStyle(
                 label: "Global Illumination (Default Camera Frame Setting)",
-                error: "Screen Space Global Illumination is disabled in the default Camera Frame Settings. This means Cameras that use these Frame Settings do not render ray-traced global illumination. To enable this feature, go to Project Settings > HDRP Default Settings > Frame Settings > Default Frame Settings For Camera > Lighting and enable Screen Space Global Illumination", messageType: MessageType.Info);
+                error: "Screen Space Global Illumination is disabled in the default Camera Frame Settings. This means Cameras that use these Frame Settings do not render ray-traced global illumination. To enable this feature, go to Project Settings > Graphics > HDRP Settings > Frame Settings > Default Frame Settings For Camera > Lighting and enable Screen Space Global Illumination", messageType: MessageType.Info);
             public static readonly ConfigStyle dxr64bits = new ConfigStyle(
                 label: "Architecture 64 bits",
                 error: "To build your Project to a Unity Player, ray tracing requires that the build uses 64 bit architecture.");

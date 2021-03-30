@@ -3,7 +3,7 @@ Shader "Universal Render Pipeline/Lit"
     Properties
     {
         // Specular vs Metallic workflow
-        [HideInInspector] _WorkflowMode("WorkflowMode", Float) = 1.0
+        _WorkflowMode("WorkflowMode", Float) = 1.0
 
         [MainTexture] _BaseMap("Albedo", 2D) = "white" {}
         [MainColor] _BaseColor("Color", Color) = (1,1,1,1)
@@ -45,17 +45,17 @@ Shader "Universal Render Pipeline/Lit"
         [HideInInspector] _ClearCoatSmoothness("_ClearCoatSmoothness", Float) = 0.0
 
         // Blending state
-        [HideInInspector] _Surface("__surface", Float) = 0.0
-        [HideInInspector] _Blend("__blend", Float) = 0.0
-        [HideInInspector] _AlphaClip("__clip", Float) = 0.0
+        _Surface("__surface", Float) = 0.0
+        _Blend("__blend", Float) = 0.0
+        _Cull("__cull", Float) = 2.0
+        [ToggleUI] _AlphaClip("__clip", Float) = 0.0
         [HideInInspector] _SrcBlend("__src", Float) = 1.0
         [HideInInspector] _DstBlend("__dst", Float) = 0.0
         [HideInInspector] _ZWrite("__zw", Float) = 1.0
-        [HideInInspector] _Cull("__cull", Float) = 2.0
 
-        _ReceiveShadows("Receive Shadows", Float) = 1.0
+        [ToggleUI] _ReceiveShadows("Receive Shadows", Float) = 1.0
         // Editmode props
-        [HideInInspector] _QueueOffset("Queue offset", Float) = 0.0
+        _QueueOffset("Queue offset", Float) = 0.0
 
         // ObsoleteProperties
         [HideInInspector] _MainTex("BaseMap", 2D) = "white" {}
@@ -375,7 +375,7 @@ Shader "Universal Render Pipeline/Lit"
             Cull[_Cull]
 
             HLSLPROGRAM
-            #pragma only_renderers gles gles3 glcore
+            #pragma only_renderers gles gles3 glcore d3d11
             #pragma target 2.0
 
             //--------------------------------------
@@ -434,7 +434,7 @@ Shader "Universal Render Pipeline/Lit"
             Cull[_Cull]
 
             HLSLPROGRAM
-            #pragma only_renderers gles gles3 glcore
+            #pragma only_renderers gles gles3 glcore d3d11
             #pragma target 2.0
 
             //--------------------------------------
@@ -470,7 +470,7 @@ Shader "Universal Render Pipeline/Lit"
             Cull[_Cull]
 
             HLSLPROGRAM
-            #pragma only_renderers gles gles3 glcore
+            #pragma only_renderers gles gles3 glcore d3d11
             #pragma target 2.0
 
             //--------------------------------------
@@ -500,7 +500,7 @@ Shader "Universal Render Pipeline/Lit"
             Cull[_Cull]
 
             HLSLPROGRAM
-            #pragma only_renderers gles gles3 glcore
+            #pragma only_renderers gles gles3 glcore d3d11
             #pragma target 2.0
 
             #pragma vertex DepthNormalsVertex
@@ -531,7 +531,7 @@ Shader "Universal Render Pipeline/Lit"
             Cull Off
 
             HLSLPROGRAM
-            #pragma only_renderers gles gles3 glcore
+            #pragma only_renderers gles gles3 glcore d3d11
             #pragma target 2.0
 
             #pragma vertex UniversalVertexMeta
@@ -561,7 +561,7 @@ Shader "Universal Render Pipeline/Lit"
             Cull[_Cull]
 
             HLSLPROGRAM
-            #pragma only_renderers gles gles3 glcore
+            #pragma only_renderers gles gles3 glcore d3d11
             #pragma target 2.0
 
             #pragma vertex vert
