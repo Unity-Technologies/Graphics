@@ -89,6 +89,7 @@ Lowering the `Quality` setting makes the effect run faster. Do not use **SMAA** 
 ### Known issues and limitations
 
 - Not supported on GLES2 platforms.
+- [Universal Render Pipeline (URP)](https://docs.unity3d.com/Packages/com.unity.render-pipelines.universal@7.5/manual/index.html) does not support Temporal Anti-aliasing.
 
 ### Requirements
 

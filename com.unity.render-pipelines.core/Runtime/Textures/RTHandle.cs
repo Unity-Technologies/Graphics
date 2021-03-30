@@ -123,6 +123,20 @@ namespace UnityEngine.Rendering
         }
 
         /// <summary>
+        /// Get the Instance ID of the RTHandle.
+        /// </summary>
+        /// <returns>The RTHandle Instance ID.</returns>
+        public int GetInstanceID()
+        {
+            if (m_RT != null)
+                return m_RT.GetInstanceID();
+            else if (m_ExternalTexture != null)
+                return m_ExternalTexture.GetInstanceID();
+            else
+                return m_NameID.GetHashCode(); // No instance ID so we return the hash code.
+        }
+
+        /// <summary>
         /// Release the RTHandle
         /// </summary>
         public void Release()
@@ -150,6 +164,25 @@ namespace UnityEngine.Rendering
                 return new Vector2Int(
                     x: Mathf.RoundToInt(scaleFactor.x * refSize.x),
                     y: Mathf.RoundToInt(scaleFactor.y * refSize.y)
+                );
+            }
+        }
+
+        /// <summary>
+        /// Return the scaled size of the RTHandle.
+        /// </summary>
+        /// <returns>The scaled size of the RTHandle.</returns>
+        public Vector2Int GetScaledSize()
+        {
+            if (scaleFunc != null)
+            {
+                return scaleFunc(referenceSize);
+            }
+            else
+            {
+                return new Vector2Int(
+                    x: Mathf.RoundToInt(scaleFactor.x * referenceSize.x),
+                    y: Mathf.RoundToInt(scaleFactor.y * referenceSize.y)
                 );
             }
         }

@@ -1,5 +1,5 @@
 //
-// This file was automatically generated. Please don't edit by hand. Execute Editor command [ Edit / Render Pipeline / Generate Shader Includes ] instead
+// This file was automatically generated. Please don't edit by hand. Execute Editor command [ Edit > Rendering > Generate Shader Includes ] instead
 //
 
 #ifndef SHADERVARIABLESGLOBAL_CS_HLSL
@@ -153,7 +153,7 @@ GLOBAL_CBUFFER_START(ShaderVariablesGlobal, b0)
     int _TransparentCameraOnlyMotionVectors;
     float _GlobalTessellationFactorMultiplier;
     float _SpecularOcclusionBlend;
-    float _Pad9;
+    float _DeExposureMultiplier;
 CBUFFER_END
 
 

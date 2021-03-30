@@ -233,6 +233,20 @@ namespace UnityEngine.Experimental.Rendering.Universal
             return output;
         }
 
+        static void TransferToMesh(NativeArray<LightMeshVertex> vertices, int vertexCount, NativeArray<ushort> indices,
+            int indexCount, Light2D light)
+        {
+            var mesh = light.lightMesh;
+            mesh.SetVertexBufferParams(vertexCount, LightMeshVertex.VertexLayout);
+            mesh.SetVertexBufferData(vertices, 0, 0, vertexCount);
+            mesh.SetIndices(indices, 0, indexCount, MeshTopology.Triangles, 0, true);
+
+            light.vertices = new LightMeshVertex[vertexCount];
+            NativeArray<LightMeshVertex>.Copy(vertices, light.vertices, vertexCount);
+            light.indices = new ushort[indexCount];
+            NativeArray<ushort>.Copy(indices, light.indices, indexCount);
+        }
+
         public static Bounds GenerateShapeMesh(Light2D light, Vector3[] shapePath, float falloffDistance)
         {
             var ix = 0;
@@ -286,12 +300,19 @@ namespace UnityEngine.Experimental.Rendering.Universal
                 outPath = FixPivots(outPath, path);
 
                 // Tessellate.
+                var bIndices = new NativeArray<ushort>(icount + (outPath.Count * 6) + 6, Allocator.Temp);
+                for (int i = 0; i < icount; ++i)
+                    bIndices[i] = indices[i];
+                var bVertices = new NativeArray<LightMeshVertex>(vcount + outPath.Count + inputPointCount, Allocator.Temp);
+                for (int i = 0; i < vcount; ++i)
+                    bVertices[i] = vertices[i];
+
                 var innerIndices = new ushort[inputPointCount];
 
                 // Inner Vertices. (These may or may not be part of the created path. Beware!!)
                 for (int i = 0; i < inputPointCount; ++i)
                 {
-                    vertices[vcount++] = new LightMeshVertex()
+                    bVertices[vcount++] = new LightMeshVertex()
                     {
                         position = new float3(inner[i].Position.X, inner[i].Position.Y, 0),
                         color = meshInteriorColor
@@ -309,7 +330,7 @@ namespace UnityEngine.Experimental.Rendering.Universal
                     var currPoint = new float2(curr.X / kClipperScale, curr.Y / kClipperScale);
                     var currIndex = curr.N == -1 ? 0 : curr.N;
 
-                    vertices[vcount++] = new LightMeshVertex()
+                    bVertices[vcount++] = new LightMeshVertex()
                     {
                         position = new float3(currPoint.x, currPoint.y, 0),
                         color = meshExteriorColor
@@ -317,37 +338,34 @@ namespace UnityEngine.Experimental.Rendering.Universal
 
                     if (prevIndex != currIndex)
                     {
-                        indices[icount++] = innerIndices[prevIndex];
-                        indices[icount++] = innerIndices[currIndex];
-                        indices[icount++] = (ushort)(vcount - 1);
+                        bIndices[icount++] = innerIndices[prevIndex];
+                        bIndices[icount++] = innerIndices[currIndex];
+                        bIndices[icount++] = (ushort)(vcount - 1);
                     }
 
-                    indices[icount++] = innerIndices[prevIndex];
-                    indices[icount++] = saveIndex;
-                    indices[icount++] = saveIndex = (ushort)(vcount - 1);
+                    bIndices[icount++] = innerIndices[prevIndex];
+                    bIndices[icount++] = saveIndex;
+                    bIndices[icount++] = saveIndex = (ushort)(vcount - 1);
                     prevIndex = currIndex;
                 }
 
                 // Close the Loop.
                 {
-                    indices[icount++] = pathStart;
-                    indices[icount++] = innerIndices[minPath];
-                    indices[icount++] = containsStart ? innerIndices[lastPointIndex] : saveIndex;
+                    bIndices[icount++] = pathStart;
+                    bIndices[icount++] = innerIndices[minPath];
+                    bIndices[icount++] = containsStart ? innerIndices[lastPointIndex] : saveIndex;
 
-                    indices[icount++] = containsStart ? pathStart : saveIndex;
-                    indices[icount++] = containsStart ? saveIndex : innerIndices[minPath];
-                    indices[icount++] = containsStart ? innerIndices[lastPointIndex] : innerIndices[minPath - 1];
+                    bIndices[icount++] = containsStart ? pathStart : saveIndex;
+                    bIndices[icount++] = containsStart ? saveIndex : innerIndices[minPath];
+                    bIndices[icount++] = containsStart ? innerIndices[lastPointIndex] : innerIndices[minPath - 1];
                 }
+
+                TransferToMesh(bVertices, vcount, bIndices, icount, light);
             }
-
-            mesh.SetVertexBufferParams(vcount, LightMeshVertex.VertexLayout);
-            mesh.SetVertexBufferData(vertices, 0, 0, vcount);
-            mesh.SetIndices(indices, 0, icount, MeshTopology.Triangles, 0, true);
-
-            light.vertices = new LightMeshVertex[vcount];
-            NativeArray<LightMeshVertex>.Copy(vertices, light.vertices, vcount);
-            light.indices = new ushort[icount];
-            NativeArray<ushort>.Copy(indices, light.indices, icount);
+            else
+            {
+                TransferToMesh(vertices, vcount, indices, icount, light);
+            }
 
             return mesh.GetSubMesh(0).bounds;
         }
@@ -441,9 +459,6 @@ namespace UnityEngine.Experimental.Rendering.Universal
 
         public static Bounds GenerateSpriteMesh(Light2D light, Sprite sprite)
         {
-            // this needs to be called before getting UV at the line below.
-            // Venky fixed it, enroute to trunk
-            var uvs = sprite.uv;
             var mesh = light.lightMesh;
 
             if (sprite == null)
@@ -451,6 +466,10 @@ namespace UnityEngine.Experimental.Rendering.Universal
                 mesh.Clear();
                 return new Bounds(Vector3.zero, Vector3.zero);
             }
+
+            // this needs to be called before getting UV at the line below.
+            // Venky fixed it, enroute to trunk
+            var uvs = sprite.uv;
 
             var srcVertices = sprite.GetVertexAttribute<Vector3>(VertexAttribute.Position);
             var srcUVs = sprite.GetVertexAttribute<Vector2>(VertexAttribute.TexCoord0);

@@ -9,6 +9,7 @@ using UnityEngine.VFX;
 using Object = UnityEngine.Object;
 using System.Text.RegularExpressions;
 using System.Globalization;
+using UnityEngine.Profiling;
 
 namespace UnityEditor.VFX
 {
@@ -29,6 +30,8 @@ namespace UnityEditor.VFX
         //This function insure to keep padding while replacing a specific string
         private static void ReplaceMultiline(StringBuilder target, string targetQuery, StringBuilder value)
         {
+            Profiler.BeginSample("ReplaceMultiline");
+
             string[] delim = { System.Environment.NewLine, "\n" };
             var valueLines = value.ToString().Split(delim, System.StringSplitOptions.None);
             if (valueLines.Length <= 1)
@@ -55,6 +58,8 @@ namespace UnityEditor.VFX
                     target.Replace(indent + targetQuery, currentValue.ToString());
                 }
             }
+
+            Profiler.EndSample();
         }
 
         static private VFXShaderWriter GenerateLoadAttribute(string matching, VFXContext context)
