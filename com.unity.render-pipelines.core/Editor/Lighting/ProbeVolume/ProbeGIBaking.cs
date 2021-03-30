@@ -466,38 +466,6 @@ namespace UnityEngine.Rendering
             }
 
             deduplicatedProbePositions = uniquePositions.Keys.ToArray();
-
-            // List<Vector3> uniqueProbePositions = new List<Vector3>();
-
-            // indices = new int[probePositions.Length];
-
-            // // find duplicates
-            // for (int i = 0; i < probePositions.Length; ++i)
-            // {
-            //     Vector3 ppi = probePositions[i];
-            //     bool isDuplicate = false;
-            //     int index = uniqueProbePositions.Count;
-
-            //     // push if not a duplicate
-            //     for (int j = 0; j < uniqueProbePositions.Count; ++j)
-            //     {
-            //         Vector3 ppj = uniqueProbePositions[j];
-
-            //         if (ppi == ppj)
-            //         {
-            //             isDuplicate = true;
-            //             index = j;
-            //             break;
-            //         }
-            //     }
-
-            //     if (!isDuplicate)
-            //         uniqueProbePositions.Add(ppi);
-
-            //     indices[i] = index;
-            // }
-
-            // deduplicatedProbePositions = uniqueProbePositions.ToArray();
         }
 
         public static void RunPlacement()
@@ -546,8 +514,6 @@ namespace UnityEngine.Rendering
                 cellVolume.Y = new Vector3(0, bakingReferenceVolumeAuthoring.cellSize, 0);
                 cellVolume.Z = new Vector3(0, 0, bakingReferenceVolumeAuthoring.cellSize);
                 cellVolume.Transform(cellTrans);
-
-                // The max subdivision in the cell is computed in CreateInfluenceVolumes() using the values in the Probe Volumes and Hint Volumes.
 
                 // In this max subdiv field, we store the minimum subdivision possible for the cell, then, locally we can subdivide more based on the probe volumes subdiv multiplier
                 cellVolume.maxSubdivisionMultiplier = 0;

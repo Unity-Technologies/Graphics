@@ -283,7 +283,6 @@ namespace UnityEngine.Rendering
                         continue;
 
                     int offset = base_offset + TranslateIndex(new Vector3Int(mx, 0, mz));
-                    // m_IndexBuffer.GetData(m_TmpUpdater, 0, offset), hr.cnt);
                     int start = volMin.y - hr.min + offset;
                     int end = Mathf.Min(start + volCellSize, m_IndexDim.y);
                     start = Mathf.Max(start, 0);
