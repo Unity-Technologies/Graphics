@@ -311,22 +311,6 @@ float SampleShadow_PCSS(float3 tcs, float2 posSS, float2 scale, float2 offset, f
     float numBlockers         = 0.0;
     bool blockerFound = BlockerSearch(averageBlockerDepth, numBlockers, min((shadowSoftness + 0.000001), resIndepenentMaxSoftness) * atlasResFactor, tcs, sampleJitter, tex, samp, blockerSampleCount);
 
-    // We scale the softness also based on the distance between the occluder if we assume that the light is a sphere source.
-    // Also, we don't bother if the blocker has not been found.
-    if (isPerspective && blockerFound)
-    {
-        float dist = 1.0f / (zParams.z * averageBlockerDepth + zParams.w);
-        dist = min(dist, 7.5);  // We need to clamp the distance as the fitted curve will do strange things after this and because there is no point in scale further after this point.
-        float dist2 = dist * dist;
-        float dist4 = dist2 * dist2;
-        // Fitted curve to match ray trace reference as good as possible.
-        float distScale = 3.298300241 - 2.001364639  * dist + 0.4967311427 * dist2 - 0.05464058455 * dist * dist2 + 0.0021974 * dist2 * dist2;
-        shadowSoftness *= distScale;
-
-        // Clamp maximum softness here again and not C# as it could be scaled signifcantly by the distance scale.
-        shadowSoftness = min(shadowSoftness, resIndepenentMaxSoftness);
-    }
-
     //2) Penumbra Estimation
     float filterSize = shadowSoftness * (isPerspective ? PenumbraSizePunctual(tcs.z, averageBlockerDepth) :
                                                          PenumbraSizeDirectional(tcs.z, averageBlockerDepth, zParams.x));
