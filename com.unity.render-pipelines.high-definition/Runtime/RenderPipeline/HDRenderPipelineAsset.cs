@@ -20,7 +20,13 @@ namespace UnityEngine.Rendering.HighDefinition
         {
         }
 
-        void Reset() => OnValidate();
+        void Reset()
+        {
+            // we need to ensure we have a global settings asset to be able to create an HDRP Asset
+            HDRenderPipelineGlobalSettings.Ensure(canCreateNewAsset: true);
+
+            OnValidate();
+        }
 
         /// <summary>
         /// CreatePipeline implementation.
