@@ -551,9 +551,7 @@ Shader "HDRP/Lit"
             Name "DynamicGIDataGen"
             Tags{ "LightMode" = "DynamicGIDataGen" }
 
-            Cull [_CullMode]
-            ZWrite On
-            ZTest LEqual
+            Cull Off
 
             HLSLPROGRAM
 

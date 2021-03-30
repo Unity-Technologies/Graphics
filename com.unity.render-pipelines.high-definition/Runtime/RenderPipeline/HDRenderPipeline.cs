@@ -442,7 +442,6 @@ namespace UnityEngine.Rendering.HighDefinition
             InitializeVolumetricLighting();
             InitializeVolumetricClouds();
             InitializeSubsurfaceScattering();
-            ProbeDynamicGIExtraDataManager.instance.AllocateResources();
 
             m_DebugDisplaySettings.RegisterDebug();
 #if UNITY_EDITOR
@@ -490,7 +489,9 @@ namespace UnityEngine.Rendering.HighDefinition
             InitializeScreenSpaceShadows();
 
             // TODO_FCC: TODO ONLY WHEN AVAILABLE
-            ProbeDynamicGIExtraDataManager.instance.AllocateResources();
+#if UNITY_EDITOR
+            ProbeDynamicGIExtraDataManager.instance.Allocate();
+#endif
 
             CameraCaptureBridge.enabled = true;
 
@@ -765,6 +766,10 @@ namespace UnityEngine.Rendering.HighDefinition
 #endif
 
             base.Dispose(disposing);
+
+#if UNITY_EDITOR
+            ProbeDynamicGIExtraDataManager.instance.Dispose();
+#endif
 
             ReleaseScreenSpaceShadows();
 

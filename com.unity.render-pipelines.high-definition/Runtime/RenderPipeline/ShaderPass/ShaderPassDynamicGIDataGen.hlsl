@@ -6,29 +6,52 @@
 
 PackedVaryingsType Vert(AttributesMesh inputMesh)
 {
-    VaryingsType varyingsType;
-    varyingsType.vmesh = VertMesh(inputMesh);
-
-    return PackVaryingsType(varyingsType);
-}
-
-#ifdef TESSELLATION_ON
-
-PackedVaryingsToPS VertTesselation(VaryingsToDS input)
-{
     VaryingsToPS output;
-    output.vmesh = VertMeshTesselation(input.vmesh);
+
+    UNITY_SETUP_INSTANCE_ID(inputMesh);
+    UNITY_TRANSFER_INSTANCE_ID(inputMesh, output.vmesh);
+
+    // Output UV coordinate in vertex shader
+    float2 uv = float2(0.0, 0.0);
+
+    uv = inputMesh.uv0.xy;
+
+    uv.y = 1.0f - uv.y;
+    // OpenGL right now needs to actually use the incoming vertex position
+    // so we create a fake dependency on it here that haven't any impact.
+    output.vmesh.positionCS = float4(uv * 2.0 - 1.0, 0.0f, 1.0f);
+#ifdef VARYINGS_NEED_POSITION_WS
+    output.vmesh.positionRWS = TransformObjectToWorld(inputMesh.positionOS);
+#endif
+
+#ifdef VARYINGS_NEED_TANGENT_TO_WORLD
+    // Normal is required for triplanar mapping
+    output.vmesh.normalWS = TransformObjectToWorldNormal(inputMesh.normalOS);
+    // Not required but assign to silent compiler warning
+    output.vmesh.tangentWS = float4(1.0, 0.0, 0.0, 0.0);
+#endif
+
+#ifdef VARYINGS_NEED_TEXCOORD0
+    output.vmesh.texCoord0 = inputMesh.uv0;
+#endif
+#ifdef VARYINGS_NEED_TEXCOORD1
+    output.vmesh.texCoord1 = inputMesh.uv1;
+#endif
+#ifdef VARYINGS_NEED_TEXCOORD2
+    output.vmesh.texCoord2 = inputMesh.uv2;
+#endif
+#ifdef VARYINGS_NEED_TEXCOORD3
+    output.vmesh.texCoord3 = inputMesh.uv3;
+#endif
+#ifdef VARYINGS_NEED_COLOR
+    output.vmesh.color = inputMesh.color;
+#endif
+
     return PackVaryingsToPS(output);
 }
 
-#include "Packages/com.unity.render-pipelines.high-definition/Runtime/RenderPipeline/ShaderPass/TessellationShare.hlsl"
-
-#endif // TESSELLATION_ON
-
 void Frag(  PackedVaryingsToPS packedInput,
-            out float3 outAlbedo : SV_Target0,
-            out float2 outNormal : SV_Target1,
-            out float  outDepth  : SV_Target2
+            out float4 outAlbedo : SV_Target0
     )
 {
     UNITY_SETUP_STEREO_EYE_INDEX_POST_VERTEX(packedInput);
@@ -49,12 +72,5 @@ void Frag(  PackedVaryingsToPS packedInput,
     BuiltinData builtinData;
     GetSurfaceAndBuiltinData(input, V, posInput, surfaceData, builtinData);
 
-    // Get output data:
-    // - Normal (R16G16) 
-    // - Albedo (RGBA8_UNorm)
-    // - Depth (R16F) // Need to be separate as we might not want bilinear filtering this when sampling. 
-
-    outAlbedo = surfaceData.baseColor;
-    outNormal = PackNormalOctQuadEncode(surfaceData.geomNormalWS);
-    outDepth = posInput.linearDepth;
+    outAlbedo.xyz = surfaceData.baseColor;
 }

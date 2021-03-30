@@ -139,9 +139,9 @@ namespace UnityEngine.Rendering
             }
         }
 
-        private static Color SampleColor(RaycastHit hit, int axisIndex)
+        private static int EnqueueExtraDataRequest(RaycastHit hit)
         {
-            Color color = new Color(0.0f, 0.0f, 0.0f, 0.0f);
+            int requestTicket = -1;
 
             MeshCollider collider = hit.collider as MeshCollider;
             if (collider != null)
@@ -172,16 +172,15 @@ namespace UnityEngine.Rendering
                 if (renderer != null)
                 {
                     Material material = renderer.sharedMaterials[submesh];
-                    Texture2D texture = null;
-
-                    if (material.HasProperty("_BaseColor"))
-                    {
-                        color = material.GetColor("_BaseColor").linear;
-                    }
+                    ProbeDynamicGIExtraDataManager.RequestInput requestInput;
+                    requestInput.mesh = mesh;
+                    requestInput.renderer = renderer;
+                    requestInput.subMesh = submesh;
+                    requestTicket = ProbeDynamicGIExtraDataManager.instance.EnqueueRequest(requestInput, hit.textureCoord);
                 }
             }
 
-            return color;
+            return requestTicket;
         }
 
         private static float FindOutDistance(RaycastHit[] hits, ref int index, float kMaxDistance)
@@ -225,7 +224,7 @@ namespace UnityEngine.Rendering
             return false;
         }
 
-        private static bool ComputeOccluderColorNormal(Vector3 worldPosition, Vector3 ray, int axisIndex, ref Color color, ref Vector3 normal)
+        private static bool GetNormalAndRequestTicketForOccluder(Vector3 worldPosition, Vector3 ray, ref int requestIndex, ref float outDistance, ref Vector3 normal)
         {
             Vector3 normalizedRay = ray.normalized;
             var collisionLayerMask = ~0;
@@ -237,20 +236,20 @@ namespace UnityEngine.Rendering
             if (hasMeshColliderHits)
             {
                 int outIndex = 0;
-                float outDistance = FindOutDistance(outBoundHits, ref outIndex, ray.magnitude);
+                outDistance = FindOutDistance(outBoundHits, ref outIndex, ray.magnitude);
                 if (outBoundHits.Length > 0)
                 {
                     RaycastHit hit = outBoundHits[outIndex];
                     MeshCollider collider = hit.collider as MeshCollider;
                     if (collider != null)
                     {
-                        color = SampleColor(hit, axisIndex);
-                        color.a = outDistance;
+                        requestIndex = EnqueueExtraDataRequest(hit);
                         normal = outBoundHits[outIndex].normal;
                     }
                     else
                     {
-                        color = new Color(0.0f, 0.0f, 0.0f, outDistance);
+                        outDistance = 0;
+                        requestIndex = -1;
 
                         // put a normal opposite of ray if no mesh collider found
                         normal = -normalizedRay;
@@ -258,7 +257,8 @@ namespace UnityEngine.Rendering
                 }
                 else
                 {
-                    color = new Color(0.0f, 0.0f, 0.0f, 0.0f);
+                    outDistance = 0;
+                    requestIndex = -1;
                 }
 
                 return true;
@@ -271,8 +271,6 @@ namespace UnityEngine.Rendering
         {
             extraData.InitExtraData();
 
-            extraData.valid = !(IsInsideGeometryV2(position));
-
             int hits = 0;
             for (int i = 0; i < ProbeExtraData.s_AxisCount; ++i)
             {
@@ -282,11 +280,13 @@ namespace UnityEngine.Rendering
 
 
                 Color color = Color.black;
+                int requestIndex = -1;
+                float hitDistance = 0.0f;
                 Vector3 normal = Vector3.zero;
-                if (ComputeOccluderColorNormal(position, dirAxis * distance, i, ref color, ref normal))
+                if (GetNormalAndRequestTicketForOccluder(position, dirAxis * distance, ref requestIndex, ref hitDistance, ref normal))
                 {
-                    extraData.NeighbourColour[i] = new Vector3(color.r, color.g, color.b);
-                    extraData.NeighbourDistance[i] = color.a;
+                    extraData.requestIndex[i] = requestIndex;
+                    extraData.NeighbourDistance[i] = hitDistance;
                     extraData.NeighbourNormal[i] = normal;
                     hits++;
                 }
@@ -295,12 +295,25 @@ namespace UnityEngine.Rendering
                     extraData.NeighbourColour[i] = Vector3.zero;
                     extraData.NeighbourDistance[i] = 0;
                     extraData.NeighbourNormal[i] = -dirAxis.normalized;
+                    extraData.requestIndex[i] = -1;
                 }
             }
 
             extraData.validity = validity;
 
-            Debug.Log("HITS: " + hits + " POS " + position);
+            Debug.Log("HITS: " + hits);
+        }
+
+        private static void ResolveExtraDataRequest(ref ProbeExtraData extraData)
+        {
+            for (int i=0; i<ProbeExtraData.s_AxisCount; ++i)
+            {
+                if (extraData.requestIndex[i] >= 0)
+                {
+                    var extraDataRequestOutput = ProbeDynamicGIExtraDataManager.instance.RetrieveRequestOutput(extraData.requestIndex[i]);
+                    extraData.NeighbourColour[i] = extraDataRequestOutput.albedo;
+                }
+            }
         }
 
         private static void CleanupRenderers()

@@ -240,6 +240,13 @@ namespace UnityEngine.Rendering
                     SphericalHarmonicsL2Utils.SetCoefficient(ref cell.sh[i], 8, new Vector3(sh[j][0, 8], sh[j][1, 8], sh[j][2, 8]));
                 }
 
+                ProbeDynamicGIExtraDataManager.instance.ExecutePendingRequests();
+
+                for (int i = 0; i < numProbes; ++i)
+                {
+                    ResolveExtraDataRequest(ref cell.extraData[i]);
+                }
+
                 if (supportsDynamicPropagation)
                 {
                     cell.ProcessExtraDataBuffer();
@@ -318,6 +325,7 @@ namespace UnityEngine.Rendering
             if (supportsDynamicPropagation)
             {
                 CleanupRenderers();
+                ProbeDynamicGIExtraDataManager.instance.ClearContent();
             }
         }
 

@@ -1,0 +1,42 @@
+#include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Common.hlsl"
+#include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Packing.hlsl"
+
+
+
+#pragma kernel ExtractData
+
+#define GROUP_SIZE 64
+
+struct ExtraDataRequest
+{
+    float2 uv;
+    int arraySlice;
+};
+
+struct ExtraDataRequestOutput
+{
+    float3 albedo;
+};
+
+#pragma enable_d3d11_debug_symbols
+
+TEXTURE2D_ARRAY(_UnwrappedDataPool);
+StructuredBuffer<ExtraDataRequest>  _RequestsInputData;
+RWStructuredBuffer<ExtraDataRequestOutput>  _RWRequestsOutputData;
+SAMPLER(sampler_LinearClamp);
+
+int _RequestBatchSize;
+
+[numthreads(GROUP_SIZE, 1, 1)]
+void ExtractData(uint3 id : SV_DispatchThreadID)
+{
+    if (id.x < _RequestBatchSize)
+    {
+        ExtraDataRequest req = _RequestsInputData[id.x];
+        ExtraDataRequestOutput output;
+
+        output.albedo = SAMPLE_TEXTURE2D_ARRAY_LOD(_UnwrappedDataPool, sampler_LinearClamp, req.uv, req.arraySlice, 0).xyz;
+        _RWRequestsOutputData[id.x] = output;
+    }
+}
+

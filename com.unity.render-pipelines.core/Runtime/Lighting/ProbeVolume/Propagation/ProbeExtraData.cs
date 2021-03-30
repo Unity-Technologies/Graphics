@@ -43,20 +43,22 @@ namespace UnityEngine.Rendering
         public Vector3[] NeighbourColour;
         public Vector3[] NeighbourNormal;
         public float[] NeighbourDistance;
-        public bool valid;
+        public int[] requestIndex;
+
         public float validity;
 
         public void InitExtraData()
         {
-            valid = false;
             NeighbourColour = new Vector3[s_AxisCount];
             NeighbourNormal = new Vector3[s_AxisCount];
             NeighbourDistance = new float[s_AxisCount];
+            requestIndex = new int[s_AxisCount];
             for (int i = 0; i < s_AxisCount; ++i)
             {
                 NeighbourColour[i] = new Vector3(0.0f, 0.0f, 0.0f);
                 NeighbourNormal[i] = new Vector3(0.0f, 0.0f, 0.0f);
                 NeighbourDistance[i] = 0.0f;
+                requestIndex[i] = -1;
             }
         }
     }
@@ -110,8 +112,6 @@ namespace UnityEngine.Rendering
         public int hitProbesAxisCount;
         public int missProbesAxisCount;
 
-        public bool needBufferFilling = true;
-
         struct FinalDataPacked
         {
             public uint packedIndices;
@@ -149,8 +149,6 @@ namespace UnityEngine.Rendering
 
             hitProbesAxisCount = 0;
             missProbesAxisCount = 0;
-
-            needBufferFilling = true;
         }
 
         private uint PackAlbedo(Vector3 color, float distance)
@@ -312,7 +310,7 @@ namespace UnityEngine.Rendering
                 m_ProbeLocations.Capacity == m_ProbeLocations.Count)
             {
                 m_ProbeLocationsBuffer.SetData(m_ProbeLocations);
-            //    m_FinalExtraDataBuffer.SetData(m_FinalExtraData);
+                m_FinalExtraDataBuffer.SetData(m_FinalExtraData);
                 m_ComputeBufferFilled = true;
             }
         }
@@ -402,7 +400,7 @@ namespace UnityEngine.Rendering
                 m_FinalExtraData.Add(index.packedIndices);
             }
 
-           // m_FinalExtraDataBuffer.SetData(m_FinalExtraData);
+            m_FinalExtraDataBuffer.SetData(m_FinalExtraData);
         }
 
         public void Dispose()
