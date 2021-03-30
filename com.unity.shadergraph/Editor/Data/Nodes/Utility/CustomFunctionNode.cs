@@ -393,6 +393,7 @@ namespace UnityEditor.ShaderGraph
 
         public override void ValidateNode()
         {
+            bool hasAnyOutputs = this.GetOutputSlots<MaterialSlot>().Any();
             if (sourceType == HlslSourceType.File)
             {
                 SourceFileStatus fileStatus = SourceFileStatus.Empty; 
@@ -411,14 +412,14 @@ namespace UnityEditor.ShaderGraph
                         fileStatus = SourceFileStatus.DoesNotExist;
                 }
 
-                if(fileStatus == SourceFileStatus.DoesNotExist)
+                if(fileStatus == SourceFileStatus.DoesNotExist || (fileStatus == SourceFileStatus.Empty && hasAnyOutputs))
                     owner.AddValidationError(objectId, k_MissingFile, ShaderCompilerMessageSeverity.Error);
                 else if(fileStatus == SourceFileStatus.Invalid)
                     owner.AddValidationError(objectId, k_InvalidFileType, ShaderCompilerMessageSeverity.Error);
                 else if(fileStatus == SourceFileStatus.Valid)
                     owner.ClearErrorsForNode(this);
             }
-            if (!this.GetOutputSlots<MaterialSlot>().Any())
+            if (!hasAnyOutputs)
             {
                 owner.AddValidationError(objectId, k_MissingOutputSlot, ShaderCompilerMessageSeverity.Warning);
             }
