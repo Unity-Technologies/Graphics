@@ -27,10 +27,10 @@ There are three tabs that you can use to set up your HDRP Project for different 
 * [HDRP + VR](#VRTab): Use this tab to set up your HDRP Project and enable support for virtual reality.
 * [HDRP + DXR](#DXRTab): Use this tab to set up your HDRP Project and enable support for ray tracing.
 
-Also every configuration is separated in two scopes:
+Each configuration is separated in two scopes:
 
-- **Global:** settings in Unity Editor or in the [HDRP Asset](HDRP-Asset.md) set in Graphics Settings.
-- **Current Quality:** settings in the [HDRP Asset](HDRP-Asset.md) set in Quality Settings or, if null is set here, the one used in Global above.
+- **Global:** Changes the configuration settings in the Unity Editor, [HDRP Global Settings](Default-Settings-Window.md), or Graphics Settings'  [HDRP Asset](HDRP-Asset.md)
+- **Current Quality:** Changes the configuration settings in the [HDRP Asset](HDRP-Asset.md) set in Quality Settings. If no asset is assigned in Quality Settings, this mode uses the [HDRP Asset](HDRP-Asset.md) set in Graphics Settings.
 
 <a name="HDRPTab"></a>
 
@@ -51,8 +51,8 @@ This tab provides you with configuration options to help you make your Unity Pro
 | **Runtime Resources**          | Checks to make sure that your HDRP Asset references a [**Render Pipeline Resources**](HDRP-Asset.md) Asset.<br />Press the **Fix** button to reload the runtime resources for the HDRP Asset. |
 | **Editor Resources**           | Checks to make sure that your HDRP Asset references a [**Render Pipeline Editor Resources**](HDRP-Asset.md)  Asset.<br />Press the **Fix** button to reload the runtime resources for the HDRP Asset. |
 | **Diffusion Profile**          | Checks to make sure that your HDRP Asset references a [**Diffusion Profile**](Diffusion-Profile.md) Asset.<br />Press the **Fix** button to reload the runtime resources for the HDRP Asset. |
-| **Default Volume Profile** | Checks to make sure you have assigned a **Default Volume Profile Asset** in **Edit** > **Project Settings** > **HDRP Default Settings** that is not the one in the package.<br />It is only required to enable modification on the profile.<br />Press the **Fix** button to copy the one in package into the **Default Resource Folder** and use it instead. |
-| **LookDev Volume Profile** | Checks to make sure you have assigned a **LookDev Volume Profile Asset** in **Edit** > **Project Settings** > **HDRP Default Settings**  that is not the one in the package.<br />It is only required to use the LookDev and want to be able to modify the profile used in it.<br />Press the **Fix** button to copy the one in package into the **Default Resource Folder** and use it instead. |
+| **Default Volume Profile** | Checks to make sure you have assigned a **Default Volume Profile Asset** in **Edit** > **Project Settings** > **HDRP Settings** that is not the one included in the **High Definition RP** package.<br/>This check only needs to pass if you want to modify the **Default Volume Profile Asset**.<br/>Press the **Fix** button to copy the **Default Volume Profile Asset** from the **High Definition RP** package into the **Default Resource Folder** and assign it. |
+| **LookDev Volume Profile** | Checks to make sure you have assigned a **LookDev Volume Profile Asset** in **Edit** > **Project Settings** > **HDRP Settings** that is not the one included in the **High Definition RP** package.<br/>This check only needs to pass if you want to use LookDev and modify the profile used in it.<br/>Press the **Fix** button to copy the **LookDev Volume Profile Asset** from the **High Definition RP**  package into the **Default Resource Folder** and assign it. |
 
 **Current Quality:**
 
@@ -65,7 +65,7 @@ This tab provides you with configuration options to help you make your Unity Pro
 
 ### HDRP + VR
 
-This tab provides all of the configuration options from the [HDRP tab](#HDRPTab) as well as extra configuration options to help you set your HDRP Project up to support virtual reality. If you can not find an option in this section of the documentation, check the [HDRP tab](#HDRPTab) above. This is only supported on Windows OS. The extra configuration are all in the **Global** scope.
+This tab provides all of the configuration options from the [HDRP tab](#HDRPTab) as well as extra configuration options to help you set your HDRP Project up to support virtual reality. If you can not find an option in this section of the documentation, check the [HDRP tab](#HDRPTab) above. This is only supported on Windows OS. You can adjust the extra configuration options in the  **Global** scope.
 
 | **Configuration Option**     | **Description**                                              |
 | -------------------------------- | ------------------------------------------------------------ |
