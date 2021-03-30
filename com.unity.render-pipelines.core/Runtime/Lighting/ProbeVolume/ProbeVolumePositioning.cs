@@ -38,13 +38,13 @@ namespace UnityEngine.Rendering
 
         public static bool OBBIntersect(ref ProbeReferenceVolume.Volume a, ref ProbeReferenceVolume.Volume b)
         {
-            // First we test if the bouding spheres intersects, in which case we case do the more complex OBB test
-            a.UpdateStuff();
-            b.UpdateStuff();
+            // First we test if the bounding spheres intersects, in which case we case do the more complex OBB test
+            a.CalculateCenterAndSize(out var aCenter, out var aSize);
+            b.CalculateCenterAndSize(out var bCenter, out var bSize);
 
-            var aRadius = Mathf.Max(Mathf.Max(a.size.x, a.size.y), a.size.z) / 2.0f;
-            var bRadius = Mathf.Max(Mathf.Max(b.size.x, b.size.y), b.size.z) / 2.0f;
-            if (Vector3.Distance(a.center, b.center) > aRadius + bRadius)
+            var aRadius = aSize.sqrMagnitude / 2.0f;
+            var bRadius = bSize.sqrMagnitude / 2.0f;
+            if (Vector3.SqrMagnitude(aCenter - bCenter) > aRadius + bRadius)
                 return false;
 
             m_Axes[0] = a.X.normalized;

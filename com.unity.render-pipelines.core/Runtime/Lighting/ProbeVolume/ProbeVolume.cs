@@ -11,15 +11,15 @@ namespace UnityEngine.Rendering
     {
         public Vector3  size;
         [HideInInspector]
-        public float    maxSubdivision;
+        public float    maxSubdivisionMultiplier;
         [HideInInspector]
-        public float    minSubdivision;
+        public float    minSubdivisionMultiplier;
 
         public ProbeVolumeArtistParameters(Color debugColor, float maxSubdivision = 1, float minSubdivision = 0)
         {
             this.size = Vector3.one;
-            this.maxSubdivision = maxSubdivision;
-            this.minSubdivision = minSubdivision;
+            this.maxSubdivisionMultiplier = maxSubdivision;
+            this.minSubdivisionMultiplier = minSubdivision;
         }
     } // class ProbeVolumeArtistParameters
 

@@ -60,11 +60,9 @@ namespace UnityEngine.Rendering
             internal Vector3 X;   // the vectors are NOT normalized, their length determines the size of the box
             internal Vector3 Y;
             internal Vector3 Z;
-            internal Vector3 center;
-            internal Vector3 size;
 
-            internal float maxSubdivision;
-            internal float minSubdivision;
+            internal float maxSubdivisionMultiplier;
+            internal float minSubdivisionMultiplier;
 
             public Volume(Matrix4x4 trs, float maxSubdivision, float minSubdivision)
             {
@@ -72,10 +70,8 @@ namespace UnityEngine.Rendering
                 Y = trs.GetColumn(1);
                 Z = trs.GetColumn(2);
                 corner = (Vector3)trs.GetColumn(3) - X * 0.5f - Y * 0.5f - Z * 0.5f;
-                center = (Vector3)trs.GetColumn(3);
-                size = new Vector3(X.magnitude, Y.magnitude, Z.magnitude);
-                this.maxSubdivision = maxSubdivision;
-                this.minSubdivision = minSubdivision;
+                this.maxSubdivisionMultiplier = maxSubdivision;
+                this.minSubdivisionMultiplier = minSubdivision;
             }
 
             public Volume(Vector3 corner, Vector3 X, Vector3 Y, Vector3 Z, float maxSubdivision = 1, float minSubdivision = 0)
@@ -84,10 +80,8 @@ namespace UnityEngine.Rendering
                 this.X = X;
                 this.Y = Y;
                 this.Z = Z;
-                this.maxSubdivision = maxSubdivision;
-                this.minSubdivision = minSubdivision;
-                center = corner + X * 0.5f + Y * 0.5f + Z * 0.5f;
-                size = new Vector3(X.magnitude, Y.magnitude, Z.magnitude);
+                this.maxSubdivisionMultiplier = maxSubdivision;
+                this.minSubdivisionMultiplier = minSubdivision;
             }
 
             public Volume(Volume copy)
@@ -96,10 +90,8 @@ namespace UnityEngine.Rendering
                 Y = copy.Y;
                 Z = copy.Z;
                 corner = copy.corner;
-                center = copy.center;
-                maxSubdivision = copy.maxSubdivision;
-                minSubdivision = copy.minSubdivision;
-                size = copy.size;
+                maxSubdivisionMultiplier = copy.maxSubdivisionMultiplier;
+                minSubdivisionMultiplier = copy.minSubdivisionMultiplier;
             }
 
             public Bounds CalculateAABB()
@@ -129,7 +121,7 @@ namespace UnityEngine.Rendering
                 return new Bounds((min + max) / 2, max - min);
             }
 
-            public void UpdateStuff()
+            public void CalculateCenterAndSize(out Vector3 center, out Vector3 size)
             {
                 size = new Vector3(X.magnitude, Y.magnitude, Z.magnitude);
                 center = corner + X * 0.5f + Y * 0.5f + Z * 0.5f;
@@ -138,16 +130,14 @@ namespace UnityEngine.Rendering
             public void Transform(Matrix4x4 trs)
             {
                 corner = trs.MultiplyPoint(corner);
-                center = trs.MultiplyPoint(center);
                 X = trs.MultiplyVector(X);
                 Y = trs.MultiplyVector(Y);
                 Z = trs.MultiplyVector(Z);
-                size = new Vector3(X.magnitude, Y.magnitude, Z.magnitude);
             }
 
             public override string ToString()
             {
-                return $"Corner: {corner}, X: {X}, Y: {Y}, Z: {Z}, MaxSubdiv: {maxSubdivision}";
+                return $"Corner: {corner}, X: {X}, Y: {Y}, Z: {Z}, MaxSubdiv: {maxSubdivisionMultiplier}";
             }
         }
 
@@ -631,7 +621,7 @@ namespace UnityEngine.Rendering
             int subDivCount = 0;
 
             // iterative subdivision
-            while (m_TmpBricks[0].Count > 0 && subDivCount <= GetMaxSubdivision(cellVolume.maxSubdivision))
+            while (m_TmpBricks[0].Count > 0 && subDivCount <= GetMaxSubdivision(cellVolume.maxSubdivisionMultiplier))
             {
                 m_TmpBricks[1].Clear();
                 m_TmpFlags.Clear();
@@ -789,10 +779,8 @@ namespace UnityEngine.Rendering
             outVolume.X = m.MultiplyVector(inVolume.X);
             outVolume.Y = m.MultiplyVector(inVolume.Y);
             outVolume.Z = m.MultiplyVector(inVolume.Z);
-            outVolume.maxSubdivision = inVolume.maxSubdivision;
-            outVolume.minSubdivision = inVolume.minSubdivision;
-            outVolume.size = new Vector3(outVolume.X.magnitude, outVolume.Y.magnitude, outVolume.Z.magnitude);
-            outVolume.center = m.MultiplyPoint(inVolume.center);
+            outVolume.maxSubdivisionMultiplier = inVolume.maxSubdivisionMultiplier;
+            outVolume.minSubdivisionMultiplier = inVolume.minSubdivisionMultiplier;
         }
 
         // Creates bricks at the coarsest level for all areas that are overlapped by the pass in volume
