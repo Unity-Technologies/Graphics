@@ -48,7 +48,7 @@ namespace UnityEngine.Rendering.Universal
             }
         }
 
-        internal static void ResetFrameData()
+        internal void ResetFrameData()
         {
             if (mergeableRenderPassesMapArrays == null)
                 mergeableRenderPassesMapArrays = new int[kRenderPassMapSize][];
@@ -65,7 +65,7 @@ namespace UnityEngine.Rendering.Universal
             }
         }
 
-        internal static void SetupFrameData(CameraData cameraData, ref List<ScriptableRenderPass> m_ActiveRenderPassQueue, bool isRenderPassEnabled)
+        internal void SetupFrameData(CameraData cameraData, bool isRenderPassEnabled)
         {
             //TODO: edge cases to detect that should affect possible passes to merge
             // - different depth attachment
@@ -129,8 +129,7 @@ namespace UnityEngine.Rendering.Universal
             }
         }
 
-        internal static void SetMRTAttachmentsList(ScriptableRenderPass renderPass, ref CameraData cameraData, uint validColorBuffersCount, bool needCustomCameraColorClear,
-            bool needCustomCameraDepthClear, List<ScriptableRenderPass> activeRenderPassQueue)
+        internal void SetMRTAttachmentsList(ScriptableRenderPass renderPass, ref CameraData cameraData, uint validColorBuffersCount, bool needCustomCameraColorClear, bool needCustomCameraDepthClear)
         {
             using (new ProfilingScope(null, Profiling.setMRTAttachmentsList))
             {
@@ -149,7 +148,7 @@ namespace UnityEngine.Rendering.Universal
                 {
                     if (passIdx == -1)
                         break;
-                    ScriptableRenderPass pass = activeRenderPassQueue[passIdx];
+                    ScriptableRenderPass pass = m_ActiveRenderPassQueue[passIdx];
 
                     for (int i = 0; i < pass.attachmentIndices.Length; ++i)
                         pass.attachmentIndices[i] = -1;
@@ -198,8 +197,7 @@ namespace UnityEngine.Rendering.Universal
             }
         }
 
-        internal static void SetAttachmentList(ScriptableRenderPass renderPass, ref CameraData cameraData, RenderTargetIdentifier passColorAttachment, RenderTargetIdentifier passDepthAttachment, ClearFlag finalClearFlag, Color finalClearColor,
-            List<ScriptableRenderPass> activeRenderPassQueue)
+        internal void SetAttachmentList(ScriptableRenderPass renderPass, ref CameraData cameraData, RenderTargetIdentifier passColorAttachment, RenderTargetIdentifier passDepthAttachment, ClearFlag finalClearFlag, Color finalClearColor)
         {
             using (new ProfilingScope(null, Profiling.setAttachmentList))
             {
@@ -218,7 +216,7 @@ namespace UnityEngine.Rendering.Universal
                 {
                     if (passIdx == -1)
                         break;
-                    ScriptableRenderPass pass = activeRenderPassQueue[passIdx];
+                    ScriptableRenderPass pass = m_ActiveRenderPassQueue[passIdx];
 
                     for (int i = 0; i < pass.attachmentIndices.Length; ++i)
                         pass.attachmentIndices[i] = -1;
@@ -230,9 +228,9 @@ namespace UnityEngine.Rendering.Universal
                     if (depthOnly && usesTargetTexture)
                     {
                         if (cameraData.targetTexture.graphicsFormat == GraphicsFormat.DepthAuto && !pass.overrideCameraTarget)
-                                passColorAttachment = new RenderTargetIdentifier(cameraData.targetTexture);
+                            passColorAttachment = new RenderTargetIdentifier(cameraData.targetTexture);
                         else
-                                passColorAttachment = renderPass.colorAttachment;
+                            passColorAttachment = renderPass.colorAttachment;
                         currentAttachmentDescriptor = new AttachmentDescriptor(GraphicsFormat.DepthAuto);
                     }
                     else
@@ -301,7 +299,7 @@ namespace UnityEngine.Rendering.Universal
             }
         }
 
-        internal static void NativeRenderPassConfigure(CommandBuffer cmd, ScriptableRenderPass renderPass, CameraData cameraData, List<ScriptableRenderPass> activeRenderPassQueue)
+        internal void NativeRenderPassConfigure(CommandBuffer cmd, ScriptableRenderPass renderPass, CameraData cameraData)
         {
             using (new ProfilingScope(null, Profiling.configure))
             {
@@ -316,14 +314,14 @@ namespace UnityEngine.Rendering.Universal
                     {
                         if (passIdx == -1)
                             break;
-                        ScriptableRenderPass pass = activeRenderPassQueue[passIdx];
+                        ScriptableRenderPass pass = m_ActiveRenderPassQueue[passIdx];
                         pass.Configure(cmd, cameraData.cameraTargetDescriptor);
                     }
                 }
             }
         }
 
-        internal static void NativeRenderPassExecute(ScriptableRenderContext context, ScriptableRenderPass renderPass, CameraData cameraData, ref RenderingData renderingData, List<ScriptableRenderPass> activeRenderPassQueue)
+        internal void NativeRenderPassExecute(ScriptableRenderContext context, ScriptableRenderPass renderPass, CameraData cameraData, ref RenderingData renderingData)
         {
             using (new ProfilingScope(null, Profiling.execute))
             {
@@ -378,8 +376,8 @@ namespace UnityEngine.Rendering.Universal
                 }
                 else
                 {
-                    if (!AreAttachmentIndicesCompatible(activeRenderPassQueue[currentSceneIndex - 1],
-                        activeRenderPassQueue[currentSceneIndex]))
+                    if (!AreAttachmentIndicesCompatible(m_ActiveRenderPassQueue[currentSceneIndex - 1],
+                        m_ActiveRenderPassQueue[currentSceneIndex]))
                     {
                         context.EndSubPass();
                         context.BeginSubPass(attachmentIndices);
@@ -480,12 +478,12 @@ namespace UnityEngine.Rendering.Universal
 
         internal static Hash128 CreateRenderPassHash(int width, int height, int depthID, int sample, uint hashIndex)
         {
-            return new Hash128((uint) width * 10000 + (uint) height, (uint) depthID, (uint) sample, hashIndex);
+            return new Hash128((uint)width * 10000 + (uint)height, (uint)depthID, (uint)sample, hashIndex);
         }
 
         internal static Hash128 CreateRenderPassHash(RenderPassDescriptor desc, uint hashIndex)
         {
-            return new Hash128((uint) desc.w * 10000 + (uint) desc.h, (uint)desc.depthID, (uint)desc.samples, hashIndex);
+            return new Hash128((uint)desc.w * 10000 + (uint)desc.h, (uint)desc.depthID, (uint)desc.samples, hashIndex);
         }
 
         private static RenderPassDescriptor InitializeRenderPassDescriptor(CameraData cameraData, ScriptableRenderPass renderPass)
