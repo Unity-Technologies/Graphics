@@ -221,7 +221,7 @@ namespace UnityEditor.VFX
                             {
                                 currentGPUTransformation = false;
                             }
-                            parent = PatchVFXExpression(parent, currentGPUTransformation, patchReadAttributeForSpawn, m_GlobalEventAttribute);
+                            parent = PatchVFXExpression(parent, expression, currentGPUTransformation, patchReadAttributeForSpawn, m_GlobalEventAttribute);
                             return parent;
                         }).ToArray();
                     }
