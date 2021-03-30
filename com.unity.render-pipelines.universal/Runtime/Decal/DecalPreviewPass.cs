@@ -1,5 +1,4 @@
 using System.Collections.Generic;
-using UnityEditor.Rendering.Universal;
 
 namespace UnityEngine.Rendering.Universal
 {
