@@ -30,13 +30,13 @@ editor_versions:
       updated_at: '2021-03-29 23:11:29.020373'
       version: 2020.3.2f1
     Linux:
-      revision: 77a89f25062f
-      updated_at: '2021-03-22 23:16:17.431498'
-      version: 2020.3.1f1
+      revision: 8fd9074bf66c
+      updated_at: '2021-03-30 23:16:53.577407'
+      version: 2020.3.2f1
     OSX:
-      revision: 77a89f25062f
-      updated_at: '2021-03-22 23:16:17.431498'
-      version: 2020.3.1f1
+      revision: 8fd9074bf66c
+      updated_at: '2021-03-30 23:16:53.577407'
+      version: 2020.3.2f1
     Win:
       revision: 8fd9074bf66c
       updated_at: '2021-03-29 23:11:29.020373'
@@ -46,27 +46,27 @@ editor_versions:
       updated_at: '2021-02-03 23:59:16.124934'
       version: 2020.3.0f1
     iPhone:
-      revision: 77a89f25062f
-      updated_at: '2021-03-22 23:16:17.431498'
-      version: 2020.3.1f1
+      revision: 8fd9074bf66c
+      updated_at: '2021-03-30 23:16:53.577407'
+      version: 2020.3.2f1
   2020_3_staging:
     Android:
-      revision: 76626098c1c446d0278fdda0523df18cf9c70730
-      updated_at: '2021-03-28 23:11:04.816261'
+      revision: 867896cbc1e79ebeb99efe0095f577e225de451b
+      updated_at: '2021-03-30 23:16:53.577407'
       version: ''
     Linux:
-      revision: 76626098c1c446d0278fdda0523df18cf9c70730
-      updated_at: '2021-03-28 23:11:04.816261'
+      revision: 867896cbc1e79ebeb99efe0095f577e225de451b
+      updated_at: '2021-03-30 23:16:53.577407'
       version: ''
     OSX:
-      revision: 76626098c1c446d0278fdda0523df18cf9c70730
-      updated_at: '2021-03-28 23:11:04.816261'
+      revision: 867896cbc1e79ebeb99efe0095f577e225de451b
+      updated_at: '2021-03-30 23:16:53.577407'
       version: ''
     Win:
-      revision: 76626098c1c446d0278fdda0523df18cf9c70730
-      updated_at: '2021-03-28 23:11:04.816261'
+      revision: 867896cbc1e79ebeb99efe0095f577e225de451b
+      updated_at: '2021-03-30 23:16:53.577407'
       version: ''
     iPhone:
-      revision: 76626098c1c446d0278fdda0523df18cf9c70730
-      updated_at: '2021-03-28 23:11:04.816261'
+      revision: 867896cbc1e79ebeb99efe0095f577e225de451b
+      updated_at: '2021-03-30 23:16:53.577407'
       version: ''
