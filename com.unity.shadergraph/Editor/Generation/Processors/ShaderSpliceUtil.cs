@@ -330,14 +330,21 @@ namespace UnityEditor.ShaderGraph
 
                     if (passedPermutations.Count > 0)
                     {
-                        var ifdefs = KeywordUtil.GetKeywordPermutationSetConditional(
-                            passedPermutations.Select(i => i.permutationIndex).ToList()
-                        );
-                        result.AppendLine(ifdefs);
+                        string ifdefs = null;
+                        if (passedPermutations.Count < activeFields.permutationCount)
+                        {
+                            ifdefs = KeywordUtil.GetKeywordPermutationSetConditional(
+                                passedPermutations.Select(i => i.permutationIndex).ToList()
+                            );
+                            result.AppendLine(ifdefs);
+                        }
                         //Append the rest of the line
                         AppendSubstring(predicate.s, nonwhitespace, true, endLine, false);
                         result.AppendNewLine();
-                        result.AppendLine("#endif");
+                        if (ifdefs != null)
+                        {
+                            result.AppendLine("#endif");
+                        }
 
                         return false;
                     }

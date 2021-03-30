@@ -83,7 +83,7 @@ namespace UnityEditor.ShaderGraph
                         var instances = activeFields.allPermutations.instances
                             .Where(i => IsFieldActive(subscript, i, subscript.subscriptOptions.HasFlag(StructFieldOptions.Optional))).ToList();
                         fieldIsActive = instances.Count > 0;
-                        if (fieldIsActive)
+                        if (fieldIsActive && (instances.Count < activeFields.permutationCount))
                             keywordIfDefs = KeywordUtil.GetKeywordPermutationSetConditional(instances.Select(i => i.permutationIndex).ToList());
                     }
                     else
@@ -135,7 +135,7 @@ namespace UnityEditor.ShaderGraph
                     var instances = activeFields.allPermutations.instances
                         .Where(i => IsFieldActive(subscript, i, subscript.subscriptOptions.HasFlag(StructFieldOptions.Optional))).ToList();
                     fieldIsActive = instances.Count > 0;
-                    if (fieldIsActive)
+                    if (fieldIsActive && (instances.Count < activeFields.permutationCount))
                         keywordIfDefs = KeywordUtil.GetKeywordPermutationSetConditional(instances.Select(i => i.permutationIndex).ToList());
                 }
                 else
@@ -285,6 +285,7 @@ namespace UnityEditor.ShaderGraph
             // Evaluate all Keyword permutations
             if (keywordCollector.permutations.Count > 0)
             {
+                // for each permutation, for each active node, add the permutation to the node's permutation list
                 for (int i = 0; i < keywordCollector.permutations.Count; i++)
                 {
                     // Get active nodes for this permutation
@@ -336,6 +337,16 @@ namespace UnityEditor.ShaderGraph
                         activeFields[i].Add(field);
                     }
                 }
+
+                // for any node that is active in ALL permutations, delete the permutation list (no need to conditionalize it, it's always active)
+                for (int n = 0; n < vertexNodePermutations.Length; n++)
+                    if (vertexNodePermutations[n].Count == keywordCollector.permutations.Count)
+                        vertexNodePermutations[n] = null;
+
+                for (int n = 0; n < pixelNodePermutations.Length; n++)
+                    if (pixelNodePermutations[n].Count == keywordCollector.permutations.Count)
+                        pixelNodePermutations[n] = null;
+
             }
             // No Keywords
             else
