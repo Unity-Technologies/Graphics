@@ -104,7 +104,31 @@ namespace UnityEngine.Rendering.Universal.Internal
 
                 NativeArray<ShaderTagId> tagValues = new NativeArray<ShaderTagId>(m_ShaderTagValues, Allocator.Temp);
                 NativeArray<RenderStateBlock> stateBlocks = new NativeArray<RenderStateBlock>(m_RenderStateBlocks, Allocator.Temp);
-                context.DrawRenderers(renderingData.cullResults, ref drawingSettings, ref m_FilteringSettings, universalMaterialTypeTag, false, tagValues, stateBlocks);
+
+                if ((DebugHandler != null) && DebugHandler.IsActiveForCamera(ref renderingData.cameraData))
+                {
+                    foreach (DebugRenderSetup debugRenderSetup in DebugHandler.CreateDebugRenderSetupEnumerable(context, gbufferCommands))
+                    {
+                        DrawingSettings debugDrawingSettings = debugRenderSetup.CreateDrawingSettings(ref renderingData, drawingSettings);
+
+                        if (debugRenderSetup.GetRenderStateBlock(out RenderStateBlock renderStateBlock))
+                        {
+                            for (int i = 0; i < stateBlocks.Length; i++)
+                                stateBlocks[i] = renderStateBlock;
+
+                            context.DrawRenderers(renderingData.cullResults, ref debugDrawingSettings, ref m_FilteringSettings, universalMaterialTypeTag, false, tagValues, stateBlocks);
+                        }
+                        else
+                        {
+                            context.DrawRenderers(renderingData.cullResults, ref debugDrawingSettings, ref m_FilteringSettings, universalMaterialTypeTag, false, tagValues, stateBlocks);
+                        }
+                    }
+                }
+                else
+                {
+                    context.DrawRenderers(renderingData.cullResults, ref drawingSettings, ref m_FilteringSettings, universalMaterialTypeTag, false, tagValues, stateBlocks);
+                }
+
                 tagValues.Dispose();
                 stateBlocks.Dispose();
 

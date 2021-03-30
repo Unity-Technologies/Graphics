@@ -30,10 +30,13 @@ namespace UnityEngine.Rendering.Universal
         }
 
         // Rendering mode setup from UI.
-        internal RenderingMode renderingMode { get { return m_RenderingMode;  } }
+        internal RenderingMode renderingMode => m_RenderingMode;
+
         // Actual rendering mode, which may be different (ex: wireframe rendering, harware not capable of deferred rendering).
-        internal RenderingMode actualRenderingMode { get { return GL.wireframe || m_DeferredLights == null || !m_DeferredLights.IsRuntimeSupportedThisFrame() || m_DeferredLights.IsOverlay ? RenderingMode.Forward : this.renderingMode; } }
-        internal bool accurateGbufferNormals { get { return m_DeferredLights != null ? m_DeferredLights.AccurateGbufferNormals : false; } }
+        internal RenderingMode actualRenderingMode => (GL.wireframe || DebugHandler.IsActiveModeUnsupportedForDeferred || m_DeferredLights == null || !m_DeferredLights.IsRuntimeSupportedThisFrame() || m_DeferredLights.IsOverlay)
+        ? RenderingMode.Forward
+        : this.renderingMode;
+        internal bool accurateGbufferNormals => m_DeferredLights != null ? m_DeferredLights.AccurateGbufferNormals : false;
         internal bool usesRenderPass;
         DepthOnlyPass m_DepthPrepass;
         DepthNormalOnlyPass m_DepthNormalPrepass;
@@ -204,6 +207,10 @@ namespace UnityEngine.Rendering.Universal
                 if (m_DrawSkyboxPass != null)
                 {
                     m_DrawSkyboxPass.DebugHandler = DebugHandler;
+                }
+                if (m_GBufferPass != null)
+                {
+                    m_GBufferPass.DebugHandler = DebugHandler;
                 }
                 if (m_PostProcessPasses.postProcessPass != null)
                 {

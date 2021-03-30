@@ -63,6 +63,11 @@ namespace UnityEngine.Rendering.Universal
         public bool IsPostProcessingAllowed => m_DebugDisplaySettings.IsPostProcessingAllowed;
         public bool IsLightingActive => m_DebugDisplaySettings.IsLightingActive;
 
+        // These modes would require putting custom data into gbuffer, so instead we just disable deferred mode.
+        public bool IsActiveModeUnsupportedForDeferred =>
+            m_DebugDisplaySettings.RenderingSettings.debugSceneOverrideMode == DebugSceneOverrideMode.Overdraw ||
+            m_DebugDisplaySettings.MaterialSettings.DebugVertexAttributeIndexData != DebugVertexAttributeMode.None;
+
         public bool TryGetScreenClearColor(ref Color color)
         {
             return m_DebugDisplaySettings.TryGetScreenClearColor(ref color);
