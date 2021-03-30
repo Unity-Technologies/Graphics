@@ -87,6 +87,11 @@ namespace UnityEngine.Rendering.Universal.Internal
                 }
             }
 
+            // Preivous to RTHandles, GetTemporaryRT would implicitly do a SetGlobalTexture
+            // Subsequent passes assume the global texture has been set
+            if (destination != null)
+                cmd.SetGlobalTexture(destination.name, destination);
+
             context.ExecuteCommandBuffer(cmd);
             CommandBufferPool.Release(cmd);
         }
