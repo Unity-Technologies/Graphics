@@ -1,6 +1,6 @@
 # Frame Settings
 
-Frame Settings are settings HDRP uses to render Cameras, real-time, baked, and custom reflections. You can set the default values fpr Frame Settings for each of these three individually from within the [HDRP Global Settings](Default-Settings-Window.md) tab (menu: **Edit > Project Settings > Graphics > HDRP Settings**).
+Frame Settings are settings HDRP uses to render Cameras, real-time, baked, and custom reflections. You can set the default values for Frame Settings for each of these three individually from within the [HDRP Global Settings](Default-Settings-Window.md) tab (menu: **Edit > Project Settings > Graphics > HDRP Settings**).
 
 ![](Images/FrameSettings1.png)
 
@@ -10,7 +10,7 @@ You can override the default value of a Frame Setting on a per component basis. 
 
 Note that baked Reflection Probes use the Frame Settings at baking time only. After that, HDRP uses the baked texture without modifying it with updated Frame Settings.
 
-Note: If Virtual Texturing is disabled on your Editor, the Virtual Texturing setting is grayed-out.
+Note: If [Virtual Texturing](https://docs.unity3d.com/Documentation/Manual/svt-streaming-virtual-texturing.html) is disabled in your project, the **Virtual Texturing** setting is grayed-out.
 
 Frame Settings affect all Cameras and Reflection Probes. HDRP handles Reflection Probes in the same way it does Cameras, this includes Frame Settings. All Cameras and Reflection Probes either use the default Frame Settings or a Frame Settings Override to render the Scene.
 
