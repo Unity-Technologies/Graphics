@@ -191,7 +191,7 @@ namespace UnityEngine.Rendering.HighDefinition.Compositor
             if (hdPipeline != null)
             {
                 m_AlphaSupport = AlphaChannelSupport.RenderingAndPostProcessing;
-                if (hdPipeline.asset.currentPlatformRenderPipelineSettings.colorBufferFormat == RenderPipelineSettings.ColorBufferFormat.R11G11B10)
+                if (hdPipeline.GetColorBufferFormat() == (GraphicsFormat)RenderPipelineSettings.ColorBufferFormat.R11G11B10)
                 {
                     m_AlphaSupport = AlphaChannelSupport.None;
                 }

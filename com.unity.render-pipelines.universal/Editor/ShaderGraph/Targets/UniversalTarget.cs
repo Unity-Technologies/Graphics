@@ -685,6 +685,11 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
         {
             { CoreKeywordDescriptors.UseLegacySpriteBlocks, 1, new FieldCondition(CoreFields.UseLegacySpriteBlocks, true) },
         };
+
+        public static readonly DefineCollection UseFragmentFog = new DefineCollection()
+        {
+            {CoreKeywordDescriptors.UseFragmentFog, 1},
+        };
     }
     #endregion
 
@@ -863,6 +868,13 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
         {
             displayName = "UseLegacySpriteBlocks",
             referenceName = "USELEGACYSPRITEBLOCKS",
+            type = KeywordType.Boolean,
+        };
+
+        public static readonly KeywordDescriptor UseFragmentFog = new KeywordDescriptor()
+        {
+            displayName = "UseFragmentFog",
+            referenceName = "_FOG_FRAGMENT 1",
             type = KeywordType.Boolean,
         };
     }

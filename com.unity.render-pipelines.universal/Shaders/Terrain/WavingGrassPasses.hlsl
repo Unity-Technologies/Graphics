@@ -58,7 +58,16 @@ void InitializeInputData(GrassVertexOutput input, out InputData inputData)
     inputData.shadowCoord = float4(0, 0, 0, 0);
 #endif
 
+#if defined(_FOG_FRAGMENT)
+    float clipZ = input.clipPos.z;
+    #if !UNITY_REVERSED_Z
+    clipZ = lerp(UNITY_NEAR_CLIP_VALUE, 1, clipZ);    // OpenGL NDC, -1 < z < 1
+    #endif
+    clipZ *= input.clipPos.w;
+    inputData.fogCoord = ComputeFogFactor(clipZ);
+#else
     inputData.fogCoord = input.fogFactorAndVertexLight.x;
+#endif
     inputData.vertexLighting = input.fogFactorAndVertexLight.yzw;
 
     inputData.bakedGI = SAMPLE_GI(input.lightmapUV, input.vertexSH, inputData.normalWS);
@@ -92,7 +101,11 @@ void InitializeVertData(GrassVertexInput input, inout GrassVertexOutput vertData
     OUTPUT_SH(vertData.normal, vertData.vertexSH);
 
     half3 vertexLight = VertexLighting(vertexInput.positionWS, vertData.normal.xyz);
+#if defined(_FOG_FRAGMENT)
+    half fogFactor = 0;
+#else
     half fogFactor = ComputeFogFactor(vertexInput.positionCS.z);
+#endif
     vertData.fogFactorAndVertexLight = half4(fogFactor, vertexLight);
 
 #if defined(REQUIRES_VERTEX_SHADOW_COORD_INTERPOLATOR)

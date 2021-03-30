@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using UnityEditor.AnimatedValues;
 using UnityEngine;
 using UnityEngine.Rendering.Universal;
@@ -101,17 +102,16 @@ namespace UnityEditor.Rendering.Universal
 
         protected override void OnEnable()
         {
-            m_AdditionalLightData = lightProperty.gameObject.GetComponent<UniversalAdditionalLightData>();
+            MultipleAdditionalLightDataCheck();
             settings.OnEnable();
-            init(m_AdditionalLightData);
             UpdateShowOptions(true);
         }
 
-        void init(UniversalAdditionalLightData additionalLightData)
+        void init(List<Object> additionalLightData)
         {
             if (additionalLightData == null)
                 return;
-            m_AdditionalLightDataSO = new SerializedObject(additionalLightData);
+            m_AdditionalLightDataSO = new SerializedObject(additionalLightData.ToArray());
             m_UseAdditionalDataProp = m_AdditionalLightDataSO.FindProperty("m_UsePipelineSettings");
             m_AdditionalLightsShadowResolutionTierProp = m_AdditionalLightDataSO.FindProperty("m_AdditionalLightsShadowResolutionTier");
 
@@ -127,7 +127,7 @@ namespace UnityEditor.Rendering.Universal
             // Light layers are stored in additional light data. We must create one if it doesn't exist.
             UniversalRenderPipelineAsset urpAsset = UniversalRenderPipeline.asset;
             if (urpAsset.supportsLightLayers && m_AdditionalLightDataSO == null)
-                CreateAdditionalLightData();
+                MultipleAdditionalLightDataCheck();
 
             if (s_Styles == null)
                 s_Styles = new Styles();
@@ -271,6 +271,7 @@ namespace UnityEditor.Rendering.Universal
 
         void DrawAdditionalShadowData()
         {
+            bool hasChanged = false;
             int selectedUseAdditionalData; // 0: Custom bias - 1: Bias values defined in Pipeline settings
 
             if (m_AdditionalLightDataSO == null)
@@ -287,39 +288,74 @@ namespace UnityEditor.Rendering.Universal
             Rect controlRectAdditionalData = EditorGUILayout.GetControlRect(true);
             if (m_AdditionalLightDataSO != null)
                 EditorGUI.BeginProperty(controlRectAdditionalData, Styles.shadowBias, m_UseAdditionalDataProp);
-
             EditorGUI.BeginChangeCheck();
-            selectedUseAdditionalData = EditorGUI.IntPopup(controlRectAdditionalData, Styles.shadowBias, selectedUseAdditionalData, Styles.displayedDefaultOptions, Styles.optionDefaultValues);
-            bool useAdditionalLightDataChanged = EditorGUI.EndChangeCheck();
 
+            selectedUseAdditionalData = EditorGUI.IntPopup(controlRectAdditionalData, Styles.shadowBias, selectedUseAdditionalData, Styles.displayedDefaultOptions, Styles.optionDefaultValues);
+            if (EditorGUI.EndChangeCheck())
+            {
+                hasChanged = true;
+            }
             if (m_AdditionalLightDataSO != null)
                 EditorGUI.EndProperty();
 
-            if (selectedUseAdditionalData != 1 && m_AdditionalLightDataSO != null)
+            // Check mixed values
+            if (!m_UseAdditionalDataProp.hasMultipleDifferentValues)
             {
-                EditorGUI.indentLevel++;
-                EditorGUILayout.Slider(settings.shadowsBias, 0f, 10f, "Depth");
-                EditorGUILayout.Slider(settings.shadowsNormalBias, 0f, 10f, Styles.ShadowNormalBias);
-                EditorGUI.indentLevel--;
+                if (selectedUseAdditionalData != 1 && m_AdditionalLightDataSO != null)
+                {
+                    EditorGUI.indentLevel++;
+                    EditorGUILayout.Slider(settings.shadowsBias, 0f, 10f, "Depth");
+                    EditorGUILayout.Slider(settings.shadowsNormalBias, 0f, 10f, Styles.ShadowNormalBias);
+                    EditorGUI.indentLevel--;
 
-                m_AdditionalLightDataSO.ApplyModifiedProperties();
+                    m_AdditionalLightDataSO.ApplyModifiedProperties();
+                }
             }
 
-            if (useAdditionalLightDataChanged)
+            if (hasChanged)
             {
                 if (m_AdditionalLightDataSO == null)
                 {
-                    CreateAdditionalLightData();
-
-                    var asset = UniversalRenderPipeline.asset;
-                    settings.shadowsBias.floatValue = asset.shadowDepthBias;
-                    settings.shadowsNormalBias.floatValue = asset.shadowNormalBias;
-                    settings.shadowsResolution.intValue = UniversalAdditionalLightData.AdditionalLightsShadowDefaultCustomResolution;
+                    MultipleAdditionalLightDataCheck();
+                    SetupSettings();
                 }
+                else
+                {
+                    foreach (var lightTarget in targets)
+                    {
+                        var additionData = (lightTarget as Component).gameObject.GetComponent<UniversalAdditionalLightData>();
+                        if (additionData == null)
+                            break;
 
-                m_UseAdditionalDataProp.intValue = selectedUseAdditionalData;
+                        additionData.usePipelineSettings = selectedUseAdditionalData != 0;
+                    }
+                }
                 m_AdditionalLightDataSO.ApplyModifiedProperties();
             }
+        }
+
+        void MultipleAdditionalLightDataCheck()
+        {
+            var additionalLightList = new List<Object>();
+            foreach (var lightTarget in targets)
+            {
+                var additionData = (lightTarget as Component).gameObject.GetComponent<UniversalAdditionalLightData>();
+                if (additionData == null)
+                    additionData = (lightTarget as Component).gameObject.AddComponent<UniversalAdditionalLightData>();
+
+                additionalLightList.Add(additionData);
+            }
+            m_AdditionalLightData = (target as Component).gameObject.GetComponent<UniversalAdditionalLightData>();
+
+            init(additionalLightList);
+        }
+
+        void SetupSettings()
+        {
+            var asset = UniversalRenderPipeline.asset;
+            settings.shadowsBias.floatValue = asset.shadowDepthBias;
+            settings.shadowsNormalBias.floatValue = asset.shadowNormalBias;
+            settings.shadowsResolution.intValue = UniversalAdditionalLightData.AdditionalLightsShadowDefaultCustomResolution;
         }
 
         void DrawShadowsResolutionGUI()
@@ -391,15 +427,8 @@ namespace UnityEditor.Rendering.Universal
             {
                 if (m_AdditionalLightDataSO == null)
                 {
-                    lightProperty.gameObject.AddComponent<UniversalAdditionalLightData>();
-                    m_AdditionalLightData = lightProperty.gameObject.GetComponent<UniversalAdditionalLightData>();
-
-                    UniversalRenderPipelineAsset asset = GraphicsSettings.renderPipelineAsset as UniversalRenderPipelineAsset;
-                    settings.shadowsBias.floatValue = asset.shadowDepthBias;
-                    settings.shadowsNormalBias.floatValue = asset.shadowNormalBias;
-                    settings.shadowsResolution.intValue = UniversalAdditionalLightData.AdditionalLightsShadowDefaultCustomResolution;
-
-                    init(m_AdditionalLightData);
+                    MultipleAdditionalLightDataCheck();
+                    SetupSettings();
                 }
 
                 m_AdditionalLightsShadowResolutionTierProp.intValue = shadowResolutionTier;
@@ -483,13 +512,6 @@ namespace UnityEditor.Rendering.Universal
                 EditorGUILayout.HelpBox(s_Styles.BakingWarning.text, MessageType.Warning);
 
             EditorGUILayout.Space();
-        }
-
-        void CreateAdditionalLightData()
-        {
-            lightProperty.gameObject.AddComponent<UniversalAdditionalLightData>();
-            m_AdditionalLightData = lightProperty.gameObject.GetComponent<UniversalAdditionalLightData>();
-            init(m_AdditionalLightData);
         }
 
         internal static void DrawLightLayerMask(SerializedProperty property, GUIContent style)
