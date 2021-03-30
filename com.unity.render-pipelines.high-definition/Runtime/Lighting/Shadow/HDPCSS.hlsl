@@ -86,11 +86,25 @@ static const float2 fibonacciSpiralDirection[DISK_SAMPLE_COUNT] =
     float2 (0.9205789302157817, 0.3905565685566777)
 };
 
-real2 ComputeFibonacciSpiralDiskSample(const in int sampleIndex, const in real diskRadius, const in real sampleCountInverse, const in real sampleCountBias)
+real2 FibonacciSpiralDiskSample(const in real normalizedSampleIndex, const in int sampleIndex, const in real diskRadius)
 {
-    real sampleRadius = diskRadius * sqrt((real)sampleIndex * sampleCountInverse + sampleCountBias);
+    real sampleRadius = diskRadius * normalizedSampleIndex;
     real2 sampleDirection = fibonacciSpiralDirection[sampleIndex];
     return sampleDirection * sampleRadius;
+}
+
+// Samples uniformly spread across the disk kernel
+real2 ComputeFibonacciSpiralDiskSampleUniform(const in int sampleIndex, const in real diskRadius, const in real sampleCountInverse)
+{
+    real normalizedSampleIndex = sqrt((real)sampleIndex * sampleCountInverse);
+    return FibonacciSpiralDiskSample(normalizedSampleIndex, sampleIndex, diskRadius);
+}
+
+// Samples denser near the center - important for blocker search
+real2 ComputeFibonacciSpiralDiskSample(const in int sampleIndex, const in real diskRadius, const in real sampleCountInverse)
+{
+    real normalizedSampleIndex = (real)sampleIndex * sampleCountInverse;
+    return FibonacciSpiralDiskSample(normalizedSampleIndex, sampleIndex, diskRadius);
 }
 
 real PenumbraSizePunctual(real Reciever, real Blocker)
@@ -103,22 +117,33 @@ real PenumbraSizeDirectional(real Reciever, real Blocker, real rangeScale)
     return abs(Reciever - Blocker) * rangeScale;
 }
 
+real VisibilityConeZOffset(real3 coord, real2 offset)
+{
+    // TODO: make this work for non-reversed z
+    real distToNear = 1.0 - coord.z;
+    real2 zoffset = abs(offset) * distToNear / (offset < 0 ? coord.xy : 1.0 - coord.xy);
+
+    // To be exact this is a pyramid, no a cone
+    return max(zoffset.x, zoffset.y);
+}
+
 bool BlockerSearch(inout real averageBlockerDepth, inout real numBlockers, real lightArea, real3 coord, real2 sampleJitter, Texture2D shadowMap, SamplerState pointSampler, int sampleCount)
 {
     real blockerSum = 0.0;
     real sampleCountInverse = rcp((real)sampleCount);
-    real sampleCountBias = 0.5 * sampleCountInverse;
     real ditherRotation = sampleJitter.x;
 
     for (int i = 0; i < sampleCount && i < DISK_SAMPLE_COUNT; ++i)
     {
-        real2 offset = ComputeFibonacciSpiralDiskSample(i, lightArea, sampleCountInverse, sampleCountBias);
+        real2 offset = ComputeFibonacciSpiralDiskSample(i, lightArea, sampleCountInverse);
         offset = real2(offset.x *  sampleJitter.y + offset.y * sampleJitter.x,
                        offset.x * -sampleJitter.x + offset.y * sampleJitter.y);
 
         real shadowMapDepth = SAMPLE_TEXTURE2D_LOD(shadowMap, pointSampler, coord.xy + offset, 0.0).x;
 
-        if (COMPARE_DEVICE_DEPTH_CLOSER(shadowMapDepth, coord.z))
+        real zoffset = VisibilityConeZOffset(coord, offset);
+
+        if (COMPARE_DEVICE_DEPTH_CLOSER(shadowMapDepth, coord.z + zoffset))
         {
             blockerSum  += shadowMapDepth;
             numBlockers += 1.0;
@@ -144,12 +169,14 @@ real PCSS(real3 coord, real filterRadius, real2 scale, real2 offset, real2 sampl
 
     for (int i = 0; i < sampleCount && i < DISK_SAMPLE_COUNT; ++i)
     {
-        real2 offset = ComputeFibonacciSpiralDiskSample(i, filterRadius, sampleCountInverse, sampleCountBias);
+        real2 offset = ComputeFibonacciSpiralDiskSampleUniform(i, filterRadius, sampleCountInverse);
         offset = real2(offset.x *  sampleJitter.y + offset.y * sampleJitter.x,
                        offset.x * -sampleJitter.x + offset.y * sampleJitter.y);
 
         real U = coord.x + offset.x;
         real V = coord.y + offset.y;
+
+        real zoffset = VisibilityConeZOffset(coord, offset);
 
         //NOTE: We must clamp the sampling within the bounds of the shadow atlas.
         //        Overfiltering will leak results from other shadow lights.
@@ -157,9 +184,9 @@ real PCSS(real3 coord, real filterRadius, real2 scale, real2 offset, real2 sampl
         // coord.xy = clamp(coord.xy, float2(UMin, VMin), float2(UMax, VMax));
 
         if (U <= UMin || U >= UMax || V <= VMin || V >= VMax)
-            sum += SAMPLE_TEXTURE2D_SHADOW(shadowMap, compSampler, real3(coord.xy, coord.z)).r;
+            sum += SAMPLE_TEXTURE2D_SHADOW(shadowMap, compSampler, real3(coord.xy, coord.z + zoffset)).r;
         else
-            sum += SAMPLE_TEXTURE2D_SHADOW(shadowMap, compSampler, real3(U, V, coord.z)).r;
+            sum += SAMPLE_TEXTURE2D_SHADOW(shadowMap, compSampler, real3(U, V, coord.z + zoffset)).r;
     }
 
     return sum / sampleCount;
