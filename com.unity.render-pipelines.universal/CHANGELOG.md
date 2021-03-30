@@ -14,6 +14,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Added support for the PlayStation 5 platform.
 - Enabled deferred renderer in UI.
 - Fixed an error where multisampled texture being bound to a non-multisampled sampler in XR. [case 1297013](https://issuetracker.unity3d.com/issues/android-urp-black-screen-when-building-project-to-an-android-device-with-mock-hmd-enabled-and-multisampled-sampler-errors)
+- Added _SURFACE_TYPE_TRANSPARENT keyword to URP and ShaderGraph shaders.
 
 ### Changed
 - ClearFlag.Depth does not implicitely clear stencil anymore. ClearFlag.Stencil added.
@@ -76,6 +77,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed errors when the Profiler is used with XR multipass. [case 1313141](https://issuetracker.unity3d.com/issues/xr-urp-profiler-spams-errors-in-the-console-upon-entering-play-mode)
 - Fixed materials being constantly dirty.
 - Fixed double sided and clear coat multi editing shader.
+- Fixed an issue where transparent objects sampled SSAO.
 
 ### Changed
 - Change Asset/Create/Shader/Universal Render Pipeline/Lit Shader Graph to Asset/Create/Shader Graph/URP/Lit Shader Graph

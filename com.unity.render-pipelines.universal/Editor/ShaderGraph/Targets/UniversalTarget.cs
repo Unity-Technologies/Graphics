@@ -872,7 +872,8 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
             referenceName = "_SURFACE_TYPE_TRANSPARENT",
             type = KeywordType.Boolean,
             definition = KeywordDefinition.ShaderFeature,
-            scope = KeywordScope.Global,
+            scope = KeywordScope.Local,
+            stages = KeywordShaderStage.Fragment
         };
     }
     #endregion
