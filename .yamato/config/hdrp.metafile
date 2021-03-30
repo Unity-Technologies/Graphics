@@ -166,3 +166,9 @@ nightly:
       color_space: Linear
       test_platforms:
         - editmode
+    - platform: OSX
+      api: Metal
+      build_config: mono
+      color_space: Linear
+      test_platforms:
+        - Standalone_cache
