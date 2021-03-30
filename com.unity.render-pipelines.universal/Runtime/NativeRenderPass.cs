@@ -13,6 +13,10 @@ namespace UnityEngine.Rendering.Universal
     {
         private const int kRenderPassMapSize = 10;
         private const int kRenderPassMaxCount = 20;
+
+        // used to keep track of the index of the last pass when we called BeginSubpass
+        private int m_LastBeginSubpassSceneIndex = 0;
+
         private Dictionary<Hash128, int[]> mergeableRenderPassesMap = new Dictionary<Hash128, int[]>(kRenderPassMapSize);
         private int[][] mergeableRenderPassesMapArrays;
         private Hash128[] sceneIndexToPassHash = new Hash128[kRenderPassMaxCount];
@@ -373,14 +377,17 @@ namespace UnityEngine.Rendering.Universal
                     attachments.Dispose();
 
                     context.BeginSubPass(attachmentIndices);
+
+                    m_LastBeginSubpassSceneIndex = currentSceneIndex;
                 }
                 else
                 {
-                    if (!AreAttachmentIndicesCompatible(m_ActiveRenderPassQueue[currentSceneIndex - 1],
-                        m_ActiveRenderPassQueue[currentSceneIndex]))
+                    if (!AreAttachmentIndicesCompatible(m_ActiveRenderPassQueue[m_LastBeginSubpassSceneIndex], m_ActiveRenderPassQueue[currentSceneIndex]))
                     {
                         context.EndSubPass();
                         context.BeginSubPass(attachmentIndices);
+
+                        m_LastBeginSubpassSceneIndex = currentSceneIndex;
                     }
                 }
 
@@ -392,6 +399,8 @@ namespace UnityEngine.Rendering.Universal
                 {
                     context.EndSubPass();
                     context.EndRenderPass();
+
+                    m_LastBeginSubpassSceneIndex = 0;
                 }
 
                 for (int i = 0; i < m_ActiveColorAttachmentDescriptors.Length; ++i)
