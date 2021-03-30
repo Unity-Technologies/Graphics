@@ -126,7 +126,11 @@ VaryingsLensFlare vert(AttributesLensFlare input, uint instanceID : SV_InstanceI
     local.x *= screenRatio;
 
     output.positionCS.xy = local + _ScreenPos + _FlareRayOffset + _PositionOffset;
-    output.positionCS.zw = posPreScale.zw;
+    output.positionCS.z = 1.0f;
+    output.positionCS.w = 1.0f;
+
+    output.positionCS.x = (output.positionCS.x + 1.0f) * _RTHandleScale.x - 1.0f;
+    output.positionCS.y = (output.positionCS.y - 1.0f) * _RTHandleScale.y + 1.0f;
 
 #if FLARE_OCCLUSION
     float occlusion = GetOcclusion(_ScreenPos.xy, _ScreenPosZ, screenRatio);
