@@ -245,10 +245,6 @@ namespace UnityEngine.Rendering.HighDefinition
             if (m_atlas != null)
             {
                 DensityVolumeManager.DynamicDensityVolumeCallback?.Invoke(m_volumes, cmd, m_atlas);
-                // Currently, the mipchain of the whole atlas is regenerated even if a single
-                // sub-texture is touched. This is an optimization opportunity. Details here:
-                // https://docs.google.com/document/d/12glZGvntX2pQ0Reh9pqlRmfi_5wmIQG1zAqI1myqN5g/edit#heading=h.3cvzkltd785j
-                m_atlas.rt.GenerateMips();
             }
 
             NotifyAtlasUpdated();
