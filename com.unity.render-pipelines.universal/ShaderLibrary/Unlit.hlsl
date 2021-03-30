@@ -8,8 +8,10 @@
 
 half4 UniversalFragmentUnlit(InputData inputData, SurfaceData surfaceData)
 {
+    half3 albedo = surfaceData.albedo;
+
     #if defined(_ALPHAPREMULTIPLY_ON)
-    surfaceData.albedo *= surfaceData.alpha;
+    albedo *= surfaceData.alpha;
     #endif
 
     #if defined(_DEBUG_SHADER)
@@ -21,7 +23,9 @@ half4 UniversalFragmentUnlit(InputData inputData, SurfaceData surfaceData)
     }
     #endif
 
-    return half4(surfaceData.albedo, surfaceData.alpha);
+    half4 finalColor = half4(albedo + surfaceData.emission, surfaceData.alpha);
+
+    return finalColor;
 }
 
 // TODO: Legacy code - is it safe to remove this?
@@ -31,11 +35,11 @@ half4 UniversalFragmentUnlit(InputData inputData, half3 color, half alpha)
 
     surfaceData.albedo = color;
     surfaceData.alpha = alpha;
-    surfaceData.emission = half3(0, 0, 0);
+    surfaceData.emission = 0;
     surfaceData.metallic = 0;
     surfaceData.occlusion = 1;
     surfaceData.smoothness = 1;
-    surfaceData.specular = half3(0, 0, 0);
+    surfaceData.specular = 0;
     surfaceData.clearCoatMask = 0;
     surfaceData.clearCoatSmoothness = 1;
     surfaceData.normalTS = half3(0, 0, 1);

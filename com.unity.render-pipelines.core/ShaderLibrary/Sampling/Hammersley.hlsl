@@ -1,6 +1,8 @@
 #ifndef UNITY_HAMMERSLEY_INCLUDED
 #define UNITY_HAMMERSLEY_INCLUDED
 
+#pragma warning (disable : 3205) // conversion of larger type to smaller
+
 // Ref: http://holger.dammertz.org/stuff/notes_HammersleyOnHemisphere.html
 uint ReverseBits32(uint bits)
 {
@@ -419,5 +421,7 @@ real2 Hammersley2d(uint i, uint sampleCount)
         default:  return Hammersley2dSeq(i, sampleCount);
     }
 }
+
+#pragma warning (enable : 3205) // conversion of larger type to smaller
 
 #endif // UNITY_HAMMERSLEY_INCLUDED

@@ -71,10 +71,10 @@ void InitializeInputData(Varyings input, half3 normalTS, out InputData inputData
     #endif
 
     #ifdef _ADDITIONAL_LIGHTS_VERTEX
-        inputData.fogCoord = input.fogFactorAndVertexLight.x;
+        inputData.fogCoord = InitializeInputDataFog(float4(input.posWS, 1.0), input.fogFactorAndVertexLight.x);
         inputData.vertexLighting = input.fogFactorAndVertexLight.yzw;
     #else
-        inputData.fogCoord = input.fogFactor;
+        inputData.fogCoord = InitializeInputDataFog(float4(input.positionWS, 1.0), input.fogFactor);
         inputData.vertexLighting = half3(0, 0, 0);
     #endif
 
@@ -107,7 +107,11 @@ Varyings LitPassVertexSimple(Attributes input)
     VertexPositionInputs vertexInput = GetVertexPositionInputs(input.positionOS.xyz);
     VertexNormalInputs normalInput = GetVertexNormalInputs(input.normalOS, input.tangentOS);
 
-    half fogFactor = ComputeFogFactor(vertexInput.positionCS.z);
+#if defined(_FOG_FRAGMENT)
+        half fogFactor = 0;
+#else
+        half fogFactor = ComputeFogFactor(vertexInput.positionCS.z);
+#endif
 
     output.uv = TRANSFORM_TEX(input.texcoord, _BaseMap);
     output.positionWS.xyz = vertexInput.positionWS;

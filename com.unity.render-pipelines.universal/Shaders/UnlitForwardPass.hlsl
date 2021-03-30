@@ -1,4 +1,7 @@
 
+#ifndef URP_UNLIT_FORWARD_PASS_INCLUDED
+#define URP_UNLIT_FORWARD_PASS_INCLUDED
+
 #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Unlit.hlsl"
 
 struct Attributes
@@ -70,7 +73,11 @@ Varyings UniversalVertexUnlit(Attributes input)
 
     output.positionCS = vertexInput.positionCS;
     output.uv = TRANSFORM_TEX(input.uv, _BaseMap);
+    #if defined(_FOG_FRAGMENT)
+    output.fogCoord = vertexInput.positionVS.z;
+    #else
     output.fogCoord = ComputeFogFactor(vertexInput.positionCS.z);
+    #endif
 
     #if defined(_DEBUG_SHADER)
     // normalWS and tangentWS already normalize.
@@ -104,9 +111,22 @@ half4 UniversalFragmentUnlit(Varyings input) : SV_Target
     InitializeInputData(input, inputData);
     SETUP_DEBUG_TEXTURE_DATA(inputData, input.uv, _BaseMap);
 
+    #if defined(_FOG_FRAGMENT)
+        #if (defined(FOG_LINEAR) || defined(FOG_EXP) || defined(FOG_EXP2))
+        float viewZ = -input.fogCoord;
+        float nearToFarZ = max(viewZ - _ProjectionParams.y, 0);
+        half fogFactor = ComputeFogFactorZ0ToFar(nearToFarZ);
+        #else
+        half fogFactor = 0;
+        #endif
+    #else
+    half fogFactor = input.fogCoord;
+    #endif
     half4 finalColor = UniversalFragmentUnlit(inputData, color, alpha);
 
-    finalColor.rgb = MixFog(finalColor.rgb, input.fogCoord);
+    finalColor.rgb = MixFog(finalColor.rgb, fogFactor);
 
     return finalColor;
 }
+
+#endif

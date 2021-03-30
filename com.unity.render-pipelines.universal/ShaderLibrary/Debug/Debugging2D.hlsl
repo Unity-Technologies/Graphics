@@ -8,8 +8,8 @@
 
 #if defined(_DEBUG_SHADER)
 
-#define SETUP_DEBUG_TEXTURE_DATA(inputData, positionWS, texture)    SetupDebugDataTexture(inputData, positionWS, texture##_TexelSize, texture##_MipInfo, GetMipCount(texture))
-#define SETUP_DEBUG_DATA(inputData, positionWS)                     SetupDebugData(inputData, positionWS)
+#define SETUP_DEBUG_TEXTURE_DATA_2D(inputData, positionWS, texture)    SetupDebugDataTexture(inputData, positionWS, texture##_TexelSize, texture##_MipInfo, GetMipCount(texture))
+#define SETUP_DEBUG_DATA_2D(inputData, positionWS)                     SetupDebugData(inputData, positionWS)
 
 void SetupDebugData(inout InputData2D inputData, float3 positionWS)
 {
@@ -161,8 +161,8 @@ bool CanDebugOverrideOutputColor(inout SurfaceData2D surfaceData, inout InputDat
 
 #else
 
-#define SETUP_DEBUG_TEXTURE_DATA(inputData, positionWS, texture)
-#define SETUP_DEBUG_DATA(inputData, positionWS)
+#define SETUP_DEBUG_TEXTURE_DATA_2D(inputData, positionWS, texture)
+#define SETUP_DEBUG_DATA_2D(inputData, positionWS)
 
 #endif
 

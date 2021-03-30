@@ -309,7 +309,7 @@ Shader "Universal Render Pipeline/2D/Sprite-Lit-Default"
 
                 InitializeSurfaceData(main.rgb, main.a, mask, normalTS, surfaceData);
                 InitializeInputData(i.uv, i.lightingUV, inputData);
-                SETUP_DEBUG_TEXTURE_DATA(inputData, i.positionWS, _MainTex);
+                SETUP_DEBUG_TEXTURE_DATA_2D(inputData, i.positionWS, _MainTex);
 
                 return CombinedShapeLightShared(surfaceData, inputData);
             }
