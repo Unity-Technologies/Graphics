@@ -26,6 +26,19 @@ namespace UnityEngine.Rendering.Universal
             public static readonly ProfilingSampler execute = new ProfilingSampler($"NativeRenderPass {nameof(NativeRenderPassExecute)}");
         }
 
+        internal struct RenderPassDescriptor
+        {
+            internal int w, h, samples, depthID;
+
+            internal RenderPassDescriptor(int width, int height, int sampleCount, int rtID)
+            {
+                w = width;
+                h = height;
+                samples = sampleCount;
+                depthID = rtID;
+            }
+        }
+
         internal static void ResetFrameData()
         {
             if (mergeableRenderPassesMapArrays == null)
@@ -66,16 +79,12 @@ namespace UnityEngine.Rendering.Universal
 
                 // Empty configure to setup dimensions/targets and whatever data is needed for merging
                 // We do not execute this at this time, so render targets are still invalid
-
-                var width = renderPass.renderTargetWidth != -1 ? renderPass.renderTargetWidth : cameraData.cameraTargetDescriptor.width;
-                var height = renderPass.renderTargetHeight != -1 ? renderPass.renderTargetHeight : cameraData.cameraTargetDescriptor.height;
-                var sampleCount = renderPass.renderTargetSampleCount != -1 ? renderPass.renderTargetSampleCount : cameraData.cameraTargetDescriptor.msaaSamples;
-                var rtID = renderPass.depthOnly ? renderPass.colorAttachment.GetHashCode() : renderPass.depthAttachment.GetHashCode();
+                var rpDesc = InitializeRenderPassDescriptor(cameraData, renderPass);
 
                 renderPass.isLastPass = false;
                 renderPass.sceneIndex = i;
 
-                Hash128 hash = CreateRenderPassHash(width, height, rtID, sampleCount, currentHashIndex);
+                Hash128 hash = CreateRenderPassHash(rpDesc, currentHashIndex);
 
                 sceneIndexToPassHash[i] = hash;
 
@@ -93,7 +102,7 @@ namespace UnityEngine.Rendering.Universal
                     // if the passes are not sequential we want to split the current mergeable passes list. So we increment the hashIndex and update the hash
 
                     currentHashIndex++;
-                    hash = CreateRenderPassHash(width, height, rtID, sampleCount, currentHashIndex);
+                    hash = CreateRenderPassHash(rpDesc, currentHashIndex);
 
                     sceneIndexToPassHash[i] = hash;
 
@@ -371,13 +380,7 @@ namespace UnityEngine.Rendering.Universal
                 if (useDepth && !depthOnly)
                     attachments[validColorBuffersCount] = activeDepthAttachmentDescriptor;
 
-                var desc = renderingData.cameraData.cameraTargetDescriptor;
-                var sampleCount = desc.msaaSamples;
-                int width = renderPass.renderTargetWidth != -1 ? renderPass.renderTargetWidth : desc.width;
-                int height = renderPass.renderTargetHeight != -1 ? renderPass.renderTargetHeight : desc.height;
-                sampleCount = renderPass.renderTargetSampleCount != -1
-                    ? renderPass.renderTargetSampleCount
-                    : sampleCount;
+                var rpDesc = InitializeRenderPassDescriptor(cameraData, renderPass);
 
                 bool isFirstMergeablePass = currentMergeablePasses[0] == currentSceneIndex;
                 int validPassCount = GetValidPassIndexCount(currentMergeablePasses);
@@ -397,7 +400,7 @@ namespace UnityEngine.Rendering.Universal
 
                 if (validPassCount == 1 || isFirstMergeablePass)
                 {
-                    context.BeginRenderPass(width, height, Math.Max(sampleCount, 1), attachments,
+                    context.BeginRenderPass(rpDesc.w, rpDesc.h, Math.Max(rpDesc.samples, 1), attachments,
                         useDepth ? (!depthOnly ? validColorBuffersCount : 0) : -1);
                     attachments.Dispose();
 
@@ -507,7 +510,21 @@ namespace UnityEngine.Rendering.Universal
 
         internal static Hash128 CreateRenderPassHash(int width, int height, int depthID, int sample, uint hashIndex)
         {
-            return new Hash128((uint)width * 10000 + (uint)height, (uint)depthID, (uint)sample, hashIndex);
+            return new Hash128((uint) width * 10000 + (uint) height, (uint) depthID, (uint) sample, hashIndex);
+        }
+
+        internal static Hash128 CreateRenderPassHash(RenderPassDescriptor desc, uint hashIndex)
+        {
+            return new Hash128((uint) desc.w * 10000 + (uint) desc.h, (uint)desc.depthID, (uint)desc.samples, hashIndex);
+        }
+
+    private static RenderPassDescriptor InitializeRenderPassDescriptor(CameraData cameraData, ScriptableRenderPass renderPass)
+        {
+            var w = renderPass.renderTargetWidth != -1 ? renderPass.renderTargetWidth : cameraData.cameraTargetDescriptor.width;
+            var h = renderPass.renderTargetHeight != -1 ? renderPass.renderTargetHeight : cameraData.cameraTargetDescriptor.height;
+            var samples = renderPass.renderTargetSampleCount != -1 ? renderPass.renderTargetSampleCount : cameraData.cameraTargetDescriptor.msaaSamples;
+            var depthID = renderPass.depthOnly ? renderPass.colorAttachment.GetHashCode() : renderPass.depthAttachment.GetHashCode();
+            return new RenderPassDescriptor(w, h, samples, depthID);
         }
     }
 }
