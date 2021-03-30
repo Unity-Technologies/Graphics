@@ -221,11 +221,13 @@ int GetPerObjectLightIndex(uint index)
     // since index is uint shader compiler will implement
     // div & mod as bitfield ops (shift and mask).
 
-    // TODO: Can we index a float4? Currently compiler is
-    // replacing unity_LightIndicesX[i] with a dp4 with identity matrix.
+    // For unity_LightIndices[index / 4][index % 4]
+    // Compiler is replacing unity_LightIndicesX[i] with a dp4 with identity matrix.
     // u_xlat16_40 = dot(unity_LightIndices[int(u_xlatu13)], ImmCB_0_0_0[u_xlati1]);
     // This increases both arithmetic and register pressure.
-    return int(unity_LightIndices[index / 4][index % 4]);
+    //
+    // Use select4 to avoid bad codegen.
+    return int(Select4(unity_LightIndices[index / 4], index % 4));
 #else
     // Fallback to GLES2. No bitfield magic here :(.
     // We limit to 4 indices per object and only sample unity_4LightIndices0.
