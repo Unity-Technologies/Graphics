@@ -125,7 +125,7 @@ namespace UnityEngine.Rendering.Universal
                 m_ActiveRenderPassQueue[lastPassIndex].isLastPass = true;
 
                 for (int i = 0; i < m_ActiveRenderPassQueue.Count; ++i)
-                    m_ActiveRenderPassQueue[i].attachmentIndices = new NativeArray<int>(8, Allocator.Temp);
+                    m_ActiveRenderPassQueue[i].m_InputAttachmentIndices = new NativeArray<int>(8, Allocator.Temp);
             }
         }
 
@@ -150,8 +150,8 @@ namespace UnityEngine.Rendering.Universal
                         break;
                     ScriptableRenderPass pass = m_ActiveRenderPassQueue[passIdx];
 
-                    for (int i = 0; i < pass.attachmentIndices.Length; ++i)
-                        pass.attachmentIndices[i] = -1;
+                    for (int i = 0; i < pass.m_InputAttachmentIndices.Length; ++i)
+                        pass.m_InputAttachmentIndices[i] = -1;
 
                     // TODO: review the lastPassToBB logic to mak it work with merged passes
                     bool isLastPassToBB = false;
@@ -176,7 +176,7 @@ namespace UnityEngine.Rendering.Universal
                             if (needCustomCameraColorClear)
                                 m_ActiveColorAttachmentDescriptors[currentAttachmentIdx].ConfigureClear(Color.black, 1.0f, 0);
 
-                            pass.attachmentIndices[i] = currentAttachmentIdx;
+                            pass.m_InputAttachmentIndices[i] = currentAttachmentIdx;
 
                             currentAttachmentIdx++;
                             renderPassesAttachmentCount[currentPassHash]++;
@@ -184,7 +184,7 @@ namespace UnityEngine.Rendering.Universal
                         else
                         {
                             // attachment was already present
-                            pass.attachmentIndices[i] = existingAttachmentIndex;
+                            pass.m_InputAttachmentIndices[i] = existingAttachmentIndex;
                         }
                     }
 
@@ -218,8 +218,8 @@ namespace UnityEngine.Rendering.Universal
                         break;
                     ScriptableRenderPass pass = m_ActiveRenderPassQueue[passIdx];
 
-                    for (int i = 0; i < pass.attachmentIndices.Length; ++i)
-                        pass.attachmentIndices[i] = -1;
+                    for (int i = 0; i < pass.m_InputAttachmentIndices.Length; ++i)
+                        pass.m_InputAttachmentIndices[i] = -1;
 
                     AttachmentDescriptor currentAttachmentDescriptor;
                     var usesTargetTexture = cameraData.targetTexture != null;
@@ -285,7 +285,7 @@ namespace UnityEngine.Rendering.Universal
                     if (existingAttachmentIndex == -1)
                     {
                         // add a new attachment
-                        pass.attachmentIndices[0] = currentAttachmentIdx;
+                        pass.m_InputAttachmentIndices[0] = currentAttachmentIdx;
                         m_ActiveColorAttachmentDescriptors[currentAttachmentIdx] = currentAttachmentDescriptor;
                         currentAttachmentIdx++;
                         renderPassesAttachmentCount[currentPassHash]++;
@@ -293,7 +293,7 @@ namespace UnityEngine.Rendering.Universal
                     else
                     {
                         // attachment was already present
-                        pass.attachmentIndices[0] = existingAttachmentIndex;
+                        pass.m_InputAttachmentIndices[0] = existingAttachmentIndex;
                     }
                 }
             }
@@ -362,7 +362,7 @@ namespace UnityEngine.Rendering.Universal
                 {
                     for (int i = 0; i < attachmentIndicesCount; ++i)
                     {
-                        attachmentIndices[i] = renderPass.attachmentIndices[i];
+                        attachmentIndices[i] = renderPass.m_InputAttachmentIndices[i];
                     }
                 }
 
@@ -407,7 +407,7 @@ namespace UnityEngine.Rendering.Universal
         {
             uint numValidAttachments = 0;
 
-            foreach (var attIdx in pass.attachmentIndices)
+            foreach (var attIdx in pass.m_InputAttachmentIndices)
             {
                 if (attIdx >= 0)
                     ++numValidAttachments;
@@ -429,7 +429,7 @@ namespace UnityEngine.Rendering.Universal
             {
                 for (int lastPassIdx = 0; lastPassIdx < lastSubPassAttCount; ++lastPassIdx)
                 {
-                    if (currentSubPass.attachmentIndices[currPassIdx] == lastSubPass.attachmentIndices[lastPassIdx])
+                    if (currentSubPass.m_InputAttachmentIndices[currPassIdx] == lastSubPass.m_InputAttachmentIndices[lastPassIdx])
                         numEqualAttachments++;
                 }
             }
