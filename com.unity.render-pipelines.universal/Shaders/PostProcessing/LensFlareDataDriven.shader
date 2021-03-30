@@ -8,7 +8,6 @@ Shader "Hidden/Universal Render Pipeline/LensFlareDataDriven"
             Name "LensFlareAdditive"
             Tags { "Queue" = "Transparent" "RenderType" = "Transparent" "RenderPipeline" = "UniversalPipeline" }
             LOD 100
-            //Tags {"RenderType" = "Transparent" "RenderQueue" = "Transparent" "IgnoreProjector" = "True" "RenderPipeline" = "UniversalPipeline" "ShaderModel" = "2.0"}
 
             Blend One One
             ZWrite Off
@@ -28,9 +27,10 @@ Shader "Hidden/Universal Render Pipeline/LensFlareDataDriven"
             #pragma multi_compile_vertex _ FLARE_OCCLUSION
 
             #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Common.hlsl"
-            #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/UnityInput.hlsl"
 
             #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Core.hlsl"
+            #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/DeclareDepthTexture.hlsl"
+            #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/UnityInput.hlsl"
             #include "Packages/com.unity.render-pipelines.universal/Shaders/PostProcessing/Common.hlsl"
 
             #include "Packages/com.unity.render-pipelines.core/Runtime/PostProcessing/Shaders/LensFlareHDRPCommon.hlsl"
@@ -63,9 +63,10 @@ Shader "Hidden/Universal Render Pipeline/LensFlareDataDriven"
             #pragma multi_compile_vertex _ FLARE_OCCLUSION
 
             #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Common.hlsl"
-            #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/UnityInput.hlsl"
 
             #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Core.hlsl"
+            #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/DeclareDepthTexture.hlsl"
+            #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/UnityInput.hlsl"
             #include "Packages/com.unity.render-pipelines.universal/Shaders/PostProcessing/Common.hlsl"
 
             #include "Packages/com.unity.render-pipelines.core/Runtime/PostProcessing/Shaders/LensFlareHDRPCommon.hlsl"
@@ -98,9 +99,10 @@ Shader "Hidden/Universal Render Pipeline/LensFlareDataDriven"
             #pragma multi_compile_vertex _ FLARE_OCCLUSION
 
             #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Common.hlsl"
-            #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/UnityInput.hlsl"
 
             #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Core.hlsl"
+            #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/DeclareDepthTexture.hlsl"
+            #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/UnityInput.hlsl"
             #include "Packages/com.unity.render-pipelines.universal/Shaders/PostProcessing/Common.hlsl"
 
             #include "Packages/com.unity.render-pipelines.core/Runtime/PostProcessing/Shaders/LensFlareHDRPCommon.hlsl"
@@ -133,9 +135,10 @@ Shader "Hidden/Universal Render Pipeline/LensFlareDataDriven"
             #pragma multi_compile_vertex _ FLARE_OCCLUSION
 
             #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Common.hlsl"
-            #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/UnityInput.hlsl"
 
             #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Core.hlsl"
+            #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/DeclareDepthTexture.hlsl"
+            #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/UnityInput.hlsl"
             #include "Packages/com.unity.render-pipelines.universal/Shaders/PostProcessing/Common.hlsl"
 
             #include "Packages/com.unity.render-pipelines.core/Runtime/PostProcessing/Shaders/LensFlareHDRPCommon.hlsl"
@@ -144,4 +147,3 @@ Shader "Hidden/Universal Render Pipeline/LensFlareDataDriven"
         }
     }
 }
-

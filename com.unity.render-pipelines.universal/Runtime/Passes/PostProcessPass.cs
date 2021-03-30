@@ -59,6 +59,9 @@ namespace UnityEngine.Rendering.Universal.Internal
         RenderTargetIdentifier[] m_MRT2;
         Vector4[] m_BokehKernel;
         int m_BokehHash;
+        // Needed if the device changes its render target width/height (ex, Mobile platform allows change of orientation)
+        float m_BokehMaxRadius;
+        float m_BokehRCPAspect;
 
         // True when this is the very last pass in the pipeline
         bool m_IsFinalPass;
@@ -377,7 +380,7 @@ namespace UnityEngine.Rendering.Universal.Internal
             }
 
             // Lens Flare
-            if (!SRPLensFlareCommon.Instance.IsEmpty() && !isSceneViewCamera)
+            if (!SRPLensFlareCommon.Instance.IsEmpty())
             {
                 using (new ProfilingScope(cmd, ProfilingSampler.Get(URPProfileId.LensFlareDataDriven)))
                 {
@@ -689,7 +692,7 @@ namespace UnityEngine.Rendering.Universal.Internal
             cmd.ReleaseTemporaryRT(ShaderConstants._PongTexture);
         }
 
-        void PrepareBokehKernel()
+        void PrepareBokehKernel(float maxRadius, float rcpAspect)
         {
             const int kRings = 4;
             const int kPointsPerRing = 7;
@@ -725,7 +728,14 @@ namespace UnityEngine.Rendering.Universal.Internal
                     float u = r * Mathf.Cos(phi - rotation);
                     float v = r * Mathf.Sin(phi - rotation);
 
-                    m_BokehKernel[idx] = new Vector4(u, v);
+                    float uRadius = u * maxRadius;
+                    float vRadius = v * maxRadius;
+                    float uRadiusPowTwo = uRadius * uRadius;
+                    float vRadiusPowTwo = vRadius * vRadius;
+                    float kernelLength = Mathf.Sqrt((uRadiusPowTwo + vRadiusPowTwo));
+                    float uRCP = uRadius * rcpAspect;
+
+                    m_BokehKernel[idx] = new Vector4(uRadius, vRadius, kernelLength, uRCP);
                     idx++;
                 }
             }
@@ -759,10 +769,12 @@ namespace UnityEngine.Rendering.Universal.Internal
 
             // Prepare the bokeh kernel constant buffer
             int hash = m_DepthOfField.GetHashCode();
-            if (hash != m_BokehHash)
+            if (hash != m_BokehHash || maxRadius != m_BokehMaxRadius || rcpAspect != m_BokehRCPAspect)
             {
                 m_BokehHash = hash;
-                PrepareBokehKernel();
+                m_BokehMaxRadius = maxRadius;
+                m_BokehRCPAspect = rcpAspect;
+                PrepareBokehKernel(maxRadius, rcpAspect);
             }
 
             cmd.SetGlobalVectorArray(ShaderConstants._BokehKernel, m_BokehKernel);
@@ -774,6 +786,8 @@ namespace UnityEngine.Rendering.Universal.Internal
 
             PostProcessUtils.SetSourceSize(cmd, m_Descriptor);
             cmd.SetGlobalVector(ShaderConstants._DownSampleScaleFactor, new Vector4(1.0f / downSample, 1.0f / downSample, downSample, downSample));
+            float uvMargin = (1.0f / m_Descriptor.height) * downSample;
+            cmd.SetGlobalVector(ShaderConstants._BokehConstants, new Vector4(uvMargin, uvMargin * 2.0f));
 
             // Compute CoC
             Blit(cmd, source, ShaderConstants._FullCoCTexture, material, 0);
@@ -815,7 +829,7 @@ namespace UnityEngine.Rendering.Universal.Internal
                     case LightType.Point:
                         return SRPLensFlareCommon.ShapeAttenuationPointLight();
                     case LightType.Spot:
-                        return SRPLensFlareCommon.ShapeAttenuationSpotConeLight(light.transform.forward, wo, light.spotAngle, light.innerSpotAngle/180.0f);
+                        return SRPLensFlareCommon.ShapeAttenuationSpotConeLight(light.transform.forward, wo, light.spotAngle, light.innerSpotAngle / 180.0f);
                     default:
                         return 1.0f;
                 }
@@ -1319,12 +1333,6 @@ namespace UnityEngine.Rendering.Universal.Internal
                 uber = Load(data.shaders.uberPostPS);
                 finalPass = Load(data.shaders.finalPostPassPS);
                 lensFlareDataDriven = Load(data.shaders.LensFlareDataDrivenPS);
-
-                //lensFlareDataDriven.SetOverrideTag("RenderType", "Transparent");
-                //lensFlareDataDriven.SetFloat("_ZWrite", 0.0f);
-                //lensFlareDataDriven.renderQueue = (int)RenderQueue.Transparent;
-                ////lensFlareDataDriven.renderQueue += material.HasProperty("_QueueOffset") ? (int)material.GetFloat("_QueueOffset") : 0;
-                //lensFlareDataDriven.SetShaderPassEnabled("ShadowCaster", false);
             }
 
             Material Load(Shader shader)
@@ -1370,6 +1378,7 @@ namespace UnityEngine.Rendering.Universal.Internal
             public static readonly int _DofTexture         = Shader.PropertyToID("_DofTexture");
             public static readonly int _CoCParams          = Shader.PropertyToID("_CoCParams");
             public static readonly int _BokehKernel        = Shader.PropertyToID("_BokehKernel");
+            public static readonly int _BokehConstants     = Shader.PropertyToID("_BokehConstants");
             public static readonly int _PongTexture        = Shader.PropertyToID("_PongTexture");
             public static readonly int _PingTexture        = Shader.PropertyToID("_PingTexture");
 

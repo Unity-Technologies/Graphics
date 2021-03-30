@@ -71,9 +71,8 @@ namespace UnityEngine.Rendering.HighDefinition
         FilterCubemapCharlie,
         FilterCubemapGGX,
         DisplayPlanarReflectionProbeAtlas,
-        BlitTextureInPotAtlas,
         AreaLightCookieConvolution,
-        DisplayDensityVolumeAtlas,
+        DisplayLocalVolumetricFogAtlas,
 
         UpdateSkyEnvironmentConvolution,
         RenderSkyToCubemap,
@@ -88,8 +87,8 @@ namespace UnityEngine.Rendering.HighDefinition
         VolumeVoxelization,
         VolumetricLighting,
         VolumetricLightingFiltering,
-        PrepareVisibleDensityVolumeList,
-        UpdateDensityVolumeAtlas,
+        PrepareVisibleLocalVolumetricFogList,
+        UpdateLocalVolumetricFogAtlas,
 
         VolumetricClouds,
         VolumetricCloudsPrepare,

@@ -283,14 +283,12 @@ namespace UnityEngine
             Vector2 vScreenRatio = new Vector2(screenRatio, 1.0f);
 
             //if (skipCopy)
-            //cmd.CopyTexture(source, target);
-            if (skipCopy)
-            {
-                cmd.CopyTexture(source, target);
-                UnityEngine.Rendering.CoreUtils.SetRenderTarget(cmd, target);
-                cmd.ClearRenderTarget(false, true, Color.black);
-            }
-            else
+            //{
+            //    cmd.CopyTexture(source, target);
+            //    UnityEngine.Rendering.CoreUtils.SetRenderTarget(cmd, target);
+            //    cmd.ClearRenderTarget(false, true, Color.black);
+            //}
+            //else
             {
                 cmd.CopyTexture(source, target);
                 UnityEngine.Rendering.CoreUtils.SetRenderTarget(cmd, target);
@@ -315,7 +313,6 @@ namespace UnityEngine
 
                 Vector3 positionWS;
                 Vector3 viewportPos;
-                Vector3 positionScreen;
 
                 bool isDirLight = false;
                 if (light != null && light.type == LightType.Directional)
@@ -328,7 +325,6 @@ namespace UnityEngine
                     positionWS = comp.transform.position;
                 }
                 viewportPos = cam.WorldToViewportPoint(positionWS);
-                positionScreen = cam.WorldToScreenPoint(positionWS);
 
                 if (viewportPos.z < 0.0f)
                     continue;

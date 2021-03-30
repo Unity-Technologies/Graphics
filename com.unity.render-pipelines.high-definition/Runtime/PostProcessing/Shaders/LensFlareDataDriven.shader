@@ -1,9 +1,5 @@
 Shader "Hidden/HDRP/LensFlareDataDriven"
 {
-    Properties
-    {
-        _MainTex("Texture", 2D) = "white" {}
-    }
     SubShader
     {
         // Additive
@@ -19,7 +15,7 @@ Shader "Hidden/HDRP/LensFlareDataDriven"
 
             HLSLPROGRAM
 
-            #pragma target 2.0
+            #pragma target 5.0
             #pragma vertex vert
             #pragma fragment frag
 
@@ -29,6 +25,7 @@ Shader "Hidden/HDRP/LensFlareDataDriven"
 
             #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Common.hlsl"
             #include "Packages/com.unity.render-pipelines.high-definition/Runtime/ShaderLibrary/ShaderVariables.hlsl"
+            #define HDRP_FLARE
             #include "Packages/com.unity.render-pipelines.core/Runtime/PostProcessing/Shaders/LensFlareHDRPCommon.hlsl"
 
             ENDHLSL
@@ -47,7 +44,7 @@ Shader "Hidden/HDRP/LensFlareDataDriven"
 
             HLSLPROGRAM
 
-            #pragma target 2.0
+            #pragma target 5.0
             #pragma vertex vert
             #pragma fragment frag
 
@@ -57,6 +54,7 @@ Shader "Hidden/HDRP/LensFlareDataDriven"
 
             #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Common.hlsl"
             #include "Packages/com.unity.render-pipelines.high-definition/Runtime/ShaderLibrary/ShaderVariables.hlsl"
+            #define HDRP_FLARE
             #include "Packages/com.unity.render-pipelines.core/Runtime/PostProcessing/Shaders/LensFlareHDRPCommon.hlsl"
 
             ENDHLSL
@@ -75,7 +73,7 @@ Shader "Hidden/HDRP/LensFlareDataDriven"
 
             HLSLPROGRAM
 
-            #pragma target 2.0
+            #pragma target 5.0
             #pragma vertex vert
             #pragma fragment frag
 
@@ -85,6 +83,7 @@ Shader "Hidden/HDRP/LensFlareDataDriven"
 
             #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Common.hlsl"
             #include "Packages/com.unity.render-pipelines.high-definition/Runtime/ShaderLibrary/ShaderVariables.hlsl"
+            #define HDRP_FLARE
             #include "Packages/com.unity.render-pipelines.core/Runtime/PostProcessing/Shaders/LensFlareHDRPCommon.hlsl"
 
             ENDHLSL
@@ -103,7 +102,7 @@ Shader "Hidden/HDRP/LensFlareDataDriven"
 
             HLSLPROGRAM
 
-            #pragma target 2.0
+            #pragma target 5.0
             #pragma vertex vert
             #pragma fragment frag
 
@@ -113,6 +112,7 @@ Shader "Hidden/HDRP/LensFlareDataDriven"
 
             #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Common.hlsl"
             #include "Packages/com.unity.render-pipelines.high-definition/Runtime/ShaderLibrary/ShaderVariables.hlsl"
+            #define HDRP_FLARE
             #include "Packages/com.unity.render-pipelines.core/Runtime/PostProcessing/Shaders/LensFlareHDRPCommon.hlsl"
 
             ENDHLSL

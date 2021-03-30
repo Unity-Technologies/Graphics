@@ -97,7 +97,8 @@ namespace UnityEditor.Rendering
             SerializedProperty distortionCurveProp = property.FindPropertyRelative("distortionCurve");
             SerializedProperty distortionRelativeToCenterProp = property.FindPropertyRelative("distortionRelativeToCenter");
 
-            if (lensFlareProp.objectReferenceValue != null)
+            SRPLensFlareType flareType = (UnityEngine.SRPLensFlareType)flareTypeProp.enumValueIndex;
+            if (lensFlareProp.objectReferenceValue != null && flareType != SRPLensFlareType.Circle && flareType != SRPLensFlareType.Polygon)
             {
                 Texture texture = lensFlareProp.objectReferenceValue as Texture;
                 float localAspectRatio = sizeXYProp.vector2Value.x / Mathf.Max(sizeXYProp.vector2Value.y, 1e-6f);
@@ -116,7 +117,7 @@ namespace UnityEditor.Rendering
                 }
             }
             Rect rect = m_CurrentRect;
-            if (isFoldOpenedProp.boolValue)
+            if (isFoldOpenedProp.boolValue && flareType != SRPLensFlareType.Circle && flareType != SRPLensFlareType.Polygon)
             {
                 m_CurrentRect.y += 1.5f * 35.0f;
             }
@@ -421,6 +422,11 @@ namespace UnityEditor.Rendering
                     {
                         coef += 3.0f;
                     }
+                }
+
+                if (flareType == SRPLensFlareType.Polygon || flareType == SRPLensFlareType.Circle)
+                {
+                    coef -= 2.5f;
                 }
 
                 offset = 1.5f * 35.0f;
