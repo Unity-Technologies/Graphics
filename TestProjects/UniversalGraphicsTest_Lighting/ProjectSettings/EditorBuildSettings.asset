@@ -98,4 +98,10 @@ EditorBuildSettings:
   - enabled: 1
     path: Assets/Scenes/135_Lighting_Directional1Cascades.unity
     guid: f1454a5402867f14e8df402c507e29db
+  - enabled: 1
+    path: Assets/Scenes/148_Lighting_LightLayers.unity
+    guid: 04e9a5e9f9bee5742b25a8f229a49428
+  - enabled: 1
+    path: Assets/Scenes/148_Lighting_LightLayers_deferred.unity
+    guid: 4978d640e872ce74bb4412e77a67d88b
   m_configObjects: {}
