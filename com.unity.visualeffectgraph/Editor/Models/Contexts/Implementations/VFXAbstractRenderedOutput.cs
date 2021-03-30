@@ -29,7 +29,7 @@ namespace UnityEditor.VFX
         [VFXSetting(VFXSettingAttribute.VisibleFlags.InInspector), SerializeField, Tooltip("When enabled, particles will not be affected by temporal anti-aliasing.")]
         protected bool excludeFromTAA = false;
 
-        [VFXSetting(VFXSettingAttribute.VisibleFlags.InInspector), SerializeField, Tooltip("Specifies an offset applied to the material render queue.")]
+        [VFXSetting(VFXSettingAttribute.VisibleFlags.InInspector), Delayed, SerializeField, Tooltip("Specifies an offset applied to the material render queue.")]
         protected int materialOffset = 0;
 
         public int GetMaterialOffset()
