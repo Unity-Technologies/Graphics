@@ -9,7 +9,7 @@ using UnityEngine.Rendering.Universal;
 
 namespace UnityEngine.Rendering.Universal
 {
-    public static class NativeRenderPass
+    public partial class ScriptableRenderer
     {
         private const int kRenderPassMapSize = 10;
         private const int kRenderPassMaxCount = 20;
@@ -18,22 +18,18 @@ namespace UnityEngine.Rendering.Universal
         private static Hash128[] sceneIndexToPassHash = new Hash128[kRenderPassMaxCount];
         private static Dictionary<Hash128, int> renderPassesAttachmentCount = new Dictionary<Hash128, int>(kRenderPassMapSize);
 
-        private static class Profiling
+        private static partial class Profiling
         {
-            private const string k_Name = nameof(NativeRenderPass);
-            public static readonly ProfilingSampler setMRTAttachmentsList = new ProfilingSampler($"{k_Name}.{nameof(SetMRTAttachmentsList)}");
-            public static readonly ProfilingSampler setAttachmentList = new ProfilingSampler($"{k_Name}.{nameof(SetAttachmentList)}");
-            public static readonly ProfilingSampler configure = new ProfilingSampler($"{k_Name}.{nameof(Configure)}");
-            public static readonly ProfilingSampler execute = new ProfilingSampler($"{k_Name}.{nameof(Execute)}");
-
-
-            public static readonly ProfilingSampler sortRenderPasses            = new ProfilingSampler($"Sort Render Passes");
+            public static readonly ProfilingSampler setMRTAttachmentsList = new ProfilingSampler($"NativeRenderPass {nameof(SetMRTAttachmentsList)}");
+            public static readonly ProfilingSampler setAttachmentList = new ProfilingSampler($"NativeRenderPass {nameof(SetAttachmentList)}");
+            public static readonly ProfilingSampler configure = new ProfilingSampler($"NativeRenderPass {nameof(NativeRenderPassConfigure)}");
+            public static readonly ProfilingSampler execute = new ProfilingSampler($"NativeRenderPass {nameof(NativeRenderPassExecute)}");
         }
 
         internal static void ResetFrameData()
         {
             if (mergeableRenderPassesMapArrays == null)
-                mergeableRenderPassesMapArrays = new int[NativeRenderPass.kRenderPassMapSize][];
+                mergeableRenderPassesMapArrays = new int[kRenderPassMapSize][];
 
             for (int i = 0; i < kRenderPassMapSize; ++i)
             {
@@ -52,7 +48,7 @@ namespace UnityEngine.Rendering.Universal
             //TODO: edge cases to detect that should affect possible passes to merge
             // - different depth attachment
             // - total number of color attachment > 8
-
+            // - profiling scope
             // Go through all the passes and mark the final one as last pass
 
             int lastPassIndex = m_ActiveRenderPassQueue.Count - 1;
@@ -79,9 +75,9 @@ namespace UnityEngine.Rendering.Universal
                 renderPass.isLastPass = false;
                 renderPass.sceneIndex = i;
 
-                Hash128 hash = NativeRenderPass.CreateRenderPassHash(width, height, rtID, sampleCount, currentHashIndex);
+                Hash128 hash = CreateRenderPassHash(width, height, rtID, sampleCount, currentHashIndex);
 
-                NativeRenderPass.sceneIndexToPassHash[i] = hash;
+                sceneIndexToPassHash[i] = hash;
 
                 bool RPEnabled = renderPass.useNativeRenderPass && isRenderPassEnabled;
                 if (!RPEnabled)
@@ -146,6 +142,7 @@ namespace UnityEngine.Rendering.Universal
 
                     for (int i = 0; i < validColorBuffersCount; ++i)
                     {
+                        //TODO: what if HDR?
                         AttachmentDescriptor currentAttachmentDescriptor =
                             new AttachmentDescriptor(pass.renderTargetFormat[i] != GraphicsFormat.None
                                 ? pass.renderTargetFormat[i]
@@ -321,7 +318,7 @@ namespace UnityEngine.Rendering.Universal
             }
         }
 
-        internal static void Configure(CommandBuffer cmd, ScriptableRenderPass renderPass, CameraData cameraData, List<ScriptableRenderPass> activeRenderPassQueue)
+        internal static void NativeRenderPassConfigure(CommandBuffer cmd, ScriptableRenderPass renderPass, CameraData cameraData, List<ScriptableRenderPass> activeRenderPassQueue)
         {
             using (new ProfilingScope(null, Profiling.configure))
             {
@@ -343,7 +340,7 @@ namespace UnityEngine.Rendering.Universal
             }
         }
 
-        internal static void Execute(ScriptableRenderContext context, ScriptableRenderPass renderPass, CameraData cameraData, ref RenderingData renderingData, List<ScriptableRenderPass> activeRenderPassQueue,
+        internal static void NativeRenderPassExecute(ScriptableRenderContext context, ScriptableRenderPass renderPass, CameraData cameraData, ref RenderingData renderingData, List<ScriptableRenderPass> activeRenderPassQueue,
             ref AttachmentDescriptor[] activeColorAttachmentDescriptors, ref AttachmentDescriptor activeDepthAttachmentDescriptor, RenderTargetIdentifier activeDepthAttachment)
         {
             using (new ProfilingScope(null, Profiling.execute))

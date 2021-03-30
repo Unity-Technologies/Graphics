@@ -24,7 +24,7 @@ namespace UnityEngine.Rendering.Universal
     /// </summary>
     public abstract partial class ScriptableRenderer : IDisposable
     {
-        private static class Profiling
+        private static partial class Profiling
         {
             private const string k_Name = nameof(ScriptableRenderer);
             public static readonly ProfilingSampler setPerCameraShaderVariables = new ProfilingSampler($"{k_Name}.{nameof(SetPerCameraShaderVariables)}");
@@ -475,7 +475,7 @@ namespace UnityEngine.Rendering.Universal
                 m_RendererFeatures.Add(feature);
             }
 
-            NativeRenderPass.ResetFrameData();
+            ResetFrameData();
 
             useRenderPassEnabled = data.useNativeRenderPass;
             Clear(CameraRenderType.Base);
@@ -612,7 +612,7 @@ namespace UnityEngine.Rendering.Universal
                     SortStable(m_ActiveRenderPassQueue);
                 }
 
-                NativeRenderPass.SetupFrameData(cameraData, ref m_ActiveRenderPassQueue, useRenderPassEnabled);
+                SetupFrameData(cameraData, ref m_ActiveRenderPassQueue, useRenderPassEnabled);
 
                 using var renderBlocks = new RenderBlocks(m_ActiveRenderPassQueue);
 
@@ -861,7 +861,7 @@ namespace UnityEngine.Rendering.Universal
             using (new ProfilingScope(null, Profiling.RenderPass.configure))
             {
                 if (IsRenderPassEnabled(renderPass) && cameraData.cameraType == CameraType.Game)
-                    NativeRenderPass.Configure(cmd,  renderPass, cameraData, m_ActiveRenderPassQueue);
+                    NativeRenderPassConfigure(cmd,  renderPass, cameraData, m_ActiveRenderPassQueue);
                 else
                     renderPass.Configure(cmd, cameraData.cameraTargetDescriptor);
 
@@ -873,7 +873,7 @@ namespace UnityEngine.Rendering.Universal
             CommandBufferPool.Release(cmd);
 
             if (IsRenderPassEnabled(renderPass) && cameraData.cameraType == CameraType.Game)
-                NativeRenderPass.Execute(context,  renderPass, cameraData, ref  renderingData, m_ActiveRenderPassQueue, ref m_ActiveColorAttachmentDescriptors, ref m_ActiveDepthAttachmentDescriptor, m_ActiveDepthAttachment);
+                NativeRenderPassExecute(context,  renderPass, cameraData, ref  renderingData, m_ActiveRenderPassQueue, ref m_ActiveColorAttachmentDescriptors, ref m_ActiveDepthAttachmentDescriptor, m_ActiveDepthAttachment);
             else
                 renderPass.Execute(context, ref renderingData);
         }
@@ -964,7 +964,7 @@ namespace UnityEngine.Rendering.Universal
 
                 if (IsRenderPassEnabled(renderPass) && cameraData.cameraType == CameraType.Game)
                 {
-                    NativeRenderPass.SetMRTAttachmentsList(renderPass, ref cameraData, validColorBuffersCount, needCustomCameraColorClear, needCustomCameraDepthClear,
+                    SetMRTAttachmentsList(renderPass, ref cameraData, validColorBuffersCount, needCustomCameraColorClear, needCustomCameraDepthClear,
                         m_ActiveRenderPassQueue, ref m_ActiveColorAttachmentDescriptors, ref m_ActiveDepthAttachmentDescriptor);
                 }
 
@@ -1059,7 +1059,7 @@ namespace UnityEngine.Rendering.Universal
 
                 if (IsRenderPassEnabled(renderPass) && cameraData.cameraType == CameraType.Game)
                 {
-                    NativeRenderPass.SetAttachmentList(renderPass, ref cameraData, passColorAttachment, passDepthAttachment, finalClearFlag, finalClearColor, m_ActiveRenderPassQueue,
+                    SetAttachmentList(renderPass, ref cameraData, passColorAttachment, passDepthAttachment, finalClearFlag, finalClearColor, m_ActiveRenderPassQueue,
                         ref m_ActiveColorAttachmentDescriptors, ref m_ActiveDepthAttachmentDescriptor);
                 }
                 else
@@ -1233,7 +1233,7 @@ namespace UnityEngine.Rendering.Universal
                 m_ActiveRenderPassQueue.Clear();
             }
 
-            NativeRenderPass.ResetFrameData();
+            ResetFrameData();
 
             context.ExecuteCommandBuffer(cmd);
             CommandBufferPool.Release(cmd);
