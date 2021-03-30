@@ -280,6 +280,18 @@ namespace UnityEditor.VFX
             return base.HasSorting() || ((sort == SortMode.Auto && (materialBlendMode == BlendMode.Alpha || materialBlendMode == BlendMode.AlphaPremultiplied)) && !HasStrips(true));
         }
 
+        public override bool isBlendModeOpaque
+        {
+            get
+            {
+                if (GetOrRefreshShaderGraphObject() != null &&
+                    GetOrRefreshShaderGraphObject().generatesWithShaderGraph)
+                    return GetMaterialBlendMode() == BlendMode.Opaque;
+
+                return base.isBlendModeOpaque;
+            }
+        }
+
         protected string shaderName
         {
             get

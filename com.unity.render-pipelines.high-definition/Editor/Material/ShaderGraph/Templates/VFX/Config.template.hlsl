@@ -26,9 +26,9 @@ ByteAddressBuffer deadListCount;
 Buffer<uint> stripDataBuffer;
 #endif
 
-// #if WRITE_MOTION_VECTOR_IN_FORWARD || USE_MOTION_VECTORS_PASS
+#if VFX_FEATURE_MOTION_VECTORS_FORWARD || USE_MOTION_VECTORS_PASS
 ByteAddressBuffer elementToVFXBufferPrevious;
-// #endif
+#endif
 
 CBUFFER_START(outputParams)
     float nbMax;
@@ -266,6 +266,7 @@ AttributesMesh TransformMeshToElement(AttributesMesh input, AttributesElement el
 
 AttributesMesh TransformMeshToPreviousElement(AttributesMesh input, AttributesElement element)
 {
+#if VFX_FEATURE_MOTION_VECTORS_FORWARD || USE_MOTION_VECTORS_PASS
     uint elementToVFXBaseIndex = element.index * 13;
     uint previousFrameIndex = elementToVFXBufferPrevious.Load(elementToVFXBaseIndex++ << 2);
 
@@ -284,6 +285,8 @@ AttributesMesh TransformMeshToPreviousElement(AttributesMesh input, AttributesEl
 #ifdef ATTRIBUTES_NEED_NORMAL
     // TODO? Not necesarry for MV?
 #endif
+
+#endif//WRITE_MOTION_VECTOR_IN_FORWARD || USE_MOTION_VECTORS_PASS
 
     return input;
 }
