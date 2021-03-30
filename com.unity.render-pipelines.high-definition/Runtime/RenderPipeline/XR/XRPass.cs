@@ -13,7 +13,7 @@ using UnityEngine.XR;
 
 namespace UnityEngine.Rendering.HighDefinition
 {
-    internal struct XRPassCreateInfo
+    public struct XRPassCreateInfo
     {
         public int multipassId;
         public int cullingPassId;
@@ -22,15 +22,16 @@ namespace UnityEngine.Rendering.HighDefinition
         public XRPass.CustomMirrorView customMirrorView;
     }
 
-    internal struct XRViewCreateInfo
+    public struct XRViewCreateInfo
     {
         public Matrix4x4 projMatrix;
         public Matrix4x4 viewMatrix;
         public Rect viewport;
         public int textureArraySlice;
+        public Matrix4x4 clusterDisplayParams;
     }
 
-    internal struct XRView
+    public struct XRView
     {
         internal readonly Matrix4x4 projMatrix;
         internal readonly Matrix4x4 viewMatrix;
@@ -65,7 +66,7 @@ namespace UnityEngine.Rendering.HighDefinition
 #endif
     }
 
-    class XRPass
+    public class XRPass
     {
         readonly List<XRView> views = new List<XRView>(2);
 
@@ -99,9 +100,9 @@ namespace UnityEngine.Rendering.HighDefinition
         Material occlusionMeshMaterial = null;
 
         // Ability to override mirror view behavior for each pass
-        internal delegate void CustomMirrorView(XRPass pass, CommandBuffer cmd, RenderTexture rt, Rect viewport);
+        public delegate void CustomMirrorView(XRPass pass, CommandBuffer cmd, RenderTexture rt, Rect viewport);
         CustomMirrorView customMirrorView = null;
-        internal void SetCustomMirrorView(CustomMirrorView callback) => customMirrorView = callback;
+        public void SetCustomMirrorView(CustomMirrorView callback) => customMirrorView = callback;
 
         internal static XRPass Create(XRPassCreateInfo createInfo)
         {

@@ -2,19 +2,19 @@
 
 namespace UnityEngine.Rendering.HighDefinition
 {
-    internal struct XRLayout
+    public struct XRLayout
     {
-        internal Camera camera;
-        internal XRSystem xrSystem;
+        public Camera camera;
+        public XRSystem xrSystem;
 
-        internal XRPass CreatePass(XRPassCreateInfo passCreateInfo)
+        public XRPass CreatePass(XRPassCreateInfo passCreateInfo)
         {
             XRPass pass = XRPass.Create(passCreateInfo);
             xrSystem.AddPassToFrame(camera, pass);
             return pass;
         }
 
-        internal void AddViewToPass(XRViewCreateInfo viewCreateInfo, XRPass pass)
+        public void AddViewToPass(XRViewCreateInfo viewCreateInfo, XRPass pass)
         {
             pass.AddView(viewCreateInfo.projMatrix, viewCreateInfo.viewMatrix, viewCreateInfo.viewport, viewCreateInfo.textureArraySlice);
         }
