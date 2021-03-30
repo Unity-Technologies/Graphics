@@ -566,6 +566,8 @@ namespace UnityEditor.ShaderGraph
                     return rawOutput;
                 case ConcreteSlotValueType.Matrix2:
                     return rawOutput;
+                case ConcreteSlotValueType.PropertyConnectionState:
+                    return node.GetConnnectionStateVariableNameForSlot(outputSlotId);
                 default:
                     return kErrorString;
             }

@@ -7,13 +7,14 @@ using UnityEditor.Graphing;
 using UnityEditor.ShaderGraph.Internal;
 using UnityEditor.ShaderGraph.Serialization;
 using UnityEngine.UIElements;
+using UnityEditor.ShaderGraph.Drawing.Slots;
 
 namespace UnityEditor.ShaderGraph
 {
     [Serializable]
     abstract class MaterialSlot : JsonObject
     {
-        const string k_NotInit =  "Not Initilaized";
+        const string k_NotInit =  "Not Initialized";
 
         [SerializeField]
         int m_Id;
@@ -33,6 +34,9 @@ namespace UnityEditor.ShaderGraph
         [SerializeField]
         ShaderStageCapability m_StageCapability;
 
+        [SerializeField]
+        bool m_IsProperty = false;
+
         bool m_HasError;
 
         protected MaterialSlot() {}
@@ -47,10 +51,45 @@ namespace UnityEditor.ShaderGraph
             this.stageCapability = stageCapability;
         }
 
+        // Perhaps there's a better way of distinguishing whether or not the slot was created from a property?
+        public bool isProperty
+        {
+            get { return this.m_IsProperty; }
+            set { this.m_IsProperty = value; }
+        }
+
         internal void SetInternalData(SlotType slotType, string shaderOutputName)
         {
             this.m_SlotType = slotType;
             this.shaderOutputName = shaderOutputName;
+        }
+
+        public bool NeedsCustomLabelControl()
+        {
+            if (!isConnected)
+            {
+                if (owner is SubGraphNode sgNode)
+                {
+                    var property = sgNode.GetShaderProperty(id);
+                    if (property != null)
+                    {
+                        return property.useCustomSlotLabel;
+                    }
+                }
+            }
+            return false;
+        }
+
+        public VisualElement InstantiateCustomLabelControl()
+        {
+            if (!NeedsCustomLabelControl())
+            {
+                return null;
+            }
+
+            var sgNode = owner as SubGraphNode;
+            var property = sgNode.GetShaderProperty(id);
+            return new LabelSlotControlView(property.customSlotLabel);
         }
 
         public virtual VisualElement InstantiateControl()
@@ -92,6 +131,8 @@ namespace UnityEditor.ShaderGraph
                     return "(G)";
                 case ConcreteSlotValueType.VirtualTexture:
                     return "(VT)";
+                case ConcreteSlotValueType.PropertyConnectionState:
+                    return "(P)";
                 default:
                     return "(E)";
             }
@@ -160,6 +201,8 @@ namespace UnityEditor.ShaderGraph
                     return new DynamicValueMaterialSlot(slotId, displayName, shaderOutputName, slotType, new Matrix4x4(defaultValue, Vector4.zero, Vector4.zero, Vector4.zero), shaderStageCapability, hidden);
                 case SlotValueType.Boolean:
                     return new BooleanMaterialSlot(slotId, displayName, shaderOutputName, slotType, false, shaderStageCapability, hidden);
+                case SlotValueType.PropertyConnectionState:
+                    return new PropertyConnectionStateMaterialSlot(slotId, displayName, shaderOutputName, slotType, shaderStageCapability, hidden);
             }
 
             throw new ArgumentOutOfRangeException("type", type, null);
@@ -253,8 +296,8 @@ namespace UnityEditor.ShaderGraph
                 && !hidden
                 && !otherSlot.hidden
                 && ((isInputSlot
-                    ? SlotValueHelper.AreCompatible(valueType, otherSlot.concreteValueType)
-                    : SlotValueHelper.AreCompatible(otherSlot.valueType, concreteValueType)));
+                    ? SlotValueHelper.AreCompatible(valueType, otherSlot.concreteValueType, otherSlot.isProperty)
+                    : SlotValueHelper.AreCompatible(otherSlot.valueType, concreteValueType, isProperty)));
         }
 
         public bool IsCompatibleStageWith(MaterialSlot otherSlot)

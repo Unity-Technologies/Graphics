@@ -746,9 +746,21 @@ namespace UnityEditor.ShaderGraph
             return string.Format("_{0}_{1}_{2}", GetVariableNameForNode(), NodeUtils.GetHLSLSafeName(slot.shaderOutputName), unchecked((uint)slotId));
         }
 
+        public string GetConnnectionStateVariableNameForSlot(int slotId)
+        {
+            return ShaderInput.GetConnectionStateName(GetVariableNameForSlot(slotId));
+        }
+
         public virtual string GetVariableNameForNode()
         {
             return defaultVariableName;
+        }
+
+        public MaterialSlot AddPropertySlot(MaterialSlot slot, bool attemptToModifyExistingInstance = true)
+        {
+            slot = AddSlot(slot, attemptToModifyExistingInstance);
+            slot.isProperty = true;
+            return slot;
         }
 
         public MaterialSlot AddSlot(MaterialSlot slot, bool attemptToModifyExistingInstance = true)

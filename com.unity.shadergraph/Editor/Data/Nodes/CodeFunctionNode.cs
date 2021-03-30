@@ -73,6 +73,9 @@ namespace UnityEditor.ShaderGraph
         protected struct DynamicDimensionMatrix
         {}
 
+        protected struct PropertyConnectionState
+        {}
+
         protected enum Binding
         {
             None,
@@ -223,6 +226,11 @@ namespace UnityEditor.ShaderGraph
             {
                 return SlotValueType.DynamicMatrix;
             }
+            if (t == typeof(PropertyConnectionState))
+            {
+                return SlotValueType.PropertyConnectionState;
+            }
+
             throw new ArgumentException("Unsupported type " + t);
         }
 
