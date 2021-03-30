@@ -128,9 +128,9 @@ namespace UnityEngine.Rendering.Universal
                 int currentSceneIndex = renderPass.sceneIndex;
                 Hash128 currentPassHash = sceneIndexToPassHash[currentSceneIndex];
                 int[] currentMergeablePasses = mergeableRenderPassesMap[currentPassHash];
-                bool isFirstMergeablePass = currentMergeablePasses.First() == currentSceneIndex;
 
-                if (!isFirstMergeablePass)
+                // Not the first pass
+                if (currentMergeablePasses.First() != currentSceneIndex)
                     return;
 
                 renderPassesAttachmentCount[currentPassHash] = 0;
@@ -200,9 +200,9 @@ namespace UnityEngine.Rendering.Universal
                 int currentSceneIndex = renderPass.sceneIndex;
                 Hash128 currentPassHash = sceneIndexToPassHash[currentSceneIndex];
                 int[] currentMergeablePasses = mergeableRenderPassesMap[currentPassHash];
-                bool isFirstMergeablePass = currentMergeablePasses.First() == currentSceneIndex;
 
-                if (!isFirstMergeablePass)
+                // Skip if not the first pass
+                if (currentMergeablePasses.First() != currentSceneIndex)
                     return;
 
                 renderPassesAttachmentCount[currentPassHash] = 0;
@@ -307,9 +307,9 @@ namespace UnityEngine.Rendering.Universal
                 int currentSceneIndex = renderPass.sceneIndex;
                 Hash128 currentPassHash = sceneIndexToPassHash[currentSceneIndex];
                 int[] currentMergeablePasses = mergeableRenderPassesMap[currentPassHash];
-                bool isFirstMergeablePass = currentMergeablePasses.First() == currentSceneIndex;
 
-                if (isFirstMergeablePass)
+                // If it's the first pass, configure the whole merge block
+                if (currentMergeablePasses.First() == currentSceneIndex)
                 {
                     foreach (var passIdx in currentMergeablePasses)
                     {
@@ -355,9 +355,7 @@ namespace UnityEngine.Rendering.Universal
 
                 var rpDesc = InitializeRenderPassDescriptor(cameraData, renderPass);
 
-                bool isFirstMergeablePass = currentMergeablePasses[0] == currentSceneIndex;
                 int validPassCount = GetValidPassIndexCount(currentMergeablePasses);
-                bool isLastMergeablePass = currentMergeablePasses[validPassCount - 1] == currentSceneIndex;
 
                 var attachmentIndicesCount = GetSubPassAttachmentIndicesCount(renderPass);
 
@@ -371,7 +369,7 @@ namespace UnityEngine.Rendering.Universal
                     }
                 }
 
-                if (validPassCount == 1 || isFirstMergeablePass)
+                if (validPassCount == 1 || currentMergeablePasses[0] == currentSceneIndex) // Check if it's the first pass
                 {
                     context.BeginRenderPass(rpDesc.w, rpDesc.h, Math.Max(rpDesc.samples, 1), attachments,
                         useDepth ? (!depthOnly ? validColorBuffersCount : 0) : -1);
@@ -393,7 +391,7 @@ namespace UnityEngine.Rendering.Universal
 
                 renderPass.Execute(context, ref renderingData);
 
-                if (validPassCount == 1 || isLastMergeablePass)
+                if (validPassCount == 1 || currentMergeablePasses[validPassCount - 1] == currentSceneIndex) // Check if it's the last pass
                 {
                     context.EndSubPass();
                     context.EndRenderPass();
