@@ -28,7 +28,7 @@ void FetchComputeVertexData(inout AttributesMesh input)
         input.normalOS = vertexData.Normal;
 #endif
 #ifdef ATTRIBUTES_NEED_TANGENT
-        input.tangentOS = float4(vertexData.Tangent, 0);
+        input.tangentOS = float4(vertexData.Tangent, input.tangentOS.w);
 #endif
     }
 }
