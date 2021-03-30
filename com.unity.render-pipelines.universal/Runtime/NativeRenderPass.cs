@@ -153,9 +153,7 @@ namespace UnityEngine.Rendering.Universal
                     {
                         //TODO: what if HDR?
                         AttachmentDescriptor currentAttachmentDescriptor =
-                            new AttachmentDescriptor(pass.renderTargetFormat[i] != GraphicsFormat.None
-                                ? pass.renderTargetFormat[i]
-                                : SystemInfo.GetGraphicsFormat(DefaultFormat.LDR));
+                            new AttachmentDescriptor(pass.renderTargetFormat[i] != GraphicsFormat.None ? pass.renderTargetFormat[i] : GetDefaultGraphicsFormat(cameraData));
 
                         // if this is the current camera's last pass, also check if one of the RTs is the backbuffer (BuiltinRenderTextureType.CameraTarget)
                         isLastPassToBB |= isLastPass && (pass.colorAttachments[i] == BuiltinRenderTextureType.CameraTarget);
@@ -221,14 +219,11 @@ namespace UnityEngine.Rendering.Universal
 
                     AttachmentDescriptor currentAttachmentDescriptor;
                     var usesTargetTexture = cameraData.targetTexture != null;
-                    var depthOnly = renderPass.depthOnly || (usesTargetTexture &&
-                        cameraData.targetTexture.graphicsFormat ==
-                        GraphicsFormat.DepthAuto);
+                    var depthOnly = renderPass.depthOnly || (usesTargetTexture && cameraData.targetTexture.graphicsFormat == GraphicsFormat.DepthAuto);
                     // Offscreen depth-only cameras need this set explicitly
                     if (depthOnly && usesTargetTexture)
                     {
-                        if (cameraData.targetTexture.graphicsFormat == GraphicsFormat.DepthAuto &&
-                                !pass.overrideCameraTarget)
+                        if (cameraData.targetTexture.graphicsFormat == GraphicsFormat.DepthAuto && !pass.overrideCameraTarget)
                                 passColorAttachment = new RenderTargetIdentifier(cameraData.targetTexture);
                         else
                                 passColorAttachment = renderPass.colorAttachment;
@@ -239,29 +234,7 @@ namespace UnityEngine.Rendering.Universal
                             new AttachmentDescriptor(cameraData.cameraTargetDescriptor.graphicsFormat);
 
                     if (pass.overrideCameraTarget)
-                    {
-                        GraphicsFormat hdrFormat = GraphicsFormat.None;
-                        if (cameraData.isHdrEnabled)
-                        {
-                            if (!Graphics.preserveFramebufferAlpha &&
-                                RenderingUtils.SupportsGraphicsFormat(GraphicsFormat.B10G11R11_UFloatPack32,
-                                    FormatUsage.Linear | FormatUsage.Render))
-                                hdrFormat = GraphicsFormat.B10G11R11_UFloatPack32;
-                            else if (RenderingUtils.SupportsGraphicsFormat(GraphicsFormat.R16G16B16A16_SFloat,
-                                FormatUsage.Linear | FormatUsage.Render))
-                                hdrFormat = GraphicsFormat.R16G16B16A16_SFloat;
-                            else
-                                hdrFormat = SystemInfo.GetGraphicsFormat(DefaultFormat.HDR);
-                        }
-
-                        var defaultFormat = cameraData.isHdrEnabled
-                            ? hdrFormat
-                            : SystemInfo.GetGraphicsFormat(DefaultFormat.LDR);
-                        currentAttachmentDescriptor = new AttachmentDescriptor(
-                            pass.renderTargetFormat[0] != GraphicsFormat.None
-                            ? pass.renderTargetFormat[0]
-                            : defaultFormat);
-                    }
+                        currentAttachmentDescriptor = new AttachmentDescriptor(pass.renderTargetFormat[0] != GraphicsFormat.None ? pass.renderTargetFormat[0] : GetDefaultGraphicsFormat(cameraData));
 
                     bool isLastPass = pass.isLastPass;
                     var samples = pass.renderTargetSampleCount != -1
@@ -518,13 +491,32 @@ namespace UnityEngine.Rendering.Universal
             return new Hash128((uint) desc.w * 10000 + (uint) desc.h, (uint)desc.depthID, (uint)desc.samples, hashIndex);
         }
 
-    private static RenderPassDescriptor InitializeRenderPassDescriptor(CameraData cameraData, ScriptableRenderPass renderPass)
+        private static RenderPassDescriptor InitializeRenderPassDescriptor(CameraData cameraData, ScriptableRenderPass renderPass)
         {
             var w = renderPass.renderTargetWidth != -1 ? renderPass.renderTargetWidth : cameraData.cameraTargetDescriptor.width;
             var h = renderPass.renderTargetHeight != -1 ? renderPass.renderTargetHeight : cameraData.cameraTargetDescriptor.height;
             var samples = renderPass.renderTargetSampleCount != -1 ? renderPass.renderTargetSampleCount : cameraData.cameraTargetDescriptor.msaaSamples;
             var depthID = renderPass.depthOnly ? renderPass.colorAttachment.GetHashCode() : renderPass.depthAttachment.GetHashCode();
             return new RenderPassDescriptor(w, h, samples, depthID);
+        }
+
+        private static GraphicsFormat GetDefaultGraphicsFormat(CameraData cameraData)
+        {
+            GraphicsFormat hdrFormat = GraphicsFormat.None;
+            if (cameraData.isHdrEnabled)
+            {
+                if (!Graphics.preserveFramebufferAlpha &&
+                    RenderingUtils.SupportsGraphicsFormat(GraphicsFormat.B10G11R11_UFloatPack32,
+                        FormatUsage.Linear | FormatUsage.Render))
+                    hdrFormat = GraphicsFormat.B10G11R11_UFloatPack32;
+                else if (RenderingUtils.SupportsGraphicsFormat(GraphicsFormat.R16G16B16A16_SFloat,
+                    FormatUsage.Linear | FormatUsage.Render))
+                    hdrFormat = GraphicsFormat.R16G16B16A16_SFloat;
+                else
+                    hdrFormat = SystemInfo.GetGraphicsFormat(DefaultFormat.HDR);
+            }
+
+            return cameraData.isHdrEnabled ? hdrFormat : SystemInfo.GetGraphicsFormat(DefaultFormat.LDR);
         }
     }
 }
