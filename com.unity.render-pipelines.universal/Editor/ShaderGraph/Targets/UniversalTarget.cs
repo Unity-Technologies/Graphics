@@ -395,6 +395,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
     #region Passes
     static class CorePasses
     {
+        // used by lit/unlit targets
         public static readonly PassDescriptor DepthOnly = new PassDescriptor()
         {
             // Definition
@@ -425,6 +426,7 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
             customInterpolators = CoreCustomInterpDescriptors.Common
         };
 
+        // used by lit/unlit targets
         public static readonly PassDescriptor ShadowCaster = new PassDescriptor()
         {
             // Definition
@@ -525,29 +527,11 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
             // TODO: this is a pure copy of HDRP uniforms, renamed -- some might not be needed in URP
             public static readonly string srcBlend = "[" + Property.SrcBlendSG + "]";
             public static readonly string dstBlend = "[" + Property.DstBlendSG + "]";
-            //public static readonly string alphaSrcBlend = "[_AlphaSrcBlend]";
-            //public static readonly string alphaDstBlend = "[_AlphaDstBlend]";
-            //public static readonly string alphaToMask = "[_AlphaToMask]";
             public static readonly string cullMode = "[" + Property.Cull + "]";
-            //public static readonly string cullModeForward = "[_CullModeForward]";
-            //public static readonly string zTest = "[_ZTest]";
-            //public static readonly string zTestDepthEqualForOpaque = "[_ZTestDepthEqualForOpaque]";
-            //public static readonly string zTestTransparent = "[_ZTestTransparent]";
-            //public static readonly string zTestGBuffer = "[_ZTestGBuffer]";
             public static readonly string zWrite = "[" + Property.ZWriteSG + "]";
-            //public static readonly string zClip = "[_ZClip]";
-            //public static readonly string stencilWriteMaskDepth = "[_StencilWriteMaskDepth]";
-            //public static readonly string stencilRefDepth = "[_StencilRefDepth]";
-            //public static readonly string stencilWriteMaskMV = "[_StencilWriteMaskMV]";
-            //public static readonly string stencilRefMV = "[_StencilRefMV]";
-            //public static readonly string stencilWriteMask = "[_StencilWriteMask]";
-            //public static readonly string stencilRef = "[_StencilRef]";
-            //public static readonly string stencilWriteMaskGBuffer = "[_StencilWriteMaskGBuffer]";
-            //public static readonly string stencilRefGBuffer = "[_StencilRefGBuffer]";
-            //public static readonly string stencilRefDistortionVec = "[_StencilRefDistortionVec]";
-            //public static readonly string stencilWriteMaskDistortionVec = "[_StencilWriteMaskDistortionVec]";
         }
 
+        // used by sprite targets, NOT used by lit/unlit anymore
         public static readonly RenderStateCollection Default = new RenderStateCollection
         {
             { RenderState.ZTest(ZTest.LEqual) },
@@ -562,67 +546,45 @@ namespace UnityEditor.Rendering.Universal.ShaderGraph
             { RenderState.Blend(Blend.DstColor, Blend.Zero), new FieldCondition(UniversalFields.BlendMultiply, true) },
         };
 
+        // used by lit/unlit targets
         public static readonly RenderStateCollection UberDefault = new RenderStateCollection
         {
             // { RenderState.ZTest(Uniforms.zTest) },       // not used currently
             { RenderState.ZWrite(Uniforms.zWrite) },
             { RenderState.Cull(Uniforms.cullMode) },
             { RenderState.Blend(Uniforms.srcBlend, Uniforms.dstBlend) }, //, Uniforms.alphaSrcBlend, Uniforms.alphaDstBlend) },
-//          { RenderState.ColorMask("ColorMask [_ColorMaskTransparentVel] 1") },
-//          { RenderState.Stencil(new StencilDescriptor()
-//                 {
-//                     WriteMask = Uniforms.stencilWriteMask,
-//                     Ref = Uniforms.stencilRef,
-//                     Comp = "Always",
-//                     Pass = "Replace",
-//                 })
-//          },
         };
 
+        // used by lit target ONLY
         public static readonly RenderStateCollection Meta = new RenderStateCollection
         {
             { RenderState.Cull(Cull.Off) },
         };
 
+        // used by lit/unlit targets
         public static readonly RenderStateCollection ShadowCaster = new RenderStateCollection
         {
             { RenderState.ZTest(ZTest.LEqual) },
             { RenderState.ZWrite(ZWrite.On) },
-            { RenderState.Cull(Cull.Back), new FieldCondition(Fields.DoubleSided, false) },
-            { RenderState.Cull(Cull.Off), new FieldCondition(Fields.DoubleSided, true) },
+            { RenderState.Cull(Uniforms.cullMode) },  // TODO: does URP want to support separate cull setting for shadow casting?
             { RenderState.ColorMask("ColorMask 0") },
-            { RenderState.Blend(Blend.One, Blend.Zero), new FieldCondition(UniversalFields.SurfaceOpaque, true) },
-            { RenderState.Blend(Blend.SrcAlpha, Blend.OneMinusSrcAlpha, Blend.One, Blend.OneMinusSrcAlpha), new FieldCondition(Fields.BlendAlpha, true) },
-            { RenderState.Blend(Blend.One, Blend.OneMinusSrcAlpha, Blend.One, Blend.OneMinusSrcAlpha), new FieldCondition(UniversalFields.BlendPremultiply, true) },
-            { RenderState.Blend(Blend.One, Blend.One, Blend.One, Blend.One), new FieldCondition(UniversalFields.BlendAdd, true) },
-            { RenderState.Blend(Blend.DstColor, Blend.Zero), new FieldCondition(UniversalFields.BlendMultiply, true) },
         };
 
+        // used by lit/unlit targets
         public static readonly RenderStateCollection DepthOnly = new RenderStateCollection
         {
             { RenderState.ZTest(ZTest.LEqual) },
             { RenderState.ZWrite(ZWrite.On) },
-            { RenderState.Cull(Cull.Back), new FieldCondition(Fields.DoubleSided, false) },
-            { RenderState.Cull(Cull.Off), new FieldCondition(Fields.DoubleSided, true) },
+            { RenderState.Cull(Uniforms.cullMode) },
             { RenderState.ColorMask("ColorMask 0") },
-            { RenderState.Blend(Blend.One, Blend.Zero), new FieldCondition(UniversalFields.SurfaceOpaque, true) },
-            { RenderState.Blend(Blend.SrcAlpha, Blend.OneMinusSrcAlpha, Blend.One, Blend.OneMinusSrcAlpha), new FieldCondition(Fields.BlendAlpha, true) },
-            { RenderState.Blend(Blend.One, Blend.OneMinusSrcAlpha, Blend.One, Blend.OneMinusSrcAlpha), new FieldCondition(UniversalFields.BlendPremultiply, true) },
-            { RenderState.Blend(Blend.One, Blend.One, Blend.One, Blend.One), new FieldCondition(UniversalFields.BlendAdd, true) },
-            { RenderState.Blend(Blend.DstColor, Blend.Zero), new FieldCondition(UniversalFields.BlendMultiply, true) },
         };
 
+        // used by lit target ONLY
         public static readonly RenderStateCollection DepthNormalsOnly = new RenderStateCollection
         {
             { RenderState.ZTest(ZTest.LEqual) },
             { RenderState.ZWrite(ZWrite.On) },
-            { RenderState.Cull(Cull.Back), new FieldCondition(Fields.DoubleSided, false) },
-            { RenderState.Cull(Cull.Off), new FieldCondition(Fields.DoubleSided, true) },
-            { RenderState.Blend(Blend.One, Blend.Zero), new FieldCondition(UniversalFields.SurfaceOpaque, true) },
-            { RenderState.Blend(Blend.SrcAlpha, Blend.OneMinusSrcAlpha, Blend.One, Blend.OneMinusSrcAlpha), new FieldCondition(Fields.BlendAlpha, true) },
-            { RenderState.Blend(Blend.One, Blend.OneMinusSrcAlpha, Blend.One, Blend.OneMinusSrcAlpha), new FieldCondition(UniversalFields.BlendPremultiply, true) },
-            { RenderState.Blend(Blend.One, Blend.One, Blend.One, Blend.One), new FieldCondition(UniversalFields.BlendAdd, true) },
-            { RenderState.Blend(Blend.DstColor, Blend.Zero), new FieldCondition(UniversalFields.BlendMultiply, true) },
+            { RenderState.Cull(Uniforms.cullMode) },
         };
     }
     #endregion
