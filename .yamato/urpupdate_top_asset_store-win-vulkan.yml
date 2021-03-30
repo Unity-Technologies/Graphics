@@ -109,7 +109,7 @@ URPUpdate_Top_Asset_Store_Win_Vulkan_playmode_mono_Linear_CUSTOM-REVISION:
               -  "TestProjects/URP-Update-Testing/Top-URP-Assets/Logs/*.log"
     dependencies:
       -  path: .yamato/_editor_priming.yml#editor:priming:CUSTOM-REVISION:Win
-         rerun: always
+         rerun: on_new_revision
 URPUpdate_Top_Asset_Store_Win_Vulkan_editmode_mono_Linear_CUSTOM-REVISION:
     name: URPUpdate_Top_Asset_Store on Win_Vulkan_editmode_mono_Linear on version CUSTOM-REVISION
     agent:
@@ -146,4 +146,4 @@ URPUpdate_Top_Asset_Store_Win_Vulkan_editmode_mono_Linear_CUSTOM-REVISION:
               -  "TestProjects/URP-Update-Testing/Top-URP-Assets/Logs/*.log"
     dependencies:
       -  path: .yamato/_editor_priming.yml#editor:priming:CUSTOM-REVISION:Win
-         rerun: always
+         rerun: on_new_revision

@@ -9,14 +9,16 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 Version Updated
 The version number for this package has increased due to a version update of a related graphics package.
 
-## [10.4.0] - 2020-01-26
 
 ### Added
 - Support for the XboxSeries platform has been added.
+- New API in DynamicResolutionHandler to handle multicamera rendering for hardware mode. Changing cameras and resetting scaling per camera should be safe.
+- New API functions with no side effects in DynamicResolutionHandler, to retrieve resolved drs scale and to apply DRS on a size.
 
 ### Fixed
 - Fixed parameters order on inspectors for Volume Components without custom editor
 - Fixed the display name of a Volume Parameter when is defined the attribute InspectorName
+- Calculating correct rtHandleScale by considering the possible pixel rounding when DRS is on
 
 ## [10.3.1] - 2020-01-26
 

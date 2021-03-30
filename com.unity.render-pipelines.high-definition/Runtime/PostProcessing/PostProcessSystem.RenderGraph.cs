@@ -165,15 +165,20 @@ namespace UnityEngine.Rendering.HighDefinition
             public CustomPostProcessVolumeComponent customPostProcess;
         }
 
-        TextureHandle GetPostprocessOutputHandle(RenderGraph renderGraph, string name)
+        TextureHandle GetPostprocessOutputHandle(RenderGraph renderGraph,  string name, bool dynamicResolution = true)
         {
-            return renderGraph.CreateTexture(new TextureDesc(Vector2.one, true, true)
+            return renderGraph.CreateTexture(new TextureDesc(Vector2.one, dynamicResolution, true)
             {
                 name = name,
                 colorFormat = m_ColorFormat,
                 useMipMap = false,
                 enableRandomWrite = true
             });
+        }
+
+        TextureHandle GetPostprocessUpsampledOutputHandle(RenderGraph renderGraph, string name)
+        {
+            return GetPostprocessOutputHandle(renderGraph, name, false);
         }
 
         void FillBloomMipsTextureHandles(BloomData bloomData, RenderGraph renderGraph, RenderGraphBuilder builder)
@@ -296,9 +301,9 @@ namespace UnityEngine.Rendering.HighDefinition
                     }
                     else
                     {
-                        passData.tmpTarget1024 = builder.CreateTransientTexture(new TextureDesc(1024, 1024, true, false)
+                        passData.tmpTarget1024 = builder.CreateTransientTexture(new TextureDesc(1024, 1024, false, false)
                         { colorFormat = GraphicsFormat.R16G16_SFloat, enableRandomWrite = true, name = "Average Luminance Temp 1024" });
-                        passData.tmpTarget32 = builder.CreateTransientTexture(new TextureDesc(32, 32, true, false)
+                        passData.tmpTarget32 = builder.CreateTransientTexture(new TextureDesc(32, 32, false, false)
                         { colorFormat = GraphicsFormat.R16G16_SFloat, enableRandomWrite = true, name = "Average Luminance Temp 32" });
 
                         builder.SetRenderFunc(
@@ -322,7 +327,7 @@ namespace UnityEngine.Rendering.HighDefinition
                         passData.prevExposure = builder.ReadTexture(renderGraph.ImportTexture(GetPreviousExposureTexture(hdCamera)));
 
                         TextureHandle dest = GetPostprocessOutputHandle(renderGraph, "Apply Exposure Destination");
-                        passData.destination = builder.WriteTexture(dest); ;
+                        passData.destination = builder.WriteTexture(dest);
 
                         builder.SetRenderFunc(
                         (ApplyExposureData data, RenderGraphContext ctx) =>
@@ -432,7 +437,7 @@ namespace UnityEngine.Rendering.HighDefinition
             {
                 // If we switch DoF modes and the old one was not using TAA, make sure we invalidate the history
                 // Note: for Rendergraph the m_IsDoFHisotoryValid perhaps should be moved to the "pass data" struct
-                if (taaEnabled && m_IsDoFHisotoryValid != m_DepthOfField.physicallyBased)
+                if (taaEnabled && hdCamera.dofHistoryIsValid != m_DepthOfField.physicallyBased)
                 {
                     hdCamera.resetPostProcessingHistory = true;
                 }
@@ -567,15 +572,23 @@ namespace UnityEngine.Rendering.HighDefinition
                     else
                     {
                         passData.fullresCoC = builder.ReadWriteTexture(renderGraph.CreateTexture(new TextureDesc(Vector2.one, true, true)
-                            { colorFormat = k_CoCFormat, enableRandomWrite = true, useMipMap = true, name = "Full res CoC" }));
+                            { colorFormat = k_CoCFormat, enableRandomWrite = true, useMipMap = false, name = "Full res CoC" }));
 
                         passData.pingFarRGB = builder.CreateTransientTexture(new TextureDesc(Vector2.one, true, true)
                         { colorFormat = m_ColorFormat, useMipMap = true, enableRandomWrite = true, name = "DoF Source Pyramid" });
 
+                        float scaleFactor = 1.0f / passData.parameters.minMaxCoCTileSize;
+                        passData.pingNearRGB = builder.CreateTransientTexture(new TextureDesc(Vector2.one * scaleFactor, true, true)
+                            { colorFormat = GraphicsFormat.R16G16B16A16_SFloat, useMipMap = false, enableRandomWrite = true, name = "CoC Min Max Tiles" });
+
+                        passData.pongNearRGB = builder.CreateTransientTexture(new TextureDesc(Vector2.one * scaleFactor, true, true)
+                            { colorFormat = GraphicsFormat.R16G16B16A16_SFloat, useMipMap = false, enableRandomWrite = true, name = "CoC Min Max Tiles" });
+
+
                         builder.SetRenderFunc(
                             (DepthofFieldData data, RenderGraphContext ctx) =>
                             {
-                                DoPhysicallyBasedDepthOfField(data.parameters, ctx.cmd, data.source, data.destination, data.fullresCoC, data.prevCoC, data.nextCoC, data.motionVecTexture, data.pingFarRGB, data.depthBuffer, data.taaEnabled);
+                                DoPhysicallyBasedDepthOfField(data.parameters, ctx.cmd, data.source, data.destination, data.fullresCoC, data.prevCoC, data.nextCoC, data.motionVecTexture, data.pingFarRGB, data.depthBuffer, data.pingNearRGB, data.pongNearRGB, data.taaEnabled);
                             });
 
                         source = passData.destination;
@@ -608,35 +621,33 @@ namespace UnityEngine.Rendering.HighDefinition
                     passData.nextMVLen = TextureHandle.nullHandle;
 
                     TextureHandle dest = GetPostprocessOutputHandle(renderGraph, "Post-DoF TAA Destination");
-                    passData.destination = builder.WriteTexture(dest); ;
+                    passData.destination = builder.WriteTexture(dest);
 
                     builder.SetRenderFunc(
-                    (TemporalAntiAliasingData data, RenderGraphContext ctx) =>
-                    {
-                        DoTemporalAntialiasing(data.parameters, ctx.cmd, data.source,
-                                                                         data.destination,
-                                                                         data.motionVecTexture,
-                                                                         data.depthBuffer,
-                                                                         data.depthMipChain,
-                                                                         data.prevHistory,
-                                                                         data.nextHistory,
-                                                                         data.prevMVLen,
-                                                                         data.nextMVLen);
-
-                        // Temporary hack to make post-dof TAA work with rendergraph (still the first frame flashes black). We need a better solution.
-                        m_IsDoFHisotoryValid = true;
-                    });
+                        (TemporalAntiAliasingData data, RenderGraphContext ctx) =>
+                        {
+                            DoTemporalAntialiasing(data.parameters, ctx.cmd, data.source,
+                                data.destination,
+                                data.motionVecTexture,
+                                data.depthBuffer,
+                                data.depthMipChain,
+                                data.prevHistory,
+                                data.nextHistory,
+                                data.prevMVLen,
+                                data.nextMVLen);
+                        });
 
                     source = passData.destination;
                 }
 
+                hdCamera.dofHistoryIsValid = true;
                 postDoFTAAEnabled = true;
                 
             }
             else
             {
                 // Temporary hack to make post-dof TAA work with rendergraph (still the first frame flashes black). We need a better solution.
-                m_IsDoFHisotoryValid = false;
+                hdCamera.dofHistoryIsValid = false;
             }
 
             if (!postDoFTAAEnabled)
@@ -683,7 +694,7 @@ namespace UnityEngine.Rendering.HighDefinition
                     }
 
                     TextureHandle dest = GetPostprocessOutputHandle(renderGraph, "Motion Blur Destination");
-                    passData.destination = builder.WriteTexture(dest); ;
+                    passData.destination = builder.WriteTexture(dest);
 
                     builder.SetRenderFunc(
                     (MotionBlurData data, RenderGraphContext ctx) =>
@@ -868,8 +879,8 @@ namespace UnityEngine.Rendering.HighDefinition
                 {
                     passData.source = builder.ReadTexture(source);
                     passData.parameters = PrepareContrastAdaptiveSharpeningParameters(hdCamera);
-                    TextureHandle dest = GetPostprocessOutputHandle(renderGraph, "Contrast Adaptive Sharpen Destination");
-                    passData.destination = builder.WriteTexture(dest); ;
+                    TextureHandle dest = GetPostprocessUpsampledOutputHandle(renderGraph, "Contrast Adaptive Sharpen Destination");
+                    passData.destination = builder.WriteTexture(dest);
 
                     passData.casParametersBuffer = builder.CreateTransientComputeBuffer(new ComputeBufferDesc(2, sizeof(uint) * 4) { name = "Cas Parameters" });
 

@@ -146,8 +146,6 @@ namespace UnityEngine.Rendering.HighDefinition
 
         HDRenderPipeline m_HDInstance;
 
-        bool m_IsDoFHisotoryValid = false;
-
         static void SetExposureTextureToEmpty(RTHandle exposureTexture)
         {
             var tex = new Texture2D(1, 1, TextureFormat.RGHalf, false, true);
@@ -608,7 +606,7 @@ namespace UnityEngine.Rendering.HighDefinition
                         using (new ProfilingScope(cmd, ProfilingSampler.Get(HDProfileId.DepthOfField)))
                         {
                             // If we switch DoF modes and the old one was not using TAA, make sure we invalidate the history
-                            if (taaEnabled && m_IsDoFHisotoryValid != m_DepthOfField.physicallyBased)
+                            if (taaEnabled && camera.dofHistoryIsValid != m_DepthOfField.physicallyBased)
                             {
                                 camera.resetPostProcessingHistory = true;
                             }
@@ -713,12 +711,18 @@ namespace UnityEngine.Rendering.HighDefinition
                                 if (taaEnabled)
                                     GrabCoCHistory(camera, out prevCoC, out nextCoC, useMips: true);
 
-                                var fullresCoC = m_Pool.Get(Vector2.one, k_CoCFormat, true);
+                                var fullresCoC = m_Pool.Get(Vector2.one, k_CoCFormat, false);
                                 var colorPyramid = m_Pool.Get(Vector2.one, m_ColorFormat, true);
-                                DoPhysicallyBasedDepthOfField(dofParameters, cmd, source, destination, fullresCoC, prevCoC, nextCoC, motionVecTexture, colorPyramid, depthBuffer, taaEnabled);
+                                float scaleFactor = 1.0f / dofParameters.minMaxCoCTileSize;
+                                var minMaxCoCPing = m_Pool.Get(Vector2.one * scaleFactor, GraphicsFormat.R16G16B16A16_SFloat, false);
+                                var minMaxCoCPong = m_Pool.Get(Vector2.one * scaleFactor, GraphicsFormat.R16G16B16A16_SFloat, false);
+
+                                DoPhysicallyBasedDepthOfField(dofParameters, cmd, source, destination, fullresCoC, prevCoC, nextCoC, motionVecTexture, colorPyramid, depthBuffer, minMaxCoCPing, minMaxCoCPong, taaEnabled);
 
                                 m_Pool.Recycle(fullresCoC);
                                 m_Pool.Recycle(colorPyramid);
+                                m_Pool.Recycle(minMaxCoCPing);
+                                m_Pool.Recycle(minMaxCoCPong);
                             }
                             PoolSource(ref source, destination);
 
@@ -735,7 +739,7 @@ namespace UnityEngine.Rendering.HighDefinition
                                 postDoFTAAEnabled = true;
                             }
 
-                            m_IsDoFHisotoryValid = (m_DepthOfField.physicallyBased && taaEnabled);
+                            camera.dofHistoryIsValid = (m_DepthOfField.physicallyBased && taaEnabled);
                         }
                     }
 
@@ -1833,10 +1837,13 @@ namespace UnityEngine.Rendering.HighDefinition
             // PB DoF shaders
             public ComputeShader dofCircleOfConfusionCS;
             public int dofCircleOfConfusionKernel;
-            public ComputeShader dofCoCPyramidCS;
-            public int dofCoCPyramidKernel;
+            public ComputeShader pbDoFCoCMinMaxCS;
+            public int pbDoFMinMaxKernel;
             public ComputeShader pbDoFGatherCS;
             public int pbDoFGatherKernel;
+            public ComputeShader pbDoFDilateCS;
+            public int pbDoFDilateKernel;
+            public int minMaxCoCTileSize;
 
             public BlueNoise.DitheredTextureSet ditheredTextureSet;
 
@@ -1909,10 +1916,13 @@ namespace UnityEngine.Rendering.HighDefinition
             parameters.dofClearIndirectArgsKernel = parameters.dofClearIndirectArgsCS.FindKernel("KClear");
 
             parameters.dofCircleOfConfusionCS = m_Resources.shaders.dofCircleOfConfusion;
-            parameters.dofCoCPyramidCS = m_Resources.shaders.DoFCoCPyramidCS;
-            parameters.dofCoCPyramidKernel = parameters.dofCoCPyramidCS.FindKernel("KMainCoCPyramid");
+            parameters.pbDoFCoCMinMaxCS = m_Resources.shaders.dofCoCMinMaxCS;
+            parameters.pbDoFMinMaxKernel = parameters.pbDoFCoCMinMaxCS.FindKernel("KMainCoCMinMax");
+            parameters.pbDoFDilateCS = m_Resources.shaders.dofMinMaxDilateCS;
+            parameters.pbDoFDilateKernel = parameters.pbDoFDilateCS.FindKernel("KMain");
             parameters.pbDoFGatherCS = m_Resources.shaders.dofGatherCS;
             parameters.pbDoFGatherKernel = parameters.pbDoFGatherCS.FindKernel("KMain");
+            parameters.minMaxCoCTileSize = 8;
 
             parameters.camera = camera;
             parameters.resetPostProcessingHistory = camera.resetPostProcessingHistory;
@@ -1924,7 +1934,7 @@ namespace UnityEngine.Rendering.HighDefinition
 
             parameters.resolution = m_DepthOfField.resolution;
 
-            float scale = 1f / (float)parameters.resolution;
+            float scale = m_DepthOfField.physicallyBased ? 1f : 1f / (float)parameters.resolution; // Note: physical dof always runs at full resolution
             float resolutionScale = (camera.actualHeight / 1080f) * (scale * 2f);
 
             int farSamples = Mathf.CeilToInt(m_DepthOfField.farSampleCount * resolutionScale);
@@ -2559,29 +2569,17 @@ namespace UnityEngine.Rendering.HighDefinition
             fullresCoC = nextCoC;
         }
 
-        static void GetMipMapDimensions(RTHandle texture, int lod, out int width, out int height)
-        {
-            width = texture.rt.width;
-            height = texture.rt.height;
-
-            for (int level = 0; level < lod; ++level)
-            {
-                // Note: When the texture/mip size is an odd number, the size of the next level is rounded down.
-                // That's why we cannot find the actual size by doing (size >> lod).
-                width /= 2;
-                height /= 2;
-            }
-        }
-
-        static void DoPhysicallyBasedDepthOfField(in DepthOfFieldParameters dofParameters, CommandBuffer cmd, RTHandle source, RTHandle destination, RTHandle fullresCoC, RTHandle prevCoCHistory, RTHandle nextCoCHistory, RTHandle motionVecTexture, RTHandle sourcePyramid, RTHandle depthBuffer, bool taaEnabled)
+        static void DoPhysicallyBasedDepthOfField(in DepthOfFieldParameters dofParameters, CommandBuffer cmd, RTHandle source, RTHandle destination, RTHandle fullresCoC, RTHandle prevCoCHistory, RTHandle nextCoCHistory, RTHandle motionVecTexture, RTHandle sourcePyramid, RTHandle depthBuffer, RTHandle minMaxCoCPing, RTHandle minMaxCoCPong, bool taaEnabled)
         {
             float scale = 1f / (float)dofParameters.resolution;
             int targetWidth = Mathf.RoundToInt(dofParameters.camera.actualWidth * scale);
             int targetHeight = Mathf.RoundToInt(dofParameters.camera.actualHeight * scale);
 
-            // Map the old "max radius" parameters to a bigger range, so we can work on more challenging scenes
-            float maxRadius = Mathf.Max(dofParameters.farMaxBlur, dofParameters.nearMaxBlur);
-            float cocLimit = Mathf.Clamp(4 * maxRadius, 1, 64); //[1, 16] --> [1, 64]
+            // Map the old "max radius" parameters to a bigger range, so we can work on more challenging scenes, [0, 16] --> [0, 64]
+            Vector2 cocLimit = new Vector2(
+                Mathf.Max(4 * dofParameters.farMaxBlur, 0.01f),
+                Mathf.Max(4 * dofParameters.nearMaxBlur, 0.01f));
+            float maxCoc = Mathf.Max(cocLimit.x, cocLimit.y);
 
             ComputeShader cs;
             int kernel;
@@ -2612,7 +2610,7 @@ namespace UnityEngine.Rendering.HighDefinition
                     // Scale and Bias factors for directly computing CoC size from post-rasterization depth with a single mad
                     float cocBias = maxFarCoC * (1f - P / dofParameters.camera.camera.farClipPlane);
                     float cocScale = maxFarCoC * P * (dofParameters.camera.camera.farClipPlane - dofParameters.camera.camera.nearClipPlane) / (dofParameters.camera.camera.farClipPlane * dofParameters.camera.camera.nearClipPlane);
-                    cmd.SetComputeVectorParam(cs, HDShaderIDs._Params, new Vector4(cocLimit, 0.0f, cocScale, cocBias));
+                    cmd.SetComputeVectorParam(cs, HDShaderIDs._Params, new Vector4(cocLimit.x, cocLimit.y, cocScale, cocBias));
                 }
                 else
                 {
@@ -2621,7 +2619,7 @@ namespace UnityEngine.Rendering.HighDefinition
                     float farStart = Mathf.Max(dofParameters.farFocusStart, nearEnd);
                     float farEnd = Mathf.Max(dofParameters.farFocusEnd, farStart + 1e-5f);
                     cmd.SetComputeVectorParam(cs, HDShaderIDs._Params, new Vector4(farStart, nearEnd, 1.0f / (farEnd - farStart), 1.0f / (nearStart - nearEnd)));
-                    cmd.SetComputeVectorParam(cs, HDShaderIDs._Params2, new Vector4(dofParameters.nearMaxBlur, dofParameters.farMaxBlur, 0, 0));
+                    cmd.SetComputeVectorParam(cs, HDShaderIDs._Params2, new Vector4(cocLimit.y, cocLimit.x, 0, 0));
                 }
 
                 cmd.SetComputeTextureParam(cs, kernel, HDShaderIDs._CameraDepthTexture, depthBuffer);
@@ -2655,6 +2653,38 @@ namespace UnityEngine.Rendering.HighDefinition
                 }
             }
 
+            using (new ProfilingScope(cmd, ProfilingSampler.Get(HDProfileId.DepthOfFieldDilate)))
+            {
+                int tileSize = dofParameters.minMaxCoCTileSize;
+                int tx = ((dofParameters.camera.actualWidth / tileSize) + 7) / 8;
+                int ty = ((dofParameters.camera.actualHeight / tileSize) + 7) / 8;
+
+                // Min Max CoC tiles
+                {
+                    cs = dofParameters.pbDoFCoCMinMaxCS;
+                    kernel = dofParameters.pbDoFMinMaxKernel;
+
+                    cmd.SetComputeTextureParam(cs, kernel, HDShaderIDs._InputTexture, fullresCoC, 0);
+                    cmd.SetComputeTextureParam(cs, kernel, HDShaderIDs._OutputTexture, minMaxCoCPing, 0);
+                    cmd.DispatchCompute(cs, kernel, tx, ty, dofParameters.camera.viewCount);
+                }
+
+                //  Min Max CoC tile dilation
+                {
+                    cs = dofParameters.pbDoFDilateCS;
+                    kernel = dofParameters.pbDoFDilateKernel;
+
+                    int iterations = (int)Mathf.Max(Mathf.Ceil(cocLimit.y / dofParameters.minMaxCoCTileSize), 1.0f);
+                    for (int pass = 0; pass < iterations; ++pass)
+                    {
+                        cmd.SetComputeTextureParam(cs, kernel, HDShaderIDs._InputTexture, minMaxCoCPing, 0);
+                        cmd.SetComputeTextureParam(cs, kernel, HDShaderIDs._OutputTexture, minMaxCoCPong, 0);
+                        cmd.DispatchCompute(cs, kernel, tx, ty, dofParameters.camera.viewCount);
+                        CoreUtils.Swap(ref minMaxCoCPing, ref minMaxCoCPong);
+                    }
+                }
+            }
+
             using (new ProfilingScope(cmd, ProfilingSampler.Get(HDProfileId.DepthOfFieldCombine)))
             {
                 cs = dofParameters.pbDoFGatherCS;
@@ -2662,13 +2692,13 @@ namespace UnityEngine.Rendering.HighDefinition
                 float sampleCount = Mathf.Max(dofParameters.nearSampleCount, dofParameters.farSampleCount);
                 float anamorphism = dofParameters.physicalCameraAnamorphism / 4f;
 
-                float mipLevel = 1 + Mathf.Ceil(Mathf.Log(cocLimit, 2));
-                GetMipMapDimensions(fullresCoC, (int)mipLevel, out var mipMapWidth, out var mipMapHeight);
-                cmd.SetComputeVectorParam(cs, HDShaderIDs._Params, new Vector4(sampleCount, cocLimit, anamorphism, 0.0f));
-                cmd.SetComputeVectorParam(cs, HDShaderIDs._Params2, new Vector4(mipLevel, mipMapWidth, mipMapHeight, (float)dofParameters.resolution));
+                float mipLevel = 1 + Mathf.Ceil(Mathf.Log(maxCoc, 2));
+                cmd.SetComputeVectorParam(cs, HDShaderIDs._Params, new Vector4(sampleCount, maxCoc, anamorphism, 0.0f));
+                cmd.SetComputeVectorParam(cs, HDShaderIDs._Params2, new Vector4(mipLevel, 0, 0, (float)dofParameters.resolution));
                 cmd.SetComputeTextureParam(cs, kernel, HDShaderIDs._InputTexture, sourcePyramid != null ? sourcePyramid : source);
                 cmd.SetComputeTextureParam(cs, kernel, HDShaderIDs._InputCoCTexture, fullresCoC);
                 cmd.SetComputeTextureParam(cs, kernel, HDShaderIDs._OutputTexture, destination);
+                cmd.SetComputeTextureParam(cs, kernel, HDShaderIDs._TileList, minMaxCoCPing, 0);
                 BlueNoise.BindDitheredTextureSet(cmd, dofParameters.ditheredTextureSet);
                 cmd.DispatchCompute(cs, kernel, (dofParameters.camera.actualWidth + 7) / 8, (dofParameters.camera.actualHeight + 7) / 8, dofParameters.camera.viewCount);
             }
@@ -3873,6 +3903,10 @@ namespace UnityEngine.Rendering.HighDefinition
             public int initKernel;
             public int mainKernel;
             public int viewCount;
+            public int inputWidth;
+            public int inputHeight;
+            public int outputWidth;
+            public int outputHeight;
         }
 
         CASParameters PrepareContrastAdaptiveSharpeningParameters(HDCamera camera)
@@ -3884,6 +3918,11 @@ namespace UnityEngine.Rendering.HighDefinition
             parameters.mainKernel = parameters.casCS.FindKernel("KMain");
 
             parameters.viewCount = camera.viewCount;
+
+            parameters.inputWidth = camera.actualWidth;
+            parameters.inputHeight = camera.actualHeight;
+            parameters.outputWidth = Mathf.RoundToInt(camera.finalViewport.width);
+            parameters.outputHeight = Mathf.RoundToInt(camera.finalViewport.height);
 
             return parameters;
         }
@@ -3897,17 +3936,17 @@ namespace UnityEngine.Rendering.HighDefinition
             {
                 cmd.SetComputeFloatParam(cs, HDShaderIDs._Sharpness, 1);
                 cmd.SetComputeTextureParam(cs, kMain, HDShaderIDs._InputTexture, source);
-                cmd.SetComputeVectorParam(cs, HDShaderIDs._InputTextureDimensions, new Vector4(source.rt.width, source.rt.height));
+                cmd.SetComputeVectorParam(cs, HDShaderIDs._InputTextureDimensions, new Vector4(parameters.inputWidth, parameters.inputHeight));
                 cmd.SetComputeTextureParam(cs, kMain, HDShaderIDs._OutputTexture, destination);
-                cmd.SetComputeVectorParam(cs, HDShaderIDs._OutputTextureDimensions, new Vector4(destination.rt.width, destination.rt.height));
+                cmd.SetComputeVectorParam(cs, HDShaderIDs._OutputTextureDimensions, new Vector4(parameters.outputWidth, parameters.outputHeight));
 
                 cmd.SetComputeBufferParam(cs, kInit, "CasParameters", casParametersBuffer);
                 cmd.SetComputeBufferParam(cs, kMain, "CasParameters", casParametersBuffer);
 
                 cmd.DispatchCompute(cs, kInit, 1, 1, 1);
 
-                int dispatchX = (int)System.Math.Ceiling(destination.rt.width / 16.0f);
-                int dispatchY = (int)System.Math.Ceiling(destination.rt.height / 16.0f);
+                int dispatchX = HDUtils.DivRoundUp(parameters.outputWidth, 16);
+                int dispatchY = HDUtils.DivRoundUp(parameters.outputHeight, 16);
 
                 cmd.DispatchCompute(cs, kMain, dispatchX, dispatchY, parameters.viewCount);
             }
@@ -4071,6 +4110,9 @@ namespace UnityEngine.Rendering.HighDefinition
                 : new Vector4(1.0f,  1.0f, 0.0f, 0.0f)
             );
 
+            finalPassMaterial.SetVector(HDShaderIDs._ViewPortSize,
+                new Vector4(hdCamera.finalViewport.width, hdCamera.finalViewport.height, 1.0f / hdCamera.finalViewport.width, 1.0f / hdCamera.finalViewport.height));
+
             // Blit to backbuffer
             Rect backBufferRect = hdCamera.finalViewport;
 
@@ -4078,12 +4120,6 @@ namespace UnityEngine.Rendering.HighDefinition
             // Final viewport is handled in the final blit in this case
             if (!HDUtils.PostProcessIsFinalPass(hdCamera))
             {
-                if (dynResHandler.HardwareDynamicResIsEnabled())
-                {
-                    var scaledSize = dynResHandler.GetLastScaledSize();
-                    backBufferRect.width = scaledSize.x;
-                    backBufferRect.height = scaledSize.y;
-                }
                 backBufferRect.x = backBufferRect.y = 0;
             }
 
