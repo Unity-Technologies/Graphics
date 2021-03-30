@@ -13,18 +13,18 @@ namespace UnityEngine.Rendering.Universal
     {
         private const int kRenderPassMapSize = 10;
         private const int kRenderPassMaxCount = 20;
-        private static Dictionary<Hash128, int[]> mergeableRenderPassesMap = new Dictionary<Hash128, int[]>(kRenderPassMapSize);
-        private static int[][] mergeableRenderPassesMapArrays;
-        private static Hash128[] sceneIndexToPassHash = new Hash128[kRenderPassMaxCount];
-        private static Dictionary<Hash128, int> renderPassesAttachmentCount = new Dictionary<Hash128, int>(kRenderPassMapSize);
+        private Dictionary<Hash128, int[]> mergeableRenderPassesMap = new Dictionary<Hash128, int[]>(kRenderPassMapSize);
+        private int[][] mergeableRenderPassesMapArrays;
+        private Hash128[] sceneIndexToPassHash = new Hash128[kRenderPassMaxCount];
+        private Dictionary<Hash128, int> renderPassesAttachmentCount = new Dictionary<Hash128, int>(kRenderPassMapSize);
 
-        static AttachmentDescriptor[] m_ActiveColorAttachmentDescriptors = new AttachmentDescriptor[]
+        AttachmentDescriptor[] m_ActiveColorAttachmentDescriptors = new AttachmentDescriptor[]
         {
             RenderingUtils.emptyAttachment, RenderingUtils.emptyAttachment, RenderingUtils.emptyAttachment,
             RenderingUtils.emptyAttachment, RenderingUtils.emptyAttachment, RenderingUtils.emptyAttachment,
             RenderingUtils.emptyAttachment, RenderingUtils.emptyAttachment
         };
-        static AttachmentDescriptor m_ActiveDepthAttachmentDescriptor;
+        AttachmentDescriptor m_ActiveDepthAttachmentDescriptor;
 
         private static partial class Profiling
         {
