@@ -218,6 +218,7 @@ namespace UnityEditor.ShaderGraph
                 prop.SetupConcretePrecision(this.concretePrecision);
                 var inSlotId = m_PropertyIds[m_PropertyGuids.IndexOf(prop.guid.ToString())];
                 arguments.Add(GetSlotValue(inSlotId, generationMode, prop.concretePrecision));
+                arguments.Add(IsSlotConnected(inSlotId) ? "true" : "false");
             }
 
             // pass surface inputs through
@@ -559,6 +560,23 @@ namespace UnityEditor.ShaderGraph
             {
                 visitor.AddShaderProperty(property);
             }
+        }
+
+        public AbstractShaderProperty GetShaderProperty(int id)
+        {
+            var index = m_PropertyIds.IndexOf(id);
+            if (index >= 0)
+            {
+                var guid = m_PropertyGuids[index];
+                var properties = m_SubGraph.inputs.Where(x => x.guid.ToString().Equals(guid));
+                var count = properties.Count();
+                if (properties.Count() > 0)
+                {
+                    return properties.First();
+                }
+            }            
+
+            return null;
         }
 
         public void CollectShaderKeywords(KeywordCollector keywords, GenerationMode generationMode)
