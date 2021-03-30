@@ -24,9 +24,15 @@ namespace UnityEditor.ShaderGraph
     // sure that all shader graphs get re-imported. Re-importing is required,
     // because the shader graph codegen is different for V2.
     // This ifdef can be removed once V2 is the only option.
-    [ScriptedImporter(115, Extension, -902)]
+
+    // custom-begin:
+    // + 1 Bump ShaderImporter version after bugfix to DotsDeformation.hlsl::FetchComputeVertexData() to tangentOS.w in tangentOS output so mirrored normals produce correct normal maps.
+    // [ScriptedImporter(115, Extension, -902)]
+    [ScriptedImporter(116, Extension, -902)]
 #else
-    [ScriptedImporter(47, Extension, -902)]
+    // [ScriptedImporter(47, Extension, -902)]
+    [ScriptedImporter(48, Extension, -902)]
+    // custom-end
 #endif
 
     class ShaderGraphImporter : ScriptedImporter
