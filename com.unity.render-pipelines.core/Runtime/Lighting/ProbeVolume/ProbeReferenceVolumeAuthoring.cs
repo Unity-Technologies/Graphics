@@ -97,7 +97,7 @@ namespace UnityEngine.Rendering
         [SerializeField]
         private ProbeShadingMode m_ProbeShading;
         [SerializeField]
-        private float m_CullingDistance = 200;
+        private float m_CullingDistance = 500;
         [SerializeField]
         private float m_Exposure;
 
@@ -113,16 +113,7 @@ namespace UnityEngine.Rendering
         [SerializeField]
         private bool m_GreedyDilation = false;
 
-        MeshGizmo m_MeshGizmo;
-        MeshGizmo meshGizmo
-        {
-            get
-            {
-                if (m_MeshGizmo == null)
-                    m_MeshGizmo = new MeshGizmo((int)(Mathf.Pow(3, ProbeBrickIndex.kMaxSubdivisionLevels) * MeshGizmo.vertexCountPerCube));
-                return m_MeshGizmo;
-            }
-        }
+        Dictionary<ProbeReferenceVolume.Cell, MeshGizmo> brickGizmos = new Dictionary<ProbeReferenceVolume.Cell, MeshGizmo>();
 
         // In some cases Unity will magically popuplate this private field with a correct value even though it should not be serialized.
         // The [NonSerialized] attribute allows to force the asset to be null in case a domain reload happens.
@@ -149,6 +140,10 @@ namespace UnityEngine.Rendering
         {
             if (volumeAsset == null)
                 return;
+
+            foreach (var meshGizmo in brickGizmos.Values)
+                meshGizmo.Dispose();
+            brickGizmos.Clear();
 
             ProbeReferenceVolume.instance.AddPendingAssetRemoval(volumeAsset);
         }
@@ -197,7 +192,6 @@ namespace UnityEngine.Rendering
         private void OnDestroy()
         {
             QueueAssetRemoval();
-            meshGizmo.Dispose();
         }
 
         internal bool ShouldCull(Vector3 cellPosition, Vector3 originWS = default(Vector3))
@@ -220,24 +214,6 @@ namespace UnityEngine.Rendering
             if (!enabled || !gameObject.activeSelf)
                 return;
 
-            if (m_DrawCells)
-            {
-                // Fetching this from components instead of from the reference volume allows the user to
-                // preview how cells will look before they commit to a bake.
-                meshGizmo.Clear();
-                foreach (var cell in ProbeReferenceVolume.instance.cells.Values)
-                {
-                    if (ShouldCull(cell.position, transform.position))
-                        continue;
-
-                    var positionF = new Vector3(cell.position.x, cell.position.y, cell.position.z);
-                    var center = positionF * m_Profile.cellSize + m_Profile.cellSize * 0.5f * Vector3.one;
-                    meshGizmo.AddCube(center, Vector3.one * m_Profile.cellSize, Color.green);
-                }
-                var refVolumeTransform = Matrix4x4.TRS(ProbeReferenceVolume.instance.GetTransform().posWS, ProbeReferenceVolume.instance.GetTransform().rot, Vector3.one);
-                meshGizmo.RenderWireframe(refVolumeTransform, gizmoName: "Cell Gizmo Rendering");
-            }
-
             if (m_DrawBricks)
             {
                 foreach (var cell in ProbeReferenceVolume.instance.cells.Values)
@@ -248,14 +224,41 @@ namespace UnityEngine.Rendering
                     if (cell.bricks == null)
                         continue;
 
-                    meshGizmo.Clear();
-                    foreach (var brick in cell.bricks)
-                    {
-                        Vector3 scaledSize = Vector3.one * Mathf.Pow(3, brick.subdivisionLevel);
-                        Vector3 scaledPos = brick.position + scaledSize / 2;
-                        meshGizmo.AddCube(scaledPos, scaledSize, Color.blue);
-                    }
+                    if (!brickGizmos.TryGetValue(cell, out var meshGizmo))
+                        meshGizmo = AddBrickGizmo(cell);
+
                     meshGizmo.RenderWireframe(ProbeReferenceVolume.instance.GetRefSpaceToWS(), gizmoName: "Brick Gizmo Rendering");
+
+                    MeshGizmo AddBrickGizmo(ProbeReferenceVolume.Cell cell)
+                    {
+                        var meshGizmo = new MeshGizmo((int)(Mathf.Pow(3, ProbeBrickIndex.kMaxSubdivisionLevels) * MeshGizmo.vertexCountPerCube));
+                        meshGizmo.Clear();
+                        foreach (var brick in cell.bricks)
+                        {
+                            Vector3 scaledSize = Vector3.one * Mathf.Pow(3, brick.subdivisionLevel);
+                            Vector3 scaledPos = brick.position + scaledSize / 2;
+                            meshGizmo.AddWireCube(scaledPos, scaledSize, Color.blue);
+                        }
+                        brickGizmos[cell] = meshGizmo;
+                        return meshGizmo;
+                    }
+                }
+            }
+
+            if (m_DrawCells)
+            {
+                // Fetching this from components instead of from the reference volume allows the user to
+                // preview how cells will look before they commit to a bake.
+                Gizmos.color = new Color(0, 1, 0.5f, 0.2f);
+                Gizmos.matrix = Matrix4x4.TRS(ProbeReferenceVolume.instance.GetTransform().posWS, ProbeReferenceVolume.instance.GetTransform().rot, Vector3.one);
+                foreach (var cell in ProbeReferenceVolume.instance.cells.Values)
+                {
+                    if (ShouldCull(cell.position, transform.position))
+                        continue;
+
+                    var positionF = new Vector3(cell.position.x, cell.position.y, cell.position.z);
+                    var center = positionF * m_Profile.cellSize + m_Profile.cellSize * 0.5f * Vector3.one;
+                    Gizmos.DrawCube(center, Vector3.one * m_Profile.cellSize);
                 }
             }
         }

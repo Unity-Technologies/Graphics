@@ -13,13 +13,5 @@ namespace UnityEditor.Rendering.HighDefinition
             var probeVolume = CoreEditorUtils.CreateGameObject("Probe Volume", parent);
             probeVolume.AddComponent<ProbeVolume>();
         }
-
-        // [MenuItem("GameObject/Light/Experimental/Probe Hint Volume", priority = CoreUtils.Sections.section8)]
-        static void CreateProbeHintVolumeGameObject(MenuCommand menuCommand)
-        {
-            var parent = menuCommand.context as GameObject;
-            var densityVolume = CoreEditorUtils.CreateGameObject("Probe Hint Volume", parent);
-            densityVolume.AddComponent<ProbeHintVolume>();
-        }
     }
 }

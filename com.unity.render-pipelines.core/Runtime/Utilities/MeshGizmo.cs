@@ -19,6 +19,8 @@ namespace UnityEngine.Rendering
         List<Color> colors;
 
         Material wireMaterial;
+        Material dottedWireMaterial;
+        Material solidMaterial;
 
         public MeshGizmo(int capacity = 0)
         {
@@ -28,6 +30,8 @@ namespace UnityEngine.Rendering
             mesh = new Mesh();
 #if UNITY_EDITOR
             wireMaterial = (Material)UnityEditor.EditorGUIUtility.LoadRequired("SceneView/HandleLines.mat");
+            dottedWireMaterial = (Material)UnityEditor.EditorGUIUtility.LoadRequired("SceneView/HandleDottedLines.mat");
+            solidMaterial = UnityEditor.HandleUtility.handleMaterial;
 #endif
         }
 
@@ -38,7 +42,7 @@ namespace UnityEngine.Rendering
             colors.Clear();
         }
 
-        public void AddCube(Vector3 center, Vector3 size, Color color)
+        public void AddWireCube(Vector3 center, Vector3 size, Color color)
         {
             var halfSize = size / 2.0f;
             Vector3 p0 = new Vector3(halfSize.x, halfSize.y, halfSize.z);
@@ -76,19 +80,22 @@ namespace UnityEngine.Rendering
             }
         }
 
-        public void RenderWireframe(Matrix4x4 trs, CompareFunction depthTest = CompareFunction.LessEqual, string gizmoName = null)
+        void DrawMesh(Matrix4x4 trs, Material mat, MeshTopology topology, CompareFunction depthTest, string gizmoName)
         {
             mesh.Clear();
             mesh.SetVertices(vertices);
             mesh.SetColors(colors);
-            mesh.SetIndices(indices, MeshTopology.Lines, 0);
+            mesh.SetIndices(indices, topology, 0);
 
-            wireMaterial.SetFloat("_HandleZTest", (int)depthTest);
+            mat.SetFloat("_HandleZTest", (int)depthTest);
 
             var cmd = CommandBufferPool.Get(gizmoName ?? "Mesh Gizmo Rendering");
-            cmd.DrawMesh(mesh, trs, wireMaterial, 0, 0);
+            cmd.DrawMesh(mesh, trs, mat, 0, 0);
             Graphics.ExecuteCommandBuffer(cmd);
         }
+
+        public void RenderWireframe(Matrix4x4 trs, CompareFunction depthTest = CompareFunction.LessEqual, string gizmoName = null)
+            => DrawMesh(trs, wireMaterial, MeshTopology.Lines, depthTest, gizmoName);
 
         public void Dispose()
         {

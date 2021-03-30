@@ -11,8 +11,8 @@ namespace UnityEditor.Rendering
 
 
             internal static readonly GUIContent s_Size = new GUIContent("Size", "Modify the size of this Probe Volume. This is independent of the Transform's Scale.");
-            internal static readonly GUIContent s_MaxSubdivision = new GUIContent("Max Subdiv", "TODO");
             internal static readonly GUIContent s_DebugColorLabel = new GUIContent("Debug Color", "This color is used to visualize per-pixel probe volume weights in the render pipeline debugger.");
+            internal static readonly GUIContent s_MinMaxSubdivSlider = new GUIContent("Subdivision Controller", "TODO");
 
             internal static readonly Color k_GizmoColorBase = new Color(180 / 255f, 180 / 255f, 180 / 255f, 8 / 255f).gamma;
 
