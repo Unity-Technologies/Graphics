@@ -866,7 +866,7 @@ namespace UnityEngine.Rendering.Universal
             CommandBufferPool.Release(cmd);
 
             if (IsRenderPassEnabled(renderPass) && cameraData.cameraType == CameraType.Game)
-                NativeRenderPassExecute(context,  renderPass, cameraData, ref  renderingData, m_ActiveRenderPassQueue, ref m_ActiveColorAttachmentDescriptors, ref m_ActiveDepthAttachmentDescriptor, m_ActiveDepthAttachment);
+                NativeRenderPassExecute(context,  renderPass, cameraData, ref  renderingData, m_ActiveRenderPassQueue);
             else
                 renderPass.Execute(context, ref renderingData);
         }
