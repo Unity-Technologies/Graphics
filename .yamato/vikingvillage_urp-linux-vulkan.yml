@@ -30,7 +30,7 @@ VikingVillage_URP_Linux_Vulkan_performance_playmode_runtime_mono_Linear_trunk:
               -  "TestProjects/Viking-Village-Perf/Logs/*.log"
     dependencies:
       -  path: .yamato/vikingvillage_urp-linux-vulkan.yml#Build_VikingVillage_URP_Linux_Vulkan_performance_playmode_runtime_mono_Linear_trunk
-         rerun: on-new-revision
+         rerun: on_new_revision
 Build_VikingVillage_URP_Linux_Vulkan_performance_playmode_runtime_mono_Linear_trunk:
     name: Build VikingVillage_URP on Linux_Vulkan_mono_Linear_performance_playmode_runtime_build_Player on version trunk
     agent:
@@ -202,9 +202,9 @@ VikingVillage_URP_Linux_Vulkan_performance_playmode_runtime_mono_Linear_CUSTOM-R
               -  "TestProjects/Viking-Village-Perf/Logs/*.log"
     dependencies:
       -  path: .yamato/_editor_priming.yml#editor:priming:CUSTOM-REVISION:Linux
-         rerun: always
+         rerun: on_new_revision
       -  path: .yamato/vikingvillage_urp-linux-vulkan.yml#Build_VikingVillage_URP_Linux_Vulkan_performance_playmode_runtime_mono_Linear_CUSTOM-REVISION
-         rerun: always
+         rerun: on_new_revision
 Build_VikingVillage_URP_Linux_Vulkan_performance_playmode_runtime_mono_Linear_CUSTOM-REVISION:
     name: Build VikingVillage_URP on Linux_Vulkan_mono_Linear_performance_playmode_runtime_build_Player on version CUSTOM-REVISION
     agent:
@@ -259,7 +259,7 @@ Build_VikingVillage_URP_Linux_Vulkan_performance_playmode_runtime_mono_Linear_CU
               -  "players*/**"
     dependencies:
       -  path: .yamato/_editor_priming.yml#editor:priming:CUSTOM-REVISION:Linux
-         rerun: always
+         rerun: on_new_revision
 VikingVillage_URP_Linux_Vulkan_performance_playmode_editor_mono_Linear_CUSTOM-REVISION:
     name: VikingVillage_URP on Linux_Vulkan_performance_playmode_editor_mono_Linear on version CUSTOM-REVISION
     agent:
@@ -311,7 +311,7 @@ VikingVillage_URP_Linux_Vulkan_performance_playmode_editor_mono_Linear_CUSTOM-RE
               -  "TestProjects/Viking-Village-Perf/Logs/*.log"
     dependencies:
       -  path: .yamato/_editor_priming.yml#editor:priming:CUSTOM-REVISION:Linux
-         rerun: always
+         rerun: on_new_revision
 VikingVillage_URP_Linux_Vulkan_performance_build_editmode_mono_Linear_CUSTOM-REVISION:
     name: VikingVillage_URP on Linux_Vulkan_performance_build_editmode_mono_Linear on version CUSTOM-REVISION
     agent:
@@ -363,4 +363,4 @@ VikingVillage_URP_Linux_Vulkan_performance_build_editmode_mono_Linear_CUSTOM-REV
               -  "TestProjects/Viking-Village-Perf/Logs/*.log"
     dependencies:
       -  path: .yamato/_editor_priming.yml#editor:priming:CUSTOM-REVISION:Linux
-         rerun: always
+         rerun: on_new_revision
