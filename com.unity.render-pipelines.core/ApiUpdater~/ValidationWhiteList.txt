@@ -1,2 +1,2 @@
 ConfigurationValidation:
-T| * Utilities| Bug in the validation code prevent ref param to be match with long deceased namespace "Utilities"
+T|UnityEngine.Rendering.VolumeComponentDeprecated|Bug in the validation code cause it to fail to resolve HideInInspector in UnityEngine assembly
