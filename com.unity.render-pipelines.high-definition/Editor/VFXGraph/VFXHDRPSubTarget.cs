@@ -14,11 +14,8 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
     {
         internal const string Inspector = "Rendering.HighDefinition.VFXShaderGraphGUI";
 
-        // TODO: Note on VFX Coordinate Spaces in HDRP
-        public static readonly DependencyCollection FieldDependencies = new DependencyCollection
+        public static readonly DependencyCollection ElementSpaceDependencies = new DependencyCollection
         {
-            CoreFieldDependencies.Default,
-
             new FieldDependency(HDStructFields.FragInputs.worldToElement, HDStructFields.VaryingsMeshToPS.worldToElement0),
             new FieldDependency(HDStructFields.FragInputs.worldToElement, HDStructFields.VaryingsMeshToPS.worldToElement1),
             new FieldDependency(HDStructFields.FragInputs.worldToElement, HDStructFields.VaryingsMeshToPS.worldToElement2),
@@ -96,11 +93,6 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
                     passDescriptor.pragmas,
                     Pragma.MultiCompileInstancing
                 };
-
-                // passDescriptor.defines = new DefineCollection
-                // {
-                //     passDescriptor.defines,
-                // };
 
                 passDescriptor.additionalCommands = new AdditionalCommandCollection
                 {

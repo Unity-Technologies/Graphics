@@ -189,11 +189,23 @@ namespace UnityEditor.Rendering.HighDefinition.ShaderGraph
 
                 if (passDescriptor.fieldDependencies == null)
                 {
-                    // For now we handle VFX here since the only target that specifies field dependencies is decal, which is currently not supported.
                     if (TargetsVFX())
-                        passDescriptor.fieldDependencies = VFXHDRPSubTarget.FieldDependencies;
+                        passDescriptor.fieldDependencies = new DependencyCollection()
+                        {
+                            CoreFieldDependencies.Default,
+                            VFXHDRPSubTarget.ElementSpaceDependencies
+                        };
                     else
                         passDescriptor.fieldDependencies = CoreFieldDependencies.Default;
+                }
+                else if (TargetsVFX())
+                {
+                    var fieldDependencies = passDescriptor.fieldDependencies;
+                    passDescriptor.fieldDependencies = new DependencyCollection()
+                    {
+                        fieldDependencies,
+                        VFXHDRPSubTarget.ElementSpaceDependencies
+                    };
                 }
 
                 finalPasses.Add(passDescriptor, passes[i].fieldConditions);
