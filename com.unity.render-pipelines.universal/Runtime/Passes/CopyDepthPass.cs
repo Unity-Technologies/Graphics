@@ -18,13 +18,11 @@ namespace UnityEngine.Rendering.Universal.Internal
 
         private RTHandle source { get; set; }
         private RTHandle destination { get; set; }
-        internal bool AllocateRT  { get; set; }
         internal int MssaSamples { get; set; }
         Material m_CopyDepthMaterial;
         public CopyDepthPass(RenderPassEvent evt, Material copyDepthMaterial)
         {
             base.profilingSampler = new ProfilingSampler(nameof(CopyDepthPass));
-            AllocateRT = true;
             m_CopyDepthMaterial = copyDepthMaterial;
             renderPassEvent = evt;
         }
@@ -49,21 +47,14 @@ namespace UnityEngine.Rendering.Universal.Internal
         {
             this.source = source;
             this.destination = null;
-            this.AllocateRT = false;
             this.MssaSamples = -1;
         }
 
         public override void OnCameraSetup(CommandBuffer cmd, ref RenderingData renderingData)
         {
-            var descriptor = renderingData.cameraData.cameraTargetDescriptor;
-            descriptor.colorFormat = RenderTextureFormat.Depth;
-            descriptor.depthBufferBits = 32; //TODO: do we really need this. double check;
-            descriptor.msaaSamples = 1;
-            if (this.AllocateRT)
-                cmd.GetTemporaryRT(Shader.PropertyToID(destination.name), descriptor, FilterMode.Point);
-
             // On Metal iOS, prevent camera attachments to be bound and cleared during this pass.
-            ConfigureTarget(destination ?? k_CameraTarget, GraphicsFormat.DepthAuto, descriptor.width, descriptor.height, descriptor.msaaSamples, true);
+            var desc = renderingData.cameraData.cameraTargetDescriptor;
+            ConfigureTarget(destination ?? k_CameraTarget, GraphicsFormat.DepthAuto, desc.width, desc.height, 1, true);
             ConfigureClear(ClearFlag.None, Color.black);
         }
 
@@ -119,7 +110,7 @@ namespace UnityEngine.Rendering.Universal.Internal
                 }
 
                 cmd.SetGlobalTexture("_CameraDepthAttachment", source);
-
+                cmd.SetGlobalTexture(destination.name, destination);
 
 #if ENABLE_VR && ENABLE_XR_MODULE
                 // XR uses procedural draw instead of cmd.blit or cmd.DrawFullScreenMesh
@@ -174,10 +165,6 @@ namespace UnityEngine.Rendering.Universal.Internal
         {
             if (cmd == null)
                 throw new ArgumentNullException("cmd");
-
-            if (this.AllocateRT)
-                cmd.ReleaseTemporaryRT(Shader.PropertyToID(destination.name));
-            destination?.Release();
             destination = null;
         }
     }

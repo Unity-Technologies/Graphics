@@ -190,10 +190,9 @@ namespace UnityEngine.Rendering.Universal
 
             // RenderTexture format depends on camera and pipeline (HDR, non HDR, etc)
             // Samples (MSAA) depend on camera and pipeline
-            bool useDepthRenderBuffer = true;
             m_CameraAttachments.color = RTHandles.Alloc(
                 Vector2.one,
-                depthBufferBits: useDepthRenderBuffer ? k_DepthStencilBufferBits : DepthBits.None,
+                depthBufferBits: DepthBits.None,
                 colorFormat: GraphicsFormat.B10G11R11_UFloatPack32, // TODO there's a determine format we can use here
                 filterMode: FilterMode.Bilinear,
                 dimension: TextureDimension.Tex2D,
@@ -218,7 +217,14 @@ namespace UnityEngine.Rendering.Universal
                 bindTextureMS: bindMS,
                 name: "_CameraDepthAttachment");
 
-            m_DepthTexture = RTHandles.Alloc(URPShaderIDs._CameraDepthTexture, "_CameraDepthTexture");
+            m_DepthTexture = RTHandles.Alloc(
+                Vector2.one,
+                depthBufferBits: DepthBits.Depth32,
+                colorFormat: GraphicsFormat.DepthAuto,
+                filterMode: FilterMode.Point,
+                dimension: TextureDimension.Tex2D,
+                enableMSAA: false,
+                name: "_CameraDepthTexture");
             m_NormalsTexture = RTHandles.Alloc(URPShaderIDs._CameraNormalsTexture, "_CameraNormalsTexture");
             if (renderingMode == RenderingMode.Deferred)
             {
@@ -309,6 +315,7 @@ namespace UnityEngine.Rendering.Universal
             m_CameraAttachments.color.Release();
             m_CameraAttachments.depth.Release();
             m_OpaqueColor.Release();
+            m_DepthTexture.Release();
             if (m_GBufferHandles != null)
             {
                 m_GBufferHandles[(int) DeferredLights.GBufferHandles.DepthAsColor]?.Release();
@@ -328,6 +335,8 @@ namespace UnityEngine.Rendering.Universal
             Camera camera = renderingData.cameraData.camera;
             ref CameraData cameraData = ref renderingData.cameraData;
             RenderTextureDescriptor cameraTargetDescriptor = renderingData.cameraData.cameraTargetDescriptor;
+
+            UpdateCameraAttachments(ref cameraTargetDescriptor);
 
             // Special path for depth only offscreen cameras. Only write opaques + transparents.
             bool isOffscreenDepthTexture = cameraData.targetTexture != null && cameraData.targetTexture.format == RenderTextureFormat.Depth;
@@ -459,9 +468,6 @@ namespace UnityEngine.Rendering.Universal
             // Configure all settings require to start a new camera stack (base camera only)
             if (cameraData.renderType == CameraRenderType.Base && intermediateRenderTexture)
             {
-                bool useDepthRenderBuffer = !createDepthTexture && cameraTarget.nameID == k_CameraTarget.nameID;
-                CreateCameraRenderTarget(context, ref cameraTargetDescriptor, createColorTexture, createDepthTexture, useDepthRenderBuffer);
-
                 m_ActiveCameraAttachments.color = createColorTexture ? m_CameraAttachments.color : cameraTarget;
                 m_ActiveCameraAttachments.depth = createDepthTexture ? m_CameraAttachments.depth : cameraTarget;
             }
@@ -500,8 +506,6 @@ namespace UnityEngine.Rendering.Universal
                         RenderTextureDescriptor normalDescriptor = m_DepthNormalPrepass.normalDescriptor;
                         normalDescriptor.graphicsFormat = m_DeferredLights.GetGBufferFormat(gbufferNormalIndex);
                         m_DepthNormalPrepass.normalDescriptor = normalDescriptor;
-                        // Depth is allocated by this renderer.
-                        m_DepthNormalPrepass.allocateDepth = false;
                         // Only render forward-only geometry, as standard geometry will be rendered as normal into the gbuffer.
                         m_DepthNormalPrepass.shaderTagId = new ShaderTagId(k_DepthNormalsOnly);
                     }
@@ -552,9 +556,6 @@ namespace UnityEngine.Rendering.Universal
             if (requiresDepthCopyPass)
             {
                 m_CopyDepthPass.Setup(m_ActiveCameraAttachments.depth, m_DepthTexture);
-
-                if (this.actualRenderingMode == RenderingMode.Deferred)
-                    m_CopyDepthPass.AllocateRT = false; // m_DepthTexture is already allocated by m_GBufferCopyDepthPass.
 
                 EnqueuePass(m_CopyDepthPass);
             }
@@ -824,9 +825,9 @@ namespace UnityEngine.Rendering.Universal
             return inputSummary;
         }
 
-        void CreateCameraRenderTarget(ScriptableRenderContext context, ref RenderTextureDescriptor descriptor, bool createColor, bool createDepth, bool useDepthRenderBuffer)
+        void UpdateCameraAttachments(ref RenderTextureDescriptor descriptor)
         {
-            if (createColor && m_CameraAttachments.color.rt.graphicsFormat != descriptor.graphicsFormat)
+            if (m_CameraAttachments.color.rt.graphicsFormat != descriptor.graphicsFormat)
             {
                 m_CameraAttachments.color.Release();
                 m_CameraAttachments.color = RTHandles.Alloc(Vector2.one,
@@ -845,7 +846,7 @@ namespace UnityEngine.Rendering.Universal
             bindMS = descriptor.msaaSamples > 1 && !SystemInfo.supportsMultisampleAutoResolve &&
                      SystemInfo.supportsMultisampledTextures != 0;
 #endif
-            if (createDepth && bindMS != m_CameraAttachments.depth.rt.bindTextureMS)
+            if (bindMS != m_CameraAttachments.depth.rt.bindTextureMS)
             {
                 m_CameraAttachments.depth.Release();
                 m_CameraAttachments.depth = RTHandles.Alloc(
